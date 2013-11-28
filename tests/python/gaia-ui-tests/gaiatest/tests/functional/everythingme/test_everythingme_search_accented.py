@@ -20,7 +20,7 @@ class TestEverythingMeSearchAccented(GaiaTestCase):
 
         test_string = u'Pétanque'
         homescreen = Homescreen(self.marionette)
-        homescreen.switch_to_homescreen_frame()
+        self.apps.switch_to_displayed_app()
 
         search_panel = homescreen.tap_search_bar()
         search_panel.wait_for_everything_me_loaded()

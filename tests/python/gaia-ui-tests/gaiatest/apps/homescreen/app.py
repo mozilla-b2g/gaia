@@ -24,10 +24,6 @@ class Homescreen(Base):
     def launch(self):
         Base.launch(self)
 
-    def switch_to_homescreen_frame(self):
-        self.wait_for_condition(lambda m: self.apps.displayed_app.name == self.name)
-        self.marionette.switch_to_frame(self.apps.displayed_app.frame)
-
     def tap_search_bar(self):
         search_bar = self.marionette.find_element(*self._search_bar_icon_locator)
         search_bar.tap()
@@ -61,6 +57,7 @@ class Homescreen(Base):
         self.marionette.switch_to_frame()
         self.marionette.execute_script("window.wrappedJSObject.dispatchEvent(new Event('home'));")
         self.wait_for_condition(lambda m: self.apps.displayed_app.name == self.name)
+        self.marionette.switch_to_frame(self.apps.displayed_app.frame)
 
     def activate_edit_mode(self):
         app = self.marionette.find_element(*self._visible_icons_locator)
