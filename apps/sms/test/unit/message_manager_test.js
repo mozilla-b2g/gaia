@@ -61,7 +61,8 @@ suite('message_manager.js >', function() {
   suite('on message sent > ', function() {
 
     setup(function() {
-      this.sinon.spy(ThreadUI, 'appendMessage');
+      this.sinon.spy(ThreadUI, 'onMessageSending');
+      this.sinon.stub(Threads, 'registerMessage');
     });
 
     test('message is shown in the current thread if it belongs to the thread',
@@ -70,7 +71,7 @@ suite('message_manager.js >', function() {
         // ensure the threadId is different
         Threads.currentId = sms.threadId + 1;
         MessageManager.onMessageSending({ message: sms });
-        assert.isFalse(ThreadUI.appendMessage.called);
+        assert.isFalse(ThreadUI.onMessageSending.calledOnce);
       }
     );
   });

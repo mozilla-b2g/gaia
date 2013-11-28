@@ -29,7 +29,7 @@ section[role="region"] {
     we need the background pattern when the app content is less then viewport
     (see Bug 938785)
   */
-  background: url(images/document_bg.png);
+  background-color: #f4f4f4;
   overflow: hidden;
 }
 

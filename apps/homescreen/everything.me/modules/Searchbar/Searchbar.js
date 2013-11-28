@@ -31,6 +31,7 @@ Evme.Searchbar = new function Evme_Searchbar() {
     elForm.addEventListener('submit', function oSubmit(e) {
       e.preventDefault();
       e.stopPropagation();
+      clearTimeouts();
       cbReturnPressed(e, el.value);
     });
 
@@ -46,7 +47,6 @@ Evme.Searchbar = new function Evme_Searchbar() {
     elButtonClear.addEventListener('touchstart', function onTouchStart(e) {
       e.preventDefault();
       e.stopPropagation();
-      clearTimeouts();
       clearButtonClick();
     });
 

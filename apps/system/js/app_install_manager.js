@@ -248,6 +248,7 @@ var AppInstallManager = {
     navigator.mozL10n.localize(this.setupAppName,
                               'app-install-success', { appName: appName });
     this.setupInstalledAppDialog.classList.add('visible');
+    window.dispatchEvent(new CustomEvent('applicationsetupdialogshow'));
   },
 
   handleSetupCancelAction: function ai_handleSetupCancelAction() {

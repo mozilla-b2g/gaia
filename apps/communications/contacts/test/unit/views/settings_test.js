@@ -1,6 +1,9 @@
 require('/shared/js/lazy_loader.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connection.js');
 requireApp('communications/contacts/test/unit/mock_contacts_index.html.js');
+requireApp('communications/contacts/test/unit/mock_iccmanager.js');
 requireApp('communications/contacts/test/unit/mock_contacts.js');
 requireApp('communications/contacts/test/unit/mock_asyncstorage.js');
 requireApp('communications/contacts/test/unit/mock_fb.js');
@@ -13,6 +16,8 @@ requireApp('communications/contacts/test/unit/mock_mozContacts.js');
 requireApp('communications/contacts/test/unit/mock_sim_importer.js');
 requireApp('communications/contacts/test/unit/mock_wakelock.js');
 requireApp('communications/contacts/js/import_utils.js');
+requireApp('communications/contacts/js/utilities/icc_handler.js');
+requireApp('communications/contacts/js/utilities/sim_dom_generator.js');
 requireApp('communications/contacts/js/navigation.js');
 requireApp('communications/contacts/js/views/settings.js');
 requireApp('communications/contacts/js/utilities/cookie.js');
@@ -21,6 +26,9 @@ requireApp('communications/contacts/js/utilities/event_listeners.js');
 if (!this._) this._ = null;
 if (!this.utils) this.utils = null;
 if (!navigator.mozContacts) navigator.mozContacts = null;
+if (!navigator.mozIccManager) navigator.mozIccManager = null;
+if (!navigator.mozMobileConnections) navigator.mozMobileConnections = null;
+if (!navigator.mozMobileConnection) navigator.mozMobileConnection = null;
 
 if (!window.Rest) {
   window.Rest = null;
@@ -28,10 +36,15 @@ if (!window.Rest) {
 
 window.self = null;
 
-var realMozContacts, realUtils;
+var realMozContacts, realUtils, realMozIccManager,
+  realMozMobileConnection, realMozMobileConnections;
 
 if (!this.realMozContacts) {
   realMozContacts = null;
+}
+
+if (!this.realMozIccManager) {
+  realIccManager = null;
 }
 
 var mocksHelperForContactSettings = new MocksHelper([
@@ -100,11 +113,55 @@ suite('Contacts settings', function() {
     mocksHelper.suiteTeardown();
   });
 
+  suite('DSDS DOM support', function() {
+    // This test sets an scenario of two sim cards
+    suiteSetup(function() {
+      realMozMobileConnections = navigator.mozMobileConnections;
+      realMozMobileConnection = navigator.mozMobileConnection;
+      navigator.mozMobileConnections = MockNavigatorMozMobileConnections;
+      navigator.mozMobileConnection = MockNavigatorMozMobileConnection;
+      Contacts.showStatus = utils.status.show;
+
+      realMozIccManager = navigator.mozIccManager;
+      navigator.mozIccManager = new MockIccManager();
+      // Add to facke iccs
+      navigator.mozIccManager.iccIds[0] = 0;
+      navigator.mozIccManager.iccIds[1] = 1;
+      contacts.Settings.init();
+    });
+    suiteTeardown(function() {
+      navigator.mozMobileConnections.mAddMobileConnection();
+      navigator.mozMobileConnections = realMozMobileConnections;
+      navigator.mozMobileConnection = realMozMobileConnection;
+      contacts.Settings.init();
+    });
+
+    test('Check number of import buttons appearing', function() {
+      // Check that we generated two sim import buttons
+      assert.isNotNull(document.querySelector('#import-sim-option-0'));
+      assert.isNotNull(document.querySelector('#import-sim-option-1'));
+    });
+
+    test('Check number of export buttons appearing', function() {
+      assert.isNotNull(document.querySelector('#export-sim-option-0'));
+      assert.isNotNull(document.querySelector('#export-sim-option-1'));
+    });
+  });
+
   suite('SIM Import', function() {
     suiteSetup(function() {
+      realMozMobileConnections = navigator.mozMobileConnections;
+      realMozMobileConnection = navigator.mozMobileConnection;
+      navigator.mozMobileConnections = MockNavigatorMozMobileConnections;
+      navigator.mozMobileConnection = MockNavigatorMozMobileConnection;
       Contacts.showStatus = utils.status.show;
       contacts.Settings.init();
     });
+    suiteTeardown(function() {
+      navigator.mozMobileConnections = realMozMobileConnections;
+      navigator.mozMobileConnection = realMozMobileConnection;
+    });
+
     test('If there are no Contacts to be imported a message appears',
       function(done) {
         var observer = new MutationObserver(function(record) {
@@ -116,7 +173,7 @@ suite('Contacts settings', function() {
           attributes: true,
           attributeFilter: ['class']
         });
-        var simOption = document.querySelector('#import-sim-option button');
+        var simOption = document.querySelector('.icon-sim');
         simOption.click();
     });
   });

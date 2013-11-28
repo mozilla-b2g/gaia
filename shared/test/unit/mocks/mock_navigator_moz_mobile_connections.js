@@ -64,6 +64,7 @@
     function _mAddMobileConnection(newConn, index) {
       if (newConn) {
         _mobileConnections.splice(index, 0, newConn);
+        _mock[index] = newConn;
       } else {
         var conn = MockMobileconnection();
         _mock[_mobileConnections.length] = conn;

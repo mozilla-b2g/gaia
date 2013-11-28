@@ -325,9 +325,9 @@ article:not(:target) #keypad-delete {
 
 #keypad-hidebar-hide-keypad-action > div {
   margin: -moz-calc((4rem - 3rem)/2) auto;
-  background-image: url('images/ActionIcons_30x30_dismiss_keyboard.png');
+  background-image: url('images/ActionIcons_40x40_dismiss_keyboard.png');
   background-repeat: no-repeat;
-  background-size: 3rem 3rem;
+  background-size: 4rem 4rem;
   background-position: center;
   width: 3rem;
   height: 3rem;

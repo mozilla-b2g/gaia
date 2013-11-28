@@ -18,7 +18,7 @@ var EverythingME = {
     activationIcon.id = 'evme-activation-icon';
     activationIcon.innerHTML =
       '<input type="text" x-inputmode="verbatim"' +
-      ' data-l10n-id="evme-searchbar-default3" />';
+      ' data-l10n-id="evme-searchbar-default2" />';
 
     // insert into first page
     gridPage.insertBefore(activationIcon, gridPage.firstChild);
@@ -26,7 +26,7 @@ var EverythingME = {
     // Append appropriate placeholder translation to pseudo searchbar
     navigator.mozL10n.ready(function loadSearchbarValue() {
       var input = activationIcon.querySelector('input'),
-          defaultText = navigator.mozL10n.get('evme-searchbar-default3') || '';
+          defaultText = navigator.mozL10n.get('evme-searchbar-default2') || '';
 
       input.setAttribute('placeholder', defaultText);
     });

@@ -1,7 +1,8 @@
-/*global Threads */
+/*global Threads, MockMessages */
 
 'use strict';
 
+requireApp('sms/test/unit/mock_messages.js');
 requireApp('sms/js/threads.js');
 
 suite('Threads', function() {
@@ -11,6 +12,35 @@ suite('Threads', function() {
 
   teardown(function() {
     Threads.clear();
+  });
+
+  suite('createThreadMockup', function() {
+    var message;
+
+    setup(function() {
+      // Create a message with read status 'true'
+      message = MockMessages.sms();
+    });
+
+    test(' > createThreadMockup with unread status in options', function() {
+      var options = { read: false };
+      var thread = Threads.createThreadMockup(message, options);
+
+      assert.equal(thread.unreadCount, 1);
+    });
+
+    test(' > createThreadMockup without options', function() {
+      var thread = Threads.createThreadMockup(message);
+      assert.equal(thread.unreadCount, 0);
+    });
+
+    test(' > createThreadMockup with read status in options', function() {
+      var options = { read: true };
+      var thread = Threads.createThreadMockup(message, options);
+      assert.equal(thread.unreadCount, 0);
+    });
+
+
   });
 
   suite('Collection', function() {

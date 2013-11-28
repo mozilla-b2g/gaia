@@ -324,14 +324,13 @@ var GridManager = (function() {
           window.mozRequestAnimationFrame(refresh);
         };
 
-        var container = pages[currentPage].container;
-        container.addEventListener(touchmove, pan, true);
+        window.addEventListener(touchmove, pan, true);
 
         removePanHandler = function removePanHandler(e) {
           touchEndTimestamp = e ? e.timeStamp : Number.MAX_VALUE;
           window.removeEventListener(touchend, removePanHandler, true);
 
-          container.removeEventListener(touchmove, pan, true);
+          window.removeEventListener(touchmove, pan, true);
 
           window.mozRequestAnimationFrame(function panTouchEnd() {
             onTouchEnd(deltaX, e);
@@ -985,6 +984,11 @@ var GridManager = (function() {
       // navigator.mozApps backed app will objects will be handled
       // asynchronously and therefore at a later time.
       var app = null;
+      if (descriptor.bookmarkURL && !descriptor.type) {
+        // pre-1.3 bookmarks
+        descriptor.type = GridItemsFactory.TYPE.BOOKMARK;
+      }
+
       if (descriptor.type === GridItemsFactory.TYPE.BOOKMARK ||
           descriptor.type === GridItemsFactory.TYPE.COLLECTION ||
           descriptor.role === GridItemsFactory.TYPE.COLLECTION) {

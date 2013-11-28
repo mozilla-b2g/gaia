@@ -7,6 +7,7 @@ from gaiatest import GaiaTestCase
 from gaiatest.apps.browser.app import Browser
 from gaiatest.apps.browser.regions.http_authenticate import AuthenticationDialog
 
+
 class TestBrowserHttpsAuth(GaiaTestCase):
 
     _login_link_locator = (By.LINK_TEXT, 'Basic Authentication')

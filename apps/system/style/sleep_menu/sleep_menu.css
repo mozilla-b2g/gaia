@@ -236,7 +236,7 @@
     background-repeat: no-repeat;
   }
 
-  #sleep-menu-container ul [data-value="normal"],
+  #sleep-menu-container ul [data-value="silentOff"],
   #sleep-menu-container ul [data-value="silent"] {
     background-image: url(/style/sleep_menu/images/vibration.png);
     background-size: 4rem;
