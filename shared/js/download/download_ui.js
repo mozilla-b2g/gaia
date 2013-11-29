@@ -179,16 +179,6 @@ var DownloadUI = (function() {
       if (!ignoreStyles) {
         libs.push.apply(libs, styleSheets);
       }
-
-      // We have to discover the type of UI depending on state when type is null
-      if (type === null) {
-        type = TYPES.STOPPED;
-
-        if (download.state === 'finalized') {
-          type = TYPES.FAILED;
-        }
-      }
-
       LazyLoader.load(libs, createConfirm.call(this, type, req, download));
     }, 0);
 

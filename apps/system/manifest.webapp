@@ -40,8 +40,7 @@
     "input":{},
     "input-manage":{},
     "nfc":{ "access": "readonly" },
-    "nfc-manager":{},
-    "downloads":{}
+    "nfc-manager":{}
   },
   "locales": {
     "ar": {
