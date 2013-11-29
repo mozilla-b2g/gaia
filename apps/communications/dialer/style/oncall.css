@@ -18,6 +18,10 @@
     font-weight: 300;
   }
 
+  #calls:not(.big-duration) .duration .font-light {
+    font-weight: normal;
+  }
+
   button::-moz-focus-inner {
     border: 0;
   }
@@ -169,26 +173,26 @@
     position: absolute;
     bottom: 0;
     width: 100%;
-    height: 15.5rem;
+    height: 14rem;
   }
 
   #call-options {
-    height:15.5rem;
+    height: 14rem;
     position: absolute;
     bottom: 0;
   }
 
   #co-advanced {
-    height: 9.5rem;
+    height: 8rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
   }
 
   .co-advanced-option {
-    height: 9.5rem;
+    height: 8rem;
     width: 100%;
-    background: rgba(24,24,24,.92);
-    border: solid 0.1rem rgba(255, 255, 255, 0.2);
-    border-right-color: rgba(0, 0, 0, 0.4);
-    border-bottom-color: rgba(0, 0, 0, 0.4);
+    background: rgba(24, 24, 24, 0.85);
+    border: solid 0.1rem black;
+    border-left-color: rgba(255, 255, 255, 0.2);
     -moz-box-sizing: border-box;
     border-radius: 0;
   }
@@ -242,7 +246,7 @@
   }
 
   #callbar {
-    background: rgba(24,24,24,.92);
+    background: rgba(24, 24, 24, 0.85);
     border: solid 0.1rem rgba(255, 255, 255, 0.2);
     border-right-color: rgba(0, 0, 0, 0.4);
     border-bottom-color: rgba(0, 0, 0, 0.4);
@@ -348,7 +352,7 @@
     position: relative;
     height: 8rem;
 
-    font-size: 1.8em;
+    font-size: 1.8rem;
     line-height: 8rem;
     background-color: #01c5ed;
 
@@ -431,7 +435,7 @@
   #calls > section .numberWrapper .number {
     height: 2.5rem;
     padding: 2rem 0 0 0;
-    font-size: 3.2rem;
+    font-size: 2.5rem;
     line-height: 1.5rem;
     color: black;
     white-space: nowrap;
@@ -464,7 +468,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     padding: 0 7rem 2rem 4rem;
-    font-size: 1.5rem;
+    font-size: 1.6rem;
     line-height: 2rem;
     color: white;
   }
@@ -493,7 +497,7 @@
     right: 0;
     top: 0;
     color: black;
-    font-weight: bold;
+    line-height: 6.6rem;
   }
 
   #calls.big-duration > section .duration {
@@ -714,17 +718,13 @@
     position: absolute;
     padding: 0;
     right : 0;
-    height: 7rem;
-    width: 8rem;
-    background: url('images/proceed.png') no-repeat right 1rem center / 3rem;
+    height: 8rem;
+    width: 6rem;
+    background: url('images/proceed.png') no-repeat center center / 3rem;
   }
 
   #group-call.held #group-show {
     display: none;
-  }
-
-  #calls #group-call #group-show {
-    height: 8rem;
   }
 
   #group-call #group-show:active {
@@ -881,8 +881,8 @@
   #calls:not(.single-line) #group-call.held .merge-button {
     display: block;
     position: absolute;
-    width: 7rem;
-    height: 7rem;
+    width: 6rem;
+    height: 8rem;
     top: 0;
     right: 0;
     background: url(images/icon_mergecall.png) no-repeat center;
