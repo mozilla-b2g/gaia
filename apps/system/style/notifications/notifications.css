@@ -210,3 +210,13 @@ html, body {
 #notifications-lockscreen-container .notification {
   background-color: transparent;
 }
+
+@keyframes fn-rotate {
+  from {
+    transform: rotate(1deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
