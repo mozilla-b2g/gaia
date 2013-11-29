@@ -125,7 +125,7 @@ ifneq ($(APP),)
 BUILD_APP_NAME=$(APP)
 endif
 
-REPORTER?=spec
+REPORTER?=Spec
 NPM_REGISTRY?=http://registry.npmjs.org
 # Ensure that NPM only logs warnings and errors
 export npm_config_loglevel=warn
