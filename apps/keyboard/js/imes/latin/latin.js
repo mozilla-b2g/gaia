@@ -684,6 +684,11 @@
 
   function setLayoutParams(params) {
     layoutParams = params;
+
+    // We don't need to update the nearbyKeys when using number/digit layout.
+    if (inputMode === 'verbatim')
+      return;
+
     // XXX We call nearbyKeys() every time the keyboard pops up.
     // Maybe it would be better to compute it once in keyboard.js and
     // cache it.
