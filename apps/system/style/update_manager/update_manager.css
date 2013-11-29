@@ -24,16 +24,6 @@ html, body {
   animation: 0.9s fn-rotate infinite linear;
 }
 
-@keyframes fn-rotate {
-  from {
-    transform: rotate(1deg);
-  }
-
-  to {
-    transform: rotate(360deg);
-  }
-}
-
 #update-manager-container.downloading > .activity {
   display: block;
 }
