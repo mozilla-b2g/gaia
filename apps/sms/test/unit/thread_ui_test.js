@@ -1,5 +1,5 @@
 /*global mocha, MocksHelper, MockAttachment, MockL10n, loadBodyHTML, ThreadUI,
-         MockNavigatormozMobileMessage, Contacts, Compose, MockDialog,
+         MockNavigatormozMobileMessage, Contacts, Compose, MockErrorDialog,
          Template, MockSMIL, Utils, MessageManager, LinkActionHandler,
          LinkHelper, Attachment, MockContact, MockOptionMenu,
          MockActivityPicker, Threads, Settings, MockMessages, MockUtils,
@@ -61,6 +61,7 @@ var mocksHelperForThreadUI = new MocksHelper([
   'ActivityPicker',
   'OptionMenu',
   'Dialog',
+  'ErrorDialog',
   'Contacts',
   'SMIL',
   'ActivityHandler',
@@ -1580,89 +1581,6 @@ suite('thread_ui.js >', function() {
           assert.isTrue(this.container.classList.contains('sending'));
         });
       });
-      suite('show error message when send message unsuccessfully', function() {
-        setup(function() {
-          MockDialog.mSetup();
-        });
-
-        teardown(function() {
-          MockDialog.mTeardown();
-        });
-
-        test('show general error for no signal error', function() {
-          ThreadUI.showSendMessageError('NoSignalError');
-          assert.isTrue(MockDialog.instances[0].show.called);
-          assert.equal(MockDialog.calls[0].title.l10nId,
-                      'sendGeneralErrorTitle');
-          assert.equal(MockDialog.calls[0].body.l10nId,
-                      'sendGeneralErrorBody');
-        });
-
-        test('show general error for not found error', function() {
-          ThreadUI.showSendMessageError('NotFoundError');
-          assert.isTrue(MockDialog.instances[0].show.called);
-          assert.equal(MockDialog.calls[0].title.l10nId,
-                      'sendGeneralErrorTitle');
-          assert.equal(MockDialog.calls[0].body.l10nId,
-                      'sendGeneralErrorBody');
-        });
-
-        test('show general error for unknown error', function() {
-          ThreadUI.showSendMessageError('UnknownError');
-          assert.isTrue(MockDialog.instances[0].show.called);
-          assert.equal(MockDialog.calls[0].title.l10nId,
-                      'sendGeneralErrorTitle');
-          assert.equal(MockDialog.calls[0].body.l10nId,
-                      'sendGeneralErrorBody');
-        });
-
-        test('show general error for internal error', function() {
-          ThreadUI.showSendMessageError('InternalError');
-          assert.isTrue(MockDialog.instances[0].show.called);
-          assert.equal(MockDialog.calls[0].title.l10nId,
-                      'sendGeneralErrorTitle');
-          assert.equal(MockDialog.calls[0].body.l10nId,
-                      'sendGeneralErrorBody');
-        });
-
-        test('show general error for invalid address error', function() {
-          ThreadUI.showSendMessageError('InvalidAddressError');
-          assert.isTrue(MockDialog.instances[0].show.called);
-          assert.equal(MockDialog.calls[0].title.l10nId,
-                      'sendGeneralErrorTitle');
-          assert.equal(MockDialog.calls[0].body.l10nId,
-                      'sendGeneralErrorBody');
-        });
-
-        test('show no SIM card', function() {
-          ThreadUI.showSendMessageError('NoSimCardError');
-          assert.isTrue(MockDialog.instances[0].show.called);
-          assert.equal(MockDialog.calls[0].title.l10nId,
-                      'sendNoSimCardTitle');
-          assert.equal(MockDialog.calls[0].body.l10nId,
-                      'sendNoSimCardBody');
-        });
-
-        test('show air plane mode', function() {
-          ThreadUI.showSendMessageError('RadioDisabledError');
-          assert.isTrue(MockDialog.instances[0].show.called);
-          assert.equal(MockDialog.calls[0].title.l10nId,
-                      'sendAirplaneModeTitle');
-          assert.equal(MockDialog.calls[0].body.l10nId,
-                      'sendAirplaneModeBody');
-        });
-
-        test('show FDN blockage error', function() {
-          ThreadUI.showSendMessageError(
-              'FdnCheckError',
-              ['123', '456', '789']
-          );
-          assert.equal(MockDialog.calls[0].title.l10nId,
-                      'fdnBlockedTitle');
-          assert.equal(MockDialog.calls[0].body.l10nId,
-                      'fdnBlockedBody');
-        });
-      });
     });
 
     suite('onDeliverySuccess >', function() {
@@ -2202,8 +2120,13 @@ suite('thread_ui.js >', function() {
         assert.equal(button.dataset.l10nId, 'download');
       });
       suite('clicking', function() {
+        var showMessageErrorSpy;
+        var errorCode;
+        var option;
+
         setup(function() {
           localize.reset();
+          showMessageErrorSpy = this.sinon.spy(ThreadUI, 'showMessageError');
           ThreadUI.handleMessageClick({
             target: button
           });
@@ -2233,6 +2156,63 @@ suite('thread_ui.js >', function() {
           });
           test('changes download text', function() {
             assert.ok(localize.calledWith(button, 'download'));
+          });
+          test('Message error dialog should not exist', function() {
+            assert.equal(showMessageErrorSpy.called, false);
+          });
+        });
+        suite('response non-active sim card error', function() {
+
+          setup(function() {
+            MessageManager.retrieveMMS.returnValues[0].error =
+            {
+              name: 'NonActiveSimCardError'
+            };
+            MessageManager.retrieveMMS.returnValues[0].onerror();
+          });
+          test('Message ID code/option for dialog', function() {
+            sinon.assert.calledWithMatch(showMessageErrorSpy,
+              'NonActiveSimCardError', { messageId: message.id });
+          });
+          test('Error dialog params and show', function() {
+            var code = MockErrorDialog.calls[0][0];
+            var opts = MockErrorDialog.calls[0][1];
+            assert.equal(code, 'NonActiveSimCardError');
+            assert.equal(opts.messageId, message.id);
+            assert.isTrue(!!opts.confirmHandler);
+            assert.equal(MockErrorDialog.prototype.show.called, true);
+          });
+        });
+        suite('response error with other errorCode', function() {
+          setup(function() {
+            MessageManager.retrieveMMS.returnValues[0].error =
+            {
+              name: 'OtherError'
+            };
+            MessageManager.retrieveMMS.returnValues[0].onerror();
+          });
+          test('Other error code/option for dialog', function() {
+            sinon.assert.calledWithMatch(showMessageErrorSpy,
+              'OtherError', { messageId: message.id });
+          });
+          test('Error dialog params and show', function() {
+            var code = MockErrorDialog.calls[0][0];
+            var opts = MockErrorDialog.calls[0][1];
+            assert.equal(code, 'OtherError');
+            assert.equal(opts.messageId, message.id);
+            assert.equal(MockErrorDialog.prototype.show.called, true);
+          });
+        });
+        suite('response error with no errorCode', function() {
+          setup(function() {
+            MessageManager.retrieveMMS.returnValues[0].code =
+            {
+              name: null
+            };
+            MessageManager.retrieveMMS.returnValues[0].onerror();
+          });
+          test('No error dialog for no error code case', function() {
+            assert.isFalse(showMessageErrorSpy.called);
           });
         });
         suite('response success', function() {

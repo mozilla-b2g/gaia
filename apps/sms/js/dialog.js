@@ -1,3 +1,5 @@
+/*global Settings */
+
 (function(exports) {
 'use strict';
 
@@ -98,14 +100,21 @@ var Dialog = function(params) {
   if (params.options.confirm) {
     var confirmOption = params.options.confirm;
     var confirmButton = createLocalizedElement('button', confirmOption.text);
-    cancelButton.className = 'recommend';
+    confirmButton.className = 'recommend';
     handlers.set(confirmButton, confirmOption);
-    menu.appendChild(confirmButton);
+
+    menu.appendChild(cancelButton);
+    if (confirmOption.position === 'left') {
+      menu.insertBefore(confirmButton, cancelButton);
+    } else {
+      menu.appendChild(confirmButton);
+    }
   } else {
     // If there is only one item, we take the 100% of the space available
     cancelButton.style.width = '100%';
+    menu.appendChild(cancelButton);
   }
-  menu.appendChild(cancelButton);
+
   this.form.addEventListener('submit', function(event) {
     event.preventDefault();
   });
@@ -142,6 +151,143 @@ Dialog.prototype.hide = function() {
 };
 
 exports.Dialog = Dialog;
+
+/*
+ Error confirm screen. Handling all the message error code and corresponding
+ discription/behavior.
+
+ Options should follow the following structure:
+ {
+   recipients: ['foo', 'bar'], // For showing the recipient information
+   messageId : 123             // For message retrieval
+ }
+*/
+
+// Define each error type with specific prefix for showing error dialog
+var ERRORS = {
+  NoSimCardError: {
+    prefix: 'sendMissingSimCard',
+    showRecipient: false,
+    showDsdsStatus: false,
+    hasHandler: false
+  },
+  RadioDisabledError: {
+    prefix: 'sendFlightMode',
+    showRecipient: false,
+    showDsdsStatus: false,
+    hasHandler: false
+  },
+  FdnCheckError: {
+    prefix: 'fdnBlocked',
+    showRecipient: true,
+    showDsdsStatus: false,
+    hasHandler: false
+  },
+  NonActiveSimCardError: {
+    prefix: 'nonActiveSim',
+    showRecipient: false,
+    showDsdsStatus: true,
+    hasHandler: true
+  },
+  NoSignalError: {
+    prefix: 'sendNoSignalError',
+    showRecipient: false,
+    showDsdsStatus: false,
+    hasHandler: false
+  },
+  NotFoundError: {
+    prefix: 'sendNotFoundError',
+    showRecipient: false,
+    showDsdsStatus: false,
+    hasHandler: false
+  },
+  InvalidAddressError: {
+    prefix: 'sendInvalidAddressError',
+    showRecipient: false,
+    showDsdsStatus: false,
+    hasHandler: false
+  }
+  // The error type below will be represented as "GeneralError" in dialog:
+  // 'UnknownError'
+  // 'InternalError'
+};
+
+function errorParamsGenerator(actions, opts) {
+  var prefix = actions.prefix;
+  var messageTitle = prefix + 'Title';
+  var messageBody = prefix + 'Body';
+  var messageBodyParams = {};
+  var buttonLabel = prefix + 'BtnOk';
+  var options = {
+    cancel: {
+      text: {
+        l10nId: buttonLabel
+      }
+    }
+  };
+
+  if (actions.showRecipient) {
+    messageBodyParams = {
+      n: opts.recipients.length,
+      numbers: opts.recipients.join('<br />')
+    };
+  }
+  if (actions.showDsdsStatus) {
+    var mmsServiceId = Settings.mmsServiceId;
+    if (mmsServiceId !== null) {
+      // mmsServiceId = 0 => default Service is SIM 1
+      // mmsServiceId = 1 => default Service is SIM 2
+
+      if (mmsServiceId === 0) {
+        messageBodyParams = {
+          active: 'SIM 1',
+          nonactive: 'SIM 2'
+        };
+      } else {
+        messageBodyParams = {
+          active: 'SIM 2',
+          nonactive: 'SIM 1'
+        };
+      }
+    } else {
+      console.error('Settings unavailable');
+    }
+  }
+
+  if (opts && opts.confirmHandler && actions.hasHandler) {
+    options.confirm = {
+      text: {
+        l10nId: prefix + 'Confirm'
+      },
+      method: opts.confirmHandler
+    };
+  }
+
+  return {
+    title: {
+      l10nId: messageTitle
+    },
+    body: {
+      l10nId: messageBody,
+      l10nArgs: messageBodyParams
+    },
+    options: options
+  };
+}
+
+function ErrorDialog(errorName, opts) {
+  var actions = ERRORS[errorName] || {
+    prefix: 'sendGeneralError',
+    showRecipient: false,
+    showDsdsStatus: false,
+    hasHandler: false
+  };
+  Dialog.call(this, errorParamsGenerator(actions, opts));
+}
+
+ErrorDialog.prototype = Object.create(Dialog.prototype);
+
+exports.ErrorDialog = ErrorDialog;
 
 // end global closure
 }(this));

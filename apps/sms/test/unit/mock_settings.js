@@ -3,11 +3,11 @@
 
 var MockSettings = {
   mmsSizeLimitation: 300 * 1024,
-  getMmsSizeLimitation: function ms_getMmsSizeLimitation(callback) {
-    callback(this.mmsSizeLimitation);
-  },
+  mmsServiceId: 0,
+
   mSetup: function() {
     MockSettings.mmsSizeLimitation = 300 * 1024;
+    MockSettings.mmsServiceId = 0;
   }
 };
 
