@@ -197,7 +197,7 @@ function execute(options) {
    'keyboard.clicksound': false,
    'keyboard.autocorrect': true,
    'keyboard.wordsuggestion': true,
-   'keyboard.current': 'en',
+   'keyboard.current': undefined,
    'keyboard.ftu.enabled': false,
    'keyboard.3rd-party-app.enabled': false,
    'language.current': 'en-US',
