@@ -1,0 +1,38 @@
+{
+  "name": "NFC Demo",
+  "description": "NFC Demo",
+  "launch_path": "/nfc.html",
+  "type": "certified",
+  "permissions": {
+    "nfc":{ "access": "readwrite" },
+    "settings":{ "access": "readwrite" }
+  },
+  "developer": {
+    "name": "Deutsche Telekom",
+    "url": "http://www.laboratories.telekom.com"
+  },
+  "icons": {
+    "120": "/style/icons/Nfc.png"
+  },
+  "default_locale": "en",
+  "activities": {
+    "nfc-tech-lost": {
+      "filters": {
+        "type": "info"
+      }
+    },
+    "nfc-ndef-discovered": {
+      "filters": {
+        "type": ["device", "empty", "external-type", "mail",
+                 "smartposter", "smartposter-action",
+                 "text/vcard", "text",
+                 "webcontacts/contact", "webcontacts/email",
+                 "webtelephony/number", "websms/sms",
+                 "uri",
+                 "*"
+                ]
+      }
+    }
+  }
+}
+
