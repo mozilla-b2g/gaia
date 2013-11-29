@@ -801,6 +801,8 @@ function renderKeyboard(keyboardName) {
     //restore the previous candidates
     IMERender.showCandidates(currentCandidates);
 
+    updateTargetWindowHeight();
+
     isKeyboardRendered = true;
   }
 
@@ -1606,6 +1608,7 @@ function showKeyboard(state) {
   }
 
   IMERender.showIME();
+  updateTargetWindowHeight();
 
   currentInputMode = state.inputmode;
   currentInputType = mapInputType(state.type);
@@ -1630,6 +1633,8 @@ function showKeyboard(state) {
 // Hide keyboard
 function hideKeyboard() {
   IMERender.hideIME();
+  updateTargetWindowHeight();
+
   if (inputMethod.deactivate)
     inputMethod.deactivate();
 
