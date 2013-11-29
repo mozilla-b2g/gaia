@@ -26,6 +26,7 @@
     "settings":{ "access": "readwrite" },
     "storage":{},
     "camera":{},
+    "video-capture":{},
     "geolocation":{},
     "wifi-manage":{},
     "desktop-notification":{},
