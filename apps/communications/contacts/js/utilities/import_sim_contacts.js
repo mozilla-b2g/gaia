@@ -20,6 +20,7 @@ function SimContactsImporter() {
   var _ = navigator.mozL10n.get;
   var mustFinish = false;
   var loadedMatch = false;
+  var iccId;
 
   function notifyFinish() {
     if (typeof self.onfinish === 'function') {
@@ -31,6 +32,14 @@ function SimContactsImporter() {
     if (typeof self.onimported === 'function') {
       window.setTimeout(self.onimported, 0);
     }
+  }
+
+  function generateIccContactUrl(contactid) {
+    var urlValue = 'urn:' + 'uuid:' + (iccId || 'iccId') + '-' + contactid;
+    return [{
+      type: ['source', 'sim'],
+      value: urlValue
+    }];
   }
 
   function continueCb() {
@@ -86,6 +95,7 @@ function SimContactsImporter() {
     //   'fdn': Fixed Dialing Numbers
     if (icc && icc.readContacts) {
       request = icc.readContacts('adn');
+      iccId = icc.iccInfo.iccid;
     }
     else if (navigator.mozContacts) {
       // Just to enable import on builds different than M-C
@@ -157,6 +167,9 @@ function SimContactsImporter() {
       }
 
       item.category = ['sim'];
+      item.url = generateIccContactUrl(item.id);
+      // Avoid any kind of classing between SIM Contacts and mozContacts
+      delete item.id;
 
       var cbs = {
         onmatch: function(results) {
@@ -167,7 +180,6 @@ function SimContactsImporter() {
               continueCb();
             }
           };
-
           contacts.adaptAndMerge(this, results, mergeCbs);
         }.bind(item),
         onmismatch: function() {
