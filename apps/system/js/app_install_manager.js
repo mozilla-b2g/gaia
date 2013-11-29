@@ -194,6 +194,15 @@ var AppInstallManager = {
   handleInstallSuccess: function ai_handleInstallSuccess(app) {
     var manifest = app.manifest || app.updateManifest;
     var role = manifest.role;
+
+    // We must stop 3rd-party keyboard app from being installed
+    // if the feature is not enabled.
+    if (role === 'input' && !KeyboardManager.isOutOfProcessEnabled) {
+      navigator.mozApps.mgmt.uninstall(app);
+
+      return;
+    }
+
     if (this.configurations[role]) {
       this.setupQueue.push(app);
       this.checkSetupQueue();

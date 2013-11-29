@@ -11,10 +11,12 @@ requireApp('system/test/unit/mock_modal_dialog.js');
 requireApp('system/test/unit/mock_l10n.js');
 requireApp('system/test/unit/mock_template.js');
 requireApp('system/test/unit/mock_ftu_launcher.js');
+requireApp('system/test/unit/mock_keyboard_manager.js');
 
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_manifest_helper.js');
 require('/shared/test/unit/mocks/mock_navigator_wake_lock.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 
 requireApp('system/js/app_install_manager.js');
 
@@ -28,13 +30,15 @@ var mocksForAppInstallManager = new MocksHelper([
   'ManifestHelper',
   'LazyLoader',
   'FtuLauncher',
-  'Template'
+  'Template',
+  'KeyboardManager'
 ]).init();
 
 suite('system/AppInstallManager >', function() {
   var realL10n;
   var realDispatchResponse;
   var realRequestWakeLock;
+  var realMozApps;
   var realTemplate;
 
   var fakeDialog, fakeNotif;
@@ -69,6 +73,9 @@ suite('system/AppInstallManager >', function() {
 
     realRequestWakeLock = navigator.requestWakeLock;
     navigator.requestWakeLock = MockNavigatorWakeLock.requestWakeLock;
+
+    realMozApps = navigator.mozApps;
+    navigator.mozApps = MockNavigatormozApps;
   });
 
   suiteTeardown(function() {
@@ -88,6 +95,8 @@ suite('system/AppInstallManager >', function() {
     navigator.requestWakeLock = realRequestWakeLock;
     realRequestWakeLock = null;
 
+    navigator.mozApps = realMozApps;
+    realMozApps = null;
   });
 
   setup(function() {
@@ -1304,6 +1313,8 @@ suite('system/AppInstallManager >', function() {
     var mockApp, mockAppTwo, mockAppName, mockAppTwoName;
     setup(function() {
       AppInstallManager.init();
+      KeyboardManager.isOutOfProcessEnabled = true;
+
       navigator.mozL10n = MockL10n;
       mockAppName = 'Fake keyboard app';
       mockApp = new MockApp({
@@ -1366,6 +1377,17 @@ suite('system/AppInstallManager >', function() {
           }
         }
       });
+    });
+
+    test('should be uninstalled if disabled', function() {
+      // Disabling keyboard app installation.
+      // Set MockKeyboardManager.isOutOfProcessEnabled to false
+      KeyboardManager.isOutOfProcessEnabled = false;
+
+      this.sinon.spy(navigator.mozApps.mgmt, 'uninstall');
+      AppInstallManager.handleInstallSuccess(mockApp);
+
+      assert.isTrue(navigator.mozApps.mgmt.uninstall.calledOnce);
     });
 
     test('should show setup dialog', function() {
