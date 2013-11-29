@@ -475,11 +475,6 @@ var CallsHandler = (function callsHandler() {
 
     handledCalls[0].call.answer();
 
-    if (CallScreen.screen.dataset.layout === 'incoming-locked') {
-      CallScreen.mainContainer.style.backgroundImage =
-        CallScreen.lockedContactPhoto.style.backgroundImage;
-    }
-
     CallScreen.render('connected');
   }
 

@@ -26,6 +26,8 @@ suite('call screen', function() {
   var realMozApps;
 
   var screen;
+  var container;
+  var contactBackground;
   var calls;
   var groupCalls;
   var groupCallsList;
@@ -63,6 +65,14 @@ suite('call screen', function() {
     screen = document.createElement('div');
     screen.id = 'call-screen';
     document.body.appendChild(screen);
+
+    container = document.createElement('article');
+    container.id = 'main-container';
+    screen.appendChild(container);
+
+    contactBackground = document.createElement('div');
+    contactBackground.id = 'contact-background';
+    screen.appendChild(contactBackground);
 
     calls = document.createElement('article');
     calls.id = 'calls';
@@ -113,6 +123,8 @@ suite('call screen', function() {
     // Since we can't make the CallScreen look for them again
     if (CallScreen != null) {
       CallScreen.screen = screen;
+      CallScreen.mainContainer = container;
+      CallScreen.contactBackground = contactBackground;
       CallScreen.calls = calls;
       CallScreen.callToolbar = callToolbar;
       CallScreen.muteButton = muteButton;
@@ -548,41 +560,53 @@ suite('call screen', function() {
 
   suite('background image setter', function() {
     var realMozSettings;
-    var dummyImage = 'This is a dummy image';
+    var fakeBlob = new Blob([], {type: 'image/png'});
+    var fakeURL = URL.createObjectURL(fakeBlob);
 
     setup(function() {
       realMozSettings = navigator.mozSettings;
       navigator.mozSettings = MockNavigatorSettings;
-      MockNavigatorSettings.mSettings['wallpaper.image'] = dummyImage;
+      MockNavigatorSettings.mSettings['wallpaper.image'] = fakeBlob;
+
+      this.sinon.stub(URL, 'createObjectURL').returns(fakeURL);
     });
 
     teardown(function() {
       navigator.mozSettings = realMozSettings;
     });
 
-    test('should change background to default wallpaper (non-forced)',
-    function(done) {
-      var setCallerContactImageSpy =
-          this.sinon.stub(CallScreen, 'setCallerContactImage')
-          .withArgs(dummyImage, {force: false});
-
-      CallScreen.setDefaultContactImage({force: false});
+    test('should change background of the main container', function(done) {
+      CallScreen.setWallpaper();
       setTimeout(function() {
-        assert.isTrue(setCallerContactImageSpy.calledOnce);
+        assert.equal(CallScreen.mainContainer.style.backgroundImage,
+                     'url("' + fakeURL + '")');
         done();
       });
     });
+  });
 
-    test('should change background to default wallpaper (forced)',
-    function(done) {
-      var setCallerContactImageSpy =
-          this.sinon.stub(CallScreen, 'setCallerContactImage')
-          .withArgs(dummyImage, {force: true});
-      CallScreen.setDefaultContactImage({force: true});
-      setTimeout(function() {
-        assert.isTrue(setCallerContactImageSpy.calledOnce);
-        done();
-      });
+  suite('contact image setter', function() {
+    var realMozSettings;
+    var fakeBlob = new Blob([], {type: 'image/png'});
+    var fakeURL = URL.createObjectURL(fakeBlob);
+
+    test('should change background of the contact photo', function() {
+      this.sinon.stub(URL, 'createObjectURL').returns(fakeURL);
+      CallScreen.setCallerContactImage(fakeBlob);
+      assert.equal(CallScreen.contactBackground.style.backgroundImage,
+                     'url("' + fakeURL + '")');
+    });
+
+    test('should clean up background property if null', function() {
+      CallScreen.setCallerContactImage(null);
+      assert.equal(CallScreen.contactBackground.style.backgroundImage, '');
+    });
+
+    test('should do nothing if the blob is the same', function() {
+      var createURLSpy = this.sinon.spy(URL, 'createObjectURL');
+      CallScreen.setCallerContactImage(fakeBlob);
+      CallScreen.setCallerContactImage(fakeBlob);
+      assert.isTrue(createURLSpy.calledOnce);
     });
   });
 
