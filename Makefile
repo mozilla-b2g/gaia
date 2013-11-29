@@ -729,7 +729,7 @@ test-integration:
 	PROFILE_FOLDER=profile-test make
 	NPM_REGISTRY=$(NPM_REGISTRY) ./bin/gaia-marionette $(shell find . -path "*test/marionette/*_test.js") \
 		--host $(MARIONETTE_RUNNER_HOST) \
-		--reporter $(MOCHA_REPORTER)
+		--reporter $(REPORTER)
 
 .PHONY: test-perf
 test-perf:
