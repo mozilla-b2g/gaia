@@ -79,7 +79,6 @@ suite('KeyboardManager', function() {
   suite('Transitions', function() {
     setup(function(next) {
       setTimeout(next, 500);
-      this.sinon.stub(KeyboardManager, 'showIMESwitcher');
     });
 
     test('showKeyboard triggers transition', function(next) {
@@ -209,7 +208,6 @@ suite('KeyboardManager', function() {
   suite('UpdateHeight', function() {
     setup(function(next) {
       setTimeout(next, 500);
-      this.sinon.stub(KeyboardManager, 'showIMESwitcher');
     });
     test('Second updateHeight evt triggers keyboardchange', function(next) {
       var kcEvent = sinon.stub();
@@ -568,7 +566,6 @@ suite('KeyboardManager', function() {
   suite('Show Keyboard', function() {
     setup(function(next) {
       KeyboardManager.keyboardFrameContainer.classList.add('hide');
-      this.sinon.stub(KeyboardManager, 'showIMESwitcher');
       setTimeout(next, 100);
     });
 
@@ -606,7 +603,6 @@ suite('KeyboardManager', function() {
     var showKeyboard;
     setup(function() {
       showKeyboard = this.sinon.stub(KeyboardManager, 'showKeyboard');
-      this.sinon.stub(KeyboardManager, 'showIMESwitcher');
     });
 
     function fakeMozbrowserResize(height) {

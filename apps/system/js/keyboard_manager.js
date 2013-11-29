@@ -272,6 +272,9 @@ var KeyboardManager = {
       }
       self.setKeyboardToShow(group);
 
+      // We also want to show the permanent notification
+      // in the UtilityTray.
+      self.showIMESwitcher();
     }
 
     if (type === 'blur') {
@@ -393,10 +396,6 @@ var KeyboardManager = {
     } else {
       updateHeight();
     }
-
-    // Show the permanent notification in the UtilityTray.
-    // For changing keyboard layout without switch key.
-    this.showIMESwitcher();
   },
 
   handleEvent: function km_handleEvent(evt) {
@@ -671,6 +670,9 @@ var KeyboardManager = {
         // user selected a new keyboard.
         window.dispatchEvent(new CustomEvent('keyboardchanged'));
 
+        // Refresh the switcher, or the labled type and layout name
+        // won't change.
+        self.showIMESwitcher();
       }, function() {
         var showed = self.showingLayout;
         if (!self.keyboardLayouts[showed.type])
