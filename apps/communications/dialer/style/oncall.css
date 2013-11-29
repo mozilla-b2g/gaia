@@ -621,96 +621,85 @@
     position: absolute;
     bottom: 0;
     width: 100%;
-    height: 23rem;
-    transform: translateY(23rem);
+    transform: translateY(100%);
     transition: transform 0.3s ease-in-out;
     z-index: 500;
   }
 
   #incoming-container header {
-    width: -moz-calc(100% - 3rem);
-    margin: 1.5rem;
-    background: rgba(28, 24, 24, 0.75);
+    margin-bottom: 2rem;
+    display: flex;
   }
 
-  #incoming-container section {
-    height: 12.5rem;
-    margin-top: 3.5rem;
-    background-color: #1c1818;
-    background-image:  url("images/incoming-call.png");
-    background-position: top 2rem right 1.5rem;
+  #incoming-info {
+    background-color: rgba(0, 0, 0, 0.85);
+    background-image:  url('images/incoming_icon.png');
+    background-position: top 1.5rem right 1.5rem;
     background-repeat: no-repeat;
-    background-size: 1.6rem;
+    background-size: 2.6rem;
   }
 
   #incoming-container.displayed {
     transform: translateY(0);
   }
 
-  #incoming-container span[role="button"] {
+  #incoming-container button {
     height: 4rem;
+    flex: 1;
     border:0;
     border-radius:.3rem;
     display: block;
-    text-align: center;
     font-size: 1.8rem;
-    line-height: 4rem;
-    font-weight: 700;
-  }
-
-  #incoming-answer,
-  #incoming-end {
-    width: 50%;
-    float: left;
-    font-size: 0.9em;
-  }
-
-  #incoming-container.hold-and-answer-only #incoming-answer {
-    width: 100%;
-  }
-
-  #incoming-container.hold-and-answer-only #incoming-answer > span[role="button"] {
-    margin-left: 1.0rem;
-    margin-right: 1.0rem;
+    color: white;
+    background-position: center, center;
+    background-repeat: no-repeat, repeat-x;
   }
 
   #incoming-container.hold-and-answer-only #incoming-end {
     display: none;
   }
 
-  #incoming-answer > span[role="button"] {
-    background: url('images/btn_resume.png') repeat-x center / auto 100%;
-    line-height: 4rem;
-    text-shadow: 0.1rem 0.1rem 0 rgba(255,255,255,0.3);
-    color: #333;
-    opacity: 1.0;
-    margin: 1rem 1rem 1rem 0.5rem;
+  #incoming-answer {
+    background-image: url('images/ActionIcon_40x40_hold.png'),
+                      url('images/btn_resume.png');
+    background-size: 2.8rem, auto 100%;
+    margin-left: 1.5rem;
+    margin-right: 1.5rem;
   }
 
-  #incoming-end > span[role="button"] {
+  #incoming-end {
     background: url('images/ActionIcon_40x40_hangup.png'),
                 url('images/btn_hang_up.png');
     background-size: 4rem, auto 100%;
-    background-position: center, center;
-    background-repeat: no-repeat, repeat-x;
-    opacity: 1.0;
-    margin: 1rem 0.5rem 1rem 1rem;
+    margin-left: 1.5rem;
   }
 
-  #incoming-info > span {
-    display: block;
-    font-size: 1.8rem;
-    font-weight: 300;
-    line-height: 6rem;
-    margin: 0 1.5rem;
-    height: 5rem;
+  .incoming-number-info {
+    padding: 1rem 4.5rem 0 1.5rem;
+    height: 7rem;
     border-bottom: 0.1rem #333030 solid;
+    display: flex;
+    flex-direction: column;
   }
 
-  #incoming-ignore > span {
-    background: -moz-linear-gradient(top, #424040 1%, #676767 100%);
-    opacity: 1.0;
-    margin: 1.5rem;
+  #incoming-number {
+    font-size: 2.5rem;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    margin-bottom: 0.5rem;
+  }
+
+  #incoming-number-additional-info {
+    display: block;
+    font-size: 1.6rem;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  #incoming-ignore {
+    background: linear-gradient(to top, #424040 1%, #676767 100%);
+    margin: 1rem 1.5rem;
+    width: calc(100% - 3rem);
   }
 
   /* Conference group support */

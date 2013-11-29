@@ -32,6 +32,8 @@ var CallScreen = {
 
   incomingContainer: document.getElementById('incoming-container'),
   incomingNumber: document.getElementById('incoming-number'),
+  incomingNumberAdditionalInfo:
+    document.getElementById('incoming-number-additional-info'),
   incomingAnswer: document.getElementById('incoming-answer'),
   incomingEnd: document.getElementById('incoming-end'),
   incomingIgnore: document.getElementById('incoming-ignore'),

@@ -10,6 +10,7 @@ requireApp('communications/dialer/test/unit/mock_contacts.js');
 requireApp('communications/dialer/test/unit/mock_tone_player.js');
 requireApp('communications/dialer/test/unit/mock_swiper.js');
 requireApp('communications/dialer/test/unit/mock_bluetooth_helper.js');
+requireApp('communications/dialer/test/unit/mock_utils.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/test/unit/mocks/mock_settings_url.js');
 
@@ -28,7 +29,8 @@ var mocksHelperForCallsHandler = new MocksHelper([
   'TonePlayer',
   'SettingsURL',
   'Swiper',
-  'BluetoothHelper'
+  'BluetoothHelper',
+  'Utils'
 ]).init();
 
 suite('calls handler', function() {
@@ -156,6 +158,23 @@ suite('calls handler', function() {
         var playSpy = this.sinon.spy(MockTonePlayer, 'playSequence');
         MockMozTelephony.mTriggerCallsChanged();
         assert.isTrue(playSpy.calledOnce);
+      });
+
+      test('should show the contact information', function() {
+        MockMozTelephony.mTriggerCallsChanged();
+        assert.equal(CallScreen.incomingNumber.textContent, 'test name');
+        assert.isTrue(MockUtils.mCalledGetPhoneNumberAdditionalInfo);
+        assert.equal(CallScreen.incomingNumberAdditionalInfo.textContent,
+                     extraCall.number);
+      });
+
+      test('should show the number of a unknown contact', function() {
+        // 111 is a special case for unknown contacts in MockContacts
+        extraCall.number = '111';
+        MockMozTelephony.mTriggerCallsChanged();
+        assert.equal(CallScreen.incomingNumber.textContent, extraCall.number);
+        assert.isTrue(MockUtils.mCalledGetPhoneNumberAdditionalInfo);
+        assert.equal(CallScreen.incomingNumberAdditionalInfo.textContent, '');
       });
     });
 
