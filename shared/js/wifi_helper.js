@@ -9,7 +9,7 @@ var WifiHelper = {
     return navigator.mozWifiManager;
   }(),
 
-  setPassword: function(network, password, identity, eap, simpin) {
+  setPassword: function(network, password, identity, eap) {
     var encType = this.getKeyManagement(network);
     switch (encType) {
       case 'WPA-PSK':
@@ -17,14 +17,17 @@ var WifiHelper = {
         break;
       case 'WPA-EAP':
         network.eap = eap;
-        if (password && password.length) {
-          network.password = password;
-        }
-        if (identity && identity.length) {
-          network.identity = identity;
-        }
-        if (simpin && simpin.length) {
-          network.pin = simpin;
+        switch (eap) {
+          case 'SIM':
+            if (password && password.length) {
+              network.password = password;
+            }
+            if (identity && identity.length) {
+              network.identity = identity;
+            }
+            break;
+          default:
+            break;
         }
         break;
       case 'WEP':
@@ -83,7 +86,7 @@ var WifiHelper = {
     return key === curkey;
   },
 
-  isValidInput: function(key, password, identity, eap, simpin) {
+  isValidInput: function(key, password, identity, eap) {
     function isValidWepKey(password) {
       switch (password.length) {
         case 5:
@@ -109,10 +112,6 @@ var WifiHelper = {
       case 'WPA-EAP':
         switch (eap) {
           case 'SIM':
-          case 'AKA':
-          case 'AKA\'':
-            if (!simpin || simpin.length < 1)
-              return false;
             break;
           default:
             if (!password || password.length < 1 ||
