@@ -27,6 +27,7 @@
     "storage":{},
     "camera":{},
     "geolocation":{},
+    "audio-capture": {},
     "wifi-manage":{},
     "desktop-notification":{},
     "idle":{},
