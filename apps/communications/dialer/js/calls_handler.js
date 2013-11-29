@@ -436,6 +436,20 @@ var CallsHandler = (function callsHandler() {
           holdAndAnswer();
         }
         break;
+      case 'CHLD=3':
+        // Join/Establish conference call. Since we can have at most 2 calls
+        // by spec, we can use telephony.calls[n] directly.
+        if (!telephony.conferenceGroup.state && telephony.calls.length == 2) {
+          telephony.conferenceGroup.add(
+            telephony.calls[0], telephony.calls[1]);
+          break;
+        }
+        if (telephony.conferenceGroup.state && telephony.calls.length == 1) {
+          telephony.conferenceGroup.add(telephony.calls[0]);
+          break;
+        }
+        console.warn('Cannot join conference call.');
+        break;
       case 'CHLD=0':
         hangupWaitingCalls();
         break;

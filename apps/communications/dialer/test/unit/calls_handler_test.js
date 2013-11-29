@@ -1143,6 +1143,56 @@ suite('calls handler', function() {
         assert.isTrue(turnOffSpy.calledOnce);
       });
     });
+
+    suite('> bluetooth commands', function() {
+      var call1 = {number: 111111};
+      var call2 = {number: 222222};
+      var call3 = {number: 333333};
+
+      suite('> CHLD=3 conference call', function() {
+        test('should log a warning without enough connected calls',
+        function(done) {
+          MockMozTelephony.calls = [call1];
+
+          window.postMessage({type: 'BT', command: 'CHLD=3'}, '*');
+
+          var addSpy = this.sinon.spy(MockMozTelephony.conferenceGroup, 'add');
+          var consoleWarnStub = this.sinon.stub(console, 'warn', function() {
+            assert.isTrue(
+              consoleWarnStub.calledWith('Cannot join conference call.'));
+            assert.isFalse(addSpy.calledOnce);
+            done();
+          });
+        });
+
+        test('should merge into group call if there are two individual calls',
+        function(done) {
+          MockMozTelephony.calls = [call1, call2];
+          window.postMessage({type: 'BT', command: 'CHLD=3'}, '*');
+
+          var addStub = this.sinon.stub(MockMozTelephony.conferenceGroup, 'add',
+          function() {
+            assert.isTrue(addStub.calledWith(call1, call2));
+            done();
+          });
+        });
+
+        test('should merge individual call into group if group call exists',
+        function(done) {
+          MockMozTelephony.calls = [call1];
+          MockMozTelephony.conferenceGroup.calls = [call2, call3];
+          MockMozTelephony.conferenceGroup.state = 'connected';
+
+          window.postMessage({type: 'BT', command: 'CHLD=3'}, '*');
+
+          var addStub = this.sinon.stub(MockMozTelephony.conferenceGroup, 'add',
+          function() {
+            assert.isTrue(addStub.calledWith(call1));
+            done();
+          });
+        });
+      });
+    });
   });
 
   suite('> inter app communication', function() {
