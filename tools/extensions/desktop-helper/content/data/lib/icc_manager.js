@@ -6,7 +6,7 @@
 
   FFOS_RUNTIME.makeNavigatorShim('mozIccManager', {
     iccInfo: {
-      iccid: true
+      iccid: 1234567890
     },
     cardState: 'ready',
     setCardLock: function() {
