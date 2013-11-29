@@ -10,13 +10,12 @@ class Messages(Base):
 
     name = 'Messages'
 
-    _summary_header_locator = (By.CSS_SELECTOR, "h1[data-l10n-id='messages']")
     _create_new_message_locator = (By.ID, 'icon-add')
     _first_message_locator = (By.ID, 'thread-1')
 
     def launch(self):
         Base.launch(self)
-        self.wait_for_element_displayed(*self._summary_header_locator)
+        self.wait_for_element_displayed(*self._create_new_message_locator)
 
     def tap_create_new_message(self):
         self.marionette.find_element(*self._create_new_message_locator).tap()
@@ -24,7 +23,7 @@ class Messages(Base):
         return NewMessage(self.marionette)
 
     def wait_for_message_list(self):
-        self.wait_for_element_displayed(*self._summary_header_locator)
+        self.wait_for_element_displayed(*self._create_new_message_locator)
 
     def wait_for_message_received(self, timeout=180):
         self.wait_for_element_displayed(*self._first_message_locator, timeout=timeout)
