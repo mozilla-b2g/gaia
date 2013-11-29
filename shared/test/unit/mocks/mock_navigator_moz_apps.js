@@ -24,7 +24,8 @@ var MockNavigatormozApps = {
   },
 
   mgmt: {
-    getAll: function() {}
+    getAll: function() {},
+    uninstall: function() {}
   },
 
   mLastRequest: null,
