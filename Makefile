@@ -125,8 +125,7 @@ ifneq ($(APP),)
 BUILD_APP_NAME=$(APP)
 endif
 
-REPORTER?=Spec
-MOCHA_REPORTER?=dot
+REPORTER?=spec
 NPM_REGISTRY?=http://registry.npmjs.org
 # Ensure that NPM only logs warnings and errors
 export npm_config_loglevel=warn
@@ -729,7 +728,7 @@ test-integration:
 	PROFILE_FOLDER=profile-test make
 	NPM_REGISTRY=$(NPM_REGISTRY) ./bin/gaia-marionette $(shell find . -path "*test/marionette/*_test.js") \
 		--host $(MARIONETTE_RUNNER_HOST) \
-		--reporter $(MOCHA_REPORTER)
+		--reporter $(REPORTER)
 
 .PHONY: test-perf
 test-perf:
