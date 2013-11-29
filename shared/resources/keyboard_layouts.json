@@ -13,7 +13,8 @@
         {"layoutId": "bg-Pho-Trad", "appOrigin": "keyboard.gaiamobile.org"}
     ],
     "bn-BD": [
-        {"layoutId": "en", "appOrigin": "keyboard.gaiamobile.org"}
+        {"layoutId": "en", "appOrigin": "keyboard.gaiamobile.org"},
+        {"layoutId": "bn-Avro", "appOrigin": "keyboard.gaiamobile.org"}
     ],
     "ca": [
         {"layoutId": "ca", "appOrigin": "keyboard.gaiamobile.org"}
