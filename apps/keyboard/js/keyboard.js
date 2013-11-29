@@ -331,6 +331,7 @@ const SWIPE_VELOCICTY_THRESHOLD = 0.4;
 window.addEventListener('load', getKeyboardSettings);
 
 function getKeyboardSettings() {
+  console.log('kms getKeyboardSettings');
   // Before we can initialize the keyboard we need to know the current
   // value of all keyboard-related settings. These are the settings
   // we want to query, with the default values we'll use if the query fails
@@ -383,6 +384,7 @@ function getKeyboardSettings() {
 
 function initKeyboard() {
   // First, register handlers to track settings changes
+  console.log('kms init');
   navigator.mozSettings.addObserver('keyboard.current', function(e) {
     // Switch to the language associated keyboard
     // everything.me also uses this setting to improve searches
@@ -459,6 +461,7 @@ function initKeyboard() {
 
   dimensionsObserver = new MutationObserver(function() {
     updateTargetWindowHeight();
+    console.log('kms dimensionsObserver');
   });
 
   // And observe mutation events on the renderer element
@@ -484,7 +487,8 @@ function initKeyboard() {
   window.addEventListener('mozvisibilitychange', function visibilityHandler() {
     var inputMethodName = window.location.hash.substring(1);
     setKeyboardName(inputMethodName, function() {
-      if (!document.mozHidden && inputContext) {
+      console.log('kms mozvisibilitychange:' + inputContext);
+      if (!document.mozHidden && inputcontext) {
         showKeyboard();
       } else {
         hideKeyboard();
@@ -494,6 +498,7 @@ function initKeyboard() {
 
   window.navigator.mozInputMethod.oninputcontextchange = function() {
     inputContext = navigator.mozInputMethod.inputcontext;
+    console.log('kms change:' + inputContext);
     if (!document.mozHidden && inputContext) {
       showKeyboard();
     } else {
@@ -507,7 +512,9 @@ function initKeyboard() {
   // Finally, if we are only loaded by keyboard manager when the user
   // have already focused, the keyboard should show right away.
   inputContext = navigator.mozInputMethod.inputcontext;
+  console.log('kms inputcontext:' + inputContext);
   if (!document.mozHidden && inputContext) {
+    console.log('kms showKeyboard');
     showKeyboard();
   }
 }
@@ -984,6 +991,7 @@ function updateTargetWindowHeight(hide) {
   var imeHeight = IMERender.ime.scrollHeight;
   var imeWidth = IMERender.getWidth();
   window.resizeTo(imeWidth, imeHeight);
+  console.log('kms updateTargetWindowHeight');
 }
 
 // Sends a delete code to remove last character

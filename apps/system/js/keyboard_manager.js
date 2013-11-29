@@ -82,7 +82,7 @@ var KeyboardManager = {
       this.index = 0;
     }
   },
-
+  currentType: null,
   focusChangeTimeout: 0,
   switchChangeTimeout: 0,
   _onDebug: false,
@@ -243,7 +243,7 @@ var KeyboardManager = {
 
   inputFocusChange: function km_inputFocusChange(evt) {
     var type = evt.detail.inputType;
-
+    console.log('keyboard inputFocusChange' + type);
     // Skip the <select> element and inputs with type of date/time,
     // handled in system app for now
     if (!type || type in IGNORED_INPUT_TYPES)
@@ -270,6 +270,7 @@ var KeyboardManager = {
       if (group !== self.showingLayout.type) {
         self.resetShowingKeyboard();
       }
+      console.log('km mini showKeyboard' + group);
       self.setKeyboardToShow(group);
 
     }
@@ -288,6 +289,7 @@ var KeyboardManager = {
       // if target group (input type) does not exist, use text for default
       if (!self.keyboardLayouts[group]) {
         // ensure the helper has apps and settings data first:
+        console.log('keyboard no group');
         KeyboardHelper.getLayouts(showKeyboard);
       } else {
         showKeyboard();
@@ -327,6 +329,7 @@ var KeyboardManager = {
     if (!(layout.origin in this.runningLayouts))
       this.runningLayouts[layout.origin] = {};
 
+    console.log('km' + layout.origin);
     this.runningLayouts[layout.origin][layout.id] = layoutFrame;
     return layoutFrame;
   },
@@ -343,10 +346,12 @@ var KeyboardManager = {
 
   loadKeyboardLayout: function km_loadKeyboardLayout(layout) {
     // Generate a <iframe mozbrowser> containing the keyboard.
+    console.log('km Generate a <iframe mozbrowser> containing the keyboard');
     var keyboardURL = layout.origin + layout.path;
     var manifestURL = layout.origin + '/manifest.webapp';
     var keyboard = document.createElement('iframe');
     keyboard.src = keyboardURL;
+    console.log('keyboard.src' + keyboard.src);
     keyboard.setAttribute('mozapptype', 'inputmethod');
     keyboard.setAttribute('mozbrowser', 'true');
     keyboard.setAttribute('mozpasspointerevents', 'true');
@@ -403,6 +408,7 @@ var KeyboardManager = {
     var self = this;
     switch (evt.type) {
       case 'mozbrowserresize':
+        console.log('km mozbrowserresize');
         this.resizeKeyboard(evt);
         break;
       case 'attentionscreenshow':
@@ -419,19 +425,21 @@ var KeyboardManager = {
         break;
       case 'mozbrowsererror': // OOM
         var origin = evt.target.dataset.frameOrigin;
-        this.removeKeyboard(origin);
+        this.removeKeyboard(origin, true);
         break;
     }
   },
 
-  removeKeyboard: function km_removeKeyboard(origin) {
+  removeKeyboard: function km_removeKeyboard(origin, oom) {
     if (!this.runningLayouts.hasOwnProperty(origin)) {
+      console.log('=== keyboard removeKeyboard ===');
       return;
     }
 
     if (this.showingLayout.frame &&
       this.showingLayout.frame.dataset.frameOrigin === origin) {
-      this.hideKeyboard();
+      this.hideKeyboardImmediately();
+      console.log('=== keyboard removeKeyboard hideKeyboard ===');
     }
 
     for (var id in this.runningLayouts[origin]) {
@@ -445,6 +453,27 @@ var KeyboardManager = {
     }
 
     delete this.runningLayouts[origin];
+
+    // make a fake click
+    if (oom) {
+      if (this.currentType === null) {
+        this.currentType = 'text';
+      }
+      var evt = {
+        detail: {
+          inputType: this.currentType
+        }
+      };
+      this.inputFocusChange(evt);
+    }
+
+    // var cancel = {
+    //   'title': 'ok'
+    // };
+    // cancel.callback = function onCancel() {
+    //   CustomDialog.hide();
+    // };
+    // CustomDialog.show('keyboard error', 'keyboard error', cancel);
   },
 
   setKeyboardToShow: function km_setKeyboardToShow(group, index, launchOnly) {
@@ -477,6 +506,7 @@ var KeyboardManager = {
     this.setLayoutFrameActive(this.showingLayout.frame, true);
     this.showingLayout.frame.addEventListener(
          'mozbrowserresize', this, true);
+    console.log('km add mozbrowserresize');
   },
 
   showKeyboard: function km_showKeyboard(callback) {
@@ -559,6 +589,7 @@ var KeyboardManager = {
     this.setLayoutFrameActive(this.showingLayout.frame, false);
     this.showingLayout.frame.removeEventListener(
         'mozbrowserresize', this, true);
+    console.log('km remove mozbrowserresize');
     this.showingLayout.reset();
   },
 
