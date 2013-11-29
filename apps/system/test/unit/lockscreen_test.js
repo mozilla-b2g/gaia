@@ -2,6 +2,10 @@
 requireApp('system/test/unit/mock_clock.js', function() {
   window.realClock = window.Clock;
   window.Clock = MockClock;
+  window.realOrientationManager = window.OrientationManager;
+  window.OrientationManager = {
+    defaultOrientation: null
+  };
 requireApp('system/js/lockscreen.js');
 });
 
@@ -25,6 +29,7 @@ if (!this.IccHelper) {
 
 suite('system/LockScreen >', function() {
   var subject;
+  var realOrientationManager;
   var realL10n;
   var realMobileOperator;
   var realMobileConnection;
@@ -37,16 +42,23 @@ suite('system/LockScreen >', function() {
   var domConnstateL2;
   var domPasscodePad;
   var domEmergencyCallBtn;
+  var domOverlay;
+  var domPasscodeCode;
+  var domMainScreen;
   var DUMMYTEXT1 = 'foo';
 
   setup(function() {
     subject = window.LockScreen;
-
     realL10n = navigator.mozL10n;
     navigator.mozL10n = window.MockL10n;
 
     realMobileOperator = window.MobileOperator;
     window.MobileOperator = MockMobileOperator;
+
+    realOrientationManager = window.OrientationManager;
+    window.OrientationManager = {
+      defaultOrientation: null
+    };
 
     realMozTelephony = navigator.mozTelephony;
     navigator.mozTelephony = window.MockNavigatorMozTelephony;
@@ -74,11 +86,20 @@ suite('system/LockScreen >', function() {
     domEmergencyCallBtn = document.createElement('a');
     domEmergencyCallBtn.dataset.key = 'e';
     domPasscodePad.appendChild(domEmergencyCallBtn);
+    domOverlay = document.createElement('div');
+    domPasscodeCode = document.createElement('div');
     document.body.appendChild(domPasscodePad);
+    domMainScreen = document.createElement('div');
     subject.passcodePad = domPasscodePad;
 
     subject.connstate = domConnstate;
-
+    var mockClock = {
+      stop: function() {}
+    };
+    subject.overlay = domOverlay;
+    subject.mainScreen = domMainScreen;
+    subject.clock = mockClock;
+    subject.lock();
   });
 
   test('2G Mode: should update cell broadcast info on connstate Line 2',
@@ -134,6 +155,37 @@ suite('system/LockScreen >', function() {
     stubSwitchPanel.restore();
   });
 
+  test('Lock: can actually lock', function() {
+    var mockLO = sinon.stub(screen, 'mozLockOrientation');
+    subject.overlay = domOverlay;
+    subject.lock();
+    assert.isTrue(subject.locked);
+    mockLO.restore();
+  });
+
+  test('Unlock: can actually unlock', function() {
+    subject.overlay = domOverlay;
+    subject.unlock(true);
+    assert.isFalse(subject.locked);
+  });
+
+  test('Passcode: enter passcode can unlock the screen', function() {
+    subject.passCodeEntered = '0000';
+    subject.passCode = '0000';
+    subject.passcodeCode = domPasscodeCode;
+    subject.checkPassCode();
+    assert.equal(subject.overlay.dataset.passcodeStatus, 'success');
+  });
+
+  test('Passcode: enter passcode can unlock the screen', function() {
+    subject.passCodeEntered = '0000';
+    subject.passCode = '3141';
+
+    subject.passcodeCode = domPasscodeCode;
+    subject.checkPassCode();
+    assert.equal(subject.overlay.dataset.passcodeStatus, 'error');
+  });
+
   // XXX: Test 'Screen off: by proximity sensor'.
 
   teardown(function() {
@@ -144,7 +196,7 @@ suite('system/LockScreen >', function() {
     window.IccHelper = realIccHelper;
     window.Clock = window.realClock;
     window.FtuLauncher = realFtuLauncher;
-
+    window.OrientationManager = window.realOrientationManager;
     document.body.removeChild(domConnstate);
     document.body.removeChild(domPasscodePad);
     subject.passcodePad = null;
