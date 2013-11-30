@@ -183,6 +183,10 @@ suite('link_helper_test.js', function() {
         testURLOK('http://whatever.stuff');
         testURLOK('https://whatever.stuff');
       });
+      test('Bug 941763', function() {
+        testURLNOK('.website.com');
+        testURLNOK('.website.co.uk');
+     });
     });
   });
 

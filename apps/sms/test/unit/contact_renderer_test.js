@@ -152,6 +152,50 @@ suite('ContactRenderer', function() {
       );
     });
 
+    test('Rendered Contact "givenName familyName" and "number"', function() {
+      var html;
+
+      renderer.render({
+        contact: contact,
+        input: 'foo',
+        target: ul
+      });
+
+      sinon.assert.calledWithMatch(Template.prototype.interpolate, {
+        carrier: 'TEF, ',
+        name: 'Pepito O\'Hare',
+        nameHTML: 'Pepito O&apos;Hare',
+        number: '+346578888888',
+        numberHTML: '+346578888888',
+        photoHTML: '',
+        separator: ' | ',
+        type: 'Mobile'
+      });
+
+      html = ul.firstElementChild.innerHTML;
+      assert.include(html, 'Pepito O\'Hare');
+      assert.ok(html.contains('+346578888888'));
+    });
+
+    test('Rendered Contact highlighted "givenName familyName" and "number"',
+    function() {
+      var html;
+
+      renderer.render({
+        contact: contact,
+        input: 'Pepito O\'Hare 346578888888',
+        target: ul
+      });
+
+      html = ul.firstElementChild.innerHTML;
+
+      assert.include(html, '<span class="highlight">Pepito</span>');
+      assert.include(html, '<span class="highlight">O\'Hare</span>');
+      assert.ok(
+        html.contains('+<span class="highlight">346578888888</span>')
+      );
+    });
+
     test('Rendered Contact "type | number"', function() {
       var html;
 
