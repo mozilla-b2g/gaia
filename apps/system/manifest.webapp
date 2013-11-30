@@ -28,6 +28,7 @@
     "camera":{},
     "geolocation":{},
     "audio-capture": {},
+    "video-capture": {},
     "wifi-manage":{},
     "desktop-notification":{},
     "idle":{},
