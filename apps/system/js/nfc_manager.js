@@ -334,15 +334,9 @@ var NfcManager = {
     // Incoming P2P message does not carry an NDEF message.
 
     // Do P2P UI.
-    window.dispatchEvent(new CustomEvent(
-      'check-p2p-registration-for-active-app', {detail: this}));
-  },
-
-  dispatchP2PUserResponse: function nm_dispatchP2PUserResponse(manifestURL) {
-    var detail = { manifestUrl: manifestURL };
-    var evt = new CustomEvent('nfc-p2p-user-accept', {
-      bubbles: true, cancelable: true,
-      detail: detail
+    var evt = new CustomEvent('check-p2p-registration-for-active-app', {
+      bubbles: true, cancelable: false,
+      detail: this
     });
     window.dispatchEvent(evt);
   },
@@ -364,6 +358,14 @@ var NfcManager = {
       };
   },
 
+  dispatchP2PUserResponse: function nm_dispatchP2PUserResponse(manifestURL) {
+    var detail = { manifestUrl: manifestURL };
+    var evt = new CustomEvent('nfc-p2p-user-accept', {
+      bubbles: true, cancelable: true,
+      detail: detail
+    });
+    window.dispatchEvent(evt);
+  },
 
   fireTagDiscovered: function nm_fireTagDiscovered(command) {
     var self = this;

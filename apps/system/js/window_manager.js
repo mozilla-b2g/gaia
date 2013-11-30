@@ -1175,22 +1175,6 @@ var WindowManager = (function() {
     setDisplayedApp(config.origin);
   });
 
-  window.addEventListener('check-p2p-registration-for-active-app',
-    function(evt) {
-      if (evt.detail && evt.detail.checkP2PRegistration) {
-        var manifestURL = runningApps[displayedApp].manifestURL;
-        evt.detail.checkP2PRegistration(manifestURL);
-      }
-  });
-
-  window.addEventListener('dispatch-p2p-user-response-on-active-app',
-    function(evt) {
-      if (evt.detail && evt.detail.dispatchP2PUserResponse) {
-        var manifestURL = runningApps[displayedApp].manifestURL;
-        evt.detail.dispatchP2PUserResponse(manifestURL);
-      }
-  });
-
   // Stop running the app with the specified origin
   function kill(origin) {
     if (!isRunning(origin)) {
