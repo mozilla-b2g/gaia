@@ -18,6 +18,10 @@
     font-weight: 300;
   }
 
+  #calls:not(.big-duration) .duration .font-light {
+    font-weight: normal;
+  }
+
   button::-moz-focus-inner {
     border: 0;
   }
@@ -169,26 +173,26 @@
     position: absolute;
     bottom: 0;
     width: 100%;
-    height: 15.5rem;
+    height: 14rem;
   }
 
   #call-options {
-    height:15.5rem;
+    height: 14rem;
     position: absolute;
     bottom: 0;
   }
 
   #co-advanced {
-    height: 9.5rem;
+    height: 8rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
   }
 
   .co-advanced-option {
-    height: 9.5rem;
+    height: 8rem;
     width: 100%;
-    background: rgba(24,24,24,.92);
-    border: solid 0.1rem rgba(255, 255, 255, 0.2);
-    border-right-color: rgba(0, 0, 0, 0.4);
-    border-bottom-color: rgba(0, 0, 0, 0.4);
+    background: rgba(24, 24, 24, 0.85);
+    border: solid 0.1rem black;
+    border-left-color: rgba(255, 255, 255, 0.2);
     -moz-box-sizing: border-box;
     border-radius: 0;
   }
@@ -242,7 +246,7 @@
   }
 
   #callbar {
-    background: rgba(24,24,24,.92);
+    background: rgba(24, 24, 24, 0.85);
     border: solid 0.1rem rgba(255, 255, 255, 0.2);
     border-right-color: rgba(0, 0, 0, 0.4);
     border-bottom-color: rgba(0, 0, 0, 0.4);
@@ -348,7 +352,7 @@
     position: relative;
     height: 8rem;
 
-    font-size: 1.8em;
+    font-size: 1.8rem;
     line-height: 8rem;
     background-color: #01c5ed;
 
@@ -431,7 +435,7 @@
   #calls > section .numberWrapper .number {
     height: 2.5rem;
     padding: 2rem 0 0 0;
-    font-size: 3.2rem;
+    font-size: 2.5rem;
     line-height: 1.5rem;
     color: black;
     white-space: nowrap;
@@ -464,7 +468,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     padding: 0 7rem 2rem 4rem;
-    font-size: 1.5rem;
+    font-size: 1.6rem;
     line-height: 2rem;
     color: white;
   }
@@ -493,7 +497,7 @@
     right: 0;
     top: 0;
     color: black;
-    font-weight: bold;
+    line-height: 6.6rem;
   }
 
   #calls.big-duration > section .duration {
@@ -582,7 +586,7 @@
     height: 3.5rem;
     margin: 4rem 0 0 1rem;
     background-repeat: no-repeat;
-    background-size: 2.4rem;
+    background-size: 2.6rem;
   }
 
   #calls.big-duration .handled-call.incoming .direction:before {
@@ -617,96 +621,85 @@
     position: absolute;
     bottom: 0;
     width: 100%;
-    height: 23rem;
-    transform: translateY(23rem);
+    transform: translateY(100%);
     transition: transform 0.3s ease-in-out;
     z-index: 500;
   }
 
   #incoming-container header {
-    width: -moz-calc(100% - 3rem);
-    margin: 1.5rem;
-    background: rgba(28, 24, 24, 0.75);
+    margin-bottom: 2rem;
+    display: flex;
   }
 
-  #incoming-container section {
-    height: 12.5rem;
-    margin-top: 3.5rem;
-    background-color: #1c1818;
-    background-image:  url("images/incoming-call.png");
-    background-position: top 2rem right 1.5rem;
+  #incoming-info {
+    background-color: rgba(0, 0, 0, 0.85);
+    background-image:  url('images/incoming_icon.png');
+    background-position: top 1.5rem right 1.5rem;
     background-repeat: no-repeat;
-    background-size: 1.6rem;
+    background-size: 2.6rem;
   }
 
   #incoming-container.displayed {
     transform: translateY(0);
   }
 
-  #incoming-container span[role="button"] {
+  #incoming-container button {
     height: 4rem;
+    flex: 1;
     border:0;
     border-radius:.3rem;
     display: block;
-    text-align: center;
     font-size: 1.8rem;
-    line-height: 4rem;
-    font-weight: 700;
-  }
-
-  #incoming-answer,
-  #incoming-end {
-    width: 50%;
-    float: left;
-    font-size: 0.9em;
-  }
-
-  #incoming-container.hold-and-answer-only #incoming-answer {
-    width: 100%;
-  }
-
-  #incoming-container.hold-and-answer-only #incoming-answer > span[role="button"] {
-    margin-left: 1.0rem;
-    margin-right: 1.0rem;
+    color: white;
+    background-position: center, center;
+    background-repeat: no-repeat, repeat-x;
   }
 
   #incoming-container.hold-and-answer-only #incoming-end {
     display: none;
   }
 
-  #incoming-answer > span[role="button"] {
-    background: url('images/btn_resume.png') repeat-x center / auto 100%;
-    line-height: 4rem;
-    text-shadow: 0.1rem 0.1rem 0 rgba(255,255,255,0.3);
-    color: #333;
-    opacity: 1.0;
-    margin: 1rem 1rem 1rem 0.5rem;
+  #incoming-answer {
+    background-image: url('images/ActionIcon_40x40_hold.png'),
+                      url('images/btn_resume.png');
+    background-size: 2.8rem, auto 100%;
+    margin-left: 1.5rem;
+    margin-right: 1.5rem;
   }
 
-  #incoming-end > span[role="button"] {
+  #incoming-end {
     background: url('images/ActionIcon_40x40_hangup.png'),
                 url('images/btn_hang_up.png');
     background-size: 4rem, auto 100%;
-    background-position: center, center;
-    background-repeat: no-repeat, repeat-x;
-    opacity: 1.0;
-    margin: 1rem 0.5rem 1rem 1rem;
+    margin-left: 1.5rem;
   }
 
-  #incoming-info > span {
-    display: block;
-    font-size: 1.8rem;
-    font-weight: 300;
-    line-height: 6rem;
-    margin: 0 1.5rem;
-    height: 5rem;
+  .incoming-number-info {
+    padding: 1rem 4.5rem 0 1.5rem;
+    height: 7rem;
     border-bottom: 0.1rem #333030 solid;
+    display: flex;
+    flex-direction: column;
   }
 
-  #incoming-ignore > span {
-    background: -moz-linear-gradient(top, #424040 1%, #676767 100%);
-    opacity: 1.0;
-    margin: 1.5rem;
+  #incoming-number {
+    font-size: 2.5rem;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    margin-bottom: 0.5rem;
+  }
+
+  #incoming-number-additional-info {
+    display: block;
+    font-size: 1.6rem;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  #incoming-ignore {
+    background: linear-gradient(to top, #424040 1%, #676767 100%);
+    margin: 1rem 1.5rem;
+    width: calc(100% - 3rem);
   }
 
   /* Conference group support */
@@ -714,17 +707,13 @@
     position: absolute;
     padding: 0;
     right : 0;
-    height: 7rem;
-    width: 8rem;
-    background: url('images/proceed.png') no-repeat right 1rem center / 3rem;
+    height: 8rem;
+    width: 6rem;
+    background: url('images/proceed.png') no-repeat center center / 3rem;
   }
 
   #group-call.held #group-show {
     display: none;
-  }
-
-  #calls #group-call #group-show {
-    height: 8rem;
   }
 
   #group-call #group-show:active {
@@ -760,7 +749,7 @@
     background: url(images/ActionIcon_40x40_hangup.png) no-repeat center center / 4rem;
   }
 
-  #locked-contact-photo {
+  #contact-background {
     position: absolute;
     top: 0;
     width: 100%;
@@ -782,7 +771,6 @@
   #call-screen[data-layout="connected"] #callbar-answer,
   #call-screen[data-layout="connected-hold"] #swiper-wrapper,
   #call-screen[data-layout="connected-hold"] #callbar-answer,
-  #call-screen:not([data-layout="incoming-locked"]) #locked-contact-photo,
   #call-screen:not([data-layout="incoming-locked"]) #lockscreen-header {
     display: none;
   }
@@ -881,8 +869,8 @@
   #calls:not(.single-line) #group-call.held .merge-button {
     display: block;
     position: absolute;
-    width: 7rem;
-    height: 7rem;
+    width: 6rem;
+    height: 8rem;
     top: 0;
     right: 0;
     background: url(images/icon_mergecall.png) no-repeat center;

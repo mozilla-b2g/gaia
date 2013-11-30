@@ -1076,7 +1076,8 @@
               method: function() {
                 response.isConfirmed = true;
                 handler();
-              }
+              },
+              position: 'left'
             }
           }
         });

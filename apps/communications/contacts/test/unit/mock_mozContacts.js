@@ -1,23 +1,31 @@
 'use strict';
 
-var MockMozContacts = {
+function MockMozContactsObj(contacts) {
+  this.contacts = contacts;
+}
+
+MockMozContactsObj.prototype = {
   limit: 20,
-  contacts: [],
-  find: function dummy() {},
+
+  _getRequest: function(result) {
+    function Req(result) {
+      var self = this;
+      Object.defineProperty(self, 'onsuccess', { set: function(cb) {
+        self.result = result;
+        cb({ target: self });
+      }});
+    }
+    return new Req(result);
+  },
+  find: function find() {
+    return this._getRequest(this.contacts);
+  },
   total: 0,
   set number(n) {
     this.total = n;
   },
   getCount: function() {
-    function Req(number) {
-      var self = this;
-      Object.defineProperty(self, 'onsuccess', { set: function(cb) {
-        self.result = number;
-        cb();
-      }
-      });
-    }
-    return new Req(MockMozContacts.total);
+    return this._getRequest(MockMozContacts.total);
   },
   getAll: function getAll() {
     return {
@@ -69,3 +77,5 @@ var MockMozContacts = {
     };
   }
 };
+
+var MockMozContacts = new MockMozContactsObj();

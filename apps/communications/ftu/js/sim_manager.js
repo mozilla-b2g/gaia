@@ -377,6 +377,27 @@ var SimManager = {
     }).bind(this);
   },
 
+  // Try to infer whats the default SIM
+  guessIcc: function guessIcc() {
+    var guessIcc = null;
+    if (navigator.mozMobileConnections) {
+      // New multi-sim api, use mozMobileConnection to guess
+      // the first inserted sim
+      for (var i = 0;
+        i < navigator.mozMobileConnections.length && guessIcc === null; i++) {
+        if (navigator.mozMobileConnections[i] !== null &&
+          navigator.mozMobileConnections[i].iccId !== null) {
+          guessIcc = navigator.mozIccManager.getIccById(
+            navigator.mozMobileConnections[i].iccId);
+        }
+      }
+    } else {
+      guessIcc = navigator.mozIccManager;
+    }
+
+    return guessIcc;
+  },
+
   importContacts: function sm_importContacts() {
     // Delay for showing feedback to the user after importing
     var DELAY_FEEDBACK = 300;
@@ -389,7 +410,7 @@ var SimManager = {
 
     var cancelled = false,
         contactsRead = false;
-    var importer = new SimContactsImporter();
+    var importer = new SimContactsImporter(SimManager.guessIcc());
     utils.overlay.showMenu();
     utils.overlay.oncancel = function oncancel() {
       cancelled = true;

@@ -3,7 +3,48 @@
 
 'use strict';
 
+/**
+ * LockScreen now use strategy pattern to adapt the unlocker, which would
+ * report intentions like unlocking and launching camera to finish the job.
+ *
+ * @see intentionRouter in the component.
+ */
+
 var LockScreen = {
+
+  // The unlocking strategy.
+  _unlocker: null,
+  _unlockerInitialized: false,
+
+  /**
+   * An intention router which would be held by different unlocking strategies,
+   * which can communicate with LockScreen.
+   * The caller should always be the strategy.
+   */
+  intentionRouter: {
+
+    /**
+     * To notify the LockScreen that the unlocker has been initialized.
+     */
+    unlockerInitialize: function _unlockerInitialize() {
+      LockScreen._unlockerInitialized = true;
+    },
+
+    /**
+     * Unlocker want to unlock.
+     */
+    activateUnlock: function _activateUnlock() {
+      LockScreen._activateUnlock();
+    },
+
+    /**
+     * Unlocker want to activate the camera.
+     */
+    activateCamera: function _activateCamera() {
+      LockScreen._activateCamera();
+    }
+  },
+
   /*
   * Boolean return true when initialized.
   */
@@ -71,16 +112,6 @@ var LockScreen = {
   _slideReachEnd: false,
 
   /*
-  * Detect if sliding crossed the middle line.
-  */
-  _slidingToward: '',
-
-  /*
-  * How long did the user slide.
-  */
-  _slideCount: 0,
-
-  /*
   * Current passcode entered by the user
   */
   passCodeEntered: '',
@@ -109,32 +140,6 @@ var LockScreen = {
   * Timeout ID for backing from triggered state to normal state
   */
   triggeredTimeoutId: 0,
-
-  /*
-  * Interval ID for elastic of curve and arrow (null means the animation is
-  * not running).
-  */
-  elasticIntervalId: null,
-
-  /*
-  * True if the animation should be running right now.
-  */
-  elasticEnabled: false,
-
-  /*
-  * A reference to the media playback widget in the lockscreen.
-  */
-  mediaPlaybackWidget: null,
-
-  /*
-  * elastic animation interval
-  */
-  ELASTIC_INTERVAL: 5000,
-
-  /*
-  * timeout for triggered state after swipe up
-  */
-  TRIGGERED_TIMEOUT: 7000,
 
   /*
   * Max value for handle swiper up
@@ -173,14 +178,22 @@ var LockScreen = {
    * @this
    */
 
-  /* init */
+  /**
+   * Initialize the LockScreen.
+   * Will choose LockScreenSlide as its unlocking strategy.
+   *
+   * @this {LockScreen}
+   */
   init: function ls_init() {
+
     if (this.ready) { // already initialized: just trigger a translation
       this.refreshClock(new Date());
       this.updateConnState();
       return;
     }
     this.ready = true;
+
+    this._unlocker = new LockScreenSlide(this.intentionRouter);
 
     this.getAllElements();
 
@@ -278,6 +291,7 @@ var LockScreen = {
       0, function(value) {
       self.passCodeRequestTimeout = value;
     });
+
   },
 
   /*
@@ -313,12 +327,22 @@ var LockScreen = {
     }
   },
 
-  lightIcons: function() {
+  /**
+   * Light the camera and unlocking icons when user touch on our LockScreen.
+   *
+   * @this {LockScreen}
+   */
+  _lightIcons: function() {
     this.rightIcon.classList.remove('dark');
     this.leftIcon.classList.remove('dark');
   },
 
-  darkIcons: function() {
+  /**
+   * Dark the camera and unlocking icons when user leave our LockScreen.
+   *
+   * @this {LockScreen}
+   */
+  _darkIcons: function() {
     this.rightIcon.classList.add('dark');
     this.leftIcon.classList.add('dark');
   },
@@ -330,12 +354,6 @@ var LockScreen = {
         if (evt.detail.screenOffBy == 'proximity') {
           break;
         }
-
-        // If the screen got blackout, should restore the slide.
-        this.restoreSlide();
-        this.slideLeft.classList.remove('touched');
-        this.slideCenter.classList.remove('touched');
-        this.slideRight.classList.remove('touched');
 
         // XXX: If the screen is not turned off by ScreenManager
         // we would need to lock the screen again
@@ -380,14 +398,6 @@ var LockScreen = {
         break;
 
       case 'click':
-        if (evt.mozInputSource === 0 &&
-            (evt.target === this.areaUnlock ||
-             evt.target === this.areaCamera)) {
-          evt.preventDefault();
-          this.handleIconClick(evt.target);
-          break;
-        }
-
         if (!evt.target.dataset.key)
           break;
 
@@ -403,54 +413,20 @@ var LockScreen = {
           break;
         }
 
-        if (evt.target === this.area ||
-            evt.target === this.areaUnlock ||
-            evt.target === this.areaCamera)
-          this.handleSlideBegin();
-
         var leftTarget = this.areaCamera;
         var rightTarget = this.areaUnlock;
         var overlay = this.overlay;
         var target = evt.target;
 
-        this._touch = {
-          touched: false,
-          leftTarget: leftTarget,
-          rightTarget: rightTarget,
-          overlayWidth: this.overlay.offsetWidth
-        };
         window.addEventListener('touchend', this);
-        window.addEventListener('touchmove', this);
-
-        this._touch.touched = true;
-        this._touch.initX = evt.touches[0].pageX;
-        this._touch.initY = evt.touches[0].pageY;
         overlay.classList.add('touched');
-        break;
-
-      case 'touchmove':
-        this.handleMove(
-          evt.touches[0].pageX,
-          evt.touches[0].pageY
-        );
-        this.handleSlide();
         break;
 
       case 'touchend':
         window.removeEventListener('touchmove', this);
         window.removeEventListener('touchend', this);
-
-        this.handleSlideEnd();
-
-        this.handleMove(
-          evt.changedTouches[0].pageX,
-          evt.changedTouches[0].pageY
-        );
-        delete this._touch;
         this.overlay.classList.remove('touched');
-
         break;
-
       case 'transitionend':
         if (evt.target !== this.overlay)
           return;
@@ -501,187 +477,48 @@ var LockScreen = {
     }
   },
 
-  handleMove: function ls_handleMove(pageX, pageY) {
-    var touch = this._touch;
-
-    if (!touch.touched) {
-
-      // Do nothing if the user have not move the finger to the slide yet.
-      if (!this._sliding)
+  /**
+   * Activate the camera.
+   *
+   * @this {LockScreen}
+   */
+  _activateCamera: function ls_activateCamera() {
+    var self = this;
+    var panelOrFullApp = function panelOrFullApp() {
+      // If the passcode is enabled and it has a timeout which has passed
+      // switch to secure camera
+      if (self.passCodeEnabled && self._passCodeTimeoutCheck) {
+        // Go to secure camera panel
+        self.switchPanel('camera');
         return;
-
-      touch.touched = true;
-      touch.initX = pageX;
-      touch.initY = pageY;
-
-      var overlay = this.overlay;
-      overlay.classList.add('touched');
-    }
-
-    var dy = pageY - touch.initY;
-    var ty = Math.max(- this.HANDLE_MAX, dy);
-    var base = - ty / this.HANDLE_MAX;
-    touch.ty = ty;
-
-    touch.tx = pageX - touch.initX;
-  },
-
-  handleSlideBegin: function() {
-    this.lightIcons();
-    this.restoreSlide();
-    this._sliding = true;
-
-    // The '0.5' is the original width of the center of the circle.
-    this._slideOrigin = this.slideCenter.offsetLeft + 0.5;
-  },
-
-  handleSlide: function() {
-
-    if (!this._sliding)
-      return;
-
-    /**
-     * Return the distance between the end of the handle to the origin.
-     *
-     * @return {Pixel} the length of the handle dragged from the origin.
-     * @this
-     */
-    var slidingLength = function ls_hs_slidingLength(subject, dir) {
-      if ('right' === dir) {
-        return subject.offsetLeft + subject.clientWidth - this._slideOrigin;
-      } else {
-        return this._slideOrigin - subject.offsetLeft + subject.clientWidth;
       }
+
+      self.unlock(/* instant */ null, /* detail */ { areaCamera: true });
+
+      var a = new MozActivity({
+        name: 'record',
+        data: {
+          type: 'photos'
+        }
+      });
+      a.onerror = function ls_activityError() {
+        console.log('MozActivity: camera launch error.');
+      };
     };
 
-    var tx = this._touch.tx;
-    var dir = 'right';
-    if (0 > tx)
-      var dir = 'left';
-
-    // Drag from left to right or counter-direction.
-    if ('' !== this._slidingToward && dir !== this._slidingToward) {
-      this.restoreSlide();
-      this._sliding = true;
-    }
-    this._slidingToward = dir;
-
-    // Unsigned.
-    var utx = Math.abs(tx);
-
-    var trackLength = this.rightIcon.offsetLeft -
-                      this.leftIcon.offsetLeft +
-                      this.rightIcon.clientWidth;
-
-    var natureBoundary = Math.floor(trackLength / 2);
-
-    // Shrink the boundaries.
-    var slideBoundaryOffset = this.leftIcon.clientWidth;
-
-    // They're different because the center element of the circle
-    // occurs 1px width toward right.
-    var boundaryBorderRight = 5;
-    var boundaryBorderLeft = 4;
-    var boundaryBorder = 'left' === dir ? boundaryBorderLeft :
-      boundaryBorderRight;
-
-    // Boundaries will shorter than the track length,
-    // to make unlocking with one hand easier.
-    var maxLength = natureBoundary -
-                    slideBoundaryOffset +
-                    Math.floor(this.leftIcon.clientWidth / 2);
-
-    var offset = utx;
-    var slideLength = offset + this.slideLeft.clientWidth + boundaryBorder;
-
-    // Start to paint the slide.
-    this.slideLeft.classList.add('pulling');
-    this.slideRight.classList.add('pulling');
-
-    // If the front-end slide reached the boundary.
-    // We plus and minus the icon width because maxLength should be fixed,
-    // and only the handle and the blue occurred area should be adjusted.
-    if (slideLength > maxLength) {
-      this._slideReachEnd = true;
-      offset = natureBoundary - this.slideLeft.clientWidth - boundaryBorder;
-      this._slideTo(offset, dir, true);
-    } else {
-      this._slideTo(offset, dir);
-      this._slideReachEnd = false;
-    }
-    this._slideCount += utx;
-    if (this._slideCount > 15) {
-
-      // Add the effects to these icons.
-      this.slideLeft.classList.add('touched');
-      this.slideCenter.classList.add('touched');
-      this.slideRight.classList.add('touched');
-    }
-    this._slideCount = 0;
+    panelOrFullApp();
   },
 
-  // Restore all elements in the slide.
-  //
-  // easing {Boolean} true|undefined to bounce back slowly.
-  restoreSlide: function(easing) {
-
-    var slideCenter = this.slideCenter;
-
-    // Mimic the `getAllElements` function...
-    [this.slideLeft, this.slideRight, this.slideCenter]
-      .forEach(function ls_rSlide(h) {
-        if (easing) {
-
-          // To prevent magic numbers...
-          var bounceBackTime = '0.3s';
-          if ('handle-center' === h.dataset.role)
-            bounceBackTime = '0.4s';  // The center should be slower.
-
-          // Add transition to let it bounce back slowly.
-          h.style.transition = 'transform ' + bounceBackTime + ' ease 0s';
-
-          var tsEnd = function ls_tsEnd(evt) {
-
-            h.style.transition = 'none';
-
-            // Remove the effects to these icons, and only do it
-            // when it bounce back.
-            //
-            // This is because crossing the origin will restore it as well,
-            // but we don't need to reset the blue are at such scenario.
-            h.classList.remove('touched');
-            h.removeEventListener('transitionend', tsEnd);
-
-            // End the center immediately when the ends ended.
-            if ('handle-center' !== h.dataset.role) {
-              slideCenter.classList.remove('touched');
-            }
-          };
-          h.addEventListener('transitionend', tsEnd);
-
-        } else {
-          h.style.transition = '';
-        }
-
-        // After setup, bounce it back.
-        h.style.transform = '';
-    });
-
-    this._sliding = false;
-    this._slideReachEnd = false;
-  },
-
-  handleSlideEnd: function() {
-    // Bounce back to the center.
-    if (false === this._slideReachEnd) {
-      this.restoreSlide(true);
-    } else {
-      this.handleIconClick('left' === this._slidingToward ?
-        this.leftIcon : this.rightIcon);
-    }
-    this.darkIcons();
-    this._slideCount = 0;
-    this._sliding = false;
+  _activateUnlock: function ls_activateUnlock() {
+    var self = this;
+    var passcodeOrUnlock = function passcodeOrUnlock() {
+      if (!self.passCodeEnabled || !self._passCodeTimeoutCheck) {
+        self.unlock();
+      } else {
+        self.switchPanel('passcode');
+      }
+    };
+    passcodeOrUnlock();
   },
 
   handleIconClick: function ls_handleIconClick(target) {
@@ -689,40 +526,10 @@ var LockScreen = {
     switch (target) {
       case this.areaCamera:
       case this.altCamera:
-        var panelOrFullApp = function panelOrFullApp() {
-          // If the passcode is enabled and it has a timeout which has passed
-          // switch to secure camera
-          if (self.passCodeEnabled && self._passCodeTimeoutCheck) {
-            // Go to secure camera panel
-            self.switchPanel('camera');
-            return;
-          }
-
-          self.unlock(/* instant */ null, /* detail */ { areaCamera: true });
-
-          var a = new MozActivity({
-            name: 'record',
-            data: {
-              type: 'photos'
-            }
-          });
-          a.onerror = function ls_activityError() {
-            console.log('MozActivity: camera launch error.');
-          };
-        };
-
-        panelOrFullApp();
+        this._activateCamera();
         break;
-
       case this.areaUnlock:
-        var passcodeOrUnlock = function passcodeOrUnlock() {
-          if (!self.passCodeEnabled || !self._passCodeTimeoutCheck) {
-            self.unlock();
-          } else {
-            self.switchPanel('passcode');
-          }
-        };
-        passcodeOrUnlock();
+        this._activateUnlock();
         break;
     }
   },
@@ -776,8 +583,9 @@ var LockScreen = {
     // This file is loaded before the Window Manager in order to intercept
     // hardware buttons events. As a result WindowManager is not defined when
     // the device is turned on and this file is loaded.
-    var currentApp =
-      'WindowManager' in window ? WindowManager.getDisplayedApp() : null;
+    var currentApp = null;
+    if (window.WindowManager)
+      currentApp = WindowManager.getDisplayedApp();
 
     var currentFrame = null;
 
@@ -978,12 +786,6 @@ var LockScreen = {
     }
 
     panel = panel || 'main';
-    if ('main' === panel) {
-      this.restoreSlide();
-      this.slideLeft.classList.remove('touched');
-      this.slideCenter.classList.remove('touched');
-      this.slideRight.classList.remove('touched');
-    }
     var overlay = this.overlay;
     var currentPanel = overlay.dataset.panel;
 
@@ -1229,7 +1031,7 @@ var LockScreen = {
         'area-handle', 'area-slide', 'media-container', 'passcode-code',
         'alt-camera', 'alt-camera-button', 'slide-handle',
         'passcode-pad', 'camera', 'accessibility-camera',
-        'accessibility-unlock', 'panel-emergency-call'];
+        'accessibility-unlock', 'panel-emergency-call', 'canvas'];
 
     var toCamelCase = function toCamelCase(str) {
       return str.replace(/\-(.)/g, function replacer(str, p1) {
@@ -1243,15 +1045,6 @@ var LockScreen = {
 
     this.overlay = document.getElementById('lockscreen');
     this.mainScreen = document.getElementById('screen');
-
-    this.slideLeft = this.slideHandle.getElementsByTagName('div')[0];
-    this.slideCenter = this.slideHandle.getElementsByTagName('div')[1];
-    this.slideRight = this.slideHandle.getElementsByTagName('div')[2];
-
-    var slcLeft = '#lockscreen-icon-container .lockscreen-icon-left';
-    var slcRight = '#lockscreen-icon-container .lockscreen-icon-right';
-    this.leftIcon = document.querySelector(slcLeft);
-    this.rightIcon = document.querySelector(slcRight);
   },
 
   dispatchEvent: function ls_dispatchEvent(name, detail) {
@@ -1275,97 +1068,11 @@ var LockScreen = {
     });
   },
 
-  stopElasticTimer: function ls_stopElasticTimer() {
-    // Stop the timer if its running.
-    if (this.elasticIntervalId != null) {
-      clearInterval(this.elasticIntervalId);
-      this.elasticIntervalId = null;
-    }
-  },
-
-  startElasticTimer: function ls_startElasticTimer() {
-    this.elasticIntervalId =
-      setInterval(this.playElastic.bind(this), this.ELASTIC_INTERVAL);
-  },
-
-  setElasticEnabled: function ls_setElasticEnabled(value) {
-    // Remember the state we want to be in.
-    this.elasticEnabled = value;
-    // If the timer is already running, stop it.
-    this.stopElasticTimer();
-    // If the document is visible, go ahead and start the timer now.
-    if (value && !document.hidden) {
-      this.startElasticTimer();
-    }
-  },
-
-  playElastic: function ls_playElastic() {
-    if (this._touch && this._touch.touched)
-      return;
-
-    var overlay = this.overlay;
-    var container = this.iconContainer;
-
-    container.addEventListener('animationend', function animationend(e) {
-      container.removeEventListener(e.type, animationend);
-    });
-  },
-
   // Used by CellBroadcastSystem to notify the lockscreen of
   // any incoming CB messages that need to be displayed.
   setCellbroadcastLabel: function ls_setCellbroadcastLabel(label) {
     this.cellbroadcastLabel = label;
     this.updateConnState();
-  },
-
-  /**
-   * Pull the handle of the slide to the position corresponding
-   * to the offset.
-   *
-   * @param {Number} offset: pixels; how long the handle should move.
-   * @param {DOM Element} subject: the handle.
-   * @param {'right'|'left'} dir
-   * @param {Boolean} easing: if the pulling must go with animation.
-   * @this
-   */
-  _slideTo: function ls__slideTo(offset, dir, easing) {
-    var easingSec = 0.5;
-
-    // XXX: To solve the odd glitches among these 3 elements.
-    // Make the center element scale more.
-    var glitchS = 1.8;
-
-    var subject = ('right' === dir) ? this.slideRight : this.slideLeft;
-    var cntsubject = ('right' === dir) ? this.slideLeft : this.slideRight;
-
-    subject.style.transition = (!easing) ? '' :
-      'ease ' + easingSec + 's';
-    cntsubject.style.transition = (!easing) ? '' :
-      'ease ' + easingSec + 's';
-    this.slideCenter.style.transition = (!easing) ? '' :
-      'ease ' + easingSec + 's';
-
-    // Need to set this to let transition event triggered while
-    // we bounce the handles back.
-    // @see `restoreSlide`
-    cntsubject.style.transform = 'translateX(0px) ';
-
-    // 'translateX' will move it according to the left border.
-    if ('right' === dir) {
-      subject.style.transform = 'translateX(' + offset + 'px) ';
-    } else {
-      subject.style.transform = 'translateX(-' + offset + 'px) ';
-    }
-    // Move center as long as half of the offset, then scale it.
-    var cMove = offset / 2;
-    var cScale = offset + glitchS;
-
-    if ('right' === dir) {
-      this.slideCenter.style.transform = 'translateX(' + cMove + 'px) ';
-    } else {
-      this.slideCenter.style.transform = 'translateX(-' + cMove + 'px) ';
-    }
-    this.slideCenter.style.transform += 'scaleX(' + cScale + ') ';
   }
 };
 

@@ -7,10 +7,11 @@ html, body {
 }
 
 .ring-display {
-  padding: 0.75rem 0.75rem 0.63rem;
-  width: -moz-calc(100% - 1.50rem);
-  height: -moz-calc(100% - 1.38rem);
   position: fixed;
+
+  width: calc(100% - 1.50rem);
+  height: calc(100% - 1.38rem);
+  padding: 0.75rem 0.75rem 0.63rem;
 }
 
 #ring-icon {
@@ -78,25 +79,26 @@ html, body {
 
 #ring-button-close {
   float: left;
-  width: -moz-calc((100% - 4.06rem) / 2 );
+  display: inline-block;
+  overflow: hidden;
   -moz-box-sizing: border-box;
-  background: url("images/ring_button_snooze.png") repeat-x scroll left bottom #FAFAFA;
+  width: calc((100% - 4.06rem) / 2 );
+  height: 4.12rem;
+  padding: 0 0.94rem;
   border: 0.1rem solid #9F9F9F;
   border-radius: 0.25rem 0.25rem 0.25rem 0.25rem;
+  margin: 1.50rem 0 0 1.56rem;
+
+  background: url("images/ring_button_snooze.png") repeat-x scroll left bottom #FAFAFA;
   color: #333333;
-  display: inline-block;
   font-weight: 600;
   font-size: 1.63rem;
   line-height: 4.06rem;
-  height: 4.12rem;
-  margin: 1.50rem 0 0 1.56rem;
-  outline: medium none;
-  overflow: hidden;
-  padding: 0 0.94rem;
   text-align: center;
   text-decoration: none;
   text-overflow: ellipsis;
   text-shadow: 0.1rem 0.1rem 0 rgba(255, 255, 255, 0.3);
+  outline: medium none;
   vertical-align: middle;
   white-space: nowrap;
 }
@@ -109,26 +111,27 @@ html, body {
 
 #ring-button-snooze {
   float: left;
-  width: -moz-calc((100% - 4.06rem) / 2 );
+  display: inline-block;
+  overflow: hidden;
   -moz-box-sizing: border-box;
-  background: url("images/ring_button_close.png") repeat-x scroll left bottom #FAFAFA;
-  background-color: #00CAF2;
+  width: calc((100% - 4.06rem) / 2 );
+  height: 4.12rem;
+  padding: 0 0.94rem;
   border: 0.1rem solid #00ACCE;
   border-radius: 0.25rem 0.25rem 0.25rem 0.25rem;
+  margin: 1.50rem 1.56rem 0 0.94rem;
+
+  background: url("images/ring_button_close.png") repeat-x scroll left bottom #FAFAFA;
+  background-color: #00CAF2;
   color: #333333;
-  display: inline-block;
   font-weight: 600;
   font-size: 1.63rem;
   line-height: 4.06rem;
-  height: 4.12rem;
-  margin: 1.50rem 1.56rem 0 0.94rem;
-  outline: medium none;
-  overflow: hidden;
-  padding: 0 0.94rem;
   text-align: center;
   text-decoration: none;
   text-overflow: ellipsis;
   text-shadow: 0.1rem 0.1rem 0 rgba(255, 255, 255, 0.3);
+  outline: medium none;
   vertical-align: middle;
   white-space: nowrap;
 }

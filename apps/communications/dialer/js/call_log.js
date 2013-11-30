@@ -976,25 +976,14 @@ var CallLog = {
 };
 
 navigator.mozContacts.oncontactchange = function oncontactchange(event) {
-  var options = {
-    filterBy: ['id'],
-    filterOp: 'equals',
-    filterValue: event.contactID
-  };
-  var request = navigator.mozContacts.find(options);
-
-  request.onsuccess = function contactRetrieved(e) {
-    if (e.target.result && e.target.result.length) {
-      var contact = e.target.result[0];
-      var phoneNumbers = [];
-      if (contact.tel && contact.tel.length) {
-        var phoneNumbers = contact.tel.map(function(tel) {
-          return tel.value;
-        });
-      }
+  function contactChanged(contact, reason) {
+    var phoneNumbers = [];
+    if (contact.tel && contact.tel.length) {
+      var phoneNumbers = contact.tel.map(function(tel) {
+        return tel.value;
+      });
     }
-
-    switch (event.reason) {
+    switch (reason) {
       case 'create':
         CallLog.updateListWithContactInfo('create', null, phoneNumbers);
         break;
@@ -1002,13 +991,45 @@ navigator.mozContacts.oncontactchange = function oncontactchange(event) {
         CallLog.updateListWithContactInfo('update', event.contactID,
                                           phoneNumbers);
         break;
-      case 'remove':
-        CallLog.updateListWithContactInfo('remove', event.contactID);
-        break;
     }
+  }
+
+  var reason = event.reason;
+  var options = {
+    filterBy: ['id'],
+    filterOp: 'equals',
+    filterValue: event.contactID
+  };
+
+  if (reason === 'remove') {
+    CallLog.updateListWithContactInfo('remove', event.contactID);
+    return;
+  }
+
+  var request = navigator.mozContacts.find(options);
+  request.onsuccess = function contactRetrieved(e) {
+    if (!e.target.result || e.target.result.length === 0) {
+      console.warn('Call log: No Contact Found: ', event.contactID);
+      return;
+    }
+
+    var contact = e.target.result[0];
+    if (!fb.isFbContact(contact)) {
+       contactChanged(contact, reason);
+       return;
+    }
+
+    var fbReq = fb.getData(contact);
+    fbReq.onsuccess = function fbContactSuccess() {
+      contactChanged(fbReq.result, reason);
+    };
+    fbReq.onerror = function fbContactError() {
+      console.error('Error while querying FB: ', fbReq.error.name);
+      contactChanged(contact, reason);
+    };
   };
 
   request.onerror = function errorHandler(e) {
-    console.log('Error retrieving contact by ID ' + event.contactID);
+    console.error('Error retrieving contact by ID ' + event.contactID);
   };
 };

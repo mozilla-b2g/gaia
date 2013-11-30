@@ -44,7 +44,7 @@ suite('Sim export', function() {
   });
 
   setup(function() {
-    subject = new ContactsSIMExport();
+    subject = new ContactsSIMExport(navigator.mozIccManager);
     subject.setProgressStep(progressMock);
     updateSpy.reset();
     navigator.mozIccManager.faulty = false;

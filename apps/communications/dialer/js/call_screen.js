@@ -15,6 +15,7 @@ var CallScreen = {
   groupCallsList: document.getElementById('group-call-details-list'),
 
   mainContainer: document.getElementById('main-container'),
+  contactBackground: document.getElementById('contact-background'),
   callToolbar: document.getElementById('co-advanced'),
 
   muteButton: document.getElementById('mute'),
@@ -31,10 +32,11 @@ var CallScreen = {
 
   incomingContainer: document.getElementById('incoming-container'),
   incomingNumber: document.getElementById('incoming-number'),
+  incomingNumberAdditionalInfo:
+    document.getElementById('incoming-number-additional-info'),
   incomingAnswer: document.getElementById('incoming-answer'),
   incomingEnd: document.getElementById('incoming-end'),
   incomingIgnore: document.getElementById('incoming-ignore'),
-  lockedContactPhoto: document.getElementById('locked-contact-photo'),
   lockedClockNumbers: document.getElementById('lockscreen-clock-numbers'),
   lockedClockMeridiem: document.getElementById('lockscreen-clock-meridiem'),
   lockedDate: document.getElementById('lockscreen-date'),
@@ -119,7 +121,7 @@ var CallScreen = {
     }
     CallScreen.showClock(new Date());
 
-    this.setDefaultContactImage({force: false});
+    this.setWallpaper();
 
     // Handle resize events
     window.addEventListener('resize', this.resizeHandler.bind(this));
@@ -181,26 +183,28 @@ var CallScreen = {
     }
   },
 
-  setCallerContactImage: function cs_setContactImage(image_url, opt) {
-    var isString = (typeof image_url == 'string');
-    var isLocked = (this.screen.dataset.layout === 'incoming-locked');
-    var target = isLocked ? this.lockedContactPhoto : this.mainContainer;
-    var photoURL = isString ? image_url : URL.createObjectURL(image_url);
-
-    if (!target.style.backgroundImage || (opt && opt.force)) {
-      target.style.backgroundImage = 'url(' + photoURL + ')';
+  _contactImage: null,
+  setCallerContactImage: function cs_setContactImage(blob) {
+    if (this._contactImage == blob) {
+      return;
     }
+
+    this._contactImage = blob;
+
+    var background = blob ? 'url(' + URL.createObjectURL(blob) + ')' : '';
+    this.contactBackground.style.backgroundImage = background;
   },
 
-
-  setDefaultContactImage: function cs_setDefaultContactImage(opt) {
+  setWallpaper: function cs_setWallpaper() {
     if (!navigator.mozSettings) {
       return;
     }
 
+    var self = this;
     var req = navigator.mozSettings.createLock().get('wallpaper.image');
     req.onsuccess = function cs_wi_onsuccess() {
-      CallScreen.setCallerContactImage(req.result['wallpaper.image'], opt);
+      var image = URL.createObjectURL(req.result['wallpaper.image']);
+      self.mainContainer.style.backgroundImage = 'url(' + image + ')';
     };
   },
 

@@ -48,21 +48,14 @@ var MessageManager = {
     var message = e.message;
     var threadId = message.threadId;
 
-    if (Threads.has(threadId)) {
-      Threads.get(message.threadId).messages.push(message);
-    }
+    Threads.registerMessage(message);
 
-    if (window.location.hash === '#new') {
-      // If we are in 'new' we go to right to thread view
+    if (threadId === Threads.currentId) {
+      ThreadUI.onMessageSending(message);
+    } else {
       window.location.hash = '#thread=' + threadId;
-    } else if (threadId === Threads.currentId) {
-      ThreadUI.appendMessage(message);
-      ThreadUI.forceScrollViewToBottom();
     }
-
-    MessageManager.getThreads(function() {
-      ThreadListUI.updateThread(message);
-    });
+    ThreadListUI.onMessageSending(message);
   },
 
   onMessageFailed: function mm_onMessageFailed(e) {
@@ -79,7 +72,6 @@ var MessageManager = {
 
   onMessageReceived: function mm_onMessageReceived(e) {
     var message = e.message;
-    var threadId;
 
     if (message.messageClass && message.messageClass === 'class-0') {
       return;
@@ -93,14 +85,10 @@ var MessageManager = {
       return;
     }
 
-    threadId = message.threadId;
+    Threads.registerMessage(message);
 
-    if (Threads.has(threadId)) {
-      Threads.get(threadId).messages.push(message);
-    }
-
-    if (threadId === Threads.currentId) {
-      //Append message and mark as read
+    if (message.threadId === Threads.currentId) {
+      // Mark as read in Gecko
       this.markMessagesRead([message.id], function() {
         ThreadListUI.updateThread(message);
       });

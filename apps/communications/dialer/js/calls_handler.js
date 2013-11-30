@@ -291,13 +291,17 @@ var CallsHandler = (function callsHandler() {
         return;
       }
 
-      Contacts.findByNumber(number, function lookupContact(contact) {
+      Contacts.findByNumber(number,
+                            function lookupContact(contact, matchingTel) {
         if (contact && contact.name) {
           CallScreen.incomingNumber.textContent = contact.name;
+          CallScreen.incomingNumberAdditionalInfo.textContent =
+            Utils.getPhoneNumberAdditionalInfo(matchingTel);
           return;
         }
 
         CallScreen.incomingNumber.textContent = number;
+        CallScreen.incomingNumberAdditionalInfo.textContent = '';
       });
     });
 
@@ -474,11 +478,6 @@ var CallsHandler = (function callsHandler() {
     }
 
     handledCalls[0].call.answer();
-
-    if (CallScreen.screen.dataset.layout === 'incoming-locked') {
-      CallScreen.mainContainer.style.backgroundImage =
-        CallScreen.lockedContactPhoto.style.backgroundImage;
-    }
 
     CallScreen.render('connected');
   }

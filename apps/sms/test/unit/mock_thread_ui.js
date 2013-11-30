@@ -67,6 +67,7 @@ var MockThreadUI = {
   handleEvent: function() {},
   cleanFields: function() {},
   onSendClick: function() {},
+  onMessageSending: function() {},
   onMessageSent: function() {},
   onMessageFailed: function() {},
   onDeliverySuccess: function() {},
@@ -83,17 +84,17 @@ var MockThreadUI = {
   groupView: function() {},
   prompt: function() {},
   onCreateContact: function() {},
-  isShowSendMessageErrorCalledTimes: 0,
-  showSendMessageError: function() {
-    this.isShowSendMessageErrorCalledTimes += 1;
+  isShowMessageErrorCalledTimes: 0,
+  showMessageError: function() {
+    this.isShowMessageErrorCalledTimes += 1;
   },
   mSetup: function() {
-    this.isShowSendMessageErrorCalledTimes = 0;
+    this.isShowMessageErrorCalledTimes = 0;
     this.inThread = false;
   },
 
   mTeardown: function() {
-    this.isShowSendMessageErrorCalledTimes = 0;
+    this.isShowMessageErrorCalledTimes = 0;
   }
 };
 

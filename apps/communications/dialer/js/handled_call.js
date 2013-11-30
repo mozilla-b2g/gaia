@@ -182,8 +182,7 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
       self.replaceAdditionalContactInfo(self._cachedAdditionalInfo);
       if (contact.photo && contact.photo.length > 0) {
         self.photo = contact.photo[0];
-        CallScreen.setCallerContactImage(self.photo,
-                                         {force: true});
+        CallScreen.setCallerContactImage(self.photo);
         if (typeof self.photo === 'string') {
           contactCopy.photo = self.photo;
         } else {
@@ -302,11 +301,7 @@ HandledCall.prototype.connected = function hc_connected() {
   CallScreen.enableKeypad();
   CallScreen.syncSpeakerEnabled();
 
-  if (this.photo) {
-    CallScreen.setCallerContactImage(this.photo, {force: true});
-  } else {
-    CallScreen.setDefaultContactImage({force: true});
-  }
+  CallScreen.setCallerContactImage(this.photo);
 };
 
 HandledCall.prototype.disconnected = function hc_disconnected() {

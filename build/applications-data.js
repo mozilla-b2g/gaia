@@ -159,34 +159,45 @@ function customizeHomescreen(options) {
   config = options;
 
   // zeroth grid page is the dock
-  let customize = {'homescreens': [
-    [
-      ['apps', 'communications', 'dialer'],
-      ['apps', 'sms'],
-      ['apps', 'communications', 'contacts'],
-      ['apps', 'browser']
-    ], [
-      ['apps/homescreen/collections', 'social'],
-      ['apps/homescreen/collections', 'games'],
-      ['apps/homescreen/collections', 'music'],
-      ['apps/homescreen/collections', 'entertainment']
-    ], [
-      ['apps', 'camera'],
-      ['apps', 'gallery'],
-      ['apps', 'fm'],
-      ['apps', 'settings'],
-      [GAIA_EXTERNAL_APP_SRCDIR, 'marketplace.firefox.com'],
-      ['apps', 'calendar'],
-      ['apps', 'clock'],
-      ['apps', 'costcontrol'],
-      ['apps', 'email'],
-      ['apps', 'music'],
-      ['apps', 'video']
-    ]
-  ],
+  let customize = {
+    'homescreens': [
+      [
+        ['apps', 'communications', 'dialer'],
+        ['apps', 'sms'],
+        ['apps', 'communications', 'contacts'],
+        ['apps', 'browser']
+      ], [
+        ['apps/homescreen/collections', 'social'],
+        ['apps/homescreen/collections', 'games'],
+        ['apps/homescreen/collections', 'music'],
+        ['apps/homescreen/collections', 'entertainment']
+      ], [
+        ['apps', 'camera'],
+        ['apps', 'gallery'],
+        ['apps', 'fm'],
+        ['apps', 'settings'],
+        [GAIA_EXTERNAL_APP_SRCDIR, 'marketplace.firefox.com'],
+        ['apps', 'calendar'],
+        ['apps', 'clock'],
+        ['apps', 'costcontrol'],
+        ['apps', 'email'],
+        ['apps', 'music'],
+        ['apps', 'video']
+      ]
+    ],
     'search_page': {
       'enabled': true
-    }
+    },
+    'bookmarks': [
+      {
+        'name': 'Browser2',
+        'bookmarkURL': 'http://mozilla.org',
+        'icon': 'app://homescreen.gaiamobile.org/style/icons/Aurora.png',
+        'iconable': false,
+        'useAsyncPanZoom': true,
+        'features': 'toolbar=yes,location=yes'
+      }
+    ]
   };
 
   if (config.DOGFOOD == 1) {
@@ -205,9 +216,9 @@ function customizeHomescreen(options) {
                                  customize.move_collection_threshold : 1500;
   // It defines the threshold in pixels to consider a gesture like a tap event
   let tap_threshold = (customize.tap_threshold) ? customize.tap_threshold : 10;
-        // It defines the delay to show the blurring effect for clicked icons
-        let tap_effect_delay = (customize.tap_effect_delay) ?
-                                                                                                                                                                                        customize.tap_effect_delay : 140;
+  // It defines the delay to show the blurring effect for clicked icons
+  let tap_effect_delay = (customize.tap_effect_delay) ?
+    customize.tap_effect_delay : 140;
   // It defines the threshold to consider a gesture like a swipe. Number
   // in the range 0.0 to 1.0, both included, representing the screen width
   let swipe_threshold = 0.4;
@@ -251,9 +262,7 @@ function customizeHomescreen(options) {
     },
 
     tap_threshold: tap_threshold,
-
-                tap_effect_delay: tap_effect_delay,
-
+    tap_effect_delay: tap_effect_delay,
     move_collection_threshold: move_collection_threshold,
 
     swipe: {
@@ -281,6 +290,11 @@ function customizeHomescreen(options) {
       }
     )
   };
+
+  // Only enable configurable bookmarks for dogfood devices
+  if (config.PRODUCTION !== '1') {
+    content.bookmarks = customize.bookmarks;
+  }
 
   return content;
 }

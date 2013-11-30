@@ -849,10 +849,13 @@ const IMERender = (function() {
     if (!this.ime)
       return 0;
 
-    this.ime.clientHeight;
     var rows = document.querySelectorAll('.keyboard-row');
     var rowCount = rows.length || 3;
-    return Math.ceil(this.ime.clientHeight / rowCount);
+
+    var candidatePanel = document.getElementById('keyboard-candidate-panel');
+    var candidatePanelHeight = candidatePanel ? candidatePanel.clientHeight : 0;
+
+    return Math.ceil((this.ime.clientHeight - candidatePanelHeight) / rowCount);
   };
 
   // Exposing pattern

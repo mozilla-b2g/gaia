@@ -28,12 +28,25 @@ var Configurator = (function() {
       var provider = window[searchPage.provider] || dummyProvider;
       if (searchPage.enabled) {
         document.body.classList.add('searchPageEnabled');
-        Homescreen.init(0, provider.init.bind(provider));
       } else {
-        startHomescreenByDefault();
         setTimeout(provider.destroy, 0);
       }
     }
+
+    var homescreenInitialized = function() {
+      if (conf.bookmarks) {
+        conf.bookmarks.forEach(function addBookmark(bookmarkData) {
+          var app = new Bookmark(bookmarkData);
+          GridManager.install(app);
+        });
+      }
+
+      if (searchPage && searchPage.enabled) {
+        provider.init();
+      }
+    };
+
+    Homescreen.init(0, homescreenInitialized);
     loadSingleVariantConf();
   }
 

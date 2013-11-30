@@ -50,7 +50,6 @@
   </head>
   <body>
     <article id="call-screen" data-layout>
-      <div id="locked-contact-photo"></div>
       <div id="lockscreen-header">
         <div class="lockscreen-clock">
           <span id="lockscreen-clock-numbers"></span>
@@ -102,7 +101,7 @@
         </menu>
       </form>
       <article id="main-container">
-
+        <div id="contact-background"></div>
         <div id="actions-container">
           <div id="swiper-wrapper">
             <div id="swiper-area"></div>
@@ -203,23 +202,19 @@
     </article>
     <article id="incoming-container">
       <header>
-        <div id="incoming-end">
-          <span role="button">
-          </span>
-        </div>
-        <div id="incoming-answer">
-          <span role="button" data-l10n-id="hold">
-            Hold
-          </span>
-        </div>
+        <button id="incoming-end">
+        </button>
+        <button id="incoming-answer">
+        </button>
       </header>
       <section id="incoming-info">
-        <span id="incoming-number"></span>
-        <div id="incoming-ignore">
-          <span role="button" data-l10n-id="ignore">
-            Ignore
-          </span>
+        <div class="incoming-number-info">
+          <span id="incoming-number"></span>
+          <span id="incoming-number-additional-info"></span>
         </div>
+        <button id="incoming-ignore" data-l10n-id="ignore">
+            Ignore
+        </button>
       </section>
     </article>
     <article id="views">

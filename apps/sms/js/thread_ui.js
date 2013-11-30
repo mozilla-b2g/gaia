@@ -2,7 +2,7 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 /*global Compose, Recipients, Utils, AttachmentMenu, Template, Settings,
-         SMIL, Dialog, MessageManager, MozSmsFilter, LinkHelper,
+         SMIL, ErrorDialog, MessageManager, MozSmsFilter, LinkHelper,
          ActivityPicker, ThreadListUI, OptionMenu, Threads, Contacts,
          Attachment, WaitingScreen, MozActivity, LinkActionHandler,
          ActivityHandler, TimeHeaders, ContactRenderer */
@@ -479,13 +479,23 @@ var ThreadUI = global.ThreadUI = {
     }
   },
 
-  onMessageReceived: function thui_onMessageReceived(message) {
+  // Function for handling when a new message (sent/received)
+  // is detected
+  onMessage: function onMessage(message) {
     this.appendMessage(message);
-    this.scrollViewToBottom();
     TimeHeaders.updateAll();
+  },
+
+  onMessageReceived: function thui_onMessageReceived(message) {
+    this.onMessage(message);
     if (this.isScrolledManually) {
       this.showNewMessageNotice(message);
     }
+  },
+
+  onMessageSending: function thui_onMessageReceived(message) {
+    this.onMessage(message);
+    this.forceScrollViewToBottom();
   },
 
   onNewMessageNoticeClick: function thui_onNewMessageNoticeClick(event) {
@@ -1846,7 +1856,7 @@ var ThreadUI = global.ThreadUI = {
             });
 
             for (var key in errors) {
-              this.showSendMessageError(key, errors[key]);
+              this.showMessageError(key, {recipients: errors[key]});
             }
           }
         }.bind(this)
@@ -1860,7 +1870,7 @@ var ThreadUI = global.ThreadUI = {
       MessageManager.sendMMS(recipients, smilSlides, null,
         function onError(error) {
           var errorName = error.name;
-          this.showSendMessageError(errorName);
+          this.showMessageError(errorName);
         }.bind(this)
       );
     }
@@ -1916,61 +1926,8 @@ var ThreadUI = global.ThreadUI = {
     messageDOM.classList.add('delivered');
   },
 
-  showSendMessageError: function mm_sendMessageOnError(errorName, recipients) {
-    var messageTitle = '';
-    var messageBody = '';
-    var messageBodyParams = {};
-    var buttonLabel = '';
-
-    switch (errorName) {
-
-      case 'NoSimCardError':
-        messageTitle = 'sendNoSimCardTitle';
-        messageBody = 'sendNoSimCardBody';
-        buttonLabel = 'sendNoSimCardBtnOk';
-        break;
-      case 'RadioDisabledError':
-        messageTitle = 'sendAirplaneModeTitle';
-        messageBody = 'sendAirplaneModeBody';
-        buttonLabel = 'sendAirplaneModeBtnOk';
-        break;
-      case 'FdnCheckError':
-        messageTitle = 'fdnBlockedTitle';
-        messageBody = 'fdnBlockedBody';
-        messageBodyParams = {
-          n: recipients.length,
-          numbers: recipients.join('<br />')
-        };
-        buttonLabel = 'fdnBlockedBtnOk';
-        break;
-      case 'NoSignalError':
-      case 'NotFoundError':
-      case 'UnknownError':
-      case 'InternalError':
-      case 'InvalidAddressError':
-        /* falls through */
-      default:
-        messageTitle = 'sendGeneralErrorTitle';
-        messageBody = 'sendGeneralErrorBody';
-        buttonLabel = 'sendGeneralErrorBtnOk';
-    }
-
-    var dialog = new Dialog({
-      title: {
-        l10nId: messageTitle
-      },
-      body: {
-        l10nId: messageBody,
-        l10nArgs: messageBodyParams
-      },
-      options: {
-        cancel: {
-          text: {
-            l10nId: buttonLabel
-          }
-        }
-      }
-    });
+  showMessageError: function thui_showMessageOnError(errorName, opts) {
+    var dialog = new ErrorDialog(errorName, opts);
     dialog.show();
   },
 
@@ -2008,7 +1965,31 @@ var ThreadUI = global.ThreadUI = {
       messageDOM.classList.remove('pending');
       messageDOM.classList.add('error');
       navigator.mozL10n.localize(button, 'download');
-    });
+
+      // Show NonActiveSimCard/Other error dialog while retrieving MMS
+      var errorCode = (request.error && request.error.name) ?
+        request.error.name : null;
+
+      if (errorCode) {
+        this.showMessageError(errorCode, {
+          messageId: id,
+          confirmHandler: function simSwitch() {
+            var idList = Settings.nonActivateMmsServiceIds;
+            if (!navigator.mozSettings || !idList) {
+              console.error('Settings unavailable');
+              return;
+            }
+
+            // Just pick the first non-active id since there should be only
+            // one non-active id in the array.
+            var nonActiveId = idList[0];
+            Settings.setSimServiceId(nonActiveId);
+            // Retrieve message again and update the message DOM status.
+            setTimeout(ThreadUI.retrieveMMS(id));
+          }.bind(this)
+        });
+      }
+    }).bind(this);
   },
 
   resendMessage: function thui_resendMessage(id) {

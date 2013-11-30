@@ -107,7 +107,7 @@
     left: calc(50% - 34rem);
     width: 68rem;
     height: 48rem;
-    padding: 6rem 6rem;
+    padding: 6rem;
     font-size: 2.2rem;
     background-image: none;
     background-color: #333333;
@@ -129,7 +129,7 @@
   }
 
   [role="dialog"].generic-dialog menu:not([type="toolbar"]) {
-    padding: 2.5rem 7.5rem;
+    padding: 1.5rem 0;
   }
 
   [role="dialog"].generic-dialog menu:not([type="toolbar"]) {

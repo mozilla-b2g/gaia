@@ -1,7 +1,8 @@
-/*global Threads */
+/*global Threads, MockMessages */
 
 'use strict';
 
+requireApp('sms/test/unit/mock_messages.js');
 requireApp('sms/js/threads.js');
 
 suite('Threads', function() {
@@ -11,6 +12,66 @@ suite('Threads', function() {
 
   teardown(function() {
     Threads.clear();
+  });
+
+  suite('createThreadMockup', function() {
+    var message;
+
+    setup(function() {
+      // Create a message with read status 'true'
+      message = MockMessages.sms();
+    });
+
+    test(' > createThreadMockup with unread status in options', function() {
+      var options = { read: false };
+      var thread = Threads.createThreadMockup(message, options);
+
+      assert.equal(thread.unreadCount, 1);
+    });
+
+    test(' > createThreadMockup without options', function() {
+      var thread = Threads.createThreadMockup(message);
+      assert.equal(thread.unreadCount, 0);
+    });
+
+    test(' > createThreadMockup with read status in options', function() {
+      var options = { read: true };
+      var thread = Threads.createThreadMockup(message, options);
+      assert.equal(thread.unreadCount, 0);
+    });
+
+    test(' > createThreadMockup from SMS sended', function() {
+      var options = { read: true };
+      message.delivery = 'sent';
+      var thread = Threads.createThreadMockup(message, options);
+      assert.equal(thread.participants.length, 1);
+      assert.equal(thread.participants[0], message.receiver);
+    });
+
+    test(' > createThreadMockup from SMS received', function() {
+      var options = { read: false };
+      message.delivery = 'received';
+      var thread = Threads.createThreadMockup(message, options);
+      assert.equal(thread.participants.length, 1);
+      assert.equal(thread.participants[0], message.sender);
+    });
+
+    test(' > createThreadMockup from MMS sending', function() {
+      var options = { read: true };
+      var mms = MockMessages.mms();
+      mms.delivery = 'sent';
+      var thread = Threads.createThreadMockup(mms, options);
+      assert.equal(thread.participants, mms.receivers);
+    });
+
+    test(' > createThreadMockup from MMS received', function() {
+      var options = { read: false };
+      var mms = MockMessages.mms();
+      mms.delivery = 'received';
+      var thread = Threads.createThreadMockup(mms, options);
+      assert.equal(thread.participants.length, 1);
+      assert.equal(thread.participants[0], message.sender);
+    });
   });
 
   suite('Collection', function() {

@@ -21,9 +21,9 @@ from marionette import MarionetteTestRunner
 from marionette import MarionetteTextTestRunner
 from marionette.runtests import cli
 from moztest.results import TestResult, relevant_line
-from yoctopuce.yocto_api import *
-from yoctopuce.yocto_current import *
-from yoctopuce.yocto_datalogger import *
+from yoctopuce.yocto_api import YAPI, YRefParam
+from yoctopuce.yocto_current import YCurrent
+from yoctopuce.yocto_datalogger import YDataLogger
 
 from gaiatest import __name__
 from gaiatest import GaiaTestCase

@@ -5,18 +5,6 @@
 
 var AirplaneMode = {
   _enabled: null,
-  _ready: function apm_ready(callback) {
-    if (document && (document.readyState === 'complete' ||
-                     document.readyState === 'interactive')) {
-      setTimeout(callback);
-    } else {
-      window.addEventListener('load', function onload() {
-        window.removeEventListener('load', onload);
-        callback();
-      });
-    }
-  },
-
   set enabled(value) {
     if (value !== this._enabled) {
       // XXX: check bug-926169
@@ -25,13 +13,10 @@ var AirplaneMode = {
         window.navigator.mozMobileConnections &&
           window.navigator.mozMobileConnections[0];
 
-      // See bug 933659
-      // Gecko stops using the settings key 'ril.radio.disabled' to turn
-      // off RIL radio. We need to remove the code that checks existence of the
-      // new API after bug 856553 lands.
-      if (mobileConnection && !!mobileConnection.setRadioEnabled) {
-        var self = this;
-        var req = mobileConnection.setRadioEnabled(!value);
+      var self = this;
+      var doSetRadioEnabled = function(enabled) {
+        var req = mobileConnection.setRadioEnabled(enabled);
+
         req.onsuccess = function() {
           self._enabled = value;
           SettingsListener.getSettingsLock().set(
@@ -44,6 +29,27 @@ var AirplaneMode = {
             {'ril.radio.disabled': self._enabled}
           );
         };
+      };
+
+      // See bug 933659
+      // Gecko stops using the settings key 'ril.radio.disabled' to turn
+      // off RIL radio. We need to remove the code that checks existence of the
+      // new API after bug 856553 lands.
+      if (mobileConnection && !!mobileConnection.setRadioEnabled) {
+        if (mobileConnection.radioState !== 'enabling' &&
+            mobileConnection.radioState !== 'disabling') {
+          doSetRadioEnabled(!value);
+        } else {
+          mobileConnection.addEventListener('radiostatechange',
+            function radioStateChangeHandler() {
+              if (mobileConnection.radioState == 'enabling' ||
+                  mobileConnection.radioState == 'disabling')
+                return;
+              mobileConnection.removeEventListener('radiostatechange',
+                radioStateChangeHandler);
+              doSetRadioEnabled(!value);
+          });
+        }
       } else {
         this._enabled = value;
         SettingsListener.getSettingsLock().set(
@@ -216,13 +222,7 @@ var AirplaneMode = {
       // Gecko stops using the settings key 'ril.radio.disabled' to turn
       // off RIL radio. We need to remove the code that checks existence of the
       // new API after bug 856553 lands.
-      if (mobileConnection && !!mobileConnection.setRadioEnabled) {
-        self._ready(function() {
-          self.enabled = enabled;
-        });
-      } else {
-        self.enabled = enabled;
-      }
+      self.enabled = enabled;
     };
 
     // Observe settings changes
@@ -232,5 +232,13 @@ var AirplaneMode = {
   }
 };
 
-AirplaneMode.init();
 
+if (document && (document.readyState === 'complete' ||
+                 document.readyState === 'interactive')) {
+  setTimeout(AirplaneMode.init.bind(AirplaneMode));
+} else {
+  window.addEventListener('load', function onload() {
+    window.removeEventListener('load', onload);
+    AirplaneMode.init();
+  });
+}

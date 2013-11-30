@@ -5,5 +5,6 @@ MockKeyboardManager = {
   },
   mTeardown: function() {
     this.mHeight = 0;
-  }
+  },
+  isOutOfProcessEnabled: false
 };

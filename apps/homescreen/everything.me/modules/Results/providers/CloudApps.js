@@ -19,7 +19,8 @@ Evme.CloudAppResult = function Evme_CloudAppsResult(query) {
       renderIcon(this.src);
     } else {
       Evme.Utils.getRoundIcon({
-        'src': this.src
+        'src': this.src,
+        'size': this.width
       }, renderIcon);
     }
 
@@ -33,8 +34,9 @@ Evme.CloudAppResult = function Evme_CloudAppsResult(query) {
       self.cfg.icon = roundedIcon;
 
       fixedImage.onload = function onImageLoad() {
-        var width = this.width,
-            height = this.height,
+        var osIconSize = Evme.Utils.getOSIconSize(),
+            width = osIconSize,
+            height = osIconSize,
             padding = Evme.Utils.OS_ICON_PADDING,
             canvas = self.initIcon(height + padding),
             context = canvas.getContext('2d');

@@ -29,7 +29,7 @@ section[role="region"] {
     we need the background pattern when the app content is less then viewport
     (see Bug 938785)
   */
-  background: url(images/document_bg.png);
+  background-color: #f4f4f4;
   overflow: hidden;
 }
 
@@ -163,7 +163,6 @@ ul[data-state="ready"] li > a {
 section li.password,
 section li.password[hidden],
 section li.eap,
-section li.simpin,
 section li.identity {
   display: none;
 }
@@ -171,7 +170,6 @@ section li.identity {
 section[data-security*="WEP"] li.password,
 section[data-security*="WPA"] li.password,
 section[data-security*="EAP"] li.eap,
-section[data-security*="EAP"] li.simpin,
 section[data-security*="EAP"] li.identity {
   display: block;
 }

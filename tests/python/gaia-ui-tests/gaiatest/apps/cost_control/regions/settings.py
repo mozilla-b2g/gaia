@@ -19,7 +19,7 @@ class Settings(Base):
     _usage_done_button_locator = (By.ID, 'data-usage-done-button')
 
     _reset_button_locator = (By.ID, 'reset-data-usage')
-    _reset_confirm_locator = (By.CSS_SELECTOR, 'section#reset-confirmation-dialog button.danger')
+    _reset_wifi_usage_button_locator = (By.ID, 'reset-data-wifi-usage')
     _done_button_locator = (By.CSS_SELECTOR, 'section#settings-view button#close-settings')
 
     def __init__(self, marionette):
@@ -62,8 +62,8 @@ class Settings(Base):
     def reset_data_usage(self):
         self.wait_for_element_displayed(*self._settings_title_locator)
         self.marionette.find_element(*self._reset_button_locator).tap()
-        self.wait_for_element_displayed(*self._reset_confirm_locator)
-        self.marionette.find_element(*self._reset_confirm_locator).tap()
+        self.wait_for_element_displayed(*self._reset_wifi_usage_button_locator)
+        self.marionette.find_element(*self._reset_wifi_usage_button_locator).tap()
         self.wait_for_element_displayed(*self._settings_title_locator)
 
     def tap_done(self):

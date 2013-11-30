@@ -408,58 +408,36 @@ var ThreadListUI = {
     }
   },
 
-  // This method fills the gap while we wait for next 'getThreads' request,
-  // letting us rendering the new thread with a better performance.
-  createThreadMockup: function thlui_createThreadMockup(message, options) {
-    // Given a message we create a thread as a mockup. This let us render the
-    // thread without requesting Gecko, so we increase the performance and we
-    // reduce Gecko requests.
-    return {
-      id: message.threadId,
-      participants: [message.sender || message.receiver],
-      body: message.body,
-      timestamp: message.timestamp,
-      unreadCount: (options && !options.read) ? 1 : 0,
-      lastMessageType: message.type || 'sms'
-    };
-  },
-
   updateThread: function thlui_updateThread(message, options) {
-    var thread = this.createThreadMockup(message, options);
+    var thread = Threads.createThreadMockup(message, options);
     // We remove the previous one in order to place the new one properly
     var existingThreadElement = document.getElementById('thread-' + thread.id);
-    if (existingThreadElement) {
-      this.removeThread(thread.id);
+
+    // New message is older than the latest one?
+    var timestamp = message.timestamp.getTime();
+    if (existingThreadElement &&
+      existingThreadElement.dataset.time > timestamp) {
+      // If the received SMS it's older that the latest one
+      // We need only to update the 'unread status' if needed
+      if (options && !options.read) {
+        this.mark(thread.id, 'unread');
+      }
+    } else {
+      if (existingThreadElement) {
+        this.removeThread(thread.id);
+      }
+      this.appendThread(thread);
+      this.setEmpty(false);
+      FixedHeader.refresh();
     }
-    ThreadListUI.appendThread(thread);
-    ThreadListUI.setEmpty(false);
-    FixedHeader.refresh();
+  },
+
+  onMessageSending: function thlui_onMessageSending(message) {
+    this.updateThread(message);
   },
 
   onMessageReceived: function thlui_onMessageReceived(message) {
-    var threadMockup = this.createThreadMockup(message);
-    var threadId = message.threadId;
-
-    if (!Threads.get(threadId)) {
-      Threads.set(threadId, threadMockup);
-      Threads.get(threadId).messages.push(message);
-    }
-
-    if (this.container.querySelector('ul')) {
-      var timestamp = threadMockup.timestamp.getTime();
-      var previousThread = document.getElementById('thread-' + threadId);
-      if (previousThread && previousThread.dataset.time > timestamp) {
-        // If the received SMS it's older that the latest one
-        // We need only to update the 'unread status'
-        this.mark(threadId, 'unread');
-        return;
-      }
-
-      this.updateThread(message, {read: false});
-      this.setEmpty(false);
-    } else {
-      this.renderThreads([threadMockup]);
-    }
+    this.updateThread(message, {read: false});
   },
 
   appendThread: function thlui_appendThread(thread) {

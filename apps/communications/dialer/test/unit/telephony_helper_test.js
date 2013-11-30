@@ -112,16 +112,62 @@ suite('telephony helper', function() {
     mockTelephony.verify();
   });
 
-  test('should still dial when there\'s already a connected call',
+  test('should hold the active line before dialing (if there is one)',
   function() {
     var dialNumber = '123456';
-    navigator.mozTelephony.active = {
+    var holdStub = this.sinon.stub();
+    var mockActive = {
       number: '1111',
-      state: 'connected'
+      state: 'connected',
+      hold: holdStub
     };
-    mockTelephony.expects('dial').withArgs('123456');
+    var dialSpy = mockTelephony.expects('dial').withArgs('123456');
+    MockMozTelephony.active = mockActive;
+
     subject.call(dialNumber);
+    delete MockMozTelephony.active;
+    mockActive.onheld();
     mockTelephony.verify();
+
+    assert.isTrue(holdStub.calledBefore(dialSpy));
+    assert.isUndefined(mockActive.onheld);
+  });
+
+  test('should hold the active group call before dialing (if there is one)',
+  function() {
+    var dialNumber = '123456';
+    var holdStub = this.sinon.stub();
+    MockMozTelephony.conferenceGroup.calls =
+                        [{number: '111111'}, {number: '222222'}];
+    MockMozTelephony.conferenceGroup.state = 'connected';
+    MockMozTelephony.conferenceGroup.hold = holdStub;
+    MockMozTelephony.active = MockMozTelephony.conferenceGroup;
+    var dialSpy = mockTelephony.expects('dial').withArgs('123456');
+
+    subject.call(dialNumber);
+    delete MockMozTelephony.active;
+    MockMozTelephony.conferenceGroup.onheld();
+    mockTelephony.verify();
+
+    assert.isTrue(holdStub.calledBefore(dialSpy));
+    assert.isUndefined(MockMozTelephony.conferenceGroup.onheld);
+  });
+
+  test('should not dial when call limit reached (2 normal call)', function() {
+    MockMozTelephony.calls = [{number: '111111'}, {number: '222222'}];
+    subject.call('333333');
+    assert.isTrue(spyConfirmShow.calledWith('unableToCallTitle',
+                                            'unableToCallMessage'));
+  });
+
+  test('should not dial when call limit reached (1 normal call + 1 group call)',
+  function() {
+    MockMozTelephony.calls = [{number: '111111'}];
+    MockMozTelephony.conferenceGroup.calls =
+                            [{number: '222222'}, {number: '333333'}];
+    subject.call('444444');
+    assert.isTrue(spyConfirmShow.calledWith('unableToCallTitle',
+                                            'unableToCallMessage'));
   });
 
   test('should display an error if there is no network', function() {
