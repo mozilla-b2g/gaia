@@ -208,6 +208,7 @@ var NfcManager = {
         } else {
           state = this.NFC_HW_STATE_DISABLE_DISCOVERY;
         }
+        this.dispatchHardwareChangeEvt(state);
         break;
       case 'lock': // Fall thorough
       case 'unlock':
@@ -216,9 +217,17 @@ var NfcManager = {
         } else {
           state = this.NFC_HW_STATE_DISABLE_DISCOVERY;
         }
+        this.dispatchHardwareChangeEvt(state);
+        break;
+      case 'shrinking-sent':
+        window.removeEventListener('shrinking-sent', this);
+        // Notify lower layers that User has acknowledged to send nfc (NDEF) msg
+        window.dispatchEvent(new CustomEvent(
+          'dispatch-p2p-user-response-on-active-app', {detail: this}));
+        // Stop the P2P UI
+        window.dispatchEvent(new CustomEvent('shrinking-stop'));
         break;
     }
-    this.dispatchHardwareChangeEvt(state);
   },
 
   // An NDEF Message is an array of one or more NDEF records.
@@ -315,32 +324,47 @@ var NfcManager = {
   // NDEF only currently
   handleP2P: function handleP2P(tech, sessionToken, ndefMsg) {
     if (ndefMsg != null) {
-       //
        // Incoming P2P message carries a NDEF message. Dispatch
        // the NDEF message (this might bring another app to the
        // foreground).
-       //
       this.handleNdefDiscovered(tech, sessionToken, ndefMsg);
       return;
     }
-     //
-     // Incoming P2P message does not carry an NDEF message.
-     // Check if the foreground app has registered an onpeerfound
-     // and do the shrinking UI if needed.
-     //
-    var nfcdom = window.navigator.mozNfc;
 
-    // FIXME: Do P2P UI: Ask user if P2P event is acceptable in the app's
-    // current user context to accept a message via registered app
-    // callback/message. If so, fire P2P NDEF to app.
-    // If not, drop message.
+    // Incoming P2P message does not carry an NDEF message.
 
-    // This is a P2P notification with no ndef.
-    this._debug('P2P UI : Shrink UI');
-    // TODO: Upon user akcnowledgement on the shrunk UI,
-    //       system application notifies gecko of the top most window.
+    // Do P2P UI.
+    var evt = new CustomEvent('check-p2p-registration-for-active-app', {
+      bubbles: true, cancelable: false,
+      detail: this
+    });
+    window.dispatchEvent(evt);
+  },
 
-    // Notify gecko of User's acknowledgement. TODO: Bug 933136
+  checkP2PRegistration:
+    function nm_checkP2PRegistration(manifestURL) {
+      var status = window.navigator.mozNfc.checkP2PRegistration(manifestURL);
+      var self = this;
+      status.onsuccess = function() {
+        // Top visible application's manifest Url is registered;
+        // Start Shrink / P2P UI and wait for user to accept P2P event
+        window.dispatchEvent(new CustomEvent('shrinking-start'));
+
+        // Setup listener for user response on P2P UI now
+        window.addEventListener('shrinking-sent', self);
+      };
+      status.onerror = function() {
+        // Do nothing!
+      };
+  },
+
+  dispatchP2PUserResponse: function nm_dispatchP2PUserResponse(manifestURL) {
+    var detail = { manifestUrl: manifestURL };
+    var evt = new CustomEvent('nfc-p2p-user-accept', {
+      bubbles: true, cancelable: true,
+      detail: detail
+    });
+    window.dispatchEvent(evt);
   },
 
   fireTagDiscovered: function nm_fireTagDiscovered(command) {
@@ -423,6 +447,11 @@ var NfcManager = {
     this._debug('Technology Lost: ' + JSON.stringify(command));
     // TODO: Do something with the UI/UX to indicate the tag is gone.
     // TODO: Dismiss activity chooser?
+
+    // Clean up P2P UI events
+    window.removeEventListener('shrinking-sent', this);
+    window.dispatchEvent(new CustomEvent('shrinking-stop'));
+
     window.navigator.vibrate([125, 50, 25]);
   },
 
