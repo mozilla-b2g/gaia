@@ -50,10 +50,26 @@ function checkDomain(domain) {
     // Don't add many restrictions,
     // just the tld to be non numeric and length > 1
     var parts = domain.split('.');
-    var lastPart = parts[parts.length - 1];
-    // We want the last part not to be a number
-    return lastPart.length > 1 && !isFinite(lastPart);
+    //Make sure SubDomain is not empty
+    if (!checkSubDomain(parts)) {
+       return false;
+    } else {
+      var lastPart = parts[parts.length - 1];
+      // We want the last part not to be a number
+      return lastPart.length > 1 && !isFinite(lastPart);
+   }
   }
+}
+
+function checkSubDomain(parts) {
+  var good = true;
+  //Iterate through domain parts exit if empty
+  for (var i = 0; good && i < parts.length; i++) {
+    if (parts[i] == '') {
+      good = false;
+    }
+  }
+  return good;
 }
 
 // defines things that can match right before to be a "safe" link
