@@ -107,11 +107,20 @@
     // @default
     this.onAppIconLoad = function onAppIconLoad() {
       var canvas = self.initIcon(Evme.Utils.getOSIconSize()),
-          context = canvas.getContext('2d');
+          context = canvas.getContext('2d'),
+          width = canvas.width,
+          height = canvas.height,
+          // hard coded since it's from page.js, which is a homescreen file
+          SHADOW = 2;
+
+      // account for shadow - pad the canvas from the bottom,
+      // and move the name back up
+      canvas.height += SHADOW;
+      self.elIcon.style.cssText += '; margin-bottom: ' + -SHADOW + 'px;';
 
       context.drawImage(image,
-          (canvas.width - image.width) / 2,
-          (canvas.height - image.height) / 2);
+          (width - image.width) / 2,
+          (height - image.height) / 2);
 
       self.finalizeIcon(canvas);
       self.setIconSrc(image.src);
