@@ -65,7 +65,7 @@ function checkSubDomain(parts) {
   var good = true;
   //Iterate through domain parts exit if empty
   for (var i = 0; good && i < parts.length; i++) {
-    if (parts[i] == '') {
+    if (parts[i].length < 1) {
       good = false;
     }
   }
