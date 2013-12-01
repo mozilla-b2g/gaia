@@ -5,6 +5,7 @@
 import time
 
 from marionette.by import By
+from marionette.marionette import Actions
 
 from gaiatest.apps.base import Base
 
@@ -16,7 +17,9 @@ class PlayerView(Base):
     _player_controls_play_locator = (By.ID, 'player-controls-play')
 
     def tap_play(self):
-        self.marionette.find_element(*self._player_controls_play_locator).tap()
+        play_button = self.marionette.find_element(*self._player_controls_play_locator)
+        # TODO: Change this to a simple tap when bug 862156 is fixed
+        Actions(self.marionette).tap(play_button).perform()
 
     @property
     def player_elapsed_time(self):
