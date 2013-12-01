@@ -186,7 +186,7 @@ suite('link_helper_test.js', function() {
       test('Bug 941763', function() {
         testURLNOK('.website.com');
         testURLNOK('.website.co.uk');
-     });
+      });
     });
   });
 
