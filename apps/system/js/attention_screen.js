@@ -138,7 +138,7 @@ var AttentionScreen = {
     // and we are in the status bar mode, expend to full screen mode.
     if (!this.isVisible()) {
       // Attention screen now only support default orientation.
-      screen.mozLockOrientation(ScreenLayout.defaultOrientation);
+      screen.mozLockOrientation(OrientationManager.defaultOrientation);
 
       this.attentionScreen.classList.add('displayed');
       this.mainScreen.classList.add('attention');
@@ -241,7 +241,7 @@ var AttentionScreen = {
   // expend the attention screen overlay to full screen
   show: function as_show() {
     // Attention screen now only support default orientation.
-    screen.mozLockOrientation(ScreenLayout.defaultOrientation);
+    screen.mozLockOrientation(OrientationManager.defaultOrientation);
 
     delete this.attentionScreen.lastElementChild.dataset.appRequestedSmallSize;
 

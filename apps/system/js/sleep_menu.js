@@ -137,7 +137,7 @@ var SleepMenu = {
     this.buildMenu(this.generateItems());
     this.elements.overlay.classList.add('visible');
     // Lock to default orientation
-    screen.mozLockOrientation(ScreenLayout.defaultOrientation);
+    screen.mozLockOrientation(OrientationManager.defaultOrientation);
   },
 
   buildMenu: function sm_buildMenu(items) {
