@@ -83,6 +83,7 @@
           Evme.Utils.blobToDataURI(iconObj, function onDataReady(src) {
             setImageSrc(src);
           });
+
         } else {
           var src = Evme.Utils.formatImageData(iconObj);
           setImageSrc(src);
@@ -106,13 +107,13 @@
 
     // @default
     this.onAppIconLoad = function onAppIconLoad() {
-      var canvas = self.initIcon(Evme.Utils.getOSIconSize()),
+      // use OS icon rendering
+      var iconCanvas = Icon.prototype.createCanvas(image),
+          canvas = self.initIcon(iconCanvas.height),
           context = canvas.getContext('2d');
 
-      context.drawImage(image,
-          (canvas.width - image.width) / 2,
-          (canvas.height - image.height) / 2);
-
+      context.drawImage(iconCanvas, (TEXT_WIDTH - iconCanvas.width) / 2, 0);
+      self.iconPostRendering(iconCanvas);
       self.finalizeIcon(canvas);
       self.setIconSrc(image.src);
     };
@@ -126,6 +127,11 @@
       canvas.height = height;
 
       return canvas;
+    };
+
+    // @default
+    this.iconPostRendering = function iconPostRendering(iconCanvas) {
+      // do nothing
     };
 
     // @default
