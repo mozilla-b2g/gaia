@@ -1,5 +1,5 @@
 section[role="region"].skin-organic {
-  background: #fff url("images/pattern.png");
+  background: #f4f4f4;
 }
 
 /* Make it so that invalid input areas only show up as red when they're focused.
