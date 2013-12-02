@@ -162,7 +162,7 @@ function convertTo12(alarm) {
    * @param {Function} callback Called when the conversion completes, with
    *                            (err).
    */
-  exports.convertAlarms = (function ad_convertAlarms(callback) {
+  exports.convertAlarms = function ad_convertAlarms(callback) {
     var gen = Utils.async.generator(function(err) {
       // All done, call the callback.
       callback && callback(err);
@@ -179,7 +179,7 @@ function convertTo12(alarm) {
       }
       done();
     }.bind(exports));
-  }).bind(exports);
+  };
 
   exports.putAlarm = function ad_putAlarm(alarm, callback) {
     this.query(this.DBNAME, this.STORENAME, this.put, callback,
