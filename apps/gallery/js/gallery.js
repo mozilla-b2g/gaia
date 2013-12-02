@@ -842,7 +842,8 @@ function thumbnailClickHandler(evt) {
     loader.load('js/frame_scripts.js', function() {
       var index = getFileIndex(target.dataset.filename);
       if (index >= 0) {
-        showFile(index);
+        // If it's video, play it directly
+        showFile(index, true);
       }
     });
   }
