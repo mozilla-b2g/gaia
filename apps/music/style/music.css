@@ -290,6 +290,7 @@ body.picker-mode #title-player {
   overflow-x: hidden;
   overflow-y: auto;
   background-color: #0E1214;
+  will-animate: scroll;
 }
 
 #views-tiles {
