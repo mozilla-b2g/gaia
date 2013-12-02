@@ -11,11 +11,9 @@ class Contacts(Base):
 
     name = "Contacts"
 
-    _loading_overlay_locator = (By.ID, 'loading-overlay')
     _new_contact_button_locator = (By.ID, 'add-contact-button')
     _settings_button_locator = (By.ID, 'settings-button')
     _favorites_list_locator = (By.ID, 'contacts-list-favorites')
-    _app_heading_locator = (By.CSS_SELECTOR, 'h1[data-l10n-id="contacts"]')
     _contacts_frame_locator = (By.CSS_SELECTOR, 'iframe[src*="contacts"][src*="/index.html"]')
     _select_all_button_locator = (By.CSS_SELECTOR, 'button[data-l10n-id="selectAll"]')
     _export_button_locator = (By.ID, 'select-action')
@@ -29,7 +27,6 @@ class Contacts(Base):
 
     def launch(self):
         Base.launch(self)
-        self.wait_for_element_not_displayed(*self._loading_overlay_locator)
         self.wait_for_element_displayed(*self._settings_button_locator)
 
     def switch_to_contacts_frame(self):
@@ -54,7 +51,6 @@ class Contacts(Base):
 
     @property
     def contacts(self):
-        self.wait_for_element_displayed(*self._app_heading_locator)
         return [self.Contact(marionette=self.marionette, element=contact)
                 for contact in self.marionette.find_elements(*self._contact_locator)]
 
