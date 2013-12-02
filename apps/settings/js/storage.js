@@ -91,19 +91,34 @@ var Storage = {
     var cset = {};
     var umsSettingKey = 'ums.enabled';
     var warningKey = 'ums-turn-on-warning';
+    var umsWarningDialog = document.getElementById('turn-on-ums-dialog');
+    var umsConfirmButton = document.getElementById('ums-confirm-option');
+    var umsCancelButton = document.getElementById('ums-cancel-option');
+
     if (checkbox.checked) {
       window.asyncStorage.getItem(warningKey, function(showed) {
-        var msg = _('turn-on-ums-confirm');
-        if (!showed && !window.confirm(msg)) {
-          cset[umsSettingKey] = false;
-          checkbox.checked = false;
+        if (!showed) {
+          umsWarningDialog.hidden = false;
+
+          umsConfirmButton.onclick = function() {
+            cset[umsSettingKey] = true;
+            Settings.mozSettings.createLock().set(cset);
+
+            window.asyncStorage.setItem(warningKey, true);
+            umsWarningDialog.hidden = true;
+          };
+
+          umsCancelButton.onclick = function() {
+            cset[umsSettingKey] = false;
+            Settings.mozSettings.createLock().set(cset);
+
+            checkbox.checked = false;
+            umsWarningDialog.hidden = true;
+          };
         } else {
           cset[umsSettingKey] = true;
-          if (!showed) {
-            window.asyncStorage.setItem(warningKey, true);
-          }
+          Settings.mozSettings.createLock().set(cset);
         }
-        Settings.mozSettings.createLock().set(cset);
       });
     } else {
       cset[umsSettingKey] = false;
