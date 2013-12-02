@@ -7,13 +7,134 @@ const Cc = Components.classes;
 const Ci = Components.interfaces;
 const Cu = Components.utils;
 
+Cu.import('resource://gre/modules/Services.jsm');
+
 function debug(data) {
   dump('browser-helper: ' + data + '\n');
 }
 
-function startup(data, reason) {
-  Cu.import('resource://gre/modules/Services.jsm');
+function initResponsiveDesign(browserWindow) {
+  // Inject custom controls in responsive view
+  Cu.import('resource:///modules/devtools/responsivedesign.jsm');
+  ResponsiveUIManager.once('on', function(event, tab, responsive) {
+    let document = tab.ownerDocument;
 
+    browserWindow.shell = {
+      sendChromeEvent: sendChromeEvent
+    };
+
+    // Ensure tweaking only the first responsive mode opened
+    responsive.stack.classList.add('os-mode');
+
+    let sleepButton = document.createElement('button');
+    sleepButton.id = 'os-sleep-button';
+    sleepButton.setAttribute('top', 0);
+    sleepButton.setAttribute('right', 0);
+    sleepButton.addEventListener('mousedown', function() {
+      sendChromeEvent({type: 'sleep-button-press'});
+    });
+    sleepButton.addEventListener('mouseup', function() {
+      sendChromeEvent({type: 'sleep-button-release'});
+    });
+    responsive.stack.appendChild(sleepButton);
+
+    let volumeButtons = document.createElement('vbox');
+    volumeButtons.id = 'os-volume-buttons';
+    volumeButtons.setAttribute('top', 0);
+    volumeButtons.setAttribute('left', 0);
+
+    let volumeUp = document.createElement('button');
+    volumeUp.id = 'os-volume-up-button';
+    volumeUp.addEventListener('mousedown', function() {
+      sendChromeEvent({type: 'volume-up-button-press'});
+    });
+    volumeUp.addEventListener('mouseup', function() {
+      sendChromeEvent({type: 'volume-up-button-release'});
+    });
+
+    let volumeDown = document.createElement('button');
+    volumeDown.id = 'os-volume-down-button';
+    volumeDown.addEventListener('mousedown', function() {
+      sendChromeEvent({type: 'volume-down-button-press'});
+    });
+    volumeDown.addEventListener('mouseup', function() {
+      sendChromeEvent({type: 'volume-down-button-release'});
+    });
+
+    volumeButtons.appendChild(volumeUp);
+    volumeButtons.appendChild(volumeDown);
+    responsive.stack.appendChild(volumeButtons);
+
+    // <toolbar id="os-hardware-button">
+    //  <toolbarbutton id="os-home-button" />
+    // </toolbar>
+    let bottomToolbar = document.createElement('toolbar');
+    bottomToolbar.id = 'os-hardware-buttons';
+    bottomToolbar.setAttribute('align', 'center');
+    bottomToolbar.setAttribute('pack', 'center');
+
+    let homeButton = document.createElement('toolbarbutton');
+    homeButton.id = 'os-home-button';
+    homeButton.setAttribute('class', 'devtools-toolbarbutton');
+
+    homeButton.addEventListener('mousedown', function() {
+      sendChromeEvent({type: 'home-button-press'});
+    });
+    homeButton.addEventListener('mouseup', function() {
+      sendChromeEvent({type: 'home-button-release'});
+    });
+    bottomToolbar.appendChild(homeButton);
+    responsive.container.appendChild(bottomToolbar);
+
+    // Simulate chrome event.
+    function sendChromeEvent(detail) {
+      let contentWindow = responsive.browser.contentWindow;
+      var contentDetail = Components.utils.createObjectIn(contentWindow);
+      for (var i in detail) {
+        contentDetail[i] = detail[i];
+      }
+      Components.utils.makeObjectPropsNormal(contentDetail);
+
+      var customEvt = contentWindow.document.createEvent('CustomEvent');
+      customEvt.initCustomEvent('mozChromeEvent', true, true, contentDetail);
+      contentWindow.dispatchEvent(customEvt);
+    }
+  });
+
+  // Cleanup responsive mode if it's disabled
+  ResponsiveUIManager.on('off', function(event, tab, responsive) {
+    if (responsive.stack.classList.contains('os-mode')) {
+      responsive.stack.classList.remove('os-mode');
+      let document = tab.ownerDocument;
+      let sleepButton = document.getElementById('os-sleep-button');
+      responsive.stack.removeChild(sleepButton);
+      let volumeButtons = document.getElementById('os-volume-buttons');
+      responsive.stack.removeChild(volumeButtons);
+      let bottomToolbar = document.getElementById('os-hardware-buttons');
+      responsive.container.removeChild(bottomToolbar);
+    }
+  });
+
+  // Automatically toggle responsive design mode
+  let width = 320, height = 480;
+  // We have to take into account padding and border introduced with the
+  // device look'n feel:
+  width += 15*2; // Horizontal padding
+  width += 1*2; // Vertical border
+  height += 60; // Top Padding
+  height += 1; // Top border
+  let args = {'width': width, 'height': height};
+  let mgr = browserWindow.ResponsiveUI.ResponsiveUIManager;
+  mgr.handleGcliCommand(browserWindow,
+                        browserWindow.gBrowser.selectedTab,
+                        'resize to',
+                        args);
+
+  // Enable touch events
+  browserWindow.gBrowser.selectedTab.__responsiveUI.enableTouch();
+}
+
+function startup(data, reason) {
   try {
     // Initialize various JSM instanciated by shell.js
     // All of them are usefull even if we don't use them in this file.
@@ -85,11 +206,13 @@ function startup(data, reason) {
         }
       }
     };
-    // Listen for loads happening in all browser windows.
+
+    // Watch for new Firefox top level windows
     Services.obs.addObserver(function(win) {
       win.addEventListener('DOMContentLoaded', function loaded() {
         win.removeEventListener('DOMContentLoaded', loaded);
         if (win.gBrowser) {
+          // Listen for loads happening in all browser windows.
           win.gBrowser.addProgressListener(docShellListener);
         }
       });
@@ -103,121 +226,8 @@ function startup(data, reason) {
       let pi = doc.createProcessingInstruction('xml-stylesheet', 'href="chrome://browser-helper.js/content/browser.css" type="text/css"');
       doc.insertBefore(pi, doc.firstChild);
 
-      // Inject custom controls in responsive view
-      Cu.import('resource:///modules/devtools/responsivedesign.jsm');
-      ResponsiveUIManager.once('on', function(event, tab, responsive) {
-        let document = tab.ownerDocument;
-
-        browserWindow.shell = {
-          sendChromeEvent: sendChromeEvent
-        };
-
-        // Ensure tweaking only the first responsive mode opened
-        responsive.stack.classList.add('os-mode');
-
-        let sleepButton = document.createElement('button');
-        sleepButton.id = 'os-sleep-button';
-        sleepButton.setAttribute('top', 0);
-        sleepButton.setAttribute('right', 0);
-        sleepButton.addEventListener('mousedown', function() {
-          sendChromeEvent({type: 'sleep-button-press'});
-        });
-        sleepButton.addEventListener('mouseup', function() {
-          sendChromeEvent({type: 'sleep-button-release'});
-        });
-        responsive.stack.appendChild(sleepButton);
-
-        let volumeButtons = document.createElement('vbox');
-        volumeButtons.id = 'os-volume-buttons';
-        volumeButtons.setAttribute('top', 0);
-        volumeButtons.setAttribute('left', 0);
-
-        let volumeUp = document.createElement('button');
-        volumeUp.id = 'os-volume-up-button';
-        volumeUp.addEventListener('mousedown', function() {
-          sendChromeEvent({type: 'volume-up-button-press'});
-        });
-        volumeUp.addEventListener('mouseup', function() {
-          sendChromeEvent({type: 'volume-up-button-release'});
-        });
-
-        let volumeDown = document.createElement('button');
-        volumeDown.id = 'os-volume-down-button';
-        volumeDown.addEventListener('mousedown', function() {
-          sendChromeEvent({type: 'volume-down-button-press'});
-        });
-        volumeDown.addEventListener('mouseup', function() {
-          sendChromeEvent({type: 'volume-down-button-release'});
-        });
-
-        volumeButtons.appendChild(volumeUp);
-        volumeButtons.appendChild(volumeDown);
-        responsive.stack.appendChild(volumeButtons);
-
-        // <toolbar id="os-hardware-button">
-        //  <toolbarbutton id="os-home-button" />
-        // </toolbar>
-        let bottomToolbar = document.createElement('toolbar');
-        bottomToolbar.id = 'os-hardware-buttons';
-        bottomToolbar.setAttribute('align', 'center');
-        bottomToolbar.setAttribute('pack', 'center');
-
-        let homeButton = document.createElement('toolbarbutton');
-        homeButton.id = 'os-home-button';
-        homeButton.setAttribute('class', 'devtools-toolbarbutton');
-
-        homeButton.addEventListener('mousedown', function() {
-          sendChromeEvent({type: 'home-button-press'});
-        });
-        homeButton.addEventListener('mouseup', function() {
-          sendChromeEvent({type: 'home-button-release'});
-        });
-        bottomToolbar.appendChild(homeButton);
-        responsive.container.appendChild(bottomToolbar);
-
-        // Simulate chrome event.
-        function sendChromeEvent(detail) {
-          let contentWindow = responsive.browser.contentWindow;
-          var contentDetail = Components.utils.createObjectIn(contentWindow);
-          for (var i in detail) {
-            contentDetail[i] = detail[i];
-          }
-          Components.utils.makeObjectPropsNormal(contentDetail);
-
-          var customEvt = contentWindow.document.createEvent('CustomEvent');
-          customEvt.initCustomEvent('mozChromeEvent', true, true, contentDetail);
-          contentWindow.dispatchEvent(customEvt);
-        }
-      });
-
-      // Cleanup responsive mode if it's disabled
-      ResponsiveUIManager.on('off', function(event, tab, responsive) {
-        if (responsive.stack.classList.contains('os-mode')) {
-          responsive.stack.classList.remove('os-mode');
-          let document = tab.ownerDocument;
-          let sleepButton = document.getElementById('os-sleep-button');
-          responsive.stack.removeChild(sleepButton);
-          let volumeButtons = document.getElementById('os-volume-buttons');
-          responsive.stack.removeChild(volumeButtons);
-          let bottomToolbar = document.getElementById('os-hardware-buttons');
-          responsive.container.removeChild(bottomToolbar);
-        }
-      });
-
-      // Automatically toggle responsive design mode
-      let width = 320, height = 480;
-      // We have to take into account padding and border introduced with the
-      // device look'n feel:
-      width += 15*2; // Horizontal padding
-      width += 1*2; // Vertical border
-      height += 60; // Top Padding
-      height += 1; // Top border
-      let args = {'width': width, 'height': height};
-      let mgr = browserWindow.ResponsiveUI.ResponsiveUIManager;
-      mgr.handleGcliCommand(browserWindow,
-                            browserWindow.gBrowser.selectedTab,
-                            'resize to',
-                            args);
+      // Start responsive design mode
+      initResponsiveDesign(browserWindow);
 
       // And devtool panel while maximizing its size according to screen size
       Services.prefs.setIntPref('devtools.toolbox.sidebar.width',
