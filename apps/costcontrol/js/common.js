@@ -236,6 +236,12 @@ var Common = {
     debug('DOMAlreadyLoaded:', DOMAlreadyLoaded);
     debug('Waiting for', pendingMessages(), 'events to start!');
 
+    function forceCheckSim() {
+      debug('Config Manager send Error No iccInfo available');
+      window.removeEventListener('messagehandlererroricc', callback);
+      callback();
+    }
+
     function checkReady(evt) {
       debug(evt.type, 'event received!');
       messagesReceived[evt.type] = true;
@@ -244,6 +250,7 @@ var Common = {
       if (pendingMessages() === 0) {
         window.removeEventListener('DOMContentLoaded', checkReady);
         window.removeEventListener('messagehandlerready', checkReady);
+        window.removeEventListener('messagehandlererroricc', forceCheckSim);
         debug('DOMContentLoaded and messagehandlerready received. Starting');
         callback();
       }
@@ -251,6 +258,7 @@ var Common = {
 
     window.addEventListener('DOMContentLoaded', checkReady);
     window.addEventListener('messagehandlerready', checkReady);
+    window.addEventListener('messagehandlererroricc', forceCheckSim);
   },
 
   // Checks for a SIM change

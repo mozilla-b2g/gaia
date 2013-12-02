@@ -68,6 +68,9 @@ var ConfigManager = (function() {
   // Load the operator configuration according to MCC_MNC pair
   function requestConfiguration(callback) {
     if (!IccHelper || !IccHelper.iccInfo) {
+      // Force execution onReady callback to show msg Error
+      var errorEvent = new CustomEvent('messagehandlererroricc');
+      window.dispatchEvent(errorEvent);
       console.error('No iccInfo available');
       return;
     }
