@@ -180,7 +180,7 @@ var CardsView = (function() {
     }
 
     // Make sure we're in default orientation
-    screen.mozLockOrientation(ScreenLayout.defaultOrientation);
+    screen.mozLockOrientation(OrientationManager.defaultOrientation);
 
     // If there is a displayed app, take keyboard focus away
     if (displayedApp)
