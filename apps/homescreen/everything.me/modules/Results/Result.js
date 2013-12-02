@@ -53,6 +53,7 @@
       el.addEventListener('click', onClick);
       el.addEventListener('contextmenu', onContextMenu);
 
+      el.dataset.id = this.cfg.id;
       return el;
     };
 
@@ -210,6 +211,7 @@
       e.preventDefault();
 
       Evme.EventHandler.trigger(NAME, 'hold', {
+        'evt': e,
         'app': self,
         'appId': self.cfg.id,
         'el': el,

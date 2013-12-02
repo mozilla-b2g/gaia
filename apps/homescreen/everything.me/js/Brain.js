@@ -660,6 +660,14 @@
       if (Evme.Collection.isOpen()) {
         if (data.app.cfg.isStatic === true) {
           Evme.Collection.toggleEditMode(true);
+          LazyLoader.load([
+            'style/dragdrop.css',
+            'everything.me/js/helpers/dndmanager.js'], function onload() {
+              var el = data.el;
+              Evme.dndManager.start(el, data.evt, function onRearrage(idx) {
+                  Evme.Collection.moveApp(el.dataset.id, idx);
+              });
+          });
         } else if (data.app.type === Evme.RESULT_TYPE.CLOUD) {
           Evme.Collection.toggleEditMode(false);
           openCloudAppMenu(data);
@@ -930,6 +938,8 @@
       Evme.ConnectionMessage.hide();
 
       currentResultsManager = Evme.SearchResults;
+
+      Evme.dndManager && Evme.dndManager.stop();
     };
 
     // cancel the current outgoing collection requests
