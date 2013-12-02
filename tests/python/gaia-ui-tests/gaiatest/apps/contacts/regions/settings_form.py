@@ -79,3 +79,4 @@ class SettingsForm(Base):
     def tap_back_from_import_contacts(self):
         self.wait_for_element_displayed(*self._back_from_import_contacts_locator)
         self.marionette.find_element(*self._back_from_import_contacts_locator).tap()
+        self.wait_for_element_not_displayed(*self._back_from_import_contacts_locator)
