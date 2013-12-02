@@ -3,7 +3,7 @@ suite('AlarmEditView', function() {
   this.slow(2000);
   this.timeout(5000);
 
-  const alarmPrefix = 'alarmsdb_test';
+  var alarmPrefix = 'alarmsdb_test';
   var Alarm, AlarmsDB, Utils, rawQuery;
 
   suiteSetup(function(done) {
