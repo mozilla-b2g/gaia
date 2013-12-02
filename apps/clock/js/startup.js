@@ -24,10 +24,11 @@ function initialize() {
 }
 
 // Run initialize after some tasks complete.
-var barriers = Utils.async.namedParallel(['otaConvert', 'mozL10n'], initialize);
+var barriers = Utils.async.namedParallel(['convertAlarms', 'mozL10n'],
+  initialize);
 
 // We need to upgrade 1.0 and 1.1 alarms to 1.2 format.
-AlarmsDB.convertAlarms(barriers.otaConvert);
+AlarmsDB.convertAlarms(barriers.convertAlarms);
 
 // Support Firefox Desktop development with mozAlarms API mocking.
 var needsMocks = !navigator.mozAlarms;
