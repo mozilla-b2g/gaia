@@ -17,6 +17,7 @@ define(function(require, exports, module) {
   })();
 
   // define variables
+  var validPropertiesSet = null; // memoizes validProperties() method
   var idMap = protectedProperties.get('id');
   var repeatMap = protectedProperties.get('repeat');
   var registeredAlarmsMap = protectedProperties.get('registeredAlarms');
@@ -41,10 +42,14 @@ define(function(require, exports, module) {
     // Initialization methods
 
     extractProtected: function(config) {
+      var valids = this.validProperties();
       for (var i in config) {
         if (protectedProperties.has(i)) {
           var map = protectedProperties.get(i);
           map.set(this, config[i]);
+          delete config[i];
+        }
+        if (!valids.has(i)) {
           delete config[i];
         }
       }
@@ -65,6 +70,20 @@ define(function(require, exports, module) {
         snooze: 5,
         color: 'Darkorange'
       };
+    },
+
+    validProperties: function() {
+      if (validPropertiesSet !== null) {
+        return new Set(validPropertiesSet);
+      }
+      var ret = new Set();
+      var keys = Object.keys(this.defaultProperties());
+      keys = keys.concat(['id']);
+      for (var i in keys) {
+        ret.add(keys[i]);
+      }
+      validPropertiesSet = ret;
+      return new Set(ret);
     },
 
     // ---------------------------------------------------------
