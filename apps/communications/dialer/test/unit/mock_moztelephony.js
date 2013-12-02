@@ -1,7 +1,7 @@
 'use strict';
 
 var MockMozTelephony = {
-  dial: function() {},
+  dial: function() { return {}; },
   dialEmergency: function() {},
   active: null,
   calls: [],

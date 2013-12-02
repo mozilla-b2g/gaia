@@ -10,10 +10,12 @@
   "permissions": {
     "sms":{},
     "storage":{},
+    "mobileconnection":{},
     "contacts":{ "access": "readonly" },
     "settings":{ "access": "readonly" },
     "audio-channel-notification":{},
-    "desktop-notification":{}
+    "desktop-notification":{},
+    "settings":{ "access": "readwrite" }
   },
   "locales": {
     "ar": {

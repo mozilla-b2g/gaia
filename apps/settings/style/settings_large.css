@@ -309,7 +309,7 @@
   }
 
   section[role="region"].skin-dark > header:first-child menu[type="toolbar"] a:after,
-  section[role="region"].skin-dark > header:first-child menu[type="toolbar"] button:after.
+  section[role="region"].skin-dark > header:first-child menu[type="toolbar"] button:after,
   section[role="region"].skin-organic > header:first-child menu[type="toolbar"] a:after,
   section[role="region"].skin-organic > header:first-child menu[type="toolbar"] button:after  {
     content: "";

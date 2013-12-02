@@ -150,17 +150,13 @@ var inputContext = null;
 // We sometimes refer to these different layouts as "keyboards", so this single
 // keyboard app can display many different keyboards.  The currently displayed
 // keyboard is specified with setKeyboardName(). That function sets the
-// following variables based on its argument.  See layout.js for a the data
-// structure that maps keyboard names to their layout data.
+// following variables based on its argument.
 //
-// Note that keyboardName is the name of the currently displayed keyboard.
-// currentKeyboardName tracks the value of the keyboard.current setting.
-// We don't call setKeyboardName() when keyboard.current changes because
-// that causes problems with the async loading of input methods and could
-// also cause races if keyboard.current is updated before the enabled keyboards
-// settings are updated.  Instead, every time we show the keyboard we ensure
-// that keyboardName matches currentKeyboardName and call setKeyboardName to
-// update it if necessary.
+// See keyboard/layouts for layout data.
+//
+// The keyboardName is always the URL hash this page loaded with.
+// setKeyboardName() is called when pages loads, when visibility changes,
+// and when URL hash changes.
 var keyboardName = null;
 var inputMethod = defaultInputMethod;
 
@@ -221,60 +217,6 @@ var menuTimeout = 0;
 var redrawTimeout = 0;
 var hideKeyboardTimeout = 0;
 
-// This object has one property for each keyboard layout setting.
-// If the user turns on that setting in the settings app, the value of
-// the property specifies the keyboard layouts that are enabled.
-const keyboardGroups = {
-  'english': ['en'],
-  'dvorak': ['en-Dvorak'],
-  'spanish' : ['es'],
-  'portuguese' : ['pt_BR'],
-  'polish' : ['pl'],
-  'bangla': ['bn-Avro', 'bn-Probhat'],
-  'catalan' : ['ca'],
-  'czech': ['cz'],
-  'french': ['fr', 'fr-Dvorak-bepo'],
-  'german': ['de'],
-  'hungarian': ['hu'],
-  'korean': ['ko'],
-  'myanmar': ['my'],
-  'macedonian': ['mk'],
-  'norwegian': ['nb'],
-  'swedish': ['sv'],
-  'slovak': ['sk'],
-  'turkish': ['tr-Q', 'tr-F'],
-  'romanian': ['ro'],
-  'russian': ['ru'],
-  'serbian': ['sr-Latn', 'sr-Cyrl'],
-  'hebrew': ['he'],
-  'zhuyin': ['zh-Hant-Zhuyin'],
-  'pinyin': ['zh-Hans-Pinyin'],
-  'arabic': ['ar'],
-  'greek': ['el'],
-  'japanese': ['jp-kanji']
-};
-
-// Define language code aliases to correctly match the relevant keyboard,
-// i.e. language -> relevant keyboard name
-const keyboardAlias = {
-  'en-US': 'en'
-};
-
-// This is the default keyboard if none is selected in settings
-// XXX: switch this to pt-BR?
-// XXX: ideally, this should be based on the current language,
-const defaultKeyboardNames = ['en'];
-
-const keyboardHashKey = [
-  'en', 'en-Dvorak', 'es', 'pt-BR', 'pl',
-  'bn-Avro', 'bn-Probhat', 'cz', 'fr', 'fr-Dvorak-bepo',
-  'de', 'nb', 'sk',
-  'tr', 'ru', 'sr-Cyrl', 'ar', 'he',
-  'el',
-  'zh-Hant-Zhuyin', 'zh-Hans-Pinyin', 'jp-kanji', 'ko',
-  'numberLayout'
-];
-
 // Special key codes
 const BASIC_LAYOUT = -1;
 const ALTERNATE_LAYOUT = -2;
@@ -291,7 +233,6 @@ const specialCodes = [
 ];
 
 // These values are initialized with user settings
-var currentKeyboardName;
 var suggestionsEnabled;
 var correctionsEnabled;
 var clickEnabled;
@@ -325,70 +266,37 @@ var touchStartCoordinate;
 var toShowKeyboardFTU = false;
 const SWIPE_VELOCICTY_THRESHOLD = 0.4;
 
-// The first thing we do when the keyboard app loads is query all the
-// keyboard-related settings. Only once we have the current settings values
-// do we initialize the rest of the keyboard
-window.addEventListener('load', getKeyboardSettings);
+// Before we can initialize the keyboard we need to know the current
+// value of all keyboard-related settings. These are the settings
+// we want to query, with the default values we'll use if the query fails
+var settingsQuery = {
+  'keyboard.wordsuggestion': true,
+  'keyboard.autocorrect': true,
+  'keyboard.vibration': false,
+  'keyboard.clicksound': false,
+  'keyboard.ftu.enabled': false,
+  'audio.volume.notification': 7
+};
 
-function getKeyboardSettings() {
-  // Before we can initialize the keyboard we need to know the current
-  // value of all keyboard-related settings. These are the settings
-  // we want to query, with the default values we'll use if the query fails
-  var settingsQuery = {
-    'keyboard.current': 'en',
-    'keyboard.wordsuggestion': true,
-    'keyboard.autocorrect': true,
-    'keyboard.vibration': false,
-    'keyboard.clicksound': false,
-    'keyboard.ftu.enabled': false,
-    'audio.volume.notification': 7
-  };
+// Now query the settings
+getSettings(settingsQuery, function gotSettings(values) {
+  // Copy settings values to the corresponding global variables.
+  suggestionsEnabled = values['keyboard.wordsuggestion'];
+  correctionsEnabled = values['keyboard.autocorrect'];
+  vibrationEnabled = values['keyboard.vibration'];
+  clickEnabled = values['keyboard.clicksound'];
+  isSoundEnabled = !!values['audio.volume.notification'];
 
-  // Now query the settings
-  getSettings(settingsQuery, function gotSettings(values) {
-    // Copy settings values to the corresponding global variables.
-    currentKeyboardName = values['keyboard.current'];
-    suggestionsEnabled = values['keyboard.wordsuggestion'];
-    correctionsEnabled = values['keyboard.autocorrect'];
-    vibrationEnabled = values['keyboard.vibration'];
-    clickEnabled = values['keyboard.clicksound'];
-    isSoundEnabled = !!values['audio.volume.notification'];
+  // To see if this is first time the user launches the keyboard
+  toShowKeyboardFTU = values['keyboard.ftu.enabled'];
 
-    // To see if this is first time the user launches the keyboard
-    toShowKeyboardFTU = values['keyboard.ftu.enabled'];
+  handleKeyboardSound();
 
-    handleKeyboardSound();
-
-    // set default input method with hash value
-    if (window.location.hash !== '') {
-      var hashKey = window.location.hash.substring(1);
-
-      if (keyboardHashKey.indexOf(hashKey) !== -1) {
-        keyboardName = hashKey;
-      } else {
-        keyboardName = defaultKeyboardName;
-      }
-    } else {
-      keyboardName = defaultKeyboardName;
-    }
-
-    // And create an array of all enabled keyboard layouts from the set
-    // of enabled groups
-    handleNewKeyboards();
-
-    // We've got all the settings, so initialize the rest
-    initKeyboard();
-  });
-}
+  // We've got all the settings, so initialize the rest
+  initKeyboard();
+});
 
 function initKeyboard() {
-  // First, register handlers to track settings changes
-  navigator.mozSettings.addObserver('keyboard.current', function(e) {
-    // Switch to the language associated keyboard
-    // everything.me also uses this setting to improve searches
-    currentKeyboardName = e.settingValue;
-  });
-
   navigator.mozSettings.addObserver('keyboard.wordsuggestion', function(e) {
     // The keyboard won't be displayed when this setting changes, so we
     // don't need to tell the keyboard about the new value right away.
@@ -501,8 +409,14 @@ function initKeyboard() {
     }
   };
 
-  // Initialize the current loaded layout
-  setKeyboardName(keyboardName);
+  // Initialize the current layout according to
+  // the hash this page is loaded with.
+  if (window.location.hash !== '') {
+    var inputMethodName = window.location.hash.substring(1);
+    setKeyboardName(inputMethodName);
+  } else {
+    console.error('This page should never be loaded without an URL hash.');
+  }
 
   // Finally, if we are only loaded by keyboard manager when the user
   // have already focused, the keyboard should show right away.
@@ -552,27 +466,20 @@ function setKeyboardName(name, callback) {
   function loadLayout(name, callback) {
     if (name in Keyboards) {
       setLayout(name);
-    }
-    else {
-      var alias = keyboardAlias[name];
-      if (alias in Keyboards) {
-        setLayout(alias);
-      }
-      else {
-        // If we have not already loaded the layout, load it now
-        var layoutFile = 'js/layouts/' + name + '.js';
-        var script = document.createElement('script');
-        script.src = layoutFile;
-        script.onload = function() {
-          setLayout(name);
-        };
-        script.onerror = function() {
-          // If this happens, we have a misconfigured build and the
-          // keyboard manifest does not match the layouts in js/layouts/
-          console.error('Cannot load keyboard layout', layoutFile);
-        };
-        document.head.appendChild(script);
-      }
+    } else {
+      // If we have not already loaded the layout, load it now
+      var layoutFile = 'js/layouts/' + name + '.js';
+      var script = document.createElement('script');
+      script.src = layoutFile;
+      script.onload = function() {
+        setLayout(name);
+      };
+      script.onerror = function() {
+        // If this happens, we have a misconfigured build and the
+        // keyboard manifest does not match the layouts in js/layouts/
+        console.error('Cannot load keyboard layout', layoutFile);
+      };
+      document.head.appendChild(script);
     }
 
     function setLayout(name) {
@@ -589,31 +496,6 @@ function isSpecialKeyObj(key) {
     key.keyCode &&
     specialCodes.indexOf(key.keyCode) !== -1;
   return hasSpecialCode || key.keyCode <= 0;
-}
-
-// This code is only triggered on startup and when the user is in the
-// Settings app. So no keyboard is displayed when it happens and we don't
-// have to change anything on the screen.
-function handleNewKeyboards() {
-  enabledKeyboardNames = [];
-  for (var group in keyboardGroups) {
-    if (enabledKeyboardGroups['keyboard.layouts.' + group]) {
-      keyboardGroups[group].forEach(function(name) {
-        if (enabledKeyboardNames.indexOf(name) === -1)
-          enabledKeyboardNames.push(name);
-      });
-    }
-  }
-
-  // If no keyboards were selected, use a default
-  if (enabledKeyboardNames.length === 0)
-    Array.prototype.push.apply(enabledKeyboardNames,
-                               defaultKeyboardNames);
-
-  // If the keyboard has been disabled, reset keyboardName allowing it to be
-  // properly set when showing the keyboard
-  if (enabledKeyboardNames.indexOf(keyboardName) == -1)
-    keyboardName = null;
 }
 
 // Map the input type to another type
@@ -1749,13 +1631,6 @@ function replaceSurroundingText(text, offset, length) {
 function showKeyboard() {
   clearTimeout(hideKeyboardTimeout);
 
-  // If no keyboard has been selected yet, choose the first enabled one.
-  // This will also set the inputMethod
-  if (!keyboardName) {
-    setKeyboardName(defaultKeyboardName, showKeyboard.bind(this));
-    return;
-  }
-
   inputContext = navigator.mozInputMethod.inputcontext;
 
   resetKeyboard();
@@ -1776,6 +1651,7 @@ function showKeyboard() {
   } else {
     currentInputMode = '';
     currentInputType = mapInputType('text');
+
     return;
   }
 
@@ -1786,6 +1662,12 @@ function showKeyboard() {
     selectionEnd: inputContext.selectionEnd,
     value: ''
   };
+
+  // everything.me uses this setting to improve searches,
+  // but they really shouldn't.
+  navigator.mozSettings.createLock().set({
+    'keyboard.current': keyboardName
+  });
 
   function doShowKeyboard() {
     // Force to disable the auto correction for Greek SMS layout.
@@ -1807,13 +1689,6 @@ function showKeyboard() {
   }
 
   var promise = inputContext.getText();
-
-  // XXX: Bug 906096, make keyboard can show up in Firefox Nightly
-  // before the IME WebAPI is ready
-  if (!promise.then) {
-    doShowKeyboard();
-    return;
-  }
 
   promise.then(function gotText(value) {
     state.value = value;
@@ -1839,6 +1714,12 @@ function hideKeyboard() {
   deactivateInputMethod();
 
   isKeyboardRendered = false;
+
+  // everything.me uses this setting to improve searches,
+  // but they really shouldn't.
+  navigator.mozSettings.createLock().set({
+    'keyboard.current': undefined
+  });
 }
 
 // Resize event handler

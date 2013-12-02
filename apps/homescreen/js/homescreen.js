@@ -37,15 +37,6 @@ var Homescreen = (function() {
       swipeTransitionDuration: swipeSection.transition_duration
     };
 
-    var wallpaperURL = new SettingsURL();
-
-    SettingsListener.observe('wallpaper.image',
-                             'resources/images/backgrounds/default.png',
-                             function(value) {
-                               var url = 'url(' + wallpaperURL.set(value) + ')';
-                               document.body.style.backgroundImage = url;
-                             });
-
     GridManager.init(options, function gm_init() {
       window.addEventListener('hashchange', function() {
         if (!window.location.hash.replace('#', '')) {

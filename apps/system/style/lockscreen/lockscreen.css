@@ -269,7 +269,7 @@
 }
 
 #lockscreen-area-slide .lockscreen-icon {
-  background-color: rgba(0, 0, 0, 0.3);
+  background-color: none;
   -moz-box-sizing: border-box;
   border: 0.2rem solid rgba(255, 255, 255, 0.8);
 }
@@ -284,9 +284,14 @@
   position: relative;
   height: 6rem;
   width: 3rem;
+
+  /* Should be high enough but be overlayed by the slide */
+  z-index: 4;
 }
 
 #lockscreen-slide-handle .lockscreen-slide-left.lockscreen-icon {
+  border: none;
+
   /* half-circle toward left */
   border-radius:5.6rem 0 0 5.6rem;
   border-right: none;
@@ -296,11 +301,12 @@
   position: relative;
   height: 5.6rem;
   width: 2.8rem;
+
+  /* Should be high enough but be overlayed by the slide */
+  z-index: 4;
 }
 
 .lockscreen-slide-left.lockscreen-icon > span {
-  background: url(/style/lockscreen/images/larrow.png) no-repeat top left;
-  background-size: 1rem 2rem;
 
   /* float to prevent its parent got wrong place */
   float: left;
@@ -333,12 +339,11 @@
 }
 
 #lockscreen-slide-handle .lockscreen-slide-center.lockscreen-icon {
-  height: 5.6rem;
+  border: none;
 }
 
-#lockscreen-area-slide .touched {
-  border-color: #00aacc;
-  background-color:  #00aacc;
+#lockscreen-slide-handle .lockscreen-slide-center.lockscreen-icon {
+  height: 5.6rem;
 }
 
 #lockscreen-slide-track .lockscreen-slide-right.lockscreen-icon {
@@ -355,6 +360,7 @@
 }
 
 #lockscreen-slide-handle .lockscreen-slide-right.lockscreen-icon {
+  border: none;
   border-left: none;
 
   /* half-circle toward right */
@@ -368,8 +374,6 @@
 }
 
 .lockscreen-slide-right.lockscreen-icon > span {
-  background: url(/style/lockscreen/images/larrow.png) no-repeat top left;
-  background-size: 1rem 2rem;
 
   /* float to prevent its parent got wrong place */
   float: right;
@@ -446,7 +450,7 @@ button::-moz-focus-inner {
 
 #lockscreen-area-unlock {
   /* Otherwise it will be overlayed by the track. */
-  z-index: 1;
+  z-index: 16;
   pointer-events: auto;
 }
 
@@ -465,7 +469,7 @@ button::-moz-focus-inner {
 
 #lockscreen-area-camera {
   /* Otherwise it will be overlayed by the track. */
-  z-index: 1;
+  z-index: 16;
   pointer-events: auto;
 }
 
@@ -491,11 +495,13 @@ button::-moz-focus-inner {
 }
 
 #lockscreen-panel-passcode {
-  z-index: 2;
+  /* > camera, unlock icons > canvas */
+  z-index: 32;
 }
 
 #lockscreen-panel-emergency-call {
-  z-index: 2;
+  /* > camera, unlock icons > canvas */
+  z-index: 32;
 }
 
 #lockscreen-passcode-code {
@@ -796,4 +802,10 @@ button::-moz-focus-inner {
 
 .elastic #lockscreen-icon-container {
   animation: lockscreen-elastic 2.5s 1;
+}
+
+#lockscreen-canvas-wrapper {
+  position: absolute;
+  bottom: 0.75rem;
+  z-index: 8;
 }

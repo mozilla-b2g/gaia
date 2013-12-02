@@ -57,7 +57,9 @@ var About = {
      if (!navigator.mozTelephony || !info) {
        deviceInfoMsisdn.parentNode.hidden = true;
      } else {
-       deviceInfoMsisdn.textContent = info.msisdn ||
+       // If the icc card is gsm card, the phone number is in msisdn.
+       // Otherwise, the phone number is in mdn.
+       deviceInfoMsisdn.textContent = info.msisdn || info.mdn ||
        navigator.mozL10n.get('unknown-phoneNumber');
     }
   },

@@ -40,7 +40,38 @@ suite('Threads', function() {
       assert.equal(thread.unreadCount, 0);
     });
 
+    test(' > createThreadMockup from SMS sended', function() {
+      var options = { read: true };
+      message.delivery = 'sent';
+      var thread = Threads.createThreadMockup(message, options);
+      assert.equal(thread.participants.length, 1);
+      assert.equal(thread.participants[0], message.receiver);
+    });
 
+    test(' > createThreadMockup from SMS received', function() {
+      var options = { read: false };
+      message.delivery = 'received';
+      var thread = Threads.createThreadMockup(message, options);
+      assert.equal(thread.participants.length, 1);
+      assert.equal(thread.participants[0], message.sender);
+    });
+
+    test(' > createThreadMockup from MMS sending', function() {
+      var options = { read: true };
+      var mms = MockMessages.mms();
+      mms.delivery = 'sent';
+      var thread = Threads.createThreadMockup(mms, options);
+      assert.equal(thread.participants, mms.receivers);
+    });
+
+    test(' > createThreadMockup from MMS received', function() {
+      var options = { read: false };
+      var mms = MockMessages.mms();
+      mms.delivery = 'received';
+      var thread = Threads.createThreadMockup(mms, options);
+      assert.equal(thread.participants.length, 1);
+      assert.equal(thread.participants[0], message.sender);
+    });
   });
 
   suite('Collection', function() {

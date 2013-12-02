@@ -286,15 +286,17 @@ suite('dialer/handled_call', function() {
     });
 
     suite('with a contact with no picture', function() {
+      var setContactStub;
+
       setup(function() {
         subject.photo = null;
-        MockCallScreen.mSetCallerContactImageCalled = false;
+        setContactStub = this.sinon.stub(MockCallScreen,
+                                         'setCallerContactImage');
         mockCall._connect();
       });
 
       test('wallpaper displaying', function() {
-        assert.isFalse(MockCallScreen.mSetCallerContactImageCalled);
-        assert.isTrue(MockCallScreen.mSetDefaultContactImageCalled);
+        assert.isTrue(setContactStub.calledWith(null));
       });
     });
 
@@ -402,12 +404,13 @@ suite('dialer/handled_call', function() {
   });
 
   suite('resuming', function() {
+    var setContactStub;
+
     setup(function() {
       mockCall._hold();
       MockCallScreen.mSyncSpeakerCalled = false;
       MockCallScreen.mEnableKeypadCalled = false;
-      MockCallScreen.mSetCallerContactImageCalled = false;
-      MockCallScreen.mSetDefaultContactImageCalled = false;
+      setContactStub = this.sinon.stub(MockCallScreen, 'setCallerContactImage');
       subject.photo = 'dummy_photo_1';
       mockCall._resume();
     });
@@ -425,15 +428,8 @@ suite('dialer/handled_call', function() {
     });
 
     test('changed the user photo', function() {
+      assert.isTrue(setContactStub.calledWith(subject.photo));
       assert.isTrue(MockCallScreen.mSetCallerContactImageCalled);
-    });
-
-    test('change image to default if there are no user images', function() {
-      assert.isFalse(MockCallScreen.mSetDefaultContactImageCalled);
-      subject.photo = null;
-      mockCall._hold();
-      mockCall._resume();
-      assert.isTrue(MockCallScreen.mSetDefaultContactImageCalled);
     });
   });
 

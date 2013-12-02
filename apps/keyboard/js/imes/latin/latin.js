@@ -656,17 +656,19 @@
   // the keyboard calls this method to tell us it has been selected.
   // We have to backspace over the current word, insert this new word, and
   // update our internal state to match.
-  function select(word) {
+  //   word: the text displayed as the suggestion, might contain ellipsis
+  //   data: the actual data we need to output
+  function select(word, data) {
     var oldWord = wordBeforeCursor();
 
     // Replace the current word with the selected suggestion plus space
-    word += ' ';
-    replaceBeforeCursor(oldWord, word);
+    var newWord = data += ' ';
+    replaceBeforeCursor(oldWord, newWord);
 
     // Remember the change we just made so we can revert it if the
     // next key is a backspace. Note that it is not an autocorrection
     // so we don't need to disable corrections.
-    revertFrom = word;
+    revertFrom = newWord;
     revertTo = oldWord;
     justAutoCorrected = false;
 
@@ -684,6 +686,11 @@
 
   function setLayoutParams(params) {
     layoutParams = params;
+
+    // We don't need to update the nearbyKeys when using number/digit layout.
+    if (inputMode === 'verbatim')
+      return;
+
     // XXX We call nearbyKeys() every time the keyboard pops up.
     // Maybe it would be better to compute it once in keyboard.js and
     // cache it.

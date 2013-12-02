@@ -12,7 +12,7 @@ class SettingsForm(Base):
     _settings_close_button_locator = (By.ID, 'settings-close')
     _order_by_last_name_locator = (By.CSS_SELECTOR, 'p[data-l10n-id="contactsOrderBy"]')
     _order_by_last_name_switch_locator = (By.CSS_SELECTOR, 'input[name="order.lastname"]')
-    _import_from_sim_button_locator = (By.CSS_SELECTOR, 'button.icon-sim[data-l10n-id="importSim2"]')
+    _import_from_sim_button_locator = (By.CSS_SELECTOR, "li[id*='import-sim-option'] button")
     _import_from_sdcard_locator = (By.CSS_SELECTOR, 'button.icon-sd[data-l10n-id="importMemoryCard"]')
     _import_from_gmail_button_locator = (By.CSS_SELECTOR, 'button.icon-gmail[data-l10n-id="importGmail"]')
     _import_from_windows_live_button_locator = (By.CSS_SELECTOR, 'button.icon-live[data-l10n-id="importLive"]')
@@ -79,3 +79,4 @@ class SettingsForm(Base):
     def tap_back_from_import_contacts(self):
         self.wait_for_element_displayed(*self._back_from_import_contacts_locator)
         self.marionette.find_element(*self._back_from_import_contacts_locator).tap()
+        self.wait_for_element_not_displayed(*self._back_from_import_contacts_locator)

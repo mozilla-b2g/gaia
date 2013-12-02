@@ -145,8 +145,7 @@ suite('KeyboardManager', function() {
       }, 350);
     });
 
-    test('UpdateHeight waits for transform transition' +
-         ' - intermittent bug 935904', function(next) {
+    test('UpdateHeight waits for transform transition', function(next) {
       var called = false;
       window.addEventListener('keyboardchange', function() {
         called = true;
@@ -568,8 +567,8 @@ suite('KeyboardManager', function() {
   suite('Show Keyboard', function() {
     setup(function(next) {
       KeyboardManager.keyboardFrameContainer.classList.add('hide');
-      this.sinon.stub(KeyboardManager, 'showIMESwitcher');
       setTimeout(next, 100);
+      this.sinon.stub(KeyboardManager, 'showIMESwitcher');
     });
 
     test('Hide immediately after show should destroy', function(next) {

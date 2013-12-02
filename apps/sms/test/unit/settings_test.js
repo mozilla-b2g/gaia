@@ -22,16 +22,23 @@ suite('Message App settings Unit-Test', function() {
       setup(function() {
         navigator.mozSettings = null;
         Settings.mmsSizeLimitation = 'whatever is default';
-      });
-      test('Query size limitation without settings', function() {
+        Settings.mmsServiceId = 'no service ID';
         Settings.init();
+      });
+
+      test('Query size limitation without settings', function() {
         assert.equal(Settings.mmsSizeLimitation, 'whatever is default');
+      });
+
+      test('Query mmsServiceId without settings', function() {
+        assert.equal(Settings.mmsServiceId, 'no service ID');
       });
     });
     suite('With mozSettings', function() {
       setup(function() {
         navigator.mozSettings = MockNavigatorSettings;
         Settings.mmsSizeLimitation = 'whatever is default';
+        Settings.mmsServiceId = 'no service ID';
         this.sinon.stub(navigator.mozSettings, 'createLock', function() {
           var api = {
             get: function() {
@@ -48,7 +55,7 @@ suite('Message App settings Unit-Test', function() {
         Settings.init();
         assert.equal(Settings.mmsSizeLimitation, 'whatever is default');
 
-        // only made one call to get settings
+        // only made one call to get settings(non-DSDS case)
         assert.equal(navigator.mozSettings.createLock.returnValues.length, 1);
         var lock = navigator.mozSettings.createLock.returnValues[0];
         assert.equal(lock.get.returnValues.length, 1);
@@ -62,6 +69,30 @@ suite('Message App settings Unit-Test', function() {
         assert.equal(Settings.mmsSizeLimitation, 500 * 1024);
       });
 
+      test('Query mmsServiceId with settings exist(ID=0)', function() {
+        navigator.mozMobileConnections = ['SIM 1', 'SIM 2'];
+        Settings.init();
+        assert.equal(Settings.mmsServiceId, 'no service ID');
+
+        // Two calls for mmsSizeLimitation/mmsServiceId
+        assert.equal(navigator.mozSettings.createLock.returnValues.length, 2);
+        var lock = navigator.mozSettings.createLock.returnValues[1];
+        assert.equal(lock.get.returnValues.length, 1);
+
+        var req = lock.get.returnValues[0];
+        req.result = {
+          'ril.mms.defaultServiceId': 0
+        };
+        req.onsuccess();
+
+        assert.equal(Settings.mmsServiceId, 0);
+      });
+
+      test('mmsServiceId observer and update', function() {
+        MockNavigatorSettings.mTriggerObservers('ril.mms.defaultServiceId',
+                                                {settingValue: 1});
+        assert.equal(Settings.mmsServiceId, 1);
+      });
     });
   });
 });

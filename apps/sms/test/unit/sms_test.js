@@ -16,6 +16,7 @@ require('/shared/js/gesture_detector.js');
 requireApp('system/test/unit/mock_gesture_detector.js');
 requireApp('sms/test/unit/mock_contact.js');
 requireApp('sms/test/unit/mock_l10n.js');
+requireApp('sms/test/unit/mock_time_headers.js');
 requireApp('sms/test/unit/mock_navigatormoz_sms.js');
 requireApp('sms/test/unit/mock_attachment_menu.js');
 
@@ -37,7 +38,8 @@ requireApp('sms/js/waiting_screen.js');
 requireApp('sms/js/startup.js');
 
 var MocksHelperForSmsUnitTest = new MocksHelper([
-  'AttachmentMenu'
+  'AttachmentMenu',
+  'TimeHeaders'
 ]).init();
 
 suite('SMS App Unit-Test', function() {
@@ -193,6 +195,7 @@ suite('SMS App Unit-Test', function() {
             var newMessage = {
               threadId: thread.id,
               sender: thread.participants[0],
+              delivery: 'received',
               timestamp: thread.timestamp,
               type: thread.lastMessageType === 'mms' ? 'sms' : 'mms'
             };

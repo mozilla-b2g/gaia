@@ -63,10 +63,10 @@ Evme.Utils = new function Evme_Utils() {
   this.EMPTY_APPS_SIGNATURE = '';
 
   this.APPS_FONT_SIZE = 13 * (window.devicePixelRatio || 1);
-  this.APP_NAMES_SHADOW_OFFSET_X = 1;
+  this.APP_NAMES_SHADOW_OFFSET_X = 0;
   this.APP_NAMES_SHADOW_OFFSET_Y = 1;
-  this.APP_NAMES_SHADOW_BLUR = 1;
-  this.APP_NAMES_SHADOW_COLOR = 'rgba(0, 0, 0, 1)';
+  this.APP_NAMES_SHADOW_BLUR = 4;
+  this.APP_NAMES_SHADOW_COLOR = 'rgba(0, 0, 0, 0.9)';
 
   this.PIXEL_RATIO_NAME =
     (window.devicePixelRatio > 1) ?

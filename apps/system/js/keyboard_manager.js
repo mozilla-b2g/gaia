@@ -363,6 +363,10 @@ var KeyboardManager = {
   },
 
   resizeKeyboard: function km_resizeKeyboard(evt) {
+    // ignore mozbrowserresize event while keyboard Frame is hidding
+    if (this.keyboardFrameContainer.dataset.transitionOut === 'true')
+      return;
+
     this.keyboardHeight = parseInt(evt.detail.height);
     this._debug('resizeKeyboard: ' + this.keyboardHeight);
     if (this.keyboardHeight <= 0)
@@ -387,15 +391,14 @@ var KeyboardManager = {
     };
 
     // If the keyboard is hidden, or when transitioning is not finished
-    if (this.keyboardFrameContainer.classList.contains('hide') &&
-             this.keyboardFrameContainer.dataset.transitionOut !== 'true') {
+    if (this.keyboardFrameContainer.classList.contains('hide')) {
       this.showKeyboard(updateHeight);
     } else {
       updateHeight();
     }
 
-    // Show the permanent notification in the UtilityTray.
-    // For changing keyboard layout without switch key.
+    // update latest keyboard info to notification bar
+    // for swiching other keyboard layouts.
     this.showIMESwitcher();
   },
 
@@ -671,6 +674,8 @@ var KeyboardManager = {
         // user selected a new keyboard.
         window.dispatchEvent(new CustomEvent('keyboardchanged'));
 
+        // Refresh the switcher, or the labled type and layout name
+        // won't change.
       }, function() {
         var showed = self.showingLayout;
         if (!self.keyboardLayouts[showed.type])

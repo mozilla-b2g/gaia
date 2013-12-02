@@ -24,10 +24,8 @@ class TestClockSwitchClockType(GaiaTestCase):
         self.clock.tap_analog_display()
         self.assertTrue(self.clock.is_digital_clock_displayed, "The digital clock should be displayed.")
         self.assertTrue(self.clock.is_day_and_date_displayed, "The date of digital clock should be displayed.")
-        self.assertTrue(self.clock.is_24_hour_state_displayed, "The hour24-state of digital clock should be displayed.")
 
         # switch to analog clock and check the date, time for analog clock
         self.clock.tap_digital_display()
         self.assertTrue(self.clock.is_analog_clock_displayed, "The analog clock should be displayed.")
         self.assertTrue(self.clock.is_day_and_date_displayed, "The date of digital clock should be displayed.")
-        self.assertFalse(self.clock.is_24_hour_state_displayed, "The hour24-state of digital clock should be displayed.")

@@ -87,6 +87,7 @@ var MockCallScreen = {
   screen: document.createElement('div'),
   incomingContainer: document.createElement('div'),
   incomingNumber: document.createElement('div'),
+  incomingNumberAdditionalInfo: document.createElement('span'),
 
   mEnableKeypadCalled: false,
   mSyncSpeakerCalled: false,
@@ -111,6 +112,7 @@ var MockCallScreen = {
     this.screen = document.createElement('div');
     this.incomingContainer = document.createElement('div');
     this.incomingNumber = document.createElement('div');
+    this.incomingNumberAdditionalInfo = document.createElement('span');
     this.mGroupDetailsShown = false;
     this.mRemoveCallCalled = false;
   }
