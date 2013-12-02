@@ -1,5 +1,5 @@
 {
-  "name": "Gaia test keyboard",
+  "name": "Gaia Test Keyboard",
   "description": "for Gaia 3rd-party keyboard testing",
   "type": "certified",
   "role": "input",
@@ -26,7 +26,7 @@
   },
   "locales": {
     "en-US": {
-      "name": "Gaia test keyboard",
+      "name": "Gaia Test Keyboard",
       "description": "for Gaia 3rd-party keyboard testing"
     },
     "zh-TW": {

@@ -1,6 +1,6 @@
 {
-  "name": "Built-in keyboard",
-  "description": "Built-in keyboard",
+  "name": "Built-in Keyboard",
+  "description": "Built-in Keyboard",
   "type": "certified",
   "role": "input",
   "launch_path": "/settings.html",
@@ -28,8 +28,8 @@
   },
   "locales": {
     "en-US": {
-      "name": "Built-in keyboard",
-      "description": "Built-in keyboard"
+      "name": "Built-in Keyboard",
+      "description": "Built-in Keyboard"
     },
     "zh-TW": {
       "name": "預設鍵盤",
