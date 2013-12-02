@@ -39,9 +39,6 @@ if (!this.contacts) {
 if (!this.fb) {
   this.fb = null;
 }
-if (!this.FixedHeader) {
-  this.FixedHeader = null;
-}
 
 if (!this.mozL10n) {
   this.mozL10n = null;
@@ -83,8 +80,6 @@ suite('Render contacts list', function() {
       realAsyncStorage,
       Contacts,
       fb,
-      FixedHeader,
-      realFixedHeader,
       utils,
       mockContacts,
       mozL10n,
@@ -383,8 +378,6 @@ suite('Render contacts list', function() {
     realFb = window.fb;
     window.fb = Mockfb;
     window.Contacts.extServices = MockExtFb;
-    realFixedHeader = window.FixedHeader;
-    window.FixedHeader = MockFixedHeader;
     realActivities = window.ActivityHandler;
     window.ActivityHandler = MockActivities;
     realImageLoader = window.ImageLoader;

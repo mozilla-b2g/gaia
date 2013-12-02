@@ -286,6 +286,10 @@ li a[role="button"].activity > b{
 /* BB Lists extending */
 [data-type="list"] header {
   margin-left: -1rem;
+  position: sticky;
+  top: -1.4rem;
+  background: #F4F4F4;
+  z-index: 2;
 }
 
 /* JS helper */
