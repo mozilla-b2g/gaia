@@ -12,14 +12,12 @@ from gaiatest.apps.clock.app import Clock
 
 class NewAlarm(Clock):
 
-    _edit_alarm_fields_locator = (By.ID, 'edit-alarm')
-    _alarm_name_locator = (By.XPATH, "//input[@placeholder='Alarm name']")
+    _alarm_name_locator = (By.ID, 'alarm-name')
     _repeat_menu_locator = (By.ID, 'repeat-menu')
     _sound_menu_locator = (By.ID, 'sound-menu')
     _snooze_menu_locator = (By.ID, 'snooze-menu')
     _done_locator = (By.ID, 'alarm-done')
-    _close_locator = (By.ID, 'alarm-close')
-    _time_button_locator = (By.ID, 'time-menu')
+    _time_button_locator = (By.XPATH, "//li[input[@id='time-select']]")
 
     _hour_picker_locator = (By.CSS_SELECTOR, '#value-picker-hours div')
     _minutes_picker_locator = (By.CSS_SELECTOR, '#value-picker-minutes div')
@@ -60,11 +58,11 @@ class NewAlarm(Clock):
         self.select(value)
 
     def wait_for_panel_to_load(self):
-        self.wait_for_condition(lambda m: m.find_element(*self._close_locator).location['x'] == 0)
-        self.wait_for_element_displayed(*self._edit_alarm_fields_locator)
+        screen_width = int(self.marionette.execute_script('return window.innerWidth'))
+        done = self.marionette.find_element(*self._done_locator)
+        self.wait_for_condition(lambda m: (done.location['x'] + done.size['width']) == screen_width)
 
     def tap_done(self):
-        self.wait_for_element_displayed(*self._done_locator)
         self.marionette.find_element(*self._done_locator).tap()
 
         clock = Clock(self.marionette)
