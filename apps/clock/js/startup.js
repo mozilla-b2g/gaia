@@ -3,6 +3,7 @@ define('startup_init', function(require) {
 
 var App = require('app');
 var AlarmsDB = require('alarmsdb');
+var Utils = require('utils');
 var ClockView = require('clock_view');
 var AlarmList = require('alarm_list');
 var ActiveAlarm = require('active_alarm');
