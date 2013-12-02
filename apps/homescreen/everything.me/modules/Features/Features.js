@@ -106,7 +106,7 @@ Evme.Features = new function Evme_Features() {
 
   function verifyFeature(featureName) {
     if (!currentFeatures.hasOwnProperty(featureName)) {
-    throw new Exception('No such feature');
+      throw new Error('No such feature');
     }
   }
 }
