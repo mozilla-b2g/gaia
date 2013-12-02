@@ -1,4 +1,4 @@
-suite('AlarmEditView', function() {
+suite('AlarmsDB Test Suite', function() {
 
   this.slow(2000);
   this.timeout(5000);
