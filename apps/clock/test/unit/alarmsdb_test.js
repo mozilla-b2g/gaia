@@ -122,7 +122,7 @@ suite('AlarmsDB Test Suite', function() {
         delete alarm.id;
         alarm.label = label(i);
         alarm.repeat = staticrepeat[i][0];
-        // Asychronously store the alarm, and save the object in amap.
+        // Asychronously store the alarm, and save the object in aset.
         (function(alarm, asyncDone) {
           rawQuery(AlarmsDB.put, function(err, palarm) {
             if (!err) {
@@ -160,6 +160,61 @@ suite('AlarmsDB Test Suite', function() {
             newC.id = alarm.id;
             newC.repeat = staticrepeat[getnum(alarm.label)][1];
             assert.deepEqual(alarm, newC);
+          }
+        }
+        assert.ok(count === staticrepeat.length, 'found alarms ' + count);
+        cb();
+      });
+    }
+    // run the test
+    insertAlarms(runConversion.bind(null, testConversion.bind(null, done)));
+  });
+
+  test('new alarms are unmodified', function(done) {
+    var amap = new Map();
+
+    function insertAlarms(cb) {
+      var insert = Utils.async.generator(cb);
+      var done = insert();
+      for (var i = 0; i < staticrepeat.length; i++) {
+        var alarm = newAlarm();
+        delete alarm.id;
+        alarm.label = label(i);
+        alarm.repeat = staticrepeat[i][1];
+        // Asychronously store the alarm, and save the object in amap.
+        (function(alarm, asyncDone) {
+          rawQuery(AlarmsDB.put, function(err, palarm) {
+            if (!err) {
+              amap.set(palarm.id, palarm);
+            }
+            asyncDone(err);
+          }, alarm);
+        })(alarm, insert());
+        done();
+      }
+    }
+
+    function runConversion(cb, err) {
+      if (err) {
+        cb(err);
+      }
+      AlarmsDB.convertAlarms(cb);
+    }
+
+    function testConversion(cb, err) {
+      if (err) {
+        cb(err);
+      }
+      rawQuery(AlarmsDB.load, function(err, list) {
+        if (err) {
+          cb(err);
+        }
+        var count = 0;
+        for (var i = 0; i < list.length; i++) {
+          var alarm = list[i];
+          if (amap.has(alarm.id)) {
+            count++;
+            assert.deepEqual(alarm, amap.get(alarm.id));
           }
         }
         assert.ok(count === staticrepeat.length, 'found alarms ' + count);
