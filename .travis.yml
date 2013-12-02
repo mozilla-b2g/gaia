@@ -21,6 +21,7 @@ matrix:
   allow_failures:
     - env: CI_ACTION=jshint
 notifications:
+  email: false
   irc:
     on_success: change
     channels:
