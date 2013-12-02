@@ -483,7 +483,7 @@ var ThreadUI = global.ThreadUI = {
   // is detected
   onMessage: function onMessage(message) {
     this.appendMessage(message);
-    TimeHeaders.updateAll();
+    TimeHeaders.updateAll('header[data-time-update]');
   },
 
   onMessageReceived: function thui_onMessageReceived(message) {
@@ -989,7 +989,7 @@ var ThreadUI = global.ThreadUI = {
     messageContainer = document.createElement('ul');
 
     // Append 'time-update' state
-    header.dataset.timeUpdate = true;
+    header.dataset.timeUpdate = 'repeat';
     header.dataset.time = messageTimestamp;
 
     // Add text
@@ -1182,7 +1182,7 @@ var ThreadUI = global.ThreadUI = {
     // Show chunk of messages
     ThreadUI.showChunkOfMessages(this.CHUNK_SIZE);
     // Boot update of headers
-    TimeHeaders.updateAll();
+    TimeHeaders.updateAll('header[data-time-update]');
     // Go to Bottom
     ThreadUI.scrollViewToBottom();
   },

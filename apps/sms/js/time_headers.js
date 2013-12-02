@@ -10,34 +10,31 @@
       document.addEventListener('visibilitychange', onvisibilityChange);
     },
     startScheduler: function th_startScheduler() {
-      var updateFunction = (function() {
-        this.updateAll();
+      var now = Date.now(),
+          nextTimeout = new Date(now + 60000);
+      nextTimeout.setSeconds(0);
+      nextTimeout.setMilliseconds(0);
 
-        var now = Date.now(),
-            nextTimeout = new Date(now + 60000);
-        nextTimeout.setSeconds(0);
-        nextTimeout.setMilliseconds(0);
+      // stop updateTimer first
+      this.stopScheduler();
 
-        // stop updateTimer first
-        this.stopScheduler();
-
-        // then register a new one
-        updateTimer = setTimeout(updateFunction,
-          nextTimeout.getTime() - now);
-      }).bind(this);
-
-      updateFunction();
+      // then register a new one
+      updateTimer = setTimeout(function() {
+        this.updateAll('header[data-time-update=repeat]');
+        this.startScheduler();
+      }.bind(this), nextTimeout.getTime() - now);
     },
     stopScheduler: function th_stopScheduler() {
       clearTimeout(updateTimer);
     },
-    updateAll: function th_updateAll() {
-      var headers = document.querySelectorAll('header[data-time-update]'),
-          length = headers.length,
+    updateAll: function th_updateAll(selector) {
+      selector = selector || '[data-time-update]';
+      var elements = document.querySelectorAll(selector),
+          length = elements.length,
           i;
 
       for (i = 0; i < length; i++) {
-        this.update(headers[i]);
+        this.update(elements[i]);
       }
 
       FixedHeader.updateHeaderContent();
@@ -74,6 +71,7 @@
       TimeHeaders.stopScheduler();
     }
     else {
+      TimeHeaders.updateAll();
       TimeHeaders.startScheduler();
     }
   }

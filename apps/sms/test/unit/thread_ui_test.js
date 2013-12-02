@@ -2121,8 +2121,6 @@ suite('thread_ui.js >', function() {
       });
       suite('clicking', function() {
         var showMessageErrorSpy;
-        var errorCode;
-        var option;
 
         setup(function() {
           localize.reset();

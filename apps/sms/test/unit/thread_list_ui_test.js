@@ -1,5 +1,6 @@
 /*global mocha, MocksHelper, loadBodyHTML, MockL10n, ThreadListUI, FixedHeader,
-         MessageManager, WaitingScreen, Threads, Template, MockMessages */
+         MessageManager, WaitingScreen, Threads, Template, MockMessages,
+         MockTimeHeaders*/
 
 'use strict';
 
@@ -467,6 +468,7 @@ suite('thread_list_ui', function() {
   suite('createThread', function() {
     setup(function() {
       this.sinon.spy(Template, 'escape');
+      this.sinon.spy(MockTimeHeaders, 'update');
     });
 
     function buildSMSThread(payload) {
@@ -495,12 +497,14 @@ suite('thread_list_ui', function() {
       var payload = 'hello <a href="world">world</a>';
       ThreadListUI.createThread(buildSMSThread(payload));
       assert.ok(Template.escape.calledWith(payload));
+      assert.ok(MockTimeHeaders.update.called);
     });
 
     test('escapes the body for MMS', function() {
       var payload = 'hello <a href="world">world</a>';
       ThreadListUI.createThread(buildMMSThread(payload));
       assert.ok(Template.escape.calledWith(payload));
+      assert.ok(MockTimeHeaders.update.called);
     });
   });
 
