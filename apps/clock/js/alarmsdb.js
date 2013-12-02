@@ -123,6 +123,64 @@ exports.STORENAME = 'alarms';
     this.query(this.DBNAME, this.STORENAME, this.load, getAlarmList_mapper);
   };
 
+function convertTo12(alarm) {
+  // Detect the version and return a correct 1.2 serializable.
+  var ret = Utils.extend({
+    registeredAlarms: {},
+    repeat: {}
+  }, alarm);
+  // Extract a normalAlarmId
+  if (alarm.hasOwnProperty('normalAlarmId')) {
+    ret.registeredAlarms['normal'] = alarm.normalAlarmId;
+    delete ret['normalAlarmId'];
+  }
+  // Extract a snoozeAlarmId
+  if (alarm.hasOwnProperty('snoozeAlarmId')) {
+    ret.registeredAlarms['snooze'] = alarm.snoozeAlarmId;
+    delete ret['snoozeAlarmId'];
+  }
+  // Map '1111100' string bitmap to a 1.2 repeat object with day name
+  // properties.
+  if (alarm.hasOwnProperty('repeat') && typeof alarm.repeat === 'string') {
+    var days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday',
+                'saturday', 'sunday'];
+    ret.repeat = {};
+    for (var i = 0; i < alarm.repeat.length && i < days.length; i++) {
+      if (alarm.repeat[i] === '1') {
+        ret.repeat[days[i]] = true;
+      }
+    }
+  } else {
+    ret.repeat = Utils.extend({}, alarm.repeat);
+  }
+  return ret;
+}
+
+  /**
+   * convertAlarms - converts from v1.0 or v1.1 alarm representation to 1.2.
+   *
+   * @param {Function} callback Called when the conversion completes, with
+   *                            (err).
+   */
+  exports.convertAlarms = function ad_convertAlarms(callback) {
+    var gen = Utils.async.generator(function(err) {
+      // All done, call the callback.
+      callback && callback(err);
+    });
+    var done = gen();
+    this.query(this.DBNAME, this.STORENAME, this.load, function(err, list) {
+      if (err) {
+        done(err);
+        return;
+      }
+      for (var i = 0; i < list.length; i++) {
+        this.query(this.DBNAME, this.STORENAME, this.put, gen(),
+          convertTo12(list[i]));
+      }
+      done();
+    }.bind(exports));
+  };
+
   exports.putAlarm = function ad_putAlarm(alarm, callback) {
     this.query(this.DBNAME, this.STORENAME, this.put, callback,
       alarm.toSerializable());
