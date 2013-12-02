@@ -1,6 +1,7 @@
 'use strict';
 
 (function() {
+  var INSTALLED_APPS_SHADOW_OFFSET = Icon.prototype.SHADOW_OFFSET_Y;
 
   Evme.RESULT_TYPE = {
     CONTACT: 'contact',
@@ -83,7 +84,6 @@
           Evme.Utils.blobToDataURI(iconObj, function onDataReady(src) {
             setImageSrc(src);
           });
-
         } else {
           var src = Evme.Utils.formatImageData(iconObj);
           setImageSrc(src);
@@ -107,13 +107,22 @@
 
     // @default
     this.onAppIconLoad = function onAppIconLoad() {
-      // use OS icon rendering
-      var iconCanvas = Icon.prototype.createCanvas(image),
-          canvas = self.initIcon(iconCanvas.height),
-          context = canvas.getContext('2d');
+      var canvas = self.initIcon(Evme.Utils.getOSIconSize()),
+          context = canvas.getContext('2d'),
+          width = canvas.width,
+          height = canvas.height,
+          // hard coded since it's from page.js, which is a homescreen file
+          SHADOW = INSTALLED_APPS_SHADOW_OFFSET;
 
-      context.drawImage(iconCanvas, (TEXT_WIDTH - iconCanvas.width) / 2, 0);
-      self.iconPostRendering(iconCanvas);
+      // account for shadow - pad the canvas from the bottom,
+      // and move the name back up
+      canvas.height += SHADOW;
+      self.elIcon.style.cssText += '; margin-bottom: ' + -SHADOW + 'px;';
+
+      context.drawImage(image,
+          (width - image.width) / 2,
+          (height - image.height) / 2);
+
       self.finalizeIcon(canvas);
       self.setIconSrc(image.src);
     };
@@ -127,11 +136,6 @@
       canvas.height = height;
 
       return canvas;
-    };
-
-    // @default
-    this.iconPostRendering = function iconPostRendering(iconCanvas) {
-      // do nothing
     };
 
     // @default
