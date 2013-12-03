@@ -169,10 +169,8 @@ var DownloadLauncher = (function() {
     var req = new Request();
 
     window.setTimeout(function launching() {
-      // TODO: Maybe the API should express that the download finished
-      // correctly, like 'finished' instead of 'stopped'
       var state = download.state;
-      if (state === 'done') {
+      if (state === 'succeeded') {
         LazyLoader.load(['shared/js/mime_mapper.js',
                          'shared/js/download/download_formatter.js'],
                         function loaded() {
