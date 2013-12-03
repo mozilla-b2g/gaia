@@ -40,26 +40,27 @@ var CostControlApp = (function() {
   'use strict';
 
   var costcontrol, initialized = false;
-  function onReady(callback) {
+  function checkSIMStatus(callback) {
     var cardState = checkCardState();
     var iccid = IccHelper.iccInfo ? IccHelper.iccInfo.iccid : null;
 
     // SIM not ready
     if (cardState !== 'ready') {
       debug('SIM not ready:', cardState);
-      IccHelper.oncardstatechange = onReady;
+      IccHelper.oncardstatechange = checkSIMStatus;
 
     // SIM is ready, but ICC info is not ready yet
     } else if (!Common.isValidICCID(iccid)) {
       debug('ICC info not ready yet');
-      IccHelper.oniccinfochange = onReady;
+      IccHelper.oniccinfochange = checkSIMStatus;
 
     // All ready
     } else {
       debug('SIM ready. ICCID:', iccid);
       IccHelper.oncardstatechange = undefined;
       IccHelper.oniccinfochange = undefined;
-      startApp(callback);
+      document.getElementById('message-handler').src = 'message_handler.html';
+      Common.waitForDOMAndMessageHandler(window, startApp.bind(null, callback));
     }
   }
 
@@ -70,7 +71,7 @@ var CostControlApp = (function() {
     state = cardState = IccHelper.cardState;
 
     // SIM is absent
-    if (cardState === 'absent') {
+    if (!cardState || cardState === 'absent') {
       debug('There is no SIM');
       showSimErrorDialog('no-sim2');
 
@@ -164,6 +165,7 @@ var CostControlApp = (function() {
   }
 
   function startApp(callback) {
+
     function _onNoICCID() {
       console.error('checkSIMChange() failed. Impossible to ensure consistent' +
                     'data. Aborting start up.');
@@ -204,7 +206,7 @@ var CostControlApp = (function() {
         setAttribute('aria-hidden', 'true');
 
       // Only hide the FTE view when everything in the UI is ready
-      CostControlApp.afterFTU(function() {
+      startApp(function() {
         document.getElementById('fte_view').classList.add('non-ready');
         document.getElementById('fte_view').src = '';
       });
@@ -274,6 +276,11 @@ var CostControlApp = (function() {
 
     updateUI(callback);
     ConfigManager.observe('plantype', updateUI, true);
+
+    // Refresh UI when the user changes the SIM for data connections
+    SettingsListener.observe('ril.data.defaultServiceId', 0, function() {
+      Common.loadDataSIMIccId(updateUI);
+    });
 
     initialized = true;
 
@@ -374,13 +381,7 @@ var CostControlApp = (function() {
 
   return {
     init: function() {
-      SettingsListener.observe('ril.data.defaultServiceId', 0, function() {
-        Common.loadDataSIMIccId(updateUI);
-      });
-      Common.waitForDOMAndMessageHandler(window, onReady);
-    },
-    afterFTU: function(cb) {
-      onReady(cb);
+      checkSIMStatus();
     },
     reset: function() {
       costcontrol = null;
