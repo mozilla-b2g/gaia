@@ -127,7 +127,9 @@ var DownloadStore = (function() {
     navigator.getDataStores(DATASTORE_NAME).then(function(ds) {
       if (ds.length < 1) {
         console.error('Download Store: Cannot get access to the DataStore');
-        fail(e);
+        fail({
+          message: 'Download Store: Cannot get access to the DataStore'
+        });
         return;
       }
 
@@ -214,7 +216,7 @@ var DownloadStore = (function() {
     var req = new Request();
 
     window.setTimeout(function() {
-      init(doAdd.bind(null, download, req), req.failed);
+      init(doAdd.bind(null, download, req), req.failed.bind(req));
     });
 
     return req;
@@ -234,7 +236,7 @@ var DownloadStore = (function() {
     var req = new Request();
 
     window.setTimeout(function() {
-      init(doGetAll.bind(null, req), req.failed);
+      init(doGetAll.bind(null, req), req.failed.bind(req));
     });
 
     return req;
@@ -262,7 +264,7 @@ var DownloadStore = (function() {
     var req = new Request();
 
     window.setTimeout(function() {
-      init(doRemove.bind(null, download.id, req), req.failed);
+      init(doRemove.bind(null, download.id, req), req.failed.bind(req));
     });
 
     return req;
