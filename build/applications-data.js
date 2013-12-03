@@ -170,7 +170,7 @@ function customizeHomescreen(options) {
         ['apps/homescreen/collections', 'social'],
         ['apps/homescreen/collections', 'games'],
         ['apps/homescreen/collections', 'music'],
-        ['apps/homescreen/collections', 'entertainment']
+        ['apps/homescreen/collections', 'showbiz']
       ], [
         ['apps', 'camera'],
         ['apps', 'gallery'],

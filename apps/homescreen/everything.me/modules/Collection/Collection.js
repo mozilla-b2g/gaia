@@ -490,15 +490,7 @@ void function() {
     };
 
     this.getQuery = function getQuery() {
-      var query = currentSettings.query || '';
-
-      if (!query && currentSettings.experienceId) {
-        var l10nkey = 'id-' +
-          Evme.Utils.shortcutIdToKey(currentSettings.experienceId);
-        query = Evme.Utils.l10n('shortcut', l10nkey);
-      }
-
-      return query;
+      return currentSettings.getQuery();
     };
 
     this.userSetBg = function userSetBg() {
@@ -575,15 +567,7 @@ void function() {
       } else {
         // get the collection's settings from storage
         Evme.CollectionStorage.get(gridCollection.id, function onGet(settings) {
-          // for user-created collections
-          // match against the query
-          var collectionQuery = settings.query;
-
-          // for pre-installed collections
-          // translate the experienceId to query
-          if (!collectionQuery && settings.experienceId) {
-            collectionQuery = Evme.Utils.shortcutIdToKey(settings.experienceId);
-          }
+          var collectionQuery = settings.getQuery();
 
           if (collectionQuery &&
               queries.indexOf(collectionQuery.toLowerCase()) > -1) {
@@ -622,6 +606,21 @@ void function() {
         }
       }
     }
+  };
+  Evme.CollectionSettings.prototype.getQuery = function getQuery() {
+    // for user-created collections
+    // match against the query
+    var query = this.query || EvmeManager.getIconName(this.id) || '';
+
+    // for pre-installed collections
+    // translate the experienceId to query
+    if (!query && this.experienceId) {
+      var l10nkey = 'id-' +
+        Evme.Utils.shortcutIdToKey(this.experienceId);
+      query = Evme.Utils.l10n('shortcut', l10nkey);
+    }
+
+    return query;
   };
 
   /**
@@ -712,8 +711,7 @@ void function() {
     var existingIds = Evme.Utils.pluck(settings.apps, 'id');
 
     var newApps = Evme.InstalledAppsService.getMatchingApps({
-      'query': settings.query,              // for user-created collections
-      'experienceId': settings.experienceId // for pre-installed collections
+      'query': settings.getQuery()
     });
 
     newApps = newApps.filter(function isNew(app) {
