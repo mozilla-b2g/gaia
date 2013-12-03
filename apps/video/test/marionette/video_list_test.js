@@ -17,12 +17,15 @@ marionette('video list', function() {
     // body.dataset.activity.
     client.contentScript.inject(__dirname +
                                 '/lib/mocks/mock_window_mozactivity.js');
+
+    // Remove all files in device storage.
+    client.fileManager.removeAllFiles();
+
     // Add file into the videos directory.
     client.fileManager.add([
       { type: 'videos', filePath: 'test_media/Movies/elephants-dream.webm',
         filename: 'elephants-dream.webm' }
     ]);
-    //testCommon.prepareTestSuite('videos', client);
     app = new videoApp(client);
     app.launch();
   });
@@ -76,9 +79,6 @@ marionette('video list', function() {
     app.clickOkToDelete();
     //check if number of video files is 0
     assert.ok(app.getThumbnails().length == 0, 'the list is empty');
-
-    // Remove all files in device storage.
-    client.fileManager.removeAllFiles();
   });
 
 });
