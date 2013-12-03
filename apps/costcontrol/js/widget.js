@@ -13,7 +13,7 @@ var Widget = (function() {
   'use strict';
 
   var costcontrol;
-  function onReady() {
+  function checkSIMStatus() {
 
     // XXX: check bug-926169
     // this is used to keep all tests passing while introducing multi-sim APIs
@@ -30,24 +30,25 @@ var Widget = (function() {
 
     if (!IccHelper.iccInfo) {
       debug('ICC info not ready yet.');
-      IccHelper.oniccinfochange = onReady;
+      IccHelper.oniccinfochange = checkSIMStatus;
 
     // SIM not ready
     } else if (cardState !== 'ready') {
       debug('SIM not ready:', IccHelper.cardState);
-      IccHelper.oncardstatechange = onReady;
+      IccHelper.oncardstatechange = checkSIMStatus;
 
     // SIM is ready, but ICC info is not ready yet
     } else if (!Common.isValidICCID(iccid)) {
       debug('ICC info not ready yet');
-      IccHelper.oniccinfochange = onReady;
+      IccHelper.oniccinfochange = checkSIMStatus;
 
     // All ready
     } else {
       debug('SIM ready. ICCID:', iccid);
       IccHelper.oncardstatechange = undefined;
       IccHelper.oniccinfochange = undefined;
-      startWidget();
+      document.getElementById('message-handler').src = 'message_handler.html';
+      Common.waitForDOMAndMessageHandler(window, startWidget);
     }
   };
 
@@ -58,7 +59,7 @@ var Widget = (function() {
     state = cardState = IccHelper.cardState;
 
     // SIM is absent
-    if (cardState === 'absent') {
+    if (!cardState || cardState === 'absent') {
       debug('There is no SIM');
       showSimError('no-sim2');
 
@@ -75,6 +76,12 @@ var Widget = (function() {
   }
 
   function startWidget() {
+
+    // Refresh UI when the user changes the SIM for data connections
+    SettingsListener.observe('ril.data.defaultServiceId', 0, function() {
+      Common.loadDataSIMIccId(updateUI.bind(null, true));
+    });
+
     function _onNoICCID() {
       console.error('checkSIMChange() failed. Impossible to ensure consistent' +
                     'data. Aborting start up.');
@@ -442,11 +449,7 @@ var Widget = (function() {
 
   return {
     init: function() {
-      SettingsListener.observe('ril.data.defaultServiceId', 0, function() {
-        Common.loadDataSIMIccId(updateUI.bind(null, true));
-      });
-      Common.waitForDOMAndMessageHandler(window, onReady);
-      document.getElementById('message-handler').src = 'message_handler.html';
+      checkSIMStatus();
     }
   };
 
