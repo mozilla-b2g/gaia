@@ -70,9 +70,7 @@
             // we have to call Gecko API here to make sure the
             // simcard is enabled / disabled
             simcard.setState('normal', {
-              // If the icc card is gsm card, the phone number is in msisdn.
-              // Otherwise, the phone number is in mdn.
-              number: iccInfo.msisdn || iccInfo.mdn || '',
+              number: iccInfo.msisdn || '',
               operator: operatorInfo.operator || _('no-operator')
             });
           }
