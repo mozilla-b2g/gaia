@@ -5,7 +5,7 @@
          SMIL, ErrorDialog, MessageManager, MozSmsFilter, LinkHelper,
          ActivityPicker, ThreadListUI, OptionMenu, Threads, Contacts,
          Attachment, WaitingScreen, MozActivity, LinkActionHandler,
-         ActivityHandler, TimeHeaders, ContactRenderer */
+         ActivityHandler, TimeHeaders, ContactRenderer, Draft, Drafts */
 /*exported ThreadUI */
 
 (function(global) {
@@ -2472,10 +2472,9 @@ var ThreadUI = global.ThreadUI = {
   },
 
   saveMessageDraft: function thui_saveMessageDraft() {
-    var draft, recipients, content, timestamp, threadId, type;
+    var draft, recipients, content, thread, threadId, type;
 
     content = Compose.getContent();
-    timestamp = Date.now();
     type = Compose.type;
 
     // TODO Also store subject
@@ -2500,16 +2499,29 @@ var ThreadUI = global.ThreadUI = {
       threadId = threadId || null;
     }
 
-    var draft = new Draft({
+    draft = new Draft({
       recipients: recipients,
       content: content,
-      timestamp: timestamp,
       threadId: threadId,
       type: type
     });
 
     Drafts.add(draft);
 
+    // If an existing thread list item is associated with
+    // the presently saved draft, remove the thread and
+    // re-render to adtivate the new draft-preview
+    if (threadId) {
+      ThreadListUI.removeThread(threadId);
+
+      thread = Threads.active;
+
+      // Overwrite the thread's own timestamp with
+      // the drafts timestamp.
+      thread.timestamp = draft.timestamp;
+
+      ThreadListUI.appendThread(thread);
+    }
   }
 };
 

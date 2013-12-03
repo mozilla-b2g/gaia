@@ -311,15 +311,15 @@
     <div id="messages-thread-tmpl" class="hide">
       <!--
       <label class="pack-checkbox danger">
-        <input type="checkbox" value="${id}">
+        <input type="checkbox" value="${id}" data-list="${list}">
         <span></span>
       </label>
       <a href="#thread=${id}">
-        <aside class="icon icon-unread">unread</aside>
+        <aside class="icon icon-unread icon-draft">icon</aside>
         <aside class="pack-end">
           <img src="">
         </aside>
-        <p class="name">${number}</p>
+        <p class="name" data-l10n-id="no-recipient">${number}</p>
         <p>
           <time>${formattedDate}</time>
           <span class="mms-icon">MMS</span>

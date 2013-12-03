@@ -1,3 +1,4 @@
+/*global Drafts */
 
 (function(exports) {
   'use strict';
@@ -22,6 +23,16 @@
     }
     this.messages = [];
   }
+
+  Thread.prototype = {
+    constructor: Thread,
+    get drafts() {
+      return Drafts.byThreadId(this.id);
+    },
+    get hasDrafts() {
+      return !!this.drafts.length;
+    }
+  };
 
   var Threads = exports.Threads = {
     // TODO: https://bugzilla.mozilla.org/show_bug.cgi?id=943778
@@ -118,6 +129,8 @@
       return threads.get(+Threads.currentId);
     }
   };
+
+  exports.Thread = Thread;
 
   window.addEventListener('hashchange', cacheId);
 }(this));

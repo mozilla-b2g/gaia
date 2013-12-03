@@ -4,7 +4,7 @@
          LinkHelper, Attachment, MockContact, MockOptionMenu,
          MockActivityPicker, Threads, Settings, MockMessages, MockUtils,
          MockContacts, ActivityHandler, Recipients, MockMozActivity,
-         ContactRenderer */
+         ContactRenderer, Drafts, OptionMenu */
 
 'use strict';
 
@@ -2125,8 +2125,6 @@ suite('thread_ui.js >', function() {
       });
       suite('clicking', function() {
         var showMessageErrorSpy;
-        var errorCode;
-        var option;
 
         setup(function() {
           localize.reset();

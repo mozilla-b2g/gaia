@@ -2,6 +2,7 @@
 (function(exports) {
   'use strict';
   var draftIndex = new Map();
+  var isCached = false;
 
   /**
    * Checks if two drafts are distinct based on
@@ -18,7 +19,7 @@
    */
   function isDistinct(a, b) {
     if (!a || !b) {
-      // if either or both are null
+      // if either or both are falsey
       return true;
     } else {
       // if any recipient doesn't match
@@ -63,23 +64,32 @@
      * @return {Drafts} return the Drafts object.
      */
     add: function(draft) {
-      var id;
+      var threadId;
       var thread;
       var stored;
+      var canSkipDistinction = false;
 
       if (draft) {
         if (!(draft instanceof Draft)) {
           draft = new Draft(draft);
         }
-        id = draft.threadId || null;
-        thread = draftIndex.get(id) || [];
-        stored = thread[thread.length > 1 ? thread.length - 1 : 0];
+
+        threadId = draft.threadId || null;
+        thread = draftIndex.get(threadId) || [];
+        stored = thread[thread.length - 1];
+
+        // If there is an existing draft for this
+        // threadId, delete it.
+        if (threadId !== null && thread.length) {
+          this.delete(stored);
+          canSkipDistinction = true;
+        }
 
         // If the new draft is distinct from the stored one
         // then push and save a new draft
-        if (isDistinct(stored, draft)) {
+        if (canSkipDistinction || isDistinct(stored, draft)) {
           thread.push(draft);
-          draftIndex.set(id, thread);
+          draftIndex.set(threadId, thread);
           this.store();
         }
       }
@@ -95,13 +105,25 @@
      * @return {Drafts} return the Drafts object.
      */
     delete: function(draft) {
-      var id;
-      var index;
       var thread;
+      var index;
+
       if (draft) {
-        id = draft.threadId || null;
-        thread = draftIndex.get(id);
+        thread = draftIndex.get(draft.threadId);
         index = thread.indexOf(draft);
+
+        if (index === -1) {
+          if (thread && typeof draft.id === 'undefined') {
+            thread.length = 0;
+          } else {
+            thread.forEach(function(stored, i) {
+              if (stored.id === draft.id) {
+                index = i;
+              }
+            });
+          }
+        }
+
         if (index > -1) {
           thread.splice(index, 1);
         }
@@ -109,7 +131,7 @@
       return this;
     },
     /**
-     * byId
+     * byThreadId
      *
      * Returns all the drafts for the specified thread id.
      *
@@ -117,8 +139,33 @@
      *
      * @return {Draft.List}  return Draft.List containing drafts for thread id
      */
-    byId: function(id) {
+    byThreadId: function(id) {
       return new Drafts.List(draftIndex.get(id));
+    },
+    /**
+     * get
+     *
+     * Return the draft object with the specified id.
+     *
+     * @param  {Number}  id thread id of the drafts to return.
+     *
+     * @return {Draft}  Draft object.
+     */
+    get: function(id) {
+      var draft;
+
+      draftIndex.forEach(function(records, threadId) {
+        if (!draft) {
+          draft = records.find(function(record) {
+            // Ensure a number is used for the comparison,
+            // as this value may come from a dataset property.
+            // Curse the day that state was stored in the DOM.
+            return record.id === +id;
+          });
+        }
+      });
+
+      return draft;
     },
     /**
      * clear
@@ -140,7 +187,7 @@
      */
     store: function() {
       // Once ES6 syntax is allowed,
-      // replace the operations below with the following line:
+      // replace the forEach operations below with the following line:
       // asyncStorage.setItem('draft index', [...draftIndex]);
       var entries = [];
       draftIndex.forEach(function(v, k) {
@@ -151,14 +198,61 @@
     /**
      * load
      *
-     * Load draftIndex from potentially empty local storage
+     * Load draftIndex from potentially empty local storage.
      *
+     * @param {Function} callback If a callback is provided, invoke
+     *                            with list of threadless drafts as
+     *                            arguments.
      * @return {Undefined} void return.
      */
-    load: function() {
-      asyncStorage.getItem('draft index', function(value) {
-        draftIndex = new Map(value || []);
-      });
+    load: function(callback) {
+      function handler() {
+        isCached = true;
+
+        if (typeof callback === 'function') {
+          // When a callback is provided, call it with
+          // a draft list of threadless drafts
+          callback(Drafts.byThreadId(null));
+        }
+      }
+
+      // Loading from storage only happens when the
+      // app first opens.
+      if (isCached) {
+        setTimeout(function() {
+          handler();
+        });
+        return;
+      } else {
+        asyncStorage.getItem('draft index', function(records) {
+
+          // Revive as Draft objects by constructing new Draft from
+          // each plain object returned from storage.
+          if (records !== null) {
+            records = records.map(function(record) {
+              // record[0] is the threadId or null key
+              // record[1] is the array of draft objects associated
+              //            with that threadId or null key
+              //
+              // Replace each plain object in record[1] with a
+              // real draft object.
+              //
+              // Once ES6 syntax is allowed,
+              // replace the map operations below with the following line:
+              // record[1].map(draft => new Draft(draft));
+              //
+              //
+              record[1] = record[1].map(function(draft) {
+                return new Draft(draft);
+              });
+              return record;
+            });
+          }
+          draftIndex = new Map(records || []);
+
+          handler();
+        });
+      }
     }
   };
 
@@ -186,6 +280,15 @@
      */
     get length() {
       return priv.get(this).length;
+    },
+    /**
+     * latest
+     *
+     * The latest draft for this Drafts.List
+     */
+    get latest() {
+      var list = priv.get(this);
+      return list.length ? list[list.length - 1] : null;
     },
     /**
      * forEach
@@ -216,6 +319,12 @@
    */
   function Draft(opts) {
     var draft = opts || {};
+
+    if (draft.id && typeof draft.id !== 'number') {
+      throw new Error('Draft id must be a number');
+    }
+
+    this.id = draft.id || guid();
     this.recipients = draft.recipients || [];
     this.content = draft.content || [];
     this.subject = draft.subject || '';
@@ -224,6 +333,9 @@
     this.type = draft.type;
   }
 
-  exports.Draft = Draft;
+  function guid() {
+    return +(Date.now() + '' + (Math.random() * 1000 | 0));
+  }
 
+  exports.Draft = Draft;
 }(this));

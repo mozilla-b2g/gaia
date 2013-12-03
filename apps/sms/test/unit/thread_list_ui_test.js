@@ -1,5 +1,7 @@
 /*global mocha, MocksHelper, loadBodyHTML, MockL10n, ThreadListUI, FixedHeader,
-         MessageManager, WaitingScreen, Threads, Template, MockMessages */
+         MessageManager, WaitingScreen, Threads, Template, MockMessages,
+         Draft, Drafts
+         */
 
 'use strict';
 
@@ -8,10 +10,13 @@
 mocha.setup({ globals: ['alert', 'confirm'] });
 
 requireApp('sms/js/utils.js');
+requireApp('sms/js/is-equal.js');
 requireApp('sms/js/recipients.js');
+requireApp('sms/js/drafts.js');
 requireApp('sms/js/threads.js');
 requireApp('sms/js/thread_list_ui.js');
 
+requireApp('sms/test/unit/mock_async_storage.js');
 requireApp('sms/test/unit/mock_time_headers.js');
 requireApp('sms/test/unit/mock_fixed_header.js');
 requireApp('sms/test/unit/mock_l10n.js');
@@ -21,6 +26,7 @@ requireApp('sms/test/unit/mock_utils.js');
 requireApp('sms/test/unit/mock_waiting_screen.js');
 
 var mocksHelperForThreadListUI = new MocksHelper([
+  'asyncStorage',
   'FixedHeader',
   'MessageManager',
   'Utils',
@@ -379,7 +385,14 @@ suite('thread_list_ui', function() {
 
   suite('delete', function() {
     setup(function() {
-      this.selectedInputs = [{value: 1}, {value: 2}];
+      this.selectedInputs = [
+        {value: 1}, {value: 2}
+      ];
+
+      this.selectedInputs.forEach(function(input) {
+        input.dataset = { list: 'threads' };
+      });
+
       this.sinon.stub(ThreadListUI, 'getSelectedInputs', function() {
         return this.selectedInputs;
       }.bind(this));
@@ -587,6 +600,10 @@ suite('thread_list_ui', function() {
     setup(function() {
       this.sinon.spy(FixedHeader, 'refresh');
       this.sinon.spy(ThreadListUI, 'setEmpty');
+      this.sinon.spy(ThreadListUI, 'renderThreads');
+      this.sinon.spy(ThreadListUI, 'appendThread');
+      this.sinon.spy(ThreadListUI, 'createThread');
+      this.sinon.spy(ThreadListUI, 'setContact');
     });
 
     test('Rendering an empty screen', function() {
@@ -595,5 +612,65 @@ suite('thread_list_ui', function() {
       assert.ok(ThreadListUI.setEmpty.called);
       assert.isTrue(ThreadListUI.setEmpty.args[0][0]);
     });
+
+    test('Calls renderDrafts', function() {
+      ThreadListUI.renderThreads([]);
+      sinon.assert.called(ThreadListUI.renderThreads);
+    });
   });
+
+  suite('renderDrafts', function() {
+    var draft;
+
+    setup(function() {
+      this.sinon.spy(ThreadListUI, 'renderThreads');
+      this.sinon.spy(ThreadListUI, 'appendThread');
+      this.sinon.spy(ThreadListUI, 'createThread');
+      this.sinon.spy(ThreadListUI, 'setContact');
+
+      draft = new Draft({
+        id: 101,
+        threadId: null,
+        recipients: [],
+        content: ['An explicit id'],
+        timestamp: Date.now(),
+        type: 'sms'
+      });
+
+      Drafts.add(draft);
+
+      this.sinon.stub(Drafts, 'load', function(callback) {
+        callback([draft]);
+      });
+
+      ThreadListUI.draftLinks = new Map();
+      ThreadListUI.renderDrafts();
+    });
+
+    teardown(function() {
+      Drafts.clear();
+    });
+
+    test('Draft.load is called', function() {
+      sinon.assert.called(Drafts.load);
+    });
+
+    test('ThreadListUI.appendThread is called', function() {
+      sinon.assert.called(ThreadListUI.appendThread);
+    });
+
+    test('ThreadListUI.createThread is called', function() {
+      sinon.assert.called(ThreadListUI.createThread);
+    });
+
+    test('ThreadListUI.setContact is called', function() {
+      sinon.assert.called(ThreadListUI.setContact);
+    });
+
+    test('click on a draft populates MessageManager.draft', function() {
+      document.getElementById('thread-101').click();
+      assert.equal(MessageManager.draft, draft);
+    });
+  });
+
 });

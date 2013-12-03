@@ -1,4 +1,4 @@
-/*global Drafts, Draft */
+/*global Drafts, asyncStorage */
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
@@ -240,51 +240,61 @@
     '101', '102', '103', '104', '105', '106', '107', '108', '109'
   ];
 
+  var timestamp = Date.now();
   // Fake drafts stored in local store
   (function() {
-    var d1, d2, d3, d4, d5;
-    d1 = new Draft({
-      recipients: ['555', '666'],
-      content: ['This is a draft message'],
-      timestamp: 1,
-      threadId: 42,
-      type: 'sms'
+    var drafts = [
+      {
+        recipients: ['555', '666'],
+        subject: '',
+        content: ['This is a draft message'],
+        timestamp: timestamp - (3600000 * 24),
+        threadId: 42,
+        type: 'sms'
+      },
+      {
+        recipients: [],
+        subject: '',
+        content: ['This is a draft SMS, with no recipient'],
+        timestamp: timestamp,
+        threadId: null,
+        type: 'sms'
+      },
+      {
+        recipients: ['555-666-1234'],
+        subject: '',
+        content: ['This is a draft SMS, with a recipient, but no thread'],
+        timestamp: timestamp - 3600000,
+        threadId: null,
+        type: 'sms'
+      },
+      {
+        recipients: ['123456'],
+        subject: '',
+        content: [
+          'This is a draft MMS...',
+          {
+            blob: {
+              type: 'audio/ogg',
+              size: 12345
+            },
+            name: 'audio.oga'
+          },
+          '...with a recipient and a thread'
+        ],
+        timestamp: timestamp - (3600000 * 2),
+        threadId: 8,
+        type: 'mms'
+      }
+    ];
+
+
+    asyncStorage.getItem('draft index', function(result) {
+      if (result === null || !result.length) {
+        drafts.forEach(Drafts.add, Drafts);
+        Drafts.store();
+      }
     });
-    d2 = new Draft({
-      recipients: ['555'],
-      content: ['This is a draft message'],
-      timestamp: 2,
-      threadId: 42,
-      type: 'sms'
-    });
-    d3 = new Draft({
-      recipients: ['555', '222'],
-      content: ['This is a draft message'],
-      timestamp: 3,
-      threadId: 1,
-      type: 'sms'
-    });
-    d4 = new Draft({
-      recipients: ['555', '333'],
-      content: ['This is a draft message'],
-      timestamp: 4,
-      threadId: 2,
-      type: 'sms'
-    });
-    d5 = new Draft({
-      recipients: ['555', '444'],
-      content: ['This is a draft message'],
-      timestamp: 5,
-      threadId: null,
-      type: 'sms'
-    });
-    Drafts.clear();
-    Drafts.add(d1);
-    Drafts.add(d2);
-    Drafts.add(d3);
-    Drafts.add(d4);
-    Drafts.add(d5);
-    Drafts.store();
   }());
 
 
@@ -533,7 +543,8 @@
         participants: ['+18001114321'],
         lastMessageType: 'sms',
         body: 'I have a very long name!',
-        timestamp: new Date(),
+        // 20 minutes ago
+        timestamp: new Date(Date.now() - 1200000),
         unreadCount: 0
       },
       {
@@ -564,7 +575,7 @@
         participants: ['999', '888', '777', '123456'],
         lastMessageType: 'mms',
         timestamp: new Date(now),
-        unreadCount: 0
+        unreadCount: 1
       },
       {
         id: 8,
@@ -584,7 +595,8 @@
         id: 10,
         participants: ['+12125551234', '+15551237890'],
         lastMessageType: 'mms',
-        timestamp: new Date(Date.now()),
+        // 10 minutes ago
+        timestamp: new Date(Date.now() - 600000),
         unreadCount: 0
       }
     ]
