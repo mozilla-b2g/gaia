@@ -64,6 +64,8 @@
       window.addEventListener('shrinking-stop', this);
       window.addEventListener('shrinking-receiving', this);
       window.addEventListener('shrinking-rejected', this);
+      window.addEventListener('check-p2p-registration-for-active-app', this);
+      window.addEventListener('dispatch-p2p-user-response-on-active-app', this);
     }).bind(ShrinkingUI);
 
   /**
@@ -114,6 +116,18 @@
           break;
         case 'shrinking-rejected':
           this._rejected();
+          break;
+        case 'check-p2p-registration-for-active-app':
+          if (evt.detail && evt.detail.checkP2PRegistration) {
+            var manifestURL = this.current.manifestURL;
+            evt.detail.checkP2PRegistration(this.currentAppURL);
+          }
+          break;
+        case 'dispatch-p2p-user-response-on-active-app':
+          if (evt.detail && evt.detail.dispatchP2PUserResponse) {
+            var manifestURL = this.current.manifestURL;
+            evt.detail.dispatchP2PUserResponse(this.currentAppURL);
+          }
           break;
       }
     }).bind(ShrinkingUI);
