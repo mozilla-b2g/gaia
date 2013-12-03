@@ -1,4 +1,4 @@
-/*global Drafts, Draft, asyncStorage */
+/*global Drafts, Draft, asyncStorage, MocksHelper */
 'use strict';
 
 requireApp('sms/js/drafts.js');
@@ -6,10 +6,21 @@ requireApp('sms/js/is-equal.js');
 requireApp('sms/js/utils.js');
 require('/shared/js/async_storage.js');
 
+requireApp('sms/test/unit/mock_async_storage.js');
+
+
+var MocksHelperForDraftsTest = new MocksHelper([
+  'asyncStorage'
+]).init();
+
 suite('Drafts', function() {
+  var mocksHelper = MocksHelperForDraftsTest;
+
   var d1, d2, d3, d4, d5, d6, d7;
 
   suiteSetup(function() {
+    mocksHelper.suiteSetup();
+
     d1 = new Draft({
       recipients: ['555', '666'],
       content: ['This is a draft message'],
@@ -68,13 +79,17 @@ suite('Drafts', function() {
     });
   });
 
+  suiteTeardown(function() {
+    mocksHelper.suiteTeardown();
+  });
+
   suite('Drafts() >', function() {
 
     test('Draft', function() {
       assert.ok(Drafts);
       assert.ok(Drafts.add);
       assert.ok(Drafts.delete);
-      assert.ok(Drafts.byId);
+      assert.ok(Drafts.byThreadId);
       assert.ok(Drafts.clear);
     });
 
@@ -90,23 +105,40 @@ suite('Drafts', function() {
     test('add first draft', function() {
       added = [];
       Drafts.add(d1);
-      Drafts.byId(d1.threadId).forEach(function(e) {
+      Drafts.byThreadId(d1.threadId).forEach(function(e) {
         added.push(e);
       });
       assert.deepEqual(added, [d1]);
-      assert.equal(Drafts.byId(d1.threadId).length, 1);
+      assert.equal(Drafts.byThreadId(d1.threadId).length, 1);
     });
 
     test('add second draft', function() {
       added = [];
       Drafts.add(d2);
-      Drafts.byId(d2.threadId).forEach(function(e) {
+      Drafts.byThreadId(d2.threadId).forEach(function(e) {
         added.push(e);
       });
       assert.deepEqual(added, [d2]);
-      assert.equal(Drafts.byId(d2.threadId).length, 1);
+      assert.equal(Drafts.byThreadId(d2.threadId).length, 1);
     });
 
+    test('add draft of same threadId replaces previous', function() {
+      Drafts.add(d2);
+
+      var latestId = Drafts.byThreadId(44).latest.id;
+
+      Drafts.add({
+        recipients: ['555'],
+        content: ['This is a new draft for thread 44'],
+        subject: 'This is a subject',
+        timestamp: 2,
+        threadId: 44,
+        type: 'sms'
+      });
+
+      assert.notEqual(Drafts.byThreadId(44).latest.id, latestId);
+      assert.equal(Drafts.byThreadId(44).length, 1);
+    });
   });
 
   suite('delete() >', function() {
@@ -115,6 +147,7 @@ suite('Drafts', function() {
       Drafts.add(d1);
       Drafts.add(d2);
       Drafts.add(d3);
+      Drafts.add(d4);
     });
 
     suiteTeardown(function() {
@@ -123,22 +156,48 @@ suite('Drafts', function() {
 
     test('delete first draft', function() {
       Drafts.delete(d1);
-      assert.equal(Drafts.byId(d1.threadId).length, 0);
+      assert.equal(Drafts.byThreadId(d1.threadId).length, 0);
     });
 
     test('delete second draft', function() {
       Drafts.delete(d2);
-      assert.equal(Drafts.byId(d2.threadId).length, 0);
+      assert.equal(Drafts.byThreadId(d2.threadId).length, 0);
     });
 
     test('delete third draft', function() {
       Drafts.delete(d3);
-      assert.equal(Drafts.byId(d3.threadId).length, 0);
+      assert.equal(Drafts.byThreadId(d3.threadId).length, 0);
     });
 
+    test('delete by only threadId', function() {
+      Drafts.delete({ threadId: 2 });
+      assert.equal(Drafts.byThreadId(2).length, 0);
+    });
+
+    test('delete by non-draft object', function() {
+      var draft = new Draft({
+        recipients: ['999999'],
+        content: ['foo'],
+        timestamp: 2,
+        threadId: 999,
+        subject: 'This is a subject',
+        type: 'sms'
+      });
+
+      Drafts.add(draft);
+
+      assert.equal(Drafts.byThreadId(999).length, 1);
+
+      Drafts.delete({
+        threadId: 999,
+        id: draft.id
+      });
+
+      assert.equal(Drafts.byThreadId(999).length, 0);
+    });
   });
 
-  suite('byId() >', function() {
+  suite('byThreadId(threadId) >', function() {
     var list;
 
     suiteSetup(function() {
@@ -154,25 +213,56 @@ suite('Drafts', function() {
     });
 
     test('get drafts for id 42', function() {
-      list = Drafts.byId(42);
+      list = Drafts.byThreadId(42);
       assert.equal(list.length, 1);
     });
 
     test('get drafts for id 1', function() {
-      list = Drafts.byId(1);
+      list = Drafts.byThreadId(1);
       assert.equal(list.length, 1);
     });
 
     test('get drafts for null id', function() {
-      list = Drafts.byId(null);
+      list = Drafts.byThreadId(null);
       assert.equal(list.length, 1);
     });
 
     test('get drafts for non-existent id', function() {
-      list = Drafts.byId(10);
+      list = Drafts.byThreadId(10);
       assert.equal(list.length, 0);
     });
 
+    test('no drafts for a threadId returns useful state', function() {
+      list = Drafts.byThreadId(999);
+      assert.equal(list.length, 0);
+      assert.equal(list.latest, null);
+    });
+  });
+
+  suite('get(id) > ', function() {
+    var id = 101;
+
+    suiteSetup(function() {
+      Drafts.add({
+        id: id,
+        recipients: [],
+        content: ['A new message draft with no recipients'],
+        type: 'sms'
+      });
+    });
+
+    test('get draft for id 101', function() {
+      var draft = Drafts.get(id);
+
+      assert.equal(draft.id, id);
+      assert.equal(draft.threadId, null);
+    });
+
+    test('get no draft for non-existant id', function() {
+      var draft = Drafts.get(9999999);
+
+      assert.equal(typeof draft, 'undefined');
+    });
   });
 
   suite('clear() >', function() {
@@ -186,9 +276,9 @@ suite('Drafts', function() {
 
     test('clear the entire draft index', function() {
       Drafts.clear();
-      var list1 = Drafts.byId(42);
-      var list2 = Drafts.byId(1);
-      var list3 = Drafts.byId(2);
+      var list1 = Drafts.byThreadId(42);
+      var list2 = Drafts.byThreadId(1);
+      var list3 = Drafts.byThreadId(2);
       assert.equal(list1.length, 0);
       assert.equal(list2.length, 0);
       assert.equal(list3.length, 0);
@@ -198,15 +288,19 @@ suite('Drafts', function() {
 
   suite('Drafts.List() >', function() {
 
+    var spy;
+    var list;
+
+    setup(function() {
+      spy = sinon.spy();
+    });
+
+
     test('Drafts.List', function() {
       var list = new Drafts.List();
       assert.ok(list);
       assert.ok(list.forEach);
     });
-
-  });
-
-  suite('length >', function() {
 
     test('length of new Drafts.List', function() {
       var list = new Drafts.List();
@@ -218,14 +312,9 @@ suite('Drafts', function() {
       assert.equal(list.length, 4);
     });
 
-  });
-
-  suite('forEach() >', function() {
-    var spy;
-    var list;
-
-    setup(function() {
-      spy = sinon.spy();
+    test('latest of populated Drafts.List', function() {
+      var list = new Drafts.List([d1, d2, d3, d4]);
+      assert.equal(list.latest, d4);
     });
 
     test('callback function on each draft in Drafts.List', function() {
@@ -238,6 +327,12 @@ suite('Drafts', function() {
       assert.deepEqual(spy.args[3][0], d4);
     });
 
+    test('forEach does not leak backing array via arguments', function() {
+      new Drafts.List([d1]).forEach(function(draft) {
+        assert.equal(draft, d1);
+        assert.equal(arguments.length, 1);
+      });
+    });
   });
 
   suite('Draft', function() {
@@ -264,6 +359,32 @@ suite('Drafts', function() {
       assert.equal(draft.type, 'sms');
     });
 
+    test('Draft with explicit valid id', function() {
+      draft = new Draft({
+        id: 101,
+        recipients: [],
+        content: ['An explicit id'],
+        type: 'sms'
+      });
+
+      assert.equal(draft.id, 101);
+    });
+
+    test('Draft with explicit invalid id', function() {
+      try {
+        draft = new Draft({
+          id: '101',
+          recipients: [],
+          content: ['An explicit id'],
+          timestamp: Date.now(),
+          type: 'sms'
+        });
+        assert.ok(false);
+      } catch (e) {
+        assert.ok(true);
+      }
+    });
+
   });
 
   suite('Storage', function() {
@@ -280,6 +401,7 @@ suite('Drafts', function() {
     });
 
     setup(function() {
+      Drafts.clear();
       spy.reset();
     });
 
@@ -289,62 +411,54 @@ suite('Drafts', function() {
       Drafts.add(d5);
 
       assert.isTrue(spy.calledThrice);
-
-      // TODO test that asyncstorage has the correct drafts?
-    });
-
-    test('Store duplicate drafts', function() {
-      Drafts.add(d1);
-      Drafts.add(d2);
-      Drafts.add(d5);
-
-      assert.isFalse(spy.called);
-
-      // TODO test that asyncstorage still has the correct drafts?
     });
 
     test('Store draft with distinct content', function() {
+      Drafts.add(d5);
+      // d6 is almost the same as d5, b/w different content
       Drafts.add(d6);
 
-      assert.isTrue(spy.called);
-
-      // TODO test that asyncstorage still has the correct drafts?
+      assert.isTrue(spy.calledTwice);
     });
 
     test('Store draft with distinct subject', function() {
+      Drafts.add(d5);
+      // d7 is almost the same as d5, b/w different subject
       Drafts.add(d7);
 
-      assert.isTrue(spy.called);
-
-      // TODO test that asyncstorage still has the correct drafts?
+      assert.isTrue(spy.calledTwice);
     });
 
-    test('Load drafts', function() {
-      var loaded = [];
-      Drafts.load();
+    test('Load drafts, has stored data', function(done) {
+      this.sinon.stub(asyncStorage, 'getItem').yields([
+        [42, [d1]],
+        [44, [d2]],
+        [null, [d5, d6, d7]]
+      ]);
 
-      assert.equal(Drafts.byId(42).length, 1);
-      Drafts.byId(42).forEach(function(elem) {
-        assert.equal(elem, d1);
+      Drafts.request(function() {
+        assert.equal(Drafts.byThreadId(42).length, 1);
+        Drafts.byThreadId(42).forEach(function(elem) {
+          assert.deepEqual(elem, d1);
+        });
+
+        assert.equal(Drafts.byThreadId(44).length, 1);
+        Drafts.byThreadId(44).forEach(function(elem) {
+          assert.deepEqual(elem, d2);
+        });
+
+        assert.equal(Drafts.byThreadId(null).length, 3);
+        assert.equal(Drafts.byThreadId(5).length, 0);
+
+        done();
       });
-
-      assert.equal(Drafts.byId(44).length, 1);
-      Drafts.byId(44).forEach(function(elem) {
-        assert.equal(elem, d2);
-      });
-
-      assert.equal(Drafts.byId(null).length, 3);
-
-      Drafts.byId(null).forEach(function(elem) {
-        loaded.push(elem);
-      });
-      assert.equal(loaded[0], d5);
-      assert.equal(loaded[1], d6);
-      assert.equal(loaded[2], d7);
-
-      assert.equal(Drafts.byId(5).length, 0);
     });
 
+    test('Load drafts, has no stored data', function(done) {
+      Drafts.request(function(result) {
+        assert.equal(result.length, 0);
+        done();
+      });
+    });
   });
-
 });

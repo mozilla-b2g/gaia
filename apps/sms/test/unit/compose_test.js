@@ -38,14 +38,14 @@ suite('compose_test.js', function() {
     var attachment = new MockAttachment({
       type: 'audio/ogg',
       size: size || 12345
-    }, 'audio.oga');
+    }, { name: 'audio.oga' });
     return attachment;
   }
 
   function mockImgAttachment(isOversized) {
     var attachment = isOversized ?
-      new MockAttachment(oversizedImageBlob, 'oversized.jpg') :
-      new MockAttachment(smallImageBlob, 'small.jpg');
+      new MockAttachment(oversizedImageBlob, { name: 'oversized.jpg' }) :
+      new MockAttachment(smallImageBlob, { name: 'small.jpg' });
     return attachment;
   }
 

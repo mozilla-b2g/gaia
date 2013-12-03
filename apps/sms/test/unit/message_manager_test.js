@@ -1,48 +1,54 @@
 /*global MocksHelper, MockNavigatormozMobileMessage, MessageManager, ThreadUI,
          MockL10n, MockContact, loadBodyHTML, MozSmsFilter,
          ThreadListUI, MockThreads, MockMessages, Threads, Compose,
-         GroupView, ReportView */
+         GroupView, ReportView, ThreadListUI, MockThreads, MockMessages,
+         Threads, Compose, Drafts */
 
 'use strict';
 
 requireApp('sms/js/utils.js');
 requireApp('sms/js/time_headers.js');
 requireApp('sms/js/drafts.js');
-requireApp('sms/test/unit/utils_mockup.js');
-requireApp('sms/test/unit/mock_messages.js');
 
-requireApp('sms/test/unit/mock_link_action_handler.js');
-requireApp('sms/test/unit/mock_thread_ui.js');
-requireApp('sms/test/unit/mock_thread_list_ui.js');
-requireApp('sms/test/unit/mock_threads.js');
-requireApp('sms/test/unit/mock_navigatormoz_sms.js');
-requireApp('sms/test/unit/mock_moz_sms_filter.js');
-requireApp('sms/test/unit/mock_smil.js');
 requireApp('sms/test/unit/mock_attachment.js');
-requireApp('sms/test/unit/mock_recipients.js');
+requireApp('sms/test/unit/mock_async_storage.js');
 requireApp('sms/test/unit/mock_compose.js');
 requireApp('sms/test/unit/mock_contact.js');
 requireApp('sms/test/unit/mock_contacts.js');
-requireApp('sms/test/unit/mock_utils.js');
+requireApp('sms/test/unit/mock_drafts.js');
+requireApp('sms/test/unit/mock_link_action_handler.js');
 requireApp('sms/test/unit/mock_l10n.js');
 requireApp('sms/test/unit/mock_information.js');
+requireApp('sms/test/unit/mock_messages.js');
+requireApp('sms/test/unit/mock_moz_sms_filter.js');
+requireApp('sms/test/unit/mock_navigatormoz_sms.js');
+requireApp('sms/test/unit/mock_recipients.js');
+requireApp('sms/test/unit/mock_smil.js');
+requireApp('sms/test/unit/mock_thread_ui.js');
+requireApp('sms/test/unit/mock_thread_list_ui.js');
+requireApp('sms/test/unit/mock_threads.js');
+requireApp('sms/test/unit/utils_mockup.js');
+requireApp('sms/test/unit/mock_utils.js');
 
 requireApp('sms/js/message_manager.js');
 
 var mocksHelperForMessageManager = new MocksHelper([
-  'ThreadUI',
-  'ThreadListUI',
-  'Threads',
-  'SMIL',
-  'Recipients',
+  'Attachment',
+  'asyncStorage',
   'Compose',
   'Contacts',
-  'Utils',
-  'Attachment',
+  'Drafts',
+  'LinkActionHandler',
   'MozSmsFilter',
   'LinkActionHandler',
   'GroupView',
   'ReportView'
+  'Recipients',
+  'SMIL',
+  'ThreadListUI',
+  'ThreadUI',
+  'Threads',
+  'Utils'
 ]);
 
 mocksHelperForMessageManager.init();
@@ -63,8 +69,39 @@ suite('message_manager.js >', function() {
     MessageManager._mozMobileMessage = realMozMobileMessage;
   });
 
-  suite('on message sent > ', function() {
+  suite('init() > ', function() {
+    var realNavMozMobileMessage;
 
+    suiteSetup(function() {
+      realNavMozMobileMessage = navigator.mozMobileMessage;
+      navigator.mozMobileMessage = MockNavigatormozMobileMessage;
+    });
+
+    suiteTeardown(function() {
+      navigator.mozMobileMessage = realNavMozMobileMessage;
+    });
+
+    setup(function() {
+      this.sinon.stub(window, 'addEventListener');
+      this.sinon.stub(document, 'addEventListener');
+
+      this.sinon.spy(Drafts, 'request');
+
+      MessageManager.init();
+    });
+
+    teardown(function() {
+      MessageManager.initialized = false;
+      delete MessageManager.mainWrapper;
+      delete MessageManager.threadMessages;
+    });
+
+    test('calls Drafts.request', function() {
+      assert.isTrue(Drafts.request.calledOnce);
+    });
+  });
+
+  suite('on message sent > ', function() {
     setup(function() {
       this.sinon.spy(ThreadUI, 'onMessageSending');
       this.sinon.stub(Threads, 'registerMessage');

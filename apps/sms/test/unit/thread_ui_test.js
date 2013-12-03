@@ -4,7 +4,7 @@
          LinkHelper, Attachment, MockContact, MockOptionMenu,
          MockActivityPicker, Threads, Settings, MockMessages, MockUtils,
          MockContacts, ActivityHandler, Recipients, MockMozActivity,
-         ContactRenderer, UIEvent */
+         ContactRenderer, UIEvent, Drafts, OptionMenu */
 
 'use strict';
 

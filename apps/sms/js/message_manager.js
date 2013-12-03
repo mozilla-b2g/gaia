@@ -3,13 +3,14 @@
 
 /*global ThreadListUI, ThreadUI, Threads, SMIL, MozSmsFilter, Compose,
          Utils, LinkActionHandler, Contacts, Attachment, GroupView,
-         ReportView */
+         ReportView, Utils, LinkActionHandler, Contacts, Attachment, Drafts */
+
 /*exported MessageManager */
 
 'use strict';
 
 var MessageManager = {
-
+  draft: null,
   activity: null,
   forward: null,
   init: function mm_init(callback) {
@@ -43,6 +44,8 @@ var MessageManager = {
     if (typeof callback === 'function') {
       callback();
     }
+
+    Drafts.request();
   },
 
   onMessageSending: function mm_onMessageSending(e) {
@@ -268,6 +271,8 @@ var MessageManager = {
         //Keep the visible button the :last-child
         var optionsButton = document.getElementById('messages-options-icon');
         optionsButton.parentNode.appendChild(optionsButton);
+
+        ThreadListUI.renderDrafts();
 
         if (this.threadMessages.classList.contains('new')) {
           MessageManager.slide('right', function() {

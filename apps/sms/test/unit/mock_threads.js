@@ -4,7 +4,7 @@
 
 var MockThreads = {
   currentId: null,
-  createThreadMockup: function() {
+  create: function() {
 
   },
   registerMessage: function() {

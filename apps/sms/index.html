@@ -346,17 +346,17 @@
     <div id="messages-thread-tmpl" class="hide">
       <!--
       <label class="pack-checkbox danger">
-        <input type="checkbox" value="${id}">
+        <input type="checkbox" value="${id}" data-mode="${mode}">
         <span></span>
       </label>
-      <a href="#thread=${id}">
-        <aside class="icon icon-unread">unread</aside>
+      <a href="${hash}">
+        <aside class="icon icon-unread icon-draft">icon</aside>
         <aside class="pack-end">
           <img src="">
         </aside>
-        <p class="name">${number}</p>
-        <p>
-          <time data-time-update="true" data-time-only="true" data-time="${timestamp}"></time>
+        <p class="name" data-l10n-id="no-recipient">${number}</p>
+        <p class="summary">
+          <time>${formattedDate}</time>
           <span class="mms-icon">MMS</span>
           <span class="body-text">${bodyHTML}</span>
         </p>

@@ -12,6 +12,7 @@ require('/shared/js/lazy_loader.js');
 require('/shared/js/l10n.js');
 require('/shared/js/l10n_date.js');
 require('/shared/js/gesture_detector.js');
+require('/shared/js/async_storage.js');
 
 requireApp('system/test/unit/mock_gesture_detector.js');
 requireApp('sms/test/unit/mock_contact.js');
@@ -22,6 +23,7 @@ requireApp('sms/test/unit/mock_attachment_menu.js');
 requireApp('sms/test/unit/mock_information.js');
 
 requireApp('sms/js/link_helper.js');
+requireApp('sms/js/drafts.js');
 requireApp('sms/js/contacts.js');
 requireApp('sms/js/fixed_header.js');
 requireApp('sms/js/utils.js');
@@ -191,6 +193,8 @@ suite('SMS App Unit-Test', function() {
 
       test('properly updates in response to an arriving message of a ' +
         'different type', function() {
+        ThreadListUI.container.textContent = '';
+
         var container = ThreadListUI.container;
         MessageManager.getThreads(function(threads) {
           threads.forEach(function(thread, idx) {

@@ -183,5 +183,7 @@ var MockNavigatormozMobileMessage = {
     this._mMarkReadRequest = null;
     this._mMessagesRequest = null;
     this._mMessageRequest = null;
-  }
+  },
+
+  addEventListener: function() {}
 };

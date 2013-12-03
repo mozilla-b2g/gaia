@@ -1,6 +1,7 @@
 /*global mocha, MocksHelper, loadBodyHTML, MockL10n, ThreadListUI, FixedHeader,
          MessageManager, WaitingScreen, Threads, Template, MockMessages,
-         MockTimeHeaders*/
+         MockTimeHeaders, Draft, Drafts, Thread
+         */
 
 'use strict';
 
@@ -9,10 +10,13 @@
 mocha.setup({ globals: ['alert', 'confirm'] });
 
 requireApp('sms/js/utils.js');
+requireApp('sms/js/is-equal.js');
 requireApp('sms/js/recipients.js');
+requireApp('sms/js/drafts.js');
 requireApp('sms/js/threads.js');
 requireApp('sms/js/thread_list_ui.js');
 
+requireApp('sms/test/unit/mock_async_storage.js');
 requireApp('sms/test/unit/mock_time_headers.js');
 requireApp('sms/test/unit/mock_fixed_header.js');
 requireApp('sms/test/unit/mock_l10n.js');
@@ -22,6 +26,7 @@ requireApp('sms/test/unit/mock_utils.js');
 requireApp('sms/test/unit/mock_waiting_screen.js');
 
 var mocksHelperForThreadListUI = new MocksHelper([
+  'asyncStorage',
   'FixedHeader',
   'MessageManager',
   'Utils',
@@ -204,11 +209,41 @@ suite('thread_list_ui', function() {
         assert.ok(ThreadListUI.setEmpty.calledWith(true));
       });
     });
+
+    suite('remove draft links', function() {
+      setup(function() {
+        this.sinon.stub(ThreadListUI.draftLinks, 'get').returns(1);
+        this.sinon.stub(ThreadListUI.draftLinks, 'delete');
+
+        ThreadListUI.removeThread(1);
+      });
+      test('calls draftLinks.get()', function() {
+        assert.isTrue(ThreadListUI.draftLinks.get.called);
+      });
+      test('calls draftLinks.delete()', function() {
+        assert.isTrue(ThreadListUI.draftLinks.delete.called);
+      });
+    });
+
+    suite('remove draft registry item', function() {
+      setup(function() {
+        ThreadListUI.draftRegistry = {1: true};
+        this.sinon.stub(ThreadListUI.draftLinks, 'get').returns(1);
+        this.sinon.stub(ThreadListUI.draftLinks, 'delete');
+
+        ThreadListUI.removeThread(1);
+      });
+      test('clears draftRegistry', function() {
+        assert.isTrue(
+          typeof ThreadListUI.draftRegistry[1] === 'undefined'
+        );
+      });
+    });
   });
 
   suite('updateThread', function() {
     setup(function() {
-      this.sinon.spy(Threads, 'createThreadMockup');
+      this.sinon.spy(Thread, 'create');
       this.sinon.spy(ThreadListUI, 'removeThread');
       this.sinon.spy(ThreadListUI, 'appendThread');
       this.sinon.spy(FixedHeader, 'refresh');
@@ -230,11 +265,16 @@ suite('thread_list_ui', function() {
 
       test('setEmpty & appended', function() {
         sinon.assert.calledOnce(ThreadListUI.setEmpty);
-        // first call, first argument, first item
 
         sinon.assert.calledWithMatch(ThreadListUI.appendThread, {
           id: message.threadId,
-          body: message.body
+          body: message.body,
+          lastMessageSubject: message.lastMessageSubject,
+          lastMessageType: 'sms',
+          messages: [],
+          participants: ['sender'],
+          timestamp: message.timestamp,
+          unreadCount: 0
         });
       });
     });
@@ -253,8 +293,8 @@ suite('thread_list_ui', function() {
 
         ThreadListUI.updateThread(message);
       });
-      test(' > createThreadMockup is called', function() {
-        sinon.assert.calledOnce(Threads.createThreadMockup);
+      test(' > create is called', function() {
+        sinon.assert.calledOnce(Thread.create);
       });
 
       test(' > removeThread is called', function() {
@@ -292,7 +332,7 @@ suite('thread_list_ui', function() {
           threadId: 2,
           timestamp: +nextDate
         });
-        thread = Threads.createThreadMockup(message);
+        thread = Thread.create(message);
         ThreadListUI.updateThread(message);
       });
 
@@ -324,7 +364,7 @@ suite('thread_list_ui', function() {
           threadId: 3,
           timestamp: +nextDate
         });
-        thread = Threads.createThreadMockup(message);
+        thread = Thread.create(message);
         ThreadListUI.updateThread(message);
       });
 
@@ -380,7 +420,11 @@ suite('thread_list_ui', function() {
 
   suite('delete', function() {
     setup(function() {
-      this.selectedInputs = [{value: 1}, {value: 2}];
+      this.selectedInputs = [
+        {value: 1, dataset: { mode: 'threads'} },
+        {value: 2, dataset: { mode: 'threads'} }
+      ];
+
       this.sinon.stub(ThreadListUI, 'getSelectedInputs', function() {
         return this.selectedInputs;
       }.bind(this));
@@ -545,7 +589,7 @@ suite('thread_list_ui', function() {
           timestamp: +nextDate
         });
 
-        thread = Threads.createThreadMockup(message);
+        thread = Thread.create(message);
         ThreadListUI.appendThread(thread);
       });
 
@@ -572,7 +616,7 @@ suite('thread_list_ui', function() {
           timestamp: +nextDate
         });
 
-        thread = Threads.createThreadMockup(message);
+        thread = Thread.create(message);
         ThreadListUI.appendThread(thread);
       });
 
@@ -591,6 +635,10 @@ suite('thread_list_ui', function() {
     setup(function() {
       this.sinon.spy(FixedHeader, 'refresh');
       this.sinon.spy(ThreadListUI, 'setEmpty');
+      this.sinon.spy(ThreadListUI, 'renderThreads');
+      this.sinon.spy(ThreadListUI, 'appendThread');
+      this.sinon.spy(ThreadListUI, 'createThread');
+      this.sinon.spy(ThreadListUI, 'setContact');
     });
 
     test('Rendering an empty screen', function() {
@@ -599,5 +647,67 @@ suite('thread_list_ui', function() {
       assert.ok(ThreadListUI.setEmpty.called);
       assert.isTrue(ThreadListUI.setEmpty.args[0][0]);
     });
+
+    test('Calls renderDrafts', function() {
+      ThreadListUI.renderThreads([]);
+      sinon.assert.called(ThreadListUI.renderThreads);
+    });
   });
+
+  suite('renderDrafts', function() {
+    var draft;
+
+    setup(function() {
+      this.sinon.spy(ThreadListUI, 'renderThreads');
+      this.sinon.spy(ThreadListUI, 'appendThread');
+      this.sinon.spy(ThreadListUI, 'createThread');
+      this.sinon.spy(ThreadListUI, 'setContact');
+
+      draft = new Draft({
+        id: 101,
+        threadId: null,
+        recipients: [],
+        content: ['An explicit id'],
+        timestamp: Date.now(),
+        type: 'sms'
+      });
+
+      Drafts.add(draft);
+
+      this.sinon.stub(Drafts, 'request', function(callback) {
+        callback([draft]);
+      });
+
+      ThreadListUI.draftLinks = new Map();
+      ThreadListUI.draftRegistry = {};
+
+      ThreadListUI.renderDrafts();
+    });
+
+    teardown(function() {
+      Drafts.clear();
+    });
+
+    test('Draft.request is called', function() {
+      sinon.assert.called(Drafts.request);
+    });
+
+    test('ThreadListUI.appendThread is called', function() {
+      sinon.assert.called(ThreadListUI.appendThread);
+    });
+
+    test('ThreadListUI.createThread is called', function() {
+      sinon.assert.called(ThreadListUI.createThread);
+    });
+
+    test('ThreadListUI.setContact is called', function() {
+      sinon.assert.called(ThreadListUI.setContact);
+    });
+
+    test('click on a draft populates MessageManager.draft', function() {
+      document.querySelector('#thread-101 a').click();
+      assert.equal(MessageManager.draft, draft);
+    });
+  });
+
 });

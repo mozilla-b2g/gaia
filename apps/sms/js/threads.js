@@ -1,3 +1,4 @@
+/*global Drafts */
 
 (function(exports) {
   'use strict';
@@ -17,48 +18,90 @@
   }
 
   function Thread(thread) {
-    for (var p in thread) {
-      this[p] = thread[p];
+    var length = Thread.FIELDS.length;
+    var key;
+
+    for (var i = 0; i < length; i++) {
+      key = Thread.FIELDS[i];
+      this[key] = thread[key];
     }
+
     this.messages = [];
   }
 
-  var Threads = exports.Threads = {
-    // TODO: https://bugzilla.mozilla.org/show_bug.cgi?id=943778
-    // This method fills the gap while we wait for next 'getThreads' request,
-    // letting us rendering the new thread with a better performance.
-    createThreadMockup: function(message, options) {
-      // With the 'delivery' property we know whether the message is incoming
-      // or outgoing. If it's an incoming message, we're always using the
-      // sender.
-      // For outgoing messages we have different properties to find the
-      // participants: SMS have a string property 'receiver' and MMS
-      // have an array property 'receivers'
-      var participants;
-      if (message.delivery === 'received' ||
-          message.delivery === 'not-downloaded') {
-        participants = [message.sender];
-      } else {
-        participants = message.receivers || [message.receiver];
-      }
+  Thread.FIELDS = [
+    'body', 'id', 'lastMessageSubject', 'lastMessageType',
+    'participants', 'timestamp', 'unreadCount'
+  ];
 
-      // Given a message we create a thread as a mockup. This let us render the
-      // thread without requesting Gecko, so we increase the performance and we
-      // reduce Gecko requests.
-      return {
-        id: message.threadId,
-        participants: participants,
-        body: message.body,
-        timestamp: +message.timestamp,
-        unreadCount: (options && !options.read) ? 1 : 0,
-        lastMessageType: message.type || 'sms'
-      };
+  Thread.fromMessage = function(record, options) {
+    var participants = [];
+
+    if (typeof record.delivery !== 'undefined') {
+      if (record.delivery === 'received' ||
+          record.delivery === 'not-downloaded') {
+        participants = [record.sender];
+      } else {
+        participants = record.receivers || [record.receiver];
+      }
+    }
+
+    return new Thread({
+      id: record.threadId,
+      participants: participants,
+      body: record.body,
+      timestamp: record.timestamp,
+      unreadCount: (options && !options.read) ? 1 : 0,
+      lastMessageType: record.type || 'sms'
+    });
+  };
+
+  Thread.fromDraft = function(record, options) {
+    var participants = record.recipients && record.recipients.length ?
+      record.recipients : [''];
+
+    var body = record.content && record.content.length ?
+      record.content.find(function(content) {
+        if (typeof content === 'string') {
+          return true;
+        }
+      }) : '';
+
+    return new Thread({
+      id: record.threadId || record.id,
+      participants: participants,
+      body: body,
+      timestamp: new Date(record.timestamp),
+      unreadCount: (options && !options.read) ? 1 : 0,
+      lastMessageType: record.type || 'sms'
+    });
+  };
+
+  Thread.create = function(record, options) {
+    if (record instanceof Thread) {
+      return record;
+    }
+    return record.delivery ?
+      Thread.fromMessage(record, options) :
+      Thread.fromDraft(record, options);
+  };
+
+  Thread.prototype = {
+    constructor: Thread,
+    get drafts() {
+      return Drafts.byThreadId(this.id);
     },
+    get hasDrafts() {
+      return !!this.drafts.length;
+    }
+  };
+
+  var Threads = exports.Threads = {
     registerMessage: function(message) {
-      var threadMockup = this.createThreadMockup(message);
+      var thread = Thread.create(message);
       var threadId = message.threadId;
       if (!this.has(threadId)) {
-        this.set(threadId, threadMockup);
+        this.set(threadId, thread);
       }
       this.get(threadId).messages.push(message);
     },
@@ -82,7 +125,16 @@
       return threads.has(+id);
     },
     delete: function(id) {
-      return threads.delete(+id);
+      id = +id;
+
+      var thread = this.get(id);
+
+      if (thread && thread.hasDrafts) {
+        Drafts.delete({
+          threadId: id
+        });
+      }
+      return threads.delete(id);
     },
     clear: function() {
       threads = new Map();
@@ -118,6 +170,8 @@
       return threads.get(+Threads.currentId);
     }
   };
+
+  exports.Thread = Thread;
 
   window.addEventListener('hashchange', cacheId);
 }(this));
