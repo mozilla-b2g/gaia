@@ -5,7 +5,7 @@
          SMIL, ErrorDialog, MessageManager, MozSmsFilter, LinkHelper,
          ActivityPicker, ThreadListUI, OptionMenu, Threads, Contacts,
          Attachment, WaitingScreen, MozActivity, LinkActionHandler,
-         ActivityHandler, TimeHeaders, ContactRenderer */
+         ActivityHandler, TimeHeaders, ContactRenderer, Draft, Drafts */
 /*exported ThreadUI */
 
 (function(global) {
@@ -718,19 +718,54 @@ var ThreadUI = global.ThreadUI = {
       this.stopRendering();
 
       var currentActivity = ActivityHandler.currentActivity.new;
+      var currentId = Threads.currentId;
+      var pseudoId = window.location.hash.split('=')[1];
+      var draft;
+      var discard;
+
       if (currentActivity) {
         currentActivity.postResult({ success: true });
         ActivityHandler.resetActivity();
         return;
       }
-      if (Compose.isEmpty()) {
+
+      discard = (function() {
+        this.cleanFields(true);
+        Drafts.delete(MessageManager.draft);
         window.location.hash = '#thread-list';
+      }).bind(this);
+
+      // TODO Add comment about assimilation above on line #183?
+      // Need to assimilate recipients in order to check if any entered
+      this.assimilateRecipients();
+
+      if (Compose.isEmpty() && this.recipients.length === 0) {
+        // TODO Also check for empty subject
+        discard();
         return;
       }
-      if (window.confirm(navigator.mozL10n.get('discard-sms'))) {
-        this.cleanFields(true);
-        window.location.hash = '#thread-list';
-      }
+
+      var options = {
+        items: [
+          {
+            l10nId: 'save-as-draft',
+            method: function onsave() {
+              this.saveMessageDraft();
+              discard();
+            }.bind(this)
+          },
+          {
+            l10nId: 'discard-message',
+            method: discard
+          },
+          {
+            l10nId: 'cancel'
+          }
+        ]
+      };
+
+      new OptionMenu(options).show();
+
     }).bind(this);
 
     // We're waiting for the keyboard to disappear before animating back
@@ -1218,6 +1253,7 @@ var ThreadUI = global.ThreadUI = {
 
   // Method for rendering the list of messages using infinite scroll
   renderMessages: function thui_renderMessages(threadId, callback) {
+    var draft = MessageManager.draft;
     var onMessagesRendered = (function messagesRendered() {
       if (this.messageIndex < this.CHUNK_SIZE) {
         this.showFirstChunk();
@@ -1263,6 +1299,10 @@ var ThreadUI = global.ThreadUI = {
     };
 
     MessageManager.getMessages(renderingOptions);
+
+    // Check for drafts when rendering messages
+    Compose.fromDraft(threadId);
+
     // force the next scroll to bottom
     this.isScrolledManually = false;
   },
@@ -1877,7 +1917,10 @@ var ThreadUI = global.ThreadUI = {
   },
 
   onMessageSent: function thui_onMessageSent(message) {
-    var messageDOM = document.getElementById('message-' + message.id);
+    var threadId = message.id;
+    // store a reference to the draft so we can delete it
+    var draft;
+    var messageDOM = document.getElementById('message-' + threadId);
 
     if (!messageDOM) {
       return;
@@ -1886,6 +1929,13 @@ var ThreadUI = global.ThreadUI = {
     // Update class names to reflect message state
     messageDOM.classList.remove('sending');
     messageDOM.classList.add('sent');
+
+    // If the message we sent is associated with a threadId
+    // which has a draft, delete it
+    if (Drafts.has(threadId)) {
+      draft = Drafts.byThreadId(threadId).latest;
+      Drafts.delete(draft);
+    }
 
     // Play the audio notification
     if (this.sentAudioEnabled) {
@@ -2437,6 +2487,56 @@ var ThreadUI = global.ThreadUI = {
     // Update Header if needed
     if (window.location.hash.substr(0, 8) === '#thread=') {
       ThreadUI.updateHeaderData();
+    }
+  },
+
+  saveMessageDraft: function thui_saveMessageDraft() {
+    var draft, recipients, content, thread, threadId, type;
+
+    content = Compose.getContent();
+    type = Compose.type;
+
+    // TODO Also store subject
+
+    if (Threads.active) {
+      recipients = Threads.active.participants;
+      threadId = Threads.currentId;
+    } else {
+      recipients = this.recipients.numbers;
+
+      // Pick out the threadId that matches
+      // all the recipients in this draft.
+
+      Threads.forEach(function(t, id) {
+        if (Utils.probablyMatches(t.participants, recipients)) {
+          threadId = id;
+        }
+      });
+      threadId = threadId || null;
+    }
+
+    draft = new Draft({
+      recipients: recipients,
+      content: content,
+      threadId: threadId,
+      type: type
+    });
+
+    Drafts.add(draft);
+
+    // If an existing thread list item is associated with
+    // the presently saved draft, remove the thread and
+    // re-render to adtivate the new draft-preview
+    if (threadId) {
+      ThreadListUI.removeThread(threadId);
+
+      thread = Threads.active;
+
+      // Overwrite the thread's own timestamp with
+      // the drafts timestamp.
+      thread.timestamp = draft.timestamp;
+
+      ThreadListUI.appendThread(thread);
     }
   }
 };

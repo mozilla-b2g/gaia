@@ -139,6 +139,14 @@ form[role="dialog"][data-type="edit"] header menu[type="toolbar"] button {
   background: url("../style/images/unread.png") no-repeat left center / 1rem;
 }
 
+[data-type="list"] .draft p {
+  opacity: 0.5;
+}
+
+[data-type="list"] .draft aside.icon-draft {
+  background: url("../style/images/draft.png") no-repeat left center / 1rem;
+}
+
 [data-type="list"] p time {
   display: inline-block;
 }
@@ -450,7 +458,7 @@ section.has-carrier .article-list header:first-child {
 
 .article-list[data-type="list"] .has-subject.outgoing .subject {
   /* to extend the background color and bottom border */
-  width: 100%; 
+  width: 100%;
   margin-left: -1.5rem;
   padding-left: 1.5rem;
   padding-right: 4rem;

@@ -4,7 +4,7 @@
          LinkHelper, Attachment, MockContact, MockOptionMenu,
          MockActivityPicker, Threads, Settings, MockMessages, MockUtils,
          MockContacts, ActivityHandler, Recipients, MockMozActivity,
-         ContactRenderer */
+         ContactRenderer, Drafts, OptionMenu */
 
 'use strict';
 
@@ -16,10 +16,15 @@ if (!navigator.mozContacts) {
 }
 
 requireApp('sms/js/compose.js');
+requireApp('sms/js/drafts.js');
 requireApp('sms/js/threads.js');
 requireApp('sms/js/thread_ui.js');
+requireApp('sms/js/thread_list_ui.js');
+requireApp('sms/js/drafts.js');
+requireApp('sms/js/is-equal.js');
 requireApp('sms/js/utils.js');
 requireApp('sms/js/message_manager.js');
+require('/shared/js/async_storage.js');
 
 requireApp('sms/test/unit/mock_time_headers.js');
 requireApp('sms/test/unit/mock_alert.js');
@@ -2121,8 +2126,6 @@ suite('thread_ui.js >', function() {
       });
       suite('clicking', function() {
         var showMessageErrorSpy;
-        var errorCode;
-        var option;
 
         setup(function() {
           localize.reset();
@@ -3683,21 +3686,164 @@ suite('thread_ui.js >', function() {
     });
   });
 
-  suite('back action', function() {
+  suite('saveMessageDraft() > ', function() {
+    var spy, arg;
+
     setup(function() {
-      this.sinon.stub(ThreadUI, 'isKeyboardDisplayed').returns(false);
-      this.sinon.stub(ThreadUI, 'stopRendering');
+      window.location.hash = '#new';
+      spy = this.sinon.spy(Drafts, 'add');
+
+      ThreadUI.recipients.add({
+        number: '999'
+      });
+
+      Compose.append('foo');
     });
 
-    test('call postResult when there is an activity', function() {
-      var mockActivity = {
-        postResult: sinon.stub()
-      };
+    test('has entered content and recipients', function() {
+      ThreadUI.saveMessageDraft();
+      arg = spy.firstCall.args[0];
 
-      ActivityHandler.currentActivity.new = mockActivity;
+      assert.deepEqual(arg.recipients, ['999']);
+      assert.deepEqual(arg.content, ['foo']);
+    });
 
-      ThreadUI.back();
-      assert.isTrue(mockActivity.postResult.called);
+    test('has entered recipients but not content', function() {
+      Compose.clear();
+      ThreadUI.saveMessageDraft();
+      arg = spy.firstCall.args[0];
+
+      assert.deepEqual(arg.recipients, ['999']);
+      assert.deepEqual(arg.content, []);
+    });
+
+    test('has entered content but not recipients', function() {
+      ThreadUI.recipients.remove('999');
+      ThreadUI.saveMessageDraft();
+      arg = spy.firstCall.args[0];
+
+      assert.deepEqual(arg.recipients, []);
+      assert.deepEqual(arg.content, ['foo']);
+    });
+
+  });
+
+suite('Back button behaviour', function() {
+
+    suite('During activity', function() {
+      setup(function() {
+        this.sinon.stub(ThreadUI, 'isKeyboardDisplayed').returns(false);
+        this.sinon.stub(ThreadUI, 'stopRendering');
+      });
+
+      test('Call postResult when there is an activity', function() {
+        var mockActivity = {
+          postResult: sinon.stub()
+        };
+
+        ActivityHandler.currentActivity.new = mockActivity;
+
+        ThreadUI.back();
+        assert.isTrue(mockActivity.postResult.called);
+      });
+    });
+
+    suite('From new message', function() {
+      var showCalled = false;
+      var spy;
+
+      suiteSetup(function() {
+        spy = sinon.spy(ThreadUI, 'saveMessageDraft');
+      });
+
+      setup(function() {
+        showCalled = false;
+        this.sinon.stub(window, 'OptionMenu').returns({
+          show: function() {
+            showCalled = true;
+          },
+          hide: function() {}
+        });
+
+        this.sinon.stub(ThreadUI, 'isKeyboardDisplayed').returns(false);
+        this.sinon.stub(ThreadUI, 'stopRendering');
+
+        window.location.hash = '#new';
+
+        ThreadUI.recipients.add({
+          number: '999'
+        });
+
+      });
+
+      test('Displays OptionMenu prompt if recipients', function() {
+        ThreadUI.back();
+
+        assert.isTrue(OptionMenu.calledOnce);
+        assert.isTrue(showCalled);
+
+        var items = OptionMenu.args[0][0].items;
+
+        // Assert the correct menu items were displayed
+        assert.equal(items[0].l10nId, 'save-as-draft');
+        assert.equal(items[1].l10nId, 'discard-message');
+        assert.equal(items[2].l10nId, 'cancel');
+      });
+
+      test('Displays OptionMenu prompt if recipients & content', function() {
+        Compose.append('foo');
+        ThreadUI.back();
+
+        assert.isTrue(OptionMenu.calledOnce);
+        assert.isTrue(showCalled);
+
+        var items = OptionMenu.args[0][0].items;
+
+        // Assert the correct menu items were displayed
+        assert.equal(items[0].l10nId, 'save-as-draft');
+        assert.equal(items[1].l10nId, 'discard-message');
+        assert.equal(items[2].l10nId, 'cancel');
+      });
+
+      test('Displays OptionMenu prompt if content', function() {
+        ThreadUI.recipients.remove('999');
+        Compose.append('foo');
+        ThreadUI.back();
+
+        assert.isTrue(OptionMenu.calledOnce);
+        assert.isTrue(showCalled);
+
+        var items = OptionMenu.args[0][0].items;
+
+        // Assert the correct menu items were displayed
+        assert.equal(items[0].l10nId, 'save-as-draft');
+        assert.equal(items[1].l10nId, 'discard-message');
+        assert.equal(items[2].l10nId, 'cancel');
+      });
+
+      suite('OptionMenu operations', function() {
+        test('Save as Draft', function() {
+          ThreadUI.back();
+
+          OptionMenu.args[0][0].items[0].method();
+
+          // These things will be true
+          assert.isTrue(spy.calledOnce);
+          assert.equal(window.location.hash, '#thread-list');
+          assert.equal(ThreadUI.recipients.length, 0);
+          assert.equal(Compose.getContent(), '');
+        });
+
+        test('Discard', function() {
+          ThreadUI.back();
+
+          OptionMenu.args[0][0].items[1].method();
+
+          assert.equal(window.location.hash, '#thread-list');
+          assert.equal(ThreadUI.recipients.length, 0);
+          assert.equal(Compose.getContent(), '');
+        });
+      });
     });
   });
 

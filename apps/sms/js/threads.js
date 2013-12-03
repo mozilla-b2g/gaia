@@ -1,3 +1,4 @@
+/*global Drafts */
 
 (function(exports) {
   'use strict';
@@ -22,6 +23,16 @@
     }
     this.messages = [];
   }
+
+  Thread.prototype = {
+    constructor: Thread,
+    get drafts() {
+      return Drafts.byThreadId(this.id);
+    },
+    get hasDrafts() {
+      return !!this.drafts.length;
+    }
+  };
 
   var Threads = exports.Threads = {
     // TODO: https://bugzilla.mozilla.org/show_bug.cgi?id=943778
@@ -87,6 +98,11 @@
     clear: function() {
       threads = new Map();
     },
+    forEach: function(callback) {
+      threads.forEach(function(v, k) {
+        callback(v, k);
+      });
+    },
     get size() {
       // support: gecko 18 - size might be a function
       if (typeof threads.size === 'function') {
@@ -113,6 +129,8 @@
       return threads.get(+Threads.currentId);
     }
   };
+
+  exports.Thread = Thread;
 
   window.addEventListener('hashchange', cacheId);
 }(this));

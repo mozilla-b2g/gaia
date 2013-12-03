@@ -1,7 +1,8 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/*global Settings, Utils, Attachment, AttachmentMenu, MozActivity */
+/*global Settings, Utils, Attachment, AttachmentMenu, MozActivity, Drafts,
+  Draft, MessageManager */
 /*exported Compose */
 
 'use strict';
@@ -282,6 +283,36 @@ var Compose = (function() {
       }
 
       return content;
+    },
+
+    /** Render draft from data store
+     * @param {threadId} stored id for the specific thread
+     *
+     */
+
+    fromDraft: function(threadId) {
+      var draft;
+      var hash = window.location.hash;
+
+      // Clear out the composer
+      Compose.clear();
+
+      // Check first if a non-null threadId was passed
+      // If so, get the latest by threadId
+      if ((+threadId === threadId) && Drafts.has(threadId)) {
+        draft = Drafts.byThreadId(threadId).latest;
+      } else {
+        // New message drafts may have an id but be associated with a null
+        // thread
+        draft = Drafts.get(hash.split('=')[1]);
+      }
+
+      // If we still don't have a draft, return only having cleared the composer
+      if (!draft) {
+        return;
+      }
+      // draft content is an array
+      draft.content.forEach(Compose.append, Compose);
     },
 
     getText: function() {

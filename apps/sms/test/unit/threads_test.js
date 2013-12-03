@@ -1,11 +1,16 @@
-/*global Threads, MockMessages */
+/*global Thread, Threads, MockMessages, Draft, Drafts, MockDraft, MockDrafts */
 
 'use strict';
 
-requireApp('sms/test/unit/mock_messages.js');
+requireApp('sms/js/drafts.js');
 requireApp('sms/js/threads.js');
 
+requireApp('sms/test/unit/mock_drafts.js');
+requireApp('sms/test/unit/mock_messages.js');
+
+
 suite('Threads', function() {
+
   suiteSetup(function() {
     window.location.hash = '';
   });
@@ -146,4 +151,106 @@ suite('Threads', function() {
       assert.equal(Threads.active, null);
     });
   });
+});
+
+suite('Thread', function() {
+  var realDraft;
+  var realDrafts;
+  var date = new Date();
+  var fixture = {
+    id: 1,
+    participants: ['555'],
+    lastMessageType: 'sms',
+    body: 'Hello 555',
+    timestamp: date,
+    unreadCount: 0
+  };
+
+  suiteSetup(function() {
+    window.location.hash = '';
+
+    realDraft = Draft;
+    realDrafts = Drafts;
+
+    Draft = MockDraft;
+    Drafts = MockDrafts;
+  });
+
+  suiteTeardown(function() {
+    Draft = realDraft;
+    Drafts = realDrafts;
+  });
+
+  teardown(function() {
+    Threads.clear();
+  });
+
+  setup(function() {
+    Threads.set(1, fixture);
+  });
+
+  test('Thread', function() {
+    assert.ok(Thread);
+    assert.include(Thread.prototype, 'drafts');
+    assert.include(Thread.prototype, 'hasDrafts');
+  });
+
+  test('Thread object', function() {
+    var thread = new Thread(fixture);
+
+    assert.deepEqual(thread, {
+      id: 1,
+      participants: ['555'],
+      lastMessageType: 'sms',
+      body: 'Hello 555',
+      timestamp: date,
+      unreadCount: 0,
+      messages: []
+    });
+  });
+
+  test('thread.drafts, hasDrafts', function() {
+    this.sinon.stub(Drafts, 'byThreadId').returns([
+      {
+        id: 101,
+        recipients: ['555'],
+        content: ['This is a new draft for thread 1'],
+        subject: 'This is a subject',
+        timestamp: 2,
+        threadId: 1,
+        type: 'sms'
+      }
+    ]);
+
+    Threads.set(1, {
+      id: 1,
+      participants: ['555'],
+      lastMessageType: 'sms',
+      body: 'Hello 555',
+      timestamp: date,
+      unreadCount: 0,
+      messages: []
+    });
+
+    assert.equal(Threads.get(1).drafts.length, 1);
+    assert.isTrue(Threads.get(1).hasDrafts);
+  });
+
+  test('no thread.drafts, hasDrafts', function() {
+    this.sinon.stub(Drafts, 'byThreadId').returns([]);
+
+    Threads.set(1, {
+      id: 1,
+      participants: ['555'],
+      lastMessageType: 'sms',
+      body: 'Hello 555',
+      timestamp: date,
+      unreadCount: 0,
+      messages: []
+    });
+
+    assert.equal(Threads.get(1).drafts.length, 0);
+    assert.isFalse(Threads.get(1).hasDrafts);
+  });
+
 });

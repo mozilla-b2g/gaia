@@ -8,7 +8,7 @@
 'use strict';
 
 var MessageManager = {
-
+  draft: null,
   activity: null,
   forward: null,
   init: function mm_init(callback) {
@@ -42,6 +42,8 @@ var MessageManager = {
     if (typeof callback === 'function') {
       callback();
     }
+
+    Drafts.load();
   },
 
   onMessageSending: function mm_onMessageSending(e) {
@@ -104,6 +106,14 @@ var MessageManager = {
     // set to 0 and future checks will fail. So we update if needed
     if (!ThreadListUI.fullHeight || ThreadListUI.fullHeight === 0) {
       ThreadListUI.fullHeight = ThreadListUI.container.offsetHeight;
+    }
+    // If we leave the app and are in a thread or compose window
+    // save a message draft if necessary
+    if (document.hidden) {
+      var hash = window.location.hash;
+      if (hash === '#new' || hash.startsWith('#thread=')) {
+        ThreadUI.saveMessageDraft();
+      }
     }
   },
 
@@ -243,6 +253,7 @@ var MessageManager = {
     ThreadListUI.cancelEdit();
 
     var self = this;
+
     switch (window.location.hash) {
       case '#new':
         ThreadUI.inThread = false;
@@ -257,6 +268,8 @@ var MessageManager = {
         //Keep the visible button the :last-child
         var optionsButton = document.getElementById('messages-options-icon');
         optionsButton.parentNode.appendChild(optionsButton);
+
+        ThreadListUI.renderDrafts();
 
         if (this.threadMessages.classList.contains('new')) {
           MessageManager.slide('right', function() {
