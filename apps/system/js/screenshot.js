@@ -10,7 +10,7 @@
 //
 //
 (function() {
-  window.addEventListener('home+sleep', takeScreenshot);
+  window.addEventListener('volumedown+sleep', takeScreenshot);
 
   // Assume that the maximum screenshot size is 4 bytes per pixel
   // plus a bit extra. In practice, with compression, our PNG files will be
