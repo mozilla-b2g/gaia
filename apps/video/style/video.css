@@ -92,7 +92,7 @@ span.line-break {
 }
 
 /* All of the main views fill the screen */
-#thumbnail-list-view, #thumbnail-select-view, #fullscreen-view, #info-view {
+#thumbnail-list-view, #thumbnail-select-view, #fullscreen-view, #info-view, #videoFrame {
   position: absolute;
   top: 0;
   left: 0;
