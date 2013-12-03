@@ -41,7 +41,8 @@ window.addEventListener('localized', function() {
 
       // Report errors if we're passed an invalid image
       frame.onerror = function invalid() {
-        displayError('imageinvalid');
+        // 1.0.1 only, ignore error
+        // displayError('imageinvalid');
       };
     }
 
@@ -80,7 +81,8 @@ window.addEventListener('localized', function() {
 
       // If the image is too large, display an error
       if (pixels > MAX_IMAGE_SIZE) {
-        displayError('imagetoobig');
+        // 1.0.1 only, ignore error
+        // displayError('imagetoobig');
         return;
       }
 
@@ -130,7 +132,8 @@ window.addEventListener('localized', function() {
         frame.displayImage(blob);
       }
       else {
-        displayError('imagetoobig');
+        // 1.0.1 only, ignore error
+        // displayError('imagetoobig');
       }
     }
   }
