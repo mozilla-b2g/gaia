@@ -97,10 +97,6 @@ li:active:not([aria-disabled="true"]) .menu-item::before,
   background-position: -12rem -6rem;
 }
 
-#menuItem-simManager::before {
-  background-position: 0 -9rem;
-}
-
 #menuItem-simSecurity::before {
   background-position: 0 -9rem;
 }
