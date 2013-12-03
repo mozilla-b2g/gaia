@@ -41,10 +41,16 @@ function ls(dir, recursive, exclude) {
   return results;
 }
 
+function getOsType() {
+  return Cc["@mozilla.org/xre/app-info;1"]
+          .getService(Ci.nsIXULRuntime).OS;
+}
+
 function getFileContent(file) {
   try {
     let fileStream = Cc['@mozilla.org/network/file-input-stream;1']
                      .createInstance(Ci.nsIFileInputStream);
+
     fileStream.init(file, 1, 0, false);
 
     let converterStream = Cc['@mozilla.org/intl/converter-input-stream;1']
@@ -546,8 +552,112 @@ function getApp(parent, appname, gaiadir, distdir) {
   return app;
 }
 
+function getAppName(manifestPath) {
+  var file = getFile(manifestPath);
+  var content = getJSON(file);
+  return content.name;
+}
+
 function normalizeString(appname) {
   return appname.replace(' ', '-').toLowerCase().replace(/\W/g, '');
+}
+
+/**
+ * We can use Commander to execute a shell command.
+ *
+ * Note: it requires to inititialize execute path before trigger run.
+ * ex: adb = new Commander('adb');
+ */
+function Commander(cmd) {
+  var command = 
+    (getOsType().indexOf('WIN') !== -1 && cmd.indexOf('.exe') === -1) ?
+    cmd + '.exe' : cmd;
+  var _path;
+  var _file = null;
+
+  // paths can be string or array, we'll eventually store one workable
+  // path as _path. 
+  this.initPath = function (paths) {
+    if (typeof paths === 'string') {
+      _path = paths;
+    } else if (typeof paths === 'object' && paths.length) {
+      for (var p in paths) {
+        try {
+          var result = getFile(paths[p], command);
+          if (result && result.exists()) {
+            _path = paths[p];
+            _file = result;
+            break;
+          }
+        } catch (e) {
+          // Windows may throw error if we parse invalid folder name,
+          // so we need to catch the error and continue seaching other
+          // path.
+          continue;
+        }
+      }
+    }
+    if (!_file) {
+      throw new Error('it does not support ' + command + ' command');
+    }
+  };
+
+  this.run = function (args, callback) {
+    var process = Cc["@mozilla.org/process/util;1"]
+                  .createInstance(Ci.nsIProcess);
+    var output = null;
+    try {
+      process.init(_file);
+      process.run(true, args, args.length);
+      log(command + ' ' + args.join(' '));
+    } catch (e) {
+      throw new Error('having trouble when execute ' + command +
+        ' ' + args.join(' '));
+    }
+    return output;
+  };
+};
+
+// Get PATH of the environment
+function getEnvPath() {
+  var os = getOsType();
+  if (!os) {
+    throw new Error('cannot not read system type');
+  }
+  var env = Cc["@mozilla.org/process/environment;1"].
+            getService(Ci.nsIEnvironment);
+  var p = env.get('PATH');
+  var isMsys = env.get('OSTYPE') ? true : false;
+  if (os.indexOf('WIN')!== -1 && !isMsys) {
+    paths = p.split(';');
+  } else {
+    paths = p.split(':');
+  }
+  return paths;
+}
+
+// We parse list like ps aux and b2g-ps into object
+function psParser(out) {
+  var rows = out.split('\n');
+  if (rows.length < 2)
+    return {};
+
+  var result = {};
+  var colNames = getCols(rows[0]);
+  for (var r = 1; r < rows.length; r++) {
+    var cols = getCols(rows[r]);
+    result[cols[0]] = {};
+    for (var c = 1; c < cols.length; c++) {
+      result[cols[0]][colNames[c]] = cols[c];
+    }
+  }
+  return result;
+}
+
+function getCols(row) {
+  return row.trim().split(/\s+/).map(function(name) {
+    return normalizeString(name);
+  });
 }
 
 exports.isSubjectToBranding = isSubjectToBranding;
@@ -567,14 +677,18 @@ exports.getGaia = getGaia;
 exports.getBuildConfig = getBuildConfig;
 exports.getAppsByList = getAppsByList;
 exports.getApp = getApp;
+exports.getAppName = getAppName;
 exports.getXML = getXML;
 exports.getTempFolder = getTempFolder;
 exports.normalizeString = normalizeString;
+exports.Commander = Commander;
+exports.getEnvPath = getEnvPath;
 // ===== the following functions support node.js compitable interface.
 exports.FILE_TYPE_FILE = FILE_TYPE_FILE;
 exports.FILE_TYPE_DIRECTORY = FILE_TYPE_DIRECTORY;
 exports.deleteFile = deleteFile;
 exports.listFiles = listFiles;
+exports.psParser = psParser;
 exports.fileExists = fileExists;
 exports.mkdirs = mkdirs;
 exports.joinPath = joinPath;
