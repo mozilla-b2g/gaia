@@ -24,6 +24,16 @@
 
   var LockScreenSlidePrototype = {
     canvas: null,
+    layout: '',
+    track: {
+      length: {tiny: '280', large: '410'},
+      color: 'rgba(255, 255, 255, 0.4)',
+      from: 0,
+      to: 0,
+      radius: 0,
+      width: 0 // We need dynamic length here.
+    },
+
     arrows: {
       left: null, right: null,
       // Left and right drawing origin.
@@ -71,7 +81,6 @@
 
     states: {
       // Some elements can only be initialized after initialization...
-      delayInitialized: false,
       initialized: false,
       sliding: false,
       slideReachEnd: false,
@@ -99,7 +108,7 @@
    * Initialize this unlocker strategy.
    *
    * @param {IntentionRouter} |ir| see LockScreen's intentionRouter.
-   * @this {LockScreenSlidePrototype}
+   * @this {LockScreenSlide}
    */
   LockScreenSlidePrototype.initialize =
     function(ir) {
@@ -113,7 +122,7 @@
    * The dispatcher. Unlocker would manager all its DOMs individually.
    *
    * @param {event} |evt|
-   * @this {LockScreenSlidePrototype}
+   * @this {LockScreenSlide}
    */
   LockScreenSlidePrototype.handleEvent =
     function(evt) {
@@ -126,6 +135,7 @@
 
           // If the screen got blackout, we should restore the slide.
           this._clearCanvas();
+          this._drawTrack();
           this._resetArrows();
           this._resetHandle();
           break;
@@ -178,7 +188,7 @@
   /**
    * Initialize the canvas.
    *
-   * @this {LockScreenSlidePrototype}
+   * @this {LockScreenSlide}
    */
   LockScreenSlidePrototype._initializeCanvas =
     function lss_initializeCanvas() {
@@ -192,6 +202,10 @@
       this.area.addEventListener('touchstart', this);
       this.areas.camera.addEventListener('click', this);
       this.areas.unlock.addEventListener('click', this);
+
+      // Capture the first overlay change and do the delayed initialization.
+      this.layout = (ScreenLayout && ScreenLayout.getCurrentLayout) ?
+           ScreenLayout.getCurrentLayout() : 'tiny';
 
       var center = this.center;
       this.arrows.left = new Image();
@@ -241,6 +255,8 @@
       this.handle.radius =
         this._dpx(this.handle.radius);
 
+      this.track.radius = this.handle.radius + this._dpx(1);
+
       this.handle.lineWidth =
         this._dpx(this.handle.lineWidth);
 
@@ -258,12 +274,36 @@
 
       // We don't reset the arrows because it need to be draw while image
       // got loaded, which is a asynchronous process.
+
+      var trackLength = 'tiny' === this.layout ?
+          this.track.length.tiny : this.track.length.large;
+
+      // Offset and clientWidth would be window size.
+      trackLength = this._dpx(trackLength);
+
+      // Because the canvas would draw from the center to one point
+      // on the circle, it would add dimeter long distance for one side.
+      var maxWidth = (trackLength -
+          (this.handle.radius << 1)) >> 1;
+
+      // Left 1 pixel each side for the border.
+      maxWidth -= 2;
+      this.handle.maxWidth = maxWidth;
+      this.handle.autoExpand.sentinelWidth =
+        maxWidth - this.handle.autoExpand.sentinelOffset;
+
+      this.track.width = trackLength;
+      this.track.from = this.center.x - maxWidth;
+      this.track.to = this.center.x + maxWidth;
+      this.track.y = this.center.y;
+
+      this._drawTrack();
     };
 
   /**
    * Finalize the canvas: restore its default states.
    *
-   * @this {LockScreenSlidePrototype}
+   * @this {LockScreenSlide}
    */
   LockScreenSlidePrototype._finalizeCanvas =
     function lss_finalizeCanvas() {
@@ -276,7 +316,7 @@
    * Records how long the user's finger dragged.
    *
    * @param {number} |tx| The absolute coordinate of the touching position.
-   * @this {LockScreenSlidePrototype}
+   * @this {LockScreenSlide}
    */
   LockScreenSlidePrototype._onSliding =
     function lss_onSliding(tx) {
@@ -308,47 +348,21 @@
           this.handle.autoExpand.accFactorOriginal;
       }
 
-      // Slide must overlay on arrows.
+      // Order matters.
+      this._drawTrack();
       this._drawArrowsTo(mtx);
       this._drawSlideTo(mtx);
     };
 
-/**
+  /**
    * Start slide the handle of the lockscreen.
    * Effect: Will set touch and sliding flag in this.
    *
    * @param {tx} The absolute coordinate X of the touch position.
-   * @this {LockScreen}
+   * @this {LockScreenSlide}
    */
   LockScreenSlidePrototype._onSlideBegin =
     function lss_onSlideBegin(tx) {
-      var trackLength = this.areas.unlock.offsetLeft -
-                        this.areas.camera.offsetLeft +
-                        this.areas.unlock.clientWidth;
-
-      // Offset and clientWidth would be window size.
-      trackLength = this._dpx(trackLength);
-
-      // Because the canvas would draw from the center to one point
-      // on the circle, it would add dimeter long distance for one side.
-      var maxWidth = (trackLength -
-          (this.handle.radius << 1)) >> 1;
-
-      // Left 1 pixel each side for the border.
-      maxWidth -= 2;
-
-      // Because if we initialize this value while init the lockscreen,
-      // the offset would be zero.
-      if (true !== this.states.delayInitialized) {
-
-        this.handle.maxWidth = maxWidth;
-
-        this.handle.autoExpand.sentinelWidth =
-          maxWidth - this.handle.autoExpand.sentinelOffset;
-
-        this.delayInitialized = true;
-      }
-
       var canvasCenterX = this.canvas.clientWidth >> 1;
       var center = this.center;
 
@@ -369,15 +383,17 @@
   /**
    * When user released the finger, bounce it back.
    *
-   * @this {LockScreenSlidePrototype}
+   * @this {LockScreenSlide}
    */
   LockScreenSlidePrototype._onSlideEnd =
     function lss_onSlideEnd() {
       var isLeft = this.states.touch.pageX - this.center.x < 0;
       var bounceEnd = (function _bounceEnd() {
         this._clearCanvas();
+        this._drawTrack();
         this._resetArrows();
         this._resetHandle();
+
       }).bind(this);
 
       if (false === this.states.slideReachEnd) {
@@ -400,7 +416,7 @@
    *
    * @param {number} |pageX| The absolute coordinate X of the finger.
    * @param {number} |pageY| The absolute coordinate Y of the finger.
-   * @this {LockScreenSlidePrototype}
+   * @this {LockScreenSlide}
    */
   LockScreenSlidePrototype._onTouchMove =
     function ls_handleMove(pageX, pageY) {
@@ -438,7 +454,7 @@
    * @param {boolean} |inverse| (Optional) true if you want to slow rather
    *                            than accelerate it.
    * @return {number}
-   * @this {LockScreenSlidePrototype}
+   * @this {LockScreenSlide}
    */
   LockScreenSlidePrototype._accelerateSlide =
     function lss_accelerateSlide(tx, isLeft, inverse) {
@@ -459,7 +475,7 @@
   /**
    * Clear the canvas.
    *
-   * @this {LockScreenSlidePrototype}
+   * @this {LockScreenSlide}
    */
   LockScreenSlidePrototype._clearCanvas =
     function lss_clearCanvas() {
@@ -475,7 +491,7 @@
    * @param {Function()} |cb| (Optional) Callback. Will be executed after
    * the animation ended.
    *
-   * @this {LockScreenSlidePrototype}
+   * @this {LockScreenSlide}
    */
   LockScreenSlidePrototype._bounceBack =
     function lss_bounceBack(tx, cb) {
@@ -504,6 +520,7 @@
           if ((isLeft && nextTx < center.x) ||
               (!isLeft && nextTx >= center.x)) {
             this._clearCanvas();
+            this._drawTrack();
             this._drawArrowsTo(nextTx);
             this._drawSlideTo(nextTx);
           }
@@ -511,6 +528,7 @@
         } else {
           // Compensation from the current position to the center of the slide.
           this._clearCanvas();
+          this._drawTrack();
           this._drawArrowsTo(center.x);
           this._drawSlideTo(center.x);
           if (cb)
@@ -523,7 +541,7 @@
   /**
    * Dark the camera and unlocking icons when user leave our LockScreen.
    *
-   * @this {LockScreenSlidePrototype}
+   * @this {LockScreenSlide}
    */
   LockScreenSlidePrototype._darkIcons =
     function lss_darkIcons() {
@@ -535,7 +553,7 @@
    * Draw the two arrows on the slide.
    *
    * @param {number} |tx| The absolute horizontal position of the target.
-   * @this {LockScreenSlidePrototype}
+   * @this {LockScreenSlide}
    */
   LockScreenSlidePrototype._drawArrowsTo =
     function lss_drawArrows(tx) {
@@ -573,10 +591,47 @@
     };
 
   /**
+   * Draw the track of the slide.
+   *
+   * @this {LockScreenSlide}
+   */
+  LockScreenSlidePrototype._drawTrack =
+    function lss_drawTrack() {
+      var canvas = this.canvas;
+      var ctx = canvas.getContext('2d');
+
+      var radius = this.track.radius;
+
+      // 1.5 ~ 0.5 is the right part of a circle.
+      var startAngle = 1.5 * Math.PI;
+      var endAngle = 0.5 * Math.PI;
+      var strokeStyle = this.track.color;
+
+      ctx.fillStyle = 'rgba(0, 0, 0, 0)';
+      ctx.lineWidth = this.handle.lineWidth;
+      ctx.strokeStyle = strokeStyle;
+
+      // Start to draw it.
+      // Can't use functions like rect or these individual parts
+      // would show its borders.
+      ctx.beginPath();
+
+      ctx.arc(this.track.from, this.track.y,
+          radius, endAngle, startAngle, false);
+      ctx.lineTo(this.track.from, this.track.y - radius);
+      ctx.lineTo(this.track.to, this.track.y - radius);
+      ctx.arc(this.track.to, this.track.y, radius, startAngle, endAngle, false);
+      ctx.lineTo(this.track.from, this.track.y + radius);
+
+      ctx.stroke();
+      ctx.closePath();
+    };
+
+  /**
    * Extend the slide from its center to the specific position.
    *
    * @param {number} |tx| The absolute horizontal position of the target.
-   * @this {LockScreenSlidePrototype}
+   * @this {LockScreenSlide}
    */
   LockScreenSlidePrototype._drawSlideTo =
     function lss_drawSlideTo(tx) {
@@ -680,7 +735,7 @@
    *
    * @param {number} |px|
    * @return {number}
-   * @this {LockScreenSlidePrototype}
+   * @this {LockScreenSlide}
    */
   LockScreenSlidePrototype._dpx =
     function lss_dpx(px) {
@@ -690,7 +745,7 @@
   /**
    * Light the camera and unlocking icons when user touch on our LockScreen.
    *
-   * @this {LockScreenSlidePrototype}
+   * @this {LockScreenSlide}
    */
   LockScreenSlidePrototype._lightIcons =
     function lss_lightIcons() {
@@ -707,7 +762,7 @@
    * @param {number} |x|
    * @param {number} |y|
    * @return {[number]} Array of single pair of X and Y
-   * @this {LockScreenSlidePrototype}
+   * @this {LockScreenSlide}
    */
   LockScreenSlidePrototype._mapCoord =
     function lss_mapCoord(x, y) {
@@ -721,7 +776,7 @@
   /**
    * Restore the arrow to the original position.
    *
-   * @this {LockScreenSlidePrototype}
+   * @this {LockScreenSlide}
    */
   LockScreenSlidePrototype._resetArrows =
     function lss_restoreArrows() {
@@ -739,7 +794,7 @@
   /**
    * Draw the handle with its initial states (a transparent circle).
    *
-   * @this {LockScreenSlidePrototype}
+   * @this {LockScreenSlide}
    */
   LockScreenSlidePrototype._resetHandle =
     function lss_resetHandle() {
