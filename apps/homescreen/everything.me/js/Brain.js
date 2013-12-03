@@ -1327,6 +1327,8 @@ Evme.Brain = new function Evme_Brain() {
                 query = Evme.Utils.l10n('shortcut', 'id-' + Evme.Utils.shortcutIdToKey(experienceId));
               }
 
+              window.setTimeout(Brain.Searchbar.cancelBlur, 0);
+
               // now set the query in the searchbar and perform the exact search
               Searcher.searchExactFromOutside(query, feature, null, null, function onComplete(apps) {
                 Evme.Brain.SmartFolder.updateShortcutIcons(experienceId || query, apps);
