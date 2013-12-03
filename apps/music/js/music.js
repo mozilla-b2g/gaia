@@ -168,6 +168,13 @@ function init() {
     if (typeof PlayerView !== 'undefined')
       PlayerView.stop();
 
+    // Generally when the user select one of the tabs, it should trigger the
+    // css pseudo-class to highlight the selected tab, but here we manually
+    // select the mix page so we have to change the hash to it to trigger the
+    // css pseudo-class or the tab of mix page will not be highlighted.
+    // Also the option of the TabBar should be set to "mix" to sync with it.
+    window.location.hash = '#mix';
+    TabBar.option = 'mix';
     ModeManager.start(MODE_TILES);
     TilesView.hideSearch();
   };
