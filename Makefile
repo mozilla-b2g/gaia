@@ -88,7 +88,7 @@ DESKTOP?=$(DEBUG)
 # Disable first time experience screen
 NOFTU?=0
 # Automatically enable remote debugger
-REMOTE_DEBUGGER?=0
+REMOTE_DEBUGGER?=1
 
 ifeq ($(DEVICE_DEBUG), 1)
 REMOTE_DEBUGGER=1
@@ -125,8 +125,7 @@ ifneq ($(APP),)
 BUILD_APP_NAME=$(APP)
 endif
 
-REPORTER?=Spec
-MOCHA_REPORTER?=dot
+REPORTER?=spec
 NPM_REGISTRY?=http://registry.npmjs.org
 # Ensure that NPM only logs warnings and errors
 export npm_config_loglevel=warn
@@ -338,6 +337,7 @@ TEST_DIRS ?= $(CURDIR)/tests
 
 define BUILD_CONFIG
 { \
+	"ADB" : "$(adb)", \
 	"GAIA_DIR" : "$(CURDIR)", \
 	"PROFILE_DIR" : "$(CURDIR)$(SEP)$(PROFILE_FOLDER)", \
 	"PROFILE_FOLDER" : "$(PROFILE_FOLDER)", \
@@ -350,9 +350,11 @@ define BUILD_CONFIG
 	"HOMESCREEN" : "$(HOMESCREEN)", \
 	"GAIA_PORT" : "$(GAIA_PORT)", \
 	"GAIA_LOCALES_PATH" : "$(GAIA_LOCALES_PATH)", \
+	"GAIA_INSTALL_PARENT" : "$(GAIA_INSTALL_PARENT)", \
 	"LOCALES_FILE" : "$(subst \,\\,$(LOCALES_FILE))", \
 	"GAIA_KEYBOARD_LAYOUTS" : "$(GAIA_KEYBOARD_LAYOUTS)", \
 	"BUILD_APP_NAME" : "$(BUILD_APP_NAME)", \
+	"MSYS_FIX" : "$(MSYS_FIX)", \
 	"PRODUCTION" : "$(PRODUCTION)", \
 	"GAIA_OPTIMIZE" : "$(GAIA_OPTIMIZE)", \
 	"GAIA_DEV_PIXELS_PER_PX" : "$(GAIA_DEV_PIXELS_PER_PX)", \
@@ -368,7 +370,8 @@ define BUILD_CONFIG
 	"REMOTE_DEBUGGER" : "$(REMOTE_DEBUGGER)", \
 	"TARGET_BUILD_VARIANT" : "$(TARGET_BUILD_VARIANT)", \
 	"SETTINGS_PATH" : "$(SETTINGS_PATH)", \
-	"VARIANT_PATH" : "$(VARIANT_PATH)" \
+	"VARIANT_PATH" : "$(VARIANT_PATH)", \
+	"SYS" : "$(SYS)" \
 }
 endef
 export BUILD_CONFIG
@@ -729,7 +732,7 @@ test-integration:
 	PROFILE_FOLDER=profile-test make
 	NPM_REGISTRY=$(NPM_REGISTRY) ./bin/gaia-marionette $(shell find . -path "*test/marionette/*_test.js") \
 		--host $(MARIONETTE_RUNNER_HOST) \
-		--reporter $(MOCHA_REPORTER)
+		--reporter $(REPORTER)
 
 .PHONY: test-perf
 test-perf:
@@ -935,24 +938,25 @@ TARGET_FOLDER = webapps/$(BUILD_APP_NAME).$(GAIA_DOMAIN)
 APP_NAME = $(shell cat *apps/${BUILD_APP_NAME}/manifest.webapp | grep name | head -1 | cut -d '"' -f 4 | cut -b 1-15)
 APP_PID = $(shell adb shell b2g-ps | grep '^${APP_NAME}' | sed 's/^${APP_NAME}\s*//' | awk '{ print $$2 }')
 install-gaia: $(PROFILE_FOLDER)
-	@$(ADB) start-server
-ifeq ($(BUILD_APP_NAME),*)
-	@echo 'Stopping b2g'
-	@$(ADB) shell stop b2g
-else ifeq ($(BUILD_APP_NAME), system)
-	@echo 'Stopping b2g'
-	@$(ADB) shell stop b2g
-else ifneq (${APP_PID},)
-	@$(ADB) shell kill ${APP_PID}
-endif
-	@$(ADB) shell rm -r $(MSYS_FIX)/cache/* > /dev/null
+	#@$(ADB) start-server
+#ifeq ($(BUILD_APP_NAME),*)
+#	@echo 'Stopping b2g'
+#	@$(ADB) shell stop b2g
+#else ifeq ($(BUILD_APP_NAME), system)
+#	@echo 'Stopping b2g'
+#	@$(ADB) shell stop b2g
+#else ifneq (${APP_PID},)
+#	@$(ADB) shell kill ${APP_PID}
+#endif
+#	@$(ADB) shell rm -r $(MSYS_FIX)/cache/* > /dev/null
 
-ifeq ($(ADB_REMOUNT),1)
-	$(ADB) remount
-endif
+#ifeq ($(ADB_REMOUNT),1)
+#	$(ADB) remount
+#endif
 
 ifeq ($(BUILD_APP_NAME),*)
-	python build/install-gaia.py "$(ADB)" "$(MSYS_FIX)$(GAIA_INSTALL_PARENT)" "$(PROFILE_FOLDER)"
+	#python build/install-gaia.py "$(ADB)" "$(MSYS_FIX)$(GAIA_INSTALL_PARENT)" "$(PROFILE_FOLDER)"
+	@$(call run-js-command, install-gaia)
 else
 	@echo "Pushing manifest.webapp application.zip for ${BUILD_APP_NAME}..."
 	@$(ADB) push $(PROFILE_FOLDER)/$(TARGET_FOLDER)/manifest.webapp $(MSYS_FIX)$(GAIA_INSTALL_PARENT)/$(TARGET_FOLDER)/manifest.webapp
