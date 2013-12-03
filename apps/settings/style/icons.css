@@ -57,6 +57,10 @@ li:active:not([aria-disabled="true"]) .menu-item::before,
   background-position: -12rem 0;
 }
 
+#menuItem-nfc::before {
+  background-position: -12rem -15rem;
+}
+
 #menuItem-internetSharing::before {
   background-position: 0 -3rem;
 }
