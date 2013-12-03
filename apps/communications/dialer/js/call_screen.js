@@ -129,17 +129,59 @@ var CallScreen = {
     this.syncSpeakerEnabled();
   },
 
-  toggle: function cs_toggle(callback) {
-    var screen = this.screen;
-    screen.classList.toggle('displayed');
+  _wallpaperReady: false,
+  _toggleWaiting: false,
+  _toggleCallback: null,
 
-    if (!callback || typeof(callback) !== 'function') {
+  setWallpaper: function cs_setWallpaper() {
+    if (!navigator.mozSettings) {
+      this._onWallpaperReady();
       return;
     }
 
+    var self = this;
+    var req = navigator.mozSettings.createLock().get('wallpaper.image');
+    req.onsuccess = function cs_wi_onsuccess() {
+      var image = URL.createObjectURL(req.result['wallpaper.image']);
+      self.mainContainer.style.backgroundImage = 'url(' + image + ')';
+      setTimeout(self._onWallpaperReady.bind(self));
+    };
+
+    req.onerror = this._onWallpaperReady.bind(this);
+  },
+
+  _onWallpaperReady: function cs_onWallpaperReady() {
+    this._wallpaperReady = true;
+    if (this._toggleWaiting) {
+      this.toggle(this._toggleCallback);
+      this._toggleCallback = null;
+      this._toggleWaiting = false;
+    }
+  },
+
+  _transitionDone: false,
+  _contactBackgroundWaiting: false,
+  _contactImage: null,
+
+  toggle: function cs_toggle(callback) {
+    // Waiting for the wallpaper to be set before toggling the screen in
+    if (!this._wallpaperReady) {
+      this._toggleWaiting = true;
+      this._toggleCallback = callback;
+      return;
+    }
+
+    var screen = this.screen;
+    screen.classList.toggle('displayed');
+
+    var self = this;
+
     // We have no opening transition for incoming locked
     if (this.screen.dataset.layout === 'incoming-locked') {
-      setTimeout(callback);
+      if (callback && typeof(callback) == 'function') {
+        setTimeout(callback);
+      }
+      self._onTransitionDone();
       return;
     }
 
@@ -149,8 +191,40 @@ var CallScreen = {
         return;
       }
       screen.removeEventListener('transitionend', trWait);
-      callback();
+      if (callback && typeof(callback) == 'function') {
+        callback();
+      }
+      self._onTransitionDone();
     });
+  },
+
+  _onTransitionDone: function cs_onTransitionDone() {
+    this._transitionDone = true;
+    if (this._contactBackgroundWaiting) {
+      this.setCallerContactImage(this._contactImage);
+      this._contactBackgroundWaiting = false;
+    }
+  },
+
+  setCallerContactImage: function cs_setContactImage(blob, force) {
+    // Waiting for the call screen transition to end before updating
+    // the contact image
+    if (!this._transitionDone) {
+      this._contactImage = blob;
+      this._contactBackgroundWaiting = true;
+      return;
+    }
+
+    if (this._contactImage == blob && !this._contactBackgroundWaiting) {
+      return;
+    }
+
+    this._contactImage = blob;
+
+    this.contactBackground.classList.remove('ready');
+    var background = blob ? 'url(' + URL.createObjectURL(blob) + ')' : '';
+    this.contactBackground.style.backgroundImage = background;
+    this.contactBackground.classList.add('ready');
   },
 
   insertCall: function cs_insertCall(node) {
@@ -181,31 +255,6 @@ var CallScreen = {
     } else {
       KeypadManager.updatePhoneNumber(this._typedNumber, 'begin', true);
     }
-  },
-
-  _contactImage: null,
-  setCallerContactImage: function cs_setContactImage(blob) {
-    if (this._contactImage == blob) {
-      return;
-    }
-
-    this._contactImage = blob;
-
-    var background = blob ? 'url(' + URL.createObjectURL(blob) + ')' : '';
-    this.contactBackground.style.backgroundImage = background;
-  },
-
-  setWallpaper: function cs_setWallpaper() {
-    if (!navigator.mozSettings) {
-      return;
-    }
-
-    var self = this;
-    var req = navigator.mozSettings.createLock().get('wallpaper.image');
-    req.onsuccess = function cs_wi_onsuccess() {
-      var image = URL.createObjectURL(req.result['wallpaper.image']);
-      self.mainContainer.style.backgroundImage = 'url(' + image + ')';
-    };
   },
 
   toggleMute: function cs_toggleMute() {
