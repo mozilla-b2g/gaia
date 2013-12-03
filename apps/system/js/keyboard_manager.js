@@ -271,9 +271,6 @@ var KeyboardManager = {
       }
       self.setKeyboardToShow(group);
 
-      // We also want to show the permanent notification
-      // in the UtilityTray.
-      self.showIMESwitcher();
     }
 
     if (type === 'blur') {
@@ -365,6 +362,10 @@ var KeyboardManager = {
   },
 
   resizeKeyboard: function km_resizeKeyboard(evt) {
+    // ignore mozbrowserresize event while keyboard Frame is hidding
+    if (this.keyboardFrameContainer.dataset.transitionOut === 'true')
+      return;
+
     this.keyboardHeight = parseInt(evt.detail.height);
     this._debug('resizeKeyboard: ' + this.keyboardHeight);
     if (this.keyboardHeight <= 0)
@@ -389,12 +390,15 @@ var KeyboardManager = {
     };
 
     // If the keyboard is hidden, or when transitioning is not finished
-    if (this.keyboardFrameContainer.classList.contains('hide') &&
-             this.keyboardFrameContainer.dataset.transitionOut !== 'true') {
+    if (this.keyboardFrameContainer.classList.contains('hide')) {
       this.showKeyboard(updateHeight);
     } else {
       updateHeight();
     }
+
+    // update latest keyboard info to notification bar
+    // for swiching other keyboard layouts.
+    this.showIMESwitcher();
   },
 
   handleEvent: function km_handleEvent(evt) {
@@ -670,7 +674,6 @@ var KeyboardManager = {
 
         // Refresh the switcher, or the labled type and layout name
         // won't change.
-        self.showIMESwitcher();
       }, function() {
         var showed = self.showingLayout;
         if (!self.keyboardLayouts[showed.type])
