@@ -1,0 +1,75 @@
+#! /bin/bash
+
+# Exit if we encounter any bug
+set -e
+
+debugmessage=''
+
+gaia_clear () {
+	make clean &> /dev/null
+}
+
+error_handler () {
+	echo '  x --- fail'
+  echo $debugmessage
+}
+
+trap error_handler ERR
+
+# Store all the distributions folder here
+distributions=(distribution_tablet)
+
+# Store locales test language
+locales=(en-US zh-CN)
+
+# Address of locale file
+locale_url=http://hg.mozilla.org/gaia-l10n/LOCALEURL/archive/tip.tar.gz
+
+printf 'make ...\n'
+gaia_clear
+debugmessage=$(make)
+printf '  v -- pass\n'
+
+printf 'PRODUCTION=1 make ... \n'
+gaia_clear
+debugmessage=$(PRODUCTION=1 make)
+printf '  v -- pass\n'
+
+printf 'DEBUG=1 make ...\n'
+gaia_clear
+debugmessage=$(DEBUG=1 make)
+printf '  v -- pass\n'
+
+printf 'GAIA_DISTRIBUTION_DIR=<distribution> make ...\n'
+for distribution in ${distributions[@]}; do
+	gaia_clear
+  debugmessage=$(GAIA_DISTRIBUTION_DIR=$distribution make)
+	printf '  v -- '$distribution' -- pass\n'
+done
+
+printf 'MOZILLA_OFFICIAL=1 make ...\n'
+gaia_clear
+debugmessage=$(MOZILLA_OFFICIAL=1 make)
+printf '  v -- pass\n'
+
+printf 'LOCALES_FILE=<PATH_OF_LOCALES_FILE> LOCALE_BASEDIR=<PATH_OF_LOCALE_BASEDIR> make ...\n'
+gaia_clear
+if [ -d 'templocale' ]; then
+	rm -rf templocale/*
+else
+	mkdir templocale
+fi
+
+pushd templocale &> /dev/null
+touch locale.json
+localeJSON='{'
+for locale in ${locales[@]}; do
+	mkdir $locale
+	localeJSON+="\"$locale\": \"$locale\","
+	curl -s ${locale_url/LOCALEURL/$locale} | tar xvz --strip-components=1 --directory=$locale  &> /dev/null
+done
+localeJSON="${localeJSON%?}}"
+echo $localeJSON >> locale.json
+popd &> /dev/null
+debugmessage=$(LOCALES_FILE=templocale/locale.json LOCALE_BASEDIR=templocale make)
+printf '  v -- pass\n'
