@@ -180,8 +180,6 @@ var StatusBar = {
     window.addEventListener('attentionscreenhide', this);
     // Listen to 'screenchange' from screen_manager.js
     window.addEventListener('screenchange', this);
-    window.addEventListener('appwillopen', this);
-    window.addEventListener('homescreenopening', this);
 
     // mozChromeEvent fired from Gecko is earlier been loaded,
     // so we use mozAudioChannelManager to
@@ -334,13 +332,6 @@ var StatusBar = {
       case 'moznetworkupload':
       case 'moznetworkdownload':
         this.update.networkActivity.call(this);
-        break;
-
-      case 'appwillopen':
-        this.element.classList.add('semi-transparent');
-        break;
-      case 'homescreenopening':
-        this.element.classList.remove('semi-transparent');
         break;
     }
   },
