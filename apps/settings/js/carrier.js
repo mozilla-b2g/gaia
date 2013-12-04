@@ -30,25 +30,16 @@ var Carrier = {
       if (!settings) {
         callback();
       }
-
       var transaction = settings.createLock();
       var mccKey = 'operatorvariant.mcc';
       var mncKey = 'operatorvariant.mnc';
 
       var mccRequest = transaction.get(mccKey);
       mccRequest.onsuccess = function() {
-        var mccs = mccRequest.result[mccKey];
-        if (!mccs || !Array.isArray(mccs) || !mccs[0]) {
-          mccMncCodes.mcc = '000';
-        }
-        mccMncCodes.mcc = mccs[0];
+        mccMncCodes.mcc = mccRequest.result[mccKey] || '0';
         var mncRequest = transaction.get(mncKey);
         mncRequest.onsuccess = function() {
-          var mncs = mncRequest.result[mncKey];
-          if (!mncs || !Array.isArray(mncs) || !mncs[0]) {
-            mccMncCodes.mnc = '00';
-          }
-          mccMncCodes.mnc = mncs[0];
+          mccMncCodes.mnc = mncRequest.result[mncKey] || '0';
           callback();
         };
       };
