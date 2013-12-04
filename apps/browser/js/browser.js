@@ -1082,6 +1082,8 @@ var Browser = {
       return;
     }
 
+    evt.preventDefault();
+
     menuItems.forEach(function(menuitem) {
       var li = document.createElement('li');
       li.id = menuitem.id;
