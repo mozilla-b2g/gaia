@@ -104,6 +104,7 @@
     <link rel="import" href="/elements/notifications.html">
     <link rel="import" href="/elements/date_time.html">
     <link rel="import" href="/elements/languages.html">
+    <link rel="import" href="/elements/sim_manager.html">
     <link rel="import" href="/elements/homescreen_details.html">
     <link rel="import" href="/elements/homescreen.html">
     <link rel="import" href="/elements/keyboard.html">
@@ -226,6 +227,8 @@
     <section is="dateTime" role="region" id="dateTime"></section>
     <!-- Personalization :: Language & Region -->
     <section is="languages" role="region" id="languages"></section>
+    <!-- Personalization :: SIM card manager -->
+    <section is="sim-manager" role="region" id="sim-manager"></section>
     <!-- Personalization :: Homescreen :: details -->
     <section is="homescreen-details" role="region" id="homescreen-details"></section>
     <!-- Personalization :: Homescreen -->
@@ -319,6 +322,9 @@
             <small id="wifi-desc" class="menu-item-desc"></small>
             <a id="menuItem-wifi" class="menu-item" href="#wifi" data-l10n-id="wifi">Wi-Fi</a>
           </li>
+          <li id="simCardManager-settings" hidden>
+            <a id="menuItem-simManager" class="menu-item" href="#sim-manager" data-l10n-id="simManager">SIM manager</a>
+          </li>
           <li id="call-settings">
             <small id="call-desc" class="menu-item-desc"></small>
             <a id="menuItem-callSettings" class="menu-item" href="#call" data-l10n-id="callSettings">Call Settings</a>
@@ -401,7 +407,7 @@
             <small id="phoneLock-desc" class="menu-item-desc"></small>
             <a id="menuItem-phoneLock" class="menu-item" href="#phoneLock" data-l10n-id="phoneLock">Phone Lock</a>
           </li>
-          <li id="simSecurity-settings">
+          <li id="simSecurity-settings" hidden>
             <small id="simCardLock-desc" class="menu-item-desc"></small>
             <a id="menuItem-simSecurity" class="menu-item" href="#simpin" data-l10n-id="simSecurity">SIM Security</a>
           </li>

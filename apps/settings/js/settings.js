@@ -251,6 +251,7 @@ var Settings = {
         document.getElementById(el).hidden = true;
       });
     }
+
     // register web activity handler
     navigator.mozSetMessageHandler('activity', this.webActivityHandler);
 
@@ -774,6 +775,18 @@ window.addEventListener('load', function loadSettings() {
         } else {
           item.removeAttribute('aria-disabled');
         }
+      }
+    }
+
+    // we hide all entry points by default,
+    // so we have to detect and show them up
+    if (navigator.mozMobileConnections) {
+      if (navigator.mozMobileConnections.length == 1) {
+        // single sim
+        document.getElementById('simSecurity-settings').hidden = false;
+      } else {
+        // dsds
+        document.getElementById('simCardManager-settings').hidden = false;
       }
     }
 
