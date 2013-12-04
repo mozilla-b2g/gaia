@@ -653,6 +653,12 @@ class GaiaDevice(object):
         return self.testvars['is_android_build']
 
     @property
+    def is_emulator(self):
+        if not hasattr(self, '_is_emulator'):
+            self._is_emulator = self.marionette.session_capabilities['device'] == 'qemu'
+        return self._is_emulator
+
+    @property
     def is_online(self):
         # Returns true if the device has a network connection established (cell data, wifi, etc)
         return self.marionette.execute_script('return window.navigator.onLine;')
@@ -790,8 +796,8 @@ class GaiaTestCase(MarionetteTestCase):
         self.device.manager.removeDir('/data/b2g/mozilla')
 
     def cleanup_sdcard(self):
-        self.device.manager.shellCheckOutput(['rm', '-r', '/sdcard/*'])
-        self.device.manager.removeDir('/sdcard/.gallery')
+        for item in self.device.manager.listFiles('/sdcard/'):
+            self.device.manager.removeDir('/'.join(['/sdcard', item]))
 
     def cleanup_gaia(self, full_reset=True):
         # remove media
@@ -836,9 +842,11 @@ class GaiaTestCase(MarionetteTestCase):
             self.data_layer.disable_cell_roaming()
 
             if self.device.has_wifi:
-                self.data_layer.enable_wifi()
-                self.data_layer.forget_all_networks()
-                self.data_layer.disable_wifi()
+                # Bug 908553 - B2G Emulator: support wifi emulation
+                if not self.device.is_emulator:
+                    self.data_layer.enable_wifi()
+                    self.data_layer.forget_all_networks()
+                    self.data_layer.disable_wifi()
 
             # remove data
             self.data_layer.remove_all_contacts()
