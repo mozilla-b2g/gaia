@@ -79,7 +79,7 @@ var SimManager = {
     return (IccHelper.cardState === 'ready');
   },
 
- /**
+ /*
   * Possible values:
   *   null,
   *   'unknown',
@@ -406,8 +406,6 @@ var SimManager = {
                                       'activityBar');
 
     var importButton = UIManager.simImportButton;
-    importButton.setAttribute('disabled', 'disabled');
-
     var cancelled = false,
         contactsRead = false;
     var importer = new SimContactsImporter(SimManager.guessIcc());
@@ -449,9 +447,10 @@ var SimManager = {
         utils.overlay.hide();
         if (importedContacts > 0) {
           window.importUtils.setTimestamp('sim');
-          SimManager.alreadyImported = true;
         }
         if (!cancelled) {
+          SimManager.alreadyImported = true;
+          importButton.setAttribute('disabled', 'disabled');
           utils.status.show(_('simContacts-imported3',
                               {n: importedContacts})
           );
