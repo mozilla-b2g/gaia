@@ -39,12 +39,39 @@ DownloadNotification.prototype = {
    */
   _update: function dn_update() {
     var noNotify = this._wontNotify(this.state, this.download.state);
-    this.state = this.download.state;
+    var state = this.state = this.download.state;
     var info = this._getInfo();
     if (noNotify) {
       info.noNotify = true;
     }
     NotificationScreen.addNotification(info);
+    if (state === 'succeeded') {
+      this._onSucceeded();
+    }
+  },
+
+  _onSucceeded: function dn_onSucceeded() {
+    this._storeDownload(this.download);
+  },
+
+  /**
+   * This method stores complete downloads to share them with the download list
+   * in settings app
+   *
+   * @param {Object} The download object provided by the API
+   */
+  _storeDownload: function dn_storeDownload(download) {
+    var req = DownloadStore.add(download);
+
+    req.onsuccess = function _storeDownloadOnSuccess() {
+      console.info('The download', download.id, 'was stored successfully:',
+                    download.url);
+    };
+
+    req.onerror = function _storeDownloadOnError(e) {
+      console.error('Exception storing the download', download.id, '(',
+                     download.url, ').', e.target.error);
+    };
   },
 
   _ICONS_PATH: 'style/notifications/images/',

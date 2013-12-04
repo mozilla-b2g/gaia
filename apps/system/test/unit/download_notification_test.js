@@ -2,6 +2,7 @@
 
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_download.js');
+requireApp('system/test/unit/mock_download_store.js');
 requireApp('system/test/unit/mock_download_ui.js');
 requireApp('system/test/unit/mock_download_formatter.js');
 requireApp('system/test/unit/mock_download_launcher.js');
@@ -19,7 +20,8 @@ var mocksForDownloadNotification = new MocksHelper([
   'MozActivity',
   'DownloadLauncher',
   'DownloadFormatter',
-  'DownloadUI'
+  'DownloadUI',
+  'DownloadStore'
 ]).init();
 
 suite('system/DownloadNotification >', function() {
@@ -42,6 +44,7 @@ suite('system/DownloadNotification >', function() {
 
   setup(function() {
     this.sinon.stub(NotificationScreen, 'addNotification');
+    this.sinon.spy(DownloadStore, 'add');
   });
 
   function assertUpdatedNotification(download) {
@@ -129,6 +132,7 @@ suite('system/DownloadNotification >', function() {
     download.state = 'succeeded';
     download.onstatechange();
     assertUpdatedNotification(download);
+    assert.ok(DownloadStore.add.calledOnce);
   });
 
   test('Finished notification was clicked > Open file', function() {
