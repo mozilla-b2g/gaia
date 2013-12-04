@@ -77,6 +77,23 @@ suite('Drafts', function() {
       subject: 'This is a different subject',
       type: 'sms'
     });
+    d6 = new Draft({
+      recipients: ['123456'],
+      content: [
+        'This is a draft MMS...',
+        {
+          blob: {
+            type: 'audio/ogg',
+            size: 12345
+          },
+          name: 'audio.oga'
+        },
+        '...with a recipient and a thread'
+      ],
+      timestamp: Date.now() - (3600000 * 2),
+      threadId: 8,
+      type: 'mms'
+    });
   });
 
   suiteTeardown(function() {
@@ -144,34 +161,29 @@ suite('Drafts', function() {
   suite('delete() >', function() {
 
     suiteSetup(function() {
-      Drafts.add(d1);
-      Drafts.add(d2);
-      Drafts.add(d3);
-      Drafts.add(d4);
+      [d1, d2, d6, d7].forEach(Drafts.add, Drafts);
     });
 
     suiteTeardown(function() {
       Drafts.clear();
     });
 
-    test('delete first draft', function() {
+    test('Delete draft with reference', function() {
       Drafts.delete(d1);
       assert.equal(Drafts.byThreadId(d1.threadId).length, 0);
-    });
-
-    test('delete second draft', function() {
-      Drafts.delete(d2);
-      assert.equal(Drafts.byThreadId(d2.threadId).length, 0);
-    });
-
-    test('delete third draft', function() {
-      Drafts.delete(d3);
-      assert.equal(Drafts.byThreadId(d3.threadId).length, 0);
     });
 
     test('delete by only threadId', function() {
       Drafts.delete({ threadId: 2 });
       assert.equal(Drafts.byThreadId(2).length, 0);
+    });
+    test('Deleting new message drafts', function() {
+      Drafts.delete(d6);
+      // First draft removes only the draft from the Drafts.List
+      assert.equal(Drafts.byThreadId(null).length, 1);
+      Drafts.delete(d7);
+      // The last draft in the thread removes the thread from the index
+      assert.equal(Drafts.byThreadId(null).length, 0);
     });
 
     test('delete by non-draft object', function() {
@@ -197,39 +209,33 @@ suite('Drafts', function() {
     });
   });
 
-  suite('byThreadId(threadId) >', function() {
+  suite('Select drafts', function() {
     var list;
 
     suiteSetup(function() {
-      Drafts.add(d1);
-      Drafts.add(d2);
-      Drafts.add(d3);
-      Drafts.add(d4);
-      Drafts.add(d5);
+      [d1, d2, d3, d4, d5].forEach(Drafts.add, Drafts);
     });
 
     suiteTeardown(function() {
       Drafts.clear();
     });
 
-    test('get drafts for id 42', function() {
-      list = Drafts.byThreadId(42);
-      assert.equal(list.length, 1);
-    });
+    suite('byThreadId', function() {
 
-    test('get drafts for id 1', function() {
-      list = Drafts.byThreadId(1);
-      assert.equal(list.length, 1);
-    });
+      test('get drafts for id 1', function() {
+        list = Drafts.byThreadId(1);
+        assert.equal(list.length, 1);
+      });
 
-    test('get drafts for null id', function() {
-      list = Drafts.byThreadId(null);
-      assert.equal(list.length, 1);
-    });
+      test('get drafts for null id', function() {
+        list = Drafts.byThreadId(null);
+        assert.equal(list.length, 1);
+      });
 
-    test('get drafts for non-existent id', function() {
-      list = Drafts.byThreadId(10);
-      assert.equal(list.length, 0);
+      test('get drafts for non-existent id', function() {
+        list = Drafts.byThreadId(10);
+        assert.equal(list.length, 0);
+      });
     });
 
     test('no drafts for a threadId returns useful state', function() {
@@ -268,20 +274,14 @@ suite('Drafts', function() {
   suite('clear() >', function() {
 
     suiteSetup(function() {
-      Drafts.add(d1);
-      Drafts.add(d2);
-      Drafts.add(d3);
-      Drafts.add(d4);
+      [d1, d2, d3, d4].forEach(Drafts.add, Drafts);
     });
 
     test('clear the entire draft index', function() {
       Drafts.clear();
-      var list1 = Drafts.byThreadId(42);
-      var list2 = Drafts.byThreadId(1);
-      var list3 = Drafts.byThreadId(2);
-      assert.equal(list1.length, 0);
-      assert.equal(list2.length, 0);
-      assert.equal(list3.length, 0);
+      assert.equal(Drafts.byThreadId(42).length, 0);
+      assert.equal(Drafts.byThreadId(1).length, 0);
+      assert.equal(Drafts.byThreadId(2).length, 0);
     });
 
   });
@@ -387,7 +387,7 @@ suite('Drafts', function() {
 
   });
 
-  suite('Storage', function() {
+  suite('Storage and Retrieval', function() {
     var spy;
 
     suiteSetup(function() {
@@ -460,5 +460,6 @@ suite('Drafts', function() {
         done();
       });
     });
+
   });
 });

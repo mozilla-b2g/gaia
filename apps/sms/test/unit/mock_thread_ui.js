@@ -8,7 +8,9 @@ var MockThreadUI = {
   CHUNK_SIZE: 10,
   CONVERTED_MESSAGE_DURATION: 3000,
   IMAGE_RESIZE_DURATION: 3000,
-  recipients: null,
+  recipients: {
+    add: function() {}
+  },
   recipientsList: document.createElement('div'),
 
   // For Information view testing. Need to be updated with ThreadUI layout

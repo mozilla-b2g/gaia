@@ -631,6 +631,57 @@ suite('Utils', function() {
         });
       });
     });
+
+    suite('Multirecipient comparisons', function() {
+      var reference = ['800 555 1212', '636 555 3226', '800 867 5309'];
+
+      test('Same array', function() {
+        assert.ok(
+          Utils.multiRecipientMatch(reference, reference)
+        );
+      });
+      test('Shuffled', function() {
+        assert.ok(
+          Utils.multiRecipientMatch(reference, [].concat(reference).reverse())
+        );
+      });
+      test('With holes', function() {
+        var copy = [].concat(reference);
+        assert.isFalse(
+          Utils.multiRecipientMatch(
+            reference,
+            copy.splice(1, 1, undefined)
+          )
+        );
+        assert.isFalse(
+          Utils.multiRecipientMatch(
+            reference,
+            copy.splice(1, 1, null)
+          )
+        );
+      });
+      test('Different lengths', function() {
+        assert.isFalse(
+          // longer
+          Utils.multiRecipientMatch(reference, reference.concat('800 867 5309'))
+        );
+        assert.isFalse(
+          //shorter
+          Utils.multiRecipientMatch(reference, reference.slice(-2))
+        );
+      });
+      test('Array and string', function() {
+        assert.isFalse(
+          // String and array length are the same
+          Utils.multiRecipientMatch(reference, '123')
+        );
+        // Single value array and string
+        assert.ok(
+          Utils.multiRecipientMatch(reference[0], [reference[0]])
+        );
+      });
+    });
+
   });
 
 

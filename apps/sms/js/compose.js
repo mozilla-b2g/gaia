@@ -325,6 +325,24 @@ var Compose = (function() {
       return content;
     },
 
+    /** Render draft from data store
+     *
+     * @param {Draft} draft Draft to be loaded into the composer
+     *
+     */
+
+    fromDraft: function(draft) {
+      // Clear out the composer
+      Compose.clear();
+
+      // If we don't have a draft, return only having cleared the composer
+      if (!draft) {
+        return;
+      }
+      // draft content is an array
+      draft.content.forEach(Compose.append, Compose);
+    },
+
     getText: function() {
       var out = this.getContent().filter(function(elem) {
         return (typeof elem === 'string');

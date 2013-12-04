@@ -4,12 +4,15 @@
 
 /*global MocksHelper, MockAttachment, MockL10n, loadBodyHTML,
          Compose, Attachment, MockMozActivity, Settings, Utils,
-         AttachmentMenu */
+         AttachmentMenu, Drafts, Draft, asycStorage */
 
 'use strict';
 
 requireApp('sms/js/compose.js');
 requireApp('sms/js/utils.js');
+requireApp('sms/js/drafts.js');
+// Storage automatically called on Drafts.add()
+require('/shared/js/async_storage.js');
 
 requireApp('sms/test/unit/mock_l10n.js');
 requireApp('sms/test/unit/mock_attachment.js');
@@ -345,6 +348,25 @@ suite('compose_test.js', function() {
 
       teardown(function() {
         Compose.clear();
+      });
+    });
+
+    suite('Preload composer fromDraft', function() {
+      var d1;
+
+      setup(function() {
+        Compose.clear();
+        d1 = new Draft({
+          content: ['I am a draft'],
+          threadId: 1
+        });
+      });
+      teardown(function() {
+        Compose.clear();
+      });
+      test('Draft with text', function() {
+        Compose.fromDraft(d1);
+        assert.equal(Compose.getContent(), d1.content.join(''));
       });
     });
 

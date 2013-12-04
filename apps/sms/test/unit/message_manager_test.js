@@ -2,7 +2,7 @@
          MockL10n, MockContact, loadBodyHTML, MozSmsFilter,
          ThreadListUI, MockThreads, MockMessages, Threads, Compose,
          GroupView, ReportView, ThreadListUI, MockThreads, MockMessages,
-         Threads, Compose, Drafts */
+         Threads, Compose, Drafts, Draft */
 
 'use strict';
 
@@ -301,6 +301,40 @@ suite('message_manager.js >', function() {
         done();
       });
     });
+    suite('new message drafts', function() {
+
+        setup(function() {
+          MessageManager.draft = new Draft({
+            threadId: 1234
+          });
+          this.sinon.spy(Compose, 'fromDraft');
+          this.sinon.spy(ThreadUI.recipients, 'add');
+          this.sinon.spy(ThreadUI, 'updateHeaderData');
+        });
+
+        teardown(function() {
+          MessageManager.draft = null;
+        });
+
+        test('Calls Compose.fromDraft()', function() {
+          MessageManager.launchComposer();
+          assert.ok(Compose.fromDraft.calledOnce);
+        });
+
+        test('No recipients loaded', function() {
+          MessageManager.launchComposer();
+          assert.isFalse(ThreadUI.recipients.add.called);
+          assert.isFalse(ThreadUI.updateHeaderData.called);
+        });
+
+        test('with recipients', function() {
+          MessageManager.draft.recipients = ['800 732 0872', '800 555 1212'];
+          MessageManager.launchComposer();
+          assert.ok(ThreadUI.recipients.add.calledTwice);
+          assert.isFalse(ThreadUI.updateHeaderData.called);
+        });
+      });
+
   });
 
   suite('handleActivity() >', function() {
@@ -527,6 +561,7 @@ suite('message_manager.js >', function() {
   suite('onHashChange', function() {
     setup(function() {
       this.sinon.spy(document.activeElement, 'blur');
+      MessageManager.threadMessages = document.createElement('div');
       this.sinon.spy(ThreadUI, 'cancelEdit');
       this.sinon.spy(ThreadUI, 'renderMessages');
       this.sinon.stub(ThreadUI, 'updateHeaderData');
@@ -536,8 +571,23 @@ suite('message_manager.js >', function() {
       this.sinon.spy(ReportView, 'reset');
       this.sinon.spy(MessageManager, 'handleActivity');
       this.sinon.stub(MessageManager, 'slide');
-
+      this.sinon.spy(Compose, 'fromDraft');
+      Threads.currentId = 1234;
+      MessageManager.draft = new Draft({
+        content: ['i am a draft'],
+        threadId: 1234
+      });
       MessageManager.onHashChange();
+    });
+
+    teardown(function() {
+      MessageManager.draft = null;
+      Threads.currentId = null;
+      delete MessageManager.threadMessages;
+    });
+
+    test('draft content added', function() {
+      assert.ok(Compose.fromDraft.calledWith(MessageManager.draft));
     });
 
     test('Remove any focus left on specific elements ', function() {

@@ -151,6 +151,28 @@ var MessageManager = {
 
   launchComposer: function mm_launchComposer(callback) {
     ThreadUI.cleanFields(true);
+    var draft = MessageManager.draft || Drafts.get(Threads.currentId);
+    if (draft) {
+      // Recipients will exist for draft messages in threads
+      // Otherwise find them from draft recipient numbers
+      draft.recipients.forEach(function(number) {
+        Contacts.findByPhoneNumber(number, function(records) {
+          if (records.length) {
+            ThreadUI.recipients.add(
+              Utils.basicContact(number, records[0])
+            );
+          } else {
+            ThreadUI.recipients.add({
+              number: number
+            });
+          }
+        });
+      });
+    }
+
+    // Will preload the composer with draft content
+    // if there is no draft content, this is a noop
+    Compose.fromDraft(draft);
     this.threadMessages.classList.add('new');
     this.slide('left', function() {
       callback && callback();
@@ -331,6 +353,7 @@ var MessageManager = {
               finishTransition();
             }
           });
+          Compose.fromDraft(this.draft);
         }
       break;
     }

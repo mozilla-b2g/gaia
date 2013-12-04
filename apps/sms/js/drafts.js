@@ -22,15 +22,9 @@
       // if either or both are falsey
       return true;
     } else {
-      // if any recipient doesn't match
-      if (a.recipients.length !== b.recipients.length) {
+      // Tests for equality of recipient arrays without regard to order
+      if (!Utils.multiRecipientMatch(a.recipients, b.recipients)) {
         return true;
-      } else {
-        for (var i = 0; i < a.recipients.length; i++) {
-          if (!Utils.probablyMatches(a.recipients[i], b.recipients[i])) {
-            return true;
-          }
-        }
       }
       // else check whether content or subject match
       return !isEqual(a.content, b.content) ||
@@ -110,6 +104,9 @@
 
       if (draft) {
         thread = draftIndex.get(draft.threadId);
+        if (!thread) {
+          return this;
+        }
         index = thread.indexOf(draft);
 
         // For cases where the provided "draft" object

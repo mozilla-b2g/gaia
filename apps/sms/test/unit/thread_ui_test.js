@@ -16,10 +16,10 @@ if (!navigator.mozContacts) {
 }
 
 requireApp('sms/js/compose.js');
+requireApp('sms/js/drafts.js');
 requireApp('sms/js/threads.js');
 requireApp('sms/js/thread_ui.js');
 requireApp('sms/js/thread_list_ui.js');
-requireApp('sms/js/drafts.js');
 requireApp('sms/js/is-equal.js');
 requireApp('sms/js/utils.js');
 requireApp('sms/js/message_manager.js');

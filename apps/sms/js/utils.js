@@ -235,8 +235,8 @@
     removeNonDialables: function ut_removeNonDialables(input) {
       return input.replace(rnondialablechars, '');
     },
-    // @param {String} a First number string to compare.
-    // @param {String} b Second number string to compare.
+    // @param {String} a First recipient field.
+    // @param {String} b Second recipient field
     //
     // Based on...
     //  - ITU-T E.123 (http://www.itu.int/rec/T-REC-E.123-200102-I/)
@@ -247,6 +247,7 @@
     probablyMatches: function ut_probablyMatches(a, b) {
       var service = navigator.mozPhoneNumberService;
 
+      // String comparison starts here
       if (typeof a !== 'string' || typeof b !== 'string') {
         return false;
       }
@@ -260,6 +261,36 @@
       }
 
       return a === b || a.slice(-7) === b.slice(-7);
+    },
+
+    /**
+     * multiRecipientMatch
+     *
+     * Check multi-repients without regard to order
+     *
+     * @param {(String|string[])} a First recipient field.
+     * @param {(String|string[])} b Second recipient field
+     *
+     * @return {Boolean} Return true if all recipients match
+     */
+    multiRecipientMatch: function ut_multiRecipientMatch(a, b) {
+      // When ES6 syntax is allowed, replace with
+      // multiRecipientMatch([...a], [...b])
+      a = [].concat(a);
+      b = [].concat(b);
+      var blen = b.length;
+      if (a.length !== blen) {
+        return false;
+      }
+      // Check each recipient in a against each in b
+      // Allows for any order (and fails early)
+      return a.every(function(number) {
+        for (var i = 0; i < blen; i++) {
+          if (Utils.probablyMatches(number, b[i])) {
+            return true;
+          }
+        }
+      });
     },
 
     // Default image size limitation is set to 300KB for MMS user story.
