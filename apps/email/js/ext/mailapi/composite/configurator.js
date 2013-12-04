@@ -7736,6 +7736,13 @@ function lazyWithConnection(getNew, cbIndex, fn) {
     var args = Array.slice(arguments);
     require([], function () {
       var next = function() {
+        // Only the inbox actually needs a connection. Using the
+        // connection in a non-inbox folder is an error.
+        if (!this.isInbox) {
+          fn.apply(this, [null].concat(args));
+          return;
+        }
+
         this.account.withConnection(function (err, conn, done) {
           var callback = args[cbIndex];
           if (err) {
