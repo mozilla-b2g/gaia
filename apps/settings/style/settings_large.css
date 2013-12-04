@@ -167,6 +167,13 @@
   }
 
   /**
+   * hotspot wifi settings
+   */
+  section[role="region"]#hotspot-wifiSettings ul li.password > label > span {
+    padding-left: 3rem;
+  }
+
+  /**
    * wallpaper
    */
   section[role="region"]#display #wallpaper {
