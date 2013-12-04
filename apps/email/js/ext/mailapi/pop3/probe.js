@@ -900,7 +900,9 @@ exports.updateMessageWithFetch = function(header, body, req, res, _LOG) {
     res.text, bodyRep.type, bodyRep.isDownloaded, req.createSnippet, _LOG
   );
 
-  header.snippet = data.snippet;
+  if (req.createSnippet) {
+    header.snippet = data.snippet;
+  }
   if (bodyRep.isDownloaded)
     bodyRep.content = data.content;
 };
