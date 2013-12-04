@@ -851,10 +851,10 @@ window.addEventListener('load', function loadSettings() {
     }
 
     function disableSIMRelatedSubpanels(disable) {
-      var itemIds = ['call-settings',
-                     'messaging-settings'];
+      var itemIds = ['messaging-settings'];
 
       if (mobileConnections.length === 1) {
+        itemIds.push('call-settings');
         itemIds.push('data-connectivity');
       }
 
