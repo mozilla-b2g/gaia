@@ -31,6 +31,7 @@ var DownloadManager = (function() {
       LazyLoader.load(['shared/js/download/download_formatter.js',
                        'shared/js/download/download_ui.js',
                        'shared/js/download/download_launcher.js',
+                       'shared/js/download/download_store.js',
                        'js/download/download_notification.js'], function() {
         started = true;
         createDownloadNotification(ev.download);

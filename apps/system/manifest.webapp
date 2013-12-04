@@ -91,5 +91,10 @@
       "description": "Communication with bluetooth apps for sending files info",
       "rules": {}
     }
+  },
+  "datastores-owned": {
+    "download_store": {
+      "description": "Stores successful downloads"
+    }
   }
 }
