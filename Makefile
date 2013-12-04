@@ -14,8 +14,10 @@
 #               the offline cache. This is mostly for desktop debugging.      #
 #                                                                             #
 # REPORTER    : Mocha reporter to use for test output.                        #
-#
-# MARIONETTE_RUNNER_HOST : The Marionnette runner host.
+#                                                                             #
+# MARIONETTE_RUNNER_HOST : The Marionnette runner host.                       #
+#                          Current values can be 'marionette-b2gdesktop-host' #
+#                          and 'marionette-device-host'                       #
 #                                                                             #
 # COVERAGE    : Add blanket testing coverage report to use for test output.   #
 #                                                                             #

@@ -105,9 +105,9 @@ PerfTestApp.prototype = {
           self.PERFORMANCE_ATOM + '.unregister();'
         );
 
-	if (callback) {
-	  callback(runResults);
-	}
+        if (callback) {
+          callback(runResults);
+        }
     });
   }
 };
