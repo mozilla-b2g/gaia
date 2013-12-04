@@ -67,13 +67,21 @@ Evme.CloudAppResult = function Evme_CloudAppsResult(query) {
 
   // @override
   this.launch = function launchCloudApp() {
-    EvmeManager.openCloudApp({
-      'url': self.cfg.appUrl,
-      'originUrl': self.getFavLink(),
-      'title': self.cfg.name,
+    // first resize the icon to the OS size
+    // this includes a 2px padding around the icon
+    Evme.Utils.padIconForOS({
       'icon': self.cfg.icon,
-      'urlTitle': query,
-      'useAsyncPanZoom': self.cfg.isWeblink
+      'resize': true,
+      'callback': function onIconResized(icon) {
+        EvmeManager.openCloudApp({
+          'url': self.cfg.appUrl,
+          'originUrl': self.getFavLink(),
+          'title': self.cfg.name,
+          'icon': icon,
+          'urlTitle': query,
+          'useAsyncPanZoom': self.cfg.isWeblink
+        });
+      }
     });
   };
 };
