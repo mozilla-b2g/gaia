@@ -16,6 +16,10 @@ form.overlay.display {
   transform: translateY(0%);
 }
 
+form.overlay:not(.display) button {
+  display: none;
+}
+
 form.overlay menu ul {
   height: calc(100% - 13rem);
   overflow: auto;

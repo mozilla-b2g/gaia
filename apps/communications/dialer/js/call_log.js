@@ -68,6 +68,7 @@ var CallLog = {
         'call-log-view',
         'deselect-all-threads',
         'delete-button',
+        'edit-mode',
         'header-edit-mode-text',
         'missed-filter',
         'select-all-threads',
@@ -90,6 +91,7 @@ var CallLog = {
 
         self.callLogIconEdit.addEventListener('click',
           self.showEditMode.bind(self));
+
         self.callLogIconClose.addEventListener('click',
           self.hideEditMode.bind(self));
         self.missedFilter.addEventListener('click',
@@ -547,16 +549,27 @@ var CallLog = {
   },
 
   enableEditMode: function cl_enableEditMode() {
-    CallLog.callLogIconEdit.classList.remove('disabled');
+    var icon = CallLog.callLogIconEdit;
+    icon.removeAttribute('disabled');
+    icon.setAttribute('aria-disabled', false);
   },
 
-  disableEditMode: function cl_enableEditMode() {
-    CallLog.callLogIconEdit.classList.add('disabled');
+  disableEditMode: function cl_disableEditMode() {
+    var icon = CallLog.callLogIconEdit;
+    icon.setAttribute('disabled', 'disabled');
+    icon.setAttribute('aria-disabled', true);
   },
 
-  showEditMode: function cl_showEditMode() {
+  showEditMode: function cl_showEditMode(event) {
+    if (this.callLogIconEdit.hasAttribute('disabled')) {
+      // Disabled does not have effect on an anchor.
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
+    this.editMode.hidden = false;
     this.headerEditModeText.textContent = this._('edit');
-    this.deleteButton.classList.add('disabled');
+    this.deleteButton.setAttribute('disabled', 'disabled');
     this.selectAllThreads.removeAttribute('disabled');
     this.selectAllThreads.textContent = this._('selectAll');
     this.deselectAllThreads.setAttribute('disabled', 'disabled');
@@ -570,6 +583,7 @@ var CallLog = {
     for (var i = 0, l = inputs.length; i < l; i++) {
       inputs[i].checked = false;
     }
+    this.editMode.hidden = true;
   },
 
   showUpgrading: function cl_showUpgrading() {
@@ -610,8 +624,8 @@ var CallLog = {
       return;
     }
     this.callLogContainer.classList.add('filter');
-    this.allFilter.setAttribute('aria-selected', 'false');
-    this.missedFilter.setAttribute('aria-selected', 'true');
+    Utils.setAriaSelected(1, [this.allFilter.firstElementChild,
+      this.missedFilter.firstElementChild]);
 
     var containers = this.callLogContainer.getElementsByTagName('ol');
     var totalMissedCalls = 0;
@@ -648,8 +662,8 @@ var CallLog = {
     }
 
     this.callLogContainer.classList.remove('filter');
-    this.allFilter.setAttribute('aria-selected', 'true');
-    this.missedFilter.setAttribute('aria-selected', 'false');
+    Utils.setAriaSelected(0, [this.allFilter.firstElementChild,
+      this.missedFilter.firstElementChild]);
 
     var hiddenContainers = document.getElementsByClassName('groupFiltered');
     for (var i = 0, l = hiddenContainers.length; i < l; i++) {
@@ -672,12 +686,12 @@ var CallLog = {
       this.selectAllThreads.removeAttribute('disabled');
       this.selectAllThreads.textContent = this._('selectAll');
       this.deselectAllThreads.setAttribute('disabled', 'disabled');
-      this.deleteButton.classList.add('disabled');
+      this.deleteButton.setAttribute('disabled', 'disabled');
       return;
     }
     this.headerEditModeText.textContent = this._('edit-selected',
                                             {n: selected});
-    this.deleteButton.classList.remove('disabled');
+    this.deleteButton.removeAttribute('disabled');
     if (selected === allInputs) {
       this.deselectAllThreads.removeAttribute('disabled');
       this.selectAllThreads.setAttribute('disabled', 'disabled');

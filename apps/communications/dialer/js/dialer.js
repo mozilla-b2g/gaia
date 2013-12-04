@@ -478,6 +478,7 @@ var NavbarManager = {
         checkContactsTab();
         this.ensureResources(function() {
           recent.classList.add('toolbar-option-selected');
+          Utils.setAriaSelected(0, [recent, contacts, keypad]);
           CallLog.init();
         });
         break;
@@ -495,10 +496,12 @@ var NavbarManager = {
         }
 
         contacts.classList.add('toolbar-option-selected');
+        Utils.setAriaSelected(1, [recent, contacts, keypad]);
         break;
       case '#keyboard-view':
         checkContactsTab();
         keypad.classList.add('toolbar-option-selected');
+        Utils.setAriaSelected(2, [recent, contacts, keypad]);
         break;
     }
   },
