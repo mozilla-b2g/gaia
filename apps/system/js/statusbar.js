@@ -182,8 +182,6 @@ var StatusBar = {
     window.addEventListener('screenchange', this);
     window.addEventListener('appwillopen', this);
     window.addEventListener('homescreenopening', this);
-    window.addEventListener('activitywillopen', this);
-    window.addEventListener('activitywillclose', this);
 
     // mozChromeEvent fired from Gecko is earlier been loaded,
     // so we use mozAudioChannelManager to
@@ -339,16 +337,10 @@ var StatusBar = {
         break;
 
       case 'appwillopen':
-      case 'activitywillopen':
         this.element.classList.add('semi-transparent');
         break;
       case 'homescreenopening':
         this.element.classList.remove('semi-transparent');
-        break;
-      case 'activitywillclose':
-        if (evt.detail.activityCaller.isHomescreen) {
-          this.element.classList.remove('semi-transparent');
-        }
         break;
     }
   },
