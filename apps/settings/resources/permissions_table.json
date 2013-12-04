@@ -6,8 +6,10 @@
     "device-storage:videos",
     "device-storage:music",
     "device-storage:sdcard",
+    "device-storage:crashes",
     "settings",
-    "indexedDB-chrome-settings"
+    "indexedDB-chrome-settings",
+    "nfc"
   ],
   "accessModes" : [
     "read",
@@ -25,8 +27,11 @@
     "browser",
     "bluetooth",
     "mobileconnection",
+    "mobilenetwork",
     "power",
+    "push",
     "permissions",
+    "phonenumberservice",
     "fmradio",
     "attention",
     "webapps-manage",
@@ -44,6 +49,7 @@
     "indexedDB-unlimited",
     "offline-app",
     "pin-app",
+    "default-persistent-storage",
     "background-sensors",
     "cellbroadcast",
     "audio-channel-normal",
@@ -53,6 +59,14 @@
     "audio-channel-telephony",
     "audio-channel-ringer",
     "audio-channel-publicnotification",
-    "open-remote-window"
+    "open-remote-window",
+    "input",
+    "input-manage",
+    "wappush",
+    "audio-capture",
+    "video-capture",
+    "nfc-manager",
+    "speaker-control",
+    "downloads"
   ]
 }
