@@ -110,7 +110,7 @@ section.valueselector [role="dialog"] li input {
   top: 0;
 }
 
-section.valueselector [role="dialog"] li label span {
+section.valueselector [role="dialog"] li label span:after {
   /* Overwrite the building blocks switch style here */
   background: none;
   top: calc((100% - 2.2rem) / 2);
