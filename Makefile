@@ -131,7 +131,7 @@ NPM_REGISTRY?=http://registry.npmjs.org
 export npm_config_loglevel=warn
 MARIONETTE_RUNNER_HOST?=marionette-b2gdesktop-host
 
-GAIA_INSTALL_PARENT?=/data/local
+GAIA_INSTALL_PARENT?=/system/b2g
 ADB_REMOUNT?=0
 
 ifeq ($(MAKECMDGOALS), demo)
@@ -157,10 +157,6 @@ endif
 
 ifeq ($(DOGFOOD), 1)
 GAIA_APP_TARGET=dogfood
-endif
-
-ifeq ($(B2G_SYSTEM_APPS), 1)
-GAIA_INSTALL_PARENT=/system/b2g
 endif
 
 ###############################################################################
