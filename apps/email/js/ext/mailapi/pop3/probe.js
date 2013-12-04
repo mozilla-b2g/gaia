@@ -1615,7 +1615,13 @@ function(module, exports, log, net, crypto,
         var number = words[0];
         var size = parseInt(words[1], 10);
         this.idToSize[number] = size;
-        allMessages.push({
+        // Push the message onto the front, so that the last line
+        // becomes the first message in allMessages. Most POP3 servers
+        // seem to return messages in ascending date order, so we want
+        // to process the newest messages first. (Tested with Dovecot,
+        // Gmail, and AOL.) The resulting list here contains the most
+        // recent message first.
+        allMessages.unshift({
           uidl: this.idToUidl[number],
           size: size,
           number: number
@@ -1628,21 +1634,39 @@ function(module, exports, log, net, crypto,
   }
 
   /**
-   * Fetche the headers and snippets for all messages. Only retrieves
+   * Fetch the headers and snippets for all messages. Only retrieves
    * messages for which filterFunc(uidl) returns true.
    *
    * @param {object} opts
    * @param {function(uidl)} opts.filter Only store messages matching filter
    * @param {function(evt)} opts.progress Progress callback
    * @param {int} opts.checkpointInterval Call `checkpoint` every N messages
+   * @param {int} opts.maxMessages Download _at most_ this many
+   *   messages during this listMessages invocation. If we find that
+   *   we would have to download more than this many messages, mark
+   *   the rest as "overflow" messages that could be downloaded in a
+   *   future sync iteration. (Default is infinite.)
    * @param {function(next)} opts.checkpoint Callback to periodically save state
-   * @param {function(err, numSynced)} cb
+   * @param {function(err, numSynced, overflowMessages)} cb
+   *   Upon completion, returns the following data:
+   *
+   *   numSynced: The number of messages synced.
+   *
+   *   overflowMessages: An array of objects with the following structure:
+   *
+   *       { uidl: "", size: 0 }
+   *
+   *     Each message in overflowMessages was NOT downloaded. Instead,
+   *     you should store those UIDLs for future retrieval as part of
+   *     a "Download More Messages" operation.
    */
   Pop3Client.prototype.listMessages = function(opts, cb) {
     var filterFunc = opts.filter;
     var progressCb = opts.progress;
     var checkpointInterval = opts.checkpointInterval || null;
+    var maxMessages = opts.maxMessages || Infinity;
     var checkpoint = opts.checkpoint;
+    var overflowMessages = [];
 
     // Get a mapping of number->UIDL.
     this._loadMessageList(function(err, unfilteredMessages) {
@@ -1657,15 +1681,21 @@ function(module, exports, log, net, crypto,
       for (var i = 0; i < unfilteredMessages.length; i++) {
         var msgInfo = unfilteredMessages[i];
         if (!filterFunc || filterFunc(msgInfo.uidl)) {
-          totalBytes += msgInfo.size;
-          messages.push(msgInfo);
+          if (messages.length < maxMessages) {
+            totalBytes += msgInfo.size;
+            messages.push(msgInfo);
+          } else {
+            overflowMessages.push(msgInfo);
+          }
         } else {
           seenCount++;
         }
       }
 
-      console.log('POP3: listMessages found ' + messages.length +
-                  ' new, ' + seenCount + ' seen messages. New UIDLs:');
+      console.log('POP3: listMessages found ' +
+                  messages.length + ' new, ' +
+                  overflowMessages.length + ' overflow, and ' +
+                  seenCount + ' seen messages. New UIDLs:');
 
       messages.forEach(function(m) {
         console.log('POP3: ' + m.size + ' bytes: ' + m.uidl);
@@ -1683,7 +1713,10 @@ function(module, exports, log, net, crypto,
         console.log('POP3: Next batch. Messages left: ' + messages.length);
         // If there are no more messages, we're done.
         if (!messages.length) {
-          cb && cb(null, totalMessages);
+          console.log('POP3: Sync complete. ' +
+                      totalMessages + ' messages synced, ' +
+                      overflowMessages.length + ' overflow messages.');
+          cb && cb(null, totalMessages, overflowMessages);
           return;
         }
 
