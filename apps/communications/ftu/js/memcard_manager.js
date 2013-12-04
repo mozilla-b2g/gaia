@@ -41,7 +41,7 @@ var SdManager = {
     };
 
     var importButton = UIManager.sdImportButton;
-    importButton.setAttribute('disabled', 'disabled');
+
 
     utils.sdcard.retrieveFiles([
       'text/vcard',
@@ -79,11 +79,11 @@ var SdManager = {
       importer.process(function import_finish() {
         window.setTimeout(function onfinish_import() {
           window.importUtils.setTimestamp('sd');
-          SdManager.alreadyImported = true;
-
           UIManager.navBar.removeAttribute('aria-disabled');
           utils.overlay.hide();
           if (!cancelled) {
+            SdManager.alreadyImported = true;
+            importButton.setAttribute('disabled', 'disabled');
             utils.status.show(
               _('memoryCardContacts-imported3', {n: importedContacts}));
           }
