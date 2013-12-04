@@ -16,10 +16,13 @@
    * and make all stateful objects become instance-able.
    *
    * @param {LockScreen.intentionRouter} |ir|
+   * @param {Object} |opts| (Opional) addtional, options that may overwrite the
+   *                        default settings.
+   *                        The options should follow the default settings above
    * @constructor
    */
-  var LockScreenSlide = function(ir) {
-    this.initialize(ir);
+  var LockScreenSlide = function(ir, opts) {
+    this.initialize(ir, opts);
   };
 
   var LockScreenSlidePrototype = {
@@ -62,6 +65,7 @@
     handle: {
       // Whether we need to auto extend the handle.
       autoExpand: {
+        accState: 'normal', // In accelerating or not.
         accFactorOriginal: 1.0,
         accFactor: 1.0,     // Accelerate sliding if user's finger crossed.
         accFactorMax: 1.3,
@@ -73,10 +77,28 @@
       radius: 28, // The radius of the handle in pixel.
       lineWidth: 1.6,
       maxWidth: 0,  // We need dynamic length here.
+      towardLeft: false,
+
+      // The colors here is the current color, which
+      // will be alternated with another side's color
+      // when user dragged across the center.
+
       // If it slide across the boundary to color it.
       touchedColor: '0, 170, 204', // RGB
       // The intermediate color of touched color.
       touchedColorStop: '178, 229, 239'
+    },
+
+    colors: {
+      left: {
+        touchedColor: '0, 170, 204',
+        touchedColorStop: '178, 229, 239'
+      },
+
+      right: {
+        touchedColor: '0, 170, 204',
+        touchedColorStop: '178, 229, 239'
+      }
     },
 
     states: {
@@ -98,6 +120,24 @@
         prevX: -1,
         deltaX: 0  // Diff from prevX and current X
       }
+
+    },
+
+    // How to get elements.
+    IDs: {
+      overlay: 'lockscreen',
+      area: 'lockscreen-area',
+      canvas: 'lockscreen-canvas',
+      areas: {
+        camera: 'lockscreen-area-camera',
+        unlock: 'lockscreen-area-unlock'
+      }
+    },
+
+    // Paths to access the resources.
+    resources: {
+      larrow: '/style/lockscreen/images/larrow.png',
+      rarrow: '/style/lockscreen/images/rarrow.png'
     },
 
     // How we communicate with the LockScreen.
@@ -108,14 +148,43 @@
    * Initialize this unlocker strategy.
    *
    * @param {IntentionRouter} |ir| see LockScreen's intentionRouter.
+   * @param {Object} |opts| (Opional) addtional, options that may overwrite the
+   *                        default settings.
+   *                        The options should follow the default settings above
    * @this {LockScreenSlide}
    */
   LockScreenSlidePrototype.initialize =
-    function(ir) {
+    function(ir, opts) {
       this.intentionRouter = ir;
+      if (opts)
+        this._overwriteSettings(opts);
       this._initializeCanvas();
       ir.unlockerInitialize();
       this.states.initialized = true;
+    };
+
+  /**
+   * Overwrite settings recursively.
+   *
+   * @param {Object} |options|
+   * @this {LockScreenSlide}
+   */
+  LockScreenSlidePrototype._overwriteSettings =
+    function(options) {
+      var iterate = function _iterate(opts, settings) {
+        for (var property in opts) {
+          if (opts.hasOwnProperty(property)) {
+              if ('object' === typeof opts[property]) {
+                iterate(opts[property], settings[property]);
+              }
+              else {
+                settings[property] = opts[property];
+              }
+          }
+        }
+      };
+
+      iterate(options, this);
     };
 
   /**
@@ -139,21 +208,9 @@
           this._resetArrows();
           this._resetHandle();
           break;
-        case 'click':
-            if (evt.target === this.areas.unlock) {
-              this.intentionRouter.activateUnlock();
-            } else if (evt.target === this.areas.camera) {
-              this.intentionRouter.activateCamera();
-            }
-            evt.preventDefault();
-          break;
 
         case 'touchstart':
-            if (evt.target === this.areas.unlock) {
-              this.intentionRouter.activateUnlock();
-            } else if (evt.target === this.areas.camera) {
-              this.intentionRouter.activateCamera();
-            } else if (evt.target === this.area) {
+            if (evt.target === this.area) {
               this._onSlideBegin(this._dpx(evt.touches[0].pageX));
             }
             evt.preventDefault();
@@ -193,15 +250,13 @@
   LockScreenSlidePrototype._initializeCanvas =
     function lss_initializeCanvas() {
 
-      this.overlay = document.getElementById('lockscreen');
-      this.area = document.getElementById('lockscreen-area');
-      this.canvas = document.getElementById('lockscreen-canvas');
-      this.areas.camera = document.getElementById('lockscreen-area-camera');
-      this.areas.unlock = document.getElementById('lockscreen-area-unlock');
+      this.overlay = document.getElementById(this.IDs.overlay);
+      this.area = document.getElementById(this.IDs.area);
+      this.canvas = document.getElementById(this.IDs.canvas);
+      this.areas.camera = document.getElementById(this.IDs.areas.camera);
+      this.areas.unlock = document.getElementById(this.IDs.areas.unlock);
 
       this.area.addEventListener('touchstart', this);
-      this.areas.camera.addEventListener('click', this);
-      this.areas.unlock.addEventListener('click', this);
 
       // Capture the first overlay change and do the delayed initialization.
       this.layout = (ScreenLayout && ScreenLayout.getCurrentLayout) ?
@@ -212,8 +267,8 @@
       this.arrows.right = new Image();
       var larrow = this.arrows.left;
       var rarrow = this.arrows.right;
-      larrow.src = '/style/lockscreen/images/larrow.png';
-      rarrow.src = '/style/lockscreen/images/rarrow.png';
+      larrow.src = this.resources.larrow;
+      rarrow.src = this.resources.rarrow;
 
       // XXX: Bet it would be OK while user start to drag the slide.
       larrow.onload = (function() {
@@ -335,15 +390,34 @@
       var ctx = this.canvas.getContext('2d');
 
       if (tx > expandSentinelR || tx < expandSentinelL) {
+          var prevState = this.handle.autoExpand.accState;
+          this.handle.autoExpand.accState = 'accelerating';
+          var currentState = this.handle.autoExpand.accState;
           var slow = false;
           if (isLeft) {
             slow = this.states.touch.deltaX > 0;
+            if (prevState !== currentState)
+              this.intentionRouter.nearLeft(currentState, prevState);
           } else {
             slow = this.states.touch.deltaX < 0;
+            if (prevState !== currentState)
+              this.intentionRouter.nearRight(currentState, prevState);
           }
           // TODO: XXX: Where we use the previous 'mtx' ?
           mtx = this._accelerateSlide(tx, tx < expandSentinelL, slow);
       } else {
+        var prevState = this.handle.autoExpand.accState;
+        this.handle.autoExpand.accState = 'normal';
+        var currentState = this.handle.autoExpand.accState;
+        if (prevState !== currentState) {
+          if (isLeft) {
+            if (prevState !== currentState)
+              this.intentionRouter.nearLeft(currentState, prevState);
+          } else {
+            if (prevState !== currentState)
+              this.intentionRouter.nearRight(currentState, prevState);
+          }
+        }
         this.handle.autoExpand.accFactor =
           this.handle.autoExpand.accFactorOriginal;
       }
@@ -399,8 +473,8 @@
       if (false === this.states.slideReachEnd) {
         this._bounceBack(this.states.touch.pageX, bounceEnd);
       } else {
-        var intention = isLeft ? this.intentionRouter.activateCamera :
-          this.intentionRouter.activateUnlock;
+        var intention = isLeft ? this.intentionRouter.activateLeft :
+          this.intentionRouter.activateRight;
         intention();
 
         // Restore it only after screen changed.
@@ -651,6 +725,24 @@
         offset = rw > 0 ? center.x + maxWidth : center.x - maxWidth;
       }
 
+      var counterclock = false;
+      if (offset - center.x < 0) {
+        counterclock = true;
+      }
+      var isLeft = counterclock;
+
+      if (isLeft && !this.handle.towardLeft) {
+        this.handle.towardLeft = true;
+        this.handle.touchedColor = this.colors.left.touchedColor;
+        this.handle.touchedColorStop = this.colors.left.touchedColorStop;
+      }
+
+      if (!isLeft && this.handle.towardLeft) {
+        this.handle.towardLeft = false;
+        this.handle.touchedColor = this.colors.right.touchedColor;
+        this.handle.touchedColorStop = this.colors.right.touchedColorStop;
+      }
+
       // 1.5 ~ 0.5 is the right part of a circle.
       var startAngle = 1.5 * Math.PI;
       var endAngle = 0.5 * Math.PI;
@@ -673,7 +765,7 @@
         // so it's alpha would decrease to zero.
         var borderAlpha = 1.0 - fillAlpha;
 
-        // From white to covered blue.
+        // From white to covered color.
         strokeStyle = 'rgba(' + this.handle.touchedColorStop +
           ',' + borderAlpha + ')';
 
@@ -681,18 +773,13 @@
         this.states.slidingColorful = true;
       } else {
 
-        // Has pass the stage of gradient color.
-        if (true === this.states.slidingColorGradientEnd) {
-          fillAlpha = 1.0;
-          var color = this.handle.touchedColor;
-        } else if (0 === urw) {  // Draw as the initial circle.
+        if (0 === urw) {  // Draw as the initial circle.
           fillAlpha = 0.0;
           var color = '255,255,255';
         } else {
           fillAlpha = (urw - 15) / GRADIENT_LENGTH;
           if (fillAlpha > 1.0) {
             fillAlpha = 1.0;
-            this.states.slidingColorGradientEnd = true;
           }
           var color = this.handle.touchedColorStop;
         }
@@ -703,11 +790,6 @@
         ',' + fillAlpha + ')';
       ctx.lineWidth = this.handle.lineWidth;
       ctx.strokeStyle = strokeStyle;
-
-      var counterclock = false;
-      if (offset - center.x < 0) {
-        counterclock = true;
-      }
 
       // Start to draw it.
       // Can't use functions like rect or these individual parts
