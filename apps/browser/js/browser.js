@@ -1022,7 +1022,7 @@ var Browser = {
           'VIDEO': 'video',
           'AUDIO': 'audio'
         };
-        var type = typeMap[item.nodeName];
+        var type = typeMap[nodeName];
         if (nodeName === 'VIDEO' && !item.data.hasVideo) {
           type = 'audio';
         }
