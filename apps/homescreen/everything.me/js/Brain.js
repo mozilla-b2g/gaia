@@ -306,13 +306,17 @@
         flashCounter = 0,
         previousFirstSuggestion = '',
         SEARCHES_BEFORE_FLASHING_HELPER = 4,
-        TIMEOUT_ANDROID_BEFORE_HELPER_CLICK = 500;
+        TIMEOUT_ANDROID_BEFORE_HELPER_CLICK = 500,
+        sourcesMap;
 
-    var sourcesMap = {
-      'suggestions': SEARCH_SOURCES.SUGGESTION,
-      'didyoumean': SEARCH_SOURCES.SPELLING,
-      'refine': SEARCH_SOURCES.REFINE,
-      'history': SEARCH_SOURCES.HISTORY
+    // Helper module init
+    this.init = function init(data) {
+      sourcesMap = {
+        'suggestions': SEARCH_SOURCES.SUGGESTION,
+        'didyoumean': SEARCH_SOURCES.SPELLING,
+        'refine': SEARCH_SOURCES.REFINE,
+        'history': SEARCH_SOURCES.HISTORY
+      };
     };
 
     // items loaded
