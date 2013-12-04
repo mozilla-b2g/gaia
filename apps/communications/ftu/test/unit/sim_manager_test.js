@@ -1,11 +1,11 @@
 'use strict';
 
+require(
+  '/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 requireApp(
-  'communications/ftu/test/unit/mock_navigator_moz_mobile_connection.js');
+  'communications/ftu/test/unit/mock_navigator_moz_icc_manager.js');
 requireApp('communications/ftu/test/unit/mock_ui_manager.js');
 requireApp('communications/ftu/test/unit/mock_l10n.js');
-
-requireApp('communications/shared/test/unit/mocks/mock_icc_helper.js');
 
 requireApp('communications/ftu/js/sim_manager.js');
 requireApp('communications/ftu/js/navigation.js');
@@ -14,21 +14,26 @@ require('/shared/test/unit/load_body_html_helper.js');
 
 var _;
 var mocksHelperForSimManager = new MocksHelper([
-  'UIManager',
-  'IccHelper'
+  'UIManager'
 ]).init();
 
 suite('sim mgmt >', function() {
   var realL10n,
-      realMozMobileConnection;
+      realMozIccManager,
+      realMozMobileConnections;
   var mocksHelper = mocksHelperForSimManager;
-  var conn, container, navigationSpy;
+  var container, navigationStub;
 
   suiteSetup(function() {
     loadBodyHTML('/ftu/index.html');
 
-    realMozMobileConnection = navigator.mozMobileConnection;
-    navigator.mozMobileConnection = MockNavigatorMozMobileConnection;
+    realMozIccManager = navigator.mozIccManager;
+    navigator.mozIccManager = MockNavigatorMozIccManager;
+
+    realMozMobileConnections = navigator.mozMobileConnections;
+    MockNavigatorMozMobileConnections[0].iccId =
+                                     navigator.mozIccManager.iccIds[0];
+    navigator.mozMobileConnections = MockNavigatorMozMobileConnections;
 
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
@@ -38,7 +43,6 @@ suite('sim mgmt >', function() {
 
   setup(function() {
     SimManager.init();
-    conn = navigator.mozMobileConnection;
 
     UIManager.activationScreen.classList.remove('show');
     UIManager.unlockSimScreen.classList.add('show');
@@ -47,8 +51,11 @@ suite('sim mgmt >', function() {
   suiteTeardown(function() {
     document.body.innerHTML = '';
 
-    navigator.mozMobileConnection = realMozMobileConnection;
-    realMozMobileConnection = null;
+    navigator.mozMobileConnections = realMozMobileConnections;
+    realMozMobileConnections = null;
+
+    navigator.mozIccManager = realMozIccManager;
+    realMozIccManager = null;
 
     navigator.mozL10n = realL10n;
     realL10n = null;
@@ -63,11 +70,12 @@ suite('sim mgmt >', function() {
   });
 
   test('"Back" hides the screen', function() {
-    navigationSpy = sinon.spy(Navigation, 'back');
+    navigationStub = sinon.stub(Navigation, 'back');
     SimManager.back();
-    assert.ok(navigationSpy.calledOnce);
+    assert.ok(navigationStub.calledOnce);
     assert.isTrue(UIManager.activationScreen.classList.contains('show'));
     assert.isFalse(UIManager.unlockSimScreen.classList.contains('show'));
+    navigationStub.restore();
   });
 
   suite('Handle state changes', function() {
@@ -84,7 +92,7 @@ suite('sim mgmt >', function() {
     });
 
     test('pinRequired shows PIN screen', function() {
-      IccHelper.setProperty('cardState', 'pinRequired');
+      navigator.mozIccManager.setProperty('cardState', 'pinRequired');
       SimManager.handleCardState();
 
       assert.isTrue(UIManager.unlockSimScreen.classList.contains('show'));
@@ -95,7 +103,7 @@ suite('sim mgmt >', function() {
     });
 
     test('pukRequired shows PUK screen', function() {
-      IccHelper.setProperty('cardState', 'pukRequired');
+      navigator.mozIccManager.setProperty('cardState', 'pukRequired');
       SimManager.handleCardState();
 
       assert.isTrue(UIManager.unlockSimScreen.classList.contains('show'));
@@ -106,7 +114,7 @@ suite('sim mgmt >', function() {
     });
 
     test('networkLocked shows XCK screen', function() {
-      IccHelper.setProperty('cardState', 'networkLocked');
+      navigator.mozIccManager.setProperty('cardState', 'networkLocked');
       SimManager.handleCardState();
 
       assert.isTrue(UIManager.unlockSimScreen.classList.contains('show'));
@@ -124,7 +132,7 @@ suite('sim mgmt >', function() {
 
     suite('PIN unlock ', function() {
       setup(function() {
-        IccHelper.setProperty('cardState', 'pinRequired');
+        navigator.mozIccManager.setProperty('cardState', 'pinRequired');
         // start from original state each test
         UIManager.pinInput.classList.remove('onerror');
         UIManager.pinError.classList.add('hidden');
@@ -185,7 +193,7 @@ suite('sim mgmt >', function() {
 
     suite('PUK unlock ', function() {
       setup(function() {
-        IccHelper.setProperty('cardState', 'pukRequired');
+        navigator.mozIccManager.setProperty('cardState', 'pukRequired');
         // start from original state each test
         UIManager.pukInput.classList.remove('onerror');
         UIManager.pukError.classList.add('hidden');
@@ -258,7 +266,7 @@ suite('sim mgmt >', function() {
 
     suite('XCK unlock ', function() {
       setup(function() {
-        IccHelper.setProperty('cardState', 'networkLocked');
+        navigator.mozIccManager.setProperty('cardState', 'networkLocked');
         // start from original state each test
         UIManager.xckInput.classList.remove('onerror');
         UIManager.xckError.classList.add('hidden');
@@ -298,19 +306,19 @@ suite('sim mgmt >', function() {
   });
 
   suite('No Telephony', function() {
-    var realMozMobileConnection;
+    var realMozMobileConnections;
 
     setup(function() {
-      realMozMobileConnection = navigator.mozMobileConnection;
+      realMozMobileConnections = navigator.mozMobileConnections;
       // no telephony API
-      navigator.mozMobileConnection = null;
+      navigator.mozMobileConnections = null;
 
       SimManager.init();
     });
 
     teardown(function() {
-      navigator.mozMobileConnection = realMozMobileConnection;
-      realMozMobileConnection = null;
+      navigator.mozMobileConnections = realMozMobileConnections;
+      realMozMobileConnections = null;
     });
 
     test('hide sim import section', function() {
