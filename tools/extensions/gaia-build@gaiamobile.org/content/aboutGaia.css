@@ -375,3 +375,36 @@ div.lightbox .lightbox-background .closemsg, div.lightbox .lightbox-background .
   content: "Packaged app";
   background-color: #204a78;
 }
+
+.lightbox-title {
+  font-size: 2em;
+  border-bottom: 1px solid black;
+  text-transform: capitalize;
+}
+
+.lightbox-content {
+  margin: 2rem;
+}
+
+.lightbox-content a {
+  color: blue;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.operator input {
+  margin: 0.2rem;
+}
+
+.hidden {
+  display: none;
+}
+
+.description {
+  margin: 0.6rem;
+  font-size: 0.8em;
+}
+
+#certain-mcc-mnc:not(:checked) ~ #operators-options {
+  display: none
+}

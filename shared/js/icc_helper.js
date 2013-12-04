@@ -14,6 +14,7 @@
   var _iccProxy = null;
 
   Object.defineProperty(exports, 'IccHelper', {
+    configurable: true,
     get: function() {
       return _iccProxy;
     },

@@ -1,5 +1,5 @@
 .draggable {
-  z-index: 10000;
+  z-index: 11000; /* higher than collection */
   pointer-events: none;
   position: fixed;
   text-align: center;
@@ -19,6 +19,17 @@
   margin-top: -0.05rem;
   /* shift left edge of text to center */
   left: 50%;
+}
+
+/* compensate for differences between E.me and homescreen li rendering */
+#collection .draggable > div {
+  margin-top: -0.1rem;
+  margin-left: -0.15rem;
+}
+
+#collection .draggable > div > span {
+  margin-left: 0.2rem;
+  margin-top: -0.2rem;
 }
 
 /* text label */
@@ -45,7 +56,8 @@
 @-moz-keyframes none {}
 
 /* Image and label have shaking effect */
-body[data-mode = 'edit'] ol > li > div > img {
+body[data-mode = 'edit'] ol > li > div > img,
+#collection[data-mode = 'edit'] .evme-apps ul.static li .icon {
   -moz-animation-name: shake;
   -moz-animation-duration: .8s;
   -moz-transform-origin: 50% 50%;
@@ -54,19 +66,33 @@ body[data-mode = 'edit'] ol > li > div > img {
 }
 
 body[data-transitioning] ol > li > div > img,
-body[data-dragging] ol > li > div > img {
+body[data-dragging] ol > li > div > img,
+#collection[data-transitioning] .evme-apps ul.static li .icon,
+#collection[data-dragging] .evme-apps ul.static li .icon {
   -moz-animation-name: none;
 }
 
-body[data-dragging] ol > li span.options {
+#collection .evme-apps ul.static[data-rearranging] li {
+  transition-duration: 0s !important;
+}
+
+/* for elementFromPoint to return the draggable li and not child nodes */
+body[data-dragging] ol > li span.options,
+#collection[data-dragging] .evme-apps ul.static li img,
+#collection[data-dragging] .evme-apps ul.static li span {
   pointer-events: none;
 }
 
-body[data-mode = 'edit'] ol > li[data-dragging] {
+body[data-mode = 'edit'] ol > li[data-dragging],
+#collection[data-mode = 'edit'] .evme-apps ul.static li[data-dragging] {
   opacity: 0;
+  /* clear transition set by Result.css */
+  /* the dragged li should instantly jump to position */
+  transition: none;
 }
 
-body[data-dragging] ol > li {
+body[data-dragging] ol > li,
+#collection[data-dragging] .evme-apps ul.static li {
   opacity: 0.7;
 }
 
@@ -93,4 +119,8 @@ body[data-dragging] ol > li[data-is-collection = 'true'].hover > div::before {
 body[data-dragging] ol > li[data-is-collection = 'true'].hover > span.options,
 body[data-dragging] #footer li[data-is-collection = 'true'].hover > span.options {
   background: url(../resources/images/plus_small_ico.png) no-repeat left top / 2.4rem;
+}
+
+.evmeScope #collection[data-mode='edit'] .evme-apps ul.static li span.remove {
+  display: block;
 }

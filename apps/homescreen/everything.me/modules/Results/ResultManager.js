@@ -334,7 +334,10 @@ Evme.ResultManager = function Evme_ResultsManager() {
   }
 
   function touchMove(e) {
-    if (shouldFadeBG) {
+    // double check ftr.fadeOnScroll since it might have been disabled by
+    // another touchstart handler
+    // (like when organizing static apps in collection)
+    if (ftr.fadeOnScroll && shouldFadeBG) {
       var _fadeBy = scroll.distY / MAX_SCROLL_FADE;
 
       if (_fadeBy < fadeBy) {
@@ -350,7 +353,8 @@ Evme.ResultManager = function Evme_ResultsManager() {
   }
 
   function touchEnd(data) {
-    if (shouldFadeBG &&
+    // double check ftr.fadeOnScroll (see touchMove)
+    if (ftr.fadeOnScroll && shouldFadeBG &&
           scroll.distY >= FULLSCREEN_THRESHOLD * MAX_SCROLL_FADE) {
       showingFullScreen = true;
       cbScrolledToTop();

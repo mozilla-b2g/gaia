@@ -24,12 +24,17 @@ navigator.mozL10n.ready(function SettingsFactoryReset() {
   var resetButton = document.getElementById('reset-phone');
   if (resetButton) {
     resetButton.addEventListener('click', function reset_click(evt) {
-      // XXX: need to refine this part when the visual design is done
-      var msg = _('reset-warning-1') + '\n' + _('reset-warning-2');
-      var response = window.confirm(msg);
-      if (response) {
+      var resetDialog = document.getElementById('reset-phone-dialog');
+      var resetConfirm = document.getElementById('confirm-reset-phone');
+      var resetCancel = document.getElementById('cancel-reset-phone');
+
+      resetDialog.hidden = false;
+      resetCancel.onclick = function() {
+        resetDialog.hidden = true;
+      };
+      resetConfirm.onclick = function() {
         factoryReset();
-      }
+      };
     });
   }
 });

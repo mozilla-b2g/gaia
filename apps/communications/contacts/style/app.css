@@ -341,6 +341,7 @@ form p + p {
   background: #f4f4f4;
   color: #333;
   text-align: left;
+  will-animate: scroll;
 }
 
 /* Removes scroll from the view body inner */

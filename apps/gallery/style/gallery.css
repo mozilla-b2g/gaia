@@ -143,6 +143,7 @@ section {
    * keep the thumbnail view opaque if possible.
    */
   background-color: #0E1214;
+  will-animate: scroll;
 }
 
 /* thumbnails in regular thumbnail list view */
@@ -302,6 +303,7 @@ section {
   margin: 0;
   overflow: hidden;
   -moz-user-select: none;
+  will-animate: scroll;
 }
 
 .frame > img {

@@ -59,6 +59,38 @@ var DownloadLauncher = (function() {
     };
   };
 
+  // Storage name by default
+  var STORAGE_NAME_BY_DEFAULT = 'sdcard';
+
+  // Storage name settings key
+  var STORAGE_NAME_KEY = 'device.storage.writable.name';
+
+  // Current storage name
+  var storageName = STORAGE_NAME_BY_DEFAULT;
+
+  LazyLoader.load('shared/js/settings_listener.js', function settingsLoaded() {
+    SettingsListener.observe(STORAGE_NAME_KEY, STORAGE_NAME_BY_DEFAULT,
+      function setStorageName(evt) {
+        var settingValue = evt.settingValue;
+        if (settingValue) {
+          storageName = settingValue;
+        }
+      }
+    );
+  });
+
+  /*
+   * Returns the relative path from the file absolute path
+   *
+   * @param{String} Absolute path
+   *
+   * @returns(String) Relative path
+   */
+  function getRelativePath(path) {
+    var storagePath = storageName + '/';
+    return path.substring(path.indexOf(storagePath) + storagePath.length);
+  }
+
  /*
   * Error auxiliary method
   */
@@ -84,8 +116,8 @@ var DownloadLauncher = (function() {
       var path = download.path;
 
       try {
-        var storeReq =
-         navigator.getDeviceStorage(download.storageName || 'sdcard').get(path);
+        path = getRelativePath(path);
+        var storeReq = navigator.getDeviceStorage(storageName).get(path);
 
         storeReq.onsuccess = function store_onsuccess() {
           req.done(storeReq.result);
@@ -93,11 +125,11 @@ var DownloadLauncher = (function() {
 
         storeReq.onerror = function store_onerror() {
           sendError(req, storeReq.error.name + ' Could not open the file: ' +
-                    path, CODE.FILE_NOT_FOUND);
+                    path + ' from ' + storageName, CODE.FILE_NOT_FOUND);
         };
       } catch (ex) {
-        sendError(req, 'Error getting the file from device storage: ' + path,
-                  CODE.DEVICE_STORAGE);
+        sendError(req, 'Error getting the file ' + path + ' from ' +
+                  storageName, CODE.DEVICE_STORAGE);
       }
     }, 0);
 
@@ -169,10 +201,8 @@ var DownloadLauncher = (function() {
     var req = new Request();
 
     window.setTimeout(function launching() {
-      // TODO: Maybe the API should express that the download finished
-      // correctly, like 'finished' instead of 'stopped'
       var state = download.state;
-      if (state === 'done') {
+      if (state === 'succeeded') {
         LazyLoader.load(['shared/js/mime_mapper.js',
                          'shared/js/download/download_formatter.js'],
                         function loaded() {

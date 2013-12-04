@@ -1,0 +1,11 @@
+{
+  "name": "Showbiz",
+  "role": "collection",
+  "provider_id": "376",
+  "default_locale": "en-US",
+  "icons": {
+    "60": "/collections/showbiz/icon.png",
+    "90": "/collections/showbiz/icon@1.5x.png",
+    "120": "/collections/showbiz/icon@2x.png"
+  }
+}

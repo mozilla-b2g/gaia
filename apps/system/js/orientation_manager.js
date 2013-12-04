@@ -44,6 +44,7 @@ var OrientationManager = {
       this.defaultOrientation = window.innerWidth > window.innerHeight ?
         'landscape-primary' : 'portrait-primary';
     } else {
+      screen.mozLockOrientation('default');
       this.defaultOrientation = screen.mozOrientation;
     }
   },

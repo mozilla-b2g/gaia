@@ -89,6 +89,7 @@ input.msg-search-text-tease {
   background-color: #53b8cc;
 }
 .msg-header-details-section {
+  -moz-box-sizing: border-box;
   box-sizing: border-box;
   position: absolute;
   top: 0;
@@ -377,6 +378,7 @@ input.msg-search-text-tease {
 
 .msg-reader-load-infobar {
   position: absolute;
+  -moz-box-sizing: border-box;
   box-sizing: border-box;
   color: white;
   font-size: 1.2rem;
@@ -407,6 +409,7 @@ input.msg-search-text-tease {
    selector than ours for :active, so we can't just reorder the files to fix the problem. */
 .msg-refresh-btn {
   background-image: url("images/icons/refresh.png") !important;
+  background-size: 3.2rem !important;
 }
 .msg-refresh-btn[data-state="synchronizing"] {
   animation: 0.9s msg-refresh-rotate infinite steps(30);
@@ -537,6 +540,7 @@ input.msg-search-text-tease {
 }
 
 .msg-list-topbar {
+  -moz-box-sizing: border-box;
   box-sizing: border-box;
   position: absolute;
   top: 5rem;

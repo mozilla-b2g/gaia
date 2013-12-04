@@ -38,15 +38,19 @@ suite('DownloadFormatter', function() {
   });
 
   test(' getPercentage', function() {
-    var percentage = DownloadFormatter.getFormattedPercentage(51.1, 100);
-    assert.equal(percentage, 51.10);
+    var mockDownload = new MockDownload({
+      totalBytes: 1024 * 100,
+      currentBytes: 1024 * 50
+    });
+    var percentage = DownloadFormatter.getPercentage(mockDownload);
+    assert.equal(percentage, 50);
   });
 
   test(' getFileName', function() {
-    var url = 'http://firefoxos.com/file/nameFile.mp3';
+    var path = '/mnt/sdcard/nameFile.mp3';
     var mockDownload = new MockDownload(
       {
-        url: url
+        path: path
       }
     );
     assert.equal(DownloadFormatter.getFileName(mockDownload), 'nameFile.mp3');
@@ -172,42 +176,14 @@ suite('DownloadFormatter', function() {
     assert.equal(params.unit, 'byteUnit-TB');
   });
 
-
-  test(' getDownloadedPercentage without decimals', function() {
-    var total = 1024 * 1024 * 1024; // 1 GB
-    var currently = total * 0.5; // 0.5 GB or 50 %
-    var mockDownload = new MockDownload(
-      {
-        totalBytes: total,
-        currentBytes: currently
-      }
-    );
-    var percentage = DownloadFormatter.getDownloadedPercentage(mockDownload);
-    assert.equal(percentage, '50');
-  });
-
-  test(' getDownloadedPercentage with decimals', function() {
-    var total = 1024 * 1024 * 1024; // 1 GB
-    var currently = total * 0.611; // 0.611 GB or 61.10 %
-    var mockDownload = new MockDownload(
-      {
-        totalBytes: total,
-        currentBytes: currently
-      }
-    );
-    var percentage = DownloadFormatter.getDownloadedPercentage(mockDownload);
-    assert.equal(percentage, '61.10');
-  });
-
   test(' getUUID', function() {
     var now = new Date();
+    var expectedUUID = 'download-69';
     var mockDownload = new MockDownload(
       {
-        url: 'http://firefoxos.com/fichero.mp4',
-        startTime: now
+        id: expectedUUID
       }
     );
-    var expectedUUID = 'fichero.mp4' + now.getTime();
     var retrievedUUID = DownloadFormatter.getUUID(mockDownload);
     assert.equal(retrievedUUID, expectedUUID);
   });

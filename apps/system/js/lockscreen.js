@@ -1079,6 +1079,4 @@ var LockScreen = {
 // Bug 836195 - [Homescreen] Dock icons drop down in the UI
 // consistently when using a lockcode and visiting camera
 LockScreen.init();
-
 navigator.mozL10n.ready(LockScreen.init.bind(LockScreen));
-

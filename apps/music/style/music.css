@@ -340,7 +340,7 @@ body.picker-mode #title-player {
   overflow-y: auto;
 }
 
-#views-sublist-header-default,
+#views-sublist-header-image,
 #views-sublist-header-controls {
   position: relative;
   float: left;
@@ -348,15 +348,13 @@ body.picker-mode #title-player {
   border-bottom: solid 0.1rem rgba(255, 255, 255, 0.1);
 }
 
-#views-sublist-header-default {
+#views-sublist-header-image {
   width: 8rem;
   height: 8rem;
   overflow: hidden;
   background-clip: content-box;
-}
-
-#views-sublist-header-image {
-  position: absolute;
+  background-size: cover;
+  background-position: center center;
   opacity: 0;
 }
 
@@ -533,56 +531,6 @@ body.picker-mode #title-player {
   right: 0.5%;
 }
 
-.default-album-0 {
-  background-image: url('./images/AlbumArt1_small.png');
-  background-size: 100% 100%;
-}
-
-.default-album-1 {
-  background-image: url('./images/AlbumArt2_small.png');
-  background-size: 100% 100%;
-}
-
-.default-album-2 {
-  background-image: url('./images/AlbumArt3_small.png');
-  background-size: 100% 100%;
-}
-
-.default-album-3 {
-  background-image: url('./images/AlbumArt4_small.png');
-  background-size: 100% 100%;
-}
-
-.default-album-4 {
-  background-image: url('./images/AlbumArt5_small.png');
-  background-size: 100% 100%;
-}
-
-.default-album-5 {
-  background-image: url('./images/AlbumArt6_small.png');
-  background-size: 100% 100%;
-}
-
-.default-album-6 {
-  background-image: url('./images/AlbumArt7_small.png');
-  background-size: 100% 100%;
-}
-
-.default-album-7 {
-  background-image: url('./images/AlbumArt8_small.png');
-  background-size: 100% 100%;
-}
-
-.default-album-8 {
-  background-image: url('./images/AlbumArt9_small.png');
-  background-size: 100% 100%;
-}
-
-.default-album-9 {
-  background-image: url('./images/AlbumArt10_small.png');
-  background-size: 100% 100%;
-}
-
 #player-cover {
   position: relative;
   width: 100%;
@@ -602,15 +550,19 @@ body.picker-mode #title-player {
 
 .fadeIn {
   animation-name: fadeIn;
-  animation-duration: 1500ms;
+  animation-duration: 500ms;
   animation-timing-function: ease-in-out;
   animation-fill-mode: forwards;
-  animation-delay: 500ms;
+  animation-delay: 50ms;
 }
 
 #player-cover-image {
   position: absolute;
+  width: 100%;
+  height: 100%;
   opacity: 0;
+  background-position: center;
+  background-size: cover;
 }
 
 #player-cover.slideOut #player-cover-caption {

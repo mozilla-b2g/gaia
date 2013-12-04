@@ -75,7 +75,7 @@ class Camera(Base):
 
     def wait_for_filmstrip_not_visible(self):
         filmstrip = self.marionette.find_element(*self._filmstrip_locator)
-        self.wait_for_condition(lambda m: filmstrip.location['y'] == (0 - filmstrip.size['height']))
+        self.wait_for_condition(lambda m: filmstrip.location['y'] == (0 - filmstrip.size['height']), timeout=10)
 
     def wait_for_video_capturing(self):
         body = self.marionette.find_element(*self._body_locator)

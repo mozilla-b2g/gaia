@@ -57,8 +57,6 @@ var CallHandler = (function callHandler() {
         fillNumber();
       });
     }
-
-    activity.postResult({ status: 'accepted' });
   }
 
   /* === Notifications support === */

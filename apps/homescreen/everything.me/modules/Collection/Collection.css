@@ -191,16 +191,6 @@ body:not(.evme-loading):not(.evme-ready) #collection .evme-apps {
         .evmeScope #collection .evme-apps ul.static li .icon {
             transform: scale(1);
         }
-        .evmeScope #collection[data-mode='edit'] .evme-apps ul.static li .icon {
-          -moz-animation-name: shake;
-          -moz-animation-duration: .8s;
-          -moz-transform-origin: 50% 50%;
-          -moz-animation-iteration-count: infinite;
-          -moz-animation-timing-function: ease-out;
-        }
-        .evmeScope #collection[data-mode='edit'] .evme-apps ul.static li span.remove {
-          display: block;
-        }
 
     .evmeScope #collection #bgimage-overlay {
         top: 0;
@@ -263,12 +253,4 @@ body:not(.evme-loading):not(.evme-ready) #collection .evme-apps {
     transform: translateY(100%);
     pointer-events: none;
   }
-}
-
-@-moz-keyframes shake {
-  0% { -moz-transform: scale(1); }
-  25% { -moz-transform: scale(1.05); }
-  50% { -moz-transform: scale(1); }
-  75% { -moz-transform: scale(0.95); }
-  100% { -moz-transform: scale(1); }
 }

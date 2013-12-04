@@ -68,7 +68,7 @@ function updateNextReset(trackingPeriod, value, callback) {
 function resetData(mode, onsuccess, onerror) {
 
   // Get all availabe Interfaces
-  var currentSimcardInterface = Common.getCurrentSIMInterface();
+  var currentSimcardInterface = Common.getDataSIMInterface();
   var wifiInterface = Common.getWifiInterface();
 
   // Ask reset for all available Interfaces
@@ -194,7 +194,11 @@ var Common = {
 
   allNetworkInterfaces: {},
 
+  dataSimIccId: null,
+
   allNetworkInterfaceLoaded: false,
+
+  dataSimIccIdLoaded: false,
 
   isValidICCID: function(iccid) {
     return typeof iccid === 'string' && iccid.length;
@@ -319,9 +323,13 @@ var Common = {
     }
   },
 
-  getCurrentSIMInterface: function _getCurrentSIMInterface() {
-    var iccId = IccHelper.iccInfo ? IccHelper.iccInfo.iccid : null;
+  getDataSIMInterface: function _getDataSIMInterface() {
+    if (!this.dataSimIccIdLoaded) {
+      console.warn('Data simcard is not ready yet');
+      return;
+    }
 
+    var iccId = this.dataSimIccId;
     if (iccId) {
       var findCurrentInterface = function(networkInterface) {
         if (networkInterface.id === iccId) {
@@ -357,6 +365,60 @@ var Common = {
       console.error('Error when trying to load network interfaces');
       if (onerror) {
         onerror();
+      }
+    };
+  },
+
+  loadDataSIMIccId: function _loadDataSIMIccId(onsuccess, onerror) {
+    var settings = navigator.mozSettings,
+        mobileConnections = navigator.mozMobileConnections,
+        dataSlotId = 0;
+    var self = this;
+    var req = settings &&
+              settings.createLock().get('ril.data.defaultServiceId');
+
+    req.onsuccess = function _onsuccesSlotId() {
+      dataSlotId = req.result['ril.data.defaultServiceId'] || 0;
+      var mobileConnection = mobileConnections[dataSlotId];
+      var iccId = mobileConnection.iccId || null;
+      if (!iccId) {
+        console.error('The slot ' + dataSlotId +
+                   ', configured as the data slot, is empty');
+        if (onerror) {
+          onerror();
+        }
+        return;
+      }
+      self.dataSimIccId = iccId;
+      self.dataSimIccIdLoaded = true;
+      if (onsuccess) {
+        onsuccess();
+      }
+    };
+
+    req.onerror = function _onerrorSlotId() {
+      console.warn('ril.data.defaultServiceId does not exists');
+      var iccId = null;
+
+      // Load the fist slot with iccId
+      for (var i = 0; i < mobileConnections.length && !iccId; i++) {
+        if (mobileConnections[i]) {
+          iccId = mobileConnections[i].iccId;
+        }
+      }
+      if (!iccId) {
+        console.error('No SIM in the device');
+        if (onerror) {
+          onerror();
+        }
+        return;
+      }
+
+      self.dataSimIccId = iccId;
+      self.dataSimIccIdLoaded = true;
+
+      if (onsuccess) {
+        onsuccess();
       }
     };
   }
