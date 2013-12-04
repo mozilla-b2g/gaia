@@ -409,6 +409,7 @@ input.msg-search-text-tease {
    selector than ours for :active, so we can't just reorder the files to fix the problem. */
 .msg-refresh-btn {
   background-image: url("images/icons/refresh.png") !important;
+  background-size: 3.2rem !important;
 }
 .msg-refresh-btn[data-state="synchronizing"] {
   animation: 0.9s msg-refresh-rotate infinite steps(30);
