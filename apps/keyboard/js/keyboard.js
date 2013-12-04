@@ -1358,6 +1358,12 @@ function endPress(target, coords, touchId, hasCandidateScrolled) {
   hideAlternatives();
   hideKeyboardLayoutMenu();
 
+  if (target.id === 'dismiss-suggestions-button') {
+    if (inputMethod.dismissSuggestions)
+      inputMethod.dismissSuggestions();
+    return;
+  }
+
   if (!target || !isNormalKey(target))
     return;
 

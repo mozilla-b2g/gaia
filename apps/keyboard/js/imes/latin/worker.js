@@ -100,10 +100,10 @@ var Commands = {
     if (pendingPrediction)  // Make sure we're not still running a previous one
       pendingPrediction.abort();
 
-    // Ask for 3 predictions, considering 24 candidates that and considering
+    // Ask for 4 predictions, considering 24 candidates and considering
     // only words with an edit distance of 1 (i.e. make only one correction
     // per word)
-    pendingPrediction = Predictions.predict(prefix, 3, 24, 1,
+    pendingPrediction = Predictions.predict(prefix, 4, 24, 1,
                                             success, error);
 
     function success(words) {
@@ -115,7 +115,7 @@ var Commands = {
         // If we didn't find anything, try more candidates and a larger
         // edit distance to enlarge the search space.
         pendingPrediction =
-          Predictions.predict(prefix, 3, 60, 2,
+          Predictions.predict(prefix, 4, 60, 2,
                               function(words) {
                                 postMessage({ cmd: 'predictions',
                                               input: prefix,
