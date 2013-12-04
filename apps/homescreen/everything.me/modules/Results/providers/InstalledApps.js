@@ -263,13 +263,7 @@ Evme.InstalledAppsService = new function Evme_InstalledAppsService() {
   this.getMatchingApps = function getMatchingApps(data) {
     var matchingApps = [],
         appInfos = EvmeManager.getAllAppsInfo(),
-        query;
-
-    if (data.query) {
-      query = data.query;
-    } else if (data.experienceId) {
-      query = Evme.Utils.shortcutIdToKey(data.experienceId);
-    }
+        query = data.query;
 
     if (!query) {
       return matchingApps;
