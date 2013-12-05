@@ -48,6 +48,9 @@ class LockScreen(Base):
     def wait_for_lockscreen_not_visible(self):
         self.wait_for_element_not_displayed(*self._lockscreen_locator)
 
+    def wait_for_notification(self):
+        self.wait_for_element_displayed(*self._notification_locator)
+
     @property
     def passcode_pad(self):
         self.wait_for_element_displayed(*self._passcode_pad_locator)
