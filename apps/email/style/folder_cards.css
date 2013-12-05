@@ -16,6 +16,14 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.fld-trashy-folder-container {
+  display: block;
+  padding: 0;
+  border-bottom: 0.1rem solid #333b41;
+  height: 3.9rem;
+  overflow: hidden;
+}
+
 .fld-account-selected {
   background-color: rgba(0, 0, 0, 0.5);
   font-weight: bold;
@@ -78,7 +86,8 @@
 .fld-folder-item:last-child {
   border-bottom: none;
 }
-.fld-folder-item.fld-folder-selected {
+.fld-folder-item.fld-folder-selected,
+.fld-trashy-folder-container.fld-folder-selected {
   background-color: #2a7796;
   font-weight: bold;
 }
@@ -86,7 +95,9 @@
   color: #444;
   background-color: #eee;
 }
-.fld-account-item:active, .fld-folder-item:active, .fld-folder-list-header:active {
+.fld-account-item:active, .fld-folder-item:active,
+.fld-folder-list-header:active, .fld-trashy-folder-item:active,
+.fld-folder-empty-trash:active {
   border-color: #008aaa;
   background: #008aaa;
 }
@@ -95,6 +106,37 @@
 }
 .fld-folder-unread {
   display: none;
+}
+.fld-trashy-folder-item {
+  display: inline-block !important;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  width: calc(100% - 7rem);
+  line-height: 2.5rem;
+  padding: 0.6rem 2rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.fld-folder-empty-trash {
+  display: inline-block;
+  position: absolute;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  right: 0;
+  /* our owner is 3.9rem high, so we need to eat 3.1 on each side */
+  width: 7rem;
+  height: 7rem;
+  padding: 2rem;
+  margin-top: -1.55rem;
+  margin-bottom: -1.55rem;
+}
+.fld-folder-empty-trash-icon {
+  display: block;
+  height: 3rem;
+  width: 3rem;
+  background: url("images/icons/delete.png") no-repeat scroll center center / 3rem auto transparent;
+  pointer-events: none;
 }
 
 .fld-folder-depth0 {
