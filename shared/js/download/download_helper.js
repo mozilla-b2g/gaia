@@ -2,16 +2,20 @@
 'use strict';
 
 /*
- * DownloadLauncher.js: Allows to open download object based on promises
+ * DownloadHelper.js: Perform some utility functions with DOMDownload
+ *  objects.
  *
  * - You have to include in you HTML:
  *
  *   <!-- <script src="shared/js/mime_mapper.js"></script> -->
+ *   <!-- <script src="shared/js/download/download_store.js"></script> -->
  *   <script defer src="shared/js/lazy_loader.js"></script>
  *
  * - How to use this component.
  *
- *   var req = DownloadLauncher.launch(download);
+ *   For launching a download
+ *
+ *   var req = DownloadHelper.launch(download);
  *
  *   req.onsuccess = function req_onsuccess() {
  *     alert('The download was opened so we can remove the notification');
@@ -22,7 +26,7 @@
  *   }
  *
  */
-var DownloadLauncher = (function() {
+var DownloadHelper = (function() {
 
   // Exception code constants
   var CODE = {
@@ -218,6 +222,81 @@ var DownloadLauncher = (function() {
     return req;
   }
 
+  /*
+   * This method allows clients to remove a downlaod, from the
+   * list and the phone.
+   *
+   * @param{Object} It represents a DOMDownload object
+   */
+  function remove(download) {
+    var req = new Request();
+    // If is not done, use download manager to remove it,
+    // otherwise, deal with the datastore.
+    setTimeout(function() {
+      if (download.state !== 'succeeded') {
+        if (!navigator.mozDownloadManager) {
+          sendError(req, 'DownloadManager not present', CODE.INVALID_STATE);
+        } else {
+          navigator.mozDownloadManager.remove(download).then(
+            function success() {
+              req.done(download);
+            },
+            function error() {
+              sendError(req, 'DownloadManager doesnt know about this download',
+                CODE.INVALID_STATE);
+            }
+          );
+        }
+      } else {
+        req.done(download);
+      }
+    }, 0);
+
+    return doRemoveFromPhone(req, download);
+  }
+
+  /*
+   * Performs the proper delete of the physical file, also
+   * from the datastore if the download has finished.
+   *
+   * @param{Object} This is the Request object
+   * @param{Object} It represents a DOMDownload object
+   */
+  function doRemoveFromPhone(deleteRequest, download) {
+    var req = new Request();
+
+    deleteRequest.onsuccess = function() {
+      var storeReq =
+        navigator.getDeviceStorage(storageName).
+          delete(getRelativePath(download.path));
+
+      storeReq.onsuccess = function store_onsuccess() {
+        // Remove from the datastore if status is 'succeeded'
+        // if we find any problem with the datastore, don't send
+        // an error, since the physical remove already happened
+        if (download.state === 'succeeded') {
+          LazyLoader.load(['/shared/js/download/download_store.js'],
+            function() {
+              DownloadStore.remove(download);
+            }
+          );
+        }
+        req.done(storeReq.result);
+      };
+
+      storeReq.onerror = function store_onerror() {
+        sendError(req, storeReq.error.name + ' Could not remove the file: ' +
+                  download.path + ' from ' + storageName, CODE.FILE_NOT_FOUND);
+      };
+    };
+
+    deleteRequest.onerror = function(error) {
+      sendError(req, error.message, error.code);
+    };
+
+    return req;
+  };
+
   return {
    /*
     * This method allows clients to open a downlaod
@@ -225,6 +304,14 @@ var DownloadLauncher = (function() {
     * @param{Object} It represents a DOMDownload object
     */
     launch: launch,
+
+    /*
+     * Given a download, remove it from the DownloadManager
+     * list, and the file system.
+     *
+     * @param{Object} It represents a DOMDownload object
+     */
+    remove: remove,
 
     /*
      * Returns exception code constants

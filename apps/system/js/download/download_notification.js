@@ -5,7 +5,7 @@
  * This is the constructor that will represent a download notification
  * in the system
  *
- * @param {Object} download object provided by the API
+ * @param {Object} download object provided by the API.
  */
 function DownloadNotification(download) {
   this.download = download;
@@ -25,17 +25,17 @@ DownloadNotification.prototype = {
    * This method knows when the toaster should be displayed. Basically
    * the toaster should be displayed if the download changes state
    *
-   * @param {String} UI state
-   * @param {String} The new state of the download
+   * @param {String} UI state.
+   * @param {String} The new state of the download.
    *
-   * @return {boolean} True whether the toaster should be displayed
+   * @return {boolean} True whether the toaster should be displayed.
    */
   _wontNotify: function dn_wontNotify(currentState, newState) {
     return currentState === newState;
   },
 
   /**
-   * It updates the notification when the download state changes
+   * It updates the notification when the download state changes.
    */
   _update: function dn_update() {
     var noNotify = this._wontNotify(this.state, this.download.state);
@@ -81,7 +81,7 @@ DownloadNotification.prototype = {
   /**
    * It returns the icon depending on current state
    *
-   * @return {String} Icon path
+   * @return {String} Icon path.
    */
   _getIcon: function dn_getIcon() {
     return this._ICONS_PATH + this.state + this._ICONS_EXTENSION;
@@ -91,7 +91,7 @@ DownloadNotification.prototype = {
    * This method returns an object to update the notification composed by the
    * text, icon and type
    *
-   * @return {object} Object descriptor
+   * @return {object} Object descriptor.
    */
   _getInfo: function dn_getInfo() {
     var state = this.state;
@@ -128,7 +128,7 @@ DownloadNotification.prototype = {
    * - 'succeeded' -> open the downloaded file
    *
    * @param {function} Function that will be invoked when the notification
-   *                   is removed from utility tray
+   *                   is removed from utility tray.
    */
   onClick: function dn_onClick(done) {
     var cb = (function() {
@@ -167,7 +167,7 @@ DownloadNotification.prototype = {
 
       case 'succeeded':
         // Attempts to open the file
-        var req = DownloadLauncher.launch(this.download);
+        var req = DownloadHelper.launch(this.download);
 
         req.onerror = function req_onerror() {
           // TODO - Implement the flow explained in the bug 940294
