@@ -10,17 +10,18 @@
     "jshint": "2.1.11",
     "mail-fakeservers": "~0.0.11",
     "marionette-apps": "~0.3.3",
-    "marionette-client": "~1.1.0",
+    "marionette-client": "git://github.com/jugglinmike/marionette-js-client.git#debug",
     "marionette-content-script": "0.0.0",
     "marionette-device-host": "0.0.1",
     "marionette-helper": "0.1.0",
     "marionette-profile-builder": "0.0.2",
-    "marionette-js-runner": "0.4.0",
+    "marionette-js-runner": "git://github.com/jugglinmike/marionette-js-runner.git#named-functions",
     "marionette-settings-api": "~0.1.0",
     "mocha": "1.15.0",
     "mocha-tbpl-reporter": "~0.0.4",
     "mozilla-download": "~0.4.1-alpha",
     "node-static": "0.6.9",
-    "travis-project-jobs": "0.0.1"
+    "travis-project-jobs": "0.0.1",
+    "marionette-plugin-forms": "~0.0.1"
   }
 }
