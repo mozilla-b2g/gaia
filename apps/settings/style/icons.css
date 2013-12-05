@@ -153,6 +153,9 @@ li:active:not([aria-disabled="true"]) .menu-item::before,
   background-position: -12rem -12rem;
 }
 
+#menuItem-downloads::before {
+  background-position: -15rem -18rem;
+}
 
 /******************************************************************************
  * Wi-Fi icons

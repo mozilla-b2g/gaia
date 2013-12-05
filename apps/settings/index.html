@@ -43,6 +43,7 @@
     -->
 
     <!-- Localization -->
+    <link rel="resource" type="application/l10n" href="shared/locales/download.ini">
     <link rel="resource" type="application/l10n" href="shared/locales/branding.ini">
     <link rel="resource" type="application/l10n" href="shared/locales/date.ini">
     <link rel="resource" type="application/l10n" href="shared/locales/permissions.ini">
@@ -64,6 +65,11 @@
     <script defer="" src="js/settings.js"></script>
 
     <!-- shared helper library -->
+    <!--<script defer src="shared/js/download/download_store.js"></script>-->
+    <!--<script defer src="shared/js/download/download_helper.js"></script>-->
+    <!--<script defer src="shared/js/download/download_ui.js"></script>-->
+    <!--<script defer src="shared/js/mime_mapper.js"></script>-->
+    <!--<script defer src="shared/js/download/download_formatter.js"></script>-->
     <!--<script defer src="/shared/js/icc_helper.js"></script>-->
     <!--<script defer src="shared/js/keyboard_helper.js"></script>-->
     <!--<script defer src="shared/js/mobile_operator.js"></script>-->
@@ -136,6 +142,7 @@
     <link rel="import" href="/elements/improve_browser_os.html">
     <link rel="import" href="/elements/help.html">
     <link rel="import" href="/elements/icc.html">
+    <link rel="import" href="/elements/downloads.html">
   </head>
   <body class="skin-organic uninit">
     <!--
@@ -272,6 +279,8 @@
     <section is="about-legal" role="region" id="about-legal"></section>
     <!-- Device :: Information -->
     <section is="about" role="region" id="about"></section>
+    <!-- Device :: Downloads -->
+    <section is="downloads" role="region" id="downloads"></section>
     <!-- Device :: Battery -->
     <section is="battery" role="region" id="battery"></section>
     <!-- Device :: Device Storage -->
@@ -448,6 +457,9 @@
         <ul>
           <li>
             <a id="menuItem-deviceInfo" class="menu-item" href="#about" data-l10n-id="deviceInfo">Device Information</a>
+          </li>
+          <li>
+            <a id="menuItem-downloads" class="menu-item" href="#downloads" data-l10n-id="downloads">Downloads</a>
           </li>
           <li>
             <small id="battery-desc" class="menu-item-desc"></small>
