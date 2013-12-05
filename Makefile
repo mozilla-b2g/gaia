@@ -119,9 +119,11 @@ SCHEME=app://
 endif
 
 HOMESCREEN?=$(SCHEME)system.$(GAIA_DOMAIN)
+ADB_REMOUNT?=0
 
 BUILD_APP_NAME?=*
 ifneq ($(APP),)
+ADB_REMOUNT=1
 BUILD_APP_NAME=$(APP)
 endif
 
@@ -132,7 +134,6 @@ export npm_config_loglevel=warn
 MARIONETTE_RUNNER_HOST?=marionette-b2gdesktop-host
 
 GAIA_INSTALL_PARENT?=/system/b2g
-ADB_REMOUNT?=0
 
 ifeq ($(MAKECMDGOALS), demo)
 GAIA_DOMAIN=thisdomaindoesnotexist.org
@@ -150,7 +151,6 @@ endif
 # PRODUCTION is also set for user and userdebug B2G builds
 ifeq ($(PRODUCTION), 1)
 GAIA_OPTIMIZE=1
-B2G_SYSTEM_APPS=1
 GAIA_APP_TARGET=production
 ADB_REMOUNT=1
 endif
