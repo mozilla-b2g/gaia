@@ -18,7 +18,8 @@ mocksHelperForDragDrop.init();
 
 suite('dragdrop.js >', function() {
 
-  var wrapperNode, page, dock, realElementFromPoint, dragabbleIcon;
+  var wrapperNode, page, dock, realElementFromPoint, dragabbleIcon,
+      realTransition;
 
   function sendTouchEvent(type, node, coords) {
     var touch = document.createTouch(window, node, 1,
@@ -125,10 +126,13 @@ suite('dragdrop.js >', function() {
     dock = new Dock(document.querySelector('.dockWrapper'));
     dock.olist = document.querySelector('.dockWrapper > ol');
     DockManager.init(document.querySelector('.dockWrapper'), dock);
-    DragDropManager.init();
+    DragDropManager.init(1);
 
     dragabbleIcon =
                 document.querySelector('li[data-manifest-u-r-l="http://app1"]');
+
+    realTransition = Page.prototype.DRAGGING_TRANSITION;
+    Page.prototype.DRAGGING_TRANSITION = '-moz-transform 1ms';
   });
 
   suiteTeardown(function() {
@@ -136,6 +140,7 @@ suite('dragdrop.js >', function() {
     document.body.removeChild(wrapperNode);
 
     HTMLDocument.prototype.elementFromPoint = realElementFromPoint;
+    Page.prototype.DRAGGING_TRANSITION = realTransition;
   });
 
   test('The page has been initialized correctly | ' +
@@ -149,7 +154,7 @@ suite('dragdrop.js >', function() {
     checkPositions(dock, ['app5', 'app6']);
     assert.equal(dock.getNumIcons(), 2);
   });
-/*
+
   test('Dragging app1 to app2 | Page [app2, app1, app3, app4] ' +
       '| Dock [app5, app6] > ', function(done) {
     start(dragabbleIcon, 0);
@@ -284,6 +289,6 @@ suite('dragdrop.js >', function() {
 
       end(dragabbleIcon, 0);
     });
-  });*/
+  });
 
 });

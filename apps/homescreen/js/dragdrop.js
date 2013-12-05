@@ -599,10 +599,11 @@ var DragDropManager = (function() {
     /*
      * Initializes the drag & drop manager
      */
-    init: function ddm_init() {
+    init: function ddm_init(ensureDragEndDelay) {
       if (limitY) {
         return;
       }
+      ENSURE_DRAG_END_DELAY = ensureDragEndDelay || ENSURE_DRAG_END_DELAY;
 
       MOVE_COLLECTION_THRESHOLD =
         Configurator.getSection('move_collection_threshold') ||
