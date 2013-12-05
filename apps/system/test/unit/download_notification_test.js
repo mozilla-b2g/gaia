@@ -68,9 +68,9 @@ suite('system/DownloadNotification >', function() {
     download.onstatechange();
     assertUpdatedNotification(download);
 
-    var args = NotificationScreen.addNotification.args[0];
-    var percentage = DownloadFormatter.getPercentage(download);
-    assert.isTrue(args[0].text.indexOf(percentage) !== -1);
+    sinon.assert.calledWithMatch(NotificationScreen.addNotification, {
+      noNotify: true
+    });
   });
 
   test('The notification was clicked while downloading > Show download list',
@@ -99,9 +99,9 @@ suite('system/DownloadNotification >', function() {
     download.onstatechange();
     assertUpdatedNotification(download);
 
-    var args = NotificationScreen.addNotification.args[0];
-    var percentage = DownloadFormatter.getPercentage(download);
-    assert.isTrue(args[0].text.indexOf(percentage) !== -1);
+    sinon.assert.calledWithMatch(NotificationScreen.addNotification, {
+      noNotify: true
+    });
   });
 
   test('Download was stopped', function() {
@@ -123,9 +123,9 @@ suite('system/DownloadNotification >', function() {
     download.onstatechange();
     assertUpdatedNotification(download);
 
-    var args = NotificationScreen.addNotification.args[0];
-    var percentage = DownloadFormatter.getPercentage(download);
-    assert.isTrue(args[0].text.indexOf(percentage) !== -1);
+    sinon.assert.calledWithMatch(NotificationScreen.addNotification, {
+      noNotify: true
+    });
   });
 
   test('Download finishes', function() {

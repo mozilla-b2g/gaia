@@ -31,7 +31,7 @@ DownloadNotification.prototype = {
    * @return {boolean} True whether the toaster should be displayed.
    */
   _wontNotify: function dn_wontNotify(currentState, newState) {
-    return currentState === newState;
+    return currentState === newState || newState === 'downloading';
   },
 
   /**

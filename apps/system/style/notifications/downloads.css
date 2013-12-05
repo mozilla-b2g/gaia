@@ -1,4 +1,3 @@
-#notification-toaster[data-type="download-notification-downloading"] #toaster-icon,
 #screen.utility-tray .notification[data-type="download-notification-downloading"] > img {
   animation: 0.9s fn-rotate infinite steps(30);
 }
