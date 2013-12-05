@@ -3,6 +3,10 @@
   color: #000;
 }
 
+#simpin-dialog button.back[hidden] {
+  display: none;
+}
+
 #simpin-dialog section[role="region"] {
   position: absolute;
   top: 0;

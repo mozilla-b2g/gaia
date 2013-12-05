@@ -8,8 +8,8 @@ var SimLock = {
   _showPrevented: false,
 
   init: function sl_init() {
-    // Do not do anything if we can't have access to IccHelper API
-    if (!IccHelper)
+    // Do not do anything if there's no SIMSlot instance.
+    if (!SIMSlotManager.length)
       return;
 
     this.onClose = this.onClose.bind(this);
@@ -23,16 +23,47 @@ var SimLock = {
     window.addEventListener('will-unlock', this);
 
     // always monitor card state change
-    IccHelper.addEventListener('cardstatechange', this.showIfLocked.bind(this));
+    window.addEventListener('simslot-cardstatechange',
+      this.showIfLocked.bind(this));
 
     // Listen to callscreenwillopen and callscreenwillclose event
     // to discard the cardstatechange event.
     window.addEventListener('callscreenwillopen', this);
     window.addEventListener('callscreenwillclose', this);
+
+    // Listen to events fired from SIMPINDialog
+    window.addEventListener('simpinskip', this);
+    window.addEventListener('simpinback', this);
+    window.addEventListener('simpinrequestclose', this);
   },
 
   handleEvent: function sl_handleEvent(evt) {
     switch (evt.type) {
+      case 'simpinback':
+        var index = evt.detail._currentSlot.index;
+        this.showIfLocked(index - 1);
+        break;
+      // Test if there's still any card is locking.
+      case 'simpinskip':
+        var index = evt.detail._currentSlot.index;
+        if (index + 1 >= this.length - 1) {
+          evt.detail.close('skip');
+        } else {
+          if (!this.showIfLocked(index + 1, true)) {
+            evt.detail.close('skip');
+          }
+        }
+        break;
+      case 'simpinrequestclose':
+        var index = evt.detail._currentSlot.index;
+        if (index + 1 >= this.length - 1) {
+          evt.detail.close('done');
+        } else {
+          if (!this.showIfLocked(index + 1, true)) {
+            evt.detail.close('done');
+          }
+        }
+        break;
       case 'callscreenwillopen':
         this._duringCall = true;
         break;
@@ -101,10 +132,7 @@ var SimLock = {
     }
   },
 
-  showIfLocked: function sl_showIfLocked() {
-    if (!IccHelper)
-      return false;
-
+  showIfLocked: function sl_showIfLocked(currentSlotIndex, skipped) {
     if (LockScreen.locked)
       return false;
 
@@ -116,23 +144,33 @@ var SimLock = {
       this._showPrevented = true;
       return false;
     }
+    var locked = false;
 
-    switch (IccHelper.cardState) {
-      // do nothing in either unknown or null card states
-      case null:
-      case 'unknown':
-        break;
-      case 'pukRequired':
-      case 'pinRequired':
-        SimPinDialog.show('unlock', this.onClose);
-        return true;
-      case 'networkLocked':
-      case 'corporateLocked':
-      case 'serviceProviderLocked':
-        SimPinDialog.show('unlock', SimLock.onClose);
-        return true;
-    }
-    return false;
+    return SIMSlotManager.getSlots().some(function iterator(slot, index) {
+      if (currentSlotIndex && index !== currentSlotIndex) {
+        return false;
+      }
+
+      if (!slot.simCard) {
+        return false;
+      }
+
+      switch (slot.simCard.cardState) {
+        // do nothing in either unknown or null card states
+        case null:
+        case 'unknown':
+          break;
+        case 'pukRequired':
+        case 'pinRequired':
+          SimPinDialog.show(slot, this.onClose.bind(this), skipped);
+          return true;
+        case 'networkLocked':
+        case 'corporateLocked':
+        case 'serviceProviderLocked':
+          SimPinDialog.show(slot, this.onClose.bind(this), skipped);
+          return true;
+      }
+    }, this);
   },
 
   onClose: function sl_onClose(reason) {
