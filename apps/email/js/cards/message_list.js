@@ -5,6 +5,7 @@ define(function(require) {
 var templateNode = require('tmpl!./message_list.html'),
     msgHeaderItemNode = require('tmpl!./msg/header_item.html'),
     deleteConfirmMsgNode = require('tmpl!./msg/delete_confirm.html'),
+    emptyTrashConfirmMsgNode = require('tmpl!./msg/empty_trash_confirm.html'),
     largeMsgConfirmMsgNode = require('tmpl!./msg/large_message_confirm.html'),
     common = require('mail_common'),
     model = require('model'),
@@ -135,6 +136,11 @@ function MessageListCard(domNode, mode, args) {
     domNode.getElementsByClassName('msg-messages-sync-more')[0];
   this.syncMoreNode
     .addEventListener('click', this.onGetMoreMessages.bind(this), false);
+
+  this.emptyTrashNode =
+    domNode.getElementsByClassName('msg-empty-trash-container')[0];
+  domNode.getElementsByClassName('msg-empty-trash-button')[0]
+    .addEventListener('click', this.onEmptyTrash.bind(this), false);
 
   // - header buttons: non-edit mode
   domNode.getElementsByClassName('msg-folder-list-btn')[0]
@@ -426,7 +432,9 @@ MessageListCard.prototype = {
     this.domNode.getElementsByClassName('msg-list-header-folder-label')[0]
       .textContent = folder.name;
 
+    // Assume this folder will have messages
     this.hideEmptyLayout();
+    this.hideEmptyTrashBar();
 
     // you can't refresh the localdrafts folder or move messages out of it.
     if (folder.type === 'localdrafts') {
@@ -523,6 +531,26 @@ MessageListCard.prototype = {
     this.syncMoreNode.classList.add('collapsed');
   },
 
+  onEmptyTrash: function() {
+    if (!this.curFolder || !this.curFolder.type === 'trash')
+      return;
+
+    var dialog = emptyTrashConfirmMsgNode.cloneNode(true);
+    ConfirmDialog.show(dialog,
+      { // Confirm
+        id: 'msg-empty-trash-ok',
+        handler: function() {
+          console.log('Emptying trash');
+          this.curFolder.emptyFolder();
+        }.bind(this)
+      },
+      { // Cancel
+        id: 'msg-empty-trash-cancel',
+        handler: null
+      }
+    );
+  },
+
   onStatusChange: function(newStatus) {
     switch (newStatus) {
       case 'synchronizing':
@@ -564,6 +592,11 @@ MessageListCard.prototype = {
     this.messageEmptyContainer.classList.remove('collapsed');
     this.toolbar.editBtn.classList.add('disabled');
     this.toolbar.searchBtn.classList.add('disabled');
+
+    // If we are showing the empty layout, we don't want to show the empty
+    // trash bar.
+    this.hideEmptyTrashBar();
+
     this._hideSearchBoxByScrolling();
   },
   /**
@@ -576,6 +609,24 @@ MessageListCard.prototype = {
     this.toolbar.searchBtn.classList.remove('disabled');
   },
 
+  /**
+   * Show the 'empty trash' bar only if this is a POP3 trash folder.  This
+   * is triggered when splice logic adds any messages.  It is hidden whenever
+   * showEmptyLayout() is triggered or when we freshly enter a folder (to
+   * ensure that it doesn't hang around from the previous folder).
+   */
+  maybeShowEmptyTrashBar: function() {
+    if (!this.curFolder ||
+        this.curFolder.type !== 'trash' ||
+        this.curFolder.accountType !== 'pop3+smtp') {
+      return;
+    }
+
+    this.emptyTrashNode.classList.remove('collapsed');
+  },
+  hideEmptyTrashBar: function() {
+    this.emptyTrashNode.classList.add('collapsed');
+  },
 
   /**
    * @param {number=} newEmailCount Optional number of new messages.
@@ -954,6 +1005,7 @@ MessageListCard.prototype = {
     // Remove the no message text while new messages added:
     if (addedItems.length > 0) {
       this.hideEmptyLayout();
+      this.maybeShowEmptyTrashBar();
     }
 
     addedItems.forEach(function(message, i) {
