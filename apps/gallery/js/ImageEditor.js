@@ -239,7 +239,7 @@ $('exposure-slider').onchange = function() {
 
 function setEditTool(tool) {
   // Deselect all tool buttons and hide all options
-  var buttons = $('edit-toolbar').querySelectorAll('a.button');
+  var buttons = $('edit-toolbar').querySelectorAll('.icon');
   Array.forEach(buttons, function(b) { b.classList.remove('selected'); });
   var options = $('edit-options').querySelectorAll('div.edit-options-bar');
   Array.forEach(options, function(o) { o.classList.add('hidden'); });

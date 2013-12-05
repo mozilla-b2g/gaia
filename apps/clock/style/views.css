@@ -11,7 +11,7 @@
 
 #main-panel-wrapper {
   position: relative;
-  height: calc(100% - 4rem);
+  height: calc(100% - 4.6rem);
   width: 100%;
   overflow-y: auto;
   overflow-x: hidden;

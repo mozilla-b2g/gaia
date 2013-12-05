@@ -68,19 +68,19 @@ body.hidden *[data-l10n-id] {
 
 /* Structure for toolbar*/
 
-.icon-recents:after {
-  background-image: url("images/recents.png") !important;
-  background-size: 3rem !important;
+.icon-recents {
+  background-image: url("images/recents.png");
+  background-size: 3rem;
 }
 
-.icon-contacts:after {
-  background-image: url("images/contacts.png") !important;
-  background-size: 3rem !important;
+.icon-contacts {
+  background-image: url("images/contacts.png");
+  background-size: 3rem;
 }
 
-.icon-keypad:after {
-  background-image: url("images/dialpad.png") !important;
-  background-size: 3rem !important;
+.icon-keypad {
+  background-image: url("images/dialpad.png");
+  background-size: 3rem;
 }
 
 .with-keyboard #views, .with-keyboard #contacts-view,

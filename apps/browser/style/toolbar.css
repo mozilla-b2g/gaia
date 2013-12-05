@@ -1,19 +1,29 @@
 #toolbar-end {
   display: none;
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background-image: -moz-linear-gradient(#323639, #272b2e);
   z-index: 51;
 }
 
 .page-screen #toolbar-end {
-  display: block;
+  display: flex;
 }
 
 .start-page.page-screen #toolbar-end {
   display: none;
+}
+
+#toolbar-end a,
+#toolbar-end button {
+  float: none;
+  max-width: inherit;
+  margin: 0;
+  padding: 0;
+  letter-spacing: normal;
+}
+
+#toolbar-end a:active,
+#toolbar-end button:active {
+  background-position: 50% 0;
+  background-repeat: no-repeat;
 }
 
 .start-page.page-screen #frames {
@@ -21,36 +31,22 @@
 }
 
 #back-button {
-  background-image: url("images/iconaction_browser_back_30x30.png");
-}
-
-#back-button:active {
-  background-image: url("images/iconaction_browser_backpressed_30x30.png");
-}
-
-#back-button[disabled] {
-  opacity: 0.5;
+  background-image: url("images/iconaction_browser_back.png");
 }
 
 #forward-button {
-  background-image: url("images/iconaction_browser_forward_30x30.png");
-}
-
-#forward-button[disabled] {
-  display: none;
+  background-image: url("images/iconaction_browser_forward.png");
 }
 
 #bookmark-button {
-  float: right;
-  background-image: url("images/iconaction_bookmark_30x30.png");
+  background-image: url("images/iconaction_bookmark.png");
 }
 
 #bookmark-button.bookmarked {
- background-image: url("images/bookmarked.png");
+ background-position: 50% 100%;
 }
 
 #share-button {
-  float: right;
   background-image: url("images/share.png");
 }
 

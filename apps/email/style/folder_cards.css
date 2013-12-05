@@ -130,8 +130,10 @@
      from button.css that try and provide each button with fixed spacing. The
      2rem is because we are absolutely positioned 2rem in from the right. */
   max-width: calc(100% - (6rem + (100% - 25rem)/4) - 2rem);
+  margin: 0;
   overflow: hidden;
   position: absolute;
+  top: calc(50% - 0.8rem);
   right: 2rem;
   /* Using ellipsis wastes too much space on overflow; use '' to avoid clipping
      leaving part of a character visible but otherwise not waste space.

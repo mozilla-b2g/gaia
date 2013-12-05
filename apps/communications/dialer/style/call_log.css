@@ -72,7 +72,7 @@ ol, ul {
 .view-body {
   background : white;
   color: black;
-  height: -moz-calc(100% - 9.5rem);
+  height: -moz-calc(100% - 9.1rem);
   -moz-transition: height .15s ease-in;
   position: absolute;
   overflow: hidden;
