@@ -13,7 +13,7 @@ var Widget = (function() {
   'use strict';
 
   var costcontrol;
-  function onReady() {
+  function checkSIMStatus() {
     var mobileConnection = window.navigator.mozMobileConnection;
     if (!mobileConnection) {
       console.error('No mozMobileConnection available');
@@ -24,24 +24,25 @@ var Widget = (function() {
 
     if (!IccHelper.iccInfo) {
       debug('ICC info not ready yet.');
-      IccHelper.oniccinfochange = onReady;
+      IccHelper.oniccinfochange = checkSIMStatus;
 
     // SIM not ready
     } else if (cardState !== 'ready') {
       debug('SIM not ready:', IccHelper.cardState);
-      IccHelper.oncardstatechange = onReady;
+      IccHelper.oncardstatechange = checkSIMStatus;
 
     // SIM is ready, but ICC info is not ready yet
     } else if (!Common.isValidICCID(iccid)) {
       debug('ICC info not ready yet');
-      IccHelper.oniccinfochange = onReady;
+      IccHelper.oniccinfochange = checkSIMStatus;
 
     // All ready
     } else {
       debug('SIM ready. ICCID:', iccid);
       IccHelper.oncardstatechange = undefined;
       IccHelper.oniccinfochange = undefined;
-      startWidget();
+      document.getElementById('message-handler').src = 'message_handler.html';
+      Common.waitForDOMAndMessageHandler(window, startWidget);
     }
   };
 
@@ -52,7 +53,7 @@ var Widget = (function() {
     state = cardState = IccHelper.cardState;
 
     // SIM is absent
-    if (cardState === 'absent') {
+    if (!cardState || cardState === 'absent') {
       debug('There is no SIM');
       showSimError('no-sim2');
 
@@ -436,8 +437,7 @@ var Widget = (function() {
 
   return {
     init: function() {
-      Common.waitForDOMAndMessageHandler(window, onReady);
-      document.getElementById('message-handler').src = 'message_handler.html';
+      checkSIMStatus();
     }
   };
 
