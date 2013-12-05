@@ -132,7 +132,6 @@ export npm_config_loglevel=warn
 MARIONETTE_RUNNER_HOST?=marionette-b2gdesktop-host
 
 GAIA_INSTALL_PARENT?=/system/b2g
-ADB_REMOUNT?=0
 
 ifeq ($(MAKECMDGOALS), demo)
 GAIA_DOMAIN=thisdomaindoesnotexist.org
@@ -150,9 +149,7 @@ endif
 # PRODUCTION is also set for user and userdebug B2G builds
 ifeq ($(PRODUCTION), 1)
 GAIA_OPTIMIZE=1
-B2G_SYSTEM_APPS=1
 GAIA_APP_TARGET=production
-ADB_REMOUNT=1
 endif
 
 ifeq ($(DOGFOOD), 1)
@@ -929,7 +926,7 @@ forward:
 TARGET_FOLDER = webapps/$(BUILD_APP_NAME).$(GAIA_DOMAIN)
 APP_NAME = $(shell cat *apps/${BUILD_APP_NAME}/manifest.webapp | grep name | head -1 | cut -d '"' -f 4 | cut -b 1-15)
 APP_PID = $(shell adb shell b2g-ps | grep '^${APP_NAME}' | sed 's/^${APP_NAME}\s*//' | awk '{ print $$2 }')
-install-gaia: $(PROFILE_FOLDER)
+install-gaia: adb-remount $(PROFILE_FOLDER)
 	@$(ADB) start-server
 ifeq ($(BUILD_APP_NAME),*)
 	@echo 'Stopping b2g'
@@ -941,10 +938,6 @@ else ifneq (${APP_PID},)
 	@$(ADB) shell kill ${APP_PID}
 endif
 	@$(ADB) shell rm -r $(MSYS_FIX)/cache/* > /dev/null
-
-ifeq ($(ADB_REMOUNT),1)
-	$(ADB) remount
-endif
 
 ifeq ($(BUILD_APP_NAME),*)
 	python build/install-gaia.py "$(ADB)" "$(MSYS_FIX)$(GAIA_INSTALL_PARENT)" "$(PROFILE_FOLDER)"
@@ -1052,3 +1045,8 @@ really-clean: clean
 
 .git/hooks/pre-commit: tools/pre-commit
 	test -d .git && cp tools/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit || true
+
+.PHONY: adb-remount
+adb-remount:
+	$(ADB) remount
+
