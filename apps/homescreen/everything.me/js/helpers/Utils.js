@@ -320,6 +320,40 @@ Evme.Utils = new function Evme_Utils() {
     return arrayOrigin;
   };
 
+  // resize = false: use the icon's size, but pad it
+  // resize = true: resize the icon to the OS' size
+  this.padIconForOS = function padIconForOS(options) {
+    var icon = options.icon,
+      resize = !! options.resize,
+      callback = options.callback;
+
+    if (typeof icon === 'string') {
+      var src = icon;
+      icon = new Image();
+      icon.onload = handleIcon;
+      icon.src = src;
+    } else {
+      handleIcon();
+    }
+
+    function handleIcon() {
+      var padding = self.OS_ICON_PADDING,
+          width = resize ? OS_ICON_SIZE : icon.width,
+          height = resize ? OS_ICON_SIZE : icon.height,
+          newWidth = width - padding,
+          newHeight = height - padding,
+          elCanvas = document.createElement('canvas'),
+          context = elCanvas.getContext('2d');
+
+      elCanvas.width = width;
+      elCanvas.height = height;
+      context.drawImage(icon, (width - newWidth) / 2, (height - newHeight) / 2,
+        newWidth, newHeight);
+
+      callback(elCanvas.toDataURL());
+    }
+  };
+
   this.getRoundIcon = function getRoundIcon(options, callback) {
     var size = options.size || OS_ICON_SIZE,
         img = new Image();
