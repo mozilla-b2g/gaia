@@ -46,12 +46,6 @@ function MediaFrame(container, includeVideo) {
   this.videoblob = null;
   this.posterblob = null;
   this.url = null;
-
-  var self = this;
-  this.image.onerror = function(e) {
-    if (self.onerror)
-      self.onerror(e);
-  };
 }
 
 MediaFrame.prototype.displayImage = function displayImage(blob,
@@ -161,6 +155,12 @@ MediaFrame.prototype._displayImage = function _displayImage(blob) {
     self.setPosition();
     self.image.style.display = 'block';
   });
+  // If preload error, we call onerror callback.
+  preload.addEventListener('error', function onerror(e) {
+    preload.removeEventListener('error', onerror);
+    if (self.onerror)
+      self.onerror(e);
+  });
 
   preload.src = this.url;
 };
@@ -214,11 +214,18 @@ MediaFrame.prototype._switchToFullSizeImage = function _switchToFull() {
       mozRequestAnimationFrame(function() {
         self.container.removeChild(oldimage);
         self.oldimage = null;
-        oldimage.src = null;
+        oldimage.src = ''; // Use '' instead of null. See Bug 901410
         if (oldurl)
           URL.revokeObjectURL(oldurl);
       });
     }, 1000);
+  });
+
+  // When the new image cannot be loaded, we calls onerror callback.
+  newimage.addEventListener('error', function onerror(e) {
+    newimage.removeEventListener('error', onerror);
+    if (self.onerror)
+      self.onerror(e);
   });
 };
 
