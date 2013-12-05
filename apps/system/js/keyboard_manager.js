@@ -60,15 +60,15 @@ var KeyboardManager = {
    *    id: the unique id of the keyboard, the key of inputs
    *    name: the keyboard layout's name
    *    appName: the keyboard app name
-   *    origin: the keyboard's origin
+   *    manifestURL: the keyboard's manifestURL
    *    path: the keyboard's launch path
    * }
    */
   keyboardLayouts: {},
 
   // The set of running keyboards.
-  // This is a map from keyboard origin to an object like this:
-  // 'keyboard.gaiamobile.org' : {
+  // This is a map from keyboard manifestURL to an object like this:
+  // 'keyboard.gaiamobile.org/manifest.webapp' : {
   //   'English': aIframe
   // }
   runningLayouts: {},
@@ -175,7 +175,7 @@ var KeyboardManager = {
     }
 
     function reduceLayouts(carry, layout) {
-      enabledApps.add(layout.app.origin);
+      enabledApps.add(layout.app.manifestURL);
       // add the layout to each type and return the carry
       layout.inputManifest.types.filter(KeyboardHelper.isKeyboardType)
         .forEach(function(type) {
@@ -186,6 +186,7 @@ var KeyboardManager = {
           var enabledLayout = {
             id: layout.layoutId,
             origin: layout.app.origin,
+            manifestURL: layout.app.manifestURL,
             path: layout.inputManifest.launch_path
           };
 
@@ -228,9 +229,9 @@ var KeyboardManager = {
     window.dispatchEvent(event);
 
     // Remove apps that are no longer enabled to clean up.
-    Object.keys(this.runningLayouts).forEach(function withRunningApps(origin) {
-      if (!enabledApps.has(origin)) {
-        this.removeKeyboard(origin);
+    Object.keys(this.runningLayouts).forEach(function removeApp(manifestURL) {
+      if (!enabledApps.has(manifestURL)) {
+        this.removeKeyboard(manifestURL);
       }
     }, this);
 
@@ -298,11 +299,11 @@ var KeyboardManager = {
   launchLayoutFrame: function km_launchLayoutFrame(layout) {
     if (this.isRunningLayout(layout)) {
       this._debug('this layout is running');
-      return this.runningLayouts[layout.origin][layout.id];
+      return this.runningLayouts[layout.manifestURL][layout.id];
     }
     var layoutFrame = null;
     if (this.isRunningKeyboard(layout)) {
-      var runningKeybaord = this.runningLayouts[layout.origin];
+      var runningKeybaord = this.runningLayouts[layout.manifestURL];
       for (var name in runningKeybaord) {
         var oldPath = runningKeybaord[name].dataset.framePath;
         var newPath = layout.path;
@@ -322,35 +323,34 @@ var KeyboardManager = {
     this.setLayoutFrameActive(layoutFrame, false);
     layoutFrame.hidden = true;
     layoutFrame.dataset.frameName = layout.id;
-    layoutFrame.dataset.frameOrigin = layout.origin;
+    layoutFrame.dataset.frameManifestURL = layout.manifestURL;
     layoutFrame.dataset.framePath = layout.path;
-    if (!(layout.origin in this.runningLayouts))
-      this.runningLayouts[layout.origin] = {};
+    if (!(layout.manifestURL in this.runningLayouts)) {
+      this.runningLayouts[layout.manifestURL] = {};
+    }
 
-    this.runningLayouts[layout.origin][layout.id] = layoutFrame;
+    this.runningLayouts[layout.manifestURL][layout.id] = layoutFrame;
     return layoutFrame;
   },
 
   isRunningKeyboard: function km_isRunningKeyboard(layout) {
-    return this.runningLayouts.hasOwnProperty(layout.origin);
+    return this.runningLayouts.hasOwnProperty(layout.manifestURL);
   },
 
   isRunningLayout: function km_isRunningLayout(layout) {
     if (!this.isRunningKeyboard(layout))
       return false;
-    return this.runningLayouts[layout.origin].hasOwnProperty(layout.id);
+    return this.runningLayouts[layout.manifestURL].hasOwnProperty(layout.id);
   },
 
   loadKeyboardLayout: function km_loadKeyboardLayout(layout) {
     // Generate a <iframe mozbrowser> containing the keyboard.
-    var keyboardURL = layout.origin + layout.path;
-    var manifestURL = layout.origin + '/manifest.webapp';
     var keyboard = document.createElement('iframe');
-    keyboard.src = keyboardURL;
+    keyboard.src = layout.origin + layout.path;
     keyboard.setAttribute('mozapptype', 'inputmethod');
     keyboard.setAttribute('mozbrowser', 'true');
     keyboard.setAttribute('mozpasspointerevents', 'true');
-    keyboard.setAttribute('mozapp', manifestURL);
+    keyboard.setAttribute('mozapp', layout.manifestURL);
 
     if (this.isOutOfProcessEnabled) {
       console.log('=== Enable keyboard: ' + layout.origin + ' run as OOP ===');
@@ -421,33 +421,32 @@ var KeyboardManager = {
         this.hideKeyboardImmediately();
         break;
       case 'mozbrowsererror': // OOM
-        var origin = evt.target.dataset.frameOrigin;
-        this.removeKeyboard(origin);
+        this.removeKeyboard(evt.target.dataset.frameManifestURL);
         break;
     }
   },
 
-  removeKeyboard: function km_removeKeyboard(origin) {
-    if (!this.runningLayouts.hasOwnProperty(origin)) {
+  removeKeyboard: function km_removeKeyboard(manifestURL) {
+    if (!this.runningLayouts.hasOwnProperty(manifestURL)) {
       return;
     }
 
     if (this.showingLayout.frame &&
-      this.showingLayout.frame.dataset.frameOrigin === origin) {
+      this.showingLayout.frame.dataset.frameManifestURL === manifestURL) {
       this.hideKeyboard();
     }
 
-    for (var id in this.runningLayouts[origin]) {
-      var frame = this.runningLayouts[origin][id];
+    for (var id in this.runningLayouts[manifestURL]) {
+      var frame = this.runningLayouts[manifestURL][id];
       try {
         windows.removeChild(frame);
       } catch (e) {
         // if it doesn't work, noone cares
       }
-      delete this.runningLayouts[origin][id];
+      delete this.runningLayouts[manifestURL][id];
     }
 
-    delete this.runningLayouts[origin];
+    delete this.runningLayouts[manifestURL];
   },
 
   setKeyboardToShow: function km_setKeyboardToShow(group, index, launchOnly) {
