@@ -8,7 +8,6 @@
     font-weight: normal;
     font-size: 1.2rem;
     text-align: left;
-    height: calc((100% - 7.5rem)/4); /* height of footer */
     display: none;
 }
   .evmeScope div, .evmeScope p:not(.noreset), .evmeScope span,
