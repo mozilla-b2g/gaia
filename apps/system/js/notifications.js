@@ -273,6 +273,25 @@ var NotificationScreen = {
     return date;
   },
 
+  updateToaster: function ns_updateToaster(detail, type, dir) {
+    if (detail.icon) {
+      this.toasterIcon.src = detail.icon;
+      this.toasterIcon.hidden = false;
+    } else {
+      this.toasterIcon.hidden = true;
+    }
+
+    this.toaster.dataset.notificationId = detail.id;
+    this.toaster.dataset.type = type;
+    this.toasterTitle.textContent = detail.title;
+    this.toasterTitle.lang = detail.lang;
+    this.toasterTitle.dir = dir;
+
+    this.toasterDetail.textContent = detail.text;
+    this.toasterDetail.lang = detail.lang;
+    this.toasterDetail.dir = dir;
+  },
+
   addNotification: function ns_addNotification(detail) {
     var notificationNode = document.createElement('div');
     notificationNode.className = 'notification';
@@ -286,10 +305,6 @@ var NotificationScreen = {
       var icon = document.createElement('img');
       icon.src = detail.icon;
       notificationNode.appendChild(icon);
-      this.toasterIcon.src = detail.icon;
-      this.toasterIcon.hidden = false;
-    } else {
-      this.toasterIcon.hidden = true;
     }
 
     var time = document.createElement('span');
@@ -310,22 +325,12 @@ var NotificationScreen = {
     title.lang = detail.lang;
     title.dir = dir;
 
-    this.toaster.dataset.notificationId = detail.id;
-    this.toaster.dataset.type = type;
-    this.toasterTitle.textContent = detail.title;
-    this.toasterTitle.lang = detail.lang;
-    this.toasterTitle.dir = dir;
-
     var message = document.createElement('div');
     message.classList.add('detail');
     message.textContent = detail.text;
     notificationNode.appendChild(message);
     message.lang = detail.lang;
     message.dir = dir;
-
-    this.toasterDetail.textContent = detail.text;
-    this.toasterDetail.lang = detail.lang;
-    this.toasterDetail.dir = dir;
 
     var notifSelector = '[data-notification-id="' + detail.id + '"]';
     var oldNotif = this.container.querySelector(notifSelector);
@@ -371,18 +376,22 @@ var NotificationScreen = {
 
     var notify = !('noNotify' in detail);
     // Notification toaster
-    if (notify && (this.lockscreenPreview || !LockScreen.locked)) {
-      this.toaster.classList.add('displayed');
-      this._toasterGD.startDetecting();
+    if (notify) {
+      this.updateToaster(detail, type, dir);
+      if (this.lockscreenPreview || !LockScreen.locked) {
+        this.toaster.classList.add('displayed');
+        this._toasterGD.startDetecting();
 
-      if (this._toasterTimeout)
-        clearTimeout(this._toasterTimeout);
+        if (this._toasterTimeout) {
+          clearTimeout(this._toasterTimeout);
+        }
 
-      this._toasterTimeout = setTimeout((function() {
-        this.toaster.classList.remove('displayed');
-        this._toasterTimeout = null;
-        this._toasterGD.stopDetecting();
-      }).bind(this), this.TOASTER_TIMEOUT);
+        this._toasterTimeout = setTimeout((function() {
+          this.toaster.classList.remove('displayed');
+          this._toasterTimeout = null;
+          this._toasterGD.stopDetecting();
+        }).bind(this), this.TOASTER_TIMEOUT);
+      }
     }
 
     // Adding it to the lockscreen if locked and the privacy setting
