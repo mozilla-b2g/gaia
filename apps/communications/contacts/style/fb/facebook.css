@@ -6,18 +6,13 @@ section[role="region"] > header:first-child {
 
 /* BB lists */
 .import-list header {
-  border-bottom-color: #4D77CF;
+  border-color: #4D77CF;
   color: #4D77CF;
 }
 
 #groups-list.import-list label input + span,
 #search-list label input + span {
   background-image: url(/contacts/style/images/fb-check.png);
-}
-
-
-.link #mainContent {
-  padding: 0 3.3rem 0 2.5rem; /* 2.5+0.8 for offset scrollbar */
 }
 
 /* Force having blue highlight */
