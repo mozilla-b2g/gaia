@@ -1273,22 +1273,52 @@
         var shortcuts = response.response.shortcuts,
             iconsMap = response.response.icons;
 
-        // first we need to round the icons
-        Evme.Utils.roundIconsMap(iconsMap,
-          function onRoundedIcons(roundedIconsMap) {
-            for (var i = 0, shortcut; shortcut = shortcuts[i++];) {
-              var extraIconsData =
-                shortcut.appIds.map(function wrapIcon(appId) {
-                  return {'id': appId, 'icon': roundedIconsMap[appId]};
-                });
-
-              // update the matching Collection's icon
-              var collectionSettings = queriesMap[shortcut.query];
-              Evme.Collection.update(collectionSettings, {
-                'extraIconsData': extraIconsData
-              });
+        // cached icons might be missing in the server's response
+        var missingIconIds = [];
+        for (var i = 0, shortcut; shortcut = shortcuts[i++];) {
+          var appIds = shortcut.appIds;
+          for (var j = 0, appId; appId = appIds[j++]; ) {
+            if (missingIconIds.indexOf(appId) > -1) {
+              continue;
+            } else if (!iconsMap[appId]) {
+              missingIconIds.push(appId);
             }
-          });
+          }
+        }
+
+        if (missingIconIds.length) {
+          // try to get missing icons from cache
+          Evme.IconManager.getBatch(missingIconIds,
+            function onIcons(cachedIconsMap) {
+              if (cachedIconsMap) {
+                for (var iconId in cachedIconsMap) {
+                  iconsMap[iconId] = cachedIconsMap[iconId];
+                }
+              }
+              updateCollectionsIcons();
+            });
+        } else {
+          updateCollectionsIcons();
+        }
+
+        function updateCollectionsIcons() {
+          Evme.Utils.roundIconsMap(iconsMap,
+            function onRoundedIcons(roundedIconsMap) {
+              for (var i = 0, shortcut; shortcut = shortcuts[i++];) {
+                var extraIconsData =
+                  shortcut.appIds.map(function wrapIcon(appId) {
+                    return {'id': appId, 'icon': roundedIconsMap[appId]};
+                  });
+
+                // update the matching Collection's icon
+                var collectionSettings = queriesMap[shortcut.query];
+                Evme.Collection.update(collectionSettings, {
+                  'extraIconsData': extraIconsData
+                });
+              }
+            });
+        }
+
       });
     }
   };
