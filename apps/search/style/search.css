@@ -7,7 +7,7 @@ body {
   margin-top: 2rem;
 }
 
-#search-suggestions div {
+#search-suggestions .result {
   border: 1px solid #ccc;
   background-color: #c0c0c0;
   height: 2rem;

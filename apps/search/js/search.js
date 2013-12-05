@@ -1,10 +1,11 @@
-
 'use strict';
 
 var Search = {
   _port: null,
   terms: document.getElementById('search-terms'),
   suggestions: document.getElementById('search-suggestions'),
+
+  providers: {},
 
   init: function() {
     navigator.mozSetMessageHandler('connection', function(connectionRequest) {
@@ -36,22 +37,20 @@ var Search = {
     };
   },
 
+  /**
+   * Adds a search provider
+   */
+  provider: function(provider) {
+    this.providers[provider.name] = provider;
+  },
+
   resultClick: function(e) {
     var target = e.target;
     if (target === this.suggestions)
       return;
 
-    if (target.dataset.activityItemId) {
-      this._port.postMessage({'action': 'close'});
-      var activity = new MozActivity({
-        name: 'open',
-        data: {
-          type: 'webcontacts/contact',
-          params: {
-            'id': target.dataset.activityItemId
-          }
-        }
-      });
+    if (target.dataset.provider) {
+      this.providers[target.dataset.provider].click(target);
       return;
     }
 
@@ -63,36 +62,17 @@ var Search = {
     var input = msg.data.input;
     this.terms.innerHTML = input;
 
-    // Do a dumb contacts search.
-    var options = {
-      filterValue: input,
-      filterBy: ['givenName'],
-      filterOp: 'startsWith'
-    };
-
     this.suggestions.innerHTML = '';
-    var request = navigator.mozContacts.find(options);
+    for (var i in this.providers) {
+      this.providers[i].search(input);
+    }
+  },
 
-    request.onsuccess = (function() {
-      var result = request.result;
-      if (result.length > 0) {
-        var fragment = document.createDocumentFragment();
-        for (var i = 0; i < result.length; i++) {
-          for (var j = 0; j < result[i].name.length; j++) {
-            var div = document.createElement('div');
-            div.dataset.activity = 'open';
-            div.dataset.activityType = 'webcontacts/contact';
-            div.dataset.activityItemId = result[i].id;
-            div.textContent = result[i].name[j];
-            fragment.appendChild(div);
-          }
-        }
-        this.suggestions.appendChild(fragment.cloneNode(true));
-      }
-    }).bind(this);
-
-    request.onerror = function() {
-    };
+  /**
+   * Messages the parent container to close
+   */
+  close: function() {
+    this._port.postMessage({'action': 'close'});
   }
 };
 
