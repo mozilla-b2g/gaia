@@ -69,21 +69,19 @@ label.pack-switch input ~ span:after {
   position: absolute;
   right: 0;
   top: 50%;
-  margin: -1.1rem 0 0 -2.7rem;
-  width: 5.1rem;
-  height: 2.1rem;
+  width: 6rem;
+  margin: -1.4rem 0rem 0rem;
+  height: 2.7rem;
   pointer-events: none;
-  border-radius: 1.2rem;
-  border: 0.1rem solid #c2c2c2;
+  border-radius: 1.35rem;
   overflow: hidden;
-  background: #e6e6e6 url(switches/images/switch/background_off.png) no-repeat -3.2rem 0 / 8.3rem 2.1rem;
-  transition: background 0.2s ease, border 0.2s ease;
+  background: #e6e6e6 url(switches/images/switch/background_off.png) no-repeat -3.2rem 0rem / 9.2rem 2.7rem;
+  transition: background 0.2s ease;
 }
 
 /* switch: 'ON' state */
 label.pack-switch input:checked ~ span:after {
-  background: #e6e6e6 url(switches/images/switch/background.png) no-repeat 0 0 / 8.3rem 2.1rem;
-  border-color: #00abcd;
+  background: #e6e6e6 url(switches/images/switch/background.png) no-repeat 0rem 0rem / 9.2rem 2.7rem;
 }
 
 /* switch: disabled state */
