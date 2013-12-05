@@ -49,29 +49,51 @@ var AirplaneMode = {
   },
 
   _initRadioSwitch: function() {
-    var mobileConnection = getMobileConnection();
-    // See bug 933659
-    // Gecko stops using the settings key 'ril.radio.disabled' to turn
-    // off RIL radio, but use mobileConnection.setRadioEnabled instead. We need
-    // to remove the code that checks existence of the new API after bug 856553
-    // lands.
     var _setRadioEnabled = function(enabled) {
-      if (mobileConnection && !!mobileConnection.setRadioEnabled) {
-        var req = mobileConnection.setRadioEnabled(enabled);
-        req.onsuccess = function() {
+      var mobileConnections = window.navigator.mozMobileConnections;
+      var reqsResult = [];
+      var reqsCalled = [];
+
+      // inner helper function
+      var _notTrue = function(called) {
+        return called !== true;
+      };
+
+      // inner helper function
+      var _setRadioAfterReqsCalled = function() {
+        // we have to make sure all requests got executed
+        if (reqsCalled.length !== mobileConnections.length) {
+          return;
+        }
+
+        // it means enabling/disabling one of mobileConnections failed
+        // we have to restore to original status
+        if (reqsResult.some(_notTrue)) {
+          for (var i = 0; i < mobileConnections.length; i++) {
+            mobileConnections[i].setRadioEnabled(!enabled);
+          }
+        } else {
+          // else if all requests all work as our what we expect
+          // we have to change 'ril.radio.disabled'
+          // to reflect UI change on Gaia
           SettingsListener.getSettingsLock().set(
             {'ril.radio.disabled': !enabled}
           );
+        }
+      };
+
+      for (var i = 0; i < mobileConnections.length; i++) {
+        var req = mobileConnections[i].setRadioEnabled(enabled);
+        req.onsuccess = function() {
+          reqsCalled.push(true);
+          reqsResult.push(true);
+          _setRadioAfterReqsCalled();
         };
         req.onerror = function() {
-          SettingsListener.getSettingsLock().set(
-            {'ril.radio.disabled': enabled}
-          );
+          reqsCalled.push(true);
+          reqsResult.push(false);
+          _setRadioAfterReqsCalled();
         };
-      } else {
-        SettingsListener.getSettingsLock().set(
-          {'ril.radio.disabled': !enabled}
-        );
       }
     };
 
@@ -88,7 +110,8 @@ var AirplaneMode = {
   },
 
   init: function apm_init() {
-    var mobileConnection = getMobileConnection();
+    var mobileConnection = window.navigator.mozMobileConnections &&
+      window.navigator.mozMobileConnections[0];
     var wifiManager = WifiHelper.getWifiManager();
     var nfcManager = getNfc();
 
