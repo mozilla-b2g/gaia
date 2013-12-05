@@ -297,6 +297,53 @@ var DownloadHelper = (function() {
     return req;
   };
 
+  function handlerError(error, download, cb) {
+    LazyLoader.load('shared/js/download/download_ui.js', (function loaded() {
+      var req;
+      var show = DownloadUI.show;
+
+      switch (error.code) {
+        case CODE.FILE_NOT_FOUND:
+          req = show(DownloadUI.TYPE.FILE_NOT_FOUND, download, true);
+          req.onconfirm = cb;
+
+          break;
+
+        case CODE.MIME_TYPE_NOT_SUPPORTED:
+          req = show(DownloadUI.TYPE.UNSUPPORTED_FILE_TYPE, download, true);
+          req.onconfirm = function tuftOnConfirm() {
+            showRemoveFileUI(download, cb);
+          };
+
+          break;
+
+        default:
+          req = show(DownloadUI.TYPE.FILE_OPEN_ERROR, download, true);
+          req.onconfirm = function tfoeOnConfirm() {
+            showRemoveFileUI(download, cb);
+          };
+
+          break;
+      }
+
+      // We have to remove the notification if the user cancels
+      req.oncancel = cb;
+    }));
+  }
+
+  function showRemoveFileUI(download, cb) {
+    var req = DownloadUI.show(DownloadUI.TYPE.DELETE, download, true);
+
+    req.oncancel = cb;
+
+    req.onconfirm = function doRemove() {
+      remove(download);
+      if (typeof cb === 'function') {
+        cb();
+      }
+    };
+  }
+
   return {
    /*
     * This method allows clients to open a downlaod
@@ -318,6 +365,17 @@ var DownloadHelper = (function() {
      */
     get CODE() {
       return CODE;
-    }
+    },
+
+    /*
+     * This method handles different errors when users attemp to open files
+     *
+     * @param{Object} Error object
+     *
+     * @param{Object} It represents a DOMDownload object
+     *
+     * @param{Function} This function is performed when the flow is finished
+     */
+    handlerError: handlerError
   };
 }());

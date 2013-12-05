@@ -338,7 +338,7 @@ var ThreadListUI = {
         // set the fixed header
         FixedHeader.refresh();
         // Boot update of headers
-        TimeHeaders.updateAll();
+        TimeHeaders.updateAll('header[data-time-update]');
         // Once the rendering it's done, callback if needed
         if (renderCallback) {
           renderCallback();
@@ -383,10 +383,12 @@ var ThreadListUI = {
       id: id,
       number: number,
       bodyHTML: bodyHTML,
-      formattedDate: Utils.getFormattedHour(timestamp)
+      timestamp: String(timestamp)
     }, {
       safe: ['id', 'bodyHTML']
     });
+
+    TimeHeaders.update(li.querySelector('time'));
 
     return li;
   },
@@ -487,7 +489,7 @@ var ThreadListUI = {
     // Create Header DOM Element
     var headerDOM = document.createElement('header');
     // Append 'time-update' state
-    headerDOM.dataset.timeUpdate = true;
+    headerDOM.dataset.timeUpdate = 'repeat';
     headerDOM.dataset.time = timestamp;
     headerDOM.dataset.isThread = true;
 
