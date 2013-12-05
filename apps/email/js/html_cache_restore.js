@@ -18,7 +18,7 @@ window.htmlCacheRestorePendingMessage = [];
    * Set by build process, value must match the value
    * in html_cache.js.
    */
-  var CACHE_VERSION = '1',
+  var CACHE_VERSION = '2',
       selfNode = document.querySelector('[data-loadsrc]'),
       loader = selfNode.dataset.loader,
       loadSrc = selfNode.dataset.loadsrc;

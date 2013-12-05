@@ -6,8 +6,10 @@ define(function(require, exports) {
  * Version number for cache, allows expiring cache.
  * Set by build process, value must match the value
  * in html_cache_restore.js.
+ *
+ * Version 2: Empty trash bar added to message list.
  */
-var CACHE_VERSION = '1';
+var CACHE_VERSION = '2';
 
 /**
  * Saves a JS object to document.cookie using JSON.stringify().
