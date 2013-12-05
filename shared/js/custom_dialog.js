@@ -75,7 +75,7 @@ var CustomDialog = (function() {
           var yesText = document.createTextNode(confirm.title);
           yes.appendChild(yesText);
           yes.id = 'dialog-yes';
-          yes.className = 'negative';
+          yes.className = confirm.recommend ? 'recommand' : 'negative';
           yes.addEventListener('click', clickHandler);
           menu.appendChild(yes);
         }
