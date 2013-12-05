@@ -31,6 +31,7 @@ class TestCardsView(GaiaTestCase):
 
         # Pull up the cards view
         self.cards_view.open_cards_view()
+        self.wait_for_condition(lambda m: clock_frame.is_displayed() is False)
 
         self.assertFalse(clock_frame.is_displayed(), "Clock frame not expected to be displayed")
 
