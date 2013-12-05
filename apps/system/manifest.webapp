@@ -94,6 +94,7 @@
   },
   "datastores-owned": {
     "download_store": {
+      "access": "readwrite",
       "description": "Stores successful downloads"
     }
   }

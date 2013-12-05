@@ -9,23 +9,33 @@ require('/shared/js/download/download_formatter.js');
 require('/shared/js/download/download_store.js');
 requireApp('settings/test/unit/mock_download_store.js');
 
+require('/shared/test/unit/mocks/mock_download_helper.js');
 
 requireApp('settings/js/downloads/download_api_manager.js');
+
+if (!window.DownloadHelper) {
+  window.DownloadHelper = null;
+}
 
 suite('DownloadApiManager', function() {
   var mocksHelperForDownloadApi = new MocksHelper([
     'DownloadStore'
   ]);
-  var realMozDownloads, realDatastore;
+  var realMozDownloads, realDatastore, realDownloadHelper;
   suiteSetup(function() {
     realMozDownloads = navigator.mozDownloadManager;
     navigator.mozDownloadManager = MockMozDownloads;
+
+    realDownloadHelper = window.DownloadHelper;
+    window.DownloadHelper = MockDownloadHelper;
 
     mocksHelperForDownloadApi.suiteSetup();
   });
 
   suiteTeardown(function() {
    navigator.mozDownloadManager = realMozDownloads;
+   window.DownloadHelper = realDownloadHelper;
+   realDownloadHelper = null;
 
    mocksHelperForDownloadApi.suiteTeardown();
   });
@@ -100,11 +110,14 @@ suite('DownloadApiManager', function() {
     });
 
     test(' > deleteDownload given an ID', function(done) {
-      DownloadApiManager.deleteDownload(0, function() {
+      var helperDeleteSpy = this.sinon.spy(DownloadHelper, 'remove');
+      DownloadApiManager.deleteDownloads([0], function() {
         // Once deleted, we try to get the same object
         var download = DownloadApiManager.getDownload(0);
         // Now the object does not exist
         assert.ok(!download);
+        assert.ok(helperDeleteSpy.called);
+        DownloadHelper.remove.restore();
         done();
       });
     });
