@@ -189,9 +189,6 @@ var UIManager = {
         }.bind(this));
 
     this.skipTutorialButton.addEventListener('click', function() {
-      var layout = (ScreenLayout && ScreenLayout.getCurrentLayout) ?
-        ScreenLayout.getCurrentLayout() : 'tiny';
-
       // For tiny devices
       if (ScreenLayout.getCurrentLayout() === 'tiny') {
         WifiManager.finish();
@@ -220,7 +217,7 @@ var UIManager = {
   sendNewsletter: function ui_sendNewsletter(callback) {
     var self = this;
     var emailValue = self.newsletterInput.value;
-    if (emailValue == '') {
+    if (emailValue === '') {
       return callback(true);
     } else {
       utils.overlay.show(_('email-loading'), 'spinner');
@@ -345,8 +342,9 @@ var UIManager = {
 
   updateSetting: function ui_updateSetting(name, value) {
     var settings = window.navigator.mozSettings;
-    if (!name || !settings)
+    if (!name || !settings) {
       return;
+    }
     var cset = {}; cset[name] = value;
     settings.createLock().set(cset);
   },
@@ -367,8 +365,7 @@ var UIManager = {
       return;
     }
 
-    var dateLabel = document.getElementById('this.dateConfigurationLabel');
-     // Current time
+    // Current time
     var now = new Date();
     // Format: 2012-09-01
     var currentDate = this.dateConfiguration.value;

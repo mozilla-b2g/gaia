@@ -9,7 +9,7 @@ var OperatorVariant = (function() {
       console.error('An error occurre setting ftu.simPresentOnFirstBoot: ' +
                     value);
     };
-  };
+  }
 
 /**
   * If ftu.simPresentOnFirstBoot setting has value do nothing otherwise
@@ -68,7 +68,7 @@ var OperatorVariant = (function() {
     } catch (e) {
       console.error('Error setSIMOnFirstBootState. ' + e);
     }
-  };
+  }
 
   return {
     setSIMOnFirstBootState: setSIMOnFirstBootState

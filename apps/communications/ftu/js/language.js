@@ -14,8 +14,9 @@ var LanguageManager = {
   },
 
   handleEvent: function handleEvent(evt) {
-    if (!this.settings || evt.target.name != 'language.current')
+    if (!this.settings || evt.target.name != 'language.current') {
       return true;
+    }
     this.settings.createLock().set({'language.current': evt.target.value});
     return false;
   },
@@ -30,8 +31,9 @@ var LanguageManager = {
 
   readSetting: function settings_readSetting(name, callback) {
     var settings = window.navigator.mozSettings;
-    if (!settings || !settings.createLock || !callback)
+    if (!settings || !settings.createLock || !callback) {
       return;
+    }
 
     var req = settings.createLock().get(name);
 
@@ -45,8 +47,9 @@ var LanguageManager = {
   },
 
   getSupportedLanguages: function settings_getSupportedLanguages(callback) {
-    if (!callback)
+    if (!callback) {
       return;
+    }
 
     if (this._languages) {
       callback(this._languages);
@@ -64,8 +67,9 @@ var LanguageManager = {
 
   readSharedFile: function settings_readSharedFile(file, callback) {
     var URI = '/shared/resources/' + file;
-    if (!callback)
+    if (!callback) {
       return;
+    }
 
     var xhr = new XMLHttpRequest();
     xhr.onreadystatechange = function loadFile() {

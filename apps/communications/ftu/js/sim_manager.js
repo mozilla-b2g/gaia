@@ -7,8 +7,9 @@ var SimManager = {
 
   init: function sm_init() {
     this.mobConn = window.navigator.mozMobileConnections;
-    if (!this.mobConn)
+    if (!this.mobConn) {
       return;
+    }
 
     this.iccManager = window.navigator.mozIccManager;
     if (!this.iccManager) {
@@ -168,8 +169,9 @@ var SimManager = {
   },
 
   showPinScreen: function sm_showPinScreen() {
-    if (this._unlocked)
+    if (this._unlocked) {
       return;
+    }
 
     this.icc0.getCardLockRetryCount('pin', function(retryCount) {
       if (retryCount) {
@@ -193,8 +195,9 @@ var SimManager = {
   },
 
   showPukScreen: function sm_showPukScreen() {
-    if (this._unlocked)
+    if (this._unlocked) {
       return;
+    }
 
     this.icc0.getCardLockRetryCount('puk', function(retryCount) {
       if (retryCount) {
@@ -215,8 +218,9 @@ var SimManager = {
   },
 
   showXckScreen: function sm_showXckScreen() {
-    if (this._unlocked)
+    if (this._unlocked) {
       return;
+    }
 
     var lockType;
 
@@ -414,23 +418,23 @@ var SimManager = {
 
   // Try to infer whats the default SIM
   guessIcc: function guessIcc() {
-    var guessIcc = null;
+    var tempIcc = null;
     if (navigator.mozMobileConnections) {
       // New multi-sim api, use mozMobileConnection to guess
       // the first inserted sim
       for (var i = 0;
-        i < navigator.mozMobileConnections.length && guessIcc === null; i++) {
+        i < navigator.mozMobileConnections.length && tempIcc === null; i++) {
         if (navigator.mozMobileConnections[i] !== null &&
           navigator.mozMobileConnections[i].iccId !== null) {
-          guessIcc = navigator.mozIccManager.getIccById(
+          tempIcc = navigator.mozIccManager.getIccById(
             navigator.mozMobileConnections[i].iccId);
         }
       }
     } else {
-      guessIcc = navigator.mozIccManager;
+      tempIcc = navigator.mozIccManager;
     }
 
-    return guessIcc;
+    return tempIcc;
   },
 
   importContacts: function sm_importContacts() {

@@ -42,7 +42,6 @@ var mocksHelperForNavigation = new MocksHelper([
 suite('navigation >', function() {
   var mocksHelper = mocksHelperForNavigation;
   var isOnLine = true;
-  var container, progressBar;
   var realOnLine,
       realL10n,
       realMozMobileConnection,

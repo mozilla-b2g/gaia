@@ -17,7 +17,6 @@ var mocksHelperForWifi = new MocksHelper([
 suite('wifi > ', function() {
   var realL10n;
 
-  var networksDOM;
   var fakeNetworks = [
       {
         ssid: 'Mozilla Guest',

@@ -12,7 +12,6 @@ requireApp('communications/ftu/js/navigation.js');
 
 require('/shared/test/unit/load_body_html_helper.js');
 
-var _;
 var mocksHelperForSimManager = new MocksHelper([
   'UIManager'
 ]).init();
@@ -22,7 +21,7 @@ suite('sim mgmt >', function() {
       realMozIccManager,
       realMozMobileConnections;
   var mocksHelper = mocksHelperForSimManager;
-  var container, navigationStub;
+  var navigationStub;
 
   suiteSetup(function() {
     loadBodyHTML('/ftu/index.html');

@@ -1,6 +1,7 @@
 'use strict';
 
-requireApp('communications/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+requireApp(
+  'communications/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('communications/ftu/test/unit/mock_settings.js');
 requireApp('communications/ftu/js/language.js');
 
