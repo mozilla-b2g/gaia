@@ -83,6 +83,10 @@
       "description": "Communication with media apps for now playing info",
       "rules": {}
     },
+    "search-results": {
+      "description": "Communicate between search results and search app",
+      "rules": {}
+    },
     "ftucomms": {
       "description": "Communicate between communications/ftu and System",
       "rules": {}

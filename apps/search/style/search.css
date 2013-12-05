@@ -1,0 +1,16 @@
+body {
+  background: #000;
+  color: #fff;
+}
+
+#search-terms {
+  margin-top: 2rem;
+}
+
+#search-suggestions div {
+  border: 1px solid #ccc;
+  background-color: #c0c0c0;
+  height: 2rem;
+  line-height: 2rem;
+  margin-right: 0.2rem;
+}
