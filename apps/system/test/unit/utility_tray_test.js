@@ -1,6 +1,7 @@
 'use strict';
 
-mocha.globals(['UtilityTray']);
+requireApp('system/test/unit/mock_rocketbar.js');
+mocha.globals(['UtilityTray', 'Rocketbar']);
 
 var LockScreen = { locked: false };
 
@@ -9,6 +10,7 @@ suite('system/UtilityTray', function() {
   var stubById;
   var fakeEvt;
   var fakeElement;
+  var realRocketbar;
 
   setup(function(done) {
     fakeElement = document.createElement('div');
@@ -16,10 +18,14 @@ suite('system/UtilityTray', function() {
     stubById = this.sinon.stub(document, 'getElementById')
                           .returns(fakeElement.cloneNode(true));
     requireApp('system/js/utility_tray.js', done);
+
+    realRocketbar = window.Rocketbar;
+    window.Rocketbar = MockRocketbar;
   });
 
   teardown(function() {
     stubById.restore();
+    window.Rocketbar = realRocketbar;
   });
 
 
