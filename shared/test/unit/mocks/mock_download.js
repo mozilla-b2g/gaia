@@ -9,11 +9,12 @@ var DEFAULT_PARAMS = {
     state: 'downloading',
     contentType: 'audio/mpeg',
     startTime: new Date(),
-    id: 1
+    id: '1'
   };
 
 function MockDownload(params) {
   params = params || {};
+  this.id = params.id || '1';
   this.totalBytes = params.totalBytes || DEFAULT_PARAMS.totalBytes;
   this.currentBytes = params.currentBytes || DEFAULT_PARAMS.currentBytes;
   this.url = params.url || DEFAULT_PARAMS.url;
@@ -24,29 +25,7 @@ function MockDownload(params) {
   this.id = params.id || DEFAULT_PARAMS.id;
 }
 
-MockAttachment.prototype = {
-  get totalBytes() {
-    return this.totalBytes;
-  },
-  get currentBytes() {
-    return this.currentBytes;
-  },
-  get url() {
-    return this.url;
-  },
-  get path() {
-    return this.path;
-  },
-  get state() {
-    return this.state;
-  },
-  get contentType() {
-    return this.contentType;
-  },
-  get startTime() {
-    return this.startTime;
-  },
-  cancel: function() {},
+MockDownload.prototype = {
   pause: function() {},
   resume: function() {}
 };

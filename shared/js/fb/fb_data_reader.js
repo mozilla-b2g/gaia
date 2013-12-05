@@ -392,16 +392,22 @@ this.fb = fb;
         else if (datastore.readOnly === true) {
           // Index is created in order not to cause errors
           window.console.warn('The datastore is empty and readonly');
+          revisionId = datastore.revisionId;
           setIndex(createIndex());
           notifyOpenSuccess(cb);
         }
         return null;
-      }).then(function(v) {
+      }).then(function add_index_success(v) {
         if (typeof v === 'object') {
           setIndex(v);
         }
         revisionId = datastore.revisionId;
         notifyOpenSuccess(cb);
+      }, function add_index_error(err) {
+          window.console.error('Error while setting the index: ', error.name);
+          if (typeof errorCb === 'function') {
+            errorCb();
+          }
       });
     }, function error() {
       window.console.error('FB: Error while opening the DataStore: ',

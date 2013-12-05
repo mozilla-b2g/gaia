@@ -306,13 +306,17 @@
         flashCounter = 0,
         previousFirstSuggestion = '',
         SEARCHES_BEFORE_FLASHING_HELPER = 4,
-        TIMEOUT_ANDROID_BEFORE_HELPER_CLICK = 500;
+        TIMEOUT_ANDROID_BEFORE_HELPER_CLICK = 500,
+        sourcesMap;
 
-    var sourcesMap = {
-      'suggestions': SEARCH_SOURCES.SUGGESTION,
-      'didyoumean': SEARCH_SOURCES.SPELLING,
-      'refine': SEARCH_SOURCES.REFINE,
-      'history': SEARCH_SOURCES.HISTORY
+    // Helper module init
+    this.init = function init(data) {
+      sourcesMap = {
+        'suggestions': SEARCH_SOURCES.SUGGESTION,
+        'didyoumean': SEARCH_SOURCES.SPELLING,
+        'refine': SEARCH_SOURCES.REFINE,
+        'history': SEARCH_SOURCES.HISTORY
+      };
     };
 
     // items loaded
@@ -729,12 +733,20 @@
         }
       }
 
-      // bookmark - add to homescreen
-      EvmeManager.addGridItem({
-        'originUrl': data.app.getFavLink(),
-        'name': data.data.name,
-        'icon': Evme.Utils.formatImageData(data.app.getIcon()),
-        'useAsyncPanZoom': data.app.isExternal()
+      // first resize the icon to the OS size
+      // this includes a 2px padding around the icon
+      Evme.Utils.padIconForOS({
+        'icon': data.app.getIcon(),
+        'resize': true,
+        'callback': function onIconResized(icon) {
+          // bookmark - add to homescreen
+          EvmeManager.addGridItem({
+            'originUrl': data.app.getFavLink(),
+            'name': data.data.name,
+            'icon': icon,
+            'useAsyncPanZoom': data.app.isExternal()
+          });
+        }
       });
 
       // display system banner

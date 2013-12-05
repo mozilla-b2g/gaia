@@ -51,23 +51,54 @@ var ContactsSIMExport = function ContactsSIMExport(icc) {
   // url content is urn:uuid:<iccid>-icccontactid
   var _getIccContactId = function _getIccContactId(theContact) {
     var out;
-
     var contactUrl = theContact.url;
-    if (Array.isArray(contactUrl)) {
-      for (var j = 0; j < contactUrl.length; j++) {
-        var aUrl = contactUrl[j];
-        if (aUrl.type.indexOf('source') !== -1 &&
-                                          aUrl.type.indexOf('sim') !== -1) {
-          var value = aUrl.value.split(':')[2];
-          var iccInfo = value.split('-');
-          if (iccInfo[0] === icc.iccInfo.iccid) {
-            out = iccInfo[1];
-            break;
-          }
+    if (!Array.isArray(contactUrl)) {
+      return out;
+    }
+
+    for (var j = 0; j < contactUrl.length; j++) {
+      var aUrl = contactUrl[j];
+      if (aUrl.type.indexOf('source') !== -1 &&
+                                        aUrl.type.indexOf('sim') !== -1) {
+        var value = aUrl.value.split(':')[2];
+        var iccInfo = value.split('-');
+        if (iccInfo[0] === _getIccId()) {
+          out = iccInfo[1];
+          break;
         }
       }
     }
     return out;
+  };
+
+  var _generateIccContactUrl = function _generateIccContactUrl(contactid,
+                                                               iccId) {
+    var urlValue = 'urn:' + 'uuid:' + (iccId || 'iccId') + '-' + contactid;
+    return {
+      type: ['source', 'sim'],
+      value: urlValue
+    };
+  };
+
+  var _getIccId = function _getIccId() {
+    return icc.iccInfo && icc.iccInfo.iccid;
+  };
+
+  var _updateContactSimSource = function _updateContactSimSource(theContact,
+                                                      iccContact, cb, errorCb) {
+    if (!iccContact) {
+      window.console.warn('No Icc Contact provided');
+      cb();
+      return;
+    }
+
+    theContact.url = theContact.url || [];
+    theContact.url.push(_generateIccContactUrl(iccContact.id, _getIccId()));
+    var req = navigator.mozContacts.save(theContact);
+    req.onsuccess = cb;
+    req.onerror = function() {
+      errorCb(req.error);
+    };
   };
 
   var _doExport = function _doExport(step, finishCallback) {
@@ -97,7 +128,19 @@ var ContactsSIMExport = function ContactsSIMExport(icc) {
 
     var request = icc.updateContact('adn', theContact);
     request.onsuccess = function onsuccess() {
-      next(true, theContact);
+      if (idToUpdate) {
+        next(true, theContact);
+        return;
+      }
+      // Now it is needed to save the provided id in case we don't have one
+      var iccContact = request.result;
+      _updateContactSimSource(theContact, iccContact,
+                              function export_update_success() {
+        next(true, theContact);
+      }, function export_update_error(err) {
+          window.console.error('Error while updating: ', err.name);
+          next(true, theContact);
+      });
     };
     request.onerror = function onerror(e) {
       // Don't send an error, just continue

@@ -78,4 +78,4 @@ MockMozContactsObj.prototype = {
   }
 };
 
-var MockMozContacts = new MockMozContactsObj();
+var MockMozContacts = new MockMozContactsObj([]);

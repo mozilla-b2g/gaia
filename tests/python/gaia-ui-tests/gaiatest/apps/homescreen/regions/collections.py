@@ -20,6 +20,7 @@ class Collection(Base):
 
     def tap_exit(self):
         self.marionette.find_element(*self._close_collection_locator).tap()
+        self.wait_for_element_not_displayed(*self._close_collection_locator)
         from gaiatest.apps.homescreen.app import Homescreen
         return Homescreen(self.marionette)
 
@@ -34,8 +35,6 @@ class Collection(Base):
 
     class Result(PageRegion):
 
-        _app_iframe_locator = (By.CSS_SELECTOR, 'iframe[data-origin-name="%s"]')
-
         # Modal dialog locators
         _modal_dialog_save_locator = (By.CSS_SELECTOR, ".cloud-app-actions.show > menu > button[data-action = 'save']")
 
@@ -44,17 +43,14 @@ class Collection(Base):
             return self.root_element.get_attribute('data-name')
 
         def tap(self):
-            _app_iframe_locator = (self._app_iframe_locator[0],
-                                   self._app_iframe_locator[1] % self.name)
+            app_name = self.name
 
             self.root_element.tap()
-            # Switch to top level frame then look for the app
-            # Find the frame and switch to it
-            self.marionette.switch_to_frame()
-            app_iframe = self.wait_for_element_present(*_app_iframe_locator)
-            self.marionette.switch_to_frame(app_iframe)
+            # Wait for the displayed app to be that we have tapped
+            self.wait_for_condition(lambda m: self.apps.displayed_app.name == app_name)
+            self.marionette.switch_to_frame(self.apps.displayed_app.frame)
 
-            # wait for app to launch
+            # Wait for title to load (we cannot be more specific because the aut may change)
             self.wait_for_condition(lambda m: m.title)
 
         def long_tap_to_install(self):

@@ -21,7 +21,7 @@ class TestMarketplaceLaunch(GaiaTestCase):
         
         app_name = 'Marketplace'
         homescreen = Homescreen(self.marionette)
-        homescreen.switch_to_homescreen_frame()
+        self.apps.switch_to_displayed_app()
         
         self.assertTrue(homescreen.is_app_installed(app_name))
         

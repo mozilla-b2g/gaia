@@ -6562,7 +6562,9 @@ exports.updateMessageWithFetch = function(header, body, req, res, _LOG) {
     res.text, bodyRep.type, bodyRep.isDownloaded, req.createSnippet, _LOG
   );
 
-  header.snippet = data.snippet;
+  if (req.createSnippet) {
+    header.snippet = data.snippet;
+  }
   if (bodyRep.isDownloaded)
     bodyRep.content = data.content;
 };
@@ -7736,6 +7738,13 @@ function lazyWithConnection(getNew, cbIndex, fn) {
     var args = Array.slice(arguments);
     require([], function () {
       var next = function() {
+        // Only the inbox actually needs a connection. Using the
+        // connection in a non-inbox folder is an error.
+        if (!this.isInbox) {
+          fn.apply(this, [null].concat(args));
+          return;
+        }
+
         this.account.withConnection(function (err, conn, done) {
           var callback = args[cbIndex];
           if (err) {

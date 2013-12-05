@@ -143,7 +143,7 @@ window.addEventListener('localized', function showPanel() {
     // Post message to system app for sending files in queue
     // Producer: Bluetooth app produce one message for each sending file request
     sendingFilesSchedule = {
-      filenames: activity.source.data.filenames,
+      numberOfFiles: activity.source.data.filenames.length,
       numSuccessful: 0,
       numUnsuccessful: 0
     };
