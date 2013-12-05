@@ -745,7 +745,11 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
             except:
                 self.ammeter = None
 
-        self.device = GaiaDevice(self.marionette, self.device_manager, self.testvars)
+        if self.marionette.instance:
+            #if we have a b2g desktop instance, we don't use device_manager
+            self.device = GaiaDevice(self.marionette, None, self.testvars)
+        else:
+            self.device = GaiaDevice(self.marionette, self.device_manager, self.testvars)
         if self.restart and (self.device.is_android_build or self.marionette.instance):
             self.device.stop_b2g()
             if self.device.is_android_build:
