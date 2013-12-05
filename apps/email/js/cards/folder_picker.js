@@ -2,14 +2,19 @@
 define(function(require) {
 
 var templateNode = require('tmpl!./folder_picker.html'),
+    // a normal folder
     fldFolderItemNode = require('tmpl!./fld/folder_item.html'),
+    // a folder that has an empty trash icon
+    fldFolderTrashyItemNode = require('tmpl!./fld/folder_trashy_item.html'),
+    emptyTrashConfirmMsgNode = require('tmpl!./fld/empty_trash_confirm.html'),
     FOLDER_DEPTH_CLASSES = require('folder_depth_classes'),
     common = require('mail_common'),
     date = require('date'),
     model = require('model'),
     mozL10n = require('l10n!'),
     Cards = common.Cards,
-    bindContainerHandler = common.bindContainerHandler;
+    bindContainerHandler = common.bindContainerHandler,
+    ConfirmDialog = common.ConfirmDialog;
 
 require('css!style/folder_cards');
 
@@ -128,10 +133,38 @@ FolderPickerCard.prototype = {
                         null : foldersContainer.children[index],
         self = this;
     addedItems.forEach(function(folder) {
-      var folderNode = folder.element = fldFolderItemNode.cloneNode(true);
-      folderNode.folder = folder;
-      self.updateFolderDom(folder, true);
-      foldersContainer.insertBefore(folderNode, insertBuddy);
+      // The node that has its selection state set
+      var containerNode;
+      // The node that we set the name, type, and indentation on
+      var folderNode;
+
+      // Is this a folder that we provide 'empty trash' functionality for?
+      if (folder.type === 'trash' && folder.accountType === 'pop3+smtp') {
+        containerNode = fldFolderTrashyItemNode.cloneNode(true);
+        folderNode =
+          containerNode.getElementsByClassName('fld-trashy-folder-item')[0];
+      }
+      else {
+        containerNode = folderNode = fldFolderItemNode.cloneNode(true);
+      }
+
+      // We only need to manipulate the selected status of the container from
+      // here on out, and for click purposes we only care about the container
+      // too.
+      folder.element = containerNode;
+      containerNode.folder = folder;
+      if (!folder.selectable)
+        containerNode.classList.add('fld-folder-unselectable');
+
+      var depthIdx = Math.min(FOLDER_DEPTH_CLASSES.length - 1, folder.depth);
+      folderNode.classList.add(FOLDER_DEPTH_CLASSES[depthIdx]);
+
+      folderNode.getElementsByClassName('fld-folder-name')[0]
+        .textContent = folder.name;
+      folderNode.dataset.type = folder.type;
+
+      self.updateFolderDom(folder);
+      foldersContainer.insertBefore(containerNode, insertBuddy);
 
       if (self.mostRecentSyncTimestamp < folder.lastSyncedAt) {
         self.mostRecentSyncTimestamp = folder.lastSyncedAt;
@@ -172,32 +205,52 @@ FolderPickerCard.prototype = {
   },
 
   updateFolderDom: function(folder, firstTime) {
-    var folderNode = folder.element;
-
-    if (firstTime) {
-      if (!folder.selectable)
-        folderNode.classList.add('fld-folder-unselectable');
-
-      var depthIdx = Math.min(FOLDER_DEPTH_CLASSES.length - 1, folder.depth);
-      folderNode.classList.add(FOLDER_DEPTH_CLASSES[depthIdx]);
-
-      folderNode.getElementsByClassName('fld-folder-name')[0]
-        .textContent = folder.name;
-      folderNode.dataset.type = folder.type;
-    }
+    var containerNode = folder.element;
 
     if (folder === this.curFolder)
-      folderNode.classList.add('fld-folder-selected');
+      containerNode.classList.add('fld-folder-selected');
     else
-      folderNode.classList.remove('fld-folder-selected');
+      containerNode.classList.remove('fld-folder-selected');
 
     // XXX do the unread count stuff once we have that info
   },
 
-  onClickFolder: function(folderNode, event) {
-    var folder = folderNode.folder;
+  _confirmEmptyTrash: function(folder) {
+    var dialog = emptyTrashConfirmMsgNode.cloneNode(true);
+    ConfirmDialog.show(dialog,
+      { // Confirm
+        id: 'fld-empty-trash-ok',
+        handler: function() {
+          console.log('Emptying trash folder:', folder.path, 'type:',
+                      folder.type);
+          folder.emptyFolder();
+        }.bind(this)
+      },
+      { // Cancel
+        id: 'fld-empty-trash-cancel',
+        handler: null
+      }
+    );
+  },
+
+  onClickFolder: function(folderContainerNode, event) {
+    // bindContainerHandler is telling us the node whose immediate parent is
+    // the container DOM node.  For normal folders, this is just what we
+    // think of as the folderNode when adding, but for trashy folders, it's
+    // the containerNode.
+    var folder = folderContainerNode.folder;
     if (!folder.selectable)
       return;
+
+    // A click on the empty trash button (even with its expanded hit area) will
+    // still resolve to the folderContainerNode of the trash folder.  But
+    // we can check the original click target for being the empty trash button.
+    // Note that we set pointer-events: none on the icon so that the target
+    // can't possibly be the stupid icon.
+    if (event.target.classList.contains('fld-folder-empty-trash')) {
+      this._confirmEmptyTrash(folder);
+      return;
+    }
 
     var oldFolder = this.curFolder;
     this.curFolder = folder;
