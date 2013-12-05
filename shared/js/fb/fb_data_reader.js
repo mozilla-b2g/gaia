@@ -393,6 +393,7 @@ this.fb = fb;
           // Index is created in order not to cause errors
           window.console.warn('The datastore is empty and readonly');
           setIndex(createIndex());
+          revisionId = datastore.revisionId;
           notifyOpenSuccess(cb);
         }
         return null;
@@ -402,6 +403,11 @@ this.fb = fb;
         }
         revisionId = datastore.revisionId;
         notifyOpenSuccess(cb);
+      }, function error(err) {
+          window.console.error('Error while setting the index: ', error.name);
+          if (typeof errorCb === 'function') {
+            errorCb();
+          }
       });
     }, function error() {
       window.console.error('FB: Error while opening the DataStore: ',

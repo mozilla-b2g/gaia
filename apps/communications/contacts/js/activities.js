@@ -128,7 +128,10 @@ var ActivityHandler = {
       case 1:
         // if one required type of data
         if (this.activityDataType == 'webcontacts/tel') {
-          result = theContact;
+          result.tel = theContact.tel;
+          result.name = theContact.name;
+          result.givenName = theContact.givenName;
+          result.familyName = theContact.familyName;
         } else {
           result[type] = dataSet[0].value;
         }
@@ -148,9 +151,11 @@ var ActivityHandler = {
         prompt1.onchange = (function onchange(itemData) {
           if (this.activityDataType == 'webcontacts/tel') {
             // filter phone from data.tel to take out the rest
-            result = theContact;
             result.tel =
-              this.filterPhoneNumberForActivity(itemData, result.tel);
+              this.filterPhoneNumberForActivity(itemData, theContact.tel);
+            result.name = theContact.name;
+            result.givenName = theContact.givenName;
+            result.familyName = theContact.familyName;
           } else {
             result[type] = itemData;
           }

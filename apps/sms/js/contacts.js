@@ -15,6 +15,13 @@
       return a === b;
     }
   };
+
+  var FB_LIBRARIES = [
+    'shared/js/fb/fb_request.js',
+    'shared/js/fb/fb_data_reader.js',
+    'shared/js/fb/fb_reader_utils.js'
+  ];
+
   /**
    * isMatch
    *
@@ -232,8 +239,28 @@
         filterBy: ['tel'],
         filterOp: 'match',
         filterValue: filterValue.replace(/\s+/g, '')
-      }, callback);
-    }
+      }, function(results) {
+        if (results.length === 0) {
+          LazyLoader.load(FB_LIBRARIES, function onloaded() {
+            fb.getContactByNumber(filterValue, function(contact) {
+              if (contact) {
+                fb.getMozContactByUid(contact.uid, function merge(e) {
+                  var devContact = e.target.result[0];
+                  var finalContact = fb.mergeContact(devContact, contact);
+                  callback([finalContact]);
+                });
+              }
+              else {
+                callback(results);
+              }
+            });
+          });
+        }
+        else {
+          callback(results);
+        }
+      }); // findBy
+    } // findByPhoneNumber
   };
 
   exports.Contacts = Contacts;
