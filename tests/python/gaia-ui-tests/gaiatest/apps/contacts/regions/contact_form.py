@@ -171,5 +171,6 @@ class NewContact(ContactForm):
 
     def tap_done(self):
         self.marionette.find_element(*self._done_button_locator).tap()
+        self.wait_for_element_not_displayed(*self._done_button_locator)
         from gaiatest.apps.contacts.app import Contacts
         return Contacts(self.marionette)
