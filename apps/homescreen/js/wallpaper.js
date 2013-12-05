@@ -8,8 +8,9 @@ const Wallpaper = (function() {
       name: 'pick',
       data: {
         type: 'image/jpeg',
-        width: 320,
-        height: 480
+        // XXX: This will not work with Desktop Fx / Simulator.
+        width: window.screen.width * window.devicePixelRatio,
+        height: window.screen.height * window.devicePixelRatio
       }
     });
     a.onsuccess = function onWallpaperSuccess() {
