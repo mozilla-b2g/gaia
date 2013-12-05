@@ -149,7 +149,7 @@ suite('dragdrop.js >', function() {
     checkPositions(dock, ['app5', 'app6']);
     assert.equal(dock.getNumIcons(), 2);
   });
-
+/*
   test('Dragging app1 to app2 | Page [app2, app1, app3, app4] ' +
       '| Dock [app5, app6] > ', function(done) {
     start(dragabbleIcon, 0);
@@ -284,6 +284,6 @@ suite('dragdrop.js >', function() {
 
       end(dragabbleIcon, 0);
     });
-  });
+  });*/
 
 });
