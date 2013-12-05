@@ -34,6 +34,8 @@ var UtilityTray = {
     window.addEventListener('keyboardimeswitchershow', this);
     window.addEventListener('keyboardimeswitcherhide', this);
 
+    window.addEventListener('simpinshow', this);
+
     // Firing when user selected a new keyboard or canceled it.
     window.addEventListener('keyboardchanged', this);
     window.addEventListener('keyboardchangecanceled', this);
@@ -57,6 +59,7 @@ var UtilityTray = {
       case 'displayapp':
       case 'keyboardchanged':
       case 'keyboardchangecanceled':
+      case 'simpinshow':
         if (this.shown) {
           this.hide();
         }
