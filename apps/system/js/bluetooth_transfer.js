@@ -432,8 +432,8 @@ var BluetoothTransfer = {
     var msg = 'remove the finished sending task from queue, queue length = ';
     var successful = transferInfo.success;
     var sendingFilesSchedule = this._sendingFilesQueue[0];
-    var length = sendingFilesSchedule.filenames.length;
-    if (length == 1) { // The scheduled task is for sent one file only.
+    var numberOfFiles = sendingFilesSchedule.numberOfFiles;
+    if (numberOfFiles == 1) { // The scheduled task is for sent one file only.
       // We don't need to summarize a report for sent one file only.
       // Remove the finished sending task from the queue
       this._sendingFilesQueue.shift();
@@ -450,7 +450,7 @@ var BluetoothTransfer = {
 
       var numSuccessful = this._sendingFilesQueue[0].numSuccessful;
       var numUnsuccessful = this._sendingFilesQueue[0].numUnsuccessful;
-      if ((numSuccessful + numUnsuccessful) == length) {
+      if ((numSuccessful + numUnsuccessful) == numberOfFiles) {
         // In this item of queue, all files were sent completely.
         var icon = 'style/bluetooth_transfer/images/icon_bluetooth.png';
         NotificationHelper.send(_('transferReport-title'),
