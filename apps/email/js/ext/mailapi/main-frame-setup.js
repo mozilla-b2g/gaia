@@ -544,6 +544,14 @@ function MailFolder(api, wireRep) {
    * }
    */
   this.type = wireRep.type;
+  /**
+   * @oneof[
+   *   @case['activesync']
+   *   @case['imap+smtp']
+   *   @case['pop3+smtp']
+   * ]
+   */
+  this.accountType = wireRep.accountType;
 
   // Exchange folder name with the localized version if available
   this.name = this._api.l10n_folder_name(this.name, this.type);
@@ -568,6 +576,23 @@ MailFolder.prototype = {
       type: this.type,
       path: this.path
     };
+  },
+
+  /**
+   * Completely empty the contents of this folder.  Because this is either
+   * a crazy or a mean thing to do for anything that we don't know is a trash
+   * folder, we will throw an exception if this is not a trash folder.  If there
+   * are other legitimate cases, we can whitelist those or remove this guard.
+   *
+   * NOTE: This currently only works for POP3 folders.  https://bugzil.la/945635
+   * covers expanding support to IMAP and ActiveSync.
+   */
+  emptyFolder: function() {
+    if (this.type !== 'trash') {
+      throw new Error('Attempted to empty a non-trash folder!');
+    }
+
+    this._api._emptyFolder(this);
   },
 
   __update: function(wireRep) {
@@ -3251,6 +3276,13 @@ MailAPI.prototype = {
       accountId: account.id,
       parentFolderId: parentFolder ? parentFolder.id : null,
       containOnlyOtherFolders: containOnlyOtherFolders
+    });
+  },
+
+  _emptyFolder: function(folder) {
+    this.__bridgeSend({
+      type: 'emptyFolder',
+      folderId: folder.id
     });
   },
 
