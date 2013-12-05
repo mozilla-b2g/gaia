@@ -16,7 +16,8 @@ class TestEverythingMeAddCollection(GaiaTestCase):
     def test_everythingme_add_collection(self):
 
         homescreen = Homescreen(self.marionette)
-        homescreen.switch_to_homescreen_frame()
+        self.apps.switch_to_displayed_app()
+
         contextmenu = homescreen.open_context_menu()
         contextmenu.tap_add_collection()
         homescreen.select('Autos')

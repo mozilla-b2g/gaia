@@ -19,7 +19,7 @@ class TestEverythingMeSearchPanel(GaiaTestCase):
         https://github.com/mozilla/gaia-ui-tests/issues/1169
         """
         homescreen = Homescreen(self.marionette)
-        homescreen.switch_to_homescreen_frame()
+        self.apps.switch_to_displayed_app()
 
         search_panel = homescreen.tap_search_bar()
         search_panel.wait_for_everything_me_loaded()
