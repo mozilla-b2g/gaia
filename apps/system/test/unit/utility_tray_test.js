@@ -1,11 +1,14 @@
 'use strict';
 
-mocha.globals(['UtilityTray']);
-
-var LockScreen = { locked: false };
-
+mocha.globals(['UtilityTray', 'LazyLoader', 'LockScreen']);
+require('/shared/test/unit/mocks/mock_lazy_loader.js');
+requireApp('system/test/unit/mock_lock_screen.js');
+var mocksForUtilityTray = new MocksHelper([
+  'LazyLoader', 'LockScreen'
+]).init();
 
 suite('system/UtilityTray', function() {
+  mocksForUtilityTray.attachTestHelpers();
   var stubById;
   var fakeEvt;
   var fakeElement;
