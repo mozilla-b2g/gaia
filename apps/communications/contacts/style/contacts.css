@@ -33,7 +33,7 @@ section[role="region"] > header:first-child .icon.icon-edit-contact {
 }
 
 .view-contacts-list .view-body-inner {
-  padding-left: 0;
+  padding-left: 0.5rem;
 }
 
 #contact-name-title {
@@ -46,7 +46,7 @@ section[role="region"] > header:first-child .icon.icon-edit-contact {
 .view-contact-profile .view-body {
   overflow-x: hidden;
   overflow-y: auto;
-  will-animate: scroll;
+  background-color: #f5f5f5;
 }
 
 .view-contact-profile #cover-img {
@@ -82,7 +82,7 @@ section[role="region"] > header:first-child .icon.icon-edit-contact {
 .view-contact-profile .view-body-inner {
   position: relative;
   padding: 0 1.5rem;
-  background: #f4f4f4;
+  background: #f5f5f5;
   overflow: visible;
   width: 100%;
   min-height: calc(100% - 8rem);
@@ -209,7 +209,7 @@ section[role="region"] > header:first-child .icon.icon-edit-contact {
 }
 
 .view-edit-contact .fillflow-row-action {
-  width: 4.5rem;
+  width: 5rem;
   height: 4.5rem;
   margin: -2.25rem 0 0 0;
 }
@@ -668,4 +668,6 @@ section[role="region"] > header .icon.icon-settings {
 }
 
 .group-section {
+  overflow: hidden;
+  padding-left: 1rem;
 }
