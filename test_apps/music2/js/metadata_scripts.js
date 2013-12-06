@@ -8,7 +8,7 @@ var BlobView = (function() {
   // This constructor is for internal use only.
   // Use the BlobView.get() factory function or the getMore instance method
   // to obtain a BlobView object.
-  function BlobView(blob, sliceOffset, sliceLength, slice, 
+  function BlobView(blob, sliceOffset, sliceLength, slice,
                     viewOffset, viewLength, littleEndian)
   {
     this.blob = blob;                  // The parent blob that the data is from
@@ -167,6 +167,9 @@ var BlobView = (function() {
     // Methods to get and set the current position
     tell: function() {
       return this.index;
+    },
+    remaining: function() {
+      return this.byteLength - this.index;
     },
     seek: function(index) {
       if (index < 0)
@@ -883,6 +886,7 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
       }
       if (!valid) {
         errorCallback('malformed ogg comment packet');
+        return;
       }
 
       var vendor_string_length = page.readUnsignedInt(true);
@@ -890,7 +894,15 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
 
       var num_comments = page.readUnsignedInt(true);
       for (var i = 0; i < num_comments; i++) {
+        if (page.remaining() < 4) { // 4 bytes for comment-length variable
+          // TODO: handle metadata that uses multiple pages
+          break;
+        }
         var comment_length = page.readUnsignedInt(true);
+        if (comment_length > page.remaining()) {
+          // TODO: handle metadata that uses multiple pages
+          break;
+        }
         var comment = page.readUTF8Text(comment_length);
         var equal = comment.indexOf('=');
         if (equal !== -1) {
