@@ -36,6 +36,8 @@ var Rocketbar = {
     var container = this.searchContainer;
     var searchFrame = container.querySelector('iframe');
 
+    this.initSearchConnection();
+
     // If there is already a search frame, tell it that it is
     // visible and bail out.
     if (searchFrame) {
@@ -61,7 +63,22 @@ var Rocketbar = {
       container.removeChild(searchFrame);
     });
 
-    this.initSearchConnection();
+    this.initSuggestionConnection();
+  },
+
+  initSuggestionConnection: function() {
+    navigator.mozSetMessageHandler('connection',
+      function(connectionRequest) {
+
+      var keyword = connectionRequest.keyword;
+      if (keyword != 'search-results') {
+        return;
+      }
+
+      var port = connectionRequest.port;
+      port.onmessage = this.onSearchMessage.bind(this);
+      port.start();
+    }.bind(this));
   },
 
   initSearchConnection: function() {
@@ -70,21 +87,13 @@ var Rocketbar = {
       var app = this.result;
       app.connect('search').then(
         function onConnectionAccepted(ports) {
+          // Close the existing port if we have one
+          if (self._port) {
+            self._port.close();
+          }
+
           ports.forEach(function(port) {
             self._port = port;
-          });
-
-          navigator.mozSetMessageHandler('connection',
-            function(connectionRequest) {
-
-            var keyword = connectionRequest.keyword;
-            if (keyword != 'search-results') {
-              return;
-            }
-
-            var port = connectionRequest.port;
-            port.onmessage = self.onSearchMessage.bind(self);
-            port.start();
           });
         },
         function onConnectionRejected(reason) {

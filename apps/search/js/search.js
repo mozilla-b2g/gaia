@@ -1,6 +1,7 @@
 'use strict';
 
 var Search = {
+  _app: null,
   _port: null,
   terms: document.getElementById('search-terms'),
   suggestions: document.getElementById('search-suggestions'),
@@ -20,20 +21,10 @@ var Search = {
 
     this.suggestions.addEventListener('click', this.resultClick.bind(this));
 
-    // Initialize the parent port connection
+    // Store the app reference
     var self = this;
     navigator.mozApps.getSelf().onsuccess = function() {
-      var app = this.result;
-      app.connect('search-results').then(
-        function onConnectionAccepted(ports) {
-          ports.forEach(function(port) {
-            self._port = port;
-          });
-        },
-        function onConnectionRejected(reason) {
-          dump('Error connecting: ' + reason + '\n');
-        }
-      );
+      self._app = this.result;
     };
   },
 
@@ -55,7 +46,7 @@ var Search = {
     }
 
     // Else update with the clicked text content
-    this._port.postMessage({'input': target.textContent});
+    this.postMessage({'input': target.textContent});
   },
 
   onSearchInput: function(msg) {
@@ -63,6 +54,10 @@ var Search = {
     this.terms.innerHTML = input;
 
     this.suggestions.innerHTML = '';
+    if (!input.length) {
+      return;
+    }
+
     for (var i in this.providers) {
       this.providers[i].search(input);
     }
@@ -72,7 +67,30 @@ var Search = {
    * Messages the parent container to close
    */
   close: function() {
-    this._port.postMessage({'action': 'close'});
+    this.postMessage({'action': 'close'});
+  },
+
+  /**
+   * Posts a message to the parent container
+   * Initializes the port.
+   */
+  postMessage: function(message) {
+    this._app.connect('search-results').then(
+      function onConnectionAccepted(ports) {
+      // Close the existing port if we have one
+        if (self._port) {
+          self._port.close();
+        }
+
+        ports.forEach(function(port) {
+          self._port = port;
+          port.postMessage(message);
+        });
+      },
+      function onConnectionRejected(reason) {
+        dump('Error connecting: ' + reason + '\n');
+      }
+    );
   }
 };
 
