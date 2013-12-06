@@ -39,6 +39,7 @@ var MessageManager = {
       this[Utils.camelCase(id)] = document.getElementById(id);
     }, this);
     // Callback if needed
+    console.log('alive:lol');
     if (typeof callback === 'function') {
       callback();
     }

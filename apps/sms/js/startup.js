@@ -92,6 +92,7 @@ window.addEventListener('load', function() {
     ActivityHandler.init();
     // Init UI Managers
     ThreadUI.init();
+    console.log('alive:' + ThreadListUI);
     ThreadListUI.init();
     // We render the threads
     MessageManager.getThreads(ThreadListUI.renderThreads);
@@ -111,6 +112,7 @@ window.addEventListener('load', function() {
         });
         return;
       }
+      console.log('alive: lazyed');
       MessageManager.init(initUIApp);
     });
   });
