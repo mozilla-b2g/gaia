@@ -58,7 +58,7 @@ DownloadNotification.prototype = {
    * This method stores complete downloads to share them with the download list
    * in settings app
    *
-   * @param {Object} The download object provided by the API
+   * @param {Object} The download object provided by the API.
    */
   _storeDownload: function dn_storeDownload(download) {
     var req = DownloadStore.add(download);
@@ -167,11 +167,11 @@ DownloadNotification.prototype = {
 
       case 'succeeded':
         // Attempts to open the file
-        var req = DownloadHelper.launch(this.download);
+        var download = this.download;
+        var req = DownloadHelper.launch(download);
 
         req.onerror = function req_onerror() {
-          // TODO - Implement the flow explained in the bug 940294
-          alert(req.error.code + ' ' + req.error.message);
+          DownloadHelper.handlerError(req.error, download);
         };
 
         cb();
