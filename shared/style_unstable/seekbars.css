@@ -16,18 +16,18 @@ div[role="slider"] > div {
 
 div[role="slider"] progress {
   width: 100%;
-  background: #000;
+  background: #9BA6A8;
   border: none;
   height: 0.1rem;
   display: block;
   border-radius: 0;
-  margin-top: 1.9rem;
+  margin-top: 1.8rem;
 }
 
 div[role="slider"] progress::-moz-progress-bar {
-  background: #01c5ed;
-  height: 0.6rem;
-  margin-top: -0.3rem;
+  background: #00AACC;
+  height: 0.3rem;
+  margin-top: -0.1rem;
   border-radius: 0;
 }
 
@@ -60,20 +60,43 @@ div[role="slider"] > label.icon:first-of-type {
 }
 
 div[role="slider"] button {
-  width: 3.2rem;
-  height: 3.2rem;
-  background: url(seekbars/images/ui/handler.png) no-repeat center center / 3rem auto;
+  width: 2.6rem;
+  height: 2.6rem;
   font: 0/0 a;
   position: absolute;
-  top: 50%;
+  top: 55%;
   left: 0;
   margin: -1.5rem 0 0 -1.6rem;
-  border-radius: 3.2rem;
-  border: solid 0.1rem transparent;
-  transition: border 0.15s ease;
+  border-radius: 2.6rem;
+  border: solid 0.2rem transparent;
   padding: 0;
 }
 
-div[role="slider"] button:active {
-  border: solid 0.5rem #01c5ed;
+div[role="slider"] button::before {
+  position: absolute;
+  top: -.2rem;
+  left: -.2rem;
+  width: 2.7rem;
+  height: 2.7rem;
+  content: '';
+  background-color: #00CAF2;
+  border-radius: 2.6rem;
+    -moz-transition: -moz-transform 0.2s ease;
+  transition: transform 0.2s ease;
+}
+
+div[role="slider"] button:active::before {
+    -moz-transform: scale(1.26923077);
+  transform: scale(1.26923077);
+}
+
+div[role="slider"] button::after {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 2.3rem;
+  height: 2.3rem;
+  content: '';
+  background-color: #ffffff;
+  border-radius: 2.2rem;
 }
