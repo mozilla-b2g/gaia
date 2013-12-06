@@ -90,7 +90,7 @@ NOFTU?=0
 # Automatically enable remote debugger
 REMOTE_DEBUGGER?=0
 
-ifeq ($(DEVICE_DEBUG),1)
+ifeq ($(DEVICE_DEBUG), 1)
 REMOTE_DEBUGGER=1
 endif
 
@@ -101,8 +101,6 @@ PROFILE_FOLDER?=profile-debug
 else ifeq ($(DESKTOP),1)
 NOFTU=1
 PROFILE_FOLDER?=profile-debug
-else ifeq ($(MAKECMDGOALS),test-integration)
-PROFILE_FOLDER?=profile-test
 endif
 
 PROFILE_FOLDER?=profile
@@ -123,13 +121,8 @@ endif
 HOMESCREEN?=$(SCHEME)system.$(GAIA_DOMAIN)
 
 BUILD_APP_NAME?=*
-TEST_INTEGRATION_APP_NAME?=*
 ifneq ($(APP),)
-	ifeq ($(MAKECMDGOALS), test-integration)
-	TEST_INTEGRATION_APP_NAME=$(APP)
-	else
-	BUILD_APP_NAME=$(APP)
-	endif
+BUILD_APP_NAME=$(APP)
 endif
 
 REPORTER?=Spec
@@ -723,9 +716,10 @@ b2g: node_modules/.bin/mozilla-download
 		--branch mozilla-central $@
 
 .PHONY: test-integration
-# $(PROFILE_FOLDER) should be `profile-test` when we do `make test-integration`.
-test-integration: b2g $(PROFILE_FOLDER)
-	NPM_REGISTRY=$(NPM_REGISTRY) ./bin/gaia-marionette $(shell find . -path "*$(TEST_INTEGRATION_APP_NAME)/test/marionette/*_test.js") \
+test-integration:
+	# override existing profile-test folder.
+	PROFILE_FOLDER=profile-test make
+	NPM_REGISTRY=$(NPM_REGISTRY) ./bin/gaia-marionette $(shell find . -path "*test/marionette/*_test.js") \
 		--host $(MARIONETTE_RUNNER_HOST) \
 		--reporter $(REPORTER)
 
