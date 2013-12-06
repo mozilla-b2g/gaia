@@ -2,6 +2,7 @@ navigator.mozSetMessageHandler('activity', function handler(activity) {
   var selectedSoundName, selectedSoundURL;
   var baseURL, listURL, settingKey;
   var toneType = activity.source.data.type;
+  var allowNone = activity.source.data.allowNone;
 
   // Handle the case where toneType is an array. Note that we can't
   // display both types of tones at once. But a client might ask for
@@ -37,6 +38,10 @@ navigator.mozSetMessageHandler('activity', function handler(activity) {
   var cancel = document.getElementById('cancel');
   var player = document.createElement('audio'); // for previewing sounds
 
+  // Start off with the Done button disabled, and only enable it once
+  // a button has been checked
+  done.disabled = true;
+
   // Localize the titlebar text based on the tone type
   navigator.mozL10n.localize(title, toneType + '-title');
 
@@ -45,20 +50,33 @@ navigator.mozSetMessageHandler('activity', function handler(activity) {
   };
 
   done.onclick = function() {
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', selectedSoundURL);
-    // XXX
-    // This assumes that all system tones are ogg files
-    // Maybe map based on the extension instead?
-    xhr.overrideMimeType('audio/ogg');
-    xhr.responseType = 'blob';
-    xhr.send();
-    xhr.onload = function() {
+    if (selectedSoundURL) {
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', selectedSoundURL);
+      // XXX
+      // This assumes that all system tones are ogg files
+      // Maybe map based on the extension instead?
+      xhr.overrideMimeType('audio/ogg');
+      xhr.responseType = 'blob';
+      xhr.send();
+      xhr.onload = function() {
+        activity.postResult({
+          name: selectedSoundName,
+          blob: xhr.response
+        });
+      };
+    }
+    else if (allowNone && selectedSoundURL === '') {  // Handle the 'None' case
       activity.postResult({
         name: selectedSoundName,
-        blob: xhr.response
+        blob: null
       });
-    };
+    }
+    else {
+      // This should never happen. But if it does for some reason, then
+      // behave as if the user clicked the cancel (Back) button.
+      activity.postError('cancelled');
+    }
   };
 
   // When we start up, we first need to get the list of all sounds.
@@ -129,9 +147,12 @@ navigator.mozSetMessageHandler('activity', function handler(activity) {
 
   function buildUI(sounds, currentSoundName) {
     var list = document.getElementById('sounds');
-    // Add 'None' option which should be at the top.
-    if (toneType === 'alerttone') {
-     list.appendChild(buildListItem(navigator.mozL10n.get('none'), ''));
+
+    // If 'None' is a valid option, put it at the top of the list
+    // Note that we use an empty URL to represent the "None" option
+    // and that this is different than an undefined or null URL.
+    if (allowNone) {
+      list.appendChild(buildListItem(navigator.mozL10n.get('none'), ''));
     }
 
     for (var name in sounds) {
@@ -145,16 +166,17 @@ navigator.mozSetMessageHandler('activity', function handler(activity) {
       input.name = 'sounds';
 
       if (name === currentSoundName) {
-        //when user doesn't change the selected sound
-        //populate below variables to handle done click
+        // Start off with the current sound selected.
         selectedSoundName = name;
         selectedSoundURL = url;
         input.checked = true;
+        done.disabled = false; // Done is only disabled if no button is checked
       }
       input.onchange = function(e) {
         if (input.checked) {
           selectedSoundName = name;
           selectedSoundURL = url;
+          done.disabled = false; // If something is checked, enable Done
           preview(url);
         }
       };
@@ -179,7 +201,13 @@ navigator.mozSetMessageHandler('activity', function handler(activity) {
   }
 
   function preview(url) {
-    player.src = url;
-    player.play();
+    if (url) {  // If there is a URL, play it.
+      player.src = url;
+      player.play();
+    }
+    else {      // Otherwise, the user clicked None, so stop playing anything
+      player.removeAttribute('src');
+      player.load();
+    }
   }
 });
