@@ -175,6 +175,7 @@ MediaFrame.prototype._switchToFullSizeImage = function _switchToFull() {
   var oldurl = this.url;
   var oldimage = this.oldimage = this.image;
   var newimage = this.image = document.createElement('img');
+  newimage.style.transformOrigin = 'center center';
   newimage.src = this.url = URL.createObjectURL(this.imageblob);
 
   // move onerror callback to newimage when oldimage becomes useless.
