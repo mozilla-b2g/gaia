@@ -97,11 +97,13 @@ const IMERender = (function() {
       var kbRow = document.createElement('div');
       var rowLayoutWidth = 0;
       kbRow.classList.add('keyboard-row');
+      kbRow.classList.add('row' + nrow);
+
       if (nrow === layout.keys.length - 1) {
         kbRow.classList.add('keyboard-last-row');
       }
-      row.forEach((function buildKeyboardColumns(key, ncolumn) {
 
+      row.forEach((function buildKeyboardColumns(key, ncolumn) {
         var keyChar = key.value;
 
         // Keys may be hidden if the .hidden property contains the inputType
@@ -810,6 +812,7 @@ const IMERender = (function() {
     // Using innerHTML here because some labels (so far only the &nbsp; in the
     // space key) can be HTML entities.
     labelNode.innerHTML = label;
+    labelNode.dataset.label = label;
 
     vWrapperNode.appendChild(labelNode);
     if (altNoteNode) {
