@@ -136,11 +136,47 @@ var mozSettings = navigator.mozSettings || {
   createLock: function settings_createLock() {
     return {
       get: function() {
-        return {};
+        var request = {
+          result: {}
+        };
+
+        window.setTimeout(function() {
+          if (request.onsuccess) {
+            request.result['ril.radio.disabled'] = false;
+            request.onsuccess();
+          }
+        }, 500);
+
+        return request;
       }
     };
   }
 };
+
+// XXX fake SpeakerManager object for UI testing on PC
+(function(aGlobal) {
+  aGlobal.SpeakerManager = aGlobal.SpeakerManager || aGlobal.MozSpeakerManager;
+
+  if (aGlobal.SpeakerManager)
+    return;
+
+  function SpeakerManager() {
+    this.speakerforced = false;
+  }
+
+  SpeakerManager.prototype = {
+    set forcespeaker(enable) {
+      if (this.speakerforced != enable) {
+        this.speakerforced = enable;
+        if (this.onspeakerforcedchange) {
+          this.onspeakerforcedchange();
+        }
+      }
+    }
+  };
+
+  aGlobal.SpeakerManager = SpeakerManager;
+})(window);
 
 function updateFreqUI() {
   historyList.add(mozFMRadio.frequency);
@@ -743,6 +779,15 @@ function init() {
     }
     updateFreqUI();
   }, false);
+
+  var speakerManager = new SpeakerManager();
+  $('speaker-switch').addEventListener('click', function toggle_speaker() {
+    speakerManager.forcespeaker = !speakerManager.speakerforced;
+  }, false);
+
+  speakerManager.onspeakerforcedchange = function onspeakerforcedchange() {
+    $('speaker-switch').dataset.speakerOn = speakerManager.speakerforced;
+  };
 
   mozFMRadio.onfrequencychange = updateFreqUI;
   mozFMRadio.onenabled = function() {
