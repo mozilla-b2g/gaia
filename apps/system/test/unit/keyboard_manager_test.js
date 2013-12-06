@@ -91,6 +91,10 @@ suite('KeyboardManager', function() {
 
       KeyboardManager.showKeyboard();
 
+      var fakeEvt = new CustomEvent('transitionend');
+      fakeEvt.propertyName = 'transform';
+      KeyboardManager.keyboardFrameContainer.dispatchEvent(fakeEvt);
+
       setTimeout(function() {
         assert.equal(triggered, true);
         next();
