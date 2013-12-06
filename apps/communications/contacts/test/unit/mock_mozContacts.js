@@ -67,3 +67,5 @@ var MockMozContacts = {
     };
   }
 };
+
+var MockMozContacts = new MockMozContactsObj([]);
