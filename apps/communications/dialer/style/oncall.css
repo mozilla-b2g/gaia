@@ -641,12 +641,13 @@ button[disabled] .icon-keypad-visibility {
 }
 
 #locked-contact-photo.masked {
-  background-position: 100% -22rem;
+  background-position: center bottom;
+  background-size: cover;
 }
 
 #locked-contact-photo.masked:before {
   content: "";
-  background-position: 100% -22rem;
+  background-position: center bottom;
   background-image: url("images/mask.png");
   background-size: cover;
   position: absolute;
