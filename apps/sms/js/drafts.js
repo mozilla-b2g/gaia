@@ -74,9 +74,25 @@
 
         // If there is an existing draft for this
         // threadId, delete it.
+        // This should be replaced by a general
+        // replacement method.
         if (threadId !== null && thread.length) {
           this.delete(stored);
           canSkipDistinction = true;
+        }
+
+        // If there is an existing threadless draft
+        // with the same id, delete it.
+        // This should be replaced by a general
+        // replacement method.
+        if (threadId === null && thread.length) {
+          thread.some(function(d, i) {
+            if (d.id === draft.id) {
+              this.delete(d);
+              stored = null;
+              return true;
+            }
+          }, this);
         }
 
         // If the new draft is distinct from the stored one

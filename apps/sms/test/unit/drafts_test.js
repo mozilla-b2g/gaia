@@ -27,7 +27,8 @@ suite('Drafts', function() {
       timestamp: 1,
       threadId: 42,
       subject: 'This is a subject',
-      type: 'sms'
+      type: 'sms',
+      id: 1
     });
     d2 = new Draft({
       recipients: ['555'],
@@ -35,7 +36,8 @@ suite('Drafts', function() {
       timestamp: 2,
       threadId: 44,
       subject: 'This is a subject',
-      type: 'sms'
+      type: 'sms',
+      id: 2
     });
     d3 = new Draft({
       recipients: ['555', '222'],
@@ -43,7 +45,8 @@ suite('Drafts', function() {
       timestamp: 3,
       threadId: 1,
       subject: 'This is a subject',
-      type: 'sms'
+      type: 'sms',
+      id: 3
     });
     d4 = new Draft({
       recipients: ['555', '333'],
@@ -51,7 +54,8 @@ suite('Drafts', function() {
       timestamp: 4,
       threadId: 2,
       subject: 'This is a subject',
-      type: 'sms'
+      type: 'sms',
+      id: 4
     });
     d5 = new Draft({
       recipients: ['555', '444'],
@@ -59,23 +63,8 @@ suite('Drafts', function() {
       timestamp: 5,
       threadId: null,
       subject: 'This is a subject',
-      type: 'sms'
-    });
-    d6 = new Draft({
-      recipients: ['555', '444'],
-      content: ['This is a different draft message'],
-      timestamp: 5,
-      threadId: null,
-      subject: 'This is a subject',
-      type: 'sms'
-    });
-    d7 = new Draft({
-      recipients: ['555', '444'],
-      content: ['This is a draft message'],
-      timestamp: 5,
-      threadId: null,
-      subject: 'This is a different subject',
-      type: 'sms'
+      type: 'sms',
+      id: 5
     });
     d6 = new Draft({
       recipients: ['123456'],
@@ -92,7 +81,17 @@ suite('Drafts', function() {
       ],
       timestamp: Date.now() - (3600000 * 2),
       threadId: 8,
-      type: 'mms'
+      type: 'mms',
+      id: 6
+    });
+    d7 = new Draft({
+      recipients: ['555', '444'],
+      content: ['This is a draft message'],
+      timestamp: 5,
+      threadId: null,
+      subject: 'This is a different subject',
+      type: 'sms',
+      id: 7
     });
   });
 
@@ -156,6 +155,32 @@ suite('Drafts', function() {
       assert.notEqual(Drafts.byThreadId(44).latest.id, latestId);
       assert.equal(Drafts.byThreadId(44).length, 1);
     });
+
+    test('add threadless draft of same draft.id replaces previous', function() {
+      Drafts.add(d5);
+
+      assert.equal(
+        Drafts.byThreadId(null).latest.content,
+        'This is a draft message'
+      );
+
+      Drafts.add({
+        recipients: ['555', '444'],
+        content: ['This is a new draft message'],
+        timestamp: 5,
+        threadId: null,
+        subject: 'This is a subject',
+        type: 'sms',
+        id: 5
+      });
+
+      assert.equal(
+        Drafts.byThreadId(null).latest.content,
+        'This is a new draft message'
+      );
+      assert.equal(Drafts.byThreadId(null).length, 1);
+    });
+
   });
 
   suite('delete() >', function() {

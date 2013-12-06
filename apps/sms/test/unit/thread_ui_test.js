@@ -20,6 +20,7 @@ requireApp('sms/js/drafts.js');
 requireApp('sms/js/threads.js');
 requireApp('sms/js/thread_ui.js');
 requireApp('sms/js/thread_list_ui.js');
+requireApp('sms/js/fixed_header.js');
 requireApp('sms/js/is-equal.js');
 requireApp('sms/js/utils.js');
 requireApp('sms/js/message_manager.js');
@@ -172,6 +173,7 @@ suite('thread_ui.js >', function() {
 
     ThreadUI.recipients = null;
     ThreadUI.init();
+    ThreadListUI.init();
     realMozMobileMessage = ThreadUI._mozMobileMessage;
     ThreadUI._mozMobileMessage = MockNavigatormozMobileMessage;
   });
@@ -3858,11 +3860,12 @@ suite('thread_ui.js >', function() {
   });
 
   suite('saveMessageDraft() > ', function() {
-    var spy, arg;
+    var addSpy, updateSpy, arg;
 
     setup(function() {
       window.location.hash = '#new';
-      spy = this.sinon.spy(Drafts, 'add');
+      addSpy = this.sinon.spy(Drafts, 'add');
+      updateSpy = this.sinon.spy(ThreadListUI, 'updateThread');
 
       ThreadUI.recipients.add({
         number: '999'
@@ -3873,7 +3876,7 @@ suite('thread_ui.js >', function() {
 
     test('has entered content and recipients', function() {
       ThreadUI.saveMessageDraft();
-      arg = spy.firstCall.args[0];
+      arg = addSpy.firstCall.args[0];
 
       assert.deepEqual(arg.recipients, ['999']);
       assert.deepEqual(arg.content, ['foo']);
@@ -3882,7 +3885,7 @@ suite('thread_ui.js >', function() {
     test('has entered recipients but not content', function() {
       Compose.clear();
       ThreadUI.saveMessageDraft();
-      arg = spy.firstCall.args[0];
+      arg = addSpy.firstCall.args[0];
 
       assert.deepEqual(arg.recipients, ['999']);
       assert.deepEqual(arg.content, []);
@@ -3891,10 +3894,16 @@ suite('thread_ui.js >', function() {
     test('has entered content but not recipients', function() {
       ThreadUI.recipients.remove('999');
       ThreadUI.saveMessageDraft();
-      arg = spy.firstCall.args[0];
+      arg = addSpy.firstCall.args[0];
 
       assert.deepEqual(arg.recipients, []);
       assert.deepEqual(arg.content, ['foo']);
+    });
+
+    test('thread is updated in thread list', function() {
+      ThreadUI.saveMessageDraft();
+
+      assert.isTrue(updateSpy.calledOnce);
     });
 
   });
