@@ -37,9 +37,8 @@ marionette('editing an image', function() {
     app.editEffectButton.click();
     assert.ok(app.effectOptions.displayed());
 
-    app.editBorderButton.click();
-    assert.ok(app.borderOptions.displayed());
-
+    app.editEnhanceButton.click();
+    assert.ok(app.enhanceOptions.displayed());
   });
 
   test('should change exposure', function() {
@@ -85,17 +84,4 @@ marionette('editing an image', function() {
     assert.strictEqual(app.thumbnails.length, 2);
   });
 
-  test('should add a border', function() {
-    // Add a border to an image creates a new modified version of original.
-    app.thumbnail.click();
-    app.editButton.click();
-    app.waitForImageEditor();
-    app.editBorderButton.click();
-    app.editBorderThickWhiteButton.click();
-    app.editSaveButton.click();
-    client.waitFor(function() {
-      return app.thumbnails.length == 2;
-    });
-    assert.strictEqual(app.thumbnails.length, 2);
-  });
 });
