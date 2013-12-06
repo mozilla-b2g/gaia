@@ -124,7 +124,8 @@ class Browser(Base):
     def type_bookmark_title(self, value):
         element = self.marionette.find_element(*self._bookmark_title_input_locator)
         element.clear()
-        element.send_keys(value)
+        element.tap()
+        self.keyboard.send(value)
         # Here we must dismiss the keyboard because it obscures the elements on the page
         # Marionette cannot scroll them into view because it is a modal frame
         self.keyboard.dismiss()
