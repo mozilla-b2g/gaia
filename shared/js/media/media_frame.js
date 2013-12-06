@@ -177,6 +177,10 @@ MediaFrame.prototype._switchToFullSizeImage = function _switchToFull() {
   var newimage = this.image = document.createElement('img');
   newimage.src = this.url = URL.createObjectURL(this.imageblob);
 
+  // move onerror callback to newimage when oldimage becomes useless.
+  newimage.onerror = oldimage.onerror;
+  oldimage.onerror = null;
+
   // Add the new image to the container before the current preview image
   // Because it comes first it will be obscured by the preview
   this.container.insertBefore(newimage, oldimage);
@@ -214,7 +218,7 @@ MediaFrame.prototype._switchToFullSizeImage = function _switchToFull() {
       mozRequestAnimationFrame(function() {
         self.container.removeChild(oldimage);
         self.oldimage = null;
-        oldimage.src = null;
+        oldimage.src = ''; // Use '' instead of null. See Bug 901410
         if (oldurl)
           URL.revokeObjectURL(oldurl);
       });
