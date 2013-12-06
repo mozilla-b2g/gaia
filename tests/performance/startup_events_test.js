@@ -1,63 +1,63 @@
 'use strict';
 
-require('/tests/js/app_integration.js');
-require('/tests/js/integration_helper.js');
-require('/tests/performance/performance_helper.js');
 
-const whitelistedApps = ['communications/contacts'];
+var App = require('./app');
+var PerformanceHelper = requireGaia('/tests/performance/performance_helper.js');
+var MarionetteHelper = requireGaia('/tests/js-marionette/helper.js');
 
-function GenericIntegration(device) {
-  AppIntegration.apply(this, arguments);
+// This test is only for communications/contacts for now.
+// XXX extend to more apps.
+var whitelistedApps = ['communications/contacts'];
+if (whitelistedApps.indexOf(mozTestInfo.appPath) === -1) {
+  return;
 }
 
-var [manifestPath, entryPoint] = window.mozTestInfo.appPath.split('/');
+var manifestPath, entryPoint;
+var arr = mozTestInfo.appPath.split('/');
+manifestPath = arr[0];
+entryPoint = arr[1];
 
-GenericIntegration.prototype = {
-  __proto__: AppIntegration.prototype,
-  appName: window.mozTestInfo.appPath,
-  manifestURL: 'app://' + manifestPath + '.gaiamobile.org/manifest.webapp',
-  entryPoint: entryPoint
-};
 
-suite(window.mozTestInfo.appPath + ' >', function() {
-  var device;
-  var app;
+marionette('startup event test > ' + mozTestInfo.appPath + ' >', function() {
 
-  MarionetteHelper.start(function(client) {
-    app = new GenericIntegration(client);
-    device = app.device;
+  var client = marionette.client({
+    settings: {
+      'ftu.manifestURL': null
+    }
+  });
+  var lastEvent = 'startup-path-done';
+
+  var app = new App(client, mozTestInfo.appPath);
+  if (app.skip) {
+    return;
+  }
+
+  var performanceHelper = new PerformanceHelper({
+    app: app,
+    lastEvent: lastEvent
   });
 
   setup(function() {
     // it affects the first run otherwise
-    yield IntegrationHelper.unlock(device);
+    this.timeout(500000);
+    client.setScriptTimeout(50000);
+
+    MarionetteHelper.unlockScreen(client);
   });
 
-  if (whitelistedApps.indexOf(window.mozTestInfo.appPath) === -1) {
-    return;
-  }
+  test('startup >', function() {
 
-  test('', function() {
-
-    this.timeout(500000);
-    yield device.setScriptTimeout(50000);
-
-    var lastEvent = 'startup-path-done';
-
-    var performanceHelper = new PerformanceHelper({
-      app: app,
-      lastEvent: lastEvent
-    });
-
-    yield performanceHelper.repeatWithDelay(function(app, next) {
+    performanceHelper.repeatWithDelay(function(app, next) {
 
       var waitForBody = false;
-      yield app.launch(waitForBody);
+      app.launch(waitForBody);
 
-      var runResults = yield performanceHelper.observe(next);
+      performanceHelper.observe();
 
-      performanceHelper.reportRunDurations(runResults);
-      yield app.close();
+      performanceHelper.waitForPerfEvent(function(runResults) {
+        performanceHelper.reportRunDurations(runResults);
+        app.close();
+      });
     });
 
     performanceHelper.finish();
@@ -65,4 +65,3 @@ suite(window.mozTestInfo.appPath + ' >', function() {
   });
 
 });
-

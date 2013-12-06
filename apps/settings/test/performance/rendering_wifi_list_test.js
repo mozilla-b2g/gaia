@@ -1,27 +1,30 @@
 'use strict';
 
-requireCommon('test/synthetic_gestures.js');
-require('/tests/performance/performance_helper.js');
-require('apps/settings/test/integration/app.js');
+requireGaia('/test_apps/test-agent/common/test/synthetic_gestures.js');
+var MarionetteHelper = requireGaia('/tests/js-marionette/helper.js');
 
-suite(window.mozTestInfo.appPath + ' >', function() {
-  var device;
+var PerformanceHelper =
+  requireGaia('/tests/performance/performance_helper.js');
+var SettingsIntegration = require('./integration.js');
+
+marionette(mozTestInfo.appPath + ' >', function() {
   var app;
-
-  MarionetteHelper.start(function(client) {
-    app = new SettingsIntegration(client);
-    device = app.device;
+  var client = marionette.client({
+    settings: {
+      'ftu.manifestURL': null
+    }
   });
+
+  app = new SettingsIntegration(client, mozTestInfo.appPath);
 
   setup(function() {
     // It affects the first run otherwise
-    yield IntegrationHelper.unlock(device);
+    this.timeout(500000);
+    client.setScriptTimeout(50000);
+    MarionetteHelper.unlockScreen(client);
   });
 
   test('rendering WiFi list >', function() {
-    this.timeout(500000);
-    yield device.setScriptTimeout(50000);
-
     var lastEvent = 'settings-panel-wifi-ready';
 
     var performanceHelper = new PerformanceHelper({
@@ -29,17 +32,21 @@ suite(window.mozTestInfo.appPath + ' >', function() {
       lastEvent: lastEvent
     });
 
-    yield performanceHelper.repeatWithDelay(function(app, next) {
+    performanceHelper.repeatWithDelay(function(app, next) {
       var waitForBody = true;
-      yield app.launch(waitForBody);
+      app.launch(waitForBody);
 
-      var wifiSubpanel = yield app.element('wifiSelector');
-      yield wifiSubpanel.singleTap();
+      performanceHelper.observe();
 
-      var runResults = yield performanceHelper.observe(next);
-      performanceHelper.reportRunDurations(runResults);
+      app.element('wifiSelector', function(err, wifiSubpanel) {
+        wifiSubpanel.tap();
+      });
 
-      yield app.close();
+      performanceHelper.waitForPerfEvent(function(runResults) {
+        performanceHelper.reportRunDurations(runResults);
+
+        app.close();
+      });
     });
 
     performanceHelper.finish();

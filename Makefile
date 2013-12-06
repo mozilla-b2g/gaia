@@ -14,8 +14,10 @@
 #               the offline cache. This is mostly for desktop debugging.      #
 #                                                                             #
 # REPORTER    : Mocha reporter to use for test output.                        #
-#
-# MARIONETTE_RUNNER_HOST : The Marionnette runner host.
+#                                                                             #
+# MARIONETTE_RUNNER_HOST : The Marionnette runner host.                       #
+#                          Current values can be 'marionette-b2gdesktop-host' #
+#                          and 'marionette-device-host'                       #
 #                                                                             #
 # COVERAGE    : Add blanket testing coverage report to use for test output.   #
 #                                                                             #
@@ -731,21 +733,7 @@ test-integration: b2g $(PROFILE_FOLDER)
 
 .PHONY: test-perf
 test-perf:
-	# All echo calls help create a JSON array
-	adb forward tcp:2828 tcp:2828
-	SHARED_PERF=`find tests/performance -name "*_test.js" -type f`; \
-	echo '['; \
-	for app in ${APPS}; \
-	do \
-		if [ -z "$${FIRST_LOOP_ITERATION}" ]; then \
-			FIRST_LOOP_ITERATION=done; \
-		else \
-			echo ','; \
-		fi; \
-		FILES_PERF=`test -d apps/$$app/test/performance && find apps/$$app/test/performance -name "*_test.js" -type f`; \
-		REPORTER=JSONMozPerf ./tests/js/bin/runner $$app $${SHARED_PERF} $${FILES_PERF}; \
-	done; \
-	echo ']';
+	APPS="$(APPS)" MARIONETTE_RUNNER_HOST=$(MARIONETTE_RUNNER_HOST) GAIA_DIR="`pwd`" NPM_REGISTRY=$(NPM_REGISTRY) ./bin/gaia-perf-marionette
 
 .PHONY: tests
 tests: webapp-manifests offline
@@ -764,9 +752,6 @@ common-install:
 
 .PHONY: update-common
 update-common: common-install
-	# integration tests
-	rm -f tests/vendor/marionette.js
-	cp $(TEST_AGENT_DIR)/node_modules/marionette-client/marionette.js tests/js/vendor/
 
 	# common testing tools
 	mkdir -p $(TEST_COMMON)/vendor/test-agent/
