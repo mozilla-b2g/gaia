@@ -39,6 +39,7 @@ var NotificationHelper = {
                                                                     body, icon);
 
     notification.onclick = (function() {
+
       if (clickCB)
         clickCB();
 
@@ -56,6 +57,52 @@ var NotificationHelper = {
     this._keep(notification);
   },
 
+  sendNew: function nc_send(title, body, icon, extras) {
+    if (!('Notification' in window))
+      return;
+
+    var self = this;
+    var hasPermission = this._checkPermissions(function _send(hasPermission) {
+      if (!hasPermission) {
+        return;
+      }
+
+      var options = {
+        body: body,
+        icon: icon,
+        dir: extras.dir || 'auto',
+        lang: extras.lang || undefined,
+        tag: extras.tag || undefined
+      };
+
+      var notification = new Notification(title, options);
+
+      var closeOnclick = (function() {
+        notification.close();
+      }).bind(self);
+
+      var forgetDefault = (function() {
+        self._forget(notification);
+      }).bind(self);
+
+      notification.addEventListener('click', forgetDefault);
+      notification.addEventListener('close', forgetDefault);
+
+      if (extras.events) {
+        for (var i = 0; i < extras.events.length; i++) {
+          var e = extras.events[i];
+          notification.addEventListener(e.name, function() {
+            e.method(notification);
+          });
+        }
+      }
+
+      notification.addEventListener('click', closeOnclick);
+
+      self._keep(notification);
+    });
+  },
+
   _keep: function nc_keep(notification) {
     this._referencesArray.push(notification);
   },
@@ -63,6 +110,25 @@ var NotificationHelper = {
     this._referencesArray.splice(
       this._referencesArray.indexOf(notification), 1
     );
+  },
+  _checkPermissions: function nc_checkPermissions(callback) {
+    if (Notification.permission !== 'denied') {
+      Notification.requestPermission(function(permission) {
+        // Whatever the user answers, we make sure Chrome stores the information
+        if (!('permission' in Notification)) {
+          Notification.permission = permission;
+        }
+
+        // If the user is okay, let's create a notification
+        if (permission === 'granted') {
+          callback(true);
+        } else {
+          callback(false);
+        }
+      });
+    } else {
+      callback(false);
+    }
   }
 };
 
