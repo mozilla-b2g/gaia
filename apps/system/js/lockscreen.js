@@ -416,6 +416,13 @@ var LockScreen = {
         break;
 
       case 'click':
+        if (0 === evt.mozInputSource &&
+            (this.areaUnlock === evt.target ||
+             this.areaCamera === evt.target)) {
+          evt.preventDefault();
+          this.handleIconClick(evt.target);
+          break;
+        }
         if (!evt.target.dataset.key)
           break;
 
