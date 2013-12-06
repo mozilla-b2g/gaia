@@ -99,7 +99,7 @@ input.msg-search-text-tease {
   font-size: 1.6rem;
   line-height: 2rem;
   padding: 1rem 1.5rem 0;
-  border-bottom: 0.1rem solid #bdbdbb;
+  border-bottom: 0.1rem solid #e7e7e7;
 }
 .msg-header-icons-section {
   display: block;
