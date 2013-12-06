@@ -164,9 +164,6 @@ ul[data-state="ready"] li > a {
 section li.password,
 section li.password[hidden],
 section li.eap,
-section li.auth-phase2,
-section li.server-certificate,
-section li.description,
 section li.identity {
   display: none;
 }
@@ -174,9 +171,6 @@ section li.identity {
 section[data-security*="WEP"] li.password,
 section[data-security*="WPA"] li.password,
 section[data-security*="EAP"] li.eap,
-section[data-security*="EAP"] li.auth-phase2,
-section[data-security*="EAP"] li.server-certificate,
-section[data-security*="EAP"] li.description,
 section[data-security*="EAP"] li.identity {
   display: block;
 }
@@ -225,19 +219,6 @@ section li.password > p {
 #pwd-auth {
   -moz-user-focus: ignore;
 }
-
-section ul.operate-certificate {
-  position: fixed;
-  bottom: 0;
-  width: 100%;
-  background: url(images/document_bg.png);
-}
-
-#wifi-certificate-files-List li.disabled a {
-  opacity: 0.6;
-  pointer-events: none;
-}
-
 
 /******************************************************************************
 * Media Storage settings
