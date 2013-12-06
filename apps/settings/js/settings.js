@@ -772,7 +772,8 @@ var Settings = {
                      'style/apps.css',
                      'style/phone_lock.css',
                      'style/simcard.css',
-                     'style/updates.css'],
+                     'style/updates.css',
+                     'style/downloads.css'],
     function callback() {
       self._panelStylesheetsLoaded = true;
     });

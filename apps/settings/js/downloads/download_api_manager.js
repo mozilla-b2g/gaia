@@ -78,6 +78,7 @@
             onsuccess(downloads, oncomplete);
           };
           request.onerror = function(e) {
+            console.warn('DATASTORE FAILED');
             // Use only the API
             _appendDownloadsToCache(notCompletedDownloads);
             onsuccess(notCompletedDownloads, oncomplete);
@@ -98,19 +99,39 @@
       navigator.mozDownloadManager.ondownloadstart = handler;
     },
 
-    deleteDownloads: function(downloadIds, callback) {
-      if (downloadIds == null || downloadIds.length === 0) {
-        callback();
+    deleteDownloads:
+      function(downloadIds, onDeletedSuccess, onDeletedError, oncomplete) {
+      if (downloadIds == null) {
+        if (typeof onDeletedError === 'function') {
+          onDeletedError(null, 'Download IDs not defined or null');
+        }
+        return;
+      }
+      if (downloadIds.length === 0) {
+        if (typeof oncomplete === 'function') {
+          oncomplete();
+        }
         return;
       }
 
       var currentId = downloadIds.pop();
       var self = this;
       _deleteDownload(currentId, function onDelete() {
-        self.deleteDownloads(downloadIds, callback);
+        onDeletedSuccess && onDeletedSuccess(currentId);
+        self.deleteDownloads(
+          downloadIds,
+          onDeletedSuccess,
+          onDeletedError,
+          oncomplete
+        );
       }, function onError(msg) {
-        console.error('Could not delete ' + currentId + ' : ' + msg);
-        self.deleteDownloads(downloadIds, callback);
+        onDeletedError && onDeletedError(currentId, msg);
+        self.deleteDownloads(
+          downloadIds,
+          onDeletedSuccess,
+          onDeletedError,
+          oncomplete
+        );
       });
     },
 

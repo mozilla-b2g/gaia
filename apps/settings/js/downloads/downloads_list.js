@@ -9,9 +9,22 @@
 
 (function(exports) {
 
-
+  // Panels
   var downloadsContainer = null;
   var emptyDownloadsContainer = null;
+  var downloadsPanel = null;
+
+  // Buttons
+  var editButton = null;
+  var closeButton = null;
+  var deleteButton = null;
+  var selectAllButton = null;
+  var deselectAllButton = null;
+
+  // Not related with DOM vars
+  var isEditMode = false;
+  var numberOfDownloads = 0;
+  var numberOfCheckedDownloads = 0;
 
   function _checkEmptyList() {
     if (!downloadsContainer) {
@@ -21,6 +34,15 @@
 
     downloadsContainer.className = isEmpty ? 'hide' : '';
     emptyDownloadsContainer.className = isEmpty ? '' : 'hide';
+    editButton.className = isEmpty ? 'disabled' : '';
+  }
+
+  function _newDownload(download) {
+    _prepend(download);
+    if (isEditMode) {
+      numberOfDownloads++;
+      _updateButtonsStatus();
+    }
   }
 
   function _render(downloads, oncomplete) {
@@ -101,6 +123,9 @@
   }
 
   function _onDownloadAction(event) {
+    if (isEditMode) {
+      return;
+    }
     var downloadID = event.target.id || event.target.dataset.id;
     var download = DownloadApiManager.getDownload(downloadID);
     _actionHandler(download);
@@ -177,14 +202,138 @@
         if (!d) {
           return;
         }
+        // If error when opening, we need to delete it!
         var downloadId = DownloadItem.getDownloadId(d);
-        DownloadApiManager.deleteDownloads([downloadId],
-          function removeFromUI() {
-            _delete(downloadId);
+        var elementToDelete = _getElementForId(downloadId);
+        DownloadApiManager.deleteDownloads(
+          [downloadId],
+          function onDeleted() {
+            _removeDownloadsFromUI([elementToDelete]);
+            _checkEmptyList();
+          },
+          function onError() {
+            console.warn('Download not removed during launching');
           }
         );
       });
     };
+  }
+
+  // Methods for controlling the edit mode
+
+  function _getAllChecks() {
+    return downloadsContainer.querySelectorAll('input');
+  }
+
+  function _getAllChecked() {
+    return downloadsContainer.querySelectorAll('input:checked');
+  }
+
+  function _markAllChecksAs(condition) {
+    var checks = _getAllChecks();
+    for (var i = 0; i < checks.length; i++) {
+      checks[i].checked = condition;
+    }
+    numberOfCheckedDownloads = condition ? numberOfDownloads : 0;
+  }
+
+  function _enableAllChecks() {
+    _markAllChecksAs(true);
+    _updateButtonsStatus();
+  }
+
+  function _disableAllChecks() {
+    _markAllChecksAs(false);
+    _updateButtonsStatus();
+  }
+
+  function _updateButtonsStatus() {
+    if (numberOfDownloads === 0) {
+      // Cache number of downloads
+      numberOfDownloads = _getAllChecks().length;
+    }
+    // Delete button status
+    deleteButton.disabled = !(numberOfCheckedDownloads > 0);
+
+    // "Select all" button status
+    selectAllButton.disabled = (numberOfCheckedDownloads === numberOfDownloads);
+    // Nothing checked?
+    deselectAllButton.disabled = (numberOfCheckedDownloads === 0);
+  }
+
+
+  function _onDownloadSelected(event) {
+    if (isEditMode && event.target.tagName === 'INPUT') {
+      event.target.checked ?
+        numberOfCheckedDownloads++ : numberOfCheckedDownloads--;
+      _updateButtonsStatus();
+    }
+  }
+
+  function _deleteDownloads() {
+    var downloadsChecked = _getAllChecked() || [];
+    var downloadIDs = [], downloadElements = {};
+    for (var i = 0; i < downloadsChecked.length; i++) {
+      downloadIDs.push(downloadsChecked[i].value);
+      downloadElements[downloadsChecked[i].value] =
+        downloadsChecked[i].parentNode.parentNode;
+    }
+
+    function deletionDone() {
+      _checkEmptyList();
+      _closeEditMode();
+    }
+
+    DownloadApiManager.deleteDownloads(
+      downloadIDs,
+      function downloadsDeleted(downloadID) {
+        _removeDownloadsFromUI([downloadElements[downloadID]]);
+      },
+      function onError(downloadID, msg) {
+        console.warn('Could not delete ' + downloadID + ' : ' + msg);
+        deletionDone();
+      },
+      function onComplete() {
+        deletionDone();
+      }
+    );
+  }
+
+  function _removeDownloadsFromUI(elements) {
+    for (var i = 0; i < elements.length; i++) {
+      downloadsContainer.removeChild(elements[i]);
+    }
+  }
+
+  function _loadEditMode() {
+    // Disable all checks
+    _disableAllChecks();
+    // Ensure that header is the firstchild for using building blocks
+    var targetHeader = document.getElementById('edit-mode-header');
+    targetHeader.parentNode.insertBefore(
+      targetHeader,
+      targetHeader.parentNode.firstChild
+    );
+    // Add 'edit' stype
+    downloadsPanel.classList.add('edit');
+    // Change edit mdoe status
+    isEditMode = true;
+    _updateButtonsStatus();
+  }
+
+  function _closeEditMode() {
+    // Ensure the header
+    var targetHeader = document.getElementById('downloads-header');
+    targetHeader.parentNode.insertBefore(
+      targetHeader,
+      targetHeader.parentNode.firstChild
+    );
+    // Remove "edit" styles
+    downloadsPanel.classList.remove('edit');
+    // Clean vars
+    isEditMode = false;
+    numberOfDownloads = 0;
+    numberOfCheckedDownloads = 0;
   }
 
   var DownloadsList = {
@@ -199,21 +348,49 @@
         'js/downloads/download_item.js'
       ];
 
+      if (!navigator.mozDownloadManager) {
+        scripts.push('js/downloads/desktop/desktop_moz_downloads.js');
+      }
+
       LazyLoader.load(scripts, function onload() {
-        // Init the container
+        // Cache DOM Elements
+        // Panels
         downloadsContainer = document.querySelector('#downloadList ul');
         emptyDownloadsContainer =
           document.getElementById('download-list-empty');
+        downloadsPanel = document.getElementById('downloads');
+        // Buttons
+        editButton = document.getElementById('downloads-edit-button');
+        closeButton = document.getElementById('downloads-close-button');
+        deleteButton = document.getElementById('downloads-delete-button');
+        selectAllButton =
+          document.getElementById('downloads-edit-select-all');
+        deselectAllButton =
+          document.getElementById('downloads-edit-deselect-all');
+
+        // Localization of the nodes for avoiding weird repaintings
         var noDownloadsTextEl = document.getElementById('dle-text');
-        navigator.mozL10n.localize(noDownloadsTextEl, 'no-downloads');
+        var editModeTitle = document.getElementById('downloads-title-edit');
+
         // Render the entire list
         DownloadApiManager.getDownloads(
           _render.bind(this),
           _onerror.bind(this),
           oncomplete
         );
-        // Update if needed
-        DownloadApiManager.setOnDownloadHandler(_prepend);
+
+        // Update method added
+        DownloadApiManager.setOnDownloadHandler(_newDownload);
+
+        // Add listener to edit mode
+        editButton.addEventListener('click', _loadEditMode.bind(this));
+        closeButton.addEventListener('click', _closeEditMode.bind(this));
+        selectAllButton.addEventListener('click', _enableAllChecks.bind(this));
+        deselectAllButton.addEventListener('click',
+          _disableAllChecks.bind(this));
+        deleteButton.addEventListener('click', _deleteDownloads.bind(this));
+        downloadsContainer.addEventListener('click',
+          _onDownloadSelected.bind(this));
       });
     }
   };
