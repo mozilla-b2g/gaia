@@ -58,6 +58,18 @@ var DownloadItem = (function DownloadItem() {
     li.dataset.state = download.state;
     li.id = getDownloadId(download);
 
+    var label = document.createElement('label');
+    label.classList.add('pack-checkbox');
+    var checkBox = document.createElement('input');
+    checkBox.setAttribute('type', 'checkbox');
+    checkBox.value = getDownloadId(download);
+
+    var span = document.createElement('span');
+
+    label.appendChild(checkBox);
+    label.appendChild(span);
+
+
     var asideStatus = document.createElement('aside');
 
     var asideAction = document.createElement('aside');
@@ -74,6 +86,7 @@ var DownloadItem = (function DownloadItem() {
     var progress = document.createElement('progress');
     progress.max = 100;
 
+    li.appendChild(label);
     li.appendChild(asideStatus);
     li.appendChild(asideAction);
     li.appendChild(pFileName);
@@ -181,6 +194,7 @@ var DownloadItem = (function DownloadItem() {
     var asides = domElement.querySelectorAll('aside');
     domNodes['asideStatus'] = domElement.querySelector('aside:not(pack-end)');
     domNodes['asideAction'] = domElement.querySelector('aside.pack-end');
+
 
     domNodes['progress'] = domElement.getElementsByTagName('progress')[0];
 
