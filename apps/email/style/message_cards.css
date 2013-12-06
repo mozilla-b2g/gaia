@@ -409,10 +409,19 @@ input.msg-search-text-tease {
    selector than ours for :active, so we can't just reorder the files to fix the problem. */
 .msg-refresh-btn {
   background-image: url("images/icons/refresh.png") !important;
+  background-position: 50% 50% !important;
   background-size: 3.2rem !important;
 }
+
+.msg-refresh-btn:active {
+  background-position: 50% 50% !important;
+}
+
 .msg-refresh-btn[data-state="synchronizing"] {
   animation: 0.9s msg-refresh-rotate infinite steps(30);
+}
+.msg-refresh-btn[data-state="synchronizing"]:active {
+  background-color: transparent !important;
 }
 
 @keyframes msg-refresh-rotate {
@@ -420,18 +429,20 @@ input.msg-search-text-tease {
   to   { transform: rotate(360deg); }
 }
 
+[role="tablist"] .icon {
+  background-position: 50% 0;
+}
 
+[role="tablist"] .msg-btn-active {
+  background-position: 50% 100% !important;
+}
 
 .msg-search-btn {
   background-image: url("images/icons/search.png") !important;
-  position: absolute;
-  right: 0;
 }
 
 .msg-edit-btn {
   background-image: url("images/icons/edit-mode.png") !important;
-  position: absolute;
-  left: calc((100% - 6rem)/2);
 }
 
 .bottom-toolbar .msg-btn-active {

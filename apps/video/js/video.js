@@ -53,8 +53,8 @@ var firstScanEnded = false;
 // use devicePixelRatio as the scale ratio for thumbnail creation.
 var scaleRatio = (window.devicePixelRatio || 1);
 
-var THUMBNAIL_WIDTH = 210 * scaleRatio;
-var THUMBNAIL_HEIGHT = 120 * scaleRatio;
+var THUMBNAIL_WIDTH = 230 * scaleRatio;
+var THUMBNAIL_HEIGHT = 230 * scaleRatio;
 
 // Enumerating the readyState for html5 video api
 var HAVE_NOTHING = 0;

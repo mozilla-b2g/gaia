@@ -22,7 +22,7 @@
 }
 
 #week-view > section {
-  height: calc(100% - 8.33rem);
+  height: 100%;
   display: none;
   position: absolute;
 }

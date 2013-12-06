@@ -104,18 +104,47 @@ img.thumbnail.previewed {  /* if the thumbnail is being previewed */
   left: 0;
   right: 0;
   bottom: 0;
-  height: 4rem;
-  background-color: rgba(0, 0, 0, 0.8);
+  height: 4.5rem;
+  border-top: 0.1rem solid rgba(189,189,189, 0.1);
+  background-color: rgba(0,0,0, 0.85);
   z-index: 100; /* above the dynamically inserted frame elements */
 }
 
+#preview-controls .button {
+  border-radius: 0;
+  background-position: 50% 0;
+  transition: none;
+}
+
+#preview-controls .camera-button {
+  background-position: 50% 50%;
+}
+
+#preview-controls .button:active {
+  background-color: rgb(0,170,204);
+  transition: none;
+}
+
 .button {
+  position: absolute;
+  width: 33%;
+  height: 100%;
   display: block;
   padding: 0;
   margin: 0;
   border-width: 0;
+  background: none;
+}
+
+.button:after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   background: transparent;
-  background-position: center center;
+  background-position: 50% 50%;
   background-repeat: no-repeat;
   transition: 0.2s ease-in-out;
 }
@@ -130,41 +159,41 @@ img.thumbnail.previewed {  /* if the thumbnail is being previewed */
 }
 
 .camera-button {
- position: absolute;
- left: 0;
- width: 33%;
- height: 100%;
- background-image: url(images/camera.png);
- background-size: 3rem;
+  left: 0;
+}
+
+.camera-button:after {
+  background-image: url(images/camera.png);
+  background-size: 3rem;
 }
 
 .share-button {
- position: absolute;
- left: 33%;
- width: 33%;
- height: 100%;
- background-image: url(images/share.png);
- background-size: 3rem;
+  left: 33%;
+}
+
+.share-button:after {
+  background-image: url(images/share.png);
+  background-size: 3rem;
 }
 
 .delete-button {
- position: absolute;
- left: 67%;
- width: 33%;
- height: 100%;
- background-image: url(images/delete.png);
- background-size: 3rem;
+  left: 67%;
+}
+
+.delete-button:after {
+  background-image: url(images/delete.png);
+  background-size: 3rem;
 }
 
 /*
  * Make the button icons rotate with the phone
  */
-.preview[data-orientation="90"] a.button {
+.preview[data-orientation="90"] a.button:after {
   transform: rotate(-90deg);
 }
-.preview[data-orientation="180"] a.button {
+.preview[data-orientation="180"] a.button:after {
   transform: rotate(-180deg);
 }
-.preview[data-orientation="270"] a.button {
+.preview[data-orientation="270"] a.button:after {
   transform: rotate(-270deg);
 }

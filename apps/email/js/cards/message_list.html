@@ -39,7 +39,7 @@
     </header>
     <!-- Search filter switcher -->
     <header class="msg-search-controls-bar">
-      <ul role="tablist" class="filter" data-type="filter" data-items="5">
+      <ul role="tablist" class="filter" data-type="filter">
         <li role="tab" class="msg-search-from msg-search-filter"
             data-filter="author">
           <a data-l10n-id="message-search-from">FroM</a></li>
@@ -92,19 +92,34 @@
   <div class="msg-activity-infobar hidden">
   </div>
   <!-- Toolbar for non-multi-edit state -->
-  <div class="msg-list-action-toolbar bottom-toolbar">
-    <button class="msg-refresh-btn bottom-btn msg-nonsearch-only"
-            data-state="synchronized"></button>
-    <button class="msg-search-btn bottom-btn msg-nonsearch-only"></button>
-    <button class="msg-edit-btn bottom-btn"></button>
-  </div>
+  <ul role="tablist" class="msg-list-action-toolbar">
+    <li role="tab" class="msg-nonsearch-only">
+      <a class="icon msg-refresh-btn" data-state="synchronized"></a>
+    </li>
+    <li role="tab" class="msg-nonsearch-only">
+      <a class="icon msg-search-btn"></a>
+    </li>
+    <li role="tab">
+      <a class="icon msg-edit-btn"></a>
+    </li>
+  </ul>
+
   <!-- Toolbar for multi-edit state -->
-  <div class="msg-listedit-action-toolbar bottom-edit-toolbar bottom-toolbar collapsed">
-    <button class="msg-delete-btn bottom-btn"></button>
-    <button class="msg-star-btn bottom-btn"></button>
-    <button class="msg-mark-read-btn bottom-btn"></button>
-    <button class="msg-move-btn bottom-btn"></button>
-  </div>
+  <ul role="tablist" class="msg-listedit-action-toolbar collapsed">
+    <li role="tab">
+      <a class="icon msg-delete-btn"></a>
+    </li>
+    <li role="tab">
+      <a class="icon msg-star-btn"></a>
+    </li>
+    <li role="tab">
+      <a class="icon msg-mark-read-btn"></a>
+    </li>
+    <li role="tab">
+      <a class="icon msg-move-btn"></a>
+    </li>
+  </ul>
+
   <div class="msg-list-empty-container collapsed">
     <p class="msg-list-empty-message-text" data-l10n-id="messages-folder-empty">No messagE</p>
   </div>

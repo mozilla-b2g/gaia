@@ -4,10 +4,6 @@
  *
  */
 
-#keyboard-view {
-  height: 100%;
-}
-
 #fake-phone-number-view {
   font-size: 3rem;
   position: absolute;
@@ -193,7 +189,7 @@ article:not(:target) #keypad-delete {
   border-spacing: 0.8rem 0.8rem;
   border: solid 0.1rem rgba(255, 255, 255, 0.2);
   border-right-color: rgba(0, 0, 0, 0.4);
-  border-bottom-color: rgba(0, 0, 0, 0.4);
+  border-bottom: 0;
   border-left: 0;
   -moz-box-sizing: border-box;
 }
