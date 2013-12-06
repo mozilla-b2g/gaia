@@ -290,25 +290,6 @@ suite('Renderer', function() {
       });
     });
 
-    test('Should add last-row class to last row', function() {
-      var layout = {
-        width: 2,
-        keys: [
-          [{ value: 'a' }, { value: 'b' }],
-          [{ value: 'c' }, { value: 'd' }],
-          [{ value: 'e' }, { value: 'f' }]
-        ]
-      };
-
-      IMERender.draw(layout);
-
-      var rows = document.querySelectorAll('.keyboard-row');
-      assert.equal(rows.length, 3);
-      assert.equal(rows[2].classList.contains('keyboard-last-row'), true);
-      var keys = document.querySelectorAll('.keyboard-key');
-      assert.equal(keys.length, 6);
-    });
-
     test('Hidden should be respected', function() {
       var layout = {
         width: 2,
