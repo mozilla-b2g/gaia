@@ -487,9 +487,7 @@ bubble above the key when you tap and hold. */
   height: 3rem;
   width: 100%;
   background: #333;
-  /* I don't know why we need the top and bottom margins */
-  /* the left and right just give nice side borders */
-  margin: -0.6rem 0rem 0rem 0rem;
+  margin: -0.6rem 0rem 0rem 0rem; /* I don't know why we need the top margin */
   border: none;
   border-bottom: 0.1rem solid #a0a6a8;
   overflow: hidden;
@@ -509,10 +507,12 @@ bubble above the key when you tap and hold. */
   line-height: 2.8rem;
 }
 
+
 #keyboard-candidate-panel.latin > div {
   display: inline-block;
   height: 100%;       /* width set in render.js */
-  margin: 0 1%;       /* don't change without updating with in render.js */
+  margin: 0 3px;      /* px instead of rem because we use this in render.js */
+  padding: 0;
   border: 0;
   overflow: hidden;
   -moz-box-sizing: border-box;
@@ -666,4 +666,23 @@ bubble above the key when you tap and hold. */
   border-color: #008aaa;
   background: #008aaa;
   color: #333;
+}
+
+/*
+ * Styles for the dismiss suggestions button in the candidate panel
+ */
+
+#keyboard-candidate-panel.latin > #dismiss-suggestions-button {
+  display:inline-block;
+  height: 100%;
+  /*
+   * the icon is 2.4rem wide but the visual space only takes up 1.4rem
+   * we want 10 blank pixels to the left and 15 to the right. But the first
+   * suggestion has a 0.3rem margin, so we only need to add 1.2rem to the
+   * icon size.
+   */
+  width: 3.6rem;
+  background: url('images/icon_dismiss.png') 0.5rem center /2.4rem no-repeat;
+  margin: 0;
+  padding: 0;
 }

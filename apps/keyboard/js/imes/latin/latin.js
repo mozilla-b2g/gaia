@@ -50,6 +50,7 @@
     displaysCandidates: displaysCandidates,
     click: click,
     select: select,
+    dismissSuggestions: dismissSuggestions,
     setLayoutParams: setLayoutParams,
     setLanguage: setLanguage
   };
@@ -598,58 +599,58 @@
       return;
     }
 
-    // Loop through the suggestions discarding the weights
-    var lcinput = input.toLowerCase();
-    for (var i = 0; i < suggestions.length; i++) {
-      suggestions[i] = suggestions[i][0];
+    // See if the user's input is a valid word on the list of suggestions
+    var inputIsSuggestion = false;
+    var inputWeight = 0;
+    var inputIndex;
+    for (inputIndex = 0; inputIndex < suggestions.length; inputIndex++) {
+      if (suggestions[inputIndex][0] === input) {
+        inputIsSuggestion = true;
+        inputWeight = suggestions[inputIndex][1];
+        break;
+      }
     }
 
-    // Now figure out if the input is one of the suggestions
-    var inputindex = suggestions.indexOf(input);
-
-    // If the input is just one character long then we never want to
-    // auto-correct to more than one character (because it makes it hard
-    // to type abbreviations and other single-characters uses).  So if the
-    // first suggestion is not also one-character, then make the input
-    // into the first suggestion.
-    if (input.length === 1 && suggestions[0].length !== 1) {
-      if (inputindex === -1)                // If the input is not a suggestion
-        suggestions.pop();                  // Remove the last suggestion
-      else                                  // Otherwise
-        suggestions.splice(inputindex, 1);  // Remove the input
-      suggestions.unshift(input);           // Then add it at the start
-      inputindex = 0;                       // Update inputindex
+    // We never want to display the user's input as a suggestion so
+    // remove it from the list if it is there.
+    if (inputIsSuggestion) {
+      suggestions.splice(inputIndex, 1);
     }
 
-    switch (inputindex) {
-    case -1:
-      // Input is not a word: show it second in the list
-      if (suggestions.length > 1)
-        suggestions = [suggestions[0], input, suggestions[1]];
-      else
-        suggestions = [suggestions[0], input];
-      break;
-    case 0:
-    case 1:
-      // Input is the same as the first suggestion or is already in
-      // the second position: use the suggestions unmodified
-      break;
-    case 2:
-      // Input is the 3rd suggestion: swap to make it second
-      suggestions = [suggestions[0], input, suggestions[1]];
-      break;
+    // If we don't have any suggestions we're done
+    if (suggestions.length === 0) {
+      keyboard.sendCandidates([]); // Clear any displayed suggestions
+      return;
     }
 
-    // If we're going to use the first suggestion as an auto-correction
-    // then we have to tell the renderer to highlight it.
-    if (correcting && !correctionDisabled) {
+    // Make sure we have no more than three words
+    if (suggestions.length > 3)
+      suggestions.length = 3;
+
+    // Now get an array of just the suggested words
+    var words = suggestions.map(function(x) { return x[0]; });
+
+    // Decide whether the first word is going to be an autocorrection.
+    // If the user's input is already a valid word, then don't
+    // autocorrect unless the first suggested word is more common than
+    // the input.  Note that if the first suggested word has a higher
+    // weight even after whatever penalty is applied for not matching
+    // exactly, then it is significantly more common than the actual input.
+    // (This rule means that "ill" will autocorrect to "I'll",
+    // "wont" to "won't", etc.)
+    // Also, don't autocorrect if the input is a single letter and
+    // the first word is more than a single letter. (But still autocorrect
+    // "i" to "I")
+    if (correcting && !correctionDisabled &&
+        (!inputIsSuggestion || suggestions[0][1] > inputWeight) &&
+        (input.length > 1 || words[0].length === 1)) {
       // Remember the word to use if the next character is a space.
-      autoCorrection = suggestions[0];
+      autoCorrection = words[0];
       // Mark the auto-correction so the renderer can highlight it
-      suggestions[0] = '*' + suggestions[0];
+      words[0] = '*' + words[0];
     }
 
-    keyboard.sendCandidates(suggestions);
+    keyboard.sendCandidates(words);
   }
 
   // If the user selects one of the suggestions offered by this input method
@@ -682,6 +683,25 @@
 
     // And update the keyboard capitalization state, if necessary
     updateCapitalization();
+  }
+
+  function dismissSuggestions() {
+    // Clear the list of candidates
+    keyboard.sendCandidates([]);
+
+    // Send a space
+    keyboard.sendKey(SPACE);
+    inputText = inputText.substring(0, cursor) + ' ' +
+      inputText.substring(cursor);
+    cursor++;
+
+    // Get rid of any autocorrection that is pending and reset the rest
+    // of our state, too.
+    lastSpaceTimestamp = 0;
+    autoCorrection = null;
+    revertTo = revertFrom = '';
+    justAutoCorrected = false;
+    correctionDisabled = false;
   }
 
   function setLayoutParams(params) {
