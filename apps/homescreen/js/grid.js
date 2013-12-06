@@ -18,6 +18,9 @@ var GridManager = (function() {
   var OPACITY_STEPS = 40; // opacity steps between [0,1]
   var HIDDEN_ROLES = ['system', 'input', 'homescreen'];
 
+  // Store the pending apps to be installed until SingleVariant conf is loaded
+  var pendingInstallRequests = [];
+
   function isHiddenApp(role) {
     if (!role) {
       console.warn(
@@ -943,6 +946,13 @@ var GridManager = (function() {
     panningResolver = createPanningResolver();
   }
 
+  function addSVEventListener() {
+    window.addEventListener('singlevariant-ready', function svFileReady(ev) {
+      window.removeEventListener('singlevariant-ready', svFileReady);
+      pendingInstallRequests.forEach(GridManager.install);
+    });
+  }
+
   /*
    * Initialize the mozApps event handlers and synchronize our grid
    * state with the applications known to the system.
@@ -951,7 +961,11 @@ var GridManager = (function() {
     var appMgr = navigator.mozApps.mgmt;
 
     appMgr.oninstall = function oninstall(event) {
-     GridManager.install(event.application);
+      if (Configurator.isSingleVariantReady) {
+        GridManager.install(event.application);
+      } else {
+        pendingInstallRequests.push(event.application);
+      }
     };
     appMgr.onuninstall = function onuninstall(event) {
       GridManager.uninstall(event.application);
@@ -1389,6 +1403,10 @@ var GridManager = (function() {
      *
      */
     init: function gm_init(options, callback) {
+      // Add listener which will alert us when the SingleVariant configuration
+      // file has been read
+      addSVEventListener();
+
       // Populate defaults
       for (var key in defaults) {
         if (typeof options[key] === 'undefined') {
