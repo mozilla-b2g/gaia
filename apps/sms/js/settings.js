@@ -39,7 +39,7 @@ var Settings = {
       // Cache all existing serviceIds
       this.serviceIds = [];
       for (var i = 0, l = conns.length; i < l; i++) {
-        this.serviceIds.push(i);
+        this.serviceIds.push('' + i);
       }
     }
 
