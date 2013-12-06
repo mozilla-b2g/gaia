@@ -279,8 +279,12 @@
     // FTU closing implies we're going to homescreen.
     homescreenVisible = true;
   });
+  window.addEventListener('holdhome', function() {
+    CustomDialog.hide();
+  });
   window.addEventListener('home', function() {
     homescreenVisible = true;
+    CustomDialog.hide();
   });
 
   function onCall() {
