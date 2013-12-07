@@ -2295,9 +2295,13 @@
     {"carrier":"Cellcom Internet","apn":"Sphone","type":["default","supl"]},
     {"carrier":"Cellcom MMS","apn":"mms","mmsc":"http://mms.cellcom.co.il","mmsproxy":"172.31.29.38","mmsport":"8080","type":["mms"]}
   ],
-  "03": [
+  "04": [
     {"carrier":"Multimedia Pelephone","apn":"mms.pelephone.net.il","user":"pcl@3g","password":"pcl","mmsc":"http://mmsu.pelephone.net.il","mmsproxy":"10.170.252.104","mmsport":"9093","type":["mms"]},
     {"carrier":"Sphone Pelephone","apn":"sphone.pelephone.net.il","user":"pcl@3g","password":"pcl","type":["default","supl"]}
+  ],
+  "08": [
+    {"carrier":"Golan Telecom Internet","apn":"internet.golantelecom.net.il","type":["default","supl"]},
+    {"carrier":"Golan Telecom MMS","apn":"mms.golandtelecom.net.il","mmsc":"http://mmsc.golantelecom.co.il","mmsproxy":"10.224.228.81","mmsport":"80","type":["mms"]}
   ]
 },
 "426": {
