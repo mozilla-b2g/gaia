@@ -167,7 +167,9 @@ var CostControlApp = (function() {
   function startApp(callback) {
     // Refresh UI when the user changes the SIM for data connections
     SettingsListener.observe('ril.data.defaultServiceId', 0, function() {
-      Common.loadDataSIMIccId(updateUI);
+      if (initialized) {
+        Common.loadDataSIMIccId(updateUI);
+      }
     });
 
     function _onNoICCID() {
@@ -209,8 +211,7 @@ var CostControlApp = (function() {
       document.getElementById('splash_section').
         setAttribute('aria-hidden', 'true');
 
-      // Only hide the FTE view when everything in the UI is ready
-      CostControlApp.afterFTU(function() {
+      startApp(function() {
         document.getElementById('fte_view').classList.add('non-ready');
         document.getElementById('fte_view').src = '';
       });
@@ -283,7 +284,8 @@ var CostControlApp = (function() {
 
     initialized = true;
 
-    loadSettings();
+    window.setTimeout(loadSettings, 0);
+
   }
 
   // Load settings in background
@@ -381,9 +383,6 @@ var CostControlApp = (function() {
   return {
     init: function() {
       checkSIMStatus();
-    },
-    afterFTU: function(cb) {
-      checkSIMStatus(cb);
     },
     reset: function() {
       costcontrol = null;

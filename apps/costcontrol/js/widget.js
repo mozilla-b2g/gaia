@@ -79,7 +79,9 @@ var Widget = (function() {
 
     // Refresh UI when the user changes the SIM for data connections
     SettingsListener.observe('ril.data.defaultServiceId', 0, function() {
-      Common.loadDataSIMIccId(updateUI.bind(null, true));
+      if (initialized) {
+        Common.loadDataSIMIccId(updateUI.bind(null, true));
+      }
     });
 
     function _onNoICCID() {
