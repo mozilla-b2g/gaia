@@ -28,10 +28,12 @@ var SETTINGS_KEYS = {
 };
 
 // In order to provide default defaults, we need to know the default keyboard
-var defaultKeyboardOrigin = 'app://keyboard.gaiamobile.org';
+var defaultKeyboardManifestURL =
+  'app://keyboard.gaiamobile.org/manifest.webapp';
 // support http:// version as well
 if (location.protocol === 'http:') {
-  defaultKeyboardOrigin = 'http://keyboard.gaiamobile.org:8080';
+  defaultKeyboardManifestURL =
+    'http://keyboard.gaiamobile.org:8080/manifest.webapp';
 }
 
 // Stores a local copy of whatever is in the settings database
@@ -40,7 +42,7 @@ var currentSettings = {
 };
 
 // until we read otherwise, asssume the default keyboards are en and number
-currentSettings.defaultLayouts[defaultKeyboardOrigin] = {
+currentSettings.defaultLayouts[defaultKeyboardManifestURL] = {
   en: true,
   number: true
 };
@@ -56,32 +58,32 @@ var regExpGaiaKeyboardAppsManifestURL =
 /**
  * helper function for reading a value in one of the currentSettings
  */
-function map2dIs(appOrigin, layoutId) {
+function map2dIs(manifestURL, layoutId) {
   // force boolean true or false
-  return !!(this[appOrigin] && this[appOrigin][layoutId]);
+  return !!(this[manifestURL] && this[manifestURL][layoutId]);
 }
 
 /**
  * helper function for setting a value to true in one of the currentSettings
  */
-function map2dSet(appOrigin, layoutId) {
-  if (!this[appOrigin]) {
-    this[appOrigin] = {};
+function map2dSet(manifestURL, layoutId) {
+  if (!this[manifestURL]) {
+    this[manifestURL] = {};
   }
-  this[appOrigin][layoutId] = true;
+  this[manifestURL][layoutId] = true;
 }
 
 /**
  * helper function for setting a value to false in one of the currentSettings
  * deletes the appropriate keys
  */
-function map2dUnset(appOrigin, layoutId) {
-  if (!this[appOrigin]) {
+function map2dUnset(manifestURL, layoutId) {
+  if (!this[manifestURL]) {
     return;
   }
-  delete this[appOrigin][layoutId];
-  if (!Object.keys(this[appOrigin]).length) {
-    delete this[appOrigin];
+  delete this[manifestURL][layoutId];
+  if (!Object.keys(this[manifestURL]).length) {
+    delete this[manifestURL];
   }
 }
 
@@ -213,7 +215,10 @@ function kh_parseEnabled() {
         var oldSettings = JSON.parse(value);
         oldSettings.forEach(function(layout) {
           if (layout.enabled) {
-            map2dSet.call(currentSettings.enabledLayouts, layout.appOrigin,
+            var manifestURL = layout.manifestURL;
+            if (!manifestURL)
+              manifestURL = layout.appOrigin + '/manifest.webapp';
+            map2dSet.call(currentSettings.enabledLayouts, manifestURL,
               layout.layoutId);
           }
         });
@@ -270,20 +275,20 @@ Object.defineProperties(KeyboardLayout.prototype, {
   'default': {
     get: function kh_getLayoutIsDefault() {
       return map2dIs.call(
-        currentSettings.defaultLayouts, this.app.origin, this.layoutId
+        currentSettings.defaultLayouts, this.app.manifestURL, this.layoutId
       );
     }
   },
   enabled: {
     get: function kh_getLayoutIsEnabled() {
       return map2dIs.call(
-        currentSettings.enabledLayouts, this.app.origin, this.layoutId
+        currentSettings.enabledLayouts, this.app.manifestURL, this.layoutId
       );
     },
     set: function kh_setLayoutIsDefault(value) {
       var method = value ? map2dSet : map2dUnset;
       method.call(currentSettings.enabledLayouts,
-        this.app.origin, this.layoutId);
+        this.app.manifestURL, this.layoutId);
     }
   }
 });
@@ -316,7 +321,6 @@ Object.defineProperties(kh_SettingsHelper, {
 
 var KeyboardHelper = exports.KeyboardHelper = {
   settings: kh_SettingsHelper,
-  defaultKeyboardOrigin: defaultKeyboardOrigin,
 
   /**
    * Listen for changes in settings or apps and read the deafault settings
@@ -354,34 +358,37 @@ var KeyboardHelper = exports.KeyboardHelper = {
   },
 
   /**
-   * Enables or disables a layout based on origin and layoutId
+   * Enables or disables a layout based on manifest URL and layoutId
    */
-  setLayoutEnabled: function kh_setLayoutEnabled(appOrigin, layoutId, enabled) {
+  setLayoutEnabled: function kh_setLayoutEnabled(manifestURL, layoutId,
+                                                 enabled) {
     var method = enabled ? map2dSet : map2dUnset;
-    method.call(currentSettings.enabledLayouts, appOrigin, layoutId);
+    method.call(currentSettings.enabledLayouts, manifestURL, layoutId);
   },
 
   /**
-   * Returns true if the layout specified by origin and layoutId is enabled.
+   * Returns true if the layout specified by manifest URL and layoutId is
+   * enabled.
    */
-  getLayoutEnabled: function kh_getLayoutEnabled(appOrigin, layoutId) {
-    return map2dIs.call(currentSettings.enabledLayouts, appOrigin, layoutId);
+  getLayoutEnabled: function kh_getLayoutEnabled(manifestURL, layoutId) {
+    return map2dIs.call(currentSettings.enabledLayouts, manifestURL, layoutId);
   },
 
   /**
-   * set/unset a layout as default based on origin and layoutId
+   * set/unset a layout as default based on manifest URL and layoutId
    */
-  setLayoutIsDefault: function kh_setLayoutIsDefault(appOrigin, layoutId,
+  setLayoutIsDefault: function kh_setLayoutIsDefault(manifestURL, layoutId,
                                                      enabled) {
     var method = enabled ? map2dSet : map2dUnset;
-    method.call(currentSettings.defaultLayouts, appOrigin, layoutId);
+    method.call(currentSettings.defaultLayouts, manifestURL, layoutId);
   },
 
   /**
-   * Returns true if the layout specified by origin and layoutId is default.
+   * Returns true if the layout specified by manifest URL and layoutId
+   * is default.
    */
-  getLayoutIsDefault: function kh_getLayoutIsDefault(appOrigin, layoutId) {
-    return map2dIs.call(currentSettings.defaultLayouts, appOrigin, layoutId);
+  getLayoutIsDefault: function kh_getLayoutIsDefault(manifestURL, layoutId) {
+    return map2dIs.call(currentSettings.defaultLayouts, manifestURL, layoutId);
   },
 
   /**
@@ -488,14 +495,14 @@ var KeyboardHelper = exports.KeyboardHelper = {
         // every time we get a list of apps, clean up the settings
         Object.keys(currentSettings.enabledLayouts)
           .concat(Object.keys(currentSettings.defaultLayouts))
-          .forEach(function(origin) {
-            // if the origin doesn't exist in the list of apps, delete it
+          .forEach(function(manifestURL) {
+            // if the manifestURL doesn't exist in the list of apps, delete it
             // from the settings maps
             if (!keyboardApps.some(function(app) {
-              return app.origin === origin;
+              return app.manifestURL === manifestURL;
             })) {
-              delete currentSettings.enabledLayouts[origin];
-              delete currentSettings.defaultLayouts[origin];
+              delete currentSettings.enabledLayouts[manifestURL];
+              delete currentSettings.defaultLayouts[manifestURL];
             }
           });
         currentApps = keyboardApps;
@@ -526,7 +533,7 @@ var KeyboardHelper = exports.KeyboardHelper = {
         for (var layoutId in manifest.inputs) {
           var inputManifest = manifest.inputs[layoutId];
           if (!inputManifest.types) {
-            console.warn(app.origin, layoutId, 'did not declare type.');
+            console.warn(app.manifestURL, layoutId, 'did not declare type.');
             continue;
           }
 
@@ -637,7 +644,7 @@ var KeyboardHelper = exports.KeyboardHelper = {
 
       // XXX: change this so that it could support multiple built-in
       // keyboard apps
-      var kbOrigin = defaultKeyboardOrigin;
+      var kbManifestURL = defaultKeyboardManifestURL;
 
       // reset the set of default layouts
       currentSettings.defaultLayouts = {};
@@ -645,7 +652,8 @@ var KeyboardHelper = exports.KeyboardHelper = {
       // set the language-independent default layouts
       var langIndependentLayouts = keyboards.langIndependentLayouts;
       for (var i = langIndependentLayouts.length - 1; i >= 0; i--) {
-        this.setLayoutIsDefault(kbOrigin, langIndependentLayouts[i].layoutId,
+        this.setLayoutIsDefault(kbManifestURL,
+                                langIndependentLayouts[i].layoutId,
                                 true);
       }
 
@@ -657,8 +665,8 @@ var KeyboardHelper = exports.KeyboardHelper = {
 
       // Enable the language specific keyboard layout group
       for (i = newKbLayouts.length - 1; i >= 0; i--) {
-        this.setLayoutIsDefault(kbOrigin, newKbLayouts[i].layoutId, true);
-        this.setLayoutEnabled(kbOrigin, newKbLayouts[i].layoutId, true);
+        this.setLayoutIsDefault(kbManifestURL, newKbLayouts[i].layoutId, true);
+        this.setLayoutEnabled(kbManifestURL, newKbLayouts[i].layoutId, true);
       }
 
       this.saveToSettings(); // save changes to settings
