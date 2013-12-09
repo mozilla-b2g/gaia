@@ -667,5 +667,8 @@ section[role="region"] > header .icon.icon-settings {
   overflow: scroll;
 }
 
+/* Do not remove overflow: hidden as it fixes bug 937291 */
 .group-section {
+  overflow: hidden;
+  padding-left: 1.5rem;
 }
