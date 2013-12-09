@@ -16,6 +16,21 @@ then
   exit 0
 fi
 
+hash node > /dev/null 2>&1
+if [ $? -eq 1 ];
+then
+  echo >&2 "You should install node to lint your patch"
+  echo >&2 "http://nodejs.org/download/"
+  exit 0
+fi
+
+hash node_modules/.bin/jshint > /dev/null 2>&1
+if [ $? -eq 1 ];
+then
+  echo >&2 "You should run `npm install` to lint your patch"
+  exit 0
+fi
+
 # LINTED_FILES needs to be space-separated
 diff_with_exclude=`git diff --staged --name-only --diff-filter=ACMRT -- $LINTED_DIRECTORIES | grep '\.js$' | tr '[:space:]' ' '`
 if [ -z "$diff_with_exclude" ] ; then
@@ -37,4 +52,6 @@ for file in $diff_with_exclude ; do
    echo "$file is in the build/jshint-xfail.list - errors will be ignored. Please consider fixing lint errors and removing it from the build/jshint-xfail.list"
 done
 
-LINTED_FILES="$diff_with_exclude" make -s hint && echo "No errors - committing"
+LINTED_FILES="$diff_with_exclude" make -s hint || exit 1
+
+echo "No errors - committing"
