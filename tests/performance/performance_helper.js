@@ -4,7 +4,7 @@ var MarionetteHelper = requireGaia('/tests/js-marionette/helper.js');
 
 // Function to send results to the reporter that is OOP
 // Basically writing to the mocha-json-proxy
-var send_results = require('mocha-json-proxy/reporter').write;
+var sendResults = require('mocha-json-proxy/reporter').write;
 
 function extend(dest, obj) {
   for (var key in obj) {
@@ -84,7 +84,7 @@ function PerformanceHelper(opts) {
       title = title || '';
       var mozPerfDurations = {};
       mozPerfDurations[title] = values;
-      send_results('mozPerfDuration', mozPerfDurations);
+      sendResults('mozPerfDuration', mozPerfDurations);
     }
   });
 
