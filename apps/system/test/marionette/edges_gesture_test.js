@@ -24,6 +24,18 @@ marionette('Edges gesture >', function() {
   var settings, sms, calendar;
 
   setup(function() {
+    // Waiting for the init logo to go away
+    var initLogo = client.findElement('#os-logo');
+    client.waitFor(function() {
+      try {
+        return !initLogo.displayed();
+      } catch (e) {
+        // marionette throws when the init logo is removed
+        // from the dom
+        return true;
+      }
+    });
+
     settings = sys.waitForLaunch(SETTINGS_APP);
     sms = sys.waitForLaunch(SMS_APP);
     calendar = sys.waitForLaunch(CALENDAR_APP);
