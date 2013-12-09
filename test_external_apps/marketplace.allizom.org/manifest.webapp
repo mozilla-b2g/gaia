@@ -1,5 +1,5 @@
 {
-  "name": "Mktpl Stage",
+  "name": "Stage",
   "description": "Firefox Marketplace Stage",
   "activities": {
     "marketplace-search": {"href": "/"},
