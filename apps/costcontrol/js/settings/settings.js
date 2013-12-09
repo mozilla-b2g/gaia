@@ -316,7 +316,16 @@ var Settings = (function() {
   }
 
   return {
-    initialize: configureUI,
+    initialize: function() {
+      var SCRIPTS_NEEDED = [
+        'js/views/BalanceLowLimitView.js',
+        'js/settings/limitdialog.js',
+        'js/settings/autosettings.js',
+        'js/view_manager.js',
+        'js/views/BalanceView.js'
+      ];
+      LazyLoader.load(SCRIPTS_NEEDED, configureUI);
+    },
     updateUI: updateUI
   };
 
