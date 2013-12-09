@@ -1,6 +1,7 @@
 Keyboards.ar = {
   label: 'Arabic',
   menuLabel: 'العربية',
+  secondLayout: true,
   types: ['text', 'url', 'email'],
   alternateLayoutKey: '123',
   basicLayoutKey: 'أ ب ج',
