@@ -304,7 +304,13 @@ function optimize_inlineResources(doc, webapp, filePath, htmlFile) {
                                                  oldStyle.href);
     // inline css image url references
     newStyle.innerHTML = content.replace(/url\(([^)]+?)\)/g, function(match, url) {
-      let file = utils.getFile(config.GAIA_DIR, cssPath, url);
+      let file;
+      if (cssPath.split('/')[0] === 'shared') {
+        file = utils.getFile(config.GAIA_DIR, cssPath, url);
+      } else {
+        file = utils.getFile(config.GAIA_DIR, webapp.sourceAppDirectoryName,
+                             webapp.sourceDirectoryName, cssPath, url);
+      }
       return match.replace(url, utils.getFileAsDataURI(file));
     });
     oldStyle.parentNode.insertBefore(newStyle, oldStyle);
