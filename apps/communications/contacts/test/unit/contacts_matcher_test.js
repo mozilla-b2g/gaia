@@ -412,6 +412,30 @@ suite('Test Contacts Matcher', function() {
   suite('Test Contacts Matcher. Active Mode', function() {
     suiteSetup(setupSuite);
 
+    test('Matching by name', function(done) {
+      var existingContact = {
+        id: '1B',
+        givenName: ['Jander'],
+        familyName: ['Klander'],
+        name: ['Jander Klander']
+      };
+
+      var updatedContact = {
+        id: '1B',
+        givenName: ['Jander'],
+        familyName: ['Klander'],
+        name: ['Jander Klander'],
+        org: ['Company']
+      };
+
+      MockFindMatcher.setData(existingContact);
+
+      testMismatch(updatedContact, 'active', function() {
+        MockFindMatcher.setData(contact);
+        done();
+      });
+    });
+
     test('Matching by phone', function(done) {
       var myObj = Object.create(contact);
       myObj.id = '1A';
