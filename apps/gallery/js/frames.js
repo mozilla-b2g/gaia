@@ -38,6 +38,14 @@ $('fullscreen-edit-button').onclick = function() {
 // In fullscreen mode, the share button shares the current item
 $('fullscreen-share-button').onclick = shareSingleItem;
 
+// Clicking the information button will display information about the photo.
+$('fullscreen-info-button').onclick = function() {
+  loader.load(['js/info.js', 'shared/style/confirm.css', 'style/info.css'],
+              function() {
+                showFileInformation(files[currentFileIndex]);
+              });
+};
+
 // Use the GestureDetector.js library to handle gestures.
 // This will generate tap, pan, swipe and transform events
 new GestureDetector(frames).startDetecting();

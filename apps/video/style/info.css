@@ -1,0 +1,41 @@
+#info-view > section {
+  vertical-align: top;  /* override confirm.css */
+  margin: 0;
+  padding: 0;
+}
+
+#info-view > section > dl {
+  border-top: none;     /* override confirm.css */
+  margin: 0.6rem 2rem 0 2rem;
+  padding: 0;
+}
+
+#info-view > section > dl > dt {
+  display: block;
+  font-size: 1.6rem;
+  line-height: 1;
+  font-weight: 400;
+  color: #8a9699;
+  margin: 1rem 0 0.3rem 0;
+  padding: 0 0 0 1rem;
+
+  /* override confirm.css */
+  width: 100% !important;
+  float: none !important;
+}
+
+#info-view > section > dl > dd {
+  display: block;
+  color: #ffffff;
+  font-size: 1.9rem;
+  line-height: 1;
+  font-weight: 400;
+  margin: 0;
+  padding: 0 0 1.2rem 1rem;
+  border-bottom: 0.1rem solid rgba(255,255,255,0.1);
+}
+
+#info-view > section > dl > dd:last-child {
+  /* no separator after the last item in the list */
+  border-bottom: none;
+}
