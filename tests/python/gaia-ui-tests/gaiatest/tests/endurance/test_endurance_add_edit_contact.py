@@ -29,14 +29,13 @@ class TestEnduranceAddEditContact(GaiaEnduranceTestCase):
     def add_edit_contact(self):
         # Add a new contact, most of this code borrowed from test_add_new_contact
         # Uses data from mock contact, except adds iteration to first name
-
         contact = MockContact()
 
         # Add new contact
         new_contact_form = self.contacts.tap_new_contact()
 
         # Enter data into fields
-        contact['givenName'] = ["%02dof%02d" % (self.iteration, self.iterations)]
+        contact['givenName'] = "%02dof%02d" % (self.iteration, self.iterations)
         new_contact_form.type_given_name(contact['givenName'])
         new_contact_form.type_family_name(contact['familyName'])
         new_contact_form.type_phone(contact['tel'][0]['value'])
@@ -58,13 +57,12 @@ class TestEnduranceAddEditContact(GaiaEnduranceTestCase):
         time.sleep(2)
 
         # Edit the contact
-        contact_item = self.contacts.contact(contact['givenName'][0])
+        contact_item = self.contacts.contact(contact['givenName'])
         contact_item_detail = contact_item.tap()
         contact_item_edit = contact_item_detail.tap_edit()
 
         # Now we'll update the mock contact and then insert the new values into the UI
-        #self.contact['givenName'] = ['%s - edit' %given_name]
-        contact['givenName'] = ['%s EDITED' %contact['givenName'][0]]
+        contact['givenName'] = '%s EDITED' %contact['givenName']
         contact_item_edit.type_given_name(contact['givenName'])
 
         contact_details = contact_item_edit.tap_update()
@@ -73,10 +71,10 @@ class TestEnduranceAddEditContact(GaiaEnduranceTestCase):
         time.sleep(2)
 
         self.assertEqual(len(self.contacts.contacts), self.iteration)
-        contact_details = self.contacts.contact(contact['givenName'][0]).tap()
+        contact_details = self.contacts.contact(contact['givenName']).tap()
 
         # Now assert that the values have updated
-        expected_name = contact['givenName'][0] + " " + contact['familyName'][0]
+        expected_name = contact['givenName'] + " " + contact['familyName'][0]
         self.assertEqual(expected_name, contact_details.full_name)
 
         # Back to main contacts list
