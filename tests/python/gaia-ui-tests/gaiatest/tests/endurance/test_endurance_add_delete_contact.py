@@ -30,7 +30,7 @@ class TestEnduranceAddDeleteContact(GaiaEnduranceTestCase):
 
         # Enter data into fields
         contact = MockContact()
-        contact['givenName'] = ["%02dof%02d" % (self.iteration, self.iterations)]
+        contact['givenName'] = "%02dof%02d" % (self.iteration, self.iterations)
         new_contact_form.type_given_name(contact['givenName'])
         new_contact_form.type_family_name(contact['familyName'])
         new_contact_form.type_phone(contact['tel'][0]['value'])
@@ -52,7 +52,7 @@ class TestEnduranceAddDeleteContact(GaiaEnduranceTestCase):
         time.sleep(2)
 
         # Delete the contact
-        contact_item = self.contacts.contact(contact['givenName'][0])
+        contact_item = self.contacts.contact(contact['givenName'])
         contact_item_detail = contact_item.tap()
         contact_item_edit = contact_item_detail.tap_edit()
         contact_item_edit.tap_delete()
