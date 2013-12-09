@@ -27,6 +27,11 @@ marionette('Edges gesture >', function() {
     settings = sys.waitForLaunch(SETTINGS_APP);
     sms = sys.waitForLaunch(SMS_APP);
     calendar = sys.waitForLaunch(CALENDAR_APP);
+
+    // Making sure the opening transition for the calendar app is over.
+    client.waitFor(function() {
+      return calendar.displayed() && !sms.displayed();
+    });
   });
 
   function edgeSwipeToApp(panel, x1, x2, iframe) {
