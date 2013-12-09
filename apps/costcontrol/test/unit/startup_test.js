@@ -64,8 +64,6 @@ if (!this.navigator.mozSetMessageHandler) {
 
 suite('Application Startup Modes Test Suite >', function() {
 
-  var iframe;
-
   suiteSetup(function() {
     realCommon = window.Common;
 
@@ -87,11 +85,6 @@ suite('Application Startup Modes Test Suite >', function() {
     window.navigator.mozSetMessageHandler =
       window.MockNavigatormozSetMessageHandler;
     window.navigator.mozSetMessageHandler.mSetup();
-
-    iframe = document.createElement('iframe');
-    iframe.id = 'message-handler';
-    document.body.appendChild(iframe);
-
   });
 
   setup(function() {

@@ -40,27 +40,26 @@ var CostControlApp = (function() {
   'use strict';
 
   var costcontrol, initialized = false;
-  function checkSIMStatus(callback) {
+  function onReady(callback) {
     var cardState = checkCardState();
     var iccid = IccHelper.iccInfo ? IccHelper.iccInfo.iccid : null;
 
     // SIM not ready
     if (cardState !== 'ready') {
       debug('SIM not ready:', cardState);
-      IccHelper.oncardstatechange = checkSIMStatus;
+      IccHelper.oncardstatechange = onReady;
 
     // SIM is ready, but ICC info is not ready yet
     } else if (!Common.isValidICCID(iccid)) {
       debug('ICC info not ready yet');
-      IccHelper.oniccinfochange = checkSIMStatus;
+      IccHelper.oniccinfochange = onReady;
 
     // All ready
     } else {
       debug('SIM ready. ICCID:', iccid);
       IccHelper.oncardstatechange = undefined;
       IccHelper.oniccinfochange = undefined;
-      document.getElementById('message-handler').src = 'message_handler.html';
-      Common.waitForDOMAndMessageHandler(window, startApp.bind(null, callback));
+      startApp(callback);
     }
   }
 
@@ -71,7 +70,7 @@ var CostControlApp = (function() {
     state = cardState = IccHelper.cardState;
 
     // SIM is absent
-    if (!cardState || cardState === 'absent') {
+    if (cardState === 'absent') {
       debug('There is no SIM');
       showSimErrorDialog('no-sim2');
 
@@ -165,11 +164,6 @@ var CostControlApp = (function() {
   }
 
   function startApp(callback) {
-    // Refresh UI when the user changes the SIM for data connections
-    SettingsListener.observe('ril.data.defaultServiceId', 0, function() {
-      Common.loadDataSIMIccId(updateUI);
-    });
-
     function _onNoICCID() {
       console.error('checkSIMChange() failed. Impossible to ensure consistent' +
                     'data. Aborting start up.');
@@ -380,10 +374,13 @@ var CostControlApp = (function() {
 
   return {
     init: function() {
-      checkSIMStatus();
+      SettingsListener.observe('ril.data.defaultServiceId', 0, function() {
+        Common.loadDataSIMIccId(updateUI);
+      });
+      Common.waitForDOMAndMessageHandler(window, onReady);
     },
     afterFTU: function(cb) {
-      checkSIMStatus(cb);
+      onReady(cb);
     },
     reset: function() {
       costcontrol = null;
