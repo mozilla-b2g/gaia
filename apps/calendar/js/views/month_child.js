@@ -426,7 +426,6 @@
       var element = document.createElement('section');
 
       element.classList.add('month');
-      element.classList.add('weeks-' + this.weeks);
       element.innerHTML = html;
 
       this.element = element;
