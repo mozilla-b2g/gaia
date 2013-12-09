@@ -476,6 +476,10 @@ body[data-path="/day/"] #view-selector > .day > a {
   font-weight: 500;
 }
 
+#view-selector {
+  bottom: auto;
+}
+
 #view-selector > li > a {
   outline: none;
 }
