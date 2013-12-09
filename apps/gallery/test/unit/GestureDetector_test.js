@@ -163,7 +163,7 @@ suite('GestureDetector', function() {
     });
 
     swipes.forEach(function(s) {
-      test('mouseswipe ' + s.name, function(done) {
+      test.skip('mouseswipe ' + s.name, function(done) {
         SyntheticGestures.mouseswipe(element, s.x0, s.y0, s.x1, s.y1,
                                      200, checkswipe);
         function checkswipe() {

@@ -23,7 +23,7 @@ marionette('editing an image', function() {
     app.launch();
   });
 
-  test('should have different options', function() {
+  test.skip('should have different options', function() {
     // You should be able to switch between the different 'operations'
     // in the image editor.
     app.thumbnail.click();
@@ -70,7 +70,7 @@ marionette('editing an image', function() {
     assert.strictEqual(app.thumbnails.length, 2);
   });
 
-  test('should apply an effect', function() {
+  test.skip('should apply an effect', function() {
     // Applying a sepia effect creates a new modified version of original.
     app.thumbnail.click();
     app.editButton.click();
