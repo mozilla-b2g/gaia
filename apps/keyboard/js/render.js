@@ -153,10 +153,7 @@ const IMERender = (function() {
             value: 'true'
           });
         }
-	if (secondLayout)
-		outputChar = keyChar;
-	else
-		outputChar = upperCaseKeyChar;
+	outputChar = (secondLayout) ? keyChar : upperCaseKeyChar;
         kbRow.appendChild(buildKey(outputChar, className, keyWidth + 'px',
           dataset, key.altNote, attributeList));
       }));
