@@ -12,6 +12,7 @@ class Activities(Base):
     _action_option_locator = (By.CSS_SELECTOR, 'form[data-type="action"] button')
 
     _gallery_button_locator = (By.XPATH, '//*[text()="Gallery"]')
+    _settings_button_locator = (By.XPATH, '//*[text()="Settings"]')
     _camera_button_locator = (By.XPATH, '//*[text()="Camera"]')
     _cancel_button_locator = (By.CSS_SELECTOR, 'form[data-type="action"] button[data-action="cancel"]')
 
@@ -37,6 +38,11 @@ class Activities(Base):
     def tap_cancel(self):
         self.marionette.find_element(*self._cancel_button_locator).tap()
         self.marionette.switch_to_frame(self.apps.displayed_app.frame_id)
+
+    def tap_settings(self):
+        self.marionette.find_element(*self._settings_button_locator).tap()
+        from gaiatest.apps.settings.app import Settings
+        return Settings(self.marionette)
 
     @property
     def options_count(self):
