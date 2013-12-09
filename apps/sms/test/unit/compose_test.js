@@ -352,12 +352,17 @@ suite('compose_test.js', function() {
     });
 
     suite('Preload composer fromDraft', function() {
-      var d1;
+      var d1, d2, attachment;
 
       setup(function() {
         Compose.clear();
         d1 = new Draft({
           content: ['I am a draft'],
+          threadId: 1
+        });
+        attachment = mockAttachment();
+        d2 = new Draft({
+          content: ['I have an attachment!', attachment],
           threadId: 1
         });
       });
@@ -367,6 +372,12 @@ suite('compose_test.js', function() {
       test('Draft with text', function() {
         Compose.fromDraft(d1);
         assert.equal(Compose.getContent(), d1.content.join(''));
+      });
+      test('Draft with attachment', function() {
+        Compose.fromDraft(d2);
+        var txt = Compose.getContent();
+        assert.ok(txt, d2.content.join(''));
+        assert.ok(txt[1] instanceof Attachment);
       });
     });
 

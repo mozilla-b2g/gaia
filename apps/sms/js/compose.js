@@ -325,7 +325,7 @@ var Compose = (function() {
       return content;
     },
 
-    /** Render draft from data store
+    /** Render draft
      *
      * @param {Draft} draft Draft to be loaded into the composer
      *
@@ -340,7 +340,18 @@ var Compose = (function() {
         return;
       }
       // draft content is an array
-      draft.content.forEach(Compose.append, Compose);
+      draft.content.forEach(function(fragment) {
+        // If the fragment is an attachment
+        // use the stored content to instantiate a new Attachment object
+        // to be properly rendered after a cold start for the app
+        if (fragment.blob) {
+          fragment = new Attachment(fragment.blob, {
+            isDraft: true
+          });
+        }
+        // Append each fragment in order to the composer
+        Compose.append(fragment);
+      }, Compose);
     },
 
     getText: function() {

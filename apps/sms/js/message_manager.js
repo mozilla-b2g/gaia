@@ -152,6 +152,7 @@ var MessageManager = {
   launchComposer: function mm_launchComposer(callback) {
     ThreadUI.cleanFields(true);
     var draft = MessageManager.draft || Drafts.get(Threads.currentId);
+    // Draft recipients are added as the composer launches
     if (draft) {
       // Recipients will exist for draft messages in threads
       // Otherwise find them from draft recipient numbers
@@ -168,11 +169,9 @@ var MessageManager = {
           }
         });
       });
+      Compose.fromDraft(draft);
     }
 
-    // Will preload the composer with draft content
-    // if there is no draft content, this is a noop
-    Compose.fromDraft(draft);
     this.threadMessages.classList.add('new');
     this.slide('left', function() {
       callback && callback();
@@ -333,28 +332,30 @@ var MessageManager = {
             ThreadUI.inThread = true;
             ThreadUI.renderMessages(threadId);
           }
+          // Ensures fromDraft is always called after
+          // ThreadUI.cleanFields as MessageManager.slide is async
+          Compose.fromDraft(MessageManager.draft);
         };
 
-        if (threadId) {
-          // if we were previously composing a message - remove the class
-          // and skip the "slide" animation
-          if (this.threadMessages.classList.contains('new')) {
-            this.threadMessages.classList.remove('new');
-            willSlide = false;
-          }
-
-          ThreadListUI.mark(threadId, 'read');
-
-          // Update Header
-          ThreadUI.updateHeaderData(function headerUpdated() {
-            if (willSlide) {
-              MessageManager.slide('left', finishTransition);
-            } else {
-              finishTransition();
-            }
-          });
-          Compose.fromDraft(this.draft);
+        // if we were previously composing a message - remove the class
+        // and skip the "slide" animation
+        if (this.threadMessages.classList.contains('new')) {
+          this.threadMessages.classList.remove('new');
+          willSlide = false;
         }
+
+        ThreadListUI.mark(threadId, 'read');
+
+        // Update Header
+        ThreadUI.updateHeaderData(function headerUpdated() {
+          if (willSlide) {
+            MessageManager.slide('left', function() {
+              finishTransition();
+            });
+          } else {
+            finishTransition();
+          }
+        });
       break;
     }
 

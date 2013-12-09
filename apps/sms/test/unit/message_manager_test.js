@@ -564,6 +564,7 @@ suite('message_manager.js >', function() {
       MessageManager.threadMessages = document.createElement('div');
       this.sinon.spy(ThreadUI, 'cancelEdit');
       this.sinon.spy(ThreadUI, 'renderMessages');
+      this.sinon.spy(ThreadUI, 'cleanFields');
       this.sinon.stub(ThreadUI, 'updateHeaderData');
       this.sinon.spy(ThreadListUI, 'cancelEdit');
       this.sinon.spy(ThreadListUI, 'mark');
@@ -571,12 +572,6 @@ suite('message_manager.js >', function() {
       this.sinon.spy(ReportView, 'reset');
       this.sinon.spy(MessageManager, 'handleActivity');
       this.sinon.stub(MessageManager, 'slide');
-      this.sinon.spy(Compose, 'fromDraft');
-      Threads.currentId = 1234;
-      MessageManager.draft = new Draft({
-        content: ['i am a draft'],
-        threadId: 1234
-      });
       MessageManager.onHashChange();
     });
 
@@ -586,8 +581,34 @@ suite('message_manager.js >', function() {
       delete MessageManager.threadMessages;
     });
 
-    test('draft content added', function() {
-      assert.ok(Compose.fromDraft.calledWith(MessageManager.draft));
+    suite('> Draft content for threaded messages', function() {
+      setup(function() {
+        // Reset state for slide and updateHeaderData
+        // which we need to track
+        MessageManager.slide.reset();
+        ThreadUI.updateHeaderData.reset();
+        ThreadUI.inThread = false;
+        MessageManager.draft = new Draft({
+          content: ['i am a draft'],
+          threadId: 1234
+        });
+        this.threadId = Threads.currentId = 1234;
+        window.location.hash = '#thread=' + this.threadId;
+        this.sinon.spy(Compose, 'fromDraft');
+        MessageManager.onHashChange();
+      });
+      teardown(function() {
+        MessageManager.draft = null;
+        Threads.currentId = null;
+      });
+      test('draft content added after clearing composer', function() {
+        // renderMessages is passed as a callback to slide left
+        ThreadUI.updateHeaderData.yield();
+        MessageManager.slide.yield();
+        assert.ok(Compose.fromDraft.calledAfter(ThreadUI.renderMessages));
+        assert.ok(Compose.fromDraft.calledWith(MessageManager.draft));
+      });
+
     });
 
     test('Remove any focus left on specific elements ', function() {
