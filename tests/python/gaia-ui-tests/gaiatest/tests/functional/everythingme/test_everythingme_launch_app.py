@@ -20,11 +20,11 @@ class TestEverythingMeLaunchApp(GaiaTestCase):
         homescreen = Homescreen(self.marionette)
         homescreen.launch()
 
+        self.apps.switch_to_displayed_app()
+
         search_panel = homescreen.tap_search_bar()
         search_panel.wait_for_keyboard_visible()
         search_panel.type_into_search_box(app_name)
-
-        homescreen.switch_to_homescreen_frame()
 
         search_panel.wait_for_everything_me_results_to_load()
 
