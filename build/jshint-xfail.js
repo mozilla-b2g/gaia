@@ -1,3 +1,5 @@
+// custom jshint reporter, allows errors in files listed in the
+// build/jshint-xfail.list file.
 'use strict';
 
 var fs = require('fs');
@@ -62,7 +64,7 @@ module.exports = {
     var redCount = red.length;
     var xCount = len - redCount;
 
-    // if we are running in travis, skip output of white errors
+    // if we are running in travis, skip output of xfail errors
     if (process.env.CI_ACTION || process.env.NO_XFAIL) {
       xErrors = '';
     }

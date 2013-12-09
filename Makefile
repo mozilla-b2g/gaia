@@ -864,10 +864,10 @@ endif
 ifndef LINTED_FILES
 ifdef APP
   JSHINTED_PATH = apps/$(APP)
-  GJSLINTED_PATH = $(shell cat build/jshint-xfail.list | grep "^apps/$(APP)" | paste -s -d" " -)
+  GJSLINTED_PATH = $(shell grep "^apps/$(APP)" build/jshint-xfail.list)
 else
   JSHINTED_PATH = apps shared
-  GJSLINTED_PATH = $(shell cat build/jshint-xfail.list | paste -s -d" " -)
+  GJSLINTED_PATH = $(shell cat build/jshint-xfail.list)
 endif
 endif
 
