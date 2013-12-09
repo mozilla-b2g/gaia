@@ -112,6 +112,7 @@ function execute(options) {
   }
 
   if (config.DEBUG) {
+    prefs.push(['docshell.device_size_is_page_size', true]);
     prefs.push(['marionette.defaultPrefs.enabled', true]);
 
     prefs.push(['nglayout.debug.disable_xul_cache', true]);
