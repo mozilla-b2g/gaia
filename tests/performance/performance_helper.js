@@ -2,19 +2,9 @@
 
 var MarionetteHelper = requireGaia('/tests/js-marionette/helper.js');
 
-// XXX make that exportable from the mocha-proxy
-// see https://github.com/mozilla-b2g/mocha-json-proxy/pull/4
-function json_proxy_write(event, content) {
-  var args = Array.prototype.slice.call(arguments);
-
-  if (!process.env['MOCHA_PROXY_SEND_ONLY']) {
-    process.stdout.write(JSON.stringify(args) + '\n');
-    return;
-  }
-
-  process.send(['mocha-proxy', args]);
-}
-
+// Function to send results to the reporter that is OOP
+// Basically writing to the mocha-json-proxy
+var sendResults = require('mocha-json-proxy/reporter').write;
 
 function extend(dest, obj) {
   for (var key in obj) {
@@ -94,7 +84,7 @@ function PerformanceHelper(opts) {
       title = title || '';
       var mozPerfDurations = {};
       mozPerfDurations[title] = values;
-      json_proxy_write('mozPerfDuration', mozPerfDurations);
+      sendResults('mozPerfDuration', mozPerfDurations);
     }
   });
 
