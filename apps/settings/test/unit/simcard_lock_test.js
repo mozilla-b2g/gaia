@@ -51,7 +51,7 @@ suite('SimPinLock > ', function() {
   suiteTeardown(function() {
     window.navigator.mozL10n = realL10n;
     window.Template = realTemplate;
-    window.navigator.mozMobileConnections.mRemoveMobileConnection();
+    MockNavigatorMozMobileConnections.mTeardown();
     window.navigator.mozMobileConnections = realMozMobileConnections;
     window.navigator.mozIccManager = realMozIccManager;
     window.navigator.mozSettings = realMozSettings;
