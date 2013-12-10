@@ -857,25 +857,31 @@ endif
 # Utils                                                                       #
 ###############################################################################
 
-.PHONY: lint hint
+.PHONY: lint gjslint hint
 
 # Lint apps
+## only gjslint files from build/jshint-xfail.list - files not yet safe to jshint
 ifndef LINTED_FILES
 ifdef APP
   JSHINTED_PATH = apps/$(APP)
-  GJSLINTED_PATH = -r apps/$(APP)
+  GJSLINTED_PATH = $(shell grep "^apps/$(APP)" build/jshint-xfail.list)
 else
   JSHINTED_PATH = apps shared
-  GJSLINTED_PATH = -r apps -r shared
+  GJSLINTED_PATH = $(shell cat build/jshint-xfail.list)
 endif
 endif
 
-lint: GJSLINT_EXCLUDED_DIRS = $(shell grep '\/\*\*$$' .jshintignore | sed 's/\/\*\*$$//' | paste -s -d, -)
-lint: GJSLINT_EXCLUDED_FILES = $(shell egrep -v '(\/\*\*|^\s*)$$' .jshintignore | paste -s -d, -)
 lint:
-	# --disable 210,217,220,225 replaces --nojsdoc because it's broken in closure-linter 2.3.10
+	NO_XFAIL=1 $(MAKE) -k gjslint hint
+
+gjslint: GJSLINT_EXCLUDED_DIRS = $(shell grep '\/\*\*$$' .jshintignore | sed 's/\/\*\*$$//' | paste -s -d, -)
+gjslint: GJSLINT_EXCLUDED_FILES = $(shell egrep -v '(\/\*\*|^\s*)$$' .jshintignore | paste -s -d, -)
+gjslint:
+	# gjslint --disable 210,217,220,225 replaces --nojsdoc because it's broken in closure-linter 2.3.10
 	# http://code.google.com/p/closure-linter/issues/detail?id=64
-	gjslint --disable 210,217,220,225 $(GJSLINTED_PATH) -e '$(GJSLINT_EXCLUDED_DIRS)' -x '$(GJSLINT_EXCLUDED_FILES)' $(LINTED_FILES)
+	@gjslint --disable 210,217,220,225 -e '$(GJSLINT_EXCLUDED_DIRS)' -x '$(GJSLINT_EXCLUDED_FILES)' $(GJSLINTED_PATH) $(LINTED_FILES)
+
+JSHINT_ARGS := --reporter=build/jshint-xfail $(JSHINT_ARGS)
 
 ifdef JSHINTRC
 	JSHINT_ARGS := $(JSHINT_ARGS) --config $(JSHINTRC)
