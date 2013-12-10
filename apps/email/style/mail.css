@@ -5,8 +5,8 @@
 @import url('../shared/style/status.css');
 @import url('../shared/style/confirm.css');
 @import url('../shared/style/action_menu.css');
-@import url('../shared/style_unstable/progress_activity.css');
-@import url('../shared/style_unstable/tabs.css');
+@import url('../shared/style/progress_activity.css');
+@import url('../shared/style/tabs.css');
 
 @import url('common.css');
 @import url('compose_cards.css');

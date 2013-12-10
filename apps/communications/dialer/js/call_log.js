@@ -21,7 +21,7 @@ var CallLog = {
       '/dialer/style/fixed_header.css',
       '/shared/style/confirm.css',
       '/shared/style/switches.css',
-      '/shared/style_unstable/lists.css',
+      '/shared/style/lists.css',
       '/contacts/js/utilities/confirm.js',
       '/dialer/js/phone_action_menu.js',
       '/dialer/js/fixed_header.js',

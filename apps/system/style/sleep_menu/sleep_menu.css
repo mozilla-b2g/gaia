@@ -7,8 +7,8 @@
   left: 0;
   padding: 0 0 7rem;
   color: #fff;
-  background: url(/shared/style_unstable/value_selector/images/ui/pattern.png) repeat left top,
-              url(/shared/style_unstable/value_selector/images/ui/gradient.png) no-repeat left top / 100% 100%;
+  background: url(/shared/style/value_selector/images/ui/pattern.png) repeat left top,
+              url(/shared/style/value_selector/images/ui/gradient.png) no-repeat left top / 100% 100%;
   overflow: hidden;
   z-index: 100;
 }
@@ -29,8 +29,8 @@
   left: 0;
   right: 0;
   bottom: 6.9rem;
-  background: url(/shared/style_unstable/value_selector/images/ui/shadow.png) repeat-x left top,
-              url(/shared/style_unstable/value_selector/images/ui/shadow-invert.png) repeat-x left bottom;
+  background: url(/shared/style/value_selector/images/ui/shadow.png) repeat-x left top,
+              url(/shared/style/value_selector/images/ui/shadow-invert.png) repeat-x left bottom;
 }
 
 #sleep-menu.visible {
