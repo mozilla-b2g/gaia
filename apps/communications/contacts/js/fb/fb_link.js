@@ -61,6 +61,13 @@ if (!fb.link) {
     // Only needed for testing purposes
     var completedCb;
 
+    function notifyParent(message) {
+      parent.postMessage({
+        type: message.type || '',
+        data: message.data || ''
+      }, fb.CONTACTS_APP_ORIGIN);
+    }
+
     // Builds the first query for finding a contact to be linked to
     function buildQuery(contact) {
       var filter = [];
@@ -153,20 +160,14 @@ if (!fb.link) {
     }
 
     // Invoked when remoteAll is canceled
-    function cancelCb(notifyParent) {
+    function cancelCb(shouldNotifyParent) {
       if (currentNetworkRequest) {
         currentNetworkRequest.cancel();
         currentNetworkRequest = null;
       }
 
-      Curtain.hide();
-
-      if (notifyParent) {
-        parent.postMessage({
-            type: 'abort',
-            data: ''
-        }, fb.CONTACTS_APP_ORIGIN);
-      }
+      Curtain.hide(shouldNotifyParent ? notifyParent.bind(
+        null, {type: 'abort'}) : null);
     }
 
     // Invoked when timeout or error and the user cancels all
@@ -508,14 +509,12 @@ if (!fb.link) {
     }
 
     function handleTokenError() {
-      Curtain.hide();
+      Curtain.hide(notifyParent.bind(null, {
+        type: 'token_error'
+      }));
       var cb = function() {
         allFriends = null;
         link.start(contactid);
-        parent.postMessage({
-          type: 'token_error',
-          data: ''
-        }, fb.CONTACTS_APP_ORIGIN);
       };
       window.asyncStorage.removeItem(fb.utils.TOKEN_DATA_KEY, cb);
     }
@@ -531,11 +530,12 @@ if (!fb.link) {
       req.onsuccess = function() {
         if (req.result) {
           window.setTimeout(function delay() {
-            Curtain.hide(function hide() {
-              notifyParent({
+            Curtain.hide(notifyParent.bind(null, {
+              type: 'item_selected',
+              data: {
                 uid: friendUidToLink
-              });
-            });
+              }
+            }));
           }, 1000);
         }
         else {
@@ -543,9 +543,10 @@ if (!fb.link) {
           var callbacks = { };
 
           callbacks.success = function(data) {
-            Curtain.hide(function() {
-              notifyParent(data);
-            });
+            Curtain.hide(notifyParent.bind(null, {
+              type: 'item_selected',
+              data: data
+            }));
           };
 
           callbacks.error = function(e) {
@@ -588,18 +589,6 @@ if (!fb.link) {
 
       parent.postMessage(msg, fb.CONTACTS_APP_ORIGIN);
     };
-
-    function notifyParent(data) {
-      var msg = {
-        type: 'item_selected',
-        data: data
-      };
-
-      parent.postMessage(msg, fb.CONTACTS_APP_ORIGIN);
-
-      // Uncomment this to make this work in B2G-Desktop
-      // parent.postMessage(msg, '*');
-    }
 
     UI.viewAllFriends = function(event) {
       if (!allFriends) {
