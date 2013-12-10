@@ -531,7 +531,10 @@ ImageEditor.prototype.generateNewPreview = function(callback) {
 
   function thumbnailReady(thumbnail) {
     self.preview.src = URL.createObjectURL(thumbnail);
+    self.preview.loaded = false;
     self.preview.onload = function() {
+      self.preview.loaded = true;
+
       callback();
     };
   };
@@ -1398,20 +1401,29 @@ function ImageProcessor(canvas) {
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 
   // Create buffers to hold the input and output rectangles
-  this.sourceRectangle = gl.createBuffer();
-  this.destinationRectangle = gl.createBuffer();
+  this.rectangleBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, this.rectangleBuffer);
+  gl.disable(gl.CULL_FACE);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+    0, 0,
+    1, 0,
+    0, 1,
+    1, 1
+  ]), gl.STATIC_DRAW);
 
   // Look up the addresses of the program's input variables
-  this.srcPixelAddress = gl.getAttribLocation(program, 'src_pixel');
-  this.destPixelAddress = gl.getAttribLocation(program, 'dest_pixel');
+  this.rectangleVertexAddress = gl.getAttribLocation(program, 'rect_vertex');
+  this.srcRectangleAddress = gl.getUniformLocation(program, 'src_rect');
+  this.dstRectangleAddress = gl.getUniformLocation(program, 'dst_rect');
   this.canvasSizeAddress = gl.getUniformLocation(program, 'canvas_size');
   this.imageSizeAddress = gl.getUniformLocation(program, 'image_size');
   this.destSizeAddress = gl.getUniformLocation(program, 'dest_size');
   this.destOriginAddress = gl.getUniformLocation(program, 'dest_origin');
   this.matrixAddress = gl.getUniformLocation(program, 'matrix');
   this.gammaAddress = gl.getUniformLocation(program, 'gamma');
-  this.rgbMinMaxValuesAddress = gl.getUniformLocation(program,
-                                                      'rgb_min_max_values');
+  this.rgbMinAddress = gl.getUniformLocation(program, 'rgb_min');
+  this.rgbMaxAddress = gl.getUniformLocation(program, 'rgb_max');
+  this.rgbOneOverMaxMinusMinAddress = gl.getUniformLocation(program, 'rgb_one_over_max_minus_min');
 }
 
 // Destroy all the stuff we allocated
@@ -1422,8 +1434,7 @@ ImageProcessor.prototype.destroy = function() {
   gl.deleteShader(this.fshader);
   gl.deleteProgram(this.program);
   gl.deleteTexture(this.sourceTexture);
-  gl.deleteBuffer(this.sourceRectangle);
-  gl.deleteBuffer(this.destinationRectangle);
+  gl.deleteBuffer(this.rectangleBuffer);
   gl.viewport(0, 0, 0, 0);
 };
 
@@ -1454,44 +1465,45 @@ ImageProcessor.prototype.draw = function(image,
                       options.matrix || ImageProcessor.IDENTITY_MATRIX);
 
   // set rgb max/min values for auto Enhancing
-  gl.uniformMatrix3fv(this.rgbMinMaxValuesAddress, false,
-                      options.rgbMinMaxValues ||
-                      ImageProcessor.default_enhancement);
+  var minMaxValuesMatrix = options.rgbMinMaxValues ||
+                           ImageProcessor.default_enhancement;
+  gl.uniform3f(this.rgbMinAddress,
+                minMaxValuesMatrix[0], minMaxValuesMatrix[1], minMaxValuesMatrix[2]);
+  gl.uniform3f(this.rgbMaxAddress,
+                minMaxValuesMatrix[3], minMaxValuesMatrix[4], minMaxValuesMatrix[5]);
+  gl.uniform3f(this.rgbOneOverMaxMinusMinAddress,
+               1 / (minMaxValuesMatrix[3] - minMaxValuesMatrix[0]),
+               1 / (minMaxValuesMatrix[4] - minMaxValuesMatrix[1]),
+               1 / (minMaxValuesMatrix[5] - minMaxValuesMatrix[2]));
 
-  // Define the source rectangle
-  makeRectangle(this.sourceRectangle, sx, sy, sw, sh);
-  gl.enableVertexAttribArray(this.srcPixelAddress);
-  gl.vertexAttribPointer(this.srcPixelAddress, 2, gl.FLOAT, false, 0, 0);
+  gl.bindBuffer(gl.ARRAY_BUFFER, this.rectangleBuffer);
+  gl.enableVertexAttribArray(this.rectangleVertexAddress);
+  gl.vertexAttribPointer(this.rectangleVertexAddress, 2, gl.FLOAT, false, 0, 0);
+
+  gl.uniform4f(this.srcRectangleAddress, sx, sy, sw, sh);
+  gl.uniform4f(this.dstRectangleAddress, dx, dy, dw, dh);
 
   // Load the image into the texture
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-
-  // Define the destination rectangle we're copying the image into
-  makeRectangle(this.destinationRectangle, dx, dy, dw, dh);
-  gl.enableVertexAttribArray(this.destPixelAddress);
-  gl.vertexAttribPointer(this.destPixelAddress, 2, gl.FLOAT, false, 0, 0);
+  if (image != this.lastImage && image.loaded) {
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+    this.lastImage = image;
+  }
 
   // And draw it all
-  gl.drawArrays(gl.TRIANGLES, 0, 6);
-
-  // Define a rectangle as two triangles
-  function makeRectangle(b, x, y, w, h) {
-    gl.bindBuffer(gl.ARRAY_BUFFER, b);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
-      x, y, x + w, y, x, y + h,         // one triangle
-      x, y + h, x + w, y, x + w, y + h  // another triangle
-    ]), gl.STATIC_DRAW);
-  }
+  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 };
 
 ImageProcessor.vertexShader =
-  'attribute vec2 src_pixel;\n' +  // pixel position in the image
-  'attribute vec2 dest_pixel;\n' + // pixel position on the canvas
+  'uniform vec4 src_rect;\n' + // source rectangle (x, y, width, height)
+  'uniform vec4 dst_rect;\n' + // destination rectangle (x, y, width, height)
+  'attribute vec2 rect_vertex;\n' + // current vertex in standard (0, 0, 1, 1) rectangle
   'uniform vec2 canvas_size;\n' +  // size of destination canvas in pixels
   'uniform vec2 image_size;\n' +   // size of source image in pixels
   'varying vec2 src_position;\n' + // pass image position to the fragment shader
   'void main() {\n' +
-  '  gl_Position = vec4(((dest_pixel/canvas_size)*2.0-1.0)*vec2(1,-1),0,1);\n' +
+  '  vec2 src_pixel = src_rect.xy + rect_vertex * src_rect.zw;\n' +
+  '  vec2 dst_pixel = dst_rect.xy + rect_vertex * dst_rect.zw;\n' +
+  '  gl_Position = vec4(((dst_pixel/canvas_size)*2.0-1.0)*vec2(1,-1),0,1);\n' +
   '  src_position = src_pixel / image_size;\n' +
   '}';
 
@@ -1502,17 +1514,18 @@ ImageProcessor.fragmentShader =
   'uniform vec2 dest_origin;\n' +  // upper-left corner of destination rectangle
   'uniform vec4 gamma;\n' +
   'uniform mat4 matrix;\n' +
-  'uniform mat3 rgb_min_max_values;\n' +
+  'uniform vec3 rgb_min;\n' +
+  'uniform vec3 rgb_max;\n' +
+  'uniform vec3 rgb_one_over_max_minus_min;\n' +
   'varying vec2 src_position;\n' + // from the vertex shader
   'void main() {\n' +
   // Otherwise take the image color, apply color and gamma correction and
   // the color manipulation matrix.
   '  vec4 original_color = texture2D(image, src_position);\n' +
-  '  vec3 minValues = rgb_min_max_values[0];\n' +
-  '  vec3 maxValues = rgb_min_max_values[1];\n' +
-  '  vec3 clamped_color = clamp(original_color.xyz, minValues, maxValues);\n' +
-  '  vec4 corrected_color = vec4((clamped_color.xyz - minValues) /' +
-  '  (maxValues - minValues), original_color.a);\n' +
+  '  vec3 clamped_color = clamp(original_color.xyz, rgb_min, rgb_max);\n' +
+  '  vec4 corrected_color = \n' +
+  '    vec4((clamped_color.xyz - rgb_min) * rgb_one_over_max_minus_min, \n' +
+  '         original_color.a);\n' +
   '  gl_FragColor = pow(corrected_color, gamma) * matrix;\n' +
   '}';
 
