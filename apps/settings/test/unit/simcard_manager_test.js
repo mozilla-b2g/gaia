@@ -1,13 +1,24 @@
+/* global mocha, MockL10n, MockTemplate, MockSimUIModel,
+   SimUIModel, MockSimSettingsHelper, SimCardManager,
+   MockNavigatorMozIccManager, MockNavigatorMozMobileConnections,
+   MockMobileOperator */
 'use strict';
 
-requireApp('settings/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
+requireApp(
+  'settings/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
+requireApp(
+  'settings/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
+requireApp(
+  'settings/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+requireApp(
+  'settings/shared/test/unit/mocks/mock_mobile_operator.js');
 requireApp('settings/test/unit/mock_l10n.js');
 requireApp('settings/test/unit/mock_template.js');
 requireApp('settings/test/unit/mock_simcard_manager_simcard_helper.js');
 requireApp('settings/test/unit/mock_simcard_manager_settings_helper.js');
 
-mocha.globals(['Template', 'SimUIModel',
-  'SimCardManager', 'SimSettingsHelper']);
+mocha.globals(['Template', 'SimUIModel', 'SimCardManager',
+  'SimSettingsHelper', 'MobileOperator', 'localize']);
 
 suite('SimCardManager > ', function() {
   var realL10n;
@@ -15,6 +26,10 @@ suite('SimCardManager > ', function() {
   var realSimUIModel;
   var realSimSettingsHelper;
   var realMozMobileConnections;
+  var realMozIccManager;
+  var realMozSettings;
+  var realMobileOperator;
+  var realLocalize;
   var stubById;
 
   suiteSetup(function(done) {
@@ -23,6 +38,9 @@ suite('SimCardManager > ', function() {
     // dont exec the init so quick
     MockL10n.ready = function() {};
     window.navigator.mozL10n = MockL10n;
+
+    realLocalize = window.localize;
+    window.localize = MockL10n.localize;
 
     realTemplate = window.Template;
     window.Template = MockTemplate;
@@ -33,31 +51,21 @@ suite('SimCardManager > ', function() {
     realSimSettingsHelper = window.SimSettingsHelper;
     window.SimSettingsHelper = MockSimSettingsHelper;
 
+    realMobileOperator = window.MobileOperator;
+    window.MobileOperator = MockMobileOperator;
+
     // add a mobile connection to make it DSDS
     MockNavigatorMozMobileConnections.mAddMobileConnection();
     realMozMobileConnections = window.navigator.mozMobileConnections;
     window.navigator.mozMobileConnections = MockNavigatorMozMobileConnections;
 
-    requireApp('settings/js/simcard_manager.js', done);
-  });
+    realMozIccManager = window.navigator.mozIccManager;
+    window.navigator.mozIccManager = MockNavigatorMozIccManager;
 
-  suiteTeardown(function() {
-    window.navigator.mozL10n = realL10n;
-    window.Template = realTemplate;
-    window.SimUIModel = realSimUIModel;
-    window.SimSettingsHelper = realSimSettingsHelper;
-    // remove a mobile connection before reassign a real one
-    window.navigator.mozMobileConnections.mRemoveMobileConnection();
-    window.navigator.mozMobileConnections = realMozMobileConnections;
-    stubById.restore();
-  });
+    realMozSettings = window.navigator.mozSettings;
+    window.navigator.mozSettings = MockNavigatorSettings;
 
-  setup(function() {
-
-    var self = this;
-
-    // stub getElementById
-    stubById = this.sinon.stub(document, 'getElementById', function(key) {
+    stubById = sinon.stub(document, 'getElementById', function(key) {
 
       // NOTE
       // you can see that we will spy / stub our returned domElement
@@ -68,7 +76,7 @@ suite('SimCardManager > ', function() {
       // we have to create a select element for it
       if (key.match(/-select/)) {
         var spySelect = document.createElement('select');
-        self.sinon.spy(spySelect, 'addEventListener');
+        sinon.spy(spySelect, 'addEventListener');
 
         return spySelect;
       } else if (key.match(/card-container/)) {
@@ -78,8 +86,8 @@ suite('SimCardManager > ', function() {
         var stubOutterDiv = document.createElement('div');
         var spyInnerDiv = document.createElement('div');
 
-        self.sinon.spy(spyInnerDiv, 'addEventListener');
-        self.sinon.stub(stubOutterDiv, 'querySelector', function() {
+        sinon.spy(spyInnerDiv, 'addEventListener');
+        sinon.stub(stubOutterDiv, 'querySelector', function() {
           return spyInnerDiv;
         });
 
@@ -88,36 +96,52 @@ suite('SimCardManager > ', function() {
         return document.createElement('div');
       }
     });
+
+    requireApp('settings/js/simcard_manager.js', done);
   });
+
+  suiteTeardown(function() {
+    window.navigator.mozL10n = realL10n;
+    window.localize = realLocalize;
+    window.Template = realTemplate;
+    window.SimUIModel = realSimUIModel;
+    window.SimSettingsHelper = realSimSettingsHelper;
+    window.navigator.mozIccManager = realMozIccManager;
+    window.MobileOperator = realMobileOperator;
+    // remove a mobile connection before reassign a real one
+    window.navigator.mozMobileConnections.mRemoveMobileConnection();
+    window.navigator.mozMobileConnections = realMozMobileConnections;
+    window.navigator.mozSettings = realMozSettings;
+    stubById.restore();
+  });
+
 
   // add test below
   suite('init > ', function() {
 
-    setup(function() {
+    setup(function(done) {
+      // we need them for later testing
       this.sinon.spy(SimCardManager, 'setAllElements');
-      this.sinon.spy(SimCardManager, 'initSimCardsInfo');
-      this.sinon.spy(SimCardManager, 'initSimCardsUI');
-
+      this.sinon.stub(SimCardManager, 'initSimCardsInfo');
+      this.sinon.stub(SimCardManager, 'initSimCardManagerUI');
+      this.sinon.stub(SimCardManager, 'addChangeEventOnIccs');
+      this.sinon.stub(SimCardManager, 'addAirplaneModeChangeEvent');
       SimCardManager.init();
+      setTimeout(done);
     });
 
     test('is event binded successfully', function() {
-
       var outgoingCall =
         SimCardManager.simManagerOutgoingCallSelect;
-
       var outgoingMessages =
         SimCardManager.simManagerOutgoingMessagesSelect;
-
       var outgoingData =
         SimCardManager.simManagerOutgoingDataSelect;
 
       assert.equal(outgoingCall.addEventListener.lastCall.args[0],
         'change');
-
       assert.equal(outgoingMessages.addEventListener.lastCall.args[0],
         'change');
-
       assert.equal(outgoingData.addEventListener.lastCall.args[0],
         'change');
     });
@@ -125,7 +149,88 @@ suite('SimCardManager > ', function() {
     test('is UI inited successfully', function() {
       assert.isTrue(SimCardManager.setAllElements.called);
       assert.isTrue(SimCardManager.initSimCardsInfo.called);
-      assert.isTrue(SimCardManager.initSimCardsUI.called);
+      assert.isTrue(SimCardManager.initSimCardManagerUI.called);
+      assert.isTrue(SimCardManager.addChangeEventOnIccs.called);
+      assert.isTrue(SimCardManager.addAirplaneModeChangeEvent.called);
+    });
+  });
+
+  suite('initSimCardsInfo > ', function() {
+    setup(function() {
+      this.sinon.stub(SimCardManager, 'updateCardState');
+      SimCardManager.initSimCardsInfo();
+    });
+    test('simcards info are inited', function() {
+      assert.equal(SimCardManager.simcards.length,
+        window.navigator.mozMobileConnections.length);
+      assert.isTrue(SimCardManager.updateCardState.called);
+    });
+  });
+
+  suite('updateCardState > ', function() {
+    var fakeRightIccId = '12345';
+
+    setup(function() {
+      // make sure we will reset all state before testing
+      SimCardManager.simcards[0]._state = '';
+    });
+
+    suiteTeardown(function() {
+      // reset when leaving
+      SimCardManager.simcards[0]._state = '';
+    });
+
+    suite('no iccId, we can\'t get icc instance > ', function() {
+      setup(function() {
+        SimCardManager.updateCardState(0, undefined);
+      });
+      test('simcard will be nosim', function() {
+        assert.equal(SimCardManager.simcards[0]._state, 'nosim');
+      });
+    });
+
+    suite('in airplane mode, we will make UI nosim > ', function() {
+      setup(function() {
+        SimCardManager.isAirplaneMode = true;
+        SimCardManager.updateCardState(0, fakeRightIccId);
+      });
+      test('simcard will be nosim', function() {
+        assert.equal(SimCardManager.simcards[0]._state, 'nosim');
+      });
+    });
+
+    suite('not in airplane mode and with right iccId > ', function() {
+      setup(function() {
+        SimCardManager.isAirplaneMode = false;
+        SimCardManager.updateCardState(0, fakeRightIccId);
+      });
+      test('simcard will be normal', function() {
+        assert.equal(SimCardManager.simcards[0]._state, 'normal');
+      });
+    });
+
+    suite('not in airplane mode and with right iccId but locked > ',
+      function() {
+        var fakeLockedIccId = '123456789';
+
+        suiteSetup(function() {
+          window.navigator.mozIccManager.addIcc(fakeLockedIccId, {
+            'cardState' : 'pinRequired'
+          });
+        });
+
+        suiteTeardown(function() {
+          window.navigator.mozIccManager.removeIcc(fakeLockedIccId);
+        });
+
+        setup(function() {
+          SimCardManager.isAirplaneMode = false;
+          SimCardManager.updateCardState(0, fakeLockedIccId);
+        });
+
+        test('simcard will be locked', function() {
+          assert.equal(SimCardManager.simcards[0]._state, 'locked');
+        });
     });
   });
 
@@ -326,6 +431,88 @@ suite('SimCardManager > ', function() {
     });
   });
 
+  suite('initSimCardManagerUI > ', function() {
+    setup(function() {
+      this.sinon.stub(SimCardManager, 'initSimCardsUI');
+      this.sinon.stub(SimCardManager, 'initSelectOptionsUI');
+      this.sinon.stub(SimCardManager, 'updateSimCardsUI');
+      this.sinon.stub(SimCardManager, 'updateSimSecurityUI');
+      SimCardManager.initSimCardManagerUI();
+    });
+    test('all related methods are exectued', function() {
+      assert.ok(SimCardManager.initSimCardsUI.called);
+      assert.ok(SimCardManager.initSelectOptionsUI.called);
+      assert.ok(SimCardManager.updateSimCardsUI.called);
+      assert.ok(SimCardManager.updateSimSecurityUI.called);
+    });
+  });
+
+  suite('initSimCardsUI > ', function() {
+    setup(function() {
+      SimCardManager.initSimCardsUI();
+    });
+    test('simCardContainer has inner nodes', function() {
+      assert.isDefined(SimCardManager.simCardContainer.innerHTML);
+    });
+  });
+
+  suite('updateSimSecurityUI > ', function() {
+    suiteSetup(function() {
+      initCards(2);
+    });
+    suite('two sims are absent and not in airplane mode > ', function() {
+      setup(function() {
+        SimCardManager.simcards[0].absent = true;
+        SimCardManager.simcards[1].absent = true;
+        SimCardManager.isAirplaneMode = false;
+        SimCardManager.isAirplaneMode = false;
+        SimCardManager.updateSimSecurityUI();
+      });
+      test('we will hide simSecurity', function() {
+        assert.equal('true',
+          SimCardManager.simManagerSecurityEntry.getAttribute('aria-disabled'));
+      });
+    });
+    suite('two sims are absent but in airplane mode > ', function() {
+      setup(function() {
+        SimCardManager.simcards[0].absent = true;
+        SimCardManager.simcards[1].absent = true;
+        SimCardManager.isAirplaneMode = true;
+        SimCardManager.isAirplaneMode = true;
+        SimCardManager.updateSimSecurityUI();
+      });
+      test('we will hide simSecurity', function() {
+        assert.equal('true',
+          SimCardManager.simManagerSecurityEntry.getAttribute('aria-disabled'));
+      });
+    });
+    suite('one sim is absent but in airplane mode > ', function() {
+      setup(function() {
+        SimCardManager.simcards[0].absent = false;
+        SimCardManager.simcards[1].absent = true;
+        SimCardManager.isAirplaneMode = true;
+        SimCardManager.isAirplaneMode = true;
+        SimCardManager.updateSimSecurityUI();
+      });
+      test('we will hide simSecurity', function() {
+        assert.equal('true',
+          SimCardManager.simManagerSecurityEntry.getAttribute('aria-disabled'));
+      });
+    });
+    suite('one sim is absent but not in airplane mode > ', function() {
+      setup(function() {
+        SimCardManager.simcards[0].absent = false;
+        SimCardManager.simcards[1].absent = true;
+        SimCardManager.isAirplaneMode = false;
+        SimCardManager.isAirplaneMode = false;
+        SimCardManager.updateSimSecurityUI();
+      });
+      test('we will show simSecurity', function() {
+        assert.equal('false',
+          SimCardManager.simManagerSecurityEntry.getAttribute('aria-disabled'));
+      });
+    });
+  });
 
   // helpers
   function initCards(count) {

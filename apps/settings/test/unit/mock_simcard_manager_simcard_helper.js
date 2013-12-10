@@ -24,6 +24,7 @@ MockSimUIModel.prototype = {
     };
   },
   setState: function(key, options) {
-    // do nothing
+    // we can use this to make sure we setState successfully
+    this._state = key;
   }
 };
