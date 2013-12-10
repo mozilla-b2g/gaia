@@ -54,7 +54,8 @@ class Settings(Base):
 
     @property
     def is_gps_enabled(self):
-        return self.marionette.find_element(*self._gps_enabled_locator).get_attribute('checked')
+        checkbox = self.marionette.find_element(*self._gps_enabled_locator)
+        return checkbox.is_selected()
 
     @property
     def header_text(self):
