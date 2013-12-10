@@ -989,16 +989,26 @@ var Camera = {
   },
 
   setPreviewSize: function(camera) {
+    // Calculate actual dimension after rotation (i.e. bounding box dimension).
+    function getBoundingBoxDimension(rotateAngle, width, height) {
+      var rad = rotateAngle * (Math.PI / 180);
+      var sinabs = Math.abs(Math.sin(rad));
+      var cosabs = Math.abs(Math.cos(rad));
+      return [Math.round(sinabs * height + cosabs * width),
+              Math.round(cosabs * height + sinabs * width)];
+    }
 
     var viewfinder = this.viewfinder;
     var style = viewfinder.style;
-    // Switch screen dimensions to landscape. The screen width/height is css
-    // pixel size. The following calculation are all based on css pixel.
-    var screenWidth = document.body.clientHeight;
-    var screenHeight = document.body.clientWidth;
-    var pictureAspectRatio = this._pictureSize.height / this._pictureSize.width;
-    var screenAspectRatio = screenHeight / screenWidth;
+    var screenWidth = document.body.clientWidth;
+    var screenHeight = document.body.clientHeight;
+    // Initialize preview size by screen size in direction of actual preview.
+    // Preview sizes are all based on css pixel.
+    var [previewWidth, previewHeight] = getBoundingBoxDimension(
+          camera.sensorAngle, screenWidth, screenHeight);
+    var previewAspectRatio = previewWidth / previewHeight;
 
+    var pictureAspectRatio = this._pictureSize.width / this._pictureSize.height;
     // Previews should match the aspect ratio and not be smaller than the screen
     var validPreviews = camera.capabilities.previewSizes.filter(function(res) {
       // Note that we are using the screen size in CSS pixels and not
@@ -1022,42 +1032,37 @@ var Camera = {
       this._previewConfig = camera.capabilities.previewSizes[0];
     }
 
-    var transform = 'rotate(90deg)';
-    var width, height;
-    var translateX = 0;
-
+    // Now we have actual aspect ratio to determine actual preview size.
     // The preview should be larger than the screen, shrink it so that as
     // much as possible is on screen.
-    if (screenAspectRatio < pictureAspectRatio) {
-      width = screenWidth;
-      height = screenWidth * pictureAspectRatio;
+    if (previewAspectRatio < pictureAspectRatio) {
+      previewWidth = previewHeight * pictureAspectRatio;
     } else {
-      width = screenHeight / pictureAspectRatio;
-      height = screenHeight;
+      previewHeight = previewWidth / pictureAspectRatio;
     }
+
+    // Counter the displacement due to the rotation. Since transform origin is
+    // set to center, the upper left displaces half of difference between actual
+    // dimension after rotating and original dimension.
+    var [previewBoxWidth, previewBoxHeight] = getBoundingBoxDimension(
+                      -camera.sensorAngle, previewWidth, previewHeight);
+    var dx = (previewBoxWidth - previewWidth) / 2;
+    var dy = (previewBoxHeight - previewHeight) / 2;
+
+    // Then align the viewfinder at center of the screen
+    dx += (screenWidth - previewBoxWidth) / 2;
+    dy += (screenHeight - previewBoxHeight) / 2;
+    var transform = 'translate(' + dx + 'px,' + dy + 'px) ' +
+                    'rotate(' + -camera.sensorAngle + 'deg) ';
 
     if (this._cameraNumber == 1) {
       /* backwards-facing camera */
       transform += ' scale(-1, 1)';
-      translateX = width;
     }
 
-    // Counter the position due to the rotation
-    // This translation goes after the rotation so the element is shifted up
-    // (for back camera) - shifted up after it is rotated 90 degress clockwise.
-    // (for front camera) - shifted up-left after it is mirrored and rotated.
-    transform += ' translate(-' + translateX + 'px, -' + height + 'px)';
-
-    // Now add another translation at to center the viewfinder on the screen.
-    // We put this at the start of the transform, which means it is applied
-    // last, after the rotation, so width and height are reversed.
-    var dx = -(height - screenHeight) / 2;
-    var dy = -(width - screenWidth) / 2;
-    transform = 'translate(' + dx + 'px,' + dy + 'px) ' + transform;
-
     style.transform = transform;
-    style.width = width + 'px';
-    style.height = height + 'px';
+    style.width = previewWidth + 'px';
+    style.height = previewHeight + 'px';
   },
 
   recordingStateChanged: function(msg) {
