@@ -9,7 +9,8 @@ var WifiHelper = {
     return navigator.mozWifiManager;
   }(),
 
-  setPassword: function(network, password, identity, eap) {
+  setPassword: function(network, password, identity, 
+                        eap, phase2, certificate) {
     var encType = this.getKeyManagement(network);
     switch (encType) {
       case 'WPA-PSK':
@@ -19,11 +20,21 @@ var WifiHelper = {
         network.eap = eap;
         switch (eap) {
           case 'SIM':
+            break;
+          case 'PEAP':
+          case 'TLS':
+          case 'TTLS':
             if (password && password.length) {
               network.password = password;
             }
             if (identity && identity.length) {
               network.identity = identity;
+            }
+            if (phase2 != 'No') {
+              network.phase2 = phase2;
+            }
+            if (certificate != 'none') {
+              network.serverCertificate = certificate;
             }
             break;
           default:
@@ -113,6 +124,9 @@ var WifiHelper = {
         switch (eap) {
           case 'SIM':
             break;
+          case 'PEAP':
+          case 'TLS':
+          case 'TTLS':
           default:
             if (!password || password.length < 1 ||
                 !identity || identity.length < 1)

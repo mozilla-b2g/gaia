@@ -548,10 +548,191 @@ navigator.mozL10n.ready(function wifiSettings() {
     openDialog('wifi-manageNetworks');
   };
 
+  // create a certificate list item
+  function newCertificateItem(caName) {
+    var label = document.createElement('label');
+    label.className = 'pack-checkbox';
+    var input = document.createElement('input');
+    input.type = 'checkbox';
+    input.name = caName;
+    input.checked = false;
+    var span = document.createElement('span');
+    span.textContent = caName;
+
+    label.appendChild(input);
+    label.appendChild(span);
+
+    var li = document.createElement('li');
+    li.appendChild(label);
+    return li;
+  }
+
+  function toggleDeleteCertificateBtn(enabled) {
+    document.getElementById('deleteCertificate').disabled = !enabled;
+  }
+
+  function toggleImportCertificateBtn(enabled) {
+    document.getElementById('importCertificate').disabled = !enabled;
+  }
+
+  // imported certificate list
+  var gCertificateList = (function certificateList(list) {
+    var certificateList = [];
+
+    // get list
+    function getList() {
+      return certificateList;
+    }
+
+    // return true:  if more than one selected item
+    // return false: if no selected item
+    function isItemSelected() {
+      return list.querySelector('input[type=checkbox]:checked') != null;
+    }
+
+    // delete the selected certificate items in list
+    function deleteCertificate() {
+      var countItemDeleted = 0;
+      var checkedInputList =
+        list.querySelectorAll('input[type=checkbox]:checked');
+
+      for (var i = 0; i < checkedInputList.length; i++) {
+        var nickname = checkedInputList[i].name;
+        var certRequest = gWifiManager.deleteCert(nickname);
+
+        certRequest.onsuccess = function() {
+          if (++countItemDeleted == checkedInputList.length) {
+            // refresh certificate list
+            scan();
+          }
+        };
+        certRequest.onerror = function() {
+          if (++countItemDeleted == checkedInputList.length) {
+            // refresh certificate list
+            scan();
+          }
+          // Pop out alert message for certificate deletion failed
+          var dialog = document.getElementById('certificate-deletion-failed');
+          dialog.hidden = false;
+          dialog.onsubmit = function confirm() {
+            dialog.hidden = true;
+          };
+        };
+      }
+    }
+
+    // clear the certificate list
+    function clear() {
+      while (list.hasChildNodes()) {
+        list.removeChild(list.lastChild);
+      }
+    }
+
+    // scan and list imported certificates
+    function scan() {
+      clear();
+
+      var certRequest = gWifiManager.getImportedCerts();
+
+      certRequest.onsuccess = function() {
+        var certList = certRequest.result;
+        // save the imported server certificates
+        certificateList = certList.ServerCert;
+
+        // display certificate list
+        if (certificateList.length) {
+          for (var i = 0; i < certificateList.length; i++) {
+            list.appendChild(newCertificateItem(certificateList[i]));
+          }
+          // add event listener for update toggle delete/import cert. buttons
+          var inputItems = list.querySelectorAll('input');
+          for (var i = 0; i < inputItems.length; i++) {
+            inputItems[i].onchange = function() {
+              // To enable/disable delete, import certitifate buttons
+              // via items selected or not.
+              var option = isItemSelected();
+              toggleDeleteCertificateBtn(option);
+              toggleImportCertificateBtn(!option);
+            };
+          }
+        } else {
+          // display "no certificate" message while no any imported certificate
+          list.appendChild(newExplanationItem('noCertificate'));
+        }
+      };
+      certRequest.onerror = function() {
+        console.warn('getImportedCerts failed');
+      };
+
+      toggleDeleteCertificateBtn(false);
+      toggleImportCertificateBtn(true);
+    }
+
+    // Once Bug 917102 landed, we can remove the detection.
+    // Detect platform is supporting certificate or not..
+    if (gWifiManager.getImportedCerts) {
+      // API is ready.
+      scan();
+    } else {
+      // API is not ready yet.
+      // Hide the "Manage certificates" button since API is not ready yet.
+      var manageCertificatesBtn = document.getElementById('manageCertificates');
+      manageCertificatesBtn.parentNode.parentNode.hidden = true;
+      console.warn('Import certificate API is not ready yet!');
+    }
+
+
+    // API
+    return {
+      getList: getList,
+      scan: scan,
+      deleteCertificate: deleteCertificate
+    };
+  }) (document.getElementById('wifi-certificateList'));
+
+  // when certificate file imported, update the imported certificate list
+  window.addEventListener('certificate-imported', function() {
+    gCertificateList.scan();
+  });
+
+  document.getElementById('manageCertificates').onclick =
+    function knownCertificates() {
+      gCertificateList.scan();
+      openDialog('wifi-manageCertificates');
+  };
+
+  document.getElementById('deleteCertificate').onclick =
+    function deleteCertificate() {
+      gCertificateList.deleteCertificate();
+  };
+
+  document.getElementById('importCertificate').onclick =
+    function importCertificate() {
+      // dispatch event for gSelectCertificateFiles.scan();
+      dispatchEvent(new CustomEvent('scan-certificate-file'));
+      openDialog('wifi-selectCertificateFile');
+  };
+
   // join hidden network
   document.getElementById('joinHidden').onclick = function joinHiddenNetwork() {
     toggleNetwork();
   };
+
+  // load the imported certificates into select options
+  function loadImportedCertificateOptions(select) {
+    // reset the option to be <option value="none">--</option> only
+    for (var i = 0; i < select.options.length - 1; i++) {
+      select.remove(1);
+    }
+
+    var certificateList = gCertificateList.getList();
+    for (var i = 0; i < certificateList.length; i++) {
+      var option = document.createElement('option');
+      option.text = certificateList[i];
+      option.value = certificateList[i];
+      select.add(option, null);
+    }
+  }
 
   // UI to connect/disconnect
   function toggleNetwork(network) {
@@ -600,7 +781,9 @@ navigator.mozL10n.ready(function wifiSettings() {
       var dialog = document.getElementById(dialogID);
 
       // authentication fields
-      var identity, password, showPassword, eap;
+      var identity, password, showPassword, eap,
+          authPhase2, certificate, description;
+
       if (dialogID != 'wifi-status') {
         identity = dialog.querySelector('input[name=identity]');
         identity.value = network.identity || '';
@@ -616,6 +799,21 @@ navigator.mozL10n.ready(function wifiSettings() {
         };
 
         eap = dialog.querySelector('li.eap select');
+        // Once Bug 917102 landed, we could remove the detection.
+        // Detect platform is supporting certificate or not..
+        if (!gWifiManager.getImportedCerts) {
+          console.warn('Import certificate API is not ready yet!');
+          // API is not ready yet.
+          // Remove the EAP methods(PEAP, TLS, TTLS) which are not supported.
+          while (eap.options.length != 1) {
+            eap.remove(1);
+          }
+        }
+
+        authPhase2 = dialog.querySelector('li.auth-phase2 select');
+        certificate = dialog.querySelector('li.server-certificate select');
+        loadImportedCertificateOptions(certificate);
+        description = dialog.querySelector('li.server-certificate-description');
       }
 
       if (dialogID === 'wifi-joinHidden') {
@@ -640,8 +838,10 @@ navigator.mozL10n.ready(function wifiSettings() {
       if (password) {
         var checkPassword = function checkPassword() {
           dialog.querySelector('button[type=submit]').disabled =
-            !WifiHelper.isValidInput(key, password.value, identity.value,
-              eap.value);
+            !WifiHelper.isValidInput(key,
+                                     password.value,
+                                     identity.value,
+                                     eap.value);
         };
         eap.onchange = function() {
           checkPassword();
@@ -706,16 +906,29 @@ navigator.mozL10n.ready(function wifiSettings() {
           if (security === 'WEP' || security === 'WPA-PSK') {
             identity.parentNode.style.display = 'none';
             password.parentNode.style.display = 'block';
+            authPhase2.parentNode.parentNode.style.display = 'none';
+            certificate.parentNode.parentNode.style.display = 'none';
+            description.style.display = 'none';
           } else if (security === 'WPA-EAP') {
             if (eap) {
               switch (eap.value) {
                 case 'SIM':
                   identity.parentNode.style.display = 'none';
                   password.parentNode.style.display = 'none';
+                  authPhase2.parentNode.parentNode.style.display = 'none';
+                  certificate.parentNode.parentNode.style.display = 'none';
+                  description.style.display = 'none';
                   break;
-                default:
+                case 'PEAP':
+                case 'TLS':
+                case 'TTLS':
                   identity.parentNode.style.display = 'block';
                   password.parentNode.style.display = 'block';
+                  authPhase2.parentNode.parentNode.style.display = 'block';
+                  certificate.parentNode.parentNode.style.display = 'block';
+                  description.style.display = 'block';
+                  break;
+                default:
                   break;
               }
             }
@@ -744,8 +957,12 @@ navigator.mozL10n.ready(function wifiSettings() {
           network.ssid = dialog.querySelector('input[name=ssid]').value;
         }
         if (key) {
-          WifiHelper.setPassword(network, password.value, identity.value,
-            eap.value);
+          WifiHelper.setPassword(network,
+                                 password.value,
+                                 identity.value,
+                                 eap.value,
+                                 authPhase2.value,
+                                 certificate.value);
         }
         if (callback) {
           callback();

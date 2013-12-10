@@ -26,6 +26,21 @@
           <span class="button icon icon-dialog" data-eapMethod>
             <select>
               <option value="SIM">SIM</option>
+              <option value="PEAP">PEAP</option>
+              <option value="TLS">TLS</option>
+              <option value="TTLS">TTLS</option>
+            </select>
+          </span>
+        </li>
+        <li class="auth-phase2">
+          <p data-l10n-id="auth-phase2">Phase 2 authentication</p>
+          <span class="button icon icon-dialog">
+            <select>
+              <option value="No">No</option>
+              <option value="PAP">PAP</option>
+              <option value="MSCHAP">MSCHAP</option>
+              <option value="MSCHAPV2">MSCHAP V2</option>
+              <option value="GTC">GTC</option>
             </select>
           </span>
         </li>
@@ -40,6 +55,17 @@
           </label>
           <p data-l10n-id="password">password</p>
           <input type="password" data-ignore name="password" maxlength="63" x-inputmode="verbatim" />
+        </li>
+        <li class="server-certificate">
+          <p data-l10n-id="server-certificate">Server certificate</p>
+          <span class="button icon icon-dialog">
+            <select>
+              <option value="none">--</option>
+            </select>
+          </span>
+        </li>
+        <li class="description server-certificate-description" data-l10n-id="import-certificate-msg">
+          Notice: If you need to import new certificates, please go to “Manage certificates".
         </li>
       </ul>
     </div>
