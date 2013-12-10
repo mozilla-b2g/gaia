@@ -108,6 +108,28 @@ automatically picked up by `make test-integration`.
 ```sh
 make test-integration
 ```
+#### Running tests while working
+
+If you wish to run many tests in background you might not want to be disturbed
+by the b2g-desktop window popping everytime, or the sound. One solution for
+the first issue is to use Xvfb:
+
+```sh
+xvfb-run make test-integration
+```
+
+If you are using PulseAudio and want to keep the tests quied, then just force
+an invalid server:
+
+```sh
+PULSE_SERVER=":" make test-integration
+```
+
+You can of course combine both:
+
+```sh
+PULSE_SERVER=":" xvfb-run make test-integration
+```
 
 #### Where to find documentation
   - [Node.js](http://nodejs.org)
