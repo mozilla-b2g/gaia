@@ -96,6 +96,8 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
   var additionalInfoNode = this.additionalInfoNode;
   var self = this;
 
+  CallScreen.setCallerContactImage(null);
+
   /* If we have a second call waiting in CDMA mode then we don't know which
    * number is currently active */
   if (secondNumber) {
@@ -301,7 +303,9 @@ HandledCall.prototype.connected = function hc_connected() {
   CallScreen.enableKeypad();
   CallScreen.syncSpeakerEnabled();
 
-  CallScreen.setCallerContactImage(this.photo);
+  if (!this.call.group) {
+    CallScreen.setCallerContactImage(this.photo);
+  }
 };
 
 HandledCall.prototype.disconnected = function hc_disconnected() {

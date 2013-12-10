@@ -48,7 +48,7 @@ var ConferenceGroupHandler = (function() {
     groupLine.classList.remove('held');
     groupDurationChildNode.textContent = null;
     CallScreen.createTicker(groupDuration);
-    CallScreen.setDefaultContactImage({force: true});
+    CallScreen.setCallerContactImage(null);
   }
 
   function end() {

@@ -341,6 +341,12 @@ var CallScreen = {
       this._screenWakeLock.unlock();
       this._screenWakeLock = null;
     }
+    var hc = CallsHandler.activeCall;
+    if (hc) {
+      this.setCallerContactImage(hc.photo);
+    } else {
+      this.setCallerContactImage(null);
+    }
   },
 
   syncSpeakerEnabled: function cs_syncSpeakerEnabled() {

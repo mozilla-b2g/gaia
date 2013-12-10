@@ -6,6 +6,7 @@ require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 requireApp('communications/dialer/test/unit/mock_moztelephony.js');
 
+requireApp('communications/dialer/test/unit/mock_handled_call.js');
 requireApp('communications/dialer/test/unit/mock_calls_handler.js');
 requireApp('communications/dialer/test/unit/mock_l10n.js');
 
@@ -552,6 +553,47 @@ suite('call screen', function() {
     });
   });
 
+  suite('hideIncoming', function() {
+    var MockWakeLock;
+    setup(function() {
+      MockWakeLock = {
+        unlock: this.sinon.stub()
+      };
+      this.sinon.stub(navigator, 'requestWakeLock').returns(MockWakeLock);
+
+      CallScreen.showIncoming();
+    });
+
+    test('should remove class of callToolbar and incomingContainer',
+    function() {
+      assert.isTrue(callToolbar.classList.contains('transparent'));
+      assert.isTrue(incomingContainer.classList.contains('displayed'));
+      CallScreen.hideIncoming();
+      assert.isFalse(callToolbar.classList.contains('transparent'));
+      assert.isFalse(incomingContainer.classList.contains('displayed'));
+    });
+
+    test('should remove screen wakelock if exist', function() {
+      assert.isFalse(MockWakeLock.unlock.calledOnce);
+      CallScreen.hideIncoming();
+      assert.isTrue(MockWakeLock.unlock.calledOnce);
+    });
+
+    test('should set caller photo to active call if exist', function() {
+      MockCallsHandler.mActiveCall = new MockHandledCall();
+      var testPhoto = MockCallsHandler.mActiveCall.photo = 'testphoto';
+      var setImageStub = this.sinon.stub(CallScreen, 'setCallerContactImage');
+      CallScreen.hideIncoming();
+      assert.isTrue(setImageStub.withArgs(testPhoto).calledOnce);
+    });
+
+    test('should clear caller photo if there is no active call', function() {
+      var setImageStub = this.sinon.stub(CallScreen, 'setCallerContactImage');
+      CallScreen.hideIncoming();
+      assert.isTrue(setImageStub.withArgs(null).calledOnce);
+    });
+  });
+
   suite('showStatusMessage', function() {
     var statusMessage,
         bannerClass,
@@ -652,7 +694,7 @@ suite('call screen', function() {
     });
   });
 
-  suite('ticker functions > ', function() {
+  suite('ticker functions', function() {
     var durationNode;
     var timeNode;
     setup(function() {
