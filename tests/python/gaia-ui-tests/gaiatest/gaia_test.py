@@ -759,6 +759,13 @@ window.addEventListener('mozbrowserloadend', function loaded(aEvent) {
         self.marionette.session = None
         self.marionette.window = None
 
+    def turn_screen_off(self):
+        self.marionette.execute_script("window.wrappedJSObject.ScreenManager.turnScreenOff(true)")
+
+    @property
+    def is_screen_enabled(self):
+        return self.marionette.execute_script('return window.wrappedJSObject.ScreenManager.screenEnabled')
+
 
 class GaiaTestCase(MarionetteTestCase):
     def __init__(self, *args, **kwargs):
