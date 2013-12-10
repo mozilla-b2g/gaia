@@ -175,6 +175,22 @@ suite('system/StackManager >', function() {
         assert.deepEqual(StackManager.getPrev(), dialer);
         assert.deepEqual(StackManager.getCurrent(), contact);
       });
+
+      suite('then we go back and launch a third app', function() {
+        setup(function() {
+          StackManager.goPrev();
+          appLaunch(settings);
+        });
+
+        test('the current app at the time of the launch should move to the top',
+        function() {
+          assert.deepEqual(StackManager.getPrev(), dialer);
+        });
+
+        test('the new app should go on the top', function() {
+          assert.deepEqual(StackManager.getCurrent(), settings);
+        });
+      });
     });
 
     suite('if it\'s already in the stack', function() {
@@ -185,8 +201,16 @@ suite('system/StackManager >', function() {
 
       test('it should go on top of the stack', function() {
         appLaunch(dialer, true);
+
         assert.deepEqual(StackManager.getCurrent(), dialer);
         assert.deepEqual(StackManager.getPrev(), settings);
+      });
+
+      test('it should bring the current app on top too', function() {
+        StackManager.goPrev();
+        appLaunch(dialer, true);
+
+        assert.deepEqual(StackManager.getPrev(), contact);
       });
 
       test('it should not be duplicated', function() {

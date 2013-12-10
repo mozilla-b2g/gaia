@@ -53,6 +53,7 @@ var StackManager = {
         if (app.stayBackground) {
           this._insertBelow(app);
         } else {
+          this._moveToTop(this._current);
           this._insertOnTop(app);
         }
         break;
@@ -60,6 +61,8 @@ var StackManager = {
       case 'launchwrapper':
         var config = e.detail;
         if (!config.stayBackground) {
+          this._moveToTop(this._current);
+
           var idx = this._indexOfURL(config.url);
           if (idx !== undefined) {
             this._moveToTop(idx);
@@ -67,9 +70,7 @@ var StackManager = {
         }
         break;
       case 'home':
-        if (this._stack.length > 1) {
-          this._moveToTop(this._current);
-        }
+        this._moveToTop(this._current);
         break;
       case 'appterminated':
         var manifestURL = e.detail.manifestURL;
@@ -92,6 +93,10 @@ var StackManager = {
   },
 
   _moveToTop: function sm_moveToTop(index) {
+    if (index >= this._stack.length) {
+      return;
+    }
+
     var sheet = this._stack.splice(index, 1)[0];
     this._current = this._stack.push(sheet) - 1;
   },
