@@ -9,9 +9,20 @@
 
 (function(exports) {
 
-
+  // Panels
   var downloadsContainer = null;
   var emptyDownloadsContainer = null;
+  var downloadsPanel = null;
+
+  // Buttons
+  var editButton = null;
+  var closeButton = null;
+  var deleteButton = null;
+  var selectAllButton = null;
+  var deselectAllButton = null;
+
+  // Not related with DOM vars
+  var isEditMode = false;
 
   function _checkEmptyList() {
     if (!downloadsContainer) {
@@ -21,6 +32,7 @@
 
     downloadsContainer.className = isEmpty ? 'hide' : '';
     emptyDownloadsContainer.className = isEmpty ? '' : 'hide';
+    editButton.className = isEmpty ? 'disabled' : '';
   }
 
   function _render(downloads, oncomplete) {
@@ -101,6 +113,9 @@
   }
 
   function _onDownloadAction(event) {
+    if (isEditMode) {
+      return;
+    }
     var downloadID = event.target.id || event.target.dataset.id;
     var download = DownloadApiManager.getDownload(downloadID);
     _actionHandler(download);
@@ -187,6 +202,116 @@
     };
   }
 
+  // Methods for controlling the edit mode
+
+  function _getAllChecks() {
+    return downloadsContainer.querySelectorAll('input');
+  }
+
+  function _getAllChecked() {
+    return downloadsContainer.querySelectorAll('input:checked');
+  }
+
+  function _markAllChecksAs(condition) {
+    var checks = _getAllChecks();
+    for (var i = 0; i < checks.length; i++) {
+      checks[i].checked = condition;
+    }
+  }
+
+  function _enableAllChecks() {
+    _markAllChecksAs(true);
+    _updateButtonsStatus();
+  }
+
+  function _disableAllChecks() {
+    _markAllChecksAs(false);
+    _updateButtonsStatus();
+  }
+
+  function _updateButtonsStatus() {
+    if (_getAllChecked().length === 0) {
+      document.getElementById('downloads-edit-deselect-all').disabled = true;
+      deleteButton.disabled = true;
+    } else {
+      document.getElementById('downloads-edit-deselect-all').disabled = false;
+      deleteButton.disabled = false;
+    }
+
+    if (_getAllChecks().length === _getAllChecked().length) {
+      document.getElementById('downloads-edit-select-all').disabled = true;
+    } else {
+      document.getElementById('downloads-edit-select-all').disabled = false;
+    }
+  }
+
+
+  function _onDownloadSelected(event) {
+    if (isEditMode && event.target.tagName === 'INPUT') {
+      _updateButtonsStatus();
+    }
+  }
+
+  function _deleteDownloads() {
+    var downloadsChecked = _getAllChecked();
+
+    var downloadIDs = [], downloadElements = [];
+    for (var i = 0; i < downloadsChecked.length; i++) {
+      downloadIDs.push(downloadsChecked[i].value);
+      downloadElements.push(downloadsChecked[i].parentNode.parentNode);
+    }
+
+    function deletionDone() {
+      _checkEmptyList();
+      _closeEditMode();
+    }
+
+    DownloadApiManager.deleteDownloads(
+      downloadIDs,
+      function downloadsDeleted() {
+        _removeDownloadsFromUI(downloadElements);
+        deletionDone();
+      },
+      function onError() {
+        deletionDone();
+      }
+    );
+  }
+
+  function _removeDownloadsFromUI(elements) {
+    for (var i = 0; i < elements.length; i++) {
+      downloadsContainer.removeChild(elements[i]);
+    }
+  }
+
+  function _loadEditMode() {
+    // Disable all checks
+    _disableAllChecks();
+    // Ensure that header is the firstchild for using building blocks
+    var targetHeader = document.getElementById('edit-mode-header');
+    targetHeader.parentNode.insertBefore(
+      targetHeader,
+      targetHeader.parentNode.firstChild
+    );
+    // Add 'edit' stype
+    downloadsPanel.classList.add('edit');
+    // Change edit mdoe status
+    isEditMode = true;
+  }
+
+  function _closeEditMode() {
+    var targetHeader = document.getElementById('downloads-header');
+    targetHeader.parentNode.insertBefore(
+      targetHeader,
+      targetHeader.parentNode.firstChild
+    );
+    downloadsPanel.classList.remove('edit');
+
+    isEditMode = false;
+  }
+
+
+
   var DownloadsList = {
     init: function(oncomplete) {
       var scripts = [
@@ -199,21 +324,55 @@
         'js/downloads/download_item.js'
       ];
 
+      if (!navigator.mozDownloadManager) {
+        scripts.push('js/downloads/desktop/desktop_moz_downloads.js');
+      }
+
       LazyLoader.load(scripts, function onload() {
-        // Init the container
+        // Cache DOM Elements
+        // Panels
         downloadsContainer = document.querySelector('#downloadList ul');
         emptyDownloadsContainer =
           document.getElementById('download-list-empty');
+        downloadsPanel = document.getElementById('downloads');
+        // Buttons
+        editButton = document.getElementById('downloads-edit-button');
+        closeButton = document.getElementById('downloads-close-button');
+        deleteButton = document.getElementById('downloads-delete-button');
+        selectAllButton =
+          document.getElementById('downloads-edit-select-all');
+        deselectAllButton =
+          document.getElementById('downloads-edit-deselect-all');
+
+        // Localization of the nodes for avoiding weird repaintings
         var noDownloadsTextEl = document.getElementById('dle-text');
+        var editModeTitle = document.getElementById('downloads-title-edit');
+
         navigator.mozL10n.localize(noDownloadsTextEl, 'no-downloads');
+        navigator.mozL10n.localize(selectAllButton, 'downloads-select-all');
+        navigator.mozL10n.localize(deselectAllButton, 'downloads-deselect-all');
+        navigator.mozL10n.localize(editModeTitle, 'downloads-edit');
+        navigator.mozL10n.localize(deleteButton, 'downloads-delete');
+
         // Render the entire list
         DownloadApiManager.getDownloads(
           _render.bind(this),
           _onerror.bind(this),
           oncomplete
         );
-        // Update if needed
+
+        // Update method added
         DownloadApiManager.setOnDownloadHandler(_prepend);
+
+        // Add listener to edit mode
+        editButton.addEventListener('click', _loadEditMode.bind(this));
+        closeButton.addEventListener('click', _closeEditMode.bind(this));
+        selectAllButton.addEventListener('click', _enableAllChecks.bind(this));
+        deselectAllButton.addEventListener('click',
+          _disableAllChecks.bind(this));
+        deleteButton.addEventListener('click', _deleteDownloads.bind(this));
+        downloadsContainer.addEventListener('click',
+          _onDownloadSelected.bind(this));
       });
     }
   };

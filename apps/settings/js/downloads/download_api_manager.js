@@ -114,6 +114,13 @@
       });
     },
 
+    deleteDownloads: function(ids, onsuccess, onerror) {
+      // TODO Use :arcturus logic here
+      setTimeout(function() {
+        onsuccess && onsuccess();
+      });
+    },
+
     getDownload: function(id) {
       return downloadsCache[id] || null;
     },
