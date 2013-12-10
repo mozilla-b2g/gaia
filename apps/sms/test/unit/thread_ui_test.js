@@ -4,7 +4,7 @@
          LinkHelper, Attachment, MockContact, MockOptionMenu,
          MockActivityPicker, Threads, Settings, MockMessages, MockUtils,
          MockContacts, ActivityHandler, Recipients, MockMozActivity,
-         ContactRenderer */
+         ContactRenderer, UIEvent */
 
 'use strict';
 
@@ -102,6 +102,14 @@ suite('thread_ui.js >', function() {
     return attachment;
   }
 
+  function dispatchScrollEvent(elt) {
+    var event = new UIEvent('scroll', {
+      view: window,
+      detail: 0
+    });
+    elt.dispatchEvent(event);
+  }
+
   suiteSetup(function(done) {
     this.timeout(5000);
     mocksHelper.suiteSetup();
@@ -191,26 +199,24 @@ suite('thread_ui.js >', function() {
       container.lastElementChild.style.paddingBottom = '16px';
     });
 
-    test('scroll 100px, should be detected as a manual scroll', function(done) {
-      container.addEventListener('scroll', function onscroll() {
-        container.removeEventListener('scroll', onscroll);
-        assert.ok(ThreadUI.isScrolledManually);
-        done();
-      });
+    test('scroll 100px, should be detected as a manual scroll', function() {
       container.scrollTop = 100;
+
+      dispatchScrollEvent(container);
+
+      assert.ok(ThreadUI.isScrolledManually);
     });
 
     test('scroll to bottom, should be detected as an automatic scroll',
-    function(done) {
-      container.addEventListener('scroll', function onscroll() {
-        container.removeEventListener('scroll', onscroll);
-        assert.isFalse(ThreadUI.isScrolledManually);
-        assert.ok((container.scrollTop + container.clientHeight) ==
-                  container.scrollHeight);
-        done();
-      });
+    function() {
       ThreadUI.isScrolledManually = false;
       ThreadUI.scrollViewToBottom();
+
+      dispatchScrollEvent(container);
+
+      assert.isFalse(ThreadUI.isScrolledManually);
+      assert.ok((container.scrollTop + container.clientHeight) ==
+                container.scrollHeight);
     });
   });
 
@@ -3849,17 +3855,12 @@ suite('thread_ui.js >', function() {
 
   suite('New Message banner', function() {
     var notice;
-    var testMessage;
 
     function addMessages() {
       for (var i = 0; i < 15; i++) {
-        var message = {
-          id: i,
-          type: 'sms',
-          body: 'This is a test message',
-          delivery: 'received',
-          timestamp: new Date()
-        };
+        var message = MockMessages.sms({
+          id: i
+        });
         ThreadUI.appendMessage(message);
       }
     }
@@ -3868,53 +3869,38 @@ suite('thread_ui.js >', function() {
       container.style.overflow = 'scroll';
       container.style.height = '50px';
       notice = document.getElementById('messages-new-message-notice');
-      testMessage = {
-        id: 20,
-        type: 'sms',
-        body: 'New test message',
-        delivery: 'received',
-        timestamp: new Date()
-      };
+      var testMessage = MockMessages.sms({
+        id: 20
+      });
 
       addMessages();
 
+      //Put the scroll on top
+      container.scrollTop = 0;
+      dispatchScrollEvent(container);
+
+      ThreadUI.onMessageReceived(testMessage);
     });
 
-    suite('should be shown', function(done) {
+    suite('should be shown', function() {
       test('when new message is recieved', function() {
-        container.addEventListener('scroll', function onscroll() {
-          ThreadUI.onMessageReceived(testMessage);
-          assert.isFalse(notice.classList.contains('hide'));
-          done();
-        });
-        //Put the scroll on top
-        container.scrollTop = 0;
+        assert.isFalse(notice.classList.contains('hide'));
       });
     });
 
-    suite('should be closed', function(done) {
+    suite('should be closed', function() {
       test('when the notice is clicked', function() {
-        container.addEventListener('scroll', function onscroll() {
-          ThreadUI.onMessageReceived(testMessage);
-          notice.click();
-          assert.isFalse(ThreadUI.isScrolledManually);
-          assert.isTrue(notice.classList.contains('hide'));
-          done();
-        });
-        //Put the scroll on top
-        container.scrollTop = 0;
-
+        notice.click();
+        assert.isFalse(ThreadUI.isScrolledManually);
+        assert.isTrue(notice.classList.contains('hide'));
       });
 
-      test('when the scroll reach the bottom', function(done) {
-        container.scrollTop = 0;
-        ThreadUI.onMessageReceived(testMessage);
-        container.addEventListener('scroll', function onscroll() {
-          container.removeEventListener('scroll', onscroll);
-          assert.isTrue(notice.classList.contains('hide'));
-          done();
-        });
+      test('when the scroll reach the bottom', function() {
         container.scrollTop = container.scrollHeight;
+
+        dispatchScrollEvent(container);
+
+        assert.isTrue(notice.classList.contains('hide'));
       });
     });
   });
