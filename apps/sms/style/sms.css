@@ -445,7 +445,7 @@ section.has-carrier .article-list header:first-child {
 
 .article-list[data-type="list"] .has-subject.outgoing .subject {
   /* to extend the background color and bottom border */
-  width: 100%; 
+  width: 100%;
   margin-left: -1.5rem;
   padding-left: 1.5rem;
   padding-right: 4rem;
@@ -620,11 +620,8 @@ form.bottom[role="search"].messages-compose-form {
 
 /* Fix the compose buttons to the bottom of their container. */
 #messages-send-button {
-  position: relative;
+  position: absolute;
   bottom: 0;
-}
-
-#messages-send-button {
   right: 0;
 }
 
@@ -652,9 +649,10 @@ form.bottom[role="search"].messages-compose-form {
 
 [data-message-type="mms"] #messages-send-button.has-counter:before {
   content: 'MMS';
-  color: #ff6622;
+  color: #FF4E00;
   font-size: 1.5rem;
-  padding-left: 1.0rem;
+  padding-left: 1.6rem;
+  margin-top: -1.2rem;
 }
 
 #messages-input {
@@ -663,25 +661,46 @@ form.bottom[role="search"].messages-compose-form {
   line-height: 2rem;
   min-height: 2.3rem;
   -moz-box-sizing: border-box;
-  /* Cursor hides itself otherwise: */
-  overflow: auto;
+  overflow: auto; /* Cursor hides itself otherwise: */
   white-space: pre-wrap;
   text-align: left;
   font-size: 1.8rem;
 }
 
-#messages-input.placeholder:after {
+#messages-input.placeholder:after,
+#messages-subject-input::-moz-placeholder {
   color: #888;
   position: absolute;
-  top: 0.8rem;
+  bottom: 1rem;
   content: attr(data-placeholder);
   pointer-events: none;
+}
+
+#messages-subject-input::-moz-placeholder {
+  color: #858585;
 }
 
 #send-message-container {
   height: 100%;
   width: 6rem;
   float: right;
+}
+
+#messages-subject-input {
+  position: absolute;
+  top: 0;
+  height: 2rem;
+  max-height: 4rem;
+  width: -moz-calc(100% - 8.5rem);
+  padding: 0.9rem 0.7rem;
+  border: 0;
+  border-bottom: 0.1rem solid #eaeae7;
+  -moz-box-sizing: content-box;
+  white-space: pre-wrap;
+  text-align: left;
+  font-family: 'Fira Sans', sans-serif;
+  font-style: italic;
+  font-size: 1.4rem;
 }
 
 /*
@@ -933,7 +952,7 @@ form[role="dialog"][data-type="action"].contact-prompt > header {
 }
 
 .contact-header {
-  /* bottom padding is .9rem because we need .1rem more for the 
+  /* bottom padding is .9rem because we need .1rem more for the
    * nice shadow line at the header bottom, defined as a :after element */
   padding: 0.8rem 0 0.9rem;
 }

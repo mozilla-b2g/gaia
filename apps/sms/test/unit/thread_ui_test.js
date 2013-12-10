@@ -73,6 +73,7 @@ mocksHelperForThreadUI.init();
 
 suite('thread_ui.js >', function() {
   var input;
+  var subject;
   var container;
   var sendButton;
   var composeForm;
@@ -147,6 +148,7 @@ suite('thread_ui.js >', function() {
     loadBodyHTML('/index.html');
 
     input = document.getElementById('messages-input');
+    subject = document.getElementById('messages-subject-input');
     container = document.getElementById('messages-container');
     sendButton = document.getElementById('messages-send-button');
     composeForm = document.getElementById('messages-compose-form');
@@ -229,8 +231,10 @@ suite('thread_ui.js >', function() {
 
     test('composer cleared', function() {
       Compose.append('foo');
+      subject.value = 'foo';
       ThreadUI.cleanFields(true);
       assert.equal(Compose.getContent(), '');
+      assert.equal(Compose.getSubject(), '');
     });
 
     suite('rendering suggestions list', function() {
@@ -281,6 +285,7 @@ suite('thread_ui.js >', function() {
     suite('In #thread view, button should be...', function() {
       setup(function() {
         window.location.hash = '#thread-1';
+        Compose.clear();
       });
 
       teardown(function() {
@@ -288,13 +293,25 @@ suite('thread_ui.js >', function() {
       });
 
       test('disabled at the beginning', function() {
-        Compose.clear();
         assert.isTrue(sendButton.disabled);
       });
 
       test('enabled when there is message input', function() {
         Compose.append('Hola');
         assert.isFalse(sendButton.disabled);
+      });
+
+      test('enabled when there is subject input and is visible', function() {
+        subject.value = 'Title';
+        Compose.toggleSubject(); // show the subject
+        subject.dispatchEvent(new CustomEvent('input'));
+        assert.isFalse(sendButton.disabled);
+      });
+
+      test('disabled when there is subject input, but is hidden', function() {
+        subject.value = 'Title';
+        subject.dispatchEvent(new CustomEvent('input'));
+        assert.isTrue(sendButton.disabled);
       });
 
       test('enabled when there is message input, but too many segments',
@@ -311,7 +328,6 @@ suite('thread_ui.js >', function() {
 
         assert.isFalse(sendButton.disabled);
       });
-
     });
 
 
@@ -333,9 +349,14 @@ suite('thread_ui.js >', function() {
       suite('enabled', function() {
 
         suite('when there is message input...', function() {
+          setup(function() {
+            Compose.append('Hola');
+          });
+          teardown(function() {
+            Compose.clear();
+          });
 
           test('and recipient field value is valid ', function() {
-            Compose.append('Hola');
             ThreadUI.recipients.inputValue = '999';
 
             // Call directly since no input event will be triggered
@@ -343,10 +364,7 @@ suite('thread_ui.js >', function() {
             assert.isFalse(sendButton.disabled);
           });
 
-          test('after adding a valid recipient ',
-            function() {
-            Compose.append('Hola');
-
+          test('after adding a valid recipient ', function() {
             ThreadUI.recipients.add({
               number: '999'
             });
@@ -355,8 +373,46 @@ suite('thread_ui.js >', function() {
           });
 
           test('after adding valid & questionable recipients ', function() {
-            Compose.append('Hola');
+            ThreadUI.recipients.add({
+              number: 'foo',
+              isQuestionable: true
+            });
 
+            ThreadUI.recipients.add({
+              number: '999'
+            });
+
+            assert.isFalse(sendButton.disabled);
+          });
+        });
+
+        suite('when there is visible subject with input...', function() {
+          setup(function() {
+            subject.value = 'Title';
+            Compose.toggleSubject();
+          });
+
+          teardown(function() {
+            Compose.clear();
+          });
+
+          test('and recipient field value is valid ', function() {
+            ThreadUI.recipients.inputValue = '999';
+
+            // Call directly since no input event will be triggered
+            ThreadUI.enableSend();
+            assert.isFalse(sendButton.disabled);
+          });
+
+          test('after adding a valid recipient ', function() {
+            ThreadUI.recipients.add({
+              number: '999'
+            });
+
+            assert.isFalse(sendButton.disabled);
+          });
+
+          test('after adding valid & questionable recipients ', function() {
             ThreadUI.recipients.add({
               number: 'foo',
               isQuestionable: true
@@ -371,31 +427,37 @@ suite('thread_ui.js >', function() {
         });
 
         suite('when a valid recipient exists...', function() {
-          test('after adding message input ', function() {
-
+          setup(function() {
             ThreadUI.recipients.add({
               number: '999'
             });
+          });
+          teardown(function() {
+            Compose.clear();
+          });
+          test('after adding message input ', function() {
             Compose.append('Hola');
-
             assert.isFalse(sendButton.disabled);
           });
-        });
 
-
-        test('after appending image within size limits ', function() {
-          ThreadUI.recipients.add({
-            number: '999'
+          test('after adding subject input', function() {
+            Compose.toggleSubject();
+            subject.value = 'Title';
+            subject.dispatchEvent(new CustomEvent('input'));
+            assert.isFalse(sendButton.disabled);
           });
 
-          Compose.append(mockImgAttachment());
-          assert.isFalse(sendButton.disabled);
+          test('after appending image within size limits ', function() {
+            Compose.append(mockImgAttachment());
+            assert.isFalse(sendButton.disabled);
+          });
         });
       });
 
       suite('disabled', function() {
 
-        test('when there is no message input or recipient ', function() {
+        test('when there is no message input, subject or recipient',
+          function() {
           assert.isTrue(sendButton.disabled);
         });
 
@@ -412,15 +474,20 @@ suite('thread_ui.js >', function() {
           assert.isTrue(sendButton.disabled);
         });
 
-
         suite('when there is message input...', function() {
-          test('there is no recipient ', function() {
+          setup(function() {
             Compose.append('Hola');
+          });
+
+          teardown(function() {
+            Compose.clear();
+          });
+
+          test('there is no recipient ', function() {
             assert.isTrue(sendButton.disabled);
           });
 
           test('recipient field value is questionable ', function() {
-            Compose.append('Hola');
             ThreadUI.recipients.inputValue = 'a';
 
             // Call directly since no input event will be triggered
@@ -429,14 +496,53 @@ suite('thread_ui.js >', function() {
           });
 
           test('after adding a questionable recipient ', function() {
-            Compose.append('Hola');
-
             ThreadUI.recipients.add({
               number: 'foo',
               isQuestionable: true
             });
 
             assert.isFalse(sendButton.disabled);
+          });
+        });
+
+        suite('when there is subject input...', function() {
+          setup(function() {
+            sendButton.disabled = false;
+            subject.value = 'Title';
+            subject.dispatchEvent(new CustomEvent('input'));
+          });
+
+          teardown(function() {
+            Compose.clear();
+          });
+
+          test('there is no recipient ', function() {
+            assert.isTrue(sendButton.disabled);
+          });
+
+          test('recipient field value is questionable ', function() {
+            ThreadUI.recipients.inputValue = 'a';
+
+            // Call directly since no input event will be triggered
+            ThreadUI.enableSend();
+            assert.isTrue(sendButton.disabled);
+          });
+
+          test('after adding a questionable recipient ', function() {
+            ThreadUI.recipients.add({
+              number: 'foo',
+              isQuestionable: true
+            });
+
+            assert.isTrue(sendButton.disabled);
+          });
+
+          test('there is recipient, but subject field is hidden', function() {
+            ThreadUI.recipients.add({
+              number: '999'
+            });
+
+            assert.isTrue(sendButton.disabled);
           });
         });
 
@@ -740,7 +846,6 @@ suite('thread_ui.js >', function() {
       test('lock is unset', function() {
         assert.isFalse(Compose.lock);
       });
-
     });
 
     suite('in last segment >', function() {
@@ -916,6 +1021,54 @@ suite('thread_ui.js >', function() {
 
       test('lock is enabled', function() {
         assert.isTrue(Compose.lock);
+      });
+    });
+  });
+
+  suite('subject max length banner', function() {
+    var banner,
+        localize;
+
+    setup(function() {
+      banner = document.getElementById('messages-max-length-notice');
+      localize = this.sinon.spy(navigator.mozL10n, 'localize');
+      Compose.toggleSubject();
+    });
+
+    teardown(function() {
+      banner.classList.add('hide');
+      Compose.clear();
+    });
+
+    test('should be hidden if limit not reached', function() {
+      assert.isTrue(banner.classList.contains('hide'));
+    });
+
+    suite('when trying to pass the limit...', function() {
+      setup(function() {
+        subject.value = '1234567890123456789012345678901234567890'; // 40 char
+        // Event is launched on keypress
+        subject.dispatchEvent(new CustomEvent('keypress'));
+      });
+
+      test('should be visible', function() {
+        assert.isFalse(banner.classList.contains('hide'));
+      });
+
+      test('should be localized', function() {
+        assert.ok(localize.calledWith(banner.querySelector('p'),
+                  'messages-max-subject-length-text'));
+      });
+
+      test('should be hidden if focus is away', function() {
+        subject.dispatchEvent(new CustomEvent('blur'));
+        assert.isTrue(banner.classList.contains('hide'));
+      });
+
+      test('should be visible if focus comes back', function() {
+        subject.dispatchEvent(new CustomEvent('blur'));
+        subject.dispatchEvent(new CustomEvent('focus'));
+        assert.isFalse(banner.classList.contains('hide'));
       });
     });
   });
@@ -1752,7 +1905,6 @@ suite('thread_ui.js >', function() {
           assert.equal(container, containers[index]);
         });
       });
-
     });
 
     suite('insert one non-last-message block at the end of a 2-item list >',
@@ -1784,7 +1936,6 @@ suite('thread_ui.js >', function() {
           assert.equal(container, containers[index]);
         });
       });
-
     });
 
     suite('4 blocks suite >', function() {
@@ -1869,7 +2020,6 @@ suite('thread_ui.js >', function() {
         });
       });
     });
-
   });
 
   suite('appendMessage removes old message', function() {
@@ -1938,7 +2088,6 @@ suite('thread_ui.js >', function() {
         subject: 'subject'
       }));
     });
-
   });
 
   suite('renderMessages()', function() {
@@ -2642,9 +2791,7 @@ suite('thread_ui.js >', function() {
       // This 'context-menu' was handled properly?
       assert.isFalse(LinkActionHandler.onClick.called);
     });
-
   });
-
 
   suite('updateCarrier', function() {
     var contacts = [], details, number;
@@ -2718,7 +2865,6 @@ suite('thread_ui.js >', function() {
       ThreadUI.updateCarrier(thread, contacts, details);
       assert.isFalse(ThreadUI.updateInputHeight.calledTwice);
     });
-
   });
 
   suite('Long press on the bubble >', function() {
@@ -3466,7 +3612,8 @@ suite('thread_ui.js >', function() {
       ThreadUI.onSendClick();
 
       assert.ok(MessageManager.sendMMS.called);
-      assert.deepEqual(MessageManager.sendMMS.calledWith[0], ['999']);
+      assert.deepEqual(MessageManager.sendMMS.calledWith[0].recipients,
+                       ['999']);
       assert.equal(window.location.hash, '#new');
     });
 
@@ -3508,7 +3655,8 @@ suite('thread_ui.js >', function() {
       ThreadUI.onSendClick();
 
       assert.ok(MessageManager.sendMMS.called);
-      assert.deepEqual(MessageManager.sendMMS.calledWith[0], ['999', '888']);
+      assert.deepEqual(MessageManager.sendMMS.calledWith[0].recipients,
+                       ['999', '888']);
       assert.equal(window.location.hash, '#new');
     });
   });
@@ -3771,7 +3919,12 @@ suite('thread_ui.js >', function() {
     });
   });
 
-  suite('Open options menu', function() {
+  /* The options menu depends on the situation:
+   * - 'Add Subject' if there's none, 'Delete subject' if previously added
+   * - 'Delete messages' for existing conversations
+   * - 'Settings' for all cases
+   */
+  suite('Options menu', function() {
     setup(function() {
       window.location.hash = '';
       MockOptionMenu.mSetup();
@@ -3794,8 +3947,9 @@ suite('thread_ui.js >', function() {
         ThreadUI.showOptions();
         options = MockOptionMenu.calls[0].items;
         assert.equal(MockOptionMenu.calls.length, 1);
-        assert.equal(options.length, 2);
-        assert.equal(options[0].l10nId, 'settings');
+        assert.equal(options.length, 3);
+        assert.equal(options[0].l10nId, 'add-subject');
+        assert.equal(options[1].l10nId, 'settings');
       });
     });
 
@@ -3812,13 +3966,15 @@ suite('thread_ui.js >', function() {
       test('should show options overlay', function() {
         assert.equal(MockOptionMenu.calls.length, 1);
       });
+      test('should show option for adding subject', function() {
+        assert.equal(options[0].l10nId, 'add-subject');
+      });
       test('should show option for deleting messages', function() {
-        assert.equal(options[0].l10nId, 'deleteMessages-label');
+        assert.equal(options[1].l10nId, 'deleteMessages-label');
       });
       test('should show settings options last', function() {
         assert.equal(options[options.length - 2].l10nId, 'settings');
       });
     });
-
   });
 });

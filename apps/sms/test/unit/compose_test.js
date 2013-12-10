@@ -81,18 +81,41 @@ suite('compose_test.js', function() {
   });
 
   suite('Message Composition', function() {
-    var message;
+    var message,
+        subject;
 
     setup(function() {
       loadBodyHTML('/index.html');
       Compose.init('messages-compose-form');
       message = document.querySelector('[contenteditable]');
+      subject = document.getElementById('messages-subject-input');
+    });
+
+    suite('Subject', function() {
+      setup(function() {
+        Compose.clear();
+      });
+
+      test('Toggle change the visibility', function() {
+        assert.isTrue(subject.classList.contains('hide'));
+        Compose.toggleSubject();
+        assert.isFalse(subject.classList.contains('hide'));
+        Compose.toggleSubject();
+        assert.isTrue(subject.classList.contains('hide'));
+      });
+
+      test('Sent subject doesnt have line breaks (spaces instead)', function() {
+        subject.value = 'Line 1\nLine 2\n\n\n\nLine 3';
+        Compose.toggleSubject(); // we need to show the subject to get content
+        var text = Compose.getSubject();
+        assert.equal(text, 'Line 1 Line 2 Line 3');
+      });
+
     });
 
     suite('Placeholder', function() {
-      setup(function(done) {
+      setup(function() {
         Compose.clear();
-        done();
       });
       test('Placeholder present by default', function() {
         assert.isTrue(Compose.isEmpty(), 'added');
@@ -139,6 +162,15 @@ suite('compose_test.js', function() {
         Compose.clear();
         txt = Compose.getContent();
         assert.equal(txt.length, 0, 'No lines in the txt');
+      });
+      test('Clear removes subject', function() {
+        subject.value = 'Title';
+        Compose.toggleSubject();
+        var txt = Compose.getSubject();
+        assert.equal(txt, 'Title', 'Something in the txt');
+        Compose.clear();
+        txt = Compose.getSubject();
+        assert.equal(txt, '', 'Nothing in the txt');
       });
     });
 
@@ -547,6 +579,19 @@ suite('compose_test.js', function() {
         Compose.clear();
         assert.equal(typeChange.called, 2);
       });
+
+      test('Message switches type when adding/removing subject',
+        function() {
+        expectType = 'mms';
+        Compose.toggleSubject();
+        subject.value = 'foo';
+        subject.dispatchEvent(new CustomEvent('input'));
+        assert.equal(typeChange.called, 1);
+
+        expectType = 'sms';
+        Compose.clear();
+        assert.equal(typeChange.called, 2);
+        });
     });
 
     suite('changing inputmode', function() {
