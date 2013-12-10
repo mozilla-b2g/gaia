@@ -1,26 +1,20 @@
 'use strict';
 
-requireApp('system/test/unit/mock_l10n.js');
-requireApp('system/shared/test/unit/mocks/mock_icc_helper.js');
+mocha.globals(['SIMSlotManager', 'SystemDialog', 'SimPinDialog']);
 
-if (!window['SystemDialog'])
-  window['SystemDialog'] = null;
-if (!window['SimPinDialog'])
-  window['SimPinDialog'] = null;
-if (!window['IccHelper'])
-  window['IccHelper'] = null;
+requireApp('system/test/unit/mock_l10n.js');
+requireApp('system/test/unit/mock_simslot.js');
+requireApp('system/test/unit/mock_simslot_manager.js');
+
+var mocksForSIMPINDialog = new MocksHelper([
+  'SIMSlotManager'
+]).init();
 
 suite('simcard dialog', function() {
   var realL10n = window.navigator.mozL10n;
-  var realMobileConnection = window.navigator.mozMobileConnection;
-  var realIccHelper = window.IccHelper;
-  var mockUI;
+  var stubByQuery, stubById;
 
-  var MockMobileConnection = (function() {
-    return {
-      addEventListener: function(event, handler) {}
-    };
-  })();
+  mocksForSIMPINDialog.attachTestHelpers();
 
   var MockSystemDialog = function(id, options) {
     return {
@@ -31,86 +25,115 @@ suite('simcard dialog', function() {
 
   suiteSetup(function() {
     window.navigator.mozL10n = MockL10n;
-    window.navigator.mozMobileConnection = MockMobileConnection;
     window['SystemDialog'] = MockSystemDialog;
-    window['IccHelper'] = MockIccHelper;
-
-    var mockUIMarkup = [
-      '<header>',
-        '<button type="reset">',
-          '<span data-l10n-id="close" class="icon icon-close">Close</span>',
-        '</button>',
-        '<menu type="toolbar">',
-          '<button data-l10n-id="ok" type="submit">Done</button>',
-        '</menu>',
-        '<h1></h1>',
-      '</header>',
-      '<div id="errorMsg" class="error" hidden>',
-        '<div id="messageHeader">The PIN was incorrect.</div>',
-        '<span id="messageBody">3 tries left.</span>',
-      '</div>',
-      '<div id="triesLeft" hidden>3 tries left</div>',
-      '<div id="pinArea" hidden>',
-        '<div data-l10n-id="simPin">SIM PIN</div>',
-        '<div class="input-wrapper">',
-          '<input name="simpin" type="number" size="8" maxlength="8" />',
-          '<input name="simpinVis" type="text" size="8" maxlength="8" />',
-        '</div>',
-      '</div>',
-      '<div id="pukArea" hidden>',
-        '<div data-l10n-id="pukCode">PUK Code</div>',
-        '<div class="input-wrapper">',
-          '<input name="simpuk" type="number" size="8" maxlength="8" />',
-          '<input name="simpukVis" type="text" size="8" maxlength="8" />',
-        '</div>',
-      '</div>',
-      '<div id="xckArea" hidden>',
-        '<div name="xckDesc" data-l10n-id="nckCode">NCK Code</div>',
-        '<div class="input-wrapper">',
-          '<input name="xckpin" type="number" size="16" maxlength="16" />',
-          '<input name="xckpinVis" type="text" size="16" maxlength="16" />',
-        '</div>',
-      '</div>',
-      '<div id="newPinArea" hidden>',
-        '<div data-l10n-id="newSimPinMsg">',
-          'Create PIN (must contain 4 to 8 digits)',
-        '</div>',
-        '<div class="input-wrapper">',
-          '<input name="newSimpin" type="number" size="8" maxlength="8" />',
-          '<input name="newSimpinVis" type="text" size="8" maxlength="8" />',
-        '</div>',
-      '</div>',
-      '<div id="confirmPinArea" hidden>',
-        '<div>Confirm New PIN</div>',
-        '<div class="input-wrapper">',
-          '<input name="confirmNewSimpin"',
-            'type="number" size="8" maxlength="8" />',
-          '<input name="confirmNewSimpinVis"',
-            'type="text" size="8" maxlength="8" />',
-        '</div>',
-      '</div>'].join('');
-
-    mockUI = document.createElement('div');
-    mockUI.id = 'simpin-dialog';
-    mockUI.innerHTML = mockUIMarkup;
-    document.body.appendChild(mockUI);
   });
 
   suiteTeardown(function() {
     window.navigator.mozL10n = realL10n;
-    window.navigator.mozMobileConnection = realMobileConnection;
     window['SystemDialog'] = null;
-    window['IccHelper'] = null;
-
-    mockUI.innerHTML = '';
-    document.body.removeChild(mockUI);
   });
 
   setup(function(callback) {
+    stubByQuery = this.sinon.stub(document, 'querySelector');
+    stubByQuery.returns(document.createElement('div'));
+    stubById = this.sinon.stub(document, 'getElementById');
+    stubById.returns(document.createElement('div'));
+    MockSIMSlotManager.mInstances = [new MockSIMSlot(null, 0)];
+    MockSIMSlotManager.length = 1;
     requireApp('system/js/simcard_dialog.js', callback);
   });
 
   teardown(function() {
+    stubByQuery.restore();
+    stubById.restore();
+  });
+
+  test('unlock', function() {
+    var slot = new MockSIMSlot(null, 0);
+    slot.simCard.cardState = 'pinRequired';
+    var stubUnlockCardLock = this.sinon.stub(slot, 'unlockCardLock');
+    var stubRequestClose = this.sinon.stub(SimPinDialog, 'requestClose');
+    var stubHandleError = this.sinon.stub(SimPinDialog, 'handleError');
+    var domreq = {
+      onsuccess: function() {},
+      onerror: function() {}
+    };
+    stubUnlockCardLock.returns(domreq);
+    SimPinDialog._currentSlot = slot;
+    SimPinDialog.unlockCardLock();
+    assert.isTrue(stubUnlockCardLock.called);
+    domreq.onsuccess();
+    assert.isTrue(stubRequestClose.called);
+    domreq.onerror();
+    assert.isTrue(stubHandleError.called);
+  });
+
+  test('unlockPin', function() {
+    var stubUnlockCardLock = this.sinon.stub(SimPinDialog, 'unlockCardLock');
+    var stubClear = this.sinon.stub(SimPinDialog, 'clear');
+    SimPinDialog.pinInput.value = '0000';
+    SimPinDialog.unlockPin();
+    assert.isTrue(stubClear.called);
+    assert.deepEqual(stubUnlockCardLock.getCall(0).args[0], {
+      lockType: 'pin',
+      pin: '0000'
+    });
+  });
+
+  test('unlockPuk', function() {
+    var stubUnlockCardLock = this.sinon.stub(SimPinDialog, 'unlockCardLock');
+    var stubClear = this.sinon.stub(SimPinDialog, 'clear');
+    SimPinDialog.pukInput.value = '0000';
+    SimPinDialog.newPinInput.value = '1111';
+    SimPinDialog.confirmPinInput.value = '1111';
+    SimPinDialog.unlockPuk();
+    assert.isTrue(stubClear.called);
+  });
+
+  test('unlockXck', function() {
+    var stubUnlockCardLock = this.sinon.stub(SimPinDialog, 'unlockCardLock');
+    var stubClear = this.sinon.stub(SimPinDialog, 'clear');
+    SimPinDialog.xckInput.value = '0000';
+    SimPinDialog.lockType = 'xxxx';
+    SimPinDialog.unlockXck();
+    assert.isTrue(stubClear.called);
+    assert.deepEqual(stubUnlockCardLock.getCall(0).args[0], {
+      lockType: 'xxxx',
+      pin: '0000'
+    });
+  });
+
+  suite('error handling', function() {
+    test('retry', function() {
+      var stubShowErrorMsg = this.sinon.stub(SimPinDialog, 'showErrorMsg');
+      SimPinDialog.handleError({
+        retryCount: 1,
+        lockType: 'pin'
+      });
+      assert.isTrue(stubShowErrorMsg.calledWith(1, 'pin'));
+
+      SimPinDialog.handleError({
+        retryCount: 1,
+        lockType: 'puk'
+      });
+      assert.isTrue(stubShowErrorMsg.calledWith(1, 'puk'));
+
+      SimPinDialog.handleError({
+        retryCount: 1,
+        lockType: 'xck'
+      });
+      assert.isTrue(stubShowErrorMsg.calledWith(1, 'xck'));
+    });
+
+    test('showErrorMsg', function() {
+      var stub_ = this.sinon.stub(MockL10n, 'get');
+      var count = 0;
+      stub_.returns(count++);
+      SimPinDialog.showErrorMsg(1, 'pin');
+      assert.deepEqual(stub_.getCall(0).args[1], { n: 1 });
+      assert.deepEqual(stub_.getCall(1).args[0], 'pinErrorMsg');
+      assert.deepEqual(stub_.getCall(2).args[0], 'pinLastChanceMsg');
+    });
   });
 
   suite('handle card state', function() {
@@ -118,99 +141,118 @@ suite('simcard dialog', function() {
     });
 
     test('null', function() {
-      MockIccHelper.setProperty('cardState', null);
+      var slot = new MockSIMSlot(null, 0);
+      slot.simCard.cardState = 'pinRequired';
+      SimPinDialog._currentSlot = slot;
+      slot.simCard = {
+        cardState: null
+      };
+      var stubSkip = this.sinon.stub(SimPinDialog, 'skip');
       SimPinDialog.handleCardState();
-
-      assert.isTrue(SimPinDialog.triesLeftMsg.hidden);
-      assert.isTrue(SimPinDialog.pinArea.hidden);
-      assert.isTrue(SimPinDialog.pukArea.hidden);
-      assert.isTrue(SimPinDialog.xckArea.hidden);
-      assert.isTrue(SimPinDialog.newPinArea.hidden);
-      assert.isTrue(SimPinDialog.confirmPinArea.hidden);
+      assert.isTrue(stubSkip.called);
     });
 
     test('unknown', function() {
-      MockIccHelper.setProperty('cardState', 'unknown');
+      var slot = new MockSIMSlot(null, 0);
+      slot.simCard.cardState = 'pinRequired';
+      SimPinDialog._currentSlot = slot;
+      slot.simCard = {
+        cardState: 'unknown'
+      };
       SimPinDialog.handleCardState();
 
-      assert.isTrue(SimPinDialog.triesLeftMsg.hidden);
-      assert.isTrue(SimPinDialog.pinArea.hidden);
-      assert.isTrue(SimPinDialog.pukArea.hidden);
-      assert.isTrue(SimPinDialog.xckArea.hidden);
-      assert.isTrue(SimPinDialog.newPinArea.hidden);
-      assert.isTrue(SimPinDialog.confirmPinArea.hidden);
+      var stubSkip = this.sinon.stub(SimPinDialog, 'skip');
+      SimPinDialog.handleCardState();
+      assert.isTrue(stubSkip.called);
     });
 
     test('ready', function() {
-      MockIccHelper.setProperty('cardState', 'ready');
+      var slot = new MockSIMSlot(null, 0);
+      slot.simCard.cardState = 'pinRequired';
+      SimPinDialog._currentSlot = slot;
+      slot.simCard = {
+        cardState: 'ready'
+      };
       SimPinDialog.handleCardState();
 
-      assert.isTrue(SimPinDialog.triesLeftMsg.hidden);
-      assert.isTrue(SimPinDialog.pinArea.hidden);
-      assert.isTrue(SimPinDialog.pukArea.hidden);
-      assert.isTrue(SimPinDialog.xckArea.hidden);
-      assert.isTrue(SimPinDialog.newPinArea.hidden);
-      assert.isTrue(SimPinDialog.confirmPinArea.hidden);
+      var stubSkip = this.sinon.stub(SimPinDialog, 'skip');
+      SimPinDialog.handleCardState();
+      assert.isTrue(stubSkip.called);
     });
 
     test('pin required', function() {
-      MockIccHelper.setProperty('cardState', 'pinRequired');
-      SimPinDialog.handleCardState();
+      var slot = new MockSIMSlot(null, 0);
+      slot.simCard.cardState = 'pinRequired';
+      SimPinDialog._currentSlot = slot;
+      slot.simCard = {
+        cardState: 'pinRequired'
+      };
 
-      assert.isTrue(SimPinDialog.triesLeftMsg.hidden);
-      assert.isFalse(SimPinDialog.pinArea.hidden);
-      assert.isTrue(SimPinDialog.pukArea.hidden);
-      assert.isTrue(SimPinDialog.xckArea.hidden);
-      assert.isTrue(SimPinDialog.newPinArea.hidden);
-      assert.isTrue(SimPinDialog.confirmPinArea.hidden);
+      var stubInputFieldControl =
+        this.sinon.stub(SimPinDialog, 'inputFieldControl');
+      SimPinDialog.handleCardState();
+      assert.isTrue(
+        stubInputFieldControl.calledWith(true, false, false, false));
     });
 
     test('puk required', function() {
-      MockIccHelper.setProperty('cardState', 'pukRequired');
-      SimPinDialog.handleCardState();
+      var slot = new MockSIMSlot(null, 0);
+      slot.simCard.cardState = 'pinRequired';
+      SimPinDialog._currentSlot = slot;
+      slot.simCard = {
+        cardState: 'pukRequired'
+      };
 
-      assert.isTrue(SimPinDialog.triesLeftMsg.hidden);
-      assert.isTrue(SimPinDialog.pinArea.hidden);
-      assert.isFalse(SimPinDialog.pukArea.hidden);
-      assert.isTrue(SimPinDialog.xckArea.hidden);
-      assert.isFalse(SimPinDialog.newPinArea.hidden);
-      assert.isFalse(SimPinDialog.confirmPinArea.hidden);
+      var stubInputFieldControl =
+        this.sinon.stub(SimPinDialog, 'inputFieldControl');
+      SimPinDialog.handleCardState();
+      assert.isTrue(
+        stubInputFieldControl.calledWith(false, true, false, true));
     });
 
     test('network locked', function() {
-      MockIccHelper.setProperty('cardState', 'networkLocked');
-      SimPinDialog.handleCardState();
+      var slot = new MockSIMSlot(null, 0);
+      slot.simCard.cardState = 'pinRequired';
+      SimPinDialog._currentSlot = slot;
+      slot.simCard = {
+        cardState: 'networkLocked'
+      };
 
-      assert.isTrue(SimPinDialog.triesLeftMsg.hidden);
-      assert.isTrue(SimPinDialog.pinArea.hidden);
-      assert.isTrue(SimPinDialog.pukArea.hidden);
-      assert.isFalse(SimPinDialog.xckArea.hidden);
-      assert.isTrue(SimPinDialog.newPinArea.hidden);
-      assert.isTrue(SimPinDialog.confirmPinArea.hidden);
+      var stubInputFieldControl =
+        this.sinon.stub(SimPinDialog, 'inputFieldControl');
+      SimPinDialog.handleCardState();
+      assert.isTrue(
+        stubInputFieldControl.calledWith(false, false, true, false));
     });
 
     test('corporate locked', function() {
-      MockIccHelper.setProperty('cardState', 'corporateLocked');
-      SimPinDialog.handleCardState();
+      var slot = new MockSIMSlot(null, 0);
+      slot.simCard.cardState = 'pinRequired';
+      SimPinDialog._currentSlot = slot;
+      slot.simCard = {
+        cardState: 'corporateLocked'
+      };
 
-      assert.isTrue(SimPinDialog.triesLeftMsg.hidden);
-      assert.isTrue(SimPinDialog.pinArea.hidden);
-      assert.isTrue(SimPinDialog.pukArea.hidden);
-      assert.isFalse(SimPinDialog.xckArea.hidden);
-      assert.isTrue(SimPinDialog.newPinArea.hidden);
-      assert.isTrue(SimPinDialog.confirmPinArea.hidden);
+      var stubInputFieldControl =
+        this.sinon.stub(SimPinDialog, 'inputFieldControl');
+      SimPinDialog.handleCardState();
+      assert.isTrue(
+        stubInputFieldControl.calledWith(false, false, true, false));
     });
 
     test('service provider locked', function() {
-      MockIccHelper.setProperty('cardState', 'serviceProviderLocked');
-      SimPinDialog.handleCardState();
+      var slot = new MockSIMSlot(null, 0);
+      slot.simCard.cardState = 'pinRequired';
+      SimPinDialog._currentSlot = slot;
+      slot.simCard = {
+        cardState: 'serviceProviderLocked'
+      };
 
-      assert.isTrue(SimPinDialog.triesLeftMsg.hidden);
-      assert.isTrue(SimPinDialog.pinArea.hidden);
-      assert.isTrue(SimPinDialog.pukArea.hidden);
-      assert.isFalse(SimPinDialog.xckArea.hidden);
-      assert.isTrue(SimPinDialog.newPinArea.hidden);
-      assert.isTrue(SimPinDialog.confirmPinArea.hidden);
+      var stubInputFieldControl =
+        this.sinon.stub(SimPinDialog, 'inputFieldControl');
+      SimPinDialog.handleCardState();
+      assert.isTrue(
+        stubInputFieldControl.calledWith(false, false, true, false));
     });
   });
 });

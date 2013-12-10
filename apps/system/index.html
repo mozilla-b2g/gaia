@@ -28,6 +28,9 @@
     <script defer src="shared/js/keyboard_helper.js"></script>
     <script defer src="shared/js/template.js"></script>
     -->
+    <!-- SIMSlot -->
+    <script type="text/javascript" defer src="js/simslot.js"></script>
+    <script type="text/javascript" defer src="js/simslot_manager.js"></script>
 
     <!-- Wrapper -->
     <link rel="stylesheet" type="text/css" href="style/wrapper/wrapper.css">
@@ -561,15 +564,11 @@
         <div id="simpin-dialog" role="dialog" class="generic-dialog" data-z-index-level="simpin-dialog" hidden>
           <section role="region">
             <header>
-              <button type="reset">
-                <span data-l10n-id="close" class="icon icon-close">Close</span>
+              <button class="back" hidden>
+                <span class="icon icon-back"></span>
               </button>
-              <menu type="toolbar">
-                <button data-l10n-id="ok" type="submit">Done</button>
-              </menu>
               <h1></h1>
             </header>
-
             <div class="container">
               <div id="errorMsg" class="error" hidden>
                 <div id="messageHeader">The PIN was incorrect.</div>
@@ -620,6 +619,10 @@
               </div>
             </div>
           </section>
+          <menu data-items="2">
+            <button type="reset" data-l10n-id="skip">Skip</button>
+            <button data-l10n-id="ok" type="submit">Done</button>
+          </menu>
         </div>
 
         <!-- Crash reporter -->

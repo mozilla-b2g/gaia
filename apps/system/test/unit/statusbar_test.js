@@ -24,10 +24,6 @@ suite('system/Statusbar', function() {
 
   mocksForStatusBar.attachTestHelpers();
   suiteSetup(function() {
-    for (var i = 1; i < mobileConnectionCount; i++) {
-      MockNavigatorMozMobileConnections.mAddMobileConnection();
-    }
-
     realMozL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
     realMozMobileConnections = navigator.mozMobileConnections;
@@ -43,6 +39,9 @@ suite('system/Statusbar', function() {
   });
 
   setup(function() {
+    for (var i = 1; i < mobileConnectionCount; i++) {
+      MockNavigatorMozMobileConnections.mAddMobileConnection();
+    }
     fakeStatusBarNode = document.createElement('div');
     fakeStatusBarNode.id = 'statusbar';
     document.body.appendChild(fakeStatusBarNode);
@@ -878,11 +877,11 @@ suite('system/Statusbar', function() {
 
     suite('single sim', function() {
       var conn;
-      suiteSetup(function() {
+      setup(function() {
         conn = MockNavigatorMozMobileConnections[1];
         MockNavigatorMozMobileConnections.mRemoveMobileConnection(1);
       });
-      suiteTeardown(function() {
+      teardown(function() {
         MockNavigatorMozMobileConnections.mAddMobileConnection(conn, 1);
       });
 

@@ -77,9 +77,11 @@
     }
 
     function _mTeardown() {
-      _mobileConnections.forEach(function(conn) {
+      _mobileConnections.every(function(conn, index) {
         conn.mTeardown();
       });
+      _mobileConnections = [];
+      _mAddMobileConnection();
     }
 
     var _mock = {
