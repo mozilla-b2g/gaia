@@ -284,7 +284,7 @@ suite('SimSettingsHelper > ', function() {
 
   suite('SimSettingsHelper.setServiceOnCard("key", cardIndex) > ', function() {
     var fakeCardIndex = 0;
-    var mSettings = window.navigator.mozSettings.mSettings;
+    var mSettings = MockNavigatorSettings.mSettings;
 
     setup(function() {
       this.sinon.spy(SimSettingsHelper, '_set');

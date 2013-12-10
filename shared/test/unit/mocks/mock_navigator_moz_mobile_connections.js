@@ -73,7 +73,16 @@
     }
 
     function _mRemoveMobileConnection(index) {
-      _mobileConnections.splice(index, 1);
+      if (!_mobileConnections.length)
+        return;
+
+      if (index) {
+        _mobileConnections.splice(index, 1);
+        _mock[index] = null;
+      } else {
+        _mobileConnections.splice(_mobileConnections.length - 1, 1);
+        _mock[_mobileConnections.length - 1] = null;
+      }
     }
 
     function _mTeardown() {
@@ -98,5 +107,6 @@
     return _mock;
   }
 
+  window.MockMobileconnection = MockMobileconnection;
   window.MockNavigatorMozMobileConnections = MockMobileConnections();
 })();
