@@ -248,7 +248,7 @@ suite('thread_list_ui', function() {
         var nextDate = new Date(2013, 1, 2);
         message = MockMessages.sms({
           threadId: 2,
-          timestamp: nextDate
+          timestamp: +nextDate
         });
 
         ThreadListUI.updateThread(message);
@@ -266,7 +266,7 @@ suite('thread_list_ui', function() {
         var newDate = new Date(2013, 1, 2);
         var newMessage = MockMessages.sms({
           threadId: 20,
-          timestamp: newDate
+          timestamp: +newDate
         });
         ThreadListUI.updateThread(newMessage, {read: false});
         // As this is a new message we dont have to remove threads
@@ -290,7 +290,7 @@ suite('thread_list_ui', function() {
         var nextDate = new Date(2013, 1, 2);
         message = MockMessages.sms({
           threadId: 2,
-          timestamp: nextDate
+          timestamp: +nextDate
         });
         thread = Threads.createThreadMockup(message);
         ThreadListUI.updateThread(message);
@@ -322,7 +322,7 @@ suite('thread_list_ui', function() {
         var nextDate = new Date(2013, 1, 2);
         message = MockMessages.sms({
           threadId: 3,
-          timestamp: nextDate
+          timestamp: +nextDate
         });
         thread = Threads.createThreadMockup(message);
         ThreadListUI.updateThread(message);
@@ -358,7 +358,7 @@ suite('thread_list_ui', function() {
         var prevDate = new Date(2013, 1, 0);
         message = MockMessages.sms({
           threadId: 2,
-          timestamp: prevDate
+          timestamp: +prevDate
         });
         ThreadListUI.updateThread(message, {read: false});
       });
@@ -477,7 +477,7 @@ suite('thread_list_ui', function() {
         lastMessageType: 'sms',
         participants: ['1234'],
         body: payload,
-        timestamp: new Date()
+        timestamp: +new Date()
       };
       return o;
     }
@@ -488,7 +488,7 @@ suite('thread_list_ui', function() {
         lastMessageType: 'mms',
         participants: ['1234', '5678'],
         body: payload,
-        timestamp: new Date()
+        timestamp: +new Date()
       };
       return o;
     }
@@ -542,7 +542,7 @@ suite('thread_list_ui', function() {
         var nextDate = new Date(2013, 1, 2);
         var message = MockMessages.sms({
           threadId: 3,
-          timestamp: nextDate
+          timestamp: +nextDate
         });
 
         thread = Threads.createThreadMockup(message);
@@ -550,7 +550,7 @@ suite('thread_list_ui', function() {
       });
 
       test('show up in a new container', function() {
-        var newContainerId = 'threadsContainer_' + thread.timestamp.getTime();
+        var newContainerId = 'threadsContainer_' + (+thread.timestamp);
         var newContainer = document.getElementById(newContainerId);
         assert.ok(newContainer);
         assert.ok(newContainer.querySelector('li'));
@@ -569,7 +569,7 @@ suite('thread_list_ui', function() {
         var nextDate = new Date(2013, 1, 2);
         var message = MockMessages.sms({
           threadId: 2,
-          timestamp: nextDate
+          timestamp: +nextDate
         });
 
         thread = Threads.createThreadMockup(message);
@@ -577,7 +577,7 @@ suite('thread_list_ui', function() {
       });
 
       test('show up in a new container', function() {
-        var newContainerId = 'threadsContainer_' + thread.timestamp.getTime();
+        var newContainerId = 'threadsContainer_' + (+thread.timestamp);
         var newContainer = document.getElementById(newContainerId);
         assert.ok(newContainer);
         assert.ok(newContainer.querySelector('li'));

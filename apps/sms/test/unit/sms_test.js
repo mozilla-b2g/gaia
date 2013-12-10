@@ -196,7 +196,7 @@ suite('SMS App Unit-Test', function() {
               threadId: thread.id,
               sender: thread.participants[0],
               delivery: 'received',
-              timestamp: thread.timestamp,
+              timestamp: +thread.timestamp,
               type: thread.lastMessageType === 'mms' ? 'sms' : 'mms'
             };
             MessageManager.onMessageReceived({
@@ -242,7 +242,7 @@ suite('SMS App Unit-Test', function() {
         var date = getMockupedDate(2);
         var threadsContainer =
           document.getElementById('threadsContainer_' +
-            Utils.getDayDate(date.getTime()));
+            Utils.getDayDate(+date));
         assertNumberOfElementsInContainerByTag(threadsContainer, 2, 'li');
       });
 
@@ -318,7 +318,7 @@ suite('SMS App Unit-Test', function() {
           participants: ['287138'],
           body: 'Recibidas!',
           id: 9999,
-          timestamp: new Date(),
+          timestamp: +new Date(),
           type: 'sms',
           channel: 'sms'
         });
@@ -351,7 +351,7 @@ suite('SMS App Unit-Test', function() {
           participants: ['287138'],
           body: 'Recibidas!',
           id: 9999,
-          timestamp: new Date(),
+          timestamp: +new Date(),
           type: 'sms',
           channel: 'sms'
         });
@@ -368,7 +368,7 @@ suite('SMS App Unit-Test', function() {
           participants: ['287138'],
           body: 'Recibidas!',
           id: 9999,
-          timestamp: new Date(),
+          timestamp: +new Date(),
           channel: 'sms'
         });
 
@@ -475,7 +475,7 @@ suite('SMS App Unit-Test', function() {
           body: 'Recibidas!',
           delivery: 'received',
           id: 9999,
-          timestamp: new Date(),
+          timestamp: +new Date(),
           type: 'sms',
           channel: 'sms'
         };
@@ -530,7 +530,7 @@ suite('SMS App Unit-Test', function() {
           body: 'Recibidas!',
           delivery: 'received',
           id: 9999,
-          timestamp: new Date(),
+          timestamp: +new Date(),
           channel: 'sms'
         });
 
@@ -547,7 +547,7 @@ suite('SMS App Unit-Test', function() {
           body: 'Recibidas!',
           delivery: 'received',
           id: 9999,
-          timestamp: new Date(),
+          timestamp: +new Date(),
           channel: 'sms'
         });
 

@@ -1336,7 +1336,7 @@ var ThreadUI = global.ThreadUI = {
     var status = message.deliveryInfo[0].deliveryStatus;
 
     var expireFormatted = Utils.date.format.localeFormat(
-      message.expiryDate, navigator.mozL10n.get('dateTimeFormat_%x')
+      new Date(message.expiryDate), navigator.mozL10n.get('dateTimeFormat_%x')
     );
 
     var expired = +message.expiryDate < Date.now();
@@ -1452,7 +1452,7 @@ var ThreadUI = global.ThreadUI = {
   },
 
   appendMessage: function thui_appendMessage(message, hidden) {
-    var timestamp = message.timestamp.getTime();
+    var timestamp = +message.timestamp;
 
     // look for an old message and remove it first - prevent anything from ever
     // double rendering for now
