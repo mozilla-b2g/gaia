@@ -528,22 +528,35 @@ var Settings = {
   // or by a visibility change (i.e. home button or app switch).
   finishActivityRequest: function settings_finishActivityRequest() {
     // Remove the dialog mark to restore settings status
-    // once the animation from the activity finish
-    var currentPanel = document.querySelector('[data-dialog]');
-    document.addEventListener('visibilitychange', function restore(evt) {
-      if (document.hidden) {
-        document.removeEventListener('visibilitychange', restore);
-        // Send a result to finish this activity
-        if (currentPanel !== null) {
-          delete currentPanel.dataset.dialog;
+    // once the animation from the activity finish.
+    // If we finish the activity pressing home, we will have a
+    // different animation and will be hidden before the animation
+    // ends.
+    if (document.hidden) {
+      this.restoreDOMFromActivty();
+    } else {
+      var self = this;
+      document.addEventListener('visibilitychange', function restore(evt) {
+        if (document.hidden) {
+          document.removeEventListener('visibilitychange', restore);
+          self.restoreDOMFromActivty();
         }
-      }
-    });
+      });
+    }
 
     // Send a result to finish this activity
     if (Settings._currentActivity !== null) {
       Settings._currentActivity.postResult(null);
       Settings._currentActivity = null;
+    }
+  },
+
+  // When we finish an activity we need to leave the DOM
+  // as it was before handling the activity.
+  restoreDOMFromActivty: function settings_restoreDOMFromActivity() {
+    var currentPanel = document.querySelector('[data-dialog]');
+    if (currentPanel !== null) {
+      delete currentPanel.dataset.dialog;
     }
   },
 
