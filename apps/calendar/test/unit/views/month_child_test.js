@@ -725,11 +725,6 @@ suiteGroup('Views.MonthChild', function() {
       result = subject.create();
       assert.equal(subject.element, result);
 
-      assert.isTrue(
-        result.classList.contains('weeks-' + subject.weeks),
-        'should add week class'
-      );
-
       assert.equal(
         result.innerHTML, expected,
         'should render month'
