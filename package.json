@@ -18,6 +18,7 @@
     "marionette-js-runner": "0.4.0",
     "marionette-settings-api": "~0.1.0",
     "mocha": "1.15.0",
+    "mocha-json-proxy": "~0.0.7",
     "mocha-tbpl-reporter": "~0.0.4",
     "mozilla-download": "~0.4.1-alpha",
     "node-static": "0.6.9",
