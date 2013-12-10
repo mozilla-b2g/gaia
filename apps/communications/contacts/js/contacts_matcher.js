@@ -407,7 +407,7 @@ contacts.Matcher = (function() {
     }
 
     if (isEmptyStr(aContact.familyName)) {
-      endOfMatchByName(finalResult, targetName, resultsByName, callbacks);
+      endOfMatchByName(finalResult, aContact, resultsByName, callbacks);
     }
     else {
       var targetFamilyName = aContact.familyName[0].trim();
@@ -465,12 +465,12 @@ contacts.Matcher = (function() {
         });
 
         if (resultsByName) {
-          endOfMatchByName(finalResult, targetName, resultsByName, callbacks);
+          endOfMatchByName(finalResult, aContact, resultsByName, callbacks);
         }
         else {
           document.addEventListener('by_name_ready', function nameReady() {
             document.removeEventListener('by_name_ready', nameReady);
-            endOfMatchByName(finalResult, targetName, resultsByName, callbacks);
+            endOfMatchByName(finalResult, aContact, resultsByName, callbacks);
           });
         }
       };
@@ -531,12 +531,18 @@ contacts.Matcher = (function() {
     return out;
   }
 
-  function endOfMatchByName(finalResult, targetName, resultsByName, callbacks) {
+  function endOfMatchByName(finalResult, aContact, resultsByName, callbacks) {
     resultsByName.forEach(function(aResult) {
+      if (aResult.id === aContact.id) {
+        return;
+      }
+
       var matchingObj = {
         matchings: {
           'name': [{
-            target: targetName,
+            target: (Array.isArray(aContact.name) &&
+                     (typeof aContact.name[0] === 'string')) ?
+                     aContact.name[0].trim() : getCompleteName(aContact),
             matchedValue: Array.isArray(aResult.name) ?
                           aResult.name[0] :
                           getCompleteName(aResult)
