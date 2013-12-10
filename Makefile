@@ -914,9 +914,12 @@ forward:
 # But if you're working on just gaia itself, and you already have B2G firmware
 # on your phone, and you have adb in your path, then you can use the
 # install-gaia target to update the gaia files and reboot b2g
-TARGET_FOLDER = webapps/$(BUILD_APP_NAME).$(GAIA_DOMAIN)
-APP_NAME = $(shell cat *apps/${BUILD_APP_NAME}/manifest.webapp | grep name | head -1 | cut -d '"' -f 4 | cut -b 1-15)
-APP_PID = $(shell adb shell b2g-ps | grep '^${APP_NAME}' | sed 's/^${APP_NAME}\s*//' | awk '{ print $$2 }')
+
+# APP_NAME and APP_PID are used in ifeq calls so they need to be defined
+# globally
+APP_NAME := $(shell cat *apps/${BUILD_APP_NAME}/manifest.webapp | grep name | head -1 | cut -d '"' -f 4 | cut -b 1-15)
+APP_PID := $(shell adb shell b2g-ps | grep '^${APP_NAME}' | sed 's/^${APP_NAME}\s*//' | awk '{ print $$2 }')
+install-gaia: TARGET_FOLDER = webapps/$(BUILD_APP_NAME).$(GAIA_DOMAIN)
 install-gaia: adb-remount $(PROFILE_FOLDER)
 	@$(ADB) start-server
 ifeq ($(BUILD_APP_NAME),*)
@@ -925,8 +928,6 @@ ifeq ($(BUILD_APP_NAME),*)
 else ifeq ($(BUILD_APP_NAME), system)
 	@echo 'Stopping b2g'
 	@$(ADB) shell stop b2g
-else ifneq (${APP_PID},)
-	@$(ADB) shell kill ${APP_PID}
 endif
 	@$(ADB) shell rm -r $(MSYS_FIX)/cache/* > /dev/null
 
@@ -949,6 +950,8 @@ ifeq ($(BUILD_APP_NAME),*)
 else ifeq ($(BUILD_APP_NAME), system)
 	@echo 'Starting b2g'
 	@$(ADB) shell start b2g
+else ifneq (${APP_PID},)
+	@$(ADB) shell kill ${APP_PID}
 endif
 
 # Copy demo media to the sdcard.
