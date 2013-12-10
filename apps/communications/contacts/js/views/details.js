@@ -153,7 +153,7 @@ contacts.Details = (function() {
     });
   };
 
-  var render = function cd_render(currentContact, tags, isEnrichedContact) {
+  var render = function cd_render(currentContact, tags, fbContactData) {
     contactData = currentContact || contactData;
 
     TAG_OPTIONS = tags || TAG_OPTIONS;
@@ -163,7 +163,7 @@ contacts.Details = (function() {
     // Initially enabled and only disabled if necessary
     editContactButton.removeAttribute('disabled');
 
-    if (!isEnrichedContact && isFbContact) {
+    if (!fbContactData && isFbContact) {
       var fbContact = new fb.Contact(contactData);
       var req = fbContact.getData();
 
@@ -176,7 +176,7 @@ contacts.Details = (function() {
         doReloadContactDetails(contactData);
       };
     } else {
-      doReloadContactDetails(contactData);
+      doReloadContactDetails(fbContactData || contactData);
     }
   };
 
@@ -533,13 +533,59 @@ contacts.Details = (function() {
     }
   };
 
+  var calculateHash = function calculateHash(photo, cb) {
+    var START_BYTES = 127;
+    var BYTES_HASH = 16;
+
+    var out = [photo.type, photo.size];
+
+    // We skip the first bytes that typically are headers
+    var chunk = photo.slice(START_BYTES, START_BYTES + BYTES_HASH);
+    var reader = new FileReader();
+    reader.onloadend = function() {
+      out.push(reader.result);
+      cb(out.join(''));
+    };
+    reader.onerror = function() {
+      window.console.error('Error while calculating the hash: ',
+                           reader.error.name);
+      cb(out.join(''));
+    };
+    reader.readAsDataURL(chunk);
+  };
+
+  var updateHash = function updateHash(photo, cover) {
+    calculateHash(photo, function(hash) {
+      cover.dataset.imgHash = hash;
+    });
+  };
+
   var renderPhoto = function cd_renderPhoto(contact) {
     contactDetails.classList.remove('up');
     if (isFbContact) {
       contactDetails.classList.add('fb-contact');
     }
-    if (contact.photo && contact.photo.length > 0) {
-      Contacts.updatePhoto(contact.photo[0], cover);
+    if (Array.isArray(contact.photo) && contact.photo[0]) {
+      var photo = contact.photo[0];
+      var currentHash = cover.dataset.imgHash;
+      if (!currentHash) {
+        Contacts.updatePhoto(photo, cover);
+        updateHash(photo, cover);
+      }
+      else {
+        // Need to recalculate the hash and see whether the images changed
+        calculateHash(photo, function(newHash) {
+          if (currentHash !== newHash) {
+            Contacts.updatePhoto(photo, cover);
+            cover.dataset.imgHash = newHash;
+          }
+          else {
+            // Only for testing purposes
+            cover.dataset.photoReady = 'true';
+          }
+        });
+      }
+
       contactDetails.classList.add('up');
       cover.classList.add('translated');
       contactDetails.classList.add('translated');
@@ -562,6 +608,7 @@ contacts.Details = (function() {
     cover.style.overflow = 'auto';
     contactDetails.style.transform = '';
     contactDetails.classList.add('no-photo');
+    cover.dataset.imgHash = '';
   };
 
   var reMark = function(field, value) {

@@ -1,6 +1,10 @@
 'use strict';
 
-function MockContactAllFields() {
+function MockContactAllFields(withoutPhoto) {
+  var photo;
+  if (!withoutPhoto) {
+    photo = getPhotoBlob();
+  }
   return {
     'id': '1',
     'updated': new Date(),
@@ -56,7 +60,7 @@ function MockContactAllFields() {
     ],
     'category': ['favorite'],
     'note': ['Note 1'],
-    'photo': [getPhotoBlob()]
+    'photo': [photo]
   };
 }
 
