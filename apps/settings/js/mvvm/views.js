@@ -19,6 +19,42 @@ var ListView = function(root, observableArray, templateFunc) {
   var _templateFunc = templateFunc;
   var _enabled = true;
 
+  // keep track of observeables so we can unobserve
+  var observerMap = new WeakMap();
+
+  function releaseObservers(element) {
+    var observable = observerMap.get(element);
+    if (!observable || typeof observable !== 'object') {
+      return;
+    }
+    var observers = observerMap.get(observable);
+    if (observers) {
+      observers.forEach(function eachObserver(observer) {
+        observable.unobserve(observer);
+      });
+      observerMap.delete(observable);
+      observerMap.delete(element);
+    }
+  }
+
+  // helper to observe something and automatically remove old observers
+  function observeAndCall(observable, map) {
+    var observers = observerMap.get(observable) || [];
+    if (observerMap.has(observable)) {
+      observers = observerMap.get(observable);
+    }
+    observers = Object.keys(map).map(function eachProperty(property) {
+      observable.observe(property, map[property]);
+      map[property]();
+      return map[property];
+    });
+    observerMap.set(observable, observers);
+  };
+
+  var _helper = {
+    observeAndCall: observeAndCall
+  };
+
   var _handleEvent = function(event) {
     // Ignore the change event when the list view is not enabled.
     if (!_enabled) {
@@ -52,7 +88,8 @@ var ListView = function(root, observableArray, templateFunc) {
     // add DOM elements
     var referenceElement = _root.children[index];
     for (var i = items.length - 1; i >= 0; i--) {
-      var curElement = _templateFunc(items[i]);
+      var curElement = _templateFunc(items[i], undefined, _helper);
+      observerMap.set(curElement, items[i]);
       _root.insertBefore(curElement, referenceElement);
       referenceElement = curElement;
     }
@@ -64,9 +101,10 @@ var ListView = function(root, observableArray, templateFunc) {
     }
 
     // remove DOM elements
-    if (count === _root.childElementCount) {
+    if (count >= _root.childElementCount) {
       // clear all
       while (_root.firstElementChild) {
+        releaseObservers(_root.firstElementChild);
         _root.removeChild(_root.firstElementChild);
       }
     } else {
@@ -74,6 +112,7 @@ var ListView = function(root, observableArray, templateFunc) {
       for (var i = 0; i < count; i++) {
         if (nextElement) {
           var temp = nextElement.nextElementSibling;
+          releaseObservers(nextElement);
           _root.removeChild(nextElement);
           nextElement = temp;
         } else {
@@ -86,7 +125,9 @@ var ListView = function(root, observableArray, templateFunc) {
   var _replace = function(index, value) {
     var element = _root.children[index];
     if (element) {
-      var newElement = _templateFunc(value, element);
+      releaseObservers(element);
+      var newElement = _templateFunc(value, element, _helper);
+      observerMap.set(element, value);
       if (newElement !== element) {
         _root.insertBefore(newElement, element);
         _root.removeChild(element);
@@ -162,11 +203,16 @@ var ListView = function(root, observableArray, templateFunc) {
       if (_observableArray) {
         _observableArray.unobserve(_handleEvent);
       }
+      _remove(0, _observableArray.length);
       elements.delete(_root);
       _root = null;
       _observableArray = null;
       _templateFunc = null;
       _enabled = false;
+    },
+
+    get element() {
+      return _root;
     },
 
     set enabled(value) {

@@ -12,7 +12,8 @@ suite('KeyboardHelper', function() {
   mocksHelper.attachTestHelpers();
   var realMozSettings;
   var realMozApps;
-  var appEvents = ['applicationinstallsuccess', 'applicationuninstall'];
+  var appEvents = ['applicationinstall', 'applicationinstallsuccess',
+    'applicationuninstall'];
   var DEFAULT_KEY = 'keyboard.default-layouts';
   var ENABLED_KEY = 'keyboard.enabled-layouts';
   var THIRD_PARTY_APP_ENABLED_KEY = 'keyboard.3rd-party-app.enabled';

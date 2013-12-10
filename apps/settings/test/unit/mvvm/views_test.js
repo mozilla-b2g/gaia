@@ -46,6 +46,10 @@ suite('ListView', function() {
       );
     });
 
+    test('.element', function() {
+      assert.equal(this.listView.element, this.container);
+    });
+
     test('Listens to ObservableArray', function() {
       var observe = this.observableArray.observe;
       assert.ok(observe.calledWith('insert'));
@@ -346,6 +350,10 @@ suite('ListView', function() {
       );
     });
 
+    test('.element', function() {
+      assert.equal(this.listView.element, this.container);
+    });
+
     test('Listens to ObservableArray', function() {
       var observe = this.observableArray.observe;
       assert.ok(observe.calledWith('insert'));
@@ -360,7 +368,7 @@ suite('ListView', function() {
       // ensures that if there happens to be an element in the creation
       // of the ListView, it is not used as a "recycled" element
       assert.ok(filtered.callCount, 1);
-      assert.equal(filtered.args[0].length, 1);
+      assert.equal(filtered.args[0][1], undefined);
     });
 
     suite('Add Multiple Elements', function() {
@@ -462,17 +470,79 @@ suite('ListView', function() {
     });
   });
 
+  suite('observable hooks', function() {
+    setup(function() {
+      this.observable = Observable({ test: 1 });
+      this.observableArray = ObservableArray([this.observable]);
+      this.hook = this.sinon.spy();
+      this.template = (function(data, recycle, helper) {
+        helper.observeAndCall(data, {
+          test: this.hook
+        });
+        return recycle || document.createElement('li');
+      }).bind(this);
+      this.container = document.createElement('ul');
+      this.sinon.spy(this, 'template');
+      this.listView = ListView(
+        this.container, this.observableArray, this.template
+      );
+    });
+
+    test('hook called at creation', function() {
+      assert.equal(this.hook.callCount, 1);
+    });
+
+    test('hook called when observable changes', function() {
+      this.hook.reset();
+      this.observable.test = false;
+      assert.equal(this.hook.callCount, 1);
+    });
+
+    test('unobserves when removing', function() {
+      this.sinon.spy(this.observable, 'unobserve');
+      this.observableArray.splice(0, 1);
+      assert.ok(this.observable.unobserve.calledWith(this.hook));
+    });
+
+    test('unobserves when replacing', function() {
+      this.sinon.spy(this.observable, 'unobserve');
+      this.sinon.spy(this.observable, 'observe');
+      this.observableArray.set(0, this.observable);
+      // should unobserve
+      assert.ok(this.observable.unobserve.calledWith(this.hook));
+      // and also observe
+      assert.ok(this.observable.observe.calledWith('test', this.hook));
+      // but should unobserve first
+      assert.ok(
+        this.observable.unobserve.calledBefore(this.observable.observe)
+      );
+    });
+  });
+
   suite('destroy', function() {
     setup(function() {
-      this.observableArray = ObservableArray([]);
+      this.observableArray = ObservableArray([1, 2, 3]);
       this.container = document.createElement('div');
       this.listView = ListView(
-        this.container, this.observableArray, function() {}
+        this.container, this.observableArray, function() {
+          return document.createElement('div');
+        }
       );
+    });
+
+    test('removes children', function() {
+      this.listView.destroy();
+      assert.equal(this.container.children.length, 0);
     });
 
     test('sanity check', function() {
       assert.equal(this.observableArray.unobserve.callCount, 0);
+      assert.equal(this.container.children.length, 3);
+    });
+
+    test('.element', function() {
+      this.listView.destroy();
+      assert.equal(this.listView.element, null);
     });
 
     test('unbinds from observeable', function() {
@@ -488,7 +558,9 @@ suite('ListView', function() {
       this.sinon.spy(this.listView, 'destroy');
       // create a new one, we don't care about what happens to it.
       ListView(
-        this.container, this.observableArray, function() {}
+        this.container, this.observableArray, function() {
+          return document.createElement('div');
+        }
       );
 
       // destroys old view
@@ -497,6 +569,12 @@ suite('ListView', function() {
       assert.ok(this.observableArray.unobserve.called);
       // re-observes
       assert.ok(this.observableArray.observe.called);
+      // and make sure its done in the right order
+      assert.ok(
+        this.observableArray.unobserve.calledBefore(
+          this.observableArray.observe
+        )
+      );
     });
   });
 });
