@@ -305,7 +305,7 @@ var DownloadHelper = (function() {
       switch (error.code) {
         case CODE.FILE_NOT_FOUND:
           req = show(DownloadUI.TYPE.FILE_NOT_FOUND, download, true);
-          req.onconfirm = cb;
+          req.onconfirm = cb ? cb.call(null, download) : cb;
 
           break;
 
@@ -337,9 +337,10 @@ var DownloadHelper = (function() {
     req.oncancel = cb;
 
     req.onconfirm = function doRemove() {
-      remove(download);
       if (typeof cb === 'function') {
-        cb();
+        cb(download);
+      } else {
+        remove(download);
       }
     };
   }

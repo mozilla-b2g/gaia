@@ -75,9 +75,13 @@
     }
   }
 
+  function _getElementForId(id) {
+    return downloadsContainer.querySelector('[data-id="' + id + '"]');
+  }
+
   function _update(download) {
     var id = DownloadItem.getDownloadId(download);
-    var elementToUpdate = downloadsContainer.querySelector('#' + id);
+    var elementToUpdate = _getElementForId(id);
     if (!elementToUpdate) {
       console.error('Item to update not found');
       return;
@@ -87,7 +91,7 @@
   }
 
   function _delete(id) {
-    var elementToDelete = downloadsContainer.querySelector('#' + id);
+    var elementToDelete = _getElementForId(id);
     if (!elementToDelete) {
       console.error('Item to delete not found');
       return;
@@ -166,7 +170,21 @@
   };
 
   function _launchDownload(download) {
-    DownloadHelper.launch(download);
+    var req = DownloadHelper.launch(download);
+
+    req.onerror = function() {
+      DownloadHelper.handlerError(req.error, download, function removed(d) {
+        if (!d) {
+          return;
+        }
+        var downloadId = DownloadItem.getDownloadId(d);
+        DownloadApiManager.deleteDownloads([downloadId],
+          function removeFromUI() {
+            _delete(downloadId);
+          }
+        );
+      });
+    };
   }
 
   var DownloadsList = {

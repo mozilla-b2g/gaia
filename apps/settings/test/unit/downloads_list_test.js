@@ -61,6 +61,12 @@ suite('DownloadList', function() {
     var downloadsContainer = document.createElement('ul');
     ulContainer.appendChild(downloadsContainer);
     document.body.appendChild(ulContainer);
+    // Also the DOM for no downloads
+    var emptyContainer = document.createElement('section');
+    emptyContainer.id = 'download-list-empty';
+    emptyContainer.classList.add('hide');
+    document.body.appendChild(emptyContainer);
+
     mocksHelperForDownloadList.setup();
   });
 
@@ -71,7 +77,6 @@ suite('DownloadList', function() {
   });
 
   suite(' > methods', function() {
-
     test(' > check render with empty datastore', function(done) {
       DownloadsList.init(function() {
         var downloadsContainer = document.querySelector('#downloadList ul');
@@ -146,6 +151,88 @@ suite('DownloadList', function() {
         assert.isFalse(launchSpy.calledOnce);
         assert.ok(downloadUI.calledOnce);
         assert.equal(downloadUI.args[0][0], DownloadUI.TYPE.STOPPED);
+      });
+    });
+
+    suite(' > deletes', function() {
+      var container;
+      var download;
+      var emptyContainer;
+      setup(function(done) {
+        MockMozDownloads.mockLength = -1;
+        download = new MockDownload({
+          id: '12',
+          state: 'succeeded',
+          path: '/sdcard/downloads/xxx.xxx',
+          url: 'http://myserver.com/xxx.xxx',
+          contentType: 'xxxx'
+        });
+        MockDownloadStore.downloads = [download];
+        DownloadsList.init(function() {
+          container = document.querySelector('#downloadList ul');
+          done();
+        });
+
+        emptyContainer = document.getElementById('download-list-empty');
+      });
+
+      teardown(function() {
+        download = null;
+        container = null;
+        emptyContainer = null;
+        MockMozDownloads.mockLength = 3;
+      });
+
+      test(' > remove last item', function(done) {
+        // We will perform a delete right now by clicking
+        // in a download which mimetype is not recognized
+        // and then deleting
+
+        // Fail on the download;
+        var launchStub = sinon.stub(DownloadHelper, 'launch', function() {
+          return {
+            set onsuccess(cb) {},
+            set onerror(cb) {setTimeout(cb, 50);}
+          };
+        });
+
+        // On the handler directly remove
+        var errorStub = sinon.stub(DownloadHelper, 'handlerError',
+          function(error, download, cb) {
+          cb(download);
+        });
+
+        // Simulate the delete
+        var deleteStub = sinon.stub(DownloadHelper, 'remove', function() {
+          return {
+            set onsuccess(cb) {
+              cb(); // This callback is the one coming from the download list
+              // Check if we are showing the empty list section
+              assert.equal(0, emptyContainer.classList.length);
+              done();
+              setTimeout(cleanStubs, 0);
+            },
+            set onerror(cb) {}
+          };
+        });
+
+        container.lastChild.click();
+
+        // Clean any stub we created locally
+        function cleanStubs() {
+          launchStub.restore();
+          launchStub = null;
+
+          errorStub.restore();
+          errorStub = null;
+
+          deleteStub.restore();
+          deleteStub = null;
+        }
+      });
+
+      teardown(function() {
+        container = null;
       });
     });
   });

@@ -53,16 +53,18 @@ var DownloadItem = (function DownloadItem() {
   //  <progress value="57" max="100"></progress>
   //</li>
   var create = function create(download) {
+    var id = getDownloadId(download);
     var li = document.createElement('li');
     li.dataset.url = download.url;
     li.dataset.state = download.state;
-    li.id = getDownloadId(download);
+    li.id = id;
+    li.dataset.id = id;
 
     var asideStatus = document.createElement('aside');
 
     var asideAction = document.createElement('aside');
     asideAction.classList.add('pack-end');
-    asideAction.dataset.id = getDownloadId(download);
+    asideAction.dataset.id = id;
 
     var pFileName = document.createElement('p');
     pFileName.classList.add('fileName');

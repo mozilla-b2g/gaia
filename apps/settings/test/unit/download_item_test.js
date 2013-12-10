@@ -46,6 +46,7 @@ suite('Download item', function() {
       assert.equal(downloadElement.dataset.url, downloadMock.url);
       assert.equal(downloadElement.dataset.state, downloadMock.state);
       assert.equal(downloadElement.id, downloadMock.id);
+      assert.equal(downloadElement.dataset.id, downloadMock.id);
     });
 
     test(' > check structure', function() {
