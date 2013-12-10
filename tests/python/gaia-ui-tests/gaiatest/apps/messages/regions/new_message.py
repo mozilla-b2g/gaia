@@ -67,7 +67,7 @@ class NewMessage(Messages):
 
     def tap_options(self):
         self.marionette.find_element(*self._options_icon_locator).tap()
-        from gaiatest.apps.system.regions.activities import Activities
+        from gaiatest.apps.messages.regions.activities import Activities
         return Activities(self.marionette)
 
     def wait_for_recipients_displayed(self):
