@@ -1272,7 +1272,14 @@ var WindowManager = (function() {
   // Because we know when and who to re-launch when activity ends.
   window.addEventListener('mozChromeEvent', function(e) {
     if (e.detail.type == 'activity-done') {
-      stopInlineActivity();
+      // We don't know which frames are done but we guess it's inline.
+      // If there's any inline activity alive we won't do the next step
+      // which is for window activity.
+      if (inlineActivityFrames) {
+        stopInlineActivity();
+        return;
+      }
+
       if (runningApps[displayedApp].activityCaller) {
         // Display activity callee if there's one bind to current activity.
         var caller = runningApps[displayedApp].activityCaller;
