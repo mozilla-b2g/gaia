@@ -29,10 +29,6 @@ if (typeof TestUrlResolver === 'undefined') {
 
       'shared/js/mime_mapper': {
         exports: 'MimeMapper'
-      },
-
-      'shared/js/notification_helper': {
-        exports: 'NotificationHelper'
       }
     },
     definePrim: 'prim'
