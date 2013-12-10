@@ -149,13 +149,14 @@ section {
 /* thumbnails in regular thumbnail list view */
 #thumbnails.list {
   top: 0;
-  bottom: 0;
+  bottom: 4.6rem;
 }
 
 /* thumbnails in thumbnail select view where there is a top bar */
 #thumbnails.select {
   top: 5rem;
-  bottom: 0;
+  bottom: 4.6rem;
+  height: auto
 }
 
 /* thumbnails in pick view where there is a top bar and no bottom */
@@ -276,6 +277,7 @@ section {
   box-shadow: 0 0.1rem 0 inset;
   background: rgba(114, 111, 106, 0.8) url(images/back.png) no-repeat 50% 50%;
   transition: opacity 0.2s linear;
+  z-index: 30;
 }
 
 #fullscreen-back-button:active {
@@ -343,6 +345,31 @@ body.hidden *[data-l10n-id] {
   float: right;
 }
 
+/* buttons */
+a.button {
+  display: block;
+  padding: 0;
+  margin: 0;
+  border-width: 0;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: 3rem;
+
+  /* for buttons that display text */
+  font-size: 1.4rem;
+  text-align: center;
+  line-height: 4.5rem;
+}
+
+a.button:active, a.button:focus {
+  outline: none;
+}
+
+a.button.disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
 /* the indeterminate progress bar displayed while scanning */
 #progress {
   position: absolute;
@@ -374,94 +401,39 @@ body.hidden *[data-l10n-id] {
   }
 }
 
-/* buttons */
-a.button {
-  display: block;
-  padding: 0;
-  margin: 0;
-  border-width: 0;
-  background-position: center center;
-  background-repeat: no-repeat;
-  background-size: 3rem;
-
-  /* for buttons that display text */
-  font-size: 1.4rem;
-  text-align: center;
-  line-height: 4.5rem;
-}
-
-a.button:active, a.button:focus {
-  outline: none;
-}
-
-a.button.disabled {
-  opacity: 0.4;
-  pointer-events: none;
-}
-
-footer {
-  background: rgba(0, 0, 0, 0.75);
-  height: 4.5rem;
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 1;
-  box-shadow: 0 -0.2rem 0.5rem rgba(50, 50, 50, 0.75);
+/* Selected state of [BB]Tabs */
+#thumbnails-select-bottom .icon {
+  background-size: 3rem 9rem;
+  background-position: 50% 0;
 }
 
 .icon.icon-done {
-  background-image: url('images/iconaction_done_30x30.png') !important;
+  background-image: url('images/iconaction_done.png') !important;
 }
 
 #thumbnails-camera-button {
-  position: absolute;
-  width: 50%;
-  height: 100%;
-  left: 0;
-  background-image: url('images/iconaction_camera_30x30.png');
-  border-right: 0.1rem solid #000;
+  background-image: url('images/iconaction_camera.png');
 }
 
 #thumbnails-select-button {
-  position: absolute;
-  width: 50%;
-  height: 100%;
-  left: 50%;
-  background-image: url('images/iconaction_select_30x30.png');
+  background-image: url('images/iconaction_select.png');
 }
 
 #thumbnails-delete-button {
-  position: absolute;
-  width: 50%;
-  height: 100%;
-  left: 0;
-  background-image: url('images/iconaction_delete_30x30.png');
-  border-right: 0.1rem solid #000;
+  background-image: url('images/iconaction_delete.png');
 }
 
 #thumbnails-share-button {
-  position: absolute;
-  width: 50%;
-  height: 100%;
-  left: 50%;
-  background-image: url('images/iconaction_share_30x30.png');
+  background-image: url('images/iconaction_share.png');
 }
 
 #fullscreen-toolbar {
-  height: 4.5rem;
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
   font-size: 0;
   transition: transform 0.2s linear;
 }
 
-#fullscreen-toolbar > a {
-  display: inline-block;
-  width: 20%;
-  height: 100%;
+#fullscreen-toolbar li {
+  background: rgba(0,0,0, 0.85);
 }
 
 #fullscreen-view.toolbarhidden #fullscreen-toolbar {
@@ -473,15 +445,15 @@ footer {
 }
 
 #fullscreen-camera-button {
-  background-image: url('images/iconaction_camera_30x30.png');
+  background-image: url('images/iconaction_camera.png');
 }
 
 #fullscreen-edit-button {
-  background-image: url('images/iconaction_camera_editphoto_30x30.png');
+  background-image: url('images/iconaction_camera_editphoto.png');
 }
 
 #fullscreen-share-button {
-  background-image: url('images/iconaction_share_30x30.png');
+  background-image: url('images/iconaction_share.png');
 }
 
 #fullscreen-info-button {
@@ -489,7 +461,7 @@ footer {
 }
 
 #fullscreen-delete-button {
-  background-image: url('images/iconaction_delete_30x30.png');
+  background-image: url('images/iconaction_delete.png');
 }
 
 #pick-top {
@@ -539,7 +511,8 @@ footer {
   left: 0;
   right: 0;
   top: 5rem;
-  bottom: 9.5rem; /* 4.5rem for edit-toolbar, 5rem for edit-options */
+  bottom: 9.6rem; /* 4.5rem for edit-toolbar, 5rem for edit-options */
+  z-index: 1;
 }
 
 #edit-preview-canvas {
@@ -563,8 +536,9 @@ footer {
   left: 0;
   width: 100%;
   height: 5rem;
-  bottom: 4.5rem;
+  bottom: 4.6rem;
   background: url(images/options-background.png);
+  z-index: 1;
 }
 
 /* The progress has higer selectivity css in progress.css to control display.
@@ -704,65 +678,56 @@ a.filter-faded {
   filter: url(../index.html#filter-faded);
 }
 
-#edit-toolbar {
-  height: 4.5rem;
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  font-size: 0;
-  transition: transform 0.2s linear;
+/* Selected state of [BB]Tabs */
+#edit-toolbar .selected {
+  color: #00aacc;
+  font-weight: 500;
+  background-position: 50% 100%;
 }
 
-/* all buttons in the toolbar share these styles */
-#edit-toolbar > a {
-  display: inline-block;
-  width: 25%;
-  height: 100%;
+#edit-toolbar .selected:after {
+  content: "";
+  position: absolute;
+  width: 100%;
+  left: 0;
+  height: calc(100% - 0.3rem);
+  border-bottom: 0.3rem solid rgba(0,202,242, 0.75);
+}
+
+#edit-toolbar .selected:active:after {
+  border-bottom-color: transparent;
 }
 
 #edit-exposure-button {
-  left: 0;
-  background-image: url('images/actionicon_gallery_edit_exposure_30x30.png');
+  background-image: url('images/actionicon_gallery_edit_exposure.png');
 }
 
 #edit-crop-button {
-  left: 25%;
-  background-image: url('images/actionicon_gallery_edit_crop_30x30.png');
+  background-image: url('images/actionicon_gallery_edit_crop.png');
 }
 
 #edit-effect-button {
-  left: 50%;
-  background-image: url('images/actionicon_gallery_edit_effects_30x30.png');
+  background-image: url('images/actionicon_gallery_edit_effects.png');
+}
+
+#edit-border-button {
+  background-image: url('images/actionicon_gallery_edit_borders.png');
 }
 
 #edit-enhance-button {
-  left: 75%;
-  background-image: url('images/actionicon_gallery_edit_enhance_30x30.png');
+  background-image: url('images/actionicon_gallery_edit_enhance.png');
 }
 
-#edit-effect-button.selected{
-  background-image: url('images/actionicon_gallery_edit_effect_selected_30x30.png');
+#edit-toolbar .selected {
+  background-position: 50% 100%;
 }
 
-#edit-crop-button.selected {
-  background-image: url('images/actionicon_gallery_edit_crop_selected_30x30.png');
-}
-
-#edit-exposure-button.selected {
-  background-image: url('images/actionicon_gallery_edit_exposure_selected_30x30.png');
-}
-
-#edit-enhance-button.selected {
-  background-image: url('images/actionicon_gallery_edit_enhance_selected_30x30.png');
+#edit-toolbar .selected:active {
+  background-position: 50% 0;
 }
 
 #edit-enhance-button.on {
-  background-image: url('images/actionicon_gallery_edit_enhance_on_30x30.png');
-}
-
-#edit-enhance-button.selected.on {
-  background-image: url('images/actionicon_gallery_edit_enhance_on_selected_30x30.png');
+  background-image: url('images/actionicon_gallery_edit_enhance_on.png');
 }
 
 #edit-enhance-options {

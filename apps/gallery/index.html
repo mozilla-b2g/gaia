@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="style/VideoPlayer.css" type="text/css" />
     <link rel="stylesheet" href="shared/style/headers.css" type="text/css" />
     <link rel="stylesheet" href="shared/style_unstable/progress_activity.css"/>
+    <link rel="stylesheet" href="shared/style_unstable/tabs.css"/>
     <!-- Reponsive design for large device -->
     <link rel="stylesheet" href="style/gallery_large.css" type="text/css" media="(min-width: 768px)" />
     <!-- this file is loaded lazily but is listed here so it gets packaged
@@ -36,10 +37,14 @@
 
   <body role="application">
     <section role="region" id="thumbnail-list-view" class="hidden">
-      <footer id="thumbnails-bottom">
-        <a id="thumbnails-camera-button" class="button"></a>
-        <a id="thumbnails-select-button" class="button"></a>
-      </footer>
+      <ul id="thumbnails-bottom" role="tablist" class="skin-dark">
+        <li role="tab">
+          <a id="thumbnails-camera-button" class="icon"></a>
+        </li>
+        <li role="tab">
+          <a id="thumbnails-select-button" class="icon"></a>
+        </li>
+      </ul>
     </section>
 
     <section role="region" id="thumbnail-select-view" class="hidden skin-dark">
@@ -48,10 +53,14 @@
         <h1 id="thumbnails-number-selected"></h1>
       </header>
 
-      <footer id="thumbnails-select-bottom">
-        <a id="thumbnails-delete-button" class="button"></a>
-        <a id="thumbnails-share-button" class="button"></a>
-      </footer>
+      <ul id="thumbnails-select-bottom" role="tablist" class="skin-dark">
+        <li role="tab">
+          <a id="thumbnails-delete-button" class="icon"></a>
+        </li>
+        <li role="tab">
+          <a id="thumbnails-share-button" class="icon"></a>
+        </li>
+      </ul>
     </section>
 
     <section role="region" id="fullscreen-view" class="hidden skin-organic">
@@ -64,13 +73,20 @@
       </div>
 
       <button id="fullscreen-back-button" type="reset"></button>
-      <footer id="fullscreen-toolbar">
-        <a id="fullscreen-camera-button" class="button"></a>
-        <a id="fullscreen-edit-button" class="button"></a>
-        <a id="fullscreen-share-button" class="button"></a>
-        <a id="fullscreen-info-button" class="button"></a>
-        <a id="fullscreen-delete-button" class="button"></a>
-      </footer>
+      <ul id="fullscreen-toolbar" role="tablist" class="skin-dark">
+        <li role="tab">
+          <a id="fullscreen-camera-button" class="icon"></a>
+        </li>
+        <li role="tab">
+          <a id="fullscreen-edit-button" class="icon"></a>
+        </li>
+        <li role="tab">
+          <a id="fullscreen-share-button" class="icon"></a>
+        </li>
+        <li role="tab">
+          <a id="fullscreen-delete-button" class="icon"></a>
+        </li>
+      </ul>
     </section>
 
     <form id="info-view" role="dialog" data-type="confirm" class="hidden">
@@ -178,12 +194,23 @@
       </div>
 
       <!-- buttons for selecting the type of edit to perform -->
-      <footer id="edit-toolbar">
-        <a id="edit-exposure-button" class="selected radio button"></a>
-        <a id="edit-crop-button" class="radio button"></a>
-        <a id="edit-effect-button" class="radio button"></a>
-        <a id="edit-enhance-button" class="radio button"></a>
-      </footer>
+      <ul id="edit-toolbar" role="tablist" class="skin-dark">
+        <li role="tab">
+          <a id="edit-exposure-button" class="icon selected"></a>
+        </li>
+        <li role="tab">
+          <a id="edit-crop-button" class="icon"></a>
+        </li>
+        <li role="tab">
+          <a id="edit-effect-button" class="icon"></a>
+        </li>
+        <li role="tab">
+          <a id="edit-border-button" class="icon"></a>
+        </li>
+        <li role="tab">
+          <a id="edit-enhance-button" class="icon"></a>
+        </li>
+      </ul>
     </section>
 
     <!-- This element gets positioned over different view elements -->
