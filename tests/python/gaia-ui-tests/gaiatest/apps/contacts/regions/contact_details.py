@@ -54,7 +54,9 @@ class ContactDetails(Base):
         return EditContact(self.marionette)
 
     def tap_back(self):
+        self.wait_for_element_displayed(*self._back_button_locator)
         self.marionette.find_element(*self._back_button_locator).tap()
+        self.wait_for_element_not_displayed(*self._back_button_locator)
         from gaiatest.apps.contacts.app import Contacts
         return Contacts(self.marionette)
 
