@@ -1,36 +1,8 @@
-/*global asyncStorage, Utils, isEqual */
+/*global asyncStorage */
 (function(exports) {
   'use strict';
   var draftIndex = new Map();
   var isCached = false;
-
-  /**
-   * Checks if two drafts are distinct based on
-   * the equality of the following fields:
-   *
-   * recipients
-   * content
-   * subject
-   *
-   * @param {Draft} a draft to check
-   * @param {Draft} b draft to check
-   *
-   * @return {Boolean} true if the drafts differ on those fields
-   */
-  function isDistinct(a, b) {
-    if (!a || !b) {
-      // if either or both are falsey
-      return true;
-    } else {
-      // Tests for equality of recipient arrays without regard to order
-      if (!Utils.multiRecipientMatch(a.recipients, b.recipients)) {
-        return true;
-      }
-      // else check whether content or subject match
-      return !isEqual(a.content, b.content) ||
-        a.subject !== b.subject;
-    }
-  }
 
   /**
    * Drafts
@@ -61,7 +33,6 @@
       var threadId;
       var thread;
       var stored;
-      var canSkipDistinction = false;
 
       if (draft) {
         if (!(draft instanceof Draft)) {
@@ -78,7 +49,6 @@
         // replacement method.
         if (threadId !== null && thread.length) {
           this.delete(stored);
-          canSkipDistinction = true;
         }
 
         // If there is an existing threadless draft
@@ -95,13 +65,9 @@
           }, this);
         }
 
-        // If the new draft is distinct from the stored one
-        // then push and save a new draft
-        if (canSkipDistinction || isDistinct(stored, draft)) {
-          thread.push(draft);
-          draftIndex.set(threadId, thread);
-          this.store();
-        }
+        thread.push(draft);
+        draftIndex.set(threadId, thread);
+        this.store();
       }
       return this;
     },

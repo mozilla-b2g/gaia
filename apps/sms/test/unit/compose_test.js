@@ -4,7 +4,7 @@
 
 /*global MocksHelper, MockAttachment, MockL10n, loadBodyHTML,
          Compose, Attachment, MockMozActivity, Settings, Utils,
-         AttachmentMenu, Drafts, Draft, asycStorage */
+         AttachmentMenu, Draft */
 
 'use strict';
 

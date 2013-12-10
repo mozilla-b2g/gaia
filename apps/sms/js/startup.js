@@ -28,7 +28,6 @@ var lazyLoadFiles = [
   'js/compose.js',
   'js/waiting_screen.js',
   'js/utils.js',
-  'js/is-equal.js',
   'js/fixed_header.js',
   'js/time_headers.js',
   'js/activity_picker.js',

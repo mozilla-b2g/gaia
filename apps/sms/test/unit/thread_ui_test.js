@@ -4,7 +4,7 @@
          LinkHelper, Attachment, MockContact, MockOptionMenu,
          MockActivityPicker, Threads, Settings, MockMessages, MockUtils,
          MockContacts, ActivityHandler, Recipients, MockMozActivity,
-         ContactRenderer, UIEvent, Drafts, OptionMenu */
+         ThreadListUI, ContactRenderer, UIEvent, Drafts, OptionMenu */
 
 'use strict';
 
@@ -21,7 +21,6 @@ requireApp('sms/js/threads.js');
 requireApp('sms/js/thread_ui.js');
 requireApp('sms/js/thread_list_ui.js');
 requireApp('sms/js/fixed_header.js');
-requireApp('sms/js/is-equal.js');
 requireApp('sms/js/utils.js');
 requireApp('sms/js/message_manager.js');
 require('/shared/js/async_storage.js');
@@ -3904,6 +3903,40 @@ suite('thread_ui.js >', function() {
       ThreadUI.saveMessageDraft();
 
       assert.isTrue(updateSpy.calledOnce);
+    });
+
+    test('saves brand new threadless draft if not within thread', function() {
+      Drafts.clear();
+
+      MessageManager.draft = {id: 1};
+      ThreadUI.saveMessageDraft();
+      assert.equal(Drafts.byThreadId(null).length, 1);
+
+      MessageManager.draft = {id: 2};
+      ThreadUI.saveMessageDraft();
+      assert.equal(Drafts.byThreadId(null).length, 2);
+
+      MessageManager.draft = {id: 3};
+      ThreadUI.saveMessageDraft();
+      assert.equal(Drafts.byThreadId(null).length, 3);
+    });
+
+    test('saves draft to existing thread if within thread', function() {
+      Threads.set(1, {
+        participants: ['999']
+      });
+      window.location.hash = '#thread=1';
+
+      ThreadUI.saveMessageDraft();
+      assert.equal(Drafts.byThreadId(1).length, 1);
+
+      Compose.append('baz');
+      ThreadUI.saveMessageDraft();
+      assert.equal(Drafts.byThreadId(1).length, 1);
+
+      Compose.append('foo');
+      ThreadUI.saveMessageDraft();
+      assert.equal(Drafts.byThreadId(1).length, 1);
     });
 
   });

@@ -10,7 +10,6 @@
 mocha.setup({ globals: ['alert', 'confirm'] });
 
 requireApp('sms/js/utils.js');
-requireApp('sms/js/is-equal.js');
 requireApp('sms/js/recipients.js');
 requireApp('sms/js/drafts.js');
 requireApp('sms/js/threads.js');

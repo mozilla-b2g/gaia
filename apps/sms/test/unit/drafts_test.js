@@ -2,7 +2,6 @@
 'use strict';
 
 requireApp('sms/js/drafts.js');
-requireApp('sms/js/is-equal.js');
 requireApp('sms/js/utils.js');
 require('/shared/js/async_storage.js');
 
