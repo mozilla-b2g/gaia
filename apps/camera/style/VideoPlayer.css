@@ -117,6 +117,10 @@ button::-moz-focus-inner {
   right: 1rem;
 }
 
+.videoPlayerFullscreenButton {
+  display: none;
+}
+
 .videoPlayerProgress {
   position: absolute;
   top: 0;

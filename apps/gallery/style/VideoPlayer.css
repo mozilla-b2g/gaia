@@ -149,3 +149,21 @@ button::-moz-focus-inner {
   margin: -1rem 0 0 -1.2rem;
 }
 
+
+.videoPlayerFullscreenButton {
+  position: absolute;
+  display: none;
+  border: none;
+  width: 8rem;
+  height: 8rem;
+  padding: 3.4rem;
+  margin: 0;
+  background: url("images/fullscreen.png") no-repeat center center / 4.6rem,
+              transparent;
+  right: 0;
+}
+
+.videoPlayerFullscreenButton:active {
+  background: url("images/fullscreen_pressed.png") no-repeat center center / 4.6rem,
+              transparent;
+}

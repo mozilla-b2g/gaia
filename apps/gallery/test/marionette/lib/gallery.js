@@ -24,8 +24,8 @@ Gallery.Selector = Object.freeze({
   thumbnailsView: '#thumbnail-list-view',
   thumbnailsSelectButton: '#thumbnails-select-button',
   thumbnailsDeleteButton: '#thumbnails-delete-button',
-  fullscreenBackButton: '#fullscreen-back-button',
-  editButton: '#fullscreen-edit-button',
+  fullscreenBackButton: '#fullscreen-back-button-tiny',
+  editButton: '#fullscreen-edit-button-tiny',
   confirmButton: '#confirm-ok',
   overlayView: '#overlay',
   editView: '#edit-view',
@@ -88,7 +88,8 @@ Gallery.prototype = {
   },
 
   /**
-   * @return {Marionette.Element} Element to click to get back to thumbnail view
+   * @return {Marionette.Element} Element to click to get back
+   *                              to thumbnail view.
    */
   get fullscreenBackButton() {
     return this.client.findElement(Gallery.Selector.fullscreenBackButton);
@@ -130,14 +131,16 @@ Gallery.prototype = {
   },
 
   /**
-   * @return {Marionette.Element} Element to click for enhance editing mode.
+   * @return {Marionette.Element} Element to click for the exposure
+   *                              editing mode.
    */
   get editEnhanceButton() {
     return this.client.findElement(Gallery.Selector.editEnhanceButton);
   },
 
   /**
-   * @return {Marionette.Element} Element to click for the exposure editing mode
+   * @return {Marionette.Element} Element to click for the exposure editing
+   *                              mode.
    */
   get editExposureButton() {
     return this.client.findElement(Gallery.Selector.editExposureButton);

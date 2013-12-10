@@ -384,6 +384,9 @@ MediaFrame.prototype.reset = function reset() {
   // Otherwise, just resize and position the item we're already displaying
   this.computeFit();
   this.setPosition();
+  // If frame is resized, the video's size also need to reset.
+  if (this.displayingVideo)
+    this.video.setPlayerSize();
 };
 
 // We call this from the resize handler when the user rotates the

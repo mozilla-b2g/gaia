@@ -27,7 +27,15 @@ section {
   font-size: 1.4rem;
 }
 
+.large-only {
+  display: none;
+}
+
 .hidden {
+  display: none;
+}
+
+#thumbnails-list-top {
   display: none;
 }
 
@@ -42,6 +50,17 @@ section {
   margin: 0;
   overflow: hidden;
   font-size: 2.1rem;
+  /* display will be determined by LAYOUT_MODE */
+  display: none;
+}
+
+body.thumbnailListView #thumbnail-list-view,
+body.thumbnailSelectView #thumbnail-select-view,
+body.fullscreenView #fullscreen-view,
+body.pickView #pick-view,
+body.editView #edit-view,
+body.cropView #crop-view {
+  display: block;
 }
 
 /*
@@ -125,14 +144,13 @@ section {
  * Thumbnails are implemented as <li> elements in a <ul> with background-image
  * set to display the image. We use background-size: cover to automatically
  * resize the image as needed.
- * The thumbnail list appears in regular browsing mode, in selection mode,
- * and in pick mode.
  */
 
 #thumbnails {
   position: absolute;
   left: 0;
   width: 100%;
+  bottom: 0;
   /* top and bottom are set depending on view below */
   padding: 0;
   margin: 0;
@@ -144,30 +162,32 @@ section {
    */
   background-color: #0E1214;
   will-animate: scroll;
-}
-
-/* thumbnails in regular thumbnail list view */
-#thumbnails.list {
-  top: 0;
-  bottom: 0;
-}
-
-/* thumbnails in thumbnail select view where there is a top bar */
-#thumbnails.select {
-  top: 5rem;
-  bottom: 0;
-}
-
-/* thumbnails in pick view where there is a top bar and no bottom */
-#thumbnails.pick {
-  top: 5rem;
-  bottom: 0;
-}
-
-#thumbnails.offscreen {
-  top: 0;
-  bottom: 0;
+  /*
+   * set it visible/hidden by LAYOUT_MODE
+   */
   visibility: hidden;
+  pointer-events: none;
+}
+
+/*
+ * The thumbnail list appears in regular browsing mode, in selection mode,
+ * and in pick mode.
+ */
+body.thumbnailSelectView #thumbnails,
+body.pickView #thumbnails,
+body.thumbnailListView #thumbnails {
+  visibility: visible;
+  pointer-events: auto;
+  bottom: 0;
+}
+
+body.thumbnailListView #thumbnails {
+  top: 0;
+}
+
+body.thumbnailSelectView #thumbnails,
+body.pickView #thumbnails {
+  top: 5rem;
 }
 
 .thumbnail-group-header {
@@ -262,8 +282,7 @@ section {
   }
 }
 
-
-#fullscreen-back-button {
+#fullscreen-back-button-tiny {
   position: absolute;
   top: 0.5rem;
   left: 0.5rem;
@@ -278,7 +297,7 @@ section {
   transition: opacity 0.2s linear;
 }
 
-#fullscreen-back-button:active {
+#fullscreen-back-button-tiny:active {
   color: #107788;
   background-color: #00b0d5;
 }
@@ -352,7 +371,7 @@ body.hidden *[data-l10n-id] {
   height: 0.3rem;
   border: none;
   overflow: hidden;
-  z-index: 3; /* has to be higher than pick-top */
+  z-index: 10; /* has to be higher than pick-top */
 }
 
 #throbber {
@@ -397,6 +416,10 @@ a.button:active, a.button:focus {
 a.button.disabled {
   opacity: 0.4;
   pointer-events: none;
+}
+
+.icon.icon-done {
+  background: url('images/iconaction_done_30x30.png') no-repeat center center / 3rem !important;
 }
 
 footer {
@@ -457,6 +480,14 @@ footer {
   font-size: 0;
   transition: transform 0.2s linear;
 }
+/* only for large screen */
+#fullscreen-toolbar-header {
+  display: none;
+}
+
+#fullscreen-toolbar-header > menu {
+  display: none;
+}
 
 #fullscreen-toolbar > a {
   display: inline-block;
@@ -464,32 +495,12 @@ footer {
   height: 100%;
 }
 
-#fullscreen-view.toolbarhidden #fullscreen-toolbar {
+#fullscreen-view.toolbar-hidden #fullscreen-toolbar {
   transform: translate(0, 4.5rem);
 }
 
-#fullscreen-view.toolbarhidden #fullscreen-back-button {
+#fullscreen-view.toolbar-hidden #fullscreen-back-button-tiny {
   opacity: 0;
-}
-
-#fullscreen-camera-button {
-  background-image: url('images/iconaction_camera_30x30.png');
-}
-
-#fullscreen-edit-button {
-  background-image: url('images/iconaction_camera_editphoto_30x30.png');
-}
-
-#fullscreen-share-button {
-  background-image: url('images/iconaction_share_30x30.png');
-}
-
-#fullscreen-info-button {
-  background-image: url('images/iconaction_media_info_30x30.png');
-}
-
-#fullscreen-delete-button {
-  background-image: url('images/iconaction_delete_30x30.png');
 }
 
 #pick-top {
@@ -526,12 +537,6 @@ footer {
   transform-origin: 0 0;
   pointer-events: none;
   -moz-user-select: none;
-}
-
-#edit-view {
-}
-
-#edit-title {
 }
 
 #edit-preview-area {
@@ -723,21 +728,65 @@ a.filter-faded {
 
 #edit-exposure-button {
   left: 0;
+}
+
+#edit-crop-button {
+  left: 20%;
+}
+
+#edit-effect-button {
+  left: 40%;
+}
+
+#edit-border-button {
+  left: 60%;
+}
+
+#edit-enhance-button {
+  left: 80%;
+}
+
+#edit-enhance-options {
+  line-height: 5.5rem;
+  text-align: center;
+}
+#fullscreen-camera-button-tiny {
+  background-image: url('images/iconaction_camera_30x30.png');
+}
+
+#fullscreen-edit-button-tiny {
+  background-image: url('images/iconaction_camera_editphoto_30x30.png');
+}
+
+#fullscreen-share-button-tiny {
+  background-image: url('images/iconaction_share_30x30.png');
+}
+
+#fullscreen-info-button-tiny {
+  background-image: url('images/iconaction_media_info_30x30.png');
+}
+
+#fullscreen-delete-button-tiny {
+  background-image: url('images/iconaction_delete_30x30.png');
+}
+
+#edit-exposure-button {
   background-image: url('images/actionicon_gallery_edit_exposure_30x30.png');
 }
 
 #edit-crop-button {
-  left: 25%;
   background-image: url('images/actionicon_gallery_edit_crop_30x30.png');
 }
 
 #edit-effect-button {
-  left: 50%;
   background-image: url('images/actionicon_gallery_edit_effects_30x30.png');
 }
 
+#edit-border-button {
+  background-image: url('images/actionicon_gallery_edit_borders_30x30.png');
+}
+
 #edit-enhance-button {
-  left: 75%;
   background-image: url('images/actionicon_gallery_edit_enhance_30x30.png');
 }
 
@@ -763,11 +812,6 @@ a.filter-faded {
 
 #edit-enhance-button.selected.on {
   background-image: url('images/actionicon_gallery_edit_enhance_on_selected_30x30.png');
-}
-
-#edit-enhance-options {
-  line-height: 5.5rem;
-  text-align: center;
 }
 
 #edit-enhance-options a.button {
