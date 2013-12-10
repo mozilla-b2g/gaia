@@ -4,6 +4,7 @@ var MockContactsListObj = {
     init: function() {},
     load: function() {},
     refresh: function() {},
+    refreshFb: function() {},
     getContactById: function() {},
     getAllContacts: function() {},
     handleClick: function() {},
