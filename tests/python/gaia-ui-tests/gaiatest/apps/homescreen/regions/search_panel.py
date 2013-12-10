@@ -26,7 +26,6 @@ class SearchPanel(Base):
         self.keyboard.send(search_term)
         # Only if the device is online do we need to wait
         if GaiaDevice(self.marionette).is_online:
-            Homescreen(self.marionette).switch_to_homescreen_frame()
             self.wait_for_element_displayed(*self._search_suggestion_locator)
             self.wait_for_condition(lambda m: search_term[0].lower() in self.search_suggestion.lower())
         self.keyboard.tap_enter()
@@ -97,28 +96,19 @@ class SearchPanel(Base):
 
     class Result(PageRegion):
 
-        _app_iframe_locator = (By.CSS_SELECTOR, 'iframe[data-origin-name="%s"]')
-
-        # Modal dialog locators
-        _modal_dialog_message_locator = (By.ID, 'modal-dialog-confirm-message')
-        _modal_dialog_ok_locator = (By.ID, 'modal-dialog-confirm-ok')
-
         @property
         def name(self):
             return self.root_element.get_attribute('data-name')
 
         def tap(self):
-            _app_iframe_locator = (self._app_iframe_locator[0],
-                                   self._app_iframe_locator[1] % self.name)
+            app_name = self.name
 
             self.root_element.tap()
-            # Switch to top level frame then look for the app
-            # Find the frame and switch to it
-            self.marionette.switch_to_frame()
-            app_iframe = self.wait_for_element_present(*_app_iframe_locator)
-            self.marionette.switch_to_frame(app_iframe)
+            # Wait for the displayed app to be that we have tapped
+            self.wait_for_condition(lambda m: self.apps.displayed_app.name == app_name)
+            self.marionette.switch_to_frame(self.apps.displayed_app.frame)
 
-            # wait for app to launch
+            # Wait for title to load (we cannot be more specific because the aut may change)
             self.wait_for_condition(lambda m: m.title)
 
         def tap_to_install(self):

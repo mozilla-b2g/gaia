@@ -34,7 +34,6 @@ class TestBrowserBookmark(GaiaTestCase):
         # Switch to Home Screen to look for bookmark
         homescreen = Homescreen(self.marionette)
         homescreen.touch_home_button()
-        homescreen.switch_to_homescreen_frame()
 
         self._bookmark_added = homescreen.is_app_installed(self.bookmark_title)
 

@@ -21,17 +21,17 @@ class TestLaunchApp(GaiaTestCase):
         self.connect_to_network()
 
         self.homescreen = Homescreen(self.marionette)
-        self.homescreen.switch_to_homescreen_frame()
 
         # Install app
-        self.marionette.switch_to_frame()
         self.marionette.execute_script(
             'navigator.mozApps.install("%s")' % MANIFEST)
 
         # Confirm the installation and wait for the app icon to be present
         confirm_install = ConfirmInstall(self.marionette)
         confirm_install.tap_confirm()
-        self.homescreen.switch_to_homescreen_frame()
+        self.wait_for_condition(lambda m: self.apps.displayed_app.name == self.homescreen.name)
+        self.apps.switch_to_displayed_app()
+
         self.homescreen.wait_for_app_icon_present(APP_NAME)
 
     def test_launch_app(self):
