@@ -36,10 +36,18 @@
 .sim-manager-select-list li {
   height: 11.3rem;
 }
+.sim-manager-select-list li[data-href="#simpin"] {
+  height: 6rem;
+}
+.sim-manager-select-list li[data-href="#simpin"][aria-disabled="true"] {
+  opacity: 0.6;
+  pointer-events: none;
+}
 .sim-manager-select-list .explanation {
   font-size: 1.2rem;
   font-style: normal;
   color: #6d7374;
+  padding: 0 1.5rem;
 }
 .sim-manager-select-list p {
   line-height: 2.1rem;
