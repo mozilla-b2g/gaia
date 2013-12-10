@@ -270,7 +270,7 @@ function execute(options) {
    'ril.data.apnSettings': '',
    'ril.data.cp.apns': '',
    'ril.callerId': 'CLIR_DEFAULT',
-   'screen.automatic-brightness': true,
+   'screen.automatic-brightness': false,
    'screen.brightness': 1,
    'screen.timeout': 60,
    'software-button.enabled': false,
