@@ -37,9 +37,8 @@ body > iframe {
   padding: none;
   border: none;
   clear: both;
-  margin-top: 50px;
   overflow: hidden;
-  margin: 0;
+  margin: 3rem 0 0 0;
   padding: 0 0 1em 0;
 
   -webkit-column-width: 350px;
@@ -54,16 +53,15 @@ body > iframe {
   position: relative;
 
   list-style: none;
-  padding: 0 0 0 2em;
-  margin: 0;
-
+  padding: 0px;
+  margin: 0px;
+  float: left;
+  white-space: nowrap;
   cursor: pointer;
 }
 
-#test-agent-ui li:hover,
-#test-agent-ui .active {
+#test-agent-ui li:hover {
   text-decoration: underline;
-  color: #00d;
 }
 
 #test-agent-ui .active:before {
@@ -90,7 +88,6 @@ body > iframe {
   padding: 5px;
   height: 30px;
   border: 1px solid #E2E2E2;
-  background-color: #FAFAFA;
 }
 
 @media only screen and (max-width: 480px) {
@@ -100,8 +97,8 @@ body > iframe {
 
   #test-agent-ui li {
     min-height: 3em;
-    border-bottom: 1px solid #aaa;
     padding: .5em 1em .5em 2em;
+    text-decoration: underline;
   }
 
   #test-agent-ui .active:before {
@@ -240,6 +237,38 @@ body > iframe {
   margin: 0 5px;
   list-style: none;
   padding-top: 11px;
+}
+
+#test-agent-ui .test-agent-list-head {
+  font-weight: bolder;
+  font-size: 12pt;
+  background: #CCC;
+  width: 100%;
+  margin: 10px 0 10px 0;
+}
+
+#test-agent-ui .test-agent-list-head-info {
+  font-style: italic;
+  font-weight: normal;
+  float: right;
+  margin-right: 5px;
+  margin-top: -1.5em;
+}
+
+#test-agent-ui .test-agent-list-head:hover {
+  text-decoration: none;
+}
+
+#test-agent-search {
+  position: fixed;
+  top: 0px;
+  left: 0px;
+  padding-top: 10px;
+  padding-left: 50px;
+  background-color: rgba(250,250,250,0.7);
+  width: 100%;
+  height: 45px;
+  z-index: 4;
 }
 
 code .comment { color: #ddd }
