@@ -117,8 +117,32 @@ class GaiaApps(object):
         self.marionette.import_script(js)
         self.marionette.execute_async_script("GaiaApps.killAll()")
 
-    def runningApps(self):
-        return self.marionette.execute_script("return GaiaApps.getRunningApps()")
+    @property
+    def installed_apps(self):
+        apps = self.marionette.execute_async_script(
+            'return GaiaApps.getInstalledApps();')
+        result = []
+        for app in [a for a in apps if not a['manifest'].get('role')]:
+            entry_points = app['manifest'].get('entry_points')
+            if entry_points:
+                for ep in entry_points.values():
+                    result.append(GaiaApp(
+                        origin=app['origin'],
+                        name=ep['name']))
+            else:
+                result.append(GaiaApp(
+                    origin=app['origin'],
+                    name=app['manifest']['name']))
+        return result
+
+    @property
+    def running_apps(self):
+        apps = self.marionette.execute_script(
+            'return GaiaApps.getRunningApps();')
+        result = []
+        for app in [a[1] for a in apps.items()]:
+            result.append(GaiaApp(origin=app['origin'], name=app['name']))
+        return result
 
     def switch_to_frame(self, app_frame, url=None, timeout=None):
         timeout = timeout or (self.marionette.timeout and self.marionette.timeout / 1000) or 30
