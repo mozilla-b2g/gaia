@@ -131,7 +131,7 @@ define(function(require) {
                   subject,
                   body;
 
-              if (navigator.mozNotification) {
+              if (window.Notification) {
                 if (result.count > 1) {
                   dataString = fromObject({
                     type: 'message_list',
