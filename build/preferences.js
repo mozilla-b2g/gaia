@@ -42,6 +42,8 @@ function execute(options) {
   // TODO: Once platform enabled unsafe WPA-EAP, we have to remove this flag here.
   // @see Bug 790056 - Enable WPA Enterprise
   prefs.push(['b2g.wifi.allow_unsafe_wpa_eap', true]);
+  // @see bug 937505 - For dialer only.  Don't depend on this.  Will be removed.
+  prefs.push(['media.audio_data.enabled', true]);
 
   if (config.LOCAL_DOMAINS) {
     prefs.push(['network.dns.localDomains', domains.join(',')]);
