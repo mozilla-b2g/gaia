@@ -193,7 +193,8 @@ function initOptionsButtons() {
 
 function handleResize(e) {
   if (dom.player.readyState !== HAVE_NOTHING) {
-    setPlayerSize();
+    VideoUtils.fitContainer(dom.fullscreenView, dom.player,
+                            currentVideo.metadata.rotation || 0);
   }
   forceRepaintTitles();
 }
@@ -603,71 +604,6 @@ function handlePlayerTouchStart(event) {
   }
 }
 
-// Align vertically fullscreen view
-function setPlayerSize() {
-  var containerWidth = window.innerWidth;
-  var containerHeight = window.innerHeight;
-
-  // Don't do anything if we don't know our size.
-  // This could happen if we get a resize event before our metadata loads
-  if (!dom.player.videoWidth || !dom.player.videoHeight)
-    return;
-
-  var width, height; // The size the video will appear, after rotation
-  var rotation = 'metadata' in currentVideo ?
-    currentVideo.metadata.rotation : 0;
-
-  switch (rotation) {
-  case 0:
-  case 180:
-    width = dom.player.videoWidth;
-    height = dom.player.videoHeight;
-    break;
-  case 90:
-  case 270:
-    width = dom.player.videoHeight;
-    height = dom.player.videoWidth;
-  }
-
-  var xscale = containerWidth / width;
-  var yscale = containerHeight / height;
-  var scale = Math.min(xscale, yscale);
-
-  // scale large videos down and scale small videos up
-  // this might result in lower image quality for small videos
-  width *= scale;
-  height *= scale;
-
-  var left = ((containerWidth - width) / 2);
-  var top = ((containerHeight - height) / 2);
-
-  var transform;
-  switch (rotation) {
-  case 0:
-    transform = 'translate(' + left + 'px,' + top + 'px)';
-    break;
-  case 90:
-    transform =
-      'translate(' + (left + width) + 'px,' + top + 'px) ' +
-      'rotate(90deg)';
-    break;
-  case 180:
-    transform =
-      'translate(' + (left + width) + 'px,' + (top + height) + 'px) ' +
-      'rotate(180deg)';
-    break;
-  case 270:
-    transform =
-      'translate(' + left + 'px,' + (top + height) + 'px) ' +
-      'rotate(270deg)';
-    break;
-  }
-
-  transform += ' scale(' + scale + ')';
-
-  dom.player.style.transform = transform;
-}
-
 function setVideoUrl(player, video, callback) {
   if ('name' in video) {
     videodb.getFile(video.name, function(file) {
@@ -724,7 +660,9 @@ function showPlayer(video, autoPlay) {
 
     dom.play.classList.remove('paused');
     playerShowing = true;
-    setPlayerSize();
+    VideoUtils.fitContainer(dom.fullscreenView, dom.player,
+                            currentVideo.metadata.rotation || 0);
+
 
     if ('metadata' in currentVideo) {
       if (currentVideo.metadata.currentTime === dom.player.duration) {
@@ -985,7 +923,9 @@ function restoreVideo() {
   // When restoreVideo is called, we assume we have currentVideo because the
   // playerShowing is true.
   setVideoUrl(dom.player, currentVideo, function() {
-    setPlayerSize();
+    VideoUtils.fitContainer(dom.fullscreenView, dom.player,
+                            currentVideo.metadata.rotation || 0);
+
     // Everything is ready, start to restore last playing time.
     if (restoreTime !== null) {
       // restore to the last time when we have a valid restoreTime.
