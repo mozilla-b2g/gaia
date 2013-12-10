@@ -68,6 +68,24 @@ contacts.Details = (function() {
       '#details-back': handleDetailsBack,
       '#edit-contact-button': showEditContact
     });
+
+    window.navigator.mozNfc.onpeerready = function(event) {
+	var payload;
+	var nfcdom = window.navigator.mozNfc;
+	var nfcPeer = nfcdom.getNFCPeer(event.detail);
+	var records = new Array();
+	var tnf  =  0x02;
+	var type =  'text/x-vCard';
+	var id	 =  '';
+	payload = Contacts.getCurrentContact();
+	var record = new MozNdefRecord(
+		tnf,
+		type,
+		id,
+		payload);
+	records.push(record);
+	nfcPeer.sendNDEF(records);
+	};
   };
 
   var handleDetailsBack = function handleDetailsBack() {
