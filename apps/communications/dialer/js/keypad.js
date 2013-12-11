@@ -272,22 +272,28 @@ var KeypadManager = {
   _dtmfToneTimer: null,
 
   _playDtmfTone: function kh_playDtmfTone(key) {
+    if (!this._onCall) {
+      return;
+    }
+
     var telephony = navigator.mozTelephony;
 
-    if (this._onCall) {
-      clearTimeout(this._dtmfToneTimer);
-      telephony.stopTone(); // Stop previous tone before dispatching a new one
-      telephony.startTone(key);
+    clearTimeout(this._dtmfToneTimer);
+    telephony.stopTone(); // Stop previous tone before dispatching a new one
+    telephony.startTone(key);
 
-      if (this._shortTone) {
-        this._dtmfToneTimer = window.setTimeout(function ch_playDTMF() {
-          telephony.stopTone();
-        }, this._DTMF_SHORT_TONE_LENGTH);
-      }
+    if (this._shortTone) {
+      this._dtmfToneTimer = window.setTimeout(function ch_playDTMF() {
+        telephony.stopTone();
+      }, this._DTMF_SHORT_TONE_LENGTH);
     }
   },
 
   _stopDtmfTone: function kh_stopDtmfTone() {
+    if (!this._onCall) {
+      return;
+    }
+
     var telephony = navigator.mozTelephony;
 
     clearTimeout(this._dtmfToneTimer);
@@ -362,7 +368,9 @@ var KeypadManager = {
       this._phoneNumber += key;
     }
 
-    this._updatePhoneNumberView('begin', false);
+    setTimeout(function(self) {
+      self._updatePhoneNumberView('begin', false);
+    }, 0, this);
   },
 
   /**
