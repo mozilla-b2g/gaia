@@ -2,8 +2,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import time
-
 from marionette.by import By
 from marionette.marionette import Actions
 
@@ -25,17 +23,6 @@ class CardsView(Base):
 
     def _close_button_locator(self, app):
         return (self._close_buttons_locator[0], self._close_buttons_locator[1] % app.lower())
-
-    def open_cards_view(self):
-        # Hold the home button to open cards view
-        self.device.hold_home_button()
-        time.sleep(3)
-        self.wait_for_cards_view()
-
-    def exit_cards_view(self):
-        # Touch the home button to exit cards view
-        self.device.touch_home_button()
-        self.wait_for_cards_view_not_displayed()
 
     @property
     def is_cards_view_displayed(self):
