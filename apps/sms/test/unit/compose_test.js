@@ -376,7 +376,12 @@ suite('compose_test.js', function() {
           // concerns interactions between disparate units.
           // See: Bug 868056
           assert.equal(attachment.name, activity.result.name);
-          assert.equal(attachment.blob, activity.result.blob);
+
+          // The blob in the attachment may be a copy of the blob in the
+          // activity result, but the size and type must be the same.
+          // See Bug 944276.
+          assert.equal(attachment.blob.type, activity.result.blob.type);
+          assert.equal(attachment.blob.size, activity.result.blob.size);
 
           done();
         };
@@ -385,7 +390,7 @@ suite('compose_test.js', function() {
         var activity = MockMozActivity.instances[0];
         activity.result = {
           name: 'test',
-          blob: new Blob()
+          blob: new Blob(['fake jpeg'], { type: 'image/jpeg' })
         };
         activity.onsuccess();
       });

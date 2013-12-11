@@ -596,10 +596,44 @@ var Compose = (function() {
         }
 
         if (typeof requestProxy.onsuccess === 'function') {
-          requestProxy.onsuccess(new Attachment(result.blob, {
+          var originalBlob = result.blob;
+          var attachmentOptions = {
             name: result.name,
             isDraft: true
-          }));
+          };
+
+          // We ought to just be able to call the onsuccess function now.
+          // But to workaround bug 944276, if we get a blob that is not a File
+          // and is not a big image that we are going to resize we need to
+          // make a private copy of it. Otherwise, it won't work if we
+          // pass it to another activity (like the open activity of Gallery).
+          /* global File, FileReader */  // Keep jshint happy
+          if (originalBlob instanceof File ||
+              (originalBlob.type.startsWith('image/') &&
+               Settings.mmsSizeLimitation &&
+               originalBlob.size > Settings.mmsSizeLimitation)) {
+            // Safe to call onsuccess with the original blob in this case
+            requestProxy.onsuccess(new Attachment(originalBlob,
+                                                  attachmentOptions));
+          } else {
+            // Make a local copy of the blob before calling onsuccess
+            // to workaround bug 944276.
+            var reader = new FileReader();
+            reader.onload = function() {
+              var buffer = reader.result;
+              var copyBlob = new Blob([buffer], { type: originalBlob.type });
+              requestProxy.onsuccess(new Attachment(copyBlob,
+                                                    attachmentOptions));
+            };
+            reader.onerror = function() {
+              // This should never happen, but if it does, we'll try
+              // to use the original blob for lack of any better alternative.
+              console.error('Failed to copy blob.');
+              requestProxy.onsuccess(new Attachment(originalBlob,
+                                                    attachmentOptions));
+            };
+            reader.readAsArrayBuffer(originalBlob);
+          }
         }
       };
 
