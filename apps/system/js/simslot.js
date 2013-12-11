@@ -83,9 +83,9 @@
    */
   SIMSlot.prototype.publish = function ss_publish(eventName) {
     this.debug(' publish: ' + eventName);
-    window.dispatchEvent(new CustomEvent(this.EVENT_PREFIX + eventName), {
+    window.dispatchEvent(new CustomEvent(this.EVENT_PREFIX + eventName, {
       detail: this
-    });
+    }));
   };
 
   SIMSlot.prototype.handleEvent = function ss_handleEvent(evt) {
