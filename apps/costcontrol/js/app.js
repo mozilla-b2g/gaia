@@ -41,24 +41,26 @@ var CostControlApp = (function() {
 
   var costcontrol, initialized = false;
   function checkSIMStatus(callback) {
+
+    var iccid = Common.dataSimIccId;
+    var dataSimIccInfo = Common.dataSimIcc;
     var cardState = checkCardState();
-    var iccid = IccHelper.iccInfo ? IccHelper.iccInfo.iccid : null;
 
     // SIM not ready
     if (cardState !== 'ready') {
       debug('SIM not ready:', cardState);
-      IccHelper.oncardstatechange = checkSIMStatus;
+      dataSimIccInfo.oncardstatechange = checkSIMStatus;
 
     // SIM is ready, but ICC info is not ready yet
     } else if (!Common.isValidICCID(iccid)) {
       debug('ICC info not ready yet');
-      IccHelper.oniccinfochange = checkSIMStatus;
+      dataSimIccInfo.oniccinfochange = checkSIMStatus;
 
     // All ready
     } else {
       debug('SIM ready. ICCID:', iccid);
-      IccHelper.oncardstatechange = undefined;
-      IccHelper.oniccinfochange = undefined;
+      dataSimIccInfo.oncardstatechange = undefined;
+      dataSimIccInfo.oniccinfochange = undefined;
       document.getElementById('message-handler').src = 'message_handler.html';
       Common.waitForDOMAndMessageHandler(window, startApp.bind(null, callback));
     }
@@ -68,7 +70,7 @@ var CostControlApp = (function() {
   // special situations such as 'pin/puk locked' or 'absent'.
   function checkCardState() {
     var state, cardState;
-    state = cardState = IccHelper.cardState;
+    state = cardState = Common.dataSimIcc.cardState;
 
     // SIM is absent
     if (!cardState || cardState === 'absent') {
@@ -269,7 +271,7 @@ var CostControlApp = (function() {
     document.addEventListener('visibilitychange',
       function _onVisibilityChange(evt) {
         if (!document.hidden && initialized) {
-          checkCardState();
+          checkCardState(Common.dataSimIcc);
         }
       }
     );
@@ -381,7 +383,13 @@ var CostControlApp = (function() {
 
   return {
     init: function() {
-      checkSIMStatus();
+      Common.loadDataSIMIccId(checkSIMStatus, function _errorNoSim() {
+        console.warn('Error when trying to get the ICC ID');
+        showSimErrorDialog('no-sim2');
+      });
+      // XXX: See bug 944342 -[Cost control] move all the process related to the
+      // network and data interfaces loading to the start-up process of CC
+      Common.loadNetworkInterfaces();
     },
     reset: function() {
       costcontrol = null;

@@ -12,7 +12,6 @@ requireApp('costcontrol/test/unit/mock_moz_mobile_connection.js');
 requireApp('costcontrol/test/unit/mock_settings_listener.js');
 requireApp('costcontrol/shared/test/unit/mocks/' +
            'mock_navigator_moz_set_message_handler.js');
-requireApp('costcontrol/test/unit/mock_icc_helper.js');
 requireApp('costcontrol/test/unit/mock_cost_control.js');
 requireApp('costcontrol/test/unit/mock_config_manager.js');
 requireApp('costcontrol/js/utils/toolkit.js');
@@ -27,7 +26,6 @@ var realCommon,
     realSettingsListener,
     realCostControl,
     realConfigManager,
-    realIccHelper,
     realMozSetMessageHandler;
 
 if (!this.Common) {
@@ -54,10 +52,6 @@ if (!this.ConfigManager) {
   this.ConfigManager = null;
 }
 
-if (!this.IccHelper) {
-  this.IccHelper = null;
-}
-
 if (!this.navigator.mozSetMessageHandler) {
   this.navigator.mozSetMessageHandler = null;
 }
@@ -81,8 +75,6 @@ suite('Application Startup Modes Test Suite >', function() {
 
     realConfigManager = window.ConfigManager;
 
-    realIccHelper = window.IccHelper;
-
     realMozSetMessageHandler = window.navigator.mozSetMessageHandler;
     window.navigator.mozSetMessageHandler =
       window.MockNavigatormozSetMessageHandler;
@@ -99,13 +91,16 @@ suite('Application Startup Modes Test Suite >', function() {
     window.dispatchEvent(new Event('localized'));
   });
 
+  teardown(function() {
+    window.location.hash = '';
+  });
+
   suiteTeardown(function() {
     window.Common = realCommon;
     window.navigator.mozMobileConnection = realMozMobileConnection;
     window.navigator.mozL10n = realMozL10n;
     window.CostControl = realCostControl;
     window.ConfigManager = realConfigManager;
-    window.IccHelper = realIccHelper;
     window.SettingsListener.mTeardown();
     window.SettingsListener = realSettingsListener;
     window.navigator.mozSetMessageHandler.mTeardown();
@@ -190,15 +185,15 @@ suite('Application Startup Modes Test Suite >', function() {
     assert.isFalse(dataUsageTab.classList.contains('standalone'));
   }
 
-  function setupCardState(cardState) {
+  function setupCardState(icc) {
     window.Common = new MockCommon({ isValidICCID: true });
     window.CostControl = new MockCostControl();
-    window.IccHelper = new MockIccHelper(cardState);
     window.navigator.mozMobileConnection = new MockMozMobileConnection({});
+    Common.dataSimIcc = icc;
   }
 
   test('SIM is not ready', function(done) {
-    setupCardState('absent');
+    setupCardState({cardState: 'absent'});
 
     assertAlertMessageAndClose(
       'widget-no-sim2-heading\nwidget-no-sim2-meta',
@@ -209,7 +204,7 @@ suite('Application Startup Modes Test Suite >', function() {
   });
 
   test('SIM is locked by PIN', function(done) {
-    setupCardState('pinRequired');
+    setupCardState({cardState: 'pinRequired'});
 
     assertAlertMessageAndClose(
       'widget-sim-locked-heading\nwidget-sim-locked-meta',
@@ -220,7 +215,7 @@ suite('Application Startup Modes Test Suite >', function() {
   });
 
   test('SIM is locked by PUK', function(done) {
-    setupCardState('pukRequired');
+    setupCardState({cardState: 'pukRequired'});
 
     assertAlertMessageAndClose(
       'widget-sim-locked-heading\nwidget-sim-locked-meta',
@@ -234,7 +229,7 @@ suite('Application Startup Modes Test Suite >', function() {
     'First Time Experience Loaded when new SIM > DATA_USAGE_ONLY',
     function(done) {
       var applicationMode = 'DATA_USAGE_ONLY';
-      setupCardState('ready');
+      setupCardState({cardState: 'ready'});
       window.ConfigManager = new MockConfigManager({
         fakeSettings: { fte: true },
         applicationMode: applicationMode
@@ -250,7 +245,7 @@ suite('Application Startup Modes Test Suite >', function() {
     'First Time Experience Loaded when new SIM > PREPAID',
     function(done) {
       var applicationMode = 'PREPAID';
-      setupCardState('ready');
+      setupCardState({cardState: 'ready'});
       window.ConfigManager = new MockConfigManager({
         fakeSettings: { fte: true },
         applicationMode: applicationMode
@@ -266,7 +261,7 @@ suite('Application Startup Modes Test Suite >', function() {
     'First Time Experience Loaded when new SIM > POSTPAID',
     function(done) {
       var applicationMode = 'POSTPAID';
-      setupCardState('ready');
+      setupCardState({cardState: 'ready'});
       window.ConfigManager = new MockConfigManager({
         fakeSettings: { fte: true },
         applicationMode: applicationMode
@@ -287,7 +282,7 @@ suite('Application Startup Modes Test Suite >', function() {
       fakeSettings: { fte: false },
       applicationMode: applicationMode
     });
-    window.IccHelper = new MockIccHelper('ready');
+    Common.dataSimIcc = {cardState: 'ready'};
   }
 
   test('Layout: Data Usage Only', function(done) {
