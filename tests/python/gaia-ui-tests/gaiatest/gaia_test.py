@@ -320,7 +320,7 @@ class GaiaData(object):
 
     def disable_wifi(self):
         self.marionette.switch_to_frame()
-        result = self.marionette.execute_async_script("return GaiaDataLayer.disableWiFi()", special_powers=True)
+        result = self.marionette.execute_async_script("return GaiaDataLayer.disableWiFi()", special_powers=True, script_timeout=20000)
         assert result, 'Unable to disable WiFi'
 
     def connect_to_wifi(self, network=None):
