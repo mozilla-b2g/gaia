@@ -8,13 +8,11 @@ import time
 
 from marionette import MarionetteTestCase, EnduranceTestCaseMixin, B2GTestCaseMixin, \
                        MemoryEnduranceTestCaseMixin
-from marionette.by import By
 from marionette.errors import NoSuchElementException
 from marionette.errors import ElementNotVisibleException
 from marionette.errors import TimeoutException
 from marionette.errors import StaleElementException
 from marionette.errors import InvalidResponseException
-import mozdevice
 from yoctopuce.yocto_api import YAPI, YRefParam, YModule
 from yoctopuce.yocto_current import YCurrent
 from yoctopuce.yocto_datalogger import YDataLogger
@@ -761,6 +759,14 @@ window.addEventListener('mozbrowserloadend', function loaded(aEvent) {
     def is_screen_enabled(self):
         return self.marionette.execute_script('return window.wrappedJSObject.ScreenManager.screenEnabled')
 
+    def touch_home_button(self):
+        self.marionette.switch_to_frame()
+        self.marionette.execute_script("window.wrappedJSObject.dispatchEvent(new Event('home'));")
+
+    def hold_home_button(self):
+        self.marionette.switch_to_frame()
+        self.marionette.execute_script("window.wrappedJSObject.dispatchEvent(new Event('holdhome'));")
+
 
 class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
     def __init__(self, *args, **kwargs):
@@ -881,7 +887,7 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
             self.data_layer.remove_all_contacts()
 
             # reset to home screen
-            self.marionette.execute_script("window.wrappedJSObject.dispatchEvent(new Event('home'));")
+            self.device.touch_home_button()
 
         # kill any open apps
         self.apps.kill_all()
@@ -1093,12 +1099,11 @@ class GaiaEnduranceTestCase(GaiaTestCase, EnduranceTestCaseMixin, MemoryEnduranc
 
     def close_app(self):
         # Close the current app (self.app) by using the home button
-        self.marionette.switch_to_frame()
-        self.marionette.execute_script("window.wrappedJSObject.dispatchEvent(new Event('home'));")
+        self.device.touch_home_button()
 
         # Bring up the cards view
         _cards_view_locator = ('id', 'cards-view')
-        self.marionette.execute_script("window.wrappedJSObject.dispatchEvent(new Event('holdhome'));")
+        self.device.hold_home_button()
         self.wait_for_element_displayed(*_cards_view_locator)
 
         # Sleep a bit
@@ -1109,4 +1114,3 @@ class GaiaEnduranceTestCase(GaiaTestCase, EnduranceTestCaseMixin, MemoryEnduranc
         _close_button_locator = ('css selector', locator_part_two)
         close_card_app_button = self.marionette.find_element(*_close_button_locator)
         close_card_app_button.tap()
-

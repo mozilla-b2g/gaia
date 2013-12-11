@@ -21,17 +21,12 @@ class TestCardsViewTwoApps(GaiaTestCase):
     def test_kill_app_from_cards_view(self):
         # https://moztrap.mozilla.org/manage/case/1917/
 
-        # Switch to top level frame before dispatching the event
-        self.marionette.switch_to_frame()
-
         # Pull up the cards view
         self.cards_view.open_cards_view()
 
         # Close the current apps from the cards view
         self.cards_view.close_app(self._test_apps[1])
         self.cards_view.close_app(self._test_apps[0])
-
-        self.marionette.switch_to_frame()
 
         # Pull up the cards view again
         self.cards_view.open_cards_view()
