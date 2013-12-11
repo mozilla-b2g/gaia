@@ -100,6 +100,10 @@
     "download_store": {
       "access": "readwrite",
       "description": "Stores successful downloads"
+    },
+    "places": {
+      "description": "Stores data about browsing history.",
+      "readonly": true
     }
   }
 }
