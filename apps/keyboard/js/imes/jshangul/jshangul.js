@@ -5,7 +5,7 @@
 
 (function() {
 
-  var keyboard, ime, JangmiIME;
+  var keyboard, ime, composingText, JangmiIME;
 
   const SPACE = KeyEvent.DOM_VK_SPACE;
   const BACKSPACE = KeyEvent.DOM_VK_BACK_SPACE;
@@ -250,23 +250,38 @@
     empty: empty
   };
 
+  function setComposition(gul) {
+    composingText = gul;
+    keyboard.setComposition(gul);
+  }
+
+  function endComposition() {
+    if (composingText.length > 0) {
+      keyboard.endComposition(composingText);
+      composingText = '';
+    }
+  }
+
   function init(interfaceObject) {
     keyboard = interfaceObject;
+    composingText = '';
     ime = new JangmiIME({
       passed: function(keyCode) {
+        endComposition();
         keyboard.sendKey(keyCode);
       },
       added: function(gul) {
-        keyboard.sendString(gul);
+        endComposition();
+        setComposition(gul);
       },
       changed: function(gul) {
-        keyboard.sendKey(BACKSPACE);
-        keyboard.sendString(gul);
+        setComposition(gul);
       }
     });
   }
 
   function empty() {
+    composingText = '';
     ime.reset();
   }
 
