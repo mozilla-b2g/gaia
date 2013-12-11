@@ -184,8 +184,6 @@ var DeviceStorageHelper = (function DeviceStorageHelper() {
  * Connectivity accessors
  */
 var getMobileConnection = function() {
-  var navigator = window.navigator;
-
   // XXX: check bug-926169
   // this is used to keep all tests passing while introducing multi-sim APIs
   var mobileConnection = navigator.mozMobileConnection ||
@@ -201,7 +199,6 @@ var getBluetooth = function() {
 };
 
 var getNfc = function() {
-  var navigator = window.navigator;
   if ('mozNfc' in navigator) {
     return navigator.mozNfc;
   }
