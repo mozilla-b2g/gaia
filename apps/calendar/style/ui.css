@@ -41,6 +41,14 @@ ol.link-list li:only-child a {
 
 /* view management */
 
+#modify-event-view {
+  display: none;
+}
+
+#modify-event-view.active {
+  display: block;
+}
+
 #time-views {
   display: flex;
   flex-direction: column;
