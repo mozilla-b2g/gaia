@@ -67,9 +67,7 @@
   }
 }
 @keyframes slide-in-right {
-  /* This tiny percentage is a temporary workaround for Bug 921317
-   * please switch this back to `from` whenever that bug is solved! */
-  0.00001% {
+  from {
     transform: translateX(100%);
   }
   to {
