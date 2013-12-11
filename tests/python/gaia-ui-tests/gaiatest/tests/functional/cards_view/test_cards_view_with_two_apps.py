@@ -27,7 +27,7 @@ class TestCardsView(GaiaTestCase):
 
         # Pull up the cards view
         self.device.hold_home_button()
-        self.cards_view.wait_for_cards_view()
+        cards_view.wait_for_cards_view()
 
         for app in self._test_apps:
             self.assertTrue(cards_view.is_app_displayed(app),
