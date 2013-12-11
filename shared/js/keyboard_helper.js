@@ -27,6 +27,36 @@ var SETTINGS_KEYS = {
   THIRD_PARTY_APP_ENABLED: 'keyboard.3rd-party-app.enabled'
 };
 
+var DEPRECATE_KEYBOARD_SETTINGS = {
+  en: 'keyboard.layouts.english',
+  'en-Dvorak': 'keyboard.layouts.dvorak',
+  cs: 'keyboard.layouts.czech',
+  fr: 'keyboard.layouts.french',
+  de: 'keyboard.layouts.german',
+  hu: 'keyboard.layouts.hungarian',
+  nb: 'keyboard.layouts.norwegian',
+  my: 'keyboard.layouts.myanmar',
+  sl: 'keyboard.layouts.slovak',
+  tr: 'keyboard.layouts.turkish',
+  ro: 'keyboard.layouts.romanian',
+  ru: 'keyboard.layouts.russian',
+  ar: 'keyboard.layouts.arabic',
+  he: 'keyboard.layouts.hebrew',
+  'zh-Hant-Zhuyin': 'keyboard.layouts.zhuyin',
+  'zh-Hans-Pinyin': 'keyboard.layouts.pinyin',
+  el: 'keyboard.layouts.greek',
+  'jp-kanji': 'keyboard.layouts.japanese',
+  pl: 'keyboard.layouts.polish',
+  'pt-BR': 'keyboard.layouts.portuguese',
+  sr: 'keyboard.layouts.serbian',
+  es: 'keyboard.layouts.spanish',
+  ca: 'keyboard.layouts.catalan'
+};
+
+var MULTI_LAYOUT_MAP = {
+  sr: ['sr-Cyrl', 'sr-Latn']
+};
+
 // In order to provide default defaults, we need to know the default keyboard
 var defaultKeyboardManifestURL =
   'app://keyboard.gaiamobile.org/manifest.webapp';
@@ -131,7 +161,6 @@ function kh_updateWatchers(reason) {
 // callbacks waiting to know when settings are loaded
 var waitingForSettings = [];
 var loadedSettings = new Set();
-
 
 /**
  * Tracks the number of settings loaded and calls the callbacks
@@ -241,6 +270,62 @@ function kh_parseEnabled() {
 }
 
 /**
+ * Parse and migrate the result for the deprecated settings (v1.1) for enabled
+ * layouts.
+ */
+function kh_migrateDeprecatedSettings(deprecatedSettings) {
+  var settingEntry = DEPRECATE_KEYBOARD_SETTINGS['en'];
+
+  // No need to do migration if the deprecated settings are not available
+  if (deprecatedSettings[settingEntry] == undefined) {
+    return;
+  }
+
+  // reset the enabled layouts
+  currentSettings.enabledLayouts[defaultKeyboardManifestURL] = {
+    number: true
+  };
+
+  var hasEnabledLayout = false;
+  for (var key in DEPRECATE_KEYBOARD_SETTINGS) {
+    settingEntry = DEPRECATE_KEYBOARD_SETTINGS[key];
+    // this layout was set as enabled in the old settings
+    if (deprecatedSettings[settingEntry]) {
+      hasEnabledLayout = true;
+
+      if (key in MULTI_LAYOUT_MAP) {
+        MULTI_LAYOUT_MAP[key].forEach(function enableLayout(layoutId) {
+          map2dSet.call(currentSettings.enabledLayouts,
+                        defaultKeyboardManifestURL, layoutId);
+        });
+      } else {
+        map2dSet.call(currentSettings.enabledLayouts,
+                      defaultKeyboardManifestURL, key);
+      }
+    }
+  }
+
+  // None of the layouts has been set enabled, so enable English by default
+  if (!hasEnabledLayout) {
+    map2dSet.call(currentSettings.enabledLayouts,
+                  defaultKeyboardManifestURL, 'en');
+  }
+
+  // Clean up all the deprecated settings
+  var deprecatedSettingsQuery = {};
+  for (var key in DEPRECATE_KEYBOARD_SETTINGS) {
+    // the deprecated setting entry, e.g. keyboard.layout.english
+    settingEntry = DEPRECATE_KEYBOARD_SETTINGS[key];
+
+    // Set the default value for each entry
+    deprecatedSettingsQuery[settingEntry] = null;
+  }
+  window.navigator.mozSettings.createLock().set(deprecatedSettingsQuery);
+
+  KeyboardHelper.saveToSettings();
+}
+
+/**
  * JSON loader
  */
 function kh_loadJSON(href, callback) {
@@ -256,6 +341,72 @@ function kh_loadJSON(href, callback) {
   xhr.open('GET', href, true); // async
   xhr.responseType = 'json';
   xhr.send();
+}
+
+//
+// getSettings: Query the value of multiple settings at once.
+//
+// settings is an object whose property names are the settings to query
+// and whose property values are the default values to use if no such
+// setting is found.  This function will create a setting lock and
+// request the value of each of the specified settings.  Once it receives
+// a response to all of the queries, it passes all the settings values to
+// the specified callback function.  The argument to the callback function
+// is an object just like the settings object, where the property name is
+// the setting name and the property value is the setting value (or the
+// default value if the setting was not found).
+//
+function kh_getMultiSettings(settings, callback) {
+  var results = {};
+  try {
+    var lock = navigator.mozSettings.createLock();
+  }
+  catch (e) {
+    // If settings is broken, just return the default values
+    console.warn('Exception in mozSettings.createLock():', e,
+                 '\nUsing default values');
+    for (var p in settings)
+      results[p] = settings[p];
+    callback(results);
+  }
+  var settingNames = Object.keys(settings);
+  var numSettings = settingNames.length;
+  var numResults = 0;
+
+  for (var i = 0; i < numSettings; i++) {
+    requestSetting(settingNames[i]);
+  }
+
+  function requestSetting(name) {
+    try {
+      var request = lock.get(name);
+    }
+    catch (e) {
+      console.warn('Exception querying setting', name, ':', e,
+                   '\nUsing default value');
+      recordResult(name, settings[name]);
+      return;
+    }
+    request.onsuccess = function() {
+      var value = request.result[name];
+      if (value === undefined) {
+        value = settings[name]; // Use the default value
+      }
+      recordResult(name, value);
+    };
+    request.onerror = function(evt) {
+      console.warn('Error querying setting', name, ':', evt.error);
+      recordResult(name, settings[name]);
+    };
+  }
+
+  function recordResult(name, value) {
+    results[name] = value;
+    numResults++;
+    if (numResults === numSettings) {
+      callback(results);
+    }
+  }
 }
 
 /**
@@ -335,6 +486,18 @@ var KeyboardHelper = exports.KeyboardHelper = {
       kh_getSettings();
       settings.addObserver(SETTINGS_KEYS.ENABLED, kh_getSettings);
       settings.addObserver(SETTINGS_KEYS.DEFAULT, kh_getSettings);
+
+      // read deprecated settings
+      var deprecatedSettingsQuery = {};
+      for (var key in DEPRECATE_KEYBOARD_SETTINGS) {
+        // the deprecated setting entry, e.g. keyboard.layout.english
+        var settingEntry = DEPRECATE_KEYBOARD_SETTINGS[key];
+
+        // Set the default value for each entry
+        deprecatedSettingsQuery[settingEntry] = undefined;
+      }
+      kh_getMultiSettings(deprecatedSettingsQuery,
+                          kh_migrateDeprecatedSettings);
     }
 
     window.addEventListener('applicationinstallsuccess', this);
