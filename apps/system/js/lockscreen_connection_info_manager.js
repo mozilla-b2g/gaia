@@ -112,13 +112,13 @@
    */
   LockScreenConnInfoManagerPrototype._createConnStateElement =
     function lscs_createConnStateElement() {
-      /**
-       * <div>
-       *   <span></span>
-       *   <span class="connstate-line"></span>
-       *   <span class="connstate-line"></span>
-       * </div>
-       */
+      //
+      // <div>
+      //   <span></span>
+      //   <span class="connstate-line"></span>
+      //   <span class="connstate-line"></span>
+      // </div>
+      //
 
       var div = document.createElement('div');
       var span = document.createElement('span');
