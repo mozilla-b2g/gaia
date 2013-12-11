@@ -89,6 +89,8 @@ Evme.Analytics = new function Evme_Analytics() {
     /**** PRIVATE METHODS ****/
    
    function onSettingChange(value) {
+        return false;
+        
         if (value) {
             Evme.EventHandler.bind(catchCallback);
         } else {
