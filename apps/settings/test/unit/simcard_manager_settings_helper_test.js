@@ -77,7 +77,7 @@ suite('SimSettingsHelper > ', function() {
 
   suite('SimSettingsHelper._setToSettingsDB > ', function() {
     var fakeSettingKey = 'ril.sms.defaultServiceId';
-    var fakeSettingValue = '0';
+    var fakeSettingValue = 0;
 
     suiteSetup(function() {
       SimSettingsHelper._setToSettingsDB(fakeSettingKey, fakeSettingValue);
