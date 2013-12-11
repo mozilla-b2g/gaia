@@ -8,7 +8,7 @@ requireApp('system/test/unit/mock_gesture_detector.js');
 requireApp('system/test/unit/mock_screen_layout.js');
 requireApp('system/test/unit/mock_trusted_ui_manager.js');
 requireApp('system/test/unit/mock_utility_tray.js');
-requireApp('system/test/unit/mock_window_manager.js');
+requireApp('system/test/unit/mock_app_window_manager.js');
 requireApp('system/test/unit/mock_lock_screen.js');
 requireApp('system/test/unit/mock_sleep_menu.js');
 requireApp('system/test/unit/mock_popup_manager.js');
@@ -18,7 +18,7 @@ var mocksForCardsView = new MocksHelper([
   'ScreenLayout',
   'TrustedUIManager',
   'UtilityTray',
-  'WindowManager',
+  'AppWindowManager',
   'LockScreen',
   'SleepMenu',
   'PopupManager'
@@ -59,7 +59,7 @@ suite('cards view >', function() {
   });
 
   setup(function() {
-    MockWindowManager.mRunningApps = {
+    MockAppWindowManager.mRunningApps = {
       'http://sms.gaiamobile.org': {
         launchTime: 5,
         name: 'SMS',
@@ -69,6 +69,9 @@ suite('cards view >', function() {
           orientation: 'portrait-primary'
         },
         rotatingDegree: 0,
+        requestScreenshotURL: function() {
+          return null;
+        },
         getScreenshot: function(callback) {
           callback();
         }
@@ -82,6 +85,9 @@ suite('cards view >', function() {
           orientation: 'landscape-primary'
         },
         rotatingDegree: 90,
+        requestScreenshotURL: function() {
+          return null;
+        },
         getScreenshot: function(callback) {
           callback();
         }
@@ -95,6 +101,9 @@ suite('cards view >', function() {
           orientation: 'landscape-secondary'
         },
         rotatingDegree: 270,
+        requestScreenshotURL: function() {
+          return null;
+        },
         getScreenshot: function(callback) {
           callback();
         }
@@ -108,6 +117,9 @@ suite('cards view >', function() {
           orientation: 'landscape'
         },
         rotatingDegree: 90,
+        requestScreenshotURL: function() {
+          return null;
+        },
         getScreenshot: function(callback) {
           callback();
         }
@@ -121,12 +133,15 @@ suite('cards view >', function() {
           orientation: 'portrait-secondary'
         },
         rotatingDegree: 180,
+        requestScreenshotURL: function() {
+          return null;
+        },
         getScreenshot: function(callback) {
           callback();
         }
       }
     };
-    MockWindowManager.mDisplayedApp = 'http://sms.gaiamobile.org';
+    MockAppWindowManager.mDisplayedApp = 'http://sms.gaiamobile.org';
   });
 
   function sendHoldhome() {

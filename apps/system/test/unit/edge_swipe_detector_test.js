@@ -136,7 +136,7 @@ suite('system/EdgeSwipeDetector >', function() {
 
     function wrapperLaunch(config) {
       var evt = document.createEvent('CustomEvent');
-      evt.initCustomEvent('launchwrapper', true, false, config);
+      evt.initCustomEvent('launchapp', true, false, config);
       window.dispatchEvent(evt);
     }
 

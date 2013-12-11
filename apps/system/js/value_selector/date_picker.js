@@ -427,7 +427,7 @@ var DatePicker = (function() {
      * containing each date.
      *
      * @private
-     * @param {Array[Date]} dates array of dates.
+     * @param {Array} dates array of dates.
      * @return {HTMLELement} container for week.
      */
     _renderWeek: function(dates) {
@@ -452,7 +452,7 @@ var DatePicker = (function() {
      * @private
      * @param {Numeric} year target year.
      * @param {Numeric} month target month.
-     * @return {Array[Date]} array of dates.
+     * @return {Array} array of dates.
      */
     _getMonthDays: function(year, month) {
       var date = new Date(year, month);

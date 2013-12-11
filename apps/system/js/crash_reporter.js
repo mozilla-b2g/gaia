@@ -145,6 +145,18 @@ var CrashReporter = (function() {
     }
   });
 
+  function handleAppCrash(e) {
+    var app = e.detail;
+    // Only show crash reporter when the crashed app is active.
+    if (app.isActive()) {
+      setAppName(app.name);
+    }
+  }
+
+  window.addEventListener('appcrashed', handleAppCrash);
+  window.addEventListener('activitycrashed', handleAppCrash);
+  window.addEventListener('homescreencrashed', handleAppCrash);
+
   return {
     setAppName: setAppName
   };

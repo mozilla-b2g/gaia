@@ -15,7 +15,7 @@ var SimLock = {
     this.onClose = this.onClose.bind(this);
 
     // Watch for apps that need a mobile connection
-    window.addEventListener('appwillopen', this);
+    window.addEventListener('appopened', this);
 
     // Display the dialog only after lockscreen is unlocked
     // before the transition.
@@ -86,20 +86,19 @@ var SimLock = {
 
         this.showIfLocked();
         break;
-      case 'appwillopen':
+      case 'appopened':
         // If an app needs 'telephony' or 'sms' permissions (i.e. mobile
         // connection) and the SIM card is locked, the SIM PIN unlock screen
         // should be launched
 
-        var app = Applications.getByManifestURL(
-          evt.target.getAttribute('mozapp'));
+        var app = evt.detail;
 
-        if (!app || !app.manifest.permissions)
+        if (!app || !app.manifest || !app.manifest.permissions)
           return;
 
         // Ignore first time usage (FTU) app which already asks for the PIN code
         // XXX: We should have a better way to detect this app is FTU or not.
-        if (evt.target.dataset.frameOrigin == FtuLauncher.getFtuOrigin())
+        if (app.origin == FtuLauncher.getFtuOrigin())
           return;
 
         // Ignore apps that don't require a mobile connection
@@ -116,7 +115,7 @@ var SimLock = {
 
         // Ignore second 'appwillopen' event when showIfLocked eventually opens
         // the app on valid PIN code
-        var origin = evt.target.dataset.frameOrigin;
+        var origin = app.origin;
         if (origin == this._lastOrigin) {
           delete this._lastOrigin;
           return;
@@ -125,8 +124,11 @@ var SimLock = {
 
         // If SIM is locked, cancel app opening in order to display
         // it after the SIM PIN dialog is shown
-        if (this.showIfLocked())
-          evt.preventDefault();
+        this.showIfLocked();
+        // XXX: We don't block the app from launching if it requires SIM
+        // but only put the SIM PIN dialog upon the opening/opened app.
+        // Will revisit this in
+        // https://bugzilla.mozilla.org/show_bug.cgi?id=SIMPIN-Dialog
 
         break;
     }
@@ -177,10 +179,9 @@ var SimLock = {
     // Display the app only when PIN code is valid and when we click
     // on `X` button
     if (this._lastOrigin && (reason == 'success' || reason == 'skip'))
-      WindowManager.setDisplayedApp(this._lastOrigin);
+      System.publish('displayapp', { origin: this._lastOrigin });
     delete this._lastOrigin;
   }
-
 };
 
 SimLock.init();

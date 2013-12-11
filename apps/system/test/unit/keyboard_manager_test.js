@@ -482,13 +482,6 @@ suite('KeyboardManager', function() {
       });
       assert.ok(hideKeyboardImmediately.called);
     });
-
-    test('appwillclose event', function() {
-      KeyboardManager.handleEvent({
-        type: 'appwillclose'
-      });
-      assert.ok(hideKeyboardImmediately.called);
-    });
   });
 
   suite('Hide Keyboard', function() {
@@ -564,12 +557,33 @@ suite('KeyboardManager', function() {
     test('HideImmediately emits events', function() {
       var rsk = KeyboardManager.resetShowingKeyboard = sinon.stub();
       var kh = sinon.stub();
+      var khed = sinon.stub();
       window.addEventListener('keyboardhide', kh);
+      window.addEventListener('keyboardhidden', khed);
 
       KeyboardManager.hideKeyboardImmediately();
 
       sinon.assert.callCount(rsk, 1, 'resetShowingKeyborad');
       sinon.assert.callCount(kh, 1, 'keyboardhide event');
+      sinon.assert.callCount(khed, 1, 'keyboardhidden event');
+    });
+
+    test('Hide emits events', function() {
+      var rsk = KeyboardManager.resetShowingKeyboard = sinon.stub();
+      var kh = sinon.stub();
+      var khed = sinon.stub();
+      window.addEventListener('keyboardhide', kh);
+      window.addEventListener('keyboardhidden', khed);
+
+      KeyboardManager.hideKeyboard();
+      sinon.assert.callCount(kh, 1, 'keyboardhide event');
+      var fakeEvt = new CustomEvent('transitionend');
+      fakeEvt.propertyName = 'transform';
+      KeyboardManager.keyboardFrameContainer.dispatchEvent(fakeEvt);
+
+      sinon.assert.callCount(rsk, 1, 'resetShowingKeyborad');
+      sinon.assert.callCount(kh, 1, 'keyboardhide event');
+      sinon.assert.callCount(khed, 1, 'keyboardhidden event');
     });
   });
 

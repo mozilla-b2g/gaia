@@ -4,6 +4,10 @@ var MockOrientationManager = {
   // Fetch the default orientation once the module is loaded.
   defaultOrientation: 'portrait-primary',
 
+  isDefaultPortrait: function() {
+    return (this.defaultOrientation == 'portrait-primary');
+  },
+
   _isOnRealDevice: undefined,
 
   isOnRealDevice: function sl_isOnRealDevice() {

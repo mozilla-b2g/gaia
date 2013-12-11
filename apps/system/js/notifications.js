@@ -10,6 +10,8 @@
     return;
 
   var addIcons = function addIcons(app) {
+    if (!app.manifest)
+      return;
     var icons = app.manifest.icons;
     if (icons) {
       Object.keys(icons).forEach(function iconIterator(key) {

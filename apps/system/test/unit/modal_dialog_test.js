@@ -1,13 +1,13 @@
 'use strict';
 
-requireApp('system/test/unit/mock_window_manager.js');
+requireApp('system/test/unit/mock_app_window_manager.js');
 requireApp('system/test/unit/mock_statusbar.js');
 requireApp('system/test/unit/mock_l10n.js');
 requireApp('system/js/modal_dialog.js');
 
 var mocksForDialog = new MocksHelper([
   'StatusBar',
-  'WindowManager'
+  'AppWindowManager'
 ]).init();
 
 suite('system/ModalDialog >', function() {
@@ -63,34 +63,6 @@ suite('system/ModalDialog >', function() {
 
     assert.isNotNull(
       ModalDialog.elements.selectOneMenu.innerHTML.match(testOptions[0].id));
-  });
-
-  test('pretend to call window.alert >', function() {
-
-    var fakeEvt = {
-      type: 'mozbrowsershowmodalprompt',
-      target: {
-        dataset: {
-          frameType: 'window',
-          frameOrigin: testObject.fakeOrigin
-        }
-      },
-      detail: {
-        title: testObject.dialogTitle,
-        message: testObject.dialogText,
-        promptType: 'alert'
-      },
-      preventDefault: function() { }
-    };
-
-    WindowManager.setDisplayedApp(testObject.fakeOrigin);
-    ModalDialog.handleEvent(fakeEvt);
-
-    // make sure we go into the XXX fix
-    assert.equal(ModalDialog.elements.alertTitle.textContent, '');
-    assert.isTrue(ModalDialog.elements.alert.classList.contains('visible'));
-
-    ModalDialogCleanUp();
   });
 
   test('call selectone API directly >', function() {

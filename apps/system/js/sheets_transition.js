@@ -5,12 +5,16 @@ var SheetsTransition = {
   _new: null,
 
   begin: function st_begin(direction) {
+    // Ask Homescreen App to fade out when sheets begin moving.
+    // Homescreen App would fade in next time it's opened automatically.
+    var home = HomescreenLauncher.getHomescreen();
+    home && home.fadeOut();
     var currentSheet = StackManager.getCurrent();
     var newSheet = (direction == 'ltr') ?
       StackManager.getPrev() : StackManager.getNext();
 
-    this._current = currentSheet ? currentSheet.frame : null;
-    this._new = newSheet ? newSheet.frame : null;
+    this._current = currentSheet ? currentSheet.element : null;
+    this._new = newSheet ? newSheet.element : null;
 
     if (this._current) {
       this._current.classList.add('inside-edges');
@@ -22,6 +26,8 @@ var SheetsTransition = {
       this._new.classList.toggle('outside-edges-right', (direction == 'rtl'));
       if (direction == 'rtl') {
         this._new.dataset.zIndexLevel = 'top-app';
+      } else {
+        this._new.dataset.zIndexLevel = 'bottom-app';
       }
       this._new.style.transition = 'transform';
     }
@@ -87,7 +93,8 @@ var SheetsTransition = {
   },
 
   snapInPlace: function st_snapInPlace() {
-    var duration = 300 - (300 * (1 - this._lastProgress));
+    var TIMEOUT = 300;
+    var duration = TIMEOUT - (TIMEOUT * (1 - this._lastProgress));
     duration = Math.max(duration, 90);
 
     this._setDuration(this._current, duration);

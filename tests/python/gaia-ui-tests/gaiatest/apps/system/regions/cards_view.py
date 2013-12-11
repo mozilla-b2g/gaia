@@ -29,7 +29,7 @@ class CardsView(Base):
     def open_cards_view(self):
         # Hold the home button to open cards view
         self.marionette.execute_script("window.wrappedJSObject.dispatchEvent(new Event('holdhome'));")
-        time.sleep(1)
+        time.sleep(3)
         self.wait_for_cards_view()
 
     def exit_cards_view(self):

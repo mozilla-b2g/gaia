@@ -18,7 +18,7 @@ var GaiaApps = {
   },
 
   getRunningApps: function() {
-    let runningApps = window.wrappedJSObject.WindowManager.getRunningApps();
+    let runningApps = window.wrappedJSObject.AppWindowManager.getRunningApps();
     // Return a simplified version of the runningApps object which can be
     // JSON-serialized.
     let apps = {};
@@ -35,7 +35,7 @@ var GaiaApps = {
   },
 
   getRunningAppOrigin: function(name) {
-    let runningApps = window.wrappedJSObject.WindowManager.getRunningApps();
+    let runningApps = window.wrappedJSObject.AppWindowManager.getRunningApps();
     let origin;
 
     for (let property in runningApps) {
@@ -120,7 +120,7 @@ var GaiaApps = {
   // Returns the number of running apps.
   numRunningApps: function() {
     let count = 0;
-    let runningApps = window.wrappedJSObject.WindowManager.getRunningApps();
+    let runningApps = window.wrappedJSObject.AppWindowManager.getRunningApps();
     for (let origin in runningApps) {
       count++;
     }
@@ -130,7 +130,7 @@ var GaiaApps = {
   // Kills the specified app.
   kill: function(aOrigin, aCallback) {
     var callback = aCallback || marionetteScriptFinished;
-    let runningApps = window.wrappedJSObject.WindowManager.getRunningApps();
+    let runningApps = window.wrappedJSObject.AppWindowManager.getRunningApps();
     if (!runningApps.hasOwnProperty(aOrigin)) {
       callback(false);
     }
@@ -144,13 +144,13 @@ var GaiaApps = {
           },
           function() {
             let runningApps =
-              window.wrappedJSObject.WindowManager.getRunningApps();
+              window.wrappedJSObject.AppWindowManager.getRunningApps();
             return !runningApps.hasOwnProperty(aOrigin);
           }
         );
       });
       console.log("terminating app with origin '" + aOrigin + "'");
-      window.wrappedJSObject.WindowManager.kill(aOrigin);
+      window.wrappedJSObject.AppWindowManager.kill(aOrigin);
     }
   },
 
@@ -159,7 +159,7 @@ var GaiaApps = {
     let originsToClose = [];
     let that = this;
 
-    let runningApps = window.wrappedJSObject.WindowManager.getRunningApps();
+    let runningApps = window.wrappedJSObject.AppWindowManager.getRunningApps();
     for (let origin in runningApps) {
       if (origin.indexOf('homescreen') == -1) {
         originsToClose.push(origin);
@@ -190,26 +190,28 @@ var GaiaApps = {
   launchWithName: function(name) {
     GaiaApps.locateWithName(name, function(app, appName, entryPoint) {
       if (app) {
-        let windowManager = window.wrappedJSObject.WindowManager;
-        let runningApps = windowManager.getRunningApps();
+        let AppWindowManager = window.wrappedJSObject.AppWindowManager;
+        let runningApps = AppWindowManager.getRunningApps();
         let origin = GaiaApps.getRunningAppOrigin(appName);
 
         let sendResponse = function() {
           let app = runningApps[origin];
-          let result = {frame: app.frame.firstChild,
-            src: app.iframe.src,
+          let result = {
+            frame: app.browser.element,
+            src: app.browser.element.src,
             name: app.name,
-            origin: origin};
+            origin: origin
+          };
           marionetteScriptFinished(result);
         };
 
-        if (windowManager.getDisplayedApp() == origin) {
+        if (AppWindowManager.getDisplayedApp() == origin) {
           console.log("app with origin '" + origin + "' is already running");
           sendResponse();
         }
         else {
-          window.addEventListener('apploadtime', function apploadtime() {
-            window.removeEventListener('apploadtime', apploadtime);
+          window.addEventListener('appopened', function apploadtime() {
+            window.removeEventListener('appopened', apploadtime);
             waitFor(
               function() {
                 console.log("app with origin '" + origin + "' has launched");
@@ -217,7 +219,7 @@ var GaiaApps = {
               },
               function() {
                 origin = GaiaApps.getRunningAppOrigin(appName);
-                return windowManager.getDisplayedApp() == origin;
+                return AppWindowManager.getDisplayedApp() == origin;
               }
             );
           });
@@ -234,15 +236,17 @@ var GaiaApps = {
    * Returns the currently displayed app.
    */
   displayedApp: function() {
-    let windowManager = window.wrappedJSObject.WindowManager;
-    let runningApps = windowManager.getRunningApps();
-    let origin = windowManager.getDisplayedApp();
+    let AppWindowManager = window.wrappedJSObject.AppWindowManager;
+    let runningApps = AppWindowManager.getRunningApps();
+    let origin = AppWindowManager.getDisplayedApp();
     console.log("app with origin '" + origin + "' is displayed");
     let app = runningApps[origin];
-    let result = {frame: app.frame.firstChild,
-      src: app.iframe.src,
+    let result = {
+      frame: app.browser.element,
+      src: app.browser.element.src,
       name: app.name,
-      origin: origin};
+      origin: origin
+    };
     marionetteScriptFinished(result);
   },
 

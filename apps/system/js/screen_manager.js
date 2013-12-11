@@ -416,7 +416,8 @@ var ScreenManager = {
   _reconfigScreenTimeout: function scm_reconfigScreenTimeout() {
     // Remove idle timer if screen wake lock is acquired or
     // if no app has been displayed yet.
-    if (this._screenWakeLocked || !WindowManager.getDisplayedApp()) {
+    if (this._screenWakeLocked || !AppWindowManager ||
+        !AppWindowManager.getDisplayedApp()) {
       this._setIdleTimeout(0);
     // The screen should be turn off with shorter timeout if
     // it was never unlocked.
