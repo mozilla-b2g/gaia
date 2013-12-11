@@ -115,7 +115,6 @@ li:active {
   -moz-box-sizing: border-box;
   background-clip: content-box;
   transform: scale(1);
-  transition: transform 150ms ease-in-out;
 }
 
 body[data-mode = 'normal'] ol > li span.options {
