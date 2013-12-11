@@ -620,7 +620,7 @@ form.bottom[role="search"].messages-compose-form {
 
 /* Fix the compose buttons to the bottom of their container. */
 #messages-send-button {
-  position: absolute;
+  position: relative;
   bottom: 0;
   right: 0;
 }
@@ -651,7 +651,7 @@ form.bottom[role="search"].messages-compose-form {
   content: 'MMS';
   color: #FF4E00;
   font-size: 1.5rem;
-  padding-left: 1.6rem;
+  padding-left: -moz-calc(100% - 5rem);
   margin-top: -1.2rem;
 }
 
