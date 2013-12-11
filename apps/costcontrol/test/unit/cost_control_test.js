@@ -7,7 +7,6 @@ requireApp('costcontrol/test/unit/mock_icc_helper.js');
 requireApp('costcontrol/test/unit/mock_config_manager.js');
 requireApp('costcontrol/test/unit/mock_settings_listener.js');
 requireApp('costcontrol/test/unit/mock_moz_network_stats.js');
-requireApp('costcontrol/js/networkstats_proxy.js');
 requireApp('costcontrol/js/utils/toolkit.js');
 requireApp('costcontrol/js/costcontrol.js');
 
@@ -17,7 +16,7 @@ var realCommon,
     realConfigManager,
     realIccHelper,
     realMozMobileConnection,
-    realNetworkstatsProxy;
+    realNetworkstats;
 
 if (!this.SettingsListener) {
   this.SettingsListener = null;
@@ -35,8 +34,8 @@ if (!this.navigator.mozMobileConnection) {
   this.navigator.mozMobileConnection = null;
 }
 
-if (!this.NetworkstatsProxy) {
-  this.NetworkstatsProxy = null;
+if (!this.Networkstats) {
+  this.Networkstats = null;
 }
 
 if (!this.navigator.mozNetworkStats) {
@@ -65,8 +64,8 @@ suite('Cost Control Service Hub Suite >', function() {
     realMozMobileConnection = window.navigator.mozMobileConnection;
     window.navigator.mozMobileConnection = new MockMozMobileConnection();
 
-    realNetworkstatsProxy = window.NetworkstatsProxy;
-    window.NetworkstatsProxy = MockMozNetworkStats;
+    realNetworkstats = window.Networkstats;
+    window.Networkstats = MockMozNetworkStats;
 
     realMozNetworkStats = window.navigator.mozNetworkStats;
     navigator.mozNetworkStats = MockMozNetworkStats;
@@ -81,7 +80,7 @@ suite('Cost Control Service Hub Suite >', function() {
     window.navigator.mozMobileConnection = realMozMobileConnection;
     window.navigator.mozNetworkStats = realMozNetworkStats;
     window.Common = realCommon;
-    window.NetworkstatsProxy = realNetworkstatsProxy;
+    window.Networkstats = realNetworkstats;
   });
 
   function setupDelaySinceLastBalance(lastBalanceRequest, delay) {
