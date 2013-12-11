@@ -251,15 +251,15 @@
   };
 
   function setComposition(gul) {
-      composingText = gul;
-      keyboard.setComposition(gul);
+    composingText = gul;
+    keyboard.setComposition(gul);
   }
 
   function endComposition() {
-      if (composingText.length > 0) {
-        keyboard.endComposition(composingText);
-        composingText = '';
-      }
+    if (composingText.length > 0) {
+      keyboard.endComposition(composingText);
+      composingText = '';
+    }
   }
 
   function init(interfaceObject) {
