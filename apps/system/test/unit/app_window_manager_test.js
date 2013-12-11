@@ -479,12 +479,6 @@ suite('system/AppWindowManager', function() {
   });
 
   suite('Launch()', function() {
-    test('Launch system app', function() {
-      var stubDisplay = this.sinon.stub(AppWindowManager, 'display');
-      AppWindowManager.launch({ url: window.location.href });
-      assert.isFalse(stubDisplay.called);
-    });
-
     test('Launch app1', function() {
       var stubDisplay = this.sinon.stub(AppWindowManager, 'display');
       AppWindowManager.runningApps = {};

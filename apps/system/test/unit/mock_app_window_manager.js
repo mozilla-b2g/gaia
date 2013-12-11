@@ -4,6 +4,10 @@ var MockAppWindowManager = {
   // backward compatibility to WindowManager
   mDisplayedApp: null,
 
+  isRunning: function(config) {
+    return (config.origin in this.mRunningApps);
+  },
+
   mRunningApps: {},
 
   // TODO: Remove this.

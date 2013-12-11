@@ -4,11 +4,13 @@
   var screenElement = document.getElementById('screen');
 
   /**
-   * AppWindowManager manages the life cycle of AppWindow instances.
+   * AppWindowManager manages the interaction of AppWindow instances.
    *
-   * It on demand creates a new AppWindow instance,
-   * resize an existing AppWindow instance,
-   * destroy a closing AppWindow instance.
+   * * Controll the open/close request of the living appWindow
+   *   instances.
+   * * Deliver the resize/orientation lock/setVisible request
+   *   from LayoutManager/OrientationManager/VisibilityManager to the
+   *   active appWindow instance.
    *
    * @module AppWindowManager
    */
@@ -25,6 +27,19 @@
     // TODO: Remove this.
     getRunningApps: function awm_getRunningApps() {
       return this.runningApps;
+    },
+
+    /**
+     * Test the app is already running.
+     * @param {AppConfig} app The configuration of app.
+     * @return {Boolean} The app is running or not.
+     */
+    isRunning: function awm_isRunning(config) {
+      if (config.manifestURL && config.origin in this.runningApps) {
+        return true;
+      } else {
+        return false;
+      }
     },
 
     getDisplayedApp: function awm_getDisplayedApp() {
@@ -158,8 +173,8 @@
 
     /**
      * The init process from bootstrap to homescreen is opened:
-     * <a href="http://i.imgur.com/44LBhKM.png" target="_blank">
-     *   <img src="http://i.imgur.com/44LBhKM.png"></img>
+     * <a href="http://i.imgur.com/8qsOh1W.png" target="_blank">
+     *   <img src="http://i.imgur.com/8qsOh1W.png" title="bootstrap"></img>
      * </a>
      *
      * 1. Applications is ready. (mozApps are parsed.)
@@ -428,52 +443,28 @@
      * @memberOf module:AppWindowManager
      */
     launch: function awm_launch(config) {
-      // Don't need to relaunch system app.
-      if (config.url === window.location.href)
-        return;
-
-      // ActivityWindowManager
-      if (config.isActivity && config.inline)
-        return;
-
       if (config.stayBackground) {
-        this.debug('launching background service: ' + config.url);
-        // If the message specifies we only have to show the app,
-        // then we don't have to do anything here
-        if (config.changeURL) {
-          if (this.runningApps[config.origin]) {
-            this.runningApps[config.origin].modifyURLatBackground(config.url);
-          } else if (config.origin !== HomescreenLauncher.origin) {
-            // XXX: We could ended opening URls not for the app frame
-            // in the app frame. But we don't care.
-            new AppWindow(config);
-          } else {
-            HomescreenLauncher.getHomescreen().ensure();
-          }
+        if (config.changeURL && this.runningApps[config.origin]) {
+          this.runningApps[config.origin].modifyURLatBackground(config.url);
         }
         return;
       } else {
+        // Link the window before displaying it to avoid race condition.
+        if (config.isActivity && this._activeApp) {
+          this.linkWindowActivity(config);
+        }
         if (config.origin == HomescreenLauncher.origin) {
-          // No need to append a frame if is homescreen
           this.display();
         } else {
-          // The policy is we always check the same apps are already
-          // opened by checking manifestURL + pageURL.
-          if (!this.runningApps[config.origin]) {
-            new AppWindow(config);
-          }
           this.display(config.origin);
         }
-
-        // We will only bring apps to the foreground when the message
-        // specifically requests it.
-        if (!config.isActivity || !this._activeApp)
-          return;
-
-        var caller = this._activeApp;
-        this.runningApps[config.origin].activityCaller = caller;
-        caller.activityCallee = this.runningApps[config.origin];
       }
+    },
+
+    linkWindowActivity: function awm_linkWindowActivity(config) {
+      var caller = this._activeApp;
+      this.runningApps[config.origin].activityCaller = caller;
+      caller.activityCallee = this.runningApps[config.origin];
     },
 
     debug: function awm_debug() {
