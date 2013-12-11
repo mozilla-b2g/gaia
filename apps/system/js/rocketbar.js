@@ -4,6 +4,8 @@ var Rocketbar = {
 
   enabled: false,
 
+  searchAppURL: null,
+
   _port: null,
 
   searchContainer: document.getElementById('search-container'),
@@ -30,6 +32,13 @@ var Rocketbar = {
     function(value) {
       this.enabled = value;
     }.bind(this));
+
+    SettingsListener.observe('rocketbar.searchAppURL', false,
+    function(url) {
+      this.searchAppURL = url;
+      this.searchManifestURL = url.match(/(^.*?:\/\/.*?\/)/)[1] +
+        'manifest.webapp';
+    }.bind(this));
   },
 
   loadSearchApp: function() {
@@ -43,17 +52,12 @@ var Rocketbar = {
       return;
     }
 
-    // Generate a <iframe mozbrowser> containing the search.
-    var root = 'app://homescreen.gaiamobile.org/';
-    var searchURL = root + 'search/index.html';
-    var manifestURL = root + 'manifest.webapp';
-
     searchFrame = document.createElement('iframe');
-    searchFrame.src = searchURL;
+    searchFrame.src = this.searchAppURL;
     searchFrame.setAttribute('mozapptype', 'mozsearch');
     searchFrame.setAttribute('mozbrowser', 'true');
     searchFrame.setAttribute('remote', 'true');
-    searchFrame.setAttribute('mozapp', manifestURL);
+    searchFrame.setAttribute('mozapp', this.searchManifestURL);
 
     container.appendChild(searchFrame);
 
