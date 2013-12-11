@@ -7,6 +7,8 @@
   }
 
   Contacts.prototype = {
+    __proto__: Provider.prototype,
+
     click: function(target) {
       Search.close();
       var activity = new MozActivity({

@@ -58,8 +58,18 @@
     { "alarm": "/index.html" }
   ],
   "connections": {
+    "eme-input": {
+      "handler_path": "/index.html",
+      "description": "Messages from Rocketbar results -> Homescreen E.me.",
+      "rules": {}
+    },
+    "eme-api": {
+      "handler_path": "/search/index.html",
+      "description": "Messages Homescreen E.me API to rocketbar.",
+      "rules": {}
+    },
     "search": {
-      "handler_path": "search/index.html",
+      "handler_path": "/search/index.html",
       "description": "Proxies search to copied search app. Should be moved to the search app manifest if we split the app up.",
       "rules": {
         "manifestURLs": ["app://system.gaiamobile.org/manifest.webapp"]

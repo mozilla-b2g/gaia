@@ -3,7 +3,37 @@
 var EverythingME = {
   pendingEvent: undefined,
 
+  // Port to communicate with rocketbar results
+  port: null,
+
   init: function EverythingME_init() {
+    // Listen to eme-input channel
+    navigator.mozSetMessageHandler('connection', function(connectionRequest) {
+      var keyword = connectionRequest.keyword;
+      if (keyword != 'eme-input')
+        return;
+
+      var port = connectionRequest.port;
+      port.onmessage = this.onmessage.bind(this);
+      port.start();
+    }.bind(this));
+
+    // Broadcast to eme-api channel
+    var self = this;
+    navigator.mozApps.getSelf().onsuccess = function() {
+      var app = this.result;
+      app.connect('eme-api').then(
+        function onConnectionAccepted(ports) {
+          ports.forEach(function(port) {
+            self.port = port;
+          });
+        },
+        function onConnectionRejected(reason) {
+          dump('Error connecting: ' + reason + '\n');
+        }
+      );
+    };
+
     var footer = document.querySelector('#footer');
     if (footer) {
       footer.style.MozTransition = '-moz-transform .3s ease';
@@ -139,6 +169,13 @@ var EverythingME = {
     });
 
     EverythingME.migrateStorage();
+  },
+
+  /**
+   * Called when we receive a message from the rocket bar results app
+   */
+  onmessage: function(msg) {
+    console.log('Evme got message from search: ', msg);
   },
 
   onActivationIconBlur: function onActivationIconBlur(e) {
