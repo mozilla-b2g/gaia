@@ -1,3 +1,13 @@
+/* camera */
+#video-container {
+  position: fixed;
+  overflow: hidden;
+}
+.camera-buttons {
+  width: calc(30%);
+  font-size: 1rem;
+}
+
 button {
   font-size: 3rem;
 }

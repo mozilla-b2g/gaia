@@ -2,12 +2,21 @@
 <html>
   <head>
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
-    <meta charset="utf-8">
-    <title>Camera test</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>camera test</title>
+    <script defer src="/shared/js/gesture_detector.js"></script>
     <script defer src="../../js/HW/camera.js"></script>
     <link rel="stylesheet" type="text/css" href="../../style/HW.css">
   </head>
   <body>
-    <button id="camera">Open camera</button>
+    <div id="description">
+      <p id="message" class="error"></p>
+      <p class="error">Notice:<br>Before gUM complete, this test use fake image to represent video</p>
+      <p>Usage:<br>pinch to zoom, double tap to take shot</p>
+      <button id="start">Start camera</button>
+    </div>
+    <div id="video-container">
+      <video id="video"></video>
+    </div>
   </body>
 </html>

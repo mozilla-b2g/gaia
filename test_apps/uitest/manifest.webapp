@@ -26,6 +26,7 @@
     "settings":{ "access": "readwrite" },
     "desktop-notification":{},
     "device-storage:sdcard":{ "access": "readwrite" },
+    "device-storage:pictures":{ "access": "readwrite" },
     "settings":{ "access": "readwrite" },
     "audio-capture": {},
     "video-capture": {},
