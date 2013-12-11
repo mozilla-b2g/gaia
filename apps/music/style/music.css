@@ -290,6 +290,7 @@ body.picker-mode #title-player {
   overflow-x: hidden;
   overflow-y: auto;
   background-color: #0E1214;
+  will-animate: scroll;
 }
 
 #views-tiles {
@@ -338,6 +339,7 @@ body.picker-mode #title-player {
   height: calc(100% - 8rem);
   overflow-x: hidden;
   overflow-y: auto;
+  will-animate: scroll;
 }
 
 #views-sublist-header-image,
