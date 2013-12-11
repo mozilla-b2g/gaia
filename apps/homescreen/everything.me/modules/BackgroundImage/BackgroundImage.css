@@ -74,31 +74,31 @@ body.evme-displayed #search-overlay:not(:empty){
         top: 0;
         left: 0;
         right: 0;
-        height: 5.4rem;
-        padding: 0 6rem 0 3.2rem;
+        padding: 0 6rem 0 3rem;
         z-index: 20;
         background: rgba(0, 0, 0, .4);
      }
-     #bgimage-overlay.nosource .content {
-        line-height: 5.5rem;
-     }
         #bgimage-overlay .content h2 {
             font-weight: 600;
-            color: #b4dae7;
-            font-size: 1.5rem;
-            margin: 1rem 0 0 0;
+            color: #fff;
+            font-size: 2.2rem;
+            height: 5.4rem;
+            line-height: 5.5rem;
+            font-weight: normal;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
-        #bgimage-overlay.nosource .content h2 {
-            font-size: 1.7rem;
-            font-weight: 400;
-            margin-top: 0;
-        }
         #bgimage-overlay .content .source {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 0.5rem 1rem;
             color: #fff;
-            font-size: 1.3rem;
+            opacity: .8;
+            text-shadow: 0 0.1rem 0.1rem rgba(0, 0, 0, 1);
+            font-size: 1.5rem;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -116,26 +116,15 @@ body.evme-displayed #search-overlay:not(:empty){
             bottom: 0;
             left: 0;
             z-index: 2;
-            width: 2.5rem;
+            width: 3rem;
             cursor: pointer;
         }
-         #bgimage-overlay .content .close:after {
-              content: "";
-              position: absolute;
-              top: 0.4rem;
-              bottom: 0.4rem;
-              right: -0.1rem;
-              width: 0.1rem;
-              background: rgba(0, 0, 0, .3);
-              border-right: 0.1rem solid rgba(255, 255, 255, .3);
-          }
         #bgimage-overlay .content .rightbutton {
             position: absolute;
             top: 0;
             bottom: 0;
             right: 0;
-            background: url('../../images/Wallpaper.png') 50% 50% / 2.7rem no-repeat,
-                        url('../../images/separator.png') 0% 50% / 0.1rem 3.7rem no-repeat;
+            background: url('../../images/Wallpaper.png') 50% 50% / 2.7rem no-repeat;
             width: 5rem;
         }
 

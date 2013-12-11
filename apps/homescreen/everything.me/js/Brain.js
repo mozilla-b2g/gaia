@@ -932,20 +932,36 @@
         requestCollectionImage = null,
         timeoutShowAppsLoading = null;
 
-    // a collection is shown
-    this.show = function show(data) {
+    // starting to show the collection
+    this.beforeShow = function beforeShow(data) {
       PaginationBar.hide();
-      document.getElementById('icongrid').classList.add(
-                                                CLASS_WHEN_COLLECTION_VISIBLE);
-      window.setTimeout(loadAppsIntoCollection, 600);
+
+      window.setTimeout(function() {
+        var elAffectedByCollection = document.getElementById('icongrid');
+        elAffectedByCollection.classList.add(CLASS_WHEN_COLLECTION_VISIBLE);
+      }, 50);
+    };
+
+    // the collection is shown
+    this.show = function show(data) {
+      // this timeout gives the Static apps time to render
+      // without the clouds apps have a chance to render with the static apps
+      // which overloads the render engine
+      window.setTimeout(loadAppsIntoCollection, 300);
       currentResultsManager = Evme.CollectionResults;
     };
 
-    // hiding the collection
+    // starting to hide the collection
+    this.beforeHide = function beforeHide() {
+      window.setTimeout(function() {
+        var elAffectedByCollection = document.getElementById('icongrid');
+        elAffectedByCollection.classList.remove(CLASS_WHEN_COLLECTION_VISIBLE);
+      }, 140);
+    };
+
+    // the collection is hidden
     this.hide = function hide() {
       PaginationBar.show();
-      document.getElementById('icongrid').classList.remove(
-                                                CLASS_WHEN_COLLECTION_VISIBLE);
       Evme.Brain.Collection.cancelRequests();
       Evme.ConnectionMessage.hide();
 
