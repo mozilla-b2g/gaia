@@ -51,6 +51,31 @@ Evme.IconManager = new function Evme_IconManager() {
     Evme.Storage.get(_prefix + id, callback);
   };
 
+  this.getBatch = function getBatch(ids, callback) {
+    if (!ids || !ids.length) {
+      callback();
+      return;
+    }
+
+    var iconsMap = {};
+    var numIcons = 0;
+
+    for (var i = 0, id; id = ids[i++];) {
+      getIcon(id);
+    }
+
+    function getIcon(id) {
+      self.get(id, function onGet(icon) {
+        if (icon) {
+          iconsMap[id] = icon;
+        }
+        if (++numIcons === ids.length) {
+          callback(iconsMap);
+        }
+      });
+    }
+  };
+
   this.getKeys = function getKeys() {
     return savedIconsKeys;
   };
