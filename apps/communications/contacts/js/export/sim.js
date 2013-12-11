@@ -118,9 +118,10 @@ var ContactsSIMExport = function ContactsSIMExport(icc) {
     };
 
     var theContact = contacts[step];
+    var originalContactId = theContact.id;
     var idToUpdate = _getIccContactId(theContact);
     if (!idToUpdate) {
-      delete theContact.id;
+      theContact.id = null;
     }
     else {
       theContact.id = idToUpdate;
@@ -128,6 +129,9 @@ var ContactsSIMExport = function ContactsSIMExport(icc) {
 
     var request = icc.updateContact('adn', theContact);
     request.onsuccess = function onsuccess() {
+      // Restoring the original contact.id to avoid duplicating it
+      theContact.id = originalContactId;
+
       if (idToUpdate) {
         next(true, theContact);
         return;
