@@ -976,7 +976,7 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
             raise TimeoutException(
                 'Element %s still present after timeout' % locator)
 
-    def wait_for_element_displayed(self, by, locator, timeout=None):
+    def wait_for_element_displayed(self, by, locator, timeout=None, message=None):
         timeout = timeout or (self.marionette.timeout and self.marionette.timeout / 1000) or 30
         end_time = float(timeout) + time.time()
         e = None
@@ -988,11 +988,17 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
             except (NoSuchElementException, StaleElementException) as e:
                 pass
         else:
+            print "----------------- screenshot ----------------"
+            print self.marionette.screenshot()
+            print "----------------end screenshot --------------"
+
             # This is an effortless way to give extra debugging information
             if isinstance(e, NoSuchElementException):
-                raise TimeoutException('Element %s not present before timeout' % locator)
+                if message is None: message = 'Element %s not present before timeout' % locator
+                raise TimeoutException(message)
             else:
-                raise TimeoutException('Element %s present but not displayed before timeout' % locator)
+                if message is None: message = 'Element %s present but not displayed before timeout' % locator
+                raise TimeoutException(message)
 
     def wait_for_element_not_displayed(self, by, locator, timeout=None):
         timeout = timeout or (self.marionette.timeout and self.marionette.timeout / 1000) or 30
@@ -1026,6 +1032,10 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
                 pass
             time.sleep(0.5)
         else:
+            print "----------------- screenshot ----------------"
+            print self.marionette.screenshot()
+            print "----------------end screenshot --------------"
+
             raise TimeoutException(message)
 
     def is_element_present(self, by, locator):
@@ -1045,6 +1055,7 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
         self.lockscreen = None
         self.apps = None
         self.data_layer = None
+
         MarionetteTestCase.tearDown(self)
 
 

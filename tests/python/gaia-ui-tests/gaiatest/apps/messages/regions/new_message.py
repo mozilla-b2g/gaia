@@ -25,7 +25,7 @@ class NewMessage(Messages):
         Base.__init__(self, marionette)
         self.switch_to_messages_frame()
         section = self.marionette.find_element(*self._thread_messages_locator)
-        self.wait_for_condition(lambda m: section.location['x'] == 0)
+        self.wait_for_condition(lambda m: section.location['x'] == 0, message="Section.location %s" % str(section.location))
 
     def switch_to_messages_frame(self):
         self.marionette.switch_to_frame()
