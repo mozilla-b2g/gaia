@@ -30,10 +30,10 @@ var Settings = {
   _isTabletAndLandscapeLastTime: null,
 
   rotate: function rotate(evt) {
-    var isTableAndLandscapeThisTime = Settings.isTabletAndLandscape();
+    var isTabletAndLandscapeThisTime = Settings.isTabletAndLandscape();
     var panelsWithCurrentClass;
     if (Settings._isTabletAndLandscapeLastTime !==
-        isTableAndLandscapeThisTime) {
+        isTabletAndLandscapeThisTime) {
       panelsWithCurrentClass = Settings._panelsWithClass('current');
       // in two column style if we have only 'root' panel displayed,
       // (left: root panel, right: blank)
@@ -44,7 +44,7 @@ var Settings = {
         Settings.currentPanel = Settings.defaultPanelForTablet;
       }
     }
-    Settings._isTabletAndLandscapeLastTime = isTableAndLandscapeThisTime;
+    Settings._isTabletAndLandscapeLastTime = isTabletAndLandscapeThisTime;
   },
 
   _transit: function transit(oldPanel, newPanel, callback) {
@@ -778,11 +778,6 @@ window.addEventListener('load', function loadSettings() {
   window.removeEventListener('load', loadSettings);
   window.addEventListener('change', Settings);
 
-  ScreenLayout.watch(
-    'tabletAndLandscaped',
-    '(min-width: 768px) and (orientation: landscape)');
-  window.addEventListener('screenlayoutchange', Settings.rotate);
-
   navigator.addIdleObserver({
     time: 3,
     onidle: Settings.loadPanelStylesheetsIfNeeded.bind(Settings)
@@ -812,10 +807,18 @@ window.addEventListener('load', function loadSettings() {
   });
 
   function displayDefaultPanel() {
+    // With async pan zoom enable, the page starts with a viewport
+    // of 980px before beeing resize to device-width. So let's delay
+    // the rotation listener to make sure it is not triggered by fake
+    // positive.
+    ScreenLayout.watch(
+      'tabletAndLandscaped',
+      '(min-width: 768px) and (orientation: landscape)');
+    window.addEventListener('screenlayoutchange', Settings.rotate);
+
     // display of default panel(#wifi) must wait for
     // lazy-loaded script - wifi_helper.js - loaded
     if (Settings.isTabletAndLandscape()) {
-      console.log('go to default Panel ' + Settings.defaultPanelForTablet);
       Settings.currentPanel = Settings.defaultPanelForTablet;
     }
   }
