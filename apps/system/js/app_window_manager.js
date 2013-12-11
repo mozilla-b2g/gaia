@@ -49,9 +49,11 @@
     /**
      * Switch to a different app
      * @param {String} origin The origin of the new app.
+     * @param {String} [openAnimation] The open animation for opening app.
+     * @param {String} [closeAnimation] The close animation for closing app.
      * @memberOf module:AppWindowManager
      */
-    display: function awm_display(origin) {
+    display: function awm_display(origin, openAnimation, closeAnimation) {
       this.debug('displaying ' + origin);
       var currentApp = this.displayedApp, newApp = origin ||
         HomescreenLauncher.origin;
@@ -65,13 +67,16 @@
       this.debug(' current is ' + currentApp + '; next is ' + newApp);
       if (currentApp == newApp) {
         // Do nothing.
+        console.warn('the app has been displayed.');
         return;
       }
 
       var appNext = this.runningApps[newApp];
       this.debug(appNext);
-      if (!appNext)
+      if (!appNext) {
+        console.warn('no next app.');
         return;
+      }
 
       if (document.mozFullScreen) {
         document.mozCancelFullScreen();
@@ -99,7 +104,8 @@
           KeyboardManager.hideKeyboardImmediately();
         }
       } else {
-        this.switchApp(appCurrent, appNext, switching);
+        this.switchApp(appCurrent, appNext, switching,
+          openAnimation, closeAnimation);
       }
     },
 
@@ -107,10 +113,13 @@
      * Switch from the current app to the next app.
      * @param  {AppWindow} appCurrent Displayed appWindow instance.
      * @param  {AppWindow} appNext appWindow instance to be shown.
-     * @param  {Boolean} switching Homescreen doesn't involve in the two apps.
+     * @param  {Boolean} [switching] Homescreen doesn't involve in the two apps.
+     * @param  {String} [openAnimation] The open animation for opening app.
+     * @param  {String} [closeAnimation] The close animation for closing app.
      * @memberOf module:AppWindowManager
      */
-    switchApp: function awm_switchApp(appCurrent, appNext, switching) {
+    switchApp: function awm_switchApp(appCurrent, appNext, switching,
+                                      openAnimation, closeAnimation) {
       this.debug('before ready check' + appCurrent + appNext);
       appNext.ready(function() {
         this.debug('ready to open/close' + switching);
@@ -137,10 +146,10 @@
         }
 
         appNext.open(immediateTranstion ? 'immediate' :
-                      ((switching === true) ? 'invoked' : null));
+                      ((switching === true) ? 'invoked' : openAnimation));
         if (appCurrent) {
           appCurrent.close(immediateTranstion ? 'immediate' :
-                            ((switching === true) ? 'invoking' : null));
+            ((switching === true) ? 'invoking' : closeAnimation));
         } else {
           this.debug('No current running app!');
         }

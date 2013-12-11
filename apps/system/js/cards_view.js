@@ -101,6 +101,8 @@ var CardsView = (function() {
     // events to handle
     window.addEventListener('lock', CardsView);
 
+    screenElement.classList.add('cards-view');
+
     // Close utility tray if it is opened.
     UtilityTray.hide(true);
 
@@ -110,7 +112,7 @@ var CardsView = (function() {
     runningApps = AppWindowManager.getRunningApps();
 
     // Switch to homescreen
-    AppWindowManager.display(null);
+    AppWindowManager.display(null, null, 'to-cardview');
     cardsViewShown = true;
 
     // If user is not able to sort apps manualy,
@@ -136,7 +138,6 @@ var CardsView = (function() {
       // First add an item to the cardsList for each running app
       for (var origin in runningApps) {
         addCard(origin, runningApps[origin], function showCards() {
-          screenElement.classList.add('cards-view');
           cardsView.classList.add('active');
         });
       }
@@ -347,7 +348,7 @@ var CardsView = (function() {
       cardsList.removeChild(element);
       closeApp(element, true);
     } else if ('origin' in e.target.dataset) {
-      AppWindowManager.display(e.target.dataset.origin);
+      AppWindowManager.display(e.target.dataset.origin, 'from-cardview', null);
     }
   }
 
