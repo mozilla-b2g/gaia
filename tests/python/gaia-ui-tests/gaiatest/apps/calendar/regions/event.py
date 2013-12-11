@@ -14,7 +14,8 @@ class NewEvent(Calendar):
     _save_event_button_locator = (By.CSS_SELECTOR, 'button.save')
 
     def wait_for_panel_to_load(self):
-        self.wait_for_element_displayed(*self._event_title_input_locator)
+        evt_title = self.marionette.find_element(*self._event_title_input_locator)
+        self.wait_for_element_displayed(*self._event_title_input_locator, message="Location: %s " % str(evt_title.location))
 
     def fill_event_title(self, title):
         event_title_input = self.marionette.find_element(*self._event_title_input_locator)

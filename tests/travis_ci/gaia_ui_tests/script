@@ -11,4 +11,8 @@ $gaiatest --app=b2gdesktop \
           --binary=$b2g \
           --profile=$profile \
           --type=b2g \
-          --restart $root/tests/manifest.ini
+          --repeat 10 \
+          --timeout 1000 \
+          --restart \
+          $root/tests/functional/messages/test_sms_contact_input_validation.py \
+          $root/tests/functional/calendar/test_calendar_new_event_appears_on_all_calendar_views.py \
