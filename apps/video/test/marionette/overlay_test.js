@@ -12,8 +12,6 @@ marionette('video overlay', function() {
   var app;
 
   setup(function() {
-    // Remove all files in device storage.
-    client.fileManager.removeAllFiles();
     app = new videoApp(client);
     app.launch();
   });

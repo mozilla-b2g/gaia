@@ -1,6 +1,7 @@
 var __gallery__ = '../../../gallery/test/marionette/';
 var Video = require('./lib/video.js'),
-    assert = require('assert');
+    assert = require('assert'),
+    testCommon = require(__gallery__ + 'lib/test_common');
 
 marionette('Video info of played video# ', function() {
 
@@ -16,10 +17,12 @@ marionette('Video info of played video# ', function() {
 
   setup(function() {
     // Add file into the videos directory.
-    client.fileManager.add([
+    /*client.fileManager.add([
       { type: 'videos', filePath: 'test_media/Movies/elephants-dream.webm',
         filename: 'elephants-dream.webm' }
-    ]);
+    ]);*/
+    testCommon.prepareTestSuite('videos', client);
+
     app = new Video(client);
     app.launch();
   });
@@ -45,6 +48,6 @@ marionette('Video info of played video# ', function() {
     assert.ok(app.infoView.displayed());
 
      // Remove all files in device storage.
-    client.fileManager.removeAllFiles();
+    //client.fileManager.removeAllFiles();
   });
 });
