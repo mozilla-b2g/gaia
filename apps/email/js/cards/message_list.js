@@ -54,6 +54,13 @@ var MAXIMUM_MS_BETWEEN_SNIPPET_REQUEST = 6000;
 var MAXIMUM_BYTES_PER_MESSAGE_DURING_SCROLL = 4 * 1024;
 
 /**
+ * Number of messages to grow the list by in a single event.  A value
+ * of 1 will result in the GELAM default of 15 being used.
+ */
+var MIN_MESSAGE_GROWTH_SIZE = 2;
+var MAX_MESSAGE_GROWTH_SIZE = 8;
+
+/**
  * List messages for listing the contents of folders ('nonsearch' mode) and
  * searches ('search' mode).  Multi-editing is just a state of the card.
  *
@@ -226,6 +233,12 @@ MessageListCard.prototype = {
    * @private
    */
   _topbar: null,
+
+  /**
+   * Cache the distance between messages since rows are effectively fixed
+   * height.
+   */
+  _distanceBetweenMessages: 0,
 
   postInsert: function() {
     this._hideSearchBoxByScrolling();
@@ -600,7 +613,7 @@ MessageListCard.prototype = {
     // Consider requesting more data or discarding data based on scrolling that
     // has happened since we issued the request.  (While requests were pending,
     // onScroll ignored scroll events.)
-    this._onScroll(null);
+    this.onScroll(null);
   },
 
   onNewMail: function(newEmailCount) {
@@ -676,7 +689,7 @@ MessageListCard.prototype = {
         messageNode = null, targOff;
     if (preScreens < SCROLL_MIN_BUFFER_SCREENS &&
         !this.messagesSlice.atTop) {
-      this.messagesSlice.requestGrowth(-1);
+      this.messagesSlice.requestGrowth(-1 * this._getGrowth(preScreens));
       return;
     }
     else if (preScreens > SCROLL_MAX_RETENTION_SCREENS) {
@@ -692,7 +705,7 @@ MessageListCard.prototype = {
 
     if (postScreens < SCROLL_MIN_BUFFER_SCREENS &&
         !this.messagesSlice.atBottom) {
-      this.messagesSlice.requestGrowth(1);
+      this.messagesSlice.requestGrowth(this._getGrowth(postScreens));
     }
     else if (postScreens > SCROLL_MAX_RETENTION_SCREENS) {
       targOff = curScrollTop +
@@ -710,6 +723,12 @@ MessageListCard.prototype = {
       this.messagesSlice.requestShrinkage(shrinkLowIncl, shrinkHighIncl);
     }
 
+  },
+
+  _getGrowth: function(screens) {
+    var percentEmpty = 1 - (screens / SCROLL_MIN_BUFFER_SCREENS);
+    var range = MAX_MESSAGE_GROWTH_SIZE - MIN_MESSAGE_GROWTH_SIZE;
+    return ~~(MIN_MESSAGE_GROWTH_SIZE + (percentEmpty * range));
   },
 
   _hasSnippetRequest: function() {
@@ -744,6 +763,18 @@ MessageListCard.prototype = {
     this._snippetRequestPending = false;
   },
 
+  // the distance between items. It is expected to remain fairly constant
+  // throughout the list so we only need to calculate it once.
+  _getDistance: function() {
+    var items = this.messagesSlice.items;
+    if (!this._distanceBetweenMessages && items.length > 1) {
+      this._distanceBetweenMessages =
+        items[1].element.getBoundingClientRect().top -
+        items[0].element.getBoundingClientRect().top;
+    }
+    return this._distanceBetweenMessages;
+  },
+
   _requestSnippets: function() {
     var items = this.messagesSlice.items;
     var len = items.length;
@@ -759,40 +790,21 @@ MessageListCard.prototype = {
 
     if (len < MINIMUM_ITEMS_FOR_SCROLL_CALC) {
       this._pendingSnippetRequest();
-      this.messagesSlice.maybeRequestBodies(0, 9, options, clearSnippets);
+      this.messagesSlice.maybeRequestBodies(0,
+          MINIMUM_ITEMS_FOR_SCROLL_CALC - 1, options, clearSnippets);
       return;
     }
 
-    // get the scrollable offset
-    if (!this._scrollContainerOffset) {
-      this._scrollContainerRect =
-        this.scrollContainer.getBoundingClientRect();
-    }
-
-    var constOffset = this._scrollContainerRect.top;
-
-    // determine where we are in the list;
-    var topOffset = (
-      items[0].element.getBoundingClientRect().top - constOffset
-    );
-
-    // the distance between items. It is expected to remain fairly constant
-    // throughout the list so we only need to calculate it once.
-
-    var distance = this._distanceBetweenMessages;
-    if (!distance) {
-      this._distanceBetweenMessages = distance = Math.abs(
-        topOffset -
-        (items[1].element.getBoundingClientRect().top - constOffset)
-      );
-    }
+    // Distance will always be non-zero here because we ensure the list
+    // is populated above.
+    var distance = this._getDistance();
 
     // starting offset to begin fetching snippets
-    var startOffset = Math.floor(Math.abs(topOffset / distance));
+    var startOffset = Math.floor(this.scrollContainer.scrollTop / distance);
 
     this._snippetsPerScrollTick = (
       this._snippetsPerScrollTick ||
-      Math.ceil(this._scrollContainerRect.height / distance)
+      Math.ceil(this.scrollContainer.getBoundingClientRect().height / distance)
     );
 
 
@@ -902,6 +914,12 @@ MessageListCard.prototype = {
     if (index === 0 && howMany === 0 && !addedItems.length)
       return;
 
+    // XXX: This function should be re-written to cache the current scrollTop
+    //      and calculate changes to it in-memory without touching the DOM.
+    //      The scrollTop should only be written back to the DOM when
+    //      absolutely necessary.  Touching thins like scrollTop, offsetTop,
+    //      getBoundingClientRect(), can trigger sync reflows.
+
     var prevHeight;
     // - removed messages
     if (howMany) {
@@ -945,7 +963,7 @@ MessageListCard.prototype = {
     else
       insertBuddy = this.messagesContainer.children[index];
     if (insertBuddy &&
-        (insertBuddy.offsetTop <
+        (insertBuddy.offsetTop <=
          this.scrollContainer.scrollTop + this.messagesContainer.offsetTop))
       prevHeight = this.messagesContainer.clientHeight;
     else
