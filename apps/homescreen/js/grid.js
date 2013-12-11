@@ -14,7 +14,7 @@ var GridManager = (function() {
   var BASE_HEIGHT = 460; // 480 - 20 (status bar height)
   var DEVICE_HEIGHT = window.innerHeight;
 
-  var HIDDEN_ROLES = ['system', 'input', 'homescreen'];
+  var HIDDEN_ROLES = ['system', 'input', 'homescreen', 'search'];
 
   // Store the pending apps to be installed until SingleVariant conf is loaded
   var pendingInstallRequests = [];
