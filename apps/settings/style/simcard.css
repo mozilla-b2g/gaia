@@ -52,6 +52,16 @@
 .sim-manager-select-list p {
   line-height: 2.1rem;
 }
+/**
+ *  For data li
+ */
+.sim-manager-select-list li:last-child {
+  height: auto;
+  margin-bottom: 1rem;
+}
+.sim-manager-select-list li:last-child .explanation {
+  white-space: normal;
+}
 .sim-card {
   clear: both;
 }
