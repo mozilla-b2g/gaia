@@ -7,7 +7,7 @@ mocha.globals(['Notify']);
 
 requireApp('sms/shared/test/unit/mocks/mock_settings_url.js');
 requireApp('sms/shared/test/unit/mocks/mock_navigator_moz_settings.js');
-requireApp('sms/test/unit/mock_audio.js');
+require('/shared/test/unit/mocks/mock_audio.js');
 requireApp('sms/test/unit/mock_navigator_vibrate.js');
 
 var mocksHelperNotifications = new MocksHelper(['SettingsURL']).init();
@@ -95,9 +95,8 @@ suite('check the ringtone and vibrate function', function() {
 
       assert.ok(Audio.called);
       assert.deepEqual(navigator.vibrate.args[0][0], [200, 200, 200, 200]);
-      assert.deepEqual(MockAudio.instances[0], {
-        src: 'ringtone', mozAudioChannelType: 'notification'
-      });
+      assert.equal(MockAudio.instances[0].src, 'ringtone');
+      assert.equal(MockAudio.instances[0].mozAudioChannelType, 'notification');
     });
   });
 
@@ -119,9 +118,8 @@ suite('check the ringtone and vibrate function', function() {
 
       assert.ok(Audio.called);
       assert.equal(navigator.vibrate.args.length, 0);
-      assert.deepEqual(MockAudio.instances[0], {
-        src: 'ringtone', mozAudioChannelType: 'notification'
-      });
+      assert.equal(MockAudio.instances[0].src, 'ringtone');
+      assert.equal(MockAudio.instances[0].mozAudioChannelType, 'notification');
     });
   });
 
