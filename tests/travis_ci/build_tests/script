@@ -35,6 +35,11 @@ gaia_clear
 debugmessage=$(PRODUCTION=1 make)
 printf '  v -- pass\n'
 
+printf 'SIMULATOR=1 make ...\n'
+gaia_clear
+debugmessage=$(SIMULATOR=1 make)
+printf '  v -- pass\n'
+
 printf 'DEBUG=1 make ...\n'
 gaia_clear
 debugmessage=$(DEBUG=1 make)
