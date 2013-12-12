@@ -110,6 +110,13 @@ var FindMyDevice = {
       if (request.keyword === 'findmydevice-wakeup') {
         DUMP('got wake up request');
         self._contactServerIfEnabled();
+      } else if (request.keyword === 'findmydevice-test') {
+        var port = request.port;
+        port.onmessage = function(event) {
+          DUMP('got request for test command!');
+          event.data.testing = true;
+          self._processCommands(event.data);
+        };
       }
     });
   },
@@ -237,10 +244,17 @@ var FindMyDevice = {
   },
 
   _processCommands: function fmd_process_commands(cmdobj) {
-    if (!this._enabled || cmdobj === null) {
+    if (cmdobj === null) {
       return;
     }
 
+    // only do something if enabled, but bypass this check
+    // while testing
+    if (!this._enabled && cmdobj.testing !== true) {
+      return;
+    }
+
+    function noop() {} // callback for testing
 
     for (var cmd in cmdobj) {
       // map server (short) commands to methods in the
@@ -271,7 +285,12 @@ var FindMyDevice = {
       DUMP('command ' + cmd + ', args ' + JSON.stringify(args));
 
       // add the callback as the last argument
-      args.push(this._replyCallback.bind(this, cmd));
+      if (cmdobj.testing !== true) {
+        args.push(this._replyCallback.bind(this, cmd));
+      } else {
+        args.push(noop);
+      }
+
       Commands[command].apply(Commands, args);
     }
 
