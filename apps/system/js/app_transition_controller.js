@@ -259,13 +259,23 @@
         window.clearTimeout(this._closingTimeout);
         this._closingTimeout = null;
       }
-      this.app.element.classList.remove(
-        this.currentAnimation || this.openAnimation);
-      this.app.element.classList.remove(
-        this.currentAnimation || this.closeAnimation);
+      this.clearTransitionClasses();
+    };
+
+  AppTransitionController.prototype.clearTransitionClasses =
+    function atc_removeTransitionClasses() {
       this.currentAnimation = null;
-      this.app.element.classList.remove('transition-opening');
-      this.app.element.classList.remove('transition-closing');
+      if (!this.app) {
+        return;
+      }
+
+      var classes = ['enlarge', 'reduce', 'to-cardview', 'from-cardview',
+        'invoking', 'invoked', 'zoom-in', 'zoom-out',
+        'transition-opening', 'transition-closing'];
+
+      classes.forEach(function iterator(cls) {
+        this.app.element.classList.remove(cls);
+      }, this);
     };
 
   AppTransitionController.prototype.handleEvent =

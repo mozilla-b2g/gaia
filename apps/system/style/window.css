@@ -100,7 +100,7 @@
 
 /* Opacity increases start up time then we don't use it anymore for opening */
 @keyframes openApp {
-  0%   { transform: scale(0.1); }
+  0%   { transform: scale(0.01); }
   100% { transform: scale(1.0); }
 }
 
@@ -208,7 +208,7 @@
 
 @keyframes closeApp {
   0%   { transform: scale(1.0);}
-  100% { transform: scale(0.1);}
+  100% { transform: scale(0.01);}
 }
 
 @keyframes closeAppTowardsCardView {

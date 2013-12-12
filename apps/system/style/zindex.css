@@ -51,10 +51,12 @@
 
 /* Promote the transitioning appWindow to this level as the entry and exiting
  * transition of the cards view. */
-#screen.cards-view > [data-z-index-level="app"] > .appWindow.active,
-#screen.cards-view > [data-z-index-level="app"] > .appWindow.transition-opening,
-#screen.cards-view > [data-z-index-level="app"] > .appWindow.transition-closing {
-  z-index: 65536;
+#screen.cards-view > [data-z-index-level="app"] > .appWindow.active:not(.homescreen),
+#screen.cards-view > [data-z-index-level="app"] > .appWindow.transition-opening:not(.homescreen),
+#screen.cards-view > [data-z-index-level="app"] > .appWindow.transition-closing.to-cardview:not(.homescreen),
+#screen.cards-view > [data-z-index-level="app"] > .appWindow.transition-opening.fullscreen-app:not(.homescreen),
+#screen.cards-view > [data-z-index-level="app"] > .appWindow.transition-closing.fullscreen-app.to-cardview:not(.homescreen) {
+  z-index: 65537;
 }
 #screen.cards-view > [data-z-index-level="cards-view"] {
   z-index: 65535;
@@ -95,8 +97,8 @@
 }
 
 /* Level 5: Statusbar, Utility-Tray */
-#screen [data-z-index-level="app"] > .appWindow.transition-opening.fullscreen-app:not(.homescreen),
-#screen [data-z-index-level="app"] > .appWindow.transition-closing.fullscreen-app:not(.homescreen) {
+#screen > [data-z-index-level="app"] > .appWindow.transition-opening.fullscreen-app:not(.homescreen),
+#screen > [data-z-index-level="app"] > .appWindow.transition-closing.fullscreen-app:not(.homescreen) {
   z-index: 4097;
 }
 
@@ -193,8 +195,11 @@
   z-index: 7;
 }
 
-#screen > [data-z-index-level="app"] > .appWindow.active:not(.homescreen),
 #screen > [data-z-index-level="app"] > .appWindow.transition-closing:not(.homescreen) {
+  z-index: 6;
+}
+
+#screen > [data-z-index-level="app"] > .appWindow.active:not(.homescreen) {
   z-index: 6;
 }
 

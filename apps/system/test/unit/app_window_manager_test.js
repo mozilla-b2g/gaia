@@ -352,9 +352,9 @@ suite('system/AppWindowManager', function() {
   });
 
   suite('updateActiveApp()', function() {
-    test('', function() {
+    test('update', function() {
       injectRunningApps(app1, app2, app3, app4);
-      AppWindowManager._activeApp = null;
+      AppWindowManager._activeApp = app2;
       AppWindowManager.displayedApp = '';
       AppWindowManager._updateActiveApp(app1.origin);
       assert.equal(AppWindowManager.displayedApp, app1.origin);
@@ -364,28 +364,104 @@ suite('system/AppWindowManager', function() {
 
   suite('Display()', function() {
     test('FTU', function() {
-      var app;
       AppWindowManager.displayedApp = '';
       AppWindowManager._activeApp = null;
-      app = new AppWindow(fakeFTUConfig);
-      AppWindowManager.runningApps[fakeFTUConfig.origin] = app;
+      var app = new AppWindow(fakeFTUConfig);
+      injectRunningApps(app);
       var stubReady = this.sinon.stub(app, 'ready');
-      stubReady.callsArg(0);
       AppWindowManager.display(fakeFTUConfig.origin);
+      stubReady.yield();
       assert.equal(AppWindowManager.displayedApp, fakeFTUConfig.origin);
-      AppWindowManager.runningApps = {};
     });
 
     test('app to app', function() {
       injectRunningApps(app1, app2);
       AppWindowManager.displayedApp = app1.origin;
       AppWindowManager._activeApp = app1;
-      var stubReady = this.sinon.stub(app2, 'ready');
-      var stubFadeout = this.sinon.stub(home, 'fadeOut');
-      stubReady.callsArg(0);
+      var stubSwitchApp = this.sinon.stub(AppWindowManager, 'switchApp');
       AppWindowManager.display(app2.origin);
-      assert.equal(AppWindowManager.displayedApp, app2.origin);
-      assert.isTrue(stubFadeout.called);
+      assert.isTrue(stubSwitchApp.called);
+      assert.deepEqual(stubSwitchApp.getCall(0).args[0], app1);
+      assert.deepEqual(stubSwitchApp.getCall(0).args[1], app2);
+    });
+  });
+
+  suite('Switch app', function() {
+    test('home to app', function() {
+      injectRunningApps(home, app1);
+      AppWindowManager._activeApp = home;
+      var stub_updateActiveApp = this.sinon.stub(AppWindowManager,
+        '_updateActiveApp');
+      var stubReady = this.sinon.stub(app1, 'ready');
+      var stubAppNextOpen = this.sinon.stub(app1, 'open');
+      var stubAppCurrentClose = this.sinon.stub(home, 'close');
+      AppWindowManager.switchApp(home, app1);
+      stubReady.yield();
+      assert.isTrue(stubAppNextOpen.called);
+      assert.isTrue(stubAppCurrentClose.called);
+      assert.isTrue(stub_updateActiveApp.called);
+    });
+
+    test('app to home', function() {
+      injectRunningApps(home, app1);
+      AppWindowManager._activeApp = app1;
+      var stub_updateActiveApp = this.sinon.stub(AppWindowManager,
+        '_updateActiveApp');
+      var stubReady = this.sinon.stub(home, 'ready');
+      var stubAppNextOpen = this.sinon.stub(home, 'open');
+      var stubAppCurrentClose = this.sinon.stub(app1, 'close');
+      AppWindowManager.switchApp(app1, home);
+      stubReady.yield();
+      assert.isTrue(stubAppNextOpen.called);
+      assert.isTrue(stubAppCurrentClose.called);
+      assert.isTrue(stub_updateActiveApp.called);
+    });
+
+    test('app to app', function() {
+      injectRunningApps(app1, app2);
+      AppWindowManager._activeApp = app1;
+      var stub_updateActiveApp = this.sinon.stub(AppWindowManager,
+        '_updateActiveApp');
+      var stubReady = this.sinon.stub(app2, 'ready');
+      var stubAppNextOpen = this.sinon.stub(app2, 'open');
+      var stubAppCurrentClose = this.sinon.stub(app1, 'close');
+      AppWindowManager.switchApp(app1, app2, true);
+      stubReady.yield();
+      assert.isTrue(stubAppNextOpen.called);
+      assert.isTrue(stubAppCurrentClose.called);
+      assert.isTrue(stubAppNextOpen.calledWith('invoked'));
+      assert.isTrue(stubAppCurrentClose.calledWith('invoking'));
+      assert.isTrue(stub_updateActiveApp.called);
+    });
+
+    test('close app to cardsview', function() {
+      injectRunningApps(app1, home);
+      AppWindowManager._activeApp = app1;
+      var stub_updateActiveApp = this.sinon.stub(AppWindowManager,
+        '_updateActiveApp');
+      var stubReady = this.sinon.stub(home, 'ready');
+      var stubAppNextOpen = this.sinon.stub(home, 'open');
+      var stubAppCurrentClose = this.sinon.stub(app1, 'close');
+      AppWindowManager.switchApp(app1, home, false, null, 'to-cardview');
+      stubReady.yield();
+      assert.isTrue(stubAppNextOpen.called);
+      assert.isTrue(stubAppCurrentClose.calledWith('to-cardview'));
+      assert.isTrue(stub_updateActiveApp.called);
+    });
+
+    test('open app from cardsview', function() {
+      injectRunningApps(app1, home);
+      AppWindowManager._activeApp = app1;
+      var stub_updateActiveApp = this.sinon.stub(AppWindowManager,
+        '_updateActiveApp');
+      var stubReady = this.sinon.stub(app1, 'ready');
+      var stubAppNextOpen = this.sinon.stub(app1, 'open');
+      var stubAppCurrentClose = this.sinon.stub(home, 'close');
+      AppWindowManager.switchApp(home, app1, false, 'from-cardview', null);
+      stubReady.yield();
+      assert.isTrue(stubAppNextOpen.calledWith('from-cardview'));
+      assert.isTrue(stubAppCurrentClose.called);
+      assert.isTrue(stub_updateActiveApp.called);
     });
   });
 
