@@ -21,7 +21,6 @@ var subject,
     contact,
     contactDetails,
     listContainer,
-    star,
     detailsName,
     orgTitle,
     birthdayTemplate,
@@ -94,7 +93,6 @@ suite('Render contact', function() {
     subject.init(dom);
     contactDetails = dom.querySelector('#contact-detail');
     listContainer = dom.querySelector('#details-list');
-    star = dom.querySelector('#favorite-star');
     detailsName = dom.querySelector('#contact-name-title');
     orgTitle = dom.querySelector('#org-title');
     birthdayTemplate = dom.querySelector('#birthday-template-\\#i\\#');
@@ -157,14 +155,14 @@ suite('Render contact', function() {
   suite('Render favorite', function() {
     test('with favorite contact', function() {
       subject.render(null, TAG_OPTIONS);
-      assert.equal(false, star.classList.contains('hide'));
+      assert.isTrue(detailsName.classList.contains('favorite'));
     });
     test('without favorite contact', function() {
       var contactWoFav = new MockContactAllFields();
       contactWoFav.category = [];
       subject.setContact(contactWoFav);
       subject.render(null, TAG_OPTIONS);
-      assert.equal(true, star.classList.contains('hide'));
+      assert.isFalse(detailsName.classList.contains('favorite'));
     });
   });
 

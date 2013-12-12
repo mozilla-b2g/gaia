@@ -4,17 +4,9 @@
 }
 
 /* Fav star in header */
-section[role="region"] > header:first-child sup {
-  background: url(/contacts/style/gphx/bitmap/default/vw-header/icons/fav-star.png) no-repeat center / 1.2rem;
-  background-size: 100% auto;
-  width: 1.2rem;
-  height: 3.2rem;
-  vertical-align: text-top;
-  text-indent: 100%;
-  overflow: hidden;
-  position: relative;
-  float: left;
-  top: 0;
+#contact-name-title.favorite {
+  background: url(/contacts/style/gphx/bitmap/default/vw-header/icons/fav-star.png) no-repeat right 1rem / 1.2rem;
+  padding-right: 1.5rem;
 }
 
 section[role="region"] > header:first-child .icon.icon-edit-contact {

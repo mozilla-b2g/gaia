@@ -45,7 +45,6 @@ contacts.Details = (function() {
     dom = currentDom || document;
     contactDetails = dom.querySelector('#contact-detail');
     listContainer = dom.querySelector('#details-list');
-    star = dom.querySelector('#favorite-star');
     detailsName = dom.querySelector('#contact-name-title');
     orgTitle = dom.querySelector('#org-title');
     birthdayTemplate = dom.querySelector('#birthday-template-\\#i\\#');
@@ -217,9 +216,9 @@ contacts.Details = (function() {
     var favorite = isFavorite(contact);
     toggleFavoriteMessage(favorite);
     if (contact.category && contact.category.indexOf('favorite') != -1) {
-      star.classList.remove('hide');
+      detailsName.classList.add('favorite');
     } else {
-      star.classList.add('hide');
+      detailsName.classList.remove('favorite');
     }
   };
 
