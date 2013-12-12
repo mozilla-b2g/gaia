@@ -49,41 +49,82 @@ var AirplaneMode = {
   },
 
   _initRadioSwitch: function() {
-    var mobileConnection = getMobileConnection();
-    // See bug 933659
-    // Gecko stops using the settings key 'ril.radio.disabled' to turn
-    // off RIL radio, but use mobileConnection.setRadioEnabled instead. We need
-    // to remove the code that checks existence of the new API after bug 856553
-    // lands.
-    var _setRadioEnabled = function(enabled) {
-      if (mobileConnection && !!mobileConnection.setRadioEnabled) {
-        var req = mobileConnection.setRadioEnabled(enabled);
-        req.onsuccess = function() {
+    var mobileConnections = window.navigator.mozMobileConnections;
+    var self = this;
+    var isError = false;
+    var setCount = 0;
+
+    var setRadioAfterReqsCalled = function(enabled) {
+      if (setCount !== mobileConnections.length) {
+        return;
+      } else {
+        if (isError) {
+          setAirplaneModeEnabled(enabled);
+        } else {
           SettingsListener.getSettingsLock().set(
             {'ril.radio.disabled': !enabled}
           );
-        };
-        req.onerror = function() {
-          SettingsListener.getSettingsLock().set(
-            {'ril.radio.disabled': enabled}
-          );
-        };
-      } else {
-        SettingsListener.getSettingsLock().set(
-          {'ril.radio.disabled': !enabled}
-        );
+        }
       }
     };
 
-    var self = this;
+    var doSetRadioEnabled = function doSetRadioEnabled(i, enabled) {
+      var conn = mobileConnections[i];
+      var req = conn.setRadioEnabled(enabled);
+      setCount++;
+
+      req.onsuccess = function() {
+        setRadioAfterReqsCalled(enabled);
+      };
+      req.onerror = function() {
+        isError = true;
+        setRadioAfterReqsCalled(enabled);
+      };
+    };
+
+    var setRadioEnabled = function setRadioEnabled(i, enabled) {
+      var conn = mobileConnections[i];
+      if (conn.radioState !== 'enabling' &&
+          conn.radioState !== 'disabling' &&
+          conn.radioState !== null) {
+        doSetRadioEnabled(i, enabled);
+      } else {
+        conn.addEventListener('radiostatechange',
+          function radioStateChangeHandler() {
+            if (conn.radioState == 'enabling' ||
+                conn.radioState == 'disabling' ||
+                conn.radioState == null) {
+              return;
+            }
+            conn.removeEventListener('radiostatechange',
+              radioStateChangeHandler);
+            doSetRadioEnabled(i, enabled);
+        });
+      }
+    };
+
+    var setAirplaneModeEnabled = function setAirplaneModeEnabled(enabled) {
+      isError = false;
+      setCount = 0;
+      // set airplane mode `true`
+      // means setRadioEnabled `false`
+      enabled = !enabled;
+      if (mobileConnections.length == 1) {
+        setRadioEnabled(0, enabled);
+      } else {
+        setRadioEnabled(0, enabled);
+        setRadioEnabled(1, enabled);
+      }
+    };
+
     SettingsListener.observe('ril.radio.disabled', false, function(value) {
       self.element.disabled = false;
       self.element.checked = value;
     });
+
     this.element.addEventListener('change', function(e) {
       this.disabled = true;
-      var enabled = !this.checked;
-      _setRadioEnabled(enabled);
+      setAirplaneModeEnabled(this.checked);
     });
   },
 

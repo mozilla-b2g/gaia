@@ -7,55 +7,75 @@ var AirplaneMode = {
   _enabled: null,
   set enabled(value) {
     if (value !== this._enabled) {
-      // XXX: check bug-926169
-      // this is used to keep all tests passing while introducing multi-sim APIs
-      var mobileConnection = window.navigator.mozMobileConnection ||
-        window.navigator.mozMobileConnections &&
-          window.navigator.mozMobileConnections[0];
-
+      var mobileConnections = window.navigator.mozMobileConnections;
       var self = this;
-      var doSetRadioEnabled = function(enabled) {
-        var req = mobileConnection.setRadioEnabled(enabled);
+      var isError = false;
+      var setCount = 0;
+
+      var setRadioAfterReqsCalled = function(enabled) {
+        if (setCount !== mobileConnections.length) {
+          return;
+        } else {
+          if (isError) {
+            self._enabled = enabled;
+            setAirplaneModeEnabled(self._enabled);
+          } else {
+            self._enabled = !enabled;
+            SettingsListener.getSettingsLock().set(
+              {'ril.radio.disabled': self._enabled}
+            );
+          }
+        }
+      };
+
+      var doSetRadioEnabled = function doSetRadioEnabled(i, enabled) {
+        var conn = mobileConnections[i];
+        var req = conn.setRadioEnabled(enabled);
+        setCount++;
 
         req.onsuccess = function() {
-          self._enabled = value;
-          SettingsListener.getSettingsLock().set(
-            {'ril.radio.disabled': self._enabled}
-          );
+          setRadioAfterReqsCalled(enabled);
         };
         req.onerror = function() {
-          self._enabled = !value;
-          SettingsListener.getSettingsLock().set(
-            {'ril.radio.disabled': self._enabled}
-          );
+          isError = true;
+          setRadioAfterReqsCalled(enabled);
         };
       };
 
-      // See bug 933659
-      // Gecko stops using the settings key 'ril.radio.disabled' to turn
-      // off RIL radio. We need to remove the code that checks existence of the
-      // new API after bug 856553 lands.
-      if (mobileConnection && !!mobileConnection.setRadioEnabled) {
-        if (mobileConnection.radioState !== 'enabling' &&
-            mobileConnection.radioState !== 'disabling') {
-          doSetRadioEnabled(!value);
+      var setRadioEnabled = function setRadioEnabled(i, enabled) {
+        var conn = mobileConnections[i];
+        if (conn.radioState !== 'enabling' &&
+            conn.radioState !== 'disabling' &&
+            conn.radioState !== null) {
+          doSetRadioEnabled(i, enabled);
         } else {
-          mobileConnection.addEventListener('radiostatechange',
+          conn.addEventListener('radiostatechange',
             function radioStateChangeHandler() {
-              if (mobileConnection.radioState == 'enabling' ||
-                  mobileConnection.radioState == 'disabling')
+              if (conn.radioState == 'enabling' ||
+                  conn.radioState == 'disabling' ||
+                  conn.radioState == null) {
                 return;
-              mobileConnection.removeEventListener('radiostatechange',
+              }
+              conn.removeEventListener('radiostatechange',
                 radioStateChangeHandler);
-              doSetRadioEnabled(!value);
+              doSetRadioEnabled(i, enabled);
           });
         }
-      } else {
-        this._enabled = value;
-        SettingsListener.getSettingsLock().set(
-          {'ril.radio.disabled': this._enabled}
-        );
-      }
+      };
+
+      var setAirplaneModeEnabled = function setAirplaneModeEnabled(enabled) {
+        // set airplane mode `true`
+        // means setRadioEnabled `false`
+        enabled = !enabled;
+        if (mobileConnections.length == 1) {
+          setRadioEnabled(0, enabled);
+        } else {
+          setRadioEnabled(0, enabled);
+          setRadioEnabled(1, enabled);
+        }
+      };
+
+      setAirplaneModeEnabled(value);
     }
   },
 
@@ -134,13 +154,8 @@ var AirplaneMode = {
     var mozSettings = window.navigator.mozSettings;
     var bluetooth = window.navigator.mozBluetooth;
     var wifiManager = window.navigator.mozWifiManager;
-    // XXX: check bug-926169
-    // this is used to keep all tests passing while introducing multi-sim APIs
-    var mobileConnection = window.navigator.mozMobileConnection ||
-      window.navigator.mozMobileConnections &&
-        window.navigator.mozMobileConnections[0];
-
-    var mobileData = mobileConnection && mobileConnection.data;
+    var mobileData = window.navigator.mozMobileConnections[0] &&
+      window.navigator.mozMobileConnections[0].data;
     var fmRadio = window.navigator.mozFMRadio;
 
     // Note that we don't restore Wifi tethering when leaving airplane mode
