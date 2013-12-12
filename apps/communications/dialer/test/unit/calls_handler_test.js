@@ -7,7 +7,6 @@ requireApp('communications/dialer/test/unit/mock_call_screen.js');
 requireApp('communications/dialer/test/unit/mock_l10n.js');
 requireApp('communications/dialer/test/unit/mock_contacts.js');
 requireApp('communications/dialer/test/unit/mock_tone_player.js');
-requireApp('communications/dialer/test/unit/mock_swiper.js');
 requireApp('communications/dialer/test/unit/mock_bluetooth_helper.js');
 requireApp('communications/dialer/test/unit/mock_utils.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
@@ -29,7 +28,6 @@ var mocksHelperForCallsHandler = new MocksHelper([
   'Contacts',
   'TonePlayer',
   'SettingsURL',
-  'Swiper',
   'BluetoothHelper',
   'Utils',
   'Audio'

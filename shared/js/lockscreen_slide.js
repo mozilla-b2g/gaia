@@ -15,10 +15,10 @@
    * We should care about the need of testing,
    * and make all stateful objects become instance-able.
    *
-   * @param {LockScreen.intentionRouter} |ir|
+   * @param {LockScreen.intentionRouter} |ir| intentionRouter.
    * @param {Object} |opts| (Opional) addtional, options that may overwrite the
    *                        default settings.
-   *                        The options should follow the default settings above
+   *                        The options should follow default settings above.
    * @constructor
    */
   var LockScreenSlide = function(ir, opts) {
@@ -50,8 +50,8 @@
     },
 
     areas: {
-      camera: null,
-      unlock: null
+      left: null,
+      right: null
     },
 
     // The handle area can touch by the user.
@@ -125,8 +125,8 @@
       area: 'lockscreen-area',
       canvas: 'lockscreen-canvas',
       areas: {
-        camera: 'lockscreen-area-camera',
-        unlock: 'lockscreen-area-unlock'
+        left: 'lockscreen-area-camera',
+        right: 'lockscreen-area-unlock'
       }
     },
 
@@ -146,7 +146,7 @@
    * @param {IntentionRouter} |ir| see LockScreen's intentionRouter.
    * @param {Object} |opts| (Opional) addtional, options that may overwrite the
    *                        default settings.
-   *                        The options should follow the default settings above
+   *                        The options should follow default settings above.
    * @this {LockScreenSlide}
    */
   LockScreenSlidePrototype.initialize =
@@ -162,7 +162,7 @@
   /**
    * Overwrite settings recursively.
    *
-   * @param {Object} |options|
+   * @param {Object} |options| options for overwrite default settings.
    * @this {LockScreenSlide}
    */
   LockScreenSlidePrototype._overwriteSettings =
@@ -186,7 +186,7 @@
   /**
    * The dispatcher. Unlocker would manager all its DOMs individually.
    *
-   * @param {event} |evt|
+   * @param {event} |evt| LockScreen Slide event.
    * @this {LockScreenSlide}
    */
   LockScreenSlidePrototype.handleEvent =
@@ -249,8 +249,8 @@
       this.overlay = document.getElementById(this.IDs.overlay);
       this.area = document.getElementById(this.IDs.area);
       this.canvas = document.getElementById(this.IDs.canvas);
-      this.areas.camera = document.getElementById(this.IDs.areas.camera);
-      this.areas.unlock = document.getElementById(this.IDs.areas.unlock);
+      this.areas.left = document.getElementById(this.IDs.areas.left);
+      this.areas.right = document.getElementById(this.IDs.areas.right);
 
       this.area.addEventListener('touchstart', this);
 
@@ -301,7 +301,7 @@
       this.center.x =
         this.canvas.offsetLeft + this.canvas.width >> 1;
       this.center.y =
-        this.canvas.offsetHeight + this.canvas.height >> 1;
+        this.canvas.offsetTop + this.canvas.height >> 1;
 
       this.handle.radius =
         this._dpx(this.handle.radius);
@@ -518,7 +518,7 @@
   /**
    * Accelerate the slide when the finger is near the end.
    *
-   * @param {number} |tx|
+   * @param {number} |tx| The absolute coordinate of the touching position.
    * @return {number}
    * @this {LockScreenSlide}
    */
@@ -604,14 +604,14 @@
     };
 
   /**
-   * Dark the camera and unlocking icons when user leave our LockScreen.
+   * Dark the left and right icons when user leave our LockScreen.
    *
    * @this {LockScreenSlide}
    */
   LockScreenSlidePrototype._darkIcons =
     function lss_darkIcons() {
-      this.areas.camera.classList.add('dark');
-      this.areas.unlock.classList.add('dark');
+      this.areas.left.classList.add('dark');
+      this.areas.right.classList.add('dark');
     };
 
   /**
@@ -806,7 +806,7 @@
    * Return the mapping pixels according to the device pixel ratio.
    * This may need to be put int the shared/js.
    *
-   * @param {number} |px|
+   * @param {number} |px| original px distance.
    * @return {number}
    * @this {LockScreenSlide}
    */
@@ -816,25 +816,25 @@
     };
 
   /**
-   * Light the camera and unlocking icons when user touch on our LockScreen.
+   * Light the left and right icons when user touch on our LockScreen.
    *
    * @this {LockScreenSlide}
    */
   LockScreenSlidePrototype._lightIcons =
     function lss_lightIcons() {
-      this.areas.camera.classList.remove('dark');
-      this.areas.unlock.classList.remove('dark');
+      this.areas.left.classList.remove('dark');
+      this.areas.right.classList.remove('dark');
     };
 
   /**
-   * Map absolution X and Y to canvas' X and Y.
+   * Map  and Y to canvas' X and Y.
    * Note this should only be used when user want to draw something
    * follow the user's input. If the canvans need adjust its position,
    * the absolute coordinates should be used.
    *
-   * @param {number} |x|
-   * @param {number} |y|
-   * @return {[number]} Array of single pair of X and Y
+   * @param {number} |x| absolution X.
+   * @param {number} |y| absolution Y.
+   * @return {[number]} Array of single pair of X and Y.
    * @this {LockScreenSlide}
    */
   LockScreenSlidePrototype._mapCoord =

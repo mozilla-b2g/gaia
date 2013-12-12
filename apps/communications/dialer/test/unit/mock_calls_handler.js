@@ -16,6 +16,7 @@ var MockCallsHandler = {
     return this.mActiveCall;
   },
 
+  toggleCalls: function() {},
   toggleMute: function() {},
   unmute: function() {},
   toggleSpeaker: function() {},
