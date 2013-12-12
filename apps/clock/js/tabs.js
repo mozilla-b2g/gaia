@@ -1,7 +1,5 @@
 define(function(require) {
 'use strict';
-
-var Emitter = require('emitter');
 /**
  * Abstraction for handling the Tabs links at the bottom of the UI.
  * @param {HTMLElement} element The containing element for the Tabs UI.
@@ -12,8 +10,6 @@ function Tabs(element) {
   this.currentIndex = 0;
   this.element.addEventListener('click', this);
 }
-
-Tabs.prototype = Object.create(Emitter.prototype);
 
 /**
  * Find the clicked link in the list of links and update selected attributes.
@@ -32,12 +28,6 @@ Tabs.prototype.handleEvent = function tabsHandleEvent(event) {
     } else {
       link.parentNode.removeAttribute('aria-selected');
     }
-  });
-  this.emit('selected', {
-    link: event.target,
-    hash: event.target.hash,
-    last: this.links[lastIndex],
-    lastHash: this.links[lastIndex].hash
   });
 };
 
