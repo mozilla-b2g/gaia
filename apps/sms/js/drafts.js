@@ -175,7 +175,7 @@
     var draft = opts || {};
     this.recipients = draft.recipients || [];
     this.content = draft.content || [];
-    this.timestamp = draft.timestamp || +Date.now();
+    this.timestamp = +draft.timestamp || Date.now();
     this.threadId = draft.threadId || null;
     this.type = draft.type;
   }

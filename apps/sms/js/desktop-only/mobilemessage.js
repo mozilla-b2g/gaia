@@ -79,7 +79,7 @@
         location: 'example.jpg',
         content: testImageBlob
       }],
-      timestamp: +new Date()
+      timestamp: now
     });
     messagesDb.messages.push({
       id: messagesDb.id++,
@@ -99,7 +99,7 @@
         location: 'example.jpg',
         content: testImageBlob
       }],
-      timestamp: +new Date()
+      timestamp: now
     });
   });
 
@@ -122,7 +122,7 @@
         location: 'example.ogv',
         content: testVideoBlob
       }],
-      timestamp: +new Date()
+      timestamp: now
     });
     messagesDb.messages.push({
       id: messagesDb.id++,
@@ -142,7 +142,7 @@
         location: 'example.ogv',
         content: testVideoBlob
       }],
-      timestamp: +new Date()
+      timestamp: now
     });
   });
   getTestFile('/test/unit/media/audio.oga', function(testAudioBlob) {
@@ -164,7 +164,7 @@
         location: 'example.ogg',
         content: testAudioBlob
       }],
-      timestamp: +new Date()
+      timestamp: now
     });
     messagesDb.messages.push({
       id: messagesDb.id++,
@@ -184,7 +184,7 @@
         location: 'example.ogg',
         content: testAudioBlob
       }],
-      timestamp: +new Date()
+      timestamp: now
     });
   });
 
@@ -208,7 +208,7 @@
         location: 'example.bmp',
         content: testImageBlob
       }],
-      timestamp: +new Date()
+      timestamp: now
     });
   });
 
@@ -232,7 +232,7 @@
         location: 'grid.wbmp',
         content: testImageBlob
       }],
-      timestamp: +new Date()
+      timestamp: now
     });
   });
 
@@ -300,7 +300,7 @@
         delivery: 'sent',
         read: true,
         type: 'sms',
-        timestamp: +new Date(),
+        timestamp: now,
         deliveryStatus: 'success'
       },
       {
@@ -333,7 +333,7 @@
         type: 'sms',
         deliveryStatus: 'not-applicable',
         delivery: 'sent',
-        timestamp: +new Date()
+        timestamp: now
       },
       {
         threadId: 4,
@@ -533,7 +533,7 @@
         participants: ['+18001114321'],
         lastMessageType: 'sms',
         body: 'I have a very long name!',
-        timestamp: +new Date(),
+        timestamp: now,
         unreadCount: 0
       },
       {
@@ -688,7 +688,7 @@
          { type: 'text/plain' }
       )
     }],
-    timestamp: +new Date()
+    timestamp: now
   });
 
 
@@ -757,7 +757,7 @@
         id: messagesDb.id++,
         participants: [].concat(number),
         body: text,
-        timestamp: +new Date(),
+        timestamp: now,
         unreadCount: 0,
         lastMessageType: 'sms'
       };
@@ -765,7 +765,7 @@
     }
     else {
       thread.body = text;
-      thread.timestamp = +new Date();
+      thread.timestamp = now;
     }
 
     var sendInfo = {
@@ -778,7 +778,7 @@
         id: sendId,
         type: 'sms',
         read: true,
-        timestamp: +new Date(),
+        timestamp: now,
         threadId: thread.id
       }
     };
@@ -834,7 +834,7 @@
           id: messagesDb.id++,
           type: 'sms',
           read: false,
-          timestamp: +new Date(),
+          timestamp: now,
           threadId: thread.id
         }
       };
@@ -882,12 +882,12 @@
         lastMessageType: 'mms',
         participants: params.receivers,
         body: '',
-        timestamp: +new Date(),
+        timestamp: now,
         unreadCount: 0
       };
       messagesDb.threads.push(thread);
     } else {
-      thread.timestamp = +new Date();
+      thread.timestamp = now;
     }
 
     var sendInfo = {
@@ -904,7 +904,7 @@
         subject: '',
         smil: params.smil,
         attachments: params.attachments,
-        timestamp: +new Date()
+        timestamp: now
       }
     };
 
@@ -958,7 +958,7 @@
             receiver: null,
             delivery: 'received',
             id: messagesDb.id++,
-            timestamp: +new Date(),
+            timestamp: now,
             threadId: thread.id,
             type: 'mms',
             deliveryInfo: [{deliveryStatus: 'success'}],
@@ -1279,7 +1279,7 @@
       for (; idx < len; ++idx) {
         msg = msgs[idx];
         if (msg.type !== 'mms' || msg.delivery !== 'not-downloaded' ||
-          +msg.expiryDate < +now) {
+          +msg.expiryDate < now) {
           continue;
         }
         if (msg.id === id) {

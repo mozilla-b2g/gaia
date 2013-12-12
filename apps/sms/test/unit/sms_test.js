@@ -318,7 +318,7 @@ suite('SMS App Unit-Test', function() {
           participants: ['287138'],
           body: 'Recibidas!',
           id: 9999,
-          timestamp: +new Date(),
+          timestamp: Date.now(),
           type: 'sms',
           channel: 'sms'
         });
@@ -351,7 +351,7 @@ suite('SMS App Unit-Test', function() {
           participants: ['287138'],
           body: 'Recibidas!',
           id: 9999,
-          timestamp: +new Date(),
+          timestamp: Date.now(),
           type: 'sms',
           channel: 'sms'
         });
@@ -368,7 +368,7 @@ suite('SMS App Unit-Test', function() {
           participants: ['287138'],
           body: 'Recibidas!',
           id: 9999,
-          timestamp: +new Date(),
+          timestamp: Date.now(),
           channel: 'sms'
         });
 
@@ -475,7 +475,7 @@ suite('SMS App Unit-Test', function() {
           body: 'Recibidas!',
           delivery: 'received',
           id: 9999,
-          timestamp: +new Date(),
+          timestamp: Date.now(),
           type: 'sms',
           channel: 'sms'
         };
@@ -530,7 +530,7 @@ suite('SMS App Unit-Test', function() {
           body: 'Recibidas!',
           delivery: 'received',
           id: 9999,
-          timestamp: +new Date(),
+          timestamp: Date.now(),
           channel: 'sms'
         });
 
@@ -547,7 +547,7 @@ suite('SMS App Unit-Test', function() {
           body: 'Recibidas!',
           delivery: 'received',
           id: 9999,
-          timestamp: +new Date(),
+          timestamp: Date.now(),
           channel: 'sms'
         });
 

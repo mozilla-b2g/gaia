@@ -477,7 +477,7 @@ suite('thread_list_ui', function() {
         lastMessageType: 'sms',
         participants: ['1234'],
         body: payload,
-        timestamp: +new Date()
+        timestamp: Date.now()
       };
       return o;
     }
@@ -488,7 +488,7 @@ suite('thread_list_ui', function() {
         lastMessageType: 'mms',
         participants: ['1234', '5678'],
         body: payload,
-        timestamp: +new Date()
+        timestamp: Date.now()
       };
       return o;
     }

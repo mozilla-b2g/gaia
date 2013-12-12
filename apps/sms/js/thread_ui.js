@@ -1336,7 +1336,7 @@ var ThreadUI = global.ThreadUI = {
     var status = message.deliveryInfo[0].deliveryStatus;
 
     var expireFormatted = Utils.date.format.localeFormat(
-      new Date(message.expiryDate), navigator.mozL10n.get('dateTimeFormat_%x')
+      new Date(+message.expiryDate), navigator.mozL10n.get('dateTimeFormat_%x')
     );
 
     var expired = +message.expiryDate < Date.now();
@@ -1358,7 +1358,7 @@ var ThreadUI = global.ThreadUI = {
     return this.tmpl.notDownloaded.interpolate({
       messageL10nId: messageL10nId,
       messageL10nArgs: JSON.stringify({ date: expireFormatted }),
-      messageL10nDate: message.expiryDate.toString(),
+      messageL10nDate: +message.expiryDate,
       messageL10nDateFormat: 'dateTimeFormat_%x',
       downloadL10nId: downloadL10nId
     });

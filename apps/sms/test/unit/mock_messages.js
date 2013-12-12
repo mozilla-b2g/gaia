@@ -22,7 +22,7 @@ var MockMessages = {
       deliveryStatus: 'success',
       type: 'sms',
       messageClass: 'normal',
-      timestamp: +new Date(),
+      timestamp: Date.now(),
       read: true
     };
 
