@@ -10,9 +10,25 @@ gaia_clear () {
 }
 
 error_handler () {
-	echo '  x --- fail'
-  echo $debugmessage
+	printf '\e[41;30m x ---- fail\e[40;37m \n'
+  printf $debugmessage
 }
+
+pass_handler () {
+	printf '\e[42;30m v ---- pass\e[40;37m \n'
+}
+
+unit_test () {
+	REPORTER=dot
+	testfiles=$(find build/test/*.test.js)
+	echo $testfiles
+	./node_modules/.bin/mocha \
+			--harmony \
+			--reporter $REPORTER \
+			--ui tdd \
+			$testfiles
+}
+
 
 trap error_handler ERR
 
@@ -25,37 +41,42 @@ locales=(en-US zh-CN)
 # Address of locale file
 locale_url=http://hg.mozilla.org/gaia-l10n/LOCALEURL/archive/tip.tar.gz
 
-printf 'make ...\n'
+printf 'Running unit test ...'
+unit_test
+pass_handler
+
+printf 'make ...'
 gaia_clear
 debugmessage=$(make)
-printf '  v -- pass\n'
+pass_handler
 
-printf 'PRODUCTION=1 make ... \n'
+printf 'PRODUCTION=1 make ... '
 gaia_clear
 debugmessage=$(PRODUCTION=1 make)
-printf '  v -- pass\n'
+pass_handler
 
-printf 'SIMULATOR=1 make ...\n'
+printf 'SIMULATOR=1 make ...'
 gaia_clear
 debugmessage=$(SIMULATOR=1 make)
-printf '  v -- pass\n'
+pass_handler
 
-printf 'DEBUG=1 make ...\n'
+printf 'DEBUG=1 make ...'
 gaia_clear
 debugmessage=$(DEBUG=1 make)
-printf '  v -- pass\n'
+pass_handler
 
-printf 'GAIA_DISTRIBUTION_DIR=<distribution> make ...\n'
+printf 'GAIA_DISTRIBUTION_DIR=<distribution> make ...'
 for distribution in ${distributions[@]}; do
 	gaia_clear
+	printf '\n  -DISTRIBUTION='$distribution' ... '
   debugmessage=$(GAIA_DISTRIBUTION_DIR=$distribution make)
-	printf '  v -- '$distribution' -- pass\n'
+	pass_handler
 done
 
-printf 'MOZILLA_OFFICIAL=1 make ...\n'
+printf 'MOZILLA_OFFICIAL=1 make ...'
 gaia_clear
 debugmessage=$(MOZILLA_OFFICIAL=1 make)
-printf '  v -- pass\n'
+pass_handler
 
 printf 'LOCALES_FILE=<PATH_OF_LOCALES_FILE> LOCALE_BASEDIR=<PATH_OF_LOCALE_BASEDIR> make ...\n'
 gaia_clear
@@ -77,4 +98,4 @@ localeJSON="${localeJSON%?}}"
 echo $localeJSON >> locale.json
 popd &> /dev/null
 debugmessage=$(LOCALES_FILE=templocale/locale.json LOCALE_BASEDIR=templocale make)
-printf '  v -- pass\n'
+pass_handler
