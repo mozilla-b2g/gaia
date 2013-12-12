@@ -193,8 +193,12 @@ function init() {
       // Concurrently, start scanning for new music
       musicdb.scan();
 
-      // we shouldn't init the bluetooth comms until the UI is
-      MusicComms.init();
+      // Only init the communication when music is not in picker mode.
+      if (document.URL.indexOf('#pick') === -1) {
+        // We need to wait to init the music comms until the UI is fully loaded
+        // because the init of music comms could slow down the startup time.
+        MusicComms.init();
+      }
     });
   };
 
