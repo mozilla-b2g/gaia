@@ -418,7 +418,7 @@ var KeyboardManager = {
         this.hideKeyboardImmediately();
         break;
       case 'mozbrowsererror': // OOM
-        this.removeKeyboard(evt.target.dataset.frameManifestURL);
+        this.removeKeyboard(evt.target.dataset.frameManifestURL, true);
         break;
       case 'activitywillclose':
         this.hideKeyboardImmediately();
@@ -426,13 +426,15 @@ var KeyboardManager = {
     }
   },
 
-  removeKeyboard: function km_removeKeyboard(manifestURL) {
+  removeKeyboard: function km_removeKeyboard(manifestURL, handleOOM) {
+    var revokeShowedType = null;
     if (!this.runningLayouts.hasOwnProperty(manifestURL)) {
       return;
     }
 
     if (this.showingLayout.frame &&
       this.showingLayout.frame.dataset.frameManifestURL === manifestURL) {
+      revokeShowedType = this.showingLayout.type;
       this.hideKeyboard();
     }
 
@@ -447,6 +449,10 @@ var KeyboardManager = {
     }
 
     delete this.runningLayouts[manifestURL];
+
+    if (handleOOM && revokeShowedType !== null) {
+      this.setKeyboardToShow(revokeShowedType);
+    }
   },
 
   setKeyboardToShow: function km_setKeyboardToShow(group, index, launchOnly) {

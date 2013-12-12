@@ -423,6 +423,8 @@ suite('KeyboardManager', function() {
 
     test('In showingLayout', function() {
       var hideKeyboard = this.sinon.stub(KeyboardManager, 'hideKeyboard');
+      var setKeyboardToShow =
+                          this.sinon.stub(KeyboardManager, 'setKeyboardToShow');
       KeyboardManager.runningLayouts[fakeFrame_A.manifestURL] = {};
       KeyboardManager.runningLayouts[fakeFrame_A.manifestURL][fakeFrame_A.id] =
                                                               this.sinon.stub;
@@ -431,8 +433,10 @@ suite('KeyboardManager', function() {
         'app://keyboard.gaiamobile.org/manifest.webapp';
 
       KeyboardManager.showingLayout.frame = fakeFrame;
-      KeyboardManager.removeKeyboard(fakeFrame_A.manifestURL);
+      KeyboardManager.showingLayout.type = 'text';
+      KeyboardManager.removeKeyboard(fakeFrame_A.manifestURL, true);
       sinon.assert.callCount(hideKeyboard, 1);
+      assert.ok(setKeyboardToShow.calledWith('text'));
       assert.equal(
         KeyboardManager.runningLayouts.hasOwnProperty(fakeFrame_A.manifestURL),
         false);
