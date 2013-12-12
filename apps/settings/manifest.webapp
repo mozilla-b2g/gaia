@@ -30,7 +30,8 @@
     "idle":{},
     "telephony":{},
     "audio-channel-notification":{},
-    "downloads":{}
+    "downloads":{},
+    "nfc":{ "access": "readonly" }
   },
   "activities": {
     "configure": {
