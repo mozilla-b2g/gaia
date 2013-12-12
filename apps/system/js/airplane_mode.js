@@ -7,54 +7,79 @@ var AirplaneMode = {
   _enabled: null,
   set enabled(value) {
     if (value !== this._enabled) {
-      // XXX: check bug-926169
-      // this is used to keep all tests passing while introducing multi-sim APIs
-      var mobileConnection = window.navigator.mozMobileConnection ||
-        window.navigator.mozMobileConnections &&
-          window.navigator.mozMobileConnections[0];
-
+      var mobileConnections = window.navigator.mozMobileConnections;
       var self = this;
-      var doSetRadioEnabled = function(enabled) {
-        var req = mobileConnection.setRadioEnabled(enabled);
+      var reqsCalled = [];
+      var reqsResult = [];
 
-        req.onsuccess = function() {
+      // inner function
+      var notTrue = function isNotTrue(called) {
+        return called !== true;
+      };
+
+      var setRadioAfterReqsCalled = function() {
+        // we have to make sure all requests got executed
+        if (reqsCalled.length !== mobileConnections.length) {
+          return;
+        }
+
+        // it means enabling/disabling one of mobileConnections failed
+        // we have to restore to original status
+        if (reqsResult.some(notTrue)) {
+          self._enabled = !value;
+          for (var i = 0; i < mobileConnections.length; i++) {
+            mobileConnections[i].setRadioEnabled(self._enabled);
+          }
+        } else {
+          // else if all requests all work as our what we expect
+          // we have to change 'ril.radio.disabled'
+          // to reflect UI change on Gaia
           self._enabled = value;
           SettingsListener.getSettingsLock().set(
             {'ril.radio.disabled': self._enabled}
           );
+        }
+      };
+
+      var doSetRadioEnabled = function doSetRadioEnabled(enabled, index) {
+        var req = mobileConnections[index].setRadioEnabled(enabled);
+        reqsResult = [];
+        reqsCalled = [];
+
+        req.onsuccess = function onReqSuccess() {
+          reqsResult.push(true);
+          reqsCalled.push(true);
+          setRadioAfterReqsCalled();
         };
-        req.onerror = function() {
-          self._enabled = !value;
-          SettingsListener.getSettingsLock().set(
-            {'ril.radio.disabled': self._enabled}
-          );
+
+        req.onerror = function onReqError() {
+          reqsResult.push(false);
+          reqsCalled.push(true);
+          setRadioAfterReqsCalled();
         };
       };
 
-      // See bug 933659
-      // Gecko stops using the settings key 'ril.radio.disabled' to turn
-      // off RIL radio. We need to remove the code that checks existence of the
-      // new API after bug 856553 lands.
-      if (mobileConnection && !!mobileConnection.setRadioEnabled) {
-        if (mobileConnection.radioState !== 'enabling' &&
-            mobileConnection.radioState !== 'disabling') {
-          doSetRadioEnabled(!value);
+      // we will enable each connection separately
+      for (var i = 0; i < mobileConnections.length; i++) {
+        var conn = mobileConnections[i];
+        if (conn.radioState !== 'enabling' &&
+            conn.radioState !== 'disabling') {
+          doSetRadioEnabled(!value, i);
         } else {
-          mobileConnection.addEventListener('radiostatechange',
-            function radioStateChangeHandler() {
-              if (mobileConnection.radioState == 'enabling' ||
-                  mobileConnection.radioState == 'disabling')
-                return;
-              mobileConnection.removeEventListener('radiostatechange',
-                radioStateChangeHandler);
-              doSetRadioEnabled(!value);
-          });
+          conn.addEventListener('radiostatechange',
+            (function(i) {
+              return function radioStateChangeHandler() {
+                if (conn.radioState == 'enabling' ||
+                    conn.radioState == 'disabling') {
+                  return;
+                }
+                conn.removeEventListener('radiostatechange',
+                  radioStateChangeHandler);
+                doSetRadioEnabled(!value, i);
+              };
+            })(i)
+          );
         }
-      } else {
-        this._enabled = value;
-        SettingsListener.getSettingsLock().set(
-          {'ril.radio.disabled': this._enabled}
-        );
       }
     }
   },
@@ -134,14 +159,9 @@ var AirplaneMode = {
     var mozSettings = window.navigator.mozSettings;
     var bluetooth = window.navigator.mozBluetooth;
     var wifiManager = window.navigator.mozWifiManager;
-    // XXX: check bug-926169
-    // this is used to keep all tests passing while introducing multi-sim APIs
-    var mobileConnection = window.navigator.mozMobileConnection ||
-      window.navigator.mozMobileConnections &&
-        window.navigator.mozMobileConnections[0];
-
-    var mobileData = mobileConnection && mobileConnection.data;
     var fmRadio = window.navigator.mozFMRadio;
+    var mobileData = window.navigator.mozMobileConnections[0] &&
+      window.navigator.mozMobileConnections[0].data;
 
     // Note that we don't restore Wifi tethering when leaving airplane mode
     // because Wifi tethering can't be switched on before data connection is
