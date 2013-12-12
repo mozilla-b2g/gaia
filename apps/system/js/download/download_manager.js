@@ -41,11 +41,6 @@ var DownloadManager = (function() {
   };
 
   function createDownloadNotification(download) {
-    if (download.url === 'about:blank') {
-      // See bug 944682
-      return;
-    }
-
     var id = DownloadFormatter.getUUID(download);
     notifications[id] = new DownloadNotification(download);
   }
