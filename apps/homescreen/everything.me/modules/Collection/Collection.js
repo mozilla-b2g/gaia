@@ -206,42 +206,44 @@ void function() {
 
       Evme.CollectionSettings.update(collectionSettings, data,
         function onUpdate(updatedSettings) {
-          // repaint static apps if collection is open and apps changed
-          // noRepaint flags to override this behavior in case the caller
-          // already handles repaint (like 'moveApp' does)
-          if (!extra.noRepaint && currentSettings &&
-              currentSettings.id === collectionSettings.id && 'apps' in data) {
-            resultsManager.renderStaticApps(updatedSettings.apps);
+          // updating the currently open collection
+          if (currentSettings && currentSettings.id === collectionSettings.id) {
+            currentSettings = updatedSettings;
+
+            // repaint static apps if collection is open and apps changed
+            // noRepaint flags to override this behavior in case the caller
+            // already handles repaint (like 'moveApp' does)
+            if (!extra.noRepaint && 'apps' in data) {
+              resultsManager.renderStaticApps(updatedSettings.apps);
+            }
           }
 
-            callback(updatedSettings);
+          callback(updatedSettings);
 
-            // update the homescreen icon when necessary
+          // update the homescreen icon when necessary
 
-            // first 3 apps changed
-            if (!shouldUpdateIcon && 'apps' in data) {
-              shouldUpdateIcon =
-                !Evme.Utils.arraysEqual(originalAppIds,
-                  pluck(updatedSettings.apps, 'id'), numIcons);
+          // first 3 apps changed
+          if (!shouldUpdateIcon && 'apps' in data) {
+            shouldUpdateIcon = !Evme.Utils.arraysEqual(originalAppIds,
+              pluck(updatedSettings.apps, 'id'), numIcons);
+          }
+
+          // cloud results changed and needed for icon
+          // (less than 3 static apps)
+          if (!shouldUpdateIcon && 'extraIconsData' in data) {
+            var numApps =
+              ('apps' in data) ? data.apps.length : originalAppIds.length;
+
+            if (numApps < numIcons) {
+              shouldUpdateIcon = !Evme.Utils.arraysEqual(originalIcons,
+                pluck(updatedSettings.extraIconsData, 'icon'), numIcons);
             }
+          }
 
-            // cloud results changed and needed for icon
-            // (less than 3 static apps)
-            if (!shouldUpdateIcon && 'extraIconsData' in data) {
-              var numApps =
-                ('apps' in data) ? data.apps.length : originalAppIds.length;
-
-              if (numApps < numIcons) {
-                shouldUpdateIcon =
-                  !Evme.Utils.arraysEqual(originalIcons,
-                    pluck(updatedSettings.extraIconsData, 'icon'), numIcons);
-              }
-            }
-
-            if (shouldUpdateIcon) {
-              updateGridIconImage(updatedSettings);
-            }
-      });
+          if (shouldUpdateIcon) {
+            updateGridIconImage(updatedSettings);
+          }
+        });
     };
 
     // cloud app is always added to the currently open collection
