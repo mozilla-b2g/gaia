@@ -174,7 +174,7 @@ var BlobView = (function() {
     seek: function(index) {
       if (index < 0)
         fail('negative index');
-      if (index >= this.byteLength)
+      if (index > this.byteLength)
         fail('index greater than buffer size');
       this.index = index;
     },
