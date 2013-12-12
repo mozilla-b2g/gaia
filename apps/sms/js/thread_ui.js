@@ -950,7 +950,7 @@ var ThreadUI = global.ThreadUI = {
     // First of all we retrieve all CSS info which we need
     var verticalMargin = this.INPUT_MARGIN;
     var inputMaxHeight = parseInt(this.input.style.maxHeight, 10);
-
+    var buttonHeight = this.sendButton.offsetHeight;
     var subjectHeight = this.subjectInput.offsetHeight;
 
     // we need to set it back to auto so that we know its "natural size"
@@ -978,6 +978,11 @@ var ThreadUI = global.ThreadUI = {
       this.container.style.borderBottomWidth =
         (minHeight + verticalMargin + subjectHeight) + 'px';
 
+    // We set the buttons' top margin to ensure they render at the bottom of
+    // the container
+    var buttonOffset = minHeight + verticalMargin +
+                       subjectHeight - buttonHeight;
+    this.sendButton.style.marginTop = buttonOffset + 'px';
   },
 
   findNextContainer: function thui_findNextContainer(container) {
