@@ -762,6 +762,8 @@ window.addEventListener('mozbrowserloadend', function loaded(aEvent) {
     def touch_home_button(self):
         self.marionette.switch_to_frame()
         self.marionette.execute_script("window.wrappedJSObject.dispatchEvent(new Event('home'));")
+        apps = GaiaApps(self.marionette)
+        apps.switch_to_displayed_app()
 
     def hold_home_button(self):
         self.marionette.switch_to_frame()
