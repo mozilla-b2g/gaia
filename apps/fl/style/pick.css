@@ -101,7 +101,7 @@ ul li > label.pack-radio {
   height: 100%;
 }
 
-ul li > label.pack-radio > span {
+ul li > label.pack-radio > span:after {
   left: auto;
   right: 0;
 }
