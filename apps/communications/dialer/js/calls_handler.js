@@ -86,6 +86,8 @@ var CallsHandler = (function callsHandler() {
       }
     };
 
+    setupSystemIAC();
+
     postToMainWindow('ready');
   }
 
@@ -93,6 +95,25 @@ var CallsHandler = (function callsHandler() {
     if (window.opener) {
       window.opener.postMessage(data, COMMS_APP_ORIGIN);
     }
+  }
+
+  function setupSystemIAC() {
+    navigator.mozApps.getSelf().onsuccess = function(evt) {
+      var app = evt.target.result;
+      app.connect('dialercomms').then(function(ports) {
+        ports.forEach(function(port) {
+          port.onmessage = function(event) {
+            if (event.data !== 'stop_ringtone') {
+              return;
+            }
+
+            ringtonePlayer.pause();
+            ringing = false;
+            activateVibration = false;
+          };
+        });
+      });
+    };
   }
 
   /* === Handled calls === */

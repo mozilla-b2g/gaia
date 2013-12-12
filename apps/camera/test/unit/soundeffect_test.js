@@ -5,7 +5,7 @@
 
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mocks_helper.js');
-requireApp('/camera/test/unit/mock_audio.js');
+require('/shared/test/unit/mocks/mock_audio.js');
 requireApp('/camera/js/soundeffect.js');
 
 suite('Sound Effect Unit Tests', function() {
