@@ -96,6 +96,7 @@ var UIManager = {
     var currentDate = new Date();
     var f = new navigator.mozL10n.DateTimeFormat();
     var format = _('shortTimeFormat');
+    this._updateCurrentTimeout = '';
     this.timeConfigurationLabel.innerHTML = f.localeFormat(currentDate, format);
     this.dateConfigurationLabel.innerHTML = currentDate.
       toLocaleFormat('%Y-%m-%d');
@@ -132,6 +133,19 @@ var UIManager = {
     this.timeConfiguration.addEventListener('input', this);
     this.dateConfiguration.addEventListener('input', this);
     this.initTZ();
+
+    document.addEventListener('visibilitychange', function visibilityChange() {
+      if (!document.hidden) {
+        this.initTZ();
+      }else {
+        window.clearTimeout(this._updateCurrentTimeout);
+      }
+    }.bind(this));
+
+    window.addEventListener('moztimechange', function moztimechange() {
+      window.clearTimeout(this._updateCurrentTimeout);
+      this.initTZ();
+    }.bind(this));
 
     this.geolocationSwitch.addEventListener('click', this);
 
@@ -271,6 +285,10 @@ var UIManager = {
     var tzRegion = document.getElementById('tz-region');
     var tzCity = document.getElementById('tz-city');
     tzSelect(tzRegion, tzCity, this.setTimeZone, this.setTimeZone);
+    this._updateCurrentTimeout = window.setTimeout(
+      function updateCurrentTimeout() {
+      this.initTZ();
+    }.bind(this), (59 - new Date().getSeconds()) * 1000);
   },
 
   handleEvent: function ui_handleEvent(event) {
@@ -399,6 +417,7 @@ var UIManager = {
     var f = new navigator.mozL10n.DateTimeFormat();
     var format = _('shortTimeFormat');
     timeLabel.innerHTML = f.localeFormat(timeToSet, format);
+    document.getElementById('time-configuration').value = ''; // refreshing time
   },
 
   setTimeZone: function ui_stz(timezone) {
