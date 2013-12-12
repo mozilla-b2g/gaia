@@ -3557,6 +3557,7 @@ suite('thread_ui.js >', function() {
     var realComposeisEmpty;
     var realMessageManager;
     var realEnableSend;
+    var spy;
 
     suiteSetup(function() {
       realEnableSend = ThreadUI.enableSend;
@@ -3688,6 +3689,36 @@ suite('thread_ui.js >', function() {
                        ['999', '888']);
       assert.equal(window.location.hash, '#new');
     });
+
+    test('Deletes draft if there was a draft', function() {
+      spy = this.sinon.spy(Drafts, 'delete');
+
+      MessageManager.draft = {id: 3};
+      ThreadUI.recipients.add({
+        number: '888'
+      });
+      Compose.append('foo');
+
+      ThreadUI.onSendClick();
+
+      assert.isTrue(spy.calledOnce);
+      assert.isNull(MessageManager.draft);
+    });
+
+    test('Removes draft thread if there was a draft thread', function() {
+      spy = this.sinon.spy(ThreadListUI, 'removeThread');
+
+      MessageManager.draft = {id: 3};
+      ThreadUI.recipients.add({
+        number: '888'
+      });
+      Compose.append('foo');
+
+      ThreadUI.onSendClick();
+
+      assert.isTrue(spy.calledOnce);
+    });
+
   });
 
   suite('Contact Picker Behavior(contactPickButton)', function() {
