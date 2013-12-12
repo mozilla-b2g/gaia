@@ -235,17 +235,17 @@ function errorParamsGenerator(actions, opts) {
   if (actions.showDsdsStatus) {
     var mmsServiceId = Settings.mmsServiceId;
     if (mmsServiceId !== null) {
-      // mmsServiceId = '0' => default Service is SIM 1
-      // mmsServiceId = '1' => default Service is SIM 2
+      // mmsServiceId = 0 => default Service is SIM 1
+      // mmsServiceId = 1 => default Service is SIM 2
 
       switch (mmsServiceId) {
-        case '0':
+        case 0:
           messageBodyParams = {
             active: 'SIM 1',
             nonactive: 'SIM 2'
           };
           break;
-        case '1':
+        case 1:
           messageBodyParams = {
             active: 'SIM 2',
             nonactive: 'SIM 1'
