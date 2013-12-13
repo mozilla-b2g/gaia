@@ -406,7 +406,7 @@ bubble above the key when you tap and hold. */
   display: block;
   background: #252220;
   padding: 0;
-  margin: -0.6rem 0rem 0.2rem 0rem;
+  margin: 0.2rem 0rem 0.2rem 0rem;
   border: none;
   border-top: 0.1rem solid #000000;
   border-bottom: 0.1rem solid #000000;
@@ -420,10 +420,10 @@ bubble above the key when you tap and hold. */
   overflow-y: auto;
 
   position: absolute;
-  top: 0.2rem;
+  top: 0.1rem;
   height: -moz-calc(100% - 0.4rem);
   z-index: 1;
-  margin: 0;
+  margin: 0.1rem 0rem 0.2rem 0rem;
 }
 
 #keyboard-candidate-panel-toggle-button {
