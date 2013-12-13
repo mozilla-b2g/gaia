@@ -439,10 +439,7 @@ body, html {
 }
 
 .sb-emergency-cb-icon-notification {
-  width: 1.6rem;
-  height: 1.6rem;
-  background: url('images/emergency-callback_icon_notification.png') no-repeat;
-  background-size: 1.6rem 1.6rem;
+  background-position: -25.2rem -8rem;
 }
 
 .sb-icon-sms {
@@ -475,10 +472,7 @@ body, html {
 }
 
 .sb-icon-call-forwarding {
-  /* Waiting for the correct icon. In the mean time we use this one. */
-  background: url('images/call-forwarding.png') no-repeat;
-  background-position: 0 0;
-  background-size: 1.6rem 1.6rem;
+  background-position: -21rem -8rem;
 }
 
 .sb-icon-playing {
