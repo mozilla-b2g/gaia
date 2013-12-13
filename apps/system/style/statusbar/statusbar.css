@@ -22,10 +22,6 @@ body, html {
   -moz-user-focus: ignore;
 }
 
-#screen.locked:not(.attention) #statusbar{
-  background-color: transparent;
-}
-
 #screen.attention.locked #statusbar-time {
   display: block;
 }
