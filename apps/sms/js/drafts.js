@@ -17,6 +17,19 @@
      */
     List: DraftList,
     /**
+     * size
+     *
+     * Returns the number of Draft Lists.
+     *
+     * There is one Draft.List per Thread and
+     * one Draft.List for all threadless Drafts.
+     *
+     * @return {Number} Maps to draftIndex size property.
+     */
+    get size() {
+      return draftIndex.size;
+    },
+    /**
      * add
      *
      * Push a Draft object or an object that has
@@ -149,7 +162,7 @@
      *
      * @param  {Number}  id thread id of the drafts to return.
      *
-     * @return {Draft}  Draft object.
+     * @return {Draft}  Draft object or undefined.
      */
     get: function(id) {
       var draft;
@@ -175,6 +188,7 @@
      */
     clear: function() {
       draftIndex = new Map();
+      isCached = false;
       return this;
     },
     /**

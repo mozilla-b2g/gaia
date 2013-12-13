@@ -307,7 +307,6 @@ suite('Drafts', function() {
       assert.equal(Drafts.byThreadId(1).length, 0);
       assert.equal(Drafts.byThreadId(2).length, 0);
     });
-
   });
 
   suite('Drafts.List() >', function() {
@@ -478,12 +477,39 @@ suite('Drafts', function() {
       });
     });
 
-    test('Load drafts, has no stored data', function(done) {
-      Drafts.request(function(result) {
-        assert.equal(result.length, 0);
-        done();
+    test('Load, clear, restore drafts', function(done) {
+      this.sinon.stub(asyncStorage, 'getItem').yields([
+        [42, [d1]],
+        [44, [d2]],
+        [null, [d5, d6, d7]]
+      ]);
+
+      // Load
+      Drafts.request(function() {
+        assert.equal(Drafts.size, 3);
+        assert.isTrue(asyncStorage.getItem.calledOnce);
+
+        // Clear (This will set isCached = false)
+        Drafts.clear();
+
+        assert.equal(Drafts.size, 0);
+
+        // Restore
+        Drafts.request(function() {
+          assert.equal(Drafts.size, 3);
+          assert.isTrue(asyncStorage.getItem.calledTwice);
+          done();
+        });
       });
     });
 
+    test('Load drafts, has no stored data', function(done) {
+      this.sinon.stub(asyncStorage, 'getItem').yields([]);
+
+      Drafts.request(function() {
+        assert.equal(Drafts.size, 0);
+        done();
+      });
+    });
   });
 });
