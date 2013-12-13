@@ -41,7 +41,6 @@ var Connectivity = (function(window, document, undefined) {
   var mobileConnection = getMobileConnection();
 
   if (IccHelper) {
-    IccHelper.addEventListener('cardstatechange', updateCallSettings);
     IccHelper.addEventListener('cardstatechange', updateMessagingSettings);
   }
 
@@ -62,7 +61,6 @@ var Connectivity = (function(window, document, undefined) {
 
   SettingsListener.observe('ril.radio.disabled', false, function(value) {
     _airplaneMode = value;
-    updateCallSettings();
     updateMessagingSettings();
   });
 
@@ -111,7 +109,7 @@ var Connectivity = (function(window, document, undefined) {
       'ready': ''
     };
 
-    updateCallSettings();
+    updateCallDescription();
     updateCellAndDataDescription();
     updateMessagingSettings();
     updateWifi();
@@ -191,21 +189,82 @@ var Connectivity = (function(window, document, undefined) {
    * Call Settings
    */
 
-  var callDesc = document.getElementById('call-desc');
-  callDesc.style.fontStyle = 'italic';
+  function updateCallDescription() {
+    var iccId;
 
-  function updateCallSettings() {
-    if (!_initialized) {
-      init();
-      return; // init will call updateCallSettings()
+    var mobileConnections = window.navigator.mozMobileConnections;
+    var iccManager = window.navigator.mozIccManager;
+    if (!mobileConnections || !iccManager) {
+      return;
     }
 
-    if (!IccHelper)
+    // Only show the description for single ICC card devices. In case of multi
+    // ICC card device the description to show for the ICC cards will be handled
+    // in the call_iccs.js file.
+    if (mobileConnections.length > 1) {
       return;
+    }
 
-    // update the current SIM card state
-    var cardState = _airplaneMode ? 'null' : IccHelper.cardState || 'absent';
-    localize(callDesc, kCardStateL10nId[cardState]);
+    function showCallDescription() {
+      var callDesc = document.getElementById('call-desc');
+      callDesc.style.fontStyle = 'italic';
+
+      if (!mobileConnections[0].iccId) {
+        // TODO: this could mean there is no ICC card or the ICC card is
+        // locked. If locked we would need to figure out how to check the
+        // current card state. We show 'SIM card not ready'.
+        localize(callDesc, kCardStateL10nId['null']);
+        return;
+      }
+
+      if (mobileConnections[0].radioState !== 'enabled') {
+        // Airplane is enabled. Well, radioState property could be changing but
+        // let's show 'SIM card not ready' during the transitions also.
+        localize(callDesc, kCardStateL10nId['null']);
+        return;
+      }
+
+      var iccCard = iccManager.getIccById(mobileConnections[0].iccId);
+      if (!iccCard) {
+        localize(callDesc, '');
+        return;
+      }
+      var cardState = iccCard.cardState;
+      localize(callDesc, kCardStateL10nId[cardState || 'null']);
+    }
+
+    function addListeners() {
+      iccId = mobileConnections[0].iccId;
+      var iccCard = iccManager.getIccById(iccId);
+      if (!iccCard) {
+        return;
+      }
+      iccCard.addEventListener('cardstatechange',
+                               showCallDescription);
+      mobileConnections[0].addEventListener('radiostatechange',
+                                            showCallDescription);
+    }
+
+    showCallDescription();
+    addListeners();
+
+    iccManager.addEventListener('iccdetected',
+      function iccDetectedHandler(evt) {
+        if (mobileConnections[0].iccId &&
+           (mobileConnections[0].iccId === evt.iccId)) {
+          showCallDescription();
+          addListeners();
+        }
+    });
+
+    iccManager.addEventListener('iccundetected',
+      function iccUndetectedHandler(evt) {
+        if (iccId === evt.iccId) {
+          mobileConnections[0].removeEventListener('radiostatechange',
+            showCallDescription());
+        }
+    });
+
   }
 
   /**
