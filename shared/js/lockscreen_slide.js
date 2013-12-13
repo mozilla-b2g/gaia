@@ -111,7 +111,6 @@
 
       // Most of them need to be initialized later.
       touch: {
-        direction: '',
         touched: false,
         initX: -1,
         pageX: -1,
@@ -236,7 +235,7 @@
           if (this.states.sliding) {
             this._onSlideEnd();
           }
-
+          this._resetTouchStates();
           this.overlay.classList.remove('touched');
           break;
       }
@@ -326,6 +325,7 @@
 
       // Draw the handle.
       this._resetHandle();
+      this._resetTouchStates();
 
       // We don't reset the arrows because it need to be draw while image
       // got loaded, which is a asynchronous process.
@@ -462,6 +462,7 @@
    */
   LockScreenSlidePrototype._onSlideEnd =
     function lss_onSlideEnd() {
+
       var isLeft = this.states.touch.pageX - this.center.x < 0;
       var bounceEnd = (function _bounceEnd() {
         this._clearCanvas();
@@ -886,6 +887,24 @@
       var canvas = this.canvas;
       var centerx = this.center.x;
       this._drawSlideTo(centerx);
+    };
+
+  /**
+   * Reset the states of touch after it's end.
+   *
+   * @this {LockScreenSlide}
+   */
+  LockScreenSlidePrototype._resetTouchStates =
+    function lss_resetTouchStates() {
+      this.states.touch = {
+        touched: false,
+        initX: this.center.x,
+        pageX: this.center.x,
+        pageY: this.center.y,
+        tx: 0,
+        prevX: this.center.x,
+        deltaX: 0
+      };
     };
 
   LockScreenSlide.prototype = LockScreenSlidePrototype;
