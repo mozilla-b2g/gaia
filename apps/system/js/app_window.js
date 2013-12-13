@@ -90,10 +90,25 @@
       this.manifest.chrome :
       this.config.chrome;
 
+    if (!this.manifest && this.config && this.config.title) {
+      this.updateName(this.config.title);
+    }
+
     // Get icon splash
     this.getIconForSplash();
 
     this.generateID();
+  };
+
+  /**
+   * Update the name of this window.
+   * @param {String} name The new name
+   */
+  AppWindow.prototype.updateName = function aw_updateName(name) {
+    if (this.config && this.config.title) {
+      this.config.title = name;
+    }
+    this.name = name;
   };
 
   /**

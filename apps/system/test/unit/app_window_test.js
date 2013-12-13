@@ -84,6 +84,12 @@ suite('system/AppWindow', function() {
     origin: 'app://www.fake4'
   };
 
+  var fakeWrapperConfig = {
+    url: 'http://www.fake5/index.html',
+    origin: 'http://www.fake5',
+    title: 'Fakebook'
+  };
+
   test('App created with instanceID', function() {
     var app1 = new AppWindow(fakeAppConfig1);
     var app2 = new AppWindow(fakeAppConfig2);
@@ -912,5 +918,10 @@ suite('system/AppWindow', function() {
     stubIsActive.returns(false);
     app1.modifyURLatBackground('http://changed.url');
     assert.isTrue(app1.browser.element.src.indexOf('http://changed.url') >= 0);
+  });
+
+  test('Launch wrapper should have name from title config', function() {
+    var app1 = new AppWindow(fakeWrapperConfig);
+    assert.equal(app1.name, 'Fakebook');
   });
 });
