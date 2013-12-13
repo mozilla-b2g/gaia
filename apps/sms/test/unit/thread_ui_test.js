@@ -2813,7 +2813,7 @@ suite('thread_ui.js >', function() {
       loadBodyHTML('/index.html');
       threadMessages = document.getElementById('thread-messages');
       carrierTag = document.getElementById('contact-carrier');
-      this.sinon.spy(ThreadUI, 'updateInputHeight');
+      this.sinon.spy(ThreadUI, 'updateElementsHeight');
     });
 
     teardown(function() {
@@ -2853,13 +2853,13 @@ suite('thread_ui.js >', function() {
       };
 
       ThreadUI.updateCarrier(thread, contacts, details);
-      assert.ok(ThreadUI.updateInputHeight.calledOnce);
+      assert.ok(ThreadUI.updateElementsHeight.calledOnce);
 
       // Change number of recipients,so now there should be no carrier
       thread.participants.push('123123');
 
       ThreadUI.updateCarrier(thread, contacts, details);
-      assert.ok(ThreadUI.updateInputHeight.calledTwice);
+      assert.ok(ThreadUI.updateElementsHeight.calledTwice);
     });
 
     test(' input height are not updated if its not needed', function() {
@@ -2869,7 +2869,7 @@ suite('thread_ui.js >', function() {
 
       ThreadUI.updateCarrier(thread, contacts, details);
       ThreadUI.updateCarrier(thread, contacts, details);
-      assert.isFalse(ThreadUI.updateInputHeight.calledTwice);
+      assert.isFalse(ThreadUI.updateElementsHeight.calledTwice);
     });
   });
 
