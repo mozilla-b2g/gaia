@@ -8,33 +8,39 @@
     <link rel="stylesheet" type="text/css" href="../../style/API.css">
   </head>
   <body>
-    <div>
-      (PMPP = Public Mock Payment Provider)
-    </div>
-    <div>
-      <span id="result"></span>
-    </div>
+    You should see a popup frame
     <ul>
       <li>
-        <button id="test-pmpp" type=button>
-          Pay PMPP
-        </button>
+        <button id="test-postback">
+          Pay (postback)
+        </button><br>
+        You should see "result:postback"
       </li>
       <li>
-        <button id="tests-invalid" type=button>
+        <button id="test-chargeback">
+          Pay (chargeback)
+        </button><br>
+        You should see "result:chargeback"
+      </li>
+    </ul>
+    No popup frame
+    <ul>
+      <li>
+        <button id="tests-invalid">
           Pay with invalid JWT
         </button>
       </li>
       <li>
-        <button id="test-nojwt" type=button>
+        <button id="test-nojwt">
           Pay with no JWT
         </button>
       </li>
       <li>
-        <button id="test-repeated" type=button>
-          Pay with repeated Mock JWT
+        <button id="test-repeated">
+          Pay with repeated JWT
         </button>
       </li>
     </ul>
+    <p id="result" class="error"></p>
   </body>
 </html>
