@@ -15310,11 +15310,15 @@ Autoconfigurator.prototype = {
       });
     };
 
-    xhr.ontimeout = xhr.onerror = function() {
+    // Caution: don't overwrite ".onerror" twice here. Just be careful
+    // to only assign that once until <http://bugzil.la/949722> is fixed.
+
+    xhr.ontimeout = function() {
       // The effective result is a failure to get configuration info, but make
       // sure the status conveys that a timeout occurred.
       callback('no-config-info', null, { status: 'timeout' });
     };
+
     xhr.onerror = function() {
       // The effective result is a failure to get configuration info, but make
       // sure the status conveys that a timeout occurred.
