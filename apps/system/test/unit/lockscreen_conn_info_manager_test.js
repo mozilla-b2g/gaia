@@ -178,7 +178,25 @@ suite('system/LockScreenConnInfoManager >', function() {
       };
       subject.updateConnStates();
       assert.equal(domConnstateL1.textContent,
-        'roaming"{\\"operator\\":\\"' + MockMobileOperator.mOperator + '\\"}"');
+        'roaming{"operator":"' + MockMobileOperator.mOperator + '"}');
+    });
+
+    test('Show localized roaming',
+      function() {
+        mockMobileConnection.voice = {
+          connected: true,
+          emergencyCallsOnly: false,
+          roaming: true
+        };
+
+        var l10nArgs = {
+          operator: 'operator'
+        };
+
+        var l10nSpy = this.sinon.spy(navigator.mozL10n, 'localize');
+        subject.updateConnStates();
+        assert.ok(l10nSpy.calledWith(domConnstateL1, 'roaming', l10nArgs),
+          'Roaming network name displayed localized with proper string');
     });
 
     suite('Show correct card states when emergency calls only', function() {
