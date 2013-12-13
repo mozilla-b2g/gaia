@@ -4,6 +4,7 @@ var Search = {
   _port: null,
   terms: document.getElementById('search-terms'),
   suggestions: document.getElementById('search-suggestions'),
+  app: null,
 
   providers: {},
 
@@ -23,8 +24,8 @@ var Search = {
     // Initialize the parent port connection
     var self = this;
     navigator.mozApps.getSelf().onsuccess = function() {
-      var app = this.result;
-      app.connect('search-results').then(
+      self.app = this.result;
+      self.app.connect('search-results').then(
         function onConnectionAccepted(ports) {
           ports.forEach(function(port) {
             self._port = port;
@@ -34,6 +35,12 @@ var Search = {
           dump('Error connecting: ' + reason + '\n');
         }
       );
+
+      // Providers have been defined at this point
+      // Call the init method of each once we have a reference to the app
+      for (var i in self.providers) {
+        self.providers[i].init();
+      }
     };
   },
 
