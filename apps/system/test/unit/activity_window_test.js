@@ -98,7 +98,7 @@ suite('system/ActivityWindow', function() {
   });
 
   suite('activity window instance.', function() {
-    var app;
+    var app, appF;
     setup(function() {
       app = new AppWindow({
         iframe: document.createElement('iframe'),
@@ -111,9 +111,22 @@ suite('system/ActivityWindow', function() {
           orientation: 'default'
         }
       });
+      appF = new AppWindow({
+        iframe: document.createElement('iframe'),
+        frame: document.createElement('div'),
+        origin: 'http://fake',
+        url: 'http://fakeurl/index.html',
+        manifestURL: 'http://fakemanifesturl',
+        name: 'fake',
+        manifest: {
+          orientation: 'default',
+          fullscreen: true
+        }
+      });
     });
     teardown(function() {
     });
+
     test('Activity created', function() {
       var created = false;
       window.addEventListener('activitycreated', function oncreated() {

@@ -33,6 +33,30 @@
 
   // Current policy is to copy the caller's orientation.
   // So we just overwrite resize method.
+
+  /**
+   * ActivityWindow's fullscreen state is copying from the caller
+   * instead of reading manifest so we just overwrite the
+   * isFullScreen method of AppWindow.
+   *
+   * @return {Boolean} The activity window is fullscreen or not.
+   */
+  ActivityWindow.prototype.isFullScreen = function acw_isFullScreen() {
+    if (typeof(this._fullscreen) !== 'undefined') {
+      return this._fullscreen;
+    }
+
+    this._fullscreen = this.activityCaller ?
+                       this.activityCaller.isFullScreen() :
+                       this.manifest ?
+                       !!this.manifest.fullscreen :
+                       false;
+    return this._fullscreen;
+  };
+
+  /**
+   * Lock or unlock orientation for this activity.
+   */
   ActivityWindow.prototype.setOrientation =
     function acw_setOrientation(noCapture) {
       if (this.isActive()) {
@@ -221,6 +245,11 @@
     this.iframe = this.browser.element;
     this.screenshotOverlay = this.element.querySelector('.screenshot-overlay');
     this.fadeOverlay = this.element.querySelector('.fade-overlay');
+
+    // Copy fullscreen state from caller.
+    if (this.isFullScreen()) {
+      this.element.classList.add('fullscreen-app');
+    }
 
     this._registerEvents();
     if (window.AppModalDialog) {
