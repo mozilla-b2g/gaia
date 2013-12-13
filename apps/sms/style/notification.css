@@ -18,6 +18,10 @@ section[role="notification"] {
   position: absolute;
   width: 100%;
 }
+/** To be seen below the To: field when we are creating a new message **/
+section[role="region"].new .overlay {
+  top: 4.5rem;
+}
 
 section[role="notification"] p {
   margin: 1rem 2rem;
