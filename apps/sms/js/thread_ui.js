@@ -769,13 +769,20 @@ var ThreadUI = global.ThreadUI = {
       }).bind(this);
 
       discardDraft = (function() {
-        Drafts.delete(MessageManager.draft);
-        MessageManager.draft = null;
-        // Force ThreadList to re-render threads
-        // whose draft status has changed
-        if (Threads.active) {
-          ThreadListUI.updateThread(Threads.active);
+        // If we were tracking a draft
+        // properly update the Drafts object
+        // and ThreadList entries
+        if (MessageManager.draft) {
+          Drafts.delete(MessageManager.draft);
+          if (Threads.active) {
+            ThreadListUI.updateThread(Threads.active);
+          } else {
+            ThreadListUI.removeThread(MessageManager.draft.id);
+          }
+          MessageManager.draft = null;
         }
+        // Else, this was a brand new draft, but
+        // it is now being discarded
         discard();
       }).bind(this);
 
