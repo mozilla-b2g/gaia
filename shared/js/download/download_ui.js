@@ -38,7 +38,7 @@ var DownloadUI = (function() {
     this.name = name;
     this.classes = classes;
     this.isPlainMessage = isPlainMessage;
-    this.numberOfButtons = name === 'file_not_found' ? 1 : 2;
+    this.numberOfButtons = classes.indexOf('full') !== -1 ? 1 : 2;
   };
 
   var TYPES = {
@@ -50,7 +50,10 @@ var DownloadUI = (function() {
                                             ['danger']),
     FILE_NOT_FOUND: new DownloadType('file_not_found', ['recommend', 'full'],
                                      true),
-    FILE_OPEN_ERROR: new DownloadType('file_open_error', ['danger'])
+    FILE_OPEN_ERROR: new DownloadType('file_open_error', ['danger']),
+    NO_SDCARD: new DownloadType('no_sdcard', ['recommend', 'full'], true),
+    UNMOUNTED_SDCARD: new DownloadType('unmounted_sdcard', ['recommend',
+                                       'full'], true)
   };
 
   // Confirm dialog container
