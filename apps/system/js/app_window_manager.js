@@ -137,6 +137,11 @@
                                       openAnimation, closeAnimation) {
       this.debug('before ready check' + appCurrent + appNext);
       appNext.ready(function() {
+        if (appNext.isDead()) {
+          // The app was killed while we were opening it,
+          // let's not switch to a dead app!
+          return;
+        }
         this.debug('ready to open/close' + switching);
         if (switching)
           HomescreenLauncher.getHomescreen().fadeOut();

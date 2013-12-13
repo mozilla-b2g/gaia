@@ -402,6 +402,21 @@ suite('system/AppWindowManager', function() {
       assert.isTrue(stub_updateActiveApp.called);
     });
 
+    test('home to an app killed while opening', function() {
+      injectRunningApps(home, app1);
+      AppWindowManager._activeApp = home;
+      this.sinon.stub(app1, 'isDead').returns(true);
+
+      var stub_updateActiveApp = this.sinon.stub(AppWindowManager,
+        '_updateActiveApp');
+      var stubReady = this.sinon.stub(app1, 'ready');
+      var stubAppCurrentClose = this.sinon.stub(home, 'close');
+      AppWindowManager.switchApp(home, app1);
+      stubReady.yield();
+      assert.isFalse(stubAppCurrentClose.called);
+      assert.isFalse(stub_updateActiveApp.called);
+    });
+
     test('app to home', function() {
       injectRunningApps(home, app1);
       AppWindowManager._activeApp = app1;
