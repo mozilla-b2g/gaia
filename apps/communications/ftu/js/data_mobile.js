@@ -33,16 +33,18 @@ var DataMobile = {
         self.settings.createLock().set(options);
         self.apnRetrieved = true;
         self.isDataAvailable = status;
-        if (callback)
+        if (callback) {
           callback();
+        }
       });
       return;
     }
     this.settings.createLock().set(options);
     this.apnRetrieved = true;
     this.isDataAvailable = status;
-    if (callback)
+    if (callback) {
       callback();
+    }
   },
   getAPN: function dm_getapn(callback) {
     // By the time the APN settings are needed in the FTU before enabling data

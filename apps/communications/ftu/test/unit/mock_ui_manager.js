@@ -55,20 +55,22 @@ var MockUIManager = {
 
   mSuiteSetup: function muim_mSuiteSetup() {
     this.domSelectors.forEach(function createElementRef(name) {
-      if (name)
+      if (name) {
         this[toCamelCase(name)] = document.getElementById(name);
+      }
     }.bind(this));
   },
 
   mSuiteTeardown: function muim_mSuiteTeardown() {
     this.domSelectors.forEach(function destroyElementRef(name) {
-      if (name)
+      if (name) {
         this[toCamelCase(name)] = null;
+      }
     }.bind(this));
   },
 
   sendNewsletter: function(callback) {return callback(true);},
-  updateDataConnectionStatus: function(status) {return DataMobile.getStatus()},
+  updateDataConnectionStatus: function(status) {return DataMobile.getStatus();},
   displayOfflineDialog: function() {}
 };
 

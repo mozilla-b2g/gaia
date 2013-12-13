@@ -20,7 +20,6 @@ var VariantManager = {
   },
 
   getVariantSettings: function vm_getVariantSettings(onsuccess, onerror) {
-    var self = this;
     var filePath = this.CUSTOMIZATION_FILE;
     Resources.load(filePath, 'json', function(data) {
       onsuccess && onsuccess(data);

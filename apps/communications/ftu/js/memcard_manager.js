@@ -48,28 +48,30 @@ var SdManager = {
       'text/directory;profile=vCard',
       'text/directory'
     ], ['vcf', 'vcard'], function(err, fileArray) {
-      if (err)
+      if (err) {
         return import_error(err);
-
-      if (cancelled)
+      }
+      if (cancelled) {
         return;
-
-      if (fileArray.length)
+      }
+      if (fileArray.length) {
         utils.sdcard.getTextFromFiles(fileArray, '', onFiles);
-      else
+      } else {
         import_error('No contacts were found.');
+      }
     });
 
     function onFiles(err, text) {
-      if (err)
+      if (err) {
         return import_error(err);
-
-      if (cancelled)
+      }
+      if (cancelled) {
         return;
-
+      }
       importer = new VCFReader(text);
-      if (!text || !importer)
+      if (!text || !importer) {
         return import_error('No contacts were found.');
+      }
 
       importer.onread = import_read;
       importer.onimported = imported_contact;
