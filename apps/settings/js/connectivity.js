@@ -12,6 +12,24 @@
 
 // display connectivity status on the main panel
 var Connectivity = (function(window, document, undefined) {
+  var DATA_TYPE_MAPPING = {
+    'lte' : '4G LTE',
+    'ehrpd': '4G CDMA',
+    'hspa+': '3.5G HSPA+',
+    'hsdpa': '3.5G HSDPA',
+    'hsupa': '3.5G HSDPA',
+    'hspa' : '3.5G HSDPA',
+    'evdo0': '3G CDMA',
+    'evdoa': '3G CDMA',
+    'evdob': '3G CDMA',
+    '1xrtt': '2G CDMA',
+    'umts' : '3G UMTS',
+    'edge' : '2G EDGE',
+    'is95a': '2G CDMA',
+    'is95b': '2G CDMA',
+    'gprs' : '2G GPRS'
+  };
+
   var _initialized = false;
   var _macAddress = '';
   var _ = navigator.mozL10n.get;
@@ -22,9 +40,6 @@ var Connectivity = (function(window, document, undefined) {
   var bluetooth = getBluetooth();
   var mobileConnection = getMobileConnection();
 
-  if (mobileConnection) {
-    mobileConnection.addEventListener('datachange', updateCarrier);
-  }
   if (IccHelper) {
     IccHelper.addEventListener('cardstatechange', updateCallSettings);
     IccHelper.addEventListener('cardstatechange', updateMessagingSettings);
@@ -37,7 +52,8 @@ var Connectivity = (function(window, document, undefined) {
   var wifiStatusChangeListeners = [updateWifi];
   var settings = Settings.mozSettings;
 
-  //
+  var kCardStateL10nId; // see init()
+
   // Set wifi.enabled so that it mirrors the state of the hardware.
   // wifi.enabled is not an ordinary user setting because the system
   // turns it on and off when wifi goes up and down.
@@ -46,7 +62,6 @@ var Connectivity = (function(window, document, undefined) {
 
   SettingsListener.observe('ril.radio.disabled', false, function(value) {
     _airplaneMode = value;
-    updateCarrier();
     updateCallSettings();
     updateMessagingSettings();
   });
@@ -96,8 +111,8 @@ var Connectivity = (function(window, document, undefined) {
       'ready': ''
     };
 
-    updateCarrier();
     updateCallSettings();
+    updateCellAndDataDescription();
     updateMessagingSettings();
     updateWifi();
     updateBluetooth();
@@ -173,89 +188,6 @@ var Connectivity = (function(window, document, undefined) {
   }
 
   /**
-   * Mobile Connection Manager
-   */
-
-  var kCardStateL10nId; // see init()
-  var kDataType = {
-    'lte' : '4G LTE',
-    'ehrpd': 'CDMA',
-    'hspa+': '3.5G HSPA+',
-    'hsdpa': '3.5G HSDPA',
-    'hsupa': '3.5G HSDPA',
-    'hspa' : '3.5G HSDPA',
-    'evdo0': '3G CDMA',
-    'evdoa': '3G CDMA',
-    'evdob': '3G CDMA',
-    '1xrtt': '2G CDMA',
-    'umts' : '3G UMTS',
-    'edge' : '2G EDGE',
-    'is95a': '2G CDMA',
-    'is95b': '2G CDMA',
-    'gprs' : '2G GPRS'
-  };
-
-  var dataDesc = document.getElementById('data-desc');
-
-  function updateCarrier() {
-    // if 'datachange' event happens before init
-    if (!_initialized) {
-      init();
-      return; // init will call updateCarrier()
-    }
-
-    var setCarrierStatus = function(msg) {
-      var operator = msg.operator || '';
-      var data = msg.data || '';
-      var text = msg.error ||
-        ((data && operator) ? (operator + ' - ' + data) : operator);
-      dataDesc.textContent = text;
-      dataDesc.dataset.l10nId = msg.l10nId || '';
-
-      /**
-       * XXX italic style for specifying state change is not a ideal solution
-       * for non-Latin alphabet scripts in terms of typography, e.g. Chinese,
-       * Japanese, etc.
-       * We might have to switch to labels with parenthesis for these languages.
-       */
-      dataDesc.style.fontStyle = msg.error ? 'italic' : 'normal';
-
-      // in case the "Carrier & Data" panel is displayed...
-      var dataNetwork = document.getElementById('dataNetwork-desc');
-      var dataConnection = document.getElementById('dataConnection-desc');
-      if (dataNetwork && dataConnection) {
-        dataNetwork.textContent = operator;
-        dataConnection.textContent = data;
-      }
-    };
-
-    if (!mobileConnection || !IccHelper)
-      return setCarrierStatus({});
-
-    // ensure the SIM card is present and unlocked
-    var cardState = _airplaneMode ? 'null' : IccHelper.cardState || 'absent';
-    var l10nId = kCardStateL10nId[cardState];
-    if (l10nId) {
-      return setCarrierStatus({ error: _(l10nId), l10nId: l10nId });
-    }
-
-    // operator name & data connection type
-    if (!mobileConnection.data || !mobileConnection.data.network)
-      return setCarrierStatus({ error: '???'}); // XXX should never happen
-    var operatorInfos = MobileOperator.userFacingInfo(mobileConnection);
-    var operator = operatorInfos.operator;
-    if (operatorInfos.region) {
-      operator += ' ' + operatorInfos.region;
-    }
-    var data = mobileConnection.data;
-    var dataType = (data.connected && data.type) ? kDataType[data.type] : '';
-    setCarrierStatus({
-      operator: operator,
-      data: dataType
-    });
-  }
-
-  /**
    * Call Settings
    */
 
@@ -274,6 +206,117 @@ var Connectivity = (function(window, document, undefined) {
     // update the current SIM card state
     var cardState = _airplaneMode ? 'null' : IccHelper.cardState || 'absent';
     localize(callDesc, kCardStateL10nId[cardState]);
+  }
+
+  /**
+   * Cell & Data Settings
+   */
+
+  function updateCellAndDataDescription() {
+    var iccId;
+
+    var mobileConnections = window.navigator.mozMobileConnections;
+    var iccManager = window.navigator.mozIccManager;
+    if (!mobileConnections || !iccManager) {
+      return;
+    }
+
+    // Only show the description for single ICC card devices. In case of multi
+    // ICC card device the description to show for the ICC cards will be handled
+    // in the carrier_iccs.js file.
+    if (mobileConnections.length > 1) {
+      return;
+    }
+
+    function showCellAndDataDescription() {
+      var dataDesc = document.getElementById('data-desc');
+      dataDesc.style.fontStyle = 'italic';
+
+      if (!mobileConnections[0].iccId) {
+        // TODO: this could mean there is no ICC card or the ICC card is
+        // locked. If locked we would need to figure out how to check the
+        // current card state. We show 'SIM card not ready'.
+        localize(dataDesc, kCardStateL10nId['null']);
+        return;
+      }
+
+      if (mobileConnections[0].radioState !== 'enabled') {
+        // Airplane is enabled. Well, radioState property could be changing but
+        // let's show 'SIM card not ready' during the transitions also.
+        localize(dataDesc, kCardStateL10nId['null']);
+        return;
+      }
+
+      var iccCard = iccManager.getIccById(mobileConnections[0].iccId);
+      if (!iccCard) {
+        localize(dataDesc, '');
+        return;
+      }
+
+      var cardState = iccCard.cardState;
+      if (cardState !== 'ready') {
+        localize(dataDesc, kCardStateL10nId[cardState || 'null']);
+        return;
+      }
+
+      dataDesc.style.fontStyle = 'normal';
+
+      var network = mobileConnections[0].voice.network;
+      var iccInfo = iccCard.iccInfo;
+      var carrier = network ? (network.shortName || network.longName) : null;
+
+      if (carrier && iccInfo && iccInfo.isDisplaySpnRequired && iccInfo.spn) {
+        if (iccInfo.isDisplayNetworkNameRequired && carrier !== iccInfo.spn) {
+          carrier = carrier + ' ' + iccInfo.spn;
+        } else {
+          carrier = iccInfo.spn;
+        }
+      }
+      dataDesc.textContent = carrier;
+      var dataType = (mobileConnections[0].data.connected &&
+                      mobileConnections[0].data.type) ?
+                      DATA_TYPE_MAPPING[mobileConnections[0].data.type] :
+                      '';
+      if (dataType) {
+        dataDesc.textContent += ' - ' + dataType;
+      }
+    }
+
+    function addListeners() {
+      iccId = mobileConnections[0].iccId;
+      var iccCard = iccManager.getIccById(iccId);
+      if (!iccCard) {
+        return;
+      }
+      iccCard.addEventListener('cardstatechange',
+                               showCellAndDataDescription);
+      mobileConnections[0].addEventListener('radiostatechange',
+                                            showCellAndDataDescription);
+      mobileConnections[0].addEventListener('datachange',
+                                            showCellAndDataDescription);
+    }
+
+    showCellAndDataDescription();
+    addListeners();
+
+    iccManager.addEventListener('iccdetected',
+      function iccDetectedHandler(evt) {
+        if (mobileConnections[0].iccId &&
+           (mobileConnections[0].iccId === evt.iccId)) {
+          showCellAndDataDescription();
+          addListeners();
+        }
+    });
+
+    iccManager.addEventListener('iccundetected',
+      function iccUndetectedHandler(evt) {
+        if (iccId === evt.iccId) {
+          mobileConnections[0].removeEventListener('radiostatechange',
+            showCellAndDataDescription);
+          mobileConnections[0].removeEventListener('datachange',
+            showCellAndDataDescription);
+        }
+    });
   }
 
   /**
@@ -363,7 +406,6 @@ var Connectivity = (function(window, document, undefined) {
   return {
     init: init,
     updateWifi: updateWifi,
-    updateCarrier: updateCarrier,
     updateBluetooth: updateBluetooth,
     set wifiEnabled(listener) { wifiEnabledListeners.push(listener) },
     set wifiDisabled(listener) { wifiDisabledListeners.push(listener); },
