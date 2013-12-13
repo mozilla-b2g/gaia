@@ -2036,7 +2036,7 @@ suite('thread_ui.js >', function() {
         receivers: this.receivers,
         body: 'This is a test',
         delivery: 'error',
-        timestamp: new Date()
+        timestamp: Date.now()
       };
       ThreadUI.appendMessage(this.targetMsg);
       this.original = ThreadUI.container.querySelector(
@@ -2124,8 +2124,8 @@ suite('thread_ui.js >', function() {
         delivery: 'not-downloaded',
         deliveryInfo: [{receiver: null, deliveryStatus: 'pending'}],
         subject: 'Pending download',
-        timestamp: new Date(Date.now() - 150000),
-        expiryDate: new Date(Date.now() + ONE_DAY_TIME)
+        timestamp: +new Date(Date.now() - 150000),
+        expiryDate: +new Date(Date.now() + ONE_DAY_TIME)
       },
       {
         id: 2,
@@ -2135,8 +2135,8 @@ suite('thread_ui.js >', function() {
         delivery: 'not-downloaded',
         deliveryInfo: [{receiver: null, deliveryStatus: 'manual'}],
         subject: 'manual download',
-        timestamp: new Date(Date.now() - 150000),
-        expiryDate: new Date(Date.now() + ONE_DAY_TIME * 2)
+        timestamp: +new Date(Date.now() - 150000),
+        expiryDate: +new Date(Date.now() + ONE_DAY_TIME * 2)
       },
       {
         id: 3,
@@ -2146,8 +2146,8 @@ suite('thread_ui.js >', function() {
         delivery: 'not-downloaded',
         deliveryInfo: [{receiver: null, deliveryStatus: 'error'}],
         subject: 'error download',
-        timestamp: new Date(Date.now() - 150000),
-        expiryDate: new Date(Date.now() + ONE_DAY_TIME * 2)
+        timestamp: +new Date(Date.now() - 150000),
+        expiryDate: +new Date(Date.now() + ONE_DAY_TIME * 2)
       },
       {
         id: 4,
@@ -2157,8 +2157,8 @@ suite('thread_ui.js >', function() {
         delivery: 'not-downloaded',
         deliveryInfo: [{receiver: null, deliveryStatus: 'error'}],
         subject: 'Error download',
-        timestamp: new Date(Date.now() - 150000),
-        expiryDate: new Date(Date.now() - ONE_DAY_TIME)
+        timestamp: +new Date(Date.now() - 150000),
+        expiryDate: +new Date(Date.now() - ONE_DAY_TIME)
       }];
 
       return testMessages[index];
@@ -2211,7 +2211,7 @@ suite('thread_ui.js >', function() {
           'localization arguments set correctly');
       });
       test('date is correctly determined', function() {
-        assert.equal(Utils.date.format.localeFormat.args[0][0],
+        assert.equal(+Utils.date.format.localeFormat.args[0][0],
           message.expiryDate);
         assert.equal(Utils.date.format.localeFormat.args[0][1],
           'dateTimeFormat_%x');
@@ -2266,7 +2266,7 @@ suite('thread_ui.js >', function() {
           'localization arguments set correctly');
       });
       test('date is correctly determined', function() {
-        assert.equal(Utils.date.format.localeFormat.args[0][0],
+        assert.equal(+Utils.date.format.localeFormat.args[0][0],
           message.expiryDate);
         assert.equal(Utils.date.format.localeFormat.args[0][1],
           'dateTimeFormat_%x');
@@ -2415,7 +2415,7 @@ suite('thread_ui.js >', function() {
           'localization arguments set correctly');
       });
       test('date is correctly determined', function() {
-        assert.equal(Utils.date.format.localeFormat.args[0][0],
+        assert.equal(+Utils.date.format.localeFormat.args[0][0],
           message.expiryDate);
         assert.equal(Utils.date.format.localeFormat.args[0][1],
           'dateTimeFormat_%x');
@@ -2505,7 +2505,7 @@ suite('thread_ui.js >', function() {
           'localization arguments set correctly');
       });
       test('date is correctly determined', function() {
-        assert.equal(Utils.date.format.localeFormat.args[0][0],
+        assert.equal(+Utils.date.format.localeFormat.args[0][0],
           message.expiryDate);
         assert.equal(Utils.date.format.localeFormat.args[0][1],
           'dateTimeFormat_%x');
@@ -2536,8 +2536,8 @@ suite('thread_ui.js >', function() {
         smil: '<smil><body><par><text src="cid:1"/>' +
               '</par></body></smil>',
         attachments: null,
-        timestamp: new Date(Date.now() - 150000),
-        expiryDate: new Date(Date.now())
+        timestamp: +new Date(Date.now() - 150000),
+        expiryDate: +new Date(Date.now())
       },
       {
         id: 2,
@@ -2550,8 +2550,8 @@ suite('thread_ui.js >', function() {
         smil: '<smil><body><par><text src="cid:1"/>' +
               '</par></body></smil>',
         attachments: [],
-        timestamp: new Date(Date.now() - 100000),
-        expiryDate: new Date(Date.now())
+        timestamp: +new Date(Date.now() - 100000),
+        expiryDate: +new Date(Date.now())
       }];
 
       return testMessages[index];
@@ -2656,7 +2656,7 @@ suite('thread_ui.js >', function() {
         receivers: this.receivers,
         body: 'This is a test',
         delivery: 'error',
-        timestamp: new Date()
+        timestamp: Date.now()
       };
       this.otherMsg = {
         id: 45,
@@ -2664,7 +2664,7 @@ suite('thread_ui.js >', function() {
         receivers: this.receivers,
         body: 'this test',
         delivery: 'error',
-        timestamp: new Date()
+        timestamp: Date.now()
       };
       ThreadUI.appendMessage(this.targetMsg);
       ThreadUI.appendMessage(this.otherMsg);
@@ -2723,7 +2723,7 @@ suite('thread_ui.js >', function() {
         type: 'sms',
         body: 'This is a error sms',
         delivery: 'error',
-        timestamp: new Date()
+        timestamp: Date.now()
       };
       ThreadUI.appendMessage(message);
 
@@ -2766,7 +2766,7 @@ suite('thread_ui.js >', function() {
         type: 'sms',
         body: 'This is a test with 123123123',
         delivery: 'error',
-        timestamp: new Date()
+        timestamp: Date.now()
       });
       // Retrieve DOM element for executing the event
       var messageDOM = document.getElementById('message-' + messageId);
@@ -2896,7 +2896,7 @@ suite('thread_ui.js >', function() {
         type: 'sms',
         body: 'This is a test with 123123123',
         delivery: 'error',
-        timestamp: new Date()
+        timestamp: Date.now()
       });
       // Retrieve DOM element for executing the event
       messageDOM = document.getElementById('message-' + messageId);
@@ -2944,14 +2944,14 @@ suite('thread_ui.js >', function() {
         type: 'sms',
         body: 'This is a test',
         delivery: 'error',
-        timestamp: new Date()
+        timestamp: Date.now()
       });
       ThreadUI.appendMessage({
         id: 45,
         type: 'sms',
         body: 'This is another test',
         delivery: 'sent',
-        timestamp: new Date()
+        timestamp: Date.now()
       });
       this.sinon.stub(window, 'confirm');
       this.sinon.stub(ThreadUI, 'resendMessage');

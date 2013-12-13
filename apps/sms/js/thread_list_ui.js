@@ -360,7 +360,7 @@ var ThreadListUI = {
   createThread: function thlui_createThread(thread) {
     // Create DOM element
     var li = document.createElement('li');
-    var timestamp = thread.timestamp.getTime();
+    var timestamp = +thread.timestamp;
     var lastMessageType = thread.lastMessageType;
     var participants = thread.participants;
     var number = participants[0];
@@ -416,7 +416,7 @@ var ThreadListUI = {
     var existingThreadElement = document.getElementById('thread-' + thread.id);
 
     // New message is older than the latest one?
-    var timestamp = message.timestamp.getTime();
+    var timestamp = +message.timestamp;
     if (existingThreadElement &&
       existingThreadElement.dataset.time > timestamp) {
       // If the received SMS it's older that the latest one
@@ -443,7 +443,7 @@ var ThreadListUI = {
   },
 
   appendThread: function thlui_appendThread(thread) {
-    var timestamp = thread.timestamp.getTime();
+    var timestamp = +thread.timestamp;
     // We create the DOM element of the thread
     var node = this.createThread(thread);
 

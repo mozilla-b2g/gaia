@@ -12,7 +12,7 @@ function MockThreadList() {
             participants: ['1977'],
             lastMessageType: 'sms',
             body: 'Alo, how are you today, my friend? :)',
-            timestamp: getMockupedDate(0),
+            timestamp: +getMockupedDate(0),
             unreadCount: 0
           },
           {
@@ -20,7 +20,7 @@ function MockThreadList() {
             participants: ['436797'],
             lastMessageType: 'sms',
             body: 'Sending :)',
-            timestamp: getMockupedDate(2),
+            timestamp: +getMockupedDate(2),
             unreadCount: 0
           },
           {
@@ -28,7 +28,7 @@ function MockThreadList() {
             participants: ['197746797'],
             lastMessageType: 'sms',
             body: 'Recibido!',
-            timestamp: getMockupedDate(1),
+            timestamp: +getMockupedDate(1),
             unreadCount: 0
           },
           {
@@ -36,7 +36,7 @@ function MockThreadList() {
             participants: ['1977436979'],
             lastMessageType: 'mms',
             body: 'Nothing :)',
-            timestamp: getMockupedDate(2),
+            timestamp: +getMockupedDate(2),
             unreadCount: 2
           },
           {
@@ -44,7 +44,7 @@ function MockThreadList() {
             participants: ['999', '888', '777'],
             lastMessageType: 'sms',
             body: '...',
-            timestamp: getMockupedDate(3),
+            timestamp: +getMockupedDate(3),
             unreadCount: 0
           }
         ];
