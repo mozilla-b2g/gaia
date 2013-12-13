@@ -47,7 +47,7 @@ suite('system/ActivityWindow', function() {
   });
 
   suite('activity window instance.', function() {
-    var app;
+    var app, appF;
     setup(function() {
       app = new AppWindow({
         iframe: document.createElement('iframe'),
@@ -58,6 +58,18 @@ suite('system/ActivityWindow', function() {
         name: 'fake',
         manifest: {
           orientation: 'default'
+        }
+      });
+      appF = new AppWindow({
+        iframe: document.createElement('iframe'),
+        frame: document.createElement('div'),
+        origin: 'http://fake',
+        url: 'http://fakeurl/index.html',
+        manifestURL: 'http://fakemanifesturl',
+        name: 'fake',
+        manifest: {
+          orientation: 'default',
+          fullscreen: true
         }
       });
     });
@@ -82,6 +94,11 @@ suite('system/ActivityWindow', function() {
         type: '_opened'
       });
       assert.isTrue(stubSetVisible.calledWith(false, true));
+    });
+
+    test('copy fullscreen from caller', function() {
+      var activity = new ActivityWindow(fakeConfig, appF);
+      assert.isTrue(activity.element.classList.contains('fullscreen-app'));
     });
 
     test('restore caller', function() {
