@@ -3,6 +3,21 @@ section[role="region"] > header:first-child {
   background: #3b5998;
 }
 
+section[role="region"] > header:first-child > a:not([aria-disabled="true"]):active:after,
+section[role="region"] > header:first-child > button:not(:disabled):active:after,
+section[role="region"] > header:first-child > a:not([aria-disabled="true"]):hover:after,
+section[role="region"] > header:first-child > button:not(:disabled):hover:after,
+section[role="region"] > header:first-child menu[type="toolbar"] a:not([aria-disabled="true"]):hover,
+section[role="region"] > header:first-child menu[type="toolbar"] button:not(:disabled):hover,
+section[role="region"] > header:first-child menu[type="toolbar"] a:not([aria-disabled="true"]):active,
+section[role="region"] > header:first-child menu[type="toolbar"] button:not(:disabled):active  {
+  background-color: #334d84 !important;
+}
+
+section[role="region"] > header:first-child .icon.icon-close {
+  background-image: url(icons/close.png);
+  background-position: -0.2rem center;
+}
 
 /* BB lists */
 .import-list header {
