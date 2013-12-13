@@ -1039,6 +1039,17 @@
     }
   };
 
+  /**
+   * The preferred CSS size of the icon used for cold launch splash for phones.
+   */
+  AppWindow.prototype.SPLASH_ICON_SIZE_TINY = 60;
+
+  /**
+   * The preferred CSS size of the icon used for cold launch splash for
+   * other devices.
+   */
+  AppWindow.prototype.SPLASH_ICON_SIZE_NOT_TINY = 90;
+
   AppWindow.prototype.getIconForSplash =
     function aw_getIconForSplash(manifest) {
       var icons = this.manifest ?
@@ -1047,24 +1058,29 @@
         return null;
       }
 
-      var sizes = Object.keys(icons).map(function parse(str) {
-        return parseInt(str, 10);
-      });
+      var targetedPixelSize = 2 * (ScreenLayout.getCurrentLayout('tiny') ?
+        this.SPLASH_ICON_SIZE_TINY : this.SPLASH_ICON_SIZE_NOT_TINY) *
+        Math.ceil(window.devicePixelRatio || 1);
 
-      sizes.sort(function(x, y) { return y - x; });
+      var preferredSize = Number.MAX_VALUE;
+      var max = 0;
 
-      var index = 0;
-      var width = LayoutManager.clientWidth;
-      for (var i = 0; i < sizes.length; i++) {
-        if (sizes[i] < width) {
-          index = i;
-          break;
-        }
+      for (var size in icons) {
+        size = parseInt(size, 10);
+        if (size > max)
+          max = size;
+
+        if (size >= targetedPixelSize && size < preferredSize)
+          preferredSize = size;
       }
+      // If there is an icon matching the preferred size, we return the result,
+      // if there isn't, we will return the maximum available size.
+      if (preferredSize === Number.MAX_VALUE)
+        preferredSize = max;
 
-      this._splash = icons[sizes[index]];
+      this._splash = icons[preferredSize];
       this.preloadSplash();
-      return icons[sizes[index]];
+      return icons[preferredSize];
     };
 
   /**
@@ -1077,6 +1093,11 @@
           !this.loaded && !this.splashed && this.element && this._splash) {
         this.splashed = true;
         this.element.style.backgroundImage = 'url("' + this._splash + '")';
+
+        var iconCSSSize = 2 * (ScreenLayout.getCurrentLayout('tiny') ?
+        this.SPLASH_ICON_SIZE_TINY : this.SPLASH_ICON_SIZE_NOT_TINY);
+        this.element.style.backgroundSize =
+          iconCSSSize + 'px ' + iconCSSSize + 'px';
       }
     };
 

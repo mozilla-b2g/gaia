@@ -14,9 +14,12 @@ requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/test/unit/mock_applications.js');
 requireApp('system/test/unit/mock_layout_manager.js');
 
+requireApp('system/test/unit/mock_screen_layout.js');
+
 var mocksForAppWindow = new MocksHelper([
   'OrientationManager', 'Applications', 'SettingsListener',
-  'ManifestHelper', 'LayoutManager'
+  'ManifestHelper', 'LayoutManager',
+  'ScreenLayout'
 ]).init();
 
 suite('system/AppWindow', function() {
@@ -63,7 +66,7 @@ suite('system/AppWindow', function() {
     url: 'app://www.fake4/index.html',
     manifest: {
       icons: {
-        '100': 'xxxx.png'
+        '100': '/xxxx.png'
       }
     },
     manifestURL: 'app://wwww.fake4/ManifestURL',
@@ -74,10 +77,12 @@ suite('system/AppWindow', function() {
     url: 'app://www.fake4/index.html',
     manifest: {
       icons: {
-        '100': 'xxxx.png',
-        '200': 'yyyy.ico',
-        '300': 'lol.gif',
-        '400': 'xd.img'
+        '30': '/foo.jpg',
+        '60': '/bar.jpg',
+        '120': '/xxxx.png',
+        '240': '/yyyy.ico',
+        '300': '/lol.gif',
+        '400': '/xd.img'
       }
     },
     manifestURL: 'app://wwww.fake4/ManifestURL',
@@ -488,21 +493,68 @@ suite('system/AppWindow', function() {
   });
 
   test('setFrameBackground', function() {
+    ScreenLayout.setDefault({
+      tiny: true
+    });
+
     var app = new AppWindow(fakeAppConfigWithIcon);
-    var background = app.element.style.backgroundImage;
     this.sinon.clock.tick(0);
+    var background = app.element.style.backgroundImage;
+    var backgroundSize = app.element.style.backgroundSize;
     assert.isTrue(app.splashed);
     assert.isDefined(app._splash);
+    assert.equal(background, 'url("' + app._splash + '")');
+    assert.equal(backgroundSize, '120px 120px');
   });
 
-  test('get Icon Splash with Multi Icons', function() {
-    MockLayoutManager.clientWidth = 350;
+  test('get Icon Splash with Multi Icons, dppx=1', function() {
+    // Overwrite value for testing dppx
+    var _devicePixelRatio = window.devicePixelRatio;
+    Object.defineProperty(window, 'devicePixelRatio', {
+      configurable: true,
+      value: 1
+    });
+
+    ScreenLayout.setDefault({
+      tiny: true
+    });
+
     var app = new AppWindow(fakeAppConfigWithMultiIcon);
-    var background = app.element.style.backgroundImage;
+
     this.sinon.clock.tick(0);
     assert.isTrue(
       app._splash.indexOf(fakeAppConfigWithMultiIcon.
-        manifest.icons['300']) >= 0);
+        manifest.icons['120']) >= 0);
+
+    Object.defineProperty(window, 'devicePixelRatio', {
+      configurable: true,
+      value: _devicePixelRatio
+    });
+  });
+
+  test('get Icon Splash with Multi Icons, dppx=2', function() {
+    // Overwrite value for testing dppx
+    var _devicePixelRatio = window.devicePixelRatio;
+    Object.defineProperty(window, 'devicePixelRatio', {
+      configurable: true,
+      value: 2
+    });
+
+    ScreenLayout.setDefault({
+      tiny: true
+    });
+
+    var app = new AppWindow(fakeAppConfigWithMultiIcon);
+
+    this.sinon.clock.tick(0);
+    assert.isTrue(
+      app._splash.indexOf(fakeAppConfigWithMultiIcon.
+        manifest.icons['240']) >= 0);
+
+    Object.defineProperty(window, 'devicePixelRatio', {
+      configurable: true,
+      value: _devicePixelRatio
+    });
   });
 
   var fakeMozBrowserIframe = {
