@@ -1,3 +1,5 @@
+'use strict';
+
 requireApp('communications/dialer/js/call_log_db.js');
 requireApp('communications/dialer/js/utils.js');
 requireApp('communications/dialer/test/unit/mock_lazy_loader.js');
@@ -12,6 +14,10 @@ if (!this.LazyLoader) {
 }
 
 suite('dialer/call_log_db', function() {
+  // we use an asynchronous IndexedDB API and we want to really test it, so
+  // let's increase mocha's timeout a lot
+  this.timeout(20000);
+
   var realLazyLoader;
   var realContacts;
 
@@ -83,10 +89,6 @@ suite('dialer/call_log_db', function() {
 
     realContacts = window.Contacts;
     window.Contacts = MockContacts;
-
-    // we use an asynchronous IndexedDB API and we want to really test it, so
-    // let's increase mocha's timeout a lot
-    this.timeout(20000);
   });
 
   teardown(function() {
