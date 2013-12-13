@@ -9,6 +9,9 @@ var DsdsSettings = (function(window, document, undefined) {
   var _mobileConnections = null;
 
   /** */
+  var _iccCardIndexForCallSettings = 0;
+
+  /** */
   var _iccCardIndexForCellAndDataSettings = 0;
 
   /**
@@ -19,6 +22,7 @@ var DsdsSettings = (function(window, document, undefined) {
     if (!_settings || !_mobileConnections || !_iccManager) {
       return;
     }
+    ds_handleCallSettingSimPanel();
     ds_handleCellAndDataSettingSimPanel();
   }
 
@@ -29,6 +33,35 @@ var DsdsSettings = (function(window, document, undefined) {
    */
   function ds_getNumberOfIccSlots() {
     return _mobileConnections.length;
+  }
+
+  /**
+   *
+   */
+  function ds_getIccCardIndexForCallSettings() {
+    return _iccCardIndexForCallSettings;
+  }
+
+  /**
+   *
+   */
+  function ds_setIccCardIndexForCallSettings(
+    iccCardIndexForCallSettings) {
+    _iccCardIndexForCallSettings = iccCardIndexForCallSettings;
+  }
+
+  /**
+   * Hide or show the call settings panel in which we show the ICC cards.
+   */
+  function ds_handleCallSettingSimPanel() {
+    var callItem = null;
+
+    if (ds_getNumberOfIccSlots() > 1) {
+      callItem = document.getElementById('menuItem-callSettings');
+      callItem.setAttribute('href', '#call-iccs');
+      callItem = document.getElementById('call-settings');
+      callItem.removeAttribute('aria-disabled');
+    }
   }
 
   /**
@@ -65,6 +98,10 @@ var DsdsSettings = (function(window, document, undefined) {
   return {
     init: ds_init,
     getNumberOfIccSlots: ds_getNumberOfIccSlots,
+    getIccCardIndexForCallSettings:
+      ds_getIccCardIndexForCallSettings,
+    setIccCardIndexForCallSettings:
+      ds_setIccCardIndexForCallSettings,
     getIccCardIndexForCellAndDataSettings:
       ds_getIccCardIndexForCellAndDataSettings,
     setIccCardIndexForCellAndDataSettings:
