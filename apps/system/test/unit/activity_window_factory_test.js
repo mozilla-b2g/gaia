@@ -82,7 +82,7 @@ suite('system/ActivityWindowFactory', function() {
   };
 
   var fakeLaunchConfig1 = {
-    type: 'launchapp',
+    type: 'launchactivity',
     detail: {
       'isActivity': true,
       'url': 'app://fakeact.gaiamobile.org/pick.html',
@@ -98,7 +98,7 @@ suite('system/ActivityWindowFactory', function() {
   };
 
   var fakeLaunchConfig2 = {
-    type: 'launchapp',
+    type: 'launchactivity',
     detail: {
       'isActivity': true,
       'url': 'app://fakeact2.gaiamobile.org/pick.html',
@@ -114,7 +114,7 @@ suite('system/ActivityWindowFactory', function() {
   };
 
   var fakeLaunchConfig3 = {
-    type: 'launchapp',
+    type: 'launchactivity',
     detail: {
       'isActivity': true,
       'url': 'app://fakeact3.gaiamobile.org/pick.html',
@@ -298,5 +298,6 @@ suite('system/ActivityWindowFactory', function() {
 
       assert.deepEqual(ActivityWindowFactory._activeActivity, activity1);
     });
+
   });
 });

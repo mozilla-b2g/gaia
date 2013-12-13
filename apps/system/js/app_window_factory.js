@@ -5,7 +5,20 @@
   /**
    * AppWindowFactory handle the launch request from gecko and
    * wrap the config with properer parameters.
-   * It would ask AppWindowManager take the role to do instance creation.
+   *
+   * If gecko is asking us to open a webapp,
+   * AppWindowFactory would do the instantiation and let
+   * AppWindowManager to do the following app opening control via
+   * event <code>launchapp</code>.
+   *
+   * If gecko is asking us to open an inline activity page,
+   * AppWindowFactory would wrap the configuration and sent it to
+   * ActivityWindowFactory for it to do instantiation via event
+   * <code>launchactivity</code>.
+   *
+   * <a href="http://i.imgur.com/ZyMcgft.png" target="_blank">
+   * <img src="http://i.imgur.com/ZyMcgft.png" title="applaunch"></img>
+   * </a>
    *
    * @module AppWindowFactory
    */
@@ -48,7 +61,7 @@
         case 'webapps-launch':
           // TODO: Look up current opened window list,
           // and then create a new instance here.
-          this.publish('launchapp', config);
+          this.launch(config);
           break;
         case 'open-app':
           // System Message Handler API is asking us to open the specific URL
@@ -66,12 +79,29 @@
           config.stayBackground = !detail.showApp;
           // TODO: Create activity window instance
           // or background app window instance for system message here.
-          this.publish('launchapp', config);
+          this.launch(config);
           break;
         case 'webapps-close':
           this.publish('killapp', config);
           break;
       }
+    },
+
+    launch: function awf_launch(config) {
+      if (config.url === window.location.href) {
+        return;
+      }
+      if (config.isActivity && config.inline) {
+        this.publish('launchactivity', config);
+        return;
+      }
+      if (!AppWindowManager.isRunning(config) &&
+           config.origin !== HomescreenLauncher.origin) {
+        new AppWindow(config);
+      } else if (config.origin == HomescreenLauncher.origin) {
+        HomescreenLauncher.getHomescreen().ensure();
+      }
+      this.publish('launchapp', config);
     },
 
     publish: function awf_publish(event, detail) {

@@ -40,7 +40,7 @@
 
     init: function acwf_init() {
       window.addEventListener('mozChromeEvent', this);
-      window.addEventListener('launchapp', this);
+      window.addEventListener('launchactivity', this);
       window.addEventListener('activitycreated', this);
       window.addEventListener('activityterminated', this);
       window.addEventListener('activitywillopen', this);
@@ -164,7 +164,7 @@
           }
           break;
 
-        case 'launchapp':
+        case 'launchactivity':
           if (evt.detail.isActivity && evt.detail.inline) {
             this.launchActivity(evt.detail);
           }
