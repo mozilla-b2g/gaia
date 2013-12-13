@@ -6,10 +6,11 @@
     <title>Gallery</title>
     <link rel="stylesheet" href="style/gallery.css" type="text/css" />
     <link rel="stylesheet" href="style/VideoPlayer.css" type="text/css" />
+    <link rel="stylesheet" href="style/VideoPlayer_tablet.css" type="text/css" media="(min-height: 768px) and (min-width: 768px)" />
     <link rel="stylesheet" href="shared/style/headers.css" type="text/css" />
     <link rel="stylesheet" href="shared/style_unstable/progress_activity.css"/>
-    <!-- Reponsive design for large device -->
-    <link rel="stylesheet" href="style/gallery_large.css" type="text/css" media="(min-width: 768px)" />
+    <!-- Reponsive design for tiny & large device -->
+    <link rel="stylesheet" href="style/gallery_tablet.css" type="text/css" media="(min-height: 768px) and (min-width: 768px)" />
     <!-- this file is loaded lazily but is listed here so it gets packaged
     <link rel="stylesheet" href="shared/style/confirm.css" type="text/css" />
     -->
@@ -25,6 +26,7 @@
     <script defer src="shared/js/lazy_loader.js"></script>
     <script defer src="shared/js/tag_visibility_monitor.js"></script>
     <script defer src="shared/js/media/media_utils.js"></script>
+    <script defer src="shared/js/screen_layout.js"></script>
 
     <!-- Specific code -->
     <script defer src="js/config.js"></script>
@@ -32,17 +34,21 @@
     <script defer src="js/thumbnail_date_group.js"></script>
     <script defer src="js/thumbnail_list.js"></script>
     <script defer src="js/gallery.js"></script>
+
   </head>
 
   <body role="application">
-    <section role="region" id="thumbnail-list-view" class="hidden">
+    <section role="region" id="thumbnail-list-view" class="skin-organic">
+      <header id="thumbnails-list-top">
+        <h1 id="thumbnail-list-title" data-l10n-id="gallery">Gallery</h1>
+      </header>
       <footer id="thumbnails-bottom">
         <a id="thumbnails-camera-button" class="button"></a>
         <a id="thumbnails-select-button" class="button"></a>
       </footer>
     </section>
 
-    <section role="region" id="thumbnail-select-view" class="hidden skin-dark">
+    <section role="region" id="thumbnail-select-view" class="skin-dark">
       <header id="thumbnails-select-top">
         <button id="thumbnails-cancel-button"><span class="icon icon-close"></span></button>
         <h1 id="thumbnails-number-selected"></h1>
@@ -53,26 +59,43 @@
         <a id="thumbnails-share-button" class="button"></a>
       </footer>
     </section>
-
-    <section role="region" id="fullscreen-view" class="hidden skin-organic">
-
+    <section role="region" id="fullscreen-view" class="skin-organic">
+      <header id="fullscreen-toolbar-header" class="large-only">
+        <menu type="toolbar">
+          <a id="fullscreen-camera-button-large">
+            <span class="icon icon-camera"></span>
+          </a>
+          <a id="fullscreen-edit-button-large">
+            <span class="icon icon-picedit"></span>
+          </a>
+          <a id="fullscreen-share-button-large">
+            <span class="icon icon-share"></span>
+          </a>
+          <a id="fullscreen-info-button-large">
+            <span class="icon icon-info"></span>
+          </a>
+          <a id="fullscreen-delete-button-large">
+            <span class="icon icon-delete"></span>
+          </a>
+        </menu>
+        <button id="fullscreen-back-button-large" class="large-only"><span class="icon icon-back"></span></button>
+        <h1 data-l10n-id="gallery" id="fullscreen-title">Gallery</h1>
+      </header>
       <div id="frames">
         <!-- the current photo plus next and previous waiting in the wings -->
         <div id="frame1" class="frame"></div>
         <div id="frame2" class="frame"></div>
         <div id="frame3" class="frame"></div>
       </div>
-
-      <button id="fullscreen-back-button" type="reset"></button>
-      <footer id="fullscreen-toolbar">
-        <a id="fullscreen-camera-button" class="button"></a>
-        <a id="fullscreen-edit-button" class="button"></a>
-        <a id="fullscreen-share-button" class="button"></a>
-        <a id="fullscreen-info-button" class="button"></a>
-        <a id="fullscreen-delete-button" class="button"></a>
+      <button id="fullscreen-back-button-tiny" type="reset" class="tiny-only"></button>
+      <footer id="fullscreen-toolbar" class="tiny-only">
+        <a id="fullscreen-camera-button-tiny" class="button"></a>
+        <a id="fullscreen-edit-button-tiny" class="button"></a>
+        <a id="fullscreen-share-button-tiny" class="button"></a>
+        <a id="fullscreen-info-button-tiny" class="button"></a>
+        <a id="fullscreen-delete-button-tiny" class="button"></a>
       </footer>
     </section>
-
     <form id="info-view" role="dialog" data-type="confirm" class="hidden">
       <section>
         <dl>
@@ -93,15 +116,14 @@
                 data-l10n-id="close-button" class="full"></button>
       </menu>
     </form>
-
-    <section role="region" id="pick-view" class="hidden skin-organic">
+    <section role="region" id="pick-view" class="skin-organic">
       <header id="pick-top">
         <button id="pick-back-button"><span class="icon icon-back"></span></button>
         <h1 id="pick-header" data-l10n-id="pickoneimage2"></h1>
       </header>
     </section>
 
-    <section role="region" id="crop-view" class="hidden skin-organic">
+    <section role="region" id="crop-view" class="skin-organic">
       <header id="crop-top">
         <button id="crop-back-button"><span class="icon icon-back"></span></button>
         <menu type="toolbar">
@@ -114,7 +136,7 @@
       </div>
     </section>
 
-    <section role="region" id="edit-view" class="hidden skin-dark">
+    <section role="region" id="edit-view" class="skin-dark">
       <header id="edit-header">
         <button id="edit-cancel-button"><span class="icon icon-close"></span></button>
         <menu type="toolbar">
@@ -207,27 +229,31 @@
 
     <!-- display messages like "No Photos" and "No SD Card" here -->
     <form id="overlay" role="dialog" data-type="confirm" class="hidden">
-      <section id="overlay-content">
-        <h1 id="overlay-title"></h1>
-        <p id="overlay-text"></p>
-      </section>
-      <menu id="overlay-menu" class="hidden">
-        <button type="button" id="storage-setting-button" class="hidden full"
-                data-l10n-id="storage-setting-button">Media storage settings</button>
-        <button type="button" id="overlay-camera-button" class="hidden full"
-                data-l10n-id="overlay-camera-button">Go to Camera</button>
-        <button type="button" id="overlay-cancel-button" data-l10n-id="cancel" class="full">Cancel</button>
-      </menu>
+      <div>
+        <section id="overlay-content">
+          <h1 id="overlay-title"></h1>
+          <p id="overlay-text"></p>
+        </section>
+        <menu id="overlay-menu" class="hidden">
+          <button type="button" id="storage-setting-button" class="hidden full"
+                  data-l10n-id="storage-setting-button">Media storage settings</button>
+          <button type="button" id="overlay-camera-button" class="hidden full"
+                  data-l10n-id="overlay-camera-button">Go to Camera</button>
+          <button type="button" id="overlay-cancel-button" data-l10n-id="cancel" class="full">Cancel</button>
+        </menu>
+      </div>
     </form>
 
     <form id="confirm-dialog" role="dialog" data-type="confirm" class="hidden">
-      <section>
-        <p id="confirm-msg"></p>
-      </section>
-      <menu>
-        <button id="confirm-cancel"></button>
-        <button id="confirm-ok"></button>
-      </menu>
+      <div>
+        <section>
+          <p id="confirm-msg"></p>
+        </section>
+        <menu>
+          <button id="confirm-cancel"></button>
+          <button id="confirm-ok"></button>
+        </menu>
+      </div>
     </form>
 
     <!-- Some SVG filters we use -->

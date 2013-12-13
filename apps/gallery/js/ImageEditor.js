@@ -84,7 +84,7 @@ function editPhoto(n) {
   });
 
   // Display the edit screen
-  setView(editView);
+  setView(LAYOUT_MODE.edit);
 
   // Set the default option buttons to correspond to those edits
   editOptionButtons.forEach(function(b) { b.classList.remove('selected'); });
@@ -313,11 +313,22 @@ function exitEditMode(saved) {
   // right next to the old one and we should go back to fullscreenView to view
   // the edited photo.
   if (saved) {
-    currentFileIndex = 0; // because the saved image will be newest
-    setView(thumbnailListView);
-  }
-  else
+    if (isPhone) {
+      setView(LAYOUT_MODE.list);
+    } else {
+      // After we sucessfully save a picture, we need to make sure that the
+      // current file will point to it. We need a flag for fileCreated(),
+      // so that the currentFileIndex will stay at 0 which is the newest one.
+      hasSaved = true;
+      // After insert sucessfully, db will call file created and setFile to
+      // latest file, then we go to fullscreen mode to see the edited picture.
+      // picture on tablet.
+      setView(LAYOUT_MODE.fullscreen);
+    }
+  } else {
+    setView(LAYOUT_MODE.fullscreen);
     showFile(currentFileIndex);
+  }
 }
 
 // When the user clicks the save button, we produce a full-size version
