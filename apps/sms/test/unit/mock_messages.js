@@ -22,7 +22,7 @@ var MockMessages = {
       deliveryStatus: 'success',
       type: 'sms',
       messageClass: 'normal',
-      timestamp: new Date(),
+      timestamp: Date.now(),
       read: true
     };
 
@@ -49,12 +49,12 @@ var MockMessages = {
       delivery: 'received',
       deliveryInfo: [{receiver: 'receiver', deliveryStatus: 'success'}],
       type: 'mms',
-      timestamp: now,
+      timestamp: +now,
       read: true,
       subject: '',
       smil: this.smilMockup,
       attachments: [new Blob(['body'], {type: 'text/plain'})],
-      expiryDate: tomorrow
+      expiryDate: +tomorrow
     };
 
     for (var key in message) {

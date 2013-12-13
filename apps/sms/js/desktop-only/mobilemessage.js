@@ -79,7 +79,7 @@
         location: 'example.jpg',
         content: testImageBlob
       }],
-      timestamp: new Date()
+      timestamp: now
     });
     messagesDb.messages.push({
       id: messagesDb.id++,
@@ -99,7 +99,7 @@
         location: 'example.jpg',
         content: testImageBlob
       }],
-      timestamp: new Date()
+      timestamp: now
     });
   });
 
@@ -122,7 +122,7 @@
         location: 'example.ogv',
         content: testVideoBlob
       }],
-      timestamp: new Date()
+      timestamp: now
     });
     messagesDb.messages.push({
       id: messagesDb.id++,
@@ -142,7 +142,7 @@
         location: 'example.ogv',
         content: testVideoBlob
       }],
-      timestamp: new Date()
+      timestamp: now
     });
   });
   getTestFile('/test/unit/media/audio.oga', function(testAudioBlob) {
@@ -164,7 +164,7 @@
         location: 'example.ogg',
         content: testAudioBlob
       }],
-      timestamp: new Date()
+      timestamp: now
     });
     messagesDb.messages.push({
       id: messagesDb.id++,
@@ -184,7 +184,7 @@
         location: 'example.ogg',
         content: testAudioBlob
       }],
-      timestamp: new Date()
+      timestamp: now
     });
   });
 
@@ -208,7 +208,7 @@
         location: 'example.bmp',
         content: testImageBlob
       }],
-      timestamp: new Date()
+      timestamp: now
     });
   });
 
@@ -232,7 +232,7 @@
         location: 'grid.wbmp',
         content: testImageBlob
       }],
-      timestamp: new Date()
+      timestamp: now
     });
   });
 
@@ -300,7 +300,7 @@
         delivery: 'sent',
         read: true,
         type: 'sms',
-        timestamp: new Date(),
+        timestamp: now,
         deliveryStatus: 'success'
       },
       {
@@ -312,7 +312,7 @@
         read: true,
         type: 'sms',
         deliveryStatus: 'not-applicable',
-        timestamp: new Date(Date.now() - 8400000000)
+        timestamp: now - 8400000000
       },
       {
         threadId: 2,
@@ -323,7 +323,7 @@
         read: true,
         type: 'sms',
         deliveryStatus: 'not-applicable',
-        timestamp: new Date(Date.now() - 172800000)
+        timestamp: now - 172800000
       },
       {
         threadId: 3,
@@ -333,7 +333,7 @@
         type: 'sms',
         deliveryStatus: 'not-applicable',
         delivery: 'sent',
-        timestamp: new Date()
+        timestamp: now
       },
       {
         threadId: 4,
@@ -346,7 +346,7 @@
         error: true,
         type: 'sms',
         deliveryStatus: 'not-applicable',
-        timestamp: new Date(Date.now() - 900000)
+        timestamp: now - 900000
       },
       {
         threadId: 4,
@@ -358,7 +358,7 @@
         delivery: 'sending',
         type: 'sms',
         deliveryStatus: 'pending',
-        timestamp: new Date(Date.now() - 800000)
+        timestamp: now - 800000
       },
       {
         threadId: 4,
@@ -370,7 +370,7 @@
         delivery: 'error',
         type: 'sms',
         deliveryStatus: 'error',
-        timestamp: new Date(Date.now() - 700000)
+        timestamp: now - 700000
       },
       {
         threadId: 4,
@@ -381,7 +381,7 @@
         delivery: 'sent',
         type: 'sms',
         deliveryStatus: 'not-applicable',
-        timestamp: new Date(Date.now() - 600000)
+        timestamp: now - 600000
        },
       {
         threadId: 4,
@@ -392,7 +392,7 @@
         delivery: 'sent',
         deliveryStatus: 'success',
         type: 'sms',
-        timestamp: new Date(Date.now() - 550000)
+        timestamp: now - 550000
        },
        {
         threadId: 4,
@@ -403,7 +403,7 @@
         delivery: 'received',
         deliveryStatus: 'success',
         type: 'sms',
-        timestamp: new Date(Date.now() - 500000)
+        timestamp: now - 500000
       },
       {
         threadId: 4,
@@ -414,7 +414,7 @@
         delivery: 'sending',
         type: 'sms',
         deliveryStatus: 'not-applicable',
-        timestamp: new Date(Date.now() - 400000)
+        timestamp: now - 400000
       },
       {
         threadId: 4,
@@ -425,7 +425,7 @@
         delivery: 'error',
         type: 'sms',
         deliveryStatus: 'error',
-        timestamp: new Date(Date.now() - 300000)
+        timestamp: now - 300000
       },
       {
         threadId: 4,
@@ -436,7 +436,7 @@
         delivery: 'sent',
         type: 'sms',
         deliveryStatus: 'success',
-        timestamp: new Date(Date.now() - 200000)
+        timestamp: now - 200000
       },
       {
         threadId: 4,
@@ -447,7 +447,7 @@
         delivery: 'sent',
         deliveryStatus: 'success',
         type: 'sms',
-        timestamp: new Date(Date.now() - 150000)
+        timestamp: now - 150000
       },
       {
         threadId: 4,
@@ -457,7 +457,7 @@
         delivery: 'received',
         type: 'sms',
         deliveryStatus: 'success',
-        timestamp: new Date(Date.now() - 100000)
+        timestamp: now - 100000
       },
       {
         threadId: 8,
@@ -466,8 +466,8 @@
         delivery: 'not-downloaded',
         deliveryInfo: [{receiver: null, deliveryStatus: 'pending'}],
         subject: 'Pending download',
-        timestamp: new Date(Date.now() - 150000),
-        expiryDate: new Date(Date.now() + ONE_DAY_TIME)
+        timestamp: now - 150000,
+        expiryDate: now + ONE_DAY_TIME
       },
       {
         threadId: 8,
@@ -476,8 +476,8 @@
         delivery: 'not-downloaded',
         deliveryInfo: [{receiver: null, deliveryStatus: 'error'}],
         subject: 'Error download',
-        timestamp: new Date(Date.now() - 150000),
-        expiryDate: new Date(Date.now() + ONE_DAY_TIME * 2)
+        timestamp: now - 150000,
+        expiryDate: now + ONE_DAY_TIME * 2
       },
       {
         threadId: 8,
@@ -486,8 +486,8 @@
         delivery: 'not-downloaded',
         deliveryInfo: [{receiver: null, deliveryStatus: 'error'}],
         subject: 'Error download',
-        timestamp: new Date(Date.now() - 150000),
-        expiryDate: new Date(Date.now() - ONE_DAY_TIME)
+        timestamp: now - 150000,
+        expiryDate: now - ONE_DAY_TIME
       },
       {
         threadId: 8,
@@ -498,8 +498,8 @@
         subject: 'No attachment error',
         smil: '<smil><body><par><text src="text1"/></par></body></smil>',
         attachments: null,
-        timestamp: new Date(Date.now() - 150000),
-        expiryDate: new Date(Date.now() + ONE_DAY_TIME)
+        timestamp: now - 150000,
+        expiryDate: now + ONE_DAY_TIME
       },
       {
         threadId: 10,
@@ -508,7 +508,7 @@
         body: '<html>',
         delivery: 'received',
         type: 'sms',
-        timestamp: new Date(Date.now())
+        timestamp: +now
       }
     ],
     threads: [
@@ -517,7 +517,7 @@
         participants: ['1977'],
         lastMessageType: 'sms',
         body: 'Alo, how are you today, my friend? :)',
-        timestamp: new Date(now - 172800000),
+        timestamp: now - 172800000,
         unreadCount: 0
       },
       {
@@ -525,7 +525,7 @@
         participants: ['436797'],
         lastMessageType: 'sms',
         body: 'Sending :)',
-        timestamp: new Date(Date.now() - 172800000),
+        timestamp: now - 172800000,
         unreadCount: 0
       },
       {
@@ -533,14 +533,14 @@
         participants: ['+18001114321'],
         lastMessageType: 'sms',
         body: 'I have a very long name!',
-        timestamp: new Date(),
+        timestamp: now,
         unreadCount: 0
       },
       {
         id: 4,
         participants: ['197746797'],
         body: 'short (delivery: received)',
-        timestamp: new Date(Date.now() - 172800000),
+        timestamp: now - 172800000,
         lastMessageType: 'sms',
         unreadCount: 0
       },
@@ -549,42 +549,42 @@
         participants: ['14886783487'],
         lastMessageType: 'sms',
         body: 'Hello world!',
-        timestamp: new Date(Date.now() - 600000000),
+        timestamp: now - 600000000,
         unreadCount: 2
       },
       {
         id: 6,
         participants: ['052780'],
         lastMessageType: 'mms',
-        timestamp: new Date(now - (60000000 * 10)),
+        timestamp: now - (60000000 * 10),
         unreadCount: 0
       },
       {
         id: 7,
         participants: ['999', '888', '777', '123456'],
         lastMessageType: 'mms',
-        timestamp: new Date(now),
+        timestamp: +now,
         unreadCount: 0
       },
       {
         id: 8,
         participants: ['123456'],
         lastMessageType: 'mms',
-        timestamp: new Date(Date.now() - 150000000),
+        timestamp: now - 150000000,
         unreadCount: 0
       },
       {
         id: 9,
         participants: participants,
         lastMessageType: 'mms',
-        timestamp: new Date(new Date(now) - 150000000),
+        timestamp: now - 150000000,
         unreadCount: 0
       },
       {
         id: 10,
         participants: ['+12125551234', '+15551237890'],
         lastMessageType: 'mms',
-        timestamp: new Date(Date.now()),
+        timestamp: now,
         unreadCount: 0
       }
     ]
@@ -607,7 +607,7 @@
       delivery: 'received',
       id: messagesDb.id++,
       type: 'sms',
-      timestamp: new Date(Date.now() - 60000000)
+      timestamp: now - 60000000
     });
   }
 
@@ -634,7 +634,7 @@
         location: 'text1',
         content: new Blob(['hi! this is ' + sender], { type: 'text/plain' })
       }],
-      timestamp: new Date(now - first)
+      timestamp: now - first
     });
     first -= 60000;
   }
@@ -661,7 +661,7 @@
         location: 'text1',
         content: new Blob(['hi! this is ' + sender], { type: 'text/plain' })
       }],
-      timestamp: new Date(now - first)
+      timestamp: now - first
     });
     first -= 60000;
   }
@@ -688,7 +688,7 @@
          { type: 'text/plain' }
       )
     }],
-    timestamp: new Date()
+    timestamp: now
   });
 
 
@@ -757,7 +757,7 @@
         id: messagesDb.id++,
         participants: [].concat(number),
         body: text,
-        timestamp: new Date(),
+        timestamp: now,
         unreadCount: 0,
         lastMessageType: 'sms'
       };
@@ -765,7 +765,7 @@
     }
     else {
       thread.body = text;
-      thread.timestamp = new Date();
+      thread.timestamp = now;
     }
 
     var sendInfo = {
@@ -778,7 +778,7 @@
         id: sendId,
         type: 'sms',
         read: true,
-        timestamp: new Date(),
+        timestamp: now,
         threadId: thread.id
       }
     };
@@ -834,7 +834,7 @@
           id: messagesDb.id++,
           type: 'sms',
           read: false,
-          timestamp: new Date(),
+          timestamp: now,
           threadId: thread.id
         }
       };
@@ -882,12 +882,12 @@
         lastMessageType: 'mms',
         participants: params.receivers,
         body: '',
-        timestamp: new Date(),
+        timestamp: now,
         unreadCount: 0
       };
       messagesDb.threads.push(thread);
     } else {
-      thread.timestamp = new Date();
+      thread.timestamp = now;
     }
 
     var sendInfo = {
@@ -904,7 +904,7 @@
         subject: '',
         smil: params.smil,
         attachments: params.attachments,
-        timestamp: new Date()
+        timestamp: now
       }
     };
 
@@ -958,7 +958,7 @@
             receiver: null,
             delivery: 'received',
             id: messagesDb.id++,
-            timestamp: new Date(),
+            timestamp: now,
             threadId: thread.id,
             type: 'mms',
             deliveryInfo: [{deliveryStatus: 'success'}],
@@ -1279,7 +1279,7 @@
       for (; idx < len; ++idx) {
         msg = msgs[idx];
         if (msg.type !== 'mms' || msg.delivery !== 'not-downloaded' ||
-          +msg.expiryDate < +Date.now()) {
+          +msg.expiryDate < now) {
           continue;
         }
         if (msg.id === id) {

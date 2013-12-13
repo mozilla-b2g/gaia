@@ -72,7 +72,7 @@
      *
      * @param  {Number}  id thread id of the drafts to return.
      *
-     * @return {Draft.List}  return Draft.List containing drafts for thread id
+     * @return {Draft.List}  return Draft.List containing drafts for thread id.
      */
     byId: function(id) {
       return new Drafts.List(draftIndex.get(id));
@@ -169,13 +169,13 @@
    * message content to be stored temporarily
    * in a Drafts collection.
    *
-   * @param {Object}  draft  Draft or empty object
+   * @param {Object}  draft  Draft or empty object.
    */
   function Draft(opts) {
     var draft = opts || {};
     this.recipients = draft.recipients || [];
     this.content = draft.content || [];
-    this.timestamp = draft.timestamp || Date.now();
+    this.timestamp = +draft.timestamp || Date.now();
     this.threadId = draft.threadId || null;
     this.type = draft.type;
   }

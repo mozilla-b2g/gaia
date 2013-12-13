@@ -77,7 +77,7 @@ window.addEventListener('localized', function localized() {
       }
       var args = JSON.parse(element.dataset.l10nArgs);
       var format = navigator.mozL10n.get(element.dataset.l10nDateFormat);
-      var date = new Date(element.dataset.l10nDate);
+      var date = new Date(+element.dataset.l10nDate);
       args.date = Utils.date.format.localeFormat(date, format);
 
       navigator.mozL10n.localize(element, element.dataset.l10nId, args);
