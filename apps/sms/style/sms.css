@@ -349,12 +349,6 @@ section.has-carrier .article-list header:first-child {
 .article-list {
   z-index: 5;
 
-  /* The bottom border is used to offset the messages as the Compose field
-   * grows and shrinks, preventing occlusion. (see "Bug 748518 - padding-bottom
-   * is ignored with overflow:auto;") */
-  border-bottom-color: transparent;
-  border-bottom-style: solid;
-  -moz-box-sizing: border-box;
   padding: 0;
 
   background: none repeat scroll 0 0 #E4E4E4;

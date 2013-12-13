@@ -43,7 +43,7 @@ var MockThreadUI = {
   updateSmsSegmentLimit: function() {},
   updateCounter: function() {},
   updateCounterForMms: function() {},
-  updateInputHeight: function() {},
+  updateElementsHeight: function() {},
   getMessageContainer: function() {},
   updateHeaderData: function() {},
   initializeRendering: function() {},
