@@ -968,9 +968,10 @@ var ThreadUI = global.ThreadUI = {
 
     // We set the buttons' top margin to ensure they render at the bottom of
     // the container
-    var buttonOffset = minHeight + verticalMargin +
-                       subjectHeight - buttonHeight;
+    var buttonOffset = composeHeight - buttonHeight;
     this.sendButton.style.marginTop = buttonOffset + 'px';
+
+    this.scrollViewToBottom();
   },
 
   findNextContainer: function thui_findNextContainer(container) {

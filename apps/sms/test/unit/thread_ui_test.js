@@ -207,6 +207,35 @@ suite('thread_ui.js >', function() {
       assert.ok(ThreadUI.isScrolledManually);
     });
 
+    suite('when adding a line in the composer >', function() {
+      setup(function() {
+        this.sinon.spy(HTMLElement.prototype, 'scrollIntoView');
+      });
+
+      test('when scrolled up, should not scroll', function() {
+        container.scrollTop = 100;
+        dispatchScrollEvent(container);
+
+        // scrolledManually is true (see above)
+        Compose.append('\n');
+
+        sinon.assert.notCalled(HTMLElement.prototype.scrollIntoView);
+      });
+
+      test('when scrolled to the bottom, should scroll', function() {
+        container.scrollTop = container.scrollTopMax;
+        dispatchScrollEvent(container);
+
+        // scrolledManually is false (see above)
+        Compose.append('\n');
+
+        sinon.assert.calledOn(
+          HTMLElement.prototype.scrollIntoView,
+          container.lastElementChild
+        );
+      });
+    });
+
     test('scroll to bottom, should be detected as an automatic scroll',
     function() {
       ThreadUI.isScrolledManually = false;
