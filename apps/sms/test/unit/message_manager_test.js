@@ -8,7 +8,7 @@
 
 requireApp('sms/js/utils.js');
 requireApp('sms/js/time_headers.js');
-requireApp('sms/js/drafts.js');
+
 
 requireApp('sms/test/unit/mock_attachment.js');
 requireApp('sms/test/unit/mock_async_storage.js');
@@ -37,12 +37,13 @@ var mocksHelperForMessageManager = new MocksHelper([
   'asyncStorage',
   'Compose',
   'Contacts',
+  'Draft',
   'Drafts',
   'LinkActionHandler',
   'MozSmsFilter',
   'LinkActionHandler',
   'GroupView',
-  'ReportView'
+  'ReportView',
   'Recipients',
   'SMIL',
   'ThreadListUI',
@@ -301,40 +302,53 @@ suite('message_manager.js >', function() {
         done();
       });
     });
-    suite('new message drafts', function() {
+    suite('message drafts', function() {
 
-        setup(function() {
-          MessageManager.draft = new Draft({
-            threadId: 1234
-          });
-          this.sinon.spy(Compose, 'fromDraft');
-          this.sinon.spy(ThreadUI.recipients, 'add');
-          this.sinon.spy(ThreadUI, 'updateHeaderData');
+      setup(function() {
+        MessageManager.draft = new Draft({
+          threadId: 1234,
+          recipients: []
         });
-
-        teardown(function() {
-          MessageManager.draft = null;
-        });
-
-        test('Calls Compose.fromDraft()', function() {
-          MessageManager.launchComposer();
-          assert.ok(Compose.fromDraft.calledOnce);
-        });
-
-        test('No recipients loaded', function() {
-          MessageManager.launchComposer();
-          assert.isFalse(ThreadUI.recipients.add.called);
-          assert.isFalse(ThreadUI.updateHeaderData.called);
-        });
-
-        test('with recipients', function() {
-          MessageManager.draft.recipients = ['800 732 0872', '800 555 1212'];
-          MessageManager.launchComposer();
-          assert.ok(ThreadUI.recipients.add.calledTwice);
-          assert.isFalse(ThreadUI.updateHeaderData.called);
-        });
+        this.sinon.spy(Compose, 'fromDraft');
+        this.sinon.stub(Drafts, 'delete').returns(Drafts);
+        this.sinon.stub(Drafts, 'store').returns(Drafts);
+        this.sinon.spy(ThreadUI.recipients, 'add');
+        this.sinon.spy(ThreadUI, 'updateHeaderData');
       });
 
+      teardown(function() {
+        MessageManager.draft = null;
+      });
+
+      test('Calls Compose.fromDraft()', function() {
+        MessageManager.launchComposer();
+        assert.ok(Compose.fromDraft.calledOnce);
+      });
+
+      test('No recipients loaded', function() {
+        MessageManager.launchComposer();
+        assert.isFalse(ThreadUI.recipients.add.called);
+        assert.isFalse(ThreadUI.updateHeaderData.called);
+      });
+
+      test('with recipients', function() {
+        MessageManager.draft.recipients = ['800 732 0872', '800 555 1212'];
+        MessageManager.launchComposer();
+        assert.ok(ThreadUI.recipients.add.calledTwice);
+        assert.isFalse(ThreadUI.updateHeaderData.called);
+      });
+
+      test('discards draft record', function() {
+        MessageManager.draft = {
+          recipients: []
+        };
+
+        MessageManager.launchComposer();
+
+        assert.isTrue(Drafts.delete.called);
+        assert.isTrue(Drafts.store.called);
+      });
+    });
   });
 
   suite('handleActivity() >', function() {
@@ -778,7 +792,7 @@ suite('message_manager.js >', function() {
     var spy;
 
     suiteSetup(function() {
-      spy = sinon.spy(ThreadUI, 'saveMessageDraft');
+      spy = sinon.spy(ThreadUI, 'saveDraft');
       Object.defineProperty(document, 'hidden', {
         configurable: true,
         get: function() {

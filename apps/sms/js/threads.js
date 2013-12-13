@@ -106,14 +106,17 @@
       this.get(threadId).messages.push(message);
     },
     set: function(id, thread) {
-      var old;
+      var old, length, key;
       id = +id;
       if (threads.has(id)) {
         // Updates the reference
         old = threads.get(id);
-        for (var p in thread) {
-          old[p] = thread[p];
+        length = Thread.FIELDS.length;
+        for (var i = 0; i < length; i++) {
+          key = Thread.FIELDS[i];
+          old[key] = thread[key];
         }
+
         return threads;
       }
       return threads.set(id, new Thread(thread));

@@ -530,6 +530,15 @@
         delivery: 'received',
         type: 'sms',
         timestamp: now
+      },
+      {
+        threadId: 11,
+        sender: '109',
+        read: true,
+        body: 'Hello!',
+        delivery: 'received',
+        type: 'sms',
+        timestamp: now - 3600000
       }
     ],
     threads: [
@@ -585,7 +594,7 @@
         id: 7,
         participants: ['999', '888', '777', '123456'],
         lastMessageType: 'mms',
-        timestamp: now,
+        timestamp: now - (60000 * 50),
         unreadCount: 1
       },
       {
@@ -599,7 +608,7 @@
         id: 9,
         participants: participants,
         lastMessageType: 'mms',
-        timestamp: now - 150000000,
+        timestamp: now - (60000 * 50),
         unreadCount: 0
       },
       {
@@ -607,6 +616,15 @@
         participants: ['+12125551234', '+15551237890'],
         lastMessageType: 'mms',
         timestamp: now - 600000,
+        unreadCount: 0
+      },
+      {
+        id: 11,
+        participants: ['109'],
+        body: 'Hello!',
+        lastMessageSubject: undefined,
+        lastMessageType: 'sms',
+        timestamp: now - 60000,
         unreadCount: 0
       }
     ]
@@ -661,7 +679,7 @@
     first -= 60000;
   }
 
-  first = 60000 * 40; // 1 minute * 50 Minutes
+  first = 60000 * 50; // 1 minute * 50 Minutes
 
   for (i = 0; i < 40; i++) {
     sender = participants[Math.floor(Math.random() * 9)];

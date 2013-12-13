@@ -352,9 +352,11 @@
   ContactsDB.push(
     new Contact({
       familyName: 'Kay',
-      givenName: 'Allen',
+      givenName: 'Alan',
       tel: {
-        value: '109'
+        value: '109',
+        type: 'Mobile',
+        carrier: 'Nynex'
       }
     })
   );

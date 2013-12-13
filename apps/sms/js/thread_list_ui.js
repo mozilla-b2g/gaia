@@ -451,7 +451,7 @@ var ThreadListUI = {
     var participants = record.participants;
     var number = participants[0];
     var id = record.id;
-    var bodyHTML = Template.escape(record.body || '');
+    var bodyHTML = record.body;
     var thread = Threads.get(id);
     var draft, draftId;
 
@@ -466,12 +466,18 @@ var ThreadListUI = {
     if (hasDrafts) {
       draft = Drafts.byThreadId(thread.id).latest;
       timestamp = Math.max(draft.timestamp, timestamp);
-      bodyHTML = draft.content.find(function(content) {
-        if (typeof content === 'string') {
-          return true;
-        }
-      });
+      // If the draft is newer than the message, update
+      // the body with the draft content's first string.
+      if (draft.timestamp >= record.timestamp) {
+        bodyHTML = draft.content.find(function(content) {
+          if (typeof content === 'string') {
+            return true;
+          }
+        });
+      }
     }
+
+    bodyHTML = Template.escape(bodyHTML || '');
 
     li.id = 'thread-' + id;
     li.dataset.threadId = id;
@@ -545,14 +551,20 @@ var ThreadListUI = {
   updateThread: function thlui_updateThread(record, options) {
     var thread = Thread.create(record, options);
 
+    // For legitimate in-memory thread objects, update the stored
+    // Thread instance with the newest data. This check prevents
+    // draft objects from inadvertently creating bogus thread
+    // objects.
+    if (Threads.has(thread.id)) {
+      Threads.set(thread.id, thread);
+    }
+
     // We remove the previous one in order to place the new one properly
     var node = document.getElementById('thread-' + thread.id);
 
-    // New record is older than the latest one?
-    var timestamp = +thread.timestamp;
-
-    if (node && node.dataset.time > timestamp) {
-      // If the received SMS is older than the latest one
+    // If options passed and new record is older than the latest one?
+    if (node && +node.dataset.time > +thread.timestamp) {
+      // If the received Message is older than the latest one
       // We need only to update the 'unread status' if needed
       if (options && !options.read) {
         this.mark(thread.id, 'unread');

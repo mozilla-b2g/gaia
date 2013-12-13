@@ -5,7 +5,8 @@
          SMIL, ErrorDialog, MessageManager, MozSmsFilter, LinkHelper,
          ActivityPicker, ThreadListUI, OptionMenu, Threads, Contacts,
          Attachment, WaitingScreen, MozActivity, LinkActionHandler,
-         ActivityHandler, TimeHeaders, ContactRenderer, Draft, Drafts */
+         ActivityHandler, TimeHeaders, ContactRenderer, Draft, Drafts,
+         Thread */
 /*exported ThreadUI */
 
 (function(global) {
@@ -523,6 +524,9 @@ var ThreadUI = global.ThreadUI = {
   // Function for handling when a new message (sent/received)
   // is detected
   onMessage: function onMessage(message) {
+    // Update the stored thread data
+    Threads.set(message.threadId, Thread.create(message));
+
     this.appendMessage(message);
     TimeHeaders.updateAll('header[data-time-update]');
   },
@@ -755,7 +759,10 @@ var ThreadUI = global.ThreadUI = {
       this.stopRendering();
 
       var currentActivity = ActivityHandler.currentActivity.new;
-      var discard, discardDraft;
+      var leave = (function() {
+        this.cleanFields(true);
+        window.location.hash = '#thread-list';
+      }).bind(this);
 
       if (currentActivity) {
         currentActivity.postResult({ success: true });
@@ -763,32 +770,16 @@ var ThreadUI = global.ThreadUI = {
         return;
       }
 
-      discard = (function() {
-        this.cleanFields(true);
-        window.location.hash = '#thread-list';
-      }).bind(this);
-
-      discardDraft = (function() {
-        // If we were tracking a draft
-        // properly update the Drafts object
-        // and ThreadList entries
-        if (MessageManager.draft) {
-          Drafts.delete(MessageManager.draft);
-          if (Threads.active) {
-            ThreadListUI.updateThread(Threads.active);
-          } else {
-            ThreadListUI.removeThread(MessageManager.draft.id);
-          }
-          MessageManager.draft = null;
-        }
-        // Else, this was a brand new draft, but
-        // it is now being discarded
-        discard();
-      }).bind(this);
-
       // TODO Add comment about assimilation above on line #183?
       // Need to assimilate recipients in order to check if any entered
       this.assimilateRecipients();
+
+      // If we're leaving a thread's message view,
+      // ensure that the thread object's unreadCount
+      // value is current (set = 0)
+      if (Threads.active) {
+        Threads.active.unreadCount = 0;
+      }
 
       // If the composer is empty and we are either
       // in an active thread or there are no recipients
@@ -796,7 +787,8 @@ var ThreadUI = global.ThreadUI = {
       // as the user deleted them manually
       if (Compose.isEmpty() &&
         (Threads.active || this.recipients.length === 0)) {
-        discardDraft();
+        this.discardDraft();
+        leave();
         return;
       }
 
@@ -805,13 +797,16 @@ var ThreadUI = global.ThreadUI = {
           {
             l10nId: 'save-as-draft',
             method: function onsave() {
-              this.saveMessageDraft();
-              discard();
+              this.saveDraft();
+              leave();
             }.bind(this)
           },
           {
             l10nId: 'discard-message',
-            method: discardDraft
+            method: function ondiscard() {
+              this.discardDraft();
+              leave();
+            }.bind(this)
           },
           {
             l10nId: 'cancel'
@@ -2519,7 +2514,23 @@ var ThreadUI = global.ThreadUI = {
     }
   },
 
-  saveMessageDraft: function thui_saveMessageDraft() {
+  discardDraft: function thui_discardDraft() {
+    // If we were tracking a draft
+    // properly update the Drafts object
+    // and ThreadList entries
+    if (MessageManager.draft) {
+      Drafts.delete(MessageManager.draft);
+      if (Threads.active) {
+        Threads.active.timestamp = Date.now();
+        ThreadListUI.updateThread(Threads.active);
+      } else {
+        ThreadListUI.removeThread(MessageManager.draft.id);
+      }
+      MessageManager.draft = null;
+    }
+  },
+
+  saveDraft: function thui_saveDraft() {
     var draft, recipients, content, thread, threadId, type;
 
     content = Compose.getContent();
@@ -2559,6 +2570,7 @@ var ThreadUI = global.ThreadUI = {
     } else {
       ThreadListUI.updateThread(draft);
     }
+
     MessageManager.draft = null;
   }
 };

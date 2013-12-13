@@ -114,9 +114,11 @@ var MessageManager = {
     if (document.hidden) {
       var hash = window.location.hash;
       if (hash === '#new' || hash.startsWith('#thread=')) {
-        ThreadUI.saveMessageDraft();
+        ThreadUI.saveDraft();
       }
     }
+
+    Drafts.store();
   },
 
   slide: function mm_slide(direction, callback) {
@@ -169,7 +171,12 @@ var MessageManager = {
           }
         });
       });
+
+      // Render draft contents into the composer input area.
       Compose.fromDraft(draft);
+
+      // Discard this draft object and update the backing store
+      Drafts.delete(draft).store();
     }
 
     this.threadMessages.classList.add('new');

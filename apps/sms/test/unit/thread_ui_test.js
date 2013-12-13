@@ -3889,7 +3889,7 @@ suite('thread_ui.js >', function() {
     });
   });
 
-  suite('saveMessageDraft() > ', function() {
+  suite('saveDraft() > ', function() {
     var addSpy, updateSpy, arg;
 
     setup(function() {
@@ -3905,7 +3905,7 @@ suite('thread_ui.js >', function() {
     });
 
     test('has entered content and recipients', function() {
-      ThreadUI.saveMessageDraft();
+      ThreadUI.saveDraft();
       arg = addSpy.firstCall.args[0];
 
       assert.deepEqual(arg.recipients, ['999']);
@@ -3914,7 +3914,7 @@ suite('thread_ui.js >', function() {
 
     test('has entered recipients but not content', function() {
       Compose.clear();
-      ThreadUI.saveMessageDraft();
+      ThreadUI.saveDraft();
       arg = addSpy.firstCall.args[0];
 
       assert.deepEqual(arg.recipients, ['999']);
@@ -3923,32 +3923,43 @@ suite('thread_ui.js >', function() {
 
     test('has entered content but not recipients', function() {
       ThreadUI.recipients.remove('999');
-      ThreadUI.saveMessageDraft();
+      ThreadUI.saveDraft();
       arg = addSpy.firstCall.args[0];
 
       assert.deepEqual(arg.recipients, []);
       assert.deepEqual(arg.content, ['foo']);
     });
 
-    test('thread is updated in thread list', function() {
-      ThreadUI.saveMessageDraft();
+    test('thread is updated in thread list, threadbound', function() {
+      Threads.set(1, {
+        participants: ['999']
+      });
+      window.location.hash = '#thread=1';
 
-      assert.isTrue(updateSpy.calledOnce);
+      ThreadUI.saveDraft();
+
+      sinon.assert.calledOnce(updateSpy);
+    });
+
+    test('thread is updated in thread list, threadless', function() {
+      ThreadUI.saveDraft();
+
+      sinon.assert.calledOnce(updateSpy);
     });
 
     test('saves brand new threadless draft if not within thread', function() {
       Drafts.clear();
 
       MessageManager.draft = {id: 1};
-      ThreadUI.saveMessageDraft();
+      ThreadUI.saveDraft();
       assert.equal(Drafts.byThreadId(null).length, 1);
 
       MessageManager.draft = {id: 2};
-      ThreadUI.saveMessageDraft();
+      ThreadUI.saveDraft();
       assert.equal(Drafts.byThreadId(null).length, 2);
 
       MessageManager.draft = {id: 3};
-      ThreadUI.saveMessageDraft();
+      ThreadUI.saveDraft();
       assert.equal(Drafts.byThreadId(null).length, 3);
     });
 
@@ -3958,18 +3969,53 @@ suite('thread_ui.js >', function() {
       });
       window.location.hash = '#thread=1';
 
-      ThreadUI.saveMessageDraft();
+      ThreadUI.saveDraft();
       assert.equal(Drafts.byThreadId(1).length, 1);
 
       Compose.append('baz');
-      ThreadUI.saveMessageDraft();
+      ThreadUI.saveDraft();
       assert.equal(Drafts.byThreadId(1).length, 1);
 
       Compose.append('foo');
-      ThreadUI.saveMessageDraft();
+      ThreadUI.saveDraft();
       assert.equal(Drafts.byThreadId(1).length, 1);
     });
 
+    test('Update thread timestamp if within thread', function() {
+
+      this.sinon.stub(window, 'Draft').returns({
+        timestamp: 2
+      });
+
+      Threads.set(1, {
+        participants: ['999'],
+        timestamp: 1
+      });
+
+      window.location.hash = '#thread=1';
+
+      ThreadUI.saveDraft();
+
+      assert.equal(Threads.get(1).timestamp, 2);
+    });
+
+    test('Update thread unreadCount if within thread', function() {
+
+      this.sinon.stub(window, 'Draft').returns({
+        unreadCount: 2
+      });
+
+      Threads.set(1, {
+        participants: ['999'],
+        unreadCount: 0
+      });
+
+      window.location.hash = '#thread=1';
+
+      ThreadUI.saveDraft();
+
+      assert.equal(Threads.get(1).unreadCount, 0);
+    });
   });
 
 suite('Back button behaviour', function() {
@@ -3997,7 +4043,7 @@ suite('Back button behaviour', function() {
       var spy;
 
       suiteSetup(function() {
-        spy = sinon.spy(ThreadUI, 'saveMessageDraft');
+        spy = sinon.spy(ThreadUI, 'saveDraft');
       });
 
       setup(function() {
