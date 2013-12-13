@@ -1,56 +1,54 @@
 'use strict';
 
-require('/tests/js/app_integration.js');
-require('/tests/js/integration_helper.js');
-require('/tests/performance/performance_helper.js');
+var App = require('./app');
+var PerformanceHelper = requireGaia('/tests/performance/performance_helper.js');
+var MarionetteHelper = requireGaia('/tests/js-marionette/helper.js');
 
-function GenericIntegration(device) {
-  AppIntegration.apply(this, arguments);
-}
+var manifestPath, entryPoint;
 
-var [manifestPath, entryPoint] = window.mozTestInfo.appPath.split('/');
+var arr = mozTestInfo.appPath.split('/');
+manifestPath = arr[0];
+entryPoint = arr[1];
 
-GenericIntegration.prototype = {
-  __proto__: AppIntegration.prototype,
-  appName: window.mozTestInfo.appPath,
-  manifestURL: 'app://' + manifestPath + '.gaiamobile.org/manifest.webapp',
-  entryPoint: entryPoint
-};
+marionette('startup test > ' + mozTestInfo.appPath + ' >', function() {
 
-suite(window.mozTestInfo.appPath + ' >', function() {
-  var device;
   var app;
+  var client = marionette.client({
+    settings: {
+      'ftu.manifestURL': null
+    }
+  });
 
   var performanceHelper;
 
-  MarionetteHelper.start(function(client) {
-    app = new GenericIntegration(client);
-    device = app.device;
-    performanceHelper = new PerformanceHelper({ app: app });
-  });
+  app = new App(client, mozTestInfo.appPath);
+  if (app.skip) {
+    return;
+  }
 
   setup(function() {
-    yield IntegrationHelper.unlock(device); // it affects the first run otherwise
-    yield PerformanceHelper.registerLoadTimeListener(device);
-  });
-
-  teardown(function() {
-    yield PerformanceHelper.unregisterLoadTimeListener(device);
-  });
-
-  test('startup time', function() {
     // Mocha timeout for this test
     this.timeout(100000);
     // Marionnette timeout for each command sent to the device
-    yield device.setScriptTimeout(10000);
+    client.setScriptTimeout(10000);
 
-    yield performanceHelper.repeatWithDelay(function(app, next) {
-      yield app.launch();
-      yield app.close();
+    MarionetteHelper.unlockScreen(client);
+  });
+
+  test('startup time', function() {
+
+    performanceHelper = new PerformanceHelper({ app: app });
+
+    PerformanceHelper.registerLoadTimeListener(client);
+
+    performanceHelper.repeatWithDelay(function(app, next) {
+      app.launch();
+      app.close();
     });
 
-    var results = yield PerformanceHelper.getLoadTimes(device);
-    results = results.filter(function (element) {
+    var results = PerformanceHelper.getLoadTimes(client);
+
+    results = results.filter(function(element) {
       if (element.src.indexOf('app://' + manifestPath) !== 0) {
         return false;
       }
@@ -58,11 +56,12 @@ suite(window.mozTestInfo.appPath + ' >', function() {
         return false;
       }
       return true;
-    }).map(function (element) {
+    }).map(function(element) {
       return element.time;
     });
 
     PerformanceHelper.reportDuration(results);
+
+    PerformanceHelper.unregisterLoadTimeListener(client);
   });
 });
-

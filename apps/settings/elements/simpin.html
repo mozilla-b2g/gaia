@@ -2,8 +2,8 @@
   <template>
 
     <header>
-      <a href="#root"><span class="icon icon-back">back</span></a>
-      <h1 data-l10n-id="simSecurity"> SIM Security </h1>
+      <a id="simpin-back" href="#"><span class="icon icon-back">back</span></a>
+      <h1 data-l10n-id="simSecurity-header"> SIM Security </h1>
     </header>
 
     <div>
@@ -21,26 +21,27 @@
             A SIM PIN is not the same as the Passcode used to unlock the device.
           </p>
         </li>
-        <li id="simpin-enabled">
-          <label class="pack-switch">
-            <input type="checkbox" data-ignore>
-            <span data-l10n-id="simPin">SIM PIN</span>
-          </label>
-        </li>
-        <li id="simpin-change">
-          <label>
-            <button class="icon icon-view"
-                    data-l10n-id="changeSimPin"
-                    name="changeSimPin">
-              Change PIN
-            </button>
-          </label>
-        </li>
       </ul>
+      <ul id="simpin-container"></ul>
     </div>
 
-    <script src="js/simcard_lock.js"></script>
+    <script src="shared/js/template.js"></script>
     <script src="js/simcard_dialog.js"></script>
-
+    <script src="js/simcard_lock.js"></script>
+    <div id="simpin-tmpl" hidden>
+       <!--
+       <li class="simpin-enabled simpin-enabled-${sim-index} simpin-${sim-index}">
+         <label class="pack-switch">
+           <input type="checkbox" data-ignore data-sim-index="${sim-index}" data-type="checkSimPin"/>
+           <span>${sim-name}</span>
+         </label>
+       </li>
+       <li class="simpin-change simpin-change-${sim-index} simpin-${sim-index}" hidden>
+         <label>
+           <button class="icon icon-view" data-l10n-id="changeSimPin" data-sim-index="${sim-index}" data-type="changeSimPin">Change PIN</button>
+         </label>
+       </li>
+       -->
+    </div>
   </template>
 </element>

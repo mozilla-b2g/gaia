@@ -1,15 +1,20 @@
-/**
- * AppWindowFactory creates/destroys the app window instance on demand.
- */
-
 'use strict';
 
 (function(window) {
 
+  /**
+   * AppWindowFactory handle the launch request from gecko and
+   * wrap the config with properer parameters.
+   * It would ask AppWindowManager take the role to do instance creation.
+   *
+   * @module AppWindowFactory
+   */
   var AppWindowFactory = {
     init: function awf_init() {
       /**
        * Wait for applicationready event to do the following work.
+       *
+       * @listens webapps-launch
        */
       if (Applications.ready) {
         window.addEventListener('webapps-launch', this);

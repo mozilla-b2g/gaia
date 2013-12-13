@@ -57,6 +57,10 @@ li:active:not([aria-disabled="true"]) .menu-item::before,
   background-position: -12rem 0;
 }
 
+#menuItem-nfc::before {
+  background-position: -12rem -15rem;
+}
+
 #menuItem-internetSharing::before {
   background-position: 0 -3rem;
 }
@@ -95,6 +99,10 @@ li:active:not([aria-disabled="true"]) .menu-item::before,
 
 #menuItem-phoneLock::before {
   background-position: -12rem -6rem;
+}
+
+#menuItem-simManager::before {
+  background-position: 0 -9rem;
 }
 
 #menuItem-simSecurity::before {
@@ -145,6 +153,9 @@ li:active:not([aria-disabled="true"]) .menu-item::before,
   background-position: -12rem -12rem;
 }
 
+#menuItem-downloads::before {
+  background-position: -15rem -18rem;
+}
 
 /******************************************************************************
  * Wi-Fi icons

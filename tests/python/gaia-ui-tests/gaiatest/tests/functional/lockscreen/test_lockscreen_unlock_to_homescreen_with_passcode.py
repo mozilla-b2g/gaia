@@ -29,4 +29,4 @@ class TestLockScreen(GaiaTestCase):
         homescreen = self.lock_screen.unlock()
         self.lock_screen.passcode_pad.type_passcode(self._input_passcode)
 
-        homescreen.switch_to_homescreen_frame()
+        self.wait_for_condition(lambda m: self.apps.displayed_app.name == homescreen.name)

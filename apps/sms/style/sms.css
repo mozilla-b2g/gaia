@@ -79,7 +79,7 @@ form[role="dialog"][data-type="edit"] header menu[type="toolbar"] button {
 
 /* Override Building Block [Lists] styles */
 [data-type="list"] {
-  padding: 0.7rem 0 0 0;
+  padding: 0;
   text-align: left;
 }
 
@@ -195,12 +195,7 @@ form[data-type="action"] img[src=""] {
   height: 100%;
   left: 0;
   top: 0;
-
-  background-image: url(/shared/style/headers/images/ui/header.png),
-                    url(/shared/style/headers/images/ui/shadow.png);
-  background-repeat: repeat-x;
-  background-position: 0 0, 0 5rem;
-  background-size: 100% 5rem, 100% 0.3rem;
+  background: #fff;
 }
 
 .panel:first-child {
@@ -450,7 +445,7 @@ section.has-carrier .article-list header:first-child {
 
 .article-list[data-type="list"] .has-subject.outgoing .subject {
   /* to extend the background color and bottom border */
-  width: 100%; 
+  width: 100%;
   margin-left: -1.5rem;
   padding-left: 1.5rem;
   padding-right: 4rem;
@@ -627,9 +622,6 @@ form.bottom[role="search"].messages-compose-form {
 #messages-send-button {
   position: relative;
   bottom: 0;
-}
-
-#messages-send-button {
   right: 0;
 }
 
@@ -657,9 +649,10 @@ form.bottom[role="search"].messages-compose-form {
 
 [data-message-type="mms"] #messages-send-button.has-counter:before {
   content: 'MMS';
-  color: #ff6622;
+  color: #FF4E00;
   font-size: 1.5rem;
-  padding-left: 1.0rem;
+  padding-left: -moz-calc(100% - 5rem);
+  margin-top: -1.2rem;
 }
 
 #messages-input {
@@ -668,25 +661,46 @@ form.bottom[role="search"].messages-compose-form {
   line-height: 2rem;
   min-height: 2.3rem;
   -moz-box-sizing: border-box;
-  /* Cursor hides itself otherwise: */
-  overflow: auto;
+  overflow: auto; /* Cursor hides itself otherwise: */
   white-space: pre-wrap;
   text-align: left;
   font-size: 1.8rem;
 }
 
-#messages-input.placeholder:after {
+#messages-input.placeholder:after,
+#messages-subject-input::-moz-placeholder {
   color: #888;
   position: absolute;
-  top: 0.8rem;
+  bottom: 1rem;
   content: attr(data-placeholder);
   pointer-events: none;
+}
+
+#messages-subject-input::-moz-placeholder {
+  color: #858585;
 }
 
 #send-message-container {
   height: 100%;
   width: 6rem;
   float: right;
+}
+
+#messages-subject-input {
+  position: absolute;
+  top: 0;
+  height: 2rem;
+  max-height: 4rem;
+  width: -moz-calc(100% - 8.5rem);
+  padding: 0.9rem 0.7rem;
+  border: 0;
+  border-bottom: 0.1rem solid #eaeae7;
+  -moz-box-sizing: content-box;
+  white-space: pre-wrap;
+  text-align: left;
+  font-family: 'Fira Sans', sans-serif;
+  font-style: italic;
+  font-size: 1.4rem;
 }
 
 /*
@@ -751,13 +765,13 @@ form.bottom[role="search"].messages-compose-form {
   position: absolute;
   z-index: 4;
   top: 5rem;
-
-  width: calc(100% - 5rem);
-  height: 1.8rem;
-  padding: 1.2rem 1rem 0.5rem;
+  left: 0;
+  right: 0;
+  height: 3rem;
+  line-height: 4rem;
+  padding: 0 1.5rem;
   margin: 0 1.5rem;
   border-bottom: solid 0.1rem #ff4e00;
-
   background-repeat: no-repeat;
   background-color: #FFFFFF;
   color: #FF4E00;
@@ -766,7 +780,9 @@ form.bottom[role="search"].messages-compose-form {
   text-transform: uppercase;
   font-size: 1.6rem;
   font-weight: normal;
-  line-height: 1.8rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .fixed-title.no-fixed-header {
@@ -887,8 +903,9 @@ generateHeightRule() (in ThreadUI/thread_ui.js) will create:
 }
 
 .recipient[contenteditable=false].attention {
-  padding-left: 1.2rem;
+  position: relative;
 
+  padding-left: 1.2rem;
   border: 0.1rem solid #b90000;
 
   background: transparent;
@@ -937,7 +954,7 @@ form[role="dialog"][data-type="action"].contact-prompt > header {
 }
 
 .contact-header {
-  /* bottom padding is .9rem because we need .1rem more for the 
+  /* bottom padding is .9rem because we need .1rem more for the
    * nice shadow line at the header bottom, defined as a :after element */
   padding: 0.8rem 0 0.9rem;
 }

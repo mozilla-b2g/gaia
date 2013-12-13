@@ -480,6 +480,7 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
       }
       if (!valid) {
         errorCallback('malformed ogg comment packet');
+        return;
       }
 
       var vendor_string_length = page.readUnsignedInt(true);
@@ -492,7 +493,15 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
       // we've seen in the file separately.
       var seen_fields = {};
       for (var i = 0; i < num_comments; i++) {
+        if (page.remaining() < 4) { // 4 bytes for comment-length variable
+          // TODO: handle metadata that uses multiple pages
+          break;
+        }
         var comment_length = page.readUnsignedInt(true);
+        if (comment_length > page.remaining()) {
+          // TODO: handle metadata that uses multiple pages
+          break;
+        }
         var comment = page.readUTF8Text(comment_length);
         var equal = comment.indexOf('=');
         if (equal !== -1) {

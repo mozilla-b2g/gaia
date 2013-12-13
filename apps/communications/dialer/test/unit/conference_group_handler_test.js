@@ -230,14 +230,16 @@ suite('conference group handler', function() {
       MockMozTelephony.conferenceGroup.state = 'connected';
       MockMozTelephony.mTriggerGroupStateChange();
 
-      assert.isTrue(MockCallScreen.mSetDefaultContactImageCalled);
+      assert.isNull(MockCallScreen.mSetCallerContactImageArg);
+      assert.isTrue(MockCallScreen.mSetCallerContactImageCalled);
     });
 
     test('should set photo to default when resuming', function() {
       MockMozTelephony.conferenceGroup.state = 'resuming';
       MockMozTelephony.mTriggerGroupStateChange();
 
-      assert.isTrue(MockCallScreen.mSetDefaultContactImageCalled);
+      assert.isNull(MockCallScreen.mSetCallerContactImageArg);
+      assert.isTrue(MockCallScreen.mSetCallerContactImageCalled);
     });
 
     test('should stop timer when groupcall ends', function() {

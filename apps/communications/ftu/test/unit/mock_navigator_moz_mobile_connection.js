@@ -2,7 +2,7 @@
 
 (function() {
 
-  var props = ['voice', 'data', 'retryCount'];
+  var props = ['voice', 'data', 'retryCount', 'iccId'];
   var listeners;
 
   function _init() {

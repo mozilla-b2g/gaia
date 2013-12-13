@@ -12,14 +12,17 @@ suite('KeyboardHelper', function() {
   mocksHelper.attachTestHelpers();
   var realMozSettings;
   var realMozApps;
-  var appEvents = ['applicationinstallsuccess', 'applicationuninstall'];
+  var appEvents = ['applicationinstall', 'applicationinstallsuccess',
+    'applicationuninstall'];
   var DEFAULT_KEY = 'keyboard.default-layouts';
   var ENABLED_KEY = 'keyboard.enabled-layouts';
   var THIRD_PARTY_APP_ENABLED_KEY = 'keyboard.3rd-party-app.enabled';
   var keyboardAppOrigin = 'http://keyboard.gaiamobile.org:8080';
+  var keyboardAppManifestURL =
+      'http://keyboard.gaiamobile.org:8080/manifest.webapp';
   var standardKeyboards = [
     {
-      origin: keyboardAppOrigin,
+      manifestURL: keyboardAppManifestURL,
       manifest: {
         role: 'input',
         inputs: {
@@ -79,8 +82,34 @@ suite('KeyboardHelper', function() {
     'default': {}
   };
 
-  defaultSettings['default'][keyboardAppOrigin] = {en: true, number: true};
+  defaultSettings['default'][keyboardAppManifestURL] = {en: true, number: true};
   defaultSettings.enabled = defaultSettings['default'];
+
+  var DEPRECATE_KEYBOARD_SETTINGS = {
+    en: 'keyboard.layouts.english',
+    'en-Dvorak': 'keyboard.layouts.dvorak',
+    cs: 'keyboard.layouts.czech',
+    fr: 'keyboard.layouts.french',
+    de: 'keyboard.layouts.german',
+    hu: 'keyboard.layouts.hungarian',
+    nb: 'keyboard.layouts.norwegian',
+    my: 'keyboard.layouts.myanmar',
+    sl: 'keyboard.layouts.slovak',
+    tr: 'keyboard.layouts.turkish',
+    ro: 'keyboard.layouts.romanian',
+    ru: 'keyboard.layouts.russian',
+    ar: 'keyboard.layouts.arabic',
+    he: 'keyboard.layouts.hebrew',
+    'zh-Hant-Zhuyin': 'keyboard.layouts.zhuyin',
+    'zh-Hans-Pinyin': 'keyboard.layouts.pinyin',
+    el: 'keyboard.layouts.greek',
+    'jp-kanji': 'keyboard.layouts.japanese',
+    pl: 'keyboard.layouts.polish',
+    'pt-BR': 'keyboard.layouts.portuguese',
+    sr: 'keyboard.layouts.serbian',
+    es: 'keyboard.layouts.spanish',
+    ca: 'keyboard.layouts.catalan'
+  };
 
   function trigger(event) {
     var evt = document.createEvent('CustomEvent');
@@ -126,11 +155,19 @@ suite('KeyboardHelper', function() {
 
   test('requests initial settings', function() {
     var requests = MockNavigatorSettings.mRequests;
-    assert.equal(requests.length, 3);
+    assert.equal(requests.length, 26);
     assert.ok(DEFAULT_KEY in requests[0].result, 'requested defaults');
     assert.ok(ENABLED_KEY in requests[1].result, 'requested enabled');
     assert.ok(THIRD_PARTY_APP_ENABLED_KEY in requests[2].result,
       'requested 3rd-party keyboard app enabled');
+
+    var i = 0;
+    for (var key in DEPRECATE_KEYBOARD_SETTINGS) {
+      assert.ok(DEPRECATE_KEYBOARD_SETTINGS[key] in requests[3 + i].result,
+                'requested deprecated settings - ' +
+                DEPRECATE_KEYBOARD_SETTINGS[key]);
+      i++;
+    }
   });
 
   suite('getApps', function() {
@@ -378,6 +415,7 @@ suite('KeyboardHelper', function() {
       this.sinon.spy(window, 'ManifestHelper');
       this.apps = [{
         origin: keyboardAppOrigin,
+        manifestURL: keyboardAppManifestURL,
         manifest: {
           role: 'input',
           inputs: {
@@ -392,6 +430,7 @@ suite('KeyboardHelper', function() {
         }
       }, {
         origin: 'app://keyboard2.gaiamobile.org',
+        manifestURL: 'app://keyboard2.gaiamobile.org/manifest.webapp',
         manifest: {
           role: 'input',
           inputs: {
@@ -687,21 +726,23 @@ suite('KeyboardHelper', function() {
       assert.isFalse(KeyboardHelper.saveToSettings.called);
     });
     test('es layout disabled (sanity check)', function() {
-      assert.isFalse(KeyboardHelper.getLayoutEnabled(keyboardAppOrigin, 'es'));
+      assert.isFalse(KeyboardHelper.getLayoutEnabled(keyboardAppManifestURL,
+                                                     'es'));
     });
     suite('setLayoutEnabled', function() {
       setup(function() {
-        KeyboardHelper.setLayoutEnabled(keyboardAppOrigin, 'es', true);
+        KeyboardHelper.setLayoutEnabled(keyboardAppManifestURL, 'es', true);
         KeyboardHelper.saveToSettings();
       });
       test('es layout enabled', function() {
-        assert.isTrue(KeyboardHelper.getLayoutEnabled(keyboardAppOrigin, 'es'));
+        assert.isTrue(KeyboardHelper.getLayoutEnabled(keyboardAppManifestURL,
+                                                      'es'));
       });
       test('saves', function() {
         assert.isTrue(KeyboardHelper.saveToSettings.called);
         // with the right data
         var data = {};
-        data[keyboardAppOrigin] = { en: true, es: true, number: true };
+        data[keyboardAppManifestURL] = { en: true, es: true, number: true };
         assert.deepEqual(MockNavigatorSettings.mSettings[ENABLED_KEY],
           data);
         assert.deepEqual(MockNavigatorSettings.mSettings[DEFAULT_KEY],
@@ -720,6 +761,59 @@ suite('KeyboardHelper', function() {
         test('same data', function() {
           assert.deepEqual(KeyboardHelper.settings.enabled, this.oldSettings);
         });
+      });
+    });
+  });
+
+  suite('migrate old settings', function() {
+    var expectedSettings = {
+      'default': {},
+      enabled: {}
+    };
+
+    suite('old settings: cs enabled', function() {
+      setup(function() {
+        this.sinon.stub(KeyboardHelper, 'saveToSettings');
+        MockNavigatorSettings.mRequests[3].
+          result[DEPRECATE_KEYBOARD_SETTINGS.en] = false;
+        MockNavigatorSettings.mRequests[5].
+          result[DEPRECATE_KEYBOARD_SETTINGS.cs] = true;
+        MockNavigatorSettings.mReplyToRequests();
+      });
+
+      test('default settings loaded with cs', function() {
+        expectedSettings['enabled'][keyboardAppManifestURL] =
+          {cs: true, number: true};
+
+        assert.deepEqual(KeyboardHelper.settings.enabled,
+                         expectedSettings.enabled);
+      });
+
+      test('saves settings', function() {
+        assert.isTrue(KeyboardHelper.saveToSettings.called);
+      });
+    });
+
+    suite('old settings: serbian enabled', function() {
+      setup(function() {
+        this.sinon.stub(KeyboardHelper, 'saveToSettings');
+        MockNavigatorSettings.mRequests[3].
+          result[DEPRECATE_KEYBOARD_SETTINGS.en] = false;
+        MockNavigatorSettings.mRequests[23].
+          result[DEPRECATE_KEYBOARD_SETTINGS.sr] = true;
+        MockNavigatorSettings.mReplyToRequests();
+      });
+
+      test('default settings loaded with cs', function() {
+        expectedSettings['enabled'][keyboardAppManifestURL] =
+          {'sr-Cyrl': true, 'sr-Latn': true, number: true};
+
+        assert.deepEqual(KeyboardHelper.settings.enabled,
+                         expectedSettings.enabled);
+      });
+
+      test('saves settings', function() {
+        assert.isTrue(KeyboardHelper.saveToSettings.called);
       });
     });
   });
@@ -759,8 +853,9 @@ suite('KeyboardHelper', function() {
     });
 
     test('change default settings, keeping the enabled layouts', function() {
-      expectedSettings['default'][keyboardAppOrigin] = {fr: true, number: true};
-      expectedSettings['enabled'][keyboardAppOrigin] = {en: true, fr: true,
+      expectedSettings['default'][keyboardAppManifestURL] = {fr: true,
+                                                             number: true};
+      expectedSettings['enabled'][keyboardAppManifestURL] = {en: true, fr: true,
                                                         number: true};
 
       KeyboardHelper.changeDefaultLayouts('fr', false);
@@ -772,8 +867,10 @@ suite('KeyboardHelper', function() {
     });
 
     test('change default settings and reset enabled layouts', function() {
-      expectedSettings['default'][keyboardAppOrigin] = {es: true, number: true};
-      expectedSettings['enabled'][keyboardAppOrigin] = {es: true, number: true};
+      expectedSettings['default'][keyboardAppManifestURL] = {es: true,
+                                                             number: true};
+      expectedSettings['enabled'][keyboardAppManifestURL] = {es: true,
+                                                             number: true};
 
       KeyboardHelper.changeDefaultLayouts('es', true);
       assert.deepEqual(KeyboardHelper.settings.default,
@@ -784,10 +881,10 @@ suite('KeyboardHelper', function() {
     });
 
     test('change default settings and reset for nonLatin', function() {
-      expectedSettings['default'][keyboardAppOrigin] = {'zh-Hant-Zhuyin': true,
-                                                        en: true, number: true};
-      expectedSettings['enabled'][keyboardAppOrigin] = {'zh-Hant-Zhuyin': true,
-                                                        en: true, number: true};
+      expectedSettings['default'][keyboardAppManifestURL] = {
+        'zh-Hant-Zhuyin': true, en: true, number: true};
+      expectedSettings['enabled'][keyboardAppManifestURL] = {
+        'zh-Hant-Zhuyin': true, en: true, number: true};
 
       KeyboardHelper.changeDefaultLayouts('zh-TW', true);
       assert.deepEqual(KeyboardHelper.settings.default,

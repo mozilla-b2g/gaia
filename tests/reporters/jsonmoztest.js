@@ -5,7 +5,8 @@
  * @api public
  */
 
-(function(global) {
+
+module.exports = JSONMozTestReporter;
 
 function JSONMozTestReporter(runner) {
   var self = this;
@@ -15,19 +16,19 @@ function JSONMozTestReporter(runner) {
   var failures = [];
   var passes = [];
 
-  runner.on('test end', function(test){
+  runner.on('test end', function(test) {
     tests.push(test);
   });
 
-  runner.on('pass', function(test){
+  runner.on('pass', function(test) {
     passes.push(test);
   });
 
-  runner.on('fail', function(test){
+  runner.on('fail', function(test) {
     failures.push(test);
   });
 
-  runner.on('end', function(){
+  runner.on('end', function() {
     var obj = {
       stats: self.stats,
       tests: tests.map(clean),
@@ -53,8 +54,8 @@ function clean(test) {
     title: test.title,
     fullTitle: test.fullTitle(),
     duration: test.duration
-  }
-};
+  };
+}
 
 function cleanErr(test) {
   var err = test.err;
@@ -74,7 +75,5 @@ function cleanErr(test) {
     msg: msg,
     actual: actual,
     expected: expected
-  }
-};
-global.JSONMozTestReporter = JSONMozTestReporter;
-})(this);
+  };
+}

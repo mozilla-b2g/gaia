@@ -79,6 +79,14 @@ if (typeof window.importer === 'undefined') {
     window.addEventListener('online', onLineChanged);
     window.addEventListener('offline', onLineChanged);
 
+    function notifyParent(message, origin) {
+      parent.postMessage({
+        type: message.type || '',
+        data: message.data || '',
+        message: message.message || ''
+      }, origin);
+    }
+
     function showOfflineDialog(yesCb, noCb) {
       var recommend = serviceConnector.name === 'facebook';
       var dialog = parent.document.getElementById('confirmation-message');
@@ -207,12 +215,9 @@ if (typeof window.importer === 'undefined') {
     }
 
     UI.end = function(event) {
-      var msg = {
-        type: 'window_close',
-        data: ''
-      };
-
-      parent.postMessage(msg, targetApp);
+      notifyParent({
+        type: 'window_close'
+      }, targetApp);
       // uncomment this to make it work on B2G-Desktop
       // parent.postMessage(msg, '*');
 
@@ -574,17 +579,15 @@ if (typeof window.importer === 'undefined') {
         else {
           // There was a problem with the access token
           window.console.warn('Access Token expired or revoked');
-          Curtain.hide();
+          Curtain.hide(notifyParent.bind(null, {
+            type: 'token_error'
+          }, targetApp));
           window.asyncStorage.removeItem(tokenKey,
             function token_removed() {
               oauth2.getAccessToken(function(new_acc_tk) {
                 access_token = new_acc_tk;
                 Importer.getFriends(new_acc_tk);
               }, 'friends', serviceConnector.name);
-              parent.postMessage({
-                type: 'token_error',
-                data: ''
-              },targetApp);
           });
         } // else
       } // else
@@ -609,24 +612,17 @@ if (typeof window.importer === 'undefined') {
          currentNetworkRequest.cancel();
          currentNetworkRequest = null;
       }
-
-      Curtain.hide();
-
-      parent.postMessage({
-            type: 'abort',
-            data: ''
-      }, targetApp);
+      Curtain.hide(notifyParent.bind(null, {
+        type: 'abort'
+      }, targetApp));
     }
 
     function setCurtainHandlersErrorFriends() {
       Curtain.oncancel = function friends_cancel() {
-          Curtain.hide();
-
-          parent.postMessage({
-            type: 'abort',
-            data: ''
-          }, targetApp);
-        };
+        Curtain.hide(notifyParent.bind(null, {
+          type: 'abort'
+        }, targetApp));
+      };
 
       Curtain.onretry = function get_friends() {
         Curtain.oncancel = cancelCb;
@@ -697,39 +693,33 @@ if (typeof window.importer === 'undefined') {
      *  finished
      */
     function onUpdate(numFriends) {
-      function notifyParent(numFriends) {
-        parent.postMessage({
-          type: 'window_close',
-          data: '',
-          message: cancelled ? '' : _('friendsUpdated', {
-            numFriends: numFriends
-          })
-        }, targetApp);
-      }
-
       // If the service requires to do the logout it is done
       serviceLogout(notifyLogout);
 
       if (Importer.getContext() === 'ftu') {
-        Curtain.hide(function onhide() {
-          notifyParent(numFriends);
-        });
+        Curtain.hide(notifyParent.bind(null, {
+          type: 'window_close',
+          message: cancelled ? null : _('friendsUpdated', {
+            numFriends: numFriends
+          })
+        }, targetApp));
       } else {
-        parent.postMessage({
-          type: 'import_updated',
-          data: ''
+        notifyParent({
+          type: 'import_updated'
         }, targetApp);
-
         window.addEventListener('message', function finished(e) {
           if (e.origin !== targetApp) {
             return;
           }
           if (e.data.type === 'contacts_loaded') {
             // When the list of contacts is loaded and it's the current view
-            Curtain.hide(function onhide() {
-              // Please close me and display the number of friends updated
-              notifyParent(numFriends);
-            });
+            Curtain.hide(notifyParent.bind(null, {
+              type: 'window_close',
+              message: cancelled ? null :
+              _('friendsUpdated', {
+                numFriends: numFriends
+              })
+            }, targetApp));
             window.removeEventListener('message', finished);
           }
         });
@@ -1035,8 +1025,7 @@ if (typeof window.importer === 'undefined') {
         showOfflineDialog(function() {
           doImportAll(importedCB, progress);
         }, function() {
-          Curtain.hide();
-          UI.end();
+          Curtain.hide(UI.end);
         });
       }
     };

@@ -51,10 +51,12 @@
 
 /* Promote the transitioning appWindow to this level as the entry and exiting
  * transition of the cards view. */
-#screen.cards-view > [data-z-index-level="app"] > .appWindow.active,
-#screen.cards-view > [data-z-index-level="app"] > .appWindow.opening,
-#screen.cards-view > [data-z-index-level="app"] > .appWindow.closing {
-  z-index: 65536;
+#screen.cards-view > [data-z-index-level="app"] > .appWindow.active:not(.homescreen),
+#screen.cards-view > [data-z-index-level="app"] > .appWindow.transition-opening:not(.homescreen),
+#screen.cards-view > [data-z-index-level="app"] > .appWindow.transition-closing.to-cardview:not(.homescreen),
+#screen.cards-view > [data-z-index-level="app"] > .appWindow.transition-opening.fullscreen-app:not(.homescreen),
+#screen.cards-view > [data-z-index-level="app"] > .appWindow.transition-closing.fullscreen-app.to-cardview:not(.homescreen) {
+  z-index: 65537;
 }
 #screen.cards-view > [data-z-index-level="cards-view"] {
   z-index: 65535;
@@ -95,6 +97,11 @@
 }
 
 /* Level 5: Statusbar, Utility-Tray */
+#screen > [data-z-index-level="app"] > .appWindow.transition-opening.fullscreen-app:not(.homescreen),
+#screen > [data-z-index-level="app"] > .appWindow.transition-closing.fullscreen-app:not(.homescreen) {
+  z-index: 4097;
+}
+
 #screen > [data-z-index-level="statusbar"] {
   z-index: 4096;
 }
@@ -107,7 +114,7 @@
  * full screen app frame */
 #screen.fullscreen-app:not(.locked):not(.attention) > [data-z-index-level="statusbar"],
 #screen.fullscreen-app:not(.locked):not(.attention) > [data-z-index-level="utility-tray"] {
-  z-index: 0;
+  z-index: 1;
 }
 
 /* Promote level 5 elements to attention screen level when
@@ -159,43 +166,17 @@
 #screen > [data-z-index-level="app-install-dialog"],
 #screen > [data-z-index-level="updates-download-dialog"],
 #screen > [data-z-index-level="updates-viaDataConnection-dialog"],
-#screen > [data-z-index-level="emergency-callback-dialog"],
-#screen > [data-z-index-level="app"] > .appWindow.inlineActivity {
+#screen > [data-z-index-level="emergency-callback-dialog"] {
   z-index: 1024;
 }
 
 /* Level 8 */
-#screen.switch-app [data-z-index-level="app"] > .appWindow.opening {
-  z-index: 7;
-}
-
-#screen.switch-app [data-z-index-level="app"] > .appWindow.closing,
-#screen.switch-app [data-z-index-level="app"] > .appWindow:not(.homescreen).active {
-  z-index: 6;
-}
-
 #screen > [data-z-index-level="app"] {
   /**
    * Should not specify z-index here
    * Keyboard should be kept upon #windows
    * and beneath #windows > .appWindow
    */
-}
-
-/* Styles during FTU. In this case lockscreen & homescreen should be behind FTU.
- * Once FTU is done, we will remove this styles in order to get the structure
- * of z-index as usual. */
-#screen.ftu > [data-z-index-level="statusbar"]{
-  z-index: 1;
-}
-
-#screen.ftu > [data-z-index-level="lockscreen"]{
-  z-index: 1;
-}
-
-#screen.ftu > [data-z-index-level="app"] > .appWindow.homescreen,
-#screen.ftu > [data-z-index-level="app"] > .appWindow.homescreen.active {
-  z-index: 0;
 }
 
 /* The below z-index numbers are used to meet the following conditions:
@@ -206,32 +187,44 @@
  * - app frame must be on top of homescreen frame, inactive or active.
  * - finally, everything else needs to be on top of them (hence the lowest nums)
  */
-#screen > [data-z-index-level="app"] > .appWindow[data-z-index-level="top-app"],
-#screen > [data-z-index-level="app"] > #wrapper-footer,
-#screen > [data-z-index-level="app"] > #wrapper-activity-indicator {
+#screen > [data-z-index-level="app"] > .appWindow[data-z-index-level="top-app"] {
+  z-index: 8;
+}
+
+#screen > [data-z-index-level="app"] > .appWindow.transition-opening:not(.homescreen) {
+  z-index: 7;
+}
+
+#screen > [data-z-index-level="app"] > .appWindow.transition-closing:not(.homescreen) {
+  z-index: 6;
+}
+
+#screen > [data-z-index-level="app"] > .appWindow.active:not(.homescreen) {
+  z-index: 6;
+}
+
+#screen > [data-z-index-level="app"] > .appWindow[data-z-index-level="bottom-app"] {
   z-index: 5;
 }
 
-#screen > [data-z-index-level="app"] > .appWindow.active,
-#screen > [data-z-index-level="app"] > .appWindow.opening,
-#screen > [data-z-index-level="app"] > .appWindow.closing {
+#screen > [data-z-index-level="app"] > .appWindow.homescreen.active {
   z-index: 4;
 }
 
-#screen > [data-z-index-level="app"] > .appWindow.homescreen.active {
+#screen > [data-z-index-level="app"] > .appWindow {
   z-index: 3;
 }
 
-#screen > [data-z-index-level="app"] > .appWindow {
-  z-index: 1;
+#screen > [data-z-index-level="app"] > .appWindow.homescreen {
+  z-index: 2;
 }
 
-#screen > [data-z-index-level="app"] > .appWindow.homescreen {
+#screen > [data-z-index-level="app"] > .appWindow.homescreen.transition-opening,
+#screen > [data-z-index-level="app"] > .appWindow.homescreen.transition-closing {
   z-index: 0;
 }
 
 /* We promote the following overlays on top of the fullscreen web content. */
-#screen:-moz-full-screen-ancestor > [data-z-index-level="app"] > .appWindow.inlineActivity,
 #screen:-moz-full-screen-ancestor > [data-z-index-level="sleep-menu"],
 #screen:-moz-full-screen-ancestor > [data-z-index-level="action-menu"],
 #screen.locked:-moz-full-screen-ancestor > [data-z-index-level="statusbar"],

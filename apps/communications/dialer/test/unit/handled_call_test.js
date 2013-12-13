@@ -93,6 +93,10 @@ suite('dialer/handled_call', function() {
       assert.equal(subject.photo, MockContacts.mPhoto);
     });
 
+    test('should set caller image by contact photo', function() {
+      assert.equal(MockCallScreen.mSetCallerContactImageArg, subject.photo);
+    });
+
     test('call', function() {
       assert.equal(subject.call, mockCall);
     });
@@ -297,6 +301,19 @@ suite('dialer/handled_call', function() {
 
       test('wallpaper displaying', function() {
         assert.isTrue(setContactStub.calledWith(null));
+      });
+    });
+
+    suite('in a group', function() {
+      setup(function() {
+        MockCallScreen.mSetCallerContactImageCalled = false;
+        mockCall.group = {};
+
+        mockCall._connect();
+      });
+
+      test('don\'t display any photos', function() {
+        assert.isFalse(MockCallScreen.mSetCallerContactImageCalled);
       });
     });
 
@@ -820,6 +837,55 @@ suite('dialer/handled_call', function() {
 
       subject.restorePhoneNumber();
       assert.equal(subject.numberNode.textContent, 'emergencyNumber');
+    });
+  });
+
+  suite('caller photo', function() {
+    setup(function() {
+      MockCallScreen.mSetCallerContactImageCalled = false;
+    });
+
+    test('should reset photo when no contact info exists', function() {
+      mockCall = new MockCall('111', 'incoming');
+      subject = new HandledCall(mockCall);
+
+      assert.isTrue(MockCallScreen.mSetCallerContactImageCalled);
+      assert.isNull(MockCallScreen.mSetCallerContactImageArg);
+    });
+
+    test('should reset photo for withheld number', function() {
+      mockCall = new MockCall('', 'incoming');
+      subject = new HandledCall(mockCall);
+
+      assert.isTrue(MockCallScreen.mSetCallerContactImageCalled);
+      assert.isNull(MockCallScreen.mSetCallerContactImageArg);
+    });
+
+    test('should reset photo for more than 1 calls in CDMA', function() {
+      mockCall = new MockCall('888', 'connected');
+      subject = new HandledCall(mockCall);
+      mockCall.secondNumber = '999';
+      subject.updateCallNumber();
+
+      assert.isTrue(MockCallScreen.mSetCallerContactImageCalled);
+      assert.isNull(MockCallScreen.mSetCallerContactImageArg);
+    });
+
+    test('should reset photo for emergency number', function() {
+      mockCall = new MockCall('112', 'dialing');
+      mockCall.emergency = true;
+      subject = new HandledCall(mockCall);
+
+      assert.isTrue(MockCallScreen.mSetCallerContactImageCalled);
+      assert.isNull(MockCallScreen.mSetCallerContactImageArg);
+    });
+
+    test('should reset photo for voicemail', function() {
+      mockCall = new MockCall('123', 'dialing');
+      subject = new HandledCall(mockCall);
+
+      assert.isTrue(MockCallScreen.mSetCallerContactImageCalled);
+      assert.isNull(MockCallScreen.mSetCallerContactImageArg);
     });
   });
 

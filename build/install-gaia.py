@@ -145,7 +145,7 @@ def install_gaia_slow():
     adb_shell("rm -r " + webapps_path, ignore_error=True)
     adb_shell("rm /data/local/user.js", ignore_error=True)
     adb_push(profile_folder + '/webapps', webapps_path)
-    adb_push(profile_folder + '/user.js', '/data/local')
+    adb_push(profile_folder + '/user.js', '/data/local/user.js')
 
 def install_preload_data():
     global profile_folder

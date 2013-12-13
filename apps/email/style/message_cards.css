@@ -7,6 +7,7 @@
   height: 100%;
   overflow-y: auto;
   overflow-x: hidden;
+  will-animate: scroll;
 }
 .msg-list-scrollinner {
   /* force the card to be tall enough so we can scroll the search bit out of the
@@ -99,7 +100,7 @@ input.msg-search-text-tease {
   font-size: 1.6rem;
   line-height: 2rem;
   padding: 1rem 1.5rem 0;
-  border-bottom: 0.1rem solid #bdbdbb;
+  border-bottom: 0.1rem solid #e7e7e7;
 }
 .msg-header-icons-section {
   display: block;
@@ -409,6 +410,7 @@ input.msg-search-text-tease {
    selector than ours for :active, so we can't just reorder the files to fix the problem. */
 .msg-refresh-btn {
   background-image: url("images/icons/refresh.png") !important;
+  background-size: 3.2rem !important;
 }
 .msg-refresh-btn[data-state="synchronizing"] {
   animation: 0.9s msg-refresh-rotate infinite steps(30);

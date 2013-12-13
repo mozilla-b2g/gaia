@@ -30,10 +30,10 @@ var Settings = {
   _isTabletAndLandscapeLastTime: null,
 
   rotate: function rotate(evt) {
-    var isTableAndLandscapeThisTime = Settings.isTabletAndLandscape();
+    var isTabletAndLandscapeThisTime = Settings.isTabletAndLandscape();
     var panelsWithCurrentClass;
     if (Settings._isTabletAndLandscapeLastTime !==
-        isTableAndLandscapeThisTime) {
+        isTabletAndLandscapeThisTime) {
       panelsWithCurrentClass = Settings._panelsWithClass('current');
       // in two column style if we have only 'root' panel displayed,
       // (left: root panel, right: blank)
@@ -44,7 +44,7 @@ var Settings = {
         Settings.currentPanel = Settings.defaultPanelForTablet;
       }
     }
-    Settings._isTabletAndLandscapeLastTime = isTableAndLandscapeThisTime;
+    Settings._isTabletAndLandscapeLastTime = isTabletAndLandscapeThisTime;
   },
 
   _transit: function transit(oldPanel, newPanel, callback) {
@@ -116,6 +116,8 @@ var Settings = {
 
   _currentPanel: '#root',
 
+  _currentActivity: null,
+
   get currentPanel() {
     return this._currentPanel;
   },
@@ -126,6 +128,15 @@ var Settings = {
     }
 
     if (hash == this._currentPanel) {
+      return;
+    }
+
+    // If we're handling an activity and the 'back' button is hit,
+    // close the activity.
+    // XXX this assumes the 'back' button of the activity panel
+    //     points to the root panel.
+    if (this._currentActivity !== null && hash === '#root') {
+      Settings.finishActivityRequest();
       return;
     }
 
@@ -251,6 +262,7 @@ var Settings = {
         document.getElementById(el).hidden = true;
       });
     }
+
     // register web activity handler
     navigator.mozSetMessageHandler('activity', this.webActivityHandler);
 
@@ -512,11 +524,57 @@ var Settings = {
     });
   },
 
+  // An activity can be closed either by pressing the 'X' button
+  // or by a visibility change (i.e. home button or app switch).
+  finishActivityRequest: function settings_finishActivityRequest() {
+    // Remove the dialog mark to restore settings status
+    // once the animation from the activity finish.
+    // If we finish the activity pressing home, we will have a
+    // different animation and will be hidden before the animation
+    // ends.
+    if (document.hidden) {
+      this.restoreDOMFromActivty();
+    } else {
+      var self = this;
+      document.addEventListener('visibilitychange', function restore(evt) {
+        if (document.hidden) {
+          document.removeEventListener('visibilitychange', restore);
+          self.restoreDOMFromActivty();
+        }
+      });
+    }
+
+    // Send a result to finish this activity
+    if (Settings._currentActivity !== null) {
+      Settings._currentActivity.postResult(null);
+      Settings._currentActivity = null;
+    }
+  },
+
+  // When we finish an activity we need to leave the DOM
+  // as it was before handling the activity.
+  restoreDOMFromActivty: function settings_restoreDOMFromActivity() {
+    var currentPanel = document.querySelector('[data-dialog]');
+    if (currentPanel !== null) {
+      delete currentPanel.dataset.dialog;
+    }
+  },
+
+  visibilityHandler: function settings_visibilityHandler(evt) {
+    if (document.hidden) {
+      Settings.finishActivityRequest();
+      document.removeEventListener('visibilitychange',
+        Settings.visibilityHandler);
+    }
+  },
+
   webActivityHandler: function settings_handleActivity(activityRequest) {
     var name = activityRequest.source.name;
+    var section = 'root';
+    Settings._currentActivity = activityRequest;
     switch (name) {
       case 'configure':
-        var section = activityRequest.source.data.section || 'root';
+        section = activityRequest.source.data.section || 'root';
 
         // Validate if the section exists
         var sectionElement = document.getElementById(section);
@@ -532,6 +590,17 @@ var Settings = {
           Settings.currentPanel = section;
         });
         break;
+      default:
+        Settings._currentActivity = null;
+        break;
+    }
+
+    // Mark the desired panel as a dialog
+    if (Settings._currentActivity !== null) {
+      var domSection = document.getElementById(section);
+      domSection.dataset.dialog = true;
+      document.addEventListener('visibilitychange',
+        Settings.visibilityHandler);
     }
   },
 
@@ -709,11 +778,6 @@ window.addEventListener('load', function loadSettings() {
   window.removeEventListener('load', loadSettings);
   window.addEventListener('change', Settings);
 
-  ScreenLayout.watch(
-    'tabletAndLandscaped',
-    '(min-width: 768px) and (orientation: landscape)');
-  window.addEventListener('screenlayoutchange', Settings.rotate);
-
   navigator.addIdleObserver({
     time: 3,
     onidle: Settings.loadPanelStylesheetsIfNeeded.bind(Settings)
@@ -743,10 +807,18 @@ window.addEventListener('load', function loadSettings() {
   });
 
   function displayDefaultPanel() {
+    // With async pan zoom enable, the page starts with a viewport
+    // of 980px before beeing resize to device-width. So let's delay
+    // the rotation listener to make sure it is not triggered by fake
+    // positive.
+    ScreenLayout.watch(
+      'tabletAndLandscaped',
+      '(min-width: 768px) and (orientation: landscape)');
+    window.addEventListener('screenlayoutchange', Settings.rotate);
+
     // display of default panel(#wifi) must wait for
     // lazy-loaded script - wifi_helper.js - loaded
     if (Settings.isTabletAndLandscape()) {
-      console.log('go to default Panel ' + Settings.defaultPanelForTablet);
       Settings.currentPanel = Settings.defaultPanelForTablet;
     }
   }
@@ -774,6 +846,18 @@ window.addEventListener('load', function loadSettings() {
         } else {
           item.removeAttribute('aria-disabled');
         }
+      }
+    }
+
+    // we hide all entry points by default,
+    // so we have to detect and show them up
+    if (navigator.mozMobileConnections) {
+      if (navigator.mozMobileConnections.length == 1) {
+        // single sim
+        document.getElementById('simSecurity-settings').hidden = false;
+      } else {
+        // dsds
+        document.getElementById('simCardManager-settings').hidden = false;
       }
     }
 

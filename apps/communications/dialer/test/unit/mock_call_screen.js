@@ -18,11 +18,9 @@ var MockCallScreen = {
   syncSpeakerEnabled: function() {
     this.mSyncSpeakerCalled = true;
   },
-  setCallerContactImage: function() {
+  setCallerContactImage: function(arg) {
     this.mSetCallerContactImageCalled = true;
-  },
-  setDefaultContactImage: function() {
-    this.mSetDefaultContactImageCalled = true;
+    this.mSetCallerContactImageArg = arg;
   },
   mute: function() {
     this.mMuteOn = true;
@@ -92,13 +90,15 @@ var MockCallScreen = {
   mEnableKeypadCalled: false,
   mSyncSpeakerCalled: false,
   mSetCallerContactImageCalled: false,
-  mSetDefaultContactImageCalled: false,
+  mSetCallerContactImageArg: null,
   mMuteOn: false,
   mSpeakerOn: false,
   mLastRenderMode: null,
   mTeardown: function teardown() {
     this.mEnableKeypadCalled = false;
     this.mSyncSpeakerCalled = false;
+    this.mSetCallerContactImageCalled = false;
+    this.mSetCallerContactImageArg = null;
     this.mMuteOn = false;
     this.mSpeakerOn = false;
     this.mLastRenderMode = null;

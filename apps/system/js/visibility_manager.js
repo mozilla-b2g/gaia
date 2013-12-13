@@ -1,10 +1,13 @@
 (function(window) {
+  var DEBUG = false;
   // When an UI layer is overlapping the current app,
   // WindowManager should set the visibility of app iframe to false
   // And reset to true when the layer is gone.
   // We may need to handle windowclosing, windowopened in the future.
-  var VisibilityManager = {
+  window.VisibilityManager = {
     _attentionScreenTimer: null,
+
+    _normalAudioChannelActive: false,
 
     _deviceLockedTimer: 0,
 
@@ -35,15 +38,20 @@
             return;
 
           this.publish('showwindows');
-          this.publish('showwindow');
+          if (!AttentionScreen.isFullyVisible())
+            this.publish('showwindow', { type: evt.type });
           this._resetDeviceLockedTimer();
           break;
         case 'lock':
           this.publish('hidewindows');
           // If the audio is active, the app should not set non-visible
           // otherwise it will be muted.
+          // TODO: Remove this hack.
+          this.debug('locking, hide the whole windows',
+            this._normalAudioChannelActive);
           if (!this._normalAudioChannelActive) {
-            this.publish('hidewindow', { screenshoting: false });
+            this.publish('hidewindow',
+              { screenshoting: false, type: evt.type });
           }
           this._resetDeviceLockedTimer();
           break;
@@ -57,15 +65,11 @@
             return;
         case 'attentionscreenshow':
           var detail = evt.detail;
-          // XXX: Fix me by moving attentionscreen into appwindow
-          // or move the callscreen transition into system app.
-          if (detail && detail.origin &&
-              detail.origin != WindowManager.getDisplayedApp()) {
-            this._attentionScreenTimer = setTimeout(function setVisibility() {
-              this.publish('hidewindow', { screenshoting: true });
-            }.bind(this), 3000);
-            this.publish('overlaystart');
-          }
+          this._attentionScreenTimer = setTimeout(function setVisibility() {
+            this.publish('hidewindow',
+              { screenshoting: true, type: evt.type, origin: detail.origin });
+          }.bind(this), 3000);
+          this.publish('overlaystart');
           break;
         case 'mozChromeEvent':
           if (evt.detail.type == 'visible-audio-channel-changed') {
@@ -75,11 +79,14 @@
                 evt.detail.channel !== 'normal' &&
                 LockScreen.locked) {
               this._deviceLockedTimer = setTimeout(function setVisibility() {
-                this.publish('hidewindow', { screenshoting: false });
+                this.publish('hidewindow',
+                  { screenshoting: false, type: evt.type });
               }.bind(this), 3000);
             }
 
             this._normalAudioChannelActive = (evt.detail.channel === 'normal');
+            this.debug('Normal AudioChannel changes to ',
+              evt.detail.channel, this._normalAudioChannelActive);
           }
           break;
       }
@@ -93,9 +100,17 @@
     },
 
     publish: function vm_publish(eventName, detail) {
-      var evt = document.createEvent('CustomEvent');
-      evt.initCustomEvent(eventName, true, false, detail);
+      this.debug('publishing: ', eventName);
+      var evt = new CustomEvent(eventName, { detail: detail });
       window.dispatchEvent(evt);
+    },
+
+    debug: function vm_debug() {
+      if (DEBUG) {
+        console.log('[VisibilityManager]' +
+          '[' + System.currentTime() + ']' +
+          Array.slice(arguments).concat());
+      }
     }
   };
 

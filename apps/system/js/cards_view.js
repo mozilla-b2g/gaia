@@ -101,16 +101,18 @@ var CardsView = (function() {
     // events to handle
     window.addEventListener('lock', CardsView);
 
+    screenElement.classList.add('cards-view');
+
     // Close utility tray if it is opened.
     UtilityTray.hide(true);
 
     // Apps info from WindowManager
-    displayedApp = WindowManager.getDisplayedApp();
+    displayedApp = AppWindowManager.getDisplayedApp();
     currentDisplayed = 0;
-    runningApps = WindowManager.getRunningApps();
+    runningApps = AppWindowManager.getRunningApps();
 
     // Switch to homescreen
-    WindowManager.launch(null);
+    AppWindowManager.display(null, null, 'to-cardview');
     cardsViewShown = true;
 
     // If user is not able to sort apps manualy,
@@ -136,7 +138,6 @@ var CardsView = (function() {
       // First add an item to the cardsList for each running app
       for (var origin in runningApps) {
         addCard(origin, runningApps[origin], function showCards() {
-          screenElement.classList.add('cards-view');
           cardsView.classList.add('active');
         });
       }
@@ -199,7 +200,7 @@ var CardsView = (function() {
         setTimeout(displayedAppCallback);
       }
       // Not showing homescreen
-      if (app.frame.classList.contains('homescreen')) {
+      if (app.isHomescreen) {
         return;
       }
 
@@ -261,6 +262,7 @@ var CardsView = (function() {
         card.classList.add('trustedui');
       } else if (attentionScreenApps.indexOf(origin) == -1) {
         var closeButton = document.createElement('div');
+        closeButton.setAttribute('role', 'button');
         closeButton.classList.add('close-card');
         card.appendChild(closeButton);
       }
@@ -346,13 +348,13 @@ var CardsView = (function() {
       cardsList.removeChild(element);
       closeApp(element, true);
     } else if ('origin' in e.target.dataset) {
-      WindowManager.launch(e.target.dataset.origin);
+      AppWindowManager.display(e.target.dataset.origin, 'from-cardview', null);
     }
   }
 
   function closeApp(element, removeImmediately) {
     // Stop the app itself
-    WindowManager.kill(element.dataset.origin);
+    AppWindowManager.kill(element.dataset.origin);
 
     // Fix for non selectable cards when we remove the last card
     // Described in https://bugzilla.mozilla.org/show_bug.cgi?id=825293
@@ -885,8 +887,7 @@ var CardsView = (function() {
           return;
 
         SleepMenu.hide();
-        var currentApp = WindowManager.getDisplayedApp();
-        var app = WindowManager.getRunningApps()[currentApp];
+        var app = AppWindowManager.getActiveApp();
         if (!app) {
           showCardSwitcher();
         } else {

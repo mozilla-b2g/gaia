@@ -4,13 +4,14 @@ requireApp('communications/dialer/test/unit/mock_moztelephony.js');
 requireApp('communications/dialer/test/unit/mock_call.js');
 requireApp('communications/dialer/test/unit/mock_handled_call.js');
 requireApp('communications/dialer/test/unit/mock_call_screen.js');
-requireApp('communications/dialer/test/unit/mock_handled_call.js');
 requireApp('communications/dialer/test/unit/mock_l10n.js');
 requireApp('communications/dialer/test/unit/mock_contacts.js');
 requireApp('communications/dialer/test/unit/mock_tone_player.js');
 requireApp('communications/dialer/test/unit/mock_swiper.js');
 requireApp('communications/dialer/test/unit/mock_bluetooth_helper.js');
 requireApp('communications/dialer/test/unit/mock_utils.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
+require('/shared/test/unit/mocks/mock_audio.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/test/unit/mocks/mock_settings_url.js');
 
@@ -30,11 +31,13 @@ var mocksHelperForCallsHandler = new MocksHelper([
   'SettingsURL',
   'Swiper',
   'BluetoothHelper',
-  'Utils'
+  'Utils',
+  'Audio'
 ]).init();
 
 suite('calls handler', function() {
   var realMozTelephony;
+  var realMozApps;
 
   mocksHelperForCallsHandler.attachTestHelpers();
 
@@ -42,12 +45,16 @@ suite('calls handler', function() {
     realMozTelephony = navigator.mozTelephony;
     navigator.mozTelephony = MockMozTelephony;
 
+    realMozApps = navigator.mozApps;
+    navigator.mozApps = MockNavigatormozApps;
+
     requireApp('communications/dialer/js/calls_handler.js', done);
   });
 
   suiteTeardown(function() {
     MockMozTelephony.mSuiteTeardown();
     navigator.moztelephony = realMozTelephony;
+    navigator.mozApps = realMozApps;
   });
 
   setup(function() {
@@ -101,6 +108,27 @@ suite('calls handler', function() {
         var speakerSpy = this.sinon.spy(MockCallScreen, 'turnSpeakerOff');
         MockMozTelephony.mTriggerCallsChanged();
         assert.isTrue(speakerSpy.calledOnce);
+      });
+
+      test('should ring if the setting is enabled', function() {
+        var playSpy = this.sinon.spy(MockAudio.prototype, 'play');
+
+        MockSettingsListener.mCallbacks['audio.volume.notification'](7);
+        CallsHandler.setup();
+        MockMozTelephony.mTriggerCallsChanged();
+
+        assert.isTrue(playSpy.called);
+      });
+
+      test('should vibrate if the setting is enabled', function() {
+        var vibrateSpy = this.sinon.spy(navigator, 'vibrate');
+
+        MockSettingsListener.mCallbacks['vibration.enabled'](true);
+        CallsHandler.setup();
+        MockMozTelephony.mTriggerCallsChanged();
+
+        this.sinon.clock.tick(1000);
+        assert.isTrue(vibrateSpy.called);
       });
     });
 
@@ -1113,6 +1141,68 @@ suite('calls handler', function() {
         var turnOffSpy = this.sinon.spy(MockCallScreen, 'turnSpeakerOff');
         MockBluetoothHelperInstance.onscostatuschanged({status: true});
         assert.isTrue(turnOffSpy.calledOnce);
+      });
+    });
+  });
+
+  suite('> inter app communication', function() {
+    var connectStub;
+    var thenStub;
+    var portStub;
+
+    setup(function() {
+      portStub = this.sinon.stub();
+
+      thenStub = this.sinon.stub();
+
+      connectStub = this.sinon.stub();
+      connectStub.returns({then: thenStub });
+
+      var result = { connect: connectStub };
+
+      // Pretend vibration is enabled
+      MockSettingsListener.mCallbacks['vibration.enabled'](true);
+
+      CallsHandler.setup();
+      MockNavigatormozApps.mTriggerLastRequestSuccess(result);
+    });
+
+    test('should listen to "dialercomms" channel', function() {
+      assert.isTrue(connectStub.calledWith('dialercomms'));
+    });
+
+    test('should listen to messages on the "dialercomms" channel', function() {
+      thenStub.yield([portStub]);
+      assert.isFunction(portStub.onmessage);
+    });
+
+    suite('> when receiving messages', function() {
+      var pauseSpy;
+      var vibrateSpy;
+
+      var mockCall;
+      var mockHC;
+
+      setup(function() {
+        pauseSpy = this.sinon.spy(MockAudio.prototype, 'pause');
+        thenStub.yield([portStub]);
+
+        vibrateSpy = this.sinon.spy(navigator, 'vibrate');
+
+        portStub.onmessage({data: 'stop_ringtone'});
+
+        mockCall = new MockCall('12334', 'incoming');
+        mockHC = telephonyAddCall.call(this, mockCall);
+      });
+
+      test('should stop ringtone', function() {
+        assert.isTrue(pauseSpy.called);
+      });
+
+      test('should stop vibration', function() {
+        MockMozTelephony.mTriggerCallsChanged();
+        this.sinon.clock.tick(1000);
+        assert.isFalse(vibrateSpy.called);
       });
     });
   });

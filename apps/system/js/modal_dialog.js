@@ -61,8 +61,6 @@ var ModalDialog = {
     var elements = this.elements;
 
     // Bind events
-    window.addEventListener('mozbrowsershowmodalprompt', this);
-    window.addEventListener('appopen', this);
     window.addEventListener('appwillclose', this);
     window.addEventListener('appterminated', this);
     window.addEventListener('resize', this);
@@ -83,25 +81,6 @@ var ModalDialog = {
   handleEvent: function md_handleEvent(evt) {
     var elements = this.elements;
     switch (evt.type) {
-      case 'mozbrowsershowmodalprompt':
-        var frameType = evt.target.dataset.frameType;
-        if (frameType != 'window' && frameType != 'inline-activity')
-          return;
-
-        evt.preventDefault();
-        var origin = evt.target.dataset.frameOrigin;
-        if (!this.currentEvents[origin]) {
-          this.currentEvents[origin] = [];
-        }
-        this.currentEvents[origin].push(evt);
-
-        // Show modal dialog only if
-        // the frame is currently displayed.
-        if (origin == WindowManager.getDisplayedApp() ||
-            frameType == 'inline-activity')
-          this.show(evt.target, origin);
-        break;
-
       case 'click':
         if (evt.currentTarget === elements.confirmCancel ||
           evt.currentTarget === elements.promptCancel ||
@@ -121,10 +100,7 @@ var ModalDialog = {
       case 'home':
       case 'holdhome':
         // Inline activity, which origin is different from foreground app
-        // or the homescreen app is displayed
-        if (this.isVisible() &&
-            (this.currentOrigin != WindowManager.getDisplayedApp() ||
-             this.currentOrigin == HomescreenLauncher.origin))
+        if (this.isVisible())
           this.cancelHandler();
         break;
 
@@ -478,7 +454,7 @@ var ModalDialog = {
   },
 
   isVisible: function md_isVisible() {
-    return this.screen.classList.contains('modal-dialog');
+    return this.screen ? this.screen.classList.contains('modal-dialog') : false;
   }
 };
 

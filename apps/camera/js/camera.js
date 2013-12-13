@@ -892,6 +892,7 @@ var Camera = {
 
   handleOrientationChanged: function camera_orientationChanged(orientation) {
     document.body.setAttribute('data-orientation', 'deg' + orientation);
+    this._phoneOrientation = orientation;
     Filmstrip.setOrientation(orientation);
   },
 

@@ -167,8 +167,13 @@ suite('message_manager.js >', function() {
   suite('sendMMS() >', function() {
     test('send to one recipient successfully', function() {
       var isOnSuccessCalled = false;
+      var mmsMessage = {
+        recipients: '123',
+        subject: null,
+        content: 'hola'
+      };
 
-      MessageManager.sendMMS('123', 'hola', function() {
+      MessageManager.sendMMS(mmsMessage, function() {
         isOnSuccessCalled = true;
       }, null);
 
@@ -178,9 +183,12 @@ suite('message_manager.js >', function() {
 
     test('send to two recipients successfully', function() {
       var onSuccessCalledTimes = 0;
-      var recipients = ['123', '456'];
-
-      MessageManager.sendMMS(recipients, 'hola', function() {
+      var mmsMessage = {
+        recipients: ['123', '456'],
+        subject: null,
+        content: 'hola'
+      };
+      MessageManager.sendMMS(mmsMessage, function() {
         onSuccessCalledTimes += 1;
       }, null);
 
@@ -190,8 +198,13 @@ suite('message_manager.js >', function() {
 
     test('send to one recipient unsuccessfully', function() {
       var onErrorCalledTimes = 0;
+      var mmsMessage = {
+        recipients: '123',
+        subject: null,
+        content: 'hola'
+      };
 
-      MessageManager.sendMMS('123', 'hola', null, function() {
+      MessageManager.sendMMS(mmsMessage, null, function() {
         onErrorCalledTimes += 1;
       });
 
@@ -201,9 +214,13 @@ suite('message_manager.js >', function() {
 
     test('send to two recipients unsuccessfully', function() {
       var onErrorCalledTimes = 0;
-      var recipients = ['123', '456'];
+      var mmsMessage = {
+        recipients: ['123', '456'],
+        subject: null,
+        content: 'hola'
+      };
 
-      MessageManager.sendMMS(recipients, 'hola', null, function() {
+      MessageManager.sendMMS(mmsMessage, null, function() {
         onErrorCalledTimes += 1;
       });
 

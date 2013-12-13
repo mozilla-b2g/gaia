@@ -4709,6 +4709,22 @@ exports.BLOCK_PURGE_HARD_MAX_BLOCK_LIMIT = 1024;
  */
 exports.POP3_SAVE_STATE_EVERY_N_MESSAGES = 50;
 
+
+/**
+ * The maximum number of messages to retrieve during a single POP3
+ * sync operation. If the number of unhandled messages left in the
+ * spool exceeds this value, leftover messages will be filtered out of
+ * this sync operation. They can later be downloaded through a
+ * "download more messages..." option as per
+ * <https://bugzil.la/939375>.
+ *
+ * This value (initially 100) is selected to be large enough that most
+ * POP3 users won't exceed this many new messages in a given sync, but
+ * small enough that we won't get completely overwhelmed that we have
+ * to download this many headers.
+ */
+exports.POP3_MAX_MESSAGES_PER_SYNC = 100;
+
 ////////////////////////////////////////////////////////////////////////////////
 // General Sync Constants
 
@@ -4916,58 +4932,36 @@ exports.SYNC_RANGE_ENUMS_TO_MS = {
 // Unit test support
 
 /**
- * Testing support to adjust the value we use for the number of initial sync
- * days.  The tests are written with a value in mind (7), but 7 turns out to
- * be too high an initial value for actual use, but is fine for tests.
- *
- * This started by taking human-friendly strings, but I changed to just using
- * the constant names when I realized that consistency for grepping purposes
- * would be a good thing.
+ * Override individual syncbase values for unit testing. Any key in
+ * syncbase can be overridden.
  */
 exports.TEST_adjustSyncValues = function TEST_adjustSyncValues(syncValues) {
-  if (syncValues.hasOwnProperty('fillSize'))
-    exports.INITIAL_FILL_SIZE = syncValues.fillSize;
-  if (syncValues.hasOwnProperty('days'))
-    exports.INITIAL_SYNC_DAYS = syncValues.days;
-  if (syncValues.hasOwnProperty('growDays'))
-    exports.INITIAL_SYNC_GROWTH_DAYS = syncValues.growDays;
 
-  if (syncValues.hasOwnProperty('SYNC_WHOLE_FOLDER_AT_N_MESSAGES'))
-    exports.SYNC_WHOLE_FOLDER_AT_N_MESSAGES =
-      syncValues.SYNC_WHOLE_FOLDER_AT_N_MESSAGES;
-  if (syncValues.hasOwnProperty('bisectThresh'))
-    exports.BISECT_DATE_AT_N_MESSAGES = syncValues.bisectThresh;
-  if (syncValues.hasOwnProperty('tooMany'))
-    exports.TOO_MANY_MESSAGES = syncValues.tooMany;
+  // Legacy values: This function used to accept a mapping that didn't
+  // match one-to-one with constant names, but was changed to map
+  // directly to constant names for simpler grepping.
+  var legacyKeys = {
+    fillSize: 'INITIAL_FILL_SIZE',
+    days: 'INITIAL_SYNC_DAYS',
+    growDays: 'INITIAL_SYNC_GROWTH_DAYS',
+    bisectThresh: 'BISECT_DATE_AT_N_MESSAGES',
+    tooMany: 'TOO_MANY_MESSAGES',
+    scaleFactor: 'TIME_SCALE_FACTOR_ON_NO_MESSAGES',
+    openRefreshThresh: 'OPEN_REFRESH_THRESH_MS',
+    growRefreshThresh: 'GROW_REFRESH_THRESH_MS',
+  };
 
-  if (syncValues.hasOwnProperty('scaleFactor'))
-    exports.TIME_SCALE_FACTOR_ON_NO_MESSAGES = syncValues.scaleFactor;
-
-  if (syncValues.hasOwnProperty('openRefreshThresh'))
-    exports.OPEN_REFRESH_THRESH_MS = syncValues.openRefreshThresh;
-  if (syncValues.hasOwnProperty('growRefreshThresh'))
-    exports.GROW_REFRESH_THRESH_MS = syncValues.growRefreshThresh;
-
-  if (syncValues.hasOwnProperty('HEADER_EST_SIZE_IN_BYTES'))
-    exports.HEADER_EST_SIZE_IN_BYTES =
-      syncValues.HEADER_EST_SIZE_IN_BYTES;
-
-  if (syncValues.hasOwnProperty('BLOCK_PURGE_ONLY_AFTER_UNSYNCED_MS'))
-    exports.BLOCK_PURGE_ONLY_AFTER_UNSYNCED_MS =
-      syncValues.BLOCK_PURGE_ONLY_AFTER_UNSYNCED_MS;
-  if (syncValues.hasOwnProperty('BLOCK_PURGE_HARD_MAX_BLOCK_LIMIT'))
-    exports.BLOCK_PURGE_HARD_MAX_BLOCK_LIMIT =
-      syncValues.BLOCK_PURGE_HARD_MAX_BLOCK_LIMIT;
-
-  if (syncValues.hasOwnProperty('MAX_OP_TRY_COUNT'))
-    exports.MAX_OP_TRY_COUNT = syncValues.MAX_OP_TRY_COUNT;
-  if (syncValues.hasOwnProperty('OP_UNKNOWN_ERROR_TRY_COUNT_INCREMENT'))
-    exports.OP_UNKNOWN_ERROR_TRY_COUNT_INCREMENT =
-      syncValues.OP_UNKNOWN_ERROR_TRY_COUNT_INCREMENT;
-
-  if (syncValues.hasOwnProperty('POP3_SAVE_STATE_EVERY_N_MESSAGES'))
-    exports.POP3_SAVE_STATE_EVERY_N_MESSAGES =
-      syncValues.POP3_SAVE_STATE_EVERY_N_MESSAGES;
+  for (var key in syncValues) if (syncValues.hasOwnProperty(key)) {
+    var outKey = legacyKeys[key] || key;
+    if (exports.hasOwnProperty(outKey)) {
+      exports[outKey] = syncValues[key];
+    } else {
+      // In the future (after we have a chance to review all calls to
+      // this function), we could make this throw an exception
+      // instead.
+      console.warn('Invalid key for TEST_adjustSyncValues: ' + key);
+    }
+  }
 };
 
 }); // end define
@@ -5845,7 +5839,7 @@ MailSlice.prototype = {
  *   but our driving UI doesn't need it right now.
  * }
  * @typedef[BodyBlock @dict[
- *   @key[ids @listof[ID]]}
+ *   @key[ids @listof[ID]]{
  *     The issued-by-us id's of the messages; the order is parallel to the order
  *     of `bodies.`
  *   }

@@ -19,7 +19,7 @@
     <!-- Shared code -->
     <script defer src="shared/js/l10n.js"></script>
     <script defer src="shared/js/l10n_date.js"></script>
-     <script defer src="shared/js/template.js"></script>
+    <script defer src="shared/js/template.js"></script>
     <script defer src="shared/js/device_storage/enumerate_all.js"></script>
     <script defer src="shared/js/mediadb.js"></script>
     <script defer src="shared/js/lazy_loader.js"></script>
@@ -68,9 +68,31 @@
         <a id="fullscreen-camera-button" class="button"></a>
         <a id="fullscreen-edit-button" class="button"></a>
         <a id="fullscreen-share-button" class="button"></a>
+        <a id="fullscreen-info-button" class="button"></a>
         <a id="fullscreen-delete-button" class="button"></a>
       </footer>
     </section>
+
+    <form id="info-view" role="dialog" data-type="confirm" class="hidden">
+      <section>
+        <dl>
+          <dt data-l10n-id="name-label"></dt>
+          <dd id="info-name" class="value"></dd>
+          <dt data-l10n-id="size-label"></dt>
+          <dd id="info-size" class="value"></dd>
+          <dt data-l10n-id="image-type-label"></dt>
+          <dd id="info-type" class="value"></dd>
+          <dt data-l10n-id="date-taken-label"></dt>
+          <dd id="info-date" class="value"></dd>
+          <dt data-l10n-id="resolution-label"></dt>
+          <dd id="info-resolution" class="value"></dd>
+        </dl>
+      </section>
+      <menu>
+        <button type="button" id="info-close-button"
+                data-l10n-id="close-button" class="full"></button>
+      </menu>
+    </form>
 
     <section role="region" id="pick-view" class="hidden skin-organic">
       <header id="pick-top">
@@ -149,19 +171,6 @@
              data-effect="faded"></a>
         </div>
 
-        <div id="edit-border-options" class="edit-options-bar hidden">
-          <a id="edit-border-none" class="selected radio button bgimage"
-             data-border-width="0"></a>
-          <a id="edit-border-thin-white" class="radio button bgimage"
-             data-border-width=".015" data-border-color="white"></a>
-          <a id="edit-border-thick-white" class="radio button bgimage"
-             data-border-width=".03" data-border-color="white"></a>
-          <a id="edit-border-thin-black" class="radio button bgimage"
-             data-border-width=".015" data-border-color="black"></a>
-          <a id="edit-border-thick-black" class="radio button bgimage"
-             data-border-width=".03" data-border-color="black"></a>
-        </div>
-
         <div id="edit-enhance-options" class="edit-options-bar hidden">
           <span id="edit-enhance-status"></span>
         </div>
@@ -173,7 +182,6 @@
         <a id="edit-exposure-button" class="selected radio button"></a>
         <a id="edit-crop-button" class="radio button"></a>
         <a id="edit-effect-button" class="radio button"></a>
-        <a id="edit-border-button" class="radio button"></a>
         <a id="edit-enhance-button" class="radio button"></a>
       </footer>
     </section>

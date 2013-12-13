@@ -1,64 +1,54 @@
 'use strict';
-requireApp('system/test/unit/mock_clock.js', function() {
-  window.realClock = window.Clock;
-  window.Clock = MockClock;
-  window.realOrientationManager = window.OrientationManager;
-  window.OrientationManager = {
-    defaultOrientation: null
-  };
-requireApp('system/js/lockscreen.js');
-});
-
 requireApp('system/test/unit/mock_l10n.js');
-requireApp('system/test/unit/mock_mobile_connection.js');
-requireApp('system/shared/test/unit/mocks/mock_mobile_operator.js');
+requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/test/unit/mock_navigator_moz_telephony.js');
 requireApp('system/test/unit/mock_ftu_launcher.js');
-
-if (!this.MobileOperator) {
-  this.MobileOperator = null;
-}
+requireApp('system/test/unit/mock_app_window_manager.js');
+requireApp('system/test/unit/mock_app_window.js');
 
 if (!this.FtuLauncher) {
   this.FtuLauncher = null;
 }
 
-if (!this.IccHelper) {
-  this.IccHelper = null;
+if (!this.SettingsListener) {
+  this.SettingsListener = null;
 }
+
+var mocksForLockScreen = new MocksHelper([
+  'OrientationManager', 'AppWindowManager', 'AppWindow'
+]).init();
+
+requireApp('system/test/unit/mock_clock.js', function() {
+  window.realClock = window.Clock;
+  window.Clock = MockClock;
+  requireApp('system/test/unit/mock_orientation_manager.js',
+    function() {
+      window.realOrientationManager = window.OrientationManager;
+      window.OrientationManager = MockOrientationManager;
+      requireApp('system/js/lockscreen.js');
+    });
+});
 
 suite('system/LockScreen >', function() {
   var subject;
-  var realOrientationManager;
   var realL10n;
-  var realMobileOperator;
-  var realMobileConnection;
   var realMozTelephony;
-  var realIccHelper;
   var realClock;
+  var realOrientationManager;
   var realFtuLauncher;
-  var domConnstate;
-  var domConnstateL1;
-  var domConnstateL2;
+  var realSettingsListener;
   var domPasscodePad;
   var domEmergencyCallBtn;
   var domOverlay;
   var domPasscodeCode;
   var domMainScreen;
   var DUMMYTEXT1 = 'foo';
+  mocksForLockScreen.attachTestHelpers();
 
   setup(function() {
     subject = window.LockScreen;
     realL10n = navigator.mozL10n;
     navigator.mozL10n = window.MockL10n;
-
-    realMobileOperator = window.MobileOperator;
-    window.MobileOperator = MockMobileOperator;
-
-    realOrientationManager = window.OrientationManager;
-    window.OrientationManager = {
-      defaultOrientation: null
-    };
 
     realMozTelephony = navigator.mozTelephony;
     navigator.mozTelephony = window.MockNavigatorMozTelephony;
@@ -66,20 +56,14 @@ suite('system/LockScreen >', function() {
     realClock = window.Clock;
     window.Clock = MockClock;
 
+    realOrientationManager = window.OrientationManager;
+    window.OrientationManager = MockOrientationManager;
+
     realFtuLauncher = window.FtuLauncher;
     window.FtuLauncher = MockFtuLauncher;
 
-    realMobileConnection = window.navigator.mozMobileConnection;
-
-    realIccHelper = window.IccHelper;
-
-    domConnstate = document.createElement('div');
-    domConnstate.id = 'lockscreen-connstate';
-    domConnstateL1 = document.createElement('div');
-    domConnstateL2 = document.createElement('div');
-    domConnstate.appendChild(domConnstateL1);
-    domConnstate.appendChild(domConnstateL2);
-    document.body.appendChild(domConnstate);
+    realSettingsListener = window.SettingsListener;
+    window.SettingsListener = MockSettingsListener;
 
     domPasscodePad = document.createElement('div');
     domPasscodePad.id = 'lockscreen-passcode-pad';
@@ -92,7 +76,6 @@ suite('system/LockScreen >', function() {
     domMainScreen = document.createElement('div');
     subject.passcodePad = domPasscodePad;
 
-    subject.connstate = domConnstate;
     var mockClock = {
       stop: function() {}
     };
@@ -102,57 +85,24 @@ suite('system/LockScreen >', function() {
     subject.lock();
   });
 
-  test('2G Mode: should update cell broadcast info on connstate Line 2',
-  function() {
-    window.navigator.mozMobileConnection = {
-      voice: {
-        connected: 'true',
-        type: 'gsm'
-      }
-    };
-    window.IccHelper = {enabled: true};
-    subject.cellbroadcastLabel = DUMMYTEXT1;
-    subject.updateConnState();
-    assert.equal(domConnstateL2.textContent, DUMMYTEXT1);
-  });
-
-  test('3G Mode: should update carrier and region info on connstate Line 2',
-  function() {
-    window.navigator.mozMobileConnection = {
-      voice: {
-        connected: 'true',
-        type: 'wcdma'
-      }
-    };
-    window.IccHelper = {enabled: true};
-    var carrier = 'TIM';
-    var region = 'SP';
-    var exceptedText = 'TIM SP';
-    MobileOperator.mCarrier = carrier;
-    MobileOperator.mRegion = region;
-    subject.cellbroadcastLabel = DUMMYTEXT1;
-    subject.updateConnState();
-    assert.equal(domConnstateL2.textContent, exceptedText);
-  });
-
   test('Emergency call: should disable emergency-call button',
-  function() {
-    var stubSwitchPanel = this.sinon.stub(subject, 'switchPanel');
-    navigator.mozTelephony.calls = {length: 1};
-    var evt = {type: 'callschanged'};
-    subject.handleEvent(evt);
-    assert.isTrue(domEmergencyCallBtn.classList.contains('disabled'));
-    stubSwitchPanel.restore();
+    function() {
+      var stubSwitchPanel = this.sinon.stub(subject, 'switchPanel');
+      navigator.mozTelephony.calls = {length: 1};
+      var evt = {type: 'callschanged'};
+      subject.handleEvent(evt);
+      assert.isTrue(domEmergencyCallBtn.classList.contains('disabled'));
+      stubSwitchPanel.restore();
   });
 
   test('Emergency call: should enable emergency-call button',
-  function() {
-    var stubSwitchPanel = this.sinon.stub(subject, 'switchPanel');
-    navigator.mozTelephony.calls = {length: 0};
-    var evt = {type: 'callschanged'};
-    subject.handleEvent(evt);
-    assert.isFalse(domEmergencyCallBtn.classList.contains('disabled'));
-    stubSwitchPanel.restore();
+    function() {
+      var stubSwitchPanel = this.sinon.stub(subject, 'switchPanel');
+      navigator.mozTelephony.calls = {length: 0};
+      var evt = {type: 'callschanged'};
+      subject.handleEvent(evt);
+      assert.isFalse(domEmergencyCallBtn.classList.contains('disabled'));
+      stubSwitchPanel.restore();
   });
 
   test('Lock: can actually lock', function() {
@@ -190,15 +140,16 @@ suite('system/LockScreen >', function() {
 
   teardown(function() {
     navigator.mozL10n = realL10n;
-    window.MobileOperator = realMobileOperator;
-    window.navigator.mozMobileConnection = realMobileConnection;
     navigator.mozTelephony = realMozTelephony;
-    window.IccHelper = realIccHelper;
     window.Clock = window.realClock;
+    window.OrientationManager = window.realOrientationManager;
     window.FtuLauncher = realFtuLauncher;
     window.OrientationManager = window.realOrientationManager;
-    document.body.removeChild(domConnstate);
+    window.SettingsListener = realSettingsListener;
+
     document.body.removeChild(domPasscodePad);
     subject.passcodePad = null;
+
+    MockSettingsListener.mTeardown();
   });
 });

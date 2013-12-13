@@ -20,6 +20,7 @@
     {
       pickType: 'alerttone',
       settingsKey: 'notification.ringtone',
+      allowNone: true,  // Allow "None" as a choice for alert tones.
       button: document.getElementById('alert-tone-selection')
     }
   ];
@@ -29,6 +30,7 @@
     tones.push({
       pickType: ['ringtone', 'audio/*'],
       settingsKey: 'dialer.ringtone',
+      allowNone: false, // The ringer must always have an actual sound.
       button: document.getElementById('ring-tone-selection')
     });
     document.getElementById('ringer').hidden = false;
@@ -61,6 +63,7 @@
           name: 'pick',
           data: {
             type: tone.pickType,
+            allowNone: tone.allowNone,
             // If we have a secret then there is locked content on the phone
             // so include it as a choice for the user
             includeLocked: (secret !== null)
@@ -72,7 +75,16 @@
           var name = activity.result.name;  // The name of this ringtone
 
           if (!blob) {
-            console.warn('pick activity empty result');
+            if (tone.allowNone) {
+              // If we allow a null blob, then everything is okay
+              setRingtone(blob, name);
+            }
+            else {
+              // Otherwise this is an error and we should not change the
+              // current setting. (The ringtones app should never return
+              // a null blob if allowNone is false, but other apps might.)
+              alert(_('unplayable-ringtone'));
+            }
             return;
           }
 

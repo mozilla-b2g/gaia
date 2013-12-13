@@ -6,6 +6,7 @@ require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 requireApp('communications/dialer/test/unit/mock_moztelephony.js');
 
+requireApp('communications/dialer/test/unit/mock_handled_call.js');
 requireApp('communications/dialer/test/unit/mock_calls_handler.js');
 requireApp('communications/dialer/test/unit/mock_l10n.js');
 
@@ -254,68 +255,162 @@ suite('call screen', function() {
     });
   });
 
+  suite('background image setter', function() {
+    var realMozSettings;
+    var fakeBlob = new Blob([], {type: 'image/png'});
+    var fakeURL = URL.createObjectURL(fakeBlob);
+
+    setup(function() {
+      realMozSettings = navigator.mozSettings;
+      navigator.mozSettings = MockNavigatorSettings;
+      MockNavigatorSettings.mSettings['wallpaper.image'] = fakeBlob;
+
+      this.sinon.stub(URL, 'createObjectURL').returns(fakeURL);
+    });
+
+    teardown(function() {
+      navigator.mozSettings = realMozSettings;
+    });
+
+    test('should change background of the main container', function(done) {
+      CallScreen.setWallpaper();
+      setTimeout(function() {
+        assert.equal(CallScreen.mainContainer.style.backgroundImage,
+                     'url("' + fakeURL + '")');
+        done();
+      });
+    });
+  });
+
   suite('toggling', function() {
-    test('should toggle the displayed classlist', function() {
+    suiteSetup(function() {
+      CallScreen._wallpaperReady = false;
+    });
+
+    test('it should wait for the wallpaper to load', function(done) {
       var toggleSpy = this.sinon.spy(screen.classList, 'toggle');
       CallScreen.toggle();
-      assert.isTrue(toggleSpy.calledWith('displayed'));
+      assert.isTrue(toggleSpy.notCalled);
+      CallScreen.setWallpaper();
+
+      setTimeout(function() {
+        assert.isTrue(toggleSpy.calledOnce);
+        done();
+      });
     });
 
-    suite('when a callback is given', function() {
-      var addEventListenerSpy;
-      var removeEventListenerSpy;
-      var spyCallback;
-
-      setup(function() {
-        addEventListenerSpy = this.sinon.spy(screen, 'addEventListener');
-        removeEventListenerSpy = this.sinon.spy(screen, 'removeEventListener');
-        spyCallback = this.sinon.spy();
-        CallScreen.toggle(spyCallback);
+    suite('once the wallpaper is loaded', function() {
+      test('should toggle the displayed classlist', function() {
+        var toggleSpy = this.sinon.spy(screen.classList, 'toggle');
+        CallScreen.toggle();
+        assert.isTrue(toggleSpy.calledWith('displayed'));
       });
 
-      test('should listen for transitionend', function() {
-        assert.isTrue(addEventListenerSpy.calledWith('transitionend'));
-      });
+      suite('when a callback is given', function() {
+        var addEventListenerSpy;
+        var removeEventListenerSpy;
+        var spyCallback;
 
-      suite('once the transition ended', function() {
         setup(function() {
-          addEventListenerSpy.yield({target: screen});
+          addEventListenerSpy = this.sinon.spy(screen, 'addEventListener');
+          removeEventListenerSpy = this.sinon.spy(screen,
+                                                  'removeEventListener');
+          spyCallback = this.sinon.spy();
+          CallScreen.toggle(spyCallback);
         });
 
-        test('should remove the event listener', function() {
-          assert.isTrue(removeEventListenerSpy.calledWith('transitionend'));
+        test('should listen for transitionend', function() {
+          assert.isTrue(addEventListenerSpy.calledWith('transitionend'));
         });
 
-        test('should trigger the callback', function() {
-          assert.isTrue(spyCallback.calledOnce);
+        suite('once the transition ended', function() {
+          setup(function() {
+            addEventListenerSpy.yield({target: screen});
+          });
+
+          test('should remove the event listener', function() {
+            assert.isTrue(removeEventListenerSpy.calledWith('transitionend'));
+          });
+
+          test('should trigger the callback', function() {
+            assert.isTrue(spyCallback.calledOnce);
+          });
         });
       });
-    });
 
-    suite('when opening in incoming-locked mode', function() {
-      var addEventListenerSpy;
-      var spyCallback;
+      suite('when opening in incoming-locked mode', function() {
+        var addEventListenerSpy;
+        var spyCallback;
 
-      setup(function() {
-        CallScreen.screen.dataset.layout = 'incoming-locked';
-        addEventListenerSpy = this.sinon.spy(screen, 'addEventListener');
-        spyCallback = this.sinon.spy();
+        setup(function() {
+          CallScreen.screen.dataset.layout = 'incoming-locked';
+          addEventListenerSpy = this.sinon.spy(screen, 'addEventListener');
+          spyCallback = this.sinon.spy();
 
-        CallScreen.toggle(spyCallback);
-      });
+          CallScreen.toggle(spyCallback);
+        });
 
-      test('should not listen for transitionend', function() {
-        assert.isFalse(addEventListenerSpy.called);
-      });
+        test('should not listen for transitionend', function() {
+          assert.isFalse(addEventListenerSpy.called);
+        });
 
-      test('should call the callback', function(done) {
-        setTimeout(function() {
-          assert.isTrue(spyCallback.called);
-          done();
+        test('should call the callback', function(done) {
+          setTimeout(function() {
+            assert.isTrue(spyCallback.called);
+            done();
+          });
         });
       });
     });
   });
+
+  suite('contact image setter', function() {
+    var realMozSettings;
+    var fakeBlob = new Blob([], {type: 'image/png'});
+    var fakeURL = URL.createObjectURL(fakeBlob);
+
+    suiteSetup(function() {
+      CallScreen._transitionDone = false;
+    });
+
+    test('it should wait for the transition to be over', function(done) {
+      var addEventListenerSpy = this.sinon.spy(screen, 'addEventListener');
+
+      CallScreen.setCallerContactImage(fakeBlob);
+      assert.equal(CallScreen.contactBackground.style.backgroundImage, '');
+
+      CallScreen.toggle();
+
+      setTimeout(function() {
+        addEventListenerSpy.yield({target: screen});
+        assert.ok(CallScreen.contactBackground.style.backgroundImage);
+        CallScreen.setCallerContactImage(null);
+        done();
+      });
+    });
+
+    suite('once the transition is over', function() {
+      test('should change background of the contact photo', function() {
+        this.sinon.stub(URL, 'createObjectURL').returns(fakeURL);
+        CallScreen.setCallerContactImage(fakeBlob);
+        assert.equal(CallScreen.contactBackground.style.backgroundImage,
+                       'url("' + fakeURL + '")');
+      });
+
+      test('should clean up background property if null', function() {
+        CallScreen.setCallerContactImage(null);
+        assert.equal(CallScreen.contactBackground.style.backgroundImage, '');
+      });
+
+      test('should do nothing if the blob is the same', function() {
+        var createURLSpy = this.sinon.spy(URL, 'createObjectURL');
+        CallScreen.setCallerContactImage(fakeBlob);
+        CallScreen.setCallerContactImage(fakeBlob);
+        assert.isTrue(createURLSpy.calledOnce);
+      });
+    });
+  });
+
 
   suite('toggleMute', function() {
     test('should change active-state class', function() {
@@ -458,6 +553,47 @@ suite('call screen', function() {
     });
   });
 
+  suite('hideIncoming', function() {
+    var MockWakeLock;
+    setup(function() {
+      MockWakeLock = {
+        unlock: this.sinon.stub()
+      };
+      this.sinon.stub(navigator, 'requestWakeLock').returns(MockWakeLock);
+
+      CallScreen.showIncoming();
+    });
+
+    test('should remove class of callToolbar and incomingContainer',
+    function() {
+      assert.isTrue(callToolbar.classList.contains('transparent'));
+      assert.isTrue(incomingContainer.classList.contains('displayed'));
+      CallScreen.hideIncoming();
+      assert.isFalse(callToolbar.classList.contains('transparent'));
+      assert.isFalse(incomingContainer.classList.contains('displayed'));
+    });
+
+    test('should remove screen wakelock if exist', function() {
+      assert.isFalse(MockWakeLock.unlock.calledOnce);
+      CallScreen.hideIncoming();
+      assert.isTrue(MockWakeLock.unlock.calledOnce);
+    });
+
+    test('should set caller photo to active call if exist', function() {
+      MockCallsHandler.mActiveCall = new MockHandledCall();
+      var testPhoto = MockCallsHandler.mActiveCall.photo = 'testphoto';
+      var setImageStub = this.sinon.stub(CallScreen, 'setCallerContactImage');
+      CallScreen.hideIncoming();
+      assert.isTrue(setImageStub.withArgs(testPhoto).calledOnce);
+    });
+
+    test('should clear caller photo if there is no active call', function() {
+      var setImageStub = this.sinon.stub(CallScreen, 'setCallerContactImage');
+      CallScreen.hideIncoming();
+      assert.isTrue(setImageStub.withArgs(null).calledOnce);
+    });
+  });
+
   suite('showStatusMessage', function() {
     var statusMessage,
         bannerClass,
@@ -558,59 +694,7 @@ suite('call screen', function() {
     });
   });
 
-  suite('background image setter', function() {
-    var realMozSettings;
-    var fakeBlob = new Blob([], {type: 'image/png'});
-    var fakeURL = URL.createObjectURL(fakeBlob);
-
-    setup(function() {
-      realMozSettings = navigator.mozSettings;
-      navigator.mozSettings = MockNavigatorSettings;
-      MockNavigatorSettings.mSettings['wallpaper.image'] = fakeBlob;
-
-      this.sinon.stub(URL, 'createObjectURL').returns(fakeURL);
-    });
-
-    teardown(function() {
-      navigator.mozSettings = realMozSettings;
-    });
-
-    test('should change background of the main container', function(done) {
-      CallScreen.setWallpaper();
-      setTimeout(function() {
-        assert.equal(CallScreen.mainContainer.style.backgroundImage,
-                     'url("' + fakeURL + '")');
-        done();
-      });
-    });
-  });
-
-  suite('contact image setter', function() {
-    var realMozSettings;
-    var fakeBlob = new Blob([], {type: 'image/png'});
-    var fakeURL = URL.createObjectURL(fakeBlob);
-
-    test('should change background of the contact photo', function() {
-      this.sinon.stub(URL, 'createObjectURL').returns(fakeURL);
-      CallScreen.setCallerContactImage(fakeBlob);
-      assert.equal(CallScreen.contactBackground.style.backgroundImage,
-                     'url("' + fakeURL + '")');
-    });
-
-    test('should clean up background property if null', function() {
-      CallScreen.setCallerContactImage(null);
-      assert.equal(CallScreen.contactBackground.style.backgroundImage, '');
-    });
-
-    test('should do nothing if the blob is the same', function() {
-      var createURLSpy = this.sinon.spy(URL, 'createObjectURL');
-      CallScreen.setCallerContactImage(fakeBlob);
-      CallScreen.setCallerContactImage(fakeBlob);
-      assert.isTrue(createURLSpy.calledOnce);
-    });
-  });
-
-  suite('ticker functions > ', function() {
+  suite('ticker functions', function() {
     var durationNode;
     var timeNode;
     setup(function() {

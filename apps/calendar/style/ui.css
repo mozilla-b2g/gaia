@@ -41,7 +41,17 @@ ol.link-list li:only-child a {
 
 /* view management */
 
+#modify-event-view {
+  display: none;
+}
+
+#modify-event-view.active {
+  display: block;
+}
+
 #time-views {
+  display: flex;
+  flex-direction: column;
   height: 100%;
 }
 
@@ -78,14 +88,11 @@ ol.link-list li:only-child a {
 /* view heights */
 
 #time-views > #month-view {
-  height: calc(65% - 5rem);
-  box-shadow: 0px 5px 5px 0px rgba(1, 1, 1, 0.2);
-  position: relative;
-  z-index: 20;
+  height: auto;
 }
 
 #time-views > #months-day-view {
-  height: calc(35% - 4rem);
+  flex: 1;
 }
 
 #progress-indicator {
@@ -270,11 +277,8 @@ body[data-path^="/month/"] section.month.previous {
 }
 
 section.month {
-  z-index: 200;
   height: 100%;
-  position: absolute;
   color: #484848;
-  width: 100%;
   border-left: 0.1rem solid #AAA;
   border-right: 0.1rem solid #AAA;
   display: none;
@@ -308,15 +312,24 @@ section.month li > .day {
 }
 
 section.month ol {
-  height: calc(20% - (2rem / 5));
+  height: 4.5rem;
 }
 
-section.month.weeks-4 ol {
-  height: calc(25% - (2rem / 4));
+section.month #month-days ol {
+  height: auto;
 }
 
-section.month.weeks-6 ol {
-  height: calc(16.7% - (2rem / 6));
+/* Make the rows a bit taller for larger resolutions */
+@media (min-device-height: 640px) {
+  section.month ol {
+    height: 6rem;
+  }
+}
+
+section.month ol:last-child {
+  box-shadow: 0px 5px 5px 0px rgba(1, 1, 1, 0.2);
+  position: relative;
+  z-index: 200;
 }
 
 section.month li:first-child {
@@ -458,12 +471,6 @@ Indicators are in units of 12
 }
 
 /* [BB][tabs]*/
-#view-selector {
-  position: absolute;
-  bottom: 0;
-  z-index: 20;
-}
-
 body[data-path="/month/"] #view-selector > .month,
 body[data-path="/week/"] #view-selector > .week,
 body[data-path="/day/"] #view-selector > .day {
@@ -475,6 +482,10 @@ body[data-path="/week/"] #view-selector > .week > a,
 body[data-path="/day/"] #view-selector > .day > a {
   color: #000;
   font-weight: 500;
+}
+
+#view-selector {
+  bottom: auto;
 }
 
 #view-selector > li > a {

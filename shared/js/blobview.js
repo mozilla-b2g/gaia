@@ -8,7 +8,7 @@ var BlobView = (function() {
   // This constructor is for internal use only.
   // Use the BlobView.get() factory function or the getMore instance method
   // to obtain a BlobView object.
-  function BlobView(blob, sliceOffset, sliceLength, slice, 
+  function BlobView(blob, sliceOffset, sliceLength, slice,
                     viewOffset, viewLength, littleEndian)
   {
     this.blob = blob;                  // The parent blob that the data is from
@@ -168,10 +168,13 @@ var BlobView = (function() {
     tell: function() {
       return this.index;
     },
+    remaining: function() {
+      return this.byteLength - this.index;
+    },
     seek: function(index) {
       if (index < 0)
         fail('negative index');
-      if (index >= this.byteLength)
+      if (index > this.byteLength)
         fail('index greater than buffer size');
       this.index = index;
     },

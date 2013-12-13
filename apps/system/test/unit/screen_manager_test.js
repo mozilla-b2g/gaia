@@ -3,9 +3,12 @@
 mocha.globals(['SettingsListener', 'LockScreen', 'Bluetooth', 'StatusBar',
       'AttentionScreen', 'removeEventListener', 'addEventListener',
       'ScreenManager', 'clearIdleTimeout', 'setIdleTimeout', 'dispatchEvent',
-      'WindowManager']);
+      'AppWindowManager']);
 
-requireApp('system/test/unit/mock_window_manager.js');
+requireApp('system/test/unit/mock_app_window_manager.js');
+requireApp('system/test/unit/mock_lock_screen.js');
+requireApp('system/test/unit/mock_statusbar.js');
+requireApp('system/test/unit/mock_bluetooth.js');
 requireApp('system/test/unit/mock_navigator_moz_power.js');
 requireApp('system/test/unit/mock_sleep_menu.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
@@ -33,13 +36,17 @@ function restoreProperty(originObject, prop, reals, useDefineProperty) {
   }
 }
 
+var mocksForScreenManager = new MocksHelper([
+  'SettingsListener', 'LockScreen', 'Bluetooth', 'StatusBar',
+  'AppWindowManager'
+]).init();
+
 suite('system/ScreenManager', function() {
   var reals = {};
+  mocksForScreenManager.attachTestHelpers();
 
   setup(function(done) {
     switchProperty(navigator, 'mozPower', MockMozPower, reals, true);
-    switchProperty(window, 'WindowManager', MockWindowManager, reals);
-    switchProperty(window, 'SettingsListener', MockSettingsListener, reals);
     this.sinon.useFakeTimers();
 
     // We make sure fake timers are in place before we require the app
@@ -47,12 +54,7 @@ suite('system/ScreenManager', function() {
   });
 
   teardown(function() {
-    MockMozPower.mTeardown();
-    MockWindowManager.mTeardown();
-    MockSettingsListener.mTeardown();
     restoreProperty(navigator, 'mozPower', reals, true);
-    restoreProperty(window, 'WindowManager', reals);
-    restoreProperty(window, 'SettingsListener', reals);
   });
 
   suite('init()', function() {

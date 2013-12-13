@@ -97,11 +97,13 @@ const IMERender = (function() {
       var kbRow = document.createElement('div');
       var rowLayoutWidth = 0;
       kbRow.classList.add('keyboard-row');
+      kbRow.classList.add('row' + nrow);
+
       if (nrow === layout.keys.length - 1) {
         kbRow.classList.add('keyboard-last-row');
       }
-      row.forEach((function buildKeyboardColumns(key, ncolumn) {
 
+      row.forEach((function buildKeyboardColumns(key, ncolumn) {
         var keyChar = key.value;
 
         // Keys may be hidden if the .hidden property contains the inputType
@@ -291,15 +293,28 @@ const IMERender = (function() {
       var docFragment = document.createDocumentFragment();
 
       if (inputMethodName == 'latin') {
+        if (candidates.length) {
+          var dismissButton = document.createElement('div');
+          dismissButton.id = 'dismiss-suggestions-button';
+          candidatePanel.appendChild(dismissButton);
+          var candidateWidth =
+            (candidatePanel.clientWidth - dismissButton.clientWidth);
+          candidateWidth /= candidates.length;
+          candidateWidth -= 6; // 3px margin on each side
+        }
+
         candidates.forEach(function buildCandidateEntry(candidate) {
           // Make sure all of the candidates are defined
           if (!candidate) return;
 
           // Each candidate gets its own div
           var div = document.createElement('div');
-          // Size the div based on the # of candidates (-2% for margins)
-          div.style.width = (100 / candidates.length - 2) + '%';
+
+          // Size the div based on the # of candidates
+          div.style.width = candidateWidth + 'px';
+
           candidatePanel.appendChild(div);
+
           var text, data, correction = false;
           if (typeof candidate === 'string') {
             if (candidate[0] === '*') { // it is an autocorrection candidate
@@ -752,6 +767,7 @@ const IMERender = (function() {
     candidatePanel.id = 'keyboard-candidate-panel';
     if (inputMethodName)
       candidatePanel.classList.add(inputMethodName);
+
     return candidatePanel;
   };
 
@@ -810,6 +826,7 @@ const IMERender = (function() {
     // Using innerHTML here because some labels (so far only the &nbsp; in the
     // space key) can be HTML entities.
     labelNode.innerHTML = label;
+    labelNode.dataset.label = label;
 
     vWrapperNode.appendChild(labelNode);
     if (altNoteNode) {

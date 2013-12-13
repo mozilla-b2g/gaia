@@ -758,6 +758,13 @@
     background-position: center center;
     background-color: transparent;
     background-size: cover;
+
+    opacity: 0;
+    transition: opacity 0.3s linear;
+  }
+
+  #contact-background.ready {
+    opacity: 1;
   }
 
   #call-screen[data-layout="dialing"] #callbar-answer,

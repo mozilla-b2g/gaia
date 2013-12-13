@@ -139,7 +139,7 @@ suite('system/bluetooth_transfer', function() {
       suiteSetup(function() {
         real_sendingFilesQueue = BluetoothTransfer._sendingFilesQueue;
         fake_sendingFilesQueue = [{
-          filenames: ['pic_01.jpg'],
+          numberOfFiles: 1,
           numSuccessful: 0,
           numUnsuccessful: 0
         }];
@@ -153,7 +153,7 @@ suite('system/bluetooth_transfer', function() {
       test('push sending files request in queue, then create notification ',
         function() {
         var sendingFilesSchedule = {
-          filenames: ['pic_02.jpg', 'video_01.mp4'],
+          numberOfFiles: 2,
           numSuccessful: 0,
           numUnsuccessful: 0
         };
@@ -188,8 +188,8 @@ suite('system/bluetooth_transfer', function() {
         assert.equal(MockNotificationHelper.mTitle, null);
       });
 
-      test('received onTransferComplete callback for the second sent ' +
-           'task(filenames[0]), should record success/fail report in queue.. ',
+      test('received onTransferComplete callback for the second sent task' +
+           ' --> first file, should record success/fail report in queue.. ',
            function() {
         var transferInfo = {
           received: false,
@@ -203,8 +203,8 @@ suite('system/bluetooth_transfer', function() {
         assert.equal(MockNotificationHelper.mTitle, null);
       });
 
-      test('received onTransferComplete callback for the second sent ' +
-           'task(filenames[1]), should remove the tast from queue. Then, ' +
+      test('received onTransferComplete callback for the second sent task' +
+           ' --> the second file, should remove the tast from queue. Then, ' +
            'create a report in notification.. ', function() {
         var transferInfo = {
           received: false,

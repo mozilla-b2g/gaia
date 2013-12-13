@@ -3,7 +3,10 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import time
+
 from marionette.by import By
+from marionette.marionette import Actions
+
 from gaiatest.apps.base import Base
 
 
@@ -26,7 +29,7 @@ class CardsView(Base):
     def open_cards_view(self):
         # Hold the home button to open cards view
         self.marionette.execute_script("window.wrappedJSObject.dispatchEvent(new Event('holdhome'));")
-        time.sleep(1)
+        time.sleep(3)
         self.wait_for_cards_view()
 
     def exit_cards_view(self):
@@ -59,3 +62,13 @@ class CardsView(Base):
     @property
     def no_recent_apps_message(self):
         return self.marionette.find_element(*self._no_apps_locator).text
+
+    def swipe_to_next_app(self):
+        current_frame = self.apps.displayed_app.frame
+
+        start_x_position = current_frame.size['width']
+        start_y_position = current_frame.size['height'] // 2
+
+        # swipe backward to get next app card
+        Actions(self.marionette).flick(
+            current_frame, start_x_position, start_y_position, 0, start_y_position).perform()

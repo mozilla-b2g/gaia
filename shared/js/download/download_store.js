@@ -124,11 +124,21 @@ var DownloadStore = (function() {
 
     readyState = 'initializing';
 
+    if (!navigator.getDataStores) {
+      var messageError = 'Data store: DataStore API is not working';
+      console.error(messageError);
+      fail({
+        message: messageError
+      });
+      return;
+    }
+
     navigator.getDataStores(DATASTORE_NAME).then(function(ds) {
+      var messageError = 'Download Store: Cannot get access to the DataStore';
       if (ds.length < 1) {
-        console.error('Download Store: Cannot get access to the DataStore');
+        console.error(messageError);
         fail({
-          message: 'Download Store: Cannot get access to the DataStore'
+          message: messageError
         });
         return;
       }
@@ -142,7 +152,7 @@ var DownloadStore = (function() {
             console.log('The array of indexes has been stored as', id);
             notifyOpenSuccess(success);
           }, function(e) {
-            console.error('Error while adding index: ', e.target.error.name);
+            console.error('Error while adding index: ', JSON.stringify(e));
             fail(e);
           });
         } else {
@@ -162,7 +172,8 @@ var DownloadStore = (function() {
   }
 
   // These fields will be stored in our datastore
-  var fieldsToPropagate = ['url', 'path', 'totalBytes', 'contentType'];
+  var fieldsToPropagate =
+    ['url', 'path', 'totalBytes', 'contentType', 'startTime', 'state'];
 
   function cookDownload(download) {
     var ret = Object.create(null);

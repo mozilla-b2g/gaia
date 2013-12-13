@@ -31,19 +31,44 @@ var LockScreen = {
     },
 
     /**
-     * Unlocker want to unlock.
+     * Unlocker want to trigger the right one.
      */
-    activateUnlock: function _activateUnlock() {
+    activateRight: function _activateRight() {
       LockScreen._activateUnlock();
     },
 
     /**
-     * Unlocker want to activate the camera.
+     * Unlocker want to trigger the left one.
      */
-    activateCamera: function _activateCamera() {
+    activateLeft: function _activateLeft() {
       LockScreen._activateCamera();
+    },
+
+    /**
+     * Sliding near left and made the state changed.
+     *
+     * @param {string} |state| 'normal', 'accelerating'
+     * @param {string} |statePrev| 'normal', 'accelerating'
+     */
+    nearLeft: function _nearLeft(state, statePrev) {
+      // Do no-op in this lockscreen.
+    },
+
+    /**
+     * Sliding near right and made the state changed.
+     *
+     * @param {string} |state| 'normal', 'accelerating'
+     * @param {string} |statePrev| 'normal', 'accelerating'
+     */
+    nearRight: function _nearRight(state, statePrev) {
+      // Do no-op in this lockscreen.
     }
   },
+
+  /*
+  * Lockscreen connection information manager
+  */
+  _lockscreenConnInfoManager: null,
 
   /*
   * Boolean return true when initialized.
@@ -132,11 +157,6 @@ var LockScreen = {
   kPassCodeErrorCounter: 0,
 
   /*
-  * Airplane mode
-  */
-  airplaneMode: false,
-
-  /*
   * Timeout ID for backing from triggered state to normal state
   */
   triggeredTimeoutId: 0,
@@ -145,11 +165,6 @@ var LockScreen = {
   * Max value for handle swiper up
   */
   HANDLE_MAX: 70,
-
-  /*
-  * Types of 2G Networks
-  */
-  NETWORKS_2G: ['gsm', 'gprs', 'edge'],
 
   /**
    * Object used for handling the clock UI element, wraps all related timers
@@ -174,8 +189,6 @@ var LockScreen = {
    * //
    * // 'camera' | 'main' | 'passcode' | 'emergency-call' | undefined
    * overlay.dataset.panel
-   *
-   * @this
    */
 
   /**
@@ -188,13 +201,11 @@ var LockScreen = {
 
     if (this.ready) { // already initialized: just trigger a translation
       this.refreshClock(new Date());
-      this.updateConnState();
+      this._lockscreenConnInfoManager.updateConnStates();
       return;
     }
     this.ready = true;
-
     this._unlocker = new LockScreenSlide(this.intentionRouter);
-
     this.getAllElements();
 
     this.lockIfEnabled(true);
@@ -229,24 +240,12 @@ var LockScreen = {
     /* blocking holdhome and prevent Cards View from show up */
     window.addEventListener('holdhome', this, true);
 
+    window.addEventListener('ftuopen', this);
+
     /* mobile connection state on lock screen */
-
-    // XXX: check bug-926169
-    // this is used to keep all tests passing while introducing multi-sim APIs
-    var conn = window.navigator.mozMobileConnection ||
-      window.navigator.mozMobileConnections &&
-        window.navigator.mozMobileConnections[0];
-
-    if (conn && conn.voice) {
-      conn.addEventListener('voicechange', this);
-      this.updateConnState();
-      this.connstate.hidden = false;
-    }
-
-    /* icc state on lock screen */
-    if (IccHelper) {
-      IccHelper.addEventListener('cardstatechange', this);
-      IccHelper.addEventListener('iccinfochange', this);
+    if (window.navigator.mozMobileConnections) {
+      this._lockscreenConnInfoManager =
+        new LockScreenConnInfoManager(this.connStates);
     }
 
     /* media playback widget */
@@ -256,11 +255,6 @@ var LockScreen = {
 
     SettingsListener.observe('lockscreen.enabled', true, function(value) {
       self.setEnabled(value);
-    });
-
-    SettingsListener.observe('ril.radio.disabled', false, function(value) {
-      self.airplaneMode = value;
-      self.updateConnState();
     });
 
     var wallpaperURL = new SettingsURL();
@@ -349,6 +343,9 @@ var LockScreen = {
 
   handleEvent: function ls_handleEvent(evt) {
     switch (evt.type) {
+      case 'ftuopen':
+        this.unlock(true);
+        break;
       case 'screenchange':
         // Don't lock if screen is turned off by promixity sensor.
         if (evt.detail.screenOffBy == 'proximity') {
@@ -391,13 +388,14 @@ var LockScreen = {
         this.lockIfEnabled(true);
         break;
 
-      case 'voicechange':
-      case 'cardstatechange':
-      case 'iccinfochange':
-        this.updateConnState();
-        break;
-
       case 'click':
+        if (0 === evt.mozInputSource &&
+            (this.areaUnlock === evt.target ||
+             this.areaCamera === evt.target)) {
+          evt.preventDefault();
+          this.handleIconClick(evt.target);
+          break;
+        }
         if (!evt.target.dataset.key)
           break;
 
@@ -581,18 +579,10 @@ var LockScreen = {
 
   unlock: function ls_unlock(instant, detail) {
     // This file is loaded before the Window Manager in order to intercept
-    // hardware buttons events. As a result WindowManager is not defined when
+    // hardware buttons events. As a result AppWindowManager is not defined when
     // the device is turned on and this file is loaded.
-    var currentApp = null;
-    if (window.WindowManager)
-      currentApp = WindowManager.getDisplayedApp();
-
-    var currentFrame = null;
-
-    if (currentApp) {
-      currentFrame = WindowManager.getAppFrame(currentApp).firstChild;
-      WindowManager.setOrientationForApp(currentApp);
-    }
+    var app = window.AppWindowManager ?
+      AppWindowManager.getActiveApp() : null;
 
     var wasAlreadyUnlocked = !this.locked;
     this.locked = false;
@@ -621,9 +611,6 @@ var LockScreen = {
     var nextPaint = (function() {
       clearTimeout(repaintTimeout);
 
-      if (currentFrame)
-        currentFrame.removeNextPaintListener(nextPaint);
-
       this.overlay.classList.add('unlocked');
 
       // If we don't unlock instantly here,
@@ -638,8 +625,8 @@ var LockScreen = {
       }
     }).bind(this);
 
-    if (currentFrame)
-      currentFrame.addNextPaintListener(nextPaint);
+    if (app)
+      app.tryWaitForFullRepaint(nextPaint);
 
     // Give up waiting for nextpaint after 400ms
     // XXX: Does not consider the situation where the app is painted already
@@ -778,7 +765,6 @@ var LockScreen = {
    *
    * @param {PanelType} panel Could be 'camera', 'passcode', 'emergency-call' or
    *                          undefined. Undefined means the main panel.
-   * @this
    */
   switchPanel: function ls_switchPanel(panel) {
     if (this._switchingPanel) {
@@ -822,139 +808,6 @@ var LockScreen = {
     this.date.textContent = f.localeFormat(now, dateFormat);
   },
 
-  updateConnState: function ls_updateConnState() {
-
-    // XXX: check bug-926169
-    // this is used to keep all tests passing while introducing multi-sim APIs
-    var conn = window.navigator.mozMobileConnection ||
-      window.navigator.mozMobileConnections &&
-        window.navigator.mozMobileConnections[0];
-
-    if (!conn)
-      return;
-
-    if (!IccHelper)
-      return;
-
-    navigator.mozL10n.ready(function() {
-      var connstateLine1 = this.connstate.firstElementChild;
-      var connstateLine2 = this.connstate.lastElementChild;
-      var _ = navigator.mozL10n.get;
-
-      var updateConnstateLine1 = function updateConnstateLine1(l10nId) {
-        connstateLine1.dataset.l10nId = l10nId;
-        connstateLine1.textContent = _(l10nId) || '';
-      };
-
-      var self = this;
-      var updateConnstateLine2 = function updateConnstateLine2(l10nId) {
-        if (l10nId) {
-          self.connstate.classList.add('twolines');
-          connstateLine2.dataset.l10nId = l10nId;
-          connstateLine2.textContent = _(l10nId) || '';
-        } else {
-          self.connstate.classList.remove('twolines');
-          delete(connstateLine2.dataset.l10nId);
-          connstateLine2.textContent = '';
-        }
-      };
-
-      // Reset line 2
-      updateConnstateLine2();
-
-      if (this.airplaneMode) {
-        updateConnstateLine1('airplaneMode');
-        return;
-      }
-
-      var voice = conn.voice;
-
-      // Possible value of voice.state are:
-      // 'notSearching', 'searching', 'denied', 'registered',
-      // where the latter three mean the phone is trying to grab the network.
-      // See https://bugzilla.mozilla.org/show_bug.cgi?id=777057
-      if (voice && 'state' in voice && voice.state == 'notSearching') {
-        updateConnstateLine1('noNetwork');
-        return;
-      }
-
-      if (!voice.connected && !voice.emergencyCallsOnly) {
-        // "Searching"
-        // voice.state can be any of the latter three values.
-        // (it's possible that the phone is briefly 'registered'
-        // but not yet connected.)
-        updateConnstateLine1('searching');
-        return;
-      }
-
-      if (voice.emergencyCallsOnly) {
-        updateConnstateLine1('emergencyCallsOnly');
-
-        switch (IccHelper.cardState) {
-          case null:
-            updateConnstateLine2('emergencyCallsOnly-noSIM');
-            break;
-
-          case 'unknown':
-            updateConnstateLine2('emergencyCallsOnly-unknownSIMState');
-            break;
-
-          case 'pinRequired':
-            updateConnstateLine2('emergencyCallsOnly-pinRequired');
-            break;
-
-          case 'pukRequired':
-            updateConnstateLine2('emergencyCallsOnly-pukRequired');
-            break;
-
-          case 'networkLocked':
-            updateConnstateLine2('emergencyCallsOnly-networkLocked');
-            break;
-
-          case 'serviceProviderLocked':
-            updateConnstateLine2('emergencyCallsOnly-serviceProviderLocked');
-            break;
-
-          case 'corporateLocked':
-            updateConnstateLine2('emergencyCallsOnly-corporateLocked');
-            break;
-
-          default:
-            updateConnstateLine2();
-            break;
-        }
-        return;
-      }
-
-      var operatorInfos = MobileOperator.userFacingInfo(conn);
-      var is2G = this.NETWORKS_2G.some(function checkConnectionType(elem) {
-        return (conn.voice.type == elem);
-      });
-      if (this.cellbroadcastLabel && is2G) {
-        self.connstate.classList.add('twolines');
-        connstateLine2.textContent = this.cellbroadcastLabel;
-      } else if (operatorInfos.carrier) {
-        self.connstate.classList.add('twolines');
-        connstateLine2.textContent = operatorInfos.carrier + ' ' +
-          operatorInfos.region;
-      }
-
-      var operator = operatorInfos.operator;
-
-      if (voice.roaming) {
-        var l10nArgs = { operator: operator };
-        connstateLine1.dataset.l10nId = 'roaming';
-        connstateLine1.dataset.l10nArgs = JSON.stringify(l10nArgs);
-        connstateLine1.textContent = _('roaming', l10nArgs);
-
-        return;
-      }
-
-      delete connstateLine1.dataset.l10nId;
-      connstateLine1.textContent = operator;
-    }.bind(this));
-  },
-
   updatePassCodeUI: function lockscreen_updatePassCodeUI() {
     var overlay = this.overlay;
 
@@ -968,10 +821,12 @@ var LockScreen = {
     var i = 4;
     while (i--) {
       var span = this.passcodeCode.childNodes[i];
-      if (this.passCodeEntered.length > i) {
-        span.dataset.dot = true;
-      } else {
-        delete span.dataset.dot;
+      if (span) {
+        if (this.passCodeEntered.length > i) {
+          span.dataset.dot = true;
+        } else {
+          delete span.dataset.dot;
+        }
       }
     }
   },
@@ -1021,12 +876,10 @@ var LockScreen = {
    * Note we do a name mapping here: DOM variables named like 'passcodePad'
    * are actually corresponding to the lowercases with hyphen one as
    * 'passcode-pad', then be prefixed with 'lookscreen'.
-   *
-   * @this
    */
   getAllElements: function ls_getAllElements() {
     // ID of elements to create references
-    var elements = ['connstate', 'clock-numbers', 'clock-meridiem',
+    var elements = ['conn-states', 'clock-numbers', 'clock-meridiem',
         'date', 'area', 'area-unlock', 'area-camera', 'icon-container',
         'area-handle', 'area-slide', 'media-container', 'passcode-code',
         'alt-camera', 'alt-camera-button', 'slide-handle',
@@ -1066,13 +919,6 @@ var LockScreen = {
     SettingsListener.getSettingsLock().set({
       'lockscreen.locked': value
     });
-  },
-
-  // Used by CellBroadcastSystem to notify the lockscreen of
-  // any incoming CB messages that need to be displayed.
-  setCellbroadcastLabel: function ls_setCellbroadcastLabel(label) {
-    this.cellbroadcastLabel = label;
-    this.updateConnState();
   }
 };
 

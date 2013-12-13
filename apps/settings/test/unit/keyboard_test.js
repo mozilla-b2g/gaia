@@ -365,6 +365,7 @@ suite('keyboard >', function() {
 
   suite('InstalledLayoutsPanel', function() {
     var realSettings;
+    var keyboards;
     var MockSettings = {
       currentPanel: null
     };
@@ -372,18 +373,104 @@ suite('keyboard >', function() {
     suiteSetup(function() {
       realSettings = window.Settings;
       window.Settings = MockSettings;
-      Settings.currentPanel = '#root';
-
-      this.container = document.createElement('div');
-      this.container.id = 'keyboardAppContainer';
-      document.body.appendChild(this.container);
     });
 
     suiteTeardown(function() {
       window.Settings = realSettings;
       MockSettings = null;
+    });
 
+    setup(function(done) {
+      Settings.currentPanel = '#root';
+
+      this.container = document.createElement('div');
+      this.container.id = 'keyboardAppContainer';
+      document.body.appendChild(this.container);
+      KeyboardContext.init();
+      KeyboardContext.keyboards(function(_keyboards) {
+        keyboards = _keyboards;
+        done();
+      });
+    });
+
+    teardown(function() {
       document.body.removeChild(this.container);
+    });
+
+    suite('Shows all Keyboards and Layouts', function() {
+      setup(function() {
+        MockSettings.currentPanel = '#keyboard-selection-addMore';
+        InstalledLayoutsPanel.init('#keyboard-selection-addMore');
+      });
+
+      function checkDom(container) {
+        var elements = Array.prototype.slice.apply(container.children);
+        assert.equal(elements.length, keyboards.length);
+
+        elements.forEach(function(element, index) {
+          var keyboard = keyboards.get(index);
+          assert.equal(
+            element.querySelector('h2').textContent,
+            keyboard.name,
+            'keyboards[' + index + '] name correct'
+          );
+
+          var ul = element.querySelector('ul');
+          var children = Array.prototype.slice.apply(ul.children);
+          children.forEach(function(li, index2) {
+            assert.equal(
+              li.querySelector('span').textContent,
+              keyboard.layouts[index2].name,
+              'keyboards[' + index + '].layouts[' + index2 + '] name correct'
+            );
+          });
+
+        });
+      }
+
+      test('creates a div for each keyboard', function() {
+        checkDom(this.container);
+      });
+      test('removing and adding keyboards creates dom', function() {
+        var temp = keyboards.get(1);
+        keyboards.splice(1, 1);
+        checkDom(this.container);
+
+        keyboards.splice(1, 0, temp);
+        checkDom(this.container);
+      });
+      test('keyboards properly observe', function() {
+        var keyboard = keyboards.get(1);
+        var keyboardContainer = this.container.children[1];
+
+        keyboard.name = 'test';
+        assert.equal(
+          keyboardContainer.querySelector('h2').textContent,
+          'test'
+        );
+
+        keyboard.layouts[0].name = 'test';
+        assert.equal(
+          keyboardContainer.querySelector('li:nth-child(1) span').textContent,
+          'test'
+        );
+
+        var enabled = !keyboard.layouts[0].enabled;
+        keyboard.layouts[0].enabled = enabled;
+        assert.equal(
+          keyboardContainer.querySelector('li:nth-child(1) input').checked,
+          enabled
+        );
+      });
+      test('click event on checkbox changes enabled', function() {
+        var layout = keyboards.get(0).layouts[0];
+        var checkbox = this.container.children[1]
+                          .querySelector('li:nth-child(1) input');
+        checkbox.checked = !checkbox.checked;
+        // might want to fire this as a custom event some day
+        checkbox.onchange();
+        assert.equal(layout.enabled, checkbox.checked);
+      });
     });
 
     test('Save to settings when leaving panel', function() {

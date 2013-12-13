@@ -1022,7 +1022,7 @@ var Browser = {
           'VIDEO': 'video',
           'AUDIO': 'audio'
         };
-        var type = typeMap[item.nodeName];
+        var type = typeMap[nodeName];
         if (nodeName === 'VIDEO' && !item.data.hasVideo) {
           type = 'audio';
         }
@@ -1081,6 +1081,8 @@ var Browser = {
       self.contextMenuHasCalled = false;
       return;
     }
+
+    evt.preventDefault();
 
     menuItems.forEach(function(menuitem) {
       var li = document.createElement('li');
@@ -1715,7 +1717,6 @@ function actHandle(activity) {
   } else {
     Browser.waitingActivities.push(activity);
   }
-  activity.postResult({ status: 'accepted' });
 }
 
 if (window.navigator.mozSetMessageHandler) {

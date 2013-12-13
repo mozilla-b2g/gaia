@@ -3,6 +3,20 @@
   var instance = undefined;
   var _inited = false;
 
+  /**
+   * HomescreenLauncher is responsible to launch the homescreen window
+   * instance and make sure it's a singleton.
+   *
+   * Every extermal modules should use
+   * <code>HomescreenLauncher.getHomescreen()</code>
+   * to access the homescreen window instance.
+   *
+   * @example
+   * var home = HomescreenLauncher.getHomescreen();
+   * home.open(); // Do the open animation.
+   *
+   * @module HomescreenLauncher
+   */
   var HomescreenLauncher = {
     ready: false,
 
@@ -16,6 +30,14 @@
       return 'homescreen';
     },
 
+    /**
+     * Init process
+     * <a href="http://i.imgur.com/JZ1ibkc.png" target="_blank">
+     *   <img src="http://i.imgur.com/JZ1ibkc.png"></img>
+     * </a>
+     *
+     * @memberOf module:HomescreenLauncher
+     */
     init: function hl_init() {
       if (_inited)
         return;
@@ -34,15 +56,24 @@
 
       window.addEventListener('trusteduishow', this);
       window.addEventListener('trusteduihide', this);
+      window.addEventListener('appopening', this);
     },
 
     handleEvent: function hl_handleEvent(evt) {
       switch (evt.type) {
         case 'trusteduishow':
           this.getHomescreen().toggle(true);
+          this.getHomescreen().fadeIn();
           break;
         case 'trusteduihide':
           this.getHomescreen().toggle(false);
+          break;
+        case 'appopening':
+          // Fade out homescreen if the opening app is landscape.
+          if (evt.detail.rotatingDegree === 90 ||
+              evt.detail.rotatingDegree === 270) {
+            this.getHomescreen().fadeOut();
+          }
           break;
       }
     },

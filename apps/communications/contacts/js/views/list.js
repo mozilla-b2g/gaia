@@ -1794,10 +1794,21 @@ contacts.List = (function() {
     close.classList.add('hide');
   };
 
+  var refreshFb = function resfreshFb(uid) {
+    var selector = '[data-fb-uid="' + uid + '"]';
+    var node = document.querySelector(selector);
+    if (node) {
+      if (node.dataset.uuid in rowsOnScreen) {
+        contacts.List.refresh(node.dataset.uuid);
+      }
+    }
+  };
+
   return {
     'init': init,
     'load': load,
     'refresh': refresh,
+    'refreshFb': refreshFb,
     'getContactById': getContactById,
     'getAllContacts': getAllContacts,
     'handleClick': handleClick,

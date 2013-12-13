@@ -141,28 +141,35 @@ MediaFrame.prototype._displayImage = function _displayImage(blob) {
     URL.revokeObjectURL(this.url);
   this.url = URL.createObjectURL(blob);
 
-  var preload = new Image();
+  if (!this.preload) {
+    // Make preload image as object wide variable so that we can cancel the
+    // loading by setting src.
+    this.preload = new Image();
+    // If user gives us a dummy blob, we also need to handle the error case.
+    this.preload.addEventListener('error', function onerror(e) {
+      if (self.onerror)
+        self.onerror(e);
+    });
 
-  preload.addEventListener('load', function onload() {
-    preload.removeEventListener('load', onload);
+    this.preload.addEventListener('load', function onload() {
+      self.image.src = self.preload.src;
 
-    self.image.src = preload.src;
+      // Switch height & width for rotated images
+      if (self.rotation == 0 || self.rotation == 180) {
+        self.itemWidth = self.preload.width;
+        self.itemHeight = self.preload.height;
+      } else {
+        self.itemWidth = self.preload.height;
+        self.itemHeight = self.preload.width;
+      }
 
-    // Switch height & width for rotated images
-    if (self.rotation == 0 || self.rotation == 180) {
-      self.itemWidth = preload.width;
-      self.itemHeight = preload.height;
-    } else {
-      self.itemWidth = preload.height;
-      self.itemHeight = preload.width;
-    }
+      self.computeFit();
+      self.setPosition();
+      self.image.style.display = 'block';
+    });
+  }
 
-    self.computeFit();
-    self.setPosition();
-    self.image.style.display = 'block';
-  });
-
-  preload.src = this.url;
+  this.preload.src = this.url;
 };
 
 MediaFrame.prototype._switchToFullSizeImage = function _switchToFull() {
@@ -175,7 +182,12 @@ MediaFrame.prototype._switchToFullSizeImage = function _switchToFull() {
   var oldurl = this.url;
   var oldimage = this.oldimage = this.image;
   var newimage = this.image = document.createElement('img');
+  newimage.style.transformOrigin = 'center center';
   newimage.src = this.url = URL.createObjectURL(this.imageblob);
+
+  // move onerror callback to newimage when oldimage becomes useless.
+  newimage.onerror = oldimage.onerror;
+  oldimage.onerror = null;
 
   // Add the new image to the container before the current preview image
   // Because it comes first it will be obscured by the preview
@@ -214,7 +226,7 @@ MediaFrame.prototype._switchToFullSizeImage = function _switchToFull() {
       mozRequestAnimationFrame(function() {
         self.container.removeChild(oldimage);
         self.oldimage = null;
-        oldimage.src = null;
+        oldimage.src = ''; // Use '' instead of null. See Bug 901410
         if (oldurl)
           URL.revokeObjectURL(oldurl);
       });
@@ -277,6 +289,10 @@ MediaFrame.prototype.clear = function clear() {
   if (this.url) {
     URL.revokeObjectURL(this.url);
     this.url = null;
+  }
+
+  if (this.preload) {
+    this.preload.src = '';
   }
 
   // Hide the image

@@ -306,13 +306,17 @@
         flashCounter = 0,
         previousFirstSuggestion = '',
         SEARCHES_BEFORE_FLASHING_HELPER = 4,
-        TIMEOUT_ANDROID_BEFORE_HELPER_CLICK = 500;
+        TIMEOUT_ANDROID_BEFORE_HELPER_CLICK = 500,
+        sourcesMap;
 
-    var sourcesMap = {
-      'suggestions': SEARCH_SOURCES.SUGGESTION,
-      'didyoumean': SEARCH_SOURCES.SPELLING,
-      'refine': SEARCH_SOURCES.REFINE,
-      'history': SEARCH_SOURCES.HISTORY
+    // Helper module init
+    this.init = function init(data) {
+      sourcesMap = {
+        'suggestions': SEARCH_SOURCES.SUGGESTION,
+        'didyoumean': SEARCH_SOURCES.SPELLING,
+        'refine': SEARCH_SOURCES.REFINE,
+        'history': SEARCH_SOURCES.HISTORY
+      };
     };
 
     // items loaded
@@ -729,12 +733,20 @@
         }
       }
 
-      // bookmark - add to homescreen
-      EvmeManager.addGridItem({
-        'originUrl': data.app.getFavLink(),
-        'name': data.data.name,
-        'icon': Evme.Utils.formatImageData(data.app.getIcon()),
-        'useAsyncPanZoom': data.app.isExternal()
+      // first resize the icon to the OS size
+      // this includes a 2px padding around the icon
+      Evme.Utils.padIconForOS({
+        'icon': data.app.getIcon(),
+        'resize': true,
+        'callback': function onIconResized(icon) {
+          // bookmark - add to homescreen
+          EvmeManager.addGridItem({
+            'originUrl': data.app.getFavLink(),
+            'name': data.data.name,
+            'icon': icon,
+            'useAsyncPanZoom': data.app.isExternal()
+          });
+        }
       });
 
       // display system banner
@@ -920,20 +932,36 @@
         requestCollectionImage = null,
         timeoutShowAppsLoading = null;
 
-    // a collection is shown
-    this.show = function show(data) {
+    // starting to show the collection
+    this.beforeShow = function beforeShow(data) {
       PaginationBar.hide();
-      document.getElementById('icongrid').classList.add(
-                                                CLASS_WHEN_COLLECTION_VISIBLE);
-      window.setTimeout(loadAppsIntoCollection, 600);
+
+      window.setTimeout(function() {
+        var elAffectedByCollection = document.getElementById('icongrid');
+        elAffectedByCollection.classList.add(CLASS_WHEN_COLLECTION_VISIBLE);
+      }, 50);
+    };
+
+    // the collection is shown
+    this.show = function show(data) {
+      // this timeout gives the Static apps time to render
+      // without the clouds apps have a chance to render with the static apps
+      // which overloads the render engine
+      window.setTimeout(loadAppsIntoCollection, 300);
       currentResultsManager = Evme.CollectionResults;
     };
 
-    // hiding the collection
+    // starting to hide the collection
+    this.beforeHide = function beforeHide() {
+      window.setTimeout(function() {
+        var elAffectedByCollection = document.getElementById('icongrid');
+        elAffectedByCollection.classList.remove(CLASS_WHEN_COLLECTION_VISIBLE);
+      }, 140);
+    };
+
+    // the collection is hidden
     this.hide = function hide() {
       PaginationBar.show();
-      document.getElementById('icongrid').classList.remove(
-                                                CLASS_WHEN_COLLECTION_VISIBLE);
       Evme.Brain.Collection.cancelRequests();
       Evme.ConnectionMessage.hide();
 
@@ -1261,22 +1289,52 @@
         var shortcuts = response.response.shortcuts,
             iconsMap = response.response.icons;
 
-        // first we need to round the icons
-        Evme.Utils.roundIconsMap(iconsMap,
-          function onRoundedIcons(roundedIconsMap) {
-            for (var i = 0, shortcut; shortcut = shortcuts[i++];) {
-              var extraIconsData =
-                shortcut.appIds.map(function wrapIcon(appId) {
-                  return {'id': appId, 'icon': roundedIconsMap[appId]};
-                });
-
-              // update the matching Collection's icon
-              var collectionSettings = queriesMap[shortcut.query];
-              Evme.Collection.update(collectionSettings, {
-                'extraIconsData': extraIconsData
-              });
+        // cached icons might be missing in the server's response
+        var missingIconIds = [];
+        for (var i = 0, shortcut; shortcut = shortcuts[i++];) {
+          var appIds = shortcut.appIds;
+          for (var j = 0, appId; appId = appIds[j++]; ) {
+            if (missingIconIds.indexOf(appId) > -1) {
+              continue;
+            } else if (!iconsMap[appId]) {
+              missingIconIds.push(appId);
             }
-          });
+          }
+        }
+
+        if (missingIconIds.length) {
+          // try to get missing icons from cache
+          Evme.IconManager.getBatch(missingIconIds,
+            function onIcons(cachedIconsMap) {
+              if (cachedIconsMap) {
+                for (var iconId in cachedIconsMap) {
+                  iconsMap[iconId] = cachedIconsMap[iconId];
+                }
+              }
+              updateCollectionsIcons();
+            });
+        } else {
+          updateCollectionsIcons();
+        }
+
+        function updateCollectionsIcons() {
+          Evme.Utils.roundIconsMap(iconsMap,
+            function onRoundedIcons(roundedIconsMap) {
+              for (var i = 0, shortcut; shortcut = shortcuts[i++];) {
+                var extraIconsData =
+                  shortcut.appIds.map(function wrapIcon(appId) {
+                    return {'id': appId, 'icon': roundedIconsMap[appId]};
+                  });
+
+                // update the matching Collection's icon
+                var collectionSettings = queriesMap[shortcut.query];
+                Evme.Collection.update(collectionSettings, {
+                  'extraIconsData': extraIconsData
+                });
+              }
+            });
+        }
+
       });
     }
   };

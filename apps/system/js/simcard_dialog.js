@@ -4,13 +4,16 @@
 'use strict';
 
 var SimPinDialog = {
+  _currentSlot: null,
   dialogTitle: document.querySelector('#simpin-dialog header h1'),
   dialogDone: document.querySelector('#simpin-dialog button[type="submit"]'),
-  dialogClose: document.querySelector('#simpin-dialog button[type="reset"]'),
+  dialogSkip: document.querySelector('#simpin-dialog button[type="reset"]'),
+  dialogBack: document.querySelector('#simpin-dialog button.back'),
 
   pinArea: document.getElementById('pinArea'),
   pukArea: document.getElementById('pukArea'),
   xckArea: document.getElementById('xckArea'),
+  desc: document.querySelector('#xckArea div[name="xckDesc"]'),
   newPinArea: document.getElementById('newPinArea'),
   confirmPinArea: document.getElementById('confirmPinArea'),
 
@@ -26,10 +29,7 @@ var SimPinDialog = {
   errorMsgHeader: document.getElementById('messageHeader'),
   errorMsgBody: document.getElementById('messageBody'),
 
-  mobileConnection: null,
-
   lockType: 'pin',
-  action: 'unlock',
 
   lockTypeMap: {
     'pinRequired': 'pin',
@@ -68,9 +68,14 @@ var SimPinDialog = {
   handleCardState: function spl_handleCardState() {
     var _ = navigator.mozL10n.get;
 
-    var cardState = IccHelper.cardState;
+    if (!this._currentSlot)
+      return;
+
+    var card = this._currentSlot.simCard;
+
+    var cardState = card.cardState;
     var lockType = this.lockTypeMap[cardState];
-    IccHelper.getCardLockRetryCount(lockType, (function(retryCount) {
+    this._currentSlot.getCardLockRetryCount(lockType, (function(retryCount) {
       if (retryCount) {
         var l10nArgs = { n: retryCount };
         this.triesLeftMsg.textContent = _('inputCodeRetriesLeft', l10nArgs);
@@ -99,15 +104,20 @@ var SimPinDialog = {
         this.lockType = lockType;
         this.errorMsg.hidden = true;
         this.inputFieldControl(false, false, true, false);
-        var desc = this.xckArea.querySelector('div[name="xckDesc"]');
-        desc.textContent = _(lockType + 'Code');
+        this.desc.textContent = _(lockType + 'Code');
         this.xckInput.focus();
         break;
       default:
         this.skip();
         break;
     }
-    this.dialogTitle.textContent = _(this.lockType + 'Title') || '';
+    if (this.lockType !== 'pin' || !SIMSlotManager.isMultiSIM()) {
+      this.dialogTitle.textContent =
+        _(this.lockType + 'Title') || '';
+    } else {
+      this.dialogTitle.textContent =
+        _('multiSIMpinTitle', { n: this._currentSlot.index + 1 }) || '';
+    }
   },
 
   handleError: function spl_handleLockError(evt) {
@@ -146,7 +156,7 @@ var SimPinDialog = {
     if (pin === '')
       return;
 
-    var options = {lockType: 'pin', pin: pin };
+    var options = { lockType: 'pin', pin: pin };
     this.unlockCardLock(options);
     this.clear();
   },
@@ -182,48 +192,13 @@ var SimPinDialog = {
   },
 
   unlockCardLock: function spl_unlockCardLock(options) {
-    var req = IccHelper.unlockCardLock(options);
-    req.onsuccess = this.close.bind(this, 'success');
-    req.onerror = (function spl_unlockCardLockError() {
+    var req = this._currentSlot.unlockCardLock(options);
+    req.onsuccess = this.requestClose.bind(this, 'success');
+    req.onerror = (function spl_unlockCardLockError(result) {
       this.handleError(req.error);
     }).bind(this);
   },
 
-  enableLock: function spl_enableLock() {
-    var pin = this.pinInput.value;
-    if (pin === '')
-      return;
-
-    var enabled = SimPinLock.simPinCheckBox.checked;
-    var options = {lockType: 'pin', pin: pin, enabled: enabled};
-    this.setCardLock(options);
-    this.clear();
-  },
-
-  changePin: function spl_changePin() {
-    var _ = navigator.mozL10n.get;
-
-    var pin = this.pinInput.value;
-    var newPin = this.newPinInput.value;
-    var confirmPin = this.confirmPinInput.value;
-    if (pin === '' || newPin === '' || confirmPin === '')
-      return;
-
-    if (newPin !== confirmPin) {
-      this.errorMsgHeader.textContent = _('newPinErrorMsg');
-      this.errorMsgBody.textContent = '';
-      this.errorMsg.hidden = false;
-      return;
-    }
-    var options = {lockType: 'pin', pin: pin, newPin: newPin};
-    this.setCardLock(options);
-    this.clear();
-  },
-
-  setCardLock: function spl_setCardLock(options) {
-    var req = IccHelper.setCardLock(options);
-    req.onsuccess = this.close.bind(this, 'success');
-  },
   inputFieldControl: function spl_inputField(isPin, isPuk, isXck, isNewPin) {
     this.pinArea.hidden = !isPin;
     this.pukArea.hidden = !isPuk;
@@ -233,22 +208,12 @@ var SimPinDialog = {
   },
 
   verify: function spl_verify() {
-    switch (this.action) {
-      case 'unlock':
-        if (this.lockType === 'pin')
-          this.unlockPin();
-        else if (this.lockType === 'puk') {
-          this.unlockPuk();
-        } else {
-          this.unlockXck();
-        }
-        break;
-      case 'enable':
-        this.enableLock();
-        break;
-      case 'changePin':
-        this.changePin();
-        break;
+    if (this.lockType === 'pin') {
+      this.unlockPin();
+    } else if (this.lockType === 'puk') {
+      this.unlockPuk();
+    } else {
+      this.unlockXck();
     }
     return false;
   },
@@ -274,48 +239,68 @@ var SimPinDialog = {
   },
 
   onclose: null,
+
+  _visible: false,
+
+  get visible() {
+    return this._visible;
+  },
+
   /**
    * Show the SIM pin dialog
-   * @param {String}   action  Name of the action to execute,
-   *                           either: unlock, enable or changePin.
-   * @param {Function} title   Optional function called when dialog is closed.
-   *                           Receive a single argument being the reason of
-   *                           dialog closing: success, skip, home or holdhome.
+   * @param {Object} slot SIMSlot instance
+   * @param {Function} [onclose] Optional function called when dialog is closed.
+   *                            Receive a single argument being the reason of
+   *                            dialog closing: success, skip, home or holdhome.
+   * @param {Boolean} [skipped] If the last slot is skipped or not.
    */
-  show: function spl_show(action, onclose) {
+  show: function spl_show(slot, onclose, skipped) {
     var _ = navigator.mozL10n.get;
+    if (slot) {
+      this._currentSlot = slot;
+    }
 
-    // Hide the utility tray to avoid overlapping the SIM Pin dialog
-    UtilityTray.hide(true);
+    window.dispatchEvent(new CustomEvent('simpinshow'));
 
     this.systemDialog.show();
-    this.action = action;
+    this._visible = true;
     this.lockType = 'pin';
-    switch (action) {
-      case 'unlock':
-        this.handleCardState();
-        break;
-      case 'enable':
-        this.inputFieldControl(true, false, false, false);
-        this.dialogTitle.textContent = _('pinTitle') || '';
-        break;
-      case 'changePin':
-        this.inputFieldControl(true, false, false, true);
-        this.dialogTitle.textContent = _('newpinTitle') || '';
-        break;
-    }
+    this.handleCardState();
 
     if (onclose && typeof onclose === 'function')
       this.onclose = onclose;
+
+    if (skipped) {
+      delete this.dialogBack.hidden;
+    } else {
+      this.dialogBack.hidden = true;
+    }
+  },
+
+  requestClose: function spl_requestClose() {
+    window.dispatchEvent(new CustomEvent('simpinrequestclose', {
+      detail: this
+    }));
   },
 
   close: function spl_close(reason) {
+    window.dispatchEvent(new CustomEvent('simpinclose', {
+      detail: this
+    }));
     this.systemDialog.hide(reason);
+    this._visible = false;
   },
 
   skip: function spl_skip() {
-    this.close('skip');
-    return false;
+    window.dispatchEvent(new CustomEvent('simpinskip', {
+      detail: this
+    }));
+  },
+
+  back: function spl_back() {
+    window.dispatchEvent(new CustomEvent('simpinback', {
+      detail: this
+    }));
   },
 
   init: function spl_init() {
@@ -323,20 +308,12 @@ var SimPinDialog = {
                                        onHide: this.onHide.bind(this)
                                      });
 
-    // XXX: check bug-926169
-    // this is used to keep all tests passing while introducing multi-sim APIs
-    this.mobileConnection = window.navigator.mozMobileConnection ||
-      window.navigator.mozMobileConnections &&
-        window.navigator.mozMobileConnections[0];
-
-    if (!this.mobileConnection)
-      return;
-
-    if (!IccHelper)
+    if (!SIMSlotManager.length)
       return;
 
     this.dialogDone.onclick = this.verify.bind(this);
-    this.dialogClose.onclick = this.skip.bind(this);
+    this.dialogSkip.onclick = this.skip.bind(this);
+    this.dialogBack.onclick = this.back.bind(this);
     this.pinInput = this.getNumberPasswordInputField('simpin');
     this.pukInput = this.getNumberPasswordInputField('simpuk');
     this.xckInput = this.getNumberPasswordInputField('xckpin');

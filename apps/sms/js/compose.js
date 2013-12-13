@@ -22,6 +22,7 @@ var Compose = (function() {
   var dom = {
     form: null,
     message: null,
+    subject: null,
     sendButton: null,
     attachButton: null
   };
@@ -42,45 +43,72 @@ var Compose = (function() {
     type: 'sms'
   };
 
+  var subject = {
+    showing: false,
+    toggle: function sub_toggle() {
+      dom.subject.classList.toggle('hide');
+      // show / hide subject and change the focus
+      (this.showing = !this.showing) ?
+        dom.subject.focus() : dom.message.focus();
+      Compose.updateType();
+      onContentChanged();
+    },
+    clear: function sub_clear() {
+      dom.subject.value = '';
+      dom.subject.classList.add('hide');
+      this.showing = false;
+    },
+    get isEmpty() {
+      return !dom.subject.value.length;
+    },
+    get isShowing() {
+      return this.showing;
+    }
+  };
+
   // anytime content changes - takes a parameter to check for image resizing
   function onContentChanged(duck) {
-
     // if the duck is an image attachment, handle resizes
     if (duck instanceof Attachment && duck.type === 'img') {
       return imageAttachmentsHandling();
     }
 
-    var textLength = dom.message.textContent.length;
-    var empty = !textLength;
-    var hasFrames = !!dom.message.querySelector('iframe');
+    var messageHasFrames = !!dom.message.querySelector('iframe');
+    var isEmptyMessage = !dom.message.textContent.length && !messageHasFrames;
+    var isEmptySubject = subject.isEmpty;
 
-    if (empty) {
+    if (isEmptyMessage) {
       var brs = dom.message.getElementsByTagName('br');
       // firefox will keep an extra <br> in there
-      if (brs.length > 1 || hasFrames) {
-        empty = false;
+      if (brs.length > 1) {
+        isEmptyMessage = false;
       }
     }
 
+    // Placeholder management
     var placeholding = dom.message.classList.contains(placeholderClass);
-    if (placeholding && !empty) {
+    if (placeholding && !isEmptyMessage) {
       dom.message.classList.remove(placeholderClass);
+    }
+    if (!placeholding && isEmptyMessage) {
+      dom.message.classList.add(placeholderClass);
+    }
+
+    // Send button management
+    /* The send button should be enabled only in the situations where:
+     * - The subject is showing and is not empty (it has text)
+     * - The message is not empty (it has text or attachment)
+    */
+    if ((isEmptyMessage && !subject.isShowing) ||
+        (isEmptyMessage && subject.isShowing && isEmptySubject)) {
+      compose.disable(true);
+      state.empty = true;
+    } else {
       compose.disable(false);
       state.empty = false;
     }
-    if (!placeholding && empty) {
-      dom.message.classList.add(placeholderClass);
-      compose.disable(true);
-      state.empty = true;
-    }
 
-    if (hasFrames && state.type === 'sms') {
-      compose.type = 'mms';
-    }
-
-    if (!hasFrames && state.type === 'mms') {
-      compose.type = 'sms';
-    }
+    compose.updateType();
 
     trigger.call(compose, 'input', new CustomEvent('input'));
   }
@@ -192,12 +220,14 @@ var Compose = (function() {
     init: function composeInit(formId) {
       dom.form = document.getElementById(formId);
       dom.message = dom.form.querySelector('[contenteditable]');
+      dom.subject = document.getElementById('messages-subject-input');
       dom.sendButton = document.getElementById('messages-send-button');
       dom.attachButton = document.getElementById('messages-attach-button');
       dom.optionsMenu = document.getElementById('attachment-options-menu');
 
-      // update the placeholder after input
+      // update the placeholder, send button and Compose.type
       dom.message.addEventListener('input', onContentChanged);
+      dom.subject.addEventListener('input', onContentChanged);
 
       // we need to bind to keydown & keypress because of #870120
       dom.message.addEventListener('keydown', composeKeyEvents);
@@ -241,6 +271,17 @@ var Compose = (function() {
       for (var type in handlers) {
         handlers[type] = [];
       }
+    },
+
+    toggleSubject: function() {
+      subject.toggle();
+    },
+
+    getSubject: function() {
+      // Only send value if subject is showing. If not, send empty string
+      // We need to transform any linebreak or into a single space
+      return subject.isShowing ?
+               dom.subject.value.replace(/\n\s*/g, ' ') : '';
     },
 
     getContent: function() {
@@ -344,7 +385,6 @@ var Compose = (function() {
      * @param {Boolean} position True to append, false to prepend or
      *                           undefined/null for auto (at cursor).
      */
-
     prepend: function(item) {
       var fragment = insert(item);
 
@@ -383,6 +423,7 @@ var Compose = (function() {
 
     clear: function() {
       dom.message.innerHTML = '<br>';
+      subject.clear();
       state.resizing = state.full = false;
       state.size = 0;
       state.empty = true;
@@ -393,6 +434,15 @@ var Compose = (function() {
     focus: function() {
       dom.message.focus();
       return this;
+    },
+
+    updateType: function() {
+      if ((subject.isShowing && !subject.isEmpty) ||
+          !!dom.message.querySelector('iframe')) {
+        this.type = 'mms';
+      } else {
+        this.type = 'sms';
+      }
     },
 
     onAttachClick: function thui_onAttachClick(event) {
@@ -550,6 +600,18 @@ var Compose = (function() {
   Object.defineProperty(compose, 'isResizing', {
     get: function composeGetResizeState() {
       return state.resizing;
+    }
+  });
+
+  Object.defineProperty(compose, 'SUBJECT_MAX_LENGTH', {
+    get: function composeGetSubjectMaxLength() {
+      return 40;
+    }
+  });
+
+  Object.defineProperty(compose, 'isSubjectShowing', {
+    get: function composeGetSubjectShowing() {
+      return subject.isShowing;
     }
   });
 

@@ -28,6 +28,18 @@ form[role="dialog"][data-type="edit"] > menu {
 }
 
 /* Override Building Block styles for lists */
+#call-log-container[data-type="list"] {
+  padding: 0;
+}
+
+#call-log-container[data-type="list"] header {
+  margin: 0 1.5rem;
+}
+
+#call-log-container[data-type="list"] ol {
+  padding: 0 1.5rem;
+}
+
 #call-log-container[data-type="list"] li {
   height: 7rem;
   padding: 0.5rem 0 0;

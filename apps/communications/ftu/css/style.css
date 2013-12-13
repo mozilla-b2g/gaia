@@ -32,7 +32,7 @@ a {
   right: 0;
   bottom: 0;
   overflow-x: auto;
-  background-color: #ffffff;
+  background-color: #f4f4f4;
  }
 
 [role=region].show {

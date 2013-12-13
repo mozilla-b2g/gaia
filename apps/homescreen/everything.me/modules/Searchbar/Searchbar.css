@@ -83,12 +83,13 @@
     #evmeContainer #button-clear {
         position: absolute;
         top: 1.0rem;
-        right: 0.7rem;
+        right: 0;
         z-index: 30;
-        width: 3rem;
-        height: 3rem;
+        width: 3.5rem;
+        height: 3.1rem;
         font-size: 0;
         background: url('/everything.me/images/search-clear.png') no-repeat;
+        background-position: 0.1rem 0.2rem;
         display: none;
     }
     #evmeContainer .clear-visible #button-clear {

@@ -1,0 +1,28 @@
+<element name="wifi-selectCertificateFile" extends="section">
+  <template>
+
+    <header>
+      <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</span></button>
+      <h1 data-l10n-id="selectCertificateFile"> Select certificate file </h1>
+    </header>
+
+    <div>
+      <ul id="wifi-certificate-files-List">
+      </ul>
+    </div>
+
+    <form role="dialog" data-type="confirm" id="certificate-import-failed" hidden>
+      <section>
+        <h1 data-l10n-id="certificate-import-failed">Certificate import failed</h1>
+        <p data-l10n-id="certificate-import-failed-description">This may be due to a damaged certificate file, for example.</p>
+      </section>
+      <menu>
+        <button data-l10n-id="ok" class="full danger" id="certificate-deletion-failed-confirm">OK</button>
+      </menu>
+    </form>
+
+    <script src="js/wifi_select_certificate_file.js"></script>
+    <script src="shared/js/device_storage/enumerate_all.js"></script>
+
+  </template>
+</element>

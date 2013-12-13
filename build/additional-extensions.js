@@ -112,7 +112,7 @@ var InstallationManager = {
       // case 1: extract content of xpi file to
       // <profileDir>/extensions/<extensionId>/
       extensionDir =
-        utils.getFile(gaiaDir, profileDir, 'extensions', extensionId);
+        utils.getFile(profileDir, 'extensions', extensionId);
       utils.ensureFolderExists(extensionDir);
       entryEnumerator = zipReader.findEntries('*');
       while (entryEnumerator.hasMore()) {
@@ -120,8 +120,7 @@ var InstallationManager = {
           var zipEntryName = entryEnumerator.getNext();
           var zipEntry = zipReader.getEntry(zipEntryName);
           var targetFile =
-            utils.getFile(
-              gaiaDir, profileDir, 'extensions', extensionId, zipEntryName);
+            utils.getFile(profileDir, 'extensions', extensionId, zipEntryName);
           var targetFileType = zipEntry.isDirectory ?
               Ci.nsIFile.DIRECTORY_TYPE : Ci.nsIFile.NORMAL_FILE_TYPE;
           if (!targetFile.exists()) {
@@ -134,7 +133,7 @@ var InstallationManager = {
       }
     } else {
       // case 2: put xpi file directly at <profileDir>/extensions/
-      extensionDir = utils.getFile(gaiaDir, profileDir, 'extensions');
+      extensionDir = utils.getFile(profileDir, 'extensions');
       utils.ensureFolderExists(extensionDir);
       file.copyTo(extensionDir, extensionId + '.xpi');
     }
@@ -206,7 +205,7 @@ var AdditionalExtensions = (function() {
     var installedExtensions;
     logLine('load installed extensions');
     try {
-      file = utils.getFile(gaiaDir, profileDir, 'installed-extensions.json');
+      file = utils.getFile(profileDir, 'installed-extensions.json');
       installedExtensions = utils.getJSON(file);
     } catch (e) {
       installedExtensions = {};
@@ -246,9 +245,9 @@ var AdditionalExtensions = (function() {
     var content;
     // output as an array (it's the original design of additional-extensions.py)
     content = JSON.stringify(Object.keys(installed), undefined, 2);
-    dir = utils.getFile(gaiaDir, profileDir);
+    dir = utils.getFile(profileDir);
     utils.ensureFolderExists(dir);
-    file = utils.getFile(gaiaDir, profileDir, 'installed-extensions.json');
+    file = utils.getFile(profileDir, 'installed-extensions.json');
     utils.writeContent(file, content);
   }
 
@@ -298,7 +297,7 @@ var AdditionalExtensions = (function() {
   function execute(options) {
     config = options;
     gaiaDir = config.GAIA_DIR;
-    profileDir = config.PROFILE_FOLDER;
+    profileDir = config.PROFILE_DIR;
     var extensions;
     var installedExtensions;
     var keys;

@@ -407,6 +407,19 @@ var NfcManager = {
       this._debug('No NDEF Message sent to Technology Discovered');
     }
 
+    if (ndefMsg != null) {
+      /* First check for handover messages that
+       * are handled by the handover manager.
+       */
+      var firstRecord = ndefMsg[0];
+      if ((firstRecord.tnf == NDEF.tnf_well_known) &&
+          NfcUtil.equalArrays(firstRecord.type, NDEF.rtd_handover_select)) {
+        this._debug('Handle Handover Select');
+        handoverManager.handleHandoverSelect(ndefMsg);
+        return;
+      }
+    }
+
     // Assign priority of tech handling. This list will expand with supported
     // Technologies.
     var priority = {

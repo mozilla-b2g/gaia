@@ -153,35 +153,36 @@
   transition: none;
 }
 
-#lockscreen-connstate {
+#lockscreen-conn-states {
   width: 100%;
   display: inline-block;
   font-weight: 400;
   font-size: calc(6 * 0.226rem);
   text-shadow: 0.1rem 0.1rem 0.3rem #000000;
+  padding-bottom: 1rem;
+  border-bottom: solid 0.1rem rgba(256,256,256,.4);
 
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
 
-#lockscreen-connstate > span {
-  display: block;
-  padding-bottom: 1rem;
-  border-bottom: solid 0.1rem rgba(256,256,256,.4);
-}
-
-#lockscreen-connstate > span:empty {
+#lockscreen-conn-states span:empty {
   display: none;
 }
 
-#lockscreen-connstate.twolines > span:first-child {
-  border-bottom: none;
-  padding-bottom: 0;
+#lockscreen-conn-states span:first-child {
+  display: inline-block;
+  width: 4rem;
+}
+
+#lockscreen-conn-states span:last-child {
+  display: block;
 }
 
 /* For some reason display: inline-block disregards hidden attribute */
-#lockscreen-connstate[hidden] {
+#lockscreen-conn-states span[hidden],
+#lockscreen-conn-states[hidden] {
   display: none;
 }
 

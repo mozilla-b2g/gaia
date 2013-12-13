@@ -58,7 +58,7 @@ var CostControl = (function() {
     }
 
     if ('mozNetworkStats' in window.navigator) {
-      statistics = NetworkstatsProxy;
+      statistics = window.navigator.mozNetworkStats;
     }
 
     debug('APIs loaded!');
@@ -364,7 +364,7 @@ var CostControl = (function() {
   function requestDataStatistics(configuration, settings, callback, result) {
     debug('Statistics out of date. Requesting fresh data...');
 
-    var maxAge = statistics.sampleRate * 1000 * statistics.maxStorageSamples;
+    var maxAge = 1000 * statistics.maxStorageAge;
     var minimumStart = new Date(Date.now() - maxAge);
     debug('The max age for samples is ' + minimumStart);
 

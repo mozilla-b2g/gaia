@@ -460,7 +460,7 @@ footer {
 
 #fullscreen-toolbar > a {
   display: inline-block;
-  width: 25%;
+  width: 20%;
   height: 100%;
 }
 
@@ -482,6 +482,10 @@ footer {
 
 #fullscreen-share-button {
   background-image: url('images/iconaction_share_30x30.png');
+}
+
+#fullscreen-info-button {
+  background-image: url('images/iconaction_media_info_30x30.png');
 }
 
 #fullscreen-delete-button {
@@ -700,44 +704,6 @@ a.filter-faded {
   filter: url(../index.html#filter-faded);
 }
 
-/* All the border buttons share these styles */
-#edit-border-options a.radio.button {
-  position: absolute;
-  width: calc(20% - 0.6rem);
-  height: calc(100% - 0.6rem);
-  top: 0.3rem;
-  padding: 0;
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  overflow: hidden;
-}
-
-#edit-border-options a.selected.radio.button {
-  outline: solid #00aacc 0.3rem;
-}
-
-#edit-border-none {
-  left: calc(0% + 0.3rem);
-  border: 0;
-}
-#edit-border-thin-white {
-  left: calc(20% + 0.3rem);
-  border: 0.2rem solid white;
-}
-#edit-border-thick-white {
-  left: calc(40% + 0.3rem);
-  border: 0.4rem solid white;
-}
-#edit-border-thin-black {
-  left: calc(60% + 0.3rem);
-  border: 0.2rem solid black;
-}
-#edit-border-thick-black {
-  left: calc(80% + 0.3rem);
-  border: 0.4rem solid black;
-}
-
 #edit-toolbar {
   height: 4.5rem;
   position: absolute;
@@ -751,7 +717,7 @@ a.filter-faded {
 /* all buttons in the toolbar share these styles */
 #edit-toolbar > a {
   display: inline-block;
-  width: 20%;
+  width: 25%;
   height: 100%;
 }
 
@@ -761,22 +727,17 @@ a.filter-faded {
 }
 
 #edit-crop-button {
-  left: 20%;
+  left: 25%;
   background-image: url('images/actionicon_gallery_edit_crop_30x30.png');
 }
 
 #edit-effect-button {
-  left: 40%;
+  left: 50%;
   background-image: url('images/actionicon_gallery_edit_effects_30x30.png');
 }
 
-#edit-border-button {
-  left: 60%;
-  background-image: url('images/actionicon_gallery_edit_borders_30x30.png');
-}
-
 #edit-enhance-button {
-  left: 80%;
+  left: 75%;
   background-image: url('images/actionicon_gallery_edit_enhance_30x30.png');
 }
 
@@ -786,10 +747,6 @@ a.filter-faded {
 
 #edit-crop-button.selected {
   background-image: url('images/actionicon_gallery_edit_crop_selected_30x30.png');
-}
-
-#edit-border-button.selected {
-  background-image: url('images/actionicon_gallery_edit_border_selected_30x30.png');
 }
 
 #edit-exposure-button.selected {

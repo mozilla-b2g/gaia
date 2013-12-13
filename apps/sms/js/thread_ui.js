@@ -79,7 +79,7 @@ var ThreadUI = global.ThreadUI = {
       'participants', 'participants-list', 'header-text', 'recipient',
       'input', 'compose-form', 'check-all-button', 'uncheck-all-button',
       'contact-pick-button', 'back-button', 'send-button', 'attach-button',
-      'delete-button', 'cancel-button',
+      'delete-button', 'cancel-button', 'subject-input',
       'options-icon', 'edit-mode', 'edit-form', 'tel-form',
       'max-length-notice', 'convert-notice', 'resize-notice',
       'new-message-notice'
@@ -100,6 +100,18 @@ var ThreadUI = global.ThreadUI = {
     Compose.on('input', this.messageComposerInputHandler.bind(this));
 
     Compose.on('type', this.onMessageTypeChange.bind(this));
+
+    // Changes on subject input can change the type of the message
+    // and size of fields
+    this.subjectInput.addEventListener(
+      'keypress', this.onSubjectKeypress.bind(this)
+    );
+    this.subjectInput.addEventListener(
+      'focus', this.onSubjectFocus.bind(this)
+    );
+    this.subjectInput.addEventListener(
+      'blur', this.onSubjectBlur.bind(this)
+    );
 
     this.toField.addEventListener(
       'keypress', this.toFieldKeypress.bind(this), true
@@ -254,11 +266,18 @@ var ThreadUI = global.ThreadUI = {
     this._updateTimeout = null;
 
     // Cache fixed measurement while init
-    var style = window.getComputedStyle(this.input, null);
-    this.INPUT_MARGIN = parseInt(style.getPropertyValue('margin-top'), 10) +
-      parseInt(style.getPropertyValue('margin-bottom'), 10);
+    var inputStyle = window.getComputedStyle(this.input, null);
+    this.INPUT_MARGIN_TOP =
+      parseInt(inputStyle.getPropertyValue('margin-top'), 10);
+    var INPUT_MARGIN_BOTTOM =
+      parseInt(inputStyle.getPropertyValue('margin-bottom'), 10);
+    this.INPUT_MARGIN = this.INPUT_MARGIN_TOP + INPUT_MARGIN_BOTTOM;
 
-    ThreadUI.setInputMaxHeight();
+    var subjectStyle = window.getComputedStyle(this.subjectInput, null);
+    this.SUBJECT_MAX_HEIGHT =
+      parseInt(subjectStyle.getPropertyValue('max-height'), 10);
+
+    ThreadUI.updateInputMaxHeight();
   },
 
   // Initialize Recipients list and Recipients.View (DOM)
@@ -387,6 +406,7 @@ var ThreadUI = global.ThreadUI = {
   },
 
   messageComposerInputHandler: function thui_messageInputHandler(event) {
+    this.updateSubjectHeight();
     this.updateInputHeight();
     this.enableSend();
 
@@ -414,6 +434,33 @@ var ThreadUI = global.ThreadUI = {
         this._resizeNoticeTimeout = null;
       }.bind(this), this.IMAGE_RESIZE_DURATION);
     }
+  },
+
+  onSubjectKeypress: function thui_onSubjectKeypress(event) {
+    Compose.updateType();
+    // Handling user warning for max character reached
+    // Only show the warning when the subject field has the focus
+    if (this.subjectInput.value.length === Compose.SUBJECT_MAX_LENGTH) {
+      this.showMaxLengthNotice('messages-max-subject-length-text');
+    } else {
+      this.hideMaxLengthNotice();
+    }
+  },
+  onSubjectFocus: function thui_onSubjectFocus() {
+    if (this.subjectInput.value.length === Compose.SUBJECT_MAX_LENGTH) {
+      this.showMaxLengthNotice('messages-max-subject-length-text');
+    }
+  },
+  onSubjectBlur: function thui_onSubjectBlur() {
+    this.hideMaxLengthNotice();
+  },
+  showMaxLengthNotice: function thui_showMaxLengthNotice(l10nKey) {
+    navigator.mozL10n.localize(
+      this.maxLengthNotice.querySelector('p'), l10nKey);
+    this.maxLengthNotice.classList.remove('hide');
+  },
+  hideMaxLengthNotice: function thui_hideMaxLengthNotice() {
+    this.maxLengthNotice.classList.add('hide');
   },
 
   assimilateRecipients: function thui_assimilateRecipients() {
@@ -483,7 +530,7 @@ var ThreadUI = global.ThreadUI = {
   // is detected
   onMessage: function onMessage(message) {
     this.appendMessage(message);
-    TimeHeaders.updateAll();
+    TimeHeaders.updateAll('header[data-time-update]');
   },
 
   onMessageReceived: function thui_onMessageReceived(message) {
@@ -532,7 +579,7 @@ var ThreadUI = global.ThreadUI = {
   // Triggered when the onscreen keyboard appears/disappears.
   resizeHandler: function thui_resizeHandler() {
     if (!this.inEditMode) {
-      this.setInputMaxHeight();
+      this.updateInputMaxHeight();
       this.updateInputHeight();
     }
 
@@ -676,7 +723,7 @@ var ThreadUI = global.ThreadUI = {
   },
   // Limit the maximum height of the Compose input field such that it never
   // grows larger than the space available.
-  setInputMaxHeight: function thui_setInputMaxHeight() {
+  updateInputMaxHeight: function thui_updateInputMaxHeight() {
     var viewHeight;
     var threadSliverHeight = 30;
     // The max height should be constrained by the following factors:
@@ -684,7 +731,9 @@ var ThreadUI = global.ThreadUI = {
       // The height of the absolutely-position sub-header element
       this.subheader.offsetHeight +
       // the vertical margin of the input field
-      this.INPUT_MARGIN;
+      this.INPUT_MARGIN +
+      // the height of the subject input (0 if hidden)
+      this.subjectInput.offsetHeight;
 
     // Further constrain the max height by an artificial spacing to prevent the
     // input field from completely occluding the message thread (not necessary
@@ -851,7 +900,7 @@ var ThreadUI = global.ThreadUI = {
     // information, is very tiny, so we should be good without adding another
     // lock.
     this._updateTimeout = null;
-    this.maxLengthNotice.classList.add('hide');
+    this.hideMaxLengthNotice();
     this.updateSmsSegmentLimit((function segmentLimitCallback(overLimit) {
       if (overLimit) {
         Compose.type = 'mms';
@@ -871,22 +920,28 @@ var ThreadUI = global.ThreadUI = {
     if (Settings.mmsSizeLimitation) {
       if (Compose.size > Settings.mmsSizeLimitation) {
         Compose.lock = true;
-        navigator.mozL10n.localize(this.maxLengthNotice.querySelector('p'),
-          'messages-exceeded-length-text');
-        this.maxLengthNotice.classList.remove('hide');
+        this.showMaxLengthNotice('messages-exceeded-length-text');
         return false;
       } else if (Compose.size === Settings.mmsSizeLimitation) {
         Compose.lock = true;
-        navigator.mozL10n.localize(this.maxLengthNotice.querySelector('p'),
-          'messages-max-length-text');
-        this.maxLengthNotice.classList.remove('hide');
+        this.showMaxLengthNotice('messages-max-length-text');
         return true;
       }
     }
 
     Compose.lock = false;
-    this.maxLengthNotice.classList.add('hide');
+    this.hideMaxLengthNotice();
     return true;
+  },
+
+  updateSubjectHeight: function thui_updateSubjectHeight() {
+    // Reset the height
+    this.subjectInput.style.height = '';
+    // Apply the new value
+    this.subjectInput.style.height = Math.min(this.subjectInput.scrollHeight,
+                                              this.SUBJECT_MAX_HEIGHT) + 'px';
+    this.updateInputMaxHeight();
+    this.updateInputHeight();
   },
 
   // TODO this function probably triggers synchronous workflows, we should
@@ -896,6 +951,7 @@ var ThreadUI = global.ThreadUI = {
     var verticalMargin = this.INPUT_MARGIN;
     var inputMaxHeight = parseInt(this.input.style.maxHeight, 10);
     var buttonHeight = this.sendButton.offsetHeight;
+    var subjectHeight = this.subjectInput.offsetHeight;
 
     // we need to set it back to auto so that we know its "natural size"
     // this will trigger a sync reflow when we get its scrollHeight at the next
@@ -905,21 +961,27 @@ var ThreadUI = global.ThreadUI = {
 
     // the new height is different whether the current height is bigger than the
     // max height
-    var newHeight = Math.min(this.input.scrollHeight, inputMaxHeight);
+    var minHeight = Math.min(this.input.scrollHeight, inputMaxHeight);
 
-    // We calculate the height of the Compose form which contains the input
-    // and we set the bottom border of the container so the Compose field does
-    // not occlude the messages. `padding-bottom` is not used because it is
-    // applied at the content edge, not after any overflow (see "Bug 748518 -
-    // padding-bottom is ignored with overflow:auto;")
-    this.input.style.height = newHeight + 'px';
+    // We calculate the height of the Compose form which contains both
+    // message and subject inputs, and we set the bottom border of the container
+    // so the Compose field does not occlude the messages.
+    // 'padding-bottom' is not used because it is applied at the content edge,
+    // not after any overflow
+    // (see "Bug 748518 - padding-bottom is ignored with overflow:auto;")
+    this.input.style.height = minHeight + 'px';
+
+    // We also need to push the input field lower when subject field is shown
+    this.input.style.marginTop = (subjectHeight + this.INPUT_MARGIN_TOP) + 'px';
+
     this.composeForm.style.height =
       this.container.style.borderBottomWidth =
-      newHeight + verticalMargin + 'px';
+        (minHeight + verticalMargin + subjectHeight) + 'px';
 
     // We set the buttons' top margin to ensure they render at the bottom of
     // the container
-    var buttonOffset = newHeight + verticalMargin - buttonHeight;
+    var buttonOffset = minHeight + verticalMargin +
+                       subjectHeight - buttonHeight;
     this.sendButton.style.marginTop = buttonOffset + 'px';
   },
 
@@ -989,7 +1051,7 @@ var ThreadUI = global.ThreadUI = {
     messageContainer = document.createElement('ul');
 
     // Append 'time-update' state
-    header.dataset.timeUpdate = true;
+    header.dataset.timeUpdate = 'repeat';
     header.dataset.time = messageTimestamp;
 
     // Add text
@@ -1090,7 +1152,7 @@ var ThreadUI = global.ThreadUI = {
     }
 
     if (wasCarrierTagShown !== isCarrierTagShown) {
-      this.setInputMaxHeight();
+      this.updateInputMaxHeight();
       this.updateInputHeight();
     }
   },
@@ -1182,7 +1244,7 @@ var ThreadUI = global.ThreadUI = {
     // Show chunk of messages
     ThreadUI.showChunkOfMessages(this.CHUNK_SIZE);
     // Boot update of headers
-    TimeHeaders.updateAll();
+    TimeHeaders.updateAll('header[data-time-update]');
     // Go to Bottom
     ThreadUI.scrollViewToBottom();
   },
@@ -1478,16 +1540,25 @@ var ThreadUI = global.ThreadUI = {
   showOptions: function thui_showOptions() {
     /**
       * Different situations depending on the state
-      * - Add / Delete subject to be trated on bug 885680
-      * - Delete messages (for existing conversations)
-      * - Settings (should open Message Settings from the Settings app)
+      * - 'Add Subject' if there's none, 'Delete subject' if already added
+      * - 'Delete messages' for existing conversations
+      * - 'Settings' for all cases
       */
     var params = {
       header: navigator.mozL10n.get('message'),
       items: []
     };
 
-    // If we are on a thread, we can call to DeleteMessages
+    // Subject management
+    params.items.push({
+      l10nId: Compose.isSubjectShowing ? 'remove-subject' : 'add-subject',
+      method: function tSubject() {
+        Compose.toggleSubject();
+        ThreadUI.updateSubjectHeight();
+      }
+    });
+
+    // If we are on a thread, we can call to EditMessage
     if (window.location.hash !== '#new') {
       params.items.push({
         l10nId: 'deleteMessages-label',
@@ -1819,6 +1890,7 @@ var ThreadUI = global.ThreadUI = {
     this.container.classList.remove('hide');
 
     var content = Compose.getContent();
+    var subject = Compose.getSubject();
     var messageType = Compose.type;
     var recipients;
 
@@ -1867,7 +1939,13 @@ var ThreadUI = global.ThreadUI = {
       }
     } else {
       var smilSlides = content.reduce(thui_generateSmilSlides, []);
-      MessageManager.sendMMS(recipients, smilSlides, null,
+      var mmsMessage = {
+        recipients: recipients,
+        subject: subject,
+        content: smilSlides
+      };
+
+      MessageManager.sendMMS(mmsMessage, null,
         function onError(error) {
           var errorName = error.name;
           this.showMessageError(errorName);

@@ -152,9 +152,7 @@ var SleepMenu = {
 
   hide: function lm_hide() {
     this.elements.overlay.classList.remove('visible');
-    // Reset the orientation for the currently running app
-    var currentApp = WindowManager.getDisplayedApp();
-    WindowManager.setOrientationForApp(currentApp);
+    window.dispatchEvent(new Event('sleepmenuhide'));
   },
 
   handleEvent: function sm_handleEvent(evt) {

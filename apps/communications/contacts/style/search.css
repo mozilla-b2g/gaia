@@ -1,8 +1,4 @@
 /* Search */
-#groups-list {
-  padding-top: 2.5rem;
-}
-
 /* Common search styles */
 form.search {
   position: absolute;
@@ -106,7 +102,6 @@ form.search button[type="submit"] {
 #groups-list-search {
   position: relative;
   text-align: left;
-  padding: 0 1.5rem;
   overflow: auto;
   z-index: 1;
 }
@@ -119,6 +114,10 @@ form.search button[type="submit"] {
 
 #search-list {
   height: 100%;
+}
+
+#search-list[data-type="list"] li:after {
+  right: -1.5rem;
 }
 
 #search-list > li[data-uuid] > a *,

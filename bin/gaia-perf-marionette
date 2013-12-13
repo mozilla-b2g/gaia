@@ -1,0 +1,73 @@
+#!/bin/bash
+
+# Find the source of this file
+SOURCE="${BASH_SOURCE[0]}"
+# Make it an absolute path
+DIR="$( cd "$( dirname "$SOURCE" )" && pwd )"
+
+# where all gaia specific customizations for mocha-marionette live.
+SHARED=$GAIA_DIR/shared/test/integration
+
+if [ $MARIONETTE_RUNNER_HOST = "marionette-b2gdesktop-host" ] ; then
+  # download b2g-desktop (if its not present)
+  make -C $GAIA_DIR/ b2g
+fi
+
+# make sure node_modules are 100% up to date
+if [ -z "$NPM_REGISTRY" ]; then
+  NPM_REGISTRY="http://registry.npmjs.org"
+fi
+`cd $DIR && npm install --registry=${NPM_REGISTRY}`
+
+
+if [ $MARIONETTE_RUNNER_HOST = "marionette-b2gdesktop-host" ] ; then
+  # tests can timeout without the profile-test folder so build it here.
+  if [ ! -d $DIR/../profile-test ]; then
+    PROFILE_FOLDER=profile-test make -C $DIR/../
+  fi
+fi
+
+if [ -z "$XULRUNNER_DIRECTORY" ] ; then
+  # the xulrunner directory isn't in the environment
+  XULRUNNER_DIRECTORY=`ls -d "$DIR/../xulrunner-sdk"*/xulrunner-sdk | sort -nr | head -n1 2> /dev/null`
+fi
+
+if [ -z "$XULRUNNER_DIRECTORY" ] ; then
+  echo "Couldn't find XULrunner. Please execute this file from 'make' or install XULrunner yourself."
+  exit 1
+fi
+
+# find xpcshell and put it in the path
+XPCSHELL_DIR=$(dirname $(find "$XULRUNNER_DIRECTORY"/bin -type f -name "xpcshell" | head -n 1));
+
+if [ -z "$APPS" ] ; then
+  echo "APPS isn't defined. Cannot continue."
+  exit 1
+fi
+
+
+# All echo calls help create a JSON array
+echo '['
+SHARED_PERF=`find tests/performance -name "*_test.js" -type f`
+for app in $APPS; do
+  if [ -z "$FIRST_LOOP_ITERATION" ]; then
+    FIRST_LOOP_ITERATION=done
+  else
+    echo ','
+  fi
+  FILES_PERF=`test -d apps/$app/test/performance && find apps/$app/test/performance -name "*_test.js" -type f`
+  # wrap marionette-mocha with gaia's defaults. We also need to alter the paths to
+  # xpcshell in available for email fake servers.
+  export CURRENT_APP="$app"
+  PATH=$XPCSHELL_DIR:$PATH $DIR/../node_modules/.bin/marionette-mocha \
+    --timeout 10s \
+    --ui tdd \
+    --profile-builder $SHARED/profile_builder.js \
+    --profile-base $SHARED/profile.js \
+    --host $MARIONETTE_RUNNER_HOST \
+    $SHARED/setup.js \
+    $GAIA_DIR/tests/performance/perf.js $SHARED_PERF $FILES_PERF \
+    -R "$GAIA_DIR/tests/reporters/jsonmozperf.js" \
+    $@
+done
+echo ']'

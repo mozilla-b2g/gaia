@@ -36,7 +36,7 @@ var MockThreadUI = {
   isScrolledManually: false,
   manageScroll: function() {},
   scrollViewToBottom: function() {},
-  setInputMaxHeight: function() {},
+  updateInputMaxHeight: function() {},
   back: function() {},
   isKeyboardDisplayed: function() {},
   enableSend: function() {},

@@ -558,7 +558,13 @@ suite('system/AppInstallManager >', function() {
       var evtName = 'applicationuninstall';
       var partialApp = {
         manifestURL: mockApp.manifestURL,
-        origin: mockApp.origin
+        origin: mockApp.origin,
+        manifest: {},
+        application: {
+          manifest: {
+            icon: null
+          }
+        }
       };
 
       dispatchEvent(evtName, partialApp);

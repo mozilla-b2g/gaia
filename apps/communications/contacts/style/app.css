@@ -264,7 +264,6 @@ li a[role="button"].activity > b em{
 }
 
 [data-type="list"] li p {
-  line-height: 3rem !important;
   margin-left: 1.5rem;
 }
 
@@ -274,7 +273,7 @@ li a[role="button"].activity > b{
   font-weight: normal;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;;
+  white-space: nowrap;
   display: block;
   position: absolute;
   left: 3rem;
@@ -284,8 +283,16 @@ li a[role="button"].activity > b{
 }
 
 /* BB Lists extending */
+#view-contacts-list [data-type="list"] {
+  padding: 2.5rem 2.5rem 0 0;
+}
+
 [data-type="list"] header {
-  margin-left: -1rem;
+  padding: 0 0 0 1.5rem;
+}
+
+[data-type="list"].active li:after {
+  right: 0;
 }
 
 /* JS helper */
@@ -293,8 +300,6 @@ li a[role="button"].activity > b{
 [data-type="list"] li aside {
   pointer-events: none;
 }
-
-
 
 /* Selection tag extended from shared/style/buttons.css */
 .view-select-tag .selection-list li button {
@@ -337,8 +342,8 @@ form p + p {
   z-index: 5;
   width: 100%;
   -moz-box-sizing: border-box;
-  padding: 1.4rem 2rem;
-  background: #f4f4f4;
+  padding: 1.5rem;
+  background: #fff;
   color: #333;
   text-align: left;
   will-animate: scroll;
@@ -346,7 +351,7 @@ form p + p {
 
 /* Removes scroll from the view body inner */
 .view-noscroll .view-body-inner {
-  width: -moz-calc(100% + 0.8rem);
+  width: -moz-calc(100% + 1rem);
 }
 
 

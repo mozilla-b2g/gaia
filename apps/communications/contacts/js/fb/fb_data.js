@@ -93,8 +93,14 @@ var fb = window.fb || {};
     }
 
     function doSave(obj, outRequest) {
-      var globalId;
+      if (obj.uid in index().byUid) {
+        outRequest.failed({
+          name: 'AlreadyExists'
+        });
+        return;
+      }
 
+      var globalId;
       LazyLoader.load([TEL_INDEXER_JS, PHONE_MATCHER_JS] , function() {
         datastore().add(obj).then(function success(newId) {
           globalId = newId;
