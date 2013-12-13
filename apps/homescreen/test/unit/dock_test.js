@@ -3,11 +3,12 @@
 requireApp('homescreen/test/unit/mock_app.js');
 // import both MockPage and MockDock
 requireApp('homescreen/test/unit/mock_page.js');
+requireApp('homescreen/test/unit/mock_screen_layout.js');
 
-require('/shared/js/screen_layout.js');
 requireApp('homescreen/js/dock.js');
 
 var mocksHelper = new MocksHelper([
+  'ScreenLayout',
   'Page',
   'Dock'
 ]);
@@ -79,9 +80,7 @@ suite('dock.js >', function() {
 
     test('#calculateDimentions', function() {
       DockManager.calculateDimentions(dock.getNumIcons());
-      console.log('The dock width should be equal to 16 according to mockup: ' +
-                  DockManager.cellWidth);
-      assert.isTrue(DockManager.cellWidth > 0);
+      assert.equal(DockManager.cellWidth, MockIcon.prototype.getWidth());
     });
 
     test('dock is not scrollable', function() {
