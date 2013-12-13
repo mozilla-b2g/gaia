@@ -458,10 +458,8 @@ suite('grid.js >', function() {
 
     testCases.forEach(function(testCase, i) {
       suite(testCase.name, function(done) {
-        setup(function(done) {
+        setup(function() {
           Configurator.mIsSVReady = false;
-          MockHomeState.mTestGrids = fixtures[i];
-          initGridManager(done);
           MockHomeState.mLastSavedInstalledApps = null;
         });
 
