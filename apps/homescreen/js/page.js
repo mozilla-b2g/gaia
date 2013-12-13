@@ -633,6 +633,10 @@ Page.prototype = {
 
   FALLBACK_READY_EVENT_DELAY: 1000,
 
+  // After launching an app we disable the page during this time (ms)
+  // in order to prevent multiple open-app animations
+  DISABLE_TAP_EVENT_DELAY: 500,
+
   /*
    * Renders a page for a list of apps
    *
@@ -849,9 +853,15 @@ Page.prototype = {
   disableTap: function pg_disableTap(callback) {
     document.body.setAttribute('disabled-tapping', true);
 
+    var disableTapTimeout = null;
+
     var enableTap = function enableTap() {
       document.removeEventListener('visibilitychange', enableTap);
       window.removeEventListener('hashchange', enableTap);
+      if (disableTapTimeout !== null) {
+        window.clearTimeout(disableTapTimeout);
+        disableTapTimeout = null;
+      }
       document.body.removeAttribute('disabled-tapping');
     };
 
@@ -860,6 +870,10 @@ Page.prototype = {
     document.addEventListener('visibilitychange', enableTap);
     // 2. Users click on home button quickly while app are opening
     window.addEventListener('hashchange', enableTap);
+    // 3. After this time out
+    disableTapTimeout = window.setTimeout(enableTap,
+        this.DISABLE_TAP_EVENT_DELAY);
+
   },
 
   /*
