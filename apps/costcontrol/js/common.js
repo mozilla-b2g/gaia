@@ -96,8 +96,11 @@ function resetData(mode, onsuccess, onerror) {
     mobileClearRequest.onerror = getOnErrorFor('simcard');
   }
 
-  if (mode === 'all') {
     // Set last Reset
+  if (mode === 'all') {
+    ConfigManager.setOption({ lastCompleteDataReset: new Date() });
+  } else {
+    // Else clausure prevents running the update event twice
     ConfigManager.setOption({ lastDataReset: new Date() });
   }
 
