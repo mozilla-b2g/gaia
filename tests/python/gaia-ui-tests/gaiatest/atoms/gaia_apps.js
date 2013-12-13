@@ -202,7 +202,7 @@ var GaiaApps = {
           let app = runningApps[origin];
           let result = {
             frame: (app.browser) ? app.browser.element : app.frame.firstChild,
-            src: (app.browser) ? app.element.src : app.iframe.src,
+            src: (app.browser) ? app.browser.element.src : app.iframe.src,
             name: app.name,
             origin: origin
           };
@@ -250,7 +250,7 @@ var GaiaApps = {
     let app = runningApps[origin];
     let result = {
       frame: (app.browser) ? app.browser.element : app.frame.firstChild,
-      src: (app.browser) ? app.element.src : app.iframe.src,
+      src: (app.browser) ? app.browser.element.src : app.iframe.src,
       name: app.name,
       origin: origin
     };
