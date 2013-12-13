@@ -445,6 +445,7 @@
       var boundaryL = center.x - this.handle.radius;
 
       if (tx > boundaryR || tx < boundaryL) {
+        this.states.sliding = false;
         return; // Do nothing.
       }
 
