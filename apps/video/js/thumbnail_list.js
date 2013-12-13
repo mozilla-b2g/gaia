@@ -17,6 +17,9 @@
  *    isSelectMode: returns if ThumbnailList is in selection mode.
  *    setSelectMode: set ThumbnailList as selection mode or not.
  *    reset: clears all the internal data structure.
+ *    upateAllThumbnailTitle: update all thuambnail title text.
+ *    findNextFocused: find the next focused item after the file name.
+ *           filename: the referenced filename.
  *
  * Properties:
  *    thumbnailMap: a mapping of filename to ThumbnailItem.
@@ -134,4 +137,56 @@ ThumbnailList.prototype.setSelectMode = function(select) {
   } else {
     this.container.classList.remove('select');
   }
+};
+
+ThumbnailList.prototype.upateAllThumbnailTitle = function() {
+  for (var key in this.thumbnailMap) {
+    this.thumbnailMap[key].updateTitleText();
+  }
+};
+
+/**
+ * To find the next thumbnail item after the filename. There are multiple cases:
+ * 1. filename is not existed: returns the first thumbnail.
+ * 2. filename is at last position, returns the previous thumbnail of filename.
+ * 3. filename is at other position, returns the next thumbnail of filename.
+ *
+ * @param {string} filename the file name of video
+ */
+ThumbnailList.prototype.findNextThumbnail = function(filename) {
+  var currentGroup = this.groupMap[filename];
+  if (!currentGroup) {
+    // the file is not in this list, return the first one.
+    return this.itemGroups.length ? this.itemGroups[0].thumbnails[0] : null;
+  }
+
+  var currentThumbnail = this.thumbnailMap[filename];
+
+  var idx;
+  if (currentGroup.thumbnails.length === 1) {
+    // only the deleted one, back to previous/next group;
+    idx = this.itemGroups.indexOf(currentGroup);
+    if (idx === 0) {
+      // the delete group is the first one, set target video to first item of
+      // next group.
+      if (this.itemGroups.length > 1) {
+        currentThumbnail = this.itemGroups[1].thumbnails[0];
+      } else {
+        // no more videos
+        currentThumbnail = null;
+      }
+    } else {
+      // focus previous video
+      var thumbnails = this.itemGroups[idx - 1].thumbnails;
+      currentThumbnail = thumbnails[thumbnails.length - 1];
+    }
+  } else {
+    idx = currentGroup.thumbnails.indexOf(currentThumbnail);
+    if (idx === 0) {
+      currentThumbnail = currentGroup.thumbnails[1];
+    } else {
+      currentThumbnail = currentGroup.thumbnails[idx - 1];
+    }
+  }
+  return currentThumbnail;
 };

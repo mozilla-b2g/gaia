@@ -92,7 +92,7 @@ span.line-break {
 }
 
 /* All of the main views fill the screen */
-#thumbnail-list-view, #thumbnail-select-view, #fullscreen-view {
+#thumbnail-list-view, #thumbnail-select-view, #player-view {
   position: absolute;
   top: 0;
   left: 0;
@@ -203,6 +203,13 @@ span.line-break {
   border-color:rgba(255,255,255, 0.1);
 }
 
+#video-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
 
 #player {
   /* size and position are set in JS depending on*/
@@ -302,19 +309,19 @@ body.hidden *[data-l10n-id] {
   background: none !important;
 }
 
-.icon-back {
-  pointer-events: none;
-  width: 2.3rem !important;
-}
-
 .icon.icon-done {
   background-image: url('images/iconaction_done_30x30.png') !important;
   background-size: 3rem;
 }
 
-header h1 {
-  font-size: 2.5rem !important;
-  line-height: 5rem !important;
+section[role="region"] > header {
+  background: rgba(0, 0, 0, 0.6);
+}
+
+section[role="region"] header:first-child h1 {
+  font-size: 2.5rem;
+  line-height: 5rem;
+  margin: 0 0 0 3.4rem;
 }
 
 /* the indeterminate progress bar displayed while scanning */
@@ -353,8 +360,6 @@ a.button {
   padding: 0;
   margin: 0;
   border-width: 0;
-  background-position: center center;
-  background-repeat: no-repeat;
 
   /* for buttons that display text */
   font-size: 1.4rem;
@@ -389,6 +394,8 @@ footer {
   left: 0%;
   background-image: url('images/iconaction_video_30x30.png');
   background-size: 3rem;
+  background-position: center center;
+  background-repeat: no-repeat;
 }
 
 #thumbnails-select-button {
@@ -398,6 +405,32 @@ footer {
   left: 50%;
   background-image: url('images/iconaction_select_30x30.png');
   background-size: 3rem;
+  background-position: center center;
+  background-repeat: no-repeat;
+}
+
+.icon-delete {
+  display: block;
+  background-image: url('images/iconaction_delete_30x30.png') !important;
+  background-size: 3rem;
+  background-position: center center;
+  background-repeat: no-repeat;
+}
+
+.icon-share {
+  display: block;
+  background-image: url('images/iconaction_share_30x30.png') !important;
+  background-size: 3rem;
+  background-position: center center;
+  background-repeat: no-repeat;
+}
+
+.icon-info {
+  display: block;
+  background-image: url('images/iconaction_media_info_30x30.png') !important;
+  background-size: 3rem;
+  background-position: center center;
+  background-repeat: no-repeat;
 }
 
 #thumbnails-delete-button {
@@ -415,37 +448,30 @@ footer {
   width: 50%;
   height: 100%;
   left: 50%;
-  background-image: url('images/iconaction_share_30x30.png');
-  background-size: 3rem;
 }
 
-#thumbnails-single-delete-button {
+#videoActionBar .single-delete-button {
   position: absolute;
   width: 35%;
   height: 100%;
   left: 0;
-  background-image: url('images/iconaction_delete_30x30.png');
-  background-size: 3rem;
   border-right: 0.1rem solid #000;
 }
 
-#thumbnails-single-share-button {
+#videoActionBar .single-share-button {
   position: absolute;
   width: 35%;
   height: 100%;
   left: 35%;
-  background-image: url('images/iconaction_share_30x30.png');
-  background-size: 3rem;
 }
 
-#thumbnails-single-info-button {
+#videoActionBar .single-info-button {
   position: absolute;
   width: 30%;
   height: 100%;
   left: 70%;
-  background-image: url('images/iconaction_media_info_30x30.png');
-  background-size: 3rem;
 }
+
 header .icon:after {
   background: none !important;
 }
@@ -463,6 +489,10 @@ header .icon:after {
 }
 #videoControls.hidden {
   opacity: 0;
+}
+
+#videoControls.hidden > * {
+  pointer-events: none;
 }
 
 /* main control bar: play|pause, timeupdate, rwd|fwd
@@ -489,6 +519,124 @@ header .icon:after {
   height: 4.5rem;
 }
 
+#duration-text {
+  right: 0;
+}
+
+#slider-wrapper {
+  position: absolute;
+  top: 0;
+  left: 6.3rem;
+  right: 6.3rem;
+  height: 100%;
+}
+
+#slider-wrapper div {
+  position: absolute;
+  pointer-events: none;
+}
+
+.progress {
+  height: 0.4rem;
+  width: 0%;
+  top: 50%;
+  margin-top: -0.2rem;
+}
+
+/* layout changes for pick activity */
+body:not(.pick-activity) #picker-title,
+body:not(.pick-activity) #picker-done,
+body:not(.pick-activity) #picker-close {
+  display: none;
+}
+
+/* hide options when picking */
+body.pick-activity #videoActionBar,
+body.pick-activity #thumbnails-bottom {
+  display: none;
+}
+
+#two-column-spearator {
+  display: none;
+}
+
+/* details of a thumbnail */
+.thumbnail .details {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+}
+
+.thumbnail .details .title {
+  order: 1;
+  flex: 0 1 auto;
+  align-self: auto;
+  word-break: break-all;
+}
+
+.thumbnail .details .duration-text {
+  order: 2;
+  flex: 0 1 auto;
+  align-self: auto;
+}
+
+.thumbnail .details .size-type-group {
+  order: 3;
+  flex: 0 1 auto;
+  align-self: auto;
+}
+
+
+
+#thumbnail-list-title {
+  display: none;
+}
+
+body:not(.pick-activity) #thumbnail-list-view header {
+  display: none;
+}
+
+/* we don't have fullscreen button when we are not in large layout */
+#fullscreen-button, #fullscreen-tool-bar {
+  display: none;
+}
+
+/* selection mode */
+.layout-selection #thumbnail-list-view,
+.layout-selection #player-view {
+  display: none;
+}
+
+/* list mode */
+.layout-list #thumbnail-select-view,
+.layout-list #player-view {
+  display: none;
+}
+
+/* fullscreen-player mode */
+.layout-fullscreen-player #thumbnail-select-view,
+.layout-fullscreen-player #thumbnail-list-view,
+.layout-fullscreen-player #thumbnails {
+  display: none;
+}
+
+/* spinner is only valid for tablet and landscape mode */
+#spinner-overlay {
+  display: none;
+}
+
+/* move videoBar to bottom when picking */
+body.pick-activity #videoControls #videoBar {
+  bottom: 0rem;
+}
+
+section[role="region"] > header:first-child .icon-back {
+  pointer-events: none;
+  width: 2.3rem;
+}
+
+
 #play {
   background: url(images/button_bg_normal.png) no-repeat center center / 8rem;
   position: absolute;
@@ -500,12 +648,12 @@ header .icon:after {
   z-index: 20;
 }
 
+/* play/pause button */
 #play:active {
   background-image: url(images/button_bg_pressed.png);
   background-size: 8rem;
 }
 
-/* play/pause button */
 #play:after {
   background-image: url("images/pause.png");
   background-position: 2.3rem 0.8rem;
@@ -542,30 +690,6 @@ header .icon:after {
   font-size: 1.2rem;
 }
 
-#duration-text {
-  right: 0;
-}
-
-#slider-wrapper {
-  position: absolute;
-  top: 0;
-  left: 6.3rem;
-  right: 6.3rem;
-  height: 100%;
-}
-
-#slider-wrapper div {
-  position: absolute;
-  pointer-events: none;
-}
-
-.progress {
-  height: 0.4rem;
-  width: 0%;
-  top: 50%;
-  margin-top: -0.2rem;
-}
-
 #elapsedTime {
   background: url(images/timeline_filled.png) no-repeat left center / 100% 0.3rem;
   z-index: 30;
@@ -582,6 +706,7 @@ header .icon:after {
   width: 100%;
 }
 
+/* player head */
 #playHead {
   -moz-transition: background 1s linear;
   background: url(images/scrubber.png) no-repeat center center / 100%;
@@ -637,6 +762,7 @@ header .icon:after {
     background-size: 100% 2.1rem;
   }
 }
+
 
 :focus { outline:none; }
 ::-moz-focus-inner { border:0; }

@@ -10,15 +10,19 @@
     <link rel="stylesheet" type="text/css" href="shared/style/confirm.css" />
     <link rel="stylesheet" type="text/css" href="style/video.css" />
     <link rel="stylesheet" type="text/css" href="style/info.css" />
+    <link rel="stylesheet" type="text/css" href="style/spinner.css" />
+    <link rel="stylesheet" type="text/css" href="style/video_tablet.css" media="(min-height: 768px) and (min-width: 768px)" />
 
     <script defer src="shared/js/l10n.js"></script>
     <script defer src="shared/js/l10n_date.js"></script>
+    <script defer src="shared/js/screen_layout.js"></script>
     <script defer src="shared/js/template.js"></script>
     <script defer src="shared/js/device_storage/enumerate_all.js"></script>
     <script defer src="shared/js/mediadb.js"></script>
     <script defer src="shared/js/media/media_utils.js"></script>
     <script defer src="shared/js/blobview.js"></script>
     <script defer src="shared/js/media/get_video_rotation.js"></script>
+    <script defer src="shared/js/manifest_helper.js"></script>
     <script defer src="js/metadata.js"></script>
     <script defer src="js/db.js"></script>
     <script defer src="js/thumbnail_list.js"></script>
@@ -28,11 +32,12 @@
     <script defer src="js/video.js"></script>
   </head>
   <body role="application" class="skin-dark">
-
+    <div id="two-column-spearator"></div>
     <section role="region" id="thumbnail-list-view">
-      <header id="picker-header" class="hidden">
+      <header>
         <a href="#" id="picker-close"><span class="icon icon-back">back</span></a>
         <h1 id="picker-title" data-l10n-id="pick-title"></h1>
+        <h1 id="thumbnail-list-title">Video</h1>
       </header>
 
       <footer id="thumbnails-bottom">
@@ -41,36 +46,43 @@
       </footer>
     </section>
 
-    <section role="region" id="thumbnail-select-view" class="hidden skin-dark">
+
+    <section role="region" id="thumbnail-select-view" class="skin-dark">
       <header id="thumbnails-select-top">
         <button id="thumbnails-cancel-button"><span class="icon icon-close"></span></button>
         <h1 id="thumbnails-number-selected"></h1>
       </header>
 
       <footer id="thumbnails-select-bottom">
-        <a id="thumbnails-delete-button" class="button"></a>
-        <a id="thumbnails-share-button" class="button"></a>
+        <a id="thumbnails-delete-button" class="button icon-delete"></a>
+        <a id="thumbnails-share-button" class="button icon-share"></a>
       </footer>
     </section>
 
-    <!-- 'fullscreen' (maximized) video player -->
-    <section role="region" id="fullscreen-view" class="hidden">
-      <video src="about:blank" id="player"></video>
+    <!-- (maximized) video player -->
+    <section role="region" id="player-view">
+      <!-- display this at startup while we create thumbnails -->
+      <div id="spinner-overlay" class="hidden"><div id="spinner"></div></div>
+      <div id="video-container">
+        <video src="about:blank" id="player"></video>
+      </div>
       <!-- video controls -->
-      <div id="videoControls" class="hidden">
-
+      <div id="videoControls">
         <section role="region" class="skin-dark">
-
           <header>
             <a href="#" id="close"><span class="icon icon-back">back</span></a>
             <menu type="toolbar">
-              <button id="picker-done" class="hidden"><span class="icon icon-done"></span></button>
+              <span id="fullscreen-tool-bar">
+                <button class="single-delete-button"><span class="icon icon-delete"></span></button>
+                <button class="single-share-button"><span class="icon icon-share"></span></button>
+                <button class="single-info-button"><span class="icon icon-info"></span></button>
+              </span>
+              <button id="picker-done"><span class="icon icon-done"></span></button>
             </menu>
             <h1 id="video-title"></h1>
           </header>
-
           <footer id="videoBar">
-            <button id="play"></button>
+            <button id="play" class="paused"></button>
             <div id="timeSlider">
               <span id="elapsed-text"></span>
               <div id="slider-wrapper">
@@ -81,14 +93,14 @@
               </div>
               <span id="duration-text"></span>
             </div>
+            <div id="fullscreen-button"></div>
           </footer>
           <footer id="videoActionBar">
-            <a id="thumbnails-single-delete-button" class="button"></a>
-            <a id="thumbnails-single-share-button" class="button"></a>
-            <a id="thumbnails-single-info-button" class="button"></a>
+            <a class="button single-delete-button icon-delete"></a>
+            <a class="button single-share-button icon-share"></a>
+            <a class="button single-info-button icon-info"></a>
           </footer>
         </section>
-
       </div>
     </section>
 
@@ -136,8 +148,10 @@
             <div class="details">
               <span class="title">${title}</span>
               <span class="duration-text after line-break"> ${duration-text}</span>
-              <span class="size-text after"> ${size-text}</span>
-              <span class="type-text after"> ${type-text}</span>
+              <span class="size-type-group">
+                <span class="size-text after"> ${size-text}</span>
+                <span class="type-text after"> ${type-text}</span>
+              </span>
             </div>
           </div>
         </li>
