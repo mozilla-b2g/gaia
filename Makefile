@@ -376,7 +376,7 @@ export BUILD_CONFIG
 
 # Generate profile/
 
-$(PROFILE_FOLDER): multilocale applications-data preferences local-apps app-makefiles test-agent-config offline contacts extensions install-xulrunner-sdk .git/hooks/pre-commit $(PROFILE_FOLDER)/settings.json create-default-data $(PROFILE_FOLDER)/installed-extensions.json
+$(PROFILE_FOLDER): multilocale preferences local-apps app-makefiles test-agent-config offline contacts extensions install-xulrunner-sdk .git/hooks/pre-commit $(PROFILE_FOLDER)/settings.json create-default-data $(PROFILE_FOLDER)/installed-extensions.json
 ifeq ($(BUILD_APP_NAME),*)
 	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)$(PROFILE_FOLDER)"
 endif
@@ -442,24 +442,9 @@ app-makefiles: install-xulrunner-sdk
 		fi; \
 	done;
 
-.PHONY: webapp-manifests
-# Generate $(PROFILE_FOLDER)/webapps/
-# We duplicate manifest.webapp to manifest.webapp and manifest.json
-# to accommodate Gecko builds without bug 757613. Should be removed someday.
-#
-# We depend on app-makefiles so that per-app Makefiles could modify the manifest
-# as part of their build step.  None currently do this, and webapp-manifests.js
-# would likely want to change to see if the build directory includes a manifest
-# in that case.  Right now this is just making sure we don't race app-makefiles
-# in case someone does decide to get fancy.
-webapp-manifests: app-makefiles install-xulrunner-sdk
-	@mkdir -p $(PROFILE_FOLDER)/webapps
-	@$(call run-js-command, webapp-manifests)
-	@#cat $(PROFILE_FOLDER)/webapps/webapps.json
-
 .PHONY: webapp-zip
 # Generate $(PROFILE_FOLDER)/webapps/APP/application.zip
-webapp-zip: webapp-manifests webapp-optimize app-makefiles install-xulrunner-sdk
+webapp-zip: applications-data webapp-optimize app-makefiles install-xulrunner-sdk
 ifneq ($(DEBUG),1)
 	@mkdir -p $(PROFILE_FOLDER)/webapps
 	@$(call run-js-command, webapp-zip)
@@ -507,7 +492,7 @@ ifdef VARIANT_PATH
 endif
 
 # Create webapps
-offline: webapp-manifests optimize-clean
+offline: applications-data optimize-clean
 
 # Create an empty reference workload
 .PHONY: reference-workload-empty
@@ -668,7 +653,7 @@ endif
 
 
 # Generate $(PROFILE_FOLDER)/
-applications-data: profile-dir install-xulrunner-sdk
+applications-data: profile-dir app-makefiles install-xulrunner-sdk
 ifeq ($(BUILD_APP_NAME),*)
 	@$(call run-js-command, applications-data)
 endif
@@ -736,7 +721,7 @@ test-perf:
 	APPS="$(APPS)" MARIONETTE_RUNNER_HOST=$(MARIONETTE_RUNNER_HOST) GAIA_DIR="`pwd`" NPM_REGISTRY=$(NPM_REGISTRY) ./bin/gaia-perf-marionette
 
 .PHONY: tests
-tests: webapp-manifests offline
+tests: applications-data offline
 	echo "Checking if the mozilla build has tests enabled..."
 	test -d $(MOZ_TESTS) || (echo "Please ensure you don't have |ac_add_options --disable-tests| in your mozconfig." && exit 1)
 	echo "Checking the injected Gaia..."

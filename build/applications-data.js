@@ -1,12 +1,15 @@
 'use strict';
 
 var utils = require('./utils');
+var webappManifests = require('./webapp-manifests');
 var config;
 
 const PREFERRED_ICON_SIZE = 60;
 const GAIA_CORE_APP_SRCDIR = 'apps';
 const GAIA_EXTERNAL_APP_SRCDIR = 'external-apps';
 const INSTALL_TIME = 132333986000; // Match this to value in webapp-manifests.js
+
+var webapps = {};
 
 // Initial Homescreen icon descriptors.
 
@@ -48,12 +51,8 @@ function bestMatchingIcon(preferred_size, manifest, origin) {
   return origin + url;
 }
 
-function getIconInfo(directory, app_name, entry_point) {
+function getCollectionManifest(directory, app_name) {
   let gaia = utils.getGaia(config);
-  let origin = utils.gaiaOriginURL(app_name, config.GAIA_SCHEME,
-    config.GAIA_DOMAIN, config.GAIA_PORT);
-  let manifestURL = utils.gaiaManifestURL(app_name,
-    config.GAIA_SCHEME,  config.GAIA_DOMAIN, config.GAIA_PORT);
 
   // Locate the directory of a given app.
   // If the directory (Gaia.distributionDir)/(directory)/(app_name) exists,
@@ -66,61 +65,39 @@ function getIconInfo(directory, app_name, entry_point) {
     dir = utils.getFile(config.GAIA_DIR, directory, app_name);
   }
 
-  // For external/3rd party apps that don't use the Gaia domain, we have an
-  // 'metadata.json' file that specifies the URL.
-  let metadataFile = dir.clone();
-  metadataFile.append('metadata.json');
-  if (metadataFile.exists()) {
-    let metadata = utils.getJSON(metadataFile);
-    origin = metadata.origin.replace(/^\s+|\s+$/, '');
-    manifestURL = metadata.manifestURL;
-    if (manifestURL) {
-      manifestURL = manifestURL.replace(/^\s+|\s+$/, '');
-    } else if (origin.slice(-1) == '/') {
-      manifestURL = origin + 'manifest.webapp';
-    } else {
-      manifestURL = origin + '/manifest.webapp';
-    }
-  }
-
   let manifestFile = dir.clone();
-  manifestFile.append('manifest.webapp');
-  let manifest;
+  // Looking for a homescreen's collection
+  manifestFile.append('manifest.collection');
   if (manifestFile.exists()) {
-    manifest = utils.getJSON(manifestFile);
-  } else {
-    manifestFile = dir.clone();
-    // Looking for a homescreen's collection
-    manifestFile.append('manifest.collection');
-    if (manifestFile.exists()) {
-      manifest = utils.getJSON(manifestFile);
-    } else {
-      manifestFile = dir.clone();
-      manifestFile.append('update.webapp');
-      // Looking for packaged app
-      manifest = utils.getJSON(manifestFile);
-    }
+    return utils.getJSON(manifestFile);
   }
 
-  if (entry_point &&
-      manifest.entry_points &&
-      manifest.entry_points[entry_point]) {
-    manifest = manifest.entry_points[entry_point];
-  }
-
-  return {
-    origin: origin,
-    manifestURL: manifestURL,
-    manifest: manifest
-  }
+  return null;
 }
 
 function iconDescriptor(directory, app_name, entry_point) {
-  let info = getIconInfo(directory, app_name, entry_point);
+  let manifest = null;
+  let origin = null;
+  let manifestURL = null;
 
-	let manifest = info.manifest;
-  let origin = info.origin;
-  let manifestURL = info.manifestURL;
+  if (!webapps[app_name]) {
+    manifest = getCollectionManifest(directory, app_name);
+    if (!manifest) {
+      throw new Error(
+        'Can not find application ' + app_name + ' at ' + directory
+      );
+    }
+  } else {
+    manifest = webapps[app_name].manifest;
+    if (entry_point &&
+      manifest.entry_points &&
+      manifest.entry_points[entry_point]) {
+    manifest = manifest.entry_points[entry_point];
+    }
+
+    origin = webapps[app_name].webappsJson.origin;
+    manifestURL = webapps[app_name].webappsJson.manifestURL;
+  }
 
   let descriptor = {
     //TODO set localizedName once we know the default locale
@@ -129,7 +106,7 @@ function iconDescriptor(directory, app_name, entry_point) {
     name: manifest.name
   };
 
-	if (manifest.role === 'collection') {
+  if (manifest.role === 'collection') {
     origin = utils.gaiaOriginURL('homescreen', config.GAIA_SCHEME,
     config.GAIA_DOMAIN, config.GAIA_PORT);
     manifestURL = origin + '/collections/' + app_name + '/manifest.collection';
@@ -137,11 +114,11 @@ function iconDescriptor(directory, app_name, entry_point) {
     descriptor.role = manifest.role;
     descriptor.removable = true; // Collections are removable by default
 
-		// Iterating local apps installed in the collection by default
+    // Iterating local apps installed in the collection by default
     let apps = [];
     if (Array.isArray(manifest.apps)) {
       manifest.apps.forEach(function iterate(app) {
-        let iconInfo = getIconInfo.apply(null, app);
+        let iconInfo = iconDescriptor.apply(null, app);
         app.splice(0, 2, iconInfo.manifestURL);
         apps.push(app);
       });
@@ -152,7 +129,7 @@ function iconDescriptor(directory, app_name, entry_point) {
   descriptor.manifestURL = manifestURL;
   descriptor.icon = bestMatchingIcon(PREFERRED_ICON_SIZE, manifest, origin);
 
-	return descriptor;
+  return descriptor;
 }
 
 function customizeHomescreen(options) {
@@ -300,6 +277,8 @@ function customizeHomescreen(options) {
 }
 
 function execute(options) {
+  webapps = webappManifests.execute(options);
+
   var distDir = options.GAIA_DISTRIBUTION_DIR;
 
   // Homescreen
