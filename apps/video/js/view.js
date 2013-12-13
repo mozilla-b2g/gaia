@@ -55,7 +55,13 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     dom.player.classList.add('hidden');
     // video rotation is not parsed, parse it.
     getVideoRotation(blob, function(rotation) {
-      videoRotation = rotation;
+      // when error found, fallback to 0
+      if (typeof rotation === 'string') {
+        console.error('get video rotation error: ' + rotation);
+        videoRotation = 0;
+      } else {
+        videoRotation = rotation;
+      }
       // show player when player size and rotation are correct.
       dom.player.classList.remove('hidden');
       // start to play the video that showPlayer also calls fitContainer.
@@ -79,8 +85,8 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     // so we'll play the video without going into fullscreen mode.
 
     // Get all the elements we use by their id
-    var ids = ['player', 'fullscreen-view', 'videoControls',
-               'close', 'play', 'playHead',
+    var ids = ['player', 'player-view', 'videoControls',
+               'close', 'play', 'playHead', 'video-container',
                'elapsedTime', 'video-title', 'duration-text', 'elapsed-text',
                'slider-wrapper', 'spinner-overlay',
                'menu', 'save', 'banner', 'message'];
@@ -97,16 +103,16 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
 
     dom.player.mozAudioChannelType = 'content';
 
-    // show|hide controls over the player
-    dom.videoControls.addEventListener('touchstart', handlePlayerTouchStart);
-    dom.videoControls.addEventListener('touchmove', handlePlayerTouchMove);
-    dom.videoControls.addEventListener('touchend', handlePlayerTouchEnd);
+    // handling the dragging of slider
+    dom.sliderWrapper.addEventListener('touchstart', handleSliderTouchStart);
+    dom.sliderWrapper.addEventListener('touchmove', handleSliderTouchMove);
+    dom.sliderWrapper.addEventListener('touchend', handleSliderTouchEnd);
 
     // Rescale when window size changes. This should get called when
     // orientation changes.
     window.addEventListener('resize', function() {
       if (dom.player.readyState !== dom.player.HAVE_NOTHING) {
-        VideoUtils.fitContainer(dom.fullscreenView, dom.player,
+        VideoUtils.fitContainer(dom.videoContainer, dom.player,
                                 videoRotation || 0);
       }
     });
@@ -120,6 +126,13 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     dom.player.addEventListener('pause', hideSpinner);
     dom.player.addEventListener('ended', playerEnded);
     dom.player.addEventListener('canplaythrough', hideSpinner);
+
+    // option buttons
+    dom.play.addEventListener('click', handlePlayButtonClick);
+    dom.close.addEventListener('click', done);
+    dom.save.addEventListener('click', save);
+    // show/hide controls
+    dom.videoControls.addEventListener('click', toggleVideoControls, true);
 
     // Set the 'lang' and 'dir' attributes to <html> when the page is translated
     window.addEventListener('localized', function showBody() {
@@ -147,39 +160,53 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     }
   }
 
-  function handlePlayerTouchStart(event) {
+  function handlePlayButtonClick() {
+    if (dom.play.classList.contains('paused'))
+      play();
+    else
+      pause();
+  }
+
+  function toggleVideoControls(e) {
+    // When we change the visibility state of video controls, we need to check
+    // the timeout of auto hiding.
+    if (controlFadeTimeout) {
+      clearTimeout(controlFadeTimeout);
+      controlFadeTimeout = null;
+    }
+    // We cannot change the visibility state of video contorls when we are in
+    // picking mode.
+    if (!controlShowing) {
+      // If control not shown, tap any place to show it.
+      setControlsVisibility(true);
+      e.cancelBubble = true;
+    } else if (e.originalTarget === dom.videoControls) {
+      // If control is shown, only tap the empty area should show it.
+      setControlsVisibility(false);
+    }
+  }
+
+  function handleSliderTouchStart(event) {
     // If we have a touch start event, we don't need others.
     if (null != touchStartID) {
       return;
     }
     touchStartID = event.changedTouches[0].identifier;
-    // If we interact with the controls before they fade away,
-    // cancel the fade
-    if (controlFadeTimeout) {
-      clearTimeout(controlFadeTimeout);
-      controlFadeTimeout = null;
-    }
-    if (!controlShowing) {
-      setControlsVisibility(true);
-      // add preventDefault to prevent click dispatching.
-      event.preventDefault();
+
+    isPausedWhileDragging = dom.player.paused;
+    dragging = true;
+    // calculate the slider wrapper size for slider dragging.
+    sliderRect = dom.sliderWrapper.getBoundingClientRect();
+
+    // We can't do anything if we don't know our duration
+    if (dom.player.duration === Infinity)
       return;
+
+    if (!isPausedWhileDragging) {
+      dom.player.pause();
     }
-    if (event.target == dom.play) {
-      if (dom.play.classList.contains('paused'))
-        play();
-      else
-        pause();
-    } else if (event.target == dom.close) {
-      done();
-      event.preventDefault();
-    } else if (event.target == dom.save) {
-      save();
-    } else if (event.target == dom.sliderWrapper) {
-      dragSlider(event);
-    } else {
-      setControlsVisibility(false);
-    }
+
+    handleSliderTouchMove(event);
   }
 
   function done() {
@@ -227,7 +254,7 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
       timeUpdated();
 
       dom.play.classList.remove('paused');
-      VideoUtils.fitContainer(dom.fullscreenView, dom.player,
+      VideoUtils.fitContainer(dom.videoContainer, dom.player,
                               videoRotation || 0);
 
       dom.player.currentTime = 0;
@@ -349,25 +376,7 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
       dom.playHead.style.left = percent;
   }
 
-  // handle drags on the time slider
-  function dragSlider(e) {
-    isPausedWhileDragging = dom.player.paused;
-    dragging = true;
-    // calculate the slider wrapper size for slider dragging.
-    sliderRect = dom.sliderWrapper.getBoundingClientRect();
-
-    // We can't do anything if we don't know our duration
-    if (dom.player.duration === Infinity)
-      return;
-
-    if (!isPausedWhileDragging) {
-      dom.player.pause();
-    }
-
-    handlePlayerTouchMove(e);
-  }
-
-  function handlePlayerTouchEnd(event) {
+  function handleSliderTouchEnd(event) {
     // We don't care the event not related to touchStartID
     if (!event.changedTouches.identifiedTouch(touchStartID)) {
       return;
@@ -390,7 +399,7 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     }
   }
 
-  function handlePlayerTouchMove(event) {
+  function handleSliderTouchMove(event) {
     if (!dragging) {
       return;
     }

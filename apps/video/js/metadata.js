@@ -32,6 +32,8 @@
 var metadataQueue = [];
 var processingQueue = false;
 var stopParsingMetadataCallback = null;
+// noMoreWorkCallback is fired when the queue is processed or empty.
+var noMoreWorkCallback = null;
 
 // This function queues a fileinfo object with no metadata. When the app is
 // able it will obtain metadata for the video and pass the updated fileinfo
@@ -43,9 +45,19 @@ function addToMetadataQueue(fileinfo) {
 
 // Start or resume metadata parsing, if conditions are right
 function startParsingMetadata() {
-  // If there is no work queued, or if we're already working, return right away
-  if (processingQueue || metadataQueue.length === 0)
+  // If we're already working, return right away
+  if (processingQueue)
     return;
+
+  // If there is no work queued, fire noMoreWorkCallback event and return right
+  // away.
+  if (metadataQueue.length === 0) {
+    if (noMoreWorkCallback) {
+      noMoreWorkCallback();
+      noMoreWorkCallback = null;
+    }
+    return;
+  }
 
   // Don't parse metadata if we are not the foreground app. When we're
   // in the background we need to allow the foreground app to use the
@@ -105,6 +117,7 @@ function processFirstQueuedItem() {
     processingQueue = false;
     hideThrobber();
     updateDialog();
+    noMoreWorkCallback();
     return;
   }
 
@@ -114,6 +127,7 @@ function processFirstQueuedItem() {
   // processFirstQueuedItem() again to re-check the stop flag and process
   // the next item on the queue.
   var fileinfo = metadataQueue.shift();
+
   videodb.getFile(fileinfo.name, function(file) {
     getMetadata(file, function(metadata) {
       // Associate the metadata with this fileinfo object

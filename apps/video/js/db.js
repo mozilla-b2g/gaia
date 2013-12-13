@@ -41,6 +41,7 @@ function initDB() {
   videodb.onscanend = function() {
     firstScanEnded = true;
     updateDialog();
+    updateLoadingSpinner();
   };
 
   videodb.oncreated = function(event) {
@@ -111,6 +112,7 @@ function addVideo(videodata) {
   var view = thumbnailList.addItem(videodata);
   // thumbnailClickHandler is defined in video.js
   view.addTapListener(thumbnailClickHandler);
+  view.updateTitleText();
 
   // If we just added the first video we need to hide the "no video" overlay
   if (thumbnailList.count === 1) {
