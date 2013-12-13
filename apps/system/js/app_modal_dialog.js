@@ -8,8 +8,8 @@
    * The ModalDialog of the appWindow.
    *
    * @class AppModalDialog
-   * @param {AppWindow} app The app
-   *                        window instance this modal dialog belongs to.
+   * @param {AppWindow} app The app window instance
+   *                        where this dialog should popup.
    */
   window.AppModalDialog = function AppModalDialog(app) {
     this.app = app;

@@ -4,15 +4,15 @@
   var _id = 0;
 
   /**
-   * The authentication dialog of the appWindow.
+   * The https authentication dialog of the appWindow.
    *
    * @class AppAuthenticationDialog
-   * @param {AppWindow} app The app window instance this dialog belongs to.
+   * @param {AppWindow} app The app window instance
+   *                        where this dialog should popup.
    */
   window.AppAuthenticationDialog = function AppAuthenticationDialog(app) {
     this.app = app;
     this._event = null;
-    this.elements = {};
     this.containerElement = app.element;
     this.instanceID = _id++;
     this._injected = false;
@@ -40,25 +40,26 @@
   // Get all elements when inited.
   AppAuthenticationDialog.prototype._fetchElements =
     function aad__fetchElements() {
-      this.element = document.getElementById(this.CLASS_NAME + this.instanceID);
+    this.element = document.getElementById(this.CLASS_NAME + this.instanceID);
+    this.elements = {};
 
-      var toCamelCase = function toCamelCase(str) {
-        return str.replace(/\-(.)/g, function replacer(str, p1) {
-          return p1.toUpperCase();
-        });
-      };
-
-      this.elementClasses = [
-        'http-authentication', 'http-username-input', 'http-password-input',
-        'http-authentication-message', 'http-authentication-ok',
-        'http-authentication-cancel', 'title'
-      ];
-
-      this.elementClasses.forEach(function createElementRef(name) {
-        this.elements[toCamelCase(name)] =
-          this.element.querySelector('.' + this.ELEMENT_PREFIX + name);
-      }, this);
+    var toCamelCase = function toCamelCase(str) {
+      return str.replace(/\-(.)/g, function replacer(str, p1) {
+        return p1.toUpperCase();
+      });
     };
+
+    this.elementClasses = [
+      'http-authentication', 'http-username-input', 'http-password-input',
+      'http-authentication-message', 'http-authentication-ok',
+      'http-authentication-cancel', 'title'
+    ];
+
+    this.elementClasses.forEach(function createElementRef(name) {
+      this.elements[toCamelCase(name)] =
+        this.element.querySelector('.' + this.ELEMENT_PREFIX + name);
+    }, this);
+  };
 
   AppAuthenticationDialog.prototype.view = function aad_view() {
     return '<div class="authentication-dialog" ' +
@@ -86,8 +87,8 @@
               '<button ' +
               'class="authentication-dialog-http-authentication-cancel" ' +
               'data-l10n-id="cancel">Cancel</button>' +
-              '<button class="authentication-dialog-http-authentication-ok" ' +
-              'data-l10n-id="login" class="affirmative">Login</button>' +
+              '<button class="authentication-dialog-http-authentication-ok ' +
+              'affirmative" data-l10n-id="login">Login</button>' +
             '</menu>' +
           '</div>' +
         '</div>';
