@@ -1,15 +1,14 @@
 'use strict';
 
-requireApp('system/shared/test/unit/mocks/mock_icc_helper.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+requireApp('system/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
 
 requireApp('system/shared/js/operator_variant_helper.js');
-
-var mocksForOperatorVariant = new MocksHelper([
-  'IccHelper'
-]).init();
+requireApp('system/js/operator_variant/operator_variant.js');
 
 suite('Operator variant', function() {
+  const FAKE_ICC_ID = '8934071100276980483';
+  const FAKE_ICC_CARD_INDEX = '0';
   const TEST_NETWORK_MCC = '001';
 
   const EXPECTED_MNC = '01';
@@ -59,34 +58,34 @@ suite('Operator variant', function() {
     { key: 'ril.cellbroadcast.searchlist', value: '0,1,2,3' }
   ];
 
-  var realMozMobileConnection;
-  var realMozSettings;
+  var realMozSettings, realMozIccManager;
 
-  mocksForOperatorVariant.attachTestHelpers();
+  var mozIcc;
+
   suiteSetup(function() {
-    MockIccHelper.mProps.cardState = 'ready';
-
     realMozSettings = navigator.mozSettings;
     navigator.mozSettings = MockNavigatorSettings;
 
-    // The code being run in the anonymous function in this js file is dependent
-    // on the mocks being setup properly. If we load it with the rest of the js
-    // files it will always fail to run.
-    requireApp('system/js/operator_variant/operator_variant.js');
+    realMozIccManager = navigator.mozIccManager;
+    navigator.mozIccManager = MockNavigatorMozIccManager;
   });
 
   suiteTeardown(function() {
-    navigator.mozMobileConnection = realMozMobileConnection;
     navigator.mozSettings = realMozSettings;
+    navigator.mozIccManager = realMozIccManager;
   });
 
   setup(function() {
-    MockIccHelper.mProps.iccInfo = NULL_ICC_INFO;
-    MockIccHelper.mTriggerEventListeners('iccinfochange', {});
+    mozIcc = {
+      'cardState': 'ready'
+    };
+    MockNavigatorMozIccManager.addIcc(FAKE_ICC_ID, mozIcc);
+    MockNavigatorMozIccManager.getIccById(FAKE_ICC_ID).iccInfo =
+      NULL_ICC_INFO;
   });
 
   teardown(function() {
-    MockIccHelper.mProps.iccInfo = NULL_ICC_INFO;
+    MockNavigatorMozIccManager.mTeardown();
   });
 
   function setObservers(keyValues, observer, remove) {
@@ -134,8 +133,9 @@ suite('Operator variant', function() {
 
     setObservers(KEYS_VALUES, observer);
 
-    MockIccHelper.mProps.iccInfo = EXPECTED_ICC_INFO;
-    MockIccHelper.mTriggerEventListeners('iccinfochange', {});
+    MockNavigatorMozIccManager.getIccById(FAKE_ICC_ID).iccInfo =
+      EXPECTED_ICC_INFO;
+    OperatorVariantHandler.handleICCCard(FAKE_ICC_ID, FAKE_ICC_CARD_INDEX);
   });
 
   test('operator variant apply once per boot', function() {
@@ -164,10 +164,17 @@ suite('Operator variant', function() {
     MockNavigatorSettings.addObserver('ril.data.carrier', observer.bound);
 
     // Testing apply once per boot requires *real* mcc/mnc information.
-    MockIccHelper.mProps.iccInfo = T_MOBILE_160_US_ICC_INFO;
-    MockIccHelper.mTriggerEventListeners('iccinfochange', {});
+    MockNavigatorMozIccManager.getIccById(FAKE_ICC_ID).iccInfo =
+      T_MOBILE_160_US_ICC_INFO;
+    OperatorVariantHandler.handleICCCard(FAKE_ICC_ID, FAKE_ICC_CARD_INDEX);
+    MockNavigatorMozIccManager.getIccById(FAKE_ICC_ID).triggerEventListeners(
+      'iccinfochange', {}
+    );
 
-    MockIccHelper.mProps.iccInfo = T_MOBILE_200_US_ICC_INFO;
-    MockIccHelper.mTriggerEventListeners('iccinfochange', {});
+    MockNavigatorMozIccManager.getIccById(FAKE_ICC_ID).iccInfo =
+      T_MOBILE_200_US_ICC_INFO;
+    MockNavigatorMozIccManager.getIccById(FAKE_ICC_ID).triggerEventListeners(
+      'iccinfochange', {}
+    );
   });
 });
