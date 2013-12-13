@@ -463,6 +463,15 @@ window.fb = fb;
         }
       }
 
+      function finishHandler() {
+        // It is needed to flush in order to properly update the index
+        var req = fb.contacts.flush();
+        req.onsuccess = notifySuccess;
+        req.onerror = function cleaner_flushError() {
+          errorHandler(null, req.error);
+        };
+      }
+
       function continueCb() {
         next++;
         numResponses++;
@@ -472,7 +481,7 @@ window.fb = fb;
             cleanContacts(next);
           }
           else if (mustFinish && !holded) {
-            notifySuccess();
+            finishHandler();
           }
 
           if (mustHold) {
@@ -481,7 +490,7 @@ window.fb = fb;
         }
         else if (next >= total) {
           // End has been reached
-          notifySuccess();
+          finishHandler();
         }
       } // function
     }; // FbContactsCleaner
