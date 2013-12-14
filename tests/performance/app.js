@@ -85,9 +85,6 @@ PerfTestApp.prototype = {
       fs.readFileSync('./tests/performance/performance_helper_atom.js') + '\n'
     );
 
-    this.client.executeScript(
-      this.PERFORMANCE_ATOM + '.register();'
-    );
   },
 
   waitForPerfEvents: function(stopEventName, callback) {
@@ -95,7 +92,8 @@ PerfTestApp.prototype = {
     var self = this;
 
     this.client.executeAsyncScript(
-      this.PERFORMANCE_ATOM + '.waitForEvent("' + stopEventName + '");',
+      this.PERFORMANCE_ATOM + '.waitForEvent("' + stopEventName +
+        '", function() { marionetteScriptFinished(); });',
       function() {
         var runResults = client.executeScript(
           'return ' + self.PERFORMANCE_ATOM + '.getMeasurements();'

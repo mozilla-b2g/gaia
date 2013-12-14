@@ -24,6 +24,7 @@
   }
 
   var finalEventName;
+  var finishCallback;
 
   function handlePerfEvent(e) {
     var evtName = e.detail.name;
@@ -34,15 +35,18 @@
     checkFinish();
   }
 
-  function checkFinish(name) {
+  function checkFinish(name, cb) {
     if (name) {
       finalEventName = name;
+    }
+    if (cb) {
+      finishCallback = cb;
     }
 
     debug('waiting for ', finalEventName);
 
     if (finalEventName && finalEventName in perfMeasurements) {
-      finish();
+      finishCallback();
     }
   }
 
@@ -68,7 +72,6 @@
       window[PERF_FLAG_NAME] = hasRegistered = true;
 
       debug('end registering');
-      marionetteScriptFinished();
     },
 
     unregister: function() {
@@ -81,8 +84,10 @@
       marionetteScriptFinished();
     },
 
-    waitForEvent: function(name) {
-      checkFinish(name);
+    waitForEvent: function(name, cb) {
+      checkFinish(name, cb);
     }
   };
 })(window.wrappedJSObject);
+
+window.wrappedJSObject.PerformanceHelperAtom.register()
