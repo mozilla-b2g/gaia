@@ -8,16 +8,6 @@ var Search = {
   providers: {},
 
   init: function() {
-    navigator.mozSetMessageHandler('connection', function(connectionRequest) {
-      var keyword = connectionRequest.keyword;
-      if (keyword != 'search')
-        return;
-
-      var port = connectionRequest.port;
-      port.onmessage = this.onSearchInput.bind(this);
-      port.start();
-    }.bind(this));
-
     this.suggestions.addEventListener('click', this.resultClick.bind(this));
 
     // Initialize the parent port connection
@@ -29,12 +19,36 @@ var Search = {
           ports.forEach(function(port) {
             self._port = port;
           });
+
+          setConnectionHandler();
         },
         function onConnectionRejected(reason) {
           dump('Error connecting: ' + reason + '\n');
         }
       );
     };
+
+    function setConnectionHandler() {
+      navigator.mozSetMessageHandler('connection', function(connectionRequest) {
+        var keyword = connectionRequest.keyword;
+        var port = connectionRequest.port;
+        if (keyword === 'eme-client') {
+          port.onmessage = self.providers.EverythingMe.onmessage
+            .bind(self.providers.EverythingMe);
+          port.start();
+        } else if (keyword === 'search') {
+          port.onmessage = self.onSearchInput.bind(self);
+          port.start();
+        }
+      });
+      initializeProviders();
+    }
+
+    function initializeProviders() {
+      for (var i in self.providers) {
+        self.providers[i].init();
+      }
+    }
   },
 
   /**
@@ -76,4 +90,4 @@ var Search = {
   }
 };
 
-Search.init();
+window.addEventListener('load', Search.init.bind(Search));

@@ -1,6 +1,6 @@
 {
   "name": "Search Results",
-  "type": "privileged",
+  "type": "certified",
   "role": "search",
   "description": "Search Results",
   "launch_path": "/index.html",
@@ -19,6 +19,23 @@
     "128": "/style/icons/Blank.png"
   },
   "permissions": {
+    "webapps-manage":{},
     "contacts":{ "access": "readonly" }
+  },
+  "connections": {
+    "search": {
+      "handler_path": "index.html",
+      "description": "Proxies search to copied search app. Should be moved to the search app manifest if we split the app up.",
+      "rules": {
+        "manifestURLs": ["app://system.gaiamobile.org/manifest.webapp"]
+      }
+    },
+    "eme-client": {
+      "handler_path": "index.html",
+      "description": "Handles message from the E.me app.",
+      "rules": {
+        "manifestURLs": ["app://homescreen.gaiamobile.org/manifest.webapp"]
+      }
+    }
   }
 }

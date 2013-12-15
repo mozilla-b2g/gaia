@@ -1,7 +1,8 @@
 'use strict';
 
-var realMozSetMessageHandler = navigator.mozSetMessageHandler, msgHandler;
+var realMozSetMessageHandler = navigator.mozSetMessageHandler;
+var msgHandler = {};
 
 navigator.mozSetMessageHandler = function(type, handler) {
-  msgHandler = handler;
+  msgHandler[type] = handler;
 };
