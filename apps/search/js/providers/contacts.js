@@ -7,6 +7,11 @@
   }
 
   Contacts.prototype = {
+
+    init: function() {
+
+    },
+
     click: function(target) {
       Search.close();
       var activity = new MozActivity({
