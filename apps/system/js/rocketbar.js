@@ -20,6 +20,7 @@ var Rocketbar = {
     var input = document.getElementById('search-input');
     var self = this;
     input.addEventListener('input', function onInput(e) {
+      console.log('Rocketbar: Posting from system:', input.value);
       self._port.postMessage({ 'input': input.value });
     });
 
@@ -99,6 +100,7 @@ var Rocketbar = {
   },
 
   onSearchMessage: function(msg) {
+    console.log('Rocketbar: Got system message:', msg);
     if (msg.data.action && msg.data.action === 'close') {
       this.hide();
     } else if (msg.data.input) {
