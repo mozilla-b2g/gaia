@@ -58,12 +58,9 @@
     { "alarm": "/index.html" }
   ],
   "connections": {
-    "search": {
-      "handler_path": "search/index.html",
-      "description": "Proxies search to copied search app. Should be moved to the search app manifest if we split the app up.",
-      "rules": {
-        "manifestURLs": ["app://system.gaiamobile.org/manifest.webapp"]
-      }
+    "eme-api": {
+      "description": "Handles connections from the E.me api.",
+      "rules": {}
     }
   }
 }

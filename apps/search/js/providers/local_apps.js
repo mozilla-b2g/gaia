@@ -15,6 +15,10 @@
 
   LocalApps.prototype = {
 
+    init: function() {
+
+    },
+
     click: function(target) {
       var manifestURL = target.getAttribute('data-manifest');
       if (manifestURL && this.apps[manifestURL]) {
