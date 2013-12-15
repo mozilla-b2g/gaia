@@ -329,6 +329,16 @@
   };
 
   /**
+   * An appWindow is dead if somebody requested it to be killed.
+   *
+   * @return {Boolean} The instance is dead or not.
+   */
+  AppWindow.prototype.isDead = function aw_isDead() {
+    return (this._killed);
+  };
+
+
+  /**
    * Destroy the instance.
    * @fires AppWindow#appdestroyed
    */
