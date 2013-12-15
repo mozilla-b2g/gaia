@@ -4,9 +4,8 @@
 
 /* Main dialog setup */
 form[role="dialog"][data-type="confirm"] {
-  background:
-    url(confirm/images/ui/pattern.png) repeat left top,
-    url(confirm/images/ui/gradient.png) no-repeat left top / 100% 100%;
+  background: url(confirm/images/ui/pattern.png) repeat left top,
+    -moz-radial-gradient( 50% 0%, circle farthest-corner, rgba(59,59,59,0.9) 0%, rgba(59,59,59,1) 66%);
   overflow: hidden;
   position: absolute;
   z-index: 100;
