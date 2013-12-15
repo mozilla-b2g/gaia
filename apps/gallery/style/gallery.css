@@ -161,7 +161,7 @@ body.cropView #crop-view {
    * keep the thumbnail view opaque if possible.
    */
   background-color: #0E1214;
-  will-animate: scroll;
+  will-change: scroll;
   /*
    * set it visible/hidden by LAYOUT_MODE
    */
@@ -322,7 +322,7 @@ body.pickView #thumbnails {
   margin: 0;
   overflow: hidden;
   -moz-user-select: none;
-  will-animate: scroll;
+  will-change: scroll;
 }
 
 .frame > img {

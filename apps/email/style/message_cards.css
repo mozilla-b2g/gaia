@@ -7,7 +7,7 @@
   height: 100%;
   overflow-y: auto;
   overflow-x: hidden;
-  will-animate: scroll;
+  will-change: scroll;
 }
 .msg-list-scrollinner {
   /* force the card to be tall enough so we can scroll the search bit out of the
