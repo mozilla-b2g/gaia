@@ -89,12 +89,25 @@ var CallSettings = (function(window, document, undefined) {
         return;
       }
 
-      if (e.detail.current !== '#call' ||
-          e.detail.previous.startsWith('#call-cf-') ||
-          e.detail.previous === '#call-voiceMailSettings') {
-        return;
+      switch (e.detail.current) {
+        case '#call':
+          // No need to refresh the call settings items if navigated from
+          // panels not manipulating call settings.
+          if (e.detail.previous.startsWith('#call-cf-') ||
+              e.detail.previous === '#call-voiceMailSettings') {
+            return;
+          }
+          cs_refreshCallSettingItems();
+          break;
+        case '#call-voiceMailSettings':
+          // If current panel is 'Voicemail Settings', focus input field to
+          // trigger showing the keyboard
+          var voicemailNumberInput = document.getElementById('vm-number');
+          var cursorPos = voicemailNumberInput.value.length;
+          voicemailNumberInput.focus();
+          voicemailNumberInput.setSelectionRange(0, cursorPos);
+          break;
       }
-      cs_refreshCallSettingItems();
     });
 
     // We need to refresh call setting items as they can be changed in dialer.

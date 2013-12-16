@@ -97,6 +97,10 @@ navigator.mozL10n.ready(function bluetoothSettings() {
       }
       updateNameInput.value = myName;
       updateNameDialog.hidden = false;
+      // Focus the input field to trigger showing the keyboard
+      updateNameInput.focus();
+      var cursorPos = updateNameInput.value.length;
+      updateNameInput.setSelectionRange(0, cursorPos);
     };
 
     updateNameCancelButton.onclick = function updateNameCancelClicked(evt) {
