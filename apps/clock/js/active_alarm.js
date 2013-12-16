@@ -9,9 +9,7 @@ define('active_alarm', function(require) {
   var Utils = require('utils');
   var View = require('view');
 
-  function ActiveAlarm(opts = {}) {
-    this.firedAlarm = null;
-    this.message = null;
+  function ActiveAlarm() {
     this.childWindow = null;
     this.initialized = false;
     this.ringerWaitList = [];
@@ -19,11 +17,13 @@ define('active_alarm', function(require) {
 
   ActiveAlarm.singleton = Utils.singleton(ActiveAlarm);
 
-  var MessageTypes = {
-    alarm: ['normal', 'snooze'],
-    timer: ['timer'],
-    ringer: ['ringer'],
-    close: ['close-alarm', 'close-timer']
+  var messageHandlerMapping = {
+    normal: 'onAlarm',
+    snooze: 'onAlarm',
+    timer: 'onTimer',
+    ringer: 'onRingerReady',
+    'close-alarm': 'onClose',
+    'close-timer': 'onClose'
   };
 
   ActiveAlarm.prototype = {
@@ -47,20 +47,11 @@ define('active_alarm', function(require) {
       var success = false;
       Utils.safeWakeLock({timeoutMs: 30000}, function(done) {
         if (typeof message !== 'undefined') {
-          var type = Utils.data.find(['data.type', 'type'],
-            Utils.safe.bind(null, message));
-          if (type) {
-            var funcName;
-            for (var at in MessageTypes) {
-              if (typeof this[at] === 'function') {
-                MessageTypes[at].some(function(x) {
-                  if (x === type.result) {
-                    funcName = at;
-                    return true;
-                  }
-                });
-              }
-            }
+          var messageType = (typeof message.data === 'object' &&
+                            typeof message.data.type === 'string') ?
+            message.data.type : message.type;
+          if (messageType && messageType in messageHandlerMapping) {
+            var funcName = messageHandlerMapping[messageType];
             if (funcName) {
               this[funcName].call(this, message, done);
               success = true;
@@ -73,7 +64,7 @@ define('active_alarm', function(require) {
       }.bind(this));
     },
 
-    ringer: function aac_ringer(msg, done) {
+    onRingerReady: function aac_ringerReady(msg, done) {
       if (msg.data.status === 'READY') {
         while (true) {
           var el = this.ringerWaitList.shift();
@@ -104,7 +95,7 @@ define('active_alarm', function(require) {
       }
     },
 
-    alarm: function aac_alarm(message, done) {
+    onAlarm: function aac_onAlarm(message, done) {
       /*
        * We maintain an alarm's life cycle immediately when the alarm goes off.
        * If user click the snooze button when the alarm goes off,
@@ -137,7 +128,6 @@ define('active_alarm', function(require) {
           done();
           return;
         }
-        this.firedAlarm = alarm;
         if (type === 'normal') {
           alarm.schedule({
             type: 'normal',
@@ -159,7 +149,7 @@ define('active_alarm', function(require) {
       }.bind(this));
     },
 
-    timer: function aac_timer(message, done) {
+    onTimer: function aac_onTimer(message, done) {
       Timer.request(function(err, timer) {
         if (err && !timer) {
           timer = Timer.singleton().toSerializable();
@@ -174,9 +164,9 @@ define('active_alarm', function(require) {
       }.bind(this));
     },
 
-    snooze: function aac_snooze(message, done) {
+    onSnooze: function aac_onSnooze(message, done) {
       Utils.safeWakeLock({timeoutMs: 30000}, function(done) {
-        var id = this.firedAlarm.id;
+        var id = message.data.id;
         AlarmsDB.getAlarm(id, function aac_gotAlarm(err, alarm) {
           if (err) {
             return;
@@ -192,7 +182,7 @@ define('active_alarm', function(require) {
       }.bind(this));
     },
 
-    close: function aac_close(message, done) {
+    onClose: function aac_onClose(message, done) {
       this.childwindow = null;
       switch (message.data.type) {
         case 'close-timer':

@@ -1,13 +1,11 @@
 define('onring', function(require) {
 'use strict';
 
-var ActiveAlarm = window.opener.require('active_alarm');
-var Alarm = window.opener.require('alarm');
 var Utils = require('utils');
 var mozL10n = require('l10n');
 var _ = mozL10n.get;
 
-var messageTypes;
+var messageHandlerMapping;
 
 function RingView(opts = {}) {
   Utils.extend(this, {
@@ -37,14 +35,14 @@ RingView.prototype.handleMessage = function rv_handleMessage(ev) {
   Utils.safeWakeLock({type: 'cpu', timeoutMs: 5000}, function(done) {
     var err = [];
     var data = ev.data, source = ev.source;
-    data.type = data.type.split(' ');
+    var messageTypes = data.type.split(' ');
     var gen = Utils.async.generator(done);
     var lp = gen();
-    for (var i of data.type) {
+    for (var type of messageTypes) {
       var cb = gen();
       try { // Ensure all handlers get called
-        if (typeof messageTypes[i] === 'function') {
-          messageTypes[i].call(this, ev, cb);
+        if (typeof messageHandlerMapping[type] === 'function') {
+          messageHandlerMapping[type].call(this, ev, cb);
         }
       } catch (e) {
         err.push(e);
@@ -293,7 +291,7 @@ RingView.prototype.handleEvent = function rv_handleEvent(evt) {
         Utils.memoizedDomPropertyDescriptor(domMap[i]));
     }
 
-    messageTypes = {
+    messageHandlerMapping = {
       timer: RingView.prototype.timer,
       alarm: RingView.prototype.alarm,
       stop: function(msg, done) {

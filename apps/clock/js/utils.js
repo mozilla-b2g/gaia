@@ -25,21 +25,6 @@ var dateMultipliers = {
 };
 var units = Object.keys(dateMultipliers);
 
-Utils.debug = function(msg, objects) {
-  objects = Array.prototype.slice.call(arguments, 1);
-  var ls = [];
-  objects.forEach(function(x) {
-    var string;
-    try {
-      string = JSON.stringify(x);
-    } catch (e) {
-      string = '[-- circular --]';
-    }
-    ls.push('<' + typeof x + ' - ' + string + '>');
-  });
-  console.log(['DEBUG', msg, '->', ls.join(' ')].join(' '));
-};
-
 Utils.singleton = function(constructor, fn) {
   var singletonMap = new Map();
   if (!fn) {
@@ -356,20 +341,6 @@ Utils.safeWakeLock = function(opts, fn) {
   }
 };
 
-Utils.safe = function utl_safeAccess(obj, key) {
-  if (typeof key === 'string') {
-    key = key.split(/[,. ]/);
-  }
-  for (var i in key) {
-    try {
-      obj = obj[key[i]];
-    } catch (err) {
-      return null;
-    }
-  }
-  return obj;
-};
-
 Utils.repeatString = function rep(str, times) {
   var built = [], cur = str;
   for (var i = 0, j = 1; j <= times; i++) {
@@ -638,20 +609,6 @@ Utils.data = {
       }
     }
     return removed;
-  },
-
-  find: function ud_find(list, fn) {
-    for (var i = 0; i < list.length; i++) {
-      var res = fn(list[i]);
-      if (res) {
-        return {
-          item: list[i],
-          index: i,
-          result: res
-        };
-      }
-    }
-    return null;
   }
 };
 
