@@ -6,7 +6,7 @@ from gaiatest import GaiaTestCase
 from gaiatest.apps.fmradio.app import FmRadio
 
 
-class TestFMRadioAddToFavorite(GaiaTestCase):
+class TestFMRadioAddRemoveFavorites(GaiaTestCase):
 
     def setUp(self):
         GaiaTestCase.setUp(self)
@@ -15,7 +15,7 @@ class TestFMRadioAddToFavorite(GaiaTestCase):
         self.fm_radio = FmRadio(self.marionette)
         self.fm_radio.launch()
 
-    def test_add_to_favorite(self):
+    def test_add_remove_from_favorites(self):
         """ Add a frequency to favorite list
 
         https://moztrap.mozilla.org/manage/case/1923/
@@ -35,9 +35,8 @@ class TestFMRadioAddToFavorite(GaiaTestCase):
         # verify that the current frequency is in the favorite frequency is equal to the
         self.assertEqual(self.fm_radio.frequency, self.fm_radio.favorite_channels[0].text)
 
-    def tearDown(self):
         # remove the station from favorite list
-        for favorite_channel in self.fm_radio.favorite_channels:
-            favorite_channel.remove()
+        self.fm_radio.favorite_channels[0].remove()
 
-        GaiaTestCase.tearDown(self)
+        # verify the change of favorite after remove
+        self.assertEqual(0, len(self.fm_radio.favorite_channels))
