@@ -73,12 +73,13 @@ var Search = {
   },
 
   onSearchInput: function(msg) {
+    var type = msg.data.type;
     var input = msg.data.input;
     this.terms.innerHTML = input;
 
     this.suggestions.innerHTML = '';
     for (var i in this.providers) {
-      this.providers[i].search(input);
+      this.providers[i].search(input, type);
     }
   },
 
