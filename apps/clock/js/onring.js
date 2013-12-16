@@ -1,4 +1,4 @@
-define('onring', function(require) {
+define(function(require) {
 'use strict';
 
 var ActiveAlarm = window.opener.require('active_alarm');

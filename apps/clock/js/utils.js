@@ -1,7 +1,7 @@
 (function(global, name, factory) {
   'use strict';
   if (typeof define === 'function' && define.amd) {
-    define(name.toLowerCase(), factory);
+    define(factory);
   } else if (typeof exports === 'object') {
     module.exports = factory(require);
   } else {
