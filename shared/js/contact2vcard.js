@@ -26,7 +26,7 @@
   /** Field list to be skipped when converting to vCard */
   var VCARD_SKIP_FIELD = ['fb_profile_photo'];
 
-  var VCARD_VERSION = '4.0';
+  var VCARD_VERSION = '2.1';
   var HEADER = 'BEGIN:VCARD\nVERSION:' + VCARD_VERSION + '\n';
   var FOOTER = 'END:VCARD\n';
 
@@ -227,7 +227,7 @@
         return;
       }
 
-      var n = 'n:' + ([
+      var n = 'N:' + ([
         ct.familyName,
         ct.givenName,
         ct.additionalName,
@@ -239,31 +239,31 @@
       }).join(''));
 
       // vCard standard does not accept contacts without 'n' or 'fn' fields.
-      if (n === 'n:;;;;;' || !ct.name) {
+      if (n === 'N:;;;;;' || !ct.name) {
         setImmediate(function() { appendVCard(''); });
         return;
       }
 
       var allFields = [
         n,
-        fromStringArray(ct.name, 'fn'),
-        fromStringArray(ct.nickname, 'nickname'),
-        fromStringArray(ct.category, 'category'),
-        fromStringArray(ct.org, 'org'),
-        fromStringArray(ct.jobTitle, 'title'),
-        fromStringArray(ct.note, 'note'),
-        fromStringArray(ct.key, 'key')
+        fromStringArray(ct.name, 'FN'),
+        fromStringArray(ct.nickname, 'NICKNAME'),
+        fromStringArray(ct.category, 'CATEGORY'),
+        fromStringArray(ct.org, 'ORG'),
+        fromStringArray(ct.jobTitle, 'TITLE'),
+        fromStringArray(ct.note, 'NOTE'),
+        fromStringArray(ct.key, 'KEY')
       ];
 
       if (ct.bday) {
-        allFields.push('bday:' + ISODateString(ct.bday));
+        allFields.push('BDAY:' + ISODateString(ct.bday));
       }
 
-      allFields.push.apply(allFields, fromContactField(ct.email, 'email'));
-      allFields.push.apply(allFields, fromContactField(ct.url, 'url'));
-      allFields.push.apply(allFields, fromContactField(ct.tel, 'tel'));
+      allFields.push.apply(allFields, fromContactField(ct.email, 'EMAIL'));
+      allFields.push.apply(allFields, fromContactField(ct.url, 'URL'));
+      allFields.push.apply(allFields, fromContactField(ct.tel, 'TEL'));
 
-      var adrs = fromContactField(ct.adr, 'adr');
+      var adrs = fromContactField(ct.adr, 'ADR');
       allFields.push.apply(allFields, adrs.map(function(adrStr, i) {
         var orig = ct.adr[i];
         return adrStr + (['', '', orig.streetAddress || '', orig.locality ||
@@ -281,7 +281,7 @@
           appendVCard(joinFields(allFields));
         });
       } else {
-        setImmediate(function() { appendVCard(joinFields(allFields)); });
+         appendVCard(joinFields(allFields));
       }
     }
 
