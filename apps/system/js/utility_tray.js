@@ -62,6 +62,9 @@ var UtilityTray = {
       case 'keyboardchangecanceled':
       case 'simpinshow':
       case 'appopening':
+        if (Rocketbar.shown) {
+          Rocketbar.hide();
+        }
         if (this.shown) {
           this.hide();
         }
@@ -88,6 +91,13 @@ var UtilityTray = {
             evt.target !== this.statusbar &&
             evt.target !== this.grippy)
           return;
+
+        // If the rocketbar is enabled, show that
+        if (Rocketbar.enabled) {
+          Rocketbar.render();
+          evt.preventDefault();
+          return;
+        }
 
         this.active = true;
 
