@@ -77,33 +77,25 @@ var Rocketbar = {
           ports.forEach(function(port) {
             self._port = port;
           });
-
-          navigator.mozSetMessageHandler('connection',
-            function(connectionRequest) {
-
-            var keyword = connectionRequest.keyword;
-            if (keyword != 'search-results') {
-              return;
-            }
-
-            var port = connectionRequest.port;
-            port.onmessage = self.onSearchMessage.bind(self);
-            port.start();
-          });
         },
         function onConnectionRejected(reason) {
           dump('Error connecting: ' + reason + '\n');
         }
       );
     };
+
+    // IACHandler will dispatch inter-app messages
+    window.addEventListener('iac-search-results',
+      self.onSearchMessage.bind(self));
   },
 
-  onSearchMessage: function(msg) {
-    if (msg.data.action && msg.data.action === 'close') {
+  onSearchMessage: function(e) {
+    var detail = e.detail;
+    if (detail.action && detail.action === 'close') {
       this.hide();
-    } else if (msg.data.input) {
+    } else if (detail.input) {
       var input = this.searchInput;
-      input.value = msg.data.input;
+      input.value = detail.input;
       this._port.postMessage({ 'input': input.value });
     }
   },
