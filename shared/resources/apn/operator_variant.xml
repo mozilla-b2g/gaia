@@ -577,5 +577,6 @@
       mcc="262"
       mnc="07"
       enableStrict7BitEncodingForSms="true"
+      operatorSizeLimitation="614400"
   />
 </variant>
