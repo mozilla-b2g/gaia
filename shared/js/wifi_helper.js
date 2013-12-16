@@ -10,11 +10,24 @@ var WifiHelper = {
   }(),
 
   setPassword: function(network, password, identity,
-                        eap, phase2, certificate) {
+                        eap, phase2, certificate, wapiPasswordType) {
     var encType = this.getKeyManagement(network);
     switch (encType) {
       case 'WPA-PSK':
         network.psk = password;
+        break;
+      case 'WAPI-PSK':
+        // convert HEX to ASCII
+        if (wapiPasswordType === 'HEX') {
+          var asciiPassword = '';
+          for (var i = 0; i < password.length; i += 2) {
+            asciiPassword += String.fromCharCode(
+              parseInt('0x' + password.substring(i, i + 2)));
+          }
+          network.psk = asciiPassword;
+        } else {
+          network.psk = password;
+        }
         break;
       case 'WPA-EAP':
         network.eap = eap;
@@ -74,8 +87,10 @@ var WifiHelper = {
     var key = this.getSecurity(network)[0];
     if (/WEP$/.test(key))
       return 'WEP';
-    if (/PSK$/.test(key))
+    if (/WPA-PSK$/.test(key))
       return 'WPA-PSK';
+    if (/WAPI-PSK$/.test(key))
+      return 'WAPI-PSK';
     if (/EAP$/.test(key))
       return 'WPA-EAP';
     return '';
@@ -97,7 +112,7 @@ var WifiHelper = {
     return key === curkey;
   },
 
-  isValidInput: function(key, password, identity, eap) {
+  isValidInput: function(key, password, identity, eap, wapiPasswordType) {
     function isValidWepKey(password) {
       switch (password.length) {
         case 5:
@@ -118,6 +133,14 @@ var WifiHelper = {
     switch (key) {
       case 'WPA-PSK':
         if (!password || password.length < 8)
+          return false;
+        break;
+      case 'WAPI-PSK':
+        if (!password || password.length < 8)
+          return false;
+        // Make sure the length of the HEX password is odd.
+        if (wapiPasswordType === 'HEX' &&
+            !/^([0-9a-f][0-9a-f])+$/i.test(password))
           return false;
         break;
       case 'WPA-EAP':

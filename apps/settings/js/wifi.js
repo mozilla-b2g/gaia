@@ -490,8 +490,8 @@ navigator.mozL10n.ready(function wifiSettings() {
       var dialog = document.querySelector('#wifi-manageNetworks form');
       dialog.hidden = false;
       dialog.onsubmit = function forget() {
-        gWifiManager.forget(network);
-        scan();
+        var req = gWifiManager.forget(network);
+        req.onerror = req.onsuccess = scan;
         dialog.hidden = true;
         return false;
       };
@@ -755,6 +755,7 @@ navigator.mozL10n.ready(function wifiSettings() {
         case 'WEP':
         case 'WPA-PSK':
         case 'WPA-EAP':
+        case 'WAPI-PSK':
           wifiDialog('wifi-auth', wifiConnect, key);
           break;
         default:
@@ -770,9 +771,9 @@ navigator.mozL10n.ready(function wifiSettings() {
 
     function wifiDisconnect() {
       settings.createLock().set({'wifi.connect_via_settings': false});
-      gWifiManager.forget(network);
+      var req = gWifiManager.forget(network);
       // get available network list
-      gNetworkList.scan();
+      req.onerror = req.onsuccess = gNetworkList.scan;
       gCurrentNetwork = null;
     }
 
@@ -782,7 +783,7 @@ navigator.mozL10n.ready(function wifiSettings() {
 
       // authentication fields
       var identity, password, showPassword, eap,
-          authPhase2, certificate, description;
+          authPhase2, certificate, description, wapiPasswordType;
 
       if (dialogID != 'wifi-status') {
         identity = dialog.querySelector('input[name=identity]');
@@ -791,6 +792,9 @@ navigator.mozL10n.ready(function wifiSettings() {
         password = dialog.querySelector('input[name=password]');
         password.type = 'password';
         password.value = network.password || '';
+
+        wapiPasswordType = dialog.querySelector('li.wapiPasswordType select');
+        wapiPasswordType.value = 'ASCII';
 
         showPassword = dialog.querySelector('input[name=show-pwd]');
         showPassword.checked = false;
@@ -841,7 +845,8 @@ navigator.mozL10n.ready(function wifiSettings() {
             !WifiHelper.isValidInput(key,
                                      password.value,
                                      identity.value,
-                                     eap.value);
+                                     eap.value,
+                                     wapiPasswordType.value);
         };
         eap.onchange = function() {
           checkPassword();
@@ -903,7 +908,13 @@ navigator.mozL10n.ready(function wifiSettings() {
       // change element display
       function changeDisplay(security) {
         if (dialogID !== 'wifi-status') {
-          if (security === 'WEP' || security === 'WPA-PSK') {
+          // Only show password type chooser for WAPI
+          wapiPasswordType.parentNode.parentNode.style.display =
+            security === 'WAPI-PSK' ? 'block' : 'none';
+
+          if (security === 'WEP' ||
+              security === 'WPA-PSK' ||
+              security === 'WAPI-PSK') {
             identity.parentNode.style.display = 'none';
             password.parentNode.style.display = 'block';
             authPhase2.parentNode.parentNode.style.display = 'none';
@@ -962,7 +973,8 @@ navigator.mozL10n.ready(function wifiSettings() {
                                  identity.value,
                                  eap.value,
                                  authPhase2.value,
-                                 certificate.value);
+                                 certificate.value,
+                                 wapiPasswordType.value);
         }
         if (callback) {
           callback();
