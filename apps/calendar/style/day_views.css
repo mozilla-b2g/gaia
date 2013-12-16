@@ -132,7 +132,7 @@
   height: 100%;
   overflow-x: hidden;
   overflow-y: auto;
-  will-animate: scroll;
+  will-change: scroll-position;
 }
 
 /* day view */
@@ -158,7 +158,7 @@
   overflow-y: scroll;
   overflow-x: hidden;
   height: calc(100% - 7.9rem);
-  will-animate: scroll;
+  will-change: scroll-position;
 }
 
 #day-view .day-events.allday {

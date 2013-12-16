@@ -46,7 +46,7 @@ section[role="region"] > header:first-child .icon.icon-edit-contact {
 .view-contact-profile .view-body {
   overflow-x: hidden;
   overflow-y: auto;
-  will-animate: scroll;
+  will-change: scroll-position;
 }
 
 .view-contact-profile #cover-img {

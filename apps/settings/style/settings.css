@@ -68,7 +68,7 @@ section[role="region"] > div {
   width: 100%;
   height: calc(100% - 5rem);
   overflow-y: scroll;
-  will-animate: scroll;
+  will-change: scroll-position;
 }
 
 
