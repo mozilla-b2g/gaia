@@ -165,21 +165,19 @@ define(function(require) {
     },
 
     onSnooze: function aac_onSnooze(message, done) {
-      Utils.safeWakeLock({timeoutMs: 30000}, function(done) {
-        var id = message.data.id;
-        AlarmsDB.getAlarm(id, function aac_gotAlarm(err, alarm) {
-          if (err) {
-            return;
-          }
-          alarm.schedule({
-            type: 'snooze'
-          }, alarm.saveCallback(function(err, alarm) {
-            AlarmList.refreshItem(alarm);
-            AlarmManager.updateAlarmStatusBar();
-            done();
-          }.bind(this)));
-        });
-      }.bind(this));
+      var id = message.data.id;
+      AlarmsDB.getAlarm(id, function aac_gotAlarm(err, alarm) {
+        if (err) {
+          return;
+        }
+        alarm.schedule({
+          type: 'snooze'
+        }, alarm.saveCallback(function(err, alarm) {
+          AlarmList.refreshItem(alarm);
+          AlarmManager.updateAlarmStatusBar();
+          done();
+        }));
+      });
     },
 
     onClose: function aac_onClose(message, done) {
