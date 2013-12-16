@@ -20,6 +20,7 @@
     "mocha": "1.15.0",
     "mocha-json-proxy": "~0.0.7",
     "mocha-tbpl-reporter": "~0.0.4",
+    "moment": "~2.4.0",
     "mozilla-download": "~0.4.1-alpha",
     "node-static": "0.6.9",
     "travis-project-jobs": "0.0.1"
