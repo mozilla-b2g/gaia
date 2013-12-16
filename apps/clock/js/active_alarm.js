@@ -47,9 +47,7 @@ define(function(require) {
       var success = false;
       Utils.safeWakeLock({timeoutMs: 30000}, function(done) {
         if (typeof message !== 'undefined') {
-          var messageType = (typeof message.data === 'object' &&
-                            typeof message.data.type === 'string') ?
-            message.data.type : message.type;
+          var messageType = message.data.type;
           if (messageType && messageType in messageHandlerMapping) {
             var funcName = messageHandlerMapping[messageType];
             if (funcName) {
