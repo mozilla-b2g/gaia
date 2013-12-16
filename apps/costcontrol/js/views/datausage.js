@@ -185,6 +185,8 @@ var DataUsageTab = (function() {
         model.data.wifi.total = modelData.wifi.total;
         model.data.mobile.samples = modelData.mobile.samples;
         model.data.mobile.total = modelData.mobile.total;
+        model.limits.enabled = settings.dataLimit;
+        model.limits.value = getLimitInBytes(settings);
         model.axis.X.upper = calculateUpperDate(settings);
         model.axis.X.lower = calculateLowerDate(settings);
         expandModel(model);
