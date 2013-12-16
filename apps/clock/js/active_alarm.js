@@ -1,4 +1,4 @@
-define('active_alarm', function(require) {
+define(function(require) {
   'use strict';
 
   var App = require('app');

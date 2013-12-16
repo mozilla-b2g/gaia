@@ -1,4 +1,4 @@
-define('view', function(require) {
+define(function(require) {
 'use strict';
 var Emitter = require('emitter');
 var priv = new WeakMap();

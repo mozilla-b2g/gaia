@@ -1,15 +1,15 @@
-(function(global, name, factory) {
+(function(global, factory) {
   'use strict';
   if (typeof define === 'function' && define.amd) {
-    define(name.toLowerCase(), factory);
+    define(factory);
   } else if (typeof exports === 'object') {
     module.exports = factory(require);
   } else {
-    global[name] = factory(function(moduleId) {
+    global.Utils = factory(function(moduleId) {
       return window[moduleId];
     });
   }
-}(this, 'Utils', function(require) {
+}(this, function(require) {
 'use strict';
 
 var mozL10n = require('l10n');
