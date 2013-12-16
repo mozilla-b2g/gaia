@@ -44,20 +44,14 @@ define(function(require) {
       // because it'd exhaust the battery quickly which is very bad.
       // This could probably happen if the app failed to launch or
       // handle the alarm message due to any unexpected reasons.
-      var success = false;
       Utils.safeWakeLock({timeoutMs: 30000}, function(done) {
-        if (typeof message !== 'undefined') {
-          var messageType = message.data.type;
-          if (messageType && messageType in messageHandlerMapping) {
-            var funcName = messageHandlerMapping[messageType];
-            if (funcName) {
-              this[funcName].call(this, message, done);
-              success = true;
-            }
-          }
-        }
-        if (!success) {
+        try {
+          this[messageHandlerMapping[message.data.type]].call(
+            this, message, done);
+        } catch (err) {
+          console.error('Error calling handler', err);
           done();
+          throw err;
         }
       }.bind(this));
     },
