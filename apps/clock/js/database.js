@@ -1,4 +1,4 @@
-define(function(require, exports) {
+define(function(require) {
   'use strict';
 
   var Utils = require('utils');
