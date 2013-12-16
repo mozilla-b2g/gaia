@@ -155,32 +155,75 @@ suite('Contacts Merging Tests', function() {
     }});
   });
 
-  test('When matching by name merge existing SIM Contact', function(done) {
-    var simContact = new MasterContact();
-    simContact.category = simContact.category || [];
-    simContact.category.push('sim');
-    simContact.givenName[0] = 'Alfred Müller';
-    simContact.name = [];
-    simContact.name[0] = simContact.givenName[0];
-    simContact.familyName = null;
+  test('Merging existing with only familyName with an incoming SIM Contact',
+    function(done) {
+      var masterContact = new MasterContact();
+      masterContact.givenName[0] = '';
+      masterContact.name = [];
+      masterContact.familyName = ['Smith'];
+      masterContact.name[0] = masterContact.familyName[0];
 
-    toMergeContact.matchingContact = {
-      givenName: ['Alfred'],
-      familyName: ['Müller'],
-      name: ['Alfred Müller']
-    };
+      toMergeContact.matchingContact = {
+        givenName: ['Smith'],
+        familyName: [],
+        name: ['Smith'],
+        category: ['sim']
+      };
 
-    contacts.Merger.merge(simContact, toMergeContacts, {
-      success: function(result) {
-        assert.equal(result.givenName[0], 'Alfred');
-        assert.equal(result.familyName[0], 'Müller');
-        assert.equal(result.name[0], 'Alfred Müller');
-        assert.isTrue(result.category.indexOf('sim') === -1);
-
-        done();
-      }
-    });
+      contacts.Merger.merge(masterContact, toMergeContacts, {
+        success: function(result) {
+          assert.isTrue(!result.givenName[0]);
+          assert.equal(result.familyName[0], 'Smith');
+          assert.equal(result.name[0], 'Smith');
+          done();
+        }
+      });
   });
+
+  test('Merging existing with only givenName with an incoming SIM Contact',
+    function(done) {
+      var masterContact = new MasterContact();
+      masterContact.givenName[0] = 'Lionel';
+      masterContact.name = [];
+      masterContact.familyName = null;
+      masterContact.name[0] = masterContact.givenName[0];
+
+      toMergeContact.matchingContact = {
+        givenName: ['Lionel'],
+        name: ['Lionel'],
+        category: ['sim']
+      };
+
+      contacts.Merger.merge(masterContact, toMergeContacts, {
+        success: function(result) {
+          assert.isTrue(!result.familyName[0]);
+          assert.equal(result.givenName[0], 'Lionel');
+          assert.equal(result.name[0], 'Lionel');
+          done();
+        }
+      });
+  });
+
+  test('Merging a complete existing with an incoming SIM Contact',
+    function(done) {
+      var masterContact = new MasterContact();
+
+      toMergeContact.matchingContact = {
+        givenName: ['Alfred'],
+        name: ['Müller'],
+        category: ['sim']
+      };
+
+      contacts.Merger.merge(masterContact, toMergeContacts, {
+        success: function(result) {
+          assert.equal(masterContact.familyName[0], result.familyName[0]);
+          assert.equal(masterContact.givenName[0], result.givenName[0]);
+          assert.equal(masterContact.name[0], result.name[0]);
+          done();
+        }
+      });
+  });
+
 
   test('Merge telephone numbers. Adding a new one', function(done) {
     toMergeContact.matchingContact = {
