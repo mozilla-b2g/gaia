@@ -792,10 +792,15 @@ var ThreadUI = global.ThreadUI = {
         return;
       }
 
+      var prompt = 'save-as-draft';
+      if (MessageManager.draft) {
+        prompt = 'replace-draft';
+      }
+
       var options = {
         items: [
           {
-            l10nId: 'save-as-draft',
+            l10nId: prompt,
             method: function onsave() {
               this.saveDraft();
               leave();

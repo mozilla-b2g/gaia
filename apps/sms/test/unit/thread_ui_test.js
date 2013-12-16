@@ -4018,7 +4018,7 @@ suite('thread_ui.js >', function() {
     });
   });
 
-suite('Back button behaviour', function() {
+  suite('Back button behaviour', function() {
 
     suite('During activity', function() {
       setup(function() {
@@ -4136,6 +4136,58 @@ suite('Back button behaviour', function() {
           assert.equal(Compose.getContent(), '');
           assert.isTrue(spy.calledOnce);
           assert.isNull(MessageManager.draft);
+        });
+      });
+
+      suite('If existing draft', function() {
+
+        suiteSetup(function() {
+          MessageManager.draft = {id: 55};
+        });
+
+        test('Displays replacement prompt if recipients', function() {
+          ThreadUI.back();
+
+          assert.isTrue(OptionMenu.calledOnce);
+          assert.isTrue(showCalled);
+
+          var items = OptionMenu.args[0][0].items;
+
+          // Assert the correct menu items were displayed
+          assert.equal(items[0].l10nId, 'replace-draft');
+          assert.equal(items[1].l10nId, 'discard-message');
+          assert.equal(items[2].l10nId, 'cancel');
+        });
+
+        test('Displays replacement prompt if recipients & content', function() {
+          Compose.append('foo');
+          ThreadUI.back();
+
+          assert.isTrue(OptionMenu.calledOnce);
+          assert.isTrue(showCalled);
+
+          var items = OptionMenu.args[0][0].items;
+
+          // Assert the correct menu items were displayed
+          assert.equal(items[0].l10nId, 'replace-draft');
+          assert.equal(items[1].l10nId, 'discard-message');
+          assert.equal(items[2].l10nId, 'cancel');
+        });
+
+        test('Displays replacement prompt if content', function() {
+          ThreadUI.recipients.remove('999');
+          Compose.append('foo');
+          ThreadUI.back();
+
+          assert.isTrue(OptionMenu.calledOnce);
+          assert.isTrue(showCalled);
+
+          var items = OptionMenu.args[0][0].items;
+
+          // Assert the correct menu items were displayed
+          assert.equal(items[0].l10nId, 'replace-draft');
+          assert.equal(items[1].l10nId, 'discard-message');
+          assert.equal(items[2].l10nId, 'cancel');
         });
       });
     });
