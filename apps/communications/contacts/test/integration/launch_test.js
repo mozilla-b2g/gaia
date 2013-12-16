@@ -290,37 +290,27 @@ suite('contacts - launch', function() {
 
   test('Favorite a contact', function() {
     var favoriteButton = yield app.element('favoriteButton');
-    var favoriteStar = yield app.element('favoriteStar');
+    var detailsName = yield app.element('contact-name-title');
 
     yield favoriteButton.click();
-    yield app.waitUntilElement(favoriteStar, 'displayed');
-    assert.isTrue((yield favoriteStar.displayed()), 'shows the star');
-
-    var text = yield favoriteButton.text();
-    assert.equal(text, 'Remove as Favorite');
+    yield app.waitForElementTextToEqual(favoriteButton, 'Remove as Favorite',
+      function() {
+        assert.isTrue(detailsName.classList.contains('favorite'),
+                      'shows the star');
+    });
   });
 
   test('Unfavorite a contact', function() {
     var favoriteButton = yield app.element('favoriteButton');
+    var detailsName = yield app.element('contact-name-title');
 
     yield favoriteButton.click();
 
-    var text = yield favoriteButton.text();
-    assert.equal(text, 'Add as Favorite');
-
-    var favoriteStar = yield app.element('favoriteStar');
-
-    yield app.waitFor(function(callback) {
-      favoriteStar.displayed(function(err, value) {
-        if (err) {
-          callback(err);
-          return;
-        }
-        callback(null, !value);
-      });
-    }, 10000);
-    assert.isFalse((yield favoriteStar.displayed()), 'hides star');
-
+    yield app.waitForElementTextToEqual(favoriteButton, 'Add as Favorite',
+      function() {
+        assert.isFalse(detailsName.classList.contains('favorite'),
+                      'hides the star');
+    });
   });
 
   test('Changing address type', function() {
