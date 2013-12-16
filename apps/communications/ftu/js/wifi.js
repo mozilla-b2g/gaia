@@ -250,7 +250,7 @@ var WifiUI = {
     // Remove refresh option
     UIManager.activationScreen.classList.add('no-options');
     // Update title
-    UIManager.mainTitle.textContent = _('join-hidden-button');
+    UIManager.mainTitle.textContent = _('authentication');
     UIManager.navBar.classList.add('secondary-menu');
     window.location.hash = '#hidden-wifi-authentication';
   },
