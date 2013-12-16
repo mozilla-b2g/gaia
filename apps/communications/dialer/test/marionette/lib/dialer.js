@@ -1,7 +1,5 @@
 /**
  * Abstraction around dialer app.
- * This file can be moved to the dialer app once we
- * implement dialer marionette tests.
  * @constructor
  * @param {Marionette.Client} client for operations.
  */
@@ -14,7 +12,31 @@ function Dialer(client) {
  */
 Dialer.URL = 'app://communications.gaiamobile.org';
 
+Dialer.config = {
+  prefs: {
+    'dom.w3c_touch_events.enabled': 1
+  },
+  settings: {
+    // disable keyboard ftu because it blocks our display
+    'keyboard.ftu.enabled': false
+  }
+};
+
 Dialer.Selectors = {
+  phoneNumber: '#phone-number-view',
+
+  keypadView: '#keyboard-view',
+  del: '#keypad-delete',
+  zero: '.keypad-key[data-value="0"]',
+  one: '.keypad-key[data-value="1"]',
+  two: '.keypad-key[data-value="2"]',
+  three: '.keypad-key[data-value="3"]',
+
+  callLogTabItem: '#option-recents',
+  callLogTabs: '#call-log-filter',
+
+  contactsTabItem: '#option-contacts',
+  contactsIframe: '#iframe-contacts'
 };
 
 /**
