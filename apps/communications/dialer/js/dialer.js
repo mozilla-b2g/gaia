@@ -12,23 +12,6 @@ var CallHandler = (function callHandler() {
   /* === Settings === */
   var screenState = null;
 
-  // Add the listener onload
-  window.addEventListener('load', function getSettingsListener() {
-    window.removeEventListener('load', getSettingsListener);
-
-    setTimeout(function nextTick() {
-      LazyLoader.load('/shared/js/settings_listener.js', function() {
-        SettingsListener.observe('lockscreen.locked', null, function(value) {
-          if (value) {
-            screenState = 'locked';
-          } else {
-            screenState = 'unlocked';
-          }
-        });
-      });
-    });
-  });
-
   /* === WebActivity === */
   function handleActivity(activity) {
     // Workaround here until the bug 787415 is fixed
@@ -40,22 +23,11 @@ var CallHandler = (function callHandler() {
     currentActivity = activity;
 
     var number = activity.source.data.number;
-    var fillNumber = function actHandleDisplay() {
-      if (number) {
-        KeypadManager.updatePhoneNumber(number, 'begin', false);
-        if (window.location.hash != '#keyboard-view') {
-          window.location.hash = '#keyboard-view';
-        }
+    if (number) {
+      KeypadManager.updatePhoneNumber(number, 'begin', false);
+      if (window.location.hash != '#keyboard-view') {
+        window.location.hash = '#keyboard-view';
       }
-    };
-
-    if (document.readyState == 'complete') {
-      fillNumber();
-    } else {
-      window.addEventListener('load', function loadWait() {
-        window.removeEventListener('load', loadWait);
-        fillNumber();
-      });
     }
   }
 
@@ -372,8 +344,8 @@ var CallHandler = (function callHandler() {
     btCommandsToForward = [];
   }
 
-  /* === MMI === */
   function init() {
+    /* === MMI === */
     LazyLoader.load(['/shared/js/mobile_operator.js',
                      '/dialer/js/mmi.js',
                      '/dialer/js/mmi_ui.js',
@@ -399,11 +371,18 @@ var CallHandler = (function callHandler() {
               request.result.launch('dialer');
             };
           }
-
           MmiManager.handleMMIReceived(evt.message, evt.sessionEnded);
         });
       }
-
+    });
+    LazyLoader.load('/shared/js/settings_listener.js', function() {
+      SettingsListener.observe('lockscreen.locked', null, function(value) {
+        if (value) {
+          screenState = 'locked';
+        } else {
+          screenState = 'unlocked';
+        }
+      });
     });
   }
 
@@ -513,38 +492,6 @@ var NavbarManager = {
     views.classList.remove('hide-toolbar');
   }
 };
-
-var dialerStartup = function startup(evt) {
-  window.removeEventListener('load', dialerStartup);
-
-  KeypadManager.init();
-  NavbarManager.init();
-
-  setTimeout(function nextTick() {
-    var lazyPanels = ['add-contact-action-menu',
-                      'confirmation-message',
-                      'edit-mode'];
-
-    var lazyPanelsElements = lazyPanels.map(function toElement(id) {
-      return document.getElementById(id);
-    });
-    LazyLoader.load(lazyPanelsElements);
-
-    CallHandler.init();
-    LazyL10n.get(function loadLazyFilesSet() {
-      LazyLoader.load(['/shared/js/fb/fb_request.js',
-                       '/shared/js/fb/fb_data_reader.js',
-                       '/shared/js/fb/fb_reader_utils.js',
-                       '/shared/style/confirm.css',
-                       '/contacts/js/utilities/confirm.js',
-                       '/dialer/js/newsletter_manager.js',
-                       '/shared/style/edit_mode.css',
-                       '/shared/style/headers.css']);
-      lazyPanelsElements.forEach(navigator.mozL10n.translate);
-    });
-  });
-};
-window.addEventListener('load', dialerStartup);
 
 // Listening to the keyboard being shown
 // Waiting for issue 787444 being fixed

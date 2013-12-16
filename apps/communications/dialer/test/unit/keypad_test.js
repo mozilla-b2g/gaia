@@ -1,7 +1,7 @@
 /* globals CallHandler, CallLogDBManager, gTonesFrequencies, KeypadManager,
            MockCall, MockCallsHandler, MockDialerIndexHtml, MockMozTelephony,
            MockSettingsListener, MocksHelper, MockTonePlayer,
-           observePreferences, telephonyAddCall */
+           telephonyAddCall */
 
 'use strict';
 
@@ -142,7 +142,7 @@ suite('dialer/keypad', function() {
       });
 
       setup(function() {
-        observePreferences();
+        subject._observePreferences();
         MockSettingsListener.mCallbacks['phone.ring.keypad'](true);
       });
 
@@ -198,7 +198,6 @@ suite('dialer/keypad', function() {
         mockCall = new MockCall('12334', 'connected');
         mockHC = telephonyAddCall.call(this, mockCall);
         MockCallsHandler.mActiveCall = mockHC;
-        observePreferences();
         MockSettingsListener.mCallbacks['phone.ring.keypad'](true);
 
         this.clock = this.sinon.useFakeTimers();
