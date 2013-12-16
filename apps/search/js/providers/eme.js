@@ -46,6 +46,7 @@
         return;
       }
 
+      this.results = document.createElement('section');
       msg.data.results.forEach(function eachresult(result) {
         var resultEl = document.createElement('div');
         resultEl.className = 'result';
@@ -55,7 +56,6 @@
         this.results.appendChild(resultEl);
       }, this);
 
-      this.results = document.createElement('section');
       Search.suggestions.appendChild(this.results);
     }
 

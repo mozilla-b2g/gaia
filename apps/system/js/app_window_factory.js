@@ -100,6 +100,9 @@
         new AppWindow(config);
       } else if (config.origin == HomescreenLauncher.origin) {
         HomescreenLauncher.getHomescreen().ensure();
+      } else if (config.manifest.role === 'search') {
+        Rocketbar.render();
+        return;
       }
       this.publish('launchapp', config);
     },

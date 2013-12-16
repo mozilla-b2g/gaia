@@ -6,10 +6,9 @@
   width: 100%;
   height: calc(100%);
   background-color: black;
-  visibility: hidden;
   pointer-events: none;
   transform: translateY(-100%);
-  transition: visibility 0.3s 1.1s ease, transform 0.3s 0.8s ease;
+  transition: transform 0.3s ease 0.8s;
 }
 
 #screen.software-button-enabled #search-bar {
@@ -17,10 +16,13 @@
 }
 
 #search-bar[data-visible] {
-  visibility: visible;
   pointer-events: auto;
   transform: translateY(0);
-  transition: visibility 0.3s 0.3s ease, transform 0.3s ease;
+  transition: transform 0.3s ease;
+}
+
+#search-bar.hidden {
+  visibility: hidden;
 }
 
 #search-bar .search-input {

@@ -69,11 +69,16 @@ var Rocketbar = {
     searchFrame.setAttribute('mozbrowser', 'true');
     searchFrame.setAttribute('remote', 'true');
     searchFrame.setAttribute('mozapp', this.searchManifestURL);
+    searchFrame.classList.add('hidden');
 
     container.appendChild(searchFrame);
 
     searchFrame.addEventListener('mozbrowsererror', function() {
       container.removeChild(searchFrame);
+    });
+
+    searchFrame.addEventListener('mozbrowserloadend', function() {
+      searchFrame.classList.remove('hidden');
     });
 
     this.initSearchConnection();
