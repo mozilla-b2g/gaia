@@ -96,6 +96,12 @@ Search.prototype = {
     this.client.executeScript(function() {
       window.wrappedJSObject.Rocketbar.render();
     });
+
+    this.client.waitFor(function() {
+      var location = this.client
+        .findElement(Search.Selectors.searchInput).location();
+      return location.y >= 20;
+    }.bind(this));
   }
 };
 
