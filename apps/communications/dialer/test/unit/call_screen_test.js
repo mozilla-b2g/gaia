@@ -729,4 +729,24 @@ suite('call screen', function() {
       assert.isFalse(durationNode.classList.contains('isTimer'));
     });
   });
+
+  suite('set end conference call', function() {
+    var fakeNode1 = document.createElement('section');
+    var fakeNode2 = document.createElement('section');
+    var fakeNode3 = document.createElement('section');
+
+    setup(function() {
+      CallScreen.moveToGroup(fakeNode1);
+      CallScreen.moveToGroup(fakeNode2);
+      CallScreen.moveToGroup(fakeNode3);
+    });
+
+    test('should set groupHangup to all nodes in group detail lists',
+    function() {
+      CallScreen.setEndConferenceCall();
+      assert.equal(fakeNode1.dataset.groupHangup, 'groupHangup');
+      assert.equal(fakeNode2.dataset.groupHangup, 'groupHangup');
+      assert.equal(fakeNode3.dataset.groupHangup, 'groupHangup');
+    });
+  });
 });

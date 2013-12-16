@@ -416,15 +416,10 @@ var CallScreen = {
     delete durationNode.dataset.tickerId;
   },
 
-  // XXX: This is a workaround before bug 936982 is fixed.
-  // the last call quitting conference changes its status with one additional
-  // connected for now, namely disconnecting-->**connected**-->disconnected
-  // so we just hide disconnecting calls to prevent it from appearing on call
-  // screen again.
-  setCallsEndedInGroup: function cs_markEndOnCallsInGroup() {
+  setEndConferenceCall: function cs_setEndConferenceCall() {
     var callElems = this.groupCallsList.getElementsByTagName('SECTION');
     for (var i = 0; i < callElems.length; i++) {
-      callElems[i].classList.add('groupended');
+      callElems[i].dataset.groupHangup = 'groupHangup';
     }
   }
 };

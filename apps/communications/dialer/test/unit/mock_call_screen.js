@@ -3,7 +3,6 @@ var MockCallScreen = {
 
   insertCall: function() {},
   moveToGroup: function() {},
-  setCallsEndedInGroup: function() {},
   toggle: function(cb) {
     if (typeof(cb) == 'function') {
       cb();
@@ -64,6 +63,9 @@ var MockCallScreen = {
   removeCall: function() {
     this.mRemoveCallCalled = true;
   },
+  setEndConferenceCall: function() {
+    this.mSetEndConferenceCall = true;
+  },
 
   set holdAndAnswerOnly(enabled) {
     this.mHoldAndAnswerOnly = enabled;
@@ -115,6 +117,7 @@ var MockCallScreen = {
     this.incomingNumberAdditionalInfo = document.createElement('span');
     this.mGroupDetailsShown = false;
     this.mRemoveCallCalled = false;
+    this.mSetEndConferenceCall = false;
   }
 };
 
