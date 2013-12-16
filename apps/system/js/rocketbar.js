@@ -20,7 +20,18 @@ var Rocketbar = {
     var input = document.getElementById('search-input');
     var self = this;
     input.addEventListener('input', function onInput(e) {
-      self._port.postMessage({ 'input': input.value });
+      self._port.postMessage({
+        'type': 'change',
+        'input': input.value
+      });
+    });
+    input.addEventListener('keyup', function onKeyPress(e) {
+      if (e.keyCode === 13) {
+        self._port.postMessage({
+          'type': 'submit',
+          'input': input.value
+        });
+      }
     });
 
     delete this.searchInput;
