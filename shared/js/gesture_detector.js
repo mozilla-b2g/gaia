@@ -34,6 +34,9 @@
  * also pass an optional object as the second constructor argument. If you're
  * interested in holdstart/holdmove/holdend events, pass {holdEvents:true} as
  * this second argument. Otherwise they will not be generated.
+ * If you want to customize the pan threshold, pass
+ * {panThreshold:X, mousePanThreshold:Y} (X and Y in pixels) in the options
+ * argument.
  *
  * Implementation note: event processing is done with a simple finite-state
  * machine. This means that in general, the various kinds of gestures are
@@ -58,6 +61,9 @@ var GestureDetector = (function() {
   function GD(e, options) {
     this.element = e;
     this.options = options || {};
+    this.options.panThreshold = this.options.panThreshold || GD.PAN_THRESHOLD;
+    this.options.mousePanThreshold =
+      this.options.mousePanThreshold || GD.MOUSE_PAN_THRESHOLD;
     this.state = initialState;
     this.timers = {};
     this.listeningForMouseEvents = true;
@@ -363,8 +369,8 @@ var GestureDetector = (function() {
       if (t.identifier !== d.touch1)
         return;
 
-      if (abs(t.screenX - d.start.screenX) > GD.PAN_THRESHOLD ||
-          abs(t.screenY - d.start.screenY) > GD.PAN_THRESHOLD) {
+      if (abs(t.screenX - d.start.screenX) > d.options.panThreshold ||
+          abs(t.screenY - d.start.screenY) > d.options.panThreshold) {
         d.clearTimer('holdtimeout');
         d.switchTo(panStartedState, e, t);
       }
@@ -711,8 +717,8 @@ var GestureDetector = (function() {
       // then switch to the mouse panning state. Otherwise remain
       // in this state
 
-      if (abs(e.screenX - d.start.screenX) > GD.MOUSE_PAN_THRESHOLD ||
-          abs(e.screenY - d.start.screenY) > GD.MOUSE_PAN_THRESHOLD) {
+      if (abs(e.screenX - d.start.screenX) > d.options.mousePanThreshold ||
+          abs(e.screenY - d.start.screenY) > d.options.mousePanThreshold) {
         d.clearTimer('holdtimeout');
         d.switchTo(mousePannedState, e);
       }
