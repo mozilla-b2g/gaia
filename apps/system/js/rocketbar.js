@@ -39,6 +39,10 @@ var Rocketbar = {
   },
 
   init: function() {
+    // IACHandler will dispatch inter-app messages
+    window.addEventListener('iac-search-results',
+      this.onSearchMessage.bind(this));
+
     SettingsListener.observe('rocketbar.enabled', false,
     function(value) {
       this.enabled = value;
@@ -93,22 +97,29 @@ var Rocketbar = {
           ports.forEach(function(port) {
             self._port = port;
           });
+          if (self.pendingEvent) {
+            self.onSearchMessage(self.pendingEvent);
+            delete self.pendingEvent;
+          }
         },
         function onConnectionRejected(reason) {
           dump('Error connecting: ' + reason + '\n');
         }
       );
     };
-
-    // IACHandler will dispatch inter-app messages
-    window.addEventListener('iac-search-results',
-      self.onSearchMessage.bind(self));
   },
 
   onSearchMessage: function(e) {
+    // Open the search connection if we receive a message before it's open
+    if (!this._port) {
+      this.pendingEvent = e;
+      this.initSearchConnection();
+      return;
+    }
+
     var detail = e.detail;
-    if (detail.action && detail.action === 'close') {
-      this.hide();
+    if (detail.action) {
+      this[detail.action]();
     } else if (detail.input) {
       var input = this.searchInput;
       input.value = detail.input;
@@ -130,6 +141,10 @@ var Rocketbar = {
   },
 
   render: function() {
+    if (this.shown) {
+      return;
+    }
+
     var search = this.searchBar;
     search.dataset.visible = 'true';
 
