@@ -2,7 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-# Approximate runtime per 100 iterations: 85 minutes
+# Approximate runtime per 100 iterations: 88 minutes
 
 import time
 
@@ -29,20 +29,21 @@ class TestEnduranceAddDeleteContact(GaiaEnduranceTestCase):
         new_contact_form = self.contacts.tap_new_contact()
 
         # Enter data into fields
-        mock_contact = MockContact()
-        extra_text = "-%dof%d" % (self.iteration, self.iterations)
-        new_contact_form.type_given_name(mock_contact.givenName + extra_text)        
-        new_contact_form.type_family_name(mock_contact.familyName)
-        new_contact_form.type_phone(mock_contact.tel['value'])
-        new_contact_form.type_email(mock_contact.email)
-        new_contact_form.type_street(mock_contact.street)
-        new_contact_form.type_zip_code(mock_contact.zip)
-        new_contact_form.type_city(mock_contact.city)
-        new_contact_form.type_country(mock_contact.country)
-        new_contact_form.type_comment(mock_contact.comment)
+        contact = MockContact()
+        contact['givenName'] = "%02dof%02d" % (self.iteration, self.iterations)
+        new_contact_form.type_given_name(contact['givenName'])
+        new_contact_form.type_family_name(contact['familyName'])
+        new_contact_form.type_phone(contact['tel'][0]['value'])
+        new_contact_form.type_email(contact['email'][0]['value'])
+        new_contact_form.type_street(contact['adr'][0]['streetAddress'])
+        new_contact_form.type_zip_code(contact['adr'][0]['postalCode'])
+        new_contact_form.type_city(contact['adr'][0]['locality'])
+        new_contact_form.type_country(contact['adr'][0]['countryName'])
+        new_contact_form.type_comment(contact['note'])
 
         # Save new contact
         new_contact_form.tap_done()
+        time.sleep(2)
 
         # Verify a new contact was added
         self.wait_for_condition(lambda m: len(self.contacts.contacts) == 1)
@@ -50,10 +51,13 @@ class TestEnduranceAddDeleteContact(GaiaEnduranceTestCase):
         # Wait a couple of seconds before deleting
         time.sleep(2)
 
-        contact = self.contacts.contact(mock_contact.givenName + extra_text)
-        edit_contact = contact.tap().tap_edit()
-        edit_contact.tap_delete()
-        edit_contact.tap_confirm_delete()
+        # Delete the contact
+        contact_item = self.contacts.contact(contact['givenName'])
+        contact_item_detail = contact_item.tap()
+        contact_item_edit = contact_item_detail.tap_edit()
+        contact_item_edit.tap_delete()
+        contact_item_edit.tap_confirm_delete()
+        time.sleep(1)
 
         self.assertEqual(len(self.contacts.contacts), 0, 'Should have no contacts.')
 
