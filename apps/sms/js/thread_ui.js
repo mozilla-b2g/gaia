@@ -698,14 +698,12 @@ var ThreadUI = global.ThreadUI = {
         }
       }
 
-      var newMessageContactNode = document.getElementById(
-        'new-message-notice-contact'
-      );
-
+      var notice = this.newMessageNotice;
+      var newMessageContactNode = notice.querySelector('.contact');
       newMessageContactNode.textContent = sender;
 
       this.isNewMessageNoticeShown = true;
-      this.newMessageNotice.classList.remove('hide');
+      notice.classList.remove('hide');
     }).bind(this));
   },
 
