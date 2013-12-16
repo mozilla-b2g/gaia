@@ -2,6 +2,7 @@
 
 var EverythingME = {
   pendingEvent: undefined,
+  rocketbarPort: null,
 
   init: function EverythingME_init() {
     var self = this;
@@ -15,6 +16,21 @@ var EverythingME = {
       var port = connectionRequest.port;
       port.onmessage = self.onmessage.bind(self);
       port.start();
+
+      // open port to Rocketbar
+      navigator.mozApps.getSelf().onsuccess = function() {
+        var app = this.result;
+        app.connect('search-results').then(
+          function onConnectionAccepted(ports) {
+            ports.forEach(function(port) {
+              self.rocketbarPort = port;
+            });
+          },
+          function onConnectionRejected(reason) {
+            dump('Error connecting: ' + reason + '\n');
+          }
+        );
+      };
     });
 
     var footer = document.querySelector('#footer');
@@ -53,15 +69,27 @@ var EverythingME = {
 
     // specifically for pseudo searchbar
     function triggerActivateFromInput(e) {
-      // gives the searchbar evme styling
-      document.body.classList.add('evme-loading-from-input');
-      document.body.classList.add('evme-keyboard-visible');
+      // check if rocketbar is enabled
+      // var req = navigator.mozSettings.createLock().get('rocketbar.enabled');
+      // req.onsuccess = function reqSuccess() {
 
-      var activationInput = activationIcon.querySelector('input');
-      activationInput.addEventListener('blur',
-                                        EverythingME.onActivationIconBlur);
+        if (true || req.result['rocketbar.enabled']) {
+          // if a port was already opened
+          if (self.rocketbarPort) {
+            self.rocketbarPort.postMessage({input: 'hello'});
+          }
+        } else {
+          // gives the searchbar evme styling
+          document.body.classList.add('evme-loading-from-input');
+          document.body.classList.add('evme-keyboard-visible');
 
-      triggerActivate(e);
+          var activationInput = activationIcon.querySelector('input');
+          activationInput.addEventListener('blur',
+                                            EverythingME.onActivationIconBlur);
+
+          triggerActivate(e);
+        }
+      // };
     }
 
     function triggerActivate(e) {

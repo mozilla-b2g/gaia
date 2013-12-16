@@ -130,6 +130,10 @@ var Rocketbar = {
   },
 
   render: function() {
+    if (this.shown) {
+      return;
+    }
+
     var search = this.searchBar;
     search.dataset.visible = 'true';
 
