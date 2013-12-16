@@ -95,14 +95,16 @@
         this.publish('launchactivity', config);
         return;
       }
-      if (!AppWindowManager.isRunning(config) &&
+
+      // Special case for rocketbar search app
+      if (config.manifest.role === 'search') {
+        Rocketbar.render();
+        return;
+      } else if (!AppWindowManager.isRunning(config) &&
            config.origin !== HomescreenLauncher.origin) {
         new AppWindow(config);
       } else if (config.origin == HomescreenLauncher.origin) {
         HomescreenLauncher.getHomescreen().ensure();
-      } else if (config.manifest.role === 'search') {
-        Rocketbar.render();
-        return;
       }
       this.publish('launchapp', config);
     },
