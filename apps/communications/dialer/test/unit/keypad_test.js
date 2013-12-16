@@ -48,6 +48,10 @@ suite('dialer/keypad', function() {
     document.body.innerHTML = previousBody;
   });
 
+  setup(function() {
+    this.sinon.useFakeTimers();
+  });
+
   suite('Keypad Manager', function() {
     test('sanitizePhoneNumber', function(done) {
       var testCases = {
@@ -201,7 +205,6 @@ suite('dialer/keypad', function() {
         observePreferences();
         MockSettingsListener.mCallbacks['phone.ring.keypad'](true);
 
-        this.clock = this.sinon.useFakeTimers();
         this.sinon.stub(document, 'elementFromPoint');
 
         subject.init(true);
@@ -209,8 +212,6 @@ suite('dialer/keypad', function() {
 
       teardown(function() {
         MockMozTelephony.mTeardown();
-
-        this.clock.restore();
 
         subject.init(false);
       });
@@ -259,9 +260,9 @@ suite('dialer/keypad', function() {
         MockSettingsListener.mCallbacks['phone.dtmf.type']('short');
 
         subject._touchStart('1');
-        this.clock.tick(119);
+        this.sinon.clock.tick(119);
         assert.isTrue(stopToneSpy.calledOnce);
-        this.clock.tick(1);
+        this.sinon.clock.tick(1);
         assert.equal(stopToneSpy.callCount, 2);
       });
     });
