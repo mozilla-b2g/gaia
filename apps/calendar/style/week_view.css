@@ -138,7 +138,7 @@
 #week-view .scroll {
   height: calc(100% - 7.9rem);
   overflow-y: scroll;
-  will-animate: scroll;
+  will-change: scroll-position;
 }
 
 #week-view .scroll > .children {
