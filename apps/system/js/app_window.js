@@ -552,9 +552,11 @@
   AppWindow.prototype._handle_mozbrowserloadend =
     function aw__handle_mozbrowserloadend(evt) {
       if (!this.loaded) {
+        // Perf test needs.
         this.publish('loadtime', {
           time: parseInt(Date.now() - this.launchTime),
-          type: 'c'
+          type: 'c',
+          src: this.config.url
         });
       }
       this.loading = false;

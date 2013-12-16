@@ -59,7 +59,6 @@ function PerformanceHelper(opts) {
         '}' +
         'w.onapplicationloaded = function(e) {' +
         '  var data = e.detail;' +
-        '  data.src = e.target.src;' +
         '  w.loadTimes.push(data);' +
         '};' +
         'w.addEventListener("apploadtime", w.onapplicationloaded);';
