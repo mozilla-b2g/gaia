@@ -32,9 +32,12 @@
       window.open(target.dataset.url);
     },
 
-    search: function(input) {
+    search: function(input, type) {
       setTimeout(function nextTick() {
-        this.port.postMessage({input: input});
+        this.port.postMessage({
+          input: input,
+          type: type
+        });
       }.bind(this));
     },
 
