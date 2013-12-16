@@ -45,13 +45,11 @@
 
     debug('waiting for ', finalEventName);
 
-    if (finalEventName && finalEventName in perfMeasurements) {
+    if (finishCallback && finalEventName &&
+        finalEventName in perfMeasurements) {
       finishCallback();
+      finishCallback = null;
     }
-  }
-
-  function finish() {
-    marionetteScriptFinished(perfMeasurements);
   }
 
   window.PerformanceHelperAtom = {
@@ -59,7 +57,7 @@
       return perfMeasurements;
     },
 
-    register: function() {
+    init: function() {
       if (hasRegistered) {
         return;
       }
@@ -88,6 +86,7 @@
       checkFinish(name, cb);
     }
   };
+
+  window.PerformanceHelperAtom.init()
 })(window.wrappedJSObject);
 
-window.wrappedJSObject.PerformanceHelperAtom.register()
