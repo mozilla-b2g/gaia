@@ -12,11 +12,11 @@ class FullscreenImage(Base):
     _fullscreen_view_locator = (By.ID, 'fullscreen-view')
     _current_image_locator = (By.CSS_SELECTOR, '#frames > div.frame[style ~= "translateX(0px);"] > img')
     _photos_toolbar_locator = (By.ID, 'fullscreen-toolbar')
-    _delete_image_locator = (By.ID, 'fullscreen-delete-button')
+    _delete_image_locator = (By.ID, 'fullscreen-delete-button-tiny')
     _confirm_delete_locator = (By.CSS_SELECTOR, '.modal-dialog-confirm.visible menu button.modal-dialog-confirm-ok')
-    _edit_photo_locator = (By.ID, 'fullscreen-edit-button')
-    _tile_view_locator = (By.ID, 'fullscreen-back-button')
-    _share_button_locator = (By.ID, 'fullscreen-share-button')
+    _edit_photo_locator = (By.ID, 'fullscreen-edit-button-tiny')
+    _tile_view_locator = (By.ID, 'fullscreen-back-button-tiny')
+    _share_button_locator = (By.ID, 'fullscreen-share-button-tiny')
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
