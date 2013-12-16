@@ -2,6 +2,7 @@ Keyboards.sv = {
   label: 'Swedish',
   menuLabel: 'Svenska',
   imEngine: 'latin',
+  autoCorrectLanguage: 'sv',
   types: ['text', 'url', 'email'],
   alt: {
     a: 'äáàâąã',
