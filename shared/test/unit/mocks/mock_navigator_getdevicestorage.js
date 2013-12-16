@@ -27,6 +27,9 @@ var MockGetDeviceStorage = function() {
           cb(response);
         }
       };
+    },
+    addEventListener: function() {
+      // Do nothing
     }
   };
 };

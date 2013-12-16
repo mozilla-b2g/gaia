@@ -74,11 +74,36 @@ suite('DownloadHelper', function() {
   suite('Launch', function() {
     setup(function() {
       download = new MockDownload();
+      DownloadHelper.init();
     });
 
     teardown(function() {
       download = null;
     });
+
+    function checkError(storage, code, done) {
+      download.state = 'succeeded';
+
+      var stubGetDeviceStorage = sinon.stub(navigator, 'getDeviceStorage',
+        function() {
+          return storage;
+        }
+      );
+
+      DownloadHelper.init();
+      var req = DownloadHelper.launch(download);
+
+      req.onsuccess = function() {
+        assert.ok(false);
+        done();
+      };
+
+      req.onerror = function(evt) {
+        assert.equal(evt.target.error.code, code);
+        stubGetDeviceStorage.restore();
+        done();
+      };
+    }
 
     test('Invalid state download', function(done) {
       var req = DownloadHelper.launch(download);
@@ -118,35 +143,19 @@ suite('DownloadHelper', function() {
     });
 
     test('Missing file', function(done) {
-      download.state = 'succeeded';
-
-      var stubGetDeviceStorage = sinon.stub(navigator, 'getDeviceStorage',
-        function() {
+      var storage = {
+        'get' : function(path) {
           return {
-            'get' : function(path) {
-              return {
-                set onsuccess(cb) {},
-                set onerror(cb) {setTimeout(cb, 100)},
-                error: { 'name': 'custom error' }
-              };
-            }
+            set onsuccess(cb) {},
+            set onerror(cb) {setTimeout(cb, 100)},
+            error: { 'name': 'custom error' }
           };
+        },
+        'addEventListener': function() {
         }
-      );
-
-      var req = DownloadHelper.launch(download);
-
-      req.onsuccess = function() {
-        assert.ok(false);
-        done();
       };
 
-      req.onerror = function(evt) {
-        assert.equal(evt.target.error.code,
-          DownloadHelper.CODE.FILE_NOT_FOUND);
-        stubGetDeviceStorage.restore();
-        done();
-      };
+      checkError(storage, DownloadHelper.CODE.FILE_NOT_FOUND, done);
     });
 
     test('Success', function(done) {
@@ -161,6 +170,30 @@ suite('DownloadHelper', function() {
         assert.ok(false);
         done();
       };
+    });
+
+    test('Unmounted sdcard', function(done) {
+      var storage = {
+        'addEventListener': function(event, cb) {
+          cb({
+            reason: 'shared'
+          });
+        }
+      };
+
+      checkError(storage, DownloadHelper.CODE.UNMOUNTED_SDCARD, done);
+    });
+
+    test('No sdcard', function(done) {
+      var storage = {
+        'addEventListener': function(event, cb) {
+          cb({
+            reason: 'unavailable'
+          });
+        }
+      };
+
+      checkError(storage, DownloadHelper.CODE.NO_SDCARD, done);
     });
   });
 });

@@ -33,7 +33,9 @@ var DownloadHelper = (function() {
     FILE_NOT_FOUND: 'FILE_NOT_FOUND',
     DEVICE_STORAGE: 'DEVICE_STORAGE',
     MIME_TYPE_NOT_SUPPORTED: 'MIME_TYPE_NOT_SUPPORTED',
-    INVALID_STATE: 'INVALID_STATE'
+    INVALID_STATE: 'INVALID_STATE',
+    NO_SDCARD: 'NO_SDCARD',
+    UNMOUNTED_SDCARD: 'UNMOUNTED_SDCARD'
   };
 
  /*
@@ -69,15 +71,33 @@ var DownloadHelper = (function() {
   // Storage name settings key
   var STORAGE_NAME_KEY = 'device.storage.writable.name';
 
-  // Current storage name
-  var storageName = STORAGE_NAME_BY_DEFAULT;
+  // Current storage name and object
+  var storageName, storage;
+
+  var storageState = 'available';
+
+  function setStorage(name) {
+    storageName = name;
+    if (navigator.getDeviceStorage) {
+      storage = navigator.getDeviceStorage(name);
+      storage.addEventListener('change', function onChange(e) {
+        storageState = e.reason;
+      });
+    }
+  }
+
+  function init() {
+    setStorage(STORAGE_NAME_BY_DEFAULT);
+  }
+
+  init();
 
   LazyLoader.load('shared/js/settings_listener.js', function settingsLoaded() {
     SettingsListener.observe(STORAGE_NAME_KEY, STORAGE_NAME_BY_DEFAULT,
       function setStorageName(evt) {
         var settingValue = evt.settingValue;
         if (settingValue) {
-          storageName = settingValue;
+          setStorage(settingValue);
         }
       }
     );
@@ -119,21 +139,35 @@ var DownloadHelper = (function() {
     window.setTimeout(function doGetBlob() {
       var path = download.path;
 
-      try {
-        path = getRelativePath(path);
-        var storeReq = navigator.getDeviceStorage(storageName).get(path);
+      switch (storageState) {
+        case 'unavailable':
+          sendError(req, ' Could not open the file: ' + path + ' from ' +
+                    storageName, CODE.NO_SDCARD);
+          break;
 
-        storeReq.onsuccess = function store_onsuccess() {
-          req.done(storeReq.result);
-        };
+        case 'shared':
+          sendError(req, ' Could not open the file: ' + path + ' from ' +
+                    storageName, CODE.UNMOUNTED_SDCARD);
+          break;
 
-        storeReq.onerror = function store_onerror() {
-          sendError(req, storeReq.error.name + ' Could not open the file: ' +
-                    path + ' from ' + storageName, CODE.FILE_NOT_FOUND);
-        };
-      } catch (ex) {
-        sendError(req, 'Error getting the file ' + path + ' from ' +
-                  storageName, CODE.DEVICE_STORAGE);
+        default:
+          try {
+            path = getRelativePath(path);
+            var storeReq = storage.get(path);
+
+            storeReq.onsuccess = function store_onsuccess() {
+              req.done(storeReq.result);
+            };
+
+            storeReq.onerror = function store_onerror() {
+              sendError(req, storeReq.error.name +
+                        ' Could not open the file: ' + path + ' from ' +
+                        storageName, CODE.FILE_NOT_FOUND);
+            };
+          } catch (ex) {
+            sendError(req, 'Error getting the file ' + path + ' from ' +
+                      storageName, CODE.DEVICE_STORAGE);
+          }
       }
     }, 0);
 
@@ -303,8 +337,10 @@ var DownloadHelper = (function() {
       var show = DownloadUI.show;
 
       switch (error.code) {
+        case CODE.NO_SDCARD:
+        case CODE.UNMOUNTED_SDCARD:
         case CODE.FILE_NOT_FOUND:
-          req = show(DownloadUI.TYPE.FILE_NOT_FOUND, download, true);
+          req = show(DownloadUI.TYPE[error.code], download, true);
           req.onconfirm = cb ? cb.call(null, download) : cb;
 
           break;
@@ -377,6 +413,8 @@ var DownloadHelper = (function() {
      *
      * @param{Function} This function is performed when the flow is finished
      */
-    handlerError: handlerError
+    handlerError: handlerError,
+
+    init: init
   };
 }());
