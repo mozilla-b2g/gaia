@@ -52,7 +52,7 @@ RingView.prototype.handleMessage = function rv_handleMessage(ev) {
     lp();
     if (err.length !== 0) {
       err.forEach(function(e) {
-        console.log('Error in onring handler:', e.message, '\n', e.stack);
+        console.error('Error in onring handler:', e.message, '\n', e.stack);
       });
       done();
     }
