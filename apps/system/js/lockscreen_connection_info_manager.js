@@ -258,7 +258,7 @@
 
       if (voice.roaming) {
         var l10nArgs = { operator: operator };
-        localize(nextLine(), 'roaming', JSON.stringify(l10nArgs));
+        localize(nextLine(), 'roaming', l10nArgs);
       } else {
         var line = nextLine();
         line.l10nId = '';
