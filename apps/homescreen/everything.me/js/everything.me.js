@@ -4,6 +4,19 @@ var EverythingME = {
   pendingEvent: undefined,
 
   init: function EverythingME_init() {
+    var self = this;
+    // Listen to eme-api channel
+    navigator.mozSetMessageHandler('connection',
+      function(connectionRequest) {
+      var keyword = connectionRequest.keyword;
+      if (keyword != 'eme-api')
+        return;
+
+      var port = connectionRequest.port;
+      port.onmessage = self.onmessage.bind(self);
+      port.start();
+    });
+
     var footer = document.querySelector('#footer');
     if (footer) {
       footer.style.MozTransition = '-moz-transform .3s ease';
@@ -139,6 +152,51 @@ var EverythingME = {
     });
 
     EverythingME.migrateStorage();
+  },
+
+  /**
+   * When we receive a message from the search results app
+   */
+  onmessage: function(msg) {
+    console.log('Rocketbar: Homescreen E.me received:', msg);
+    // Send back some mock data
+    setTimeout(function nextTick() {
+      this.sendResultsApp({
+        results: [
+          {
+            url: 'http://mozilla.org',
+            title: 'EverythingMe Test Result'
+          }
+        ]
+      });
+    }.bind(this));
+  },
+
+  /**
+   * Sends a message to the search results app.
+   * Opens the port if it is not yet open
+   */
+  sendResultsApp: function(message) {
+    var self = this;
+    if (!self.port) {
+      navigator.mozApps.getSelf().onsuccess = function() {
+        var app = this.result;
+        app.connect('eme-client').then(
+          function onConnectionAccepted(ports) {
+            ports.forEach(function(port) {
+              console.log('Rocketbar: Connecting to port:', port);
+              self.port = port;
+              self.port.postMessage(message);
+            });
+          },
+          function onConnectionRejected(reason) {
+            dump('Error connecting: ' + reason + '\n');
+          }
+        );
+      };
+      return;
+    }
+    self.port.postMessage(message);
   },
 
   onActivationIconBlur: function onActivationIconBlur(e) {

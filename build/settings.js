@@ -315,8 +315,8 @@ function execute(options) {
   }
 
   // Set the rocketbar URL
-  settings['rocketbar.searchAppURL'] = utils.gaiaOriginURL('homescreen',
-    config.GAIA_SCHEME, config.GAIA_DOMAIN, config.GAIA_PORT) + '/search/index.html';
+  settings['rocketbar.searchAppURL'] = utils.gaiaOriginURL('search',
+    config.GAIA_SCHEME, config.GAIA_DOMAIN, config.GAIA_PORT) + '/index.html';
 
   if (config.PRODUCTION === '1') {
     settings['feedback.url'] = 'https://input.mozilla.org/api/v1/feedback/';
