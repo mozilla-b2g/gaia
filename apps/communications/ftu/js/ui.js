@@ -70,6 +70,8 @@ var UIManager = {
     'hidden-wifi-ssid',
     'hidden-wifi-security',
     'hidden-wifi-password',
+    'hidden-wapi-password-type',
+    'hidden-wapi-password-type-box',
     'hidden-wifi-identity',
     'hidden-wifi-identity-box',
     'hidden-wifi-show-password',

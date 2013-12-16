@@ -256,6 +256,11 @@
             <input type="text" id="wifi_ssid" class="hidden" value=""></input>
             <label id="label_wifi_user" for="wifi_user" data-l10n-id="identity">User</label>
             <input type="text" id="wifi_user" data-l10n-id="identityInput" placeholder="User" x-inputmode="verbatim"></input>
+            <label for="wapi_password_type" data-l10n-id="wapiPasswordType">WAPI Password Type</label>
+            <select id="wapi_password_type">
+              <option value="ASCII">ASCII</option>
+              <option value="HEX">HEX</option>
+            </select>
             <label for="wifi_password" data-l10n-id="password">Password</label>
             <input type="password" id="wifi_password" data-l10n-id="passwordInput" placeholder="Password" value="" x-inputmode="verbatim"></input>
             <label class="pack-checkbox" id="label_show_password">
@@ -282,6 +287,7 @@
               <option data-l10n-id="securityWEP">WEP</option>
               <option data-l10n-id="securityWPA-PSK" selected>WPA-PSK</option>
               <option data-l10n-id="securityWPA-EAP">WPA-EAP</option>
+              <option data-l10n-id="securityWAPI-PSK">WAPI-PSK</option>
             </select>
 
             <div class="hidden" id="hidden-wifi-identity-box">
@@ -289,6 +295,16 @@
                 Identity
               </label>
               <input type="text" name="wifi_identity" id="hidden-wifi-identity"/>
+            </div>
+
+            <div class="hidden" id="hidden-wapi-password-type-box">
+              <label id="label_hidden_wapi_password_type" for="hidden-wapi-password-type" data-l10n-id="wapiPasswordType">
+                WAPI Password Type
+              </label>
+              <select id="hidden-wapi-password-type">
+                <option value="ASCII">ASCII</option>
+                <option value="HEX">HEX</option>
+              </select>
             </div>
 
             <label id="label_hidden_wifi_password" for="wifi_hidden_password" data-l10n-id="password">

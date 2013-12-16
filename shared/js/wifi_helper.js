@@ -10,11 +10,15 @@ var WifiHelper = {
   }(),
 
   setPassword: function(network, password, identity,
-                        eap, phase2, certificate) {
+                        eap, phase2, certificate, wapiPasswordType) {
     var encType = this.getKeyManagement(network);
     switch (encType) {
       case 'WPA-PSK':
         network.psk = password;
+        break;
+      case 'WAPI-PSK':
+        network.psk = password;
+        network.pskType = wapiPasswordType;
         break;
       case 'WPA-EAP':
         network.eap = eap;
@@ -75,8 +79,10 @@ var WifiHelper = {
     var key = this.getSecurity(network)[0];
     if (/WEP$/.test(key))
       return 'WEP';
-    if (/PSK$/.test(key))
+    if (/WPA-PSK$/.test(key))
       return 'WPA-PSK';
+    if (/WAPI-PSK$/.test(key))
+      return 'WAPI-PSK';
     if (/EAP$/.test(key))
       return 'WPA-EAP';
     return '';
@@ -98,7 +104,7 @@ var WifiHelper = {
     return key === curkey;
   },
 
-  isValidInput: function(key, password, identity, eap) {
+  isValidInput: function(key, password, identity, eap, wapiPasswordType) {
     function isValidWepKey(password) {
       switch (password.length) {
         case 5:
@@ -120,6 +126,22 @@ var WifiHelper = {
       case 'WPA-PSK':
         if (!password || password.length < 8)
           return false;
+        break;
+      case 'WAPI-PSK':
+        if (!password)
+          return false;
+
+        // The length of password must be range of [8, 64], so for the
+        // password in HEX mode, the range is [8*2, 64*2]. Make sure the
+        // length of the HEX password is even.
+        if (wapiPasswordType === 'HEX') {
+          if (password.length < 16 || password.length > 128 ||
+              password.length % 2 === 1 ||
+              !/^[0-9a-f]+$/i.test(password))
+            return false;
+        } else if (password.length < 8 || password.length > 64) {
+          return false;
+        }
         break;
       case 'WPA-EAP':
         switch (eap) {
