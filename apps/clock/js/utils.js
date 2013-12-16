@@ -344,7 +344,7 @@ Utils.safeWakeLock = function(opts, fn) {
     myKey = null;
   };
   clearTimeout(wakeTarget.timeouts[type]);
-  wakeTarget.timeouts[type] = setTimeout(unlockFn, timeoutMs);
+  wakeTarget.timeouts[type] = setTimeout(unlockFn, max.time - now);
   try {
     if (!wakeTarget.locks[type] && max.time > now) {
       wakeTarget.locks[type] = navigator.requestWakeLock(type);
