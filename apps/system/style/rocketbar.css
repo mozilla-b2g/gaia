@@ -1,0 +1,41 @@
+
+#search-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: calc(100%);
+  background-color: black;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(-100%);
+  transition: visibility 0.3s 1.1s ease, transform 0.3s 0.8s ease;
+}
+
+#screen.software-button-enabled #search-bar {
+  height: calc(100% - 5rem);
+}
+
+#search-bar[data-visible] {
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0);
+  transition: visibility 0.3s 0.3s ease, transform 0.3s ease;
+}
+
+#search-bar .search-input {
+  margin-top: 2rem;
+  border: 0;
+  border-radius: 0;
+  line-height: 4rem;
+}
+
+#search-bar .search-container {
+  height: calc(100% - 6rem);
+}
+
+#search-bar .search-container iframe {
+  border: 0;
+  width: 100%;
+  height: 100%;
+}

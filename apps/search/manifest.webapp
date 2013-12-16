@@ -1,0 +1,24 @@
+{
+  "name": "Search Results",
+  "type": "privileged",
+  "role": "search",
+  "description": "Search Results",
+  "launch_path": "/index.html",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/mozilla-b2g/gaia"
+  },
+  "locales": {
+    "en-US": {
+      "name": "Search Results",
+      "description": "Search Results"
+    }
+  },
+  "default_locale": "en-US",
+  "icons": {
+    "128": "/style/icons/Blank.png"
+  },
+  "permissions": {
+    "contacts":{ "access": "readonly" }
+  }
+}
