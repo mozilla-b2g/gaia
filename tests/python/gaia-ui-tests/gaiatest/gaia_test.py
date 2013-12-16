@@ -893,9 +893,9 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
             # reset do not track
             self.data_layer.set_setting('privacy.donottrackheader.value', '-1')
 
-            if self.data_layer.get_setting('ril.radio.disabled'):
+            if self.data_layer.get_setting('airplaneMode.enabled'):
                 # enable the device radio, disable airplane mode
-                self.data_layer.set_setting('ril.radio.disabled', False)
+                self.data_layer.set_setting('airplaneMode.enabled', False)
 
             # Re-set edge gestures pref to False
             self.data_layer.set_setting('edgesgesture.enabled', False)

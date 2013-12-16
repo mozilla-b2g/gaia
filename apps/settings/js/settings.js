@@ -803,6 +803,7 @@ window.addEventListener('load', function loadSettings() {
     LazyLoader.load(['shared/js/wifi_helper.js'], displayDefaultPanel);
 
     LazyLoader.load([
+      'shared/js/airplane_mode_helper.js',
       'js/airplane_mode.js',
       'js/battery.js',
       'shared/js/async_storage.js',
