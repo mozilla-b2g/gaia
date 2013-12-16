@@ -73,7 +73,7 @@ var StatusBar = {
     'battery', 'wifi', 'data', 'flight-mode', 'network-activity', 'tethering',
     'alarm', 'bluetooth', 'mute', 'headphones', 'bluetooth-headphones',
     'bluetooth-transferring', 'recording', 'sms', 'geolocation', 'usb', 'label',
-    'system-downloads', 'call-forwarding', 'playing', 'keyboard'],
+    'system-downloads', 'call-forwarding', 'playing'],
 
   /* Timeout for 'recently active' indicators */
   kActiveIndicatorTimeout: 5 * 1000,
@@ -226,9 +226,6 @@ var StatusBar = {
     window.addEventListener('unlock', this);
     window.addEventListener('lockpanelchange', this);
 
-    // Listen to the IME switcher shows/hide
-    window.addEventListener('keyboardimeswitchershow', this);
-    window.addEventListener('keyboardimeswitcherhide', this);
     window.addEventListener('appopened', this);
     window.addEventListener('homescreenopened', this.show.bind(this));
 
@@ -315,14 +312,6 @@ var StatusBar = {
           this.toggleTimeLabel(false);
           this.toggleTimeLabel(true);
         }).bind(this));
-        break;
-
-      case 'keyboardimeswitchershow':
-        this.toggleKeyboardLabel(true);
-        break;
-
-      case 'keyboardimeswitcherhide':
-        this.toggleKeyboardLabel(false);
         break;
 
       case 'mozChromeEvent':
@@ -841,11 +830,6 @@ var StatusBar = {
     } else {
       this.clock.stop();
     }
-    icon.hidden = !enable;
-  },
-
-  toggleKeyboardLabel: function sb_toggleKeyboardLabel(enable) {
-    var icon = this.icons.keyboard;
     icon.hidden = !enable;
   },
 
