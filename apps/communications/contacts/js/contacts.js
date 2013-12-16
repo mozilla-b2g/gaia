@@ -412,7 +412,7 @@ var Contacts = (function() {
             number: number
           }
         });
-      } else {
+      } else if (navigator.mozTelephony) {
         TelephonyHelper.call(number);
       }
     });
