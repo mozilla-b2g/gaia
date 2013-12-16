@@ -51,7 +51,7 @@
   position: relative;
 }
 
-#phoneLock-passcode .passcode > label {
+#phoneLock-passcode label {
   -moz-box-sizing: border-box;
   display: block;
   width: auto;
