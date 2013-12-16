@@ -6,6 +6,10 @@ html, body {
   background-size: 100% 100%;
 }
 
+.hidden {
+  display: none !important;
+}
+
 .ring-display {
   position: fixed;
 
@@ -54,7 +58,7 @@ html, body {
   padding-left: 0.94rem;
 }
 
-#ring-alarm-label {
+#ring-label {
   font-weight: lighter;
   font-size: 2.50rem;
   line-height: 3.25rem;
@@ -101,6 +105,10 @@ html, body {
   outline: medium none;
   vertical-align: middle;
   white-space: nowrap;
+}
+
+.wide-button {
+  width: calc(100% - (4.06rem * .7666)) !important;
 }
 
 #ring-button-close:active {

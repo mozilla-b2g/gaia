@@ -1,4 +1,15 @@
-define(function(require) {
+(function(global, name, factory) {
+  'use strict';
+  if (typeof define === 'function' && define.amd) {
+    define(factory);
+  } else if (typeof exports === 'object') {
+    module.exports = factory(require);
+  } else {
+    global[name] = factory(function(moduleId) {
+      return window[moduleId];
+    });
+  }
+}(this, 'Utils', function(require) {
 'use strict';
 
 var mozL10n = require('l10n');
@@ -13,6 +24,58 @@ var dateMultipliers = {
   milliseconds: 1
 };
 var units = Object.keys(dateMultipliers);
+
+Utils.debug = function(msg, objects) {
+  objects = Array.prototype.slice.call(arguments, 1);
+  var ls = [];
+  objects.forEach(function(x) {
+    var string;
+    try {
+      string = JSON.stringify(x);
+    } catch (e) {
+      string = '[-- circular --]';
+    }
+    ls.push('<' + typeof x + ' - ' + string + '>');
+  });
+  console.log(['DEBUG', msg, '->', ls.join(' ')].join(' '));
+};
+
+Utils.singleton = function(constructor, fn) {
+  var singletonMap = new Map();
+  if (!fn) {
+    fn = function(map, args) {
+      // default: ignore arguments, just key on constructor object
+      return [constructor, map.get(constructor)];
+    };
+  }
+  return function() {
+    var argl = Array.prototype.slice.call(arguments);
+    var mem = fn(singletonMap, argl);
+    var key = mem[0];
+    var val = mem[1];
+    if (!val) {
+      val = Object.create(constructor.prototype);
+      constructor.apply(val, argl);
+      singletonMap.set(key, val);
+    }
+    return val;
+  };
+};
+
+Utils.memoizedDomPropertyDescriptor = function(selector) {
+  var memoizedValue = null;
+  return {
+    get: function() {
+      if (memoizedValue === null) {
+        memoizedValue = document.querySelectorAll(selector)[0];
+      }
+      return memoizedValue;
+    },
+    set: function(value) {
+      memoizedValue = value;
+    }
+  };
+};
 
 Utils.dateMath = {
   /**
@@ -126,6 +189,29 @@ Utils.extend = function(initialObject, extensions) {
   return initialObject;
 };
 
+Utils.requestAnimationAfter = function(fn, time) {
+  var currentTime = Date.now();
+  var id, ret = {};
+  if (time <= 0) {
+    ret.raf = requestAnimationFrame(fn);
+  } else {
+    ret.timeout = setTimeout(function() {
+      delete this.timeout;
+      this.raf = requestAnimationFrame(fn);
+    }.bind(ret), time);
+  }
+  return ret;
+};
+
+Utils.cancelAnimationAfter = function(id) {
+  if (id && typeof id.raf !== 'undefined') {
+    cancelAnimationFrame(id.raf);
+  }
+  if (id && typeof id.timeout !== 'undefined') {
+    clearTimeout(id.timeout);
+  }
+};
+
 Utils.escapeHTML = function(str, escapeQuotes) {
   var span = document.createElement('span');
   span.textContent = str;
@@ -186,36 +272,102 @@ Utils.parseTime = function(time) {
   };
 };
 
-Utils.safeCpuLock = function(timeoutMs, fn) {
-    /*
-     * safeCpuLock
-     *
-     * Create a CPU lock that is automatically released after
-     * timeoutMs.
-     *
-     *
-     * @timeoutMs {integer} a number of milliseconds
-     * @callback {Function} a function to be called after
-     *           all other generated callbacks have been
-     *           called
-     *           function ([err]) -> undefined
-     */
-  var cpuWakeLock, unlockTimeout;
-  var unlockFn = function() {
-    clearTimeout(unlockTimeout);
-    if (cpuWakeLock) {
-      cpuWakeLock.unlock();
-      cpuWakeLock = null;
+var wakeTarget = {
+  requests: {
+    cpu: new Map(), screen: new Map(), wifi: new Map()
+  },
+  locks: {
+    cpu: null, screen: null, wifi: null
+  },
+  timeouts: {
+    cpu: null, screen: null, wifi: null
+  }
+};
+function getLongestLock(type) {
+  var max = 0;
+  for (var i of wakeTarget.requests[type]) {
+    var key = i[0], request = i[1];
+    if (request.time > max) {
+      max = request.time;
     }
+  }
+  return {
+    time: max,
+    lock: wakeTarget.locks[type],
+    timeout: wakeTarget.timeouts[type]
   };
-  unlockTimeout = setTimeout(unlockFn, timeoutMs);
+}
+Utils.safeWakeLock = function(opts, fn) {
+    /*
+     * safeWakeLock
+     *
+     * Create a Wake lock that is automatically released after
+     * timeoutMs. Locks are reentrant, and have no meaningful mutual
+     * exclusion behavior.
+     *
+     * @param {Object} options - an object containing
+     *                 [type] {string} a string passed to requestWakeLock
+     *                                default = 'cpu'.
+     *                 timeoutMs {number} number of milliseconds to hold
+     *                                    the lock.
+     * @param {Function} callback - a function to be called after all other
+     *                              generated callbacks have been called.
+     *                              function ([err]) -> undefined.
+     */
+  opts = opts || {};
+  var type = opts.type || 'cpu';
+  var timeoutMs = opts.timeoutMs | 0;
+  var now = Date.now();
+  var myKey = {};
+  wakeTarget.requests[type].set(myKey, {
+    time: now + timeoutMs
+  });
+  var max = getLongestLock(type);
+  var unlockFn = function() {
+    if (!myKey) {
+      return;
+    }
+    wakeTarget.requests[type]. delete(myKey);
+    var now = Date.now();
+    var max = getLongestLock(type);
+    if (max.time > now) {
+      clearTimeout(wakeTarget.timeouts[type]);
+      wakeTarget.timeouts[type] = setTimeout(unlockFn, max.time - now);
+    } else {
+      if (wakeTarget.locks[type]) {
+        wakeTarget.locks[type].unlock();
+      }
+      wakeTarget.locks[type] = null;
+      clearTimeout(wakeTarget.timeouts[type]);
+      wakeTarget.timeouts[type] = null;
+    }
+    myKey = null;
+  };
+  clearTimeout(wakeTarget.timeouts[type]);
+  wakeTarget.timeouts[type] = setTimeout(unlockFn, max.time - now);
   try {
-    cpuWakeLock = navigator.requestWakeLock('cpu');
+    if (!wakeTarget.locks[type] && max.time > now) {
+      wakeTarget.locks[type] = navigator.requestWakeLock(type);
+    }
     fn(unlockFn);
   } catch (err) {
     unlockFn();
     throw err;
   }
+};
+
+Utils.safe = function utl_safeAccess(obj, key) {
+  if (typeof key === 'string') {
+    key = key.split(/[,. ]/);
+  }
+  for (var i in key) {
+    try {
+      obj = obj[key[i]];
+    } catch (err) {
+      return null;
+    }
+  }
+  return obj;
 };
 
 Utils.repeatString = function rep(str, times) {
@@ -486,10 +638,23 @@ Utils.data = {
       }
     }
     return removed;
-  }
+  },
 
+  find: function ud_find(list, fn) {
+    for (var i = 0; i < list.length; i++) {
+      var res = fn(list[i]);
+      if (res) {
+        return {
+          item: list[i],
+          index: i,
+          result: res
+        };
+      }
+    }
+    return null;
+  }
 };
 
 return Utils;
 
-});
+}));
