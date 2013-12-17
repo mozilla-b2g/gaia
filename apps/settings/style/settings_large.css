@@ -307,7 +307,7 @@
     font-size: 2.4rem;
     line-height: 5rem;
     color: #fff;
-    padding: 0 1rem 0px 2rem;
+    padding: 0 1rem 0 2rem;
   }
 
   section[role="region"] > header:first-child menu[type="toolbar"] a,
