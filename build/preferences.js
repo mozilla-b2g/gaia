@@ -81,6 +81,8 @@ function execute(options) {
     prefs.push(['device.storage.enabled', true]);
     prefs.push(['device.storage.prompt.testing', true]);
     prefs.push(['notification.feature.enabled', true]);
+    prefs.push(['dom.datastore.enabled', true]);
+    prefs.push(['dom.testing.datastore_enabled_for_hosted_apps', true]);
 
     // WebSettings
     prefs.push(['dom.mozSettings.enabled', true]);
