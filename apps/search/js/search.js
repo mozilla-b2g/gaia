@@ -99,7 +99,7 @@
      * Messages the parent container to close
      */
     close: function() {
-      this._port.postMessage({'action': 'close'});
+      this._port.postMessage({'action': 'hide'});
     }
   };
 
