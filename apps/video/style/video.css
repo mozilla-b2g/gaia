@@ -622,7 +622,7 @@ body:not(.pick-activity) #thumbnail-list-view header {
 }
 
 /* spinner is only valid for tablet and landscape mode */
-#spinner-overlay {
+body:not(.view-activity) #spinner-overlay {
   display: none;
 }
 
