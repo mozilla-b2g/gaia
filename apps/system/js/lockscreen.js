@@ -93,7 +93,7 @@ var LockScreen = {
   /*
   * Boolean returns wether we want a sound effect when unlocking.
   */
-  unlockSoundEnabled: true,
+  unlockSoundEnabled: false,
 
   /*
   * Boolean return whether if the lock screen is enabled or not.
