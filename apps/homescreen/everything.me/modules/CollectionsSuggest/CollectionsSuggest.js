@@ -8,8 +8,7 @@ Evme.CollectionsSuggest = new function Evme_CollectionsSuggest() {
       elList = null,
       elParent = null,
       active = false,
-      savedIcons = null,
-      WORLDWIDE_LOCALE = 'en_WW';
+      savedIcons = null;
 
   this.init = function init(options) {
     elParent = options.elParent;
@@ -81,16 +80,13 @@ Evme.CollectionsSuggest = new function Evme_CollectionsSuggest() {
   this.load = function load(data) {
     savedIcons = data.icons;
 
-    // translate only if locale is supported by E.me service
-    var doTranslate = data.locale !== WORLDWIDE_LOCALE;
-
     elList.innerHTML = '';
-    self.add(data.shortcuts, doTranslate);
+    self.add(data.shortcuts);
 
     Evme.EventHandler.trigger(NAME, 'load');
   };
 
-  this.add = function add(shortcuts, doTranslate) {
+  this.add = function add(shortcuts) {
     var shortcutsAdded = {};
 
     elList.innerHTML = '';
@@ -110,7 +106,7 @@ Evme.CollectionsSuggest = new function Evme_CollectionsSuggest() {
       experienceId = shortcut.experienceId || '';
       name = query;
 
-      if (doTranslate && experienceId) {
+      if (experienceId) {
         var l10nkey = 'id-' + Evme.Utils.shortcutIdToKey(experienceId),
             translatedName = Evme.Utils.l10n('shortcut', l10nkey);
 

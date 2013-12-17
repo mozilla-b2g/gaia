@@ -1226,8 +1226,7 @@
 
     function showSuggestions(data) {
       var suggestedShortcuts = data.response.shortcuts || [],
-          icons = data.response.icons || {},
-          locale = data.response.locale;
+          icons = data.response.icons || {};
 
       if (!isRequesting) {
         return;
@@ -1242,8 +1241,7 @@
       } else {
         Evme.CollectionsSuggest.load({
           'shortcuts': suggestedShortcuts,
-          'icons': icons,
-          'locale': locale
+          'icons': icons
         });
 
         Evme.CollectionsSuggest.show();
