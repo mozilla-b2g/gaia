@@ -23,4 +23,14 @@ marionette('navigation', function() {
     search.goToResults();
   });
 
+  test('opens browser with url', function() {
+    var url = 'http://mozilla.org/';
+    // Enter the URL with enter key
+    search.doSearch(url + '\uE006');
+
+    client.switchToFrame();
+
+    search.goToBrowser(url);
+  });
+
 });
