@@ -76,6 +76,10 @@ function getLayouts(config) {
   let layouts = layoutNames.map(function(layoutName) {
     let layoutFile = utils.getFile(layoutSrc.path, layoutName + '.js');
 
+	if (!layoutFile.exists()) {
+       throw new Error("Keyboard layout " + layoutName + ".js specified by GAIA_KEYBOARD_LAYOUTS not found in " + layoutSrc.path)
+    }
+
     try {
       return getLayoutDetails(layoutName, layoutFile);
     }
