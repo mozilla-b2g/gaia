@@ -84,11 +84,13 @@
     messagesDb.messages.push({
       id: messagesDb.id++,
       threadId: 6,
-      sender: '052780',
+      receiver: ['052780'],
       type: 'mms',
       read: true,
       delivery: 'sent',
-      deliveryInfo: [{deliveryStatus: 'success'}],
+      deliveryInfo: [{receiver: '052780',
+                      deliveryStatus: 'success',
+                      deliveryTimestamp: now}],
       subject: 'Test MMS Image message',
       smil: '<smil><body><par><text src="text1"/></par>' +
             '<par><img src="example.jpg"/></par></body></smil>',
@@ -127,11 +129,13 @@
     messagesDb.messages.push({
       id: messagesDb.id++,
       threadId: 6,
-      sender: '052780',
+      receiver: ['052780'],
       type: 'mms',
       read: true,
       delivery: 'sent',
-      deliveryInfo: [{deliveryStatus: 'success'}],
+      deliveryInfo: [{receiver: '052780',
+                      deliveryStatus: 'success',
+                      deliveryTimestamp: now}],
       subject: 'Test MMS Video message',
       smil: '<smil><body><par><text src="text1"/></par>' +
             '<par><video src="example.ogv"/></par></body></smil>',
@@ -169,11 +173,13 @@
     messagesDb.messages.push({
       id: messagesDb.id++,
       threadId: 6,
-      sender: '052780',
+      receiver: ['052780'],
       read: true,
       type: 'mms',
       delivery: 'sent',
-      deliveryInfo: [{deliveryStatus: 'success'}],
+      deliveryInfo: [{receiver: '052780',
+                      deliveryStatus: 'success',
+                      deliveryTimestamp: now}],
       subject: 'Test MMS audio message',
       smil: '<smil><body><par><text src="text1"/></par>' +
             '<par><audio src="example.ogg"/></par></body></smil>',
@@ -301,7 +307,8 @@
         read: true,
         type: 'sms',
         timestamp: now,
-        deliveryStatus: 'success'
+        deliveryStatus: 'success',
+        deliveryTimestamp: now
       },
       {
         threadId: 1,
@@ -327,7 +334,8 @@
       },
       {
         threadId: 3,
-        sender: '+18001114321',
+        sender: null,
+        receiver: '+18001114321',
         body: 'I have a really long name!',
         read: true,
         type: 'sms',
@@ -391,6 +399,7 @@
           'wrapping. (delivery: sent ; deliveryStatus: success)',
         delivery: 'sent',
         deliveryStatus: 'success',
+        deliveryTimestamp: now - 500000,
         type: 'sms',
         timestamp: now - 550000
        },
@@ -436,6 +445,7 @@
         delivery: 'sent',
         type: 'sms',
         deliveryStatus: 'success',
+        deliveryTimestamp: now - 100000,
         timestamp: now - 200000
       },
       {
@@ -446,6 +456,7 @@
         body: 'short (delivery success)',
         delivery: 'sent',
         deliveryStatus: 'success',
+        deliveryTimestamp: now - 100000,
         type: 'sms',
         timestamp: now - 150000
       },
@@ -774,6 +785,7 @@
         sender: null,
         receiver: senderNumber,
         delivery: 'sending',
+        deliveryStatus: 'pending',
         body: text,
         id: sendId,
         type: 'sms',
@@ -899,7 +911,7 @@
         receivers: params.receivers,
         type: 'mms',
         delivery: 'sending',
-        deliveryInfo: [{deliveryStatus: 'not-applicable'}],
+        deliveryInfo: [{receiver: null, deliveryStatus: 'not-applicable'}],
         read: true,
         subject: '',
         smil: params.smil,

@@ -265,6 +265,24 @@ suite('ContactRenderer', function() {
 
       assert.isFalse(html.contains('img'));
     });
+
+    test('append information block in the li', function() {
+      var li;
+      var block = document.createElement('div');
+      var selector = '.suggestion';
+
+      renderer.render({
+        contact: contact,
+        input: 'Additional info',
+        infoBlock: block,
+        infoBlockParentSelector: selector,
+        target: ul
+      });
+      li = ul.lastElementChild;
+
+      assert.isTrue(!!li.querySelector(selector));
+      assert.equal(li.querySelector(selector).lastElementChild, block);
+    });
   });
 
   suite('prompt', function() {

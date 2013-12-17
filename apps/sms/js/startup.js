@@ -4,7 +4,7 @@
 'use strict';
 
 /*global Utils, ActivityHandler, ThreadUI, ThreadListUI, MessageManager,
-         Settings, LazyLoader, TimeHeaders */
+         Settings, LazyLoader, TimeHeaders, Information */
 
 var lazyLoadFiles = [
   'shared/js/async_storage.js',
@@ -40,6 +40,7 @@ var lazyLoadFiles = [
   'js/notify.js',
   'js/activity_handler.js',
   'js/contact_renderer.js',
+  'js/information.js',
   'shared/style/input_areas.css',
   'shared/style/switches.css',
   'shared/style/confirm.css',
@@ -93,6 +94,7 @@ window.addEventListener('load', function() {
     // Init UI Managers
     ThreadUI.init();
     ThreadListUI.init();
+    Information.initDefaultViews();
     // We render the threads
     MessageManager.getThreads(ThreadListUI.renderThreads);
     // Fetch mmsSizeLimitation
