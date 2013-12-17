@@ -579,9 +579,10 @@
       // XXX: Assume homescreen's orientation is just device default.
       var homeOrientation = OrientationManager.defaultOrientation;
       var currentOrientation = OrientationManager.fetchCurrentOrientation();
-      var table = OrientationRotationTable[currentOrientation];
-      var degree = table[OrientationRotationArray.indexOf(homeOrientation)];
-      return degree;
+      this.debug(currentOrientation);
+      var table = OrientationRotationTable[homeOrientation];
+      var degree = table[OrientationRotationArray.indexOf(currentOrientation)];
+      return Math.abs(360 - degree) % 360;
     };
 
   // Detect whether this is a full screen app by its manifest.
