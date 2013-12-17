@@ -91,11 +91,13 @@ section[role="region"] > div {
   -moz-hyphens: auto;
 }
 
-.description p {
+.description p, li.description > label > span {
   padding: 0 0 1rem;
   font-size: 1.7rem;
   line-height: 2.3rem;
   white-space: normal;
+  height: auto;
+  margin: 0;
 }
 
 .description a {

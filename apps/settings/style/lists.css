@@ -160,7 +160,7 @@ ul li > label.pack-checkbox > span {
   padding-right: 6.1rem;
 }
 
-ul li > label.pack-radio ~ p {
+ul li.description > label.pack-radio > span {
   padding-right: 3rem;
 }
 
@@ -172,9 +172,9 @@ ul li > label.pack-radio > span {
   padding-right: 5.9rem;
 }
 
-ul li > label.pack-checkbox:active > span,
-ul li > label.pack-radio:active > span,
-ul li > label.pack-switch:active > span {
+ul li:not(.description) > label.pack-checkbox:active > span,
+ul li:not(.description) > label.pack-radio:active > span,
+ul li:not(.description) > label.pack-switch:active > span {
   background-color: #b2f2ff;
   color: #222;
 }
