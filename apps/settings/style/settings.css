@@ -338,9 +338,9 @@ section ul.operate-certificate {
 }
 
 #call .cw-alert .cw-alert-checkbox-label {
-  position: absolute;
   right: 0;
   height: 2.7rem;
+  width: 100%;
 }
 
 #call li[aria-disabled="true"] .icon-dialog {
