@@ -117,6 +117,7 @@ class GCli(object):
         self.apps = gaiatest.GaiaApps(self.marionette)
         self.data_layer = gaiatest.GaiaData(self.marionette)
         self.lock_screen = gaiatest.LockScreen(self.marionette)
+        self.device = gaiatest.GaiaDevice(self.marionette)
 
         ret = args.func(args)
         if ret is None:
@@ -169,12 +170,10 @@ class GCli(object):
             self.data_layer.get_setting(args.name))
 
     def home(self, args):
-        self.marionette.execute_script(
-            "window.wrappedJSObject.dispatchEvent(new Event('home'));")
+        self.device.touch_home_button()
 
     def hold_home(self, args):
-        self.marionette.execute_script(
-            "window.wrappedJSObject.dispatchEvent(new Event('holdhome'));")
+        self.device.hold_home_button()
 
     def hold_sleep(self, args):
         self.marionette.execute_script(

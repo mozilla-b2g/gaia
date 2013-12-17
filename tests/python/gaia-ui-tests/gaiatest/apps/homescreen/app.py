@@ -53,12 +53,6 @@ class Homescreen(Base):
         self.wait_for_condition(lambda m: m.find_element('tag name', 'body')
             .get_attribute('data-transitioning') != 'true')
 
-    def touch_home_button(self):
-        self.marionette.switch_to_frame()
-        self.marionette.execute_script("window.wrappedJSObject.dispatchEvent(new Event('home'));")
-        self.wait_for_condition(lambda m: self.apps.displayed_app.name == self.name)
-        self.marionette.switch_to_frame(self.apps.displayed_app.frame)
-
     def activate_edit_mode(self):
         app = self.marionette.find_element(*self._visible_icons_locator)
         Actions(self.marionette).\
