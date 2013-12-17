@@ -278,40 +278,44 @@ RingView.prototype.handleEvent = function rv_handleEvent(evt) {
   }
 };
 
-  window.addEventListener('load', function() {
-    var domMap = {
-      time: '#ring-clock-time',
-      hourState: '#ring-clock-hour24-state',
-      ringLabel: '#ring-label',
-      snoozeButton: '#ring-button-snooze',
-      closeButton: '#ring-button-close'
-    };
-    for (var i in domMap) {
-      Object.defineProperty(RingView.prototype, i,
-        Utils.memoizedDomPropertyDescriptor(domMap[i]));
+  var domMap = {
+    time: '#ring-clock-time',
+    hourState: '#ring-clock-hour24-state',
+    ringLabel: '#ring-label',
+    snoozeButton: '#ring-button-snooze',
+    closeButton: '#ring-button-close'
+  };
+  for (var i in domMap) {
+    Object.defineProperty(RingView.prototype, i,
+      Utils.memoizedDomPropertyDescriptor(domMap[i]));
+  }
+
+  messageHandlerMapping = {
+    timer: RingView.prototype.timer,
+    alarm: RingView.prototype.alarm,
+    stop: function(msg, done) {
+      RingView.prototype.stopNotify.call(this, false, done);
     }
-
-    messageHandlerMapping = {
-      timer: RingView.prototype.timer,
-      alarm: RingView.prototype.alarm,
-      stop: function(msg, done) {
-        RingView.prototype.stopNotify.call(this, false, done);
-      }
-    };
-
-    // Initialize a singleton object
-    RingView.singleton();
-
-    // Notify ActiveAlarm that we're ready
-    window.opener.postMessage({
-      type: 'ringer',
-      status: 'READY'
-    }, window.location.origin);
-  }, false);
+  };
 
   return RingView;
 });
 
 requirejs(['require_config'], function() {
-  requirejs(['onring']);
+  requirejs(['onring'], function(RingView) {
+
+    // Initialize a singleton object
+    RingView.singleton();
+
+    var onready = window.postMessage.bind(window.opener, {
+      type: 'ringer',
+      status: 'READY'
+    }, window.location.origin);
+
+    window.addEventListener('load', onready, false);
+    if (document.readyState === 'complete') {
+      onready();
+      window.removeEventListener('load', onready, false);
+    }
+  });
 });
