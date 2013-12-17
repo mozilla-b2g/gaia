@@ -45,16 +45,18 @@ suite('system/DownloadNotification >', function() {
 
   setup(function() {
     this.sinon.stub(NotificationScreen, 'addNotification');
+    this.sinon.stub(NotificationScreen, 'removeNotification');
     this.sinon.spy(DownloadStore, 'add');
   });
 
-  function assertUpdatedNotification(download) {
+  function assertUpdatedNotification(download, state) {
     assert.isTrue(NotificationScreen.addNotification.called);
 
     var args = NotificationScreen.addNotification.args[0];
     var fileName = DownloadFormatter.getFileName(download);
     assert.isTrue(args[0].text.indexOf(fileName) !== -1);
-    assert.equal(args[0].type, 'download-notification-' + download.state);
+    state = (typeof state !== 'undefined') ? state : download.state;
+    assert.equal(args[0].type, 'download-notification-' + state);
   }
 
   test('Download notification has been created', function() {
@@ -82,38 +84,28 @@ suite('system/DownloadNotification >', function() {
   });
 
   test('The download was stopped', function() {
-    assert.isFalse(NotificationScreen.addNotification.called);
+    assert.isFalse(NotificationScreen.removeNotification.called);
     download.state = 'stopped';
     download.onstatechange();
-    assertUpdatedNotification(download);
-  });
-
-  test('Canceled notification was clicked > Show confirmation', function() {
-    notification.onClick();
-    assert.equal(DownloadUI.methodCalled, 'show');
+    assert.isTrue(NotificationScreen.removeNotification.called);
   });
 
   test('Download continues downloading', function() {
     assert.isFalse(NotificationScreen.addNotification.called);
     download.state = 'downloading';
     download.onstatechange();
-    assertUpdatedNotification(download);
+    assertUpdatedNotification(download, 'started');
 
-    sinon.assert.calledWithMatch(NotificationScreen.addNotification, {
+    sinon.assert.neverCalledWithMatch(NotificationScreen.addNotification, {
       noNotify: true
     });
   });
 
   test('Download was stopped', function() {
-    assert.isFalse(NotificationScreen.addNotification.called);
+    assert.isFalse(NotificationScreen.removeNotification.called);
     download.state = 'stopped';
     download.onstatechange();
-    assertUpdatedNotification(download);
-  });
-
-  test('Paused notification was clicked > Show confirmation', function() {
-    notification.onClick();
-    assert.equal(DownloadUI.methodCalled, 'show');
+    assert.isTrue(NotificationScreen.removeNotification.called);
   });
 
   test('Download continues downloading', function() {
@@ -121,9 +113,9 @@ suite('system/DownloadNotification >', function() {
     download.state = 'downloading';
     download.currentBytes = 300;
     download.onstatechange();
-    assertUpdatedNotification(download);
+    assertUpdatedNotification(download, 'started');
 
-    sinon.assert.calledWithMatch(NotificationScreen.addNotification, {
+    sinon.assert.neverCalledWithMatch(NotificationScreen.addNotification, {
       noNotify: true
     });
   });
