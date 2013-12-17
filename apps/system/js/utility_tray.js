@@ -51,6 +51,7 @@ var UtilityTray = {
   startY: undefined,
   lastDelta: undefined,
   screenHeight: undefined,
+  screenWidth: undefined,
 
   handleEvent: function ut_handleEvent(evt) {
     switch (evt.type) {
@@ -92,15 +93,6 @@ var UtilityTray = {
             evt.target !== this.grippy)
           return;
 
-        // If the rocketbar is enabled, show that
-        if (Rocketbar.enabled) {
-          Rocketbar.render();
-          evt.preventDefault();
-          return;
-        }
-
-        this.active = true;
-
         this.onTouchStart(evt.touches[0]);
         break;
 
@@ -128,7 +120,21 @@ var UtilityTray = {
   },
 
   onTouchStart: function ut_onTouchStart(touch) {
-    this.screenHeight = this.overlay.getBoundingClientRect().height;
+    var screenRect = this.overlay.getBoundingClientRect();
+    this.screenHeight = screenRect.height;
+    this.screenWidth = screenRect.width;
+
+    // Show the rocketbar if it's enabled,
+    // and the swipe is in the left half of the screen.
+    if (Rocketbar.enabled && touch.pageX < this.screenWidth / 2) {
+      UtilityTray.hide();
+      Rocketbar.render();
+      return;
+    }
+
+    Rocketbar.hide();
+    this.active = true;
+
     this.startY = touch.pageY;
 
     this.screen.classList.add('utility-tray');
