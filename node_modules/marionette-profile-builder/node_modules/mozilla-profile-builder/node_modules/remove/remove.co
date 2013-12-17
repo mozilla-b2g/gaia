@@ -1,0 +1,116 @@
+fs   = require 'fs'
+path = require 'path'
+{exists, existsSync} = path
+
+Seq = require 'seq'
+
+
+
+/**
+ * Asynchronously and recursively remove files and/or directories.
+ * 
+ * @param {String|Array<String>} paths Path or paths to remove.
+ * @param {Object} [options] Options:
+ * @param {Boolean} [options.verbose=false] Log all errors and print each path
+ *  just before it's removed.
+ * @param {Boolean} [options.sequential=false] If true, remove the supplied
+ *  paths sequentially, such that an unsuppressed error would short-circuit
+ *  further deletes.
+ * @param {Boolean} [options.ignoreErrors=false] If false, halt as soon as
+ *  possible after an error occurs and invoke the callback. When operating
+ *  in `sequential` mode, this implies an error removing the first of several
+ *  paths would halt before touching the rest. If set, `ignoreErrors` overrides
+ *  `ignoreMissing`.
+ * @param {Boolean} [options.ignoreMissing=false] Whether to treat missing
+ *  paths as errors.
+ * @param {Function} cb Completion callback, invoked with null on success
+ *  and the error on failure.
+ * @returns {void}
+ */
+removeAsync = module.exports = exports = \
+function removeAsync (paths=[], options, cb)
+    paths = [paths] if typeof paths is 'string'
+    if typeof options is 'function'
+        [cb, options] = [options, {}]
+    if typeof cb is not 'function'
+        throw new Error 'Callback must be a function!'
+    options = {verbose, ignoreErrors, ignoreMissing} = 
+        ({-verbose, -sequential, -ignoreErrors, -ignoreMissing} import options)
+    # TODO: recurisve? maxdepth?
+    
+    stepMethod = if options.sequential then 'seqEach_' else 'parEach_'
+    Seq(paths)[stepMethod] (next_path, p) ->
+        console.log "rm -rv #p" if verbose
+        Seq()
+        .seq fs.lstat, p, Seq
+        .seq (stats) ->
+            # Files/links can be removed right away, and then move on to the next path
+            if stats.isSymbolicLink() or not stats.isDirectory()
+                fs.unlink p, next_path
+            else
+                # ...But directories need to be empty
+                fs.readdir p, this
+        # Remove children with the same options
+        .seq (contents) -> removeAsync contents.map(-> path.join p, it), options, this
+        # Finally, kill it
+        .seq fs.rmdir, p, Seq
+        # And terminate the async chain
+        .seq next_path.ok
+        # Propagate errors
+        .catch (err) -> next_path err
+    
+    # Notify callback!
+    .seq -> cb null
+    .catch (err) ->
+        console.error err if verbose
+        return @ok() if ignoreErrors or (ignoreMissing and err.code is 'ENOENT')
+        cb err
+    
+    void
+
+exports.removeAsync = removeAsync
+
+
+/**
+ * Synchronously and recursively remove files and/or directories.
+ * 
+ * @param {String|Array<String>} paths Path or paths to remove.
+ * @param {Object} [options] Options:
+ * @param {Boolean} [options.verbose=false] Log all errors and print each path
+ *  just before it's removed.
+ * @param {Boolean} [options.ignoreErrors=false] If false, halt as soon as
+ *  possible after an error occurs and invoke the callback. This implies an error
+ *  removing the first of several paths would halt before touching the rest. If
+ *  set, `ignoreErrors` overrides `ignoreMissing`.
+ * @param {Boolean} [options.ignoreMissing=false] Whether to treat missing
+ *  paths as errors.
+ * @returns {void}
+ */
+removeSync = exports.removeSync = \
+function removeSync(paths=[], options={})
+    paths = [paths] if typeof paths is 'string'
+    options = {verbose, ignoreErrors, ignoreMissing} = 
+        ({-verbose, -ignoreErrors, -ignoreMissing} import options)
+    
+    for p of paths
+        console.log "rm -rv #p" if verbose
+        try
+            stats = fs.lstatSync p
+            
+            # files can be removed right away
+            if stats.isSymbolicLink() or not stats.isDirectory()
+                fs.unlinkSync p
+            else
+                # directories need to be empty
+                fs.readdirSync p .forEach -> removeSync path.join(p,it), options
+                
+                # finally, kill it
+                fs.rmdirSync p
+        catch err
+            console.error err if verbose
+            if ignoreErrors or (ignoreMissing and err.code is 'ENOENT')
+                continue
+            else
+                throw err
+    void
+
