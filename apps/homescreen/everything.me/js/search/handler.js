@@ -5,21 +5,9 @@
     var searchPort = null;
     var query;
 
-    navigator.mozApps.getSelf().onsuccess = function() {
-      var app = this.result;
-      app.connect('eme-client').then(
-        function onConnectionAccepted(ports) {
-          ports.forEach(function(port) {
-            searchPort = port;
-          });
-        },
-        function onConnectionRejected(reason) {
-          dump('Error connecting: ' + reason + '\n');
-        }
-      );
-    };
+    this.onMessage = ensurePort;
 
-    this.onMessage = function onMessage(msg) {
+    function handleMessage(msg) {
       query = msg.data.input;
       if (query) {
         Evme.SearchClient.search({
@@ -46,6 +34,29 @@
         });
       }
     };
+
+    /**
+     * Opens the search port.
+     * We need to do this only after we receive a message
+     * Or else we will trigger launching of the search-results app.
+     */
+    function ensurePort(msg) {
+      navigator.mozApps.getSelf().onsuccess = function() {
+        var app = this.result;
+        app.connect('eme-client').then(
+          function onConnectionAccepted(ports) {
+            ports.forEach(function(port) {
+              searchPort = port;
+            });
+            SearchHandler.onMessage = handleMessage;
+            handleMessage(msg);
+          },
+          function onConnectionRejected(reason) {
+            dump('Error connecting: ' + reason + '\n');
+          }
+        );
+      };
+    }
 
     /**
      * Sends a message to the search results app.
