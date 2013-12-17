@@ -58,7 +58,7 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
       videoRotation = rotation;
       // show player when player size and rotation are correct.
       dom.player.classList.remove('hidden');
-      // start to play the video that showPlayer also calls setPlayerSize.
+      // start to play the video that showPlayer also calls fitContainer.
       showPlayer(url, title);
     });
   } else {
@@ -106,7 +106,8 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     // orientation changes.
     window.addEventListener('resize', function() {
       if (dom.player.readyState !== dom.player.HAVE_NOTHING) {
-        setPlayerSize();
+        VideoUtils.fitContainer(dom.fullscreenView, dom.player,
+                                videoRotation || 0);
       }
     });
 
@@ -215,68 +216,6 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     });
   }
 
-  function setPlayerSize() {
-    var containerWidth = window.innerWidth;
-    var containerHeight = window.innerHeight;
-
-    // Don't do anything if we don't know our size.
-    // This could happen if we get a resize event before our metadata loads
-    if (!dom.player.videoWidth || !dom.player.videoHeight)
-      return;
-
-    var width, height; // The size the video will appear, after rotation
-
-    switch (videoRotation) {
-    case 0:
-    case 180:
-      width = dom.player.videoWidth;
-      height = dom.player.videoHeight;
-      break;
-    case 90:
-    case 270:
-      width = dom.player.videoHeight;
-      height = dom.player.videoWidth;
-    }
-
-    var xscale = containerWidth / width;
-    var yscale = containerHeight / height;
-    var scale = Math.min(xscale, yscale);
-
-    // scale large videos down and scale small videos up
-    // this might result in lower image quality for small videos
-    width *= scale;
-    height *= scale;
-
-    var left = ((containerWidth - width) / 2);
-    var top = ((containerHeight - height) / 2);
-
-    var transform;
-    switch (videoRotation) {
-    case 0:
-      transform = 'translate(' + left + 'px,' + top + 'px)';
-      break;
-    case 90:
-      transform =
-        'translate(' + (left + width) + 'px,' + top + 'px) ' +
-        'rotate(90deg)';
-      break;
-    case 180:
-      transform =
-        'translate(' + (left + width) + 'px,' + (top + height) + 'px) ' +
-        'rotate(180deg)';
-      break;
-    case 270:
-      transform =
-        'translate(' + left + 'px,' + (top + height) + 'px) ' +
-        'rotate(270deg)';
-      break;
-    }
-
-    transform += ' scale(' + scale + ')';
-
-    dom.player.style.transform = transform;
-  }
-
   // show video player
   function showPlayer(url, title) {
 
@@ -288,7 +227,8 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
       timeUpdated();
 
       dom.play.classList.remove('paused');
-      setPlayerSize();
+      VideoUtils.fitContainer(dom.fullscreenView, dom.player,
+                              videoRotation || 0);
 
       dom.player.currentTime = 0;
 
