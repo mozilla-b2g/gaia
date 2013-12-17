@@ -1081,51 +1081,27 @@ i.hack-first-child {
 }
 
 /*
-  3G
+  3G & geolocation
 */
 
-#data_3g [data-type="list"] li {
-  padding: 0 1.5rem;
-}
-
-#data_3g label:not([for]) {
-  width: 6rem;
-}
-
-#data_3g .content {
-  padding: 0 3rem 1rem 3rem;
-}
-
-#data_3g .content p {
-  font-size: 1.4rem;
-}
-
-[data-type="list"] aside {
-  margin: 0 0.5rem 0 0 !important;
-}
-
-/*
-  geolocation
-*/
-
+#data_3g [data-type="list"] li,
 #geolocation [data-type="list"] li {
-  padding: 0 1.5rem;
+  padding-left: 1.5rem;
 }
 
-#geolocation label:not([for]) {
-  width: 6rem;
-}
-
+#data_3g .content,
 #geolocation .content {
   padding: 0 3rem 1rem 3rem;
 }
 
+#data_3g .content p,
 #geolocation .content p {
   font-size: 1.4rem;
 }
 
-[data-type="list"] aside {
-  margin: 0 0.5rem 0 0 !important;
+#data_3g .pack-switch,
+#geolocation .pack-switch {
+  height: 100%;
 }
 
 
