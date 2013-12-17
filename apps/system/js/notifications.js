@@ -233,17 +233,7 @@ var NotificationScreen = {
     });
     window.dispatchEvent(event);
 
-    window.dispatchEvent(new CustomEvent('notification-clicked', {
-      detail: {
-        id: notificationId
-      }
-    }));
-    window.dispatchEvent(event);
-
-    // Desktop notifications are removed when they are clicked (see bug 890440)
-    if (notificationNode.dataset.type === 'desktop-notification') {
-      this.removeNotification(notificationId, false);
-    }
+    this.removeNotification(notificationNode.dataset.notificationId, false);
 
     if (notificationNode == this.toaster) {
       this.toaster.classList.remove('displayed');
@@ -273,38 +263,22 @@ var NotificationScreen = {
     return date;
   },
 
-  updateToaster: function ns_updateToaster(detail, type, dir) {
-    if (detail.icon) {
-      this.toasterIcon.src = detail.icon;
-      this.toasterIcon.hidden = false;
-    } else {
-      this.toasterIcon.hidden = true;
-    }
-
-    this.toaster.dataset.notificationId = detail.id;
-    this.toaster.dataset.type = type;
-    this.toasterTitle.textContent = detail.title;
-    this.toasterTitle.lang = detail.lang;
-    this.toasterTitle.dir = dir;
-
-    this.toasterDetail.textContent = detail.text;
-    this.toasterDetail.lang = detail.lang;
-    this.toasterDetail.dir = dir;
-  },
-
   addNotification: function ns_addNotification(detail) {
     var notificationNode = document.createElement('div');
     notificationNode.className = 'notification';
 
     notificationNode.dataset.notificationId = detail.id;
-    var type = notificationNode.dataset.type = detail.type ||
-                                              'desktop-notification';
-    notificationNode.dataset.manifestURL = detail.manifestURL || '';
+    notificationNode.dataset.type = 'desktop-notification';
+    notificationNode.dataset.manifestURL = detail.manifestURL;
 
     if (detail.icon) {
       var icon = document.createElement('img');
       icon.src = detail.icon;
       notificationNode.appendChild(icon);
+      this.toasterIcon.src = detail.icon;
+      this.toasterIcon.hidden = false;
+    } else {
+      this.toasterIcon.hidden = true;
     }
 
     var time = document.createElement('span');
@@ -319,11 +293,14 @@ var NotificationScreen = {
           detail.bidi : 'auto';
 
     var title = document.createElement('div');
-    title.classList.add('title');
     title.textContent = detail.title;
     notificationNode.appendChild(title);
     title.lang = detail.lang;
     title.dir = dir;
+
+    this.toasterTitle.textContent = detail.title;
+    this.toasterTitle.lang = detail.lang;
+    this.toasterTitle.dir = dir;
 
     var message = document.createElement('div');
     message.classList.add('detail');
@@ -332,22 +309,14 @@ var NotificationScreen = {
     message.lang = detail.lang;
     message.dir = dir;
 
+    this.toasterDetail.textContent = detail.text;
+    this.toasterDetail.lang = detail.lang;
+    this.toasterDetail.dir = dir;
+
     var notifSelector = '[data-notification-id="' + detail.id + '"]';
-    var oldNotif = this.container.querySelector(notifSelector);
-    if (oldNotif) {
-      // The whole node cannot be replaced because CSS animations are re-started
-      oldNotif.replaceChild(title, oldNotif.querySelector('.title'));
-      oldNotif.replaceChild(message, oldNotif.querySelector('.detail'));
-      oldNotif.replaceChild(time, oldNotif.querySelector('.timestamp'));
-      var oldIcon = oldNotif.querySelector('img');
-      if (icon) {
-        oldIcon ? oldIcon.src = icon.src : oldNotif.insertBefore(icon,
-                                                           oldNotif.firstChild);
-      } else if (oldIcon) {
-        oldNotif.removeChild(oldIcon);
-      }
-      oldNotif.dataset.type = type;
-      notificationNode = oldNotif;
+    var oldNotification = this.container.querySelector(notifSelector);
+    if (oldNotification) {
+      this.container.replaceChild(notificationNode, oldNotification);
     } else {
       this.container.insertBefore(notificationNode,
           this.container.firstElementChild);
@@ -374,24 +343,21 @@ var NotificationScreen = {
 
     this.updateStatusBarIcon(true);
 
-    var notify = !('noNotify' in detail);
     // Notification toaster
-    if (notify) {
-      this.updateToaster(detail, type, dir);
-      if (this.lockscreenPreview || !LockScreen.locked) {
-        this.toaster.classList.add('displayed');
-        this._toasterGD.startDetecting();
+    if (this.lockscreenPreview || !LockScreen.locked) {
+      this.toaster.dataset.notificationId = detail.id;
 
-        if (this._toasterTimeout) {
-          clearTimeout(this._toasterTimeout);
-        }
+      this.toaster.classList.add('displayed');
+      this._toasterGD.startDetecting();
 
-        this._toasterTimeout = setTimeout((function() {
-          this.toaster.classList.remove('displayed');
-          this._toasterTimeout = null;
-          this._toasterGD.stopDetecting();
-        }).bind(this), this.TOASTER_TIMEOUT);
-      }
+      if (this._toasterTimeout)
+        clearTimeout(this._toasterTimeout);
+
+      this._toasterTimeout = setTimeout((function() {
+        this.toaster.classList.remove('displayed');
+        this._toasterTimeout = null;
+        this._toasterGD.stopDetecting();
+      }).bind(this), this.TOASTER_TIMEOUT);
     }
 
     // Adding it to the lockscreen if locked and the privacy setting
@@ -418,28 +384,26 @@ var NotificationScreen = {
       }
     }
 
-    if (notify) {
-      if (!this.silent) {
-        var ringtonePlayer = new Audio();
-        ringtonePlayer.src = this._sound;
-        ringtonePlayer.mozAudioChannelType = 'notification';
-        ringtonePlayer.play();
-        window.setTimeout(function smsRingtoneEnder() {
-          ringtonePlayer.pause();
-          ringtonePlayer.removeAttribute('src');
-          ringtonePlayer.load();
-        }, 2000);
-      }
+    if (!this.silent) {
+      var ringtonePlayer = new Audio();
+      ringtonePlayer.src = this._sound;
+      ringtonePlayer.mozAudioChannelType = 'notification';
+      ringtonePlayer.play();
+      window.setTimeout(function smsRingtoneEnder() {
+        ringtonePlayer.pause();
+        ringtonePlayer.removeAttribute('src');
+        ringtonePlayer.load();
+      }, 2000);
+    }
 
-      if (this.vibrates) {
-        if (document.hidden) {
-          window.addEventListener('visibilitychange', function waitOn() {
-            window.removeEventListener('visibilitychange', waitOn);
-            navigator.vibrate([200, 200, 200, 200]);
-          });
-        } else {
+    if (this.vibrates) {
+      if (document.hidden) {
+        window.addEventListener('visibilitychange', function waitOn() {
+          window.removeEventListener('visibilitychange', waitOn);
           navigator.vibrate([200, 200, 200, 200]);
-        }
+        });
+      } else {
+        navigator.vibrate([200, 200, 200, 200]);
       }
     }
 

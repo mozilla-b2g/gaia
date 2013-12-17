@@ -24,11 +24,10 @@
     "contacts":{ "access": "readwrite" },
     "settings":{ "access": "readwrite" },
     "desktop-notification":{},
-    "device-storage:sdcard":{ "access": "readwrite" },
+    "device-storage:sdcard":{ "access": "readonly" },
     "settings":{ "access": "readwrite" },
     "audio-capture": {},
     "video-capture": {},
-    "bluetooth":{},
-    "downloads":{}
+    "bluetooth":{}
   }
 }

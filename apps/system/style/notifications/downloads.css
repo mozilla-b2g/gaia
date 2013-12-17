@@ -1,7 +1,0 @@
-#screen.utility-tray .notification[data-type="download-notification-downloading"] > img {
-  animation: 0.9s fn-rotate infinite steps(30);
-}
-
-#screen.utility-tray .notification[data-type="download-notification-downloading"] .timestamp {
-  display: none;
-}
