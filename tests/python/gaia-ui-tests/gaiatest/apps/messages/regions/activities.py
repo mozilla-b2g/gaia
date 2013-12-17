@@ -18,11 +18,8 @@ class Activities(Base):
         self.wait_for_element_displayed(*self._actions_menu_locator)
 
     def tap_settings(self):
-        print "before tap"
         self.marionette.find_element(*self._settings_button_locator).tap()
-        print "after tap"
         from gaiatest.apps.settings.app import Settings
-        print "before return"
         return Settings(self.marionette)
 
     @property
