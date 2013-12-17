@@ -722,7 +722,7 @@ b2g: node_modules/.bin/mozilla-download
 		--verbose \
 		--product b2g \
 		--channel tinderbox \
-		--branch mozilla-central $@
+		--branch mozilla-aurora $@
 
 .PHONY: test-integration
 # $(PROFILE_FOLDER) should be `profile-test` when we do `make test-integration`.
