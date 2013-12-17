@@ -5,6 +5,17 @@
   var SEARCH_DELAY = 600;
   var timeoutSearchWhileTyping = null;
 
+  var rscheme = /^(?:[a-z\u00a1-\uffff0-9-+]+)(?::|:\/\/)/i;
+  function getUrlFromInput(input) {
+    var hasScheme = !!(rscheme.exec(input) || [])[0];
+
+    // No scheme, prepend basic protocol and return
+    if (!hasScheme) {
+      return 'http://' + input;
+    }
+    return input;
+  };
+
   window.Search = {
     _port: null,
     terms: document.getElementById('search-terms'),
@@ -89,8 +100,12 @@
       var providers = this.providers;
       clearTimeout(timeoutSearchWhileTyping);
       timeoutSearchWhileTyping = setTimeout(function doSearch() {
-        for (var i in providers) {
-          providers[i].search(input, type);
+        if (type === 'submit' && UrlHelper.isURL(input)) {
+          window.open(getUrlFromInput(input), '_blank', 'remote=true');
+        } else {
+          for (var i in providers) {
+            providers[i].search(input, type);
+          }
         }
       }, self.SEARCH_DELAY);
     },
