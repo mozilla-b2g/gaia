@@ -8,19 +8,21 @@ from gaiatest.apps.base import Base
 
 class Activities(Base):
 
-    _actions_menu_locator = (By.CSS_SELECTOR, 'form[data-type="action"]')
+    _actions_menu_locator = (By.CSS_SELECTOR, 'body > form[data-type="action"]')
     _action_option_locator = (By.CSS_SELECTOR, 'form[data-type="action"] button')
 
     _settings_button_locator = (By.XPATH, '//*[text()="Settings"]')
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
-        self.marionette.switch_to_frame()
         self.wait_for_element_displayed(*self._actions_menu_locator)
 
     def tap_settings(self):
+        print "before tap"
         self.marionette.find_element(*self._settings_button_locator).tap()
+        print "after tap"
         from gaiatest.apps.settings.app import Settings
+        print "before return"
         return Settings(self.marionette)
 
     @property
