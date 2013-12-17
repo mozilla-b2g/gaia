@@ -1,11 +1,10 @@
-
 #search-bar {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: calc(100%);
-  background-color: black;
+  background-color: #0B0B0C;
   pointer-events: none;
   transform: translateY(-100%);
   transition: transform 0.3s ease 0.8s;
@@ -30,6 +29,13 @@
   border: 0;
   border-radius: 0;
   line-height: 4rem;
+  background: #0B0B0C;
+  color: #fff;
+}
+
+#search-bar .search-input::-moz-placeholder {
+  font-style: italic;
+  color: #929496;
 }
 
 #search-bar .search-container {
