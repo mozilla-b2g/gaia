@@ -1,4 +1,5 @@
 MockRocketbar = {
-  mRender: function() {},
-  mEnabled: false
+  render: function() {},
+  enabled: false,
+  hide: function() {}
 };
