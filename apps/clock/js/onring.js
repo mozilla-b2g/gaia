@@ -240,40 +240,52 @@ RingView.prototype.stopNotify = function rv_stopNotify(temporary, done) {
   done && done();
 };
 
+var domEventMap = {};
+
 RingView.prototype.handleEvent = function rv_handleEvent(evt) {
-  switch (evt.type) {
-    case 'visibilitychange': // ------------------------
-      // There's chance to miss the hidden state when initiated,
-      // before setVisible take effects, there may be a latency.
-      if (!document.hidden) {
-        this.startNotify();
-      }
+  try {
+    domEventMap[evt.type].call(this, evt);
+  } catch (err) {
+    console.error('Error handling DOM event', evt);
+    throw err;
+  }
+};
+
+RingView.prototype.onVisibilityChange = domEventMap['visibilitychange'] =
+  function rv_onVisibilityChange(evt) {
+  // There's chance to miss the hidden state when initiated,
+  // before setVisible take effects, there may be a latency.
+  if (!document.hidden) {
+    this.startNotify();
+  }
+};
+
+RingView.prototype.onMozInterruptBegin = domEventMap['onmozinterruptbegin'] =
+  function rv_onMozInterruptBegin(evt) {
+  // Only ringer/telephony channel audio could trigger 'mozinterruptbegin'
+  // event on the 'alarm' channel audio element.
+  // If the incoming call happens after the alarm rings,
+  // we need to close ourselves.
+  this.stopNotify(true);
+};
+
+RingView.prototype.onClick = domEventMap['click'] =
+  function rv_onClick(evt) {
+  var input = evt.target;
+  if (!input)
+    return;
+  switch (input.id) {
+    case 'ring-button-snooze':
+      this.stopNotify();
+      window.opener.postMessage({
+        type: 'snooze',
+        id: this.id
+      }, window.location.origin);
+      window.close();
       break;
-    case 'mozinterruptbegin': // ------------------------
-      // Only ringer/telephony channel audio could trigger 'mozinterruptbegin'
-      // event on the 'alarm' channel audio element.
-      // If the incoming call happens after the alarm rings,
-      // we need to close ourselves.
-      this.stopNotify(true);
-      break;
-    case 'click': // ------------------------
-      var input = evt.target;
-      if (!input)
-        return;
-      switch (input.id) {
-        case 'ring-button-snooze':
-          this.stopNotify();
-          window.opener.postMessage({
-            type: 'snooze',
-            id: this.id
-          }, window.location.origin);
-          window.close();
-          break;
-        case 'ring-button-close':
-          this.stopNotify();
-          window.close();
-          break;
-      }
+    case 'ring-button-close':
+      this.stopNotify();
+      window.close();
       break;
   }
 };
