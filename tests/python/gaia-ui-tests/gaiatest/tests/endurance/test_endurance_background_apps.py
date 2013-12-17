@@ -7,7 +7,6 @@
 import time
 
 from gaiatest import GaiaEnduranceTestCase
-from gaiatest import GaiaDevice
 
 
 class TestEnduranceBackgroundApps(GaiaEnduranceTestCase):
@@ -17,7 +16,6 @@ class TestEnduranceBackgroundApps(GaiaEnduranceTestCase):
 
     def setUp(self):
         GaiaEnduranceTestCase.setUp(self)
-        self.device = GaiaDevice(self.marionette)
 
         # Launch several apps and minimize them in the background
         self.launch_app_and_minimize()
@@ -31,7 +29,8 @@ class TestEnduranceBackgroundApps(GaiaEnduranceTestCase):
             app_objs.append(self.apps.launch(next_app))
             time.sleep(5)
             # Minimize app into the background
-            self.device.touch_home_button()
+            self.marionette.switch_to_frame()
+            self.marionette.execute_script("window.wrappedJSObject.dispatchEvent(new Event('home'));")
             time.sleep(5)
 
     def test_endurance_background_apps(self):
