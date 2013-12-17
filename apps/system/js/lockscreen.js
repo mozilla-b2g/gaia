@@ -44,6 +44,14 @@ var LockScreen = {
       LockScreen._activateCamera();
     },
 
+    unlockingStart: function _unlockingStart() {
+      LockScreen._notifyUnlockingStart();
+    },
+
+    unlockingStop: function _unlockingStop() {
+      LockScreen._notifyUnlockingStop();
+    },
+
     /**
      * Sliding near left and made the state changed.
      *
@@ -473,6 +481,14 @@ var LockScreen = {
           this.switchPanel();
         break;
     }
+  },
+
+  _notifyUnlockingStart: function ls_notifyUnlockingStart() {
+    window.dispatchEvent(new CustomEvent('unlocking-start'));
+  },
+
+  _notifyUnlockingStop: function ls_notifyUnlockingStop() {
+    window.dispatchEvent(new CustomEvent('unlocking-stop'));
   },
 
   /**
