@@ -231,10 +231,11 @@ contacts.List = (function() {
     clone: function(node) {
       var id = node.dataset.uuid;
       renderLoadedContact(node, id);
-      renderPhoto(node, id);
       updateRowStyle(node, true);
       updateSingleRowSelection(node, id);
-      return node.cloneNode(true);
+      var out = node.cloneNode(true);
+      renderPhoto(out, id, true);
+      return out;
     },
 
     getNodeById: function(id) {
@@ -826,10 +827,12 @@ contacts.List = (function() {
   // Utility function to manage the dataset-src URL for images.  Its important
   // to only modify this attribute from this function in order to ensure that
   // the URLs are properly revoked.
-  function setImageURL(img, photo) {
+  function setImageURL(img, photo, asClone) {
     var oldURL = img.dataset.src;
     if (oldURL) {
-      window.URL.revokeObjectURL(oldURL);
+      if (!asClone) {
+        window.URL.revokeObjectURL(oldURL);
+      }
       img.dataset.src = '';
     }
     if (photo) {
@@ -846,7 +849,7 @@ contacts.List = (function() {
   // "Render" the photo by setting the img tag's dataset-src attribute to the
   // value in our photo cache.  This in turn will allow the imgLoader to load
   // the image once we have stopped scrolling.
-  var renderPhoto = function renderPhoto(link, id) {
+  var renderPhoto = function renderPhoto(link, id, asClone) {
     id = id || link.dataset.uuid;
     var photo = photosById[id];
     if (!photo) {
@@ -855,7 +858,7 @@ contacts.List = (function() {
 
     var img = link.querySelector('aside > img');
     if (img) {
-      setImageURL(img, photo);
+      setImageURL(img, photo, asClone);
       return;
     }
     if (!photoTemplate) {
