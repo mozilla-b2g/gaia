@@ -71,33 +71,15 @@ var DownloadHelper = (function() {
   // Storage name settings key
   var STORAGE_NAME_KEY = 'device.storage.writable.name';
 
-  // Current storage name and object
-  var storageName, storage;
-
-  var storageState = 'available';
-
-  function setStorage(name) {
-    storageName = name;
-    if (navigator.getDeviceStorage) {
-      storage = navigator.getDeviceStorage(name);
-      storage.addEventListener('change', function onChange(e) {
-        storageState = e.reason;
-      });
-    }
-  }
-
-  function init() {
-    setStorage(STORAGE_NAME_BY_DEFAULT);
-  }
-
-  init();
+  // Current storage name
+  var storageName = STORAGE_NAME_BY_DEFAULT;
 
   LazyLoader.load('shared/js/settings_listener.js', function settingsLoaded() {
     SettingsListener.observe(STORAGE_NAME_KEY, STORAGE_NAME_BY_DEFAULT,
       function setStorageName(evt) {
         var settingValue = evt.settingValue;
         if (settingValue) {
-          setStorage(settingValue);
+          storageName = settingValue;
         }
       }
     );
@@ -135,11 +117,12 @@ var DownloadHelper = (function() {
    */
   function getBlob(download) {
     var req = new Request();
+    var storage = navigator.getDeviceStorage(storageName);
+    var storeAvailableReq = storage.available();
 
-    window.setTimeout(function doGetBlob() {
+    storeAvailableReq.onsuccess = function available_onsuccess(e) {
       var path = download.path;
-
-      switch (storageState) {
+      switch (storeAvailableReq.result) {
         case 'unavailable':
           sendError(req, ' Could not open the file: ' + path + ' from ' +
                     storageName, CODE.NO_SDCARD);
@@ -153,14 +136,14 @@ var DownloadHelper = (function() {
         default:
           try {
             path = getRelativePath(path);
-            var storeReq = storage.get(path);
+            var storeGetReq = storage.get(path);
 
-            storeReq.onsuccess = function store_onsuccess() {
-              req.done(storeReq.result);
+            storeGetReq.onsuccess = function store_onsuccess() {
+              req.done(storeGetReq.result);
             };
 
-            storeReq.onerror = function store_onerror() {
-              sendError(req, storeReq.error.name +
+            storeGetReq.onerror = function store_onerror() {
+              sendError(req, storeGetReq.error.name +
                         ' Could not open the file: ' + path + ' from ' +
                         storageName, CODE.FILE_NOT_FOUND);
             };
@@ -169,7 +152,11 @@ var DownloadHelper = (function() {
                       storageName, CODE.DEVICE_STORAGE);
           }
       }
-    }, 0);
+    };
+
+    storeAvailableReq.onerror = function available_onerror() {
+      sendError(req, 'Error getting storage state ', CODE.DEVICE_STORAGE);
+    };
 
     return req;
   }
@@ -341,7 +328,7 @@ var DownloadHelper = (function() {
         case CODE.UNMOUNTED_SDCARD:
         case CODE.FILE_NOT_FOUND:
           req = show(DownloadUI.TYPE[error.code], download, true);
-          req.onconfirm = cb ? cb.call(null, download) : cb;
+          req.onconfirm = cb;
 
           break;
 
@@ -413,8 +400,6 @@ var DownloadHelper = (function() {
      *
      * @param{Function} This function is performed when the flow is finished
      */
-    handlerError: handlerError,
-
-    init: init
+    handlerError: handlerError
   };
 }());
