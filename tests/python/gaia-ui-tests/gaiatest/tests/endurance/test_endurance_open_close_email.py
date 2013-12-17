@@ -5,6 +5,7 @@
 import time
 
 from gaiatest import GaiaEnduranceTestCase
+from gaiatest import GaiaDevice
 
 # Approximate runtime per 100 iterations: xxx minutes
 
@@ -22,6 +23,8 @@ class TestEnduranceBrowserWifi(GaiaEnduranceTestCase):
         self.data_layer.disable_cell_data()
         self.data_layer.enable_wifi()
         self.data_layer.connect_to_wifi(self.testvars['wifi'])
+
+        self.device = GaiaDevice(self.marionette)
 
     def test_endurance_open_close_email(self):
         self.drive(test=self.open_close_email, app='email')
