@@ -2,10 +2,9 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from gaiatest import GaiaEnduranceTestCase
-from gaiatest.mocks.mock_contact import MockContact
-
 import time
+
+from gaiatest import GaiaEnduranceTestCase
 
 # Approximate runtime per 100 iterations: xxx minutes
 
@@ -30,18 +29,17 @@ class TestEnduranceBrowserWifi(GaiaEnduranceTestCase):
     def open_close_email(self):
         # Start email app
         self.app = self.apps.launch('e-mail')
-        self.wait_for_element_not_displayed(*self._loading_overlay)        
+        self.wait_for_element_not_displayed(*self._loading_overlay)
 
         # Wait with page displayed
         time.sleep(5)
 
         # Close the browser using home button; my close_app doesn't work here b/c name (fix later)
-        self.marionette.switch_to_frame()
-        self.marionette.execute_script("window.wrappedJSObject.dispatchEvent(new Event('home'));")
+        self.device.touch_home_button()
 
         # Bring up the cards view
         _cards_view_locator = ('id', 'cards-view')
-        self.marionette.execute_script("window.wrappedJSObject.dispatchEvent(new Event('holdhome'));")
+        self.device.hold_home_button()
         self.wait_for_element_displayed(*_cards_view_locator)
 
         # Sleep a bit
@@ -51,7 +49,7 @@ class TestEnduranceBrowserWifi(GaiaEnduranceTestCase):
         locator_part_two = '#cards-view li.card[data-origin*="email"] .close-card'
         _close_button_locator = ('css selector', locator_part_two)
         close_card_app_button = self.marionette.find_element(*_close_button_locator)
-        close_card_app_button.tap()       
+        close_card_app_button.tap()
 
         # Wait a couple of seconds between iterations
         time.sleep(2)

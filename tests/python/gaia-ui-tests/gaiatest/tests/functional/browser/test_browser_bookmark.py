@@ -2,6 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+import time
+
 from gaiatest import GaiaTestCase
 from gaiatest.apps.browser.app import Browser
 from gaiatest.apps.homescreen.app import Homescreen
@@ -15,7 +17,6 @@ class TestBrowserBookmark(GaiaTestCase):
         GaiaTestCase.setUp(self)
         self.connect_to_network()
 
-        import time
         curr_time = repr(time.time()).replace('.', '')
         self.bookmark_title = 'gaia%s' % curr_time[10:]
 
@@ -32,9 +33,9 @@ class TestBrowserBookmark(GaiaTestCase):
         browser.tap_add_bookmark_to_home_screen_dialog_button()
 
         # Switch to Home Screen to look for bookmark
-        homescreen = Homescreen(self.marionette)
-        homescreen.touch_home_button()
+        self.device.touch_home_button()
 
+        homescreen = Homescreen(self.marionette)
         self._bookmark_added = homescreen.is_app_installed(self.bookmark_title)
 
         self.assertTrue(self._bookmark_added, 'The bookmark %s was not found to be installed on the home screen.' % self.bookmark_title)

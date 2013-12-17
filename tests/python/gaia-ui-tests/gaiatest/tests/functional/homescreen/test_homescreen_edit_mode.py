@@ -25,6 +25,6 @@ class TestEditMode(GaiaTestCase):
         self.assertTrue(self.homescreen.is_edit_mode_active, "Edit mode should be active")
 
         # Tap home button and verify that edit mode is no longer active
-        self.homescreen.touch_home_button()
+        self.device.touch_home_button()
 
         self.assertFalse(self.homescreen.is_edit_mode_active, "Edit mode should not be active")
