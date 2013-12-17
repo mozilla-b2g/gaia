@@ -149,6 +149,11 @@ class Base(object):
         from gaiatest.apps.keyboard.app import Keyboard
         return Keyboard(self.marionette)
 
+    @property
+    def device(self):
+        from gaiatest import GaiaDevice
+        return GaiaDevice(self.marionette)
+
 
 class PageRegion(Base):
     def __init__(self, marionette, element):
