@@ -447,7 +447,10 @@ var Contacts = (function() {
     });
   };
 
-  var handleCustomTag = function handleCustomTag() {
+  var handleCustomTag = function handleCustomTag(ev) {
+    if (ev.keyCode === 13) {
+      ev.preventDefault();
+    }
     ContactsTag.touchCustomTag();
   };
 
