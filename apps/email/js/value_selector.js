@@ -118,8 +118,8 @@ function ValueSelector(title, list) {
       input.setAttribute('name', 'option');
       label.classList.add('pack-radio');
       label.appendChild(input);
+      span.appendChild(text);
       label.appendChild(span);
-      label.appendChild(text);
       // Here we apply the folder-card's depth indentation to represent label.
       var depthIdx = data.list[i].depth;
       depthIdx = Math.min(FOLDER_DEPTH_CLASSES.length - 1, depthIdx);

@@ -97,27 +97,10 @@
   display: none;
 }
 
-.fld-folder-depth0 {
-  padding-left: 1.5rem;
-}
-.fld-folder-depth1 {
-  padding-left: 3rem;
-}
-.fld-folder-depth2 {
-  padding-left: 4.5rem;
-}
-.fld-folder-depth3 {
-  padding-left: 6rem;
-}
-.fld-folder-depth4 {
-  padding-left: 6.5rem;
-}
-.fld-folder-depth5 {
-  padding-left: 9.5rem;
-}
-.fld-folder-depthmax {
-  padding-left: 11rem;
-}
+/*
+There are fld-folder-depth* styles in common.css because they are
+also used in value_selector.
+*/
 
 .fld-nav-settings-btn {
   background-image: url("images/icons/settings.png") !important;
