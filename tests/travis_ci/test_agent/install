@@ -1,8 +1,8 @@
 #! /bin/bash -ve
 echo 'Downloading Firefox'
 ./node_modules/.bin/mozilla-download --product firefox \
-                 --channel tinderbox \
-                 --branch mozilla-central \
+                 --channel prerelease \
+                 --branch aurora \
                  $PWD/firefox
 
 echo 'Downloading & installing node dependencies'
