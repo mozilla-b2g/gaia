@@ -213,11 +213,6 @@ Timer.prototype.cancel = function timerReset() {
   }
 };
 
-Timer.prototype.secondsRemaining = function timerSecondsRemaining() {
-  var diff = Date.now() - (this.startTime + this.duration);
-  return (diff < 0) ? 0 : Math.ceil(diff / 1000);
-};
-
 /**
  * Static "const" Timer states.
  */
