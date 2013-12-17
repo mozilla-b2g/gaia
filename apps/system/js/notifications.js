@@ -162,7 +162,9 @@ var NotificationScreen = {
     var nodes = this.container.querySelectorAll(selector);
 
     for (var i = nodes.length - 1; i >= 0; i--) {
-      this.closeNotification(nodes[i]);
+      if (nodes[i].dataset.obsoleteAPI === 'true') {
+        this.closeNotification(nodes[i]);
+      }
     }
   },
 
@@ -233,7 +235,18 @@ var NotificationScreen = {
     });
     window.dispatchEvent(event);
 
-    this.removeNotification(notificationNode.dataset.notificationId, false);
+    window.dispatchEvent(new CustomEvent('notification-clicked', {
+      detail: {
+        id: notificationId
+      }
+    }));
+    window.dispatchEvent(event);
+
+    // Desktop notifications are removed when they are clicked (see bug 890440)
+    if (notificationNode.dataset.type === 'desktop-notification' &&
+        notificationNode.dataset.obsoleteAPI === 'true') {
+      this.removeNotification(notificationId, false);
+    }
 
     if (notificationNode == this.toaster) {
       this.toaster.classList.remove('displayed');
@@ -268,8 +281,14 @@ var NotificationScreen = {
     notificationNode.className = 'notification';
 
     notificationNode.dataset.notificationId = detail.id;
-    notificationNode.dataset.type = 'desktop-notification';
-    notificationNode.dataset.manifestURL = detail.manifestURL;
+    notificationNode.dataset.obsoleteAPI = 'false';
+    if (typeof detail.id === 'string' &&
+        detail.id.indexOf('app-notif-') === 0) {
+      notificationNode.dataset.obsoleteAPI = 'true';
+    }
+    var type = notificationNode.dataset.type = detail.type ||
+                                              'desktop-notification';
+    notificationNode.dataset.manifestURL = detail.manifestURL || '';
 
     if (detail.icon) {
       var icon = document.createElement('img');

@@ -219,4 +219,24 @@ suite('system/NotificationScreen >', function() {
     });
   });
 
+  suite('differentiating api >', function() {
+    test('identifying deprecated API', function() {
+      var node = NotificationScreen.addNotification({
+        id: 'app-notif-1',
+        title: '',
+        message: ''
+      });
+      assert.equal('true', node.dataset.obsoleteAPI);
+    });
+
+    test('identifying new API', function() {
+      var node = NotificationScreen.addNotification({
+        id: 'app://notif',
+        title: '',
+        message: ''
+      });
+      assert.equal('false', node.dataset.obsoleteAPI);
+    });
+  });
+
 });
