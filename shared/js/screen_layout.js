@@ -92,12 +92,13 @@ var ScreenLayout = {
     }
     this.unwatch(name);
     this.queries[name] = window.matchMedia(mediaString);
-    this.queries[name].addListener(this);
+    this.boundHandleChange = this.handleChange.bind(this);
+    this.queries[name].addListener(this.boundHandleChange);
   },
 
   unwatch: function sl_unwatch(name) {
     if (this.queries[name]) {
-      this.queries[name].removeListener(this);
+      this.queries[name].removeListener(this.boundHandleChange);
     }
   },
 
