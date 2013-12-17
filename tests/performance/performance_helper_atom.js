@@ -87,6 +87,6 @@
     }
   };
 
-  window.PerformanceHelperAtom.init()
+  window.PerformanceHelperAtom.init();
 })(window.wrappedJSObject);
 
