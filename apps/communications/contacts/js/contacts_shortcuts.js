@@ -8,7 +8,7 @@ if (!utils.alphaScroll) {
     var alphaScroll = utils.alphaScroll = {};
 
     var scrollToCallback, jumper, overlay,
-        overlayStyle, groupSelector;
+        overlayStyle, groupSelector, liSearch, liFavorites;
 
     var isScrolling = false;
     var alreadyRendered = false;
@@ -94,6 +94,23 @@ if (!utils.alphaScroll) {
       jumper.appendChild(frag);
 
       alreadyRendered = true;
+    };
+
+    function hideExtraItems(value) {
+      if (!liSearch) {
+        liSearch = jumper.querySelector('li[data-anchor="search-container"]');
+      }
+
+      if (!liFavorites) {
+        liFavorites = jumper.querySelector('li[data-anchor="group-favorites"]');
+      }
+
+      liSearch.hidden = value;
+      liFavorites.hidden = value;
+    }
+
+    alphaScroll.toggleFormat = function(type) {
+      hideExtraItems(type === 'short');
     };
 
     function scrollStart(evt) {
