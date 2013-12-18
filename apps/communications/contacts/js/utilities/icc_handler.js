@@ -15,6 +15,14 @@ var IccHandler = function IccHandler() {
 
   var init = function init(domGenerator, cb) {
     iccManager = navigator.mozIccManager;
+    // Avoid any icc operation in devices that don't
+    // have icc (desktop, tablets, etc.)
+    if (!iccManager) {
+      if (typeof cb === 'function') {
+        cb();
+      }
+      return;
+    }
     mobileConnections = navigator.mozMobileConnections || [];
     isSingleSIMApi = typeof iccManager.getIccById !== 'function';
 
