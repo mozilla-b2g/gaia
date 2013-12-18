@@ -27,8 +27,7 @@ class TestKeyboardPredictiveKey(GaiaTestCase):
 
         # tap the first predictive word
         keyboard.tap_first_predictive_word()
-        self.marionette.switch_to_frame()
-        self.marionette.switch_to_frame(self.ui_tests.app.frame)
+        self.apps.switch_to_displayed_app()
         keyboard_page.switch_to_frame()
 
         # check if the word in the input field is the same as the expected word
