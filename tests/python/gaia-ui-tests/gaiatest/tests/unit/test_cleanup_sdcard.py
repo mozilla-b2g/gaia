@@ -14,7 +14,15 @@ class TestCleanupSDCard(GaiaTestCase):
         self.push_resource('IMG_0001.jpg', destination='DCIM/100MZLLA')
         self.push_resource('VID_0001.3gp', destination='DCIM/100MZLLA')
         self.push_resource('MUS_0001.mp3')
-        self.assertEqual(len(self.data_layer.media_files), 3)
+        self.wait_for_condition(lambda m: len(self.data_layer.media_files) == 3,
+                                timeout=5,
+                                message='Expected 3 media files but found %s: %s'
+                                        % (len(self.data_layer.media_files),
+                                           self.data_layer.media_files))
 
         self.cleanup_sdcard()
-        self.assertEqual(len(self.data_layer.media_files), 0)
+        self.wait_for_condition(lambda m: len(self.data_layer.media_files) == 0,
+                                timeout=5,
+                                message='Expected 0 media files but found %s: %s'
+                                        % (len(self.data_layer.media_files),
+                                           self.data_layer.media_files))
