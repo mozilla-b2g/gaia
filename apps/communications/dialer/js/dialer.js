@@ -79,13 +79,13 @@ var CallHandler = (function callHandler() {
             var app = evt.target.result;
 
             var iconURL = NotificationHelper.getIconURI(app, 'dialer');
-
             var clickCB = function() {
               app.launch('dialer');
               window.location.hash = '#call-log-view';
             };
-
-            NotificationHelper.send(title, body, iconURL, clickCB);
+            var notification =
+              new Notification(title, {body: body, icon: iconURL});
+            notification.addEventListener('click', clickCB);
           };
         });
       });

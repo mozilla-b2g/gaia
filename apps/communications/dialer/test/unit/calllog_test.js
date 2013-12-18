@@ -1,6 +1,7 @@
 requireApp('communications/dialer/js/call_log.js');
 requireApp('communications/dialer/js/utils.js');
 requireApp('communications/dialer/test/unit/mock_l10n.js');
+requireApp('communications/dialer/test/unit/mock_notification.js');
 
 if (!this.LazyL10n) {
   this.LazyL10n = null;
@@ -9,17 +10,21 @@ if (!this.LazyL10n) {
 suite('dialer/call_log', function() {
   var realL10n;
   var realCallLogL10n;
+  var realNotification;
 
   suiteSetup(function() {
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockMozL10n;
     realCallLogL10n = CallLog._;
     CallLog._ = MockMozL10n.get;
+    realNotification = window.Notification;
+    window.Notification = MockNotificationAPI;
   });
 
   suiteTeardown(function() {
     navigator.mozL10n = realL10n;
     CallLog._ = realCallLogL10n;
+    window.Notification = realNotification;
   });
 
   var incomingGroup = {
@@ -320,5 +325,21 @@ suite('dialer/call_log', function() {
       checkGroupDOMContactUpdated(groupDOM, null, incomingGroup.number, done);
     });
 
+  });
+
+  suite('notifications', function() {
+    var notifs;
+    var notificationSpy;
+
+    setup(function() {
+      notifs = Notification.get();
+      notificationSpy =
+        this.sinon.spy(MockNotificationObject.prototype, 'close');
+    });
+
+    test('call log should close notifications', function() {
+      CallLog.cleanNotifications();
+      sinon.assert.callCount(notificationSpy, 2);
+    });
   });
 });
