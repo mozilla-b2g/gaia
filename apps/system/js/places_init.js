@@ -1,0 +1,1 @@
+var PlacesDB = new Places();
