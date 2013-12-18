@@ -1,5 +1,5 @@
 marionette_client==0.7.3
-mozdevice
+mozdevice>=0.31
 requests
 moztest>=0.3
 yoctopuce==1.01.12553
