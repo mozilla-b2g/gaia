@@ -33,11 +33,7 @@
     click: function(e) {
       var url = e.target && e.target.dataset.url;
       if (url) {
-        // This actually doesn't work yet
-        // Will be implemented by E.me in the homescreen
-        window.open(url);
-
-        Search.close();
+        Search.browse(url);
       }
     },
 
