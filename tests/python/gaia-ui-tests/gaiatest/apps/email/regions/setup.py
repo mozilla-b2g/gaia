@@ -30,16 +30,15 @@ class SetupEmail(Base):
         self.marionette.find_element(*self._password_locator).send_keys(value)
 
     def tap_next(self):
-        # TODO Tap one pixel above bottom edge to dodge the System update notification banner bug 879192
-        next_button = self.marionette.find_element(*self._next_locator)
-        next_button.tap(y=(next_button.size['height'] - 1))
-        self.wait_for_element_displayed(*self._check_for_new_messages_locator)
+        self.marionette.find_element(*self._next_locator).tap()
+        self.wait_for_element_displayed(*self._check_for_new_messages_locator, timeout=120)
 
     def tap_account_prefs_next(self):
+        self.wait_for_element_displayed(*self._account_prefs_next_locator, timeout=120)
         self.marionette.find_element(*self._account_prefs_next_locator).tap()
 
     def wait_for_setup_complete(self):
-        self.wait_for_element_displayed(*self._continue_button_locator)
+        self.wait_for_element_displayed(*self._continue_button_locator, timeout=120)
 
     def tap_continue(self):
         self.marionette.find_element(*self._continue_button_locator).tap()
@@ -147,14 +146,14 @@ class ManualSetupEmail(Base):
 
     def tap_next(self):
         self.marionette.find_element(*self._next_locator).tap()
-        self.wait_for_element_displayed(*self._check_for_new_messages_locator)
+        self.wait_for_element_displayed(*self._check_for_new_messages_locator, timeout=120)
 
     def tap_account_prefs_next(self):
-        self.wait_for_element_displayed(*self._account_prefs_next_locator)
+        self.wait_for_element_displayed(*self._account_prefs_next_locator, timeout=120)
         self.marionette.find_element(*self._account_prefs_next_locator).tap()
 
     def wait_for_setup_complete(self):
-        self.wait_for_element_displayed(*self._continue_button_locator)
+        self.wait_for_element_displayed(*self._continue_button_locator, timeout=120)
 
     def tap_continue(self):
         self.marionette.find_element(*self._continue_button_locator).tap()
