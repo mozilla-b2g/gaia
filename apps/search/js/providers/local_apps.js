@@ -44,7 +44,23 @@
           div.dataset.entryPoint = result.entryPoint;
         }
 
-        div.textContent = result.manifest.name;
+        var icons = result.manifest.icons || {};
+        for (var i in icons) {
+
+          var a = document.createElement('a');
+          a.href = result.origin;
+          var url = a.protocol + '//' + a.host + icons[i];
+
+          var newImg = document.createElement('img');
+          newImg.src = url;
+          div.appendChild(newImg);
+          break;
+        }
+
+        var textEl = document.createElement('span');
+        textEl.textContent = result.manifest.name;
+
+        div.appendChild(textEl);
         this.results.appendChild(div);
       }, this);
     },
@@ -73,13 +89,14 @@
             entry.entryPoint = i;
             appListing.push(entry);
           }
+        } else {
+          appListing.push(manifest);
         }
-        appListing.push(manifest);
 
         appListing.forEach(function(manifest) {
-          if (manifest.name.toLowerCase().indexOf(query.toLowerCase()) != -1 &&
-              !entryPoints) {
+          if (manifest.name.toLowerCase().indexOf(query.toLowerCase()) != -1) {
             results.push({
+              origin: app.origin,
               manifestURL: manifestURL,
               app: app,
               manifest: manifest,

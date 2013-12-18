@@ -1,15 +1,31 @@
 body {
-  color: #fff;
-}
-
-#search-terms {
-  margin-top: 2rem;
+  color: #5A5A5A;
 }
 
 #search-suggestions .result {
-  border: 1px solid #ccc;
-  background-color: #c0c0c0;
-  height: 2rem;
+  -moz-box-sizing: border-box;
+  padding: 0.5rem;
+  border-bottom: 1px solid #5A5A5A;
+  background-color: #353534;
+  color: #fff;
+  min-height: 3rem;
   line-height: 2rem;
   margin-right: 0.2rem;
+}
+
+#search-suggestions section:last-child .result:last-child {
+  border-bottom: none;
+}
+
+#search-suggestions .result * {
+  pointer-events: none;
+}
+
+#search-suggestions .result .placeholder,
+#search-suggestions .result img {
+  display: inline-block;
+  float: left;
+  margin-right: 0.8rem;
+  height: 2rem;
+  width: 2rem;
 }

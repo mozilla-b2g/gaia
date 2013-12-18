@@ -51,7 +51,24 @@
             div.className = 'result';
             div.dataset.provider = this.name;
             div.dataset.contactId = result.id;
-            div.textContent = result.name[j];
+
+            if (!result.photo) {
+              var placeholder = document.createElement('span');
+              placeholder.classList.add('placeholder', 'contact');
+              div.appendChild(placeholder);
+            } else {
+              var contactPhoto = document.createElement('img');
+              contactPhoto.src = URL.createObjectURL(result.photo[0]);
+              contactPhoto.onload = function onload() {
+                URL.revokeObjectURL(contactPhoto.src);
+              };
+              div.appendChild(contactPhoto);
+            }
+
+            var nameText = document.createElement('span');
+            nameText.textContent = result.name[j];
+            div.appendChild(nameText);
+
             fragment.appendChild(div);
           }
         }
