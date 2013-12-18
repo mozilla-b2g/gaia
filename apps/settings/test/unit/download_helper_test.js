@@ -74,7 +74,6 @@ suite('DownloadHelper', function() {
   suite('Launch', function() {
     setup(function() {
       download = new MockDownload();
-      DownloadHelper.init();
     });
 
     teardown(function() {
@@ -90,7 +89,6 @@ suite('DownloadHelper', function() {
         }
       );
 
-      DownloadHelper.init();
       var req = DownloadHelper.launch(download);
 
       req.onsuccess = function() {
@@ -151,7 +149,15 @@ suite('DownloadHelper', function() {
             error: { 'name': 'custom error' }
           };
         },
-        'addEventListener': function() {
+        'available': function() {
+          return {
+            set onsuccess(cb) {
+              setTimeout(cb);
+            },
+            get result() {
+              return 'available';
+            }
+          };
         }
       };
 
@@ -174,10 +180,15 @@ suite('DownloadHelper', function() {
 
     test('Unmounted sdcard', function(done) {
       var storage = {
-        'addEventListener': function(event, cb) {
-          cb({
-            reason: 'shared'
-          });
+        'available': function() {
+          return {
+            set onsuccess(cb) {
+              setTimeout(cb);
+            },
+            get result() {
+              return 'shared';
+            }
+          };
         }
       };
 
@@ -186,10 +197,15 @@ suite('DownloadHelper', function() {
 
     test('No sdcard', function(done) {
       var storage = {
-        'addEventListener': function(event, cb) {
-          cb({
-            reason: 'unavailable'
-          });
+        'available': function() {
+          return {
+            set onsuccess(cb) {
+              setTimeout(cb);
+            },
+            get result() {
+              return 'unavailable';
+            }
+          };
         }
       };
 
