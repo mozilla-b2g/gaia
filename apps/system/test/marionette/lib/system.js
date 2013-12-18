@@ -7,12 +7,22 @@ function System(client) {
 module.exports = System;
 
 System.Selector = Object.freeze({
+  statusbar: '#statusbar',
+  topPanel: '#top-panel',
   leftPanel: '#left-panel',
   rightPanel: '#right-panel'
 });
 
 System.prototype = {
   client: null,
+
+  get statusbar() {
+    return this.client.findElement(System.Selector.statusbar);
+  },
+
+  get topPanel() {
+    return this.client.findElement(System.Selector.topPanel);
+  },
 
   get leftPanel() {
     return this.client.findElement(System.Selector.leftPanel);
