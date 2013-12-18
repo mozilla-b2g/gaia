@@ -54,7 +54,7 @@ suite('operatorVariant set First run state >', function() {
   },
   {
   'preValSet': undefined,
-  'expecValSet': true,
+  'expecValSet': false,
   'cardState': 'pinRequired',
   'title': 'Operator Variant set first run type - sim pinRequired'
   },
