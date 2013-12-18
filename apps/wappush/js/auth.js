@@ -62,7 +62,7 @@ var ProvisioningAuthentication = (function() {
   function pa_userPinAuthentication() {
     var mac = auth.mac;
 
-    return mac === pa_sign(pin, auth.data, auth.dataLength);
+    return mac === pa_sign(pin, auth.data, auth.data.length);
   }
 
   /**
