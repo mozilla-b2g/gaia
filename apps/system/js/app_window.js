@@ -448,8 +448,9 @@
    */
   AppWindow.REGISTERED_EVENTS =
     ['mozbrowserclose', 'mozbrowsererror', 'mozbrowservisibilitychange',
-      'mozbrowserloadend', 'mozbrowseractivitydone', 'mozbrowserloadstart',
-      'mozbrowsertitlechange', '_localized', '_swipein', '_swipeout'];
+     'mozbrowserloadend', 'mozbrowseractivitydone', 'mozbrowserloadstart',
+     'mozbrowsertitlechange', 'mozbrowserlocationchange',
+     '_localized', '_swipein', '_swipeout'];
 
   AppWindow.SUB_COMPONENTS = {
     'transitionController': window.AppTransitionController,
@@ -596,6 +597,7 @@
   AppWindow.prototype._handle_mozbrowserlocationchange =
     function aw__handle_mozbrowserlocationchange(evt) {
       this.config.url = evt.detail;
+      this.publish('locationchange');
     };
 
   AppWindow.prototype._registerEvents = function aw__registerEvents() {
