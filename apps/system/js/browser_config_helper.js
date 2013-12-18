@@ -15,14 +15,26 @@
    * * If only URL is provided, we would treat it as a web page.
    *
    * The returned configuration object contains:
+   *
    * * Origin: the same as appURL.
    * * manifestURL: the same as manifestURL.
+   *
    * * manifest: the parsed manifest object.
+   *             If the app is not an entry point app,
+   *             the manifest would be the reference of application manifest
+   *             stored in Applications module.
+   *             But if the app is an entry point app,
+   *             we will do deep clone to generate a new object and
+   *             replace the properties of entry point to proper position.
+   *
    * * name: the name of the app, retrieved from manifest.
+   *
    * * oop: indicate it's running out of process or in process.
    *
    * @param {String} appURL The URL of the app or the page to be opened.
    * @param {String} [manifestURL] The manifest URL of the app.
+   *
+   * @class BrowserConfigHelper
    */
   window.BrowserConfigHelper = function(appURL, manifestURL) {
     var app = Applications.getByManifestURL(manifestURL);
@@ -38,6 +50,9 @@
       // entry point.
       var entryPoints = manifest.entry_points;
       if (entryPoints && manifest.type == 'certified') {
+        // Do deep copy to avoid reference to be overwritten
+        // only when we're entry points.
+        manifest = JSON.parse(JSON.stringify(manifest));
         var givenPath = this.url.substr(origin.length);
 
         // Workaround here until the bug (to be filed) is fixed
@@ -56,7 +71,7 @@
             name = new ManifestHelper(currentEp).name;
             for (var key in currentEp) {
               if (key !== 'locale' && key !== 'name') {
-                app.manifest[key] = currentEp[key];
+                manifest[key] = currentEp[key];
               }
             }
           }
@@ -85,7 +100,7 @@
       this.name = name;
       this.manifestURL = manifestURL;
       this.origin = origin;
-      this.manifest = app.manifest;
+      this.manifest = manifest;
     } else {
       this.name = '';
       this.origin = appURL;
