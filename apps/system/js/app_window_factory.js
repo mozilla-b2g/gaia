@@ -33,6 +33,7 @@
         window.addEventListener('webapps-launch', this);
         window.addEventListener('webapps-close', this);
         window.addEventListener('open-app', this);
+        window.addEventListener('cardsview-launch', this);
       } else {
         var self = this;
         window.addEventListener('applicationready', function appReady(e) {
@@ -40,6 +41,7 @@
           window.addEventListener('webapps-launch', self);
           window.addEventListener('webapps-close', self);
           window.addEventListener('open-app', self);
+          window.addEventListener('cardsview-launch', self);
         });
       }
     },
@@ -59,9 +61,10 @@
 
       switch (evt.type) {
         case 'webapps-launch':
+        case 'cardsview-launch':
           // TODO: Look up current opened window list,
           // and then create a new instance here.
-          this.launch(config);
+          this.launch(config, evt.type);
           break;
         case 'open-app':
           // System Message Handler API is asking us to open the specific URL
@@ -87,7 +90,7 @@
       }
     },
 
-    launch: function awf_launch(config) {
+    launch: function awf_launch(config, type) {
       if (config.url === window.location.href) {
         return;
       }
@@ -101,6 +104,7 @@
       } else if (config.origin == HomescreenLauncher.origin) {
         HomescreenLauncher.getHomescreen().ensure();
       }
+      config.type = type;
       this.publish('launchapp', config);
     },
 
