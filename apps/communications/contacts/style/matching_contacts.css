@@ -12,6 +12,10 @@
   background: #F4F4F4;
 }
 
+#contacts-list-container.active li:not(:active):after {
+  display: none;
+}
+
 #contacts-list-container label {
   left: 0;
   pointer-events: auto;
