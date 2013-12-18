@@ -95,7 +95,7 @@ var Filmstrip = (function() {
     // If we're showing previews be sure we're showing the filmstrip
     // with no timeout and be sure that the viewfinder video is paused.
     show();
-    Camera.viewfinder.pause();
+    Camera.stopPreview();
   };
 
   function previewItem(index) {
@@ -134,10 +134,9 @@ var Filmstrip = (function() {
   }
 
   function hidePreview() {
-    Camera.viewfinder.play();        // Restart the viewfinder
+    Camera.startPreview();
     show(Camera.FILMSTRIP_DURATION); // Fade the filmstrip after a delay
     preview.classList.add('offscreen');
-    Camera.requestScreenWakeLock();
     frame.clear();
     if (items.length > 0)
       items[currentItemIndex].element.classList.remove('previewed');
@@ -150,21 +149,22 @@ var Filmstrip = (function() {
     if (Camera._secureMode)
       return;
 
+    var _ = navigator.mozL10n.get;
     var item = items[currentItemIndex];
     var msg, storage, filename;
 
     if (item.isImage) {
-      msg = navigator.mozL10n.get('delete-photo?');
+      msg = _('delete-photo?');
       storage = Camera._pictureStorage;
       filename = item.filename;
     }
     else {
-      msg = navigator.mozL10n.get('delete-video?');
+      msg = _('delete-video?');
       storage = Camera._videoStorage;
       filename = item.filename;
     }
 
-    if (confirm(msg)) {
+    function runDelete() {
       // Remove the item from the array of items
       items.splice(currentItemIndex, 1);
 
@@ -212,6 +212,23 @@ var Filmstrip = (function() {
       }
 
     }
+
+    var cancel = {
+      title: _('delete-cancel'),
+      callback: function() {
+        CustomDialog.hide();
+      }
+    };
+
+    var confirm = {
+      title: _('delete-confirm'),
+      callback: function() {
+        CustomDialog.hide();
+        runDelete();
+      }
+    };
+
+    CustomDialog.show(msg, filename, cancel, confirm);
   }
 
   function shareCurrentItem() {
