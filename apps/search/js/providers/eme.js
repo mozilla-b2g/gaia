@@ -33,6 +33,9 @@
     },
 
     search: function(input, type) {
+      this.results = document.createElement('section');
+      Search.suggestions.appendChild(this.results);
+
       setTimeout(function nextTick() {
         this.port.postMessage({
           input: input,
@@ -42,21 +45,25 @@
     },
 
     onmessage: function(msg) {
-      if (!msg.data.results) {
-        return;
+      var data = msg.data;
+
+      if (data.result) {
+        this.renderResult(data.result, data.icon);
       }
+    },
 
-      this.results = document.createElement('section');
-      msg.data.results.forEach(function eachresult(result) {
-        var resultEl = document.createElement('div');
-        resultEl.className = 'result';
-        resultEl.dataset.provider = this.name;
-        resultEl.dataset.url = result.url;
-        resultEl.textContent = result.title;
-        this.results.appendChild(resultEl);
-      }, this);
+    renderResult: function(searchResult, icon) {
+      var resultEl = document.createElement('div');
+      resultEl.className = 'result';
+      resultEl.dataset.provider = this.name;
+      resultEl.dataset.url = searchResult.url;
+      resultEl.textContent = searchResult.title;
 
-      Search.suggestions.appendChild(this.results);
+      var img = document.createElement('img');
+      img.src = icon;
+      resultEl.appendChild(img);
+
+      this.results.appendChild(resultEl);
     }
 
   };

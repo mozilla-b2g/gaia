@@ -10,7 +10,6 @@ body {
 #search-suggestions .result {
   border: 1px solid #ccc;
   background-color: #c0c0c0;
-  height: 2rem;
   line-height: 2rem;
   margin-right: 0.2rem;
 }
