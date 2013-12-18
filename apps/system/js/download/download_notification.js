@@ -31,7 +31,8 @@ DownloadNotification.prototype = {
    * @return {boolean} True whether the toaster should be displayed.
    */
   _wontNotify: function dn_wontNotify(currentState, newState) {
-    return currentState === newState || newState === 'downloading';
+    return currentState === newState ||
+           (newState === 'downloading' && currentState !== 'stopped');
   },
 
   /**
@@ -39,14 +40,24 @@ DownloadNotification.prototype = {
    */
   _update: function dn_update() {
     var noNotify = this._wontNotify(this.state, this.download.state);
-    var state = this.state = this.download.state;
-    var info = this._getInfo();
-    if (noNotify) {
-      info.noNotify = true;
-    }
-    NotificationScreen.addNotification(info);
-    if (state === 'succeeded') {
-      this._onSucceeded();
+    var state = this.download.state;
+
+    if (state === 'stopped') {
+      // We have to remove the notification when the download is stopped by user
+      this.state = state;
+      NotificationScreen.removeNotification(this.id);
+    } else {
+      // Showing 'started' notification when the download was stopped and it
+      // starts downloading again
+      this.state = this.state === 'stopped' ? 'started' : state;
+      var info = this._getInfo();
+      if (noNotify) {
+        info.noNotify = true;
+      }
+      NotificationScreen.addNotification(info);
+      if (state === 'succeeded') {
+        this._onSucceeded();
+      }
     }
   },
 
@@ -153,7 +164,6 @@ DownloadNotification.prototype = {
 
         break;
 
-      case 'stopped':
       case 'finalized':
         // Prompts the user if he wishes to retry the download
         var req = DownloadUI.show(null, this.download, true);
