@@ -7,6 +7,8 @@ from gaiatest.apps.base import Base
 
 
 class MessagingSettings(Base):
+    
+    name = 'Settings'
 
     _messaging_settings_locator = (By.CSS_SELECTOR, "h1[data-l10n-id='messagingSettings-header']")
 

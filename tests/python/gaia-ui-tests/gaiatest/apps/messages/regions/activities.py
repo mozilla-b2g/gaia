@@ -19,8 +19,8 @@ class Activities(Base):
 
     def tap_settings(self):
         self.marionette.find_element(*self._settings_button_locator).tap()
-        from gaiatest.apps.settings.app import Settings
-        return Settings(self.marionette)
+        from gaiatest.apps.messages.regions.messaging_settings import MessagingSettings
+        return MessagingSettings(self.marionette)
 
     @property
     def options_count(self):
