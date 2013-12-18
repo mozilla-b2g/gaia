@@ -153,8 +153,6 @@ class EditContact(ContactForm):
     def tap_confirm_delete(self):
         self.wait_for_element_displayed(*self._delete_form_locator)
         self.marionette.find_element(*self._confirm_delete_locator).tap()
-        from gaiatest.apps.contacts.app import Contacts
-        return Contacts(self.marionette)
 
     def wait_for_update_button_enabled(self):
         self.wait_for_condition(lambda m: self.marionette.find_element(*self._update_locator).is_enabled())

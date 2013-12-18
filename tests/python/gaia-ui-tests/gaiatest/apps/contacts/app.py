@@ -29,6 +29,7 @@ class Contacts(Base):
         Base.launch(self)
         self.wait_for_element_displayed(*self._settings_button_locator)
 
+    # TODO: Replace this by using apps.displayed_app when bug 951815 is fixed
     def switch_to_contacts_frame(self):
         self.marionette.switch_to_frame()
         self.wait_for_element_present(*self._contacts_frame_locator)
@@ -57,6 +58,7 @@ class Contacts(Base):
     def wait_for_contacts(self, number_to_wait_for=1):
         self.wait_for_condition(lambda m: len(m.find_elements(*self._contact_locator)) == number_to_wait_for)
 
+    # TODO: Replace this by using apps.displayed_app when bug 951815 is fixed
     def wait_for_contacts_frame_to_close(self):
         self.marionette.switch_to_default_content()
         self.wait_for_element_not_present(*self._contacts_frame_locator)

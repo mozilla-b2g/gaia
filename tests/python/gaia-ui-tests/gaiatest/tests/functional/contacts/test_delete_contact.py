@@ -38,6 +38,5 @@ class TestContacts(GaiaTestCase):
 
         self.wait_for_condition(lambda m: len(self.data_layer.all_contacts) == 0, message="Should have no contact after run this test.")
 
-        contacts_app.switch_to_contacts_frame()
         post_contacts_count = len(contacts_app.contacts)
         self.assertEqual(post_contacts_count, 0, "Should have no contact after run this test.")
