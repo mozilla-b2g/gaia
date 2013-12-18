@@ -95,7 +95,7 @@
 
       timeoutSearchWhileTyping = setTimeout(function doSearch() {
         if (type === 'submit') {
-          window.open(getUrlFromInput(input), '_blank', 'remote=true');
+          Search.browse(getUrlFromInput(input));
         } else {
           for (var i in providers) {
             providers[i].search(input, type);
@@ -109,6 +109,13 @@
      */
     close: function() {
       this._port.postMessage({'action': 'hide'});
+    },
+
+    /**
+     * Opens a browser to a URL
+     */
+    browse: function(url) {
+      window.open(url, '_blank', 'remote=true');
     }
   };
 
