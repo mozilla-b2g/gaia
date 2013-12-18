@@ -38,6 +38,16 @@ suite('DownloadFormatter', function() {
     assert.equal(params.unit, 'byteUnit-KB');
   });
 
+  test(' getFormattedSize MB', function() {
+    var bytes = 1024 * 1024 * 999; // 999 MB
+    DownloadFormatter.getFormattedSize(bytes);
+    assert.equal(l10nSpy.args[1][0], 'fileSize');
+
+    var params = l10nSpy.args[1][1];
+    assert.equal(params.size, 999);
+    assert.equal(params.unit, 'byteUnit-MB');
+  });
+
   test(' getPercentage', function() {
     var mockDownload = new MockDownload({
       totalBytes: 1024 * 100,
