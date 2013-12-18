@@ -127,12 +127,29 @@ suite('Contacts settings', function() {
       // Add to facke iccs
       navigator.mozIccManager.iccIds[0] = 0;
       navigator.mozIccManager.iccIds[1] = 1;
-      contacts.Settings.init();
     });
     suiteTeardown(function() {
-      navigator.mozMobileConnections.mAddMobileConnection();
       navigator.mozMobileConnections = realMozMobileConnections;
       navigator.mozMobileConnection = realMozMobileConnection;
+    });
+
+    setup(function() {
+      while (navigator.mozMobileConnections.length !== 0) {
+        navigator.mozMobileConnections.mRemoveMobileConnection();
+      }
+      var conn1 = new window.MockMobileconnection();
+      conn1.iccId = 0;
+      conn1.iccInfo = {
+        'iccid': 0
+      };
+      navigator.mozMobileConnections.mAddMobileConnection(conn1, 0);
+      var conn2 = new window.MockMobileconnection();
+      conn2.iccId = 1;
+      conn2.iccInfo = {
+        'iccid': 1
+      };
+      navigator.mozMobileConnections.mAddMobileConnection(conn2, 1);
+
       contacts.Settings.init();
     });
 
@@ -145,6 +162,60 @@ suite('Contacts settings', function() {
     test('Check number of export buttons appearing', function() {
       assert.isNotNull(document.querySelector('#export-sim-option-0'));
       assert.isNotNull(document.querySelector('#export-sim-option-1'));
+    });
+
+    test('Check one sim inserted in slot 0', function() {
+      // Modify the iccManager to return null when asking for slot 1
+      var stub = sinon.stub(navigator.mozIccManager, 'getIccById',
+        function(id) {
+          if (id == 1) {
+            return null;
+          }
+
+          return {
+            'iccInfo': {
+              'iccid': id
+            }
+          };
+        }
+      );
+
+      contacts.Settings.init();
+
+      assert.isNotNull(document.querySelector('#import-sim-option-0'));
+      assert.isNotNull(document.querySelector('#export-sim-option-0'));
+
+      assert.isNull(document.querySelector('#import-sim-option-1'));
+      assert.isNull(document.querySelector('#export-sim-option-1'));
+
+      stub.restore();
+    });
+
+    test('Check one sim inserted in slot 1', function() {
+      // Modify the iccManager to return null when asking for slot 0
+      var stub = sinon.stub(navigator.mozIccManager, 'getIccById',
+        function(id) {
+          if (id == 0) {
+            return null;
+          }
+
+          return {
+            'iccInfo': {
+              'iccid': id
+            }
+          };
+        }
+      );
+
+      contacts.Settings.init();
+
+      assert.isNotNull(document.querySelector('#import-sim-option-1'));
+      assert.isNotNull(document.querySelector('#export-sim-option-1'));
+
+      assert.isNull(document.querySelector('#import-sim-option-0'));
+      assert.isNull(document.querySelector('#export-sim-option-0'));
+
+      stub.restore();
     });
   });
 

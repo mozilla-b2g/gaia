@@ -314,6 +314,9 @@ contacts.Settings = (function() {
   // Disables/Enables an option and show the error if needed
   var updateOptionStatus =
     function updateOptionStatus(domOption, disabled, error) {
+    if (domOption === null) {
+      return;
+    }
     var optionButton = domOption.firstElementChild;
     if (disabled) {
       optionButton.setAttribute('disabled', 'disabled');
