@@ -18,7 +18,6 @@
 
   window.Search = {
     _port: null,
-    terms: document.getElementById('search-terms'),
     suggestions: document.getElementById('search-suggestions'),
 
     providers: {},
@@ -93,7 +92,6 @@
     onSearchInput: function(msg) {
       var input = msg.data.input;
       var type = msg.data.type;
-      this.terms.innerHTML = input;
 
       this.suggestions.innerHTML = '';
 

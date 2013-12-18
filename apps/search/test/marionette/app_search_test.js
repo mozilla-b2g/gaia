@@ -21,4 +21,14 @@ marionette('app search', function() {
     search.goToApp(Calendar.ORIGIN);
   });
 
+  test('search app with entry point', function() {
+    search.doSearch('phone');
+
+    search.goToResults();
+
+    search.checkResult('firstApp', 'Phone');
+
+    search.goToApp('app://communications.gaiamobile.org', 'dialer');
+  });
+
 });
