@@ -1047,6 +1047,13 @@ function play() {
   // Switch the button icon
   dom.play.classList.remove('paused');
 
+  // Start recording statistics
+  //
+  // This requires getVideoPlaybackQuality() to be enabled
+  // on the video element which can be achieved
+  // by setting the media.mediasource.enabled pref to true.
+  VideoStats.start(dom.player);
+
   // Start playing
   dom.player.play();
   playing = true;
@@ -1059,6 +1066,10 @@ function pause() {
   // Stop playing the video
   dom.player.pause();
   playing = false;
+
+  //stop recording statistics and print them
+  VideoStats.stop();
+  VideoStats.dump();
 }
 
 // Update the progress bar and play head as the video plays
