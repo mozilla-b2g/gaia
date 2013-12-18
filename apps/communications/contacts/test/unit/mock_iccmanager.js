@@ -6,7 +6,8 @@ var MockIccManager = function() {
 
 MockIccManager.prototype.getIccById = function(id) {
   return {
-    'iccId': id,
-    'iccInfo': {}
+    'iccInfo': {
+      'iccid': id
+    }
   };
 };

@@ -1,10 +1,28 @@
 'use strict';
 
+// Generates the DOM for each button, depending
+// on different variables
+function generateButton(singleSim, sim, index) {
+  var button = document.createElement('button');
+  button.classList.add('icon', 'icon-sim');
+  if (singleSim) {
+    button.textContent = _('simCard');
+  } else {
+    button.textContent = _('simNumber', {'number': index});
+    if (sim.iccInfo &&
+      sim.iccInfo.msisdn) {
+      button.textContent += ': ' + sim.iccInfo.msisdn;
+    }
+  }
+  return button;
+}
+
 var SimDomGenerator = function SimDomGenerator() {
 };
 
 SimDomGenerator.prototype.setIccList = function(list) {
-  this.iccs = list;
+  this.sims = list;
+  this.singleSim = (list.length === 1);
 };
 
 SimDomGenerator.prototype.generateDOM = function() {
@@ -30,19 +48,17 @@ SimDomGenerator.prototype.generateExportDOM = function() {
   var firstOption = exportList.firstChild;
 
   var self = this;
-  Object.keys(this.iccs).forEach(function onIccId(iccId, index) {
+  this.sims.forEach(function onSim(sim, index) {
+    if (sim === null) {
+      return;
+    }
+    var iccId = sim.iccInfo.iccid;
     var li = document.createElement('li');
     li.id = 'export-sim-option-' + iccId;
     li.dataset.source = 'sim';
     li.dataset.iccid = iccId;
 
-    var button = document.createElement('button');
-    button.classList.add('icon', 'icon-sim');
-    button.textContent = _('simNumber', {'number': index + 1});
-    if (self.iccs[iccId] && self.iccs[iccId].iccInfo &&
-      self.iccs[iccId].iccInfo.msisdn !== null) {
-      button.textContent += ':' + self.iccs[iccId].iccInfo.msisdn;
-    }
+    var button = generateButton(self.singleSim, sim, index + 1);
 
     var p = document.createElement('p');
     p.classList.add('error-message');
@@ -70,20 +86,20 @@ SimDomGenerator.prototype.generateImportDOM = function() {
     return;
   }
   var firstOption = importList.firstChild;
+
   var self = this;
-  Object.keys(this.iccs).forEach(function onIccId(iccId, index) {
+  this.sims.forEach(function onSim(sim, index) {
+    if (sim === null) {
+      return;
+    }
+
+    var iccId = sim.iccInfo.iccid;
     var li = document.createElement('li');
     li.dataset.source = 'sim-' + iccId;
     li.dataset.iccid = iccId;
     li.id = 'import-sim-option-' + iccId;
 
-    var button = document.createElement('button');
-    button.classList.add('icon', 'icon-sim');
-    button.textContent = _('simNumber', {'number': index + 1});
-    if (self.iccs[iccId] && self.iccs[iccId].iccInfo &&
-      self.iccs[iccId].iccInfo.msisdn !== null) {
-      button.textContent += ':' + self.iccs[iccId].iccInfo.msisdn;
-    }
+    var button = generateButton(self.singleSim, sim, index + 1);
 
     var pTime = document.createElement('p');
     pTime.appendChild(document.createElement('span'));
