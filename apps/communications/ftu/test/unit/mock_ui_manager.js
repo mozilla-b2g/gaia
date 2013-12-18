@@ -36,6 +36,16 @@ var MockUIManager = {
     'xck-retries-left',
     'xck-input',
     'xck-error',
+    // SIM info
+    'sim-info-screen',
+    'sim-info-back',
+    'sim-info-forward',
+    'sim-info-1',
+    'sim-info-2',
+    'sim-number-1',
+    'sim-number-2',
+    'sim-carrier-1',
+    'sim-carrier-2',
     // Import contacts
     'sim-import',
     'sim-import-button',
