@@ -73,6 +73,9 @@ var CarrierSettings = (function(window, document, undefined) {
     // Show carrier name.
     cs_showCarrierName();
 
+    // Init network type selector.
+    cs_initNetworkTypeSelector();
+
     // Set the navigation correctly when on a multi ICC card device.
     if (DsdsSettings.getNumberOfIccSlots() > 1) {
       var carrierSimPanel = document.getElementById('carrier');
@@ -90,12 +93,6 @@ var CarrierSettings = (function(window, document, undefined) {
       var content =
         document.getElementById('carrier-operatorSettings-content');
 
-      // init different selectors based on the network type.
-      if (result.networkTypes) {
-        cs_initNetworkTypeSelector(result.networkTypes,
-                                   result.gsm,
-                                   result.cdma);
-      }
       if (result.gsm) {
         cs_initOperatorSelector();
         content.classList.add('gsm');
@@ -128,9 +125,17 @@ var CarrierSettings = (function(window, document, undefined) {
 
         if (!currentHash.startsWith('#carrier-') ||
             (currentHash === '#carrier-iccs') ||
-            (currentHash === '#carrier-operatorSettings') ||
             (currentHash === '#carrier-dc-warning') ||
             (currentHash === '#carrier-dr-warning')) {
+          return;
+        }
+
+        if (currentHash === '#carrier-operatorSettings') {
+          if (result.networkTypes) {
+            cs_updateNetworkTypeSelector(result.networkTypes,
+                                         result.gsm,
+                                         result.cdma);
+          }
           return;
         }
 
@@ -246,22 +251,52 @@ var CarrierSettings = (function(window, document, undefined) {
   }
 
   /**
-   * Init network type selector.
+   * Init network type selector. Add the event listener that handles the changes
+   * for the network type.
    */
-  function cs_initNetworkTypeSelector(networkTypes, gsm, cdma) {
-    // TODO: Bug 944225 - B2G DSDS: support setting preferred network type for
-    // each sim.
-    var request =
-      _settings.createLock().get('ril.radio.preferredNetworkType');
+  function cs_initNetworkTypeSelector() {
+    var alertDialog = document.getElementById('preferredNetworkTypeAlert');
+    var continueButton = alertDialog.querySelector('button');
+    continueButton.addEventListener('click', function onClickHandler() {
+      alertDialog.hidden = true;
+      getSupportedNetworkInfo(function getSupportedNetworkInfoCb(result) {
+        if (result.networkTypes) {
+          cs_updateNetworkTypeSelector(result.networkTypes,
+                                       result.gsm,
+                                       result.cdma);
+        }
+      });
+    });
 
-    request.onsuccess = function onSuccessCb() {
-      var setting = request.result['ril.radio.preferredNetworkType'];
-      if (setting) {
+    var selector = document.getElementById('preferredNetworkType');
+    selector.addEventListener('change', function evenHandler() {
+      var type = selector.value;
+      var request = _mobileConnection.setPreferredNetworkType(type);
+      var message = document.getElementById('preferredNetworkTypeAlertMessage');
+      request.onerror = function onErrorHandler() {
+        message.textContent = _('preferredNetworkTypeAlertErrorMessage');
+        alertDialog.hidden = false;
+      };
+    });
+  }
+
+  /**
+   * Update network type selector.
+   */
+  function cs_updateNetworkTypeSelector(networkTypes, gsm, cdma) {
+    var request = _mobileConnection.getPreferredNetworkType();
+    request.onsuccess = function onSuccessHandler() {
+      var networkType = request.result;
+      if (networkType) {
         var selector = document.getElementById('preferredNetworkType');
+        // Clean up all option before updating again.
+        while (selector.hasChildNodes()) {
+          selector.removeChild(selector.lastChild);
+        }
         networkTypes.forEach(function(type) {
           var option = document.createElement('option');
           option.value = type;
-          option.selected = (setting === type);
+          option.selected = (networkType === type);
           // show user friendly network mode names
           if (gsm && cdma) {
             if (type in NETWORK_DUALSTACK_MAP) {
@@ -281,12 +316,12 @@ var CarrierSettings = (function(window, document, undefined) {
           selector.appendChild(option);
         });
 
-        var evt = document.createEvent('Event');
-        evt.initEvent('change', true, true);
-        selector.dispatchEvent(evt);
       } else {
         console.warn('carrier: could not retrieve network type');
       }
+    };
+    request.onerror = function onErrorHandler() {
+      console.warn('carrier: could not retrieve network type');
     };
   }
 
