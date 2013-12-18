@@ -3,11 +3,18 @@
 
   // timeout before notifying providers
   var SEARCH_DELAY = 600;
-  var timeoutSearchWhileTyping = null;
+  var SEARCH_URI = 'http://www.google.com/search?q={searchTerms}';
 
+  var timeoutSearchWhileTyping = null;
   var rscheme = /^(?:[a-z\u00a1-\uffff0-9-+]+)(?::|:\/\/)/i;
+
   function getUrlFromInput(input) {
     var hasScheme = !!(rscheme.exec(input) || [])[0];
+
+    // Not a valid URL, could be a search term
+    if (UrlHelper.isNotURL(input) && SEARCH_URI) {
+      return SEARCH_URI.replace('{searchTerms}', input);
+    }
 
     // No scheme, prepend basic protocol and return
     if (!hasScheme) {
@@ -100,7 +107,7 @@
       var providers = this.providers;
       clearTimeout(timeoutSearchWhileTyping);
       timeoutSearchWhileTyping = setTimeout(function doSearch() {
-        if (type === 'submit' && UrlHelper.isURL(input)) {
+        if (type === 'submit') {
           window.open(getUrlFromInput(input), '_blank', 'remote=true');
         } else {
           for (var i in providers) {
