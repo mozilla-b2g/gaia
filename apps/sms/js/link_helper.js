@@ -50,26 +50,21 @@ function checkDomain(domain) {
     // Don't add many restrictions,
     // just the tld to be non numeric and length > 1
     var parts = domain.split('.');
-    //Make sure SubDomain is not empty
-    if (!checkSubDomain(parts)) {
-       return false;
-    } else {
-      var lastPart = parts[parts.length - 1];
-      // We want the last part not to be a number
-      return lastPart.length > 1 && !isFinite(lastPart);
-   }
+    var lastPart = parts[parts.length - 1];
+    // We want the last part not to be a number
+    return lastPart.length > 1 && !isFinite(lastPart);
   }
 }
 
-function checkSubDomain(parts) {
-  var good = true;
+function checkSubDomain(parts, linkSpec) {
+  parts = parts.replace(linkSpec.match[1], '').split('.');
   //Iterate through domain parts exit if empty
-  for (var i = 0; good && i < parts.length; i++) {
+  for (var i = 0; i < parts.length; i++) {
     if (parts[i].length < 1) {
-      good = false;
+      return false;
     }
   }
-  return good;
+  return true;
 }
 
 // defines things that can match right before to be a "safe" link
@@ -139,7 +134,6 @@ var LINK_TYPES = {
     matchFilter: function urlMatchFilter(url, linkSpec) {
       var match = linkSpec.match;
       var scheme, tld;
-
       if (!checkDomain(match[2] + match[3])) {
         return false;
       }
@@ -165,10 +159,31 @@ var LINK_TYPES = {
       return linkSpec;
     },
     transform: function urlTransform(url, linkSpec) {
+      //Make sure subdomain is correct
+      if (!checkSubDomain(url, linkSpec)) {
+        var trail = '.';
+        var url = url.replace(linkSpec.match[1], '').split('.');
+        //Iterate through domain parts to find and eliminate extra dot
+        for (var i = 0; i < url.length; i++) {
+          if (url[i].length < 1) {
+            url.splice(i, 1);
+            }
+          }
+          //Join it back again now
+          url = url.join('.');
+          var href = 'http://' + url;
+          if (linkSpec.match[1]) {
+            trail = linkSpec.match[1] + '.';
+            href = linkSpec.match[1].concat(url);
+          }
+        return trail + '<a data-url="' + href +
+        '" data-action="url-link" >' + url + '</a>';
+      }
       var href = url;
       if (!linkSpec.match[1]) {
         href = 'http://' + href;
       }
+
       return '<a data-url="' + href + '" data-action="url-link" >' + url +
              '</a>';
     }

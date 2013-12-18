@@ -30,6 +30,22 @@ suite('link_helper_test.js', function() {
       var result = LinkHelper.searchAndLinkClickableData(url);
       assert.equal(result, expected);
     }
+    function url2msgsecure(url, addsecure) {
+      var link = url;
+
+      if (addsecure) {
+        url = 'https://' + url;
+      }
+
+      return '<a data-url="' + url + '"' +
+             ' data-action="url-link" >' + link + '</a>';
+    }
+
+    function testURLMatchSecure(url, match, addsecure) {
+      var expected = url.replace(match, url2msgsecure(match, addsecure));
+      var result = LinkHelper.searchAndLinkClickableData(url);
+      assert.equal(result, expected);
+    }
 
     function testURLOK(url, addprefix) {
       var expected = url2msg(url, addprefix);
@@ -144,6 +160,11 @@ suite('link_helper_test.js', function() {
       test('URL with phone number in the middle', function() {
         testURLOK('http://somesite.com/q,12288296666/');
       });
+      test('Bug 941763', function() {
+        testURLMatch('http://.website.com', 'website.com', true);
+        testURLMatch('.website.com', 'website.com', true);
+        testURLMatchSecure('https://.website.com', 'website.com', true);
+      });
     });
 
     suite('Failures', function() {
@@ -182,10 +203,6 @@ suite('link_helper_test.js', function() {
 
         testURLOK('http://whatever.stuff');
         testURLOK('https://whatever.stuff');
-      });
-      test('Bug 941763', function() {
-        testURLNOK('.website.com');
-        testURLNOK('.website.co.uk');
       });
     });
   });
