@@ -16,6 +16,7 @@ class NewMessage(Messages):
     _message_field_locator = (By.ID, 'messages-input')
     _send_message_button_locator = (By.ID, 'messages-send-button')
     _attach_button_locator = (By.ID, 'messages-attach-button')
+    _options_icon_locator = (By.ID, 'messages-options-icon')
     _message_sending_locator = (By.CSS_SELECTOR, "li.message.outgoing.sending")
     _thread_messages_locator = (By.ID, 'thread-messages')
     _message_resize_notice_locator = (By.ID, 'messages-resize-notice')
@@ -63,6 +64,11 @@ class NewMessage(Messages):
         contacts_app = Contacts(self.marionette)
         contacts_app.switch_to_contacts_frame()
         return contacts_app
+
+    def tap_options(self):
+        self.marionette.find_element(*self._options_icon_locator).tap()
+        from gaiatest.apps.messages.regions.activities import Activities
+        return Activities(self.marionette)
 
     def wait_for_recipients_displayed(self):
         self.wait_for_element_displayed(*self._receiver_input_locator)
