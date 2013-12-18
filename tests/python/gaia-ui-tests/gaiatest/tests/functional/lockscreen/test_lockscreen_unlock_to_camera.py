@@ -15,15 +15,15 @@ class TestLockScreen(GaiaTestCase):
         self.apps.set_permission('Camera', 'geolocation', 'deny')
 
         # this time we need it locked!
-        self.lockscreen.lock()
-        self.lock_screen = LockScreen(self.marionette)
+        self.device.lock()
 
     def test_unlock_to_camera(self):
         # https://moztrap.mozilla.org/manage/case/1296/
-        camera = self.lock_screen.unlock_to_camera()
-        self.lock_screen.wait_for_lockscreen_not_visible()
+        lock_screen = LockScreen(self.marionette)
+        camera = lock_screen.unlock_to_camera()
+        lock_screen.wait_for_lockscreen_not_visible()
 
-        self.assertFalse(self.lockscreen.is_locked)
+        self.assertFalse(self.device.is_locked)
 
         # Wait fot the capture button displayed. no need to take a photo.
         camera.switch_to_camera_frame()

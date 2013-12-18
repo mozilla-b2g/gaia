@@ -116,7 +116,7 @@ class GCli(object):
 
         self.apps = gaiatest.GaiaApps(self.marionette)
         self.data_layer = gaiatest.GaiaData(self.marionette)
-        self.lock_screen = gaiatest.LockScreen(self.marionette)
+        self.device = gaiatest.GaiaDevice(self.marionette)
 
         ret = args.func(args)
         if ret is None:
@@ -206,7 +206,7 @@ class GCli(object):
             print '%d: %s' % (i + 1, app.name)
 
     def lock(self, args):
-        self.lock_screen.lock()
+        self.device.lock()
 
     def screenshot(self, args):
         self.marionette.execute_script(
@@ -223,7 +223,7 @@ class GCli(object):
             "window.wrappedJSObject.dispatchEvent(new Event('sleep'));")
 
     def unlock(self, args):
-        self.lock_screen.unlock()
+        self.device.unlock()
 
     def volume(self, args):
         self.marionette.execute_script(
