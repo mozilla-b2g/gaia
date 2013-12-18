@@ -21,16 +21,15 @@ class TestCameraUnlockWithPasscode(GaiaTestCase):
         self.data_layer.set_setting('lockscreen.passcode-lock.enabled', True)
 
         # this time we need it locked!
-        self.lockscreen.lock()
-        self.lock_screen = LockScreen(self.marionette)
+        self.device.lock()
 
     def test_unlock_to_camera_with_passcode(self):
         # https://github.com/mozilla/gaia-ui-tests/issues/479
+        lock_screen = LockScreen(self.marionette)
+        camera = lock_screen.unlock_to_camera()
+        lock_screen.wait_for_lockscreen_not_visible()
 
-        camera = self.lock_screen.unlock_to_camera()
-        self.lock_screen.wait_for_lockscreen_not_visible()
-
-        self.assertTrue(self.lockscreen.is_locked)
+        self.assertTrue(self.device.is_locked)
 
         camera.switch_to_camera_frame()
 

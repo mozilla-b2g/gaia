@@ -5,6 +5,8 @@
 import json
 import os
 import time
+import warnings
+from functools import wraps
 
 from marionette import MarionetteTestCase, EnduranceTestCaseMixin, B2GTestCaseMixin, \
                        MemoryEnduranceTestCaseMixin
@@ -18,27 +20,33 @@ from yoctopuce.yocto_current import YCurrent
 from yoctopuce.yocto_datalogger import YDataLogger
 
 
+def deprecated(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        msg = ('Class "LockScreen" is deprecated and soon will be removed.',
+               'Please use corresponding methods of "GaiaDevice" class')
+        warnings.warn(message=' '.join(msg), category=Warning, stacklevel=2)
+        func(*args, **kwargs)
+    return wrapper
+
+
 class LockScreen(object):
 
     def __init__(self, marionette):
-        self.marionette = marionette
-        js = os.path.abspath(os.path.join(__file__, os.path.pardir, 'atoms', "gaia_lock_screen.js"))
-        self.marionette.import_script(js)
+        self.device = GaiaDevice(marionette)
 
     @property
+    @deprecated
     def is_locked(self):
-        self.marionette.switch_to_frame()
-        return self.marionette.execute_script('return window.wrappedJSObject.LockScreen.locked')
+        return self.device.is_locked
 
+    @deprecated
     def lock(self):
-        self.marionette.switch_to_frame()
-        result = self.marionette.execute_async_script('GaiaLockScreen.lock()')
-        assert result, 'Unable to lock screen'
+        self.device.lock()
 
+    @deprecated
     def unlock(self):
-        self.marionette.switch_to_frame()
-        result = self.marionette.execute_async_script('GaiaLockScreen.unlock()')
-        assert result, 'Unable to unlock screen'
+        self.device.unlock()
 
 
 class GaiaApp(object):
@@ -648,6 +656,9 @@ class GaiaDevice(object):
     def __init__(self, marionette, testvars=None):
         self.marionette = marionette
         self.testvars = testvars or {}
+        self.lockscreen_atom = os.path.abspath(
+            os.path.join(__file__, os.path.pardir, 'atoms', "gaia_lock_screen.js"))
+        self.marionette.import_script(self.lockscreen_atom)
 
     def add_device_manager(self, device_manager):
         self._manager = device_manager
@@ -739,6 +750,7 @@ window.addEventListener('mozbrowserloadend', function loaded(aEvent) {
 });""", script_timeout=60000)
             # TODO: Remove this sleep when Bug 924912 is addressed
             time.sleep(5)
+        self.marionette.import_script(self.lockscreen_atom)
 
     def stop_b2g(self):
         if self.marionette.instance:
@@ -768,6 +780,21 @@ window.addEventListener('mozbrowserloadend', function loaded(aEvent) {
     def hold_home_button(self):
         self.marionette.switch_to_frame()
         self.marionette.execute_script("window.wrappedJSObject.dispatchEvent(new Event('holdhome'));")
+
+    @property
+    def is_locked(self):
+        self.marionette.switch_to_frame()
+        return self.marionette.execute_script('return window.wrappedJSObject.LockScreen.locked')
+
+    def lock(self):
+        self.marionette.switch_to_frame()
+        result = self.marionette.execute_async_script('GaiaLockScreen.lock()')
+        assert result, 'Unable to lock screen'
+
+    def unlock(self):
+        self.marionette.switch_to_frame()
+        result = self.marionette.execute_async_script('GaiaLockScreen.unlock()')
+        assert result, 'Unable to unlock screen'
 
 
 class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
@@ -849,7 +876,7 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
         [self.data_layer.set_setting(name, value) for name, value in self.testvars.get('settings', {}).items()]
 
         # unlock
-        self.lockscreen.unlock()
+        self.device.unlock()
 
         if full_reset:
             # disable passcode

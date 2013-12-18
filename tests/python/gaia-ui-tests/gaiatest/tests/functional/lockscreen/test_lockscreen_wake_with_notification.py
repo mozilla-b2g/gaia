@@ -11,22 +11,25 @@ class TestLockScreenNotification(GaiaTestCase):
     _notification_title = 'TestNotificationBar_TITLE'
     _notification_body = 'TestNotificationBar_BODY'
 
-    def test_lock_screen_wake_with_notification(self):
+    def setUp(self):
+        GaiaTestCase.setUp(self)
 
-        self.lockscreen.lock()
-        self.lock_screen = LockScreen(self.marionette)
+        self.device.lock()
         self.device.turn_screen_off()
+
+    def test_lock_screen_wake_with_notification(self):
+        lock_screen = LockScreen(self.marionette)
 
         # Check if the screen is turned off
         self.assertFalse(self.device.is_screen_enabled)
 
         self.marionette.execute_script('navigator.mozNotification.createNotification("%s", "%s").show();'
                                        % (self._notification_title, self._notification_body))
-        self.lock_screen.wait_for_notification()
+        lock_screen.wait_for_notification()
 
         # Check if the screen is turned on
         self.assertTrue(self.device.is_screen_enabled)
 
         # Check if the notification is displayed on the screen
-        self.assertTrue(self.lock_screen.notifications[0].is_visible)
-        self.assertEqual(self.lock_screen.notifications[0].content, self._notification_body)
+        self.assertTrue(lock_screen.notifications[0].is_visible)
+        self.assertEqual(lock_screen.notifications[0].content, self._notification_body)
