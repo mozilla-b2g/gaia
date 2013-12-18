@@ -40,7 +40,7 @@
   border: none;
 }
 
-#datausage-tab .toggle-data li label span {
+#datausage-tab .toggle-data li label span:after {
   right: 0;
   left: auto;
 }
