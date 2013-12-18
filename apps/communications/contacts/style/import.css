@@ -34,13 +34,14 @@ form[role="dialog"].no-overlay button {
   right: 0;
 }
 
-[data-type="list"].import-list.active li:hover:after {
-  background: none;
-}
-
 #groups-list.import-list li,
 .facebook #search-list[data-type="list"] li {
   padding-left: 4rem;
+}
+
+#groups-list.active li:not(:active):after,
+#search-list.active li:not(:active):after {
+  display: none !important;
 }
 
 /* End BB */
