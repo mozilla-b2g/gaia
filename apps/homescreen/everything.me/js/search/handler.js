@@ -8,29 +8,11 @@
     this.onMessage = ensurePort;
 
     function handleMessage(msg) {
-      query = msg.data.input;
-      if (query) {
+      var newQuery = msg.data.input;
+      if (newQuery && newQuery !== query) {
+        query = newQuery;
         Evme.SearchClient.search({
           'query': query
-        }, function success(data) {
-          var response = data.response;
-          if (response.query !== query) {
-            // stale results, ignore them
-            console.log('evme', 'stale results');
-            return;
-          }
-
-          var apps = response.apps;
-          if (apps.length) {
-            sendResultsApp({
-              results: apps.map(function result(app) {
-                return {
-                  'url': app.appUrl,
-                  'title': app.name
-                };
-              })
-            });
-          }
         });
       }
     };
@@ -58,14 +40,15 @@
       };
     }
 
-    /**
-     * Sends a message to the search results app.
-     * Opens the port if it is not yet open
-     */
-    function sendResultsApp(message) {
-      searchPort.postMessage(message);
-    }
+    this.sendResults = function sendResults(resultQuery, searchResults) {
+      // only if results still relevant
+      if (resultQuery === query) {
+        searchPort.postMessage({ 'results': searchResults });
+      }
+    };
+
   }
 
   Evme.SearchHandler = new SearchHandler();
+
 })();

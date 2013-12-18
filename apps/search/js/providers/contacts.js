@@ -8,11 +8,14 @@
 
   Contacts.prototype = {
 
-    init: function() {
-
+    init: function(config) {
+      this.container = config.container;
+      this.container.addEventListener('click', this.click);
     },
 
-    click: function(target) {
+    click: function(e) {
+      var target = e.target;
+
       Search.close();
       var activity = new MozActivity({
         name: 'open',
@@ -26,17 +29,15 @@
     },
 
     search: function(input) {
-      this.results = document.createElement('section');
-      Search.suggestions.appendChild(this.results);
-
       var options = {
         filterValue: input,
         filterBy: ['givenName'],
         filterOp: 'startsWith'
       };
 
-      var request = navigator.mozContacts.find(options);
+      this.clear();
 
+      var request = navigator.mozContacts.find(options);
       request.onsuccess = (function() {
         var results = request.result;
         if (!results.length) {
@@ -72,11 +73,15 @@
             fragment.appendChild(div);
           }
         }
-        this.results.appendChild(fragment.cloneNode(true));
+        this.container.appendChild(fragment.cloneNode(true));
       }).bind(this);
 
       request.onerror = function() {
       };
+    },
+
+    clear: function() {
+      this.container.innerHTML = '';
     }
   };
 
