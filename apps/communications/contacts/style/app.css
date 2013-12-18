@@ -704,3 +704,8 @@ form[role="dialog"].no-overlay button {
 #selectable-form {
   background: none;
 }
+
+
+#groups-list[data-type="list"].active.selecting li:not(:active):after {
+  display:none !important;
+}
