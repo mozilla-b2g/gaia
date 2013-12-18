@@ -206,7 +206,6 @@ var LockScreen = {
    * @this {LockScreen}
    */
   init: function ls_init() {
-
     if (this.ready) { // already initialized: just trigger a translation
       this.refreshClock(new Date());
       this._lockscreenConnInfoManager.updateConnStates();
@@ -355,8 +354,10 @@ var LockScreen = {
         this.unlock(true);
         break;
       case 'screenchange':
+        console.log('[EJ] screenchange');
         // Don't lock if screen is turned off by promixity sensor.
         if (evt.detail.screenOffBy == 'proximity') {
+          console.log('[EJ] screen is turned off by promixity sensor');
           break;
         }
 
@@ -588,9 +589,12 @@ var LockScreen = {
 
   lockIfEnabled: function ls_lockIfEnabled(instant) {
     if (FtuLauncher && FtuLauncher.isFtuRunning()) {
+      console.log('[EJ] is FTU running, call unlock()');
       this.unlock(instant);
       return;
     }
+
+    console.log(this.enabled ? '[EJ] call lock()' : '[EJ] call unlock()');
 
     if (this.enabled) {
       this.lock(instant);
@@ -619,6 +623,7 @@ var LockScreen = {
       return;
 
     this.dispatchEvent('will-unlock', detail);
+    console.log('[EJ] emit will-unlock event');
     this.writeSetting(false);
 
     if (this.unlockSoundEnabled) {
