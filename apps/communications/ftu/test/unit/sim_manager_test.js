@@ -64,6 +64,8 @@ suite('sim mgmt >', function() {
   });
 
   test('"Skip" hides the screen', function() {
+    navigator.mozIccManager.setProperty('cardState', 'pinRequired');
+    SimManager.handleCardState();
     SimManager.skip();
     assert.isTrue(UIManager.activationScreen.classList.contains('show'));
     assert.isFalse(UIManager.unlockSimScreen.classList.contains('show'));
@@ -79,16 +81,9 @@ suite('sim mgmt >', function() {
   });
 
   suite('Handle state changes', function() {
-    suiteSetup(function() {
-      SimManager._unlocked = false;
-    });
 
     setup(function() {
       UIManager.unlockSimScreen.classList.remove('show');
-    });
-
-    suiteTeardown(function() {
-      SimManager._unlocked = null;
     });
 
     test('pinRequired shows PIN screen', function() {
@@ -126,13 +121,11 @@ suite('sim mgmt >', function() {
   });
 
   suite('Unlocking', function() {
-    setup(function() {
-      SimManager._unlocked = false;
-    });
 
     suite('PIN unlock ', function() {
       setup(function() {
         navigator.mozIccManager.setProperty('cardState', 'pinRequired');
+        SimManager.handleCardState();
         // start from original state each test
         UIManager.pinInput.classList.remove('onerror');
         UIManager.pinError.classList.add('hidden');
@@ -140,9 +133,6 @@ suite('sim mgmt >', function() {
       });
 
       suite('Unlock button > ', function() {
-        setup(function() {
-          SimManager.handleCardState();
-        });
         teardown(function() {
           UIManager.pinInput.value = '';
         });
@@ -169,7 +159,7 @@ suite('sim mgmt >', function() {
         assert.isTrue(UIManager.pinRetriesLeft.classList.contains('hidden'));
         assert.isTrue(UIManager.pinInput.classList.contains('onerror'));
         assert.isFalse(UIManager.pinError.classList.contains('hidden'));
-        assert.isFalse(SimManager._unlocked);
+        assert.isFalse(SimManager.icc0.unlocked);
       });
       test('too long PIN', function() {
         UIManager.pinInput.value = 123456789;
@@ -177,7 +167,7 @@ suite('sim mgmt >', function() {
         assert.isTrue(UIManager.pinRetriesLeft.classList.contains('hidden'));
         assert.isTrue(UIManager.pinInput.classList.contains('onerror'));
         assert.isFalse(UIManager.pinError.classList.contains('hidden'));
-        assert.isFalse(SimManager._unlocked);
+        assert.isFalse(SimManager.icc0.unlocked);
       });
       test('all fields correct', function() {
         UIManager.pinInput.value = 1234;
@@ -185,7 +175,7 @@ suite('sim mgmt >', function() {
         assert.isTrue(UIManager.pinRetriesLeft.classList.contains('hidden'));
         assert.isFalse(UIManager.pinInput.classList.contains('onerror'));
         assert.isTrue(UIManager.pinError.classList.contains('hidden'));
-        assert.isTrue(SimManager._unlocked);
+        assert.isTrue(SimManager.icc0.unlocked);
         assert.isTrue(UIManager.activationScreen.classList.contains('show'));
         assert.isFalse(UIManager.unlockSimScreen.classList.contains('show'));
       });
@@ -194,6 +184,7 @@ suite('sim mgmt >', function() {
     suite('PUK unlock ', function() {
       setup(function() {
         navigator.mozIccManager.setProperty('cardState', 'pukRequired');
+        SimManager.handleCardState();
         // start from original state each test
         UIManager.pukInput.classList.remove('onerror');
         UIManager.pukError.classList.add('hidden');
@@ -207,7 +198,7 @@ suite('sim mgmt >', function() {
         assert.isTrue(UIManager.pukRetriesLeft.classList.contains('hidden'));
         assert.isTrue(UIManager.pukInput.classList.contains('onerror'));
         assert.isFalse(UIManager.pukError.classList.contains('hidden'));
-        assert.isFalse(SimManager._unlocked);
+        assert.isFalse(SimManager.icc0.unlocked);
       });
       test('too short newPIN', function() {
         UIManager.pukInput.value = 12345678;
@@ -217,7 +208,7 @@ suite('sim mgmt >', function() {
         assert.isTrue(UIManager.pukRetriesLeft.classList.contains('hidden'));
         assert.isTrue(UIManager.newpinInput.classList.contains('onerror'));
         assert.isFalse(UIManager.newpinError.classList.contains('hidden'));
-        assert.isFalse(SimManager._unlocked);
+        assert.isFalse(SimManager.icc0.unlocked);
       });
       test('too long newPIN', function() {
         UIManager.pukInput.value = 12345678;
@@ -227,7 +218,7 @@ suite('sim mgmt >', function() {
         assert.isTrue(UIManager.pukRetriesLeft.classList.contains('hidden'));
         assert.isTrue(UIManager.newpinInput.classList.contains('onerror'));
         assert.isFalse(UIManager.newpinError.classList.contains('hidden'));
-        assert.isFalse(SimManager._unlocked);
+        assert.isFalse(SimManager.icc0.unlocked);
       });
       test('different PIN and confirm PIN', function() {
         UIManager.pukInput.value = 12345678;
@@ -241,7 +232,7 @@ suite('sim mgmt >', function() {
                       'onerror'));
         assert.isFalse(UIManager.confirmNewpinError.classList.contains(
                        'hidden'));
-        assert.isFalse(SimManager._unlocked);
+        assert.isFalse(SimManager.icc0.unlocked);
       });
       test('all fields correct', function() {
         UIManager.pukInput.value = 12345678;
@@ -258,7 +249,7 @@ suite('sim mgmt >', function() {
                       'onerror'));
         assert.isTrue(UIManager.confirmNewpinError.classList.contains(
                        'hidden'));
-        assert.isTrue(SimManager._unlocked);
+        assert.isTrue(SimManager.icc0.unlocked);
         assert.isTrue(UIManager.activationScreen.classList.contains('show'));
         assert.isFalse(UIManager.unlockSimScreen.classList.contains('show'));
       });
@@ -267,6 +258,7 @@ suite('sim mgmt >', function() {
     suite('XCK unlock ', function() {
       setup(function() {
         navigator.mozIccManager.setProperty('cardState', 'networkLocked');
+        SimManager.handleCardState();
         // start from original state each test
         UIManager.xckInput.classList.remove('onerror');
         UIManager.xckError.classList.add('hidden');
@@ -280,7 +272,7 @@ suite('sim mgmt >', function() {
         assert.isTrue(UIManager.xckRetriesLeft.classList.contains('hidden'));
         assert.isTrue(UIManager.xckInput.classList.contains('onerror'));
         assert.isFalse(UIManager.xckError.classList.contains('hidden'));
-        assert.isFalse(SimManager._unlocked);
+        assert.isFalse(SimManager.icc0.unlocked);
       });
       test('too long XCK', function() {
         UIManager.xckInput.value = 12345678901234567;
@@ -289,7 +281,7 @@ suite('sim mgmt >', function() {
         assert.isTrue(UIManager.xckRetriesLeft.classList.contains('hidden'));
         assert.isTrue(UIManager.xckInput.classList.contains('onerror'));
         assert.isFalse(UIManager.xckError.classList.contains('hidden'));
-        assert.isFalse(SimManager._unlocked);
+        assert.isFalse(SimManager.icc0.unlocked);
       });
       test('all fields correct', function() {
         UIManager.xckInput.value = 12345678;
@@ -298,7 +290,7 @@ suite('sim mgmt >', function() {
         assert.isTrue(UIManager.xckRetriesLeft.classList.contains('hidden'));
         assert.isFalse(UIManager.xckInput.classList.contains('onerror'));
         assert.isTrue(UIManager.xckError.classList.contains('hidden'));
-        assert.isTrue(SimManager._unlocked);
+        assert.isTrue(SimManager.icc0.unlocked);
         assert.isTrue(UIManager.activationScreen.classList.contains('show'));
         assert.isFalse(UIManager.unlockSimScreen.classList.contains('show'));
       });
