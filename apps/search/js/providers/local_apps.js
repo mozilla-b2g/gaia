@@ -15,11 +15,14 @@
 
   LocalApps.prototype = {
 
-    init: function() {
-
+    init: function(config) {
+      this.container = config.container;
+      this.container.addEventListener('click', this.click.bind(this));
     },
 
-    click: function(target) {
+    click: function(e) {
+      var target = e.target;
+
       var manifestURL = target.getAttribute('data-manifest');
       if (manifestURL && this.apps[manifestURL]) {
         Search.close();
@@ -30,8 +33,7 @@
     },
 
     search: function(input) {
-      this.results = document.createElement('section');
-      Search.suggestions.appendChild(this.results);
+      this.clear();
 
       var results = this.find(input);
       results.forEach(function eachResult(result) {
@@ -61,7 +63,7 @@
         textEl.textContent = result.manifest.name;
 
         div.appendChild(textEl);
-        this.results.appendChild(div);
+        this.container.appendChild(div);
       }, this);
     },
 
@@ -107,6 +109,10 @@
       }, this);
 
       return results;
+    },
+
+    clear: function() {
+      this.container.innerHTML = '';
     }
   };
 

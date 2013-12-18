@@ -7,9 +7,14 @@
   }
 
   EverythingMe.prototype = {
-    init: function() {
-      // Broadcast to eme-api channel
+
+    init: function(config) {
       var self = this;
+
+      this.container = config.container;
+      this.container.addEventListener('click', this.click);
+
+      // Broadcast to eme-api channel
       navigator.mozApps.getSelf().onsuccess = function() {
         var app = this.result;
         app.connect('eme-api').then(
@@ -25,14 +30,20 @@
       };
     },
 
-    click: function(target) {
-      Search.close();
-      // This actually doesn't work yet
-      // Will be implemented by E.me in the homescreen
-      window.open(target.dataset.url);
+    click: function(e) {
+      var url = e.target && e.target.dataset.url;
+      if (url) {
+        // This actually doesn't work yet
+        // Will be implemented by E.me in the homescreen
+        window.open(url);
+
+        Search.close();
+      }
     },
 
     search: function(input, type) {
+      this.clear();
+
       setTimeout(function nextTick() {
         this.port.postMessage({
           input: input,
@@ -41,22 +52,36 @@
       }.bind(this));
     },
 
+    clear: function() {
+      this.container.innerHTML = '';
+    },
+
     onmessage: function(msg) {
-      if (!msg.data.results) {
+      var data = msg.data;
+      if (!data) {
         return;
       }
 
-      this.results = document.createElement('section');
-      msg.data.results.forEach(function eachresult(result) {
-        var resultEl = document.createElement('div');
-        resultEl.className = 'result';
-        resultEl.dataset.provider = this.name;
-        resultEl.dataset.url = result.url;
-        resultEl.textContent = result.title;
-        this.results.appendChild(resultEl);
-      }, this);
+      var results = data.results;
+      if (results) {
+        var frag = document.createDocumentFragment();
 
-      Search.suggestions.appendChild(this.results);
+        results.forEach(function render(searchResult) {
+          var el = document.createElement('div');
+          el.dataset.url = searchResult.url;
+
+          var img = document.createElement('img');
+          img.src = searchResult.icon;
+          el.appendChild(img);
+
+          var title = document.createTextNode(searchResult.title);
+          el.appendChild(title);
+
+          frag.appendChild(el);
+        });
+
+        this.container.appendChild(frag);
+      }
     }
 
   };
