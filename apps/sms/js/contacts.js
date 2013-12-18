@@ -57,10 +57,10 @@
         for (var k = 0, klen = contact[field].length; k < klen; k++) {
           var value = contact[field][k];
           if (typeof value !== 'string') {
-               value = value.value;
-             }else {
-               value = value.trim();
-             }
+            value = value.value;
+          }else {
+            value = value.trim();
+          }
 
           if ((found[term] = filterFn(value, term))) {
             continue outer;
