@@ -88,7 +88,7 @@ body.hidden *[data-l10n-id] {
   height: 100% !important;
 }
 
-.with-keyboard [role="tablist"] [role="tab"] > a {
+.with-keyboard [role="tablist"] [role="tab"] {
   display: none;
 }
 
@@ -126,13 +126,13 @@ body.hidden *[data-l10n-id] {
 }
 
 /* For showing/hiding navbar */
-article[role="tab"] > .icon {
+#views > article > .icon {
   transform: translateY(0%);
   z-index: 2;
   transition: 0.5s transform 0.5s;
 }
 
-#views.hide-toolbar > article[role="tab"] > .icon {
+#views.hide-toolbar > article > .icon {
   transform: translateY(100%);
   pointer-events: none;
 }

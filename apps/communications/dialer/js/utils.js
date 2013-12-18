@@ -168,6 +168,23 @@ var Utils = {
         }
 
         return fontSize;
+  },
+
+  /**
+   * For a set of tab elements, set aria-selected attribute in accordance with
+   * the current selection.
+   * @param {Number} selectedIndex an index of the currently selected tab.
+   * @param {Array} tabs an array of tabs.
+   */
+  setAriaSelected: function ui_setAriaSelected(selectedIndex, tabs) {
+    if (!tabs) {
+      return;
+    }
+    tabs.forEach(function setAriaSelectedAttribute(tab, index) {
+      tab.setAttribute('aria-selected',
+        index === selectedIndex ? 'true' : 'false');
+    });
   }
+
 };
 

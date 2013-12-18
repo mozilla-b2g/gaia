@@ -208,7 +208,7 @@ article:not(:target) #keypad-delete {
   vertical-align: middle;
 }
 
-#keypad-callbar-add-contact.disabled {
+#keypad-callbar-add-contact[disabled] {
   opacity: 0.2;
 }
 

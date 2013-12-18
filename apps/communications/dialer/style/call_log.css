@@ -3,11 +3,6 @@ section[role="region"] > header:first-child .icon {
   pointer-events: auto;
 }
 
-section[role="region"] > header:first-child a[aria-disabled="true"] .icon,
-section[role="region"] > header:first-child button[aria-disabled="true"] .icon {
-  pointer-events: none;
-}
-
 /* Overriding BB styles for edit mode */
 form[role="dialog"][data-type="edit"] header .icon {
   pointer-events: auto;
@@ -59,9 +54,14 @@ form[role="dialog"][data-type="edit"] > menu {
   text-transform: capitalize;
 }
 
-.disabled {
-  pointer-events: none;
+button[disabled], input[type="text"][disabled], a[disabled],
+span[role="button"] {
+  pointer-events: none !important;
   opacity: 0.3;
+}
+
+a[disabled] *, span[role="button"] * {
+  pointer-events: none !important;
 }
 
 li, ol, ul {
@@ -231,22 +231,10 @@ ol, ul {
   margin: 0;
 }
 
-#edit-mode {
-  display: block;
-}
-
 .filter .log-item:not(.missed-call) {
   display: none;
 }
 
 .filter .groupFiltered {
   display: none;
-}
-
-.disabled {
-  pointer-events: none !important;
-}
-
-.disabled *{
-  pointer-events: none !important;
 }

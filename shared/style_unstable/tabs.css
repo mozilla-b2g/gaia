@@ -10,7 +10,7 @@
   height: 100%;
 }
 
-[role="tablist"] > [role="tab"] {
+[role="tablist"] > .tab-container {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -18,23 +18,23 @@
 }
 
 /* Items calcs */
-[role="tablist"][data-items="2"] > [role="tab"] {
+[role="tablist"][data-items="2"] > .tab-container {
   width: calc(100% / 2);
 }
 
-[role="tablist"][data-items="3"] > [role="tab"] {
+[role="tablist"][data-items="3"] > .tab-container {
   width: calc(100% / 3);
 }
 
-[role="tablist"][data-items="4"] > [role="tab"] {
+[role="tablist"][data-items="4"] > .tab-container {
   width: calc(100% / 4);
 }
 
-[role="tablist"][data-items="5"] > [role="tab"] {
+[role="tablist"][data-items="5"] > .tab-container {
   width: calc(100% / 5);
 }
 
-[role="tablist"] > [role="tab"] > a {
+[role="tablist"] > .tab-container > a {
   font-size: 1.3rem;
   text-decoration: none;
   line-height: 4rem;
@@ -47,20 +47,20 @@
   color: #fff;
 }
 
-[role="tablist"] > [role="tab"] > a:active {
+[role="tablist"] > .tab-container > a:active {
   background-color: #008aaa;
   color: #fff;
 }
 
-[role="tablist"] > [role="tab"][aria-disabled="true"] > a:active {
+[role="tablist"] > .tab-container[disabled] > a:active {
   background-color: #000;
 }
 
-[role="tablist"] > [role="tab"] > a.icon {
+[role="tablist"] > .tab-container > a.icon {
   font-size: 0;
 }
 
-[role="tablist"] > [role="tab"] > a.icon:after {
+[role="tablist"] > .tab-container > a.icon:after {
   content: '';
   width: 100%;
   height: 100%;
@@ -72,22 +72,22 @@
 
 
 /* Selected state */
-[role="tablist"] > [role="tab"]:target > a,
-[role="tablist"] > [role="tab"][aria-selected="true"] > a {
+[role="tablist"] > .tab-container:target > a,
+[role="tablist"] > .tab-container > a[aria-selected="true"] {
   color: #62c6f5
 }
 
-[role="tablist"] > [role="tab"]:target > a.icon:after,
-[role="tablist"] > [role="tab"][aria-selected="true"] > a.icon:after {
+[role="tablist"] > .tab-container:target > a.icon:after,
+[role="tablist"] > .tab-container > a[aria-selected="true"].icon:after {
   background-position: center -4rem;
 }
 
 /* Disabled state */
-[role="tablist"] > [role="tab"][aria-disabled="true"] > a {
+[role="tablist"] > .tab-container[disabled] > a {
   color: #4d4d4d;
 }
 
-[role="tablist"] > [role="tab"][aria-disabled="true"] > a.icon:after {
+[role="tablist"] > .tab-container[disabled] > a.icon:after {
   background-position: center -8rem;
 }
 
@@ -104,17 +104,17 @@
 }
 
 [role="tablist"] :target [role="tabpanel"],
-[role="tablist"] [aria-selected="true"] [role="tabpanel"] {
+[role="tablist"] [aria-selected="true"] ~ [role="tabpanel"] {
   z-index: 1;
   visibility: visible;
 }
 
 /* Position bottom */
-[role="tablist"].bottom > [role="tab"] {
+[role="tablist"].bottom > .tab-container {
   height: 100%;
 }
 
-[role="tablist"].bottom  > [role="tab"] > a {
+[role="tablist"].bottom  > .tab-container > a {
   position: relative;
   height: 4rem;
   top: calc(100% - 4rem);
@@ -140,7 +140,7 @@
   height: 4rem;
 }
 
-[role="tablist"][data-type="filter"] > [role="tab"] {
+[role="tablist"][data-type="filter"] > .tab-container {
   float: left;
   text-align: center;
   -moz-box-sizing: border-box;
@@ -148,11 +148,11 @@
   border-left: solid 0.1rem #b1b4b5;
 }
 
-[role="tablist"][data-type="filter"] > [role="tab"]:first-child {
+[role="tablist"][data-type="filter"] > .tab-container:first-child {
   border-left: none;
 }
 
-[role="tablist"][data-type="filter"] > [role="tab"] > a {
+[role="tablist"][data-type="filter"] > .tab-container > a {
   display: block;
   padding: 0 0.5rem;
   text-decoration: none;
@@ -168,19 +168,14 @@
   float: none;
 }
 
-/* Selected state */
-[role="tablist"][data-type="filter"] > [role="tab"]:target,
-[role="tablist"][data-type="filter"] > [role="tab"][aria-selected="true"] {
-  background: #fff;
-}
-
-[role="tablist"][data-type="filter"] > [role="tab"]:target > a,
-[role="tablist"][data-type="filter"] > [role="tab"][aria-selected="true"] > a {
+[role="tablist"][data-type="filter"] > .tab-container:target > a,
+[role="tablist"][data-type="filter"] > .tab-container > a[aria-selected="true"] {
   color: #000;
   font-weight: 500;
+  background-color: #fff;
 }
 
-[role="tablist"][data-type="filter"] > [role="tab"] > a:active {
+[role="tablist"][data-type="filter"] > .tab-container > a:active {
   background-color: #008aaa;
   color: #fff;
 }
@@ -192,6 +187,6 @@
   background: #eef2f5 url(tabs/images/ui/background-revert.png) repeat-x left top;
 }
 
-[role="tablist"][data-type="filter"].bottom > [role="tab"] > a {
+[role="tablist"][data-type="filter"].bottom > .tab-container > a {
   height: auto;
 }
