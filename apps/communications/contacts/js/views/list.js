@@ -1617,6 +1617,8 @@ contacts.List = (function() {
     }
 
     scrollable.classList.add('selecting');
+    fastScroll.classList.add('selecting');
+    utils.alphaScroll.toggleFormat('short');
 
     toggleMenus();
 
@@ -1780,6 +1782,8 @@ contacts.List = (function() {
     groupList.classList.remove('selecting');
     searchList.classList.remove('selecting');
     scrollable.classList.remove('selecting');
+    fastScroll.classList.remove('selecting');
+    utils.alphaScroll.toggleFormat('normal');
 
     updateRowsOnScreen();
 
