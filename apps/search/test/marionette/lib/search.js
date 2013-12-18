@@ -89,6 +89,16 @@ Search.prototype = {
   },
 
   /**
+   * Navigates to a browser by finding the iframe
+   * which matches the given url.
+   */
+  goToBrowser: function(url) {
+    var browserFrame = this.client.helper
+      .waitForElement('iframe[src="' + url + '"]');
+    this.client.switchToFrame(browserFrame);
+  },
+
+  /**
    * Opens the rocketbar
    */
   openRocketbar: function() {
