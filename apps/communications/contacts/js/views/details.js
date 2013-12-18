@@ -78,7 +78,7 @@ contacts.Details = (function() {
       var params = hasParams.length > 1 ?
         utils.extractParams(hasParams[1]) : -1;
 
-      Contacts.navigation.back();
+      Contacts.navigation.back(resetPhoto);
       // post message to parent page included Contacts app.
       if (params['back_to_previous_tab'] === '1') {
         var message = { 'type': 'contactsiframe', 'message': 'back' };
@@ -539,7 +539,10 @@ contacts.Details = (function() {
       contactDetails.classList.add('fb-contact');
     }
     if (contact.photo && contact.photo.length > 0) {
+      Contacts.updatePhoto(contact.photo[0], cover);
       contactDetails.classList.add('up');
+      cover.classList.add('translated');
+      contactDetails.classList.add('translated');
       var clientHeight = contactDetails.clientHeight -
           (initMargin * 10 * SCALE_RATIO);
       if (detailsInner.offsetHeight < clientHeight) {
@@ -547,13 +550,18 @@ contacts.Details = (function() {
       } else {
         cover.style.overflow = 'auto';
       }
-      Contacts.updatePhoto(contact.photo[0], cover);
     } else {
-      cover.style.backgroundImage = '';
-      cover.style.overflow = 'auto';
-      contactDetails.style.transform = '';
-      contactDetails.classList.add('no-photo');
+      resetPhoto();
     }
+  };
+
+  var resetPhoto = function cd_resetPhoto() {
+    cover.classList.remove('translated');
+    contactDetails.classList.remove('translated');
+    cover.style.backgroundImage = '';
+    cover.style.overflow = 'auto';
+    contactDetails.style.transform = '';
+    contactDetails.classList.add('no-photo');
   };
 
   var reMark = function(field, value) {
