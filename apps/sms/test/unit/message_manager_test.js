@@ -615,7 +615,8 @@ suite('message_manager.js >', function() {
         MessageManager.draft = null;
         Threads.currentId = null;
       });
-      test('draft content added after clearing composer', function() {
+
+      test('MessageManager.draft rendered after clearing composer', function() {
         // renderMessages is passed as a callback to slide left
         ThreadUI.updateHeaderData.yield();
         MessageManager.slide.yield();
@@ -623,6 +624,22 @@ suite('message_manager.js >', function() {
         assert.ok(Compose.fromDraft.calledWith(MessageManager.draft));
       });
 
+      test('Thread latest draft rendered after clearing composer', function() {
+        var draft = {};
+
+        this.sinon.stub(Threads, 'get').returns({
+          hasDrafts: true,
+          drafts: {
+            latest: draft
+          }
+        });
+        MessageManager.draft = null;
+
+        ThreadUI.updateHeaderData.yield();
+        MessageManager.slide.yield();
+        assert.ok(Compose.fromDraft.calledAfter(ThreadUI.renderMessages));
+        assert.ok(Compose.fromDraft.calledWith(draft));
+      });
     });
 
     test('Remove any focus left on specific elements ', function() {
