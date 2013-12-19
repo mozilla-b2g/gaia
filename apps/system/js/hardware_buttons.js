@@ -195,12 +195,11 @@
         fire('sleep');
         setState(baseState, type);
         return;
-      case 'volume-down-button-release':
+      case 'volume-down-button-press':
         fire('volumedown+sleep');
         setState(baseState, type);
         return;
       case 'volume-up-button-press':
-      case 'volume-down-button-press':
         setState(volumeState, type);
         return;
       }
@@ -243,7 +242,8 @@
         setState(baseState, type);
         return;
       case 'sleep-button-press':
-        setState(sleepState, type);
+        fire('volumedown+sleep');
+        setState(baseState, type);
         return;
       case 'volume-up-button-release':
         if (this.direction === 'volume-up-button-press') {
@@ -261,11 +261,8 @@
           return;
         }
         break;
-      case 'sleep-button-release':
-        fire('volumedown+sleep');
-        setState(baseState, type);
       default:
-        // Ignore anything else (such as?)
+        // Ignore anything else (such as sleep button release)
         return;
       }
       console.error('Unexpected hardware key: ', type);
