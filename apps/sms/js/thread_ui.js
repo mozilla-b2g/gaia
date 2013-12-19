@@ -791,8 +791,11 @@ var ThreadUI = global.ThreadUI = {
   },
 
   isKeyboardDisplayed: function thui_isKeyboardDisplayed() {
-    // minimal keyboard height is 150px
-    return (this.container.offsetHeight < ThreadListUI.fullHeight - 150);
+    /* XXX: Detect if the keyboard is visible. The keyboard minimal height is
+     * 150px; when in reduced attention screen mode however the difference
+     * between window height and the screen height will be larger than 150px
+     * thus correctly yielding false here. */
+    return ((window.screen.height - window.innerHeight) > 150);
   },
 
   enableSend: function thui_enableSend() {

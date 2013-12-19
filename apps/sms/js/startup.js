@@ -39,13 +39,7 @@ var lazyLoadFiles = [
   'js/settings.js',
   'js/notify.js',
   'js/activity_handler.js',
-  'js/contact_renderer.js',
-  'shared/style/input_areas.css',
-  'shared/style/switches.css',
-  'shared/style/confirm.css',
-  'shared/style_unstable/progress_activity.css',
-  'shared/style/action_menu.css',
-  'style/notification.css'
+  'js/contact_renderer.js'
 ];
 
 window.addEventListener('localized', function localized() {
