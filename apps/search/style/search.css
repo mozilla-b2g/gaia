@@ -1,0 +1,54 @@
+body {
+  color: #5A5A5A;
+}
+section {
+  color: #fff;
+}
+section#localapps .result,
+section#contacts .result{
+  -moz-box-sizing: border-box;
+  padding: 0.5rem;
+  border-bottom: 1px solid #5A5A5A;
+  background-color: #353534;
+  color: #fff;
+  min-height: 3rem;
+  line-height: 2rem;
+}
+section:last-child .result:last-child {
+  border-bottom: none;
+}
+
+section .result * {
+  pointer-events: none;
+}
+
+section .result .placeholder,
+section .result img {
+  display: inline-block;
+  float: left;
+  margin-right: 0.8rem;
+  height: 2rem;
+  width: 2rem;
+}
+
+/* web */
+section#everythingme:not(:empty) {
+  background-color: #353534;
+  padding: 1rem 0;
+}
+section#everythingme > * {
+  width: calc(100%/4 - 0.4rem);
+  display: inline-block;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  height: 6.1rem;
+  line-height: 1rem;
+  padding: 0 0.2rem;
+}
+section#everythingme img {
+  display: block;
+  margin: 0 auto 0.3rem;
+  pointer-events: none;
+  width: 2.75rem;
+}

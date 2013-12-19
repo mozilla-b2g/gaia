@@ -1,14 +1,22 @@
 'use strict';
 
-mocha.globals(['UtilityTray']);
+requireApp('system/test/unit/mock_rocketbar.js');
+requireApp('system/shared/test/unit/mocks/mock_lazy_loader.js');
+mocha.globals(['UtilityTray', 'Rocketbar']);
 
 var LockScreen = { locked: false };
 
+var mocksHelperForUtilityTray = new MocksHelper([
+  'Rocketbar',
+  'LazyLoader'
+]);
+mocksHelperForUtilityTray.init();
 
 suite('system/UtilityTray', function() {
   var stubById;
   var fakeEvt;
   var fakeElement;
+  mocksHelperForUtilityTray.attachTestHelpers();
 
   setup(function(done) {
     fakeElement = document.createElement('div');
@@ -161,6 +169,7 @@ suite('system/UtilityTray', function() {
 
 
   suite('handleEvent: touchstart', function() {
+    mocksHelperForUtilityTray.attachTestHelpers();
     setup(function() {
       fakeEvt = {
         type: 'touchstart',

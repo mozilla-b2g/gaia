@@ -26,7 +26,7 @@ suite('save-bookmark.js >', function() {
     utils.status.destroy();
 
     navigator.mozSetMessageHandler = realMozSetMessageHandler;
-    msgHandler = null;
+    msgHandler.activity = null;
 
     mocksHelperForSaveBookmark.suiteTeardown();
   });
@@ -42,13 +42,13 @@ suite('save-bookmark.js >', function() {
 
   test('Homescreen is listening right now ', function() {
     // The handler was defined
-    assert.isFunction(msgHandler);
+    assert.isFunction(msgHandler.activity);
     // The handler defines a parameter -> the activity
-    assert.equal(msgHandler.length, 1);
+    assert.equal(msgHandler.activity.length, 1);
   });
 
   test('The new bookmark has been added correctly ', function(done) {
-    msgHandler({
+    msgHandler.activity({
       source: createSource('save-bookmark', 'url'),
       postResult: function(result) {
         assert.equal(result, 'saved');
@@ -61,7 +61,7 @@ suite('save-bookmark.js >', function() {
   });
 
   test('Bookmarking failed - request cancelled by user ', function(done) {
-    msgHandler({
+    msgHandler.activity({
       source: createSource('save-bookmark', 'url'),
       postError: function(result) {
         assert.equal(result, 'cancelled');
@@ -75,7 +75,7 @@ suite('save-bookmark.js >', function() {
 
   test('Bookmarking failed - error name not supported ', function(done) {
     // "save-watermelon" activities are not supported
-    msgHandler({
+    msgHandler.activity({
       source: createSource('save-watermelon', 'url'),
       postError: function(result) {
         assert.equal(result, 'name not supported');
@@ -86,7 +86,7 @@ suite('save-bookmark.js >', function() {
 
   test('Bookmarking failed - error type not supported ', function(done) {
     // We don't support the type "cherry"
-    msgHandler({
+    msgHandler.activity({
       source: createSource('save-bookmark', 'cherry'),
       postError: function(result) {
         assert.equal(result, 'type not supported');
@@ -97,7 +97,7 @@ suite('save-bookmark.js >', function() {
 
   test('The status is displayed when a bookmark has been added correctly ',
        function(done) {
-    msgHandler({
+    msgHandler.activity({
       source: createSource('save-bookmark', 'url'),
       postResult: function() { }
     });

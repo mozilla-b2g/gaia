@@ -503,7 +503,7 @@ void function() {
     };
 
     this.getQuery = function getQuery() {
-      return currentSettings.getQuery();
+      return currentSettings ? currentSettings.getQuery() : undefined;
     };
 
     this.userSetBg = function userSetBg() {
