@@ -2,6 +2,15 @@
   display:none !important;
 }
 
+.disabled {
+  pointer-events: none;
+  opacity: .3;
+}
+
+.disabled * {
+  pointer-events: none;
+}
+
 #download-list-empty {
   height: calc(100% - 5rem);
   text-align: center;
@@ -26,9 +35,84 @@
   height: calc(100% - 5rem);
 }
 
+
+/*
+ * Edit mode styles
+ */
+
+#downloads .pack-checkbox {
+  position: absolute;
+  width: 2.8rem;
+  display: none;
+}
+
+#downloads.edit #downloads-edit-menu {
+  display: block;
+}
+
+#downloads #downloads-edit-menu {
+  display: none;
+  height: 5rem;
+  background: #ccc;
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  margin: 0;
+  padding: .5rem 1rem;
+  -moz-box-sizing: border-box;
+}
+
+.downloads-edit-menu-item {
+  width: calc(50% - .2rem);
+}
+
+#downloads #edit-mode-header {
+  display: none;
+}
+
+#downloads.edit #downloads-header {
+  display: none;
+}
+
+#downloads.edit #edit-mode-header {
+  display: block;
+}
+
+#downloads.edit aside {
+  display: none;
+}
+
+#downloads.edit #downloads-edit-button {
+  pointer-events: none;
+  opacity: .3;
+}
+
+#downloads.edit ul {
+  height: calc(100% - 5rem);
+}
+
+#downloads.edit .pack-checkbox span {
+  pointer-events: all;
+  z-index: 100;
+}
+
+#downloads.edit .pack-checkbox:active span {
+  background: none;
+}
+
+#downloads.edit .pack-checkbox {
+  display: block;
+}
+
+#downloads.edit #downloadList li {
+  pointer-events: none;
+}
+
+/* End of the styles while editing*/
+
 #downloadList ul{
   overflow-x: hidden;
-  overflow-x: auto;
+  overflow-y: auto;
   height: 100%;
 }
 
@@ -91,6 +175,16 @@
   margin: 1.75rem 0.5rem 0 0;
   background-position: center;
   position: absolute;
+}
+
+#downloadList .edit-check {
+  margin: 0;
+  position: absolute;
+  width: 3rem;
+  height: 100%;
+  text-align: center;
+  -moz-box-sizing: border-box;
+  padding-top: 1rem;
 }
 
 #downloadList aside.pack-end {

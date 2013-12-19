@@ -60,6 +60,18 @@ var DownloadItem = (function DownloadItem() {
     li.id = id;
     li.dataset.id = id;
 
+    var label = document.createElement('label');
+    label.classList.add('pack-checkbox');
+    var checkBox = document.createElement('input');
+    checkBox.setAttribute('type', 'checkbox');
+    checkBox.value = getDownloadId(download);
+
+    var span = document.createElement('span');
+
+    label.appendChild(checkBox);
+    label.appendChild(span);
+
+
     var asideStatus = document.createElement('aside');
 
     var asideAction = document.createElement('aside');
@@ -76,6 +88,7 @@ var DownloadItem = (function DownloadItem() {
     var progress = document.createElement('progress');
     progress.max = 100;
 
+    li.appendChild(label);
     li.appendChild(asideStatus);
     li.appendChild(asideAction);
     li.appendChild(pFileName);
