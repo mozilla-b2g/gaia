@@ -5,7 +5,8 @@
          SMIL, ErrorDialog, MessageManager, MozSmsFilter, LinkHelper,
          ActivityPicker, ThreadListUI, OptionMenu, Threads, Contacts,
          Attachment, WaitingScreen, MozActivity, LinkActionHandler,
-         ActivityHandler, TimeHeaders, ContactRenderer */
+         ActivityHandler, TimeHeaders, ContactRenderer, Draft, Drafts,
+         Thread */
 /*exported ThreadUI */
 
 (function(global) {
@@ -299,7 +300,7 @@ var ThreadUI = global.ThreadUI = {
       //
       //  Ideally, the contact will be found by the
       //  searchContact + validateContact operation and the
-      //  recipientsChanged handler will be re-called with a known
+      //  handler will be re-called with a known
       //  and valid recipient from the user's contacts.
       if (isOk) {
         // update composer header whenever recipients change
@@ -523,6 +524,9 @@ var ThreadUI = global.ThreadUI = {
   // Function for handling when a new message (sent/received)
   // is detected
   onMessage: function onMessage(message) {
+    // Update the stored thread data
+    Threads.set(message.threadId, Thread.create(message));
+
     this.appendMessage(message);
     TimeHeaders.updateAll('header[data-time-update]');
   },
@@ -755,19 +759,68 @@ var ThreadUI = global.ThreadUI = {
       this.stopRendering();
 
       var currentActivity = ActivityHandler.currentActivity.new;
+      var leave = (function() {
+        this.cleanFields(true);
+        window.location.hash = '#thread-list';
+      }).bind(this);
+
       if (currentActivity) {
         currentActivity.postResult({ success: true });
         ActivityHandler.resetActivity();
         return;
       }
-      if (Compose.isEmpty()) {
-        window.location.hash = '#thread-list';
+
+      // TODO Add comment about assimilation above on line #183?
+      // Need to assimilate recipients in order to check if any entered
+      this.assimilateRecipients();
+
+      // If we're leaving a thread's message view,
+      // ensure that the thread object's unreadCount
+      // value is current (set = 0)
+      if (Threads.active) {
+        Threads.active.unreadCount = 0;
+      }
+
+      // If the composer is empty and we are either
+      // in an active thread or there are no recipients
+      // do not prompt to save a draft and remove saved drafts
+      // as the user deleted them manually
+      if (Compose.isEmpty() &&
+        (Threads.active || this.recipients.length === 0)) {
+        this.discardDraft();
+        leave();
         return;
       }
-      if (window.confirm(navigator.mozL10n.get('discard-sms'))) {
-        this.cleanFields(true);
-        window.location.hash = '#thread-list';
+
+      var prompt = 'save-as-draft';
+      if (MessageManager.draft) {
+        prompt = 'replace-draft';
       }
+
+      var options = {
+        items: [
+          {
+            l10nId: prompt,
+            method: function onsave() {
+              this.saveDraft();
+              leave();
+            }.bind(this)
+          },
+          {
+            l10nId: 'discard-message',
+            method: function ondiscard() {
+              this.discardDraft();
+              leave();
+            }.bind(this)
+          },
+          {
+            l10nId: 'cancel'
+          }
+        ]
+      };
+
+      new OptionMenu(options).show();
+
     }).bind(this);
 
     // We're waiting for the keyboard to disappear before animating back
@@ -1308,6 +1361,7 @@ var ThreadUI = global.ThreadUI = {
     };
 
     MessageManager.getMessages(renderingOptions);
+
     // force the next scroll to bottom
     this.isScrolledManually = false;
   },
@@ -1903,6 +1957,14 @@ var ThreadUI = global.ThreadUI = {
     // Clean composer fields (this lock any repeated click in 'send' button)
     this.cleanFields(true);
 
+    // If there was a draft, it just got sent
+    // so delete it
+    if (MessageManager.draft) {
+      ThreadListUI.removeThread(MessageManager.draft.id);
+      Drafts.delete(MessageManager.draft);
+      MessageManager.draft = null;
+    }
+
     this.updateHeaderData();
 
     // Send the Message
@@ -2454,6 +2516,81 @@ var ThreadUI = global.ThreadUI = {
     // Update Header if needed
     if (window.location.hash.substr(0, 8) === '#thread=') {
       ThreadUI.updateHeaderData();
+    }
+  },
+
+  discardDraft: function thui_discardDraft() {
+    // If we were tracking a draft
+    // properly update the Drafts object
+    // and ThreadList entries
+    if (MessageManager.draft) {
+      Drafts.delete(MessageManager.draft);
+      if (Threads.active) {
+        Threads.active.timestamp = Date.now();
+        ThreadListUI.updateThread(Threads.active);
+      } else {
+        ThreadListUI.removeThread(MessageManager.draft.id);
+      }
+      MessageManager.draft = null;
+    }
+  },
+
+   /**
+   * saveDraft
+   *
+   * Saves the currently unsent message content or recipients
+   * into a Draft object.  Preserves the currently marked
+   * draft if specified.
+   *
+   * @param {Object} opts Optional parameters for saving a draft.
+   *                  - preserve, boolean whether or not to preserve draft.
+   */
+  saveDraft: function thui_saveDraft(opts) {
+    var draft, recipients, content, thread, threadId, type;
+
+    content = Compose.getContent();
+    type = Compose.type;
+
+    // TODO Also store subject
+
+    if (Threads.active) {
+      recipients = Threads.active.participants;
+      threadId = Threads.currentId;
+    } else {
+      recipients = this.recipients.numbers;
+    }
+
+    var draftId = MessageManager.draft ? MessageManager.draft.id : null;
+
+    draft = new Draft({
+      recipients: recipients,
+      content: content,
+      threadId: threadId,
+      type: type,
+      id: draftId
+    });
+
+    Drafts.add(draft);
+
+    // If an existing thread list item is associated with
+    // the presently saved draft, update the displayed Thread
+    if (threadId) {
+      thread = Threads.active || Threads.get(threadId);
+
+      // Overwrite the thread's own timestamp with
+      // the drafts timestamp.
+      thread.timestamp = draft.timestamp;
+
+      ThreadListUI.updateThread(thread);
+    } else {
+      ThreadListUI.updateThread(draft);
+    }
+
+    // Clear the MessageManager draft if
+    // not explicitly preserved for the
+    // draft replacement case
+    if (!opts || (opts && !opts.preserve)) {
+      MessageManager.draft = null;
     }
   }
 };

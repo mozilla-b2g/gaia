@@ -4,7 +4,7 @@
          LinkHelper, Attachment, MockContact, MockOptionMenu,
          MockActivityPicker, Threads, Settings, MockMessages, MockUtils,
          MockContacts, ActivityHandler, Recipients, MockMozActivity,
-         ContactRenderer, UIEvent */
+         ThreadListUI, ContactRenderer, UIEvent, Drafts, OptionMenu */
 
 'use strict';
 
@@ -16,10 +16,14 @@ if (!navigator.mozContacts) {
 }
 
 requireApp('sms/js/compose.js');
+requireApp('sms/js/drafts.js');
 requireApp('sms/js/threads.js');
 requireApp('sms/js/thread_ui.js');
+requireApp('sms/js/thread_list_ui.js');
+requireApp('sms/js/fixed_header.js');
 requireApp('sms/js/utils.js');
 requireApp('sms/js/message_manager.js');
+require('/shared/js/async_storage.js');
 
 requireApp('sms/test/unit/mock_time_headers.js');
 requireApp('sms/test/unit/mock_alert.js');
@@ -168,6 +172,7 @@ suite('thread_ui.js >', function() {
 
     ThreadUI.recipients = null;
     ThreadUI.init();
+    ThreadListUI.init();
     realMozMobileMessage = ThreadUI._mozMobileMessage;
     ThreadUI._mozMobileMessage = MockNavigatormozMobileMessage;
   });
@@ -3552,6 +3557,7 @@ suite('thread_ui.js >', function() {
     var realComposeisEmpty;
     var realMessageManager;
     var realEnableSend;
+    var spy;
 
     suiteSetup(function() {
       realEnableSend = ThreadUI.enableSend;
@@ -3683,6 +3689,36 @@ suite('thread_ui.js >', function() {
                        ['999', '888']);
       assert.equal(window.location.hash, '#new');
     });
+
+    test('Deletes draft if there was a draft', function() {
+      spy = this.sinon.spy(Drafts, 'delete');
+
+      MessageManager.draft = {id: 3};
+      ThreadUI.recipients.add({
+        number: '888'
+      });
+      Compose.append('foo');
+
+      ThreadUI.onSendClick();
+
+      assert.isTrue(spy.calledOnce);
+      assert.isNull(MessageManager.draft);
+    });
+
+    test('Removes draft thread if there was a draft thread', function() {
+      spy = this.sinon.spy(ThreadListUI, 'removeThread');
+
+      MessageManager.draft = {id: 3};
+      ThreadUI.recipients.add({
+        number: '888'
+      });
+      Compose.append('foo');
+
+      ThreadUI.onSendClick();
+
+      assert.isTrue(spy.calledOnce);
+    });
+
   });
 
   suite('Contact Picker Behavior(contactPickButton)', function() {
@@ -3853,21 +3889,322 @@ suite('thread_ui.js >', function() {
     });
   });
 
-  suite('back action', function() {
+  suite('saveDraft() > ', function() {
+    var addSpy, updateSpy, arg;
+
     setup(function() {
-      this.sinon.stub(ThreadUI, 'isKeyboardDisplayed').returns(false);
-      this.sinon.stub(ThreadUI, 'stopRendering');
+      window.location.hash = '#new';
+      addSpy = this.sinon.spy(Drafts, 'add');
+      updateSpy = this.sinon.spy(ThreadListUI, 'updateThread');
+
+      ThreadUI.recipients.add({
+        number: '999'
+      });
+
+      Compose.append('foo');
     });
 
-    test('call postResult when there is an activity', function() {
-      var mockActivity = {
-        postResult: sinon.stub()
-      };
+    test('do not preserve draft for replacement', function() {
+      ThreadUI.saveDraft();
 
-      ActivityHandler.currentActivity.new = mockActivity;
+      assert.isNull(MessageManager.draft);
+    });
 
-      ThreadUI.back();
-      assert.isTrue(mockActivity.postResult.called);
+    test('preserve draft for replacement', function() {
+      var draft = {id: 55};
+      MessageManager.draft = draft;
+      ThreadUI.saveDraft({preserve: true});
+
+      assert.isNotNull(MessageManager.draft);
+      assert.equal(MessageManager.draft, draft);
+    });
+
+    test('has entered content and recipients', function() {
+      ThreadUI.saveDraft();
+      arg = addSpy.firstCall.args[0];
+
+      assert.deepEqual(arg.recipients, ['999']);
+      assert.deepEqual(arg.content, ['foo']);
+    });
+
+    test('has entered recipients but not content', function() {
+      Compose.clear();
+      ThreadUI.saveDraft();
+      arg = addSpy.firstCall.args[0];
+
+      assert.deepEqual(arg.recipients, ['999']);
+      assert.deepEqual(arg.content, []);
+    });
+
+    test('has entered content but not recipients', function() {
+      ThreadUI.recipients.remove('999');
+      ThreadUI.saveDraft();
+      arg = addSpy.firstCall.args[0];
+
+      assert.deepEqual(arg.recipients, []);
+      assert.deepEqual(arg.content, ['foo']);
+    });
+
+    test('thread is updated in thread list, threadbound', function() {
+      Threads.set(1, {
+        participants: ['999']
+      });
+      window.location.hash = '#thread=1';
+
+      ThreadUI.saveDraft();
+
+      sinon.assert.calledOnce(updateSpy);
+    });
+
+    test('thread is updated in thread list, threadless', function() {
+      ThreadUI.saveDraft();
+
+      sinon.assert.calledOnce(updateSpy);
+    });
+
+    test('saves brand new threadless draft if not within thread', function() {
+      Drafts.clear();
+
+      MessageManager.draft = {id: 1};
+      ThreadUI.saveDraft();
+      assert.equal(Drafts.byThreadId(null).length, 1);
+
+      MessageManager.draft = {id: 2};
+      ThreadUI.saveDraft();
+      assert.equal(Drafts.byThreadId(null).length, 2);
+
+      MessageManager.draft = {id: 3};
+      ThreadUI.saveDraft();
+      assert.equal(Drafts.byThreadId(null).length, 3);
+    });
+
+    test('saves draft to existing thread if within thread', function() {
+      Threads.set(1, {
+        participants: ['999']
+      });
+      window.location.hash = '#thread=1';
+
+      ThreadUI.saveDraft();
+      assert.equal(Drafts.byThreadId(1).length, 1);
+
+      Compose.append('baz');
+      ThreadUI.saveDraft();
+      assert.equal(Drafts.byThreadId(1).length, 1);
+
+      Compose.append('foo');
+      ThreadUI.saveDraft();
+      assert.equal(Drafts.byThreadId(1).length, 1);
+    });
+
+    test('Update thread timestamp if within thread', function() {
+
+      this.sinon.stub(window, 'Draft').returns({
+        timestamp: 2
+      });
+
+      Threads.set(1, {
+        participants: ['999'],
+        timestamp: 1
+      });
+
+      window.location.hash = '#thread=1';
+
+      ThreadUI.saveDraft();
+
+      assert.equal(Threads.get(1).timestamp, 2);
+    });
+
+    test('Update thread unreadCount if within thread', function() {
+
+      this.sinon.stub(window, 'Draft').returns({
+        unreadCount: 2
+      });
+
+      Threads.set(1, {
+        participants: ['999'],
+        unreadCount: 0
+      });
+
+      window.location.hash = '#thread=1';
+
+      ThreadUI.saveDraft();
+
+      assert.equal(Threads.get(1).unreadCount, 0);
+    });
+  });
+
+  suite('Back button behaviour', function() {
+
+    suite('During activity', function() {
+      setup(function() {
+        this.sinon.stub(ThreadUI, 'isKeyboardDisplayed').returns(false);
+        this.sinon.stub(ThreadUI, 'stopRendering');
+      });
+
+      test('Call postResult when there is an activity', function() {
+        var mockActivity = {
+          postResult: sinon.stub()
+        };
+
+        ActivityHandler.currentActivity.new = mockActivity;
+
+        ThreadUI.back();
+        assert.isTrue(mockActivity.postResult.called);
+      });
+    });
+
+    suite('From new message', function() {
+      var showCalled = false;
+      var spy;
+
+      suiteSetup(function() {
+        spy = sinon.spy(ThreadUI, 'saveDraft');
+      });
+
+      setup(function() {
+        showCalled = false;
+        this.sinon.stub(window, 'OptionMenu').returns({
+          show: function() {
+            showCalled = true;
+          },
+          hide: function() {}
+        });
+
+        this.sinon.stub(ThreadUI, 'isKeyboardDisplayed').returns(false);
+        this.sinon.stub(ThreadUI, 'stopRendering');
+
+        window.location.hash = '#new';
+
+        ThreadUI.recipients.add({
+          number: '999'
+        });
+
+      });
+
+      test('Displays OptionMenu prompt if recipients', function() {
+        ThreadUI.back();
+
+        assert.isTrue(OptionMenu.calledOnce);
+        assert.isTrue(showCalled);
+
+        var items = OptionMenu.args[0][0].items;
+
+        // Assert the correct menu items were displayed
+        assert.equal(items[0].l10nId, 'save-as-draft');
+        assert.equal(items[1].l10nId, 'discard-message');
+        assert.equal(items[2].l10nId, 'cancel');
+      });
+
+      test('Displays OptionMenu prompt if recipients & content', function() {
+        Compose.append('foo');
+        ThreadUI.back();
+
+        assert.isTrue(OptionMenu.calledOnce);
+        assert.isTrue(showCalled);
+
+        var items = OptionMenu.args[0][0].items;
+
+        // Assert the correct menu items were displayed
+        assert.equal(items[0].l10nId, 'save-as-draft');
+        assert.equal(items[1].l10nId, 'discard-message');
+        assert.equal(items[2].l10nId, 'cancel');
+      });
+
+      test('Displays OptionMenu prompt if content', function() {
+        ThreadUI.recipients.remove('999');
+        Compose.append('foo');
+        ThreadUI.back();
+
+        assert.isTrue(OptionMenu.calledOnce);
+        assert.isTrue(showCalled);
+
+        var items = OptionMenu.args[0][0].items;
+
+        // Assert the correct menu items were displayed
+        assert.equal(items[0].l10nId, 'save-as-draft');
+        assert.equal(items[1].l10nId, 'discard-message');
+        assert.equal(items[2].l10nId, 'cancel');
+      });
+
+      suite('OptionMenu operations', function() {
+        test('Save as Draft', function() {
+          ThreadUI.back();
+
+          OptionMenu.args[0][0].items[0].method();
+
+          // These things will be true
+          assert.isTrue(spy.calledOnce);
+          assert.equal(window.location.hash, '#thread-list');
+          assert.equal(ThreadUI.recipients.length, 0);
+          assert.equal(Compose.getContent(), '');
+        });
+
+        test('Discard', function() {
+          MessageManager.draft = {id: 3};
+          var spy = this.sinon.spy(ThreadListUI, 'removeThread');
+          ThreadUI.back();
+
+          OptionMenu.args[0][0].items[1].method();
+
+          assert.equal(window.location.hash, '#thread-list');
+          assert.equal(ThreadUI.recipients.length, 0);
+          assert.equal(Compose.getContent(), '');
+          assert.isTrue(spy.calledOnce);
+          assert.isNull(MessageManager.draft);
+        });
+      });
+
+      suite('If existing draft', function() {
+
+        suiteSetup(function() {
+          MessageManager.draft = {id: 55};
+        });
+
+        test('Displays replacement prompt if recipients', function() {
+          ThreadUI.back();
+
+          assert.isTrue(OptionMenu.calledOnce);
+          assert.isTrue(showCalled);
+
+          var items = OptionMenu.args[0][0].items;
+
+          // Assert the correct menu items were displayed
+          assert.equal(items[0].l10nId, 'replace-draft');
+          assert.equal(items[1].l10nId, 'discard-message');
+          assert.equal(items[2].l10nId, 'cancel');
+        });
+
+        test('Displays replacement prompt if recipients & content', function() {
+          Compose.append('foo');
+          ThreadUI.back();
+
+          assert.isTrue(OptionMenu.calledOnce);
+          assert.isTrue(showCalled);
+
+          var items = OptionMenu.args[0][0].items;
+
+          // Assert the correct menu items were displayed
+          assert.equal(items[0].l10nId, 'replace-draft');
+          assert.equal(items[1].l10nId, 'discard-message');
+          assert.equal(items[2].l10nId, 'cancel');
+        });
+
+        test('Displays replacement prompt if content', function() {
+          ThreadUI.recipients.remove('999');
+          Compose.append('foo');
+          ThreadUI.back();
+
+          assert.isTrue(OptionMenu.calledOnce);
+          assert.isTrue(showCalled);
+
+          var items = OptionMenu.args[0][0].items;
+
+          // Assert the correct menu items were displayed
+          assert.equal(items[0].l10nId, 'replace-draft');
+          assert.equal(items[1].l10nId, 'discard-message');
+          assert.equal(items[2].l10nId, 'cancel');
+        });
+      });
     });
   });
 

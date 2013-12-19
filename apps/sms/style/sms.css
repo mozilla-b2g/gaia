@@ -139,6 +139,24 @@ form[role="dialog"][data-type="edit"] header menu[type="toolbar"] button {
   background: url("../style/images/unread.png") no-repeat left center / 1rem;
 }
 
+[data-type="list"] .draft a * {
+  pointer-events: none;
+}
+
+[data-type="list"] .draft .icon-draft {
+  background: url("../style/images/draft.png") no-repeat left center / 1rem;
+}
+
+[data-type="list"] .is-draft .pack-end {
+  opacity: 0.5;
+}
+
+[data-type="list"] .is-draft .name {
+  font-style: italic;
+  color: #5f5f5f;
+}
+
+
 [data-type="list"] p time {
   display: inline-block;
 }

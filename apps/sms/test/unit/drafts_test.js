@@ -1,48 +1,101 @@
-/*global Drafts, Draft, asyncStorage */
+/*global Drafts, Draft, asyncStorage, MocksHelper */
 'use strict';
 
 requireApp('sms/js/drafts.js');
+requireApp('sms/js/utils.js');
 require('/shared/js/async_storage.js');
 
+requireApp('sms/test/unit/mock_async_storage.js');
+
+
+var MocksHelperForDraftsTest = new MocksHelper([
+  'asyncStorage'
+]).init();
+
 suite('Drafts', function() {
-  var d1, d2, d3, d4, d5;
+  var mocksHelper = MocksHelperForDraftsTest;
+
+  var d1, d2, d3, d4, d5, d6, d7;
 
   suiteSetup(function() {
+    mocksHelper.suiteSetup();
+
     d1 = new Draft({
       recipients: ['555', '666'],
-      content: 'This is a draft message',
+      content: ['This is a draft message'],
       timestamp: 1,
       threadId: 42,
-      type: 'sms'
+      subject: 'This is a subject',
+      type: 'sms',
+      id: 1
     });
     d2 = new Draft({
       recipients: ['555'],
-      content: 'This is a draft message',
+      content: ['This is a draft message'],
       timestamp: 2,
-      threadId: 42,
-      type: 'sms'
+      threadId: 44,
+      subject: 'This is a subject',
+      type: 'sms',
+      id: 2
     });
     d3 = new Draft({
       recipients: ['555', '222'],
-      content: 'This is a draft message',
+      content: ['This is a draft message'],
       timestamp: 3,
       threadId: 1,
-      type: 'sms'
+      subject: 'This is a subject',
+      type: 'sms',
+      id: 3
     });
     d4 = new Draft({
       recipients: ['555', '333'],
-      content: 'This is a draft message',
+      content: ['This is a draft message'],
       timestamp: 4,
       threadId: 2,
-      type: 'sms'
+      subject: 'This is a subject',
+      type: 'sms',
+      id: 4
     });
     d5 = new Draft({
       recipients: ['555', '444'],
-      content: 'This is a draft message',
+      content: ['This is a draft message'],
       timestamp: 5,
       threadId: null,
-      type: 'sms'
+      subject: 'This is a subject',
+      type: 'sms',
+      id: 5
     });
+    d6 = new Draft({
+      recipients: ['123456'],
+      content: [
+        'This is a draft MMS...',
+        {
+          blob: {
+            type: 'audio/ogg',
+            size: 12345
+          },
+          name: 'audio.oga'
+        },
+        '...with a recipient and a thread'
+      ],
+      timestamp: Date.now() - (3600000 * 2),
+      threadId: 8,
+      type: 'mms',
+      id: 6
+    });
+    d7 = new Draft({
+      recipients: ['555', '444'],
+      content: ['This is a draft message'],
+      timestamp: 5,
+      threadId: null,
+      subject: 'This is a different subject',
+      type: 'sms',
+      id: 7
+    });
+  });
+
+  suiteTeardown(function() {
+    mocksHelper.suiteTeardown();
   });
 
   suite('Drafts() >', function() {
@@ -51,7 +104,7 @@ suite('Drafts', function() {
       assert.ok(Drafts);
       assert.ok(Drafts.add);
       assert.ok(Drafts.delete);
-      assert.ok(Drafts.byId);
+      assert.ok(Drafts.byThreadId);
       assert.ok(Drafts.clear);
     });
 
@@ -67,36 +120,64 @@ suite('Drafts', function() {
     test('add first draft', function() {
       added = [];
       Drafts.add(d1);
-      Drafts.byId(d1.threadId).forEach(function(e) {
+      Drafts.byThreadId(d1.threadId).forEach(function(e) {
         added.push(e);
       });
-      assert.deepEqual(
-        added,
-        [d1],
-        'Correct draft added at thread id in index');
-      assert.equal(
-        Drafts.byId(d1.threadId).length,
-        1,
-        'One draft added to correct thread id in index'
-      );
-
+      assert.deepEqual(added, [d1]);
+      assert.equal(Drafts.byThreadId(d1.threadId).length, 1);
     });
 
     test('add second draft', function() {
       added = [];
       Drafts.add(d2);
-      Drafts.byId(d2.threadId).forEach(function(e) {
+      Drafts.byThreadId(d2.threadId).forEach(function(e) {
         added.push(e);
       });
-      assert.deepEqual(
-        added,
-        [d1, d2],
-        'Correct drafts added at thread id in index');
+      assert.deepEqual(added, [d2]);
+      assert.equal(Drafts.byThreadId(d2.threadId).length, 1);
+    });
+
+    test('add draft of same threadId replaces previous', function() {
+      Drafts.add(d2);
+
+      var latestId = Drafts.byThreadId(44).latest.id;
+
+      Drafts.add({
+        recipients: ['555'],
+        content: ['This is a new draft for thread 44'],
+        subject: 'This is a subject',
+        timestamp: 2,
+        threadId: 44,
+        type: 'sms'
+      });
+
+      assert.notEqual(Drafts.byThreadId(44).latest.id, latestId);
+      assert.equal(Drafts.byThreadId(44).length, 1);
+    });
+
+    test('add threadless draft of same draft.id replaces previous', function() {
+      Drafts.add(d5);
+
       assert.equal(
-        Drafts.byId(d2.threadId).length,
-        2,
-        'Two drafts added to correct thread id in index'
+        Drafts.byThreadId(null).latest.content,
+        'This is a draft message'
       );
+
+      Drafts.add({
+        recipients: ['555', '444'],
+        content: ['This is a new draft message'],
+        timestamp: 5,
+        threadId: null,
+        subject: 'This is a subject',
+        type: 'sms',
+        id: 5
+      });
+
+      assert.equal(
+        Drafts.byThreadId(null).latest.content,
+        'This is a new draft message'
+      );
+      assert.equal(Drafts.byThreadId(null).length, 1);
     });
 
   });
@@ -104,124 +185,132 @@ suite('Drafts', function() {
   suite('delete() >', function() {
 
     suiteSetup(function() {
-      Drafts.add(d1);
-      Drafts.add(d2);
-      Drafts.add(d3);
+      [d1, d2, d6, d7].forEach(Drafts.add, Drafts);
     });
 
     suiteTeardown(function() {
       Drafts.clear();
     });
 
-    test('delete first draft', function() {
+    test('Delete draft with reference', function() {
       Drafts.delete(d1);
-      assert.equal(
-        Drafts.byId(d1.threadId).length,
-        1,
-        'Delete first draft from thread id 42');
+      assert.equal(Drafts.byThreadId(d1.threadId).length, 0);
     });
 
-    test('delete second draft', function() {
-      Drafts.delete(d2);
-      assert.equal(
-        Drafts.byId(d2.threadId).length,
-        0,
-        'Delete second draft from thread id 42');
+    test('delete by only threadId', function() {
+      Drafts.delete({ threadId: 2 });
+      assert.equal(Drafts.byThreadId(2).length, 0);
+    });
+    test('Deleting new message drafts', function() {
+      Drafts.delete(d6);
+      // First draft removes only the draft from the Drafts.List
+      assert.equal(Drafts.byThreadId(null).length, 1);
+      Drafts.delete(d7);
+      // The last draft in the thread removes the thread from the index
+      assert.equal(Drafts.byThreadId(null).length, 0);
     });
 
-    test('delete third draft', function() {
-      Drafts.delete(d3);
-      assert.equal(
-        Drafts.byId(d3.threadId).length,
-        0,
-        'Delete draft from thread id 1');
-    });
+    test('delete by non-draft object', function() {
+      var draft = new Draft({
+        recipients: ['999999'],
+        content: ['foo'],
+        timestamp: 2,
+        threadId: 999,
+        subject: 'This is a subject',
+        type: 'sms'
+      });
 
+      Drafts.add(draft);
+
+      assert.equal(Drafts.byThreadId(999).length, 1);
+
+      Drafts.delete({
+        threadId: 999,
+        id: draft.id
+      });
+
+      assert.equal(Drafts.byThreadId(999).length, 0);
+    });
   });
 
-  suite('byId() >', function() {
+  suite('Select drafts', function() {
     var list;
 
     suiteSetup(function() {
-      Drafts.add(d1);
-      Drafts.add(d2);
-      Drafts.add(d3);
-      Drafts.add(d4);
-      Drafts.add(d5);
+      [d1, d2, d3, d4, d5].forEach(Drafts.add, Drafts);
     });
 
     suiteTeardown(function() {
       Drafts.clear();
     });
 
-    test('get drafts for id 42', function() {
-      list = Drafts.byId(42);
-      assert.equal(list.length, 2, 'Two drafts returned for id 42');
+    suite('byThreadId', function() {
+
+      test('get drafts for id 1', function() {
+        list = Drafts.byThreadId(1);
+        assert.equal(list.length, 1);
+      });
+
+      test('get drafts for null id', function() {
+        list = Drafts.byThreadId(null);
+        assert.equal(list.length, 1);
+      });
+
+      test('get drafts for non-existent id', function() {
+        list = Drafts.byThreadId(10);
+        assert.equal(list.length, 0);
+      });
     });
 
-    test('get drafts for id 1', function() {
-      list = Drafts.byId(1);
-      assert.equal(list.length, 1, 'One drafts returned for id 1');
+    test('no drafts for a threadId returns useful state', function() {
+      list = Drafts.byThreadId(999);
+      assert.equal(list.length, 0);
+      assert.equal(list.latest, null);
+    });
+  });
+
+  suite('get(id) > ', function() {
+    var id = 101;
+
+    suiteSetup(function() {
+      Drafts.add({
+        id: id,
+        recipients: [],
+        content: ['A new message draft with no recipients'],
+        type: 'sms'
+      });
     });
 
-    test('get drafts for null id', function() {
-      list = Drafts.byId(null);
-      assert.equal(list.length, 1, 'One drafts returned for null id');
+    test('get draft for id 101', function() {
+      var draft = Drafts.get(id);
+
+      assert.equal(draft.id, id);
+      assert.equal(draft.threadId, null);
     });
 
-    test('get drafts for non-existent id', function() {
-      list = Drafts.byId(10);
-      assert.equal(list.length, 0, 'No drafts returned for id 10');
-    });
+    test('get no draft for non-existant id', function() {
+      var draft = Drafts.get(9999999);
 
+      assert.equal(typeof draft, 'undefined');
+    });
   });
 
   suite('clear() >', function() {
 
     suiteSetup(function() {
-      Drafts.add(d1);
-      Drafts.add(d2);
-      Drafts.add(d3);
-      Drafts.add(d4);
+      [d1, d2, d3, d4].forEach(Drafts.add, Drafts);
     });
 
     test('clear the entire draft index', function() {
       Drafts.clear();
-      var list1 = Drafts.byId(42);
-      var list2 = Drafts.byId(1);
-      var list3 = Drafts.byId(2);
-      assert.equal(list1.length, 0, 'No drafts for id 42');
-      assert.equal(list2.length, 0, 'No drafts for id 1');
-      assert.equal(list3.length, 0, 'No drafts for id 2');
+      assert.equal(Drafts.byThreadId(42).length, 0);
+      assert.equal(Drafts.byThreadId(1).length, 0);
+      assert.equal(Drafts.byThreadId(2).length, 0);
     });
-
   });
 
   suite('Drafts.List() >', function() {
 
-    test('Drafts.List', function() {
-      var list = new Drafts.List();
-      assert.ok(list);
-      assert.ok(list.forEach);
-    });
-
-  });
-
-  suite('length >', function() {
-
-    test('length of new Drafts.List', function() {
-      var list = new Drafts.List();
-      assert.equal(list.length, 0, 'New Drafts.List has length of 0');
-    });
-
-    test('length of populated Drafts.List', function() {
-      var list = new Drafts.List([d1, d2, d3, d4]);
-      assert.equal(list.length, 4, 'Drafts.List with four drafts has length 4');
-    });
-
-  });
-
-  suite('forEach >', function() {
     var spy;
     var list;
 
@@ -229,16 +318,44 @@ suite('Drafts', function() {
       spy = sinon.spy();
     });
 
+
+    test('Drafts.List', function() {
+      var list = new Drafts.List();
+      assert.ok(list);
+      assert.ok(list.forEach);
+    });
+
+    test('length of new Drafts.List', function() {
+      var list = new Drafts.List();
+      assert.equal(list.length, 0);
+    });
+
+    test('length of populated Drafts.List', function() {
+      var list = new Drafts.List([d1, d2, d3, d4]);
+      assert.equal(list.length, 4);
+    });
+
+    test('latest of populated Drafts.List', function() {
+      var list = new Drafts.List([d1, d2, d3, d4]);
+      assert.equal(list.latest, d4);
+    });
+
     test('callback function on each draft in Drafts.List', function() {
       list = new Drafts.List([d1, d2, d3, d4]);
       list.forEach(spy);
-      assert.equal(spy.callCount, 4, 'callback called four times');
-      assert.deepEqual(spy.args[0][0], d1, 'callback called with d1');
-      assert.deepEqual(spy.args[1][0], d2, 'callback called with d2');
-      assert.deepEqual(spy.args[2][0], d3, 'callback called with d3');
-      assert.deepEqual(spy.args[3][0], d4, 'callback called with d4');
+      assert.equal(spy.callCount, 4);
+      assert.deepEqual(spy.args[0][0], d1);
+      assert.deepEqual(spy.args[1][0], d2);
+      assert.deepEqual(spy.args[2][0], d3);
+      assert.deepEqual(spy.args[3][0], d4);
     });
 
+    test('forEach does not leak backing array via arguments', function() {
+      new Drafts.List([d1]).forEach(function(draft) {
+        assert.equal(draft, d1);
+        assert.equal(arguments.length, 1);
+      });
+    });
   });
 
   suite('Draft', function() {
@@ -251,77 +368,148 @@ suite('Drafts', function() {
 
     test('Draft from empty object', function() {
       draft = new Draft([]);
-      assert.deepEqual(
-        draft.recipients,
-        [],
-        'default recipients is empty String'
-      );
-      assert.deepEqual(draft.content, [], 'default content is empty Array');
-      assert.equal(draft.threadId, null, 'default threadId is null');
+      assert.deepEqual(draft.recipients, []);
+      assert.deepEqual(draft.content, []);
+      assert.equal(draft.threadId, null);
     });
 
     test('Draft from Draft object', function() {
       draft = new Draft(d1);
-      assert.deepEqual(
-        draft.recipients,
-        ['555', '666'],
-        'recipients is [\'555\', \'666\']'
-      );
-      assert.deepEqual(
-        draft.content,
-        'This is a draft message',
-        'content is \'This is a draft message\''
-      );
-      assert.equal(draft.timestamp, 1, 'timestamp is 1');
-      assert.equal(draft.threadId, 42, 'timestamp is 42');
-      assert.equal(draft.type, 'sms', 'timestamp is \'sms\'');
+      assert.deepEqual(draft.recipients, ['555', '666']);
+      assert.deepEqual(draft.content, ['This is a draft message']);
+      assert.equal(draft.timestamp, 1);
+      assert.equal(draft.threadId, 42);
+      assert.equal(draft.type, 'sms');
+    });
+
+    test('Draft with explicit valid id', function() {
+      draft = new Draft({
+        id: 101,
+        recipients: [],
+        content: ['An explicit id'],
+        type: 'sms'
+      });
+
+      assert.equal(draft.id, 101);
+    });
+
+    test('Draft with explicit invalid id', function() {
+      try {
+        draft = new Draft({
+          id: '101',
+          recipients: [],
+          content: ['An explicit id'],
+          timestamp: Date.now(),
+          type: 'sms'
+        });
+        assert.ok(false);
+      } catch (e) {
+        assert.ok(true);
+      }
     });
 
   });
 
-  suite('Storage', function() {
-    var stored = new Map();
+  suite('Storage and Retrieval', function() {
+    var spy;
 
-    setup(function() {
+    suiteSetup(function() {
       Drafts.clear();
-      Drafts.add(d1);
-      Drafts.add(d2);
-      Drafts.add(d5);
-
-      stored.set(d1.threadId, d1);
-      stored.set(d5.threadId, d5);
+      spy = sinon.spy(Drafts, 'store');
     });
 
-    teardown(function() {
+    suiteTeardown(function() {
       Drafts.clear();
       asyncStorage.removeItem('draft index');
     });
 
-    test('Store drafts', function() {
-      Drafts.store();
-      asyncStorage.getItem('draft index', function(value) {
-        var retrieved = new Map(value);
-        assert.deepEqual(retrieved.get(null), [d5]);
-        assert.deepEqual(retrieved.get(42), [d1, d2]);
+    setup(function() {
+      Drafts.clear();
+      spy.reset();
+    });
+
+    test('Store fresh drafts', function() {
+      Drafts.add(d1);
+      Drafts.add(d2);
+      Drafts.add(d5);
+
+      assert.isTrue(spy.calledThrice);
+    });
+
+    test('Store draft with distinct content', function() {
+      Drafts.add(d5);
+      // d6 is almost the same as d5, b/w different content
+      Drafts.add(d6);
+
+      assert.isTrue(spy.calledTwice);
+    });
+
+    test('Store draft with distinct subject', function() {
+      Drafts.add(d5);
+      // d7 is almost the same as d5, b/w different subject
+      Drafts.add(d7);
+
+      assert.isTrue(spy.calledTwice);
+    });
+
+    test('Load drafts, has stored data', function(done) {
+      this.sinon.stub(asyncStorage, 'getItem').yields([
+        [42, [d1]],
+        [44, [d2]],
+        [null, [d5, d6, d7]]
+      ]);
+
+      Drafts.request(function() {
+        assert.equal(Drafts.byThreadId(42).length, 1);
+        Drafts.byThreadId(42).forEach(function(elem) {
+          assert.deepEqual(elem, d1);
+        });
+
+        assert.equal(Drafts.byThreadId(44).length, 1);
+        Drafts.byThreadId(44).forEach(function(elem) {
+          assert.deepEqual(elem, d2);
+        });
+
+        assert.equal(Drafts.byThreadId(null).length, 3);
+        assert.equal(Drafts.byThreadId(5).length, 0);
+
+        done();
       });
     });
 
-    test('Load drafts', function() {
-      var retrieved = [];
-      asyncStorage.setItem('draft index', [...stored], function() {
-        Drafts.load();
-      });
+    test('Load, clear, restore drafts', function(done) {
+      this.sinon.stub(asyncStorage, 'getItem').yields([
+        [42, [d1]],
+        [44, [d2]],
+        [null, [d5, d6, d7]]
+      ]);
 
-      Drafts.byId(null).forEach(function(elem) {
-        assert.equal(elem, d5);
-      });
+      // Load
+      Drafts.request(function() {
+        assert.equal(Drafts.size, 3);
+        assert.isTrue(asyncStorage.getItem.calledOnce);
 
-      Drafts.byId(42).forEach(function(elem) {
-        retrieved.push(elem);
+        // Clear (This will set isCached = false)
+        Drafts.clear();
+
+        assert.equal(Drafts.size, 0);
+
+        // Restore
+        Drafts.request(function() {
+          assert.equal(Drafts.size, 3);
+          assert.isTrue(asyncStorage.getItem.calledTwice);
+          done();
+        });
       });
-      assert.deepEqual(retrieved, [d1, d2]);
     });
 
+    test('Load drafts, has no stored data', function(done) {
+      this.sinon.stub(asyncStorage, 'getItem').yields([]);
+
+      Drafts.request(function() {
+        assert.equal(Drafts.size, 0);
+        done();
+      });
+    });
   });
-
 });

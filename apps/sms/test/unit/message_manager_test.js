@@ -1,47 +1,55 @@
 /*global MocksHelper, MockNavigatormozMobileMessage, MessageManager, ThreadUI,
          MockL10n, MockContact, loadBodyHTML, MozSmsFilter,
          ThreadListUI, MockThreads, MockMessages, Threads, Compose,
-         GroupView, ReportView */
+         GroupView, ReportView, ThreadListUI, MockThreads, MockMessages,
+         Threads, Compose, Drafts, Draft */
 
 'use strict';
 
 requireApp('sms/js/utils.js');
 requireApp('sms/js/time_headers.js');
-requireApp('sms/test/unit/utils_mockup.js');
-requireApp('sms/test/unit/mock_messages.js');
 
-requireApp('sms/test/unit/mock_link_action_handler.js');
-requireApp('sms/test/unit/mock_thread_ui.js');
-requireApp('sms/test/unit/mock_thread_list_ui.js');
-requireApp('sms/test/unit/mock_threads.js');
-requireApp('sms/test/unit/mock_navigatormoz_sms.js');
-requireApp('sms/test/unit/mock_moz_sms_filter.js');
-requireApp('sms/test/unit/mock_smil.js');
+
 requireApp('sms/test/unit/mock_attachment.js');
-requireApp('sms/test/unit/mock_recipients.js');
+requireApp('sms/test/unit/mock_async_storage.js');
 requireApp('sms/test/unit/mock_compose.js');
 requireApp('sms/test/unit/mock_contact.js');
 requireApp('sms/test/unit/mock_contacts.js');
-requireApp('sms/test/unit/mock_utils.js');
+requireApp('sms/test/unit/mock_drafts.js');
+requireApp('sms/test/unit/mock_link_action_handler.js');
 requireApp('sms/test/unit/mock_l10n.js');
 requireApp('sms/test/unit/mock_information.js');
+requireApp('sms/test/unit/mock_messages.js');
+requireApp('sms/test/unit/mock_moz_sms_filter.js');
+requireApp('sms/test/unit/mock_navigatormoz_sms.js');
+requireApp('sms/test/unit/mock_recipients.js');
+requireApp('sms/test/unit/mock_smil.js');
+requireApp('sms/test/unit/mock_thread_ui.js');
+requireApp('sms/test/unit/mock_thread_list_ui.js');
+requireApp('sms/test/unit/mock_threads.js');
+requireApp('sms/test/unit/utils_mockup.js');
+requireApp('sms/test/unit/mock_utils.js');
 
 requireApp('sms/js/message_manager.js');
 
 var mocksHelperForMessageManager = new MocksHelper([
-  'ThreadUI',
-  'ThreadListUI',
-  'Threads',
-  'SMIL',
-  'Recipients',
+  'Attachment',
+  'asyncStorage',
   'Compose',
   'Contacts',
-  'Utils',
-  'Attachment',
+  'Draft',
+  'Drafts',
+  'LinkActionHandler',
   'MozSmsFilter',
   'LinkActionHandler',
   'GroupView',
-  'ReportView'
+  'ReportView',
+  'Recipients',
+  'SMIL',
+  'ThreadListUI',
+  'ThreadUI',
+  'Threads',
+  'Utils'
 ]);
 
 mocksHelperForMessageManager.init();
@@ -62,8 +70,39 @@ suite('message_manager.js >', function() {
     MessageManager._mozMobileMessage = realMozMobileMessage;
   });
 
-  suite('on message sent > ', function() {
+  suite('init() > ', function() {
+    var realNavMozMobileMessage;
 
+    suiteSetup(function() {
+      realNavMozMobileMessage = navigator.mozMobileMessage;
+      navigator.mozMobileMessage = MockNavigatormozMobileMessage;
+    });
+
+    suiteTeardown(function() {
+      navigator.mozMobileMessage = realNavMozMobileMessage;
+    });
+
+    setup(function() {
+      this.sinon.stub(window, 'addEventListener');
+      this.sinon.stub(document, 'addEventListener');
+
+      this.sinon.spy(Drafts, 'request');
+
+      MessageManager.init();
+    });
+
+    teardown(function() {
+      MessageManager.initialized = false;
+      delete MessageManager.mainWrapper;
+      delete MessageManager.threadMessages;
+    });
+
+    test('calls Drafts.request', function() {
+      assert.isTrue(Drafts.request.calledOnce);
+    });
+  });
+
+  suite('on message sent > ', function() {
     setup(function() {
       this.sinon.spy(ThreadUI, 'onMessageSending');
       this.sinon.stub(Threads, 'registerMessage');
@@ -261,6 +300,53 @@ suite('message_manager.js >', function() {
     test(' slide & callback', function(done) {
       MessageManager.launchComposer(function() {
         done();
+      });
+    });
+    suite('message drafts', function() {
+
+      setup(function() {
+        MessageManager.draft = new Draft({
+          threadId: 1234,
+          recipients: []
+        });
+        this.sinon.spy(Compose, 'fromDraft');
+        this.sinon.stub(Drafts, 'delete').returns(Drafts);
+        this.sinon.stub(Drafts, 'store').returns(Drafts);
+        this.sinon.spy(ThreadUI.recipients, 'add');
+        this.sinon.spy(ThreadUI, 'updateHeaderData');
+      });
+
+      teardown(function() {
+        MessageManager.draft = null;
+      });
+
+      test('Calls Compose.fromDraft()', function() {
+        MessageManager.launchComposer();
+        assert.ok(Compose.fromDraft.calledOnce);
+      });
+
+      test('No recipients loaded', function() {
+        MessageManager.launchComposer();
+        assert.isFalse(ThreadUI.recipients.add.called);
+        assert.isFalse(ThreadUI.updateHeaderData.called);
+      });
+
+      test('with recipients', function() {
+        MessageManager.draft.recipients = ['800 732 0872', '800 555 1212'];
+        MessageManager.launchComposer();
+        assert.ok(ThreadUI.recipients.add.calledTwice);
+        assert.isFalse(ThreadUI.updateHeaderData.called);
+      });
+
+      test('discards draft record', function() {
+        MessageManager.draft = {
+          recipients: []
+        };
+
+        MessageManager.launchComposer();
+
+        assert.isTrue(Drafts.delete.called);
+        assert.isTrue(Drafts.store.called);
       });
     });
   });
@@ -489,8 +575,10 @@ suite('message_manager.js >', function() {
   suite('onHashChange', function() {
     setup(function() {
       this.sinon.spy(document.activeElement, 'blur');
+      MessageManager.threadMessages = document.createElement('div');
       this.sinon.spy(ThreadUI, 'cancelEdit');
       this.sinon.spy(ThreadUI, 'renderMessages');
+      this.sinon.spy(ThreadUI, 'cleanFields');
       this.sinon.stub(ThreadUI, 'updateHeaderData');
       this.sinon.spy(ThreadListUI, 'cancelEdit');
       this.sinon.spy(ThreadListUI, 'mark');
@@ -498,8 +586,43 @@ suite('message_manager.js >', function() {
       this.sinon.spy(ReportView, 'reset');
       this.sinon.spy(MessageManager, 'handleActivity');
       this.sinon.stub(MessageManager, 'slide');
-
       MessageManager.onHashChange();
+    });
+
+    teardown(function() {
+      MessageManager.draft = null;
+      Threads.currentId = null;
+      delete MessageManager.threadMessages;
+    });
+
+    suite('> Draft content for threaded messages', function() {
+      setup(function() {
+        // Reset state for slide and updateHeaderData
+        // which we need to track
+        MessageManager.slide.reset();
+        ThreadUI.updateHeaderData.reset();
+        ThreadUI.inThread = false;
+        MessageManager.draft = new Draft({
+          content: ['i am a draft'],
+          threadId: 1234
+        });
+        this.threadId = Threads.currentId = 1234;
+        window.location.hash = '#thread=' + this.threadId;
+        this.sinon.spy(Compose, 'fromDraft');
+        MessageManager.onHashChange();
+      });
+      teardown(function() {
+        MessageManager.draft = null;
+        Threads.currentId = null;
+      });
+      test('draft content added after clearing composer', function() {
+        // renderMessages is passed as a callback to slide left
+        ThreadUI.updateHeaderData.yield();
+        MessageManager.slide.yield();
+        assert.ok(Compose.fromDraft.calledAfter(ThreadUI.renderMessages));
+        assert.ok(Compose.fromDraft.calledWith(MessageManager.draft));
+      });
+
     });
 
     test('Remove any focus left on specific elements ', function() {
@@ -663,4 +786,49 @@ suite('message_manager.js >', function() {
     });
 
   });
+
+  suite('onVisibilityChange() >', function() {
+    var isDocumentHidden;
+    var spy;
+
+    suiteSetup(function() {
+      spy = sinon.spy(ThreadUI, 'saveDraft');
+      Object.defineProperty(document, 'hidden', {
+        configurable: true,
+        get: function() {
+          return isDocumentHidden;
+        }
+      });
+    });
+
+    suiteTeardown(function() {
+      delete document.hidden;
+    });
+
+    teardown(function() {
+      isDocumentHidden = false;
+    });
+
+    test('draft save on visibility change from new message', function() {
+      window.location.hash = '#new';
+      isDocumentHidden = true;
+      MessageManager.onVisibilityChange();
+
+      assert.isTrue(spy.calledOnce);
+      assert.isTrue(spy.calledWithMatch({preserve: true}));
+      assert.equal(ThreadUI.recipients.length, 0);
+    });
+
+    test('draft save on visibility change from thread', function() {
+      window.location.hash = '#thread-1';
+      isDocumentHidden = true;
+      MessageManager.onVisibilityChange();
+
+      assert.isTrue(spy.calledOnce);
+      assert.isTrue(spy.calledWithMatch({preserve: true}));
+      assert.equal(ThreadUI.recipients.length, 0);
+    });
+
+  });
+
 });

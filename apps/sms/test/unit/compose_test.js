@@ -4,12 +4,15 @@
 
 /*global MocksHelper, MockAttachment, MockL10n, loadBodyHTML,
          Compose, Attachment, MockMozActivity, Settings, Utils,
-         AttachmentMenu */
+         AttachmentMenu, Draft */
 
 'use strict';
 
 requireApp('sms/js/compose.js');
 requireApp('sms/js/utils.js');
+requireApp('sms/js/drafts.js');
+// Storage automatically called on Drafts.add()
+require('/shared/js/async_storage.js');
 
 requireApp('sms/test/unit/mock_l10n.js');
 requireApp('sms/test/unit/mock_attachment.js');
@@ -38,14 +41,14 @@ suite('compose_test.js', function() {
     var attachment = new MockAttachment({
       type: 'audio/ogg',
       size: size || 12345
-    }, 'audio.oga');
+    }, { name: 'audio.oga' });
     return attachment;
   }
 
   function mockImgAttachment(isOversized) {
     var attachment = isOversized ?
-      new MockAttachment(oversizedImageBlob, 'oversized.jpg') :
-      new MockAttachment(smallImageBlob, 'small.jpg');
+      new MockAttachment(oversizedImageBlob, { name: 'oversized.jpg' }) :
+      new MockAttachment(smallImageBlob, { name: 'small.jpg' });
     return attachment;
   }
 
@@ -345,6 +348,36 @@ suite('compose_test.js', function() {
 
       teardown(function() {
         Compose.clear();
+      });
+    });
+
+    suite('Preload composer fromDraft', function() {
+      var d1, d2, attachment;
+
+      setup(function() {
+        Compose.clear();
+        d1 = new Draft({
+          content: ['I am a draft'],
+          threadId: 1
+        });
+        attachment = mockAttachment();
+        d2 = new Draft({
+          content: ['I have an attachment!', attachment],
+          threadId: 1
+        });
+      });
+      teardown(function() {
+        Compose.clear();
+      });
+      test('Draft with text', function() {
+        Compose.fromDraft(d1);
+        assert.equal(Compose.getContent(), d1.content.join(''));
+      });
+      test('Draft with attachment', function() {
+        Compose.fromDraft(d2);
+        var txt = Compose.getContent();
+        assert.ok(txt, d2.content.join(''));
+        assert.ok(txt[1] instanceof Attachment);
       });
     });
 
