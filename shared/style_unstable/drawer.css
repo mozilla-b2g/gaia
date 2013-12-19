@@ -14,6 +14,16 @@ section[role="region"]:target {
   transform: translateX(80%);
 }
 
+section[role="region"] > header:first-child > a:not([aria-disabled="true"]):hover:after,
+section[role="region"] > header:first-child > button:not(:disabled):hover:after {
+  background: none !important;
+}
+
+section[role="region"] > header:first-child > a:not([aria-disabled="true"]):active:after,
+section[role="region"] > header:first-child > button:not(:disabled):active:after {
+  background-color: #dc6a0e !important;
+}
+
 /* Hide anchor to change target */
 section[role="region"] > header:first-child > a:first-of-type {
   display: none;
