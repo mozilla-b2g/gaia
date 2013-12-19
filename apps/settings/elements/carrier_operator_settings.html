@@ -11,7 +11,7 @@
         <li>
           <p data-l10n-id="operator-networkType">Network Type</p>
           <span class="button icon icon-dialog">
-            <select name="ril.radio.preferredNetworkType" id="preferredNetworkType">
+            <select id="preferredNetworkType">
             </select>
           </span>
         </li>
@@ -50,6 +50,18 @@
         </li>
       </ul>
     </div>
+
+    <form role="dialog" data-type="confirm" id="preferredNetworkTypeAlert" hidden>
+      <section>
+        <h1 data-l10n-id="preferredNetworkTypeAlertTitle">Preferred network type</h1>
+        <p>
+          <strong id="preferredNetworkTypeAlertMessage"></strong>
+        </p>
+      </section>
+      <menu>
+        <button class="full" data-l10n-id="continue">Continue</button>
+      </menu>
+    </form>
 
   </template>
 </element>

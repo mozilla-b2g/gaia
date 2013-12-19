@@ -59,7 +59,8 @@ function PerformanceHelper(opts) {
         '}' +
         'w.onapplicationloaded = function(e) {' +
         '  var data = e.detail;' +
-        '  data.src = e.target.src;' +
+        /* So that it is backward compatible with the older gaia. */
+        '  data.src = data.src || e.target.src;' +
         '  w.loadTimes.push(data);' +
         '};' +
         'w.addEventListener("apploadtime", w.onapplicationloaded);';

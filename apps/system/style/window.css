@@ -100,8 +100,8 @@
 
 /* Opacity increases start up time then we don't use it anymore for opening */
 @keyframes openApp {
-  0%   { transform: scale(0.01); }
-  100% { transform: scale(1.0); }
+  0%   { transform: scale(0.2);}
+  100% { transform: scale(1.0);}
 }
 
 #windows > .appWindow.zoom-in {
@@ -111,7 +111,7 @@
 
 @keyframes zoom-in {
   0%   { transform: scale(1); }
-  100% { transform: scale(1.8); }
+  100% { transform: scale(5); }
 }
 
 @keyframes openAppFromCardView {
@@ -160,12 +160,12 @@
 }
 
 #windows > .appWindow.zoom-out {
-  transform: scale(1.8);
+  transform: scale(5);
   animation: zoom-out 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
 @keyframes zoom-out {
-  0%   { transform: scale(1.8);}
+  0%   { transform: scale(5);}
   100% { transform: scale(1);}
 }
 
@@ -207,8 +207,8 @@
 }
 
 @keyframes closeApp {
-  0%   { transform: scale(1.0);}
-  100% { transform: scale(0.01);}
+  0%   { transform: scale(1.0); opacity: 1;}
+  100% { transform: scale(0.01); opacity: 0;}
 }
 
 @keyframes closeAppTowardsCardView {

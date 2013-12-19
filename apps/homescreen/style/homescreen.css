@@ -61,7 +61,8 @@ button {
    outline: none;
 }
 
-html[dir=rtl] .apps ol > li {
+html[dir=rtl] .apps ol > li,
+html[dir=rtl] #footer li {
   float: right;
 }
 

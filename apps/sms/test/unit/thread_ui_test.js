@@ -46,6 +46,7 @@ requireApp('sms/test/unit/mock_custom_dialog.js');
 requireApp('sms/test/unit/mock_url.js');
 requireApp('sms/test/unit/mock_compose.js');
 requireApp('sms/test/unit/mock_activity_handler.js');
+requireApp('sms/test/unit/mock_information.js');
 require('/test/unit/mock_contact_renderer.js');
 
 var mocksHelperForThreadUI = new MocksHelper([
@@ -66,7 +67,8 @@ var mocksHelperForThreadUI = new MocksHelper([
   'SMIL',
   'ActivityHandler',
   'TimeHeaders',
-  'ContactRenderer'
+  'ContactRenderer',
+  'Information'
 ]);
 
 mocksHelperForThreadUI.init();
@@ -205,6 +207,35 @@ suite('thread_ui.js >', function() {
       dispatchScrollEvent(container);
 
       assert.ok(ThreadUI.isScrolledManually);
+    });
+
+    suite('when adding a line in the composer >', function() {
+      setup(function() {
+        this.sinon.spy(HTMLElement.prototype, 'scrollIntoView');
+      });
+
+      test('when scrolled up, should not scroll', function() {
+        container.scrollTop = 100;
+        dispatchScrollEvent(container);
+
+        // scrolledManually is true (see above)
+        Compose.append('\n');
+
+        sinon.assert.notCalled(HTMLElement.prototype.scrollIntoView);
+      });
+
+      test('when scrolled to the bottom, should scroll', function() {
+        container.scrollTop = container.scrollTopMax;
+        dispatchScrollEvent(container);
+
+        // scrolledManually is false (see above)
+        Compose.append('\n');
+
+        sinon.assert.calledOn(
+          HTMLElement.prototype.scrollIntoView,
+          container.lastElementChild
+        );
+      });
     });
 
     test('scroll to bottom, should be detected as an automatic scroll',
@@ -1745,17 +1776,20 @@ suite('thread_ui.js >', function() {
     suite('onDeliverySuccess >', function() {
       teardown(function() {
         this.fakeMessage.type = null;
+        this.fakeMessage.delivery = '';
         this.fakeMessage.deliveryStatus = null;
         this.fakeMessage.deliveryInfo = null;
       });
       test('sms delivery success', function() {
         this.fakeMessage.type = 'sms';
+        this.fakeMessage.delivery = 'sent';
         this.fakeMessage.deliveryStatus = 'success';
         ThreadUI.onDeliverySuccess(this.fakeMessage);
         assert.isTrue(this.container.classList.contains('delivered'));
       });
       test('mms delivery success', function() {
         this.fakeMessage.type = 'mms';
+        this.fakeMessage.delivery = 'sent';
         this.fakeMessage.deliveryInfo = [{
           receiver: null, deliveryStatus: 'success'}];
         ThreadUI.onDeliverySuccess(this.fakeMessage);
@@ -1763,6 +1797,7 @@ suite('thread_ui.js >', function() {
       });
       test('multiple recipients mms delivery success', function() {
         this.fakeMessage.type = 'mms';
+        this.fakeMessage.delivery = 'sent';
         this.fakeMessage.deliveryInfo = [
           {receiver: null, deliveryStatus: 'success'},
           {receiver: null, deliveryStatus: 'success'}];
@@ -1771,6 +1806,7 @@ suite('thread_ui.js >', function() {
       });
       test('not all recipients return mms delivery success', function() {
         this.fakeMessage.type = 'mms';
+        this.fakeMessage.delivery = 'sent';
         this.fakeMessage.deliveryInfo = [
           {receiver: null, deliveryStatus: 'success'},
           {receiver: null, deliveryStatus: 'pending'}];
@@ -3468,7 +3504,7 @@ suite('thread_ui.js >', function() {
           assert.equal(MockOptionMenu.calls.length, 0);
         });
 
-        test('Moves to Group View', function(done) {
+        test('Moves to Group information View', function(done) {
           Threads.set(1, {
             participants: ['999', '888']
           });
@@ -3477,37 +3513,19 @@ suite('thread_ui.js >', function() {
           window.onhashchange = function() {
             // Change to #group-view (per ThreadUI.onHeaderActivation())
             window.onhashchange = function() {
+              window.onhashchange = null;
               assert.equal(window.location.hash, '#group-view');
-              assert.deepEqual(localize.args[0], [
-                ThreadUI.headerText, 'participant', {n: 2}
-              ]);
               // View should not go back to thread view when header is
               // activated in group-view
               ThreadUI.onHeaderActivation();
               assert.equal(window.location.hash, '#group-view');
-              window.onhashchange = null;
               done();
             };
 
             ThreadUI.onHeaderActivation();
-            ThreadUI.groupView();
           };
 
           window.location.hash = '#thread=1';
-        });
-
-        test('Reset Group View', function() {
-          var list = ThreadUI.participants.firstElementChild;
-
-          assert.equal(list.children.length, 0);
-
-          list.innerHTML = '<li></li><li></li><li></li>';
-
-          assert.equal(list.children.length, 3);
-
-          ThreadUI.groupView.reset();
-
-          assert.equal(list.children.length, 0);
         });
       });
 

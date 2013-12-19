@@ -10,6 +10,15 @@ var MockThreadUI = {
   IMAGE_RESIZE_DURATION: 3000,
   recipients: null,
   recipientsList: document.createElement('div'),
+
+  // For Information view testing. Need to be updated with ThreadUI layout
+  optionsIcon: document.createElement('a'),
+  attachButton: document.createElement('a'),
+  subheader: document.createElement('div'),
+  container: document.createElement('article'),
+  composeForm: document.createElement('form'),
+  headerText: document.createElement('h1'),
+
   inEditMode: false,
   inThread: false,
   init: function() {},
@@ -81,7 +90,6 @@ var MockThreadUI = {
   onHeaderActivation: function() {},
   onParticipantClick: function() {},
   promptContact: function() {},
-  groupView: function() {},
   prompt: function() {},
   onCreateContact: function() {},
   isShowMessageErrorCalledTimes: 0,
@@ -97,5 +105,3 @@ var MockThreadUI = {
     this.isShowMessageErrorCalledTimes = 0;
   }
 };
-
-MockThreadUI.groupView.reset = function() {};

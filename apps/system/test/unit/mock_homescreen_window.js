@@ -41,4 +41,5 @@ var MockHomescreenWindow = function(value) {
   this.calibratedHeight = function() { return false; };
   this.isOOP = function() { return true; };
   this.ensure = function() { return this; };
+  this.isDead = function() { return false};
 };

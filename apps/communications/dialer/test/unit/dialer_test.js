@@ -1,6 +1,4 @@
-requireApp('communications/dialer/js/dialer.js', function() {
-  window.removeEventListener('load', dialerStartup);
-});
+requireApp('communications/dialer/js/dialer.js');
 
 suite('navigation bar', function() {
   var domOptionRecents;

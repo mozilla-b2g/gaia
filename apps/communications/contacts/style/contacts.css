@@ -4,17 +4,9 @@
 }
 
 /* Fav star in header */
-section[role="region"] > header:first-child sup {
-  background: url(/contacts/style/gphx/bitmap/default/vw-header/icons/fav-star.png) no-repeat center / 1.2rem;
-  background-size: 100% auto;
-  width: 1.2rem;
-  height: 3.2rem;
-  vertical-align: text-top;
-  text-indent: 100%;
-  overflow: hidden;
-  position: relative;
-  float: left;
-  top: 0;
+#contact-name-title.favorite {
+  background: url(/contacts/style/gphx/bitmap/default/vw-header/icons/fav-star.png) no-repeat right 1rem / 1.2rem;
+  padding-right: 1.5rem;
 }
 
 section[role="region"] > header:first-child .icon.icon-edit-contact {
@@ -46,7 +38,7 @@ section[role="region"] > header:first-child .icon.icon-edit-contact {
 .view-contact-profile .view-body {
   overflow-x: hidden;
   overflow-y: auto;
-  will-animate: scroll;
+  will-change: scroll-position;
 }
 
 .view-contact-profile #cover-img {
@@ -55,8 +47,12 @@ section[role="region"] > header:first-child .icon.icon-edit-contact {
   left: 0;
   width: 100%;
   height: 100%;
-  background: transparent no-repeat;
+  background: #f4f4f4 no-repeat;
   background-size: 100% auto;
+  transform: translateY(0);
+}
+
+.view-contact-profile #cover-img.translated {
   transform: translateY(-7rem);
 }
 
@@ -87,6 +83,10 @@ section[role="region"] > header:first-child .icon.icon-edit-contact {
   width: 100%;
   min-height: calc(100% - 8rem);
   -moz-box-sizing: border-box;
+  transform: translateY(0);
+}
+
+.view-contact-profile .view-body-inner.translated {
   transform: translateY(8rem);
 }
 
@@ -110,7 +110,6 @@ section[role="region"] > header:first-child .icon.icon-edit-contact {
 }
 
 .view-contact-profile .view-body-inner.no-photo {
-  transform: translateY(0);
   min-height: 100%;
 }
 

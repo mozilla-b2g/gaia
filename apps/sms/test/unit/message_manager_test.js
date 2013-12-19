@@ -1,6 +1,7 @@
 /*global MocksHelper, MockNavigatormozMobileMessage, MessageManager, ThreadUI,
          MockL10n, MockContact, loadBodyHTML, MozSmsFilter,
-         ThreadListUI, MockThreads, MockMessages, Threads, Compose */
+         ThreadListUI, MockThreads, MockMessages, Threads, Compose,
+         GroupView, ReportView */
 
 'use strict';
 
@@ -23,6 +24,7 @@ requireApp('sms/test/unit/mock_contact.js');
 requireApp('sms/test/unit/mock_contacts.js');
 requireApp('sms/test/unit/mock_utils.js');
 requireApp('sms/test/unit/mock_l10n.js');
+requireApp('sms/test/unit/mock_information.js');
 
 requireApp('sms/js/message_manager.js');
 
@@ -37,7 +39,9 @@ var mocksHelperForMessageManager = new MocksHelper([
   'Utils',
   'Attachment',
   'MozSmsFilter',
-  'LinkActionHandler'
+  'LinkActionHandler',
+  'GroupView',
+  'ReportView'
 ]);
 
 mocksHelperForMessageManager.init();
@@ -490,7 +494,8 @@ suite('message_manager.js >', function() {
       this.sinon.stub(ThreadUI, 'updateHeaderData');
       this.sinon.spy(ThreadListUI, 'cancelEdit');
       this.sinon.spy(ThreadListUI, 'mark');
-      this.sinon.spy(ThreadUI.groupView, 'reset');
+      this.sinon.spy(GroupView, 'reset');
+      this.sinon.spy(ReportView, 'reset');
       this.sinon.spy(MessageManager, 'handleActivity');
       this.sinon.stub(MessageManager, 'slide');
 
@@ -506,8 +511,9 @@ suite('message_manager.js >', function() {
       assert.ok(ThreadListUI.cancelEdit.called);
     });
 
-    test('Reset Group Participants View ', function() {
-      assert.ok(ThreadUI.groupView.reset.called);
+    test('Reset Group Participants/Report View ', function() {
+      assert.ok(GroupView.reset.called);
+      assert.ok(ReportView.reset.called);
     });
 
     suite('> Switch to #new', function() {
@@ -633,5 +639,28 @@ suite('message_manager.js >', function() {
         });
       });
     });
+
+    suite('> Switch to #group-view', function() {
+      setup(function() {
+        this.sinon.spy(GroupView, 'show');
+        window.location.hash = '#group-view';
+        MessageManager.onHashChange();
+      });
+      test('GroupView show method called', function() {
+        assert.isTrue(GroupView.show.called);
+      });
+    });
+
+    suite('> Switch to #report-view=1', function() {
+      setup(function() {
+        this.sinon.spy(ReportView, 'show');
+        window.location.hash = '#report-view=1';
+        MessageManager.onHashChange();
+      });
+      test('ReportView show method called', function() {
+        assert.isTrue(ReportView.show.called);
+      });
+    });
+
   });
 });

@@ -6,7 +6,6 @@ function wifiTest() {
   var switchButton = document.getElementById('switch');
 
   var settings = window.navigator.mozSettings;
-  var navigator = window.navigator;
   var wifiManager;
   function update() {
     switchButton.checked = wifiManager.enabled;

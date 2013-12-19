@@ -141,7 +141,7 @@
     try {
       throw new Error('e');
     } catch (e) {
-      dump(e.stack);
+      this.debug(e.stack);
     }
     dump('======================');
   };
@@ -204,11 +204,16 @@
    * So this shouldn't be invoked by others directly.
    */
   AppWindow.prototype._showFrame = function aw__showFrame() {
+    this.debug('before showing frame');
     if (this._screenshotOverlayState != 'frame')
       return;
 
     this.browser.element.classList.remove('hidden');
     this._setVisible(true);
+
+    if (this.isHomescreen) {
+      return;
+    }
 
     // Getting a new screenshot to force compositing before
     // removing the screenshot overlay if it exists.
@@ -327,6 +332,16 @@
      */
     this.publish('terminated');
   };
+
+  /**
+   * An appWindow is dead if somebody requested it to be killed.
+   *
+   * @return {Boolean} The instance is dead or not.
+   */
+  AppWindow.prototype.isDead = function aw_isDead() {
+    return (this._killed);
+  };
+
 
   /**
    * Destroy the instance.
@@ -542,9 +557,11 @@
   AppWindow.prototype._handle_mozbrowserloadend =
     function aw__handle_mozbrowserloadend(evt) {
       if (!this.loaded) {
+        // Perf test needs.
         this.publish('loadtime', {
           time: parseInt(Date.now() - this.launchTime),
-          type: 'c'
+          type: 'c',
+          src: this.config.url
         });
       }
       this.loading = false;
@@ -643,6 +660,11 @@
   AppWindow.prototype.tryWaitForFullRepaint = function onTWFRepaint(callback) {
     if (!callback)
       return;
+
+    if (this.isHomescreen) {
+      setTimeout(callback);
+      return;
+    }
 
     this.getScreenshot(function() {
       setTimeout(callback);
@@ -1180,7 +1202,6 @@
       setTimeout(callback);
       return;
     } else {
-      this.debug('loaded');
       var invoked = false;
       this.waitForNextPaint(function() {
         if (invoked)
@@ -1188,6 +1209,10 @@
         invoked = true;
         setTimeout(callback);
       });
+      if (this.isHomescreen) {
+        this.setVisible(true);
+        return;
+      }
       this.tryWaitForFullRepaint(function() {
         if (invoked)
           return;

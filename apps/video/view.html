@@ -11,10 +11,10 @@
     <link rel="stylesheet" type="text/css" href="shared/style/status.css" />
     <link rel="stylesheet" type="text/css" href="style/video_tablet.css" media="(min-height: 768px) and (min-width: 768px)" />
   </head>
-  <body role="application" class="skin-dark layout-fullscreen-player">
+  <body role="application" class="skin-dark layout-fullscreen-player view-activity">
     <!-- display this at startup while we create thumbnails -->
     <div id="spinner-overlay"><div id="spinner"></div></div>
-    <div id="player-view">
+    <section role="region" id="player-view">
       <div id="video-container">
         <video id="player" preload="metadata"></video>
       </div>
@@ -44,7 +44,7 @@
           </footer>
         </section>
       </div>
-    </div>
+    </section>
     <section id="banner" role="status" hidden>
       <p id="message"></p>
     </section>

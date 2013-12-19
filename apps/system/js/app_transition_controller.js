@@ -201,9 +201,11 @@
         return;
 
       if (this.app.loaded) {
+        // Perf test needs.
         this.app.publish('loadtime', {
           time: parseInt(Date.now() - this.app.launchTime),
-          type: 'w'
+          type: 'w',
+          src: this.app.config.url
         });
       }
 

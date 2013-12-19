@@ -16,6 +16,7 @@ var UIManager = {
     // Unlock SIM Screen
     'unlock-sim-screen',
     'unlock-sim-header',
+    'unlock-sim-back',
     // PIN Screen
     'pincode-screen',
     'pin-label',
@@ -42,6 +43,16 @@ var UIManager = {
     'xck-retries-left',
     'xck-input',
     'xck-error',
+    // SIM info
+    'sim-info-screen',
+    'sim-info-back',
+    'sim-info-forward',
+    'sim-info-1',
+    'sim-info-2',
+    'sim-number-1',
+    'sim-number-2',
+    'sim-carrier-1',
+    'sim-carrier-2',
     // Import contacts
     'sim-import',
     'sim-import-button',
@@ -106,6 +117,9 @@ var UIManager = {
     this.skipPinButton.addEventListener('click', this);
     this.backSimButton.addEventListener('click', this);
     this.unlockSimButton.addEventListener('click', this);
+    this.unlockSimBack.addEventListener('click', this);
+    this.simInfoBack.addEventListener('click', this);
+    this.simInfoForward.addEventListener('click', this);
 
     this.dataConnectionSwitch.addEventListener('click', this);
 
@@ -277,11 +291,18 @@ var UIManager = {
         SimManager.skip();
         break;
       case 'back-sim-button':
+      case 'sim-info-back':
         SimManager.back();
         break;
       case 'unlock-sim-button':
         Navigation.skipped = false;
         SimManager.unlock();
+        break;
+      case 'unlock-sim-back':
+        SimManager.simUnlockBack();
+        break;
+      case 'sim-info-forward':
+        SimManager.finish();
         break;
       case 'sim-import-button':
         // Needed to give the browser the opportunity to properly refresh the UI

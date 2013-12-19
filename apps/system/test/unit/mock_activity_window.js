@@ -42,6 +42,7 @@ var MockActivityWindow = function ActivityWindow(config) {
   this.isTransitioning = function() { return false; };
   this.calibratedHeight = function() { return false; };
   this.isOOP = function() { return true; };
+  this.isDead = function() { return false; };
   MockActivityWindowHelper.mInstances.push(this);
   MockActivityWindowHelper.mLatest = this;
 };

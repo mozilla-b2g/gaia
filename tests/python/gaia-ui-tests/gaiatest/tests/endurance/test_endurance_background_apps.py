@@ -29,8 +29,7 @@ class TestEnduranceBackgroundApps(GaiaEnduranceTestCase):
             app_objs.append(self.apps.launch(next_app))
             time.sleep(5)
             # Minimize app into the background
-            self.marionette.switch_to_frame()
-            self.marionette.execute_script("window.wrappedJSObject.dispatchEvent(new Event('home'));")
+            self.device.touch_home_button()
             time.sleep(5)
 
     def test_endurance_background_apps(self):

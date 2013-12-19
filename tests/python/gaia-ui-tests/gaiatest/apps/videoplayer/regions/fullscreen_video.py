@@ -14,14 +14,14 @@ class FullscreenVideo(Base):
     _elapsed_text_locator = (By.ID, 'elapsed-text')
     _video_player_locator = (By.ID, 'player')
     _video_frame_locator = (By.CSS_SELECTOR, "iframe[src^='app://video'][src$='view.html']")
-    _video_player_frame_locator = (By.ID, 'fullscreen-view')
+    _video_player_frame_locator = (By.ID, 'player-view')
     _spinner_overlay_locator = (By.ID, 'spinner-overlay')
 
     def wait_for_player_frame_displayed(self):
         self.wait_for_element_displayed(*self._video_player_frame_locator)
 
     def display_controls_with_js(self):
-        self.marionette.execute_script("window.wrappedJSObject.showVideoControls(true);")
+        self.marionette.execute_script("window.wrappedJSObject.setControlsVisibility(true);")
         self.wait_for_element_displayed(*self._video_controls_locator)
 
     @property

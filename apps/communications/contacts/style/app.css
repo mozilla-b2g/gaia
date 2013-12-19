@@ -346,7 +346,7 @@ form p + p {
   background: #fff;
   color: #333;
   text-align: left;
-  will-animate: scroll;
+  will-change: scroll-position;
 }
 
 /* Removes scroll from the view body inner */
@@ -663,6 +663,10 @@ nav[data-type="scrollbar"] {
   z-index: 6;
 }
 
+nav[data-type="scrollbar"].selecting {
+  bottom: 4.2rem;
+}
+
 nav[data-type="scrollbar"] ol > li > * {
   pointer-events: none;
 }
@@ -703,4 +707,9 @@ form[role="dialog"].no-overlay button {
 
 #selectable-form {
   background: none;
+}
+
+
+#groups-list[data-type="list"].active.selecting li:not(:active):after {
+  display:none !important;
 }

@@ -135,6 +135,14 @@ ContactRenderer.prototype = {
      *
      *   target:
      *     Parent node to append the rendered node to
+     *
+     *   infoBlock:
+     *     Node that will be appended to the node selected by
+     *     infoBlockParentSelector
+     *
+     *   infoBlockParentSelector:
+     *     Parent element selector for appending infoBlock as child
+     *
      * }
      *
      */
@@ -147,6 +155,8 @@ ContactRenderer.prototype = {
     var renderAll = this.opts.renderAll;
     var renderPhoto = this.opts.renderPhoto;
     var skip = renderOpts.skip || [];
+    var block = renderOpts.infoBlock;
+    var parentSelector = renderOpts.infoBlockParentSelector;
 
     // we can't do much without a contact
     if (!contact) {
@@ -221,6 +231,11 @@ ContactRenderer.prototype = {
       });
 
       var element = tempDiv.firstElementChild;
+      var blockParent = element.querySelector(parentSelector);
+
+      if (blockParent) {
+        blockParent.appendChild(block);
+      }
 
       // scan for translatable stuff
       navigator.mozL10n.translate(element);

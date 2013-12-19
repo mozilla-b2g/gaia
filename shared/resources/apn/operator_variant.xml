@@ -572,4 +572,11 @@
       mnc="02"
       cellBroadcastSearchList="0,9,19,28,112"
   />
+  <operator
+      name="o2"
+      mcc="262"
+      mnc="07"
+      enableStrict7BitEncodingForSms="true"
+      operatorSizeLimitation="614400"
+  />
 </variant>

@@ -217,6 +217,80 @@ a {
 #splash-screen.show {
   opacity: 1;
 }
+
+/*
+ SIM info screen
+*/
+#sim-info-screen {
+  z-index: 2000;
+}
+
+#sim-info-screen .sim-info {
+  margin: 0 1.6rem;
+  height: 7rem;
+  border-bottom: 0.1rem solid #dddddd;
+}
+
+#sim-info-screen .sim-image {
+  height: 100%;
+  width: 3rem;
+  background-position: center center;
+  background-repeat: no-repeat;
+  float: left;
+  margin-right: 1rem;
+}
+#sim-info-1 .sim-image {
+  background-image: url(images/sim01.png);
+}
+#sim-info-1.locked .sim-image {
+  background-image: url(images/simlock01.png);
+}
+#sim-info-2 .sim-image {
+  background-image: url(images/sim02.png);
+}
+#sim-info-2.locked .sim-image {
+  background-image: url(images/simlock02.png);
+}
+
+.sim-info .sim-title {
+  margin: 0 0 0.5rem;
+  padding-top: 1rem;
+  font-size: 1.6rem;
+  color: #333333;
+}
+.sim-info.locked .sim-title {
+  padding-top: 1.6rem;
+  color: #949494;
+}
+.sim-info.no-number .sim-title {
+  padding-top: 2.1rem;
+}
+
+.sim-info .sim-number,
+.sim-info .sim-carrier {
+  margin: 0.5rem;
+  font-size: 1.2rem;
+  color: #6b6b6b;
+}
+.sim-info.locked .sim-number,
+.sim-info.locked .sim-carrier {
+  color: #949494;
+}
+
+#sim-info-screen #sim-info-messages {
+  padding: 1.8rem 2.3rem 0rem 3rem;
+  font-size: 1.4rem;
+  line-height: 1.8rem;
+}
+#sim-default-message {
+  margin: 0;
+  color: #333333;
+}
+#sim-settings-message {
+  margin: 0.5rem 0;
+  color: #b90000;
+}
+
 /*
   Pin code screen
 */
@@ -230,16 +304,20 @@ a {
 
 #unlock-sim-screen section label {
   display: inline-block;
-  padding: 1.5rem 3rem 0.5rem 3rem;
+  padding: 1.8rem 0rem 1.4rem 3rem;
   color: black;
-  font-size: 1.5rem;
+  font-size: 1.8rem;
   width: auto;
-  height: 2rem;
   pointer-events: none;
+}
+#unlock-sim-screen section label.retries {
+  padding-left: 0.7rem;
+  font-size: 1.4rem;
+  color: #00aacc
 }
 
 #unlock-sim-screen .input-wrapper {
-  padding: 0 1.5rem;
+  padding: 0 1.6rem;
   position: relative;
 }
 
@@ -249,8 +327,9 @@ a {
 }
 
 #unlock-sim-screen .error {
-  padding: 1rem 2rem;
+  padding: 1.4rem;
   font-size: 1.5rem;
+  line-height: 1.9rem;
   color: red;
 }
 
@@ -275,6 +354,10 @@ a {
 
 #hidden-wifi-authentication input[type="password"] {
   pointer-events: auto;
+}
+#unlock-sim-screen [role=navigation] button,
+#unlock-sim-screen [role=navigation] .recommend {
+  text-align: center;
 }
 
 /*
@@ -1081,51 +1164,27 @@ i.hack-first-child {
 }
 
 /*
-  3G
+  3G & geolocation
 */
 
-#data_3g [data-type="list"] li {
-  padding: 0 1.5rem;
-}
-
-#data_3g label:not([for]) {
-  width: 6rem;
-}
-
-#data_3g .content {
-  padding: 0 3rem 1rem 3rem;
-}
-
-#data_3g .content p {
-  font-size: 1.4rem;
-}
-
-[data-type="list"] aside {
-  margin: 0 0.5rem 0 0 !important;
-}
-
-/*
-  geolocation
-*/
-
+#data_3g [data-type="list"] li,
 #geolocation [data-type="list"] li {
-  padding: 0 1.5rem;
+  padding-left: 1.5rem;
 }
 
-#geolocation label:not([for]) {
-  width: 6rem;
-}
-
+#data_3g .content,
 #geolocation .content {
   padding: 0 3rem 1rem 3rem;
 }
 
+#data_3g .content p,
 #geolocation .content p {
   font-size: 1.4rem;
 }
 
-[data-type="list"] aside {
-  margin: 0 0.5rem 0 0 !important;
+#data_3g .pack-switch,
+#geolocation .pack-switch {
+  height: 100%;
 }
 
 

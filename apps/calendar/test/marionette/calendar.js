@@ -3,7 +3,9 @@
  *     calendar application through the marionette js client.
  */
 var DateHelper = require('./date_helper'),
-    Event = require('./event');
+    Event = require('./event'),
+    Marionette = require('marionette-client'),
+    actions = null;
 
 
 /**
@@ -29,6 +31,7 @@ function Calendar(client) {
   this.client = client.scope({
     searchTimeout: 20000
   });
+  actions = new Marionette.Actions(client);
 }
 module.exports = Calendar;
 
@@ -63,6 +66,7 @@ Calendar.HEADER_PATTERN = /^([JFMASOND][a-z]+\s){2}\d{4}$/;
  * @type {Object}
  */
 Calendar.Selector = Object.freeze({
+  todayTabItem: '#today',
   addEventButton: 'a[href="/event/add/"]',
   weekButton: 'a[href="/week/"]',
   hintSwipeToNavigate: '#hint-swipe-to-navigate',
@@ -80,6 +84,8 @@ Calendar.Selector = Object.freeze({
   monthViewDayEvent: '#event-list .event',
   monthViewDayEventName: 'h5',                // Search beneath .event
   monthViewDayEventLocation: '.location',     // for these guys.
+  monthViewpresent: '#month-view li.present',
+  monthViewselected: '#month-view li.selected',
   monthYearHeader: '#current-month-year',
   viewEventView: '#event-view',
   viewEventViewAlarm: '#event-view .alarms > .content > div',
@@ -243,10 +249,44 @@ Calendar.prototype = {
    * Start the calendar, save the client for future ops, and wait for the
    * calendar to finish an initial render.
    */
-  launch: function() {
+  launch: function(hideSwipeHint) {
     this.client.apps.launch(Calendar.ORIGIN);
     this.client.apps.switchToApp(Calendar.ORIGIN);
     // Wait for the document body to know we're really 'launched'.
     this.client.helper.waitForElement('body');
+    // Hide the hint.
+    if (hideSwipeHint) {
+      this.findElement('hintSwipeToNavigate').click();
+    }
+  },
+
+  /**
+   * Swipe on a panel.
+   * If no element param, it will swipe on the body element.
+   *
+   * @param {Marionette.Element} [element] the panel element.
+   */
+  swipe: function(element) {
+    var bodySize = client.executeScript(function() {
+          return {
+            height: document.body.clientHeight,
+            width: document.body.clientWidth
+          };
+        }),
+        panel = null;
+
+    // (X1, Y1) is swipe start.
+    // (X2, Y2) is swipe end.
+    const X1 = bodySize.width * 0.2,
+          Y1 = bodySize.height * 0.2,
+          X2 = 0,
+          Y2 = bodySize.height * 0.2;
+
+    if (!element) {
+      panel = this.client.findElement('body');
+    } else {
+      panel = element;
+    }
+    actions.flick(panel, X1, Y1, X2, Y2).perform();
   }
 };

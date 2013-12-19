@@ -50,6 +50,7 @@ var MockAppWindow = function AppWindow(config) {
   this.isTransitioning = function() { return false; };
   this.calibratedHeight = function() { return false; };
   this.isOOP = function() { return true; };
+  this.isDead = function() { return false};
 };
 
 MockAppWindow.mTeardown = function() {

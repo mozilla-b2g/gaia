@@ -659,7 +659,7 @@
   ],
   "07": [
     {"carrier":"o2","apn":"internet","mmsc":"http://10.81.0.7:8002","mmsproxy":"82.113.100.5","mmsport":"8080","type":["default","supl","mms"]},
-    {"voicemail":"333","type":["operatorvariant"]},
+    {"voicemail":"333","enableStrict7BitEncodingForSms":true,"operatorSizeLimitation":614400,"type":["operatorvariant"]},
     {"carrier":"o2 Internet Prepaid","apn":"pinternet.interkom.de","proxy":"82.113.100.6","port":"8080","mmsc":"http://10.81.0.7:8002","mmsproxy":"82.113.100.6","mmsport":"8080","type":["default","supl","mms"]}
   ]
 },

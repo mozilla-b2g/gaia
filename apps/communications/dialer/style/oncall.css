@@ -721,6 +721,10 @@
     transition: background-color 0.2s ease;
   }
 
+  #calls #group-call-label {
+    padding-right: 3rem;
+  }
+
   #group-call .hangup-button,
   #calls:not(.big-duration) #group-call > .duration.isTimer,
   #group-call-details-list .fake-number,

@@ -15,6 +15,11 @@
 
   BaseUI.prototype.EVENT_PREFIX = 'base-';
 
+  /**
+   * render UI
+   * overwrite `view` to provide HTML interface
+   * overwrite `_fetchElements` to provide elements reference
+   */
   BaseUI.prototype.render = function bu_render() {
     this.publish('willrender');
     this.containerElement.insertAdjacentHTML('beforeend', this.view());

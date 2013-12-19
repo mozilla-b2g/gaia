@@ -171,17 +171,27 @@ var EmergencyCbManager = {
 
 window.addEventListener('localized', function startup(evt) {
   window.removeEventListener('localized', startup);
-  var settings = window.navigator.mozSettings;
-  if (!settings) {
+  // XXX: check bug-926169
+  // this is used to keep all tests passing while introducing multi-sim APIs
+  var conn = navigator.mozMobileConnection ||
+    navigator.mozMobileConnections &&
+      navigator.mozMobileConnections[0];
+
+  if (!conn) {
     return;
   }
 
-  // Init EmergencyCbManager only when network type is CDMA.
-  var lock = settings.createLock();
-  var key = 'ril.radio.preferredNetworkType';
-  var request = lock.get(key);
-  request.onsuccess = function() {
-    if (request.result[key] === 'cdma') {
+  // Note: Before having the support for multi ICC card devices we read the
+  // setting 'ril.radio.preferredNetworkType' to check whether the device was
+  // CDMA enabled and therefore init the emergency callback manager. Now we
+  // use the 'getPreferredNetworkType' function in mozMobileConnection API for
+  // the first ICC card. Once we add the support for multi ICC card devices to
+  // the emergency callback manager we should consider also the second ICC card.
+  // This is the minimal fix we added in bug 946548.
+  var request = conn.getPreferredNetworkType();
+  request.onsuccess = function onSuccessHandler() {
+    var networkType = request.result;
+    if (networkType === 'cdma') {
       EmergencyCbManager.init();
     }
   };

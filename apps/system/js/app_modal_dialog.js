@@ -8,22 +8,20 @@
    * The ModalDialog of the appWindow.
    *
    * @class AppModalDialog
-   * @param {AppWindow} app The app
-   *                        window instance this modal dialog belongs to.
+   * @param {AppWindow} app The app window instance
+   *                        where this dialog should popup.
    */
   window.AppModalDialog = function AppModalDialog(app) {
     this.app = app;
-    var element = this.app.element;
-    this.containerElement = element;
+    this.containerElement = app.element;
     this.events = [];
-    this.elements = {};
     // One to one mapping.
     this.instanceID = _id++;
     this._injected = false;
     try {
-      element.addEventListener('mozbrowsershowmodalprompt', this);
+      app.element.addEventListener('mozbrowsershowmodalprompt', this);
     } catch (e) {
-      this.app._dump();
+      app._dump();
     }
     return this;
   };
@@ -52,14 +50,7 @@
     this._injected = true;
   };
 
-  AppModalDialog.elementClasses = ['alert', 'alert-ok', 'alert-message',
-      'prompt', 'prompt-ok', 'prompt-cancel', 'prompt-input', 'prompt-message',
-      'confirm', 'confirm-ok', 'confirm-cancel', 'confirm-message',
-      'select-one', 'select-one-cancel', 'select-one-menu', 'select-one-title',
-      'alert-title', 'confirm-title', 'prompt-title'];
-
-  AppModalDialog.prototype.render = function amd_render() {
-    this.containerElement.insertAdjacentHTML('beforeend', this.view());
+  AppModalDialog.prototype._fetchElements = function amd__fetchElements() {
     this.element = document.getElementById(this.CLASS_NAME + this.instanceID);
     this.elements = {};
 
@@ -69,12 +60,17 @@
       });
     };
 
+    this.elementClasses = ['alert', 'alert-ok', 'alert-message',
+      'prompt', 'prompt-ok', 'prompt-cancel', 'prompt-input', 'prompt-message',
+      'confirm', 'confirm-ok', 'confirm-cancel', 'confirm-message',
+      'select-one', 'select-one-cancel', 'select-one-menu', 'select-one-title',
+      'alert-title', 'confirm-title', 'prompt-title'];
+
     // Loop and add element with camel style name to Modal Dialog attribute.
-    this.constructor.elementClasses.forEach(function createElementRef(name) {
+    this.elementClasses.forEach(function createElementRef(name) {
       this.elements[toCamelCase(name)] =
         this.element.querySelector('.' + this.ELEMENT_PREFIX + name);
     }, this);
-    this._registerEvents();
   };
 
   AppModalDialog.prototype._registerEvents = function amd__registerEvents() {
@@ -115,8 +111,8 @@
   AppModalDialog.prototype.view = function amd_view() {
     return '<div class="modal-dialog"' +
             ' id="' + this.CLASS_NAME + this.instanceID + '">' +
-            '<form class="modal-dialog-alert generic-dialog" role="dialog"' +
-            ' tabindex="-1">' +
+            '<form class="modal-dialog-alert generic-dialog" ' +
+            'role="dialog" tabindex="-1">' +
             '<div class="modal-dialog-message-container inner">' +
               '<h3 class="modal-dialog-alert-title"></h3>' +
               '<p>' +
@@ -124,8 +120,8 @@
               '</p>' +
             '</div>' +
             '<menu>' +
-              '<button class="modal-dialog-alert-ok confirm" ' +
-              'data-l10n-id="ok" class="affirmative">OK</button>' +
+              '<button class="modal-dialog-alert-ok confirm affirmative" ' +
+              'data-l10n-id="ok">OK</button>' +
             '</menu>' +
           '</form>' +
           '<form class="modal-dialog-confirm generic-dialog" ' +
@@ -139,13 +135,12 @@
             '<menu data-items="2">' +
               '<button class="modal-dialog-confirm-cancel cancel" ' +
               'data-l10n-id="cancel">Cancel</button>' +
-              '<button class="modal-dialog-confirm-ok confirm" ' +
-              'data-l10n-id="ok" ' +
-              'class="affirmative">OK</button>' +
+              '<button class="modal-dialog-confirm-ok confirm affirmative" ' +
+              'data-l10n-id="ok">OK</button>' +
             '</menu>' +
           '</form>' +
-          '<form class="modal-dialog-prompt generic-dialog" role="dialog" ' +
-            'tabindex="-1">' +
+          '<form class="modal-dialog-prompt generic-dialog" ' +
+            'role="dialog" tabindex="-1">' +
             '<div class="modal-dialog-message-container inner">' +
               '<h3 class="modal-dialog-prompt-title"></h3>' +
               '<p>' +
@@ -156,9 +151,8 @@
             '<menu data-items="2">' +
               '<button class="modal-dialog-prompt-cancel cancel"' +
               ' data-l10n-id="cancel">Cancel</button>' +
-              '<button class="modal-dialog-prompt-ok confirm" ' +
-              'data-l10n-id="ok" ' +
-              'class="affirmative">OK</button>' +
+              '<button class="modal-dialog-prompt-ok confirm affirmative" ' +
+              'data-l10n-id="ok">OK</button>' +
             '</menu>' +
           '</form>' +
           '<form class="modal-dialog-select-one generic-dialog" ' +

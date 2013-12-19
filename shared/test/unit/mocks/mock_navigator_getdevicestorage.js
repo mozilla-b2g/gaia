@@ -27,6 +27,19 @@ var MockGetDeviceStorage = function() {
           cb(response);
         }
       };
+    },
+    addEventListener: function() {
+      // Do nothing
+    },
+    available: function() {
+      return {
+        set onsuccess(cb) {
+          setTimeout(cb);
+        },
+        get result() {
+          return 'available';
+        }
+      };
     }
   };
 };

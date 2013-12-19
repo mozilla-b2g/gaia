@@ -15,7 +15,7 @@
      * A static timeout to make sure
      * the next event don't happen too late.
      */
-    NEXTPAINT_TIMEOUT: 1000,
+    NEXTPAINT_TIMEOUT: 500,
 
     /**
      * Wait for a next paint event from mozbrowser iframe,
@@ -139,6 +139,7 @@
 
     _setVisible: function bm__setVisible(visible) {
       if (this.browser.element && 'setVisible' in this.browser.element) {
+        this.debug('setVisible on browser element:' + visible);
         this.browser.element.setVisible(visible);
       }
     },

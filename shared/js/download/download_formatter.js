@@ -19,22 +19,20 @@
   var NUMBER_OF_DECIMALS = 2;
   var BYTE_SCALE = ['B', 'KB', 'MB', 'GB', 'TB'];
 
-  function _log1024(number) {
-    return Math.log(number) / Math.log(1024);
-  }
-
   function _getFormattedSize(bytes) {
-    var _ = navigator.mozL10n.get;
-    var index = parseInt(Math.round(_log1024(bytes)));
-    var value = (bytes / Math.pow(1024, index)).toFixed(NUMBER_OF_DECIMALS);
-    // Special case, otherwise will be infinite
-    if (bytes == 0) {
-      index = 0;
-      value = 0;
+    if (bytes === undefined || isNaN(bytes)) {
+      return null;
     }
 
+    var index = 0;
+    while (bytes >= 1024 && index < BYTE_SCALE.length) {
+      bytes /= 1024;
+      ++index;
+    }
+
+    var _ = navigator.mozL10n.get;
     return _('fileSize', {
-      size: value,
+      size: bytes.toFixed(NUMBER_OF_DECIMALS),
       unit: _('byteUnit-' + BYTE_SCALE[index])
     });
   }

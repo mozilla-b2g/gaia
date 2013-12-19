@@ -1268,7 +1268,8 @@ function showOverlay(id) {
         }
         break;
       case 'emptygallery':
-        title = navigator.mozL10n.get('emptygallery2-title');
+        title = navigator.mozL10n.get(pendingPick ? 'emptygallery2-title-pick' :
+                                                    'emptygallery2-title');
         text = navigator.mozL10n.get('emptygallery2-text');
         $('overlay-menu').classList.remove('hidden');
         if (pendingPick) {

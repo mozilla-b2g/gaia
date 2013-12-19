@@ -574,12 +574,18 @@ var Settings = {
     Settings._currentActivity = activityRequest;
     switch (name) {
       case 'configure':
-        section = activityRequest.source.data.section || 'root';
+        section = activityRequest.source.data.section;
+
+        if (!section) {
+          // If there isn't a section specified,
+          // simply show ourselve without making ourselves a dialog.
+          Settings._currentActivity = null;
+        }
 
         // Validate if the section exists
         var sectionElement = document.getElementById(section);
         if (!sectionElement || sectionElement.tagName !== 'SECTION') {
-          var msg = 'Trying to open an unexistent section: ' + section;
+          var msg = 'Trying to open an non-existent section: ' + section;
           console.warn(msg);
           activityRequest.postError(msg);
           return;

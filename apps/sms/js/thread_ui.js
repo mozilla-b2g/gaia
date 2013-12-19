@@ -66,7 +66,6 @@ var ThreadUI = global.ThreadUI = {
     var templateIds = [
       'message',
       'not-downloaded',
-      'number',
       'recipient'
     ];
 
@@ -75,14 +74,12 @@ var ThreadUI = global.ThreadUI = {
 
     // Fields with 'messages' label
     [
-      'container', 'subheader', 'to-field', 'recipients-list',
-      'participants', 'participants-list', 'header-text', 'recipient',
+      'container', 'subheader', 'to-field', 'recipients-list', 'recipient',
       'input', 'compose-form', 'check-all-button', 'uncheck-all-button',
       'contact-pick-button', 'back-button', 'send-button', 'attach-button',
-      'delete-button', 'cancel-button', 'subject-input',
-      'options-icon', 'edit-mode', 'edit-form', 'tel-form',
-      'max-length-notice', 'convert-notice', 'resize-notice',
-      'new-message-notice'
+      'delete-button', 'cancel-button', 'subject-input', 'new-message-notice',
+      'options-icon', 'edit-mode', 'edit-form', 'tel-form', 'header-text',
+      'max-length-notice', 'convert-notice', 'resize-notice'
     ].forEach(function(id) {
       this[Utils.camelCase(id)] = document.getElementById('messages-' + id);
     }, this);
@@ -179,10 +176,6 @@ var ThreadUI = global.ThreadUI = {
 
     this.headerText.addEventListener(
       'click', this.onHeaderActivation.bind(this)
-    );
-
-    this.participantsList.addEventListener(
-      'click', this.onParticipantClick.bind(this)
     );
 
     this.newMessageNotice.addEventListener(
@@ -751,7 +744,8 @@ var ThreadUI = global.ThreadUI = {
 
   back: function thui_back() {
 
-    if (window.location.hash === '#group-view') {
+    if (window.location.hash === '#group-view' ||
+        window.location.hash.startsWith('#report-view')) {
       window.location.hash = '#thread=' + Threads.lastId;
       this.updateHeaderData();
       return;
@@ -968,9 +962,10 @@ var ThreadUI = global.ThreadUI = {
 
     // We set the buttons' top margin to ensure they render at the bottom of
     // the container
-    var buttonOffset = minHeight + verticalMargin +
-                       subjectHeight - buttonHeight;
+    var buttonOffset = composeHeight - buttonHeight;
     this.sendButton.style.marginTop = buttonOffset + 'px';
+
+    this.scrollViewToBottom();
   },
 
   findNextContainer: function thui_findNextContainer(container) {
@@ -1361,6 +1356,10 @@ var ThreadUI = global.ThreadUI = {
   // In multiple recipient case, we return true only when all the recipients
   // deliveryStatus set to success.
   isDeliveryStatusSuccess: function thui_isDeliveryStatusSuccess(message) {
+    if (message.delivery !== 'sent') {
+      return false;
+    }
+
     if (message.type === 'mms') {
       return message.deliveryInfo.every(function(info) {
         return info.deliveryStatus === 'success';
@@ -1391,7 +1390,7 @@ var ThreadUI = global.ThreadUI = {
       classNames.push('outgoing');
     }
 
-    if (delivery === 'sent' && isDelivered) {
+    if (isDelivered) {
       classNames.push('delivered');
     }
 
@@ -1809,6 +1808,14 @@ var ThreadUI = global.ThreadUI = {
                     messageId: messageId
                   };
                   window.location.hash = '#new';
+                },
+                params: [messageId]
+              },
+              {
+                l10nId: 'view-message-report',
+                method: function showMessageReport(messageId) {
+                  // Fetch the message by id and display report
+                  window.location.href = '#report-view=' + messageId;
                 },
                 params: [messageId]
               },
@@ -2289,17 +2296,6 @@ var ThreadUI = global.ThreadUI = {
     }
   },
 
-  onParticipantClick: function onParticipantClick(event) {
-    event.stopPropagation();
-    event.preventDefault();
-
-    var target = event.target;
-
-    this.promptContact({
-      number: target.dataset.number
-    });
-  },
-
   promptContact: function thui_promptContact(opts) {
     opts = opts || {};
 
@@ -2333,52 +2329,6 @@ var ThreadUI = global.ThreadUI = {
         inMessage: inMessage
       });
     }.bind(this));
-  },
-
-  groupView: function thui_groupView() {
-    var lastId = Threads.lastId;
-    var participants = lastId && Threads.get(lastId).participants;
-    var ul = this.participantsList;
-
-    this.groupView.reset();
-
-    // Render the Group Participants list
-    var renderer = ContactRenderer.flavor('group-view');
-
-    participants.forEach(function(participant) {
-
-      Contacts.findByPhoneNumber(participant, function(results) {
-        var isContact = results !== null && !!results.length;
-
-        if (isContact) {
-          renderer.render({
-            contact: results[0],
-            input: participant,
-            target: ul
-          });
-        } else {
-          var li = document.createElement('li');
-          li.innerHTML = this.tmpl.number.interpolate({
-            number: participant
-          });
-          ul.appendChild(li);
-        }
-      }.bind(this));
-    }.bind(this));
-
-    // Hide the Messages edit icon, view container and composer form
-    this.optionsIcon.classList.add('hide');
-    this.subheader.classList.add('hide');
-    this.container.classList.add('hide');
-    this.composeForm.classList.add('hide');
-
-    // Append and Show the participants list
-    this.participants.appendChild(ul);
-    this.participants.classList.remove('hide');
-
-    navigator.mozL10n.localize(this.headerText, 'participant', {
-      n: participants.length
-    });
   },
 
   prompt: function thui_prompt(opt) {
@@ -2519,18 +2469,6 @@ Object.defineProperty(ThreadUI, 'selectedInputs', {
     return this.getSelectedInputs();
   }
 });
-
-ThreadUI.groupView.reset = function groupViewReset() {
-  // Hide the group view
-  ThreadUI.participants.classList.add('hide');
-  // Remove all LIs
-  ThreadUI.participantsList.textContent = '';
-  // Restore message list view UI elements
-  ThreadUI.optionsIcon.classList.remove('hide');
-  ThreadUI.subheader.classList.remove('hide');
-  ThreadUI.container.classList.remove('hide');
-  ThreadUI.composeForm.classList.remove('hide');
-};
 
 window.confirm = window.confirm; // allow override in unit tests
 

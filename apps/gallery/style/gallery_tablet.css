@@ -344,60 +344,60 @@ body.fullscreenView #fullscreen-back-button-large {
  */
 #overlay,
 #confirm-dialog {
- background: rgba(0, 0, 0, 0.6);
+  background: rgba(51, 51, 51, 0.6);
 }
 
-#overlay div,
-#confirm-dialog div {
+#overlay section,
+#confirm-dialog section {
   position: absolute;
+  padding: 1rem 6rem 0;
   left: calc((100% - 68rem) / 2);
   top: calc((100% - 53rem) / 2);
   width: 68rem;
-  height: 53rem;
-  background: #333333;
+  height: 46rem;
   box-shadow: 0 0 1rem #000;
   border: 0.1rem #000;
-}
-
-#overlay > div > section,
-#confirm-dialog > div > section {
-  padding: 1rem 6rem 0;
-  height: 46rem;
   font-size: 2rem;
+  background-color: #333333;
 }
 
-#overlay > div > section > p {
+#overlay > section > p {
   padding: 1rem 1rem 0;
   margin: 0;
 }
 
-#confirm-dialog > div > section > p {
+#confirm-dialog > section > p {
   margin-top: 20rem;
 }
 
-#overlay > div > section > h1 {
+#overlay > section > h1 {
   line-height: 6rem;
   margin: 1rem 0 0;
 }
 
-#overlay > div > menu,
-#confirm-dialog > div > menu {
+#overlay > menu,
+#confirm-dialog > menu {
+  position: absolute;
+  left: calc((100% - 68rem) / 2);
+  top: calc((100% - 53rem) / 2 + 46rem);
+  width: 68rem;
   background: #2d2d2d;
   padding: 1.5rem 14rem;
   height: 7rem;
   bottom: 0;
+  box-shadow: 0 0 1rem #000;
 }
 
-#overlay menu button,
-#confirm-dialog menu button {
-  width: 18rem;
+#overlay:after,
+#confirm-dialog:after {
+  content: '';
+  position: absolute;
+  width: 68rem;
+  top: calc((100% - 53rem) / 2 + 45rem);
+  left: calc((100% - 68rem) / 2);
+  height: 1rem;
+  background-color: #333;
 }
-
-#overlay menu button:last-child,
-#confirm-dialog menu button:last-child {
-  margin-left: 4rem;
-}
-
 /* video player */
 body.fullscreenView .videoPlayerFullscreenButton,
 body.thumbnailSelectView .videoPlayerFullscreenButton {

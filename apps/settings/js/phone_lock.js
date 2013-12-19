@@ -74,7 +74,6 @@ var PhoneLock = {
     reqLockscreenEnable.onsuccess = function onLockscreenEnableSuccess() {
       var enable = reqLockscreenEnable.result['lockscreen.enabled'];
       self.toggleLock(enable);
-      self.lockscreenEnable.checked = enable;
     };
 
     var reqCode = lock.get('lockscreen.passcode-lock.code');
@@ -117,6 +116,7 @@ var PhoneLock = {
     this.phonelockPanel.dataset.lockscreenEnabled = enable;
     this.phonelockDesc.textContent = enable ? _('enabled') : _('disabled');
     this.phonelockDesc.dataset.l10nId = enable ? 'enabled' : 'disabled';
+    this.lockscreenEnable.checked = enable;
   },
 
   showErrorMessage: function pl_showErrorMessage(message) {
@@ -220,12 +220,14 @@ var PhoneLock = {
               break;
             case 'confirmLock':
               if (this.checkPasscode()) {
-                this.lockscreenEnable.checked = false;
-                this.toggleLock(false);
+                var settings = navigator.mozSettings;
+                var lock = settings.createLock();
+                var reqSetPasscode = lock.set({
+                  'lockscreen.enabled': false
+                });
                 this.backToPhoneLock();
               } else {
                 this._passcodeBuffer = '';
-                this.lockscreenEnable.checked = true;
                 this.toggleLock(true);
               }
               break;
