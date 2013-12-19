@@ -150,6 +150,10 @@
   z-index: 2044;
 }
 
+#screen > [data-z-index-level="search-bar"] {
+  z-index: 2043;
+}
+
 #screen.locked.attention > [data-z-index-level="keyboards"] {
   z-index: 65536;
 }

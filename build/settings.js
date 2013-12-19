@@ -247,6 +247,7 @@ function execute(options) {
    'ril.data.apnSettings': '',
    'ril.data.cp.apns': '',
    'ril.callerId': 'CLIR_DEFAULT',
+   'rocketbar.enabled': false,
    'screen.automatic-brightness': false,
    'screen.brightness': 1,
    'screen.timeout': 60,
@@ -312,6 +313,10 @@ function execute(options) {
     settings['ftu.manifestURL'] = utils.gaiaManifestURL('communications',
       config.GAIA_SCHEME, config.GAIA_DOMAIN, config.GAIA_PORT);
   }
+
+  // Set the rocketbar URL
+  settings['rocketbar.searchAppURL'] = utils.gaiaOriginURL('search',
+    config.GAIA_SCHEME, config.GAIA_DOMAIN, config.GAIA_PORT) + '/index.html';
 
   if (config.PRODUCTION === '1') {
     settings['feedback.url'] = 'https://input.mozilla.org/api/v1/feedback/';

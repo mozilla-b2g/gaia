@@ -1,9 +1,33 @@
 'use strict';
 
 var EverythingME = {
+  activated: false,
   pendingEvent: undefined,
+  pendingPorts: [],
 
   init: function EverythingME_init() {
+    var self = this;
+    // Listen to eme-api channel
+    // activate E.me upon connection request
+    navigator.mozSetMessageHandler('connection',
+      function(connectionRequest) {
+      var keyword = connectionRequest.keyword;
+      if (keyword != 'eme-api')
+        return;
+
+      EverythingME.pendingPorts.push(connectionRequest.port);
+      loadCollectionAssets();
+      EverythingME.activate();
+    });
+
+    LazyLoader.load(['shared/js/settings_listener.js'],
+      function loaded() {
+        SettingsListener.observe('rocketbar.enabled', false,
+          function onSettingChange(value) {
+          self.rocketbarEnabled = value;
+        });
+      });
+
     var footer = document.querySelector('#footer');
     if (footer) {
       footer.style.MozTransition = '-moz-transform .3s ease';
@@ -34,9 +58,26 @@ var EverythingME = {
     // add event listeners that trigger evme load
     activationIcon.addEventListener('contextmenu', onContextMenu);
     activationIcon.addEventListener('click', triggerActivateFromInput);
+    activationIcon.addEventListener('touchstart', searchFocus);
     window.addEventListener('collectionlaunch', triggerActivate);
     window.addEventListener('collectiondropapp', triggerActivate);
     window.addEventListener('suggestcollections', triggerActivate);
+    window.addEventListener('search-focus', searchFocus);
+
+    /**
+     * Called when the search bar is focused.
+     * Opens the rocketbar and prevents the event default
+     * Ensures that we do not focus on the searchbar, otherwise
+     * the keyboard can flicker or not show up.
+     */
+    function searchFocus(e) {
+      if (self.rocketbarEnabled) {
+        e.preventDefault();
+        // Call stopPropagation to prevent the click event
+        e.stopPropagation();
+        self.openRocketbar();
+      }
+    }
 
     // specifically for pseudo searchbar
     function triggerActivateFromInput(e) {
@@ -141,6 +182,13 @@ var EverythingME = {
     EverythingME.migrateStorage();
   },
 
+  openRocketbar: function() {
+    LazyLoader.load(['everything.me/js/search/control.js'],
+      function loaded() {
+        EverythingME.SearchControl.open();
+      });
+  },
+
   onActivationIconBlur: function onActivationIconBlur(e) {
     EverythingME.pendingEvent = null;
     e.target.removeEventListener('blur', onActivationIconBlur);
@@ -169,6 +217,11 @@ var EverythingME = {
   },
 
   activate: function EverythingME_activate() {
+    if (EverythingME.activated) {
+      return;
+    }
+
+    EverythingME.activated = true;
     var searchPage = document.getElementById('search-page');
     LazyLoader.load(searchPage, function loaded() {
       document.body.classList.add('evme-loading');
@@ -193,7 +246,6 @@ var EverythingME = {
           'js/api/DoATAPI.js',
           'js/helpers/EventHandler.js',
           'js/helpers/Idle.js',
-          'shared/js/settings_listener.js',
           'shared/js/icc_helper.js',
           'shared/js/mobile_operator.js',
           'js/plugins/Analytics.js',
@@ -291,6 +343,19 @@ var EverythingME = {
   },
 
   onEvmeLoaded: function onEvmeLoaded() {
+
+    // load the search handler and start the ports
+    LazyLoader.load(
+      ['everything.me/js/search/handler.js',
+       'everything.me/js/search/client.js',
+       'everything.me/js/search/result.js'
+      ], function loaded() {
+      EverythingME.pendingPorts.forEach(function openPort(port) {
+        port.onmessage = Evme.SearchHandler.onMessage;
+        port.start();
+      });
+    });
+
     var page = document.getElementById('evmeContainer'),
         gridPage = document.querySelector('#icongrid > div:first-child'),
         activationIcon = document.getElementById('evme-activation-icon'),
