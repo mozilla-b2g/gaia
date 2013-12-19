@@ -114,7 +114,7 @@ var MessageManager = {
     if (document.hidden) {
       var hash = window.location.hash;
       if (hash === '#new' || hash.startsWith('#thread=')) {
-        ThreadUI.saveDraft();
+        ThreadUI.saveDraft({preserve: true});
       }
     }
 

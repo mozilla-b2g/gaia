@@ -2535,7 +2535,17 @@ var ThreadUI = global.ThreadUI = {
     }
   },
 
-  saveDraft: function thui_saveDraft() {
+   /**
+   * saveDraft
+   *
+   * Saves the currently unsent message content or recipients
+   * into a Draft object.  Preserves the currently marked
+   * draft if specified.
+   *
+   * @param {Object} opts Optional parameters for saving a draft.
+   *                  - preserve, boolean whether or not to preserve draft.
+   */
+  saveDraft: function thui_saveDraft(opts) {
     var draft, recipients, content, thread, threadId, type;
 
     content = Compose.getContent();
@@ -2576,7 +2586,12 @@ var ThreadUI = global.ThreadUI = {
       ThreadListUI.updateThread(draft);
     }
 
-    MessageManager.draft = null;
+    // Clear the MessageManager draft if
+    // not explicitly preserved for the
+    // draft replacement case
+    if (!opts || (opts && !opts.preserve)) {
+      MessageManager.draft = null;
+    }
   }
 };
 

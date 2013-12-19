@@ -815,6 +815,7 @@ suite('message_manager.js >', function() {
       MessageManager.onVisibilityChange();
 
       assert.isTrue(spy.calledOnce);
+      assert.isTrue(spy.calledWithMatch({preserve: true}));
       assert.equal(ThreadUI.recipients.length, 0);
     });
 
@@ -824,6 +825,7 @@ suite('message_manager.js >', function() {
       MessageManager.onVisibilityChange();
 
       assert.isTrue(spy.calledOnce);
+      assert.isTrue(spy.calledWithMatch({preserve: true}));
       assert.equal(ThreadUI.recipients.length, 0);
     });
 

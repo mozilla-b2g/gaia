@@ -3904,6 +3904,21 @@ suite('thread_ui.js >', function() {
       Compose.append('foo');
     });
 
+    test('do not preserve draft for replacement', function() {
+      ThreadUI.saveDraft();
+
+      assert.isNull(MessageManager.draft);
+    });
+
+    test('preserve draft for replacement', function() {
+      var draft = {id: 55};
+      MessageManager.draft = draft;
+      ThreadUI.saveDraft({preserve: true});
+
+      assert.isNotNull(MessageManager.draft);
+      assert.equal(MessageManager.draft, draft);
+    });
+
     test('has entered content and recipients', function() {
       ThreadUI.saveDraft();
       arg = addSpy.firstCall.args[0];
