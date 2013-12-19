@@ -26,6 +26,5 @@ class TestSettingsFromMessage(GaiaTestCase):
         #tap settings icon
         messaging_settings = activities.tap_settings()
         
-        self.wait_for_condition(lambda m: self.apps.displayed_app.name == messaging_settings.name)
         self.apps.switch_to_displayed_app()
         self.assertTrue(messaging_settings.is_messaging_settings_displayed())
