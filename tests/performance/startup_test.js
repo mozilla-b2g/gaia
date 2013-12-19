@@ -41,8 +41,11 @@ marionette('startup test > ' + mozTestInfo.appPath + ' >', function() {
 
     PerformanceHelper.registerLoadTimeListener(client);
 
+    var mem_stats = [];
     performanceHelper.repeatWithDelay(function(app, next) {
       app.launch();
+      var mem_usage = performanceHelper.getMemoryUsage(app);
+      mem_stats.push(mem_usage);
       app.close();
     });
 
@@ -61,6 +64,7 @@ marionette('startup test > ' + mozTestInfo.appPath + ' >', function() {
     });
 
     PerformanceHelper.reportDuration(results);
+    PerformanceHelper.reportMemory(mem_stats);
 
     PerformanceHelper.unregisterLoadTimeListener(client);
   });
