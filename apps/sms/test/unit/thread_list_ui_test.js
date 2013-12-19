@@ -596,31 +596,31 @@ suite('thread_list_ui', function() {
     });
 
     suite('Correctly displayed content', function() {
+      var now, message, li;
 
       setup(function() {
         this.sinon.stub(Threads, 'get').returns({
           hasDrafts: true
         });
+
+        now = Date.now();
+
+        message = MockMessages.sms({
+          delivery: 'delivered',
+          threadId: 1,
+          timestamp: now,
+          body: 'from a message'
+        });
       });
 
       test('Message newer than draft is used', function() {
-        var now = Date.now();
-
         this.sinon.stub(Drafts, 'byThreadId').returns({
           latest: {
             timestamp: now - 60000,
             content: ['from a draft']
           }
         });
-
-        var message = MockMessages.sms({
-          delivery: 'delivered',
-          threadId: 1,
-          timestamp: now,
-          body: 'from a message'
-        });
-
-        var li = ThreadListUI.createThread(
+        li = ThreadListUI.createThread(
           Thread.create(message)
         );
 
@@ -630,23 +630,14 @@ suite('thread_list_ui', function() {
       });
 
       test('Draft newer than content is used', function() {
-        var now = Date.now();
-
         this.sinon.stub(Drafts, 'byThreadId').returns({
           latest: {
             timestamp: now,
             content: ['from a draft']
           }
         });
-
-        var message = MockMessages.sms({
-          delivery: 'delivered',
-          threadId: 1,
-          timestamp: now - 60000,
-          body: 'from a message'
-        });
-
-        var li = ThreadListUI.createThread(
+        message.timestamp = now - 60000;
+        li = ThreadListUI.createThread(
           Thread.create(message)
         );
 
@@ -656,29 +647,35 @@ suite('thread_list_ui', function() {
       });
 
       test('Draft newer, but has no content', function() {
-        var now = Date.now();
-
         this.sinon.stub(Drafts, 'byThreadId').returns({
           latest: {
             timestamp: now,
             content: []
           }
         });
-
-        var message = MockMessages.sms({
-          delivery: 'delivered',
-          threadId: 1,
-          timestamp: now - 60000,
-          body: 'from a message'
-        });
-
-        var li = ThreadListUI.createThread(
+        message.timestamp = now - 60000;
+        li = ThreadListUI.createThread(
           Thread.create(message)
         );
 
         assert.equal(
           li.querySelector('.body-text').textContent, ''
         );
+      });
+
+      test('Last message type for draft', function() {
+        this.sinon.stub(Drafts, 'byThreadId').returns({
+          latest: {
+            timestamp: now,
+            content: [],
+            type: 'mms'
+          }
+        });
+        li = ThreadListUI.createThread(
+          Thread.create(message)
+        );
+
+        assert.ok(li.dataset.lastMessageType, 'mms');
       });
     });
   });
