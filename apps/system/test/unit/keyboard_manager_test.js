@@ -472,18 +472,24 @@ suite('KeyboardManager', function() {
     });
 
     test('attentionscreenshow event', function() {
-      KeyboardManager.handleEvent({
-        type: 'attentionscreenshow'
-      });
+      trigger('attentionscreenshow');
       setTimeout(function() {
         sinon.assert.callCount(hideKeyboardImmediately, 1);
       }, 0);
     });
 
-    test('activitywillclose event', function() {
-      KeyboardManager.handleEvent({
-        type: 'activitywillclose'
-      });
+    test('activityclosing event', function() {
+      trigger('activityclosing');
+      assert.ok(hideKeyboardImmediately.called);
+    });
+
+    test('activityopening event', function() {
+      trigger('activityopening');
+      assert.ok(hideKeyboardImmediately.called);
+    });
+
+    test('applicationsetupdialogshow event', function() {
+      trigger('applicationsetupdialogshow');
       assert.ok(hideKeyboardImmediately.called);
     });
   });
