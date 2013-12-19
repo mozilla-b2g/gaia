@@ -14,6 +14,8 @@ var Rocketbar = {
 
   searchCancel: document.getElementById('search-cancel'),
 
+  searchReset: document.getElementById('search-reset'),
+
   get shown() {
     return ('visible' in this.searchBar.dataset);
   },
@@ -22,6 +24,11 @@ var Rocketbar = {
     var input = document.getElementById('search-input');
     var self = this;
     input.addEventListener('input', function onInput(e) {
+      if (!input.value) {
+        self.searchReset.classList.add('hidden');
+      } else {
+        self.searchReset.classList.remove('hidden');
+      }
       self._port.postMessage({
         'type': 'change',
         'input': input.value
@@ -47,6 +54,12 @@ var Rocketbar = {
         e.stopPropagation();
         this.hide();
         break;
+      case 'search-reset':
+        e.preventDefault();
+        e.stopPropagation();
+        this.searchInput.value = '';
+        this.searchReset.classList.add('hidden');
+        break;
       default:
         break;
     }
@@ -58,6 +71,10 @@ var Rocketbar = {
       this.onSearchMessage.bind(this));
 
     this.searchCancel.addEventListener('click', this);
+    // Prevent default on mousedown
+    this.searchReset.addEventListener('mousedown', this);
+    // Listen to clicks to keep the keyboard up
+    this.searchReset.addEventListener('click', this);
 
     SettingsListener.observe('rocketbar.enabled', false,
     function(value) {
@@ -166,6 +183,7 @@ var Rocketbar = {
 
     var input = this.searchInput;
     input.value = '';
+    this.searchReset.classList.add('hidden');
 
     var self = this;
     search.addEventListener('transitionend', function shown(e) {
