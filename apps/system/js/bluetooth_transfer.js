@@ -130,6 +130,13 @@ var BluetoothTransfer = {
   },
 
   onReceivingFileConfirmation: function bt_onReceivingFileConfirmation(evt) {
+    if (NfcHandoverManager.isHandoverInProgress()) {
+      // Bypassing confirm dialog while incoming file transfer via NFC Handover
+      this.debug('Incoming file via NFC Handover. Bypassing confirm dialog');
+      this.acceptReceive(evt);
+      return;
+    }
+
     // Prompt appears when a transfer request from a paired device is received.
     var _ = navigator.mozL10n.get;
 
@@ -270,6 +277,29 @@ var BluetoothTransfer = {
     };
   },
 
+  sendFile: function bt_sendFile(mac, blob) {
+    var adapter = Bluetooth.getAdapter();
+    if (adapter != null) {
+      var sendingFilesSchedule = {
+        numberOfFiles: 1,
+        numSuccessful: 0,
+        numUnsuccessful: 0
+      };
+      this.onFilesSending({detail: sendingFilesSchedule});
+      // XXX: Bug 915602 - [Bluetooth] Call sendFile api will crash
+      // the system while device is just paired.
+      // The paired device is ready to send file.
+      // Since above issue is existed, we use a setTimeout with 3 secs delay
+      var waitConnectionReadyTimeoutTime = 3000;
+      setTimeout(function() {
+        adapter.sendFile(mac, blob);
+      }, waitConnectionReadyTimeoutTime);
+    } else {
+      var msg = 'Cannot get adapter from system Bluetooth monitor.';
+      this.debug(msg);
+    }
+  },
+
   onUpdateProgress: function bt_onUpdateProgress(mode, evt) {
     switch (mode) {
       case 'start':
@@ -386,6 +416,10 @@ var BluetoothTransfer = {
 
   onTransferComplete: function bt_onTransferComplete(evt) {
     var transferInfo = evt.detail.transferInfo;
+    if (NfcHandoverManager.isHandoverInProgress()) {
+      // Inform NfcHandoverManager that the transfer completed
+      NfcHandoverManager.transferComplete(transferInfo.success);
+    }
     var _ = navigator.mozL10n.get;
     // Remove transferring progress
     this.removeProgress(transferInfo);
