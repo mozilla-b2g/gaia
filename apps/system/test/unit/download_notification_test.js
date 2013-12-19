@@ -10,10 +10,12 @@ requireApp('system/test/unit/mock_download_helper.js');
 requireApp('system/test/unit/mock_l10n.js');
 requireApp('system/test/unit/mock_notification_screen.js');
 requireApp('system/test/unit/mock_activity.js');
+requireApp('system/test/unit/mock_statusbar.js');
 
 requireApp('system/js/download/download_notification.js');
 
 var mocksForDownloadNotification = new MocksHelper([
+  'StatusBar',
   'Download',
   'NotificationScreen',
   'L10n',
@@ -60,6 +62,8 @@ suite('system/DownloadNotification >', function() {
   test('Download notification has been created', function() {
     notification = new DownloadNotification(download);
     assert.isTrue(NotificationScreen.addNotification.called);
+    assert.isUndefined(MockStatusBar.wasMethodCalled['incSystemDownloads']);
+    assert.isUndefined(MockStatusBar.wasMethodCalled['decSystemDownloads']);
   });
 
   test('The download starts', function() {
@@ -71,6 +75,8 @@ suite('system/DownloadNotification >', function() {
     sinon.assert.calledWithMatch(NotificationScreen.addNotification, {
       noNotify: true
     });
+    assert.ok(MockStatusBar.wasMethodCalled['incSystemDownloads']);
+    assert.isUndefined(MockStatusBar.wasMethodCalled['decSystemDownloads']);
   });
 
   test('The notification was clicked while downloading > Show download list',
@@ -86,6 +92,8 @@ suite('system/DownloadNotification >', function() {
     download.state = 'stopped';
     download.onstatechange();
     assertUpdatedNotification(download);
+    assert.isUndefined(MockStatusBar.wasMethodCalled['incSystemDownloads']);
+    assert.ok(MockStatusBar.wasMethodCalled['decSystemDownloads']);
   });
 
   test('Canceled notification was clicked > Show confirmation', function() {
@@ -102,6 +110,8 @@ suite('system/DownloadNotification >', function() {
     sinon.assert.calledWithMatch(NotificationScreen.addNotification, {
       noNotify: true
     });
+    assert.ok(MockStatusBar.wasMethodCalled['incSystemDownloads']);
+    assert.isUndefined(MockStatusBar.wasMethodCalled['decSystemDownloads']);
   });
 
   test('Download was stopped', function() {
@@ -109,6 +119,8 @@ suite('system/DownloadNotification >', function() {
     download.state = 'stopped';
     download.onstatechange();
     assertUpdatedNotification(download);
+    assert.isUndefined(MockStatusBar.wasMethodCalled['incSystemDownloads']);
+    assert.ok(MockStatusBar.wasMethodCalled['decSystemDownloads']);
   });
 
   test('Paused notification was clicked > Show confirmation', function() {
@@ -126,6 +138,8 @@ suite('system/DownloadNotification >', function() {
     sinon.assert.calledWithMatch(NotificationScreen.addNotification, {
       noNotify: true
     });
+    assert.ok(MockStatusBar.wasMethodCalled['incSystemDownloads']);
+    assert.isUndefined(MockStatusBar.wasMethodCalled['decSystemDownloads']);
   });
 
   test('Download finishes', function() {
@@ -134,6 +148,8 @@ suite('system/DownloadNotification >', function() {
     download.onstatechange();
     assertUpdatedNotification(download);
     assert.ok(DownloadStore.add.calledOnce);
+    assert.isUndefined(MockStatusBar.wasMethodCalled['incSystemDownloads']);
+    assert.ok(MockStatusBar.wasMethodCalled['decSystemDownloads']);
   });
 
   test('Finished notification was clicked > Open file', function() {
