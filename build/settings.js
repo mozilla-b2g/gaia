@@ -120,6 +120,9 @@ function execute(config) {
 
   if (config.DEVICE_DEBUG) {
     settings['debugger.remote-mode'] = 'adb-only';
+  }
+
+  if (config.NO_LOCK_SCREEN) {
     settings['screen.timeout'] = 0;
     settings['lockscreen.enabled'] = false;
     settings['lockscreen.locked'] = false;

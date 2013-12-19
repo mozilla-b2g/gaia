@@ -12,7 +12,8 @@ branches:
 env:
   matrix:
   - CI_ACTION=gjslint
-  - CI_ACTION=test_agent
+  - CI_ACTION=unit-tests-in-b2g
+  - CI_ACTION=unit-tests-in-firefox
   - CI_ACTION=marionette_js
   - CI_ACTION=gaia_ui_tests
   - CI_ACTION=build_tests
@@ -25,6 +26,7 @@ matrix:
   fast_finish: true
   allow_failures:
     - env: CI_ACTION=jshint
+    - env: CI_ACTION=unit-tests-in-b2g
 notifications:
   email: false
   irc:

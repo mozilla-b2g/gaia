@@ -27,6 +27,7 @@ function startup(data, reason) {
   const GAIA_APPDIRS = Services.prefs.getCharPref("extensions.gaia.appdirs");
   const GAIA_DIR = Services.prefs.getCharPref("extensions.gaia.dir");
   const GAIA_PORT = Services.prefs.getIntPref("extensions.gaia.port");
+  const GAIA_OFFICIAL = Services.prefs.getBoolPref("extensions.gaia.official");
   const LOCALES_FILE =
     Services.prefs.getCharPref("extensions.gaia.locales_file");
   const LOCALE_BASEDIR =
@@ -177,7 +178,21 @@ function startup(data, reason) {
       });
     }
 
+
     server.registerPathHandler('/marionette', MarionetteHandler);
+
+    new LocalFile(baseDir + '/test_apps/test-agent');
+
+    server.registerDirectory(
+      '/common/', new LocalFile(baseDir + '/test_apps/test-agent/common')
+    );
+    server.registerDirectory('/shared/', new LocalFile(baseDir + '/shared'));
+
+    let brandingLocalFile = new LocalFile(
+      baseDir + '/shared/branding/' + GAIA_OFFICIAL ? 'official' : 'unofficial'
+    );
+
+    server.registerDirectory('/shared/branding/', brandingLocalFile);
   }
 
   function getDirectories(appDirs) {
