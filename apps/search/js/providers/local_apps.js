@@ -39,7 +39,6 @@
       results.forEach(function eachResult(result) {
         var div = document.createElement('div');
         div.className = 'result';
-        div.dataset.provider = this.name;
         div.dataset.manifest = result.manifestURL;
 
         if (result.entryPoint) {

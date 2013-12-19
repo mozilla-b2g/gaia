@@ -31,8 +31,10 @@ Search.Selectors = {
   searchInput: '#search-input',
   searchResults: 'iframe[mozapptype="mozsearch"]',
   statusBar: '#statusbar',
-  firstApp: '[data-provider="LocalApps"]',
-  firstContact: '[data-provider="Contacts"]'
+  firstAppContainer: '#localapps',
+  firstApp: '#localapps .result',
+  firstContact: '#contacts .result',
+  firstContactContainer: '#contacts'
 };
 
 Search.prototype = {
@@ -53,8 +55,11 @@ Search.prototype = {
    * @param {String} expected value of the text.
    */
   checkResult: function(selectorKey, expected) {
+    var selectors = Search.Selectors;
+
+    this.client.helper.waitForElement(selectors[selectorKey + 'Container']);
     var result = this.client.helper
-      .waitForElement(Search.Selectors[selectorKey]);
+      .waitForElement(selectors[selectorKey]);
     assert.equal(expected, result.text());
     result.click();
   },

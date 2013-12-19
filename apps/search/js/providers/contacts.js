@@ -50,7 +50,6 @@
           for (var j = 0; j < result.name.length; j++) {
             var div = document.createElement('div');
             div.className = 'result';
-            div.dataset.provider = this.name;
             div.dataset.contactId = result.id;
 
             if (!result.photo) {
