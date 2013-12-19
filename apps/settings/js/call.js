@@ -797,6 +797,7 @@ var CallSettings = (function(window, document, undefined) {
         return;
       }
 
+      var voicePrivacyHelper = VoicePrivacySettingsHelper();
       var privacyModeItem =
         document.getElementById('menuItem-voicePrivacyMode');
       var privacyModeInput =
@@ -819,6 +820,10 @@ var CallSettings = (function(window, document, undefined) {
         function vpm_inputChanged() {
           var originalValue = !this.checked;
           var setReq = _mobileConnection.setVoicePrivacyMode(this.checked);
+          setReq.onsuccess = function set_vpm_success() {
+            var targetIndex = DsdsSettings.getIccCardIndexForCallSettings();
+            voicePrivacyHelper.setEnabled(targetIndex, !originalValue);
+          };
           setReq.onerror = function get_vpm_error() {
             // restore the value if failed.
             privacyModeInput.checked = originalValue;
