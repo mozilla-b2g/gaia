@@ -66,10 +66,7 @@
       // Whether we need to auto extend the handle.
       autoExpand: {
         accState: 'normal', // In accelerating or not.
-        accFactorOriginal: 1.0,
-        accFactor: 1.0,     // Accelerate sliding if user's finger crossed.
-        accFactorMax: 1.3,
-        accFactorInterval: 0.02,
+        accFactor: 1.02,     // Accelerate sliding (y = x^accFactor).
         sentinelOffset: 40,  // How many pixels before reaching end.
         sentinelWidth: 0   // Max width - offset
       },
@@ -403,8 +400,6 @@
             if (prevState !== currentState)
               this.intentionRouter.nearRight(currentState, prevState);
           }
-          // TODO: XXX: Where we use the previous 'mtx' ?
-          mtx = this._accelerateSlide(tx, tx < expandSentinelL, slow);
       } else {
         var prevState = this.handle.autoExpand.accState;
         this.handle.autoExpand.accState = 'normal';
@@ -418,9 +413,8 @@
               this.intentionRouter.nearRight(currentState, prevState);
           }
         }
-        this.handle.autoExpand.accFactor =
-          this.handle.autoExpand.accFactorOriginal;
       }
+      mtx = this._accelerateSlide(tx);
 
       // Order matters.
       this._drawTrack();
@@ -527,31 +521,26 @@
       touch.prevX = pageX;
     };
 
-
   /**
    * Accelerate the slide when the finger is near the end.
    *
-   * @param {number} |tx| Slide distance.
-   * @param {boolean} |isLeft| Slide direction.
-   * @param {boolean} |inverse| (Optional) true if you want to slow rather
-   *                            than accelerate it.
+   * @param {number} |tx|
    * @return {number}
    * @this {LockScreenSlide}
    */
   LockScreenSlidePrototype._accelerateSlide =
-    function lss_accelerateSlide(tx, isLeft, inverse) {
+    function lss_accelerateSlide(tx) {
+      var isLeft = tx - this.center.x < 0;
+      var dx = Math.abs(tx - this.center.x);
       var accFactor = this.handle.autoExpand.accFactor;
-      var accFactorMax = this.handle.autoExpand.accFactorMax;
-      var accFactorOriginal =
-        this.handle.autoExpand.accFactorOriginal;
-      var interval = this.handle.autoExpand.accFactorInterval;
-      var adjustedAccFactor = isLeft ? 1 / accFactor : accFactor;
-      if (!inverse && accFactor + interval < accFactorMax)
-        accFactor += interval;
-      if (inverse && accFactor - interval > accFactorOriginal)
-        accFactor -= interval;
-      this.handle.autoExpand.accFactor = accFactor;
-      return tx * adjustedAccFactor;
+      var acc = Math.pow(dx, accFactor);
+      var accTx = tx + acc;
+      if (isLeft)
+        accTx = tx - acc;
+
+      if (accTx < 0)
+        accTx = 0;
+      return accTx;
     };
 
   /**
