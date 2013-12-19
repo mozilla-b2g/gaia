@@ -43,13 +43,7 @@ var lazyLoadFiles = [
   'js/information.js',
   'shared/js/fb/fb_request.js',
   'shared/js/fb/fb_data_reader.js',
-  'shared/js/fb/fb_reader_utils.js',
-  'shared/style/input_areas.css',
-  'shared/style/switches.css',
-  'shared/style/confirm.css',
-  'shared/style_unstable/progress_activity.css',
-  'shared/style/action_menu.css',
-  'style/notification.css'
+  'shared/js/fb/fb_reader_utils.js'
 ];
 
 window.addEventListener('localized', function localized() {
