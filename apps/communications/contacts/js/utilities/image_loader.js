@@ -149,7 +149,7 @@ if (!window.ImageLoader) {
       if (!image) {
         return null;
       }
-      image.src = '';
+      image.removeAttribute('src');
       item.dataset.visited = 'false';
       return image;
     }
