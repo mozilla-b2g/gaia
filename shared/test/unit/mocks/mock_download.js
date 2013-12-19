@@ -9,7 +9,8 @@ var DEFAULT_PARAMS = {
     path: '//SDCARD/Downloads/archivo.mp3',
     state: 'downloading',
     contentType: 'audio/mpeg',
-    startTime: new Date()
+    startTime: new Date(),
+    error: null
   };
 
 function MockDownload(params) {
@@ -23,6 +24,7 @@ function MockDownload(params) {
   this.state = params.state || DEFAULT_PARAMS.state;
   this.contentType = params.contentType || DEFAULT_PARAMS.contentType;
   this.startTime = params.startTime || DEFAULT_PARAMS.startTime;
+  this.error = params.error || DEFAULT_PARAMS.error;
 }
 
 MockDownload.prototype = {

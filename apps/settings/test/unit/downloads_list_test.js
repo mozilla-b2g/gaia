@@ -279,7 +279,9 @@ suite('DownloadList', function() {
         container.lastChild.click();
         assert.isFalse(launchSpy.calledOnce);
         assert.ok(downloadUI.calledOnce);
-        assert.equal(downloadUI.args[0][0], DownloadUI.TYPE.STOPPED);
+        // DownloadUI knows which will be the correct confirm depending on state
+        // and error attributes
+        assert.equal(downloadUI.args[0][0], null);
       });
     });
 

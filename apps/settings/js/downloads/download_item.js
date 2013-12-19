@@ -26,12 +26,15 @@ var DownloadItem = (function DownloadItem() {
       'asideStatus': ['hide'],
       'asideAction': ['actionCancel', 'pack-end']
     },
-    // TODO : This might need a 'canceled' state
     'succeeded': {
       'asideStatus': ['hide'],
       'asideAction': ['hide']
     },
     'stopped': {
+      'asideStatus': ['hide'],
+      'asideAction': ['actionRetry', 'pack-end']
+    },
+    'failed': {
       'asideStatus': ['statusError'],
       'asideAction': ['actionRetry', 'pack-end']
     }
@@ -56,7 +59,7 @@ var DownloadItem = (function DownloadItem() {
     var id = getDownloadId(download);
     var li = document.createElement('li');
     li.dataset.url = download.url;
-    li.dataset.state = download.state;
+    li.dataset.state = getDownloadState(download);
     li.id = id;
     li.dataset.id = id;
 
@@ -104,7 +107,8 @@ var DownloadItem = (function DownloadItem() {
   // @param {Dom Element} LI element representing the download
   // @param {DomDownload} Download object
   var update = function update(domElement, download) {
-    var styles = STATUS_MAPPING[download.state];
+    var state = getDownloadState(download);
+    var styles = STATUS_MAPPING[state];
 
     if (styles == null) {
       // The only possible value is for removed, we don't have UI
@@ -115,7 +119,7 @@ var DownloadItem = (function DownloadItem() {
 
     var domNodes = getElements(domElement);
     // Update the state properly in the element
-    domElement.dataset.state = download.state;
+    domElement.dataset.state = state;
     // Update styles & content
     applyStyles(domNodes, styles);
     updateContent(domNodes, download);
@@ -130,8 +134,8 @@ var DownloadItem = (function DownloadItem() {
   // @param {DomDownload} Download object
   var updateContent = function updateContent(domNodes, download) {
     var _ = navigator.mozL10n.get;
-
-    if (download.state === 'downloading') {
+    var state = getDownloadState(download);
+    if (state === 'downloading') {
       domNodes['progress'].value =
         DownloadFormatter.getPercentage(download);
 
@@ -142,9 +146,10 @@ var DownloadItem = (function DownloadItem() {
 
     } else {
       var status = '';
-      switch (download.state) {
+      switch (state) {
         case 'stopped':
-          status = _('stopped');
+        case 'failed':
+          status = _('download-' + state);
           break;
         case 'succeeded':
           status = DownloadFormatter.getTotalSize(download);
@@ -211,6 +216,16 @@ var DownloadItem = (function DownloadItem() {
   // values on the id field.
   var getDownloadId = function getDownloadId(download) {
     return DownloadFormatter.getUUID(download);
+  };
+
+  var getDownloadState = function getDownloadState(download) {
+    var state = download.state;
+
+    if (state === 'stopped' && download.error !== null) {
+      state = 'failed';
+    }
+
+    return state;
   };
 
   return {
