@@ -37,17 +37,6 @@
     display: none;
   }
 
-  /* This transition is needed to trigger a transitionend event in */
-  /* call_screen.js */
-  #call-screen {
-    transform: translateY(-100%);
-    transition: transform 0.5s ease;
-  }
-
-  #call-screen.displayed {
-    transform: translateY(0);
-  }
-
   #calls .handled-call,
   #calls #group-call:not([hidden]) {
     display: flex;

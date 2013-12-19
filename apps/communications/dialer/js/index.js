@@ -2,6 +2,7 @@
 
 window.addEventListener('load', function dialerSetup() {
   window.removeEventListener('load', dialerSetup);
+  console.log('index.js onload');
 
   KeypadManager.init();
   NavbarManager.init();
