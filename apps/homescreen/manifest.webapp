@@ -17,7 +17,8 @@
     "storage":{},
     "geolocation": {},
     "alarms": {},
-    "power":{}
+    "power":{},
+    "contacts":{ "access": "readonly" }
   },
   "locales": {
     "ar": {
@@ -55,5 +56,11 @@
   },
   "messages": [
     { "alarm": "/index.html" }
-  ]
+  ],
+  "connections": {
+    "eme-api": {
+      "description": "Handles connections from the E.me api.",
+      "rules": {}
+    }
+  }
 }
