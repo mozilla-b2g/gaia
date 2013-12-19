@@ -68,6 +68,14 @@ li .img {
   margin: 0;
   padding: 0;
 }
+
+li .img.default {
+  background-size: 6rem;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-color: #333333;
+}
+
 li .details {
   line-height: 1.6rem;
   position: absolute;
