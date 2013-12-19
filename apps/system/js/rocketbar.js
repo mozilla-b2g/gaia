@@ -4,7 +4,7 @@ var Rocketbar = {
 
   enabled: false,
 
-  searchAppURL: null,
+  searchAppURL: 'app://search.gaiamobile.org',
 
   _port: null,
 

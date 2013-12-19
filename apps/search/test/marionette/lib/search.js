@@ -63,7 +63,8 @@ Search.prototype = {
    */
   checkResult: function(selectorKey, expected) {
     var selectors = Search.Selectors;
-
+var body = this.client.findElement('body');
+console.log('Body content is:', body.getAttribute('outerHTML'));
     this.client.helper.waitForElement(selectors[selectorKey + 'Container']);
     var result = this.client.helper
       .waitForElement(selectors[selectorKey]);
@@ -98,6 +99,7 @@ Search.prototype = {
     var resultsFrame = this.client.helper
       .waitForElement(Search.Selectors.searchResults);
     this.client.switchToFrame(resultsFrame);
+    this.client.helper.waitForElement('body');
   },
 
   /**

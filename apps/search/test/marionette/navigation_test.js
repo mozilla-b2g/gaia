@@ -50,6 +50,7 @@ marionette('navigation', function() {
     search.goToResults();
   });
 
+  // Test not functioning on travis
   test.skip('opens browser with url', function() {
     var url = 'http://mozilla.org/';
     // Enter the URL with enter key
