@@ -26,5 +26,8 @@ MockSimUIModel.prototype = {
   setState: function(key, options) {
     // we can use this to make sure we setState successfully
     this._state = key;
+  },
+  setName: function(newName) {
+    this.name = newName;
   }
 };

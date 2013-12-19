@@ -163,6 +163,7 @@ function execute(options) {
    'gaia.system.checkForUpdates': false,
    'geolocation.enabled': true,
    'geolocation.suspended': false,
+   'icc.names': {},
    'icc.applications': null,
    'icc.data': null,
    'icc.displayTextTimeout': 40000,

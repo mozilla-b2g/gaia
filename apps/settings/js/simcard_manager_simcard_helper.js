@@ -64,6 +64,9 @@
           this.operator = options.operator;
           break;
       }
+    },
+    setName: function(newName) {
+      this.name = newName;
     }
   };
 
