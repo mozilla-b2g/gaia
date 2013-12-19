@@ -52,6 +52,14 @@ var MockCallScreen = {
     this.mGroupDetailsShown = false;
   },
 
+  createTicker: function(node) {
+    this.mCalledCreateTicker = true;
+  },
+
+  stopTicker: function(node) {
+    this.mCalledStopTicker = true;
+  },
+
   set singleLine(value) {
     this.mSingleLine = value;
   },
@@ -94,6 +102,8 @@ var MockCallScreen = {
     this.mShowIncomingCalled = false;
     this.mHideIncomingCalled = false;
     this.mShowStatusMessageCalled = false;
+    this.mCalledCreateTicker = false;
+    this.mCalledStopTicker = false;
     this.calls = document.createElement('div');
     this.screen = document.createElement('div');
     this.incomingContainer = document.createElement('div');

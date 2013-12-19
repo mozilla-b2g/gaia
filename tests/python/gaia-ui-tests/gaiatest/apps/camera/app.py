@@ -82,7 +82,7 @@ class Camera(Base):
 
     def wait_for_filmstrip_not_visible(self):
         filmstrip = self.marionette.find_element(*self._filmstrip_locator)
-        self.wait_for_condition(lambda m: filmstrip.location['y'] == (0 - filmstrip.size['height']))
+        self.wait_for_condition(lambda m: filmstrip.location['y'] == (0 - filmstrip.size['height']), timeout=10)
 
     def wait_for_capture_ready(self):
         self.wait_for_condition(lambda m: self.marionette.find_element(*self._focus_ring_locator).get_attribute('data-state') is None)
@@ -100,11 +100,12 @@ class Camera(Base):
         self.marionette.switch_to_frame(camera_frame)
         self.wait_for_camera_ready()
 
-    def switch_to_gallery(self):
+    def tap_switch_to_gallery(self):
         switch_to_gallery_button = self.marionette.find_element(*self._gallery_button_locator)
         switch_to_gallery_button.tap()
         gallery_app = gaiatest.apps.gallery.app.Gallery(self.marionette)
-        gallery_app.launch()
+        self.wait_for_condition(lambda m: self.apps.displayed_app.name == gallery_app.name)
+        self.apps.switch_to_displayed_app()
         return gallery_app
 
     @property

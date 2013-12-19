@@ -1,6 +1,7 @@
 'use strict';
 
-var kKeyToneFrames = 1200;
+var kShortToneFrames = 1200;
+var kLongToneFrames = 1800;
 
 var TonePlayer = {
   _frequencies: null, // from gTonesFrequencies
@@ -72,8 +73,9 @@ var TonePlayer = {
 
     this._audio.mozSetup(1, this._sampleRate);
 
-    // Writing 150ms of sound (duration for a short press)
-    var initialSoundData = new Float32Array(kKeyToneFrames);
+    // Writing 150ms of sound for a short press, or 225ms for long ones
+    var framesCount = (shortPress ? kShortToneFrames : kLongToneFrames);
+    var initialSoundData = new Float32Array(framesCount);
     this.generateFrames(initialSoundData, shortPress);
 
     var wrote = this._audio.mozWriteAudio(initialSoundData);
@@ -83,7 +85,7 @@ var TonePlayer = {
       start = start + wrote;
       // Continuing playing until .stop() is called for long press in calling
       // state. Or just play one round of data in non calling state.
-      if (this._stopping || (start == kKeyToneFrames && shortPress == true)) {
+      if (this._stopping || (start == framesCount && shortPress == true)) {
        if (this._intervalID == null)
          return;
 
@@ -93,7 +95,7 @@ var TonePlayer = {
       }
 
       // If shortPress is false then we repeat the tone in call state.
-      if (start == kKeyToneFrames) {
+      if (start == framesCount) {
         start = 0;
         // Re-generateFrames with sustaining sound.
         this.generateFrames(initialSoundData);
@@ -101,7 +103,7 @@ var TonePlayer = {
 
       if (this._audio != null)
         wrote = this._audio.mozWriteAudio(
-          initialSoundData.subarray(start, kKeyToneFrames));
+          initialSoundData.subarray(start, framesCount));
     }).bind(this), 30); // Avoiding under-run issues by keeping this low
   },
 

@@ -8,6 +8,7 @@ ul {
   padding: 0;
   overflow: hidden;
   list-style: none;
+  background: url(images/document_bg.png);
 }
 
 ul li {

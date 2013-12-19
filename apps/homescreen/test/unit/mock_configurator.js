@@ -39,12 +39,16 @@
 
   var MockConfigurator = {
     mSimPresentOnFirstBoot: true,
+    mIsSVReady: true,
     getSection: function() { return null; },
     getSingleVariantApps: function() {
       return singleVariantConf;
     },
     get isSimPresentOnFirstBoot() {
       return this.mSimPresentOnFirstBoot;
+    },
+    get isSingleVariantReady() {
+      return this.mIsSVReady;
     }
   };
 

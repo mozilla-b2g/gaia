@@ -79,6 +79,7 @@ suite('KeyboardManager', function() {
   suite('Transitions', function() {
     setup(function(next) {
       setTimeout(next, 500);
+      this.sinon.stub(KeyboardManager, 'showIMESwitcher');
     });
 
     test('showKeyboard triggers transition', function(next) {
@@ -207,6 +208,7 @@ suite('KeyboardManager', function() {
   suite('UpdateHeight', function() {
     setup(function(next) {
       setTimeout(next, 500);
+      this.sinon.stub(KeyboardManager, 'showIMESwitcher');
     });
     test('Second updateHeight evt triggers keyboardchange', function(next) {
       var kcEvent = sinon.stub();
@@ -387,46 +389,52 @@ suite('KeyboardManager', function() {
   suite('removeKeyboard test', function() {
     var fakeFrame_A, fakeFrame_B;
     setup(function() {
-      fakeFrame_A = {origin: 'app://keyboard.gaiamobile.org',
-                        id: 'en'};
+      fakeFrame_A = {
+        manifestURL: 'app://keyboard.gaiamobile.org/manifest.webapp',
+        id: 'en'};
 
-      fakeFrame_B = {origin: 'app://keyboard-test.gaiamobile.org',
-                         id: 'en'};
+      fakeFrame_B = {
+        manifestURL: 'app://keyboard-test.gaiamobile.org/manifest.webapp',
+        id: 'en'};
     });
 
     test('Not exist in runningLayouts', function() {
-      KeyboardManager.runningLayouts[fakeFrame_A.origin] = {};
-      KeyboardManager.runningLayouts[fakeFrame_A.origin][fakeFrame_A.id] =
+      KeyboardManager.runningLayouts[fakeFrame_A.manifestURL] = {};
+      KeyboardManager.runningLayouts[fakeFrame_A.manifestURL][fakeFrame_A.id] =
                                                               this.sinon.stub;
-      KeyboardManager.removeKeyboard(fakeFrame_B.origin);
+      KeyboardManager.removeKeyboard(fakeFrame_B.manifestURL);
       assert.equal(
-      KeyboardManager.runningLayouts.hasOwnProperty(fakeFrame_A.origin), true);
+        KeyboardManager.runningLayouts.hasOwnProperty(fakeFrame_A.manifestURL),
+        true);
     });
 
     test('Not in showingLayout', function() {
       var hideKeyboard = this.sinon.stub(KeyboardManager, 'hideKeyboard');
-      KeyboardManager.runningLayouts[fakeFrame_B.origin] = {};
-      KeyboardManager.runningLayouts[fakeFrame_B.origin][fakeFrame_B.id] =
+      KeyboardManager.runningLayouts[fakeFrame_B.manifestURL] = {};
+      KeyboardManager.runningLayouts[fakeFrame_B.manifestURL][fakeFrame_B.id] =
                                                               this.sinon.stub;
-      KeyboardManager.removeKeyboard(fakeFrame_B.origin);
+      KeyboardManager.removeKeyboard(fakeFrame_B.manifestURL);
       sinon.assert.callCount(hideKeyboard, 0);
       assert.equal(
-      KeyboardManager.runningLayouts.hasOwnProperty(fakeFrame_B.origin), false);
+        KeyboardManager.runningLayouts.hasOwnProperty(fakeFrame_B.manifestURL),
+        false);
     });
 
     test('In showingLayout', function() {
       var hideKeyboard = this.sinon.stub(KeyboardManager, 'hideKeyboard');
-      KeyboardManager.runningLayouts[fakeFrame_A.origin] = {};
-      KeyboardManager.runningLayouts[fakeFrame_A.origin][fakeFrame_A.id] =
+      KeyboardManager.runningLayouts[fakeFrame_A.manifestURL] = {};
+      KeyboardManager.runningLayouts[fakeFrame_A.manifestURL][fakeFrame_A.id] =
                                                               this.sinon.stub;
       var fakeFrame = document.createElement('div');
-      fakeFrame.dataset.frameOrigin = 'app://keyboard.gaiamobile.org';
+      fakeFrame.dataset.frameManifestURL =
+        'app://keyboard.gaiamobile.org/manifest.webapp';
 
       KeyboardManager.showingLayout.frame = fakeFrame;
-      KeyboardManager.removeKeyboard(fakeFrame_A.origin);
+      KeyboardManager.removeKeyboard(fakeFrame_A.manifestURL);
       sinon.assert.callCount(hideKeyboard, 1);
       assert.equal(
-      KeyboardManager.runningLayouts.hasOwnProperty(fakeFrame_A.origin), false);
+        KeyboardManager.runningLayouts.hasOwnProperty(fakeFrame_A.manifestURL),
+        false);
     });
   });
 
@@ -441,12 +449,14 @@ suite('KeyboardManager', function() {
 
     test('OOM event', function() {
       var fakeFrame = document.createElement('div');
-      fakeFrame.dataset.frameOrigin = 'app://keyboard.gaiamobile.org';
+      var fakeManifestURL = 'app://keyboard.gaiamobile.org/manifest.webapp';
+
+      fakeFrame.dataset.frameManifestURL = fakeManifestURL;
       KeyboardManager.handleEvent({
         type: 'mozbrowsererror',
         target: fakeFrame
       });
-      assert.ok(removeKeyboard.calledWith('app://keyboard.gaiamobile.org'));
+      assert.ok(removeKeyboard.calledWith(fakeManifestURL));
     });
 
     test('mozbrowserresize event', function() {
@@ -566,6 +576,7 @@ suite('KeyboardManager', function() {
     setup(function(next) {
       KeyboardManager.keyboardFrameContainer.classList.add('hide');
       setTimeout(next, 100);
+      this.sinon.stub(KeyboardManager, 'showIMESwitcher');
     });
 
     test('Hide immediately after show should destroy', function(next) {
@@ -602,6 +613,7 @@ suite('KeyboardManager', function() {
     var showKeyboard;
     setup(function() {
       showKeyboard = this.sinon.stub(KeyboardManager, 'showKeyboard');
+      this.sinon.stub(KeyboardManager, 'showIMESwitcher');
     });
 
     function fakeMozbrowserResize(height) {

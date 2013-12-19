@@ -33,6 +33,10 @@ MockPage.prototype = {
     this.icons.push(icon);
   },
 
+  getMisplacedIcons: function mp_getMisplacedIcons(position) {
+    return [];
+  },
+
   getFirstIcon: function mp_getFirstIcon() {
     return MockPage.mIcons[0] || null;
   },

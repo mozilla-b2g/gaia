@@ -15,7 +15,9 @@ from marionette.errors import TimeoutException
 from marionette.errors import StaleElementException
 from marionette.errors import InvalidResponseException
 import mozdevice
-
+from yoctopuce.yocto_api import YAPI, YRefParam, YModule
+from yoctopuce.yocto_current import YCurrent
+from yoctopuce.yocto_datalogger import YDataLogger
 
 class LockScreen(object):
 
@@ -27,7 +29,7 @@ class LockScreen(object):
     @property
     def is_locked(self):
         self.marionette.switch_to_frame()
-        return self.marionette.execute_script('window.wrappedJSObject.LockScreen.locked')
+        return self.marionette.execute_script('return window.wrappedJSObject.LockScreen.locked')
 
     def lock(self):
         self.marionette.switch_to_frame()
@@ -90,6 +92,10 @@ class GaiaApps(object):
                        name=result.get('name'),
                        origin=result.get('origin'))
 
+    def switch_to_displayed_app(self):
+        self.marionette.switch_to_default_content()
+        self.marionette.switch_to_frame(self.displayed_app.frame)
+
     def is_app_installed(self, app_name):
         self.marionette.switch_to_frame()
         return self.marionette.execute_async_script("GaiaApps.locateWithName('%s')" % app_name)
@@ -111,10 +117,35 @@ class GaiaApps(object):
         self.marionette.import_script(js)
         self.marionette.execute_async_script("GaiaApps.killAll()")
 
-    def runningApps(self):
-        return self.marionette.execute_script("return GaiaApps.getRunningApps()")
+    @property
+    def installed_apps(self):
+        apps = self.marionette.execute_async_script(
+            'return GaiaApps.getInstalledApps();')
+        result = []
+        for app in [a for a in apps if not a['manifest'].get('role')]:
+            entry_points = app['manifest'].get('entry_points')
+            if entry_points:
+                for ep in entry_points.values():
+                    result.append(GaiaApp(
+                        origin=app['origin'],
+                        name=ep['name']))
+            else:
+                result.append(GaiaApp(
+                    origin=app['origin'],
+                    name=app['manifest']['name']))
+        return result
 
-    def switch_to_frame(self, app_frame, url=None, timeout=30):
+    @property
+    def running_apps(self):
+        apps = self.marionette.execute_script(
+            'return GaiaApps.getRunningApps();')
+        result = []
+        for app in [a[1] for a in apps.items()]:
+            result.append(GaiaApp(origin=app['origin'], name=app['name']))
+        return result
+
+    def switch_to_frame(self, app_frame, url=None, timeout=None):
+        timeout = timeout or (self.marionette.timeout and self.marionette.timeout / 1000) or 30
         self.marionette.switch_to_frame(app_frame)
         start = time.time()
         if not url:
@@ -133,11 +164,11 @@ class GaiaApps(object):
 class GaiaData(object):
 
     def __init__(self, marionette, testvars=None):
+        self.apps = GaiaApps(marionette)
         self.marionette = marionette
         self.testvars = testvars or {}
         js = os.path.abspath(os.path.join(__file__, os.path.pardir, 'atoms', "gaia_data_layer.js"))
         self.marionette.import_script(js)
-        self.marionette.set_search_timeout(10000)
 
     def set_time(self, date_number):
         self.marionette.set_context(self.marionette.CONTEXT_CHROME)
@@ -159,12 +190,11 @@ class GaiaData(object):
         result = self.marionette.execute_async_script('return GaiaDataLayer.insertContact(%s);' % json.dumps(contact), special_powers=True)
         assert result, 'Unable to insert contact %s' % contact
 
-    def remove_all_contacts(self, default_script_timeout=60000):
+    def remove_all_contacts(self):
         self.marionette.switch_to_frame()
-        self.marionette.set_script_timeout(max(default_script_timeout, 1000 * len(self.all_contacts)))
-        result = self.marionette.execute_async_script('return GaiaDataLayer.removeAllContacts();', special_powers=True)
+        timeout = max(self.marionette.timeout or 60000, 1000 * len(self.all_contacts))
+        result = self.marionette.execute_async_script('return GaiaDataLayer.removeAllContacts();', special_powers=True, script_timeout=timeout)
         assert result, 'Unable to remove all contacts'
-        self.marionette.set_script_timeout(default_script_timeout)
 
     def get_setting(self, name):
         return self.marionette.execute_async_script('return GaiaDataLayer.getSetting("%s")' % name, special_powers=True)
@@ -180,11 +210,16 @@ class GaiaData(object):
         assert result, "Unable to change setting with name '%s' to '%s'" % (name, value)
 
     def _get_pref(self, datatype, name):
-        return self.marionette.execute_script("return SpecialPowers.get%sPref('%s');" % (datatype, name), special_powers=True)
+        self.marionette.switch_to_frame()
+        pref = self.marionette.execute_script("return SpecialPowers.get%sPref('%s');" % (datatype, name), special_powers=True)
+        self.apps.switch_to_displayed_app()
+        return pref
 
     def _set_pref(self, datatype, name, value):
         value = json.dumps(value)
+        self.marionette.switch_to_frame()
         self.marionette.execute_script("SpecialPowers.set%sPref('%s', %s);" % (datatype, name, value), special_powers=True)
+        self.apps.switch_to_displayed_app()
 
     def get_bool_pref(self, name):
         """Returns the value of a Gecko boolean pref, which is different from a Gaia setting."""
@@ -288,7 +323,8 @@ class GaiaData(object):
         assert network, 'No WiFi network provided'
         self.enable_wifi()
         self.marionette.switch_to_frame()
-        result = self.marionette.execute_async_script("return GaiaDataLayer.connectToWiFi(%s)" % json.dumps(network))
+        result = self.marionette.execute_async_script("return GaiaDataLayer.connectToWiFi(%s)" % json.dumps(network),
+                script_timeout = max(self.marionette.timeout, 60000))
         assert result, 'Unable to connect to WiFi network'
 
     def forget_all_networks(self):
@@ -303,7 +339,9 @@ class GaiaData(object):
 
     @property
     def known_networks(self):
-        return self.marionette.execute_async_script('return GaiaDataLayer.getKnownNetworks()')
+        known_networks = self.marionette.execute_async_script(
+            'return GaiaDataLayer.getKnownNetworks()')
+        return [n for n in known_networks if n]
 
     @property
     def active_telephony_state(self):
@@ -372,6 +410,235 @@ class GaiaData(object):
         assert result, 'Unable to send SMS to recipient %s with text %s' % (number, message)
 
 
+class PowerDataRun(object):
+
+    def __init__(self):
+        self._samples = []
+
+    @classmethod
+    def from_json(self, json_str):
+        pds = json.loads(json_str)
+        samples = []
+        for pd in pds:
+            samples.append( PowerData( **pd ) )
+        return cls(samples)
+
+    def plot(self, filename):
+        """ \o/ yay! gnuplot for the win! """
+        pass
+
+    def add_sample(self, sample):
+        self._samples.append(sample)
+
+    def clear(self):
+        del self._samples[:]
+
+    def to_json(self):
+        data = []
+        for d in self._samples:
+            data.append(d.data())
+        return json.dumps(data)
+
+
+class PowerData(object):
+
+    def __init__(self, start_time=None, amps=None, volts=None):
+        self._start_time = start_time
+        self._amps = amps
+        self._volts = volts
+
+    @classmethod
+    def from_yocto_sensors(cls, ammeter, volts):
+        """ gathers the recorded data from the ammeter """
+        data = ammeter.data
+        columns = [u't']
+        columns.extend(data.get_columnNames())
+
+        start = data.get_startTimeUTC()
+        period = data.get_dataSamplesInterval()
+        num_samples = data.get_rowCount()
+
+        # add the timestamp to each row
+        samples = []
+        rows = data.get_dataRows()
+        for i in xrange(0, num_samples):
+            row = [ start + i * period ]
+            row.extend(rows[i])
+            samples.append( row )
+
+        amps = { "columns": columns, "samples": samples, "events": ammeter.events }
+
+        return cls( start, amps, volts )
+
+    @classmethod
+    def from_json(cls, json_str):
+        """ XXX FIXME: we need to validate that the decoded
+        data is sane and has what we're looking for """
+        pd = json.loads(json_str)
+        return cls( **pd )
+
+    def data(self):
+        return {"start_time":self._start_time,
+                "amps":self._amps,
+                "volts":self._volts}
+
+    def to_json(self):
+        """output format looks like this:
+        {
+            "start_time":"<utc start time>",
+            "amps":
+            {
+                "columns":["t", "col1","col2","col3"],
+                "samples":
+                [
+                    [<utc stamp>,1,2,3],
+                    [<utc stamp>,1,2,3],
+                    .
+                    .
+                    .
+                ],
+                "events":
+                [
+                    [<utc stamp>,"blah happened"],
+                    [<utc stamp>,"blah again!"],
+                    .
+                    .
+                    .
+                ]
+            },
+            "volts": <voltage in micro-amps>
+        }"""
+        return json.dumps(self.data())
+
+class YoctoDevice(object):
+
+    def __init__(self):
+        pass
+
+    @property
+    def module(self):
+        if hasattr(self, '_module') and self._module:
+            return self._module
+
+        # need to verify that the yocto device is attached
+        errmsg = YRefParam()
+        if YAPI.RegisterHub("usb", errmsg) != YAPI.SUCCESS:
+            raise Exception('could not register yocto usb connection')
+        sensor = YCurrent.FirstCurrent()
+        if sensor is None:
+            raise Exception('could not find yocto ammeter device')
+        if sensor.isOnline():
+            self._module = sensor.get_module()
+        return self._module
+
+    @property
+    def beacon(self):
+        return self._module.get_beacon()
+
+    @beacon.setter
+    def beacon(self, value):
+        if value:
+            self._module.set_beacon(YModule.BEACON_ON)
+        else:
+            self._module.set_beacon(YModule.BEACON_OFF)
+
+
+class YoctoAmmeter(YoctoDevice):
+
+    def __init__(self):
+        self._data = None
+        # make sure the data logger is off
+        self.recording = False
+        super(YoctoAmmeter, self).__init__()
+
+    @property
+    def sensor(self):
+        if hasattr(self, '_sensor') and self._sensor:
+            return self._sensor
+
+        # get a handle to the ammeter sensor
+        self._sensor = YCurrent.FindCurrent(self.module.get_serialNumber() + '.current1')
+        if not self.module.isOnline() or self._sensor is None:
+            raise Exception('could not get sensor device')
+        return self._sensor
+
+    @property
+    def data_logger(self):
+        if hasattr(self, '_data_logger') and self._data_logger:
+            return self._data_logger
+
+        # get a handle to the data logger
+        self._data_logger = YDataLogger.FindDataLogger(self.module.get_serialNumber() + '.dataLogger')
+        if not self.module.isOnline() or self._data_logger is None:
+            raise Exception('could not get data logger device')
+
+        # fix up the data logger's internal clock
+        self._data_logger.set_timeUTC(time.mktime(time.gmtime()))
+
+        return self._data_logger
+
+    @property
+    def recording(self):
+        return (self.data_logger.get_recording() == YDataLogger.RECORDING_ON)
+
+    @recording.setter
+    def recording(self, value):
+        if value:
+            if self.recording:
+                raise Exception('data logger already recording')
+
+            # erase the data logger memory
+            if self.data_logger.forgetAllDataStreams() != YAPI.SUCCESS:
+                raise Exception('failed to clear yocto data logger memory')
+
+            # go!
+            if self.data_logger.set_recording(YDataLogger.RECORDING_ON) != YAPI.SUCCESS:
+                raise Exception('failed to start yocto data logger')
+
+            # delete all data that may be cached
+            del self._data
+            self._data = None
+
+            # turn on the beacon
+            self.beacon = True
+
+        else:
+            # are we currently recording?
+            was_recording = self.recording
+
+            # stop!
+            if self.data_logger.set_recording(YDataLogger.RECORDING_OFF) != YAPI.SUCCESS:
+                raise Exception('failed to stop yocto data logger')
+
+            if was_recording:
+                # get the first data stream
+                streamsRef = YRefParam()
+                self.data_logger.get_dataStreams(streamsRef)
+                self._data = streamsRef.value[0]
+
+            # turn off the beacon
+            self.beacon = False
+
+    @property
+    def events(self):
+        if not hasattr(self, '_events'):
+            self._events = []
+        return self._events
+
+    @property
+    def data(self):
+        if not hasattr(self, '_data'):
+            self._data = None
+        return self._data
+
+    def mark_event(self, desc=""):
+        """used to store a timestamp and description for later correlation
+        with the power draw data"""
+        if not self.recording:
+            raise Exception('yocto device is not logging data')
+        self.events.append([self.data_logger.get_timeUTC(), desc])
+
+
 class GaiaDevice(object):
 
     def __init__(self, marionette, testvars=None):
@@ -405,6 +672,12 @@ class GaiaDevice(object):
         return self.testvars['is_android_build']
 
     @property
+    def is_emulator(self):
+        if not hasattr(self, '_is_emulator'):
+            self._is_emulator = self.marionette.session_capabilities['device'] == 'qemu'
+        return self._is_emulator
+
+    @property
     def is_online(self):
         # Returns true if the device has a network connection established (cell data, wifi, etc)
         return self.marionette.execute_script('return window.navigator.onLine;')
@@ -418,6 +691,10 @@ class GaiaDevice(object):
         if not hasattr(self, '_has_wifi'):
             self._has_wifi = self.marionette.execute_script('return window.navigator.mozWifiManager !== undefined')
         return self._has_wifi
+
+    @property
+    def voltage_now(self):
+        return self.manager.shellCheckOutput(["cat", "/sys/class/power_supply/battery/voltage_now"])
 
     def push_file(self, source, count=1, destination='', progress=None):
         if not destination.count('.') > 0:
@@ -474,15 +751,9 @@ window.addEventListener('mozbrowserloadend', function loaded(aEvent) {
 
 
 class GaiaTestCase(MarionetteTestCase):
-
-    _script_timeout = 60000
-    _search_timeout = 10000
-
-    # deafult timeout in seconds for the wait_for methods
-    _default_timeout = 30
-
     def __init__(self, *args, **kwargs):
         self.restart = kwargs.pop('restart', False)
+        self.yocto = kwargs.pop('yocto', False)
         kwargs.pop('iterations', None)
         kwargs.pop('checkpoint_interval', None)
         MarionetteTestCase.__init__(self, *args, **kwargs)
@@ -494,34 +765,61 @@ class GaiaTestCase(MarionetteTestCase):
             if self.restart:
                 pass
 
+        if self.yocto:
+            """ with the yocto ammeter we only get amp measurements
+            so we also need to use the linux kernel voltage device to
+            sample the voltage at the start of each test so we can
+            calculate watts."""
+            try:
+                self.ammeter = YoctoAmmeter()
+            except:
+                self.ammeter = None
+
         self.device = GaiaDevice(self.marionette, self.testvars)
         if self.restart and (self.device.is_android_build or self.marionette.instance):
             self.device.stop_b2g()
             if self.device.is_android_build:
-                # revert device to a clean state
-                self.device.manager.removeDir('/data/local/storage/persistent')
-                self.device.manager.removeDir('/data/b2g/mozilla')
+                self.cleanup_data()
             self.device.start_b2g()
 
-        # the emulator can be really slow!
-        self.marionette.set_script_timeout(self._script_timeout)
-        self.marionette.set_search_timeout(self._search_timeout)
+        # we need to set the default timeouts because we may have a new session
+        if self.marionette.timeout is not None:
+            self.marionette.timeouts(self.marionette.TIMEOUT_SEARCH, self.marionette.timeout)
+            self.marionette.timeouts(self.marionette.TIMEOUT_SCRIPT, self.marionette.timeout)
+            self.marionette.timeouts(self.marionette.TIMEOUT_PAGE, self.marionette.timeout)
+        else:
+            self.marionette.timeouts(self.marionette.TIMEOUT_SEARCH, 10000)
+            self.marionette.timeouts(self.marionette.TIMEOUT_PAGE, 30000)
+
         self.lockscreen = LockScreen(self.marionette)
         self.apps = GaiaApps(self.marionette)
         self.data_layer = GaiaData(self.marionette, self.testvars)
         from gaiatest.apps.keyboard.app import Keyboard
         self.keyboard = Keyboard(self.marionette)
 
-        self.cleanUp()
+        if self.device.is_android_build:
+            self.cleanup_sdcard()
 
-    def cleanUp(self):
+        if self.restart:
+            self.cleanup_gaia(full_reset=False)
+        else:
+            self.cleanup_gaia(full_reset=True)
+
+    def cleanup_data(self):
+        self.device.manager.removeDir('/data/local/storage/persistent')
+        self.device.manager.removeDir('/data/b2g/mozilla')
+
+    def cleanup_sdcard(self):
+        for item in self.device.manager.listFiles('/sdcard/'):
+            self.device.manager.removeDir('/'.join(['/sdcard', item]))
+
+    def cleanup_gaia(self, full_reset=True):
         # remove media
         if self.device.is_android_build:
             for filename in self.data_layer.media_files:
-                # filename is a fully qualified path
                 self.device.manager.removeFile(filename)
 
-        # Switch off keyboard FTU screen
+        # switch off keyboard FTU screen
         self.data_layer.set_setting("keyboard.ftu.enabled", False)
 
         # restore settings from testvars
@@ -530,24 +828,22 @@ class GaiaTestCase(MarionetteTestCase):
         # unlock
         self.lockscreen.unlock()
 
-        # If we are restarting all of these values are reset to default earlier in the setUp
-        if not self.restart:
-
-            # disable passcode before restore settings from testvars
+        if full_reset:
+            # disable passcode
             self.data_layer.set_setting('lockscreen.passcode-lock.code', '1111')
             self.data_layer.set_setting('lockscreen.passcode-lock.enabled', False)
 
-            # Change language back to English
+            # change language back to english
             self.data_layer.set_setting("language.current", "en-US")
 
-            # Switch off spanish keyboard before test
+            # switch off spanish keyboard
             self.data_layer.set_setting("keyboard.layouts.spanish", False)
 
-            # Set do not track pref back to the default
+            # reset do not track
             self.data_layer.set_setting('privacy.donottrackheader.value', '-1')
 
             if self.data_layer.get_setting('ril.radio.disabled'):
-                # enable the device radio, disable Airplane mode
+                # enable the device radio, disable airplane mode
                 self.data_layer.set_setting('ril.radio.disabled', False)
 
             # disable carrier data connection
@@ -557,12 +853,14 @@ class GaiaTestCase(MarionetteTestCase):
             self.data_layer.disable_cell_roaming()
 
             if self.device.has_wifi:
-                self.data_layer.enable_wifi()
-                self.data_layer.forget_all_networks()
-                self.data_layer.disable_wifi()
+                # Bug 908553 - B2G Emulator: support wifi emulation
+                if not self.device.is_emulator:
+                    self.data_layer.enable_wifi()
+                    self.data_layer.forget_all_networks()
+                    self.data_layer.disable_wifi()
 
             # remove data
-            self.data_layer.remove_all_contacts(self._script_timeout)
+            self.data_layer.remove_all_contacts()
 
             # reset to home screen
             self.marionette.execute_script("window.wrappedJSObject.dispatchEvent(new Event('home'));")
@@ -632,10 +930,11 @@ class GaiaTestCase(MarionetteTestCase):
     def screen_orientation(self):
         return self.marionette.execute_script('return window.screen.mozOrientation')
 
-    def wait_for_element_present(self, by, locator, timeout=_default_timeout):
-        timeout = float(timeout) + time.time()
+    def wait_for_element_present(self, by, locator, timeout=None):
+        timeout = timeout or (self.marionette.timeout and self.marionette.timeout / 1000) or 30
+        end_time = float(timeout) + time.time()
 
-        while time.time() < timeout:
+        while time.time() < end_time:
             time.sleep(0.5)
             try:
                 return self.marionette.find_element(by, locator)
@@ -645,10 +944,11 @@ class GaiaTestCase(MarionetteTestCase):
             raise TimeoutException(
                 'Element %s not present before timeout' % locator)
 
-    def wait_for_element_not_present(self, by, locator, timeout=_default_timeout):
-        timeout = float(timeout) + time.time()
+    def wait_for_element_not_present(self, by, locator, timeout=None):
+        timeout = timeout or (self.marionette.timeout and self.marionette.timeout / 1000) or 30
+        end_time = float(timeout) + time.time()
 
-        while time.time() < timeout:
+        while time.time() < end_time:
             time.sleep(0.5)
             try:
                 self.marionette.find_element(by, locator)
@@ -658,10 +958,11 @@ class GaiaTestCase(MarionetteTestCase):
             raise TimeoutException(
                 'Element %s still present after timeout' % locator)
 
-    def wait_for_element_displayed(self, by, locator, timeout=_default_timeout):
-        timeout = float(timeout) + time.time()
+    def wait_for_element_displayed(self, by, locator, timeout=None):
+        timeout = timeout or (self.marionette.timeout and self.marionette.timeout / 1000) or 30
+        end_time = float(timeout) + time.time()
         e = None
-        while time.time() < timeout:
+        while time.time() < end_time:
             time.sleep(0.5)
             try:
                 if self.marionette.find_element(by, locator).is_displayed():
@@ -675,10 +976,11 @@ class GaiaTestCase(MarionetteTestCase):
             else:
                 raise TimeoutException('Element %s present but not displayed before timeout' % locator)
 
-    def wait_for_element_not_displayed(self, by, locator, timeout=_default_timeout):
-        timeout = float(timeout) + time.time()
+    def wait_for_element_not_displayed(self, by, locator, timeout=None):
+        timeout = timeout or (self.marionette.timeout and self.marionette.timeout / 1000) or 30
+        end_time = float(timeout) + time.time()
 
-        while time.time() < timeout:
+        while time.time() < end_time:
             time.sleep(0.5)
             try:
                 if not self.marionette.find_element(by, locator).is_displayed():
@@ -691,11 +993,12 @@ class GaiaTestCase(MarionetteTestCase):
             raise TimeoutException(
                 'Element %s still visible after timeout' % locator)
 
-    def wait_for_condition(self, method, timeout=_default_timeout,
+    def wait_for_condition(self, method, timeout=None,
                            message="Condition timed out"):
         """Calls the method provided with the driver as an argument until the \
         return value is not False."""
-        end_time = time.time() + timeout
+        timeout = timeout or (self.marionette.timeout and self.marionette.timeout / 1000) or 30
+        end_time = float(timeout) + time.time()
         while time.time() < end_time:
             try:
                 value = method(self.marionette)
@@ -737,6 +1040,7 @@ class GaiaEnduranceTestCase(GaiaTestCase):
     def drive(self, test, app):
         self.test_method = test
         self.app_under_test = app
+        self.power_data = PowerDataRun()
 
         # Now drive the actual test case iterations
         for count in range(1, self.iterations + 1):
@@ -748,7 +1052,19 @@ class GaiaEnduranceTestCase(GaiaTestCase):
             print "Iteration %d of %d..." % (count, self.iterations)
             sys.stdout.flush()
 
+            if self.yocto:
+                # start gathering power draw data
+                self.ammeter.recording = True
+
             self.test_method()
+
+            if self.yocto:
+                # stop the power draw data recorder and get the data
+                self.ammeter.recording = False
+                data = PowerData.from_yocto_sensors( self.ammeter,
+                                                     self.device.voltage_now )
+                self.power_data.add_sample(data)
+
             # Checkpoint time?
             if ((count % self.checkpoint_interval) == 0) or count == self.iterations:
                 self.checkpoint()
@@ -776,10 +1092,25 @@ class GaiaEnduranceTestCase(GaiaTestCase):
             self.log_name = "%s/checkpoint_%s_%s.log" % (self.checkpoint_path, self.test_method.__name__, self.cur_time)
             with open(self.log_name, 'a') as log_file:
                 log_file.write('%s Gaia Endurance Test: %s\n' % (self.cur_time, self.test_method.__name__))
+
         output_str = self.device.manager.shellCheckOutput(["b2g-ps"])
+
+        if self.yocto:
+            # convert the power data to json
+            power_data_json = self.power_data.to_json()
+
+            # XXX: commented out for now since we don't support graphing the samples just yet.
+            # plot the data run
+            #self.power_data.plot(self.log_name.replace('.log', '.ps')
+
+            # clear the power data samples
+            self.power_data.clear()
+
         with open(self.log_name, 'a') as log_file:
             log_file.write('%s Checkpoint after iteration %d of %d:\n' % (self.cur_time, self.iteration, self.iterations))
             log_file.write('%s\n' % output_str)
+            if self.yocto:
+                log_file.write('%s\n' % power_data_json)
 
     def close_app(self):
         # Close the current app (self.app) by using the home button

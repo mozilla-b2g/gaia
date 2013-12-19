@@ -881,7 +881,7 @@ document.addEventListener('visibilitychange', function visibilityChange() {
 // may only have one video playing at a time among them. So we need to be
 // careful to relinquish the hardware when we are not visible.
 
-var restoreTime;
+var restoreTime = null;
 
 // Call this when the app is hidden
 function releaseVideo() {
@@ -896,12 +896,22 @@ function releaseVideo() {
 
 // Call this when the app becomes visible again
 function restoreVideo() {
-  if (!restoreTime) {
-    return;
-  }
+  // When restoreVideo is called, we assume we have currentVideo because the
+  // playerShowing is true.
   setVideoUrl(dom.player, currentVideo, function() {
     setPlayerSize();
-    dom.player.currentTime = restoreTime;
+    // Everything is ready, start to restore last playing time.
+    if (restoreTime !== null) {
+      // restore to the last time when we have a valid restoreTime.
+      dom.player.currentTime = restoreTime;
+    } else {
+      // When we don't have valid restoreTime, we need to restore to the last
+      // viewing position from metadata. When user taps on a unwatched video and
+      // presses home quickly, the dom.player may not finish the loading of
+      // video and the restoreTime is null. At the same case, the currentTime of
+      // metadata is still undefined because we haven't updateMetadata.
+      dom.player.currentTime = currentVideo.metadata.currentTime || 0;
+    }
   });
 }
 

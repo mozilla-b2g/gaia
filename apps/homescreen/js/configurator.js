@@ -2,6 +2,10 @@
 'use strict';
 
 var Configurator = (function() {
+  // We're going to use the mcc_mnc as a semaphore as well as to store its
+  // value during the singleVariant file's processing time.
+  var mcc_mnc;
+
   var conf = {};
 
   // Path of the single variant configuration file
@@ -101,27 +105,40 @@ var Configurator = (function() {
       }
     };
 
-    function loadSVConfFileSuccess(mcc_mnc, loadedData) {
-      loadedData[mcc_mnc].forEach(function(app) {
-        if (app.manifestURL) {
-           singleVariantApps[app.manifestURL] = app;
-        }
-      });
+    function dispatchSVReadyEvent() {
+      mcc_mnc = undefined;
+      window.dispatchEvent(new CustomEvent('singlevariant-ready'));
+    }
+
+    function loadSVConfFileSuccess(loadedData) {
+      try {
+        loadedData[mcc_mnc].forEach(function(app) {
+          if (app.manifestURL) {
+            singleVariantApps[app.manifestURL] = app;
+          }
+        });
+      } catch (e) {
+        console.error('There was an error loading singleVariant configuration',
+                      e);
+      } finally {
+        dispatchSVReadyEvent();
+      }
     }
 
     function loadSVConfFileError(e) {
       singleVariantApps = {};
       console.error('Failed parsing singleVariant configuration file [' +
                     SINGLE_VARIANT_CONF_FILE + ']: ' + e);
+      dispatchSVReadyEvent();
     }
 
     var iccHandler = function(evt) {
-      var mcc_mnc = getMccMnc();
+      mcc_mnc = getMccMnc();
       if (mcc_mnc) {
-        loadFile(SINGLE_VARIANT_CONF_FILE,
-                 loadSVConfFileSuccess.bind(undefined, mcc_mnc),
-                 loadSVConfFileError);
         IccHelper.removeEventListener('iccinfochange', iccHandler);
+        loadFile(SINGLE_VARIANT_CONF_FILE,
+                 loadSVConfFileSuccess,
+                 loadSVConfFileError);
         // No needed anymore
         IccHelper = iccHandler = null;
         return true;
@@ -175,6 +192,10 @@ var Configurator = (function() {
 
     getSingleVariantApps: function() {
       return singleVariantApps;
+    },
+
+    get isSingleVariantReady() {
+      return !mcc_mnc;
     },
 
     load: load,

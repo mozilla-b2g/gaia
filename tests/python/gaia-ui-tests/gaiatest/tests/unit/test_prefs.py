@@ -7,17 +7,15 @@ from gaiatest import GaiaTestCase
 
 class TestPrefs(GaiaTestCase):
 
-    def test_get_set_bool_pref(self):
-        self.data_layer.set_bool_pref('gaiauitest.pref.enabled', True)
-        test_pref = self.data_layer.get_bool_pref('gaiauitest.pref.enabled')
-        self.assertEquals(test_pref, True)
-
     def test_get_set_int_pref(self):
         self.data_layer.set_int_pref('gaiauitest.pref.int_value', 19)
         test_pref = self.data_layer.get_int_pref('gaiauitest.pref.int_value')
         self.assertEquals(test_pref, 19)
 
-    def test_get_set_char_pref(self):
-        self.data_layer.set_char_pref('gaiauitest.pref.char_value', 'bob')
-        test_pref = self.data_layer.get_char_pref('gaiauitest.pref.char_value')
-        self.assertEquals(test_pref, 'bob')
+    def test_get_set_bool_pref_from_within_an_app(self):
+        from gaiatest.apps.settings.app import Settings
+        settings = Settings(self.marionette)
+        settings.launch()
+        self.data_layer.set_bool_pref('gaiauitest.pref.enabled', True)
+        test_pref = self.data_layer.get_bool_pref('gaiauitest.pref.enabled')
+        self.assertEquals(test_pref, True)

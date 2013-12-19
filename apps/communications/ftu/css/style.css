@@ -1163,7 +1163,7 @@ i.hack-first-child {
 
 /* if you want to add your steps, you have to change the denominator */
 .tutorial-screen-base .step-state:before {
-  width: calc(100% / 5);
+  width: calc(100% / 4);
   background: #FFFFFF;
 }
 

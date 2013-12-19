@@ -28,8 +28,10 @@ class TestCallLogAllCalls(GaiaTestCase):
         # Make a call so it will appear in the call log
         self.phone.make_call_and_hang_up(test_phone_number)
 
-        # Switch back to phone app
-        self.phone.launch()
+        # Wait for fall back to phone app
+        self.wait_for_condition(lambda m: self.apps.displayed_app.name == self.phone.name)
+        self.apps.switch_to_displayed_app()
+
         call_log = self.phone.tap_call_log_toolbar_button()
 
         call_log.tap_all_calls_tab()

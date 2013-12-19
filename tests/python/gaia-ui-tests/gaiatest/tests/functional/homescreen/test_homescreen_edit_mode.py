@@ -12,7 +12,7 @@ class TestEditMode(GaiaTestCase):
         GaiaTestCase.setUp(self)
 
         self.homescreen = Homescreen(self.marionette)
-        self.homescreen.launch()
+        self.apps.switch_to_displayed_app()
 
     def test_access_and_leave_edit_mode(self):
 

@@ -18,7 +18,6 @@ class TestFtu(GaiaTestCase):
     _step2_header_locator = (By.ID, 'step2Header')
     _step3_header_locator = (By.ID, 'step3Header')
     _step4_header_locator = (By.ID, 'step4Header')
-    _step5_header_locator = (By.ID, 'step5Header')
     _tour_next_button_locator = (By.ID, 'forward-tutorial')
     _tour_back_button_locator = (By.ID, 'back-tutorial')
 
@@ -43,7 +42,7 @@ class TestFtu(GaiaTestCase):
                 self.marionette.find_element(*self._next_button_locator).tap()
             else:
                 count = count + 1
-            if count > 5:
+            if count > 4:
                 break
 
         # Take the tour
@@ -65,23 +64,18 @@ class TestFtu(GaiaTestCase):
 
         self.wait_for_element_displayed(*self._step3_header_locator)
         self.assertEqual(self.marionette.find_element(*self._step3_header_locator).text,
-                         "Enter any keyword or topic and your phone will instantly adapt.")
+                         "Swipe down to access recent notifications, credit information and settings.")
         self.marionette.find_element(*self._tour_next_button_locator).tap()
 
         self.wait_for_element_displayed(*self._step4_header_locator)
         self.assertEqual(self.marionette.find_element(*self._step4_header_locator).text,
-                         "Swipe down to access recent notifications, credit information and settings.")
-        self.marionette.find_element(*self._tour_next_button_locator).tap()
-
-        self.wait_for_element_displayed(*self._step5_header_locator)
-        self.assertEqual(self.marionette.find_element(*self._step5_header_locator).text,
                          "Tap and hold the home button to browse and close recent apps.")
 
         # Try going back a step
         self.marionette.find_element(*self._tour_back_button_locator).tap()
-        self.wait_for_element_displayed(*self._step4_header_locator)
+        self.wait_for_element_displayed(*self._step3_header_locator)
         self.marionette.find_element(*self._tour_next_button_locator).tap()
-        self.wait_for_element_displayed(*self._step5_header_locator)
+        self.wait_for_element_displayed(*self._step4_header_locator)
         self.marionette.find_element(*self._tour_next_button_locator).tap()
 
         self.wait_for_element_displayed(*self._section_tutorial_finish_locator)

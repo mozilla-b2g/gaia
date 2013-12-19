@@ -371,7 +371,6 @@
 
   #calls.switch > section .switch-calls {
     display: block;
-    background: #01c5ed;
     height: 8.0rem;
     width: auto;
     float: right;
@@ -413,7 +412,8 @@
   }
 
   #calls.big-duration > section .numberWrapper,
-  #calls.big-duration > section .additionalContactInfo {
+  #calls.big-duration > section .additionalContactInfo,
+  #calls.big-duration > section .switch-calls {
     background: #01c5ed;
   }
 
@@ -524,7 +524,9 @@
     background-repeat: no-repeat;
   }
 
-  #calls > section.held {
+  #calls > section.held,
+  #calls.big-duration > section.held .switch-calls,
+  #calls.big-duration > section.ended .switch-calls {
     background-color: rgba(28, 24, 24, 0.7);
   }
 
@@ -693,7 +695,7 @@
     right : 0;
     height: 7rem;
     width: 8rem;
-    background: url('images/proceed.png') no-repeat center center / 3rem;
+    background: url('images/proceed.png') no-repeat right 1rem center / 3rem;
   }
 
   #group-call.held #group-show {
@@ -709,7 +711,12 @@
     transition: background-color 0.2s ease;
   }
 
+  #calls #group-call-label {
+    padding-right: 3rem;
+  }
+
   #group-call .hangup-button,
+  #calls:not(.big-duration) #group-call > .duration.isTimer,
   #group-call-details-list .fake-number,
   #group-call-details-list .duration,
   #group-call-details-list .switch-calls {

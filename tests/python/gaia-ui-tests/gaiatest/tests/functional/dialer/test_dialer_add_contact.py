@@ -39,7 +39,8 @@ class TestDialerAddContact(GaiaTestCase):
         new_contact.tap_done()
 
         # Switch back to keypad-view
-        self.phone.launch()
+        self.wait_for_condition(lambda m: self.apps.displayed_app.name == self.phone.name)
+        self.apps.switch_to_displayed_app()
 
         #Go to Contact list and Verify result
         contacts = self.phone.tap_contacts()

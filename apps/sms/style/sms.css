@@ -729,6 +729,7 @@ form.bottom[role="search"].messages-compose-form {
   z-index: 10;
 
   display: none;
+  height: 0; /* see bug 941353 */
 
   text-align: left;
   color: black;
@@ -834,8 +835,9 @@ generateHeightRule() (in ThreadUI/thread_ui.js) will create:
 }
 
 .recipient[contenteditable=false].attention {
-  padding-left: 1.2rem;
+  position: relative;
 
+  padding-left: 1.2rem;
   border: 0.1rem solid #b90000;
 
   background: transparent;

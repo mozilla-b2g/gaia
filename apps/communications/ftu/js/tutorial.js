@@ -60,6 +60,22 @@ var Tutorial = {
 
     // Update header with right locale
     var localeKey = this.tutorialSteps[this.currentStep].key;
+
+    // NOTE:
+    //
+    // because string got freezed, we can't change string now.
+    // in this way, we have to skip to the correct one.
+    //
+    // Because we just changed steps count in tutorialSteps,
+    // but we can't fix the l10n, in this way, we have to
+    // make a localeKey by ourselves in this situation.
+    if (this.currentStep >= 3) {
+      if (this.layout === 'tiny') {
+        var nextStepIndex = this.currentStep + 1;
+        localeKey = 'tutorial-step' + nextStepIndex + '-tiny';
+      }
+    }
+
     this[headerID].innerHTML = _(localeKey);
 
     // Make sure we show image when loaded

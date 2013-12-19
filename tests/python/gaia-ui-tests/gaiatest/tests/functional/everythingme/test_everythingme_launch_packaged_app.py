@@ -22,11 +22,11 @@ class TestEverythingMeSearchPanel(GaiaTestCase):
         homescreen = Homescreen(self.marionette)
         homescreen.launch()
 
+        self.apps.switch_to_displayed_app()
+
         search_panel = homescreen.tap_search_bar()
         search_panel.wait_for_keyboard_visible()
         search_panel.type_into_search_box(self.app_name)
-
-        homescreen.switch_to_homescreen_frame()
 
         results = search_panel.installed_apps
         self.assertEqual(results[0].name, self.app_name)

@@ -733,8 +733,42 @@ function cropPickedImage(fileinfo) {
 
   photodb.getFile(pickedFile.name, function(file) {
     cropURL = URL.createObjectURL(file);
-    cropEditor = new ImageEditor(cropURL, $('crop-frame'), {}, function() {
-      // Enable the done button so that users are able to finish picking image.
+
+    var previewURL;
+    var previewData = pickedFile.metadata.preview;
+    if (!previewData) {
+      // If there is no preview at all, this is a small image and
+      // it is its own preview. Just crop with the full-size image
+      startCrop();
+    }
+    else if (previewData.filename) {
+      // If there is an external preview file, use that. This means that
+      // the EXIF preview was not big enough
+      var storage = navigator.getDeviceStorage('pictures');
+      var getreq = storage.get(previewData.filename);
+      getreq.onsuccess = function() {
+        startCrop(URL.createObjectURL(getreq.result));
+      };
+      // If we fail to get the preview file, just use the full-size image
+      getreq.onerror = function() {
+        startCrop();
+      };
+    }
+    else {
+      // Otherwise, use the internal EXIF preview.
+      // This should be the normal case.
+      startCrop(URL.createObjectURL(file.slice(previewData.start,
+                                               previewData.end,
+                                               'image/jpeg')));
+    }
+
+    function startCrop(previewURL) {
+      cropEditor = new ImageEditor(cropURL, $('crop-frame'), {},
+                                   cropEditorReady, previewURL);
+    }
+
+    function cropEditorReady() {
+      // Enable the done button so that users can finish picking image.
       $('crop-done-button').disabled = false;
       // If the initiating app doesn't want to allow the user to crop
       // the image, we don't display the crop overlay. But we still use
@@ -753,7 +787,7 @@ function cropPickedImage(fileinfo) {
         cropEditor.setCropAspectRatio(pickWidth, pickHeight);
       else
         cropEditor.setCropAspectRatio(); // free form cropping
-    });
+    }
   });
 }
 
@@ -1069,6 +1103,12 @@ function share(blobs) {
 // When we used mozRequestFullscreen, it would also happen
 // when we entered or left fullscreen mode.
 function resizeHandler() {
+  // If we are cropping a picked image, resize the ImageEditor object
+  // that is displaying the image and crop handles
+  if (cropEditor) {
+    cropEditor.resize();
+  }
+
   //
   // When we enter or leave fullscreen mode, we get two resize events.
   // When we get the first one, we don't know what our new size is, so

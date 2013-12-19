@@ -339,6 +339,10 @@ input[type="image"] {
   box-shadow: none;
 }
 
+#url-input:disabled {
+  color: #000;
+}
+
 menu[type="toolbar"] {
   height: 4.5rem;
   margin: 0;

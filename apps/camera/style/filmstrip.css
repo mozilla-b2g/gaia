@@ -82,7 +82,6 @@ img.thumbnail.previewed {  /* if the thumbnail is being previewed */
   border-width: 0;
   padding: 0;
   margin: 0;
-  transform-origin: 0 0;
   pointer-events: none;
   -moz-user-select: none;
 }

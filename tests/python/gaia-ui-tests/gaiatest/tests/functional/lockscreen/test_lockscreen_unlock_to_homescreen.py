@@ -18,7 +18,5 @@ class TestLockScreen(GaiaTestCase):
     def test_unlock_to_homescreen(self):
         # https://moztrap.mozilla.org/manage/case/1296/
         homescreen = self.lock_screen.unlock()
-        self.lock_screen.wait_for_lockscreen_not_visible()
 
-        homescreen.switch_to_homescreen_frame()
-        homescreen.wait_for_landing_page_visible()
+        self.wait_for_condition(lambda m: self.apps.displayed_app.name == homescreen.name)

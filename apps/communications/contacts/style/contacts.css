@@ -33,7 +33,7 @@ section[role="region"] > header:first-child .icon.icon-edit-contact {
 }
 
 .view-contacts-list .view-body-inner {
-  padding-left: 1.5rem;
+  padding-left: 0.5rem;
 }
 
 #contact-name-title {
@@ -669,4 +669,9 @@ section[role="region"] > header .icon.icon-settings
 #groups-container {
   height: 100%;
   overflow: scroll;
+}
+
+.group-section {
+  overflow: hidden;
+  padding-left: 1rem;
 }

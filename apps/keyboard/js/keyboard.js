@@ -230,6 +230,7 @@ const keyboardGroups = {
   'spanish' : ['es'],
   'portuguese' : ['pt_BR'],
   'polish' : ['pl'],
+  'bangla': ['bn-Avro', 'bn-Probhat'],
   'catalan' : ['ca'],
   'czech': ['cz'],
   'french': ['fr'],
@@ -264,7 +265,7 @@ const defaultKeyboardNames = ['en'];
 
 const keyboardHashKey = [
   'en', 'en-Dvorak', 'es', 'pt-BR', 'pl',
-  'cz', 'fr', 'de', 'nb', 'sk',
+  'bn-Avro', 'bn-Probhat', 'cz', 'fr', 'de', 'nb', 'sk',
   'tr', 'ru', 'sr-Cyrl', 'ar', 'he',
   'el',
   'zh-Hant-Zhuyin', 'zh-Hans-Pinyin', 'jp-kanji',
@@ -1781,6 +1782,12 @@ function showKeyboard() {
     value: ''
   };
 
+  // everything.me uses this setting to improve searches,
+  // but they really shouldn't.
+  navigator.mozSettings.createLock().set({
+    'keyboard.current': keyboardName
+  });
+
   function doShowKeyboard() {
     // Force to disable the auto correction for Greek SMS layout.
     // This is because the suggestion result is still unicode and
@@ -1833,6 +1840,12 @@ function hideKeyboard() {
   deactivateInputMethod();
 
   isKeyboardRendered = false;
+
+  // everything.me uses this setting to improve searches,
+  // but they really shouldn't.
+  navigator.mozSettings.createLock().set({
+    'keyboard.current': undefined
+  });
 }
 
 // Resize event handler

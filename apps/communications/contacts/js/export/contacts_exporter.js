@@ -120,7 +120,11 @@ window.ContactsExporter = function ContactsExporter(theStrategy) {
       console.error('An error occurred during the export: ' + error.reason);
     }
     // TODO: Better mechanism to show result
-    var msg = exported + ' out of ' + contacts.length + ' exported';
+    var msg = _('contactsExported2', {
+      'exported': exported,
+      'total': contacts.length
+    });
+
     utils.status.show(msg);
   };
 

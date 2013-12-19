@@ -117,4 +117,8 @@
     padding: 5rem 22.5rem 0.5rem;
     font-size: 1.9rem;
   }
+
+  .tutorial-screen-base .step-state:before {
+    width: calc(100% / 5);
+  }
 }

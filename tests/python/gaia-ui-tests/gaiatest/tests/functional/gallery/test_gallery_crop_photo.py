@@ -15,9 +15,6 @@ class TestGalleryCropPhoto(GaiaTestCase):
         # add photo to storage
         self.push_resource('IMG_0001.jpg', destination='DCIM/100MZLLA')
 
-        # launch the Gallery app
-        self.app = self.apps.launch('Gallery')
-
     def test_gallery_crop_photo(self):
         gallery = Gallery(self.marionette)
         gallery.launch()
