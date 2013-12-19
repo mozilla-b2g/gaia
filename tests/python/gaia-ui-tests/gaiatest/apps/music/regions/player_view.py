@@ -38,8 +38,3 @@ class PlayerView(Base):
     def player_current_timestamp(self):
         player = self.marionette.find_element(*self._audio_locator)
         return float(player.get_attribute('currentTime'))
-
-    @property
-    def player_playback_duration(self):
-        player = self.marionette.find_element(*self._audio_locator)
-        return float(player.get_attribute('duration'))
