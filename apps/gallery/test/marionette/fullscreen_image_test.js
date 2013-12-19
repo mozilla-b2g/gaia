@@ -44,7 +44,7 @@ marionette('the gallery', function() {
     // Acquire a duplicate of an image by launching the editing
     // mode and saving it.
     app.thumbnail.click();
-    app.editButton.click();
+    app.editButtonTiny.click();
     app.waitForImageEditor();
     app.editSaveButton.click();
     client.waitFor(function() {
