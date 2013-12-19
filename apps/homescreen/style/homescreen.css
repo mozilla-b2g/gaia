@@ -87,7 +87,7 @@ li:active {
   height: 1px;
 
   pointer-events: none;
-  position: absolute;
+  position: fixed;
   bottom: 0;
   left: 0;
 }
