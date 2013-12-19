@@ -33,8 +33,6 @@ var Browser = {
   searchEngine: {},
 
   DEVICE_RATIO: window.devicePixelRatio,
-  UPPER_SCROLL_THRESHOLD: 50, // hide address bar
-  LOWER_SCROLL_THRESHOLD: 5, // show address bar
   MAX_TOP_SITES: 4, // max number of top sites to display
   MAX_THUMBNAIL_WIDTH: 140,
   MAX_THUMBNAIL_HEIGHT: 100,
@@ -42,19 +40,18 @@ var Browser = {
   MAX_SAVING_RETRIES: 100, // max number of retries when saving images with a
                            // new name.
   urlButtonMode: null,
-  addressBarState: null,
 
   inTransition: false,
 
   waitingActivities: [],
   hasLoaded: false,
 
-  // store the current scroll position, so we can re-calculate whether
-  // we need to show the addressbar when loading the page is complete
-  lastScrollOffset: 0,
-
   init: function browser_init() {
     this.getAllElements();
+
+    // Make the div grouping the top toolbar and the content iframe scroll-
+    // grabbing. This gives us the desired scrolling behaviour.
+    this.mainScreen.scrollgrab = true;
 
     // Add event listeners
     this.urlBar.addEventListener('submit', this.handleUrlFormSubmit.bind(this));
@@ -73,7 +70,6 @@ var Browser = {
 
     BrowserDB.init((function() {
       this.selectTab(this.createTab());
-      this.addressBarState = this.VISIBLE;
       BrowserDB.getSetting('defaultSearchEngine', (function(uri) {
         if (!uri)
           return;
@@ -335,10 +331,6 @@ var Browser = {
         if (!tab.url || tab.crashed) {
           return;
         }
-        // If address bar is hidden then show it
-        if (this.addressBarState === this.HIDDEN) {
-          this.showAddressBar();
-        }
         tab.loading = true;
         if (isCurrentTab && this.currentScreen === this.PAGE_SCREEN) {
           this.throbber.classList.add('loading');
@@ -379,14 +371,9 @@ var Browser = {
           BrowserDB.setAndLoadIconForPage(tab.url, iconUrl);
         }
 
-        // We always show the address bar when loading
-        // After loading we might need to hide it
-        this.handleScroll({ detail: { top: this.lastScrollOffset } });
-
         break;
 
       case 'mozbrowserlocationchange':
-        this.lastScrollOffset = 0;
         if (evt.detail === 'about:blank') {
           return;
         }
@@ -479,64 +466,8 @@ var Browser = {
         if (evt.detail.type === 'fatal')
           this.handleCrashedTab(tab);
         break;
-
-      case 'mozbrowserasyncscroll':
-        this.handleScroll(evt);
-        break;
       }
     }).bind(this);
-  },
-
-  handleScroll: function browser_handleScroll(evt) {
-    this.lastScrollOffset = evt.detail.top;
-
-    if (evt.detail.top < this.LOWER_SCROLL_THRESHOLD) {
-      this.showAddressBar();
-    } else if (evt.detail.top > this.UPPER_SCROLL_THRESHOLD) {
-      this.hideAddressBar();
-    }
-  },
-
-  hideAddressBar: function browser_hideAddressBar() {
-    if (this.addressBarState === this.HIDDEN ||
-        this.addressBarState === this.TRANSITIONING) {
-      return;
-    }
-
-    // don't hide the address bar when loading
-    if (this.currentTab.loading)
-      return;
-
-    var addressBarHidden = (function browser_addressBarHidden() {
-      this.addressBarState = this.HIDDEN;
-      this.mainScreen.removeEventListener('transitionend', addressBarHidden);
-    }).bind(this);
-    // Prevent interaction with fluffy address bar when hidden, bug 937929
-    this.urlInput.disabled = true;
-    this.mainScreen.addEventListener('transitionend', addressBarHidden);
-    this.addressBarState = this.TRANSITIONING;
-    this.mainScreen.classList.add('expanded');
-    this.mainScreen.clientTop;
-    this.mainScreen.classList.add('address-hidden');
-  },
-
-  showAddressBar: function browser_showAddressBar() {
-    if (this.addressBarState === this.VISIBLE ||
-        this.addressBarState === this.TRANSITIONING) {
-      return;
-    }
-
-    var addressBarVisible = (function browser_addressBarVisible() {
-      this.mainScreen.classList.remove('expanded');
-      this.addressBarState = this.VISIBLE;
-      this.mainScreen.removeEventListener('transitionend', addressBarVisible);
-    }).bind(this);
-    // Only allow interaction with fluffy address bar when visible, bug 937929
-    this.urlInput.disabled = false;
-    this.mainScreen.addEventListener('transitionend', addressBarVisible);
-    this.addressBarState = this.TRANSITIONING;
-    this.mainScreen.clientTop;
-    this.mainScreen.classList.remove('address-hidden');
   },
 
   handleUrlInputKeypress: function browser_handleUrlInputKeypress(evt) {
