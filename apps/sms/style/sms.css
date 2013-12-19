@@ -154,6 +154,21 @@ form[data-type="action"] img[src=""] {
 }
 
 /* Lists: edit mode */
+.edit [data-type="list"] li:after {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  left: -1.5rem;
+  top: 0;
+  right: -1.5rem;
+  bottom: 0;
+  z-index: 3;
+}
+
+.edit [data-type="list"] li:active:after {
+  background-color: rgba(0,213,255,0.3);
+}
+
 .edit [data-type="list"] li > label {
   opacity: 1;
   pointer-events: auto;
@@ -764,14 +779,12 @@ form.bottom[role="search"].messages-compose-form {
   top: 5rem;
   left: 0;
   right: 0;
-  height: 3rem;
+  height: 3.1rem;
   line-height: 4rem;
-  padding: 0 1.5rem;
-  margin: 0 1.5rem;
-  border-bottom: solid 0.1rem #ff4e00;
+  padding: 0 3rem;
   background-repeat: no-repeat;
   background-color: #FFFFFF;
-  color: #FF4E00;
+  color: #FF5F19;
   pointer-events: none;
   text-align: left;
   text-transform: uppercase;
@@ -782,6 +795,16 @@ form.bottom[role="search"].messages-compose-form {
   white-space: nowrap;
 }
 
+.fixed-title:after {
+  position: absolute;
+  content: "";
+  left: 1.5rem;
+  right: 1.5rem;
+  top: 0;
+  bottom: 0;
+  border-bottom: 1px solid #FF5F19;
+  z-index: 4;
+}
 .fixed-title.no-fixed-header {
   transform: translateY(-100%);
 }
