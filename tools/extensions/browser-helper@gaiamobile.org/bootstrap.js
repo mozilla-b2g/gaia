@@ -234,9 +234,9 @@ function startup(data, reason) {
                                 browserWindow.outerWidth - 550);
       gDevToolsBrowser.selectToolCommand(browserWindow.gBrowser);
 
-      // XXX This code should be loaded by the keyboard/ extension
-      Cu.import('resource://gre/modules/Keyboard.jsm')
+      Cu.import('resource://gre/modules/Keyboard.jsm');
       Keyboard.initFormsFrameScript(mm);
+      mm.loadFrameScript('chrome://global/content/forms.js', true);
     }, 'sessionstore-windows-restored', false);
 
     try {
