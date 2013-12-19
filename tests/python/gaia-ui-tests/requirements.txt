@@ -1,5 +1,5 @@
 marionette_client==0.7.1
-mozdevice>=0.31
+mozdevice
 py==1.4.14
 requests
 moztest>=0.3
