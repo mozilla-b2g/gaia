@@ -333,12 +333,18 @@ var Compose = (function() {
 
     fromDraft: function(draft) {
       // Clear out the composer
-      Compose.clear();
+      this.clear();
 
       // If we don't have a draft, return only having cleared the composer
       if (!draft) {
         return;
       }
+
+      if (draft.subject) {
+        dom.subject.value = draft.subject;
+        this.toggleSubject();
+      }
+
       // draft content is an array
       draft.content.forEach(function(fragment) {
         // If the fragment is an attachment
@@ -352,6 +358,8 @@ var Compose = (function() {
         // Append each fragment in order to the composer
         Compose.append(fragment);
       }, Compose);
+
+      this.focus();
     },
 
     getText: function() {

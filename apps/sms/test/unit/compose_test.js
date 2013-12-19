@@ -113,7 +113,6 @@ suite('compose_test.js', function() {
         var text = Compose.getSubject();
         assert.equal(text, 'Line 1 Line 2 Line 3');
       });
-
     });
 
     suite('Placeholder', function() {
@@ -357,6 +356,7 @@ suite('compose_test.js', function() {
       setup(function() {
         Compose.clear();
         d1 = new Draft({
+          subject: '...',
           content: ['I am a draft'],
           threadId: 1
         });
@@ -367,12 +367,28 @@ suite('compose_test.js', function() {
         });
       });
       teardown(function() {
+
         Compose.clear();
       });
+
       test('Draft with text', function() {
         Compose.fromDraft(d1);
         assert.equal(Compose.getContent(), d1.content.join(''));
       });
+
+      test('Draft with subject', function() {
+        this.sinon.spy(Compose, 'toggleSubject');
+        Compose.fromDraft(d1);
+        assert.equal(Compose.getSubject(), d1.subject);
+        assert.isTrue(Compose.isSubjectShowing);
+        sinon.assert.calledOnce(Compose.toggleSubject);
+      });
+
+      test('Draft without subject', function() {
+        Compose.fromDraft(d2);
+        assert.isFalse(Compose.isSubjectShowing);
+      });
+
       test('Draft with attachment', function() {
         Compose.fromDraft(d2);
         var txt = Compose.getContent();
@@ -624,7 +640,7 @@ suite('compose_test.js', function() {
         expectType = 'sms';
         Compose.clear();
         assert.equal(typeChange.called, 2);
-        });
+      });
     });
 
     suite('changing inputmode', function() {
