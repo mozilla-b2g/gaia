@@ -46,4 +46,4 @@ class Language(Base):
         close_button.tap()
 
         # now back to app
-        self.marionette.switch_to_frame(self.apps.displayed_app.frame)
+        self.apps.switch_to_displayed_app()
