@@ -268,7 +268,9 @@ suite('link_helper_test.js', function() {
         // Bug 900413 - detect 5 digit short codes
         '24242',
         '10086',
-        '+1234'
+        '+1234',
+        // bug 941976 - 7 digit 4 digit with symbols should still work
+        '123-1234 1234'
       ].forEach(function(phone) {
         test(phone, testPhoneOK.bind(null, phone));
       });
@@ -322,6 +324,28 @@ suite('link_helper_test.js', function() {
         var result = LinkHelper.searchAndLinkClickableData(test);
         assert.equal(result, expected);
       });
+      test('7 digit and 9 digit (#941976)', function() {
+        var test = '1234567 987654321';
+        var expected = test.split(' ').map(phone2msg).join(' ');
+        var result = LinkHelper.searchAndLinkClickableData(test);
+        assert.equal(result, expected);
+      });
+      test('7 digit and 5 digit (#941976)', function() {
+        var test = '1234567 12345';
+        var expected = test.split(' ').map(phone2msg).join(' ');
+        var result = LinkHelper.searchAndLinkClickableData(test);
+        assert.equal(result, expected);
+      });
+      test('7 digit and 5 digit(with plus) (#941976)', function() {
+        var test = '1234567 +1234';
+        var expected = test.split(' ').map(phone2msg).join(' ');
+        var result = LinkHelper.searchAndLinkClickableData(test);
+        assert.equal(result, expected);
+      });
+      test('7 digit and 4 digit (#941976)', function() {
+        testPhoneMatch('1234567 1234', '1234567');
+      });
+
     });
   });
 
