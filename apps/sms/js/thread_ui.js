@@ -2546,9 +2546,10 @@ var ThreadUI = global.ThreadUI = {
    *                  - preserve, boolean whether or not to preserve draft.
    */
   saveDraft: function thui_saveDraft(opts) {
-    var draft, recipients, content, thread, threadId, type;
+    var content, draft, recipients, subject, thread, threadId, type;
 
     content = Compose.getContent();
+    subject = Compose.getSubject();
     type = Compose.type;
 
     // TODO Also store subject
@@ -2565,6 +2566,7 @@ var ThreadUI = global.ThreadUI = {
     draft = new Draft({
       recipients: recipients,
       content: content,
+      subject: subject,
       threadId: threadId,
       type: type,
       id: draftId

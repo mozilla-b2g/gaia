@@ -904,7 +904,7 @@
         attachments: ...
       }
     */
-
+    var now = Date.now();
     var sendId = messagesDb.id++;
     var request = {
       error: null
@@ -942,7 +942,7 @@
         delivery: 'sending',
         deliveryInfo: [{receiver: null, deliveryStatus: 'not-applicable'}],
         read: true,
-        subject: '',
+        subject: params.subject,
         smil: params.smil,
         attachments: params.attachments,
         timestamp: now
@@ -999,12 +999,12 @@
             receiver: null,
             delivery: 'received',
             id: messagesDb.id++,
-            timestamp: now,
+            timestamp: Date.now(),
             threadId: thread.id,
             type: 'mms',
             deliveryInfo: [{deliveryStatus: 'success'}],
             read: false,
-            subject: '',
+            subject: 'Re: ' + params.subject,
             smil: '<smil><body><par><text src="text1"/></par></body></smil>',
             attachments: [{
               location: 'text1',
@@ -1016,6 +1016,8 @@
           }
         };
         messagesDb.messages.push(receivedInfo.message);
+
+        thread.timestamp = Date.now();
         thread.unreadCount++;
         trigger('received', receivedInfo);
       });
