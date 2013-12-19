@@ -237,6 +237,7 @@ suite('settings.js', function() {
 
 		test('DEVICE_DEBUG === true', function() {
 			config.DEVICE_DEBUG = true;
+      config.NO_LOCK_SCREEN = '1';
 			config.TARGET_BUILD_VARIANT = 'user';
 			var result = app.execute(config);
 			assert.deepEqual({
