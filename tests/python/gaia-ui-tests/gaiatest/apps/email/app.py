@@ -112,12 +112,14 @@ class Email(Base):
     def wait_for_header_area(self):
         self.wait_for_element_displayed(*self._header_area_locator)
 
-    def wait_for_email(self, subject, timeout=60):
+    def wait_for_email(self, subject, timeout=120):
         timeout = float(timeout) + time.time()
         while time.time() < timeout:
             time.sleep(5)
             self.toolbar.tap_refresh()
             self.wait_for_emails_to_sync()
+            if len(self.mails) > 0:
+                self.mails[0].scroll_to_message()
             emails = self.mails
             if subject in [mail.subject for mail in emails]:
                 break
@@ -162,15 +164,19 @@ class ToolBar(Base):
     _settings_locator = (By.CSS_SELECTOR, '#cardContainer .card.center .fld-nav-settings-btn')
 
     def tap_refresh(self):
+        self.wait_for_element_displayed(*self._refresh_locator)
         self.marionette.find_element(*self._refresh_locator).tap()
 
     def tap_search(self):
+        self.wait_for_element_displayed(*self._search_locator)
         self.marionette.find_element(*self._search_locator).tap()
 
     def tap_edit(self):
+        self.wait_for_element_displayed(*self._edit_locator)
         self.marionette.find_element(*self._edit_locator).tap()
 
     def tap_settings(self):
+        self.wait_for_element_displayed(*self._settings_locator)
         self.marionette.find_element(*self._settings_locator).tap()
 
     @property
@@ -213,6 +219,7 @@ class Message(PageRegion):
         el = self.root_element.find_element(*self._subject_locator)
         # TODO: Remove scrollIntoView when bug #877163 is fixed
         self.marionette.execute_script("arguments[0].scrollIntoView(false);", [el])
+        self.wait_for_element_displayed(*self._subject_locator)
         self.root_element.find_element(*self._subject_locator).tap()
         from gaiatest.apps.email.regions.read_email import ReadEmail
         return ReadEmail(self.marionette)
