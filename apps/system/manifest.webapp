@@ -18,7 +18,7 @@
     "bluetooth":{},
     "telephony":{},
     "voicemail":{},
-    "device-storage:sdcard":{ "access": "readwrite" },
+    "device-storage:sdcard":{ "access": "readonly" },
     "device-storage:pictures":{ "access": "readwrite" },
     "device-storage:videos":{ "access": "readwrite" },
     "device-storage:music":{ "access": "readcreate" },
@@ -42,8 +42,7 @@
     "input":{},
     "input-manage":{},
     "nfc":{ "access": "readonly" },
-    "nfc-manager":{},
-    "downloads":{}
+    "nfc-manager":{}
   },
   "locales": {
     "ar": {
@@ -90,11 +89,6 @@
     "bluetoothTransfercomms": {
       "description": "Communication with bluetooth apps for sending files info",
       "rules": {}
-    }
-  },
-  "datastores-owned": {
-    "download_store": {
-      "description": "Stores successful downloads"
     }
   }
 }
