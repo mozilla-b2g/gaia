@@ -19,7 +19,13 @@
   "icons": {
     "120": "/style/icons/Test-agent.png"
   },
-  "orientation": "portrait-primary"
+  "orientation": "portrait-primary",
+  "datastores-owned": {
+    "places": {
+      "description": "Stores data about browsing history.",
+      "readonly": true
+    }
+  }
 }
 
 
