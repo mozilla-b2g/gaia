@@ -12,6 +12,8 @@ var Rocketbar = {
 
   searchBar: document.getElementById('search-bar'),
 
+  searchCancel: document.getElementById('search-cancel'),
+
   get shown() {
     return ('visible' in this.searchBar.dataset);
   },
@@ -38,10 +40,24 @@ var Rocketbar = {
     return this.searchInput = input;
   },
 
+  handleEvent: function(e) {
+    switch (e.target.id) {
+      case 'search-cancel':
+        e.preventDefault();
+        e.stopPropagation();
+        this.hide();
+        break;
+      default:
+        break;
+    }
+  },
+
   init: function() {
     // IACHandler will dispatch inter-app messages
     window.addEventListener('iac-search-results',
       this.onSearchMessage.bind(this));
+
+    this.searchCancel.addEventListener('click', this);
 
     SettingsListener.observe('rocketbar.enabled', false,
     function(value) {

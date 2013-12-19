@@ -28,6 +28,8 @@ Search.ClientOptions = {
 };
 
 Search.Selectors = {
+  searchBar: '#search-bar',
+  searchCancel: '#search-cancel',
   searchInput: '#search-input',
   searchResults: 'iframe[mozapptype="mozsearch"]',
   statusBar: '#statusbar',
@@ -116,6 +118,20 @@ Search.prototype = {
       var location = this.client
         .findElement(Search.Selectors.searchInput).location();
       return location.y >= 20;
+    }.bind(this));
+  },
+
+  /**
+   * Closes the rocketbar by pressing the cancel button
+   */
+  cancelRocketbar: function() {
+    this.client.helper.waitForElement(Search.Selectors.searchCancel)
+      .click();
+
+    this.client.waitFor(function() {
+      var el = this.client
+        .findElement(Search.Selectors.searchBar);
+      return el.location().y + el.size().height === 0;
     }.bind(this));
   }
 };

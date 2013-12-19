@@ -14,6 +14,11 @@ marionette('navigation', function() {
     search = new Search(client);
   });
 
+  test('cancel button closes rocketbar', function() {
+    search.openRocketbar();
+    search.cancelRocketbar();
+  });
+
   test('opens rocketbar from homescreen', function() {
     client.apps.switchToApp(Homescreen.URL);
     homescreen.search();
