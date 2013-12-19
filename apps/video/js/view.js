@@ -137,7 +137,7 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     }
   }
 
-  function setControlsVisibility(visible) {
+  function showVideoControls(visible) {
     dom.videoControls.classList[visible ? 'remove' : 'add']('hidden');
     controlShowing = visible;
     if (visible) {
@@ -159,7 +159,7 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
       controlFadeTimeout = null;
     }
     if (!controlShowing) {
-      setControlsVisibility(true);
+      showVideoControls(true);
       // add preventDefault to prevent click dispatching.
       event.preventDefault();
       return;
@@ -177,7 +177,7 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     } else if (event.target == dom.sliderWrapper) {
       dragSlider(event);
     } else {
-      setControlsVisibility(false);
+      showVideoControls(false);
     }
   }
 
@@ -293,9 +293,9 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
       dom.player.currentTime = 0;
 
       // Show the controls briefly then fade out
-      setControlsVisibility(true);
+      showVideoControls(true);
       controlFadeTimeout = setTimeout(function() {
-        setControlsVisibility(false);
+        showVideoControls(false);
       }, 2000);
 
       play();
