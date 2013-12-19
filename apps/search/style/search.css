@@ -5,7 +5,8 @@ section {
   color: #fff;
 }
 section#localapps .result,
-section#contacts .result{
+section#contacts .result,
+section#history {
   -moz-box-sizing: border-box;
   padding: 0.5rem;
   border-bottom: 1px solid #5A5A5A;
