@@ -275,7 +275,8 @@ suite('Thumbnail Item Unit Tests', function() {
       var node = domNode.querySelector('.img');
       assert.notEqual(node.style.backgroundImage, '');
       thumbnail.updatePoster(null);
-      assert.equal(node.style.backgroundImage, '');
+      assert.equal(node.style.backgroundImage,
+        'url("style/images/default_thumbnail.png")');
     });
   });
 });

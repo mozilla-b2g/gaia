@@ -113,10 +113,8 @@ function ThumbnailItem(videoData) {
     // This  is the image blob we display for the video.
     // If the video is part-way played, we display the bookmark image.
     // Otherwise we display the poster image from metadata parsing.
-    var imageblob = _this.data.metadata.bookmark || _this.data.metadata.poster;
-    if (imageblob) {
-      _this.updatePoster(imageblob);
-    }
+    _this.updatePoster(_this.data.metadata.bookmark ||
+                       _this.data.metadata.poster);
 
     _this.setWatched(_this.data.metadata.watched);
 
@@ -176,12 +174,15 @@ ThumbnailItem.prototype.updatePoster = function(imageblob) {
   }
 
   if (imageblob) {
+    this.posterNode.classList.remove('default');
     var imageUri = URL.createObjectURL(imageblob);
     this.posterNode.dataset.uri = imageUri;
     this.posterNode.style.backgroundImage = 'url(' + imageUri + ')';
   } else {
+    this.posterNode.classList.add('default');
     this.posterNode.dataset.uri = '';
-    this.posterNode.style.backgroundImage = '';
+    this.posterNode.style.backgroundImage =
+      'url(style/images/default_thumbnail.png)';
   }
 };
 

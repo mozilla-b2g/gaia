@@ -1011,10 +1011,7 @@ function hidePlayer(updateVideoMetadata, callback) {
 
   function updateMetadata() {
     // Update the thumbnail image for this video
-    var imageblob = video.metadata.bookmark || video.metadata.poster;
-    if (imageblob) {
-      thumbnail.updatePoster(imageblob);
-    }
+    thumbnail.updatePoster(video.metadata.bookmark || video.metadata.poster);
 
     // If this is the first time the video was watched, record that it has
     // been watched now and update the corresponding document element.
