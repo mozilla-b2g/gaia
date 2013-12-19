@@ -33,11 +33,14 @@ suite('latin input method capitalization and punctuation', function() {
         if (keycode === 8) { // backspace
           output = output.substring(0, output.length - 1);
         }
-        else
+        else {
           output += String.fromCharCode(keycode);
+        }
+        return new Promise(function(res, rej) { res(); });
       },
       sendString: function(s) {
         output += s;
+        return new Promise(function(res, rej) { res(); });
       },
       sendCandidates: function(words) {
         // gotSuggestions(words);
@@ -264,7 +267,7 @@ suite('latin input method capitalization and punctuation', function() {
     if (expected === undefined)
       return;
 
-    test(testname, function() {
+    test(testname, function(next) {
       // reset the output state
       reset();
       // activate the IM
@@ -278,19 +281,23 @@ suite('latin input method capitalization and punctuation', function() {
 
       // Send the input one character at a time, converting
       // the input to uppercase if the IM has set uppercase
-      for (var i = 0; i < input.length; i++) {
-        if (isUpperCase)
-          im.click(input[i].toUpperCase().charCodeAt(0));
-        else
-          im.click(input.charCodeAt(i));
+      var inputQueue = input.split('').map(function(c) {
+        return function(n) {
+          if (isUpperCase)
+            im.click(c.toUpperCase().charCodeAt(0)).then(n);
+          else
+            im.click(c.charCodeAt(0)).then(n);
+        };
+      });
+      function queue(q, n) {
+        q.length ? q.shift()(queue.bind(this, q, n)) : n();
       }
-
-      // deactivate the IM
-      im.deactivate();
-
-      // test the output
-      assert.equal(output, expected,
-                   'expected "' + expected + '" for input "' + input + '"');
+      queue(inputQueue, function() {
+        im.deactivate();
+        assert.equal(output, expected,
+                     'expected "' + expected + '" for input "' + input + '"');
+        next();
+      });
     });
   }
 });
