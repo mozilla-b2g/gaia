@@ -80,14 +80,14 @@ function iconDescriptor(directory, app_name, entry_point) {
   let origin = null;
   let manifestURL = null;
 
-  if (!webapps[app_name]) {
-    manifest = getCollectionManifest(directory, app_name);
-    if (!manifest) {
+  manifest = getCollectionManifest(directory, app_name);
+  if (!manifest) {
+    if (!webapps[app_name]) {
       throw new Error(
         'Can not find application ' + app_name + ' at ' + directory
       );
     }
-  } else {
+
     manifest = webapps[app_name].manifest;
     if (entry_point &&
       manifest.entry_points &&
