@@ -19,6 +19,7 @@ class TestGeolocationPrompt(GaiaTestCase):
     def test_geolocation_prompt(self):
 
         self.app = self.apps.launch('Geoloc')
+        self.wait_for_element_displayed(*self._geoloc_start_button_locator)
         self.marionette.find_element(*self._geoloc_start_button_locator).tap()
 
         permission = PermissionDialog(self.marionette)
