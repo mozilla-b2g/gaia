@@ -2,6 +2,7 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 (function(exports) {
   'use strict';
+  /*global fb */
 
   var filterFns = {
     startsWith: function(a, b) {
