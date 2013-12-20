@@ -49,6 +49,16 @@ var Rocketbar = {
   },
 
   handleEvent: function(e) {
+    switch (e.type) {
+      case 'keyboardchange':
+        // When the keyboard is opened make sure to not resize
+        // the current app by swallowing the event.
+        e.stopImmediatePropagation();
+        return;
+      default:
+        break;
+    }
+
     switch (e.target.id) {
       case 'search-cancel':
         e.preventDefault();
@@ -165,6 +175,8 @@ var Rocketbar = {
     if (!this.shown)
       return;
 
+    document.body.removeEventListener('keyboardchange', this, true);
+
     this.searchInput.blur();
 
     var searchFrame = this.searchContainer.querySelector('iframe');
@@ -178,6 +190,8 @@ var Rocketbar = {
     if (this.shown) {
       return;
     }
+
+    document.body.addEventListener('keyboardchange', this, true);
 
     var search = this.searchBar;
     search.dataset.visible = 'true';

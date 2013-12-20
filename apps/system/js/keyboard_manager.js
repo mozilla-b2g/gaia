@@ -385,9 +385,13 @@ var KeyboardManager = {
       var detail = {
         'detail': {
           'height': self.keyboardHeight
-        }
+        },
+        bubbles: true,
+        cancellable: true
       };
-      window.dispatchEvent(new CustomEvent('keyboardchange', detail));
+      // We dispatch the events at the body level so we are able to intercept
+      // them and prevent page resizing where desired.
+      document.body.dispatchEvent(new CustomEvent('keyboardchange', detail));
     };
 
     // If the keyboard is hidden, or when transitioning is not finished
