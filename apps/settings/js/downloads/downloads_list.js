@@ -164,8 +164,8 @@
     request.onconfirm = function() {
       if (download.pause) {
         download.pause().then(function() {
-          // Remove listener
-          download.onstatechange = null;
+          // We don't remove the listener because the download could be
+          // restarted in notification tray
           _update(download);
         }, function() {
           console.error('Could not pause the download');
@@ -178,17 +178,14 @@
   function _restartDownload(download) {
     var request = DownloadUI.show(DownloadUI.TYPE.STOPPED, download);
 
-    function checkDownload() {
-      download.onstatechange = _onDownloadStateChange;
-      _update(download);
-    }
-
     request.onconfirm = function() {
       if (download.resume) {
         download.resume().then(function() {
-          checkDownload();
+          // Nothing to do here -> this resolves only once the download has
+          // succeeded.
         }, function onError() {
-          alert(navigator.mozL10n.get('restart_download_error'));
+          // This error is fired when a download restarted is paused
+          console.error(navigator.mozL10n.get('restart_download_error'));
         });
       }
     };
