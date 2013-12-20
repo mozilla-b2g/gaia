@@ -51,7 +51,7 @@ var DownloadUI = (function() {
     FILE_NOT_FOUND: new DownloadType('file_not_found', ['recommend', 'full'],
                                      true),
     FILE_OPEN_ERROR: new DownloadType('file_open_error', ['danger']),
-    NO_SDCARD: new DownloadType('no_sdcard', ['recommend', 'full'], true),
+    NO_SDCARD: new DownloadType('no_sdcard_found', ['recommend', 'full'], true),
     UNMOUNTED_SDCARD: new DownloadType('unmounted_sdcard', ['recommend',
                                        'full'], true)
   };
