@@ -9,13 +9,13 @@ function HandledCall(aCall) {
 
   aCall.ongroupchange = (function onGroupChange() {
     if (this.call.group) {
-      this._leftGroup = false;
       CallScreen.moveToGroup(this.node);
-    } else if (this.call.state != 'disconnecting' &&
-               this.call.state != 'disconnected') {
+      this._leftGroup = false;
+    } else if (this._wasUnmerged()) {
       CallScreen.insertCall(this.node);
+      this._leftGroup = false;
     } else {
-      this._leftGroup = true;
+      this._leftGroup = !this.node.dataset.groupHangup;
     }
   }).bind(this);
 
@@ -68,6 +68,12 @@ function HandledCall(aCall) {
     this.connected();
   }
 }
+
+HandledCall.prototype._wasUnmerged = function hc_wasUnmerged() {
+  return !this.node.dataset.groupHangup &&
+         this.call.state != 'disconnecting' &&
+         this.call.state != 'disconnected';
+};
 
 HandledCall.prototype.handleEvent = function hc_handle(evt) {
   switch (evt.call.state) {

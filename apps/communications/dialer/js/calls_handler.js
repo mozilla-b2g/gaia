@@ -658,7 +658,7 @@ var CallsHandler = (function callsHandler() {
 
   function endConferenceCall() {
     var callsToEnd = telephony.conferenceGroup.calls;
-    CallScreen.setCallsEndedInGroup();
+    CallScreen.setEndConferenceCall();
     for (var i = (callsToEnd.length - 1); i >= 0; i--) {
       var call = callsToEnd[i];
       call.hangUp();

@@ -75,6 +75,7 @@ suite('dialer/handled_call', function() {
   });
 
   setup(function() {
+    this.sinon.useFakeTimers(Date.now());
     mockCall = new MockCall(String(phoneNumber), 'dialing');
     subject = new HandledCall(mockCall);
 
@@ -347,7 +348,6 @@ suite('dialer/handled_call', function() {
 
     suite('from a regular call', function() {
       setup(function() {
-        this.sinon.useFakeTimers();
         mockCall._disconnect();
       });
       test('should save the recents entry', function() {
@@ -946,13 +946,40 @@ suite('dialer/handled_call', function() {
       mockCall.group = this.sinon.stub();
       mockCall.ongroupchange(mockCall);
       assert.isTrue(moveToGroupSpy.calledWith(subject.node));
+      assert.isFalse(MockCallScreen.mShowStatusMessageCalled);
     });
 
-    test('when leaving a group, it should ask the CallScreen to move back',
+    test('when leaving a group but still connected, it should move back to ' +
+         'the CallScreen but not show any status message on disconnect.',
     function() {
       mockCall.group = null;
       mockCall.ongroupchange(mockCall);
       assert.isTrue(insertCallSpy.calledWith(subject.node));
+      mockCall._disconnect();
+      assert.isFalse(MockCallScreen.mShowStatusMessageCalled);
+    });
+
+    test('when leaving a group by hanging up, it shouldn\'t move back to the' +
+         'CallScreen and show a status message.', function() {
+      mockCall.group = null;
+      mockCall.state = 'disconnecting';
+      mockCall.ongroupchange(mockCall);
+      assert.isFalse(insertCallSpy.calledWith(subject.node));
+      assert.isFalse(MockCallScreen.mShowStatusMessageCalled);
+      mockCall._disconnect();
+      assert.isTrue(MockCallScreen.mShowStatusMessageCalled);
+    });
+
+    test('when leaving a group by hanging up the whole group calls, it ' +
+         ' shouldn\'t move back and shouldn\'t show any status message.',
+    function() {
+      mockCall.group = null;
+      mockCall.state = 'disconnecting';
+      subject.node.dataset.groupHangup = 'groupHangup';
+      mockCall.ongroupchange(mockCall);
+      assert.isFalse(insertCallSpy.calledWith(subject.node));
+      mockCall._disconnect();
+      assert.isFalse(MockCallScreen.mShowStatusMessageCalled);
     });
   });
 

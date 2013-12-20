@@ -454,6 +454,11 @@ suite('calls handler', function() {
           assert.isTrue(firstHangUpSpy.calledOnce);
           assert.isTrue(secondHangUpSpy.calledOnce);
         });
+
+        test('should call CallScreen.setEndConferenceCall', function() {
+          CallsHandler.end();
+          assert.isTrue(MockCallScreen.mSetEndConferenceCall);
+        });
       });
 
       suite('> ending one of two calls', function() {
@@ -787,6 +792,12 @@ suite('calls handler', function() {
           CallsHandler.endAndAnswer();
           assert.isTrue(hideSpy.calledOnce);
         });
+
+        test('should call CallScreen.setEndConferenceCall', function() {
+          CallsHandler.endAndAnswer();
+          assert.isTrue(MockCallScreen.mSetEndConferenceCall);
+        });
+
       });
     });
 
