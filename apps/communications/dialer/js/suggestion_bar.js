@@ -198,6 +198,12 @@ var SuggestionBar = {
     var markedNumber = this._markMatched(matchedTel.value, query);
     this._setItem(node, markedNumber, matchedTel.type,
                     contact.name[0]);
+    if(this._phoneNumber == matchedTel.value) {
+        KeypadManager.disableAddContact();
+    }
+    else {
+        KeypadManager.enableAddContact();
+    }
   },
 
   _createItem: function sb_createItem() {
