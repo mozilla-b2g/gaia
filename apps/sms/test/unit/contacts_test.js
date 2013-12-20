@@ -98,6 +98,12 @@ suite('Contacts', function(done) {
                     ]);
                   }
 
+                  if (filter.filterValue === 'julien') {
+                    return MockContact.list([
+                      { givenName: ['Julien'] }
+                    ]);
+                  }
+
                   if (filter.filterValue === 'do') {
                     return MockContact.list([
                       // true
@@ -215,7 +221,6 @@ suite('Contacts', function(done) {
         done();
       });
     });
-
 
     test('(string[tel], ...) Match', function(done) {
       var mozContacts = navigator.mozContacts;
@@ -350,6 +355,12 @@ suite('Contacts', function(done) {
 
         // navigator.mozContacts.find was called?
         assert.equal(mHistory.length, 1);
+        done();
+      });
+    });
+
+    test('string search yields a contact without familyName', function(done) {
+      Contacts.findByString('julien 123', function(contacts) {
         done();
       });
     });
