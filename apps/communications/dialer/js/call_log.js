@@ -11,8 +11,7 @@ var CallLog = {
 
   init: function cl_init() {
     if (this._initialized) {
-      this.updateHighlight();
-      this.updateHeaders();
+      this.becameVisible();
       return;
     }
 
@@ -107,8 +106,7 @@ var CallLog = {
           if (document.hidden) {
             self.pauseHeaders();
           } else {
-            self.updateHeaders();
-            self.updateHighlight();
+            self.becameVisible();
             self.updateHeadersContinuously();
           }
         });
@@ -132,6 +130,13 @@ var CallLog = {
       self._dbupgrading = false;
       self.render();
     };
+  },
+
+  // Helper to update UI and clean notifications when we got visibility
+  becameVisible: function cl_becameVisible() {
+    this.updateHeaders();
+    this.updateHighlight();
+    this.cleanNotifications();
   },
 
   // Method for highlighting call events since last visit to call-log
@@ -952,6 +957,21 @@ var CallLog = {
     if (contact) {
       element.dataset.contactId = contact.id;
     }
+  },
+
+  cleanNotifications: function cl_cleanNotifcations() {
+    // On startup of call log, we clear all dialer notification
+    Notification.get()
+      .then(
+        function onSuccess(notifications) {
+          for (var i = 0; i < notifications.length; i++) {
+            notifications[i].close();
+          }
+        },
+        function onError(reason) {
+          console.debug('Call log Notification.get() promise error: ' + reason);
+        }
+      );
   },
 
   _getGroupFromLog: function cl_getGroupFromLog(log) {
