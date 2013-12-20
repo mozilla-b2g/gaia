@@ -65,5 +65,5 @@ class Gallery(Base):
         switch_to_camera_button.tap()
         camera_app = gaiatest.apps.camera.app.Camera(self.marionette)
         self.wait_for_condition(lambda m: self.apps.displayed_app.name == camera_app.name)
-        self.marionette.switch_to_frame(self.apps.displayed_app.frame)
+        self.apps.switch_to_displayed_app()
         return camera_app

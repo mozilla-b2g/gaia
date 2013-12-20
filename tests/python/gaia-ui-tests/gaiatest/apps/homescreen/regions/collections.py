@@ -48,7 +48,7 @@ class Collection(Base):
             self.root_element.tap()
             # Wait for the displayed app to be that we have tapped
             self.wait_for_condition(lambda m: self.apps.displayed_app.name == app_name)
-            self.marionette.switch_to_frame(self.apps.displayed_app.frame)
+            self.apps.switch_to_displayed_app()
 
             # Wait for title to load (we cannot be more specific because the aut may change)
             self.wait_for_condition(lambda m: m.title)

@@ -36,7 +36,7 @@ class Activities(Base):
 
     def tap_cancel(self):
         self.marionette.find_element(*self._cancel_button_locator).tap()
-        self.marionette.switch_to_frame(self.apps.displayed_app.frame_id)
+        self.apps.switch_to_displayed_app()
 
     @property
     def options_count(self):

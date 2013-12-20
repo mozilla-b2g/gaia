@@ -24,8 +24,7 @@ class PhoneLock(Base):
             self.keyboard.send("".join(passcode))
 
         # switch to settings frame
-        self.marionette.switch_to_frame()
-        self.marionette.switch_to_frame(self.apps.displayed_app.frame)
+        self.apps.switch_to_displayed_app()
 
         # create passcode
         self.wait_for_element_displayed(*self._phone_lock_passcode_section_locator)

@@ -134,7 +134,7 @@ class Homescreen(Base):
             expected_name = self.name
             self.root_element.tap()
             self.wait_for_condition(lambda m: self.apps.displayed_app.name.lower() == expected_name.lower())
-            self.marionette.switch_to_frame(self.apps.displayed_app.frame)
+            self.apps.switch_to_displayed_app()
 
         def tap_delete_app(self):
             """Tap on (x) to delete app"""
