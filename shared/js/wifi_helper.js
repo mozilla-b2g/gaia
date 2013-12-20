@@ -288,5 +288,78 @@ var WifiHelper = {
 
   isEap: function(network) {
     return this.getKeyManagement(network).indexOf('EAP') !== -1;
+  },
+
+  // Both 'available' and 'known' are "object of networks".
+  // Each key of them is a composite key of a network,
+  // and each value is the original network object received from DOMRequest
+  // It'll be easier to compare in the form of "object of networks"
+  _unionOfNetworks: function(available, known) {
+    var allNetworks = available || {};
+    var result = [];
+    Object.keys(known).forEach(function(key) {
+      if (!allNetworks[key])
+        allNetworks[key] = known[key];
+    });
+    // However, people who use getAvailableAndKnownNetworks expect
+    // getAvailableAndKnownNetworks.result to be an array of network
+    Object.keys(allNetworks).forEach(function(key) {
+      result.push(allNetworks[key]);
+    });
+    return result;
+  },
+
+  _networksArrayToObject: function(allNetworks) {
+    var self = this;
+    var networksObject = {};
+    [].forEach.call(allNetworks, function(network) {
+      // use ssid + security as a composited key
+      var key = network.ssid + '+' +
+        self.getSecurity(network).join('+');
+      networksObject[key] = network;
+    });
+    return networksObject;
+  },
+
+  _onReqProxySuccess: function(reqProxy, availableNetworks, knownNetworks) {
+    reqProxy.result =
+      this._unionOfNetworks(availableNetworks, knownNetworks);
+    reqProxy.onsuccess();
+  },
+
+  getAvailableAndKnownNetworks: function() {
+    var self = this;
+    var reqProxy = {
+      onsuccess: function() {},
+      onerror: function() {}
+    };
+    var knownNetworks = {};
+    var availableNetworks = {};
+    var knownNetworksReq = null;
+    var availableNetworksReq = this.getWifiManager().getNetworks();
+
+    // request available networks first then known networks,
+    // since it is acceptible that error on requesting known networks
+    availableNetworksReq.onsuccess = function anrOnSuccess() {
+      availableNetworks =
+        self._networksArrayToObject(availableNetworksReq.result);
+      knownNetworksReq = self.getWifiManager().getKnownNetworks();
+      knownNetworksReq.onsuccess = function knrOnSuccess() {
+        knownNetworks = self._networksArrayToObject(knownNetworksReq.result);
+        self._onReqProxySuccess(
+          reqProxy, availableNetworks, knownNetworks);
+      };
+      knownNetworksReq.onerror = function knrOnError() {
+        // it is acceptible that no known networks found or error
+        // on requesting known networks
+        self._onReqProxySuccess(
+          reqProxy, availableNetworks, knownNetworks);
+      };
+    };
+    availableNetworksReq.onerror = function anrOnError() {
+      reqProxy.error = availableNetworksReq.error;
+      reqProxy.onerror();
+    };
+    return reqProxy;
   }
 };
