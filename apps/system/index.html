@@ -29,9 +29,9 @@
     <script defer src="js/base_ui.js"></script>
 
     <script defer src="js/orientation_manager.js"></script>
+    <script defer src="shared/js/template.js"></script>
     <!--
     <script defer src="shared/js/keyboard_helper.js"></script>
-    <script defer src="shared/js/template.js"></script>
     -->
     <!-- SIMSlot -->
     <script type="text/javascript" defer src="js/simslot.js"></script>
@@ -702,6 +702,67 @@
           </div>
         </div>
 
+        <div id="modal-dialog-tmpl">
+          <!--
+          <div class="modal-dialog" id="${name}${id}">
+            <form class="modal-dialog-alert generic-dialog"
+              role="dialog" tabindex="-1">
+              <div class="modal-dialog-message-container inner">
+                <h3 class="modal-dialog-alert-title"></h3>
+                <p>
+                  <span class="modal-dialog-alert-message"></span>
+                </p>
+              </div>
+              <menu>
+                <button class="modal-dialog-alert-ok confirm affirmative"
+                data-l10n-id="ok">OK</button>
+              </menu>
+            </form>
+            <form class="modal-dialog-confirm generic-dialog"
+              role="dialog" tabindex="-1">
+              <div class="modal-dialog-message-container inner">
+                <h3 class="modal-dialog-confirm-title"></h3>
+                <p>
+                  <span class="modal-dialog-confirm-message"></span>
+                </p>
+              </div>
+              <menu data-items="2">
+                <button class="modal-dialog-confirm-cancel cancel"
+                data-l10n-id="cancel">Cancel</button>
+                <button class="modal-dialog-confirm-ok confirm affirmative"
+                data-l10n-id="ok">OK</button>
+              </menu>
+            </form>
+            <form class="modal-dialog-prompt generic-dialog"
+              role="dialog" tabindex="-1">
+              <div class="modal-dialog-message-container inner">
+                <h3 class="modal-dialog-prompt-title"></h3>
+                <p>
+                  <span class="modal-dialog-prompt-message"></span>
+                  <input class="modal-dialog-prompt-input" />
+                </p>
+              </div>
+              <menu data-items="2">
+                <button class="modal-dialog-prompt-cancel cancel"
+                data-l10n-id="cancel">Cancel</button>
+                <button class="modal-dialog-prompt-ok confirm affirmative"
+                data-l10n-id="ok">OK</button>
+              </menu>
+            </form>
+            <form class="modal-dialog-select-one generic-dialog"
+              role="dialog" tabindex="-1">
+              <div class="modal-dialog-message-container inner">
+                <h3 class="modal-dialog-select-one-title"></h3>
+                <ul class="modal-dialog-select-one-menu"></ul>
+              </div>
+              <menu>
+                <button class="modal-dialog-select-one-cancel cancel"
+                data-l10n-id="cancel">Cancel</button>
+              </menu>
+            </form>
+          </div>
+          -->
+        </div>
         <div id="modal-dialog">
           <div id="modal-dialog-alert" role="dialog" class="generic-dialog" tabindex="-1">
             <div class="modal-dialog-message-container inner">

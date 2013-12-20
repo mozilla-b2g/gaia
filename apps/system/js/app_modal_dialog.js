@@ -5,11 +5,15 @@
   var _id = 0;
 
   /**
-   * The ModalDialog of the appWindow.
+   * The ModalDialog of the AppWindow.
+   *
+   * Including **alert**, **prompt**, **confirm**, and
+   * **single select** dialogs.
    *
    * @class AppModalDialog
    * @param {AppWindow} app The app window instance
    *                        where this dialog should popup.
+   * @extends BaseUI
    */
   window.AppModalDialog = function AppModalDialog(app) {
     this.app = app;
@@ -109,65 +113,12 @@
   };
 
   AppModalDialog.prototype.view = function amd_view() {
-    return '<div class="modal-dialog"' +
-            ' id="' + this.CLASS_NAME + this.instanceID + '">' +
-            '<form class="modal-dialog-alert generic-dialog" ' +
-            'role="dialog" tabindex="-1">' +
-            '<div class="modal-dialog-message-container inner">' +
-              '<h3 class="modal-dialog-alert-title"></h3>' +
-              '<p>' +
-                '<span class="modal-dialog-alert-message"></span>' +
-              '</p>' +
-            '</div>' +
-            '<menu>' +
-              '<button class="modal-dialog-alert-ok confirm affirmative" ' +
-              'data-l10n-id="ok">OK</button>' +
-            '</menu>' +
-          '</form>' +
-          '<form class="modal-dialog-confirm generic-dialog" ' +
-          'role="dialog" tabindex="-1">' +
-            '<div class="modal-dialog-message-container inner">' +
-              '<h3 class="modal-dialog-confirm-title"></h3>' +
-              '<p>' +
-                '<span class="modal-dialog-confirm-message"></span>' +
-              '</p>' +
-            '</div>' +
-            '<menu data-items="2">' +
-              '<button class="modal-dialog-confirm-cancel cancel" ' +
-              'data-l10n-id="cancel">Cancel</button>' +
-              '<button class="modal-dialog-confirm-ok confirm affirmative" ' +
-              'data-l10n-id="ok">OK</button>' +
-            '</menu>' +
-          '</form>' +
-          '<form class="modal-dialog-prompt generic-dialog" ' +
-            'role="dialog" tabindex="-1">' +
-            '<div class="modal-dialog-message-container inner">' +
-              '<h3 class="modal-dialog-prompt-title"></h3>' +
-              '<p>' +
-                '<span class="modal-dialog-prompt-message"></span>' +
-                '<input class="modal-dialog-prompt-input" />' +
-              '</p>' +
-            '</div>' +
-            '<menu data-items="2">' +
-              '<button class="modal-dialog-prompt-cancel cancel"' +
-              ' data-l10n-id="cancel">Cancel</button>' +
-              '<button class="modal-dialog-prompt-ok confirm affirmative" ' +
-              'data-l10n-id="ok">OK</button>' +
-            '</menu>' +
-          '</form>' +
-          '<form class="modal-dialog-select-one generic-dialog" ' +
-            'role="dialog" ' +
-            'tabindex="-1">' +
-            '<div class="modal-dialog-message-container inner">' +
-              '<h3 class="modal-dialog-select-one-title"></h3>' +
-              '<ul class="modal-dialog-select-one-menu"></ul>' +
-            '</div>' +
-            '<menu>' +
-              '<button class="modal-dialog-select-one-cancel cancel" ' +
-              'data-l10n-id="cancel">Cancel</button>' +
-            '</menu>' +
-          '</form>' +
-        '</div>';
+    var self = this;
+    var template = new Template('modal-dialog-tmpl');
+    return template.interpolate({
+        id: self.instanceID.toString(),
+        name: self.CLASS_NAME
+      });
   };
 
   AppModalDialog.prototype.processNextEvent = function amd_processNextEvent() {
