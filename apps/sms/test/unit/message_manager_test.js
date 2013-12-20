@@ -70,38 +70,6 @@ suite('message_manager.js >', function() {
     MessageManager._mozMobileMessage = realMozMobileMessage;
   });
 
-  suite('init() > ', function() {
-    var realNavMozMobileMessage;
-
-    suiteSetup(function() {
-      realNavMozMobileMessage = navigator.mozMobileMessage;
-      navigator.mozMobileMessage = MockNavigatormozMobileMessage;
-    });
-
-    suiteTeardown(function() {
-      navigator.mozMobileMessage = realNavMozMobileMessage;
-    });
-
-    setup(function() {
-      this.sinon.stub(window, 'addEventListener');
-      this.sinon.stub(document, 'addEventListener');
-
-      this.sinon.spy(Drafts, 'request');
-
-      MessageManager.init();
-    });
-
-    teardown(function() {
-      MessageManager.initialized = false;
-      delete MessageManager.mainWrapper;
-      delete MessageManager.threadMessages;
-    });
-
-    test('calls Drafts.request', function() {
-      assert.isTrue(Drafts.request.calledOnce);
-    });
-  });
-
   suite('on message sent > ', function() {
     setup(function() {
       this.sinon.spy(ThreadUI, 'onMessageSending');

@@ -44,8 +44,6 @@ var MessageManager = {
     if (typeof callback === 'function') {
       callback();
     }
-
-    Drafts.request();
   },
 
   onMessageSending: function mm_onMessageSending(e) {
