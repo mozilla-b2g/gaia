@@ -23,19 +23,27 @@ var ContactsBTExport = function ContactsBTExport() {
     progressStep = p;
   };
 
-  var _hasName = function _hasName(contact) {
+  var _getGivenName = function _getGivenName(contact) {
     return (Array.isArray(contact.givenName) && contact.givenName[0] &&
-              contact.givenName[0].trim()) ||
-            (Array.isArray(contact.familyName) && contact.familyName[0] &&
+              contact.givenName[0].trim());
+  };
+  var _getLastName = function _getLastName(contact) {
+    return (Array.isArray(contact.familyName) && contact.familyName[0] &&
               contact.familyName[0].trim());
   };
   var _getFileName = function _getFileName() {
     var filename = [];
     if (contacts && contacts.length === 1) {
-      var contact = contacts[0];
-      if (_hasName(contact)) {
-        filename.push(contact.givenName[0], contact.familyName[0]);
-      } else {
+      var contact = contacts[0],
+          givenName = _getGivenName(contact),
+          lastName = _getLastName(contact);
+      if (givenName) {
+        filename.push(givenName);
+      }
+      if (lastName) {
+        filename.push(lastName);
+      }
+      if (filename.length === 0) {
         if (contact.org && contact.org.length > 0) {
           filename.push(contact.org[0]);
         } else if (contact.tel && contact.tel.length > 0) {
