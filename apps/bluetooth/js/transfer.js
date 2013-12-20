@@ -143,7 +143,7 @@ window.addEventListener('localized', function showPanel() {
     // Post message to system app for sending files in queue
     // Producer: Bluetooth app produce one message for each sending file request
     sendingFilesSchedule = {
-      numberOfFiles: activity.source.data.filenames.length,
+      numberOfFiles: activity.source.data.blobs.length,
       numSuccessful: 0,
       numUnsuccessful: 0
     };
@@ -151,12 +151,53 @@ window.addEventListener('localized', function showPanel() {
 
     // Send each file via Bluetooth sendFile API
     var blobs = activity.source.data.blobs;
-    blobs.forEach(function(blob) {
-      defaultAdapter.sendFile(targetDevice.address, blob);
-      var msg = 'file is sending...';
-      debug(msg);
-    });
+    var numberOfTasks = blobs.length;
+    blobs.forEach(function(blob, index) {
+      /**
+       * Checking blob.name is because the sendFile() api needs a "file" object.
+       * And it is needing a filaname before send it.
+       * If there is no filename in the blob, Bluetooth API will give a default
+       * name "Unknown.jpeg". So Bluetooth app have to find out the name via
+       * device stroage.
+       */
+      if (blob.name) {
+        // The blob has name, send the blob directly.
+        defaultAdapter.sendFile(targetDevice.address, blob);
+        var msg = 'blob is sending...';
+        debug(msg);
+        if (--numberOfTasks === 0) {
+          transferred();
+        }
+      } else {
+        // The blob does not have name,
+        // browse the file via filepath from storage again.
+        var filepath = activity.source.data.filepaths[index];
+        var storage = navigator.getDeviceStorage('sdcard');
+        var getRequest = storage.get(filepath);
 
+        getRequest.onsuccess = function() {
+          defaultAdapter.sendFile(targetDevice.address, getRequest.result);
+          var msg = 'getFile succeed & file is sending...';
+          debug(msg);
+          if (--numberOfTasks === 0) {
+            transferred();
+          }
+        };
+
+        getRequest.onerror = function() {
+          defaultAdapter.sendFile(targetDevice.address, blob);
+          var msg = 'getFile failed so that blob is sending without filename ' +
+                    getRequest.error && getRequest.error.name;
+          debug(msg);
+          if (--numberOfTasks === 0) {
+            transferred();
+          }
+        };
+      }
+    });
+  }
+
+  function transferred() {
     activity.postResult('transferred');
     endTransfer();
   }
