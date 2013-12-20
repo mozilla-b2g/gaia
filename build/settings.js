@@ -254,7 +254,7 @@ function execute() {
    'tethering.wifi.dhcpserver.endip': '192.168.1.30',
    'tethering.wifi.ssid': 'FirefoxHotspot',
    'tethering.wifi.security.type': 'wpa2-psk',
-   'tethering.wifi.security.password': '1234567890',
+   'tethering.wifi.security.password': '',
    'tethering.wifi.connectedClients': 0,
    'tethering.usb.connectedClients': 0,
    'time.clock.automatic-update.enabled': true,
