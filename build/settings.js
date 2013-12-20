@@ -302,6 +302,11 @@ function execute(options) {
     // Activate developer menu under the system menu when long pressing
     // the power button by default for devs.
     settings['developer.menu.enabled'] = true;
+
+    // Turn on APZ for developers. The final activation for everything will
+    // be done in bug 909877, but it will be good to get as many regressions
+    // and bugs as possible before turning it on definitively.
+    settings['apz.force-enable'] = true;
   }
 
   // Set the homescreen URL
