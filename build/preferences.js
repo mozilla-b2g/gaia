@@ -13,13 +13,13 @@ function execute(options) {
   var gaia = utils.getGaia(config);
   const prefs = [];
 
-  let homescreen = config.HOMESCREEN +
+  let systemapp = config.SYSTEMAPP +
     (config.GAIA_PORT ? config.GAIA_PORT : '');
-  prefs.push(['browser.manifestURL', homescreen + '/manifest.webapp']);
-  if (homescreen.substring(0, 6) == 'app://') { // B2G bug 773884
-      homescreen += '/index.html';
+  prefs.push(['browser.manifestURL', systemapp + '/manifest.webapp']);
+  if (systemapp.substring(0, 6) == 'app://') { // B2G bug 773884
+      systemapp += '/index.html';
   }
-  prefs.push(['browser.homescreenURL', homescreen]);
+  prefs.push(['browser.startupURL', systemapp]);
 
   let domains = [];
   domains.push(config.GAIA_DOMAIN);
@@ -49,7 +49,7 @@ function execute(options) {
 
   if (config.DESKTOP) {
     // Set system app as default firefox tab
-    prefs.push(['browser.startup.homepage', homescreen]);
+    prefs.push(['browser.startup.homepage', systemapp]);
     prefs.push(['startup.homepage_welcome_url', '']);
     // Disable dialog asking to set firefox as default OS browser
     prefs.push(['browser.shell.checkDefaultBrowser', false]);
