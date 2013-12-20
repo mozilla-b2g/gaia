@@ -259,7 +259,7 @@ var Contacts = (function() {
           }
           return;
         }
-        contactsDetails.render(currentContact, TAG_OPTIONS);
+        contactsDetails.render(currentContact, TAG_OPTIONS, currentFbContact);
         if (contacts.Search && contacts.Search.isInSearchMode()) {
           navigation.go('view-contact-details', 'go-deeper-search');
         } else {
@@ -317,6 +317,8 @@ var Contacts = (function() {
       background = 'url(' + URL.createObjectURL(photo) + ')';
     }
     dest.style.backgroundImage = background;
+    // Only for testing purposes
+    dest.dataset.photoReady = 'true';
   };
 
   // Checks if an object fields are empty, by empty means
@@ -737,12 +739,11 @@ var Contacts = (function() {
           currentContact.id == event.contactID) {
           contactsList.getContactById(event.contactID,
             function success(contact, enrichedContact) {
-            currentContact = contact;
-            var mergedContact = enrichedContact || contact;
-            contactsDetails.render(mergedContact, false,
-                                   enrichedContact ? true : false);
-            contactsList.refresh(mergedContact, checkPendingChanges,
-                                 event.reason);
+              currentContact = contact;
+              var mergedContact = enrichedContact || contact;
+              contactsDetails.render(mergedContact, null, enrichedContact);
+              contactsList.refresh(mergedContact, checkPendingChanges,
+                                   event.reason);
           });
         } else {
           contactsList.refresh(event.contactID, checkPendingChanges,
