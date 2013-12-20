@@ -24,13 +24,14 @@ function installGaia() {
 }
 
 function getPid(appName) {
-	var tempFileName = 'tmpFile';
+	var tempFileName =
+		'tmpFile' + Math.random().toString(36).substring(7);
 	sh.run(['-c', 'adb shell b2g-ps > ' + tempFileName]);
 	var tempFile = utils.getFile(utils.joinPath(gaiaDir, tempFileName));
 	var content = utils.getFileContent(tempFile);
 	var pidMap = utils.psParser(content);
 	sh.run(['-c', 'rm ' + tempFileName]);
-	return pidMap[appName] ? pidMap[appName].pid : null;
+	return pidMap[appName] ? pidMap[appName].PID : null;
 }
 
 function execute(options) {
@@ -57,11 +58,6 @@ function execute(options) {
 
 	if (buildAppName === '*' || buildAppName === 'system') {
 		adb.run(['shell', 'stop', 'b2g']);
-	} else {
-		var appPid = getPid(buildAppName);
-		if (appPid) {
-			adb.run(['shell', 'kill', appPid]);
-		}
 	}
 
 	adb.run(['shell','rm -r /cache/*']);
@@ -91,6 +87,16 @@ function execute(options) {
 
 	if (buildAppName === '*' || buildAppName === 'system') {
 		adb.run(['shell', 'start', 'b2g']);
+	} else {
+		// Some app folder name is different with the process name,
+		// ex. sms -> Messages
+		var appName = utils.getAppName(
+										utils.joinPath(gaiaDir, 'apps',
+											buildAppName, 'manifest.webapp'));
+		var appPid = getPid(appName);
+		if (appPid) {
+			adb.run(['shell', 'kill', appPid]);
+		}
 	}
 }
 

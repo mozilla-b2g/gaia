@@ -673,26 +673,35 @@ function getEnvPath() {
 
 // We parse list like ps aux and b2g-ps into object
 function psParser(out) {
+  var titles =
+    ['APPLICATION', 'USER', 'PID', 'PPID', 
+     'VSIZE', 'RSS', 'WCHAN', 'PC', 'NAME'];
   var rows = out.split('\n');
   if (rows.length < 2)
     return {};
 
+  // We use indexes of each title of the first row to
+  // get correct position of each values.
+  // We don't use split(' ') here, because some app name
+  // may contain white space, ex. FM Radio.
+  var titleIndexes = titles.map(function(name) {
+    return rows[0].indexOf(name);
+  });
   var result = {};
-  var colNames = getCols(rows[0]);
+
   for (var r = 1; r < rows.length; r++) {
-    var cols = getCols(rows[r]);
-    result[cols[0]] = {};
-    for (var c = 1; c < cols.length; c++) {
-      result[cols[0]][colNames[c]] = cols[c];
+    var name =
+      rows[r].slice(titleIndexes[0], titleIndexes[1]).
+      trim();
+    result[name] = {};
+    for (var i = 1; i < titleIndexes.length; i++) {
+      var value =
+        rows[r].slice(titleIndexes[i], titleIndexes[i + 1]).
+        trim();
+      result[name][titles[i]] = value;
     }
   }
   return result;
-}
-
-function getCols(row) {
-  return row.trim().split(/\s+/).map(function(name) {
-    return normalizeString(name);
-  });
 }
 
 exports.isSubjectToBranding = isSubjectToBranding;
