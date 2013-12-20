@@ -28,7 +28,7 @@
   // If we're a telephone, then show the section for ringtones, too.
   if (navigator.mozTelephony) {
     tones.push({
-      pickType: ['ringtone', 'audio/*'],
+      pickType: 'ringtone',
       settingsKey: 'dialer.ringtone',
       allowNone: false, // The ringer must always have an actual sound.
       button: document.getElementById('ring-tone-selection')
