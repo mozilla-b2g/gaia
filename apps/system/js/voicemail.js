@@ -7,8 +7,6 @@ var Voicemail = {
 
   icon: null,
   notification: null,
-  // A random starting point that is unlikely to be used by other notifications
-  notificationId: 3000 + Math.floor(Math.random() * 999),
 
   init: function vm_init() {
     var voicemail = window.navigator.mozVoicemail;
@@ -70,36 +68,41 @@ var Voicemail = {
         text = _('dialNumber', { number: number });
       }
 
-      Voicemail.hideNotification();
       if (status.hasMessages) {
         Voicemail.showNotification(title, text, number);
+      } else {
+        Voicemail.hideNotification();
       }
     };
     request.onerror = function() {};
   },
 
   showNotification: function vm_showNotification(title, text, voicemailNumber) {
-    this.notificationId++;
-    this.notification = NotificationScreen.addNotification({
-      id: this.notificationId, title: title, text: text, icon: this.icon
-    });
+    if (!('Notification' in window)) {
+      return;
+    }
+
+    var notifOptions = {
+      body: text,
+      icon: this.icon,
+      tag: 'voicemailNotification'
+    };
+
+    this.notification = new Notification(title, notifOptions);
 
     if (!voicemailNumber) {
       return;
     }
 
-    var self = this;
-    function vmNotification_onTap(event) {
-      self.notification.removeEventListener('tap', vmNotification_onTap);
-
-      var telephony = window.navigator.mozTelephony;
-      if (!telephony) {
-        return;
+    this.notification.addEventListener('click',
+      function vmNotification_onClick(event) {
+        var telephony = window.navigator.mozTelephony;
+        if (!telephony) {
+          return;
+        }
+        telephony.dial(voicemailNumber);
       }
-      telephony.dial(voicemailNumber);
-    }
-
-    this.notification.addEventListener('tap', vmNotification_onTap);
+    );
   },
 
   hideNotification: function vm_hideNotification() {
@@ -107,12 +110,8 @@ var Voicemail = {
       return;
     }
 
-    if (this.notification.parentNode) {
-      NotificationScreen.removeNotification(this.notificationId);
-    }
-
+    this.notification.close();
     this.notification = null;
-    this.notificationId = 0;
   }
 };
 
