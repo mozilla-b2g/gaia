@@ -54,7 +54,7 @@ class TestEnduranceMusicPlayback(GaiaEnduranceTestCase):
         self.drive(test=self.music_playback, app='music')
 
     def music_playback(self):
-        # Play music for 5 seconds and verify via UI; most code taken from test_music.py
+        # Play music for 5 seconds and verify via UI; most code taken from test_music_album_mp3.py
 
         # need a wait but cannot due to an is_displayed bug
         time.sleep(2)
