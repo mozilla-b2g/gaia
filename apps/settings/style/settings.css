@@ -665,3 +665,10 @@ section[data-dialog] > header:first-child .icon.icon-back {
   background-image: url(/shared/style/headers/images/icons/close.png);
 }
 
+/**
+ * Remove outline of dropdown menu when clicked
+ */
+select:-moz-focusring {
+  color: transparent;
+  text-shadow: 0 0 0 #000;
+}
