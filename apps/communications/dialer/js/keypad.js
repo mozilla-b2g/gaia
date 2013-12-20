@@ -66,6 +66,12 @@ var KeypadManager = {
       document.getElementById('keypad-callbar-add-contact');
   },
 
+  get callBarAddContactFlag() {
+    delete this.callBarAddContactFlag;
+    return this.callBarAddContactFlag =
+      document.getElementById('addNewContactFlag');
+  },
+
   get callBarCallAction() {
     delete this.callBarCallAction;
     return this.callBarCallAction =
@@ -229,6 +235,8 @@ var KeypadManager = {
     var number = this._phoneNumber;
     if (!number)
       return;
+	if(this.callBarAddContactFlag.value == "false")
+		return;
     LazyLoader.load(['/dialer/js/phone_action_menu.js'],
       function hk_showPhoneNumberActionMenu() {
         PhoneNumberActionMenu.show(null, number,
@@ -490,9 +498,11 @@ var KeypadManager = {
       var visibility;
       if (phoneNumber.length > 0) {
         visibility = 'visible';
+        this.callBarAddContactFlag.value = "true";
         this.callBarAddContact.classList.remove('disabled');
       } else {
         visibility = 'hidden';
+        this.callBarAddContactFlag.value = "false";
         this.callBarAddContact.classList.add('disabled');
       }
       this.deleteButton.style.visibility = visibility;
