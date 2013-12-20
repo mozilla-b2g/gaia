@@ -125,8 +125,8 @@ var UtilityTray = {
     this.screenWidth = screenRect.width;
 
     // Show the rocketbar if it's enabled,
-    // and the swipe is in the left half of the screen.
-    if (Rocketbar.enabled && touch.pageX < this.screenWidth / 2) {
+    // Give a slightly larger left area, than right.
+    if (Rocketbar.enabled && touch.pageX < this.screenWidth * 0.65) {
       UtilityTray.hide();
       Rocketbar.render();
       return;
