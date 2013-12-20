@@ -339,7 +339,6 @@ TEST_DIRS ?= $(CURDIR)/tests
 
 define BUILD_CONFIG
 { \
-	"ADB" : "$(adb)", \
 	"GAIA_DIR" : "$(CURDIR)", \
 	"PROFILE_DIR" : "$(CURDIR)$(SEP)$(PROFILE_FOLDER)", \
 	"PROFILE_FOLDER" : "$(PROFILE_FOLDER)", \
@@ -352,7 +351,6 @@ define BUILD_CONFIG
 	"HOMESCREEN" : "$(HOMESCREEN)", \
 	"GAIA_PORT" : "$(GAIA_PORT)", \
 	"GAIA_LOCALES_PATH" : "$(GAIA_LOCALES_PATH)", \
-	"GAIA_INSTALL_PARENT" : "$(GAIA_INSTALL_PARENT)", \
 	"LOCALES_FILE" : "$(subst \,\\,$(LOCALES_FILE))", \
 	"GAIA_KEYBOARD_LAYOUTS" : "$(GAIA_KEYBOARD_LAYOUTS)", \
 	"BUILD_APP_NAME" : "$(BUILD_APP_NAME)", \
@@ -901,8 +899,45 @@ forward:
 # But if you're working on just gaia itself, and you already have B2G firmware
 # on your phone, and you have adb in your path, then you can use the
 # install-gaia target to update the gaia files and reboot b2g
+
+# APP_NAME and APP_PID are used in ifeq calls so they need to be defined
+# globally
+APP_NAME := $(shell cat *apps/${BUILD_APP_NAME}/manifest.webapp | grep name | head -1 | cut -d '"' -f 4 | cut -b 1-15)
+APP_PID := $(shell adb shell b2g-ps | grep '^${APP_NAME}' | sed 's/^${APP_NAME}\s*//' | awk '{ print $$2 }')
+install-gaia: TARGET_FOLDER = webapps/$(BUILD_APP_NAME).$(GAIA_DOMAIN)
 install-gaia: adb-remount $(PROFILE_FOLDER)
-	@$(call run-js-command, install-gaia)
+	@$(ADB) start-server
+ifeq ($(BUILD_APP_NAME),*)
+	@echo 'Stopping b2g'
+	@$(ADB) shell stop b2g
+else ifeq ($(BUILD_APP_NAME), system)
+	@echo 'Stopping b2g'
+	@$(ADB) shell stop b2g
+endif
+	@$(ADB) shell rm -r $(MSYS_FIX)/cache/* > /dev/null
+
+ifeq ($(BUILD_APP_NAME),*)
+	python build/install-gaia.py "$(ADB)" "$(MSYS_FIX)$(GAIA_INSTALL_PARENT)" "$(PROFILE_FOLDER)"
+else
+	@echo "Pushing manifest.webapp application.zip for ${BUILD_APP_NAME}..."
+	@$(ADB) push $(PROFILE_FOLDER)/$(TARGET_FOLDER)/manifest.webapp $(MSYS_FIX)$(GAIA_INSTALL_PARENT)/$(TARGET_FOLDER)/manifest.webapp
+	@$(ADB) push $(PROFILE_FOLDER)/$(TARGET_FOLDER)/application.zip $(MSYS_FIX)$(GAIA_INSTALL_PARENT)/$(TARGET_FOLDER)/application.zip
+endif
+
+ifdef VARIANT_PATH
+	$(ADB) shell 'rm -r $(MSYS_FIX)/data/local/svoperapps'
+	$(ADB) push $(PROFILE_FOLDER)/svoperapps $(MSYS_FIX)/data/local/svoperapps
+endif
+ifeq ($(BUILD_APP_NAME),*)
+	@echo "Installed gaia into $(PROFILE_FOLDER)/."
+	@echo 'Starting b2g'
+	@$(ADB) shell start b2g
+else ifeq ($(BUILD_APP_NAME), system)
+	@echo 'Starting b2g'
+	@$(ADB) shell start b2g
+else ifneq (${APP_PID},)
+	@$(ADB) shell kill ${APP_PID}
+endif
 
 # Copy demo media to the sdcard.
 # If we've got old style directories on the phone, rename them first.
