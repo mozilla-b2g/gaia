@@ -193,9 +193,9 @@ function customizeFiles(zip, src, dest) {
   });
 }
 
-function getResource(distDir, conf, key, resources, json) {
-  if (conf[key]) {
-    file = utils.getFile(distDir, conf[key]);
+function getResource(distDir, path, resources, json, key) {
+  if (path) {
+    file = utils.getFile(distDir, path);
     if (!file.exists()) {
       throw new Error('Invalid single variant configuration: ' +
                       file.path + ' not found');
@@ -215,10 +215,32 @@ function getSingleVariantResources(conf) {
   conf['operators'].forEach(function(operator) {
     let object = {};
 
-    getResource(distDir, operator, 'ringtone', resources, object);
-    getResource(distDir, operator, 'wallpaper', resources, object);
-    getResource(distDir, operator, 'default_contacts', resources, object);
-    getResource(distDir, operator, 'support_contacts', resources, object);
+    getResource(distDir, operator['wallpaper'], resources, object, 'wallpaper');
+    getResource(distDir, operator['default_contacts'], resources, object, 'default_contacts');
+    getResource(distDir, operator['support_contacts'], resources, object, 'support_contacts');
+
+    let ringtone = operator['ringtone'];
+    if (ringtone) {
+      let ringtoneName = ringtone['name'];
+      if (!ringtoneName) {
+        throw new Error('Missing name for ringtone in single variant conf.');
+      }
+
+      getResource(distDir, ringtone['path'], resources, object, 'ringtone');
+      if (!object.ringtone) {
+        throw new Error('Missing path for ringtone in single variant conf.');
+      }
+
+      // Generate ringtone JSON
+      let uuidGenerator = Cc['@mozilla.org/uuid-generator;1'].
+                            createInstance(Ci.nsIUUIDGenerator);
+      let ringtoneObj = { filename: uuidGenerator.generateUUID().toString() + '.json',
+                          content: { uri: object['ringtone'],
+                                     name: ringtoneName }};
+
+      resources.push(ringtoneObj);
+      object['ringtone'] = '/resources/' + ringtoneObj.filename;
+    }
 
     operator['mcc-mnc'].forEach(function(mcc) {
       if (Object.keys(object).length != 0) {
@@ -314,11 +336,19 @@ function execute(options) {
         addEntryStringWithTime(zip, 'resources/customization.json', JSON.stringify(resources.conf), DEFAULT_TIME);
 
         resources.files.forEach(function(file) {
-          let filename = 'resources/' + file.leafName;
-          if (zip.hasEntry(filename)) {
-            zip.removeEntry(filename, false);
+          if (file instanceof Ci.nsILocalFile) {
+            let filename = 'resources/' + file.leafName;
+            if (zip.hasEntry(filename)) {
+              zip.removeEntry(filename, false);
+            }
+            addEntryFileWithTime(zip, filename, file, DEFAULT_TIME);
+          } else {
+            let filename = 'resources/' + file.filename;
+            if (zip.hasEntry(filename)) {
+              zip.removeEntry(filename, false);
+            }
+            addEntryStringWithTime(zip, filename, JSON.stringify(file.content), DEFAULT_TIME);
           }
-          addEntryFileWithTime(zip, filename, file, DEFAULT_TIME);
         });
       } else {
         dump(conf.path + ' not found. Single variant resources will not be added.\n');
