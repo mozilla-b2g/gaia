@@ -1,3 +1,4 @@
+var Actions = require('marionette-client').Actions;
 var assert = require('assert');
 
 /**
@@ -6,7 +7,9 @@ var assert = require('assert');
  * @param {Marionette.Client} client for operations.
  */
 function Search(client) {
+  this.actions = new Actions(client);
   this.client = client;
+  this.client.setSearchTimeout(300000);
 }
 
 /**
@@ -17,7 +20,8 @@ Search.URL = 'app://search.gaiamobile.org';
 Search.ClientOptions = {
   prefs: {
     // This is true on Gonk, but false on desktop, so override.
-    'dom.inter-app-communication-api.enabled': true
+    'dom.inter-app-communication-api.enabled': true,
+    'dom.w3c_touch_events.enabled': 1
   },
   settings: {
     'ftu.manifestURL': null,
@@ -28,6 +32,7 @@ Search.ClientOptions = {
 };
 
 Search.Selectors = {
+  homescreen: '#homescreen',
   searchBar: '#search-bar',
   searchCancel: '#search-cancel',
   searchInput: '#search-input',
@@ -109,10 +114,13 @@ Search.prototype = {
    * Opens the rocketbar
    */
   openRocketbar: function() {
-    // Once we have real touch events we can use a gesture
-    this.client.executeScript(function() {
-      window.wrappedJSObject.Rocketbar.render();
-    });
+    var selectors = Search.Selectors;
+
+    this.client.helper.waitForElement(selectors.homescreen);
+    var statusbar = this.client.helper.waitForElement(
+      selectors.statusBar);
+
+    this.actions.flick(statusbar, 1, 1, 20, 200).perform();
 
     this.client.waitFor(function() {
       var location = this.client

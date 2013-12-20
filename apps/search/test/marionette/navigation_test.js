@@ -14,6 +14,28 @@ marionette('navigation', function() {
     search = new Search(client);
   });
 
+  test('opening rocketbar does not resize current app', function() {
+    client.apps.switchToApp(Homescreen.URL);
+
+    // Add a listener to check if we resize
+    client.executeScript(function() {
+      window.wrappedJSObject.addEventListener('resize', function() {
+        window.wrappedJSObject.IS_RESIZED = true;
+      });
+    });
+
+    // Go to the search frame and open the rocketbar
+    client.switchToFrame();
+    search.openRocketbar();
+
+    // Return to the homescreen and make sure we have not resized
+    client.apps.switchToApp(Homescreen.URL);
+    var isResized = client.executeScript(function() {
+      return window.wrappedJSObject.IS_RESIZED;
+    });
+    assert(!isResized);
+  });
+
   test('cancel button closes rocketbar', function() {
     search.openRocketbar();
     search.cancelRocketbar();
