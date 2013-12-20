@@ -1,4 +1,4 @@
-/*global MockContact, Contacts */
+/*global MockContact, Contacts, mocha, fb, MockFbReaderUtilsObj */
 'use strict';
 
 mocha.globals(['SimplePhoneMatcher', 'fb']);

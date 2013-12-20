@@ -4,7 +4,7 @@
 'use strict';
 
 /*global Utils, ActivityHandler, ThreadUI, ThreadListUI, MessageManager,
-         Settings, LazyLoader, TimeHeaders, Information, fb */
+         Settings, LazyLoader, TimeHeaders, Information */
 
 var lazyLoadFiles = [
   'shared/js/async_storage.js',
