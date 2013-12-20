@@ -7,7 +7,6 @@ require('/shared/test/unit/mocks/mock_lazy_loader.js');
 requireApp('system/test/unit/mock_l10n.js');
 requireApp('system/js/permission_manager.js');
 
-
 function sendChromeEvent(evt_type, evt_permission) {
   var permissions = {};
   permissions[evt_permission] = [''];
@@ -63,6 +62,7 @@ suite('system/permission manager', function() {
       PermissionManager.overlay = document.createElement('div');
       PermissionManager.rememberSection = document.createElement('div');
       PermissionManager.devices = document.createElement('div');
+      PermissionManager.moreInfoBox = document.createElement('div');
       stubPrompt = this.sinon.stub(PermissionManager, 'handlePermissionPrompt');
 
       sendChromeEvent('permission-prompt', 'test');
