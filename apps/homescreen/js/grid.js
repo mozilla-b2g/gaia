@@ -21,13 +21,8 @@ var GridManager = (function() {
 
   function isHiddenApp(role) {
     if (!role) {
-      console.warn(
-        'Unexpected role when checking hidden app: ' + JSON.stringify(role)
-      );
-
       return false;
     }
-
     return (HIDDEN_ROLES.indexOf(role) !== -1);
   }
 
