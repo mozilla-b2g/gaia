@@ -38,7 +38,6 @@
       var results = this.find(input);
       results.forEach(function eachResult(result) {
         var div = document.createElement('div');
-        div.className = 'result';
         div.dataset.manifest = result.manifestURL;
 
         if (result.entryPoint) {
@@ -58,10 +57,9 @@
           break;
         }
 
-        var textEl = document.createElement('span');
-        textEl.textContent = result.manifest.name;
+        var title = document.createTextNode(result.manifest.name);
+        div.appendChild(title);
 
-        div.appendChild(textEl);
         this.container.appendChild(div);
       }, this);
     },

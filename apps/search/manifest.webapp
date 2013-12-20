@@ -21,6 +21,7 @@
   "permissions": {
     "webapps-manage":{},
     "open-remote-window":{},
+    "systemXHR":{},
     "contacts":{ "access": "readonly" }
   },
   "connections": {

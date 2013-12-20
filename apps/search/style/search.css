@@ -4,8 +4,8 @@ body {
 section {
   color: #fff;
 }
-section#localapps .result,
-section#contacts .result{
+
+section.local .result {
   -moz-box-sizing: border-box;
   padding: 0.5rem;
   border-bottom: 1px solid #5A5A5A;
@@ -14,6 +14,7 @@ section#contacts .result{
   min-height: 3rem;
   line-height: 2rem;
 }
+
 section:last-child .result:last-child {
   border-bottom: none;
 }
@@ -32,11 +33,17 @@ section .result img {
 }
 
 /* web */
-section#everythingme:not(:empty) {
+section.apps:not(:empty) {
   background-color: #353534;
-  padding: 1rem 0;
+  padding: 1rem 0 0;
+  border-bottom: 1px solid #5A5A5A;
 }
-section#everythingme > * {
+
+section.apps:not(:empty):last-child {
+  border-bottom: 0;
+}
+
+section.apps div {
   width: calc(100%/4 - 0.4rem);
   display: inline-block;
   text-align: center;
@@ -46,7 +53,8 @@ section#everythingme > * {
   line-height: 1rem;
   padding: 0 0.2rem;
 }
-section#everythingme img {
+
+section.apps img {
   display: block;
   margin: 0 auto 0.3rem;
   pointer-events: none;
