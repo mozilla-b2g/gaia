@@ -341,7 +341,14 @@ var MessageManager = {
           }
           // Ensures fromDraft is always called after
           // ThreadUI.cleanFields as MessageManager.slide is async
-          Compose.fromDraft(MessageManager.draft);
+          var draft = MessageManager.draft;
+          var thread = Threads.get(threadId);
+
+          if (!draft && thread.hasDrafts) {
+            draft = thread.drafts.latest;
+          }
+
+          Compose.fromDraft(draft);
         };
 
         // if we were previously composing a message - remove the class
