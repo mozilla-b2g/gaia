@@ -8,6 +8,7 @@ var templateNode = require('tmpl!./message_list.html'),
     largeMsgConfirmMsgNode = require('tmpl!./msg/large_message_confirm.html'),
     common = require('mail_common'),
     model = require('model'),
+    headerCursor = require('header_cursor').cursor,
     htmlCache = require('html_cache'),
     MessageListTopbar = require('message_list_topbar'),
     mozL10n = require('l10n!'),
@@ -205,17 +206,29 @@ function MessageListCard(domNode, mode, args) {
   this.selectedMessages = null;
 
   this.curFolder = null;
-  this.messagesSlice = null;
   this.isIncomingFolder = true;
-  this._boundSliceRequestComplete = this.onSliceRequestComplete.bind(this);
 
   this.usingCachedNode = !!args.cachedNode;
 
-  this._boundFolderChanged = this._folderChanged.bind(this);
-  model.latest('folder', this._boundFolderChanged);
+  // Binding "this" to some functions as they are used for
+  // event listeners.
+  this._folderChanged = this._folderChanged.bind(this);
+  this.onNewMail = this.onNewMail.bind(this);
+  this.messages_splice = this.messages_splice.bind(this);
+  this.messages_change = this.messages_change.bind(this);
+  this.messages_status = this.messages_status.bind(this);
+  this.messages_complete = this.messages_complete.bind(this);
 
-  this._boundOnNewMail = this.onNewMail.bind(this);
-  model.on('newInboxMessages', this._boundOnNewMail);
+  model.latest('folder', this._folderChanged);
+  model.on('newInboxMessages', this.onNewMail);
+
+  this.sliceEvents.forEach(function(type) {
+    var name = 'messages_' + type;
+    headerCursor.on(name, this[name]);
+  }.bind(this));
+
+  this.onCurrentMessage = this.onCurrentMessage.bind(this);
+  headerCursor.on('currentMessage', this.onCurrentMessage);
 }
 MessageListCard.prototype = {
   /**
@@ -239,6 +252,8 @@ MessageListCard.prototype = {
    * height.
    */
   _distanceBetweenMessages: 0,
+
+  sliceEvents: ['splice', 'change', 'status', 'complete'],
 
   postInsert: function() {
     this._hideSearchBoxByScrolling();
@@ -417,9 +432,9 @@ MessageListCard.prototype = {
     if (folder === this.curFolder && !forceNewSlice)
       return false;
 
-    if (this.messagesSlice) {
-      this.messagesSlice.die();
-      this.messagesSlice = null;
+    // If using a cache, do not clear the HTML as it will
+    // be cleared once real data has been fetched.
+    if (!this.usingCachedNode) {
       this.messagesContainer.innerHTML = '';
     }
 
@@ -451,27 +466,22 @@ MessageListCard.prototype = {
       this.toolbar.moveBtn.classList.remove('collapsed');
     }
 
-    // We are creating a new slice, so any pending snippet requests are moot.
-    this._snippetRequestPending = false;
-    this.messagesSlice = model.api.viewFolderMessages(folder);
+    if (forceNewSlice) {
+      // We are creating a new slice, so any pending snippet requests are moot.
+      this._snippetRequestPending = false;
+      headerCursor.freshMessagesSlice();
+    }
 
-    this.messagesSlice.onsplice = this.onMessagesSplice.bind(this);
-    this.messagesSlice.onchange = this.onMessagesChange.bind(this);
-    this.messagesSlice.onstatus = this.onStatusChange.bind(this);
-    this.messagesSlice.oncomplete = this._boundSliceRequestComplete;
     return true;
   },
 
-  showSearch: function(folder, phrase, filter) {
+  showSearch: function(phrase, filter) {
     console.log('sf: showSearch. phrase:', phrase, phrase.length);
     var tab = this.domNode.getElementsByClassName('filter')[0];
     var nodes = tab.getElementsByClassName('msg-search-filter');
-    if (this.messagesSlice) {
-      this.messagesSlice.die();
-      this.messagesSlice = null;
-      this.messagesContainer.innerHTML = '';
-    }
-    this.curFolder = folder;
+
+    this.curFolder = model.folder;
+    this.messagesContainer.innerHTML = '';
     this.curPhrase = phrase;
     this.curFilter = filter;
 
@@ -487,56 +497,48 @@ MessageListCard.prototype = {
 
     // We are creating a new slice, so any pending snippet requests are moot.
     this._snippetRequestPending = false;
-    this.messagesSlice = model.api.searchFolderMessages(
-      folder, phrase,
-      {
-        author: filter === 'all' || filter === 'author',
-        recipients: filter === 'all' || filter === 'recipients',
-        subject: filter === 'all' || filter === 'subject',
-        body: filter === 'all' || filter === 'body'
-      });
-    this.messagesSlice.onsplice = this.onMessagesSplice.bind(this);
-    this.messagesSlice.onchange = this.updateMatchedMessageDom.bind(this,
-                                                                    false);
-    this.messagesSlice.onstatus = this.onStatusChange.bind(this);
-    this.messagesSlice.oncomplete = this._boundSliceRequestComplete;
+    headerCursor.startSearch(phrase, {
+      author: filter === 'all' || filter === 'author',
+      recipients: filter === 'all' || filter === 'recipients',
+      subject: filter === 'all' || filter === 'subject',
+      body: filter === 'all' || filter === 'body'
+    });
     return true;
   },
 
   onSearchFilterClick: function(filterNode, event) {
-    this.showSearch(this.curFolder, this.searchInput.value,
-                    filterNode.dataset.filter);
+    this.showSearch(this.searchInput.value, filterNode.dataset.filter);
   },
 
   onSearchTextChange: function(event) {
     console.log('sf: typed, now:', this.searchInput.value);
-    this.showSearch(this.curFolder, this.searchInput.value, this.curFilter);
+    this.showSearch(this.searchInput.value, this.curFilter);
   },
 
   onCancelSearch: function(event) {
     try {
-      if (this.messagesSlice)
-        this.messagesSlice.die();
+      headerCursor.endSearch();
     }
     catch (ex) {
       console.error('problem killing slice:', ex, '\n', ex.stack);
     }
-    this.messagesSlice = null;
     Cards.removeCardAndSuccessors(this.domNode, 'animate');
   },
 
   onGetMoreMessages: function() {
-    if (!this.messagesSlice)
+    if (!headerCursor.messagesSlice)
       return;
 
-    this.messagesSlice.requestGrowth(1, true);
+    headerCursor.messagesSlice.requestGrowth(1, true);
     // Provide instant feedback that they pressed the button by hiding the
     // button.  However, don't show 'synchronizing' because that might not
     // actually happen.
     this.syncMoreNode.classList.add('collapsed');
   },
 
-  onStatusChange: function(newStatus) {
+  // The funny name because it is auto-bound as a listener for
+  // messagesSlice events in headerCursor using a naming convention.
+  messages_status: function(newStatus) {
     switch (newStatus) {
       case 'synchronizing':
       case 'syncblocked':
@@ -592,19 +594,18 @@ MessageListCard.prototype = {
 
   /**
    * @param {number=} newEmailCount Optional number of new messages.
+   * The funny name because it is auto-bound as a listener for
+   * messagesSlice events in headerCursor using a naming convention.
    */
-  onSliceRequestComplete: function(newEmailCount) {
-    // We always want our logic to fire, but complete auto-clears before firing.
-    this.messagesSlice.oncomplete = this._boundSliceRequestComplete;
-
-    if (this.messagesSlice.userCanGrowDownwards)
+  messages_complete: function(newEmailCount) {
+    if (headerCursor.messagesSlice.userCanGrowDownwards)
       this.syncMoreNode.classList.remove('collapsed');
     else
       this.syncMoreNode.classList.add('collapsed');
 
     // Show empty layout, unless this is a slice with fake data that
     // will get changed soon.
-    if (this.messagesSlice.items.length === 0) {
+    if (headerCursor.messagesSlice.items.length === 0) {
       this.showEmptyLayout();
     }
 
@@ -669,7 +670,8 @@ MessageListCard.prototype = {
 
     // Defer processing until any pending requests have completed;
     // `onSliceRequestComplete` will call us.
-    if (!this.messagesSlice || this.messagesSlice.pendingRequestCount)
+    if (!headerCursor.messagesSlice ||
+        headerCursor.messagesSlice.pendingRequestCount)
       return;
 
     if (!this._hasSnippetRequest()) {
@@ -685,11 +687,12 @@ MessageListCard.prototype = {
                       viewHeight;
 
     var shrinkLowIncl = 0,
-        shrinkHighIncl = this.messagesSlice.items.length - 1,
+        shrinkHighIncl = headerCursor.messagesSlice.items.length - 1,
         messageNode = null, targOff;
     if (preScreens < SCROLL_MIN_BUFFER_SCREENS &&
-        !this.messagesSlice.atTop) {
-      this.messagesSlice.requestGrowth(-1 * this._getGrowth(preScreens));
+        !headerCursor.messagesSlice.atTop) {
+      headerCursor.messagesSlice.requestGrowth(
+        -1 * this._getGrowth(preScreens));
       return;
     }
     else if (preScreens > SCROLL_MAX_RETENTION_SCREENS) {
@@ -704,8 +707,8 @@ MessageListCard.prototype = {
     }
 
     if (postScreens < SCROLL_MIN_BUFFER_SCREENS &&
-        !this.messagesSlice.atBottom) {
-      this.messagesSlice.requestGrowth(this._getGrowth(postScreens));
+        !headerCursor.messagesSlice.atBottom) {
+      headerCursor.messagesSlice.requestGrowth(this._getGrowth(postScreens));
     }
     else if (postScreens > SCROLL_MAX_RETENTION_SCREENS) {
       targOff = curScrollTop +
@@ -719,8 +722,9 @@ MessageListCard.prototype = {
     }
 
     if (shrinkLowIncl !== 0 ||
-        shrinkHighIncl !== this.messagesSlice.items.length - 1) {
-      this.messagesSlice.requestShrinkage(shrinkLowIncl, shrinkHighIncl);
+        shrinkHighIncl !== headerCursor.messagesSlice.items.length - 1) {
+      headerCursor.messagesSlice.requestShrinkage(shrinkLowIncl,
+                                                  shrinkHighIncl);
     }
 
   },
@@ -766,7 +770,7 @@ MessageListCard.prototype = {
   // the distance between items. It is expected to remain fairly constant
   // throughout the list so we only need to calculate it once.
   _getDistance: function() {
-    var items = this.messagesSlice.items;
+    var items = headerCursor.messagesSlice.items;
     if (!this._distanceBetweenMessages && items.length > 1) {
       this._distanceBetweenMessages =
         items[1].element.getBoundingClientRect().top -
@@ -776,7 +780,7 @@ MessageListCard.prototype = {
   },
 
   _requestSnippets: function() {
-    var items = this.messagesSlice.items;
+    var items = headerCursor.messagesSlice.items;
     var len = items.length;
 
     if (!len)
@@ -790,7 +794,7 @@ MessageListCard.prototype = {
 
     if (len < MINIMUM_ITEMS_FOR_SCROLL_CALC) {
       this._pendingSnippetRequest();
-      this.messagesSlice.maybeRequestBodies(0,
+      headerCursor.messagesSlice.maybeRequestBodies(0,
           MINIMUM_ITEMS_FOR_SCROLL_CALC - 1, options, clearSnippets);
       return;
     }
@@ -809,7 +813,7 @@ MessageListCard.prototype = {
 
 
     this._pendingSnippetRequest();
-    this.messagesSlice.maybeRequestBodies(
+    headerCursor.messagesSlice.maybeRequestBodies(
       startOffset,
       startOffset + this._snippetsPerScrollTick,
       options,
@@ -877,7 +881,7 @@ MessageListCard.prototype = {
         // is for the folder that is considered cacheable (default inbox)
         this.cacheableFolderId === this.curFolder.id &&
         // if our slice is showing the newest messages in the folder and
-        this.messagesSlice.atTop &&
+        headerCursor.messagesSlice.atTop &&
         // if actually got a numeric index and
         (index || index === 0) &&
         // if it affects the data we cache
@@ -908,7 +912,9 @@ MessageListCard.prototype = {
     }
   },
 
-  onMessagesSplice: function(index, howMany, addedItems,
+  // The funny name because it is auto-bound as a listener for
+  // messagesSlice events in headerCursor using a naming convention.
+  messages_splice: function(index, howMany, addedItems,
                              requested, moreExpected, fake) {
     // If no work to do, just skip it.
     if (index === 0 && howMany === 0 && !addedItems.length)
@@ -923,7 +929,8 @@ MessageListCard.prototype = {
     var prevHeight;
     // - removed messages
     if (howMany) {
-      if (fake && index === 0 && this.messagesSlice.items.length === howMany &&
+      if (fake && index === 0 &&
+          headerCursor.messagesSlice.items.length === howMany &&
           !addedItems.length) {
       } else {
         // Regular remove for current call.
@@ -931,13 +938,13 @@ MessageListCard.prototype = {
         // starts before the (visible) scrolled area.  (We add the container's
         // start offset because it is as big as the occluding header bar.)
         prevHeight = null;
-        if (this.messagesSlice.items[index].element.offsetTop <
+        if (headerCursor.messagesSlice.items[index].element.offsetTop <
             this.scrollContainer.scrollTop + this.messagesContainer.offsetTop) {
           prevHeight = this.messagesContainer.clientHeight;
         }
 
         for (var i = index + howMany - 1; i >= index; i--) {
-          var message = this.messagesSlice.items[i];
+          var message = headerCursor.messagesSlice.items[i];
           message.element.parentNode.removeChild(message.element);
         }
 
@@ -1001,6 +1008,18 @@ MessageListCard.prototype = {
     }
   },
 
+  // The funny name because it is auto-bound as a listener for
+  // messagesSlice events in headerCursor using a naming convention.
+  messages_change: function(message, index) {
+    if (this.mode === 'nonsearch') {
+      this.onMessagesChange(message, index);
+    } else {
+      this.updateMatchedMessageDom(false, message);
+    }
+  },
+
+  // The funny name because it is auto-bound as a listener for
+  // messagesSlice events in headerCursor using a naming convention.
   onMessagesChange: function(message, index) {
     this.updateMessageDom(false, message);
 
@@ -1205,6 +1224,12 @@ MessageListCard.prototype = {
         });
     }
 
+    if (header) {
+      headerCursor.setCurrentMessage(header);
+    } else {
+      headerCursor.setCurrentMessageBySuid(messageNode.dataset.id);
+    }
+
     // If the message is really big, warn them before they open it.
     // Ideally we'd only warn if you're on a cell connection
     // (metered), but as of now `navigator.connection.metered` isn't
@@ -1233,16 +1258,50 @@ MessageListCard.prototype = {
     }
   },
 
+  /**
+   * Scroll to make sure that the current message is in our visible window.
+   *
+   * @param {MessageCursor.CurrentMessage} currentMessage representation of the
+   *     email we're currently reading.
+   */
+  onCurrentMessage: function(currentMessage) {
+    if (!currentMessage) {
+      return;
+    }
+
+    var id = currentMessage.header.id;
+    var selector = '.msg-messages-container ' +
+                   '.msg-header-item[data-id="' + id + '"]';
+    var element = document.querySelector(selector);
+
+    // Element may not be there if current message is fired
+    // before the notification of a folder change happens,
+    // which could be the case when entering from a notification.
+    if (!element) {
+      return;
+    }
+
+    // Check whether or not the current message is in the visible window.
+    var top = this.scrollContainer.scrollTop;
+    var bottom = this.scrollContainer.scrollTop +
+                 this.scrollContainer.getBoundingClientRect().bottom;
+    if (element.offsetTop >= top && element.offsetTop <= bottom) {
+      return;
+    }
+
+    this.scrollContainer.scrollTop = element.offsetTop;
+  },
+
   onHoldMessage: function(messageNode, event) {
     if (this.curFolder)
       this.setEditMode(true);
   },
 
   onRefresh: function() {
-    if (!this.messagesSlice)
+    if (!headerCursor.messagesSlice)
       return;
 
-    switch (this.messagesSlice.status) {
+    switch (headerCursor.messagesSlice.status) {
       // If we're still synchronizing, then the user is not well served by
       // queueing a refresh yet, let's just squash this.
       case 'new':
@@ -1250,14 +1309,14 @@ MessageListCard.prototype = {
         break;
       // If we fully synchronized, then yes, let us refresh.
       case 'synced':
-        this.messagesSlice.refresh();
+        headerCursor.messagesSlice.refresh();
         break;
       // If we failed to talk to the server, then let's only do a refresh if we
       // know about any messages.  Otherwise let's just create a new slice by
       // forcing reentry into the folder.
       case 'syncfailed':
-        if (this.messagesSlice.items.length)
-          this.messagesSlice.refresh();
+        if (headerCursor.messagesSlice.items.length)
+          headerCursor.messagesSlice.refresh();
         else
           this.showFolder(this.curFolder, /* force new slice */ true);
         break;
@@ -1356,19 +1415,22 @@ MessageListCard.prototype = {
         this._hideSearchBoxByScrolling();
       }
     } else {
-      this.showSearch(folder, '', 'all');
+      this.showSearch('', 'all');
     }
   },
 
   die: function() {
-    if (this.messagesSlice) {
-      this.messagesSlice.die();
-      this.messagesSlice = null;
-    }
-    model.removeListener('folder', this._boundFolderChanged);
-    model.removeListener('newInboxMessages', this._boundOnNewMail);
+    this.sliceEvents.forEach(function(type) {
+      var name = 'messages_' + type;
+      headerCursor.removeListener(name, this[name]);
+    }.bind(this));
+
+    model.removeListener('folder', this._folderChanged);
+    model.removeListener('newInboxMessages', this.onNewMail);
+    headerCursor.removeListener('currentMessage', this.onCurrentMessage);
   }
 };
+
 Cards.defineCard({
   name: 'message_list',
   modes: {

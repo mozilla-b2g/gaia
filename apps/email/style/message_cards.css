@@ -401,7 +401,7 @@ input.msg-search-text-tease {
   left: 0;
 }
 
-.msg-reader-action-toolbar .msg-move-btn {
+.msg-reader-action-toolbar .msg-reply-btn {
   position: absolute;
   right: 0;
 }
@@ -457,6 +457,10 @@ input.msg-search-text-tease {
 
 .msg-forward-btn {
   background-image: url("images/icons/forward.png") !important;
+}
+
+.msg-reply-btn {
+  background-image: url("images/icons/reply.png") !important;
 }
 
 /* Message list edit mode layout control */

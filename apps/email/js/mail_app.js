@@ -49,6 +49,7 @@ var appMessages = require('app_messages'),
     common = require('mail_common'),
     evt = require('evt'),
     model = require('model'),
+    headerCursor = require('header_cursor').cursor,
     Cards = common.Cards,
     activityCallback = null;
 
@@ -392,11 +393,15 @@ appMessages.on('notification', function(data) {
           onPushed: onPushed
         });
       } else if (type === 'message_reader') {
-        Cards.pushCard(data.type, 'default', 'immediate', {
-          messageSuid: data.messageSuid,
-          backOnMissingMessage: true,
-          onPushed: onPushed
-        });
+        headerCursor.setCurrentMessageBySuid(data.messageSuid);
+
+        if (!Cards.pushOrTellCard(type, 'default', 'immediate', {
+            messageSuid: data.messageSuid,
+            onPushed: onPushed
+        })) {
+          // Existing card used, so just clean up waiting state.
+          onPushed();
+        }
       } else {
         console.error('unhandled notification type: ' + type);
       }
