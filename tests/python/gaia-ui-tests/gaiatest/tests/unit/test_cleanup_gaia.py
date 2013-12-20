@@ -41,14 +41,14 @@ return manager.pageHelper.getCurrentPageNumber();
         self.marionette.switch_to_frame()
 
         # lock screen
-        self.lockscreen.lock()
-        self.assertTrue(self.lockscreen.is_locked)
+        self.device.lock()
+        self.assertTrue(self.device.is_locked)
 
         self.cleanup_gaia()
         self.check_initial_state()
 
     def check_initial_state(self):
-        self.assertFalse(self.lockscreen.is_locked)
+        self.assertFalse(self.device.is_locked)
 
         if self.device.has_wifi:
             self.assertEqual(len(self.data_layer.known_networks), 0)
