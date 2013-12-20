@@ -494,8 +494,7 @@ Icon.prototype = {
    */
   translate: function icon_translate() {
     var descriptor = this.descriptor;
-    if (descriptor.type === GridItemsFactory.TYPE.BOOKMARK ||
-        descriptor.customName)
+    if (descriptor.customName)
       return;
 
     var app = this.app;
@@ -506,13 +505,13 @@ Icon.prototype = {
     if (!manifest)
       return;
 
-    var localizedName;
+    var localizedName = manifest.name;
 
     if (descriptor.type === GridItemsFactory.TYPE.COLLECTION) {
       // try to translate, but fall back to current name
       // (translation might fail for custom collection name)
       localizedName = navigator.mozL10n.get(manifest.name) || manifest.name;
-    } else {
+    } else if (descriptor.type !== GridItemsFactory.TYPE.BOOKMARK) {
       var iconsAndNameHolder = manifest;
       var entryPoint = descriptor.entry_point;
       if (entryPoint)
