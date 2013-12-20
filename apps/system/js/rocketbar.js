@@ -16,6 +16,8 @@ var Rocketbar = {
 
   searchReset: document.getElementById('search-reset'),
 
+  searchForm: document.getElementById('search-form'),
+
   get shown() {
     return ('visible' in this.searchBar.dataset);
   },
@@ -34,13 +36,12 @@ var Rocketbar = {
         'input': input.value
       });
     });
-    input.addEventListener('keyup', function onKeyPress(e) {
-      if (e.keyCode === 13) {
-        self._port.postMessage({
-          'type': 'submit',
-          'input': input.value
-        });
-      }
+    this.searchForm.addEventListener('submit', function onSubmit(e) {
+      e.preventDefault();
+      self._port.postMessage({
+        'type': 'submit',
+        'input': input.value
+      });
     });
 
     delete this.searchInput;
