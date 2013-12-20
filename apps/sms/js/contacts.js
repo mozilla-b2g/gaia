@@ -54,6 +54,11 @@
       var term = criteria.terms[i];
       for (var j = 0, jlen = criteria.fields.length; j < jlen; j++) {
         var field = criteria.fields[j];
+
+        if (!contact[field]) {
+          continue;
+        }
+
         for (var k = 0, klen = contact[field].length; k < klen; k++) {
           var value = contact[field][k].trim();
 
