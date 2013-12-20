@@ -8,6 +8,7 @@ import time
 from marionette.by import By
 from gaiatest.apps.base import Base
 from gaiatest.apps.base import PageRegion
+from gaiatest.apps.homescreen.regions.bookmark_menu import BookmarkMenu
 
 
 class Browser(Base):
@@ -34,11 +35,6 @@ class Browser(Base):
     # Bookmark menu
     _bookmark_menu_locator = (By.ID, 'bookmark-menu')
     _add_bookmark_to_home_screen_choice_locator = (By.ID, 'bookmark-menu-add-home')
-
-    # System app - add bookmark to homescreen dialog
-    _add_bookmark_to_home_screen_frame_locator = (By.CSS_SELECTOR, 'iframe[src^="app://homescreen"][src$="save-bookmark.html"]')
-    _add_bookmark_to_home_screen_dialog_button_locator = (By.ID, 'button-bookmark-add')
-    _bookmark_title_input_locator = (By.ID, 'bookmark-title')
 
     def launch(self):
         Base.launch(self)
@@ -98,34 +94,7 @@ class Browser(Base):
         self.marionette.find_element(*self._add_bookmark_to_home_screen_choice_locator).tap()
         # TODO: Remove sleep when Bug # 815115 is addressed, or if we can wait for a Javascript condition
         time.sleep(1)
-        self.switch_to_add_bookmark_frame()
-
-    def switch_to_add_bookmark_frame(self):
-        # Switch to System app where the add bookmark dialog resides
-        self.marionette.switch_to_frame()
-        self.wait_for_element_displayed(*self._add_bookmark_to_home_screen_frame_locator)
-        self.frame = self.marionette.find_element(*self._add_bookmark_to_home_screen_frame_locator)
-        self.marionette.switch_to_frame(self.frame)
-        self.wait_for_element_displayed(*self._bookmark_title_input_locator)
-
-    def tap_add_bookmark_to_home_screen_dialog_button(self):
-        self.wait_for_element_displayed(*self._add_bookmark_to_home_screen_dialog_button_locator)
-        self.marionette.find_element(*self._add_bookmark_to_home_screen_dialog_button_locator).tap()
-
-        # Wait for the Add to bookmark frame to be dismissed
-        self.marionette.switch_to_frame()
-        self.wait_for_element_not_displayed(*self._add_bookmark_to_home_screen_frame_locator)
-
-        self.switch_to_chrome()
-
-    def type_bookmark_title(self, value):
-        element = self.marionette.find_element(*self._bookmark_title_input_locator)
-        element.clear()
-        element.send_keys(value)
-        # Here we must dismiss the keyboard because it obscures the elements on the page
-        # Marionette cannot scroll them into view because it is a modal frame
-        self.keyboard.dismiss()
-        self.switch_to_add_bookmark_frame()
+        return BookmarkMenu(self.marionette)
 
     def wait_for_throbber_not_visible(self, timeout=30):
         # TODO see if we can reduce this timeout in the future. >10 seconds is poor UX
