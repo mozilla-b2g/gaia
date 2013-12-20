@@ -18,6 +18,8 @@ var Rocketbar = {
 
   searchForm: document.getElementById('search-form'),
 
+  statusbarTitle: document.getElementById('statusbar-title'),
+
   get shown() {
     return ('visible' in this.searchBar.dataset);
   },
@@ -89,6 +91,11 @@ var Rocketbar = {
 
     SettingsListener.observe('rocketbar.enabled', false,
     function(value) {
+      if (value) {
+        document.body.classList.add('rb-enabled');
+      } else {
+        document.body.classList.remove('rb-enabled');
+      }
       this.enabled = value;
     }.bind(this));
 
@@ -199,6 +206,8 @@ var Rocketbar = {
     var input = this.searchInput;
     input.value = '';
     this.searchReset.classList.add('hidden');
+
+    window.dispatchEvent(new CustomEvent('rocketbarshown'));
 
     var self = this;
     search.addEventListener('transitionend', function shown(e) {

@@ -36,7 +36,8 @@ body, html {
   margin: 0 0.2rem;
 }
 
-#statusbar > .sb-start {
+#statusbar-title,
+body:not(.rb-enabled) #statusbar > .sb-start {
   float: left;
   -moz-transition: visibility 0.5s ease, -moz-transform 0.5s ease;
 }
@@ -80,6 +81,7 @@ body, html {
   bottom: 0.1rem;
 }
 
+#statusbar-title,
 #statusbar-time, #statusbar-data:not(.sb-icon-data-circle) {
   position: relative;
   bottom: 0.1rem;

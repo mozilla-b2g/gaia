@@ -78,6 +78,9 @@
         break;
 
       case '_loading':
+        window.dispatchEvent(new CustomEvent('appchromeloading', {
+          detail: evt.detail.url
+        }));
         this.show(this.progress);
         break;
 
@@ -87,6 +90,14 @@
 
       case 'mozbrowserlocationchange':
         this.handleLocationChanged(evt);
+        break;
+
+      case 'mozbrowservisibilitychange':
+        this.handleVisibilityChanged(evt);
+        break;
+
+      case 'mozbrowsertitlechange':
+        this.handleTitleChanged(evt);
         break;
 
       case '_opened':
@@ -166,7 +177,9 @@
     this.forwardButton.addEventListener('click', this);
     this.backButton.addEventListener('click', this);
     this.bookmarkButton.addEventListener('click', this);
+    this.app.element.addEventListener('mozbrowservisibilitychange', this);
     this.app.element.addEventListener('mozbrowserlocationchange', this);
+    this.app.element.addEventListener('mozbrowsertitlechange', this);
     this.app.element.addEventListener('_loading', this);
     this.app.element.addEventListener('_loaded', this);
     this.app.element.addEventListener('_opened', this);
@@ -186,7 +199,9 @@
     this.bookmarkButton.removeEventListener('click', this);
     if (!this.app)
       return;
+    this.app.element.removeEventListener('mozbrowservisibilitychange', this);
     this.app.element.removeEventListener('mozbrowserlocationchange', this);
+    this.app.element.removeEventListener('mozbrowsertitlechange', this);
     this.app.element.removeEventListener('_loading', this);
     this.app.element.removeEventListener('_loaded', this);
     this.app.element.removeEventListener('_opened', this);
@@ -266,9 +281,10 @@
     };
 
   AppChrome.prototype.handleLocationChanged =
-    function ac_handleLocationChange() {
+    function ac_handleLocationChange(evt) {
       if (!this.app)
         return;
+      this.app.currentUrl = evt.detail;
       this.app.canGoForward(function forwardSuccess(result) {
         if (result === true) {
           delete this.forwardButton.dataset.disabled;
@@ -284,6 +300,27 @@
           this.backButton.dataset.disabled = true;
         }
       }.bind(this));
+    };
+
+  AppChrome.prototype.handleVisibilityChanged =
+    function ac_handleVisibilityChanged(evt) {
+      var newTitle = '';
+      if (this.app && this.app.isActive()) {
+        newTitle = this.app.title;
+      }
+      window.dispatchEvent(new CustomEvent('titlechange', {
+        detail: newTitle
+      }));
+    };
+
+  AppChrome.prototype.handleTitleChanged =
+    function ac_handleTitleChange(evt) {
+      if (!this.app || !this.app.isActive())
+        return;
+      this.app.title = evt.detail;
+      window.dispatchEvent(new CustomEvent('titlechange', {
+        detail: evt.detail
+      }));
     };
 
   AppChrome.prototype.addBookmark = function ac_addBookmark() {

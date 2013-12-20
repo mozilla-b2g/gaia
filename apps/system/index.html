@@ -338,6 +338,7 @@
 
     <!-- Rocketbar -->
     <script defer src="js/rocketbar.js"></script>
+    <script defer src="js/title.js"></script>
     <link rel="stylesheet" type="text/css" href="style/rocketbar.css">
     <style>
       /* initlogos style is here to prevent flashing */
@@ -407,6 +408,8 @@
       </div>
 
       <div id="statusbar" data-z-index-level="statusbar">
+        <!-- Browser chrome title-->
+        <div id="statusbar-title"></div>
         <!-- Carrier & date label -->
         <div id="statusbar-label" class="sb-start-upper"></div>
         <!-- CDMA emergency callback Notification -->
@@ -451,6 +454,16 @@
         <img id="statusbar-network-activity"
              src="style/statusbar/images/network-activity.png"
              class="sb-icon-network-activity" hidden>
+      </div>
+      <div id="search-bar" data-z-index-level="search-bar">
+        <form id="search-form" class="skin-dark">
+          <p>
+            <input id="search-input" type="search" x-inputmode="verbatim" placeholder="Search or type address" data-l10n-id="search-or-type-address"></input>
+            <button id="search-reset" type="reset"></button>
+            <a href="#" id="search-cancel" data-l10n-id="cancel">Cancel</a>
+          </p>
+        </form>
+        <div id="search-container"></div>
       </div>
 
       <div id="utility-tray" data-z-index-level="utility-tray">
@@ -1228,16 +1241,6 @@
       </div>
 
       <button id="fullscreen-software-home-button" data-z-index-level="fullscreen-software-home-button"></button>
-      <div id="search-bar" data-z-index-level="search-bar">
-        <form id="search-form" class="skin-dark">
-          <p>
-            <input id="search-input" type="search" x-inputmode="verbatim" placeholder="Search or type address" data-l10n-id="search-or-type-address"></input>
-            <button id="search-reset" type="reset"></button>
-            <a href="#" id="search-cancel" data-l10n-id="cancel">Cancel</a>
-          </p>
-        </form>
-        <div id="search-container"></div>
-      </div>
 
     </div> <!-- end of #screen -->
   </body>
