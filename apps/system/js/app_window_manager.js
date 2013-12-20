@@ -178,9 +178,7 @@
 
     /**
      * The init process from bootstrap to homescreen is opened:
-     * <a href="http://i.imgur.com/8qsOh1W.png" target="_blank">
-     *   <img src="http://i.imgur.com/8qsOh1W.png" title="bootstrap"></img>
-     * </a>
+     * ![bootstrap](http://i.imgur.com/8qsOh1W.png)
      *
      * 1. Applications is ready. (mozApps are parsed.)
      * 2. Bootstrap tells HomescreenLauncher to init.
@@ -444,7 +442,7 @@
 
     /**
      * Instanciate app window by configuration
-     * @param  {AppConfig} config The configuration of the app window
+     * @param  {AppConfig} config The configuration of the app window.
      * @memberOf module:AppWindowManager
      */
     launch: function awm_launch(config) {
@@ -491,11 +489,9 @@
      * we call kill on the instance and let the instance to request 'close'
      * to AppWindowManager or just destroy itself if it's at background.
      *
-     * <a href="http://i.imgur.com/VrlkUXM.png" target="_blank">
-     *   <img src="http://i.imgur.com/VrlkUXM.png"></img>
-     * </a>
+     * ![AppWindowManager kill process](http://i.imgur.com/VrlkUXM.png)
      *
-     * @param  {String} origin The origin of the running app window to be killed
+     * @param {String} origin The origin of the running app window to be killed.
      * @memberOf module:AppWindowManager
      */
     kill: function awm_kill(origin) {
@@ -541,8 +537,8 @@
      *
      * AppWindow.REGISTERED_EVENTS.push('_earthquake');
      *
-     * @param  {String} message The message name
-     * @param  {Object} [detail]  The detail of the message
+     * @param  {String} message The message name.
+     * @param  {Object} [detail]  The detail of the message.
      * @memberOf module:AppWindowManager
      */
     broadcastMessage: function awm_broadcastMessage(message, detail) {

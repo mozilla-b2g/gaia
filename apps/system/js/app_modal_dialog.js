@@ -5,11 +5,15 @@
   var _id = 0;
 
   /**
-   * The ModalDialog of the appWindow.
+   * The ModalDialog of the AppWindow.
+   *
+   * Including **alert**, **prompt**, **confirm**, and
+   * **single select** dialogs.
    *
    * @class AppModalDialog
    * @param {AppWindow} app The app window instance
    *                        where this dialog should popup.
+   * @extends BaseUI
    */
   window.AppModalDialog = function AppModalDialog(app) {
     this.app = app;

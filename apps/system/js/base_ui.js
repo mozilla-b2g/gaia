@@ -16,9 +16,10 @@
   BaseUI.prototype.EVENT_PREFIX = 'base-';
 
   /**
-   * render UI
-   * overwrite `view` to provide HTML interface
-   * overwrite `_fetchElements` to provide elements reference
+   * Operations to render UI
+   * Overwrite `view` to provide HTML interface.
+   * Overwrite `_fetchElements` to provide elements reference.
+   * Overwrite `_registerEvents` to register event handler.
    */
   BaseUI.prototype.render = function bu_render() {
     this.publish('willrender');
@@ -28,11 +29,23 @@
     this.publish('rendered');
   };
 
+  /**
+   * Get nessesary elements reference when inited
+   */
+  BaseUI.prototype._fetchElements = function bu__fetchElements() {
+
+  };
+
+  /**
+   * Register event handler
+   */
   BaseUI.prototype._registerEvents = function bu__registerEvents() {
 
   };
 
-  // Override me.
+  /**
+   * Modal Dialog html view
+   */
   BaseUI.prototype.view = function bu_view() {
     return '<div class="' + this.CLASS_NAME + '"></div>';
   };

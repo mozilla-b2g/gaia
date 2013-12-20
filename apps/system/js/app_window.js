@@ -27,9 +27,7 @@
    * just the manifestURL.
    *
    * ##### Life cycle state machine of an appWindow instance
-   * <a href="http://i.imgur.com/ELuEopw.png" target="blank">
-   *   <img src="http://i.imgur.com/ELuEopw.png"></img>
-   * </a>
+   * ![appWindow Life cycle state machine](http://i.imgur.com/ELuEopw.png)
    *
    * @example
    * var app = new AppWindow({
@@ -74,7 +72,7 @@
   /**
    * Generate all configurations we need.
    * @param  {Object} configuration Initial configuration object
-   *  Includes manifestURL, manifest, url, origin, name
+   *  Includes manifestURL, manifest, url, origin, name.
    */
   AppWindow.prototype.reConfig = function aw_reConfig(configuration) {
     // Some modules are querying appWindow.manifestURL or appWindow.origin
@@ -102,7 +100,7 @@
 
   /**
    * Update the name of this window.
-   * @param {String} name The new name
+   * @param {String} name The new name.
    */
   AppWindow.prototype.updateName = function aw_updateName(name) {
     if (this.config && this.config.title) {
@@ -605,7 +603,7 @@
   /**
    * General event handler interface.
    * Child classes shouldn't change this.
-   * @param  {DOMEvent} evt The event
+   * @param  {DOMEvent} evt The event.
    */
   AppWindow.prototype.handleEvent = function aw_handleEvent(evt) {
     this.debug(' Handling ' + evt.type + ' event...');
@@ -946,9 +944,7 @@
   * if an app is launched by system message we don't need to resize
   * it.
   *
-  * <a href="http://i.imgur.com/bUMm4VM.png" target="_blank">
-  *   <img src="http://i.imgur.com/bUMm4VM.png"></img>
-  * </a>
+  * ![AppWindow resize flow chart](http://i.imgur.com/bUMm4VM.png)
   */
   AppWindow.prototype.resize = function aw_resize() {
     this.debug('request RESIZE...active? ', this.isActive());
@@ -1224,7 +1220,7 @@
 
   /**
    * Open the window; the detail is done in appTransitionController.
-   * @param  {String} animation The animation class name
+   * @param  {String} animation The animation class name.
    */
   AppWindow.prototype.open = function aw_open(animation) {
     // Request "open" to our internal transition controller.
@@ -1236,7 +1232,7 @@
 
   /**
    * Close the window; the detail is done in appTransitionController.
-   * @param  {String} animation The animation class name
+   * @param  {String} animation The animation class name.
    */
   AppWindow.prototype.close = function aw_close(animation) {
     // Request "close" to our internal transition controller.
