@@ -69,11 +69,23 @@ suite('Download item', function() {
       var errorStatus = downloadElement.querySelector('aside:not(pack-end)');
       assert.ok(errorStatus.classList.contains('hide'));
       var errorDownloadMock = new MockDownload({
-        state: 'stopped'
+        state: 'stopped',
+        error: {}
       });
       var errorDownloadElement = DownloadItem.create(errorDownloadMock);
       errorStatus = errorDownloadElement.querySelector('aside:not(pack-end)');
       assert.isFalse(errorStatus.classList.contains('hide'));
+    });
+
+    test(' > check no stopped icon', function() {
+      var errorStatus = downloadElement.querySelector('aside:not(pack-end)');
+      assert.ok(errorStatus.classList.contains('hide'));
+      var errorDownloadMock = new MockDownload({
+        state: 'stopped'
+      });
+      var errorDownloadElement = DownloadItem.create(errorDownloadMock);
+      errorStatus = errorDownloadElement.querySelector('aside:not(pack-end)');
+      assert.isTrue(errorStatus.classList.contains('hide'));
     });
   });
 
@@ -101,7 +113,18 @@ suite('Download item', function() {
       DownloadItem.refresh(downloadElement, downloadPaused);
       assert.ok(l10nSpy.called);
       var l10nParams = l10nSpy.args[0][2];
-      assert.equal(l10nParams.status, 'stopped');
+      assert.equal(l10nParams.status, 'download-stopped');
+    });
+
+    test(' > from downloading to failed', function() {
+      var downloadPaused = new MockDownload({
+        state: 'stopped',
+        error: {}
+      });
+      DownloadItem.refresh(downloadElement, downloadPaused);
+      assert.ok(l10nSpy.called);
+      var l10nParams = l10nSpy.args[0][2];
+      assert.equal(l10nParams.status, 'download-failed');
     });
 
     test(' > from downloading to succeeded', function() {

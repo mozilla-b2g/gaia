@@ -176,7 +176,9 @@
   }
 
   function _restartDownload(download) {
-    var request = DownloadUI.show(DownloadUI.TYPE.STOPPED, download);
+    // DownloadUI knows which will be the correct confirm depending on state
+    // and error attributes
+    var request = DownloadUI.show(null, download);
 
     request.onconfirm = function() {
       if (download.resume) {
