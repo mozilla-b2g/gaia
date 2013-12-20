@@ -52,6 +52,17 @@ var Hotspot = {
 
     hotspotSettingBtn.addEventListener('click',
       openDialog.bind(window, 'hotspot-wifiSettings'));
+
+    var reqGetPassword =
+      settings.createLock().get('tethering.wifi.security.password');
+
+    reqGetPassword.onsuccess = function() {
+      if (!reqGetPassword.result['tethering.wifi.security.password']) {
+        var reqSetPassword = settings.createLock().set({
+          'tethering.wifi.security.password': randomHexString(12)
+        });
+      }
+    };
   }
 };
 
