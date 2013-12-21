@@ -4,11 +4,12 @@
   var _id = 0;
 
   /**
-   * The https authentication dialog of the appWindow.
+   * The https authentication dialog of the AppWindow.
    *
    * @class AppAuthenticationDialog
    * @param {AppWindow} app The app window instance
    *                        where this dialog should popup.
+   * @extends BaseUI
    */
   window.AppAuthenticationDialog = function AppAuthenticationDialog(app) {
     this.app = app;

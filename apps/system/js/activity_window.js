@@ -8,9 +8,7 @@
    * For window disposition activity, they are done in AppWindow.
    *
    * ##### Flow chart
-   * <a href="http://i.imgur.com/4O1Frs3.png" target="_blank">
-   * <img src="http://i.imgur.com/4O1Frs3.png"></img>
-   * </a>
+   * ![ActivityWindow flow](http://i.imgur.com/4O1Frs3.png)
    *
    * @example
    * var app = new AppWindow({

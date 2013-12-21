@@ -3,9 +3,7 @@
    * HomescreenWindow creates a instance of homescreen by give manifestURL.
    *
    * ##### Flow chart
-   * <a href="http://i.imgur.com/vLA8YEN.png" target="_blank">
-   * <img src="http://i.imgur.com/vLA8YEN.png"></img>
-   * </a>
+   * ![Boot to Homescreen flow chart](http://i.imgur.com/vLA8YEN.png)
    *
    * @class HomescreenWindow
    * @param {String} manifestURL The manifestURL of the homescreen app.

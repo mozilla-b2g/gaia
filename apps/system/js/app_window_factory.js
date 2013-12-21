@@ -16,9 +16,7 @@
    * ActivityWindowFactory for it to do instantiation via event
    * <code>launchactivity</code>.
    *
-   * <a href="http://i.imgur.com/ZyMcgft.png" target="_blank">
-   * <img src="http://i.imgur.com/ZyMcgft.png" title="applaunch"></img>
-   * </a>
+   * ![app and activity launch flow](http://i.imgur.com/ZyMcgft.png)
    *
    * @module AppWindowFactory
    */

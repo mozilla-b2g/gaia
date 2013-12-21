@@ -17,14 +17,10 @@
    * of the given appWindow.
    *
    * ##### Flow chart #####
-   * <a href="http://i.imgur.com/k0hO2AN.png" target="_blank">
-   * <img src="http://i.imgur.com/k0hO2AN.png"></img>
-   * </a>
+   * ![AppTransition Flow chart](http://i.imgur.com/k0hO2AN.png)
    *
    * ##### State machine #####
-   * <a href="http://i.imgur.com/0arU9rl.png" target="_blank">
-   * <img src="http://i.imgur.com/0arU9rl.png"></img>
-   * </a>
+   * ![AppTransition State machine](http://i.imgur.com/0arU9rl.png)
    *
    * @param {AppWindow} app The app window instance which this controller
    *                        belongs to.

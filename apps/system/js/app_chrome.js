@@ -7,10 +7,11 @@
   var BUTTONBAR_INITIAL_OPEN_TIMEOUT = 1500;
 
   /**
-   * The chrome UI of the appWindow.
+   * The chrome UI of the AppWindow.
    *
    * @class AppChrome
    * @param {AppWindow} app The app window instance this chrome belongs to.
+   * @extends BaseUI
    */
   window.AppChrome = function AppChrome(app) {
     this.app = app;

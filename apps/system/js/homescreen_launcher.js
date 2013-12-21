@@ -32,9 +32,7 @@
 
     /**
      * Init process
-     * <a href="http://i.imgur.com/JZ1ibkc.png" target="_blank">
-     *   <img src="http://i.imgur.com/JZ1ibkc.png"></img>
-     * </a>
+     * ![Homescreen launch process](http://i.imgur.com/JZ1ibkc.png)
      *
      * @memberOf module:HomescreenLauncher
      */
