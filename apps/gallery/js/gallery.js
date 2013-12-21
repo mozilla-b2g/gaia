@@ -192,6 +192,7 @@ function init() {
   $('overlay-cancel-button').onclick = function() {
     cancelPick();
   };
+  thumbnails.addEventListener('scroll', scrollHandler);
   // Handle resize events
   window.onresize = resizeHandler;
 
@@ -1140,6 +1141,8 @@ function share(blobs) {
 // As a workaround for Bug 961636, use resize event handler
 // in place of screenlayoutchange event handler.
 function resizeHandler() {
+  // Update offset to focus on last visible thumbnail
+  setOffsetPostition();
   isPortrait = ScreenLayout.getCurrentLayout('portrait');
 
   // In list view when video is playing, if user rotate screen from
