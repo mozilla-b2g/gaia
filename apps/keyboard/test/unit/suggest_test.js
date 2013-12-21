@@ -199,7 +199,7 @@ suite('Latin suggestions', function() {
 
     im.click(KeyEvent.DOM_VK_SPACE).then(function() {
       sinon.assert.callCount(imSettings.replaceSurroundingText, 1);
-      sinon.assert.calledWith(imSettings.replaceSurroundingText, 'Jan', 3, 0);
+      sinon.assert.calledWith(imSettings.replaceSurroundingText, 'Jan', -3, 3);
       sinon.assert.calledWith(imSettings.sendKey, KeyEvent.DOM_VK_SPACE);
 
       next();
@@ -248,7 +248,7 @@ suite('Latin suggestions', function() {
       return im.click(KeyEvent.DOM_VK_SPACE);
     }).then(function() {
       sinon.assert.callCount(imSettings.replaceSurroundingText, 1);
-      sinon.assert.calledWith(imSettings.replaceSurroundingText, 'Jan', 3, 0);
+      sinon.assert.calledWith(imSettings.replaceSurroundingText, 'Jan', -3, 3);
 
       sinon.assert.callCount(imSettings.sendKey, 4);
       assert.equal(imSettings.sendKey.args[0][0], KeyEvent.DOM_VK_SPACE);

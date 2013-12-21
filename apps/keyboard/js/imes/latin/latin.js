@@ -449,7 +449,8 @@
   // content and cursor position.
   function replaceBeforeCursor(oldWord, newWord) {
     var oldWordLen = oldWord.length;
-    var replPromise = keyboard.replaceSurroundingText(newWord, oldWordLen, 0);
+    var replPromise =
+      keyboard.replaceSurroundingText(newWord, -oldWordLen, oldWordLen);
 
     return replPromise.then(function() {
       // Now update internal state

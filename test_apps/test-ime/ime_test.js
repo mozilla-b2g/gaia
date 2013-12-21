@@ -294,10 +294,10 @@ suite('Input Method', function() {
     test('Contenteditable with CR', function(next) {
       onIcc(true, function(ic) {
         sendKeys(['J', 'a'], 'Ja', function() {
-          ic.replaceSurroundingText('Jay\r', 2, 0).then(function() {
+          ic.replaceSurroundingText('Jay\r', -2, 2).then(function() {
             // The \n after to shouldn't be here. Wtf?
             sendKeys(['t', 'o'], 'Jay\nto\n', function() {
-              ic.replaceSurroundingText('tof\r', 2, 0).then(function() {
+              ic.replaceSurroundingText('tof\r', -2, 2).then(function() {
                 ic.getText().then(function(v) {
                   // Oh hi, here's another newline...
                   assert.equal(v, 'Jay\ntof\n\n');
@@ -316,9 +316,9 @@ suite('Input Method', function() {
     test('Textarea with CR', function(next) {
       onIcc(true, function(ic) {
         sendKeys(['J', 'a'], 'Ja', function() {
-          ic.replaceSurroundingText('Jay\r', 2, 0).then(function() {
+          ic.replaceSurroundingText('Jay\r', -2, 2).then(function() {
             sendKeys(['t', 'o'], 'Jay\nto', function() {
-              ic.replaceSurroundingText('tof\r', 2, 0).then(function() {
+              ic.replaceSurroundingText('tof\r', -2, 2).then(function() {
                 ic.getText().then(function(v) {
                   assert.equal(v, 'Jay\ntof\n');
                   next();

@@ -176,7 +176,8 @@
   }
 
   function replaceSurroundingText(text, numBefore, numAfter) {
-    monitor(context.replaceSurroundingText(text, numBefore, numAfter));
+    monitor(context.replaceSurroundingText(text, -numBefore,
+                                           numBefore + numAfter));
 
     textBeforeCursor = textBeforeCursor.slice(0, -numBefore) + text;
     if (numAfter)
@@ -187,7 +188,7 @@
   }
 
   function deleteSurroundingText(numBefore, numAfter) {
-    replaceSurroundingText('', numBefore, numAfter);
+    monitor(context.deleteSurroundingText(-numBefore, numBefore + numAfter));
   }
 
   function monitor(promise) {
