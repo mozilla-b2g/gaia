@@ -13,7 +13,7 @@ marionette('Contacts > Details', function() {
     selectors = Contacts.Selectors;
   });
 
-  test('Display the phone number', function() {
+  test.skip('Display the phone number', function() {
     var tel = 1231231234;
 
     subject.addContact({

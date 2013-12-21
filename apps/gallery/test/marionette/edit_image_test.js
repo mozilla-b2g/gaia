@@ -41,7 +41,7 @@ marionette('editing an image', function() {
     assert.ok(app.enhanceOptions.displayed());
   });
 
-  test('should change exposure', function() {
+  test.skip('should change exposure', function() {
     // Changing the exposure of an image creates a new modified
     // version of original.
     app.thumbnail.click();
@@ -56,7 +56,7 @@ marionette('editing an image', function() {
     assert.strictEqual(app.thumbnails.length, 2);
   });
 
-  test('should crop it', function() {
+  test.skip('should crop it', function() {
     // Croping an image creates a new modified version of original.
     app.thumbnail.click();
     app.editButton.click();

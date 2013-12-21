@@ -15,7 +15,7 @@ marionette('today item', function() {
     app.launch(true);
   });
 
-  test('should highlight today item in month view', function() {
+  test.skip('should highlight today item in month view', function() {
     var currentMonthYearHeader = app.findElement('monthYearHeader')
                                     .getAttribute('data-date'),
         currentDate = app.findElement('monthViewpresent')

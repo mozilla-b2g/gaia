@@ -20,7 +20,7 @@ marionette('lockscreen disabled test', function() {
     }
   });
 
-  test('launch test app', function() {
+  test.skip('launch test app', function() {
     // XXX: this should be replaced with a region when we have fuller test
     // coverage.
     var lockscreen =

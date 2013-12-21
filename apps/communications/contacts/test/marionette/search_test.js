@@ -14,7 +14,7 @@ marionette('Contacts > Search', function() {
   });
 
   suite('Search Mode', function() {
-    test('Can enter and exit search mode', function() {
+    test.skip('Can enter and exit search mode', function() {
 
       subject.addContact();
 
