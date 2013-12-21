@@ -6,6 +6,7 @@ mocha.globals(['AppWindow', 'AppModalDialog', 'System', 'BaseUI']);
 requireApp('system/test/unit/mock_l10n.js');
 requireApp('system/test/unit/mock_orientation_manager.js');
 requireApp('system/test/unit/mock_app_window.js');
+require('/shared/js/template.js');
 
 var mocksForAppModalDialog = new MocksHelper([
   'AppWindow'
