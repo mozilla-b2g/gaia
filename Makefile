@@ -4,7 +4,7 @@
 # GAIA_DOMAIN : change that if you plan to use a different domain to update   #
 #               your applications or want to use a local domain               #
 #                                                                             #
-# HOMESCREEN  : url of the homescreen to start on                             #
+# SYSTEMAPP  : url of the SYSTEMAPP to start on                             #
 #                                                                             #
 # ADB         : if you use a device and plan to send update it with your work #
 #               you need to have adb in your path or you can edit this line to#
@@ -122,7 +122,7 @@ else
 SCHEME=app://
 endif
 
-HOMESCREEN?=$(SCHEME)system.$(GAIA_DOMAIN)
+SYSTEMAPP?=$(SCHEME)system.$(GAIA_DOMAIN)
 
 BUILD_APP_NAME?=*
 TEST_INTEGRATION_APP_NAME?=*
@@ -349,7 +349,7 @@ define BUILD_CONFIG
 	"LOCAL_DOMAINS" : $(LOCAL_DOMAINS), \
 	"DESKTOP" : $(DESKTOP), \
 	"DEVICE_DEBUG" : $(DEVICE_DEBUG), \
-	"HOMESCREEN" : "$(HOMESCREEN)", \
+	"SYSTEMAPP" : "$(SYSTEMAPP)", \
 	"GAIA_PORT" : "$(GAIA_PORT)", \
 	"GAIA_LOCALES_PATH" : "$(GAIA_LOCALES_PATH)", \
 	"GAIA_INSTALL_PARENT" : "$(GAIA_INSTALL_PARENT)", \
