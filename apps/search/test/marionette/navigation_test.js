@@ -38,7 +38,7 @@ marionette('navigation', function() {
     assert(!isResized);
   });
 
-  test('cancel button closes rocketbar', function() {
+  test.skip('cancel button closes rocketbar', function() {
     search.openRocketbar();
     search.cancelRocketbar();
   });

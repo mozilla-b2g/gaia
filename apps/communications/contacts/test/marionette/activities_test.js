@@ -97,7 +97,7 @@ marionette('Contacts > Activities', function() {
       assert.equal(confirmMsg.text(), expectedResult);
     });
 
-    test('Error message selected contact has no number', function() {
+    test.skip('Error message selected contact has no number', function() {
 
       subject.launch();
 

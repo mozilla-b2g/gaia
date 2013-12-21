@@ -30,7 +30,7 @@ marionette('the gallery', function() {
     assert.strictEqual(app.thumbnails.length, 1);
   });
 
-  test('should display an image fullscreen and go back', function() {
+  test.skip('should display an image fullscreen and go back', function() {
     // You should be able to click on an image to view a fullscreen
     // preview and go back by pressing the 'back' button.
     app.thumbnail.click();
