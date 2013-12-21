@@ -396,7 +396,7 @@ LANG=POSIX # Avoiding sort order differences between OSes
 # - build_stage/APPNAME/gaia_shared.json: This file lists shared resource
 #   dependencies that build/webapp-zip.js's detection logic might not determine
 #   because of lazy loading, etc.
-app-makefiles: install-xulrunner-sdk
+app-makefiles: install-xulrunner-sdk applications-data
 	@for d in ${GAIA_APPDIRS}; \
 	do \
 		if [[ ("$$d" =~ "${BUILD_APP_NAME}") || (${BUILD_APP_NAME} == "*") ]]; then \
@@ -618,7 +618,7 @@ endif
 
 
 # Generate $(PROFILE_FOLDER)/
-applications-data: profile-dir app-makefiles install-xulrunner-sdk
+applications-data: profile-dir install-xulrunner-sdk
 ifeq ($(BUILD_APP_NAME),*)
 	@$(call run-js-command, applications-data)
 endif
