@@ -37,8 +37,6 @@ body:not(.evme-keyboard-visible) .empty-query #helper-header {
     #search-title .query {
         position: relative;
         margin-left: 0.5rem;
-
-        text-transform: lowercase;
     }
         #search-title .type {
             font-style: normal;
@@ -120,7 +118,6 @@ body:not(.evme-keyboard-visible) .empty-query #helper-header {
         left: 0;
         overflow: hidden;
         background-size: 3rem;
-        text-transform: lowercase;
         white-space: nowrap;
         -moz-box-sizing: border-box;
     }

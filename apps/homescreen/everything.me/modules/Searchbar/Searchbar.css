@@ -36,7 +36,6 @@
         position: relative;
         border-radius: 0;
         vertical-align: middle;
-        text-transform: lowercase;
     }
     #evmeContainer #search-q::-moz-placeholder,
     #evmeContainer #search-q-bg::-moz-placeholder {

@@ -15,7 +15,7 @@ Evme.SearchHistory = new function Evme_SearchHistory() {
 
   this.save = function save(query, type) {
     !type && (type = '');
-    query = query.toLowerCase();
+    query = query;
     type = type.toLowerCase();
 
     var obj = {

@@ -177,7 +177,7 @@ Evme.Helper = new function Evme_Helper() {
        var _type =
         (_data.types && _data.types.length >= 1) ? _data.types[0].name : '';
 
-      self.setTitle(parsedQuery, _type);
+      self.setTitle(inputQuery, _type);
 
       self.empty();
 
@@ -560,7 +560,7 @@ Evme.Helper = new function Evme_Helper() {
     }
 
     var val = elClicked.dataset.suggestion,
-      valToSend = (val || '').replace(/[\[\]]/g, '').toLowerCase(),
+      valToSend = (val || '').replace(/[\[\]]/g, ''),
       index = elClicked.dataset.index,
       source = elClicked.dataset.source,
       type = elClicked.dataset.type;
