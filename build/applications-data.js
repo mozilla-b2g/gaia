@@ -288,7 +288,7 @@ function execute(options) {
   utils.writeContent(init, JSON.stringify(homescreen));
 
   // SMS
-  let init = utils.getFile(config.GAIA_DIR, 'apps', 'sms', 'js', 'blacklist.json');
+  init = utils.getFile(config.GAIA_DIR, 'apps', 'sms', 'js', 'blacklist.json');
   let content = ['4850', '7000'];
 
   utils.writeContent(init,
