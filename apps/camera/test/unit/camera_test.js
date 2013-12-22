@@ -1,7 +1,7 @@
 /*jshint maxlen:false*/
 'use strict';
 
-suite('activity', function() {
+suite.skip('activity', function() {
   var Camera;
 
   // Sometimes setup via the

@@ -2,7 +2,7 @@
 /*global req*/
 'use strict';
 
-suite('controllers/viewfinder', function() {
+suite.skip('controllers/viewfinder', function() {
   var Controller;
 
   // Sometimes setup via the

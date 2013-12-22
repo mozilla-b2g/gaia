@@ -2,7 +2,7 @@
 /*global req*/
 'use strict';
 
-suite('controllers/overlay', function() {
+suite.skip('controllers/overlay', function() {
   var Controller;
 
   // Sometimes setup via the

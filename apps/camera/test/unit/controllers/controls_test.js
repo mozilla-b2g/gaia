@@ -2,7 +2,7 @@
 /*global req*/
 'use strict';
 
-suite('controllers/controls', function() {
+suite.skip('controllers/controls', function() {
   var Controller;
 
   // Sometimes setup via the

@@ -2,7 +2,7 @@
 /*global req*/
 'use strict';
 
-suite('controllers/camera', function() {
+suite.skip('controllers/camera', function() {
   var Controller;
 
   // Sometimes setup via the
