@@ -115,11 +115,14 @@ var CallScreen = {
 
     this.calls.addEventListener('click', CallsHandler.toggleCalls.bind(this));
 
-    var callScreenHasLayout = !!this.screen.dataset.layout;
-    if ((window.location.hash === '#locked') && !callScreenHasLayout) {
-      CallScreen.render('incoming-locked');
+    if (window.location.hash === '#locked') {
+      this.showClock(new Date());
+      this.initLockScreenSlide();
+
+      if (!this.screen.dataset.layout) {
+        this.render('incoming-locked');
+      }
     }
-    CallScreen.showClock(new Date());
 
     this.setWallpaper();
 
@@ -127,6 +130,77 @@ var CallScreen = {
     window.addEventListener('resize', this.resizeHandler.bind(this));
 
     this.syncSpeakerEnabled();
+  },
+
+  initLockScreenSlide: function cs_initLockScreenSlide() {
+    // Setup incoming call screen slider
+    this.hangUpIcon = document.getElementById('lockscreen-area-hangup');
+    this.pickUpIcon = document.getElementById('lockscreen-area-pickup');
+
+    new LockScreenSlide(
+      // IntentionRouter
+      {
+        unlockerInitialize: function _unlockerInitialize() {
+          //Seems not necessary for incoming call screen.
+        },
+
+        activateRight: function _activateRight() {
+          CallsHandler.answer();
+        },
+
+        activateLeft: function _activateLeft() {
+          CallsHandler.end();
+        },
+
+        nearLeft: function _nearLeft(state, statePrev) {
+          if (state === 'accelerating') {
+            CallScreen.hangUpIcon.classList.add('triggered');
+          } else {
+            CallScreen.hangUpIcon.classList.remove('triggered');
+          }
+        },
+
+        nearRight: function _nearRight(state, statePrev) {
+          if (state === 'accelerating') {
+            CallScreen.pickUpIcon.classList.add('triggered');
+          } else {
+            CallScreen.pickUpIcon.classList.remove('triggered');
+          }
+        }
+      },
+      // Options
+      {
+        IDs: {
+          overlay: 'main-container',
+          areas: {
+            left: 'lockscreen-area-hangup',
+            right: 'lockscreen-area-pickup'
+          }
+        },
+
+        colors: {
+          left: {
+            touchedColor: '255, 0, 0',
+            touchedColorStop: '255, 178, 178'
+          },
+
+          right: {
+            touchedColor: '132, 200, 44',
+            touchedColorStop: '218, 238, 191'
+          }
+        },
+
+        resources: {
+          larrow: '/dialer/style/images/larrow.png',
+          rarrow: '/dialer/style/images/rarrow.png'
+        },
+        handle: {
+          autoExpand: {
+            sentinelOffset: 80
+          }
+        }
+      }
+    );
   },
 
   _wallpaperReady: false,
@@ -307,7 +381,7 @@ var CallScreen = {
   render: function cs_render(layout_type) {
     this.screen.dataset.layout = layout_type;
     if (layout_type !== 'connected') {
-      this.keypadButton.setAttribute('disabled', 'disabled');
+      this.disableKeypad();
     }
   },
 

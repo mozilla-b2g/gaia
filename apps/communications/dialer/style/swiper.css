@@ -1,270 +1,116 @@
-/* swiper-area */
-#swiper-area {
-  bottom: 0;
-  height: 9rem;
+/* Lockscreen slider - Need to move duplicate styling in other proper place */
+#lockscreen-area {
+  position: absolute;
+  height: 11.2rem;
   left: 0;
-  position: absolute;
   right: 0;
+  bottom: 0;
 }
 
-/* swiper-area-hangup */
-.swiper-icon:after {
-  content: "";
-  display: block;
-  height: 2.2rem;
-  margin: -1.1rem;
+.lockscreen-icon-area {
+  height: 10rem;
   position: absolute;
-  top: 1.9rem;
-  width: 1.2rem;
+  border-style: none;
+  transition: opacity 0.5s ease;
 }
 
-#swiper-area-hangup > div {
-  background-image: url("images/hangup_icon.png");
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: 4.1rem;
-  margin-left: 2.4rem;
-  margin-right: auto;
-  opacity: 0.7;
-  transition: opacity 0.2s ease;
-}
-
-.touched #swiper-area-hangup > div {
-  opacity: 1.0;
-  transition: none;
-}
-
-#swiper-area-hangup.triggered > div {
-  background-image: url("images/hangup_icon_pressed.png");
-  background-position: center;
-  background-repeat: no-repeat;
-}
-
-.swiper-icon {
+.lockscreen-icon {
   margin-top: 2rem;
   width: 6rem;
   height: 6rem;
-  -moz-box-sizing: border-box;
-  pointer-events: none;
-}
 
-.touched .swiper-rail {
-  opacity: 1;
-}
-
-.swiper-icon-area {
-  height: 100%;
-  position: absolute;
-  pointer-events: none;
-}
-
-.triggered .swiper-icon-area {
-  pointer-events: auto;
-}
-
-/* swiper-area-pickup */
-#swiper-area-pickup > div {
-  background-image: url("images/pickup_icon.png");
   background-position: center;
   background-repeat: no-repeat;
   background-size: 3rem;
-  margin-right: 2.4rem;
-  margin-left: auto;
-  opacity: 0.7;
-  transition: opacity 0.2s ease;
+
+  pointer-events: none;
 }
 
-.touched #swiper-area-pickup > div {
-  opacity: 1.0;
+.lockscreen-icon-area.dark .lockscreen-icon{
+  opacity: 0.65;
+}
+
+#lockscreen-area-slide {
+  text-align: center;
+  width: calc(100%);
+}
+
+.touched .lockscreen-icon {
   transition: none;
 }
 
-#swiper-area-pickup.triggered > div {
-  background-image: url("images/pickup_icon_pressed.png");
-  background-position: center;
-  background-repeat: no-repeat;
+.lockscreen-icon-right {
+  right: calc(50% - 14rem);
 }
 
-/* swiper */
-#swiper-wrapper{
-  display: inline-block;
+.lockscreen-icon-left {
+  left: calc(50% - 14rem);
 }
 
-#swiper-wrapper.hide{
+@media (min-width:768px) {
+  .lockscreen-icon-right {
+    right: calc(50% - 20.5rem);
+  }
+
+  .lockscreen-icon-left {
+    left: calc(50% - 20.5rem);
+  }
+}
+
+:-moz-any(.touched, #screen:not(.locked), #screen.attention, #lockscreen:not([data-panel="main"]))
+:-moz-any(#lockscreen-left-arrow, #lockscreen-right-arrow) {
   display: none;
+  animation: none;
 }
 
-#swiper-icon-container {
-  background: rgba(0, 0, 0, 0.4);
-  bottom: 0px;
+.lockscreen-icon-left, .lockscreen-icon-right {
+  z-index: 16;
+  pointer-events: auto;
+}
+
+/* Compensation for the effects after enabling the pointer-event attribute. */
+.lockscreen-icon-left:active, .lockscreen-icon-right:active {
+  background: none;
+}
+
+.lockscreen-icon-left > div {
+  background-image: url('images/hangup_icon.png');
+}
+
+.lockscreen-icon-right > div {
+  background-image: url('images/pickup_icon.png');
+}
+
+.touched #lockscreen-icon-container {
+  transition: none;
+}
+
+.touched .lockscreen-icon-area {
+  transition: none;
+}
+
+#lockscreen-canvas-wrapper {
   position: absolute;
+  bottom: 0.75rem;
+  z-index: 8;
+  width: 100%;
+}
+
+/* Need to override original lockscreen icon container */
+#lockscreen-icon-container {
+  background: rgba(0, 0, 0, 0.4);
+  position: absolute;
+  bottom: 0rem;
   width: 100%;
   height: 10rem;
   pointer-events: none;
-  transition:
-    transform 0.5s ease,
-    opacity 0.5s ease;
 }
 
-.touched #swiper-icon-container {
-  transition: none;
+/* Additional styling for lockscreen icon */
+.lockscreen-icon-right.triggered > div {
+  background-image: url("images/pickup_icon_pressed.png");
 }
 
-.triggered #swiper-icon-container {
-  transform: translateY(-8rem);
-  opacity: 1;
+.lockscreen-icon-left.triggered > div {
+  background-image: url("images/hangup_icon_pressed.png");
 }
-
-.triggered #swiper-area-pickup > div {
-  opacity: 1;
-}
-
-.triggered #swiper-area-hangup > div {
-  opacity: 1;
-}
-
-.triggered #swiper-area-handle {
-  opacity: 0;
-}
-
-#swiper-area-slider {
-  text-align: center;
-  width: 100%;
-}
-
-#swiper-slider-handler {
-  position: relative;
-  top: -8.1rem;
-}
-
-/* Sync the landscape/portrait layout of the system locksrceen*/
-#swiper-area-slider #swiper-slider-track .swiper-slider-center {
-  width: 22rem;
-}
-
-.swiper-icon-left {
-  left: calc(50% - 16rem);
-  z-index: 1;
-}
-
-.swiper-icon-right {
-  right: calc(50% - 16rem);
-  z-index: 1;
-}
-
-
-@media (min-width:768px) {
-  #swiper-area-slider #swiper-slider-track .swiper-slider-center {
-    width: 35rem;
-  }
-
-  .swiper-icon-left {
-    left: calc(50% - 22.5rem);
-  }
-
-  .swiper-icon-right {
-    right: calc(50% - 22.5rem);
-  }
-}
-
-#swiper-area-slider #swiper-slider-track .swiper-icon {
-  border-color: rgba(255, 255, 255, 0.4) !important;
-}
-
-#swiper-area-slider .swiper-icon {
-   background-color: rgba(0, 0, 0, 0.3);
-   -moz-box-sizing: border-box;
-   border: 0.2rem solid rgba(255, 255, 255, 0.8);
-   display: inline-block;
-   position: relative;
-  /* Will become wider while user pull it */
-  transition: width 0.2s ease;
-}
-
-#swiper-slider-track .swiper-slider-left.swiper-icon {
-  /* half-circle toward left */
-  border-radius: 6rem 0 0 6rem;
-  border-right: none;
-  height: 6rem;
-  width: 3rem;
-}
-
-#swiper-slider-handler .swiper-slider-left.swiper-icon {
-  /* half-circle toward left */
-  border-radius: 5.6rem 0 0 5.6rem;
-  border-right: none;
-  height: 5.6rem;
-  width: 2.8rem;
-}
-
-.swiper-icon > span {
-  background: url("images/larrow.png") no-repeat top left;
-
-  /* float to prevent its parent got wrong place */
-  float: left;
-  margin-left: 1.1rem;
-  margin-top: 1.7rem;
-  width: 100%;
-  height: 100%;
-}
-
-#swiper-slider-handler.touched span {
-  display: none;
-}
-
-#swiper-area-slider .swiper-slider-center.swiper-icon {
-  border-left: none;
-  border-right: none;
-  border-radius: 0rem;
-  
-  /* workaround for splitting circle */
-  margin-left: -0.3rem;
-  margin-right: -0.3rem;
-
-  /* to move and scale it while sliding */
-  width: 1px; /* for the default circle */
-}
-
-#swiper-slider-handler .swiper-slider-center.swiper-icon {
-  height: 5.6rem;
-}
-
-#swiper-slider-handler.touched.left > div {
-  border-color: #ff0000;
-  background-color: #ff0000;
-}
-#swiper-slider-handler.touched.right > div {
-  border-color: #84c82c;
-  background-color: #84c82c;
-}
-
-#swiper-slider-track .swiper-slider-right.swiper-icon {
-  border-left: none;
-
-  /* half-circle toward right */
-  border-radius: 0 6rem 6rem 0;
-  height: 6rem;
-  width: 3rem;
-}
-
-#swiper-slider-handler .swiper-slider-right.swiper-icon {
-  border-left: none;
-
-  /* half-circle toward right */
-  border-radius: 0 5.6rem 5.6rem 0;
-  height: 5.6rem;
-  width: 2.8rem;
-}
-
-.swiper-slider-right.swiper-icon > span {
-  /* float to prevent its parent got wrong place */
-  float: right;
-  margin-right: 1.1rem;
-  /* flip it to toward right. */
-  transform: scaleX(-1);
- }
-
- #swiper-slider-handler.bounce > div,
- #swiper-slider-handler.extend > div {
-  transition: transform 0.2s ease-out 0s;
- }

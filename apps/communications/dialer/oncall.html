@@ -47,7 +47,8 @@
 
     <!-- incoming call / swiper on locked screen-->
     <link rel="stylesheet" type="text/css" href="/dialer/style/swiper.css">
-    <script defer src="/dialer/js/swiper.js"></script>
+    <script defer src="/shared/js/lockscreen_slide.js"></script>
+    <script defer src="/shared/js/screen_layout.js"></script>
   </head>
   <body>
     <article id="call-screen" data-layout>
@@ -105,47 +106,29 @@
         <div id="contact-background"></div>
         <div id="actions-container">
           <div id="swiper-wrapper">
-            <div id="swiper-area"></div>
-            <div id="swiper-icon-container">
-              <div id="swiper-area-hangup" class="swiper-icon-area swiper-icon-left">
-                <div class="swiper-icon">
-                  <div id="swiper-accessibility-hangup" role="button" class="swiper-icon-a11y-button" data-l10n-id="hangup-a11y-button" aria-label="Hangup"></div>
+            <!--Slider module related widgets -->
+            <div id="lockscreen-area"></div>
+            <div id="lockscreen-icon-container">
+              <div id="lockscreen-area-hangup"
+                   class="lockscreen-icon-area lockscreen-icon-left dark" role="button"
+                   data-l10n-id="hangup-a11y-button" aria-label="Hang Up">
+                <div class="lockscreen-icon">
                 </div>
               </div>
-              <div id="swiper-area-pickup" class="swiper-icon-area swiper-icon-right">
-                <div class="swiper-icon">
-                    <div id="swiper-accessibility-pickup" role="button" class="swiper-icon-a11y-button" data-l10n-id="pickup-a11y-button" aria-label="Pickup"></div>
+              <div id="lockscreen-area-pickup"
+                   class="lockscreen-icon-area lockscreen-icon-right dark" role="button"
+                   data-l10n-id="pickup-a11y-button" aria-label="Pick up">
+                <div class="lockscreen-icon">
                 </div>
               </div>
-
-              <!-- swpier-area-slider -->
-              <div id="swiper-area-slider"
-                   class="swiper-icon-area swiper-icon-center" role="button"
-                   data-l10n-id="unlock-a11y-button" aria-label="Slider">
-
-                <!-- Order matters. If track after handler, it will overlay on the handler -->
-                <div id="swiper-slider-track">
-                  <div class="swiper-icon swiper-slider-left">
-                  </div>
-                  <div class="swiper-icon swiper-slider-center">
-                  </div>
-                  <div class="swiper-icon swiper-slider-right">
-                  </div>
+              <div id="lockscreen-area-slide"
+                   class="lockscreen-icon-area lockscreen-icon-center">
+                <div id="lockscreen-canvas-wrapper">
+                  <canvas id="lockscreen-canvas"></canvas>
                 </div>
-
-                <div id="swiper-slider-handler">
-                  <div class="swiper-icon swiper-slider-left" data-role="handler-left">
-                    <span></span>
-                  </div>
-                  <div class="swiper-icon swiper-slider-center" data-role="handler-center">
-                  </div>
-                  <div class="swiper-icon swiper-slider-right" data-role="handler-right">
-                    <span></span>
-                  </div>
-                </div>
-
               </div>
             </div>
+
           </div>
           <section id="statusMsg" role="status">
             <p></p>
