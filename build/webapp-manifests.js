@@ -4,6 +4,7 @@ const { Cc, Ci, Cr, Cu } = require('chrome');
 Cu.import('resource://gre/modules/Services.jsm');
 
 const INSTALL_TIME = 132333986000;
+const DEBUG = false;
 // Match this to value in applications-data.js
 
 function debug(msg) {
@@ -70,8 +71,14 @@ function checkOrigin(origin) {
 }
 
 function fillCommsAppManifest(webapp, webappTargetDir) {
-  let manifestContent = utils.getFileContent(webapp.manifestFile);
-  var manifestObject = JSON.parse(manifestContent);
+  let manifestObject;
+  let gaia = utils.getGaia(config);
+  if (gaia.l10nManager) {
+    manifestObject = gaia.l10nManager.localizeManifest(webapp);
+  } else {
+    let manifestContent = utils.getFileContent(webapp.manifestFile);
+    manifestObject = JSON.parse(manifestContent);
+  }
 
   let redirects = manifestObject.redirects;
 
@@ -109,7 +116,8 @@ function fillCommsAppManifest(webapp, webappTargetDir) {
   debug(webappTargetDir.path);
 
   let file = utils.getFile(webappTargetDir.path, 'manifest.webapp');
-  utils.writeContent(file, JSON.stringify(manifestObject));
+  let args = DEBUG ? [manifestObject, undefined, 2] : [manifestObject];
+  utils.writeContent(file, JSON.stringify.apply(JSON, args));
 }
 
 function fillAppManifest(webapp) {
@@ -119,7 +127,18 @@ function fillAppManifest(webapp) {
   // Copy webapp's manifest to the profile
   let webappTargetDir = webappsTargetDir.clone();
   webappTargetDir.append(webappTargetDirName);
-  webapp.manifestFile.copyTo(webappTargetDir, 'manifest.webapp');
+  let gaia = utils.getGaia(config);
+
+  if (gaia.l10nManager) {
+    let manifest = gaia.l10nManager.localizeManifest(webapp);
+    manifestFile = webappTargetDir.clone();
+    utils.ensureFolderExists(webappTargetDir);
+    manifestFile.append('manifest.webapp');
+    let args = DEBUG ? [manifest, undefined, 2] : [manifest];
+    utils.writeContent(manifestFile, JSON.stringify.apply(JSON, args));
+  } else {
+    webapp.manifestFile.copyTo(webappTargetDir, 'manifest.webapp');
+  }
 
   if (webapp.url.indexOf('communications.gaiamobile.org') !== -1) {
     fillCommsAppManifest(webapp, webappTargetDir);
