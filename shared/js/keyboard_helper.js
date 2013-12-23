@@ -81,7 +81,7 @@ currentSettings.defaultLayouts[defaultKeyboardManifestURL] = {
 currentSettings.enabledLayouts = map2dClone(currentSettings.defaultLayouts);
 
 // Switch to allow/disallow 3rd-party keyboard apps to be enabled.
-var enable3rdPartyKeyboardApps = false;
+var enable3rdPartyKeyboardApps = true;
 var regExpGaiaKeyboardAppsManifestURL =
   /^(app|http):\/\/[\w\-]+\.gaiamobile.org(:\d+)?\/manifest\.webapp$/;
 
@@ -208,7 +208,7 @@ function kh_parse3rdPartyAppEnabled() {
   if (typeof value === 'boolean') {
     enable3rdPartyKeyboardApps = value;
   } else {
-    enable3rdPartyKeyboardApps = false;
+    enable3rdPartyKeyboardApps = true;
   }
   kh_loadedSetting(SETTINGS_KEYS.THIRD_PARTY_APP_ENABLED);
 }

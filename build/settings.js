@@ -176,7 +176,7 @@ function execute(options) {
    'keyboard.wordsuggestion': true,
    'keyboard.current': undefined,
    'keyboard.ftu.enabled': false,
-   'keyboard.3rd-party-app.enabled': false,
+   'keyboard.3rd-party-app.enabled': true,
    'language.current': 'en-US',
    'layers.draw-borders': false,
    'layers.composer2d.enabled': true,

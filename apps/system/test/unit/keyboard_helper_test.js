@@ -313,8 +313,8 @@ suite('KeyboardHelper', function() {
         request.onsuccess({ target: request });
       });
       test('correctly filters test data', function() {
-        // only the first 2 are valid (excluding 2 third-party keyboard apps).
-        var filtered = this.apps.slice(0, 2);
+        // only the first 4 are valid (including 2 third-party keyboard apps).
+        var filtered = this.apps.slice(0, 4);
         var results = this.callback.args[0][0];
         assert.deepEqual(results, filtered);
       });
