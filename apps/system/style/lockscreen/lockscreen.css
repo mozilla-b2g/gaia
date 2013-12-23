@@ -224,10 +224,6 @@
   transition: opacity 0.5s ease;
 }
 
-.lockscreen-icothis.n-area:active {
-  background: none;
-}
-
 .lockscreen-icon {
   margin-top: 2rem;
   width: 6rem;
@@ -240,109 +236,22 @@
   opacity: 0.65;
 }
 
-/* Some icons in new design still need border */
-.lockscreen-icon-border {
-  border-radius: 3rem;
-}
-
 #lockscreen-area-slide {
   text-align: center;
   width: calc(100%);
-}
-
-#lockscreen-slide-handle {
-  position: relative;
-  top: -8.1rem;
-}
-
-#lockscreen-area-slide .lockscreen-icon {
-  background-color: none;
-  -moz-box-sizing: border-box;
-  border: 0.2rem solid rgba(255, 255, 255, 0.8);
-}
-
-.lockscreen-slide-left.lockscreen-icon > span {
-
-  /* float to prevent its parent got wrong place */
-  float: left;
-  font-size: 28pt;
-  margin-left: 1.1rem;
-  margin-top: 1.7rem;
-}
-
-.lockscreen-slide-left.touched > span {
-  display: none;
-}
-
-.lockscreen-slide-right.touched> span {
-  display: none;
-}
-
-#lockscreen-area-slide .lockscreen-slide-center.lockscreen-icon {
-  display: inline-block;
-  border-left: none;
-  border-right: none;
-  border-radius: 0rem;
-
-  /* workaround for splitting circle */
-  margin-left: -0.25rem;
-  margin-right: -0.3rem;
-
-  /* to move and scale it while sliding */
-  position: relative;
-  width: 1px; /* for the default circle */
-}
-
-#lockscreen-slide-handle .lockscreen-slide-center.lockscreen-icon {
-  border: none;
-}
-
-#lockscreen-slide-handle .lockscreen-slide-center.lockscreen-icon {
-  height: 5.6rem;
-}
-
-#lockscreen-slide-handle .lockscreen-slide-right.lockscreen-icon {
-  border: none;
-  border-left: none;
-
-  /* half-circle toward right */
-  border-radius: 0 5.6rem 5.6rem 0;
-  display: inline-block;
-  height: 5.6rem;
-
-  /* to move it while sliding */
-  position: relative;
-  width: 2.8rem;
-}
-
-.lockscreen-slide-right.lockscreen-icon > span {
-
-  /* float to prevent its parent got wrong place */
-  float: right;
-  font-size: 28pt;
-  margin-right: 1.1rem;
-  margin-top: 1.7rem;
-
-  /* flip it to toward right. */
-  transform: scaleX(-1);
 }
 
 .touched .lockscreen-icon {
   transition: none;
 }
 
-.lockscreen-icon.triggered {
-  background-color: #52b6cc !important;
-  border-color: #52b6cc;
+.lockscreen-icon-right {
+  right: calc(50% - 14rem);
 }
 
-  .lockscreen-icon-right {
-    right: calc(50% - 14rem);
-  }
-
-  .lockscreen-icon-left {
-    left: calc(50% - 14rem);
-  }
+.lockscreen-icon-left {
+  left: calc(50% - 14rem);
+}
 
 @media (min-width:768px) {
   .lockscreen-icon-right {
@@ -377,7 +286,7 @@ button::-moz-focus-inner {
   border: 0;
 }
 
-:-moz-any(.touched, .triggered, #screen:not(.locked), #screen.attention, #lockscreen:not([data-panel="main"]))
+:-moz-any(.touched, #screen:not(.locked), #screen.attention, #lockscreen:not([data-panel="main"]))
 :-moz-any(#lockscreen-left-arrow, #lockscreen-right-arrow) {
   display: none;
   animation: none;
@@ -390,13 +299,13 @@ button::-moz-focus-inner {
   background-size: 3rem;
 }
 
-#lockscreen-area-unlock {
+.lockscreen-icon-left, .lockscreen-icon-right {
   z-index: 16;
   pointer-events: auto;
 }
 
 /* Compensation for the effects after enabling the pointer-event attribute. */
-#lockscreen-area-unlock:active {
+.lockscreen-icon-left:active, .lockscreen-icon-right:active {
   background: none;
 }
 
@@ -406,16 +315,6 @@ button::-moz-focus-inner {
   background-position: center;
   background-repeat: no-repeat;
   background-size: 2.4rem;
-}
-
-#lockscreen-area-camera {
-  z-index: 16;
-  pointer-events: auto;
-}
-
-/* Compensation for the effects after enabling the pointer-event attribute. */
-#lockscreen-area-camera:active {
-  background: none;
 }
 
 #lockscreen-alt-camera {
@@ -675,73 +574,8 @@ button::-moz-focus-inner {
   transition: none;
 }
 
-.touched #lockscreen-area-handle {
-  transition: none;
-}
-
 .touched .lockscreen-icon-area {
   transition: none;
-}
-
-.triggered #lockscreen-icon-container {
-  transform: translateY(-8rem);
-  opacity: 1;
-  pointer-events: auto;
-}
-
-.triggered #lockscreen-area-handle {
-  transform: translateY(-1rem);
-  opacity: 0;
-}
-
-.triggered .lockscreen-icon-area {
-  opacity: 1;
-}
-
-@keyframes lockscreen-elastic {
-  0%, 40%, 75%, 97% {
-    transform: translateY(0);
-    animation-timing-function: ease-out;
-  }
-  20% {
-    transform: translateY(-5rem);
-    animation-timing-function: ease-in;
-  }
-  55% {
-    transform: translateY(-2.3rem);
-    animation-timing-function: ease-in;
-  }
-  85% {
-    transform: translateY(-0.5rem);
-    animation-timing-function: ease-in;
-  }
-}
-
-@keyframes lockscreen-elastic-icon {
-  0%, 40%, 75%, 97% {
-    opacity: 0.1;
-    animation-timing-function: ease-out;
-  }
-  20% {
-    opacity: 0.5;
-    animation-timing-function: ease-in;
-  }
-  55% {
-    opacity: 0.4;
-    animation-timing-function: ease-in;
-  }
-  85% {
-    opacity: 0.3;
-    animation-timing-function: ease-in;
-  }
-}
-
-.elastic .lockscreen-icon-area {
-  animation: lockscreen-elastic-icon 2.5s 1;
-}
-
-.elastic #lockscreen-icon-container {
-  animation: lockscreen-elastic 2.5s 1;
 }
 
 #lockscreen-canvas-wrapper {

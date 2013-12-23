@@ -872,6 +872,9 @@
     color: #fff;
   }
 
+  /* We may need to sync system lockscreen media query part for showing call
+     screen on larger screen size*/
+
   .merge-button {
     display: none;
   }
