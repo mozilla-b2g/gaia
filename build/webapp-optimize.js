@@ -54,8 +54,6 @@ const L10N_OPTIMIZATION_BLACKLIST = [
   'pdfjs'
 ];
 
-const RE_PROPS = /^[\/\\]?(.+?)[\/\\].+\.([\w-]+)\.properties$/;
-const RE_INI = /locales[\/\\].+\.ini$/;
 
 /**
  * Optimization helpers -- these environment variables are used:
@@ -70,12 +68,11 @@ const RE_INI = /locales[\/\\].+\.ini$/;
  * @param {Object} webapp details of current web app.
  * @param {NSFile} htmlFile filename/path of the document.
  * @param {String} relativePath file path, using the htmlFile as base URL.
- * @returns {String} file content.
+ * @return {String} file content.
  */
 function optimize_getFileContent(webapp, htmlFile, relativePath) {
-  let paths = relativePath.split(/[\/\\]/);
+  let paths = relativePath.split('/');
   let file;
-  let gaia = utils.getGaia(config);
 
   // get starting directory: webapp root, HTML file or /shared/
   if (/^\//.test(relativePath)) {
@@ -89,10 +86,6 @@ function optimize_getFileContent(webapp, htmlFile, relativePath) {
   }
 
   paths.forEach(function appendPath(name) {
-    if (name === '..') {
-      file = file.parent;
-      return;
-    }
     file.append(name);
     if (utils.isSubjectToBranding(file.path)) {
       file.append((config.OFFICIAL == 1) ? 'official' : 'unofficial');
@@ -100,23 +93,7 @@ function optimize_getFileContent(webapp, htmlFile, relativePath) {
   });
 
   try {
-    let content;
-    // we inject extended locales to localization manifest (locales.ini) files
-    if (RE_INI.test(file.path)) {
-      content = utils.getFileContent(file);
-      if (gaia.l10nManager) {
-        var ini = gaia.l10nManager.modifyLocaleIni(content, l10nLocales);
-        content = gaia.l10nManager.serializeIni(ini);
-      }
-    // we substitute the localization properties file from gaia with the ones
-    // from LOCALE_BASEDIR
-    } else if (RE_PROPS.test(relativePath) && gaia.l10nManager) {
-      let propFile = gaia.l10nManager.getPropertiesFile(webapp, file.path);
-      if (propFile.exists()) {
-        file = propFile;
-      }
-    }
-    return content ? content : utils.getFileContent(file);
+    return utils.getFileContent(file);
   } catch (e) {
     dump(file.path + ' could not be found.\n');
     return '';
@@ -347,7 +324,7 @@ function optimize_inlineResources(doc, webapp, filePath, htmlFile) {
  * @param {HTMLDocument} doc DOM document of the file.
  * @param {Object} webapp details of current web app.
  */
-function optimize_embedHtmlImports(doc, webapp, htmlFile) {
+function optimize_embedHtmlImports(doc, app, htmlFile) {
   let imports = doc.querySelectorAll('link[rel="import"]');
   if (!imports.length) {
     return;
@@ -357,7 +334,7 @@ function optimize_embedHtmlImports(doc, webapp, htmlFile) {
   var elementTemplates = {};
 
   Array.prototype.forEach.call(imports, function eachImport(eachImport) {
-    let content = optimize_getFileContent(webapp, htmlFile, eachImport.href);
+    let content = optimize_getFileContent(app, htmlFile, eachImport.href);
     content = '<div>' + content + '</div>';
 
     let DOMParser = CC('@mozilla.org/xmlextras/domparser;1', 'nsIDOMParser');
@@ -624,7 +601,7 @@ function execute(options) {
     // LOCALES_FILE is a relative path by default:
     // shared/resources/languages.json
     // -- but it can be an absolute path when doing a multilocale build.
-    let file = utils.resolve(config.LOCALES_FILE,
+    let file = utils.getAbsoluteOrRelativePath(config.LOCALES_FILE,
       config.GAIA_DIR);
     let locales = JSON.parse(utils.getFileContent(file));
 

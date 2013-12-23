@@ -43,23 +43,23 @@ function setWallpaper(callback) {
     devpixels = '@' + config.GAIA_DEV_PIXELS_PER_PX + 'x';
   }
 
-  let wallpaper = utils.resolve(
+  let wallpaper = utils.getAbsoluteOrRelativePath(
     config.GAIA_DISTRIBUTION_DIR + '/wallpapers/default' +
     devpixels + '.jpg', config.GAIA_DIR);
 
   if (!wallpaper.exists()) {
-    wallpaper = utils.resolve(
+    wallpaper = utils.getAbsoluteOrRelativePath(
       config.GAIA_DISTRIBUTION_DIR + '/wallpapers/default.jpg',
       config.GAIA_DIR);
   }
 
   if (!wallpaper.exists()) {
-    wallpaper = utils.resolve(
+    wallpaper = utils.getAbsoluteOrRelativePath(
       'build/wallpaper' + devpixels + '.jpg', config.GAIA_DIR);
   }
 
   if (!wallpaper.exists()) {
-    wallpaper = utils.resolve('build/wallpaper.jpg',
+    wallpaper = utils.getAbsoluteOrRelativePath('build/wallpaper.jpg',
       config.GAIA_DIR);
   }
 
@@ -73,7 +73,7 @@ function setRingtone(callback) {
   // Grab ringer_classic_courier.opus and convert it into a base64 string
   let ringtone_name = 'shared/resources/media/ringtones/' +
     'ringer_classic_courier.opus';
-  let ringtone = utils.resolve(ringtone_name,
+  let ringtone = utils.getAbsoluteOrRelativePath(ringtone_name,
     config.GAIA_DIR);
   readFileAsDataURL(ringtone, 'audio/ogg', function(dataURL) {
     settings['dialer.ringtone'] = dataURL;
@@ -85,7 +85,7 @@ function setNotification(callback) {
   // Grab notifier_bell.opus and convert it into a base64 string
   let notification_name = 'shared/resources/media/notifications/' +
     'notifier_bell.opus';
-  let notification = utils.resolve(notification_name,
+  let notification = utils.getAbsoluteOrRelativePath(notification_name,
     config.GAIA_DIR);
   readFileAsDataURL(notification, 'audio/ogg', function(dataURL) {
     settings['notification.ringtone'] = dataURL;
@@ -95,7 +95,7 @@ function setNotification(callback) {
 
 function overrideSettings() {
   // See if any override file exists and eventually override settings
-  let override = utils.resolve(config.SETTINGS_PATH,
+  let override = utils.getAbsoluteOrRelativePath(config.SETTINGS_PATH,
     config.GAIA_DIR);
   if (override.exists()) {
     let content = utils.getJSON(override);

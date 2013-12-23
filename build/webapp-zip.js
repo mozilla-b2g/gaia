@@ -40,10 +40,9 @@ function addEntryFileWithTime(zip, pathInZip, file, time) {
  * Add a string to a zip file with the specified time
  */
 function addEntryStringWithTime(zip, pathInZip, data, time) {
-  let converter = Cc['@mozilla.org/intl/scriptableunicodeconverter']
-                    .createInstance(Ci.nsIScriptableUnicodeConverter);
-  converter.charset = 'UTF-8';
-  let sis = converter.convertToInputStream(data);
+  let sis = Cc['@mozilla.org/io/string-input-stream;1'].
+              createInstance(Ci.nsIStringInputStream);
+  sis.data = data;
 
   zip.addEntryStream(
     pathInZip, time, Ci.nsIZipWriter.COMPRESSION_DEFAULT, sis, false);
@@ -62,8 +61,8 @@ function addToZip(zip, pathInZip, file) {
   if (file.isHidden())
     return;
 
-  // If config.GAIA_DEV_PIXELS_PER_PX is not 1 and the file is a bitmap let's
-  // check if there is a bigger version in the directory. If so let's ignore the
+  // If config.GAIA_DEV_PIXELS_PER_PX is not 1 and the file is a bitmap let's check
+  // if there is a bigger version in the directory. If so let's ignore the
   // file in order to use the bigger version later.
   let isBitmap = /\.(png|gif|jpg)$/.test(file.path);
   if (isBitmap) {
@@ -244,7 +243,7 @@ function getSingleVariantResources(conf) {
     }
 
     operator['mcc-mnc'].forEach(function(mcc) {
-      if (Object.keys(object).length !== 0) {
+      if (Object.keys(object).length != 0) {
         output[mcc] = object;
       }
     });
@@ -255,15 +254,7 @@ function getSingleVariantResources(conf) {
 
 function execute(options) {
   config = options;
-  var gaiadir = config.GAIA_DIR;
-  var basedir = config.LOCALE_BASEDIR;
   var gaia = utils.getGaia(config);
-  var localesFile = utils.resolve(config.LOCALES_FILE,
-    config.GAIA_DIR);
-  if (!localesFile.exists()) {
-    throw new Error('LOCALES_FILE doesn\'t exists: ' + localesFile.path);
-  }
-
   let webappsTargetDir = Cc['@mozilla.org/file/local;1']
                            .createInstance(Ci.nsILocalFile);
   webappsTargetDir.initWithPath(config.PROFILE_DIR);
@@ -277,10 +268,8 @@ function execute(options) {
 
   gaia.webapps.forEach(function(webapp) {
     // If config.BUILD_APP_NAME isn't `*`, we only accept one webapp
-    if (config.BUILD_APP_NAME != '*' &&
-      webapp.sourceDirectoryName != config.BUILD_APP_NAME) {
+    if (config.BUILD_APP_NAME != '*' && webapp.sourceDirectoryName != config.BUILD_APP_NAME)
       return;
-    }
 
     // Zip generation is not needed for external apps, aaplication data is copied to profile
     // webapps folder in webapp-manifests.js
@@ -306,19 +295,13 @@ function execute(options) {
     let files = utils.ls(webapp.buildDirectoryFile);
     files.forEach(function(file) {
         // Ignore l10n files if they have been inlined or concatenated
-        if ((config.GAIA_INLINE_LOCALES === '1' ||
-            config.GAIA_CONCAT_LOCALES === '1') &&
-            (file.leafName === 'locales' || file.leafName === 'locales.ini')) {
+        if ((config.GAIA_INLINE_LOCALES === '1' || config.GAIA_CONCAT_LOCALES === '1') &&
+            (file.leafName === 'locales' || file.leafName === 'locales.ini'))
           return;
-        }
 
-
-        // Ignore concatenated l10n files if config.GAIA_CONCAT_LOCALES
-        // is not set
-        if (file.leafName === 'locales-obj' &&
-          config.GAIA_CONCAT_LOCALES !== '1') {
+        // Ignore concatenated l10n files if config.GAIA_CONCAT_LOCALES is not set
+        if (file.leafName === 'locales-obj' && config.GAIA_CONCAT_LOCALES !== '1')
           return;
-        }
 
         // Ignore files from /shared directory (these files were created by
         // Makefile code). Also ignore files in the /test directory.
@@ -338,22 +321,19 @@ function execute(options) {
     }
 
     if (webapp.sourceDirectoryName === 'homescreen' && gaia.distributionDir) {
-      let customization = utils.getFile(gaia.distributionDir,
-        'temp', 'apps', 'conf', 'singlevariantconf.json');
+      let customization = utils.getFile(gaia.distributionDir, 'temp', 'apps', 'conf', 'singlevariantconf.json');
       if (customization.exists()) {
-        addToZip(zip, 'js/singlevariantconf.json', customization);
+        addToZip(zip,'js/singlevariantconf.json', customization);
       }
     }
 
-    if (webapp.sourceDirectoryName === 'communications' &&
-        gaia.distributionDir &&
-        utils.getFile(gaia.distributionDir).exists()) {
+    if (webapp.sourceDirectoryName === 'communications' && gaia.distributionDir &&
+      utils.getFile(gaia.distributionDir).exists()) {
       let conf = utils.getFile(gaia.distributionDir, 'variant.json');
       if (conf.exists()) {
         let resources = getSingleVariantResources(conf);
 
-        addEntryStringWithTime(zip, 'resources/customization.json',
-          JSON.stringify(resources.conf), DEFAULT_TIME);
+        addEntryStringWithTime(zip, 'resources/customization.json', JSON.stringify(resources.conf), DEFAULT_TIME);
 
         resources.files.forEach(function(file) {
           if (file instanceof Ci.nsILocalFile) {
@@ -371,8 +351,7 @@ function execute(options) {
           }
         });
       } else {
-        dump(conf.path + ' not found. Single variant resources will not' +
-            ' be added.\n');
+        dump(conf.path + ' not found. Single variant resources will not be added.\n');
       }
     }
 
@@ -437,7 +416,9 @@ function execute(options) {
     let files = utils.ls(webapp.buildDirectoryFile, true);
     files.filter(function(file) {
         // Process only files that may require a shared file
-        let extension = utils.getExtension(file.leafName);
+        let extension = file.leafName
+                            .substr(file.leafName.lastIndexOf('.') + 1)
+                            .toLowerCase();
         return file.isFile() && EXTENSIONS_WHITELIST.indexOf(extension) != -1;
       }).
       forEach(function(file) {
@@ -450,16 +431,7 @@ function execute(options) {
         }
       });
 
-    if (gaia.l10nManager) {
-      // Only localize app manifest file if we inlined properties files.
-      var inlineOrConcat = (config.GAIA_INLINE_LOCALES === '1' ||
-        config.GAIA_CONCAT_LOCALES === '1');
-      gaia.l10nManager.localize(files, zip, webapp, inlineOrConcat)
-    }
-
-
-    // Look for gaia_shared.json in case app uses resources not specified
-    // in HTML
+    // Look for gaia_shared.json in case app uses resources not specified in HTML
     let sharedDataFile = webapp.buildDirectoryFile.clone();
     sharedDataFile.append('gaia_shared.json');
     if (sharedDataFile.exists()) {
@@ -500,13 +472,7 @@ function execute(options) {
         throw new Error(name + ' locale doesn`t have `.ini` file.');
 
       // Add the .ini file
-      var pathInZip = 'shared/locales/' + name + '.ini';
-      if (!gaia.l10nManager) {
-        addToZip(zip, pathInZip, ini);
-      } else {
-        gaia.l10nManager.localizeIni(zip, ini, webapp, pathInZip);
-      }
-
+      addToZip(zip, '/shared/locales/' + name + '.ini', ini);
       // And the locale folder itself
       addToZip(zip, '/shared/locales/' + name, localeFolder);
     });
@@ -525,10 +491,6 @@ function execute(options) {
         throw new Error('Using inexistent shared resource: ' + path +
                         ' from: ' + webapp.domain + '\n');
         return;
-      }
-
-      if (path === 'languages.json') {
-        return addToZip(zip, '/shared/resources/languages.json', localesFile);
       }
 
       // Add not only file itself but all its hidpi-suffixed versions.
@@ -567,5 +529,3 @@ function execute(options) {
 }
 
 exports.execute = execute;
-exports.addEntryFileWithTime = addEntryFileWithTime;
-exports.addEntryStringWithTime = addEntryStringWithTime;
