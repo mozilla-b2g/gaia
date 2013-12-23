@@ -355,6 +355,7 @@ define BUILD_CONFIG
 	"GAIA_INSTALL_PARENT" : "$(GAIA_INSTALL_PARENT)", \
 	"LOCALES_FILE" : "$(subst \,\\,$(LOCALES_FILE))", \
 	"GAIA_KEYBOARD_LAYOUTS" : "$(GAIA_KEYBOARD_LAYOUTS)", \
+	"LOCALE_BASEDIR" : "$(subst \,\\,$(LOCALE_BASEDIR))", \
 	"BUILD_APP_NAME" : "$(BUILD_APP_NAME)", \
 	"PRODUCTION" : "$(PRODUCTION)", \
 	"GAIA_OPTIMIZE" : "$(GAIA_OPTIMIZE)", \
@@ -378,51 +379,13 @@ export BUILD_CONFIG
 
 # Generate profile/
 
-$(PROFILE_FOLDER): multilocale preferences local-apps app-makefiles test-agent-config offline contacts extensions install-xulrunner-sdk .git/hooks/pre-commit $(PROFILE_FOLDER)/settings.json create-default-data $(PROFILE_FOLDER)/installed-extensions.json
+$(PROFILE_FOLDER): preferences local-apps app-makefiles test-agent-config offline contacts extensions install-xulrunner-sdk .git/hooks/pre-commit $(PROFILE_FOLDER)/settings.json create-default-data $(PROFILE_FOLDER)/installed-extensions.json
 ifeq ($(BUILD_APP_NAME),*)
 	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)$(PROFILE_FOLDER)"
 endif
 
 
 LANG=POSIX # Avoiding sort order differences between OSes
-
-.PHONY: multilocale
-multilocale:
-ifneq ($(LOCALE_BASEDIR),)
-	$(MAKE) multilocale-clean
-	@echo "Enable locales specified in $(LOCALES_FILE)..."
-	@targets=""; \
-	for appdir in $(GAIA_LOCALE_SRCDIRS); do \
-		targets="$$targets --target $$appdir"; \
-	done; \
-	python $(CURDIR)/build/multilocale.py \
-		--config '$(LOCALES_FILE)' \
-		--source '$(LOCALE_BASEDIR)' \
-		--gaia '$(CURDIR)' \
-		$$targets;
-	@echo "Done"
-ifneq ($(LOCALES_FILE),shared/resources/languages.json)
-	cp '$(LOCALES_FILE)' shared/resources/languages.json
-endif
-endif
-
-.PHONY: multilocale-clean
-multilocale-clean:
-	@echo "Cleaning l10n bits..."
-ifeq ($(wildcard .hg),.hg)
-	@hg revert -a --no-backup
-	@hg status -n $(GAIA_LOCALE_SRCDIRS) | grep '\.properties' | xargs rm -rf
-else
-	@git ls-files --other --exclude-standard $(GAIA_LOCALE_SRCDIRS) | grep '\.properties' | xargs rm -f
-	@git ls-files --modified $(GAIA_LOCALE_SRCDIRS) | grep '\.properties' | xargs git checkout --
-ifneq ($(DEBUG),1)
-	@# Leave these files modified in DEBUG profiles
-	@git ls-files --modified $(GAIA_LOCALE_SRCDIRS) | grep 'manifest.webapp' | xargs git checkout --
-	@git ls-files --modified $(GAIA_LOCALE_SRCDIRS) | grep '\.ini' | xargs git checkout --
-	@git checkout -- shared/resources/languages.json
-	@echo "Done"
-endif
-endif
 
 .PHONY: app-makefiles
 # Applications may want to perform their own build steps.  (For example, the
