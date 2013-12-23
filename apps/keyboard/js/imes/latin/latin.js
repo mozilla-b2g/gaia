@@ -444,7 +444,7 @@
   function replaceBeforeCursor(oldWord, newWord) {
     var oldWordLen = oldWord.length;
     if (keyboard.replaceSurroundingText) {
-      keyboard.replaceSurroundingText(newWord, oldWordLen, 0);
+      keyboard.replaceSurroundingText(newWord, -oldWordLen, oldWordLen);
     }
     else {
       // Find the first character in currentWord and newWord that differs
