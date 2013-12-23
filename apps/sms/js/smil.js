@@ -246,9 +246,9 @@ window.SMIL = {
       }
       var type = Utils.typeFromMimeType(blob.type);
 
-      // handle text blobs by reading them and converting to text on the
-      // last slide
-      if (type === 'text') {
+      // handle text blobs (plain text blob only) by reading them and
+      // converting to text on the last slide
+      if (type === 'text' && blob.type === 'text/plain') {
         workingText.push('');
         readTextBlob(blob, function SMIL_parseAttachmentRead(event, text) {
           workingText[textIndex] = text;
@@ -283,7 +283,7 @@ window.SMIL = {
         return;
       }
 
-      var mediaElements = par.querySelectorAll('img, video, audio');
+      var mediaElements = par.querySelectorAll('img, video, audio, ref');
       var textElement = par.querySelector('text');
       var attachment, src;
 

@@ -21,6 +21,7 @@ suite('SMIL', function() {
   var testAudioBlob;
   var testVideoBlob;
   var testWbmpBlob;
+  var testContactBlob;
   suiteSetup(function smil_suiteSetup(done) {
     mocksHelperForSMIL.suiteSetup();
 
@@ -50,6 +51,9 @@ suite('SMIL', function() {
     });
     getAsset('/test/unit/media/grid.wbmp', function(blob) {
       testWbmpBlob = blob;
+    });
+    getAsset('/test/unit/media/contacts.vcf', function(blob) {
+      testContactBlob = blob;
     });
   });
   suiteTeardown(function() {
@@ -334,6 +338,75 @@ suite('SMIL', function() {
         assert.equal(output[0].blob.type, 'image/png');
         assert.equal(output[0].name, 'grid.png');
         done();
+      });
+    });
+
+    suite('Type of attachment is vcard format', function() {
+      var attachments;
+      var testText = {
+        location: 'text1',
+        content: new Blob(['test Text'], {type: 'text/plain'})
+      };
+
+      setup(function() {
+        attachments = [{
+          location: 'contacts.vcf',
+          content: testContactBlob
+        }];
+      });
+
+      test('only contact in attachment', function(done) {
+        var message = {
+          smil: '<smil><body><par><ref src="contacts.vcf"/>' +
+                '</par></body></smil>',
+          attachments: attachments
+        };
+        SMIL.parse(message, function(output) {
+          assert.equal(output[0].blob, testContactBlob);
+          assert.equal(output[0].name, 'contacts.vcf');
+          assert.isUndefined(output[0].text);
+          done();
+        });
+      });
+
+      test('contact with text', function(done) {
+        attachments.push(testText);
+        var message = {
+          smil: '<smil><body><par><text src="' + testText.location + '"/>' +
+                '<ref src="contacts.vcf"/></par></body></smil>',
+          attachments: attachments
+        };
+        SMIL.parse(message, function(output) {
+          assert.equal(output[0].blob, testContactBlob);
+          assert.equal(output[0].name, 'contacts.vcf');
+          assert.equal(output[0].text, 'test Text');
+          done();
+        });
+      });
+
+      test('contact attachment with no smil', function(done) {
+        var message = {
+          attachments: attachments
+        };
+        SMIL.parse(message, function(output) {
+          assert.equal(output[0].blob, testContactBlob);
+          assert.equal(output[0].name, 'contacts.vcf');
+          assert.isUndefined(output[0].text);
+          done();
+        });
+      });
+
+      test('contact attachment/text with no smil', function(done) {
+        attachments.push(testText);
+        var message = {
+          attachments: attachments
+        };
+        SMIL.parse(message, function(output) {
+          assert.equal(output[0].blob, testContactBlob);
+          assert.equal(output[0].name, 'contacts.vcf');
+          assert.equal(output[0].text, 'test Text');
+          done();
+        });
       });
     });
   });
