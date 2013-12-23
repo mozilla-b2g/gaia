@@ -10,7 +10,7 @@ class ReadEmail(Base):
 
     _body_locator = (By.CSS_SELECTOR, '.card.center .msg-body-content')
     _subject_locator = (By.CSS_SELECTOR, '.card.center .msg-envelope-subject')
-    _senders_email_locator = (By.CSS_SELECTOR, '.msg-envelope-from-line div > span')
+    _senders_email_locator = (By.CSS_SELECTOR, '.msg-reader-header-label')
 
     @property
     def body(self):
