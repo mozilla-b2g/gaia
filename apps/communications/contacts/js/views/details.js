@@ -85,6 +85,7 @@ contacts.Details = (function() {
         window.parent.postMessage(message, COMMS_APP_ORIGIN);
       }
     }
+    Contacts.showContacts();
   };
 
   var showEditContact = function showEditContact() {
