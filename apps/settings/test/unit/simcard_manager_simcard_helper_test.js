@@ -89,4 +89,15 @@ suite('SimUIModel', function() {
       });
     });
   });
+
+  suite('SimCard.setName > ', function() {
+    var fakeName = 'SimCardTest1234';
+    setup(function() {
+      fakeSimcard.setName(fakeName);
+    });
+    test('can set name successfully', function() {
+      var cardInfo = fakeSimcard.getInfo();
+      assert.equal(cardInfo.name, fakeName);
+    });
+  });
 });

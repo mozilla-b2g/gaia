@@ -10,6 +10,7 @@
   // track used constants here
   const EMPTY_OPTION_TEXT = '--';
   const EMPTY_OPTION_VALUE = '-1';
+  const ICC_NAMES_SETTING_KEY = 'icc.names';
 
   var _ = window.navigator.mozL10n.get;
 
@@ -30,6 +31,10 @@
       this.setAllElements();
       this.simItemTemplate = new Template(this.simCardTmpl);
 
+      // handle all click events in the container
+      this.simCardContainer.addEventListener('click',
+        this.handleClickEvent.bind(this));
+
       // `handleEvent` is used to handle these sim related changes
       this.simManagerOutgoingCallSelect.addEventListener('change', this);
       this.simManagerOutgoingMessagesSelect.addEventListener('change', this);
@@ -37,6 +42,7 @@
 
       // bind change event on them
       this.addChangeEventOnIccs();
+      this.addChangeEventOnSimNames();
 
       // because in fugu, airplaneMode will not change cardState
       // but we still have to make UI consistent. In this way,
@@ -66,6 +72,16 @@
         var simcard = new SimUIModel(cardIndex);
         this.simcards.push(simcard);
         this.updateCardState(cardIndex, iccId);
+      }
+    },
+    handleClickEvent: function(evt) {
+      var target = evt.target;
+      switch (target.type) {
+        // click on rename button
+        case 'button':
+          var cardIndex = parseInt(target.dataset.index, 10);
+          this.renameSimCard(cardIndex);
+          break;
       }
     },
     handleEvent: function(evt) {
@@ -110,6 +126,44 @@
     },
     getSimCard: function(cardIndex) {
       return this.simcards[cardIndex];
+    },
+    getValuesFromMozSettings: function(key, callback) {
+      var mozSettings = window.navigator.mozSettings;
+      var req = mozSettings.createLock().get(key);
+      req.onsuccess = function() {
+        callback(req.result[key]);
+      };
+    },
+    renameSimCard: function(cardIndex) {
+      var mozSettings = window.navigator.mozSettings;
+      var conns = window.navigator.mozMobileConnections;
+      var self = this;
+
+      var simcard = this.simcards[cardIndex];
+      var iccId = conns[cardIndex].iccId;
+      var oldName;
+      var newName;
+
+      this.getValuesFromMozSettings(ICC_NAMES_SETTING_KEY, function(names) {
+        oldName = names[iccId] || simcard.getInfo().name;
+        newName = window.prompt('Rename SIM' + (cardIndex + 1), oldName);
+
+        // cancel by users
+        if (newName === null) {
+          return;
+        } else if (newName !== '' && oldName !== newName) {
+          self.didRenameSimCard(iccId, newName, names);
+        }
+      });
+    },
+    didRenameSimCard: function(iccId, newName, names) {
+      names[iccId] = newName;
+
+      var setObj = {};
+      setObj[ICC_NAMES_SETTING_KEY] = names;
+
+      var mozSettings = window.navigator.mozSettings;
+      mozSettings.createLock().set(setObj);
     },
     updateSimCardsUI: function() {
       this.simcards.forEach(function(simcard, cardIndex) {
@@ -170,10 +224,15 @@
       this.initSimCardsUI();
       this.initSelectOptionsUI();
 
-      // we only inject basic DOM from templates before
-      // , so we have to map UI to its info
-      this.updateSimCardsUI();
-      this.updateSimSecurityUI();
+      // we have to update cardNames first before update UI
+      this.getValuesFromMozSettings(ICC_NAMES_SETTING_KEY, function(names) {
+        this.updateCardNames(names);
+
+        // we only inject basic DOM from templates before
+        // , so we have to map UI to its info
+        this.updateSimCardsUI();
+        this.updateSimSecurityUI();
+      }.bind(this));
     },
     initSimCardsUI: function() {
       var simItemHTMLs = [];
@@ -324,6 +383,15 @@
         };
       }
     },
+    addChangeEventOnSimNames: function() {
+      var mozSettings = window.navigator.mozSettings;
+      var self = this;
+      mozSettings.addObserver(ICC_NAMES_SETTING_KEY, function(evt) {
+        var names = evt.settingValue;
+        self.updateCardNames(names);
+        self.updateSimCardsUI();
+      });
+    },
     addAirplaneModeChangeEvent: function() {
       var self = this;
       var mozSettings = window.navigator.mozSettings;
@@ -333,6 +401,21 @@
         self.updateSimCardsUI();
         self.updateSimSecurityUI();
       });
+    },
+    updateCardNames: function(names) {
+      var conns = window.navigator.mozMobileConnections;
+      for (var cardIndex = 0; cardIndex < conns.length; cardIndex++) {
+        var iccId = conns[cardIndex].iccId;
+        var name = names[iccId];
+        // we may have no name when users set cardName at the first time
+        if (name) {
+          this.updateCardName(cardIndex, name);
+        }
+      }
+    },
+    updateCardName: function(cardIndex, newName) {
+      var simcard = this.simcards[cardIndex];
+      simcard.setName(newName);
     },
     updateCardsState: function() {
       var conns = window.navigator.mozMobileConnections;

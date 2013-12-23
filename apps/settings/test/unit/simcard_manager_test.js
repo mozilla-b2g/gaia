@@ -125,6 +125,7 @@ suite('SimCardManager > ', function() {
       this.sinon.stub(SimCardManager, 'initSimCardsInfo');
       this.sinon.stub(SimCardManager, 'initSimCardManagerUI');
       this.sinon.stub(SimCardManager, 'addChangeEventOnIccs');
+      this.sinon.stub(SimCardManager, 'addChangeEventOnSimNames');
       this.sinon.stub(SimCardManager, 'addAirplaneModeChangeEvent');
       SimCardManager.init();
       setTimeout(done);
@@ -432,11 +433,17 @@ suite('SimCardManager > ', function() {
   });
 
   suite('initSimCardManagerUI > ', function() {
-    setup(function() {
+    setup(function(done) {
       this.sinon.stub(SimCardManager, 'initSimCardsUI');
       this.sinon.stub(SimCardManager, 'initSelectOptionsUI');
+      this.sinon.stub(SimCardManager, 'updateCardNames');
       this.sinon.stub(SimCardManager, 'updateSimCardsUI');
       this.sinon.stub(SimCardManager, 'updateSimSecurityUI');
+      this.sinon.stub(SimCardManager, 'getValuesFromMozSettings',
+        function(key, callback) {
+          callback();
+          done();
+      });
       SimCardManager.initSimCardManagerUI();
     });
     test('all related methods are exectued', function() {
@@ -511,6 +518,25 @@ suite('SimCardManager > ', function() {
         assert.equal('false',
           SimCardManager.simManagerSecurityEntry.getAttribute('aria-disabled'));
       });
+    });
+  });
+
+  suite('getValuesFromMozSettings > ', function() {
+    var fakeKey = 'fakeKey';
+    var isCalled = false;
+    var fakeCallback = function() {
+      isCalled = true;
+    };
+
+    setup(function(done) {
+      SimCardManager.getValuesFromMozSettings(fakeKey, function(result) {
+        fakeCallback();
+        done();
+      });
+    });
+
+    test('we can get value successfully', function() {
+      assert.isTrue(isCalled);
     });
   });
 
