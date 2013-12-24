@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
+    <meta charset="utf-8">
+    <title>Contacts testing tools</title>
+    <link rel="stylesheet" type="text/css" href="../../style/API.css">
+    <!-- We don't need localization for this app. -->
+    <script type="text/javascript" src="../../js/API/contacts.js"></script>
+    <script type="text/javascript" src="../../js/API/contacts_saver.js"></script>
+  </head>
+  <body>
+    <div>
+      <button id="insert-contacts">Insert fake contacts</button>
+      <button id="insert-social-contacts">Insert Social Contacts</button>
+      <button id="clear-contacts">Clear all contacts</button>
+      <button id="get-contacts">Get all contacts</button>
+    </div>
+
+    <div>
+      Contacts inserted: <span id="insertion-count">None, yet.</span>
+    </div>
+    <hr/>
+    <!-- Activities tests -->
+    <div>
+      <button id="activities-pick">Activities: Pick a contact</button>
+      <button id="activities-new">Activities: New contact</button>
+      <button id="activities-update">Activities: Update contact with phone</button>
+      <button id="activities-update-email">Activities: Update contact with email</button>
+      <button id="activities-update-email-phone">Activities: Update contact with phone and email</button>
+      <button id="activities-new-data">Activities: New contact with data</button>
+      <div id="activities-result"></div>
+    </div>
+  </body>
+</html>
