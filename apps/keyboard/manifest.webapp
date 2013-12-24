@@ -36,5 +36,9 @@
       "description": "預設鍵盤"
     }
   },
+  "icons": {
+    "30": "/style/icons/Keyboard_30.png",
+    "45": "/style/icons/Keyboard_45.png"
+  },
   "default_locale": "en-US"
 }
