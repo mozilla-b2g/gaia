@@ -142,10 +142,14 @@ var PhoneLock = {
     if (Settings.currentPanel != '#phoneLock-passcode') {
       Settings.currentPanel = '#phoneLock-passcode'; // show dialog box
 
-      // Open the keyboard after the UI transition. We can't listen for the
-      // ontransitionend event because some of the passcode mode changes, such
-      // as edit->new, do not trigger transition events.
-      setTimeout(function(self) { self.passcodeInput.focus(); }, 0, this);
+      // Open the keyboard after the panel transition finished.
+      var self = this;
+       window.addEventListener('panelready', function inputFocus(e) {
+         window.removeEventListener('panelready', inputFocus);
+         if (e.detail.current === '#phoneLock-passcode') {
+           self.passcodeInput.focus();
+         }
+       });
     }
     this.updatePassCodeUI();
   },
