@@ -443,8 +443,8 @@
         return; // Do nothing.
       }
 
+      this.intentionRouter.unlockingStart();
       this.states.touch.initX = tx;
-
       this.states.sliding = true;
       this._lightIcons();
     };
@@ -478,6 +478,7 @@
         setTimeout(bounceEnd, appLaunchDelay);
       }
 
+      this.intentionRouter.unlockingStop();
       this._darkIcons();
     };
 
