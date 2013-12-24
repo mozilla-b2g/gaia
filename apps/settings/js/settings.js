@@ -51,7 +51,7 @@ var Settings = {
     // the forward class helps us 'peek' in the right direction
     oldPanel.className = newPanel.className ? 'peek' : 'peek previous forward';
     newPanel.className = newPanel.className ?
-                           'current peek' : 'peek current forward';
+                           'current peek transition' : 'peek transition current forward';
 
     /**
      * Most browsers now scroll content into view taking CSS transforms into
@@ -81,8 +81,9 @@ var Settings = {
         if (oldPanel.className === 'current')
           return;
 
-        oldPanel.addEventListener('transitionend', function onTransitionEnd(e) {
-          oldPanel.removeEventListener('transitionend', onTransitionEnd);
+        newPanel.addEventListener('transitionend', function onTransitionEnd(e) {
+          newPanel.removeEventListener('transitionend', onTransitionEnd);
+          newPanel.classList.remove('transition');
           var detail = {
             previous: oldPanelHash,
             current: newPanelHash
