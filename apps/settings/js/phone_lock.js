@@ -128,15 +128,27 @@ var PhoneLock = {
   },
 
   changeMode: function pl_changeMode(mode) {
+    var self = this;
+
+    function onPasscodePanelLoad(e){
+      window.removeEventListener('panelready', onPasscodePanelLoad);
+      if (e.detail.current === '#phoneLock-passcode') {
+        self.passcodeInput.focus();
+      }
+    }
+
     this.hideErrorMessage();
     this.MODE = mode;
     this.passcodePanel.dataset.mode = mode;
     if (Settings.currentPanel != '#phoneLock-passcode') {
-      Settings.currentPanel = '#phoneLock-passcode'; // show dialog box
-
-      // Open the keyboard after the UI transition. We can't listen for the
-      // ontransitionend event because some of the passcode mode changes, such
-      // as edit->new, do not trigger transition events.
+      // Open the keyboard after the UI transition. We need to wait until the
+      // passcode panel is ready, otherwise leads to a white screen.
+      // See bug 949905.
+      window.addEventListener('panelready', onPasscodePanelLoad);
+      Settings.currentPanel = '#phoneLock-passcode';
+    } else {
+      // We can't listen for the panelready event because some of the passcode
+      // mode changes, such as edit->new, do not trigger panelready event.
       setTimeout(function(self) { self.passcodeInput.focus(); }, 0, this);
     }
     this.updatePassCodeUI();
