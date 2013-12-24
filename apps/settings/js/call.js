@@ -797,7 +797,12 @@ var CallSettings = (function(window, document, undefined) {
         return;
       }
 
-      var voicePrivacyHelper = VoicePrivacySettingsHelper();
+      var defaultVoicePrivacySettings =
+        Array.prototype.map.call(_mobileConnections,
+          function() { return false; });
+      var voicePrivacyHelper =
+        SettingsHelper('ril.voicePrivacy.enabled', defaultVoicePrivacySettings);
+
       var privacyModeItem =
         document.getElementById('menuItem-voicePrivacyMode');
       var privacyModeInput =
@@ -818,16 +823,20 @@ var CallSettings = (function(window, document, undefined) {
 
       privacyModeInput.addEventListener('change',
         function vpm_inputChanged() {
-          var originalValue = !this.checked;
-          var setReq = _mobileConnection.setVoicePrivacyMode(this.checked);
-          setReq.onsuccess = function set_vpm_success() {
-            var targetIndex = DsdsSettings.getIccCardIndexForCallSettings();
-            voicePrivacyHelper.setEnabled(targetIndex, !originalValue);
-          };
-          setReq.onerror = function get_vpm_error() {
-            // restore the value if failed.
-            privacyModeInput.checked = originalValue;
-          };
+          var checked = this.checked;
+          voicePrivacyHelper.get(function gotVP(values) {
+            var originalValue = !checked;
+            var setReq = _mobileConnection.setVoicePrivacyMode(checked);
+            setReq.onsuccess = function set_vpm_success() {
+              var targetIndex = DsdsSettings.getIccCardIndexForCallSettings();
+              values[targetIndex] = !originalValue;
+              voicePrivacyHelper.set(values);
+            };
+            setReq.onerror = function get_vpm_error() {
+              // restore the value if failed.
+              privacyModeInput.checked = originalValue;
+            };
+          });
       });
     });
   }

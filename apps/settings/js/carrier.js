@@ -540,10 +540,16 @@ var CarrierSettings = (function(window, document, undefined) {
    * Init roaming preference selector.
    */
   function cs_initRoamingPreferenceSelector() {
-    if (_mobileConnection.getRoamingPreference) {
+    if (!_mobileConnection.getRoamingPreference) {
       document.getElementById('operator-roaming-preference').hidden = true;
       return;
     }
+
+    var defaultRoamingPreferences =
+      Array.prototype.map.call(_mobileConnections,
+        function() { return 'any'; });
+    var roamingPreferenceHelper =
+      SettingsHelper('ril.roaming.preference', defaultRoamingPreferences);
 
     var selector =
       document.getElementById('operator-roaming-preference-selector');
@@ -574,7 +580,18 @@ var CarrierSettings = (function(window, document, undefined) {
       var index = this.selectedIndex;
       if (index >= 0) {
         var selection = this.options[index];
-        _mobileConnection.setRoamingPreference(selection.value);
+        roamingPreferenceHelper.get(function gotRP(values) {
+          var targetIndex =
+            DsdsSettings.getIccCardIndexForCellAndDataSettings();
+          var setReq = _mobileConnection.setRoamingPreference(selection.value);
+          setReq.onsuccess = function set_rp_success() {
+            values[targetIndex] = selection.value;
+            roamingPreferenceHelper.set(values);
+          };
+          setReq.onerror = function set_rp_error() {
+            selector.value = values[targetIndex];
+          };
+        });
       }
     });
   }
