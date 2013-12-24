@@ -1,21 +1,33 @@
+
+/**
+ * 1. The background must be solid
+ *    for preview mode because
+ *    otherwise some of the frozen
+ *    viewfinder shows through. If
+ *    it really need to be translucent
+ *    in camera mode, we'll have
+ *    to change it with javascript
+ */
+
 .filmstrip {
-  transition: 0.2s ease-in-out;
   position: absolute;
   z-index: 100;
   left: 0;
   right: 0;
   height: 5rem;
-  /*
-   * the background must be solid for preview mode because otherwise some
-   * of the frozen viewfinder shows through. If it really need to be translucent
-   * in camera mode, we'll have to change it with javascript
-   */
-  background: black;
+  background: black; /* 1 */
 }
+
+/**
+ * @filmstriphidden
+ */
 
 .filmstriphidden .filmstrip {
   transform: translateY(-5rem);
 }
+
+/** Thumbnail
+ ---------------------------------------------------------*/
 
 img.thumbnail {
   position: relative;
@@ -27,6 +39,10 @@ img.thumbnail {
   -moz-user-select: none;
   transition: 0.2s ease-in-out;
 }
+
+/**
+ * @previewed
+ */
 
 img.thumbnail.previewed {  /* if the thumbnail is being previewed */
   border: 0.2rem solid #0ac;
