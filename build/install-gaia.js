@@ -90,10 +90,9 @@ function execute(options) {
 	} else {
 		// Some app folder name is different with the process name,
 		// ex. sms -> Messages
-		var appName = utils.getAppName(
-										utils.joinPath(gaiaDir, 'apps',
-											buildAppName, 'manifest.webapp'));
-		var appPid = getPid(appName);
+		var manifest = utils.readZipManifest(utils.getFile(
+										targetFolder));
+		var appPid = getPid(manifest.name);
 		if (appPid) {
 			adb.run(['shell', 'kill', appPid]);
 		}

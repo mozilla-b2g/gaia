@@ -773,6 +773,7 @@ exports.copyFileTo = copyFileTo;
 exports.createXMLHttpRequest = createXMLHttpRequest;
 exports.downloadJSON = downloadJSON;
 exports.readJSONFromPath = readJSONFromPath;
+exports.readZipManifest = readZipManifest;
 exports.writeContentToFile = writeContentToFile;
 exports.processEvents = processEvents;
 exports.log = log;
