@@ -413,6 +413,12 @@ var LockScreen = {
         break;
 
       case 'touchstart':
+        // Edge case: when the passcode is valid, passpad should fade out.
+        // So the touchevent should do nothing.
+        var passcodeValid =
+          ('success' === this.overlay.dataset.passcodeStatus);
+        if (passcodeValid)
+          return;
         if (evt.target === this.altCamera) {
           evt.preventDefault();
           this.handleIconClick(evt.target);
