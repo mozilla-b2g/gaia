@@ -19,13 +19,14 @@
     // @override
     this.drawAppName = function drawAppName() {
       var canvas = document.createElement('canvas'),
-          context = canvas.getContext('2d');
+          context = canvas.getContext('2d'),
+          downloadLabel = Evme.Utils.l10n('apps', 'market-download');
 
       canvas.width = TEXT_WIDTH;
       canvas.height = APP_NAME_HEIGHT + TEXT_MARGIN + DOWNLOAD_LABEL_FONT_SIZE;
 
       Evme.Utils.writeTextToCanvas({
-        'text': Evme.Utils.l10n('apps', 'market-download'),
+        'text': downloadLabel,
         'context': context,
         'offset': TEXT_MARGIN,
         'fontSize': DOWNLOAD_LABEL_FONT_SIZE
@@ -37,6 +38,9 @@
         'offset': TEXT_MARGIN + DOWNLOAD_LABEL_FONT_SIZE + SCALE_RATIO
       });
 
+      var ariaLabel = downloadLabel + ' ' + this.cfg.name;
+      self.elIcon.setAttribute('aria-label', ariaLabel);
+      self.elName.setAttribute('aria-label', ariaLabel);
       self.elName.src = canvas.toDataURL();
     };
 

@@ -36,6 +36,9 @@
       this.elIcon = el.querySelector('.icon');
       this.elName = el.querySelector('.name');
 
+      this.elIcon.setAttribute('aria-label', cfg.name);
+      this.elName.setAttribute('aria-label', cfg.name);
+
       if ('isOfflineReady' in cfg) {
         el.dataset.offlineReady = cfg.isOfflineReady;
       }
