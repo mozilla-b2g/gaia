@@ -1,28 +1,36 @@
 body {
   color: #5A5A5A;
+  margin: 0;
+  padding: 0;
 }
+
 section {
   color: #fff;
 }
 
+section.suggestions {
+  border-bottom: 1px solid #5A5A5A;
+}
+
 section.suggestions ul {
-  padding: 0.5rem 0;
   list-style: none;
-  background-color: #353534;
   white-space: nowrap;
   overflow-x: scroll;
+  padding-left: 0;
 }
 
 section.suggestions ul li {
   display: inline-block;
   margin-left: 1rem;
+  background: #0B0B0C;
+  padding: 0.5rem 0.7rem;
+  border-radius: 0.3rem;
 }
 
 section.local .result {
   -moz-box-sizing: border-box;
   padding: 0.5rem;
   border-bottom: 1px solid #5A5A5A;
-  background-color: #353534;
   color: #fff;
   min-height: 3rem;
   line-height: 2rem;
@@ -47,7 +55,6 @@ section .result img {
 
 /* web */
 section.apps:not(:empty) {
-  background-color: #353534;
   padding: 1rem 0 0;
   border-bottom: 1px solid #5A5A5A;
 }
