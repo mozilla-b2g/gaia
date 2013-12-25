@@ -96,7 +96,7 @@ var SimFdnLock = {
     };
 
     this.fdnActionMenuEdit.onclick = function() { // edit FDN contact
-      localize(self.fdnContactTitle, 'fdnAction-edit');
+      localize(self.fdnContactTitle, 'fdnAction-edit-header');
       self.fdnContactName.value = self.currentContact.name;
       self.fdnContactNumber.value = self.currentContact.number;
       self.fdnContactSubmit.onclick = function editContact() {
