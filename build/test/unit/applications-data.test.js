@@ -11,7 +11,7 @@ suite('applications-data', function() {
 		var app;
 		setup(function() {
 			app = proxyquire.noCallThru().load(
-							'./../applications-data', {
+							'../../applications-data', {
 								'./utils': mockUtils,
 								'./webapp-manifests': mockWebappManifests
 							});

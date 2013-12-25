@@ -25,6 +25,9 @@
     "node-static": "0.6.9",
     "travis-project-jobs": "0.0.1",
     "chai": "~1.4.2",
-    "proxyquire": "~0.4"
+    "proxyquire": "~0.4",
+    "rimraf": "2.2.5",
+    "download": "0.1.7",
+    "async": "0.2.9"
   }
 }

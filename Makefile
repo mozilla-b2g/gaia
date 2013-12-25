@@ -377,6 +377,15 @@ define BUILD_CONFIG
 endef
 export BUILD_CONFIG
 
+define run-build-test
+	./node_modules/.bin/mocha \
+		--harmony \
+		--reporter spec \
+		--ui tdd \
+		--timeout 0 \
+		$(strip $1)
+endef
+
 # Generate profile/
 
 $(PROFILE_FOLDER): preferences local-apps app-makefiles test-agent-config offline contacts extensions install-xulrunner-sdk .git/hooks/pre-commit $(PROFILE_FOLDER)/settings.json create-default-data $(PROFILE_FOLDER)/installed-extensions.json
@@ -645,7 +654,7 @@ endif
 
 # this lists the programs we need in the Makefile and that are installed by npm
 
-NPM_INSTALLED_PROGRAMS = node_modules/.bin/mozilla-download node_modules/.bin/jshint
+NPM_INSTALLED_PROGRAMS = node_modules/.bin/mozilla-download node_modules/.bin/jshint node_modules/.bin/mocha
 $(NPM_INSTALLED_PROGRAMS): package.json
 	npm install --registry $(NPM_REGISTRY)
 	touch $(NPM_INSTALLED_PROGRAMS)
@@ -957,3 +966,8 @@ really-clean: clean
 adb-remount:
 	$(ADB) remount
 
+build-test-unit: $(NPM_INSTALLED_PROGRAMS)
+	@$(call run-build-test, $(shell find build/test/unit/*.test.js))
+
+build-test-integration: $(NPM_INSTALLED_PROGRAMS)
+	@$(call run-build-test, $(shell find build/test/integration/*.test.js))
