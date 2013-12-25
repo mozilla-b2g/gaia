@@ -1210,7 +1210,8 @@
 
     function showSuggestions(data) {
       var suggestedShortcuts = data.response.shortcuts || [],
-          icons = data.response.icons || {};
+          icons = data.response.icons || {},
+          locale = data.response.locale;
 
       if (!isRequesting) {
         return;
@@ -1225,7 +1226,8 @@
       } else {
         Evme.CollectionsSuggest.load({
           'shortcuts': suggestedShortcuts,
-          'icons': icons
+          'icons': icons,
+          'locale': locale
         });
 
         Evme.CollectionsSuggest.show();
