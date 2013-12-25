@@ -3,17 +3,32 @@
 
   function SearchHandler() {
     var searchPort = null;
-    var query;
 
     this.onMessage = ensurePort;
 
     function handleMessage(msg) {
-      var newQuery = msg.data.input;
-      if (newQuery && newQuery !== query) {
-        query = newQuery;
-        Evme.SearchClient.search({
-          'query': query
-        });
+      var query = msg.data.input;
+      var method = msg.data.method;
+
+      switch (method) {
+        case 'search':
+          Evme.SearchClient.search({
+            'query': query
+          }).then(function resolve(searchResults) {
+            searchPort.postMessage({ 'results': searchResults });
+          });
+          break;
+
+        case 'suggest':
+          Evme.SearchClient.suggestions({
+            'query': query
+          }).then(function resolve(searchSuggestions) {
+            searchPort.postMessage({ 'suggestions': searchSuggestions });
+          });
+          break;
+
+        default:
+          break;
       }
     };
 
@@ -39,14 +54,6 @@
         );
       };
     }
-
-    this.sendResults = function sendResults(resultQuery, searchResults) {
-      // only if results still relevant
-      if (resultQuery === query) {
-        searchPort.postMessage({ 'results': searchResults });
-      }
-    };
-
   }
 
   Evme.SearchHandler = new SearchHandler();

@@ -2,11 +2,11 @@
 
   'use strict';
 
-  function EverythingMe() {
-    this.name = 'EverythingMe';
+  function WebResults(eme) {
+    this.name = 'WebResults';
   }
 
-  EverythingMe.prototype = {
+  WebResults.prototype = {
 
     init: function(config) {
       var self = this;
@@ -14,20 +14,7 @@
       this.container = config.container;
       this.container.addEventListener('click', this.click);
 
-      // Broadcast to eme-api channel
-      navigator.mozApps.getSelf().onsuccess = function() {
-        var app = this.result;
-        app.connect('eme-api').then(
-          function onConnectionAccepted(ports) {
-            ports.forEach(function(port) {
-              self.port = port;
-            });
-          },
-          function onConnectionRejected(reason) {
-            dump('Error connecting: ' + reason + '\n');
-          }
-        );
-      };
+      eme.openPort();
     },
 
     click: function(e) {
@@ -41,7 +28,8 @@
       this.clear();
 
       setTimeout(function nextTick() {
-        this.port.postMessage({
+        eme.port.postMessage({
+          method: eme.API.SEARCH,
           input: input,
           type: type
         });
@@ -82,6 +70,6 @@
 
   };
 
-  Search.provider(new EverythingMe());
+  Search.provider(new WebResults(window.eme));
 
 }());

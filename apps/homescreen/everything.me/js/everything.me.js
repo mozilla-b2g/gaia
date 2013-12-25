@@ -348,7 +348,8 @@ var EverythingME = {
     LazyLoader.load(
       ['everything.me/js/search/handler.js',
        'everything.me/js/search/client.js',
-       'everything.me/js/search/result.js'
+       'everything.me/js/search/result.js',
+       'everything.me/js/search/suggestion.js'
       ], function loaded() {
       EverythingME.pendingPorts.forEach(function openPort(port) {
         port.onmessage = Evme.SearchHandler.onMessage;

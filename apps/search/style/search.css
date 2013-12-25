@@ -5,6 +5,19 @@ section {
   color: #fff;
 }
 
+section.suggestions ul {
+  padding: 0.5rem 0;
+  list-style: none;
+  background-color: #353534;
+  white-space: nowrap;
+  overflow-x: scroll;
+}
+
+section.suggestions ul li {
+  display: inline-block;
+  margin-left: 1rem;
+}
+
 section.local .result {
   -moz-box-sizing: border-box;
   padding: 0.5rem;

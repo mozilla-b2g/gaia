@@ -54,8 +54,13 @@
             var keyword = connectionRequest.keyword;
             var port = connectionRequest.port;
             if (keyword === 'eme-client') {
-              port.onmessage = self.providers.EverythingMe.onmessage
-                .bind(self.providers.EverythingMe);
+              var SuggestionsProvider = self.providers.Suggestions;
+              var WebResultsProvider = self.providers.WebResults;
+
+              port.onmessage = function onmessage(msg) {
+                SuggestionsProvider.onmessage.call(SuggestionsProvider, msg);
+                WebResultsProvider.onmessage.call(WebResultsProvider, msg);
+              };
               port.start();
             } else if (keyword === 'search') {
               port.onmessage = self.onSearchInput.bind(self);
@@ -84,6 +89,10 @@
      */
     provider: function(provider) {
       this.providers[provider.name] = provider;
+    },
+
+    onSuggestionSelected: function(query) {
+      // not implemented
     },
 
     onSearchInput: function(msg) {
