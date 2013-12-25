@@ -15,10 +15,7 @@
     this.search = function search(options) {
 
       var searchPromise = new window.Promise(function done(resolve, reject) {
-        Evme.DoATAPI.search({
-          'query': options.query,
-          'limit': NUM_RESULTS
-        }, function success(apiData) {
+        Evme.DoATAPI.search(options, function success(apiData) {
           var response = apiData.response;
           var query = response.query;
           var apps = response.apps;

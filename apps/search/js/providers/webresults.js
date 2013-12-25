@@ -26,10 +26,34 @@
       this.clear();
 
       setTimeout(function nextTick() {
+        var searchFeature,
+            exact;
+        switch (type) {
+          case 'change':
+            searchFeature = eme.SEARCH_FEATURES.TYPE;
+            exact = false;
+            break;
+          case 'submit':
+            searchFeature = eme.SEARCH_FEATURES.RTRN;
+            exact = true;
+            break;
+
+          default:
+            searchFeature = '';
+            exact = false;
+            break;
+        }
+
+        var config = new eme.SearchConfig({
+          'query': input,
+          'feature': searchFeature,
+          'exact': exact
+        });
+
         eme.port.postMessage({
           method: eme.API.SEARCH,
           input: input,
-          type: type
+          config: config
         });
       }.bind(this));
     },
