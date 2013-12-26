@@ -51,7 +51,7 @@ Evme.CollectionsSuggest = new function Evme_CollectionsSuggest() {
 
   this.newCustom = function newCustom() {
     elList.blur();
-    var customQuery = prompt(Evme.Utils.l10n(NAME, 'prompt-create'));
+    var customQuery = prompt(Evme.Utils.l10n(NAME, 'prompt-create-custom'));
 
     if (!customQuery) {
       return;

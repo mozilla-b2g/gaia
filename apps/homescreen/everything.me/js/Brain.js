@@ -1191,7 +1191,7 @@
               showSuggestions(cachedData);
             } else {
               window.alert(Evme.Utils.l10n(L10N_SYSTEM_ALERT,
-                                            'offline-collections-more'));
+                                            'offline-smart-collections-more'));
             }
           });
         }
@@ -1221,7 +1221,8 @@
       isRequesting = false;
 
       if (suggestedShortcuts.length === 0) {
-        window.alert(Evme.Utils.l10n(L10N_SYSTEM_ALERT, 'no-more-collections'));
+        window.alert(Evme.Utils.l10n(L10N_SYSTEM_ALERT,
+                                      'no-more-smart-collections'));
         Evme.CollectionsSuggest.Loading.hide();
       } else {
         Evme.CollectionsSuggest.load({
