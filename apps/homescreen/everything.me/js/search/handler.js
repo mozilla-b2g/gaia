@@ -7,22 +7,20 @@
     this.onMessage = ensurePort;
 
     function handleMessage(msg) {
-      var query = msg.data.input;
       var method = msg.data.method;
+      var config = msg.data.config;
 
       switch (method) {
         case 'search':
-          Evme.SearchClient.search({
-            'query': query
-          }).then(function resolve(searchResults) {
+          Evme.SearchClient.search(config).then(
+            function resolve(searchResults) {
             searchPort.postMessage({ 'results': searchResults });
           });
           break;
 
         case 'suggest':
-          Evme.SearchClient.suggestions({
-            'query': query
-          }).then(function resolve(searchSuggestions) {
+          Evme.SearchClient.suggestions(config).then(
+            function resolve(searchSuggestions) {
             searchPort.postMessage({ 'suggestions': searchSuggestions });
           });
           break;

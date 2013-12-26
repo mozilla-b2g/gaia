@@ -3,12 +3,6 @@
 
   var iconFormat = Evme.Utils.getIconsFormat();
 
-  // number of results to return
-  var NUM_RESULTS = 16;
-
-  // number of suggestions to return
-  var NUM_SUGGESTIONS = 4;
-
   function SearchClient() {
 
     // Search/apps
@@ -96,10 +90,7 @@
       var query = options.query;
 
       var suggestPromise = new window.Promise(function done(resolve, reject) {
-        Evme.DoATAPI.suggestions({
-          'query': query,
-          'limit': NUM_SUGGESTIONS
-        }, function success(data) {
+        Evme.DoATAPI.suggestions(options, function success(data) {
           var items = data.response || [];
           if (items.length) {
             var suggestions = items.map(function each(item) {
