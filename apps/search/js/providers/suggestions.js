@@ -20,7 +20,7 @@
     click: function(e) {
       var suggestion = e.target && e.target.dataset.suggestion;
       if (suggestion) {
-        Search.onSuggestionSelected(suggestion);
+       Search.setInput(suggestion);
       }
     },
 
@@ -49,14 +49,26 @@
       var suggestions = data.suggestions;
       if (suggestions) {
         var ul = document.createElement('ul');
+        var rendered = 0;
 
         suggestions.forEach(function render(searchSuggestion) {
+          // The E.me API can return the query as a suggestion
+          // Filter out exact matches
+          if (searchSuggestion.text === searchSuggestion.query) {
+            return;
+          }
+
+          rendered++;
           var li = document.createElement('li');
           li.dataset.suggestion = li.textContent = searchSuggestion.text;
           ul.appendChild(li);
         });
 
-        this.container.appendChild(ul);
+        if (rendered) {
+          this.container.appendChild(ul);
+        } else {
+          this.clear();
+        }
       }
     }
 

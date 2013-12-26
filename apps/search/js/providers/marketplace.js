@@ -53,13 +53,13 @@
           img.src = app.icons['64'];
           el.appendChild(img);
 
-          var nameL10n;
+          var nameL10n = '';
           for (var locale in app.name) {
             // Default the app name if we haven't found a matching locale
             nameL10n = nameL10n || app.name[locale];
             // Overwrite if the locale matches
             if (locale === document.documentElement.lang) {
-              nameL10n = navigator.language;
+              nameL10n = app.name[locale];
             }
           }
 

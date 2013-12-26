@@ -91,10 +91,6 @@
       this.providers[provider.name] = provider;
     },
 
-    onSuggestionSelected: function(query) {
-      // not implemented
-    },
-
     onSearchInput: function(msg) {
       clearTimeout(timeoutSearchWhileTyping);
 
@@ -125,6 +121,15 @@
      */
     browse: function(url) {
       window.open(url, '_blank', 'remote=true');
+    },
+
+    /**
+     * Sends a message to the system app to update the input value
+     */
+    setInput: function(input) {
+      this._port.postMessage({
+        'input': input
+      });
     }
   };
 
