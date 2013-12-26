@@ -218,7 +218,7 @@ var AdditionalExtensions = (function() {
     var customExtensions;
     logLine('load custom extensions');
     try {
-      file = utils.getFile(gaiaDir, 'build', 'custom-extensions.json');
+      file = utils.getFile(gaiaDir, 'build', 'config', 'custom-extensions.json');
       customExtensions = utils.getJSON(file);
     } catch (e) {
       customExtensions = {};
@@ -231,7 +231,8 @@ var AdditionalExtensions = (function() {
     var additionalExtensions;
     logLine('load additional extensions');
     try {
-      file = utils.getFile(gaiaDir, 'build', 'additional-extensions.json');
+      file = utils.getFile(gaiaDir, 'build', 'config',
+        'additional-extensions.json');
       additionalExtensions = utils.getJSON(file);
     } catch (e) {
       additionalExtensions = {};

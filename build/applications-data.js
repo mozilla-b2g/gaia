@@ -500,7 +500,7 @@ function execute(options) {
   init = utils.getFile(config.GAIA_DIR,
     'apps', 'communications', 'contacts', 'oauth2', 'js', 'parameters.js');
   content = JSON.parse(utils.getFileContent(utils.getFile(config.GAIA_DIR,
-                                            'build',
+                                            'build', 'config',
                                             'communications_services.json')));
 
   // Bug 883344 Only use default facebook app id if is mozilla partner build

@@ -10,22 +10,23 @@ function setWallpaper(settings, config) {
   }
 
   let wallpaper = utils.resolve(
-    config.GAIA_DISTRIBUTION_DIR + '/wallpapers/default' +
-    devpixels + '.jpg', config.GAIA_DIR);
+    utils.joinPath(config.GAIA_DISTRIBUTION_DIR, 'wallpapers',
+      'default' + devpixels + '.jpg'), config.GAIA_DIR);
 
   if (!wallpaper.exists()) {
     wallpaper = utils.resolve(
-      config.GAIA_DISTRIBUTION_DIR + '/wallpapers/default.jpg',
+      utils.joinPath(config.GAIA_DISTRIBUTION_DIR, 'wallpapers', 'default.jpg'),
       config.GAIA_DIR);
   }
 
   if (!wallpaper.exists()) {
     wallpaper = utils.resolve(
-      'build/wallpaper' + devpixels + '.jpg', config.GAIA_DIR);
+      utils.joinPath('build', 'config', 'wallpaper' + devpixels + '.jpg'),
+      config.GAIA_DIR);
   }
 
   if (!wallpaper.exists()) {
-    wallpaper = utils.resolve('build/wallpaper.jpg',
+    wallpaper = utils.resolve(utils.joinPath('build', 'config', 'wallpaper.jpg'),
       config.GAIA_DIR);
   }
   settings['wallpaper.image'] = utils.getFileAsDataURI(wallpaper);
@@ -70,7 +71,7 @@ function writeSettings(settings, config) {
 }
 
 function execute(config) {
-  var settingsFile = utils.getFile(config.GAIA_DIR, 'build',
+  var settingsFile = utils.getFile(config.GAIA_DIR, 'build', 'config',
     'common-settings.json');
 
   if (!settingsFile.exists()) {
