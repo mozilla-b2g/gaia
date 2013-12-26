@@ -66,7 +66,8 @@ var SimFdnLock = {
     };
 
     this.resetPin2Button.onclick = function spl_resetPin2() {
-      self.pinDialog.show('change_pin2');
+      self.pinDialog.show('change_pin2',
+          { onsuccess: callback, oncancel: callback });
     };
 
     this.updateFdnStatus();
