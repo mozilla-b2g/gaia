@@ -54,13 +54,15 @@ section .result img {
 }
 
 /* web */
-section.apps:not(:empty) {
-  padding: 1rem 0 0;
-  border-bottom: 1px solid #5A5A5A;
+section.apps {
+  padding-top: 1rem;
+  /* Hide the whitespace between inline elements */
+  font-size: 0;
 }
 
-section.apps:not(:empty):last-child {
-  border-bottom: 0;
+section.apps section {
+  display: inline;
+  font-size: 1rem;
 }
 
 section.apps div {

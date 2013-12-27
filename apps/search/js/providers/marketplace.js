@@ -2,19 +2,16 @@
 
   'use strict';
 
-  const NUM_DISPLAY = 8;
+  const NUM_DISPLAY = 4;
   const API = 'https://marketplace.firefox.com/api/v1/apps/search/?q={q}';
 
-  function Marketplace() {
-    this.name = 'Marketplace';
-  }
+  function Marketplace() {}
 
   Marketplace.prototype = {
 
-    init: function(config) {
-      this.container = config.container;
-      this.container.addEventListener('click', this.click);
-    },
+    __proto__: AppProvider.prototype,
+
+    name: 'Marketplace',
 
     click: function(e) {
       Search.close();
@@ -34,6 +31,10 @@
     search: function(input) {
       this.clear();
 
+      if (this.lastReq) {
+        this.lastReq.abort();
+      }
+
       var req = new XMLHttpRequest();
       req.open('GET', API.replace('{q}', input), true);
       req.onload = (function onload() {
@@ -42,16 +43,10 @@
           return;
         }
 
-        var frag = document.createDocumentFragment();
         var length = Math.min(NUM_DISPLAY, results.meta.total_count);
+        var formatted = [];
         for (var i = 0; i < length; i++) {
-          var el = document.createElement('div');
           var app = results.objects[i];
-          el.dataset.slug = app.slug;
-
-          var img = document.createElement('img');
-          img.src = app.icons['64'];
-          el.appendChild(img);
 
           var nameL10n = '';
           for (var locale in app.name) {
@@ -63,12 +58,15 @@
             }
           }
 
-          var title = document.createTextNode(nameL10n);
-          el.appendChild(title);
-
-          frag.appendChild(el);
+          formatted.push({
+            title: nameL10n,
+            icon: app.icons['64'],
+            dataset: {
+              slug: app.slug
+            }
+          });
         }
-        this.container.appendChild(frag);
+        this.render(formatted);
       }).bind(this);
       req.onerror = function onerror() {
         console.log('Marketplace error.');
@@ -77,10 +75,7 @@
         console.log('Marketplace timeout.');
       };
       req.send();
-    },
-
-    clear: function() {
-      this.container.innerHTML = '';
+      this.lastReq = req;
     }
   };
 

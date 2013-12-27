@@ -3,17 +3,16 @@
   'use strict';
 
   function Suggestions(eme) {
-    this.name = 'Suggestions';
   }
 
   Suggestions.prototype = {
 
+    __proto__: Provider.prototype,
+
+    name: 'Suggestions',
+
     init: function(config) {
-      var self = this;
-
-      this.container = config.container;
-      this.container.addEventListener('click', this.click);
-
+      Provider.prototype.init.apply(this, arguments);
       eme.openPort();
     },
 
