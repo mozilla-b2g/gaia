@@ -10,6 +10,7 @@ manifest.appcache
 /apps/camera/js/config.js
 /apps/gallery/js/config.js
 /apps/homescreen/js/init.json
+/apps/homescreen/everything.me/config/local.json
 /apps/costcontrol/js/config.json
 /apps/sms/js/blacklist.json
 /test_apps/test-agent/test/config.json

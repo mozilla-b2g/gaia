@@ -89,7 +89,9 @@ Evme.Utils = new function Evme_Utils() {
   };
 
   this.logger = function logger(level) {
-    return function Evme_logger() {
+    return window.EverythingME.debug ? Evme_logger : this.NOOP;
+
+    function Evme_logger() {
       var t = new Date(),
           h = t.getHours(),
           m = t.getMinutes(),

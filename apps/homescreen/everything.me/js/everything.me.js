@@ -5,7 +5,9 @@ var EverythingME = {
   pendingEvent: undefined,
   pendingPorts: [],
 
-  init: function EverythingME_init() {
+  init: function EverythingME_init(config) {
+    this.debug = !!config.debug;
+
     var self = this;
     // Listen to eme-api channel
     // activate E.me upon connection request
@@ -454,7 +456,7 @@ var EverythingME = {
       asyncStorage.setItem(migrationStorageKey, true);
 
       // start the migration
-      console.log('[EVME migration] migrating from 1.0.1 to 1.1...');
+      EverythingME.log('[EVME migration] migrating from 1.0.1 to 1.1...');
 
       // these are properties that don't need special attention -
       // simply copy from sync to async, oldKey: newKey
@@ -473,7 +475,7 @@ var EverythingME = {
       function onDataMigrated() {
         numberOfKeysDone++;
         if (numberOfKeysDone >= numberOfKeys) {
-          console.log('[EVME migration] complete successfully!');
+          EverythingME.log('[EVME migration] complete successfully!');
           onComplete();
         }
       }
@@ -485,21 +487,22 @@ var EverythingME = {
       onComplete = function() {};
     }
 
-    console.log('[EVME migration] [' + oldKey + ']: retrieving...');
+    EverythingME.log('[EVME migration] [' + oldKey + ']: retrieving...');
 
     try {
       var oldValue = window.localStorage[oldKey];
 
       if (!oldValue) {
-        console.log('[EVME migration] [' + oldKey + ']: no value');
+        EverythingME.log('[EVME migration] [' + oldKey + ']: no value');
         onComplete(false);
         return false;
       }
 
-      console.log('[EVME migration] [' + oldKey + '] got value: ' + oldValue);
+      EverythingME.log('[EVME migration] [' +
+                                          oldKey + '] got value: ' + oldValue);
       oldValue = JSON.parse(oldValue);
       if (!oldValue) {
-        console.log('[EVME migration] [' + oldKey + ']: invalid json: ' +
+        EverythingME.log('[EVME migration] [' + oldKey + ']: invalid json: ' +
                                                   window.localStorage[oldKey]);
         deleteOld();
         onComplete(false);
@@ -512,10 +515,10 @@ var EverythingME = {
         'expires': oldValue._e
       };
 
-      console.log('[EVME migration] [' + oldKey + ':' + newKey + ']: saving: ' +
-                                                     JSON.stringify(newValue));
+      EverythingME.log('[EVME migration] [' +
+              oldKey + ':' + newKey + ']: saving: ' + JSON.stringify(newValue));
       asyncStorage.setItem(newKey, newValue, function onsaved() {
-        console.log('[EVME migration] [' + oldKey + ':' + newKey +
+        EverythingME.log('[EVME migration] [' + oldKey + ':' + newKey +
                                                   ']: saved, remove old data');
         deleteOld();
         onComplete(true);
@@ -567,6 +570,12 @@ var EverythingME = {
     var elLoading = document.getElementById('loading-dialog');
     if (elLoading) {
       elLoading.parentNode.removeChild(elLoading);
+    }
+  },
+
+  log: function log() {
+    if (this.debug) {
+      console.log.apply(window, arguments);
     }
   }
 };

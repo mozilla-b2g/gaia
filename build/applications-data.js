@@ -231,9 +231,23 @@ function customizeHomescreen(options) {
     }
   }
 
+  var search_page_debug;
+  try {
+    let local_settings_file =
+      utils.getFile(config.GAIA_DIR, GAIA_CORE_APP_SRCDIR,
+        'homescreen', 'everything.me', 'config', 'local.json');
+
+    let local_settings = utils.getJSON(local_settings_file);
+    search_page_debug = local_settings.debug;
+  }
+  catch(e) {
+    search_page_debug = false;
+  }
+
   let content = {
     search_page: {
       provider: 'EverythingME',
+      debug: search_page_debug,
       separate_page: false,
       enabled: search_page_enabled
     },
