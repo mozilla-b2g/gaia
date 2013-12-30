@@ -45,6 +45,7 @@
         return;
       }
 
+      this.clear();
       var suggestions = data.suggestions;
       if (suggestions) {
         var ul = document.createElement('ul');
@@ -65,8 +66,6 @@
 
         if (rendered) {
           this.container.appendChild(ul);
-        } else {
-          this.clear();
         }
       }
     }
