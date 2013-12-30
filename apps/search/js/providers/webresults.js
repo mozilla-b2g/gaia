@@ -2,18 +2,16 @@
 
   'use strict';
 
-  function WebResults(eme) {
-    this.name = 'WebResults';
-  }
+  function WebResults(eme) {}
 
   WebResults.prototype = {
 
-    init: function(config) {
-      var self = this;
+    __proto__: AppProvider.prototype,
 
-      this.container = config.container;
-      this.container.addEventListener('click', this.click);
+    name: 'WebResults',
 
+    init: function() {
+      AppProvider.prototype.init.apply(this, arguments);
       eme.openPort();
     },
 
@@ -36,10 +34,6 @@
       }.bind(this));
     },
 
-    clear: function() {
-      this.container.innerHTML = '';
-    },
-
     onmessage: function(msg) {
       var data = msg.data;
       if (!data) {
@@ -48,23 +42,17 @@
 
       var results = data.results;
       if (results) {
-        var frag = document.createDocumentFragment();
-
+        var formatted = [];
         results.forEach(function render(searchResult) {
-          var el = document.createElement('div');
-          el.dataset.url = searchResult.url;
-
-          var img = document.createElement('img');
-          img.src = searchResult.icon;
-          el.appendChild(img);
-
-          var title = document.createTextNode(searchResult.title);
-          el.appendChild(title);
-
-          frag.appendChild(el);
-        });
-
-        this.container.appendChild(frag);
+          formatted.push({
+            title: searchResult.title,
+            icon: searchResult.icon,
+            dataset: {
+              url: searchResult.url
+            }
+          });
+        }, this);
+        this.render(formatted);
       }
     }
 

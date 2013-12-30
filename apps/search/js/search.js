@@ -71,15 +71,8 @@
       }
 
       function initializeProviders() {
-        var template = 'section#{name}';
-
         for (var i in self.providers) {
-          var name = self.providers[i].name.toLowerCase();
-          var selector = template.replace('{name}', name);
-
-          self.providers[i].init({
-            container: document.querySelector(selector)
-          });
+          self.providers[i].init();
         }
       }
     },

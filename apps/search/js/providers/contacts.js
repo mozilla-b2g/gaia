@@ -3,15 +3,13 @@
   'use strict';
 
   function Contacts() {
-    this.name = 'Contacts';
   }
 
   Contacts.prototype = {
 
-    init: function(config) {
-      this.container = config.container;
-      this.container.addEventListener('click', this.click);
-    },
+    __proto__: Provider.prototype,
+
+    name: 'Contacts',
 
     click: function(e) {
       var target = e.target;
@@ -77,10 +75,6 @@
 
       request.onerror = function() {
       };
-    },
-
-    clear: function() {
-      this.container.innerHTML = '';
     }
   };
 

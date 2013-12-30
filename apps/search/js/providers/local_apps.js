@@ -3,8 +3,6 @@
   'use strict';
 
   function LocalApps() {
-    this.name = 'LocalApps';
-
     this.apps = {};
     navigator.mozApps.mgmt.getAll().onsuccess = (function(evt) {
       evt.target.result.forEach(function r_getApps(app) {
@@ -15,10 +13,9 @@
 
   LocalApps.prototype = {
 
-    init: function(config) {
-      this.container = config.container;
-      this.container.addEventListener('click', this.click.bind(this));
-    },
+    __proto__: AppProvider.prototype,
+
+    name: 'LocalApps',
 
     click: function(e) {
       var target = e.target;
@@ -36,32 +33,32 @@
       this.clear();
 
       var results = this.find(input);
+      var formatted = [];
       results.forEach(function eachResult(result) {
-        var div = document.createElement('div');
-        div.dataset.manifest = result.manifestURL;
+        var dataset = {
+          manifest: result.manifestURL
+        };
 
         if (result.entryPoint) {
-          div.dataset.entryPoint = result.entryPoint;
+          dataset.entryPoint = result.entryPoint;
         }
 
         var icons = result.manifest.icons || {};
+        var imgUrl = '';
         for (var i in icons) {
-
           var a = document.createElement('a');
           a.href = result.origin;
-          var url = a.protocol + '//' + a.host + icons[i];
-
-          var newImg = document.createElement('img');
-          newImg.src = url;
-          div.appendChild(newImg);
+          imgUrl = a.protocol + '//' + a.host + icons[i];
           break;
         }
 
-        var title = document.createTextNode(result.manifest.name);
-        div.appendChild(title);
-
-        this.container.appendChild(div);
+        formatted.push({
+          title: result.manifest.name,
+          icon: imgUrl,
+          dataset: dataset
+        });
       }, this);
+      this.render(formatted);
     },
 
     find: function(query) {
@@ -106,10 +103,6 @@
       }, this);
 
       return results;
-    },
-
-    clear: function() {
-      this.container.innerHTML = '';
     }
   };
 
