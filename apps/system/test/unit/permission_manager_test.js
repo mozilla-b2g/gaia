@@ -51,6 +51,7 @@ suite('system/permission manager', function() {
     setup(function() {
       PermissionManager.overlay = document.createElement('div');
       PermissionManager.rememberSection = document.createElement('div');
+      PermissionManager.moreInfoBox = document.createElement('div');
       stubPrompt = this.sinon.stub(PermissionManager, 'handlePermissionPrompt');
 
       sendChromeEvent('permission-prompt', 'test');
