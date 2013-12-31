@@ -27,19 +27,4 @@
     }
   };
 
-
-  eme.api = {
-    'search': 'search',
-    'more': 'more',
-    'suggest': 'suggest'
-  };
-
-  eme.search = {
-    'features' : {
-      'type': 'type',
-      'more': 'more',
-      'rtrn': 'rtrn'
-    }
-  };
-
 })();

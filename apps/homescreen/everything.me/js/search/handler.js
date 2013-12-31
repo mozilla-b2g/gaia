@@ -19,6 +19,13 @@
           });
           break;
 
+        case 'more':
+          client.getMoreApps(options).then(
+            function resolve(searchResults) {
+            searchPort.postMessage({ 'more': searchResults });
+          });
+          break;
+
         case 'suggest':
           client.getSuggestions(options).then(
             function resolve(searchSuggestions) {

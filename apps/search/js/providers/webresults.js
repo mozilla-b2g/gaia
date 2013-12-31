@@ -26,26 +26,21 @@
       this.clear();
 
       setTimeout(function nextTick() {
-        var searchFeature = '',
-            searchExact = false;
-
-        switch (type) {
-          case 'change':
-            searchFeature = eme.search.features.type;
-            searchExact = false;
-            break;
-          case 'submit':
-            searchFeature = eme.search.features.rtrn;
-            searchExact = true;
-            break;
-        }
-
         eme.port.postMessage({
-          method: eme.api.search,
+          method: 'search',
           options: {
-            'query': input,
-            'feature': searchFeature,
-            'exact': searchExact
+            'query': input
+          }
+        });
+      }.bind(this));
+    },
+
+    more: function(input) {
+      setTimeout(function nextTick() {
+        eme.port.postMessage({
+          method: 'more',
+          options: {
+            'query': input
           }
         });
       }.bind(this));

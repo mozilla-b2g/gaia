@@ -28,7 +28,7 @@
 
       setTimeout(function nextTick() {
         eme.port.postMessage({
-          method: eme.api.suggest,
+          method: 'suggest',
           options: {
             'query': input
           }

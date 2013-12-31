@@ -1,15 +1,17 @@
 (function() {
   'use strict';
 
+  var APPS_LIMIT = 10;
+
   var iconFormat = Evme.Utils.getIconsFormat();
 
   function SearchConfig(config) {
     var _config = {
       'exact': true,
-      'feature': '',
+      'feature': 'rtrn',
       'first': 0,
       'iconFormat': iconFormat,
-      'limit': 10,
+      'limit': APPS_LIMIT,
       'maxNativeSuggestions': 0,
       'nativeSuggestions': false,
       'prevQuery': '',
@@ -43,15 +45,39 @@
   }
 
   function EvmeClient() {
-    this.prevQuery = null;
+    this.prevQuery = '';
+
+    // paging index
+    this.page = 0;
   }
 
   EvmeClient.prototype = {
 
-    // Search/apps
     getApps: function getApps(options) {
-      var self = this;
-      var config = new SearchConfig(options);
+      // reset paging
+      this.page = 0;
+
+      return this.search(options);
+    },
+
+    getMoreApps: function getMoreApps(options) {
+      // increment paging
+      this.first = options.first = this.first + APPS_LIMIT;
+
+      return this.search(options);
+    },
+
+
+    // Search/apps
+    search: function search(options) {
+      var query = options.query;
+
+      var config = new SearchConfig({
+        'query': query,
+        'prevQuery': this.prevQuery
+      });
+
+      this.prevQuery = query;
 
       var searchPromise = new window.Promise(function done(resolve, reject) {
         Evme.DoATAPI.search(config, function success(apiData) {
@@ -128,10 +154,6 @@
 
       return searchPromise;
 
-    },
-
-    getMoreApps: function getMoreApps() {
-      console.log('evme', 'getMoreApps not implemented');
     },
 
     // Search/suggestions
