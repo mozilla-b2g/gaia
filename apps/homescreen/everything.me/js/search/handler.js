@@ -3,6 +3,7 @@
 
   function SearchHandler() {
     var searchPort = null;
+    var client = new Evme.Client();
 
     this.onMessage = ensurePort;
 
@@ -12,14 +13,14 @@
 
       switch (method) {
         case 'search':
-          Evme.Client.search(options).then(
+          client.getApps(options).then(
             function resolve(searchResults) {
             searchPort.postMessage({ 'results': searchResults });
           });
           break;
 
         case 'suggest':
-          Evme.Client.suggestions(options).then(
+          client.getSuggestions(options).then(
             function resolve(searchSuggestions) {
             searchPort.postMessage({ 'suggestions': searchSuggestions });
           });

@@ -5,10 +5,10 @@
 
   function SearchConfig(config) {
     var _config = {
-      'exact': false,
+      'exact': true,
       'feature': '',
       'first': 0,
-      'iconFormat': 10,
+      'iconFormat': iconFormat,
       'limit': 10,
       'maxNativeSuggestions': 0,
       'nativeSuggestions': false,
@@ -42,10 +42,15 @@
     return _config;
   }
 
-  function Client() {
+  function EvmeClient() {
+    this.prevQuery = null;
+  }
+
+  EvmeClient.prototype = {
 
     // Search/apps
-    this.search = function search(options) {
+    getApps: function getApps(options) {
+      var self = this;
       var config = new SearchConfig(options);
 
       var searchPromise = new window.Promise(function done(resolve, reject) {
@@ -78,13 +83,13 @@
               function resolve(result) {
                 addResult(result);
                 if (--pending === 0) {
-                  getMissingIcons();
+                  getMissingIcons.bind(this)();
                 }
               },
               function reject(result) {
                 resultsMissing.push(result);
                 if (--pending === 0) {
-                  getMissingIcons();
+                  getMissingIcons.bind(this)();
                 }
               });
           });
@@ -104,7 +109,7 @@
               return;
             }
 
-            Evme.Client.requestIcons(ids).then(
+            this.requestIcons(ids).then(
               function resolve(icons) {
                 resultsMissing.forEach(function addIcon(resultMissing) {
                   resultMissing.setIconData(icons[resultMissing.appId]);
@@ -123,10 +128,14 @@
 
       return searchPromise;
 
-    };
+    },
+
+    getMoreApps: function getMoreApps() {
+      console.log('evme', 'getMoreApps not implemented');
+    },
 
     // Search/suggestions
-    this.suggestions = function suggestions(options) {
+    getSuggestions: function getSuggestions(options) {
       var config = new SuggestConfig(options);
       var query = options.query;
 
@@ -146,10 +155,10 @@
       });
 
       return suggestPromise;
-    };
+    },
 
     // App/icons
-    this.requestIcons = function requestIcons(ids) {
+    requestIcons: function requestIcons(ids) {
       var iconsPromise = new window.Promise(function done(resolve, reject) {
         Evme.DoATAPI.icons({
           'ids': ids.join(','),
@@ -166,11 +175,11 @@
       });
 
       return iconsPromise;
-    };
+    }
 
 
-  } // Client
+  }; // prototype
 
-  Evme.Client = new Client();
+  Evme.Client = EvmeClient;
 
 })();
