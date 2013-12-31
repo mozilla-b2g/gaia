@@ -36,58 +36,21 @@
 
 
   /********************************* Search *********************************/
-  function SearchConfig(config) {
-    var _config = {
-      'exact': false,
-      'feature': '',
-      'first': 0,
-      'iconFormat': 10,
-      'limit': 10,
-      'maxNativeSuggestions': 0,
-      'nativeSuggestions': false,
-      'prevQuery': '',
-      'query': '',
-      'spellcheck': false,
-      'suggest': false
-    };
 
-    for (var key in config) {
-      if (config.hasOwnProperty(key)) {
-        _config[key] = config[key];
-      }
-    }
-
-    return _config;
-  }
 
   eme.search = {
     'features' : {
       'type': 'type',
       'more': 'more',
       'rtrn': 'rtrn'
-    },
-    'config': SearchConfig
+    }
   };
 
 
   /********************************* Suggest *********************************/
-  function SuggestConfig(config) {
-    var _config = {
-      'query': '',
-      'limit': 10
-    };
 
-    for (var key in config) {
-      if (config.hasOwnProperty(key)) {
-        _config[key] = config[key];
-      }
-    }
-
-    return _config;
-  }
 
   eme.suggest = {
-    'config': SuggestConfig
   };
 
 })();

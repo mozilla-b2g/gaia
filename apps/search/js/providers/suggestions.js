@@ -26,14 +26,12 @@
     search: function(input, type) {
       this.clear();
 
-      var config = new eme.suggest.config({
-        'query': input
-      });
-
       setTimeout(function nextTick() {
         eme.port.postMessage({
           method: eme.api.suggest,
-          config: config
+          options: {
+            'query': input
+          }
         });
       }.bind(this));
     },

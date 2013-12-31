@@ -8,18 +8,18 @@
 
     function handleMessage(msg) {
       var method = msg.data.method;
-      var config = msg.data.config;
+      var options = msg.data.options;
 
       switch (method) {
         case 'search':
-          Evme.SearchClient.search(config).then(
+          Evme.Client.search(options).then(
             function resolve(searchResults) {
             searchPort.postMessage({ 'results': searchResults });
           });
           break;
 
         case 'suggest':
-          Evme.SearchClient.suggestions(config).then(
+          Evme.Client.suggestions(options).then(
             function resolve(searchSuggestions) {
             searchPort.postMessage({ 'suggestions': searchSuggestions });
           });

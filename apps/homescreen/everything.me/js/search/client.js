@@ -3,13 +3,53 @@
 
   var iconFormat = Evme.Utils.getIconsFormat();
 
-  function SearchClient() {
+  function SearchConfig(config) {
+    var _config = {
+      'exact': false,
+      'feature': '',
+      'first': 0,
+      'iconFormat': 10,
+      'limit': 10,
+      'maxNativeSuggestions': 0,
+      'nativeSuggestions': false,
+      'prevQuery': '',
+      'query': '',
+      'spellcheck': false,
+      'suggest': false
+    };
+
+    for (var key in config) {
+      if (config.hasOwnProperty(key)) {
+        _config[key] = config[key];
+      }
+    }
+
+    return _config;
+  }
+
+  function SuggestConfig(config) {
+    var _config = {
+      'query': '',
+      'limit': 10
+    };
+
+    for (var key in config) {
+      if (config.hasOwnProperty(key)) {
+        _config[key] = config[key];
+      }
+    }
+
+    return _config;
+  }
+
+  function Client() {
 
     // Search/apps
     this.search = function search(options) {
+      var config = new SearchConfig(options);
 
       var searchPromise = new window.Promise(function done(resolve, reject) {
-        Evme.DoATAPI.search(options, function success(apiData) {
+        Evme.DoATAPI.search(config, function success(apiData) {
           var response = apiData.response;
           var query = response.query;
           var apps = response.apps;
@@ -64,7 +104,7 @@
               return;
             }
 
-            Evme.SearchClient.requestIcons(ids).then(
+            Evme.Client.requestIcons(ids).then(
               function resolve(icons) {
                 resultsMissing.forEach(function addIcon(resultMissing) {
                   resultMissing.setIconData(icons[resultMissing.appId]);
@@ -87,10 +127,11 @@
 
     // Search/suggestions
     this.suggestions = function suggestions(options) {
+      var config = new SuggestConfig(options);
       var query = options.query;
 
       var suggestPromise = new window.Promise(function done(resolve, reject) {
-        Evme.DoATAPI.suggestions(options, function success(data) {
+        Evme.DoATAPI.suggestions(config, function success(data) {
           var items = data.response || [];
           if (items.length) {
             var suggestions = items.map(function each(item) {
@@ -128,8 +169,8 @@
     };
 
 
-  } // SearchClient
+  } // Client
 
-  Evme.SearchClient = new SearchClient();
+  Evme.Client = new Client();
 
 })();

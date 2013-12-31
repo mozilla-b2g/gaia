@@ -40,15 +40,13 @@
             break;
         }
 
-        var config = new eme.search.config({
-          'query': input,
-          'feature': searchFeature,
-          'exact': searchExact
-        });
-
         eme.port.postMessage({
           method: eme.api.search,
-          config: config
+          options: {
+            'query': input,
+            'feature': searchFeature,
+            'exact': searchExact
+          }
         });
       }.bind(this));
     },
