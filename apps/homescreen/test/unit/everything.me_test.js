@@ -40,7 +40,11 @@ suite('everything.me.js >', function() {
     wrapperNode.innerHTML = MockEverythingMeHtml;
     document.body.appendChild(wrapperNode);
 
-    EverythingME.init();
+    var config = {
+      'debug': false
+    };
+
+    EverythingME.init(config);
   });
 
   suiteTeardown(function() {

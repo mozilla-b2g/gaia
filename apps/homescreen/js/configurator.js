@@ -46,7 +46,7 @@ var Configurator = (function() {
       }
 
       if (searchPage && searchPage.enabled) {
-        provider.init();
+        provider.init(conf.search_page);
       }
     };
 
