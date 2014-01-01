@@ -127,6 +127,11 @@ suite('Contacts', function(done) {
                     ]);
                   }
 
+                  // Fake error
+                  if (filter.filterValue === 'callonerror') {
+                    return null;
+                  }
+
                   // All other cases
                   return MockContact.list();
                 }());
@@ -456,6 +461,13 @@ suite('Contacts', function(done) {
         assert.equal(
           mozContacts.mHistory[0].filter.filterValue, '+33123456789'
         );
+        done();
+      });
+    });
+
+    test('The mozContacts find() call returned an error', function(done) {
+      Contacts.findByPhoneNumber('callonerror', function(contacts) {
+        assert.equal(contacts.length, 0);
         done();
       });
     });
