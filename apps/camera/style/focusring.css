@@ -1,0 +1,29 @@
+
+.focus-ring {
+  position: absolute;
+  top: 50%; left: 50%;
+  z-index: 100;
+  width: 10rem;
+  height: 10rem;
+  margin-top: -7rem;
+  margin-left: -5rem;
+  border: solid 2px;
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: 0;
+  color: #fff;
+}
+
+.focus-ring[data-state=focused] {
+  opacity: 1;
+  color: green;
+}
+
+.focus-ring[data-state=focusing] {
+  opacity: 1;
+}
+
+.focus-ring[data-state=fail] {
+  opacity: 1;
+  color: red;
+}
