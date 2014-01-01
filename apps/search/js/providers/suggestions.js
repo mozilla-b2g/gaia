@@ -2,6 +2,15 @@
 
   'use strict';
 
+  var ANNOTATION_REGEX = /\[(.+?)\]/g;
+  function deannotate(match, p1) {
+    return p1;
+  };
+
+  function getSuggestionText(item) {
+    return item.replace(ANNOTATION_REGEX, deannotate);
+  };
+
   function Suggestions(eme) {
   }
 
@@ -13,7 +22,7 @@
 
     init: function(config) {
       Provider.prototype.init.apply(this, arguments);
-      eme.openPort();
+      eme.init();
     },
 
     click: function(e) {
@@ -25,44 +34,38 @@
 
     search: function(input, type) {
       this.clear();
+      var request = eme.api.Search.suggestions({
+        'query': input
+      });
 
-      setTimeout(function nextTick() {
-        eme.port.postMessage({
-          method: eme.API.SUGGEST,
-          input: input,
-          type: type
-        });
-      }.bind(this));
+      request.then((function success(data) {
+        var items = data.response;
+        if (items && items.length) {
+          this.render(input, items);
+        }
+      }).bind(this), function reject(reason) {
+        // handle errors
+      });
     },
 
-    onmessage: function(msg) {
-      var data = msg.data;
-      if (!data) {
-        return;
-      }
+    render: function(input, items) {
+      var ul = document.createElement('ul');
+      var results = [];
 
-      var suggestions = data.suggestions;
-      if (suggestions) {
-        var ul = document.createElement('ul');
-        var rendered = 0;
-
-        suggestions.forEach(function render(searchSuggestion) {
-          // The E.me API can return the query as a suggestion
-          // Filter out exact matches
-          if (searchSuggestion.text === searchSuggestion.query) {
-            return;
-          }
-
-          rendered++;
+      items.forEach(function each(item) {
+        var text = getSuggestionText(item);
+        // The E.me API can return the query as a suggestion
+        // Filter out exact matches
+        if (text !== input) {
           var li = document.createElement('li');
-          li.dataset.suggestion = li.textContent = searchSuggestion.text;
+          li.dataset.suggestion = li.textContent = text;
           ul.appendChild(li);
-        });
-
-        this.clear();
-        if (rendered) {
-          this.container.appendChild(ul);
         }
+      });
+
+      this.clear();
+      if (ul.childNodes.length) {
+        this.container.appendChild(ul);
       }
     }
 

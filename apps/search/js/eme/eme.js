@@ -1,28 +1,21 @@
 (function() {
   'use strict';
 
-  var API_METHODS = {
-    SEARCH: 'search',
-    SUGGEST: 'suggest'
-  };
-
   window.eme = {
-    API: API_METHODS,
-    port: null,
+    api: null,
+    homescreenPort: null,
 
-    openPort: function openPort() {
-      if (this.port) {
-        return;
-      }
-
-      var self = this;
-
+    // open an inter-app port with the homescreen/e.me instance
+    // then init search/e.me instance
+    // (we want the two instances to share basic information like apiKey)
+    init: function init() {
       navigator.mozApps.getSelf().onsuccess = function() {
         var app = this.result;
         app.connect('eme-api').then(
           function onConnectionAccepted(ports) {
             ports.forEach(function(port) {
-              self.port = port;
+              eme.homescreenPort = port;
+              eme.homescreenPort.postMessage({'action': 'init'});
             });
           },
           function onConnectionRejected(reason) {
@@ -30,7 +23,25 @@
           }
         );
       };
+
+      this.init = function noop() {
+        // avoid multiple init calls
+      };
+    },
+
+    onmessage: function onmessage(msg) {
+      var data = msg.data;
+      var action = data.action;
+
+      switch (action) {
+        case 'init':
+          eme.api.init({
+            'apiKey': data.apiKey
+          });
+          break;
+      }
     }
+
   };
 
 })();

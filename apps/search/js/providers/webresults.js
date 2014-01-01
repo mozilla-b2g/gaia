@@ -12,7 +12,7 @@
 
     init: function() {
       AppProvider.prototype.init.apply(this, arguments);
-      eme.openPort();
+      eme.init();
     },
 
     click: function(e) {
@@ -24,36 +24,27 @@
 
     search: function(input, type) {
       this.clear();
+      var request = eme.api.Apps.search({
+        'query': input
+      });
 
-      setTimeout(function nextTick() {
-        eme.port.postMessage({
-          method: eme.API.SEARCH,
-          input: input,
-          type: type
-        });
-      }.bind(this));
-    },
-
-    onmessage: function(msg) {
-      var data = msg.data;
-      if (!data) {
-        return;
-      }
-
-      var results = data.results;
-      if (results) {
-        var formatted = [];
-        results.forEach(function render(searchResult) {
-          formatted.push({
-            title: searchResult.title,
-            icon: searchResult.icon,
-            dataset: {
-              url: searchResult.url
-            }
+      request.then((function resolve(data) {
+        var response = data.response;
+        if (response && response.apps && response.apps.length) {
+          var results = response.apps.map(function each(app) {
+            return {
+              title: app.name,
+              icon: app.icon,
+              dataset: {
+                url: app.appUrl
+              }
+            };
           });
-        }, this);
-        this.render(formatted);
-      }
+          this.render(results);
+        }
+      }).bind(this), function reject(reason) {
+        // handle errors
+      });
     }
 
   };

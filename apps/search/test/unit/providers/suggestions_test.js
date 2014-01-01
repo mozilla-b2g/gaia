@@ -26,8 +26,8 @@ suite('search/providers/suggestions', function() {
   });
 
   suite('init', function() {
-    test('opens the eme port', function() {
-      var stub = this.sinon.stub(eme, 'openPort');
+    test('triggers eme init', function() {
+      var stub = this.sinon.stub(eme, 'init');
       subject.init();
       assert.ok(stub.calledOnce);
     });
@@ -48,10 +48,17 @@ suite('search/providers/suggestions', function() {
   });
 
   suite('search', function() {
+    function promise() {
+      return new Promise(function done() {});
+    }
 
     setup(function() {
-      eme.port = {
-        postMessage: function() {}
+      eme.api = {
+        Search: {
+          suggestions: function() {
+            return promise();
+          }
+        }
       };
     });
 
@@ -61,33 +68,21 @@ suite('search/providers/suggestions', function() {
       assert.ok(stub.calledOnce);
     });
 
-    test('eme port receives message', function() {
-      var stub = this.sinon.stub(eme.port, 'postMessage');
+    test('makes api call', function() {
+      var stub = this.sinon.stub(eme.api.Search, 'suggestions');
+      stub.returns(promise());
       subject.search();
-      clock.tick(1); // Next tick
-      assert.ok(stub.calledOnce);
-    });
-  });
-
-  suite('onmessage', function() {
-    test('clears if suggestions key present', function() {
-      var stub = this.sinon.stub(subject, 'clear');
-      subject.onmessage({data: {
-        suggestions: []
-      }});
       assert.ok(stub.calledOnce);
     });
 
-    test('does not clear if no suggestions', function() {
+    test('clears if new suggestions', function() {
       var stub = this.sinon.stub(subject, 'clear');
-      subject.onmessage({data: {}});
-      assert.ok(stub.notCalled);
+      subject.render('', []);
+      assert.ok(stub.calledOnce);
     });
 
     test('renders text in result', function() {
-      subject.onmessage({data: {
-        suggestions: [{text: 'mozilla'}]
-      }});
+      subject.render('moz', ['[moz]illa']);
       var container = subject.container;
       assert.notEqual(container.innerHTML.indexOf('mozilla'), -1);
     });

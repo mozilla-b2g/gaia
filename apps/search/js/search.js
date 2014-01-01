@@ -54,13 +54,7 @@
             var keyword = connectionRequest.keyword;
             var port = connectionRequest.port;
             if (keyword === 'eme-client') {
-              var SuggestionsProvider = self.providers.Suggestions;
-              var WebResultsProvider = self.providers.WebResults;
-
-              port.onmessage = function onmessage(msg) {
-                SuggestionsProvider.onmessage.call(SuggestionsProvider, msg);
-                WebResultsProvider.onmessage.call(WebResultsProvider, msg);
-              };
+              port.onmessage = window.eme.onmessage;
               port.start();
             } else if (keyword === 'search') {
               port.onmessage = self.onSearchInput.bind(self);

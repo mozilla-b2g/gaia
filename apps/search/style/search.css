@@ -82,3 +82,7 @@ section.apps img {
   pointer-events: none;
   width: 2.75rem;
 }
+
+div[data-provider="WebResults"] > img {
+  border-radius: 50%;
+}
