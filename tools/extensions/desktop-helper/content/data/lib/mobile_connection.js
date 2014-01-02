@@ -24,7 +24,9 @@
 
   function fakeEventListener(type, callback, bubble) {
     if (initialized) {
-      setTimeout(callback.bind(this, { iccId: this.iccId }));
+      if (typeof callback === 'function') {
+        setTimeout(callback.bind(this, { iccId: this.iccId }));
+      }
       return;
     }
 
@@ -45,6 +47,12 @@
     getCallForwardingOption: FFOS_RUNTIME.domRequest(1),
     setCallWaitingOption: FFOS_RUNTIME.domRequest(),
     getCallingLineIdRestriction: FFOS_RUNTIME.domRequest(),
+    setVoicePrivacyMode: FFOS_RUNTIME.domRequest(),
+    getVoicePrivacyMode: FFOS_RUNTIME.domRequest(),
+    setRadioEnabled: FFOS_RUNTIME.domRequest(),
+    getRadioEnabled: FFOS_RUNTIME.domRequest(),
+    getPreferredNetworkType:  FFOS_RUNTIME.domRequest(),
+    setPreferredNetworkType:  FFOS_RUNTIME.domRequest(),
     get data() {
       return initialized ? { network: fakeNetwork } : null;
     },
@@ -62,6 +70,12 @@
       getCallForwardingOption: FFOS_RUNTIME.domRequest(1),
       setCallWaitingOption: FFOS_RUNTIME.domRequest(),
       getCallingLineIdRestriction: FFOS_RUNTIME.domRequest(),
+      setVoicePrivacyMode: FFOS_RUNTIME.domRequest(),
+      getVoicePrivacyMode: FFOS_RUNTIME.domRequest(),
+      setRadioEnabled: FFOS_RUNTIME.domRequest(),
+      getRadioEnabled: FFOS_RUNTIME.domRequest(),
+      getPreferredNetworkType:  FFOS_RUNTIME.domRequest(),
+      setPreferredNetworkType:  FFOS_RUNTIME.domRequest(),
       get data() {
         return initialized ? { network: fakeNetwork2 } : null;
       },
