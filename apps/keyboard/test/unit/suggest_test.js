@@ -7,18 +7,24 @@ suite('Latin suggestions', function() {
   var im, workers = [], imSettings;
   var _windowWorker;
 
+  function queue(q, n) {
+    q.length ? q.shift()(queue.bind(this, q, n)) : n();
+  }
+
   setup(function() {
     // This is the input method object we're testing
     im = InputMethods.latin;
 
     imSettings = {
       resetUpperCase: sinon.stub(),
-      sendKey: sinon.stub(),
+      sendKey: sinon.stub().returns(
+        new Promise(function(res, rej) { res(); })),
       sendString: sinon.stub(),
       sendCandidates: sinon.stub(),
       setUpperCase: sinon.stub(),
       setLayoutPage: sinon.stub(),
-      replaceSurroundingText: sinon.stub()
+      replaceSurroundingText: sinon.stub().returns(
+        new Promise(function(res, rej) { res(); }))
     };
     im.init(imSettings);
 
@@ -176,7 +182,7 @@ suite('Latin suggestions', function() {
                             ['*won\'t', 'won', 'went']);
   });
 
-  test('Space to accept suggestion', function() {
+  test('Space to accept suggestion', function(next) {
     setState('jan');
 
     workers[0].onmessage({
@@ -191,33 +197,39 @@ suite('Latin suggestions', function() {
       }
     });
 
-    im.click(KeyEvent.DOM_VK_SPACE);
+    im.click(KeyEvent.DOM_VK_SPACE).then(function() {
+      sinon.assert.callCount(imSettings.replaceSurroundingText, 1);
+      sinon.assert.calledWith(imSettings.replaceSurroundingText, 'Jan', 3, 0);
+      sinon.assert.calledWith(imSettings.sendKey, KeyEvent.DOM_VK_SPACE);
 
-    sinon.assert.callCount(imSettings.replaceSurroundingText, 1);
-    sinon.assert.calledWith(imSettings.replaceSurroundingText, 'Jan ', 3, 0);
+      next();
+    });
   });
 
-  test('Should communicate updated text to worker', function() {
+  test('Should communicate updated text to worker', function(next) {
     setState('');
 
     workers[0].postMessage = sinon.stub();
 
-    im.click('p'.charCodeAt(0));
-    sinon.assert.calledWith(workers[0].postMessage,
-                            { args: ['p'], cmd: 'predict' });
+    function clickAndAssert(key, assertion, callback) {
+      im.click(key.charCodeAt(0)).then(function() {
+        sinon.assert.calledWith(workers[0].postMessage,
+                        { args: [assertion], cmd: 'predict' });
+        callback();
+      });
+    }
 
-    im.click('a'.charCodeAt(0));
-    sinon.assert.calledWith(workers[0].postMessage,
-                            { args: ['pa'], cmd: 'predict' });
-
-    im.click('i'.charCodeAt(0));
-    sinon.assert.calledWith(workers[0].postMessage,
-                            { args: ['pai'], cmd: 'predict' });
-
-    sinon.assert.callCount(workers[0].postMessage, 3);
+    queue([
+      clickAndAssert.bind(null, 'p', 'p'),
+      clickAndAssert.bind(null, 'a', 'pa'),
+      clickAndAssert.bind(null, 'i', 'pai')
+    ], function() {
+      sinon.assert.callCount(workers[0].postMessage, 3);
+      next();
+    });
   });
 
-  test('Two spaces after suggestion should autopunctuate', function() {
+  test('Two spaces after suggestion should autopunctuate', function(next) {
     setState('jan');
 
     workers[0].onmessage({
@@ -232,16 +244,19 @@ suite('Latin suggestions', function() {
       }
     });
 
-    im.click(KeyEvent.DOM_VK_SPACE);
-    im.click(KeyEvent.DOM_VK_SPACE);
+    im.click(KeyEvent.DOM_VK_SPACE).then(function() {
+      return im.click(KeyEvent.DOM_VK_SPACE);
+    }).then(function() {
+      sinon.assert.callCount(imSettings.replaceSurroundingText, 1);
+      sinon.assert.calledWith(imSettings.replaceSurroundingText, 'Jan', 3, 0);
 
-    sinon.assert.callCount(imSettings.replaceSurroundingText, 1);
-    sinon.assert.calledWith(imSettings.replaceSurroundingText, 'Jan ', 3, 0);
-
-    sinon.assert.callCount(imSettings.sendKey, 3);
-    assert.equal(imSettings.sendKey.args[0][0], 8); // backspace
-    assert.equal(imSettings.sendKey.args[1][0], '.'.charCodeAt(0));
-    assert.equal(imSettings.sendKey.args[2][0], ' '.charCodeAt(0));
+      sinon.assert.callCount(imSettings.sendKey, 4);
+      assert.equal(imSettings.sendKey.args[0][0], KeyEvent.DOM_VK_SPACE);
+      assert.equal(imSettings.sendKey.args[1][0], KeyEvent.DOM_VK_BACK_SPACE);
+      assert.equal(imSettings.sendKey.args[2][0], '.'.charCodeAt(0));
+      assert.equal(imSettings.sendKey.args[3][0], ' '.charCodeAt(0));
+      next();
+    });
   });
 
   test('dismissSuggestions hides suggestions and inserts space', function() {

@@ -1613,13 +1613,13 @@ function sendKey(keyCode) {
   case KeyEvent.DOM_VK_BACK_SPACE:
   case KeyEvent.DOM_VK_RETURN:
     if (inputContext) {
-      inputContext.sendKey(keyCode, 0, 0);
+      return inputContext.sendKey(keyCode, 0, 0);
     }
     break;
 
   default:
     if (inputContext) {
-      inputContext.sendKey(0, keyCode, 0);
+      return inputContext.sendKey(0, keyCode, 0);
     }
     break;
   }
@@ -1627,9 +1627,10 @@ function sendKey(keyCode) {
 
 function replaceSurroundingText(text, offset, length) {
   if (inputContext) {
-    inputContext.replaceSurroundingText(text, offset, length);
+    return inputContext.replaceSurroundingText(text, offset, length);
   } else {
     console.warn('no inputContext for replaceSurroudingText');
+    return new Promise(function(res, rej) { rej(); });
   }
 }
 
