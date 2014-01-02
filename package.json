@@ -28,6 +28,8 @@
     "proxyquire": "~0.4",
     "rimraf": "2.2.5",
     "download": "0.1.7",
-    "async": "0.2.9"
+    "async": "0.2.9",
+    "adm-zip": "0.4.3",
+    "dive": "0.3.0"
   }
 }
