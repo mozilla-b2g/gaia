@@ -13,7 +13,6 @@ suite('GestureDetector', function() {
       assert.typeOf(gd.stopDetecting, 'function');
       assert.isNumber(GestureDetector.HOLD_INTERVAL);
       assert.isNumber(GestureDetector.PAN_THRESHOLD);
-      assert.isNumber(GestureDetector.MOUSE_PAN_THRESHOLD);
       assert.isNumber(GestureDetector.DOUBLE_TAP_DISTANCE);
       assert.isNumber(GestureDetector.DOUBLE_TAP_TIME);
       assert.isNumber(GestureDetector.VELOCITY_SMOOTHING);
@@ -64,29 +63,8 @@ suite('GestureDetector', function() {
       }, 100, 200);
     });
 
-    test('mousetap', function(done) {
-      SyntheticGestures.mousetap(element, function() {
-        done(function() {
-          assert.length(events, 1);
-          assert.equal(events[0].type, 'tap');
-          assert.equal(events[0].detail.clientX, 100);
-          assert.equal(events[0].detail.clientY, 200);
-        });
-      }, 100, 200);
-    });
-
     test('dbltap', function(done) {
       SyntheticGestures.dbltap(element, function() {
-        done(function() {
-          assert.equal(eventseq(), 'tap tap dbltap');
-          assert.equal(events[2].detail.clientX, 100);
-          assert.equal(events[2].detail.clientY, 200);
-        });
-      }, 100, 200);
-    });
-
-    test('mousedbltap', function(done) {
-      SyntheticGestures.mousedbltap(element, function() {
         done(function() {
           assert.equal(eventseq(), 'tap tap dbltap');
           assert.equal(events[2].detail.clientX, 100);
@@ -318,8 +296,8 @@ suite('GestureDetector', function() {
 
     // Reuse the swipes data for testing hold+move events
     swipes.forEach(function(s) {
-      test('mousehold ' + s.name, function(done) {
-        SyntheticGestures.mousehold(element, 1250, s.x0, s.y0, s.x1, s.y1,
+      test('hold ' + s.name, function(done) {
+        SyntheticGestures.hold(element, 1250, s.x0, s.y0, s.x1, s.y1,
                                     100, checkhold);
         function checkhold() {
           done(function() {
