@@ -2,6 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+import time
+
 from marionette import By
 
 from gaiatest import GaiaTestCase
@@ -19,6 +21,9 @@ class TestGeolocationPrompt(GaiaTestCase):
     def test_geolocation_prompt(self):
 
         self.app = self.apps.launch('Geoloc')
+
+        # Quick fix to resolve intermittency - TODO remove this with bug 952292
+        time.sleep(2)
         self.marionette.find_element(*self._geoloc_start_button_locator).tap()
 
         permission = PermissionDialog(self.marionette)
