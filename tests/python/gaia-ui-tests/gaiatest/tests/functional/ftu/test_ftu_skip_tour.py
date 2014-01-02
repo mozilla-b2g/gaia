@@ -7,6 +7,7 @@ import re
 from marionette.by import By
 
 from gaiatest import GaiaTestCase
+from gaiatest.apps.keyboard.app import Keyboard
 
 
 class TestFtu(GaiaTestCase):
@@ -134,6 +135,9 @@ class TestFtu(GaiaTestCase):
             self.wait_for_element_displayed(*self._password_input_locator)
             password = self.marionette.find_element(*self._password_input_locator)
             password.send_keys(self.testvars['wifi'].get('psk') or self.testvars['wifi'].get('wep'))
+
+            # Wait for Keyboard app init and be displayed
+            self.wait_for_condition(lambda m: Keyboard(self.marionette).is_displayed())
             self.marionette.find_element(*self._join_network_locator).tap()
 
         self.wait_for_condition(
