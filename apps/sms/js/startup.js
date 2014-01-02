@@ -93,19 +93,17 @@ window.addEventListener('load', function() {
     Settings.init();
   }
 
-  navigator.mozL10n.ready(function waitLocalizedForLoading() {
-    LazyLoader.load(lazyLoadFiles, function() {
-      if (!navigator.mozMobileMessage) {
-        var mocks = [
-          'js/desktop-only/mobilemessage.js',
-          'js/desktop-only/contacts.js'
-        ];
-        LazyLoader.load(mocks, function() {
-          MessageManager.init(initUIApp);
-        });
-        return;
-      }
-      MessageManager.init(initUIApp);
-    });
+  LazyLoader.load(lazyLoadFiles, function() {
+    if (!navigator.mozMobileMessage) {
+      var mocks = [
+        'js/desktop-only/mobilemessage.js',
+        'js/desktop-only/contacts.js'
+      ];
+      LazyLoader.load(mocks, function() {
+        MessageManager.init(initUIApp);
+      });
+      return;
+    }
+    MessageManager.init(initUIApp);
   });
 });
