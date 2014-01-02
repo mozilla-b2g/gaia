@@ -124,6 +124,7 @@ var Predictions = function() {
   const insertionMultiplier = .3;
   const substitutionMultiplier = .2;          // for keys that are not nearby
   const deletionMultiplier = .1;
+  const exactMatchMultiplier = .3;
   // profane words don't have a frequency themselves, so we bump their
   // frequency to a value which will make it pop up (only do if matches input)
   // 15 is a value that still allows very obvious corrections to be made
@@ -609,7 +610,17 @@ var Predictions = function() {
 
         // How common is the most common word under this node?
         var frequency = node.freq;
-        var weight = frequency * multiplier;
+        var weight;
+        if (corrections === 0) {
+          // For exact matches we want to boost their multiplier a bit
+          // to avoid dropping common words that have a super frequent
+          // alternative one key away (e.g. foe/for).
+          var boost = (multiplier + (exactMatchMultiplier * (frequency / 32)));
+          weight = frequency * boost;
+        }
+        else {
+          weight = frequency * multiplier;
+        }
 
         // If this node does not have a high enough weight to make it into
         // the list of candidates, we don't need to continue. None of the
