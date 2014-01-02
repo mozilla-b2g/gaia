@@ -1,42 +1,8 @@
 'use strict';
 
 var utils = require('./utils');
-var config;
-const { Cc, Ci, Cr, Cu, CC} = require('chrome');
-Cu.import('resource://gre/modules/Services.jsm');
-let settings;
 
-function readFileAsDataURL(file, mimetype, callback) {
-  let XMLHttpRequest = CC('@mozilla.org/xmlextras/xmlhttprequest;1');
-  let req = new XMLHttpRequest();
-  let url = Services.io.newFileURI(file).spec;
-  req.open('GET', url, false);
-  req.responseType = 'blob';
-
-  try {
-    req.send(null);
-  } catch (e) {
-    dump('XMLHttpRequest.send error: ' + e + '\n');
-  }
-
-  // Convert the blob to a base64 encoded data URI
-  let FileReader = CC('@mozilla.org/files/filereader;1');
-  let reader = new FileReader();
-  reader.onload = function() {
-    let dataURL = reader.result;
-    // There is a bug in XMLHttpRequest and file:// URL,
-    // the mimetype ends up always being application/xml...
-    dataURL = dataURL.replace('application/xml', mimetype);
-    callback(dataURL);
-  };
-  reader.onerror = function() {
-    dump('Unable to read file as data URL: ' + reader.error.name + '\n' +
-         reader.error + '\n');
-  };
-  reader.readAsDataURL(req.response);
-}
-
-function setWallpaper(callback) {
+function setWallpaper(settings, config) {
   // Grab the default wallpaper and convert it into a base64 string
   let devpixels = '';
   if (config.GAIA_DEV_PIXELS_PER_PX != '1') {
@@ -62,38 +28,29 @@ function setWallpaper(callback) {
     wallpaper = utils.resolve('build/wallpaper.jpg',
       config.GAIA_DIR);
   }
-
-  readFileAsDataURL(wallpaper, 'image/jpeg', function(dataURL) {
-    settings['wallpaper.image'] = dataURL;
-    callback();
-  });
+  settings['wallpaper.image'] = utils.getFileAsDataURI(wallpaper);
 }
 
-function setRingtone(callback) {
+function setRingtone(settings, config) {
   // Grab ringer_classic_courier.opus and convert it into a base64 string
   let ringtone_name = 'shared/resources/media/ringtones/' +
     'ringer_classic_courier.opus';
   let ringtone = utils.resolve(ringtone_name,
     config.GAIA_DIR);
-  readFileAsDataURL(ringtone, 'audio/ogg', function(dataURL) {
-    settings['dialer.ringtone'] = dataURL;
-    callback();
-  });
+
+  settings['dialer.ringtone'] = utils.getFileAsDataURI(ringtone);
 }
 
-function setNotification(callback) {
+function setNotification(settings, config) {
   // Grab notifier_bell.opus and convert it into a base64 string
   let notification_name = 'shared/resources/media/notifications/' +
     'notifier_bell.opus';
   let notification = utils.resolve(notification_name,
     config.GAIA_DIR);
-  readFileAsDataURL(notification, 'audio/ogg', function(dataURL) {
-    settings['notification.ringtone'] = dataURL;
-    callback();
-  });
+  settings['notification.ringtone'] = utils.getFileAsDataURI(notification);
 }
 
-function overrideSettings() {
+function overrideSettings(settings, config) {
   // See if any override file exists and eventually override settings
   let override = utils.resolve(config.SETTINGS_PATH,
     config.GAIA_DIR);
@@ -105,15 +62,14 @@ function overrideSettings() {
   }
 }
 
-function writeSettings() {
+function writeSettings(settings, config) {
   // Finally write the settings file
   let settingsFile = utils.getFile(config.PROFILE_DIR, 'settings.json');
   let content = JSON.stringify(settings);
   utils.writeContent(settingsFile, content + '\n');
 }
 
-function execute(options) {
-  config = options;
+function execute(config) {
   var settingsFile = utils.getFile(config.GAIA_DIR, 'build',
     'common-settings.json');
 
@@ -121,7 +77,7 @@ function execute(options) {
     throw new Error('file not found: ' + settingsFile.path);
   }
 
-  settings = utils.getJSON(settingsFile);
+  var settings = utils.getJSON(settingsFile);
 
   if (config.TARGET_BUILD_VARIANT != 'user') {
     // We want the console to be disabled for device builds using the user variant.
@@ -165,24 +121,20 @@ function execute(options) {
     settings['lockscreen.locked'] = false;
   }
 
-
-
   // Run all asynchronous code before overwriting and writing settings file
-  let done = false;
-  setWallpaper(function() {
-    setRingtone(function() {
-      setNotification(function() {
-        overrideSettings();
-        writeSettings();
-        done = true;
-      });
-    });
-  });
+  setWallpaper(settings, config);
+  setRingtone(settings, config);
+  setNotification(settings, config);
+  overrideSettings(settings, config);
+  writeSettings(settings, config);
 
   // Ensure not quitting xpcshell before all asynchronous code is done
-  let thread = Services.tm.currentThread;
-  while (thread.hasPendingEvents() || !done) {
-    thread.processNextEvent(true);
-  }
+  utils.processEvents(function(){return {wait : false}});
+  return settings
 }
 exports.execute = execute;
+exports.setWallpaper = setWallpaper;
+exports.setRingtone = setRingtone;
+exports.setNotification = setNotification;
+exports.overrideSettings = overrideSettings;
+exports.writeSettings = writeSettings;
