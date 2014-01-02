@@ -1,7 +1,7 @@
 var assert = require('chai').assert;
 var proxyquire = require('proxyquire');
 var mockUtils =
-	require('./mock_utils.js')
+	require('./mock_utils.js');
 var mockWebappManifests =
 	require('./mock_webapp_manifests.js');
 
@@ -43,6 +43,7 @@ suite('applications-data', function() {
 			assert.deepEqual(result, {
 				search_page: {
 					provider: 'EverythingME',
+					debug: false,
 	      	separate_page: false,
 			    enabled: config.search_page.enabled
 			  },
@@ -72,6 +73,7 @@ suite('applications-data', function() {
 			assert.deepEqual(result, {
 				search_page: {
 					provider: 'EverythingME',
+					debug: false,
 	      	separate_page: false,
 			    enabled: config.search_page.enabled
 			  },

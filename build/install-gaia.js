@@ -4,11 +4,7 @@ var utils = require('./utils');
 var adb = new utils.Commander('adb');
 var sh = new utils.Commander('sh');
 
-var gaiaDir;
-var remotePath;
-var profileFolder;
-
-function installGaia() {
+function installGaia(profileFolder, remotePath) {
 	var webapps_path = remotePath + '/webapps';
 	adb.run(['shell', 'rm', '-r', webapps_path]);
 	adb.run(['shell', 'rm', '/data/local/user.js']);
@@ -23,9 +19,9 @@ function installGaia() {
 	return true;
 }
 
-function getPid(appName) {
-	var tempFileName =
-		'tmpFile' + Math.random().toString(36).substring(7);
+function getPid(appName, gaiaDir) {
+	var tempFileName = 'tmpFile';
+	sh.run(['-c', 'rm ' + tempFileName]);
 	sh.run(['-c', 'adb shell b2g-ps > ' + tempFileName]);
 	var tempFile = utils.getFile(utils.joinPath(gaiaDir, tempFileName));
 	var content = utils.getFileContent(tempFile);
@@ -34,26 +30,30 @@ function getPid(appName) {
 	return pidMap[appName] ? pidMap[appName].PID : null;
 }
 
+function installSvoperapps(profileFolder) {
+	var svoperappsUrl = '/data/local/svoperapps';
+	adb.run(['shell', 'rm -r ' + svoperappsUrl]);
+	adb.run(['push', utils.joinPath(profileFolder, 'svoperapps'),
+		svoperappsUrl])
+}
+
 function execute(options) {
 	const paths = utils.getEnvPath();
-	const gaiaInstallParent = options.GAIA_INSTALL_PARENT;
 	const buildAppName = options.BUILD_APP_NAME;
-
-	remotePath = gaiaInstallParent || '/system/b2g';
+	const gaiaDir = options.GAIA_DIR;
+	const profileFolder = options.PROFILE_DIR;
+	const gaiaDomain = options.GAIA_DOMAIN;
+	const remotePath = options.GAIA_INSTALL_PARENT || '/system/b2g';
 
 	adb.initPath(paths);
 	sh.initPath(paths);
 
-	gaiaDir = options.GAIA_DIR;
-
 	adb.run(['start-server']);
 
-	var profile = utils.getFile(options.PROFILE_DIR);
-	if (profile.isDirectory()) {
-		profileFolder = options.PROFILE_DIR;
-	} else {
+	var profile = utils.getFile(profileFolder);
+	if (!profile.isDirectory()) {
 		throw new Error(' -*- build/install-gaia.js: cannot locate' +
-										'profile folder in ' + options.PROFILE_FOLDER);
+										'profile folder in ' + options.PROFILE_DIR);
 	}
 
 	if (buildAppName === '*' || buildAppName === 'system') {
@@ -63,26 +63,23 @@ function execute(options) {
 	adb.run(['shell','rm -r /cache/*']);
 
 	if (buildAppName === '*') {
-		installGaia();
+		installGaia(profileFolder, remotePath);
 	} else {
 		var targetFolder = utils.joinPath(
 					profileFolder, 'webapps',
-					buildAppName + '.' + options.GAIA_DOMAIN);
+					buildAppName + '.' + gaiaDomain);
 		adb.run(['push',
 			utils.joinPath(targetFolder, 'manifest.webapp'),
 			remotePath + '/webapps/' + buildAppName + '.' +
-			options.GAIA_DOMAIN + '/manifest.webapp']);
+			gaiaDomain + '/manifest.webapp']);
 		adb.run(['push',
 			utils.joinPath(targetFolder, 'application.zip'),
 			remotePath + '/webapps/' + buildAppName + '.' +
-			options.GAIA_DOMAIN + '/application.zip']);
+			gaiaDomain + '/application.zip']);
 	}
 
 	if (options.VARIANT_PATH) {
-		var svoperappsUrl = '/data/local/svoperapps';
-		adb.run(['shell', 'rm -r ' + svoperappsUrl]);
-		adb.run(['push', utils.joinPath(profileFolder, 'svoperapps'),
-			svoperappsUrl])
+		installSvoperapps(profileFolder);
 	}
 
 	if (buildAppName === '*' || buildAppName === 'system') {
@@ -100,3 +97,6 @@ function execute(options) {
 }
 
 exports.execute = execute;
+exports.getPid = getPid;
+exports.installSvoperapps = installSvoperapps;
+exports.installGaia = installGaia;
