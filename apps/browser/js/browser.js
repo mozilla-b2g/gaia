@@ -49,13 +49,28 @@ var Browser = {
   waitingActivities: [],
   hasLoaded: false,
 
+  nfc_state: 0,
+  DISCOVER: 1,
+  LOST: 0,
+
   // store the current scroll position, so we can re-calculate whether
   // we need to show the addressbar when loading the page is complete
   lastScrollOffset: 0,
 
   init: function browser_init() {
     this.getAllElements();
+    if (window.navigator.mozNfc) {
+      window.navigator.mozNfc.onpeerready = this.nfcURIPeerHandler;
 
+      window.navigator.mozSetMessageHandler(
+      'nfc-manager-tech-discovered',
+      this.handleTechnologyDiscovered.bind(this));
+
+      window.navigator.mozSetMessageHandler(
+      'nfc-manager-tech-lost',
+      this.handleTechLost.bind(this));
+
+    }
     // Add event listeners
     this.urlBar.addEventListener('submit', this.handleUrlFormSubmit.bind(this));
     this.urlInput.addEventListener('focus', this.urlFocus.bind(this));
@@ -579,10 +594,56 @@ var Browser = {
     }
   },
 
+  handleTechnologyDiscovered: function browser_handleTechnologyDiscovered(command) {
+    this.nfc_state = this.DISCOVER;
+  },
+
+  handleTechLost: function browser_handleTechnologyDiscovered(command) {
+    this.nfc_state = this.LOST;
+  },
+
+  nfcURIPeerHandler:  function browser_nfcURIPeerHandler (event) {
+    var tnf_well_known =  0x01;
+    var rtd_uri ='U';
+    var id = 0;
+    var urlPayload;
+    var records = [];
+    var res;
+
+    urlPayload = Browser.currentTab.url;
+
+    if (!urlPayload)
+      return null;
+
+    var record = NfcURI.createUriNdefRecord(urlPayload,true,tnf_well_known,rtd_uri,id);
+
+    if (!record)
+      return null;
+
+    records.push(record);
+    res = NfcURI.sendNdefRecords(records,event);
+
+    if (!res)
+      debug('URL transfer failed');
+
+  },
+
+
   handleVisibilityChange: function browser_handleVisibilityChange() {
     if (!document.hidden && this.currentTab.crashed)
       this.reviveCrashedTab(this.currentTab);
 
+    if (!document.hidden) {
+      if (window.navigator.mozNfc) {
+        window.navigator.mozNfc.onpeerready = this.nfcURIPeerHandler;
+	}
+      }
+    else
+      {
+      if (window.navigator.mozNfc && window.navigator.mozNfc.onpeerready && (!this.nfc_state) ) {
+        window.navigator.mozNfc.onpeerready = null;
+        }
+      }
     // Bug 845661 - Attention screen does not appears when
     // the url bar input is focused.
     if (document.hidden) {
