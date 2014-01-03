@@ -39,6 +39,7 @@ var ConfigManager = (function() {
     },
     'lastTelephonyReset': today,
     'lastDataReset': today,
+    'lastCompleteDataReset': today,
     'lowLimit': false,
     'lowLimitThreshold': false,
     'lowLimitNotified': false,
