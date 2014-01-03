@@ -7,8 +7,20 @@ section[role="region"] > header:first-child {
   padding: 0;
   height: 5rem;
   color: #fff;
-  background-color: #F97C17;
+  background: linear-gradient(to bottom, #cd6723 0%, #bb482d 100%);
   border: none;
+}
+
+section[role="region"] > header:first-child:after {
+  content: "";
+  display: block;
+  height: 0.3rem;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.4) 0%,rgba(0,0,0,0) 100%);
+  background-size: auto 100%;
 }
 
 section[role="region"] > header:first-child h1 {
