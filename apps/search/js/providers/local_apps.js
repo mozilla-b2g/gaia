@@ -20,11 +20,11 @@
     click: function(e) {
       var target = e.target;
 
-      var manifestURL = target.getAttribute('data-manifest');
+      var manifestURL = target.dataset.manifest;
       if (manifestURL && this.apps[manifestURL]) {
         Search.close();
         this.apps[manifestURL].launch(
-          target.getAttribute('data-entry-point')
+          target.dataset.entryPoint
         );
       }
     },
