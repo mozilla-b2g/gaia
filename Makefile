@@ -953,7 +953,7 @@ endif
 
 # clean out build products
 clean:
-	rm -rf profile profile-debug profile-test $(PROFILE_FOLDER) $(STAGE_FOLDER)
+	rm -rf profile profile-debug profile-test $(PROFILE_FOLDER) $(STAGE_FOLDER) docs
 
 # clean out build products and tools
 really-clean: clean
@@ -971,3 +971,6 @@ build-test-unit: $(NPM_INSTALLED_PROGRAMS)
 
 build-test-integration: $(NPM_INSTALLED_PROGRAMS)
 	@$(call run-build-test, $(shell find build/test/integration/*.test.js))
+
+docs: $(NPM_INSTALLED_PROGRAMS)
+	grunt docs
