@@ -4725,6 +4725,19 @@ exports.POP3_SAVE_STATE_EVERY_N_MESSAGES = 50;
  */
 exports.POP3_MAX_MESSAGES_PER_SYNC = 100;
 
+
+/**
+ * If a message is larger than INFER_ATTACHMENTS_SIZE bytes, guess
+ * that it has an attachment.
+ */
+exports.POP3_INFER_ATTACHMENTS_SIZE = 512 * 1024;
+
+
+/**
+ * Attempt to fetch this many bytes of messages during snippet fetching.
+ */
+exports.POP3_SNIPPET_SIZE_GOAL = 4 * 1024; // in bytes
+
 ////////////////////////////////////////////////////////////////////////////////
 // General Sync Constants
 
@@ -10975,7 +10988,19 @@ exports.do_downloadBodyReps = function(op, callback) {
       return;
     }
 
-    folderConn.downloadBodyReps(header, onDownloadReps);
+    // Check to see if we've already downloaded the bodyReps for this
+    // message. If so, no need to even try to fetch them again. This
+    // allows us to enforce an idempotency guarantee regarding how
+    // many times body change notifications will be fired.
+    folderStorage.getMessageBody(header.suid, header.date,
+                                         function(body) {
+      if (!body.bodyReps.every(function(rep) { return rep.isDownloaded; })) {
+        folderConn.downloadBodyReps(header, onDownloadReps);
+      } else {
+        // passing flushed = true because we don't need to save anything
+        onDownloadReps(null, body, /* flushed = */ true);
+      }
+    });
   };
 
   var onDownloadReps = function onDownloadReps(err, bodyInfo, flushed) {

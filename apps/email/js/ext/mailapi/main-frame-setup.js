@@ -1216,8 +1216,14 @@ MailHeader.prototype = {
   },
 
   /**
-   * Request the `MailBody` instance for this message, passing it to the
-   * provided callback function once retrieved.
+   * Request the `MailBody` instance for this message, passing it to
+   * the provided callback function once retrieved. If you request the
+   * bodyReps as part of this call, the backend guarantees that it
+   * will only call the "onchange" notification when the body has
+   * actually changed. In other words, if you end up calling getBody()
+   * multiple times for some reason, the backend will be smart about
+   * only fetching the bodyReps the first time and generating change
+   * notifications as one would expect.
    *
    * @args[
    *   @param[options @dict[
