@@ -114,7 +114,7 @@ var Widget = (function() {
     ConfigManager.observe('lastBalance', onBalance, true);
     ConfigManager.observe('waitingForBalance', onErrors, true);
     ConfigManager.observe('errors', onErrors, true);
-    ConfigManager.observe('lastDataReset', onReset, true);
+    ConfigManager.observe('lastCompleteDataReset', onReset, true);
     ConfigManager.observe('lastTelephonyReset', onReset, true);
 
     // Subviews

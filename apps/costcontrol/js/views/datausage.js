@@ -60,7 +60,7 @@ var DataUsageTab = (function() {
       // Setup the model
       ConfigManager.requestSettings(function _onSettings(settings) {
         debug('First time setup for model');
-        var lastDataReset = settings.lastDataReset;
+        var lastCompleteDataReset = settings.lastCompleteDataReset;
         var nextReset = settings.nextReset;
         model = {
           height: toDevicePixels(graphicArea.clientHeight),
@@ -92,7 +92,8 @@ var DataUsageTab = (function() {
         };
         ConfigManager.observe('dataLimit', toggleDataLimit, true);
         ConfigManager.observe('dataLimitValue', setDataLimit, true);
-        ConfigManager.observe('lastDataReset', changeLastReset, true);
+        ConfigManager.observe('lastCompleteDataReset', updateDataUsage, true);
+        ConfigManager.observe('lastDataReset', updateDataUsage, true);
         ConfigManager.observe('nextReset', changeNextReset, true);
 
         initialized = true;
@@ -120,7 +121,8 @@ var DataUsageTab = (function() {
     mobileToggle.removeEventListener('click', toggleMobile);
     ConfigManager.removeObserver('dataLimit', toggleDataLimit);
     ConfigManager.removeObserver('dataLimitValue', setDataLimit);
-    ConfigManager.removeObserver('lastDataReset', changeLastReset);
+    ConfigManager.removeObserver('lastCompleteDataReset', updateDataUsage);
+    ConfigManager.removeObserver('lastDataReset', updateDataUsage);
     ConfigManager.removeObserver('nextReset', changeNextReset);
 
     initialized = false;
@@ -213,7 +215,7 @@ var DataUsageTab = (function() {
     updateUI();
   }
 
-  function changeLastReset(value) {
+  function updateDataUsage(value) {
     requestDataUsage();
   }
 
@@ -231,7 +233,7 @@ var DataUsageTab = (function() {
       return new Date(nextReset.getTime() - DAY);
     }
 
-    var lastReset = settings.lastDataReset;
+    var lastReset = settings.lastCompleteDataReset;
     var offset = today.getTime() - lastReset.getTime();
     var upperDate = new Date(lastReset.getTime() + NEVER_PERIOD);
     if (offset >= NEVER_ANCHOR) {
@@ -263,7 +265,7 @@ var DataUsageTab = (function() {
       lowerDate.setYear(newYear);
 
     } else {
-      var lastReset = lowerDate = settings.lastDataReset;
+      var lastReset = lowerDate = settings.lastCompleteDataReset;
       var offset = today.getTime() - lastReset.getTime();
       if (offset >= NEVER_ANCHOR) {
         lowerDate = new Date(today.getTime() - NEVER_ANCHOR);
