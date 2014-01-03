@@ -89,7 +89,7 @@ function execute(options) {
 		// ex. sms -> Messages
 		var manifest = utils.readZipManifest(utils.getFile(
 										targetFolder));
-		var appPid = getPid(manifest.name);
+		var appPid = getPid(manifest.name, gaiaDir);
 		if (appPid) {
 			adb.run(['shell', 'kill', appPid]);
 		}
