@@ -6785,10 +6785,11 @@ return {
 
 define('pop3/pop3',['module', 'exports', 'rdcommon/log', 'net', 'crypto',
         './transport', 'mailparser/mailparser', '../mailapi/imap/imapchew',
+        '../mailapi/syncbase',
         './mime_mapper', '../mailapi/allback'],
 function(module, exports, log, net, crypto,
          transport, mailparser, imapchew,
-         mimeMapper, allback) {
+         syncbase, mimeMapper, allback) {
 
   /**
    * The Pop3Client modules and classes are organized according to
@@ -6837,20 +6838,6 @@ function(module, exports, log, net, crypto,
     setTimeout = set;
     clearTimeout = clear;
   }
-
-  // CONSTANTS:
-
-  // If a message is larger than INFER_ATTACHMENTS_SIZE bytes, guess
-  // that it has an attachment.
-  var INFER_ATTACHMENTS_SIZE = 512 * 1024;
-
-  // Attempt to fetch SNIPPET_SIZE_GOAL bytes for each message to
-  // generate the snippet.
-  var SNIPPET_SIZE_GOAL = 4 * 1024; // in bytes
-  // Based on SNIPPET_SIZE_GOAL, calculate approximately how many
-  // lines we'll need to fetch in order to roughly retrieve
-  // SNIPPET_SIZE_GOAL bytes.
-  var LINES_TO_FETCH_FOR_SNIPPET = Math.floor(SNIPPET_SIZE_GOAL / 80);
 
   /***************************************************************************
    * Pop3Client
@@ -7465,7 +7452,11 @@ function(module, exports, log, net, crypto,
   // it creates unnecessary garbage. Clean this up when we switch over
   // to jsmime.
   Pop3Client.prototype.downloadPartialMessageByNumber = function(number, cb) {
-    this.protocol.sendRequest('TOP', [number, LINES_TO_FETCH_FOR_SNIPPET],
+    // Based on SNIPPET_SIZE_GOAL, calculate approximately how many
+    // lines we'll need to fetch in order to roughly retrieve
+    // SNIPPET_SIZE_GOAL bytes.
+    var numLines = Math.floor(syncbase.POP3_SNIPPET_SIZE_GOAL / 80);
+    this.protocol.sendRequest('TOP', [number, numLines],
                               true, function(err, rsp) {
       if(err) {
         cb && cb({
@@ -7667,7 +7658,7 @@ function(module, exports, log, net, crypto,
         !rep.header.hasAttachments &&
         (rootNode.parsedHeaders['x-ms-has-attach'] ||
          rootNode.meta.mimeMultipart === 'mixed' ||
-         estSize > INFER_ATTACHMENTS_SIZE)) {
+         estSize > syncbase.POP3_INFER_ATTACHMENTS_SIZE)) {
       rep.header.hasAttachments = true;
     }
 
@@ -7783,8 +7774,9 @@ exports.Pop3FolderSyncer = Pop3FolderSyncer;
  *
  * @param {boolean} getNew If a fresh connection should always be made.
  * @param {int} cbIndex Index of the parent function's callback in args
+ * @param {string} whyLabel Description for why we need the connection
  */
-function lazyWithConnection(getNew, cbIndex, fn) {
+function lazyWithConnection(getNew, cbIndex, whyLabel, fn) {
   return function pop3LazyWithConnection() {
     var args = Array.slice(arguments);
     require([], function () {
@@ -7807,7 +7799,7 @@ function lazyWithConnection(getNew, cbIndex, fn) {
             };
             fn.apply(this, [conn].concat(args));
           }
-        }.bind(this));
+        }.bind(this), whyLabel);
       }.bind(this);
 
       // if we require a fresh connection, close out the old one first.
@@ -7836,6 +7828,7 @@ Pop3FolderSyncer.prototype = {
    * body part/message downloading. XXX rename this family of methods.
    */
   downloadBodies: lazyWithConnection(/* getNew = */ false, /* cbIndex = */ 2,
+    /* whyLabel = */ 'downloadBodies',
   function(conn, headers, options, callback) {
     var latch = allback.latch();
     var storage = this.storage;
@@ -7863,6 +7856,7 @@ Pop3FolderSyncer.prototype = {
    * all in one go.
    */
   downloadBodyReps: lazyWithConnection(/* getNew = */ false, /* cbIndex = */ 2,
+    /* whyLabel = */ 'downloadBodyReps',
   function(conn, header, options, callback) {
     if (options instanceof Function) {
       callback = options;
@@ -8191,6 +8185,7 @@ Pop3FolderSyncer.prototype = {
    * `this.storeMessageUidlForMessageId`).
    */
   sync: lazyWithConnection(/* getNew = */ true, /* cbIndex = */ 2,
+  /* whyLabel = */ 'sync',
   function(conn, syncType, slice, doneCallback, progressCallback) {
     // if we could not establish a connection, abort the sync.
     var self = this;
@@ -8628,7 +8623,7 @@ var properties = {
    * abstracts the `done` callback.)
    * @param {function(err, conn, done)} cb
    */
-  withConnection: function(cb) {
+  withConnection: function(cb, whyLabel) {
     // This implementation serializes withConnection requests so that
     // we don't step on requests' toes. While Pop3Client wouldn't mix
     // up the requests themselves, interleaving different operations
@@ -8646,7 +8641,7 @@ var properties = {
           }
         }.bind(this);
         if (!this._conn || this._conn.state === 'disconnected') {
-          this._makeConnection(next);
+          this._makeConnection(next, whyLabel);
         } else {
           next();
         }
@@ -8795,7 +8790,7 @@ var properties = {
     }
     this.withConnection(function(err) {
       callback(err);
-    });
+    }, 'checkAccount');
   },
 
   /**

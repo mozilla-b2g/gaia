@@ -1107,10 +1107,11 @@ return {
 
 define('pop3/pop3',['module', 'exports', 'rdcommon/log', 'net', 'crypto',
         './transport', 'mailparser/mailparser', '../mailapi/imap/imapchew',
+        '../mailapi/syncbase',
         './mime_mapper', '../mailapi/allback'],
 function(module, exports, log, net, crypto,
          transport, mailparser, imapchew,
-         mimeMapper, allback) {
+         syncbase, mimeMapper, allback) {
 
   /**
    * The Pop3Client modules and classes are organized according to
@@ -1159,20 +1160,6 @@ function(module, exports, log, net, crypto,
     setTimeout = set;
     clearTimeout = clear;
   }
-
-  // CONSTANTS:
-
-  // If a message is larger than INFER_ATTACHMENTS_SIZE bytes, guess
-  // that it has an attachment.
-  var INFER_ATTACHMENTS_SIZE = 512 * 1024;
-
-  // Attempt to fetch SNIPPET_SIZE_GOAL bytes for each message to
-  // generate the snippet.
-  var SNIPPET_SIZE_GOAL = 4 * 1024; // in bytes
-  // Based on SNIPPET_SIZE_GOAL, calculate approximately how many
-  // lines we'll need to fetch in order to roughly retrieve
-  // SNIPPET_SIZE_GOAL bytes.
-  var LINES_TO_FETCH_FOR_SNIPPET = Math.floor(SNIPPET_SIZE_GOAL / 80);
 
   /***************************************************************************
    * Pop3Client
@@ -1787,7 +1774,11 @@ function(module, exports, log, net, crypto,
   // it creates unnecessary garbage. Clean this up when we switch over
   // to jsmime.
   Pop3Client.prototype.downloadPartialMessageByNumber = function(number, cb) {
-    this.protocol.sendRequest('TOP', [number, LINES_TO_FETCH_FOR_SNIPPET],
+    // Based on SNIPPET_SIZE_GOAL, calculate approximately how many
+    // lines we'll need to fetch in order to roughly retrieve
+    // SNIPPET_SIZE_GOAL bytes.
+    var numLines = Math.floor(syncbase.POP3_SNIPPET_SIZE_GOAL / 80);
+    this.protocol.sendRequest('TOP', [number, numLines],
                               true, function(err, rsp) {
       if(err) {
         cb && cb({
@@ -1989,7 +1980,7 @@ function(module, exports, log, net, crypto,
         !rep.header.hasAttachments &&
         (rootNode.parsedHeaders['x-ms-has-attach'] ||
          rootNode.meta.mimeMultipart === 'mixed' ||
-         estSize > INFER_ATTACHMENTS_SIZE)) {
+         estSize > syncbase.POP3_INFER_ATTACHMENTS_SIZE)) {
       rep.header.hasAttachments = true;
     }
 
