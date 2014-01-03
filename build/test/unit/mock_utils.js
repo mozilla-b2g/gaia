@@ -1,6 +1,9 @@
 'use strict';
 
 var hasRunCommands = {};
+var gaiaOriginURL = function(name, scheme, domain, port) {
+  return scheme + name + '.' + domain + (port ? port : '');
+};
 
 exports.joinPath = function() {
 	var args = Array.prototype.slice.call(arguments);
@@ -23,3 +26,15 @@ exports.psParser = function(content) {
 
 exports.getEnvPath = function() {
 };
+
+exports.processEvents = function() {
+};
+
+exports.getJSON = function() {
+};
+
+exports.gaiaOriginURL = gaiaOriginURL;
+
+exports.gaiaManifestURL = function(name, scheme, domain, port) {
+  return gaiaOriginURL(name, scheme, domain, port) + '/manifest.webapp';
+}
