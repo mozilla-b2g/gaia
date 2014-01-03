@@ -33,7 +33,8 @@ class TestGeolocationPrompt(GaiaTestCase):
         self.assertEqual(permission.permission_dialog_message,
                          'Geoloc would like to know your location.')
 
-        permission.tap_to_confirm_permission()
+        system_app = permission.tap_to_confirm_permission()
 
         current_permission = self.apps.get_permission('Geoloc', 'geolocation')
         self.assertEqual(current_permission, 'allow')
+        self.assertTrue(system_app.geolocation_icon_displayed)
