@@ -6,46 +6,6 @@
 /*global Utils, ActivityHandler, ThreadUI, ThreadListUI, MessageManager,
          Settings, LazyLoader, TimeHeaders, Information */
 
-var lazyLoadFiles = [
-  'shared/js/async_storage.js',
-  'shared/js/l10n_date.js',
-  'shared/js/notification_helper.js',
-  'shared/js/gesture_detector.js',
-  'shared/js/settings_url.js',
-  'shared/js/template.js',
-  'shared/js/mime_mapper.js',
-  'js/dialog.js',
-  'js/blacklist.js',
-  'js/contacts.js',
-  'js/drafts.js',
-  'js/recipients.js',
-  'js/threads.js',
-  'js/message_manager.js',
-  'js/attachment.js',
-  'js/attachment_menu.js',
-  'js/thread_list_ui.js',
-  'js/thread_ui.js',
-  'js/compose.js',
-  'js/waiting_screen.js',
-  'js/utils.js',
-  'js/fixed_header.js',
-  'js/time_headers.js',
-  'js/activity_picker.js',
-  'js/wbmp.js',
-  'js/smil.js',
-  'js/link_helper.js',
-  'js/action_menu.js',
-  'js/link_action_handler.js',
-  'js/settings.js',
-  'js/notify.js',
-  'js/activity_handler.js',
-  'js/contact_renderer.js',
-  'js/information.js',
-  'shared/js/fb/fb_request.js',
-  'shared/js/fb/fb_data_reader.js',
-  'shared/js/fb/fb_reader_utils.js'
-];
-
 window.addEventListener('localized', function localized() {
   // This will be called during startup, and any time the languange is changed
 
@@ -103,17 +63,15 @@ window.addEventListener('load', function() {
     Settings.init();
   }
 
-  LazyLoader.load(lazyLoadFiles, function() {
-    if (!navigator.mozMobileMessage) {
-      var mocks = [
-        'js/desktop-only/mobilemessage.js',
-        'js/desktop-only/contacts.js'
-      ];
-      LazyLoader.load(mocks, function() {
-        MessageManager.init(initUIApp);
-      });
-      return;
-    }
-    MessageManager.init(initUIApp);
-  });
+  if (!navigator.mozMobileMessage) {
+    var mocks = [
+      'js/desktop-only/mobilemessage.js',
+      'js/desktop-only/contacts.js'
+    ];
+    LazyLoader.load(mocks, function() {
+      MessageManager.init(initUIApp);
+    });
+    return;
+  }
+  MessageManager.init(initUIApp);
 });
