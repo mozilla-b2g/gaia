@@ -147,6 +147,56 @@ suite('call screen', function() {
     screen.parentNode.removeChild(screen);
   });
 
+  suite('call screen initialize', function() {
+    var mockElements = ['keypadButton', 'placeNewCallButton', 'answerButton',
+      'rejectButton', 'holdButton', 'showGroupButton', 'hideGroupButton',
+      'incomingAnswer', 'incomingEnd', 'incomingIgnore'];
+
+    setup(function() {
+      this.sinon.stub(CallScreen, 'showClock');
+      this.sinon.stub(CallScreen, 'initLockScreenSlide');
+      this.sinon.stub(CallScreen, 'render');
+      mockElements.forEach(function(name) {
+        CallScreen[name] = document.createElement('button');
+      });
+    });
+
+    test('screen init type other than incoming-locked', function() {
+      CallScreen.init();
+      sinon.assert.notCalled(CallScreen.showClock);
+      sinon.assert.notCalled(CallScreen.initLockScreenSlide);
+      sinon.assert.notCalled(CallScreen.render);
+    });
+
+    suite('incoming-locked screen initialize', function() {
+      var oldHash;
+
+      setup(function() {
+        oldHash = window.location.hash;
+        window.location.hash = '#locked';
+      });
+
+      teardown(function() {
+        window.location.hash = oldHash;
+      });
+
+      test('incoming-locked screen init without layout set', function() {
+        CallScreen.init();
+        sinon.assert.called(CallScreen.showClock);
+        sinon.assert.called(CallScreen.initLockScreenSlide);
+        sinon.assert.called(CallScreen.render);
+      });
+
+      test('incoming-locked screen init with layout set', function() {
+        CallScreen.screen.dataset.layout = 'incoming-locked';
+        CallScreen.init();
+        sinon.assert.called(CallScreen.showClock);
+        sinon.assert.called(CallScreen.initLockScreenSlide);
+        sinon.assert.notCalled(CallScreen.render);
+      });
+    });
+  });
+
   suite('calls', function() {
     suite('setters', function() {
       test('cdmaCallWaiting should toggle the appropriate classes', function() {
