@@ -2425,8 +2425,8 @@ var ThreadUI = global.ThreadUI = {
     if (email) {
       items.push({
         l10nId: 'sendEmail',
-        method: function oCall(param) {
-          ActivityPicker.dial(param);
+        method: function oEmail(param) {
+          ActivityPicker.email(param);
         },
         params: [email]
       });
@@ -2445,7 +2445,7 @@ var ThreadUI = global.ThreadUI = {
       if ((thread && thread.participants.length > 1) || inMessage) {
         items.push({
           l10nId: 'sendMessage',
-          method: function oCall(param) {
+          method: function oMessage(param) {
             ActivityPicker.sendMessage(param);
           },
           params: [number]
