@@ -4,7 +4,8 @@
          LinkHelper, Attachment, MockContact, MockOptionMenu,
          MockActivityPicker, Threads, Settings, MockMessages, MockUtils,
          MockContacts, ActivityHandler, Recipients, MockMozActivity,
-         ThreadListUI, ContactRenderer, UIEvent, Drafts, OptionMenu */
+         ThreadListUI, ContactRenderer, UIEvent, Drafts, OptionMenu,
+         ActivityPicker */
 
 'use strict';
 
@@ -3212,6 +3213,8 @@ suite('thread_ui.js >', function() {
 
         test('Single unknown (email)', function() {
 
+          this.sinon.spy(ActivityPicker, 'email');
+
           Threads.set(1, {
             participants: ['999']
           });
@@ -3237,8 +3240,13 @@ suite('thread_ui.js >', function() {
 
           assert.equal(items.length, 4);
 
-          // The first item is a "call" option
+          // The first item is a "sendEmail" option
           assert.equal(items[0].l10nId, 'sendEmail');
+
+          // Trigger the option to ensure that correct Activity is used.
+          items[0].method();
+
+          assert.isTrue(ActivityPicker.email.calledOnce);
 
           // The second item is a "createNewContact" option
           assert.equal(items[1].l10nId, 'createNewContact');
