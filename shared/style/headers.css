@@ -8,6 +8,7 @@ section[role="region"] > header:first-child {
   height: 5rem;
   color: #fff;
   background-color: #F97C17;
+  background: linear-gradient(to bottom, #c66a00 0%,#b54d17 98%,#933212 100%);
   border: none;
 }
 
