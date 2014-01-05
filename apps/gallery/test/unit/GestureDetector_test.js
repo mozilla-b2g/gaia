@@ -20,7 +20,8 @@ suite('GestureDetector', function() {
     });
   });
 
-  suite('gesture detection', function() {
+  // Disabled per bug: https://bugzilla.mozilla.org/show_bug.cgi?id=956591
+  suite.skip('gesture detection', function() {
     var gd, element, events;
 
     // Return the sequence of events as a string of event types

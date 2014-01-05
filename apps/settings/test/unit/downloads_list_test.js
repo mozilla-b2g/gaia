@@ -101,7 +101,8 @@ suite('DownloadList', function() {
 
   suite(' > edit mode', function() {
 
-    test(' > edit mode button enabled/disabled', function(done) {
+    // Disabled per bug: https://bugzilla.mozilla.org/show_bug.cgi?id=956593
+    test.skip(' > edit mode button enabled/disabled', function(done) {
       DownloadsList.init(function() {
         // Edit button is false at the beginning
         assert.isFalse(editButton.classList.contains('disabled'));
