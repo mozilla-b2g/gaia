@@ -35,17 +35,12 @@
       }.bind(this));
     },
 
-    clear: function() {
-      this.container.innerHTML = '';
-    },
-
     onmessage: function(msg) {
       var data = msg.data;
       if (!data) {
         return;
       }
 
-      this.clear();
       var suggestions = data.suggestions;
       if (suggestions) {
         var ul = document.createElement('ul');
@@ -64,6 +59,7 @@
           ul.appendChild(li);
         });
 
+        this.clear();
         if (rendered) {
           this.container.appendChild(ul);
         }
