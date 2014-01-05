@@ -32,12 +32,6 @@ li button.icon-dialog {
   background-color: #4d4d4d;
 }
 
-li button.icon-dialog:before,
-li a[role="button"].icon-dialog:before,
-li .button.icon-dialog:before {
-  background-image: url(images/dialog.png);
-}
-
 #alarm-new {
   position: absolute;
   top: 0;
