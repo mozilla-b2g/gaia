@@ -152,6 +152,14 @@ var CallScreen = {
           CallsHandler.end();
         },
 
+        unlockingStart: function _unlockingStart() {
+          // Bug 956074: Needed to make sure the slider will work.
+        },
+
+        unlockingStop: function _unlockingStop() {
+          // Bug 956074: Needed to make sure the slider will work.
+        },
+
         nearLeft: function _nearLeft(state, statePrev) {
           if (state === 'accelerating') {
             CallScreen.hangUpIcon.classList.add('triggered');
