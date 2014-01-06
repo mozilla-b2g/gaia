@@ -21,29 +21,34 @@ class NewEmail(Base):
         self.wait_for_element_displayed(*self._to_locator)
 
     def type_to(self, value):
-        el = self.marionette.find_element(*self._to_locator)
-        el.clear()
-        el.send_keys(value)
+        self.marionette.find_element(*self._to_locator).tap()
+        self.wait_for_condition(lambda m: self.keyboard.is_displayed())
+        self.keyboard.send(value)
+        self.keyboard.dismiss()
 
     def type_cc(self, value):
-        el = self.marionette.find_element(*self._cc_locator)
-        el.clear()
-        el.send_keys(value)
+        self.marionette.find_element(*self._cc_locator).tap()
+        self.wait_for_condition(lambda m: self.keyboard.is_displayed())
+        self.keyboard.send(value)
+        self.keyboard.dismiss()
 
     def type_bcc(self, value):
-        el = self.marionette.find_element(*self._bcc_locator)
-        el.clear()
-        el.send_keys(value)
+        self.marionette.find_element(*self._bcc_locator).tap()
+        self.wait_for_condition(lambda m: self.keyboard.is_displayed())
+        self.keyboard.send(value)
+        self.keyboard.dismiss()
 
     def type_subject(self, value):
-        el = self.marionette.find_element(*self._subject_locator)
-        el.clear()
-        el.send_keys(value)
+        self.marionette.find_element(*self._subject_locator).tap()
+        self.wait_for_condition(lambda m: self.keyboard.is_displayed())
+        self.keyboard.send(value)
+        self.keyboard.dismiss()
 
     def type_body(self, value):
-        el = self.marionette.find_element(*self._body_locator)
-        el.clear()
-        el.send_keys(value)
+        self.marionette.find_element(*self._body_locator).tap()
+        self.wait_for_condition(lambda m: self.keyboard.is_displayed())
+        self.keyboard.send(value)
+        self.keyboard.dismiss()
 
     def tap_send(self):
         self.marionette.find_element(*self._send_locator).tap()
