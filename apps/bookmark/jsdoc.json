@@ -1,0 +1,8 @@
+{
+  "bookmark": {
+    "src": ["apps/bookmark/js/**/*.js"],
+    "options": {
+      "destination": "docs/bookmark"
+    }
+  }
+}
