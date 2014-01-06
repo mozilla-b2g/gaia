@@ -117,13 +117,19 @@ function deleteSingleItem() {
   else {
     msg = navigator.mozL10n.get('delete-photo?');
   }
-  if (confirm(msg)) {
+
+  Dialogs.confirm({
+    message: msg,
+    cancelText: navigator.mozL10n.get('cancel'),
+    confirmText: navigator.mozL10n.get('delete'),
+    danger: true
+  }, function() { // onSuccess
     // disable delete and share button to prevent operations while delete item
     fullscreenButtons.delete.classList.add('disabled');
     fullscreenButtons.share.classList.add('disabled');
 
     deleteFile(currentFileIndex);
-  }
+  });
 }
 
 // In fullscreen mode, the share button shares the current item
