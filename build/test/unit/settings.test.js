@@ -66,7 +66,7 @@ suite('settings.js', function() {
 		test('setWallpaper, when GAIA_DEV_PIXELS_PER_PX is 1 and use wallpaper.jpg',
 			function () {
 			config.GAIA_DEV_PIXELS_PER_PX = '1';
-			jpgLink = 'build/wallpaper.jpg';
+			jpgLink = 'build/config/wallpaper.jpg';
 
 			app.setWallpaper(settings, config);
 			assert.equal(settings['wallpaper.image'], config.GAIA_DIR + '/' + jpgLink);
@@ -75,14 +75,14 @@ suite('settings.js', function() {
 		test('setWallpaper, when GAIA_DEV_PIXELS_PER_PX is null and use wallpaper.jpg',
 			function () {
 			config.GAIA_DEV_PIXELS_PER_PX = '';
-			jpgLink = 'build/wallpaper.jpg';
+			jpgLink = 'build/config/wallpaper.jpg';
 
 			app.setWallpaper(settings, config);
 			assert.equal(settings['wallpaper.image'], config.GAIA_DIR + '/' + jpgLink);
 		});
 
 		test('setRingtone', function () {
-			var ringtoneLink = 
+			var ringtoneLink =
 				'shared/resources/media/ringtones/' +
     		'ringer_classic_courier.opus';
 			app.setRingtone(settings, config);
@@ -90,7 +90,7 @@ suite('settings.js', function() {
 		});
 
 		test('setNotification', function () {
-			var notificationLink = 
+			var notificationLink =
 				'shared/resources/media/notifications/' +
     		'notifier_bell.opus';
 			mockUtils.resolve = function(file, baseLink) {

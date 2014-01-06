@@ -96,7 +96,7 @@ function fillCommsAppManifest(webapp, webappTargetDir) {
   };
 
   let content = JSON.parse(utils.getFileContent(utils.getFile(config.GAIA_DIR,
-    'build', 'communications_services.json')));
+    'build', 'config', 'communications_services.json')));
   let custom = utils.getDistributionFileContent('communications_services',
     content);
   let commsServices = JSON.parse(custom);
