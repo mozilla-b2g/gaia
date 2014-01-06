@@ -155,7 +155,7 @@ PULSE_SERVER=":" xvfb-run make test-integration
 - To get debug information from the b2g desktop client, run this:
 `DEBUG=b2g-desktop ./bin/gaia-marionette name/of/test.js`
 
-- To get debug information from b2g desktop and all of the marionette 
+- To get debug information from b2g desktop and all of the marionette
 plugins, run this:
 `DEBUG=* ./bin/gaia-marionette name/of/test.js`
 
@@ -174,3 +174,10 @@ See [how to run the Gaia endurance tests](https://developer.mozilla.org/en-US/do
 To generate API reference locally:
 
 run `make docs` command to generate docs in `docs` folder
+
+## Updating dependencies
+
+We use npm-shrinkwrap to lock all of our dependencies (and their dependencies)
+to specific versions which we know work for gaia. When changes are made to
+the `package.json` dependencies, make sure to write them through
+`npm-shrinkwrap.json` by running `npm shrinkwrap --dev`.
