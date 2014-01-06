@@ -925,6 +925,9 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
         # disable sound completely
         self.data_layer.set_volume(0)
 
+        # disable auto-correction of keyboard
+        self.data_layer.set_setting('keyboard.autocorrect', False)
+
     def connect_to_network(self):
         if not self.device.is_online:
             try:
