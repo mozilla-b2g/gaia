@@ -45,6 +45,14 @@ Base.prototype = {
    */
   waitForElement: function(name) {
     return this.client.helper.waitForElement(this.selectors[name]);
-  }
+  },
 
+  /**
+   * @protected
+   * @param {String} name of selector [its a key in Settings.Selectors].
+   * @param {String} text content of an option
+   */
+  tapSelectOption: function(name, optionText) {
+    this.client.helper.tapSelectOption(this.selectors[name], optionText);
+  }
 };
