@@ -241,7 +241,7 @@
         filterValue: filterValue.replace(/\s+/g, '')
       },
       function(results) {
-        if (results.length > 0) {
+        if (results && results.length) {
           callback(results);
           return;
         }
