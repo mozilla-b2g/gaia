@@ -422,7 +422,7 @@ suite('SimCardManager > ', function() {
         'simManagerOutgoingMessagesSelect',
         'simManagerOutgoingMessagesDesc',
         'simManagerOutgoingDataSelect',
-        'simManagerOutgoingDataDesc'
+        'simManagerOutgoingDataDescNew'
       ];
 
       keys.forEach(function(key) {
