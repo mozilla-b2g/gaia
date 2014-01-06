@@ -28,9 +28,10 @@ suite('DownloadHelper', function() {
   var mocksHelperForDownloadHelper = new MocksHelper([
     'DownloadStore',
     'LazyLoader',
-    'DownloadFormatter'
+    'DownloadFormatter',
+    'MozActivity'
   ]);
-  var realL10n, realDeviceStorage, realActivity, download;
+  var realL10n, realDeviceStorage, download;
 
   suiteSetup(function() {
     realL10n = navigator.mozL10n;
@@ -38,9 +39,6 @@ suite('DownloadHelper', function() {
 
     realDeviceStorage = navigator.getDeviceStorage;
     navigator.getDeviceStorage = MockGetDeviceStorage;
-
-    realActivity = window.MozActivity;
-    window.MozActivity = MockMozActivity;
 
     mocksHelperForDownloadHelper.suiteSetup();
   });
@@ -51,9 +49,6 @@ suite('DownloadHelper', function() {
 
     navigator.getDeviceStorage = realDeviceStorage;
     realDeviceStorage = null;
-
-    window.MozActivity = realActivity;
-    realActivity = null;
 
     download = null;
 
