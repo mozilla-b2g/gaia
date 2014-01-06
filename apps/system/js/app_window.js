@@ -448,7 +448,7 @@
   AppWindow.REGISTERED_EVENTS =
     ['mozbrowserclose', 'mozbrowsererror', 'mozbrowservisibilitychange',
       'mozbrowserloadend', 'mozbrowseractivitydone', 'mozbrowserloadstart',
-      '_localized', '_swipein', '_swipeout'];
+      'mozbrowsertitlechange', '_localized', '_swipein', '_swipeout'];
 
   AppWindow.SUB_COMPONENTS = {
     'transitionController': window.AppTransitionController,
@@ -514,6 +514,7 @@
 
   AppWindow.prototype._handle_mozbrowservisibilitychange =
     function aw__handle_mozbrowservisibilitychange(evt) {
+
       var type = evt.detail.visible ? 'foreground' : 'background';
       this.publish(type);
     };
@@ -550,6 +551,12 @@
       this.loading = true;
       this._changeState('loading', true);
       this.publish('loading');
+    };
+
+  AppWindow.prototype._handle_mozbrowsertitlechange =
+    function aw__handle_handle_mozbrowsertitlechange(evt) {
+      this.title = evt.detail;
+      this.publish('titlechange');
     };
 
   AppWindow.prototype._handle_mozbrowserloadend =
