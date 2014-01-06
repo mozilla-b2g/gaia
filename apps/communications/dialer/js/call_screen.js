@@ -301,6 +301,10 @@ var CallScreen = {
     this.contactBackground.classList.add('ready');
   },
 
+  setEmergencyWallpaper: function cs_setEmergencyWallpaper() {
+    this.mainContainer.classList.add('emergency-active');
+  },
+
   insertCall: function cs_insertCall(node) {
     this.calls.appendChild(node);
     this.updateSingleLine();
