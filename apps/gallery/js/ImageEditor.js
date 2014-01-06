@@ -183,6 +183,11 @@ var exposureSlider = (function() {
 
     // Remember the new exposure value
     currentExposure = exposure;
+
+    if (exposure === 0) {
+      //resetting to initial start value
+      sliderStartExposure = 0;
+    }
     // Convert exposure value to a unit coefficient position of thumb center
     var unitCoef = (exposure + 3) / 6;
 
