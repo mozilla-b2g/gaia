@@ -235,7 +235,7 @@ IMEngine.prototype = {
 
   /**
    * The last selected text used to generate prediction.
-   * @type string.
+   * @type string
    */
   _historyText: '',
 
@@ -286,7 +286,7 @@ IMEngine.prototype = {
 
   /**
    * Send candidates list.
-   * @param {Array.<[string, string]>} candidates The candidates to be sent.
+   * @param {Array.<string>} candidates The candidates to be sent.
    * @return {void}  No return value.
    */
   _sendCandidates: function engine_sendCandidates(candidates) {
