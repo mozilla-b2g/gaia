@@ -4,6 +4,7 @@
 requireApp('email/js/alameda.js');
 requireApp('email/test/config.js');
 suite('IMAP protocol dropdown', function() {
+  this.timeout(20000);
   var el;
   var smc;
   var SetupManualConfig;
