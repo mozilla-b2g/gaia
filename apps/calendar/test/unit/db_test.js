@@ -7,6 +7,7 @@ requireLib('models/event.js');
 requireLib('presets.js');
 
 suite('db', function() {
+  this.timeout(20000);
   var subject;
   var name;
   var app;
