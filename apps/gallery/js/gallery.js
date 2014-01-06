@@ -120,6 +120,8 @@ var hasSaved = false;
 // selected thumbnails.
 var lastFocusedThumbnail = null;
 
+var currentOverlay;  // The id of the current overlay or null if none.
+
 // The localized event is the main entry point for the app.
 // We don't do anything until we receive it.
 navigator.mozL10n.ready(function showBody() {
@@ -1050,7 +1052,7 @@ function deleteSelectedItems() {
   if (selected.length === 0)
     return;
 
-  showConfirmDialog({
+  Dialogs.confirm({
     message: navigator.mozL10n.get('delete-n-items?', {n: selected.length}),
     cancelText: navigator.mozL10n.get('cancel'),
     confirmText: navigator.mozL10n.get('delete'),
@@ -1066,61 +1068,6 @@ function deleteSelectedItems() {
     clearSelection();
   });
 }
-
-// show a confirm dialog
-function showConfirmDialog(options, onConfirm, onCancel) {
-  LazyLoader.load('shared/style/confirm.css', function() {
-    var dialog = $('confirm-dialog');
-    var msgEle = $('confirm-msg');
-    var cancelButton = $('confirm-cancel');
-    var confirmButton = $('confirm-ok');
-
-    // set up the dialog based on the options
-    msgEle.textContent = options.message;
-    cancelButton.textContent = options.cancelText ||
-      navigator.mozL10n.get('cancel');
-    confirmButton.textContent = options.confirmText ||
-      navigator.mozL10n.get('ok');
-
-    if (options.danger) {
-      confirmButton.classList.add('danger');
-    }
-    else {
-      confirmButton.classList.remove('danger');
-    }
-
-    // show the confirm dialog
-    dialog.classList.remove('hidden');
-
-    // attach event handlers
-    var onCancelClick = function(ev) {
-      close(ev);
-      if (onCancel) {
-        onCancel();
-      }
-      return false;
-    };
-    var onConfirmClick = function(ev) {
-      close(ev);
-      if (onConfirm) {
-        onConfirm();
-      }
-      return false;
-    };
-    cancelButton.addEventListener('click', onCancelClick);
-    confirmButton.addEventListener('click', onConfirmClick);
-
-    function close(ev) {
-      dialog.classList.add('hidden');
-      cancelButton.removeEventListener('click', onCancelClick);
-      confirmButton.removeEventListener('click', onConfirmClick);
-      ev.preventDefault();
-      ev.stopPropagation();
-      return false;
-    }
-  });
-}
-
 
 // Clicking on the share button in select mode shares all selected images
 function shareSelectedItems() {
@@ -1214,93 +1161,9 @@ function screenLayoutChange(evt) {
 //
 // Overlay messages
 //
-var currentOverlay;  // The id of the current overlay or null if none.
-
-//
-// If id is null then hide the overlay. Otherwise, look up the localized
-// text for the specified id and display the overlay with that text.
-// Supported ids include:
-//
-//   nocard: no sdcard is installed in the phone
-//   pluggedin: the sdcard is being used by USB mass storage
-//   emptygallery: no pictures found
-//   scanning: scanning the sdcard for photo's, but none found yet
-//
-// Localization is done using the specified id with "-title" and "-text"
-// suffixes.
-//
 function showOverlay(id) {
-  LazyLoader.load('shared/style/confirm.css', function() {
-    currentOverlay = id;
-
-    // hide any special elements
-    $('storage-setting-button').classList.add('hidden');
-    $('overlay-camera-button').classList.add('hidden');
-    $('overlay-cancel-button').classList.add('hidden');
-    $('overlay-menu').classList.add('hidden');
-    var title, text;
-    switch (currentOverlay) {
-      case null:
-        $('overlay').classList.add('hidden');
-        return;
-      case 'nocard':
-        title = navigator.mozL10n.get('nocard3-title');
-        text = navigator.mozL10n.get('nocard3-text');
-        $('overlay-menu').classList.remove('hidden');
-        if (pendingPick) {
-          $('overlay-cancel-button').classList.remove('hidden');
-        } else {
-          $('storage-setting-button').classList.remove('hidden');
-        }
-        break;
-      case 'pluggedin':
-        title = navigator.mozL10n.get('pluggedin2-title');
-        text = navigator.mozL10n.get('pluggedin2-text');
-        if (pendingPick) {
-          $('overlay-cancel-button').classList.remove('hidden');
-          $('overlay-menu').classList.remove('hidden');
-        }
-        break;
-      case 'scanning':
-        title = navigator.mozL10n.get('scanning-title');
-        text = navigator.mozL10n.get('scanning-text');
-        if (pendingPick) {
-          $('overlay-cancel-button').classList.remove('hidden');
-          $('overlay-menu').classList.remove('hidden');
-        }
-        break;
-      case 'emptygallery':
-        title = navigator.mozL10n.get(pendingPick ? 'emptygallery2-title-pick' :
-                                                    'emptygallery2-title');
-        text = navigator.mozL10n.get('emptygallery2-text');
-        $('overlay-menu').classList.remove('hidden');
-        if (pendingPick) {
-          $('overlay-cancel-button').classList.remove('hidden');
-        } else {
-          $('overlay-camera-button').classList.remove('hidden');
-        }
-        break;
-      case 'upgrade':
-        title = navigator.mozL10n.get('upgrade-title');
-        text = navigator.mozL10n.get('upgrade-text');
-        if (pendingPick) {
-          $('overlay-cancel-button').classList.remove('hidden');
-          $('overlay-menu').classList.remove('hidden');
-        }
-        break;
-      default:
-        console.warn('Reference to undefined overlay', currentOverlay);
-        if (pendingPick) {
-          $('overlay-cancel-button').classList.remove('hidden');
-          $('overlay-menu').classList.remove('hidden');
-        }
-        return;
-    }
-
-    $('overlay-title').textContent = title;
-    $('overlay-text').textContent = text;
-    $('overlay').classList.remove('hidden');
-  });
+  currentOverlay = id;
+  Dialogs.showOverlay(id);
 }
 
 // XXX
