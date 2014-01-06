@@ -157,7 +157,8 @@ class EditContact(ContactForm):
         self.marionette.find_element(*self._confirm_delete_locator).tap()
 
     def wait_for_update_button_enabled(self):
-        self.wait_for_condition(lambda m: self.marionette.find_element(*self._update_locator).is_enabled())
+        self.wait_for_condition(lambda m: m.find_element(
+            *self._update_locator).is_enabled())
 
 
 class NewContact(ContactForm):

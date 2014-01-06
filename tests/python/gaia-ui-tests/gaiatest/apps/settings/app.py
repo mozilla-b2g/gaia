@@ -30,11 +30,6 @@ class Settings(Base):
     _app_permissions_menu_item_locator = (By.ID, 'menuItem-appPermissions')
     _battery_menu_item_locator = (By.ID, 'menuItem-battery')
 
-    def launch(self):
-        Base.launch(self)
-        checkbox = self.marionette.find_element(*self._airplane_checkbox_locator)
-        self.wait_for_condition(lambda m: checkbox.is_enabled())
-
     def toggle_airplane_mode(self):
         checkbox = self.marionette.find_element(*self._airplane_checkbox_locator)
         label = self.marionette.find_element(*self._airplane_switch_locator)

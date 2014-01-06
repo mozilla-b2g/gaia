@@ -28,8 +28,9 @@ class TestPlay3GPMusic(GaiaTestCase):
 
         player_view = songs[0].tap_first_song()
 
-        self.wait_for_condition(lambda m: player_view.player_elapsed_time == '00:05',
-                                message='3gp sample did not start playing')
+        self.wait_for_condition(
+            lambda m: player_view.player_elapsed_time == '00:05',
+            message='3gp sample did not start playing')
 
         # validate playback
         self.assertTrue(player_view.is_player_playing(), 'The player is not playing')

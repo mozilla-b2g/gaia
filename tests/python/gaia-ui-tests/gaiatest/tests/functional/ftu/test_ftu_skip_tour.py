@@ -114,19 +114,23 @@ class TestFtu(GaiaTestCase):
         # Tap enable data
         self.marionette.find_element(*self._enable_data_checkbox_locator).tap()
 
-        self.wait_for_condition(lambda m: self.data_layer.is_cell_data_connected,
-                                message="Cell data was not connected by FTU app")
+        self.wait_for_condition(
+            lambda m: self.data_layer.is_cell_data_connected,
+            message='Cell data was not connected by FTU app')
 
         # Tap next
         self.marionette.find_element(*self._next_button_locator).tap()
         self.wait_for_element_displayed(*self._section_wifi_locator)
 
         # Wait for some networks to be found
-        self.wait_for_condition(lambda m: len(m.find_elements(*self._found_wifi_networks_locator)) > 0,
-                                message="No networks listed on screen")
+        self.wait_for_condition(
+            lambda m: len(m.find_elements(
+                *self._found_wifi_networks_locator)) > 0,
+            message='No networks listed on screen')
 
-        wifi_network = self.marionette.find_element(By.ID, self.testvars['wifi']['ssid'])
-        wifi_network.tap()
+        wifi_network_locator = (By.CSS_SELECTOR, '#networks-list li[data-ssid="%s"]' % self.testvars['wifi']['ssid'])
+        self.wait_for_element_displayed(*wifi_network_locator)
+        self.marionette.find_element(*wifi_network_locator).tap()
 
         # This is in the event we are using a Wifi Network that requires a password
         # We cannot be sure of this thus need the logic
@@ -137,13 +141,14 @@ class TestFtu(GaiaTestCase):
             password.send_keys(self.testvars['wifi'].get('psk') or self.testvars['wifi'].get('wep'))
 
             # Wait for Keyboard app init and be displayed
-            self.wait_for_condition(lambda m: Keyboard(self.marionette).is_displayed())
+            self.wait_for_condition(lambda m: Keyboard(m).is_displayed())
             self.marionette.find_element(*self._join_network_locator).tap()
 
         self.wait_for_condition(
-            lambda m: m.find_element(
-                By.ID, self.testvars['wifi']['ssid']).find_element(*self._network_state_locator).text == "Connected"
-        )
+            lambda m: 'connected' in m.find_element(
+                By.CSS_SELECTOR,
+                '#networks-list li[data-ssid="%s"] aside' %
+                self.testvars['wifi']['ssid']).get_attribute('class'))
 
         self.assertTrue(self.data_layer.is_wifi_connected(self.testvars['wifi']),
                         "WiFi was not connected via FTU app")
@@ -175,8 +180,9 @@ class TestFtu(GaiaTestCase):
         # Disable geolocation
         self.wait_for_element_displayed(*self._enable_geolocation_checkbox_locator)
         self.marionette.find_element(*self._enable_geolocation_checkbox_locator).tap()
-        self.wait_for_condition(lambda m: not self.data_layer.get_setting('geolocation.enabled'),
-                                message="Geolocation was not disabled by the FTU app")
+        self.wait_for_condition(
+            lambda m: not self.data_layer.get_setting('geolocation.enabled'),
+            message='Geolocation was not disabled by the FTU app')
         self.marionette.find_element(*self._next_button_locator).tap()
 
         self.wait_for_element_displayed(*self._section_import_contacts_locator)
@@ -186,8 +192,10 @@ class TestFtu(GaiaTestCase):
         self.marionette.find_element(*self._import_from_sim_locator).tap()
 
         # pass third condition when contacts are 0~N
-        self.wait_for_condition(lambda m: self._pattern_contacts.match(m.find_element(*self._sim_import_feedback_locator).text) is not None,
-                                message="Contact did not import from sim before timeout")
+        self.wait_for_condition(
+            lambda m: self._pattern_contacts.match(m.find_element(
+                *self._sim_import_feedback_locator).text) is not None,
+            message='Contact did not import from sim before timeout')
         # Find how many contacts are imported.
         import_sim_message = self.marionette.find_element(*self._sim_import_feedback_locator).text
         import_sim_count = None

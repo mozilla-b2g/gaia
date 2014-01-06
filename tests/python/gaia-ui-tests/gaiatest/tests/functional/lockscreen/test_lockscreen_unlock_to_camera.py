@@ -27,4 +27,4 @@ class TestLockScreen(GaiaTestCase):
 
         # Wait fot the capture button displayed. no need to take a photo.
         camera.switch_to_camera_frame()
-        camera.wait_for_camera_ready()
+        camera.wait_for_capture_ready()

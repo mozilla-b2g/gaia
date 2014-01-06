@@ -2,9 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import time
+from marionette import Wait
 from marionette.by import By
-from marionette.errors import TimeoutException
 from gaiatest.apps.base import Base
 from gaiatest.apps.base import PageRegion
 from gaiatest.apps.email.regions.setup import SetupEmail
@@ -16,10 +15,11 @@ class Email(Base):
 
     name = 'E-Mail'
 
-    _header_area_locator = (By.CSS_SELECTOR, '#cardContainer .msg-list-header.msg-nonsearch-only')
     _email_locator = (By.CSS_SELECTOR, '#cardContainer .msg-header-item')
     _syncing_locator = (By.CSS_SELECTOR, '#cardContainer .msg-messages-syncing > .small')
     _manual_setup_locator = (By.CSS_SELECTOR, '#cardContainer .sup-manual-config-btn')
+    _message_list_locator = (By.CSS_SELECTOR, '.card-message-list')
+    _refresh_button_locator = (By.CLASS_NAME, 'msg-refresh-btn')
 
     def basic_setup_email(self, name, email, password):
 
@@ -34,7 +34,7 @@ class Email(Base):
         setup.wait_for_setup_complete()
 
         setup.tap_continue()
-        self.wait_for_condition(lambda m: self.is_element_displayed(*self._header_area_locator))
+        self.wait_for_message_list()
 
     def setup_IMAP_email(self, imap):
         setup = self.tap_manual_setup()
@@ -58,7 +58,7 @@ class Email(Base):
 
         setup.wait_for_setup_complete()
         setup.tap_continue()
-        self.wait_for_header_area()
+        self.wait_for_message_list()
 
     def setup_active_sync_email(self, active_sync):
         setup = self.tap_manual_setup()
@@ -78,7 +78,7 @@ class Email(Base):
 
         setup.wait_for_setup_complete()
         setup.tap_continue()
-        self.wait_for_header_area()
+        self.wait_for_message_list()
 
     def delete_email_account(self, index):
 
@@ -107,27 +107,39 @@ class Email(Base):
         return [Message(self.marionette, mail) for mail in self.marionette.find_elements(*self._email_locator)]
 
     def wait_for_emails_to_sync(self):
-        self.wait_for_element_not_displayed(*self._syncing_locator)
+        element = self.marionette.find_element(*self._refresh_button_locator)
+        self.wait_for_condition(
+            lambda m: element.get_attribute(
+                'data-state') == 'synchronized')
 
-    def wait_for_header_area(self):
-        self.wait_for_element_displayed(*self._header_area_locator)
+    def wait_for_message_list(self):
+        element = self.marionette.find_element(*self._message_list_locator)
+        self.wait_for_condition(
+            lambda m: element.is_displayed() and
+            element.location['x'] == 0)
 
     def wait_for_email(self, subject, timeout=120):
-        timeout = float(timeout) + time.time()
-        while time.time() < timeout:
-            time.sleep(5)
-            self.toolbar.tap_refresh()
-            self.wait_for_emails_to_sync()
-            if len(self.mails) > 0:
-                self.mails[0].scroll_to_message()
-            emails = self.mails
-            if subject in [mail.subject for mail in emails]:
-                break
-        else:
-            raise TimeoutException('Email %s not received before timeout' % subject)
+        Wait(self.marionette, timeout, interval=5).until(
+            self.email_exists(self, subject))
+
+    class email_exists(object):
+
+        def __init__(self, app, subject):
+            self.app = app
+            self.subject = subject
+
+        def __call__(self, marionette):
+            if self.subject in [mail.subject for mail in self.app.mails]:
+                return True
+            else:
+                self.app.toolbar.tap_refresh()
+                self.app.wait_for_emails_to_sync()
+                self.app.mails[0].scroll_to_message()
+                return False
 
 
 class Header(Base):
+
     _menu_button_locator = (By.CSS_SELECTOR, '.card.center .msg-folder-list-btn')
     _compose_button_locator = (By.CSS_SELECTOR, '.card.center .msg-compose-btn')
     _label_locator = (By.CSS_SELECTOR, '.card.center .msg-list-header-folder-label.header-label')

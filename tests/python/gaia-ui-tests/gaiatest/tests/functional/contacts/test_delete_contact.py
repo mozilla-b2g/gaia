@@ -28,7 +28,8 @@ class TestContacts(GaiaTestCase):
         contacts_app.wait_for_contacts()
 
         pre_contacts_count = len(contacts_app.contacts)
-        self.assertEqual(pre_contacts_count, 1, "Should insert one contact before running this test.")
+        self.assertEqual(pre_contacts_count, 1,
+                         'Should insert one contact before running this test')
 
         contact_item = contacts_app.contact(self.contact['givenName'][0])
         contact_item_detail = contact_item.tap()
@@ -36,7 +37,10 @@ class TestContacts(GaiaTestCase):
         contact_item_edit.tap_delete()
         contact_item_edit.tap_confirm_delete()
 
-        self.wait_for_condition(lambda m: len(self.data_layer.all_contacts) == 0, message="Should have no contact after run this test.")
+        self.wait_for_condition(
+            lambda m: len(self.data_layer.all_contacts) == 0,
+            message='Should have no contacts after running this test')
 
         post_contacts_count = len(contacts_app.contacts)
-        self.assertEqual(post_contacts_count, 0, "Should have no contact after run this test.")
+        self.assertEqual(post_contacts_count, 0,
+                         'Should have no contacts after running this test')

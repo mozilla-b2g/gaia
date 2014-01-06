@@ -12,6 +12,7 @@ class Clock(Base):
 
     name = 'Clock'
 
+    _alarm_view_locator = (By.ID, 'alarm-edit-panel')
     _alarm_create_new_locator = (By.ID, 'alarm-new')
     _analog_clock_display_locator = (By.ID, 'analog-clock')
     _digital_clock_display_locator = (By.ID, 'digital-clock')
@@ -38,21 +39,26 @@ class Clock(Base):
         return self.is_element_displayed(*self._clock_day_date_locator)
 
     @property
-    def banner_countdown_notification(self):
-        return self.marionette.find_element(*self._banner_countdown_notification_locator).text
-
-    @property
     def alarms(self):
         return [self.Alarm(self.marionette, alarm) for alarm in self.marionette.find_elements(*self._all_alarms_locator)]
 
+    @property
+    def banner_notification(self):
+        self.wait_for_element_displayed(
+            *self._banner_countdown_notification_locator)
+        return self.marionette.find_element(
+            *self._banner_countdown_notification_locator).text
+
+    def dismiss_banner(self):
+        self.wait_for_element_displayed(
+            *self._banner_countdown_notification_locator)
+        self.marionette.find_element(
+            *self._banner_countdown_notification_locator).tap()
+        self.wait_for_element_not_displayed(
+            *self._banner_countdown_notification_locator)
+
     def wait_for_new_alarm_button(self):
         self.wait_for_element_displayed(*self._alarm_create_new_locator)
-
-    def wait_for_banner_not_visible(self):
-        self.wait_for_element_not_displayed(*self._banner_countdown_notification_locator)
-
-    def wait_for_banner_displayed(self):
-        self.wait_for_element_displayed(*self._banner_countdown_notification_locator)
 
     def tap_analog_display(self):
         self.wait_for_element_displayed(*self._analog_clock_display_locator)
@@ -67,11 +73,8 @@ class Clock(Base):
     def tap_new_alarm(self):
         self.wait_for_element_displayed(*self._alarm_create_new_locator)
         self.marionette.find_element(*self._alarm_create_new_locator).tap()
-
         from gaiatest.apps.clock.regions.alarm import NewAlarm
-        new_alarm = NewAlarm(self.marionette)
-        new_alarm.wait_for_panel_to_load()
-        return new_alarm
+        return NewAlarm(self.marionette)
 
     class Alarm(PageRegion):
 

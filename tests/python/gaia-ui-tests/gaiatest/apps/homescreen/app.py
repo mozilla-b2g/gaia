@@ -20,6 +20,7 @@ class Homescreen(Base):
     _landing_page_locator = (By.ID, 'icongrid')
     _collections_locator = (By.CSS_SELECTOR, 'li.icon[data-collection-name]')
     _collection_locator = (By.CSS_SELECTOR, "li.icon[data-collection-name *= '%s']")
+    _delete_app_locator = (By.CSS_SELECTOR, 'li.icon span.options')
 
     def launch(self):
         Base.launch(self)
@@ -60,7 +61,7 @@ class Homescreen(Base):
             wait(3).\
             release().\
             perform()
-        self.wait_for_condition(lambda m: self.marionette.execute_script("return window.wrappedJSObject.Homescreen.isInEditMode()"))
+        self.wait_for_element_displayed(*self._delete_app_locator)
 
     def open_context_menu(self):
         test = self.marionette.find_element(*self._landing_page_locator)
