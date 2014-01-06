@@ -14,7 +14,9 @@ class SetupEmail(Base):
     _next_locator = (By.CSS_SELECTOR, '.sup-info-next-btn')
     _continue_button_locator = ('class name', 'sup-show-mail-btn sup-form-btn recommend')
     _check_for_new_messages_locator = (By.CSS_SELECTOR, '.tng-account-check-interval.mail-select')
+    _account_prefs_section_locator = (By.CSS_SELECTOR, 'section.card-setup-account-prefs')
     _account_prefs_next_locator = (By.CSS_SELECTOR, '.card-setup-account-prefs .sup-info-next-btn')
+    _done_section_locator = (By.CSS_SELECTOR, 'section.card-setup-done')
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
@@ -31,14 +33,15 @@ class SetupEmail(Base):
 
     def tap_next(self):
         self.marionette.find_element(*self._next_locator).tap()
-        self.wait_for_element_displayed(*self._check_for_new_messages_locator, timeout=120)
+        self.wait_for_condition(lambda m: m.find_element(
+            *self._account_prefs_section_locator).location['x'] == 0)
 
     def tap_account_prefs_next(self):
         self.wait_for_element_displayed(*self._account_prefs_next_locator, timeout=120)
         self.marionette.find_element(*self._account_prefs_next_locator).tap()
 
     def wait_for_setup_complete(self):
-        self.wait_for_element_displayed(*self._continue_button_locator, timeout=120)
+        self.wait_for_condition(lambda m: m.find_element(*self._done_section_locator).location['x'] == 0)
 
     def tap_continue(self):
         self.marionette.find_element(*self._continue_button_locator).tap()
@@ -69,7 +72,9 @@ class ManualSetupEmail(Base):
     _continue_button_locator = (By.CLASS_NAME, 'sup-show-mail-btn sup-form-btn recommend')
 
     _check_for_new_messages_locator = (By.CSS_SELECTOR, '.tng-account-check-interval.mail-select')
+    _account_prefs_section_locator = (By.CSS_SELECTOR, 'section.card-setup-account-prefs')
     _account_prefs_next_locator = (By.CSS_SELECTOR, '.card-setup-account-prefs .sup-info-next-btn')
+    _done_section_locator = (By.CSS_SELECTOR, 'section.card-setup-done')
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
@@ -79,6 +84,7 @@ class ManualSetupEmail(Base):
         el = self.marionette.find_element(*self._name_locator)
         el.clear()
         el.send_keys(value)
+        self.keyboard.dismiss()
 
     def type_email(self, value):
         el = self.marionette.find_element(*self._email_locator)
@@ -146,14 +152,15 @@ class ManualSetupEmail(Base):
 
     def tap_next(self):
         self.marionette.find_element(*self._next_locator).tap()
-        self.wait_for_element_displayed(*self._check_for_new_messages_locator, timeout=120)
+        self.wait_for_condition(lambda m: m.find_element(
+            *self._account_prefs_section_locator).location['x'] == 0)
 
     def tap_account_prefs_next(self):
         self.wait_for_element_displayed(*self._account_prefs_next_locator, timeout=120)
         self.marionette.find_element(*self._account_prefs_next_locator).tap()
 
     def wait_for_setup_complete(self):
-        self.wait_for_element_displayed(*self._continue_button_locator, timeout=120)
+        self.wait_for_condition(lambda m: m.find_element(*self._done_section_locator).location['x'] == 0)
 
     def tap_continue(self):
         self.marionette.find_element(*self._continue_button_locator).tap()
