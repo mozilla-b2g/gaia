@@ -37,7 +37,8 @@ class EditPhoto(Base):
 
     def tap_portrait_crop(self):
         self.marionette.find_element(*self._crop_portrait_locator).tap()
-        self.wait_for_condition(lambda m: 'selected' in self.marionette.find_element(*self._crop_portrait_locator).get_attribute('class'))
+        self.wait_for_condition(lambda m: 'selected' in m.find_element(
+            *self._crop_portrait_locator).get_attribute('class'))
 
     @property
     def effects(self):
