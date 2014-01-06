@@ -31,6 +31,7 @@ var Gaia = {
     config.GAIA_PORT = ':8080';
     config.GAIA_LOCALES_PATH = 'locales';
     config.LOCALES_FILE = 'shared/resources/languages.json';
+    config.LOCALE_BASEDIR = '';
     config.BUILD_APP_NAME = '*';
     config.PRODUCTION = '0';
     config.GAIA_OPTIMIZE = '0';

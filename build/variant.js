@@ -237,6 +237,10 @@ function fetchApps(data, profilePath, distributionPath, done) {
     });
   }
 
+  if (Object.keys(apps).length === 0) {
+    done();
+  }
+
 }
 
 // read the app postion customization part in variant.json and write the result
