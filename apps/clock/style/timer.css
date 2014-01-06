@@ -96,7 +96,8 @@ ul li > label.pack-switch > input + span {
 }
 
 #timer-sound-menu:before {
-  background: url("/shared/style/buttons/images/icons/dialog.png") no-repeat scroll 1.6rem -6rem / 1rem 9rem transparent;
+  background-position: 1.6rem -6rem;
+  background-size: 1rem 9rem;
 }
 
 #timer-sound-menu {
