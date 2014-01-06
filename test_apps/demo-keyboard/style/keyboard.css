@@ -21,27 +21,26 @@ body {
 #keyboardContainer {
   position: absolute;
   width: 100%;
-  height: 23rem; /* 20rem keyboard, 3rem word suggestions */
+  height: 23.6rem; /* 20.4rem keyboard, 3rem word suggestions 0.2 rem border*/
   bottom: 0;
   pointer-events: auto;
-  padding: 0.3rem 0;
   font-family: sans-serif;
+  border-top: 0.2rem solid #5b6668;
+  padding: 0;
+  margin: 0;
 }
 
 .page {
   position: absolute;
   width: 100%;
-  height: 20rem;
+  height: 20.4rem;
   left:0;
   bottom:0;
-  background-color: #6d7273;
+  background-color: #606b6e;
   z-index: 1;
-  padding-top: 0.3rem;
 }
 
 .page.hidden {
-  /*transform: translateX(100%);*/
-  /* opacity: 0.001; */
   z-index: 0;
 }
 
@@ -59,37 +58,82 @@ body {
  * So this may have to be done with JS instead of CSS. But this works for now.
  */
 .page.shifted .key[data-name=SHIFT] {
-  color: #00acd1;
+  color: #00caf2;
 }
 
+/*
+ * When caps lock is on, we put a .4rem blue bar along the bottom of the key.
+ * We convert the bottom margin to a border, and have to increase the
+ * height of the key by 0.4rem to make this work.
+ */
 .page.locked .key[data-name=SHIFT] {
-  background-color: #00acd1;
-  color: white;
+  border-bottom: solid #00caf2 0.4rem;
+  margin-bottom: 0;
+  height: 4.7rem;
 }
 
 .row {
   text-align: center;
-  height: 5rem;
+  height: 5.1rem;
+}
+
+.row:nth-child(1) {
+  background-color: #606b6e;
+}
+.row:nth-child(2) {
+  background-color: #5b6668;
+}
+.row:nth-child(3) {
+  background-color: #566061;
+}
+.row:nth-child(4) {
+  background-color: #525c5e;
+}
+
+.row:nth-child(1) .key {
+  border-right-color: #525b5e;
+}
+.row:nth-child(2) .key {
+  border-right-color: #4c5657;
+}
+.row:nth-child(3) .key {
+  border-right-color: #475052;
+}
+.row:nth-child(4) .key {
+  border-right-color: #434b4d;
+}
+
+/*
+ * The last key in a row should not have a visible border
+ * But to keep size calculations consistent we just make it transparent
+ * rather than turning it off.
+ */
+.row .key:last-child {
+  border-right-color: transparent;
 }
 
 .key {
   position:relative;
   display: inline-block;
   min-width: 2.6rem;
-  height: 4.4rem;
+  /*
+   * This height plus the top and bottom margin makes an overall height of
+   * 5.1rem per row. The reason for the margin is that it prevents the left
+   * and right borders from going all the way to the top and bottom of the row.
+   */
+  height: 4.3rem;
+  margin: 0.4rem 0;
+  padding: 0;
 
-  padding: 0 0.1rem;
-  /* if you change left and right margin here, also change them in page.js */
-  margin: 0 0.1rem 0.3rem 0.1rem;
-  border: 0.1rem solid #1b1d1d;
-  border-radius: 0.3rem;
-
-  background-color: black;
+  background: none;
   color: white;
 
-  font-weight: 500;
+  border-right: 0.1rem solid #525b5e;
+  border-left: 0.1rem solid transparent;
+
+  font-weight: normal;
   font-size: 2.4rem;
-  line-height: 4.4rem;
+  line-height: 4.3rem;
   text-align: center;
   vertical-align: top;
 
@@ -101,16 +145,45 @@ body {
 }
 
 .key.specialkey:not([data-name=SPACE]) {
-  border-color: #2a2c2e;
-  background-color: #44494a;
   font-size: 1.5rem;
+  font-weight: 500;
+  color: #abb0b1;
 }
 
-.key:not(.specialkey).touched {
-  background-color: #00acd1;
-  color: #00acd1; /* hide the text by using the same bg color */
+/*
+ * When a key is touched, change its appearance.
+ * We use this same appearance when the alternatives menu is shown
+ */
+.key:not(.specialkey).touched, .key.altshown {
+  /* color changes */
+  color: #00caf2;
+  background-color: #4a5255;
 
-  z-index: 30;
+  /*
+   * We had a 0.4rem margin top and bottom so that the borders don't extend
+   * all the way up and down. But when we highlight, we want the highlight
+   * to go all the way up and down. So we set the margin to 0 and replace
+   * it with padding on the top and bottom. But since we're using border-box
+   * sizing, the padding is part of the height and we have to add .8rem
+   * to the key height.
+   */
+  margin: 0;
+  padding: 0.4rem 0.1rem 0.4rem 0.2rem;
+  height: 5.1rem;
+
+  /*
+   * When we highlight the key, we remove the left and right borders and
+   * add the border width to the left and right padding to keep the overall
+   * border-box width the same. This typically does not make a difference
+   * because the size of the keys are determined by a min-width property.
+   *
+   * Also, we want to cover up the border-right of the key to the left
+   * of this one, so we move the key over to the left just a bit. This
+   * is why we have an extra 0.1rem of left padding above so that the keycap
+   * does not appear to move
+   */
+  border: none;
+  transform: translateX(-0.1rem);
 }
 
 .key:not(.specialkey).touched::before {
@@ -120,105 +193,80 @@ body {
   display:block;
 
   top: -5.6rem;
-  left: -0.5rem;
-  right: -0.5rem;
+  left: calc(50% - 2.8rem);
+  width: 5.6rem;
   height: 5.6rem;
-  color: white;
-  background-color: #00acd1;
-  border: 0.1rem solid #1b1d1d;
-  border-radius: 0.3rem;
-
-  font-size: 3.6rem;
-  line-height: 5rem;
-  font-weight: 500;
-
-  /*
-   * we turn off the bottom border to make the popup look like
-   * an extension of the key itself. Ideally the little bit of the
-   * border that is outside of the key would still show. But I can't
-   * figure out how to get the popup to be underneath the main key.
-   */
-  border-bottom: none;
+  color: #fff;
+  font-size: 2.8rem;
+  font-weight: medium;
+  line-height: 5.6rem;
+  border-radius: 50%;
+  background-color: #00aacc;
 }
 
-.key.altshown {
-  background-color: #00acd1;
-  color: #00acd1; /* hide the text by using the same bg color */
+/*
+ * If a row has 10 or more keys in it, then the popup for the first and last
+ * keys can't be centered over the key and have to be offset a bit.
+ */
+.key:not(.specialkey):first-child:nth-last-child(10).touched::before,
+.key:not(.specialkey):first-child:nth-last-child(11).touched::before,
+.key:not(.specialkey):first-child:nth-last-child(12).touched::before {
+  left: 0;
+}
+.key:not(.specialkey):last-child:nth-child(10).touched::before,
+.key:not(.specialkey):last-child:nth-child(11).touched::before,
+.key:not(.specialkey):last-child:nth-child(12).touched::before {
+  left: auto;
+  right: 0;
 }
 
 .altmenu {
   position:absolute;
-  height: 9rem;
+  height: 6rem;
+  font-size: 0;
+  border-radius: 3rem;
+  background-color: #00aacc;
+  overflow: hidden;
   white-space: nowrap;
   z-index: 30;
-  margin: 0 0.1rem 0 0; /* must match .key margin */
 }
 
 .altkey {
-  position: relative;
   display: inline-block;
-  height: 100%;
-  min-width: 2.6rem;
+  height: 6rem;
+  min-width: 3rem;
+
+  background-color: #00aacc;
+  color: #fff;
   font-family: sans-serif;
   font-weight: 500;
-  font-size: 3.6rem;
-  line-height: 5rem;
-  /*
-   * Display the key in transparent color.
-   * We do this to set the width of the element so that it is as wide
-   * as we need for the visible ::after pseudo element
-   */
-  color: rgba(0,0,0,0);
-  padding: 0 .4rem;
-}
-
-.altkey::after {
-  content: attr(data-keycap);
-  position: absolute;
-  width: 100%;
-  height: 5rem;
-  top: 0;
-  left: 0;
-
-  background-color: #212c2c;
-  color: white;
+  font-size: 2.8rem;
+  line-height: 6rem;
   text-align: center;
-  vertical-align: top;
-  border: 0.1rem solid #1b1d1d;
-}
 
-.altkey.touched::after {
-  background-color: #00acd1;
+  margin: 0;
+  border-right: 1px solid #0099b8;
 }
 
 /*
- * We want a curved border around the visible portion of the row, so we have
- * to set the border on the altkey::after elements, and curve certain corners
- * of the first and the last elements. But the corners we curve also depends
- * on the direction the row is running in.
+ * Because we use rounded borders we make the first and last alternatives
+ * 1.2rem wider than those in the middle. If we change this width, we also
+ * have to change the 12px constant in pageview.js
  */
-.altmenu[dir='ltr'] .altkey:first-child::after {
-  border-top-left-radius: 0.3rem;
-}
-.altmenu[dir='ltr'] .altkey:last-child::after {
-  border-top-right-radius: 0.3rem;
-  border-bottom-right-radius: 0.3rem;
-}
-
-.altmenu[dir='rtl'] .altkey:first-child::after {
-  border-top-right-radius: 0.3rem;
-}
-.altmenu[dir='rtl'] .altkey:last-child::after {
-  border-top-left-radius: 0.3rem;
-  border-bottom-left-radius: 0.3rem;
+.altkey:first-child, .altkey:last-child {
+  min-width: 4.2rem;
 }
 
 /*
- * The first child in a row of alternates shouldn't have a bottom border
+ * If there is only one alternative, then we make the key as wide as it
+ * is high so it appears as a circle.
  */
-.altkey:first-child::after {
-  border-bottom: none;
-  min-width: 100%;
+.altkey:first-child:last-child {
+  min-width: 6rem;
+}
+
+.altkey.touched {
+  background-color: #0099b8;
 }
 
 .suggestions {

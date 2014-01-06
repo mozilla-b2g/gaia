@@ -86,7 +86,7 @@ function KeyboardLayout(config) {
     var pagedata = this.pages[pagename] = {};
 
     // Build the default page layout for this page
-    pagedata.defaultLayout = new KeyboardPage(pagename, "default",
+    pagedata.defaultLayout = new KeyboardPage(pagename, 'default',
                                               pageconfig.layout,
                                               pageconfig.keys, config.keys);
 
