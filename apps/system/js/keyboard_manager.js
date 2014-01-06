@@ -474,10 +474,10 @@ var KeyboardManager = {
     this.showingLayout.frame = this.launchLayoutFrame(layout);
 
     // By setting launchOnly to true, we load the keyboard frame w/o bringing it
-    // to the foreground; this is effectively equal to calling
-    // setKeyboardToShow() *then* call resetShowingKeyboard().
+    // to the backgorund; this is convenient to call
+    // setKeyboardToShow() and call resetShowingKeyboard() in one atcion.
     if (launchOnly) {
-      this.showingLayout.frame.hidden = true;
+      this.resetShowingKeyboard();
       return;
     }
     // remove transitionOut for showing keyboard while user foucus quickly again
