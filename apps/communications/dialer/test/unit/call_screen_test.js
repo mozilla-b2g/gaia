@@ -489,6 +489,14 @@ suite('call screen', function() {
     });
   });
 
+  suite('Emeregency Wallpaper setter', function() {
+    test('should add emergency-active class', function() {
+      var classList = CallScreen.mainContainer.classList;
+
+      CallScreen.setEmergencyWallpaper();
+      assert.isTrue(classList.contains('emergency-active'));
+    });
+  });
 
   suite('toggleMute', function() {
     test('should change active-state class', function() {

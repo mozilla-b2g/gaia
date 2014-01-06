@@ -21,6 +21,9 @@ var MockCallScreen = {
     this.mSetCallerContactImageCalled = true;
     this.mSetCallerContactImageArg = arg;
   },
+  setEmergencyWallpaper: function() {
+    this.mSetEmergencyWallpaperCalled = true;
+  },
   mute: function() {
     this.mMuteOn = true;
   },
@@ -101,6 +104,7 @@ var MockCallScreen = {
     this.mSyncSpeakerCalled = false;
     this.mSetCallerContactImageCalled = false;
     this.mSetCallerContactImageArg = null;
+    this.mSetEmergencyWallpaperCalled = false;
     this.mMuteOn = false;
     this.mSpeakerOn = false;
     this.mLastRenderMode = null;

@@ -704,12 +704,32 @@ suite('dialer/handled_call', function() {
     assert.equal(subject.numberNode.textContent, 'switch-calls');
   });
 
-  test('should display emergency number label', function() {
-    mockCall = new MockCall('112', 'dialing');
-    mockCall.emergency = true;
-    subject = new HandledCall(mockCall);
+  suite('Emergency Call layout', function() {
+    setup(function() {
+      MockCallScreen.mSetEmergencyWallpaperCalled = false;
+    });
 
-    assert.equal(subject.numberNode.textContent, 'emergencyNumber');
+    test('should display emergency number label', function() {
+      mockCall = new MockCall('112', 'dialing');
+      mockCall.emergency = true;
+      subject = new HandledCall(mockCall);
+
+      assert.equal(subject.numberNode.textContent, 'emergencyNumber');
+    });
+
+    test('should display emergency Wallpaper', function() {
+      mockCall = new MockCall('112', 'dialing');
+      subject = new HandledCall(mockCall);
+
+      assert.isTrue(MockCallScreen.mSetEmergencyWallpaperCalled);
+    });
+
+    test('should not display emergency wallpaper for normal calls', function() {
+      mockCall = new MockCall('111', 'dialing');
+      subject = new HandledCall(mockCall);
+
+      assert.isFalse(MockCallScreen.mSetEmergencyWallpaperCalled);
+    });
   });
 
   test('should display voicemail label', function() {

@@ -169,6 +169,19 @@
     background-color: transparent;
   }
 
+  #main-container.emergency-active:before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-color: #eaeaea;
+    background-image: url("images/picture_emergency.png");
+    background-repeat: no-repeat;
+    background-position: center;
+    height: 100%;
+    width: 100%;
+  }
+
   #actions-container {
     position: absolute;
     bottom: 0;
