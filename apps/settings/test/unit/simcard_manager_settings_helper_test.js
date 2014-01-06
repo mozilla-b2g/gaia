@@ -4,6 +4,7 @@ requireApp('settings/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('settings/js/simcard_manager_settings_helper.js');
 
 suite('SimSettingsHelper > ', function() {
+  this.timeout(20000);
 
   var realMozSettings;
 

@@ -3,6 +3,7 @@ requireLib('provider/abstract.js');
 requireLib('provider/local.js');
 
 suiteGroup('Views.ModifyAccount', function() {
+  this.timeout(20000);
 
   var subject;
   var account;
