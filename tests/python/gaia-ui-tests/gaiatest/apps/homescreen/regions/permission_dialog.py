@@ -22,6 +22,8 @@ class PermissionDialog(Base):
 
     def tap_to_confirm_permission(self):
         self.marionette.find_element(*self._permission_confirm_button_locator).tap()
+        from gaiatest.apps.system.app import System
+        return System(self.marionette)
 
     def tap_to_dismiss_permission(self):
         self.marionette.find_element(*self._permission_dismiss_button_locator).tap()
