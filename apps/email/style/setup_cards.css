@@ -214,7 +214,7 @@ li.select-item {
 
 li .aside.start {
   float: left;
-  width: calc(100% - 12rem);
+  width: calc(100% - 13.5rem);
 }
 
 li .aside.end {
@@ -223,6 +223,7 @@ li .aside.end {
 
 .aside.end .pack-switch {
   padding-right: 3rem;
+  margin-right: 1.5rem;
 }
 
 li.align-center {
