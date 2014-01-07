@@ -130,7 +130,7 @@ var PhoneLock = {
   changeMode: function pl_changeMode(mode) {
     var self = this;
 
-    function onPasscodePanelLoad(e){
+    function onPasscodePanelLoad(e) {
       window.removeEventListener('panelready', onPasscodePanelLoad);
       if (e.detail.current === '#phoneLock-passcode') {
         self.passcodeInput.focus();
