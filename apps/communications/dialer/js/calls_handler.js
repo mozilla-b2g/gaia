@@ -615,10 +615,14 @@ var CallsHandler = (function callsHandler() {
   }
 
   function holdOrResumeSingleCall() {
-    if (handledCalls.length !== 1) {
+    var openLines = telephony.calls.length +
+      (telephony.conferenceGroup.calls.length ? 1 : 0);
+
+    if (openLines !== 1) {
       return;
     }
-    if (telephony.calls[0].state === 'incoming') {
+
+    if (telephony.calls.length && telephony.calls[0].state === 'incoming') {
       return;
     }
 
@@ -626,7 +630,10 @@ var CallsHandler = (function callsHandler() {
       telephony.active.hold();
       CallScreen.render('connected-hold');
     } else {
-      telephony.calls[0].resume();
+      var line = telephony.calls.length ?
+        telephony.calls[0] : telephony.conferenceGroup;
+
+      line.resume();
       CallScreen.render('connected');
     }
   }
