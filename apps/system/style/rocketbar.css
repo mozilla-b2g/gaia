@@ -14,12 +14,13 @@
 }
 
 #search-bar[data-visible] {
+  visibility: visible;
   pointer-events: auto;
   transform: translateY(0);
   transition: transform 0.3s ease;
 }
 
-#search-bar.hidden {
+#search-bar {
   visibility: hidden;
 }
 
