@@ -811,7 +811,7 @@ suite('calls handler', function() {
     });
 
     suite('> CallsHandler.toggleCalls()', function() {
-      suite('> toggling a simple call', function() {
+      suite('> toggling a single call', function() {
         var mockCall;
 
         setup(function() {
@@ -872,6 +872,25 @@ suite('calls handler', function() {
                                        'hold');
           CallsHandler.toggleCalls();
           assert.isFalse(holdSpy.called);
+        });
+
+        suite('when the conference call is holded', function() {
+          setup(function() {
+            MockMozTelephony.active = null;
+          });
+
+          test('should resume the conference call', function() {
+            var resumeSpy = this.sinon.spy(MockMozTelephony.conferenceGroup,
+                                           'resume');
+            CallsHandler.toggleCalls();
+            assert.isTrue(resumeSpy.calledOnce);
+          });
+
+          test('should render the CallScreen in connected mode', function() {
+            var renderSpy = this.sinon.spy(MockCallScreen, 'render');
+            CallsHandler.toggleCalls();
+            assert.isTrue(renderSpy.calledWith('connected'));
+          });
         });
       });
 
