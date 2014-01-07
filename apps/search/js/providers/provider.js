@@ -24,6 +24,7 @@ Provider.prototype = {
    * Clears the rendered results of this provider from the app grid
    */
   clear: function() {
+    console.log('CLEARING from provider.js', this.name);
     this.container.innerHTML = '';
   },
 

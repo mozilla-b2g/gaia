@@ -88,6 +88,7 @@
      * Called when the user changes the search query
      */
     change: function(msg) {
+      console.log('search.js change', msg.data.input);
       clearTimeout(this.changeTimeout);
 
       var input = msg.data.input;
@@ -95,6 +96,7 @@
 
       this.changeTimeout = setTimeout(function doSearch() {
         for (var i in providers) {
+          console.log('sent input', i, input);
           providers[i].search(input);
         }
       }, SEARCH_DELAY);
@@ -104,6 +106,8 @@
      * Called when the user submits the search form
      */
     submit: function(msg) {
+      console.log('search.js submit');
+      this.abort();
       Search.navigate(getUrlFromInput(msg.data.input));
     },
 
@@ -111,6 +115,7 @@
      * Called when the user submits the search form
      */
     clear: function(msg) {
+      console.log('search.js clearing');
       this.abort();
       for (var i in this.providers) {
         this.providers[i].clear();

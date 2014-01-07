@@ -112,6 +112,7 @@ var Rocketbar = {
           window.dispatchEvent(new CustomEvent('taskmanagershow'));
           // Send a message to the search app to clear results
           if (this._port) {
+            console.log('clearing from rocketbar');
             this._port.postMessage({
               action: 'clear'
             });
@@ -284,6 +285,7 @@ var Rocketbar = {
 
     // If we have a port, send a message to clear the search app
     if (this._port) {
+      console.log('clearing from rocketbar');
       this._port.postMessage({
         action: 'clear'
       });
