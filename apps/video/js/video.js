@@ -21,8 +21,8 @@ var ids = ['thumbnail-list-view', 'thumbnails-bottom', 'thumbnail-list-title',
            'thumbnails-single-delete-button', 'thumbnails-single-share-button',
            'thumbnails-single-info-button', 'info-view', 'info-close-button',
            'player', 'overlay', 'overlay-title', 'overlay-text',
-           'overlay-menu', 'overlay-action-button',
-           'video-container', 'videoControls', 'videoBar', 'videoActionBar',
+           'overlay-menu', 'storage-setting-button', 'video-container',
+           'videoControls', 'videoBar', 'videoActionBar',
            'close', 'play', 'playHead', 'timeSlider', 'elapsedTime',
            'video-title', 'duration-text', 'elapsed-text', 'bufferedTime',
            'slider-wrapper', 'throbber', 'delete-video-button',
@@ -171,17 +171,11 @@ function init() {
     });
   }
 
-  navigator.mozSetMessageHandler('activity', handleActivityEvents);
+  // Click to open the media storage panel when the default storage is
+  // unavailable.
+  dom.storageSettingButton.addEventListener('click', launchSettingsApp);
 
-  // the overlay action button may be used in both normal mode and activity
-  // mode, we need to wire its event handler here.
-  dom.overlayActionButton.addEventListener('click', function() {
-    if (pendingPick) {
-      cancelPick();
-    } else if (currentOverlay === 'empty') {
-      launchCameraApp();
-    }
-  });
+  navigator.mozSetMessageHandler('activity', handleActivityEvents);
 }
 
 function initThumbnailSize() {
@@ -490,6 +484,16 @@ function updateSelection(videodata) {
   }
 }
 
+function launchSettingsApp() {
+  var activity = new MozActivity({
+    name: 'configure',
+    data: {
+      target: 'device',
+      section: 'mediaStorage'
+    }
+  });
+}
+
 function launchCameraApp() {
   var a = new MozActivity({
     name: 'record',
@@ -723,28 +727,19 @@ function showOverlay(id) {
     return;
   }
 
-  var _ = navigator.mozL10n.get;
-
-  if (pendingPick || id === 'empty') {
-    // We cannot use hidden attribute because confirm.css overrides it.
+  if (id === 'nocard') {
     dom.overlayMenu.classList.remove('hidden');
-    dom.overlayActionButton.classList.remove('hidden');
-    dom.overlayActionButton.textContent = _(pendingPick ?
-                                            'overlay-cancel-button' :
-                                            'overlay-camera-button');
   } else {
     dom.overlayMenu.classList.add('hidden');
-    dom.overlayActionButton.classList.add('hidden');
   }
 
   if (id === 'nocard') {
-    dom.overlayTitle.textContent = _('nocard2-title');
-    dom.overlayText.textContent = _('nocard2-text');
+    dom.overlayTitle.textContent = navigator.mozL10n.get('nocard2-title');
+    dom.overlayText.textContent = navigator.mozL10n.get('nocard2-text');
   } else {
-    dom.overlayTitle.textContent = _(id + '-title');
-    dom.overlayText.textContent = _(id + '-text');
+    dom.overlayTitle.textContent = navigator.mozL10n.get(id + '-title');
+    dom.overlayText.textContent = navigator.mozL10n.get(id + '-text');
   }
-
   dom.overlay.classList.remove('hidden');
 }
 
@@ -1201,7 +1196,9 @@ function showPickView() {
   thumbnailList.setPickMode(true);
   document.body.classList.add('pick-activity');
 
-  dom.pickerClose.addEventListener('click', cancelPick);
+  dom.pickerClose.addEventListener('click', function() {
+    pendingPick.postError('pick cancelled');
+  });
 
   // In tablet, landscape mode, the pick view will have different UI from normal
   // view.
@@ -1209,11 +1206,6 @@ function showPickView() {
     // update all title text when rotating.
     thumbnailList.upateAllThumbnailTitle();
   }
-}
-
-function cancelPick() {
-  pendingPick.postError('pick cancelled');
-  cleanupPick();
 }
 
 function cleanupPick() {

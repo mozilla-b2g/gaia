@@ -729,13 +729,6 @@ section[role="region"] > header:first-child .icon-back {
   top: 1rem;
 }
 
-/*
- * increase specificity to overwrite confirm.css rules for dialog buttons
- */
-form[role="dialog"][data-type="confirm"] button.hidden {
-  display: none;
-}
-
 @media screen and (orientation: portrait) {
   #play, #play:after {
     width: 5.6rem;
