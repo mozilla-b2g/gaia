@@ -44,9 +44,11 @@ function createReportDiv(reports) {
     delivery: '',
     deliveryL10n: '',
     deliveryDateL10n: '',
+    deliveryTimestamp: '',
     read: 'hide', // TODO: Check read status when gecko ready
     readL10n: 'message-read', // TODO: Check read status when gecko ready
-    readDateL10n: '' // TODO: Check read status when gecko ready
+    readDateL10n: '', // TODO: Check read status when gecko ready
+    messageL10nDateFormat: 'report-dateTimeFormat'
   };
 
   switch (reports.deliveryStatus) {
@@ -54,6 +56,7 @@ function createReportDiv(reports) {
       data.deliveryL10n = 'message-requested';
       break;
     case 'success':
+      data.deliveryTimestamp = '' + reports.deliveryTimestamp;
       data.deliveryDateL10n = completeLocaleFormat(reports.deliveryTimestamp);
       break;
     case 'error':
@@ -134,6 +137,8 @@ var VIEWS = {
         var type = message.type;
 
         this.subject.textContent = '';
+        this.datetime.dataset.l10nDate = message.timestamp;
+        this.datetime.dataset.l10nDateFormat = 'report-dateTimeFormat';
         this.datetime.textContent = completeLocaleFormat(message.timestamp);
 
         // Fill in the description/status/size
@@ -162,13 +167,19 @@ var VIEWS = {
 
         // Filled in the contact list. Only outgoing message contains detailed
         // report information.
+        if (message.delivery === 'received' ||
+            message.delivery === 'not-downloaded') {
+          localize(this.contactTitle, 'report-from');
+        } else {
+          localize(this.contactTitle, 'report-recipients');
+        }
         this.renderContactList(createListWithMsgInfo(message));
       }).bind(this);
 
       localize(ThreadUI.headerText, 'message-report');
     },
     elements: ['contact-list', 'description', 'status', 'size', 'size-block',
-      'type', 'subject', 'datetime']
+      'type', 'subject', 'datetime', 'contact-title']
   }
 };
 
