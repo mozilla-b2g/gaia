@@ -4,6 +4,9 @@
 
 from marionette.by import By
 from gaiatest.apps.base import Base
+from marionette.errors import NoSuchElementException
+from marionette.errors import ElementNotVisibleException
+from marionette.wait import Wait
 
 
 class ContactForm(Base):
@@ -164,8 +167,7 @@ class NewContact(ContactForm):
 
     def __init__(self, marionette):
         ContactForm.__init__(self, marionette)
-        done = self.marionette.find_element(*self._done_button_locator)
-        self.wait_for_condition(lambda m: done.location['y'] == 0)
+        Wait(self.marionette, 120, ignored_exceptions=(NoSuchElementException, ElementNotVisibleException)).until(lambda m: m.find_element(*self._done_button_locator).location['y'] == 0)
 
     def tap_done(self):
         self.marionette.find_element(*self._done_button_locator).tap()
