@@ -3,7 +3,9 @@ var Base = require('./base'),
     DoNotTrackPanel = require('./regions/do_not_track'),
     HotspotPanel = require('./regions/hotspot');
     HotspotSettingsPanel = require('./regions/hotspot_settings');
-    SupportPanel = require('./regions/support');
+    SupportPanel = require('./regions/support'),
+    ImprovePanel = require('./regions/improve'),
+    FeedbackPanel = require('./regions/feedback');
 
 /**
  * Abstraction around settings app
@@ -28,7 +30,9 @@ Settings.Selectors = {
   'hotspotMenuItem': '#menuItem-internetSharing',
   'hotspotPanel': '#hotspot',
   'hotspotSettingsTrigger': '#hotspot-settings-section button',
-  'supportMenuItem': '#menuItem-help'
+  'supportMenuItem': '#menuItem-help',
+  'improvePanel': '#menuItem-improveBrowserOS',
+  'feedbackPanel': 'button[data-href="#improveBrowserOS-chooseFeedback"]'
 };
 
 Settings.prototype = {
@@ -63,6 +67,18 @@ Settings.prototype = {
     openPanel.call(this, 'supportMenuItem');
     return this._supportPanel = this._supportPanel ||
       new SupportPanel(this.client);
+  },
+
+  get improvePanel() {
+    openPanel.call(this, 'improvePanel');
+    return this._improvePanel = this._improvePanel ||
+      new ImprovePanel(this.client);
+  },
+
+  get feedbackPanel() {
+    openPanel.call(this, 'feedbackPanel');
+    return this._feedbackPanel = this._feedbackPanel ||
+      new FeedbackPanel(this.client);
   }
 };
 
