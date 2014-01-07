@@ -12,7 +12,8 @@
           <label>
             <button data-href="#improveBrowserOS-chooseFeedback"
                     data-l10n-id="sendMozillaFeedback"
-                    class="icon icon-view">
+                    class="icon icon-view"
+                    id="improveBrowserOS-chooseFeedback">
                 Send Mozilla Feedback
               </button>
           </label>
@@ -31,7 +32,7 @@
             <a href="http://mozilla.org/telemetry" data-l10n-id="learn-more" class="link-text">Learn More</a>
           </p>
         </li>
-        <li>
+        <li id="menuItem-sharePerformanceData">
           <label class="pack-checkbox">
             <input type="checkbox" name="debug.performance_data.shared">
             <span data-l10n-id="sharePerformanceData">Submit performance data</span>
@@ -52,19 +53,19 @@
             <a href="#crashReports" data-l10n-id="learn-more" class="link-text">Learn More</a>
           </p>
         </li>
-        <li>
+        <li id="menuItem-alwaysSendReport">
           <label class="pack-radio">
             <input type="radio" name="app.reportCrashes" value="always">
             <span data-l10n-id="alwaysSendReport">Always send a report</span>
           </label>
         </li>
-        <li>
+        <li id="menuItem-neverSendReport">
           <label class="pack-radio">
             <input type="radio" name="app.reportCrashes" value="never">
             <span data-l10n-id="neverSendReport">Never send a report</span>
           </label>
         </li>
-        <li>
+        <li id="menuItem-askToSendReport2">
           <label class="pack-radio">
             <input type="radio" name="app.reportCrashes" value="ask" checked>
             <span data-l10n-id="askToSendReport2">Ask each time</span>
