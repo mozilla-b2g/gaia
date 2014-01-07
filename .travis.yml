@@ -7,11 +7,8 @@ before_script:
 script: ./node_modules/.bin/travisaction $CI_ACTION script
 after_script: ./node_modules/.bin/travisaction $CI_ACTION after_script
 branches:
-  except:
-  - v1-train
-  - v1.1.0hd
-  - v1.0.0
-  - v1.0.1
+  only:
+  - master
 env:
   matrix:
   - CI_ACTION=gjslint
