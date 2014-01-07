@@ -22,8 +22,9 @@ class TestGeolocationPrompt(GaiaTestCase):
 
         self.app = self.apps.launch('Geoloc')
 
-        # Quick fix to resolve intermittency - TODO remove this with bug 952292
-        time.sleep(2)
+        # Further initialization occurs after DOMContentLoaded- we need to wait for it
+        self.wait_for_condition(lambda m: m.execute_script("return window.wrappedJSObject.initialized;"))
+
         self.marionette.find_element(*self._geoloc_start_button_locator).tap()
 
         permission = PermissionDialog(self.marionette)
