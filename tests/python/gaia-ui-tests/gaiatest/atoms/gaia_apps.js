@@ -215,8 +215,7 @@ var GaiaApps = {
         }
         else {
           let appOpened = function() {
-            window.removeEventListener('apploadtime', appOpened);
-            window.removeEventListener('appopened', appOpened);
+            window.removeEventListener('appopen', appOpened);
             waitFor(
               function() {
                 console.log("app with origin '" + origin + "' has launched");
@@ -228,8 +227,7 @@ var GaiaApps = {
               }
             );
           }
-          window.addEventListener('apploadtime', appOpened);
-          window.addEventListener('appopened', appOpened);
+          window.addEventListener('appopen', appOpened);
           console.log("launching app with name '" + appName + "'");
           app.launch(entryPoint || null);
         }

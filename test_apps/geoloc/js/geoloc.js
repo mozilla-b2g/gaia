@@ -7,6 +7,8 @@ var _ = undefined;
 
 var locations = undefined;
 
+var initialized = false;
+
 function success(position) {
   var debug = document.getElementById('geoloc-debug').checked;
   var s = document.querySelector('#log');
@@ -232,6 +234,7 @@ window.addEventListener('DOMContentLoaded', function() {
   var keep = document.getElementById('geoloc-keep');
   keep.addEventListener('change', function(ev) {
     if (running) {
+      initialized = true;
       return;
     }
 
@@ -273,4 +276,6 @@ window.addEventListener('DOMContentLoaded', function() {
   document.getElementById('btnStop').addEventListener('click', stopGeoloc);
   document.getElementById('btnClear').addEventListener('click', clearGeoloc);
   document.getElementById('btnSave').addEventListener('click', saveGeoloc);
+
+  initialized = true;
 });
