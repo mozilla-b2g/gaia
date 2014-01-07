@@ -37,18 +37,17 @@ marionette('Keyboard APP', function() {
       // switch to keyboard app
       client.switchToFrame();
       keyboard.switchToKeyboard(layout);
-      client.waitFor(function waiting() {
-        var flag = false;
-        client.findElement('button.keyboard-key[data-keycode="13"]',
-          function(error, element) {
-            if (!error) {
-              flag = element.displayed();
-            }
-          });
+      // client.waitFor(function waiting() {
+      //   var flag = false;
+      //   client.findElement('button.keyboard-key[data-keycode="13"]',
+      //     function(error, element) {
+      //       if (!error) {
+      //         flag = element.displayed();
+      //       }
+      //     });
 
-        return flag;
-      });
-      //client.helper.waitForElement('button.keyboard-key[data-keycode="13"]');
+      //   return flag;
+      // });
       keyboard.tapString(text);
       form.backToApp();
       var tabsBadge = client.findElement('input#text_input');

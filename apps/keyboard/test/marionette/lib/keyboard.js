@@ -63,10 +63,15 @@ Keyboard.prototype = {
     this.keyboardFrame = this.client.findElement(iframeSelectors);
     var self = this;
     this.client.waitFor(function waiting() {
-      var location = self.keyboardFrame.location();
-      return location.y == 0;
+      return self.keyboardFrame.displayed();
     });
+
     this.client.switchToFrame(this.keyboardFrame);
+    var keyboard = this.client.findElement('div#keyboard');
+    this.client.waitFor(function waiting() {
+      console.log('keyboard:' + keyboard.getAttribute('data-hidden'));
+      return keyboard.getAttribute('data-hidden') !== 'true';
+    });
   },
 
   tapKey: function(keycode) {
