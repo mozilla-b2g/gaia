@@ -586,12 +586,6 @@ define run-js-command
 			}"
 endef
 
-define run-node-command
-	echo "run-node-command $1";
-	node --harmony -e \
-	"require('.$(SEP)build$(SEP)$(strip $1).js').execute($$BUILD_CONFIG)"
-endef
-
 # Optional files that may be provided to extend the set of default
 # preferences installed for gaia.  If the preferences in these files
 # conflict, the result is undefined.
