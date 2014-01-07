@@ -76,9 +76,17 @@ var PermissionManager = {
             this.isAudio = true;
           }
         } else {
-          console.log('XXX version < v1.2 does not support new permissions');
+          // work in compatible mode
           if (detail.permission) {
             this.currentPermission = detail.permission;
+            if ('video-capture' === detail.permission) {
+              this.isVideo = true;
+
+              LazyLoader.load('shared/js/template.js');
+            }
+            if ('audio-capture' === detail.permission) {
+              this.isAudio = true;
+            }
           }
         }
 
