@@ -839,6 +839,10 @@ apps/settings/js/utils.js
 apps/settings/js/wallpaper.js
 apps/settings/js/wifi.js
 apps/settings/js/wifi_select_certificate_file.js
+apps/settings/test/marionette/app/app.js
+apps/settings/test/marionette/app/regions/feedback.js
+apps/settings/test/marionette/app/regions/improve.js
+apps/settings/test/marionette/tests/improve_settings_test.js
 apps/settings/test/performance/integration.js
 apps/settings/test/performance/rendering_wifi_list_test.js
 apps/settings/test/unit/about_test.js
