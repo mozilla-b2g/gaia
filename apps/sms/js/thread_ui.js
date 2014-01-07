@@ -2006,6 +2006,10 @@ var ThreadUI = global.ThreadUI = {
       MessageManager.sendMMS(mmsMessage, null,
         function onError(error) {
           var errorName = error.name;
+          if (errorName === 'NotFoundError') {
+            console.info('The message was deleted or is no longer available.');
+            return;
+          }
           this.showMessageError(errorName);
         }.bind(this)
       );

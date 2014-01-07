@@ -3727,6 +3727,30 @@ suite('thread_ui.js >', function() {
       assert.isTrue(spy.calledOnce);
     });
 
+    suite('sendMMS errors', function() {
+      setup(function() {
+        this.sinon.spy(MessageManager, 'sendMMS');
+        this.sinon.spy(MockErrorDialog.prototype, 'show');
+
+        ThreadUI.recipients.add({
+          number: '999'
+        });
+
+        Compose.append(mockAttachment(512));
+
+        sendButton.click();
+      });
+
+      test('NotFoundError', function() {
+        MessageManager.sendMMS.callArg(2, { name: "NotFoundError" });
+        sinon.assert.notCalled(MockErrorDialog.prototype.show);
+      });
+
+      test('Generic error', function() {
+        MessageManager.sendMMS.callArg(2, { name: "GenericError" });
+        sinon.assert.called(ErrorDialog.prototype.show);
+      });
+    });
   });
 
   suite('Contact Picker Behavior(contactPickButton)', function() {
