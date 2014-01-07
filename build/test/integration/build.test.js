@@ -112,9 +112,9 @@ suite('Build Integration tests', function() {
         'dom.payment.provider.2.requestMethod': 'GET'
       };
 
-      // expected values for settings.json from build/data/common-settings.json
+      // expected values for settings.json from build/config/common-settings.json
       var settingsPath = path.join(process.cwd(), 'profile', 'settings.json');
-      var commonSettingsPath = path.join(process.cwd(), 'build',
+      var commonSettingsPath = path.join(process.cwd(), 'build', 'config',
         'common-settings.json');
       var settings = JSON.parse(fs.readFileSync(settingsPath));
       var commonSettings = JSON.parse(fs.readFileSync(commonSettingsPath));

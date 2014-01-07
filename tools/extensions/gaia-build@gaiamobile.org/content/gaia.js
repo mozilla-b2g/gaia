@@ -17,8 +17,6 @@ var Gaia = {
   },
 
   getConfig: function gaia_getConfig(profilePath, gaiaPath) {
-    let os = Cc['@mozilla.org/xre/app-info;1'].getService(Ci.nsIXULRuntime).OS;
-    const SEP = os === 'WINNT' ? '\\' : '/';
     let config = {};
     config.GAIA_DIR = gaiaPath;
     config.PROFILE_DIR = profilePath;
@@ -33,6 +31,7 @@ var Gaia = {
     config.GAIA_PORT = ':8080';
     config.GAIA_LOCALES_PATH = 'locales';
     config.LOCALES_FILE = 'shared/resources/languages.json';
+    config.LOCALE_BASEDIR = '';
     config.BUILD_APP_NAME = '*';
     config.PRODUCTION = '0';
     config.GAIA_OPTIMIZE = '0';
@@ -46,8 +45,8 @@ var Gaia = {
     config.TARGET_BUILD_VARIANT = '';
     config.NOFTU = '1';
     config.REMOTE_DEBUGGER = '0';
-    config.SETTINGS_PATH = 'build/custom-settings.json';
-    config.GAIA_DISTRIBUTION_DIR = gaiaPath + SEP + 'distribution';
+    config.SETTINGS_PATH = utils.joinPath('build', 'config', 'custom-settings.json');
+    config.GAIA_DISTRIBUTION_DIR = utils.joinPath(gaiaPath, 'distribution');
     config.GAIA_BUILD_DIR = 'file://' + gaiaPath + '/build/';
     config.GAIA_KEYBOARD_LAYOUTS = 'en,pt-BR,es,de,fr,pl';
     return config;

@@ -16,6 +16,7 @@ class Music(Base):
     _empty_music_title_locator = (By.ID, 'overlay-title')
     _empty_music_text_locator = (By.ID, 'overlay-text')
     _albums_tab_locator = (By.ID, 'tabs-albums')
+    _songs_tab_locator = (By.ID, 'tabs-songs')
 
     def launch(self):
         Base.launch(self)
@@ -36,4 +37,9 @@ class Music(Base):
     def tap_albums_tab(self):
         self.wait_for_element_displayed(*self._albums_tab_locator)
         self.marionette.find_element(*self._albums_tab_locator).tap()
+        return ListView(self.marionette)
+
+    def tap_songs_tab(self):
+        self.wait_for_element_displayed(*self._songs_tab_locator)
+        self.marionette.find_element(*self._songs_tab_locator).tap()
         return ListView(self.marionette)

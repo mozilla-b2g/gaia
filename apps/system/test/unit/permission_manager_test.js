@@ -289,6 +289,41 @@ suite('system/permission manager', function() {
     });
   });
 
+// bug 952244 compatibility with old audio permission
+  suite('compatibility with old audio detail.permission', function() {
+    var spyReq;
+    setup(function() {
+      PermissionManager.overlay = document.createElement('div');
+      PermissionManager.devices = document.createElement('div');
+      PermissionManager.remember = document.createElement('div');
+      PermissionManager.rememberSection = document.createElement('div');
+      spyReq = this.sinon.spy(PermissionManager, 'requestPermission');
+
+      var detail = {'type': 'permission-prompt',
+                'permission': 'audio-capture',
+                'origin': 'test', 'isApp': false };
+      var evt = new CustomEvent('mozChromeEvent', { detail: detail });
+      window.dispatchEvent(evt);
+    });
+
+    teardown(function() {
+      spyReq.restore();
+      PermissionManager.overlay = null;
+      PermissionManager.devices = null;
+      PermissionManager.remember = null;
+      PermissionManager.rememberSection = null;
+    });
+
+    test('permission id matched', function() {
+      assert.isTrue(spyReq.calledWithMatch('test', 'audio-capture',
+        sinon.match.string, 'perm-audio-capture-more-info'));
+    });
+
+    test('not show remember my choice option', function() {
+      assert.equal(PermissionManager.rememberSection.style.display, 'none');
+    });
+  });
+
   // test getUserMedia related permissions
   suite('audio capture permission', function() {
     var spyReq;

@@ -10,9 +10,18 @@ var MockNavigatormozApps = {
 
   mTriggerLastRequestSuccess: function(result) {
     var request = this.mLastRequest;
+    var self = this;
     request.result = result || {
       name: 'sms',
-      launch: this._mLaunch.bind(this)
+      launch: this._mLaunch.bind(this),
+      connect: function(keyword) {
+        self.mLastConnectionKeyword = keyword;
+        return {
+          then: function(cb) {
+            self.mLastConnectionCallback = cb;
+          }
+        };
+      }
     };
 
     if (request.onsuccess) {
@@ -24,7 +33,9 @@ var MockNavigatormozApps = {
   },
 
   mgmt: {
-    getAll: function() {},
+    getAll: function() {
+      return {};
+    },
     uninstall: function() {}
   },
 

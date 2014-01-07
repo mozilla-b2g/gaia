@@ -2,6 +2,7 @@ requireLib('models/calendar.js');
 requireLib('models/account.js');
 
 suiteGroup('Controllers.Sync', function() {
+  this.timeout(20000);
 
   var account;
   var calendar;
@@ -22,8 +23,6 @@ suiteGroup('Controllers.Sync', function() {
   }
 
   setup(function(done) {
-    this.timeout(10000);
-
     app = testSupport.calendar.app();
     db = app.db;
     subject = new Calendar.Controllers.Sync(app);

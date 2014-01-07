@@ -2,11 +2,11 @@
 
 'use strict';
 
-// Render is in charge of draw and composite HTML elements under requestion
-// of the IMEController. IMERender is able to read from the layout to improve
-// its performance but is not allowed to communicate with the controller nor
-// manager.
-//
+/** @fileoverview Render is in charge of draw and composite HTML elements
+ * under requestion of the IMEController. IMERender is able to read from the
+ * layout to improve its performance but is not allowed to communicate with
+ * the controller nor manager.
+ */
 // XXX: The only thing worth to be remebered is the KEY element must be the
 // deepest interactive HTML element on the hierarchy or, if none, simply the
 // deepest element. This element must contain dataset-keycode and related

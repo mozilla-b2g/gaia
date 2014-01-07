@@ -90,8 +90,8 @@ var EdgeSwipeDetector = {
     this._iframe = StackManager.getCurrent().iframe;
 
     var touch = e.changedTouches[0];
-    this._startX = touch.screenX;
-    this._startY = touch.screenY;
+    this._startX = touch.clientX;
+    this._startY = touch.clientY;
     this._deltaX = 0;
     this._deltaY = 0;
     this._notSwiping = false;
@@ -110,8 +110,8 @@ var EdgeSwipeDetector = {
 
   _touchMove: function esd_touchMove(e) {
     var touch = e.touches[0];
-    this._deltaX = Math.abs(touch.screenX - this._startX);
-    this._deltaY = Math.abs(touch.screenY - this._startY);
+    this._deltaX = Math.abs(touch.clientX - this._startX);
+    this._deltaY = Math.abs(touch.clientY - this._startY);
     this._progress = this._deltaX / this._winWidth;
 
     if (this._notSwiping) {

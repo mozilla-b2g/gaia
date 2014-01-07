@@ -1,8 +1,10 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/*
- * keyboard.js:
+/**
+ * @fileoverview Keyboard Overview.
+ *
+ * **keyboard.js**:
  *
  * This is the main module of the Gaia keyboard app. It does these things:
  *
@@ -26,8 +28,8 @@
  * This module includes code that was formerly in the controller.js and
  * feedback.js modules. Other modules handle other parts of the keyboard:
  *
- *   layout.js: defines data structures that represent keyboard layouts
- *   render.js: creates the on-screen keyboard with HTML and CSS
+ *  * **layout.js**: defines data structures that represent keyboard layouts
+ *  * **render.js**: creates the on-screen keyboard with HTML and CSS
  *
  * Input methods are in subdirectories of imes/.  The latin input method
  * in imes/latin/ provides word suggestions, auto capitalization, and

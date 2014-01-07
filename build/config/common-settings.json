@@ -61,6 +61,7 @@
    "keyboard.current": null,
    "keyboard.ftu.enabled": false,
    "keyboard.3rd-party-app.enabled": true,
+   "keyboard.launch-on-boot": true,
    "language.current": "en-US",
    "layers.draw-borders": false,
    "layers.composer2d.enabled": true,
@@ -178,4 +179,4 @@
    "wifi.notification": false,
    "wifi.connect_via_settings": false,
    "wap.push.enabled": true
-  }
+}

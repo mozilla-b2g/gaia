@@ -126,7 +126,8 @@ var UtilityTray = {
 
     // Show the rocketbar if it's enabled,
     // Give a slightly larger left area, than right.
-    if (Rocketbar.enabled && touch.pageX < this.screenWidth * 0.65) {
+    if (Rocketbar.enabled && !this.shown &&
+        touch.pageX < this.screenWidth * 0.65) {
       UtilityTray.hide();
       Rocketbar.render();
       return;

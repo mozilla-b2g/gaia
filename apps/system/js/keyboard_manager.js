@@ -235,11 +235,21 @@ var KeyboardManager = {
       }
     }, this);
 
-    // if there are no keyboards running - set text to show,
-    // but don't bring it to the foreground.
-    if (!Object.keys(this.runningLayouts).length) {
-      this.setKeyboardToShow('text', undefined, true);
-    }
+    var SETTING_START_ON_BOOT_KEY = 'keyboard.start-on-boot';
+    var req = navigator.mozSettings.createLock().get(SETTING_START_ON_BOOT_KEY);
+    req.onsuccess = req.onerror = (function() {
+      // If the value is not set or it is set to true,
+      // launch the keyboad in background
+      var launchOnBoot = req.results && req.results[SETTING_START_ON_BOOT_KEY];
+      if (typeof launchOnBoot !== 'boolean')
+          launchOnBoot = true;
+
+      // if there are no keyboards running at this point - set text to show,
+      // but don't bring it to the foreground.
+      if (launchOnBoot && !Object.keys(this.runningLayouts).length) {
+        this.setKeyboardToShow('text', undefined, true);
+      }
+    }).bind(this);
   },
 
   inputFocusChange: function km_inputFocusChange(evt) {
@@ -474,10 +484,10 @@ var KeyboardManager = {
     this.showingLayout.frame = this.launchLayoutFrame(layout);
 
     // By setting launchOnly to true, we load the keyboard frame w/o bringing it
-    // to the foreground; this is effectively equal to calling
-    // setKeyboardToShow() *then* call resetShowingKeyboard().
+    // to the backgorund; this is convenient to call
+    // setKeyboardToShow() and call resetShowingKeyboard() in one atcion.
     if (launchOnly) {
-      this.showingLayout.frame.hidden = true;
+      this.resetShowingKeyboard();
       return;
     }
     // remove transitionOut for showing keyboard while user foucus quickly again

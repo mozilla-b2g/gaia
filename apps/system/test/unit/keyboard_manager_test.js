@@ -6,6 +6,7 @@
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_keyboard_helper.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/test/unit/mock_applications.js');
 requireApp('system/js/keyboard_manager.js');
 
@@ -84,8 +85,15 @@ suite('KeyboardManager', function() {
 
   mocksHelperForKeyboardManager.attachTestHelpers();
 
+  var realMozSettings = null;
+
   suiteSetup(function() {
     document.body.innerHTML += '<div id="run-container"></div>';
+    navigator.mozSettings = MockNavigatorSettings;
+  });
+
+  suiteTeardown(function() {
+    navigator.mozSettings = realMozSettings;
   });
 
   setup(function() {

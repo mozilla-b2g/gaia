@@ -13,7 +13,7 @@ class FullscreenImage(Base):
     _current_image_locator = (By.CSS_SELECTOR, '#frames > div.frame[style ~= "translateX(0px);"] > img')
     _photos_toolbar_locator = (By.ID, 'fullscreen-toolbar')
     _delete_image_locator = (By.ID, 'fullscreen-delete-button-tiny')
-    _confirm_delete_locator = (By.CSS_SELECTOR, '.modal-dialog-confirm.visible menu button.modal-dialog-confirm-ok')
+    _confirm_delete_locator = (By.ID, 'confirm-ok')
     _edit_photo_locator = (By.ID, 'fullscreen-edit-button-tiny')
     _tile_view_locator = (By.ID, 'fullscreen-back-button-tiny')
     _share_button_locator = (By.ID, 'fullscreen-share-button-tiny')
@@ -54,7 +54,6 @@ class FullscreenImage(Base):
 
     def tap_delete_button(self):
         self.marionette.find_element(*self._delete_image_locator).tap()
-        self.marionette.switch_to_frame()
         self.wait_for_element_displayed(*self._confirm_delete_locator)
 
     def tap_confirm_deletion_button(self):

@@ -699,7 +699,7 @@ var Homescreen = {
       ['apps/homescreen/collections', 'social'],
       ['apps/homescreen/collections', 'games'],
       ['apps/homescreen/collections', 'music'],
-      ['apps/homescreen/collections', 'entertainment']
+      ['apps/homescreen/collections', 'showbiz']
     ];
     grid.homescreens.push(collections);
 

@@ -89,6 +89,11 @@ var Rocketbar = {
 
     SettingsListener.observe('rocketbar.enabled', false,
     function(value) {
+      if (value) {
+        document.body.classList.add('rb-enabled');
+      } else {
+        document.body.classList.remove('rb-enabled');
+      }
       this.enabled = value;
     }.bind(this));
 
@@ -184,6 +189,8 @@ var Rocketbar = {
       searchFrame.setVisible(false);
     }
     delete this.searchBar.dataset.visible;
+
+    window.dispatchEvent(new CustomEvent('rocketbarhidden'));
   },
 
   render: function() {
@@ -199,6 +206,8 @@ var Rocketbar = {
     var input = this.searchInput;
     input.value = '';
     this.searchReset.classList.add('hidden');
+
+    window.dispatchEvent(new CustomEvent('rocketbarshown'));
 
     var self = this;
     search.addEventListener('transitionend', function shown(e) {

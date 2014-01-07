@@ -23,11 +23,11 @@ class TestMusic(GaiaTestCase):
         list_view = music_app.tap_albums_tab()
 
         # check that albums (at least one) are available
-        albums = list_view.albums
+        albums = list_view.media
         self.assertGreater(len(albums), 0, 'The mp3 file could not be found')
 
         # select an album
-        sublist_view = albums[0].tap()
+        sublist_view = albums[0].tap_first_album()
 
         # select play
         # This wait is timing out because of bug 862156

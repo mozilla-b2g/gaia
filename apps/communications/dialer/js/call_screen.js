@@ -152,6 +152,14 @@ var CallScreen = {
           CallsHandler.end();
         },
 
+        unlockingStart: function _unlockingStart() {
+          // Bug 956074: Needed to make sure the slider will work.
+        },
+
+        unlockingStop: function _unlockingStop() {
+          // Bug 956074: Needed to make sure the slider will work.
+        },
+
         nearLeft: function _nearLeft(state, statePrev) {
           if (state === 'accelerating') {
             CallScreen.hangUpIcon.classList.add('triggered');
@@ -216,7 +224,10 @@ var CallScreen = {
     var self = this;
     var req = navigator.mozSettings.createLock().get('wallpaper.image');
     req.onsuccess = function cs_wi_onsuccess() {
-      var image = URL.createObjectURL(req.result['wallpaper.image']);
+      var wallpaperImage = req.result['wallpaper.image'];
+      var isString = (typeof wallpaperImage == 'string');
+      var image =
+        isString ? wallpaperImage : URL.createObjectURL(wallpaperImage);
       self.mainContainer.style.backgroundImage = 'url(' + image + ')';
       setTimeout(self._onWallpaperReady.bind(self));
     };
