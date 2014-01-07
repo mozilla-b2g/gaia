@@ -332,6 +332,34 @@ suite('call screen', function() {
     });
   });
 
+  suite('background image setter from string', function() {
+    var realMozSettings;
+    var fakeImage =
+      'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAMCAgICAgMCAg' +
+      'IDAwMDBAYEBAQEBAgGBgUGCQgKCgkICQkKDA8MCgsOCwkJDRENDg8QEBEQCgwSExIQEw8' +
+      'QEBD/2wBDAQMDAwQDBAgEBAgQCwkLEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQ' +
+      'EBAQEBAQEBAQEBAQEBAQEBAQEBD/wAARC';
+
+    setup(function() {
+      realMozSettings = navigator.mozSettings;
+      navigator.mozSettings = MockNavigatorSettings;
+      MockNavigatorSettings.mSettings['wallpaper.image'] = fakeImage;
+    });
+
+    teardown(function() {
+      navigator.mozSettings = realMozSettings;
+    });
+
+    test('should change background of the main container', function(done) {
+      CallScreen.setWallpaper();
+      setTimeout(function() {
+        assert.equal(CallScreen.mainContainer.style.backgroundImage,
+                     'url("' + fakeImage + '")');
+        done();
+      });
+    });
+  });
+
   suite('toggling', function() {
     suiteSetup(function() {
       CallScreen._wallpaperReady = false;
