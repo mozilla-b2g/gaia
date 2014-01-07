@@ -23,8 +23,6 @@ marionette('Edges gesture >', function() {
 
   var settings, sms, calendar;
 
-  var halfWidth, halfHeight;
-
   setup(function() {
     settings = sys.waitForLaunch(SETTINGS_APP);
     sms = sys.waitForLaunch(SMS_APP);
@@ -34,71 +32,65 @@ marionette('Edges gesture >', function() {
     client.waitFor(function() {
       return calendar.displayed() && !sms.displayed();
     });
-
-    var width = client.executeScript(function() {
-      return window.innerWidth;
-    });
-    halfWidth = width / 2;
-
-    var height = client.executeScript(function() {
-      return window.innerHeight;
-    });
-    halfHeight = height / 2;
   });
 
-  function edgeSwipeToApp(panel, x1, x2, from, to) {
-    actions.flick(panel, x1, halfHeight, x2, halfHeight, 100).perform();
+  function edgeSwipeToApp(panel, x1, x2, iframe) {
+    actions.flick(panel, x1, 120, x2, 120, 100).perform();
 
-    if (!from || !to) {
+    if (!iframe) {
       return;
     }
 
     client.waitFor(function() {
-      return !from.displayed() && to.displayed();
+      return iframe.displayed();
     });
   }
 
-  test('Swiping between apps left to right', function() {
+  test.skip('Swiping between apps left to right', function() {
     assert(calendar.displayed(), 'calendar is visible');
     assert(!sms.displayed(), 'sms is invisible');
 
-    edgeSwipeToApp(sys.leftPanel, 0, halfWidth, calendar, sms);
-    assert(true, 'swiped to sms');
+    edgeSwipeToApp(sys.leftPanel, 0, 250, sms);
+    assert(sms.displayed(), 'sms is visible');
+    assert(!calendar.displayed(), 'calendar is invisible');
 
-    edgeSwipeToApp(sys.leftPanel, 0, halfWidth, sms, settings);
-    assert(true, 'swiped to settings');
+    edgeSwipeToApp(sys.leftPanel, 0, 250, settings);
+    assert(settings.displayed(), 'settings is visible');
+    assert(!sms.displayed(), 'sms is invisible');
 
     // Overflow swipe
-    edgeSwipeToApp(sys.leftPanel, 0, halfWidth);
+    edgeSwipeToApp(sys.leftPanel, 0, 250);
     assert(settings.displayed(), 'settings is still visible');
   });
 
-  test('Swiping between apps right to left', function() {
+  test.skip('Swiping between apps right to left', function() {
     // Going to the beginning of the stack first
-    edgeSwipeToApp(sys.leftPanel, 0, halfWidth, calendar, sms);
-    edgeSwipeToApp(sys.leftPanel, 0, halfWidth, sms, settings);
+    edgeSwipeToApp(sys.leftPanel, 0, 250, sms);
+    edgeSwipeToApp(sys.leftPanel, 0, 250, settings);
 
     assert(settings.displayed(), 'settings is visible');
     assert(!sms.displayed(), 'sms is invisible');
 
-    edgeSwipeToApp(sys.rightPanel, 5, -1 * halfWidth, settings, sms);
-    assert(true, 'swiped to sms');
+    edgeSwipeToApp(sys.rightPanel, 5, -255, sms);
+    assert(sms.displayed(), 'sms is visible');
+    assert(!settings.displayed(), 'settings is invisible');
 
-    edgeSwipeToApp(sys.rightPanel, 5, -1 * halfWidth, sms, calendar);
-    assert(true, 'swiped to calendar');
+    edgeSwipeToApp(sys.rightPanel, 5, -255, calendar);
+    assert(calendar.displayed(), 'calendar is visible');
+    assert(!sms.displayed(), 'sms is invisible');
 
     // Overflow swipe
-    edgeSwipeToApp(sys.rightPanel, 5, -1 * halfWidth);
+    edgeSwipeToApp(sys.rightPanel, 5, -255);
     assert(calendar.displayed(), 'calendar is still visible');
   });
 
-  test('Swiping vertically', function() {
+  test.skip('Swiping vertically', function() {
     // Going to the settings app first
-    edgeSwipeToApp(sys.leftPanel, 0, halfWidth, calendar, sms);
-    edgeSwipeToApp(sys.leftPanel, 0, halfWidth, sms, settings);
+    edgeSwipeToApp(sys.leftPanel, 0, 250, sms);
+    edgeSwipeToApp(sys.leftPanel, 0, 250, settings);
 
     assert(settings.displayed(), 'settings is visible');
-    actions.flick(sys.leftPanel, 10, halfHeight, 10, 0, 300).perform();
+    actions.flick(sys.leftPanel, 10, 120, 10, 80, 300).perform();
     assert(settings.displayed(), 'settings is still visible');
 
     // Checking that the settings app scrolled
