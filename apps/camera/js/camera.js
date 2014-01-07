@@ -996,15 +996,16 @@ var Camera = {
     // pixel size. The following calculation are all based on css pixel.
     var screenWidth = document.body.clientHeight;
     var screenHeight = document.body.clientWidth;
-    // We need real device pixel size to choose the correct preview image size.
-    var deviceWidth = screenWidth * window.devicePixelRatio;
-    var deviceHeight = screenHeight * window.devicePixelRatio;
     var pictureAspectRatio = this._pictureSize.height / this._pictureSize.width;
     var screenAspectRatio = screenHeight / screenWidth;
 
     // Previews should match the aspect ratio and not be smaller than the screen
     var validPreviews = camera.capabilities.previewSizes.filter(function(res) {
-      var isLarger = res.height >= deviceHeight && res.width >= deviceWidth;
+      // Note that we are using the screen size in CSS pixels and not
+      // multiplying by devicePixelRatio. We assume that the preview sizes
+      // returned by the camera are in CSS pixels, not device pixels.
+      // This is the way things seem to work on the Helix.
+      var isLarger = res.height >= screenHeight && res.width >= screenWidth;
       var aspectRatio = res.height / res.width;
       var matchesRatio = Math.abs(aspectRatio - pictureAspectRatio) < 0.05;
       return matchesRatio && isLarger;
