@@ -15,7 +15,6 @@ var CallsHandler = (function callsHandler() {
 
   var settings = window.navigator.mozSettings;
 
-  var displayed = false;
   var closing = false;
   var ringing = false;
 
@@ -65,6 +64,7 @@ var CallsHandler = (function callsHandler() {
 
   /* === Setup === */
   function setup() {
+    console.log('calls_handler_setup');
     if (telephony) {
       // Somehow the muted property appears to true after initialization.
       // Set it to false.
@@ -119,6 +119,7 @@ var CallsHandler = (function callsHandler() {
   /* === Handled calls === */
   var highPriorityWakeLock = null;
   function onCallsChanged() {
+    console.log('oncallschanged');
     // Acquire or release the high-priority wake lock, as necessary.  This
     // (mostly) prevents this process from being killed while we're on a call.
     if (!highPriorityWakeLock && telephony.calls.length > 0) {
@@ -164,8 +165,6 @@ var CallsHandler = (function callsHandler() {
 
     if (handledCalls.length === 0) {
       exitCallScreen(false);
-    } else if (!displayed && !closing) {
-      toggleScreen();
     }
   }
 
@@ -334,19 +333,6 @@ var CallsHandler = (function callsHandler() {
     playWaitingTone(call);
   }
 
-  /* === Call Screen === */
-  function toggleScreen() {
-    displayed = !displayed;
-
-    CallScreen.toggle(function transitionend() {
-      // We did animate the call screen off the viewport
-      // now closing the window.
-      if (!displayed) {
-        closeWindow();
-      }
-    });
-  }
-
   function updateKeypadEnabled() {
     if (telephony.active) {
       CallScreen.enableKeypad();
@@ -356,6 +342,7 @@ var CallsHandler = (function callsHandler() {
   }
 
   function exitCallScreen(animate) {
+    console.log('exitcallscreen');
     if (closing) {
       return;
     }
@@ -364,12 +351,8 @@ var CallsHandler = (function callsHandler() {
 
     postToMainWindow('closing');
 
-    // If the screen is not displayed yet we close the window directly
-    if (animate && displayed) {
-      toggleScreen();
-    } else {
-      closeWindow();
-    }
+    // Need to wait for before calling close window
+    setTimeout(closeWindow, 2000);
   }
 
   function closeWindow() {

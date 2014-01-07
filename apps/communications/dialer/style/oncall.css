@@ -132,18 +132,6 @@
     z-index: 100;
   }
 
-  /* This transition is needed to trigger a transitionend event in */
-  /* call_screen.js */
-  #call-screen:not([data-layout="incoming-locked"]) {
-    transform: translateY(-100%);
-    transition: transform 0.5s ease 1.5s;
-  }
-
-  #call-screen:not([data-layout="incoming-locked"]).displayed {
-    transform: translateY(0);
-    transition: transform 0.5s ease 0s;
-  }
-
   #call-screen:before {
     background: url("images/mask.png") no-repeat scroll 50% 50% / cover transparent;
   }
@@ -806,8 +794,8 @@
   }
 
   #call-screen[data-layout="connected-hold"] #co-advanced,
-  #call-screen:not(.displayed) #co-advanced,
-  #call-screen:not(.displayed) #callbar {
+  #call-screen.ended #co-advanced,
+  #call-screen.ended #callbar {
     pointer-events: none;
     opacity: 0.4;
   }

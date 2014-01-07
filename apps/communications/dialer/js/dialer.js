@@ -114,9 +114,12 @@ var CallHandler = (function callHandler() {
 
   /* === ALL calls === */
   function newCall() {
+    console.log('new call');
     var telephony = navigator.mozTelephony;
     telephony.oncallschanged = function dialer_oncallschanged(evt) {
+      console.log('oncallschanged');
       if (telephony.calls.length !== 0) {
+        console.log('oncallschanged' + telephony.calls[0].state);
         openCallScreen();
       }
     };

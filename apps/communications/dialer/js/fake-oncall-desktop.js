@@ -36,7 +36,6 @@ console.error('It just helps to fake a call.');
 
     CallScreen.updateSingleLine();
     CallScreen.render('connected'); // Change this for various states
-    CallScreen.screen.classList.add('displayed');
     CallScreen.calls.classList.add('muted');
     CallScreen.groupCalls.classList.add('held');
   } else {

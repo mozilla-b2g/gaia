@@ -88,6 +88,7 @@ var CallScreen = {
   },
 
   init: function cs_init() {
+    console.log('call_screen_init');
     this.muteButton.addEventListener('click', this.toggleMute.bind(this));
     this.keypadButton.addEventListener('click', this.showKeypad.bind(this));
     this.placeNewCallButton.addEventListener('click',
@@ -233,6 +234,7 @@ var CallScreen = {
   },
 
   _onWallpaperReady: function cs_onWallpaperReady() {
+    console.log('onWallpaperReady');
     this._wallpaperReady = true;
     if (this._toggleWaiting) {
       this.toggle(this._toggleCallback);
@@ -241,63 +243,10 @@ var CallScreen = {
     }
   },
 
-  _transitionDone: false,
-  _contactBackgroundWaiting: false,
   _contactImage: null,
 
-  toggle: function cs_toggle(callback) {
-    // Waiting for the wallpaper to be set before toggling the screen in
-    if (!this._wallpaperReady) {
-      this._toggleWaiting = true;
-      this._toggleCallback = callback;
-      return;
-    }
-
-    var screen = this.screen;
-    screen.classList.toggle('displayed');
-
-    var self = this;
-
-    // We have no opening transition for incoming locked
-    if (this.screen.dataset.layout === 'incoming-locked') {
-      if (callback && typeof(callback) == 'function') {
-        setTimeout(callback);
-      }
-      self._onTransitionDone();
-      return;
-    }
-
-    /* We need CSS transitions for the status bar state and the regular state */
-    screen.addEventListener('transitionend', function trWait(evt) {
-      if (evt.target != screen) {
-        return;
-      }
-      screen.removeEventListener('transitionend', trWait);
-      if (callback && typeof(callback) == 'function') {
-        callback();
-      }
-      self._onTransitionDone();
-    });
-  },
-
-  _onTransitionDone: function cs_onTransitionDone() {
-    this._transitionDone = true;
-    if (this._contactBackgroundWaiting) {
-      this.setCallerContactImage(this._contactImage);
-      this._contactBackgroundWaiting = false;
-    }
-  },
-
   setCallerContactImage: function cs_setContactImage(blob, force) {
-    // Waiting for the call screen transition to end before updating
-    // the contact image
-    if (!this._transitionDone) {
-      this._contactImage = blob;
-      this._contactBackgroundWaiting = true;
-      return;
-    }
-
-    if (this._contactImage == blob && !this._contactBackgroundWaiting) {
+    if (this._contactImage == blob) {
       return;
     }
 
@@ -461,7 +410,7 @@ var CallScreen = {
     this.groupCalls.classList.remove('display');
   },
 
-  createTicker: function(durationNode) {
+  createTicker: function cs_createTicker(durationNode) {
     var durationChildNode = durationNode.querySelector('span');
 
     if (durationNode.dataset.tickerId)
@@ -492,7 +441,7 @@ var CallScreen = {
     return true;
   },
 
-  stopTicker: function(durationNode) {
+  stopTicker: function cs_stopTicker(durationNode) {
     durationNode.classList.remove('isTimer');
     clearInterval(durationNode.dataset.tickerId);
     delete durationNode.dataset.tickerId;
@@ -503,5 +452,9 @@ var CallScreen = {
     for (var i = 0; i < callElems.length; i++) {
       callElems[i].dataset.groupHangup = 'groupHangup';
     }
+  },
+
+  end: function cs_end() {
+    this.screen.classList.add('ended');
   }
 };
