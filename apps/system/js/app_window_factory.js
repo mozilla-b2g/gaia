@@ -94,9 +94,9 @@
         return;
       }
 
-      // Special case for rocketbar search app
+      // The rocketbar currently handles the management of
+      // the search app
       if (config.manifest.role === 'search') {
-        Rocketbar.render();
         return;
       } else if (!AppWindowManager.isRunning(config) &&
            config.origin !== HomescreenLauncher.origin) {
