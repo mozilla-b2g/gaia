@@ -65,8 +65,12 @@
       break;
 
       default: {
+        // When we're a browser iframe used for generic content we'll use
+        // the default error message from gecko for all errors that are
+        // not directly dealt with.
         localizeElement(title, 'unable-to-connect');
-        localizeElement(message, 'tap-to-retry');
+        // The error message is already localized. Set it directly.
+        message.textContent = error.d;
       }
     }
   }
@@ -97,10 +101,10 @@
       break;
 
       default: {
-        localizeElement(title, 'network-connection-unavailable');
-        localizeElement(message, 'network-error', {
-          name: location.protocol + '//' + location.host
-        });
+        // Same thing when we're an iframe for an application.
+        localizeElement(title, 'unable-to-connect');
+        // The error message is already localized. Set it directly.
+        message.textContent = error.d;
       }
     }
   }
