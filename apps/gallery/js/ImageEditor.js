@@ -694,7 +694,7 @@ ImageEditor.prototype.getFullSizeBlob = function(type, done, progress) {
   var canvas = document.createElement('canvas');
   canvas.width = this.source.width; // "full size" is cropped image size
   canvas.height = this.source.height;
-  var context = canvas.getContext('2d');
+  var context = canvas.getContext('2d', { willReadFrequently: true });
   context.drawImage(this.original,
                     this.source.x, this.source.y,
                     this.source.width, this.source.height,
