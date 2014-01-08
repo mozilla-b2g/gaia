@@ -78,8 +78,8 @@ marionette('search', function() {
       } finally {
         // now we can test the about:neterror page
 
-        // verify we have the propery body
-        frame.client.helper.waitForElement('body#net-error');
+        // verify we have the proper body in the error message element.
+        frame.client.helper.waitForElement('#error-message');
 
         // verify error message was set (using l10n)
         var errorMsg = frame.client.findElement('#error-message')
