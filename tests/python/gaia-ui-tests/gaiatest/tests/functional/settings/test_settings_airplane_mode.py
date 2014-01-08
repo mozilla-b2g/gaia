@@ -23,8 +23,8 @@ class TestAirplaneMode(GaiaTestCase):
         # Switch on Airplane mode
         settings.toggle_airplane_mode()
 
-        # wait for Cell Data to be disabled, this takes the longest when airplane mode is switched on
-        self.wait_for_condition(lambda s: 'SIM card not ready' in settings.cell_data_menu_item_description)
+        # wait for wifi to be disabled, this takes the longest when airplane mode is switched on
+        self.wait_for_condition(lambda s: 'Disabled' in settings.wifi_menu_item_description)
 
         # check Wifi is disabled
         self.assertFalse(self.data_layer.is_wifi_connected(self.testvars['wifi']), "WiFi was still connected after switching on Airplane mode")
