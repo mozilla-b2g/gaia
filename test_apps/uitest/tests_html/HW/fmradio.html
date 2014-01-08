@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
+    <meta charset="utf-8">
+    <title>FM radio test</title>
+    <script defer src="../../js/HW/fmradio.js"></script>
+    <link rel="stylesheet" type="text/css" href="../../style/HW.css">
+  </head>
+  <body>
+    <p>
+      <h3 id="message" class="error"></h3>
+      <div id="container">
+        <div>switch</div>
+        <button id="switch"></button>
+        <p></p>
+        <div id="controlPanel">
+          Click to set frequency (min:<span id="frequency-min">N/A</span> max:<span id="frequency-max">N/A</span>)
+          <input id="frequency" type="number" x-inputmode="numeric">
+          <button id="seekUp" size="small">↑seekUp()↑</button>
+          <button id="seekDown" size="small">↓seekDown()↓</button>
+          <button id="seekAndCancel" size="small">seekUP() + cancelSeek()</button>
+        </div>
+      </div>
+    </p>
+  </body>
+</html>
