@@ -229,6 +229,7 @@ class Keyboard(Base):
 
     def tap_keyboard_language_key(self):
         self.switch_to_keyboard()
+        self.wait_for_element_displayed(*self._language_key_locator)
         self.marionette.find_element(*self._language_key_locator).tap()
         self.apps.switch_to_displayed_app()
 
