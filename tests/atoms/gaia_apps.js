@@ -225,8 +225,8 @@ var GaiaApps = {
         }
         else {
           // wait until the new iframe sends the apploadtime event
-          window.addEventListener('appopened', function launched() {
-            window.removeEventListener('appopened', launched);
+          window.addEventListener('appopen', function launched() {
+            window.removeEventListener('appopen', launched);
             marionetteScriptFinished(result);
           });
         }
