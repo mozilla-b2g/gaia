@@ -1123,9 +1123,6 @@ var Camera = {
 
   previewEnabled: function() {
     this.enableButtons();
-    if (!this._pendingPick) {
-      setTimeout(this.initPositionUpdate.bind(this), this.PROMPT_DELAY);
-    }
   },
 
   stopPreview: function camera_stopPreview() {
@@ -1303,6 +1300,9 @@ var Camera = {
       // in the updateOverlay() method.
       if (e.target.result < MAX_IMAGE_SIZE) {
         this._storageState = this.STORAGE_CAPACITY;
+      }
+      if (!this._pendingPick && !this._watchId) {
+        setTimeout(this.initPositionUpdate.bind(this), this.PROMPT_DELAY);
       }
       this.updateOverlay();
     }).bind(this);
