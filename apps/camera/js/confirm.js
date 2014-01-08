@@ -41,11 +41,40 @@ var ConfirmDialog = (function() {
     retakecb = retakeCallback;
 
     parseJPEGMetadata(blob, function(metadata) {
-      // Show the confirm pane
-      confirm.hidden = false;
-      frame.displayImage(blob, metadata.width, metadata.height,
-                         metadata.preview, metadata.rotation,
-                         metadata.mirrored);
+      // If we found an EXIF preview, and can determine its size, then
+      // we can display it instead of the big image and save memory and time.
+      if (metadata.preview) {
+        parseJPEGMetadata(blob.slice(metadata.preview.start,
+                                     metadata.preview.end,
+                                     'image/jpeg'),
+                          function success(previewmetadata) {
+                            // If we parsed the preview image, add its
+                            // dimensions to the metdata.preview
+                            // object, and then let the MediaFrame
+                            // object display the preview instead of
+                            // the full-size image.
+                            metadata.preview.width = previewmetadata.width;
+                            metadata.preview.height = previewmetadata.height;
+                            display();
+                          },
+                          function error() {
+                            // If we couldn't parse the preview image,
+                            // just display full-size.
+                            display();
+                          });
+      }
+      else {
+        display();
+      }
+
+      function display() {
+        // Show the confirm pane
+        confirm.hidden = false;
+
+        frame.displayImage(blob, metadata.width, metadata.height,
+                           metadata.preview, metadata.rotation,
+                           metadata.mirrored);
+      }
     });
   }
 
