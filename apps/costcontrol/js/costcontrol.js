@@ -493,12 +493,6 @@ var CostControl = (function() {
     }
     return [output, accum];
   }
-  // XXX: See bug 944342 - [Cost control] move all the process related to the
-  // network and data interfaces loading to the start-up process of CostControl
-  function getInterfacesInformation() {
-    Common.loadNetworkInterfaces();
-    Common.loadDataSIMIccId();
-  }
 
   var airplaneMode = false;
   function init() {
@@ -507,7 +501,6 @@ var CostControl = (function() {
         airplaneMode = value;
       }
     );
-    getInterfacesInformation();
   }
 
   return {

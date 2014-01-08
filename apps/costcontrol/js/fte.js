@@ -12,22 +12,28 @@
   // Fallback from some values, just in case they are missed from configuration
   var DEFAULT_LOW_LIMIT_THRESHOLD = 3;
   var defaultLowLimitThreshold = DEFAULT_LOW_LIMIT_THRESHOLD;
-  window.addEventListener('DOMContentLoaded', function _onDOMReady() {
+  window.addEventListener('DOMContentLoaded', function _onDomReady() {
+    Common.loadDataSIMIccId(_onIccReady);
+  });
+
+  function _onIccReady(iccid) {
     var stepsLeft = 2;
+    // Load iccInfo of current data simcard
+    var dataSimIccInfo = Common.dataSimIcc;
 
     // No SIM
-    if (!IccHelper || IccHelper.cardState === 'absent') {
+    if (!dataSimIccInfo || dataSimIccInfo.cardState === 'absent') {
       hasSim = false;
       trySetup();
 
     // SIM is not ready
-    } else if (IccHelper.cardState !== 'ready') {
-      debug('SIM not ready:', IccHelper.cardState);
-      IccHelper.oniccinfochange = _onDOMReady;
+    } else if (dataSimIccInfo.cardState !== 'ready') {
+      debug('SIM not ready:', dataSimIccInfo);
+      dataSimIccInfo.oniccinfochange = _onDOMReady;
 
     // SIM is ready
     } else {
-      IccHelper.oniccinfochange = undefined;
+      dataSimIccInfo.oniccinfochange = undefined;
       trySetup();
     }
 
@@ -41,7 +47,7 @@
         setupFTE();
       }
     }
-  });
+  }
 
   var wizard, vmanager;
   var toStep2, step = 0;
