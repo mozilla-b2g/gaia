@@ -19,7 +19,8 @@ function showFileInformation(fileinfo) {
 
   function populateMediaInfo(fileinfo) {
     var data = {
-      'info-name': getFileName(fileinfo.name),
+      //set the video filename using metadata
+      'info-name': getFileName(fileinfo.metadata.video || fileinfo.name),
       'info-size': MediaUtils.formatSize(fileinfo.size),
       'info-type': fileinfo.type,
       'info-date': MediaUtils.formatDate(fileinfo.date),
