@@ -92,23 +92,49 @@ class Keyboard(Base):
             if input_value in extended_values:
                 return key_to_press
 
-    # trying to switch to right layout
+    # Try to switch to the correct layout. There are 3 keyboard layers:
+    # ABC (Default), 123 (Symbols_1) and ALT (Symbols_2)
     def _switch_to_correct_layout(self, val):
-        input_type = self.marionette.execute_script('return window.wrappedJSObject.currentInputType;')
-        layout_page = self.marionette.execute_script('return window.wrappedJSObject.layoutPage;')
-        if val.isalpha():
-            is_upper_case = self.marionette.execute_script('return window.wrappedJSObject.isUpperCase;')
+        layout_page = self._layout_page
+        current_input_type = self._current_input_type
+        if val.isspace():
+            # Space is available on every keyboard panel
+            pass
+        # Alphabetic keys available on the Default page
+        elif val.isalpha():
+            is_upper_case = self._is_upper_case
+            # If the key to press isalpha and the keyboard layout is not, go back to Default
             if not layout_page == 'Default':
                 self._tap(self._alpha_key)
+                self.wait_for_condition(lambda m: self._layout_page == 'Default')
+            # If the key to press isupper and the keyboard is not (or vice versa) then press shift
             if not val.isupper() == is_upper_case:
                 self._tap(self._upper_case_key)
-        # numbers and symbols are in another keyboard
+                self.wait_for_condition(lambda m: is_upper_case != self._is_upper_case)
+        # Numbers and symbols are in other keyboard panels
         else:
-            if not input_type == 'number' and layout_page == 'Default':
+            # If it's not space or alpha then it must be in 123 or ALT.
+            # It can't be in Default so let's go into 123 and then try to find it
+            if not current_input_type == 'number' and layout_page == 'Default':
                 self._tap(self._numeric_sign_key)
-                self.wait_for_condition(lambda m: m.find_element(*self._key_locator(self._alpha_key)).is_displayed())
+                self.wait_for_element_displayed(*self._key_locator(self._alpha_key))
+            # If it is not present here then it must be in one of the ALT section
             if not self.is_element_present(*self._key_locator(val)):
+                layout_page = self._layout_page
                 self._tap(self._alt_key)
+                self.wait_for_condition(lambda m: layout_page != self._layout_page)
+
+    @property
+    def _is_upper_case(self):
+        return self.marionette.execute_script('return window.wrappedJSObject.isUpperCase;')
+
+    @property
+    def _current_input_type(self):
+        return self.marionette.execute_script('return window.wrappedJSObject.currentInputType;')
+
+    @property
+    def _layout_page(self):
+        return self.marionette.execute_script('return window.wrappedJSObject.layoutPage;')
 
     # this is to switch to the frame of keyboard
     def switch_to_keyboard(self):
@@ -131,13 +157,19 @@ class Keyboard(Base):
 
     # this is to tap on desired key on keyboard
     def _tap(self, val):
-        try:
-            self.wait_for_condition(lambda m: m.find_element(*self._key_locator(val)).is_displayed())
-            key = self.marionette.find_element(*self._key_locator(val))
-            Actions(self.marionette).press(key).wait(0.1).release().perform()
-        except (NoSuchElementException, ElementNotVisibleException):
-            self.marionette.log('Key %s not found on the keyboard' % val)
-            raise
+        is_upper_case = self._is_upper_case
+
+        self.wait_for_element_displayed(*self._key_locator(val))
+        key = self.marionette.find_element(*self._key_locator(val))
+        Actions(self.marionette).press(key).wait(0.1).release().perform()
+
+        # These two tap cases are most important because they cause the keyboard to change state which affects next step
+        if val.isspace():
+            # Space switches back to Default layout
+            self.wait_for_condition(lambda m: self._layout_page == 'Default')
+        if val.isupper() and is_upper_case:
+            # Tapping key with shift enabled causes the keyboard to switch back to lower
+            self.wait_for_condition(lambda m: self._is_upper_case == False)
 
     # This is for selecting special characters after long pressing
     # "selection" is the nth special element you want to select (n>=1)
@@ -147,11 +179,8 @@ class Keyboard(Base):
 
         # after switching to correct keyboard, set long press if the key is there
         self._switch_to_correct_layout(long_press_key)
-        try:
-            key = self.marionette.find_element(*self._key_locator(long_press_key))
-            self.wait_for_condition(lambda m: key.is_displayed())
-        except:
-            raise Exception('Key %s not found on the keyboard' % long_press_key)
+        self.wait_for_element_displayed(*self._key_locator(long_press_key))
+        key = self.marionette.find_element(*self._key_locator(long_press_key))
         action.press(key).wait(1).perform()
 
         # find the extended key and perform the action chain
@@ -185,6 +214,7 @@ class Keyboard(Base):
                 action.press(middle_key).wait(1).perform()
 
                 # find the targeted extended key to send
+                self.wait_for_element_displayed(*self._key_locator(val))
                 target_key = self.marionette.find_element(*self._key_locator(val))
                 action.move(target_key).release().perform()
             else:
