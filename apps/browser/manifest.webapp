@@ -18,7 +18,9 @@
     "video-capture": {},
     "device-storage:pictures" : { "access": "readwrite" },
     "device-storage:videos" : { "access": "readwrite" },
-    "device-storage:music" : { "access": "readwrite" }
+    "device-storage:music" : { "access": "readwrite" },
+    "nfc":{ "access": "readwrite" },
+    "nfc-manager":{}
   },
   "locales": {
     "ar": {
@@ -44,6 +46,10 @@
     "90": "/shared/resources/branding/Browser_90.png",
     "120": "/shared/resources/branding/Browser_120.png"
   },
+  "messages": [
+     { "nfc-manager-tech-discovered": "/index.html" },
+     { "nfc-manager-tech-lost": "/index.html" }
+  ],
   "activities": {
     "view": {
       "filters": {
