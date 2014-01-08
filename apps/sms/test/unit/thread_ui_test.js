@@ -3742,13 +3742,13 @@ suite('thread_ui.js >', function() {
       });
 
       test('NotFoundError', function() {
-        MessageManager.sendMMS.callArg(2, { name: "NotFoundError" });
+        MessageManager.sendMMS.callArg(2, { name: 'NotFoundError' });
         sinon.assert.notCalled(MockErrorDialog.prototype.show);
       });
 
       test('Generic error', function() {
-        MessageManager.sendMMS.callArg(2, { name: "GenericError" });
-        sinon.assert.called(ErrorDialog.prototype.show);
+        MessageManager.sendMMS.callArg(2, { name: 'GenericError' });
+        sinon.assert.called(MockErrorDialog.prototype.show);
       });
     });
   });
