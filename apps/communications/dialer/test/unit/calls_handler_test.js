@@ -1150,7 +1150,7 @@ suite('calls handler', function() {
         assert.isTrue(connectScoSpy.calledOnce);
       });
 
-      test('should set speaker to disabled', function() {
+      test('should disable the speaker', function() {
         CallsHandler.switchToDefaultOut();
         assert.isFalse(MockMozTelephony.speakerEnabled);
       });
@@ -1164,7 +1164,7 @@ suite('calls handler', function() {
         assert.isTrue(disconnectScoSpy.calledOnce);
       });
 
-      test('should set speaker to disabled', function() {
+      test('should disable the speaker', function() {
         CallsHandler.switchToReceiver();
         assert.isFalse(MockMozTelephony.speakerEnabled);
       });
@@ -1222,8 +1222,8 @@ suite('calls handler', function() {
     });
 
     suite('> connecting to bluetooth headset', function() {
-      test('should enable BTReceiverIcon on initial if BT receiver exists',
-      function() {
+      test('should show the bluetooth menu button when connected if a' +
+           'bluetooth receiver is available', function() {
         this.sinon.stub(
           MockBluetoothHelperInstance, 'getConnectedDevicesByProfile')
           .yields(['dummyDevice']);
@@ -1234,8 +1234,8 @@ suite('calls handler', function() {
         assert.isTrue(setIconStub.calledOnce);
       });
 
-      test('should disable BTReceiverIcon on initial if BT receiver absences',
-      function() {
+      test('should show the speaker button when connected if no bluetooth' +
+           'receiver is available', function() {
         this.sinon.stub(
           MockBluetoothHelperInstance, 'getConnectedDevicesByProfile')
           .yields([]);

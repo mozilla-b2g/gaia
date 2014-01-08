@@ -1,5 +1,5 @@
 var BluetoothHelper = function() {
-  var Profiles = {
+  var profiles = {
     'HFP': 0x111E,
     'A2DP': 0x110D
   };
@@ -55,7 +55,7 @@ var BluetoothHelper = function() {
   }
 
   return {
-    Profiles: Profiles,
+    profiles: profiles,
     answerWaitingCall: function() {
       _ready(function() {
         _adapter.answerWaitingCall();

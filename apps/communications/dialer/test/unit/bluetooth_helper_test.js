@@ -92,13 +92,13 @@ suite('bluetooth helper', function() {
       assert.isTrue(cb.calledOnce);
     });
 
-    test('should set callback of onhfpstatuschanged', function() {
+    test('should set callback on onhfpstatuschanged', function() {
       var stubFunc = this.sinon.stub();
       subject.onhfpstatuschanged = stubFunc;
       assert.equal(MockBTAdapter.onhfpstatuschanged, stubFunc);
     });
 
-    test('should set callback of onscostatuschanged', function() {
+    test('should set callback on onscostatuschanged', function() {
       var stubFunc = this.sinon.stub();
       subject.onscostatuschanged = stubFunc;
       assert.equal(MockBTAdapter.onscostatuschanged, stubFunc);

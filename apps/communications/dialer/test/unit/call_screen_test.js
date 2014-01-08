@@ -43,8 +43,8 @@ suite('call screen', function() {
       lockedClockMeridiem,
       lockedDate;
   var incomingContainer;
-  var BTButton,
-      BTMenu;
+  var bluetoothButton,
+      bluetoothMenu;
 
   mocksHelperForCallScreen.attachTestHelpers();
 
@@ -122,20 +122,20 @@ suite('call screen', function() {
     incomingContainer.id = 'incoming-container';
     screen.appendChild(incomingContainer);
 
-    BTButton = document.createElement('div');
-    BTButton.id = 'bt';
-    screen.appendChild(BTButton);
+    bluetoothButton = document.createElement('div');
+    bluetoothButton.id = 'bt';
+    screen.appendChild(bluetoothButton);
 
-    BTMenu = document.createElement('form');
-    BTMenu.id = 'bluetooth-menu';
-    BTMenu.dataset.dummy = 'dummy';
-    BTMenu.innerHTML = '<menu>' +
+    bluetoothMenu = document.createElement('form');
+    bluetoothMenu.id = 'bluetooth-menu';
+    bluetoothMenu.dataset.dummy = 'dummy';
+    bluetoothMenu.innerHTML = '<menu>' +
         '<button data-l10n-id="cancel" id="btmenu-btdevice"></button>' +
         '<button data-l10n-id="cancel" id="btmenu-receiver"></button>' +
         '<button data-l10n-id="cancel" id="btmenu-speaker"></button>' +
         '<button data-l10n-id="cancel" id="btmenu-cancel"></button>' +
       '</menu>';
-    screen.appendChild(BTMenu);
+    screen.appendChild(bluetoothMenu);
 
     // Replace the existing elements
     // Since we can't make the CallScreen look for them again
@@ -153,8 +153,8 @@ suite('call screen', function() {
       CallScreen.lockedClockMeridiem = lockedClockMeridiem;
       CallScreen.lockedDate = lockedDate;
       CallScreen.incomingContainer = incomingContainer;
-      CallScreen.BTButton = BTButton;
-      CallScreen.BTMenu = BTMenu;
+      CallScreen.bluetoothButton = bluetoothButton;
+      CallScreen.bluetoothMenu = bluetoothMenu;
     }
 
     requireApp('communications/dialer/js/call_screen.js', done);
@@ -586,6 +586,7 @@ suite('call screen', function() {
       CallScreen.toggleSpeaker();
       assert.isTrue(toggleSpeakerSpy.calledOnce);
     });
+
   });
 
   suite('switchToSpeaker', function() {
@@ -596,8 +597,8 @@ suite('call screen', function() {
       assert.isTrue(classList.contains('active-state'));
     });
 
-    test('should add active-state on BTButton', function() {
-      var classList = CallScreen.BTButton.classList;
+    test('should add active-state on bluetoothButton', function() {
+      var classList = CallScreen.bluetoothButton.classList;
 
       CallScreen.switchToSpeaker();
       assert.isTrue(classList.contains('active-state'));
@@ -609,6 +610,12 @@ suite('call screen', function() {
       CallScreen.switchToSpeaker();
       assert.isTrue(switchToSpeakerSpy.calledOnce);
     });
+
+    test('should collapse bluetooth menu', function() {
+      var toggleMenuSpy = this.sinon.spy(CallScreen, 'toggleBluetoothMenu');
+      CallScreen.switchToSpeaker();
+      assert.isTrue(toggleMenuSpy.withArgs(false).calledOnce);
+    });
   });
 
   suite('switchToDefaultOut', function() {
@@ -619,8 +626,8 @@ suite('call screen', function() {
       assert.isFalse(classList.contains('active-state'));
     });
 
-    test('should add active-state on BTButton', function() {
-      var classList = CallScreen.BTButton.classList;
+    test('should add active-state on bluetoothButton', function() {
+      var classList = CallScreen.bluetoothButton.classList;
 
       CallScreen.switchToSpeaker();
       assert.isTrue(classList.contains('active-state'));
@@ -632,6 +639,12 @@ suite('call screen', function() {
       CallScreen.switchToDefaultOut();
       assert.isTrue(switchToDefaultOutSpy.calledOnce);
     });
+
+    test('should collapse bluetooth menu', function() {
+      var toggleMenuSpy = this.sinon.spy(CallScreen, 'toggleBluetoothMenu');
+      CallScreen.switchToSpeaker();
+      assert.isTrue(toggleMenuSpy.withArgs(false).calledOnce);
+    });
   });
 
   suite('switchToReceiver', function() {
@@ -642,8 +655,8 @@ suite('call screen', function() {
       assert.isFalse(classList.contains('active-state'));
     });
 
-    test('should remove active-state on BTButton', function() {
-      var classList = CallScreen.BTButton.classList;
+    test('should remove active-state on bluetoothButton', function() {
+      var classList = CallScreen.bluetoothButton.classList;
 
       CallScreen.switchToReceiver();
       assert.isFalse(classList.contains('active-state'));
@@ -655,11 +668,17 @@ suite('call screen', function() {
       CallScreen.switchToReceiver();
       assert.isTrue(switchToReceiverSpy.calledOnce);
     });
+
+    test('should collapse bluetooth menu', function() {
+      var toggleMenuSpy = this.sinon.spy(CallScreen, 'toggleBluetoothMenu');
+      CallScreen.switchToSpeaker();
+      assert.isTrue(toggleMenuSpy.withArgs(false).calledOnce);
+    });
   });
 
   suite('setBTReceiverIcon', function() {
-    test('should switch to BTButton when setting enabled', function() {
-      var BTClassList = BTButton.classList;
+    test('should switch to bluetoothButton when setting enabled', function() {
+      var BTClassList = bluetoothButton.classList;
       var speakerClassList = speakerButton.classList;
       CallScreen.setBTReceiverIcon(true);
       assert.isFalse(BTClassList.contains('hide'));
@@ -667,7 +686,7 @@ suite('call screen', function() {
     });
 
     test('should switch to SpeakerButton when setting disabled', function() {
-      var BTClassList = BTButton.classList;
+      var BTClassList = bluetoothButton.classList;
       var speakerClassList = speakerButton.classList;
       CallScreen.setBTReceiverIcon(false);
       assert.isTrue(BTClassList.contains('hide'));
@@ -913,26 +932,23 @@ suite('call screen', function() {
 
   suite('Bluetooth sound menu', function() {
     setup(function() {
-      BTMenu.classList.toggle('display', false);
+      bluetoothMenu.classList.toggle('display', false);
     });
 
-    test('Should toggle BTMenu', function() {
-      CallScreen.toggleBTMenu();
-      assert.isTrue(BTMenu.classList.contains('display'));
-      CallScreen.toggleBTMenu();
-      assert.isFalse(BTMenu.classList.contains('display'));
+    test('Should toggle bluetoothMenu if parameter is not boolean', function() {
+      var fakeEvt = {type: 'click'};
+      CallScreen.toggleBluetoothMenu(fakeEvt);
+      assert.isTrue(bluetoothMenu.classList.contains('display'));
+      CallScreen.toggleBluetoothMenu(fakeEvt);
+      assert.isFalse(bluetoothMenu.classList.contains('display'));
     });
 
-    test('Should handle BTMenu', function() {
-      var evt = {
-        preventDefault: this.sinon.stub(),
-        target: {
-          tagName: 'BUTTON'
-        }
-      };
-      this.sinon.stub(CallScreen, 'toggleBTMenu');
-      CallScreen.handleBTMenu(evt);
-      assert.isTrue(CallScreen.toggleBTMenu.calledOnce);
+    test('Should set bluetoothMenu by parameter if parameter is boolean',
+    function() {
+      CallScreen.toggleBluetoothMenu(false);
+      assert.isFalse(bluetoothMenu.classList.contains('display'));
+      CallScreen.toggleBluetoothMenu(true);
+      assert.isTrue(bluetoothMenu.classList.contains('display'));
     });
   });
 });

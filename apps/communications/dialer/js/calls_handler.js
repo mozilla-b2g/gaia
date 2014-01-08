@@ -73,7 +73,7 @@ var CallsHandler = (function callsHandler() {
 
     // XXX: Use BTManager.isConnected() through btHelper
     // once bug 929376 is finished.
-    btHelper.getConnectedDevicesByProfile(btHelper.Profiles.HFP,
+    btHelper.getConnectedDevicesByProfile(btHelper.profiles.HFP,
     function(result) {
       CallScreen.setBTReceiverIcon(!!(result && result.length));
     });
@@ -711,8 +711,8 @@ var CallsHandler = (function callsHandler() {
   }
 
   function switchToSpeaker() {
-    // add if(btHelper.isConnected()) check before really do disconnectSco()
-    // to eliminate error message. See bug 929376.
+    // add a btHelper.isConnected() check before calling disconnectSco
+    // once bug 929376 lands.
     btHelper.disconnectSco();
     if (!telephony.speakerEnabled) {
       telephony.speakerEnabled = true;
@@ -723,14 +723,14 @@ var CallsHandler = (function callsHandler() {
     if (telephony.speakerEnabled) {
       telephony.speakerEnabled = false;
     }
-    // add if(btHelper.isConnected()) check before really do connectSco()
-    // to eliminate error message. See bug 929376.
+    // add a btHelper.isConnected() check before calling disconnectSco
+    // once bug 929376 lands.
     btHelper.connectSco();
   }
 
   function switchToReceiver() {
-    // add if(btHelper.isConnected()) check before really do disconnectSco()
-    // to eliminate error message. See bug 929376.
+    // add a btHelper.isConnected() check before calling disconnectSco
+    // once bug 929376 lands.
     btHelper.disconnectSco();
     if (telephony.speakerEnabled) {
       telephony.speakerEnabled = false;

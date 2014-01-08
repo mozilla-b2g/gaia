@@ -5,7 +5,7 @@ var MockBluetoothHelper = function() {
 };
 
 var MockBluetoothHelperInstance = {
-  Profiles: {
+  profiles: {
     'HFP': 0x111E,
     'A2DP': 0x110D
   },
