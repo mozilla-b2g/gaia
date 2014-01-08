@@ -399,6 +399,7 @@ function SimPinDialog(dialog) {
   }
 
   function show(action, options) {
+    options = options || {};
     var conn = conns[options.cardIndex || 0];
 
     if (!conn) {
@@ -423,7 +424,6 @@ function SimPinDialog(dialog) {
       return;
     }
 
-    options = options || {};
     _origin = options.exitPanel || Settings.currentPanel;
     Settings.currentPanel = dialogPanel;
 
