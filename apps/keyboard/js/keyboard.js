@@ -188,7 +188,6 @@ var touchCount = 0;
 var currentInputType = null;
 var currentInputMode = null;
 var menuLockedArea = null;
-var layoutMenuLockedArea = null;
 var isKeyboardRendered = false;
 var currentCandidates = [];
 var candidatePanelScrollTimer = null;
@@ -1009,6 +1008,7 @@ function showAlternatives(key) {
   // TODO: look for [LOCKED_AREA]
   var top = getWindowTop(key);
   var bottom = getWindowTop(key) + key.scrollHeight;
+  var keybounds = key.getBoundingClientRect();
 
   IMERender.showAlternativesCharMenu(key, alternatives);
   isShowingAlternativesMenu = true;
@@ -1022,8 +1022,19 @@ function showAlternatives(key) {
     right: getWindowLeft(IMERender.menu) + IMERender.menu.scrollWidth
   };
   menuLockedArea.width = menuLockedArea.right - menuLockedArea.left;
-  menuLockedArea.ratio =
-    menuLockedArea.width / IMERender.menu.children.length;
+
+  // Add some more properties to this locked area object that will help us
+  // redirect touch events to the appropriate alternative key.
+  menuLockedArea.keybounds = keybounds;
+  menuLockedArea.firstAlternative =
+    IMERender.menu.classList.contains('kbr-menu-left') ?
+      IMERender.menu.lastElementChild :
+      IMERender.menu.firstElementChild;
+  menuLockedArea.boxes = [];
+  var children = IMERender.menu.children;
+  for (var i = 0; i < children.length; i++) {
+    menuLockedArea.boxes[i] = children[i].getBoundingClientRect();
+  }
 }
 
 // Hide alternatives.
@@ -1033,41 +1044,6 @@ function hideAlternatives() {
 
   IMERender.hideAlternativesCharMenu();
   isShowingAlternativesMenu = false;
-}
-
-function showKeyboardLayoutMenu(key) {
-
-  // Get the coordinates of the key first, since it will be replaced
-  // in the call to showKeyboardAlternatives()
-  var top = getWindowTop(key);
-  var bottom = getWindowTop(key) + key.scrollHeight;
-
-  IMERender.showKeyboardAlternatives(
-    key,
-    enabledKeyboardNames,
-    keyboardName,
-    SWITCH_KEYBOARD
-  );
-
-  isShowingKeyboardLayoutMenu = true;
-
-  // create "LOCKED_AREA" for keyboard layout menu
-  layoutMenuLockedArea = {
-    top: getWindowTop(IMERender.menu),
-    bottom: bottom,
-    left: getWindowLeft(IMERender.menu),
-    right: getWindowLeft(IMERender.menu) + IMERender.menu.scrollWidth
-  };
-}
-
-// Hide keyboard layout menu
-function hideKeyboardLayoutMenu() {
-  if (!isShowingKeyboardLayoutMenu)
-    return;
-
-  IMERender.hideAlternativesCharMenu();
-  KeyboardMenuScroll.reset();
-  isShowingKeyboardLayoutMenu = false;
 }
 
 // Test if an HTML node is a normal key
@@ -1288,11 +1264,29 @@ function onMouseMove(evt) {
 function movePress(target, coords, touchId) {
   // Control locked zone for menu
   if (isShowingAlternativesMenu && inMenuLockedArea(menuLockedArea, coords)) {
-    var menuChildren = IMERender.menu.children;
-    var redirectTarget = menuChildren[Math.floor(
-      (coords.pageX - menuLockedArea.left) / menuLockedArea.ratio)];
 
-    target = redirectTarget;
+    // If the x coordinate is between the bounds of the original key
+    // then redirect to the first (or last) alternative. This is to
+    // ensure that we always get the first alternative when the menu
+    // first pops up.  Otherwise, loop through the children of the
+    // menu and test each one. Once we have moved away from the
+    // original keybounds we delete them and always loop through the children.
+    if (menuLockedArea.keybounds &&
+        coords.pageX >= menuLockedArea.keybounds.left &&
+        coords.pageX < menuLockedArea.keybounds.right) {
+      target = menuLockedArea.firstAlternative;
+    }
+    else {
+      menuLockedArea.keybounds = null; // Do it this way from now on.
+      var menuChildren = IMERender.menu.children;
+      for (var i = 0; i < menuChildren.length; i++) {
+        if (coords.pageX >= menuLockedArea.boxes[i].left &&
+            coords.pageX < menuLockedArea.boxes[i].right) {
+          break;
+        }
+      }
+      target = menuChildren[i];
+    }
   }
 
   if (isShowingKeyboardLayoutMenu &&
@@ -1328,12 +1322,6 @@ function movePress(target, coords, touchId) {
       !inMenuLockedArea(menuLockedArea, coords))
     hideAlternatives();
 
-  // Hide keyboard layout menu if the touch moved out of its locked area
-  if (isShowingKeyboardLayoutMenu &&
-      !inMenuLockedArea(layoutMenuLockedArea, coords)) {
-      hideKeyboardLayoutMenu();
-  }
-
   // Control showing alternatives menu
   setMenuTimeout(target, coords, touchId);
 
@@ -1361,7 +1349,6 @@ function endPress(target, coords, touchId, hasCandidateScrolled) {
 
   var wasShowingKeyboardLayoutMenu = isShowingKeyboardLayoutMenu;
   hideAlternatives();
-  hideKeyboardLayoutMenu();
 
   if (target.id === 'dismiss-suggestions-button') {
     if (inputMethod.dismissSuggestions)
