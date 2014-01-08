@@ -3,7 +3,7 @@
 var EverythingME = {
   activated: false,
   pendingEvent: undefined,
-  pendingPorts: [],
+  pendingMessages: [],
 
   init: function EverythingME_init(config) {
     this.debug = !!config.debug;
@@ -17,7 +17,16 @@ var EverythingME = {
       if (keyword != 'eme-api')
         return;
 
-      EverythingME.pendingPorts.push(connectionRequest.port);
+      connectionRequest.port.onmessage = function _onmessage(msg) {
+        if (window.Evme && Evme.SearchHandler &&
+            Evme.SearchHandler.handleMessage) {
+          Evme.SearchHandler.handleMessage(msg);
+        } else {
+          EverythingME.pendingMessages.push(msg);
+        }
+      };
+      connectionRequest.port.start();
+
       loadCollectionAssets();
       EverythingME.activate();
     });
@@ -353,9 +362,8 @@ var EverythingME = {
        'everything.me/js/search/result.js',
        'everything.me/js/search/suggestion.js'
       ], function loaded() {
-      EverythingME.pendingPorts.forEach(function openPort(port) {
-        port.onmessage = Evme.SearchHandler.onMessage;
-        port.start();
+      EverythingME.pendingMessages.forEach(function eachMessage(message) {
+        Evme.SearchHandler.handleMessage(message);
       });
     });
 
