@@ -1,33 +1,19 @@
 'use strict';
 
 function FMRadioTest() {
-  var messageText = null;
-  var frequencyMin = null;
-  var frequencyMax = null;
 
-  var container = null;
-  var controlPanel = null;
+  var messageText = document.getElementById('message');
+  var frequencyMin = document.getElementById('frequency-min');
+  var frequencyMax = document.getElementById('frequency-max');
 
-  var frequencyInput = null;
-  var switchBtn = null;
-  var seekUpBtn = null;
-  var seekDownBtn = null;
-  var seekAndCancelBtn = null;
+  var container = document.getElementById('container');
+  var controlPanel = document.getElementById('controlPanel');
 
-  var prevFreq = null;
-
-  messageText = document.getElementById('message');
-  frequencyMin = document.getElementById('frequency-min');
-  frequencyMax = document.getElementById('frequency-max');
-
-  container = document.getElementById('container');
-  controlPanel = document.getElementById('controlPanel');
-
-  frequencyInput = document.getElementById('frequency');
-  switchBtn = document.getElementById('switch');
-  seekUpBtn = document.getElementById('seekUp');
-  seekDownBtn = document.getElementById('seekDown');
-  seekAndCancelBtn = document.getElementById('seekAndCancel');
+  var frequencyInput = document.getElementById('frequency');
+  var switchBtn = document.getElementById('switch');
+  var seekUpBtn = document.getElementById('seekUp');
+  var seekDownBtn = document.getElementById('seekDown');
+  var seekAndCancelBtn = document.getElementById('seekAndCancel');
 
   if (!navigator.mozFMRadio) {
     console.log('mozFMRadio not support');
@@ -36,11 +22,10 @@ function FMRadioTest() {
   }
 
   var radio = navigator.mozFMRadio;
+  var prevFreq = radio.frequencyLowerBound;
   var lock = false;
   if (radio.enabled) {
     prevFreq = radio.frequency;
-  } else {
-    prevFreq = radio.frequencyLowerBound;
   }
 
   switchBtn.textContent = radio.enabled;
