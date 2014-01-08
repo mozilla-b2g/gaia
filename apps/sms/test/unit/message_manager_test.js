@@ -840,4 +840,76 @@ suite('message_manager.js >', function() {
 
   });
 
+  suite('onDeliverySuccess', function() {
+    suiteSetup(function() {
+      this.mockEvent = {
+        message : {
+          id : 1
+        }
+      };
+    });
+    setup(function() {
+      this.sinon.spy(ThreadUI, 'onDeliverySuccess');
+      ReportView.mSetup();
+    });
+
+    test('Delivery Success outside report view', function() {
+      window.location.hash = '#other-view';
+      MessageManager.onDeliverySuccess(this.mockEvent);
+      assert.isFalse(ReportView.refresh.called);
+      sinon.assert.calledWith(ThreadUI.onDeliverySuccess,
+        this.mockEvent.message);
+    });
+    test('Delivery Success in report view but id not match', function() {
+      window.location.hash = '#report-view=0';
+      MessageManager.onDeliverySuccess(this.mockEvent);
+      assert.isFalse(ReportView.refresh.called);
+      sinon.assert.calledWith(ThreadUI.onDeliverySuccess,
+        this.mockEvent.message);
+    });
+    test('Delivery Success in report view and need refresh', function() {
+      window.location.hash = '#report-view=1';
+      MessageManager.onDeliverySuccess(this.mockEvent);
+      assert.isTrue(ReportView.refresh.called);
+      sinon.assert.calledWith(ThreadUI.onDeliverySuccess,
+        this.mockEvent.message);
+    });
+  });
+
+  suite('onReadSuccess', function() {
+    suiteSetup(function() {
+      this.mockEvent = {
+        message : {
+          id : 1
+        }
+      };
+    });
+    setup(function() {
+      this.sinon.spy(ThreadUI, 'onReadSuccess');
+      ReportView.mSetup();
+    });
+
+    test('Read Success outside report view', function() {
+      window.location.hash = '#other-view';
+      MessageManager.onReadSuccess(this.mockEvent);
+      assert.isFalse(ReportView.refresh.called);
+      sinon.assert.calledWith(ThreadUI.onReadSuccess,
+        this.mockEvent.message);
+    });
+    test('Read Success in report view but id not match', function() {
+      window.location.hash = '#report-view=0';
+      MessageManager.onReadSuccess(this.mockEvent);
+      assert.isFalse(ReportView.refresh.called);
+      sinon.assert.calledWith(ThreadUI.onReadSuccess,
+        this.mockEvent.message);
+    });
+    test('Read Success in report view and need refresh', function() {
+      window.location.hash = '#report-view=1';
+      MessageManager.onReadSuccess(this.mockEvent);
+      assert.isTrue(ReportView.refresh.called);
+      sinon.assert.calledWith(ThreadUI.onReadSuccess,
+        this.mockEvent.message);
+    });
+  });
+
 });

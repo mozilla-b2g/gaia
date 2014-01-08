@@ -1895,15 +1895,18 @@ suite('thread_ui.js >', function() {
   });
 
   suite('message status update handlers >', function() {
-    suiteSetup(function() {
-      this.fakeMessage = {
-        id: 24601
-      };
-    });
     teardown(function() {
       document.body.removeChild(this.container);
     });
     setup(function() {
+      this.fakeMessage = {
+        id: 24601,
+        type: null,
+        delivery: null,
+        deliveryStatus: null,
+        deliveryInfo: null
+      };
+
       this.container = document.createElement('div');
       this.container.id = 'message-' + this.fakeMessage.id;
       this.container.className = 'sending';
@@ -1949,12 +1952,6 @@ suite('thread_ui.js >', function() {
     });
 
     suite('onDeliverySuccess >', function() {
-      teardown(function() {
-        this.fakeMessage.type = null;
-        this.fakeMessage.delivery = '';
-        this.fakeMessage.deliveryStatus = null;
-        this.fakeMessage.deliveryInfo = null;
-      });
       test('sms delivery success', function() {
         this.fakeMessage.type = 'sms';
         this.fakeMessage.delivery = 'sent';
@@ -1986,6 +1983,35 @@ suite('thread_ui.js >', function() {
           {receiver: null, deliveryStatus: 'success'},
           {receiver: null, deliveryStatus: 'pending'}];
         ThreadUI.onDeliverySuccess(this.fakeMessage);
+        assert.isFalse(this.container.classList.contains('delivered'));
+      });
+    });
+
+    suite('onReadSuccess >', function() {
+      test('mms read success', function() {
+        this.fakeMessage.type = 'mms';
+        this.fakeMessage.delivery = 'sent';
+        this.fakeMessage.deliveryInfo = [{
+          receiver: null, readStatus: 'success'}];
+        ThreadUI.onReadSuccess(this.fakeMessage);
+        assert.isTrue(this.container.classList.contains('delivered'));
+      });
+      test('multiple recipients mms read success', function() {
+        this.fakeMessage.type = 'mms';
+        this.fakeMessage.delivery = 'sent';
+        this.fakeMessage.deliveryInfo = [
+          {receiver: null, readStatus: 'success'},
+          {receiver: null, readStatus: 'success'}];
+        ThreadUI.onReadSuccess(this.fakeMessage);
+        assert.isTrue(this.container.classList.contains('delivered'));
+      });
+      test('not all recipients return mms read success', function() {
+        this.fakeMessage.type = 'mms';
+        this.fakeMessage.delivery = 'sent';
+        this.fakeMessage.deliveryInfo = [
+          {receiver: null, readStatus: 'success'},
+          {receiver: null, readStatus: 'pending'}];
+        ThreadUI.onReadSuccess(this.fakeMessage);
         assert.isFalse(this.container.classList.contains('delivered'));
       });
     });

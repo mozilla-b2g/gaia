@@ -96,6 +96,23 @@ suite('Information view', function() {
       });
     });
 
+    suite('view refresh', function() {
+      setup(function() {
+        this.sinon.stub(reportView, 'render');
+      });
+      test('view refresh when page showed', function() {
+        reportView.show();
+        reportView.refresh();
+        sinon.assert.called(reportView.render);
+      });
+
+      test('view does not refresh when page hided', function() {
+        reportView.reset();
+        reportView.refresh();
+        sinon.assert.notCalled(reportView.render);
+      });
+    });
+
     suite('view renderContactList', function() {
       setup(function() {
         reportView.reset();
@@ -353,19 +370,19 @@ suite('Information view', function() {
       sinon.assert.called(reportView.renderContactList);
     });
 
-    suite('Render report block in contact list', function() {
+    suite('Render report block in contact list(delivery status)', function() {
       var data;
 
       setup(function() {
         data = {
-          delivery: '',
+          deliveryClass: '',
           deliveryL10n: '',
           deliveryDateL10n: '',
           deliveryTimestamp: '',
-          read: 'hide',
-          readL10n: 'message-read',
+          readClass: 'hide',
+          readL10n: '',
           readDateL10n: '',
-          messageL10nDateFormat: 'report-dateTimeFormat'
+          readTimestamp: ''
         };
       });
 
@@ -377,11 +394,11 @@ suite('Information view', function() {
         };
         window.location.hash = '#report-view=1';
         reportView.render();
-        data.delivery = 'hide';
+        data.deliveryClass = 'hide';
         sinon.assert.calledWith(Template.prototype.interpolate, data);
       });
 
-      test('report requested but not return yet', function() {
+      test('delivery report requested but not return yet', function() {
         messageOpts = {
           sender: null,
           delivery: 'sent',
@@ -419,6 +436,88 @@ suite('Information view', function() {
         window.location.hash = '#report-view=1';
         reportView.render();
         data.deliveryL10n = 'message-status-error';
+        sinon.assert.calledWith(Template.prototype.interpolate, data);
+      });
+    });
+
+    suite('Render report block in contact list(read status)', function() {
+      var data;
+
+      setup(function() {
+        data = {
+          deliveryClass: 'hide',
+          deliveryL10n: '',
+          deliveryDateL10n: '',
+          deliveryTimestamp: '',
+          readClass: '',
+          readL10n: '',
+          readDateL10n: '',
+          readTimestamp: ''
+        };
+      });
+
+      test('no read report', function() {
+        messageOpts = {
+          sender: null,
+          delivery: 'sent',
+          deliveryInfo: [{
+            receiver: 'receiver',
+            readStatus: 'not-applicable'
+          }]
+        };
+        window.location.hash = '#report-view=2';
+        reportView.render();
+        data.readClass = 'hide';
+        sinon.assert.calledWith(Template.prototype.interpolate, data);
+      });
+
+      test('read report requested but not return yet', function() {
+        messageOpts = {
+          sender: null,
+          delivery: 'sent',
+          deliveryInfo: [{
+            receiver: 'receiver',
+            readStatus: 'pending'
+          }]
+        };
+        window.location.hash = '#report-view=2';
+        reportView.render();
+        data.readL10n = 'message-requested';
+        sinon.assert.calledWith(Template.prototype.interpolate, data);
+      });
+
+      test('read report success', function() {
+        messageOpts = {
+          sender: null,
+          delivery: 'sent',
+          deliveryInfo: [{
+            receiver: 'receiver',
+            readStatus: 'success',
+            readTimestamp: Date.now()
+          }]
+        };
+        window.location.hash = '#report-view=2';
+        reportView.render();
+        data.readDateL10n = Utils.date.format.localeFormat(
+          new Date(messageOpts.deliveryInfo[0].readTimestamp),
+          navigator.mozL10n.get('report-dateTimeFormat')
+        );
+        data.readTimestamp = '' + messageOpts.deliveryInfo[0].readTimestamp;
+        sinon.assert.calledWith(Template.prototype.interpolate, data);
+      });
+
+      test('read report error', function() {
+        messageOpts = {
+          sender: null,
+          delivery: 'sent',
+          deliveryInfo: [{
+            receiver: 'receiver',
+            readStatus: 'error'
+          }]
+        };
+        window.location.hash = '#report-view=2';
+        reportView.render();
+        data.readL10n = 'message-status-error';
         sinon.assert.calledWith(Template.prototype.interpolate, data);
       });
     });
