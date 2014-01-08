@@ -37,7 +37,6 @@ var ThreadListUI = {
     this.mainWrapper = document.getElementById('main-wrapper');
 
     this.delNumList = [];
-    this.fullHeight = this.container.offsetHeight;
 
     this.checkAllButton.addEventListener(
       'click', this.toggleCheckedAll.bind(this, true)
