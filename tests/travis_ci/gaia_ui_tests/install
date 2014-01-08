@@ -1,8 +1,18 @@
 #! /bin/bash -ve
+
+TEST_ENV="travis_venv"
+
+echo "installing virtualenv"
+curl https://raw.github.com/pypa/virtualenv/master/virtualenv.py | python - $TEST_ENV
+
+echo "creating venv"
+virtualenv $TEST_ENV
+. $TEST_ENV/bin/activate
+
 ROOT=$PWD
-echo "setting up python"
+echo "setting up gaia-ui-tests dependencies"
 cd tests/python/gaia-ui-tests/
-sudo python setup.py develop
+python setup.py develop
 
 cd $ROOT;
 
