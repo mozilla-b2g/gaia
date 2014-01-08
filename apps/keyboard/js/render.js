@@ -501,57 +501,6 @@ const IMERender = (function() {
     return docFragment;
   };
 
-  // Show keyboard layout alternatives
-  var showKeyboardAlternatives = function(key, keyboards, current, switchCode) {
-    var menuContainer = document.createElement('div');
-    menuContainer.classList.add('menu-container');
-    var dataset, className;
-    var menu = this.menu;
-
-    var cssWidth = key.style.width;
-    menu.classList.add('kbr-menu-lang');
-
-    var alreadyAdded = {};
-    for (var i = 0, kbr; kbr = keyboards[i]; i += 1) {
-      if (alreadyAdded[kbr])
-        continue;
-
-      className = 'keyboard-key';
-      if (kbr === current)
-        className += ' kbr-key-hold';
-
-      dataset = [
-        {key: 'keyboard', value: kbr},
-        {key: 'keycode', value: switchCode}
-      ];
-
-      menuContainer.appendChild(buildKey(
-        Keyboards[kbr].menuLabel,
-        className, cssWidth + 'px',
-        dataset)
-      );
-
-      alreadyAdded[kbr] = true;
-    }
-    menu.innerHTML = '';
-    menu.appendChild(menuContainer);
-
-    // Replace with the container
-    _altContainer = document.createElement('div');
-    _altContainer.style.display = 'inline-block';
-    _altContainer.style.width = key.style.width;
-    _altContainer.innerHTML = key.innerHTML;
-    _altContainer.className = key.className;
-    _altContainer.classList.add('kbr-menu-on');
-    _menuKey = key;
-    key.parentNode.replaceChild(_altContainer, key);
-
-    _altContainer
-      .querySelectorAll('.visual-wrapper > span')[0]
-      .appendChild(menu);
-    menu.style.display = 'block';
-  };
-
   // Show char alternatives.
   var showAlternativesCharMenu = function(key, altChars) {
     var content = document.createDocumentFragment();
@@ -578,13 +527,6 @@ const IMERender = (function() {
       // it is an alternative for, but adjust for the relative number of
       // characters in the original and the alternative
       var width = 0.75 * key.offsetWidth / keycharwidth * alt.length;
-      // If there is only one alternative, or we are showing the first
-      // alternative character, then display it at least as wide as the
-      // original key.
-      if (altChars.length === 1 ||
-          (left && index === 0) ||
-          (!left && index === altChars.length - 1))
-        width = Math.max(width, key.offsetWidth);
 
       content.appendChild(buildKey(alt, '', width + 'px', dataset));
     });
@@ -612,19 +554,30 @@ const IMERender = (function() {
     var alternativesRight = alternativesLeft + this.menu.offsetWidth;
 
     var offset;
-    // It overflows on the right
-    if (left && alternativesRight > window.innerWidth) {
-      console.log('overflowing right');
-      offset = window.innerWidth - alternativesRight;
-      console.log(offset);
-      this.menu.style.left = offset + 'px';
 
-      // It overflows on the left
-    } else if (!left && alternativesLeft < 0) {
-      console.log('overflowing left');
-      offset = alternativesLeft;
-      console.log(offset);
-      this.menu.style.right = offset + 'px';
+    if (alternativesLeft < 0 || alternativesRight > window.innerWidth) {
+      if (left) {  // alternatives menu extends to the right
+        // Figure out what the current offset is. This is set in CSS to -1.2rem
+        offset = parseInt(getComputedStyle(this.menu).left);
+        if (alternativesLeft < 0) {                       // extends past left
+          offset += -alternativesLeft;
+        }
+        else if (alternativesRight > window.innerWidth) { // extends past right
+          offset -= (alternativesRight - window.innerWidth);
+        }
+        this.menu.style.left = offset + 'px';
+      }
+      else {       // alternatives menu extends to the left
+        // Figure out what the current offset is. This is set in CSS to -1.2rem
+        offset = parseInt(getComputedStyle(this.menu).right);
+        if (alternativesRight > window.innerWidth) {      // extends past right
+          offset += (alternativesRight - window.innerWidth);
+        }
+        else if (alternativesLeft < 0) {                  // extends past left
+          offset += alternativesLeft;
+        }
+        this.menu.style.right = offset + 'px';
+      }
     }
   };
 
@@ -886,7 +839,6 @@ const IMERender = (function() {
     'highlightKey': highlightKey,
     'unHighlightKey': unHighlightKey,
     'showAlternativesCharMenu': showAlternativesCharMenu,
-    'showKeyboardAlternatives': showKeyboardAlternatives,
     'hideAlternativesCharMenu': hideAlternativesCharMenu,
     'setUpperCaseLock': setUpperCaseLock,
     'resizeUI': resizeUI,
