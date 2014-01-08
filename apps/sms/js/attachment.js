@@ -257,7 +257,6 @@
     iframe.removeEventListener('load', iframeLoad);
     navigator.mozL10n.translate(iframe.contentDocument.body);
     iframe.contentDocument.addEventListener('click', clickOnFrame);
-    iframe.contentDocument.addEventListener('contextmenu', clickOnFrame);
   }
 
   exports.Attachment = Attachment;
