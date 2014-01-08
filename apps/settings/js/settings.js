@@ -518,6 +518,11 @@ var Settings = {
               var _ = navigator.mozL10n.get;
               spanFields[i].textContent = _('macUnavailable');
               break;
+
+            case 'deviceinfo.bt_address':
+              var _ = navigator.mozL10n.get;
+              spanFields[i].textContent = _('bluetooth-address-unavailable');
+              break;
           }
         }
       }

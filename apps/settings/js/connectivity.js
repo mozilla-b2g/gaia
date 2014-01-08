@@ -30,6 +30,7 @@ var Connectivity = (function(window, document, undefined) {
     'gprs' : '2G GPRS'
   };
 
+  var _bluetooth_address = '';
   var _initialized = false;
   var _macAddress = '';
   var _ = navigator.mozL10n.get;
@@ -418,9 +419,36 @@ var Connectivity = (function(window, document, undefined) {
     if (!bluetooth.enabled) {
       return;
     }
+
+    // If the BT address is in the Settings database, it's already displayed in
+    // all `Bluetooth address' fields; if not, it will be set as soon as BT is
+    // enabled.
+    if (!_bluetooth_address && settings) {
+      var req = settings.createLock().get('deviceinfo.bt_address');
+      req.onsuccess = function btAddr_onsuccess() {
+        _bluetooth_address = req.result['deviceinfo.bt_address'];
+      };
+    }
+
     var req = bluetooth.getDefaultAdapter();
     req.onsuccess = function bt_getAdapterSuccess() {
       var defaultAdapter = req.result;
+
+      // Set Bluetooth address after getting the adapter if it wasn't already
+      // done so earlier.
+      if (!_bluetooth_address && defaultAdapter.address) {
+        _bluetooth_address = defaultAdapter.address;
+
+        settings.createLock().set({ 'deviceinfo.bt_address':
+                                   _bluetooth_address });
+        // update UI fields
+        var fields =
+          document.querySelectorAll('[data-name="deviceinfo.bt_address"]');
+        for (var i = 0, l = fields.length; i < l; i++) {
+          fields[i].textContent = _bluetooth_address;
+        }
+      }
+
       var reqPaired = defaultAdapter.getPairedDevices();
       reqPaired.onsuccess = function bt_getPairedSuccess() {
         // copy for sorting
