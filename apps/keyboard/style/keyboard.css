@@ -128,7 +128,7 @@ button::-moz-focus-inner {
   color: #00caf2;
   background-color: #4a5255;
   margin: -0.4rem 0 -0.4rem -0.1rem;
-  padding: 0.4rem 0 0 0.1rem;  
+  padding: 0.4rem 0 0 0.1rem;
 }
 
 .keyboard-key.highlighted > .visual-wrapper > span:after {
@@ -263,6 +263,7 @@ and displays the list of alternatives. */
   background-color: #00aacc;
   overflow: hidden;
   white-space: nowrap;
+  left: -1.2rem; /* because the first child is 1.2rem wider than others */
 }
 
 #keyboard-accent-char-menu.show {
@@ -270,12 +271,28 @@ and displays the list of alternatives. */
 }
 
 #keyboard-accent-char-menu.kbr-menu-left {
-  right: 0;
+  left: auto;
+  right: -1.2rem; /* because the last child is 1.2rem wider than others */
 }
 
 /* Non keyboard key styles in menu */
 #keyboard-accent-char-menu .keyboard-key {
-  min-width: 3rem; /* we need to recalculate the inline width (2.4rem) */
+  min-width: 3rem;
+}
+
+/* if it is the first or last key in the accent menu make it wider */
+#keyboard-accent-char-menu .keyboard-key:first-child,
+#keyboard-accent-char-menu .keyboard-key:last-child {
+  min-width: 4.2rem;
+}
+
+/*
+ * If it is the first and the last key in the accent menu, it means that
+ * there is only one and we need to make it wider still so we get a round
+ * menu
+ */
+#keyboard-accent-char-menu .keyboard-key:first-child:last-child {
+  min-width: 6rem;
 }
 
 #keyboard-accent-char-menu .keyboard-key > .visual-wrapper {
@@ -316,66 +333,10 @@ bubble above the key when you tap and hold. */
   background-color: #0099b8;
 }
 
-/* Language alternatives */
-#keyboard-accent-char-menu.kbr-menu-lang {
-  position: absolute;
-  bottom: 100%;
-  left: 0;
-  right: auto;
-  top: auto;
-  margin-bottom: -0.2rem;
-  height: auto;
-  max-height: 34rem;
-  white-space: normal;
-}
 
-.menu-container {
-  max-height: 34rem;
-  overflow-y: auto;
-}
-
-/* Special key menu enabled */
-.keyboard-key.special-key.highlighted.kbr-menu-on {
-  position: relative;
-  z-index: 100;
-}
-
-#keyboard-accent-char-menu.kbr-menu-lang .keyboard-key {
-  padding: 0;
-  display: block;
-}
-
-#keyboard-accent-char-menu.kbr-menu-lang .keyboard-key > .visual-wrapper {
-  -moz-box-sizing: border-box;
-  border: none;
-  border-bottom: 0.1rem solid #3c3c3c;
-  width: 15rem;
-  height: 100%;
-}
-
-
-#keyboard-accent-char-menu.kbr-menu-lang .keyboard-key > .visual-wrapper > span {
-  font-weight: 500;
-  font-size: 1.8rem;
-  line-height: 5rem;
-  position: static; /* This will make the keyboard-key in keyboard menu's height correct */
-}
-
-/* Change the text color since the current selected (kbr-key-hold) keyboard will have the same background color*/
-#keyboard-accent-char-menu.kbr-menu-lang .keyboard-key.highlighted > .visual-wrapper > span {
-  color: #1a3f46;
-}
-
-#keyboard-accent-char-menu > .keyboard-key:last-child .visual-wrapper,
-#keyboard-accent-char-menu.kbr-menu-lang .keyboard-key:last-child .visual-wrapper {
+#keyboard-accent-char-menu > .keyboard-key:last-child .visual-wrapper {
   border: none;
 }
-
-#keyboard-accent-char-menu.kbr-menu-lang .keyboard-key.kbr-key-hold > .visual-wrapper,
-#keyboard-accent-char-menu.kbr-menu-lang .keyboard-key.highlighted > .visual-wrapper {
-  background-color: #00acd1;
-}
-
 
 /* IMEs */
 #keyboard-pending-symbol-panel {
