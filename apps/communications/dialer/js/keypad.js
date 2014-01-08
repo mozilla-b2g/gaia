@@ -301,7 +301,7 @@ var KeypadManager = {
   },
 
   /**
-   * Function used to respond to touchmove events over the keypad. Reacts to
+   * Function used to respond to touchstart events over the keypad. Reacts to
    * the first key that has been pressed by playing the appropriate tone and
    * sets up the necessary timers to react to long presses.
    *
