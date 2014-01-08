@@ -36,14 +36,32 @@ var StoreProvisioning = (function() {
       return;
     }
 
+    // XXX: Bug 947198
+    // We must add support for multi ICC card devices to the OMA CP logic.
+    // In the meantime we assume the ICC card the WAP push app is working with
+    // is the first one.
+    var iccCardIndex = 0;
+
     var transaction = navigator.mozSettings.createLock();
     var mccRequest = transaction.get(MCC_KEY);
     mccRequest.onsuccess = function() {
-      mccMncCodes.mcc = mccRequest.result[MCC_KEY] || '000';
+      var mccs = mccRequest.result[MCC_KEY];
+      if (!mccs || !Array.isArray(mccs) || !mccs[iccCardIndex]) {
+        mccMncCodes.mcc = '000';
+      } else {
+        mccMncCodes.mcc = mccs[iccCardIndex];
+      }
       var mncRequest = transaction.get(MNC_KEY);
       mncRequest.onsuccess = function() {
-        mccMncCodes.mnc = mncRequest.result[MNC_KEY] || '00';
-        callback(mccMncCodes.mcc, mccMncCodes.mnc);
+        var mncs = mncRequest.result[MNC_KEY];
+        if (!mncs || !Array.isArray(mncs) || !mncs[iccCardIndex]) {
+          mccMncCodes.mnc = '00';
+        } else {
+          mccMncCodes.mnc = mncs[iccCardIndex];
+        }
+        if (callback) {
+          callback(mccMncCodes.mcc, mccMncCodes.mnc);
+        }
       };
     };
   }
