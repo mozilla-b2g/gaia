@@ -13,6 +13,8 @@
 'use strict';
 
 var attachmentMap = new WeakMap();
+var isEmptyOnBackspace = false;
+var isHoldingBackspace = false;
 
 function thui_mmsAttachmentClick(target) {
   var attachment = attachmentMap.get(target);
@@ -106,8 +108,13 @@ var ThreadUI = global.ThreadUI = {
     // Changes on subject input can change the type of the message
     // and size of fields
     this.subjectInput.addEventListener(
-      'keyup', this.onSubjectKeyUp.bind(this)
+      'keydown', this.onSubjectKeydown.bind(this)
     );
+
+    this.subjectInput.addEventListener(
+      'keyup', this.onSubjectKeyup.bind(this)
+    );
+
     this.subjectInput.addEventListener(
       'blur', this.onSubjectBlur.bind(this)
     );
@@ -422,8 +429,33 @@ var ThreadUI = global.ThreadUI = {
       }.bind(this), this.IMAGE_RESIZE_DURATION);
     }
   },
+  onSubjectKeydown: function thui_onSubjectKeydown(event) {
+    if (event.keyCode === event.DOM_VK_BACK_SPACE) {
+      // Keydown appears to fire repeatedly (as keypress?),
+      // but keyup only fires once.
+      // https://bugzilla.mozilla.org/show_bug.cgi?id=960946
+      if (!isHoldingBackspace) {
+        isEmptyOnBackspace = !this.subjectInput.value.length;
+      }
 
-  onSubjectKeyUp: function thui_onSubjectKeyUp(event) {
+      isHoldingBackspace = true;
+    } else {
+      isHoldingBackspace = false;
+    }
+  },
+  onSubjectKeyup: function thui_onSubjectKeyup(event) {
+    // Only want to close the subject input when the user
+    // taps backspace on an empty field.
+    if (event.keyCode === event.DOM_VK_BACK_SPACE) {
+      if (isEmptyOnBackspace) {
+        Compose.toggleSubject();
+        this.updateSubjectHeight();
+        isEmptyOnBackspace = false;
+      }
+    }
+
+    isHoldingBackspace = false;
+
     Compose.updateType();
     // Handling user warning for max character reached
     // Only show the warning when the subject field has the focus
