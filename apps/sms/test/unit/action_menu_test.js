@@ -63,6 +63,7 @@ suite('OptionMenu', function() {
 
     suite('menu.show()', function() {
       setup(function() {
+        this.sinon.spy(menu.form, 'focus');
         menu.show();
       });
 
@@ -72,7 +73,10 @@ suite('OptionMenu', function() {
         );
       });
       test('calls navigator.mozL10n.translate', function() {
-        assert.ok(navigator.mozL10n.translate.calledWith(menu.form));
+        sinon.assert.calledWith(navigator.mozL10n.translate, menu.form);
+      });
+      test('Focus form to dismiss keyboard', function() {
+        sinon.assert.called(menu.form.focus);
       });
 
       suite('menu.hide()', function() {
@@ -153,9 +157,8 @@ suite('OptionMenu', function() {
       assert.equal(buttons[0].textContent, options.items[0].name);
     });
     test('Localized button', function() {
-      assert.ok(navigator.mozL10n.localize.calledWith(
-        buttons[1], options.items[1].l10nId, options.items[1].l10nArgs
-      ), 'localized with mozL10n.localize');
+      sinon.assert.calledWith(navigator.mozL10n.localize, buttons[1],
+        options.items[1].l10nId, options.items[1].l10nArgs);
     });
     test('classes', function() {
       assert.ok(menu.form.classList.contains('class1'));

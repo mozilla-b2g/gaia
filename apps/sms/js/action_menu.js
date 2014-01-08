@@ -79,6 +79,8 @@ var OptionMenu = function(options) {
   this.form = document.createElement('form');
   this.form.dataset.type = options.type || 'action';
   this.form.setAttribute('role', 'dialog');
+  this.form.tabIndex = -1;
+
   var classList = this.form.classList;
 
   if (options.classes) {
@@ -167,6 +169,8 @@ OptionMenu.prototype.show = function() {
   // We translate and append the element to body
   navigator.mozL10n.translate(this.form);
   document.body.appendChild(this.form);
+  // Focus form to blur anything triggered keyboard
+  this.form.focus();
 };
 
 OptionMenu.prototype.hide = function() {
