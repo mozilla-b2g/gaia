@@ -5,7 +5,7 @@
          MockActivityPicker, Threads, Settings, MockMessages, MockUtils,
          MockContacts, ActivityHandler, Recipients, MockMozActivity,
          ThreadListUI, ContactRenderer, UIEvent, Drafts, OptionMenu,
-         ActivityPicker */
+         ActivityPicker, KeyEvent */
 
 'use strict';
 
@@ -1067,68 +1067,207 @@ suite('thread_ui.js >', function() {
     });
   });
 
-  suite('subject max length banner', function() {
-    var banner,
-        localize;
+  suite('Subject', function() {
 
-    setup(function() {
-      banner = document.getElementById('messages-max-length-notice');
-      localize = this.sinon.spy(navigator.mozL10n, 'localize');
-      Compose.toggleSubject();
-    });
+    suite('Max Length banner', function() {
+      var banner,
+          localize,
+          subject;
 
-    teardown(function() {
-      banner.classList.add('hide');
-      Compose.clear();
-    });
-
-    test('should be hidden if limit not reached', function() {
-      assert.isTrue(banner.classList.contains('hide'));
-    });
-
-    suite('when trying to pass the limit...', function() {
-      var clock;
       setup(function() {
-        clock = this.sinon.useFakeTimers();
-        subject.value = '1234567890123456789012345678901234567890'; // 40 char
-        clock.tick(0);
-        // Event is launched on keypress
-        subject.dispatchEvent(new CustomEvent('keyup'));
+        banner = document.getElementById('messages-max-length-notice');
+        subject = document.getElementById('messages-subject-input');
+        localize = this.sinon.spy(navigator.mozL10n, 'localize');
+        Compose.toggleSubject();
       });
 
       teardown(function() {
-        clock.restore();
+        banner.classList.add('hide');
+        Compose.clear();
       });
 
-      test('should create a timeout', function() {
-        assert.isFalse(!ThreadUI.timeouts.subjectLengthNotice);
-      });
-
-      test('banner should be hidden after an amount of secs.', function(done) {
-        assert.isFalse(banner.classList.contains('hide'));
-        clock.tick(3100);
-        assert.isTrue(banner.classList.contains('hide'));
-        done();
-      });
-
-      test('should be visible', function() {
-        assert.isFalse(banner.classList.contains('hide'));
-      });
-
-      test('should be localized', function() {
-        assert.ok(localize.calledWith(banner.querySelector('p'),
-                  'messages-max-subject-length-text'));
-      });
-
-      test('should be hidden if focus is away', function() {
-        subject.dispatchEvent(new CustomEvent('blur'));
+      test('should be hidden if limit not reached', function() {
         assert.isTrue(banner.classList.contains('hide'));
       });
 
-      test('should not be visible if focus comes back.', function() {
-        subject.dispatchEvent(new CustomEvent('blur'));
-        subject.dispatchEvent(new CustomEvent('focus'));
-        assert.isTrue(banner.classList.contains('hide'));
+      suite('when trying to pass the limit...', function() {
+        var clock;
+        setup(function() {
+          clock = this.sinon.useFakeTimers();
+          subject.value = '1234567890123456789012345678901234567890'; // 40 char
+          clock.tick(0);
+          // Event is launched on keypress
+          subject.dispatchEvent(new CustomEvent('keyup'));
+        });
+
+        teardown(function() {
+          clock.restore();
+        });
+
+        test('should create a timeout', function() {
+          assert.isFalse(!ThreadUI.timeouts.subjectLengthNotice);
+        });
+
+        test('banner should be hidden after an amount of secs.',
+          function(done) {
+          assert.isFalse(banner.classList.contains('hide'));
+          clock.tick(3100);
+          assert.isTrue(banner.classList.contains('hide'));
+          done();
+        });
+
+        test('should be visible', function() {
+          assert.isFalse(banner.classList.contains('hide'));
+        });
+
+        test('should be localized', function() {
+          assert.ok(localize.calledWith(banner.querySelector('p'),
+                    'messages-max-subject-length-text'));
+        });
+
+        test('should be hidden if focus is away', function() {
+          subject.dispatchEvent(new CustomEvent('blur'));
+          assert.isTrue(banner.classList.contains('hide'));
+        });
+
+        test('should not be visible if focus comes back.', function() {
+          subject.dispatchEvent(new CustomEvent('blur'));
+          subject.dispatchEvent(new CustomEvent('focus'));
+          assert.isTrue(banner.classList.contains('hide'));
+        });
+      });
+    });
+
+
+    suite('Visibility', function() {
+      var event, backspace;
+
+      suiteSetup(function() {
+        event = {
+          keyCode: KeyEvent.DOM_VK_BACK_SPACE,
+          DOM_VK_BACK_SPACE: KeyEvent.DOM_VK_BACK_SPACE
+        };
+
+        backspace = function(id) {
+          ThreadUI.onSubjectKeydown(event);
+          ThreadUI.onSubjectKeyup(event);
+        };
+      });
+
+      test('<delete> in empty subject hides field', function() {
+
+        // 1. This "tricks" Compose.updateType() into thinking we've
+        // entered some text into the subject. This ensures that
+        // Compose.type is correctly updated as it would be if
+        // the user had actually typed into the field.
+        subject.value = 'Howdy!';
+
+        Compose.toggleSubject();
+
+        // 2. Assert the correct state condition updates have occurred,
+        // as described in step 1
+        assert.isTrue(Compose.isSubjectVisible);
+        // Per discussion, this is being deferred to another bug
+        // https://bugzilla.mozilla.org/show_bug.cgi?id=959360
+        //
+        // assert.isTrue(sendButton.classList.contains('has-counter'));
+        assert.equal(Compose.type, 'mms');
+
+        // 3. To simulate the user "deleting" the subject,
+        // set the value to an empty string.
+        subject.value = '';
+
+        // 4. Simulate backspace on the subject field
+        backspace();
+
+        // 5. Confirm that the state of the compose
+        // area has updated properly.
+        assert.isFalse(Compose.isSubjectVisible);
+        // Per discussion, this is being deferred to another bug
+        // https://bugzilla.mozilla.org/show_bug.cgi?id=959360
+        //
+        // assert.isFalse(sendButton.classList.contains('has-counter'));
+        assert.equal(Compose.type, 'sms');
+      });
+
+      test('<delete> in non-empty subject does not hide field', function() {
+
+        // 1. This "tricks" Compose.updateType() into thinking we've
+        // entered some text into the subject. This ensures that
+        // Compose.type is correctly updated as it would be if
+        // the user had actually typed into the field.
+        subject.value = 'Howdy!';
+
+        Compose.toggleSubject();
+
+        // 2. Assert the correct state condition updates have occurred,
+        // as described in step 1
+        assert.isTrue(Compose.isSubjectVisible);
+
+        // 3. Simulate backspace on the subject field
+        backspace();
+
+        // 4. Confirm that the state of the compose area not changed.
+        assert.isTrue(Compose.isSubjectVisible);
+      });
+
+      test('<delete> holding subject does not hide field', function() {
+
+        // 1. This "tricks" Compose.updateType() into thinking we've
+        // entered some text into the subject. This ensures that
+        // Compose.type is correctly updated as it would be if
+        // the user had actually typed into the field.
+        subject.value = 'Howdy!';
+
+        Compose.toggleSubject();
+
+        // 2. Assert the correct state condition updates have occurred,
+        // as described in step 1
+        assert.isTrue(Compose.isSubjectVisible);
+
+        // 3. Simulate holding backspace on the subject field
+        for (var i = 0; i < 5; i++) {
+          ThreadUI.onSubjectKeydown(event);
+        }
+
+        // 4. This is the "release" from a holding state
+        ThreadUI.onSubjectKeyup(event);
+
+        // 5. Confirm that the state of the compose area not changed.
+        assert.isTrue(Compose.isSubjectVisible);
+      });
+
+      test('<delete> holding subject, release and tap hides field', function() {
+
+        // 1. This "tricks" Compose.updateType() into thinking we've
+        // entered some text into the subject. This ensures that
+        // Compose.type is correctly updated as it would be if
+        // the user had actually typed into the field.
+        subject.value = 'Howdy!';
+
+        Compose.toggleSubject();
+
+        // 2. Assert the correct state condition updates have occurred,
+        // as described in step 1
+        assert.isTrue(Compose.isSubjectVisible);
+
+        // 3. Simulate holding backspace on the subject field
+        for (var i = 0; i < 5; i++) {
+          ThreadUI.onSubjectKeydown(event);
+        }
+
+        // 4. This is the "release" from a holding state
+        ThreadUI.onSubjectKeyup(event);
+
+        // 5. To simulate the user "deleting" the subject,
+        // set the value to an empty string.
+        subject.value = '';
+
+        // 6. Simulate backspace on the subject field.
+        backspace();
+
+        // 7. Confirm that the state of the compose area not changed.
+        assert.isFalse(Compose.isSubjectVisible);
       });
     });
   });

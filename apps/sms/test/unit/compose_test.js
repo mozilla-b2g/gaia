@@ -85,13 +85,15 @@ suite('compose_test.js', function() {
 
   suite('Message Composition', function() {
     var message,
-        subject;
+        subject,
+        sendButton;
 
     setup(function() {
       loadBodyHTML('/index.html');
       Compose.init('messages-compose-form');
       message = document.querySelector('[contenteditable]');
       subject = document.getElementById('messages-subject-input');
+      sendButton = document.getElementById('messages-send-button');
     });
 
     suite('Subject', function() {
@@ -116,6 +118,20 @@ suite('compose_test.js', function() {
         Compose.toggleSubject();
         assert.equal(Compose.getSubject(), content);
       });
+
+      // Per discussion, this is being deferred to another bug
+      // https://bugzilla.mozilla.org/show_bug.cgi?id=959360
+      //
+      // test('Toggle type display visibility', function() {
+      //   assert.isFalse(sendButton.classList.contains('has-counter'));
+
+      //   subject.value = 'hi';
+      //   Compose.toggleSubject();
+      //   assert.isTrue(sendButton.classList.contains('has-counter'));
+
+      //   Compose.toggleSubject();
+      //   assert.isFalse(sendButton.classList.contains('has-counter'));
+      // });
 
       test('Sent subject doesnt have line breaks (spaces instead)', function() {
         // Set the value
