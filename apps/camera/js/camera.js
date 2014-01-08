@@ -1005,7 +1005,7 @@ var Camera = {
     // Initialize preview size by screen size in direction of actual preview.
     // Preview sizes are all based on css pixel.
     var [previewWidth, previewHeight] = getBoundingBoxDimension(
-          camera.sensorAngle, screenWidth, screenHeight);
+          -camera.sensorAngle, screenWidth, screenHeight);
     var previewAspectRatio = previewWidth / previewHeight;
 
     var pictureAspectRatio = this._pictureSize.width / this._pictureSize.height;
@@ -1045,7 +1045,7 @@ var Camera = {
     // set to center, the upper left displaces half of difference between actual
     // dimension after rotating and original dimension.
     var [previewBoxWidth, previewBoxHeight] = getBoundingBoxDimension(
-                      -camera.sensorAngle, previewWidth, previewHeight);
+                      camera.sensorAngle, previewWidth, previewHeight);
     var dx = (previewBoxWidth - previewWidth) / 2;
     var dy = (previewBoxHeight - previewHeight) / 2;
 
@@ -1053,13 +1053,13 @@ var Camera = {
     dx += (screenWidth - previewBoxWidth) / 2;
     dy += (screenHeight - previewBoxHeight) / 2;
     var transform = 'translate(' + dx + 'px,' + dy + 'px) ' +
-                    'rotate(' + -camera.sensorAngle + 'deg) ';
+                    'rotate(' + camera.sensorAngle + 'deg) ';
 
     if (this._cameraNumber == 1) {
       /* backwards-facing camera */
       transform += ' scale(-1, 1)';
     }
-
+    console.log(camera.sensorAngle);
     style.transform = transform;
     style.width = previewWidth + 'px';
     style.height = previewHeight + 'px';
