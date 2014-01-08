@@ -71,7 +71,8 @@ suite('SimPinLock > ', function() {
 
   // we use dsds for testing by default for each test
   setup(function() {
-    stubById = this.sinon.stub(document, 'getElementById', function() {
+    this.sinon.stub(window.navigator.mozL10n, 'localize');
+    this.sinon.stub(document, 'getElementById', function() {
       return document.createElement('div');
     });
   });
@@ -359,6 +360,8 @@ suite('SimPinLock > ', function() {
     });
 
     setup(function() {
+      this.sinon.stub(SimPinLock, 'updateSimSecurityDescUI');
+      this.sinon.stub(SimPinLock, 'updateSimPinUI');
       this.sinon.stub(SimPinLock.simPinDialog, 'show');
 
       fakeCheckbox = document.createElement('input');
@@ -380,6 +383,12 @@ suite('SimPinLock > ', function() {
       test('show unlock_puk action', function() {
         assert.equal(SimPinLock.simPinDialog.show.lastCall.args[0],
           'unlock_puk');
+
+        var onSuccessFunction =
+          SimPinLock.simPinDialog.show.lastCall.args[1].onsuccess;
+
+        onSuccessFunction();
+        assert.isTrue(SimPinLock.updateSimSecurityDescUI.lastCall.args[0]);
       });
     });
 
@@ -397,6 +406,12 @@ suite('SimPinLock > ', function() {
         test('checkbox is not checked, call disable_lock', function() {
           assert.equal(SimPinLock.simPinDialog.show.lastCall.args[0],
             'disable_lock');
+
+          var onSuccessFunction =
+            SimPinLock.simPinDialog.show.lastCall.args[1].onsuccess;
+
+          onSuccessFunction();
+          assert.isFalse(SimPinLock.updateSimSecurityDescUI.lastCall.args[0]);
         });
       });
 
@@ -408,10 +423,15 @@ suite('SimPinLock > ', function() {
         test('checkbox is not checked, call enable_lock', function() {
           assert.equal(SimPinLock.simPinDialog.show.lastCall.args[0],
             'enable_lock');
+
+          var onSuccessFunction =
+            SimPinLock.simPinDialog.show.lastCall.args[1].onsuccess;
+
+          onSuccessFunction();
+          assert.isTrue(SimPinLock.updateSimSecurityDescUI.lastCall.args[0]);
         });
       });
     });
-
   });
 
   suite('addChangeEventOnIccs > ', function() {
@@ -547,6 +567,27 @@ suite('SimPinLock > ', function() {
       });
       test('is not single sim', function() {
         assert.ok(!SimPinLock.isSingleSim());
+      });
+    });
+  });
+
+  suite('updateSimSecurityDescUI > ', function() {
+    suite('enabled >', function() {
+      setup(function() {
+        SimPinLock.updateSimSecurityDescUI(true);
+      });
+      test('is description with enabled wording', function() {
+        assert.equal(window.navigator.mozL10n.localize.args[0][1],
+          'enabled');
+      });
+    });
+    suite('disabled >', function() {
+      setup(function() {
+        SimPinLock.updateSimSecurityDescUI(false);
+      });
+      test('is description with disabled wording', function() {
+        assert.equal(window.navigator.mozL10n.localize.args[0][1],
+          'disabled');
       });
     });
   });
