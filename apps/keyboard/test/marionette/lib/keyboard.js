@@ -63,6 +63,7 @@ Keyboard.prototype = {
     this.keyboardFrame = this.client.findElement(iframeSelectors);
     var self = this;
     this.client.waitFor(function waiting() {
+      console.log('keyboard:' + self.keyboardFrame.displayed());
       return self.keyboardFrame.displayed();
     });
 
