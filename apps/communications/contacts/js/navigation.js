@@ -55,7 +55,10 @@ function navigationStack(currentView) {
   var _currentView = currentView;
   this.stack = [];
 
-  this.stack.push({view: _currentView, transition: 'popup', zIndex: 1});
+  navigationStack._zIndex = navigationStack._zIndex || 0;
+
+  this.stack.push({view: _currentView, transition: 'popup',
+                   zIndex: ++navigationStack._zIndex});
 
   var waitForAnimation = function ng_waitForAnimation(view, callback) {
     if (!callback)
@@ -123,7 +126,7 @@ function navigationStack(currentView) {
       });
     }
 
-    var zIndex = this.stack[this.stack.length - 1].zIndex + 1;
+    var zIndex = ++navigationStack._zIndex;
     this.stack.push({ view: nextView, transition: transition,
                       zIndex: zIndex});
     next.style.zIndex = zIndex;
@@ -218,6 +221,7 @@ function navigationStack(currentView) {
       waitForAnimation(current, callback);
     }
     _currentView = nextView.view;
+    navigationStack._zIndex = nextView.zIndex;
   };
 
   this.home = function home(callback) {
