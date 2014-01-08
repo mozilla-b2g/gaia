@@ -188,7 +188,7 @@ suite('settings.js', function() {
 				'rocketbar.searchAppURL': config.GAIA_SCHEME + 'search.' +
 					config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
 				'language.current': config.GAIA_DEFAULT_LOCALE,
-				'devtools.debugger.remote-enabled': true,
+				'debugger.remote-mode': 'adb-only',
 				'wallpaper.image': undefined,
 				'dialer.ringtone': undefined,
 				'notification.ringtone': undefined },
@@ -206,7 +206,7 @@ suite('settings.js', function() {
 				'rocketbar.searchAppURL': config.GAIA_SCHEME + 'search.' +
 					config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
 				'language.current': config.GAIA_DEFAULT_LOCALE,
-				'devtools.debugger.remote-enabled': true,
+				'debugger.remote-mode': 'adb-only',
 				'ftu.manifestURL': config.GAIA_SCHEME +
 					'communications.' + config.GAIA_DOMAIN + config.GAIA_PORT +
 					'/manifest.webapp',
@@ -228,7 +228,7 @@ suite('settings.js', function() {
 					config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
 				'feedback.url': 'https://input.mozilla.org/api/v1/feedback/',
 				'language.current': config.GAIA_DEFAULT_LOCALE,
-				'devtools.debugger.remote-enabled': true,
+				'debugger.remote-mode': 'disabled',
 				'wallpaper.image': undefined,
 				'dialer.ringtone': undefined,
 				'notification.ringtone': undefined },
@@ -246,7 +246,7 @@ suite('settings.js', function() {
 				'rocketbar.searchAppURL': config.GAIA_SCHEME + 'search.' +
 					config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
 				'language.current': config.GAIA_DEFAULT_LOCALE,
-				'devtools.debugger.remote-enabled': true,
+				'debugger.remote-mode': 'adb-only',
 				'screen.timeout': 0,
       	'lockscreen.enabled': false,
       	'lockscreen.locked': false,
