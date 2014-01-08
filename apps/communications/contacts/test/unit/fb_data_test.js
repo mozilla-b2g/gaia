@@ -56,6 +56,11 @@ suite('Facebook datastore suite', function() {
     assert.equal(res.uid, mockUid);
   }
 
+  function assertNotFound(req) {
+    var res = req.result;
+    assert.isNull(res);
+  }
+
   function assertNewIndex() {
     assert.equal(Object.keys(MockDatastore._records).length, 1,
                  'Datastore must contain the persisted index');
@@ -154,6 +159,20 @@ suite('Facebook datastore suite', function() {
     };
   });
 
+  test('Adding to the datastore an existing obj raises error', function(done) {
+    var req = fb.contacts.save(MockFbFriendData);
+
+    req.onsuccess = function() {
+      assert.fail('Success called');
+      done();
+    };
+
+    req.onerror = function() {
+      assert.equal(req.error.name, 'AlreadyExists');
+      done();
+    };
+  });
+
   test('Retrieving a FB Friend from the datastore. By tel', function(done) {
     var req = fb.contacts.getByPhone(mockTel);
 
@@ -183,6 +202,22 @@ suite('Facebook datastore suite', function() {
       };
   });
 
+  test('Retrieving a FB Friend from the datastore. By tel. Not found',
+    function(done) {
+      var req = fb.contacts.getByPhone('987654321');
+
+      req.onsuccess = function() {
+        assertNotFound(req);
+        done();
+      };
+
+      req.onerror = function() {
+        assert.fail('Error while retrieving: ' + req.error.name);
+        done();
+      };
+  });
+
+
   test('Retrieving a FB Friend from the datastore. By uid', function(done) {
     var req = fb.contacts.get(mockUid);
 
@@ -197,10 +232,41 @@ suite('Facebook datastore suite', function() {
     };
   });
 
+  test('Retrieving a FB Friend from the datastore by UID. Not found',
+       function(done) {
+    var req = fb.contacts.get('hhhhh');
+
+    req.onsuccess = function() {
+      assertNotFound(req);
+      done();
+    };
+
+    req.onerror = function() {
+      assert.fail('Error while retrieving: ' + req.error.name);
+      done();
+    };
+  });
+
   test('Removing a FB Friend from the datastore. No flush', function(done) {
     var objToRemove = createFbContact('678903', 'Carlos', '+34699999888');
 
     doRemove(objToRemove, false, done);
+  });
+
+  test('Removing a FB Friend from the datastore. Not Found', function(done) {
+    var objToRemove = createFbContact('99999', 'Carlos', '+34699999888');
+
+    var req = fb.contacts.remove(objToRemove);
+
+    req.onsuccess = function() {
+      assert.fail('Success invoked');
+      done();
+    };
+
+    req.onerror = function() {
+      assert.equal(req.error.name, 'UIDNotFound');
+      done();
+    };
   });
 
   test('Flushing the data', function(done) {
@@ -259,6 +325,23 @@ suite('Facebook datastore suite', function() {
     };
   });
 
+  test('Updating a FB friend from the datastore. UID does not exist',
+    function(done) {
+      var updatedObj = createFbContact('9999',
+                                       MockFbFriendData.name, '+34657890876');
+
+      var req = fb.contacts.update(updatedObj);
+
+      req.onsuccess = function() {
+        assert.fail('Success invoked');
+        done();
+      };
+
+      req.onerror = function() {
+        assert.equal(req.error.name, 'UIDNotFound');
+        done();
+      };
+  });
 
   test('Clearing all FB Data', function(done) {
     var clearReq = fb.contacts.clear();
@@ -271,6 +354,113 @@ suite('Facebook datastore suite', function() {
       assert.fail('Error while clearing: ' + req.error.name);
       done();
     };
+  });
+
+  test('If datastore is not found error is reported correctly', function(done) {
+    MockNavigatorDatastore._notFound = true;
+    MockDatastore._inError = false;
+    fb.contacts.restart();
+
+    fb.contacts.init(function() {
+      assert.fail('Success called');
+      done();
+    },
+    function(err) {
+      assert.equal(err.name, 'DatastoreNotFound');
+      done();
+    });
+  });
+
+  test('Retrieving a FB Friend from the datastore by UID. DS is in Error',
+    function(done) {
+      MockNavigatorDatastore._notFound = false;
+      MockDatastore._inError = true;
+      fb.contacts.restart();
+
+      var req = fb.contacts.get('hhhhh');
+
+      req.onsuccess = function() {
+        assert.fail('Success has been called');
+        done();
+      };
+
+      req.onerror = function() {
+        assert.equal(req.error.name, 'UnknownError');
+        done();
+      };
+  });
+
+  test('Retrieving a FB Friend from the datastore by tel. DS is in Error',
+    function(done) {
+      MockNavigatorDatastore._notFound = false;
+      MockDatastore._inError = true;
+
+      var req = fb.contacts.getByPhone('hhhhh');
+
+      req.onsuccess = function() {
+        assert.fail('Success has been called');
+        done();
+      };
+
+      req.onerror = function() {
+        assert.equal(req.error.name, 'UnknownError');
+        done();
+      };
+  });
+
+  test('Adding a FB Friend to the Datastore. DS is in Error',
+    function(done) {
+      MockNavigatorDatastore._notFound = false;
+      MockDatastore._inError = true;
+
+      var req = fb.contacts.save(MockFbFriendData);
+
+      req.onsuccess = function() {
+        assert.fail('Success has been called');
+        done();
+      };
+
+      req.onerror = function() {
+        assert.equal(req.error.name, 'UnknownError');
+        done();
+      };
+  });
+
+  test('Updating a FB Friend to the Datastore. DS is in Error',
+    function(done) {
+      MockNavigatorDatastore._notFound = false;
+      MockDatastore._inError = true;
+
+      var req = fb.contacts.update({});
+
+      req.onsuccess = function() {
+        assert.fail('Success has been called');
+        done();
+      };
+
+      req.onerror = function() {
+        assert.equal(req.error.name, 'UnknownError');
+        done();
+      };
+  });
+
+
+  test('Removing a FB Friend from the Datastore. DS is in Error',
+    function(done) {
+      MockNavigatorDatastore._notFound = false;
+      MockDatastore._inError = true;
+
+      var req = fb.contacts.remove('45678');
+
+      req.onsuccess = function() {
+        assert.fail('Success has been called');
+        done();
+      };
+
+      req.onerror = function() {
+        assert.equal(req.error.name, 'UnknownError');
+        done();
+      };
   });
 
   suiteTeardown(function() {

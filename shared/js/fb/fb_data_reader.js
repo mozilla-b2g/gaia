@@ -362,6 +362,24 @@ this.fb = fb;
     });
   }
 
+  // Needed only for testing purposes
+  contacts.restart = function() {
+    readyState = 'notInitialized';
+  };
+
+  function handleInitError(err, errorCb) {
+    readyState = 'error';
+    contacts.error = err;
+
+    if (typeof errorCb === 'function') {
+      window.setTimeout(function() {
+        errorCb(err);
+      }, 0);
+    }
+    // We resume other callers state
+    document.dispatchEvent(new CustomEvent(INITIALIZE_EVENT));
+  }
+
   /**
    *  Initialization function
    *
@@ -374,7 +392,13 @@ this.fb = fb;
 
     if (readyState === 'initializing') {
       document.addEventListener(INITIALIZE_EVENT, function oninitalized() {
-        cb();
+        if (readyState === 'initialized') {
+          cb();
+        }
+        else if (readyState === 'error') {
+          errorCb(safeError(contacts.error));
+        }
+
         document.removeEventListener(INITIALIZE_EVENT, oninitalized);
       });
       return;
@@ -385,11 +409,7 @@ this.fb = fb;
     navigator.getDataStores(DATASTORE_NAME).then(function success(ds) {
       if (ds.length < 1) {
         window.console.error('FB: Cannot get access to the DataStore');
-         if (typeof errorCb === 'function') {
-          errorCb({
-            name: 'DatastoreNotFound'
-          });
-        }
+        handleInitError({ name: 'DatastoreNotFound' }, errorCb);
         return;
       }
 
@@ -421,16 +441,12 @@ this.fb = fb;
       }, function add_index_error(err) {
           window.console.error('Error while setting the index: ',
                                safeError(err).name);
-          if (typeof errorCb === 'function') {
-            errorCb(safeError(err));
-          }
+          handleInitError(safeError(err), errorCb);
       });
     }, function error(err) {
-      window.console.error('FB: Error while opening the DataStore: ',
-                           safeError(err).name);
-      if (typeof errorCb === 'function') {
-        errorCb(safeError(err));
-      }
+        window.console.error('FB: Error while opening the DataStore: ',
+                             safeError(err).name);
+        handleInitError(safeError(err), errorCb);
    });
   };
 })();
