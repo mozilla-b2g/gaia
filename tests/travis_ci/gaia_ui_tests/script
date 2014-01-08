@@ -7,6 +7,10 @@ b2g=`find b2g -follow -name "b2g-bin" | tail -n 1`
 profile=profile
 gaiatest="python $root/cli.py"
 
+echo "re-enable the virtualenv"
+. travis_venv/bin/activate
+
+echo "run the tests!"
 $gaiatest --app=b2gdesktop \
           --binary=$b2g \
           --profile=$profile \
