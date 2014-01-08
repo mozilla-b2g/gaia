@@ -1,6 +1,13 @@
 button {
   font-size: 3rem;
 }
+button[size='small'] {
+  font-size: 2rem;
+}
+input[type='number'] {
+  font-size: 3rem;
+  width: 100%;
+}
 input[type='range'] {
   height: 2rem;
 }
