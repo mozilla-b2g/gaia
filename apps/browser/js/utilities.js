@@ -113,3 +113,15 @@ var HtmlHelper = {
     return span.innerHTML;
   }
 };
+
+// Taken (and modified) from /apps/system/js/nfc_manager.js
+var StringHelper = {
+  fromUTF8: function ut_fromUTF8(str) {
+    var buf = new Uint8Array(str.length);
+    for (var i = 0; i < str.length; i++) {
+      buf[i] = str.charCodeAt(i);
+    }
+    return buf;
+  },
+
+};
