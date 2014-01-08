@@ -1,14 +1,29 @@
-var MockFbContactsObj = function(result) {
+var MockFbContactsObj = function(result, inError) {
   this.mResult = result;
+  this.inError = inError;
 };
 
 
 MockFbContactsObj.prototype = {
   _getRequest: function() {
+    if (this.inError === true) {
+      return {
+        error: {
+          name: 'UnknownError'
+        },
+        set onerror(cb) {
+          window.setTimeout(function() {
+            cb({
+                target: this
+            });
+          });
+        }
+      };
+    }
     return {
       result: this.mResult,
       set onsuccess(cb) {
-        cb();
+        window.setTimeout(cb);
       }
     };
   },

@@ -67,6 +67,20 @@ this.fb = fb;
     outRequest.failed(error);
   }
 
+  function handleInitError(err, errorCb) {
+    readyState = 'error';
+    contacts.error = err;
+
+    if (typeof errorCb === 'function') {
+      window.setTimeout(function() {
+        errorCb(err);
+      }, 0);
+    }
+    // We resume other callers state
+    document.dispatchEvent(new CustomEvent(INITIALIZE_EVENT));
+  }
+
+
   // Creates a default handler for errors
   function defaultError(request) {
     return defaultErrorCb.bind(null, request);
@@ -204,9 +218,9 @@ this.fb = fb;
           outRequest.done(null);
         }
       }, function(err) {
-        window.console.error('The index cannot be refreshed: ',
-                             safeError(err).name);
-        outRequest.failed(safeError(err));
+        err = safeError(err);
+        window.console.error('The index cannot be refreshed: ', err.name);
+        outRequest.failed(err);
       });
     }
     else {
@@ -272,15 +286,16 @@ this.fb = fb;
         }
         return out;
       },function(err) {
-        window.console.error('The index cannot be refreshed: ',
-                             safeError(err).name);
-        outRequest.failed(safeError(err));
+        err = safeError(err);
+        window.console.error('The index cannot be refreshed: ', err.name);
+        outRequest.failed(err);
       }).then(function success(objList) {
           outRequest.done(objList);
       }, function error(err) {
+          err = safeError(err);
           window.console.error('Error while retrieving result data: ',
-                               safeError(err).name);
-          outRequest.failed(safeError(err));
+                               err.name);
+          outRequest.failed(err);
         });
       }
       else {
@@ -290,9 +305,10 @@ this.fb = fb;
           datastore.get(results).then(function success(objList) {
             outRequest.done(objList);
           }, function error(err) {
-             window.console.error('Error while retrieving result data: ',
-                                  safeError(err).name);
-             outRequest.failed(safeError(err));
+              err = safeError(err);
+              window.console.error('Error while retrieving result data: ',
+                                    err.name);
+              outRequest.failed(err);
           });
         }
         else {
@@ -362,6 +378,11 @@ this.fb = fb;
     });
   }
 
+   // Needed only for testing purposes
+  contacts.restart = function() {
+    readyState = 'notInitialized';
+  };
+
   /**
    *  Initialization function
    *
@@ -385,11 +406,7 @@ this.fb = fb;
     navigator.getDataStores(DATASTORE_NAME).then(function success(ds) {
       if (ds.length < 1) {
         window.console.error('FB: Cannot get access to the DataStore');
-         if (typeof errorCb === 'function') {
-          errorCb({
-            name: 'DatastoreNotFound'
-          });
-        }
+        handleInitError({ name: 'DatastoreNotFound' }, errorCb);
         return;
       }
 
@@ -419,18 +436,15 @@ this.fb = fb;
         revisionId = datastore.revisionId;
         notifyOpenSuccess(cb);
       }, function add_index_error(err) {
-          window.console.error('Error while setting the index: ',
-                               safeError(err).name);
-          if (typeof errorCb === 'function') {
-            errorCb(safeError(err));
-          }
+          err = safeError(err);
+          window.console.error('Error while setting the index: ', err.name);
+          handleInitError(err, errorCb);
       });
     }, function error(err) {
-      window.console.error('FB: Error while opening the DataStore: ',
-                           safeError(err).name);
-      if (typeof errorCb === 'function') {
-        errorCb(safeError(err));
-      }
-   });
+        err = safeError(err);
+        window.console.error('FB: Error while opening the DataStore: ',
+                             err.name);
+        handleInitError(err, errorCb);
+    });
   };
 })();
