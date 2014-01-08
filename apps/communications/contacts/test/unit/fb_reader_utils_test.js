@@ -127,4 +127,31 @@ suite('Facebook data reader utils suite', function() {
          assert.fail('Error while getting contact by  number: ', err);
     });
   });
+
+  test('Get Contact by Number. In error', function(done) {
+    fb.contacts.inError = true;
+
+    fb.getContactByNumber(fbNumber, function success(contact) {
+      assert.fail('Success invoked');
+      done();
+    }, function error(err) {
+        assert.equal(err.name, 'UnknownError');
+        done();
+    });
+  });
+
+  test('Get Data from Facebook. In Error', function(done) {
+    var req = fb.getData(localContact);
+
+    req.onsuccess = function() {
+      assert.fail('Success invoked');
+      done();
+    };
+
+    req.onerror = function() {
+      assert.equal(req.error.name, 'UnknownError');
+      done();
+    };
+  });
+
 });

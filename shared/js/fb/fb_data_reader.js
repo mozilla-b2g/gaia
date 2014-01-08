@@ -43,6 +43,17 @@ this.fb = fb;
   // datastore Ids
   var index;
 
+  // Ensures a proper error object is returned
+  function safeError(err) {
+    if (err && err.name) {
+      return err;
+    }
+
+    return {
+      name: 'UnknownError'
+    };
+  }
+
   function notifyOpenSuccess(cb) {
     readyState = 'initialized';
     if (typeof cb === 'function') {
@@ -111,8 +122,8 @@ this.fb = fb;
     window.setTimeout(function get() {
       contacts.init(function() {
         doGet(uid, outRequest);
-      }, function() {
-        initError(outRequest);
+      }, function(err) {
+        initError(outRequest, err);
       });
     }, 0);
 
@@ -165,8 +176,8 @@ this.fb = fb;
       contacts.init(function get_by_phone() {
         doGetByPhone(tel, outRequest);
       },
-      function() {
-        initError(outRequest);
+      function(err) {
+        initError(outRequest, err);
       });
     }, 0);
 
@@ -193,8 +204,9 @@ this.fb = fb;
           outRequest.done(null);
         }
       }, function(err) {
-        window.console.error('The index cannot be refreshed: ', err.name);
-        outRequest.failed(err);
+        window.console.error('The index cannot be refreshed: ',
+                             safeError(err).name);
+        outRequest.failed(safeError(err));
       });
     }
     else {
@@ -226,8 +238,8 @@ this.fb = fb;
           doSearchByPhone(number, outRequest);
         }
       },
-      function() {
-        initError(outRequest);
+      function(err) {
+        initError(outRequest, err);
       });
     }, 0);
 
@@ -260,14 +272,15 @@ this.fb = fb;
         }
         return out;
       },function(err) {
-        window.console.error('The index cannot be refreshed: ', err.name);
-        outRequest.failed(err);
+        window.console.error('The index cannot be refreshed: ',
+                             safeError(err).name);
+        outRequest.failed(safeError(err));
       }).then(function success(objList) {
           outRequest.done(objList);
       }, function error(err) {
           window.console.error('Error while retrieving result data: ',
-                               err.name);
-          outRequest.failed(err);
+                               safeError(err).name);
+          outRequest.failed(safeError(err));
         });
       }
       else {
@@ -278,8 +291,8 @@ this.fb = fb;
             outRequest.done(objList);
           }, function error(err) {
              window.console.error('Error while retrieving result data: ',
-                                  err.name);
-             outRequest.failed(err);
+                                  safeError(err).name);
+             outRequest.failed(safeError(err));
           });
         }
         else {
@@ -300,8 +313,8 @@ this.fb = fb;
       contacts.init(function() {
         doRefresh(outRequest);
       },
-      function() {
-         initError(outRequest);
+      function(err) {
+        initError(outRequest, err);
       });
     }, 0);
 
@@ -326,8 +339,8 @@ this.fb = fb;
       contacts.init(function get_all() {
         doGetLength(retRequest);
       },
-      function() {
-        initError(retRequest);
+      function(err) {
+        initError(retRequest, err);
       });
     }, 0);
 
@@ -345,8 +358,26 @@ this.fb = fb;
       outRequest.done(length - 1);
     },
     function error(err) {
-      outRequest.failed(err);
+      outRequest.failed(safeError(err));
     });
+  }
+
+  // Needed only for testing purposes
+  contacts.restart = function() {
+    readyState = 'notInitialized';
+  };
+
+  function handleInitError(err, errorCb) {
+    readyState = 'error';
+    contacts.error = err;
+
+    if (typeof errorCb === 'function') {
+      window.setTimeout(function() {
+        errorCb(err);
+      }, 0);
+    }
+    // We resume other callers state
+    document.dispatchEvent(new CustomEvent(INITIALIZE_EVENT));
   }
 
   /**
@@ -361,7 +392,13 @@ this.fb = fb;
 
     if (readyState === 'initializing') {
       document.addEventListener(INITIALIZE_EVENT, function oninitalized() {
-        cb();
+        if (readyState === 'initialized') {
+          cb();
+        }
+        else if (readyState === 'error') {
+          errorCb(safeError(contacts.error));
+        }
+
         document.removeEventListener(INITIALIZE_EVENT, oninitalized);
       });
       return;
@@ -372,9 +409,7 @@ this.fb = fb;
     navigator.getDataStores(DATASTORE_NAME).then(function success(ds) {
       if (ds.length < 1) {
         window.console.error('FB: Cannot get access to the DataStore');
-         if (typeof errorCb === 'function') {
-          errorCb();
-        }
+        handleInitError({ name: 'DatastoreNotFound' }, errorCb);
         return;
       }
 
@@ -404,17 +439,14 @@ this.fb = fb;
         revisionId = datastore.revisionId;
         notifyOpenSuccess(cb);
       }, function add_index_error(err) {
-          window.console.error('Error while setting the index: ', error.name);
-          if (typeof errorCb === 'function') {
-            errorCb();
-          }
+          window.console.error('Error while setting the index: ',
+                               safeError(err).name);
+          handleInitError(safeError(err), errorCb);
       });
-    }, function error() {
-      window.console.error('FB: Error while opening the DataStore: ',
-                                                      e.target.error.name);
-      if (typeof errorCb === 'function') {
-        errorCb();
-      }
+    }, function error(err) {
+        window.console.error('FB: Error while opening the DataStore: ',
+                             safeError(err).name);
+        handleInitError(safeError(err), errorCb);
    });
   };
 })();
