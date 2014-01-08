@@ -46,7 +46,7 @@
       //
       // In this way, we have to make sure users can go back to the
       // right panel.
-      if (this.conns.length == 1) {
+      if (this.isSingleSim()) {
         this.simPinBackButton.setAttribute('href', '#root');
       } else {
         this.simPinBackButton.setAttribute('href', '#sim-manager');
@@ -56,10 +56,16 @@
       var simPinHTMLs = [];
 
       Array.prototype.forEach.call(this.conns, function(conn, index) {
+        var simPinIndex = index + 1;
+
+        if (this.isSingleSim()) {
+          simPinIndex = '';
+        }
+
         simPinHTMLs.push(
           this.simPinTemplate.interpolate({
             'sim-index': index.toString(),
-            'sim-name': _('simPinWithIndex', { 'index': index + 1 })
+            'sim-name': _('simPinWithIndex', { 'index': simPinIndex })
           })
         );
       }.bind(this));
@@ -227,6 +233,9 @@
         }
       }
       return cardIndex;
+    },
+    isSingleSim: function() {
+      return this.conns.length == 1;
     }
   };
 

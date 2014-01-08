@@ -27,6 +27,17 @@ suite('SimPinLock > ', function() {
 
   suiteSetup(function(done) {
     MockL10n.ready = function() {};
+    MockL10n._cachedParams = {};
+    MockL10n.get = function(key, params) {
+      if (!MockL10n._cachedParams[key]) {
+        MockL10n._cachedParams[key] = [];
+      }
+      if (params) {
+        MockL10n._cachedParams[key].push(params);
+      }
+      return key;
+    };
+
     window.navigator.mozL10n = MockL10n;
 
     realSimPinDialog = window.SimPinDialog;
@@ -146,13 +157,34 @@ suite('SimPinLock > ', function() {
       SimPinLock.simPinTemplate = oldTemplate;
     });
 
-    setup(function() {
-      initConns(2);
-      SimPinLock.initSimPinsUI();
+    suite('in single sim structure', function() {
+      setup(function() {
+        initConns(1);
+        SimPinLock.initSimPinsUI();
+      });
+
+      suiteTeardown(function() {
+        navigator.mozL10n._cachedParams = {};
+      });
+
+      test('init SimPinsUI successfully, we won\'t put SIM [n] PIN on UI',
+        function() {
+          assert.equal(
+            navigator.mozL10n._cachedParams.simPinWithIndex[0].index,
+            ''
+          );
+      });
     });
 
-    test('init SimPinsUI successfully', function() {
-      assert.isDefined(SimPinLock.simPinContainer.innerHTML);
+    suite('in dsds structure', function() {
+      suiteSetup(function() {
+        initConns(2);
+        SimPinLock.initSimPinsUI();
+      });
+
+      test('init SimPinsUI successfully', function() {
+        assert.isDefined(SimPinLock.simPinContainer.innerHTML);
+      });
     });
   });
 
@@ -496,6 +528,25 @@ suite('SimPinLock > ', function() {
       });
       test('right iccId will return right cardIndex', function() {
         assert.equal(cardIndex, 0);
+      });
+    });
+  });
+
+  suite('isSingleSim > ', function() {
+    suite('in single sim structure', function() {
+      suiteSetup(function() {
+        initConns(1);
+      });
+      test('is single sim', function() {
+         assert.ok(SimPinLock.isSingleSim());
+      });
+    });
+    suite('in dsds structure', function() {
+      suiteSetup(function() {
+        initConns(2);
+      });
+      test('is not single sim', function() {
+        assert.ok(!SimPinLock.isSingleSim());
       });
     });
   });
