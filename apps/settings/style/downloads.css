@@ -1,5 +1,5 @@
 .hide {
-  display:none !important;
+  display: none !important;
 }
 
 .disabled {
@@ -31,7 +31,7 @@
 #downloadList {
   font-weight: 400;
   padding: 0;
-  overflow: none;
+  overflow: hidden;
   height: calc(100% - 5rem);
 }
 
@@ -123,13 +123,13 @@
 /* Text */
 .fileName {
   padding: 1rem 6rem 1rem 3.5rem;
-  -moz-boz-sizing: border-box;
+  -moz-box-sizing: border-box;
 }
 
 .info {
   font-size: 1.2rem;
   padding: 0 6rem 0 3.5rem;
-  -moz-boz-sizing: border-box;
+  -moz-box-sizing: border-box;
 }
 
 /* Informative icons */
