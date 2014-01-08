@@ -34,7 +34,8 @@ contacts.Settings = (function() {
     newOrderByLastName = null,
     ORDER_KEY = 'order.lastname',
     PENDING_LOGOUT_KEY = 'pendingLogout',
-    umsSettingsKey = 'ums.enabled';
+    umsSettingsKey = 'ums.enabled',
+    bulkDeleteButton;
 
   // Initialise the settings screen (components, listeners ...)
   var init = function initialize() {
@@ -111,7 +112,7 @@ contacts.Settings = (function() {
     window.addEventListener('message', function updateList(e) {
       if (e.data.type === 'import_updated') {
         updateTimestamps();
-        checkExport();
+        checkExportNDelete();
       }
     });
 
@@ -135,6 +136,9 @@ contacts.Settings = (function() {
     exportOptions = document.getElementById('export-options');
     exportOptions.addEventListener('click', exportOptionsHandler);
 
+    // Bulk delete
+    bulkDeleteButton = document.getElementById('bulkDelete');
+    bulkDeleteButton.addEventListener('click', bulkDeleteHandler);
     if (fb.isEnabled) {
       fbImportOption = document.querySelector('#settingsFb');
       document.querySelector('#settingsFb > .fb-item').onclick = onFbEnable;
@@ -226,6 +230,24 @@ contacts.Settings = (function() {
         Contacts.extServices.importLive();
         break;
     }
+  };
+
+  var bulkDeleteHandler = function bulkDeleteHandler(evt) {
+    LazyLoader.load(['/contacts/js/contacts_bulk_delete.js'],
+      function() {
+        Contacts.view('search', function() {
+          contacts.List.selectFromList(_('DeleteTitle'),
+            function onSelectedContacts(promise) {
+              contacts.List.exitSelectMode();
+              contacts.BulkDelete.performDelete(promise);
+            },
+            null,
+            navigationHandler,
+            'popup'
+          );
+        });
+      }
+    );
   };
 
   function exportOptionsHandler(e) {
@@ -649,7 +671,7 @@ contacts.Settings = (function() {
           window.importUtils.setTimestamp(source, function() {
             // Once the timestamp is saved, update the list
             updateTimestamps();
-            checkExport();
+            checkExportNDelete();
           });
         }
         if (!cancelled) {
@@ -746,7 +768,7 @@ contacts.Settings = (function() {
           window.importUtils.setTimestamp('sd', function() {
             // Once the timestamp is saved, update the list
             updateTimestamps();
-            checkExport();
+            checkExportNDelete();
             resetWait(wakeLock);
             if (!cancelled) {
               Contacts.showStatus(_('memoryCardContacts-imported3', {
@@ -834,15 +856,17 @@ contacts.Settings = (function() {
     updateOptionStatus(importLiveOption, !navigator.onLine, true);
   };
 
-  var checkExport = function checkExport() {
+  var checkExportNDelete = function checkExportNDelete() {
     var exportButton = exportContacts.firstElementChild;
     var req = navigator.mozContacts.getCount();
     req.onsuccess = function() {
       if (req.result === 0) {
         exportButton.setAttribute('disabled', 'disabled');
+        bulkDeleteButton.setAttribute('disabled', 'disabled');
       }
       else {
          exportButton.removeAttribute('disabled');
+         bulkDeleteButton.removeAttribute('disabled');
       }
     };
 
@@ -851,6 +875,7 @@ contacts.Settings = (function() {
                           req.error.name);
       // In case of error is safer to leave enabled
       exportButton.removeAttribute('disabled');
+      bulkDeleteButton.removeAttribute('disabled');
     };
   };
 
@@ -928,7 +953,7 @@ contacts.Settings = (function() {
     checkSIMCard();
     enableStorageOptions(utils.sdcard.checkStorageCard());
     updateTimestamps();
-    checkExport();
+    checkExportNDelete();
   };
 
   return {

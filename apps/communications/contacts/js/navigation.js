@@ -1,5 +1,5 @@
 'use strict';
-
+var CurzIndex = 0;
 function navigationStack(currentView) {
   // Each transition entry includes a 'forwards' property including the
   //  classes which will be added to the 'current' and 'next' view when the
@@ -54,8 +54,8 @@ function navigationStack(currentView) {
   var screenshotViewId = 'view-screenshot';
   var _currentView = currentView;
   this.stack = [];
-
-  this.stack.push({view: _currentView, transition: 'popup', zIndex: 1});
+  CurzIndex = CurzIndex + 1;
+  this.stack.push({view: _currentView, transition: 'popup', zIndex: CurzIndex});
 
   var waitForAnimation = function ng_waitForAnimation(view, callback) {
     if (!callback)
@@ -122,8 +122,8 @@ function navigationStack(currentView) {
         next.classList.remove('block-item');
       });
     }
-
-    var zIndex = this.stack[this.stack.length - 1].zIndex + 1;
+    CurzIndex = CurzIndex + 1;
+    var zIndex = CurzIndex;
     this.stack.push({ view: nextView, transition: transition,
                       zIndex: zIndex});
     next.style.zIndex = zIndex;
@@ -160,7 +160,7 @@ function navigationStack(currentView) {
 
     var forwardsClasses = this.transitions[transition].forwards;
     var backwardsClasses = this.transitions[transition].backwards;
-
+    CurzIndex = CurzIndex - 1;
     if (currentView.view == 'view-contact-form') {
       parent.postMessage({type: 'show-navbar'}, COMMS_APP_ORIGIN);
     }
