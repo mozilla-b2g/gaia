@@ -144,6 +144,9 @@
         config.useAsyncPanZoom = false;
       }
 
+      if ('remote' in features)
+        config.oop = true;
+
       return config;
     },
 
@@ -152,6 +155,6 @@
       window.dispatchEvent(evt);
     }
   };
-
+  window.WrapperFactory = WrapperFactory;
   WrapperFactory.init();
 }(this));
