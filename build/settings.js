@@ -113,8 +113,9 @@ function execute(config) {
   }
 
   settings['language.current'] = config.GAIA_DEFAULT_LOCALE;
-  settings['devtools.debugger.remote-enabled'] = config.REMOTE_DEBUGGER == true;
 
+  settings['debugger.remote-mode'] = config.REMOTE_DEBUGGER ? 'adb-only'
+                                                            : 'disabled';
   if (config.DEVICE_DEBUG) {
     settings['devtools.debugger.remote-enabled'] = true;
     settings['screen.timeout'] = 0;
