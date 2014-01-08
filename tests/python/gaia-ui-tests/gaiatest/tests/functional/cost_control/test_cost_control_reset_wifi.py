@@ -34,15 +34,14 @@ class TestCostControlReset(GaiaTestCase):
         browser.switch_to_content()
         self.wait_for_element_present(*self._page_title_locator)
 
+        # disable wifi before reset data, wait for wifi to be closed, and switch back to the app
+        self.data_layer.disable_wifi()
+        time.sleep(5)
+
         # go back to Cost Control
         cost_control.launch()
         # if we can't trigger any data usage, there must be something wrong
         self.assertNotEqual(cost_control.wifi_data_usage_figure, u'0.00 B', 'No data usage shown after browsing.')
-
-        # disable wifi before reset data, wait for wifi to be closed, and switch back to the app
-        self.data_layer.disable_wifi()
-        time.sleep(1)
-        self.apps.switch_to_displayed_app()
 
         # # go to settings section
         settings = cost_control.tap_settings()
