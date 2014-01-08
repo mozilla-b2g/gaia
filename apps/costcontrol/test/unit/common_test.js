@@ -2,7 +2,6 @@
 
 requireApp('costcontrol/test/unit/mock_debug.js');
 requireApp('costcontrol/js/common.js');
-requireApp('costcontrol/test/unit/mock_icc_helper.js');
 requireApp('costcontrol/test/unit/mock_moz_l10n.js');
 requireApp('costcontrol/test/unit/mock_moz_network_stats.js');
 requireApp('costcontrol/test/unit/mock_all_network_interfaces.js');
@@ -11,17 +10,12 @@ requireApp('costcontrol/js/utils/toolkit.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 
-var realIccHelper,
-    realMozL10n,
+var realMozL10n,
     realMozNetworkStats,
     realNetworkstatsProxy,
     realConfigManager,
     realMozSettings,
     realMozMobileConnections;
-
-if (!this.IccHelper) {
-  this.IccHelper = null;
-}
 
 if (!this.navigator.mozL10n) {
   this.navigator.mozL10n = null;
@@ -51,9 +45,6 @@ suite('Cost Control Common >', function() {
 
   suiteSetup(function() {
 
-    realIccHelper = window.IccHelper;
-    window.IccHelper = new MockIccHelper();
-
     realMozL10n = window.navigator.mozL10n;
     window.navigator.mozL10n = window.MockMozL10n;
 
@@ -71,16 +62,17 @@ suite('Cost Control Common >', function() {
 
     realConfigManager = window.ConfigManager;
 
+    sinon.stub(Common, 'getIccInfo').returns = null;
   });
 
   suiteTeardown(function() {
     window.ConfigManager = realConfigManager;
-    window.IccHelper = realIccHelper;
     window.navigator.mozL10n = realMozL10n;
     window.navigator.mozNetworkStats = realMozNetworkStats;
     window.NetworkstatsProxy = realNetworkstatsProxy;
     window.navigator.mozSettings = realMozSettings;
     window.navigator.mozMobileConnections = realMozMobileConnections;
+    Common.getIccInfo.restore();
   });
 
   function getCustomClearStats(willFail) {
