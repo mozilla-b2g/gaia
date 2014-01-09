@@ -106,7 +106,11 @@ var MessageManager = {
     // save a message draft if necessary
     if (document.hidden) {
       var hash = window.location.hash;
-      if (hash === '#new' || hash.startsWith('#thread=')) {
+
+      // Auto-save draft if the user has entered anything
+      // in the composer.
+      if ((hash === '#new' || hash.startsWith('#thread=')) &&
+          (!Compose.isEmpty() || ThreadUI.recipients.length)) {
         ThreadUI.saveDraft({preserve: true});
       }
     }
