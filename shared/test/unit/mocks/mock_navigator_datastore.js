@@ -2,6 +2,12 @@
 
 var MockNavigatorDatastore = {
   getDataStores: function() {
+    if (MockNavigatorDatastore._notFound === true) {
+      return new window.Promise(function(resolve, reject) {
+        resolve([]);
+      });
+    }
+
     return new window.Promise(function(resolve, reject) {
       resolve([MockDatastore]);
     });
@@ -15,6 +21,7 @@ var MockDatastore = {
 
   _records: Object.create(null),
   _nextId: 1,
+  _inError: false,
 
   _clone: function(obj) {
     var out = null;
@@ -25,7 +32,19 @@ var MockDatastore = {
     return out;
   },
 
+  _reject: function() {
+    return new window.Promise(function(resolve, reject) {
+      reject({
+        name: 'UnknownError'
+      });
+    });
+  },
+
   get: function(dsId) {
+    if (this._inError === true) {
+      return this._reject();
+    }
+
     var record = this._clone(this._records[dsId]);
     return new window.Promise(function(resolve, reject) {
       resolve(record);
@@ -33,6 +52,10 @@ var MockDatastore = {
   },
 
   put: function(obj, dsId) {
+    if (this._inError === true) {
+      return this._reject();
+    }
+
     this._records[dsId] = this._clone(obj);
     return new window.Promise(function(resolve, reject) {
       resolve();
@@ -40,6 +63,10 @@ var MockDatastore = {
   },
 
   add: function(obj, dsId) {
+    if (this._inError === true) {
+      return this._reject();
+    }
+
     var newId = this._nextId;
     this._nextId++;
     this._records[newId] = this._clone(obj);
@@ -49,6 +76,10 @@ var MockDatastore = {
   },
 
   remove: function(dsId) {
+    if (this._inError === true) {
+      return this._reject();
+    }
+
     delete this._records[dsId];
     return new window.Promise(function(resolve, reject) {
       resolve(true);
@@ -56,6 +87,10 @@ var MockDatastore = {
   },
 
   getLength: function() {
+    if (this._inError === true) {
+      return this._reject();
+    }
+
     var total = Object.keys(this._records).length;
     return new window.Promise(function(resolve, reject) {
       resolve(total);
@@ -63,6 +98,10 @@ var MockDatastore = {
   },
 
   clear: function() {
+    if (this._inError === true) {
+      return this._reject();
+    }
+
     this._records = {};
     return new window.Promise(function(resolve, reject) {
       resolve();

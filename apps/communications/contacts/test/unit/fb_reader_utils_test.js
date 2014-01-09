@@ -105,26 +105,63 @@ suite('Facebook data reader utils suite', function() {
     assert.isTrue(Array.isArray(result.photo) && result.photo.length === 1);
   }
 
+  function errorNotExpected(done) {
+    done(function() {
+      assert.fail('Error not expected: ' + this.error.name);
+    });
+  }
+
+  function successNotExpected(done) {
+    done(function() {
+      assert.fail('Succcess not expected');
+    });
+  }
+
   test('Get Data from Facebook. Linked Contact', function(done) {
     var req = fb.getData(localContact);
 
     req.onsuccess = function() {
-      var result = req.result;
-      assertFbMergedData(result);
-      done();
+      done(function() {
+        var result = req.result;
+        assertFbMergedData(result);
+      });
     };
 
-    req.onerror = function() {
-      assert.fail('Error while getting data: ', req.error.name);
-    };
+    req.onerror = errorNotExpected.bind(req, done);
   });
 
   test('Get Contact by Number', function(done) {
     fb.getContactByNumber(fbNumber, function success(contact) {
-      assertFbMergedData(contact);
-      done();
+      done(function() {
+        assertFbMergedData(contact);
+      });
     }, function error(err) {
-         assert.fail('Error while getting contact by  number: ', err);
+         (errorNotExpected.bind(err, done))();
     });
   });
+
+  test('Get Contact by Number. In error', function(done) {
+    fb.contacts.inError = true;
+
+    fb.getContactByNumber(fbNumber, function success(contact) {
+      successNotExpected(done);
+    },
+    function error(err) {
+      done(function() {
+        assert.equal(err.name, 'UnknownError');
+      });
+    });
+  });
+
+  test('Get Data from Facebook. In Error', function(done) {
+    var req = fb.getData(localContact);
+
+    req.onsuccess = successNotExpected.bind(null, done);
+
+    req.onerror = function() {
+      assert.equal(req.error.name, 'UnknownError');
+      done();
+    };
+  });
+
 });
