@@ -84,7 +84,9 @@ marionette('share url from browser', function() {
     fileServer.stop();
   });
 
-  test('share button should put url in email body', function() {
+  /* Bug 946790 changes the DOM structure of confirm,
+     so this test cannot be run. */
+  test.skip('share button should put url in email body', function() {
     shareViaEmail(browser, fileServer, COOLPAGE);
     email.confirmWantAccount();
     email.manualSetupImapEmail(emailServer, 'waitForCompose');

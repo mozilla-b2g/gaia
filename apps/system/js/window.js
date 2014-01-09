@@ -33,6 +33,10 @@
       window.AppWindow['app' + (_id++)] = this;
     }
 
+    if (window.AppModalDialog) {
+      new AppModalDialog(this);
+    }
+
     return this;
   };
 
