@@ -7,6 +7,9 @@ var MockThreads = {
   create: function() {
 
   },
+  unregisterMessage: function() {
+
+  },
   registerMessage: function() {
 
   },

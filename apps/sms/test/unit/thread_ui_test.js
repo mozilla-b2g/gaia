@@ -2362,6 +2362,8 @@ suite('thread_ui.js >', function() {
         ThreadUI.appendMessage(testMessages[i]);
       }
       doMarkedMessagesDeletion = doMarkedMessagesDeletion.bind(this);
+
+      this.sinon.stub(Threads, 'unregisterMessage');
     });
 
     teardown(function() {
@@ -2397,6 +2399,10 @@ suite('thread_ui.js >', function() {
         assert.equal(checkIfMessageIsInDOM(testMessages[i].id),
                      messagesToDelete.indexOf(testMessages[i].id) == -1);
       }
+
+      messagesToDelete.forEach(
+        (id) => sinon.assert.calledWith(Threads.unregisterMessage, id)
+      );
     });
 
     test('deleting marked messages takes user back to view mode', function() {
@@ -4773,6 +4779,66 @@ suite('thread_ui.js >', function() {
       test('An `recipientschange` event is sent', function() {
         sinon.assert.calledOnce(onRecipientsChange);
       });
+    });
+  });
+
+  suite('discardDraft() > ', function() {
+    var draft;
+
+    setup(function() {
+      this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
+
+      this.sinon.spy(Drafts, 'delete');
+      this.sinon.spy(Drafts, 'store');
+      this.sinon.spy(ThreadListUI, 'updateThread');
+      this.sinon.spy(ThreadListUI, 'removeThread');
+
+      draft = {
+        id: 1
+      };
+
+      Threads.currentId = null;
+
+      ThreadUI.draft = draft;
+    });
+
+    test('Deletes draft from in-memory drafts', function() {
+      ThreadUI.discardDraft();
+
+      sinon.assert.calledOnce(Drafts.delete);
+      sinon.assert.calledWithMatch(Drafts.delete, draft);
+      sinon.assert.calledOnce(Drafts.store);
+    });
+
+    test('Removes draft psuedo-thread', function() {
+      ThreadUI.discardDraft();
+
+      sinon.assert.calledOnce(ThreadListUI.removeThread);
+      sinon.assert.calledWithMatch(ThreadListUI.removeThread, draft.id);
+    });
+
+    test('Set thread timestamp to last message timestamp', function() {
+      Threads.set(1, {
+        timestamp: 0,
+        participants: ['999']
+      });
+
+      Threads.registerMessage({
+        id: 2,
+        timestamp: 1,
+        threadId: 1
+      });
+
+      Threads.currentId = 1;
+
+      assert.equal(Threads.active.timestamp, 0);
+
+      ThreadUI.discardDraft();
+
+      sinon.assert.calledOnce(ThreadListUI.updateThread);
+      sinon.assert.calledWithMatch(ThreadListUI.updateThread, Threads.active);
+
+      assert.equal(Threads.active.timestamp, 1);
     });
   });
 

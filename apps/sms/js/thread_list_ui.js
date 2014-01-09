@@ -744,10 +744,31 @@ var ThreadListUI = {
   },
 
   updateThread: function thlui_updateThread(record, options) {
+    /**
+     * options:
+     *
+     * - read, message read/unread status (true|false)
+     * - restore, restoring to an older thread state (true|false)
+     */
+
     var thread = Thread.create(record, options);
     var threadUINode = document.getElementById('thread-' + thread.id);
     var threadUITime = threadUINode ? +threadUINode.dataset.time : NaN;
     var recordTime = +thread.timestamp;
+
+    // this is the function that will update the thread for real
+    var updateThread = () => {
+      // General case: update the thread UI.
+      if (threadUINode) {
+        // remove the current thread node in order to place the new one properly
+        this.removeThread(thread.id);
+      }
+
+      this.setEmpty(false);
+      if (this.appendThread(thread)) {
+        this.sticky.refresh();
+      }
+    };
 
     // For legitimate in-memory thread objects, update the stored
     // Thread instance with the newest data. This check prevents
@@ -761,7 +782,14 @@ var ThreadListUI = {
     // one in the thread, we only need to update the 'unread' status.
     var newMessageReceived = options && options.unread;
     if (newMessageReceived && threadUITime > recordTime) {
-      this.mark(thread.id, 'unread');
+      // When discarding a draft, the thread.timestamp to
+      // "update" to will be older than the current
+      // node.dataset.time, which lands us in this code path.
+      if (options && options.restore) {
+        updateThread();
+      } else {
+        this.mark(thread.id, 'unread');
+      }
       return;
     }
 
@@ -772,16 +800,7 @@ var ThreadListUI = {
       return;
     }
 
-    // General case: update the thread UI.
-    if (threadUINode) {
-      // remove the current thread node in order to place the new one properly
-      this.removeThread(thread.id);
-    }
-
-    this.setEmpty(false);
-    if (this.appendThread(thread)) {
-      this.sticky.refresh();
-    }
+    updateThread();
   },
 
   onMessageSending: function thlui_onMessageSending(e) {
