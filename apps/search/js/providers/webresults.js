@@ -22,7 +22,7 @@
       }
     },
 
-    search: function(input, type) {
+    search: function(input) {
       this.clear();
       var request = eme.api.Apps.search({
         'query': input

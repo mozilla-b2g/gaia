@@ -58,6 +58,18 @@ suite('system/Rocketbar', function() {
       Rocketbar.hide();
     });
 
+    test('posts a message to clear', function() {
+      var message;
+      Rocketbar._port = {
+        postMessage: function(msg) {
+          message = msg;
+        }
+      };
+      Rocketbar.render();
+      assert.equal('clear', message.action);
+      Rocketbar.hide();
+    });
+
     test('loads the search app', function() {
       var searchAppStub = this.sinon.stub(Rocketbar, 'loadSearchApp')
                           .returns(true);

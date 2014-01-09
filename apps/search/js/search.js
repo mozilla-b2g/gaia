@@ -57,7 +57,7 @@
               port.onmessage = window.eme.onmessage;
               port.start();
             } else if (keyword === 'search') {
-              port.onmessage = self.onSearchInput.bind(self);
+              port.onmessage = self.dispatchMessage.bind(self);
               port.start();
             }
           });
@@ -78,22 +78,45 @@
       this.providers[provider.name] = provider;
     },
 
-    onSearchInput: function(msg) {
+    /**
+     * Dispatches messages to handlers in the Search class
+     */
+    dispatchMessage: function(msg) {
+      if (typeof this[msg.data.action] === 'function') {
+        this[msg.data.action](msg);
+      }
+    },
+
+    /**
+     * Called when the user changes the search query
+     */
+    change: function(msg) {
       clearTimeout(timeoutSearchWhileTyping);
 
       var input = msg.data.input;
-      var type = msg.data.type;
       var providers = this.providers;
 
       timeoutSearchWhileTyping = setTimeout(function doSearch() {
-        if (type === 'submit') {
-          Search.browse(getUrlFromInput(input));
-        } else {
-          for (var i in providers) {
-            providers[i].search(input, type);
-          }
+        for (var i in providers) {
+          providers[i].search(input);
         }
       }, SEARCH_DELAY);
+    },
+
+    /**
+     * Called when the user submits the search form
+     */
+    submit: function(msg) {
+      Search.navigate(getUrlFromInput(msg.data.input));
+    },
+
+    /**
+     * Called when the user submits the search form
+     */
+    clear: function(msg) {
+      for (var i in this.providers) {
+        this.providers[i].clear();
+      }
     },
 
     /**
@@ -106,7 +129,7 @@
     /**
      * Opens a browser to a URL
      */
-    browse: function(url) {
+    navigate: function(url) {
       window.open(url, '_blank', 'remote=true');
     },
 
