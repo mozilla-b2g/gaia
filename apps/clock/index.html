@@ -8,7 +8,6 @@
     <link rel="stylesheet" type="text/css" href="style/alarm.css">
     <link rel="stylesheet" type="text/css" href="style/stopwatch.css">
     <link rel="stylesheet" type="text/css" href="style/timer.css">
-    <link rel="stylesheet" type="text/css" href="style/tabs.css">
     <link rel="stylesheet" type="text/css" href="style/views.css">
     <link rel="stylesheet" type="text/css" href="style/form_button.css">
     <link rel="stylesheet" type="text/css" href="style/picker/value_selector.css">
@@ -17,6 +16,7 @@
     <!-- Shared styles -->
     <link rel="stylesheet" type="text/css" href="shared/style/headers.css">
     <link rel="stylesheet" type="text/css" href="shared/style/status.css">
+    <link rel="stylesheet" type="text/css" href="shared/style_unstable/tabs.css">
     <!-- These are lazy loaded. Need to be included here so the build picks them up
     <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css" >
     <link rel="stylesheet" type="text/css" href="shared/style/buttons.css" >
@@ -226,7 +226,7 @@
       </form>
     </div>
 
-    <ul role="tablist" class="bottom" data-items="3" id="clock-tabs">
+    <ul role="tablist" class="skin-dark bottom" id="clock-tabs">
       <li id="alarm-tab" role="tab" aria-selected="true"><a href="#alarm-panel" data-l10n-id="alarm">Alarm</a></li>
       <li id="timer-tab" role="tab"><a href="#timer-panel" data-l10n-id="timer">Timer</a></li>
       <li id="stopwatch-tab" role="tab"><a href="#stopwatch-panel" data-l10n-id="stopwatch">Stopwatch</a></li>
