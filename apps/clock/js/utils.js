@@ -25,25 +25,29 @@ var dateMultipliers = {
 };
 var units = Object.keys(dateMultipliers);
 
-Utils.singleton = function(constructor, fn) {
+/**
+ * Define a singleton method that returns a unified instance
+ * based on arguments.
+ *
+ * @param {function} constructor - A constructor function used
+ *        to create a new instance.
+ * @param {function} [getKey] - A function called with (arguments),
+ *        and returns a lookup key for this singleton.
+ * @return {object} - returns the instance either created or retrieved
+ *        from the singleton-map by the key.
+ */
+Utils.singleton = function(constructor, getKey) {
   var singletonMap = new Map();
-  if (!fn) {
-    fn = function(map, args) {
-      // default: ignore arguments, just key on constructor object
-      return [constructor, map.get(constructor)];
-    };
-  }
   return function() {
-    var argl = Array.prototype.slice.call(arguments);
-    var mem = fn(singletonMap, argl);
-    var key = mem[0];
-    var val = mem[1];
-    if (!val) {
-      val = Object.create(constructor.prototype);
-      constructor.apply(val, argl);
-      singletonMap.set(key, val);
+    var arglist = Array.prototype.slice.call(arguments);
+    var key = (typeof getKey === 'function') ? getKey(arglist) : constructor;
+    var instance = singletonMap.get(key);
+    if (!instance) {
+      instance = Object.create(constructor.prototype);
+      constructor.apply(instance, arglist);
+      singletonMap.set(key, instance);
     }
-    return val;
+    return instance;
   };
 };
 
