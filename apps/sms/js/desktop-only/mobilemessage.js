@@ -242,6 +242,48 @@
     });
   });
 
+  getTestFile('/test/unit/media/contact.vcf', function(contactBlob) {
+    messagesDb.messages.push({
+      id: messagesDb.id++,
+      threadId: 6,
+      sender: '052780',
+      type: 'mms',
+      read: true,
+      delivery: 'received',
+      deliveryInfo: [{deliveryStatus: 'success'}],
+      subject: 'Test vard without text content',
+      smil: '<smil><body><par><ref src="contact.vcf"/>' +
+            '</par></body></smil>',
+      attachments: [{
+        location: 'contact.vcf',
+        content: contactBlob
+      }],
+      timestamp: now
+    });
+
+    messagesDb.messages.push({
+      id: messagesDb.id++,
+      threadId: 6,
+      sender: '052780',
+      type: 'mms',
+      read: true,
+      delivery: 'received',
+      deliveryInfo: [{deliveryStatus: 'success'}],
+      subject: 'Test vard with text content',
+      smil: '<smil><body><par><ref src="contact.vcf"/>' +
+            '<text src="text1"/></par></body></smil>',
+      attachments: [{
+        location: 'text1',
+        content: new Blob(['This is a vcard'],
+            { type: 'text/plain' })
+      },{
+        location: 'contact.vcf',
+        content: contactBlob
+      }],
+      timestamp: now
+    });
+  });
+
   var participants = [
     '101', '102', '103', '104', '105', '106', '107', '108', '109'
   ];
