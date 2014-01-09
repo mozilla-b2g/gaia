@@ -42,9 +42,9 @@ var metadataParser = (function() {
   {
     // Create a thumbnail image
     var canvas = document.createElement('canvas');
-    var context = canvas.getContext('2d');
     canvas.width = THUMBNAIL_WIDTH;
     canvas.height = THUMBNAIL_HEIGHT;
+    var context = canvas.getContext('2d');
     var eltwidth = elt.width;
     var eltheight = elt.height;
     var scalex = canvas.width / eltwidth;
