@@ -7,14 +7,16 @@ requireApp('system/shared/test/unit/mocks/mock_icc_helper.js');
 requireApp('system/test/unit/mock_l10n.js');
 requireApp('system/test/unit/mock_navigator_moz_telephony.js');
 requireApp('system/test/unit/mock_lock_screen.js');
+requireApp('system/test/unit/mock_simslot.js');
+requireApp('system/test/unit/mock_simslot_manager.js');
 requireApp('system/js/statusbar.js');
 requireApp('system/js/lockscreen.js');
 
 var mocksForStatusBar = new MocksHelper([
   'SettingsListener',
   'MobileOperator',
-  'IccHelper',
-  'LockScreen'
+  'LockScreen',
+  'SIMSlotManager'
 ]).init();
 
 suite('system/Statusbar', function() {
@@ -222,12 +224,27 @@ suite('system/Statusbar', function() {
   });
 
   suite('signal icon', function() {
+    var mockSimSlots;
+    setup(function() {
+      mockSimSlots = [];
+      for (var i = 0; i < mobileConnectionCount; i++) {
+        var mockSIMSlot =
+          new MockSIMSlot(MockNavigatorMozMobileConnections[i], i);
+        mockSimSlots.push(mockSIMSlot);
+      }
+    });
+
+    teardown(function() {
+      mockSimSlots = null;
+    });
+
     for (var i = 0; i < mobileConnectionCount; i++) {
       (function(slotIndex) {
         suite('slot: ' + slotIndex, function() {
           var dataset;
           setup(function() {
             dataset = fakeIcons.signals[slotIndex].dataset;
+            MockSIMSlotManager.mInstances = mockSimSlots;
           });
 
           test('no network without sim, not searching', function() {
@@ -240,8 +257,9 @@ suite('system/Statusbar', function() {
               network: {}
             };
 
-            IccHelper.mProps['cardState'] = null;
-            IccHelper.mProps['iccInfo'] = {};
+            mockSimSlots[slotIndex].simCard.cardState = null;
+            mockSimSlots[slotIndex].simCard.iccInfo = {};
+            sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(true);
 
             StatusBar.update.signal.call(StatusBar);
 
@@ -261,8 +279,9 @@ suite('system/Statusbar', function() {
               network: {}
             };
 
-            IccHelper.mProps['cardState'] = null;
-            IccHelper.mProps['iccInfo'] = {};
+            mockSimSlots[slotIndex].simCard.cardState = null;
+            mockSimSlots[slotIndex].simCard.iccInfo = {};
+            sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(true);
 
             StatusBar.update.signal.call(StatusBar);
 
@@ -282,8 +301,9 @@ suite('system/Statusbar', function() {
               network: {}
             };
 
-            IccHelper.mProps['cardState'] = 'pinRequired';
-            IccHelper.mProps['iccInfo'] = {};
+            mockSimSlots[slotIndex].simCard.cardState = 'pinRequired';
+            mockSimSlots[slotIndex].simCard.iccInfo = {};
+            sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(false);
 
             StatusBar.update.signal.call(StatusBar);
 
@@ -303,8 +323,9 @@ suite('system/Statusbar', function() {
               network: {}
             };
 
-            IccHelper.mProps['cardState'] = 'ready';
-            IccHelper.mProps['iccInfo'] = {};
+            mockSimSlots[slotIndex].simCard.cardState = 'ready';
+            mockSimSlots[slotIndex].simCard.iccInfo = {};
+            sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(false);
 
             StatusBar.update.signal.call(StatusBar);
 
@@ -324,8 +345,9 @@ suite('system/Statusbar', function() {
               network: {}
             };
 
-            IccHelper.mProps['cardState'] = null;
-            IccHelper.mProps['iccInfo'] = {};
+            mockSimSlots[slotIndex].simCard.cardState = null;
+            mockSimSlots[slotIndex].simCard.iccInfo = {};
+            sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(true);
 
             StatusBar.update.signal.call(StatusBar);
 
@@ -345,8 +367,9 @@ suite('system/Statusbar', function() {
               network: {}
             };
 
-            IccHelper.mProps['cardState'] = 'pinRequired';
-            IccHelper.mProps['iccInfo'] = {};
+            mockSimSlots[slotIndex].simCard.cardState = 'pinRequired';
+            mockSimSlots[slotIndex].simCard.iccInfo = {};
+            sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(false);
 
             StatusBar.update.signal.call(StatusBar);
 
@@ -366,8 +389,9 @@ suite('system/Statusbar', function() {
               network: {}
             };
 
-            IccHelper.mProps['cardState'] = 'pinRequired';
-            IccHelper.mProps['iccInfo'] = {};
+            mockSimSlots[slotIndex].simCard.cardState = 'pinRequired';
+            mockSimSlots[slotIndex].simCard.iccInfo = {};
+            sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(false);
 
             MockNavigatorMozTelephony.active = {
               state: 'connected'
@@ -391,8 +415,9 @@ suite('system/Statusbar', function() {
               network: {}
             };
 
-            IccHelper.mProps['cardState'] = 'pinRequired';
-            IccHelper.mProps['iccInfo'] = {};
+            mockSimSlots[slotIndex].simCard.cardState = 'pinRequired';
+            mockSimSlots[slotIndex].simCard.iccInfo = {};
+            sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(false);
 
             MockNavigatorMozTelephony.active = {
               state: 'dialing'
@@ -416,8 +441,9 @@ suite('system/Statusbar', function() {
               network: {}
             };
 
-            IccHelper.mProps['cardState'] = 'pinRequired';
-            IccHelper.mProps['iccInfo'] = {};
+            mockSimSlots[slotIndex].simCard.cardState = 'pinRequired';
+            mockSimSlots[slotIndex].simCard.iccInfo = {};
+            sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(false);
 
             StatusBar.update.signal.call(StatusBar);
 
@@ -447,8 +473,9 @@ suite('system/Statusbar', function() {
               network: {}
             };
 
-            IccHelper.mProps['cardState'] = 'ready';
-            IccHelper.mProps['iccInfo'] = {};
+            mockSimSlots[slotIndex].simCard.cardState = 'ready';
+            mockSimSlots[slotIndex].simCard.iccInfo = {};
+            sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(false);
 
             StatusBar.update.signal.call(StatusBar);
 
@@ -468,8 +495,9 @@ suite('system/Statusbar', function() {
               network: {}
             };
 
-            IccHelper.mProps['cardState'] = 'ready';
-            IccHelper.mProps['iccInfo'] = {};
+            mockSimSlots[slotIndex].simCard.cardState = 'ready';
+            mockSimSlots[slotIndex].simCard.iccInfo = {};
+            sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(false);
 
             StatusBar.update.signal.call(StatusBar);
 
@@ -489,8 +517,9 @@ suite('system/Statusbar', function() {
               network: {}
             };
 
-            IccHelper.mProps['cardState'] = 'ready';
-            IccHelper.mProps['iccInfo'] = {};
+            mockSimSlots[slotIndex].simCard.cardState = 'ready';
+            mockSimSlots[slotIndex].simCard.iccInfo = {};
+            sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(false);
 
             StatusBar.update.signal.call(StatusBar);
 
@@ -510,8 +539,9 @@ suite('system/Statusbar', function() {
               network: {}
             };
 
-            IccHelper.mProps['cardState'] = 'pinRequired';
-            IccHelper.mProps['iccInfo'] = {};
+            mockSimSlots[slotIndex].simCard.cardState = 'pinRequired';
+            mockSimSlots[slotIndex].simCard.iccInfo = {};
+            sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(false);
 
             var mockTel = MockNavigatorMozTelephony;
 
@@ -550,8 +580,9 @@ suite('system/Statusbar', function() {
               network: {}
             };
 
-            IccHelper.mProps['cardState'] = 'ready';
-            IccHelper.mProps['iccInfo'] = {};
+            mockSimSlots[slotIndex].simCard.cardState = 'ready';
+            mockSimSlots[slotIndex].simCard.iccInfo = {};
+            sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(false);
 
             StatusBar.update.signal.call(StatusBar);
             assert.equal(dataset.level, 4);
@@ -868,11 +899,6 @@ suite('system/Statusbar', function() {
           gsmLocationAreaCode: 71 // BA
         }
       };
-
-      IccHelper.mProps['iccInfo'] = {
-        isDisplaySpnRequired: false,
-        spn: 'Fake SPN'
-      };
     });
 
     suite('single sim', function() {
@@ -887,7 +913,7 @@ suite('system/Statusbar', function() {
 
       test('Connection without region', function() {
         MockMobileOperator.mOperator = 'Orange';
-        var evt = new CustomEvent('iccinfochange');
+        var evt = new CustomEvent('simslot-iccinfochange');
         StatusBar.handleEvent(evt);
         var label_content = fakeIcons.label.textContent;
         assert.include(label_content, 'Orange');
@@ -896,7 +922,7 @@ suite('system/Statusbar', function() {
       test('Connection with region', function() {
         MockMobileOperator.mOperator = 'Orange';
         MockMobileOperator.mRegion = 'PR';
-        var evt = new CustomEvent('iccinfochange');
+        var evt = new CustomEvent('simslot-iccinfochange');
         StatusBar.handleEvent(evt);
         var label_content = fakeIcons.label.textContent;
         assert.include(label_content, 'Orange');
@@ -907,7 +933,7 @@ suite('system/Statusbar', function() {
     suite('multiple sims', function() {
       test('Connection without region', function() {
         MockMobileOperator.mOperator = 'Orange';
-        var evt = new CustomEvent('iccinfochange');
+        var evt = new CustomEvent('simslot-iccinfochange');
         StatusBar.handleEvent(evt);
         var label_content = fakeIcons.label.textContent;
         assert.equal(-1, label_content.indexOf('Orange'));
@@ -916,7 +942,7 @@ suite('system/Statusbar', function() {
       test('Connection with region', function() {
         MockMobileOperator.mOperator = 'Orange';
         MockMobileOperator.mRegion = 'PR';
-        var evt = new CustomEvent('iccinfochange');
+        var evt = new CustomEvent('simslot-iccinfochange');
         StatusBar.handleEvent(evt);
         var label_content = fakeIcons.label.textContent;
         assert.equal(-1, label_content.indexOf('Orange'));
