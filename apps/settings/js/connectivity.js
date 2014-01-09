@@ -101,9 +101,12 @@ var Connectivity = (function(window, document, undefined) {
   window.addEventListener('bluetooth-pairedstatuschanged', updateBluetooth);
 
   function lazyInit(index) {
-    if (index >= initOrder.length) return;
+    if (index >= initOrder.length) {
+      return;
+    }
+
     initOrder[index]();
-    setTimeout(lazyInit.bind(this, index + 1), 0);
+    setTimeout(lazyInit.bind(this, index + 1));
   }
 
   // called when localization is done
