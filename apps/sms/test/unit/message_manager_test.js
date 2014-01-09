@@ -775,10 +775,8 @@ suite('message_manager.js >', function() {
 
   suite('onVisibilityChange() >', function() {
     var isDocumentHidden;
-    var spy;
 
     suiteSetup(function() {
-      spy = sinon.spy(ThreadUI, 'saveDraft');
       Object.defineProperty(document, 'hidden', {
         configurable: true,
         get: function() {
@@ -791,30 +789,118 @@ suite('message_manager.js >', function() {
       delete document.hidden;
     });
 
+    setup(function() {
+      this.sinon.spy(ThreadUI, 'saveDraft');
+    });
+
     teardown(function() {
       isDocumentHidden = false;
     });
 
-    test('draft save on visibility change from new message', function() {
-      window.location.hash = '#new';
-      isDocumentHidden = true;
-      MessageManager.onVisibilityChange();
+    suite('Draft saved: content AND recipients exist', function() {
+      setup(function() {
+        this.sinon.stub(Compose, 'isEmpty').returns(false);
+      });
 
-      assert.isTrue(spy.calledOnce);
-      assert.isTrue(spy.calledWithMatch({preserve: true}));
-      assert.equal(ThreadUI.recipients.length, 0);
+      test('new: has message', function() {
+        window.location.hash = '#new';
+
+        isDocumentHidden = true;
+
+        MessageManager.onVisibilityChange();
+
+        sinon.assert.calledOnce(ThreadUI.saveDraft);
+        sinon.assert.calledWithMatch(ThreadUI.saveDraft, {preserve: true});
+      });
+
+      test('new: has message, has recipients', function() {
+        window.location.hash = '#new';
+
+        ThreadUI.recipients.length = 1;
+        isDocumentHidden = true;
+
+        MessageManager.onVisibilityChange();
+
+        sinon.assert.calledOnce(ThreadUI.saveDraft);
+        sinon.assert.calledWithMatch(ThreadUI.saveDraft, {preserve: true});
+      });
+
+      test('thread: has message', function() {
+        window.location.hash = '#thread=1';
+
+        isDocumentHidden = true;
+
+        MessageManager.onVisibilityChange();
+
+        sinon.assert.calledOnce(ThreadUI.saveDraft);
+        sinon.assert.calledWithMatch(ThreadUI.saveDraft, {preserve: true});
+      });
     });
 
-    test('draft save on visibility change from thread', function() {
-      window.location.hash = '#thread-1';
-      isDocumentHidden = true;
-      MessageManager.onVisibilityChange();
+    suite('Draft saved: content OR recipients exist', function() {
+      test('new: has message, no recipients', function() {
+        window.location.hash = '#new';
 
-      assert.isTrue(spy.calledOnce);
-      assert.isTrue(spy.calledWithMatch({preserve: true}));
-      assert.equal(ThreadUI.recipients.length, 0);
+        this.sinon.stub(Compose, 'isEmpty').returns(false);
+        ThreadUI.recipients.length = 0;
+        isDocumentHidden = true;
+
+        MessageManager.onVisibilityChange();
+
+        sinon.assert.calledOnce(ThreadUI.saveDraft);
+        sinon.assert.calledWithMatch(ThreadUI.saveDraft, {preserve: true});
+      });
+
+      test('new: no message, has recipients', function() {
+        window.location.hash = '#new';
+
+        this.sinon.stub(Compose, 'isEmpty').returns(true);
+        ThreadUI.recipients.length = 1;
+        isDocumentHidden = true;
+
+        MessageManager.onVisibilityChange();
+
+        sinon.assert.calledOnce(ThreadUI.saveDraft);
+        sinon.assert.calledWithMatch(ThreadUI.saveDraft, {preserve: true});
+      });
     });
 
+    suite('Draft not saved: content or recipients do not exist', function() {
+      setup(function() {
+        this.sinon.stub(Compose, 'isEmpty').returns(true);
+        ThreadUI.recipients.length = 0;
+      });
+
+      test('new: no message', function() {
+        window.location.hash = '#new';
+
+        isDocumentHidden = true;
+
+        MessageManager.onVisibilityChange();
+
+        sinon.assert.notCalled(ThreadUI.saveDraft);
+      });
+
+      test('new: no message, no recipients', function() {
+        window.location.hash = '#new';
+
+        ThreadUI.recipients.length = 0;
+        isDocumentHidden = true;
+
+        MessageManager.onVisibilityChange();
+
+        sinon.assert.notCalled(ThreadUI.saveDraft);
+      });
+
+      test('thread: no message', function() {
+        window.location.hash = '#thread=1';
+
+        isDocumentHidden = true;
+
+        MessageManager.onVisibilityChange();
+
+        sinon.assert.notCalled(ThreadUI.saveDraft);
+      });
+    });
   });
-
 });
