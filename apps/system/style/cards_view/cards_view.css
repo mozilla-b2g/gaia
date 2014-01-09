@@ -149,3 +149,21 @@
   background: url(close.png) no-repeat center / 2.6rem;
   transform: scale(1.3);
 }
+
+#screen.task-manager #cards-view {
+  background: transparent;
+  margin-top: 5rem;
+}
+
+#screen.task-manager #cards-view li.card {
+  transform-origin: 50% 30%;
+}
+
+#screen.task-manager #search-cancel {
+  display: none;
+}
+
+#screen.task-manager #cards-view .card > h1,
+#screen.task-manager #cards-view .card > p {
+  display: none;
+}

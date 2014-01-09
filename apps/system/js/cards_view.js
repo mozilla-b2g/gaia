@@ -89,12 +89,27 @@ var CardsView = (function() {
     return stringHTML;
   }
 
+  function fireCardChange() {
+    var current = cardsList.children[currentDisplayed];
+    var title = '';
+    if (current) {
+      title = runningApps[current.dataset.origin].name;
+    }
+    window.dispatchEvent(new CustomEvent('cardchange', {
+      detail: {
+        title: title
+      }}));
+  }
+
   // Build and display the card switcher overlay
   // Note that we rebuild the switcher each time we need it rather
   // than trying to keep it in sync with app launches.  Performance is
   // not an issue here given that the user has to hold the HOME button down
   // for one second before the switcher will appear.
-  function showCardSwitcher(inTimeCapture) {
+  // The second parameter, isRocketbar, determines how to display the
+  // cardswitcher inside of the rocketbar. Both modes are necessary until
+  // Rocketbar is enabled by default, then this will go away.
+  function showCardSwitcher(inTimeCapture, inRocketbar) {
     if (cardSwitcherIsShown())
       return;
 
@@ -110,6 +125,18 @@ var CardsView = (function() {
     displayedApp = AppWindowManager.getDisplayedApp();
     currentDisplayed = 0;
     runningApps = AppWindowManager.getRunningApps();
+
+    // Return early if inRocketbar and there are no apps besides homescreen
+    if (Object.keys(runningApps).length < 2 && inRocketbar) {
+      return;
+    } else if (inRocketbar) {
+      screenElement.classList.add('task-manager');
+      CC_SCALE = 0.6;
+      SC_SCALE = 0.5;
+    } else {
+      CC_SCALE = 0.8;
+      SC_SCALE = 0.6;
+    }
 
     // Switch to homescreen
     AppWindowManager.display(null, null, 'to-cardview');
@@ -190,7 +217,7 @@ var CardsView = (function() {
     placeCards();
     // At the beginning only the current card can listen to tap events
     currentCardStyle.pointerEvents = 'auto';
-
+    fireCardChange();
     window.addEventListener('tap', CardsView);
 
     function addCard(origin, app, displayedAppCallback) {
@@ -309,8 +336,11 @@ var CardsView = (function() {
         // (instead of -moz-element backgrounds)
         // Only take a new screenshot if is the active app
         if (!cachedLayer || (
-          typeof frameForScreenshot.getScreenshot === 'function' &&
           origin === displayedApp && !inTimeCapture)) {
+          if (typeof frameForScreenshot.getScreenshot !== 'function') {
+            return;
+          }
+
           // rect is the final size (considering CSS transform) of the card.
           var rect = card.getBoundingClientRect();
           var width = isLandscape ? rect.height : rect.width;
@@ -421,6 +451,7 @@ var CardsView = (function() {
     }
     // Make the cardsView overlay inactive
     cardsView.classList.remove('active');
+    screenElement.classList.remove('task-manager');
     cardsViewShown = false;
 
     // And remove all the cards from the document after the transition
@@ -437,6 +468,8 @@ var CardsView = (function() {
     } else {
       cardsView.addEventListener('transitionend', removeCards);
     }
+
+    fireCardChange();
   }
 
   function cardSwitcherIsShown() {
@@ -562,6 +595,8 @@ var CardsView = (function() {
     if (noTransition) {
       currentCard.dispatchEvent(new Event('transitionend'));
     }
+
+    fireCardChange();
   }
 
   function moveCards() {
@@ -882,6 +917,14 @@ var CardsView = (function() {
         attentionScreenApps = AttentionScreen.getAttentionScreenOrigins();
         break;
 
+      case 'taskmanagershow':
+        showCardSwitcher(null, true);
+        break;
+
+      case 'taskmanagerhide':
+        hideCardSwitcher();
+        break;
+
       case 'holdhome':
         if (LockScreen.locked)
           return;
@@ -917,6 +960,8 @@ var CardsView = (function() {
 
 window.addEventListener('attentionscreenshow', CardsView);
 window.addEventListener('attentionscreenhide', CardsView);
+window.addEventListener('taskmanagershow', CardsView);
+window.addEventListener('taskmanagerhide', CardsView);
 window.addEventListener('holdhome', CardsView);
 window.addEventListener('home', CardsView);
 window.addEventListener('appopen', CardsView);

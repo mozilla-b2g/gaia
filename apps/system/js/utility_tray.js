@@ -64,7 +64,7 @@ var UtilityTray = {
       case 'simpinshow':
       case 'appopening':
         if (Rocketbar.shown) {
-          Rocketbar.hide();
+          Rocketbar.hide(evt.type);
         }
         if (this.shown) {
           this.hide();
@@ -97,10 +97,16 @@ var UtilityTray = {
         break;
 
       case 'touchmove':
-      if (!this.active)
-        return;
+        var touch = evt.touches[0];
+        if (!this.active) {
+          if (Rocketbar.enabled && !this.shown &&
+              touch.pageX < this.screenWidth * Rocketbar.triggerWidth) {
+            Rocketbar.pointerY = touch.pageY;
+          }
+          return;
+        }
 
-        this.onTouchMove(evt.touches[0]);
+        this.onTouchMove(touch);
         break;
 
       case 'touchend':
@@ -127,10 +133,13 @@ var UtilityTray = {
     // Show the rocketbar if it's enabled,
     // Give a slightly larger left area, than right.
     if (Rocketbar.enabled && !this.shown &&
-        touch.pageX < this.screenWidth * 0.65) {
+        touch.pageX < this.screenWidth * Rocketbar.triggerWidth) {
       UtilityTray.hide();
-      Rocketbar.render();
+      Rocketbar.pointerY = touch.pageY;
+      Rocketbar.render(this.screenHeight);
       return;
+    } else {
+      window.dispatchEvent(new CustomEvent('taskmanagerhide'));
     }
 
     Rocketbar.hide();

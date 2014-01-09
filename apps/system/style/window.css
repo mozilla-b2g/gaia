@@ -169,7 +169,8 @@
   100% { transform: scale(1);}
 }
 
-#windows > .appWindow.to-cardview {
+/* Generally transitions, except when going into rocketbar manager */
+#screen:not(.task-manager) #windows > .appWindow.to-cardview {
   animation: closeAppTowardsCardView 0.15s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
