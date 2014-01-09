@@ -1,6 +1,7 @@
 Keyboards.my = {
   label: 'Myanmar',
   menuLabel: '\u1019\u103C\u1014\u103A\u1019\u102C', /*မြန်မာ*/
+  secondLayout: true,
   basicLayoutKey: '\u1000\u1001\u1002', /*ကခဂ*/
   alternateLayoutKey: '\u1041\u1042\u1043', /*၁၂၃*/
   imEngine: 'latin',
