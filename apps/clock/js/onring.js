@@ -273,7 +273,7 @@ RingView.prototype.onClick = domEventMap['click'] =
     case 'ring-button-snooze':
       this.stopNotify();
       window.opener.postMessage({
-        type: 'newSnooze',
+        type: 'scheduleSnooze',
         id: this.alarm.id
       }, window.location.origin);
       window.close();

@@ -20,7 +20,7 @@ define(function(require) {
   var messageHandlerMapping = {
     normal: 'onAlarm',
     snooze: 'onAlarm',
-    newSnooze: 'onSnooze',
+    scheduleSnooze: 'scheduleSnooze',
     timer: 'onTimer',
     ringer: 'onRingerReady',
     'close-alarm': 'onClose',
@@ -158,7 +158,7 @@ define(function(require) {
       }.bind(this));
     },
 
-    onSnooze: function aac_onSnooze(message, done) {
+    scheduleSnooze: function aac_scheduleSnooze(message, done) {
       var id = message.data.id;
       AlarmsDB.getAlarm(id, function aac_gotAlarm(err, alarm) {
         if (err) {
