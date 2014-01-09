@@ -16,9 +16,10 @@
   position: absolute;
 }
 
-.cancel-pick[disabled=disabled],
-.capture-button[disabled=disabled],
-.switch-button[disabled=disabled] {
+.buttons-disabled .cancel-pick,
+.buttons-disabled .gallery-button,
+.buttons-disabled .capture-button,
+.buttons-disabled .switch-button {
   opacity: 0.5;
   pointer-events: none;
 }
@@ -33,7 +34,7 @@
 .capture-button span,
 .gallery-button span,
 .cancel-pick span {
-  -moz-transition: -moz-transform 0.2s ease-in-out;
+  transition: transform 0.2s ease-in-out;
   pointer-events: none;
   background-position: center center;
   background-repeat: no-repeat;
@@ -48,14 +49,13 @@
   height: 3rem;
 }
 
-.switch-button {
-  left: 66%;
-}
-
 .misc-button {
   text-align: center;
   left: 0;
 }
+
+/** Video Timer
+ ---------------------------------------------------------*/
 
 .video-timer {
   position:relative;
@@ -63,37 +63,81 @@
   margin-top:-0.5em;
 }
 
+/** Gallery Button
+ ---------------------------------------------------------*/
+
 .gallery-button {
-  display: block;
+  display: none;
   width: 100%;
   height: 100%;
 }
 
-.gallery-button.hidden {
-  display:none;
+/**
+ * @gallery=true
+ */
+
+.controls[data-gallery=true] .gallery-button {
+  display: block;
 }
+
+/**
+ * @recording=true
+ */
+
+.controls[data-recording=true] .gallery-button {
+  display: none;
+}
+
+/** Gallery Button Icon
+ ---------------------------------------------------------*/
 
 .gallery-button span {
   background-image: url(images/grid.png);
 }
 
-.gallery-button[disabled=disabled] {
-  display: none;
-}
+/** Cancel Pick Button
+ ---------------------------------------------------------*/
 
 .cancel-pick {
-  display:block;
+  display: none;
   width: 100%;
   height: 100%;
 }
 
-.cancel-pick.hidden {
-  display:none
+/**
+ * @cancel
+ */
+
+.controls[data-cancel=true] .cancel-pick {
+  display: block;
 }
+
+/** Cancel Pick Button Icon
+ ---------------------------------------------------------*/
 
 .cancel-pick span {
   background-image: url(images/actionicon_cancel.png);
 }
+
+/** Video Timer
+ ---------------------------------------------------------*/
+
+.video-timer {
+  display: none;
+  font-size: 1.8rem;
+  color: white;
+}
+
+/**
+ * @capturing
+ */
+
+.controls[data-recording=true] .video-timer {
+  display: block;
+}
+
+/** Capture Button
+ ---------------------------------------------------------*/
 
 .capture-button {
   background-color: #03a2b4;
@@ -104,42 +148,81 @@
   top: -2.8rem;
 }
 
-.video-timer {
-  display: none;
-  color: white;
-  font-size: 1.8rem;
-}
+/**
+ * @recording
+ */
 
-/* Specific to when we are capturing video */
-.capturing .video-timer {
-  display: block;
-}
-
-.capturing .gallery-button {
-  display: none;
-}
-
-.capturing .capture-button {
+.controls[data-recording=true] .capture-button {
   background-color: #d3361c;
 }
 
-.video.capturing .capture-button span {
+/** Capture Button Icon
+ ---------------------------------------------------------*/
+
+/**
+ * @camera
+ */
+
+.controls[data-mode=camera] .capture-button span {
+  background-image: url(images/camera.png);
+}
+
+/**
+ * @video
+ */
+
+.controls[data-mode=video] .capture-button span {
+  background-image: url(images/video.png);
+}
+
+/**
+ * @capturing
+ */
+
+.controls[data-recording=true] .capture-button span {
   background-image: url(images/stop.png);
 }
 
-/* Swap the camera and video icons depending on mode */
-.video .switch-button span {
+/** Switch Button
+ ---------------------------------------------------------*/
+
+.switch-button {
+  display: none;
+  left: 66%;
+}
+
+.controls[data-switchable] .switch-button {
+  display: block;
+}
+
+/**
+ * @recording
+ */
+
+.controls[data-recording=true] .switch-button {
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+/** Switch Button Icon
+ ---------------------------------------------------------*/
+
+/**
+ * @video
+ *
+ * Swap the camera and video
+ * icons depending on mode
+ */
+.controls[data-mode=video] .switch-button span {
   background-image: url(images/camera.png);
 }
 
-.camera .switch-button span {
+/**
+ * @camera
+ */
+
+.controls[data-mode=camera] .switch-button span {
   background-image: url(images/video.png);
 }
 
-.camera .capture-button span {
-  background-image: url(images/camera.png);
-}
 
-.video .capture-button span {
-  background-image: url(images/video.png);
-}
