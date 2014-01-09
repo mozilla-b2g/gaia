@@ -440,7 +440,13 @@ var BalanceTab = (function() {
 
   return {
     topUpWithCode: topUpWithCode,
-    initialize: setupTab,
+    initialize: function() {
+      var SCRIPTS_NEEDED = [
+        'js/views/TopUpLayoutView.js',
+        'js/views/BalanceView.js'
+      ];
+      LazyLoader.load(SCRIPTS_NEEDED, setupTab);
+    },
     finalize: finalize
   };
 }());
