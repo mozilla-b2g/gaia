@@ -229,9 +229,10 @@ var KeypadManager = {
     var number = this._phoneNumber;
     if (!number)
       return;
-
-    if(this.callBarAddContact.classList.contains('disabled'))
+    // returning when a saved contact number is dialed. As the add button is diabled.
+    if(this.callBarAddContact.classList.contains('disabled')) {
       return;
+    }
     LazyLoader.load(['/dialer/js/phone_action_menu.js'],
       function hk_showPhoneNumberActionMenu() {
         PhoneNumberActionMenu.show(null, number,
