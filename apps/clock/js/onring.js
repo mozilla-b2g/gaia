@@ -84,6 +84,7 @@ function isVisibleWorkaround(callback) {
 
 RingView.prototype.alarm = function rv_alarm(ev, wakelock) {
   this.type = 'alarm';
+  this.alarm = ev.data.alarm;
   var date;
   try {
     date = new Date(ev.data.date);
@@ -272,8 +273,8 @@ RingView.prototype.onClick = domEventMap['click'] =
     case 'ring-button-snooze':
       this.stopNotify();
       window.opener.postMessage({
-        type: 'snooze',
-        id: this.id
+        type: 'newSnooze',
+        id: this.alarm.id
       }, window.location.origin);
       window.close();
       break;

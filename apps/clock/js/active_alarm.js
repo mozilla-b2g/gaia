@@ -20,6 +20,7 @@ define(function(require) {
   var messageHandlerMapping = {
     normal: 'onAlarm',
     snooze: 'onAlarm',
+    newSnooze: 'onSnooze',
     timer: 'onTimer',
     ringer: 'onRingerReady',
     'close-alarm': 'onClose',
