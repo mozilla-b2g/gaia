@@ -406,19 +406,73 @@ var BluetoothTransfer = {
                                 icon);
       }
     } else {
+      // The property "errorCode" is an OBEX response code.
+      var errorCode = transferInfo.errorCode;
       if (transferInfo.received) {
         NotificationHelper.send(_('transferFinished-receivedFailed-title'),
                                 fileName,
-                                icon);
+                                icon,
+                                this.showFailedReasonPrompt(errorCode));
       } else {
         NotificationHelper.send(_('transferFinished-sentFailed-title'),
                                 fileName,
-                                icon);
+                                icon,
+                                this.showFailedReasonPrompt(errorCode));
       }
     }
 
     // Have a report notification for sending multiple files.
     this.summarizeSentFilesReport(transferInfo);
+  },
+
+  // Show the transfer failed reason with a prompt.
+  // Expose the error message from platform status code
+  // Reference: http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html
+  showFailedReasonPrompt: function bt_showFailedReasonPrompt(errorCode) {
+    var _ = navigator.mozL10n.get;
+    var confirm = {
+      title: _('confirm'),
+      callback: function() {
+        CustomDialog.hide();
+      }
+    };
+
+    // The parameter errorCode is an OBEX response code.
+    // We could reference the code via IrDA Object Exchange Protocol.
+    // The error message is referenced via HTTP Status Code Definitions.
+    // http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html
+    // 0xC1 401 Unauthorized
+    // 0xC3 403 Forbidden - operation is understood but refused
+    // 0xC6 406 Not Acceptable
+    // 0xC8 408 Request Time Out
+    // 0xCD 413 Requested entity too large
+    // 0xCF 415 Unsupported media type
+    var msg;
+    switch (errorCode) {
+      case 0xC1: // 401 Unauthorized
+        msg = _('transferFailed-unauthorized');
+        break;
+      case 0xC3: // 403 Forbidden - operation is understood but refused
+        msg = _('transferFailed-forbidden');
+        break;
+      case 0xC6: // 406 Not Acceptable
+        msg = _('transferFailed-notAcceptable');
+        break;
+      case 0xC8: // 408 Request Time Out
+        msg = _('transferFailed-requestTimeout');
+        break;
+      case 0xCD: // 413 Requested entity too large
+        msg = _('transferFailed-requestedEntityTooLarge');
+        break;
+      case 0xCF: // 415 Unsupported media type
+        msg = _('transferFailed-unsupportedMediaType');
+        break;
+      default:
+        msg = _('transferFailed-unknownError');
+    }
+
+    var body = msg;
+    CustomDialog.show(_('transferFailed-title'), body, confirm);
   },
 
   summarizeSentFilesReport: function bt_summarizeSentFilesReport(transferInfo) {
