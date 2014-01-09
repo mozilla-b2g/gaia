@@ -597,7 +597,7 @@ endef
 define run-node-command
 	echo "run-node-command $1";
 	node --harmony -e \
-	"require('.$(SEP)build$(SEP)$(strip $1).js').execute($$BUILD_CONFIG)"
+	"require('./build/$(strip $1).js').execute($$BUILD_CONFIG)"
 endef
 
 # Optional files that may be provided to extend the set of default
