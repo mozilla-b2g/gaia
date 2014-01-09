@@ -1,15 +1,4 @@
-(function(global, factory) {
-  'use strict';
-  if (typeof define === 'function' && define.amd) {
-    define(factory);
-  } else if (typeof exports === 'object') {
-    module.exports = factory(require);
-  } else {
-    global.Utils = factory(function(moduleId) {
-      return window[moduleId];
-    });
-  }
-}(this, function(require) {
+define(function(require) {
 'use strict';
 
 var mozL10n = require('l10n');
@@ -635,4 +624,4 @@ Utils.data = {
 
 return Utils;
 
-}));
+});
