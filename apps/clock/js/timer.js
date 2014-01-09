@@ -141,9 +141,7 @@ Timer.prototype.register = function timerRegister(callback) {
  *                                has been registered.
  */
 Timer.prototype.commit = function timerCommit(callback) {
-  var saveSelf = (function() {
-    this.save(callback);
-  }).bind(this);
+  var saveSelf = this.save.bind(this, callback);
   if (this.state === Timer.STARTED) {
     this.register(saveSelf);
   } else {
