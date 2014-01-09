@@ -174,6 +174,18 @@ Utils.extend = function(initialObject, extensions) {
   return initialObject;
 };
 
+/**
+ * RequestAnimationFrame after a delay.
+ *
+ * @param {function} fn - The function to evaluate
+ *        in a future delayed animation frame.
+ * @param {number} time - The number of milliseconds
+ *        to delay (using setTimeout) before we
+ *        request an animation frame.
+ *
+ * @return {object} an object that can be passed to
+ *         `Utils.cancelAnimationAfter`.
+ */
 Utils.requestAnimationAfter = function(fn, time) {
   var currentTime = Date.now();
   var id, ret = {};
@@ -188,6 +200,11 @@ Utils.requestAnimationAfter = function(fn, time) {
   return ret;
 };
 
+/**
+ * Cancel a scheduled requestAnimationAfter.
+ *
+ * @param {object} id - the value returned from `requestAnimationAfter`.
+ */
 Utils.cancelAnimationAfter = function(id) {
   if (id && typeof id.raf !== 'undefined') {
     cancelAnimationFrame(id.raf);
