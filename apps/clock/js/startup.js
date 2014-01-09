@@ -6,7 +6,6 @@ var ClockView = require('clock_view');
 var AlarmList = require('alarm_list');
 var ActiveAlarm = require('active_alarm');
 var mozL10n = require('l10n');
-var testReq = require;
 
 // eventually after some refactoring, this should be replaced with
 // App.init.bind(App)

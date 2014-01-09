@@ -169,8 +169,8 @@ define(function(require) {
 
   var databaseSingletons = new Map();
 
-  Database.singleton = Utils.singleton(Database, function(map, args) {
-    return [args[0].name, map.get(args[0].name)];
+  Database.singleton = Utils.singleton(Database, function(args) {
+    return args[0].name;
   });
 
   // ===========================================================
