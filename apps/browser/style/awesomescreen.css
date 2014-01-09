@@ -28,17 +28,30 @@ nav[data-role="tabs"] {
   height: 100%;
 }
 
-ul[role="tablist"] {
+#tab-headers [role="tablist"] {
   margin: 0;
   padding: 0;
   list-style-type: none;
+
+  /* override [BB]Tabs */
+  display: block;
+  position: static;
 }
 
-li[role="tab"] {
+/* override [BB]Tabs */
+#tab-headers [role="tablist"]:before {
+  display: none;
+}
+
+#tab-headers [role="tablist"] [role="tab"] a:active {
+  background-color: transparent;
+}
+
+#tab-headers [role="tablist"] li[role="tab"] {
   display: inline;
 }
 
-li[role="tab"] a {
+#tab-headers [role="tablist"] li[role="tab"] a {
   float: left;
   max-width: calc(33% - 3.9rem);
   height: 3.6rem;
@@ -55,15 +68,15 @@ li[role="tab"] a {
   overflow: hidden;
 }
 
-li[role="tab"] a:active {
+#tab-headers [role="tablist"] li[role="tab"] a:active {
   background: none;
 }
 
-li[role="tab"]:first-child a {
+#tab-headers [role="tablist"] li[role="tab"]:first-child a {
   margin-left: 0;
 }
 
-li[role="tab"] a.selected {
+#tab-headers [role="tablist"] li[role="tab"] a.selected {
   background-image: url('images/tab-background.png');
   background-image: url('images/tab-left.png'), url('images/tab-right.png'), url('images/tab-background.png');
   background-position: left, right, center;
