@@ -26,6 +26,14 @@
   </style>
 </head>
 <body role="application">
+  <p dir="ltr">
+    <label>
+      <input type="checkbox"
+        onchange="document.documentElement.dir = this.checked ? 'rtl' : 'ltr'">
+      RTL mode
+    </label>
+  </p>
+
   <section role="region">
     <header>
       <menu type="toolbar">
