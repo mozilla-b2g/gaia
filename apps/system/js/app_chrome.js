@@ -224,6 +224,13 @@
     }
   };
 
+  /**
+   * Return buttonbar height for AppWindow calibration
+   */
+  AppChrome.prototype.getBarHeight = function ac_getBarHeight() {
+    return this.openButton.clientHeight;
+  };
+
   AppChrome.prototype.isButtonBarDisplayed = false;
 
   AppChrome.prototype.toggleButtonBar = function ac_toggleButtonBar(time) {
