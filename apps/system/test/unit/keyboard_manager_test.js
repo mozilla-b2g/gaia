@@ -7,8 +7,6 @@ require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_keyboard_helper.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
-requireApp('system/test/unit/mock_attention_screen.js');
-requireApp('system/test/unit/mock_statusbar.js');
 require('/test/unit/mock_applications.js');
 requireApp('system/js/keyboard_manager.js');
 
@@ -16,9 +14,7 @@ var mocksHelperForKeyboardManager = new MocksHelper([
     'SettingsListener',
     'KeyboardHelper',
     'LazyLoader',
-    'Applications',
-    'AttentionScreen',
-    'StatusBar'
+    'Applications'
 ]).init();
 
 suite('KeyboardManager', function() {
