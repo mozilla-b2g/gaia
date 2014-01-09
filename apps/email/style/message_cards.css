@@ -4,15 +4,12 @@
 .msg-listedit-header {
 }
 .msg-list-scrollouter {
-  height: 100%;
+  height: calc(100% - 9.5rem);
   overflow-y: auto;
   overflow-x: hidden;
   will-change: scroll-position;
 }
 .msg-list-scrollinner {
-  /* force the card to be tall enough so we can scroll the search bit out of the
-     way by default*/
-  min-height: calc(100% + 4.8rem); /* 2.4rem is the search bar */
   /* Give it a z-index of 0 so that all its contents are forced into a single stacking
      context. This simplifies display list construction because our many positioned
      descendants can be clipped as a single group instead of independently.
@@ -71,7 +68,6 @@ input.msg-search-text-tease {
   display: block;
   position: relative;
   height: 8rem;
-  overflow: hidden;
 }
 .msg-header-item:active {
   background-color: #b1f1ff;
@@ -392,27 +388,36 @@ input.msg-search-text-tease {
   background-color: #424242;;
 }
 
-.msg-reader-action-toolbar {
-  text-align: center;
-}
-
-.msg-reader-action-toolbar .msg-delete-btn {
-  position: absolute;
-  left: 0;
-}
-
-.msg-reader-action-toolbar .msg-reply-btn {
-  position: absolute;
-  right: 0;
-}
-
 /* We need to use !important on the buttons because shared/style/buttons.css definesa more specific
-   selector than ours for :active, so we can't just reorder the files to fix the problem. */
-.msg-refresh-btn {
-  background-image: url("images/icons/refresh.png") !important;
-  background-size: 3.2rem !important;
+ * selector than ours for :active, so we can't just reorder the files to fix the problem.
+*/
+
+/* For WVGA (800 x 480) */
+.msg-refresh-btn:after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4.4rem;
+  display: block !important;
+  padding-bottom: 0.1rem;
+  background: url("images/icons/refresh.png") no-repeat 50% 50% / 3.2rem;
 }
-.msg-refresh-btn[data-state="synchronizing"] {
+
+.msg-refresh-btn:after {
+  opacity: 1 !important;
+}
+
+@media all and (min-device-width: 320px) and (max-device-width: 359px) {
+  .msg-refresh-btn:after {
+    height: 100%;
+    padding-bottom: 0;
+    background-size: 3.1rem;
+  }
+}
+
+.msg-refresh-btn[data-state="synchronizing"]:after {
   animation: 0.9s msg-refresh-rotate infinite steps(30);
 }
 
@@ -421,18 +426,20 @@ input.msg-search-text-tease {
   to   { transform: rotate(360deg); }
 }
 
+[role="tablist"] .icon {
+  background-position: 50% 0;
+}
 
+[role="tablist"] .msg-btn-active {
+  background-position: 50% 100% !important;
+}
 
 .msg-search-btn {
   background-image: url("images/icons/search.png") !important;
-  position: absolute;
-  right: 0;
 }
 
 .msg-edit-btn {
   background-image: url("images/icons/edit-mode.png") !important;
-  position: absolute;
-  left: calc((100% - 6rem)/2);
 }
 
 .bottom-toolbar .msg-btn-active {
@@ -504,12 +511,6 @@ input.msg-search-text-tease {
   border-top: 0.1rem solid #bebebe;
 }
 
-/* PROGRESS LABEL BUILDING BLOCKS EXTENSION */
-.msg-messages-sync-container {
-  margin-bottom: 1.2rem;
-}
-
-
 .msg-messages-sync-container > p,
 .msg-list-empty {
   height: 8rem;
@@ -526,7 +527,6 @@ input.msg-search-text-tease {
 
 .msg-messages-sync-container > .msg-messages-syncing,
 .msg-messages-sync-container > .msg-messages-sync-more {
-  border-bottom: 0.1rem solid #bebebe;
   width: calc(100% - 3rem);
   margin: 0 auto;
   text-align: center;
