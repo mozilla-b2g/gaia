@@ -91,8 +91,9 @@ window.ContactsExporter = function ContactsExporter(theStrategy) {
   // @param: {Integer} exported Number of contacts successfuly exported
   // @param: {String} message Any extra message from the exporting mechanism
   //
-  var _doHandleResult = function _doHandleResult(error, exported, message) {
-    if (hasProgress) {
+  var _doHandleResult = function _doHandleResult(error, exported,
+                                                 isRecoverable) {
+    if (hasProgress && !error) {
       utils.overlay.hide();
     }
     // Error handling
@@ -100,29 +101,44 @@ window.ContactsExporter = function ContactsExporter(theStrategy) {
       var cancel = {
         title: _('cancel'),
         callback: function() {
+          utils.overlay.hide();
           ConfirmDialog.hide();
+          _showStatus(exported, contacts.length);
         }
       };
       var retry = {
         title: _('retry'),
         isRecommend: true,
         callback: function() {
+          utils.overlay.hide();
           ConfirmDialog.hide();
           // And now the action is reproduced one more time
           window.setTimeout(_doExport, 0);
         }
       };
+
+      if (isRecoverable === false) {
+        retry = null;
+      }
+
       var errorString = 'exportError-' + strategy.name + '-';
       Contacts.confirmDialog(_('exportErrorTitle'),
                              _(errorString + error.reason),
                              cancel, retry);
       Contacts.hideOverlay();
-      console.error('An error occurred during the export: ' + error.reason);
+      console.error('An error occurred during the export: ',
+                    error.reason.name || error.reason);
+      return;
     }
+
+    _showStatus(exported, contacts.length);
+  };
+
+  var _showStatus = function(exported, total) {
     // TODO: Better mechanism to show result
     var msg = _('contactsExported2', {
       'exported': exported,
-      'total': contacts.length
+      'total': total
     });
 
     utils.status.show(msg);
