@@ -55,6 +55,18 @@ suite('system/ActivityWindow', function() {
     }
   };
 
+  var fakeConfigWithOrientation = {
+    'url': 'app://fakeact.gaiamobile.org/pick.html',
+    'oop': true,
+    'name': 'Fake Activity',
+    'manifestURL': 'app://fakeact.gaiamobile.org/manifest.webapp',
+    'origin': 'app://fakeact.gaiamobile.org',
+    'manifest': {
+      'name': 'Fake Activity',
+      'orientation': 'landscape'
+    }
+  };
+
   setup(function(done) {
     switchProperty(window, 'WindowManager', MockWindowManager, reals);
     switchProperty(window, 'SettingsListener', MockSettingsListener, reals);
@@ -156,6 +168,20 @@ suite('system/ActivityWindow', function() {
       app.setOrientation();
       assert.isTrue(stubSetOrientation2.called);
       stubSetOrientation2.restore();
+    });
+
+    test('Activity set orientation', function() {
+      var activity = new ActivityWindow(fakeConfigWithOrientation, app);
+      var stubIsActive = this.sinon.stub(activity, 'isActive');
+      stubIsActive.returns(true);
+      var stubLockOrientation;
+      if ('lockOrientation' in screen) {
+        stubLockOrientation = this.sinon.stub(screen, 'lockOrientation');
+      } else if ('mozLockOrientation' in screen) {
+        stubLockOrientation = this.sinon.stub(screen, 'mozLockOrientation');
+      }
+      activity.setOrientation();
+      assert.isTrue(stubLockOrientation.calledWith('landscape'));
     });
   });
 });
