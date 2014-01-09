@@ -310,6 +310,7 @@ Calendar.ns('Service').Caldav = (function() {
 
       var result = {
         alarms: resultAlarms,
+        attendees: this._formatAttendees(event.attendees),
         syncToken: etag,
         url: url,
         id: event.uid,
@@ -324,6 +325,30 @@ Calendar.ns('Service').Caldav = (function() {
       };
 
       return result;
+    },
+
+    /**
+     * Formats attendees of an already parsed & formatted ICAL.Event instance
+     * into a data structure that is easier to consume and remove circular
+     * references.
+     *
+     * @param {Array} attendees Array of event attendees.
+     */
+    _formatAttendees: function(attendees) {
+      return attendees.map(function(attendee) {
+        var jCal = attendee.jCal;
+        var props = jCal[1];
+        return {
+          type: jCal[0],
+          valueType: jCal[2],
+          uri: jCal[3],
+          cutype: props.cutype,
+          role: props.role,
+          partstat: props.partstat,
+          cn: props.cn,
+          'x-num-guests': props['x-num-guests']
+        };
+      });
     },
 
     /**
