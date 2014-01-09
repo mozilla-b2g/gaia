@@ -112,7 +112,7 @@ RingView.prototype.alarm = function rv_alarm(ev, wakelock) {
   isVisibleWorkaround.call(this, function() {
     mozL10n.ready(function rv_waitLocalized() {
       this.startNotify();
-      document.querySelector('.ring-display').dataset.ringType = 'alarm';
+      this.ringDisplay.dataset.ringType = 'alarm';
       wakelock();
     }.bind(this));
   }.bind(this));
@@ -139,7 +139,7 @@ RingView.prototype.timer = function rv_timer(ev, wakelock) {
 
   isVisibleWorkaround.call(this, function() {
     this.startNotify();
-    document.querySelector('.ring-display').dataset.ringType = 'timer';
+    this.ringDisplay.dataset.ringType = 'timer';
     wakelock();
   }.bind(this));
 };
@@ -289,7 +289,8 @@ RingView.prototype.onClick = domEventMap['click'] =
     hourState: '#ring-clock-hour24-state',
     ringLabel: '#ring-label',
     snoozeButton: '#ring-button-snooze',
-    closeButton: '#ring-button-close'
+    closeButton: '#ring-button-close',
+    ringDisplay: '.ring-display'
   };
   for (var i in domMap) {
     Object.defineProperty(RingView.prototype, i,
