@@ -4,18 +4,17 @@
   function SearchHandler() {
     var searchPort = null;
 
-    this.onMessage = ensurePort;
+    this.handleMessage = handleMessage;
 
     function handleMessage(msg) {
       var query = msg.data.input;
       var method = msg.data.method;
-
       switch (method) {
         case 'search':
           Evme.SearchClient.search({
             'query': query
           }).then(function resolve(searchResults) {
-            searchPort.postMessage({ 'results': searchResults });
+            ensurePort({ 'results': searchResults });
           });
           break;
 
@@ -23,7 +22,7 @@
           Evme.SearchClient.suggestions({
             'query': query
           }).then(function resolve(searchSuggestions) {
-            searchPort.postMessage({ 'suggestions': searchSuggestions });
+            ensurePort({ 'suggestions': searchSuggestions });
           });
           break;
 
@@ -38,21 +37,24 @@
      * Or else we will trigger launching of the search-results app.
      */
     function ensurePort(msg) {
-      navigator.mozApps.getSelf().onsuccess = function() {
-        var app = this.result;
-        app.connect('eme-client').then(
-          function onConnectionAccepted(ports) {
-            ports.forEach(function(port) {
-              searchPort = port;
-            });
-            SearchHandler.onMessage = handleMessage;
-            handleMessage(msg);
-          },
-          function onConnectionRejected(reason) {
-            dump('Error connecting: ' + reason + '\n');
-          }
-        );
-      };
+      if (searchPort) {
+        searchPort.postMessage(msg);
+      } else {
+        navigator.mozApps.getSelf().onsuccess = function() {
+          var app = this.result;
+          app.connect('eme-client').then(
+            function onConnectionAccepted(ports) {
+              ports.forEach(function(port) {
+                searchPort = port;
+              });
+              searchPort.postMessage(msg);
+            },
+            function onConnectionRejected(reason) {
+              dump('Error connecting: ' + reason + '\n');
+            }
+          );
+        };
+      }
     }
   }
 
