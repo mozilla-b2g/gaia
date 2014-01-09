@@ -458,7 +458,27 @@ var Compose = (function() {
       return this;
     },
 
-    clear: function() {
+    append: function(item) {
+      var fragment = insert(item);
+
+      if (document.activeElement === dom.message) {
+        // insert element at caret position
+        var range = window.getSelection().getRangeAt(0);
+        var firstNodes = fragment.firstChild;
+        range.deleteContents();
+        range.insertNode(fragment);
+        this.scrollToTarget(range);
+        dom.message.focus();
+        range.setStartAfter(firstNodes);
+      } else {
+        // insert element at the end of the Compose area
+        dom.message.insertBefore(fragment, dom.message.lastChild);
+        this.scrollToTarget(dom.message.lastChild);
+      }
+      onContentChanged(item);
+      return this;
+    },
+clear: function() {
       dom.message.innerHTML = '<br>';
       subject.clear();
       state.resizing = state.full = false;
