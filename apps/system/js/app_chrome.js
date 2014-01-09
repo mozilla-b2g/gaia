@@ -5,6 +5,7 @@
   var _ = navigator.mozL10n.get;
   var BUTTONBAR_TIMEOUT = 5000;
   var BUTTONBAR_INITIAL_OPEN_TIMEOUT = 1500;
+  var _buttonBarHeight = 0;
 
   /**
    * The chrome UI of the AppWindow.
@@ -222,6 +223,13 @@
     if (!this.navigation.classList.contains('closed')) {
       this.navigation.classList.add('closed');
     }
+  };
+
+  /**
+   * Return buttonbar height for AppWindow calibration
+   */
+  AppChrome.prototype.getBarHeight = function ac_getBarHeight() {
+    return _buttonBarHeight ? _buttonBarHeight : this.openButton.clientHeight;
   };
 
   AppChrome.prototype.isButtonBarDisplayed = false;

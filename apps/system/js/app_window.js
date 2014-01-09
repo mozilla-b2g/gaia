@@ -7,8 +7,9 @@
   var _start = new Date().getTime() / 1000;
 
   /**
-   * AppWindow creates, contains, manages a mozbrowser iframe.
-   * AppWindow is directly managed by AppWindowManager,
+   * AppWindow creates, contains, manages a
+   * [mozbrowser](https://developer.mozilla.org/en-US/docs/WebAPI/Browser)
+   * iframe. AppWindow is directly managed by AppWindowManager,
    * by call resize(), open(), close() on AppWindow.
    *
    * Basically AppWindow would manipulate all mozbrowser events
@@ -881,9 +882,8 @@
     };
 
   AppWindow.prototype.calibratedHeight = function aw_calibratedHeight() {
-    if (this.appChrome &&
-        !this.appChrome.hidingNavigation) {
-      return -5;
+    if (this.appChrome && this.appChrome.hidingNavigation) {
+      return this.appChrome.getBarHeight();
     } else {
       return 0;
     }
