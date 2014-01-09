@@ -1204,7 +1204,8 @@ var Camera = {
       this._resizeBlobIfNeeded(media.blob, function(resized_blob) {
         this._pendingPick.postResult({
           type: 'image/jpeg',
-          blob: resized_blob
+          blob: new File([resized_blob], media.filename, {type: 'image/jpeg'}),
+          name: media.filename
         });
         this._pendingPick = null;
       }.bind(this));
@@ -1233,6 +1234,11 @@ var Camera = {
   _addPictureToStorage: function camera_addPictureToStorage(blob, callback) {
     DCFApi.createDCFFilename(this._pictureStorage, 'image',
                              function(path, name) {
+
+      if (this._pendingPick) {
+        // to keep it for returning a blob with correct filename.
+        this._savedMedia.filename = path + name;
+      }
       var addreq = this._pictureStorage.addNamed(blob, path + name);
       addreq.onsuccess = function(e) {
         var absolutePath = e.target.result;
