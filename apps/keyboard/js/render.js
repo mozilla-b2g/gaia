@@ -116,7 +116,14 @@ const IMERender = (function() {
           return;
 
         // We will always display keys in uppercase, per request from UX.
-        var upperCaseKeyChar = getUpperCaseValue(key);
+        // But we can add keyboard to ignore list if its alternativeLayout is not
+        // uppercase of basicLayout.
+        if (!flags.uppercase && isIgnoreUppercaseInBasicLayout(key)) {
+          var upperCaseKeyChar = key.value;
+        }
+        else {
+          var upperCaseKeyChar = getUpperCaseValue(key);
+        }
 
         // Handle uppercase
         if (flags.uppercase) {
@@ -275,6 +282,16 @@ const IMERender = (function() {
 
   var isFullCandidataPanelShown = function() {
     return IMERender.ime.classList.contains('full-candidate-panel');
+  };
+
+  var isIgnoreUppercaseInBasicLayout = function(key) {
+    if ( key.value >= '\u1000' && key.value <= '\u109f' ) {
+      //Myanmar unicode range
+      return true;
+    }
+    else {
+      return false
+    }
   };
 
   // Show candidates
