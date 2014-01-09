@@ -43,7 +43,9 @@ navigator.mozSetMessageHandler('activity', function handler(activity) {
   done.disabled = true;
 
   // Localize the titlebar text based on the tone type
-  navigator.mozL10n.localize(title, toneType + '-title');
+  navigator.mozL10n.ready(function() {
+    navigator.mozL10n.localize(title, toneType + '-title');
+  });
 
   cancel.onclick = function() {
     activity.postError('cancelled');
