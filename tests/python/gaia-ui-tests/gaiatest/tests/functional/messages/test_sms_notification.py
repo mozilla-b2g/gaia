@@ -5,7 +5,6 @@
 import time
 from gaiatest import GaiaTestCase
 from gaiatest.apps.system.app import System
-from gaiatest.apps.messages.app import Messages
 
 
 class TestSmsNotification(GaiaTestCase):
