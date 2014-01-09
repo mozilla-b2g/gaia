@@ -83,6 +83,7 @@ function execute(options) {
     prefs.push(['notification.feature.enabled', true]);
     prefs.push(['dom.datastore.enabled', true]);
     prefs.push(['dom.testing.datastore_enabled_for_hosted_apps', true]);
+    prefs.push(['dom.inter-app-communication-api.enabled', true]);
 
     // WebSettings
     prefs.push(['dom.mozSettings.enabled', true]);
