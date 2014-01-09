@@ -41,6 +41,16 @@ var Connectivity = (function(window, document, undefined) {
   var bluetooth = getBluetooth();
   var mobileConnection = getMobileConnection();
 
+  var initOrder = [
+    updateCallDescription,
+    updateCellAndDataDescription,
+    updateMessagingSettings,
+    updateWifi,
+    updateBluetooth,
+    // register blutooth system message handler
+    initSystemMessageHandler
+  ];
+
   if (IccHelper) {
     IccHelper.addEventListener('cardstatechange', updateMessagingSettings);
   }
@@ -90,6 +100,15 @@ var Connectivity = (function(window, document, undefined) {
 
   window.addEventListener('bluetooth-pairedstatuschanged', updateBluetooth);
 
+  function lazyInit(index) {
+    if (index >= initOrder.length) {
+      return;
+    }
+
+    initOrder[index]();
+    setTimeout(lazyInit.bind(this, index + 1));
+  }
+
   // called when localization is done
   function init() {
     if (_initialized) {
@@ -110,13 +129,7 @@ var Connectivity = (function(window, document, undefined) {
       'ready': ''
     };
 
-    updateCallDescription();
-    updateCellAndDataDescription();
-    updateMessagingSettings();
-    updateWifi();
-    updateBluetooth();
-    // register blutooth system message handler
-    initSystemMessageHandler();
+    lazyInit(0);
   }
 
   /**
