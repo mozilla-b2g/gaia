@@ -368,28 +368,43 @@ section[role="region"].skin-organic > header:first-child button,
 
 html[dir="rtl"] section[role="region"] > header:first-child h1 {
   text-align: right;
-  margin: 0 3rem 0 0;
+  padding: 0 3rem 0 1rem;
+}
+html[dir="rtl"] section[role="region"] > header:first-child form {
+  padding: 1rem .5rem 0 1rem ;
+  margin-right: 3.5rem;
+  margin-left:0;
+}
+html[dir="rtl"] section[role="region"] > header:first-child input[type="text"] {
+  background: #fff url(headers/images/ui/shadow.png) repeat-x right -0.1rem;
 }
 
-html[dir="rtl"] section[role="region"] > header:first-child button,
-html[dir="rtl"] section[role="region"] > header:first-child a {
-  left: inherit;
+html[dir="rtl"] section[role="region"] > header:first-child form button[type="reset"] {
+  left: 1rem;
+  right:inherit;
+}
+html[dir="rtl"] section[role="region"] > header:first-child menu[type="toolbar"] {
+  float: left;
+}
+html[dir="rtl"] section[role="region"] > header:first-child menu[type="toolbar"] a,
+html[dir="rtl"] section[role="region"] > header:first-child menu[type="toolbar"] button {
+  float: right;
+}
+html[dir="rtl"] section[role="region"] > header:first-child > button,
+html[dir="rtl"] section[role="region"] > header:first-child > a {
+  float: right;
+  margin: 0 0 0 -5rem;
+}
+html[dir="rtl"] section[role="region"] > header:first-child > button:after,
+html[dir="rtl"] section[role="region"] > header:first-child > a:after {
   right: 0;
 }
-
-html[dir="rtl"] section[role="region"] > header:first-child > button .icon,
-html[dir="rtl"] section[role="region"] > header:first-child > a .icon {
-  margin-left: 0;
-  margin-right: -2rem;
-}
-
-html[dir="rtl"] section[role="region"] > header:first-child > button .icon:after,
-html[dir="rtl"] section[role="region"] > header:first-child > a .icon:after {
-  left: inherit;
-  right: 0;
-}
-
 html[dir="rtl"] section[role="region"] > header:first-child .icon.icon-back {
   background-image: url(headers/images/icons/back-rtl.png);
 }
-
+html[dir="rtl"] section[role="region"].skin-organic > header:first-child .icon.icon-back,
+html[dir="rtl"] .skin-organic section[role="region"] > header:first-child .icon.icon-back,
+html[dir="rtl"] section[role="region"].skin-dark > header:first-child .icon.icon-back {
+  background-image: url(headers/images/icons/organic/back.png);
+  -moz-transform: scaleX(-1);
+}
