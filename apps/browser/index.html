@@ -16,6 +16,7 @@
     <!-- <link rel="stylesheet" href="style/themes/default/buttons.css"> -->
 
     <!-- Specific style -->
+    <link rel="stylesheet" href="shared/style_unstable/tabs.css" type="text/css">
     <link rel="stylesheet" href="style/browser.css" type="text/css">
     <link rel="stylesheet" href="style/toolbar.css" type="text/css">
 
@@ -122,16 +123,20 @@
       </div>
     </div>
 
-    <menu type="toolbar" id="toolbar-end">
-      <button type="button" value="" id="back-button" alt="Back"
-              title="" disabled="true"></button>
-      <button type="button" value="" id="forward-button" alt="Forward"
-              title="" disabled="true"></button>
-      <button type="button" value="" id="bookmark-button" alt="Bookmark"
-              title=""></button>
-      <button type="button" value="" id="share-button" alt="Share"
-              title=""></button>
-    </menu>
+    <ul id="toolbar-end" role="tablist" class="skin-dark">
+      <li role="tab">
+        <button id="back-button" class="icon" disabled="true" alt="Back"></button>
+      </li>
+      <li role="tab">
+        <button id="forward-button" class="icon" disabled="true" alt="Forward"></button>
+      </li>
+      <li role="tab">
+        <a id="bookmark-button" class="icon" alt="Bookmark"></a>
+      </li>
+      <li role="tab">
+        <a id="share-button" class="icon" alt="Share"></a>
+      </li>
+    </ul>
 
     <div id="tray">
       <!--
