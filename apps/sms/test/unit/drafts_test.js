@@ -281,6 +281,10 @@ suite('Drafts', function() {
       });
     });
 
+    suiteTeardown(function() {
+      Drafts.clear();
+    });
+
     test('get draft for id 101', function() {
       var draft = Drafts.get(id);
 
@@ -293,6 +297,40 @@ suite('Drafts', function() {
 
       assert.equal(typeof draft, 'undefined');
     });
+  });
+
+  suite('forEach()>', function() {
+
+    var spy;
+
+    suiteSetup(function() {
+      [d1, d2, d3, d4, d5, d6, d7].forEach(Drafts.add, Drafts);
+    });
+
+    suiteTeardown(function() {
+      Drafts.clear();
+    });
+
+    setup(function() {
+      spy = sinon.spy();
+    });
+
+    test('callback called on each draft', function() {
+      Drafts.forEach(spy);
+      assert.equal(spy.callCount, 7);
+
+      // threadId = Number
+      assert.deepEqual(spy.args[0][0], d1);
+      assert.deepEqual(spy.args[1][0], d2);
+      assert.deepEqual(spy.args[2][0], d3);
+      assert.deepEqual(spy.args[3][0], d4);
+      assert.deepEqual(spy.args[4][0], d5);
+
+      // threadId = null
+      assert.deepEqual(spy.args[5][0], d7);
+      assert.deepEqual(spy.args[6][0], d6);
+    });
+
   });
 
   suite('clear() >', function() {
@@ -317,7 +355,6 @@ suite('Drafts', function() {
     setup(function() {
       spy = sinon.spy();
     });
-
 
     test('Drafts.List', function() {
       var list = new Drafts.List();
