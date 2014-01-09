@@ -1,8 +1,5 @@
 requireApp('clock/test/unit/mocks/mock_shared/js/lazy_loader.js');
 
-// database.js has a dependency on utils.js. Since database.js is planned to
-// be shared across Gaia, it is not defined as a AMD module, and the `Utils`
-// object must be available in the global scope.
 suite('Database Test', function() {
 
   var ll = window.LazyLoader;
