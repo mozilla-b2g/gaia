@@ -2,126 +2,208 @@
 * Tabs
 * ---------------------------------- */
 
-[role="tablist"] {
-  margin: 0;
-  padding: 0;
+[role="tablist"]:before {
+  content: "";
   position: absolute;
+  bottom: 4.5rem;
+  left: 0;
+  width: 100%;
+  height: 0;
+  border-top: 0.1rem solid rgba(189,189,189, 0.2);
+}
+
+[role="tablist"] {
+  display: flex;
+  align-items: flex-end;
+  position: absolute;
+  bottom: 0;
   width: 100%;
   height: 100%;
+  margin: 0;
+  padding: 0;
+  pointer-events: none;
+  z-index: 0;
 }
 
 [role="tablist"] > [role="tab"] {
-  list-style: none;
+  -moz-box-sizing: content-box;
   margin: 0;
   padding: 0;
-  float: left;
+  height: 4.5rem;
+  background-color: #ffffff;
+  list-style: none;
+  pointer-events: all;
+  flex: 1 1 0;
 }
 
-/* Items calcs */
-[role="tablist"][data-items="2"] > [role="tab"] {
-  width: calc(100% / 2);
-}
-
-[role="tablist"][data-items="3"] > [role="tab"] {
-  width: calc(100% / 3);
-}
-
-[role="tablist"][data-items="4"] > [role="tab"] {
-  width: calc(100% / 4);
-}
-
-[role="tablist"][data-items="5"] > [role="tab"] {
-  width: calc(100% / 5);
-}
-
-[role="tablist"] > [role="tab"] > a {
-  font-size: 1.3rem;
-  text-decoration: none;
-  line-height: 4rem;
-  text-align: center;
-  color: #FFF;
-  float: left;
-  width: 100%;
-  background: #000 no-repeat center top;
+[role="tablist"] > [role="tab"] > a,
+[role="tablist"] > [role="tab"] > button {
   position: relative;
-  color: #fff;
-}
-
-[role="tablist"] > [role="tab"] > a:active {
-  background-color: #008aaa;
-  color: #fff;
-}
-
-[role="tablist"] > [role="tab"][aria-disabled="true"] > a:active {
-  background-color: #000;
-}
-
-[role="tablist"] > [role="tab"] > a.icon {
-  font-size: 0;
-}
-
-[role="tablist"] > [role="tab"] > a.icon:after {
-  content: '';
+  -moz-box-sizing: content-box;
+  display: block;
   width: 100%;
   height: 100%;
-  position: absolute;
-  background: none no-repeat center top / 3rem auto;
-  left: 0;
-  z-index: 1;
+  margin: 0;
+  padding: 0;
+  color: #5f5f5f;
+  font-size: 1.6rem;
+  text-decoration: none;
+  text-align: center;
+  line-height: 4.5rem;
+  border: 0;
+  border-radius: none;
+  background-color: transparent;
+  background-size: 3rem auto;
+  background-repeat: no-repeat;
+  outline: none;
 }
 
+[role="tablist"] > [role="tab"] > button {
+  background-image: none;
+}
+
+[role="tablist"] > [role="tab"] > button::-moz-focus-inner {
+  border: none;
+  outline: none;
+}
+
+[role="tablist"] > [role="tab"] > .icon {
+  font-size: 0;
+  background-position: 50% 0;
+}
+
+[role="tablist"] > [role="tab"] > a:active,
+[role="tablist"] > [role="tab"] > button:active {
+  border-radius: 0;
+  background-color: #00aacc;
+}
+
+/* ----------------------------------
+ * Skin: dark
+ * ---------------------------------- */
+[role="tablist"].skin-dark:before {
+  border-color: rgba(189,189,189, 0.1);
+}
+
+[role="tablist"].skin-dark > [role="tab"]:before {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 4.5rem;
+  background-color: #000000;
+  z-index: -1;
+}
+
+[role="tablist"].skin-dark > [role="tab"] {
+  background-color: transparent;
+}
+
+[role="tablist"].skin-dark > [role="tab"] > a,
+[role="tablist"].skin-dark > [role="tab"] > button {
+  color: #ffffff;
+  background-color: transparent;
+}
+
+[role="tablist"].skin-dark > [role="tab"] > a:active,
+[role="tablist"].skin-dark > [role="tab"] > button:active {
+  background-color: rgb(0,170,204);
+}
 
 /* Selected state */
-[role="tablist"] > [role="tab"]:target > a,
-[role="tablist"] > [role="tab"][aria-selected="true"] > a {
-  color: #62c6f5
+[role="tablist"] > [role="tab"] > a:after,
+[role="tablist"] > [role="tab"] > button:after {
+  display: none;
 }
 
-[role="tablist"] > [role="tab"]:target > a.icon:after,
-[role="tablist"] > [role="tab"][aria-selected="true"] > a.icon:after {
-  background-position: center -4rem;
+[role="tablist"] > [role="tab"]:target > a,
+[role="tablist"] > [role="tab"]:target > button,
+[role="tablist"] > [role="tab"][aria-selected="true"] > a,
+[role="tablist"] > [role="tab"][aria-selected="true"] > button {
+  color: #00aacc;
+  font-weight: 500;
+  background-position: 50% 100%;
+}
+
+[role="tablist"] > [role="tab"]:target > a:after,
+[role="tablist"] > [role="tab"]:target > button:after,
+[role="tablist"] > [role="tab"][aria-selected="true"] > a:after,
+[role="tablist"] > [role="tab"][aria-selected="true"] > button:after {
+  display: inline-block;
+  content: "";
+  position: absolute;
+  width: 100%;
+  left: 0;
+  height: calc(100% - 0.3rem);
+  border-bottom: 0.3rem solid rgba(0,202,242, 0.75);
+}
+
+[role="tablist"] > [role="tab"]:target > a:active,
+[role="tablist"] > [role="tab"]:target > button:active {
+  color: #5f5f5f;
+  background-position: 50% 0;
+}
+
+[role="tablist"] > [role="tab"]:target > a:active:after,
+[role="tablist"] > [role="tab"]:target > button:active:after,
+[role="tablist"].skin-dark > [role="tab"]:target > a:active:after,
+[role="tablist"].skin-dark > [role="tab"]:target > button:active:after {
+  border-bottom-color: transparent;
+}
+
+[role="tablist"].skin-dark > [role="tab"]:target > a:active,
+[role="tablist"].skin-dark > [role="tab"]:target > button:active,
+[role="tablist"].skin-dark > [role="tab"][aria-selected="true"] > a:active,
+[role="tablist"].skin-dark > [role="tab"][aria-selected="true"] > button:active {
+  color: #ffffff !important;
+}
+
+[role="tablist"].skin-dark > [role="tab"]:target > a:after,
+[role="tablist"].skin-dark > [role="tab"]:target > button:after {
+  border-bottom-color: rgba(0,202,242, 0.75);
 }
 
 /* Disabled state */
-[role="tablist"] > [role="tab"][aria-disabled="true"] > a {
-  color: #4d4d4d;
+[role="tablist"] > [role="tab"][aria-disabled="true"] > a,
+[role="tablist"] > [role="tab"][aria-disabled="true"] > button,
+[role="tablist"] > [role="tab"][disabled] > a,
+[role="tablist"] > [role="tab"][disabled] > button,
+[role="tablist"] > [role="tab"] > a[aria-disabled="true"],
+[role="tablist"] > [role="tab"] > button[aria-disabled="true"],
+[role="tablist"] > [role="tab"] > a[disabled],
+[role="tablist"] > [role="tab"] > button[disabled] {
+  color: #333333;
+  opacity: 0.25;
+  pointer-events: none;
 }
 
-[role="tablist"] > [role="tab"][aria-disabled="true"] > a.icon:after {
-  background-position: center -8rem;
+[role="tablist"].skin-dark > [role="tab"][aria-disabled="true"] > a,
+[role="tablist"].skin-dark > [role="tab"][aria-disabled="true"] > button,
+[role="tablist"].skin-dark > [role="tab"][disabled] > a,
+[role="tablist"].skin-dark > [role="tab"][disabled] > button,
+[role="tablist"].skin-dark > [role="tab"] > a[aria-disabled="true"],
+[role="tablist"].skin-dark > [role="tab"] > button[aria-disabled="true"],
+[role="tablist"].skin-dark > [role="tab"] > a[disabled],
+[role="tablist"].skin-dark > [role="tab"] > button[disabled] {
+  opacity: 0.35;
 }
 
 [role="tablist"] [role="tabpanel"] {
   position: absolute;
-  top: 4rem;
+  top: 0;
+  right: 0;
+  bottom: 4.5rem;
   left: 0;
   visibility: hidden;
-  width: 100%;
-  height: calc(100% - 4rem);
-  z-index: -1;
-  display: block;
+  z-index: 10;
   overflow: auto;
 }
 
 [role="tablist"] :target [role="tabpanel"],
 [role="tablist"] [aria-selected="true"] [role="tabpanel"] {
-  z-index: 1;
+  z-index: -1;
   visibility: visible;
-}
-
-/* Position bottom */
-[role="tablist"].bottom > [role="tab"] {
-  height: 100%;
-}
-
-[role="tablist"].bottom  > [role="tab"] > a {
-  position: relative;
-  height: 4rem;
-  top: calc(100% - 4rem);
-}
-
-[role="tablist"].bottom [role="tabpanel"] {
-  top: 0;
 }
 
 /* ----------------------------------
@@ -129,69 +211,113 @@
  * ---------------------------------- */
 
 [role="tablist"][data-type="filter"] {
-  background: #c7c7c7;
-  display: inline-block;
-  width: 100%;
-  list-style: none;
-  padding: 0;
-  margin: 0;
+  display: flex;
   position: relative;
-  background: #eef2f5 url(tabs/images/ui/background.png) repeat-x left bottom;
   height: 4rem;
 }
 
 [role="tablist"][data-type="filter"] > [role="tab"] {
-  float: left;
-  text-align: center;
-  -moz-box-sizing: border-box;
+  height: 4rem;
+  background: none;
+}
+
+[role="tablist"][data-type="filter"] > [role="tab"] > a,
+[role="tablist"][data-type="filter"] > [role="tab"] > button {
+  height: 3.9rem;
+  border: none;
+}
+
+[role="tablist"][data-type="filter"].bottom  > [role="tab"] > a,
+[role="tablist"][data-type="filter"].bottom  > [role="tab"] > button {
+  top: calc(100% - 4rem);
+}
+
+[role="tablist"][data-type="filter"] > [role="tab"]:before,
+[role="tablist"][data-type="filter"] > [role="tab"]:target > a:after,
+[role="tablist"][data-type="filter"] > [role="tab"]:target > button:after {
+  display: none;
+}
+
+[role="tablist"][data-type="filter"] > [role="tab"] {
   color: #737272;
-  border-left: solid 0.1rem #b1b4b5;
+  text-align: center;
+  border-left: 0.1rem solid #b6b6b6;
+}
+
+[role="tablist"][data-type="filter"] > [role="tab"] > a,
+[role="tablist"][data-type="filter"] > [role="tab"] > button {
+  width: calc(100% - 1rem);
+  padding: 0 0.5rem;
+  color: #333333;
+  line-height: 3.9rem;
+  text-decoration: none;
+  text-overflow: ellipsis;
+  border-bottom: 0.1rem solid #b6b6b6;
+  background-color: #eee;
 }
 
 [role="tablist"][data-type="filter"] > [role="tab"]:first-child {
   border-left: none;
 }
 
-[role="tablist"][data-type="filter"] > [role="tab"] > a {
-  display: block;
-  padding: 0 0.5rem;
-  text-decoration: none;
-  color: #737272;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  background-color: transparent;
-  font-weight: normal;
-  font-size: 1.6rem;
-  line-height: 4rem;
-  width: auto;
-  float: none;
-}
-
 /* Selected state */
-[role="tablist"][data-type="filter"] > [role="tab"]:target,
-[role="tablist"][data-type="filter"] > [role="tab"][aria-selected="true"] {
-  background: #fff;
-}
-
 [role="tablist"][data-type="filter"] > [role="tab"]:target > a,
-[role="tablist"][data-type="filter"] > [role="tab"][aria-selected="true"] > a {
-  color: #000;
-  font-weight: 500;
+[role="tablist"][data-type="filter"] > [role="tab"]:target > button,
+[role="tablist"][data-type="filter"] > [role="tab"][aria-selected="true"] > a,
+[role="tablist"][data-type="filter"] > [role="tab"][aria-selected="true"] > button {
+  color: #000000;
+  background: #ffffff;
+  border-bottom-color: transparent;
 }
 
-[role="tablist"][data-type="filter"] > [role="tab"] > a:active {
-  background-color: #008aaa;
-  color: #fff;
+[role="tablist"][data-type="filter"] > [role="tab"][aria-selected="true"] > a:after,
+[role="tablist"][data-type="filter"] > [role="tab"][aria-selected="true"] > button:after {
+  display: none;
 }
 
-/* Bottom position */
-[role="tablist"][data-type="filter"].bottom {
-  bottom: 100%;
-  top: auto;
-  background: #eef2f5 url(tabs/images/ui/background-revert.png) repeat-x left top;
+[role="tablist"][data-type="filter"] > [role="tab"] > a:active,
+[role="tablist"][data-type="filter"] > [role="tab"] > button:active {
+  color: #ffffff;
+  background-color: #00aacc;
 }
 
-[role="tablist"][data-type="filter"].bottom > [role="tab"] > a {
-  height: auto;
+/* Skin Grey */
+[role="tablist"][data-type="filter"].skin-grey > [role="tab"] {
+  border-color: #a6a6a6;
 }
+
+[role="tablist"][data-type="filter"].skin-grey > [role="tab"] > a,
+[role="tablist"][data-type="filter"].skin-grey > [role="tab"] > button {
+  border-color: #a6a6a6;
+  background-color: #cdcdcd;
+}
+
+[role="tablist"][data-type="filter"].skin-grey > [role="tab"]:target > a,
+[role="tablist"][data-type="filter"].skin-grey > [role="tab"]:target > button,
+[role="tablist"][data-type="filter"].skin-grey > [role="tab"][aria-selected="true"] > a,
+[role="tablist"][data-type="filter"].skin-grey > [role="tab"][aria-selected="true"] > button {
+  border-bottom-color: #e7e7e7;
+  background-color: #e7e7e7;
+}
+
+[role="tablist"][data-type="filter"].skin-grey > [role="tab"] > a:active,
+[role="tablist"][data-type="filter"].skin-grey > [role="tab"] > button:active {
+  border-color: #00aacc;
+  background-color: #00aacc;
+}
+
+
+/* Position bottom */
+[role="tablist"][data-type="filter"].bottom > [role="tab"] > a,
+[role="tablist"][data-type="filter"].bottom > [role="tab"] > button {
+  border-top: 0.1rem solid #a6a6a6;
+  border-bottom: none;
+}
+
+[role="tablist"][data-type="filter"].bottom > [role="tab"]:target > a,
+[role="tablist"][data-type="filter"].bottom > [role="tab"]:target > button,
+[role="tablist"][data-type="filter"].bottom > [role="tab"][aria-selected="true"] > a,
+[role="tablist"][data-type="filter"].bottom > [role="tab"][aria-selected="true"] > button {
+  border-top-color: transparent;
+}
+
