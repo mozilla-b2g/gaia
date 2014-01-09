@@ -88,6 +88,8 @@ var MusicComms = {
     }
   },
 
+  enabled: false,
+
   init: function() {
     // The Media Remote Controls object will handle the remote commands.
     this.mrc = new MediaRemoteControls();
@@ -101,6 +103,8 @@ var MusicComms = {
       origin: window.location.origin,
       icon: window.location.origin + '/style/icons/Music_60.png'
     });
+
+    this.enabled = true;
   },
 
   _getPlayerReady: function(callback) {
@@ -122,10 +126,12 @@ var MusicComms = {
   },
 
   notifyMetadataChanged: function(metadata) {
-    this.mrc.notifyMetadataChanged(metadata);
+    if (this.enabled)
+      this.mrc.notifyMetadataChanged(metadata);
   },
 
   notifyStatusChanged: function(info) {
-    this.mrc.notifyStatusChanged(info);
+    if (this.enabled)
+      this.mrc.notifyStatusChanged(info);
   }
 };
