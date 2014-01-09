@@ -157,5 +157,5 @@ article[role="tab"] > .icon {
 }
 
 #contacts-view [role="tabpanel"] {
-  height: 100%;
+  height: calc(100% - 4.5rem);
 }
