@@ -1447,10 +1447,7 @@ RequestReader.prototype =
             if (!file || !file.exists() || !file.isFile()) {
               var applicationName = host.split(".")[0];
 
-              // We store things in /shared/ now.  Although there is magic in
-              // build/webapp-zip.js to handle this when DEBUG=0 and we are
-              // building packages apps, there is no provision for DEBUG=1 in
-              // the build system, so we must map things here.
+              // find the file path depending on the application name
               var filePath = this._findRealPath(applicationName);
               request._path = filePath + oldPath;
             }
@@ -1492,13 +1489,12 @@ RequestReader.prototype =
   },
 
   _findLocalizationPath: function() {
-    var request = this._metadata;
-    var oldPath = request.path;
+    var oldPath = this._metadata.path;
 
     // Handle localization files
     if (oldPath.indexOf(".properties") !== -1 &&
         oldPath.indexOf("en-US.properties") === -1) {
-      request._path = this._findPropertiesPath(request._path);
+      this._findPropertiesPath();
     }
   },
 
@@ -1529,38 +1525,50 @@ RequestReader.prototype =
   /**
    * Try finding the localization files in GAIA_LOCALES_PATH
    */
-  _findPropertiesPath: function(path) {
+  _findPropertiesPath: function() {
+    var request = this._metadata;
+    var path = request.path;
+
     // /apps/browser/locales/browser.fr.properties
-    // /apps/calendar/../../shared/locales/date/date.fr.properties
-    var parts = path.split("/");
-    var appDir = parts[1]; // apps, apps
-    var appName = parts[2]; // browser, calendar
-    var component = parts[3]; // locales, ..
+    // /apps/browser/shared/locales/date/date.fr.properties
 
     // browser.fr.properties, date/date.fr.properties
     var resource = path.split("/locales/")[1];
-    var resourceParts = resource.split(".");
-    var resourceName = resourceParts[0]; // browser
-    var localeCode = resourceParts[1]; // date/date
+    if (!resource) {
+      return;
+    }
 
-    var debugPath;
-    if (component === "locales") {
-      // /locales/fr/apps/browser/browser.properties
-      debugPath = ("/" + GAIA_LOCALES_PATH + "/" + localeCode + "/" + appDir +
-                   "/" + appName + "/" + resourceName + ".properties");
+    var resourceParts = resource.split(".");
+    if (!resourceParts.length) {
+      return;
+    }
+
+    var resourceName = resourceParts[0]; // browser, date/date
+    var localeCode = resourceParts[1]; // fr, fr
+
+    var debugPath = "/" + GAIA_LOCALES_PATH + "/" + localeCode;
+    if (path.contains('/shared/')) {
+      // /apps/browser/shared/locales/date/date.fr.properties
+      // -> /locales/fr/shared/date/date.properties
+      //
+      debugPath += "/shared/" + resourceName + ".properties";
+    } else if (path.startsWith('/apps/')) {
+      // /apps/browser/locales/browser.fr.properties
+      // -> /locales/fr/apps/browser/browser.properties
+      //
+      let appName = path.split("/")[2]; // browser
+      debugPath += "/apps/" + appName + "/" + resourceName + ".properties";
     } else {
-      // /locales/fr/shared/date/date.properties
-      debugPath = ("/" + GAIA_LOCALES_PATH + "/" + localeCode + "/shared" +
-                   "/" + resourceName + ".properties");
+      return;
     }
 
     dumpn("l10n: try loading " + debugPath + " instead of " + path);
 
     // check if the file at the new path exists
     var file = this._connection.server._handler._getFileForPath(debugPath);
-    if (file.exists() && file.isFile())
-      return debugPath;
-    return path;
+    if (file.exists() && file.isFile()) {
+      request._path = debugPath;
+    }
   },
 
   /**

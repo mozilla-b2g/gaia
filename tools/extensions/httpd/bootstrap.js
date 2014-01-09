@@ -49,43 +49,6 @@ function startup(data, reason) {
     dump(data + '\n');
   }
 
-  /**
-   * register properties file for localization to certain path if
-   * LOCALE_BASEDIR environment variable is available.
-   *
-   * @param  nsIFile      file     Properties file which to register to certain
-   *                               path. Note: this file may not exist so need
-   *                               to redirect it to file in LOCALE_BASEDIR.
-   * @param  Object       webapp   metadata for webapp, getPropertiesFile need
-   *                               this object to get correct properties file in
-   *                               LOCALE_BASEDIR
-   * @param  nsHttpServer server   server for registering file path
-   * @param  Boolean      isShared true if this file in shared folder and prefix
-   *                               will be added to path if this parameter is
-   *                               true.
-   */
-  function registerPropertiesFile(file, webapp, server, isShared) {
-    let matched = file.leafName.match(RE_EN_PROP)
-    let parent = webapp.sourceDirectoryFile.parent.leafName;
-    l10nManager.locales.forEach(function(lang) {
-      if (lang === 'en-US') {
-        return;
-      }
-      let propFilePath = utils.joinPath(file.parent.path,
-        matched[1] + '.' + lang + '.' + matched[2]);
-      let prefix = isShared ?
-        ('/' + parent + '/' + webapp.sourceDirectoryFile.leafName + '/../..') :
-        '';
-      let relativePath = prefix + propFilePath.substr(GAIA_DIR.length);
-      let propFile = l10nManager.getPropertiesFile(webapp, propFilePath);
-      if (propFile.exists()) {
-        server.registerFile(relativePath, propFile);
-      } else {
-        dump("properties file not found: " + propFile.path + "\n");
-      }
-    });
-  }
-
   function startupHttpd(baseDir, port) {
     const httpdURL = 'chrome://httpd.js/content/httpd.js';
     let httpd = {};
@@ -131,18 +94,7 @@ function startup(data, reason) {
       // Finding out which file we need to handle.
       appDirs.forEach(function(appDir) {
         let appDirFile = utils.getFile(appDir);
-        let parent = appDirFile.parent.leafName;
-        let webapp = {
-          buildDirectoryFile: appDirFile,
-          sourceDirectoryFile: appDirFile
-        };
         utils.ls(appDirFile, true).forEach(function(fileInApp) {
-          let matched = fileInApp.leafName.match(RE_EN_PROP)
-          if (matched) {
-            registerPropertiesFile(fileInApp, webapp, server);
-            return;
-          }
-
           let fname = fileInApp.leafName;
           // localized ini and manifest files will be generated in runtime
           // so we need handle path if client request those files.
@@ -157,31 +109,23 @@ function startup(data, reason) {
         // register all manifest, ini and properties files in shared folder for
         // each app.
         filesInShared.forEach(function(fileInShared) {
-          let matched = fileInShared.leafName.match(RE_EN_PROP);
-          if (matched) {
-            registerPropertiesFile(fileInShared, webapp, server, true);
-            return;
-          }
           let fname = fileInShared.leafName;
           if (fname.contains('.ini') || fname.contains('manifest.webapp')) {
             // we added '../..' for matching path which is processed in httpd.js
             // please reference _processHeaders in httpd.js
-            let relativePath = '/' + parent + '/' +
-              webapp.sourceDirectoryFile.leafName + '/../..' +
-              fileInShared.path.substr(GAIA_DIR.length);
+            let relativePath = fileInShared.path.substr(GAIA_DIR.length);
             server.registerPathHandler(relativePath, LocalizationHandler);
           }
         });
-        // languages.json
-        server.registerFile('/' + parent + '/' + appDirFile.leafName +
-          '/../../shared/resources/languages.json', localesFile);
       });
+
+      // languages.json
+      server.registerFile('/shared/resources/languages.json', localesFile);
+      server.registerDirectory('/locales/', new LocalFile(LOCALE_BASEDIR));
     }
 
 
     server.registerPathHandler('/marionette', MarionetteHandler);
-
-    new LocalFile(baseDir + '/test_apps/test-agent');
 
     server.registerDirectory(
       '/common/', new LocalFile(baseDir + '/test_apps/test-agent/common')
