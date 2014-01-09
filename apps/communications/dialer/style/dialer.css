@@ -68,19 +68,19 @@ body.hidden *[data-l10n-id] {
 
 /* Structure for toolbar*/
 
-.icon-recents:after {
-  background-image: url("images/recents.png") !important;
-  background-size: 3rem !important;
+.icon-recents {
+  background-image: url("images/recents.png");
+  background-size: 3rem;
 }
 
-.icon-contacts:after {
-  background-image: url("images/contacts.png") !important;
-  background-size: 3rem !important;
+.icon-contacts {
+  background-image: url("images/contacts.png");
+  background-size: 3rem;
 }
 
-.icon-keypad:after {
-  background-image: url("images/dialpad.png") !important;
-  background-size: 3rem !important;
+.icon-keypad {
+  background-image: url("images/dialpad.png");
+  background-size: 3rem;
 }
 
 .with-keyboard #views, .with-keyboard #contacts-view,
@@ -126,22 +126,36 @@ body.hidden *[data-l10n-id] {
 }
 
 /* For showing/hiding navbar */
+#views:before {
+  transform: translateX(0);
+  transition: 0.4s transform 0.4s;
+}
+
+#views.hide-toolbar:before {
+  transform: translateX(100%);
+}
+
+article[role="tab"]:before,
 article[role="tab"] > .icon {
   transform: translateY(0%);
   z-index: 2;
   transition: 0.5s transform 0.5s;
 }
 
+#views.hide-toolbar > article[role="tab"]:before,
 #views.hide-toolbar > article[role="tab"] > .icon {
   transform: translateY(100%);
   pointer-events: none;
 }
 
-#views [role="tabpanel"] {
-  transition: 1s height step-end;
+#views.hide-toolbar .view {
+  pointer-events: none;
 }
 
-#views.hide-toolbar [role="tabpanel"] {
+#views [role="tabpanel"] {
+  pointer-events: all;
+}
+
+#contacts-view [role="tabpanel"] {
   height: 100%;
-  transition: none;
 }
