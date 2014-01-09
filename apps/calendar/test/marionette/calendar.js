@@ -65,6 +65,7 @@ Calendar.HEADER_PATTERN = /^([JFMASOND][a-z]+\s){2}\d{4}$/;
 Calendar.Selector = Object.freeze({
   addEventButton: 'a[href="/event/add/"]',
   weekButton: 'a[href="/week/"]',
+  dayButton: 'a[href="/day/"]',
   hintSwipeToNavigate: '#hint-swipe-to-navigate',
   editEventForm: '#modify-event-view form',
   editEventAlarm: '#modify-event-view select[name="alarm[]"]',
