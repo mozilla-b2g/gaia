@@ -112,6 +112,16 @@ var vcf5 = 'BEGIN:VCARD\n' +
   'TEL;CELL:+72682252873\n' +
   'END:VCARD';
 
+var vcardUnicodeQuotedPrintable = 'BEGIN:VCARD\n' +
+  'VERSION:2.1\n' +
+  'N:Lastname;Firstname;;;\n' +
+  'FN:Firstname Lastname\n' +
+  'TEL;WORK:+4912345678901\n' +
+  'ORG;CHARSET=UTF-8;ENCODING=QUOTED-PRINTABLE:=46=72=65=75=6E=' +
+  '64=65=20=75=6E=64=20=46=C3=B6=72=64=65=72=65=72=20=54=\n' +
+  '=55=20=44=72=65=73=64=65=6E\n' +
+  'END:VCARD\n';
+
 if (!this.contacts) {
   this.contacts = null;
 }
@@ -481,6 +491,23 @@ suite('vCard parsing settings', function() {
           //assert.ok(contact.tel[1].type.indexOf('WORK') > -1)
           assert.strictEqual('HOME', contact.email[0].type[0]);
           assert.strictEqual('example@example.org', contact.email[0].value);
+          done();
+        };
+      });
+    });
+
+    test('- Multiline quoted string', function(done) {
+      var reader = new VCFReader(vcardUnicodeQuotedPrintable);
+      reader.onread = stub();
+      reader.onimported = stub();
+      reader.onerror = stub();
+
+      reader.process(function import_finish(total) {
+        assert.equal(1, total);
+        var req = navigator.mozContacts.find();
+        req.onsuccess = function(contacts) {
+          var contact = req.result[0];
+          assert.strictEqual('Freunde und Förderer TU Dresden', contact.org[0]);
           done();
         };
       });

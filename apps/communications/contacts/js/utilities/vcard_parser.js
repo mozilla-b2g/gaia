@@ -506,7 +506,7 @@ var VCFReader = (function _VCFReader() {
 
       // Ignore beginning whitespace that indicates multiline field.
       if (multiline === true) {
-        if (ch === ' ' || ch === '\t') {
+        if (ch === ' ' || ch === '\t' || ch === '\r' || ch === '\n') {
           continue;
         } else {
           //currentLine += '\n'
@@ -518,6 +518,7 @@ var VCFReader = (function _VCFReader() {
       if (inLabel || (ch !== '\n' && ch !== '\r')) {
         // If we have a quoted-printable sign for multiline (/=\n/), ignore it.
         if (ch === '=' && next && next.search(/(\r|\n)/) !== -1) {
+          multiline = true;
           continue;
         }
 
@@ -550,6 +551,8 @@ var VCFReader = (function _VCFReader() {
           _parseEntries(cardArray, callPost);
           break;
         }
+
+        currentLine = '';
 
         cardArray.push([]);
 
