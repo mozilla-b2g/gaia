@@ -19,6 +19,10 @@
   border-bottom: 0.1rem solid #D0D0D0;
 }
 
+.day-events > .hour:last-child {
+  border-bottom: none !important;
+}
+
 .day-events > .hour.hour-allday {
   min-height: 6rem;
   height: auto;
@@ -129,7 +133,7 @@
 /* months day view */
 
 #months-day-view .day-events {
-  height: 100%;
+  height: calc(100% - 4.6rem);
   overflow-x: hidden;
   overflow-y: auto;
   will-change: scroll-position;
@@ -138,11 +142,11 @@
 /* day view */
 
 #day-view > section {
-  top: 4.9rem;
-  overflow: hidden;
-  height: calc(100% - 6.9rem);
   position: absolute;
+  top: 0;
   width: 100%;
+  height: 100%;
+  overflow: hidden;
   display: none;
 }
 
@@ -157,7 +161,7 @@
 #day-view .day-events {
   overflow-y: scroll;
   overflow-x: hidden;
-  height: calc(100% - 7.9rem);
+  height: calc(100% - 6rem);
   will-change: scroll-position;
 }
 
