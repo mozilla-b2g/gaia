@@ -29,7 +29,9 @@ class Wifi(Base):
                                 message="No networks listed on screen")
 
         this_network_locator = ('xpath', "//li/a[text()='%s']" % network_info['ssid'])
-        self.marionette.find_element(*this_network_locator).tap()
+        this_network = self.marionette.find_element(*this_network_locator)
+        self.marionette.execute_script("arguments[0].scrollIntoView(false);", [this_network])
+        this_network.tap()
 
         if network_info.get('keyManagement'):
             password = network_info.get('psk') or network_info.get('wep')
