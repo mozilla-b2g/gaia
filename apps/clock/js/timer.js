@@ -28,7 +28,7 @@ function Timer(opts) {
   Emitter.call(this);
 
   var now = Date.now();
-  if (typeof opts.id !== 'undefined') {
+  if (opts.id !== undefined) {
     delete opts.id;
   }
   // private properties
