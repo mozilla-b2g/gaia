@@ -254,7 +254,7 @@ contacts.List = (function() {
   }; // searchSource
 
   var initSearch = function initSearch(callback) {
-    contacts.Search.init(searchSource, true);
+    contacts.Search.init(searchSource, true, selectNavigationController);
 
     if (callback) {
       callback();

@@ -30,7 +30,8 @@ contacts.Search = (function() {
       remainingPending = true,
       imgLoader,
       searchEnabled = false,
-      source = null;
+      source = null,
+      navigationController = null;
 
   // The _source argument should be an adapter object that provides access
   // to the contact nodes in the app.  This is done by defining the following
@@ -43,7 +44,7 @@ contacts.Search = (function() {
   //    getNodeById(id)       Get the node matching the given ID, or null
   //    getSearchText(node)   Get the search text from the given node
   //    click(event)          Click event handler to use
-  var init = function load(_source, defaultEnabled) {
+  var init = function load(_source, defaultEnabled, navigation) {
 
     searchView = document.getElementById('search-view');
     searchList = document.getElementById('search-list');
@@ -57,6 +58,9 @@ contacts.Search = (function() {
       searchList.addEventListener('click', source.click);
 
     searchEnabled = !!defaultEnabled;
+
+    navigationController = navigation ||
+      (window.Contacts && Contacts.navigation);
   };
 
   var initialized = false;
@@ -119,8 +123,8 @@ contacts.Search = (function() {
   var exitSearchMode = function exitSearchMode(evt) {
     evt.preventDefault();
     searchView.classList.remove('insearchmode');
-    if (window.Contacts && Contacts.navigation) {
-      Contacts.navigation.back();
+    if (navigationController) {
+      navigationController.back();
     }
 
     window.setTimeout(function exit_search() {
@@ -241,8 +245,8 @@ contacts.Search = (function() {
       fillInitialSearchPage();
       inSearchMode = true;
       emptySearch = true;
-      if (window.Contacts && Contacts.navigation) {
-        Contacts.navigation.go('search-view', 'none');
+      if (navigationController) {
+        navigationController.go('search-view', 'none');
       }
 
       setTimeout(function nextTick() {
