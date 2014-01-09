@@ -28,9 +28,10 @@
 
       setTimeout(function nextTick() {
         eme.port.postMessage({
-          method: eme.API.SUGGEST,
-          input: input,
-          type: type
+          method: 'suggest',
+          options: {
+            'query': input
+          }
         });
       }.bind(this));
     },

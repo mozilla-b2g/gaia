@@ -1,24 +1,86 @@
 (function() {
   'use strict';
 
+  var APPS_LIMIT = 10;
+
   var iconFormat = Evme.Utils.getIconsFormat();
 
-  // number of results to return
-  var NUM_RESULTS = 16;
+  function SearchConfig(config) {
+    var _config = {
+      'exact': true,
+      'feature': 'rtrn',
+      'first': 0,
+      'iconFormat': iconFormat,
+      'limit': APPS_LIMIT,
+      'maxNativeSuggestions': 0,
+      'nativeSuggestions': false,
+      'prevQuery': '',
+      'query': '',
+      'spellcheck': false,
+      'suggest': false
+    };
 
-  // number of suggestions to return
-  var NUM_SUGGESTIONS = 4;
+    for (var key in config) {
+      if (config.hasOwnProperty(key)) {
+        _config[key] = config[key];
+      }
+    }
 
-  function SearchClient() {
+    return _config;
+  }
+
+  function SuggestConfig(config) {
+    var _config = {
+      'query': '',
+      'limit': 10
+    };
+
+    for (var key in config) {
+      if (config.hasOwnProperty(key)) {
+        _config[key] = config[key];
+      }
+    }
+
+    return _config;
+  }
+
+  function EvmeClient() {
+    this.prevQuery = '';
+
+    // paging index
+    this.page = 0;
+  }
+
+  EvmeClient.prototype = {
+
+    getApps: function getApps(options) {
+      // reset paging
+      this.page = 0;
+
+      return this.search(options);
+    },
+
+    getMoreApps: function getMoreApps(options) {
+      // increment paging
+      this.first = options.first = this.first + APPS_LIMIT;
+
+      return this.search(options);
+    },
+
 
     // Search/apps
-    this.search = function search(options) {
+    search: function search(options) {
+      var query = options.query;
+
+      var config = new SearchConfig({
+        'query': query,
+        'prevQuery': this.prevQuery
+      });
+
+      this.prevQuery = query;
 
       var searchPromise = new window.Promise(function done(resolve, reject) {
-        Evme.DoATAPI.search({
-          'query': options.query,
-          'limit': NUM_RESULTS
-        }, function success(apiData) {
+        Evme.DoATAPI.search(config, function success(apiData) {
           var response = apiData.response;
           var query = response.query;
           var apps = response.apps;
@@ -47,13 +109,13 @@
               function resolve(result) {
                 addResult(result);
                 if (--pending === 0) {
-                  getMissingIcons();
+                  getMissingIcons.bind(this)();
                 }
               },
               function reject(result) {
                 resultsMissing.push(result);
                 if (--pending === 0) {
-                  getMissingIcons();
+                  getMissingIcons.bind(this)();
                 }
               });
           });
@@ -73,7 +135,7 @@
               return;
             }
 
-            Evme.SearchClient.requestIcons(ids).then(
+            this.requestIcons(ids).then(
               function resolve(icons) {
                 resultsMissing.forEach(function addIcon(resultMissing) {
                   resultMissing.setIconData(icons[resultMissing.appId]);
@@ -92,17 +154,15 @@
 
       return searchPromise;
 
-    };
+    },
 
     // Search/suggestions
-    this.suggestions = function suggestions(options) {
+    getSuggestions: function getSuggestions(options) {
+      var config = new SuggestConfig(options);
       var query = options.query;
 
       var suggestPromise = new window.Promise(function done(resolve, reject) {
-        Evme.DoATAPI.suggestions({
-          'query': query,
-          'limit': NUM_SUGGESTIONS
-        }, function success(data) {
+        Evme.DoATAPI.suggestions(config, function success(data) {
           var items = data.response || [];
           if (items.length) {
             var suggestions = items.map(function each(item) {
@@ -117,10 +177,10 @@
       });
 
       return suggestPromise;
-    };
+    },
 
     // App/icons
-    this.requestIcons = function requestIcons(ids) {
+    requestIcons: function requestIcons(ids) {
       var iconsPromise = new window.Promise(function done(resolve, reject) {
         Evme.DoATAPI.icons({
           'ids': ids.join(','),
@@ -137,11 +197,11 @@
       });
 
       return iconsPromise;
-    };
+    }
 
 
-  } // SearchClient
+  }; // prototype
 
-  Evme.SearchClient = new SearchClient();
+  Evme.Client = EvmeClient;
 
 })();

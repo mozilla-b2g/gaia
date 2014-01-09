@@ -1,13 +1,7 @@
 (function() {
   'use strict';
 
-  var API_METHODS = {
-    SEARCH: 'search',
-    SUGGEST: 'suggest'
-  };
-
   window.eme = {
-    API: API_METHODS,
     port: null,
 
     openPort: function openPort() {

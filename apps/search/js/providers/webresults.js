@@ -27,9 +27,21 @@
 
       setTimeout(function nextTick() {
         eme.port.postMessage({
-          method: eme.API.SEARCH,
-          input: input,
-          type: type
+          method: 'search',
+          options: {
+            'query': input
+          }
+        });
+      }.bind(this));
+    },
+
+    more: function(input) {
+      setTimeout(function nextTick() {
+        eme.port.postMessage({
+          method: 'more',
+          options: {
+            'query': input
+          }
         });
       }.bind(this));
     },

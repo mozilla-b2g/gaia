@@ -3,26 +3,32 @@
 
   function SearchHandler() {
     var searchPort = null;
+    var client = new Evme.Client();
 
     this.onMessage = ensurePort;
 
     function handleMessage(msg) {
-      var query = msg.data.input;
       var method = msg.data.method;
+      var options = msg.data.options;
 
       switch (method) {
         case 'search':
-          Evme.SearchClient.search({
-            'query': query
-          }).then(function resolve(searchResults) {
+          client.getApps(options).then(
+            function resolve(searchResults) {
             searchPort.postMessage({ 'results': searchResults });
           });
           break;
 
+        case 'more':
+          client.getMoreApps(options).then(
+            function resolve(searchResults) {
+            searchPort.postMessage({ 'more': searchResults });
+          });
+          break;
+
         case 'suggest':
-          Evme.SearchClient.suggestions({
-            'query': query
-          }).then(function resolve(searchSuggestions) {
+          client.getSuggestions(options).then(
+            function resolve(searchSuggestions) {
             searchPort.postMessage({ 'suggestions': searchSuggestions });
           });
           break;
