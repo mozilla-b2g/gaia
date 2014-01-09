@@ -117,7 +117,7 @@ function execute(config) {
   settings['debugger.remote-mode'] = config.REMOTE_DEBUGGER ? 'adb-only'
                                                             : 'disabled';
   if (config.DEVICE_DEBUG) {
-    settings['devtools.debugger.remote-enabled'] = true;
+    settings['debugger.remote-mode'] = 'adb-only';
     settings['screen.timeout'] = 0;
     settings['lockscreen.enabled'] = false;
     settings['lockscreen.locked'] = false;
