@@ -108,7 +108,7 @@
 
       // Most of them need to be initialized later.
       touch: {
-        direction: '',
+        id: '',
         touched: false,
         initX: -1,
         pageX: -1,
@@ -208,11 +208,12 @@
 
         case 'touchstart':
             if (evt.target === this.area) {
+              this.states.touch.id = evt.touches[0].identifier;
               this._onSlideBegin(this._dpx(evt.touches[0].pageX));
+              window.addEventListener('touchend', this);
+              window.addEventListener('touchmove', this);
             }
             evt.preventDefault();
-            window.addEventListener('touchend', this);
-            window.addEventListener('touchmove', this);
           break;
 
         case 'touchmove':
@@ -227,13 +228,14 @@
           break;
 
         case 'touchend':
+          if (evt.changedTouches[0].identifier !== this.states.touch.id)
+            return;
           window.removeEventListener('touchmove', this);
           window.removeEventListener('touchend', this);
 
-          if (this.states.sliding) {
-            this._onSlideEnd();
-          }
-
+          this.states.sliding = false;
+          this._onSlideEnd();
+          this._resetTouchStates();
           this.overlay.classList.remove('touched');
           break;
       }
