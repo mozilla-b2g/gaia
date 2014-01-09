@@ -277,9 +277,12 @@ var SimPinDialog = {
     }
   },
 
-  requestClose: function spl_requestClose() {
+  requestClose: function spl_requestClose(reason) {
     window.dispatchEvent(new CustomEvent('simpinrequestclose', {
-      detail: this
+      detail: {
+        dialog: this,
+        reason: reason
+      }
     }));
   },
 
