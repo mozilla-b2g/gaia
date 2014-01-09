@@ -229,6 +229,7 @@ var KeypadManager = {
     var number = this._phoneNumber;
     if (!number)
       return;
+
     if(this.callBarAddContact.classList.contains('disabled'))
       return;
     LazyLoader.load(['/dialer/js/phone_action_menu.js'],
