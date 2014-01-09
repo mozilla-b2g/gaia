@@ -142,13 +142,11 @@
 
     // Small hack to get the URL object to parse the URI correctly.
     var url = new URL(uri.replace('about:', 'http://'));
-
-    // Set the error attributes.
-    ['e', 'u', 'm', 'c', 'd'].forEach(
-      function(v) {
-        error[v] = url.searchParams.get(v);
-      }
-    );
+    // Remove the leading '?' in the search string and set the error attributes.
+    url.search.slice(1).split('&').forEach(function(v) {
+      v = v.split('=');
+      error[v[0]] = v[1];
+    });
 
     return error;
   }
