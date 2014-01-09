@@ -181,7 +181,12 @@ var CostControlApp = (function() {
           return;
         }
         costcontrol = instance;
-        setupApp(callback);
+        if (!initialized) {
+          setupApp(callback);
+        } else {
+          loadSettings();
+          updateUI(callback);
+        }
       });
     }, _onNoICCID);
   }
@@ -191,27 +196,6 @@ var CostControlApp = (function() {
     isApplicationLocalized = true;
     if (initialized) {
       updateUI();
-    }
-  });
-
-  window.addEventListener('message', function handler_finished(e) {
-    if (e.origin !== Common.COST_CONTROL_APP) {
-      return;
-    }
-
-    var type = e.data.type;
-
-    if (type === 'fte_finished') {
-      window.removeEventListener('message', handler_finished);
-
-      document.getElementById('splash_section').
-        setAttribute('aria-hidden', 'true');
-
-      // Only hide the FTE view when everything in the UI is ready
-      startApp(function() {
-        document.getElementById('fte_view').classList.add('non-ready');
-        document.getElementById('fte_view').src = '';
-      });
     }
   });
 
@@ -281,7 +265,7 @@ var CostControlApp = (function() {
 
     // Refresh UI when the user changes the SIM for data connections
     SettingsListener.observe('ril.data.defaultServiceId', 0, function() {
-      Common.loadDataSIMIccId(updateUI);
+      Common.loadDataSIMIccId(startApp);
     });
 
     initialized = true;
@@ -377,6 +361,27 @@ var CostControlApp = (function() {
   }
 
   function startFTE() {
+    window.addEventListener('message', function handler_finished(e) {
+      if (e.origin !== Common.COST_CONTROL_APP) {
+        return;
+      }
+
+      var type = e.data.type;
+
+      if (type === 'fte_finished') {
+        window.removeEventListener('message', handler_finished);
+
+        document.getElementById('splash_section').
+          setAttribute('aria-hidden', 'true');
+
+        // Only hide the FTE view when everything in the UI is ready
+        startApp(function() {
+          document.getElementById('fte_view').classList.add('non-ready');
+          document.getElementById('fte_view').src = '';
+        });
+      }
+    });
+
     var mode = ConfigManager.getApplicationMode();
     Common.startFTE(mode);
   }
