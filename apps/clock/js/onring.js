@@ -107,13 +107,13 @@ RingView.prototype.alarm = function rv_alarm(ev, wakelock) {
     this.snoozeButton.removeEventListener('click', this);
     this.closeButton.removeEventListener('click', this);
     this.notificationOptions = {};
-    document.querySelector('.ring-display').classList.add('hidden');
   }.bind(this));
 
   isVisibleWorkaround.call(this, function() {
     mozL10n.ready(function rv_waitLocalized() {
       this.startNotify();
-      document.querySelector('.ring-display').classList.remove('hidden');
+      document.querySelector('.ring-display')
+        .setAttribute('data-ring-type', 'alarm');
       wakelock();
     }.bind(this));
   }.bind(this));
@@ -136,16 +136,14 @@ RingView.prototype.timer = function rv_timer(ev, wakelock) {
       type: 'close-' + this.type
     }, window.location.origin);
     this.type = null;
-    this.snoozeButton.classList.remove('hidden');
-    this.closeButton.classList.remove('wide-button');
     this.closeButton.removeEventListener('click', this);
     this.notificationOptions = {};
-    document.querySelector('.ring-display').classList.add('hidden');
   }.bind(this));
 
   isVisibleWorkaround.call(this, function() {
     this.startNotify();
-    document.querySelector('.ring-display').classList.remove('hidden');
+    document.querySelector('.ring-display')
+      .setAttribute('data-ring-type', 'alarm');
     wakelock();
   }.bind(this));
 };
