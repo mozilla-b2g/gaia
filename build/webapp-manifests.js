@@ -120,36 +120,6 @@ function fillCommsAppManifest(webapp, webappTargetDir) {
   utils.writeContent(file, JSON.stringify.apply(JSON, args));
 }
 
-/**
- * Updates hostnames for InterApp Communication APIs
- */
-function manifestInterAppHostnames(webapp, webappTargetDir) {
-  function convertToLocalUrl(url) {
-    var host = config.GAIA_DOMAIN + config.GAIA_PORT;
-
-    return url
-      .replace(/^(http|app):\/\//, config.GAIA_SCHEME)
-      .replace(/gaiamobile.org(:[0-9])?/, host);
-  }
-
-  let manifest = utils.getJSON(webapp.manifestFile);
-  if (manifest.connections) {
-    for (let i in manifest.connections) {
-      let connection = manifest.connections[i];
-      if (!connection.rules || !connection.rules.manifestURLs) {
-        continue;
-      }
-
-      var manifestURLs = connection.rules.manifestURLs;
-      manifestURLs.forEach(function(url, idx) {
-        manifestURLs[idx] = convertToLocalUrl(url);
-      });
-    }
-    utils.writeContent(utils.getFile(webappTargetDir.path, 'manifest.webapp'),
-                       JSON.stringify(manifest));
-  }
-}
-
 function fillAppManifest(webapp) {
   // Compute webapp folder name in profile
   let webappTargetDirName = webapp.domain;
@@ -180,8 +150,6 @@ function fillAppManifest(webapp) {
     utils.writeContent(utils.getFile(webappTargetDir.path, 'manifest.webapp'),
                        JSON.stringify(kbdManifest));
   }
-
-  manifestInterAppHostnames(webapp, webappTargetDir);
 
   // Add webapp's entry to the webapps global manifest.
   // appStatus == 3 means this is a certified app.
