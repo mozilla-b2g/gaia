@@ -1,9 +1,16 @@
+'use strict';
+
 var ContactsSIMExport = function ContactsSIMExport(icc) {
 
   var contacts;
   var progressStep;
-  var exported = [];
-  var notExported = [];
+  var exported;
+  var notExported;
+
+  var ERRORS = {
+    'NoFreeRecordFound': false,
+    'CannotAccessPhoneBook': true
+  };
 
   var setContactsToExport = function setContactsToExport(cts) {
     contacts = cts;
@@ -25,25 +32,20 @@ var ContactsSIMExport = function ContactsSIMExport(icc) {
     if (typeof finishCallback !== 'function') {
       throw new Error('SIM export requires a callback function');
     }
+
+    exported = [];
+    notExported = [];
+
     // We should control this state before doing the export
     // but a second check is healthy
     if (!icc) {
       finishCallback({
-        'reason': 'unavailable'
-      }, 0, 'No SIM detected');
+        'reason': 'Unavailable'
+      }, 0, false);
       return;
     }
-    // Cover the whole process under a try/catch to
-    // prevent inconsistent states caused by unexpected
-    // errors and return back the control to the
-    // generic exporter
-    try {
-      _doExport(0, finishCallback);
-    } catch (e) {
-      finishCallback({
-        'reason': e.name
-      }, exported.length, e.message);
-    }
+
+    _doExport(0, finishCallback);
   };
 
   // Returns the iccContactId to be used for exporting this contact
@@ -103,7 +105,7 @@ var ContactsSIMExport = function ContactsSIMExport(icc) {
 
   var _doExport = function _doExport(step, finishCallback) {
     if (step == contacts.length) {
-      finishCallback(null, exported.length, null);
+      finishCallback(null, exported.length);
       return;
     }
 
@@ -146,11 +148,24 @@ var ContactsSIMExport = function ContactsSIMExport(icc) {
           next(true, theContact);
       });
     };
-    request.onerror = function onerror(e) {
-      // Don't send an error, just continue
-      next(false, theContact);
-    };
 
+    request.onerror = function onerror(e) {
+      var error = e.target.error;
+      window.console.error('Error while exporting: ', originalContactId,
+                           error.name);
+
+      var errorName = typeof ERRORS[error.name] === 'boolean' ?
+                                                  error.name : 'GenericError';
+
+      if (errorName !== 'GenericError') {
+        finishCallback({
+          'reason': errorName
+        }, exported.length, ERRORS[error.name]);
+      }
+      else {
+        next(false, theContact);
+      }
+    };
   };
 
   return {
