@@ -153,11 +153,6 @@ Timer.Panel.prototype.dialog = function(opts = { isVisible: true }) {
   return this;
 };
 
-Timer.Panel.prototype.elapsed = function() {
-  // display the "elapsed time since notification" screen
-  return this;
-};
-
 Timer.Panel.prototype.tick = function() {
   if (!this.timer || this.timer.remaining <= 0) {
     return;
