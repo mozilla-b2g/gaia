@@ -5,7 +5,7 @@ suite('Timer', function() {
   suiteSetup(function(done) {
     loadBodyHTML('/index.html');
 
-    testRequire(['timer'], { mocks: [] }, function(timer) {
+    testRequire(['timer'], function(timer) {
       Timer = timer;
       done();
     });
@@ -88,5 +88,30 @@ suite('Timer', function() {
 
     timer.cancel();
     assert.equal(timer.state, Timer.INITIAL);
+  });
+
+  suite('Timer.remaining ', function() {
+    test('Initial time', function() {
+      var timer = getTimer();
+      timer.configuredDuration = 7200;
+      assert.equal(timer.remaining, 7200,
+        'Expected remaining time to equal configured time.');
+    });
+    test('Paused time', function() {
+      var timer = getTimer();
+      timer.start();
+      this.clock.tick(200);
+      timer.pause();
+      this.clock.tick(200);
+      assert.equal(timer.remaining, 4800,
+        'Expected paused time to be 4.8 seconds');
+    });
+    test('Started time', function() {
+      var timer = getTimer();
+      timer.start();
+      this.clock.tick(300);
+      assert.equal(timer.remaining, 4700,
+        'Expected started time to be 4.7 seconds');
+    });
   });
 });
