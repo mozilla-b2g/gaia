@@ -1,72 +1,12 @@
 var exec = require('child_process').exec;
 var assert = require('chai').assert;
 var rmrf = require('rimraf').sync;
-var download = require('download');
-var async = require('async');
 var fs = require('fs');
 var path = require('path');
 var vm = require('vm');
 var AdmZip = require('adm-zip');
 var dive = require('dive');
-
-function getPrefsSandbox() {
-  var sandbox = {
-    prefs: {},
-    userPrefs: {},
-
-    user_pref: function(key, value) {
-      sandbox.userPrefs[key] = value;
-    },
-
-    pref: function(key, value) {
-      sandbox.prefs[key] = value;
-    }
-  };
-  return sandbox;
-}
-
-function checkError(error, stdout, stderr) {
-  if (error) {
-    console.log('stdout: ' + stdout);
-    console.log('stderr: ' + stderr);
-    console.log('error: ' + error);
-  }
-  assert.equal(error, null);
-}
-
-function checkSettings(settings, expectedSettings) {
-  Object.keys(expectedSettings).forEach(function(key) {
-    assert.isDefined(settings[key], 'key ' + key + ' is defined');
-    assert.deepEqual(expectedSettings[key], settings[key],
-      'value of settings key ' + key + ' equal ' + expectedSettings[key]);
-  });
-}
-
-function checkPrefs(actual, expected) {
-  Object.keys(expected).forEach(function(key) {
-    assert.isDefined(actual[key], 'key ' + key + ' is defined');
-    assert.deepEqual(actual[key], expected[key], 'value of settings key ' +
-      key + ' equal ' + expected[key]);
-  });
-}
-
-function checkWebappsScheme(webapps) {
-  Object.keys(webapps).forEach(function(key) {
-    var webapp = webapps[key];
-    var scheme =
-      webapp.origin.indexOf('mochi.test') !== -1 ||
-      webapp.origin.indexOf('marketplace.allizom.org') !== -1 ?
-      'http' : 'app';
-    assert.equal(webapp.origin.indexOf(scheme), 0);
-  });
-}
-
-function checkFileInZip(zipPath, pathInZip, expectedPath) {
-  var expected = fs.readFileSync(expectedPath);
-  var zip = new AdmZip(zipPath);
-  var actual = zip.readFile(zip.getEntry(pathInZip));
-  assert.deepEqual(actual, expected);
-}
+var helper = require('./helper');
 
 suite('Build Integration tests', function() {
   var localesDir = 'tmplocales';
@@ -79,7 +19,7 @@ suite('Build Integration tests', function() {
 
   test('make without rule & variable', function(done) {
     exec('make', function(error, stdout, stderr) {
-      checkError(error, stdout, stderr);
+      helper.checkError(error, stdout, stderr);
 
       // expected values for prefs and user_prefs
       var expectedUserPrefs = {
@@ -147,17 +87,17 @@ suite('Build Integration tests', function() {
         path.join('profile', 'user.js'),
         { encoding: 'utf8' }
       );
-      var sandbox = getPrefsSandbox();
+      var sandbox = helper.getPrefsSandbox();
       vm.runInNewContext(userjs, sandbox);
 
       var webapps = JSON.parse(fs.readFileSync(path.join(process.cwd(),
         'profile', 'webapps', 'webapps.json')));
 
-      checkSettings(settings, commonSettings);
-      checkPrefs(sandbox.userPrefs, expectedUserPrefs);
-      checkPrefs(sandbox.prefs, expectedPrefs);
-      checkWebappsScheme(webapps);
-      checkFileInZip(zipPath, pathInZip, expectedBrandingPath);
+      helper.checkSettings(settings, commonSettings);
+      helper.checkPrefs(sandbox.userPrefs, expectedUserPrefs);
+      helper.checkPrefs(sandbox.prefs, expectedPrefs);
+      helper.checkWebappsScheme(webapps);
+      helper.checkFileInZip(zipPath, pathInZip, expectedBrandingPath);
 
       done();
     });
@@ -165,7 +105,7 @@ suite('Build Integration tests', function() {
 
   test('make with PRODUCTION=1', function(done) {
     exec('PRODUCTION=1 make', function(error, stdout, stderr) {
-      checkError(error, stdout, stderr);
+      helper.checkError(error, stdout, stderr);
 
       var settingsPath = path.join(process.cwd(), 'profile', 'settings.json');
       var settings = JSON.parse(fs.readFileSync(settingsPath));
@@ -176,10 +116,10 @@ suite('Build Integration tests', function() {
         path.join('profile', 'user.js'),
         { encoding: 'utf8' }
       );
-      var sandbox = getPrefsSandbox();
+      var sandbox = helper.getPrefsSandbox();
       vm.runInNewContext(userjs, sandbox);
 
-      checkSettings(settings, expectedSettings);
+      helper.checkSettings(settings, expectedSettings);
       assert.isUndefined(sandbox.prefs['dom.payment.skipHTTPSCheck']);
       done();
     });
@@ -187,7 +127,7 @@ suite('Build Integration tests', function() {
 
   test('make with SIMULATOR=1', function(done) {
     exec('SIMULATOR=1 make', function(error, stdout, stderr) {
-      checkError(error, stdout, stderr);
+      helper.checkError(error, stdout, stderr);
 
       var settingsPath = path.join(process.cwd(), 'profile-debug',
         'settings.json');
@@ -253,18 +193,18 @@ suite('Build Integration tests', function() {
         path.join('profile-debug', 'user.js'),
         { encoding: 'utf8' }
       );
-      var sandbox = getPrefsSandbox();
+      var sandbox = helper.getPrefsSandbox();
       vm.runInNewContext(userjs, sandbox);
 
-      checkSettings(settings, expectedSettings);
-      checkPrefs(sandbox.userPrefs, expectedUserPrefs);
+      helper.checkSettings(settings, expectedSettings);
+      helper.checkPrefs(sandbox.userPrefs, expectedUserPrefs);
       done();
     });
   });
 
   test('make with DEBUG=1', function(done) {
     exec('DEBUG=1 make', function(error, stdout, stderr) {
-      checkError(error, stdout, stderr);
+      helper.checkError(error, stdout, stderr);
 
       var installedExtsPath = path.join('profile-debug',
         'installed-extensions.json');
@@ -348,7 +288,7 @@ suite('Build Integration tests', function() {
         path.join('profile-debug', 'user.js'),
         { encoding: 'utf8' }
       );
-      var sandbox = getPrefsSandbox();
+      var sandbox = helper.getPrefsSandbox();
       vm.runInNewContext(userjs, sandbox);
 
       var zipCount = 0;
@@ -360,8 +300,8 @@ suite('Build Integration tests', function() {
         },
         function complete() {
           assert.ok(fs.existsSync(installedExtsPath));
-          checkSettings(settings, expectedSettings);
-          checkPrefs(sandbox.userPrefs, expectedUserPrefs);
+          helper.checkSettings(settings, expectedSettings);
+          helper.checkPrefs(sandbox.userPrefs, expectedUserPrefs);
           // only expect one zip file for marketplace.
           assert.equal(zipCount, 1);
           done();
@@ -372,7 +312,7 @@ suite('Build Integration tests', function() {
 
   test('make with MOZILLA_OFFICIAL=1', function(done) {
     exec('MOZILLA_OFFICIAL=1 make', function(error, stdout, stderr) {
-      checkError(error, stdout, stderr);
+      helper.checkError(error, stdout, stderr);
 
       // path in zip for unofficial branding
       var pathInZip = 'shared/resources/branding/initlogo.png';
@@ -382,7 +322,7 @@ suite('Build Integration tests', function() {
       var expectedBrandingPath = path.join(process.cwd(),
         'shared', 'resources', 'branding', 'official', 'initlogo.png');
 
-      checkFileInZip(zipPath, pathInZip, expectedBrandingPath);
+      helper.checkFileInZip(zipPath, pathInZip, expectedBrandingPath);
       done();
     });
   });
@@ -390,7 +330,7 @@ suite('Build Integration tests', function() {
   test('make with GAIA_DISTRIBUTION_DIR=distribution_tablet', function(done) {
     exec('GAIA_DISTRIBUTION_DIR=distribution_tablet make',
       function(error, stdout, stderr) {
-        checkError(error, stdout, stderr);
+        helper.checkError(error, stdout, stderr);
 
         var hsZip = new AdmZip(path.join(process.cwd(), 'profile',
           'webapps', 'homescreen.gaiamobile.org', 'application.zip'));
@@ -401,54 +341,12 @@ suite('Build Integration tests', function() {
           'wap.push.enabled': false
         };
 
-        checkSettings(settings, expectedSettings);
+        helper.checkSettings(settings, expectedSettings);
         assert.equal(hsInit['search_page'].enabled, false);
         assert.equal(hsInit.swipe.threshold, 0.25);
         done();
       }
     );
-  });
-
-  test('make with l10n configuration', function(done) {
-    var locales = ['en-US', 'zh-CN'];
-    var localesFileObj = {};
-    var zipPath = path.join(process.cwd(), 'profile', 'webapps',
-      'system.gaiamobile.org', 'application.zip');
-    var pathInZip = 'locales-obj/zh-CN.json';
-    var tasks = [];
-    var tasks = locales.map(function(locale) {
-      localesFileObj[locale] = '';
-      return function (callback) {
-        var dir = path.join(localesDir, locale);
-        fs.mkdirSync(dir);
-        var url = 'http://hg.mozilla.org/gaia-l10n/' + locale +
-          '/archive/tip.tar.gz';
-        var dl = download(url, dir, {extract: true, strip: 1});
-        dl.once('close', function() {
-          callback();
-        });
-      };
-    });
-
-    tasks.push(function(callback) {
-      localesFilePath = path.join(localesDir, 'languages.json');
-      fs.writeFileSync(localesFilePath, JSON.stringify(localesFileObj));
-      command = 'LOCALES_FILE=' + localesFilePath +
-        ' LOCALE_BASEDIR=' + localesDir +
-        ' make';
-      exec(command, function(error, stdout, stderr) {
-        checkError(error, stdout, stderr);
-
-        var zip = new AdmZip(zipPath);
-        assert.isNotNull(zip.getEntry(pathInZip));
-        callback();
-      });
-    });
-    fs.mkdirSync(localesDir);
-    async.series(tasks, function() {
-      rmrf(localesDir);
-      done();
-    });
   });
 
   teardown(function() {
