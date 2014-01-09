@@ -302,7 +302,12 @@ Utils.safeWakeLock = function(opts, fn) {
      *
      * @param {Object} options - an object containing
      *                 [type] {string} a string passed to requestWakeLock
-     *                                default = 'cpu'.
+     *                                 default = 'cpu'. This string can be any
+     *                                 resource exposed by the environment that
+     *                                 this application was designed to run in.
+     *                                 Gaia exposes three of them: 'cpu',
+     *                                 'screen', and 'wifi'. Certified apps may
+     *                                 expose more.
      *                 timeoutMs {number} number of milliseconds to hold
      *                                    the lock.
      * @param {Function} callback - a function to be called after all other
