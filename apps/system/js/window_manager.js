@@ -1006,7 +1006,7 @@ var WindowManager = (function() {
           // set the size of the iframe
           // so Cards View will get a correct screenshot of the frame
           if (config.stayBackground) {
-            app.resize(false);
+            app.resize();
             app.setVisible(false, true /*screenshot*/);
           }
         } else {
