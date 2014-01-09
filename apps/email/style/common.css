@@ -164,9 +164,10 @@ body {
   bottom: 0;
   width: 100%;
   height: 4rem;
-  background-color: rgba(0, 0, 0, 0.75);
+  background-color: rgba(0, 0, 0, 0.85);
   z-index: 10;
 }
+
 .bottom-btn {
   height: 4rem;
   border: none;
@@ -177,15 +178,6 @@ body {
 .bottom-btn.disabled {
   opacity: 0.3;
   pointer-events: none;
-}
-.bottom-btn:active {
-  background-color: #008AAA !important;
-}
-/* create a space the size of the toolbar since it is absolute...
-   9.6 rem = 4.8rem (toolbar height)  + 4.8rem (search bar height) */
-.bottom-toolbar-spacer {
-  display: block;
-  height: 8rem;
 }
 
 .popup {
