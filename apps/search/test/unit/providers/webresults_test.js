@@ -27,8 +27,8 @@ suite('search/providers/webresults', function() {
   });
 
   suite('init', function() {
-    test('opens the eme port', function() {
-      var stub = this.sinon.stub(eme, 'openPort');
+    test('triggers eme init', function() {
+      var stub = this.sinon.stub(eme, 'init');
       subject.init();
       assert.ok(stub.calledOnce);
     });
@@ -49,10 +49,17 @@ suite('search/providers/webresults', function() {
   });
 
   suite('search', function() {
+    function promise() {
+      return new Promise(function done() {});
+    }
 
     setup(function() {
-      eme.port = {
-        postMessage: function() {}
+      eme.api = {
+        Apps: {
+          search: function() {
+            return promise();
+          }
+        }
       };
     });
 
@@ -62,19 +69,15 @@ suite('search/providers/webresults', function() {
       assert.ok(stub.calledOnce);
     });
 
-    test('eme port receives message', function() {
-      var stub = this.sinon.stub(eme.port, 'postMessage');
+    test('make api call', function() {
+      var stub = this.sinon.stub(eme.api.Apps, 'search');
+      stub.returns(promise());
       subject.search();
-      clock.tick(1); // Next tick
       assert.ok(stub.calledOnce);
     });
-  });
 
-  suite('onmessage', function() {
     test('renders text in result', function() {
-      subject.onmessage({data: {
-        results: [{title: 'mozilla'}]
-      }});
+      subject.render([{title: 'mozilla'}]);
       var container = subject.container;
       assert.notEqual(container.innerHTML.indexOf('mozilla'), -1);
     });
