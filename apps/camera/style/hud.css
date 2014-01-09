@@ -1,11 +1,9 @@
-
 .hud {
   position: absolute;
   top: 0; left: 0;
   width: 100%;
   height: 7.5rem;
   z-index: 50;
-  transition: all 0.2s ease-in-out;
 }
 
 body:not(.filmstriphidden) .hud {
@@ -49,9 +47,11 @@ body:not(.filmstriphidden) .hud {
   float: right;
 }
 
-.toggle-camera[disabled=disabled],
-.toggle-flash[disabled=disabled] {
-  opacity: 0.5;
+/**
+ * @buttons-disabled
+ */
+
+.hud.buttons-disabled a {
   pointer-events: none;
 }
 
@@ -59,6 +59,7 @@ body:not(.filmstriphidden) .hud {
  ---------------------------------------------------------*/
 
 .toggle-camera {
+  display: none;
   background-image: url(images/toggle-camera.png);
   background-size: 100%;
 }
@@ -72,6 +73,14 @@ body:not(.filmstriphidden) .hud {
 }
 
 /**
+ * @has-front-camera
+ */
+
+.has-front-camera .toggle-camera {
+  display: block;
+}
+
+/**
  * @recording
  */
 
@@ -82,9 +91,24 @@ body:not(.filmstriphidden) .hud {
 /** Flash Button
  ---------------------------------------------------------*/
 
+/**
+ * 1. Required to position the flash text.
+ */
+
 .toggle-flash {
-  position: relative;
+  position: relative; /* 1 */
+  visibility: hidden;
   background-size: 100%;
+  transition: opacity 300ms;
+  opacity: 0;
+}
+
+.toggle-flash[data-mode=on],
+.toggle-flash[data-mode=off],
+.toggle-flash[data-mode=auto],
+.toggle-flash[data-mode=torch] {
+  visibility: visible;
+  opacity: 1;
 }
 
 .toggle-flash[data-mode=on] {

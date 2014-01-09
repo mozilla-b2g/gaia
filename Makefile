@@ -232,6 +232,7 @@ else
 		GAIA_DISTRIBUTION_DIR := $(realpath $(GAIA_DISTRIBUTION_DIR))
 	endif
 endif
+export GAIA_DISTRIBUTION_DIR
 
 SETTINGS_PATH := build/config/custom-settings.json
 ifdef GAIA_DISTRIBUTION_DIR

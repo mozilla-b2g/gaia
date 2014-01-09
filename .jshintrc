@@ -36,6 +36,7 @@
     "suiteTeardown",
     "assert",
     "require",
+    "define",
     "requireApp",
     "sinon"
   ]

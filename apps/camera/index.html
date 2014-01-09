@@ -7,81 +7,31 @@
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
     <link rel="resource" type="application/l10n" href="/shared/locales/date.ini">
 
-    <!-- Shared CSS -->
-    <link rel="stylesheet" type="text/css" href="/shared/style/confirm.css" />
-    <link rel="stylesheet" type="text/css" href="/shared/style/buttons.css" />
-    <link rel="stylesheet" type="text/css" href="/shared/style/confirm.css" />
+    <!-- <link rel="stylesheet" type="text/css" href="/shared/style/confirm.css" /> -->
+    <!-- <link rel="stylesheet" type="text/css" href="/shared/style/buttons.css" /> -->
 
-    <link rel="stylesheet" type="text/css" href="style/app.css" />
-    <link rel="stylesheet" type="text/css" href="style/viewfinder.css" />
-    <link rel="stylesheet" type="text/css" href="style/focus-ring.css" />
-    <link rel="stylesheet" type="text/css" href="style/controls.css" />
-    <link rel="stylesheet" type="text/css" href="style/overlay.css" />
-    <link rel="stylesheet" type="text/css" href="style/hud.css" />
-    <link rel="stylesheet" type="text/css" href="style/filmstrip.css" />
-    <link rel="stylesheet" type="text/css" href="style/confirm.css" />
-    <link rel="stylesheet" type="text/css" href="style/VideoPlayer.css" />
+    <!--
+      The following scripts are lazy loaded but left here to ensure
+      they get copied over from shared during the build
+    -->
 
-    <!-- for perf-measurement related utilities -->
-    <script defer src="/shared/js/performance_testing_helper.js"></script>
-
-    <!-- The following scripts are lazy loaded but left here to ensure
-         they get copied over from shared during the build -->
     <!-- <script defer src="/shared/js/l10n.js"></script> -->
     <!-- <script defer src="/shared/js/l10n_date.js"></script> -->
     <!-- <script defer src="/shared/js/lazy_l10n.js"></script> -->
     <!-- <script defer src="/shared/js/async_storage.js"></script> -->
-    <!-- <script defer src="/shared/js/blobview.js"></script> -->
     <!-- <script defer src="/shared/js/media/jpeg_metadata_parser.js"></script> -->
     <!-- <script defer src="/shared/js/media/get_video_rotation.js"></script> -->
     <!-- <script defer src="/shared/js/media/video_player.js"></script> -->
     <!-- <script defer src="/shared/js/media/media_frame.js"></script> -->
     <!-- <script defer src="/shared/js/gesture_detector.js"></script> -->
+    <!-- <script defer src="/shared/js/lazy_loader.js"></script> -->
 
-    <script defer src="/shared/js/lazy_loader.js"></script>
-    <script defer src="js/config.js"></script>
-    <script defer src="js/camera.js"></script>
+    <link rel="stylesheet" type="text/css" href="style/main.css" />
   </head>
   <body class="filmstriphidden">
-    <div id="focus-ring" class="focus-ring"></div>
-    <video id="viewfinder" class="viewfinder" autoplay></video>
-
-    <div id="hud" class="hud">
-      <a id="toggle-flash" class="toggle-flash rotates hidden">
-        <div class="flash-text">Flash: <span class="flash-name js-flash-name"></span></div>
-      </a>
-      <a id="toggle-camera" class="toggle-camera rotates hidden"></a>
-    </div>
-
-    <div id="controls" class="controls">
-      <a id="switch-button" class="switch-button hidden" name="Switch source" disabled="disabled"><span class="rotates"></span></a>
-      <a id="capture-button" class="capture-button" name="Capture" disabled="disabled"><span class="rotates"></span></a>
-      <div id="misc-button" class="misc-button">
-        <a id="gallery-button" class="gallery-button hidden" name="View Gallery"><span class="rotates"></span></a>
-        <a id="cancel-pick" class="cancel-pick hidden"><span></span></a>
-        <span id="video-timer" class="video-timer">00:00</span>
-      </div>
-    </div>
-
-    <div id="overlay" class="hidden">
-      <form role="dialog" data-type="confirm">
-         <section>
-          <h1 id="overlay-title"></h1>
-          <p id="overlay-text"><p>
-        </section>
-        <menu id="overlay-menu-close" class="hidden">
-          <button type="button" id="overlay-close-button" data-l10n-id="close-button" class="full">Close</button>
-        </menu>
-        <menu id="overlay-menu-storage" class="hidden">
-          <button type="button" id="storage-setting-button" class="full"
-                data-l10n-id="storage-setting-button">Media storage settings</button>
-        </menu>
-      </form>
-    </div>
 
     <!-- see filmstrip.js and filmstrip.css for these elements -->
-    <div id="filmstrip" class="filmstrip">
-    </div>
+    <div id="filmstrip" class="filmstrip"></div>
     <div id="preview" class="preview offscreen">
       <div id="frame-container" class="frame-container">     <!-- media frame rotates inside this -->
         <div id="media-frame" class="media-frame"></div> <!-- image or video here -->
@@ -92,16 +42,6 @@
         <a id="share-button" class="share-button button"></a>
       </footer>
     </div>
-
-    <!-- see confirm.js and confirm.css for these elements -->
-    <div id="confirm" class="confirm" hidden>
-      <div id="confirm-media-frame" class="confirm-media-frame"></div> <!-- image or video here -->
-      <footer id="confirm-controls" class="confirm-controls">
-        <button id="retake-button" class="retake-button" data-l10n-id="retake-button"></button>
-        <button id="select-button" class="select-button recommend"
-                data-l10n-id="select-button"></button>
-      </footer>
-    </div>
-
+    <script src="js/startup.js"></script>
   </body>
 </html>

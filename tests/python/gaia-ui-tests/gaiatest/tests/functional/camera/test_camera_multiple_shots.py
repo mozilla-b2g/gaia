@@ -19,29 +19,32 @@ class TestCameraMultipleShots(GaiaTestCase):
         self.camera = Camera(self.marionette)
         self.camera.launch()
 
+        # Take a photo
         self.camera.take_photo()
 
-        self.camera.tap_to_display_filmstrip()
+        # Check that Filmstrip is visible
+        self.assertTrue(self.camera.is_filmstrip_visible)
 
-        image_preview = self.camera.filmstrip_images[0].tap()
-        self.assertTrue(image_preview.is_image_preview_visible)
+        # Check that picture saved to SD card
+        self.wait_for_condition(lambda m: len(self.data_layer.picture_files) == 1)
+        self.assertEqual(len(self.data_layer.picture_files), 1)
 
-        self.camera = image_preview.tap_camera()
-
+        # Take a photo
         self.camera.take_photo()
 
-        self.camera.tap_to_display_filmstrip()
+        # Check that Filmstrip is visible
+        self.assertTrue(self.camera.is_filmstrip_visible)
 
-        image_preview = self.camera.filmstrip_images[1].tap()
-        self.assertTrue(image_preview.is_image_preview_visible)
+        # Check that picture saved to SD card
+        self.wait_for_condition(lambda m: len(self.data_layer.picture_files) == 2)
+        self.assertEqual(len(self.data_layer.picture_files), 2)
 
-        self.camera = image_preview.tap_camera()
-
+        # Take a photo
         self.camera.take_photo()
 
-        self.camera.tap_to_display_filmstrip()
+        # Check that Filmstrip is visible
+        self.assertTrue(self.camera.is_filmstrip_visible)
 
-        image_preview = self.camera.filmstrip_images[2].tap()
-        self.assertTrue(image_preview.is_image_preview_visible)
-
-        self.camera = image_preview.tap_camera()
+        # Check that picture saved to SD card
+        self.wait_for_condition(lambda m: len(self.data_layer.picture_files) == 3)
+        self.assertEqual(len(self.data_layer.picture_files), 3)
