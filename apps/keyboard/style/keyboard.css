@@ -43,7 +43,7 @@ button::-moz-focus-inner {
   visibility: visible;
 }
 
-#keyboard.hide {
+#keyboard[data-hidden=true] {
   visibility: hidden;
 }
 
@@ -163,7 +163,6 @@ button::-moz-focus-inner {
 .keyboard-row button:first-child.highlighted > .visual-wrapper > span:after {
     left: 0rem;
 }
-
 
 
 /* Special keys */
@@ -338,13 +337,12 @@ bubble above the key when you tap and hold. */
   background-color: #0099b8;
 }
 
-
 #keyboard-accent-char-menu > .keyboard-key:last-child .visual-wrapper {
   border: none;
 }
 
 /* IMEs */
-#keyboard-pending-symbol-panel {
+.keyboard-pending-symbol-panel {
   position: absolute;
   top: -3.5rem;
   left: 0;
@@ -360,7 +358,7 @@ bubble above the key when you tap and hold. */
   white-space: nowrap;
 }
 
-#keyboard-pending-symbol-panel:empty {
+.keyboard-pending-symbol-panel:empty {
   display: none;
 }
 
@@ -368,7 +366,7 @@ bubble above the key when you tap and hold. */
   padding-top: 3.4rem;
 }
 
-#keyboard-candidate-panel {
+.keyboard-candidate-panel {
   display: block;
   background: #252220;
   padding: 0;
@@ -382,7 +380,7 @@ bubble above the key when you tap and hold. */
   white-space: normal;
 }
 
-#keyboard.full-candidate-panel #keyboard-candidate-panel {
+#keyboard.full-candidate-panel .keyboard-candidate-panel {
   overflow-y: auto;
 
   position: absolute;
@@ -392,7 +390,7 @@ bubble above the key when you tap and hold. */
   margin: 0;
 }
 
-#keyboard-candidate-panel-toggle-button {
+.keyboard-candidate-panel-toggle-button {
   display: none;
   z-index: 1;
   position: absolute;
@@ -404,33 +402,33 @@ bubble above the key when you tap and hold. */
   background-size: 2.4rem;
 }
 
-#keyboard.full-candidate-panel #keyboard-candidate-panel-toggle-button {
+#keyboard.full-candidate-panel .keyboard-candidate-panel-toggle-button {
   background-image: url('images/icon_close.png');
 }
 
-#keyboard-candidate-panel .candidate-row {
+.keyboard-candidate-panel .candidate-row {
   border-top: 0.1rem solid #000000;
 }
 
-#keyboard-candidate-panel .candidate-row-first {
+.keyboard-candidate-panel .candidate-row-first {
   border-top: none;
 }
 
-#keyboard.candidate-panel #keyboard-candidate-panel .candidate-row {
+#keyboard.candidate-panel .keyboard-candidate-panel .candidate-row {
   display: none;
 }
 
-#keyboard.candidate-panel #keyboard-candidate-panel .candidate-row-first {
+#keyboard.candidate-panel .keyboard-candidate-panel .candidate-row-first {
   display: block;
 }
 
-#keyboard-candidate-panel-toggle-button.highlighted,
-#keyboard-candidate-panel .candidate-row span.highlighted {
+.keyboard-candidate-panel-toggle-button.highlighted,
+.keyboard-candidate-panel .candidate-row span.highlighted {
   background-color: #008eab;
   color: #333333;
 }
 
-#keyboard-candidate-panel .candidate-row span {
+.keyboard-candidate-panel .candidate-row span {
   display: inline-block;
   margin: 0;
   padding: 0 2px 0 0;
@@ -447,7 +445,7 @@ bubble above the key when you tap and hold. */
 
 /* for latin suggestions we don't need such a tall box */
 /* and in latin we hide the toggle button, so we can be full-width */
-#keyboard.candidate-panel #keyboard-candidate-panel.latin {
+#keyboard.candidate-panel .keyboard-candidate-panel.latin {
   display: block;
   white-space: nowrap;
   height: 3rem;
@@ -459,7 +457,7 @@ bubble above the key when you tap and hold. */
   overflow: hidden;
 }
 
-#keyboard.full-candidate-panel #keyboard-candidate-panel[data-truncated]::after {
+#keyboard.full-candidate-panel .keyboard-candidate-panel[data-truncated]::after {
   content: '…';
   background: none ! important;
   border-color: transparent ! important;
@@ -473,8 +471,7 @@ bubble above the key when you tap and hold. */
   line-height: 2.8rem;
 }
 
-
-#keyboard-candidate-panel.latin > div {
+.keyboard-candidate-panel.latin > div {
   display: inline-block;
   height: 100%;       /* width set in render.js */
   margin: 0 3px;      /* px instead of rem because we use this in render.js */
@@ -484,7 +481,7 @@ bubble above the key when you tap and hold. */
   -moz-box-sizing: border-box;
 }
 
-#keyboard-candidate-panel.latin span {
+.keyboard-candidate-panel.latin span {
   /*
    * We start inline, so we can measure the length of the text, and then
    * convert (in render.js) to inline-block so we can transform the text
@@ -503,7 +500,7 @@ bubble above the key when you tap and hold. */
   text-align: center;
 }
 
-#keyboard-candidate-panel.latin span.autocorrect {
+.keyboard-candidate-panel.latin span.autocorrect {
   color: #0ac;
 }
 
@@ -511,12 +508,12 @@ bubble above the key when you tap and hold. */
  * Don't display the toggle button for latin suggestions.
  * For now, at least, we only ever get 3 at a time
  */
-#keyboard.candidate-panel #keyboard-candidate-panel-toggle-button.latin {
+#keyboard.candidate-panel .keyboard-candidate-panel-toggle-button.latin {
   display: none;
 }
 
-#keyboard-candidate-panel span[data-active],
-#keyboard-candidate-panel-toggle-button[data-active] {
+.keyboard-candidate-panel span[data-active],
+.keyboard-candidate-panel-toggle-button[data-active] {
   background: -moz-linear-gradient(bottom, rgb(191,191,183) 10%, rgb(161,158,153) 90%);
 }
 
@@ -638,7 +635,7 @@ bubble above the key when you tap and hold. */
  * Styles for the dismiss suggestions button in the candidate panel
  */
 
-#keyboard-candidate-panel.latin > #dismiss-suggestions-button {
+.keyboard-candidate-panel.latin > .dismiss-suggestions-button {
   display:inline-block;
   height: 100%;
   /*

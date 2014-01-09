@@ -189,7 +189,6 @@ var menuLockedArea = null;
 var isKeyboardRendered = false;
 var currentCandidates = [];
 var candidatePanelScrollTimer = null;
-const CANDIDATE_PANEL_SWITCH_TIMEOUT = 100;
 
 // Show accent char menu (if there is one) after ACCENT_CHAR_MENU_TIMEOUT
 const ACCENT_CHAR_MENU_TIMEOUT = 700;
@@ -207,7 +206,7 @@ const CAPS_LOCK_TIMEOUT = 450;
 
 // Time we wait after blur to hide the keyboard
 // in case we get a focus event right after
-const HIDE_KEYBOARD_TIMEOUT = 100;
+const HIDE_KEYBOARD_TIMEOUT = 500;
 
 // timeout and interval for delete, they could be cancelled on mouse over
 var deleteTimeout = 0;
@@ -236,8 +235,6 @@ var suggestionsEnabled;
 var correctionsEnabled;
 var clickEnabled;
 var vibrationEnabled;
-var enabledKeyboardGroups = {};
-var enabledKeyboardNames;
 var isSoundEnabled;
 
 // data URL for keyboard click sound
@@ -727,7 +724,18 @@ function modifyLayout(keyboardName) {
     console.warn('No space key found. No special keys will be added.');
   }
 
+  layout.keyboardName = keyboardName;
+  layout.altLayoutName = altLayoutName;
+
   return layout;
+}
+
+var _t = {};
+function startTime(key) {
+  // _t[key] = +new Date;
+}
+function endTime(key) {
+  // dump('~' + key + ' ' + (+new Date - _t[key]) + '\n');
 }
 
 //
@@ -746,70 +754,56 @@ function modifyLayout(keyboardName) {
 // layout for keyboardName
 //
 function renderKeyboard(keyboardName, callback) {
+  startTime('BLOCKING (main) renderKeyboard');
+
   // Add meta keys and type-specific keys to the base layout
   currentLayout = modifyLayout(keyboardName);
 
   function drawKeyboard() {
-    // Tell the renderer what input method we're using. This will set a CSS
-    // classname that can be used to style the keyboards differently
     var keyboard = Keyboards[keyboardName];
-    IMERender.setInputMethodName(keyboard.imEngine || 'default');
 
     IMERender.ime.classList.remove('full-candidate-panel');
 
     // And draw the layout
     IMERender.draw(currentLayout, {
-      uppercase: isUpperCaseLocked || isUpperCase,
       inputType: currentInputType,
       showCandidatePanel: needsCandidatePanel()
+    }, function() {
+      startTime('BLOCKING (nextTick) renderKeyboard');
+      // So there are a couple of things that we want don't want to block
+      // on here, so we can do it if resizeUI is fully finished
+      IMERender.setUpperCaseLock(isUpperCaseLocked ? 'locked' : isUpperCase);
+
+      // Tell the input method about the new keyboard layout
+      updateLayoutParams();
+
+      IMERender.showCandidates(currentCandidates);
+      endTime('BLOCKING (nextTick) renderKeyboard');
     });
 
-    IMERender.setUpperCaseLock(isUpperCaseLocked ? 'locked' : isUpperCase);
+    // Tell the renderer what input method we're using. This will set a CSS
+    // classname that can be used to style the keyboards differently
+    IMERender.setInputMethodName(keyboard.imEngine || 'default');
 
     // If needed, empty the candidate panel
     if (inputMethod.empty)
       inputMethod.empty();
 
-    // Tell the input method about the new keyboard layout
-    updateLayoutParams();
-
-    //restore the previous candidates
-    IMERender.showCandidates(currentCandidates);
-
     isKeyboardRendered = true;
 
-    if (callback)
+    endTime('BLOCKING (main) renderKeyboard');
+
+    if (callback) {
       callback();
+    }
   }
 
   clearTimeout(redrawTimeout);
 
-  // Does this new keyboard use the candidate panel?
-  var showsCandidates = needsCandidatePanel();
-
-  // If it doesn't and the keyboard has be shown, then notify the keyboard
-  // manager update the app window size before redrawing the keyboard.
-  // XXX: for Bug 893755 - we would always do the delay of keyboard redrawing
-  // without regard to whether candidate panel was enabled or not last time.
-  if (!showsCandidates && isKeyboardRendered) {
-    var candidatePanel = document.getElementById('keyboard-candidate-panel');
-    var candidatePanelHeight = (candidatePanel) ?
-                               candidatePanel.scrollHeight : 0;
-
-    var imeHeight = IMERender.ime.scrollHeight - candidatePanelHeight;
-    var imeWidth = IMERender.getWidth();
-    window.resizeTo(imeWidth, imeHeight);
-    redrawTimeout = window.setTimeout(drawKeyboard,
-                                      CANDIDATE_PANEL_SWITCH_TIMEOUT);
-  } else {
-    drawKeyboard();
-  }
-
-  // Remember whether the candidate panel is shown or not
+  drawKeyboard();
 }
 
 function setUpperCase(upperCase, upperCaseLocked) {
-
   upperCaseLocked = (typeof upperCaseLocked == 'undefined') ?
                      isUpperCaseLocked : upperCaseLocked;
 
@@ -823,19 +817,18 @@ function setUpperCase(upperCase, upperCaseLocked) {
 
   if (!isKeyboardRendered)
     return;
-  // When case changes we have to re-render the keyboard.
-  // But note that we don't have to relayout the keyboard, so
-  // we call draw() directly instead of renderKeyboard()
-  IMERender.draw(currentLayout, {
-    uppercase: isUpperCaseLocked || isUpperCase,
-    inputType: currentInputType,
-    showCandidatePanel: needsCandidatePanel()
-  });
-  // And make sure the caps lock key is highlighted correctly
-  IMERender.setUpperCaseLock(isUpperCaseLocked ? 'locked' : isUpperCase);
 
-  //restore the previous candidates
-  IMERender.showCandidates(currentCandidates);
+  // Try to block the event loop as little as possible
+  requestAnimationFrame(function() {
+    startTime('BLOCKING (nextTick) updateUpperCaseUI');
+    // And make sure the caps lock key is highlighted correctly
+    IMERender.setUpperCaseLock(isUpperCaseLocked ? 'locked' : isUpperCase);
+
+    //restore the previous candidates
+    IMERender.showCandidates(currentCandidates);
+
+    endTime('BLOCKING (nextTick) updateUpperCaseUI');
+  });
 }
 
 function resetUpperCase() {
@@ -1201,13 +1194,19 @@ function onMouseDown(evt) {
   startPress(currentKey, evt, null);
 }
 
+function getKeyCodeFromTarget(target) {
+  return isUpperCase || isUpperCaseLocked ?
+    parseInt(target.dataset.keycodeUpper, 10) :
+    parseInt(target.dataset.keycode, 10);
+}
+
 // The coords object can either be a mouse event or a touch. We just expect the
 // coords object to have clientX, clientY, pageX, and pageY properties.
 function startPress(target, coords, touchId) {
   if (!isNormalKey(target))
     return;
 
-  var keyCode = parseInt(target.dataset.keycode);
+  var keyCode = getKeyCodeFromTarget(target);
 
   // Feedback
   var isSpecialKey = specialCodes.indexOf(keyCode) >= 0 || keyCode < 0;
@@ -1299,7 +1298,7 @@ function movePress(target, coords, touchId) {
   // Update highlight: remove from older
   IMERender.unHighlightKey(oldTarget);
 
-  var keyCode = parseInt(target.dataset.keycode);
+  var keyCode = getKeyCodeFromTarget(target);
 
   // Update highlight: add to the new (Ignore if moving over delete key)
   if (keyCode != KeyEvent.DOM_VK_BACK_SPACE)
@@ -1345,7 +1344,7 @@ function endPress(target, coords, touchId, hasCandidateScrolled) {
   var wasShowingKeyboardLayoutMenu = isShowingKeyboardLayoutMenu;
   hideAlternatives();
 
-  if (target.id === 'dismiss-suggestions-button') {
+  if (target.classList.contains('dismiss-suggestions-button')) {
     if (inputMethod.dismissSuggestions)
       inputMethod.dismissSuggestions();
     return;
@@ -1381,7 +1380,7 @@ function endPress(target, coords, touchId, hasCandidateScrolled) {
     return;
   }
 
-  var keyCode = parseInt(target.dataset.keycode);
+  var keyCode = getKeyCodeFromTarget(target);
 
   // Delete is a special key, it reacts when pressed not released
   if (keyCode == KeyEvent.DOM_VK_BACK_SPACE)
@@ -1428,7 +1427,7 @@ function endPress(target, coords, touchId, hasCandidateScrolled) {
 
     // Expand / shrink the candidate panel
   case TOGGLE_CANDIDATE_PANEL:
-    var candidatePanel = document.getElementById('keyboard-candidate-panel');
+    var candidatePanel = IMERender.candidatePanel;
 
     if (IMERender.ime.classList.contains('candidate-panel')) {
       var doToggleCandidatePanel = function doToggleCandidatePanel() {
@@ -1537,7 +1536,7 @@ function candidatePanelOnScroll() {
     candidatePanelScrollTimer = setTimeout(function() {
       var pageRows = 12;
       var numberOfCandidatesPerRow = IMERender.getNumberOfCandidatesPerRow();
-      var candidatePanel = document.getElementById('keyboard-candidate-panel');
+      var candidatePanel = IMERender.candidatePanel;
       var candidateIndicator =
         parseInt(candidatePanel.dataset.candidateIndicator);
 
@@ -1558,7 +1557,7 @@ function candidatePanelOnScroll() {
 }
 
 function getKeyCoordinateY(y) {
-  var candidatePanel = document.getElementById('keyboard-candidate-panel');
+  var candidatePanel = IMERender.candidatePanel;
 
   var yBias = 0;
   if (candidatePanel)
@@ -1686,8 +1685,8 @@ function showKeyboard() {
   promise.then(function gotText(value) {
     state.value = value;
     doShowKeyboard();
-  }, function failedToGetText() {
-    doShowKeyboard();
+  }, function failedToGetText(ex) {
+    // something is wrong with the inputcontext. We should not proceed.
   });
 }
 
