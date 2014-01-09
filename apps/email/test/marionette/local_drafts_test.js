@@ -53,7 +53,7 @@ marionette('go to local drafts page', function() {
     );
   });
 
-  test('should show correct name in a item of mail list', function() {
+  test.skip('should show correct name in a item of mail list', function() {
     const NAME = 'FireFox OS';
     const EMAIL_ADDRESS = 'firefox-os-drafts@example.com';
     const MAILBOX = NAME + ' <' + EMAIL_ADDRESS + '>';
