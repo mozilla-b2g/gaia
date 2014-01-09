@@ -112,6 +112,7 @@ suite('Threads', function() {
         body: 'This is a new draft for thread 44',
         timestamp: new Date(now),
         unreadCount: 0,
+        lastMessageTimestamp: +now,
         lastMessageSubject: undefined,
         lastMessageType: 'sms',
         messages: []
@@ -137,6 +138,7 @@ suite('Threads', function() {
         body: 'This is a new draft for thread 44',
         timestamp: new Date(now),
         unreadCount: 0,
+        lastMessageTimestamp: +now,
         lastMessageSubject: undefined,
         lastMessageType: 'sms',
         messages: []
@@ -159,9 +161,11 @@ suite('Threads', function() {
 
     test('Threads.set(key, val)', function() {
       Threads.set(1, {});
+
       assert.deepEqual(Threads.get(1), {
         body: undefined,
         id: undefined,
+        lastMessageTimestamp: 0,
         lastMessageSubject: undefined,
         lastMessageType: undefined,
         participants: undefined,
@@ -195,6 +199,10 @@ suite('Threads', function() {
     });
 
     test('Threads.delete() calls Drafts.delete()', function() {
+      Threads.set(1, {
+        threadId: 1
+      });
+
       this.sinon.stub(Drafts, 'delete');
       this.sinon.stub(Threads, 'get').returns({
         id: 1,
@@ -204,6 +212,179 @@ suite('Threads', function() {
       Threads.delete(1);
 
       assert.isTrue(Drafts.delete.calledWith({ threadId: 1 }));
+    });
+  });
+
+  suite('Threads.registerMessage(message)', function() {
+
+    teardown(function() {
+      Threads.delete(1);
+    });
+
+    test('Register a message to a known thread', function() {
+      Threads.set(1, {
+        participants: ['1']
+      });
+
+      assert.equal(Threads.get(1).messages.length, 0);
+
+      var result = Threads.registerMessage({
+        id: 2,
+        threadId: 1
+      });
+
+      assert.equal(Threads.get(1).messages.length, 1);
+      assert.isTrue(result);
+    });
+
+    test('Register a message to an unknown thread', function() {
+      Threads.registerMessage({
+        id: 2,
+        threadId: 1,
+        timestamp: new Date()
+      });
+
+      assert.equal(Threads.get(1).messages.length, 1);
+    });
+
+    test('Reject a duplicate message', function() {
+      Threads.set(1, {
+        participants: ['1']
+      });
+
+      assert.equal(Threads.get(1).messages.length, 0);
+
+      Threads.registerMessage({
+        id: 2,
+        threadId: 1
+      });
+
+      var result = Threads.registerMessage({
+        id: 2,
+        threadId: 1
+      });
+
+      assert.equal(Threads.get(1).messages.length, 1);
+      assert.isFalse(result);
+    });
+
+    test('Update lastMessageTimestamp', function() {
+      Threads.set(1, {
+        participants: ['1'],
+        timestamp: 1
+      });
+
+      Threads.registerMessage({
+        id: 2,
+        threadId: 1,
+        timestamp: 2
+      });
+
+      assert.equal(Threads.get(1).lastMessageTimestamp, 2);
+    });
+
+    test('Do not update lastMessageTimestamp', function() {
+      Threads.set(1, {
+        participants: ['1'],
+        timestamp: 4
+      });
+
+      Threads.registerMessage({
+        id: 2,
+        threadId: 1,
+        timestamp: 2
+      });
+
+      assert.equal(Threads.get(1).lastMessageTimestamp, 4);
+    });
+
+    test('Messages ordered by timestamp', function() {
+      Threads.set(1, {
+        participants: ['1'],
+        timestamp: 4
+      });
+
+      // Intentionally out of order
+      Threads.registerMessage({
+        id: 5,
+        threadId: 1,
+        timestamp: 10
+      });
+
+      Threads.registerMessage({
+        id: 3,
+        threadId: 1,
+        timestamp: 2
+      });
+
+      Threads.registerMessage({
+        id: 2,
+        threadId: 1,
+        timestamp: 1
+      });
+
+      Threads.registerMessage({
+        id: 4,
+        threadId: 1,
+        timestamp: 6
+      });
+
+      assert.equal(Threads.get(1).lastMessageTimestamp, 10);
+
+      Threads.unregisterMessage(5);
+
+      assert.equal(Threads.get(1).lastMessageTimestamp, 6);
+    });
+  });
+
+  suite('Threads.unregisterMessage(id)', function() {
+    var message;
+
+    setup(function() {
+      this.sinon.spy(Threads, 'unregisterMessage');
+
+      message = {
+        id: 2,
+        threadId: 1,
+        timestamp: 100
+      };
+
+      Threads.set(1, {});
+      Threads.registerMessage(message);
+    });
+
+    teardown(function() {
+      Threads.clear();
+    });
+
+    test('Unregister a message by known id', function() {
+      var result = Threads.unregisterMessage(2);
+
+      assert.equal(Threads.get(1).messages.length, 0);
+      assert.isTrue(result);
+    });
+
+    test('Unregister a message by unknown id', function() {
+      var result = Threads.unregisterMessage(3);
+
+      assert.equal(Threads.get(1).messages.length, 1);
+      assert.isFalse(result);
+    });
+
+    test('Unregister updates lastMessageTimestamp', function() {
+      Threads.registerMessage({
+        id: 3,
+        threadId: 1,
+        timestamp: 101
+      });
+
+      // Ensure the correct state exists
+      assert.equal(Threads.get(1).lastMessageTimestamp, 101);
+
+      Threads.unregisterMessage(3);
+
+      // Ensure the update state
+      assert.equal(Threads.get(1).lastMessageTimestamp, 100);
     });
   });
 
@@ -230,6 +411,7 @@ suite('Threads', function() {
       window.location.hash = '#thread=5';
       assert.deepEqual(Threads.active, { body: undefined,
         id: undefined,
+        lastMessageTimestamp: 0,
         lastMessageSubject: undefined,
         lastMessageType: undefined,
         participants: undefined,
@@ -277,6 +459,7 @@ suite('Thread', function() {
     assert.ok(Thread);
     assert.include(Thread.prototype, 'drafts');
     assert.include(Thread.prototype, 'hasDrafts');
+    assert.include(Thread.prototype, 'lastMessageTimestamp');
   });
 
   test('Thread object', function() {
@@ -285,6 +468,7 @@ suite('Thread', function() {
     assert.deepEqual(thread, {
       id: 1,
       participants: ['555'],
+      lastMessageTimestamp: +date,
       lastMessageSubject: undefined,
       lastMessageType: 'sms',
       body: 'Hello 555',
@@ -338,4 +522,23 @@ suite('Thread', function() {
     assert.isFalse(Threads.get(1).hasDrafts);
   });
 
+  test('lastMessageTimestamp', function() {
+    var now = new Date();
+    var next = +now + 1;
+    Threads.set(2, {
+      id: 2,
+      timestamp: now,
+      participants: ['555']
+    });
+
+    assert.equal(Threads.get(2).lastMessageTimestamp, +now);
+
+    Threads.registerMessage({
+      id: 3,
+      threadId: 2,
+      timestamp: next
+    });
+
+    assert.equal(Threads.get(2).lastMessageTimestamp, next);
+  });
 });

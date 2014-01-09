@@ -393,7 +393,7 @@ suite('thread_list_ui', function() {
       });
     });
 
-    suite(' > same thread exist, but newer', function() {
+    suite(' > thread exists, but newer', function() {
       var message;
 
       setup(function() {
@@ -419,6 +419,34 @@ suite('thread_list_ui', function() {
       test('old thread is marked unread', function() {
         sinon.assert.called(ThreadListUI.mark);
         sinon.assert.calledWith(ThreadListUI.mark, message.threadId, 'unread');
+      });
+    });
+
+    suite(' > thread exists, restoring to older state', function() {
+      var message;
+
+      setup(function() {
+        var someDate = new Date(2013, 1, 1);
+        insertMockMarkup(someDate);
+
+        var prevDate = new Date(2013, 1, 0);
+        message = MockMessages.sms({
+          threadId: 2,
+          timestamp: +prevDate
+        });
+        ThreadListUI.updateThread(message, {restore: true});
+      });
+
+      test('thread is removed', function() {
+        sinon.assert.calledOnce(ThreadListUI.removeThread);
+      });
+
+      test('thread is appended', function() {
+        sinon.assert.calledOnce(ThreadListUI.appendThread);
+      });
+
+      test('old thread is not marked unread', function() {
+        sinon.assert.notCalled(ThreadListUI.mark);
       });
     });
 
@@ -526,6 +554,8 @@ suite('thread_list_ui', function() {
           assert.equal(ThreadListUI.removeThread.args[0][0], 2);
         });
         test('end calls Threads.delete with correct thread', function() {
+          // Calling Threads.delete(x) implies a call to
+          // Threads.unregisterMessage()
           assert.equal(Threads.delete.args[0][0], 2);
         });
         test('end doesnt hide waiting screen (yet)', function() {

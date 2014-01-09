@@ -555,6 +555,13 @@ var ThreadListUI = {
   },
 
   updateThread: function thlui_updateThread(record, options) {
+    /**
+     * options:
+     *
+     * - read, message read/unread status (true|false)
+     * - restore, restoring to an older thread state (true|false)
+     */
+
     var thread = Thread.create(record, options);
 
     // For legitimate in-memory thread objects, update the stored
@@ -567,21 +574,30 @@ var ThreadListUI = {
 
     // We remove the previous one in order to place the new one properly
     var node = document.getElementById('thread-' + thread.id);
-
-    // If options passed and new record is older than the latest one?
-    if (node && +node.dataset.time > +thread.timestamp) {
-      // If the received Message is older than the latest one
-      // We need only to update the 'unread status' if needed
-      if (options && !options.read) {
-        this.mark(thread.id, 'unread');
-      }
-    } else {
+    var updateThread = (function() {
       if (node) {
         this.removeThread(thread.id);
       }
       this.appendThread(thread);
       this.setEmpty(false);
       FixedHeader.refresh();
+    }.bind(this));
+
+    // If options passed and new record is older than the latest one?
+    if (node && +node.dataset.time > +thread.timestamp) {
+
+      // When discarding a draft, the thread.timestamp to
+      // "update" to will be older than the current
+      // node.dataset.time, which lands us in this code path.
+      if (options && options.restore) {
+        updateThread();
+      } else if (options && !options.read) {
+        // If the received Message is older than the latest one
+        // We need only to update the 'unread status' if needed
+        this.mark(thread.id, 'unread');
+      }
+    } else {
+      updateThread();
     }
   },
 
