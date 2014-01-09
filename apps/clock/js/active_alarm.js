@@ -31,9 +31,10 @@ define(function(require) {
 
     init: function am_init() {
       if (!this.initialized) {
-        navigator.mozSetMessageHandler('alarm', this.handler.bind(this));
-        navigator.mozSetMessageHandler('message', this.handler.bind(this));
-        window.addEventListener('message', this.handler.bind(this), false);
+        var handler = this.handler.bind(this);
+        navigator.mozSetMessageHandler('alarm', handler);
+        navigator.mozSetMessageHandler('message', handler);
+        window.addEventListener('message', handler, false);
         AlarmManager.updateAlarmStatusBar();
         this.initialized = true;
       }
