@@ -398,7 +398,7 @@ var NfcManager = {
 
     // Check for tech types:
     this._debug('command.tech: ' + command.tech);
-    var techs = command.tech; // FIXME: command.techlist
+    var techList = command.techList;
     var ndefMsg = null;
     if (command.ndef.length > 0) {
       // Pick the first NDEF message for now.
@@ -429,20 +429,20 @@ var NfcManager = {
       'NFC_A': 3,
       'MIFARE_ULTRALIGHT': 4
     };
-    techs.sort(function sorter(techA, techB) {
+    techList.sort(function sorter(techA, techB) {
       return priority[techA] - priority[techB];
     });
 
     // One shot try. Fallback directly to tag.
-    switch (techs[0]) {
+    switch (techList[0]) {
       case 'P2P':
-        this.handleP2P(techs[0], command.sessionToken, ndefMsg);
+        this.handleP2P(techList[0], command.sessionToken, ndefMsg);
         break;
       case 'NDEF':
-        this.handleNdefDiscovered(techs[0], command.sessionToken, ndefMsg);
+        this.handleNdefDiscovered(techList[0], command.sessionToken, ndefMsg);
         break;
       case 'NDEF_FORMATTABLE':
-        this.handleNdefDiscoveredUseConnect(techs[0], command.sessionToken);
+        this.handleNdefDiscoveredUseConnect(techList[0], command.sessionToken);
         break;
       case 'NFC_A':
         this._debug('NFCA unsupported: ' + command);
