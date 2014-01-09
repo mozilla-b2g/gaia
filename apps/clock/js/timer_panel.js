@@ -127,12 +127,8 @@ Timer.Panel.prototype.onvisibilitychange = function(isVisible) {
           this.toggle(nodes.start, nodes.pause);
         }
 
-        if (timer.state === Timer.INITIAL) {
-          this.dialog();
-        } else {
-          this.dialog({ isVisible: false });
-          this.tick();
-        }
+        this.dialog({ isVisible: false });
+        this.tick();
       }
     }
   }
