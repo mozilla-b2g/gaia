@@ -55,12 +55,12 @@ var SimLock = {
         }
         break;
       case 'simpinrequestclose':
-        var index = evt.detail._currentSlot.index;
+        var index = evt.detail.dialog._currentSlot.index;
         if (index + 1 >= this.length - 1) {
-          evt.detail.close('done');
+          evt.detail.dialog.close(evt.detail.reason);
         } else {
           if (!this.showIfLocked(index + 1, true)) {
-            evt.detail.close('done');
+            evt.detail.dialog.close(evt.detail.reason);
           }
         }
         break;

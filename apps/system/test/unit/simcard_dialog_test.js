@@ -62,7 +62,7 @@ suite('simcard dialog', function() {
     SimPinDialog.unlockCardLock();
     assert.isTrue(stubUnlockCardLock.called);
     domreq.onsuccess();
-    assert.isTrue(stubRequestClose.called);
+    assert.isTrue(stubRequestClose.calledWith('success'));
     domreq.onerror();
     assert.isTrue(stubHandleError.called);
   });
