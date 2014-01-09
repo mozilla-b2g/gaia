@@ -287,7 +287,7 @@ var StatusBar = {
         this.update.data.call(this);
         break;
 
-      case 'iccinfochange':
+      case 'simslot-iccinfochange':
         this.update.label.call(this);
         break;
 
@@ -373,9 +373,7 @@ var StatusBar = {
         });
       }
 
-      if (IccHelper) {
-        IccHelper.addEventListener('iccinfochange', this);
-      }
+      window.addEventListener('simslot-iccinfochange', this);
 
       window.addEventListener('wifi-statuschange',
                               this.update.wifi.bind(this));
@@ -409,9 +407,7 @@ var StatusBar = {
         });
       }
 
-      if (IccHelper) {
-        IccHelper.removeEventListener('iccinfochange', this);
-      }
+      window.removeEventListener('simslot-iccinfochange', this);
 
       window.removeEventListener('moznetworkupload', this);
       window.removeEventListener('moznetworkdownload', this);
@@ -503,13 +499,11 @@ var StatusBar = {
     },
 
     signal: function sb_updateSignal() {
-      var conns = window.navigator.mozMobileConnections;
-      if (!conns)
-        return;
-
       var self = this;
-      for (var index = 0; index < conns.length; index++) {
-        var conn = conns[index];
+      var simSlots = SIMSlotManager.getSlots();
+      for (var index = 0; index < simSlots.length; index++) {
+        var simslot = simSlots[index];
+        var conn = simslot.conn;
         var voice = conn.voice;
         var data = conn.data;
         var icon = self.icons.signals[index];
@@ -529,7 +523,7 @@ var StatusBar = {
         flightModeIcon.hidden = true;
         icon.hidden = false;
 
-        if (!IccHelper.cardState) {
+        if (simslot.isAbsent()) {
           // no SIM
           delete icon.dataset.level;
           delete icon.dataset.emergency;
