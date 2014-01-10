@@ -196,7 +196,7 @@ suite('Build Integration tests', function() {
         'lockscreen.enabled': false,
         'lockscreen.locked': false,
         'screen.timeout': 0,
-        'devtools.debugger.remote-enabled': true
+        'debugger.remote-mode': 'adb-only'
       };
       var expectedUserPrefs = {
         'browser.startup.homepage': 'app://system.gaiamobile.org/index.html',
