@@ -600,6 +600,13 @@ ul li > label .range-icons.brightness {
   height: calc(100% - 5rem);
 }
 
+#os-license {
+  pointer-events: none;
+}
+
+#os-license.loaded {
+  pointer-events: auto;
+}
 
 /******************************************************************************
  * Help
@@ -664,4 +671,3 @@ html[dir="rtl"] label[for^="pwd"] {
 section[data-dialog] > header:first-child .icon.icon-back {
   background-image: url(/shared/style/headers/images/icons/close.png);
 }
-

@@ -157,7 +157,13 @@ var Settings = {
         case 'about-licensing':
           // Workaround for bug 825622, remove when fixed
           var iframe = document.getElementById('os-license');
+          iframe.classList.remove('loaded');
           iframe.src = iframe.dataset.src;
+          // Prevent empty iframe stealing the scroll event.
+          iframe.addEventListener('mozbrowserloadend', function loaded() {
+            iframe.removeEventListener('mozbrowserloadend', loaded);
+            iframe.classList.add('loaded');
+          });
           break;
         case 'wifi':
           PerformanceTestingHelper.dispatch('settings-panel-wifi-visible');
