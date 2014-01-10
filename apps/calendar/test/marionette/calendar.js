@@ -116,13 +116,11 @@ Calendar.prototype = {
   },
 
   /**
-   * findElement and then waitForElement.
-   *
    * @param {string} name of some calendar element.
    * @return {Marionette.Element} the element.
    */
   waitForElement: function(name) {
-    return this.client.waitForElement(this.findElement(name));
+    return this.client.helper.waitForElement(Calendar.Selector[name]);
   },
 
   /**
@@ -248,15 +246,23 @@ Calendar.prototype = {
   /**
    * Start the calendar, save the client for future ops, and wait for the
    * calendar to finish an initial render.
+   *
+   * @param {Object} opts options map.
+   *     (hideSwipeHint) whether to hide swiping hint.
    */
-  launch: function(hideSwipeHint) {
+  launch: function(opts) {
     this.client.apps.launch(Calendar.ORIGIN);
     this.client.apps.switchToApp(Calendar.ORIGIN);
+
     // Wait for the document body to know we're really 'launched'.
     this.client.helper.waitForElement('body');
+
     // Hide the hint.
-    if (hideSwipeHint) {
-      this.findElement('hintSwipeToNavigate').click();
+    if (opts && opts.hideSwipeHint) {
+      var hint = this.findElement('hintSwipeToNavigate');
+      if (hint.displayed()) {
+        hint.click();
+      }
     }
   },
 
