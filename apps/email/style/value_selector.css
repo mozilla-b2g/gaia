@@ -90,7 +90,11 @@ section.valueselector [role="dialog"] li > * {
 
 section.valueselector [role="dialog"] li label, section.valueselector [role="dialog"] li label span {
   color: #FFFFFF;
-  display: block;
+  /*
+  Override building blocks switch style for the span, using
+  display: inline instead of block. See bug 950588 for details.
+  */
+  display: inline;
   text-decoration: none;
 }
 
