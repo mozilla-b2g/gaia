@@ -71,6 +71,13 @@ section[role="region"] > div {
   will-change: scroll-position;
 }
 
+/***
+ * Need a scrollable div to scroll with the content to optimize
+ * Gecko's layout engine
+ */
+section[role="region"] > div > div {
+  background-color: #f4f4f4;
+}
 
 /******************************************************************************
  * Explanation texts
