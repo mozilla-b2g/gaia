@@ -16,17 +16,10 @@ Calendar.ns('Views').DayChild = (function() {
 
     _renderEvent: function(busytime, event) {
       var remote = event.remote;
-      var attendees;
       var classes;
 
       if (event.remote.alarms && event.remote.alarms.length) {
         classes = 'has-alarms';
-      }
-
-      if (event.remote.attendees) {
-        attendees = this._renderAttendees(
-          event.remote.attendees
-        );
       }
 
       return template.event.render({
@@ -34,18 +27,10 @@ Calendar.ns('Views').DayChild = (function() {
         busytimeId: busytime._id,
         calendarId: event.calendarId,
         title: event.remote.title,
-        location: event.remote.location,
-        attendees: attendees
+        location: event.remote.location
       });
-    },
-
-    _renderAttendees: function(list) {
-      if (!(list instanceof Array)) {
-        list = [list];
-      }
-
-      return template.attendee.renderEach(list).join(',');
     }
+
   };
 
   return Day;

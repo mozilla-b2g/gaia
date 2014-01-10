@@ -50,20 +50,12 @@ suiteGroup('Views.DayChild', function() {
     );
   });
 
-  test('#_renderAttendees', function() {
-    var list = ['z', 'y'],
-        result = subject._renderAttendees(list);
-
-    assert.include(result, '>z<');
-    assert.include(result, '>y<');
-  });
-
   test('#_renderEvent', function() {
     var event = Factory('event', {
       remote: {
         title: 'UX',
         location: 'Paris',
-        attendees: ['zoo', 'barr']
+        attendees: [{cn: 'zoo', cn: 'barr'}]
       }
     });
 
@@ -75,8 +67,6 @@ suiteGroup('Views.DayChild', function() {
     assert.include(result, 'has-alarms');
     assert.include(result, 'UX');
     assert.include(result, 'Paris');
-    assert.include(result, '>zoo<');
-    assert.include(result, '>barr<');
   });
 
   test('#_renderEvent without alarms', function() {

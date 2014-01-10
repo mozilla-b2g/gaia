@@ -64,7 +64,6 @@ Calendar.ns('Views').DayBased = (function() {
      *      - eventId
      *      - title
      *      - location
-     *      - attendees
      */
     template: Calendar.Templates.Day,
 
