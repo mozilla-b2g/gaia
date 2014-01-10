@@ -272,19 +272,37 @@ var Browser = {
         return;
       }
       var data = JSON.parse(xhr.responseText);
-      var mccCode = NumberHelper.zfill(variant.mcc, 3);
-      var mncCode = NumberHelper.zfill(variant.mnc, 3);
 
-      if (data[mccCode + mncCode]) {
-        callback(data[mccCode + mncCode]);
-      } else if (data[mccCode + DEFAULT_MNC]) {
-        callback(data[mccCode + DEFAULT_MNC]);
-      } else if (data[DEFAULT_MCC + DEFAULT_MNC]) {
-        callback(data[DEFAULT_MCC + DEFAULT_MNC]);
-      } else {
-        callback(null);
-        console.error('No configuration data found.');
+      var mccCodes = variant.mcc;
+      var mncCodes = variant.mnc;
+      if (!Array.isArray(variant.mcc)) {
+        mccCodes = [variant.mcc];
       }
+      if (!Array.isArray(variant.mnc)) {
+        mncCodes = [variant.mnc];
+      }
+
+      for (var i = 0; i < mccCodes.length; i++) {
+        var mccCode = NumberHelper.zfill(mccCodes[i], 3);
+        var mncCode = DEFAULT_MNC;
+        if (i < mncCodes.length) {
+          mncCode = mncCodes[i];
+        }
+        mncCode = NumberHelper.zfill(mncCode, 3);
+
+        if (data[mccCode + mncCode]) {
+          callback(data[mccCode + mncCode]);
+            return;
+        }
+      }
+
+      if (data[DEFAULT_MCC + DEFAULT_MNC]) {
+        callback(data[DEFAULT_MCC + DEFAULT_MNC]);
+        return;
+      }
+
+      callback(null);
+      console.error('No configuration data found.');
 
     }).bind(this), false);
 
