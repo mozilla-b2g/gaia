@@ -28,7 +28,9 @@
 }
 #sim-card-container .sim-card {
   border-bottom: 1px solid #ccc;
-  padding-bottom: 1rem;
+  padding-top: 0;
+  padding-bottom: 0;
+  height: 8rem;
 }
 #sim-card-container .sim-card:last-child {
   border-bottom: 0;
@@ -36,12 +38,18 @@
 .sim-manager-select-list li {
   height: 11.3rem;
 }
-.sim-manager-select-list li[data-href="#simpin"] {
+#sim-manager-security-entry {
   height: 6rem;
 }
-.sim-manager-select-list li[data-href="#simpin"][aria-disabled="true"] {
+#sim-manager-security-desc {
+  color: #6D7374;
+}
+#sim-manager-security-entry[aria-disabled="true"] {
   opacity: 0.6;
   pointer-events: none;
+}
+#sim-manager-security-entry p[data-href="#simpin"] {
+  line-height: 3rem;
 }
 .sim-manager-select-list .explanation {
   font-size: 1.2rem;
@@ -78,8 +86,8 @@
   background-position: -3rem -3rem;
 }
 
-.sim-card.with-number .sim-card-name {
-  margin-top: 0.8rem;
+.sim-card.with-number .information-container {
+  padding-top: 1.7rem;
 }
 
 /*
@@ -89,12 +97,8 @@
   opacity: 1;
 }
 
-/*
- * because in locked state, UI has made opacity on icons,
- * we have to use CSS to make sure we can make it transparent in
- * nosim state
- */
-.sim-card.absent .sim-card-icon {
+.sim-card.absent .sim-card-icon,
+.sim-card.locked .sim-card-icon {
   opacity: 0.4;
 }
 
@@ -111,6 +115,7 @@
 }
 
 .sim-card .information-container {
+  padding-top: 2.5rem;
   opacity: 0.4;
 }
 
@@ -118,14 +123,13 @@
   float: left;
   width: 3rem;
   height: 3rem;
-  margin: 1.5rem 1rem;
+  margin: 2.5rem 1rem;
   background-image: url(images/simcards.png);
 }
 .sim-card-name {
   display: inline-block;
   font-size: 1.6rem;
   line-height: 1.6rem;
-  margin-top: 1.5rem;
   padding: 0;
 }
 .sim-card-number,
