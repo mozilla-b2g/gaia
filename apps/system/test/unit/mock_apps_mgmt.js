@@ -60,5 +60,33 @@ var MockAppsMgmt = {
       true, false,
       { application: app });
     window.dispatchEvent(evt);
+  },
+
+  setSelf: function mam_setSelf(app) {
+    this._app = app;
+  },
+
+  getSelf: function mam_getSelf() {
+    var request = {};
+
+    var self = this;
+    setTimeout((function nextTick() {
+      if (request.onerror && !self._app) {
+        var evt = {
+          'cause': 'No mock app set'
+        };
+        request.onerror(evt);
+      }
+      else if (request.onsuccess && self._app) {
+        var evt = {
+          target: {
+            result: self._app
+          }
+        };
+        request.onsuccess(evt);
+      }
+    }).bind(this));
+
+    return request;
   }
 };
