@@ -485,6 +485,7 @@ var Settings = {
       for (i = 0; i < spanFields.length; i++) {
         var key = spanFields[i].dataset.name;
 
+        //XXX intentionally checking for the string 'undefined', see bug 880617
         if (key && result[key] && result[key] != 'undefined') {
           // check whether this setting comes from a select option
           // (it may be in a different panel, so query the whole document)
