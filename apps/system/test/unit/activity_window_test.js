@@ -15,8 +15,7 @@ requireApp('system/shared/test/unit/mocks/mock_screen_layout.js');
 
 var mocksForActivityWindow = new MocksHelper([
   'OrientationManager', 'Applications', 'SettingsListener',
-  'ManifestHelper', 'LayoutManager', 'AttentionScreen',
-  'ScreenLayout'
+  'ManifestHelper', 'LayoutManager', 'AttentionScreen'
 ]).init();
 
 suite('system/ActivityWindow', function() {
@@ -31,6 +30,18 @@ suite('system/ActivityWindow', function() {
     'origin': 'app://fakeact.gaiamobile.org',
     'manifest': {
       'name': 'Fake Activity'
+    }
+  };
+
+  var fakeConfigWithOrientation = {
+    'url': 'app://fakeact.gaiamobile.org/pick.html',
+    'oop': true,
+    'name': 'Fake Activity',
+    'manifestURL': 'app://fakeact.gaiamobile.org/manifest.webapp',
+    'origin': 'app://fakeact.gaiamobile.org',
+    'manifest': {
+      'name': 'Fake Activity',
+      'orientation': 'landscape'
     }
   };
 
@@ -189,6 +200,20 @@ suite('system/ActivityWindow', function() {
       var stubSetOrientation2 = this.sinon.stub(activity2, 'setOrientation');
       app.setOrientation();
       assert.isTrue(stubSetOrientation2.called);
+    });
+
+    test('Activity set orientation', function() {
+      var activity = new ActivityWindow(fakeConfigWithOrientation, app);
+      var stubIsActive = this.sinon.stub(activity, 'isActive');
+      stubIsActive.returns(true);
+      var stubLockOrientation;
+      if ('lockOrientation' in screen) {
+        stubLockOrientation = this.sinon.stub(screen, 'lockOrientation');
+      } else if ('mozLockOrientation' in screen) {
+        stubLockOrientation = this.sinon.stub(screen, 'mozLockOrientation');
+      }
+      activity.setOrientation();
+      assert.isTrue(stubLockOrientation.calledWith('landscape'));
     });
   });
 });
