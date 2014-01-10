@@ -314,15 +314,18 @@ function execute(options) {
       config.GAIA_SCHEME, config.GAIA_DOMAIN, config.GAIA_PORT);
   }
 
+  settings['debugger.remote-mode'] = config.REMOTE_DEBUGGER ? 'adb-only'
+                                                            : 'disabled';
+
   if (config.PRODUCTION === '1') {
     settings['feedback.url'] = 'https://input.mozilla.org/api/v1/feedback/';
+    settings['debugger.remote-mode'] = 'disabled';
   }
 
   settings['language.current'] = config.GAIA_DEFAULT_LOCALE;
-  settings['devtools.debugger.remote-enabled'] = config.REMOTE_DEBUGGER == true;
 
   if (config.DEVICE_DEBUG) {
-    settings['devtools.debugger.remote-enabled'] = true;
+    settings['debugger.remote-mode'] = 'adb-only';
     settings['screen.timeout'] = 0;
     settings['lockscreen.enabled'] = false;
     settings['lockscreen.locked'] = false;

@@ -62,10 +62,14 @@
           </label>
         </li>
         <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="devtools.debugger.remote-enabled">
-            <span data-l10n-id="remote-debugging">Remote Debugging</span>
-          </label>
+          <p data-l10n-id="remote-debugging">Remote Debugging</p>
+          <span class="button icon icon-dialog">
+            <select name="debugger.remote-mode" data-value-type="string">
+              <option value="disabled" data-l10n-id="debugger-disabled" selected>Disabled</option>
+              <option value="adb-only" data-l10n-id="debugger-adb-only">ADB Only</option>
+              <option value="adb-devtools" data-l10n-id="debugger-adb-and-devtools">ADB and Devtools</option>
+            </select>
+          </span>
         </li>
         <li>
           <label class="pack-checkbox">
