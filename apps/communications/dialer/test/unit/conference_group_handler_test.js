@@ -303,6 +303,20 @@ suite('conference group handler', function() {
     });
   });
 
+  suite('telephony.conferenceGroup.onerror handling', function() {
+    test('error when merging calls', function() {
+      var showStatusSpy = this.sinon.spy(CallScreen, 'showStatusMessage');
+      MockMozTelephony.conferenceGroup.onerror({name: 'addError'});
+      assert.isTrue(showStatusSpy.calledWith('conferenceAddError'));
+    });
+
+    test('error when unmerging calls', function() {
+      var showStatusSpy = this.sinon.spy(CallScreen, 'showStatusMessage');
+      MockMozTelephony.conferenceGroup.onerror({name: 'removeError'});
+      assert.isTrue(showStatusSpy.calledWith('conferenceRemoveError'));
+    });
+  });
+
   suite('mergeButton', function() {
     test('should call CallsHandler.mergeConferenceGroupWithActiveCall()',
       function() {
