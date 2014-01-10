@@ -13,6 +13,7 @@
     "120": "/style/icons/Uitest.png"
   },
   "permissions": {
+    "fmradio":{},
     "browser":{},
     "geolocation":{},
     "wifi-manage":{},
