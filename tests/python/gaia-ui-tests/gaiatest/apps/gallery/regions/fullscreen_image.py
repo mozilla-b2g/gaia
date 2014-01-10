@@ -13,7 +13,7 @@ class FullscreenImage(Base):
     _current_image_locator = (By.CSS_SELECTOR, '#frames > div.frame[style ~= "translateX(0px);"] > img')
     _photos_toolbar_locator = (By.ID, 'fullscreen-toolbar')
     _delete_image_locator = (By.ID, 'fullscreen-delete-button')
-    _confirm_delete_locator = (By.ID, 'modal-dialog-confirm-ok')
+    _confirm_delete_locator = (By.CSS_SELECTOR, '.modal-dialog-confirm-ok.confirm')
     _edit_photo_locator = (By.ID, 'fullscreen-edit-button')
     _tile_view_locator = (By.ID, 'fullscreen-back-button')
     _share_button_locator = (By.ID, 'fullscreen-share-button')
