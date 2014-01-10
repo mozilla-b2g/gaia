@@ -478,6 +478,8 @@
       this._screenshotBlob = screenshotBlob;
     };
 
+  AppWindow.prototype.SCREENSHOT_TIMEOUT = 500;
+
   /**
    * get the screenshot of mozbrowser iframe.
    * @param  {Function} callback The callback function to be invoked
@@ -502,19 +504,36 @@
     }
 
     var self = this;
+    var invoked = false;
 
     var req = this.iframe.getScreenshot(
       this.iframe.offsetWidth, this.iframe.offsetHeight);
 
     req.onsuccess = function gotScreenshotFromFrame(evt) {
+      if (invoked) {
+        return;
+      }
+      invoked = true;
       var result = evt.target.result;
       self._screenshotBlob = result;
       callback(result);
     };
 
     req.onerror = function gotScreenshotFromFrameError(evt) {
+      if (invoked) {
+        return;
+      }
+      invoked = true;
       callback();
     };
+
+    setTimeout(function() {
+      if (invoked) {
+        return;
+      }
+      invoked = true;
+      callback();
+    }, this.SCREENSHOT_TIMEOUT);
   };
 
   /**
