@@ -1436,10 +1436,16 @@ var ThreadUI = global.ThreadUI = {
 
     var notDownloaded = delivery === 'not-downloaded';
     var attachments = message.attachments;
+
+    // If the MMS has invalid empty content(message without attachment and
+    // subject) or contains only subject, we will display corresponding message
+    // and layout type in the message bubble.
+    //
     // Returning attachments would be different based on gecko version:
     // null in b2g18 / empty array in master.
     var noAttachment = (message.type === 'mms' && !notDownloaded &&
       (attachments === null || attachments.length === 0));
+    var invalidEmptyContent = (noAttachment && !message.subject);
 
     if (delivery === 'received' || notDownloaded) {
       classNames.push('incoming');
@@ -1468,8 +1474,10 @@ var ThreadUI = global.ThreadUI = {
       bodyHTML = this._createNotDownloadedHTML(message, classNames);
     }
 
-    if (noAttachment) {
-      classNames = classNames.concat(['error', 'no-attachment']);
+    if (invalidEmptyContent) {
+      classNames = classNames.concat(['error', 'invalid-empty-content']);
+    } else if (noAttachment) {
+      classNames.push('no-attachment');
     }
 
     messageDOM.className = classNames.join(' ');
@@ -1487,7 +1495,7 @@ var ThreadUI = global.ThreadUI = {
     navigator.mozL10n.translate(messageDOM);
 
     var pElement = messageDOM.querySelector('p');
-    if (noAttachment) {
+    if (invalidEmptyContent) {
       navigator.mozL10n.localize(pElement, 'no-attachment-text');
     }
 
@@ -1776,9 +1784,9 @@ var ThreadUI = global.ThreadUI = {
       return;
     }
 
-    // Do nothing for no attachment error because it's not possible to
+    // Do nothing for invalid empty content error because it's not possible to
     // retrieve message again in this edge case.
-    if (elems.message.classList.contains('no-attachment')) {
+    if (elems.message.classList.contains('invalid-empty-content')) {
       return;
     }
 
