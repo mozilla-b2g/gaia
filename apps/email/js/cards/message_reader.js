@@ -870,6 +870,10 @@ MessageReaderCard.prototype = {
     var attachmentsContainer =
       domNode.getElementsByClassName('msg-attachments-container')[0];
     if (body.attachments && body.attachments.length) {
+      // If buildBodyDom is called multiple times, the attachment
+      // state might change, so we must ensure the attachment list is
+      // not collapsed if we now have attachments.
+      attachmentsContainer.classList.remove('collapsed');
       // We need MimeMapper to help us determining the downloadable attachments
       // but it might not be loaded yet, so load before use it
       require(['shared/js/mime_mapper'], function(mapper) {

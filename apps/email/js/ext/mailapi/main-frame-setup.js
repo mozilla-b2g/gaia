@@ -1409,10 +1409,20 @@ MailBody.prototype = {
 
     // Attachment instances need to be updated rather than replaced.
     if (wireRep.attachments) {
-      for (var i = 0; i < this.attachments.length; i++) {
-        var attachment = this.attachments[i];
+      var i, attachment;
+      for (i = 0; i < this.attachments.length; i++) {
+        attachment = this.attachments[i];
         attachment.__update(wireRep.attachments[i]);
       }
+      // If we added new attachments, construct them now.
+      for (i = this.attachments.length; i < wireRep.attachments.length; i++) {
+        this.attachments.push(
+          new MailAttachment(this, wireRep.attachments[i]));
+      }
+      // We don't handle the fictional case where wireRep.attachments
+      // decreases in size, because that doesn't currently happen and
+      // probably won't ever, apart from detachedAttachments above
+      // which are a different thing.
     }
   },
 
