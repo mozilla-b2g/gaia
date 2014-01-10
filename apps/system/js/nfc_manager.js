@@ -18,36 +18,6 @@
 
 'use strict';
 
-var NfcUtil = {
-  fromUTF8: function nu_fromUTF8(str) {
-    var buf = new Uint8Array(str.length);
-    for (var i = 0; i < str.length; i++) {
-      buf[i] = str.charCodeAt(i);
-    }
-    return buf;
-  },
-
-  toUTF8: function nu_toUTF8(a) {
-    var str = '';
-    for (var i = 0; i < a.length; i++) {
-      str += String.fromCharCode(a[i]);
-    }
-    return str;
-  },
-
-  equalArrays: function nu_equalArrays(a1, a2) {
-    if (a1.length != a2.length) {
-      return false;
-    }
-    for (var i = 0; i < a1.length; i++) {
-      if (a1[i] != a2[i]) {
-        return false;
-      }
-    }
-    return true;
-  }
-};
-
 var NDEF = {
   flags_tnf: 0x07,
   flags_ss: 0x10,
@@ -415,7 +385,13 @@ var NfcManager = {
       if ((firstRecord.tnf == NDEF.tnf_well_known) &&
           NfcUtil.equalArrays(firstRecord.type, NDEF.rtd_handover_select)) {
         this._debug('Handle Handover Select');
-        handoverManager.handleHandoverSelect(ndefMsg);
+        NfcHandoverManager.handleHandoverSelect(ndefMsg);
+        return;
+      }
+      if ((firstRecord.tnf == NDEF.tnf_well_known) &&
+          NfcUtil.equalArrays(firstRecord.type, NDEF.rtd_handover_request)) {
+        this._debug('Handle Handover Request');
+        NfcHandoverManager.handleHandoverRequest(ndefMsg, command.sessionToken);
         return;
       }
     }
