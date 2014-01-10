@@ -3,17 +3,12 @@ var Calendar = require('./calendar'),
     assert = require('assert');
 
 marionette('week view', function() {
-  var app, bodyElement, hintSwipeToNavigate;
+  var app, hintSwipeToNavigate;
   var client = marionette.client();
 
   setup(function() {
     app = new Calendar(client);
-
-    app.launch();
-    bodyElement = client.findElement('body');
-
-    // Hide the hint.
-    app.findElement('hintSwipeToNavigate').click();
+    app.launch({ hideSwipeHint: true });
 
     // Go to week view.
     app.findElement('weekButton').click();
