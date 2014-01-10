@@ -3,7 +3,6 @@
   'use strict';
   // Several parts of settings listening on application installs
   var appsMgmt = navigator.mozApps.mgmt;
-  var homescreenCountKey = 'settings-homescreen-count';
 
   appsMgmt.oninstall = function(mgmtEvt) {
     var evt = new CustomEvent('applicationinstall', {
