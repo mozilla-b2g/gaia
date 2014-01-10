@@ -156,6 +156,31 @@ suiteGroup('Views.ViewEvent', function() {
     assert.equal(subject._els.title, expected);
   });
 
+  suite('#formatAttendees', function() {
+    test('returns empty if no attendees', function() {
+      var result = subject.formatAttendees();
+      assert.equal('', result);
+    });
+
+    test('returns csv if attendees', function() {
+      var attendees = [
+        {cn: 'foo'},
+        {cn: 'bar'},
+        {cn: 'baz'}
+      ];
+      var result = subject.formatAttendees(attendees);
+      assert.equal(result, 'foo, bar, baz');
+    });
+
+    test('do not add comma if single attendee', function() {
+      var attendees = [
+        {cn: 'foo'}
+      ];
+      var result = subject.formatAttendees(attendees);
+      assert.equal(result, 'foo');
+    });
+  });
+
   suite('#_updateUI', function() {
     var list;
 
@@ -173,7 +198,8 @@ suiteGroup('Views.ViewEvent', function() {
         endDate: subject.formatDate(remote.endDate),
         endTime: subject.formatTime(remote.endDate),
         currentCalendar: calendar.remote.name,
-        description: remote.description
+        description: remote.description,
+        attendees: subject.formatAttendees(remote.attendees)
       };
 
       var allDayHidden = [
@@ -288,6 +314,11 @@ suiteGroup('Views.ViewEvent', function() {
 
         done();
       });
+    });
+
+    test('attendees are displayed', function(done) {
+      remote.attendees = [{cn: 'foo'}, {cn: 'bar'}];
+      updatesValues({ attendees: 'foo, bar' }, null, done);
     });
   });
 
