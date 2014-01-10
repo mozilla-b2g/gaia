@@ -76,7 +76,8 @@ SetupAccountInfoCard.prototype = {
         emailAddress: this.emailNode.value,
         password: this.passwordNode.value,
         callingCard: this
-      });
+      },
+      'right');
   },
 
   onInfoInput: function(event) {

@@ -132,7 +132,8 @@ SetupManualConfig.prototype = {
 
         domainInfo: config,
         callingCard: this
-      });
+      },
+      'right');
   },
 
 
