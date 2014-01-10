@@ -51,8 +51,9 @@ body[data-path="/week/"] #view-selector > .week a:after,
 body[data-path="/day/"] #view-selector > .day > a:after {
   content: "";
   position: absolute;
-  width: 100%;
+  top: 0;
   left: 0;
+  width: 100%;
   height: calc(100% - 0.3rem);
   border-bottom: 0.3rem solid #00aacc;
 }
@@ -61,6 +62,11 @@ body[data-path="/month/"] #view-selector > .month a:active,
 body[data-path="/week/"] #view-selector > .week a:active,
 body[data-path="/day/"] #view-selector > .day > a:active {
   color: #5f5f5f;
+}
+
+[role="tablist"] > [role="tab"] > a:after,
+[role="tablist"] > [role="tab"] > button:after {
+  display: block !important;
 }
 
 /* view management */
