@@ -50,7 +50,7 @@ class MessageThread(Base):
 
 class Message(PageRegion):
 
-    _text_locator = (By.CSS_SELECTOR, '.bubble > p')
+    _text_locator = (By.CSS_SELECTOR, '.bubble p')
     _attachments_locator = (By.CSS_SELECTOR, '.bubble .attachment-container.preview')
 
     @property
