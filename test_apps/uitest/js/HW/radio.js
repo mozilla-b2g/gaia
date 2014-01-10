@@ -11,106 +11,160 @@ function IMEI(conn) {
   };
 }
 
-function iccInfo(iccManager)
+// SIM card information such as ICCID, MSISDN
+function iccInfo(mozIcc, parentContainer)
 {
-  var messageText = document.getElementById('message-icc');
-  var ICCIDText = document.getElementById('ICCID');
-  var MSISDNText = document.getElementById('MSISDN');
-  var container = document.getElementById('icc-container');
+  var messageText = parentContainer.querySelector('[data-type="icc-message"]');
+  var ICCIDText = parentContainer.querySelector('[data-type="ICCID"]');
+  var MSISDNText = parentContainer.querySelector('[data-type="MSISDN"]');
+  var container = parentContainer.querySelector('[data-type="icc-container"]');
 
-  iccManager.addEventListener('iccinfochange', update_icc);
+  mozIcc.addEventListener('cardstatechange', update_icc);
   update_icc();
 
   function update_icc() {
-    if (iccManager.cardState != 'ready' ||
-        !iccManager.iccInfo) {
+    if (mozIcc.cardState == null ||
+        !mozIcc.iccInfo) {
       container.hidden = true;
-      messageText.textContent = 'Airplane mode on / No SIM card';
+      messageText.textContent = 'Airplane mode on';
     }
     else {
-      ICCIDText.textContent = iccManager.iccInfo.iccid;
-      MSISDNText.textContent = iccManager.iccInfo.msisdn || 'Unknown';
+      ICCIDText.textContent = mozIcc.iccInfo.iccid;
+      MSISDNText.textContent = mozIcc.iccInfo.msisdn || 'Unknown';
       container.hidden = false;
       messageText.textContent = '';
     }
   }
 }
 
-function mobileConnectionInfo(conn, iccManager)
+// data & voice network information
+function mobileConnectionInfo(conn, parentContainer)
 {
-  var messageText = document.getElementById('message-mobileConnection');
-  var voiceText = {
-    'network': document.getElementById('voice-network'),
-    'strength': document.getElementById('voice-strength'),
-    'LAC': document.getElementById('voice-LAC'),
-    'CID': document.getElementById('voice-CID'),
-    'type': document.getElementById('voice-type'),
-    'roaming': document.getElementById('voice-roaming')
-  };
-  var dataText = {
-    'network': document.getElementById('data-network'),
-    'strength': document.getElementById('data-strength'),
-    'LAC': document.getElementById('data-LAC'),
-    'CID': document.getElementById('data-CID'),
-    'type': document.getElementById('data-type'),
-    'roaming': document.getElementById('data-roaming')
-  };
-  var container = document.getElementById('mobileconnection-container');
-
-  // XXX: ondatachange does not fire event while
-  // navigator.mozIccManager.oniccinfochange seems to work
-  //mobileConnection.addEventListener('datachange', update_data_network
-  //mobileConnection.addEventListener('voicechange', update_voice_network);
-  iccManager.addEventListener('iccinfochange', update_data_network.bind(this));
-  iccManager.addEventListener('iccinfochange', update_voice_network.bind(this));
+  conn.addEventListener('datachange', update_data_network);
+  conn.addEventListener('voicechange', update_voice_network);
   update_data_network();
   update_voice_network();
 
   function update_data_network() {
-    update_network(conn.data, dataText);
+    var container = parentContainer.
+                      querySelector('[data-type="data-container"]');
+    var message = parentContainer.
+                      querySelector('[data-type="data-message"]');
+    var result = update_network(conn.data, container, message);
   }
   function update_voice_network() {
-    update_network(conn.voice, voiceText);
+    var container = parentContainer.
+                      querySelector('[data-type="voice-container"]');
+    var message = parentContainer.
+                      querySelector('[data-type="voice-message"]');
+    var result = update_network(conn.voice, container, message);
   }
-  function update_network(network, networkText) {
-    if (iccManager.cardState != 'ready' ||
-       !conn || !network || !network.connected ||
-       network.emergencyCallsOnly) {
+  function update_network(network, container, message) {
+    if (!conn || conn.radioState != 'enabled' ||
+        !network || !network.connected || network.emergencyCallsOnly) {
       container.hidden = true;
-      messageText.textContent = 'Airplane mode on';
+      message.textContent = 'Disconnect';
     }
     else {
-      networkText.network.textContent = network.network.shortName;
-      networkText.LAC.textContent = network.cell.gsmCellId;
-      networkText.CID.textContent = network.cell.gsmLocationAreaCode;
-      networkText.strength.textContent = network.relSignalStrength;
-      networkText.type.textContent = network.type;
-      networkText.roaming.textContent = network.roaming;
+      container.querySelector('[data-type="network"]').textContent =
+                                           network.network.shortName;
+      container.querySelector('[data-type="LAC"]').textContent =
+                                           network.cell.gsmCellId;
+      container.querySelector('[data-type="CID"]').textContent =
+                                           network.cell.gsmLocationAreaCode;
+      container.querySelector('[data-type="strength"]').textContent =
+                                           network.relSignalStrength;
+      container.querySelector('[data-type="type"]').textContent =
+                                           network.type;
+      container.querySelector('[data-type="roaming"]').textContent =
+                                           network.roaming;
       container.hidden = false;
-      messageText.textContent = '';
+      message.textContent = '';
     }
   }
 }
 
 function radioTest() {
+  var iccIdIndex = [];
+  var icc_num = 0;
+
   if (('mozIccManager' in navigator) &&
       navigator.mozIccManager &&
-      ('mozMobileConnection' in navigator) &&
-      navigator.mozMobileConnection) {
-    var conn = navigator.mozMobileConnection;
+      ('mozMobileConnections' in navigator) &&
+      navigator.mozMobileConnections.length > 0) {
     var iccManager = navigator.mozIccManager;
 
-    // IMEI
-    IMEI(conn);
+    // IMEI should be the same no matter which connection is used
+    IMEI(navigator.mozMobileConnections[0]);
 
-    // SIM card information such as ICCID, MSISDN
-    iccInfo(iccManager);
+    var template = document.getElementById('connection-template');
+    template.hidden = true;
 
-    // data & voice network information
-    mobileConnectionInfo(conn, iccManager);
+    if (iccManager.iccIds.length > 0) {
+      for (var i = 0; i < iccManager.iccIds.length; i++) {
+        addIcc(iccManager.iccIds[i], i);
+        showInfo(iccManager.iccIds[i]);
+      }
+    } else {
+      document.getElementById('global-message').textContent =
+         'SIM card not found, insert SIM and turn off airplane mode';
+    }
+
+    iccManager.addEventListener('iccdetected', function(evt) {
+      document.getElementById('global-message').textContent = '';
+      addIcc(evt.iccId);
+      showInfo(evt.iccId);
+    });
+    iccManager.addEventListener('iccundetected', function(evt) {
+      removeIcc(evt.iccId);
+    });
   }
   else {
-    alert('Your device does not support navigator.mozIccManager or navigator.mozMobileConnection');
+    alert('navigator.mozIccManager or navigator.mozMobileConnections ' +
+          'not supported');
+  }
+
+  function showInfo(iccId) {
+    var i = iccIdIndex[iccId];
+    var connectionContainer = document.getElementById('connection#' + i);
+
+    // show ICC#
+    connectionContainer.querySelector('[data-type="SIM-number"]')
+                                                       .textContent = i;
+
+    iccInfo(navigator.mozIccManager.getIccById(iccId), connectionContainer);
+
+    mobileConnectionInfo(navigator.mozMobileConnections[i],
+                                                     connectionContainer);
+  }
+
+  function addIcc(iccId) {
+    var connectionContainer = document.getElementById('connection#' + icc_num);
+    if (!connectionContainer) {
+      // copy connection-template then modify it.
+      connectionContainer = template.cloneNode(true);
+      connectionContainer.id = 'connection#' + icc_num;
+      connectionContainer.hidden = false;
+
+      document.getElementById('content').appendChild(connectionContainer);
+    }
+
+    iccIdIndex[iccId] = icc_num;
+    icc_num++;
+  }
+
+  function removeIcc(iccId) {
+    var i = iccIdIndex[iccId];
+    if (i != null) {
+      iccIdIndex[iccId] = null;
+      // re-organize index
+      for (var key in iccIdIndex) {
+        if (iccIdIndex[key] >= i) {
+          iccIdIndex[key]--;
+        }
+      }
+      icc_num--;
+    }
   }
 }
 
