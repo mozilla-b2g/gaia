@@ -62,4 +62,10 @@
       currentPageView.setShiftState(newvalue, false);
     }
   }
+
+  exports.ShiftKey = {
+    resetLastShiftTime: function() {
+      lastShiftTime = -1;
+    }
+  };
 }(window));

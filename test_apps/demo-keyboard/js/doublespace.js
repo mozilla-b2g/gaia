@@ -49,4 +49,10 @@
     }
   }
 
+  exports.DoubleSpace = {
+    resetLastKeyWasSpace: function() {
+      convertedOnLastEvent = false;
+      lastKeyWasSpace = 0;
+    }
+  };
 }(window));
