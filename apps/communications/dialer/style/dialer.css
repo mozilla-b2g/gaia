@@ -148,12 +148,17 @@ article[role="tab"] > .icon {
   pointer-events: none;
 }
 
-#views.hide-toolbar .view {
-  pointer-events: none;
+#views.hide-toolbar #iframe-contacts-container {
+  height: 100%;
+}
+
+#views.hide-toolbar > article[role="tab"] > .icon {
+  pointer-events: all;
 }
 
 #views [role="tabpanel"] {
   pointer-events: all;
+  transition: 0s height 0.5s;
 }
 
 #contacts-view [role="tabpanel"] {
