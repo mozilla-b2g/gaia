@@ -14,9 +14,6 @@ class TestDeleteApp(GaiaTestCase):
     APP_NAME = 'Mozilla QA WebRT Tester'
     APP_INSTALLED = False
 
-    # App install popup
-    _notification_banner_locator = (By.ID, 'system-banner')
-
     def setUp(self):
         GaiaTestCase.setUp(self)
 
@@ -37,11 +34,10 @@ class TestDeleteApp(GaiaTestCase):
         confirm_install = ConfirmInstall(self.marionette)
         confirm_install.tap_confirm()
 
-        # Wait for the app to be installed and the notification banner to be available
-        self.wait_for_element_displayed(*self._notification_banner_locator)
-        self.wait_for_element_not_displayed(*self._notification_banner_locator)
-
         self.apps.switch_to_displayed_app()
+
+        # Wait for the app to be installed
+        self.homescreen.wait_for_app_icon_present(self.APP_NAME)
 
         # Verify that the app is installed i.e. the app icon is visible on one of the homescreen pages
         self.assertTrue(self.homescreen.is_app_installed(self.APP_NAME),
