@@ -117,8 +117,11 @@ section[role="region"] > header:first-child button {
   text-decoration: none;
 }
 
-
 /* Pressed state */
+section[role="region"] > header:first-child a:focus {
+  outline: none;
+}
+
 section[role="region"] > header:first-child button::-moz-focus-inner {
   outline: none;
   border: none;
