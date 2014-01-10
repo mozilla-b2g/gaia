@@ -485,7 +485,7 @@ var Settings = {
       for (i = 0; i < spanFields.length; i++) {
         var key = spanFields[i].dataset.name;
 
-        if (key && result[key] && result[key] != 'undefined') {
+        if (key && result[key] && result[key] != undefined) {
           // check whether this setting comes from a select option
           // (it may be in a different panel, so query the whole document)
           rule = '[data-setting="' + key + '"] ' +
