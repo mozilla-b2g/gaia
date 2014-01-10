@@ -45,7 +45,7 @@ function App(options) {
   this.el = options.el;
   this.win = options.win;
   this.doc = options.doc;
-  this.inSecureMode = this.win.parent !== this.win;
+  this.inSecureMode = (this.win.location.hash === '#secure');
   this.geolocation = options.geolocation;
   this.activity = options.activity;
   this.filmstrip = options.filmstrip;

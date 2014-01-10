@@ -198,11 +198,6 @@ function L10nManager(gaiaDir, sharedDir, localesFilePath, localeBasedir) {
     }
     propFile = getFile.apply(null, paths);
 
-    // FIXME: this is a workaround for camera in system app.
-    if (webapp.sourceDirectoryName === 'system' &&
-        /system[\/\\]camera[\/\\].+\.properties$/.test(propFile.path)) {
-      propFile = getFile(propFile.path.replace(/[\\\/]system/, ''));
-    }
     return propFile;
   }
 
