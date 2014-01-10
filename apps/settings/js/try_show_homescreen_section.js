@@ -3,6 +3,7 @@
   'use strict';
   // Several parts of settings listening on application installs
   var appsMgmt = navigator.mozApps.mgmt;
+  var homescreenCountKey = 'settings-homescreen-count';
 
   appsMgmt.oninstall = function(mgmtEvt) {
     var evt = new CustomEvent('applicationinstall', {
@@ -22,6 +23,9 @@
     window.dispatchEvent(evt);
   };
 
+  // Calling appsMgmt.getAll is expensive
+  // So delay it until Settings is doing nothing else
+  // See bug 958318
   function updateHomescreenCachedValue() {
     appsMgmt.getAll().onsuccess = function countInstalledHomescreens(evt) {
       var numHomescreens = 0;
@@ -57,15 +61,7 @@
 
   window.addEventListener('applicationinstall', tryShowHomescreenSection);
   window.addEventListener('applicationuninstall', tryShowHomescreenSection);
-
-  // Calling appsMgmt.getAll is expensive
-  // So delay it until Settings is doing nothing else
-  // See bug 958318
-  // 4 Seconds because main settings has idle timer of 3 s
-  navigator.addIdleObserver({
-    time: 4,
-    onidle: updateHomescreenCachedValue
-  });
+  window.addEventListener('updateHomescreenCount', updateHomescreenCachedValue);
 
   tryShowHomescreenSection();
 })();
