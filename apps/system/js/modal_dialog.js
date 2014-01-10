@@ -61,7 +61,6 @@ var ModalDialog = {
     var elements = this.elements;
 
     // Bind events
-    window.addEventListener('mozbrowsershowmodalprompt', this);
     window.addEventListener('appopen', this);
     window.addEventListener('appwillclose', this);
     window.addEventListener('appterminated', this);
