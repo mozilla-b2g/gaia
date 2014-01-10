@@ -190,6 +190,10 @@ var WindowManager = (function() {
       windowScaled(frame);
 
       var onWindowReady = function() {
+        // We're not displayed app any more. Do not fire appopen.
+        if (displayedApp !== iframe.dataset.frameOrigin) {
+          return;
+        }
         windowOpened(frame);
 
         setTimeout(openCallback);
