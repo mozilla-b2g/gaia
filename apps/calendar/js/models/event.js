@@ -200,6 +200,14 @@ Calendar.ns('Models').Event = (function() {
       return this.remote.alarms = value;
     },
 
+    get attendees() {
+      return this.remote.attendees || [];
+    },
+
+    set attendees(value) {
+      this.remote.attendees = value;
+    },
+
     /**
      * If data doesn't have any errors, the event
      * takes on the attributes of data.
