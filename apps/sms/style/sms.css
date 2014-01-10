@@ -599,6 +599,10 @@ section.has-carrier .article-list header:first-child {
   padding: 0;
 }
 
+.article-list[data-type="list"] .message.no-attachment .bubble p {
+  height: 2.3rem;
+}
+
 .article-list[data-type="list"] .message .bubble p a {
   color: #000;
   text-decoration: underline;
