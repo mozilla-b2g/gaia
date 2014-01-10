@@ -15,6 +15,9 @@ class LockScreen(Base):
     _lockscreen_locator = (By.ID, 'lockscreen')
     _lockscreen_handle_locator = (By.ID, 'lockscreen-area-slide')
 
+    _unlock_button_locator = (By.ID, 'lockscreen-area-unlock')
+    _camera_button_locator = (By.ID, 'lockscreen-area-camera')
+
     _passcode_pad_locator = (By.ID, 'lockscreen-passcode-pad')
     _notification_locator = (By.CSS_SELECTOR, '#notifications-lockscreen-container > div.notification')
 
@@ -50,6 +53,14 @@ class LockScreen(Base):
 
     def wait_for_notification(self):
         self.wait_for_element_displayed(*self._notification_locator)
+
+    def a11y_click_unlock_button(self):
+        self.accessibility.click(self.marionette.find_element(*self._unlock_button_locator))
+        return Homescreen(self.marionette)
+
+    def a11y_click_camera_button(self):
+        self.accessibility.click(self.marionette.find_element(*self._camera_button_locator))
+        return Camera(self.marionette)
 
     @property
     def passcode_pad(self):
