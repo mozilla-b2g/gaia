@@ -747,7 +747,7 @@ button::-moz-focus-inner {
 
 #player-seek-bar {
   display: inline-block;
-  width: 18.4rem;
+  width: calc(100% - 13.6rem);
   height: 100%;
   z-index: 1;
 }
@@ -824,21 +824,14 @@ button::-moz-focus-inner {
   background-size: 3rem;
 }
 
-#player-controls-previous,
-#player-controls-next {
-  width: 10.7rem;
-}
-
-#player-controls-play {
-  width: 10.6rem;
-}
-
 #player-controls-previous {
   background-image: url("./images/IconAction_Media_SkipBackwards_30x30.png");
+  width: 33%;
 }
 
 #player-controls-play {
   background-image: url("./images/IconAction_Media_Pause_30x30.png");
+  width: 34%;
 }
 
 #player-controls-play.is-pause {
@@ -847,6 +840,7 @@ button::-moz-focus-inner {
 
 #player-controls-next {
   background-image: url("./images/IconAction_Media_SkipForward_30x30.png");
+  width: 33%;
 }
 
 .player-controls-button {
