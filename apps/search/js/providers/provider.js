@@ -17,7 +17,7 @@ Provider.prototype = {
    */
   init: function() {
     this.container = document.getElementById(this.name.toLowerCase());
-    this.container.addEventListener('click', this.click);
+    this.container.addEventListener('click', this.click.bind(this));
   },
 
   /**
