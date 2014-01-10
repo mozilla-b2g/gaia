@@ -32,15 +32,15 @@ var Rocketbar = {
         self.searchReset.classList.remove('hidden');
       }
       self._port.postMessage({
-        'type': 'change',
-        'input': input.value
+        action: 'change',
+        input: input.value
       });
     });
     this.searchForm.addEventListener('submit', function onSubmit(e) {
       e.preventDefault();
       self._port.postMessage({
-        'type': 'submit',
-        'input': input.value
+        action: 'submit',
+        input: input.value
       });
     });
 
@@ -196,6 +196,13 @@ var Rocketbar = {
   render: function() {
     if (this.shown) {
       return;
+    }
+
+    // If we have a port, send a message to clear the search app
+    if (this._port) {
+      this._port.postMessage({
+        action: 'clear'
+      });
     }
 
     document.body.addEventListener('keyboardchange', this, true);

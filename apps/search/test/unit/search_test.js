@@ -44,7 +44,8 @@ suite('search/search', function() {
       Search.providers = [{
         init: function() {
           initCalled = true;
-        }
+        },
+        search: function() {}
       }];
 
       Search.init();
@@ -74,17 +75,76 @@ suite('search/search', function() {
     });
   });
 
-  suite('onSearchInput', function() {
-    test('calls browse for submit types', function() {
-      var stub = this.sinon.stub(Search, 'browse');
-      Search.onSearchInput({
+  suite('dispatchMessage', function() {
+    test('dispatches messages based on action', function() {
+      var stub = this.sinon.stub(Search, 'change');
+      Search.dispatchMessage({
         data: {
-          type: 'submit',
+          action: 'change',
+          input: 'http://mozilla.org'
+        }
+      });
+      assert.ok(stub.calledOnce);
+    });
+  });
+
+  suite('change', function() {
+    test('only searches once if called twice rapidly', function() {
+      var called = 0;
+      var fakeProvider = {
+        name: 'Foo',
+        search: function() {
+          called++;
+        }
+      };
+      Search.provider(fakeProvider);
+
+      Search.change({
+        data: {
+          input: 'a'
+        }
+      });
+      Search.change({
+        data: {
+          input: 'a'
+        }
+      });
+      assert.equal(called, 0);
+      clock.tick(1000); // For typing timeout
+      assert.equal(called, 1);
+    });
+  });
+
+  suite('submit', function() {
+    test('calls navigate for submit types', function() {
+      var stub = this.sinon.stub(Search, 'navigate');
+      Search.dispatchMessage({
+        data: {
+          action: 'submit',
           input: 'http://mozilla.org'
         }
       });
       clock.tick(1000); // For typing timeout
       assert.ok(stub.calledOnce);
+    });
+  });
+
+  suite('clear', function() {
+    var called = 0;
+
+    suiteSetup(function() {
+      Search.providers = {
+        Fake: {
+          clear: function() {
+            called++;
+          }
+        }
+      };
+    });
+
+    test('calls the provider.clear method', function() {
+      Search.clear();
+      assert.equal(called, 1);
     });
   });
 
@@ -97,11 +157,11 @@ suite('search/search', function() {
     });
   });
 
-  suite('browse', function() {
+  suite('navigate', function() {
     test('window.open is called', function() {
       var url = 'http://mozilla.org';
       var stub = this.sinon.stub(window, 'open');
-      Search.browse(url);
+      Search.navigate(url);
       assert.ok(stub.calledWith(url));
     });
   });
