@@ -35,6 +35,24 @@
   }
 
   /**
+   * Retrieve the application name, if we are not in the context
+   * of an app simply return the URI
+   */
+  function getAppName(cb) {
+    var request = navigator.mozApps.getSelf();
+    request.onsuccess = function() {
+      if (request.result && request.result.manifest.name) {
+        cb(request.result.manifest.name);
+      } else {
+        cb(location.protocol + '//' + location.host);
+      }
+    };
+    request.onerror = function() {
+      cb(location.protocol + '//' + location.host);
+    };
+  }
+
+  /**
    * Populate element with localized string
    */
   function localizeElement(el, key, args) {
@@ -93,18 +111,22 @@
       break;
 
       case 'netOffline': {
-        localizeElement(title, 'network-connection-unavailable');
-        localizeElement(message, 'network-error', {
-          name: location.protocol + '//' + location.host
+        getAppName(function(appName) {
+          localizeElement(title, 'network-connection-unavailable');
+          localizeElement(message, 'network-error', {
+            name: appName
+          });
         });
       }
       break;
 
       default: {
-        // Same thing when we're an iframe for an application.
-        localizeElement(title, 'unable-to-connect');
-        // The error message is already localized. Set it directly.
-        message.textContent = error.d;
+        getAppName(function(appName) {
+          // Same thing when we're an iframe for an application.
+          localizeElement(title, 'unable-to-connect');
+          // The error message is already localized. Set it directly.
+          message.textContent = error.d;
+        });
       }
     }
   }
