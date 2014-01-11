@@ -1,5 +1,6 @@
 FULLSCREEN_SCRIPTS = \
  ../../shared/js/gesture_detector.js \
+ ../../shared/js/format.js \
  ../../shared/js/media/video_player.js \
  ../../shared/js/media/media_frame.js \
  js/frames.js

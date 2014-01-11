@@ -10,6 +10,7 @@ mocha.setup({
     'BlobView',
     'parseJPEGMetadata',
     'getVideoRotation',
+    'Format',
     'VideoPlayer',
     'GestureDetector'
   ]
@@ -27,6 +28,7 @@ requireApp('camera/js/vendor/alameda.js', function() {
       'getVideoRotation': '../shared/js/media/get_video_rotation',
       'performanceTesting': '../shared/js/performance_testing_helper',
       'jpegMetaDataParser': '../shared/js/media/jpeg_metadata_parser',
+      'Format': '../shared/js/format',
       'GestureDetector': '../shared/js/gesture_detector',
       'VideoPlayer': '../shared/js/media/video_player',
       'MediaFrame': '../shared/js/media/media_frame',
@@ -42,7 +44,7 @@ requireApp('camera/js/vendor/alameda.js', function() {
         exports: 'getVideoRotation'
       },
       'MediaFrame': {
-        deps: ['VideoPlayer'],
+        deps: ['Format', 'VideoPlayer'],
         exports: 'MediaFrame'
       },
       'BlobView': {
