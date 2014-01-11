@@ -3,6 +3,7 @@
   'use strict';
   // Several parts of settings listening on application installs
   var appsMgmt = navigator.mozApps.mgmt;
+  var homescreenCountKey = 'settings-homescreen-count';
 
   appsMgmt.oninstall = function(mgmtEvt) {
     var evt = new CustomEvent('applicationinstall', {
@@ -22,6 +23,21 @@
     window.dispatchEvent(evt);
   };
 
+  // Calling appsMgmt.getAll is expensive
+  // So delay it until Settings is doing nothing else
+  // See bug 958318
+  function updateHomescreenCachedValue() {
+    appsMgmt.getAll().onsuccess = function countInstalledHomescreens(evt) {
+      var numHomescreens = 0;
+      evt.target.result.some(function(app) {
+        if ((app.manifest || app.updateManifest).role === 'homescreen') {
+          numHomescreens++;
+        }
+      });
+      window.asyncStorage.setItem(homescreenCountKey, numHomescreens);
+    };
+  }
+
   // Show Homescreen section only if multiple installed
   function tryShowHomescreenSection(evt) {
     if (evt && evt.application) {
@@ -30,20 +46,22 @@
         return;
     }
 
-    appsMgmt.getAll().onsuccess = function countInstalledHomescreens(evt) {
-      var numHomescreens = 0;
-      evt.target.result.some(function(app) {
-        if ((app.manifest || app.updateManifest).role === 'homescreen') {
-          numHomescreens++;
+    window.asyncStorage.getItem(homescreenCountKey,
+      function(cachedHomescreenCount) {
+        // Should always have at least 1
+        if (cachedHomescreenCount) {
+          document.getElementById('homescreen-section').hidden =
+            cachedHomescreenCount < 2;
+        } else {
+          window.asyncStorage.setItem(homescreenCountKey, 0);
+          document.getElementById('homescreen-section').hidden = true;
         }
-        return numHomescreens > 1;
-      });
-      document.getElementById('homescreen-section').hidden =
-        numHomescreens < 2;
-    };
+    });
   }
+
   window.addEventListener('applicationinstall', tryShowHomescreenSection);
   window.addEventListener('applicationuninstall', tryShowHomescreenSection);
+  window.addEventListener('updateHomescreenCount', updateHomescreenCachedValue);
 
   tryShowHomescreenSection();
 })();
