@@ -39,8 +39,8 @@ Search.Selectors = {
   searchResults: 'iframe[mozapptype="mozsearch"]',
   statusBar: '#statusbar',
   firstAppContainer: '#localapps',
-  firstApp: '#localapps .result',
-  firstContact: '#contacts .result',
+  firstApp: '#localapps div',
+  firstContact: '#contacts div',
   firstContactContainer: '#contacts'
 };
 
