@@ -42,7 +42,7 @@ class Camera(Base):
     _filmstrip_hidden_locator = (By.CSS_SELECTOR, 'body.filmstriphidden')
 
     # ConfirmDialog
-    _select_button_locator = (By.ID, 'select-button')
+    _select_button_locator = (By.CSS_SELECTOR, '.select-button')
 
     def launch(self):
         Base.launch(self)
