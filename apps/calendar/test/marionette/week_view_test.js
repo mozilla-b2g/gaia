@@ -14,7 +14,7 @@ marionette('week view', function() {
     app.findElement('weekButton').click();
   });
 
-  test('should have a space between months', function() {
+  test.skip('should have a space between months', function() {
     var header;
     do {
       app.swipe();
