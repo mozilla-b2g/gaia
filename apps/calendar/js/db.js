@@ -1,6 +1,6 @@
 (function(window) {
   var idb = window.indexedDB;
-  const VERSION = 15;
+  const VERSION = 16;
   var debug = Calendar.debug('database');
 
   var store = {
@@ -254,8 +254,32 @@
           // We need to fix the calendarIds and also remove any of the idb
           // objects that have deleted calendars.
           this.sanitizeEvents(transaction);
+        } else if (curVersion === 15) {
+          // Bug 932258 - We need to add a recurrences field to all of the
+          // existing events. Set the value to 'never' since before version 16
+          // we didn't allow users to create event recurrences.
+          this.addRecurrencesToEvents(transaction);
         }
       }
+    },
+
+    /**
+     * Add a busytimes set to 'never' to each busytime since before version 16
+     * we didn't allow users to create event recurrences.
+     */
+    addRecurrencesToEvents: function(trans) {
+      var eventStore = trans.objectStore(store.events);
+      eventStore.openCursor().onsuccess = function(event) {
+        var cursor = event.target.result;
+        if (!cursor) {
+          return;
+        }
+
+        var object = cursor.value;
+        object.recurrences = 'never';
+        eventStore.put(object);
+        cursor.continue();
+      };
     },
 
     /**

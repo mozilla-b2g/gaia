@@ -216,7 +216,7 @@ Calendar.ns('Controllers').RecurringEvents = (function() {
         for (var key in list) {
           pending++;
           var provider = this.app.provider(list[key].providerType);
-          if (provider && provider.canExpandRecurringEvents) {
+          if (provider) {
             this._expandProvider(expandDate, provider, next);
           } else {
             Calendar.nextTick(next);

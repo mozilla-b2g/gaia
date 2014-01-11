@@ -44,8 +44,6 @@ Calendar.ns('Provider').Local = (function() {
   Local.prototype = {
     __proto__: Calendar.Provider.Abstract.prototype,
 
-    canExpandRecurringEvents: false,
-
     getAccount: function(account, callback) {
       callback(null, {});
     },
@@ -58,6 +56,137 @@ Calendar.ns('Provider').Local = (function() {
 
     syncEvents: function(account, calendar, cb) {
       cb(null);
+    },
+
+    /**
+     * See abstract for contract details...
+     *
+     * Finds all events that have not been expanded
+     * beyond the given point and expands / persists them.
+     *
+     * @param {Date} maxDate maximum date to expand to.
+     * @param {Function} callback [err, didExpand].
+     */
+    ensureRecurrencesExpanded: function(maxDate, callback) {
+      dump('Local#ensureRecurrencesExpanded start\n');
+      this.events.eventsForCalendar(LOCAL_CALENDAR_ID, function(err, events) {
+        if (err) {
+          return callback(err);
+        }
+
+        var count = events.length;
+        if (count === 0) {
+          return callback(null, false);
+        }
+
+        var self = this;
+        var requiredExpansion = false;
+        events.forEach(function(event) {
+          this._expandEvent(event, maxDate, function(err, expansion) {
+            requiredExpansion = requiredExpansion || expansion;
+            return --count === 0 && callback(null, requiredExpansion);
+          });
+        }.bind(this));
+      }.bind(this));
+    },
+
+    /**
+     * @param {Event} event some event to expand.
+     * @param {Function} callback [err, expansion].
+     * @private
+     */
+    _expandEvent: function(event, maxDate, callback) {
+      dump('Local#_expandEvent ' + JSON.stringify(event) + '\n');
+      var remote = event.remote;
+      if (!('recurrences' in remote) || remote.recurrences === 'never') {
+        return callback(null, false);
+      }
+
+      if (!(event.expandedTo instanceof Date)) {
+        event.expandedTo = remote.startDate;
+      }
+
+      var start = event.expandedTo,
+          duration = remote.endDate.getTime() - remote.startDate.getTime(),
+          expansion = false;
+
+      // Iterate from the last expansion up to max date making busytimes.
+      while (true) {
+        var busytime = this._nextBusytime(
+          event, start, duration, event.remote.recurrences
+        );
+
+        if (busytime.end > maxDate) {
+          break;
+        }
+
+        var store = this.busytimes;
+        var trans = store.db.transaction('busytimes', 'readwrite');
+        store.persist(busytime, trans, function(err, id, model) {
+          var controller = Calendar.App.timeController;
+          controller.cacheBusytime(store.initRecord(busytime));
+        });
+
+        expansion = true;
+        start = busytime.start;
+      }
+
+      // Save event.expandedTo for next expansion.
+      remote.expandedTo = start;
+      event.remote = remote;
+      this.updateEvent(event, function(err) {
+        return callback(err, expansion);
+      });
+    },
+
+    /**
+     * Given some recurrence rule, find the busytime that follows a certain
+     * occurrence.
+     *
+     * @param {Event} event busytime event.
+     * @param {Date} prevStart when the previous occurrence started.
+     * @param {number} duration time difference between event start and end.
+     * @param {string} rule recurrence rule.
+     * @private
+     */
+    _nextBusytime: function(event, prevStart, duration, rule) {
+      if (!event) {
+        throw new Error('Cannot compute next busytime without event');
+      }
+      if (!prevStart) {
+        throw new Error('Cannot compute next busytime without previous');
+      }
+
+      var startDate = moment(prevStart);
+      switch (rule) {
+        case 'everyDay':
+          startDate.add('days', 1);
+          break;
+        case 'everyWeek':
+          startDate.add('days', 7);
+          break;
+        case 'everyOtherWeek':
+          startDate.add('days', 14);
+          break;
+        case 'everyMonth':
+          startDate.add('months', 1);
+          break;
+        case 'everyYear':
+          startDate.add('years', 1);
+          break;
+      }
+      startDate = startDate.toDate();
+
+      var endDate = new Date();
+      endDate.setDate(startDate.getDate());
+      endDate.setTime(startDate.getTime() + duration);
+      return {
+        _id: event._id + '-' + uuid.v4(),
+        eventId: event._id,
+        calendarId: LOCAL_CALENDAR_ID,
+        start: startDate,
+        end: endDate
+      };
     },
 
     /**

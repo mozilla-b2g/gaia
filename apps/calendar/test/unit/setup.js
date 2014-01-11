@@ -354,5 +354,6 @@
   // tell mocha its here..
   window.uuid = null;
   window.NotAmd = null;
+  window.moment = null;
 
 }(this));

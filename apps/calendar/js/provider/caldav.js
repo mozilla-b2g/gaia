@@ -42,7 +42,6 @@ Calendar.ns('Provider').Caldav = (function() {
     useUrl: true,
     useCredentials: true,
     canSync: true,
-    canExpandRecurringEvents: true,
 
     /**
      * Number of dates in the past to sync.

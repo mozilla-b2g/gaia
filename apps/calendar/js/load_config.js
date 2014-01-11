@@ -352,6 +352,7 @@ Calendar.LoadConfig = (function() {
         ],
 
         js: [
+          'ext/moment',
           'ext/uuid',
           'provider/local'
         ]

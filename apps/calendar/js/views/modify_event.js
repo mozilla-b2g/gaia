@@ -334,16 +334,18 @@ Calendar.ns('Views').ModifyEvent = (function() {
           // of the dom elements so selectedDay must come after.
           self.app.timeController.selectedDay = moveDate;
 
+          self.app.recurringEventsController.queueExpand(
+            self.app.timeController.position
+          );
+
           if (method === 'updateEvent') {
             // If we edit a view our history stack looks like:
             //   /week -> /event/view -> /event/save -> /event/view
             // We need to return all the way to the top of the stack
             // We can remove this once we have a history stack
-            self.app.view('ViewEvent', function(view) {
+            return self.app.view('ViewEvent', function(view) {
               self.app.go(view.returnTop());
             });
-
-            return;
           }
 
           self.app.go(self.returnTo());
@@ -465,6 +467,12 @@ Calendar.ns('Views').ModifyEvent = (function() {
           fields.endDate.getDate() + 1
         );
       }
+
+      var recurrences = this.getEl('recurrences').value;
+      if (typeof recurrences !== 'string') {
+        recurrences = 'never';
+      }
+      fields.recurrences = recurrences;
 
       var alarms = this.element.querySelectorAll('[name="alarm[]"]');
       fields.alarms = [];
@@ -730,7 +738,6 @@ Calendar.ns('Views').ModifyEvent = (function() {
 
   /**
    * The fields on our event model which urlparams may override.
-   * @enum {string}
    */
   ModifyEvent.OverrideableField = {
     CALENDAR_ID: 'calendarId',

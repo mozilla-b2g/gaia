@@ -29,11 +29,6 @@ Calendar.ns('Provider').Abstract = (function() {
     canSync: false,
 
     /**
-     * Can expand recurring events?
-     */
-    canExpandRecurringEvents: false,
-
-    /**
      *  - domain: (String)
      *  - password: (String)
      *  - user: (String)

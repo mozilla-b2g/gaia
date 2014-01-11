@@ -42,13 +42,11 @@ Calendar.ns('Store').Busytime = (function() {
       var _super = Calendar.Store.Abstract.prototype._createModel;
       var model = _super.apply(this, arguments);
 
-      model.startDate = Calendar.Calc.dateFromTransport(
-        model.start
-      );
+      model.startDate = model.start instanceof Date ?
+        model.start : Calendar.Calc.dateFromTransport(model.start);
 
-      model.endDate = Calendar.Calc.dateFromTransport(
-        model.end
-      );
+      model.endDate = model.end instanceof Date ?
+        model.end : Calendar.Calc.dateFromTransport(model.end);
 
       return model;
     },

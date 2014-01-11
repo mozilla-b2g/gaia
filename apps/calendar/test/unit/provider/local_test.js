@@ -1,3 +1,4 @@
+requireLib('ext/moment.js');
 requireLib('timespan.js');
 
 var uuid;
@@ -8,6 +9,7 @@ suiteGroup('Provider.Local', function() {
   var app;
   var db;
   var controller;
+  var caldav;
 
   setup(function(done) {
     app = testSupport.calendar.app();
@@ -25,11 +27,12 @@ suiteGroup('Provider.Local', function() {
   });
 
   teardown(function(done) {
-    testSupport.calendar.clearStore(
-      db,
-      ['accounts', 'calendars', 'events', 'busytimes'],
-      done
-    );
+    testSupport.calendar.clearStore(db, [
+      'accounts',
+      'calendars',
+      'events',
+      'busytimes'
+    ], done);
   });
 
   teardown(function() {
@@ -231,5 +234,243 @@ suiteGroup('Provider.Local', function() {
       });
     });
 
+  });
+
+  suite('#ensureRecurrencesExpanded', function() {
+    var expandEvent, requiredExpansion;
+
+    setup(function(done) {
+      expandEvent = sinon.stub(subject, '_expandEvent');
+
+      var event = Factory('event');
+      event.startDate = new Date();
+      event.endDate = new Date();
+      event.endDate.setTime(
+        event.endDate.getTime() + 1000 * 60 * 60
+      );
+      event.recurrences = 'everyDay';
+      event.calendarId = Calendar.Provider.Local.calendarId;
+
+      subject.createEvent(event, done);
+    });
+
+    teardown(function() {
+      expandEvent.restore();
+    });
+
+    test('should call #_expandEvent for each local event', function(done) {
+      expandEvent.callsArgWithAsync(2);
+      var maxDate = moment().add('months', 3).toDate();
+      subject.ensureRecurrencesExpanded(maxDate, function(err, _expansion) {
+        requiredExpansion = _expansion;
+        sinon.assert.calledOnce(expandEvent);
+        done();
+      });
+    });
+
+    test('should report requiredExpansion true', function(done) {
+      expandEvent.callsArgWithAsync(2, null, true);
+      var maxDate = moment().add('months', 3).toDate();
+      subject.ensureRecurrencesExpanded(maxDate, function(err, _expansion) {
+        assert.ok(_expansion);
+        done();
+      });
+    });
+
+    test('should report requiredExpansion false', function(done) {
+      expandEvent.callsArgWithAsync(2, null, false);
+      var maxDate = moment().add('months', 3).toDate();
+      subject.ensureRecurrencesExpanded(maxDate, function(err, _expansion) {
+        assert.ok(!_expansion);
+        done();
+      });
+    });
+  });
+
+  suite('#_expandEvent', function() {
+    var event;
+
+    setup(function(done) {
+      this.timeout(5000);
+      event = Factory('event');
+      event.startDate = new Date();
+      event.endDate = new Date();
+      event.endDate.setTime(
+        event.startDate.getTime() + 1000 * 60 * 60
+      );
+      event.calendarId = Calendar.Provider.Local.calendarId;
+
+      subject.createEvent(event, done);
+    });
+
+    test('should do nothing if !recurrences or never', function(done) {
+      event.remote.recurrences = 'never';
+      subject._expandEvent(event, new Date(), function(err, expansion) {
+        assert.ok(!err);
+        assert.equal(expansion, false);
+        done();
+      });
+    });
+
+    test('should add expandedTo key to event', function(done) {
+      event.remote.watch('expandedTo', function() {
+        event.remote.unwatch('expandedTo');
+        done();
+      });
+
+      event.remote.recurrences = 'everyYear';
+      subject._expandEvent(event, event.remote.startDate, function() {});
+    });
+
+    test('should report expanded true', function(done) {
+      event.remote.recurrences = 'everyDay';
+      var maxDate = new Date();
+      maxDate.setTime(moment().add('days', 7).toDate());
+      subject._expandEvent(event, maxDate, function(err, expansion) {
+        assert.ok(!err);
+        assert.equal(expansion, true);
+        done();
+      });
+    });
+
+    test('should report expanded false', function(done) {
+      event.remote.recurrences = 'everyDay';
+      var maxDate = new Date();
+      maxDate.setTime(moment().subtract('days', 7).toDate());
+      subject._expandEvent(event, maxDate, function(err, expansion) {
+        assert.ok(!err);
+        assert.equal(expansion, false);
+        done();
+      });
+    });
+
+    test('should update event.remote.expandedTo', function() {
+      event.remote.recurrences = 'everyDay';
+      var maxDate = new Date();
+      maxDate.setTime(moment().add('days', 7).toDate());
+      subject._expandEvent(event, maxDate, function(err, expansion) {
+        assert.ok(!err);
+        assert.ok(event.expandedTo > event.startDate);
+        done();
+      });
+    });
+
+    test.skip('should create busytimes', function() {
+      // TODO(gaye)
+    });
+
+    test.skip('should cache busytimes', function() {
+      // TODO(gaye)
+    });
+  });
+
+  suite('#_nextBusytime', function() {
+    var event, prevStart, duration, uuid, startDate;
+
+    setup(function() {
+      event = { _id: '123' };
+      prevStart = new Date(1998, 1, 17, 3, 0, 0, 0);
+      startDate = moment(prevStart);
+      duration = 60 * 60 * 1000;
+      uuid = 'more-unique-than-all-the-rest';
+      window.uuid.v4 = function() {
+        return uuid;
+      };
+    });
+
+    test.skip('everyDay', function() {
+      var result = subject._nextBusytime(
+        event, prevStart, duration, 'everyDay'
+      );
+
+      startDate = startDate.add('days', 1);
+      var endDate = new Date();
+      endDate.setDate(startDate.getDate());
+      endDate.setTime(startDate.getTime() + duration);
+
+      assert.deepEqual(result, {
+        _id: event._id + '-' + uuid,
+        eventId: event._id,
+        calendarId: Calendar.Provider.Local.calendarId,
+        start: startDate,
+        end: endDate
+      });
+    });
+
+    test('everyWeek', function() {
+      var result = subject._nextBusytime(
+        event, prevStart, duration, 'everyWeek'
+      );
+
+      startDate = startDate.add('days', 7);
+      var endDate = new Date();
+      endDate.setDate(startDate.getDate());
+      endDate.setTime(startDate.getTime() + duration);
+
+      assert.deepEqual(result, {
+        _id: event._id + '-' + uuid,
+        eventId: event._id,
+        calendarId: Calendar.Provider.Local.calendarId,
+        start: startDate,
+        end: endDate
+      });
+    });
+
+    test('everyOtherWeek', function() {
+      var result = subject._nextBusytime(
+        event, prevStart, duration, 'everyOtherWeek'
+      );
+
+      startDate = startDate.add('days', 14);
+      var endDate = new Date();
+      endDate.setDate(startDate.getDate());
+      endDate.setTime(startDate.getTime() + duration);
+
+      assert.deepEqual(result, {
+        _id: event._id + '-' + uuid,
+        eventId: event._id,
+        calendarId: Calendar.Provider.Local.calendarId,
+        start: startDate,
+        end: endDate
+      });
+    });
+
+    test('everyMonth', function() {
+      var result = subject._nextBusytime(
+        event, prevStart, duration, 'everyMonth'
+      );
+
+      startDate = startDate.add('months', 1);
+      var endDate = new Date();
+      endDate.setDate(startDate.getDate());
+      endDate.setTime(startDate.getTime() + duration);
+
+      assert.deepEqual(result, {
+        _id: event._id + '-' + uuid,
+        eventId: event._id,
+        calendarId: Calendar.Provider.Local.calendarId,
+        start: startDate,
+        end: endDate
+      });
+    });
+
+    test('everyYear', function() {
+      var result = subject._nextBusytime(
+        event, prevStart, duration, 'everyYear'
+      );
+
+      startDate = startDate.add('years', 1);
+      var endDate = new Date();
+      endDate.setDate(startDate.getDate());
+      endDate.setTime(startDate.getTime() + duration);
+
+      assert.deepEqual(result, {
+        _id: event._id + '-' + uuid,
+        eventId: event._id,
+        calendarId: Calendar.Provider.Local.calendarId,
+        start: startDate,
+        end: endDate
+      });
+    });
   });
 });

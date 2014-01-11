@@ -364,9 +364,6 @@ suite('db', function() {
       });
 
       suite('Bug 851003', function() {
-        /** bug 912087: renable once tests pass consistently */
-        return;
-
         /**
          * @type {Calendar.Store}
          */
@@ -535,6 +532,40 @@ suite('db', function() {
       });
     });
 
+    suite('Bug 932258', function() {
+      var EVENT_ID, OLD_VERSION;
+
+      setup(function(done) {
+        EVENT_ID = 'one';
+        OLD_VERSION = 15;
+
+        subject.open(OLD_VERSION, function() {
+          // Prepare the idb with an event that doesn't have a busytimes
+          // field at version 15.
+          var store = subject.getStore('Event');
+          store.persist(
+            Factory('event', { calendarId: '1', _id: EVENT_ID }), trans);
+
+          var trans = subject.transaction(['events'], 'readwrite');
+          trans.oncomplete = function() {
+            subject.close();
+            done();
+          };
+        });
+      });
+
+      test('should add "never" recurrences to existing event', function(done) {
+        subject.open(OLD_VERSION + 1, function() {
+          var trans = subject.transaction(['events'], 'readwrite');
+          var store = trans.objectStore('events');
+          store.get(EVENT_ID).onsuccess = function(event) {
+            assert.strictEqual(event.target.result.recurrences, 'never');
+            done();
+          };
+        });
+      });
+    });
+
     suite('after version change', function() {
       teardown(function() {
         subject.close();
@@ -556,8 +587,6 @@ suite('db', function() {
           done();
         });
       });
-
     });
   });
-
 });
