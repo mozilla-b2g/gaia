@@ -15,6 +15,10 @@ requireApp('clock/js/alameda.js', function() {
       }
     },
     shim: {
+      database: {
+        exports: ['SchemaVersion', 'Database'],
+        deps: ['utils']
+      },
       emitter: {
         exports: 'Emitter'
       },

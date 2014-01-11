@@ -1,5 +1,3 @@
-mocha.setup({ globals: ['GestureDetector'] });
-
 suite('Alarm Test', function() {
 
   var Alarm, ActiveAlarm;
@@ -24,7 +22,7 @@ suite('Alarm Test', function() {
   });
 
   setup(function() {
-    this.sinon.stub(ActiveAlarm.singleton(), 'handler');
+    this.sinon.stub(ActiveAlarm, 'handler');
   });
 
   suite('Date handling', function() {

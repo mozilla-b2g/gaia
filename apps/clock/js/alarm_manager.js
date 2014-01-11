@@ -77,11 +77,7 @@ var AlarmManager = {
       });
       var endCb = generator();
       for (var i = 0; i < e.target.result.length && !hasAlarmEnabled; i++) {
-        var data = e.target.result[i].data;
-        if (!data.id || ['alarm', 'snooze'].indexOf(data.type) === -1) {
-          return;
-        }
-        AlarmsDB.getAlarm(data.id,
+        AlarmsDB.getAlarm(e.target.result[i].data.id,
           (function(mozAlarm, doneCb) {
           return function(err, alarm) {
             if (!err) {
