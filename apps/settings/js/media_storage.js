@@ -5,7 +5,7 @@
 
 /**
  * The whole purpose of this code is to detect when we're in the state of having
- * the UMS Enabled checkbox unchecked, but the SD-card is still being shared
+ * the UMS Enabled checkbox unchecked from settings page, but the SD-card is still being shared
  * with the PC.
  *
  * In this case, the user has to unplug the USB cable in order to actually turn
@@ -115,21 +115,6 @@ Volume.prototype.createView = function volume_createView(listRoot) {
     li.appendChild(text);
     self.rootElement.appendChild(li);
   });
-
-  var input = document.createElement('input');
-  input.type = 'checkbox';
-  input.name = 'ums.volume.' + this.name + '.enabled';
-  var label = document.createElement('label');
-  label.classList.add('pack-switch');
-  label.appendChild(input);
-  var span = document.createElement('span');
-  span.dataset.l10nId = 'share-using-usb';
-  span.textContent = _('share-using-usb');
-  label.appendChild(span);
-
-  var ele = document.createElement('li');
-  ele.appendChild(label);
-  this.rootElement.appendChild(ele);
 };
 
 Volume.prototype.updateStorageInfo = function volume_updateStorageInfo() {
@@ -206,27 +191,6 @@ var MediaStorage = {
     this.documentStorageListener = false;
     this.updateListeners();
 
-    this.usmEnabledVolume = {};
-    this.umsVolumeShareState = false;
-    // Use visibilitychange so that we don't get notified of device
-    // storage notifications when the settings app isn't visible.
-    document.addEventListener('visibilitychange', this);
-    this.umsEnabledCheckBox = document.getElementById('ums-switch');
-    this.umsEnabledInfoBlock = document.getElementById('ums-desc');
-    this.umsEnabledCheckBox.addEventListener('change', this);
-    this.registerUmsListener();
-
-    var self = this;
-    var umsSettingKey = 'ums.enabled';
-    Settings.getSettings(function(allSettings) {
-      self.umsEnabledCheckBox.checked = allSettings[umsSettingKey] || false;
-      self.updateMasterUmsDesc();
-    });
-    Settings.mozSettings.addObserver(umsSettingKey, function(evt) {
-      self.umsEnabledCheckBox.checked = evt.settingValue;
-      self.updateMasterUmsDesc();
-    });
-
     this.defaultMediaLocation = document.getElementById('defaultMediaLocation');
     this.defaultMediaLocation.addEventListener('click', this);
     this.makeDefaultLocationMenu();
@@ -289,31 +253,6 @@ var MediaStorage = {
     });
   },
 
-  updateMasterUmsDesc: function ms_updateMasterUmsDesc() {
-    var _ = navigator.mozL10n.get;
-    if (this.umsEnabledCheckBox.checked) {
-      var list = [];
-      for (var id in this.usmEnabledVolume) {
-        if (this.usmEnabledVolume[id]) {
-          list.push(_(this._volumeList[id].getL10nId(true)));
-        }
-      }
-      if (list.length === 0) {
-        this.umsEnabledInfoBlock.textContent = _('enabled');
-        this.umsEnabledInfoBlock.dataset.l10nId = 'enabled';
-      } else {
-        var desc = _('ums-shared-volumes', { list: list.join(', ') });
-        this.umsEnabledInfoBlock.textContent = desc;
-        this.umsEnabledInfoBlock.dataset.l10nId = '';
-      }
-    } else if (this.umsVolumeShareState) {
-      this.umsEnabledInfoBlock.textContent = _('umsUnplugToDisable');
-      this.umsEnabledInfoBlock.dataset.l10nId = 'umsUnplugToDisable';
-    } else {
-      this.umsEnabledInfoBlock.textContent = _('disabled');
-      this.umsEnabledInfoBlock.dataset.l10nId = 'disabled';
-    }
-  },
 
   handleEvent: function ms_handleEvent(evt) {
     switch (evt.type) {
