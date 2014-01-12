@@ -10,11 +10,12 @@ from functools import wraps
 
 from marionette import MarionetteTestCase, EnduranceTestCaseMixin, B2GTestCaseMixin, \
                        MemoryEnduranceTestCaseMixin
-from marionette.errors import NoSuchElementException
+from marionette import Wait
 from marionette.errors import ElementNotVisibleException
-from marionette.errors import TimeoutException
-from marionette.errors import StaleElementException
 from marionette.errors import InvalidResponseException
+from marionette.errors import NoSuchElementException
+from marionette.errors import StaleElementException
+from marionette.errors import TimeoutException
 from yoctopuce.yocto_api import YAPI, YRefParam, YModule
 from yoctopuce.yocto_current import YCurrent
 from yoctopuce.yocto_datalogger import YDataLogger
@@ -76,9 +77,14 @@ class GaiaApps(object):
         return self.marionette.execute_async_script("return GaiaApps.setPermission('%s', '%s', '%s')" %
                                                     (app_name, permission_name, value))
 
-    def launch(self, name, switch_to_frame=True, url=None, launch_timeout=None):
+    def launch(self, name, switch_to_frame=True, url=None, launch_timeout=None, ignored_exceptions=None):
         self.marionette.switch_to_frame()
-        result = self.marionette.execute_async_script("GaiaApps.launchWithName('%s')" % name, script_timeout=launch_timeout)
+        # TODO: This timeout setting code will be removed as part of bug 959217, as promised by davehunt
+        default_timeout = 30
+        timeout = launch_timeout or (self.marionette.timeout and self.marionette.timeout / 1000) or default_timeout
+        result = Wait(self.marionette, timeout, ignored_exceptions=ignored_exceptions).until(
+            lambda m: m.execute_async_script("GaiaApps.launchWithName('%s')" % name, script_timeout=launch_timeout)
+        )
         assert result, "Failed to launch app with name '%s'" % name
         app = GaiaApp(frame=result.get('frame'),
                       src=result.get('src'),

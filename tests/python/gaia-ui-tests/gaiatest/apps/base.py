@@ -22,8 +22,12 @@ class Base(object):
         self.data_layer = GaiaData(self.marionette)
         self.frame = None
 
-    def launch(self, launch_timeout=None):
-        self.app = self.apps.launch(self.name, launch_timeout=launch_timeout)
+    def launch(self, launch_timeout=None, ignored_exceptions=None):
+        self.app = self.apps.launch(
+            self.name,
+            launch_timeout=launch_timeout,
+            ignored_exceptions=ignored_exceptions
+        )
 
     def wait_for_element_present(self, by, locator, timeout=None):
         timeout = timeout or (self.marionette.timeout and self.marionette.timeout / 1000) or 30
