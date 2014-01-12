@@ -56,13 +56,5 @@
   },
   "messages": [
     { "alarm": "/index.html" }
-  ],
-  "connections": {
-    "eme-api": {
-      "description": "Handles connections to the E.me api.",
-      "rules": {
-        "manifestURLs": ["app://search.gaiamobile.org/manifest.webapp"]
-      }
-    }
-  }
+  ]
 }

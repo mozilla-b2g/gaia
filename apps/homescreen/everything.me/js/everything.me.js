@@ -1,8 +1,6 @@
 'use strict';
 
 var EverythingME = {
-  apiKey: '1518c0001ff736528322f306f41f027d',
-
   activated: false,
   pendingEvent: undefined,
 
@@ -329,9 +327,7 @@ var EverythingME = {
   },
 
   initEvme: function EverythingME_initEvme() {
-    Evme.init({
-      'apiKey' : this.apiKey
-    }, EverythingME.onEvmeLoaded);
+    Evme.init(EverythingME.onEvmeLoaded);
     EvmeFacade = Evme;
   },
 
@@ -566,66 +562,3 @@ var EvmeFacade = {
     return false;
   }
 };
-
-
-function MessageHandler() {
-  var self = this;
-  var searchPort = null;
-
-  this.onmessage = openSearchPort;
-
-  // handle incoming eme-api connections
-  // first message triggers eme-client connection setup
-  navigator.mozSetMessageHandler('connection',
-    function(connectionRequest) {
-      var keyword = connectionRequest.keyword;
-      if (connectionRequest.keyword === 'eme-api') {
-        var port = connectionRequest.port;
-        port.onmessage = self.onmessage;
-        port.start();
-      }
-    }
-  );
-
-  /**
-   * Opens the search eme-client port.
-   * We need to do this only after we receive a message
-   * Or else we will trigger launching of the search-results app.
-   */
-  function openSearchPort(msg) {
-    navigator.mozApps.getSelf().onsuccess = function() {
-      var app = this.result;
-      app.connect('eme-client').then(
-        function onConnectionAccepted(ports) {
-          ports.forEach(function(port) {
-            searchPort = port;
-          });
-          MessageHandler.onmessage = handleMessage;
-          handleMessage(msg);
-        },
-        function onConnectionRejected(reason) {
-          dump('Error connecting: ' + reason + '\n');
-        }
-      );
-    };
-  }
-
-  function handleMessage(msg) {
-    var action = msg.data.action;
-
-    switch (action) {
-      case 'init':
-        searchPort.postMessage({
-          'action': 'init',
-          'apiKey': EverythingME.apiKey
-        });
-        break;
-
-      default:
-        break;
-    }
-  };
-
-}
-
-new MessageHandler();
