@@ -33,7 +33,7 @@ class TestChangeKeyboardLanguage(GaiaTestCase):
         contacts_app = Contacts(self.marionette)
         contacts_app.launch()
         new_contact_form = contacts_app.tap_new_contact()
-        new_contact_form.type_given_name('')
+        new_contact_form.type_given_name('bob')
         self.wait_for_condition(lambda m: new_contact_form.keyboard.is_displayed())
 
         # Switch to keyboard frame and switch language
