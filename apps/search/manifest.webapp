@@ -31,13 +31,6 @@
       "rules": {
         "manifestURLs": ["app://system.gaiamobile.org/manifest.webapp"]
       }
-    },
-    "eme-client": {
-      "handler_path": "index.html",
-      "description": "Handles message from the E.me app.",
-      "rules": {
-        "manifestURLs": ["app://homescreen.gaiamobile.org/manifest.webapp"]
-      }
     }
   }
 }

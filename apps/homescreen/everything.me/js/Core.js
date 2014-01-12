@@ -6,7 +6,7 @@ window.Evme = new function Evme_Core() {
 
   this.shouldSearchOnInputBlur = false;
 
-  this.init = function init(evmeConfig, callback) {
+  this.init = function init(callback) {
     var data = Evme.__config,
         apiHost = Evme.Utils.getUrlParam('apiHost') || data.apiHost;
 
@@ -38,7 +38,7 @@ window.Evme = new function Evme_Core() {
     });
 
     Evme.DoATAPI.init({
-      'apiKey': evmeConfig.apiKey,
+      'apiKey': data.apiKey,
       'appVersion': data.appVersion,
       'authCookieName': data.authCookieName,
       'callback': function initCallback() {
