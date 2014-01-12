@@ -53,10 +53,7 @@
           function(connectionRequest) {
             var keyword = connectionRequest.keyword;
             var port = connectionRequest.port;
-            if (keyword === 'eme-client') {
-              port.onmessage = window.eme.onmessage;
-              port.start();
-            } else if (keyword === 'search') {
+            if (keyword === 'search') {
               port.onmessage = self.dispatchMessage.bind(self);
               port.start();
             }

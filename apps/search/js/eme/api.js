@@ -3,14 +3,12 @@
 
   function partnersAPI(eme) {
     var OK = 1;
-    var API_KEY = null;
     var API_URL = 'https://api.everything.me/partners/1.0/{resource}/';
+    var API_KEY = '79011a035b40ef3d7baeabc8f85b862f';
 
     var self = this;
 
     this.init = function init(config) {
-      API_KEY = config.apiKey;
-
       addApiMethod('Apps', 'search');
       addApiMethod('Search', 'suggestions');
       addApiMethod('Search', 'bgimage');
