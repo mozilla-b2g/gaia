@@ -154,7 +154,7 @@
         'sim-manager-outgoing-messages-select',
         'sim-manager-outgoing-messages-desc',
         'sim-manager-outgoing-data-select',
-        'sim-manager-outgoing-data-desc'
+        'sim-manager-outgoing-data-desc-new'
       ];
       var toCamelCase = function toCamelCase(str) {
         return str.replace(/\-(.)/g, function(str, p1) {
