@@ -24,7 +24,7 @@
       });
 
       activity.onerror = function onerror() {
-        Search.browse('https://marketplace.firefox.com/app/' + slug);
+        Search.navigate('https://marketplace.firefox.com/app/' + slug);
       };
     },
 
