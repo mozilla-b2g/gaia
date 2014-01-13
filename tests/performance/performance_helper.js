@@ -203,25 +203,27 @@ PerformanceHelper.prototype = {
       }
       return info && system;
     });
-    if (info) {
-      return {
-        app: {
-          name: info.NAME,
-          uss: parseFloat(info.USS),
-          pss: parseFloat(info.PSS),
-          rss: parseFloat(info.RSS),
-          vsize: parseFloat(info.VSIZE)
-        },
-        system: {
-          name: system.NAME,
-          uss: parseFloat(system.USS),
-          pss: parseFloat(system.PSS),
-          rss: parseFloat(system.RSS),
-          vsize: parseFloat(system.VSIZE)
-        }
-      };
+
+    if (!info) {
+      return null;
     }
-    return null;
+
+    return {
+      app: {
+        name: info.NAME,
+        uss: parseFloat(info.USS),
+        pss: parseFloat(info.PSS),
+        rss: parseFloat(info.RSS),
+        vsize: parseFloat(info.VSIZE)
+      },
+      system: {
+        name: system.NAME,
+        uss: parseFloat(system.USS),
+        pss: parseFloat(system.PSS),
+        rss: parseFloat(system.RSS),
+        vsize: parseFloat(system.VSIZE)
+      }
+    };
   }
 };
 
