@@ -18,6 +18,7 @@ function JSONMozPerfReporter(runner) {
   var failures = [];
   var passes = [];
   var mozPerfDurations;
+  var mozPerfMemory;
 
   runner.on('test', function(test) {
     mozPerfDurations = [];
@@ -25,6 +26,10 @@ function JSONMozPerfReporter(runner) {
 
   runner.on('mozPerfDuration', function(content) {
     mozPerfDurations = content;
+  });
+
+  runner.on('mozPerfMemory', function(content) {
+    mozPerfMemory = content;
   });
 
   runner.on('pass', function(test) {
@@ -43,7 +48,8 @@ function JSONMozPerfReporter(runner) {
         fullTitle: test.fullTitle() + ' ' + title,
         duration: test.duration,
         mozPerfDurations: mozPerfDurations[title],
-        mozPerfDurationsAverage: average(mozPerfDurations[title])
+        mozPerfDurationsAverage: average(mozPerfDurations[title]),
+        mozPerfMemory: mozPerfMemory[title],
       });
     }
   });
