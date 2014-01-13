@@ -7,7 +7,6 @@
   "devDependencies": {
     "debug": "*",
     "empty-port": "~0.0.1",
-    "exec-sync": "*",
     "jshint": "2.4.1",
     "mail-fakeservers": "~0.0.11",
     "marionette-apps": "~0.3.3",
