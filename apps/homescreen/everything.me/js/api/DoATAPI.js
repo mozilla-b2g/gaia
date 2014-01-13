@@ -954,6 +954,12 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
   }
 
   function cbRequestAbort(methodNamespace, method, params, retryNumber) {
+    if (sessionInitRequest) {
+      sessionInitRequest.abort();
+      requestingSession = false;
+      sessionInitRequest = null;
+    }
+
     Evme.EventHandler.trigger(NAME, 'abort', {
       'method': methodNamespace + '/' + method,
       'params': params,
