@@ -69,6 +69,7 @@ Calendar.Selector = Object.freeze({
   todayTabItem: '#today',
   addEventButton: 'a[href="/event/add/"]',
   weekButton: 'a[href="/week/"]',
+  dayButton: 'a[href="/day/"]',
   hintSwipeToNavigate: '#hint-swipe-to-navigate',
   editEventForm: '#modify-event-view form',
   editEventAlarm: '#modify-event-view select[name="alarm[]"]',

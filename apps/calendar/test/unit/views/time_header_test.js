@@ -71,6 +71,20 @@ suiteGroup('Views.TimeHeader', function() {
     );
   });
 
+  test('#getScale for day', function() {
+    controller.move(new Date(2012, 0, 30));
+    var compare = fmt.localeFormat(
+      new Date(2012, 0, 30),
+      // do not use hard coded values because it might change based on locale
+      navigator.mozL10n.get(subject.scales.day)
+    );
+    var out = subject.getScale('day');
+    assert.equal(out, compare);
+    // 20 chars seems to be the maximum with current layout (see bug 951423)
+    assert.operator(out.length, '<', 21,
+      'header should not have too many chars');
+  });
+
   // When week starts in one month
   // and ends in another we need
   // 'Month1 Month2 Year' like header.
