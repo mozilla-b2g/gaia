@@ -18,7 +18,7 @@
     click: function(e) {
       var url = e.target && e.target.dataset.url;
       if (url) {
-        Search.browse(url);
+        Search.navigate(url);
       }
     },
 

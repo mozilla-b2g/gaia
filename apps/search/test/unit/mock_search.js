@@ -7,6 +7,6 @@ window.Search = {
   },
   onSearchInput: function() {},
   close: function() {},
-  browse: function() {},
+  navigate: function() {},
   setInput: function() {}
 };
