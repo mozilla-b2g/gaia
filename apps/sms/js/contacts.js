@@ -2,6 +2,7 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 (function(exports) {
   'use strict';
+  /*global fb */
 
   var filterFns = {
     startsWith: function(a, b) {
@@ -54,6 +55,11 @@
       var term = criteria.terms[i];
       for (var j = 0, jlen = criteria.fields.length; j < jlen; j++) {
         var field = criteria.fields[j];
+
+        if (!contact[field]) {
+          continue;
+        }
+
         for (var k = 0, klen = contact[field].length; k < klen; k++) {
           var value = contact[field][k].trim();
 
@@ -227,12 +233,27 @@
         callback(isExact ? [contact] : []);
       });
     },
+
     findByPhoneNumber: function contacts_findByPhone(filterValue, callback) {
       return this.findBy({
         filterBy: ['tel'],
         filterOp: 'match',
         filterValue: filterValue.replace(/\s+/g, '')
-      }, callback);
+      },
+      function(results) {
+        if (results && results.length) {
+          callback(results);
+          return;
+        }
+
+        fb.getContactByNumber(filterValue, function fbByPhone(contact) {
+          callback(contact ? [contact] : []);
+        }, function error_fbByPhone(err) {
+            console.error('Error while retrieving fb by phone: ',
+                                 err.name);
+            callback(results);
+        });
+      });
     }
   };
 

@@ -1,32 +1,40 @@
-.fixed-title,
-.fixed-title-import {
+.fixed-title {
   position: absolute;
   top: 5rem;
-  left: 2rem;
-  right: 2.7rem;
-  height: 2.3rem;
-  padding: 0.5rem 0 0 1rem;
+  left: 0;
+  right: 3rem;
+  height: 3.1rem;
+  line-height: 4rem;
+  padding: 0 0 0 3rem;
   z-index: 6;
   background-repeat: no-repeat;
-  background-color: #f4f4f4;
   transform: translateY(-100%);
   text-align: left;
   color: #FF5F19;
-  font-size: 1.6rem;
-  border-bottom: 1px solid #FF5F19;
-  pointer-events: none;
-}
-
-.fixed-title-import {
-  position: fixed;
-  left: 2.5rem;
-  right: 2.5rem;
-  z-index: 3;
-  padding-left: 0;
   background: #fff;
+  font-size: 1.6rem;
+  pointer-events: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.facebook .fixed-title-import {
-  border-bottom: 1px solid #4D77CF;
+.fixed-title:after {
+  position: absolute;
+  content: "";
+  left: 1.5rem;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  border-bottom: 1px solid #FF5F19;
+  z-index: 1;
+}
+
+.facebook .fixed-title {
+  top: 0;
   color: #4D77CF;
+}
+
+.facebook .fixed-title:after {
+  border-color: #4D77CF;
 }

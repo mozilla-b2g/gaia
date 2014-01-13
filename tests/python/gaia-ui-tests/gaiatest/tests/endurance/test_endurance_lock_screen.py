@@ -4,11 +4,9 @@
 
 # Approximate runtime per 100 iterations: 17 minutes
 
-from gaiatest import GaiaEnduranceTestCase
-
-import os
-import datetime
 import time
+
+from gaiatest import GaiaEnduranceTestCase
 
 
 class TestEnduranceLockScreen(GaiaEnduranceTestCase):
@@ -29,7 +27,7 @@ class TestEnduranceLockScreen(GaiaEnduranceTestCase):
         self.wait_for_element_displayed(*self._statusbar_time_display_locator)
 
         # Lock screen
-        self.lockscreen.lock()
+        self.device.lock()
         time.sleep(2)
 
         # verify screen is locked
@@ -37,5 +35,5 @@ class TestEnduranceLockScreen(GaiaEnduranceTestCase):
         self.wait_for_element_not_displayed(*self._statusbar_time_display_locator)
 
         # Unlock screen
-        self.lockscreen.unlock()
+        self.device.unlock()
         time.sleep(2)

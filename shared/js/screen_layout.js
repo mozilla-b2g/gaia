@@ -48,7 +48,7 @@ var ScreenLayout = {
     // is to detect screen size.
     // The screen size of b2g running on real device
     // is the same as the size of system app.
-    if (window.innerWidth === screen.width) {
+    if (window.innerWidth === screen.availWidth) {
       this._isOnRealDevice = true;
     } else {
       this._isOnRealDevice = false;
@@ -92,12 +92,13 @@ var ScreenLayout = {
     }
     this.unwatch(name);
     this.queries[name] = window.matchMedia(mediaString);
-    this.queries[name].addListener(this);
+    this.boundHandleChange = this.handleChange.bind(this);
+    this.queries[name].addListener(this.boundHandleChange);
   },
 
   unwatch: function sl_unwatch(name) {
     if (this.queries[name]) {
-      this.queries[name].removeListener(this);
+      this.queries[name].removeListener(this.boundHandleChange);
     }
   },
 

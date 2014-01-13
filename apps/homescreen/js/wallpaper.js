@@ -13,8 +13,9 @@ const Wallpaper = (function() {
         data: {
           type: ['wallpaper', 'image/*'],
           includeLocked: (secret !== null),
-          width: 320,
-          height: 480
+          // XXX: This will not work with Desktop Fx / Simulator.
+          width: window.screen.width * window.devicePixelRatio,
+          height: window.screen.height * window.devicePixelRatio
         }
       });
 

@@ -1,4 +1,6 @@
 var MockCallScreen = {
+  callEndPromptTime: 2000,
+
   insertCall: function() {},
   moveToGroup: function() {},
   toggle: function(cb) {
@@ -15,11 +17,12 @@ var MockCallScreen = {
   syncSpeakerEnabled: function() {
     this.mSyncSpeakerCalled = true;
   },
-  setCallerContactImage: function() {
+  setCallerContactImage: function(arg) {
     this.mSetCallerContactImageCalled = true;
+    this.mSetCallerContactImageArg = arg;
   },
-  setDefaultContactImage: function() {
-    this.mSetDefaultContactImageCalled = true;
+  setEmergencyWallpaper: function() {
+    this.mSetEmergencyWallpaperCalled = true;
   },
   mute: function() {
     this.mMuteOn = true;
@@ -51,11 +54,21 @@ var MockCallScreen = {
   hideGroupDetails: function() {
     this.mGroupDetailsShown = false;
   },
-
-  set singleLine(value) {
-    this.mSingleLine = value;
+  createTicker: function(node) {
+    this.mCalledCreateTicker = true;
   },
-  mSingleLine: null,
+  stopTicker: function(node) {
+    this.mCalledStopTicker = true;
+  },
+  updateSingleLine: function() {
+    this.mUpdateSingleLineCalled = true;
+  },
+  removeCall: function() {
+    this.mRemoveCallCalled = true;
+  },
+  setEndConferenceCall: function() {
+    this.mSetEndConferenceCall = true;
+  },
 
   set holdAndAnswerOnly(enabled) {
     this.mHoldAndAnswerOnly = enabled;
@@ -77,29 +90,38 @@ var MockCallScreen = {
   screen: document.createElement('div'),
   incomingContainer: document.createElement('div'),
   incomingNumber: document.createElement('div'),
+  incomingNumberAdditionalInfo: document.createElement('span'),
 
   mEnableKeypadCalled: false,
   mSyncSpeakerCalled: false,
   mSetCallerContactImageCalled: false,
-  mSetDefaultContactImageCalled: false,
+  mSetCallerContactImageArg: null,
   mMuteOn: false,
   mSpeakerOn: false,
   mLastRenderMode: null,
   mTeardown: function teardown() {
     this.mEnableKeypadCalled = false;
     this.mSyncSpeakerCalled = false;
+    this.mSetCallerContactImageCalled = false;
+    this.mSetCallerContactImageArg = null;
+    this.mSetEmergencyWallpaperCalled = false;
     this.mMuteOn = false;
     this.mSpeakerOn = false;
     this.mLastRenderMode = null;
     this.mShowIncomingCalled = false;
     this.mHideIncomingCalled = false;
     this.mShowStatusMessageCalled = false;
+    this.mCalledCreateTicker = false;
+    this.mCalledStopTicker = false;
+    this.mUpdateSingleLineCalled = false;
     this.calls = document.createElement('div');
     this.screen = document.createElement('div');
     this.incomingContainer = document.createElement('div');
     this.incomingNumber = document.createElement('div');
-    this.mSingleLine = null;
+    this.incomingNumberAdditionalInfo = document.createElement('span');
     this.mGroupDetailsShown = false;
+    this.mRemoveCallCalled = false;
+    this.mSetEndConferenceCall = false;
   }
 };
 

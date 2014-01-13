@@ -1,4 +1,4 @@
-define(function(require) {
+define(function(require, exports, module) {
   'use strict';
 
   var listener = require('utils/orientation');
@@ -10,19 +10,17 @@ define(function(require) {
   function onOrientationChange(degrees) {
     document.body.setAttribute('data-orientation', 'deg' + degrees);
     current = degrees;
-
-    //this._phoneOrientation = orientation;
-
-    //Filmstrip.setOrientation(orientation);
-    //CameraState.set('orientation', orientation);
   }
 
-  return window.orientation = {
+  /**
+   * Exports
+   */
+
+  module.exports = {
     on: listener.on,
     off: listener.off,
     get: function() {
       return current;
     }
   };
-
 });

@@ -1,4 +1,9 @@
- 'use strict';
+/* globals CallHandler, CallLogDBManager, gTonesFrequencies, KeypadManager,
+           MockCall, MockCallsHandler, MockDialerIndexHtml, MockMozTelephony,
+           MockSettingsListener, MocksHelper, MockTonePlayer,
+           telephonyAddCall */
+
+'use strict';
 
 requireApp('communications/dialer/js/keypad.js');
 
@@ -43,6 +48,10 @@ suite('dialer/keypad', function() {
     document.body.innerHTML = previousBody;
   });
 
+  setup(function() {
+    this.sinon.useFakeTimers();
+  });
+
   suite('Keypad Manager', function() {
     test('sanitizePhoneNumber', function(done) {
       var testCases = {
@@ -60,7 +69,7 @@ suite('dialer/keypad', function() {
         return function() {
           var sanitized = subject.sanitizePhoneNumber(index);
           assert.equal(sanitized, testCases[index]);
-        }
+        };
       }
 
       for (var i in testCases) {
@@ -125,7 +134,7 @@ suite('dialer/keypad', function() {
       assert.equal(subject._phoneNumber, recentCall.number);
     });
 
-    suite('Button audible tones', function() {
+    suite('Audible and DTMF tones when composing numbers', function() {
       suiteSetup(function() {
         realMozTelephony = navigator.mozTelephony;
         navigator.mozTelephony = MockMozTelephony;
@@ -137,7 +146,7 @@ suite('dialer/keypad', function() {
       });
 
       setup(function() {
-        observePreferences();
+        subject._observePreferences();
         MockSettingsListener.mCallbacks['phone.ring.keypad'](true);
       });
 
@@ -145,7 +154,7 @@ suite('dialer/keypad', function() {
         MockMozTelephony.mTeardown();
       });
 
-      test('Pressing a button plays a tone', function() {
+      test('Pressing a button plays a short tone', function() {
         var startSpy = this.sinon.spy(MockTonePlayer, 'start');
         var stopSpy = this.sinon.spy(MockTonePlayer, 'stop');
 
@@ -157,7 +166,6 @@ suite('dialer/keypad', function() {
 
       test('Button tones are disabled via prefs', function() {
         var startSpy = this.sinon.spy(MockTonePlayer, 'start');
-        var stopSpy = this.sinon.spy(MockTonePlayer, 'stop');
 
         MockSettingsListener.mCallbacks['phone.ring.keypad'](false);
         subject._touchStart('1');
@@ -165,16 +173,22 @@ suite('dialer/keypad', function() {
         subject._touchEnd('1');
         assert.isTrue(startSpy.notCalled);
       });
+
+      test('Pressing a button does not play a DTMF tone', function() {
+        var startToneSpy = this.sinon.spy(MockMozTelephony, 'startTone');
+        var stopToneSpy = this.sinon.spy(MockMozTelephony, 'stopTone');
+
+        subject._touchStart('1');
+        assert.isTrue(stopToneSpy.notCalled);
+        assert.isTrue(startToneSpy.notCalled);
+      });
     });
 
-    suite('Button DTMF tones', function() {
+    suite('Audible and DTMF tones during  a call', function() {
       var mockCall;
       var mockHC;
 
       suiteSetup(function() {
-        realMozTelephony = navigator.mozTelephony;
-        navigator.mozTelephony = MockMozTelephony;
-
         realMozTelephony = navigator.mozTelephony;
         navigator.mozTelephony = MockMozTelephony;
       });
@@ -188,31 +202,37 @@ suite('dialer/keypad', function() {
         mockCall = new MockCall('12334', 'connected');
         mockHC = telephonyAddCall.call(this, mockCall);
         MockCallsHandler.mActiveCall = mockHC;
-        observePreferences();
+        MockSettingsListener.mCallbacks['phone.ring.keypad'](true);
 
-        this.clock = this.sinon.useFakeTimers();
         this.sinon.stub(document, 'elementFromPoint');
+
+        subject.init(true);
       });
 
       teardown(function() {
         MockMozTelephony.mTeardown();
-        this.clock.restore();
+
+        subject.init(false);
       });
 
-      test('Pressing a button does not play a DTMF tone', function() {
-        var startToneSpy = this.sinon.spy(MockMozTelephony, 'startTone');
-        var stopToneSpy = this.sinon.spy(MockMozTelephony, 'stopTone');
+      test('Pressing a button during a call plays a long tone', function() {
+        var startSpy = this.sinon.spy(MockTonePlayer, 'start');
 
         subject._touchStart('1');
-        assert.isTrue(stopToneSpy.notCalled);
-        assert.isTrue(startToneSpy.notCalled);
+        assert.isTrue(startSpy.calledWith(gTonesFrequencies['1'], false));
+      });
+
+      test('Short tones are enabled via prefs', function() {
+        var startSpy = this.sinon.spy(MockTonePlayer, 'start');
+
+        MockSettingsListener.mCallbacks['phone.dtmf.type']('short');
+        subject._touchStart('1');
+        assert.isTrue(startSpy.calledWith(gTonesFrequencies['1'], true));
       });
 
       test('Pressing a button during a call plays a DTMF tone', function() {
         var startToneSpy = this.sinon.spy(MockMozTelephony, 'startTone');
         var stopToneSpy = this.sinon.spy(MockMozTelephony, 'stopTone');
-
-        subject._onCall = true;
 
         subject._touchStart('1');
         assert.isTrue(stopToneSpy.calledOnce);
@@ -224,7 +244,6 @@ suite('dialer/keypad', function() {
       test('Long DTMF tones stop when leaving the button', function() {
         var stopToneSpy = this.sinon.spy(MockMozTelephony, 'stopTone');
 
-        subject._onCall = true;
         MockSettingsListener.mCallbacks['phone.dtmf.type']('long');
 
         subject._touchStart('1');
@@ -237,13 +256,12 @@ suite('dialer/keypad', function() {
       test('Short DTMF tones stop after 120ms', function() {
         var stopToneSpy = this.sinon.spy(MockMozTelephony, 'stopTone');
 
-        subject._onCall = true;
         MockSettingsListener.mCallbacks['phone.dtmf.type']('short');
 
         subject._touchStart('1');
-        this.clock.tick(119);
+        this.sinon.clock.tick(119);
         assert.isTrue(stopToneSpy.calledOnce);
-        this.clock.tick(1);
+        this.sinon.clock.tick(1);
         assert.equal(stopToneSpy.callCount, 2);
       });
     });

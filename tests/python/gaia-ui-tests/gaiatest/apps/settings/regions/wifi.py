@@ -29,7 +29,9 @@ class Wifi(Base):
                                 message="No networks listed on screen")
 
         this_network_locator = ('xpath', "//li/a[text()='%s']" % network_info['ssid'])
-        self.marionette.find_element(*this_network_locator).tap()
+        this_network = self.marionette.find_element(*this_network_locator)
+        self.marionette.execute_script("arguments[0].scrollIntoView(false);", [this_network])
+        this_network.tap()
 
         if network_info.get('keyManagement'):
             password = network_info.get('psk') or network_info.get('wep')
@@ -42,4 +44,5 @@ class Wifi(Base):
             self.marionette.find_element(*self._password_ok_button_locator).tap()
 
         self.wait_for_condition(
-            lambda m: m.find_element(*self._connected_message_locator).text == "Connected")
+            lambda m: m.find_element(*self._connected_message_locator).text == "Connected",
+                        timeout = max(self.marionette.timeout and self.marionette.timeout / 1000, 60))

@@ -13,7 +13,7 @@ class CallScreen(Phone):
     _calling_contact_locator = (By.CSS_SELECTOR, 'div.number')
     _calling_contact_information_locator = (By.CSS_SELECTOR, 'div.additionalContactInfo')
     _outgoing_call_locator = (By.CSS_SELECTOR, '.handled-call.outgoing')
-    _hangup_bar_locator = (By.ID, 'callbar-hang-up-action')
+    _hangup_bar_locator = (By.ID, 'callbar-hang-up')
 
     def __init__(self, marionette):
         Phone.__init__(self, marionette)
@@ -36,6 +36,7 @@ class CallScreen(Phone):
     def wait_for_outgoing_call(self):
         outgoing_call = self.marionette.find_element(*self._outgoing_call_locator)
         self.wait_for_condition(lambda m: outgoing_call.location['y'] == 0)
+        self.wait_for_condition(lambda m: self.outgoing_calling_contact != u'')
 
     def tap_hang_up(self):
         hang_up = self.marionette.find_element(*self._hangup_bar_locator)

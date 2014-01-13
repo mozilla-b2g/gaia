@@ -1,0 +1,4 @@
+#! /bin/bash -e
+
+make build-test-unit
+make build-test-integration

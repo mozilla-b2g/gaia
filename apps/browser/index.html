@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
     <meta charset="utf-8">
     <title>Browser</title>
     <!-- Shared CSS-->
@@ -15,6 +16,7 @@
     <!-- <link rel="stylesheet" href="style/themes/default/buttons.css"> -->
 
     <!-- Specific style -->
+    <link rel="stylesheet" href="shared/style_unstable/tabs.css" type="text/css">
     <link rel="stylesheet" href="style/browser.css" type="text/css">
     <link rel="stylesheet" href="style/toolbar.css" type="text/css">
 
@@ -30,9 +32,11 @@
 
     <!-- Specific code -->
     <script defer src="js/browser.js"></script>
+    <script defer src="js/nfc.js"></script>
     <script defer src="js/browser_db.js"></script>
     <script defer src="js/toolbar.js"></script>
     <script defer src="js/utilities.js"></script>
+    <script defer src="shared/js/url_helper.js"></script>
 
     <!-- Resources -->
     <link rel="resource" type="image/png" href="shared/resources/branding/Browser_60.png"/>
@@ -119,16 +123,20 @@
       </div>
     </div>
 
-    <menu type="toolbar" id="toolbar-end">
-      <button type="button" value="" id="back-button" alt="Back"
-              title="" disabled="true"></button>
-      <button type="button" value="" id="forward-button" alt="Forward"
-              title="" disabled="true"></button>
-      <button type="button" value="" id="bookmark-button" alt="Bookmark"
-              title=""></button>
-      <button type="button" value="" id="share-button" alt="Share"
-              title=""></button>
-    </menu>
+    <ul id="toolbar-end" role="tablist" class="skin-dark">
+      <li role="tab">
+        <button id="back-button" class="icon" disabled="true" alt="Back"></button>
+      </li>
+      <li role="tab">
+        <button id="forward-button" class="icon" disabled="true" alt="Forward"></button>
+      </li>
+      <li role="tab">
+        <a id="bookmark-button" class="icon" alt="Bookmark"></a>
+      </li>
+      <li role="tab">
+        <a id="share-button" class="icon" alt="Share"></a>
+      </li>
+    </ul>
 
     <div id="tray">
       <!--
@@ -163,7 +171,7 @@
         <menu type="toolbar">
           <button id="bookmark-entry-sheet-done" data-l10n-id="done">Done</button>
         </menu>
-        <h1 data-l10n-id="edit-bookmark">Edit Bookmark</h1>
+        <h1 data-l10n-id="edit-bookmark-header">Edit Bookmark</h1>
       </header>
       <label data-l10n-id="page-title">
         Page Title <input type="text" id="bookmark-title"></input>

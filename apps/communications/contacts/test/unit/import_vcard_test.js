@@ -5,6 +5,7 @@ requireApp('communications/contacts/test/unit/mock_l10n.js');
 requireApp('communications/contacts/test/unit/mock_vcard_parser.js');
 requireApp('communications/contacts/test/unit/mock_file_reader.js');
 requireApp('communications/dialer/test/unit/mock_confirm_dialog.js');
+requireApp('communications/contacts/test/unit/mock_navigation.js');
 requireApp('communications/contacts/test/unit/mock_contacts.js');
 
 if (!this._)

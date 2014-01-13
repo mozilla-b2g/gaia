@@ -1,0 +1,6 @@
+#! /bin/bash -ve
+gem install travis-artifacts
+travis-artifacts upload --path artifacts/
+echo "gaia-ui-tests HTML report uploaded to:"
+echo "http://$ARTIFACTS_S3_BUCKET.s3.amazonaws.com/artifacts/$TRAVIS_BUILD_NUMBER/$TRAVIS_JOB_NUMBER/gaia_ui_tests_report.html$"
+echo "Thankyou for flying with gaia-ui-tests"

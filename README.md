@@ -92,6 +92,14 @@ All options are passed to `./node_modules/.bin/marionette-mocha` so
 you can also use mocha commands like `--grep`, `--timeout` see `--help`
 for more options.
 
+#### Invoking tests for a specific app
+
+```sh
+make test-integration APP=<APP>
+```
+
+For example, we could run all tests for the calendar app with `make test-integration APP=calendar`.
+
 #### Invoking all the tests
 
 NOTE: unless you tests end in _test.js they will not be
@@ -99,6 +107,28 @@ automatically picked up by `make test-integration`.
 
 ```sh
 make test-integration
+```
+#### Running tests while working
+
+If you wish to run many tests in background you might not want to be disturbed
+by the b2g-desktop window popping everytime, or the sound. One solution for
+the first issue is to use Xvfb:
+
+```sh
+xvfb-run make test-integration
+```
+
+If you are using PulseAudio and want to keep the tests quied, then just force
+an invalid server:
+
+```sh
+PULSE_SERVER=":" make test-integration
+```
+
+You can of course combine both:
+
+```sh
+PULSE_SERVER=":" xvfb-run make test-integration
 ```
 
 #### Where to find documentation
@@ -138,3 +168,9 @@ See [Gaia functional tests README](https://github.com/mozilla-b2g/gaia/blob/mast
 #### Endurance
 
 See [how to run the Gaia endurance tests](https://developer.mozilla.org/en-US/docs/Mozilla/Firefox_OS/Platform/Automated_testing/endurance_tests/how_to_run_gaiaui_endurance_tests)
+
+## Generate jsdoc
+
+To generate API reference locally:
+
+run `make docs` command to generate docs in `docs` folder

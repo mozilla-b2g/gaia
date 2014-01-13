@@ -15,7 +15,6 @@ var editBgImageButtons =
 $('edit-exposure-button').onclick = setEditTool.bind(null, 'exposure');
 $('edit-crop-button').onclick = setEditTool.bind(null, 'crop');
 $('edit-effect-button').onclick = setEditTool.bind(null, 'effect');
-$('edit-border-button').onclick = setEditTool.bind(null, 'border');
 $('edit-enhance-button').onclick = setEditTool.bind(null, 'enhance');
 $('edit-crop-none').onclick = undoCropHandler;
 $('edit-cancel-button').onclick = function() { exitEditMode(false); };
@@ -53,8 +52,6 @@ function editPhoto(n) {
       x: 0, y: 0, w: files[n].metadata.width, h: files[n].metadata.height
     },
     gamma: 1,
-    borderWidth: 0,
-    borderColor: [0, 0, 0, 0],
     matrix: ImageProcessor.IDENTITY_MATRIX,
     rgbMinMaxValues: ImageProcessor.default_enhancement
   };
@@ -87,16 +84,15 @@ function editPhoto(n) {
   });
 
   // Display the edit screen
-  setView(editView);
+  setView(LAYOUT_MODE.edit);
 
   // Set the default option buttons to correspond to those edits
   editOptionButtons.forEach(function(b) { b.classList.remove('selected'); });
   $('edit-crop-aspect-free').classList.add('selected');
   $('edit-effect-none').classList.add('selected');
-  $('edit-border-none').classList.add('selected');
 }
 
-// Crop, Effect and border buttons call this
+// Crop and Effect buttons call this
 function editOptionsHandler() {
   // First, unhighlight all buttons in this group and then
   // highlight the button that has just been chosen. These
@@ -116,18 +112,6 @@ function editOptionsHandler() {
     imageEditor.setCropAspectRatio(1, 1);
   else if (this.dataset.effect) {
     editSettings.matrix = ImageProcessor[this.dataset.effect + '_matrix'];
-    imageEditor.edit();
-  }
-  else {
-    if (this.dataset.borderWidth) {
-      editSettings.borderWidth = parseFloat(this.dataset.borderWidth);
-    }
-    if (this.dataset.borderColor === 'white') {
-      editSettings.borderColor = [1, 1, 1, 1];
-    }
-    else if (this.dataset.borderColor === 'black') {
-      editSettings.borderColor = [0, 0, 0, 1];
-    }
     imageEditor.edit();
   }
 }
@@ -182,8 +166,8 @@ var exposureSlider = (function() {
     else if (exposure > 3)
       exposure = 3;
 
-    // Round to the closest .25
-    exposure = Math.round(exposure * 4) / 4;
+    // Round to the closest sixteenth
+    exposure = Math.round(exposure * 16) / 16;
 
     if (exposure === currentExposure)
       return;
@@ -226,16 +210,31 @@ var exposureSlider = (function() {
   };
 })();
 
-$('exposure-slider').onchange = function() {
-  var stops = exposureSlider.getExposure();
+// Handle changes on the slider and turn them into calls to edit the image
+(function() {
+  var requestId = null;
 
-  // Convert the exposure compensation stops gamma correction value.
-  var factor = -1;  // XXX: adjust this factor to get something reasonable.
-  var gamma = Math.pow(2, stops * factor);
-  editSettings.gamma = gamma;
-  if (imageEditor)
-    imageEditor.edit();
-};
+  $('exposure-slider').onchange = function() {
+    if (!imageEditor)  // If it has not been created yet
+      return;
+
+    // If there is already a pending request, it will take care of this change
+    // and we don't have to request a new one.
+    if (requestId !== null)
+      return;
+
+    requestId = requestAnimationFrame(function() {
+      requestId = null;
+      var stops = exposureSlider.getExposure();
+
+      // Convert the exposure compensation stops gamma correction value.
+      var factor = -1;  // Adjust this factor to get something reasonable.
+      var gamma = Math.pow(2, stops * factor);
+      editSettings.gamma = gamma;
+      imageEditor.edit();
+    });
+  };
+}());
 
 function setEditTool(tool) {
   // Deselect all tool buttons and hide all options
@@ -268,10 +267,6 @@ function setEditTool(tool) {
     case 'effect':
       $('edit-effect-button').classList.add('selected');
       $('edit-effect-options').classList.remove('hidden');
-      break;
-    case 'border':
-      $('edit-border-button').classList.add('selected');
-      $('edit-border-options').classList.remove('hidden');
       break;
     case 'enhance':
       $('edit-enhance-button').classList.add('selected');
@@ -318,11 +313,22 @@ function exitEditMode(saved) {
   // right next to the old one and we should go back to fullscreenView to view
   // the edited photo.
   if (saved) {
-    currentFileIndex = 0; // because the saved image will be newest
-    setView(thumbnailListView);
-  }
-  else
+    if (isPhone) {
+      setView(LAYOUT_MODE.list);
+    } else {
+      // After we sucessfully save a picture, we need to make sure that the
+      // current file will point to it. We need a flag for fileCreated(),
+      // so that the currentFileIndex will stay at 0 which is the newest one.
+      hasSaved = true;
+      // After insert sucessfully, db will call file created and setFile to
+      // latest file, then we go to fullscreen mode to see the edited picture.
+      // picture on tablet.
+      setView(LAYOUT_MODE.fullscreen);
+    }
+  } else {
+    setView(LAYOUT_MODE.fullscreen);
     showFile(currentFileIndex);
+  }
 }
 
 // When the user clicks the save button, we produce a full-size version
@@ -408,8 +414,6 @@ function saveEditedImage() {
  *  gamma: a float specifying gamma correction
  *  matrix: a 4x4 matrix that represents a transformation of each rgba pixel.
  *    this can be used to convert to bw or sepia, for example.
- *  borderWidth: the size of the border as a fraction of the image width
- *  borderColor: a [r, g, b, a] array specifying border color
  *
  * In addition to previewing the image, this class also defines a
  * getFullSizeBlob() function that creates a full-size version of the
@@ -426,20 +430,19 @@ function saveEditedImage() {
  * edit-vertex-shader and edit-fragment-shader. It dynamically creates
  * canvas elements with ids edit-preview-canvas and edit-crop-canvas.
  * The stylesheet includes static styles to position those dyanamic elements.
+ *
+ * Bug 935273: if previewURL is passed then we're using the ImageEditor
+ *  only to display a crop overlay. We avoid decoding the full-size
+ *  image for as long as we can. Also, if we're only cropping then we
+ *  can avoid all of the webgl stuff.
  */
-function ImageEditor(imageURL, container, edits, ready) {
+function ImageEditor(imageURL, container, edits, ready, previewURL) {
   this.imageURL = imageURL;
   this.container = container;
   this.edits = edits || {};
   this.source = {};     // The source rectangle (crop region) of the image
   this.dest = {};       // The destination (preview) rectangle of canvas
   this.cropRegion = {}; // Region displayed in crop overlay during drags
-
-  // Start loading the image into a full-size offscreen image
-  this.original = new Image();
-  this.original.src = imageURL;
-  this.preview = new Image();
-  this.preview.src = null;
 
   // The canvas that displays the preview
 
@@ -448,7 +451,6 @@ function ImageEditor(imageURL, container, edits, ready) {
   this.container.appendChild(this.previewCanvas);
   this.previewCanvas.width = this.previewCanvas.clientWidth;
   this.previewCanvas.height = this.previewCanvas.clientHeight;
-  this.processor = new ImageProcessor(this.previewCanvas);
 
   // prepare gesture detector for ImageEditor
   this.gestureDetector = new GestureDetector(container);
@@ -458,29 +460,80 @@ function ImageEditor(imageURL, container, edits, ready) {
   // before generateNewPreview()
   this.scale = 1.0;
 
-  // When the image loads display it
-  var self = this;
-  this.original.onload = function() {
-    // Initialize the crop region to the full size of the original image
-    self.resetCropRegion();
-    self.resetPreview();
+  // Once a preview image is created, we have to "upload" it to WebGL.
+  // But we only want to do this once. This flag is true if the preview
+  // has not been uploaded. We set it each time we create a new preview image.
+  // And clear it each time we call the ImageProcessor's draw() method.
+  // We pass the flag to draw() to tell it whether it needs to upload
+  // before drawing. See bug 934787.
+  this.needsUpload = true;
 
-    // Display an edited preview of it
-    self.edit(function() {
+  var self = this;
+  if (previewURL) {
+    this.croponly = true;
+    this.original = null;
+    this.preview = new Image();
+    this.preview.src = previewURL;
+    this.preview.onload = function() {
+      self.displayCropOnlyPreview();
       if (ready)
         ready();
-    });
+    };
+  }
+  else {
+    this.croponly = false;
 
-    // If the constructor had a ready callback argument, call it now
-  };
+    // Start loading the image into a full-size offscreen image
+    this.original = new Image();
+    this.original.src = imageURL;
+    this.preview = new Image();
+    this.preview.src = null;
+
+    this.processor = new ImageProcessor(this.previewCanvas);
+
+    // When the image loads display it
+    this.original.onload = function() {
+      // Initialize the crop region to the full size of the original image
+      self.resetCropRegion();
+      self.resetPreview();
+
+      // Display an edited preview of it
+      self.edit(function() {
+        // If the constructor had a ready callback argument, call it now
+        if (ready)
+          ready();
+      });
+
+    };
+  }
 }
+
+ImageEditor.prototype.displayCropOnlyPreview = function() {
+  var previewContext = this.previewCanvas.getContext('2d');
+
+  var scalex = this.previewCanvas.width / this.preview.width;
+  var scaley = this.previewCanvas.height / this.preview.height;
+  var scale = Math.min(Math.min(scalex, scaley), 1);
+
+  var previewWidth = Math.floor(this.preview.width * scale);
+  var previewHeight = Math.floor(this.preview.height * scale);
+  var previewX = Math.floor((this.previewCanvas.width - previewWidth) / 2);
+  var previewY =
+    Math.floor((this.previewCanvas.height - previewHeight) / 2);
+
+  previewContext.drawImage(this.preview,
+                           previewX, previewY,
+                           previewWidth, previewHeight);
+
+  this.scale = scale;
+  this.dest.x = previewX;
+  this.dest.y = previewY;
+  this.dest.width = previewWidth;
+  this.dest.height = previewHeight;
+};
 
 ImageEditor.prototype.generateNewPreview = function(callback) {
   var self = this;
-
-  // Create a preview image
-  var canvas = document.createElement('canvas');
-  var context = canvas.getContext('2d');
 
   // infer the previewHeight such that the aspect ratio stays the same
   var scalex = this.previewCanvas.width / this.source.width;
@@ -490,8 +543,11 @@ ImageEditor.prototype.generateNewPreview = function(callback) {
   var previewWidth = Math.floor(this.source.width * this.scale);
   var previewHeight = Math.floor(this.source.height * this.scale);
 
+  // Create a preview image
+  var canvas = document.createElement('canvas');
   canvas.width = previewWidth;
   canvas.height = previewHeight;
+  var context = canvas.getContext('2d');
 
   // Draw that region of the image into the canvas, scaling it down
   context.drawImage(this.original, this.source.x, this.source.y,
@@ -509,10 +565,13 @@ ImageEditor.prototype.generateNewPreview = function(callback) {
   function thumbnailReady(thumbnail) {
     self.preview.src = URL.createObjectURL(thumbnail);
     self.preview.onload = function() {
+      // Set a flag to tell the ImageProcessor to upload the image again
+      self.needsUpload = true;
       callback();
     };
   };
 };
+
 ImageEditor.prototype.resetPreview = function() {
   if (this.preview.src) {
     URL.revokeObjectURL(this.preview.src);
@@ -522,11 +581,12 @@ ImageEditor.prototype.resetPreview = function() {
 };
 
 ImageEditor.prototype.resize = function() {
-  var canvas = $('edit-preview-canvas');
+  var self = this;
+  var canvas = this.previewCanvas;
   canvas.width = canvas.clientWidth;
   canvas.height = canvas.clientHeight;
 
-  // we need to save the crop region (scaled up to full image dimensions)
+  // Save the crop region (scaled up to full image dimensions)
   var savedCropRegion = {};
   var hadCropOverlay = this.isCropOverlayShown();
   if (hadCropOverlay) {
@@ -536,9 +596,20 @@ ImageEditor.prototype.resize = function() {
     savedCropRegion.bottom = this.cropRegion.bottom / this.scale;
     this.hideCropOverlay();
   }
-  this.resetPreview();
-  var self = this;
-  this.edit(function() {
+
+  // Now update the preview image. This is done differently in the
+  // croponly case and in the regular image editing case
+  if (this.croponly) {
+    this.displayCropOnlyPreview();
+    restoreCropRegion();
+  }
+  else {
+    this.resetPreview();
+    this.edit(restoreCropRegion);
+  }
+
+  // Restore the crop region to what it was before the resize
+  function restoreCropRegion() {
     if (hadCropOverlay) {
       // showCropOverlay normally resets cropRegion to the full extent,
       // so we need to pass in a new crop region to use
@@ -549,15 +620,21 @@ ImageEditor.prototype.resize = function() {
       newRegion.bottom = Math.floor(savedCropRegion.bottom * self.scale);
       self.showCropOverlay(newRegion);
     }
-  });
+  }
 };
 
 ImageEditor.prototype.destroy = function() {
-  this.processor.destroy();
-  this.resetPreview();
-  this.preview = null;
-  this.original.src = '';
-  this.original = null;
+  if (!this.croponly) {
+    this.processor.destroy();
+    this.resetPreview();
+    this.preview = null;
+  }
+
+  if (this.original) {
+    this.original.src = '';
+    this.original = null;
+  }
+
   this.container.removeChild(this.previewCanvas);
   this.previewCanvas = null;
   this.hideCropOverlay();
@@ -590,16 +667,12 @@ ImageEditor.prototype.finishEdit = function(callback) {
   this.dest.width = this.preview.width;
   this.dest.height = this.preview.height;
 
-  var borderWidth = Math.ceil(this.edits.borderWidth * this.dest.width);
-  this.edits.borderLeftWidth = borderWidth;
-  this.edits.borderRightWidth = borderWidth;
-  this.edits.borderTopWidth = borderWidth;
-  this.edits.borderBottomWidth = borderWidth;
-
-  this.processor.draw(this.preview,
+  this.processor.draw(this.preview, this.needsUpload,
                       0, 0, this.preview.width, this.preview.height,
                       this.dest.x, this.dest.y, this.dest.width,
                       this.dest.height, this.edits);
+  this.needsUpload = false;
+
   if (callback) {
     callback();
   }
@@ -608,6 +681,10 @@ ImageEditor.prototype.finishEdit = function(callback) {
 // Apply the edits offscreen and pass the full-size edited image as a blob
 // to the specified callback function. The code here is much like the
 // code above in edit().
+//
+// This function releases the this.original image so you should only call
+// it to get the edited image when you are done with the ImageEditor.
+//
 ImageEditor.prototype.getFullSizeBlob = function(type, done, progress) {
   const TILE_SIZE = 1024;
   var self = this;
@@ -616,11 +693,15 @@ ImageEditor.prototype.getFullSizeBlob = function(type, done, progress) {
   var canvas = document.createElement('canvas');
   canvas.width = this.source.width; // "full size" is cropped image size
   canvas.height = this.source.height;
-  var context = canvas.getContext('2d');
+  var context = canvas.getContext('2d', { willReadFrequently: true });
   context.drawImage(this.original,
                     this.source.x, this.source.y,
                     this.source.width, this.source.height,
                     0, 0, this.source.width, this.source.height);
+
+  // As soon as we've copied the original image into the canvas we are
+  // done with the original and should release it to reduce memory usage.
+  this.original.src = '';
 
   // How many pixels do we have to process? How many have we processed so far?
   var total_pixels = canvas.width * canvas.height;
@@ -656,24 +737,12 @@ ImageEditor.prototype.getFullSizeBlob = function(type, done, progress) {
   var rectangles = makeTileList(this.source.width, this.source.height,
                                 tile.width, tile.height);
 
-  var borderWidth = Math.ceil(this.edits.borderWidth * this.source.width);
-
   processNextTile();
 
   // Process one tile of the original image, copy the processed tile
   // to the full-size canvas, and then return to the event queue.
   function processNextTile() {
     var rect = rectangles.shift();
-
-    // Set the borders for this tile
-    self.edits.borderTopWidth =
-      (rect.y === 0) ? borderWidth : 0;
-    self.edits.borderBottomWidth =
-      (rect.y + rect.h === self.source.height) ? borderWidth : 0;
-    self.edits.borderLeftWidth =
-      (rect.x === 0) ? borderWidth : 0;
-    self.edits.borderRightWidth =
-      (rect.x + rect.w === self.source.width) ? borderWidth : 0;
 
     // Get the input pixels for this tile
     var pixels = context.getImageData(rect.x, rect.y, rect.w, rect.h);
@@ -682,7 +751,7 @@ ImageEditor.prototype.getFullSizeBlob = function(type, done, progress) {
     var centerY = Math.floor((tile.height - rect.h) / 2);
 
     // Edit the pixels and draw them to the tile
-    processor.draw(pixels,
+    processor.draw(pixels, true,
                    0, 0, rect.w, rect.h,
                    centerX, centerY, rect.w, rect.h,
                    self.edits);
@@ -740,12 +809,11 @@ ImageEditor.prototype.showCropOverlay = function showCropOverlay(newRegion) {
   var self = this;
 
   var canvas = this.cropCanvas = document.createElement('canvas');
-  var context = this.cropContext = canvas.getContext('2d');
   canvas.id = 'edit-crop-canvas'; // for stylesheet
   this.container.appendChild(canvas);
-
   canvas.width = canvas.clientWidth;
   canvas.height = canvas.clientHeight;
+  var context = this.cropContext = canvas.getContext('2d');
 
   // Crop handle styles
   context.translate(15, 15);
@@ -1220,42 +1288,62 @@ ImageEditor.prototype.getCroppedRegionBlob = function(type,
   // but since we're doing only cropping and no pixel manipulation I
   // don't need to create an ImageProcessor object.
 
-  // Compute the rectangle of the original image that the user selected
-  var region = this.cropRegion;
-  var dest = this.dest;
-
-  // Convert the preview crop region to fractions
-  var left = region.left / dest.width;
-  var right = region.right / dest.width;
-  var top = region.top / dest.height;
-  var bottom = region.bottom / dest.height;
-
-  // Now convert those fractions to pixels in the original image
-  // Note that the original image may have already been cropped, so we
-  // multiply by the size of the crop region, not the full size
-  left = Math.floor(left * this.source.width);
-  right = Math.ceil(right * this.source.width);
-  top = Math.floor(top * this.source.height);
-  bottom = Math.floor(bottom * this.source.height);
-
-  // If no destination size was specified, use the source size
-  if (!width || !height) {
-    width = right - left;
-    height = bottom - top;
+  // If we're only doing cropping and no editing, then we haven't
+  // decoded the original image yet, so we have to do that now.
+  var self = this;
+  if (this.croponly) {
+    this.original = new Image();
+    this.original.src = this.imageURL;
+    this.original.onload = function() {
+      self.source.x = 0;
+      self.source.y = 0;
+      self.source.width = self.original.width;
+      self.source.height = self.original.height;
+      finish();
+    };
+  }
+  else {
+    finish();
   }
 
-  // Create a canvas of the desired size
-  var canvas = document.createElement('canvas');
-  canvas.width = width;
-  canvas.height = height;
-  var context = canvas.getContext('2d');
+  function finish() {
+    // Compute the rectangle of the original image that the user selected
+    var region = self.cropRegion;
+    var dest = self.dest;
 
-  // Copy that rectangle to our canvas
-  context.drawImage(this.original,
-                    left, top, right - left, bottom - top,
-                    0, 0, width, height);
+    // Convert the preview crop region to fractions
+    var left = region.left / dest.width;
+    var right = region.right / dest.width;
+    var top = region.top / dest.height;
+    var bottom = region.bottom / dest.height;
 
-  canvas.toBlob(callback, type);
+    // Now convert those fractions to pixels in the original image
+    // Note that the original image may have already been cropped, so we
+    // multiply by the size of the crop region, not the full size
+    left = Math.floor(left * self.source.width);
+    right = Math.ceil(right * self.source.width);
+    top = Math.floor(top * self.source.height);
+    bottom = Math.floor(bottom * self.source.height);
+
+    // If no destination size was specified, use the source size
+    if (!width || !height) {
+      width = right - left;
+      height = bottom - top;
+    }
+
+    // Create a canvas of the desired size
+    var canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    var context = canvas.getContext('2d');
+
+    // Copy that rectangle to our canvas
+    context.drawImage(self.original,
+                      left, top, right - left, bottom - top,
+                      0, 0, width, height);
+
+    canvas.toBlob(callback, type);
+  }
 };
 
 // Toggle the auto enhancement on/off.
@@ -1347,29 +1435,30 @@ function ImageProcessor(canvas) {
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 
   // Create buffers to hold the input and output rectangles
-  this.sourceRectangle = gl.createBuffer();
-  this.destinationRectangle = gl.createBuffer();
+  this.rectangleBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, this.rectangleBuffer);
+  gl.disable(gl.CULL_FACE);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+    0, 0,
+    1, 0,
+    0, 1,
+    1, 1
+  ]), gl.STATIC_DRAW);
 
   // Look up the addresses of the program's input variables
-  this.srcPixelAddress = gl.getAttribLocation(program, 'src_pixel');
-  this.destPixelAddress = gl.getAttribLocation(program, 'dest_pixel');
+  this.rectangleVertexAddress = gl.getAttribLocation(program, 'rect_vertex');
+  this.srcRectangleAddress = gl.getUniformLocation(program, 'src_rect');
+  this.dstRectangleAddress = gl.getUniformLocation(program, 'dst_rect');
   this.canvasSizeAddress = gl.getUniformLocation(program, 'canvas_size');
   this.imageSizeAddress = gl.getUniformLocation(program, 'image_size');
   this.destSizeAddress = gl.getUniformLocation(program, 'dest_size');
   this.destOriginAddress = gl.getUniformLocation(program, 'dest_origin');
   this.matrixAddress = gl.getUniformLocation(program, 'matrix');
   this.gammaAddress = gl.getUniformLocation(program, 'gamma');
-  this.rgbMinMaxValuesAddress = gl.getUniformLocation(program,
-                                                      'rgb_min_max_values');
-  this.borderLeftWidthAddress =
-    gl.getUniformLocation(program, 'border_left_width');
-  this.borderRightWidthAddress =
-    gl.getUniformLocation(program, 'border_right_width');
-  this.borderTopWidthAddress =
-    gl.getUniformLocation(program, 'border_top_width');
-  this.borderBottomWidthAddress =
-    gl.getUniformLocation(program, 'border_bottom_width');
-  this.borderColorAddress = gl.getUniformLocation(program, 'border_color');
+  this.rgbMinAddress = gl.getUniformLocation(program, 'rgb_min');
+  this.rgbMaxAddress = gl.getUniformLocation(program, 'rgb_max');
+  this.rgbOneOverMaxMinusMinAddress =
+    gl.getUniformLocation(program, 'rgb_one_over_max_minus_min');
 }
 
 // Destroy all the stuff we allocated
@@ -1380,12 +1469,22 @@ ImageProcessor.prototype.destroy = function() {
   gl.deleteShader(this.fshader);
   gl.deleteProgram(this.program);
   gl.deleteTexture(this.sourceTexture);
-  gl.deleteBuffer(this.sourceRectangle);
-  gl.deleteBuffer(this.destinationRectangle);
+  gl.deleteBuffer(this.rectangleBuffer);
   gl.viewport(0, 0, 0, 0);
+
+  // Destroy webgl context explicitly. Not wait for GC cleaning up.
+  //
+  // http://www.khronos.org/registry/webgl/extensions/WEBGL_lose_context/
+  //
+  // We use loseContext() to let the context lost.
+  // It will release the buffer here.
+  var loseContextExt = gl.getExtension('WEBGL_lose_context');
+  if (loseContextExt) {
+    loseContextExt.loseContext();
+  }
 };
 
-ImageProcessor.prototype.draw = function(image,
+ImageProcessor.prototype.draw = function(image, needsUpload,
                                          sx, sy, sw, sh,
                                          dx, dy, dw, dh,
                                          options)
@@ -1411,87 +1510,71 @@ ImageProcessor.prototype.draw = function(image,
   gl.uniformMatrix4fv(this.matrixAddress, false,
                       options.matrix || ImageProcessor.IDENTITY_MATRIX);
 
-  // Set border size and color
-  gl.uniform1f(this.borderLeftWidthAddress, options.borderLeftWidth || 0);
-  gl.uniform1f(this.borderRightWidthAddress, options.borderRightWidth || 0);
-  gl.uniform1f(this.borderTopWidthAddress, options.borderTopWidth || 0);
-  gl.uniform1f(this.borderBottomWidthAddress, options.borderBottomWidth || 0);
-
-  gl.uniform4fv(this.borderColorAddress, options.borderColor || [0, 0, 0, 0]);
-
   // set rgb max/min values for auto Enhancing
-  gl.uniformMatrix3fv(this.rgbMinMaxValuesAddress, false,
-                      options.rgbMinMaxValues ||
-                      ImageProcessor.default_enhancement);
+  var minMaxValuesMatrix = options.rgbMinMaxValues ||
+                           ImageProcessor.default_enhancement;
+  gl.uniform3f(this.rgbMinAddress,
+               minMaxValuesMatrix[0],
+               minMaxValuesMatrix[1],
+               minMaxValuesMatrix[2]);
+  gl.uniform3f(this.rgbMaxAddress,
+               minMaxValuesMatrix[3],
+               minMaxValuesMatrix[4],
+               minMaxValuesMatrix[5]);
+  gl.uniform3f(this.rgbOneOverMaxMinusMinAddress,
+               1 / (minMaxValuesMatrix[3] - minMaxValuesMatrix[0]),
+               1 / (minMaxValuesMatrix[4] - minMaxValuesMatrix[1]),
+               1 / (minMaxValuesMatrix[5] - minMaxValuesMatrix[2]));
 
-  // Define the source rectangle
-  makeRectangle(this.sourceRectangle, sx, sy, sw, sh);
-  gl.enableVertexAttribArray(this.srcPixelAddress);
-  gl.vertexAttribPointer(this.srcPixelAddress, 2, gl.FLOAT, false, 0, 0);
+  gl.bindBuffer(gl.ARRAY_BUFFER, this.rectangleBuffer);
+  gl.enableVertexAttribArray(this.rectangleVertexAddress);
+  gl.vertexAttribPointer(this.rectangleVertexAddress, 2, gl.FLOAT, false, 0, 0);
 
-  // Load the image into the texture
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+  gl.uniform4f(this.srcRectangleAddress, sx, sy, sw, sh);
+  gl.uniform4f(this.dstRectangleAddress, dx, dy, dw, dh);
 
-  // Define the destination rectangle we're copying the image into
-  makeRectangle(this.destinationRectangle, dx, dy, dw, dh);
-  gl.enableVertexAttribArray(this.destPixelAddress);
-  gl.vertexAttribPointer(this.destPixelAddress, 2, gl.FLOAT, false, 0, 0);
+  // Load the image into the texture if we need to do that
+  if (needsUpload) {
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+  }
 
   // And draw it all
-  gl.drawArrays(gl.TRIANGLES, 0, 6);
-
-  // Define a rectangle as two triangles
-  function makeRectangle(b, x, y, w, h) {
-    gl.bindBuffer(gl.ARRAY_BUFFER, b);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
-      x, y, x + w, y, x, y + h,         // one triangle
-      x, y + h, x + w, y, x + w, y + h  // another triangle
-    ]), gl.STATIC_DRAW);
-  }
+  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 };
 
 ImageProcessor.vertexShader =
-  'attribute vec2 src_pixel;\n' +  // pixel position in the image
-  'attribute vec2 dest_pixel;\n' + // pixel position on the canvas
-  'uniform vec2 canvas_size;\n' +  // size of destination canvas in pixels
-  'uniform vec2 image_size;\n' +   // size of source image in pixels
-  'varying vec2 src_position;\n' + // pass image position to the fragment shader
+  'uniform vec4 src_rect;\n' + // source rectangle (x, y, width, height)
+  'uniform vec4 dst_rect;\n' + // destination rectangle (x, y, width, height)
+  'attribute vec2 rect_vertex;\n' + // vertex in standard (0, 0, 1, 1) rectangle
+  'uniform vec2 canvas_size;\n' +   // size of destination canvas in pixels
+  'uniform vec2 image_size;\n' +    // size of source image in pixels
+  'varying vec2 src_position;\n' +  // pass image pos to the fragment shader
   'void main() {\n' +
-  '  gl_Position = vec4(((dest_pixel/canvas_size)*2.0-1.0)*vec2(1,-1),0,1);\n' +
+  '  vec2 src_pixel = src_rect.xy + rect_vertex * src_rect.zw;\n' +
+  '  vec2 dst_pixel = dst_rect.xy + rect_vertex * dst_rect.zw;\n' +
+  '  gl_Position = vec4(((dst_pixel/canvas_size)*2.0-1.0)*vec2(1,-1),0,1);\n' +
   '  src_position = src_pixel / image_size;\n' +
   '}';
 
 ImageProcessor.fragmentShader =
   'precision mediump float;\n' +
   'uniform sampler2D image;\n' +
-  'uniform float border_left_width;\n' +
-  'uniform float border_right_width;\n' +
-  'uniform float border_top_width;\n' +
-  'uniform float border_bottom_width;\n' +
-  'uniform vec4 border_color;\n' +
   'uniform vec2 dest_size;\n' +    // size of the destination rectangle
   'uniform vec2 dest_origin;\n' +  // upper-left corner of destination rectangle
   'uniform vec4 gamma;\n' +
   'uniform mat4 matrix;\n' +
-  'uniform mat3 rgb_min_max_values;\n' +
+  'uniform vec3 rgb_min;\n' +
+  'uniform vec3 rgb_max;\n' +
+  'uniform vec3 rgb_one_over_max_minus_min;\n' +
   'varying vec2 src_position;\n' + // from the vertex shader
   'void main() {\n' +
-  // Use border color if we're over the border
-  '  if (gl_FragCoord.x < dest_origin.x + border_left_width ||\n' +
-  '      gl_FragCoord.y < dest_origin.y + border_bottom_width ||\n' +
-  '      gl_FragCoord.x > dest_origin.x + dest_size.x-border_right_width ||\n' +
-  '      gl_FragCoord.y > dest_origin.y + dest_size.y - border_top_width) {\n' +
-  '    gl_FragColor = border_color;\n' +
-  '    return;\n' +
-  '  }\n' +
   // Otherwise take the image color, apply color and gamma correction and
   // the color manipulation matrix.
   '  vec4 original_color = texture2D(image, src_position);\n' +
-  '  vec3 minValues = rgb_min_max_values[0];\n' +
-  '  vec3 maxValues = rgb_min_max_values[1];\n' +
-  '  vec3 clamped_color = clamp(original_color.xyz, minValues, maxValues);\n' +
-  '  vec4 corrected_color = vec4((clamped_color.xyz - minValues) /' +
-  '  (maxValues - minValues), original_color.a);\n' +
+  '  vec3 clamped_color = clamp(original_color.xyz, rgb_min, rgb_max);\n' +
+  '  vec4 corrected_color = \n' +
+  '    vec4((clamped_color.xyz - rgb_min) * rgb_one_over_max_minus_min, \n' +
+  '         original_color.a);\n' +
   '  gl_FragColor = pow(corrected_color, gamma) * matrix;\n' +
   '}';
 

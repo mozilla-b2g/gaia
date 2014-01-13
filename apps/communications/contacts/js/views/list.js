@@ -231,10 +231,11 @@ contacts.List = (function() {
     clone: function(node) {
       var id = node.dataset.uuid;
       renderLoadedContact(node, id);
-      renderPhoto(node, id);
       updateRowStyle(node, true);
       updateSingleRowSelection(node, id);
-      return node.cloneNode(true);
+      var out = node.cloneNode(true);
+      renderPhoto(out, id, true);
+      return out;
     },
 
     getNodeById: function(id) {
@@ -253,7 +254,7 @@ contacts.List = (function() {
   }; // searchSource
 
   var initSearch = function initSearch(callback) {
-    contacts.Search.init(searchSource, true);
+    contacts.Search.init(searchSource, true, selectNavigationController);
 
     if (callback) {
       callback();
@@ -357,7 +358,6 @@ contacts.List = (function() {
 
     var contactsContainer = document.createElement('ol');
     contactsContainer.id = 'contacts-list-' + group;
-    contactsContainer.className = 'group-list';
     contactsContainer.dataset.group = group;
     letteredSection.appendChild(title);
     letteredSection.appendChild(contactsContainer);
@@ -824,22 +824,41 @@ contacts.List = (function() {
     return !!photosById[id];
   };
 
-  // "Render" the photo by setting the img tag's dataset-src attribute to the
-  // value in our photo cache.  This in turn will allow the imgLoader to load
-  // the image once we have stopped scrolling.
-  var renderPhoto = function renderPhoto(link, id) {
-    id = id || link.dataset.uuid;
-    var photo = photosById[id];
-    if (!photo)
-      return;
-
-    var img = link.querySelector('aside > img');
-    if (img) {
+  // Utility function to manage the dataset-src URL for images.  Its important
+  // to only modify this attribute from this function in order to ensure that
+  // the URLs are properly revoked.
+  function setImageURL(img, photo, asClone) {
+    var oldURL = img.dataset.src;
+    if (oldURL) {
+      if (!asClone) {
+        window.URL.revokeObjectURL(oldURL);
+      }
+      img.dataset.src = '';
+    }
+    if (photo) {
       try {
         img.dataset.src = window.URL.createObjectURL(photo);
       } catch (err) {
-        img.dataset.src = '';
+        // Warn, but do nothing else.  We cleared the old URL above.
+        console.warn('Failed to create URL for contacts image blob: ' + photo +
+                     ', error: ' + err);
       }
+    }
+  }
+
+  // "Render" the photo by setting the img tag's dataset-src attribute to the
+  // value in our photo cache.  This in turn will allow the imgLoader to load
+  // the image once we have stopped scrolling.
+  var renderPhoto = function renderPhoto(link, id, asClone) {
+    id = id || link.dataset.uuid;
+    var photo = photosById[id];
+    if (!photo) {
+      return;
+    }
+
+    var img = link.querySelector('aside > img');
+    if (img) {
+      setImageURL(img, photo, asClone);
       return;
     }
     if (!photoTemplate) {
@@ -851,11 +870,7 @@ contacts.List = (function() {
 
     var figure = photoTemplate.cloneNode(true);
     var img = figure.children[0];
-    try {
-      img.dataset.src = window.URL.createObjectURL(photo);
-    } catch (err) {
-      img.dataset.src = '';
-    }
+    setImageURL(img, photo);
 
     link.insertBefore(figure, link.children[0]);
     return;
@@ -865,14 +880,16 @@ contacts.List = (function() {
   // however, so the image can be reloaded later.
   var releasePhoto = function releasePhoto(el) {
     // If the imgLoader isn't ready yet, we should have nothing to release
-    if (!imgLoader)
+    if (!imgLoader) {
       return;
+    }
 
     var img = imgLoader.releaseImage(el);
-    if (!img)
+    if (!img) {
       return;
+    }
 
-    img.dataset.src = '';
+    setImageURL(img, null);
   };
 
   var renderOrg = function renderOrg(contact, link, add) {
@@ -1603,6 +1620,8 @@ contacts.List = (function() {
     }
 
     scrollable.classList.add('selecting');
+    fastScroll.classList.add('selecting');
+    utils.alphaScroll.toggleFormat('short');
 
     toggleMenus();
 
@@ -1681,15 +1700,19 @@ contacts.List = (function() {
   // on the screen.
   var updateRowStyle = function updateRowStyle(row, onscreen) {
     if (inSelectMode && onscreen) {
-      utils.dom.addClassToNodes(row, '.contact-checkbox',
-                           'contact-checkbox-selecting');
-      utils.dom.addClassToNodes(row, '.contact-text',
-                           'contact-text-selecting');
-    } else {
+      if (!row.dataset.selectStyleSet) {
+        utils.dom.addClassToNodes(row, '.contact-checkbox',
+                             'contact-checkbox-selecting');
+        utils.dom.addClassToNodes(row, '.contact-text',
+                             'contact-text-selecting');
+        row.dataset.selectStyleSet = true;
+      }
+    } else if (row.dataset.selectStyleSet) {
       utils.dom.removeClassFromNodes(row, '.contact-checkbox-selecting',
                                 'contact-checkbox-selecting');
       utils.dom.removeClassFromNodes(row, '.contact-text-selecting',
                                 'contact-text-selecting');
+      delete row.dataset.selectStyleSet;
     }
   };
 
@@ -1762,6 +1785,8 @@ contacts.List = (function() {
     groupList.classList.remove('selecting');
     searchList.classList.remove('selecting');
     scrollable.classList.remove('selecting');
+    fastScroll.classList.remove('selecting');
+    utils.alphaScroll.toggleFormat('normal');
 
     updateRowsOnScreen();
 
@@ -1776,10 +1801,21 @@ contacts.List = (function() {
     close.classList.add('hide');
   };
 
+  var refreshFb = function resfreshFb(uid) {
+    var selector = '[data-fb-uid="' + uid + '"]';
+    var node = document.querySelector(selector);
+    if (node) {
+      if (node.dataset.uuid in rowsOnScreen) {
+        contacts.List.refresh(node.dataset.uuid);
+      }
+    }
+  };
+
   return {
     'init': init,
     'load': load,
     'refresh': refresh,
+    'refreshFb': refreshFb,
     'getContactById': getContactById,
     'getAllContacts': getAllContacts,
     'handleClick': handleClick,

@@ -10,7 +10,8 @@
   "permissions": {
     "storage":{},
     "fmradio":{},
-    "settings":{ "access": "readonly" }
+    "settings":{ "access": "readonly" },
+    "speaker-control":{}
   },
   "locales": {
     "ar": {

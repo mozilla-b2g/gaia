@@ -45,10 +45,7 @@ var MockContacts = {
     importLive: function() {},
     importGmail: function() {}
   },
-  navigation: {
-    go: function() {},
-    home: function() {}
-  },
+  navigation: new MockNavigationStack(),
   checkCancelableActivity: function() {},
   cancel: function() {},
   confirmDialog: function() {

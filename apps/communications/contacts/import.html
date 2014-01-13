@@ -3,7 +3,7 @@
 <html>
   <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
 
     <link rel="resource" type="application/l10n" href="/contacts/locales/fb/locales.ini">
     <script type="text/javascript" src="/shared/js/l10n.js"></script>
@@ -93,7 +93,7 @@
             <output id="num-friends" hidden></output>
             <p id="friends-msg"></p>
           </section>
-          <section id="groups-list" class="unbordered import-list" data-type="list">
+          <section id="groups-list" class="unbordered import-list active" data-type="list">
             <section id="group-#group#" data-template>
               <header>#group#</header>
               <ol id="contacts-list-#group#">
@@ -125,7 +125,7 @@
           </form>
         </section> <!-- mainContent -->
 
-        <section id='fixed-container' class='fixed-title-import'></section>
+        <section id='fixed-container' class='fixed-title'></section>
 
         <nav data-type="scrollbar">
           <p></p>
@@ -149,7 +149,7 @@
            </p>
         </form>
         <section id="groups-list-search">
-          <ol id="search-list" class="selecting" data-type="list">
+          <ol id="search-list" class="selecting active" data-type="list">
           </ol>
         </section>
 

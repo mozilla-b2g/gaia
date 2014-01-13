@@ -1,20 +1,24 @@
-/*global requireApp suite test assert setup teardown suiteSetup
-  KeyboardManager Applications sinon KeyboardHelper mocha
-  MocksHelper MockSettingsListener */
-mocha.globals(['SettingsListener']);
+/*global
+  KeyboardManager, sinon, KeyboardHelper, MockKeyboardHelper,
+  MocksHelper, TransitionEvent */
+'use strict';
 
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_keyboard_helper.js');
+require('/shared/test/unit/mocks/mock_settings_listener.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+require('/test/unit/mock_applications.js');
 requireApp('system/js/keyboard_manager.js');
-requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 
-// Prevent auto-init
-Applications = {
-  ready: false
-};
+var mocksHelperForKeyboardManager = new MocksHelper([
+    'SettingsListener',
+    'KeyboardHelper',
+    'LazyLoader',
+    'Applications'
+]).init();
 
 suite('KeyboardManager', function() {
-  var realSettingsListener;
+  var BLUR_CHANGE_DELAY = 100;
 
   function trigger(event, detail) {
     if (!detail) {
@@ -25,9 +29,20 @@ suite('KeyboardManager', function() {
     window.dispatchEvent(evt);
   }
 
-  new MocksHelper([
-    'KeyboardHelper', 'LazyLoader'
-  ]).init().attachTestHelpers();
+  function inputChangeEvent(inputType) {
+    return new CustomEvent('mozChromeEvent', {
+      detail: {
+        type: 'inputmethod-contextchange',
+        inputType: inputType
+      }
+    });
+  }
+
+  function simulateInputChangeEvent(inputType) {
+    // we call the method directly because we can't send a direct event
+    // because otherwise in this test, we'll have n mozChromeEvent listeners
+    KeyboardManager.inputFocusChange(inputChangeEvent(inputType));
+  }
 
   function setupHTML() {
     var rc = document.querySelector('#run-container');
@@ -39,254 +54,226 @@ suite('KeyboardManager', function() {
     rc.innerHTML += '<div id="keyboards" class="hide">hoi</div>';
   }
 
-  function injectCss(transition) {
-    transition = transition || 'transform 0.05s ease';
+  function dispatchEventForOpacity() {
+    var transitionEnd = new TransitionEvent(
+      'transitionend',
+      {
+        propertyName: 'opacity',
+        elapsedTime: 0.2
+      }
+    );
 
-    var el = document.getElementById('km-style');
-    if (!el) {
-      el = document.createElement('style');
-      el.id = 'km-style';
-      document.head.appendChild(el);
-    }
-    el.innerHTML =
-      '#keyboards {\n' +
-        'transform: translateY(0);\n' +
-        'transition: ' + transition + ';\n' +
-      '}\n' +
-      '#keyboards.hide {\n' +
-        'opacity: 0;\n' +
-        'transform: translateY(100%);\n' +
-      '}\n' +
-      '.notransition {\n' +
-        'transition: none !important;\n' +
-      '}';
+    KeyboardManager.keyboardFrameContainer.dispatchEvent(transitionEnd);
   }
+
+  function dispatchEventForTransform() {
+    var transitionEnd = new TransitionEvent(
+      'transitionend',
+      {
+        propertyName: 'transform',
+        elapsedTime: 0.4
+      }
+    );
+
+    KeyboardManager.keyboardFrameContainer.dispatchEvent(transitionEnd);
+  }
+
+  function dispatchTransitionEvents() {
+    dispatchEventForOpacity();
+    dispatchEventForTransform();
+  }
+
+  mocksHelperForKeyboardManager.attachTestHelpers();
+
+  var realMozSettings = null;
 
   suiteSetup(function() {
     document.body.innerHTML += '<div id="run-container"></div>';
+    navigator.mozSettings = MockNavigatorSettings;
+  });
+
+  suiteTeardown(function() {
+    navigator.mozSettings = realMozSettings;
   });
 
   setup(function() {
-    setupHTML();
-    injectCss();
+    // we use sinon's fake timers for all the tests so that the timeouts used in
+    // the tested code in one test don't disturb the next test.
+    this.sinon.useFakeTimers();
 
-    realSettingsListener = window.SettingsListener;
-    window.SettingsListener = MockSettingsListener;
+    setupHTML();
 
     KeyboardManager.init();
   });
 
   suite('Transitions', function() {
-    setup(function(next) {
-      setTimeout(next, 500);
+    setup(function() {
+      this.sinon.stub(KeyboardManager, 'showIMESwitcher');
     });
 
-    test('showKeyboard triggers transition', function(next) {
-      var triggered = false;
-      KeyboardManager.keyboardFrameContainer.addEventListener('transitionend',
-        function() {
-          triggered = true;
-        });
+    suite('showKeyboard', function() {
+      test('triggers transition', function() {
+        assert.isTrue(
+          KeyboardManager.keyboardFrameContainer.classList.contains('hide')
+        );
 
-      KeyboardManager.showKeyboard();
+        KeyboardManager.showKeyboard();
 
-      setTimeout(function() {
-        assert.equal(triggered, true);
-        next();
-      }, 100);
-    });
-
-    test('UpdateHeight waits until transition finished', function(next) {
-      var called = false;
-      window.addEventListener('keyboardchange', function() {
-        called = true;
+        assert.isFalse(
+          KeyboardManager.keyboardFrameContainer.classList.contains('hide')
+        );
       });
 
-      KeyboardManager.showKeyboard();
-      KeyboardManager.resizeKeyboard({
-        detail: { height: 200 },
-        stopPropagation: sinon.stub()
-      });
+      test('waits the transition end before calling callback', function() {
+        var callback = sinon.stub();
+        KeyboardManager.showKeyboard(callback);
 
-      // animation takes 50 ms. so 20 ms. is safe
-      setTimeout(function() {
-        assert.equal(called, false, 'KeyboardChange triggered 20 ms');
-      }, 20);
+        sinon.assert.notCalled(callback);
 
-      setTimeout(function() {
-        assert.equal(called, true, 'KeyboardChange triggered 100 ms');
-        next();
-      }, 100);
-    });
+        dispatchEventForOpacity();
 
-    test('ShowKeyboard waits for transform transition', function(next) {
-      injectCss('opacity 0.05s ease, transform 0.3s ease');
+        sinon.assert.notCalled(callback,
+          'transitionend for opacity does not trigger the callback');
 
-      KeyboardManager.showKeyboard();
-
-      setTimeout(function() {
-        assert.equal(
+        assert.isTrue(
           'transitionIn' in KeyboardManager.keyboardFrameContainer.dataset,
-          true,
           'TransitionIn canceled due to opacity');
-      }, 100);
 
-      setTimeout(function() {
-        assert.equal(
+        dispatchEventForTransform();
+
+        sinon.assert.called(callback,
+            'KeyboardChange was dispatched after the transform transition');
+        assert.isFalse(
           'transitionIn' in KeyboardManager.keyboardFrameContainer.dataset,
-          false,
-          'TransitionIn not canceled due to transform');
-        next();
-      }, 350);
-    });
-
-    test('UpdateHeight waits for transform transition', function(next) {
-      var called = false;
-      window.addEventListener('keyboardchange', function() {
-        called = true;
+          'TransitionIn canceled due to opacity');
       });
 
-      injectCss('opacity 0.05s ease, transform 0.3s ease');
+      test('does not wait transition if already visible', function() {
+        KeyboardManager.showKeyboard();
 
-      KeyboardManager.showKeyboard();
-      KeyboardManager.resizeKeyboard({
-        detail: { height: 200 },
-        stopPropagation: sinon.stub()
-      });
+        dispatchTransitionEvents();
 
-      setTimeout(function() {
-        assert.equal(called, false, 'KeyboardChange triggered by opacity');
-      }, 100);
-
-      setTimeout(function() {
-        assert.equal(called, true, 'KeyboardChange triggered by transform');
-        next();
-      }, 350);
-    });
-
-    test('ShowKeyboard waits for transform transition', function(next) {
-      injectCss('opacity 0.05s ease, transform 0.3s ease');
-
-      KeyboardManager.showKeyboard();
-
-      setTimeout(function() {
-        assert.equal(
-          'transitionIn' in KeyboardManager.keyboardFrameContainer.dataset,
-          true,
-          'TransitionIn not canceled due to opacity');
-      }, 100);
-
-      setTimeout(function() {
-        assert.equal(
-          'transitionIn' in KeyboardManager.keyboardFrameContainer.dataset,
-          false,
-          'TransitionIn canceled due to transform');
-        next();
-      }, 350);
-    });
-
-    test('Call showKeyboard against visible keyboard', function(next) {
-      KeyboardManager.showKeyboard();
-
-      setTimeout(function() {
         var callback = sinon.stub();
         KeyboardManager.showKeyboard(callback);
 
         // should be called immediately
         sinon.assert.callCount(callback, 1);
-
-        next();
-      }, 100);
+      });
     });
   });
 
   suite('UpdateHeight', function() {
-    setup(function(next) {
-      setTimeout(next, 500);
+    setup(function() {
+      this.sinon.stub(KeyboardManager, 'showIMESwitcher');
     });
-    test('Second updateHeight evt triggers keyboardchange', function(next) {
+
+    test('waits until transition finished', function() {
+      var called = false;
+      window.addEventListener('keyboardchange', function() {
+        called = true;
+      });
+
+      KeyboardManager.setKeyboardToShow('text');
+      KeyboardManager.resizeKeyboard({
+        detail: { height: 200 },
+        stopPropagation: sinon.stub()
+      });
+
+      assert.isFalse(called, 'KeyboardChange wait for the transition');
+
+      dispatchEventForOpacity();
+
+      assert.isFalse(called,
+          'KeyboardChange is not triggered for the opacity transition');
+      assert.isTrue(
+        'transitionIn' in KeyboardManager.keyboardFrameContainer.dataset,
+        'TransitionIn canceled due to opacity');
+
+      dispatchEventForTransform();
+
+      assert.isTrue(called,
+          'KeyboardChange was dispatched after the transform transition');
+      assert.isFalse(
+        'transitionIn' in KeyboardManager.keyboardFrameContainer.dataset,
+        'TransitionIn canceled due to opacity');
+    });
+
+    test('Second updateHeight evt triggers keyboardchange', function() {
       var kcEvent = sinon.stub();
       window.addEventListener('keyboardchange', kcEvent);
 
       KeyboardManager.showKeyboard();
+
+      dispatchTransitionEvents();
 
       KeyboardManager.resizeKeyboard({
         detail: { height: 100 },
         stopPropagation: function() {}
       });
 
-      setTimeout(function() {
-        sinon.assert.callCount(kcEvent, 1);
-        assert.equal(kcEvent.args[0][0].detail.height, 100);
+      sinon.assert.callCount(kcEvent, 1);
+      sinon.assert.calledWithMatch(kcEvent, { detail: { height: 100 }});
 
-        KeyboardManager.resizeKeyboard({
-          detail: { height: 200 },
-          stopPropagation: function() {}
-        });
+      kcEvent.reset();
 
-        setTimeout(function() {
-          sinon.assert.callCount(kcEvent, 2);
-          assert.equal(kcEvent.args[1][0].detail.height, 200);
+      KeyboardManager.resizeKeyboard({
+        detail: { height: 200 },
+        stopPropagation: function() {}
+      });
 
-          next();
-        }, 100);
-      }, 100);
+      sinon.assert.callCount(kcEvent, 1);
+      sinon.assert.calledWithMatch(kcEvent,
+          { detail: { height: 200 }});
+
     });
   });
 
   suite('Switching keyboard focus', function() {
     setup(function() {
-      this.clock = this.sinon.useFakeTimers();
       this.sinon.stub(KeyboardManager, 'showKeyboard');
       this.sinon.stub(KeyboardManager, 'hideKeyboard');
       this.sinon.stub(KeyboardManager, 'hideIMESwitcher');
       this.sinon.stub(KeyboardManager, 'showIMESwitcher');
       this.sinon.stub(KeyboardManager, 'setKeyboardToShow');
+      this.sinon.stub(KeyboardManager, 'resetShowingKeyboard');
+    });
+
+    test('The event triggers inputFocusChange', function() {
+      this.sinon.stub(KeyboardManager, 'inputFocusChange');
+
+      var event = inputChangeEvent('text');
+      window.dispatchEvent(event);
+
+      sinon.assert.called(KeyboardManager.inputFocusChange);
     });
 
     suite('Switching inputType', function() {
       setup(function() {
         this.getLayouts = this.sinon.stub(KeyboardHelper, 'getLayouts');
         this.checkDefaults = this.sinon.stub(KeyboardHelper, 'checkDefaults');
-        var resetShowingKeyboard = this.resetShowingKeyboard =
-                      this.sinon.stub(KeyboardManager, 'resetShowingKeyboard');
         MockKeyboardHelper.watchCallback(KeyboardHelper.layouts,
           { apps: true });
       });
       test('Switching from "text" to "number"', function() {
-        trigger('mozChromeEvent', {
-          type: 'inputmethod-contextchange',
-          inputType: 'text'
-        });
-        this.clock.tick(2000);
-        trigger('mozChromeEvent', {
-          type: 'inputmethod-contextchange',
-          inputType: 'number'
-        });
-        assert.ok(KeyboardManager.setKeyboardToShow.calledWith('text'));
-        assert.ok(KeyboardManager.showKeyboard.called);
-        setTimeout(function() {
-          sinon.assert.callCount(resetShowingKeyboard.called, 2);
-          assert.ok(KeyboardManager.setKeyboardToShow.calledWith('number'));
-        }, 2000);
+        simulateInputChangeEvent('text');
+        this.sinon.clock.tick(BLUR_CHANGE_DELAY);
+
+        simulateInputChangeEvent('number');
+        this.sinon.clock.tick(BLUR_CHANGE_DELAY);
+
+        sinon.assert.calledWith(KeyboardManager.setKeyboardToShow, 'text');
+        sinon.assert.calledWith(KeyboardManager.setKeyboardToShow, 'number');
+        sinon.assert.callCount(KeyboardManager.resetShowingKeyboard, 1);
       });
 
       test('Switching from "text" to "text"', function() {
-        trigger('mozChromeEvent', {
-          type: 'inputmethod-contextchange',
-          inputType: 'text'
-        });
-        this.clock.tick(2000);
-        trigger('mozChromeEvent', {
-          type: 'inputmethod-contextchange',
-          inputType: 'text'
-        });
-        assert.ok(KeyboardManager.setKeyboardToShow.calledWith('text'));
-        assert.ok(KeyboardManager.showKeyboard.called);
-        setTimeout(function() {
-          sinon.assert.callCount(resetShowingKeyboard.called, 1);
-          assert.ok(KeyboardManager.setKeyboardToShow.calledWith('number'));
-        }, 2000);
+        simulateInputChangeEvent('text');
+        this.sinon.clock.tick(BLUR_CHANGE_DELAY);
+        simulateInputChangeEvent('text');
+        this.sinon.clock.tick(BLUR_CHANGE_DELAY);
+
+        sinon.assert.calledWith(KeyboardManager.setKeyboardToShow, 'text');
+        sinon.assert.notCalled(KeyboardManager.resetShowingKeyboard);
       });
     });
 
@@ -296,12 +283,9 @@ suite('KeyboardManager', function() {
         this.checkDefaults = this.sinon.stub(KeyboardHelper, 'checkDefaults');
         MockKeyboardHelper.watchCallback(KeyboardHelper.layouts,
           { apps: true });
-        trigger('mozChromeEvent', {
-          type: 'inputmethod-contextchange',
-          inputType: 'url'
-        });
-        // setTimeout is used to debouce this
-        this.clock.tick(500);
+
+        simulateInputChangeEvent('url');
+        this.sinon.clock.tick(BLUR_CHANGE_DELAY);
       });
       test('does not request layouts or defaults', function() {
         assert.isFalse(this.getLayouts.called);
@@ -309,7 +293,6 @@ suite('KeyboardManager', function() {
       });
       test('shows "url" keyboard', function() {
         assert.ok(KeyboardManager.setKeyboardToShow.calledWith('url'));
-        assert.ok(KeyboardManager.showKeyboard.called);
       });
     });
 
@@ -330,12 +313,9 @@ suite('KeyboardManager', function() {
       suite('no defaults enabled', function() {
         setup(function() {
           this.checkDefaults = this.sinon.stub(KeyboardHelper, 'checkDefaults');
-          trigger('mozChromeEvent', {
-            type: 'inputmethod-contextchange',
-            inputType: 'url'
-          });
-          // setTimeout is used to debouce this
-          this.clock.tick(500);
+
+          simulateInputChangeEvent('url');
+          this.sinon.clock.tick(BLUR_CHANGE_DELAY);
         });
 
         test('requests layouts', function() {
@@ -356,12 +336,8 @@ suite('KeyboardManager', function() {
               this.getLayouts.yields([KeyboardHelper.layouts[0]]);
               callback();
             }.bind(this));
-          trigger('mozChromeEvent', {
-            type: 'inputmethod-contextchange',
-            inputType: 'url'
-          });
-          // setTimeout is used to debouce this
-          this.clock.tick(500);
+          simulateInputChangeEvent('url');
+          this.sinon.clock.tick(BLUR_CHANGE_DELAY);
         });
 
         test('requests layouts', function() {
@@ -386,46 +362,56 @@ suite('KeyboardManager', function() {
   suite('removeKeyboard test', function() {
     var fakeFrame_A, fakeFrame_B;
     setup(function() {
-      fakeFrame_A = {origin: 'app://keyboard.gaiamobile.org',
-                        id: 'en'};
+      fakeFrame_A = {
+        manifestURL: 'app://keyboard.gaiamobile.org/manifest.webapp',
+        id: 'en'};
 
-      fakeFrame_B = {origin: 'app://keyboard-test.gaiamobile.org',
-                         id: 'en'};
+      fakeFrame_B = {
+        manifestURL: 'app://keyboard-test.gaiamobile.org/manifest.webapp',
+        id: 'en'};
     });
 
     test('Not exist in runningLayouts', function() {
-      KeyboardManager.runningLayouts[fakeFrame_A.origin] = {};
-      KeyboardManager.runningLayouts[fakeFrame_A.origin][fakeFrame_A.id] =
+      KeyboardManager.runningLayouts[fakeFrame_A.manifestURL] = {};
+      KeyboardManager.runningLayouts[fakeFrame_A.manifestURL][fakeFrame_A.id] =
                                                               this.sinon.stub;
-      KeyboardManager.removeKeyboard(fakeFrame_B.origin);
+      KeyboardManager.removeKeyboard(fakeFrame_B.manifestURL);
       assert.equal(
-      KeyboardManager.runningLayouts.hasOwnProperty(fakeFrame_A.origin), true);
+        KeyboardManager.runningLayouts.hasOwnProperty(fakeFrame_A.manifestURL),
+        true);
     });
 
     test('Not in showingLayout', function() {
       var hideKeyboard = this.sinon.stub(KeyboardManager, 'hideKeyboard');
-      KeyboardManager.runningLayouts[fakeFrame_B.origin] = {};
-      KeyboardManager.runningLayouts[fakeFrame_B.origin][fakeFrame_B.id] =
+      KeyboardManager.runningLayouts[fakeFrame_B.manifestURL] = {};
+      KeyboardManager.runningLayouts[fakeFrame_B.manifestURL][fakeFrame_B.id] =
                                                               this.sinon.stub;
-      KeyboardManager.removeKeyboard(fakeFrame_B.origin);
+      KeyboardManager.removeKeyboard(fakeFrame_B.manifestURL);
       sinon.assert.callCount(hideKeyboard, 0);
       assert.equal(
-      KeyboardManager.runningLayouts.hasOwnProperty(fakeFrame_B.origin), false);
+        KeyboardManager.runningLayouts.hasOwnProperty(fakeFrame_B.manifestURL),
+        false);
     });
 
     test('In showingLayout', function() {
       var hideKeyboard = this.sinon.stub(KeyboardManager, 'hideKeyboard');
-      KeyboardManager.runningLayouts[fakeFrame_A.origin] = {};
-      KeyboardManager.runningLayouts[fakeFrame_A.origin][fakeFrame_A.id] =
+      var setKeyboardToShow =
+                          this.sinon.stub(KeyboardManager, 'setKeyboardToShow');
+      KeyboardManager.runningLayouts[fakeFrame_A.manifestURL] = {};
+      KeyboardManager.runningLayouts[fakeFrame_A.manifestURL][fakeFrame_A.id] =
                                                               this.sinon.stub;
       var fakeFrame = document.createElement('div');
-      fakeFrame.dataset.frameOrigin = 'app://keyboard.gaiamobile.org';
+      fakeFrame.dataset.frameManifestURL =
+        'app://keyboard.gaiamobile.org/manifest.webapp';
 
       KeyboardManager.showingLayout.frame = fakeFrame;
-      KeyboardManager.removeKeyboard(fakeFrame_A.origin);
+      KeyboardManager.showingLayout.type = 'text';
+      KeyboardManager.removeKeyboard(fakeFrame_A.manifestURL, true);
       sinon.assert.callCount(hideKeyboard, 1);
+      assert.ok(setKeyboardToShow.calledWith('text'));
       assert.equal(
-      KeyboardManager.runningLayouts.hasOwnProperty(fakeFrame_A.origin), false);
+        KeyboardManager.runningLayouts.hasOwnProperty(fakeFrame_A.manifestURL),
+        false);
     });
   });
 
@@ -440,12 +426,14 @@ suite('KeyboardManager', function() {
 
     test('OOM event', function() {
       var fakeFrame = document.createElement('div');
-      fakeFrame.dataset.frameOrigin = 'app://keyboard.gaiamobile.org';
+      var fakeManifestURL = 'app://keyboard.gaiamobile.org/manifest.webapp';
+
+      fakeFrame.dataset.frameManifestURL = fakeManifestURL;
       KeyboardManager.handleEvent({
         type: 'mozbrowsererror',
         target: fakeFrame
       });
-      assert.ok(removeKeyboard.calledWith('app://keyboard.gaiamobile.org'));
+      assert.ok(removeKeyboard.calledWith(fakeManifestURL));
     });
 
     test('mozbrowserresize event', function() {
@@ -456,159 +444,208 @@ suite('KeyboardManager', function() {
     });
 
     test('attentionscreenshow event', function() {
-      KeyboardManager.handleEvent({
-        type: 'attentionscreenshow'
-      });
-      setTimeout(function() {
-        sinon.assert.callCount(hideKeyboardImmediately, 1);
-      }, 0);
+      trigger('attentionscreenshow');
+
+      this.sinon.clock.tick();
+      sinon.assert.callCount(hideKeyboardImmediately, 1);
     });
 
-    test('activitywillclose event', function() {
-      KeyboardManager.handleEvent({
-        type: 'activitywillclose'
-      });
+    test('activityclosing event', function() {
+      trigger('activityclosing');
       assert.ok(hideKeyboardImmediately.called);
     });
 
-    test('appwillclose event', function() {
-      KeyboardManager.handleEvent({
-        type: 'appwillclose'
-      });
+    test('activityopening event', function() {
+      trigger('activityopening');
+      assert.ok(hideKeyboardImmediately.called);
+    });
+
+    test('applicationsetupdialogshow event', function() {
+      trigger('applicationsetupdialogshow');
       assert.ok(hideKeyboardImmediately.called);
     });
   });
 
   suite('Hide Keyboard', function() {
-    setup(function(next) {
+    var rsk;
+
+    setup(function() {
       KeyboardManager.keyboardFrameContainer.classList.remove('hide');
-      setTimeout(next, 100);
+      rsk = this.sinon.spy(KeyboardManager, 'resetShowingKeyboard');
     });
 
-    test('resetShowingKeyboard wait until transition done', function(next) {
-      var rsk = KeyboardManager.resetShowingKeyboard = sinon.stub();
-
+    test('resetShowingKeyboard wait until transition done', function() {
       KeyboardManager.hideKeyboard();
 
-      setTimeout(function() {
-        sinon.assert.callCount(rsk, 0, 'Wait for transition 30ms');
-      }, 30);
+      sinon.assert.notCalled(rsk, 'Wait for transform transition');
 
-      setTimeout(function() {
-        sinon.assert.callCount(rsk, 1, 'Wait for transition 100ms');
-        next();
-      }, 100);
+      dispatchEventForOpacity();
+
+      sinon.assert.notCalled(rsk, 'Still wait for transform transition');
+
+      dispatchEventForTransform();
+
+      sinon.assert.callCount(rsk, 1, 'resetShowingKeyboard was called');
     });
 
-    test('resetShowingKeyboard wait for transform', function(next) {
-      var rsk = KeyboardManager.resetShowingKeyboard = sinon.stub();
-      injectCss('opacity 0.05s ease, transform 0.3s ease');
-
+    test('Show immediately after hide should not destroy', function() {
       KeyboardManager.hideKeyboard();
+      KeyboardManager.showKeyboard();
 
-      setTimeout(function() {
-        sinon.assert.callCount(rsk, 0, 'Ran after opacity');
-      }, 100);
+      dispatchTransitionEvents();
 
-      setTimeout(function() {
-        sinon.assert.callCount(rsk, 1, 'Ran after transform');
-        next();
-      }, 350);
+      sinon.assert.callCount(rsk, 0);
+      assert.isFalse(
+        KeyboardManager.keyboardFrameContainer.classList.contains('hide')
+      );
     });
 
-    test('Show immediately after hide should not destroy', function(next) {
-      var rsk = KeyboardManager.resetShowingKeyboard = sinon.stub();
+    suite('HideImmediately', function() {
+      var kh, khed, container;
 
-      KeyboardManager.hideKeyboard();
+      setup(function() {
+        kh = sinon.stub();
+        khed = sinon.stub();
+        window.addEventListener('keyboardhide', kh);
+        window.addEventListener('keyboardhidden', khed);
 
-      setTimeout(function() {
-        KeyboardManager.showKeyboard();
-      }, 20);
+        container = KeyboardManager.keyboardFrameContainer;
+        this.sinon.spy(container.classList, 'add');
 
-      setTimeout(function() {
-        sinon.assert.callCount(rsk, 0);
-        assert.equal(
-          KeyboardManager.keyboardFrameContainer.classList.contains('hide'),
-          false);
-        next();
-      }, 200);
+        KeyboardManager.hideKeyboardImmediately();
+      });
+
+      teardown(function() {
+        window.removeEventListener('keyboardhide', kh);
+        window.removeEventListener('keyboardhidden', khed);
+      });
+
+      test('should not play animation', function() {
+        sinon.assert.calledWith(
+          container.classList.add, 'notransition'
+        );
+      });
+
+      test('emits events', function() {
+        sinon.assert.callCount(rsk, 1, 'resetShowingKeyborad');
+        sinon.assert.callCount(kh, 1, 'keyboardhide event');
+        sinon.assert.callCount(khed, 1, 'keyboardhidden event');
+      });
     });
 
-    test('HideImmediately should not play animation', function(next) {
-      var triggered = false;
-      KeyboardManager.keyboardFrameContainer.addEventListener('transitionend',
-        function() {
-          triggered = true;
-        });
-
-      KeyboardManager.hideKeyboardImmediately();
-
-      setTimeout(function() {
-        assert.equal(triggered, false);
-        next();
-      }, 300);
-    });
-
-    test('HideImmediately emits events', function() {
-      var rsk = KeyboardManager.resetShowingKeyboard = sinon.stub();
+    test('Hide emits events', function() {
       var kh = sinon.stub();
+      var khed = sinon.stub();
       window.addEventListener('keyboardhide', kh);
+      window.addEventListener('keyboardhidden', khed);
 
-      KeyboardManager.hideKeyboardImmediately();
+      KeyboardManager.hideKeyboard();
+      sinon.assert.callCount(kh, 1, 'keyboardhide event');
+      var fakeEvt = new CustomEvent('transitionend');
+      fakeEvt.propertyName = 'transform';
+      KeyboardManager.keyboardFrameContainer.dispatchEvent(fakeEvt);
 
       sinon.assert.callCount(rsk, 1, 'resetShowingKeyborad');
       sinon.assert.callCount(kh, 1, 'keyboardhide event');
+      sinon.assert.callCount(khed, 1, 'keyboardhidden event');
     });
   });
 
   suite('Show Keyboard', function() {
-    setup(function(next) {
+    var rsk;
+    setup(function() {
       KeyboardManager.keyboardFrameContainer.classList.add('hide');
-      setTimeout(next, 100);
+      this.sinon.stub(KeyboardManager, 'showIMESwitcher');
+      rsk = this.sinon.spy(KeyboardManager, 'resetShowingKeyboard');
     });
 
-    test('Hide immediately after show should destroy', function(next) {
-      var rsk = KeyboardManager.resetShowingKeyboard = sinon.stub();
+    test('Hide immediately after show should destroy', function() {
 
       var called = false;
       window.addEventListener('keyboardchange', function() {
         called = true;
       });
 
-      KeyboardManager.showKeyboard();
+      KeyboardManager.setKeyboardToShow('text');
 
       KeyboardManager.resizeKeyboard({
         detail: { height: 200 },
         stopPropagation: sinon.stub()
       });
 
-      setTimeout(function() {
-        KeyboardManager.hideKeyboard();
-      }, 20);
+      KeyboardManager.hideKeyboard();
+      dispatchTransitionEvents();
 
-      setTimeout(function() {
-        sinon.assert.callCount(rsk, 1, 'ResetShowingKeyboard called');
-        assert.equal(called, false, 'KeyboardChange event fired');
-        assert.equal(
-          KeyboardManager.keyboardFrameContainer.classList.contains('hide'),
-          true);
-        next();
-      }, 200);
+      sinon.assert.callCount(rsk, 1, 'ResetShowingKeyboard called');
+      assert.equal(called, false, 'KeyboardChange event fired');
+      assert.isTrue(
+        KeyboardManager.keyboardFrameContainer.classList.contains('hide'));
+    });
+  });
+
+  suite('mozbrowserresize event test', function() {
+    var showKeyboard;
+    setup(function() {
+      showKeyboard = this.sinon.stub(KeyboardManager, 'showKeyboard');
+      this.sinon.stub(KeyboardManager, 'showIMESwitcher');
+    });
+
+    function fakeMozbrowserResize(height) {
+      KeyboardManager.handleEvent({
+        type: 'mozbrowserresize',
+        detail: { height: height },
+        stopPropagation: sinon.stub()
+      });
+    }
+
+    test('height is zero.', function() {
+      fakeMozbrowserResize(0);
+      sinon.assert.callCount(showKeyboard, 0,
+                                          'showKeyboard should not nt called');
+    });
+
+    test('keyboardFrameContainer is ready to show.', function() {
+      KeyboardManager.setKeyboardToShow('text');
+      fakeMozbrowserResize(200);
+      sinon.assert.callCount(showKeyboard, 1, 'showKeyboard should be called');
+    });
+
+    test('keyboardFrameContainer is hiding.', function() {
+      KeyboardManager.keyboardFrameContainer.classList.add('hide');
+      KeyboardManager.keyboardFrameContainer.dataset.transitionOut = 'true';
+      fakeMozbrowserResize(200);
+      sinon.assert.callCount(showKeyboard, 0,
+                                          'ignore mozbrowserresize event');
+    });
+
+    test('Switching keyboard.', function() {
+      KeyboardManager.setKeyboardToShow('text');
+      fakeMozbrowserResize(200);
+      KeyboardManager.keyboardFrameContainer.classList.remove('hide');
+      fakeMozbrowserResize(250);
+      assert.equal(KeyboardManager.keyboardHeight, 250);
+      sinon.assert.callCount(showKeyboard, 1,
+                                        'showKeyboard should be called');
+    });
+
+    test('keyboard is showing.', function() {
+      KeyboardManager.setKeyboardToShow('text');
+      fakeMozbrowserResize(300);
+      KeyboardManager.keyboardFrameContainer.classList.remove('hide');
+      KeyboardManager.keyboardFrameContainer.dataset.transitionIn = 'true';
+      fakeMozbrowserResize(350);
+      assert.equal(KeyboardManager.keyboardHeight, 350);
+      sinon.assert.callCount(showKeyboard, 1,
+                                        'showKeyboard should be called once');
     });
   });
 
   suite('Focus and Blur', function() {
-    var _show, _hide, _setKeyboard, _showIME;
     setup(function() {
-      _show = KeyboardManager.showKeyboard;
-      _hide = KeyboardManager.hideKeyboard;
-      _setKeyboard = KeyboardManager.setKeyboardToShow;
-      _showIME = KeyboardManager.showIMESwitcher;
-
-      KeyboardManager.showKeyboard = sinon.stub();
-      KeyboardManager.hideKeyboard = sinon.stub();
-      KeyboardManager.setKeyboardToShow = sinon.stub();
-      KeyboardManager.showIMESwitcher = sinon.stub();
+      this.sinon.stub(KeyboardManager, 'showKeyboard');
+      this.sinon.stub(KeyboardManager, 'hideKeyboard');
+      this.sinon.stub(KeyboardManager, 'setKeyboardToShow');
+      this.sinon.stub(KeyboardManager, 'showIMESwitcher');
       KeyboardManager.keyboardLayouts = {
         text: {
           activeLayout: {}
@@ -616,61 +653,29 @@ suite('KeyboardManager', function() {
       };
     });
 
-    teardown(function() {
-      KeyboardManager.showKeyboard = _show;
-      KeyboardManager.hideKeyboard = _hide;
-      KeyboardManager.setKeyboardToShow = _setKeyboard;
-      KeyboardManager.showIMESwitcher = _showIME;
+    test('Blur should hide', function() {
+      simulateInputChangeEvent('blur');
+
+      this.sinon.clock.tick(BLUR_CHANGE_DELAY);
+
+      sinon.assert.callCount(KeyboardManager.hideKeyboard, 1);
+      sinon.assert.notCalled(KeyboardManager.setKeyboardToShow);
     });
 
-    test('Blur should hide', function(next) {
-      KeyboardManager.inputFocusChange({
-        detail: {
-          inputType: 'blur'
-        }
-      });
+    test('Focus should show', function() {
+      simulateInputChangeEvent('text');
 
-      setTimeout(function() {
-        sinon.assert.callCount(KeyboardManager.hideKeyboard, 1);
-        sinon.assert.callCount(KeyboardManager.showKeyboard, 0);
-        next();
-      }, 110);
+      sinon.assert.notCalled(KeyboardManager.hideKeyboard);
+      sinon.assert.callCount(KeyboardManager.setKeyboardToShow, 1);
     });
 
-    test('Focus should show', function(next) {
-      KeyboardManager.inputFocusChange({
-        detail: {
-          inputType: 'text'
-        }
-      });
+    test('Blur followed by focus should not hide', function() {
+      simulateInputChangeEvent('blur');
+      simulateInputChangeEvent('text');
+      this.sinon.clock.tick(BLUR_CHANGE_DELAY);
 
-      setTimeout(function() {
-        sinon.assert.callCount(KeyboardManager.hideKeyboard, 0);
-        sinon.assert.callCount(KeyboardManager.showKeyboard, 1);
-        next();
-      }, 110);
-    });
-
-    test('Focus followed by blur should not hide', function(next) {
-      KeyboardManager.inputFocusChange({
-        detail: {
-          inputType: 'blur'
-        }
-      });
-
-      setTimeout(function() {
-        KeyboardManager.inputFocusChange({
-          detail: {
-            inputType: 'text'
-          }
-        });
-      }, 10);
-
-      setTimeout(function() {
-        sinon.assert.callCount(KeyboardManager.hideKeyboard, 0);
-        sinon.assert.callCount(KeyboardManager.showKeyboard, 1);
-        next();
-      }, 110);
+      sinon.assert.callCount(KeyboardManager.hideKeyboard, 0);
+      sinon.assert.callCount(KeyboardManager.setKeyboardToShow, 1);
     });
   });
 });

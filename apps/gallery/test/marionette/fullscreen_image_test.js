@@ -30,7 +30,7 @@ marionette('the gallery', function() {
     assert.strictEqual(app.thumbnails.length, 1);
   });
 
-  test('should display an image fullscreen and go back', function() {
+  test.skip('should display an image fullscreen and go back', function() {
     // You should be able to click on an image to view a fullscreen
     // preview and go back by pressing the 'back' button.
     app.thumbnail.click();
@@ -40,7 +40,7 @@ marionette('the gallery', function() {
     assert.ok(app.thumbnailsView.displayed());
   });
 
-  test('should flick through images in fullscreen mode', function() {
+  test.skip('should flick through images in fullscreen mode', function() {
     // Acquire a duplicate of an image by launching the editing
     // mode and saving it.
     app.thumbnail.click();

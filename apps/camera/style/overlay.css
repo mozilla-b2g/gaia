@@ -5,7 +5,7 @@
  * the issue.  The user can't interact with the app while the overlay
  * is displayed.
  */
-#overlay {
+.overlay {
   /* it takes up the whole screen */
   position: absolute;
   top: 0;
@@ -23,7 +23,7 @@
  * It has borders and a less transparent background so that
  * the overlay text shows up more clearly
  */
-#overlay-content {
+.overlay-content {
   background:
   url(images/ui/pattern.png) repeat left top,
   url(images/ui/gradient.png) no-repeat left top;
@@ -43,7 +43,7 @@
   padding: 11rem 2.5rem 0 2.5rem;
 }
 
-#overlay-title {
+.overlay-title {
   font-weight: normal;
   font-size: 1.9rem;
   color: #fff;
@@ -51,7 +51,7 @@
   padding: 0;
 }
 
-#overlay-text {
+.overlay-text {
   padding: 1rem 0.5rem 0 0.5rem;
   border-top: 0.1rem solid #686868;
   font-weight: 300;
@@ -59,16 +59,56 @@
   color: #ebebeb;
 }
 
+/** Menu Close
+ ---------------------------------------------------------*/
+
+/**
+ * 1. Override high specificity of
+ *    conifrm.css selectors.
+ */
+
+.overlay-menu-close {
+  display: none !important; /* 1 */
+}
+
+/**
+ * @closable=true
+ */
+
+.overlay[data-closable=true] .overlay-menu-close {
+  display: block !important; /* 1 */
+}
+
+/** Menu Storage
+ ---------------------------------------------------------*/
+
+/**
+ * 1. Override high specificity of
+ *    conifrm.css selectors.
+ */
+
+.overlay-menu-storage {
+  display: none !important; /* 1 */
+}
+
+/**
+ * @nocard
+ */
+
+.overlay[data-type=unavailable] .overlay-menu-storage {
+  display: block !important; /* 1 */
+}
+
 /*
  * Because the css selector specificity, if we use .hidden, we will not get the
  * hidden menu whose display is set as "block" by confirm.css. This css rule
  * overrides it as none.
  */
-#overlay menu.hidden {
+.overlay menu.hidden {
   display: none;
 }
 
-#overlay menu button.hidden {
+.overlay menu button.hidden {
   display: none;
 }
 

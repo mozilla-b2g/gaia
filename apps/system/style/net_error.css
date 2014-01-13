@@ -1,0 +1,41 @@
+html {
+  font-size: 10px;
+}
+
+#net-error #actions {
+  display: none;
+}
+#net-error.no-frame #actions {
+  display: block;
+}
+
+#net-error.framed form[role="dialog"] {
+  background-image: none;
+  background-color: #f4f4f4;
+  color: black;
+  padding-bottom: 0;
+}
+
+#net-error.framed form[role="dialog"] p {
+  border-top-color: rgba(0, 0, 0, 0.10);
+}
+
+#net-error.framed .title,
+#net-error.framed .message {
+  color: black;
+}
+
+#net-error #retry-icon {
+  display: none;
+}
+
+#net-error.framed #retry-icon {
+  display: inline-block;
+  float: right;
+  height: 3rem;
+  width: 3rem;
+}
+#net-error.framed #retry-icon.still {
+  background: url(net_error/iframe_reload_icon.png) center / 3rem no-repeat;
+  animation: none;
+}

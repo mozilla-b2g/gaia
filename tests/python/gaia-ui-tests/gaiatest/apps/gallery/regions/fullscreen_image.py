@@ -12,11 +12,11 @@ class FullscreenImage(Base):
     _fullscreen_view_locator = (By.ID, 'fullscreen-view')
     _current_image_locator = (By.CSS_SELECTOR, '#frames > div.frame[style ~= "translateX(0px);"] > img')
     _photos_toolbar_locator = (By.ID, 'fullscreen-toolbar')
-    _delete_image_locator = (By.ID, 'fullscreen-delete-button')
-    _confirm_delete_locator = (By.ID, 'modal-dialog-confirm-ok')
-    _edit_photo_locator = (By.ID, 'fullscreen-edit-button')
-    _tile_view_locator = (By.ID, 'fullscreen-back-button')
-    _share_button_locator = (By.ID, 'fullscreen-share-button')
+    _delete_image_locator = (By.ID, 'fullscreen-delete-button-tiny')
+    _confirm_delete_locator = (By.ID, 'confirm-ok')
+    _edit_photo_locator = (By.ID, 'fullscreen-edit-button-tiny')
+    _tile_view_locator = (By.ID, 'fullscreen-back-button-tiny')
+    _share_button_locator = (By.ID, 'fullscreen-share-button-tiny')
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
@@ -54,7 +54,6 @@ class FullscreenImage(Base):
 
     def tap_delete_button(self):
         self.marionette.find_element(*self._delete_image_locator).tap()
-        self.marionette.switch_to_frame()
         self.wait_for_element_displayed(*self._confirm_delete_locator)
 
     def tap_confirm_deletion_button(self):
@@ -63,7 +62,7 @@ class FullscreenImage(Base):
         from gaiatest.apps.gallery.app import Gallery
         gallery = Gallery(self.marionette)
         self.wait_for_condition(lambda m: self.apps.displayed_app.name == gallery.name)
-        self.marionette.switch_to_frame(self.apps.displayed_app.frame)
+        self.apps.switch_to_displayed_app()
         return gallery
 
     def tap_edit_button(self):

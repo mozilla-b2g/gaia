@@ -2,17 +2,17 @@
   Compose Tests
 */
 
-/*global mocha, MocksHelper, MockAttachment, MockL10n, loadBodyHTML, ThreadUI,
+/*global MocksHelper, MockAttachment, MockL10n, loadBodyHTML,
          Compose, Attachment, MockMozActivity, Settings, Utils,
-         AttachmentMenu */
+         AttachmentMenu, Draft */
 
 'use strict';
 
-mocha.globals(['0', '6']);
-
 requireApp('sms/js/compose.js');
-requireApp('sms/js/thread_ui.js');
 requireApp('sms/js/utils.js');
+requireApp('sms/js/drafts.js');
+// Storage automatically called on Drafts.add()
+require('/shared/js/async_storage.js');
 
 requireApp('sms/test/unit/mock_l10n.js');
 requireApp('sms/test/unit/mock_attachment.js');
@@ -41,14 +41,14 @@ suite('compose_test.js', function() {
     var attachment = new MockAttachment({
       type: 'audio/ogg',
       size: size || 12345
-    }, 'audio.oga');
+    }, { name: 'audio.oga' });
     return attachment;
   }
 
   function mockImgAttachment(isOversized) {
     var attachment = isOversized ?
-      new MockAttachment(oversizedImageBlob, 'oversized.jpg') :
-      new MockAttachment(smallImageBlob, 'small.jpg');
+      new MockAttachment(oversizedImageBlob, { name: 'oversized.jpg' }) :
+      new MockAttachment(smallImageBlob, { name: 'small.jpg' });
     return attachment;
   }
 
@@ -84,20 +84,40 @@ suite('compose_test.js', function() {
   });
 
   suite('Message Composition', function() {
-    var message;
+    var message,
+        subject;
 
     setup(function() {
       loadBodyHTML('/index.html');
-      // if we don't do the ThreadUI.init - it breaks when run in a full suite
-      ThreadUI.init();
-      // Compose.init('messages-compose-form');
+      Compose.init('messages-compose-form');
       message = document.querySelector('[contenteditable]');
+      subject = document.getElementById('messages-subject-input');
+    });
+
+    suite('Subject', function() {
+      setup(function() {
+        Compose.clear();
+      });
+
+      test('Toggle change the visibility', function() {
+        assert.isTrue(subject.classList.contains('hide'));
+        Compose.toggleSubject();
+        assert.isFalse(subject.classList.contains('hide'));
+        Compose.toggleSubject();
+        assert.isTrue(subject.classList.contains('hide'));
+      });
+
+      test('Sent subject doesnt have line breaks (spaces instead)', function() {
+        subject.value = 'Line 1\nLine 2\n\n\n\nLine 3';
+        Compose.toggleSubject(); // we need to show the subject to get content
+        var text = Compose.getSubject();
+        assert.equal(text, 'Line 1 Line 2 Line 3');
+      });
     });
 
     suite('Placeholder', function() {
-      setup(function(done) {
+      setup(function() {
         Compose.clear();
-        done();
       });
       test('Placeholder present by default', function() {
         assert.isTrue(Compose.isEmpty(), 'added');
@@ -145,6 +165,15 @@ suite('compose_test.js', function() {
         txt = Compose.getContent();
         assert.equal(txt.length, 0, 'No lines in the txt');
       });
+      test('Clear removes subject', function() {
+        subject.value = 'Title';
+        Compose.toggleSubject();
+        var txt = Compose.getSubject();
+        assert.equal(txt, 'Title', 'Something in the txt');
+        Compose.clear();
+        txt = Compose.getSubject();
+        assert.equal(txt, '', 'Nothing in the txt');
+      });
     });
 
     suite('Message insert, append, prepend', function() {
@@ -153,6 +182,19 @@ suite('compose_test.js', function() {
         var txt = Compose.getContent();
         assert.equal(txt[0], 'start', 'text is appended');
       });
+
+      test('Message appended with html', function() {
+        var message = document.querySelector(
+          '#messages-compose-form [contenteditable]'
+        );
+
+        Compose.append('<b>hi!</b>\ntest');
+        var txt = Compose.getContent();
+
+        assert.equal(message.innerHTML, '&lt;b&gt;hi!&lt;/b&gt;<br>test<br>');
+        assert.equal(txt[0], '<b>hi!</b>\ntest');
+      });
+
       test('Message prepend', function() {
         Compose.append('end');
         Compose.prepend('start');
@@ -218,7 +260,7 @@ suite('compose_test.js', function() {
       });
       test('Just text - line breaks', function() {
         Compose.append('start');
-        Compose.append('<br>');
+        Compose.append('\n');
         Compose.append('end');
         var txt = Compose.getContent();
         assert.equal(txt.length, 1, 'Single text content');
@@ -226,19 +268,31 @@ suite('compose_test.js', function() {
       });
       test('Trailing line breaks not stripped', function() {
         Compose.append('start');
-        Compose.append('<br>');
+        Compose.append('\n');
         Compose.append('end');
-        Compose.append(new Array(5).join('<br>'));
+        Compose.append(new Array(5).join('\n'));
         var expected = 'start\nend\n\n\n\n';
         var txt = Compose.getContent();
         assert.equal(txt.length, 1, 'Single text content');
         assert.equal(txt[0], expected, 'correct content');
       });
+      test('Text with several spaces', function() {
+        Compose.append('start');
+        Compose.append('    ');
+        Compose.append('end');
+        var expected = 'start    end';
+        var txt = Compose.getContent();
+        assert.equal(txt.length, 1, 'Single text content');
+        assert.equal(txt[0], expected, 'correct content');
+
+        // the CSS we use is pre-wrap so we can use plain spaces
+        var html = message.innerHTML;
+        var expectedHTML = 'start    end<br>';
+        assert.equal(html, expectedHTML, 'correct markup');
+      });
       test('Text with non-break spaces', function() {
         Compose.append('start');
-        Compose.append('&nbsp;');
-        Compose.append('&nbsp;');
-        Compose.append('&nbsp;');
+        Compose.append('\u00A0\u00A0\u00A0');
         Compose.append(' ');
         Compose.append('end');
         var expected = 'start    end';
@@ -270,7 +324,7 @@ suite('compose_test.js', function() {
       });
       test('attachment with excess breaks', function() {
         Compose.append('start');
-        Compose.append('<br><br><br><br>');
+        Compose.append('\n\n\n\n');
         Compose.append(mockAttachment());
         Compose.append('end');
         var txt = Compose.getContent();
@@ -279,8 +333,67 @@ suite('compose_test.js', function() {
         assert.ok(txt[1] instanceof MockAttachment, 'Sub 1 is an attachment');
         assert.equal(txt[2], 'end', 'Last line is end text');
       });
+
+      test('text split in several text nodes', function() {
+        var lastChild = message.lastChild;
+        message.insertBefore(document.createTextNode('hello'), lastChild);
+        message.insertBefore(document.createTextNode(''), lastChild);
+        message.insertBefore(document.createTextNode('world'), lastChild);
+
+        var content = Compose.getContent();
+        assert.equal(content.length, 1);
+        assert.equal(content[0], 'helloworld');
+      });
+
       teardown(function() {
         Compose.clear();
+      });
+    });
+
+    suite('Preload composer fromDraft', function() {
+      var d1, d2, attachment;
+
+      setup(function() {
+        Compose.clear();
+        d1 = new Draft({
+          subject: '...',
+          content: ['I am a draft'],
+          threadId: 1
+        });
+        attachment = mockAttachment();
+        d2 = new Draft({
+          content: ['I have an attachment!', attachment],
+          threadId: 1
+        });
+      });
+      teardown(function() {
+
+        Compose.clear();
+      });
+
+      test('Draft with text', function() {
+        Compose.fromDraft(d1);
+        assert.equal(Compose.getContent(), d1.content.join(''));
+      });
+
+      test('Draft with subject', function() {
+        this.sinon.spy(Compose, 'toggleSubject');
+        Compose.fromDraft(d1);
+        assert.equal(Compose.getSubject(), d1.subject);
+        assert.isTrue(Compose.isSubjectShowing);
+        sinon.assert.calledOnce(Compose.toggleSubject);
+      });
+
+      test('Draft without subject', function() {
+        Compose.fromDraft(d2);
+        assert.isFalse(Compose.isSubjectShowing);
+      });
+
+      test('Draft with attachment', function() {
+        Compose.fromDraft(d2);
+        var txt = Compose.getContent();
+        assert.ok(txt, d2.content.join(''));
+        assert.ok(txt[1] instanceof Attachment);
       });
     });
 
@@ -509,6 +622,19 @@ suite('compose_test.js', function() {
         function() {
         expectType = 'mms';
         Compose.append(mockAttachment());
+        assert.equal(typeChange.called, 1);
+
+        expectType = 'sms';
+        Compose.clear();
+        assert.equal(typeChange.called, 2);
+      });
+
+      test('Message switches type when adding/removing subject',
+        function() {
+        expectType = 'mms';
+        Compose.toggleSubject();
+        subject.value = 'foo';
+        subject.dispatchEvent(new CustomEvent('input'));
         assert.equal(typeChange.called, 1);
 
         expectType = 'sms';

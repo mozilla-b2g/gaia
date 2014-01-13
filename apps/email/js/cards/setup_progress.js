@@ -43,14 +43,15 @@ SetupProgressCard.prototype = {
     // XXX implement cancellation
   },
 
-  onBack: function() {
+  onBack: function(e) {
+    e.preventDefault();
     this.cancelCreation();
-    Cards.removeCardAndSuccessors(this.domNode, 'animate', 1);
+    Cards.removeCardAndSuccessors(this.domNode, 'animate');
   },
 
   onCreationError: function(err, errDetails) {
     this.callingCard.showError(err, errDetails);
-    Cards.removeCardAndSuccessors(this.domNode, 'animate', 1);
+    Cards.removeCardAndSuccessors(this.domNode, 'animate');
   },
 
   onCreationSuccess: function(account) {

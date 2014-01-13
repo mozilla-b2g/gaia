@@ -74,4 +74,3 @@ marionette('reply to an e-mail', function() {
     app.abortCompose('message_reader');
   });
 });
-

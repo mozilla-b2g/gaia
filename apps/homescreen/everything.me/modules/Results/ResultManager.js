@@ -21,8 +21,10 @@ Evme.ResultManager = function Evme_ResultsManager() {
       el = null,
       elHeight = null,
       scrollableEl = null,
-      appsArray = {}, appsDataArray = [],
-      numberOfApps = 0,
+
+      // list of installedApps matching current query
+      installedApps = [],
+
       scroll = null,
       reportedScrollMove = false,
       shouldFadeBG = false,
@@ -102,7 +104,7 @@ Evme.ResultManager = function Evme_ResultsManager() {
         this.clear();
       });
 
-      numberOfApps = 0;
+      installedApps = [];
 
       progressIndicator.hide();
       el.classList.remove(CLASS_HAS_MORE_APPS);
@@ -115,7 +117,14 @@ Evme.ResultManager = function Evme_ResultsManager() {
     };
 
     this.onNewQuery = function onNewQuery(data) {
-      INSTALLED in providers && providers[INSTALLED].render(data);
+      installedApps = Evme.InstalledAppsService.getMatchingApps({
+        'query': data.query,
+        'byTags': true
+      });
+
+      INSTALLED in providers && providers[INSTALLED].render({
+        'apps': installedApps
+      });
     };
 
     this.APIData = {
@@ -135,8 +144,9 @@ Evme.ResultManager = function Evme_ResultsManager() {
         handleAPIHasMoreCloudApps(response.paging);
 
         var cloudApps = [],
-        marketApps = [],
-        pageNum = response.paging.first;
+          marketApps = [],
+          pageNum = response.paging.first,
+          query = response.query;
 
       // separate cloud from marketplace apps
       response.apps.forEach(function(app) {
@@ -159,12 +169,14 @@ Evme.ResultManager = function Evme_ResultsManager() {
 
         response.nativeAppsHint && MARKETSEARCH in providers &&
           providers[MARKETSEARCH].render({
-          'query': response.query
+          'query': query,
+          'label': (installedApps.length || marketApps.length) ?
+            Evme.Utils.l10n('apps', 'market-more-apps') : query.toLowerCase()
         });
       }
 
       CLOUD in providers && providers[CLOUD].render(cloudApps, {
-        'query': response.query,
+        'query': query,
         'pageNum': pageNum,
         'requestMissingIcons': requestMissingIcons
       });
@@ -322,7 +334,10 @@ Evme.ResultManager = function Evme_ResultsManager() {
   }
 
   function touchMove(e) {
-    if (shouldFadeBG) {
+    // double check ftr.fadeOnScroll since it might have been disabled by
+    // another touchstart handler
+    // (like when organizing static apps in collection)
+    if (ftr.fadeOnScroll && shouldFadeBG) {
       var _fadeBy = scroll.distY / MAX_SCROLL_FADE;
 
       if (_fadeBy < fadeBy) {
@@ -338,7 +353,8 @@ Evme.ResultManager = function Evme_ResultsManager() {
   }
 
   function touchEnd(data) {
-    if (shouldFadeBG &&
+    // double check ftr.fadeOnScroll (see touchMove)
+    if (ftr.fadeOnScroll && shouldFadeBG &&
           scroll.distY >= FULLSCREEN_THRESHOLD * MAX_SCROLL_FADE) {
       showingFullScreen = true;
       cbScrolledToTop();

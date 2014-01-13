@@ -1,17 +1,16 @@
-var ContactsSIMExport = function ContactsSIMExport() {
+'use strict';
+
+var ContactsSIMExport = function ContactsSIMExport(icc) {
 
   var contacts;
   var progressStep;
-  var icc = navigator.mozIccManager;
-  var exported = [];
-  var notExported = [];
+  var exported;
+  var notExported;
 
-  // See bug 932134
-  // To keep all tests passed while introducing multi-sim APIs, in bug 928325
-  // we do the following check. Remove it after the APIs land.
-  if (icc && icc.iccIds && icc.iccIds[0]) {
-    icc = icc.getIccById(icc.iccIds[0]);
-  }
+  var ERRORS = {
+    'NoFreeRecordFound': false,
+    'CannotAccessPhoneBook': true
+  };
 
   var setContactsToExport = function setContactsToExport(cts) {
     contacts = cts;
@@ -33,30 +32,80 @@ var ContactsSIMExport = function ContactsSIMExport() {
     if (typeof finishCallback !== 'function') {
       throw new Error('SIM export requires a callback function');
     }
+
+    exported = [];
+    notExported = [];
+
     // We should control this state before doing the export
     // but a second check is healthy
     if (!icc) {
       finishCallback({
-        'reason': 'unavailable'
-      }, 0, 'No SIM detected');
+        'reason': 'Unavailable'
+      }, 0, false);
       return;
     }
-    // Cover the whole process under a try/catch to
-    // prevent inconsistent states caused by unexpected
-    // errors and return back the control to the
-    // generic exporter
-    try {
-      _doExport(0, finishCallback);
-    } catch (e) {
-      finishCallback({
-        'reason': e.name
-      }, exported.length, e.message);
+
+    _doExport(0, finishCallback);
+  };
+
+  // Returns the iccContactId to be used for exporting this contact
+  // undefined if not iccContactId is found
+  // url content is urn:uuid:<iccid>-icccontactid
+  var _getIccContactId = function _getIccContactId(theContact) {
+    var out;
+    var contactUrl = theContact.url;
+    if (!Array.isArray(contactUrl)) {
+      return out;
     }
+
+    for (var j = 0; j < contactUrl.length; j++) {
+      var aUrl = contactUrl[j];
+      if (aUrl.type.indexOf('source') !== -1 &&
+                                        aUrl.type.indexOf('sim') !== -1) {
+        var value = aUrl.value.split(':')[2];
+        var iccInfo = value.split('-');
+        if (iccInfo[0] === _getIccId()) {
+          out = iccInfo[1];
+          break;
+        }
+      }
+    }
+    return out;
+  };
+
+  var _generateIccContactUrl = function _generateIccContactUrl(contactid,
+                                                               iccId) {
+    var urlValue = 'urn:' + 'uuid:' + (iccId || 'iccId') + '-' + contactid;
+    return {
+      type: ['source', 'sim'],
+      value: urlValue
+    };
+  };
+
+  var _getIccId = function _getIccId() {
+    return icc.iccInfo && icc.iccInfo.iccid;
+  };
+
+  var _updateContactSimSource = function _updateContactSimSource(theContact,
+                                                      iccContact, cb, errorCb) {
+    if (!iccContact) {
+      window.console.warn('No Icc Contact provided');
+      cb();
+      return;
+    }
+
+    theContact.url = theContact.url || [];
+    theContact.url.push(_generateIccContactUrl(iccContact.id, _getIccId()));
+    var req = navigator.mozContacts.save(theContact);
+    req.onsuccess = cb;
+    req.onerror = function() {
+      errorCb(req.error);
+    };
   };
 
   var _doExport = function _doExport(step, finishCallback) {
     if (step == contacts.length) {
-      finishCallback(null, exported.length, null);
+      finishCallback(null, exported.length);
       return;
     }
 
@@ -71,16 +120,52 @@ var ContactsSIMExport = function ContactsSIMExport() {
     };
 
     var theContact = contacts[step];
+    var originalContactId = theContact.id;
+    var idToUpdate = _getIccContactId(theContact);
+    if (!idToUpdate) {
+      theContact.id = null;
+    }
+    else {
+      theContact.id = idToUpdate;
+    }
 
     var request = icc.updateContact('adn', theContact);
     request.onsuccess = function onsuccess() {
-      next(true, theContact);
-    };
-    request.onerror = function onerror(e) {
-      // Don't send an error, just continue
-      next(false, theContact);
+      // Restoring the original contact.id to avoid duplicating it
+      theContact.id = originalContactId;
+
+      if (idToUpdate) {
+        next(true, theContact);
+        return;
+      }
+      // Now it is needed to save the provided id in case we don't have one
+      var iccContact = request.result;
+      _updateContactSimSource(theContact, iccContact,
+                              function export_update_success() {
+        next(true, theContact);
+      }, function export_update_error(err) {
+          window.console.error('Error while updating: ', err.name);
+          next(true, theContact);
+      });
     };
 
+    request.onerror = function onerror(e) {
+      var error = e.target.error;
+      window.console.error('Error while exporting: ', originalContactId,
+                           error.name);
+
+      var errorName = typeof ERRORS[error.name] === 'boolean' ?
+                                                  error.name : 'GenericError';
+
+      if (errorName !== 'GenericError') {
+        finishCallback({
+          'reason': errorName
+        }, exported.length, ERRORS[error.name]);
+      }
+      else {
+        next(false, theContact);
+      }
+    };
   };
 
   return {

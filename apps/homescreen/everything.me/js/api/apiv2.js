@@ -111,16 +111,9 @@ Evme.api = new function Evme_api() {
 
     var url = BASE_URL + method,
     finalUrl = url,
-    params = '',
+    params = Evme.Utils.serialize(options),
     httpRequest = new XMLHttpRequest(),
     value;
-
-    for (var k in options) {
-      value = options[k];
-      if (value !== null && value !== undefined && value !== '') {
-        params += k + '=' + encodeURIComponent(options[k]) + '&';
-      }
-    }
 
     finalUrl += '?' + params;
 

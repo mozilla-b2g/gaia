@@ -112,7 +112,7 @@ marionette('media playback tests', function() {
         });
       });
 
-      test('should play/pause from now playing widget', function() {
+      test.skip('should play/pause from now playing widget', function() {
         music.runInApp(function() {
           music.albumOneElement.click();
         });
@@ -139,7 +139,8 @@ marionette('media playback tests', function() {
         });
       });
 
-      test('should play/pause from now playing widget after closing and ' +
+      // XXX: Disable the test because of http://bugzil.la/942490.
+      test.skip('should play/pause from now playing widget after closing and ' +
            'reopening music app', function() {
         music.close();
         music.launchInBackground();
@@ -158,7 +159,8 @@ marionette('media playback tests', function() {
         });
       });
 
-      test('should go to next/prev track from notification area', function() {
+      test.skip('should go to next/prev track from notification area',
+      function() {
         music.runInApp(function() {
           music.albumOneElement.click();
         });

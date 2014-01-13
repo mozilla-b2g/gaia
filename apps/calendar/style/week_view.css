@@ -22,7 +22,7 @@
 }
 
 #week-view > section {
-  height: calc(100% - 8.33rem);
+  height: 100%;
   display: none;
   position: absolute;
 }
@@ -138,6 +138,7 @@
 #week-view .scroll {
   height: calc(100% - 7.9rem);
   overflow-y: scroll;
+  will-change: scroll-position;
 }
 
 #week-view .scroll > .children {
@@ -167,7 +168,6 @@
 #week-view .week-events > ol li.event {
   position: absolute;
   width: 100%;
-  z-index: 10;
 }
 
 #week-view .week-events .container {

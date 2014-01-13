@@ -7,6 +7,7 @@ requireElements('homescreen/elements/search_page.html');
 requireApp('homescreen/test/unit/mock_asyncStorage.js');
 requireApp('homescreen/test/unit/mock_lazy_loader.js');
 requireApp('homescreen/test/unit/mock_l10n.js');
+requireApp('homescreen/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('homescreen/everything.me/js/everything.me.js');
 
 if (!this.asyncStorage) {
@@ -14,7 +15,8 @@ if (!this.asyncStorage) {
 }
 
 var mocksHelperForEVME = new MocksHelper([
-  'LazyLoader'
+  'LazyLoader',
+  'SettingsListener'
 ]);
 mocksHelperForEVME.init();
 
@@ -38,7 +40,11 @@ suite('everything.me.js >', function() {
     wrapperNode.innerHTML = MockEverythingMeHtml;
     document.body.appendChild(wrapperNode);
 
-    EverythingME.init();
+    var config = {
+      'debug': false
+    };
+
+    EverythingME.init(config);
   });
 
   suiteTeardown(function() {

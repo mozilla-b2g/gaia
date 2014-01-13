@@ -24,6 +24,19 @@
         { settingName: key, settingValue: obj[key] }
       );
     }
+
+    var req = {
+      onsuccess: null,
+      onerror: null
+    };
+
+    setTimeout(function() {
+      if (req.onsuccess) {
+        req.onsuccess();
+      }
+    });
+
+    return req;
   }
 
   function mns_clearRequests() {

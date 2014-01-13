@@ -2,10 +2,10 @@ let utils = require('./utils');
 const { Cc, Ci, Cr, Cu, CC } = require('chrome');
 Cu.import('resource://gre/modules/Services.jsm');
 
-exports.copyLayoutsAndDictionaries = copyLayoutsAndDictionaries;
+exports.copyLayoutsAndResources = copyLayoutsAndResources;
 exports.addEntryPointsToManifest = addEntryPointsToManifest;
 
-function copyLayoutsAndDictionaries(config) {
+function copyLayoutsAndResources(config) {
   // This is the source dir for the keyboard app
   let appDir = utils.getFile(config.GAIA_DIR, 'apps', 'keyboard');
 
@@ -14,12 +14,18 @@ function copyLayoutsAndDictionaries(config) {
   let dictDest = utils.getFile(appDir.path,
                                'js', 'imes', 'latin', 'dictionaries');
 
+  let imeDest = utils.getFile(appDir.path, 'js', 'imes');
+
   // First delete any layouts or dictionaries that are in the src dir
   // from the last time.
   utils.ensureFolderExists(layoutDest);
   utils.ensureFolderExists(dictDest);
   utils.ls(layoutDest, false).forEach(function(f) { f.remove(false); });
   utils.ls(dictDest).forEach(function(f) { f.remove(false); });
+  utils.ls(imeDest).forEach(function(f) {
+    if (f.leafName !== 'latin')
+      f.remove(true);
+  });
 
   // Now get the set of layouts for this build
   let layouts = getLayouts(config);
@@ -30,11 +36,21 @@ function copyLayoutsAndDictionaries(config) {
     layout.file.copyTo(layoutDest, layout.file.leafName);
 
     try {
-      if (layout.dictfile)
-        layout.dictfile.copyTo(dictDest, layout.dictfile.leafName);
+      if (layout.imEngineDir)
+        layout.imEngineDir.copyTo(imeDest, layout.imEngineDir.leafName);
     }
     catch(e) {
-      throw new Error('Unknown dictionary file ' + layout.dictfile.path +
+      throw new Error('Unknown ime directory ' + layout.imEngineDir.path +
+                      ' for keyboard layout ' + layout.name);
+
+    }
+
+    try {
+      if (layout.dictFile)
+        layout.dictFile.copyTo(dictDest, layout.dictFile.leafName);
+    }
+    catch(e) {
+      throw new Error('Unknown dictionary file ' + layout.dictFile.path +
                       ' for keyboard layout ' + layout.name);
 
     }
@@ -70,18 +86,23 @@ function getLayouts(config) {
   // Here is where the layouts and dictionaries come from
   let layoutSrc = utils.getFile(config.GAIA_DIR, 'keyboard', 'layouts');
   let dictSrc = utils.getFile(config.GAIA_DIR, 'keyboard', 'dictionaries');
+  let imeSrc = utils.getFile(config.GAIA_DIR, 'keyboard', 'imes');
 
   // Read the layout files and find their names and dictionaries,
   // and copy them into the app package
   let layouts = layoutNames.map(function(layoutName) {
     let layoutFile = utils.getFile(layoutSrc.path, layoutName + '.js');
 
+	if (!layoutFile.exists()) {
+       throw new Error("Keyboard layout " + layoutName + ".js specified by GAIA_KEYBOARD_LAYOUTS not found in " + layoutSrc.path)
+    }
+
     try {
       return getLayoutDetails(layoutName, layoutFile);
     }
     catch(e) {
       // keep the original Error with its stack, just annotate which
-      // keyboard failed.	
+      // keyboard failed.
       e.message = 'Problem with keyboard layout "' + layoutName +
                   '" in GAIA_KEYBOARD_LAYOUTS\n' + e.message;
       throw e;
@@ -107,13 +128,18 @@ function getLayouts(config) {
     let dictFile = dictName
       ? utils.getFile(dictSrc.path, dictName + '.dict')
       : null;
+    let imEngineName = win.Keyboards[layoutName].imEngine;
+    let imEngineDir = (imEngineName && imEngineName !== 'latin')
+      ? utils.getFile(imeSrc.path, imEngineName)
+      : null;
 
     return {
       name: layoutName,
       label: win.Keyboards[layoutName].menuLabel,
       file: layoutFile,
       types: win.Keyboards[layoutName].types,
-      dictfile: dictFile
+      dictFile: dictFile,
+      imEngineDir: imEngineDir
     };
   }
 }

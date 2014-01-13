@@ -5,6 +5,7 @@ requireLib('models/account.js');
 requireApp('calendar/test/unit/helper.js');
 
 suite('store/abstract', function() {
+  this.timeout(20000);
 
   var subject;
   var db;

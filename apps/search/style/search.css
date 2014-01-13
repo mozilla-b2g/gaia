@@ -1,0 +1,88 @@
+body {
+  color: #5A5A5A;
+  margin: 0;
+  padding: 0;
+}
+
+section {
+  color: #fff;
+}
+
+section.suggestions {
+  border-bottom: 1px solid #5A5A5A;
+}
+
+section.suggestions ul {
+  list-style: none;
+  white-space: nowrap;
+  overflow-x: scroll;
+  padding-left: 0;
+}
+
+section.suggestions ul li {
+  display: inline-block;
+  margin-left: 1rem;
+  background: #0B0B0C;
+  padding: 0.5rem 0.7rem;
+  border-radius: 0.3rem;
+}
+
+section.local .result {
+  -moz-box-sizing: border-box;
+  padding: 0.5rem;
+  border-bottom: 1px solid #5A5A5A;
+  color: #fff;
+  min-height: 3rem;
+  line-height: 2rem;
+}
+
+section:last-child .result:last-child {
+  border-bottom: none;
+}
+
+section .result * {
+  pointer-events: none;
+}
+
+section .result .placeholder,
+section .result img {
+  display: inline-block;
+  float: left;
+  margin-right: 0.8rem;
+  height: 2rem;
+  width: 2rem;
+}
+
+/* web */
+section.apps {
+  padding-top: 1rem;
+  /* Hide the whitespace between inline elements */
+  font-size: 0;
+}
+
+section.apps section {
+  display: inline;
+  font-size: 1rem;
+}
+
+section.apps div {
+  width: calc(100%/4 - 0.4rem);
+  display: inline-block;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  height: 6.1rem;
+  line-height: 1rem;
+  padding: 0 0.2rem;
+}
+
+section.apps img {
+  display: block;
+  margin: 0 auto 0.3rem;
+  pointer-events: none;
+  width: 2.75rem;
+}
+
+div[data-provider="WebResults"] > img {
+  border-radius: 50%;
+}

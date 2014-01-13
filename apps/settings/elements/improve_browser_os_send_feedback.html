@@ -7,43 +7,34 @@
     </header>
     <div>
     <ul>
-      <li>
-        <p class="description">
-          <span data-l10n-id="feedback-mood-explain">
+      <li class="description">
+        <p data-l10n-id="feedback-mood-explain">
             Please tell us in detail.
-          </span>
         </p>
-        <p>
-          <textarea id="feedback-description" name="description" x-inputmode="latin-prose"></textarea>
-        </p>
-        <p class="description" data-l10n-id="feedback-public-description">
+        <textarea id="feedback-description" name="description" x-inputmode="latin-prose"></textarea>
+        <p data-l10n-id="feedback-public-description">
           The content of your feedback will be public, so please be sure not to include any personal information.
         </p>
       </li>
-      <li class="email-enable">
+      <li class="description">
         <label class="pack-checkbox">
           <input id="email-enable" type="checkbox" />
-          <span class="checkbox-span"></span>
-          <p class="description checkbox-description" data-l10n-id="feedback-contactyou">
+          <span data-l10n-id="feedback-contactyou">
             Check here to let us contact you with your email.
-          </p>
+          </span>
         </label>
       </li>
-      <li id="feedback-emailbar" hidden="false">
-        <p class="description" data-l10n-id="email-address1">
+      <li id="feedback-emailbar" class="description" hidden="false">
+        <p data-l10n-id="email-address1">
           Email address:
         </p>
-        <p>
-          <input id="feedback-email" type="email" />
-        </p>
-        <p class="description" data-l10n-id="email-keepprivate">
+        <input id="feedback-email" type="email" />
+        <p data-l10n-id="email-keepprivate">
           Don't worry. Your email will always be kept private.
         </p>
       </li>
       <li>
-        <label>
-          <button id="feedback-send-btn" data-l10n-id="feedback-sendbtn">Send Feedback</button>
-        </label>
+        <button id="feedback-send-btn" data-l10n-id="feedback-sendbtn">Send Feedback</button>
       </li>
     </ul>
     </div>

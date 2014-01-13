@@ -29,8 +29,7 @@ class TestEnduranceBackgroundApps(GaiaEnduranceTestCase):
             app_objs.append(self.apps.launch(next_app))
             time.sleep(5)
             # Minimize app into the background
-            self.marionette.switch_to_frame()
-            self.marionette.execute_script("window.wrappedJSObject.dispatchEvent(new Event('home'));")
+            self.device.touch_home_button()
             time.sleep(5)
 
     def test_endurance_background_apps(self):
@@ -39,18 +38,13 @@ class TestEnduranceBackgroundApps(GaiaEnduranceTestCase):
     def background_apps(self):
         # Verify each app is running
         self.marionette.switch_to_frame()
-        running_apps = self.apps.runningApps()
-        currently_running_apps = ''.join(running_apps)
+        running_apps = [a.name.lower() for a in self.apps.running_apps]
 
         for expected_app in self.app_list:
-            if expected_app == "phone":
-                expected_app = "dialer"
-            elif expected_app == "messages":
-                expected_app = "sms"
-            self.assertTrue(expected_app in currently_running_apps, "%s app should be running!" %expected_app)
+            self.assertTrue(expected_app in running_apps, '%s app should be running!' % expected_app)
 
         # Also ensure homescreen still running
-        self.assertTrue("homescreen" in currently_running_apps, "homescreen app should be running!")
+        self.assertTrue("homescreen" in running_apps, "homescreen app should be running!")
 
         # Just leave apps running in background
         time.sleep(60)

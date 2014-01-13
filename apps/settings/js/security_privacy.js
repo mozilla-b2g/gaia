@@ -8,8 +8,10 @@
  * requiring the full `phone_lock.js' + `simcard_lock.js'
  */
 
-// display scurity status on the main panel
+// display security status on the main panel
 var Security = {
+  _airplaneMode: false,
+
   init: function init() {
     var _ = navigator.mozL10n.get;
     var settings = navigator.mozSettings;
@@ -26,6 +28,23 @@ var Security = {
       phonelockDesc.dataset.l10nId = enable ? 'enabled' : 'disabled';
     };
 
+    this.updateSimLockDesc();
+
+    var self = this;
+    SettingsListener.observe('ril.radio.disabled', false, function(value) {
+      self._airplaneMode = value;
+      self.updateSimLockDesc();
+    });
+
+    if (!IccHelper)
+      return;
+
+    IccHelper.addEventListener('cardstatechange',
+                               self.updateSimLockDesc.bind(self));
+  },
+
+  updateSimLockDesc: function updateSimLockDesc() {
+    var _ = navigator.mozL10n.get;
     // XXX: check bug-926169
     // this is used to keep all tests passing while introducing multi-sim APIs
     var mobileConnection = window.navigator.mozMobileConnection ||
@@ -41,18 +60,20 @@ var Security = {
     var simSecurityDesc = document.getElementById('simCardLock-desc');
     simSecurityDesc.style.fontStyle = 'italic';
 
+    if (this._airplaneMode) {
+      simSecurityDesc.textContent = _('simCardNotReady');
+      simSecurityDesc.dataset.l10nId = 'simCardNotReady';
+      return;
+    }
+
     switch (IccHelper.cardState) {
       case null:
-        simSecurityDesc.textContent = _('simCardNotReady');
-        simSecurityDesc.dataset.l10nId = 'simCardNotReady';
+        simSecurityDesc.textContent = _('noSimCard');
+        simSecurityDesc.dataset.l10nId = 'noSimCard';
         return;
       case 'unknown':
         simSecurityDesc.textContent = _('unknownSimCardState');
         simSecurityDesc.dataset.l10nId = 'unknownSimCardState';
-        return;
-      case 'absent':
-        simSecurityDesc.textContent = _('noSimCard');
-        simSecurityDesc.dataset.l10nId = 'noSimCard';
         return;
     }
 

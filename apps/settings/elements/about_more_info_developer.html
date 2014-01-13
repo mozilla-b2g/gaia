@@ -5,7 +5,7 @@
       <button type="reset">
         <span data-l10n-id="back" class="icon icon-back">Back</span>
       </button>
-      <h1 data-l10n-id="developer"> Developer </h1>
+      <h1 data-l10n-id="developer-header"> Developer </h1>
     </header>
 
     <div>
@@ -13,6 +13,12 @@
         <h2 data-l10n-id="debug">Debug</h2>
       </header>
       <ul>
+        <li>
+          <label class="pack-checkbox">
+            <input type="checkbox" name="developer.menu.enabled">
+            <span data-l10n-id="developer-menu">Developer menu</span>
+          </label>
+        </li>
         <li>
           <label class="pack-checkbox">
             <input type="checkbox" name="debug.grid.enabled">
@@ -39,6 +45,12 @@
         </li>
         <li>
           <label class="pack-checkbox">
+            <input type="checkbox" name="layers.composer2d.enabled">
+            <span data-l10n-id="layers-composer2d-enabled">Enable hardware composer</span>
+          </label>
+        </li>
+        <li>
+          <label class="pack-checkbox">
             <input type="checkbox" name="apz.force-enable"/>
             <span data-l10n-id="apz-force-enable">Enable APZ for all content processes</span>
           </label>
@@ -56,10 +68,14 @@
           </label>
         </li>
         <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="devtools.debugger.remote-enabled">
-            <span data-l10n-id="remote-debugging">Remote Debugging</span>
-          </label>
+          <p data-l10n-id="remote-debugging">Remote Debugging</p>
+          <span class="button icon icon-dialog">
+            <select name="debugger.remote-mode" data-value-type="string">
+              <option value="disabled" data-l10n-id="debugger-disabled" selected>Disabled</option>
+              <option value="adb-only" data-l10n-id="debugger-adb-only">ADB Only</option>
+              <option value="adb-devtools" data-l10n-id="debugger-adb-and-devtools">ADB and Devtools</option>
+            </select>
+          </span>
         </li>
         <li>
           <label class="pack-checkbox">
@@ -100,9 +116,14 @@
         <li id="edgesgesture">
           <label class="pack-checkbox">
             <input type="checkbox" name="edgesgesture.enabled"/>
-            <span></span>
+            <span data-l10n-id="edgesgesture-enabled">Edges gesture enabled</span>
           </label>
-          <a data-l10n-id="edgesgesture-enabled">Edges gesture enabled</a>
+        </li>
+        <li id="continuoustransition">
+          <label class="pack-checkbox">
+            <input type="checkbox" name="continuous-transition.enabled"/>
+            <span data-l10n-id="continuoustransition-enabled">Continuous transition enabled</span>
+          </label>
         </li>
         <li>
           <label class="pack-checkbox">
@@ -112,10 +133,9 @@
         </li>
         <li>
           <label class="pack-checkbox">
-            <input type="checkbox" name="debug.keyboard-oop.enabled"/>
-            <span></span>
+            <input type="checkbox" name="rocketbar.enabled"/>
+            <span data-l10n-id="rocketbar-enabled">Rocketbar enabled</span>
           </label>
-          <a>Run Keyboard app OOP</a>
         </li>
         <li>
           <label>

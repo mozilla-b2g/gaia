@@ -1,6 +1,7 @@
 <!DOCTYPE>
 <html>
 <head>
+  <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
  <meta charset="utf-8" />
 
   <!-- =====================
@@ -20,6 +21,8 @@
   <link rel="stylesheet" type="text/css" href="style/albumsView.css"/>
   <link rel="stylesheet" type="text/css" href="style/playerView.css"/>
 
+  <link rel="stylesheet" type="text/css" href="style/list_large.css" media="(min-width: 768px)">
+
   <!-- =====================
       SCRIPTS
   ====================== -->
@@ -31,6 +34,8 @@
     <script src="shared/js/device_storage/enumerate_all.js"></script>
     <script src="shared/js/mediadb.js"></script>
     <script src="shared/js/async_storage.js"></script>
+    <script src="shared/js/screen_layout.js"></script>
+    <script src="shared/js/template.js"></script>
 
   <!--==================  app ================== -->
     <script src="js/app/Music.js"></script> 
@@ -155,6 +160,30 @@
       </li>
     </ul>
   </div>
-
+  <!-- =====================
+      TEMPLATES
+  ====================== -->
+  <div id="list-header-template" class="hidden">
+    <!-- <li class="list-header">${header}</li> -->
+  </div>
+  <div id="list-album-template" class="hidden">
+    <!-- <li class="list-item">
+      <a data-key-range="${range}" data-option="${option}" data-index="${index}"></a>
+      <span data-l10n-id="" class="list-main-title">${main-title}</span>
+      <span data-l10n-id="" class="list-sub-title">${sub-title}</span>
+    </li> -->
+  </div>
+  <div id="list-artist-template" class="hidden">
+    <!-- <li class="list-item">
+      <a data-key-range="${range}" data-option="${option}" data-index="${index}"></a>
+      <span data-l10n-id="" class="list-single-title">${title}</span>
+    </li> -->
+  </div>
+  <div id="list-playlist-template" class="hidden">
+    <!-- <li class="list-stretched-item">
+      <a data-key-range="${range}" data-option="${option}" data-index="${index}"></a>
+      <span data-l10n-id="" class="list-playlist-title">${title}</span>
+    </li> -->
+  </div>
 </body>
 </html>

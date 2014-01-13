@@ -5,6 +5,7 @@
 var MockThreadListUI = {
   count: 0,
   inEditMode: false,
+  container: document.createElement('div'),
   init: function() {},
   updateThread: function() {},
   getAllInputs: function() {},
@@ -22,7 +23,7 @@ var MockThreadListUI = {
   renderThreads: function() {},
   createThread: function() {},
   insertThreadContainer: function() {},
-  createThreadMockup: function() {},
+  onMessageSending: function() {},
   onMessageReceived: function() {},
   appendThread: function() {},
   createThreadContainer: function() {},

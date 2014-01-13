@@ -16,7 +16,7 @@ var GaiaLockScreen = {
 
     waitFor(
       function() {
-        window.wrappedJSObject.LockScreen.unlock();
+        window.wrappedJSObject.LockScreen.unlock(true);
         waitFor(
           function() {
             finish(window.wrappedJSObject.LockScreen.locked);
@@ -42,7 +42,7 @@ var GaiaLockScreen = {
 
     waitFor(
       function() {
-        window.wrappedJSObject.LockScreen.lock();
+        window.wrappedJSObject.LockScreen.lock(true);
         waitFor(
           function() {
             finish(!window.wrappedJSObject.LockScreen.locked);

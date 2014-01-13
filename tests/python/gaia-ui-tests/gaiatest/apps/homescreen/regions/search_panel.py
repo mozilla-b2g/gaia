@@ -21,10 +21,8 @@ class SearchPanel(Base):
     _app_icon_locator = (By.CSS_SELECTOR, 'ul.cloud li[data-name]')
 
     def type_into_search_box(self, search_term):
-        frame = self.marionette.get_active_frame()
         self.keyboard.send(search_term)
         self.keyboard.tap_enter()
-        self.marionette.switch_to_frame(frame)
 
         self.wait_for_condition(lambda m: self.marionette.find_element(*self._search_title_query_locator).text.lower() ==
                                 search_term.lower())
@@ -59,24 +57,19 @@ class SearchPanel(Base):
 
     class Result(PageRegion):
 
-        _app_iframe_locator = (By.CSS_SELECTOR, 'iframe[data-origin-name="%s"]')
-
         @property
         def name(self):
             return self.root_element.get_attribute('data-name')
 
         def tap(self):
-            _app_iframe_locator = (self._app_iframe_locator[0],
-                                   self._app_iframe_locator[1] % self.name)
+            app_name = self.name
 
             self.root_element.tap()
-            # Switch to top level frame then look for the app
-            # Find the frame and switch to it
-            self.marionette.switch_to_frame()
-            app_iframe = self.wait_for_element_present(*_app_iframe_locator)
-            self.marionette.switch_to_frame(app_iframe)
+            # Wait for the displayed app to be that we have tapped
+            self.wait_for_condition(lambda m: self.apps.displayed_app.name == app_name)
+            self.apps.switch_to_displayed_app()
 
-            # wait for app to launch
+            # Wait for title to load (we cannot be more specific because the aut may change)
             self.wait_for_condition(lambda m: m.title)
 
     class InstalledApp(PageRegion):
@@ -90,4 +83,4 @@ class SearchPanel(Base):
             self.root_element.tap()
             self.wait_for_condition(
                 lambda m: self.apps.displayed_app.name.lower() == expected_name.lower())
-            self.marionette.switch_to_frame(self.apps.displayed_app.frame)
+            self.apps.switch_to_displayed_app()

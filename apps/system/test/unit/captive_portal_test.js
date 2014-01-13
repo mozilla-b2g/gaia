@@ -11,7 +11,7 @@ requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('system/test/unit/mock_wifi_manager.js');
 requireApp('system/test/unit/mock_activity.js');
 requireApp('system/test/unit/mock_notification_screen.js');
-requireApp('system/test/unit/mock_window_manager.js');
+requireApp('system/test/unit/mock_app_window_manager.js');
 
 requireApp('system/js/browser_frame.js');
 requireApp('system/js/entry_sheet.js');
@@ -21,7 +21,7 @@ requireApp('system/js/ftu_launcher.js');
 var mocksForCaptivePortal = new MocksHelper([
   'SettingsListener',
   'NotificationScreen',
-  'WindowManager'
+  'AppWindowManager'
 ]).init();
 
 suite('captive portal > ', function() {

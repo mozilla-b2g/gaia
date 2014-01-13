@@ -178,6 +178,9 @@ navigator.mozL10n.ready(function deviceList() {
               if (isSendingFile || pairingAddress) {
                 return;
               }
+
+              stopDiscovery();
+
               // show the description to be Connecting...
               // since we do connection and send file to the device
               var small = aItem.querySelector('small');

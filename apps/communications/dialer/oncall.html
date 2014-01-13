@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
     <meta charset="utf-8">
     <title>Dialer</title>
     <link rel="stylesheet" type="text/css" href="/dialer/style/oncall.css">
@@ -21,6 +22,7 @@
     <script type="application/javascript" src="/shared/js/l10n_date.js"></script>
     -->
 
+    <script defer type="application/javascript" src="/dialer/js/oncall.js"></script>
     <script defer type="application/javascript" src="/shared/js/settings_listener.js"></script>
     <script defer type="application/javascript" src="/shared/js/settings_url.js"></script>
     <script defer type="application/javascript" src="/shared/js/async_storage.js"></script>
@@ -45,11 +47,11 @@
 
     <!-- incoming call / swiper on locked screen-->
     <link rel="stylesheet" type="text/css" href="/dialer/style/swiper.css">
-    <script defer src="/dialer/js/swiper.js"></script>
+    <script defer src="/shared/js/lockscreen_slide.js"></script>
+    <script defer src="/shared/js/screen_layout.js"></script>
   </head>
   <body>
     <article id="call-screen" data-layout>
-      <div id="locked-contact-photo"></div>
       <div id="lockscreen-header">
         <div class="lockscreen-clock">
           <span id="lockscreen-clock-numbers"></span>
@@ -101,50 +103,32 @@
         </menu>
       </form>
       <article id="main-container">
-
+        <div id="contact-background"></div>
         <div id="actions-container">
           <div id="swiper-wrapper">
-            <div id="swiper-area"></div>
-            <div id="swiper-icon-container">
-              <div id="swiper-area-hangup" class="swiper-icon-area swiper-icon-left">
-                <div class="swiper-icon">
-                  <div id="swiper-accessibility-hangup" role="button" class="swiper-icon-a11y-button" data-l10n-id="hangup-a11y-button" aria-label="Hangup"></div>
+            <!--Slider module related widgets -->
+            <div id="lockscreen-area"></div>
+            <div id="lockscreen-icon-container">
+              <div id="lockscreen-area-hangup"
+                   class="lockscreen-icon-area lockscreen-icon-left dark" role="button"
+                   data-l10n-id="hangup-a11y-button" aria-label="Hang Up">
+                <div class="lockscreen-icon">
                 </div>
               </div>
-              <div id="swiper-area-pickup" class="swiper-icon-area swiper-icon-right">
-                <div class="swiper-icon">
-                    <div id="swiper-accessibility-pickup" role="button" class="swiper-icon-a11y-button" data-l10n-id="pickup-a11y-button" aria-label="Pickup"></div>
+              <div id="lockscreen-area-pickup"
+                   class="lockscreen-icon-area lockscreen-icon-right dark" role="button"
+                   data-l10n-id="pickup-a11y-button" aria-label="Pick up">
+                <div class="lockscreen-icon">
                 </div>
               </div>
-
-              <!-- swpier-area-slider -->
-              <div id="swiper-area-slider"
-                   class="swiper-icon-area swiper-icon-center" role="button"
-                   data-l10n-id="unlock-a11y-button" aria-label="Slider">
-
-                <!-- Order matters. If track after handler, it will overlay on the handler -->
-                <div id="swiper-slider-track">
-                  <div class="swiper-icon swiper-slider-left">
-                  </div>
-                  <div class="swiper-icon swiper-slider-center">
-                  </div>
-                  <div class="swiper-icon swiper-slider-right">
-                  </div>
+              <div id="lockscreen-area-slide"
+                   class="lockscreen-icon-area lockscreen-icon-center">
+                <div id="lockscreen-canvas-wrapper">
+                  <canvas id="lockscreen-canvas"></canvas>
                 </div>
-
-                <div id="swiper-slider-handler">
-                  <div class="swiper-icon swiper-slider-left" data-role="handler-left">
-                    <span></span>
-                  </div>
-                  <div class="swiper-icon swiper-slider-center" data-role="handler-center">
-                  </div>
-                  <div class="swiper-icon swiper-slider-right" data-role="handler-right">
-                    <span></span>
-                  </div>
-                </div>
-
               </div>
             </div>
+
           </div>
           <section id="statusMsg" role="status">
             <p></p>
@@ -178,23 +162,19 @@
                 </span>
             </section>
             <footer id="callbar">
-              <div id="callbar-hang-up">
-                <span role="button" id="callbar-hang-up-action" class="callbar-button">
-                  <div>
-                  </div>
-                </span>
-              </div>
-              <div id="callbar-answer">
-                <span role="button" id="callbar-start-call-action" class="callbar-button">
-                  <div>
-                  </div>
-                </span>
-              </div>
-              <div id="callbar-hold">
-                <span role="button" id="callbar-hold-action" class="callbar-button" data-l10n-id="resume">
+              <button id="callbar-hang-up">
+                <div class="callbar-inner-button">
+                </div>
+              </button>
+              <button id="callbar-answer">
+                <div class="callbar-inner-button">
+                </div>
+              </button>
+              <button id="callbar-hold">
+                <div class="callbar-inner-button" data-l10n-id="resume">
                   Resume
-                </span>
-              </div>
+                </div>
+              </button>
             </footer>
           </footer>
         </div>
@@ -202,23 +182,19 @@
     </article>
     <article id="incoming-container">
       <header>
-        <div id="incoming-end">
-          <span role="button">
-          </span>
-        </div>
-        <div id="incoming-answer">
-          <span role="button" data-l10n-id="hold">
-            Hold
-          </span>
-        </div>
+        <button id="incoming-end">
+        </button>
+        <button id="incoming-answer">
+        </button>
       </header>
       <section id="incoming-info">
-        <span id="incoming-number"></span>
-        <div id="incoming-ignore">
-          <span role="button" data-l10n-id="ignore">
-            Ignore
-          </span>
+        <div class="incoming-number-info">
+          <span id="incoming-number"></span>
+          <span id="incoming-number-additional-info"></span>
         </div>
+        <button id="incoming-ignore" data-l10n-id="ignore">
+            Ignore
+        </button>
       </section>
     </article>
     <article id="views">
@@ -236,46 +212,46 @@
         <article id="keyboard-container">
           <section id="keypad">
             <div class="keypad-cell">
-              <div class="keypad-key" data-value="1" data-voicemail="true">
+              <div class="keypad-key" role="key" data-value="1" data-voicemail="true">
                 1<em class="keypad-subicon voicemail"></em>
               </div>
-              <div class="keypad-key" data-value="2">
+              <div class="keypad-key" role="key" data-value="2">
                 2<em>ABC</em>
               </div>
-              <div class="keypad-key" data-value="3">
+              <div class="keypad-key" role="key" data-value="3">
                 3<em>DEF</em>
               </div>
             </div>
             <div class="keypad-cell">
-              <div class="keypad-key" data-value="4">
+              <div class="keypad-key" role="key" data-value="4">
                 4<em>GHI</em>
               </div>
-              <div class="keypad-key" data-value="5">
+              <div class="keypad-key" role="key" data-value="5">
                 5<em>JKL</em>
               </div>
-              <div class="keypad-key" data-value="6">
+              <div class="keypad-key" role="key" data-value="6">
                 6<em>MNO</em>
               </div>
             </div>
             <div class="keypad-cell">
-              <div class="keypad-key" data-value="7">
+              <div class="keypad-key" role="key" data-value="7">
                 7<em>PQRS</em>
               </div>
-              <div class="keypad-key" data-value="8">
+              <div class="keypad-key" role="key" data-value="8">
                 8<em>TUV</em>
               </div>
-              <div class="keypad-key" data-value="9">
+              <div class="keypad-key" role="key" data-value="9">
                 9<em>WXYZ</em>
               </div>
             </div>
             <div class="keypad-cell">
-              <div class="keypad-key keypad-key-centered" data-value="*">
+              <div class="keypad-key keypad-key-centered" role="key" data-value="*">
                 <div class="asterisk"></div>
               </div>
-              <div class="keypad-key" data-value="0">
+              <div class="keypad-key" role="key" data-value="0">
                 0<em class="font-size-plus">+</em>
               </div>
-              <div class="keypad-key keypad-key-centered" data-type="dial" data-value="#">
+              <div class="keypad-key keypad-key-centered" role="key" data-type="dial" data-value="#">
                 <div class="sharp"></div>
               </div>
             </div>

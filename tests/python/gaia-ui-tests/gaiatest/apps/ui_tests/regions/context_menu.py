@@ -15,6 +15,7 @@ class ContextMenuPage(Base):
         Base.__init__(self, marionette)
 
     def switch_to_frame(self):
+        self.wait_for_element_displayed(*self._frame_locator)
         context_menu_page_iframe = self.marionette.find_element(*self._frame_locator)
         self.marionette.switch_to_frame(context_menu_page_iframe)
 

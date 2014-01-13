@@ -19,40 +19,41 @@
   var NUMBER_OF_DECIMALS = 2;
   var BYTE_SCALE = ['B', 'KB', 'MB', 'GB', 'TB'];
 
-  function _log1024(number) {
-    return Math.log(number) / Math.log(1024);
-  }
-
   function _getFormattedSize(bytes) {
-    var _ = navigator.mozL10n.get;
-    var index = parseInt(Math.round(_log1024(bytes)));
-    var value = (bytes / Math.pow(1024, index)).toFixed(NUMBER_OF_DECIMALS);
+    if (bytes === undefined || isNaN(bytes)) {
+      return null;
+    }
 
+    var index = 0;
+    while (bytes >= 1024 && index < BYTE_SCALE.length) {
+      bytes /= 1024;
+      ++index;
+    }
+
+    var _ = navigator.mozL10n.get;
     return _('fileSize', {
-      size: value,
+      size: bytes.toFixed(NUMBER_OF_DECIMALS),
       unit: _('byteUnit-' + BYTE_SCALE[index])
     });
   }
 
   function _calcPercentage(currently, total) {
-    var percentage = (100 * currently) / total;
-    var noPrecisionNeeded = !((100 * currently) % total);
-    return !noPrecisionNeeded ?
-      percentage.toFixed(NUMBER_OF_DECIMALS) : percentage;
-  }
+    if (total == 0) {
+      return 0;
+    }
 
+    return parseInt((100 * currently) / total);
+  }
 
   var DownloadFormatter = {
     getFormattedSize: function(bytes) {
       return _getFormattedSize(bytes);
     },
-    getFormattedPercentage: function(partial, total) {
-      return _calcPercentage(partial, total);
+    getPercentage: function(download) {
+      return _calcPercentage(download.currentBytes, download.totalBytes);
     },
     getFileName: function(download) {
-      var tmpAnchorElement = document.createElement('a');
-      tmpAnchorElement.href = download.url;
-      return tmpAnchorElement.pathname.split('/').pop(); // filename.php
+      return download.path.split('/').pop(); // filename.ext
     },
     getTotalSize: function(download) {
       var bytes = download.totalBytes;
@@ -62,24 +63,26 @@
       var bytes = download.currentBytes;
       return _getFormattedSize(bytes);
     },
-    getDownloadedPercentage: function(download) {
-      var totalBytes = download.totalBytes;
-      var downloadedBytes = download.currentBytes;
-      return _calcPercentage(downloadedBytes, totalBytes);
-    },
     getDate: function(download, callback) {
-      var date = download.started;
+      var date;
+
+      try {
+        date = download.startTime;
+      } catch (ex) {
+        date = new Date();
+        console.error(ex);
+      }
+
       LazyLoader.load(['shared/js/l10n_date.js'], function onload() {
         var prettyDate = navigator.mozL10n.DateTimeFormat().fromNow(date, true);
         callback && callback(prettyDate);
       });
     },
     getUUID: function(download) {
-      return this.getFileName(download) + download.started.getTime();
+      return download.id || this.getFileName(download);
     }
   };
 
   exports.DownloadFormatter = DownloadFormatter;
 
 }(this));
-

@@ -19,21 +19,17 @@ suite('AlarmEditView', function() {
         Alarm = alarm;
         ActiveAlarm = activeAlarm;
         AlarmEdit = alarmEdit;
-
         AlarmsDB = mockAlarmsDB;
         AlarmList = mockAlarmList;
         AlarmManager = mockAlarmManager;
-
         navigator.mozAlarms = new mockMozAlarms.MockMozAlarms(
           ActiveAlarm.handler
         );
-
         AlarmList.init();
         AlarmEdit.init();
         done();
       }
     );
-
     loadBodyHTML('/index.html');
   });
 
@@ -67,8 +63,10 @@ suite('AlarmEditView', function() {
       // shim the edit alarm view
       delete AlarmEdit.labelInput;
       AlarmEdit.labelInput = document.createElement('input');
-      delete AlarmEdit.timeSelect;
-      AlarmEdit.timeSelect = document.createElement('input');
+      delete AlarmEdit.selects.time;
+      delete AlarmEdit.buttons.time.input;
+      AlarmEdit.selects.time = document.createElement('input');
+      AlarmEdit.buttons.time.input = AlarmEdit.selects.time;
       AlarmEdit.initTimeSelect();
 
       this.sinon.stub(AlarmEdit, 'getTimeSelect');
@@ -247,7 +245,7 @@ suite('AlarmEditView', function() {
       AlarmEdit.alarm.hour = '0';
       AlarmEdit.alarm.minute = '0';
       AlarmEdit.initTimeSelect();
-      assert.equal(AlarmEdit.timeSelect.value, '00:00');
+      assert.equal(AlarmEdit.selects.time.value, '00:00');
     });
 
     test('3:5, should init time select with format of system time picker',
@@ -255,7 +253,7 @@ suite('AlarmEditView', function() {
       AlarmEdit.alarm.hour = '3';
       AlarmEdit.alarm.minute = '5';
       AlarmEdit.initTimeSelect();
-      assert.equal(AlarmEdit.timeSelect.value, '03:05');
+      assert.equal(AlarmEdit.selects.time.value, '03:05');
     });
 
     test('9:25, should init time select with format of system time picker',
@@ -263,7 +261,7 @@ suite('AlarmEditView', function() {
       AlarmEdit.alarm.hour = '9';
       AlarmEdit.alarm.minute = '25';
       AlarmEdit.initTimeSelect();
-      assert.equal(AlarmEdit.timeSelect.value, '09:25');
+      assert.equal(AlarmEdit.selects.time.value, '09:25');
     });
 
     test('12:55, should init time select with format of system time picker',
@@ -271,7 +269,7 @@ suite('AlarmEditView', function() {
       AlarmEdit.alarm.hour = '12';
       AlarmEdit.alarm.minute = '55';
       AlarmEdit.initTimeSelect();
-      assert.equal(AlarmEdit.timeSelect.value, '12:55');
+      assert.equal(AlarmEdit.selects.time.value, '12:55');
     });
 
     test('15:5, should init time select with format of system time picker',
@@ -279,7 +277,7 @@ suite('AlarmEditView', function() {
       AlarmEdit.alarm.hour = '15';
       AlarmEdit.alarm.minute = '5';
       AlarmEdit.initTimeSelect();
-      assert.equal(AlarmEdit.timeSelect.value, '15:05');
+      assert.equal(AlarmEdit.selects.time.value, '15:05');
     });
 
     test('23:0, should init time select with format of system time picker',
@@ -287,7 +285,7 @@ suite('AlarmEditView', function() {
       AlarmEdit.alarm.hour = '23';
       AlarmEdit.alarm.minute = '0';
       AlarmEdit.initTimeSelect();
-      assert.equal(AlarmEdit.timeSelect.value, '23:00');
+      assert.equal(AlarmEdit.selects.time.value, '23:00');
     });
   });
 

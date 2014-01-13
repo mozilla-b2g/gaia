@@ -6,7 +6,6 @@ requireApp('system/shared/test/unit/mocks/mock_settings_url.js');
 requireApp('system/test/unit/mock_statusbar.js');
 requireApp('system/test/unit/mock_gesture_detector.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
-
 requireApp('system/js/notifications.js');
 
 var mocksForNotificationScreen = new MocksHelper([
@@ -216,6 +215,26 @@ suite('system/NotificationScreen >', function() {
 
     teardown(function() {
       window.ScreenManager = realScreenManager;
+    });
+  });
+
+  suite('differentiating api >', function() {
+    test('identifying deprecated API', function() {
+      var node = NotificationScreen.addNotification({
+        id: 'app-notif-1',
+        title: '',
+        message: ''
+      });
+      assert.equal('true', node.dataset.obsoleteAPI);
+    });
+
+    test('identifying new API', function() {
+      var node = NotificationScreen.addNotification({
+        id: 'app://notif',
+        title: '',
+        message: ''
+      });
+      assert.equal('false', node.dataset.obsoleteAPI);
     });
   });
 

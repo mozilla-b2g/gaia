@@ -54,4 +54,65 @@ marionette('search', function() {
     });
   });
 
+  suite('navigate to invalid page (about:neterror)', function() {
+    setup(function() {
+      url = 'http://fake.url.wow/';
+      subject.searchBar.sendKeys(url);
+      subject.searchButton.click();
+    });
+
+    test.skip('loads net_error.html from system', function() {
+      // verify iframe is primed
+      var frame = subject.currentTabFrame();
+      assert.equal(frame.getAttribute('src'), url, 'correct iframe');
+
+      // Marionette will throw an error when attempting to
+      // switch to a frame that's in an error state.
+      // However, we can ignore this error since we need to
+      // test the about:neterror page itself.
+      // https://bugzilla.mozilla.org/show_bug.cgi?id=936301#c3
+      try {
+        client.switchToFrame(frame);
+      } catch (e) {
+        // ignore this error
+      } finally {
+        // now we can test the about:neterror page
+
+        // verify we have the propery body
+        frame.client.helper.waitForElement('body#net-error');
+
+        // verify error message was set (using l10n)
+        var errorMsg = frame.client.findElement('#error-message')
+                       .getAttribute('innerHTML');
+        assert.ok(errorMsg, 'Localization library populated error message');
+
+        // verify that close button kills the browser tab
+        frame.client.executeScript(function() {
+          var closeBtn = document.getElementById('close-btn');
+          if (!closeBtn) {
+            return;
+          }
+          closeBtn.click();
+        });
+
+        subject.backToApp();
+        var query = 'iframe[src="' + url + '"]';
+        // this is to wait for the iframe to go away
+        client.waitFor(function() {
+          try {
+            client.findElement(query);
+            return false;
+          } catch (err) {
+            // only if findElement throws NoSuchElement
+            // do we know for sure the tab is closed
+            if (err && err.type === 'NoSuchElement') {
+              return true;
+            }
+          }
+        });
+        assert.ok(true, 'browser tab was properly closed');
+      }
+    });
+  });
+
 });

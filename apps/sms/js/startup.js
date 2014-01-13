@@ -4,7 +4,7 @@
 'use strict';
 
 /*global Utils, ActivityHandler, ThreadUI, ThreadListUI, MessageManager,
-         Settings, LazyLoader, TimeHeaders */
+         Settings, LazyLoader, TimeHeaders, Information */
 
 var lazyLoadFiles = [
   'shared/js/async_storage.js',
@@ -17,6 +17,7 @@ var lazyLoadFiles = [
   'js/dialog.js',
   'js/blacklist.js',
   'js/contacts.js',
+  'js/drafts.js',
   'js/recipients.js',
   'js/threads.js',
   'js/message_manager.js',
@@ -38,12 +39,11 @@ var lazyLoadFiles = [
   'js/settings.js',
   'js/notify.js',
   'js/activity_handler.js',
-  'shared/style/input_areas.css',
-  'shared/style/switches.css',
-  'shared/style/confirm.css',
-  'shared/style_unstable/progress_activity.css',
-  'shared/style/action_menu.css',
-  'style/notification.css'
+  'js/contact_renderer.js',
+  'js/information.js',
+  'shared/js/fb/fb_request.js',
+  'shared/js/fb/fb_data_reader.js',
+  'shared/js/fb/fb_reader_utils.js'
 ];
 
 window.addEventListener('localized', function localized() {
@@ -75,7 +75,7 @@ window.addEventListener('localized', function localized() {
       }
       var args = JSON.parse(element.dataset.l10nArgs);
       var format = navigator.mozL10n.get(element.dataset.l10nDateFormat);
-      var date = new Date(element.dataset.l10nDate);
+      var date = new Date(+element.dataset.l10nDate);
       args.date = Utils.date.format.localeFormat(date, format);
 
       navigator.mozL10n.localize(element, element.dataset.l10nId, args);
@@ -91,6 +91,7 @@ window.addEventListener('load', function() {
     // Init UI Managers
     ThreadUI.init();
     ThreadListUI.init();
+    Information.initDefaultViews();
     // We render the threads
     MessageManager.getThreads(ThreadListUI.renderThreads);
     // Fetch mmsSizeLimitation

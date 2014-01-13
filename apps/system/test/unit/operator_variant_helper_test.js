@@ -1,54 +1,60 @@
 'use strict';
 
-requireApp('system/shared/test/unit/mocks/mock_icc_helper.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+requireApp('system/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
 
 requireApp('system/shared/js/operator_variant_helper.js');
 
-var mocksForOperatorVariant = new MocksHelper([
-  'IccHelper'
-]).init();
-
 suite('operator variant helper', function() {
+  const FAKE_ICC_ID = '8934071100276980483';
+  const FAKE_ICC_CARD_INDEX = '0';
   const EXPECTED_MCC = '123';
   const EXPECTED_MNC = '45';
   const EXPECTED_ICC_INFO = { mcc: EXPECTED_MCC, mnc: EXPECTED_MNC };
   const NULL_ICC_INFO = { mcc: '', mnc: '' };
   const PERSIST_KEY = 'operator_variant_helper_test.customize';
 
-  var realMozSettings;
+  var realMozSettings, realMozIccManager;
+
+  var mozIcc;
 
   var helper;
 
-  mocksForOperatorVariant.attachTestHelpers();
   suiteSetup(function() {
-    MockIccHelper.mProps.cardState = 'ready';
-
     realMozSettings = navigator.mozSettings;
     navigator.mozSettings = MockNavigatorSettings;
+
+    realMozIccManager = navigator.mozIccManager;
+    navigator.mozIccManager = MockNavigatorMozIccManager;
   });
 
   suiteTeardown(function() {
     navigator.mozSettings = realMozSettings;
+    navigator.mozIccManager = realMozIccManager;
   });
 
   setup(function() {
-    MockIccHelper.mProps.iccInfo = EXPECTED_ICC_INFO;
+    mozIcc = {
+      'cardState': 'ready'
+    };
+    MockNavigatorMozIccManager.addIcc(FAKE_ICC_ID, mozIcc);
+    MockNavigatorMozIccManager.getIccById(FAKE_ICC_ID).iccInfo =
+      EXPECTED_ICC_INFO;
   });
 
   teardown(function() {
-    MockIccHelper.mProps.iccInfo = NULL_ICC_INFO;
+    MockNavigatorMozIccManager.mTeardown();
     if (helper) {
       helper.revert();
     }
     helper = null;
   });
 
-  test('without icchelper', function() {
-    IccHelper = null;
-
+  test('without iccId', function() {
     function createHelperShouldThrow() {
       helper = new OperatorVariantHelper(
+        '0',
+        FAKE_ICC_CARD_INDEX,
         function(mcc, mnc) {
           assert.false(true, 'Code should not be reached.');
         },
@@ -60,13 +66,14 @@ suite('operator variant helper', function() {
     assert.throw(
       createHelperShouldThrow,
       Error,
-      /Expected IccHelper to have a value./
+      /iccId and iccCardIndex arguments must have a value!/
     );
-    IccHelper = MockIccHelper;
   });
 
   test('listen for iccinfochange (checkNow = true)', function(done) {
     helper = new OperatorVariantHelper(
+      FAKE_ICC_ID,
+      FAKE_ICC_CARD_INDEX,
       function(mcc, mnc) {
         assert.equal(
           EXPECTED_MCC,
@@ -89,6 +96,8 @@ suite('operator variant helper', function() {
 
   test('listen for iccinfochange (checkNow = false)', function(done) {
     helper = new OperatorVariantHelper(
+      FAKE_ICC_ID,
+      FAKE_ICC_CARD_INDEX,
       function(mcc, mnc) {
         assert.equal(
           EXPECTED_MCC,
@@ -108,11 +117,15 @@ suite('operator variant helper', function() {
     );
 
     helper.listen();
-    MockIccHelper.mTriggerEventListeners('iccinfochange', {});
+    MockNavigatorMozIccManager.getIccById(FAKE_ICC_ID).triggerEventListeners(
+      'iccinfochange', {}
+    );
   });
 
   test('listen for iccinfochange only fires once', function() {
     helper = new OperatorVariantHelper(
+      FAKE_ICC_ID,
+      FAKE_ICC_CARD_INDEX,
       function(mcc, mnc) {
         assert.equal(
           EXPECTED_MCC,
@@ -132,6 +145,8 @@ suite('operator variant helper', function() {
     helper.listen();
 
     helper = new OperatorVariantHelper(
+      FAKE_ICC_ID,
+      FAKE_ICC_CARD_INDEX,
       function(mcc, mnc) {
         assert.isTrue(false, 'Listener should *not* have been called');
       },

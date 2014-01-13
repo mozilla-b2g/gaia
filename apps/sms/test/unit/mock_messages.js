@@ -20,9 +20,10 @@ var MockMessages = {
       body: 'body',
       delivery: 'received',
       deliveryStatus: 'success',
+      deliveryTimestamp: Date.now(),
       type: 'sms',
       messageClass: 'normal',
-      timestamp: new Date(),
+      timestamp: Date.now(),
       read: true
     };
 
@@ -47,14 +48,21 @@ var MockMessages = {
       sender: 'sender',
       receivers: ['receiver'],
       delivery: 'received',
-      deliveryInfo: [{receiver: 'receiver', deliveryStatus: 'success'}],
+      deliveryInfo: [{
+        receiver: 'receiver',
+        deliveryStatus: 'success',
+        deliveryTimestamp: +now
+      }],
       type: 'mms',
-      timestamp: now,
+      timestamp: +now,
       read: true,
       subject: '',
       smil: this.smilMockup,
-      attachments: [new Blob(['body'], {type: 'text/plain'})],
-      expiryDate: tomorrow
+      attachments: [{
+        location: 'text1',
+        content: new Blob(['This is a plain text'], { type: 'text/plain' })
+      }],
+      expiryDate: +tomorrow
     };
 
     for (var key in message) {

@@ -1,20 +1,22 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
     <meta charset="utf-8">
     <title>Clock</title>
     <link rel="stylesheet" type="text/css" href="style/clock.css">
     <link rel="stylesheet" type="text/css" href="style/alarm.css">
     <link rel="stylesheet" type="text/css" href="style/stopwatch.css">
     <link rel="stylesheet" type="text/css" href="style/timer.css">
-    <link rel="stylesheet" type="text/css" href="style/tabs.css">
     <link rel="stylesheet" type="text/css" href="style/views.css">
+    <link rel="stylesheet" type="text/css" href="style/form_button.css">
     <link rel="stylesheet" type="text/css" href="style/picker/value_selector.css">
     <link rel="stylesheet" type="text/css" href="style/picker/picker.css">
 
     <!-- Shared styles -->
     <link rel="stylesheet" type="text/css" href="shared/style/headers.css">
     <link rel="stylesheet" type="text/css" href="shared/style/status.css">
+    <link rel="stylesheet" type="text/css" href="shared/style_unstable/tabs.css">
     <!-- These are lazy loaded. Need to be included here so the build picks them up
     <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css" >
     <link rel="stylesheet" type="text/css" href="shared/style/buttons.css" >
@@ -131,7 +133,6 @@
                     <option value="ac_soft_into_the_void.opus" data-l10n-id="ac_soft_into_the_void_opus"></option>
                     <option value="ac_soft_smooth_strings.opus" data-l10n-id="ac_soft_smooth_strings_opus"></option>
                   </select>
-                  <button id="timer-menu" class="icon icon-dialog"></button>
                 </li>
                 <li>
                   <span data-l10n-id="vibrate">Vibrate:</span>
@@ -160,7 +161,7 @@
           </div>
         </div>
       </div>
-      <form id="alarm-edit-panel" role="dialog" class="panel hidden" data-type="edit">
+      <form id="alarm-edit-panel" role="dialog" class="skin-dark panel hidden" data-type="edit">
         <header>
           <button id="alarm-close"><span class="icon icon-close"></span></button>
           <menu type="toolbar">
@@ -170,12 +171,11 @@
         </header>
         <ul id="edit-alarm" class="compact">
           <li>
-            <input type="text" name="alarm.label" data-l10n-id="alarmName" placeholder="Alarm name" maxLength="50" />
+            <input type="text" name="alarm.label" id="alarm-name" data-l10n-id="alarmName" placeholder="Alarm name" maxLength="50" />
           </li>
           <li>
             <label data-l10n-id="time">Time</label>
             <input id="time-select" type="time" />
-            <button id="time-menu" class="icon icon-dialog"></button>
           </li>
           <li>
             <label data-l10n-id="repeat">Repeat</label>
@@ -188,7 +188,6 @@
               <option value="5" data-l10n-id="weekday-6-long">Saturday</option>
               <option value="6" data-l10n-id="weekday-0-long">Sunday</option>
             </select>
-            <button id="repeat-menu" class="icon icon-dialog" data-l10n-id="never">Never</button>
           </li>
           <li>
             <label data-l10n-id="sound">Sound</label>
@@ -203,7 +202,6 @@
               <option value="ac_soft_into_the_void.opus" data-l10n-id="ac_soft_into_the_void_opus"></option>
               <option value="ac_soft_smooth_strings.opus" data-l10n-id="ac_soft_smooth_strings_opus"></option>
             </select>
-            <button id="sound-menu" class="icon icon-dialog"></button>
           </li>
           <li>
             <label data-l10n-id="vibrate">Vibrate</label>
@@ -211,17 +209,15 @@
               <option value="1" data-l10n-id="vibrateOn">On</option>
               <option value="0" data-l10n-id="vibrateOff">Off</option>
             </select>
-            <button id="vibrate-menu" class="icon icon-dialog" data-l10n-id="vibrateOn">On</button>
           </li>
           <li>
-            <label class="view-alarm-lbl snooze-lbl" data-l10n-id="snooze">Snooze</label>
+            <label class="view-alarm-lbl snooze-lbl" data-l10n-id="snooze-label">Snooze</label>
             <select id="snooze-select">
               <option data-l10n-id="nMinutes" data-l10n-args='{"n": "5"}'  value="5">  5 minutes</option>
               <option data-l10n-id="nMinutes" data-l10n-args='{"n": "10"}' value="10">10 minutes</option>
               <option data-l10n-id="nMinutes" data-l10n-args='{"n": "15"}' value="15">15 minutes</option>
               <option data-l10n-id="nMinutes" data-l10n-args='{"n": "20"}' value="20">20 minutes</option>
             </select>
-            <button id="snooze-menu" class="icon icon-dialog" data-l10n-id="nMinutes" data-l10n-args='{"n": "5"}'>5 minutes</button>
           </li>
         </ul>
         <menu id="delete-menu">
@@ -230,7 +226,7 @@
       </form>
     </div>
 
-    <ul role="tablist" class="bottom" data-items="3" id="clock-tabs">
+    <ul role="tablist" class="skin-dark bottom" id="clock-tabs">
       <li id="alarm-tab" role="tab" aria-selected="true"><a href="#alarm-panel" data-l10n-id="alarm">Alarm</a></li>
       <li id="timer-tab" role="tab"><a href="#timer-panel" data-l10n-id="timer">Timer</a></li>
       <li id="stopwatch-tab" role="tab"><a href="#stopwatch-panel" data-l10n-id="stopwatch">Stopwatch</a></li>

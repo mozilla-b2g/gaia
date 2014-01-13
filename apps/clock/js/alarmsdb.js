@@ -3,16 +3,31 @@ define(function(require, exports) {
 
 var Utils = require('utils');
 
-var BaseIndexDB = function(objectStoreOptions) {
+var BaseIndexDB = function(objectStoreOptions, upgradeHandler) {
+
   this.query = function ad_query(dbName, storeName, func, callback, data) {
     var indexedDB = window.indexedDB || window.webkitIndexedDB ||
         window.mozIndexedDB || window.msIndexedDB;
 
+    var upgradeRequired = false;
+
     var request = indexedDB.open(dbName, 6);
 
-    request.onsuccess = function(event) {
-      func(request.result, storeName, callback, data);
-    };
+    request.onsuccess = (function(event) {
+      if (upgradeRequired && typeof upgradeHandler === 'function') {
+        request.result.close();
+        upgradeHandler(function(err) {
+          if (!err) {
+            // retry query to avoid transaction issues
+            this.query(dbName, storeName, func, callback, data);
+          } else {
+            console.log('Error during database upgrade:', err.message);
+          }
+        }.bind(this));
+      } else {
+        func(request.result, storeName, callback, data);
+      }
+    }).bind(this);
 
     request.onerror = function(event) {
       console.error('Can\'t open database', dbName, event);
@@ -21,10 +36,11 @@ var BaseIndexDB = function(objectStoreOptions) {
     // DB init
     request.onupgradeneeded = function(event) {
       console.log('Upgrading db');
+      upgradeRequired = true;
       var db = event.target.result;
-      if (db.objectStoreNames.contains(storeName))
-        db.deleteObjectStore(storeName);
-      db.createObjectStore(storeName, objectStoreOptions);
+      if (!db.objectStoreNames.contains(storeName)) {
+        db.createObjectStore(storeName, objectStoreOptions);
+      }
       console.log('Upgrading db done');
     };
   };
@@ -61,6 +77,7 @@ var BaseIndexDB = function(objectStoreOptions) {
         alarms.push(item.value);
         item.continue();
       } else {
+        txn.db.close();
         callback && callback(null, alarms);
       }
     };
@@ -76,6 +93,7 @@ var BaseIndexDB = function(objectStoreOptions) {
     var request = store.get(key);
 
     request.onsuccess = function(event) {
+      txn.db.close();
       callback && callback(null, request.result);
     };
 
@@ -96,6 +114,7 @@ var BaseIndexDB = function(objectStoreOptions) {
     var request = store.delete(key);
 
     request.onsuccess = function(e) {
+      txn.db.close();
       callback && callback(null, e);
     };
 
@@ -123,6 +142,69 @@ exports.STORENAME = 'alarms';
     this.query(this.DBNAME, this.STORENAME, this.load, getAlarmList_mapper);
   };
 
+function convertTo12(alarm) {
+  // Detect the version and return a correct 1.2 serializable.
+  var ret = Utils.extend({
+    registeredAlarms: {},
+    repeat: {}
+  }, alarm);
+  if (typeof alarm.enabled !== 'undefined') {
+    delete ret['enabled'];
+  }
+  // Extract a normalAlarmId
+  if (typeof alarm.normalAlarmId !== 'undefined') {
+    ret.registeredAlarms['normal'] = alarm.normalAlarmId;
+    delete ret['normalAlarmId'];
+  }
+  // Extract a snoozeAlarmId
+  if (typeof alarm.snoozeAlarmId !== 'undefined') {
+    ret.registeredAlarms['snooze'] = alarm.snoozeAlarmId;
+    delete ret['snoozeAlarmId'];
+  }
+  // Map '1111100' string bitmap to a 1.2 repeat object with day name
+  // properties.
+  if (typeof alarm.repeat === 'string') {
+    var days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday',
+                'saturday', 'sunday'];
+    ret.repeat = {};
+    for (var i = 0; i < alarm.repeat.length && i < days.length; i++) {
+      if (alarm.repeat[i] === '1') {
+        ret.repeat[days[i]] = true;
+      }
+    }
+  } else {
+    ret.repeat = Utils.extend({}, alarm.repeat);
+  }
+  return ret;
+}
+
+  /**
+   * convertAlarms - converts from v1.0 or v1.1 alarm representation to 1.2.
+   *
+   * @param {Function} callback Called when the conversion completes, with
+   *                            (err).
+   */
+  exports.convertAlarms = function ad_convertAlarms(callback) {
+    console.log('Converting alarms to new database storage');
+    var gen = Utils.async.generator(function(err) {
+      // All done, call the callback.
+      console.log('Conversion complete', JSON.stringify(err));
+      callback && callback(err);
+    });
+    var done = gen();
+    this.query(this.DBNAME, this.STORENAME, this.load, function(err, list) {
+      if (err) {
+        done(err);
+        return;
+      }
+      for (var i = 0; i < list.length; i++) {
+        this.query(this.DBNAME, this.STORENAME, this.put, gen(),
+          convertTo12(list[i]));
+      }
+      done();
+    }.bind(exports));
+  };
+
   exports.putAlarm = function ad_putAlarm(alarm, callback) {
     this.query(this.DBNAME, this.STORENAME, this.put, callback,
       alarm.toSerializable());
@@ -139,6 +221,9 @@ exports.STORENAME = 'alarms';
     this.query(this.DBNAME, this.STORENAME, this.delete, callback, key);
   };
 
-Utils.extend(exports, new BaseIndexDB({keyPath: 'id', autoIncrement: true}));
+Utils.extend(exports, new BaseIndexDB({
+  keyPath: 'id',
+  autoIncrement: true
+}, exports.convertAlarms.bind(exports)));
 
 });

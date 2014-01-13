@@ -3,7 +3,7 @@
 var MockKeyboardHelper = {
   mKeyboards: [
     {
-      origin: 'app://keyboard.gaiamobile.org',
+      manifestURL: 'app://keyboard.gaiamobile.org/manifest.webapp',
       manifest: {
         name: 'app1',
         description: 'app1',
@@ -32,7 +32,7 @@ var MockKeyboardHelper = {
       }
     },
     {
-      origin: 'app://app2.gaiamobile.org',
+      manifestURL: 'app://app2.gaiamobile.org/manifest.webapp',
       manifest: {
         name: 'app2',
         description: 'app2',
@@ -53,7 +53,7 @@ var MockKeyboardHelper = {
       }
     },
     {
-      origin: 'app://app3.gaiamobile.org',
+      manifestURL: 'app://app3.gaiamobile.org/manifest.webapp',
       manifest: {
         name: 'app3',
         description: 'app3',
@@ -118,9 +118,10 @@ var MockKeyboardHelper = {
     callback(this.layouts, { apps: true, settings: true });
   },
   checkDefaults: function() {},
-  setLayoutEnabled: function(appOrigin, layoutId, enabled) {
+  setLayoutEnabled: function(manifestURL, layoutId, enabled) {
     this.layouts.some(function eachLayout(layout) {
-      if (layout.app.origin === appOrigin && layout.layoutId === layoutId) {
+      if (layout.app.manifestURL === manifestURL &&
+          layout.layoutId === layoutId) {
         layout.enabled = enabled;
         return true;
       }

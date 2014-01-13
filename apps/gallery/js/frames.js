@@ -22,21 +22,29 @@ var nextFrame = new MediaFrame($('frame3'));
 // so we don't try to pan or zoom during a frame transition.
 var transitioning = false;
 
-// Clicking on the back button goes back to the thumbnail view
-$('fullscreen-back-button').onclick = setView.bind(null, thumbnailListView);
+// Clicking on the back button will go to the preview view
+fullscreenButtons.back.onclick = setView.bind(null, LAYOUT_MODE.list);
 
 // Clicking the delete button while viewing a single item deletes that item
-$('fullscreen-delete-button').onclick = deleteSingleItem;
+fullscreenButtons.delete.onclick = deleteSingleItem;
 
 // Clicking the Edit button while viewing a photo switches to edit mode
-$('fullscreen-edit-button').onclick = function() {
+fullscreenButtons.edit.onclick = function() {
   loader.load('js/ImageEditor.js', function() {
     editPhotoIfCardNotFull(currentFileIndex);
   });
 };
 
 // In fullscreen mode, the share button shares the current item
-$('fullscreen-share-button').onclick = shareSingleItem;
+fullscreenButtons.share.onclick = shareSingleItem;
+
+// Clicking the information button will display information about the photo.
+fullscreenButtons.info.onclick = function() {
+  loader.load(['js/info.js', 'shared/style/confirm.css', 'style/info.css'],
+              function() {
+                showFileInformation(files[currentFileIndex]);
+              });
+};
 
 // Use the GestureDetector.js library to handle gestures.
 // This will generate tap, pan, swipe and transform events
@@ -48,6 +56,14 @@ frames.addEventListener('dbltap', dblTapHandler);
 frames.addEventListener('pan', panHandler);
 frames.addEventListener('swipe', swipeHandler);
 frames.addEventListener('transform', transformHandler);
+
+currentFrame.video.onfullscreentap =
+  previousFrame.video.onfullscreentap =
+  nextFrame.video.onfullscreentap =
+  function fullscreenRequested(ev) {
+    setView(LAYOUT_MODE.fullscreen);
+    resizeFrames();
+  };
 
 // When displaying a photo or video, a tap hides or shows the toolbar.
 // The video player has its own toolbar, so when a video starts playing
@@ -62,19 +78,22 @@ currentFrame.video.onplaying =
   previousFrame.video.onplaying =
   nextFrame.video.onplaying =
   function hideToolbarOnPlay() {
-    this.toolbarWasHidden =
-      fullscreenView.classList.contains('toolbarhidden');
+    this.isToolbarHidden =
+      fullscreenView.classList.contains('toolbar-hidden');
     if (!this.isToolbarHidden)
-      fullscreenView.classList.add('toolbarhidden');
+      fullscreenView.classList.add('toolbar-hidden');
   };
 
 currentFrame.video.onpaused =
   previousFrame.video.onpaused =
   nextFrame.video.onpaused =
   function restoreToolbarOnPause() {
-    if (this.toolbarWasHidden === false)
-      fullscreenView.classList.remove('toolbarhidden');
-    delete this.toolbarWasHidden;
+    this.isToolbarHidden =
+      fullscreenView.classList.contains('toolbar-hidden');
+    if (this.isToolbarHidden === true) {
+      fullscreenView.classList.remove('toolbar-hidden');
+    }
+    delete this.isToolbarHidden;
   };
 
 // Each of the Frame container elements may be subject to animated
@@ -98,13 +117,19 @@ function deleteSingleItem() {
   else {
     msg = navigator.mozL10n.get('delete-photo?');
   }
-  if (confirm(msg)) {
+
+  Dialogs.confirm({
+    message: msg,
+    cancelText: navigator.mozL10n.get('cancel'),
+    confirmText: navigator.mozL10n.get('delete'),
+    danger: true
+  }, function() { // onSuccess
     // disable delete and share button to prevent operations while delete item
-    $('fullscreen-delete-button').classList.add('disabled');
-    $('fullscreen-share-button').classList.add('disabled');
+    fullscreenButtons.delete.classList.add('disabled');
+    fullscreenButtons.share.classList.add('disabled');
 
     deleteFile(currentFileIndex);
-  }
+  });
 }
 
 // In fullscreen mode, the share button shares the current item
@@ -117,10 +142,13 @@ function shareSingleItem() {
 // coming soon.
 var taptimer = null;
 function tapHandler(e) {
-  // If there is already a timer set, then this is is the second tap
-  // and we're about to get a dbl tap event, so ignore this one
-  if (taptimer)
+  // Ignore tap event if 1. there is already a timer set, then this
+  // is the second tap and we're about to get a double tap event
+  // 2. currentFrame has not yet loaded any image or video.
+  if (taptimer ||
+      (!currentFrame.displayingImage && !currentFrame.displayingVideo))
     return;
+
   // If we don't get a second tap soon, then treat this as a single tap
   taptimer = setTimeout(function() {
     taptimer = null;
@@ -138,11 +166,28 @@ function dblTapHandler(e) {
   doubletapOnPhoto(e);
 }
 
+// Resize all the frames' content, if its container's size is changed
+function resizeFrames() {
+  nextFrame.reset();
+  previousFrame.reset();
+  currentFrame.reset();
+}
+
+// Handle single tap event on frames
+// We manage the display of toolbar on the header and footer after user
+// tap the image or video. If it's in preview mode, it simply switch to
+// fullscreen mode directly.
 function singletap(e) {
-  if (currentView === fullscreenView) {
+  if (currentView === LAYOUT_MODE.fullscreen) {
     if (currentFrame.displayingImage || currentFrame.video.player.paused) {
-      fullscreenView.classList.toggle('toolbarhidden');
+      fullscreenView.classList.toggle('toolbar-hidden');
     }
+  } else if (currentView === LAYOUT_MODE.list &&
+             !files[currentFileIndex].metadata.video) {
+    // We don't separate cases by screen size, because we don't show
+    // preview screen on tiny device.
+    setView(LAYOUT_MODE.fullscreen);
+    resizeFrames();
   }
 }
 
@@ -357,26 +402,39 @@ function resetFramesPosition() {
 }
 
 // Switch from thumbnail list view to single-picture fullscreen view
-// and display the specified file
+// and display the specified file.
 function showFile(n) {
-  setView(fullscreenView); // Switch to fullscreen mode if not already there
+  // Mark what we're focusing on and unmark the old one
+  updateFocusThumbnail(n);
+  updateFrames();
 
+  // Disable the edit button if this is a video or mediaDB is scanning
+  if (files[currentFileIndex].metadata.video ||
+      photodb.scanning)
+    fullscreenButtons.edit.classList.add('disabled');
+  else
+    fullscreenButtons.edit.classList.remove('disabled');
+  // Always bring delete and share button back after show file
+  fullscreenButtons.delete.classList.remove('disabled');
+  fullscreenButtons.share.classList.remove('disabled');
+}
+
+function updateFrames() {
+  var n = currentFileIndex;
   setupFrameContent(n - 1, previousFrame);
   setupFrameContent(n, currentFrame);
   setupFrameContent(n + 1, nextFrame);
-  currentFileIndex = n;
 
   resetFramesPosition();
+}
 
-  // Disable the edit button if this is a video or mediaDB is scanning
-  // Enable otherwise
-  if (files[n].metadata.video || photodb.scanning)
-    $('fullscreen-edit-button').classList.add('disabled');
-  else
-    $('fullscreen-edit-button').classList.remove('disabled');
-  // Always bring delete and share button back after show file
-  $('fullscreen-delete-button').classList.remove('disabled');
-  $('fullscreen-share-button').classList.remove('disabled');
+function clearFrames() {
+  previousFrame.clear();
+  currentFrame.clear();
+  nextFrame.clear();
+  delete previousFrame.filename;
+  delete currentFrame.filename;
+  delete nextFrame.filename;
 }
 
 // Transition to the next file, animating it over the specified time (ms).
@@ -406,8 +464,8 @@ function nextFile(time) {
   previousFrame = currentFrame;
   currentFrame = nextFrame;
   nextFrame = tmp;
-  currentFileIndex++;
 
+  updateFocusThumbnail(currentFileIndex + 1);
   // Move (transition) the frames to their new position
   resetFramesPosition();
 
@@ -426,9 +484,9 @@ function nextFile(time) {
   // Disable the edit button if this is a video or
   // mediaDB is scanning, enable otherwise
   if (currentFrame.displayingVideo || photodb.scanning)
-    $('fullscreen-edit-button').classList.add('disabled');
+    fullscreenButtons.edit.classList.add('disabled');
   else
-    $('fullscreen-edit-button').classList.remove('disabled');
+    fullscreenButtons.edit.classList.remove('disabled');
 }
 
 // Just like nextFile() but in the other direction
@@ -457,8 +515,8 @@ function previousFile(time) {
   nextFrame = currentFrame;
   currentFrame = previousFrame;
   previousFrame = tmp;
-  currentFileIndex--;
 
+  updateFocusThumbnail(currentFileIndex - 1);
   // Move (transition) the frames to their new position
   resetFramesPosition();
 
@@ -475,7 +533,7 @@ function previousFile(time) {
   // Disable the edit button if we're now viewing a video or mediaDB
   // is scanning, enable otherwise
   if (currentFrame.displayingVideo || photodb.scanning)
-    $('fullscreen-edit-button').classList.add('disabled');
+    fullscreenButtons.edit.classList.add('disabled');
   else
-    $('fullscreen-edit-button').classList.remove('disabled');
+    fullscreenButtons.edit.classList.remove('disabled');
 }

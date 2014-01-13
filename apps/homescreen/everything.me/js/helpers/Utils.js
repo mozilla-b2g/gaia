@@ -63,10 +63,10 @@ Evme.Utils = new function Evme_Utils() {
   this.EMPTY_APPS_SIGNATURE = '';
 
   this.APPS_FONT_SIZE = 13 * (window.devicePixelRatio || 1);
-  this.APP_NAMES_SHADOW_OFFSET_X = 1;
+  this.APP_NAMES_SHADOW_OFFSET_X = 0;
   this.APP_NAMES_SHADOW_OFFSET_Y = 1;
-  this.APP_NAMES_SHADOW_BLUR = 1;
-  this.APP_NAMES_SHADOW_COLOR = 'rgba(0, 0, 0, 1)';
+  this.APP_NAMES_SHADOW_BLUR = 4;
+  this.APP_NAMES_SHADOW_COLOR = 'rgba(0, 0, 0, 0.9)';
 
   this.PIXEL_RATIO_NAME =
     (window.devicePixelRatio > 1) ?
@@ -89,7 +89,9 @@ Evme.Utils = new function Evme_Utils() {
   };
 
   this.logger = function logger(level) {
-    return function Evme_logger() {
+    return window.EverythingME.debug ? Evme_logger : this.NOOP;
+
+    function Evme_logger() {
       var t = new Date(),
           h = t.getHours(),
           m = t.getMinutes(),
@@ -115,7 +117,16 @@ Evme.Utils = new function Evme_Utils() {
    * Creates a <style> element which basically does result deduping
    * by applying a css rule {display:none} to certain results
    * This is to avoid complex JS deduping
-   * @param  {JSON object} cfg
+   *
+   * What is deduped:
+   * 1. in Search and Collections (using appUrls):
+   *    Cloud app if the equivalent native app is installed
+   * 2. in Collections (using cloudEquivs):
+   *    Cloud app if it was pinned to Collection
+   * 3. in Collections (using appUrls):
+   *    Bookmarked cloud app if it was added to Collection
+   * 4. in Search (using slugs):
+   *    MarketApp (download suggestions) if it installed
    *
    * example
    * Cloud results should be hidden if already bookmarked
@@ -134,8 +145,6 @@ Evme.Utils = new function Evme_Utils() {
    * }
    * </style>
    *
-   * More uses can be found in InstalledAppService for marketplace
-   * result deduping
    */
   this.filterProviderResults = function filterProviderResults(cfg) {
     var id = cfg.id,
@@ -313,6 +322,40 @@ Evme.Utils = new function Evme_Utils() {
     return arrayOrigin;
   };
 
+  // resize = false: use the icon's size, but pad it
+  // resize = true: resize the icon to the OS' size
+  this.padIconForOS = function padIconForOS(options) {
+    var icon = options.icon,
+      resize = !! options.resize,
+      callback = options.callback;
+
+    if (typeof icon === 'string') {
+      var src = icon;
+      icon = new Image();
+      icon.onload = handleIcon;
+      icon.src = src;
+    } else {
+      handleIcon();
+    }
+
+    function handleIcon() {
+      var padding = self.OS_ICON_PADDING,
+          width = resize ? OS_ICON_SIZE : icon.width,
+          height = resize ? OS_ICON_SIZE : icon.height,
+          newWidth = width - padding,
+          newHeight = height - padding,
+          elCanvas = document.createElement('canvas'),
+          context = elCanvas.getContext('2d');
+
+      elCanvas.width = width;
+      elCanvas.height = height;
+      context.drawImage(icon, (width - newWidth) / 2, (height - newHeight) / 2,
+        newWidth, newHeight);
+
+      callback(elCanvas.toDataURL());
+    }
+  };
+
   this.getRoundIcon = function getRoundIcon(options, callback) {
     var size = options.size || OS_ICON_SIZE,
         img = new Image();
@@ -369,17 +412,17 @@ Evme.Utils = new function Evme_Utils() {
 
   this.writeTextToCanvas = function writeTextToCanvas(options) {
     var context = options.context,
-        text = options.text ? options.text.split(' ') : [],
-        offset = options.offset || 0,
-        lineWidth = 0,
-        currentLine = 0,
-        textToDraw = [],
+      text = options.text ? options.text.split(' ') : [],
+      offset = options.offset || 0,
+      lineWidth = 0,
+      currentLine = 0,
+      textToDraw = [],
 
-        WIDTH = context.canvas.width,
-        FONT_SIZE = options.fontSize || self.APPS_FONT_SIZE,
-        LINE_HEIGHT = FONT_SIZE + window.devicePixelRatio;
+      WIDTH = context.canvas.width,
+      FONT_SIZE = options.fontSize || self.APPS_FONT_SIZE,
+      LINE_HEIGHT = FONT_SIZE + window.devicePixelRatio;
 
-    if (!context || !text) {
+    if (!context || !text.length) {
       return false;
     }
 
@@ -397,34 +440,34 @@ Evme.Utils = new function Evme_Utils() {
     context.shadowColor = self.APP_NAMES_SHADOW_COLOR;
 
     for (var i = 0, word; word = text[i++];) {
-    // add 1 to the word with because of the space between words
-    var size = context.measureText(word + ' ').width,
+      // add 1 to the word with because of the space between words
+      var size = context.measureText(word + ' ').width,
         draw = false,
         pushed = false;
 
-    if (lineWidth + size >= WIDTH) {
-      draw = true;
-      if (textToDraw.length === 0) {
-      textToDraw.push(word);
-      pushed = true;
+      if (lineWidth + size >= WIDTH) {
+        draw = true;
+        if (textToDraw.length === 0) {
+          textToDraw.push(word);
+          pushed = true;
+        }
+      }
+
+      if (draw) {
+        drawText(textToDraw, WIDTH / 2, offset + currentLine * LINE_HEIGHT);
+        currentLine++;
+        textToDraw = [];
+        lineWidth = 0;
+      }
+
+      if (!pushed) {
+        textToDraw.push(word);
+        lineWidth += size;
       }
     }
 
-    if (draw) {
-      drawText(textToDraw, WIDTH / 2, offset + currentLine * LINE_HEIGHT);
-      currentLine++;
-      textToDraw = [];
-      lineWidth = 0;
-    }
-
-    if (!pushed) {
-      textToDraw.push(word);
-      lineWidth += size;
-    }
-    }
-
     if (textToDraw.length > 0) {
-    drawText(textToDraw, WIDTH / 2, offset + currentLine * LINE_HEIGHT);
+      drawText(textToDraw, WIDTH / 2, offset + currentLine * LINE_HEIGHT);
     }
 
     function drawText(text, x, y) {
@@ -624,6 +667,30 @@ Evme.Utils = new function Evme_Utils() {
 
   this.getUrlParam = function getUrlParam(key) {
     return parsedQuery[key];
+  };
+
+  /*
+    Serializes a json object into a querystring
+   */
+  this.serialize = function serialize(params) {
+      var paramArray = [];
+
+      for (var k in params) {
+          var value = params[k],
+              finalValue = '';
+
+          if (typeof value !== 'undefined') {
+              // if not object
+              if (!(value instanceof Object)) {
+                  finalValue = value;
+              // if object and isn't empty
+              } else if (Object.keys(value).length) {
+                  finalValue = JSON.stringify(value);
+              }
+              paramArray.push(k + '=' + encodeURIComponent(finalValue));
+          }
+      }
+      return paramArray.join('&');
   };
 
   this.cssPrefix = function _cssPrefix() {

@@ -3,7 +3,7 @@
 
     <header>
       <a href="#carrier"><span class="icon icon-back">back</span></a>
-      <h1 data-l10n-id="networkOperator"> Network Operator </h1>
+      <h1 data-l10n-id="networkOperator-header"> Network Operator </h1>
     </header>
 
     <div id="carrier-operatorSettings-content">
@@ -11,7 +11,7 @@
         <li>
           <p data-l10n-id="operator-networkType">Network Type</p>
           <span class="button icon icon-dialog">
-            <select name="ril.radio.preferredNetworkType" id="preferredNetworkType">
+            <select id="preferredNetworkType">
             </select>
           </span>
         </li>
@@ -50,6 +50,20 @@
         </li>
       </ul>
     </div>
+
+    <form role="dialog" data-type="confirm" id="preferredNetworkTypeAlert" hidden>
+      <section>
+        <h1 data-l10n-id="preferredNetworkTypeAlertTitle">Preferred network type</h1>
+        <p>
+          <strong id="preferredNetworkTypeAlertMessage"></strong>
+        </p>
+      </section>
+      <menu>
+        <button class="full" data-l10n-id="continue">Continue</button>
+      </menu>
+    </form>
+
+    <script src="shared/js/settings_helper.js"></script>
 
   </template>
 </element>

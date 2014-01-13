@@ -2,7 +2,6 @@
  * Extend action menu as an overlay
  */
 form.overlay {
-  font-weight: light;
   font-size: 1.5rem;
   opacity: 1;
   transform: translateY(-100%);

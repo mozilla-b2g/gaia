@@ -1,6 +1,6 @@
 Keyboards.el = {
   label: 'Greek',
-  menuLabel: 'Greek',
+  menuLabel: 'Ελληνικό',
   imEngine: 'latin',
   types: ['text', 'url', 'email'],
   autoCorrectLanguage: 'el',
@@ -16,8 +16,7 @@ Keyboards.el = {
     υ: 'ύϋΰ',
     Ι: 'ΊΪ',
     ι: 'ίϊΐ',
-    η: 'ή',
-    σ: 'ς'
+    η: 'ή'
   },
   keys: [
     [
@@ -44,7 +43,7 @@ Keyboards.el = {
 // it would allow 160 characters in one message
 Keyboards['el-sms'] = {
   label: 'Greek SMS',
-  menuLabel: 'Greek SMS',
+  menuLabel: 'Ελληνικό για SMS',
   imEngine: 'latin',
   keys: [
     [

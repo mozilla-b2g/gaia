@@ -46,8 +46,10 @@ var About = {
 
   loadHardwareInfo: function about_loadHardwareInfo() {
     var mobileConnection = getMobileConnection();
-    if (!mobileConnection)
+    if (!mobileConnection) {
+      document.getElementById('deviceinfo-phone-num').hidden = true;
       return;
+    }
 
     if (!IccHelper)
       return;
@@ -57,7 +59,9 @@ var About = {
      if (!navigator.mozTelephony || !info) {
        deviceInfoMsisdn.parentNode.hidden = true;
      } else {
-       deviceInfoMsisdn.textContent = info.msisdn ||
+       // If the icc card is gsm card, the phone number is in msisdn.
+       // Otherwise, the phone number is in mdn.
+       deviceInfoMsisdn.textContent = info.msisdn || info.mdn ||
        navigator.mozL10n.get('unknown-phoneNumber');
     }
   },

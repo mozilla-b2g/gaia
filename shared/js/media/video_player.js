@@ -43,6 +43,9 @@ function VideoPlayer(container) {
   var elapsedBar = newelt(progress, 'div', 'videoPlayerElapsedBar');
   var playHead = newelt(progress, 'div', 'videoPlayerPlayHead');
   var durationText = newelt(slider, 'span', 'videoPlayerDurationText');
+  // expose fullscreen button, so that client can manipulate it directly
+  var fullscreenButton = newelt(slider, 'button',
+                          'videoPlayerFullscreenButton');
 
   this.poster = poster;
   this.player = player;
@@ -182,6 +185,15 @@ function VideoPlayer(container) {
     if (this.onplaying)
       this.onplaying();
   };
+
+  fullscreenButton.addEventListener('tap', function(e) {
+    if (self.onfullscreentap) {
+      // If the event propagate to controller, videoplayer will hide
+      // the toolbar, so we stopPropagation here.
+      e.stopPropagation();
+      self.onfullscreentap();
+    }
+  });
 
   // Hook up the play button
   playbutton.addEventListener('tap', function(e) {

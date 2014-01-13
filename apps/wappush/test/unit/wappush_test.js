@@ -1,11 +1,13 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/* global loadBodyHTML, MockL10n, MockMessageDB, MockNavigatormozApps,
+/* global loadBodyHTML, mocha, MockL10n, MockMessageDB, MockNavigatormozApps,
           MockNavigatormozSetMessageHandler, MockNavigatorSettings,
           MockNotificationHelper, MocksHelper, ParsedMessage, WapPushManager */
 
 'use strict';
+
+mocha.globals(['close']);
 
 requireApp('wappush/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 requireApp(
@@ -380,6 +382,93 @@ suite('WAP Push', function() {
       MockNavigatormozSetMessageHandler.mTrigger('wappush-received',
                                                  messages.none);
       assert.isTrue(getSelfSpy.notCalled);
+    });
+  });
+
+  suite('automatic closing of the application', function() {
+    var isDocumentHidden;
+    var message = {
+      sender: '+31641600986',
+      contentType: 'text/vnd.wap.si',
+      content: '<si><indication href="http://www.mozilla.org">' +
+               'check this out</indication></si>'
+    };
+
+    setup(function(done) {
+      MockNavigatormozSetMessageHandler.mSetup();
+      WapPushManager.init(done);
+
+      this.clock = this.sinon.useFakeTimers();
+      this.sinon.spy(window, 'close');
+
+      Object.defineProperty(document, 'hidden', {
+        configurable: true,
+        get: function() {
+          return isDocumentHidden;
+        }
+      });
+    });
+
+    teardown(function() {
+      delete document.hidden;
+      this.clock.restore();
+      MockNavigatormozApps.mTeardown();
+      MockNavigatormozSetMessageHandler.mTeardown();
+    });
+
+    test('the app is closed after displaying a notification', function() {
+      isDocumentHidden = true;
+
+      MockNavigatormozSetMessageHandler.mTrigger('wappush-received', message);
+      MockNavigatormozApps.mTriggerLastRequestSuccess();
+      this.clock.tick(100);
+      sinon.assert.calledOnce(window.close);
+    });
+
+    test('the app is not closed if it is visible', function() {
+      isDocumentHidden = false;
+
+      MockNavigatormozSetMessageHandler.mTrigger('wappush-received', message);
+      MockNavigatormozApps.mTriggerLastRequestSuccess();
+      this.clock.tick(100);
+      sinon.assert.notCalled(window.close);
+    });
+
+    test('the app is closed only after processing all messages', function() {
+      isDocumentHidden = true;
+
+      MockNavigatormozSetMessageHandler.mTrigger('wappush-received', message);
+      MockNavigatormozApps.mTriggerLastRequestSuccess();
+      MockNavigatormozSetMessageHandler.mTrigger('wappush-received', message);
+      this.clock.tick(100);
+      sinon.assert.notCalled(window.close);
+      MockNavigatormozApps.mTriggerLastRequestSuccess();
+      this.clock.tick(100);
+      sinon.assert.calledOnce(window.close);
+    });
+
+    test('prevent the app from closing if it becomes visible', function() {
+      isDocumentHidden = true;
+
+      MockNavigatormozSetMessageHandler.mTrigger('wappush-received', message);
+      MockNavigatormozApps.mTriggerLastRequestSuccess();
+      MockNavigatormozSetMessageHandler.mTrigger('wappush-received', message);
+      this.clock.tick(100);
+      MockNavigatormozApps.mTriggerLastRequestSuccess();
+      isDocumentHidden = false;
+      WapPushManager.onVisibilityChange();
+      this.clock.tick(100);
+      sinon.assert.notCalled(window.close);
+    });
+
+    test('the app is closed when hidden', function() {
+      isDocumentHidden = false;
+      WapPushManager.onVisibilityChange();
+      this.clock.tick(100);
+      isDocumentHidden = true;
+      WapPushManager.onVisibilityChange();
+      this.clock.tick(100);
+      sinon.assert.calledOnce(window.close);
     });
   });
 });

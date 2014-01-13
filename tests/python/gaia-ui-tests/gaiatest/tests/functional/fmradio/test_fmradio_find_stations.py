@@ -15,11 +15,11 @@ class TestFMRadioFindStations(GaiaTestCase):
         self.fm_radio = FmRadio(self.marionette)
         self.fm_radio.launch()
 
-    def test_find_next_station(self):
+    def test_find_next_previous_station(self):
         """ Find next station
-
         https://moztrap.mozilla.org/manage/case/1928/
-
+        Find previous station
+        https://moztrap.mozilla.org/manage/case/1929/
         """
         # check the headphone is plugged-in or not
         self.assertTrue(self.data_layer.is_antenna_available, 'Antenna (headphones) not plugged in')
@@ -38,18 +38,6 @@ class TestFMRadioFindStations(GaiaTestCase):
 
         # check the change of the frequency
         self.assertNotEqual(initial_frequency, self.fm_radio.frequency)
-
-    def test_find_prev_station(self):
-        """ Find previous station
-
-        https://moztrap.mozilla.org/manage/case/1929/
-
-        """
-        # check the headphone is plugged-in or not
-        self.assertTrue(self.data_layer.is_antenna_available, 'Antenna (headphones) not plugged in')
-
-        # wait for the radio start-up
-        self.wait_for_condition(lambda m: self.data_layer.is_fm_radio_enabled)
 
         # save the current frequency
         current_frequency = self.fm_radio.frequency

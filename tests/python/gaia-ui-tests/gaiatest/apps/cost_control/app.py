@@ -60,7 +60,6 @@ class CostControl(Base):
         ftu_step2 = ftu_step1.tap_next()
         ftu_step3 = ftu_step2.tap_next()
         ftu_step3.tap_lets_go()
-        self.launch()
 
     def tap_settings(self):
         self.wait_for_element_displayed(*self._settings_button_locator)

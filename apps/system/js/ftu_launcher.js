@@ -52,14 +52,13 @@ var FtuLauncher = {
 
     // Monitor appopen event
     // to unlock lockscreen if we are running FTU at first time
-    window.addEventListener('appopen', this);
+    window.addEventListener('appopened', this);
   },
 
   handleEvent: function fl_init(evt) {
     switch (evt.type) {
-      case 'appopen':
+      case 'appopened':
         if (evt.detail.origin == this._ftuURL && this._isRunningFirstTime) {
-          LockScreen.unlock(true);
           // FTU starting, letting everyone know
           var evt = document.createEvent('CustomEvent');
           evt.initCustomEvent('ftuopen',

@@ -1,0 +1,395 @@
+/**
+ * style & layout for tablet (two-column)
+ */
+@media (min-width: 768px) and (orientation: portrait) {
+
+  section[role="region"]:not(#root).current {
+    z-index: 2;
+  }
+
+  /**
+   * wallpaper
+   */
+  section[role="region"]#display #wallpaper-button {
+    background-position: 95% 24%;
+  }
+
+  /**
+   * media storage
+   */
+  section[role="region"]#mediaStorage .color-music.stackedbar-item,
+  section[role="region"]#mediaStorage .color-music > .stackedbar-color-label {
+    background-color: #82c82d;
+    border: 0.3rem #82c82d;
+  }
+
+  section[role="region"]#mediaStorage .color-pictures.stackedbar-item,
+  section[role="region"]#mediaStorage .color-pictures > .stackedbar-color-label {
+    background-color: #efd600;
+    border: 0.3rem #efd600;
+  }
+
+  section[role="region"]#mediaStorage .color-videos.stackedbar-item,
+  section[role="region"]#mediaStorage .color-videos > .stackedbar-color-label {
+    background-color: #00aacc;
+    border: 0.3rem #00aacc;
+  }
+
+  section[role="region"]#mediaStorage .color-free.stackedbar-item,
+  section[role="region"]#mediaStorage .color-free > .stackedbar-color-label {
+    background-color: #858585;
+    border: 0.3rem #858585;
+  }
+}
+
+@media (min-width: 768px) and (orientation: landscape) {
+
+  section[role="region"]#root {
+    transform: none;
+    transition: none;
+    left: 0;
+    width: 40rem;
+  }
+
+  section[role="region"],
+  section[role="region"].previous,
+  section[role="region"].current {
+    transition: none;
+    left: 40rem;
+    width: calc(100% - 40rem);
+  }
+
+  section[role="region"]#root header {
+    background: url("images/ui/tablet_menu_header.png") repeat-x scroll 0% 0% / auto 100% transparent;
+  }
+
+  section[role="region"]#root header:after {
+    background: url("images/ui/tablet_separator.png") no-repeat right / 0.2rem transparent;
+    height: 95%;
+    top: 0;
+  }
+
+  /* no back button at first level */
+  section[role="region"]:not([id*='-']) header > a {
+    display: none;
+  }
+
+  /**
+   * lists
+   */
+  section[role="region"] header h2 {
+    padding-left: 2rem;
+  }
+
+  section[role="region"]#root ul li {
+    margin: 0 1.5rem 0 3.5rem;
+  }
+
+  section[role="region"]:not([id='root']) ul li {
+    margin: 0 4rem;
+    padding: 0;
+  }
+
+  section[role="region"]#root ul li > a.menu-item {
+    margin: 0 -3.5rem;
+    padding-left: 7.5rem;
+  }
+
+  section[role="region"]#root .menu-item::before {
+    left: calc(-2.5rem / 2);
+  }
+
+  section[role="region"]#root .pack-switch > .menu-item::before {
+    left: 1rem;
+  }
+
+  section[role="region"]#root .pack-switch > .menu-item {
+    padding-left: 7.5rem;
+  }
+
+  section[role="region"]#root ul li > label.pack-switch {
+    margin-left: calc(-4.5rem / 2);
+  }
+
+  section[role="region"]#root ul li > label.pack-switch > small {
+    left: 6.25rem;
+  }
+
+  section[role="region"]:not([id='root']) ul li > label.pack-switch > span {
+    padding-left: 1.5rem;
+  }
+
+  section[role="region"]:not([id='root']) ul li > label.pack-checkbox > span {
+    padding-left: 1.5rem;
+  }
+
+  section[role="region"]:not([id='root']) ul li > a,
+  section[role="region"]:not([id='root']) ul li > span:not(.button),
+  section[role="region"]:not([id='root']) ul li > p {
+    margin: 0 -4rem;
+    padding-left: 4rem;
+    padding-right: 4rem;
+  }
+
+  section[role="region"]:not([id='root']) ul li > progress + span:not(.button) {
+    padding-left: 6rem;
+  }
+
+  section[role="region"]:not([id='root']) ul:not([id='wifi-availableNetworks']) li > progress {
+    width: 100%;
+  }
+
+  section[role="region"]:not([id='root']) ul li > a span {
+    right: 0rem;
+  }
+
+  section[role="region"]:not([id='root']) ul li > small {
+    left: 0rem;
+  }
+
+  section[role="region"]:not([id='root']) ul li.hint .explanation {
+    padding-left: 4rem;
+  }
+
+  /**
+   * button
+   */
+  section[role="region"]:not([id='root']) ul li button,
+  section[role="region"]:not([id='root']) ul li span.button,
+  section[role="region"]:not([id='root']) ul li a[role='button'] {
+    width: 20rem;
+    left: calc(100% - 20rem);
+    height: 3.5rem;
+  }
+
+  section[role="region"]:not([id='root']) ul li span > select {
+    width: 200%;
+  }
+
+  /**
+   * hotspot wifi settings
+   */
+  section[role="region"]#hotspot-wifiSettings ul li.password > label > span {
+    padding-left: 3rem;
+  }
+
+  /**
+   * wallpaper
+   */
+  section[role="region"]#display #wallpaper {
+    height: 33.5rem;
+  }
+
+  section[role="region"]#display #wallpaper-button {
+    background-position: right 4rem top 2.5rem;
+    /*background-position: 76.5rem 2.5rem;*/
+  }
+
+  /**
+   * sound
+   */
+  section[role="region"] ul li.sound-setting {
+    min-height: 6rem;
+  }
+
+  /**
+   * media storage
+   */
+  section[role="region"]#mediaStorage div[id*='-space-stackedbar'] {
+    margin: 1.5rem 0;
+    width: 100%;
+    border: 0.3rem #e7e7e7;
+    border-radius: 5rem;
+    height: 2.5rem;
+  }
+
+  section[role="region"]#mediaStorage .stackedbar-color-label {
+    left: 4rem;
+    border-radius: 5rem;
+    width: 2.5rem;
+    height: 2.5rem;
+    top: 1.8rem;
+  }
+
+  section[role="region"]#mediaStorage .stackedbar-color-label + a {
+    padding-left: 8rem;
+  }
+
+  section[role="region"]#mediaStorage .color-music.stackedbar-item,
+  section[role="region"]#mediaStorage .color-music > .stackedbar-color-label {
+    background-color: #82c82d;
+    border: 0.3rem #82c82d;
+  }
+
+  section[role="region"]#mediaStorage .color-pictures.stackedbar-item,
+  section[role="region"]#mediaStorage .color-pictures > .stackedbar-color-label {
+    background-color: #efd600;
+    border: 0.3rem #efd600;
+  }
+
+  section[role="region"]#mediaStorage .color-videos.stackedbar-item,
+  section[role="region"]#mediaStorage .color-videos > .stackedbar-color-label {
+    background-color: #00aacc;
+    border: 0.3rem #00aacc;
+  }
+
+  section[role="region"]#mediaStorage .color-free.stackedbar-item,
+  section[role="region"]#mediaStorage .color-free > .stackedbar-color-label {
+    background-color: #858585;
+    border: 0.3rem #858585;
+  }
+
+  section[role="region"]#about-yourPrivacy .privacy-menuitem {
+    margin: 0 -4rem;
+    padding-left: 8.7rem;
+    padding-right: 4rem;
+  }
+
+  section[role="region"]#about-yourPrivacy .privacy-menuitem:before {
+    left: 0;
+  }
+
+  /**
+   * display
+   */
+  ul li#brightness-manual > label input[type="range"] {
+    display: inline;
+    left: 5rem;
+    top: calc(50% - 1.5rem);
+  }
+
+  /**
+   * slider
+   */
+  section[role="region"] ul li > label input[type='range'] {
+    top: 1.5rem;
+    width: 49.5%;
+    height: 2rem;
+    left: 50%;
+    position: absolute
+  }
+
+  /**
+   * button
+   */
+  section[role="region"]:not([id='root']) button.icon,
+  section[role="region"]:not([id='root']) .button {
+    position: absolute;
+    top: 1.2rem;
+  }
+
+  section[role="region"] ul li p + label:not([for]) {
+    top: 1.5rem;
+  }
+
+  /**
+   * description
+   */
+  section[role="region"]:not([id='root']) .two-column-description {
+    color: #6d7374;
+  }
+}
+
+/*
+ * XXX Bug 943173
+ * All lines below are polyfill of styles of Building Block.
+ * Remove them if bug 905065 were landed.
+ */
+@media (min-width: 768px) {
+  section[role="region"].skin-organic > header:first-child h1,
+  .skin-organic section[role="region"] > header:first-child h1,
+  section[role="region"].skin-dark > header:first-child,
+  .skin-dark section[role="region"] > header:first-child {
+    color: white;
+  }
+
+  section[role="region"] > header:first-child h1 {
+    font-size: 2.4rem;
+    line-height: 5rem;
+    color: #fff;
+    padding: 0 1rem 0 2rem;
+  }
+
+  section[role="region"] > header:first-child menu[type="toolbar"] a,
+  section[role="region"] > header:first-child menu[type="toolbar"] button {
+    width: 8.2rem;
+  }
+
+  section[role="region"].skin-dark > header:first-child menu[type="toolbar"] a:after,
+  section[role="region"].skin-dark > header:first-child menu[type="toolbar"] button:after,
+  section[role="region"].skin-organic > header:first-child menu[type="toolbar"] a:after,
+  section[role="region"].skin-organic > header:first-child menu[type="toolbar"] button:after  {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: -1;
+    height: 5rem;
+    width: 8.2rem;
+    background: url("images/ui/tablet_button_separator.png") no-repeat left / 0.2rem transparent;
+  }
+
+  section[role="region"].skin-dark > header:first-child > a:not([aria-disabled="true"]):active:after,
+  section[role="region"].skin-dark > header:first-child > button:not(:disabled):active:after,
+  section[role="region"].skin-dark > header:first-child > a:not([aria-disabled="true"]):hover:after,
+  section[role="region"].skin-dark > header:first-child > button:not(:disabled):hover:after,
+  section[role="region"].skin-dark > header:first-child menu[type="toolbar"] a:not([aria-disabled="true"]):hover,
+  section[role="region"].skin-dark > header:first-child menu[type="toolbar"] button:not(:disabled):hover,
+  section[role="region"].skin-dark > header:first-child menu[type="toolbar"] a:not([aria-disabled="true"]):active,
+  section[role="region"].skin-dark > header:first-child menu[type="toolbar"] button:not(:disabled):active,
+  section[role="region"].skin-organic > header:first-child > a:not([aria-disabled="true"]):active:after,
+  section[role="region"].skin-organic > header:first-child > button:not(:disabled):active:after,
+  section[role="region"].skin-organic > header:first-child > a:not([aria-disabled="true"]):hover:after,
+  section[role="region"].skin-organic > header:first-child > button:not(:disabled):hover:after,
+  section[role="region"].skin-organic > header:first-child menu[type="toolbar"] a:not([aria-disabled="true"]):hover,
+  section[role="region"].skin-organic > header:first-child menu[type="toolbar"] button:not(:disabled):hover,
+  section[role="region"].skin-organic > header:first-child menu[type="toolbar"] a:not([aria-disabled="true"]):active,
+  section[role="region"].skin-organic > header:first-child menu[type="toolbar"] button:not(:disabled):active {
+    background: url("images/ui/tablet_header_pressed.png") repeat-x center / 0.2rem transparent !important;
+  }
+
+  section[role="region"] > header:first-child > button,
+  section[role="region"] > header:first-child > a {
+    position: relative;
+    width: 5rem;
+    height: 5rem;
+    background: none;
+    float: left;
+    overflow: visible;
+    margin: 0;
+  }
+
+  section[role="region"] > header:first-child > button:after,
+  section[role="region"] > header:first-child > a:after {
+    width: 5.2rem;
+    height: 5rem;
+  }
+
+  section[role="region"] > header:first-child .icon {
+    width: 5rem;
+  }
+
+  section[role="region"] > header:first-child .icon.icon-back,
+  section[role="region"].skin-organic > header:first-child .icon.icon-back,
+  .skin-organic section[role="region"] > header:first-child .icon.icon-back {
+    background-image: url("images/icon/back_tablet.png");
+  }
+
+  section[role="region"].skin-dark  > header:first-child,
+  .skin-dark  section[role="region"] > header:first-child,
+  section[role="region"].skin-organic > header:first-child,
+  .skin-organic section[role="region"] > header:first-child {
+    background: url("images/ui/tablet_header.png") repeat-x scroll 0% 0% / auto 100% transparent;
+  }
+
+  section[role="region"].skin-dark > header:first-child a:after,
+  .skin-dark section[role="region"] > header:first-child a:after,
+  section[role="region"].skin-dark > header:first-child button:after,
+  .skin-dark section[role="region"] > header:first-child button:after,
+  section[role="region"].skin-organic > header:first-child a:after,
+  .skin-organic section[role="region"] > header:first-child a:after,
+  section[role="region"].skin-organic > header:first-child button:after,
+  .skin-organic section[role="region"] > header:first-child button:after {
+    background: url("images/ui/tablet_button_separator.png") no-repeat right / 0.2rem transparent;
+  }
+}

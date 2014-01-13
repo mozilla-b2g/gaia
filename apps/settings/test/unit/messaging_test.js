@@ -142,7 +142,7 @@ suite('Messaging settings', function() {
 
   suite('init function, cardState absent', function() {
     setup(function() {
-      MockIccHelper.mProps.cardState = 'absent';
+      MockIccHelper.mProps.cardState = null;
       Messaging.init();
     });
 

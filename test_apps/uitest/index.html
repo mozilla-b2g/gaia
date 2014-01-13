@@ -1,27 +1,34 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
   <meta charset="utf-8">
   <title>UI tests</title>
   <!-- We don't need localization in this app -->
   <link rel="stylesheet" type="text/css" href="style/uitest.css">
   <link rel="stylesheet" type="text/css" href="style/tabs.css" >
   <script type="text/javascript" src="js/uitest.js"></script>
+  <!-- <script src="shared/js/mime_mapper.js"></script> -->
+  <!-- <script src="shared/js/settings_listener.js"></script> -->
+  <!-- <script src="shared/js/download/download_formatter.js"></script> -->
+  <!-- <script src="shared/js/download/download_helper.js"></script> -->
+  <!-- <script src="shared/js/download/download_store.js"></script> -->
+  <script defer src="shared/js/lazy_loader.js"></script>
 </head>
 <body>
-  <div class="panel selection-panel">
-    <div id="UI-tests">
-      <div class="toolbar toolbar-top">
-        <p class="toolbar-title">UI Tests</p>
+  <div class="panel list-panel">
+    <div id="UI-tests" class="list_and_toolbar">
+      <div class="toolbar">
+        <p></p><p class="toolbar-title">UI Tests</p><p></p>
       </div>
       <ul class="list">
         <li><a href="#test=UI/alert">Alert/Prompt</a></li>
         <li><a href="#test=UI/canvas">Canvas Tag</a></li>
         <li><a href="#test=UI/contextmenu">Contextmenu</a></li>
+        <li><a href="#test=UI/css_dimension">CSS dimension</a></li>
         <li><a href="#test=UI/empty">Empty</a></li>
         <li><a href="#test=UI/fullscreen">mozRequestFullScreen</a></li>
         <li><a href="#test=UI/fullscreen_controls">Fullscreen Ctr</a></li>
-        <li><a href="#test=UI/inputmode">text inputmode</a></li>
         <li><a href="#test=UI/keyboard">Keyboard</a></li>
         <li><a href="#test=UI/newnotification">new Notification()</a></li>
         <li><a href="#test=UI/notification">mozNotification</a></li>
@@ -30,15 +37,17 @@
         <li><a href="#test=UI/select">Select</a></li>
       </ul>
     </div>
-    <div id="API-tests" class="invisible">
-      <div class="toolbar toolbar-top">
-        <p class="toolbar-title">API Tests</p>
+    <div id="API-tests" class="list_and_toolbar invisible">
+      <div class="toolbar">
+        <p></p><p class="toolbar-title">API Tests</p><p></p>
       </div>
       <ul class="list">
         <li><a href="#test=API/audiotag">audio tag</a></li>
         <li><a href="#test=API/browseractivities">Browser Activities</a></li>
+        <li><a href="#test=API/composeemail">Compose Email</a></li>
         <li><a href="#test=API/contacts">Contacts</a></li>
         <li><a href="#test=API/csp">CSP Warning</a></li>
+        <li><a href="#test=API/dialnumber">Dial Number</a></li>
         <li><a href="#test=API/geolocation">Geolocation</a></li>
         <li><a href="#test=API/getusermedia">getUserMedia</a></li>
         <li><a href="#test=API/httpauthentication">HTTP Auth</a></li>
@@ -54,17 +63,22 @@
         <li><a href="#test=API/picktype">Pick Photo/Video</a></li>
         <li><a href="#test=API/pickvideo">Pick Video</a></li>
         <li><a href="#test=API/savebookmark">Save bookmark</a></li>
+        <li><a href="#test=API/sendsms">Send SMS</a></li>
+        <li><a href="#test=API/shareimage">Share Image</a></li>
+        <li><a href="#test=API/shareurl">Share URL</a></li>
         <li><a href="#test=API/viewphoto">View Photo</a></li>
+        <li><a href="#test=API/downloads">Downloads</a></li>
       </ul>
     </div>
-    <div id="HW-tests" class="invisible">
-      <div class="toolbar toolbar-top">
-        <p class="toolbar-title">Hardware Tests</p>
+    <div id="HW-tests" class="list_and_toolbar invisible">
+      <div class="toolbar">
+        <p></p><p class="toolbar-title">Hardware Tests</p><p></p>
       </div>
       <ul class="list">
         <li><a href="#test=HW/battery">Battery</a></li>
         <li><a href="#test=HW/bluetooth">Bluetooth</a></li>
         <li><a href="#test=HW/camera">Camera</a></li>
+        <li><a href="#test=HW/fmradio">FM radio</a></li>
         <li><a href="#test=HW/headphone">Headphone</a></li>
         <li><a href="#test=HW/lcd">LCD</a></li>
         <li><a href="#test=HW/physicalkeys">Physical keys</a></li>
@@ -78,7 +92,7 @@
       </ul>
     </div>
     <div id="tabs" class="tabs">
-      <ul role="tablist" data-items="3" class="bottom">
+      <ul role="tablist" data-items="3">
         <li id="panel1" role="tab">
           <a href="#UI" id="UI">UI</a>
           <div role="tabpanel"></div>
@@ -95,9 +109,10 @@
     </div>
   </div>
   <div id="test-panel" class="panel test-panel">
-    <div class="toolbar toolbar-top">
+    <div class="toolbar">
       <button id="test-panel-back">back</button>
       <p id="test-panel-title" class="toolbar-title"></p>
+      <p></p>
     </div>
     <iframe id="test-iframe" mozallowfullscreen="true"></iframe>
   </div>

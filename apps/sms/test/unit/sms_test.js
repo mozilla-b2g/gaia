@@ -12,14 +12,18 @@ require('/shared/js/lazy_loader.js');
 require('/shared/js/l10n.js');
 require('/shared/js/l10n_date.js');
 require('/shared/js/gesture_detector.js');
+require('/shared/js/async_storage.js');
 
 requireApp('system/test/unit/mock_gesture_detector.js');
 requireApp('sms/test/unit/mock_contact.js');
 requireApp('sms/test/unit/mock_l10n.js');
+requireApp('sms/test/unit/mock_time_headers.js');
 requireApp('sms/test/unit/mock_navigatormoz_sms.js');
 requireApp('sms/test/unit/mock_attachment_menu.js');
+requireApp('sms/test/unit/mock_information.js');
 
 requireApp('sms/js/link_helper.js');
+requireApp('sms/js/drafts.js');
 requireApp('sms/js/contacts.js');
 requireApp('sms/js/fixed_header.js');
 requireApp('sms/js/utils.js');
@@ -37,7 +41,9 @@ requireApp('sms/js/waiting_screen.js');
 requireApp('sms/js/startup.js');
 
 var MocksHelperForSmsUnitTest = new MocksHelper([
-  'AttachmentMenu'
+  'AttachmentMenu',
+  'TimeHeaders',
+  'Information'
 ]).init();
 
 suite('SMS App Unit-Test', function() {
@@ -187,13 +193,16 @@ suite('SMS App Unit-Test', function() {
 
       test('properly updates in response to an arriving message of a ' +
         'different type', function() {
+        ThreadListUI.container.textContent = '';
+
         var container = ThreadListUI.container;
         MessageManager.getThreads(function(threads) {
           threads.forEach(function(thread, idx) {
             var newMessage = {
               threadId: thread.id,
               sender: thread.participants[0],
-              timestamp: thread.timestamp,
+              delivery: 'received',
+              timestamp: +thread.timestamp,
               type: thread.lastMessageType === 'mms' ? 'sms' : 'mms'
             };
             MessageManager.onMessageReceived({
@@ -239,7 +248,7 @@ suite('SMS App Unit-Test', function() {
         var date = getMockupedDate(2);
         var threadsContainer =
           document.getElementById('threadsContainer_' +
-            Utils.getDayDate(date.getTime()));
+            Utils.getDayDate(+date));
         assertNumberOfElementsInContainerByTag(threadsContainer, 2, 'li');
       });
 
@@ -315,7 +324,7 @@ suite('SMS App Unit-Test', function() {
           participants: ['287138'],
           body: 'Recibidas!',
           id: 9999,
-          timestamp: new Date(),
+          timestamp: Date.now(),
           type: 'sms',
           channel: 'sms'
         });
@@ -348,7 +357,7 @@ suite('SMS App Unit-Test', function() {
           participants: ['287138'],
           body: 'Recibidas!',
           id: 9999,
-          timestamp: new Date(),
+          timestamp: Date.now(),
           type: 'sms',
           channel: 'sms'
         });
@@ -365,7 +374,7 @@ suite('SMS App Unit-Test', function() {
           participants: ['287138'],
           body: 'Recibidas!',
           id: 9999,
-          timestamp: new Date(),
+          timestamp: Date.now(),
           channel: 'sms'
         });
 
@@ -472,7 +481,7 @@ suite('SMS App Unit-Test', function() {
           body: 'Recibidas!',
           delivery: 'received',
           id: 9999,
-          timestamp: new Date(),
+          timestamp: Date.now(),
           type: 'sms',
           channel: 'sms'
         };
@@ -527,7 +536,7 @@ suite('SMS App Unit-Test', function() {
           body: 'Recibidas!',
           delivery: 'received',
           id: 9999,
-          timestamp: new Date(),
+          timestamp: Date.now(),
           channel: 'sms'
         });
 
@@ -544,7 +553,7 @@ suite('SMS App Unit-Test', function() {
           body: 'Recibidas!',
           delivery: 'received',
           id: 9999,
-          timestamp: new Date(),
+          timestamp: Date.now(),
           channel: 'sms'
         });
 

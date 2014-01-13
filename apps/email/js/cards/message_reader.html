@@ -5,9 +5,12 @@
         <span class="icon icon-back"></span>
       </a>
       <menu type="toolbar">
-        <a href="#" class="msg-reply-btn">
-          <span class="icon icon-reply"></span>
-        </a>
+        <button class="msg-up-btn">
+          <span class="icon icon-up"></span>
+        </button>
+        <button class="msg-down-btn">
+          <span class="icon icon-down"></span>
+        </button>
       </menu>
       <h1 class="msg-reader-header-label"
         data-l10n-id="reader-header">ReaD</h1>
@@ -42,14 +45,23 @@
     <ul class="msg-attachments-container">
     </ul>
     <div class="msg-body-container"><progress></progress></div>
-    <div class="bottom-toolbar-spacer"></div>
   </div>
   <!-- Tells us about remote/not downloaded images, asks to show -->
   <div class="msg-reader-load-infobar collapsed">
   </div>
-  <div class="msg-reader-action-toolbar bottom-toolbar">
-    <button class="msg-delete-btn bottom-btn"></button>
-    <button class="msg-star-btn bottom-btn"></button>
-    <button class="msg-move-btn bottom-btn"></button>
-  </div>
+
+  <ul role="tablist" class="msg-reader-action-toolbar">
+    <li role="tab">
+      <a class="icon msg-delete-btn"></a>
+    </li>
+    <li role="tab">
+      <a class="icon msg-star-btn"></a>
+    </li>
+    <li role="tab">
+      <a class="icon msg-move-btn"></a>
+    </li>
+    <li role="tab">
+      <a class="icon msg-reply-btn"></a>
+    </li>
+  </ul>
 </div>

@@ -575,6 +575,15 @@ suite('Time functions', function() {
         assert.equal(formatTime(23, 30), '23:30');
       });
 
+      test('2:30, disable meridian', function() {
+        var opts = {meridian: false};
+        assert.equal(formatTime(2, 30, opts), '2:30');
+      });
+
+      test('02:30, pad hours option', function() {
+        var opts = {padHours: true};
+        assert.equal(formatTime(2, 30, opts), '02:30');
+      });
     });
 
     suite('hms()', function() {

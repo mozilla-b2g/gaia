@@ -1,0 +1,49 @@
+<element name="wifi-manageCertificates" extends="section">
+  <template>
+
+    <header>
+      <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</span></button>
+      <h1 data-l10n-id="manageCert"> Manage Cert. </h1>
+    </header>
+
+    <div>
+      <header>
+        <h2 data-l10n-id="certificateList"> Certificate list </h2>
+      </header>
+      <ul id="wifi-certificateList">
+      </ul>
+      <ul class="operate-certificate">
+        <li>
+          <label>
+            <button id="deleteCertificate"
+                    class="icon"
+                    data-l10n-id="deleteCertificate"
+                    disabled="true">
+              Delete certificate
+            </button>
+          </label>
+        </li>
+        <li>
+          <label>
+            <button id="importCertificate"
+                    class="icon icon-view"
+                    data-l10n-id="importCertificate">
+              Import certificate
+            </button>
+          </label>
+        </li>
+      </ul>
+    </div>
+
+    <form role="dialog" data-type="confirm" id="certificate-deletion-failed" hidden>
+      <section>
+        <h1 data-l10n-id="certificate-deletion-failed">Certificate deletion failed</h1>
+        <p data-l10n-id="certificate-deletion-failed-description">This may be due to a storage issue, for example.</p>
+      </section>
+      <menu>
+        <button data-l10n-id="ok" class="full danger" id="certificate-deletion-failed-confirm">OK</button>
+      </menu>
+    </form>
+
+  </template>
+</element>

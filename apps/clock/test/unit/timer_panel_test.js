@@ -170,7 +170,6 @@ suite('Timer.Panel', function() {
       this.sinon.spy(panel.timer, 'start');
       this.sinon.spy(panel.timer, 'pause');
       this.sinon.spy(panel.timer, 'cancel');
-      this.sinon.spy(panel.nodes.sound, 'focus');
     });
 
     test('click: start ', function() {
@@ -207,17 +206,6 @@ suite('Timer.Panel', function() {
       assert.isNull(panel.timer);
     });
 
-    test('click: menu ', function() {
-      var menu = panel.nodes.menu;
-      var sound = panel.nodes.sound;
-
-      menu.dispatchEvent(
-        new CustomEvent('click')
-      );
-      assert.ok(panel.onclick.called);
-      assert.ok(sound.focus.called);
-    });
-
     test('click: create ', function() {
       panel.nodes.create.dispatchEvent(
         new CustomEvent('click')
@@ -228,7 +216,7 @@ suite('Timer.Panel', function() {
     });
 
     test('blur: sound', function() {
-      var menu = panel.nodes.menu;
+      var menu = panel.soundButton.button;
       var sound = panel.nodes.sound;
       Utils.changeSelectByValue(sound, 'ac_normal_gem_echoes.opus');
       sound.dispatchEvent(

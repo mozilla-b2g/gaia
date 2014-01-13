@@ -8,6 +8,7 @@ var CallsHandler = (function callsHandler() {
   var CALLS_LIMIT = 2;
 
   var handledCalls = [];
+
   var toneInterval = null; // Timer used to play the waiting tone
   var telephony = window.navigator.mozTelephony;
   telephony.oncallschanged = onCallsChanged;
@@ -85,6 +86,8 @@ var CallsHandler = (function callsHandler() {
       }
     };
 
+    setupSystemIAC();
+
     postToMainWindow('ready');
   }
 
@@ -92,6 +95,25 @@ var CallsHandler = (function callsHandler() {
     if (window.opener) {
       window.opener.postMessage(data, COMMS_APP_ORIGIN);
     }
+  }
+
+  function setupSystemIAC() {
+    navigator.mozApps.getSelf().onsuccess = function(evt) {
+      var app = evt.target.result;
+      app.connect('dialercomms').then(function(ports) {
+        ports.forEach(function(port) {
+          port.onmessage = function(event) {
+            if (event.data !== 'stop_ringtone') {
+              return;
+            }
+
+            ringtonePlayer.pause();
+            ringing = false;
+            activateVibration = false;
+          };
+        });
+      });
+    };
   }
 
   /* === Handled calls === */
@@ -142,17 +164,8 @@ var CallsHandler = (function callsHandler() {
 
     if (handledCalls.length === 0) {
       exitCallScreen(false);
-    } else {
-      // Letting the CallScreen know how to display the call duration
-      // (depending on how many calls/conference group are on)
-      var openLines = telephony.calls.length +
-        (telephony.conferenceGroup.calls.length ? 1 : 0);
-
-      CallScreen.singleLine = (openLines == 1);
-
-      if (!displayed && !closing) {
-        toggleScreen();
-      }
+    } else if (!displayed && !closing) {
+      toggleScreen();
     }
   }
 
@@ -226,8 +239,8 @@ var CallsHandler = (function callsHandler() {
     handledCalls.splice(index, 1);
 
     if (handledCalls.length > 0) {
-      // Only hiding the call if we have another one to display
-      removedCall.hide();
+      // Only hiding the incoming bar if we have another one to display.
+      // Let handledCall catches disconnect event itself.
       CallScreen.hideIncoming();
 
       var remainingCall = handledCalls[0];
@@ -299,13 +312,17 @@ var CallsHandler = (function callsHandler() {
         return;
       }
 
-      Contacts.findByNumber(number, function lookupContact(contact) {
+      Contacts.findByNumber(number,
+                            function lookupContact(contact, matchingTel) {
         if (contact && contact.name) {
           CallScreen.incomingNumber.textContent = contact.name;
+          CallScreen.incomingNumberAdditionalInfo.textContent =
+            Utils.getPhoneNumberAdditionalInfo(matchingTel);
           return;
         }
 
         CallScreen.incomingNumber.textContent = number;
+        CallScreen.incomingNumberAdditionalInfo.textContent = '';
       });
     });
 
@@ -419,6 +436,20 @@ var CallsHandler = (function callsHandler() {
           holdAndAnswer();
         }
         break;
+      case 'CHLD=3':
+        // Join/Establish conference call. Since we can have at most 2 calls
+        // by spec, we can use telephony.calls[n] directly.
+        if (!telephony.conferenceGroup.state && telephony.calls.length == 2) {
+          telephony.conferenceGroup.add(
+            telephony.calls[0], telephony.calls[1]);
+          break;
+        }
+        if (telephony.conferenceGroup.state && telephony.calls.length == 1) {
+          telephony.conferenceGroup.add(telephony.calls[0]);
+          break;
+        }
+        console.warn('Cannot join conference call.');
+        break;
       case 'CHLD=0':
         hangupWaitingCalls();
         break;
@@ -482,11 +513,6 @@ var CallsHandler = (function callsHandler() {
     }
 
     handledCalls[0].call.answer();
-
-    if (CallScreen.screen.dataset.layout === 'incoming-locked') {
-      CallScreen.mainContainer.style.backgroundImage =
-        CallScreen.lockedContactPhoto.style.backgroundImage;
-    }
 
     CallScreen.render('connected');
   }
@@ -569,8 +595,10 @@ var CallsHandler = (function callsHandler() {
       return;
     }
 
-    if ((handledCalls.length < 2) && !cdmaCallWaiting()) {
+    var openLines = telephony.calls.length +
+      (telephony.conferenceGroup.calls.length ? 1 : 0);
 
+    if (openLines < 2 && !cdmaCallWaiting()) {
       // Putting a call on Hold when there are no other
       // calls in progress has been disabled until a less
       // accidental user-interface is implemented.
@@ -587,10 +615,14 @@ var CallsHandler = (function callsHandler() {
   }
 
   function holdOrResumeSingleCall() {
-    if (handledCalls.length !== 1) {
+    var openLines = telephony.calls.length +
+      (telephony.conferenceGroup.calls.length ? 1 : 0);
+
+    if (openLines !== 1) {
       return;
     }
-    if (telephony.calls[0].state === 'incoming') {
+
+    if (telephony.calls.length && telephony.calls[0].state === 'incoming') {
       return;
     }
 
@@ -598,7 +630,10 @@ var CallsHandler = (function callsHandler() {
       telephony.active.hold();
       CallScreen.render('connected-hold');
     } else {
-      telephony.calls[0].resume();
+      var line = telephony.calls.length ?
+        telephony.calls[0] : telephony.conferenceGroup;
+
+      line.resume();
       CallScreen.render('connected');
     }
   }
@@ -630,6 +665,7 @@ var CallsHandler = (function callsHandler() {
 
   function endConferenceCall() {
     var callsToEnd = telephony.conferenceGroup.calls;
+    CallScreen.setEndConferenceCall();
     for (var i = (callsToEnd.length - 1); i >= 0; i--) {
       var call = callsToEnd[i];
       call.hangUp();
@@ -798,10 +834,3 @@ var CallsHandler = (function callsHandler() {
   };
 })();
 
-window.addEventListener('load', function callSetup(evt) {
-  window.removeEventListener('load', callSetup);
-
-  CallsHandler.setup();
-  CallScreen.init();
-  KeypadManager.init(true);
-});

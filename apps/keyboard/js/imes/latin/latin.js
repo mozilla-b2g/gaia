@@ -50,6 +50,7 @@
     displaysCandidates: displaysCandidates,
     click: click,
     select: select,
+    dismissSuggestions: dismissSuggestions,
     setLayoutParams: setLayoutParams,
     setLanguage: setLanguage
   };
@@ -346,9 +347,11 @@
       justAutoCorrected = false;
     }
 
+    var handler;
+
     if (selection) {
       // If there is selected text, don't do anything fancy here.
-      handleKey(keycode);
+      handler = handleKey(keycode);
     }
     else {
       switch (keycode) {
@@ -361,79 +364,83 @@
       case COLON:
       case SEMICOLON:
         // These keys may trigger word or punctuation corrections
-        handleCorrections(keycode);
+        handler = handleCorrections(keycode);
         correctionDisabled = false;
         break;
 
       case BACKSPACE:
-        handleBackspace();
+        handler = handleBackspace();
         break;
 
       default:
-        handleKey(keycode);
+        handler = handleKey(keycode);
       }
     }
 
-    // If there was a potential auto correction, we either used it in
-    // handleCorrections() above or it is now out of date, so clear it
-    // so it doesn't get used later
-    autoCorrection = null;
+    return handler.then(function() {
+      // If there was a potential auto correction, we either used it in
+      // handleCorrections() above or it is now out of date, so clear it
+      // so it doesn't get used later
+      autoCorrection = null;
 
-    // And update the keyboard capitalization state, if necessary
-    updateCapitalization();
+      // And update the keyboard capitalization state, if necessary
+      updateCapitalization();
 
-    // If we're offering suggestions, ask the worker to make them now
-    updateSuggestions(repeat);
+      // If we're offering suggestions, ask the worker to make them now
+      updateSuggestions(repeat);
 
-    // Exit symbol layout mode after space or return key is pressed.
-    if (keycode === SPACE || keycode === RETURN) {
-      keyboard.setLayoutPage(LAYOUT_PAGE_DEFAULT);
-    }
+      // Exit symbol layout mode after space or return key is pressed.
+      if (keycode === SPACE || keycode === RETURN) {
+        keyboard.setLayoutPage(LAYOUT_PAGE_DEFAULT);
+      }
 
-    lastSpaceTimestamp = (keycode === SPACE) ? Date.now() : 0;
+      lastSpaceTimestamp = (keycode === SPACE) ? Date.now() : 0;
+    });
   }
 
   // Handle any key (including backspace) and do the right thing even if
   // there is a selection in the text field. This method does not perform
   // auto-correction or auto-punctuation.
   function handleKey(keycode) {
-    // First, update our internal state
-    if (keycode === BACKSPACE) {
-      if (selection) {
-        // backspace while a region is selected erases the selection
-        // and leaves the cursor at the selection start
-        inputText = inputText.substring(0, cursor) +
-          inputText.substring(selection);
-        selection = 0;
-      } else if (cursor > 0) {
-        cursor--;
-        inputText = inputText.substring(0, cursor) +
-          inputText.substring(cursor + 1);
-
-        // If we have temporarily disabled auto correction for the current word
-        // and we've just backspaced over the entire word, then we can
-        // re-enabled it again
-        if (correctionDisabled && !wordBeforeCursor())
-          correctionDisabled = false;
-      }
-    } else {
-      if (selection) {
-        inputText =
-          inputText.substring(0, cursor) +
-          String.fromCharCode(keycode) +
-          inputText.substring(selection);
-        selection = 0;
-      } else {
-        inputText =
-          inputText.substring(0, cursor) +
-          String.fromCharCode(keycode) +
-          inputText.substring(cursor);
-      }
-      cursor++;
-    }
-
     // Generate the key event
-    keyboard.sendKey(keycode);
+    return keyboard.sendKey(keycode).then(function() {
+      // First, update our internal state
+      if (keycode === BACKSPACE) {
+        if (selection) {
+          // backspace while a region is selected erases the selection
+          // and leaves the cursor at the selection start
+          inputText = inputText.substring(0, cursor) +
+            inputText.substring(selection);
+          selection = 0;
+        } else if (cursor > 0) {
+          cursor--;
+          inputText = inputText.substring(0, cursor) +
+            inputText.substring(cursor + 1);
+
+          // If we have temporarily disabled auto correction for the current
+          // word and we've just backspaced over the entire word, then we can
+          // re-enabled it again
+          if (correctionDisabled && !wordBeforeCursor())
+            correctionDisabled = false;
+        }
+      } else {
+        if (selection) {
+          inputText =
+            inputText.substring(0, cursor) +
+            String.fromCharCode(keycode) +
+            inputText.substring(selection);
+          selection = 0;
+        } else {
+          inputText =
+            inputText.substring(0, cursor) +
+            String.fromCharCode(keycode) +
+            inputText.substring(cursor);
+        }
+        cursor++;
+      }
+    }, function() {
+      // sendKey got canceled, keep state the same
+    });
   }
 
   // Assuming that the word before the cursor is oldWord, send a
@@ -442,31 +449,17 @@
   // content and cursor position.
   function replaceBeforeCursor(oldWord, newWord) {
     var oldWordLen = oldWord.length;
-    if (keyboard.replaceSurroundingText) {
-      keyboard.replaceSurroundingText(newWord, oldWordLen, 0);
-    }
-    else {
-      // Find the first character in currentWord and newWord that differs
-      // so we know how many backspaces we need to send.
-      for (var firstdiff = 0; firstdiff < oldWordLen; firstdiff++) {
-        if (oldWord[firstdiff] !== newWord[firstdiff])
-          break;
-      }
+    var replPromise =
+      keyboard.replaceSurroundingText(newWord, -oldWordLen, oldWordLen);
 
-      // Backspace as far as that first difference
-      for (var i = oldWordLen; i > firstdiff; i--)
-        keyboard.sendKey(BACKSPACE);
-
-      // And send the first different character and all that follow
-      keyboard.sendString(newWord.substring(firstdiff));
-    }
-
-    // Now update internal state
-    inputText =
-      inputText.substring(0, cursor - oldWordLen) +
-      newWord +
-      inputText.substring(cursor);
-    cursor += newWord.length - oldWordLen;
+    return replPromise.then(function() {
+      // Now update internal state
+      inputText =
+        inputText.substring(0, cursor - oldWordLen) +
+        newWord +
+        inputText.substring(cursor);
+      cursor += newWord.length - oldWordLen;
+    });
   }
 
   // If we just did auto correction or auto punctuation, then backspace
@@ -479,19 +472,19 @@
         inputText.substring(cursor - len, cursor) === revertFrom) {
 
       // Revert the content of the text field
-      replaceBeforeCursor(revertFrom, revertTo);
+      return replaceBeforeCursor(revertFrom, revertTo).then(function() {
+        // If the change we just reverted was an auto-correction then
+        // temporarily disable auto correction until the next space
+        if (justAutoCorrected) {
+          correctionDisabled = true;
+        }
 
-      // If the change we just reverted was an auto-correction then
-      // temporarily disable auto correction until the next space
-      if (justAutoCorrected) {
-        correctionDisabled = true;
-      }
-
-      revertFrom = revertTo = '';
-      justAutoCorrected = false;
+        revertFrom = revertTo = '';
+        justAutoCorrected = false;
+      });
     }
     else {
-      handleKey(BACKSPACE);
+      return handleKey(BACKSPACE);
     }
   }
 
@@ -501,16 +494,16 @@
   function handleCorrections(keycode) {
     if (correcting && autoCorrection && !correctionDisabled && atWordEnd() &&
         wordBeforeCursor() !== autoCorrection) {
-      autoCorrect(keycode);
+      return autoCorrect(keycode);
     }
     else if (punctuating && cursor >= 2 &&
              isWhiteSpace(inputText[cursor - 1]) &&
              !WORDSEP.test(inputText[cursor - 2]))
     {
-      autoPunctuate(keycode);
+      return autoPunctuate(keycode);
     }
     else {
-      handleKey(keycode);
+      return handleKey(keycode);
     }
   }
 
@@ -520,20 +513,23 @@
     // Get the word before the cursor
     var currentWord = wordBeforeCursor();
 
-    // The space or punctuation that triggered the autocorrect
-    var delimiter = String.fromCharCode(keycode);
-
     // Figure out the auto correction text
-    var newWord = autoCorrection + delimiter;
+    var newWord = autoCorrection;
 
     // Make the correction
-    replaceBeforeCursor(currentWord, newWord);
-
-    // Remember the change we just made so we can revert it if the
-    // user types backspace
-    revertTo = currentWord + delimiter;
-    revertFrom = newWord;
-    justAutoCorrected = true;
+    return replaceBeforeCursor(currentWord, newWord).then(function() {
+      // Remember the change we just made so we can revert it if the
+      // user types backspace
+      revertTo = currentWord;
+      revertFrom = newWord;
+      justAutoCorrected = true;
+    }).then(function() {
+      // Send the keycode as seperate key event because it may get canceled
+      return handleKey(keycode).then(function() {
+        revertTo += String.fromCharCode(keycode);
+        revertFrom += String.fromCharCode(keycode);
+      });
+    });
   }
 
   // Auto punctuate, converting space punctuation to punctuation space
@@ -544,23 +540,21 @@
     switch (keycode) {
     case SPACE:
       if (Date.now() - lastSpaceTimestamp < DOUBLE_SPACE_TIME)
-        fixPunctuation(PERIOD, SPACE);
+        return fixPunctuation(PERIOD, SPACE);
       else
-        handleKey(keycode);
+        return handleKey(keycode);
       break;
 
     case PERIOD:
     case QUESTION:
     case EXCLAMATION:
     case COMMA:
-      fixPunctuation(keycode);
-      break;
+      return fixPunctuation(keycode);
 
     default:
       // colon and semicolon don't auto-punctuate because they're
       // used after spaces for smileys.
-      handleKey(keycode);
-      break;
+      return handleKey(keycode);
     }
 
     // In both the space space and the space period case we call this function
@@ -568,20 +562,25 @@
     // punctuation
     // If the second argument is omitted, assume it is the same as the first
     function fixPunctuation(keycode, revertToKeycode) {
-      keyboard.sendKey(BACKSPACE);
-      keyboard.sendKey(keycode);
-      keyboard.sendKey(SPACE);
+      return keyboard.sendKey(BACKSPACE)
+        .then(function() {
+          return keyboard.sendKey(keycode);
+        })
+        .then(function() {
+          return keyboard.sendKey(SPACE);
+        })
+        .then(function() {
+          var newtext = String.fromCharCode(keycode) + ' ';
+          inputText = inputText.substring(0, cursor - 1) +
+            newtext +
+            inputText.substring(cursor);
+          cursor++;
 
-      var newtext = String.fromCharCode(keycode) + ' ';
-      inputText = inputText.substring(0, cursor - 1) +
-        newtext +
-        inputText.substring(cursor);
-      cursor++;
-
-      // Remember this change so we can revert it on backspace
-      revertTo = ' ' + String.fromCharCode(revertToKeycode || keycode);
-      revertFrom = newtext;
-      justAutoCorrected = false;
+          // Remember this change so we can revert it on backspace
+          revertTo = ' ' + String.fromCharCode(revertToKeycode || keycode);
+          revertFrom = newtext;
+          justAutoCorrected = false;
+        });
     }
   }
 
@@ -598,92 +597,118 @@
       return;
     }
 
-    // Loop through the suggestions discarding the weights
-    var lcinput = input.toLowerCase();
-    for (var i = 0; i < suggestions.length; i++) {
-      suggestions[i] = suggestions[i][0];
+    // See if the user's input is a valid word on the list of suggestions
+    var inputIsSuggestion = false;
+    var inputWeight = 0;
+    var inputIndex;
+    for (inputIndex = 0; inputIndex < suggestions.length; inputIndex++) {
+      if (suggestions[inputIndex][0] === input) {
+        inputIsSuggestion = true;
+        inputWeight = suggestions[inputIndex][1];
+        break;
+      }
     }
 
-    // Now figure out if the input is one of the suggestions
-    var inputindex = suggestions.indexOf(input);
-
-    // If the input is just one character long then we never want to
-    // auto-correct to more than one character (because it makes it hard
-    // to type abbreviations and other single-characters uses).  So if the
-    // first suggestion is not also one-character, then make the input
-    // into the first suggestion.
-    if (input.length === 1 && suggestions[0].length !== 1) {
-      if (inputindex === -1)                // If the input is not a suggestion
-        suggestions.pop();                  // Remove the last suggestion
-      else                                  // Otherwise
-        suggestions.splice(inputindex, 1);  // Remove the input
-      suggestions.unshift(input);           // Then add it at the start
-      inputindex = 0;                       // Update inputindex
+    // We never want to display the user's input as a suggestion so
+    // remove it from the list if it is there.
+    if (inputIsSuggestion) {
+      suggestions.splice(inputIndex, 1);
     }
 
-    switch (inputindex) {
-    case -1:
-      // Input is not a word: show it second in the list
-      if (suggestions.length > 1)
-        suggestions = [suggestions[0], input, suggestions[1]];
-      else
-        suggestions = [suggestions[0], input];
-      break;
-    case 0:
-    case 1:
-      // Input is the same as the first suggestion or is already in
-      // the second position: use the suggestions unmodified
-      break;
-    case 2:
-      // Input is the 3rd suggestion: swap to make it second
-      suggestions = [suggestions[0], input, suggestions[1]];
-      break;
+    // If we don't have any suggestions we're done
+    if (suggestions.length === 0) {
+      keyboard.sendCandidates([]); // Clear any displayed suggestions
+      return;
     }
 
-    // If we're going to use the first suggestion as an auto-correction
-    // then we have to tell the renderer to highlight it.
-    if (correcting && !correctionDisabled) {
+    // Make sure we have no more than three words
+    if (suggestions.length > 3)
+      suggestions.length = 3;
+
+    // Now get an array of just the suggested words
+    var words = suggestions.map(function(x) { return x[0]; });
+
+    // Decide whether the first word is going to be an autocorrection.
+    // If the user's input is already a valid word, then don't
+    // autocorrect unless the first suggested word is more common than
+    // the input.  Note that if the first suggested word has a higher
+    // weight even after whatever penalty is applied for not matching
+    // exactly, then it is significantly more common than the actual input.
+    // (This rule means that "ill" will autocorrect to "I'll",
+    // "wont" to "won't", etc.)
+    // Also, don't autocorrect if the input is a single letter and
+    // the first word is more than a single letter. (But still autocorrect
+    // "i" to "I")
+    if (correcting && !correctionDisabled &&
+        (!inputIsSuggestion || suggestions[0][1] > inputWeight) &&
+        (input.length > 1 || words[0].length === 1)) {
       // Remember the word to use if the next character is a space.
-      autoCorrection = suggestions[0];
+      autoCorrection = words[0];
       // Mark the auto-correction so the renderer can highlight it
-      suggestions[0] = '*' + suggestions[0];
+      words[0] = '*' + words[0];
     }
 
-    keyboard.sendCandidates(suggestions);
+    keyboard.sendCandidates(words);
   }
 
   // If the user selects one of the suggestions offered by this input method
   // the keyboard calls this method to tell us it has been selected.
   // We have to backspace over the current word, insert this new word, and
   // update our internal state to match.
-  function select(word) {
+  //   word: the text displayed as the suggestion, might contain ellipsis
+  //   data: the actual data we need to output
+  function select(word, data) {
     var oldWord = wordBeforeCursor();
 
     // Replace the current word with the selected suggestion plus space
-    word += ' ';
-    replaceBeforeCursor(oldWord, word);
+    var newWord = data += ' ';
+    return replaceBeforeCursor(oldWord, newWord).then(function() {
+      // Remember the change we just made so we can revert it if the
+      // next key is a backspace. Note that it is not an autocorrection
+      // so we don't need to disable corrections.
+      revertFrom = newWord;
+      revertTo = oldWord;
+      justAutoCorrected = false;
 
-    // Remember the change we just made so we can revert it if the
-    // next key is a backspace. Note that it is not an autocorrection
-    // so we don't need to disable corrections.
-    revertFrom = word;
-    revertTo = oldWord;
-    justAutoCorrected = false;
+      // We inserted a space after the selected word, so we're beginning
+      // a new word here, which means that if auto-correction was disabled
+      // we can re-enable it now.
+      correctionDisabled = false;
 
-    // We inserted a space after the selected word, so we're beginning
-    // a new word here, which means that if auto-correction was disabled
-    // we can re-enable it now.
-    correctionDisabled = false;
+      // Clear the suggestions
+      keyboard.sendCandidates([]);
 
-    // Clear the suggestions
+      // And update the keyboard capitalization state, if necessary
+      updateCapitalization();
+    });
+  }
+
+  function dismissSuggestions() {
+    // Clear the list of candidates
     keyboard.sendCandidates([]);
 
-    // And update the keyboard capitalization state, if necessary
-    updateCapitalization();
+    // Send a space
+    keyboard.sendKey(SPACE);
+    inputText = inputText.substring(0, cursor) + ' ' +
+      inputText.substring(cursor);
+    cursor++;
+
+    // Get rid of any autocorrection that is pending and reset the rest
+    // of our state, too.
+    lastSpaceTimestamp = 0;
+    autoCorrection = null;
+    revertTo = revertFrom = '';
+    justAutoCorrected = false;
+    correctionDisabled = false;
   }
 
   function setLayoutParams(params) {
     layoutParams = params;
+
+    // We don't need to update the nearbyKeys when using number/digit layout.
+    if (inputMode === 'verbatim')
+      return;
+
     // XXX We call nearbyKeys() every time the keyboard pops up.
     // Maybe it would be better to compute it once in keyboard.js and
     // cache it.

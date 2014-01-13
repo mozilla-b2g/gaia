@@ -215,7 +215,6 @@ contacts.Form = (function() {
     if (!contact || !contact.id) {
       return;
     }
-    formView.classList.add('skin-organic');
     if (!fromUpdateActivity)
       saveButton.setAttribute('disabled', 'disabled');
     saveButton.setAttribute('data-l10n-id', 'update');

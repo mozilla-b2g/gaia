@@ -4,6 +4,7 @@
 requireApp('email/js/alameda.js');
 requireApp('email/test/config.js');
 suite('IMAP protocol dropdown', function() {
+  this.timeout(20000);
   var el;
   var smc;
   var SetupManualConfig;
@@ -28,8 +29,9 @@ suite('IMAP protocol dropdown', function() {
 
   suite('IMAP port selection', function() {
     test('should change upon selecting STARTTLS', function() {
-      var dropdown = el.getElementsByClassName('sup-manual-imap-socket')[0];
-      var port = el.getElementsByClassName('sup-manual-imap-port')[0];
+      var dropdown = el.getElementsByClassName(
+        'sup-manual-composite-socket')[0];
+      var port = el.getElementsByClassName('sup-manual-composite-port')[0];
       assert.equal(port.value, '993');
       assert.equal(dropdown.value, 'SSL');
 

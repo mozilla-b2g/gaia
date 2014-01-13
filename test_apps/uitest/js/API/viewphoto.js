@@ -44,3 +44,16 @@ document.getElementById('viewsave').onclick = function() {
     console.log('activity returns', JSON.stringify(a.result));
   };
 };
+
+document.getElementById('viewError').onclick = function() {
+  var a = new MozActivity({
+    name: 'open',
+    data: {
+      type: 'image/jpeg',
+      blob: new Blob(['empty-image'], {'type': 'image/jpeg'})
+    }
+  });
+  a.onsuccess = function() {
+    console.log('activity returns', JSON.stringify(a.result));
+  };
+};

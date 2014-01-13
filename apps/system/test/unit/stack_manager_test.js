@@ -1,15 +1,44 @@
 'use strict';
 
 requireApp('system/js/stack_manager.js');
-
-requireApp('system/test/unit/mock_window_manager.js');
+requireApp('system/test/unit/mock_app_window.js');
 
 var mocksForStackManager = new MocksHelper([
-  'WindowManager'
+  'AppWindow'
 ]).init();
 
 suite('system/StackManager >', function() {
+  var dialer, contact, settings, google;
   mocksForStackManager.attachTestHelpers();
+
+  setup(function() {
+    dialer = new AppWindow({
+      url: 'app://communications.gaiamobile.org/dialer/index.html',
+      origin: 'app://communications.gaiamobile.org/',
+      manifestURL: 'app://communications.gaiamobile.org/dialer/manifest.webapp',
+      name: 'Dialer'
+    });
+
+    contact = new AppWindow({
+      url: 'app://communications.gaiamobile.org/contact/index.html',
+      origin: 'app://communications.gaiamobile.org/',
+      manifestURL:
+        'app://communications.gaiamobile.org/contact/manifest.webapp',
+      name: 'Contact'
+    });
+
+    settings = new AppWindow({
+      url: 'app://settings.gaiamobile.org/index.html',
+      origin: 'app://settings.gaiamobile.org/',
+      manifestURL: 'app://settings.gaiamobile.org/manifest.webapp',
+      name: 'Settings'
+    });
+
+    google = new AppWindow({
+      url: 'http://google.com/index.html',
+      origin: 'http://google.com'
+    });
+  });
 
   teardown(function() {
     StackManager.__clearAll();
@@ -23,7 +52,7 @@ suite('system/StackManager >', function() {
     }
 
     var evt = document.createEvent('CustomEvent');
-    evt.initCustomEvent('launchapp', true, false, configify(app));
+    evt.initCustomEvent('launchapp', true, false, app.config);
     window.dispatchEvent(evt);
   }
 
@@ -35,7 +64,7 @@ suite('system/StackManager >', function() {
     }
 
     var evt = document.createEvent('CustomEvent');
-    evt.initCustomEvent('launchwrapper', true, false, configify(app));
+    evt.initCustomEvent('launchapp', true, false, app.config);
     window.dispatchEvent(evt);
   }
 
@@ -63,38 +92,6 @@ suite('system/StackManager >', function() {
     return config;
   }
 
-  var dialer = {
-    url: 'app://communications.gaiamobile.org/dialer/index.html',
-    origin: 'app://communications.gaiamobile.org/',
-    manifestURL: 'app://communications.gaiamobile.org/dialer/manifest.webapp',
-    name: 'Dialer',
-    frame: document.createElement('div'),
-    iframe: document.createElement('frame')
-  };
-
-  var contact = {
-    url: 'app://communications.gaiamobile.org/contact/index.html',
-    origin: 'app://communications.gaiamobile.org/',
-    manifestURL: 'app://communications.gaiamobile.org/contact/manifest.webapp',
-    name: 'Contact',
-    frame: document.createElement('div'),
-    iframe: document.createElement('frame')
-  };
-  var settings = {
-    url: 'app://settings.gaiamobile.org/index.html',
-    origin: 'app://settings.gaiamobile.org/',
-    manifestURL: 'app://settings.gaiamobile.org/manifest.webapp',
-    name: 'Settings',
-    frame: document.createElement('div'),
-    iframe: document.createElement('frame')
-  };
-  var google = {
-    url: 'http://google.com/index.html',
-    origin: 'http://google.com',
-    frame: document.createElement('div'),
-    iframe: document.createElement('frame')
-  };
-
   suite('Moving through history', function() {
     setup(function() {
       appLaunch(dialer);
@@ -105,25 +102,18 @@ suite('system/StackManager >', function() {
     suite('> goPrev()', function() {
       test('should move back in the stack without modifying it', function() {
         StackManager.goPrev();
-        assert.deepEqual(StackManager.getCurrent(), contact);
-        assert.deepEqual(StackManager.getNext(), settings);
-        assert.deepEqual(StackManager.getPrev(), dialer);
+        assert.deepEqual(StackManager.getCurrent().config, contact.config);
+        assert.deepEqual(StackManager.getNext().config, settings.config);
+        assert.deepEqual(StackManager.getPrev().config, dialer.config);
       });
-
-      test('should inform the WindowManager of the app change', function() {
-        var setActiveSpy = this.sinon.spy(MockWindowManager, 'setActiveApp');
-        StackManager.goPrev();
-        assert.isTrue(setActiveSpy.calledWith(contact));
-      });
-
 
       test('should do nothing when we\'re at the bottom of the stack',
       function() {
         StackManager.goPrev();
         StackManager.goPrev();
-        assert.deepEqual(StackManager.getCurrent(), dialer);
+        assert.deepEqual(StackManager.getCurrent().config, dialer.config);
         StackManager.goPrev();
-        assert.deepEqual(StackManager.getCurrent(), dialer);
+        assert.deepEqual(StackManager.getCurrent().config, dialer.config);
       });
     });
 
@@ -135,24 +125,18 @@ suite('system/StackManager >', function() {
 
       test('should move forward in the stack without modifying it', function() {
         StackManager.goNext();
-        assert.deepEqual(StackManager.getCurrent(), contact);
-        assert.deepEqual(StackManager.getNext(), settings);
-        assert.deepEqual(StackManager.getPrev(), dialer);
-      });
-
-      test('should inform the WindowManager of the app change', function() {
-        var setActiveSpy = this.sinon.spy(MockWindowManager, 'setActiveApp');
-        StackManager.goNext();
-        assert.isTrue(setActiveSpy.calledWith(contact));
+        assert.deepEqual(StackManager.getCurrent().config, contact.config);
+        assert.deepEqual(StackManager.getNext().config, settings.config);
+        assert.deepEqual(StackManager.getPrev().config, dialer.config);
       });
 
       test('should do nothing when we\'re at the top of the stack',
       function() {
         StackManager.goNext();
         StackManager.goNext();
-        assert.deepEqual(StackManager.getCurrent(), settings);
+        assert.deepEqual(StackManager.getCurrent().config, settings.config);
         StackManager.goNext();
-        assert.deepEqual(StackManager.getCurrent(), settings);
+        assert.deepEqual(StackManager.getCurrent().config, settings.config);
       });
     });
   });
@@ -163,7 +147,7 @@ suite('system/StackManager >', function() {
     });
 
     test('it should become the current stack item', function() {
-      assert.deepEqual(StackManager.getCurrent(), dialer);
+      assert.deepEqual(StackManager.getCurrent().config, dialer.config);
     });
 
     suite('then another app is launched', function() {
@@ -172,8 +156,24 @@ suite('system/StackManager >', function() {
       });
 
       test('it should go on top of the stack', function() {
-        assert.deepEqual(StackManager.getPrev(), dialer);
-        assert.deepEqual(StackManager.getCurrent(), contact);
+        assert.deepEqual(StackManager.getPrev().config, dialer.config);
+        assert.deepEqual(StackManager.getCurrent().config, contact.config);
+      });
+
+      suite('then we go back and launch a third app', function() {
+        setup(function() {
+          StackManager.goPrev();
+          appLaunch(settings);
+        });
+
+        test('the current app at the time of the launch should move to the top',
+        function() {
+          assert.deepEqual(StackManager.getPrev(), dialer);
+        });
+
+        test('the new app should go on the top', function() {
+          assert.deepEqual(StackManager.getCurrent(), settings);
+        });
       });
     });
 
@@ -185,22 +185,29 @@ suite('system/StackManager >', function() {
 
       test('it should go on top of the stack', function() {
         appLaunch(dialer, true);
-        assert.deepEqual(StackManager.getCurrent(), dialer);
-        assert.deepEqual(StackManager.getPrev(), settings);
+        assert.deepEqual(StackManager.getCurrent().config, dialer.config);
+        assert.deepEqual(StackManager.getPrev().config, settings.config);
+      });
+
+      test('it should bring the current app on top too', function() {
+        StackManager.goPrev();
+        appLaunch(dialer, true);
+
+        assert.deepEqual(StackManager.getPrev(), contact);
       });
 
       test('it should not be duplicated', function() {
         appLaunch(dialer, true);
 
-        assert.deepEqual(StackManager.getCurrent(), dialer);
-        assert.deepEqual(StackManager.getPrev(), settings);
+        assert.deepEqual(StackManager.getCurrent().config, dialer.config);
+        assert.deepEqual(StackManager.getPrev().config, settings.config);
 
         StackManager.goPrev();
-        assert.deepEqual(StackManager.getCurrent(), settings);
-        assert.deepEqual(StackManager.getPrev(), contact);
+        assert.deepEqual(StackManager.getCurrent().config, settings.config);
+        assert.deepEqual(StackManager.getPrev().config, contact.config);
 
         StackManager.goPrev();
-        assert.deepEqual(StackManager.getCurrent(), contact);
+        assert.deepEqual(StackManager.getCurrent().config, contact.config);
         assert.isUndefined(StackManager.getPrev());
       });
     });
@@ -208,17 +215,19 @@ suite('system/StackManager >', function() {
     suite('if it\'s launched in background', function() {
       setup(function() {
         settings.stayBackground = true;
+        settings.config.stayBackground = true;
         appLaunch(settings);
       });
 
       teardown(function() {
         settings.stayBackground = false;
+        settings.config.stayBackground = false;
       });
 
       test('it should go at the bottom of the stack while keeping the current',
       function() {
-        assert.deepEqual(StackManager.getCurrent(), dialer);
-        assert.deepEqual(StackManager.getPrev(), settings);
+        assert.deepEqual(StackManager.getCurrent().config, dialer.config);
+        assert.deepEqual(StackManager.getPrev().config, settings.config);
       });
 
       suite('and the stack is empty', function() {
@@ -229,7 +238,7 @@ suite('system/StackManager >', function() {
 
         test('it should go at the bottom of the stack and become the current',
         function() {
-          assert.deepEqual(StackManager.getCurrent(), settings);
+          assert.deepEqual(StackManager.getCurrent().config, settings.config);
           assert.isUndefined(StackManager.getPrev());
           assert.isUndefined(StackManager.getNext());
         });
@@ -243,7 +252,7 @@ suite('system/StackManager >', function() {
     });
 
     test('it should become the current stack item', function() {
-      assert.deepEqual(StackManager.getCurrent(), google);
+      assert.deepEqual(StackManager.getCurrent().config, google.config);
     });
 
     suite('if it\'s already in the stack', function() {
@@ -253,19 +262,19 @@ suite('system/StackManager >', function() {
 
       test('it should go on top of the stack', function() {
         wrapperLaunch(google, true);
-        assert.deepEqual(StackManager.getCurrent(), google);
-        assert.deepEqual(StackManager.getPrev(), settings);
+        assert.deepEqual(StackManager.getCurrent().config, google.config);
+        assert.deepEqual(StackManager.getPrev().config, settings.config);
       });
 
       test('it should not be duplicated', function() {
         wrapperLaunch(google, true);
 
-        assert.deepEqual(StackManager.getCurrent(), google);
-        assert.deepEqual(StackManager.getPrev(), settings);
+        assert.deepEqual(StackManager.getCurrent().config, google.config);
+        assert.deepEqual(StackManager.getPrev().config, settings.config);
 
         StackManager.goPrev();
-        assert.deepEqual(StackManager.getCurrent(), settings);
-        assert.isUndefined(StackManager.getPrev(), contact);
+        assert.deepEqual(StackManager.getCurrent().config, settings.config);
+        assert.isUndefined(StackManager.getPrev());
       });
     });
   });
@@ -288,8 +297,8 @@ suite('system/StackManager >', function() {
 
       test('the current should go back',
       function() {
-        assert.deepEqual(StackManager.getPrev(), dialer);
-        assert.deepEqual(StackManager.getCurrent(), settings);
+        assert.deepEqual(StackManager.getPrev().config, dialer.config);
+        assert.deepEqual(StackManager.getCurrent().config, settings.config);
       });
     });
 
@@ -304,8 +313,8 @@ suite('system/StackManager >', function() {
 
       test('the current should go back',
       function() {
-        assert.deepEqual(StackManager.getPrev(), settings);
-        assert.deepEqual(StackManager.getCurrent(), contact);
+        assert.deepEqual(StackManager.getPrev().config, settings.config);
+        assert.deepEqual(StackManager.getCurrent().config, contact.config);
       });
     });
 
@@ -321,8 +330,8 @@ suite('system/StackManager >', function() {
 
       test('the current should not move',
       function() {
-        assert.deepEqual(StackManager.getPrev(), dialer);
-        assert.deepEqual(StackManager.getCurrent(), settings);
+        assert.deepEqual(StackManager.getPrev().config, dialer.config);
+        assert.deepEqual(StackManager.getCurrent().config, settings.config);
       });
     });
   });
@@ -335,11 +344,11 @@ suite('system/StackManager >', function() {
     });
 
     test('the current sheet should move to the top of the stack', function() {
-      assert.deepEqual(StackManager.getCurrent(), dialer);
-      assert.deepEqual(StackManager.getNext(), contact);
+      assert.deepEqual(StackManager.getCurrent().config, dialer.config);
+      assert.deepEqual(StackManager.getNext().config, contact.config);
       home();
-      assert.deepEqual(StackManager.getCurrent(), dialer);
-      assert.deepEqual(StackManager.getPrev(), contact);
+      assert.deepEqual(StackManager.getCurrent().config, dialer.config);
+      assert.deepEqual(StackManager.getPrev().config, contact.config);
     });
 
     suite('if the stack is empty', function() {

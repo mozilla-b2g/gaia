@@ -2,8 +2,9 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 'use strict';
 
-// These are special keyboard layouts.
-// Language-specific layouts are in individual js files in layouts/
+/** @fileoverview These are special keyboard layouts.
+ * Language-specific layouts are in individual js files in layouts/ .
+ */
 const Keyboards = {
   alternateLayout: {
     alt: {

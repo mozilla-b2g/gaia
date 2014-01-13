@@ -1,41 +1,55 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
     <meta charset="utf-8" />
     <title>Gallery</title>
     <link rel="stylesheet" href="style/gallery.css" type="text/css" />
     <link rel="stylesheet" href="style/VideoPlayer.css" type="text/css" />
+    <link rel="stylesheet" href="style/VideoPlayer_tablet.css" type="text/css" media="(min-height: 768px) and (min-width: 768px)" />
     <link rel="stylesheet" href="shared/style/headers.css" type="text/css" />
     <link rel="stylesheet" href="shared/style_unstable/progress_activity.css"/>
-    <!-- Reponsive design for large device -->
-    <link rel="stylesheet" href="style/gallery_large.css" type="text/css" media="(min-width: 768px)" />
+    <!-- Reponsive design for tiny & large device -->
+    <link rel="stylesheet" href="style/gallery_tablet.css" type="text/css" media="(min-height: 768px) and (min-width: 768px)" />
     <!-- this file is loaded lazily but is listed here so it gets packaged
     <link rel="stylesheet" href="shared/style/confirm.css" type="text/css" />
     -->
     <!-- Localization -->
     <link rel="resource" type="application/l10n" href="locales/locales.ini" />
+    <link rel="resource" type="application/l10n" href="/shared/locales/date.ini">
     <!-- Shared code -->
     <script defer src="shared/js/l10n.js"></script>
+    <script defer src="shared/js/l10n_date.js"></script>
+    <script defer src="shared/js/template.js"></script>
     <script defer src="shared/js/device_storage/enumerate_all.js"></script>
     <script defer src="shared/js/mediadb.js"></script>
     <script defer src="shared/js/lazy_loader.js"></script>
-    <script defer src="shared/js/visibility_monitor.js"></script>
+    <script defer src="shared/js/tag_visibility_monitor.js"></script>
     <script defer src="shared/js/media/media_utils.js"></script>
+    <script defer src="shared/js/screen_layout.js"></script>
 
     <!-- Specific code -->
     <script defer src="js/config.js"></script>
+    <script defer src="js/thumbnail_item.js"></script>
+    <script defer src="js/thumbnail_date_group.js"></script>
+    <script defer src="js/thumbnail_list.js"></script>
+    <script defer src="js/dialogs.js"></script>
     <script defer src="js/gallery.js"></script>
+
   </head>
 
   <body role="application">
-    <section role="region" id="thumbnail-list-view" class="hidden">
+    <section role="region" id="thumbnail-list-view" class="skin-organic">
+      <header id="thumbnails-list-top">
+        <h1 id="thumbnail-list-title" data-l10n-id="gallery">Gallery</h1>
+      </header>
       <footer id="thumbnails-bottom">
         <a id="thumbnails-camera-button" class="button"></a>
         <a id="thumbnails-select-button" class="button"></a>
       </footer>
     </section>
 
-    <section role="region" id="thumbnail-select-view" class="hidden skin-organic">
+    <section role="region" id="thumbnail-select-view" class="skin-dark">
       <header id="thumbnails-select-top">
         <button id="thumbnails-cancel-button"><span class="icon icon-close"></span></button>
         <h1 id="thumbnails-number-selected"></h1>
@@ -46,37 +60,75 @@
         <a id="thumbnails-share-button" class="button"></a>
       </footer>
     </section>
-
-    <section role="region" id="fullscreen-view" class="hidden skin-organic">
-
+    <section role="region" id="fullscreen-view" class="skin-organic">
+      <header id="fullscreen-toolbar-header" class="large-only">
+        <menu type="toolbar">
+          <a id="fullscreen-camera-button-large">
+            <span class="icon icon-camera"></span>
+          </a>
+          <a id="fullscreen-edit-button-large">
+            <span class="icon icon-picedit"></span>
+          </a>
+          <a id="fullscreen-share-button-large">
+            <span class="icon icon-share"></span>
+          </a>
+          <a id="fullscreen-info-button-large">
+            <span class="icon icon-info"></span>
+          </a>
+          <a id="fullscreen-delete-button-large">
+            <span class="icon icon-delete"></span>
+          </a>
+        </menu>
+        <button id="fullscreen-back-button-large" class="large-only"><span class="icon icon-back"></span></button>
+        <h1 data-l10n-id="gallery" id="fullscreen-title">Gallery</h1>
+      </header>
       <div id="frames">
         <!-- the current photo plus next and previous waiting in the wings -->
         <div id="frame1" class="frame"></div>
         <div id="frame2" class="frame"></div>
         <div id="frame3" class="frame"></div>
       </div>
-
-      <button id="fullscreen-back-button" type="reset"></button>
-      <footer id="fullscreen-toolbar">
-        <a id="fullscreen-camera-button" class="button"></a>
-        <a id="fullscreen-edit-button" class="button"></a>
-        <a id="fullscreen-share-button" class="button"></a>
-        <a id="fullscreen-delete-button" class="button"></a>
+      <button id="fullscreen-back-button-tiny" type="reset" class="tiny-only"></button>
+      <footer id="fullscreen-toolbar" class="tiny-only">
+        <a id="fullscreen-camera-button-tiny" class="button"></a>
+        <a id="fullscreen-edit-button-tiny" class="button"></a>
+        <a id="fullscreen-share-button-tiny" class="button"></a>
+        <a id="fullscreen-info-button-tiny" class="button"></a>
+        <a id="fullscreen-delete-button-tiny" class="button"></a>
       </footer>
     </section>
-
-    <section role="region" id="pick-view" class="hidden skin-organic">
+    <form id="info-view" role="dialog" data-type="confirm" class="hidden">
+      <section>
+        <dl>
+          <dt data-l10n-id="name-label"></dt>
+          <dd id="info-name" class="value"></dd>
+          <dt data-l10n-id="size-label"></dt>
+          <dd id="info-size" class="value"></dd>
+          <dt data-l10n-id="image-type-label"></dt>
+          <dd id="info-type" class="value"></dd>
+          <dt data-l10n-id="date-taken-label"></dt>
+          <dd id="info-date" class="value"></dd>
+          <dt data-l10n-id="resolution-label"></dt>
+          <dd id="info-resolution" class="value"></dd>
+        </dl>
+      </section>
+      <menu>
+        <button type="button" id="info-close-button"
+                data-l10n-id="close-button" class="full"></button>
+      </menu>
+    </form>
+    <section role="region" id="pick-view" class="skin-organic">
       <header id="pick-top">
         <button id="pick-back-button"><span class="icon icon-back"></span></button>
         <h1 id="pick-header" data-l10n-id="pickoneimage2"></h1>
       </header>
     </section>
 
-    <section role="region" id="crop-view" class="hidden skin-organic">
+    <section role="region" id="crop-view" class="skin-organic">
       <header id="crop-top">
         <button id="crop-back-button"><span class="icon icon-back"></span></button>
         <menu type="toolbar">
-          <button id="crop-done-button"><span class="icon icon-done"></span></button>
+          <button id="crop-done-button" data-l10n-id="done">done</button>
         </menu>
         <h1 id="crop-header" data-l10n-id="cropimage"></h1>
       </header>
@@ -85,11 +137,11 @@
       </div>
     </section>
 
-    <section role="region" id="edit-view" class="hidden skin-organic">
+    <section role="region" id="edit-view" class="skin-dark">
       <header id="edit-header">
         <button id="edit-cancel-button"><span class="icon icon-close"></span></button>
         <menu type="toolbar">
-          <button id="edit-save-button" data-l10n-id="save"></button>
+          <button id="edit-save-button" data-l10n-id="done">done</button>
         </menu>
         <h1 id="edit-title" data-l10n-id="edit"></h1>
       </header>
@@ -142,19 +194,6 @@
              data-effect="faded"></a>
         </div>
 
-        <div id="edit-border-options" class="edit-options-bar hidden">
-          <a id="edit-border-none" class="selected radio button bgimage"
-             data-border-width="0"></a>
-          <a id="edit-border-thin-white" class="radio button bgimage"
-             data-border-width=".015" data-border-color="white"></a>
-          <a id="edit-border-thick-white" class="radio button bgimage"
-             data-border-width=".03" data-border-color="white"></a>
-          <a id="edit-border-thin-black" class="radio button bgimage"
-             data-border-width=".015" data-border-color="black"></a>
-          <a id="edit-border-thick-black" class="radio button bgimage"
-             data-border-width=".03" data-border-color="black"></a>
-        </div>
-
         <div id="edit-enhance-options" class="edit-options-bar hidden">
           <span id="edit-enhance-status"></span>
         </div>
@@ -166,7 +205,6 @@
         <a id="edit-exposure-button" class="selected radio button"></a>
         <a id="edit-crop-button" class="radio button"></a>
         <a id="edit-effect-button" class="radio button"></a>
-        <a id="edit-border-button" class="radio button"></a>
         <a id="edit-enhance-button" class="radio button"></a>
       </footer>
     </section>
@@ -175,6 +213,15 @@
     <!-- It gets styled differently depending on what it is over -->
     <ul id="thumbnails"></ul> <!-- Thumbnails inserted here -->
 
+    <!-- This element is the template of each thumbnail item -->
+    <div id="thumbnail-group-header" hidden>
+      <!--
+        <li>
+          <div class="thumbnail-group-header">${group-header}</div>
+          <ul class="thumbnail-group-container"></ul>
+        </li>
+      -->
+    </div>
     <!-- A thin indeterminate progress bar to indicate scanning -->
     <!-- set class to "throb" to make it go, or hidden" to make it stop -->
     <div id="progress" class="hidden">
@@ -184,8 +231,8 @@
     <!-- display messages like "No Photos" and "No SD Card" here -->
     <form id="overlay" role="dialog" data-type="confirm" class="hidden">
       <section id="overlay-content">
-        <h1 id="overlay-title"></h1>
-        <p id="overlay-text"></p>
+        <h1 id="overlay-title">tre</h1>
+        <p id="overlay-text">ter</p>
       </section>
       <menu id="overlay-menu" class="hidden">
         <button type="button" id="storage-setting-button" class="hidden full"

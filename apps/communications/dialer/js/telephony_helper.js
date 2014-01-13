@@ -22,7 +22,28 @@ var TelephonyHelper = (function() {
       displayMessage('NoNetwork');
       return;
     }
-    startDial(sanitizedNumber, oncall, onconnected, ondisconnected, onerror);
+
+    var telephony = navigator.mozTelephony;
+    var openLines = telephony.calls.length +
+        (telephony.conferenceGroup.calls.length ? 1 : 0);
+    // User can make call only when there are less than 2 calls by spec.
+    // If the limit reached, return early to prevent holding active call.
+    if (openLines >= 2) {
+      displayMessage('UnableToCall');
+      return;
+    }
+
+    var activeCall = telephony.active;
+    if (!activeCall) {
+      startDial(sanitizedNumber, oncall, onconnected, ondisconnected, onerror);
+      return;
+    }
+    activeCall.onheld = function activeCallHeld() {
+      delete activeCall.onheld;
+      startDial(
+        sanitizedNumber, oncall, onconnected, ondisconnected, onerror);
+    };
+    activeCall.hold();
   };
 
   function notifyBusyLine() {

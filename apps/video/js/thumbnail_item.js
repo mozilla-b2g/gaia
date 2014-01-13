@@ -6,6 +6,9 @@
  * the dom event to its owned addTapListener. When we need to change the
  * behavior to trigger tap, we may just change the implementation layer here.
  *
+ * If we need to mark a thumbnail as selected or context, we need to add/remove
+ * the CSS classes of htmlNode property which is created within constructor.
+ *
  * CONSTRUCTOR:
  *   To create a ThumbnailItem objet requires the following argument:
  *      videoData: the video data object from mediadb.
@@ -15,13 +18,11 @@
  *         listener: the listener callback.
  *   removeTapListener: remove tap event listener. args:
  *         listener: the listener callback.
- *   isSelected: indicate if this thumbnial is rendered as selected.
- *   setSelected: set this thumbnial as selected, or not. args:
- *          selected: a boolean for selected or not.
  *   setWatched: set this thumbnail item as watched or not. args:
  *          watched: a boolean for watched or not.
  *   updatePoster: update the poster image. args:
  *          imageblob: a image blob object.
+ *   updateTitleText: updates the title text according to the size of it.
  *
  * Properties:
  *   htmlNode: the HTML DOM node for this thumbnail item. It is rendered at the
@@ -34,8 +35,8 @@
  *   detailNode: the HTML DOM node for detail information. This property may be
  *               null if template doesn't supply one.
  *
- * Template Bindings:
- *
+ * Global Variables:
+ *   titleMaxLines: the maximum lines of title field. The default value is 2.
  */
 function ThumbnailItem(videoData) {
   if (!videoData) {
@@ -47,6 +48,7 @@ function ThumbnailItem(videoData) {
   this.unwatchedNode = null;
   // the detail dom element.
   this.detailNode = null;
+  this.titleNode = null;
   this.htmlNode = null;
   // array for hosting tap listeners.
   this.tapListeners = [];
@@ -55,20 +57,6 @@ function ThumbnailItem(videoData) {
   var _this = this;
 
   render();
-
-  function detailsOverflowHandler(e) {
-    var el = e.target;
-    var title = el.firstElementChild;
-    if (title.textContent.length > 5) {
-      var max = (window.innerWidth > window.innerHeight) ? 175 : 45;
-      var end = title.textContent.length > max ? max - 1 : -5;
-      title.textContent = title.textContent.slice(0, end) + '\u2026';
-      // Force element to be repainted to enable 'overflow' event
-      // Can't repaint without the timeout maybe a gecko bug.
-      el.style.overflow = 'visible';
-      setTimeout(function() { el.style.overflow = 'hidden'; });
-    }
-  }
 
   function convertToDOM(htmlText) {
     // convert as DOM node
@@ -86,6 +74,8 @@ function ThumbnailItem(videoData) {
     _this.posterNode = domNode.querySelector('.img');
     // query details
     _this.detailNode = domNode.querySelector('.details');
+    // query title
+    _this.titleNode = domNode.querySelector('.title');
     // query unwatched.
     _this.unwatchedNode = domNode.querySelector('.unwatched');
   }
@@ -132,7 +122,6 @@ function ThumbnailItem(videoData) {
 
     if (_this.detailNode) {
       _this.detailNode.dataset.title = _this.data.metadata.title;
-      _this.detailNode.addEventListener('overflow', detailsOverflowHandler);
     }
 
     // add click event listeners.
@@ -150,6 +139,8 @@ function ThumbnailItem(videoData) {
   }
 }
 
+ThumbnailItem.titleMaxLines = 2;
+
 ThumbnailItem.prototype.addTapListener = function(listener) {
   if (!listener) {
     return;
@@ -165,18 +156,6 @@ ThumbnailItem.prototype.removeTapListener = function(listener) {
   var idx = this.tapListeners.indexOf(listener);
   if (idx > -1) {
     this.tapListeners.splice(idx, 1);
-  }
-};
-
-ThumbnailItem.prototype.isSelected = function() {
-  return this.htmlNode.classList.contains('selected');
-};
-
-ThumbnailItem.prototype.setSelected = function(selected) {
-  if (selected) {
-    this.htmlNode.classList.add('selected');
-  } else {
-    this.htmlNode.classList.remove('selected');
   }
 };
 
@@ -204,4 +183,13 @@ ThumbnailItem.prototype.updatePoster = function(imageblob) {
     this.posterNode.dataset.uri = '';
     this.posterNode.style.backgroundImage = '';
   }
+};
+
+ThumbnailItem.prototype.updateTitleText = function() {
+  this.titleNode.textContent = VideoUtils.getTruncated(this.data.metadata.title,
+                                        {
+                                          node: this.titleNode,
+                                          maxLine: ThumbnailItem.titleMaxLines,
+                                          ellipsisIndex: 0
+                                        });
 };

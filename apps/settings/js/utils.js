@@ -68,30 +68,6 @@ function openDialog(dialogID, onSubmit, onReset) {
 }
 
 /**
- * Audio Preview
- * First click = play, second click = pause.
- */
-
-function audioPreview(element, type) {
-  var audio = document.querySelector('#sound-selection audio');
-  var source = audio.src;
-  var playing = !audio.paused;
-
-  // Both ringer and notification are using notification channel
-  audio.mozAudioChannelType = 'notification';
-
-  var url = '/shared/resources/media/' + type + '/' +
-            element.querySelector('input').value;
-  audio.src = url;
-  if (source === audio.src && playing) {
-    audio.pause();
-    audio.src = '';
-  } else {
-    audio.play();
-  }
-}
-
-/**
  * JSON loader
  */
 
@@ -208,8 +184,6 @@ var DeviceStorageHelper = (function DeviceStorageHelper() {
  * Connectivity accessors
  */
 var getMobileConnection = function() {
-  var navigator = window.navigator;
-
   // XXX: check bug-926169
   // this is used to keep all tests passing while introducing multi-sim APIs
   var mobileConnection = navigator.mozMobileConnection ||
@@ -222,6 +196,13 @@ var getMobileConnection = function() {
 
 var getBluetooth = function() {
   return navigator.mozBluetooth;
+};
+
+var getNfc = function() {
+  if ('mozNfc' in navigator) {
+    return navigator.mozNfc;
+  }
+  return null;
 };
 
 /**

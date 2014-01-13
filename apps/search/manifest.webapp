@@ -1,0 +1,36 @@
+{
+  "name": "Search Results",
+  "type": "certified",
+  "role": "search",
+  "description": "Search Results",
+  "launch_path": "/index.html",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/mozilla-b2g/gaia"
+  },
+  "locales": {
+    "en-US": {
+      "name": "Search Results",
+      "description": "Search Results"
+    }
+  },
+  "default_locale": "en-US",
+  "icons": {
+    "128": "/style/icons/Blank.png"
+  },
+  "permissions": {
+    "webapps-manage":{},
+    "open-remote-window":{},
+    "systemXHR":{},
+    "contacts":{ "access": "readonly" }
+  },
+  "connections": {
+    "search": {
+      "handler_path": "index.html",
+      "description": "Proxies search to copied search app. Should be moved to the search app manifest if we split the app up.",
+      "rules": {
+        "manifestURLs": ["app://system.gaiamobile.org/manifest.webapp"]
+      }
+    }
+  }
+}

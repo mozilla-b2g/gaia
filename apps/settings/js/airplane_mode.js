@@ -49,47 +49,89 @@ var AirplaneMode = {
   },
 
   _initRadioSwitch: function() {
-    var mobileConnection = getMobileConnection();
-    // See bug 933659
-    // Gecko stops using the settings key 'ril.radio.disabled' to turn
-    // off RIL radio, but use mobileConnection.setRadioEnabled instead. We need
-    // to remove the code that checks existence of the new API after bug 856553
-    // lands.
-    var _setRadioEnabled = function(enabled) {
-      if (mobileConnection && !!mobileConnection.setRadioEnabled) {
-        var req = mobileConnection.setRadioEnabled(enabled);
-        req.onsuccess = function() {
+    var mobileConnections = window.navigator.mozMobileConnections;
+    var self = this;
+    var isError = false;
+    var setCount = 0;
+
+    var setRadioAfterReqsCalled = function(enabled) {
+      if (setCount !== mobileConnections.length) {
+        return;
+      } else {
+        if (isError) {
+          setAirplaneModeEnabled(enabled);
+        } else {
           SettingsListener.getSettingsLock().set(
             {'ril.radio.disabled': !enabled}
           );
-        };
-        req.onerror = function() {
-          SettingsListener.getSettingsLock().set(
-            {'ril.radio.disabled': enabled}
-          );
-        };
-      } else {
-        SettingsListener.getSettingsLock().set(
-          {'ril.radio.disabled': !enabled}
-        );
+        }
       }
     };
 
-    var self = this;
+    var doSetRadioEnabled = function doSetRadioEnabled(i, enabled) {
+      var conn = mobileConnections[i];
+      var req = conn.setRadioEnabled(enabled);
+      setCount++;
+
+      req.onsuccess = function() {
+        setRadioAfterReqsCalled(enabled);
+      };
+      req.onerror = function() {
+        isError = true;
+        setRadioAfterReqsCalled(enabled);
+      };
+    };
+
+    var setRadioEnabled = function setRadioEnabled(i, enabled) {
+      var conn = mobileConnections[i];
+      if (conn.radioState !== 'enabling' &&
+          conn.radioState !== 'disabling' &&
+          conn.radioState !== null) {
+        doSetRadioEnabled(i, enabled);
+      } else {
+        conn.addEventListener('radiostatechange',
+          function radioStateChangeHandler() {
+            if (conn.radioState == 'enabling' ||
+                conn.radioState == 'disabling' ||
+                conn.radioState == null) {
+              return;
+            }
+            conn.removeEventListener('radiostatechange',
+              radioStateChangeHandler);
+            doSetRadioEnabled(i, enabled);
+        });
+      }
+    };
+
+    var setAirplaneModeEnabled = function setAirplaneModeEnabled(enabled) {
+      isError = false;
+      setCount = 0;
+      // set airplane mode `true`
+      // means setRadioEnabled `false`
+      enabled = !enabled;
+      if (mobileConnections.length == 1) {
+        setRadioEnabled(0, enabled);
+      } else {
+        setRadioEnabled(0, enabled);
+        setRadioEnabled(1, enabled);
+      }
+    };
+
     SettingsListener.observe('ril.radio.disabled', false, function(value) {
       self.element.disabled = false;
       self.element.checked = value;
     });
+
     this.element.addEventListener('change', function(e) {
       this.disabled = true;
-      var enabled = !this.checked;
-      _setRadioEnabled(enabled);
+      setAirplaneModeEnabled(this.checked);
     });
   },
 
   init: function apm_init() {
     var mobileConnection = getMobileConnection();
     var wifiManager = WifiHelper.getWifiManager();
+    var nfcManager = getNfc();
 
     var settings = Settings.mozSettings;
     if (!settings)
@@ -107,6 +149,7 @@ var AirplaneMode = {
     var bluetoothEnabled = false;
     var wifiEnabled = false;
     var geolocationEnabled = false;
+    var nfcEnabled = false;
     settings.addObserver('geolocation.enabled', function(e) {
       geolocationEnabled = e.settingValue;
       self.notify('geolocation.enabled');
@@ -137,11 +180,17 @@ var AirplaneMode = {
         self.notify('bluetooth.enabled');
       });
     }
+    settings.addObserver('nfc.enabled', function(e) {
+      nfcEnabled = e.settingValue;
+      self.notify('nfc.enabled');
+    });
+
 
     var restoreMobileData = false;
     var restoreBluetooth = false;
     var restoreWifi = false;
     var restoreGeolocation = false;
+    var restoreNfc = false;
 
     settings.addObserver('ril.radio.disabled', function(e) {
       // Reset notification params
@@ -174,6 +223,12 @@ var AirplaneMode = {
         if (geolocationEnabled)
           self._ops++;
 
+        // NFC
+        restoreNfc = nfcEnabled;
+        if (nfcManager) {
+          self._ops++;
+        }
+
       } else {
         // Don't count mobile data if it's already on
         if (mobileConnection && !mobileDataEnabled && restoreMobileData)
@@ -189,6 +244,10 @@ var AirplaneMode = {
 
         // Don't count Geolocation if it's already on
         if (!geolocationEnabled && restoreGeolocation)
+          self._ops++;
+
+        // Don't count NFC if it's already on
+        if (nfcManager && !nfcEnabled && restoreNfc)
           self._ops++;
       }
 

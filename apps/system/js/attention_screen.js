@@ -41,9 +41,11 @@ var AttentionScreen = {
     window.addEventListener('home', this.hide.bind(this));
     window.addEventListener('holdhome', this.hide.bind(this));
     window.addEventListener('appwillopen', this.appOpenHandler.bind(this));
+    window.addEventListener('launchapp', this.appLaunchHandler.bind(this));
     window.addEventListener('emergencyalert', this.hide.bind(this));
 
-    window.addEventListener('will-unlock', this.screenUnlocked.bind(this));
+    window.addEventListener('appforeground',
+      this.appForegroundHandler.bind(this));
   },
 
   resize: function as_resize(evt) {
@@ -75,6 +77,12 @@ var AttentionScreen = {
     // If the user presses the home button we will still hide the attention
     // screen. But in the case of an app crash we'll keep it fully open
     if (!evt.detail.isHomescreen) {
+      this.hide();
+    }
+  },
+
+  appLaunchHandler: function as_appLaunchHandler(evt) {
+    if (!evt.detail.stayBackground) {
       this.hide();
     }
   },
@@ -138,7 +146,7 @@ var AttentionScreen = {
     // and we are in the status bar mode, expend to full screen mode.
     if (!this.isVisible()) {
       // Attention screen now only support default orientation.
-      screen.mozLockOrientation(ScreenLayout.defaultOrientation);
+      screen.mozLockOrientation(OrientationManager.defaultOrientation);
 
       this.attentionScreen.classList.add('displayed');
       this.mainScreen.classList.add('attention');
@@ -228,11 +236,6 @@ var AttentionScreen = {
         { origin: this.attentionScreen.lastElementChild.dataset.frameOrigin });
     }
 
-    // Restore the orientation of current displayed app
-    var currentApp = WindowManager.getDisplayedApp();
-    if (currentApp)
-      WindowManager.setOrientationForApp(currentApp);
-
     this.attentionScreen.classList.remove('displayed');
     this.mainScreen.classList.remove('attention');
     this.dispatchEvent('attentionscreenhide', { origin: origin });
@@ -241,7 +244,7 @@ var AttentionScreen = {
   // expend the attention screen overlay to full screen
   show: function as_show() {
     // Attention screen now only support default orientation.
-    screen.mozLockOrientation(ScreenLayout.defaultOrientation);
+    screen.mozLockOrientation(OrientationManager.defaultOrientation);
 
     delete this.attentionScreen.lastElementChild.dataset.appRequestedSmallSize;
 
@@ -268,12 +271,6 @@ var AttentionScreen = {
   hide: function as_hide() {
     if (!this.isFullyVisible())
       return;
-
-    // Restore the orientation of current displayed app
-    var currentApp = WindowManager.getDisplayedApp();
-
-    if (currentApp)
-      WindowManager.setOrientationForApp(currentApp);
 
     // entering "active-statusbar" mode,
     // with a transform: translateY() slide up transition.
@@ -322,11 +319,11 @@ var AttentionScreen = {
     }
   },
 
-  screenUnlocked: function as_screenUnlocked() {
+  appForegroundHandler: function as_appForegroundHandler(evt) {
     // If the app behind the soon-to-be-unlocked lockscreen has an
     // attention screen we should display it
-    var app = WindowManager.getCurrentDisplayedApp();
-    app && this.showForOrigin(app.origin);
+    var app = evt.detail;
+    this.showForOrigin(app.origin);
   },
 
   getAttentionScreenOrigins: function as_getAttentionScreenOrigins() {

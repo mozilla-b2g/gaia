@@ -15,7 +15,7 @@
     "device-storage:pictures":{ "access": "readonly" },
     "device-storage:music":{ "access": "readonly" },
     "device-storage:videos":{ "access": "readonly" },
-    "device-storage:sdcard":{ "access": "readonly" },
+    "device-storage:sdcard":{ "access": "readwrite" },
     "device-storage:apps":{ "access": "readonly" },
     "webapps-manage":{},
     "open-remote-window":{},
@@ -29,7 +29,9 @@
     "power":{},
     "idle":{},
     "telephony":{},
-    "audio-channel-notification":{}
+    "audio-channel-notification":{},
+    "downloads":{},
+    "nfc":{ "access": "readonly" }
   },
   "activities": {
     "configure": {
@@ -61,6 +63,12 @@
     "zh-TW": {
       "name": "設定",
       "description": "Gaia 設定"
+    }
+  },
+  "datastores-access": {
+    "download_store": {
+      "readonly": false,
+      "description": "Stores download finished"
     }
   },
   "default_locale": "en-US",

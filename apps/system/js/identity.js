@@ -46,6 +46,7 @@ var Identity = (function() {
           frame.classList.add('screen');
           frame.src = personaUri +
             (e.detail.showUI ? kIdentityScreen : kIdentityFrame);
+          frame.dataset.url = frame.src;
           frame.addEventListener('mozbrowserloadstart',
               function loadStart(evt) {
             // After creating the new frame containing the identity flow, we

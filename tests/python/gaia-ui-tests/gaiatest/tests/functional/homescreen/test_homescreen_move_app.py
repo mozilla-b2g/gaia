@@ -12,7 +12,7 @@ class TestMoveApp(GaiaTestCase):
         GaiaTestCase.setUp(self)
 
         self.homescreen = Homescreen(self.marionette)
-        self.homescreen.switch_to_homescreen_frame()
+        self.apps.switch_to_displayed_app()
 
     def test_move_app_position(self):
         """
@@ -33,8 +33,7 @@ class TestMoveApp(GaiaTestCase):
         self.homescreen.move_app_to_position(0, 12)
 
         # Exit edit mode
-        self.homescreen.touch_home_button()
-        self.homescreen.switch_to_homescreen_frame()
+        self.device.touch_home_button()
         self.assertFalse(self.homescreen.is_edit_mode_active, "Edit mode should not be active")
 
         # Check the app order and that the app on position 12 is the right one

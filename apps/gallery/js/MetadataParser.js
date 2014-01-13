@@ -10,11 +10,18 @@
 var metadataParser = (function() {
   // If we generate our own thumbnails, aim for this size.
   // Calculate needed size from longer side of the screen.
-  var THUMBNAIL_WIDTH = Math.round(
-                          Math.max(window.innerWidth, window.innerHeight) *
-                            window.devicePixelRatio / 4);
+  var THUMBNAIL_WIDTH = computeThumbnailWidth();
   var THUMBNAIL_HEIGHT = THUMBNAIL_WIDTH;
-
+  function computeThumbnailWidth() {
+    // Make sure this works regardless of current device orientation
+    var portraitWidth = Math.min(window.innerWidth, window.innerHeight);
+    var landscapeWidth = Math.max(window.innerWidth, window.innerHeight);
+    var thumbnailsPerRowPortrait = isPhone ? 3 : 4;
+    var thumbnailsPerRowLandscape = isPhone ? 4 : 6;
+    return Math.round(window.devicePixelRatio *
+             Math.max(portraitWidth / thumbnailsPerRowPortrait,
+                      landscapeWidth / thumbnailsPerRowLandscape));
+  }
   // Don't try to decode image files of unknown type if bigger than this
   var MAX_UNKNOWN_IMAGE_FILE_SIZE = .5 * 1024 * 1024; // half a megabyte
 
@@ -35,9 +42,9 @@ var metadataParser = (function() {
   {
     // Create a thumbnail image
     var canvas = document.createElement('canvas');
-    var context = canvas.getContext('2d');
     canvas.width = THUMBNAIL_WIDTH;
     canvas.height = THUMBNAIL_HEIGHT;
+    var context = canvas.getContext('2d');
     var eltwidth = elt.width;
     var eltheight = elt.height;
     var scalex = canvas.width / eltwidth;

@@ -5,6 +5,7 @@ requireLib('store/busytime.js');
 requireLib('store/alarm.js');
 
 suite('store/busytime', function() {
+  this.timeout(20000);
 
   var app;
   var subject;

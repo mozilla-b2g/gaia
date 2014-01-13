@@ -65,8 +65,7 @@ marionette('email notifications, click', function() {
     app.launch();
   });
 
-  test('show message_reader for 1 message notification',
-  function() {
+  test('show message_reader for 1 message notification', function() {
     configureAndSend(1);
 
     sync.triggerSync();
@@ -83,7 +82,7 @@ marionette('email notifications, click', function() {
     app.waitForMessageReader();
   });
 
-  test('show message_list for multiple message notification',
+  test.skip('show message_list for multiple message notification',
   function() {
     configureAndSend(2);
 

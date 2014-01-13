@@ -7,6 +7,7 @@ import re
 from marionette.by import By
 
 from gaiatest import GaiaTestCase
+from gaiatest.apps.keyboard.app import Keyboard
 
 
 class TestFtu(GaiaTestCase):
@@ -134,6 +135,9 @@ class TestFtu(GaiaTestCase):
             self.wait_for_element_displayed(*self._password_input_locator)
             password = self.marionette.find_element(*self._password_input_locator)
             password.send_keys(self.testvars['wifi'].get('psk') or self.testvars['wifi'].get('wep'))
+
+            # Wait for Keyboard app init and be displayed
+            self.wait_for_condition(lambda m: Keyboard(self.marionette).is_displayed())
             self.marionette.find_element(*self._join_network_locator).tap()
 
         self.wait_for_condition(
@@ -145,7 +149,7 @@ class TestFtu(GaiaTestCase):
                         "WiFi was not connected via FTU app")
 
         # is_wifi_connected() calls switch_to_frame()
-        self.marionette.switch_to_frame(self.app.frame)
+        self.apps.switch_to_displayed_app()
 
         # Tap next
         self.marionette.find_element(*self._next_button_locator).tap()
@@ -198,7 +202,7 @@ class TestFtu(GaiaTestCase):
         self.assertEqual(len(self.data_layer.all_contacts), import_sim_count)
 
         # all_contacts switches to top frame; Marionette needs to be switched back to ftu
-        self.marionette.switch_to_frame(self.app.frame)
+        self.apps.switch_to_displayed_app()
 
         # Tap next
         self.marionette.find_element(*self._next_button_locator).tap()
@@ -250,4 +254,4 @@ class TestFtu(GaiaTestCase):
         self.wait_for_element_not_displayed(*_close_button_locator)
 
         # now back to app
-        self.marionette.switch_to_frame(self.apps.displayed_app.frame)
+        self.apps.switch_to_displayed_app()

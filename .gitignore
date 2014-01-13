@@ -10,6 +10,7 @@ manifest.appcache
 /apps/camera/js/config.js
 /apps/gallery/js/config.js
 /apps/homescreen/js/init.json
+/apps/homescreen/everything.me/config/local.json
 /apps/costcontrol/js/config.json
 /apps/sms/js/blacklist.json
 /test_apps/test-agent/test/config.json
@@ -48,9 +49,9 @@ manifest.appcache
 /tools/test-agent/node_modules
 /test-output.xml
 /mocha-test-results.html
-/build/custom-extensions.json
-/build/custom-prefs.js
-/build/custom-settings.json
+/build/config/custom-extensions.json
+/build/config/custom-prefs.js
+/build/config/custom-settings.json
 /build_stage/
 /local.mk
 /.b2g.mk
@@ -71,7 +72,3 @@ manifest.appcache
 /test_external_apps/*/test/unit/_sandbox.html
 /test_external_apps/*/test/unit/_proxy.html
 apps/*, external-apps/* & GAIA_DISTRIBUTION_DIR
-
-/build/config.js
-/apps/keyboard/js/imes/latin/dictionaries/*.dict
-/apps/keyboard/js/layouts/*.js

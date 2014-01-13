@@ -4,7 +4,6 @@ var StackManager = {
   init: function sm_init() {
     window.addEventListener('appcreated', this);
     window.addEventListener('launchapp', this);
-    window.addEventListener('launchwrapper', this);
     window.addEventListener('appterminated', this);
     window.addEventListener('home', this);
   },
@@ -21,21 +20,25 @@ var StackManager = {
 
   goPrev: function sm_goPrev() {
     var newApp = this.getPrev();
-    if (!newApp) {
+    var oldApp = this.getCurrent();
+    if (!newApp || !oldApp) {
       return;
     }
 
-    WindowManager.setActiveApp(newApp);
+    newApp.broadcast('swipein');
+    oldApp.broadcast('swipeout');
     this._current--;
   },
 
   goNext: function sm_goNext() {
     var newApp = this.getNext();
-    if (!newApp) {
+    var oldApp = this.getCurrent();
+    if (!newApp || !oldApp) {
       return;
     }
 
-    WindowManager.setActiveApp(newApp);
+    newApp.broadcast('swipein');
+    oldApp.broadcast('swipeout');
     this._current++;
   },
 
@@ -53,13 +56,15 @@ var StackManager = {
         if (app.stayBackground) {
           this._insertBelow(app);
         } else {
+          this._moveToTop(this._current);
           this._insertOnTop(app);
         }
         break;
       case 'launchapp':
-      case 'launchwrapper':
         var config = e.detail;
         if (!config.stayBackground) {
+          this._moveToTop(this._current);
+
           var idx = this._indexOfURL(config.url);
           if (idx !== undefined) {
             this._moveToTop(idx);
@@ -67,9 +72,7 @@ var StackManager = {
         }
         break;
       case 'home':
-        if (this._stack.length > 1) {
-          this._moveToTop(this._current);
-        }
+        this._moveToTop(this._current);
         break;
       case 'appterminated':
         var manifestURL = e.detail.manifestURL;
@@ -92,6 +95,10 @@ var StackManager = {
   },
 
   _moveToTop: function sm_moveToTop(index) {
+    if (index >= this._stack.length) {
+      return;
+    }
+
     var sheet = this._stack.splice(index, 1)[0];
     this._current = this._stack.push(sheet) - 1;
   },

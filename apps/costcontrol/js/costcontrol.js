@@ -58,7 +58,7 @@ var CostControl = (function() {
     }
 
     if ('mozNetworkStats' in window.navigator) {
-      statistics = NetworkstatsProxy;
+      statistics = window.navigator.mozNetworkStats;
     }
 
     debug('APIs loaded!');
@@ -206,13 +206,12 @@ var CostControl = (function() {
       return 'no_service';
     }
 
-    var data = connection.data;
-    if (!data.network.shortName && !data.network.longName) {
+    var voice = connection.voice;
+    if (!voice.connected) {
       return 'no_service';
     }
 
-    var voice = connection.voice;
-    if (voice.signalStrength === null) {
+    if (voice.relSignalStrength === null) {
       return 'no_coverage';
     }
 
@@ -365,15 +364,16 @@ var CostControl = (function() {
   function requestDataStatistics(configuration, settings, callback, result) {
     debug('Statistics out of date. Requesting fresh data...');
 
-    var maxAge = statistics.sampleRate * 1000 * statistics.maxStorageSamples;
+    var maxAge = 1000 * statistics.maxStorageAge;
     var minimumStart = new Date(Date.now() - maxAge);
     debug('The max age for samples is ' + minimumStart);
 
-    // If settings.lastDataReset is not set let's use the past week. This is
-    // only for not breaking dogfooders build and this can be remove at some
-    // point in the future (and since this sentence has been said multiple times
-    // this code will probably stay here for a while).
-    var start = new Date(settings.lastDataReset || Date.now() - 7 * DAY);
+    // If settings.lastCompleteDataReset is not set let's use the past week.
+    // This is only for not breaking dogfooders build and this can be remove at
+    // some point in the future (and since this sentence has been said multiple
+    // times this code will probably stay here for a while).
+    var start = new Date(settings.lastCompleteDataReset ||
+                         Date.now() - 7 * DAY);
     if (start < minimumStart) {
       console.warn('Start date is surpassing the maximum age for the ' +
                    'samples. Setting to ' + minimumStart);
@@ -396,68 +396,77 @@ var CostControl = (function() {
       end = new Date(start.getTime() + DAY);
     }
 
-    asyncStorage.getItem('dataUsageTags', function _onTags(tags) {
-      asyncStorage.getItem('wifiFixing', function _onFixing(wifiFixing) {
+    var wifiInterface = Common.getWifiInterface();
+    var currentSimcardNetwork = Common.getDataSIMInterface();
 
-        // Request Wi-Fi
-        var wifiRequest = statistics.getNetworkStats({
-          start: start,
-          end: end,
-          connectionType: 'wifi'
-        });
+    var simRequest, wifiRequest;
+    var pendingRequests = 0;
 
-        wifiRequest.onsuccess = function _onWifiData() {
+    function checkForCompletion() {
+      pendingRequests--;
+      if (pendingRequests === 0) {
+        updateDataUsage();
+      }
+    };
 
-          // Request Mobile
-          var mobileRequest = statistics.getNetworkStats({
-            start: start,
-            end: end,
-            connectionType: 'mobile'
-          });
+    function updateDataUsage() {
+      var fakeEmptyResult = {data: []};
+      var wifiData = adaptData(wifiRequest ? wifiRequest.result :
+                                             fakeEmptyResult);
+      var mobileData = adaptData(simRequest ? simRequest.result :
+                                              fakeEmptyResult);
 
-          // Finally, store the result and continue
-          mobileRequest.onsuccess = function _onMobileData() {
-            var fakeTag = {
-              sim: IccHelper.iccInfo.iccid,
-              start: settings.lastDataReset,
-              fixing: [[settings.lastDataReset, wifiFixing || 0]]
-            };
-            var wifiData = adaptData(wifiRequest.result, [fakeTag]);
-            var mobileData = adaptData(mobileRequest.result, tags);
-            var lastDataUsage = {
-              timestamp: new Date(),
-              start: start,
-              end: end,
-              today: today,
-              wifi: {
-                total: wifiData[1]
-              },
-              mobile: {
-                total: mobileData[1]
-              }
-            };
-            ConfigManager.setOption({ 'lastDataUsage': lastDataUsage },
-              function _onSetItem() {
-                debug('Statistics up to date and stored.');
-              }
-            );
-            // XXX: Enrich with the samples because I can not store them
-            lastDataUsage.wifi.samples = wifiData[0];
-            lastDataUsage.mobile.samples = mobileData[0];
-            result.status = 'success';
-            result.data = lastDataUsage;
-            debug('Returning up to date statistics.');
-            if (callback) {
-              callback(result);
-            }
-          };
-        };
-      });
-    });
+      var lastDataUsage = {
+        timestamp: new Date(),
+        start: start,
+        end: end,
+        today: today,
+        wifi: {
+          total: wifiData[1]
+        },
+        mobile: {
+          total: mobileData[1]
+        }
+      };
+
+      ConfigManager.setOption({ 'lastDataUsage': lastDataUsage },
+        function _onSetItem() {
+          debug('Statistics up to date and stored.');
+        }
+      );
+
+      // XXX: Enrich with the samples because I can not store them
+      lastDataUsage.wifi.samples = wifiData[0];
+      lastDataUsage.mobile.samples = mobileData[0];
+      result.status = 'success';
+      result.data = lastDataUsage;
+      debug('Returning up to date statistics.');
+      if (callback) {
+        callback(result);
+      }
+    }
+
+    //Recover current Simcard info
+    if (currentSimcardNetwork) {
+      pendingRequests++;
+      simRequest = statistics.getSamples(currentSimcardNetwork, start, end);
+      simRequest.onsuccess = checkForCompletion;
+    }
+
+    if (wifiInterface) {
+      pendingRequests++;
+      wifiRequest = statistics.getSamples(wifiInterface, start, end);
+      wifiRequest.onsuccess = checkForCompletion;
+    }
+
+    if (pendingRequests === 0) {
+      updateDataUsage();
+    }
+
   }
 
   // Transform data usage to the model accepted by the render
-  function adaptData(networkStatsResult, tags) {
+  function adaptData(networkStatsResult) {
     var data = networkStatsResult.data;
     var output = [];
     var totalData, accum = 0;
@@ -475,19 +484,10 @@ var CostControl = (function() {
         totalData += item.txBytes;
       }
 
-      var usage = totalData;
-      if (tags) {
-        usage = MindGap.getUsage(tags, totalData, item.date);
-      }
-
-      if (usage === undefined) {
-        continue;
-      }
-
-      accum += usage;
+      accum += totalData;
 
       output.push({
-        value: usage,
+        value: totalData,
         date: item.date
       });
     }

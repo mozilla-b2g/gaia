@@ -5,9 +5,12 @@ var LCDTest = {
     delete this.fullScreenDiv;
     return this.fullScreenDiv = document.getElementById('fullscreen-div');
   },
+  firstTimeHint: null,
   init: function() {
     document.body.addEventListener('click', this);
-    this.fullscreenDiv.addEventListener('click', this.exitFullscreen.bind(this));
+    this.fullscreenDiv.addEventListener('click',
+                                         this.exitFullscreen.bind(this));
+    this.firstTimeHint = true;
   },
   enterFullscreen: function(color) {
     this.fullscreenDiv.mozRequestFullScreen();
@@ -18,6 +21,10 @@ var LCDTest = {
     this.fullscreenDiv.classList.remove('white');
     this.fullscreenDiv.classList.remove('black');
     this.fullscreenDiv.classList.add(color);
+    if (this.firstTimeHint) {
+      this.firstTimeHint = false;
+      alert('Tap screen again to exit fullscreen mode');
+    }
   },
   exitFullscreen: function() {
     document.mozCancelFullScreen();
@@ -48,10 +55,11 @@ var LCDTest = {
         this.enterFullscreen('black');
         break;
       case 'off':
-        // We are going to shutdown the screen, this may lead to the sleep of CPU.
-        // Use wake lock to prevent from sleeping which cause setTimeout stop working.
+        // We are going to shutdown the screen, this may lead to
+        // the sleep of CPU. Use wake lock to prevent from sleeping
+        // which cause setTimeout stop working.
         this.wakeLock = window.navigator.requestWakeLock('screen');
-        
+
         setTimeout(this.turnOn.bind(this), 3000);
         navigator.mozPower.screenEnabled = false;
         break;

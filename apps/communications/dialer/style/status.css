@@ -3,14 +3,11 @@
  * ---------------------------------- */
 #statusMsg {
   position: fixed;
-  bottom: 15.5rem;
-  height: 4rem ;
-  pointer-events: none;
+  bottom: 14rem;
   opacity: 0;
 }
 
 #statusMsg.visible {
-  z-index: 1001;
   opacity: 1;
   transition: opacity .5s ease;
 }

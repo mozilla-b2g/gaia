@@ -14,8 +14,8 @@ suite('StoreProvisioning >', function() {
   suiteSetup(function() {
     realSettings = navigator.mozSettings;
     navigator.mozSettings = MockNavigatorSettings;
-    MockNavigatorSettings.mSettings['operatorvariant.mcc'] = '214';
-    MockNavigatorSettings.mSettings['operatorvariant.mnc'] = '07';
+    MockNavigatorSettings.mSettings['operatorvariant.mcc'] = ['214', '000'];
+    MockNavigatorSettings.mSettings['operatorvariant.mnc'] = ['07', '00'];
   });
 
   suiteTeardown(function() {

@@ -77,6 +77,10 @@ define(function() {
   }
 
   function handleMotionEvent(e) {
+    if (!e.accelerationIncludingGravity) {
+      return;
+    }
+
     var filterReset = applyFilter(e.accelerationIncludingGravity.x,
                                   e.accelerationIncludingGravity.y,
                                   e.accelerationIncludingGravity.z);

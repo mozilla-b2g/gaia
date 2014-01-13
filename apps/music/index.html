@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
     <meta charset="utf-8" />
     <title>Music</title>
     <!-- Include shared building blocks -->
@@ -63,9 +64,7 @@
       </div>
       <div id="views-sublist" class="view hidden">
         <div id="views-sublist-header">
-          <div id="views-sublist-header-default">
-            <img id="views-sublist-header-image" />
-          </div>
+          <div id="views-sublist-header-image"></div>
           <div id="views-sublist-header-controls">
             <div id="views-sublist-header-name">Name</div>
             <button id="views-sublist-controls-play" class="album-controls-button"></button>
@@ -76,7 +75,7 @@
       </div>
       <div id="views-player" class="view hidden">
         <div id="player-cover">
-          <img id="player-cover-image" />
+          <div id="player-cover-image"></div>
           <div id="player-cover-caption">
             <div id="player-cover-artist" data-l10n-id="songArtist">Song Artist</div>
             <div id="player-cover-album" data-l10n-id="songAlbum">Song Album</div>
@@ -137,7 +136,7 @@
     </div>
     <!-- BB tabs -->
     <div id="tabs">
-      <ul role="tablist" data-items="5" class="bottom">
+      <ul role="tablist" class="skin-dark">
         <li id="mix" role="tab">
           <a href="#mix" id="tabs-mix" data-option="mix" class="icon">mix</a>
         </li>

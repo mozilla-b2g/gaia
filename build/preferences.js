@@ -9,7 +9,7 @@ function debug(msg) {
 }
 
 function execute(options) {
-  config = options
+  config = options;
   var gaia = utils.getGaia(config);
   const prefs = [];
 
@@ -29,7 +29,7 @@ function execute(options) {
   });
 
   prefs.push(['network.http.max-connections-per-server', 15]);
-  prefs.push(["dom.mozInputMethod.enabled", true]);
+  prefs.push(['dom.mozInputMethod.enabled', true]);
 
   // for https://bugzilla.mozilla.org/show_bug.cgi?id=811605 to let user know
   //what prefs is for ril debugging
@@ -38,7 +38,10 @@ function execute(options) {
   // TODO: remove this override after having vCard/vCalendar implemented in Gaia.
   // @see bug 885683 - [Messages] MMS doesn't support sending and receiving vCard attachments.
   // @see bug 905548 - [Messages] MMS doesn't support sending and receiving vCalendar attachments.
-  prefs.push(["dom.mms.version", 0x11]);
+  prefs.push(['dom.mms.version', 0x11]);
+  // TODO: Once platform enabled unsafe WPA-EAP, we have to remove this flag here.
+  // @see Bug 790056 - Enable WPA Enterprise
+  prefs.push(['b2g.wifi.allow_unsafe_wpa_eap', true]);
 
   if (config.LOCAL_DOMAINS) {
     prefs.push(['network.dns.localDomains', domains.join(',')]);
@@ -78,6 +81,9 @@ function execute(options) {
     prefs.push(['device.storage.enabled', true]);
     prefs.push(['device.storage.prompt.testing', true]);
     prefs.push(['notification.feature.enabled', true]);
+    prefs.push(['dom.datastore.enabled', true]);
+    prefs.push(['dom.testing.datastore_enabled_for_hosted_apps', true]);
+    prefs.push(['dom.inter-app-communication-api.enabled', true]);
 
     // WebSettings
     prefs.push(['dom.mozSettings.enabled', true]);
@@ -109,6 +115,7 @@ function execute(options) {
   }
 
   if (config.DEBUG) {
+    prefs.push(['docshell.device_size_is_page_size', true]);
     prefs.push(['marionette.defaultPrefs.enabled', true]);
 
     prefs.push(['nglayout.debug.disable_xul_cache', true]);
@@ -142,6 +149,10 @@ function execute(options) {
     prefs.push(['extensions.gaia.locales_debug_path',
       config.GAIA_LOCALES_PATH]);
     prefs.push(['extensions.gaia.official', Boolean(config.OFFICIAL)]);
+    prefs.push(['extensions.gaia.locales_file', config.LOCALES_FILE]);
+    // Bug 952901: remove getLocaleBasedir() if bug 952900 fixed.
+    prefs.push(['extensions.gaia.locale_basedir',
+      utils.getLocaleBasedir(config.LOCALE_BASEDIR)]);
 
     let suffix = config.GAIA_DEV_PIXELS_PER_PX === '1' ?
                  '' : '@' + config.GAIA_DEV_PIXELS_PER_PX + 'x';

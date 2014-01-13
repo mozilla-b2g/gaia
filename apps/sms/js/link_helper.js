@@ -40,6 +40,7 @@ var KNOWN_TLDS = [
 
 var ipv4part = '(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)';
 var ipv4RegExp = new RegExp('^(?:' + ipv4part + '\\.){3}' + ipv4part + '$');
+var leadingDigitsRegExp = /^[+0-9]+/;
 
 // ensure that each part of the domain is long enough
 function checkDomain(domain) {
@@ -60,6 +61,7 @@ function checkDomain(domain) {
 var safeStart = /[\s,:;\(>]/;
 
 const MINIMUM_DIGITS_IN_PHONE_NUMBER = 5;
+const LEADING_DIGIT_BREAKPOINT = 7;
 
 /**
  * For each category of links:
@@ -91,6 +93,12 @@ var LINK_TYPES = {
       if (onlyDigits.length === MINIMUM_DIGITS_IN_PHONE_NUMBER &&
         phone.length !== onlyDigits.length) {
         return false;
+      }
+
+      var leadingDigits = leadingDigitsRegExp.exec(phone);
+      if (leadingDigits &&
+          leadingDigits[0].length >= LEADING_DIGIT_BREAKPOINT) {
+        link.end = link.start + leadingDigits[0].length;
       }
       return link;
     },
@@ -215,6 +223,7 @@ function searchForLinks(type, string) {
 
     if (linkSpec) {
       linkSpecs.push(linkSpec);
+      regexp.lastIndex = linkSpec.end;
     }
   }
 

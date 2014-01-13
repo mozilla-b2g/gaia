@@ -49,6 +49,10 @@ p.facebook.removed input {
   border: none;
 }
 
+#settingsFb li p {
+  margin-left: 0;
+}
+
 #settings-article[data-state="fb-disabled"] #settingsFb,
 #settings-article[data-state="fb-disabled"] #fb-header  {
   display: none;

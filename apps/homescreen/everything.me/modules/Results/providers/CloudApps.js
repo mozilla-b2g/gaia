@@ -19,7 +19,8 @@ Evme.CloudAppResult = function Evme_CloudAppsResult(query) {
       renderIcon(this.src);
     } else {
       Evme.Utils.getRoundIcon({
-        'src': this.src
+        'src': this.src,
+        'size': this.width
       }, renderIcon);
     }
 
@@ -33,11 +34,20 @@ Evme.CloudAppResult = function Evme_CloudAppsResult(query) {
       self.cfg.icon = roundedIcon;
 
       fixedImage.onload = function onImageLoad() {
-        var width = this.width,
-            height = this.height,
+        var osIconSize = Evme.Utils.getOSIconSize(),
+            width = osIconSize,
+            height = osIconSize,
             padding = Evme.Utils.OS_ICON_PADDING,
             canvas = self.initIcon(height + padding),
-            context = canvas.getContext('2d');
+            context = canvas.getContext('2d'),
+            canvasHeight = canvas.height,
+            canvasWidth = canvas.width,
+            SHADOW_SIZE = (SHADOW_OFFSET + SHADOW_BLUR);
+
+        // account for shadow - pad the canvas from the bottom,
+        // and move the name back up
+        canvas.height += SHADOW_SIZE;
+        self.elIcon.style.cssText += 'margin-bottom: ' + -SHADOW_SIZE + 'px;';
 
         // shadow
         context.shadowOffsetX = 0;
@@ -45,7 +55,7 @@ Evme.CloudAppResult = function Evme_CloudAppsResult(query) {
         context.shadowBlur = SHADOW_BLUR;
         context.shadowColor = 'rgba(0, 0, 0, 0.6)';
         context.drawImage(fixedImage,
-                          (canvas.width - width + padding) / 2, padding,
+                          (canvasWidth - width + padding) / 2, padding,
                           width - padding, height - padding);
 
         self.finalizeIcon(canvas);
@@ -57,13 +67,21 @@ Evme.CloudAppResult = function Evme_CloudAppsResult(query) {
 
   // @override
   this.launch = function launchCloudApp() {
-    EvmeManager.openCloudApp({
-      'url': self.cfg.appUrl,
-      'originUrl': self.getFavLink(),
-      'title': self.cfg.name,
+    // first resize the icon to the OS size
+    // this includes a 2px padding around the icon
+    Evme.Utils.padIconForOS({
       'icon': self.cfg.icon,
-      'urlTitle': query,
-      'useAsyncPanZoom': self.cfg.isWeblink
+      'resize': true,
+      'callback': function onIconResized(icon) {
+        EvmeManager.openCloudApp({
+          'url': self.cfg.appUrl,
+          'originUrl': self.getFavLink(),
+          'title': self.cfg.name,
+          'icon': icon,
+          'urlTitle': query,
+          'useAsyncPanZoom': self.cfg.isWeblink
+        });
+      }
     });
   };
 };

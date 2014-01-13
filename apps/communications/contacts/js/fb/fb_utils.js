@@ -74,9 +74,9 @@ window.fb = fb;
 
       window.setTimeout(function get_mozContact_ByUid() {
         fb.getMozContactByUid(uid,
-          function onsuccess(e) {
-            if (e.target.result && e.target.result.length > 0) {
-              outReq.done(e.target.result[0]);
+          function onsuccess(result) {
+            if (Array.isArray(result) && result.length > 0) {
+              outReq.done(result[0]);
             } else {
               outReq.done(null);
             }
@@ -96,15 +96,15 @@ window.fb = fb;
 
       window.setTimeout(function get_mozContact_ByUid() {
         fb.getMozContactByUid(uid,
-          function onsuccess(e) {
-            if (e.target.result && e.target.result.length > 0) {
-              outReq.done(e.target.result.length);
+          function onsuccess(result) {
+            if (Array.isArray(result)) {
+              outReq.done(result.length);
             } else {
               outReq.done(0);
             }
           },
           function onerror(e) {
-            outReq.failed(e.target.error);
+            outReq.failed(error);
           }
         );
       },0);
@@ -463,6 +463,15 @@ window.fb = fb;
         }
       }
 
+      function finishHandler() {
+        // It is needed to flush in order to properly update the index
+        var req = fb.contacts.flush();
+        req.onsuccess = notifySuccess;
+        req.onerror = function cleaner_flushError() {
+          errorHandler(null, req.error);
+        };
+      }
+
       function continueCb() {
         next++;
         numResponses++;
@@ -472,7 +481,7 @@ window.fb = fb;
             cleanContacts(next);
           }
           else if (mustFinish && !holded) {
-            notifySuccess();
+            finishHandler();
           }
 
           if (mustHold) {
@@ -481,7 +490,7 @@ window.fb = fb;
         }
         else if (next >= total) {
           // End has been reached
-          notifySuccess();
+          finishHandler();
         }
       } // function
     }; // FbContactsCleaner

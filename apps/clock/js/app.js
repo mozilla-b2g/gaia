@@ -24,7 +24,6 @@ var App = {
    */
   init: function() {
     this.tabs = new Tabs(document.getElementById('clock-tabs'));
-    this.tabs.on('selected', this.navigate.bind(this));
 
     window.addEventListener('hashchange', this);
     window.addEventListener('localized', this);

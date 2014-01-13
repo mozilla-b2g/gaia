@@ -3,7 +3,7 @@
 
     <header>
       <a href="#root"><span class="icon icon-back">back</span></a>
-      <h1 data-l10n-id="callSettings"> Call Settings </h1>
+      <h1 data-l10n-id="callSettings-header"> Call Settings </h1>
     </header>
 
     <div>
@@ -48,10 +48,8 @@
       </header>
       <ul>
         <li id="fdnSettingsBlocked" class="description" hidden>
-          <p>
-            <span data-l10n-id="fdn-enabled-warning">
-              Call forwarding is disabled by FDN.
-            </span>
+          <p data-l10n-id="fdn-enabled-warning">
+            Call forwarding is disabled by FDN.
           </p>
         </li>
         <li id="li-cfu-desc" aria-disabled="true">
@@ -104,6 +102,7 @@
       </menu>
     </form>
 
+    <script src="shared/js/settings_helper.js"></script>
     <script src="js/call.js"></script>
 
   </template>

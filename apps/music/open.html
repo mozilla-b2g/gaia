@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
     <meta charset="utf-8" />
     <title>Music</title>
     <link rel="stylesheet" href="style/music.css" type="text/css" />
@@ -36,12 +37,12 @@
     <div id="views">
       <div id="views-player" class="view open-mode">
         <div id="player-cover">
-          <img id="player-cover-image" />
+          <div id="player-cover-image"></div>
           <div id="player-cover-caption">
             <div id="player-cover-artist" data-l10n-id="songArtist">Song Artist</div>
             <div id="player-cover-album" data-l10n-id="songAlbum">Song Album</div>
           </div>
-          <div id="player-cover-buttons">
+          <div id="player-cover-buttons" hidden>
             <button id="player-album-repeat" class="player-cover-button repeat-list" disabled></button>
             <div id="player-album-rating">
               <button class="rating-star" data-rating="1" disabled></button>

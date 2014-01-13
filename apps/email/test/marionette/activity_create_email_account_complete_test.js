@@ -30,7 +30,12 @@ marionette('activity create email account', function() {
   });
 
 
-  test('should complete activity after creating account', function() {
+  /**
+   * XXX: Bug 907013 changes the DOM structure of window.confirm,
+   * and this is causing problems in finding out the confirm dialog
+   * as well as tapping the ok button.
+   */
+  test.skip('should complete activity after creating account', function() {
 
     client.waitFor(function() {
       return client.executeScript(function() {

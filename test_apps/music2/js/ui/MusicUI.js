@@ -21,7 +21,10 @@ function MusicUI() {
 
   this._setupViewRoutes();
 
-  this.currentView = null;
+  // Set the default hash to mix view because if there is no hashchange event,
+  // the mix view won't apply the css role for showing and hiding.
+  window.location.hash = '#select-mix';
+  this.currentView = this.viewTable[window.location.hash];
 
   this.dom.titleBack.classList.add('hidden');
   this.dom.titleBack.onclick = (function() {

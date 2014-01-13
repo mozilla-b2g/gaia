@@ -196,17 +196,36 @@ if (!this.AuxFB) {
     }
 
     /**
-     *  Returns the FB Contact by tel number
+     *  Returns a FB Contact (enriched with FB info) which has the tel number
      *
      */
     function getContactByNumber(number, onsuccess, onerror) {
       var req = fb.contacts.getByPhone(number);
 
-      req.onsuccess = function(e) {
-        onsuccess(e.target.result);
+      req.onsuccess = function get_by_phone_success(e) {
+        var fbData = req.result;
+        if (fbData) {
+          fb.getMozContactByUid(fbData.uid, function merge(result) {
+            if (Array.isArray(result) && result[0]) {
+              var finalContact = fb.mergeContact(result[0], fbData);
+              onsuccess(finalContact);
+            }
+            else {
+              onsuccess(null);
+            }
+          }, function error_get_mozContact(err) {
+              console.error('Error getting mozContact: ', err.name);
+              onerror(err);
+          });
+        }
+        else {
+          onsuccess(null);
+        }
       };
 
-      req.onerror = onerror;
+      req.onerror = function() {
+        onerror(req.error);
+      };
     }
 
     // Checks whether there is a duplicate for the field value
@@ -254,8 +273,12 @@ if (!this.AuxFB) {
       };
 
       var req = navigator.mozContacts.find(filter);
-      req.onsuccess = onsuccess;
-      req.onerror = onerror;
+      req.onsuccess = function() {
+        onsuccess(req.result);
+      };
+      req.onerror = function() {
+        onerror(req.error);
+      };
     }
 
     return {

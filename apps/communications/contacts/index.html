@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
     <meta charset="utf-8">
     <title> Contacts </title>
 
@@ -60,6 +61,7 @@
     <link href="/shared/js/device_storage/get_unused_filename.js">
     <link href="/shared/js/fb/fb_request.js">
     <link href="/shared/js/fb/fb_data_reader.js">
+    <link href="/shared/js/setImmediate.js">
     -->
 
     <link rel="import" href="elements/confirm.html">
@@ -152,7 +154,7 @@
                   </label>
                 </p>
               </form>
-              <section id="groups-list" data-type="list">
+              <section id="groups-list" data-type="list" class="active">
                 <!-- Group template here -->
               </section>
             </div>

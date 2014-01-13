@@ -1,14 +1,15 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
   <meta charset="utf-8">
   <title>Keyboard Service</title>
   <!-- Shared code -->
   <script defer src="shared/js/l10n.js"></script>
 
-  <script type="text/javascript" src="js/layout.js"></script>
-  <script type="text/javascript" src="js/render.js"></script>
-  <script type="text/javascript" src="js/keyboard.js"></script>
+  <script defer type="text/javascript" src="js/layout.js"></script>
+  <script defer type="text/javascript" src="js/render.js"></script>
+  <script defer type="text/javascript" src="js/keyboard.js"></script>
 
   <!-- Localization -->
   <link rel="resource" type="application/l10n" href="locales/locales.ini">
@@ -17,7 +18,12 @@
   <link rel="stylesheet" type="text/css" href="style/keyboard.css" />
 </head>
 <body>
-  <div id="keyboard" class="hide" data-hidden="true"></div>
+  <div id="keyboard" data-hidden="true">
+    <span id="keyboard-accent-char-menu-out">
+      <span id="keyboard-accent-char-menu"></span>
+    </span>
+    <span id="keyboard-key-highlight"></span>
+  </div>
   <!-- This is to pre-load styles for keys avoiding flickering -->
   <div class="cache">
     <button class="keyboard-key"><span class="visual-wrapper"><span>C</span></span></button>

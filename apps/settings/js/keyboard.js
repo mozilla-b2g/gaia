@@ -37,7 +37,8 @@
  * and keyboard.enabled-layouts, and update the ObservableArrays.
  */
 var KeyboardContext = (function() {
-  var _layoutDict = null; // stores layout indexed by appOrigin and layoutId
+  // stores layout indexed by app manifestURL and layoutId
+  var _layoutDict = null;
 
   var _keyboards = ObservableArray([]);
   var _enabledLayouts = ObservableArray([]);
@@ -60,7 +61,7 @@ var KeyboardContext = (function() {
   };
 
   var Layout =
-    function(id, appName, appOrigin, name, description, types, enabled) {
+    function(id, appName, appManifestURL, name, description, types, enabled) {
       var _observable = Observable({
         id: id,
         appName: appName,
@@ -73,7 +74,7 @@ var KeyboardContext = (function() {
       // Layout enabled changed.
       _observable.observe('enabled', function(newValue, oldValue) {
         if (!_parsingApps) {
-          KeyboardHelper.setLayoutEnabled(appOrigin, id, newValue);
+          KeyboardHelper.setLayoutEnabled(appManifestURL, id, newValue);
           // only check the defaults if we disabled a checkbox
           if (!newValue) {
             KeyboardHelper.checkDefaults(notifyDefaultEnabled);
@@ -94,16 +95,16 @@ var KeyboardContext = (function() {
 
   function updateLayouts(layouts, reason) {
     function mapLayout(layout) {
-      var app = _layoutDict[layout.app.origin];
+      var app = _layoutDict[layout.app.manifestURL];
       if (!app) {
-        app = _layoutDict[layout.app.origin] = {};
+        app = _layoutDict[layout.app.manifestURL] = {};
       }
       if (app[layout.layoutId]) {
         app[layout.layoutId].enabled = layout.enabled;
         return app[layout.layoutId];
       }
       return app[layout.layoutId] = Layout(layout.layoutId,
-        layout.manifest.name, layout.app.origin, layout.inputManifest.name,
+        layout.manifest.name, layout.app.manifestURL, layout.inputManifest.name,
         layout.inputManifest.description, layout.inputManifest.types,
         layout.enabled);
     }
@@ -337,7 +338,7 @@ var InstalledLayoutsPanel = (function() {
   var _listViews = [];
 
   // A template function for generating an UI element for a layout object.
-  var _layoutTemplate = function ksa_layoutTemplate(layout, recycled) {
+  var _layoutTemplate = function ksa_layoutTemplate(layout, recycled, helper) {
     var container = null;
     var span, checkbox;
     if (recycled) {
@@ -363,42 +364,67 @@ var InstalledLayoutsPanel = (function() {
       layout.enabled = this.checked;
     };
 
-    var refreshName = function() {
-      span.textContent = layout.name;
-    };
-    var refreshCheckbox = function() {
-      checkbox.checked = layout.enabled;
-    };
-    refreshCheckbox();
-    refreshName();
-    layout.observe('name', refreshName);
-    layout.observe('enabled', refreshCheckbox);
+    helper.observeAndCall(layout, {
+      name: function refreshName() {
+        span.textContent = layout.name;
+      },
+      enabled: function() {
+        checkbox.checked = layout.enabled;
+      }
+    });
+
+    return container;
+  };
+
+  var _keyboardTemplate = function(keyboard, recycled, helper) {
+    var container, header, h2, ul, listView;
+    if (recycled) {
+      container = recycled;
+      h2 = container.querySelector('h2');
+      ul = container.querySelector('ul');
+    } else {
+      container = document.createElement('div');
+      header = document.createElement('header');
+      h2 = document.createElement('h2');
+      ul = document.createElement('ul');
+      header.appendChild(h2);
+      container.appendChild(header);
+      container.appendChild(ul);
+    }
+
+    // if we find a listView for the ul, reuse it, otherwise create one
+    listView = _listViews.some(function eachListView(list) {
+      if (list.element === ul) {
+        list.set(keyboard.layouts);
+        list.enabled = _panel.visible;
+        return true;
+      }
+    });
+
+    if (!listView) {
+      listView = ListView(ul, keyboard.layouts, _layoutTemplate);
+      listView.enabled = _panel.visible;
+      _listViews.push(listView);
+    }
+
+    helper.observeAndCall(keyboard, {
+      name: function refreshName() {
+        h2.textContent = keyboard.name;
+      }
+    });
 
     return container;
   };
 
   var _initInstalledLayoutListView = function() {
     KeyboardContext.keyboards(function(keyboards) {
-      var container = document.getElementById('keyboardAppContainer');
-      keyboards.forEach(function(keyboard) {
-        var header = document.createElement('header');
-        var h2 = document.createElement('h2');
-        var ul = document.createElement('ul');
-
-        var refreshName = function() {
-          h2.textContent = keyboard.name;
-        };
-        keyboard.observe('name', refreshName);
-        refreshName();
-
-        header.appendChild(h2);
-        container.appendChild(header);
-        container.appendChild(ul);
-        var listView = ListView(ul, keyboard.layouts,
-          _layoutTemplate);
-        listView.enabled = _panel.visible;
-        _listViews.push(listView);
-      });
+      var listView = ListView(
+        document.getElementById('keyboardAppContainer'),
+        keyboards,
+        _keyboardTemplate
+      );
+      listView.enabled = _panel.visible;
+      _listViews.push(listView);
     });
   };
 

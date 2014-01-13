@@ -1,27 +1,31 @@
-/*global define*/
+define(function(require, exports, module) {
+'use strict';
 
-define(function(require) {
-  'use strict';
+/**
+ * Exports
+ */
 
-  /**
-   * addEventListener shorthand.
-   * @param  {Element}   el
-   * @param  {String}   name
-   * @param  {Function} fn
-   */
-  var exports = function(el, name, fn, context) {
-    el.addEventListener(name, fn.bind(context));
-  };
+exports = module.exports = bind;
 
-  /**
-   * removeEventListener shorthand.
-   * @param  {Element}   el
-   * @param  {String}   name
-   * @param  {Function} fn
-   */
-  exports.unbind = function(el, name, fn) {
-    el.removeEventListener(name, fn);
-  };
+/**
+ * addEventListener shorthand.
+ * @param  {Element}   el
+ * @param  {String}   name
+ * @param  {Function} fn
+ */
+function bind(el, name, fn, context) {
+  if (context) { fn = fn.bind(context); }
+  el.addEventListener(name, fn);
+}
 
-  return exports;
+/**
+ * removeEventListener shorthand.
+ * @param  {Element}   el
+ * @param  {String}   name
+ * @param  {Function} fn
+ */
+exports.unbind = function(el, name, fn) {
+  el.removeEventListener(name, fn);
+};
+
 });

@@ -28,7 +28,7 @@ function SetupManualConfig(domNode, mode, args) {
 
   this.formItems = {
     common: {},
-    imap: {},
+    composite: {},
     smtp: {},
     activeSync: {}
   };
@@ -44,14 +44,14 @@ function SetupManualConfig(domNode, mode, args) {
   this.formItems.common.password.value = args.password;
 
 
-  this.formItems.imap.hostname = domNode.getElementsByClassName(
-    'sup-manual-imap-hostname')[0];
-  this.formItems.imap.port = domNode.getElementsByClassName(
-    'sup-manual-imap-port')[0];
-  this.formItems.imap.socket = domNode.getElementsByClassName(
-    'sup-manual-imap-socket')[0];
-  this.formItems.imap.username = domNode.getElementsByClassName(
-    'sup-manual-imap-username')[0];
+  this.formItems.composite.hostname = domNode.getElementsByClassName(
+    'sup-manual-composite-hostname')[0];
+  this.formItems.composite.port = domNode.getElementsByClassName(
+    'sup-manual-composite-port')[0];
+  this.formItems.composite.socket = domNode.getElementsByClassName(
+    'sup-manual-composite-socket')[0];
+  this.formItems.composite.username = domNode.getElementsByClassName(
+    'sup-manual-composite-username')[0];
 
   this.formItems.smtp.hostname = domNode.getElementsByClassName(
     'sup-manual-smtp-hostname')[0];
@@ -76,14 +76,16 @@ function SetupManualConfig(domNode, mode, args) {
     }
   }
 
-  this.requireFields('imap', true);
+  this.requireFields('composite', true);
   this.requireFields('smtp', true);
   this.requireFields('activeSync', false);
 
-  this.formItems.imap.socket.addEventListener(
-    'change', this.onChangeImapSocket.bind(this));
+  this.formItems.composite.socket.addEventListener(
+    'change', this.onChangeCompositeSocket.bind(this));
   this.formItems.smtp.socket.addEventListener(
     'change', this.onChangeSmtpSocket.bind(this));
+
+  this.onChangeAccountType({target: this.accountTypeNode});
 
   new FormNavigation({
     formElem: this.formNode,
@@ -99,12 +101,12 @@ SetupManualConfig.prototype = {
   onNext: function(event) {
     var config = { type: this.accountTypeNode.value };
 
-    if (config.type === 'imap+smtp') {
+    if (config.type === 'imap+smtp' || config.type === 'pop3+smtp') {
       config.incoming = {
-        hostname: this.formItems.imap.hostname.value,
-        port: this.formItems.imap.port.value,
-        socketType: this.formItems.imap.socket.value,
-        username: this.formItems.imap.username.value
+        hostname: this.formItems.composite.hostname.value,
+        port: this.formItems.composite.port.value,
+        socketType: this.formItems.composite.socket.value,
+        username: this.formItems.composite.username.value
       };
       config.outgoing = {
         hostname: this.formItems.smtp.hostname.value,
@@ -140,35 +142,43 @@ SetupManualConfig.prototype = {
   },
 
   onChangeAccountType: function(event) {
-    var imapSmtpSection = this.domNode.getElementsByClassName(
-      'sup-manual-imap-smtp')[0];
+    var compositeSection = this.domNode.getElementsByClassName(
+      'sup-manual-composite')[0];
     var activeSyncSection = this.domNode.getElementsByClassName(
       'sup-manual-activesync')[0];
-    var isImapSmtp = event.target.value === 'imap+smtp';
+    var isComposite = (event.target.value === 'imap+smtp' ||
+                       event.target.value === 'pop3+smtp');
+    var isImap = event.target.value === 'imap+smtp';
 
-    if (isImapSmtp) {
-      imapSmtpSection.classList.remove('collapsed');
+    if (isComposite) {
+      compositeSection.classList.remove('collapsed');
       activeSyncSection.classList.add('collapsed');
+      this.domNode.getElementsByClassName(
+        'sup-manual-imap-title')[0].classList.toggle('collapsed', !isImap);
+      this.domNode.getElementsByClassName(
+        'sup-manual-pop3-title')[0].classList.toggle('collapsed', isImap);
     }
     else {
-      imapSmtpSection.classList.add('collapsed');
+      compositeSection.classList.add('collapsed');
       activeSyncSection.classList.remove('collapsed');
     }
 
-    this.requireFields('imap', isImapSmtp);
-    this.requireFields('smtp', isImapSmtp);
-    this.requireFields('activeSync', !isImapSmtp);
+    this.requireFields('composite', isComposite);
+    this.requireFields('smtp', isComposite);
+    this.requireFields('activeSync', !isComposite);
+    this.onChangeCompositeSocket({target: this.formItems.composite.socket});
   },
 
   // If the user selects a different socket type, autofill the most likely port.
-  onChangeImapSocket: function(event) {
-    const SSL_VALUE = '993';
-    const STARTTLS_VALUE = '143';
+  onChangeCompositeSocket: function(event) {
+    var isImap = this.accountTypeNode.value === 'imap+smtp';
+    var SSL_VALUE = (isImap ? '993' : '995');
+    var STARTTLS_VALUE = (isImap ? '143' : '110');
     var socketType = event.target.value;
-    var portField = this.formItems.imap.port;
-    if (socketType === 'SSL' && portField.value === STARTTLS_VALUE) {
+    var portField = this.formItems.composite.port;
+    if (socketType === 'SSL') {
       portField.value = SSL_VALUE;
-    } else if (socketType == 'STARTTLS' && portField.value == SSL_VALUE) {
+    } else if (socketType == 'STARTTLS') {
       portField.value = STARTTLS_VALUE;
     }
   },

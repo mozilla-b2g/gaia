@@ -10,10 +10,12 @@
   "permissions": {
     "sms":{},
     "storage":{},
+    "mobileconnection":{},
     "contacts":{ "access": "readonly" },
-    "settings":{ "access": "readonly" },
+    "settings":{ "access": "readwrite" },
     "audio-channel-notification":{},
-    "desktop-notification":{}
+    "desktop-notification":{},
+    "phonenumberservice": {}
   },
   "locales": {
     "ar": {
@@ -42,6 +44,7 @@
   "orientation": "default",
   "activities": {
     "new": {
+      "href": "/index.html#activity-new",
       "filters": {
         "type": "websms/sms",
         "number": {
@@ -62,5 +65,10 @@
   "messages": [
      { "sms-received": "/index.html" },
      { "notification": "/index.html" }
-  ]
+  ],
+  "datastores-access": {
+    "Gaia_Facebook_Friends": {
+      "description": "Facebook Friends"
+    }
+  }
 }

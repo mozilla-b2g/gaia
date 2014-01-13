@@ -4,6 +4,7 @@ var CallScreen = {
   _ticker: null,
   _screenWakeLock: null,
   _typedNumber: '',
+  callEndPromptTime: 2000,
 
   body: document.body,
   screen: document.getElementById('call-screen'),
@@ -14,6 +15,7 @@ var CallScreen = {
   groupCallsList: document.getElementById('group-call-details-list'),
 
   mainContainer: document.getElementById('main-container'),
+  contactBackground: document.getElementById('contact-background'),
   callToolbar: document.getElementById('co-advanced'),
 
   muteButton: document.getElementById('mute'),
@@ -30,10 +32,11 @@ var CallScreen = {
 
   incomingContainer: document.getElementById('incoming-container'),
   incomingNumber: document.getElementById('incoming-number'),
+  incomingNumberAdditionalInfo:
+    document.getElementById('incoming-number-additional-info'),
   incomingAnswer: document.getElementById('incoming-answer'),
   incomingEnd: document.getElementById('incoming-end'),
   incomingIgnore: document.getElementById('incoming-ignore'),
-  lockedContactPhoto: document.getElementById('locked-contact-photo'),
   lockedClockNumbers: document.getElementById('lockscreen-clock-numbers'),
   lockedClockMeridiem: document.getElementById('lockscreen-clock-meridiem'),
   lockedDate: document.getElementById('lockscreen-date'),
@@ -44,7 +47,8 @@ var CallScreen = {
     var self = this;
     self.statusMessage.querySelector('p').textContent = text;
     self.statusMessage.classList.add('visible');
-    self.statusMessage.addEventListener('transitionend', function tend() {
+    self.statusMessage.addEventListener('transitionend', function tend(evt) {
+      evt.stopPropagation();
       self.statusMessage.removeEventListener('transitionend', tend);
       setTimeout(function hide() {
         self.statusMessage.classList.remove('visible');
@@ -52,7 +56,9 @@ var CallScreen = {
     });
   },
 
-  set singleLine(enabled) {
+  updateSingleLine: function cs_updateSingleLine() {
+    var enabled =
+      (this.calls.querySelectorAll('section:not([hidden])').length <= 1);
     this.calls.classList.toggle('single-line', enabled);
     this.calls.classList.toggle('big-duration', enabled);
   },
@@ -109,13 +115,16 @@ var CallScreen = {
 
     this.calls.addEventListener('click', CallsHandler.toggleCalls.bind(this));
 
-    var callScreenHasLayout = !!this.screen.dataset.layout;
-    if ((window.location.hash === '#locked') && !callScreenHasLayout) {
-      CallScreen.render('incoming-locked');
-    }
-    CallScreen.showClock(new Date());
+    if (window.location.hash === '#locked') {
+      this.showClock(new Date());
+      this.initLockScreenSlide();
 
-    this.setDefaultContactImage({force: false});
+      if (!this.screen.dataset.layout) {
+        this.render('incoming-locked');
+      }
+    }
+
+    this.setWallpaper();
 
     // Handle resize events
     window.addEventListener('resize', this.resizeHandler.bind(this));
@@ -123,29 +132,199 @@ var CallScreen = {
     this.syncSpeakerEnabled();
   },
 
-  toggle: function cs_toggle(callback) {
-    var screen = this.screen;
-    screen.classList.toggle('displayed');
+  initLockScreenSlide: function cs_initLockScreenSlide() {
+    // Setup incoming call screen slider
+    this.hangUpIcon = document.getElementById('lockscreen-area-hangup');
+    this.pickUpIcon = document.getElementById('lockscreen-area-pickup');
 
-    if (!callback || typeof(callback) !== 'function') {
+    new LockScreenSlide(
+      // IntentionRouter
+      {
+        unlockerInitialize: function _unlockerInitialize() {
+          //Seems not necessary for incoming call screen.
+        },
+
+        activateRight: function _activateRight() {
+          CallsHandler.answer();
+        },
+
+        activateLeft: function _activateLeft() {
+          CallsHandler.end();
+        },
+
+        unlockingStart: function _unlockingStart() {
+          // Bug 956074: Needed to make sure the slider will work.
+        },
+
+        unlockingStop: function _unlockingStop() {
+          // Bug 956074: Needed to make sure the slider will work.
+        },
+
+        nearLeft: function _nearLeft(state, statePrev) {
+          if (state === 'accelerating') {
+            CallScreen.hangUpIcon.classList.add('triggered');
+          } else {
+            CallScreen.hangUpIcon.classList.remove('triggered');
+          }
+        },
+
+        nearRight: function _nearRight(state, statePrev) {
+          if (state === 'accelerating') {
+            CallScreen.pickUpIcon.classList.add('triggered');
+          } else {
+            CallScreen.pickUpIcon.classList.remove('triggered');
+          }
+        }
+      },
+      // Options
+      {
+        IDs: {
+          overlay: 'main-container',
+          areas: {
+            left: 'lockscreen-area-hangup',
+            right: 'lockscreen-area-pickup'
+          }
+        },
+
+        colors: {
+          left: {
+            touchedColor: '255, 0, 0',
+            touchedColorStop: '255, 178, 178'
+          },
+
+          right: {
+            touchedColor: '132, 200, 44',
+            touchedColorStop: '218, 238, 191'
+          }
+        },
+
+        resources: {
+          larrow: '/dialer/style/images/larrow.png',
+          rarrow: '/dialer/style/images/rarrow.png'
+        },
+        handle: {
+          autoExpand: {
+            sentinelOffset: 80
+          }
+        }
+      }
+    );
+  },
+
+  _wallpaperReady: false,
+  _toggleWaiting: false,
+  _toggleCallback: null,
+
+  setWallpaper: function cs_setWallpaper() {
+    if (!navigator.mozSettings) {
+      this._onWallpaperReady();
       return;
     }
 
+    var self = this;
+    var req = navigator.mozSettings.createLock().get('wallpaper.image');
+    req.onsuccess = function cs_wi_onsuccess() {
+      var wallpaperImage = req.result['wallpaper.image'];
+      var isString = (typeof wallpaperImage == 'string');
+      var image =
+        isString ? wallpaperImage : URL.createObjectURL(wallpaperImage);
+      self.mainContainer.style.backgroundImage = 'url(' + image + ')';
+      setTimeout(self._onWallpaperReady.bind(self));
+    };
+
+    req.onerror = this._onWallpaperReady.bind(this);
+  },
+
+  _onWallpaperReady: function cs_onWallpaperReady() {
+    this._wallpaperReady = true;
+    if (this._toggleWaiting) {
+      this.toggle(this._toggleCallback);
+      this._toggleCallback = null;
+      this._toggleWaiting = false;
+    }
+  },
+
+  _transitionDone: false,
+  _contactBackgroundWaiting: false,
+  _contactImage: null,
+
+  toggle: function cs_toggle(callback) {
+    // Waiting for the wallpaper to be set before toggling the screen in
+    if (!this._wallpaperReady) {
+      this._toggleWaiting = true;
+      this._toggleCallback = callback;
+      return;
+    }
+
+    var screen = this.screen;
+    screen.classList.toggle('displayed');
+
+    var self = this;
+
     // We have no opening transition for incoming locked
     if (this.screen.dataset.layout === 'incoming-locked') {
-      setTimeout(callback);
+      if (callback && typeof(callback) == 'function') {
+        setTimeout(callback);
+      }
+      self._onTransitionDone();
       return;
     }
 
     /* We need CSS transitions for the status bar state and the regular state */
-    screen.addEventListener('transitionend', function trWait() {
+    screen.addEventListener('transitionend', function trWait(evt) {
+      if (evt.target != screen) {
+        return;
+      }
       screen.removeEventListener('transitionend', trWait);
-      callback();
+      if (callback && typeof(callback) == 'function') {
+        callback();
+      }
+      self._onTransitionDone();
     });
+  },
+
+  _onTransitionDone: function cs_onTransitionDone() {
+    this._transitionDone = true;
+    if (this._contactBackgroundWaiting) {
+      this.setCallerContactImage(this._contactImage);
+      this._contactBackgroundWaiting = false;
+    }
+  },
+
+  setCallerContactImage: function cs_setContactImage(blob, force) {
+    // Waiting for the call screen transition to end before updating
+    // the contact image
+    if (!this._transitionDone) {
+      this._contactImage = blob;
+      this._contactBackgroundWaiting = true;
+      return;
+    }
+
+    if (this._contactImage == blob && !this._contactBackgroundWaiting) {
+      return;
+    }
+
+    this._contactImage = blob;
+
+    this.contactBackground.classList.remove('ready');
+    var background = blob ? 'url(' + URL.createObjectURL(blob) + ')' : '';
+    this.contactBackground.style.backgroundImage = background;
+    this.contactBackground.classList.add('ready');
+  },
+
+  setEmergencyWallpaper: function cs_setEmergencyWallpaper() {
+    this.mainContainer.classList.add('emergency-active');
   },
 
   insertCall: function cs_insertCall(node) {
     this.calls.appendChild(node);
+    this.updateSingleLine();
+  },
+
+  removeCall: function cs_removeCall(node) {
+    // The node can be either inside groupCallsList or calls.
+    node.parentNode.removeChild(node);
+    this.updateSingleLine();
   },
 
   moveToGroup: function cs_moveToGroup(node) {
@@ -165,29 +344,6 @@ var CallScreen = {
     } else {
       KeypadManager.updatePhoneNumber(this._typedNumber, 'begin', true);
     }
-  },
-
-  setCallerContactImage: function cs_setContactImage(image_url, opt) {
-    var isString = (typeof image_url == 'string');
-    var isLocked = (this.screen.dataset.layout === 'incoming-locked');
-    var target = isLocked ? this.lockedContactPhoto : this.mainContainer;
-    var photoURL = isString ? image_url : URL.createObjectURL(image_url);
-
-    if (!target.style.backgroundImage || (opt && opt.force)) {
-      target.style.backgroundImage = 'url(' + photoURL + ')';
-    }
-  },
-
-
-  setDefaultContactImage: function cs_setDefaultContactImage(opt) {
-    if (!navigator.mozSettings) {
-      return;
-    }
-
-    var req = navigator.mozSettings.createLock().get('wallpaper.image');
-    req.onsuccess = function cs_wi_onsuccess() {
-      CallScreen.setCallerContactImage(req.result['wallpaper.image'], opt);
-    };
   },
 
   toggleMute: function cs_toggleMute() {
@@ -240,7 +396,7 @@ var CallScreen = {
   render: function cs_render(layout_type) {
     this.screen.dataset.layout = layout_type;
     if (layout_type !== 'connected') {
-      this.keypadButton.setAttribute('disabled', 'disabled');
+      this.disableKeypad();
     }
   },
 
@@ -274,6 +430,12 @@ var CallScreen = {
       this._screenWakeLock.unlock();
       this._screenWakeLock = null;
     }
+    var hc = CallsHandler.activeCall;
+    if (hc) {
+      this.setCallerContactImage(hc.photo);
+    } else {
+      this.setCallerContactImage(null);
+    }
   },
 
   syncSpeakerEnabled: function cs_syncSpeakerEnabled() {
@@ -304,5 +466,49 @@ var CallScreen = {
       evt.preventDefault();
     }
     this.groupCalls.classList.remove('display');
+  },
+
+  createTicker: function(durationNode) {
+    var durationChildNode = durationNode.querySelector('span');
+
+    if (durationNode.dataset.tickerId)
+      return false;
+
+    durationChildNode.textContent = '00:00';
+    durationNode.classList.add('isTimer');
+
+    function padNumber(n) {
+      return n > 9 ? n : '0' + n;
+    }
+
+    LazyL10n.get(function localized(_) {
+      var ticker = setInterval(function ut_updateTimer(startTime) {
+        // Bug 834334: Ensure that 28.999 -> 29.000
+        var delta = Math.round((Date.now() - startTime) / 1000) * 1000;
+        var elapsed = new Date(delta);
+        var duration = {
+          h: padNumber(elapsed.getUTCHours()),
+          m: padNumber(elapsed.getUTCMinutes()),
+          s: padNumber(elapsed.getUTCSeconds())
+        };
+        durationChildNode.textContent = _(elapsed.getUTCHours() > 0 ?
+          'callDurationHours' : 'callDurationMinutes', duration);
+      }, 1000, Date.now());
+      durationNode.dataset.tickerId = ticker;
+    });
+    return true;
+  },
+
+  stopTicker: function(durationNode) {
+    durationNode.classList.remove('isTimer');
+    clearInterval(durationNode.dataset.tickerId);
+    delete durationNode.dataset.tickerId;
+  },
+
+  setEndConferenceCall: function cs_setEndConferenceCall() {
+    var callElems = this.groupCallsList.getElementsByTagName('SECTION');
+    for (var i = 0; i < callElems.length; i++) {
+      callElems[i].dataset.groupHangup = 'groupHangup';
+    }
   }
 };

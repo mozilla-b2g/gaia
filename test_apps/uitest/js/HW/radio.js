@@ -97,7 +97,6 @@ function radioTest() {
       navigator.mozIccManager &&
       ('mozMobileConnection' in navigator) &&
       navigator.mozMobileConnection) {
-    var navigator = window.navigator;
     var conn = navigator.mozMobileConnection;
     var iccManager = navigator.mozIccManager;
 

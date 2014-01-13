@@ -23,25 +23,13 @@ form[role="dialog"][data-type="edit"] header {
   padding: 0;
   height: 5rem;
   color: #fff;
-  background: url(edit_mode/images/ui/alpha.png) repeat 0 0;
+  background-color: #F97C17;
   border: none;
-}
-
-form[role="dialog"][data-type="edit"] header:after {
-  content: "";
-  display: block;
-  height: 0.3rem;
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  background: url(edit_mode/images/ui/shadow.png) repeat-x 0 0;
-  background-size: auto 100%;
 }
 
 form[role="dialog"][data-type="edit"] header h1 {
   font-size: 2.5rem;
-  line-height: 4.9rem;
+  line-height: 5rem;
   text-align: left;
   color: #fff;
   white-space: nowrap;
@@ -51,7 +39,7 @@ form[role="dialog"][data-type="edit"] header h1 {
   margin: 0;
   padding: 0 1rem 0 3rem;
   height: 100%;
-  font-weight: normal;
+  font-weight: lighter;
 }
 
 form[role="dialog"][data-type="edit"] header button {
@@ -74,12 +62,12 @@ form[role="dialog"][data-type="edit"] header menu[type="toolbar"] {
 }
 
 form[role="dialog"][data-type="edit"] header menu[type="toolbar"] button {
-  height: 4.9rem;
+  height: 5rem;
   min-width: 5rem;
   width: auto;
   margin-bottom: 0;
   border-radius: 0;
-  line-height: 4.9rem;
+  line-height: 5rem;
   float: left;
   font-weight: normal;
   background: none;
@@ -96,12 +84,6 @@ form[role="dialog"][data-type="edit"] header menu button {
   border: none;
 }
 
-form[role="dialog"][data-type="edit"] header menu[type="toolbar"] button:last-child {
-  background: url(edit_mode/images/ui/separator.png) no-repeat left center / auto 4.8rem;;
-  margin-left: -0.1rem;
-  z-index: 1;
-}
-
 form[role="dialog"][data-type="edit"] button::-moz-focus-inner {
   outline: none;
   border: none;
@@ -113,7 +95,7 @@ form[role="dialog"][data-type="edit"] header button:active:after,
 form[role="dialog"][data-type="edit"] header button:hover:after,
 form[role="dialog"][data-type="edit"] header menu[type="toolbar"] button:hover,
 form[role="dialog"][data-type="edit"] header menu[type="toolbar"] button:active {
-  background: #008aaa !important;
+  background: #dc6a0e !important;
   color: #fff;
 }
 
@@ -125,11 +107,11 @@ form[role="dialog"][data-type="edit"]  header menu[type="toolbar"] button[disabl
 form[role="dialog"][data-type="edit"] header > button {
   position: relative;
   width: 5rem;
-  height: 4.9rem;
+  height: 5rem;
   background: none;
   float: left;
   overflow: visible;
-  margin-right: -4rem;
+  margin-right: -5rem;
 }
 
 form[role="dialog"][data-type="edit"] header > button:after {
@@ -138,9 +120,8 @@ form[role="dialog"][data-type="edit"] header > button:after {
   left: 0;
   top: 0;
   z-index: -1;
-  width: 3.2rem;
-  height: 4.9rem;
-  background: url(edit_mode/images/ui/separator.png) no-repeat right center / 0.1rem 4.8rem;
+  width: 3rem;
+  height: 5rem;
 }
 
 form[role="dialog"][data-type="edit"] header > button span {
@@ -148,7 +129,7 @@ form[role="dialog"][data-type="edit"] header > button span {
   float: none;
   display: block;
   width: 3rem;
-  height: 4.9rem;
+  height: 5rem;
   margin: 0;
   background: transparent no-repeat center center / 3rem auto;
   font-size: 0;
@@ -159,16 +140,6 @@ form[role="dialog"][data-type="edit"] header .icon.icon-close {
   background-image: url(edit_mode/images/icons/close.png);
 }
 
-form[role="dialog"][data-type="edit"] header > button span:after {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0;
-  z-index: -1;
-  width: 3.2rem;
-  height: 4.9rem;
-  background: url(edit_mode/images/ui/separator.png) no-repeat right center / 0.2rem 4.8rem;
-}
 
 /* Menu */
 form[role="dialog"][data-type="edit"] > menu {
@@ -268,3 +239,26 @@ form[role="dialog"][data-type="edit"] menu button {
 form[role="dialog"][data-type="edit"] menu button.full {
   width: 100%;
 }
+
+
+/* ----------------------------------
+ * Dark scheme
+ * ---------------------------------- */
+form[role="dialog"][data-type="edit"].skin-dark header:first-child {
+  background-color: #242D33;
+}
+
+form[role="dialog"][data-type="edit"].skin-dark header:first-child button:active:after,
+form[role="dialog"][data-type="edit"].skin-dark header:first-child button:hover:after,
+form[role="dialog"][data-type="edit"].skin-dark header:first-child menu[type="toolbar"] button:hover,
+form[role="dialog"][data-type="edit"].skin-dark header:first-child menu[type="toolbar"] button:active {
+  background: #1d525e !important;
+  color: #fff;
+}
+
+
+form[role="dialog"][data-type="edit"].skin-dark header .icon.icon-close {
+  background-image: url(edit_mode/images/icons/skin-dark/close.png);
+}
+
+

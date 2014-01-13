@@ -14,7 +14,7 @@ function MockThreadMessages() {
       error: true,
       id: 47,
       threadId: 1,
-      timestamp: getMockupedDate(0)
+      timestamp: +getMockupedDate(0)
     },
     {
       sender: null,
@@ -23,7 +23,7 @@ function MockThreadMessages() {
       delivery: 'sent',
       id: 46,
       threadId: 1,
-      timestamp: getMockupedDate(0)
+      timestamp: +getMockupedDate(0)
     },
     {
       sender: '197746797',
@@ -31,7 +31,7 @@ function MockThreadMessages() {
       delivery: 'received',
       id: 40,
       threadId: 1,
-      timestamp: getMockupedDate(2)
+      timestamp: +getMockupedDate(2)
     },
     {
       sender: null,
@@ -40,7 +40,7 @@ function MockThreadMessages() {
       delivery: 'error',
       id: 460,
       threadId: 1,
-      timestamp: getMockupedDate(6)
+      timestamp: +getMockupedDate(6)
     },
     {
       sender: null,
@@ -49,7 +49,7 @@ function MockThreadMessages() {
       delivery: 'error',
       id: 461,
       threadId: 1,
-      timestamp: getMockupedDate(6)
+      timestamp: +getMockupedDate(6)
     }];
 
   messagesMockup.sort(function(a, b) {

@@ -140,7 +140,6 @@ Evme.BackgroundImage = new function Evme_BackgroundImage() {
         ')"></div>' +
       '<div class="content">' +
         '<b class="rightbutton"></b>' +
-        '<span class="separator"></span>' +
         ((data.query) ? '<h2>' + data.query + '</h2>' : '') +
         ((data.source) ? '<div class="source"><b ' +
           Evme.Utils.l10nAttr(NAME, 'source-label') + '></b> <span>' +

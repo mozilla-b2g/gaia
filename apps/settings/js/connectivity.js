@@ -12,18 +12,48 @@
 
 // display connectivity status on the main panel
 var Connectivity = (function(window, document, undefined) {
+  var DATA_TYPE_MAPPING = {
+    'lte' : '4G LTE',
+    'ehrpd': '4G CDMA',
+    'hspa+': '3.5G HSPA+',
+    'hsdpa': '3.5G HSDPA',
+    'hsupa': '3.5G HSDPA',
+    'hspa' : '3.5G HSDPA',
+    'evdo0': '3G CDMA',
+    'evdoa': '3G CDMA',
+    'evdob': '3G CDMA',
+    '1xrtt': '2G CDMA',
+    'umts' : '3G UMTS',
+    'edge' : '2G EDGE',
+    'is95a': '2G CDMA',
+    'is95b': '2G CDMA',
+    'gprs' : '2G GPRS'
+  };
+
+  var _bluetooth_address = '';
   var _initialized = false;
   var _macAddress = '';
   var _ = navigator.mozL10n.get;
+  var _airplaneMode = false;
 
   // in desktop helper we fake these device interfaces if they don't exist.
   var wifiManager = WifiHelper.getWifiManager();
   var bluetooth = getBluetooth();
   var mobileConnection = getMobileConnection();
 
-  mobileConnection.addEventListener('datachange', updateCarrier);
-  IccHelper.addEventListener('cardstatechange', updateCallSettings);
-  IccHelper.addEventListener('cardstatechange', updateMessagingSettings);
+  var initOrder = [
+    updateCallDescription,
+    updateCellAndDataDescription,
+    updateMessagingSettings,
+    updateWifi,
+    updateBluetooth,
+    // register blutooth system message handler
+    initSystemMessageHandler
+  ];
+
+  if (IccHelper) {
+    IccHelper.addEventListener('cardstatechange', updateMessagingSettings);
+  }
 
   // XXX if wifiManager implements addEventListener function
   // we can remove these listener lists.
@@ -32,12 +62,18 @@ var Connectivity = (function(window, document, undefined) {
   var wifiStatusChangeListeners = [updateWifi];
   var settings = Settings.mozSettings;
 
-  //
+  var kCardStateL10nId; // see init()
+
   // Set wifi.enabled so that it mirrors the state of the hardware.
   // wifi.enabled is not an ordinary user setting because the system
   // turns it on and off when wifi goes up and down.
   //
   settings.createLock().set({'wifi.enabled': wifiManager.enabled});
+
+  SettingsListener.observe('ril.radio.disabled', false, function(value) {
+    _airplaneMode = value;
+    updateMessagingSettings();
+  });
 
   //
   // Now register callbacks to track the state of the wifi hardware
@@ -64,6 +100,15 @@ var Connectivity = (function(window, document, undefined) {
 
   window.addEventListener('bluetooth-pairedstatuschanged', updateBluetooth);
 
+  function lazyInit(index) {
+    if (index >= initOrder.length) {
+      return;
+    }
+
+    initOrder[index]();
+    setTimeout(lazyInit.bind(this, index + 1));
+  }
+
   // called when localization is done
   function init() {
     if (_initialized) {
@@ -84,13 +129,7 @@ var Connectivity = (function(window, document, undefined) {
       'ready': ''
     };
 
-    updateCarrier();
-    updateCallSettings();
-    updateMessagingSettings();
-    updateWifi();
-    updateBluetooth();
-    // register blutooth system message handler
-    initSystemMessageHandler();
+    lazyInit(0);
   }
 
   /**
@@ -161,107 +200,196 @@ var Connectivity = (function(window, document, undefined) {
   }
 
   /**
-   * Mobile Connection Manager
-   */
-
-  var kCardStateL10nId; // see init()
-  var kDataType = {
-    'lte' : '4G LTE',
-    'ehrpd': 'CDMA',
-    'hspa+': '3.5G HSPA+',
-    'hsdpa': '3.5G HSDPA',
-    'hsupa': '3.5G HSDPA',
-    'hspa' : '3.5G HSDPA',
-    'evdo0': '3G CDMA',
-    'evdoa': '3G CDMA',
-    'evdob': '3G CDMA',
-    '1xrtt': '2G CDMA',
-    'umts' : '3G UMTS',
-    'edge' : '2G EDGE',
-    'is95a': '2G CDMA',
-    'is95b': '2G CDMA',
-    'gprs' : '2G GPRS'
-  };
-
-  var dataDesc = document.getElementById('data-desc');
-
-  function updateCarrier() {
-    // if 'datachange' event happens before init
-    if (!_initialized) {
-      init();
-      return; // init will call updateCarrier()
-    }
-
-    var setCarrierStatus = function(msg) {
-      var operator = msg.operator || '';
-      var data = msg.data || '';
-      var text = msg.error ||
-        ((data && operator) ? (operator + ' - ' + data) : operator);
-      dataDesc.textContent = text;
-      dataDesc.dataset.l10nId = msg.l10nId || '';
-
-      /**
-       * XXX italic style for specifying state change is not a ideal solution
-       * for non-Latin alphabet scripts in terms of typography, e.g. Chinese,
-       * Japanese, etc.
-       * We might have to switch to labels with parenthesis for these languages.
-       */
-      dataDesc.style.fontStyle = msg.error ? 'italic' : 'normal';
-
-      // in case the "Carrier & Data" panel is displayed...
-      var dataNetwork = document.getElementById('dataNetwork-desc');
-      var dataConnection = document.getElementById('dataConnection-desc');
-      if (dataNetwork && dataConnection) {
-        dataNetwork.textContent = operator;
-        dataConnection.textContent = data;
-      }
-    };
-
-    if (!mobileConnection || !IccHelper)
-      return setCarrierStatus({});
-
-    // ensure the SIM card is present and unlocked
-    var cardState = IccHelper.cardState || 'null';
-    var l10nId = kCardStateL10nId[cardState];
-    if (l10nId) {
-      return setCarrierStatus({ error: _(l10nId), l10nId: l10nId });
-    }
-
-    // operator name & data connection type
-    if (!mobileConnection.data || !mobileConnection.data.network)
-      return setCarrierStatus({ error: '???'}); // XXX should never happen
-    var operatorInfos = MobileOperator.userFacingInfo(mobileConnection);
-    var operator = operatorInfos.operator;
-    if (operatorInfos.region) {
-      operator += ' ' + operatorInfos.region;
-    }
-    var data = mobileConnection.data;
-    var dataType = (data.connected && data.type) ? kDataType[data.type] : '';
-    setCarrierStatus({
-      operator: operator,
-      data: dataType
-    });
-  }
-
-  /**
    * Call Settings
    */
 
-  var callDesc = document.getElementById('call-desc');
-  callDesc.style.fontStyle = 'italic';
+  function updateCallDescription() {
+    var iccId;
 
-  function updateCallSettings() {
-    if (!_initialized) {
-      init();
-      return; // init will call updateCallSettings()
+    var mobileConnections = window.navigator.mozMobileConnections;
+    var iccManager = window.navigator.mozIccManager;
+    if (!mobileConnections || !iccManager) {
+      return;
     }
 
-    if (!IccHelper)
+    // Only show the description for single ICC card devices. In case of multi
+    // ICC card device the description to show for the ICC cards will be handled
+    // in the call_iccs.js file.
+    if (mobileConnections.length > 1) {
       return;
+    }
 
-    // update the current SIM card state
-    var cardState = IccHelper.cardState || 'null';
-    localize(callDesc, kCardStateL10nId[cardState]);
+    function showCallDescription() {
+      var callDesc = document.getElementById('call-desc');
+      callDesc.style.fontStyle = 'italic';
+
+      if (!mobileConnections[0].iccId) {
+        // TODO: this could mean there is no ICC card or the ICC card is
+        // locked. If locked we would need to figure out how to check the
+        // current card state. We show 'SIM card not ready'.
+        localize(callDesc, kCardStateL10nId['null']);
+        return;
+      }
+
+      if (mobileConnections[0].radioState !== 'enabled') {
+        // Airplane is enabled. Well, radioState property could be changing but
+        // let's show 'SIM card not ready' during the transitions also.
+        localize(callDesc, kCardStateL10nId['null']);
+        return;
+      }
+
+      var iccCard = iccManager.getIccById(mobileConnections[0].iccId);
+      if (!iccCard) {
+        localize(callDesc, '');
+        return;
+      }
+      var cardState = iccCard.cardState;
+      localize(callDesc, kCardStateL10nId[cardState || 'null']);
+    }
+
+    function addListeners() {
+      iccId = mobileConnections[0].iccId;
+      var iccCard = iccManager.getIccById(iccId);
+      if (!iccCard) {
+        return;
+      }
+      iccCard.addEventListener('cardstatechange',
+                               showCallDescription);
+      mobileConnections[0].addEventListener('radiostatechange',
+                                            showCallDescription);
+    }
+
+    showCallDescription();
+    addListeners();
+
+    iccManager.addEventListener('iccdetected',
+      function iccDetectedHandler(evt) {
+        if (mobileConnections[0].iccId &&
+           (mobileConnections[0].iccId === evt.iccId)) {
+          showCallDescription();
+          addListeners();
+        }
+    });
+
+    iccManager.addEventListener('iccundetected',
+      function iccUndetectedHandler(evt) {
+        if (iccId === evt.iccId) {
+          mobileConnections[0].removeEventListener('radiostatechange',
+            showCallDescription());
+        }
+    });
+
+  }
+
+  /**
+   * Cell & Data Settings
+   */
+
+  function updateCellAndDataDescription() {
+    var iccId;
+
+    var mobileConnections = window.navigator.mozMobileConnections;
+    var iccManager = window.navigator.mozIccManager;
+    if (!mobileConnections || !iccManager) {
+      return;
+    }
+
+    // Only show the description for single ICC card devices. In case of multi
+    // ICC card device the description to show for the ICC cards will be handled
+    // in the carrier_iccs.js file.
+    if (mobileConnections.length > 1) {
+      return;
+    }
+
+    function showCellAndDataDescription() {
+      var dataDesc = document.getElementById('data-desc');
+      dataDesc.style.fontStyle = 'italic';
+
+      if (!mobileConnections[0].iccId) {
+        // TODO: this could mean there is no ICC card or the ICC card is
+        // locked. If locked we would need to figure out how to check the
+        // current card state. We show 'SIM card not ready'.
+        localize(dataDesc, kCardStateL10nId['null']);
+        return;
+      }
+
+      if (mobileConnections[0].radioState !== 'enabled') {
+        // Airplane is enabled. Well, radioState property could be changing but
+        // let's show 'SIM card not ready' during the transitions also.
+        localize(dataDesc, kCardStateL10nId['null']);
+        return;
+      }
+
+      var iccCard = iccManager.getIccById(mobileConnections[0].iccId);
+      if (!iccCard) {
+        localize(dataDesc, '');
+        return;
+      }
+
+      var cardState = iccCard.cardState;
+      if (cardState !== 'ready') {
+        localize(dataDesc, kCardStateL10nId[cardState || 'null']);
+        return;
+      }
+
+      dataDesc.style.fontStyle = 'normal';
+
+      var network = mobileConnections[0].voice.network;
+      var iccInfo = iccCard.iccInfo;
+      var carrier = network ? (network.shortName || network.longName) : null;
+
+      if (carrier && iccInfo && iccInfo.isDisplaySpnRequired && iccInfo.spn) {
+        if (iccInfo.isDisplayNetworkNameRequired && carrier !== iccInfo.spn) {
+          carrier = carrier + ' ' + iccInfo.spn;
+        } else {
+          carrier = iccInfo.spn;
+        }
+      }
+      dataDesc.textContent = carrier;
+      var dataType = (mobileConnections[0].data.connected &&
+                      mobileConnections[0].data.type) ?
+                      DATA_TYPE_MAPPING[mobileConnections[0].data.type] :
+                      '';
+      if (dataType) {
+        dataDesc.textContent += ' - ' + dataType;
+      }
+    }
+
+    function addListeners() {
+      iccId = mobileConnections[0].iccId;
+      var iccCard = iccManager.getIccById(iccId);
+      if (!iccCard) {
+        return;
+      }
+      iccCard.addEventListener('cardstatechange',
+                               showCellAndDataDescription);
+      mobileConnections[0].addEventListener('radiostatechange',
+                                            showCellAndDataDescription);
+      mobileConnections[0].addEventListener('datachange',
+                                            showCellAndDataDescription);
+    }
+
+    showCellAndDataDescription();
+    addListeners();
+
+    iccManager.addEventListener('iccdetected',
+      function iccDetectedHandler(evt) {
+        if (mobileConnections[0].iccId &&
+           (mobileConnections[0].iccId === evt.iccId)) {
+          showCellAndDataDescription();
+          addListeners();
+        }
+    });
+
+    iccManager.addEventListener('iccundetected',
+      function iccUndetectedHandler(evt) {
+        if (iccId === evt.iccId) {
+          mobileConnections[0].removeEventListener('radiostatechange',
+            showCellAndDataDescription);
+          mobileConnections[0].removeEventListener('datachange',
+            showCellAndDataDescription);
+        }
+    });
   }
 
   /**
@@ -281,7 +409,7 @@ var Connectivity = (function(window, document, undefined) {
       return;
 
     // update the current SIM card state
-    var cardState = IccHelper.cardState || 'null';
+    var cardState = _airplaneMode ? 'null' : IccHelper.cardState || 'absent';
     localize(messagingDesc, kCardStateL10nId[cardState]);
   }
 
@@ -304,9 +432,36 @@ var Connectivity = (function(window, document, undefined) {
     if (!bluetooth.enabled) {
       return;
     }
+
+    // If the BT address is in the Settings database, it's already displayed in
+    // all `Bluetooth address' fields; if not, it will be set as soon as BT is
+    // enabled.
+    if (!_bluetooth_address && settings) {
+      var req = settings.createLock().get('deviceinfo.bt_address');
+      req.onsuccess = function btAddr_onsuccess() {
+        _bluetooth_address = req.result['deviceinfo.bt_address'];
+      };
+    }
+
     var req = bluetooth.getDefaultAdapter();
     req.onsuccess = function bt_getAdapterSuccess() {
       var defaultAdapter = req.result;
+
+      // Set Bluetooth address after getting the adapter if it wasn't already
+      // done so earlier.
+      if (!_bluetooth_address && defaultAdapter.address) {
+        _bluetooth_address = defaultAdapter.address;
+
+        settings.createLock().set({ 'deviceinfo.bt_address':
+                                   _bluetooth_address });
+        // update UI fields
+        var fields =
+          document.querySelectorAll('[data-name="deviceinfo.bt_address"]');
+        for (var i = 0, l = fields.length; i < l; i++) {
+          fields[i].textContent = _bluetooth_address;
+        }
+      }
+
       var reqPaired = defaultAdapter.getPairedDevices();
       reqPaired.onsuccess = function bt_getPairedSuccess() {
         // copy for sorting
@@ -351,7 +506,6 @@ var Connectivity = (function(window, document, undefined) {
   return {
     init: init,
     updateWifi: updateWifi,
-    updateCarrier: updateCarrier,
     updateBluetooth: updateBluetooth,
     set wifiEnabled(listener) { wifiEnabledListeners.push(listener) },
     set wifiDisabled(listener) { wifiDisabledListeners.push(listener); },

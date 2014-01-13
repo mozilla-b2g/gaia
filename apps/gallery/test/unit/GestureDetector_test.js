@@ -20,7 +20,8 @@ suite('GestureDetector', function() {
     });
   });
 
-  suite('gesture detection', function() {
+  // Disabled per bug: https://bugzilla.mozilla.org/show_bug.cgi?id=956591
+  suite.skip('gesture detection', function() {
     var gd, element, events;
 
     // Return the sequence of events as a string of event types
@@ -163,7 +164,7 @@ suite('GestureDetector', function() {
     });
 
     swipes.forEach(function(s) {
-      test('mouseswipe ' + s.name, function(done) {
+      test.skip('mouseswipe ' + s.name, function(done) {
         SyntheticGestures.mouseswipe(element, s.x0, s.y0, s.x1, s.y1,
                                      200, checkswipe);
         function checkswipe() {

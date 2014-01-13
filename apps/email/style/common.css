@@ -151,6 +151,7 @@ body {
   overflow-y: auto;
   overflow-x: hidden;
   height: calc(100% - 5.8rem + 0.5rem);
+  will-change: scroll-position;
 }
 
 .scrollregion-below-header.scrollregion-horizontal-too {
@@ -163,9 +164,10 @@ body {
   bottom: 0;
   width: 100%;
   height: 4rem;
-  background-color: rgba(0, 0, 0, 0.75);
+  background-color: rgba(0, 0, 0, 0.85);
   z-index: 10;
 }
+
 .bottom-btn {
   height: 4rem;
   border: none;
@@ -176,15 +178,6 @@ body {
 .bottom-btn.disabled {
   opacity: 0.3;
   pointer-events: none;
-}
-.bottom-btn:active {
-  background-color: #008AAA !important;
-}
-/* create a space the size of the toolbar since it is absolute...
-   9.6 rem = 4.8rem (toolbar height)  + 4.8rem (search bar height) */
-.bottom-toolbar-spacer {
-  display: block;
-  height: 8rem;
 }
 
 .popup {
@@ -265,4 +258,40 @@ section[role="status"] .toaster-banner-retry {
 section[role="status"][title="undo"] .toaster-banner-undo,
 section[role="status"][title="retry"] .toaster-banner-retry {
   display: inline;
+}
+
+
+/*
+These folder-depth* styles are here instead of folder_cards.css
+because they are also used by the value_selector for showing
+the list of folders. folder-item specific styles so that these
+paddings override other styles in folder_cards.css
+*/
+.fld-folder-item.fld-folder-depth0,
+.fld-folder-depth0 {
+  padding-left: 1.5rem;
+}
+.fld-folder-item.fld-folder-depth1,
+.fld-folder-depth1 {
+  padding-left: 3rem;
+}
+.fld-folder-item.fld-folder-depth2,
+.fld-folder-depth2 {
+  padding-left: 4.5rem;
+}
+.fld-folder-item.fld-folder-depth3,
+.fld-folder-depth3 {
+  padding-left: 6rem;
+}
+.fld-folder-item.fld-folder-depth4,
+.fld-folder-depth4 {
+  padding-left: 6.5rem;
+}
+.fld-folder-item.fld-folder-depth5,
+.fld-folder-depth5 {
+  padding-left: 9.5rem;
+}
+.fld-folder-item.fld-folder-depth6,
+.fld-folder-depthmax {
+  padding-left: 11rem;
 }

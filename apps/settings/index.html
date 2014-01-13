@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
     <meta charset="utf-8">
     <title>Settings</title>
 
@@ -16,7 +17,7 @@
     <link rel="stylesheet" type="text/css" href="style/lists.css">
     <link rel="stylesheet" type="text/css" href="style/icons.css">
     <link rel="stylesheet" type="text/css" href="style/settings.css">
-
+    <link rel="stylesheet" type="text/css" href="style/settings_large.css">
     <!-- Panel Stylesheets
     <link rel="stylesheet" type="text/css" href="shared/style/action_menu.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/buttons.css"/>
@@ -27,6 +28,7 @@
     <link rel="stylesheet" type="text/css" href="style/phone_lock.css"/>
     <link rel="stylesheet" type="text/css" href="style/simcard.css"/>
     <link rel="stylesheet" type="text/css" href="style/updates.css"/>
+    <link rel="stylesheet" type="text/css" href="style/downloads.css"/>
     -->
 
     <!-- Shared resources
@@ -41,6 +43,7 @@
     -->
 
     <!-- Localization -->
+    <link rel="resource" type="application/l10n" href="shared/locales/download.ini">
     <link rel="resource" type="application/l10n" href="shared/locales/branding.ini">
     <link rel="resource" type="application/l10n" href="shared/locales/date.ini">
     <link rel="resource" type="application/l10n" href="shared/locales/permissions.ini">
@@ -62,12 +65,18 @@
     <script defer="" src="js/settings.js"></script>
 
     <!-- shared helper library -->
-    <!--<script defer src="/shared/js/icc_helper.js"></script>-->
+    <!--<script defer src="shared/js/download/download_store.js"></script>-->
+    <!--<script defer src="shared/js/download/download_helper.js"></script>-->
+    <!--<script defer src="shared/js/download/download_ui.js"></script>-->
+    <!--<script defer src="shared/js/mime_mapper.js"></script>-->
+    <!--<script defer src="shared/js/download/download_formatter.js"></script>-->
+    <!--<script defer src="shared/js/icc_helper.js"></script>-->
     <!--<script defer src="shared/js/keyboard_helper.js"></script>-->
     <!--<script defer src="shared/js/mobile_operator.js"></script>-->
     <!--<script defer src="shared/js/async_storage.js"></script>-->
     <!--<script defer src="shared/js/wifi_helper.js"></script>-->
-    <!--<script defer src="/shared/js/settings_listener.js"></script> -->
+    <!--<script defer src="shared/js/settings_helper.js"></script> -->
+    <!--<script defer src="shared/js/settings_listener.js"></script> -->
 
     <!-- all non-#root panels will lazy-load their own scripts -->
     <link rel="import" href="/elements/wifi_status.html">
@@ -75,6 +84,9 @@
     <link rel="import" href="/elements/wifi_join_hidden.html">
     <link rel="import" href="/elements/wifi_wps.html">
     <link rel="import" href="/elements/wifi_manage_networks.html">
+    <link rel="import" href="/elements/wifi_manage_certificates.html">
+    <link rel="import" href="/elements/wifi_select_certificate_file.html">
+    <link rel="import" href="/elements/wifi_enter_certificate_nickname.html">
     <link rel="import" href="/elements/wifi.html">
     <link rel="import" href="/elements/call_cf_not_reachable_settings.html">
     <link rel="import" href="/elements/call_cf_no_reply_settings.html">
@@ -85,6 +97,7 @@
     <link rel="import" href="/elements/call_fdn_list_add.html">
     <link rel="import" href="/elements/call_fdn_list.html">
     <link rel="import" href="/elements/call_fdn_settings.html">
+    <link rel="import" href="/elements/call_iccs.html">
     <link rel="import" href="/elements/call.html">
     <link rel="import" href="/elements/messaging.html">
     <link rel="import" href="/elements/carrier_operator_settings.html">
@@ -93,6 +106,7 @@
     <link rel="import" href="/elements/carrier_supl_settings.html">
     <link rel="import" href="/elements/carrier_dc_warning.html">
     <link rel="import" href="/elements/carrier_dr_warning.html">
+    <link rel="import" href="/elements/carrier_iccs.html">
     <link rel="import" href="/elements/carrier.html">
     <link rel="import" href="/elements/bluetooth.html">
     <link rel="import" href="/elements/hotspot_wifi_settings.html">
@@ -102,6 +116,7 @@
     <link rel="import" href="/elements/notifications.html">
     <link rel="import" href="/elements/date_time.html">
     <link rel="import" href="/elements/languages.html">
+    <link rel="import" href="/elements/sim_manager.html">
     <link rel="import" href="/elements/homescreen_details.html">
     <link rel="import" href="/elements/homescreen.html">
     <link rel="import" href="/elements/keyboard.html">
@@ -133,6 +148,7 @@
     <link rel="import" href="/elements/improve_browser_os.html">
     <link rel="import" href="/elements/help.html">
     <link rel="import" href="/elements/icc.html">
+    <link rel="import" href="/elements/downloads.html">
   </head>
   <body class="skin-organic uninit">
     <!--
@@ -169,6 +185,12 @@
     <section is="wifi-wps" role="region" id="wifi-wps"></section>
     <!-- Connectivity :: Wi-Fi :: Saved Networks -->
     <section is="wifi-manageNetworks" role="region" id="wifi-manageNetworks"></section>
+    <!-- Connectivity :: Wi-Fi :: Manage Certificates -->
+    <section is="wifi-manageCertificates" role="region" id="wifi-manageCertificates"></section>
+    <!-- Connectivity :: Wi-Fi :: Select Certificate File -->
+    <section is="wifi-selectCertificateFile" role="region" id="wifi-selectCertificateFile"></section>
+    <!-- Connectivity :: Wi-Fi :: Enter Certificate Nickname -->
+    <section is="wifi-enterCertificateNickname" role="region" id="wifi-enterCertificateNickname"></section>
     <!-- Connectivity :: Wi-Fi -->
     <section is="wifi" role="region" id="wifi" data-require-sub-panels="true"></section>
     <!-- Connectivity :: Call :: Call Forwarding Not Reachable -->
@@ -179,19 +201,6 @@
     <section is="call-cf-mobileBusySettings" role="region" id="call-cf-mobileBusySettings"></section>
     <!-- Connectivity :: Call :: Call Forwarding Unconditional -->
     <section is="call-cf-unconditionalSettings" role="region" id="call-cf-unconditionalSettings"></section>
-    <!-- Connectivity :: Call :: Fixed Dialing Numbers (FDN) :: Authorized Numbers :: Action Menu -->
-    <form id="call-fdnList-action" role="dialog" data-type="action">
-      <header>
-        <span id="fdnAction-name">John Doe</span><br />
-        <span id="fdnAction-number">+1 2345678</span>
-      </header>
-      <menu>
-        <button id="fdnAction-call" data-l10n-id="fdnAction-call"> Call </button>
-        <button id="fdnAction-edit" data-l10n-id="fdnAction-edit"> Edit contact </button>
-        <button id="fdnAction-delete" data-l10n-id="fdnAction-delete"> Delete contact </button>
-        <button id="fdnAction-cancel" data-l10n-id="cancel"> Cancel </button>
-      </menu>
-    </form>
     <!-- Connectivity :: Call :: Fixed Dialing Numbers (FDN) :: Authorized Numbers :: Add -->
     <section is="call-fdnList-add" role="region" id="call-fdnList-add"></section>
     <!-- Connectivity :: Call :: Fixed Dialing Numbers (FDN) :: Authorized Numbers -->
@@ -202,6 +211,8 @@
     <section is="call-fdnSettings" role="region" id="call-fdnSettings"></section>
     <!-- Connectivity :: Call :: Voice Mail -->
     <section is="call-voiceMailSettings" role="region" id="call-voiceMailSettings"></section>
+    <!-- Connectivity :: Call :: ICCs -->
+    <section is="call-iccs" role="region" id="call-iccs"></section>
     <!-- Connectivity :: Call -->
     <section is="call" role="region" id="call" data-require-sub-panels="true"></section>
     <!-- Connectivity :: Messaging -->
@@ -218,6 +229,8 @@
     <section is="carrier-dc-warning" role="region" id="carrier-dc-warning"></section>
     <!-- Connectivity :: Cellular & Data :: Data Roaming Warnings -->
     <section is="carrier-dr-warning" role="region" id="carrier-dr-warning"></section>
+    <!-- Connectivity :: Cellular & Data :: ICCs -->
+    <section is="carrier-iccs" role="region" id="carrier-iccs"></section>
     <!-- Connectivity :: Cellular & Data -->
     <section is="carrier" role="region" id="carrier" data-require-sub-panels="true"></section>
     <!-- Connectivity :: Bluetooth -->
@@ -227,8 +240,6 @@
     <!-- Connectivity :: Internet Sharing -->
     <section is="hotspot" role="region" id="hotspot"></section>
 
-    <!-- Personalization :: Sound :: Sound Selection -->
-    <section is="sound-selection" role="region" id="sound-selection"></section>
     <!-- Personalization :: Sound -->
     <section is="sound" role="region" id="sound" data-require-sub-panels="true"></section>
     <!-- Personalization :: Display -->
@@ -239,6 +250,8 @@
     <section is="dateTime" role="region" id="dateTime"></section>
     <!-- Personalization :: Language & Region -->
     <section is="languages" role="region" id="languages"></section>
+    <!-- Personalization :: SIM card manager -->
+    <section is="sim-manager" role="region" id="sim-manager"></section>
     <!-- Personalization :: Homescreen :: details -->
     <section is="homescreen-details" role="region" id="homescreen-details"></section>
     <!-- Personalization :: Homescreen -->
@@ -282,6 +295,8 @@
     <section is="about-legal" role="region" id="about-legal"></section>
     <!-- Device :: Information -->
     <section is="about" role="region" id="about"></section>
+    <!-- Device :: Downloads -->
+    <section is="downloads" role="region" id="downloads"></section>
     <!-- Device :: Battery -->
     <section is="battery" role="region" id="battery"></section>
     <!-- Device :: Device Storage -->
@@ -332,7 +347,10 @@
             <small id="wifi-desc" class="menu-item-desc"></small>
             <a id="menuItem-wifi" class="menu-item" href="#wifi" data-l10n-id="wifi">Wi-Fi</a>
           </li>
-          <li id="call-settings">
+          <li id="simCardManager-settings" hidden>
+            <a id="menuItem-simManager" class="menu-item" href="#sim-manager" data-l10n-id="simManager">SIM manager</a>
+          </li>
+          <li id="call-settings" aria-disabled="true">
             <small id="call-desc" class="menu-item-desc"></small>
             <a id="menuItem-callSettings" class="menu-item" href="#call" data-l10n-id="callSettings">Call Settings</a>
           </li>
@@ -340,13 +358,19 @@
             <small id="messaging-desc" class="menu-item-desc"></small>
             <a id="menuItem-messagingSettings" class="menu-item" href="#messaging" data-l10n-id="messagingSettings">Messaging Settings</a>
           </li>
-          <li id="data-connectivity">
+          <li id="data-connectivity" aria-disabled="true">
             <small id="data-desc" class="menu-item-desc"></small>
             <a id="menuItem-cellularAndData" class="menu-item" href="#carrier" data-l10n-id="cellularAndData">Cellular &amp; Data</a>
           </li>
           <li>
             <small id="bluetooth-desc" class="menu-item-desc"></small>
             <a id="menuItem-bluetooth" class="menu-item" href="#bluetooth" data-l10n-id="bluetooth">Bluetooth</a>
+          </li>
+          <li id="nfc-settings" hidden>
+            <label class="pack-switch">
+              <input id="nfc-input" name="nfc.enabled" class="uninit" type="checkbox">
+              <span id="menuItem-nfc" class="menu-item" data-l10n-id="nfc">NFC</span>
+            </label>
           </li>
           <li>
             <small id="internetSharing-desc" class="menu-item-desc"></small>
@@ -408,9 +432,9 @@
             <small id="phoneLock-desc" class="menu-item-desc"></small>
             <a id="menuItem-phoneLock" class="menu-item" href="#phoneLock" data-l10n-id="phoneLock">Phone Lock</a>
           </li>
-          <li id="simSecurity-settings">
+          <li id="simSecurity-settings" hidden>
             <small id="simCardLock-desc" class="menu-item-desc"></small>
-            <a id="menuItem-simSecurity" class="menu-item" href="#simpin" data-l10n-id="simSecurity">SIM Security</a>
+            <a id="menuItem-simSecurity" class="menu-item" href="#simpin" data-l10n-id="simSecurity">SIM security</a>
           </li>
           <li>
             <a id="menuItem-appPermissions" class="menu-item" href="#appPermissions" data-l10n-id="appPermissions">App permissions</a>
@@ -449,6 +473,9 @@
         <ul>
           <li>
             <a id="menuItem-deviceInfo" class="menu-item" href="#about" data-l10n-id="deviceInfo">Device Information</a>
+          </li>
+          <li>
+            <a id="menuItem-downloads" class="menu-item" href="#downloads" data-l10n-id="downloads">Downloads</a>
           </li>
           <li>
             <small id="battery-desc" class="menu-item-desc"></small>

@@ -2,8 +2,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import time
-
 from marionette.by import By
 from gaiatest.apps.base import Base
 
@@ -16,24 +14,15 @@ class DoNotTrack(Base):
 
     def tap_allow_tracking(self):
         el = self.marionette.find_element(*self._allow_tracking_checkbox_locator)
-        checked = el.get_attribute('checked')
         el.tap()
-        self.wait_for_condition(lambda m: el.get_attribute('checked') is not checked)
-        # This helps us wait for the setting to be set
-        time.sleep(0.5)
+        self.wait_for_condition(lambda m: self.data_layer.get_setting('privacy.donottrackheader.value') == '0')
 
     def tap_disallow_tracking(self):
         el = self.marionette.find_element(*self._disallow_tracking_checkbox_locator)
-        checked = el.get_attribute('checked')
         el.tap()
-        self.wait_for_condition(lambda m: el.get_attribute('checked') is not checked)
-        # This helps us wait for the setting to be set
-        time.sleep(0.5)
+        self.wait_for_condition(lambda m: self.data_layer.get_setting('privacy.donottrackheader.value') == '1')
 
     def tap_do_not_have_pref_on_tracking(self):
         el = self.marionette.find_element(*self._do_not_have_pref_on_tracking_checkbox_locator)
-        checked = el.get_attribute('checked')
         el.tap()
-        self.wait_for_condition(lambda m: el.get_attribute('checked') is not checked)
-        # This helps us wait for the setting to be set
-        time.sleep(0.5)
+        self.wait_for_condition(lambda m: self.data_layer.get_setting('privacy.donottrackheader.value') == '-1')

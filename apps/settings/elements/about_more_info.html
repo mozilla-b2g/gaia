@@ -5,7 +5,7 @@
       <button type="reset">
         <span data-l10n-id="back" class="icon icon-back">Back</span>
       </button>
-      <h1 data-l10n-id="more-info"> More Information </h1>
+      <h1 data-l10n-id="more-info-header"> More Information </h1>
     </header>
 
     <div>
@@ -47,6 +47,10 @@
           <span data-l10n-id="update-channel"> Update Channel </span>
         </li>
         <li>
+          <small data-name="deviceinfo.bt_address"></small>
+          <span data-l10n-id="bluetooth-address"> Bluetooth Address </span>
+        </li>
+        <li>
           <label>
             <button id="reset-phone" data-l10n-id="reset-phone">Reset Phone</button>
           </label>
@@ -78,6 +82,19 @@
         </li>
       </ul>
     </div>
+
+    <form role="dialog" data-type="confirm" id="reset-phone-dialog" hidden>
+      <section>
+        <h1 data-l10n-id="reset-warning-title">CAUTION</h1>
+        <p data-l10n-id="reset-warning-body">
+          Resetting will erase all your data, including any apps you’ve purchased. The phone will be restored to its factory condition. None of your settings or data will be saved.
+        </p>
+      </section>
+      <menu>
+        <button data-l10n-id="cancel" id="cancel-reset-phone">Cancel</button>
+        <button data-l10n-id="reset" id="confirm-reset-phone" class="danger">Reset</button>
+      </menu>
+    </form>
 
     <script src="js/about_more_info.js"></script>
     <script src="js/factory_reset.js"></script>

@@ -1,3 +1,6 @@
+/* globals CallHandler, CallLogDBManager, CallsHandler, CallScreen, LazyLoader,
+           PhoneNumberActionMenu, SettingsListener, TonePlayer, Utils */
+
 'use strict';
 
 var kFontStep = 4;
@@ -10,28 +13,6 @@ var gTonesFrequencies = {
   '*': [941, 1209], '0': [941, 1336], '#': [941, 1477]
 };
 
-var keypadSoundIsEnabled = false;
-var dtmfShortTone = false;
-
-function observePreferences() {
-  SettingsListener.observe('phone.ring.keypad', false, function(value) {
-    keypadSoundIsEnabled = !!value;
-  });
-
-  SettingsListener.observe('phone.dtmf.type', false, function(value) {
-    dtmfShortTone = (value == 'short');
-  });
-}
-
-if (window.SettingsListener) {
-  observePreferences();
-} else {
-  window.addEventListener('load', function onLoad() {
-    window.removeEventListener('load', onLoad);
-    LazyLoader.load('/shared/js/settings_listener.js', observePreferences);
-  });
-}
-
 var KeypadManager = {
 
   _MAX_FONT_SIZE_DIAL_PAD: 18,
@@ -40,6 +21,9 @@ var KeypadManager = {
 
   _phoneNumber: '',
   _onCall: false,
+
+  _keypadSoundIsEnabled: false,
+  _shortTone: false,
 
   onValueChanged: null,
 
@@ -177,6 +161,8 @@ var KeypadManager = {
     this.render();
     LazyLoader.load(['/shared/style/action_menu.css',
                      '/dialer/js/suggestion_bar.js']);
+
+    this._observePreferences();
   },
 
   moveCaretToEnd: function hk_util_moveCaretToEnd(el) {
@@ -286,22 +272,28 @@ var KeypadManager = {
   _dtmfToneTimer: null,
 
   _playDtmfTone: function kh_playDtmfTone(key) {
+    if (!this._onCall) {
+      return;
+    }
+
     var telephony = navigator.mozTelephony;
 
-    if (this._onCall) {
-      clearTimeout(this._dtmfToneTimer);
-      telephony.stopTone(); // Stop previous tone before dispatching a new one
-      telephony.startTone(key);
+    clearTimeout(this._dtmfToneTimer);
+    telephony.stopTone(); // Stop previous tone before dispatching a new one
+    telephony.startTone(key);
 
-      if (dtmfShortTone) {
-        this._dtmfToneTimer = window.setTimeout(function ch_playDTMF() {
-          telephony.stopTone();
-        }, this._DTMF_SHORT_TONE_LENGTH);
-      }
+    if (this._shortTone) {
+      this._dtmfToneTimer = window.setTimeout(function ch_playDTMF() {
+        telephony.stopTone();
+      }, this._DTMF_SHORT_TONE_LENGTH);
     }
   },
 
   _stopDtmfTone: function kh_stopDtmfTone() {
+    if (!this._onCall) {
+      return;
+    }
+
     var telephony = navigator.mozTelephony;
 
     clearTimeout(this._dtmfToneTimer);
@@ -309,7 +301,7 @@ var KeypadManager = {
   },
 
   /**
-   * Function used to respond to touchmove events over the keypad. Reacts to
+   * Function used to respond to touchstart events over the keypad. Reacts to
    * the first key that has been pressed by playing the appropriate tone and
    * sets up the necessary timers to react to long presses.
    *
@@ -322,9 +314,10 @@ var KeypadManager = {
     this._lastPressedKey = key;
 
     if (key != 'delete') {
-      if (keypadSoundIsEnabled) {
+      if (this._keypadSoundIsEnabled) {
         // We do not support long press if not on a call
-        TonePlayer.start(gTonesFrequencies[key], !this._onCall);
+        TonePlayer.start(
+          gTonesFrequencies[key], !this._onCall || this._shortTone);
       }
 
       this._playDtmfTone(key);
@@ -375,7 +368,9 @@ var KeypadManager = {
       this._phoneNumber += key;
     }
 
-    this._updatePhoneNumberView('begin', false);
+    setTimeout(function(self) {
+      self._updatePhoneNumberView('begin', false);
+    }, 0, this);
   },
 
   /**
@@ -407,7 +402,7 @@ var KeypadManager = {
       this._lastPressedKey = null;
     }
 
-    if (keypadSoundIsEnabled) {
+    if (this._keypadSoundIsEnabled) {
       TonePlayer.stop();
     }
 
@@ -560,5 +555,18 @@ var KeypadManager = {
        // number in the setting app.
      };
      request.onerror = function() {};
+  },
+
+  _observePreferences: function kh_observePreferences() {
+    var self = this;
+    LazyLoader.load('/shared/js/settings_listener.js', function() {
+      SettingsListener.observe('phone.ring.keypad', false, function(value) {
+        self._keypadSoundIsEnabled = !!value;
+      });
+
+      SettingsListener.observe('phone.dtmf.type', false, function(value) {
+        self._shortTone = (value === 'short');
+      });
+    });
   }
 };

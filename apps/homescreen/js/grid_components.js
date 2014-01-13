@@ -26,6 +26,7 @@ var GridItem = function GridItem(params) {
 
   this.id = params.id || '';
   this.url = this.origin = this.bookmarkURL = params.bookmarkURL;
+  this.features = params.features || '';
 
   this.manifest = {
     name: params.name,
@@ -60,7 +61,8 @@ GridItem.prototype = {
       name: this.manifest.name,
       icon: this.manifest.icons && this.manifest.icons['60'],
       remote: true,
-      useAsyncPanZoom: this.useAsyncPanZoom
+      useAsyncPanZoom: this.useAsyncPanZoom,
+      features: this.features
     };
   }
 };

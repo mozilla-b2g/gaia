@@ -42,7 +42,6 @@ var mocksHelperForNavigation = new MocksHelper([
 suite('navigation >', function() {
   var mocksHelper = mocksHelperForNavigation;
   var isOnLine = true;
-  var container, progressBar;
   var realOnLine,
       realL10n,
       realMozMobileConnection,
@@ -245,7 +244,7 @@ suite('navigation >', function() {
     });
 
     test('without SIM card', function() {
-      MockIccHelper.setProperty('cardState', 'absent');
+      MockIccHelper.setProperty('cardState', null);
       Navigation.forward();
 
       assert.equal(Navigation.previousStep, 1);

@@ -11,6 +11,7 @@ const APPS_CONF_FILENAME = 'singlevariantconf.json';
 
 const PROFILE_APPS_FOLDER = 'svoperapps';
 
+const DEFAULT_EMPTY_SCREENS = 2;
 const MAX_ICONS_PER_PAGE = 4 * 4;
 /**
  * the done flag to tell the console it is ready to exit.
@@ -63,18 +64,9 @@ function checkDownloadedApp(path) {
 
 
 //download the packaged app from manifest['package_path'] to cache path.
-function downloadPackageApp(manifestUrl, manifest, appPath, appId, origin,
-                     installOrigin, callback, errCallback) {
+function downloadPackageApp(manifest, metadata, appPath, callback, errCallback) {
   utils.log('variant.js',
             'download packaged app from: ' + manifest['package_path']);
-
-  // prepare metadata.
-  var metadata = {
-    'id': appId,
-    'installOrigin': installOrigin,
-    'manifestURL': manifestUrl,
-    'origin': getOrigin(manifest['package_path'])
-  };
   // write update.webapp
   utils.writeContentToFile(utils.joinPath(appPath, 'update.webapp'),
                            JSON.stringify(manifest));
@@ -89,14 +81,11 @@ function downloadPackageApp(manifestUrl, manifest, appPath, appId, origin,
                        });
 }
 
-function prepareHostedApp(manifestUrl, manifest, appPath, appId, origin,
-                     installOrigin, callback, errCallback) {
-  var metadata = {
-    'id': appId,
-    'installOrigin': installOrigin,
-    'manifestURL': manifestUrl,
-    'origin': origin || getOrigin(manifest['launch_path'])
-  };
+function prepareHostedApp(manifest, metadata, appPath, callback, errCallback) {
+  // Bug 936028 - appcache needs to be removed from manifest
+  if (manifest.appcache_path) {
+    delete manifest.appcache_path;
+  }
 
   // write manifest
   utils.writeContentToFile(utils.joinPath(appPath, 'manifest.webapp'),
@@ -107,16 +96,12 @@ function prepareHostedApp(manifestUrl, manifest, appPath, appId, origin,
   callback();
 }
 
-function downloadApp(manifestUrl, manifest, appPath, appId, origin,
-                     installOrigin, callback, errCallback) {
-
+function downloadApp(manifest, metadata, appPath, callback, errCallback) {
   // Determine if application is hosted or packaged and save manifest
   if (manifest['package_path']) { // packaged app
-    downloadPackageApp(manifestUrl, manifest, appPath, appId, origin,
-                     installOrigin, callback, errCallback);
-  } else if (origin || manifest['launch_path']) { // hosted app
-    prepareHostedApp(manifestUrl, manifest, appPath, appId, origin,
-                     installOrigin, callback, errCallback);
+    downloadPackageApp(manifest, metadata, appPath, callback, errCallback);
+  } else if (metadata.origin) { // hosted app
+    prepareHostedApp(manifest, metadata, appPath, callback, errCallback);
   } else { // error case
     errCallback(new Error('installOrigin required for app ' + appId +
                     ' in local_apps.json configuration file'));
@@ -171,6 +156,11 @@ function processApp(appId, manifestUrl, origin, installOrigin, profilePath,
       var fileJSON = utils.readJSONFromPath(utils.joinPath(appPath,
                                                            manifestFile));
 
+      // Bug 936028 - Comparation has to be done removing appcache
+      if (json.appcache_path) {
+        delete json.appcache_path;
+      }
+
       if (JSON.stringify(json) === JSON.stringify(fileJSON)) {
         copyAppPathToProfile();
         return;
@@ -180,8 +170,15 @@ function processApp(appId, manifestUrl, origin, installOrigin, profilePath,
     try {
       // if it is cached or the manifest file is not the same, we need to
       // download that app.
-      downloadApp(manifestUrl, json, appPath, appId, origin, installOrigin,
-                  copyAppPathToProfile, handleError);
+      var metadata = {
+        'id': appId,
+        'installOrigin': installOrigin,
+        'manifestURL': manifestUrl
+      };
+      metadata.origin = json['package_path'] ?
+        getOrigin(json['package_path']) :
+        (origin || getOrigin(json['launch_path']));
+      downloadApp(json, metadata, appPath, copyAppPathToProfile, handleError);
     } catch (ex) {
       // error found
       errorObject = ex;
@@ -240,6 +237,10 @@ function fetchApps(data, profilePath, distributionPath, done) {
     });
   }
 
+  if (Object.keys(apps).length === 0) {
+    done();
+  }
+
 }
 
 // read the app postion customization part in variant.json and write the result
@@ -266,7 +267,7 @@ function customizeAppPosition(data, profilePath, distributionPath) {
       if (!apps[appId]['manifestURL']) {
         throw new Error('manifestURL not found for application: ' + appId);
       }
-      app['manifestURL'] = apps[appId];
+      app['manifestURL'] = apps[appId]['manifestURL'];
       delete app.id;
       rowHomescreen.push(app);
     });
@@ -285,6 +286,43 @@ function customizeAppPosition(data, profilePath, distributionPath) {
   var distFn = utils.joinPath(distributionPath, OUTPUT_FOLDER, APPS_FOLDER,
                               APPS_CONF_FOLDER, APPS_CONF_FILENAME);
   utils.writeContentToFile(distFn, JSON.stringify(outputHomescreen));
+}
+
+// Read grid of homescreen to check which apps are not present but
+// are going to be installed as a system apps.
+function getSystemApps(config, grid) {
+  // hiddenRoles identify applications that are not visible.
+  var hiddenRoles = ['system', 'input', 'homescreen'];
+  var systemApps = [];
+
+  utils.getGaia(config).webapps.forEach(function(webapp) {
+    if (!webapp.manifest.role || hiddenRoles.indexOf(webapp.manifest.role) === -1) {
+      // Check if the application has an entrypoint, it means that there are
+      // multiple icons for that application.
+      if (webapp.manifest.entry_points) {
+        for(var i in webapp.manifest.entry_points){
+          if (webapp.manifest.entry_points[i].icons) {
+            systemApps.push(webapp.manifest.entry_points[i].name);
+          }
+        }
+      } else {
+        systemApps.push(webapp.manifest.name);
+      }
+    }
+  });
+
+  // systemApps contains all systemApps, the ones configured in grid
+  // have to be deleted to avoid duplication.
+  grid.forEach(function(screen){
+    screen.forEach(function(app) {
+      var index = systemApps.indexOf(app.name);
+      if (index !== -1) {
+        systemApps.splice(index, 1);
+      }
+    });
+  });
+
+  return systemApps;
 }
 
 function validateHomescreen(data, config) {
@@ -310,9 +348,21 @@ function validateHomescreen(data, config) {
     return 0;
   }
 
+
+  var systemApps = getSystemApps(config, homescreen['grid']);
+
   data.operators.forEach(function(operator) {
     var grid = JSON.parse(JSON.stringify(homescreen['grid']));
+
+    // Remove dock apps
+    grid.shift();
+
     var apps = [];
+
+    // Variable to hold system apps, used to fill gaps. These ones cannot be
+    // placed in screen 0.
+    var wildcardSystemApps = systemApps.slice(0);
+
     // variable to hold apps with no location and screen, used to fill gaps
     var wildcardApps = [];
     operator.apps.forEach(function(app) {
@@ -328,16 +378,23 @@ function validateHomescreen(data, config) {
                         ' or properties are not a number');
       }
 
-      if(app.screen) {
+      if(typeof app.screen == 'number') {
         apps.push(app);
       } else {
         wildcardApps.push(app);
       }
     });
 
-    // sort list of apps with position by screen and location and validate position in
-    // homescreen
+    // Sort list of apps with position by screen and location and validate position in
+    // homescreen.
     apps = apps.sort(compare);
+
+    // Initialize grid in case it is empty
+    for (var i = 0; i < DEFAULT_EMPTY_SCREENS; i++) {
+      if (!grid[i]) {
+        grid.push([]);
+      }
+    }
 
     var screenLocations = [];
     apps.forEach(function(app) {
@@ -357,11 +414,23 @@ function validateHomescreen(data, config) {
         throw new Error('Two applications are in the same position');
       }
 
+      // If the position of the application is greater than the number of applications
+      // in the screen, the position is invalid. However, other single variant apps
+      // with no screen and position can be used to fill gaps. System apps not present
+      // in the init.json can also be used to fill gaps, but these ones can not be put
+      // in the screen 0.
       while (app.location > screen.length) {
-        if (wildcardApps.length == 0) {
-          throw new Error('Invalid position for app ' + app.id);
+        if (app.screen > 0 && wildcardSystemApps.length > 0) {
+          screen.push(wildcardSystemApps.pop());
+          continue;
         }
-        screen.push(wildcardApps.pop());
+
+        if (wildcardApps.length > 0){
+          screen.push(wildcardApps.pop());
+          continue;
+        }
+
+        throw new Error('Invalid position for app ' + app.id);
       }
       screen.splice(app.location, 0, app);
       screenLocations.push(screenLocation);
@@ -435,3 +504,4 @@ function execute(options) {
 }
 
 exports.execute = execute;
+exports.downloadApp = downloadApp;

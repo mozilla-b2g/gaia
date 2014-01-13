@@ -9,7 +9,6 @@ var EdgeSwipeDetector = {
     window.addEventListener('homescreenopening', this);
     window.addEventListener('appopen', this);
     window.addEventListener('launchapp', this);
-    window.addEventListener('launchwrapper', this);
 
     ['touchstart', 'touchmove', 'touchend'].forEach(function(e) {
       this.previous.addEventListener(e, this);
@@ -46,7 +45,6 @@ var EdgeSwipeDetector = {
         this._updateEnabled();
         break;
       case 'launchapp':
-      case 'launchwrapper':
         if (!e.detail.stayBackground) {
           this._lifecycleEnabled = true;
           this._updateEnabled();
@@ -205,7 +203,7 @@ var EdgeSwipeDetector = {
       this._sendTouchEvent(e);
       this._iframe.sendMouseEvent('mouseup', lastTouch.pageX,
                                   lastTouch.pageY, 0, 1, 0);
-    }).bind(this), 50);
+    }).bind(this), 80);
   },
 
   _unSynthetizeEvent: function esd_unSynthetizeEvent(e) {

@@ -65,72 +65,49 @@ function updateNextReset(trackingPeriod, value, callback) {
   setNextReset(nextReset, callback);
 }
 
-function resetData(onsuccess, onerror) {
+function resetData(mode, onsuccess, onerror) {
 
-  // Sets the fixing value for the current SIM
-  asyncStorage.getItem('dataUsageTags', function _updateTags(tags) {
-    if (!tags || !tags.length) {
-      console.error('dataUsageTags does not exists!');
-      return;
-    }
+  // Get all availabe Interfaces
+  var currentSimcardInterface = Common.getDataSIMInterface();
+  var wifiInterface = Common.getWifiInterface();
 
-    // Get current mobile data
-    var now = new Date();
-    var mobileRequest = NetworkstatsProxy.getNetworkStats({
-      start: now,
-      end: now,
-      connectionType: 'mobile'
-    });
-    mobileRequest.onerror = onerror;
-    mobileRequest.onsuccess = function _onMobileForToday() {
-      var data = mobileRequest.result.data;
-      debug('Data length should be 1 and it is', data.length);
-      var currentDataUsage = 0;
-      if (data[0].rxBytes) {
-        currentDataUsage += data[0].rxBytes;
+  // Ask reset for all available Interfaces
+  var wifiClearRequest, mobileClearRequest;
+
+  // onerror callback builder
+  var getOnErrorFor = function(networkInterface) {
+    return function() {
+      if (wifiClearRequest) {
+        wifiClearRequest.onerror = undefined;
       }
-      if (data[0].txBytes) {
-        currentDataUsage += data[0].txBytes;
+      if (mobileClearRequest) {
+        mobileClearRequest.onerror = undefined;
       }
-
-      // Adds the fixing
-      var tag = tags[tags.length - 1];
-      tag.fixing.push([now, currentDataUsage]);
-
-      // Remove the previous ones
-      for (var i = tags.length - 2; i >= 0; i--) {
-        var ctag = tags[i];
-        if (ctag.sim === tag.sim) {
-          tags.splice(i, 1);
-        }
-      }
-      debug('After reset', tags);
-
-      asyncStorage.setItem('dataUsageTags', tags, function _done() {
-        ConfigManager.setOption({ lastDataReset: now });
-      });
+      (typeof onerror === 'function') && onerror(networkInterface);
     };
+  };
+  if ((mode === 'all' || mode === 'wifi') && wifiInterface) {
+    wifiClearRequest = navigator.mozNetworkStats.clearStats(wifiInterface);
+    wifiClearRequest.onerror = getOnErrorFor('wi-Fi');
+  }
+  if ((mode === 'all' || mode === 'mobile') && currentSimcardInterface) {
+    mobileClearRequest = navigator.mozNetworkStats
+                                          .clearStats(currentSimcardInterface);
+    mobileClearRequest.onerror = getOnErrorFor('simcard');
+  }
 
-    var wifiRequest = NetworkstatsProxy.getNetworkStats({
-      start: now,
-      end: now,
-      connectionType: 'wifi'
-    });
-    wifiRequest.onerror = onerror;
-    wifiRequest.onsuccess = function _onWiFiForToday() {
-      var data = wifiRequest.result.data;
-      debug('Data length should be 1 and it is', data.length);
-      var currentWifiUsage = 0;
-      if (data[0].rxBytes) {
-        currentWifiUsage += data[0].rxBytes;
-      }
-      if (data[0].txBytes) {
-        currentWifiUsage += data[0].txBytes;
-      }
-      asyncStorage.setItem('wifiFixing', currentWifiUsage, onsuccess);
-    };
+    // Set last Reset
+  if (mode === 'all') {
+    ConfigManager.setOption({ lastCompleteDataReset: new Date() });
+  } else {
+    // Else clausure prevents running the update event twice
+    ConfigManager.setOption({ lastDataReset: new Date() });
+  }
 
-  });
+  // call onsuccess
+  if (typeof onsuccess === 'function') {
+    onsuccess();
+  }
 }
 
 function resetTelephony(callback) {
@@ -144,8 +121,12 @@ function resetTelephony(callback) {
   }, callback);
 }
 
+function logResetDataError(networkInterface) {
+  console.log('Error when trying to reset ' + networkInterface + ' interface');
+}
+
 function resetAll(callback) {
-  resetData(thenResetTelephony, thenResetTelephony);
+  resetData('all', thenResetTelephony, logResetDataError);
 
   function thenResetTelephony() {
     resetTelephony(callback);
@@ -214,6 +195,16 @@ var Common = {
 
   COST_CONTROL_APP: 'app://costcontrol.gaiamobile.org',
 
+  allNetworkInterfaces: {},
+
+  dataSimIccId: null,
+
+  allNetworkInterfaceLoaded: false,
+
+  dataSimIccIdLoaded: false,
+
+  dataSimIcc: null,
+
   isValidICCID: function(iccid) {
     return typeof iccid === 'string' && iccid.length;
   },
@@ -223,16 +214,25 @@ var Common = {
     var docState = document.readyState;
     var DOMAlreadyLoaded = docState === 'complete' ||
                            docState === 'interactive';
-    var remainingSteps = DOMAlreadyLoaded ? 1 : 2;
+    var messagesReceived = {
+      'DOMContentLoaded': DOMAlreadyLoaded,
+      'messagehandlerready': false
+    };
+    function pendingMessages() {
+      var pending = 0;
+      !messagesReceived['DOMContentLoaded'] && pending++;
+      !messagesReceived['messagehandlerready'] && pending++;
+      return pending;
+    }
     debug('DOMAlreadyLoaded:', DOMAlreadyLoaded);
-    debug('Waiting for', remainingSteps, 'events to start!');
+    debug('Waiting for', pendingMessages(), 'events to start!');
 
     function checkReady(evt) {
       debug(evt.type, 'event received!');
-      remainingSteps--;
+      messagesReceived[evt.type] = true;
 
       // Once all events are received, execute the callback
-      if (!remainingSteps) {
+      if (pendingMessages() === 0) {
         window.removeEventListener('DOMContentLoaded', checkReady);
         window.removeEventListener('messagehandlerready', checkReady);
         debug('DOMContentLoaded and messagehandlerready received. Starting');
@@ -247,7 +247,7 @@ var Common = {
   // Checks for a SIM change
   checkSIMChange: function(callback, onerror) {
     asyncStorage.getItem('lastSIM', function _compareWithCurrent(lastSIM) {
-      var currentSIM = IccHelper.iccInfo.iccid;
+      var currentSIM = Common.dataSimIccId;
       if (currentSIM === null) {
         console.error('Impossible: or we don\'t have SIM (so this method ' +
                       'should not be called) or the RIL is returning null ' +
@@ -259,10 +259,6 @@ var Common = {
         return;
       }
 
-      if (lastSIM !== currentSIM) {
-        debug('SIM change!');
-        MindGap.updateTagList(currentSIM);
-      }
       ConfigManager.requestSettings(function _onSettings(settings) {
         if (settings.nextReset) {
           setNextReset(settings.nextReset, callback);
@@ -314,5 +310,135 @@ var Common = {
 
   get localize() {
     return navigator.mozL10n.localize;
+  },
+
+  getIccInfo: function _getIccInfo(iccId) {
+    if (!iccId) {
+      return undefined;
+    }
+    var iccManager = window.navigator.mozIccManager;
+    var iccInfo = iccManager.getIccById(iccId);
+    if (!iccInfo) {
+      console.error('Unrecognized iccID: ' + iccId);
+      return undefined;
+    }
+    return iccInfo;
+  },
+
+  // Returns whether exists an nsIDOMNetworkStatsInterfaces object
+  // that meet the argument function criteria
+  getInterface: function getInterface(findFunction) {
+    if (!Common.allNetworkInterfaceLoaded) {
+      debug('Network interfaces are not ready yet');
+      var header = _('data-usage');
+      var msg = _('loading-interface-data');
+      this.modalAlert(header + '\n' + msg);
+      return;
+    }
+
+    if (Common.allNetworkInterfaces) {
+      return Common.allNetworkInterfaces.find(findFunction);
+    }
+  },
+
+  getDataSIMInterface: function _getDataSIMInterface() {
+    if (!this.dataSimIccIdLoaded) {
+      console.warn('Data simcard is not ready yet');
+      return;
+    }
+
+    var iccId = this.dataSimIccId;
+    if (iccId) {
+      var findCurrentInterface = function(networkInterface) {
+        if (networkInterface.id === iccId) {
+          return networkInterface;
+        }
+      };
+      return this.getInterface(findCurrentInterface);
+    }
+    return undefined;
+  },
+
+  getWifiInterface: function _getWifiInterface() {
+    var findWifiInterface = function(networkInterface) {
+      if (networkInterface.type === navigator.mozNetworkStats.WIFI) {
+        return networkInterface;
+      }
+    };
+    return this.getInterface(findWifiInterface);
+  },
+
+  loadNetworkInterfaces: function(onsuccess, onerror) {
+    var networks = navigator.mozNetworkStats.getAvailableNetworks();
+
+    networks.onsuccess = function() {
+      Common.allNetworkInterfaces = networks.result;
+      Common.allNetworkInterfaceLoaded = true;
+      if (onsuccess) {
+        onsuccess();
+      }
+    };
+
+    networks.onerror = function() {
+      console.error('Error when trying to load network interfaces');
+      if (onerror) {
+        onerror();
+      }
+    };
+  },
+
+  loadDataSIMIccId: function _loadDataSIMIccId(onsuccess, onerror) {
+    var settings = navigator.mozSettings,
+        mobileConnections = navigator.mozMobileConnections,
+        dataSlotId = 0;
+    var self = this;
+    var req = settings &&
+              settings.createLock().get('ril.data.defaultServiceId');
+
+    req.onsuccess = function _onsuccesSlotId() {
+      dataSlotId = req.result['ril.data.defaultServiceId'] || 0;
+      var mobileConnection = mobileConnections[dataSlotId];
+      var iccId = mobileConnection.iccId || null;
+      if (!iccId) {
+        console.error('The slot ' + dataSlotId +
+                   ', configured as the data slot, is empty');
+        if (onerror) {
+          onerror();
+        }
+        return;
+      }
+      self.dataSimIccId = iccId;
+      self.dataSimIccIdLoaded = true;
+      self.dataSimIcc = self.getIccInfo(iccId);
+      if (onsuccess) {
+        onsuccess(iccId);
+      }
+    };
+
+    req.onerror = function _onerrorSlotId() {
+      console.warn('ril.data.defaultServiceId does not exists');
+      var iccId = null;
+
+      // Load the fist slot with iccId
+      for (var i = 0; i < mobileConnections.length && !iccId; i++) {
+        if (mobileConnections[i]) {
+          iccId = mobileConnections[i].iccId;
+        }
+      }
+      if (!iccId) {
+        console.error('No SIM in the device');
+        if (onerror) {
+          onerror();
+        }
+        return;
+      }
+
+      self.dataSimIccId = iccId;
+      self.dataSimIccIdLoaded = true;
+      self.dataSimIcc = self.getIccInfo(iccId);
+      if (onsuccess) {
+        onsuccess(iccId);
+      }
+    };
   }
 };

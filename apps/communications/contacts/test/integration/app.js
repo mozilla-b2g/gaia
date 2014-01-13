@@ -47,9 +47,7 @@ ContactsIntegration.prototype = {
 
     /** Details **/
     name: '#contact-name-title',
-    org: '#org-title',
-    favoriteStar: '#favorite-star'
-
+    org: '#org-title'
   },
 
   waitForElementTextToEqual: function(element, expectedText, callback) {

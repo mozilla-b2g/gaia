@@ -6,7 +6,6 @@ function wifiTest() {
   var switchButton = document.getElementById('switch');
 
   var settings = window.navigator.mozSettings;
-  var navigator = window.navigator;
   var wifiManager;
   function update() {
     switchButton.checked = wifiManager.enabled;
@@ -26,8 +25,9 @@ function wifiTest() {
     wifiManager.ondisabled = update.bind(this);
     update();
   }
-  // Click on switch will only update settings and it takes some time for hardware
-  // to turns on. That's why we should listen to enabled/disabled event of wifi
+  // Click on switch will only update settings and
+  // it takes some time for hardware to turns on.
+  // That's why we should listen to enabled/disabled event of wifi
   function wifiSwitch() {
     settings.createLock().set({'wifi.enabled': switchButton.checked});
   }

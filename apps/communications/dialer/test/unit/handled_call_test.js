@@ -75,6 +75,7 @@ suite('dialer/handled_call', function() {
   });
 
   setup(function() {
+    this.sinon.useFakeTimers(Date.now());
     mockCall = new MockCall(String(phoneNumber), 'dialing');
     subject = new HandledCall(mockCall);
 
@@ -89,12 +90,12 @@ suite('dialer/handled_call', function() {
   });
 
   suite('initialization', function() {
-    test('ticker', function() {
-      assert.equal(subject._ticker, null);
-    });
-
     test('photo', function() {
       assert.equal(subject.photo, MockContacts.mPhoto);
+    });
+
+    test('should set caller image by contact photo', function() {
+      assert.equal(MockCallScreen.mSetCallerContactImageArg, subject.photo);
     });
 
     test('call', function() {
@@ -274,7 +275,7 @@ suite('dialer/handled_call', function() {
     });
 
     test('start the timer', function() {
-      assert.ok(subject._ticker);
+      assert.isTrue(MockCallScreen.mCalledCreateTicker);
     });
 
     test('keypad enabled', function() {
@@ -290,15 +291,30 @@ suite('dialer/handled_call', function() {
     });
 
     suite('with a contact with no picture', function() {
+      var setContactStub;
+
       setup(function() {
         subject.photo = null;
-        MockCallScreen.mSetCallerContactImageCalled = false;
+        setContactStub = this.sinon.stub(MockCallScreen,
+                                         'setCallerContactImage');
         mockCall._connect();
       });
 
       test('wallpaper displaying', function() {
+        assert.isTrue(setContactStub.calledWith(null));
+      });
+    });
+
+    suite('in a group', function() {
+      setup(function() {
+        MockCallScreen.mSetCallerContactImageCalled = false;
+        mockCall.group = {};
+
+        mockCall._connect();
+      });
+
+      test('don\'t display any photos', function() {
         assert.isFalse(MockCallScreen.mSetCallerContactImageCalled);
-        assert.isTrue(MockCallScreen.mSetDefaultContactImageCalled);
       });
     });
 
@@ -338,6 +354,11 @@ suite('dialer/handled_call', function() {
         assert.equal(subject.recentsEntry, MockCallsHandler.mLastEntryAdded);
       });
 
+      test('should show call ended', function() {
+        assert.equal(
+          subject.node.querySelector('.duration').textContent, 'callEnded');
+      });
+
       test('should remove listener on the call', function() {
         assert.isTrue(mockCall._listenerRemoved);
       });
@@ -351,16 +372,21 @@ suite('dialer/handled_call', function() {
       });
 
       test('should clear the ticker', function() {
-        assert.equal(subject._ticker, null);
+        assert.isTrue(MockCallScreen.mCalledStopTicker);
       });
 
       test('should remove the node from the dom', function() {
-        assert.isNull(node.parentNode);
+        assert.isFalse(MockCallScreen.mRemoveCallCalled);
+        this.sinon.clock.tick(2000);
+        assert.isTrue(MockCallScreen.mRemoveCallCalled);
       });
 
       test('should nullify the node', function() {
+        assert.isNotNull(subject.node);
+        this.sinon.clock.tick(2000);
         assert.isNull(subject.node);
       });
+
       test('it does not show the banner', function() {
         assert.isFalse(MockCallScreen.mShowStatusMessageCalled);
       });
@@ -369,9 +395,11 @@ suite('dialer/handled_call', function() {
     suite('from a group', function() {
       setup(function() {
         mockCall.group = null;
+        mockCall.mChangeState('disconnecting');
         mockCall.ongroupchange(mockCall);
         mockCall._disconnect();
       });
+
       test('show the banner', function() {
         assert.isTrue(MockCallScreen.mShowStatusMessageCalled);
       });
@@ -393,12 +421,13 @@ suite('dialer/handled_call', function() {
   });
 
   suite('resuming', function() {
+    var setContactStub;
+
     setup(function() {
       mockCall._hold();
       MockCallScreen.mSyncSpeakerCalled = false;
       MockCallScreen.mEnableKeypadCalled = false;
-      MockCallScreen.mSetCallerContactImageCalled = false;
-      MockCallScreen.mSetDefaultContactImageCalled = false;
+      setContactStub = this.sinon.stub(MockCallScreen, 'setCallerContactImage');
       subject.photo = 'dummy_photo_1';
       mockCall._resume();
     });
@@ -416,15 +445,8 @@ suite('dialer/handled_call', function() {
     });
 
     test('changed the user photo', function() {
+      assert.isTrue(setContactStub.calledWith(subject.photo));
       assert.isTrue(MockCallScreen.mSetCallerContactImageCalled);
-    });
-
-    test('change image to default if there are no user images', function() {
-      assert.isFalse(MockCallScreen.mSetDefaultContactImageCalled);
-      subject.photo = null;
-      mockCall._hold();
-      mockCall._resume();
-      assert.isTrue(MockCallScreen.mSetDefaultContactImageCalled);
     });
   });
 
@@ -682,12 +704,32 @@ suite('dialer/handled_call', function() {
     assert.equal(subject.numberNode.textContent, 'switch-calls');
   });
 
-  test('should display emergency number label', function() {
-    mockCall = new MockCall('112', 'dialing');
-    mockCall.emergency = true;
-    subject = new HandledCall(mockCall);
+  suite('Emergency Call layout', function() {
+    setup(function() {
+      MockCallScreen.mSetEmergencyWallpaperCalled = false;
+    });
 
-    assert.equal(subject.numberNode.textContent, 'emergencyNumber');
+    test('should display emergency number label', function() {
+      mockCall = new MockCall('112', 'dialing');
+      mockCall.emergency = true;
+      subject = new HandledCall(mockCall);
+
+      assert.equal(subject.numberNode.textContent, 'emergencyNumber');
+    });
+
+    test('should display emergency Wallpaper', function() {
+      mockCall = new MockCall('112', 'dialing');
+      subject = new HandledCall(mockCall);
+
+      assert.isTrue(MockCallScreen.mSetEmergencyWallpaperCalled);
+    });
+
+    test('should not display emergency wallpaper for normal calls', function() {
+      mockCall = new MockCall('111', 'dialing');
+      subject = new HandledCall(mockCall);
+
+      assert.isFalse(MockCallScreen.mSetEmergencyWallpaperCalled);
+    });
   });
 
   test('should display voicemail label', function() {
@@ -818,6 +860,55 @@ suite('dialer/handled_call', function() {
     });
   });
 
+  suite('caller photo', function() {
+    setup(function() {
+      MockCallScreen.mSetCallerContactImageCalled = false;
+    });
+
+    test('should reset photo when no contact info exists', function() {
+      mockCall = new MockCall('111', 'incoming');
+      subject = new HandledCall(mockCall);
+
+      assert.isTrue(MockCallScreen.mSetCallerContactImageCalled);
+      assert.isNull(MockCallScreen.mSetCallerContactImageArg);
+    });
+
+    test('should reset photo for withheld number', function() {
+      mockCall = new MockCall('', 'incoming');
+      subject = new HandledCall(mockCall);
+
+      assert.isTrue(MockCallScreen.mSetCallerContactImageCalled);
+      assert.isNull(MockCallScreen.mSetCallerContactImageArg);
+    });
+
+    test('should reset photo for more than 1 calls in CDMA', function() {
+      mockCall = new MockCall('888', 'connected');
+      subject = new HandledCall(mockCall);
+      mockCall.secondNumber = '999';
+      subject.updateCallNumber();
+
+      assert.isTrue(MockCallScreen.mSetCallerContactImageCalled);
+      assert.isNull(MockCallScreen.mSetCallerContactImageArg);
+    });
+
+    test('should reset photo for emergency number', function() {
+      mockCall = new MockCall('112', 'dialing');
+      mockCall.emergency = true;
+      subject = new HandledCall(mockCall);
+
+      assert.isTrue(MockCallScreen.mSetCallerContactImageCalled);
+      assert.isNull(MockCallScreen.mSetCallerContactImageArg);
+    });
+
+    test('should reset photo for voicemail', function() {
+      mockCall = new MockCall('123', 'dialing');
+      subject = new HandledCall(mockCall);
+
+      assert.isTrue(MockCallScreen.mSetCallerContactImageCalled);
+      assert.isNull(MockCallScreen.mSetCallerContactImageArg);
+    });
+  });
+
   suite('explicit visibility', function() {
     test('calling show should show the node', function() {
       subject.node.hidden = true;
@@ -825,10 +916,20 @@ suite('dialer/handled_call', function() {
       assert.isFalse(subject.node.hidden);
     });
 
+    test('calling show should update singleLine status', function() {
+      subject.show();
+      assert.isTrue(MockCallScreen.mUpdateSingleLineCalled);
+    });
+
     test('calling hide should hide the node', function() {
       subject.node.hidden = false;
       subject.hide();
       assert.isTrue(subject.node.hidden);
+    });
+
+    test('calling hide should update singleLine status', function() {
+      subject.show();
+      assert.isTrue(MockCallScreen.mUpdateSingleLineCalled);
     });
 
     suite('when the node got nullified', function() {
@@ -865,13 +966,40 @@ suite('dialer/handled_call', function() {
       mockCall.group = this.sinon.stub();
       mockCall.ongroupchange(mockCall);
       assert.isTrue(moveToGroupSpy.calledWith(subject.node));
+      assert.isFalse(MockCallScreen.mShowStatusMessageCalled);
     });
 
-    test('when leaving a group, it should ask the CallScreen to move back',
+    test('when leaving a group but still connected, it should move back to ' +
+         'the CallScreen but not show any status message on disconnect.',
     function() {
       mockCall.group = null;
       mockCall.ongroupchange(mockCall);
       assert.isTrue(insertCallSpy.calledWith(subject.node));
+      mockCall._disconnect();
+      assert.isFalse(MockCallScreen.mShowStatusMessageCalled);
+    });
+
+    test('when leaving a group by hanging up, it shouldn\'t move back to the' +
+         'CallScreen and show a status message.', function() {
+      mockCall.group = null;
+      mockCall.state = 'disconnecting';
+      mockCall.ongroupchange(mockCall);
+      assert.isFalse(insertCallSpy.calledWith(subject.node));
+      assert.isFalse(MockCallScreen.mShowStatusMessageCalled);
+      mockCall._disconnect();
+      assert.isTrue(MockCallScreen.mShowStatusMessageCalled);
+    });
+
+    test('when leaving a group by hanging up the whole group calls, it ' +
+         ' shouldn\'t move back and shouldn\'t show any status message.',
+    function() {
+      mockCall.group = null;
+      mockCall.state = 'disconnecting';
+      subject.node.dataset.groupHangup = 'groupHangup';
+      mockCall.ongroupchange(mockCall);
+      assert.isFalse(insertCallSpy.calledWith(subject.node));
+      mockCall._disconnect();
+      assert.isFalse(MockCallScreen.mShowStatusMessageCalled);
     });
   });
 

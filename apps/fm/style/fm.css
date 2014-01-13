@@ -118,6 +118,25 @@ a:active {
 #bookmark-button[data-bookmarked="true"] {
   background: url("images/toggle-fav-star-on.png") no-repeat center center / 4rem;
 }
+
+#speaker-switch {
+  top: 0;
+  left: 2rem;
+  background: url("images/speaker-off.png") no-repeat center center / 4rem;
+}
+
+#speaker-switch:focus {
+  border-color: #888;
+}
+
+#speaker-switch:active,
+#speaker-switch[data-speaker-on="true"]:active {
+  background: #00ABCD url("images/speaker-pressed.png") no-repeat center center / 4rem;
+}
+
+#speaker-switch[data-speaker-on="true"] {
+  background: url("images/speaker-on.png") no-repeat center center / 4rem;
+}
 /*****  end  *****/
 
 /**** styles for frequency dialer *****/

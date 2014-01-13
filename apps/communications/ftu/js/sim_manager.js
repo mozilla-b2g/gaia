@@ -1,27 +1,62 @@
 'use strict';
 
-var SimManager = {
-  // XXX: For handling the intermediate 'networkLocked' after unlock
-  //      the SIM card.
-  _unlocked: false,
+var SimManager = (function() {
+
+  /*
+   * Icc helper object to track FTE related SIM state
+   */
+  function Icc(mozIcc) {
+    this.mozIcc = mozIcc;
+  }
+  Icc.prototype = {
+    skipped: false,
+    unlocked: false,
+    alreadyImported: false,
+    mozIcc: null,
+    isLocked: function() {
+      return !this.unlocked && lockStates.indexOf(this.mozIcc.cardState) !== -1;
+    }
+  };
+
+  var _;
+
+  // mozIcc.cardState values for a locked SIM
+  var lockStates = ['pinRequired', 'pukRequired', 'networkLocked',
+                   'corporateLocked', 'serviceProviderLocked'];
+
+  return {
+  icc0: null,
+  icc1: null,
+
+  // track the SIM that is currently being unlocked
+  _unlockingIcc: null,
 
   init: function sm_init() {
-    // XXX: check bug-926169
-    // this is used to keep all tests passing while introducing multi-sim APIs
-    this.mobConn = window.navigator.mozMobileConnection ||
-                   window.navigator.mozMobileConnections &&
-                   window.navigator.mozMobileConnections[0];
-
-    if (!this.mobConn)
+    this.mobConn = window.navigator.mozMobileConnections;
+    if (!this.mobConn) {
       return;
+    }
 
-    if (!IccHelper)
+    this.iccManager = window.navigator.mozIccManager;
+    if (!this.iccManager) {
       return;
+    }
+
+    // keep track of sim card info in slot 0 and 1
+    this.icc0 = null;
+    this.icc1 = null;
+
+    if (this.iccManager.iccIds[0]) {
+      this.updateIccState(this.iccManager.iccIds[0]);
+    }
+    if (this.iccManager.iccIds[1]) {
+      this.updateIccState(this.iccManager.iccIds[1]);
+    }
+
+    this.iccManager.addEventListener('iccdetected',
+                                     this.handleIccState.bind(this));
 
     _ = navigator.mozL10n.get;
-
-    IccHelper.addEventListener('cardstatechange',
-                               this.handleCardState.bind(this));
 
     this.alreadyImported = false;
   },
@@ -37,6 +72,7 @@ var SimManager = {
         UIManager.pinError.textContent = _('pinAttemptMsg2', l10nArgs);
         UIManager.pinRetriesLeft.textContent = _('inputCodeRetriesLeft',
                                                  l10nArgs);
+        UIManager.pinRetriesLeft.classList.remove('hidden');
         if (data.retryCount == 1) {
           UIManager.pinError.textContent += ' ' + _('pinLastChanceMsg');
         }
@@ -50,6 +86,7 @@ var SimManager = {
         UIManager.pukError.textContent = _('pukAttemptMsg2', l10nArgs);
         UIManager.pukRetriesLeft.textContent = _('inputCodeRetriesLeft',
                                                  l10nArgs);
+        UIManager.pukRetriesLeft.classList.remove('hidden');
         if (data.retryCount == 1) {
           UIManager.pukError.textContent += _('pukLastChanceMsg');
         }
@@ -66,6 +103,7 @@ var SimManager = {
         UIManager.xckError.textContent = _('nckAttemptMsg2', l10nArgs);
         UIManager.xckRetriesLeft.textContent = _('inputCodeRetriesLeft',
                                                  l10nArgs);
+        UIManager.xckRetriesLeft.classList.remove('hidden');
         if (data.retryCount == 1) {
           UIManager.xckError.textContent += _('nckLastChanceMsg');
         }
@@ -74,15 +112,33 @@ var SimManager = {
   },
 
   available: function sm_available() {
-    if (!IccHelper)
-      return false;
-    return (IccHelper.cardState === 'ready');
+    var icc = this.guessIcc();
+    return (icc && icc.cardState === 'ready');
   },
 
- /**
+  handleIccState: function sm_handleIccState(event) {
+    this.updateIccState(event.iccId);
+  },
+
+  updateIccState: function(iccId) {
+    var iccInfo = this.iccManager.getIccById(iccId);
+    if (!iccInfo) {
+      throw new Error('Unrecognized iccID: ' + iccId);
+    }
+
+    // determine SIM slot number
+    if (this.mobConn[0] && iccId === this.mobConn[0].iccId) {
+      this.icc0 = new Icc(iccInfo);
+    } else if (this.mobConn[1] && iccId === this.mobConn[1].iccId) {
+      this.icc1 = new Icc(iccInfo);
+    } else {
+      console.warn('ICC detected in unsupported slot', iccID);
+    }
+  },
+
+ /*
   * Possible values:
   *   null,
-  *   'absent',
   *   'unknown',
   *   'pinRequired',
   *   'pukRequired',
@@ -92,29 +148,115 @@ var SimManager = {
   *   'ready'.
   */
   handleCardState: function sm_handleCardState(callback) {
+    // used to track which SIM's PIN unlock
+    // screen we are currently displaying
+    this._unlockingIcc = null;
+
     SimManager.checkSIMButton();
-    this.accessCallback = (typeof callback === 'function') ? callback : null;
-    switch (IccHelper.cardState) {
+    if (typeof callback === 'function') {
+      this.finishCallback = callback;
+    }
+
+    if (this.shouldShowUnlockScreen(this.icc0)) {
+      this.showUnlockScreen(this.icc0);
+    } else if (this.shouldShowUnlockScreen(this.icc1)) {
+      this.showUnlockScreen(this.icc1);
+    } else if (this.shouldShowSIMInfoScreen()) {
+      // reset skipped states so if we navigate back
+      // we will redisplay the SIM unlock screens
+      this.resetSkipped();
+      this.showSIMInfoScreen();
+    } else {
+      this.finish();
+    }
+  },
+
+  finish: function() {
+    this.hideScreen();
+    this.hideSIMInfoScreen();
+    // card state has been handled, so return
+    // to normal navigation, and only show cell
+    // data step if we have an unlocked sim
+    var showCellData = (this.icc0 && !this.icc0.isLocked()) ||
+                       (this.icc1 && !this.icc1.isLocked());
+    this.finishCallback && this.finishCallback(showCellData);
+  },
+
+  shouldShowUnlockScreen: function sm_shouldShowLockScreen(icc) {
+    return icc && !icc.skipped && icc.isLocked();
+  },
+
+  // only show sim info screen if we have two SIMs inserted
+  shouldShowSIMInfoScreen: function sm_shouldShowSIMInfoScreen() {
+    return (this.icc0 && this.icc1);
+  },
+
+  showUnlockScreen: function sm_showUnlockScreen(icc) {
+    if (icc.unlocked) {
+      return;
+    }
+    this._unlockingIcc = icc;
+
+    switch (icc.mozIcc.cardState) {
       case 'pinRequired':
-        this.showPinScreen();
+        this.showPinScreen(icc);
         break;
       case 'pukRequired':
-        this.showPukScreen();
+        this.showPukScreen(icc);
         break;
       case 'networkLocked':
       case 'corporateLocked':
       case 'serviceProviderLocked':
-        this.showXckScreen();
+        this.showXckScreen(icc);
         break;
       default:
-        if (this.accessCallback) {
-          this.accessCallback(IccHelper.cardState === 'ready');
-        }
+        throw new Error('Cannot show SIM unlock screen, unknown cardState ' +
+                        icc.mozIcc.cardState);
         break;
     }
   },
 
+  updateSIMInfoText: function sm_updateSIMInfoText(icc) {
+    var iccNumber = (icc === this.icc0) ? 1 : 2;
+    if (icc && icc.isLocked()) {
+      UIManager['simInfo' + iccNumber].classList.add('locked');
+      UIManager['simCarrier' + iccNumber].textContent = _('simPinLocked');
+      UIManager['simNumber' + iccNumber].textContent = '';
+    } else {
+      UIManager['simInfo' + iccNumber].classList.remove('locked');
+      var carrier = MobileOperator
+                    .userFacingInfo(this.mobConn[iccNumber - 1])
+                    .operator || _('noOperator');
+      UIManager['simCarrier' + iccNumber].textContent = carrier;
+      var number = icc.mozIcc.iccInfo.msisdn ||
+                   icc.mozIcc.iccInfo.mdn || '';
+      if (number) {
+        UIManager['simNumber' + iccNumber].textContent = number;
+        UIManager['simInfo' + iccNumber].classList.remove('no-number');
+      } else {
+        UIManager['simInfo' + iccNumber].classList.add('no-number');
+      }
+    }
+  },
+
+  showSIMInfoScreen: function sm_showSIMInfoScreen() {
+    this.updateSIMInfoText(this.icc0);
+    this.updateSIMInfoText(this.icc1);
+    UIManager.activationScreen.classList.remove('show');
+    UIManager.simInfoScreen.classList.add('show');
+  },
+
+  hideSIMInfoScreen: function sm_hidescreen() {
+    UIManager.simInfoScreen.classList.remove('show');
+    UIManager.activationScreen.classList.add('show');
+  },
+
   checkSIMButton: function sm_checkSIMButton() {
+    if (!this.mobConn) {
+      UIManager.simImport.classList.add('hidden');
+      return;
+    }
+
     var simOption = UIManager.simImportButton;
     // If there is an unlocked SIM we activate import from SIM
     if (!SimManager.alreadyImported && SimManager.available()) {
@@ -128,11 +270,8 @@ var SimManager = {
     }
   },
 
-  showPinScreen: function sm_showPinScreen() {
-    if (this._unlocked)
-      return;
-
-    IccHelper.getCardLockRetryCount('pin', function(retryCount) {
+  showPinScreen: function sm_showPinScreen(icc) {
+    icc.mozIcc.getCardLockRetryCount('pin', function(retryCount) {
       if (retryCount) {
         var l10nArgs = {n: retryCount};
         UIManager.pinRetriesLeft.textContent = _('inputCodeRetriesLeft',
@@ -150,14 +289,16 @@ var SimManager = {
     UIManager.unlockSimScreen.classList.add('show');
     UIManager.pincodeScreen.classList.add('show');
     UIManager.xckcodeScreen.classList.remove('show');
+    var simNumber = icc === this.icc0 ? 1 : 2;
+    UIManager.unlockSimHeader.textContent = _('pincodeTitle',
+                                              {n: simNumber});
+    UIManager.pinLabel.textContent = _('pincodeLabel',
+                                       {n: simNumber});
     UIManager.pinInput.focus();
   },
 
-  showPukScreen: function sm_showPukScreen() {
-    if (this._unlocked)
-      return;
-
-    IccHelper.getCardLockRetryCount('puk', function(retryCount) {
+  showPukScreen: function sm_showPukScreen(icc) {
+    icc.mozIcc.getCardLockRetryCount('puk', function(retryCount) {
       if (retryCount) {
         var l10nArgs = {n: retryCount};
         UIManager.pukRetriesLeft.textContent = _('inputCodeRetriesLeft',
@@ -171,17 +312,18 @@ var SimManager = {
     UIManager.pincodeScreen.classList.remove('show');
     UIManager.pukcodeScreen.classList.add('show');
     UIManager.xckcodeScreen.classList.remove('show');
-    UIManager.unlockSimHeader.textContent = _('pukcode');
+    var simNumber = icc === this.icc0 ? 1 : 2;
+    UIManager.unlockSimHeader.textContent = _('pukcodeTitle',
+                                              {n: simNumber});
+    UIManager.pukLabel.textContent = _('pukcodeLabel',
+                                       {n: simNumber});
     UIManager.pukInput.focus();
   },
 
-  showXckScreen: function sm_showXckScreen() {
-    if (this._unlocked)
-      return;
-
+  showXckScreen: function sm_showXckScreen(icc) {
     var lockType;
 
-    switch (IccHelper.cardState) {
+    switch (icc.mozIcc.cardState) {
       case 'networkLocked':
         lockType = 'nck';
         break;
@@ -195,7 +337,7 @@ var SimManager = {
         return; // We shouldn't be here.
     }
 
-    IccHelper.getCardLockRetryCount(lockType, function(retryCount) {
+    icc.mozIcc.getCardLockRetryCount(lockType, function(retryCount) {
       if (retryCount) {
         var l10nArgs = {n: retryCount};
         UIManager.xckRetriesLeft.textContent = _('inputCodeRetriesLeft',
@@ -210,21 +352,39 @@ var SimManager = {
     UIManager.pukcodeScreen.classList.remove('show');
     UIManager.xckcodeScreen.classList.add('show');
 
-    switch (IccHelper.cardState) {
+    var simNumber = icc === this.icc0 ? 1 : 2;
+    switch (icc.mozIcc.cardState) {
       case 'networkLocked':
-        UIManager.unlockSimHeader.textContent = _('nckcode');
-        UIManager.xckLabel.textContent = _('type_nck');
+        UIManager.unlockSimHeader.textContent = _('nckcodeTitle',
+                                                  {n: simNumber});
+        UIManager.xckLabel.textContent = _('nckcodeLabel',
+                                           {n: simNumber});
         break;
       case 'corporateLocked':
-        UIManager.unlockSimHeader.textContent = _('cckcode');
-        UIManager.xckLabel.textContent = _('type_cck');
+        UIManager.unlockSimHeader.textContent = _('cckcodeTitle',
+                                                  {n: simNumber});
+        UIManager.xckLabel.textContent = _('cckcodeTitle',
+                                           {n: simNumber});
         break;
       case 'serviceProviderLocked':
-        UIManager.unlockSimHeader.textContent = _('spckcode');
-        UIManager.xckLabel.textContent = _('type_spck');
+        UIManager.unlockSimHeader.textContent = _('spckcodeTitle',
+                                                  {n: simNumber});
+        UIManager.xckLabel.textContent = _('spckcodeTitle',
+                                           {n: simNumber});
         break;
     }
     UIManager.xckInput.focus();
+  },
+
+  resetForm: function sm_clearInputs() {
+    this.clearFields();
+    UIManager.newpinInput.value = '';
+    UIManager.confirmNewpinInput.value = '';
+    UIManager.pinInput.value = '';
+    UIManager.pukInput.value = '';
+    UIManager.pukInfo.classList.remove('hidden');
+    UIManager.xckInput.value = '';
+    UIManager.unlockSimButton.disabled = false;
   },
 
   hideScreen: function sm_hideScreen() {
@@ -236,36 +396,63 @@ var SimManager = {
   },
 
   skip: function sm_skip() {
+    if (this._unlockingIcc) {
+      this._unlockingIcc.skipped = true;
+    }
+    this.resetForm();
     this.hideScreen();
-    if (this.accessCallback) {
-      this.accessCallback(false);
+    this.handleCardState();
+  },
+
+  resetSkipped: function sm_resetSkipped() {
+    if (this.icc0) {
+      this.icc0.skipped = false;
+    }
+    if (this.icc1) {
+      this.icc1.skipped = false;
     }
   },
 
   back: function sm_back() {
+    this.resetForm();
+    this.resetSkipped();
     this.hideScreen();
+    this.hideSIMInfoScreen();
     Navigation.back();
   },
 
-  unlock: function sm_unlock() {
-    this._unlocked = false;
+  simUnlockBack: function sm_simUnlockBack() {
+    if (this.icc0.skipped) {
+      this.icc0.skipped = false;
+      this.hideScreen();
+      this.handleCardState();
+    } else {
+      this.back();
+    }
+  },
 
-    switch (IccHelper.cardState) {
+  unlock: function sm_unlock() {
+    var icc = this._unlockingIcc;
+    if (!icc) {
+      throw new Error('Cannot unlock SIM, no current ICC');
+    }
+
+    switch (icc.mozIcc.cardState) {
       case 'pinRequired':
-        this.unlockPin();
+        this.unlockPin(icc);
         break;
       case 'pukRequired':
-        this.unlockPuk();
+        this.unlockPuk(icc);
         break;
       case 'networkLocked':
       case 'corporateLocked':
       case 'serviceProviderLocked':
-        this.unlockXck();
+        this.unlockXck(icc);
         break;
     }
   },
 
-  unlockPin: function sm_unlockPin() {
+  unlockPin: function sm_unlockPin(icc) {
     var pin = UIManager.pinInput.value;
     if (pin.length < 4 || pin.length > 8) {
       UIManager.pinError.textContent = _('pinValidation');
@@ -279,15 +466,7 @@ var SimManager = {
     }
 
     // Unlock SIM
-    var options = {lockType: 'pin', pin: pin };
-    var req = IccHelper.unlockCardLock(options);
-    req.onsuccess = (function sm_unlockSuccess() {
-      this._unlocked = true;
-      this.hideScreen();
-    }).bind(this);
-    req.onerror = (function sm_unlockError() {
-      this.handleUnlockError(req.error);
-    }).bind(this);
+    this.attemptUnlock(icc, {lockType: 'pin', pin: pin });
   },
 
   clearFields: function sm_clearFields() {
@@ -301,7 +480,7 @@ var SimManager = {
     UIManager.confirmNewpinError.classList.add('hidden');
   },
 
-  unlockPuk: function sm_unlockPuk() {
+  unlockPuk: function sm_unlockPuk(icc) {
     this.clearFields();
     var pukCode = UIManager.pukInput.value;
     if (pukCode.length !== 8) {
@@ -332,17 +511,13 @@ var SimManager = {
 
     // Unlock SIM with PUK and new PIN
     var options = {lockType: 'puk', puk: pukCode, newPin: newpinCode };
-    var req = IccHelper.unlockCardLock(options);
-    req.onsuccess = (function sm_unlockSuccess() {
-      this._unlocked = true;
-      this.hideScreen();
-    }).bind(this);
+    this.attemptUnlock(icc, options);
   },
 
-  unlockXck: function sm_unlockXck() {
+  unlockXck: function sm_unlockXck(icc) {
     var xck = UIManager.xckInput.value;
     var lockType;
-    switch (IccHelper.cardState) {
+    switch (icc.mozIcc.cardState) {
       case 'networkLocked':
         lockType = 'nck';
         break;
@@ -366,11 +541,41 @@ var SimManager = {
 
     // Unlock SIM
     var options = {lockType: lockType, pin: xck };
-    var req = IccHelper.unlockCardLock(options);
+    this.attemptUnlock(icc, options);
+  },
+
+  attemptUnlock: function sm_attemptUnlock(icc, options) {
+    var req = icc.mozIcc.unlockCardLock(options);
     req.onsuccess = (function sm_unlockSuccess() {
-      this._unlocked = true;
+      icc.unlocked = true;
+      this.resetForm();
       this.hideScreen();
+      this.handleCardState();
     }).bind(this);
+    req.onerror = (function sm_unlockError() {
+      this.handleUnlockError(req.error);
+    }).bind(this);
+  },
+
+  // Try to infer whats the default SIM
+  guessIcc: function guessIcc() {
+    var tempIcc = null;
+    if (navigator.mozMobileConnections) {
+      // New multi-sim api, use mozMobileConnection to guess
+      // the first inserted sim
+      for (var i = 0;
+        i < navigator.mozMobileConnections.length && tempIcc === null; i++) {
+        if (navigator.mozMobileConnections[i] !== null &&
+          navigator.mozMobileConnections[i].iccId !== null) {
+          tempIcc = navigator.mozIccManager.getIccById(
+            navigator.mozMobileConnections[i].iccId);
+        }
+      }
+    } else {
+      tempIcc = navigator.mozIccManager;
+    }
+
+    return tempIcc;
   },
 
   importContacts: function sm_importContacts() {
@@ -381,11 +586,9 @@ var SimManager = {
                                       'activityBar');
 
     var importButton = UIManager.simImportButton;
-    importButton.setAttribute('disabled', 'disabled');
-
     var cancelled = false,
         contactsRead = false;
-    var importer = new SimContactsImporter();
+    var importer = new SimContactsImporter(SimManager.guessIcc());
     utils.overlay.showMenu();
     utils.overlay.oncancel = function oncancel() {
       cancelled = true;
@@ -424,9 +627,10 @@ var SimManager = {
         utils.overlay.hide();
         if (importedContacts > 0) {
           window.importUtils.setTimestamp('sim');
-          SimManager.alreadyImported = true;
         }
         if (!cancelled) {
+          SimManager.alreadyImported = true;
+          importButton.setAttribute('disabled', 'disabled');
           utils.status.show(_('simContacts-imported3',
                               {n: importedContacts})
           );
@@ -464,3 +668,4 @@ var SimManager = {
     importer.start();
   }
 };
+})();

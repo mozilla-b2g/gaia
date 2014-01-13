@@ -9,19 +9,19 @@ var OperatorVariant = (function() {
       console.error('An error occurre setting ftu.simPresentOnFirstBoot: ' +
                     value);
     };
-  };
+  }
 
 /**
   * If ftu.simPresentOnFirstBoot setting has value do nothing otherwise
   * set ftu.simPresentOnFirstBoot = true if
   * IccHelper.cardState value is:
+  *   'ready'.
+  * otherwise set to false.
   *   'pinRequired',
   *   'pukRequired',
   *   'networkLocked',
   *   'corporateLocked',
   *   'serviceProviderLocked',
-  *   'ready'.
-  * otherwise set to false.
   */
   function setSIMOnFirstBootState() {
     var cardState;
@@ -44,19 +44,7 @@ var OperatorVariant = (function() {
       req.onsuccess = function ov_onsuccess() {
         var currentStatus = req.result['ftu.simPresentOnFirstBoot'];
         if (currentStatus === undefined || currentStatus === null) {
-          switch (cardState) {
-            case 'pinRequired':
-            case 'pukRequired':
-            case 'networkLocked':
-            case 'corporateLocked':
-            case 'serviceProviderLocked':
-            case 'ready':
-              setIsSIMPresentOnFirstBoot(true);
-              break;
-            default:
-              setIsSIMPresentOnFirstBoot(false);
-              break;
-          }
+          setIsSIMPresentOnFirstBoot(cardState === 'ready');
         }
         cardState = null;
       };
@@ -68,7 +56,7 @@ var OperatorVariant = (function() {
     } catch (e) {
       console.error('Error setSIMOnFirstBootState. ' + e);
     }
-  };
+  }
 
   return {
     setSIMOnFirstBootState: setSIMOnFirstBootState

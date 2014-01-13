@@ -1,28 +1,25 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
     <meta charset="utf-8">
     <title>Messages</title>
     <!-- Stable Building blocks -->
-    <link rel="stylesheet" type="text/css" href="shared/style/headers.css">
-    <link rel="stylesheet" type="text/css" href="shared/style/edit_mode.css">
+    <link rel="stylesheet" type="text/css" href="shared/style/action_menu.css">
     <link rel="stylesheet" type="text/css" href="shared/style/buttons.css">
-    <link rel="stylesheet" type="text/css" href="shared/style_unstable/lists.css">
-    <!--
+    <link rel="stylesheet" type="text/css" href="shared/style/confirm.css">
+    <link rel="stylesheet" type="text/css" href="shared/style/edit_mode.css">
+    <link rel="stylesheet" type="text/css" href="shared/style/headers.css">
     <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css">
     <link rel="stylesheet" type="text/css" href="shared/style/switches.css">
-    <link rel="stylesheet" type="text/css" href="shared/style/confirm.css">
-    <link rel="stylesheet" type="text/css" href="shared/style_unstable/progress_activity.css">
     <link rel="stylesheet" type="text/css" href="shared/style_unstable/lists.css">
-    <link rel="stylesheet" type="text/css" href="shared/style/switches.css">
-    <link rel="stylesheet" type="text/css" href="shared/style/confirm.css">
     <link rel="stylesheet" type="text/css" href="shared/style_unstable/progress_activity.css">
-    <link rel="stylesheet" type="text/css" href="/shared/style/action_menu.css">
-    -->
     <!-- App styles -->
     <link rel="stylesheet" type="text/css" href="style/root.css">
     <link rel="stylesheet" type="text/css" href="style/common.css">
     <link rel="stylesheet" type="text/css" href="style/sms.css">
+    <link rel="stylesheet" type="text/css" href="style/notification.css">
+    <link rel="stylesheet" type="text/css" href="style/report_view.css">
     <link rel="stylesheet" type="text/css" href="style/attachment.css">
     <!-- Localization -->
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
@@ -37,6 +34,9 @@
     <script defer src="shared/js/settings_url.js"></script>
     <script defer src="shared/js/template.js"></script>
     <script defer src="shared/js/mime_mapper.js"></script>
+    <script defer src="shared/js/fb/fb_request.js"></script>
+    <script defer src="shared/js/fb/fb_data_reader.js"></script>
+    <script defer src="shared/js/fb/fb_reader_utils.js"></script>
     -->
     <script defer src="shared/js/lazy_loader.js"></script>
     <script defer src="js/startup.js"></script>
@@ -130,15 +130,15 @@
           <div id="contact-carrier" data-l10n-id="carrier-unknown" class="carrier-wrapper">
             Carrier unknown
           </div>
-          <section id="messages-max-length-notice"
-                  role="notification"
-                  class="hide">
-            <p></p>
-          </section>
           <!-- Notifications in this container will be rendered on top of the
           Compose field. These notifications should be hidden automatically so
           they do not prevent the user from inputting text. -->
           <div class="overlay">
+            <section id="messages-max-length-notice"
+                     role="notification"
+                     class="hide">
+              <p></p>
+            </section>
             <section id="messages-convert-notice"
                     role="notification"
                     class="hide">
@@ -166,11 +166,29 @@
         </div>
         <article id="messages-container" class="view-body article-list" data-type="list">
         </article>
-        <article id="messages-participants" class="view-body article-list hide" data-type="list">
-          <ul id="messages-participants-list" class="contact-list"></ul>
+        <article id="information-participants" class="view-body article-list hide" data-type="list">
+          <ul class="contact-list"></ul>
+        </article>
+        <article id="information-report" class="view-body article-list report-view hide" data-type="list">
+          <div class="description">
+            <p class="type"></p>
+            <p class="subject"></p>
+            <p class="datetime"></p>
+          </div>
+          <div>
+            <span class="status"></span>
+            <aside></aside>
+          </div>
+          <ul class="contact-list"></ul>
+          <div class="size-block">
+            <span data-l10n-id="message-size-was"></span>
+            <span class="size"></span>
+          </div>
         </article>
         <form role="search" id="messages-compose-form" class="bottom messages-compose-form" data-message-type="sms">
           <button id="messages-send-button" disabled data-l10n-id="send" type="submit">Send</button>
+          <textarea id="messages-subject-input" placeholder="Subject" name="subject"
+            data-l10n-id="composeSubject" class="hide" maxlength="40"></textarea>
           <!-- The <br> is needed because of 414223, which is a WONTFIX. It's just because of how contentEditable works. https://bugzilla.mozilla.org/show_bug.cgi?id=414223 -->
           <div id="messages-input" contentEditable="true" name="message"
             data-l10n-id="composeMessage" x-inputmode="-moz-sms"><br></div>
@@ -228,25 +246,45 @@
       -  Templates
       -->
 
-    <div id="messages-contact-tmpl" class="hide">
+    <div id="contact-suggestion-tmpl" class="hide">
       <!--
-      <a class="suggestion"
-        data-number="${number}" data-source="contacts" data-name="${name}"
-        data-type="${type}" data-separator="${separator}" data-carrier="${carrier}">
-        ${photoHTML}
-        <p class="name">${nameHTML}</p>
-        <p class="number">
-          <span data-l10n-id="${type}">${type}</span>${separator}${carrier}${numberHTML}
-        </p>
-      </a>
+      <li>
+        <a class="suggestion"
+          data-number="${number}" data-source="contacts" data-name="${name}"
+          data-type="${type}" data-separator="${separator}" data-carrier="${carrier}">
+          ${photoHTML}
+          <p class="name">${nameHTML}</p>
+          <p class="number">
+            <span data-l10n-id="${type}">${type}</span>${separator}${carrier}${numberHTML}
+          </p>
+        </a>
+      </li>
       -->
     </div>
 
-    <div id="messages-contact-photo-tmpl" class="hide">
+    <div id="contact-prompt-tmpl" class="hide">
+      <!--
+      <div class="contact-header">
+        ${photoHTML}
+        <p class="name">${name}</p>
+        <p class="details">
+          <span data-l10n-id="${type}">${type}</span>${separator}${carrier}${number}
+        </p>
+      </div>
+      -->
+    </div>
+
+    <div id="contact-photo-tmpl" class="hide">
       <!--
       <aside class="pack-end">
-        <img src="${photoURL}">
+        <img src="${photoURL}" alt="">
       </aside>
+      -->
+    </div>
+
+    <div id="contact-highlight-tmpl" class="hide">
+      <!--
+      <span class="highlight">${str}</span>
       -->
     </div>
 
@@ -255,6 +293,19 @@
       <a class="suggestion" data-number="${number}" data-source="manual" data-name="${number}">
         <p class="name">${number}</p>
       </a>
+      -->
+    </div>
+
+    <div id="information-report-tmpl" class="hide">
+      <!--
+      <p class="${delivery}">
+        <span data-l10n-id="message-delivered"></span>
+        <span data-l10n-id="${deliveryL10n}">${deliveryDateL10n}</span>
+      </p>
+      <p class="${read}">
+        <span data-l10n-id="message-read"></span>
+        <span data-l10n-id="${readL10n}">${readDateL10n}</span>
+      </p>
       -->
     </div>
 
@@ -269,12 +320,6 @@
       -->
     </div>
 
-    <div id="messages-highlight-tmpl" class="hide">
-      <!--
-      <span class="highlight">${str}</span>
-      -->
-    </div>
-
     <div id="messages-message-tmpl" class="hide">
       <!--
       <label class="pack-checkbox danger">
@@ -282,10 +327,15 @@
         <span></span>
       </label>
       <section class="bubble">
-        <aside class="pack-end">
-          <progress></progress>
-        </aside>
-        <p>${bodyHTML}</p>
+        <h1 class="subject">
+          ${subject}
+        </h1>
+        <div class="message-content">
+          <aside class="pack-end">
+            <progress></progress>
+          </aside>
+          <p>${bodyHTML}</p>
+        </div>
       </section>
       -->
     </div>
@@ -293,17 +343,17 @@
     <div id="messages-thread-tmpl" class="hide">
       <!--
       <label class="pack-checkbox danger">
-        <input type="checkbox" value="${id}">
+        <input type="checkbox" value="${id}" data-mode="${mode}">
         <span></span>
       </label>
-      <a href="#thread=${id}">
-        <aside class="icon icon-unread">unread</aside>
+      <a href="${hash}">
+        <aside class="icon icon-unread icon-draft">icon</aside>
         <aside class="pack-end">
           <img src="">
         </aside>
-        <p class="name">${number}</p>
-        <p>
-          <time>${formattedDate}</time>
+        <p class="name" data-l10n-id="no-recipient">${number}</p>
+        <p class="summary">
+          <time data-time-update="true" data-time-only="true" data-time="${timestamp}"></time>
           <span class="mms-icon">MMS</span>
           <span class="body-text">${bodyHTML}</span>
         </p>
@@ -347,6 +397,7 @@
     <div id="attachment-draft-tmpl" class="hide">
       <!--
       <head>
+        <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
         <meta charset="utf-8">
         <base href="${baseURL}">
         <style type="text/css">

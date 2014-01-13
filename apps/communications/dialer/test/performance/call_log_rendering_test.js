@@ -1,26 +1,29 @@
 'use strict';
 
-requireCommon('test/synthetic_gestures.js');
-require('/tests/performance/performance_helper.js');
-require('apps/communications/dialer/test/integration/app.js');
+requireGaia('/test_apps/test-agent/common/test/synthetic_gestures.js');
+var MarionetteHelper = requireGaia('/tests/js-marionette/helper.js');
 
-suite(window.mozTestInfo.appPath + '>', function() {
-  var device;
-  var app;
+var PerformanceHelper =
+  requireGaia('/tests/performance/performance_helper.js');
+var DialerIntegration = require('./integration.js');
 
-  MarionetteHelper.start(function(client) {
-    app = new DialerIntegration(client);
-    device = app.device;
+marionette(mozTestInfo.appPath + '>', function() {
+  var client = marionette.client({
+    settings: {
+      'ftu.manifestURL': null
+    }
   });
 
   setup(function() {
-    yield IntegrationHelper.unlock(device);
+    this.timeout(500000);
+    client.setScriptTimeout(50000);
+
+    MarionetteHelper.unlockScreen(client);
   });
 
   test('Dialer/callLog rendering time >', function() {
+    var app = new DialerIntegration(client);
 
-    this.timeout(500000);
-    yield device.setScriptTimeout(50000);
 
     var lastEvent = 'call-log-ready';
 
@@ -29,18 +32,22 @@ suite(window.mozTestInfo.appPath + '>', function() {
       lastEvent: lastEvent
     });
 
-    yield performanceHelper.repeatWithDelay(function(app, next) {
+    performanceHelper.repeatWithDelay(function(app, next) {
       var waitForBody = true;
-      yield app.launch(waitForBody);
+      app.launch(waitForBody);
 
-      var recentsButton = yield app.element('optionRecents');
+      performanceHelper.observe();
 
-      yield recentsButton.singleTap();
+      app.element('optionRecents', function(err, recentsButton) {
+        recentsButton.tap();
+      });
 
-      var runResults = yield performanceHelper.observe(next);
-      performanceHelper.reportRunDurations(runResults);
+      performanceHelper.waitForPerfEvent(function(runResults) {
+        performanceHelper.reportRunDurations(runResults);
 
-      yield app.close();
+        app.close();
+      });
+
     });
 
     performanceHelper.finish();

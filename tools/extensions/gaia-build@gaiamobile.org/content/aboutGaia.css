@@ -1,0 +1,410 @@
+body {
+  font-size: 16px;
+}
+
+select, button {
+  font-size: 1em;
+}
+
+#tools > label {
+  display: block;
+}
+
+#available-apps > li {
+  display: inline-block;
+  margin: 0.2rem;
+}
+
+.page > ul {
+  padding-left: 0.2rem;
+  font-size: 0.7em;
+}
+
+.page > ul > li {
+  display: inline-block;
+  margin: 0.2rem;
+}
+
+.page > .container > div {
+  font-size: 0.7em;
+  display: inline-block;
+  margin: 0.2rem;
+  width: 3rem;
+  height: 3rem;
+  overflow: hidden;
+  background-color: white;
+  border: 1px solid black;
+  border-radius: 0.4rem;
+  word-wrap:break-word;
+}
+
+#available-apps div.app {
+  display: inline-block;
+  margin: 0.2rem;
+  padding: 0.2rem;
+  background-color: white;
+  border: 1px solid black;
+  border-radius: 0.4rem;
+}
+
+#available-apps div.app[data-source="external"] {
+  background-color: #fcaf3e;
+}
+
+#available-apps div.app:hover {
+  background-color: #204a87;
+  color: white;
+}
+
+#available-apps {
+  padding: 0;
+  margin: 0;
+  margin-bottom: 2rem;
+}
+
+#main {
+  flex: 1;
+  padding: 2rem;
+}
+
+#tools {
+  width: 18rem;
+  border-right: 1px solid black;
+  padding: 2rem;
+}
+
+#content {
+  display: flex;
+  flex-flow: row;
+}
+
+#notification {
+  text-align: center;
+}
+
+.page {
+  width: 15rem;
+  height: 25rem;
+  background-color: rgba(0,0,0,0.2);
+  margin: 1rem;
+}
+
+.close-button {
+  display: block;
+  float: right;
+  width: 1.2rem;
+  height: 1.2rem;
+  line-height: 1.2rem;
+  font-size: 0.8em;
+  margin: 0.5rem;
+  text-align: center;
+  border-radius: 50%;
+  border: 1px solid black;
+  background-color: white;
+}
+
+#add-page {
+  font-size: 5em;
+  text-align: center;
+  line-height: 25rem;
+}
+
+.page > input[type="radio"], #dock > input[type="radio"] {
+  position: absolute;
+  display: none;
+}
+
+.page > input[type="radio"] + label, #dock > input[type="radio"] + label {
+  opacity: 0.1;
+  display: block;
+  height: 0;
+  margin-left: -1.5rem;
+  margin-top:1.2rem;
+  transform: rotate(-45deg);
+  width: 4rem;
+  line-height: 1.5rem;
+  border-bottom: 1.5rem solid red;
+  border-left: 1.5rem solid transparent;
+  border-right: 1.5rem solid transparent;
+  text-align: center;
+  font-size: 0.9em;
+  color: white;
+  transition: opacity 0.5s;
+}
+
+#dock > input[type="radio"] + label {
+  padding-top: 1.3rem;
+  margin-left:-2rem;
+}
+
+.page > input[type="radio"]:checked + label,
+#dock > input[type="radio"]:checked + label {
+  opacity: 1;
+}
+
+.page > input[type="radio"]:checked + label:after {
+  content: "selected";
+}
+
+#dock {
+  margin: 1rem;
+  width: 24rem;
+  height: 5rem;
+  background-color: grey;
+}
+
+#dock > .container {
+  margin-top: -2rem;
+  margin-left: 3rem;
+}
+
+.page > .container {
+  margin-top: 2rem;
+}
+
+#grid {
+  overflow-x: scroll;
+
+  display: -moz-box;
+  -moz-box-orient: horizontal;
+  -moz-box-pack: center;
+  -moz-box-align: center;
+
+  box-orient: horizontal;
+  box-pack: center;
+  box-align: center;
+}
+
+div.lightbox {
+  display: none;
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+}
+
+div.lightbox:target {
+  display: table;
+}
+
+div.lightbox .lightbox-background {
+  display: table-cell;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  vertical-align: middle;
+}
+
+div.lightbox .lightbox-background .lightbox-container {
+  display: block;
+  margin: auto;
+  padding: 2rem;
+  background-color: white;
+  height: 25rem;
+  position: relative;
+  overflow: auto;
+  border: 1px #000000 solid;
+  border-radius: 0.5rem;
+  text-align: justify;
+  font-size: 1.2em;
+}
+
+div.lightbox .lightbox-background .closemsg {
+  display: block;
+  margin: auto;
+  height: 0;
+  overflow: visible;
+  text-align: right;
+  z-index: 5001;
+  cursor: default;
+}
+
+div.lightbox .lightbox-background .closemsg, div.lightbox .lightbox-background .lightbox-container {
+  width: 50rem;
+}
+
+.closemsg::after {
+  content: "\00D7";
+  display: inline-block;
+  position: relative;
+  right: -2rem;
+  top: -1rem;
+  z-index: 5002;
+  color: #ffffff;
+  border: 1px #ffffff solid;
+  border-radius: 1rem;
+  width: 2rem;
+  height: 2rem;
+  line-height: 1.8rem;
+  text-align: center;
+  margin: 0;
+  background-color: #000000;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.closemsg.hidden:after {
+  content: none;
+  display: none;
+}
+
+.closemsg::before {
+  content: "";
+  display: block;
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #000000;
+  opacity: 0.85;
+}
+
+.lightbox-buttons {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+}
+
+.lightbox-buttons > a {
+  display: inline-block;
+  margin: 0.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid black;
+  padding: 0.5rem;
+  text-decoration: none;
+  color: black;
+}
+
+#gaia-path-lightbox .lightbox-container {
+  text-align: center;
+  line-height: 25rem;
+}
+
+#marketplace-search-result .lightbox-container {
+  background-color: #BEBEBE;
+}
+
+#reset-gaia {
+  font-size: 0.8em;
+  color: blue;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.tool-section {
+  margin-bottom: 1rem;
+}
+
+.marketplace-app-container {
+  background-color: white;
+  margin: 1rem;
+  border-radius: 0.5rem;
+  position: relative;
+  height: 8rem;
+  display: block;
+}
+
+.marketplace-app-container:hover {
+  box-shadow: 0 0 0.5rem black;
+}
+
+.marketplace-app-container > * {
+  position: absolute;
+  left: 1rem;
+  top: 1rem;
+}
+
+.marketplace-app-icon {
+  left: 1rem;
+  top: 1rem;
+}
+
+.marketplace-app-ratings {
+  top: 5rem;
+  color: #3388C1;
+  font-size: 1.1em;
+}
+
+.marketplace-app-review {
+  left: 6rem;
+  top: 5.5rem;
+  font-size: 0.8em;
+  color: #3388C1;
+}
+
+.marketplace-app-name {
+  left: 6rem;
+  top: 1rem;
+  color: #333333;
+  font-family: FeuraSansWeb,"Open Sans","Helvetica Neue",Arial,sans-serif;
+  font-size: 1.4em;
+}
+
+.marketplace-app-author {
+  left: 6rem;
+  top: 3.5rem;
+  font-size: 0.8em;
+  color: #A7A7A7;
+}
+
+.noted {
+  font-size: 0.8em;
+  margin: 0.5rem;
+}
+
+.marketplace-app-type {
+  position: relative;
+  float: right;
+  margin-right: 2rem;
+  width: 10rem;
+  height: 1.5rem;
+  line-height: 1.5rem;
+  border-radius: 0.5rem;
+  font-size: 0.8em;
+  text-align: center;
+  color: #FFF;
+}
+
+.marketplace-app-type[data-is-packaged="true"] {
+  background-color: #204a78;
+}
+
+.marketplace-app-type[data-is-packaged="true"]:before {
+  content: "Packaged app";
+  background-color: #204a78;
+}
+
+.lightbox-title {
+  font-size: 2em;
+  border-bottom: 1px solid black;
+  text-transform: capitalize;
+}
+
+.lightbox-content {
+  margin: 2rem;
+}
+
+.lightbox-content a {
+  color: blue;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.operator input {
+  margin: 0.2rem;
+}
+
+.hidden {
+  display: none;
+}
+
+.description {
+  margin: 0.6rem;
+  font-size: 0.8em;
+}
+
+#certain-mcc-mnc:not(:checked) ~ #operators-options {
+  display: none
+}

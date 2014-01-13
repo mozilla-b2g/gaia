@@ -11,7 +11,7 @@ const Cu = Components.utils;
 Cu.import('resource://gre/modules/Services.jsm');
 
 function debug(data) {
-  dump('desktop-helper: ' + data + '\n');
+  //dump('desktop-helper: ' + data + '\n');
 }
 
 const kChromeRootPath = 'chrome://desktop-helper.js/content/data/';
@@ -58,23 +58,6 @@ function injectMocks() {
         Services.scriptloader.loadSubScript(kChromeRootPath + includes[i],
                                             window.wrappedJSObject);
       }
-    }
-
-    // Inject script to simulate touch events only in the system app
-    if (currentDomain.indexOf('system.gaiamobile.org') != -1) {
-      let require = Cu.import("resource://gre/modules/devtools/Loader.jsm", {}).devtools.require;
-      let {TouchEventHandler} = require("devtools/touch-events");
-      // We need to register mouse event listeners on the iframe/browser
-      // element
-      let frame = window.QueryInterface(Ci.nsIInterfaceRequestor)
-                        .getInterface(Ci.nsIWebNavigation)
-                        .QueryInterface(Ci.nsIDocShell).chromeEventHandler;
-      let scope = {
-        addEventListener: function (type, fun, capture) frame.addEventListener(type, fun, capture),
-        removeEventListener: function (type, fun) frame.removeEventListener(type, fun)
-      };
-      let touchEventHandler = new TouchEventHandler(scope);
-      touchEventHandler.start();
     }
   }, 'document-element-inserted', false);
 }

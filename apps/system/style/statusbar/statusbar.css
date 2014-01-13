@@ -36,7 +36,8 @@ body, html {
   margin: 0 0.2rem;
 }
 
-#statusbar > .sb-start {
+#statusbar-title,
+body:not(.rb-enabled) #statusbar > .sb-start {
   float: left;
   -moz-transition: visibility 0.5s ease, -moz-transform 0.5s ease;
 }
@@ -63,7 +64,9 @@ body, html {
   right: 0;
 }
 
-.utility-tray #statusbar > .sb-start-upper {
+.utility-tray #statusbar > .sb-start-upper,
+.utility-tray #statusbar > #statusbar-title,
+#statusbar-title.hidden {
   visibility: visible;
   -moz-transform: translateY(2rem);
 }
@@ -80,11 +83,12 @@ body, html {
   bottom: 0.1rem;
 }
 
+#statusbar-title,
 #statusbar-time, #statusbar-data:not(.sb-icon-data-circle) {
+  position: relative;
+  bottom: 0.1rem;
   color: #fff;
   font-size: 1.49rem; /* 6.5pt */
-  position: relative;
-  bottom: 0.2rem;
 }
 
 #statusbar-time span {
@@ -92,23 +96,75 @@ body, html {
   font-size: 1rem;
 }
 
-#statusbar-data:not(.sb-icon-data-circle) {
+#statusbar-connections {
+  margin: 0;
+  padding: 0;
+}
+
+#statusbar-connections > * {
+  float: right;
+  pointer-events: none;
+  margin: 0 0.2rem;
+}
+
+#statusbar-connections .statusbar-data:not(.sb-icon-data-circle) {
+  color: #fff;
+  font-size: 1.49rem; /* 6.5pt */
+  position: relative;
+  bottom: 0.1rem;
+}
+
+#statusbar-connections .statusbar-data:not(.sb-icon-data-circle) {
   background: none;
   width: auto;
+}
+
+#statusbar-connections[data-multiple="true"] .statusbar-signal {
+  position: relative;
+}
+
+#statusbar-connections[data-multiple="true"] .statusbar-signal::before {
+  position: absolute;
+  font-size: 0.8rem;
+  top: 0.5rem;
+  left: -0.6rem;
+}
+
+#statusbar-connections[data-multiple="true"] .statusbar-signal[data-index="1"]::before {
+  content: '1';
+}
+#statusbar-connections[data-multiple="true"] .statusbar-signal[data-index="2"]::before {
+  content: '2';
+}
+#statusbar-connections[data-multiple="true"] .statusbar-signal[data-index="3"]::before {
+  content: '3';
+}
+#statusbar-connections[data-multiple="true"] .statusbar-signal[data-index="4"]::before {
+  content: '4';
+}
+
+#statusbar-connections[data-multiple="true"] .statusbar-data {
+  position: relative;
+  width: 1.3rem;
+  margin: 0;
+  font-size: 0.8rem;
+  text-align: right;
+}
+
+#statusbar-connections[data-multiple="true"] .statusbar-data[hidden] {
+  display: block;
+  opacity: 0;
 }
 
 .sb-icon {
   width: 1.6rem;
   height: 1.6rem;
   background: url('images/icons.png') no-repeat;
-  background-size: 31rem 9.6rem;
+  background-size: 31.4rem 9.6rem;
 }
 
 .sb-icon-battery {
-  width: 2.1rem;
-}
-.sb-icon-battery:not([data-level]) {
-  background-position: -28.6rem 0;
+  width: 2.5rem;
 }
 .sb-icon-battery[data-level="0"] {
   background-position: 0 0;
@@ -142,6 +198,9 @@ body, html {
 }
 .sb-icon-battery[data-level="100"] {
   background-position: -26rem 0;
+}
+.sb-icon-battery:not([data-level]) {
+  background-position: -28.6rem 0;
 }
 
 .sb-icon-battery:not([data-level])[data-charging="true"],
@@ -384,10 +443,7 @@ body, html {
 }
 
 .sb-emergency-cb-icon-notification {
-  width: 1.6rem;
-  height: 1.6rem;
-  background: url('images/emergency-callback_icon_notification.png') no-repeat;
-  background-size: 1.6rem 1.6rem;
+  background-position: -25.2rem -8rem;
 }
 
 .sb-icon-sms {
@@ -420,10 +476,7 @@ body, html {
 }
 
 .sb-icon-call-forwarding {
-  /* Waiting for the correct icon. In the mean time we use this one. */
-  background: url('images/call-forwarding.png') no-repeat;
-  background-position: 0 0;
-  background-size: 1.6rem 1.6rem;
+  background-position: -21rem -8rem;
 }
 
 .sb-icon-playing {

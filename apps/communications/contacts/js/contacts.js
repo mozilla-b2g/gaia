@@ -192,6 +192,17 @@ var Contacts = (function() {
     initContainers();
     initEventListeners();
     window.addEventListener('hashchange', checkUrl);
+
+    // If the migration is not complete
+    var config = utils.cookie.load();
+    if (!config || !config.fbMigrated) {
+      LazyLoader.load('js/fb/datastore_migrator.js', function() {
+        new DatastoreMigration().start();
+      });
+    }
+    else {
+      window.console.info('FB Already migrated!!!');
+    }
   };
 
   var initContactsList = function initContactsList() {
@@ -248,7 +259,7 @@ var Contacts = (function() {
           }
           return;
         }
-        contactsDetails.render(currentContact, TAG_OPTIONS);
+        contactsDetails.render(currentContact, TAG_OPTIONS, currentFbContact);
         if (contacts.Search && contacts.Search.isInSearchMode()) {
           navigation.go('view-contact-details', 'go-deeper-search');
         } else {
@@ -275,14 +286,14 @@ var Contacts = (function() {
         data['tel'] = [{
           'value': phoneNumber,
           'carrier': null,
-          'type': TAG_OPTIONS['phone-type'][0].type
+          'type': [TAG_OPTIONS['phone-type'][0].type]
         }];
       }
       if (params.hasOwnProperty('email')) {
         var email = params['email'];
         data['email'] = [{
           'value': email,
-          'type': TAG_OPTIONS['email-type'][0].type
+          'type': [TAG_OPTIONS['email-type'][0].type]
         }];
       }
       var hash = '#view-contact-form?extras=' +
@@ -306,6 +317,8 @@ var Contacts = (function() {
       background = 'url(' + URL.createObjectURL(photo) + ')';
     }
     dest.style.backgroundImage = background;
+    // Only for testing purposes
+    dest.dataset.photoReady = 'true';
   };
 
   // Checks if an object fields are empty, by empty means
@@ -401,7 +414,7 @@ var Contacts = (function() {
             number: number
           }
         });
-      } else {
+      } else if (navigator.mozTelephony) {
         TelephonyHelper.call(number);
       }
     });
@@ -436,7 +449,10 @@ var Contacts = (function() {
     });
   };
 
-  var handleCustomTag = function handleCustomTag() {
+  var handleCustomTag = function handleCustomTag(ev) {
+    if (ev.keyCode === 13) {
+      ev.preventDefault();
+    }
     ContactsTag.touchCustomTag();
   };
 
@@ -512,7 +528,8 @@ var Contacts = (function() {
       callback();
     } else {
       Contacts.view('Settings', function viewLoaded() {
-        LazyLoader.load(['/shared/js/icc_helper.js'], function() {
+        LazyLoader.load(['/contacts/js/utilities/sim_dom_generator.js',
+          '/contacts/js/utilities/icc_handler.js'], function() {
           settingsReady = true;
           contacts.Settings.init();
           callback();
@@ -722,12 +739,11 @@ var Contacts = (function() {
           currentContact.id == event.contactID) {
           contactsList.getContactById(event.contactID,
             function success(contact, enrichedContact) {
-            currentContact = contact;
-            var mergedContact = enrichedContact || contact;
-            contactsDetails.render(mergedContact, false,
-                                   enrichedContact ? true : false);
-            contactsList.refresh(mergedContact, checkPendingChanges,
-                                 event.reason);
+              currentContact = contact;
+              var mergedContact = enrichedContact || contact;
+              contactsDetails.render(mergedContact, null, enrichedContact);
+              contactsList.refresh(mergedContact, checkPendingChanges,
+                                   event.reason);
           });
         } else {
           contactsList.refresh(event.contactID, checkPendingChanges,

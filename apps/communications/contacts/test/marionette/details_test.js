@@ -13,31 +13,21 @@ marionette('Contacts > Details', function() {
     selectors = Contacts.Selectors;
   });
 
-  suite('Click phone number', function() {
-    test('Shows error /w no sim', function() {
-      var tel = 1231231234;
+  test.skip('Display the phone number', function() {
+    var tel = 1231231234;
 
-      subject.addContact({
-        givenName: 'Hello',
-        tel: 1231231234
-      });
-
-      client.helper.waitForElement(selectors.listContactFirstText)
-        .click();
-
-      subject.waitSlideLeft('details');
-
-      client.helper.waitForElement(selectors.detailsTelButtonFirst)
-        .click();
-
-      var header = client.helper.waitForElement(selectors.confirmHeader);
-
-      var expectedHeaderText = subject.l10n(
-        '/dialer/locales/shared.en-US.properties',
-        'emergencyDialogTitle');
-
-      assert.equal(header.text(), expectedHeaderText);
+    subject.addContact({
+      givenName: 'Hello',
+      tel: tel
     });
+
+    client.helper.waitForElement(selectors.listContactFirstText)
+      .click();
+
+    subject.waitSlideLeft('details');
+
+    var telNode = client.helper.waitForElement(selectors.detailsTelButtonFirst);
+    assert.equal(telNode.text(), tel);
   });
 
 });

@@ -9,6 +9,7 @@ requireLib('models/account.js');
 requireLib('models/calendar.js');
 
 suiteGroup('Provider.CaldavPullEvents', function() {
+  this.timeout(20000);
 
   var fixtures;
   var ical;

@@ -36,6 +36,7 @@ class MessageThread(Base):
         return [Message(self.marionette, message) for message in self.marionette.find_elements(*self._all_messages_locator)]
 
     def tap_header(self):
+        self.wait_for_element_displayed(*self._message_header_locator)
         self.marionette.find_element(*self._message_header_locator).tap()
 
     def tap_call(self):
@@ -49,7 +50,7 @@ class MessageThread(Base):
 
 class Message(PageRegion):
 
-    _text_locator = (By.CSS_SELECTOR, '.bubble > p')
+    _text_locator = (By.CSS_SELECTOR, '.bubble p')
     _attachments_locator = (By.CSS_SELECTOR, '.bubble .attachment-container.preview')
 
     @property

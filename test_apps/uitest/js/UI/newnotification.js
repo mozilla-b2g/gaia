@@ -15,7 +15,8 @@ function noti(win) {
   notification.onclick = function() {
     window.parent.alert('Notification clicked');
   };
-  // Using async alert will make following settimeout fail. So use console.log instead
+  // Using async alert will make following settimeout fail.
+  // So use console.log instead
   notification.onclose = function() {
     console.log('Notification closed');
   };

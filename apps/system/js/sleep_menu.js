@@ -7,6 +7,16 @@ var SleepMenu = {
   // Indicate setting status of ril.radio.disabled
   isFlightModeEnabled: false,
 
+  // Indicate setting status of developer.menu.enabled
+  isDeveloperMenuEnabled: false,
+
+  developerOptions: {
+    asyncpanzoom: {
+      value: false,
+      setting: 'apz.force-enable'
+    }
+  },
+
   // Indicate setting status of volume
   isSilentModeEnabled: false,
 
@@ -29,6 +39,7 @@ var SleepMenu = {
     window.addEventListener('click', this, true);
     window.addEventListener('screenchange', this, true);
     window.addEventListener('home', this);
+    window.addEventListener('batteryshutdown', this);
     this.elements.cancel.addEventListener('click', this);
 
     var self = this;
@@ -36,10 +47,20 @@ var SleepMenu = {
       self.isFlightModeEnabled = value;
     });
 
-    var settings = navigator.mozSettings;
+    SettingsListener.observe('developer.menu.enabled', false, function(value) {
+      self.isDeveloperMenuEnabled = value;
+    });
+
+    for (var option in this.developerOptions) {
+      (function attachListenerToDeveloperOption(opt) {
+        SettingsListener.observe(opt.setting, opt.value, function(value) {
+          opt.value = value;
+        });
+     })(this.developerOptions[option]);
+    }
 
     SettingsListener.observe('audio.volume.notification', 7, function(value) {
-      self.isSilentModeEnabled = (value == 0);
+      self.isSilentModeEnabled = (value === 0);
     });
   },
 
@@ -71,6 +92,14 @@ var SleepMenu = {
       power: {
         label: _('power'),
         value: 'power'
+      },
+      asyncpanzoom: {
+        label: _('asyncpanzoom'),
+        value: 'asyncpanzoom'
+      },
+      asyncpanzoomOff: {
+        label: _('asyncpanzoomOff'),
+        value: 'asyncpanzoom'
       }
     };
 
@@ -89,6 +118,17 @@ var SleepMenu = {
     items.push(options.restart);
     items.push(options.power);
 
+    // Add the developer options at the end.
+    if (this.isDeveloperMenuEnabled) {
+      for (var option in this.developerOptions) {
+        if (this.developerOptions[option].value) {
+          items.push(options[option]);
+        } else {
+          items.push(options[option + 'Off']);
+        }
+      }
+    }
+
     return items;
   },
 
@@ -97,7 +137,7 @@ var SleepMenu = {
     this.buildMenu(this.generateItems());
     this.elements.overlay.classList.add('visible');
     // Lock to default orientation
-    screen.mozLockOrientation(ScreenLayout.defaultOrientation);
+    screen.mozLockOrientation(OrientationManager.defaultOrientation);
   },
 
   buildMenu: function sm_buildMenu(items) {
@@ -112,13 +152,16 @@ var SleepMenu = {
 
   hide: function lm_hide() {
     this.elements.overlay.classList.remove('visible');
-    // Reset the orientation for the currently running app
-    var currentApp = WindowManager.getDisplayedApp();
-    WindowManager.setOrientationForApp(currentApp);
+    window.dispatchEvent(new Event('sleepmenuhide'));
   },
 
   handleEvent: function sm_handleEvent(evt) {
     switch (evt.type) {
+      case 'batteryshutdown':
+        window.dispatchEvent(
+            new CustomEvent('requestshutdown', {detail: this}));
+        break;
+
       case 'screenchange':
         if (!evt.detail.screenEnabled)
           this.hide();
@@ -145,6 +188,9 @@ var SleepMenu = {
           this.hide();
         }
         break;
+
+      default:
+        break;
     }
   },
 
@@ -163,6 +209,17 @@ var SleepMenu = {
         // It should also save the status of the latter 4 items
         // so when leaving the airplane mode we could know which one to turn on.
         AirplaneMode.enabled = !this.isFlightModeEnabled;
+        break;
+
+      case 'asyncpanzoom':
+        this.hide();
+
+        var option = this.developerOptions[action];
+        var data = {};
+        data[option.setting] = !option.value;
+
+        var lock = window.navigator.mozSettings.createLock();
+        lock.set(data);
         break;
 
       // About silent and silentOff
@@ -192,6 +249,9 @@ var SleepMenu = {
       case 'power':
         this.startPowerOff(false);
 
+        break;
+
+      default:
         break;
     }
   },
