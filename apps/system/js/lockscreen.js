@@ -695,15 +695,30 @@ var LockScreen = {
       case 'camera':
         // create the <iframe> and load the camera
         var frame = document.createElement('iframe');
+        frame.setAttribute('mozbrowser', true);
+        frame.setAttribute('remote', 'true');
 
-        frame.src = './camera/index.html';
-        frame.onload = (function cameraLoaded() {
+        // XXX hardcode URLs
+        // Proper fix should be done in bug 951978 and friends.
+        var cameraAppUrl =
+          window.location.href.replace('system', 'camera');
+        var cameraAppManifestURL =
+          cameraAppUrl.replace('index.html', 'manifest.webapp');
+
+        cameraAppUrl += '#secure';
+
+        frame.src = cameraAppUrl;
+        frame.setAttribute('mozapp', cameraAppManifestURL);
+        frame.addEventListener('mozbrowserloadend', (function cameraLoaded() {
           this.mainScreen.classList.add('lockscreen-camera');
           this.overlay.classList.add('unlocked');
 
           if (callback)
             callback();
-        }).bind(this);
+        }).bind(this));
+        frame.addEventListener('mozbrowsererror', (function cameraError() {
+          this.switchPanel();
+        }).bind(this));
         this.overlay.classList.remove('no-transition');
         this.camera.appendChild(frame);
 

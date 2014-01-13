@@ -16,3 +16,4 @@ shared/js/setImmediate.js
 apps/gallery/test/unit/setImmediate_test.js
 apps/wappush/js/ext/**
 apps/keyboard/js/imes/jsavrophonetic/jsavrophonetic.js
+apps/system/js/lockscreen.js

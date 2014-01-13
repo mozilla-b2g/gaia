@@ -110,7 +110,7 @@ var Camera = {
   _recording: false,
 
   // In secure mode the user cannot browse to the gallery
-  _secureMode: window.parent !== window,
+  _secureMode: (window.location.hash === '#secure'),
   _currentOverlay: null,
 
   CAMERA: 'camera',
