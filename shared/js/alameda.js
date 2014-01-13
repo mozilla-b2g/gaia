@@ -1,5 +1,5 @@
 /**
- * alameda 0.0.9 Copyright (c) 2011-2012, The Dojo Foundation All Rights Reserved.
+ * alameda 0.1.0 Copyright (c) 2011-2012, The Dojo Foundation All Rights Reserved.
  * Available via the MIT or new BSD license.
  * see: http://github.com/requirejs/alameda for details
  */
@@ -1150,6 +1150,8 @@ var requirejs, require, define;
                     } else if (depName === "module") {
                         //CommonJS module spec 1.1
                         d.values[i] = d.cjsModule = handlers.module(name);
+                    } else if (depName === undefined) {
+                        d.values[i] = undefined;
                     } else {
                         waitForDep(depMap, relName, d, i);
                     }
