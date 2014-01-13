@@ -43,6 +43,10 @@ function init() {
     resizeWindow();
   };
 
+  inputContext = navigator.mozInputMethod.inputcontext;
+  if (!document.mozHidden && inputContext) {
+    resizeWindow();
+  }
 
   // If the variant changes, update the page view if needed
   InputField.addEventListener('inputfieldchanged', function(e) {
