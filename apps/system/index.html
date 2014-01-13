@@ -419,53 +419,50 @@
       <div id="statusbar" data-z-index-level="statusbar">
         <!-- Browser chrome title-->
         <div id="statusbar-title"></div>
+        <!-- Carrier & date label -->
+        <div id="statusbar-label" class="sb-start-upper"></div>
+        <!-- CDMA emergency callback Notification -->
+        <div id="statusbar-emergency-cb-notification" class="sb-start sb-icon sb-emergency-cb-icon-notification" hidden></div>
+        <!-- Notification -->
+        <div id="statusbar-notification" class="sb-start sb-icon sb-icon-notification"
+          data-num="" hidden></div>
 
-        <div id="statusbar-icons">
-          <!-- Time -->
-          <div id="statusbar-time"></div>
+        <!-- Time -->
+        <div id="statusbar-time"></div>
 
-          <!-- Status -->
-          <div id="statusbar-battery" class="sb-icon sb-icon-battery"
-            data-level="100" charging hidden></div>
-          <div id="statusbar-wifi" class="sb-icon sb-icon-wifi"
-            data-level="4" hidden></div>
-          <div id="statusbar-flight-mode" class="sb-icon sb-icon-flight-mode" hidden></div>
-          <div id="statusbar-connections"></div>
-          <div id="statusbar-headphones" class="sb-icon sb-icon-headphones" hidden></div>
-          <div id="statusbar-bluetooth-headphones" class="sb-icon sb-icon-bluetooth-headphones" hidden></div>
-          <div id="statusbar-bluetooth-transferring" class="sb-icon sb-icon-bluetooth-transferring" hidden></div>
+        <!-- Status -->
+        <div id="statusbar-battery" class="sb-icon sb-icon-battery"
+          data-level="100" charging hidden></div>
+        <div id="statusbar-wifi" class="sb-icon sb-icon-wifi"
+          data-level="4" hidden></div>
+        <div id="statusbar-flight-mode" class="sb-icon sb-icon-flight-mode" hidden></div>
+        <div id="statusbar-connections"></div>
+        <div id="statusbar-headphones" class="sb-icon sb-icon-headphones" hidden></div>
+        <div id="statusbar-bluetooth-headphones" class="sb-icon sb-icon-bluetooth-headphones" hidden></div>
+        <div id="statusbar-bluetooth-transferring" class="sb-icon sb-icon-bluetooth-transferring" hidden></div>
 
-          <!-- Permissions -->
-          <div id="statusbar-tethering" class="sb-icon sb-icon-tethering" hidden></div>
-          <div id="statusbar-alarm" class="sb-icon sb-icon-alarm" hidden></div>
-          <div id="statusbar-bluetooth" class="sb-icon sb-icon-bluetooth" hidden></div>
-          <div id="statusbar-mute" class="sb-icon sb-icon-mute" hidden></div>
-          <div id="statusbar-recording" class="sb-icon sb-icon-recording" hidden></div>
-          <div id="statusbar-sms" class="sb-icon sb-icon-sms" hidden></div>
-          <div id="statusbar-geolocation" class="sb-icon sb-icon-geolocation" hidden></div>
-          <div id="statusbar-usb" class="sb-icon sb-icon-usb" hidden></div>
-          <div id="statusbar-call-forwarding" class="sb-icon sb-icon-call-forwarding" hidden></div>
-          <div id="statusbar-playing" class="sb-icon sb-icon-playing" hidden></div>
+        <!-- Permissions -->
+        <div id="statusbar-tethering" class="sb-icon sb-icon-tethering" hidden></div>
+        <div id="statusbar-alarm" class="sb-icon sb-icon-alarm" hidden></div>
+        <div id="statusbar-bluetooth" class="sb-icon sb-icon-bluetooth" hidden></div>
+        <div id="statusbar-mute" class="sb-icon sb-icon-mute" hidden></div>
+        <div id="statusbar-recording" class="sb-icon sb-icon-recording" hidden></div>
+        <div id="statusbar-sms" class="sb-icon sb-icon-sms" hidden></div>
+        <div id="statusbar-geolocation" class="sb-icon sb-icon-geolocation" hidden></div>
+        <div id="statusbar-usb" class="sb-icon sb-icon-usb" hidden></div>
+        <div id="statusbar-call-forwarding" class="sb-icon sb-icon-call-forwarding" hidden></div>
+        <div id="statusbar-playing" class="sb-icon sb-icon-playing" hidden></div>
 
-          <!-- Activity -->
-          <!-- HACK: We use images instead of divs to enforce allocation of a
-               dedicated layer just for this animated icons, remove after bug
-               717872 gets fixed -->
-          <img id="statusbar-system-downloads"
-               src="style/statusbar/images/system-downloads.png"
-               class="sb-icon-system-downloads" hidden>
-          <img id="statusbar-network-activity"
-               src="style/statusbar/images/network-activity.png"
-               class="sb-icon-network-activity" hidden>
-
-          <!-- Carrier & date label -->
-          <div id="statusbar-label" class="sb-start-upper"></div>
-          <!-- CDMA emergency callback Notification -->
-          <div id="statusbar-emergency-cb-notification" class="sb-start sb-icon sb-emergency-cb-icon-notification" hidden></div>
-          <!-- Notification -->
-          <div id="statusbar-notification" class="sb-start sb-icon sb-icon-notification"
-            data-num="" hidden></div>
-        </div>
+        <!-- Activity -->
+        <!-- HACK: We use images instead of divs to enforce allocation of a
+             dedicated layer just for this animated icons, remove after bug
+             717872 gets fixed -->
+        <img id="statusbar-system-downloads"
+             src="style/statusbar/images/system-downloads.png"
+             class="sb-icon-system-downloads" hidden>
+        <img id="statusbar-network-activity"
+             src="style/statusbar/images/network-activity.png"
+             class="sb-icon-network-activity" hidden>
       </div>
       <div id="search-bar" data-z-index-level="search-bar">
         <form id="search-form" class="skin-dark">
