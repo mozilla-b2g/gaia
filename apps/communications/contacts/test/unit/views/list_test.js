@@ -9,12 +9,12 @@ requireApp('communications/contacts/js/utilities/event_listeners.js');
 requireApp('communications/contacts/js/utilities/templates.js');
 requireApp('communications/contacts/js/utilities/cookie.js');
 requireApp('communications/contacts/test/unit/mock_asyncstorage.js');
+requireApp('communications/contacts/test/unit/mock_navigation.js');
 requireApp('communications/contacts/test/unit/mock_contacts.js');
 requireApp('communications/contacts/test/unit/mock_contacts_list.js');
 requireApp('communications/contacts/test/unit/mock_contacts_shortcuts.js');
 requireApp('communications/contacts/test/unit/mock_fixed_header.js');
 requireApp('communications/contacts/test/unit/mock_fb.js');
-requireApp('communications/contacts/test/unit/mock_navigation.js');
 requireApp('communications/contacts/test/unit/mock_extfb.js');
 requireApp('communications/contacts/test/unit/mock_activities.js');
 requireApp('communications/contacts/test/unit/mock_utils.js');
@@ -1058,19 +1058,14 @@ suite('Render contacts list', function() {
       });
     }); // test ends
 
-    test('check search', function(done) {
-      mockContacts = new MockContactsList();
-      var contactIndex = Math.floor(Math.random() * mockContacts.length);
-      var contact = mockContacts[contactIndex];
-
-      doLoad(subject, mockContacts, function() {
-        contacts.Search.init(mockContacts);
-        contacts.List.initSearch(function onInit() {
-          searchBox.value = contact.familyName[0];
-          contacts.Search.enterSearchMode({preventDefault: function() {}});
-          done();
+    test('enter search mode', function() {
+      contacts.List.initSearch(function onInit() {
+        contacts.Search.enterSearchMode({preventDefault: function() {}});
+        assert.equal(window.Contacts.navigation.getCurrentView(),
+                     'search-view');
+        assert.equal(window.Contacts.navigation.getCurrentTransition(),
+                     'none');
         });
-      });
     });
 
     test('check empty search', function(done) {
@@ -1090,7 +1085,7 @@ suite('Render contacts list', function() {
       });
     });
 
-    test('Search  by name and surname with trailing whitespaces',
+    test('Search by name and surname with trailing whitespaces',
         function(done) {
       mockContacts = new MockContactsList();
       var contactIndex = Math.floor(Math.random() * mockContacts.length);
@@ -1237,6 +1232,7 @@ suite('Render contacts list', function() {
             assert.isTrue(noResults.classList.contains('hide'));
             assertContactFound(empty);
             contacts.Search.invalidateCache();
+            contacts.Search.exitSearchMode({preventDefault: function() {}});
             done();
           });
         });
@@ -1369,6 +1365,7 @@ suite('Render contacts list', function() {
         'normalMode': 'show' // We don't care, the form will be hide
       }
     };
+    var mockNavigationStack;
 
     suiteSetup(function(done) {
       window.fb.isEnabled = false;
@@ -1381,6 +1378,7 @@ suite('Render contacts list', function() {
 
     test('enter select mode', function(done) {
       var selectActionTitle = 'title';
+      mockNavigationStack = new MockNavigationStack();
       subject.selectFromList(selectActionTitle, null, function onSelectMode() {
         // Check visibility
 
@@ -1406,7 +1404,18 @@ suite('Render contacts list', function() {
         assert.isTrue(selectActionButton.disabled);
 
         done();
-      }, MockNavigation, 'transition');
+      }, mockNavigationStack, 'transition');
+    });
+
+    test('enter search mode', function() {
+      contacts.List.initSearch(function onInit() {
+        contacts.Search.enterSearchMode({preventDefault: function() {}});
+        assert.equal(mockNavigationStack.getCurrentView(),
+                     'search-view');
+        assert.equal(mockNavigationStack.getCurrentTransition(),
+                     'none');
+        contacts.Search.exitSearchMode({preventDefault: function() {}});
+      });
     });
 
     suite('Selection checks', function() {
@@ -1415,7 +1424,7 @@ suite('Render contacts list', function() {
         doLoad(subject, mockContacts, function() {
           subject.selectFromList('', null, function() {
             done();
-          }, MockNavigation, 'transition');
+          }, new MockNavigationStack(), 'transition');
         });
       });
 
@@ -1511,7 +1520,7 @@ suite('Render contacts list', function() {
           subject.selectFromList('', null, function() {
             // Simulate the click to close
             done();
-          }, MockNavigation, 'transition');
+          }, new MockNavigationStack(), 'transition');
         });
       });
 
@@ -1537,7 +1546,7 @@ suite('Render contacts list', function() {
             var close = document.querySelector('#cancel_activity');
             close.click();
             done();
-          }, MockNavigation, 'transition');
+          }, new MockNavigationStack(), 'transition');
         });
 
       });
@@ -1548,7 +1557,7 @@ suite('Render contacts list', function() {
           var checks = list.querySelectorAll('input[type="checkbox"]');
           assert.equal(contactsRows.length, checks.length);
           done();
-        }, MockNavigation, 'transition');
+        }, new MockNavigationStack(), 'transition');
       });
     });
   });

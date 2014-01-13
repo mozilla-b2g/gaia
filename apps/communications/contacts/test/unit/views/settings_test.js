@@ -4,6 +4,7 @@ require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connection.js');
 requireApp('communications/contacts/test/unit/mock_contacts_index.html.js');
 requireApp('communications/contacts/test/unit/mock_iccmanager.js');
+requireApp('communications/contacts/test/unit/mock_navigation.js');
 requireApp('communications/contacts/test/unit/mock_contacts.js');
 requireApp('communications/contacts/test/unit/mock_asyncstorage.js');
 requireApp('communications/contacts/test/unit/mock_fb.js');
