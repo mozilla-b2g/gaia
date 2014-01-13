@@ -92,6 +92,9 @@ All options are passed to `./node_modules/.bin/marionette-mocha` so
 you can also use mocha commands like `--grep`, `--timeout` see `--help`
 for more options.
 
+If you would like to run a test with a CalDAV server,
+please give the `RUN_CALDAV_SERVER=1` parameter after the command.
+
 #### Invoking tests for a specific app
 
 ```sh
