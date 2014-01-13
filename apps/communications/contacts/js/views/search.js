@@ -119,6 +119,25 @@ contacts.Search = (function() {
     });
   };
 
+  var updateSearchList = function updateSearchList() {
+    if (!searchEnabled) {
+      return;
+    }
+
+    window.setTimeout(function() {
+      // Resetting state
+      resetStateAndCache();
+
+      search();
+    });
+  };
+
+  var resetStateAndCache = function resetStateAndCache() {
+    contactNodes = null;
+    searchTextCache = {};
+    resetState();
+  };
+
   // Search mode instructions
   var exitSearchMode = function exitSearchMode(evt) {
     evt.preventDefault();
@@ -133,9 +152,7 @@ contacts.Search = (function() {
       searchBox.value = '';
 
       // Resetting state
-      contactNodes = null;
-      searchTextCache = {};
-      resetState();
+      resetStateAndCache();
 
       inSearchMode = false;
     }, 0);
@@ -534,6 +551,7 @@ contacts.Search = (function() {
     'exitSearchMode': exitSearchMode,
     'isInSearchMode': isInSearchMode,
     'enableSearch': enableSearch,
+    'updateSearchList': updateSearchList,
     'selectRow': selectRow
   };
 })();
