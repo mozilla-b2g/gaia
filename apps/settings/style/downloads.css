@@ -1,7 +1,3 @@
-.hide {
-  display:none !important;
-}
-
 .disabled {
   pointer-events: none;
   opacity: .3;
@@ -31,7 +27,7 @@
 #downloadList {
   font-weight: 400;
   padding: 0;
-  overflow: none;
+  overflow: hidden;
   height: calc(100% - 5rem);
 }
 
@@ -123,36 +119,13 @@
 /* Text */
 .fileName {
   padding: 1rem 6rem 1rem 3.5rem;
-  -moz-boz-sizing: border-box;
+  -moz-box-sizing: border-box;
 }
 
 .info {
   font-size: 1.2rem;
   padding: 0 6rem 0 3.5rem;
-  -moz-boz-sizing: border-box;
-}
-
-/* Informative icons */
-.actionCancel {
-  width: 3rem;
-  height: 3rem;
-  background: url('images/download_close.png');
-  background-repeat: no-repeat;
-}
-
-.actionRetry {
-  width: 3rem;
-  height: 3rem;
-  background: url('images/download_refresh.png');
-  background-repeat: no-repeat;
-}
-
-.statusError {
-  width: 3rem;
-  height: 3rem;
-  background: url('images/download_exclamation.png'); 
-  background-repeat: no-repeat;
-  left: 0.2rem;
+  -moz-box-sizing: border-box;
 }
 
 /* List items */
@@ -225,4 +198,61 @@
 
 #downloadList li[data-state="succeeded"] {
   pointer-events: all;
+}
+
+
+/*
+ * Conditional Download Item style
+ */
+
+/* Error icon */
+#downloadList ul > li[data-state="downloading"] .download-status,
+#downloadList ul > li[data-state="succeeded"] .download-status,
+#downloadList ul > li[data-state="stopped"] .download-status {
+  display: none;
+}
+#downloadList ul > li[data-state="failed"] .download-status {
+  width: 3rem;
+  height: 3rem;
+  background: url('images/download_exclamation.png'); 
+  background-repeat: no-repeat;
+  left: 0.2rem;
+}
+
+/* Progress Bar */
+#downloadList ul > li[data-state="failed"] progress{
+  display: none;
+}
+
+/* Action in the element. */
+
+#downloadList aside.pack-end {
+  width: 3rem;
+  height: 3rem;
+  padding: 1.4rem;
+  margin: 0;
+  pointer-events: all;
+  right: 0;
+  
+}
+
+#downloadList ul > li[data-state="downloading"] .pack-end {
+  width: 3rem;
+  height: 3rem;
+  background: url('images/download_close.png');
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+#downloadList ul > li[data-state="succeeded"] .pack-end {
+  display: none;
+}
+
+#downloadList ul > li[data-state="stopped"] .pack-end,
+#downloadList ul > li[data-state="failed"] .pack-end {
+  width: 3rem;
+  height: 3rem;
+  background: url('images/download_refresh.png');
+  background-repeat: no-repeat;
+  background-position: center;
 }

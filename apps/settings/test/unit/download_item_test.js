@@ -52,6 +52,8 @@ suite('Download item', function() {
     test(' > check structure', function() {
       // Check structure in LI element
       assert.equal(downloadElement.tagName, 'LI');
+      // Need to specify the state, due to all styles are based on this.
+      assert.equal(downloadElement.dataset.state, 'downloading');
       var infoElement = downloadElement.querySelector('.info');
       assert.ok(infoElement);
       var fileNameElement = downloadElement.querySelector('.fileName');
@@ -63,29 +65,6 @@ suite('Download item', function() {
     test(' > check progress', function() {
       var progress = downloadElement.querySelector('progress');
       assert.ok(progress.value);
-    });
-
-    test(' > check error icon', function() {
-      var errorStatus = downloadElement.querySelector('aside:not(pack-end)');
-      assert.ok(errorStatus.classList.contains('hide'));
-      var errorDownloadMock = new MockDownload({
-        state: 'stopped',
-        error: {}
-      });
-      var errorDownloadElement = DownloadItem.create(errorDownloadMock);
-      errorStatus = errorDownloadElement.querySelector('aside:not(pack-end)');
-      assert.isFalse(errorStatus.classList.contains('hide'));
-    });
-
-    test(' > check no stopped icon', function() {
-      var errorStatus = downloadElement.querySelector('aside:not(pack-end)');
-      assert.ok(errorStatus.classList.contains('hide'));
-      var errorDownloadMock = new MockDownload({
-        state: 'stopped'
-      });
-      var errorDownloadElement = DownloadItem.create(errorDownloadMock);
-      errorStatus = errorDownloadElement.querySelector('aside:not(pack-end)');
-      assert.isTrue(errorStatus.classList.contains('hide'));
     });
   });
 

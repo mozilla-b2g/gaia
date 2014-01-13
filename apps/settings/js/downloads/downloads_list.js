@@ -32,8 +32,14 @@
     }
     var isEmpty = (downloadsContainer.children.length === 0);
 
-    downloadsContainer.className = isEmpty ? 'hide' : '';
-    emptyDownloadsContainer.className = isEmpty ? '' : 'hide';
+    if (isEmpty) {
+      downloadsContainer.hidden = true;
+      emptyDownloadsContainer.hidden = false;
+    } else {
+      downloadsContainer.hidden = false;
+      emptyDownloadsContainer.hidden = true;
+    }
+
     editButton.className = isEmpty ? 'disabled' : '';
   }
 
