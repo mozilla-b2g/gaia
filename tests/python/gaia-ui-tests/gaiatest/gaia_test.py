@@ -428,7 +428,7 @@ class PowerDataRun(object):
         self._samples = []
 
     @classmethod
-    def from_json(self, json_str):
+    def from_json(cls, json_str):
         pds = json.loads(json_str)
         samples = []
         for pd in pds:
