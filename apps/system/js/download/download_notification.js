@@ -23,26 +23,25 @@ DownloadNotification.prototype = {
 
   /**
    * This method knows when the toaster should be displayed. Basically
-   * the toaster should be displayed if the download changes state
-   *
-   * @param {String} UI state.
-   * @param {String} The new state of the download.
+   * the toaster shouldn't be displayed if the download state does not change
+   * or the download was stopped by the user
    *
    * @return {boolean} True whether the toaster should be displayed.
    */
-  _wontNotify: function dn_wontNotify(currentState, newState) {
-    return currentState === newState || newState === 'downloading';
+  _wontNotify: function dn_wontNotify() {
+    var download = this.download;
+    return this.state === download.state ||
+           download.state === 'downloading' ||
+          (download.state === 'stopped' && download.error === null);
   },
 
   /**
    * This method is in charge of incrementing/decrementing the system downloads
    * according to previous and current states
-   *
-   * @param {String} Previous state.
-   * @param {String} New state.
    */
-  _updateSystemDownloads: function dn_updateSystemDownloads(prevState, 
-                                                            newState) {
+  _updateSystemDownloads: function dn_updateSystemDownloads() {
+    var prevState = this.state;
+    var newState = this.download.state;
     if (prevState !== newState) {
       if (newState === 'downloading') {
         StatusBar.incSystemDownloads();
@@ -56,15 +55,20 @@ DownloadNotification.prototype = {
    * It updates the notification when the download state changes.
    */
   _update: function dn_update() {
-    this._updateSystemDownloads(this.state, this.download.state);
-    var noNotify = this._wontNotify(this.state, this.download.state);
-    var state = this.state = this.download.state;
+    this._updateSystemDownloads();
+    var noNotify = this._wontNotify();
+    this.state = this.download.state;
+    // Error attr will be not null when a download is stopped because
+    // something failed
+    if (this.download.state === 'stopped' && this.download.error !== null) {
+      this.state = 'failed';
+    }
     var info = this._getInfo();
     if (noNotify) {
       info.noNotify = true;
     }
     NotificationScreen.addNotification(info);
-    if (state === 'succeeded') {
+    if (this.state === 'succeeded') {
       this._onSucceeded();
     }
   },
@@ -103,7 +107,9 @@ DownloadNotification.prototype = {
    * @return {String} Icon path.
    */
   _getIcon: function dn_getIcon() {
-    return this._ICONS_PATH + this.state + this._ICONS_EXTENSION;
+    var state = this.state;
+    return state === 'stopped' ? null : this._ICONS_PATH + state +
+                                        this._ICONS_EXTENSION;
   },
 
   /**
@@ -173,7 +179,6 @@ DownloadNotification.prototype = {
         break;
 
       case 'stopped':
-      case 'finalized':
         // Prompts the user if he wishes to retry the download
         var req = DownloadUI.show(null, this.download, true);
 

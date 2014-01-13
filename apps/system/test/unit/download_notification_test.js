@@ -50,13 +50,18 @@ suite('system/DownloadNotification >', function() {
     this.sinon.spy(DownloadStore, 'add');
   });
 
-  function assertUpdatedNotification(download) {
+  teardown(function() {
+    download.error = null;
+  });
+
+  function assertUpdatedNotification(download, state) {
     assert.isTrue(NotificationScreen.addNotification.called);
 
     var args = NotificationScreen.addNotification.args[0];
     var fileName = DownloadFormatter.getFileName(download);
     assert.isTrue(args[0].text.indexOf(fileName) !== -1);
-    assert.equal(args[0].type, 'download-notification-' + download.state);
+    state = state || download.state;
+    assert.equal(args[0].type, 'download-notification-' + state);
   }
 
   test('Download notification has been created', function() {
@@ -87,16 +92,17 @@ suite('system/DownloadNotification >', function() {
     assert.equal(mockMozActivityInstance.data.section, 'downloads');
   });
 
-  test('The download was stopped', function() {
+  test('The download failed', function() {
     assert.isFalse(NotificationScreen.addNotification.called);
     download.state = 'stopped';
+    download.error = {};
     download.onstatechange();
-    assertUpdatedNotification(download);
+    assertUpdatedNotification(download, 'failed');
     assert.isUndefined(MockStatusBar.wasMethodCalled['incSystemDownloads']);
     assert.ok(MockStatusBar.wasMethodCalled['decSystemDownloads']);
   });
 
-  test('Canceled notification was clicked > Show confirmation', function() {
+  test('Failed notification was clicked > Show confirmation', function() {
     notification.onClick();
     assert.equal(DownloadUI.methodCalled, 'show');
   });
