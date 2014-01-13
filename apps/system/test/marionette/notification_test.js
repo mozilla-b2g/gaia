@@ -23,7 +23,7 @@ marionette('notification tests', function() {
               'Lock screen notification contains all fields');
   });
 
-  test.skip('system replace notification', function() {
+  test('system replace notification', function() {
     var oldDetails = {tag: 'test tag, replace',
                       title: 'test title, replace',
                       body: 'test body, replace',
