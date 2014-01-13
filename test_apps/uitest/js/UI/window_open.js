@@ -1,5 +1,7 @@
+'use strict';
 
 window.addEventListener('load', function() {
+  var popup = null;
   var buttons = document.querySelectorAll('button');
 
   for (var i = 0; i < buttons.length; i++) {
@@ -20,13 +22,13 @@ window.addEventListener('load', function() {
             param1 = hash[1];
             param2 = hash[1];
           }
-          actualWindow.open(target.dataset.url, param1, param2);
-        break;
+          popup = actualWindow.open(target.dataset.url, param1, param2);
+          break;
         case 'close':
-          actualWindow.close();
-        break;
+          popup.close();
+          break;
         default:
-        break;
+          break;
       }
     });
   }
