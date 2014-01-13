@@ -51,6 +51,8 @@
     getVoicePrivacyMode: FFOS_RUNTIME.domRequest(),
     setRadioEnabled: FFOS_RUNTIME.domRequest(),
     getRadioEnabled: FFOS_RUNTIME.domRequest(),
+    getRoamingPreference: FFOS_RUNTIME.domRequest(),
+    setRoamingPreference: FFOS_RUNTIME.domRequest(),
     getPreferredNetworkType:  FFOS_RUNTIME.domRequest(),
     setPreferredNetworkType:  FFOS_RUNTIME.domRequest(),
     get data() {
@@ -74,6 +76,8 @@
       getVoicePrivacyMode: FFOS_RUNTIME.domRequest(),
       setRadioEnabled: FFOS_RUNTIME.domRequest(),
       getRadioEnabled: FFOS_RUNTIME.domRequest(),
+      getRoamingPreference: FFOS_RUNTIME.domRequest(),
+      setRoamingPreference: FFOS_RUNTIME.domRequest(),
       getPreferredNetworkType:  FFOS_RUNTIME.domRequest(),
       setPreferredNetworkType:  FFOS_RUNTIME.domRequest(),
       get data() {
