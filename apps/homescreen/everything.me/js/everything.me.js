@@ -327,8 +327,15 @@ var EverythingME = {
   },
 
   initEvme: function EverythingME_initEvme() {
-    Evme.init(EverythingME.onEvmeLoaded);
-    EvmeFacade = Evme;
+    var config = this.datastore.getConfig();
+    config.then(function resolve(emeConfig) {
+      EverythingME.log('EVME config from storage', JSON.stringify(emeConfig));
+
+      Evme.init({'deviceId': emeConfig.deviceId}, EverythingME.onEvmeLoaded);
+      EvmeFacade = Evme;
+    }, function reject(reason) {
+      EverythingME.warn('EVME config missing', reason);
+    });
   },
 
   onEvmeLoaded: function onEvmeLoaded() {
@@ -499,8 +506,8 @@ var EverythingME = {
       });
     } catch (ex) {
       deleteOld();
-      console.warn('[EVME migration] [' + oldKey + ']: error: ' + oldValue +
-                                                      ' (' + ex.message + ')');
+      EverythingME.warn('[EVME migration] [' + oldKey + ']: error: ' +
+                                            oldValue + ' (' + ex.message + ')');
       onComplete(false);
       return false;
     }
@@ -551,6 +558,11 @@ var EverythingME = {
     if (this.debug) {
       console.log.apply(window, arguments);
     }
+  },
+  warn: function log() {
+    if (this.debug) {
+      console.warn.apply(window, arguments);
+    }
   }
 };
 
@@ -562,3 +574,66 @@ var EvmeFacade = {
     return false;
   }
 };
+
+
+(function() {
+  'use strict';
+
+  // datastore to use
+  var DS_NAME = 'eme_store';
+
+  // id of config object
+  var DS_CONFIG_ID = 1;
+
+  // see duplicate in search/eme.js
+  function generateDeviceId() {
+    var url = window.URL.createObjectURL(new Blob());
+    var id = url.replace('blob:', '');
+
+    window.URL.revokeObjectURL(url);
+
+    return 'fxos-' + id;
+  }
+
+  function emeDataStore() {
+  }
+  emeDataStore.prototype = {
+    // Get or create config shared with search/eme instance via DataStore API.
+    getConfig: function getConfig() {
+      var promise = new Promise(function done(resolve, reject) {
+        navigator.getDataStores(DS_NAME).then(function(stores) {
+          if (stores.length === 1) {
+            var db = stores[0];
+
+            db.get(DS_CONFIG_ID).then(function success(emeConfig) {
+              // use existing config
+              if (emeConfig) {
+                resolve(emeConfig);
+              } else {
+                // store new config
+                emeConfig = {
+                  'deviceId': generateDeviceId()
+                };
+
+                db.add(emeConfig, DS_CONFIG_ID).then(function success(id) {
+                  resolve(emeConfig);
+                }, function error(e) {
+                  reject('config creation failed');
+                });
+              }
+            }, function error(e) {
+              reject(e.message);
+            });
+
+          } else {
+            reject('invalid datastore setup');
+          }
+        });
+      });
+
+      return promise;
+    }
+  };
+
+  EverythingME.datastore = new emeDataStore();
+})();

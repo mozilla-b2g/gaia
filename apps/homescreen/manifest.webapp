@@ -56,5 +56,11 @@
   },
   "messages": [
     { "alarm": "/index.html" }
-  ]
+  ],
+  "datastores-owned": {
+    "eme_store": {
+      "access": "readwrite",
+      "description": "Stores Everything.me data"
+    }
+  }
 }
