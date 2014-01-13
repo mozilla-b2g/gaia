@@ -81,6 +81,7 @@ var SimLock = {
         // Check whether the lock screen was unlocked from the camera or not.
         // If the former is true, the SIM PIN dialog should not displayed after
         // unlock, because the camera will be opened (Bug 849718)
+        console.log('[EJ] got will-unlock event');
         if (evt.detail && evt.detail.areaCamera)
           return;
 
@@ -135,27 +136,40 @@ var SimLock = {
   },
 
   showIfLocked: function sl_showIfLocked(currentSlotIndex, skipped) {
-    if (LockScreen.locked)
+    if (LockScreen.locked) {
+      console.log('[EJ] LockScreen.locked is false');
       return false;
+    }
 
     // FTU has its specific SIM PIN UI
-    if (FtuLauncher.isFtuRunning())
+    if (FtuLauncher.isFtuRunning()) {
+      console.log('[EJ] FtuLauncher.isFtuRunning()');
       return false;
+    }
 
     if (this._duringCall) {
       this._showPrevented = true;
+      console.log('[EJ] is during call');
       return false;
     }
     var locked = false;
 
+    console.log('[EJ] how many simcards > ' +
+      SIMSlotManager.getSlots().length);
+
     return SIMSlotManager.getSlots().some(function iterator(slot, index) {
       if (currentSlotIndex && index !== currentSlotIndex) {
+        console.log('[EJ] with currentSlotIndex but differnt index');
         return false;
       }
 
       if (!slot.simCard) {
+        console.log('[EJ] card ' + index + ' has no sim card');
         return false;
       }
+
+      console.log(
+        '[EJ] card ' + index + ', cardState ' + slot.simCard.cardState);
 
       switch (slot.simCard.cardState) {
         // do nothing in either unknown or null card states
