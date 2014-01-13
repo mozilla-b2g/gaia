@@ -571,10 +571,14 @@ var Settings = {
   webActivityHandler: function settings_handleActivity(activityRequest) {
     var name = activityRequest.source.name;
     var section = 'root';
+    var postback = true;
     Settings._currentActivity = activityRequest;
     switch (name) {
       case 'configure':
         section = activityRequest.source.data.section;
+        if (typeof activityRequest.source.data.postback != 'undefined') {
+          postback = activityRequest.source.data.postback;
+        }
 
         if (!section) {
           // If there isn't a section specified,
@@ -587,7 +591,9 @@ var Settings = {
         if (!sectionElement || sectionElement.tagName !== 'SECTION') {
           var msg = 'Trying to open an non-existent section: ' + section;
           console.warn(msg);
-          activityRequest.postError(msg);
+          if (postback) {
+            activityRequest.postError(msg);
+          }
           return;
         }
 
