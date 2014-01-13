@@ -2,9 +2,11 @@
 
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/test/unit/mock_cards_view.js');
+requireApp('system/test/unit/mock_app_window_manager.js');
 mocha.globals(['Rocketbar']);
 
 var mocksForRocketBar = new MocksHelper([
+  'AppWindowManager',
   'CardsView',
   'SettingsListener'
 ]).init();
@@ -27,6 +29,37 @@ suite('system/Rocketbar', function() {
   teardown(function() {
     stubById.restore();
     this.sinon.clock.restore();
+  });
+
+  suite('handleEvent', function() {
+    test('search-cancel element should hide the task manager', function() {
+      var dispatchStub = this.sinon.stub(window, 'dispatchEvent');
+      Rocketbar.handleEvent({
+        target: {
+          id: 'search-cancel'
+        },
+        preventDefault: function() {},
+        stopPropagation: function() {}
+      });
+
+      assert.equal(dispatchStub.getCall(0).args[0].type, 'taskmanagerhide');
+    });
+
+    test('search-cancel element should show the task manager', function() {
+      var dispatchStub = this.sinon.stub(window, 'dispatchEvent');
+      var awmStub = this.sinon.stub(AppWindowManager, 'getRunningApps')
+        .returns({app1: true, app2: true});
+      Rocketbar.home = 'tasks';
+      Rocketbar.handleEvent({
+        target: {
+          id: 'search-cancel'
+        },
+        preventDefault: function() {},
+        stopPropagation: function() {}
+      });
+
+      assert.equal(dispatchStub.getCall(0).args[0].type, 'taskmanagershow');
+    });
   });
 
   suite('render', function() {
