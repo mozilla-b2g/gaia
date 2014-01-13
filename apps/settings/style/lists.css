@@ -8,11 +8,6 @@ ul {
   padding: 0;
   overflow: hidden;
   list-style: none;
-  /*
-   * Need this for scrollable background layer
-   * optimization in gecko. See Bug 950250
-   */
-  background: url(images/document_bg.png);
 }
 
 ul li {

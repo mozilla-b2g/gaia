@@ -71,6 +71,13 @@ section[role="region"] > div {
   will-change: scroll-position;
 }
 
+/*
+ * Need this for scrollable background layer
+ * optimization in gecko. See Bug 950250
+ */
+section[role="region"] > div > ul {
+  background-color: #f4f4f4;
+}
 
 /******************************************************************************
  * Explanation texts
