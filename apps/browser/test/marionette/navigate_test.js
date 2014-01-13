@@ -61,7 +61,7 @@ marionette('search', function() {
       subject.searchButton.click();
     });
 
-    test.skip('loads net_error.html from system', function() {
+    test('loads net_error.html from system', function() {
       // verify iframe is primed
       var frame = subject.currentTabFrame();
       assert.equal(frame.getAttribute('src'), url, 'correct iframe');
@@ -78,11 +78,8 @@ marionette('search', function() {
       } finally {
         // now we can test the about:neterror page
 
-        // verify we have the propery body
-        frame.client.helper.waitForElement('body#net-error');
-
         // verify error message was set (using l10n)
-        var errorMsg = frame.client.findElement('#error-message')
+        var errorMsg = frame.client.helper.waitForElement('#error-message')
                        .getAttribute('innerHTML');
         assert.ok(errorMsg, 'Localization library populated error message');
 
