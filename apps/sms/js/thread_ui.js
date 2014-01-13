@@ -2543,7 +2543,11 @@ var ThreadUI = global.ThreadUI = {
    *
    * Saves the currently unsent message content or recipients
    * into a Draft object.  Preserves the currently marked
-   * draft if specified.
+   * draft if specified.  Draft preservation is intended to
+   * keep MessageManager.draft populated with the currently
+   * showing draft when the app is hidden, so when the app
+   * comes out of hiding, it knows there is a draft to continue
+   * to keep track of.
    *
    * @param {Object} opts Optional parameters for saving a draft.
    *                  - preserve, boolean whether or not to preserve draft.
@@ -2596,6 +2600,12 @@ var ThreadUI = global.ThreadUI = {
     // draft replacement case
     if (!opts || (opts && !opts.preserve)) {
       MessageManager.draft = null;
+    }
+
+    // Set the MessageManager draft if it is
+    // not already set and meant to be preserved
+    if (!MessageManager.draft && (opts && opts.preserve)) {
+      MessageManager.draft = draft;
     }
   }
 };

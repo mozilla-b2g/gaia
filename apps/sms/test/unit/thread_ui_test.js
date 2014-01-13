@@ -3918,13 +3918,23 @@ suite('thread_ui.js >', function() {
       assert.isNull(MessageManager.draft);
     });
 
-    test('preserve draft for replacement', function() {
+    test('preserve pre-existing draft for replacement', function() {
       var draft = {id: 55};
       MessageManager.draft = draft;
       ThreadUI.saveDraft({preserve: true});
 
       assert.isNotNull(MessageManager.draft);
       assert.equal(MessageManager.draft, draft);
+    });
+
+    test('preserve new draft for replacement', function() {
+      MessageManager.draft = null;
+      ThreadUI.saveDraft({preserve: true});
+
+      assert.isNotNull(MessageManager.draft);
+      assert.deepEqual(MessageManager.draft.recipients, ['999']);
+      assert.equal(MessageManager.draft.content, 'foo');
+      assert.equal(MessageManager.draft.threadId, null);
     });
 
     test('has entered content and recipients', function() {
