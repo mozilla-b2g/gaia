@@ -62,6 +62,13 @@
   z-index: 65535;
 }
 
+/* Transitioning appWindow to task manager should be shown under the rocketbar */
+#screen.cards-view.task-manager > [data-z-index-level="app"] > .appWindow.active:not(.homescreen),
+#screen.cards-view.task-manager > [data-z-index-level="app"] > .appWindow.transition-closing.to-cardview:not(.homescreen),
+#screen.cards-view.task-manager > [data-z-index-level="app"] > .appWindow.transition-closing.fullscreen-app.to-cardview:not(.homescreen) {
+  z-index: 2042;
+}
+
 #screen > [data-z-index-level="keyboards"] {
 
   /* It should lower than UtilityTray's, to let the tray overlay it

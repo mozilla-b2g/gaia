@@ -10,6 +10,7 @@ requireApp('system/test/unit/mock_trusted_ui_manager.js');
 requireApp('system/test/unit/mock_utility_tray.js');
 requireApp('system/test/unit/mock_app_window_manager.js');
 requireApp('system/test/unit/mock_lock_screen.js');
+requireApp('system/test/unit/mock_orientation_manager.js');
 requireApp('system/test/unit/mock_sleep_menu.js');
 requireApp('system/test/unit/mock_popup_manager.js');
 
@@ -21,6 +22,7 @@ var mocksForCardsView = new MocksHelper([
   'AppWindowManager',
   'LockScreen',
   'SleepMenu',
+  'OrientationManager',
   'PopupManager'
 ]).init();
 
@@ -237,6 +239,25 @@ suite('cards view >', function() {
                                         'rotate-180'));
     });
 
+  });
+
+  suite('task manager in rocketbar >', function() {
+    setup(function(done) {
+      CardsView.showCardSwitcher(null, true);
+      setTimeout(done);
+    });
+
+    test('has correct classes', function() {
+      var screen = document.getElementById('screen');
+      assert.isTrue(cardsView.classList.contains('active'));
+      assert.isTrue(screen.classList.contains('task-manager'));
+    });
+
+    test('removes task-manager class', function() {
+      var screen = document.getElementById('screen');
+      CardsView.hideCardSwitcher();
+      assert.isFalse(screen.classList.contains('task-manager'));
+    });
   });
 });
 

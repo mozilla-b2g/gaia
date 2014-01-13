@@ -4,6 +4,35 @@ var Rocketbar = {
 
   enabled: false,
 
+  /**
+   * Either 'search' or 'tasks'.
+   * Let us know how the rocketbar was opened.
+   */
+  home: 'search',
+
+  /**
+   * How much room on the statusbar will trigger the rocketbar
+   * when tapped on.
+   */
+  triggerWidth: 0.65,
+
+  /**
+   * Minimum swipe to activate the task manager.
+   * This is a % of the total screen height.
+   */
+  swipeThreshold: 0.10,
+
+  /**
+   * Current pointer position of a statusbar swipe.
+   */
+  pointerY: 0,
+
+  /**
+   * Height of the screen.
+   * Currently passed into and populated by the render method.
+   */
+  screenHeight: 0,
+
   searchAppURL: null,
 
   _port: null,
@@ -50,6 +79,9 @@ var Rocketbar = {
 
   handleEvent: function(e) {
     switch (e.type) {
+      case 'cardchange':
+        this.searchInput.value = e.detail.title;
+        return;
       case 'keyboardchange':
         // When the keyboard is opened make sure to not resize
         // the current app by swallowing the event.
@@ -63,13 +95,35 @@ var Rocketbar = {
       case 'search-cancel':
         e.preventDefault();
         e.stopPropagation();
-        this.hide();
+        // Show the card switcher again if we opened the rocketbar
+        // in task manager mode. There needs to be a current card.
+        var runningApps = AppWindowManager.getRunningApps();
+        if (this.home === 'tasks' && Object.keys(runningApps).length > 1) {
+          window.dispatchEvent(new CustomEvent('taskmanagershow'));
+          // Send a message to the search app to clear results
+          if (this._port) {
+            this._port.postMessage({
+              action: 'clear'
+            });
+          }
+        } else {
+          window.dispatchEvent(new CustomEvent('taskmanagerhide'));
+          this.hide();
+        }
         break;
       case 'search-reset':
         e.preventDefault();
         e.stopPropagation();
+        window.dispatchEvent(new CustomEvent('taskmanagerhide'));
         this.searchInput.value = '';
         this.searchReset.classList.add('hidden');
+        break;
+      case 'search-input':
+        window.dispatchEvent(new CustomEvent('taskmanagerhide'));
+        // If the current text is not a URL, clear it.
+        if (UrlHelper.isNotURL(this.searchInput.value)) {
+          this.searchInput.value = '';
+        }
         break;
       default:
         break;
@@ -81,6 +135,10 @@ var Rocketbar = {
     window.addEventListener('iac-search-results',
       this.onSearchMessage.bind(this));
 
+    // Hide task manager when we focus on search bar
+    this.searchInput.addEventListener('focus', this);
+
+    window.addEventListener('cardchange', this);
     this.searchCancel.addEventListener('click', this);
     // Prevent default on mousedown
     this.searchReset.addEventListener('mousedown', this);
@@ -105,6 +163,9 @@ var Rocketbar = {
     }.bind(this));
   },
 
+  /**
+   * Inserts the search app iframe into the dom.
+   */
   loadSearchApp: function() {
     var container = this.searchContainer;
     var searchFrame = container.querySelector('iframe');
@@ -176,9 +237,17 @@ var Rocketbar = {
     }
   },
 
-  hide: function() {
+  /**
+   * Hides the rocketbar.
+   * @param {String} event type that triggers the hide.
+   */
+  hide: function(evtType) {
     if (!this.shown)
       return;
+
+    if (evtType === 'appopening') {
+      this.searchBar.style.display = 'none';
+    }
 
     document.body.removeEventListener('keyboardchange', this, true);
 
@@ -193,7 +262,12 @@ var Rocketbar = {
     window.dispatchEvent(new CustomEvent('rocketbarhidden'));
   },
 
-  render: function() {
+  /**
+   * Renders the rocketbar.
+   * @param {Integer} height of the screen in pixels.
+   */
+  render: function(height) {
+    this.screenHeight = height;
     if (this.shown) {
       return;
     }
@@ -207,19 +281,39 @@ var Rocketbar = {
 
     document.body.addEventListener('keyboardchange', this, true);
 
+    this.searchReset.classList.add('hidden');
+
+    // We need to ensure the rocketbar is visible before we transition it.
+    // This is why we wait for the next tick to start the traisition.
+    this.searchBar.style.display = 'block';
+    setTimeout(this.startTransition.bind(this));
+  },
+
+  /**
+   * Starts the transition of the rocketbar
+   */
+  startTransition: function() {
     var search = this.searchBar;
     search.dataset.visible = 'true';
+    search.style.visibility = 'visible';
 
     var input = this.searchInput;
     input.value = '';
-    this.searchReset.classList.add('hidden');
 
     window.dispatchEvent(new CustomEvent('rocketbarshown'));
 
     var self = this;
     search.addEventListener('transitionend', function shown(e) {
       search.removeEventListener(e.type, shown);
-      input.focus();
+
+      if (self.pointerY > self.swipeThreshold * self.screenHeight) {
+        self.home = 'tasks';
+        window.dispatchEvent(new CustomEvent('taskmanagershow'));
+      } else {
+        self.home = 'search';
+        // Only focus for search views
+        input.focus();
+      }
       self.loadSearchApp();
     });
   }

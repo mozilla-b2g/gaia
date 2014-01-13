@@ -7,6 +7,7 @@
   pointer-events: none;
   transform: translateY(-100%);
   transition: transform 0.3s ease 0.8s;
+  visibility: hidden;
 }
 
 #screen.software-button-enabled #search-bar {
@@ -14,14 +15,9 @@
 }
 
 #search-bar[data-visible] {
-  visibility: visible;
   pointer-events: auto;
   transform: translateY(0);
   transition: transform 0.3s ease;
-}
-
-#search-bar {
-  visibility: hidden;
 }
 
 #search-bar form p {
@@ -54,13 +50,19 @@
 #search-bar #search-cancel {
   position: absolute;
   right: 0;
-  top: 0.5rem;
-  border-left: 1px solid #929496;
+  top: 0;
   text-decoration: none;
+  outline: 0;
+  padding: 0.5rem 0;
+}
+
+#search-bar #search-cancel span {
+  pointer-events: none;
+  border-left: 1px solid #929496;
+  display: inline-block;
   padding: 0.7rem 0.8rem 0.5rem;
   font-size: 1.4rem;
   color: #929496;
-  outline: 0;
 }
 
 #search-bar #search-container {
