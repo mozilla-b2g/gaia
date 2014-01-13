@@ -28,10 +28,12 @@ suite('app', function() {
       };
     },
     win: function() {
-      var win = {};
-      win.addEventListener = sinon.spy();
-      win.parent = win;
-      return win;
+      return {
+        addEventListener: sinon.spy(),
+        location: {
+          hash: ''
+        }
+      };
     }
   };
 
@@ -95,12 +97,25 @@ suite('app', function() {
       var app = this.app;
 
       assert.ok(app.el === options.el);
+      assert.ok(app.inSecureMode === false);
       assert.ok(app.geolocation === options.geolocation);
       assert.ok(app.activity === options.activity);
       assert.ok(app.camera === options.camera);
       assert.ok(app.sounds === options.sounds);
       assert.ok(app.views === options.views);
       assert.ok(app.controllers === options.controllers);
+    });
+
+    test('Should detect secure mode', function() {
+      var options = this.options;
+      options.win.location.hash = '#secure';
+
+      // need to `new App()` again here (and disregard `this.app`)
+      // because we have changed the option mock.
+      var App = this.modules.app;
+      var app = new App(options);
+
+      assert.ok(app.inSecureMode === true);
     });
   });
 
