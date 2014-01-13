@@ -233,7 +233,7 @@ var Rocketbar = {
     } else if (detail.input) {
       var input = this.searchInput;
       input.value = detail.input;
-      this._port.postMessage({ 'input': input.value });
+      this._port.postMessage({ action: 'change', input: input.value });
     }
   },
 
