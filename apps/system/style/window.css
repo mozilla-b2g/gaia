@@ -148,6 +148,46 @@
   50%  { transform: translateX(0); }
 }
 
+.appWindow.fade-in {
+  animation: fadeInApp 0.6s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+}
+
+.appWindow.fade-out {
+  animation: fadeOutApp 0.6s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+}
+
+/* Invoking secure app moves out */
+@keyframes fadeInApp {
+  0%  {
+         transform: scale(2.0);
+         opacity: 0.0;
+      }
+  50% {
+         transform: scale(1.5);
+         opacity: 0.5;
+      }
+  100% {
+         transform: scale(1.0);
+         opacity: 1.0;
+       }
+}
+
+/* Invoked secure app moves in */
+@keyframes fadeOutApp {
+  0%  {
+         transform: scale(1.0);
+         opacity: 1.0;
+      }
+  50% {
+         transform: scale(1.5);
+         opacity: 0.5;
+      }
+  100% {
+         transform: scale(2);
+         opacity: 0.0;
+       }
+}
+
 #windows.slow-transition > .appWindow.transition-closing,
 #windows.slow-transition > .appWindow.transition-opening {
   animation-duration: 3s;

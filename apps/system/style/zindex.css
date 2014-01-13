@@ -134,6 +134,13 @@
 }
 
 /* Level 6: Lock Screen */
+
+#screen > [data-z-index-level="app"] > .secureAppWindow.active:not(.homescreen)
+{
+  /* Or the .appWindow one would be first adopted.*/
+  z-index: 4098 !important;
+}
+
 #screen > [data-z-index-level="lockscreen"] {
   z-index: 2048;
 }
