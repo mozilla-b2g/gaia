@@ -33,6 +33,15 @@ Provider.prototype = {
   click: function() {},
 
   /**
+   * Aborts any in-progress request.
+   */
+  abort: function() {
+    if (this.request && this.request.abort) {
+      this.request.abort();
+    }
+  },
+
+  /**
    * Renders a set of results.
    * Each result may contain the following attributes:
    * - title: The title of the app.

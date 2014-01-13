@@ -30,10 +30,7 @@
 
     search: function(input) {
       this.clear();
-
-      if (this.lastReq) {
-        this.lastReq.abort();
-      }
+      this.abort();
 
       var req = new XMLHttpRequest();
       req.open('GET', API.replace('{q}', input), true);
@@ -75,7 +72,7 @@
         console.log('Marketplace timeout.');
       };
       req.send();
-      this.lastReq = req;
+      this.request = req;
     }
   };
 

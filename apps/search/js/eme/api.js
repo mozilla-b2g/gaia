@@ -50,8 +50,9 @@
         }
       }
 
+      var httpRequest;
       var promise = new Promise(function done(resolve, reject) {
-        var httpRequest = new XMLHttpRequest();
+        httpRequest = new XMLHttpRequest();
         httpRequest.open('POST', url, true);
         httpRequest.setRequestHeader(
           'Content-Type', 'application/x-www-form-urlencoded');
@@ -80,6 +81,12 @@
         httpRequest.withCredentials = true;
         httpRequest.send(payload);
       });
+
+      promise.abort = function() {
+        if (httpRequest.abort) {
+          httpRequest.abort();
+        }
+      };
 
       return promise;
     }
