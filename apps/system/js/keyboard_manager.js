@@ -235,17 +235,23 @@ var KeyboardManager = {
       }
     }, this);
 
-    var SETTING_START_ON_BOOT_KEY = 'keyboard.start-on-boot';
-    var req = navigator.mozSettings.createLock().get(SETTING_START_ON_BOOT_KEY);
+    if (Object.keys(this.runningLayouts).length) {
+      // There are already keyboard(s) being launched. We don't really care
+      // if a default keyboard should be launch-on-boot.
+      return;
+    }
+
+    var LAUNCH_ON_BOOT_KEY = 'keyboard.launch-on-boot';
+    var req = navigator.mozSettings.createLock().get(LAUNCH_ON_BOOT_KEY);
     req.onsuccess = req.onerror = (function() {
       // If the value is not set or it is set to true,
       // launch the keyboad in background
-      var launchOnBoot = req.results && req.results[SETTING_START_ON_BOOT_KEY];
+      var launchOnBoot = req.result && req.result[LAUNCH_ON_BOOT_KEY];
       if (typeof launchOnBoot !== 'boolean')
           launchOnBoot = true;
 
-      // if there are no keyboards running at this point - set text to show,
-      // but don't bring it to the foreground.
+      // if there are still no keyboards running at this point -
+      // set text to show, but don't bring it to the foreground.
       if (launchOnBoot && !Object.keys(this.runningLayouts).length) {
         this.setKeyboardToShow('text', undefined, true);
       }
