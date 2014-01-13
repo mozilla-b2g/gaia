@@ -45,7 +45,8 @@ suite('search/search', function() {
         init: function() {
           initCalled = true;
         },
-        search: function() {}
+        search: function() {},
+        abort: function() {}
       }];
 
       Search.init();
@@ -89,16 +90,17 @@ suite('search/search', function() {
   });
 
   suite('change', function() {
-    test('only searches once if called twice rapidly', function() {
-      var called = 0;
+    setup(function() {
       var fakeProvider = {
         name: 'Foo',
-        search: function() {
-          called++;
-        }
+        search: function() {},
+        abort: function() {}
       };
       Search.provider(fakeProvider);
+    });
 
+    test('only searches once if called twice rapidly', function() {
+      var stub = this.sinon.stub(Search.providers.Foo, 'search');
       Search.change({
         data: {
           input: 'a'
@@ -109,9 +111,27 @@ suite('search/search', function() {
           input: 'a'
         }
       });
-      assert.equal(called, 0);
+      assert.ok(stub.notCalled);
       clock.tick(1000); // For typing timeout
-      assert.equal(called, 1);
+      assert.ok(stub.calledOnce);
+    });
+
+    test('aborting will cancel search timeout', function() {
+      var stub = this.sinon.stub(Search.providers.Foo, 'search');
+      Search.change({
+        data: {
+          input: 'a'
+        }
+      });
+      Search.change({
+        data: {
+          input: 'a'
+        }
+      });
+      assert.ok(stub.notCalled);
+      Search.abort();
+      clock.tick(1000); // For typing timeout
+      assert.ok(stub.notCalled);
     });
   });
 
@@ -137,7 +157,8 @@ suite('search/search', function() {
         Fake: {
           clear: function() {
             called++;
-          }
+          },
+          abort: function() {}
         }
       };
     });
@@ -145,6 +166,20 @@ suite('search/search', function() {
     test('calls the provider.clear method', function() {
       Search.clear();
       assert.equal(called, 1);
+    });
+  });
+
+  suite('abort', function() {
+    test('calls abort method of provider', function() {
+      Search.providers = {
+        Fake: {
+          clear: function() {},
+          abort: function() {}
+        }
+      };
+      var abortStub = this.sinon.stub(Search.providers.Fake, 'abort');
+      Search.abort();
+      assert.ok(abortStub.calledOnce);
     });
   });
 
