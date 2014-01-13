@@ -31,6 +31,9 @@ PerfTestApp.prototype = {
 
   selectors: {},
 
+  /** the Webapp instance. */
+  instance: null,
+
   PERFORMANCE_ATOM: 'window.wrappedJSObject.PerformanceHelperAtom',
 
   defaultCallback: function() {
@@ -40,7 +43,12 @@ PerfTestApp.prototype = {
    * Launches app, switches to frame, and waits for it to be loaded.
    */
   launch: function() {
-    this.client.apps.launch(this.origin, this.entryPoint);
+    var self = this;
+    this.client.apps.launch(this.origin, this.entryPoint, function(err, app) {
+      if (app) {
+        self.instance = app;
+      }
+    });
     this.client.apps.switchToApp(this.origin);
     this.client.helper.waitForElement('body');
   },

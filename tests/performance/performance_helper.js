@@ -1,6 +1,8 @@
 'use strict';
 
 var MarionetteHelper = requireGaia('/tests/js-marionette/helper.js');
+var GetAppName = requireGaia('/tests/performance/getappname.js');
+var MemInfo = requireGaia('/tests/performance/meminfo.js');
 
 // Function to send results to the reporter that is OOP
 // Basically writing to the mocha-json-proxy
@@ -86,10 +88,17 @@ function PerformanceHelper(opts) {
       var mozPerfDurations = {};
       mozPerfDurations[title] = values;
       sendResults('mozPerfDuration', mozPerfDurations);
+    },
+
+    reportMemory: function(values, title) {
+      title = title || '';
+      var mozPerfMemory = {};
+      mozPerfMemory[title] = values;
+      sendResults('mozPerfMemory', mozPerfMemory);
     }
   });
 
-  PerformanceHelper.prototype = {
+PerformanceHelper.prototype = {
     reportRunDurations: function(runResults) {
 
       var start = runResults.start || 0;
@@ -174,8 +183,49 @@ function PerformanceHelper(opts) {
 
     waitForPerfEvent: function(callback) {
       this.app.waitForPerfEvents(this.opts.lastEvent, callback);
+    },
+
+    /*
+     * Get the memory stats for the specified app
+     * as well as the main b2g.
+     * See bug 917717.
+     */
+  getMemoryUsage: function(app) {
+    var appName = GetAppName(app);
+    var meminfo = MemInfo.meminfo();
+    var info = null;
+    var system = null;
+    meminfo.some(function(element) {
+      if(element.NAME == appName) {
+        info = element;
+      } else if(element.NAME == 'b2g') {
+        system = element;
+      }
+      return info && system;
+    });
+
+    if (!info) {
+      return null;
     }
-  };
+
+    return {
+      app: {
+        name: info.NAME,
+        uss: parseFloat(info.USS),
+        pss: parseFloat(info.PSS),
+        rss: parseFloat(info.RSS),
+        vsize: parseFloat(info.VSIZE)
+      },
+      system: {
+        name: system.NAME,
+        uss: parseFloat(system.USS),
+        pss: parseFloat(system.PSS),
+        rss: parseFloat(system.RSS),
+        vsize: parseFloat(system.VSIZE)
+      }
+    };
+  }
+};
 
 module.exports = PerformanceHelper;
 
