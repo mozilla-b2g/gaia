@@ -245,9 +245,9 @@ suite('DownloadList', function() {
 
     suite(' > tap actions', function() {
       var container;
-      var launchSpy, downloadUI;
+      var downloadUI, showActionsSpy;
       setup(function(done) {
-        launchSpy = this.sinon.spy(DownloadHelper, 'launch');
+        showActionsSpy = this.sinon.spy(DownloadUI, 'showActions');
         downloadUI = this.sinon.spy(DownloadUI, 'show');
         MockDownloadStore.downloads = [new MockDownload({
           state: 'succeeded'
@@ -259,7 +259,7 @@ suite('DownloadList', function() {
       });
 
       teardown(function() {
-        launchSpy = null;
+        showActionsSpy = null;
         downloadUI = null;
         container = null;
         MockDownloadStore.downloads = [];
@@ -267,19 +267,19 @@ suite('DownloadList', function() {
 
       test(' > a finalized download, so its in datastore', function() {
         container.firstChild.click();
-        assert.ok(launchSpy.calledOnce);
+        assert.ok(DownloadUI.showActions.calledOnce);
       });
 
       test(' > on downloading download', function() {
         container.childNodes[2].click();
-        assert.isFalse(launchSpy.calledOnce);
+        assert.isFalse(DownloadUI.showActions.calledOnce);
         assert.ok(downloadUI.calledOnce);
         assert.equal(downloadUI.args[0][0], DownloadUI.TYPE.STOP);
       });
 
       test(' > a stopped download', function() {
         container.lastChild.click();
-        assert.isFalse(launchSpy.calledOnce);
+        assert.isFalse(DownloadUI.showActions.calledOnce);
         assert.ok(downloadUI.calledOnce);
         // DownloadUI knows which will be the correct confirm depending on state
         // and error attributes
@@ -322,7 +322,7 @@ suite('DownloadList', function() {
         // and then deleting
 
         // Fail on the download;
-        var launchStub = sinon.stub(DownloadHelper, 'launch', function() {
+        var launchStub = sinon.stub(DownloadHelper, 'open', function() {
           return {
             set onsuccess(cb) {},
             set onerror(cb) {setTimeout(cb, 50);}
