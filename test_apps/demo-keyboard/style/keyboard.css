@@ -253,3 +253,22 @@ body {
 .suggestion.autocorrect {
   color: #0ac;
 }
+
+/*
+ * Styles for the dismiss suggestions button in the candidate panel
+ */
+
+.suggestions > .dismiss-suggestions-button {
+  display:inline-block;
+  height: 100%;
+  /*
+   * the icon is 2.4rem wide but the visual space only takes up 1.4rem
+   * we want 10 blank pixels to the left and 15 to the right. But the first
+   * suggestion has a 0.3rem margin, so we only need to add 1.2rem to the
+   * icon size.
+   */
+  width: 3.6rem;
+  background: url('images/icon_dismiss.png') 0.5rem center /2.4rem no-repeat;
+  margin: 0;
+  padding: 0;
+}
