@@ -3,7 +3,7 @@
 
 /*global Utils, MessageManager, Compose, OptionMenu, NotificationHelper,
          Attachment, Template, Notify, BlackList, Threads, SMIL, Contacts,
-         ThreadUI */
+         ThreadUI, Notification */
 /*exported ActivityHandler */
 
 'use strict';
@@ -421,14 +421,23 @@ var ActivityHandler = {
             sender = contact[0].name[0];
           }
 
+          var continueWithNotification =
+            function ah_continueWithNotification(sender, body) {
+              var options = {
+                icon: iconURL,
+                body: body,
+                tag: 'threadId:' + threadId
+              };
+              var notification = new Notification(sender, options);
+              notification.addEventListener('click', goToMessage.bind(this));
+              releaseWakeLock();
+            };
+
           if (message.type === 'sms') {
-            NotificationHelper.send(sender, message.body, iconURL,
-                                                          goToMessage);
-            releaseWakeLock();
+            continueWithNotification(sender, message.body);
           } else { // mms
             getTitleFromMms(function textCallback(text) {
-              NotificationHelper.send(sender, text, iconURL, goToMessage);
-              releaseWakeLock();
+              continueWithNotification(sender, text);
             });
           }
         });
