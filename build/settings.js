@@ -179,7 +179,6 @@ function execute(options) {
    'keyboard.3rd-party-app.enabled': false,
    'language.current': 'en-US',
    'layers.draw-borders': false,
-   'layers.composer2d.enabled': true,
    'lockscreen.passcode-lock.code': '0000',
    'lockscreen.passcode-lock.timeout': 0,
    'lockscreen.passcode-lock.enabled': false,
