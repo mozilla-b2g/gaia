@@ -4,52 +4,40 @@ var Calendar = require('./calendar'),
 
 // test is disabled see: Bug 919066
 marionette('creating an event', function() {
+  var app;
   var client = marionette.client();
 
-  var app, expected;
+  var startDate = new Date(), endDate = new Date();
+  startDate.setDate(1);
+  endDate.setTime(startDate.getTime() + 60 * 60 * 1000 /* one hour */);
+  var event = {
+    title: 'Puppy Bowl',
+    location: 'Animal Planet',
+    startDate: startDate,
+    endDate: endDate
+  };
+
   setup(function() {
     app = new Calendar(client);
-    app.launch();
-
-    // Get the day's events at the bottom of the month view.
-    var events = app.monthViewDayEvents;
-
-    // There shouldn't be any events yet.
-    assert.strictEqual(events.length, 0);
-
-    // Create an event!
-    expected = app.createEvent();
-
-    // Wait until we return to the base, month view.
-    client.waitFor(function() {
-      return app.isMonthViewActive();
-    });
+    app.launch({ hideSwipeHint: true });
   });
 
-  test.skip('should make an event visible in the month day view', function() {
-    // Get the day's events at the bottom of the month view.
-    var els = app.monthViewDayEvents;
+  suite('vanilla event', function() {
+    setup(function() {
+      app.createEvent(event);
 
-    // There should now be a single event.
-    assert.strictEqual(els.length, 1);
-  });
-
-  test.skip('should display the created event in read-only view', function() {
-    // Get the day's events at the bottom of the month view.
-    var els = app.monthViewDayEvents;
-
-    // Click on the event.
-    var el = els[0];
-    el.click();
-
-    // Wait until we see the read-only event view.
-    var active = app.isViewEventViewActive.bind(app, client);
-    client.waitFor(function() {
-      // Verify event's details to make sure they were set correctly.
-      return app.isViewEventViewActive();
+      // Wait until we return to the base, month view.
+      client.waitFor(function() {
+        return app.isMonthViewActive();
+      });
     });
 
-    var actual = app.getViewEventEvent();
-    assert.deepEqual(actual, expected);
+    test('should show event in month view', function() {
+      var event = app.waitForElement('monthViewDayEvent');
+      var title = app.waitForChild(event, 'monthViewDayEventName');
+      var location = app.waitForChild(event, 'monthViewDayEventLocation');
+      assert.equal(title.text(), 'Puppy Bowl');
+      assert.equal(location.text(), 'Animal Planet');
+    });
   });
 });
