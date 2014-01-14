@@ -21,7 +21,7 @@ marionette('app search', function() {
     search.goToApp(Calendar.ORIGIN);
   });
 
-  test('search app with entry point', function() {
+  test.skip('search app with entry point', function() {
     search.doSearch('phone');
 
     search.goToResults();
