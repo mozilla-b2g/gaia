@@ -15,6 +15,8 @@
 #                                                                             #
 # REPORTER    : Mocha reporter to use for test output.                        #
 #                                                                             #
+# MOZPERFOUT  : File path to output mozperf data. Empty mean stdout.
+#                                                                             #
 # MARIONETTE_RUNNER_HOST : The Marionnette runner host.                       #
 #                          Current values can be 'marionette-b2gdesktop-host' #
 #                          and 'marionette-device-host'                       #
@@ -139,6 +141,7 @@ NPM_REGISTRY?=http://registry.npmjs.org
 # Ensure that NPM only logs warnings and errors
 export npm_config_loglevel=warn
 MARIONETTE_RUNNER_HOST?=marionette-b2gdesktop-host
+MOZPERFOUT?=""
 
 GAIA_INSTALL_PARENT?=/system/b2g
 
