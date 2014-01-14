@@ -10,7 +10,8 @@
     var activity = new MozActivity({
       name: 'configure',
       data: {
-        target: 'device'
+        target: 'device',
+        postback: false
       }
     });
 
