@@ -1,0 +1,4 @@
+[submodule "gaia-node-modules"]
+	path = gaia-node-modules
+	url = https://github.com/KevinGrandon/gaia-node-modules.git
+	ignore = dirty
