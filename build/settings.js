@@ -234,8 +234,6 @@ function execute(options) {
    'ril.mms.retrieval_mode': 'automatic-home',
    'ril.mms.authtype': 'notDefined',
    'dom.mms.operatorSizeLimitation': 307200,
-   'airplaneMode.enabled': false,
-   'airplaneMode.status': 'disabled',
    'ril.radio.preferredNetworkType': '',
    'ril.radio.disabled': false,
    'ril.supl.apn': '',
