@@ -11,7 +11,7 @@ marionette('app search', function() {
     search = new Search(client);
   });
 
-  test('able to search apps from rocketbar', function() {
+  test.skip('able to search apps from rocketbar', function() {
     search.doSearch('calendar');
 
     search.goToResults();

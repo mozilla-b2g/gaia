@@ -43,7 +43,7 @@ marionette('navigation', function() {
     search.cancelRocketbar();
   });
 
-  test('opens rocketbar from homescreen', function() {
+  test.skip('opens rocketbar from homescreen', function() {
     client.apps.switchToApp(Homescreen.URL);
     homescreen.search();
 
