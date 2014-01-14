@@ -75,6 +75,21 @@ MockMozContactsObj.prototype = {
 
       }
     };
+  },
+  remove: function remove(ct) {
+    var contactsIndex = this.contacts.indexOf(ct);
+    if (contactsIndex > -1) {
+      this.contacts.splice(contactsIndex, 1);
+    }
+
+    return {
+      set onsuccess(callback) {
+        callback();
+      },
+      set onerror(callback) {
+
+      }
+    };
   }
 };
 

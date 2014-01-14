@@ -440,6 +440,7 @@ contacts.Form = (function() {
       if (contacts.Search && contacts.Search.isInSearchMode()) {
         contacts.Search.invalidateCache();
         contacts.Search.removeContact(contact.id);
+        contacts.Search.exitSearchMode();
       }
       Contacts.navigation.home();
     };
