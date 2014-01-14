@@ -36,7 +36,7 @@ suite('controllers/controls', function() {
       camera: {
         on: sinon.spy(),
         state: { on: sinon.spy() },
-        getMode: sinon.stub().returns('camera')
+        get: sinon.stub().withArgs('mode').returns('camera')
       },
       activity: new Activity(),
       views: {

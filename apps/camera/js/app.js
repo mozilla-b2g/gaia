@@ -49,6 +49,7 @@ function App(options) {
   this.geolocation = options.geolocation;
   this.activity = options.activity;
   this.filmstrip = options.filmstrip;
+  this.storage = options.storage;
   this.camera = options.camera;
   this.sounds = options.sounds;
   this.views = options.views;
@@ -69,7 +70,6 @@ proto.boot = function() {
   this.injectContent();
   this.bindEvents();
   this.miscStuff();
-  this.geolocationWatch();
   this.emit('boot');
   debug('booted');
 };
@@ -113,6 +113,8 @@ proto.injectContent = function() {
  *
  */
 proto.bindEvents = function() {
+  this.camera.once('configured', this.storage.check);
+  this.storage.once('checked:healthy', this.geolocationWatch);
   bind(this.doc, 'visibilitychange', this.onVisibilityChange);
   bind(this.win, 'beforeunload', this.onBeforeUnload);
   this.on('focus', this.onFocus);
@@ -122,7 +124,6 @@ proto.bindEvents = function() {
 
 /**
  * Detaches event handlers.
- *
  */
 proto.unbindEvents = function() {
   unbind(this.doc, 'visibilitychange', this.onVisibilityChange);
@@ -136,17 +137,20 @@ proto.unbindEvents = function() {
  * Tasks to run when the
  * app becomes visible.
  *
+ * Check the storage again as users
+ * may have made changes since the
+ * app was minimised
  */
 proto.onFocus = function() {
   var ms = LOCATION_PROMPT_DELAY;
   setTimeout(this.geolocationWatch, ms);
+  this.storage.check();
   debug('focus');
 };
 
 /**
  * Tasks to run when the
  * app is minimised/hidden.
- *
  */
 proto.onBlur = function() {
   this.geolocation.stopWatching();
@@ -212,7 +216,7 @@ proto.miscStuff = function() {
 
   // TODO: Should probably be
   // moved to a focusRing controller
-  camera.state.on('change:focusState', function(value) {
+  camera.on('change:focus', function(value) {
     self.views.focusRing.setState(value);
     clearTimeout(focusTimeout);
 

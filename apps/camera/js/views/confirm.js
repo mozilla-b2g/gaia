@@ -46,24 +46,24 @@ module.exports = View.extend({
     return this;
   },
 
-  showImage: function(data) {
+  showImage: function(image) {
     this.mediaFrame.displayImage(
-      data.blob,
-      data.width,
-      data.height,
-      data.preview,
-      data.rotation,
-      data.mirrored);
+      image.blob,
+      image.width,
+      image.height,
+      image.preview,
+      image.rotation,
+      image.mirrored);
     return this;
   },
 
-  showVideo: function(data) {
+  showVideo: function(video) {
     this.mediaFrame.displayVideo(
-      data.video,
-      data.poster.blob,
-      data.width,
-      data.height,
-      data.rotation);
+      video.blob,
+      video.poster.blob,
+      video.width,
+      video.height,
+      video.rotation);
     return this;
   },
 

@@ -9,6 +9,7 @@ var View = require('vendor/view');
 var bind = require('utils/bind');
 var find = require('utils/find');
 var formatTimer = require('utils/formattimer');
+var debug = require('debug')('view:controls');
 
 /**
  * Exports
@@ -62,10 +63,12 @@ module.exports = View.extend({
 
   enableButtons: function() {
     this.el.classList.remove(this.buttonsDisabledClass);
+    debug('buttons enabled');
   },
 
   disableButtons: function() {
     this.el.classList.add(this.buttonsDisabledClass);
+    debug('buttons disabled');
   },
 
   setVideoTimer: function(ms) {

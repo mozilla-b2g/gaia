@@ -41,7 +41,7 @@ function ViewfinderController(app) {
 }
 
 proto.bindEvents = function() {
-  this.camera.on('cameraChange', this.onCameraChange);
+  this.camera.on('configured', this.onConfigured);
   this.viewfinder.on('click', this.onViewfinderClick);
 };
 
@@ -55,16 +55,21 @@ proto.bindEvents = function() {
  *
  * @param  {MozCamera} camera
  */
-proto.onCameraChange = function(camera) {
-  this.viewfinder.setPreviewSize(camera, this.camera);
+proto.onConfigured = function() {
+  debug('camera configured');
+  this.viewfinder.setPreviewSize(this.camera.mozCamera, this.camera);
+  this.camera.loadStreamInto(this.viewfinder.el, onStreamLoaded);
+  function onStreamLoaded(stream) {
+    debug('stream loaded %d ms after dom began loading',
+      Date.now() - window.performance.timing.domLoading);
+  }
 };
 
 proto.onViewfinderClick = function() {
-  var recording = this.camera.state.get('recording');
+  var recording = this.camera.get('recording');
 
-  // We will just ignore because the
-  // filmstrip shouldn't be shown while
-  // Camera is recording.
+  // The filmstrip shouldn't be
+  // shown while camera is recording.
   if (recording || this.activity.active) {
     return;
   }

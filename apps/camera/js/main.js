@@ -21,6 +21,7 @@ require(['config/require', 'config'], function() {
     var sounds = new Sounds(require('config/sounds'));
     var GeoLocation = require('geolocation');
     var Activity = require('activity');
+    var Storage = require('storage');
     var controllers = {
       hud: require('controllers/hud'),
       controls: require('controllers/controls'),
@@ -41,6 +42,14 @@ require(['config/require', 'config'], function() {
 
     debug('created views');
 
+    var activity = new Activity();
+    var camera = new Camera({
+      maxFileSizeBytes: 0,
+      maxWidth: 0,
+      maxHeight: 0,
+      container: document.body
+    });
+
     /**
      * Create new `App`
      */
@@ -50,18 +59,26 @@ require(['config/require', 'config'], function() {
       doc: document,
       el: document.body,
       geolocation: new GeoLocation(),
-      activity: new Activity(),
-      camera: new Camera(),
+      activity: activity,
+      camera: camera,
       sounds: sounds,
       views: views,
       controllers: controllers,
-      filmstrip: Filmstrip
+      filmstrip: Filmstrip,
+      storage: new Storage()
     });
 
     debug('created app');
 
-    // Check activity, then boot
-    app.activity.check(app.boot);
+    // Check activity, configure the
+    // camera with some of the activity
+    // data, then boot the app.
+    activity.check(function() {
+      camera.set('targetFileSize', activity.data.fileSize);
+      camera.set('targetImageWidth', activity.data.width);
+      camera.set('targetImageHeight', activity.data.height);
+      app.boot();
+    });
   });
 
   require(['boot']);

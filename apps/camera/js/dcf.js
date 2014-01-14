@@ -6,6 +6,7 @@ define(function(require) {
 // * http://en.wikipedia.org/wiki/Design_rule_for_Camera_File_system
 
 var asyncStorage = require('asyncStorage');
+var format = require('format');
 
 var api = {};
 var dcfConfigLoaded = false;
@@ -46,15 +47,16 @@ api.createDCFFilename = function(storage, type, callback) {
     return;
   }
 
-  var filepath = 'DCIM/' + dcfConfig.seq.dir + dcfConfig.postFix + '/';
+  var dir = 'DCIM/' + dcfConfig.seq.dir + dcfConfig.postFix + '/';
   var filename = dcfConfig.prefix[type] +
-    Format.padLeft(dcfConfig.seq.file, 4, '0') + '.' +
+    format.padLeft(dcfConfig.seq.file, 4, '0') + '.' +
     dcfConfig.ext[type];
+  var filepath = dir + filename;
 
   // A file with this name may have been written by the user or
   // our indexeddb sequence tracker was cleared, check we wont overwrite
   // anything
-  var req = storage.get(filepath + filename);
+  var req = storage.get(filepath);
 
   // A file existed, we bump the directory then try to generate a
   // new filename
@@ -75,7 +77,7 @@ api.createDCFFilename = function(storage, type, callback) {
       dcfConfig.seq.dir += 1;
     }
     asyncStorage.setItem(dcfConfig.key, dcfConfig.seq, function() {
-      callback(filepath, filename);
+      callback(filepath, filename, dir);
     });
   };
 };

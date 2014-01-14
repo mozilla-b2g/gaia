@@ -31,8 +31,6 @@ function ControlsController(app) {
   this.activity = app.activity;
   this.camera = app.camera;
   this.app = app;
-
-  // Bind context
   bindAll(this);
   this.bindEvents();
   this.setup();
@@ -47,9 +45,9 @@ proto.bindEvents = function() {
   camera.on('focusFailed', controls.enableButtons);
   camera.on('previewResumed', controls.enableButtons);
   camera.on('preparingToTakePicture', controls.disableButtons);
-  camera.state.on('change:videoElapsed', this.onVideoTimeUpdate);
-  camera.state.on('change:recording', this.onRecordingChange);
-  camera.state.on('change:mode', this.onCameraModeChange);
+  camera.on('change:videoElapsed', this.onVideoTimeUpdate);
+  camera.on('change:recording', this.onRecordingChange);
+  camera.on('change:mode', this.onCameraModeChange);
 
   // Respond to UI events
   controls.on('click:switch', this.onSwitchButtonClick);
@@ -63,7 +61,7 @@ proto.bindEvents = function() {
 proto.setup = function() {
   var activity = this.activity;
   var controls = this.controls;
-  var mode = this.camera.getMode();
+  var mode = this.camera.get('mode');
   var isCancellable = activity.active;
   var showCamera = !activity.active || activity.allowedTypes.image;
   var showVideo = !activity.active || activity.allowedTypes.video;
@@ -82,6 +80,7 @@ proto.setup = function() {
 
 proto.onCameraModeChange = function(value) {
   this.controls.set('mode', value);
+  debug('camera mode change: %s', value);
 };
 
 proto.onRecordingChange = function(value) {
@@ -163,6 +162,11 @@ proto.onGalleryButtonClick = function() {
 proto.onCaptureButtonClick = function() {
   var position = this.app.geolocation.position;
   this.camera.capture({ position: position });
+
+  // Disable controls for 500ms to
+  // prevent rapid fire button bashing.
+  this.controls.disableButtons();
+  setTimeout(this.controls.enableButtons, 500);
 };
 
 });

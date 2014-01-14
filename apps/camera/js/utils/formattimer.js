@@ -1,12 +1,14 @@
 define(function(require, exports, module) {
 'use strict';
 
+var format = require('format');
+
 /**
  * Dependencies
  */
 
 function digits(value) {
-  return Format.padLeft(value, 2, '0');
+  return format.padLeft(value, 2, '0');
 }
 
 /**

@@ -2,6 +2,19 @@ define(function(require, exports, module) {
   'use strict';
 
   /**
+   * NOTE:
+   *
+   * This module has not been refactored
+   * along with the rest of the code base
+   * as it is unlikely to be a feature of
+   * future versions.
+   *
+   * We have shoehorned it into the refactor,
+   * but are expecting it to be deprecated in
+   * favor of new functionality.
+   */
+
+  /**
    * Dependencies
    */
 
@@ -21,6 +34,7 @@ define(function(require, exports, module) {
   module.exports = function(app) {
     debug('initializing');
     var camera = app.camera;
+    var storage = app.storage;
     var ViewfinderView = app.views.viewfinder;
 
     // This array holds all the data we need for image and video previews
@@ -54,11 +68,11 @@ define(function(require, exports, module) {
     deleteButton.onclick = deleteCurrentItem;
     shareButton.onclick = shareCurrentItem;
     mediaFrame.addEventListener('swipe', handleSwipe);
-    broadcast.on('itemDeleted', onItemDeleted);
+    storage.on('itemdeleted', onItemDeleted);
     broadcast.on('storageUnavailable', hidePreview);
     broadcast.on('storageShared', hidePreview);
     orientation.on('orientation', setOrientation);
-    camera.state.on('change:recording', onRecordingChange);
+    camera.on('change:recording', onRecordingChange);
 
     // bug/952164: 'click's on certain parts of
     // the preview element can trigger a 'click'
@@ -142,16 +156,8 @@ define(function(require, exports, module) {
       ViewfinderView.el.pause();
     };
 
-    function addVideoAndShow(data) {
-      addVideo(
-        data.filename,
-        data.blob,
-        data.poster.blob,
-        data.width,
-        data.height,
-        data.rotation
-      );
-
+    function addVideoAndShow(video) {
+      addVideo(video);
       show(FILMSTRIP_DURATION);
     }
 
@@ -185,7 +191,7 @@ define(function(require, exports, module) {
         frame.displayImage(item.blob, item.width, item.height, item.preview,
                            item.rotation, item.mirrored);
       } else if (item.isVideo) {
-        frame.displayVideo(item.blob, item.poster,
+        frame.displayVideo(item.blob, item.poster.blob,
                            item.width, item.height,
                            item.rotation);
       }
@@ -228,6 +234,7 @@ define(function(require, exports, module) {
       broadcast.emit('filmstripPreviewHide');
      }
 
+    // TODO: Update this when new storage is in place
     function deleteCurrentItem() {
       // The button should be gone, but hard exit from this function
       // just in case.
@@ -236,35 +243,35 @@ define(function(require, exports, module) {
       }
 
       var item = items[currentItemIndex];
-      var msg, storage, filename;
+      var msg, storage, filepath;
 
       if (item.isImage) {
         msg = navigator.mozL10n.get('delete-photo?');
         storage = camera._pictureStorage;
-        filename = item.filename;
+        filepath = item.filepath;
       }
       else {
         msg = navigator.mozL10n.get('delete-video?');
         storage = camera._videoStorage;
-        filename = item.filename;
+        filepath = item.filepath;
       }
 
       if (confirm(msg)) {
-        deleteItem(filename);
+        deleteItem(filepath);
         // Actually delete the file
-        storage.delete(filename).onerror = function(e) {
-          console.warn('Failed to delete', filename,
+        storage.delete(filepath).onerror = function(e) {
+          console.warn('Failed to delete', filepath,
                        'from DeviceStorage:', e.target.error);
         };
 
         // If this is a video file, delete its poster image as well
         if (item.isVideo) {
-          var poster = filename.replace('.3gp', '.jpg');
+          var poster = filepath.replace('.3gp', '.jpg');
           var pictureStorage = camera._pictureStorage;
 
           pictureStorage.delete(poster).onerror = function(e) {
             console.warn('Failed to delete poster image', poster,
-                         'for video', filename, 'from DeviceStorage:',
+                         'for video', filepath, 'from DeviceStorage:',
                          e.target.error);
           };
         }
@@ -279,8 +286,8 @@ define(function(require, exports, module) {
 
       var item = items[currentItemIndex];
       var type = item.isImage ? 'image/*' : 'video/*';
-      var nameonly = item.filename.substring(
-        item.filename.lastIndexOf('/') + 1);
+      var nameonly = item.filepath.substring(
+        item.filepath.lastIndexOf('/') + 1);
       var activity = new MozActivity({
         name: 'share',
         data: {
@@ -288,7 +295,7 @@ define(function(require, exports, module) {
           number: 1,
           blobs: [item.blob],
           filenames: [nameonly],
-          filepaths: [item.filename] /* temporary hack for bluetooth app */
+          filepaths: [item.filepath] /* temporary hack for bluetooth app */
         }
       });
       activity.onerror = function(e) {
@@ -318,7 +325,7 @@ define(function(require, exports, module) {
       }
     }
 
-    function addImage(filename, blob) {
+    function addImage(filepath, blob) {
       parseJPEGMetadata(blob, function getPreviewBlob(metadata) {
         if (!metadata.rotation)
           metadata.rotation = 0;
@@ -340,7 +347,7 @@ define(function(require, exports, module) {
               function(thumbnail) {
                 addItem({
                   isImage: true,
-                  filename: filename,
+                  filepath: filepath,
                   thumbnail: thumbnail,
                   blob: blob,
                   width: metadata.width,
@@ -355,20 +362,18 @@ define(function(require, exports, module) {
       }, function logerr(msg) { console.warn(msg); });
     }
 
-    function addVideo(filename, blob, poster, width, height, rotation) {
-      createThumbnail(poster, true, rotation, false,
-                      function(thumbnail) {
-                        addItem({
-                          isVideo: true,
-                          filename: filename,
-                          thumbnail: thumbnail,
-                          poster: poster,
-                          blob: blob,
-                          width: width,
-                          height: height,
-                          rotation: rotation
-                        });
-                      });
+    function addVideo(video) {
+      video.isVideo = true;
+
+      createThumbnail(
+        video.poster.blob,
+        true,
+        video.rotation,
+        false,
+        function(thumbnail) {
+          video.thumbnail = thumbnail;
+          addItem(video);
+        });
     }
 
     // Add a thumbnail to the filmstrip.
@@ -400,24 +405,24 @@ define(function(require, exports, module) {
       });
     }
 
-    // Remove the filmstrip item with corresponding filename.
-    function deleteItem(filename) {
+    // Remove the filmstrip item with corresponding filepath.
+    function deleteItem(filepath) {
       var deleteIdx = -1;
       var deletedItem = null;
       var deletedFileName;
-      // Check whether filename is a video poster image or not. If filename
+      // Check whether filepath is a video poster image or not. If filepath
       // contains 'VID' and ends with '.jpg', consider it a video poster
-      // image and get the video filename by changing '.jpg' to '.3gp'
-      if (filename.indexOf('VID') != -1 &&
-          filename.lastIndexOf('.jpg') === filename.length - 4) {
-        deletedFileName = filename.replace('.jpg', '.3gp');
+      // image and get the video filepath by changing '.jpg' to '.3gp'
+      if (filepath.indexOf('VID') != -1 &&
+          filepath.lastIndexOf('.jpg') === filepath.length - 4) {
+        deletedFileName = filepath.replace('.jpg', '.3gp');
       } else {
-        deletedFileName = filename;
+        deletedFileName = filepath;
       }
 
       // find the item in items
       for (var n = 0; n < items.length; n++) {
-        if (items[n].filename === deletedFileName) {
+        if (items[n].filepath === deletedFileName) {
           deletedItem = items[n];
           deleteIdx = n;
           break;

@@ -35,9 +35,7 @@ suite('controllers/viewfinder', function() {
     this.app = {
       camera: {
         on: sinon.spy(),
-        state: {
-          get: sinon.stub()
-        }
+        get: sinon.stub()
       },
       activity: new Activity(),
       filmstrip: new View(),
@@ -53,7 +51,7 @@ suite('controllers/viewfinder', function() {
     });
 
     test('Should *not* hide the filmstrip if recording', function() {
-      this.app.camera.state.get
+      this.app.camera.get
         .withArgs('recording')
         .returns(true);
 
@@ -64,7 +62,7 @@ suite('controllers/viewfinder', function() {
     });
 
     test('Should *not* hide the filmstrip if activity is pending', function() {
-      this.app.camera.state.get
+      this.app.camera.get
         .withArgs('recording')
         .returns(false);
 
@@ -79,7 +77,7 @@ suite('controllers/viewfinder', function() {
     });
 
     test('Should hide the filmstrip if activity is pending', function() {
-      this.app.camera.state.get
+      this.app.camera.get
         .withArgs('recording')
         .returns(false);
 
