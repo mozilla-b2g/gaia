@@ -71,11 +71,11 @@ body[data-path="/day/"] #view-selector > .day > a:active {
 
 /* view management */
 
-#modify-event-view {
+.fullscreen-view {
   display: none;
 }
 
-#modify-event-view.active {
+.fullscreen-view.active {
   display: block;
 }
 
