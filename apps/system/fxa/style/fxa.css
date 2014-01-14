@@ -139,10 +139,6 @@ h3 {
  * Intro screen styles
  */
 
-#fxa-intro p {
-  margin-top: 4rem;
-}
-
 #fxa-hello-user {
   width: 100%;
 }
