@@ -1,0 +1,3 @@
+{
+    "blacklist": ["test/bin/fixtures/manifest-test-skip.js"]
+}

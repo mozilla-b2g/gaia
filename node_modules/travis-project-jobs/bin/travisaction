@@ -1,0 +1,52 @@
+#! /usr/bin/env node
+
+var program = require('commander'),
+    fsPath = require('path'),
+    fs = require('fs');
+
+// pick out the travis defaults
+var OPTS_FILE = fsPath.join(process.cwd(), 'travisaction.opts');
+
+// read out the default options
+if (fs.existsSync(OPTS_FILE)) {
+  var opts = fs.readFileSync(OPTS_FILE, 'utf8')
+    .trim()
+    .split(/\s+/);
+
+  process.argv = process.argv
+    .slice(0, 2)
+    .concat(opts.concat(process.argv.slice(2)));
+}
+
+program.
+  version(require('../package.json').version).
+  usage('<project> <action>').
+  option('-r, --root <path>', 'root projects').
+  parse(process.argv);
+
+
+if (program.args.length < 2) {
+  console.error('  Error: you must pass a <project> and <action>');
+  program.outputHelp();
+  process.exit(1);
+}
+
+var run = require('../lib/run'),
+    project = program.args[0],
+    action = program.args[1];
+
+// attempt to find the project root
+project = fsPath.join(program.root, project);
+
+var actionOptions = {};
+
+switch (action) {
+  case 'script':
+    actionOptions.required = true;
+    break;
+}
+
+run(project, action, actionOptions, function(err, status) {
+  if (err) throw err;
+  process.exit(status.code);
+});

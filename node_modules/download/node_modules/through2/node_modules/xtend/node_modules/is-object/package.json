@@ -1,0 +1,63 @@
+{
+  "name": "is-object",
+  "version": "0.1.2",
+  "description": "Checks whether a value is an object",
+  "keywords": [],
+  "author": {
+    "name": "Raynos",
+    "email": "raynos2@gmail.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/Colingo/is-object.git"
+  },
+  "main": "index",
+  "homepage": "https://github.com/Colingo/is-object",
+  "contributors": [
+    {
+      "name": "Raynos"
+    }
+  ],
+  "bugs": {
+    "url": "https://github.com/Colingo/is-object/issues",
+    "email": "raynos2@gmail.com"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "tape": "~0.2.2",
+    "browserify-server": "~2.1.18",
+    "browservefy": "~0.0.7",
+    "testem": "https://github.com/raynos/testem/tarball/master"
+  },
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "http://github.com/Colingo/is-object/raw/master/LICENSE"
+    }
+  ],
+  "scripts": {
+    "test": "testem ci",
+    "build": "browserify-server --bundle=test/index.js -o test/static/bundle.js --debug",
+    "testem": "testem",
+    "example": "browservefy ./examples/simple.js --browserify='browserify-server' --live -- --debug --bundle"
+  },
+  "testling": {
+    "files": "test/index.js",
+    "browsers": [
+      "ie/8..latest",
+      "firefox/16..latest",
+      "firefox/nightly",
+      "chrome/22..latest",
+      "chrome/canary",
+      "opera/12..latest",
+      "opera/next",
+      "safari/5.1..latest",
+      "ipad/6.0..latest",
+      "iphone/6.0..latest"
+    ]
+  },
+  "readme": "# is-object\n\n[![build status][1]][2] [![dependency status][3]][4]\n\n[![browser support][5]][6]\n\nChecks whether a value is an object\n\nBecause `typeof null` is a troll.\n\n## Example\n\n```js\nvar isObject = require(\"is-object\")\n\nconsole.log(isObject(null)) // false\nconsole.log(isObject(require(\"util\"))) // true\n```\n\n## Installation\n\n`npm install is-object`\n\n## Contributors\n\n - Raynos\n\n## MIT Licenced\n\n  [1]: https://secure.travis-ci.org/Colingo/is-object.png\n  [2]: http://travis-ci.org/Colingo/is-object\n  [3]: http://david-dm.org/Colingo/is-object/status.png\n  [4]: http://david-dm.org/Colingo/is-object\n  [5]: http://ci.testling.com/Colingo/is-object.png\n  [6]: http://ci.testling.com/Colingo/is-object\n",
+  "readmeFilename": "README.md",
+  "_id": "is-object@0.1.2",
+  "_from": "is-object@~0.1.2"
+}

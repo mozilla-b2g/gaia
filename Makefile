@@ -657,7 +657,7 @@ endif
 
 NPM_INSTALLED_PROGRAMS = node_modules/.bin/mozilla-download node_modules/.bin/jshint node_modules/.bin/mocha
 $(NPM_INSTALLED_PROGRAMS): package.json
-	npm install --registry $(NPM_REGISTRY)
+	npm install --registry $(NPM_REGISTRY) && npm rebuild
 	touch $(NPM_INSTALLED_PROGRAMS)
 
 ###############################################################################

@@ -1,0 +1,50 @@
+{
+  "name": "each-async",
+  "version": "0.1.1",
+  "description": "Async parallel iterator",
+  "license": "MIT",
+  "main": "each-async.js",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/sindresorhus/each-async"
+  },
+  "author": {
+    "name": "Sindre Sorhus",
+    "email": "sindresorhus@gmail.com",
+    "url": "http://sindresorhus.com"
+  },
+  "engines": {
+    "node": ">=0.8.0"
+  },
+  "scripts": {
+    "test": "mocha"
+  },
+  "files": [
+    "each-async.js"
+  ],
+  "keywords": [
+    "each",
+    "async",
+    "asynchronous",
+    "iteration",
+    "iterate",
+    "loop",
+    "foreach",
+    "parallel",
+    "concurrent",
+    "array",
+    "flow",
+    "control flow"
+  ],
+  "devDependencies": {
+    "mocha": "~1.14.0"
+  },
+  "readme": "# each-async [![Build Status](https://secure.travis-ci.org/sindresorhus/each-async.png?branch=master)](http://travis-ci.org/sindresorhus/each-async)\n\n> Async parallel iterator\n\nLike [async.each](https://github.com/caolan/async#eacharr-iterator-callback), but smaller.\n\n\n## Install\n\nDownload [manually](https://github.com/sindresorhus/each-async/releases) or with a package-manager.\n\n#### [npm](https://npmjs.org/package/each-async)\n\n```\nnpm install --save each-async\n```\n\n#### [Bower](http://bower.io)\n\n```\nbower install --save each-async\n```\n\n#### [Component](https://github.com/component/component)\n\n```\ncomponent install sindresorhus/each-async\n```\n\n\n## Examples\n\n### Node.js\n\n```js\nvar eachAsync = require('each-async');\n\neachAsync(['foo','bar','baz'], function (item, index, done) {\n\tconsole.log(item, index);\n\tdone();\n}, function (error) {\n\tconsole.log('finished');\n});\n//=> foo 0\n//=> bar 1\n//=> baz 2\n//=> finished\n```\n\n### Bower\n\n```html\n<script src=\"bower_components/each-async/each-async.js\"></script>\n```\n\n```js\neachAsync(['foo','bar','baz'], function (item, index, done) {\n\tconsole.log(item, index);\n\tdone();\n}, function (error) {\n\tconsole.log('finished');\n});\n//=> foo 0\n//=> bar 1\n//=> baz 2\n//=> finished\n```\n\n\n## API\n\n### eachAsync(array, callback, finishedCallback)\n\n#### array\n\nThe array you want to iterate.\n\n#### callback(item, index, done)\n\nA function which is called for each item in the array with the following arguments:\n\n- `item`: the current item in the array\n- `index`: the current index\n- `done([error])`: call this when you're done with an optional error. Supplying anything other than `undefined`/`null` will stop the iteration.\n\nNote that order is not guaranteed since each item is handled in parallel.\n\n#### finishedCallback(error)\n\nA function which is called when the iteration is finished or on the first error. First argument is the error passed from `done()` in the `callback`.\n\n\n## License\n\nMIT © [Sindre Sorhus](http://sindresorhus.com)\n",
+  "readmeFilename": "readme.md",
+  "bugs": {
+    "url": "https://github.com/sindresorhus/each-async/issues"
+  },
+  "homepage": "https://github.com/sindresorhus/each-async",
+  "_id": "each-async@0.1.1",
+  "_from": "each-async@~0.1.1"
+}
