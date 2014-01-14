@@ -67,10 +67,8 @@ suiteGroup('Views.ModifyEvent', function() {
   }
 
   var triggerEvent;
-  var InputParser;
   suiteSetup(function() {
     triggerEvent = testSupport.calendar.triggerEvent;
-    InputParser = Calendar.Utils.InputParser;
   });
 
   var realGo;

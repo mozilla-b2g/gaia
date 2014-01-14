@@ -1,10 +1,10 @@
-requireLib('utils/input_parser.js');
+require('/shared/js/input_parser.js');
 
 suite('input_parser', function() {
   var subject;
 
   setup(function() {
-    subject = Calendar.Utils.InputParser;
+    subject = InputParser;
   });
 
   suite('#importTime', function() {

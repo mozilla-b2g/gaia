@@ -1,7 +1,5 @@
 Calendar.ns('Views').ViewEvent = (function() {
 
-  var InputParser = Calendar.Utils.InputParser;
-
   function ViewEvent(options) {
     Calendar.Views.EventBase.apply(this, arguments);
   }

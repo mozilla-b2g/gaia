@@ -417,11 +417,7 @@ var ValueSelector = {
         minutes: now.getMinutes()
       };
     } else {
-      var inputParser = ValueSelector.InputParser;
-      if (!inputParser)
-        console.error('Cannot get input parser for value selector');
-
-      time = inputParser.importTime(currentValue);
+      time = InputParser.importTime(currentValue);
     }
 
     var timePicker = TimePicker.timePicker;
@@ -472,11 +468,7 @@ var ValueSelector = {
     // Show current date as default value
     var date = new Date();
     if (currentValue) {
-      var inputParser = ValueSelector.InputParser;
-      if (!inputParser)
-        console.error('Cannot get input parser for value selector');
-
-      date = inputParser.formatInputDate(currentValue, '');
+      date = InputParser.formatInputDate(currentValue, '');
     }
     this._datePicker.value = date;
   }
