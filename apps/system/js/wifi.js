@@ -37,6 +37,7 @@ var Wifi = {
     // If wifi is turned off by us and phone got rebooted,
     // bring wifi back.
     var name = 'wifi.disabled_by_wakelock';
+
     var req = SettingsListener.getSettingsLock().get(name);
     req.onsuccess = function gotWifiDisabledByWakelock() {
       if (!req.result[name])
@@ -46,9 +47,15 @@ var Wifi = {
       // SettingsListener.getSettingsLock() always return invalid lock
       // in our usage here.
       // See https://bugzilla.mozilla.org/show_bug.cgi?id=793239
-      var lock = navigator.mozSettings.createLock();
-      lock.set({ 'wifi.enabled': true });
-      lock.set({ 'wifi.disabled_by_wakelock': false });
+      //
+      // Also, see bug 961593: mozSettings throws a shit-ton of errors at
+      // startup when getting a lock, so we wrap it keep the noise down.
+      try {
+        var lock = navigator.mozSettings.createLock();
+        lock.set({ 'wifi.enabled': true });
+        lock.set({ 'wifi.disabled_by_wakelock': false });
+      } catch (ex) {
+      }
     };
 
     var self = this;

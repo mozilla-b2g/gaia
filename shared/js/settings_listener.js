@@ -22,8 +22,14 @@ var SettingsListener = {
       return this._lock;
     }
 
-    // If there isn't we return one.
-    var settings = window.navigator.mozSettings;
+    // See bug 961593: mozSettings throws a shit-ton of errors at startup when
+    // getting a lock, so we wrap it keep the noise down.
+    var settings = null;
+    try {
+      // If there isn't we return one.
+      settings = window.navigator.mozSettings;
+    }
+    catch (ex) {}
 
     return (this._lock = settings.createLock());
   },

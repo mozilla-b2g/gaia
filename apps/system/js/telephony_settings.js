@@ -33,15 +33,19 @@
     SettingsHelper('ril.roaming.preference', defaultRoamingPreferences);
   roamingPreferenceHelper.get(function gotRP(values) {
     mobileConnections.forEach(function rp_iterator(conn, index) {
-      var setReq = conn.setRoamingPreference(values[index]);
-      setReq.onerror = function set_vpm_error() {
-        if (setReq.error.name === 'RequestNotSupported' ||
-            setReq.error.name === 'GenericFailure') {
-          console.log('Request not supported.');
-        } else {
-          console.error('Error roaming preference.');
-        }
-      };
+      // TODO: Why can this throw the error below?
+      // conn.setRoamingPreference is not a function
+      if (conn.setRoamingPreference) {
+        var setReq = conn.setRoamingPreference(values[index]);
+        setReq.onerror = function set_vpm_error() {
+          if (setReq.error.name === 'RequestNotSupported' ||
+              setReq.error.name === 'GenericFailure') {
+            console.log('Request not supported.');
+          } else {
+            console.error('Error roaming preference.');
+          }
+        };
+      }
     });
   });
 })();
