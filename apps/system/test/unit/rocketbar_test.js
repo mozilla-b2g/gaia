@@ -139,6 +139,22 @@ suite('system/Rocketbar', function() {
     });
   });
 
+  suite('onSearchMessage', function() {
+    test('fires a change event', function() {
+      var message;
+      Rocketbar._port = {
+        postMessage: function(msg) {
+          message = msg;
+        }
+      };
+      Rocketbar.onSearchMessage({
+        detail: {input: 'foo'}
+      });
+      assert.equal(message.action, 'change');
+      assert.equal(message.input, 'foo');
+    });
+  });
+
   suite('hide', function() {
     test('shown should be false', function() {
       Rocketbar.render();
