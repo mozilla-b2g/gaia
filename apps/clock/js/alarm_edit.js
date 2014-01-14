@@ -98,7 +98,19 @@ var AlarmEdit = {
     this.selects.sound.addEventListener('blur', this);
     this.selects.repeat.addEventListener('change', this);
     this.buttons.delete.addEventListener('click', this);
+    this.inputs.name.addEventListener('keypress', this.handleNameInput);
     this.init = function() {};
+  },
+
+  handleNameInput: function(evt) {
+    // If the user presses enter on the name label, dismiss the
+    // keyboard to allow them to continue filling out the other
+    // fields. This is not in the `handleEvent` function because we
+    // only want to call `.preventDefault` sometimes.
+    if (evt.keyCode === KeyEvent.DOM_VK_RETURN) {
+      evt.preventDefault();
+      evt.target.blur();
+    }
   },
 
   handleEvent: function aev_handleEvent(evt) {
