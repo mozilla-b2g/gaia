@@ -56,6 +56,11 @@ Calendar.LoadConfig = (function() {
         LazyLoader.load([file], cb);
       },
 
+      shared: function lc_importShared(file, obs, cb) {
+        var file = this.config.sharedJsRoot + file + '.js';
+        LazyLoader.load([file], cb);
+      },
+
       style: function lc_importStylesheet(file, obs, cb) {
         var file = this.config.styleRoot + file + '.css';
         LazyLoader.load([file], cb);
@@ -162,10 +167,11 @@ Calendar.LoadConfig = (function() {
 
         js: [
           'querystring',
-          'utils/input_parser',
           'templates/alarm',
           'views/modify_event'
         ],
+
+        shared: ['input_parser'],
 
         style: ['modify_event_view']
       },
@@ -177,9 +183,10 @@ Calendar.LoadConfig = (function() {
 
         js: [
           'templates/alarm',
-          'utils/input_parser',
           'views/view_event'
         ],
+
+        shared: ['input_parser'],
 
         style: ['event_view']
       },

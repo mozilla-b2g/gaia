@@ -1,7 +1,5 @@
 Calendar.ns('Views').ModifyEvent = (function() {
 
-  var InputParser = Calendar.Utils.InputParser;
-
   function ModifyEvent(options) {
     this.deleteRecord = this.deleteRecord.bind(this);
     this._toggleAllDay = this._toggleAllDay.bind(this);

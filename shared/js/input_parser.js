@@ -3,8 +3,7 @@
  * The intent is the methods here will only relate to the parsing
  * of input[type="date|time"]
  */
-
-ValueSelector.InputParser = (function() {
+var InputParser = (function() {
 
   var InputParser = {
     _dateParts: ['year', 'month', 'date'],
@@ -22,6 +21,10 @@ ValueSelector.InputParser = (function() {
         minutes: 0,
         seconds: 0
       };
+
+      if (typeof(value) !== 'string') {
+        return result;
+      }
 
       var parts = value.split(':');
       var part;

@@ -3,6 +3,8 @@ requireLib('template.js');
 requireLib('templates/alarm.js');
 requireElements('calendar/elements/show_event.html');
 
+mocha.globals(['InputParser']);
+
 suiteGroup('Views.ViewEvent', function() {
 
   var subject;
@@ -34,9 +36,7 @@ suiteGroup('Views.ViewEvent', function() {
   }
 
   var triggerEvent;
-  var InputParser;
   suiteSetup(function() {
-    InputParser = Calendar.Utils.InputParser;
     triggerEvent = testSupport.calendar.triggerEvent;
   });
 
