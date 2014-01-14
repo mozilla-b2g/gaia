@@ -121,7 +121,9 @@ contacts.Search = (function() {
 
   // Search mode instructions
   var exitSearchMode = function exitSearchMode(evt) {
-    evt.preventDefault();
+    if (evt) {
+      evt.preventDefault();
+    }
     searchView.classList.remove('insearchmode');
     if (navigationController) {
       navigationController.back();
