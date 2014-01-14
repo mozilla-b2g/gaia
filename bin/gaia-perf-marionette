@@ -17,7 +17,7 @@ fi
 if [ -z "$NPM_REGISTRY" ]; then
   NPM_REGISTRY="http://registry.npmjs.org"
 fi
-`cd $DIR && npm install --registry=${NPM_REGISTRY}`
+`cd $DIR && npm install --registry=${NPM_REGISTRY} && npm rebuild`
 
 
 if [ $MARIONETTE_RUNNER_HOST = "marionette-b2gdesktop-host" ] ; then
