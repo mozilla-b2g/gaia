@@ -60,6 +60,12 @@ define(function(require, exports, module) {
     orientation.on('orientation', setOrientation);
     camera.state.on('change:recording', onRecordingChange);
 
+    // bug/952164: 'click's on certain parts of
+    // the preview element can trigger a 'click'
+    // event on the capture button. Setting an event
+    // listener seems to prevent this behaviour :-/
+    preview.onclick = function() {};
+
     // Create the MediaFrame for previews
     var frame = new MediaFrame(mediaFrame);
 
