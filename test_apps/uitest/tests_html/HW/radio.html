@@ -9,37 +9,39 @@
     <link rel="stylesheet" type="text/css" href="../../style/HW.css">
   </head>
   <body>
-    <div id="radio-info">
-      <p>
+    <div id="content">
+      <div>
         <h2>IMEI</h2>
         <div>IMEI:<span id="IMEI"></span></div>
-      </p>
-      <p>
-        <h2>IC Card</h2>
-        <h4 id="message-icc" class="error"></h4>
-        <div id="icc-container">
-          <div>ICCIC: <span id="ICCID"></span></div>
-          <div>MSISDN(self number): <span id="MSISDN"></span></div>
+      </div>
+      <h4 id="global-message" class="error"></h4>
+      <div id="connection-template">
+        <h2>SIM Card#<span data-type="SIM-number"></span></h2>
+        <h3>Icc</h3>
+        <h4 data-type="icc-message" class="error"></h4>
+        <div data-type="icc-container">
+          <div>ICCID: <span data-type="ICCID"></span></div>
+          <div>MSISDN(self number): <span data-type="MSISDN"></span></div>
         </div>
-      </p>
-      <p>
-        <h2>Mobile networks</h2>
-        <h4 id="message-mobileConnection" class="error"></h4>
-        <div id="mobileconnection-container">
-          <h3>Voice</h3>
-          <div>current network: <span id="voice-network"></span></div>
-          <div>signal strength: <span id="voice-strength"></span></div>
-          <div>LAC/CID: <span id="voice-LAC"></span>/<span id="voice-CID"></span></div>
-          <div>network type: <span id="voice-type"></span></div>
-          <div>roaming: <span id="voice-roaming"></span></div>
-          <h3>Data</h3>
-          <div>current network: <span id="data-network"></span></div>
-          <div>signal strength: <span id="data-strength"></span></div>
-          <div>LAC/CID: <span id="data-LAC"></span>/<span id="data-CID"></span></div>
-          <div>network type: <span id="data-type"></span></div>
-          <div>roaming: <span id="data-roaming"></span></div>
+        <h3>Voice</h3>
+        <h4 data-type="voice-message" class="error"></h4>
+        <div data-type="voice-container">
+          <div>current network: <span data-type="network"></span></div>
+          <div>signal strength: <span data-type="strength"></span></div>
+          <div>LAC/CID: <span data-type="LAC"></span>/<span data-type="CID"></span></div>
+          <div>network type: <span data-type="type"></span></div>
+          <div>roaming: <span data-type="roaming"></span></div>
         </div>
-      </p>
+        <h3>Data</h3>
+        <h4 data-type="data-message" class="error"></h4>
+        <div data-type="data-container">
+          <div>current network: <span data-type="network"></span></div>
+          <div>signal strength: <span data-type="strength"></span></div>
+          <div>LAC/CID: <span data-type="LAC"></span>/<span data-type="CID"></span></div>
+          <div>network type: <span data-type="type"></span></div>
+          <div>roaming: <span data-type="roaming"></span></div>
+        </div>
+      </div>
     </div>
   </body>
 </html>
