@@ -51,12 +51,22 @@ Activity.prototype.check = function(done) {
 
   function onActivity(activity) {
     var parsed = self.parse(activity);
+
+    // We currently only alter the
+    // behaviour of the camera app
+    // for 'pick' activities.
+    if (parsed.name !== 'pick') {
+      debug('type not supported');
+      done();
+      return;
+    }
+
     self.active = true;
     self.name = parsed.name;
     self.allowedTypes = parsed.types;
     self.mode = parsed.mode;
     self.raw = activity;
-    debug('parsed');
+    debug('parsed \'%s\' activity', parsed.name);
     done();
   }
 };
