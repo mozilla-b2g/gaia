@@ -10,25 +10,17 @@ var VivoConfig = (function() {
   var THOUSANDS_PADDING = 4;
   var TENS_PADDING = 2;
 
-  function pad(number, width) {
-    number = '' + number;
-    var length = number.length;
-    var remainder = width - length;
-    return remainder < 0 ? number :
-                           (new Array(remainder + 1)).join('0') + number;
-  }
-
   function getDateTime() {
     var now = new Date();
     var date = [
-      pad(now.getUTCFullYear(), THOUSANDS_PADDING),
-      pad(now.getUTCMonth() + 1, TENS_PADDING),
-      pad(now.getUTCDate(), TENS_PADDING)
+      Format.padLeft(now.getUTCFullYear(), THOUSANDS_PADDING, '0'),
+      Format.padLeft(now.getUTCMonth() + 1, TENS_PADDING, '0'),
+      Format.padLeft(now.getUTCDate(), TENS_PADDING, '0')
     ].join('');
     var time = [
-      pad(now.getUTCHours(), TENS_PADDING),
-      pad(now.getUTCMinutes(), TENS_PADDING),
-      pad(now.getUTCSeconds(), TENS_PADDING)
+      Format.padLeft(now.getUTCHours(), TENS_PADDING, '0'),
+      Format.padLeft(now.getUTCMinutes(), TENS_PADDING, '0'),
+      Format.padLeft(now.getUTCSeconds(), TENS_PADDING, '0')
     ].join('');
     return [date, time];
   }
