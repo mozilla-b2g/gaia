@@ -5,7 +5,6 @@ define(function(require) {
 // to the Design rule for Camera File System
 // * http://en.wikipedia.org/wiki/Design_rule_for_Camera_File_system
 
-var padLeft = require('utils/padleft');
 var asyncStorage = require('asyncStorage');
 
 var api = {};
@@ -49,7 +48,7 @@ api.createDCFFilename = function(storage, type, callback) {
 
   var filepath = 'DCIM/' + dcfConfig.seq.dir + dcfConfig.postFix + '/';
   var filename = dcfConfig.prefix[type] +
-    padLeft(dcfConfig.seq.file, 4) + '.' +
+    Format.padLeft(dcfConfig.seq.file, 4, '0') + '.' +
     dcfConfig.ext[type];
 
   // A file with this name may have been written by the user or
