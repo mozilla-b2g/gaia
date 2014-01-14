@@ -11,7 +11,8 @@ mocha.setup({
     'parseJPEGMetadata',
     'getVideoRotation',
     'VideoPlayer',
-    'GestureDetector'
+    'GestureDetector',
+    'debug'
   ]
 });
 

@@ -1,4 +1,4 @@
-suite.skip('controllers/hud', function() {
+suite('controllers/hud', function() {
   /*jshint maxlen:false*/
   /*global req*/
   'use strict';
@@ -7,15 +7,13 @@ suite.skip('controllers/hud', function() {
     var self = this;
     req([
       'controllers/hud',
-      'camera',
       'views/hud',
       'views/controls',
       'views/viewfinder'
-    ], function(HudController, Camera, HudView, ControlsView, ViewfinderView) {
+    ], function(HudController, HudView, ControlsView, ViewfinderView) {
 
       self.modules = {
         HudController: HudController,
-        Camera: Camera,
         HudView: HudView,
         ControlsView: ControlsView,
         ViewfinderView: ViewfinderView
@@ -27,8 +25,17 @@ suite.skip('controllers/hud', function() {
   setup(function() {
     var modules = this.modules;
     var HudController = modules.HudController.HudController;
+
     this.app = {
-      camera: new modules.Camera(),
+      camera: {
+        on: sinon.spy(),
+        state: { on: sinon.spy() },
+        hasFrontCamera: sinon.stub(),
+        toggleFlash: sinon.stub(),
+        toggleCamera: sinon.stub(),
+        getFlashMode: sinon.stub(),
+        loadStreamInto: sinon.stub()
+      },
       views: {
         viewfinder: new modules.ViewfinderView(),
         controls: new modules.ControlsView(),
@@ -45,13 +52,8 @@ suite.skip('controllers/hud', function() {
     this.viewfinder = this.app.views.viewfinder;
     this.camera = this.app.camera;
 
-    sinon.stub(this.camera, 'getDeviceStorageState');
-    sinon.stub(this.camera, 'isSpaceOnStorage');
-
-    // Spys
+    // Stub all methods from dependencies
     this.sandbox = sinon.sandbox.create();
-    this.sandbox.stub(this.app.camera);
-    this.sandbox.stub(this.app.camera.state);
     this.sandbox.stub(this.app.views.viewfinder);
     this.sandbox.stub(this.app.views.controls);
     this.sandbox.stub(this.app.views.hud);

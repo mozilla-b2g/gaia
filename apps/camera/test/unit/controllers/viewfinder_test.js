@@ -2,7 +2,7 @@
 /*global req*/
 'use strict';
 
-suite.skip('controllers/viewfinder', function() {
+suite('controllers/viewfinder', function() {
   var Controller;
 
   // Sometimes setup via the
@@ -18,12 +18,10 @@ suite.skip('controllers/viewfinder', function() {
 
     req([
       'controllers/viewfinder',
-      'camera',
       'vendor/view',
       'activity'
-    ], function(controller, camera, View, activity) {
+    ], function(controller, View, activity) {
       Controller = self.modules.controller = controller;
-      self.modules.camera = camera;
       self.modules.View = View;
       self.modules.activity = activity;
       done();
@@ -32,19 +30,21 @@ suite.skip('controllers/viewfinder', function() {
 
   setup(function() {
     var Activity = this.modules.activity;
-    var Camera = this.modules.camera;
     var View = this.modules.View;
 
     this.app = {
-      camera: new Camera(),
+      camera: {
+        on: sinon.spy(),
+        state: {
+          get: sinon.stub()
+        }
+      },
       activity: new Activity(),
       filmstrip: new View(),
       views: {
         viewfinder: new View()
       }
     };
-
-    sinon.stub(this.app.camera, 'on');
   });
 
   suite('click:viewfinder', function() {
@@ -53,7 +53,7 @@ suite.skip('controllers/viewfinder', function() {
     });
 
     test('Should *not* hide the filmstrip if recording', function() {
-      sinon.stub(this.app.camera.state, 'get')
+      this.app.camera.state.get
         .withArgs('recording')
         .returns(true);
 
@@ -64,7 +64,7 @@ suite.skip('controllers/viewfinder', function() {
     });
 
     test('Should *not* hide the filmstrip if activity is pending', function() {
-      sinon.stub(this.app.camera.state, 'get')
+      this.app.camera.state.get
         .withArgs('recording')
         .returns(false);
 
@@ -79,7 +79,7 @@ suite.skip('controllers/viewfinder', function() {
     });
 
     test('Should hide the filmstrip if activity is pending', function() {
-      sinon.stub(this.app.camera.state, 'get')
+      this.app.camera.state.get
         .withArgs('recording')
         .returns(false);
 

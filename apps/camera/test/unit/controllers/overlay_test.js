@@ -2,7 +2,7 @@
 /*global req*/
 'use strict';
 
-suite.skip('controllers/overlay', function() {
+suite('controllers/overlay', function() {
   var Controller;
 
   // Sometimes setup via the
@@ -18,12 +18,10 @@ suite.skip('controllers/overlay', function() {
 
     req([
       'controllers/overlay',
-      'camera',
       'activity',
       'views/overlay'
-    ], function(controller, camera, activity, Overlay) {
+    ], function(controller, activity, Overlay) {
       Controller = self.modules.controller = controller;
-      self.modules.camera = camera;
       self.modules.activity = activity;
       self.modules.Overlay = Overlay;
       done();
@@ -31,15 +29,16 @@ suite.skip('controllers/overlay', function() {
   });
 
   setup(function() {
-    var Camera = this.modules.camera;
     var Activity = this.modules.activity;
 
     this.app = {
-      camera: new Camera(),
+      camera: {
+        state: {
+          on: sinon.spy()
+        }
+      },
       activity: new Activity()
     };
-
-    sinon.stub(this.app.camera.state, 'on');
 
     navigator.mozL10n = { get: sinon.stub() };
     navigator.mozL10n.get.withArgs('nocard2-title').returns('nocard title');
