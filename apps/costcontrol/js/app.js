@@ -169,12 +169,12 @@ var CostControlApp = (function() {
   function startApp(callback) {
 
     function _onNoICCID() {
-      console.error('checkSIMChange() failed. Impossible to ensure consistent' +
+      console.error('checkSIM() failed. Impossible to ensure consistent' +
                     'data. Aborting start up.');
       showSimErrorDialog('no-sim2');
     }
 
-    Common.checkSIMChange(function _onSIMChecked() {
+    Common.checkSIM(function _onSIMChecked() {
       CostControl.getInstance(function _onCostControlReady(instance) {
         if (ConfigManager.option('fte')) {
           startFTE();

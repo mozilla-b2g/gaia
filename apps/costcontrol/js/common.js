@@ -244,31 +244,28 @@ var Common = {
     window.addEventListener('messagehandlerready', checkReady);
   },
 
-  // Checks for a SIM change
-  checkSIMChange: function(callback, onerror) {
-    asyncStorage.getItem('lastSIM', function _compareWithCurrent(lastSIM) {
-      var currentSIM = Common.dataSimIccId;
-      if (currentSIM === null) {
-        console.error('Impossible: or we don\'t have SIM (so this method ' +
-                      'should not be called) or the RIL is returning null ' +
-                      'from time to time when checking ICCID.');
+  checkSIM: function(callback, onerror) {
+    var currentSIM = Common.dataSimIccId;
+    if (currentSIM === null) {
+      console.error('Impossible: or we don\'t have SIM (so this method ' +
+                    'should not be called) or the RIL is returning null ' +
+                    'from time to time when checking ICCID.');
 
-        if (typeof onerror === 'function') {
-          onerror();
-        }
+      if (typeof onerror === 'function') {
+        onerror();
+      }
+      return;
+    }
+
+    ConfigManager.requestSettings(function _onSettings(settings) {
+      if (settings.nextReset) {
+        setNextReset(settings.nextReset, callback);
         return;
       }
 
-      ConfigManager.requestSettings(function _onSettings(settings) {
-        if (settings.nextReset) {
-          setNextReset(settings.nextReset, callback);
-          return;
-        }
-
-        if (callback) {
-          callback();
-        }
-      });
+      if (callback) {
+        callback();
+      }
     });
   },
 
