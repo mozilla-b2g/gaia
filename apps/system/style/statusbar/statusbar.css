@@ -54,6 +54,10 @@ body:not(.rb-enabled) #statusbar-title {
   display: none;
 }
 
+#statusbar-title {
+  pointer-events: none;
+}
+
 #statusbar-icons {
   flex-grow: 1;
   flex-shrink: 0;
