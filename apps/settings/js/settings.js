@@ -790,9 +790,17 @@ window.addEventListener('load', function loadSettings() {
   window.removeEventListener('load', loadSettings);
   window.addEventListener('change', Settings);
 
+  // Low priority queue to do things when user
+  // hasn't done anything
+  var _finishedIdleQueue = false;
+  var idleQueue = [
+    Settings.loadPanelStylesheetsIfNeeded.bind(Settings),
+    updateHomescreenCount
+  ];
+
   navigator.addIdleObserver({
     time: 3,
-    onidle: Settings.loadPanelStylesheetsIfNeeded.bind(Settings)
+    onidle: idleWork.bind(this, 0)
   });
 
   Settings.init();
@@ -819,6 +827,21 @@ window.addEventListener('load', function loadSettings() {
       'js/dsds_settings.js'
     ], handleRadioAndCardState);
   });
+
+  function idleWork(index) {
+    if (index >= idleQueue.length || _finishedIdleQueue) {
+      _finishedIdleQueue = true;
+      return;
+    }
+
+    idleQueue[index]();
+    setTimeout(idleWork.bind(this, index + 1));
+  }
+
+  function updateHomescreenCount() {
+    var homescreenUpdate = new CustomEvent('updateHomescreenCount', {});
+    window.dispatchEvent(homescreenUpdate);
+  }
 
   function displayDefaultPanel() {
     // With async pan zoom enable, the page starts with a viewport
