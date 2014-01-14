@@ -41,11 +41,11 @@ ol.link-list li:only-child a {
 
 /* view management */
 
-#modify-event-view {
+.fullscreen-view {
   display: none;
 }
 
-#modify-event-view.active {
+.fullscreen-view.active {
   display: block;
 }
 
