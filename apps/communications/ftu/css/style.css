@@ -25,7 +25,7 @@ a {
 /* Basics */
 
 [role=region] {
-  visibility: hidden;
+  display: none;
   position: absolute;
   top: 0;
   left: 0;
@@ -36,7 +36,7 @@ a {
  }
 
 [role=region].show {
-  visibility: visible;
+  display: block;
 }
 
 [role=main] {
@@ -52,7 +52,7 @@ a {
 }
 
 [role=region]:target {
-  visibility: visible;
+  display: block;
 }
 
 [role=navigation] {
