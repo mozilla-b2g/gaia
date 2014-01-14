@@ -3,10 +3,12 @@
 requireApp('system/js/edge_swipe_detector.js');
 
 requireApp('system/test/unit/mock_sheets_transition.js');
+requireApp('system/test/unit/mock_homescreen_launcher.js');
 requireApp('system/test/unit/mock_stack_manager.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 
 var mocksForEdgeSwipeDetector = new MocksHelper([
+  'HomescreenLauncher',
   'SheetsTransition',
   'StackManager',
   'SettingsListener'
@@ -49,7 +51,9 @@ suite('system/EdgeSwipeDetector >', function() {
 
   function launchTransitionEnd() {
     var evt = document.createEvent('CustomEvent');
-    evt.initCustomEvent('appopen', true, false, null);
+    evt.initCustomEvent('appopen', true, false, {
+      isHomescreen: false
+    });
     window.dispatchEvent(evt);
   }
 

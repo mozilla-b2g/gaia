@@ -7,6 +7,9 @@ var MockAttentionScreen = {
   isFullyVisible: function() {
     return this.mFullyVisible;
   },
+  getAttentionScreenOrigins: function() {
+    return [];
+  },
   mTeardown: function() {
     this.mVisible = false;
     this.mFullyVisible = false;

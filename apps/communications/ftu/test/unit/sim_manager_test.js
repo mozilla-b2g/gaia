@@ -4,6 +4,7 @@ require(
   '/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 requireApp(
   'communications/ftu/test/unit/mock_navigator_moz_icc_manager.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('communications/ftu/test/unit/mock_ui_manager.js');
 requireApp('communications/ftu/test/unit/mock_l10n.js');
 
@@ -19,7 +20,8 @@ var mocksHelperForSimManager = new MocksHelper([
 suite('sim mgmt >', function() {
   var realL10n,
       realMozIccManager,
-      realMozMobileConnections;
+      realMozMobileConnections,
+      realMozSettings;
   var mocksHelper = mocksHelperForSimManager;
   var navigationStub;
 
@@ -33,6 +35,9 @@ suite('sim mgmt >', function() {
     MockNavigatorMozMobileConnections[0].iccId =
                                      navigator.mozIccManager.iccIds[0];
     navigator.mozMobileConnections = MockNavigatorMozMobileConnections;
+
+    realMozSettings = navigator.mozSettings;
+    navigator.mozSettings = MockNavigatorSettings;
 
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
@@ -58,6 +63,9 @@ suite('sim mgmt >', function() {
 
     navigator.mozL10n = realL10n;
     realL10n = null;
+
+    navigator.mozSettings = realMozSettings;
+    realMozSettings = null;
 
     mocksHelper.suiteTeardown();
   });

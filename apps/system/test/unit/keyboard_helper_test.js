@@ -12,6 +12,11 @@ suite('KeyboardHelper', function() {
   mocksHelper.attachTestHelpers();
   var realMozSettings;
   var realMozApps;
+  var fakeAppDetail = {
+    application: {
+      manifest: {}
+    }
+  };
   var appEvents = ['applicationinstall', 'applicationinstallsuccess',
     'applicationuninstall'];
   var DEFAULT_KEY = 'keyboard.default-layouts';
@@ -111,9 +116,10 @@ suite('KeyboardHelper', function() {
     ca: 'keyboard.layouts.catalan'
   };
 
-  function trigger(event) {
+  function trigger(event, data) {
+    data = data || {};
     var evt = document.createEvent('CustomEvent');
-    evt.initCustomEvent(event, true, false, {});
+    evt.initCustomEvent(event, true, false, data);
     window.dispatchEvent(evt);
   }
 
@@ -341,7 +347,7 @@ suite('KeyboardHelper', function() {
       appEvents.forEach(function eventSuite(event) {
         suite(event + ' event clears cache', function() {
           setup(function() {
-            trigger(event);
+            trigger(event, fakeAppDetail);
             this.callback.reset();
             navigator.mozApps.mgmt.getAll.reset();
             KeyboardHelper.getApps(this.callback);
@@ -615,7 +621,7 @@ suite('KeyboardHelper', function() {
             this.getApps.reset();
             this.getLayouts.reset();
             this.callback.reset();
-            trigger(event);
+            trigger(event, fakeAppDetail);
 
           });
           test('requests apps', function() {

@@ -3,7 +3,7 @@ requireApp('communications/contacts/test/unit/mock_link.html.js');
 requireApp('communications/contacts/test/unit/mock_l10n.js');
 requireApp('communications/facebook/test/unit/mock_curtain.js');
 requireApp('communications/contacts/test/unit/mock_utils.js');
-requireApp('communications/contacts/test/unit/mock_asyncstorage.js');
+requireApp('communications/shared/test/unit/mocks/mock_asyncstorage.js');
 requireApp('communications/contacts/js/import_utils.js');
 requireApp('communications/contacts/js/utilities/dom.js');
 requireApp('communications/contacts/js/utilities/binary_search.js');

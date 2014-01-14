@@ -37,7 +37,9 @@
       var self = this;
       var onNextPaint = function aw_onNextPaint() {
         self.debug(' nextpainted.');
-        iframe.removeNextPaintListener(onNextPaint);
+        if (iframe.removeNextPaintListener) {
+          iframe.removeNextPaintListener(onNextPaint);
+        }
         clearTimeout(nextPaintTimer);
 
         callback();
@@ -45,11 +47,17 @@
 
       nextPaintTimer = setTimeout(function ifNextPaintIsTooLate() {
         self.debug(' nextpaint is timeouted.');
-        iframe.removeNextPaintListener(onNextPaint);
+        if (iframe.removeNextPaintListener) {
+          iframe.removeNextPaintListener(onNextPaint);
+        }
         callback();
       }, this.NEXTPAINT_TIMEOUT);
 
-      iframe.addNextPaintListener(onNextPaint);
+      if (iframe.addNextPaintListener) {
+        iframe.addNextPaintListener(onNextPaint);
+      } else {
+        setTimeout(onNextPaint);
+      }
     },
 
     /**

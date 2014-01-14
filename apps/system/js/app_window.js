@@ -1243,7 +1243,7 @@
    */
   AppWindow.prototype.close = function aw_close(animation) {
     // Request "close" to our internal transition controller.
-    if (this.transitionController) {
+    if (this.transitionController && this.transitionController.requireClose) {
       this.debug('close with ' + animation || this.closeAnimation);
       this.transitionController.requireClose(animation);
     }

@@ -9,6 +9,7 @@ mocha.globals(['SettingsListener', 'removeEventListener', 'addEventListener',
       'AppTransitionController']);
 
 requireApp('system/test/unit/mock_orientation_manager.js');
+requireApp('system/test/unit/mock_homescreen_launcher.js');
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/test/unit/mock_applications.js');
@@ -18,7 +19,7 @@ requireApp('system/test/unit/mock_screen_layout.js');
 
 var mocksForAppWindow = new MocksHelper([
   'OrientationManager', 'Applications', 'SettingsListener',
-  'ManifestHelper', 'LayoutManager',
+  'HomescreenLauncher', 'ManifestHelper', 'LayoutManager',
   'ScreenLayout'
 ]).init();
 
