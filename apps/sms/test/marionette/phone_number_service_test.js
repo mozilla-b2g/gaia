@@ -3,7 +3,6 @@
 var assert = require('assert');
 
 var TARGET_APP = 'app://sms.gaiamobile.org';
-var TARGET_APP_MANIFEST = TARGET_APP + '/manifest.webapp';
 
 marionette('mozPhoneNumberService: ', function() {
   var client = marionette.client({
