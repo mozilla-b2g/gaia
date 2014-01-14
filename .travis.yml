@@ -1,4 +1,3 @@
-before_install: travis_retry npm install
 install: ./node_modules/.bin/travisaction $CI_ACTION install
 before_script:
 - export DISPLAY=:99.0

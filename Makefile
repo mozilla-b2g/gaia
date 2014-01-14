@@ -135,7 +135,6 @@ ifneq ($(APP),)
 endif
 
 REPORTER?=Spec
-NPM_REGISTRY?=http://registry.npmjs.org
 # Ensure that NPM only logs warnings and errors
 export npm_config_loglevel=warn
 MARIONETTE_RUNNER_HOST?=marionette-b2gdesktop-host
@@ -657,8 +656,7 @@ endif
 
 NPM_INSTALLED_PROGRAMS = node_modules/.bin/mozilla-download node_modules/.bin/jshint node_modules/.bin/mocha
 $(NPM_INSTALLED_PROGRAMS): package.json
-	npm install --registry $(NPM_REGISTRY)
-	touch $(NPM_INSTALLED_PROGRAMS)
+	git submodule init && git submodule update && git submodule foreach git pull origin master && npm rebuild
 
 ###############################################################################
 # Tests                                                                       #
@@ -677,6 +675,10 @@ ifndef APPS
 	endif
 endif
 
+.PHONY: node_modules
+node_modules: $(NPM_INSTALLED_PROGRAMS)
+	echo "Installing node_modules."
+
 b2g: node_modules/.bin/mozilla-download
 	./node_modules/.bin/mozilla-download  \
 		--verbose \
@@ -687,13 +689,13 @@ b2g: node_modules/.bin/mozilla-download
 .PHONY: test-integration
 # $(PROFILE_FOLDER) should be `profile-test` when we do `make test-integration`.
 test-integration: b2g $(PROFILE_FOLDER)
-	NPM_REGISTRY=$(NPM_REGISTRY) ./bin/gaia-marionette $(shell find . -path "*$(TEST_INTEGRATION_APP_NAME)/test/marionette/*_test.js") \
+	./bin/gaia-marionette $(shell find . -path "*$(TEST_INTEGRATION_APP_NAME)/test/marionette/*_test.js") \
 		--host $(MARIONETTE_RUNNER_HOST) \
 		--reporter $(REPORTER)
 
 .PHONY: test-perf
 test-perf:
-	APPS="$(APPS)" MARIONETTE_RUNNER_HOST=$(MARIONETTE_RUNNER_HOST) GAIA_DIR="`pwd`" NPM_REGISTRY=$(NPM_REGISTRY) ./bin/gaia-perf-marionette
+	APPS="$(APPS)" MARIONETTE_RUNNER_HOST=$(MARIONETTE_RUNNER_HOST) GAIA_DIR="`pwd`" ./bin/gaia-perf-marionette
 
 .PHONY: tests
 tests: applications-data offline
