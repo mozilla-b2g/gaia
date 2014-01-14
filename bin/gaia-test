@@ -100,7 +100,7 @@ cd $GAIADIR
 PROFILE="$GAIADIR/profile-debug"
 if [ ! -d "$PROFILE" ] ; then
   echo "$SELF: Building the debug profile."
-  DEBUG=1 make
+  DEBUG=1 DESKTOP=0 make
 fi
 
 #
