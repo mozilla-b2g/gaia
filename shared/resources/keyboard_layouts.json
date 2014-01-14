@@ -97,6 +97,9 @@
     "lij": [
         {"layoutId": "en", "appManifestURL": "app://keyboard.gaiamobile.org/manifest.webapp"}
     ],
+    "lv": [
+        {"layoutId": "lv", "appOrigin": "keyboard.gaiamobile.org"}
+    ],
     "ml": [
         {"layoutId": "en", "appManifestURL": "app://keyboard.gaiamobile.org/manifest.webapp"}
     ],
