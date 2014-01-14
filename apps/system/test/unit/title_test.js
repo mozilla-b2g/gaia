@@ -56,6 +56,8 @@ suite('system/Title', function() {
 
     test('home event', function() {
       Title.content = 'Bar';
+      this.sinon.stub(ModalDialog, 'isVisible')
+                          .returns(false);
       window.dispatchEvent(new CustomEvent('home'));
       check('');
     });

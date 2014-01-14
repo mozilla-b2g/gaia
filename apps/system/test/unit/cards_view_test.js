@@ -174,6 +174,8 @@ suite('cards view >', function() {
 
   suite('display cardsview >', function() {
     setup(function(done) {
+      ActivityWindowFactory._activities = [];
+      EdgeSwipeDetector.screen = document.createElement('div');
       sendHoldhome();
       setTimeout(function() { done(); });
     });

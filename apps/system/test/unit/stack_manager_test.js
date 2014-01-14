@@ -12,6 +12,10 @@ suite('system/StackManager >', function() {
   mocksForStackManager.attachTestHelpers();
 
   setup(function() {
+
+    this.sinon.stub(ModalDialog, 'isVisible')
+                          .returns(false);
+
     dialer = new AppWindow({
       url: 'app://communications.gaiamobile.org/dialer/index.html',
       origin: 'app://communications.gaiamobile.org/',
@@ -78,7 +82,9 @@ suite('system/StackManager >', function() {
   }
 
   function home() {
-    window.dispatchEvent(new Event('home'));
+    window.dispatchEvent(new CustomEvent('home', {detail: {
+      type: 'alert'
+    }}));
   }
 
   function configify(app) {
