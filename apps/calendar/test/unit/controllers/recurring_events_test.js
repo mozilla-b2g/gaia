@@ -211,18 +211,6 @@ suiteGroup('Controllers.RecurringEvents', function() {
       subject.expand(expandDate, done);
     });
 
-    suite('provider that cannot expand', function() {
-      setupProvider('Local');
-
-      test('will not expand', function(done) {
-        provider.ensureRecurrencesExpanded = function() {
-          throw new Error('local should not expand');
-        };
-
-        subject.expand(expandDate, done);
-      });
-    });
-
     suite('provider that can expand', function() {
       setupProvider('Caldav');
 

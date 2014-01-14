@@ -285,4 +285,6 @@ suiteGroup('Models.Event', function() {
   remoteSetter('description');
   remoteSetter('title');
   remoteSetter('alarms');
+  remoteSetter('recurrences');
+  remoteSetter('expandedTo');
  });

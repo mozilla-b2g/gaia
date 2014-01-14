@@ -5,9 +5,6 @@ requireElements('calendar/elements/modify_event.html');
 requireElements('calendar/elements/show_event.html');
 
 suiteGroup('Views.ModifyEvent', function() {
-  /** disabled because of intermittent failures see bug 917537 */
-  return;
-
   var subject;
   var controller;
   var app;
@@ -529,6 +526,11 @@ suiteGroup('Views.ModifyEvent', function() {
       assert.hasProperties(subject.formData(), expected);
     });
 
+    test('with everyDay recurrences', function() {
+      var recurrences = getEl('recurrences');
+      recurrences.value = 'everyDay';
+      assert.hasProperties(subject.formData(), { recurrences: 'everyDay' });
+    });
   });
 
   suite('#deleteRecord', function() {
@@ -662,7 +664,7 @@ suiteGroup('Views.ModifyEvent', function() {
 
         provider.updateEvent = function(updated, callback) {
           done(function() {
-            assert.equal(updated._id, event._id, 'updates correcet event');
+            assert.equal(updated._id, event._id, 'updates correct event');
 
             var data = subject.formData();
             data.alarms = [];

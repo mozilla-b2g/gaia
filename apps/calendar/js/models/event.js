@@ -192,6 +192,22 @@ Calendar.ns('Models').Event = (function() {
       return this.remote.location = value;
     },
 
+    get recurrences() {
+      return this.remote.recurrences || 'never';
+    },
+
+    set recurrences(value) {
+      return this.remote.recurrences = value;
+    },
+
+    get expandedTo() {
+      return this.remote.expandedTo;
+    },
+
+    set expandedTo(value) {
+      return this.remote.expandedTo = value;
+    },
+
     get alarms() {
       return this.remote.alarms || [];
     },
