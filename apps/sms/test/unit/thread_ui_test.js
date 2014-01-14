@@ -4360,4 +4360,48 @@ suite('thread_ui.js >', function() {
       });
     });
   });
+
+  suite('getMessageBubble(element) > ', function() {
+    var tree, li, section, span;
+
+    setup(function() {
+      tree = document.createElement('div');
+
+      tree.innerHTML = [
+        '<div id="thread-messages">',
+          '<ul>',
+            '<li data-message-id="1">',
+              '<section class="bubble">',
+                '<span>.</span>',
+              '</section>',
+            '</li>',
+          '</ul>',
+        '</div>'
+      ].join();
+
+      span = tree.querySelector('span');
+      section = tree.querySelector('section');
+      li = tree.querySelector('li');
+    });
+
+    test('Finds the bubble (event target is lower)', function() {
+      var data = ThreadUI.getMessageBubble(span);
+
+      assert.equal(data.node, section);
+      assert.equal(data.id, 1);
+    });
+
+    test('Finds the bubble (event target is bubble)', function() {
+      var data = ThreadUI.getMessageBubble(section);
+
+      assert.equal(data.node, section);
+      assert.equal(data.id, 1);
+    });
+
+    test('Does not find the bubble (event target is higher)', function() {
+      var data = ThreadUI.getMessageBubble(li);
+
+      assert.equal(data, null);
+    });
+  });
 });
