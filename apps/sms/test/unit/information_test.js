@@ -202,6 +202,8 @@ suite('Information view', function() {
       sinon.assert.calledWith(navigator.mozL10n.localize, reportView.status,
         'message-status-sending');
       assert.equal(reportView.status.dataset.type, 'sending');
+      sinon.assert.calledWith(navigator.mozL10n.localize,
+        reportView.contactTitle, 'report-recipients');
       assert.isTrue(reportView.sizeBlock.classList.contains('hide'));
       sinon.assert.called(reportView.renderContactList);
     });
@@ -220,6 +222,8 @@ suite('Information view', function() {
       sinon.assert.calledWith(navigator.mozL10n.localize, reportView.status,
         'message-status-sent');
       assert.equal(reportView.status.dataset.type, 'sent');
+      sinon.assert.calledWith(navigator.mozL10n.localize,
+        reportView.contactTitle, 'report-recipients');
       assert.isTrue(reportView.sizeBlock.classList.contains('hide'));
       sinon.assert.called(reportView.renderContactList);
     });
@@ -237,6 +241,8 @@ suite('Information view', function() {
       sinon.assert.calledWith(navigator.mozL10n.localize, reportView.status,
         'message-status-error');
       assert.equal(reportView.status.dataset.type, 'error');
+      sinon.assert.calledWith(navigator.mozL10n.localize,
+        reportView.contactTitle, 'report-recipients');
       assert.isTrue(reportView.sizeBlock.classList.contains('hide'));
       sinon.assert.called(reportView.renderContactList);
     });
@@ -258,6 +264,8 @@ suite('Information view', function() {
       sinon.assert.calledWith(navigator.mozL10n.localize, reportView.status,
         'message-status-sent');
       assert.equal(reportView.status.dataset.type, 'sent');
+      sinon.assert.calledWith(navigator.mozL10n.localize,
+        reportView.contactTitle, 'report-recipients');
       assert.isTrue(reportView.sizeBlock.classList.contains('hide'));
       sinon.assert.called(reportView.renderContactList);
     });
@@ -280,6 +288,8 @@ suite('Information view', function() {
       sinon.assert.calledWith(navigator.mozL10n.localize, reportView.status,
         'message-status-sent');
       assert.equal(reportView.status.dataset.type, 'sent');
+      sinon.assert.calledWith(navigator.mozL10n.localize,
+        reportView.contactTitle, 'report-recipients');
       assert.isFalse(reportView.sizeBlock.classList.contains('hide'));
       sinon.assert.called(reportView.renderContactList);
     });
@@ -296,6 +306,8 @@ suite('Information view', function() {
       sinon.assert.calledWith(navigator.mozL10n.localize, reportView.status,
         'message-status-received');
       assert.equal(reportView.status.dataset.type, 'received');
+      sinon.assert.calledWith(navigator.mozL10n.localize,
+        reportView.contactTitle, 'report-from');
       assert.isTrue(reportView.sizeBlock.classList.contains('hide'));
       sinon.assert.calledWith(reportView.renderContactList, [message.sender]);
     });
@@ -317,6 +329,8 @@ suite('Information view', function() {
       sinon.assert.calledWith(navigator.mozL10n.localize, reportView.status,
         'message-status-received');
       assert.equal(reportView.status.dataset.type, 'received');
+      sinon.assert.calledWith(navigator.mozL10n.localize,
+        reportView.contactTitle, 'report-from');
       assert.isFalse(reportView.sizeBlock.classList.contains('hide'));
       sinon.assert.calledWith(reportView.renderContactList, [message.sender]);
     });
@@ -334,6 +348,8 @@ suite('Information view', function() {
       sinon.assert.calledWith(navigator.mozL10n.localize, reportView.status,
         'message-status-not-downloaded');
       assert.equal(reportView.status.dataset.type, 'not-downloaded');
+      sinon.assert.calledWith(navigator.mozL10n.localize,
+        reportView.contactTitle, 'report-from');
       sinon.assert.called(reportView.renderContactList);
     });
 
@@ -345,9 +361,11 @@ suite('Information view', function() {
           delivery: '',
           deliveryL10n: '',
           deliveryDateL10n: '',
+          deliveryTimestamp: '',
           read: 'hide',
           readL10n: 'message-read',
-          readDateL10n: ''
+          readDateL10n: '',
+          messageL10nDateFormat: 'report-dateTimeFormat'
         };
       });
 
@@ -388,6 +406,7 @@ suite('Information view', function() {
           new Date(messageOpts.deliveryTimestamp),
           navigator.mozL10n.get('report-dateTimeFormat')
         );
+        data.deliveryTimestamp = '' + messageOpts.deliveryTimestamp;
         sinon.assert.calledWith(Template.prototype.interpolate, data);
       });
 

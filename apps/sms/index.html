@@ -173,12 +173,13 @@
           <div class="description">
             <p class="type"></p>
             <p class="subject"></p>
-            <p class="datetime"></p>
+            <p class="datetime l10n-contains-date"></p>
           </div>
-          <div>
+          <div class="status-container">
             <span class="status"></span>
             <aside></aside>
           </div>
+          <span class="contact-title"></span>
           <ul class="contact-list"></ul>
           <div class="size-block">
             <span data-l10n-id="message-size-was"></span>
@@ -300,18 +301,24 @@
       <!--
       <p class="${delivery}">
         <span data-l10n-id="message-delivered"></span>
-        <span data-l10n-id="${deliveryL10n}">${deliveryDateL10n}</span>
+        <span class="l10n-contains-date" data-l10n-id="${deliveryL10n}"
+              data-l10n-date="${deliveryTimestamp}"
+              data-l10n-date-format="${messageL10nDateFormat}"
+              >${deliveryDateL10n}</span>
       </p>
       <p class="${read}">
         <span data-l10n-id="message-read"></span>
-        <span data-l10n-id="${readL10n}">${readDateL10n}</span>
+        <span class="l10n-contains-date" data-l10n-id="${readL10n}"
+              data-l10n-date="${readTimestamp}"
+              data-l10n-date-format="${messageL10nDateFormat}"
+              >${readDateL10n}</span>
       </p>
       -->
     </div>
 
     <div id="messages-not-downloaded-tmpl" class="hide">
       <!--
-      <span class="not-downloaded-message"
+      <span class="not-downloaded-message l10n-contains-date"
             data-l10n-id="${messageL10nId}"
             data-l10n-args="${messageL10nArgs}"
             data-l10n-date="${messageL10nDate}"

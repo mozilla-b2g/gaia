@@ -63,22 +63,27 @@ window.addEventListener('localized', function localized() {
     }
   );
 
-  // Also look for not-downloaded-message and re-translate the date message.
+  // Also look for l10n-contains-date and re-translate the date message.
   // More complex because the argument to the l10n string is itself a formatted
   // date using l10n.
   Array.prototype.forEach.call(
-    document.getElementsByClassName('not-downloaded-message'),
+    document.getElementsByClassName('l10n-contains-date'),
     function(element) {
-      if (!(element.dataset.l10nArgs && element.dataset.l10nId &&
-            element.dataset.l10nDate)) {
+      if (!(element.dataset.l10nDate && element.dataset.l10nDateFormat)) {
         return;
       }
-      var args = JSON.parse(element.dataset.l10nArgs);
+
       var format = navigator.mozL10n.get(element.dataset.l10nDateFormat);
       var date = new Date(+element.dataset.l10nDate);
-      args.date = Utils.date.format.localeFormat(date, format);
+      var localeData = Utils.date.format.localeFormat(date, format);
 
-      navigator.mozL10n.localize(element, element.dataset.l10nId, args);
+      if (element.dataset.l10nId && element.dataset.l10nArgs) {
+        var args = JSON.parse(element.dataset.l10nArgs);
+        args.date = localeData;
+        navigator.mozL10n.localize(element, element.dataset.l10nId, args);
+      } else {
+        element.textContent = localeData;
+      }
     }
   );
 

@@ -1053,3 +1053,7 @@ section[role="region"].information #messages-container,
 section[role="region"].information #messages-compose-form {
   display: none;
 }
+
+section[role="region"].information > header:first-child .icon.icon-back {
+  background-image: url(images/icons/close.png);
+}
