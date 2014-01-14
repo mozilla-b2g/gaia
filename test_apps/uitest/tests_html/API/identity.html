@@ -11,28 +11,19 @@
 
     <div>
       <p>Options</p>
-      <div><label for="issuer-name">Force Issuer:</label><input type="text"
-          id="issuer-name" value=""/></div>
-      <div><label for="wantIssuer-name">Want Issuer:</label><input type="text"
-          id="wantIssuer-name" value="firefox-accounts"/></div>
-      <div><label for="unverified-ok">Allow Unverified:</label><input type="checkbox"
-          id="unverified-ok"/></div>
+      <div><label for="issuer-name">Force Issuer:</label><input type="text" id="issuer-name" value=""/></div>
+      <div><label for="unverified-ok">Allow Unverified:</label><input type="checkbox" id="unverified-ok"/></div>
     </div>
 
     <div>
       <p>Tests</p>
-      <p>Note: <code>forceIssuer</code> and <code>allowUnverified</code> are
-      deprecated.  Use <code>wantIssuer</code> to trigger Firefox Accounts
-      flow.</p>
       <ul>
-        <li><button id="t-watch">Watch</button></li>
-        <li><button id="t-request" disabled>Request</button> (Standard, verified email)</li>
-        <li><button id="t-request-withOnCancel" disabled>Request</button> (With <code>oncancel</code> handler)</li>
-        <li><button id="t-request-allowUnverified" disabled>Request</button> (Unverified)</li>
-        <li><button id="t-request-forceIssuer" disabled>Request</button> (Force issuer)</li>
-        <li><button id="t-request-forceIssuer-allowUnverified" disabled>Request</button> (Force issuer; unverified)</li>
-        <li><button id="t-request-wantIssuer" disabled>Request</button> (Want issuer (FXA))</li>
-        <li><button id="t-logout" disabled>Logout</button></li>
+        <li><button id="t-request">Request</button> (Standard, verified email)</li>
+        <li><button id="t-request-withOnCancel">Request</button> (With <code>oncancel</code> handler)</li>
+        <li><button id="t-request-allowUnverified">Request</button> (Unverified)</li>
+        <li><button id="t-request-forceIssuer">Request</button> (Force issuer)</li>
+        <li><button id="t-request-forceIssuer-allowUnverified">Request</button> (Force issuer; unverified)</li>
+        <li><button id="t-logout">Logout</button></li>
       </ul>
     </div>
 
