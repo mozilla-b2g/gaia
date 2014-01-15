@@ -1,5 +1,5 @@
 var Calendar = require('./calendar'),
-    assert = require('assert'),
+    assert = require('chai').assert,
     moment = require('moment');
 
 const DATE_FORMAT = 'YYYY-MM-DD';
@@ -24,8 +24,8 @@ marionette('today item', function() {
     var day = client.helper.waitForChild(monthView, '.day');
     var currentDate = day.text();
     var expectedDate = new Date();
-    assert.deepEqual(currentDate, expectedDate.getDate());
-    assert.deepEqual(
+    assert.equal(currentDate, expectedDate.getDate());
+    assert.equal(
       moment(currentMonthYearHeader).format(DATE_FORMAT),
       moment(expectedDate).format(DATE_FORMAT)
     );
@@ -45,8 +45,8 @@ marionette('today item', function() {
     var monthView = app.waitForElement('monthViewselected');
     var day = client.helper.waitForChild(monthView, '.day');
     var selectedDate = day.text();
-    assert.deepEqual(selectedDate, expectedDate.getDate());
-    assert.deepEqual(
+    assert.equal(selectedDate, expectedDate.getDate());
+    assert.equal(
       moment(currentMonthYearHeader).format(DATE_FORMAT),
       moment(expectedDate).format(DATE_FORMAT)
     );

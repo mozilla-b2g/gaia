@@ -1,5 +1,5 @@
 var Calendar = require('./calendar'),
-    assert = require('assert');
+    assert = require('chai').assert;
 
 
 // test is disabled see: Bug 919066

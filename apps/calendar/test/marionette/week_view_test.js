@@ -1,6 +1,6 @@
 var Calendar = require('./calendar'),
     Marionette = require('marionette-client');
-    assert = require('assert');
+    assert = require('chai').assert;
 
 marionette('week view', function() {
   var app, hintSwipeToNavigate;
