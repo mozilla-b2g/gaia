@@ -158,7 +158,7 @@ Timer.Panel.prototype.tick = function() {
     return;
   }
   this.update(this.timer.remaining);
-  var delay = (this.timer.start + this.timer.duration - Date.now()) % 1000;
+  var delay = (this.timer.startTime + this.timer.duration - Date.now()) % 1000;
   this.tickTimeout = Utils.requestAnimationAfter(this.tick.bind(this), delay);
 };
 
