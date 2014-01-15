@@ -16,7 +16,7 @@ marionette('navigation', function() {
 
   // Disabled due to focus issues
   // https://bugzilla.mozilla.org/show_bug.cgi?id=952443
-  test.skip('opening rocketbar does not resize current app', function() {
+  test('opening rocketbar does not resize current app', function() {
     client.apps.switchToApp(Homescreen.URL);
 
     // Add a listener to check if we resize
@@ -38,12 +38,12 @@ marionette('navigation', function() {
     assert(!isResized);
   });
 
-  test.skip('cancel button closes rocketbar', function() {
+  test('cancel button closes rocketbar', function() {
     search.openRocketbar();
     search.cancelRocketbar();
   });
 
-  test.skip('opens rocketbar from homescreen', function() {
+  test('opens rocketbar from homescreen', function() {
     client.apps.switchToApp(Homescreen.URL);
     homescreen.search();
 
@@ -52,7 +52,7 @@ marionette('navigation', function() {
     search.goToResults();
   });
 
-  test.skip('opens browser with url', function() {
+  test('opens browser with url', function() {
     var url = 'http://mozilla.org/';
     // Enter the URL with enter key
     search.doSearch(url + '\uE006');

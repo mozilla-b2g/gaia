@@ -14,7 +14,7 @@ marionette('contact search', function() {
     search = new Search(client);
   });
 
-  test.skip('able to search contact from rocketbar', function() {
+  test('able to search contact from rocketbar', function() {
     var contactTel = 1231231234;
     contacts.launch();
     contacts.addContact({
