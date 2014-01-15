@@ -324,6 +324,9 @@ Calendar.ns('Views').ModifyAccount = (function() {
       var usernameType = this.model.usernameType;
       this.fields['user'].type = (usernameType === undefined) ?
           'text' : usernameType;
+
+      // XXX: Workaround to prevent the click event pass the under panel.
+      this._findElement('element').addEventListener('click', function() {});
    },
 
     destroy: function() {

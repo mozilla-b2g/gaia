@@ -78,6 +78,9 @@
           this.onrender();
 
       }.bind(this));
+
+      // XXX: Workaround to prevent the click event pass the under panel.
+      this._findElement('element').addEventListener('click', function() {});
     },
 
     cancel: function() {
