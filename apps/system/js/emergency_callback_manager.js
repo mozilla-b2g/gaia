@@ -177,7 +177,7 @@ window.addEventListener('localized', function startup(evt) {
     navigator.mozMobileConnections &&
       navigator.mozMobileConnections[0];
 
-  if (!conn) {
+  if (!conn || !conn.getPreferredNetworkType) {
     return;
   }
 
