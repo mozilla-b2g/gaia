@@ -116,11 +116,18 @@ Search.prototype = {
   openRocketbar: function() {
     var selectors = Search.Selectors;
 
-    this.client.helper.waitForElement(selectors.homescreen);
-    var statusbar = this.client.helper.waitForElement(
-      selectors.statusBar);
+    this.client.apps.switchToApp('app://homescreen.gaiamobile.org');
+    this.client.helper.waitForElement('#evme-activation-icon').click();
+    this.client.switchToFrame();
 
-    this.actions.flick(statusbar, 1, 1, 20, 200).perform();
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=960098
+    // Renable and write a dedicated test for opening the rocketbar
+    // be swiping from the statusbar down, this is currently broken.
+    //
+    //this.client.helper.waitForElement(selectors.homescreen);
+    //var statusbar = this.client.helper.waitForElement(
+    //  selectors.statusBar);
+    //this.actions.flick(statusbar, 1, 1, 20, 200).perform();
 
     this.client.waitFor(function() {
       var location = this.client
