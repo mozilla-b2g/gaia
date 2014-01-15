@@ -136,6 +136,7 @@ var KeyboardManager = {
     window.addEventListener('attentionscreenshow', this);
     window.addEventListener('mozbrowsererror', this);
     window.addEventListener('applicationsetupdialogshow', this);
+    window.addEventListener('mozmemorypressure', this);
 
     // To handle keyboard layout switching
     window.addEventListener('mozChromeEvent', function(evt) {
@@ -443,6 +444,16 @@ var KeyboardManager = {
       case 'mozbrowsererror': // OOM
         this.removeKeyboard(evt.target.dataset.frameManifestURL, true);
         break;
+      case 'mozmemorypressure':
+        // Memory pressure event. If a keyboard is loaded but not opened,
+        // get rid of it.
+        // We only do that when we don't run keyboards OOP.
+        this._debug('mozmemorypressure event');
+        if (!this.isOutOfProcessEnabled && this.keyboardHeight == 0) {
+          Object.keys(this.runningLayouts).forEach(this.removeKeyboard, this);
+          this.runningLayouts = {};
+        }
+        break;
     }
   },
 
@@ -461,7 +472,7 @@ var KeyboardManager = {
     for (var id in this.runningLayouts[manifestURL]) {
       var frame = this.runningLayouts[manifestURL][id];
       try {
-        windows.removeChild(frame);
+        frame.parentNode.removeChild(frame);
       } catch (e) {
         // if it doesn't work, noone cares
       }

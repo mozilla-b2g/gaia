@@ -30,10 +30,10 @@ var MockCallScreen = {
   unmute: function() {
     this.mMuteOn = false;
   },
-  turnSpeakerOff: function() {
+  switchToDefaultOut: function() {
     this.mSpeakerOn = false;
   },
-  turnSpeakerOn: function() {
+  switchToSpeaker: function() {
     this.mSpeakerOn = true;
   },
   render: function(mode) {
@@ -54,6 +54,7 @@ var MockCallScreen = {
   hideGroupDetails: function() {
     this.mGroupDetailsShown = false;
   },
+  setBTReceiverIcon: function() {},
   createTicker: function(node) {
     this.mCalledCreateTicker = true;
   },

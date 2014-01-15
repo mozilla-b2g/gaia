@@ -612,8 +612,9 @@ var CallLog = {
 
   filter: function cl_filter() {
     if (document.body.classList.contains('recents-edit')) {
-      return;
+      this.hideEditMode();
     }
+
     this.callLogContainer.classList.add('filter');
     this.allFilter.setAttribute('aria-selected', 'false');
     this.missedFilter.setAttribute('aria-selected', 'true');
@@ -640,8 +641,9 @@ var CallLog = {
 
   unfilter: function cl_unfilter() {
     if (document.body.classList.contains('recents-edit')) {
-      return;
+      this.hideEditMode();
     }
+
     // If the call log is empty display the appropriate message, otherwise hide
     // the empty call log message and enable edit mode
     if (this._empty) {

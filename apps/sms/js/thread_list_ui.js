@@ -347,22 +347,28 @@ var ThreadListUI = {
   },
 
   renderDrafts: function thlui_renderDrafts() {
-    // Request and render all thread-less drafts.
+    // Request and render all threads with drafts
+    // or thread-less drafts.
     Drafts.request(function() {
-      var threadless = Drafts.byThreadId(null);
+      Drafts.forEach(function(draft, threadId) {
+        if (threadId) {
+          // Find draft-containing threads that have already been rendered
+          // and update them so they mark themselves appropriately
+          var el = document.getElementById('thread-' + threadId);
+          if (el) {
+            this.updateThread(Threads.get(threadId));
+          }
+        } else {
+          // Safely assume there is a threadless draft
+          this.setEmpty(false);
 
-      if (threadless.length) {
-        this.setEmpty(false);
-      }
-      // `threadless` is an instance of Drafts.List
-      // and only exposes a length property and a forEach method.
-      threadless.forEach(function(draft) {
-        // If there is currently no list item rendered for this
-        // draft, then proceed.
-        if (!this.draftRegistry[draft.id]) {
-          this.appendThread(
-            Thread.create(draft)
-          );
+          // If there is currently no list item rendered for this
+          // draft, then proceed.
+          if (!this.draftRegistry[draft.id]) {
+            this.appendThread(
+              Thread.create(draft)
+            );
+          }
         }
       }, this);
 

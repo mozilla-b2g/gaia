@@ -1799,12 +1799,26 @@ var ThreadUI = global.ThreadUI = {
 
   getMessageBubble: function thui_getMessageContainer(element) {
     var node = element;
+    var bubble;
+
     do {
-      if (node.dataset && node.dataset.messageId) {
-        return {
-          id: +node.dataset.messageId,
-          node: node
-        };
+      if (node.classList.contains('bubble')) {
+        bubble = node;
+      }
+
+      // If we have a bubble and we reach the li with dataset.messageId
+      if (bubble) {
+        if (node.dataset && node.dataset.messageId) {
+          return {
+            id: +node.dataset.messageId,
+            node: bubble
+          };
+        }
+      }
+
+      // If we reach the container, quit.
+      if (node.id === 'thread-messages') {
+        return null;
       }
     } while ((node = node.parentNode));
 
@@ -2009,6 +2023,10 @@ var ThreadUI = global.ThreadUI = {
       MessageManager.sendMMS(mmsMessage, null,
         function onError(error) {
           var errorName = error.name;
+          if (errorName === 'NotFoundError') {
+            console.info('The message was deleted or is no longer available.');
+            return;
+          }
           this.showMessageError(errorName);
         }.bind(this)
       );

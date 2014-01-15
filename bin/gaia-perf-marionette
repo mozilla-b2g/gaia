@@ -5,6 +5,12 @@ SOURCE="${BASH_SOURCE[0]}"
 # Make it an absolute path
 DIR="$( cd "$( dirname "$SOURCE" )" && pwd )"
 
+if [ -z "$MOZPERFOUT" ] ; then
+    exec 3>&1
+else
+    exec 3>"$MOZPERFOUT"
+fi
+
 # where all gaia specific customizations for mocha-marionette live.
 SHARED=$GAIA_DIR/shared/test/integration
 
@@ -17,7 +23,7 @@ fi
 if [ -z "$NPM_REGISTRY" ]; then
   NPM_REGISTRY="http://registry.npmjs.org"
 fi
-`cd $DIR && npm install --registry=${NPM_REGISTRY}`
+(cd $DIR && npm install --registry=${NPM_REGISTRY})
 
 
 if [ $MARIONETTE_RUNNER_HOST = "marionette-b2gdesktop-host" ] ; then
@@ -47,13 +53,13 @@ fi
 
 
 # All echo calls help create a JSON array
-echo '['
+echo '[' >&3
 SHARED_PERF=`find tests/performance -name "*_test.js" -type f`
 for app in $APPS; do
   if [ -z "$FIRST_LOOP_ITERATION" ]; then
     FIRST_LOOP_ITERATION=done
   else
-    echo ','
+    echo ',' >&3
   fi
   FILES_PERF=`test -d apps/$app/test/performance && find apps/$app/test/performance -name "*_test.js" -type f`
   # wrap marionette-mocha with gaia's defaults. We also need to alter the paths to
@@ -68,6 +74,6 @@ for app in $APPS; do
     $SHARED/setup.js \
     $GAIA_DIR/tests/performance/perf.js $SHARED_PERF $FILES_PERF \
     -R "$GAIA_DIR/tests/reporters/jsonmozperf.js" \
-    $@
+    $@ >&3
 done
-echo ']'
+echo ']' >&3

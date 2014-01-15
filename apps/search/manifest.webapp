@@ -32,5 +32,11 @@
         "manifestURLs": ["app://system.gaiamobile.org/manifest.webapp"]
       }
     }
+  },
+  "datastores-access": {
+    "eme_store": {
+      "readonly": false,
+      "description": "Stores Everything.me data"
+    }
   }
 }

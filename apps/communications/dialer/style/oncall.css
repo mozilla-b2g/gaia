@@ -57,6 +57,10 @@
     table-layout:fixed;
   }
 
+  .grid.hide {
+    display: none;
+  }
+
   #keypad-callbar.hide,
   #keypad-hide-bar.hide {
     display: none;
@@ -251,11 +255,15 @@
   }
 
   .icon-place-new-call {
-    background-image:url('images/ActionIcon_40x40_placenewcall.png');
+    background-image: url('images/ActionIcon_40x40_placenewcall.png');
   }
 
   .icon-speaker {
-    background-image:url('images/ActionIcon_40x40_speaker.png') ;
+    background-image: url('images/ActionIcon_40x40_speaker.png') ;
+  }
+
+  .icon-bt {
+    background-image: url('images/ActionIcon_40x40_audiosourcemenu.png');
   }
 
   #callbar {
@@ -286,7 +294,7 @@
 
   #callbar > button,
   #callbar > button:active {
-    padding: none;
+    padding: 0;
 
     border: none;
     background: none;
@@ -774,6 +782,10 @@
 
   #contact-background.ready {
     opacity: 1;
+  }
+
+  #bluetooth-menu {
+    z-index: 751;
   }
 
   #call-screen[data-layout="dialing"] #callbar-answer,

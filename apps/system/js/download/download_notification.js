@@ -56,6 +56,10 @@ DownloadNotification.prototype = {
    */
   _update: function dn_update() {
     this._updateSystemDownloads();
+    if (this.download.state === 'finalized') {
+      this._onFinalized();
+      return;
+    }
     var noNotify = this._wontNotify();
     this.state = this.download.state;
     // Error attr will be not null when a download is stopped because
@@ -75,6 +79,10 @@ DownloadNotification.prototype = {
 
   _onSucceeded: function dn_onSucceeded() {
     this._storeDownload(this.download);
+  },
+
+  _onFinalized: function dn_onFinalized() {
+    this._close();
   },
 
   /**
@@ -144,6 +152,14 @@ DownloadNotification.prototype = {
   },
 
   /**
+   * Closes the notification
+   */
+  _close: function dn_close() {
+    NotificationScreen.removeNotification(this.id);
+    this.onClose();
+  },
+
+  /**
    * It performs the action when the notification is clicked by the user
    * depending on state:
    *
@@ -157,8 +173,7 @@ DownloadNotification.prototype = {
    */
   onClick: function dn_onClick(done) {
     var cb = (function() {
-      NotificationScreen.removeNotification(this.id);
-      this.onClose();
+      this._close();
       done();
     }).bind(this);
 

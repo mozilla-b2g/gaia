@@ -180,6 +180,33 @@
       return draft;
     },
     /**
+     * forEach
+     *
+     * Call the callback on each draft in the
+     * draft index (the latest draft for a valid
+     * threadId and all the drafts for a null
+     * threadId).
+     *
+     * @return {Undefined}
+     */
+    forEach: function(callback, thisArg) {
+      if (thisArg) {
+        callback = callback.bind(thisArg);
+      }
+      draftIndex.forEach(function(drafts, threadId) {
+        if (threadId) {
+          var latest = drafts[drafts.length - 1];
+          callback(latest, threadId);
+        } else {
+          // All the null threadId drafts are
+          // valid thread-less drafts
+          drafts.forEach(function(draft) {
+            callback(draft, null);
+          });
+        }
+      });
+    },
+    /**
      * clear
      *
      * Delete drafts from the map.

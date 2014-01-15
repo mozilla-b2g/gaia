@@ -71,18 +71,29 @@ var CallsHandler = (function callsHandler() {
       telephony.muted = false;
     }
 
+    // XXX: Use BTManager.isConnected() through btHelper
+    // once bug 929376 is finished.
+    btHelper.getConnectedDevicesByProfile(btHelper.profiles.HFP,
+    function(result) {
+      CallScreen.setBTReceiverIcon(!!(result && result.length));
+    });
+
+    btHelper.onhfpstatuschanged = function(evt) {
+      CallScreen.setBTReceiverIcon(evt.status);
+    };
+
     var acm = navigator.mozAudioChannelManager;
     if (acm) {
       acm.addEventListener('headphoneschange', function onheadphoneschange() {
         if (acm.headphones) {
-          CallScreen.turnSpeakerOff();
+          CallScreen.switchToDefaultOut();
         }
       });
     }
 
     btHelper.onscostatuschanged = function onscostatuschanged(evt) {
       if (evt.status) {
-        CallScreen.turnSpeakerOff();
+        CallScreen.switchToDefaultOut();
       }
     };
 
@@ -187,7 +198,7 @@ var CallsHandler = (function callsHandler() {
     // First incoming or outgoing call, reset mute and speaker.
     if (handledCalls.length == 0) {
       CallScreen.unmute();
-      CallScreen.turnSpeakerOff();
+      CallScreen.switchToDefaultOut();
     }
 
     // Find an available node for displaying the call
@@ -699,21 +710,30 @@ var CallsHandler = (function callsHandler() {
     telephony.muted = false;
   }
 
-  function turnSpeakerOn() {
+  function switchToSpeaker() {
+    // add a btHelper.isConnected() check before calling disconnectSco
+    // once bug 929376 lands.
+    btHelper.disconnectSco();
     if (!telephony.speakerEnabled) {
       telephony.speakerEnabled = true;
-      if (settings) {
-        settings.createLock().set({'telephony.speaker.enabled': true});
-      }
     }
   }
 
-  function turnSpeakerOff() {
+  function switchToDefaultOut() {
     if (telephony.speakerEnabled) {
       telephony.speakerEnabled = false;
-      if (settings) {
-        settings.createLock().set({'telephony.speaker.enabled': false});
-      }
+    }
+    // add a btHelper.isConnected() check before calling disconnectSco
+    // once bug 929376 lands.
+    btHelper.connectSco();
+  }
+
+  function switchToReceiver() {
+    // add a btHelper.isConnected() check before calling disconnectSco
+    // once bug 929376 lands.
+    btHelper.disconnectSco();
+    if (telephony.speakerEnabled) {
+      telephony.speakerEnabled = false;
     }
   }
 
@@ -722,10 +742,11 @@ var CallsHandler = (function callsHandler() {
   }
 
   function toggleSpeaker() {
-    if (telephony.speakerEnabled)
-      turnSpeakerOff();
-    else
-      turnSpeakerOn();
+    if (telephony.speakerEnabled) {
+      CallsHandler.switchToDefaultOut();
+    } else {
+      CallsHandler.switchToSpeaker();
+    }
   }
 
   /* === Recents management === */
@@ -819,8 +840,9 @@ var CallsHandler = (function callsHandler() {
     toggleMute: toggleMute,
     toggleSpeaker: toggleSpeaker,
     unmute: unmute,
-    turnSpeakerOn: turnSpeakerOn,
-    turnSpeakerOff: turnSpeakerOff,
+    switchToReceiver: switchToReceiver,
+    switchToSpeaker: switchToSpeaker,
+    switchToDefaultOut: switchToDefaultOut,
 
     addRecentEntry: addRecentEntry,
     checkCalls: onCallsChanged,

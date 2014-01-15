@@ -12,7 +12,8 @@ mocha.setup({
     'getVideoRotation',
     'Format',
     'VideoPlayer',
-    'GestureDetector'
+    'GestureDetector',
+    'debug'
   ]
 });
 

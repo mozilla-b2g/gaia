@@ -24,7 +24,7 @@
   background: #0B0B0C;
 }
 
-#search-bar #search-input {
+#search-input {
   margin-top: 2rem;
   width: calc(100% - 6.5rem);
   border: 0;
@@ -32,6 +32,11 @@
   line-height: 4rem;
   background: #0B0B0C;
   color: #fff;
+}
+
+.task-manager #search-input {
+  padding-left: 2.6rem;
+  background: url(search.png) no-repeat 0.5rem center;
 }
 
 #search-bar #search-input::-moz-placeholder {
