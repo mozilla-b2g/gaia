@@ -5,10 +5,11 @@ requireApp('settings/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 
 requireApp('settings/test/unit/mock_l10n.js');
 
-requireApp('settings/shared/js/settings_listener.js');
+requireApp('settings/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('settings/js/messaging.js');
 
 var mocksForMessaging = new MocksHelper([
+  'SettingsListener',
   'IccHelper'
 ]).init();
 
