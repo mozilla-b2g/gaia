@@ -125,4 +125,7 @@
     display: none;
   }
 
+  #bluetooth-menu {
+    display: none;
+  }
 }

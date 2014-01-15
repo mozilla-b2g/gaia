@@ -20,8 +20,15 @@ var CallScreen = {
 
   muteButton: document.getElementById('mute'),
   speakerButton: document.getElementById('speaker'),
+  bluetoothButton: document.getElementById('bt'),
   keypadButton: document.getElementById('keypad-visibility'),
   placeNewCallButton: document.getElementById('place-new-call'),
+
+  bluetoothMenu: document.getElementById('bluetooth-menu'),
+  switchToDeviceButton: document.getElementById('btmenu-btdevice'),
+  switchToReceiverButton: document.getElementById('btmenu-receiver'),
+  switchToSpeakerButton: document.getElementById('btmenu-speaker'),
+  bluetoothMenuCancel: document.getElementById('btmenu-cancel'),
 
   answerButton: document.getElementById('callbar-answer'),
   rejectButton: document.getElementById('callbar-hang-up'),
@@ -94,6 +101,8 @@ var CallScreen = {
                                              this.placeNewCall.bind(this));
     this.speakerButton.addEventListener('click',
                                     this.toggleSpeaker.bind(this));
+    this.bluetoothButton.addEventListener('click',
+                                    this.toggleBluetoothMenu.bind(this));
     this.answerButton.addEventListener('click',
                                     CallsHandler.answer);
     this.rejectButton.addEventListener('click',
@@ -101,10 +110,19 @@ var CallScreen = {
     this.holdButton.addEventListener('mouseup', CallsHandler.toggleCalls);
 
     this.showGroupButton.addEventListener('click',
-                                    CallScreen.showGroupDetails.bind(this));
+                                    this.showGroupDetails.bind(this));
 
     this.hideGroupButton.addEventListener('click',
-                                    CallScreen.hideGroupDetails.bind(this));
+                                    this.hideGroupDetails.bind(this));
+
+    this.switchToDeviceButton.addEventListener('click',
+                                    this.switchToDefaultOut.bind(this));
+    this.switchToReceiverButton.addEventListener('click',
+                                    this.switchToReceiver.bind(this));
+    this.switchToSpeakerButton.addEventListener('click',
+                                    this.switchToSpeaker.bind(this));
+    this.bluetoothMenuCancel.addEventListener('click',
+                                    this.toggleBluetoothMenu.bind(this));
 
     this.incomingAnswer.addEventListener('click',
                               CallsHandler.holdAndAnswer);
@@ -363,14 +381,45 @@ var CallScreen = {
     CallsHandler.toggleSpeaker();
   },
 
-  turnSpeakerOn: function cs_turnSpeakerOn() {
-    this.speakerButton.classList.add('active-state');
-    CallsHandler.turnSpeakerOn();
+  toggleBluetoothMenu: function cs_toggleBluetoothMenu(value) {
+    if (typeof value != 'boolean') {
+      this.bluetoothMenu.classList.toggle('display');
+    } else {
+      this.bluetoothMenu.classList.toggle('display', value);
+    }
   },
 
-  turnSpeakerOff: function cs_turnSpeakerOff() {
+  switchToSpeaker: function cs_switchToReceiver() {
+    this.speakerButton.classList.add('active-state');
+    this.bluetoothButton.classList.add('active-state');
+    CallsHandler.switchToSpeaker();
+    this.toggleBluetoothMenu(false);
+  },
+
+  switchToReceiver: function cs_switchToReceiver() {
     this.speakerButton.classList.remove('active-state');
-    CallsHandler.turnSpeakerOff();
+    this.bluetoothButton.classList.remove('active-state');
+    CallsHandler.switchToReceiver();
+    this.toggleBluetoothMenu(false);
+  },
+
+  // when BT device available: switch to BT
+  // when BT device unavailable: switch to receiver
+  switchToDefaultOut: function cs_switchToDefaultOut() {
+    this.speakerButton.classList.remove('active-state');
+    this.bluetoothButton.classList.add('active-state');
+    CallsHandler.switchToDefaultOut();
+    this.toggleBluetoothMenu(false);
+  },
+
+  setBTReceiverIcon: function cs_setBTReceiverIcon(enabled) {
+    if (enabled) {
+      this.speakerButton.classList.add('hide');
+      this.bluetoothButton.classList.remove('hide');
+    } else {
+      this.speakerButton.classList.remove('hide');
+      this.bluetoothButton.classList.add('hide');
+    }
   },
 
   showKeypad: function cs_showKeypad() {

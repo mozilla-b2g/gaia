@@ -102,10 +102,10 @@ suite('calls handler', function() {
         assert.isTrue(unmuteSpy.calledOnce);
       });
 
-      test('should turn speaker off', function() {
-        var speakerSpy = this.sinon.spy(MockCallScreen, 'turnSpeakerOff');
+      test('should switch sound to default out', function() {
+        var toDefaultSpy = this.sinon.spy(MockCallScreen, 'switchToDefaultOut');
         MockMozTelephony.mTriggerCallsChanged();
-        assert.isTrue(speakerSpy.calledOnce);
+        assert.isTrue(toDefaultSpy.calledOnce);
       });
 
       test('should ring if the setting is enabled', function() {
@@ -1127,6 +1127,64 @@ suite('calls handler', function() {
         assert.isTrue(addSpy.calledWith(overflowCall));
       });
     });
+
+    suite('> CallsHandler.switchToSpeaker', function() {
+      test('should turn off bluetooth', function() {
+        var disconnectScoSpy = this.sinon.spy(
+          MockBluetoothHelperInstance, 'disconnectSco');
+        CallsHandler.switchToSpeaker();
+        assert.isTrue(disconnectScoSpy.calledOnce);
+      });
+
+      test('should set speaker to enabled', function() {
+        CallsHandler.switchToSpeaker();
+        assert.isTrue(MockMozTelephony.speakerEnabled);
+      });
+    });
+
+    suite('> CallsHandler.switchToDefaultOut', function() {
+      test('should turn on bluetooth', function() {
+        var connectScoSpy = this.sinon.spy(
+          MockBluetoothHelperInstance, 'connectSco');
+        CallsHandler.switchToDefaultOut();
+        assert.isTrue(connectScoSpy.calledOnce);
+      });
+
+      test('should disable the speaker', function() {
+        CallsHandler.switchToDefaultOut();
+        assert.isFalse(MockMozTelephony.speakerEnabled);
+      });
+    });
+
+    suite('> CallsHandler.switchToReceiver', function() {
+      test('should turn off bluetooth', function() {
+        var disconnectScoSpy = this.sinon.spy(
+          MockBluetoothHelperInstance, 'disconnectSco');
+        CallsHandler.switchToReceiver();
+        assert.isTrue(disconnectScoSpy.calledOnce);
+      });
+
+      test('should disable the speaker', function() {
+        CallsHandler.switchToReceiver();
+        assert.isFalse(MockMozTelephony.speakerEnabled);
+      });
+    });
+
+    suite('> CallsHandler.toggleSpeaker', function() {
+      test('should call switchToSpeaker when toggle on', function() {
+        MockMozTelephony.speakerEnabled = false;
+        this.sinon.stub(CallsHandler, 'switchToSpeaker');
+        CallsHandler.toggleSpeaker();
+        assert.isTrue(CallsHandler.switchToSpeaker.calledOnce);
+      });
+
+      test('should call switchToDefaultOut when toggle off', function() {
+        MockMozTelephony.speakerEnabled = true;
+        this.sinon.stub(CallsHandler, 'switchToDefaultOut');
+        CallsHandler.toggleSpeaker();
+        assert.isTrue(CallsHandler.switchToDefaultOut.calledOnce);
+      });
+    });
   });
 
   suite('> headphone and bluetooth support', function() {
@@ -1156,19 +1214,43 @@ suite('calls handler', function() {
         CallsHandler.setup();
       });
 
-      test('should turn the speakerOff', function() {
-        var turnOffSpy = this.sinon.spy(MockCallScreen, 'turnSpeakerOff');
+      test('should switch sound to default out', function() {
+        var toDefaultSpy = this.sinon.spy(MockCallScreen, 'switchToDefaultOut');
         headphonesChange.yield();
-        assert.isTrue(turnOffSpy.calledOnce);
+        assert.isTrue(toDefaultSpy.calledOnce);
       });
     });
 
     suite('> connecting to bluetooth headset', function() {
-      test('should turn the speakerOff when connected', function() {
+      test('should show the bluetooth menu button when connected if a' +
+           'bluetooth receiver is available', function() {
+        this.sinon.stub(
+          MockBluetoothHelperInstance, 'getConnectedDevicesByProfile')
+          .yields(['dummyDevice']);
+        var setIconStub = this.sinon.stub(MockCallScreen, 'setBTReceiverIcon')
+                    .throws('should pass true to setBTReceiverIcon');
+        setIconStub.withArgs(true);
         CallsHandler.setup();
-        var turnOffSpy = this.sinon.spy(MockCallScreen, 'turnSpeakerOff');
+        assert.isTrue(setIconStub.calledOnce);
+      });
+
+      test('should show the speaker button when connected if no bluetooth' +
+           'receiver is available', function() {
+        this.sinon.stub(
+          MockBluetoothHelperInstance, 'getConnectedDevicesByProfile')
+          .yields([]);
+        var setIconStub = this.sinon.stub(MockCallScreen, 'setBTReceiverIcon')
+                    .throws('should pass false to setBTReceiverIcon');
+        setIconStub.withArgs(false);
+        CallsHandler.setup();
+        assert.isTrue(setIconStub.calledOnce);
+      });
+
+      test('should switch sound to BT receiver when connected', function() {
+        CallsHandler.setup();
+        var BTSpy = this.sinon.spy(MockCallScreen, 'switchToDefaultOut');
         MockBluetoothHelperInstance.onscostatuschanged({status: true});
-        assert.isTrue(turnOffSpy.calledOnce);
+        assert.isTrue(BTSpy.calledOnce);
       });
     });
 

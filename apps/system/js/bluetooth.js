@@ -82,23 +82,6 @@ var Bluetooth = {
       }
     });
 
-    // XXX: The key telephony.speaker.enabled was created
-    //      for resolving bug 870683.
-    if (settings) {
-      settings.addObserver('telephony.speaker.enabled',
-        function bt_onSpeakerEnabledChange(event) {
-          if (self.defaultAdapter &&
-              self.isProfileConnected(self.Profiles.HFP) &&
-              telephony.active) {
-            if (event.settingValue) {
-              self.defaultAdapter.disconnectSco();
-            } else {
-              self.defaultAdapter.connectSco();
-            }
-          }
-      });
-    }
-
     // when bluetooth adapter is ready, emit event to notify QuickSettings
     // and try to get defaultAdapter at this moment
     bluetooth.onadapteradded = function bt_onAdapterAdded() {

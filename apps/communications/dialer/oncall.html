@@ -102,6 +102,15 @@
           </button>
         </menu>
       </form>
+      <form id="bluetooth-menu" role="dialog" data-type="action" class="overlay">
+        <header data-l10n-id="select-audio-source">select audio source</header>
+        <menu>
+          <button data-l10n-id="bluetooth-handsfree-device" id='btmenu-btdevice'>bluetooth handsfree device</button>
+          <button data-l10n-id="receiver" id='btmenu-receiver'>receiver</button>
+          <button data-l10n-id="speaker" id='btmenu-speaker'>speaker</button>
+          <button data-l10n-id="cancel" id='btmenu-cancel'>cancel</button>
+        </menu>
+      </form>
       <article id="main-container">
         <div id="contact-background"></div>
         <div id="actions-container">
@@ -157,6 +166,10 @@
                 <span class="grid-cell options-column">
                   <button id="speaker" class="co-advanced-option grid-wraper grid">
                     <span class="icon icon-speaker">
+                    </span>
+                  </button>
+                  <button id="bt" hidden class="co-advanced-option grid-wraper grid hide">
+                    <span class="icon icon-bt">
                     </span>
                   </button>
                 </span>
