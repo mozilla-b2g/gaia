@@ -49,15 +49,5 @@
   "messages": [
      { "nfc-manager-tech-discovered": "/index.html" },
      { "nfc-manager-tech-lost": "/index.html" }
-  ],
-  "activities": {
-    "view": {
-      "filters": {
-        "type": "url",
-        "url": {
-          "required":true, "pattern":"https?:.{1,16384}", "patternFlags":"i"
-        }
-      }
-    }
-  }
+  ]
 }
