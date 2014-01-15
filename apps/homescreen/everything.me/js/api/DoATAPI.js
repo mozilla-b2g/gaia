@@ -94,12 +94,7 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
     authCookieName = options.authCookieName;
     manualCampaignStats = options.manualCampaignStats;
 
-    // temporarily generate a device id, so that requests going out before we
-    // took it from the cache won't fail
-    deviceId = generateDeviceId();
-    getDeviceId(function deviceIdGot(value) {
-      deviceId = value;
-    });
+    deviceId = options.deviceId;
 
     Evme.Storage.get(STORAGE_KEY_CREDS, function storageGot(value) {
       manualCredentials = value;
@@ -921,27 +916,9 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
     return retParams.join(',');
   }
 
-  function getDeviceId(callback) {
-    Evme.Storage.get('deviceId', function storageGot(deviceId) {
-      if (!deviceId) {
-        deviceId = generateDeviceId();
-        Evme.Storage.set('deviceId', deviceId);
-      }
-
-      callback(deviceId);
-    });
-  }
-
   this.getDeviceId = function getDeviceId() {
     return deviceId;
   };
-
-  function generateDeviceId() {
-    var queryString = {};
-    (location.search || '').replace(/(?:[?&]|^)([^=]+)=([^&]*)/g,
-      function regexmatch(ig, k, v) {queryString[k] = v;});
-    return queryString['did'] || 'fxos-' + Evme.Utils.uuid();
-  }
 
   function cbRequest(methodNamespace, method,
                                             params, retryNumber, completeURL) {
