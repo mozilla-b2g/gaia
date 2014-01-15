@@ -3,15 +3,18 @@
 
 'use strict';
 
-var Module;
-var emEngine;
-var procFunction;
+var Module = null;
+var emEngine = null;
+var procFunction = null;
 
 self.onmessage = function(e) {
   var data = e.data;
 
   if (data.id == 'init') {
     initModule(data.id, data.param);
+  } else if (!procFunction) {
+    throw new Error('procFunction is not initialized when receiving: ' +
+      data.id);
   } else if (procFunction[data.id]) {
     var result = procFunction[data.id](data.param);
     post(data.id, result);
@@ -62,7 +65,9 @@ function initModule(msgId, param) {
           Module.cwrap('im_flush_cache', '', [])
       };
 
+      log("Module is initialized, open dict.data and user_dict.data files.");
       if (emEngine.openDecoder('data/dict.data', 'data/user_dict.data')) {
+        log('Call initProcFunctions.');
         initProcFunctions();
         post(msgId, true);
       } else {
@@ -72,7 +77,9 @@ function initModule(msgId, param) {
   };
 
   try {
+    log("Import empinyin_files.js.");
     importScripts('empinyin_files.js');
+    log("Import libpinyin.js.");
     importScripts('libpinyin.js');
   } catch (e) {
     log(e.toString());
