@@ -54,16 +54,17 @@
 
       // if removeNextPaintListener or addNextPaintListener are not available
       // yet on the frame, wait for the mozbrowserready event.
-      self.debug('removeNextPaintListener in iframe : ' + ('removeNextPaintListener' in iframe));
+      self.debug('removeNextPaintListener in iframe : ' +
+                 ('removeNextPaintListener' in iframe));
       if (!('removeNextPaintListener' in iframe) ||
           !('addNextPaintListener' in iframe)) {
-        self.debug("Too early to attach paint listeners.");
+        self.debug('Too early to attach paint listeners.');
 
         var onBrowserReady = function() {
-          self.debug("Got onbrowserready");
+          self.debug('Got onbrowserready');
           iframe.removeEventListener('mozbrowserready', onBrowserReady);
           startWaiting();
-        }
+        };
         iframe.addEventListener('mozbrowserready', onBrowserReady);
       } else {
         startWaiting();
