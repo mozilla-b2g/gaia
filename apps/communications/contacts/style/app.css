@@ -683,7 +683,7 @@ nav[data-type="scrollbar"] p img {
 }
 
 .contact-checkbox {
-  left: -1rem !important;
+  left: 0 !important;
   display: none !important;
 }
 
