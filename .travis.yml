@@ -9,6 +9,7 @@ after_script: ./node_modules/.bin/travisaction $CI_ACTION after_script
 branches:
   only:
   - master
+  - rocketbar
 env:
   matrix:
   - CI_ACTION=gjslint
