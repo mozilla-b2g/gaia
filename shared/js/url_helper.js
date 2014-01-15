@@ -1,4 +1,18 @@
 var UrlHelper = {
+
+  rscheme: /^(?:[a-z\u00a1-\uffff0-9-+]+)(?::|:\/\/)/i,
+
+  getUrlFromInput: function urlHelper_getUrlFromInput(input) {
+    var hasScheme = !!(this.rscheme.exec(input) || [])[0];
+
+    // No scheme, prepend basic protocol and return
+    if (!hasScheme) {
+      return 'http://' + input;
+    }
+
+    return input;
+  },
+
   isURL: function urlHelper_isURL(input) {
     return !UrlHelper.isNotURL(input);
   },
