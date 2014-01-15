@@ -15,7 +15,7 @@
 #                                                                             #
 # REPORTER    : Mocha reporter to use for test output.                        #
 #                                                                             #
-# MOZPERFOUT  : File path to output mozperf data. Empty mean stdout.
+# MOZPERFOUT  : File path to output mozperf data. Empty mean stdout.          #
 #                                                                             #
 # MARIONETTE_RUNNER_HOST : The Marionnette runner host.                       #
 #                          Current values can be 'marionette-b2gdesktop-host' #
