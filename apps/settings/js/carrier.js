@@ -255,6 +255,9 @@ var CarrierSettings = (function(window, document, undefined) {
    * for the network type.
    */
   function cs_initNetworkTypeSelector() {
+    if (!_mobileConnection.setPreferredNetworkType)
+      return;
+
     var alertDialog = document.getElementById('preferredNetworkTypeAlert');
     var continueButton = alertDialog.querySelector('button');
     continueButton.addEventListener('click', function onClickHandler() {
@@ -284,6 +287,9 @@ var CarrierSettings = (function(window, document, undefined) {
    * Update network type selector.
    */
   function cs_updateNetworkTypeSelector(networkTypes, gsm, cdma) {
+    if (!_mobileConnection.getPreferredNetworkType)
+      return;
+
     var request = _mobileConnection.getPreferredNetworkType();
     request.onsuccess = function onSuccessHandler() {
       var networkType = request.result;
