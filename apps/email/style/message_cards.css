@@ -87,7 +87,6 @@ input.msg-search-text-tease {
 }
 .msg-header-details-section {
   -moz-box-sizing: border-box;
-  box-sizing: border-box;
   position: absolute;
   top: 0;
   left: 1.5rem;
@@ -376,7 +375,6 @@ input.msg-search-text-tease {
 .msg-reader-load-infobar {
   position: absolute;
   -moz-box-sizing: border-box;
-  box-sizing: border-box;
   color: white;
   font-size: 1.2rem;
   left: 0;
@@ -546,7 +544,6 @@ input.msg-search-text-tease {
 
 .msg-list-topbar {
   -moz-box-sizing: border-box;
-  box-sizing: border-box;
   position: absolute;
   top: 5rem;
   left: 0;
@@ -567,7 +564,6 @@ input.msg-search-text-tease {
   width: 3rem;
   height: 3rem;
   margin: 0.5rem 1rem 0 0;
-  background: transparent no-repeat top left 100% 100%;
 }
 
 .msg-reply-menu-reply:before {
