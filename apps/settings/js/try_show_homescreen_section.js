@@ -43,9 +43,10 @@
   }
 
   function updateHomescreenCount(evt) {
-    var app = evt.application;
-    if (isHomescreen(app)) {
+    if (evt.type == 'applicationinstall') {
       homescreenCount++;
+    } else {
+      homescreenCount--;
     }
 
     updateHomescreenSectionVisibility();
@@ -70,7 +71,7 @@
 
   // Show Homescreen section only if multiple installed
   function tryShowHomescreenSection(evt) {
-    if (isAppEventForHomescreen(evt)) {
+    if (isAppEventForHomescreen(evt) && scannedHomescreens) {
       updateHomescreenCount(evt);
     } else {
       scanForHomescreens();
@@ -86,6 +87,9 @@
   // 4s timer because settings.js already has a 3s timer
   navigator.addIdleObserver({
     time: 4,
-    onidle: tryShowHomescreenSection
+    onidle: function() {
+      navigator.removeIdleObserver(this);
+      tryShowHomescreenSection();
+    }
   });
 })();
