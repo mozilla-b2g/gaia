@@ -294,7 +294,7 @@
 
   #callbar > button,
   #callbar > button:active {
-    padding: none;
+    padding: 0;
 
     border: none;
     background: none;
