@@ -83,6 +83,13 @@ var Rocketbar = {
     switch (e.type) {
       case 'cardchange':
         this.searchInput.value = e.detail.title;
+
+        // Every app/browser has a title.
+        // If there is no title, there are no cards shown.
+        // We should focus on the rocketbar.
+        if (this.shown && !e.detail.title) {
+          this.searchInput.focus();
+        }
         return;
       case 'keyboardchange':
         // When the keyboard is opened make sure to not resize

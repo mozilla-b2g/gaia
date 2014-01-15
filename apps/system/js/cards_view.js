@@ -128,6 +128,8 @@ var CardsView = (function() {
 
     // Return early if inRocketbar and there are no apps besides homescreen
     if (Object.keys(runningApps).length < 2 && inRocketbar) {
+      // Fire a cardchange event to notify the rocketbar that there are no cards
+      fireCardChange();
       return;
     } else if (inRocketbar) {
       screenElement.classList.add('task-manager');
