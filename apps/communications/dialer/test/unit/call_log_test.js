@@ -27,6 +27,32 @@ suite('dialer/call_log', function() {
     window.Notification = realNotification;
   });
 
+  var noResult;
+  setup(function() {
+    var fakeDOM = ['headerEditModeText', 'deleteButton', 'selectAllThreads',
+                   'deselectAllThreads', 'callLogContainer', 'allFilter',
+                   'missedFilter', 'callLogIconEdit'];
+
+    fakeDOM.forEach(function(prop) {
+      CallLog[prop] = document.createElement('div');
+    });
+
+    noResult = document.createElement('div');
+    noResult.id = 'no-result-container';
+    var msgs = ['no-result-msg1', 'no-result-msg2', 'no-result-msg3'];
+    msgs.forEach(function(name) {
+      var node = document.createElement('div');
+      node.id = name;
+      noResult.appendChild(node);
+    });
+    document.body.appendChild(noResult);
+    document.body.classList.remove('recents-edit');
+  });
+
+  teardown(function() {
+    noResult.parentNode.removeChild(noResult);
+  });
+
   var incomingGroup = {
     id: '123',
     lastEntryDate: Date.now(),
@@ -340,6 +366,83 @@ suite('dialer/call_log', function() {
     test('call log should close notifications', function() {
       CallLog.cleanNotifications();
       sinon.assert.callCount(notificationSpy, 2);
+    });
+  });
+
+  suite('Edit mode >', function() {
+    suite('Entering edit mode', function() {
+      setup(function() {
+        CallLog.showEditMode();
+      });
+
+      test('should fill the header', function() {
+        assert.equal(CallLog.headerEditModeText.textContent, 'edit');
+      });
+
+      test('should disable the delete button at first', function() {
+        assert.isTrue(CallLog.deleteButton.classList.contains('disabled'));
+      });
+
+      test('should disable the deselect button at first', function() {
+        assert.equal(CallLog.deselectAllThreads.getAttribute('disabled'),
+                     'disabled');
+      });
+
+      test('should fill the select all button', function() {
+        assert.equal(CallLog.selectAllThreads.textContent, 'selectAll');
+      });
+
+      test('should enable the select all button', function() {
+        CallLog.selectAllThreads.setAttribute('disabled', 'disabled');
+        CallLog.showEditMode();
+        assert.isNull(CallLog.selectAllThreads.getAttribute('disabled'));
+      });
+
+      test('should put the body in recents-edit mode', function() {
+        assert.isTrue(document.body.classList.contains('recents-edit'));
+      });
+    });
+
+    suite('Exiting edit mode', function() {
+      setup(function() {
+        CallLog.callLogContainer.innerHTML = '' +
+         '<input type="checkbox" checked>' +
+         '<input type="checkbox" checked>' +
+         '<input type="checkbox" checked>';
+        CallLog.showEditMode();
+        CallLog.hideEditMode();
+      });
+
+      teardown(function() {
+      });
+
+      test('should put the body out of recents-edit mode', function() {
+        assert.isFalse(document.body.classList.contains('recents-edit'));
+      });
+
+      test('should uncheck the items', function() {
+        var container = CallLog.callLogContainer;
+        var checkboxes = container.querySelectorAll('input[type="checkbox"]');
+        for (var i = 0; i < checkboxes.length; i++) {
+          var checkbox = checkboxes[i];
+          assert.isFalse(checkbox.checked);
+        }
+      });
+    });
+
+    test('Filtering should exit edit mode', function() {
+      CallLog.showEditMode();
+      CallLog.filter();
+
+      assert.isFalse(document.body.classList.contains('recents-edit'));
+    });
+
+    test('Unfiltering should exit edit mode', function() {
+      CallLog.filter();
+      CallLog.showEditMode();
+      CallLog.unfilter();
+
+      assert.isFalse(document.body.classList.contains('recents-edit'));
     });
   });
 });
