@@ -48,7 +48,7 @@
           self.debug(' nextpaint is timeouted.');
           iframe.removeNextPaintListener(onNextPaint);
           callback();
-        }, this.NEXTPAINT_TIMEOUT);
+        }, self.NEXTPAINT_TIMEOUT);
         iframe.addNextPaintListener(onNextPaint);
       }
 
