@@ -15,7 +15,7 @@ make -C $DIR/../ b2g
 if [ -z "$NPM_REGISTRY" ]; then
   NPM_REGISTRY="http://registry.npmjs.org"
 fi
-`cd $DIR && npm install --registry=${NPM_REGISTRY}`
+(cd $DIR && npm install --registry=${NPM_REGISTRY})
 
 # tests can timeout without the profile-test folder so build it here.
 if [ ! -d $DIR/../profile-test ]; then
