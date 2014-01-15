@@ -20,6 +20,10 @@ body, html {
   padding: 0.2rem 0;
   -moz-box-sizing: border-box;
   -moz-user-focus: ignore;
+
+  display: flex;
+  flex-direction: row;
+  -moz-user-select: none;
 }
 
 #screen.locked:not(.attention) #statusbar{
@@ -30,27 +34,55 @@ body, html {
   display: block;
 }
 
-#statusbar > * {
+#statusbar-icons > * {
   pointer-events: none;
   float: right;
   margin: 0 0.2rem;
 }
 
+#statusbar-title {
+  pointer-events: none;
+  flex-grow: 1;
+  flex-shrink: 1;
+  min-width: 33%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding-left: 0.3rem;
+}
+
+body:not(.rb-enabled) #statusbar-title {
+  display: none;
+}
+
+#statusbar-icons {
+  flex-grow: 1;
+  flex-shrink: 0;
+  min-width: 33%;
+  max-width: 67%;
+  -moz-user-focus: ignore;
+  -moz-user-select: none;
+}
+
+body:not(.rb-enabled) #statusbar-icons {
+  max-width: 100%;
+}
+
 #statusbar-title,
-body:not(.rb-enabled) #statusbar > .sb-start {
+body:not(.rb-enabled) #statusbar-icons > .sb-start {
   float: left;
   -moz-transition: visibility 0.5s ease, -moz-transform 0.5s ease;
 }
 
-*[dir=rtl] #statusbar > * {
+*[dir=rtl] #statusbar-icons > * {
   float: left;
 }
 
-*[dir=rtl] #statusbar > .sb-start {
+*[dir=rtl] #statusbar-icons > .sb-start {
   float: right;
 }
 
-#statusbar > .sb-start-upper {
+#statusbar-icons > .sb-start-upper {
   visibility: hidden;
   position: absolute;
   top: -2rem;
@@ -59,19 +91,19 @@ body:not(.rb-enabled) #statusbar > .sb-start {
   -moz-transition: visibility 0.5s ease, -moz-transform 0.5s ease;
 }
 
-*[dir=rtl] #statusbar > .sb-start-upper {
+*[dir=rtl] #statusbar-icons > .sb-start-upper {
   left: auto;
   right: 0;
 }
 
-.utility-tray #statusbar > .sb-start-upper,
+.utility-tray #statusbar-icons > .sb-start-upper,
 .utility-tray #statusbar > #statusbar-title,
 #statusbar-title.hidden {
   visibility: visible;
   -moz-transform: translateY(2rem);
 }
 
-.utility-tray #statusbar > .sb-start {
+.utility-tray #statusbar-icons > .sb-start {
   visibility: hidden;
   -moz-transform: translateY(2rem);
 }
