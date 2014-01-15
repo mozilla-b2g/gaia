@@ -32,6 +32,31 @@ suite('system/Rocketbar', function() {
   });
 
   suite('handleEvent', function() {
+    test('cardchange event should trigger focus if no card', function() {
+      var focusStub = this.sinon.stub(Rocketbar.searchInput, 'focus');
+      Rocketbar.render();
+      this.sinon.clock.tick(1);
+      Rocketbar.handleEvent({
+        type: 'cardchange',
+        detail: {
+          title: ''
+        }
+      });
+      assert.ok(focusStub.calledOnce);
+      Rocketbar.hide();
+    });
+
+    test('cardchange event should not trigger focus if card', function() {
+      var focusStub = this.sinon.stub(Rocketbar.searchInput, 'focus');
+      Rocketbar.handleEvent({
+        type: 'cardchange',
+        detail: {
+          title: 'Mozilla'
+        }
+      });
+      assert.ok(focusStub.notCalled);
+    });
+
     test('search-cancel element should hide the task manager', function() {
       var dispatchStub = this.sinon.stub(window, 'dispatchEvent');
       Rocketbar.handleEvent({
