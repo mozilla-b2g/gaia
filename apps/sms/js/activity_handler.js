@@ -84,8 +84,10 @@ var ActivityHandler = {
       ThreadUI.enableActivityRequestMode();
     },
     share: function shareHandler(activity) {
+      var arr = [];
       var blobs = activity.source.data.blobs,
-        names = activity.source.data.filenames;
+        names = activity.source.data.filenames,
+        numbers = activity.source.data.number;
 
       function insertAttachments() {
         window.removeEventListener('hashchange', insertAttachments);
@@ -98,8 +100,14 @@ var ActivityHandler = {
           // TODO: We only allow sharing one item in a single action now.
           //       Keeping the same sequence while adding the multiple items
           //       should be considered in the future.
-          Compose.append(attachment);
+          arr.push(attachment);
         });
+        if (arr.length == numbers) {
+          ThreadUI.cleanFields(true);
+          setTimeout(function() {
+            Compose.appendAll(arr);
+          },1000);
+        }
       }
 
       // Navigating to the 'New Message' page is an asynchronous operation that
