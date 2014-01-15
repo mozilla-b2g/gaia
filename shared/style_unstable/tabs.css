@@ -51,7 +51,7 @@
   text-align: center;
   line-height: 4.5rem;
   border: 0;
-  border-radius: none;
+  border-radius: 0;
   background-color: transparent;
   background-size: 3rem auto;
   background-repeat: no-repeat;
