@@ -141,8 +141,7 @@ function customizeHomescreen(options) {
       [
         ['apps', 'communications', 'dialer'],
         ['apps', 'sms'],
-        ['apps', 'communications', 'contacts'],
-        ['apps', 'browser']
+        ['apps', 'communications', 'contacts']
       ], [
         ['apps/homescreen/collections', 'social'],
         ['apps/homescreen/collections', 'games'],
