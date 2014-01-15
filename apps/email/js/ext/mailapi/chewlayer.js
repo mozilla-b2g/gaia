@@ -4170,7 +4170,6 @@ exports.chewHeaderAndBodyStructure =
  *
  */
 exports.updateMessageWithFetch = function(header, body, req, res, _LOG) {
-
   var bodyRep = body.bodyReps[req.bodyRepIndex];
 
   // check if the request was unbounded or we got back less bytes then we

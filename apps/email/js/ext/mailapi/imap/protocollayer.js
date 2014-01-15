@@ -143,9 +143,16 @@ Sync.prototype = {
           if (!self.oncomplete)
             return;
 
-          self.oncomplete(
-            self.newUIDs.length,
-            self.knownUIDs.length
+          // Need a timeout here because we batch slices in SliceBridgeProxy and
+          // only want to call oncomplete after all those slices have been sent
+          // to keep the order the same.
+          window.setZeroTimeout(
+            function() {
+              self.oncomplete(
+                self.newUIDs.length,
+                self.knownUIDs.length
+              );
+            }
           );
         });
       }
