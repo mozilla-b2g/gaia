@@ -90,11 +90,11 @@ suite('system/LayoutManager >', function() {
     MockSoftwareButtonManager.height = 50;
     LayoutManager.keyboardEnabled = true;
     assert.equal(LayoutManager.usualHeight, H - 100 - 30 - 50);
-    assert.equal(LayoutManager.fullscreenHeight, H - 100);
+    assert.equal(LayoutManager.fullscreenHeight, H - 100 - 50);
     assert.equal(LayoutManager.width, W);
     assert.equal(LayoutManager.clientWidth, _w);
 
     assert.isTrue(LayoutManager.match(W, H - 100 - 30 - 50, false));
-    assert.isTrue(LayoutManager.match(W, H - 100, true));
+    assert.isTrue(LayoutManager.match(W, H - 100 - 50, true));
   });
 });
