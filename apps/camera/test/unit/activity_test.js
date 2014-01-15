@@ -1,4 +1,3 @@
-/*jshint maxlen:false*/
 'use strict';
 
 suite('activity', function() {
@@ -18,29 +17,39 @@ suite('activity', function() {
   });
 
   setup(function() {
+
+    // Ensure unit tests still work
+    // when these APIs don't exist.
+    navigator.mozHasPendingMessage =
+      navigator.mozHasPendingMessage || function() {};
+    navigator.mozSetMessageHandler =
+      navigator.mozSetMessageHandler || function() {};
+
+    this.sandbox = sinon.sandbox.create();
+    this.sandbox.stub(navigator, 'mozHasPendingMessage');
+    this.sandbox.stub(navigator, 'mozSetMessageHandler');
+
     this.activity = new Activity();
   });
 
-  test.skip('Should call the callback synchronously ' +
-       'if there is no pending activity', function() {
-    var hasPendingMessage = this.sinon.stub(navigator, 'mozHasPendingMessage');
+  teardown(function() {
+    this.sandbox.restore();
+  });
+
+  test('Should call the callback synchronously if there ' +
+    'is no pending activity', function() {
     var callback = this.sinon.spy();
 
     // Instruct the stub to return false
     // when called with 'activity' argument.
-    hasPendingMessage.withArgs('activity').returns(false);
+    navigator.mozHasPendingMessage.withArgs('activity').returns(false);
 
     this.activity.check(callback);
     assert.ok(callback.called);
-
-    // Remove the stub
-    hasPendingMessage.restore();
   });
 
-  test.skip('Should call the callback when the \'activity\' ' +
-       'message event fires, when there is a pending message', function(done) {
-    var hasPendingMessage = this.sinon.stub(navigator, 'mozHasPendingMessage');
-    var setMessageHandler = this.sinon.stub(navigator, 'mozSetMessageHandler');
+  test('Should call the callback when the \'activity\' ' +
+    'message event fires, when there is a pending message', function(done) {
     var callback = this.sinon.spy();
     var activityObject = {
       source: {
@@ -54,16 +63,17 @@ suite('activity', function() {
     // Instruct the stub to report a pending message,
     // then fire the 'activity' event async, calling
     // the callback function it was given.
-    hasPendingMessage.withArgs('activity').returns(true);
-    setMessageHandler.withArgs('activity').callsArgWithAsync(1, activityObject);
+    navigator.mozHasPendingMessage
+      .withArgs('activity')
+      .returns(true);
+
+    navigator.mozSetMessageHandler
+      .withArgs('activity')
+      .callsArgWithAsync(1, activityObject);
 
     this.activity.check(function() {
       callback();
       done();
-
-      // Remove all stubs
-      hasPendingMessage.restore();
-      setMessageHandler.restore();
     });
 
     // Should not have been called sync

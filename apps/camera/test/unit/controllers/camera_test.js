@@ -2,7 +2,7 @@
 /*global req*/
 'use strict';
 
-suite.skip('controllers/camera', function() {
+suite('controllers/camera', function() {
   var Controller;
 
   // Sometimes setup via the
@@ -17,13 +17,11 @@ suite.skip('controllers/camera', function() {
 
     req([
       'controllers/camera',
-      'camera',
       'activity',
       'vendor/view',
       'vendor/evt'
-    ], function(controller, camera, View, activity, evt) {
+    ], function(controller, View, activity, evt) {
       Controller = self.modules.controller = controller;
-      self.modules.camera = camera;
       self.modules.view = View;
       self.modules.activity = activity;
       self.modules.evt = evt;
@@ -33,22 +31,23 @@ suite.skip('controllers/camera', function() {
 
   setup(function() {
     var Activity = this.modules.activity;
-    var Camera = this.modules.camera;
     var View = this.modules.view;
     var evt = this.modules.evt;
 
     // Mock app
     this.app = evt.mix({
       activity: new Activity(),
-      camera: new Camera(),
+      camera: {
+        setCaptureMode: sinon.spy(),
+        getPreferredSizes: sinon.spy(),
+        on: sinon.spy()
+      },
       views: {
         filmstrip: new View(),
         viewfinder: new View()
       }
     });
 
-    sinon.stub(this.app.camera, 'setCaptureMode');
-    sinon.stub(this.app.camera, 'getPreferredSizes');
     this.app.views.filmstrip.clear = sinon.spy();
   });
 
