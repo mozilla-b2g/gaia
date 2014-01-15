@@ -40,11 +40,19 @@
 
   // Display a screenshot success or failure notification.
   // Localize the first argument, and localize the third if the second is null
-  function notify(titleid, body, bodyid) {
+  function notify(titleid, body, bodyid, callback) {
     var title = navigator.mozL10n.get(titleid) || titleid;
     body = body || navigator.mozL10n.get(bodyid);
-    navigator.mozNotification.createNotification(
-      title, body, 'style/icons/Gallery.png').show();
+    
+    var notification = new Notification(title, {
+          body: body,
+          icon: 'style/icons/Gallery.png'
+        });
+
+    notification.onclick = (function() {
+      if (callback)
+        callback();
+    }).bind(this);
   }
 
   // Get a DeviceStorage object and pass it to the callback.
@@ -92,13 +100,28 @@
             '.png';
 
           var saveRequest = storage.addNamed(e.detail.file, filename);
+          
+          var openImage = function openImage() {
+            var request = storage.get(filename);
+            request.onsuccess = function() {
+              var imgblob = this.result;
+              var activity = new MozActivity({
+                name: 'open',
+                data: {
+                  type: imgblob.type,
+                  filename: filename,
+                  blob: imgblob
+                }
+              });
+            }
+          };
 
           saveRequest.onsuccess = function ss_onsuccess() {
             // Vibrate again when the screenshot is saved
             navigator.vibrate(100);
 
             // Display filename in a notification
-            notify('screenshotSaved', filename);
+            notify('screenshotSaved', filename, null, openImage);
           };
 
           saveRequest.onerror = function ss_onerror() {
