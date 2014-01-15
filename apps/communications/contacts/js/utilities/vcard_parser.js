@@ -5,10 +5,6 @@ var VCFReader = (function _VCFReader() {
   var ReBasic = /^([^:]+):(.+)$/;
   var ReTuple = /([a-zA-Z]+)=(.+)/;
 
-  function getContact(contact) {
-    return (contact instanceof mozContact) ? contact : new mozContact(contact);
-  }
-
   function _parseTuple(p) {
     var match = p.match(ReTuple);
     return match ? [match[1].toLowerCase(), match[2]] : ['type', p];
@@ -317,7 +313,7 @@ var VCFReader = (function _VCFReader() {
     _processComm(vcard, obj);
     _processFields(vcard, obj);
 
-    return new mozContact(obj);
+    return utils.misc.toMozContact(obj);
   };
 
   /**
@@ -367,6 +363,7 @@ var VCFReader = (function _VCFReader() {
     this.ondone = cb;
 
     LazyLoader.load(['/shared/js/simple_phone_matcher.js',
+      '/contacts/js/utilities/misc.js',
       '/contacts/js/contacts_matcher.js',
       '/contacts/js/contacts_merger.js',
       '/contacts/js/merger_adapter.js'
@@ -431,7 +428,7 @@ var VCFReader = (function _VCFReader() {
         return;
       }
 
-      var contact = new mozContact(ct);
+      var contact = utils.misc.toMozContact(ct);
       var afterSaveFn = afterSave.bind(null, contact);
       var matchCbs = {
         onmatch: function(matches) {
@@ -460,7 +457,7 @@ var VCFReader = (function _VCFReader() {
    * @param {Function} cb Callback.
    */
   VCFReader._save = function(item, cb) {
-    var req = navigator.mozContacts.save(getContact(item));
+    var req = navigator.mozContacts.save(utils.misc.toMozContact(item));
     req.onsuccess = cb;
     req.onerror = cb;
   };
