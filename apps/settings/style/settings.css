@@ -25,14 +25,8 @@ section[role="region"] {
   width: 100%;
   height: 100%;
   border: 0;
-  /*
-    we need the background pattern when the app content is less then viewport
-    (see Bug 938785)
-  */
-  background-color: #f4f4f4;
   overflow: hidden;
 }
-
 
 /**
  * Panel targets -- transitions
@@ -71,6 +65,14 @@ section[role="region"] > div {
   will-change: scroll-position;
 }
 
+/*
+ * Need this for scrollable background layer
+ * optimization in gecko. See Bug 950250
+ */
+section[role="region"],
+section[role="region"] > div > ul {
+  background-color: #f4f4f4;
+}
 
 /******************************************************************************
  * Explanation texts
