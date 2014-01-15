@@ -58,7 +58,8 @@ suite('system/SheetsTransition >', function() {
 
     test('it should set the transition property on the current sheet',
     function() {
-      assert.equal(settingsFrame.style.transition, 'transform 0s ease 0s');
+      var transition = 'transform 0s ease 0s, opacity 0s ease 0s';
+      assert.equal(settingsFrame.style.transition, transition);
     });
 
     test('it should add the outside-edges-left class to the new sheet',
@@ -68,7 +69,8 @@ suite('system/SheetsTransition >', function() {
 
     test('it should set the transition property on the new sheet',
     function() {
-      assert.equal(dialerFrame.style.transition, 'transform 0s ease 0s');
+      var transition = 'transform 0s ease 0s, opacity 0s ease 0s';
+      assert.equal(dialerFrame.style.transition, transition);
     });
 
     test('it should bump the zIndex of the new sheet',
@@ -95,7 +97,8 @@ suite('system/SheetsTransition >', function() {
 
       test('it should set the transition property on the new sheet',
       function() {
-        assert.equal(contactsFrame.style.transition, 'transform 0s ease 0s');
+        var transition = 'transform 0s ease 0s, opacity 0s ease 0s';
+        assert.equal(contactsFrame.style.transition, transition);
       });
 
       test('it should bump the zIndex of the new sheet',
@@ -128,6 +131,11 @@ suite('system/SheetsTransition >', function() {
       assert.equal(dialerFrame.style.transform, 'translateX(-14%)');
     });
 
+    test('it should set the opacity property on the new sheet',
+    function() {
+      assert.equal(dialerFrame.style.opacity, '0.475');
+    });
+
     suite('if the direction is rtl', function() {
       setup(function() {
         SheetsTransition.begin('rtl');
@@ -137,6 +145,11 @@ suite('system/SheetsTransition >', function() {
       test('it should set the transform property on the current sheet',
       function() {
         assert.equal(settingsFrame.style.transform, 'translateX(-6%)');
+      });
+
+      test('it should set the opacity property on the current sheet',
+      function() {
+        assert.equal(settingsFrame.style.opacity, '0.775');
       });
 
       test('it should set the transform property on the new sheet',
@@ -165,6 +178,19 @@ suite('system/SheetsTransition >', function() {
         assert.isTrue(percentage > 24);
         assert.isTrue(percentage < 24.5);
       });
+
+      suite('at the top of the stack', function() {
+        setup(function() {
+          getNextStub.returns(null);
+          SheetsTransition.begin('rtl');
+        });
+
+        test('it should not change the opacity of the current sheet',
+        function() {
+          SheetsTransition.moveInDirection('rtl', 0.2);
+          assert.equal(settingsFrame.style.opacity, '');
+        });
+      });
     });
   });
 
@@ -176,8 +202,9 @@ suite('system/SheetsTransition >', function() {
     });
 
     test('it should set the transition duration on the sheets', function() {
-      assert.equal(settingsFrame.style.transition, 'transform 105ms linear 0s');
-      assert.equal(dialerFrame.style.transition, 'transform 105ms linear 0s');
+      var transition = 'transform 105ms linear 0s, opacity 105ms linear 0s';
+      assert.equal(settingsFrame.style.transition, transition);
+      assert.equal(dialerFrame.style.transition, transition);
     });
 
     suite('if the sheet barely moved', function() {
@@ -188,9 +215,9 @@ suite('system/SheetsTransition >', function() {
       });
 
       test('it should have a minimum duration', function() {
-        assert.equal(settingsFrame.style.transition,
-                     'transform 90ms linear 0s');
-        assert.equal(dialerFrame.style.transition, 'transform 90ms linear 0s');
+        var transition = 'transform 90ms linear 0s, opacity 90ms linear 0s';
+        assert.equal(settingsFrame.style.transition, transition);
+        assert.equal(dialerFrame.style.transition, transition);
       });
     });
   });
@@ -203,8 +230,9 @@ suite('system/SheetsTransition >', function() {
     });
 
     test('it should set the transition duration on the sheets', function() {
-      assert.equal(settingsFrame.style.transition, 'transform 50ms linear 0s');
-      assert.equal(dialerFrame.style.transition, 'transform 50ms linear 0s');
+      var transition = 'transform 50ms linear 0s, opacity 50ms linear 0s';
+      assert.equal(settingsFrame.style.transition, transition);
+      assert.equal(dialerFrame.style.transition, transition);
     });
 
     test('it should remove the initial css classes on the sheets', function() {
@@ -223,8 +251,9 @@ suite('system/SheetsTransition >', function() {
       SheetsTransition.moveInDirection('ltr', 0.7);
       SheetsTransition.snapBack(0.0001);
 
-      assert.equal(settingsFrame.style.transition, 'transform 90ms linear 0s');
-      assert.equal(dialerFrame.style.transition, 'transform 90ms linear 0s');
+      var transition = 'transform 90ms linear 0s, opacity 90ms linear 0s';
+      assert.equal(settingsFrame.style.transition, transition);
+      assert.equal(dialerFrame.style.transition, transition);
     });
 
     suite('when we\'re at the beginning of the stack', function() {
@@ -256,8 +285,9 @@ suite('system/SheetsTransition >', function() {
     });
 
     test('it should set the transition duration on the sheets', function() {
-      assert.equal(settingsFrame.style.transition, 'transform 50ms linear 0s');
-      assert.equal(contactsFrame.style.transition, 'transform 50ms linear 0s');
+      var transition = 'transform 50ms linear 0s, opacity 50ms linear 0s';
+      assert.equal(settingsFrame.style.transition, transition);
+      assert.equal(contactsFrame.style.transition, transition);
     });
 
     test('it should remove the initial css classes on the sheets', function() {
@@ -276,8 +306,9 @@ suite('system/SheetsTransition >', function() {
       SheetsTransition.moveInDirection('rtl', 0.7);
       SheetsTransition.snapBack(0.0001);
 
-      assert.equal(settingsFrame.style.transition, 'transform 90ms linear 0s');
-      assert.equal(contactsFrame.style.transition, 'transform 90ms linear 0s');
+      var transition = 'transform 90ms linear 0s, opacity 90ms linear 0s';
+      assert.equal(settingsFrame.style.transition, transition);
+      assert.equal(contactsFrame.style.transition, transition);
     });
 
     suite('when we\'re at the end of the stack', function() {
