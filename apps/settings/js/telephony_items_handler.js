@@ -51,6 +51,14 @@ var TelephonyItemsHandler = (function(window, document, undefined) {
     _mobileConnections = window.navigator.mozMobileConnections;
     _ = window.navigator.mozL10n.get;
     if (!_mobileConnections || !_iccManager) {
+      // hide telephony related entries if not supported
+      var elements = ['call-settings',
+                      'data-connectivity',
+                      'messaging-settings',
+                      'simSecurity-settings'];
+      elements.forEach(function(el) {
+        document.getElementById(el).hidden = true;
+      });
       return;
     }
   }

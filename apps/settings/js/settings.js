@@ -252,17 +252,6 @@ var Settings = {
       return;
     }
 
-    // hide telephony related entries if not supportted
-    if (!navigator.mozTelephony) {
-      var elements = ['call-settings',
-                      'data-connectivity',
-                      'messaging-settings',
-                      'simSecurity-settings'];
-      elements.forEach(function(el) {
-        document.getElementById(el).hidden = true;
-      });
-    }
-
     // register web activity handler
     navigator.mozSetMessageHandler('activity', this.webActivityHandler);
 
