@@ -239,7 +239,8 @@ var DownloadStore = (function() {
       // Get our index and return the downloads
       return myIndex.byTimestamp;
     }, defaultError(req)).then(function(ids) {
-      datastore.get(ids).then(defaultSuccess(req), defaultError(req));
+      datastore.get.apply(datastore, ids).then(defaultSuccess(req),
+                                               defaultError(req));
     }, defaultError(req));
   }
 
