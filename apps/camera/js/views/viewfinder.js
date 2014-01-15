@@ -138,34 +138,12 @@ return View.extend({
     }
   },
 
-  setPreviewSize: function(camera, Camera) {
-    var pictureSize = Camera._pictureSize;
-
-    // Switch screen dimensions to landscape
-    var screenWidth = document.body.clientHeight * window.devicePixelRatio;
-    var screenHeight = document.body.clientWidth * window.devicePixelRatio;
+  updatePreview: function(pictureSize, mirrored) {
     var pictureAspectRatio = pictureSize.height / pictureSize.width;
+    // Switch screen dimensions to landscape
+    var screenWidth = document.body.clientHeight;
+    var screenHeight = document.body.clientWidth;
     var screenAspectRatio = screenHeight / screenWidth;
-
-    // Previews should match the aspect ratio and not be smaller than the screen
-    var validPreviews = camera.capabilities.previewSizes.filter(function(res) {
-      var isLarger = res.height >= screenHeight && res.width >= screenWidth;
-      var aspectRatio = res.height / res.width;
-      var matchesRatio = Math.abs(aspectRatio - pictureAspectRatio) < 0.05;
-      return matchesRatio && isLarger;
-    });
-
-    // We should always have a valid preview size, but just in case
-    // we dont, pick the first provided.
-    if (validPreviews.length > 0) {
-
-      // Pick the smallest valid preview
-      Camera._previewConfig = validPreviews.sort(function(a, b) {
-        return a.width * a.height - b.width * b.height;
-      }).shift();
-    } else {
-      Camera._previewConfig = camera.capabilities.previewSizes[0];
-    }
 
     var transform = 'rotate(90deg)';
     var width, height;
@@ -181,8 +159,7 @@ return View.extend({
       height = screenHeight;
     }
 
-    var cameraNumber = Camera.state.get('cameraNumber');
-    if (cameraNumber == 1) {
+    if (mirrored) {
       /* backwards-facing camera */
       transform += ' scale(-1, 1)';
       translateX = width;
