@@ -332,22 +332,22 @@ var MessageManager = {
           // hashchanges from #group-view back to #thread=n
           // are considered "in thread" and should not
           // trigger a complete re-rendering of the messages
-          // in the thread.
+          // or draft in the thread.
           if (!ThreadUI.inThread) {
             ThreadUI.inThread = true;
+
+            // Render messages
             ThreadUI.renderMessages(threadId);
-          }
-          // Ensures fromDraft is always called after
-          // ThreadUI.cleanFields as MessageManager.slide is async
-          var draft = MessageManager.draft;
-          var thread = Threads.get(threadId);
 
-          if (!draft && thread.hasDrafts) {
-            draft = thread.drafts.latest;
-            MessageManager.draft = draft;
+            // Populate draft if there is one
+            var thread = Threads.get(threadId);
+            if (thread.hasDrafts) {
+              MessageManager.draft = thread.drafts.latest;
+              Compose.fromDraft(MessageManager.draft);
+            } else {
+              MessageManager.draft = null;
+            }
           }
-
-          Compose.fromDraft(draft);
         };
 
         // if we were previously composing a message - remove the class

@@ -597,17 +597,8 @@ suite('message_manager.js >', function() {
         Threads.currentId = null;
       });
 
-      test('MessageManager.draft rendered after clearing composer', function() {
-        // renderMessages is passed as a callback to slide left
-        ThreadUI.updateHeaderData.yield();
-        MessageManager.slide.yield();
-        assert.ok(Compose.fromDraft.calledAfter(ThreadUI.renderMessages));
-        assert.ok(Compose.fromDraft.calledWith(MessageManager.draft));
-      });
-
       test('Thread latest draft rendered after clearing composer', function() {
         var draft = {};
-
         this.sinon.stub(Threads, 'get').returns({
           hasDrafts: true,
           drafts: {
@@ -618,9 +609,49 @@ suite('message_manager.js >', function() {
 
         ThreadUI.updateHeaderData.yield();
         MessageManager.slide.yield();
-        assert.ok(Compose.fromDraft.calledAfter(ThreadUI.renderMessages));
-        assert.ok(Compose.fromDraft.calledWith(draft));
+
+        sinon.assert.callOrder(ThreadUI.renderMessages, Compose.fromDraft);
+        sinon.assert.calledWith(Compose.fromDraft, draft);
         assert.equal(draft, MessageManager.draft);
+      });
+
+      test('Thread latest draft rendered if not in thread', function() {
+        var draft = {
+          content: 'AAA'
+        };
+        this.sinon.stub(Threads, 'get').returns({
+          hasDrafts: true,
+          drafts: {
+            latest: draft
+          }
+        });
+
+        ThreadUI.updateHeaderData.yield();
+        MessageManager.slide.yield();
+
+        sinon.assert.callOrder(ThreadUI.renderMessages, Compose.fromDraft);
+        sinon.assert.calledWith(Compose.fromDraft, draft);
+        assert.equal(draft, MessageManager.draft);
+
+      });
+
+      test('Thread latest draft not rendered if in thread', function() {
+        ThreadUI.inThread = true;
+        var draft = {
+          content: 'AAA'
+        };
+        this.sinon.stub(Threads, 'get').returns({
+          hasDrafts: true,
+          drafts: {
+            latest: draft
+          }
+        });
+
+        ThreadUI.updateHeaderData.yield();
+        MessageManager.slide.yield();
+
+        sinon.assert.notCalled(Compose.fromDraft);
+        sinon.assert.neverCalledWith(Compose.fromDraft, draft);
       });
     });
 
