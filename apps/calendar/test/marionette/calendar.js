@@ -177,21 +177,36 @@ Calendar.prototype = {
     return url.indexOf(Calendar.ORIGIN) !== -1;
   },
 
-  isWeekViewActive: function() {
+  /**
+   * @param {String} id View ID
+   * @return {boolean} Whether or not view is active
+   */
+  isViewActive: function(id) {
     var actual = this.client.getUrl();
-    var expected = Calendar.ORIGIN + '/week/';
+    var expected = Calendar.ORIGIN + '/' + id + '/';
     return actual === expected;
+  },
+
+  /**
+   * @return {boolean} Whether or not week view is active
+   */
+  isWeekViewActive: function() {
+    return this.isViewActive('week');
   },
 
   /**
    * @return {boolean} Whether or not the calendar month view is active.
    */
   isMonthViewActive: function() {
-    var actual = this.client.getUrl();
-    var expected = Calendar.ORIGIN + '/month/';
-    return actual === expected;
+    return this.isViewActive('month');
   },
 
+  /**
+   * @return {boolean} Whether or not the calendar day view is active.
+   */
+  isDayViewActive: function() {
+    return this.isViewActive('day');
+  },
 
   /**
    * @return {boolean} Whether or not the read only event view is active.
@@ -250,5 +265,35 @@ Calendar.prototype = {
     this.actions
       .flick(panel, x1, y1, x2, y2)
       .perform();
+  },
+
+  /**
+   * checks if content is bigger than container. if something is wrong it
+   * throws errors. use `assert.doesNotThrow()` on your tests, it will give
+   * better error messages than a simple truthy test.
+   * @param {Marionette.Element|String} [element] the container element.
+   */
+  checkOverflow: function(element) {
+    element = this.waitForElement(element);
+
+    var wid = element.scriptWith(function(el) {
+      return {
+        content: el.scrollWidth,
+        container: el.clientWidth
+      };
+    });
+    if (!wid.content) {
+      throw new Error('invalid content width');
+    }
+    if (!wid.container) {
+      throw new Error('invalid container width');
+    }
+    // we use a buffer of 1px to account for potential rounding issues
+    // see: Bug 959901
+    if (Math.abs(wid.content - wid.container) > 1) {
+      var msg = 'content (' + wid.content + 'px) is wider than container (' +
+        wid.container + 'px)';
+      throw new Error(msg);
+    }
   }
 };
