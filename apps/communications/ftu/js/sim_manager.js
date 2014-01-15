@@ -27,6 +27,8 @@ var SimManager = (function() {
   return {
   icc0: null,
   icc1: null,
+  simSlots: window.navigator.mozMobileConnections ?
+    window.navigator.mozMobileConnections.length : 0,
 
   // track the SIM that is currently being unlocked
   _unlockingIcc: null,
@@ -289,11 +291,14 @@ var SimManager = (function() {
     UIManager.unlockSimScreen.classList.add('show');
     UIManager.pincodeScreen.classList.add('show');
     UIManager.xckcodeScreen.classList.remove('show');
-    var simNumber = icc === this.icc0 ? 1 : 2;
-    UIManager.unlockSimHeader.textContent = _('pincodeTitle',
-                                              {n: simNumber});
-    UIManager.pinLabel.textContent = _('pincodeLabel',
-                                       {n: simNumber});
+
+    UIManager.unlockSimHeader.textContent = _('pincode2');
+    var pincodeLabel = _('type_pin');
+    if (this.simSlots > 1) {
+      var simNumber = icc === this.icc0 ? 1 : 2;
+      pincodeLabel = _('pincodeLabel', {n: simNumber});
+    }
+    UIManager.pinLabel.textContent = pincodeLabel;
     UIManager.pinInput.focus();
   },
 
@@ -312,11 +317,15 @@ var SimManager = (function() {
     UIManager.pincodeScreen.classList.remove('show');
     UIManager.pukcodeScreen.classList.add('show');
     UIManager.xckcodeScreen.classList.remove('show');
-    var simNumber = icc === this.icc0 ? 1 : 2;
-    UIManager.unlockSimHeader.textContent = _('pukcodeTitle',
-                                              {n: simNumber});
-    UIManager.pukLabel.textContent = _('pukcodeLabel',
-                                       {n: simNumber});
+
+    UIManager.unlockSimHeader.textContent = _('pukcode');
+    var pukcodeLabel = _('type_puk');
+    if (this.simSlots > 1) {
+      var simNumber = icc === this.icc0 ? 1 : 2;
+      pukcodeLabel = _('pukcodeLabel', {n: simNumber});
+    }
+    UIManager.pukLabel.textContent = pukcodeLabel;
+
     UIManager.pukInput.focus();
   },
 
