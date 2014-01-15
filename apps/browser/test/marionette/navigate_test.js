@@ -61,7 +61,7 @@ marionette('search', function() {
       subject.searchButton.click();
     });
 
-    test('loads net_error.html from system', function() {
+    test.skip('loads net_error.html from system', function() {
       // verify iframe is primed
       var frame = subject.currentTabFrame();
       assert.equal(frame.getAttribute('src'), url, 'correct iframe');
