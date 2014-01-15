@@ -127,12 +127,6 @@ suite('Contacts', function(done) {
                     ]);
                   }
 
-                  if (filter.filterValue === 'mary') {
-                    return MockContact.list([
-                      { givenName: ['Mary Anne'], familyName: ['Jones'] }
-                    ]);
-                  }
-
                   // Fake error
                   if (filter.filterValue === 'callonerror') {
                     return null;
@@ -370,22 +364,6 @@ suite('Contacts', function(done) {
       });
     });
 
-    test('multi-word name', function(done) {
-      var mozContacts = navigator.mozContacts;
-
-      Contacts.findByString('mary anne', function(contacts) {
-        var mHistory = mozContacts.mHistory;
-
-        // No contacts were found
-        assert.ok(Array.isArray(contacts));
-        assert.equal(contacts.length, 1);
-
-        // navigator.mozContacts.find was called?
-        assert.equal(mHistory.length, 1);
-        done();
-      });
-    });
-
     test('string search yields a contact without familyName', function(done) {
       Contacts.findByString('julien 123', function(contacts) {
         done();
@@ -600,8 +578,7 @@ suite('Contacts', function(done) {
 
         // contacts were not found
         assert.ok(Array.isArray(contacts));
-        // This was relaxed by the change from "startsWith" to "contains"
-        assert.equal(contacts.length, 4);
+        assert.equal(contacts.length, 3);
 
         /**
          * The three matching contacts are:

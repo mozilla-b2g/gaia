@@ -5,10 +5,10 @@
   /*global fb */
 
   var filterFns = {
-    contains: function(a, b) {
+    startsWith: function(a, b) {
       a = a.toLowerCase();
       b = b.toLowerCase();
-      return a.contains(b);
+      return a.startsWith(b);
     },
     equality: function(a, b) {
       a = a.toLowerCase();
@@ -77,7 +77,7 @@
     // for (var term of criteria.terms) {
     //   for (var field of criteria.fields) {
     //     for (var value of contact[field]) {
-    //       if (found[term] = value.toLowerCase().contains(term)) {
+    //       if (found[term] = value.toLowerCase().startsWith(term)) {
     //         continue outer;
     //       }
     //     }
@@ -139,13 +139,10 @@
        *
        * 5. Remove the length predominate term from the list of validation terms
        *
-       * 6. Add back the original search value, this is needed for matching
-       *     multi-word queries
-       *
-       * 7. Make a mozContact.find request with the length predominate term
+       * 6. Make a mozContact.find request with the length predominate term
        *     as the filter.filterValue.
        *
-       * 8. In the mozContacts.find request success handler, filter the
+       * 7. In the mozContacts.find request success handler, filter the
        *     results by evaluating each contact record against
        *     the list of validation terms.
        */
@@ -175,10 +172,6 @@
       lower.splice(lower.indexOf(filter.filterValue.toLowerCase()), 1);
 
       // Step 6
-      // This would be much nicer using spread operator
-      lower.push.apply(lower, terms);
-
-      // Step 7
       request = navigator.mozContacts.find(filter);
 
       request.onsuccess = function onsuccess() {
@@ -188,10 +181,10 @@
         var results = [];
         var contact;
 
-        // Step 8
+        // Step 7
         if (terms.length > 1) {
           while ((contact = contacts.pop())) {
-            if (isMatch(contact, criteria, filterFns.contains)) {
+            if (isMatch(contact, criteria, filterFns.startsWith)) {
               results.push(contact);
             }
           }
