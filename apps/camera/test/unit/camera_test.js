@@ -1,7 +1,7 @@
 /*jshint maxlen:false*/
 'use strict';
 
-suite.skip('activity', function() {
+suite('camera', function() {
   var Camera;
 
   // Sometimes setup via the
@@ -18,7 +18,16 @@ suite.skip('activity', function() {
   });
 
   setup(function() {
+
+    // Stub this method before instantiation
+    // so that moz navigator methods, aren't run
+    sinon.stub(Camera.prototype, 'configureStorage');
+
     this.camera = new Camera();
+  });
+
+  teardown(function() {
+    Camera.prototype.configureStorage.restore();
   });
 
   suite('camera.toggleCamera', function() {
