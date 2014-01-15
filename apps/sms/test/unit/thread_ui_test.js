@@ -808,7 +808,7 @@ suite('thread_ui.js >', function() {
       setup(function() {
         var segmentInfo = {
           segments: 1,
-          charsAvailableInLastSegment: 20
+          charsAvailableInLastSegment: 25
         };
 
         updateCounter.call(this, segmentInfo);

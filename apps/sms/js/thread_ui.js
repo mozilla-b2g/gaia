@@ -909,7 +909,7 @@ var ThreadUI = global.ThreadUI = {
 
       // if we are going to force MMS, this is true anyway, so adding
       // has-counter again doesn't hurt us.
-      var showCounter = (segments && (segments > 1 || availableChars <= 10));
+      var showCounter = (segments && (segments > 1 || availableChars <= 20));
       this.sendButton.classList.toggle('has-counter', showCounter);
 
       var overLimit = segments > kMaxConcatenatedMessages;
