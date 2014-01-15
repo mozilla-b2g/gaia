@@ -74,6 +74,9 @@ var CpScreenHelper = (function() {
   /** All APNs list */
   var apns = null;
 
+  /** Parsed message, a copy of the one being handled. */
+  var parsedMessage = null;
+
   function cpsh_init() {
     _ = navigator.mozL10n.get;
 
@@ -119,6 +122,14 @@ var CpScreenHelper = (function() {
   function cpsh_populateScreen(message) {
     screen.hidden = false;
 
+    // Make a copy of the object in order to store it again into the database
+    // in case the app goes to background while processing the message.
+    parsedMessage = ParsedMessage.copy(message);
+
+    // Set the callback function to be called when the app goes to background
+    // while processing a message.
+    WapPushManager.setOnVisibilityChangeCallback(cpsh_onVisibilityChange);
+
     // The close button in the header is shared between screens but sadly the
     // flow differs. Let the WapPushManaget knwo what CpScreenHelper function
     // invoque when the user click on the close button.
@@ -152,6 +163,58 @@ var CpScreenHelper = (function() {
     }
 
     title.textContent = message.sender;
+  }
+
+  /**
+   * Handles the application flow when the app receives 'visibilitychange'
+   * events. It takes care of storing the message again into the database if
+   * the app went to background while processing a message.
+   */
+  function cpsh_onVisibilityChange() {
+    if (processed) {
+      return;
+    }
+
+    if (document.hidden) {
+      WapPushManager._pendingMessages++;
+      parsedMessage.save(
+        function successCb(status) {
+          var req = navigator.mozApps.getSelf();
+
+          req.onsuccess = function onSuccessHandler(event) {
+            var _ = navigator.mozL10n.get;
+            var app = event.target.result;
+            /* We store the message timestamp as a parameter to be able to
+             * retrieve the message from the notification code */
+            var iconURL = NotificationHelper.getIconURI(app) +
+                         '?timestamp=' +
+                         encodeURIComponent(parsedMessage.timestamp);
+
+            parsedMessage.text =
+              (parsedMessage.type == 'text/vnd.wap.connectivity-xml') ?
+                _('cp-message-received-not-processed') : parsedMessage.text;
+
+            var text = parsedMessage.text;
+
+            NotificationHelper.send(parsedMessage.sender, text, iconURL,
+              function notificationOnClickCb() {
+                app.launch();
+                WapPushManager.displayWapPushMessage(parsedMessage.timestamp);
+              });
+            WapPushManager.finish();
+          };
+          req.onerror = function onErrorHandler() {
+            console.log('Could not get a reference to the WAP PUSH app \n');
+            WapPushManager.finish();
+          };
+        },
+        function errorCb(error) {
+          console.log('Could not add a message to the database: ' +
+            error + '\n');
+          WapPushManager.finish();
+        }
+      );
+    }
   }
 
   /**

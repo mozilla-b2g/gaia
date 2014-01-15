@@ -226,5 +226,17 @@
     );
   };
 
+  /**
+   * Copy a message and returns an object holding its fields.
+   *
+   * @param {Object} message A ParsedMessage message.
+   *
+   * @return {Object} An object holding the contents of the WAP message as
+   *                  separate fields.
+   */
+  ParsedMessage.copy = function pm_copy(message) {
+    return new ParsedMessage(message);
+  };
+
   exports.ParsedMessage = ParsedMessage;
 })(window);

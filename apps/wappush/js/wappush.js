@@ -32,6 +32,10 @@ var WapPushManager = {
     * CP or SI/SL */
   _onCloseCallback: null,
 
+  /** Callback function to be invoqued when receiving 'visibilitychange'
+    * events */
+  _onVisibilityChangeCallback: null,
+
   /** Timer used to schedule a close operation */
   _closeTimeout: null,
 
@@ -94,6 +98,11 @@ var WapPushManager = {
    * Closes the application whenever it is hidden
    */
   onVisibilityChange: function wpm_onVisibilityChange() {
+    if (this._onVisibilityChangeCallback &&
+        (typeof this._onVisibilityChangeCallback === 'function')) {
+      this._onVisibilityChangeCallback();
+    }
+
     if (document.hidden) {
       this.close();
     } else {
@@ -307,5 +316,16 @@ var WapPushManager = {
    */
   setOnCloseCallback: function wpm_setOnCloseCallback(callback) {
     this._onCloseCallback = callback;
+  },
+
+  /**
+   * Set the callback function that handles the applicaton flow in the different
+   * mode (SI/SL or CP) when the app receives 'visibilitychange' events.
+   *
+   * @param {function} callback The callback function.
+   */
+  setOnVisibilityChangeCallback:
+    function wpm_setOnVisibilityChangeCallback(callback) {
+    this._onVisibilityChangeCallback = callback;
   }
 };
