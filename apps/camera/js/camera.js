@@ -572,6 +572,7 @@ proto.loadCameraPreview = function(cameraNumber, callback) {
 
     self.state.set('autoFocusSupported', autoFocusSupported);
     self.pickPictureSize(camera);
+    self.pickPreviewSize(camera);
 
     thumbnailSize = self.selectThumbnailSize(
       availableThumbnailSizes,
@@ -623,6 +624,41 @@ proto.loadCameraPreview = function(cameraNumber, callback) {
     var config = { camera: cameras[cameraNumber] };
     navigator.mozCameras.getCamera(config, gotCamera);
   }
+};
+
+proto.pickPreviewSize = function(camera) {
+
+    var pictureSize = this._pictureSize;
+
+    // Switch screen dimensions to landscape
+    var screenWidth = document.body.clientHeight;
+    var screenHeight = document.body.clientWidth;
+    var pictureAspectRatio = pictureSize.height / pictureSize.width;
+    var screenAspectRatio = screenHeight / screenWidth;
+
+    // Previews should match the aspect ratio and not be smaller than the screen
+    var validPreviews = camera.capabilities.previewSizes.filter(function(res) {
+      // Note that we are using the screen size in CSS pixels and not
+      // multiplying by devicePixelRatio. We assume that the preview sizes
+      // returned by the camera are in CSS pixels, not device pixels.
+      // This is the way things seem to work on the Helix.
+      var isLarger = res.height >= screenHeight && res.width >= screenWidth;
+      var aspectRatio = res.height / res.width;
+      var matchesRatio = Math.abs(aspectRatio - pictureAspectRatio) < 0.05;
+      return matchesRatio && isLarger;
+    });
+
+    // We should always have a valid preview size, but just in case
+    // we dont, pick the first provided.
+    if (validPreviews.length > 0) {
+
+      // Pick the smallest valid preview
+      this._previewConfig = validPreviews.sort(function(a, b) {
+        return a.width * a.height - b.width * b.height;
+      }).shift();
+    } else {
+      this._previewConfig = this.capabilities.previewSizes[0];
+    }
 };
 
 proto.recordingStateChanged = function(msg) {
