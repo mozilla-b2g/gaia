@@ -4,11 +4,15 @@ requireApp('system/test/unit/mock_rocketbar.js');
 requireApp('system/shared/test/unit/mocks/mock_lazy_loader.js');
 mocha.globals(['UtilityTray', 'Rocketbar']);
 
+requireApp('system/test/unit/mock_lock_screen.js');
+requireApp('system/js/lockscreen.js');
+
 var LockScreen = { locked: false };
 
 var mocksHelperForUtilityTray = new MocksHelper([
   'Rocketbar',
-  'LazyLoader'
+  'LazyLoader',
+  'LockScreen'
 ]);
 mocksHelperForUtilityTray.init();
 
