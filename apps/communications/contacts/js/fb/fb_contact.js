@@ -9,7 +9,12 @@ fb.Contact = function(deviceContact, cid) {
   var contactid = cid;
 
   function getContact(contact) {
-    return (contact instanceof mozContact) ? contact : new mozContact(contact);
+    var outContact = contact;
+    if (!(contact instanceof mozContact)) {
+       outContact = new mozContact(contact);
+       outContact.id = contact.id || outContact.id;
+    }
+    return outContact;
   }
 
   function doGetFacebookUid(data) {
