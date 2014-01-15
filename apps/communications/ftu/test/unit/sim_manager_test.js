@@ -101,10 +101,22 @@ suite('sim mgmt >', function() {
       SimManager.handleCardState();
 
       assert.isTrue(UIManager.unlockSimScreen.classList.contains('show'));
+      assert.equal('type_pin', UIManager.pinLabel.textContent);
 
       assert.isFalse(UIManager.pincodeScreen.classList.contains('show'));
       assert.isTrue(UIManager.pukcodeScreen.classList.contains('show'));
       assert.isFalse(UIManager.xckcodeScreen.classList.contains('show'));
+    });
+
+    test('pukRequired DSDS screen', function() {
+      navigator.mozIccManager.setProperty('cardState', 'pukRequired');
+      SimManager.simSlots = 2;
+      SimManager.handleCardState();
+
+      assert.isTrue(UIManager.unlockSimScreen.classList.contains('show'));
+      assert.equal(navigator.mozL10n.get('pukcodeLabel', {n: 1}),
+        UIManager.pukLabel.textContent);
+      SimManager.simSlots = 1;
     });
 
     test('networkLocked shows XCK screen', function() {
