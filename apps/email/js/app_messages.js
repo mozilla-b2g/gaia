@@ -46,21 +46,28 @@ define(function(require) {
       // To assist in bug analysis, log the start of the activity here.
       console.log('Received activity: ' + activityName);
 
-      var data = {};
-      if (dataType === 'url' && activityName === 'share') {
-        data.body = url;
-      } else {
-        var urlParts = url ? queryURI(url) : [];
-        data.to = urlParts[0];
-        data.subject = urlParts[1];
-        data.body = typeof urlParts[2] === 'string' ? urlParts[2] : null;
-        data.cc = urlParts[3];
-        data.bcc = urlParts[4];
-        data.attachmentBlobs = sourceData.blobs;
-        data.attachmentNames = sourceData.filenames;
-      }
+      // Dynamically load util, since it is only needed for certain
+      // pathways in this module.
+      require(['attachment_name'], function(attachmentName) {
+        var data = {};
+        if (dataType === 'url' && activityName === 'share') {
+          data.body = url;
+        } else {
+          var urlParts = url ? queryURI(url) : [];
+          data.to = urlParts[0];
+          data.subject = urlParts[1];
+          data.body = typeof urlParts[2] === 'string' ? urlParts[2] : null;
+          data.cc = urlParts[3];
+          data.bcc = urlParts[4];
+          data.attachmentBlobs = sourceData.blobs;
+          data.attachmentNames = sourceData.filenames || [];
 
-      this.emitWhenListener('activity', activityName, data, req);
+          attachmentName.ensureNameList(data.attachmentBlobs,
+                                     data.attachmentNames);
+        }
+
+        this.emitWhenListener('activity', activityName, data, req);
+      }.bind(this));
     },
 
     onNotification: function(msg) {
