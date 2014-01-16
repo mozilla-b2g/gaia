@@ -3,6 +3,8 @@
   'use strict';
   // Several parts of settings listening on application installs
   var appsMgmt = navigator.mozApps.mgmt;
+  var homescreenCount = 0;
+  var scannedHomescreens = false;
 
   appsMgmt.oninstall = function(mgmtEvt) {
     var evt = new CustomEvent('applicationinstall', {
@@ -22,28 +24,72 @@
     window.dispatchEvent(evt);
   };
 
-  // Show Homescreen section only if multiple installed
-  function tryShowHomescreenSection(evt) {
+  function updateHomescreenSectionVisibility() {
+    var hideHomescreen = homescreenCount < 2;
+    document.getElementById('homescreen-section').hidden = hideHomescreen;
+  };
+
+  function isHomescreen(app) {
+    return (app.manifest || app.updateManifest).role === 'homescreen';
+  }
+
+  function isAppEventForHomescreen(evt) {
     if (evt && evt.application) {
       var app = evt.application;
-      if ((app.manifest || app.updateManifest).role !== 'homescreen')
-        return;
+      return isHomescreen(app);
+    }
+
+    return false;
+  }
+
+  function updateHomescreenCount(evt) {
+    if (evt.type == 'applicationinstall') {
+      homescreenCount++;
+    } else {
+      homescreenCount--;
+    }
+
+    updateHomescreenSectionVisibility();
+  }
+
+  function scanForHomescreens() {
+    if (scannedHomescreens) {
+      return;
     }
 
     appsMgmt.getAll().onsuccess = function countInstalledHomescreens(evt) {
-      var numHomescreens = 0;
       evt.target.result.some(function(app) {
-        if ((app.manifest || app.updateManifest).role === 'homescreen') {
-          numHomescreens++;
-        }
-        return numHomescreens > 1;
+          if (isHomescreen(app)) {
+            homescreenCount++;
+          }
       });
-      document.getElementById('homescreen-section').hidden =
-        numHomescreens < 2;
+
+      scannedHomescreens = true;
+      updateHomescreenSectionVisibility();
     };
   }
+
+  // Show Homescreen section only if multiple installed
+  function tryShowHomescreenSection(evt) {
+    if (isAppEventForHomescreen(evt) && scannedHomescreens) {
+      updateHomescreenCount(evt);
+    } else {
+      scanForHomescreens();
+    }
+  }
+
   window.addEventListener('applicationinstall', tryShowHomescreenSection);
   window.addEventListener('applicationuninstall', tryShowHomescreenSection);
 
-  tryShowHomescreenSection();
+  // Calling appsMgmt.getAll is expensive
+  // Delay it until Settings is doing nothing else
+  // See bug 958318
+  // 4s timer because settings.js already has a 3s timer
+  navigator.addIdleObserver({
+    time: 4,
+    onidle: function() {
+      navigator.removeIdleObserver(this);
+      tryShowHomescreenSection();
+    }
+  });
 })();
