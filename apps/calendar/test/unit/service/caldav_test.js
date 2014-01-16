@@ -19,7 +19,6 @@ suite('service/caldav', function() {
 
   // setup fixtures...
   suiteSetup(function(done) {
-    this.timeout(10000);
     ServiceSupport.setExpansionLimit(100);
 
     fixtures = new ServiceSupport.Fixtures('ical');

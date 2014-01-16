@@ -2,8 +2,6 @@ requireLib('models/calendar.js');
 requireLib('models/account.js');
 
 suiteGroup('Controllers.Sync', function() {
-  this.timeout(20000);
-
   var account;
   var calendar;
   var event;

@@ -118,7 +118,6 @@ suite('thread_ui.js >', function() {
   }
 
   suiteSetup(function(done) {
-    this.timeout(5000);
     mocksHelper.suiteSetup();
 
     realMozL10n = navigator.mozL10n;

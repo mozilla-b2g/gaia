@@ -7,7 +7,6 @@ requireApp('keyboard/test/unit/setup_engine.js');
 requireApp('keyboard/js/imes/jspinyin/jspinyin.js');
 
 suite('jspinyin', function() {
-  this.timeout(10000);  // 10 secs
 
   var NUMBER_OF_CANDIDATES_PER_ROW = 8;
 

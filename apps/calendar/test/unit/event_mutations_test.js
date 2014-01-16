@@ -14,8 +14,6 @@ suiteGroup('EventMutations', function() {
   var componentStore;
 
   setup(function(done) {
-    this.timeout(5000);
-
     subject = Calendar.EventMutations;
     app = testSupport.calendar.app();
     db = app.db;

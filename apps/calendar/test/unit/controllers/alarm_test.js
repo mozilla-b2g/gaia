@@ -2,8 +2,6 @@ requireApp('calendar/shared/js/notification_helper.js');
 requireLib('notification.js');
 
 suiteGroup('Controllers.Alarm', function() {
-  this.timeout(20000);
-
   function mockRequestWakeLock(handler) {
     var realApi;
 
@@ -46,7 +44,6 @@ suiteGroup('Controllers.Alarm', function() {
   var settingStore;
 
   setup(function(done) {
-    this.timeout(10000);
     app = testSupport.calendar.app();
     db = app.db;
     subject = new Calendar.Controllers.Alarm(app);

@@ -3,13 +3,11 @@ requireApp('calendar/shared/js/gesture_detector.js');
 requireLib('timespan.js');
 
 suiteGroup('Views.Day', function() {
-  this.timeout(20000);
   var subject,
       app,
       controller,
       busytimes,
       triggerEvent;
-
 
   suiteSetup(function() {
     triggerEvent = testSupport.calendar.triggerEvent;

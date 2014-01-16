@@ -87,7 +87,6 @@ var clearBrowserStores = function(done) {
 
 suite('BrowserDB', function() {
   var realMozSettings = null;
-  this.timeout(5000);
 
   suiteSetup(function() {
     realMozSettings = navigator.mozSettings;

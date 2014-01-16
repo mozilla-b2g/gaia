@@ -5,8 +5,6 @@ requireLib('models/account.js');
 requireApp('calendar/test/unit/helper.js');
 
 suite('store/abstract', function() {
-  this.timeout(20000);
-
   var subject;
   var db;
   var app;
@@ -136,7 +134,6 @@ suite('store/abstract', function() {
       });
 
       test('result', function(done) {
-        this.timeout(400);
         var trans;
         var obj = { name: 'foo' };
         var callbackFired = false;

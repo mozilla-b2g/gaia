@@ -9,8 +9,6 @@ requireLib('models/account.js');
 requireLib('models/calendar.js');
 
 suiteGroup('Provider.CaldavPullEvents', function() {
-  this.timeout(20000);
-
   var fixtures;
   var ical;
   var subject;
@@ -44,7 +42,6 @@ suiteGroup('Provider.CaldavPullEvents', function() {
   }
 
   suiteSetup(function(done) {
-    this.timeout(10000);
     ical = new ServiceSupport.Fixtures('ical');
     ical.load('single_event');
     ical.load('daily_event');
@@ -85,7 +82,6 @@ suiteGroup('Provider.CaldavPullEvents', function() {
   }
 
   setup(function(done) {
-    this.timeout(5000);
     app = testSupport.calendar.app();
     db = app.db;
     controller = app.timeController;

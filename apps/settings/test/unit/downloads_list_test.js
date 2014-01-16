@@ -100,7 +100,6 @@ suite('DownloadList', function() {
 
 
   suite(' > edit mode', function() {
-    this.timeout(10000);
     test(' > edit mode button enabled/disabled', function(done) {
       DownloadsList.init(function() {
         // Edit button is false at the beginning

@@ -1,8 +1,6 @@
 require('/shared/js/async_storage.js');
 
 suite('asyncStorage', function() {
-  this.timeout(20000);
-
   test('API', function() {
     assert.typeOf(asyncStorage.length, 'function');
     assert.typeOf(asyncStorage.key, 'function');
