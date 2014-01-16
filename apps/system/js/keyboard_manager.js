@@ -329,6 +329,7 @@ var KeyboardManager = {
           layoutFrame = runningKeybaord[name];
           layoutFrame.src = layout.origin + newPath;
           this._debug(name + ' is overwritten: ' + layoutFrame.src);
+          console.log('IMlog KM' + layoutFrame.src);
           delete runningKeybaord[name];
           break;
         }
