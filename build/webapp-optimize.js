@@ -110,7 +110,8 @@ function optimize_getFileContent(webapp, htmlFile, relativePath) {
       }
     // we substitute the localization properties file from gaia with the ones
     // from LOCALE_BASEDIR
-    } else if (RE_PROPS.test(relativePath) && gaia.l10nManager) {
+    } else if (RE_PROPS.test(relativePath) && gaia.l10nManager &&
+      !file.path.contains('en-US')) {
       let propFile = gaia.l10nManager.getPropertiesFile(webapp, file.path);
       if (propFile.exists()) {
         file = propFile;
