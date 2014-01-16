@@ -20,6 +20,7 @@ function execute(options) {
       homescreen += '/index.html';
   }
   prefs.push(['browser.homescreenURL', homescreen]);
+  prefs.push(['b2g.neterror.url', homescreen + '/net_error.html']);
 
   let domains = [];
   domains.push(config.GAIA_DOMAIN);
