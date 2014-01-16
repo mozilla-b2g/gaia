@@ -638,6 +638,7 @@ navigator.mozL10n.ready(function wifiSettings() {
         var certList = certRequest.result;
         // save the imported server certificates
         certificateList = certList.ServerCert;
+        certificateList = certificateList.concat(certList.UserCert);
 
         // display certificate list
         if (certificateList.length) {
@@ -756,6 +757,7 @@ navigator.mozL10n.ready(function wifiSettings() {
         case 'WPA-PSK':
         case 'WPA-EAP':
         case 'WAPI-PSK':
+        case 'WAPI-CERT':
           wifiDialog('wifi-auth', wifiConnect, key);
           break;
         default:
@@ -783,7 +785,7 @@ navigator.mozL10n.ready(function wifiSettings() {
 
       // authentication fields
       var identity, password, showPassword, eap,
-          authPhase2, certificate, description, wapiPasswordType;
+          authPhase2, certificate, description, wapiPasswordType, wapiASCert, wapiUserCert;
 
       if (dialogID != 'wifi-status') {
         identity = dialog.querySelector('input[name=identity]');
@@ -817,6 +819,10 @@ navigator.mozL10n.ready(function wifiSettings() {
         authPhase2 = dialog.querySelector('li.auth-phase2 select');
         certificate = dialog.querySelector('li.server-certificate select');
         loadImportedCertificateOptions(certificate);
+        wapiASCert = dialog.querySelector('li.wapi-as-certificate select');
+        loadImportedCertificateOptions(wapiASCert);
+        wapiUserCert = dialog.querySelector('li.wapi-user-certificate select');
+        loadImportedCertificateOptions(wapiUserCert);
         description = dialog.querySelector('li.server-certificate-description');
       }
 
@@ -919,6 +925,8 @@ navigator.mozL10n.ready(function wifiSettings() {
             password.parentNode.style.display = 'block';
             authPhase2.parentNode.parentNode.style.display = 'none';
             certificate.parentNode.parentNode.style.display = 'none';
+            wapiASCert.parentNode.parentNode.style.display = 'none';
+            wapiUserCert.parentNode.parentNode.style.display = 'none';
             description.style.display = 'none';
           } else if (security === 'WPA-EAP') {
             if (eap) {
@@ -928,6 +936,8 @@ navigator.mozL10n.ready(function wifiSettings() {
                   password.parentNode.style.display = 'none';
                   authPhase2.parentNode.parentNode.style.display = 'none';
                   certificate.parentNode.parentNode.style.display = 'none';
+                  wapiASCert.parentNode.parentNode.style.display = 'none';
+                  wapiUserCert.parentNode.parentNode.style.display = 'none';
                   description.style.display = 'none';
                   break;
                 case 'PEAP':
@@ -937,13 +947,23 @@ navigator.mozL10n.ready(function wifiSettings() {
                   password.parentNode.style.display = 'block';
                   authPhase2.parentNode.parentNode.style.display = 'block';
                   certificate.parentNode.parentNode.style.display = 'block';
+                  wapiASCert.parentNode.parentNode.style.display = 'none';
+                  wapiUserCert.parentNode.parentNode.style.display = 'none';
                   description.style.display = 'block';
                   break;
                 default:
                   break;
               }
             }
-          } else {
+          } else if (security === 'WAPI-CERT') {
+            wapiASCert.parentNode.parentNode.style.display = 'block';
+            wapiUserCert.parentNode.parentNode.style.display = 'block';
+            identity.parentNode.style.display = 'none';
+            password.parentNode.style.display = 'none';
+            authPhase2.parentNode.parentNode.style.display = 'none';
+            certificate.parentNode.parentNode.style.display = 'none';
+            description.style.display = 'block';
+           } else {
             identity.parentNode.style.display = 'none';
             password.parentNode.style.display = 'none';
           }
@@ -974,7 +994,9 @@ navigator.mozL10n.ready(function wifiSettings() {
                                  eap.value,
                                  authPhase2.value,
                                  certificate.value,
-                                 wapiPasswordType.value);
+                                 wapiPasswordType.value,
+                                 wapiASCert.value,
+                                 wapiUserCert.value);
         }
         if (callback) {
           callback();

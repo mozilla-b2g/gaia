@@ -10,7 +10,7 @@ var WifiHelper = {
   }(),
 
   setPassword: function(network, password, identity,
-                        eap, phase2, certificate, wapiPasswordType) {
+                        eap, phase2, certificate, wapiPasswordType, wapiASCert, wapiUserCert) {
     var encType = this.getKeyManagement(network);
     switch (encType) {
       case 'WPA-PSK':
@@ -27,6 +27,14 @@ var WifiHelper = {
           network.psk = asciiPassword;
         } else {
           network.psk = password;
+        }
+        break;
+      case 'WAPI-CERT':
+        if (wapiASCert != 'none') {
+          network.wapiAsCertificate = wapiASCert;
+        }
+        if (wapiUserCert != 'none') {
+          network.wapiUserCertificate = wapiUserCert;
         }
         break;
       case 'WPA-EAP':
@@ -91,6 +99,8 @@ var WifiHelper = {
       return 'WPA-PSK';
     if (/WAPI-PSK$/.test(key))
       return 'WAPI-PSK';
+    if (/WAPI-CERT$/.test(key))
+      return 'WAPI-CERT';
     if (/EAP$/.test(key))
       return 'WPA-EAP';
     return '';
