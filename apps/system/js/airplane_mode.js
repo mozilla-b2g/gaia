@@ -396,7 +396,8 @@
     init: function apm_init() {
       var self = this;
 
-      if (!window.navigator.mozSettings) {
+      if (!window.navigator.mozSettings ||
+          !window.navigator.mozMobileConnections) {
         return;
       }
 
