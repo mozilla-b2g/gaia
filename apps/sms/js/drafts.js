@@ -377,6 +377,7 @@
     this.timestamp = +draft.timestamp || Date.now();
     this.threadId = draft.threadId || null;
     this.type = draft.type;
+    this.isEdited = false;
   }
 
   function guid() {

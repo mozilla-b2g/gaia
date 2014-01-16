@@ -623,6 +623,7 @@ suite('message_manager.js >', function() {
         sinon.assert.callOrder(ThreadUI.renderMessages, Compose.fromDraft);
         sinon.assert.calledWith(Compose.fromDraft, draft);
         assert.equal(draft, MessageManager.draft);
+        assert.isFalse(MessageManager.draft.isEdited);
       });
 
       test('Thread latest draft rendered if not in thread', function() {
@@ -642,7 +643,7 @@ suite('message_manager.js >', function() {
         sinon.assert.callOrder(ThreadUI.renderMessages, Compose.fromDraft);
         sinon.assert.calledWith(Compose.fromDraft, draft);
         assert.equal(draft, MessageManager.draft);
-
+        assert.isFalse(MessageManager.draft.isEdited);
       });
 
       test('Thread latest draft not rendered if in thread', function() {
