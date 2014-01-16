@@ -266,18 +266,9 @@ function getMetadata(videofile, callback) {
         return;
       clearTimeout(timeout);
       captureFrame(offscreenVideo, metadata, function(poster) {
-        if (poster === null) {
-          // If something goes wrong in captureFrame, it probably means that
-          // this is not a valid video. In any case, if we don't have a
-          // thumbnail image we shouldn't try to display it to the user.
-          // XXX: See bug 869289: maybe we should not fail here.
-          fail();
-        }
-        else {
-          metadata.poster = poster;
-          unload();
-          callback(metadata); // We've got all the metadata we need now.
-        }
+        metadata.poster = poster;
+        unload();
+        callback(metadata); // We've got all the metadata we need now.
       });
     };
   }
