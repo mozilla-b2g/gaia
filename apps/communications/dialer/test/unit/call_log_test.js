@@ -1,7 +1,8 @@
 requireApp('communications/dialer/js/call_log.js');
 requireApp('communications/dialer/js/utils.js');
 requireApp('communications/dialer/test/unit/mock_l10n.js');
-requireApp('communications/dialer/test/unit/mock_notification.js');
+
+requireApp('communications/shared/test/unit/mocks/mock_notification.js');
 
 if (!this.LazyL10n) {
   this.LazyL10n = null;
@@ -18,7 +19,7 @@ suite('dialer/call_log', function() {
     realCallLogL10n = CallLog._;
     CallLog._ = MockMozL10n.get;
     realNotification = window.Notification;
-    window.Notification = MockNotificationAPI;
+    window.Notification = MockNotification;
   });
 
   suiteTeardown(function() {
@@ -358,9 +359,22 @@ suite('dialer/call_log', function() {
     var notificationSpy;
 
     setup(function() {
+      var notificationGetStub = function notificationGet() {
+        var options = {};
+        options.body = 'Notification body';
+        return {
+          then: function(onSuccess, onError, onProgress) {
+            onSuccess([
+              new Notification('0', options),
+              new Notification('1', options)
+            ]);
+          }
+        };
+      };
+      this.sinon.stub(Notification, 'get', notificationGetStub);
       notifs = Notification.get();
       notificationSpy =
-        this.sinon.spy(MockNotificationObject.prototype, 'close');
+        this.sinon.spy(MockNotification.prototype, 'close');
     });
 
     test('call log should close notifications', function() {
