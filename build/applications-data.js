@@ -538,6 +538,8 @@ function execute(options) {
   // Configure the system keyboard app by copying the keyboard layouts and
   // autocorrect dictionary files we need into the app directory.
   require('keyboard-config').copyLayoutsAndResources(config);
+
+  require('default-keyboard-customize').genDefaultLayouts(config, webapps);
 }
 
 exports.execute = execute;
