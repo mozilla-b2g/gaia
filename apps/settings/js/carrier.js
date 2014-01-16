@@ -89,7 +89,7 @@ var CarrierSettings = (function(window, document, undefined) {
      * Bug 881862 is filed for tracking this.
      */
     // get network type
-    getSupportedNetworkInfo(function(result) {
+    getSupportedNetworkInfo(_mobileConnection, function(result) {
       var content =
         document.getElementById('carrier-operatorSettings-content');
 
@@ -262,7 +262,8 @@ var CarrierSettings = (function(window, document, undefined) {
     var continueButton = alertDialog.querySelector('button');
     continueButton.addEventListener('click', function onClickHandler() {
       alertDialog.hidden = true;
-      getSupportedNetworkInfo(function getSupportedNetworkInfoCb(result) {
+      getSupportedNetworkInfo(_mobileConnection,
+        function getSupportedNetworkInfoCb(result) {
         if (result.networkTypes) {
           cs_updateNetworkTypeSelector(result.networkTypes,
                                        result.gsm,
