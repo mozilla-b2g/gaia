@@ -34,7 +34,7 @@
     slowTransition: false,
 
     publish: function sys_publish(eventName, detail) {
-      var evt = new CustomeEvent(eventName, { detail: detail });
+      var evt = new CustomEvent(eventName, { detail: detail });
       window.dispatchEvent(evt);
     },
 

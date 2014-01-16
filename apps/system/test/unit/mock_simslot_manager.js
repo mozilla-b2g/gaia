@@ -1,4 +1,5 @@
 var MockSIMSlotManager = {
+  ready: false,
   mInstances: [],
   getSlots: function mssm_getSlots() {
     return this.mInstances;
