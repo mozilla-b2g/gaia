@@ -37,20 +37,28 @@
       if (!('remote' in features) || features['remote'] !== 'true')
         return;
 
+      var callerOrigin;
+
       // Examine permission
       // XXX: Ask app window about this.
-      var callerIframe = evt.target;
-      var callerFrame = callerIframe.parentNode;
-      var manifestURL = callerIframe.getAttribute('mozapp');
-      var callerApp = Applications.getByManifestURL(manifestURL);
-      if (!this.hasPermission(callerApp, 'open-remote-window'))
-        return;
+      // We can skip the permission check for events against the system window.
+      if (evt.target !== window) {
+        var callerIframe = evt.target;
+        var manifestURL = callerIframe.getAttribute('mozapp');
+
+        var callerApp = Applications.getByManifestURL(manifestURL);
+        if (!this.hasPermission(callerApp, 'open-remote-window'))
+          return;
+
+        callerOrigin = callerApp.origin;
+      } else {
+        callerOrigin = location.origin;
+      }
 
       // So, we are going to open a remote window.
       // Now, avoid PopupManager listener to be fired.
       evt.stopImmediatePropagation();
 
-      var callerOrigin = callerApp.origin;
       var name = detail.name;
       var url = detail.url;
 
