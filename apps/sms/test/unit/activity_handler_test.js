@@ -1,8 +1,8 @@
 /*global Notify, Compose, mocha, MocksHelper, ActivityHandler, Contacts,
          MessageManager, Attachment, ThreadUI */
 /*global MockNavigatormozSetMessageHandler, MockNavigatormozApps,
-         MockNavigatorWakeLock, MockNotificationHelper, MockOptionMenu,
-         Mockalert, MockMessages, MockNavigatorSettings, MockL10n,
+         MockNavigatorWakeLock, MockOptionMenu, Mockalert,
+         MockMessages, MockNavigatorSettings, MockL10n,
          MockNavigatormozMobileMessage */
 
 'use strict';
@@ -13,6 +13,7 @@ requireApp(
   'sms/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js'
 );
 requireApp('sms/shared/test/unit/mocks/mock_navigator_wake_lock.js');
+requireApp('sms/shared/test/unit/mocks/mock_notification.js');
 requireApp('sms/shared/test/unit/mocks/mock_notification_helper.js');
 requireApp('sms/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 requireApp('sms/shared/test/unit/mocks/mock_navigator_moz_settings.js');
@@ -42,6 +43,7 @@ var mocksHelperForActivityHandler = new MocksHelper([
   'Compose',
   'Contacts',
   'MessageManager',
+  'Notification',
   'NotificationHelper',
   'OptionMenu',
   'SettingsURL',
@@ -171,21 +173,27 @@ suite('ActivityHandler', function() {
 
     suite('contact retrieved (after getSelf)', function() {
       var contactName = '<&>';
+      var sendSpy;
       setup(function() {
+        sendSpy = this.sinon.spy(window, 'Notification');
         this.sinon.stub(Contacts, 'findByPhoneNumber')
           .callsArgWith(1, [{name: [contactName]}]);
         MockNavigatormozApps.mTriggerLastRequestSuccess();
       });
 
       test('passes contact name in plain text', function() {
-        assert.equal(MockNotificationHelper.mTitle, contactName);
+        sinon.assert.called(sendSpy);
+        var notification = sendSpy.firstCall.thisValue;
+        assert.equal(notification.title, contactName);
       });
     });
 
     suite('contact without name (after getSelf)', function() {
       var phoneNumber = '+1111111111';
       var oldSender;
+      var sendSpy;
       setup(function() {
+        sendSpy = this.sinon.spy(window, 'Notification');
         oldSender = message.sender;
         message.sender = phoneNumber;
         this.sinon.stub(Contacts, 'findByPhoneNumber')
@@ -202,22 +210,26 @@ suite('ActivityHandler', function() {
 
 
       test('phone in notification title when contact without name', function() {
-        assert.equal(MockNotificationHelper.mTitle, phoneNumber);
+        sinon.assert.called(sendSpy);
+        var notification = sendSpy.firstCall.thisValue;
+        assert.equal(notification.title, phoneNumber);
       });
     });
 
     suite('after getSelf', function() {
+      var sendSpy;
       setup(function() {
+        sendSpy = this.sinon.spy(window, 'Notification');
         MockNavigatormozApps.mTriggerLastRequestSuccess();
       });
 
       test('a notification is sent', function() {
-        assert.equal(MockNotificationHelper.mBody, message.body);
-
+        sinon.assert.called(sendSpy);
+        var notification = sendSpy.firstCall.thisValue;
+        assert.equal(notification.body, message.body);
         var expectedicon = 'sms?threadId=' + message.threadId + '&number=' +
           message.sender + '&id=' + message.id;
-
-        assert.equal(MockNotificationHelper.mIcon, expectedicon);
+        assert.equal(notification.icon, expectedicon);
       });
 
       test('the lock is released', function() {
@@ -226,9 +238,10 @@ suite('ActivityHandler', function() {
 
       suite('click on the notification', function() {
         setup(function() {
-          assert.ok(MockNotificationHelper.mClickCB);
+          var notification = sendSpy.firstCall.thisValue;
+          assert.ok(notification.mEvents.click);
           this.sinon.stub(ActivityHandler, 'handleMessageNotification');
-          MockNotificationHelper.mClickCB();
+          notification.mEvents.click();
         });
 
         test('launches the app', function() {
@@ -289,6 +302,7 @@ suite('ActivityHandler', function() {
           title: title,
           body: body,
           imageURL: 'url?id=' + messageId + '&threadId=' + threadId,
+          tag: 'threadId:' + threadId,
           clicked: true
         };
 
@@ -317,6 +331,7 @@ suite('ActivityHandler', function() {
         body: body,
         imageURL: 'url?id=' + messageId + '&threadId=' + threadId +
           '&type=class0',
+        tag: 'threadId:' + threadId,
         clicked: true
       };
 
