@@ -1,7 +1,8 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/*global Settings, Utils, Attachment, AttachmentMenu, MozActivity, SMIL */
+/*global Settings, Utils, Attachment, AttachmentMenu, MozActivity, SMIL,
+        MessageManager */
 /*exported Compose */
 
 'use strict';
@@ -89,6 +90,11 @@ var Compose = (function() {
 
   // anytime content changes - takes a parameter to check for image resizing
   function onContentChanged(duck) {
+    // Track when content is edited for draft replacement case
+    if (MessageManager.draft) {
+      MessageManager.draft.isEdited = true;
+    }
+
     // if the duck is an image attachment, handle resizes
     if (duck instanceof Attachment && duck.type === 'img') {
       return imageAttachmentsHandling();

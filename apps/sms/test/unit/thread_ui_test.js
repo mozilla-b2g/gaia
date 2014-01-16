@@ -4301,6 +4301,7 @@ suite('thread_ui.js >', function() {
 
         test('Discard', function() {
           MessageManager.draft = {id: 3};
+          MessageManager.draft.isEdited = true;
           var spy = this.sinon.spy(ThreadListUI, 'removeThread');
           ThreadUI.back();
 
@@ -4316,53 +4317,93 @@ suite('thread_ui.js >', function() {
 
       suite('If existing draft', function() {
 
-        suiteSetup(function() {
-          MessageManager.draft = {id: 55};
+        suite('If draft edited', function() {
+
+          suiteSetup(function() {
+            MessageManager.draft = {
+              id: 55,
+              isEdited: true
+            };
+          });
+
+          test('Prompts for replacement if recipients', function() {
+            ThreadUI.back();
+
+            assert.isTrue(OptionMenu.calledOnce);
+            assert.isTrue(showCalled);
+
+            var items = OptionMenu.args[0][0].items;
+
+            // Assert the correct menu items were displayed
+            assert.equal(items[0].l10nId, 'replace-draft');
+            assert.equal(items[1].l10nId, 'discard-message');
+            assert.equal(items[2].l10nId, 'cancel');
+          });
+
+          test('Prompts for replacement if recipients & content', function() {
+            Compose.append('foo');
+            ThreadUI.back();
+
+            assert.isTrue(OptionMenu.calledOnce);
+            assert.isTrue(showCalled);
+
+            var items = OptionMenu.args[0][0].items;
+
+            // Assert the correct menu items were displayed
+            assert.equal(items[0].l10nId, 'replace-draft');
+            assert.equal(items[1].l10nId, 'discard-message');
+            assert.equal(items[2].l10nId, 'cancel');
+          });
+
+          test('Prompts for replacement if content', function() {
+            ThreadUI.recipients.remove('999');
+            Compose.append('foo');
+            ThreadUI.back();
+
+            assert.isTrue(OptionMenu.calledOnce);
+            assert.isTrue(showCalled);
+
+            var items = OptionMenu.args[0][0].items;
+
+            // Assert the correct menu items were displayed
+            assert.equal(items[0].l10nId, 'replace-draft');
+            assert.equal(items[1].l10nId, 'discard-message');
+            assert.equal(items[2].l10nId, 'cancel');
+          });
         });
 
-        test('Displays replacement prompt if recipients', function() {
-          ThreadUI.back();
+        suite('If draft not edited', function() {
 
-          assert.isTrue(OptionMenu.calledOnce);
-          assert.isTrue(showCalled);
+          setup(function() {
+            MessageManager.draft = {id: 55};
+          });
 
-          var items = OptionMenu.args[0][0].items;
+          test('No prompt for replacement if recipients', function() {
+            MessageManager.draft.isEdited = false;
+            ThreadUI.back();
 
-          // Assert the correct menu items were displayed
-          assert.equal(items[0].l10nId, 'replace-draft');
-          assert.equal(items[1].l10nId, 'discard-message');
-          assert.equal(items[2].l10nId, 'cancel');
-        });
+            assert.isFalse(OptionMenu.calledOnce);
+            assert.isFalse(showCalled);
+          });
 
-        test('Displays replacement prompt if recipients & content', function() {
-          Compose.append('foo');
-          ThreadUI.back();
+          test('No prompt for replacement if recipients & content', function() {
+            Compose.append('foo');
+            MessageManager.draft.isEdited = false;
+            ThreadUI.back();
 
-          assert.isTrue(OptionMenu.calledOnce);
-          assert.isTrue(showCalled);
+            assert.isFalse(OptionMenu.calledOnce);
+            assert.isFalse(showCalled);
+          });
 
-          var items = OptionMenu.args[0][0].items;
+          test('No prompt for replacement if content', function() {
+            ThreadUI.recipients.remove('999');
+            Compose.append('foo');
+            MessageManager.draft.isEdited = false;
+            ThreadUI.back();
 
-          // Assert the correct menu items were displayed
-          assert.equal(items[0].l10nId, 'replace-draft');
-          assert.equal(items[1].l10nId, 'discard-message');
-          assert.equal(items[2].l10nId, 'cancel');
-        });
-
-        test('Displays replacement prompt if content', function() {
-          ThreadUI.recipients.remove('999');
-          Compose.append('foo');
-          ThreadUI.back();
-
-          assert.isTrue(OptionMenu.calledOnce);
-          assert.isTrue(showCalled);
-
-          var items = OptionMenu.args[0][0].items;
-
-          // Assert the correct menu items were displayed
-          assert.equal(items[0].l10nId, 'replace-draft');
-          assert.equal(items[1].l10nId, 'discard-message');
-          assert.equal(items[2].l10nId, 'cancel');
+            assert.isFalse(OptionMenu.calledOnce);
+            assert.isFalse(showCalled);
+          });
         });
       });
     });

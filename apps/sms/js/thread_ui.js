@@ -286,6 +286,9 @@ var ThreadUI = global.ThreadUI = {
   // Initialize Recipients list and Recipients.View (DOM)
   initRecipients: function thui_initRecipients() {
     var recipientsChanged = (function recipientsChanged(length, record) {
+      if (MessageManager.draft) {
+        MessageManager.draft.isEdited = true;
+      }
       var isOk = true;
       var strategy;
 
@@ -813,6 +816,19 @@ var ThreadUI = global.ThreadUI = {
       if (Compose.isEmpty() &&
         (Threads.active || this.recipients.length === 0)) {
         this.discardDraft();
+        leave();
+        return;
+      }
+
+      // If there is a draft and the content and recipients
+      // never got edited, re-save if threadless,
+      // then leave without prompting to replace
+      if (MessageManager.draft && !MessageManager.draft.isEdited) {
+        // Thread-less drafts are orphaned at this point
+        // so they need to be resaved for persistence
+        if (!Threads.currentId) {
+          this.saveDraft();
+        }
         leave();
         return;
       }
@@ -2601,8 +2617,6 @@ var ThreadUI = global.ThreadUI = {
     content = Compose.getContent();
     subject = Compose.getSubject();
     type = Compose.type;
-
-    // TODO Also store subject
 
     if (Threads.active) {
       recipients = Threads.active.participants;

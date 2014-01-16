@@ -271,6 +271,9 @@ var MessageManager = {
         MessageManager.launchComposer(function() {
           this.handleActivity(this.activity);
           this.handleForward(this.forward);
+          if (this.draft) {
+            this.draft.isEdited = false;
+          }
         }.bind(this));
         break;
       case '#thread-list':
@@ -310,7 +313,7 @@ var MessageManager = {
         var threadId = Threads.currentId;
         var willSlide = true;
 
-        var finishTransition = function finishTransition() {
+        var finishTransition = (function finishTransition() {
           // hashchanges from #group-view back to #thread=n
           // are considered "in thread" and should not
           // trigger a complete re-rendering of the messages
@@ -324,13 +327,14 @@ var MessageManager = {
             // Populate draft if there is one
             var thread = Threads.get(threadId);
             if (thread.hasDrafts) {
-              MessageManager.draft = thread.drafts.latest;
-              Compose.fromDraft(MessageManager.draft);
+              this.draft = thread.drafts.latest;
+              Compose.fromDraft(this.draft);
+              this.draft.isEdited = false;
             } else {
-              MessageManager.draft = null;
+              this.draft = null;
             }
           }
-        };
+        }).bind(this);
 
         // if we were previously composing a message - remove the class
         // and skip the "slide" animation

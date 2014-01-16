@@ -408,6 +408,7 @@ suite('Drafts', function() {
       assert.deepEqual(draft.recipients, []);
       assert.deepEqual(draft.content, []);
       assert.equal(draft.threadId, null);
+      assert.isFalse(draft.isEdited);
     });
 
     test('Draft from Draft object', function() {
@@ -417,6 +418,7 @@ suite('Drafts', function() {
       assert.equal(draft.timestamp, 1);
       assert.equal(draft.threadId, 42);
       assert.equal(draft.type, 'sms');
+      assert.isFalse(draft.isEdited);
     });
 
     test('Draft with explicit valid id', function() {
