@@ -111,6 +111,11 @@
         this.updateSimPinUI(cardIndex);
       }.bind(this));
     },
+    updateSimSecurityDescUI: function(enabled) {
+      window.navigator.mozL10n.localize(this.simSecurityDesc, enabled ?
+        'enabled' : 'disabled');
+      this.simSecurityDesc.dataset.l10nId = enabled ? 'enabled' : 'disabled';
+    },
     handleEvent: function(evt) {
       var target = evt.target;
       var cardIndex = target.dataset && target.dataset.simIndex;
@@ -145,6 +150,7 @@
               // successful unlock puk will be in simcard lock enabled state
               checkbox.checked = true;
               self.updateSimPinUI(cardIndex);
+              self.updateSimSecurityDescUI(true);
             },
             oncancel: function() {
               checkbox.checked = !enabled;
@@ -157,6 +163,7 @@
           this.simPinDialog.show(action, {
             cardIndex: cardIndex,
             onsuccess: function() {
+              self.updateSimSecurityDescUI(enabled);
               self.updateSimPinUI(cardIndex);
             },
             oncancel: function() {
