@@ -194,6 +194,7 @@ body[data-transitioning] .loading:after {
 
   .labelWrapper {
     margin-top: 0.2rem;
+    height: 1.9rem;
   }
 
   .apps ol > li:nth-child(17) {
