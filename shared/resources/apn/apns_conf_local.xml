@@ -276,4 +276,10 @@
       password="aptwap"
       type="mms"
   />
+
+  <apn carrier="Airtel"
+      mcc="470"
+      mnc="07"
+      apn="internet"
+  />
 </apns>

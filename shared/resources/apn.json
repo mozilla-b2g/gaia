@@ -2479,6 +2479,11 @@
     {"carrier":"亞太電信(APBW) (MMS)","apn":"aptmms","mmsc":"http://mms.aptg.com.tw","mmsproxy":"210.200.66.196","mmsport":"80","user":"aptwap@nsip.qma.com.tw","password":"aptwap","type":["mms"]}
   ]
 },
+"470": {
+  "07": [
+    {"carrier":"Airtel","apn":"internet"}
+  ]
+},
 "502": {
   "12": [
     {"carrier":"Maxis MMS","apn":"net","user":"maxis","password":"wap","mmsc":"http://172.16.74.100:10021/mmsc","mmsproxy":"202.75.133.49","mmsport":"80","type":["mms"]},
