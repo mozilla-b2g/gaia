@@ -1,64 +1,37 @@
-define(function(require) {
-  'use strict';
+define(function(require, exports, module) {
+'use strict';
 
-  var evt = require('vendor/evt');
+var evt = require('vendor/evt');
 
-  var Model = function(properties) {
-    this._properties = properties || {};
-  };
+module.exports = Model;
 
-  Model.prototype = evt.mix({
-    _properties: null,
+function Model(obj) {
+  if (!(this instanceof Model)) { return mix(obj, Model.prototype); }
+  this._data = obj;
+}
 
-    get: function(key) {
+Model.prototype = evt.mix({
+  get: function(key) {
+    var data = this._getData();
+    return data[key];
+  },
 
-      // Get bulk properties
-      if (!key) {
-        return this._properties;
-      }
+  set: function(key, value) {
+    var data = this._getData();
+    data[key] = value;
+    this.emit('change:' + key, value);
+    this.emit('change');
+  },
 
-      // Get single property
-      return this._properties[key];
-    },
+  _getData: function() {
+    this._data = this._data || {};
+    return this._data;
+  }
+});
 
-    set: function(keyOrProperties, value) {
+function mix(a, b) {
+  for (var key in b) { a[key] = b[key]; }
+  return a;
+}
 
-      // Set bulk properties
-      if (typeof keyOrProperties === 'object') {
-        var didChange = false;
-
-        for (var key in keyOrProperties) {
-
-          // Skip setting property if it hasn't changed
-          if (this._properties[key] === keyOrProperties[key]) {
-            continue;
-          }
-
-          this._properties[key] = keyOrProperties[key];
-          this.emit('change:' + key, keyOrProperties[key]);
-
-          didChange = true;
-        }
-
-        if (didChange) {
-          this.emit('change');
-        }
-
-        return;
-      }
-
-      // Skip setting property if it hasn't changed
-      if (this._properties[keyOrProperties] === value) {
-        return;
-      }
-
-      // Set single property
-      this._properties[keyOrProperties] = value;
-
-      this.emit('change');
-      this.emit('change:' + keyOrProperties, value);
-    }
-  });
-
-  return Model;
 });

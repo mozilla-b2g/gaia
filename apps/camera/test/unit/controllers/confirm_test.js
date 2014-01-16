@@ -22,7 +22,8 @@ suite('controllers/confirm', function() {
     this.app = {
       activity: {},
       camera: { on: sinon.spy() },
-      ConfirmView: ConfirmView
+      ConfirmView: ConfirmView,
+      on: sinon.spy()
     };
 
     this.controller = new Controller(this.app);
@@ -36,12 +37,12 @@ suite('controllers/confirm', function() {
   });
 
   suite('ConfirmController()', function() {
-    test('Should bind to camera `newimage` event', function() {
-      assert.ok(this.app.camera.on.calledWith('newimage'));
+    test('Should bind to app `newimage` event', function() {
+      assert.ok(this.app.on.calledWith('newimage'));
     });
 
-    test('Should bind to camera `newvideo` event', function() {
-      assert.ok(this.app.camera.on.calledWith('newvideo'));
+    test('Should bind to app `newvideo` event', function() {
+      assert.ok(this.app.on.calledWith('newvideo'));
     });
   });
 

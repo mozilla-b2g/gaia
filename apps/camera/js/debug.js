@@ -24,7 +24,7 @@ function debug(name) {
     var ms = curr - (debug[name] || curr);
     debug[name] = curr;
 
-    fmt = name + ' ' + fmt + ' +' + debug.humanize(ms);
+    fmt = '[' + name + '] ' + fmt + ' +' + debug.humanize(ms);
 
     // This hackery is required for IE8
     // where `console.log` doesn't have 'apply'

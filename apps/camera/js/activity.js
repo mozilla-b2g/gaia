@@ -21,6 +21,7 @@ module.exports = Activity;
 function Activity() {
   this.name = null;
   this.active = false;
+  this.data = {};
   this.allowedTypes = {
     image: false,
     video: false,
@@ -46,7 +47,7 @@ Activity.prototype.check = function(done) {
     return;
   }
 
-  debug('incoming');
+  debug('incoming...');
   navigator.mozSetMessageHandler('activity', onActivity);
 
   function onActivity(activity) {
@@ -56,17 +57,18 @@ Activity.prototype.check = function(done) {
     // behaviour of the camera app
     // for 'pick' activities.
     if (parsed.name !== 'pick') {
-      debug('type not supported');
+      debug('type \'%s\'not supported', parsed.name);
       done();
       return;
     }
 
+    self.data = parsed;
     self.active = true;
     self.name = parsed.name;
     self.allowedTypes = parsed.types;
     self.mode = parsed.mode;
     self.raw = activity;
-    debug('parsed \'%s\' activity', parsed.name);
+    debug('parsed \'%s\' activity', self);
     done();
   }
 };
@@ -79,12 +81,17 @@ Activity.prototype.check = function(done) {
  * @return {Object}
  */
 Activity.prototype.parse = function(activity) {
-  var data = {
+  var data = activity.source.data;
+  var parsed = {
     name: activity.source.name,
-    types: this.getTypes(activity)
+    types: this.getTypes(activity),
+    fileSize: data.maxFileSizeBytes,
+    width: data.width,
+    height: data.height
   };
-  data.mode = this.modeFromTypes(data.types);
-  return data;
+  parsed.mode = this.modeFromTypes(parsed.types);
+  debug('parsed', parsed);
+  return parsed;
 };
 
 /**

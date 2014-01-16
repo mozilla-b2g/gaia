@@ -20,7 +20,6 @@
 .buttons-disabled .gallery-button,
 .buttons-disabled .capture-button,
 .buttons-disabled .switch-button {
-  opacity: 0.5;
   pointer-events: none;
 }
 

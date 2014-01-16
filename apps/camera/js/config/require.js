@@ -7,7 +7,7 @@ require.config({
     'getVideoRotation': '../shared/js/media/get_video_rotation',
     'performanceTesting': '../shared/js/performance_testing_helper',
     'jpegMetaDataParser': '../shared/js/media/jpeg_metadata_parser',
-    'Format': '../shared/js/format',
+    'format': '../shared/js/format',
     'GestureDetector': '../shared/js/gesture_detector',
     'VideoPlayer': '../shared/js/media/video_player',
     'MediaFrame': '../shared/js/media/media_frame',
@@ -15,6 +15,9 @@ require.config({
     'debug': 'debug'
   },
   shim: {
+    'format': {
+      exports: 'Format'
+    },
     'LazyL10n': {
       deps: ['LazyLoader'],
       exports: 'LazyL10n'
@@ -24,7 +27,7 @@ require.config({
       exports: 'getVideoRotation'
     },
     'MediaFrame': {
-      deps: ['Format', 'VideoPlayer'],
+      deps: ['format', 'VideoPlayer'],
       exports: 'MediaFrame'
     },
     'BlobView': {
@@ -40,6 +43,7 @@ require.config({
       exports: 'PerformanceTestingHelper'
     },
     'jpegMetaDataParser': {
+      deps: ['BlobView'],
       exports: 'parseJPEGMetadata'
     },
     'GestureDetector': {

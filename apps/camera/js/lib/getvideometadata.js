@@ -25,7 +25,7 @@ var getVideoRotation = require('getVideoRotation');
 module.exports = createVideoPosterImage;
 
 
-function createVideoPosterImage(blob, filename, done) {
+function createVideoPosterImage(blob, done) {
   var URL = window.URL;
 
   getVideoRotation(blob, onGotVideoRotation);
@@ -72,8 +72,7 @@ function createVideoPosterImage(blob, filename, done) {
           height: videoheight,
           rotation: rotation,
           poster: {
-            blob: imageBlob,
-            filename: filename.replace('.3gp', '.jpg')
+            blob: imageBlob
           }
         });
       }, 'image/jpeg');
@@ -83,7 +82,7 @@ function createVideoPosterImage(blob, filename, done) {
       URL.revokeObjectURL(url);
       offscreenVideo.removeAttribute('src');
       offscreenVideo.load();
-      console.warn('not a video file', filename, 'delete it!');
+      console.warn('not a video file delete it!');
       done('error');
     }
   }

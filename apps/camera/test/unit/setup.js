@@ -17,6 +17,11 @@ mocha.setup({
   ]
 });
 
+// Shim for non FXOS environments
+if (!navigator.getDeviceStorage) {
+  navigator.getDeviceStorage = function() {};
+}
+
 // Once we have alemeda (requirejs) we can
 // begin loading in our modules to test.
 requireApp('camera/js/vendor/alameda.js', function() {
@@ -29,13 +34,16 @@ requireApp('camera/js/vendor/alameda.js', function() {
       'getVideoRotation': '../shared/js/media/get_video_rotation',
       'performanceTesting': '../shared/js/performance_testing_helper',
       'jpegMetaDataParser': '../shared/js/media/jpeg_metadata_parser',
-      'Format': '../shared/js/format',
+      'format': '../shared/js/format',
       'GestureDetector': '../shared/js/gesture_detector',
       'VideoPlayer': '../shared/js/media/video_player',
       'MediaFrame': '../shared/js/media/media_frame',
       'BlobView': '../shared/js/blobview'
     },
     shim: {
+      'format': {
+        exports: 'Format'
+      },
       'LazyL10n': {
         deps: ['LazyLoader'],
         exports: 'LazyL10n'
@@ -45,7 +53,7 @@ requireApp('camera/js/vendor/alameda.js', function() {
         exports: 'getVideoRotation'
       },
       'MediaFrame': {
-        deps: ['Format', 'VideoPlayer'],
+        deps: ['format', 'VideoPlayer'],
         exports: 'MediaFrame'
       },
       'BlobView': {
