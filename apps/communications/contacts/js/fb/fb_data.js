@@ -23,11 +23,14 @@ var fb = window.fb || {};
     var PHONE_MATCHER_JS = '/shared/js/simple_phone_matcher.js';
     var FB_READER_JS = '/shared/js/fb/fb_data_reader.js';
 
+    contacts.UID_NOT_FOUND = 'UIDNotFound';
+    contacts.ALREADY_EXISTS = 'AlreadyExists';
+
     // This is needed for having proxy methods setted and ready before
     // the real reader methods (in fb_data_reader) are loaded
     if (!contacts.init) {
       var proxyMethods = ['get', 'getLength', 'getByPhone', 'search',
-                          'refresh', 'init'];
+                          'refresh', 'init', 'restart'];
       proxyMethods.forEach(function(aMethod) {
         contacts[aMethod] = defaultFunction.bind(null, aMethod);
       });
@@ -74,6 +77,20 @@ var fb = window.fb || {};
       }
     }
 
+    function initError(outRequest, error) {
+      outRequest.failed(error);
+    }
+
+    // Ensures a proper error object is returned
+    function safeError(err) {
+      if (err && err.name) {
+        return err;
+      }
+      return {
+        name: 'UnknownError'
+      };
+    }
+
     // Creates a default handler for errors
     function defaultError(request) {
       return defaultErrorCb.bind(null, request);
@@ -85,7 +102,7 @@ var fb = window.fb || {};
     }
 
     function defaultErrorCb(request, error) {
-      request.failed(error);
+      request.failed(safeError(error));
     }
 
     function defaultSuccessCb(request, result) {
@@ -95,7 +112,7 @@ var fb = window.fb || {};
     function doSave(obj, outRequest) {
       if (obj.uid in index().byUid) {
         outRequest.failed({
-          name: 'AlreadyExists'
+          name: contacts.ALREADY_EXISTS
         });
         return;
       }
@@ -162,8 +179,8 @@ var fb = window.fb || {};
         contacts.init(function() {
           doSave(obj, retRequest);
         },
-        function() {
-          initError(retRequest);
+        function(err) {
+          initError(retRequest, err);
         });
       }, 0);
 
@@ -182,8 +199,8 @@ var fb = window.fb || {};
         contacts.init(function() {
           doUpdate(obj, retRequest);
         },
-        function() {
-          initError(retRequest);
+        function(err) {
+          initError(retRequest, err);
         });
       }, 0);
 
@@ -208,7 +225,7 @@ var fb = window.fb || {};
         }
         else {
           errorCb({
-            name: 'Datastore Id cannot be found'
+            name: contacts.UID_NOT_FOUND
           });
         }
       });
@@ -232,7 +249,7 @@ var fb = window.fb || {};
 
         if (typeof dsId === 'undefined') {
           errorRemove(outRequest, uid, {
-            name: 'UID not found'
+            name: contacts.UID_NOT_FOUND
           });
         }
         else {
@@ -274,6 +291,7 @@ var fb = window.fb || {};
     }
 
     function errorRemove(outRequest, uid, error) {
+      error = safeError(error);
       window.console.error('FB Data: Error while removing ', uid, ': ',
                            error.name);
       outRequest.failed(error);
@@ -291,8 +309,8 @@ var fb = window.fb || {};
         contacts.init(function() {
           doRemove(uid, retRequest, hasToFlush);
         },
-        function() {
-           initError(retRequest);
+        function(err) {
+           initError(retRequest, err);
         });
       }, 0);
 
@@ -312,8 +330,8 @@ var fb = window.fb || {};
         contacts.init(function() {
           doClear(outRequest);
         },
-        function() {
-           initError(outRequest);
+        function(err) {
+           initError(outRequest, err);
         });
       }, 0);
 
@@ -327,7 +345,9 @@ var fb = window.fb || {};
         // This is working but there are open questions on the mailing list
         datastore().put(index(), INDEX_ID).then(defaultSuccess(outRequest),
           function error(err) {
-            window.console.error('Error while re-creating the index: ', err);
+            err = safeError(err);
+            window.console.error('Error while re-creating the index: ',
+                                 err.name);
             outRequest.failed(err);
           }
         );
