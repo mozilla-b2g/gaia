@@ -38,7 +38,8 @@
      */
     get fullscreenHeight() {
       return window.innerHeight -
-        (this.keyboardEnabled ? KeyboardManager.getHeight() : 0);
+        (this.keyboardEnabled ? KeyboardManager.getHeight() : 0) -
+        SoftwareButtonManager.height;
     },
 
     /**
