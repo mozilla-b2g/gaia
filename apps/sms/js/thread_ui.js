@@ -1812,6 +1812,16 @@ var ThreadUI = global.ThreadUI = {
           items:
             [
               {
+                l10nId: 'forward',
+                method: function forwardMessage(messageId) {
+                  MessageManager.forward = {
+                    messageId: messageId
+                  };
+                  window.location.hash = '#new';
+                },
+                params: [messageId]
+              },
+              {
                 l10nId: 'delete',
                 method: function deleteMessage(messageId) {
                   // Complete deletion in DB and UI
@@ -1820,16 +1830,6 @@ var ThreadUI = global.ThreadUI = {
                       ThreadUI.deleteUIMessages(messageId);
                     }
                   );
-                },
-                params: [messageId]
-              },
-              {
-                l10nId: 'forward',
-                method: function forwardMessage(messageId) {
-                  MessageManager.forward = {
-                    messageId: messageId
-                  };
-                  window.location.hash = '#new';
                 },
                 params: [messageId]
               },
