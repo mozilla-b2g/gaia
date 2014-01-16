@@ -14,6 +14,7 @@ var broadcast = require('broadcast');
 var Model = require('vendor/model');
 var evt = require('vendor/evt');
 var dcf = require('dcf');
+var CameraUtils = require('utils/camera-utils');
 
 /**
  * Locals
@@ -67,7 +68,7 @@ function Camera() {
   this._autoFocusSupport = {};
   this._cameraObj = null;
   this._pictureSize = null;
-  this._previewConfig = null;
+  this._previewSize = null;
 
   // We can recieve multiple
   // 'FileSizeLimitReached' events
@@ -564,7 +565,7 @@ proto.loadCameraPreview = function(cameraNumber, callback) {
     var availableThumbnailSizes = camera.capabilities.thumbnailSizes;
     var focusModes = camera.capabilities.focusModes;
     var autoFocusSupported = !!~focusModes.indexOf('auto');
-    var thumbnailSize;
+    var thumbnailSize, pickedPreviewSize;
 
     // Store the Gecko
     // camera interface
@@ -572,6 +573,22 @@ proto.loadCameraPreview = function(cameraNumber, callback) {
 
     self.state.set('autoFocusSupported', autoFocusSupported);
     self.pickPictureSize(camera);
+
+    var previewSizes = camera.capabilities.previewSizes;
+    var viewportSize = {
+      width: document.body.clientHeight * window.devicePixelRatio,
+      height: document.body.clientWidth * window.devicePixelRatio
+    };
+
+    // 'Picture' Mode
+    if (self.isCameraMode()) {
+      pickedPreviewSize = CameraUtils.selectOptimalPreviewSize(viewportSize,
+                                                               previewSizes);
+      
+      // We should always have a valid preview size, but just in case
+      // we don't, pick the first provided
+      self._previewSize = pickedPreviewSize || previewSizes[0];
+    }
 
     thumbnailSize = self.selectThumbnailSize(
       availableThumbnailSizes,
@@ -587,9 +604,17 @@ proto.loadCameraPreview = function(cameraNumber, callback) {
 
       // 'Video' Mode
       if (self.isVideoMode()) {
+        self._previewSize = pickedPreviewSize = {
+          width: videoProfile.width,
+          height: videoProfile.height
+        };
+
         videoProfile.rotation = orientation.get();
         camera.getPreviewStreamVideoMode(videoProfile, gotPreviewScreen);
       }
+
+      // console.log(camera);
+      // console.log(previewSizes, viewportSize, pickedPreviewSize);
     });
 
     self.enableCameraFeatures(camera.capabilities);
@@ -601,7 +626,7 @@ proto.loadCameraPreview = function(cameraNumber, callback) {
     // 'Camera' Mode
     if (self.isCameraMode()) {
       camera.getPreviewStream(
-        self._previewConfig,
+        self._previewSize,
         gotPreviewScreen.bind(self));
     }
 
