@@ -12,7 +12,6 @@ Keyboards.hr = {
     l: '£',
     y: '¥',
     z: 'žźż',
-    r: 'R$ ',
     '.': ',?!;:'
   },
   keys: [ // qwertz

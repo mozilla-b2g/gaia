@@ -15,7 +15,6 @@ Keyboards.es = {
     l: '£ l·l',
     n: 'ń',
     y: '¥',
-    r: 'R$ ',
     '.': ',¿?¡!;:·',
     ':)': ':) :D :( ;D :* :/'
     /* '.com': '.es .org .eu' XXX: commented to avoid overflows for the demo */
