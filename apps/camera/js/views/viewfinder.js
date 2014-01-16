@@ -152,21 +152,25 @@ return View.extend({
     var scaledPreviewSize = CameraUtils.scaleSizeToFillViewport(
                               deviceIndependentViewportSize,
                               previewSize);
-    var offsetX = (scaledPreviewSize.height -
-                   deviceIndependentViewportSize.width) / 2;
-    var offsetY = (scaledPreviewSize.width -
-                   deviceIndependentViewportSize.height) / 2;
-    // Rotate the preview image 90 degrees
-    var transform = 'rotate(90deg)';
 
     this.el.style.width = scaledPreviewSize.width + 'px';
     this.el.style.height = scaledPreviewSize.height + 'px';
+
+    // Rotate the preview image 90 degrees
+    var transform = 'rotate(90deg)';
 
     if (mirrored) {
       /* backwards-facing camera */
       transform += ' scale(-1, 1)';
     }
+
     this.el.style.transform = transform;
+
+    var offsetX = (deviceIndependentViewportSize.height -
+                   scaledPreviewSize.width) / 2;
+    var offsetY = (deviceIndependentViewportSize.width -
+                   scaledPreviewSize.height) / 2;
+
     this.el.style.left = offsetX + 'px';
     this.el.style.top = offsetY + 'px';
   }

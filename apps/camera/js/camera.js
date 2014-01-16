@@ -640,9 +640,9 @@ proto.pickPreviewSize = function(camera) {
   // We should always have a valid preview size, but just in case
   // we don't, pick the first provided
   this._previewSize = pickedPreviewSize || previewSizes[0];
-  // console.log(camera);
-  // console.log(previewSizes, viewportSize, previewSize);
 
+  // console.log(camera);
+  // console.log(previewSizes, viewportSize, pickedPreviewSize);
 };
 
 proto.recordingStateChanged = function(msg) {
