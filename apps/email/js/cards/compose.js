@@ -725,21 +725,26 @@ ComposeCard.prototype = {
         }
       });
       activity.onsuccess = (function success() {
-        var name = activity.result.blob.name || activity.result.name;
-        console.log('compose: attach activity succes:', name);
+        // Load the util on demand, since one small codepath needs it, and
+        // it avoids needing to bundle util's dependencies in a built layer.
+        require(['attachment_name'], function(attachmentName) {
+          var blob = activity.result.blob,
+              name = activity.result.blob.name || activity.result.name,
+              count = this.composer.attachments.length + 1;
 
-        // It's possible that the name field is empty
-        // we should generate a default name for it, please see
-        // https://bugzilla.mozilla.org/show_bug.cgi?id=848855
-        if (name)
+          name = attachmentName.ensureName(blob, name, count);
+
+          console.log('compose: attach activity success:', name);
+
           name = name.substring(name.lastIndexOf('/') + 1);
 
-        this.composer.addAttachment({
-          name: name,
-          blob: activity.result.blob
-        });
+          this.composer.addAttachment({
+            name: name,
+            blob: activity.result.blob
+          });
 
-        this.insertAttachments();
+          this.insertAttachments();
+        }.bind(this));
       }).bind(this);
     } catch (e) {
       console.log('WebActivities unavailable? : ' + e);
