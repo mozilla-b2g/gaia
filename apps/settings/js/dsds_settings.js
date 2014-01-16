@@ -59,6 +59,11 @@ var DsdsSettings = (function(window, document, undefined) {
     if (ds_getNumberOfIccSlots() > 1) {
       callItem = document.getElementById('menuItem-callSettings');
       callItem.setAttribute('href', '#call-iccs');
+      if ((_mobileConnections[0].radioState !== 'enabled') ||
+          (!_mobileConnections[0].iccId &&
+           !_mobileConnections[1].iccId)) {
+        return;
+      }
       callItem = document.getElementById('call-settings');
       callItem.removeAttribute('aria-disabled');
     }
@@ -89,6 +94,11 @@ var DsdsSettings = (function(window, document, undefined) {
     if (ds_getNumberOfIccSlots() > 1) {
       cellAndDataItem = document.getElementById('menuItem-cellularAndData');
       cellAndDataItem.setAttribute('href', '#carrier-iccs');
+      if ((_mobileConnections[0].radioState !== 'enabled') ||
+          (!_mobileConnections[0].iccId &&
+           !_mobileConnections[1].iccId)) {
+        return;
+      }
       cellAndDataItem = document.getElementById('data-connectivity');
       cellAndDataItem.removeAttribute('aria-disabled');
     }
