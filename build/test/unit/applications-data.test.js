@@ -89,7 +89,8 @@ suite('applications-data', function() {
 		      enabled: true,
 		      lookahead: 16  // 60fps = 16ms per frame
 		    },
-		    grid: [[]]
+		    grid: [[]],
+		    bookmarks: 'test'
 			});
 		});
 	});
