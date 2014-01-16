@@ -12,6 +12,13 @@
     'closing': ['opened', null, 'closed', 'closed']
   };
 
+  var appTransitionSetting = 'app-transition.enabled';
+  var transitionEnabled =
+    SettingsListener.getSettingsLock().get(appTransitionSetting);
+  SettingsListener.observe(appTransitionSetting, true, function(value) {
+    transitionEnabled = value;
+  });
+
   /**
    * AppTransitionController controlls the opening and closing animation
    * of the given appWindow.
@@ -122,14 +129,22 @@
       System.slowTransition ? this.SLOW_TRANSITION_TIMEOUT :
                               this.TRANSITION_TIMEOUT);
       this.app.element.classList.add('transition-closing');
-      this.app.element.classList.add(this.currentAnimation ||
-        this.closeAnimation);
+      this.app.element.classList.add(this.getAnimationName('close'));
     };
 
   AppTransitionController.prototype._do_closed =
     function atc_do_closed() {
       this.resetTransition();
     };
+
+  AppTransitionController.prototype.getAnimationName = function(type) {
+    if (transitionEnabled) {
+      return this.currentAnimation || this[type + 'Animation'];
+    } else {
+      return 'immediate';
+    }
+  };
+
 
   AppTransitionController.prototype._do_opening =
     function atc_do_opening() {
@@ -139,8 +154,7 @@
       System.slowTransition ? this.SLOW_TRANSITION_TIMEOUT :
                               this.TRANSITION_TIMEOUT);
       this.app.element.classList.add('transition-opening');
-      this.app.element.classList.add(this.currentAnimation ||
-        this.openAnimation);
+      this.app.element.classList.add(this.getAnimationName('open'));
     };
 
   AppTransitionController.prototype._do_opened =
@@ -269,7 +283,7 @@
 
       var classes = ['enlarge', 'reduce', 'to-cardview', 'from-cardview',
         'invoking', 'invoked', 'zoom-in', 'zoom-out',
-        'transition-opening', 'transition-closing'];
+        'transition-opening', 'transition-closing', 'immediate'];
 
       classes.forEach(function iterator(cls) {
         this.app.element.classList.remove(cls);
