@@ -1,9 +1,9 @@
 define(function() {
   'use strict';
 
-  var CameraUtil = function CameraUtil() {};
+  var CameraUtils = function CameraUtils() {};
 
-  CameraUtil.scaleSizeToFitViewport = function(viewportSize, imageSize) {
+  CameraUtils.scaleSizeToFitViewport = function(viewportSize, imageSize) {
     var sw = viewportSize.width / imageSize.width,
         sh = viewportSize.height / imageSize.height,
         scale;
@@ -17,7 +17,7 @@ define(function() {
     };
   };
 
-  CameraUtil.scaleSizeToFillViewport = function(viewportSize, imageSize) {
+  CameraUtils.scaleSizeToFillViewport = function(viewportSize, imageSize) {
     var sw = viewportSize.width / imageSize.width,
         sh = viewportSize.height / imageSize.height,
         scale;
@@ -43,7 +43,7 @@ define(function() {
     - If there is an exact match found, all further calculations are
       canceled and the preview size is returned immediately
   */
-  CameraUtil.selectOptimalPreviewSize = function(viewportSize, previewSizes) {
+  CameraUtils.selectOptimalPreviewSize = function(viewportSize, previewSizes) {
     if (previewSizes && previewSizes.length === 0) {
       return null;
     }
@@ -106,9 +106,9 @@ define(function() {
     return calculatedPreviewSizes[0].previewSize;
   };
 
-  CameraUtil.prototype = {
-    constructor: CameraUtil
+  CameraUtils.prototype = {
+    constructor: CameraUtils
   };
 
-  return CameraUtil;
+  return CameraUtils;
 });
