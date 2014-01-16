@@ -7,7 +7,7 @@ section[role="region"].skin-organic {
 
 input:invalid {
   border: 0.1rem solid #ccc;
-  color: -moz-initial;
+  color: initial;
 }
 
 input:-moz-placeholder {
