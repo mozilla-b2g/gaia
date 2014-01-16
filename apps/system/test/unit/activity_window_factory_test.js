@@ -223,6 +223,20 @@ suite('system/ActivityWindowFactory', function() {
       ActivityWindowFactory._activities = [];
     });
 
+
+    test('second activity request is the same as first activity', function() {
+      ActivityWindowFactory.handleEvent(fakeLaunchConfig1);
+      var activity1 = ActivityWindowFactory._lastActivity;
+      var stubActive = this.sinon.stub(activity1, 'isActive');
+      stubActive.returns(true);
+      // launch again.
+      ActivityWindowFactory.handleEvent(fakeLaunchConfig1);
+      assert.equal(ActivityWindowFactory._activities.length, 1);
+
+      ActivityWindowFactory._lastActivity = null;
+      ActivityWindowFactory._activities = [];
+    });
+
     test('maintain activity: created', function() {
       var current = ActivityWindowFactory._activities.length;
       ActivityWindowFactory.handleEvent({
