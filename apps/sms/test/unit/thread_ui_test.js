@@ -2974,8 +2974,8 @@ suite('thread_ui.js >', function() {
       // Dispatch custom event for testing long press
       link.dispatchEvent(contextMenuEvent);
       assert.ok(MockOptionMenu.calls.length, 1);
-      // Is first element of the menu 'delete'?
-      assert.equal(MockOptionMenu.calls[0].items[0].l10nId, 'delete');
+      // Is first element of the menu 'forward'?
+      assert.equal(MockOptionMenu.calls[0].items[0].l10nId, 'forward');
     });
   });
 

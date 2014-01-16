@@ -1861,18 +1861,6 @@ var ThreadUI = global.ThreadUI = {
           items:
             [
               {
-                l10nId: 'delete',
-                method: function deleteMessage(messageId) {
-                  // Complete deletion in DB and UI
-                  MessageManager.deleteMessage(messageId,
-                    function onDeletionDone() {
-                      ThreadUI.deleteUIMessages(messageId);
-                    }
-                  );
-                },
-                params: [messageId]
-              },
-              {
                 l10nId: 'forward',
                 method: function forwardMessage(messageId) {
                   MessageManager.forward = {
@@ -1887,6 +1875,18 @@ var ThreadUI = global.ThreadUI = {
                 method: function showMessageReport(messageId) {
                   // Fetch the message by id and display report
                   window.location.href = '#report-view=' + messageId;
+                },
+                params: [messageId]
+              },
+              {
+                l10nId: 'delete',
+                method: function deleteMessage(messageId) {
+                  // Complete deletion in DB and UI
+                  MessageManager.deleteMessage(messageId,
+                    function onDeletionDone() {
+                      ThreadUI.deleteUIMessages(messageId);
+                    }
+                  );
                 },
                 params: [messageId]
               },
