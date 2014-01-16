@@ -8,7 +8,7 @@ define(function(require, exports, module) {
     this.data = data || {};
     this.callback = callback;
     this.id = mozAlarmsId++;
-    this.respectTimezone =
+    this.respectTimezone = respectTimezone;
     this.timeout = setTimeout(function() {
       if ((typeof this.callback) === 'function') {
         this.callback({

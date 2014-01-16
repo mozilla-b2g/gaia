@@ -1,5 +1,7 @@
-(function(exports) {
+define(function(require, exports) {
   'use strict';
+
+  var Utils = require('utils');
 
   // ===========================================================
   // SchemaVersion Object
@@ -167,14 +169,9 @@
 
   var databaseSingletons = new Map();
 
-  Database.singleton = function(options) {
-    var db = databaseSingletons.get(options.name);
-    if (!db) {
-      db = new Database(options);
-      databaseSingletons.set(options.name, db);
-    }
-    return db;
-  };
+  Database.singleton = Utils.singleton(Database, function(map, args) {
+    return [args[0].name, map.get(args[0].name)];
+  });
 
   // ===========================================================
   // Database Object Private Methods
@@ -327,6 +324,214 @@
             new Error('Error retrieving indexedDB version #'));
         }
       };
+    },
+
+    // ===========================================================
+    // Database copying (IndexedDB problems)
+
+    doubleCopyReset: function(callback) {
+      /**
+       * doubleCopyReset
+       *
+       * The indexedDB spec has some... erm... flaws. This method
+       * is evidence of that fact. Since there is no way to downgrade
+       * a database (onupgradeneeded is only called for >= version
+       * changes), we use programmatically generated version numbers.
+       *
+       * Since there is no way of knowing how often these will be
+       * called, and "X is enough for anyone" never works out (
+       * even when X = 2^53 - 1), a method to loop back around to
+       * start is necessary. That way, we can programmatically
+       * generate onupgradeneeded events as we please, and never
+       * worry about driving off the end of the earth. Even if we
+       * don't, ourselves, generate 2^53 upgrade events, there is
+       * no guarantee that we won't inherit a database that has a
+       * manually set high version number.
+       *
+       * Here, we take the painstaking step of copying the entire
+       * database to a temporary name, deleting the initial
+       * database, and then reinstating it at version 1 and
+       * copying the entire contents back again.
+       *
+       * Hopefully, the spec will be fixed before this ever needs
+       * to be called in production.
+       */
+      var copyName = '__' + this.name + '__COPY__';
+      var secondCopy = (function(err) {
+        if (err) {
+          callback(err);
+        }
+        var delreq = indexedDB.deleteDatabase(this.name);
+        delreq.onsuccess = (function(ev) {
+          // second copy
+          this.copyToNew(copyName, this.name, callback);
+        }).bind(this);
+        delreq.onerror = function(ev) {
+          callback(delreq.error);
+        };
+      }).bind(this);
+      // first copy
+      this.copyToNew(this.name, copyName, secondCopy);
+    },
+
+    extractSchema: function(trans) {
+      var db = trans.db;
+      var schema = {};
+      Array.prototype.forEach.call(db.objectStoreNames, function(x) {
+        var store = trans.objectStore(x);
+        var osSchema = schema[x] = {
+          indices: [],
+          options: {
+            keyPath: store.keyPath,
+            autoincrement: store.autoincrement
+          }
+        };
+        for (var i = 0; i < store.indexNames.length; i++) {
+          var index = store.index(store.indexNames[i]);
+          osSchema.indices.push({
+            name: store.indexNames[i],
+            keyPath: index.keyPath,
+            multiEntry: index.multiEntry,
+            unique: index.unique
+          });
+        }
+      }.bind(this));
+      return schema;
+    },
+
+    applySchema: function(schema, trans) {
+      /**
+       * applySchema
+       *
+       * Parameter schema {object} - schema collected from extractSchema
+       * Parameter trans {IDBTransaction} - target upgrade transaction
+       */
+      var db = trans.db;
+      for (var i in schema) {
+        var obj = db.createObjectStore(i, schema[i].options);
+        for (var j = 0; j < schema[i].indices.length; j++) {
+          var def = schema[i].indices[j];
+          obj.createIndex(def.name, def.keyPath, {
+            multiEntry: def.multiEntry,
+            unique: def.unique
+          });
+        }
+      }
+    },
+
+    copyToNew: function(srcName, destName, callback) {
+      /**
+       * copyToNew
+       *
+       * Parameter srcName {string} - source database name.
+       * Parameter destName {string} - destination database name.
+       *
+       * copies all data from indexedDB-srcName to indexedDB-destName,
+       * and then calls the callback with any errors or null for success
+       */
+      var srcdb;
+      var extractedSchema;
+      var deletedDest = false;
+      var putKV = (function(obj, key, value, cb) {
+        var putit = (function() {
+          var oreq = indexedDB.open(destName, 1);
+          oreq.onupgradeneeded = (function(ev) {
+            var db = oreq.result;
+            var trans = ev.target.transaction;
+            this.applySchema(extractedSchema, trans);
+          }).bind(this);
+          oreq.onsuccess = function(ev) {
+            var db = oreq.result;
+            var trans = db.transaction(obj, 'readwrite');
+            var store = trans.objectStore(obj);
+            var preq;
+            if (store.keyPath) {
+              preq = store.put(value);
+            } else {
+              preq = store.put(value, key);
+            }
+            preq.onsuccess = function(ev) {
+              db.close();
+              cb(null);
+            };
+            preq.onerror = function(ev) {
+              db.close();
+              cb(new Error('cannot put'));
+            };
+          };
+          oreq.onerror = function(ev) {
+            cb(new Error('cannot create destdb:' + destName));
+          };
+        }).bind(this);
+        if (!deletedDest) {
+          deletedDest = true;
+          var delreq = indexedDB.deleteDatabase(destName);
+          delreq.onsuccess = function(ev) {
+            putit();
+          };
+          delreq.onerror = function(ev) {
+            cb(new Error('cannot delete destdb:' + destName));
+          };
+        } else {
+          putit();
+        }
+      }).bind(this);
+      var gen = Utils.async.generator(function(err) {
+        srcdb.close();
+        callback && callback(err);
+      });
+      var done = gen();
+      // Open the src database
+      this.getLatestVersion(srcName,
+        function(err, latestVersion, effectiveVersion) {
+        var srcreq = indexedDB.open(srcName, latestVersion);
+        srcreq.onsuccess = (function(ev) {
+          srcdb = srcreq.result;
+          var trans = srcdb.transaction(srcdb.objectStoreNames, 'readonly');
+          extractedSchema = this.extractSchema(trans);
+          for (var i = 0; i < srcdb.objectStoreNames.length; i++) {
+            (function(i, cb) {
+              // loop over object stores
+              var storeName = srcdb.objectStoreNames[i];
+              var store = trans.objectStore(storeName);
+              var objfinalizer = Utils.async.generator(function(err) {
+                cb && cb(err);
+              });
+              var objdone = objfinalizer();
+              var curreq = store.openCursor(undefined, 'next');
+              curreq.onsuccess = function(ev) {
+                var cursor = curreq.result;
+                if (cursor) {
+                  var outgoing = objfinalizer();
+                  var key = cursor.key;
+                  var getreq = store.get(key);
+                  getreq.onsuccess = function(ev) {
+                    var value = getreq.result;
+                    putKV(storeName, key, value, function(err) {
+                      outgoing(err);
+                    });
+                    cursor.continue();
+                  };
+                  getreq.onerror = function(ev) {
+                    cb && cb(getreq.error);
+                  };
+                } else {
+                  objdone();
+                }
+              };
+              curreq.onerror = function(ev) {
+                callback && callback(curreq.error);
+              };
+            })(i, gen());
+          }
+          done();
+        }).bind(this);
+        srcreq.onblocked = srcreq.onupgradeneeded = srcreq.onerror =
+          function(ev) {
+          callback && callback(new Error(
+            'Error occured while opening old database'));
+        };
+      }.bind(this));
     },
 
     // ===========================================================
@@ -527,23 +732,31 @@
           callback && callback(new Error('blocked'));
         };
       }).bind(this);
-      this.getLatestVersion(this.name, function(err, version, effective) {
-        if (version === 0 || effective !== this.version) {
-          this.loadSchemas(function() {
-            // We have lazy loaded schema files, now upgrade the database
-            this.upgrade(effective, this.version, function(err) {
-              if (err) {
-                callback && callback(err);
-                return;
-              }
-              // The upgrade function has changed our version number,
-              // get the latest
-              this.getLatestVersion(this.name,
-                function(err, version, effective) {
-                opener.call(this, version);
-              }.bind(this));
+      var loadAndUpgrade = function(err, version, effective) {
+        this.loadSchemas(function() {
+          // We have lazy loaded schema files, now upgrade the database
+          this.upgrade(effective, this.version, function(err) {
+            if (err) {
+              callback && callback(err);
+              return;
+            }
+            // The upgrade function has changed our version number,
+            // get the latest
+            this.getLatestVersion(this.name,
+              function(err, version, effective) {
+              opener.call(this, version);
             }.bind(this));
           }.bind(this));
+        }.bind(this));
+      };
+      this.getLatestVersion(this.name, function(err, version, effective) {
+        if (version === 0 || effective !== this.version) {
+          if (version >= Math.pow(2, 53) - 1) {
+            this.doubleCopyReset(
+              loadAndUpgrade.bind(this, err, version, effective));
+          } else {
+            loadAndUpgrade.call(this, err, version, effective);
+          }
         } else {
           // No upgrade necessary, just open a connection
           opener.call(this, version);
@@ -552,7 +765,8 @@
     }
   };
 
-  exports.SchemaVersion = SchemaVersion;
-  exports.Database = Database;
-
-})(this);
+  return {
+    SchemaVersion: SchemaVersion,
+    Database: Database
+  };
+});
