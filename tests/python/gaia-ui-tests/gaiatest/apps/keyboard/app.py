@@ -81,6 +81,7 @@ class Keyboard(Base):
 
     # keyboard app locators
     _keyboard_frame_locator = (By.CSS_SELECTOR, '#keyboards iframe')
+    _keyboard_frame_parent_locator = (By.CSS_SELECTOR, '#keyboards')
     _keyboard_locator = (By.CSS_SELECTOR, '#keyboard')
     _button_locator = (By.CSS_SELECTOR, '.keyboard-type-container[data-active] button.keyboard-key[data-keycode="%s"], .keyboard-type-container[data-active] button.keyboard-key[data-keycode-upper="%s"]')
     _highlight_key_locator = (By.CSS_SELECTOR, 'div.highlighted button')
@@ -316,15 +317,25 @@ class Keyboard(Base):
         self.wait_for_condition(lambda m: self.is_displayed())
         self.marionette.switch_to_frame()
         self.marionette.execute_script('navigator.mozKeyboard.removeFocus();')
-        self.wait_for_condition(lambda m: not self.is_displayed())
+        self.wait_for_condition(lambda m: self.is_hidden())
         self.apps.switch_to_displayed_app()
 
     def is_displayed(self):
         self.marionette.switch_to_frame()
+        keyboard_parent = self.marionette.find_element(*self._keyboard_frame_parent_locator)
         keyboard = self.marionette.find_element(*self._keyboard_frame_locator)
-        is_visible = keyboard.is_displayed() and keyboard.location['y'] == 0
+        # Because of Bug 956761, we cannot check keyboard.is_displayed()
+        is_visible = len(keyboard_parent.get_attribute('class')) == 0 and keyboard.location['y'] == 0
         self.apps.switch_to_displayed_app()
         return is_visible
+
+    def is_hidden(self):
+        self.marionette.switch_to_frame()
+        keyboard_parent = self.marionette.find_element(*self._keyboard_frame_parent_locator)
+        # Because of Bug 956761, we cannot check keyboard.is_displayed()
+        is_hidden = keyboard_parent.get_attribute('class') == 'hide'
+        self.apps.switch_to_displayed_app()
+        return is_hidden
 
     def tap_first_predictive_word(self):
         self.switch_to_keyboard()
