@@ -82,5 +82,6 @@ suite('SIMSlotManager', function() {
     });
     assert.isTrue(stubGetIccById.calledWith(1));
     assert.isTrue(stubUpdate.calledWith(card2));
+    assert.isTrue(SIMSlotManager.ready);
   });
 });
