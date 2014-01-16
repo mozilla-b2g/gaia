@@ -93,8 +93,14 @@
                   return false;
                 }
               });
+              // If the lastActivity is the same as launch request, we don't
+              // need to create another activity.
+              if (this._lastActivity.manifestURL === evt.detail.manifestURL &&
+                  this._lastActivity.url === evt.detail.url) {
+                return;
+              }
               this._lastActivity = new ActivityWindow(evt.detail,
-                this._lastActivity);
+                                                      this._lastActivity);
               break;
             }
             var app = WindowManager.getCurrentActiveAppWindow();
