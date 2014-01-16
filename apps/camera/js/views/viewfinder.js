@@ -8,6 +8,7 @@ define(function(require) {
 var bind = require('utils/bind');
 var constants = require('config/camera');
 var View = require('vendor/view');
+var CameraUtils = require('utils/camera-utils');
 
 /**
  * Locals
@@ -138,49 +139,36 @@ return View.extend({
     }
   },
 
-  updatePreview: function(pictureSize, mirrored) {
-    var pictureAspectRatio = pictureSize.height / pictureSize.width;
-    // Switch screen dimensions to landscape
-    var screenWidth = document.body.clientHeight;
-    var screenHeight = document.body.clientWidth;
-    var screenAspectRatio = screenHeight / screenWidth;
+  updatePreview: function(previewSize, mirrored) {
+    // Use the device-independent viewport size for transforming the
+    // preview using CSS
+    var deviceIndependentViewportSize = {
+      width: document.body.clientHeight,
+      height: document.body.clientWidth
+    };
 
+    // Scale the optimal preview size to fill the viewport (will
+    // overflow if necessary)
+    var scaledPreviewSize = CameraUtils.scaleSizeToFillViewport(
+                              deviceIndependentViewportSize,
+                              previewSize);
+    var offsetX = (scaledPreviewSize.height -
+                   deviceIndependentViewportSize.width) / 2;
+    var offsetY = (scaledPreviewSize.width -
+                   deviceIndependentViewportSize.height) / 2;
+    // Rotate the preview image 90 degrees
     var transform = 'rotate(90deg)';
-    var width, height;
-    var translateX = 0;
 
-    // The preview should be larger than the screen, shrink it so that as
-    // much as possible is on screen.
-    if (screenAspectRatio < pictureAspectRatio) {
-      width = screenWidth;
-      height = screenWidth * pictureAspectRatio;
-    } else {
-      width = screenHeight / pictureAspectRatio;
-      height = screenHeight;
-    }
+    this.el.style.width = scaledPreviewSize.width + 'px';
+    this.el.style.height = scaledPreviewSize.height + 'px';
 
     if (mirrored) {
       /* backwards-facing camera */
       transform += ' scale(-1, 1)';
-      translateX = width;
     }
-
-    // Counter the position due to the rotation
-    // This translation goes after the rotation so the element is shifted up
-    // (for back camera) - shifted up after it is rotated 90 degress clockwise.
-    // (for front camera) - shifted up-left after it is mirrored and rotated.
-    transform += ' translate(-' + translateX + 'px, -' + height + 'px)';
-
-    // Now add another translation at to center the viewfinder on the screen.
-    // We put this at the start of the transform, which means it is applied
-    // last, after the rotation, so width and height are reversed.
-    var dx = -(height - screenHeight) / 2;
-    var dy = -(width - screenWidth) / 2;
-    transform = 'translate(' + dx + 'px,' + dy + 'px) ' + transform;
-
     this.el.style.transform = transform;
-    this.el.style.width = width + 'px';
-    this.el.style.height = height + 'px';
+    this.el.style.left = offsetX + 'px';
+    this.el.style.top = offsetY + 'px';
   }
 });
 

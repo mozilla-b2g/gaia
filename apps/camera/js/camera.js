@@ -14,6 +14,7 @@ var broadcast = require('broadcast');
 var Model = require('vendor/model');
 var evt = require('vendor/evt');
 var dcf = require('dcf');
+var CameraUtils = require('utils/camera-utils');
 
 /**
  * Locals
@@ -67,7 +68,7 @@ function Camera() {
   this._autoFocusSupport = {};
   this._cameraObj = null;
   this._pictureSize = null;
-  this._previewConfig = null;
+  this._previewSize = null;
 
   // We can recieve multiple
   // 'FileSizeLimitReached' events
@@ -602,7 +603,7 @@ proto.loadCameraPreview = function(cameraNumber, callback) {
     // 'Camera' Mode
     if (self.isCameraMode()) {
       camera.getPreviewStream(
-        self._previewConfig,
+        self._previewSize,
         gotPreviewScreen.bind(self));
     }
 
@@ -628,37 +629,20 @@ proto.loadCameraPreview = function(cameraNumber, callback) {
 
 proto.pickPreviewSize = function(camera) {
 
-    var pictureSize = this._pictureSize;
+  var previewSizes = camera.capabilities.previewSizes;
+  var viewportSize = {
+    width: document.body.clientHeight * window.devicePixelRatio,
+    height: document.body.clientWidth * window.devicePixelRatio
+  };
+  var pickedPreviewSize = CameraUtils.selectOptimalPreviewSize(viewportSize,
+                                                               previewSizes);
 
-    // Switch screen dimensions to landscape
-    var screenWidth = document.body.clientHeight;
-    var screenHeight = document.body.clientWidth;
-    var pictureAspectRatio = pictureSize.height / pictureSize.width;
-    var screenAspectRatio = screenHeight / screenWidth;
+  // We should always have a valid preview size, but just in case
+  // we don't, pick the first provided
+  this._previewSize = pickedPreviewSize || previewSizes[0];
+  // console.log(camera);
+  // console.log(previewSizes, viewportSize, previewSize);
 
-    // Previews should match the aspect ratio and not be smaller than the screen
-    var validPreviews = camera.capabilities.previewSizes.filter(function(res) {
-      // Note that we are using the screen size in CSS pixels and not
-      // multiplying by devicePixelRatio. We assume that the preview sizes
-      // returned by the camera are in CSS pixels, not device pixels.
-      // This is the way things seem to work on the Helix.
-      var isLarger = res.height >= screenHeight && res.width >= screenWidth;
-      var aspectRatio = res.height / res.width;
-      var matchesRatio = Math.abs(aspectRatio - pictureAspectRatio) < 0.05;
-      return matchesRatio && isLarger;
-    });
-
-    // We should always have a valid preview size, but just in case
-    // we dont, pick the first provided.
-    if (validPreviews.length > 0) {
-
-      // Pick the smallest valid preview
-      this._previewConfig = validPreviews.sort(function(a, b) {
-        return a.width * a.height - b.width * b.height;
-      }).shift();
-    } else {
-      this._previewConfig = this.capabilities.previewSizes[0];
-    }
 };
 
 proto.recordingStateChanged = function(msg) {

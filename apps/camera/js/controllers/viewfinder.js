@@ -56,7 +56,7 @@ proto.bindEvents = function() {
  * @param  {MozCamera} camera
  */
 proto.onCameraChange = function(camera) {
-  this.viewfinder.updatePreview(this.camera._pictureSize,
+  this.viewfinder.updatePreview(this.camera._previewSize,
                                 this.camera.state.get('cameraNumber') === 1);
 };
 
