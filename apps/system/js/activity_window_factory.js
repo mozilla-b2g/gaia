@@ -98,6 +98,12 @@
             return false;
           }
         });
+        // If the lastActivity is the same as launch request, we don't need to
+        // create another activity.
+        if (this._lastActivity.manifestURL === configuration.manifestURL &&
+            this._lastActivity.url === configuration.url) {
+          return;
+        }
         this._lastActivity = new ActivityWindow(configuration,
                                                 this._lastActivity);
         return;

@@ -226,6 +226,17 @@ suite('system/ActivityWindowFactory', function() {
         delete activity1.activityCallee;
       });
 
+    test('second activity request is the same as first activity',
+      function() {
+        ActivityWindowFactory._activities = [activity1];
+        ActivityWindowFactory._lastActivity = activity1;
+        ActivityWindowFactory._activeActivity = activity1;
+        var stubActive = this.sinon.stub(activity1, 'isActive');
+        stubActive.returns(true);
+        ActivityWindowFactory.handleEvent(fakeLaunchConfig1);
+        assert.equal(ActivityWindowFactory._activities.length, 1);
+      });
+
     test('maintain activity: created', function() {
       ActivityWindowFactory._activities = [activity1, activity2, activity3];
       ActivityWindowFactory._lastActivity = activity1;
