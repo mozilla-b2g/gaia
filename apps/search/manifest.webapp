@@ -37,10 +37,6 @@
     "eme_store": {
       "readonly": false,
       "description": "Stores Everything.me data"
-    },
-    "places": {
-      "access": "readonly",
-      "description": "Stores data about browsing history."
     }
   }
 }
