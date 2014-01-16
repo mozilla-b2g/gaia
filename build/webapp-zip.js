@@ -171,8 +171,8 @@ function copyBuildingBlock(zip, blockName, dirName) {
   subFolder.append(blockName);
   utils.ls(subFolder, true).forEach(function(file) {
       let relativePath = file.getRelativeDescriptor(styleFolder);
-      // Ignore HTML files at style root folder
-      if (relativePath.match(/^[^\/]+\.html$/))
+      // Ignore HTML files, they are only for demo purposes
+      if (relativePath.match(/\.html$/))
         return;
       // Do not process directory as `addToZip` will add files recursively
       if (file.isDirectory())
