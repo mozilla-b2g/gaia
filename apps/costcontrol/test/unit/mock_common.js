@@ -31,7 +31,7 @@ var MockCommon = function(config) {
     waitForDOMAndMessageHandler: function(window, callback) {
       callback();
     },
-    checkSIMChange: function(callback) {
+    checkSIM: function(callback) {
       callback();
     },
     startFTE: function(mode) {
