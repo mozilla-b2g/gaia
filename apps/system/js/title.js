@@ -22,11 +22,6 @@ var Title = {
   },
 
   handleEvent: function(e) {
-
-    if (!Rocketbar.enabled) {
-      return;
-    }
-
     switch (e.type) {
       case 'home':
         this.content = '';

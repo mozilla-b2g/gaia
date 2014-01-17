@@ -99,7 +99,7 @@ var UtilityTray = {
       case 'touchmove':
         var touch = evt.touches[0];
         if (!this.active) {
-          if (Rocketbar.enabled && !this.shown &&
+          if (!this.shown &&
               touch.pageX < this.screenWidth * Rocketbar.triggerWidth) {
             Rocketbar.pointerY = touch.pageY;
           }
@@ -130,9 +130,8 @@ var UtilityTray = {
     this.screenHeight = screenRect.height;
     this.screenWidth = screenRect.width;
 
-    // Show the rocketbar if it's enabled,
     // Give a slightly larger left area, than right.
-    if (Rocketbar.enabled && !this.shown &&
+    if (!this.shown &&
         touch.pageX < this.screenWidth * Rocketbar.triggerWidth) {
       UtilityTray.hide();
       Rocketbar.pointerY = touch.pageY;
