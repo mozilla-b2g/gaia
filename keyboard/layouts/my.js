@@ -87,7 +87,7 @@ Keyboards.my = {
   },
   symbolLayout: {
     alt: {
-      '€': '€ ¥ R$'
+      '€': '€ ¥'
     },
     keys: [
       [
