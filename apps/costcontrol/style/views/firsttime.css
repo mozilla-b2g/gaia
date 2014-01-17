@@ -148,7 +148,8 @@ body[role="application"] [role="dialog"] {
   #firsttime-view .choices li[aria-checked="true"] span {
     font-weight: 600;
     padding-right: 0.5rem;
-    background: url(../images/app/icons/checked.png) content-box right center no-repeat / 1.9rem;
+    background: url(../images/app/icons/checked.png) content-box right center no-repeat;
+    background-size: 1.9rem;
   }
 
   #firsttime-view .choices li label {
