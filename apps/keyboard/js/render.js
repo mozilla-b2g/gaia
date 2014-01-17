@@ -89,6 +89,7 @@ const IMERender = (function() {
       layout.altLayoutName,
       ('' + flags.inputType).substr(0, 1),
       ('' + flags.showCandidatePanel).substr(0, 1),
+      ('' + flags.uppercase).substr(0, 1),
       supportsSwitching
     ].join('-');
 
@@ -137,7 +138,6 @@ const IMERender = (function() {
     // density used in media queries
 
     layoutWidth = layout.width || 10;
-    var secondLayout = layout.secondLayout || false;
     var totalWidth = ime.clientWidth;
     var placeHolderWidth = totalWidth / layoutWidth;
 
@@ -203,7 +203,7 @@ const IMERender = (function() {
             value: 'true'
           });
         }
-        var outputChar = (secondLayout) ? keyChar : upperCaseKeyChar;
+        var outputChar = flags.uppercase ? upperCaseKeyChar : keyChar;
         kbRow.appendChild(buildKey(outputChar, className, keyWidth + 'px',
           dataset, key.altNote, attributeList));
       }));
