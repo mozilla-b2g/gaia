@@ -441,17 +441,16 @@ suite('KeyboardManager', function() {
     });
 
     test('activitywillclose event', function() {
-      trigger('activitywillclose');
+      KeyboardManager.handleEvent({
+        type: 'activitywillclose'
+      });
       assert.ok(hideKeyboardImmediately.called);
     });
 
-    test('activitywillopen event', function() {
-      trigger('activitywillopen');
-      assert.ok(hideKeyboardImmediately.called);
-    });
-
-    test('applicationsetupdialogshow event', function() {
-      trigger('applicationsetupdialogshow');
+    test('appwillclose event', function() {
+      KeyboardManager.handleEvent({
+        type: 'appwillclose'
+      });
       assert.ok(hideKeyboardImmediately.called);
     });
   });
