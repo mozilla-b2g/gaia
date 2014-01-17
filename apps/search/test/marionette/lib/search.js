@@ -41,7 +41,9 @@ Search.Selectors = {
   firstAppContainer: '#localapps',
   firstApp: '#localapps div',
   firstContact: '#contacts div',
-  firstContactContainer: '#contacts'
+  firstContactContainer: '#contacts',
+  firstPlace: '#places div',
+  firstPlaceContainer: '#places'
 };
 
 Search.prototype = {
@@ -116,24 +118,40 @@ Search.prototype = {
   openRocketbar: function() {
     var selectors = Search.Selectors;
 
-    this.client.apps.switchToApp('app://homescreen.gaiamobile.org');
-    this.client.helper.waitForElement('#evme-activation-icon').click();
-    this.client.switchToFrame();
+    this.client.helper.waitForElement(selectors.homescreen);
+    this.client.executeScript(function() {
+      window.wrappedJSObject.Rocketbar.render();
+    });
 
     // https://bugzilla.mozilla.org/show_bug.cgi?id=960098
     // Renable and write a dedicated test for opening the rocketbar
     // be swiping from the statusbar down, this is currently broken.
     //
-    //this.client.helper.waitForElement(selectors.homescreen);
-    //var statusbar = this.client.helper.waitForElement(
+    // this.client.helper.waitForElement(selectors.homescreen);
+    // var statusbar = this.client.helper.waitForElement(
     //  selectors.statusBar);
-    //this.actions.flick(statusbar, 1, 1, 20, 200).perform();
+    // this.actions.flick(statusbar, 1, 1, 20, 200).perform();
 
     this.client.waitFor(function() {
       var location = this.client
         .findElement(Search.Selectors.searchInput).location();
       return location.y >= 20;
     }.bind(this));
+  },
+
+  /**
+   * Wait for an opened browser frame to complete showing, then
+   * return to the homescreen
+   */
+  waitForBrowserFrame: function() {
+    this.client.switchToFrame();
+    this.client.waitFor((function() {
+      var size = this.client.findElement('.appWindow.active').size();
+      return size.width === 320 && size.height === 460;
+    }).bind(this));
+    return this.client.executeScript(function() {
+      window.wrappedJSObject.dispatchEvent(new CustomEvent('home'));
+    });
   },
 
   /**
