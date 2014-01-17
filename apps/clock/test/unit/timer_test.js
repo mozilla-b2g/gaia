@@ -1,12 +1,13 @@
 suite('Timer', function() {
-  var Timer;
+  var Timer, MockMozAlarm;
   var now, duration;
 
   suiteSetup(function(done) {
-    loadBodyHTML('/index.html');
-
-    testRequire(['timer'], function(timer) {
+    testRequire(['timer', 'mocks/mock_moz_alarm'], {
+      mocks: ['moz_alarm']
+    }, function(timer, MozAlarm) {
       Timer = timer;
+      MockMozAlarm = MozAlarm.MockMozAlarms;
       done();
     });
   });
@@ -88,6 +89,89 @@ suite('Timer', function() {
 
     timer.cancel();
     assert.equal(timer.state, Timer.INITIAL);
+  });
+
+  test('plus ', function() {
+    var timer = getTimer();
+    var originalDuration = timer.duration;
+
+    timer.plus(60);
+
+    assert.equal(timer.duration, originalDuration + (60 * 1000));
+  });
+
+  suite('commit', function() {
+    setup(function() {
+      this.sinon.stub(navigator, 'mozAlarms', new MockMozAlarm());
+      this.addSpy = this.sinon.spy(navigator.mozAlarms, 'add');
+      this.removeSpy = this.sinon.spy(navigator.mozAlarms, 'remove');
+      this.timer = getTimer();
+    });
+    suite('timers without alarms', function() {
+      test('when in initial state', function(done) {
+        this.timer.commit(function() {
+          assert.equal(
+            this.addSpy.callCount, 0, 'does not create a new alarm'
+          );
+          assert.equal(this.removeSpy.callCount, 0, 'does not remove alarm');
+          done();
+        }.bind(this));
+        this.clock.tick(10);
+      });
+      test('when started', function(done) {
+        this.timer.start();
+        this.timer.commit(function() {
+          assert.equal(this.addSpy.callCount, 1, 'creates a new alarm');
+          assert.equal(this.removeSpy.callCount, 0, 'does not remove alarm');
+          done();
+        }.bind(this));
+        this.clock.tick(10);
+      });
+    });
+
+    suite('timers with previously-created alarms', function() {
+      setup(function(done) {
+        // Ensure that the timer is in a saved state and the spies are reset
+        this.timer.start();
+        this.timer.commit(function() {
+          this.addSpy.reset();
+          this.removeSpy.reset();
+          this.origTimerId = this.timer.id;
+
+          // Return timer to initial state
+          this.timer.cancel();
+
+          done();
+        }.bind(this));
+        this.clock.tick(10);
+      });
+
+      test('when in initial state', function(done) {
+        this.timer.commit(function() {
+          assert.equal(
+            this.addSpy.callCount, 0, 'does not create a new alarm'
+          );
+          assert.equal(
+            this.removeSpy.args[0][0], this.origTimerId, 'removes old alarm'
+          );
+          done();
+        }.bind(this));
+        this.clock.tick(10);
+      });
+      test('when started', function(done) {
+        this.timer.start();
+        this.timer.commit(function() {
+          assert.equal(
+            this.addSpy.callCount, 1, 'creates a new alarm'
+          );
+          assert.equal(
+            this.removeSpy.args[0][0], this.origTimerId, 'removes old alarm'
+          );
+          done();
+        }.bind(this));
+        this.clock.tick(10);
+      });
+    });
   });
 
   suite('Timer.remaining ', function() {
