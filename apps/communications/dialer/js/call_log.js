@@ -95,6 +95,9 @@ var CallLog = {
           self.filter.bind(self));
         self.allFilter.addEventListener('click',
           self.unfilter.bind(self));
+        CallButton.init(self.callLogContainer, function(evt) {
+          CallHandler.call(evt.target.parentNode.dataset.phoneNumber);
+        });
         self.callLogContainer.addEventListener('click', self);
         self.selectAllThreads.addEventListener('click',
           self.selectAll.bind(self));
@@ -386,9 +389,7 @@ var CallLog = {
   //      <input value="1369695600000-6136112351-dialing" type="checkbox">
   //      <span></span>
   //    </label>
-  //    <aside class="pack-end">
-  //      <img src="" class="call-log-contact-photo">
-  //    </aside>
+  //    <button class="call-button pack-end"></button>
   //    <a>
   //      <aside class="icon call-type-icon icon icon-outgoing">
   //      </aside>
@@ -446,18 +447,6 @@ var CallLog = {
 
     label.appendChild(input);
     label.appendChild(span);
-
-    var aside = document.createElement('aside');
-    aside.className = 'pack-end';
-    var img = document.createElement('img');
-    img.className = 'call-log-contact-photo';
-    if (contact && contact.photo) {
-      img.src = typeof contact.photo == 'string' ? contact.photo :
-                URL.createObjectURL(contact.photo);
-      groupDOM.classList.add('hasPhoto');
-    }
-
-    aside.appendChild(img);
 
     var main = document.createElement('a');
     var icon = document.createElement('aside');
@@ -524,8 +513,11 @@ var CallLog = {
       parent.insertBefore(addInfo, primElem.nextElementSibling);
     }
 
+    var button = document.createElement('button');
+    button.className = 'call-button pack-end';
+
     groupDOM.appendChild(label);
-    groupDOM.appendChild(aside);
+    groupDOM.appendChild(button);
     groupDOM.appendChild(main);
 
     return groupDOM;
@@ -598,7 +590,7 @@ var CallLog = {
       this.updateHeaderCount();
       return;
     }
-    var dataset = evt.target.dataset;
+    var dataset = evt.target.parentNode.dataset;
     var phoneNumber = dataset.phoneNumber;
     if (phoneNumber) {
       var contactIds = (dataset.contactId) ? dataset.contactId : null;
@@ -908,7 +900,6 @@ var CallLog = {
   updateContactInfo: function cl_updateContactInfo(element, contact,
                                                    matchingTel) {
     var primInfoCont = element.getElementsByClassName('primary-info-main')[0];
-    var contactPhoto = element.querySelector('.call-log-contact-photo');
     var addInfo = element.getElementsByClassName('call-additional-info');
     var addInfoCont;
     if (addInfo && addInfo[0]) {
@@ -926,8 +917,6 @@ var CallLog = {
         // Remove contact info.
         primInfoCont.textContent = element.dataset.phoneNumber;
         addInfoCont.textContent = '';
-        contactPhoto.src = '';
-        element.classList.remove('hasPhoto');
         delete element.dataset.contactId;
       }
       return;
@@ -937,17 +926,6 @@ var CallLog = {
       Utils.getPhoneNumberPrimaryInfo(matchingTel, contact);
     if (primaryInfo) {
       primInfoCont.textContent = primaryInfo;
-    }
-
-    if (contact && contact.photo && contact.photo[0]) {
-      var image_url = contact.photo[0];
-      var photoURL;
-      var isString = (typeof image_url == 'string');
-      contactPhoto.src = isString ? image_url : URL.createObjectURL(image_url);
-      element.classList.add('hasPhoto');
-    } else {
-      contactPhoto.src = '';
-      element.classList.remove('hasPhoto');
     }
 
     var phoneNumberAdditionalInfo =

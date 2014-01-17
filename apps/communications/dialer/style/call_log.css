@@ -14,11 +14,6 @@ form[role="dialog"][data-type="edit"] header .icon {
 }
 
 /* Override Building Block [Edit mode] styles */
-form[role="dialog"][data-type="edit"] header,
-form[role="dialog"][data-type="edit"] > menu {
-  transition: all 0.3s ease;
-}
-
 form[role="dialog"][data-type="edit"] header {
   transform: translateY(-110%);
 }
@@ -42,7 +37,6 @@ form[role="dialog"][data-type="edit"] > menu {
 
 #call-log-container[data-type="list"] li {
   height: 7rem;
-  padding: 0.5rem 0 0;
   -moz-box-sizing: border-box;
 }
 
@@ -129,8 +123,52 @@ ol, ul {
   background-image: url('images/CallLog_30x30_missed_grey.png');
 }
 
-.log-item * {
+.log-item, .log-item a * {
   pointer-events: none;
+}
+
+#call-log-container .log-item a {
+  pointer-events: auto;
+  -moz-box-sizing: border-box;
+  height: 7rem;
+  width: calc(100% - 7rem);
+  padding-top: 0.5rem;
+}
+
+#call-log-container a:after {
+  right: -8.5rem;
+}
+
+#call-log-container .call-button {
+  pointer-events: auto;
+  height: 5rem;
+  width: 5rem;
+  top: 1rem;
+  border: 1px solid #8dc525;
+  border-radius: 100%;
+  background: url('images/pickup_icon.png') center / 3.2rem no-repeat white;
+}
+
+#call-log-container .call-button::-moz-focus-inner {
+  border: 0;
+}
+
+/* FIXME : We can't use :active to highlight the button because
+   AttentionWindow doesn't change the visibility before 5 seconds.
+   This should be fixed when bug 927862 lands */
+/*#call-log-container .call-button:active, #call-log-container .call-button:hover {*/
+  #call-log-container .call-button:focus, #call-log-container .call-button:active {
+  background-color: #8dc525;
+  background-image: url('images/pickup_icon_pressed.png');
+}
+
+#call-log-container li:hover:after, #call-log-container li:active:after {
+  background-color: transparent;
+}
+
+
+.recents-edit #call-log-container .log-item a {
+  width: 100%;
 }
 
 .log-item .pack-end {
@@ -138,20 +176,8 @@ ol, ul {
   right: 0;
 }
 
-.log-item:not(.hasPhoto) .pack-end {
-  width: 0;
-}
-
 .log-item .primary-info {
   text-overflow: clip;
-}
-
-.log-item.hasPhoto a > p {
-  width: 19rem;
-}
-
-.log-item:not(.hasPhoto) a > p {
-  width: 25rem;
 }
 
 .log-item .primary-info span {
@@ -159,10 +185,6 @@ ol, ul {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.log-item .call-log-contact-photo {
-  pointer-events: auto;
 }
 
 [data-type="list"] .missed-call.highlighted aside.icon.icon-missed {
@@ -181,12 +203,10 @@ ol, ul {
 
 .recents-edit .pack-checkbox.call-log-selection {
   transform: translateX(4rem);
-  transition: transform 0.3s ease;
 }
 
 .recents-edit .log-item a {
   transform: translateX(3rem);
-  transition: all 0.3s ease;
 }
 
 .recents-edit .log-item a > p {
@@ -194,12 +214,7 @@ ol, ul {
 }
 
 .recents-edit .pack-end {
-  transition: all 0.3s ease;
-  transform: translateX(6rem);
-}
-
-.recents-edit .call-log-contact-photo {
-  pointer-events: none;
+  transform: translateX(7rem);
 }
 
 .recents-edit .log-item .pack-checkbox {
