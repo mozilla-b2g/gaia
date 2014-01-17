@@ -43,6 +43,10 @@ var SiSlScreenHelper = (function() {
   function sssh_populateScreen(message) {
     var _ = navigator.mozL10n.get;
 
+    // Set the callback function to be called when the app goes to background
+    // while processing a message.
+    WapPushManager.setOnVisibilityChangeCallback(null);
+
     // The close button in the header is shared between screens but sadly the
     // flow differs. Let the WapPushManaget knwo what SiSlScreenHelper function
     // invoque when the user click on the close button.
