@@ -14,6 +14,7 @@ var orientation = require('orientation');
 var debug = require('debug')('camera');
 var allDone = require('utils/alldone');
 var bindAll = require('utils/bindAll');
+var CameraUtils = require('utils/camera-utils');
 var model = require('vendor/model');
 
 /**
@@ -125,7 +126,7 @@ proto.getStream = function(done) {
 
   switch (mode) {
     case 'camera':
-      mozCamera.getPreviewStream(this.previewSizes, done);
+      mozCamera.getPreviewStream(this.previewSize, done);
       break;
     case 'video':
       mozCamera.getPreviewStreamVideoMode(this.videoProfile, done);
@@ -170,7 +171,6 @@ proto.configureCamera = function(mozCamera) {
   this.configurePictureSize(mozCamera);
   this.configureFocus(capabilities.focusModes);
   this.configureFlash(capabilities.flashModes);
-  this.configurePreviewSize(capabilities.previewSizes);
   this.configureVideoProfile(capabilities, done());
 
   // Bind to some hardware events
@@ -178,6 +178,7 @@ proto.configureCamera = function(mozCamera) {
   mozCamera.onRecorderStateChange = self.onRecorderStateChange;
 
   done(function() {
+    self.configurePreviewSize(capabilities.previewSizes);
     debug('configured');
     self.emit('configured');
   });
@@ -248,34 +249,19 @@ proto.configureVideoProfile = function(capabilities, done) {
   });
 };
 
-
 proto.configurePreviewSize = function(previewSizes) {
-  var pictureSize = this.pictureSize;
-  var container = this.container;
-
-  // Switch screen dimensions to landscape
-  var screenWidth = container.clientHeight * window.devicePixelRatio;
-  var screenHeight = container.clientWidth * window.devicePixelRatio;
-  var pictureAspectRatio = pictureSize.height / pictureSize.width;
-
-  // Previews should match the aspect ratio and not be smaller than the screen
-  var validPreviews = previewSizes.filter(function(res) {
-    var isLarger = res.height >= screenHeight && res.width >= screenWidth;
-    var aspectRatio = res.height / res.width;
-    var matchesRatio = Math.abs(aspectRatio - pictureAspectRatio) < 0.05;
-    return matchesRatio && isLarger;
-  });
-
-  // We should always have a valid preview size, but just in case
-  // we dont, pick the first provided.
-  if (validPreviews.length > 0) {
-
-    // Pick the smallest valid preview
-    this.previewSizes = validPreviews.sort(function(a, b) {
-      return a.width * a.height - b.width * b.height;
-    }).shift();
-  } else {
-    this.previewSizes = previewSizes[0];
+  var viewportSize = {
+    width: document.body.clientHeight * window.devicePixelRatio,
+    height: document.body.clientWidth * window.devicePixelRatio
+  };
+  var currentCameraMode = this.get('mode');
+  var pickedPreviewSize;
+  if (currentCameraMode === 'camera') {
+    pickedPreviewSize = CameraUtils.selectOptimalPreviewSize(viewportSize,
+                                                             previewSizes);
+    // We should always have a valid preview size, but just in case
+    // we don't, pick the first provided
+    this.previewSize = pickedPreviewSize || previewSizes[0];
   }
 };
 
@@ -639,37 +625,36 @@ proto.startRecording = function(options) {
       self.tmpVideo.filename,
       onSuccess,
       self.onRecordingError);
-
-    self.emit('recordingstart');
-  }
-
-  function onSuccess() {
-    self.set('recording', true);
-    self.startVideoTimer();
-
-    // User closed app while
-    // recording was trying to start
-    if (document.hidden) {
-      self.stopRecording();
+      self.emit('recordingstart');
     }
 
-    // If the duration is too short,
-    // the nno track may have been recorded.
-    // That creates corrupted video files.
-    // Because media file needs some samples.
-    //
-    // To have more information on video track,
-    // we wait for 500ms to have few video and
-    // audio samples, see bug 899864.
-    window.setTimeout(function() {
+    function onSuccess() {
+      self.set('recording', true);
+      self.startVideoTimer();
 
-      // TODO: Disable then re-enable
-      // capture button after 500ms
-      // This hsould be done in controls
-      // controller.
+      // User closed app while
+      // recording was trying to start
+      if (document.hidden) {
+        self.stopRecording();
+      }
 
-    }, MIN_RECORDING_TIME);
-  }
+      // If the duration is too short,
+      // the nno track may have been recorded.
+      // That creates corrupted video files.
+      // Because media file needs some samples.
+      //
+      // To have more information on video track,
+      // we wait for 500ms to have few video and
+      // audio samples, see bug 899864.
+      window.setTimeout(function() {
+
+        // TODO: Disable then re-enable
+        // capture button after 500ms
+        // This hsould be done in controls
+        // controller.
+
+      }, MIN_RECORDING_TIME);
+    }
 };
 
 proto.stopRecording = function() {
@@ -824,6 +809,16 @@ proto.toggleCamera = function() {
 proto.toggleMode = function() {
   var isCameraMode = this.get('mode') === 'camera';
   var newMode = isCameraMode ? 'video' : 'camera';
+  var previewSizes;
+  if (newMode === 'camera') {
+    previewSizes = this.mozCamera.capabilities.previewSizes;
+  } else {
+    previewSizes = [{
+      width: this.videoProfile.width,
+      height: this.videoProfile.height
+    }];
+  }
+  this.configurePreviewSize(previewSizes);
   this.set('mode', newMode);
   this.configureFlash(this.flash.all);
   return newMode;
