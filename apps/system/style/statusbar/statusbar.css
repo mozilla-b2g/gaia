@@ -51,10 +51,6 @@ body, html {
   padding-left: 0.3rem;
 }
 
-body:not(.rb-enabled) #statusbar-title {
-  display: none;
-}
-
 #statusbar-icons {
   flex-grow: 1;
   flex-shrink: 0;
@@ -64,12 +60,7 @@ body:not(.rb-enabled) #statusbar-title {
   -moz-user-select: none;
 }
 
-body:not(.rb-enabled) #statusbar-icons {
-  max-width: 100%;
-}
-
-#statusbar-title,
-body:not(.rb-enabled) #statusbar-icons > .sb-start {
+#statusbar-title {
   float: left;
   -moz-transition: visibility 0.5s ease, -moz-transform 0.5s ease;
 }

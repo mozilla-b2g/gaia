@@ -2,8 +2,6 @@
 
 var Rocketbar = {
 
-  enabled: false,
-
   /**
    * Either 'search' or 'tasks'.
    * Let us know how the rocketbar was opened.
@@ -166,16 +164,6 @@ var Rocketbar = {
     this.searchReset.addEventListener('mousedown', this);
     // Listen to clicks to keep the keyboard up
     this.searchReset.addEventListener('click', this);
-
-    SettingsListener.observe('rocketbar.enabled', false,
-    function(value) {
-      if (value) {
-        document.body.classList.add('rb-enabled');
-      } else {
-        document.body.classList.remove('rb-enabled');
-      }
-      this.enabled = value;
-    }.bind(this));
 
     SettingsListener.observe('rocketbar.searchAppURL', false,
     function(url) {
