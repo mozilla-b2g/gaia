@@ -1,5 +1,6 @@
 'use strict';
 
+requireApp('system/shared/js/url_helper.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/test/unit/mock_cards_view.js');
 requireApp('system/test/unit/mock_app_window_manager.js');
@@ -31,13 +32,50 @@ suite('system/Rocketbar', function() {
     this.sinon.clock.restore();
   });
 
+  suite('searchInput', function() {
+    test('hides task manager on input', function() {
+      var screen = document.getElementById('screen');
+      screen.classList.add('task-manager');
+
+      Rocketbar._port = {
+        postMessage: function() {}
+      };
+      var dispatchStub = this.sinon.stub(window, 'dispatchEvent');
+      Rocketbar.searchInput.dispatchEvent(new CustomEvent('input'));
+      assert.equal(dispatchStub.getCall(0).args[0].type, 'taskmanagerhide');
+      screen.classList.remove('task-manager');
+    });
+
+    test('adds rocketbar-focus on focus', function() {
+      assert.ok(!Rocketbar.screen.classList.contains('rocketbar-focus'));
+      Rocketbar.searchInput.value = '';
+      Rocketbar.handleEvent({
+        target: {
+          id: 'search-input'
+        }
+      });
+      assert.ok(Rocketbar.screen.classList.contains('rocketbar-focus'));
+    });
+
+    test('removes rocketbar-focus on blur', function() {
+      Rocketbar.searchInput.value = '';
+      Rocketbar.handleEvent({
+        type: 'blur',
+        target: {
+          id: 'search-input'
+        }
+      });
+      assert.ok(!Rocketbar.screen.classList.contains('rocketbar-focus'));
+    });
+  });
+
   suite('handleEvent', function() {
     test('cardchange event should trigger focus if no card', function() {
       var focusStub = this.sinon.stub(Rocketbar.searchInput, 'focus');
       Rocketbar.render();
       this.sinon.clock.tick(1);
       Rocketbar.handleEvent({
-        type: 'cardchange',
+        type: 'cardviewclosed',
         detail: {
           title: ''
         }
@@ -55,6 +93,14 @@ suite('system/Rocketbar', function() {
         }
       });
       assert.ok(focusStub.notCalled);
+    });
+
+    test('cardviewclosed event should trigger focus', function() {
+      var focusStub = this.sinon.stub(Rocketbar.searchInput, 'focus');
+      Rocketbar.handleEvent({
+        type: 'cardviewclosed'
+      });
+      assert.ok(focusStub.calledOnce);
     });
 
     test('search-cancel element should hide the task manager', function() {
