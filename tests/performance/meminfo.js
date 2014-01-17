@@ -7,7 +7,7 @@
  */
 
 var fs = require('fs'),
-    execSync = require('exec-sync')
+    execSync = require('./exec-sync.js')
 
 function b2ginfo() {
   var adb = execSync('adb shell b2g-info', true);
