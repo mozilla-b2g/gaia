@@ -96,6 +96,7 @@
 
       // Special case for rocketbar search app
       if (config.manifest.role === 'search') {
+        console.log('RENDER ROCKETBAR');
         Rocketbar.render();
         return;
       } else if (!AppWindowManager.isRunning(config) &&
