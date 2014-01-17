@@ -452,7 +452,7 @@ var ThreadListUI = {
     // Create DOM element
     var li = document.createElement('li');
     var timestamp = +record.timestamp;
-    var lastMessageType = record.lastMessageType;
+    var type = record.lastMessageType;
     var participants = record.participants;
     var number = participants[0];
     var id = record.id;
@@ -479,6 +479,7 @@ var ThreadListUI = {
             return true;
           }
         });
+        type = draft.type;
       }
     }
 
@@ -487,7 +488,7 @@ var ThreadListUI = {
     li.id = 'thread-' + id;
     li.dataset.threadId = id;
     li.dataset.time = timestamp;
-    li.dataset.lastMessageType = lastMessageType;
+    li.dataset.lastMessageType = type;
 
     if (record.unreadCount > 0) {
       li.classList.add('unread');
