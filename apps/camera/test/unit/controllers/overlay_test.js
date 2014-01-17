@@ -59,9 +59,9 @@ suite('controllers/overlay', function() {
   });
 
   suite('OverlayController()', function() {
-    test.skip('Should bind to the storage state change event', function() {
+    test('Should bind to the storage state change event', function() {
       this.controller = new Controller(this.app);
-      assert.ok(this.app.camera.state.on.calledWith('change:storage'));
+      assert.ok(this.app.storage.on.calledWith('statechange'));
     });
   });
 

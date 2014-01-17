@@ -1,8 +1,7 @@
-/*jshint maxlen:false*/
 /*global req*/
 'use strict';
 
-suite.skip('app', function() {
+suite('app', function() {
   var modules = {};
 
   suiteSetup(function(done) {
@@ -45,8 +44,6 @@ suite.skip('app', function() {
     var GeoLocation = modules.geolocation;
     var Camera = modules.camera;
     var App = modules.app;
-
-    console.log('geolocation: ', typeof GeoLocation);
 
     var options = this.options = {
       doc: mocks.doc(),
@@ -110,6 +107,7 @@ suite.skip('app', function() {
       assert.ok(app.geolocation === options.geolocation);
       assert.ok(app.activity === options.activity);
       assert.ok(app.camera === options.camera);
+      assert.ok(app.storage === options.storage);
       assert.ok(app.sounds === options.sounds);
       assert.ok(app.views === options.views);
       assert.ok(app.controllers === options.controllers);
@@ -169,16 +167,13 @@ suite.skip('app', function() {
       assert.ok(typeof call.args[1] === 'function');
     });
 
-    suite.skip('app.geolocation', function() {
-      test('Should watch location if not in ' +
-           'activity and app is visible', function() {
-        var geolocation = this.app.geolocation;
-
-        this.app.doc.hidden = false;
-        this.app.activity.active = false;
+    suite('app.geolocation', function() {
+      test('Should watch location only once storage confirmed healthy',
+      function() {
+        var geolocationWatch = this.app.geolocationWatch;
+        var storage = this.app.storage;
         this.app.boot();
-
-        assert.ok(geolocation.watch.called);
+        assert.ok(storage.once.calledWith('checked:healthy', geolocationWatch));
       });
 
       test('Should *not* watch location if not in activity', function() {
@@ -186,7 +181,7 @@ suite.skip('app', function() {
 
         this.app.doc.hidden = false;
         this.app.activity.active = true;
-        this.app.boot();
+        this.app.geolocationWatch();
 
         assert.ok(geolocation.watch.notCalled);
       });
@@ -196,7 +191,7 @@ suite.skip('app', function() {
 
         this.app.doc.hidden = true;
         this.app.activity.active = false;
-        this.app.boot();
+        this.app.geolocationWatch();
 
         assert.ok(geolocation.watch.notCalled);
       });

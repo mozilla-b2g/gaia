@@ -107,7 +107,8 @@ proto.onCameraToggle = function() {
   viewfinder.fadeOut(onFadeOut);
 
   function onFadeOut() {
-    camera.toggleCamera().load();
+    camera.toggleCamera();
+    camera.load();
   }
 };
 

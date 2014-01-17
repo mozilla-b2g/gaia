@@ -2,7 +2,7 @@
 /*global req*/
 'use strict';
 
-suite.skip('controllers/camera', function() {
+suite('controllers/camera', function() {
   var modules = {};
   var Controller;
 
@@ -36,6 +36,8 @@ suite.skip('controllers/camera', function() {
     var View = modules.view;
     var evt = modules.evt;
 
+    this.sandbox = sinon.sandbox.create();
+
     // Mock app
     this.app = evt.mix({
       activity: new Activity(),
@@ -46,7 +48,12 @@ suite.skip('controllers/camera', function() {
       }
     });
 
+    this.sandbox.stub(this.app.camera);
     this.app.views.filmstrip.clear = sinon.spy();
+  });
+
+  teardown(function() {
+    this.sandbox.restore();
   });
 
   suite('CameraController()', function() {
