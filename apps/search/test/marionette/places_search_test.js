@@ -24,7 +24,7 @@ marionette('Places tests', function() {
     search = new Search(client);
   });
 
-  test('Search for previously visited URL', function() {
+  test.skip('Search for previously visited URL', function() {
     var url = server.url('sample.html');
     search.doSearch(url + '\uE006');
     search.waitForBrowserFrame();
