@@ -438,7 +438,7 @@ body.thumbnailListView #fullscreen-view.toolbar-hidden .videoPlayerFooter.hidden
   }
 
   section[role="region"].skin-dark > header:first-child menu[type="toolbar"] a:after,
-  section[role="region"].skin-dark > header:first-child menu[type="toolbar"] button:after.
+  section[role="region"].skin-dark > header:first-child menu[type="toolbar"] button:after,
   section[role="region"].skin-organic > header:first-child menu[type="toolbar"] a:after,
   section[role="region"].skin-organic > header:first-child menu[type="toolbar"] button:after  {
     content: "";
@@ -642,20 +642,20 @@ section[role="region"] > header:first-child menu[type="toolbar"] button:after {
   }
 
   /* video player */
-  body:not[.fullscreenView] .videoPlayerPauseButton {
+  body:not(.fullscreenView) .videoPlayerPauseButton {
     width: 9rem;
   }
 
-  body:not[.fullscreenView] .videoPlayerSlider {
+  body:not(.fullscreenView) .videoPlayerSlider {
     left: 10rem;
   }
 
-  body:not[.fullscreenView] .videoPlayerProgress {
+  body:not(.fullscreenView) .videoPlayerProgress {
     left: 7rem;
     right: 15rem;
   }
 
-  body:not[.fullscreenView] .videoPlayerSlider .videoPlayerDurationText {
+  body:not(.fullscreenView) .videoPlayerSlider .videoPlayerDurationText {
     text-align: center;
     right: 8rem;
     width: 5rem;
