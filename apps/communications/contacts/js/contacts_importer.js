@@ -24,11 +24,6 @@
     window.addEventListener('online', onLineChanged);
     window.addEventListener('offline', onLineChanged);
 
-    function getContact(contact) {
-      return (contact instanceof mozContact) ?
-        contact : new mozContact(contact);
-    }
-
     function onLineChanged() {
       isOnLine = navigator.onLine;
     }
@@ -53,7 +48,8 @@
     }
 
     function saveMozContact(deviceContact, successCb, errorCb) {
-      var req = navigator.mozContacts.save(getContact(deviceContact));
+      var req = navigator.mozContacts.save(
+        utils.misc.toMozContact(deviceContact));
 
       req.onsuccess = successCb;
       req.onerror = errorCb;
@@ -120,7 +116,7 @@
             success: successCb,
             error: errorCb
           });
-        }.bind(new mozContact(contactData)),
+        }.bind(utils.misc.toMozContact(contactData)),
         onmismatch: function() {
           saveMozContact(this, successCb, function onMismatchError(evt) {
             errorCb(evt.target.error);

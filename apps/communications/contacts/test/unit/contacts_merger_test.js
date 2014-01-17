@@ -1,4 +1,5 @@
 require('/shared/js/simple_phone_matcher.js');
+requireApp('communications/contacts/js/utilities/misc.js');
 requireApp('communications/contacts/test/unit/mock_find_matcher.js');
 requireApp('communications/contacts/js/contacts_merger.js');
 

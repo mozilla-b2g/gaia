@@ -36,10 +36,6 @@ contacts.Details = (function() {
     '#msg_button'
   ];
 
-  function getContact(contact) {
-    return (contact instanceof mozContact) ? contact : new mozContact(contact);
-  }
-
   var init = function cd_init(currentDom) {
     _ = navigator.mozL10n.get;
     dom = currentDom || document;
@@ -248,7 +244,7 @@ contacts.Details = (function() {
     // Disabling button while saving the contact
     favoriteMessage.style.pointerEvents = 'none';
 
-    var request = navigator.mozContacts.save(getContact(contact));
+    var request = navigator.mozContacts.save(utils.misc.toMozContact(contact));
     request.onsuccess = function onsuccess() {
       var cList = contacts.List;
       /*

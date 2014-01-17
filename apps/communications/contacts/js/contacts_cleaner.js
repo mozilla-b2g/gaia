@@ -13,10 +13,6 @@ window.ContactsCleaner = function(contacts) {
   var holded = false;
   var mustFinish = false;
 
-  function getContact(contact) {
-    return (contact instanceof mozContact) ? contact : new mozContact(contact);
-  }
-
   this.start = function() {
     mustHold = holded = mustFinish = false;
 
@@ -49,7 +45,7 @@ window.ContactsCleaner = function(contacts) {
   };
 
   this.performClean = function(contact, number, cbs) {
-    var req = navigator.mozContacts.remove(getContact(contact));
+    var req = navigator.mozContacts.remove(utils.misc.toMozContact(contact));
     req.number = number;
     req.onsuccess = cbs.success;
     req.onerror = function(e) {

@@ -14,11 +14,6 @@ window.fb = fb;
     var LAST_UPDATED_KEY = Utils.LAST_UPDATED_KEY = 'lastUpdatedTime';
     Utils.ALARM_ID_KEY = 'nextAlarmId';
 
-    function getContact(contact) {
-      return (contact instanceof mozContact) ?
-        contact : new mozContact(contact);
-    }
-
     var REDIRECT_LOGOUT_URI = window.oauthflow ?
       oauthflow.params.facebook['redirectLogout'] : '';
     var STORAGE_KEY = Utils.TOKEN_DATA_KEY = 'tokenData';
@@ -446,7 +441,8 @@ window.fb = fb;
               req = fbContact.remove();
             }
             else {
-              var req = navigator.mozContacts.remove(getContact(contact));
+              var req = navigator.mozContacts.remove(
+                utils.misc.toMozContact(contact));
             }
           }
           req.number = number;
