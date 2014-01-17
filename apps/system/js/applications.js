@@ -7,11 +7,36 @@
 // modules.
 
 var Applications = {
+  useAsyncPanZoom: false,
+
+  // This member is used to determine if the setting to use asyncPanZoom
+  // has already be retrieved or not.
+  asyncPanZoomSettingIsReady: false,
+
+  // This member is used to know if the mozApps database is ready.
+  // The combination of preloadedProcessIsReady and mozAppsIsReady
+  // are used to determined if we can start to launch applications.
+  mozAppsIsReady: false,
+
+  get ready() {
+    return this.asyncPanZoomSettingIsReady && this.mozAppsIsReady;
+  },
+
   installedApps: {},
-  ready: false,
   init: function a_init() {
     var self = this;
-    var apps = navigator.mozApps;
+
+    SettingsListener.observe('apz.force-enable', false, function(value) {
+      self.useAsyncPanZoom = value;
+
+      if (self.asyncPanZoomSettingIsReady)
+        return;
+
+      self.asyncPanZoomSettingIsReady = true;
+      if (self.ready) {
+        self.fireApplicationReadyEvent();
+      }
+    });
 
     var getAllApps = function getAllApps() {
       navigator.mozApps.mgmt.getAll().onsuccess = function mozAppGotAll(evt) {
@@ -21,8 +46,10 @@ var Applications = {
           // TODO Followup for retrieving homescreen & comms app
         });
 
-        self.ready = true;
-        self.fireApplicationReadyEvent();
+        self.mozAppsIsReady = true;
+        if (self.ready) {
+          self.fireApplicationReadyEvent();
+        }
       };
     };
 
@@ -44,6 +71,7 @@ var Applications = {
       });
     }
 
+    var apps = navigator.mozApps;
     apps.mgmt.oninstall = function a_install(evt) {
       var newapp = evt.application;
       self.installedApps[newapp.manifestURL] = newapp;
