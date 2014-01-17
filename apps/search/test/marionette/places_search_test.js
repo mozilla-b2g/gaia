@@ -30,6 +30,7 @@ marionette('Places tests', function() {
     search.waitForBrowserFrame();
     search.doSearch(url);
     search.goToResults();
+    client.helper.waitForElement(Search.Selectors.firstPlace);
     search.checkResult('firstPlace', 'Sample page');
   });
 
@@ -43,6 +44,7 @@ marionette('Places tests', function() {
     search.goToResults();
 
     // Wait to get the correct amount of results
+    client.helper.waitForElement(Search.Selectors.firstPlace);
     client.waitFor(function() {
       return client.findElements(Search.Selectors.firstPlace).length === 1;
     }.bind(this));
