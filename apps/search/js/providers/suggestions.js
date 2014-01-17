@@ -34,6 +34,10 @@
 
     search: function(input) {
       this.clear();
+      if (!eme.api.Search) {
+        return;
+      }
+
       this.request = eme.api.Search.suggestions({
         'query': input
       });

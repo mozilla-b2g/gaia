@@ -24,6 +24,10 @@
 
     search: function(input) {
       this.clear();
+      if (!eme.api.Apps) {
+        return;
+      }
+
       this.request = eme.api.Apps.search({
         'query': input
       });
