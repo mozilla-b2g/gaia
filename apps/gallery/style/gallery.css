@@ -252,6 +252,10 @@ body.pickView #thumbnails {
   padding-bottom: calc((100% - 0.2rem) / 3 );
 }
 
+.thumbnailSmall {
+  background-size: auto;
+}
+
 .thumbnail:nth-child(3n) {
   margin-right: 0;
 }

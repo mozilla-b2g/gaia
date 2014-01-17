@@ -298,6 +298,7 @@ var metadataParser = (function() {
           metadata.height <= THUMBNAIL_HEIGHT) {
         offscreenImage.src = '';
         metadata.thumbnail = file;
+        metadata.smallfile = true;
         callback(metadata);
       }
       else {
