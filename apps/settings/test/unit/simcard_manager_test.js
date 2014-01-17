@@ -1,7 +1,7 @@
 /* global mocha, MockL10n, MockTemplate, MockSimUIModel,
    SimUIModel, MockSimSettingsHelper, SimCardManager,
    MockNavigatorMozIccManager, MockNavigatorMozMobileConnections,
-   MockMobileOperator */
+   MockMobileOperator, MockNavigatorSettings, MockAirplaneModeHelper */
 'use strict';
 
 requireApp(
@@ -12,13 +12,14 @@ requireApp(
   'settings/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp(
   'settings/shared/test/unit/mocks/mock_mobile_operator.js');
+requireApp('settings/test/unit/mock_airplane_mode_helper.js');
 requireApp('settings/test/unit/mock_l10n.js');
 requireApp('settings/test/unit/mock_template.js');
 requireApp('settings/test/unit/mock_simcard_manager_simcard_helper.js');
 requireApp('settings/test/unit/mock_simcard_manager_settings_helper.js');
 
 mocha.globals(['Template', 'SimUIModel', 'SimCardManager',
-  'SimSettingsHelper', 'MobileOperator', 'localize']);
+  'SimSettingsHelper', 'MobileOperator', 'localize', 'AirplaneModeHelper']);
 
 suite('SimCardManager > ', function() {
   var realL10n;
@@ -29,6 +30,7 @@ suite('SimCardManager > ', function() {
   var realMozIccManager;
   var realMozSettings;
   var realMobileOperator;
+  var realAirplaneModeHelper;
   var realLocalize;
   var stubById;
 
@@ -53,6 +55,9 @@ suite('SimCardManager > ', function() {
 
     realMobileOperator = window.MobileOperator;
     window.MobileOperator = MockMobileOperator;
+
+    realAirplaneModeHelper = window.AirplaneModeHelper;
+    window.AirplaneModeHelper = MockAirplaneModeHelper;
 
     // add a mobile connection to make it DSDS
     MockNavigatorMozMobileConnections.mAddMobileConnection();
@@ -108,6 +113,7 @@ suite('SimCardManager > ', function() {
     window.SimSettingsHelper = realSimSettingsHelper;
     window.navigator.mozIccManager = realMozIccManager;
     window.MobileOperator = realMobileOperator;
+    window.AirplaneModeHelper = realAirplaneModeHelper;
     // remove a mobile connection before reassign a real one
     window.navigator.mozMobileConnections.mRemoveMobileConnection();
     window.navigator.mozMobileConnections = realMozMobileConnections;
@@ -119,15 +125,15 @@ suite('SimCardManager > ', function() {
   // add test below
   suite('init > ', function() {
 
-    setup(function(done) {
+    setup(function() {
       // we need them for later testing
       this.sinon.spy(SimCardManager, 'setAllElements');
       this.sinon.stub(SimCardManager, 'initSimCardsInfo');
       this.sinon.stub(SimCardManager, 'initSimCardManagerUI');
-      this.sinon.stub(SimCardManager, 'addChangeEventOnIccs');
+      this.sinon.stub(SimCardManager, 'addCardStateChangeEventOnIccs');
       this.sinon.stub(SimCardManager, 'addAirplaneModeChangeEvent');
+      this.sinon.stub(SimCardManager, 'addVoiceChangeEventOnConns');
       SimCardManager.init();
-      setTimeout(done);
     });
 
     test('is event binded successfully', function() {
@@ -150,8 +156,9 @@ suite('SimCardManager > ', function() {
       assert.isTrue(SimCardManager.setAllElements.called);
       assert.isTrue(SimCardManager.initSimCardsInfo.called);
       assert.isTrue(SimCardManager.initSimCardManagerUI.called);
-      assert.isTrue(SimCardManager.addChangeEventOnIccs.called);
+      assert.isTrue(SimCardManager.addCardStateChangeEventOnIccs.called);
       assert.isTrue(SimCardManager.addAirplaneModeChangeEvent.called);
+      assert.isTrue(SimCardManager.addVoiceChangeEventOnConns.called);
     });
   });
 

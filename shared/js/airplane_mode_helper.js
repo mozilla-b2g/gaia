@@ -7,7 +7,7 @@
  *   1. AirplaneModeHelper.setEnabled();
  *   2. AirplaneModeHelper.addEventListener('statechange', callback)
  *   3. AirplaneModeHelper.removeEventListener('statechange', callback)
- *   3. AirplaneModeHelper.getStatus(callback);
+ *   3. AirplaneModeHelper.getStatus();
  */
 (function(exports) {
 
