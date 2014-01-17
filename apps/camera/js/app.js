@@ -48,7 +48,7 @@ function App(options) {
   this.inSecureMode = (this.win.location.hash === '#secure');
   this.geolocation = options.geolocation;
   this.activity = options.activity;
-  this.filmstrip = options.filmstrip;
+  this.Filmstrip = options.filmstrip;
   this.storage = options.storage;
   this.camera = options.camera;
   this.sounds = options.sounds;
@@ -62,14 +62,19 @@ function App(options) {
  * Runs all the methods
  * to boot the app.
  *
+ * We prevent the app from being
+ * able to boot more than once.
+ *
+ * @public
  */
 proto.boot = function() {
-  debug('boot');
-  this.filmstrip = this.filmstrip(this);
+  if (this.booted) { return; }
+  this.filmstrip = this.Filmstrip(this);
   this.runControllers();
   this.injectContent();
   this.bindEvents();
   this.miscStuff();
+  this.booted = true;
   this.emit('boot');
   debug('booted');
 };
