@@ -104,6 +104,7 @@ var TelephonyHelper = (function() {
           if (error) {
             error();
           }
+          KeypadManager.updatePhoneNumber(sanitizedNumber, 'begin', true);
 
           var errorName = evt.call.error.name;
           if (errorName === 'BadNumberError') {
