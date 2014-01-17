@@ -443,7 +443,8 @@ section ul.operate-certificate {
  * Volume & Brightness: min/max icons
  */
 
-ul li > label .range-icons {
+ul li > label.range-icons:before {
+  content: '';
   position: absolute;
   top: calc(50% - 1.5rem);
   right: 0;
@@ -455,7 +456,7 @@ ul li > label .range-icons {
   pointer-events: none;
 }
 
-ul li > label .range-icons.brightness {
+ul li > label.range-icons.brightness:before {
   background:
     url(images/range_icons_brightness_min.png) no-repeat 0 50%,
     url(images/range_icons_brightness_max.png) no-repeat 100% 50%;
