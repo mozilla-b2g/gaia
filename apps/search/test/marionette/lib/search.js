@@ -78,6 +78,7 @@ Search.prototype = {
    */
   doSearch: function(input) {
     this.openRocketbar();
+    this.chillOut();
     this.client.helper
       .waitForElement(Search.Selectors.searchInput)
       .sendKeys(input);
@@ -140,17 +141,13 @@ Search.prototype = {
   },
 
   /**
-   * Waits for the browser frame
+   * Chillaxes
    */
-  waitForBrowserFrame: function() {
-    this.client.switchToFrame();
-    this.client.waitFor((function() {
-      var size = this.client.findElement('.appWindow.active').size();
-      return size.width === 320 && size.height === 460;
-    }).bind(this));
-
-    return this.client.executeScript(function() {
-      window.wrappedJSObject.dispatchEvent(new CustomEvent('home'));
+  chillOut: function() {
+    return this.client.executeAsyncScript(function() {
+      setTimeout(function() {
+        marionetteScriptFinished();
+      }, 5000);
     });
   },
 

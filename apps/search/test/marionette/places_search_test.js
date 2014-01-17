@@ -27,24 +27,19 @@ marionette('Places tests', function() {
   test('Search for previously visited URL', function() {
     var url = server.url('sample.html');
     search.doSearch(url + '\uE006');
-    search.waitForBrowserFrame();
     search.doSearch(url);
     search.goToResults();
-    client.helper.waitForElement(Search.Selectors.firstPlace);
     search.checkResult('firstPlace', 'Sample page');
   });
 
   test('Ensures urls visited twice only show in results once', function() {
     var url = server.url('sample.html');
     search.doSearch(url + '\uE006');
-    search.waitForBrowserFrame();
     search.doSearch(url + '\uE006');
-    search.waitForBrowserFrame();
     search.doSearch(url);
     search.goToResults();
 
     // Wait to get the correct amount of results
-    client.helper.waitForElement(Search.Selectors.firstPlace);
     client.waitFor(function() {
       return client.findElements(Search.Selectors.firstPlace).length === 1;
     }.bind(this));
