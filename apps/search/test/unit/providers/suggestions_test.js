@@ -69,6 +69,7 @@ suite('search/providers/suggestions', function() {
     });
 
     test('makes api call', function() {
+      eme.api.Search = {suggestions: function() {}};
       var stub = this.sinon.stub(eme.api.Search, 'suggestions');
       stub.returns(promise());
       subject.search();
