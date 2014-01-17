@@ -9,7 +9,7 @@ var assert = require('assert');
 function Search(client) {
   this.actions = new Actions(client);
   this.client = client;
-  this.client.setSearchTimeout(10000);
+  this.client.setSearchTimeout(30000);
 }
 
 /**
@@ -140,20 +140,18 @@ Search.prototype = {
   },
 
   /**
-   * Goes to the homescreen
+   * Waits for the browser frame
    */
-  goHome: function() {
+  waitForBrowserFrame: function() {
     this.client.switchToFrame();
     this.client.waitFor((function() {
-      return this.client.executeScript(function() {
-        // Synthesize an event since changing the value on its own does
-        // not trigger change listeners.
-        var event = document.createEvent('Event');
-        event.initEvent('home', true, true);
-        window.dispatchEvent(event);
-        return true;
-      });
+      var size = this.client.findElement('.appWindow.active').size();
+      return size.width === 320 && size.height === 460;
     }).bind(this));
+
+    return this.client.executeScript(function() {
+      window.wrappedJSObject.dispatchEvent(new CustomEvent('home'));
+    });
   },
 
   /**
