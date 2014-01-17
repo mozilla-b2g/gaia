@@ -41,7 +41,9 @@ Search.Selectors = {
   firstAppContainer: '#localapps',
   firstApp: '#localapps div',
   firstContact: '#contacts div',
-  firstContactContainer: '#contacts'
+  firstContactContainer: '#contacts',
+  firstPlace: '#places div',
+  firstPlaceContainer: '#places'
 };
 
 Search.prototype = {
@@ -116,24 +118,42 @@ Search.prototype = {
   openRocketbar: function() {
     var selectors = Search.Selectors;
 
-    this.client.apps.switchToApp('app://homescreen.gaiamobile.org');
-    this.client.helper.waitForElement('#evme-activation-icon').click();
-    this.client.switchToFrame();
+    this.client.helper.waitForElement(selectors.homescreen);
+    this.client.executeScript(function() {
+      window.wrappedJSObject.Rocketbar.render();
+    });
 
     // https://bugzilla.mozilla.org/show_bug.cgi?id=960098
     // Renable and write a dedicated test for opening the rocketbar
     // be swiping from the statusbar down, this is currently broken.
     //
-    //this.client.helper.waitForElement(selectors.homescreen);
-    //var statusbar = this.client.helper.waitForElement(
+    // this.client.helper.waitForElement(selectors.homescreen);
+    // var statusbar = this.client.helper.waitForElement(
     //  selectors.statusBar);
-    //this.actions.flick(statusbar, 1, 1, 20, 200).perform();
+    // this.actions.flick(statusbar, 1, 1, 20, 200).perform();
 
     this.client.waitFor(function() {
       var location = this.client
         .findElement(Search.Selectors.searchInput).location();
       return location.y >= 20;
     }.bind(this));
+  },
+
+  /**
+   * Goes to the homescreen
+   */
+  goHome: function() {
+    this.client.switchToFrame();
+    this.client.waitFor((function() {
+      return this.client.executeScript(function() {
+        // Synthesize an event since changing the value on its own does
+        // not trigger change listeners.
+        var event = document.createEvent('Event');
+        event.initEvent('home', true, true);
+        window.dispatchEvent(event);
+        return true;
+      });
+    }).bind(this));
   },
 
   /**
@@ -148,6 +168,10 @@ Search.prototype = {
         .findElement(Search.Selectors.searchBar);
       return el.location().y + el.size().height === 0;
     }.bind(this));
+  },
+
+  waitForBrowserLoaded: function(url) {
+    this.client.helper.wait(500);
   }
 };
 
