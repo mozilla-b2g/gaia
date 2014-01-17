@@ -9,7 +9,7 @@ var assert = require('assert');
 function Search(client) {
   this.actions = new Actions(client);
   this.client = client;
-  this.client.setSearchTimeout(10000);
+  this.client.setSearchTimeout(30000);
 }
 
 /**
@@ -41,7 +41,9 @@ Search.Selectors = {
   firstAppContainer: '#localapps',
   firstApp: '#localapps div',
   firstContact: '#contacts div',
-  firstContactContainer: '#contacts'
+  firstContactContainer: '#contacts',
+  firstPlace: '#places div',
+  firstPlaceContainer: '#places'
 };
 
 Search.prototype = {
@@ -76,6 +78,7 @@ Search.prototype = {
    */
   doSearch: function(input) {
     this.openRocketbar();
+    this.chillOut();
     this.client.helper
       .waitForElement(Search.Selectors.searchInput)
       .sendKeys(input);
@@ -116,24 +119,36 @@ Search.prototype = {
   openRocketbar: function() {
     var selectors = Search.Selectors;
 
-    this.client.apps.switchToApp('app://homescreen.gaiamobile.org');
-    this.client.helper.waitForElement('#evme-activation-icon').click();
-    this.client.switchToFrame();
+    this.client.helper.waitForElement(selectors.homescreen);
+    this.client.executeScript(function() {
+      window.wrappedJSObject.Rocketbar.render();
+    });
 
     // https://bugzilla.mozilla.org/show_bug.cgi?id=960098
     // Renable and write a dedicated test for opening the rocketbar
     // be swiping from the statusbar down, this is currently broken.
     //
-    //this.client.helper.waitForElement(selectors.homescreen);
-    //var statusbar = this.client.helper.waitForElement(
+    // this.client.helper.waitForElement(selectors.homescreen);
+    // var statusbar = this.client.helper.waitForElement(
     //  selectors.statusBar);
-    //this.actions.flick(statusbar, 1, 1, 20, 200).perform();
+    // this.actions.flick(statusbar, 1, 1, 20, 200).perform();
 
     this.client.waitFor(function() {
       var location = this.client
         .findElement(Search.Selectors.searchInput).location();
       return location.y >= 20;
     }.bind(this));
+  },
+
+  /**
+   * Chillaxes
+   */
+  chillOut: function() {
+    return this.client.executeAsyncScript(function() {
+      setTimeout(function() {
+        marionetteScriptFinished();
+      }, 5000);
+    });
   },
 
   /**
@@ -148,6 +163,10 @@ Search.prototype = {
         .findElement(Search.Selectors.searchBar);
       return el.location().y + el.size().height === 0;
     }.bind(this));
+  },
+
+  waitForBrowserLoaded: function(url) {
+    this.client.helper.wait(500);
   }
 };
 

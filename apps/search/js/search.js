@@ -104,6 +104,7 @@
      * Called when the user submits the search form
      */
     submit: function(msg) {
+      this.abort();
       Search.navigate(getUrlFromInput(msg.data.input));
     },
 
