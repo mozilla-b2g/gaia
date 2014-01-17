@@ -13,18 +13,12 @@ var Places = {
 
   dataStore: null,
 
-  rocketBarEnabled: false,
-
   init: function(callback) {
     window.addEventListener('apptitlechange', this);
     window.addEventListener('applocationchange', this);
 
     navigator.getDataStores(this.STORE_NAME)
       .then(this.initStore.bind(this)).then(callback);
-
-    SettingsListener.observe('rocketbar.enabled', false, (function(value) {
-      this.rocketBarEnabled = value;
-    }).bind(this));
   },
 
   initStore: function(stores) {
@@ -36,10 +30,6 @@ var Places = {
   },
 
   handleEvent: function(evt) {
-    if (!this.rocketBarEnabled) {
-      return;
-    }
-
     switch (evt.type) {
     case 'apptitlechange':
       this.setPlaceTitle(evt.detail.config.url, evt.detail.title);
