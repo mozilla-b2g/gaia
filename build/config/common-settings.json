@@ -37,6 +37,7 @@
    "deviceinfo.hardware": "",
    "deviceinfo.mac": "",
    "deviceinfo.os": "",
+   "deviceinfo.previous_os": "",
    "deviceinfo.platform_build_id": "",
    "deviceinfo.platform_version": "",
    "deviceinfo.product_model": "",

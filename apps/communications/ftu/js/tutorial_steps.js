@@ -7,7 +7,7 @@
    *
    * It will create objects like this :
    *
-   * TutorialSteps.tiny = {
+   * TutorialSteps.initial.tiny = {
    *   1: {
    *     hash: '#step1',
    *     key: 'tutorial-step1-tiny',
@@ -20,7 +20,7 @@
    *   }
    * };
    *
-   * TutorialSteps.small = {
+   * TutorialSteps.initial.small = {
    *   1: {
    *     hash: '#step1',
    *     key: 'tutorial-step1-small',
@@ -33,40 +33,69 @@
    *   }
    * };
    *
-   * use TutorialSteps.get() to get steps
+   * use TutorialSteps.get() to get initial steps
+   *
    */
 
   var TutorialSteps = {};
 
-  TutorialSteps.tiny = {};
-  TutorialSteps.large = {};
+  TutorialSteps.initial = {};
+  TutorialSteps.initial.tiny = {};
+  TutorialSteps.initial.large = {};
 
-  TutorialSteps.tiny.stepsCount = 5 + 1;
-  TutorialSteps.large.stepsCount = 5 + 1;
+  TutorialSteps.initial.tiny.stepsCount = 5 + 1;
+  TutorialSteps.initial.large.stepsCount = 5 + 1;
 
-  for (var supportLayout in TutorialSteps) {
+  for (var supportLayout in TutorialSteps.initial) {
     for (var stepIndex = 1; stepIndex <
-            TutorialSteps[supportLayout].stepsCount; stepIndex++) {
+            TutorialSteps.initial[supportLayout].stepsCount; stepIndex++) {
 
       // NOTE: There is no suffix for imagePath in tiny layout
       var imagePathSuffix = (supportLayout === 'tiny') ?
           '.png' : '_' + supportLayout + '.png';
 
-      TutorialSteps[supportLayout][stepIndex] = {
+      TutorialSteps.initial[supportLayout][stepIndex] = {
         hash: '#step' + stepIndex,
         key: 'tutorial-step' + stepIndex + '-' + supportLayout,
         image: 'css/images/tutorial/' + stepIndex + imagePathSuffix
       };
     }
-    delete TutorialSteps[supportLayout].stepsCount;
+    delete TutorialSteps.initial[supportLayout].stepsCount;
   }
 
-  TutorialSteps.get = function() {
+  // Define FTU steps for update from 1.3.0.0-prerelease to 1.4.0.0-prerelease
+  var stepsKey = '1.3.0.0-prerelease..1.4.0.0-prerelease';
+  TutorialSteps[stepsKey] = {};
+  TutorialSteps[stepsKey].tiny = {};
+  TutorialSteps[stepsKey].large = {};
+  TutorialSteps[stepsKey].tiny.stepsCount = 3 + 1;
+  TutorialSteps[stepsKey].large.stepsCount = 3 + 1;
+
+  for (var supportLayout in TutorialSteps[stepsKey]) {
+    for (var stepIndex = 1; stepIndex <
+            TutorialSteps[stepsKey][supportLayout].stepsCount; stepIndex++) {
+
+      // NOTE: There is no suffix for imagePath in tiny layout
+      var imagePathSuffix = (supportLayout === 'tiny') ?
+          '.png' : '_' + supportLayout + '.png';
+
+      TutorialSteps[stepsKey][supportLayout][stepIndex] = {
+        hash: '#step' + stepIndex,
+        key: 'tutorial-' + stepsKey.replace(/\./g, '') + '-step' + stepIndex + '-' + supportLayout,
+        image: 'css/images/tutorial-' + stepsKey + '/' + stepIndex + imagePathSuffix
+      };
+    }
+    delete TutorialSteps[stepsKey][supportLayout].stepsCount;
+  }
+
+
+  TutorialSteps.get = function(stepsKey) {
     var layout = (ScreenLayout && ScreenLayout.getCurrentLayout) ?
         ScreenLayout.getCurrentLayout() : 'tiny';
 
-    if (layout in this) {
-      return this[layout];
+    var context = this[stepsKey || 'initial'];
+    if (layout in context) {
+      return context[layout];
     }
     return null;
   };
