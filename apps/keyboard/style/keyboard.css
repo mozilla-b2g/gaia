@@ -120,18 +120,7 @@ button::-moz-focus-inner {
   border-left: 0.1rem solid transparent;
 }
 
-.keyboard-key:last-child > .visual-wrapper > span {
-  border-right: transparent;
-}
-
-.keyboard-key.highlighted > .visual-wrapper > span {
-  color: #00caf2;
-  background-color: #4a5255;
-  margin: -0.4rem 0 -0.4rem -0.1rem;
-  padding: 0.4rem 0 0 0.1rem;
-}
-
-.keyboard-key.highlighted > .visual-wrapper > span:after {
+.keyboard-key > .visual-wrapper > span:after {
   content: attr(data-label);
   position: absolute;
   top: -5.4rem;
@@ -144,8 +133,24 @@ button::-moz-focus-inner {
   line-height: 5.6rem;
   border-radius: 50%;
   background-color: #00aacc;
+  opacity: 0;
 }
 
+.keyboard-key:last-child > .visual-wrapper > span {
+  border-right: transparent;
+}
+
+.keyboard-key.highlighted > .visual-wrapper > span {
+  color: #00caf2;
+  background-color: #4a5255;
+  margin: -0.4rem 0 -0.4rem -0.1rem;
+  padding: 0.4rem 0 0 0.1rem;
+}
+
+/* Show the bubble text when the button is highlighted. */
+.keyboard-key.highlighted > .visual-wrapper > span:after {
+  opacity: 1;
+}
 
 .keyboard-key.highlighted.kbr-menu-on > .visual-wrapper > span:after {
   display: none;
