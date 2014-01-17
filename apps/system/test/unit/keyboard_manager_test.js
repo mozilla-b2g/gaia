@@ -445,6 +445,11 @@ suite('KeyboardManager', function() {
       assert.ok(hideKeyboardImmediately.called);
     });
 
+    test('appwillclose event', function() {
+      trigger('appwillclose');
+      assert.ok(hideKeyboardImmediately.called);
+    });
+
     test('activitywillopen event', function() {
       trigger('activitywillopen');
       assert.ok(hideKeyboardImmediately.called);
@@ -516,6 +521,30 @@ suite('KeyboardManager', function() {
       test('emits events', function() {
         sinon.assert.callCount(rsk, 1, 'resetShowingKeyborad');
         sinon.assert.callCount(kh, 1, 'keyboardhide event');
+      });
+    });
+
+    suite('HideImmediately should not trigger event if already hidden',
+      function() {
+        var kh, khed, container;
+          setup(function() {
+          kh = sinon.stub();
+          khed = sinon.stub();
+          window.addEventListener('keyboardhide', kh);
+          window.addEventListener('keyboardhidden', khed);
+          container = KeyboardManager.keyboardFrameContainer;
+          container.classList.add('hide');
+          KeyboardManager.hideKeyboardImmediately();
+      });
+
+      teardown(function() {
+        window.removeEventListener('keyboardhide', kh);
+        window.removeEventListener('keyboardhidden', khed);
+      });
+
+      test('no events', function() {
+        sinon.assert.callCount(kh, 0, 'keyboardhide event');
+        sinon.assert.callCount(khed, 0, 'keyboardhidden event');
       });
     });
 
