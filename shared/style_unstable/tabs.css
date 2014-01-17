@@ -195,7 +195,7 @@
   bottom: 4.5rem;
   left: 0;
   visibility: hidden;
-  z-index: 10;
+  z-index: -2;
   overflow: auto;
 }
 
