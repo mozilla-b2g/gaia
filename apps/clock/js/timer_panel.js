@@ -56,15 +56,15 @@ Timer.Panel = function(element) {
 
   // Gather elements
   [
-    'create', 'cancel', 'dialog',
-    'pause', 'start', 'sound', 'time', 'vibrate'
+    'create', 'cancel', 'dialog', 'pause', 'start', 'sound', 'time', 'vibrate',
+    'plus'
   ].forEach(function(id) {
     this.nodes[id] = this.element.querySelector('#timer-' + id);
   }, this);
 
   // Bind click events
   [
-    'create', 'cancel', 'pause', 'start'
+    'create', 'cancel', 'pause', 'start', 'plus'
   ].forEach(function(action) {
     var element = this.nodes[action];
 
@@ -224,20 +224,28 @@ Timer.Panel.prototype.pauseAlarm = function() {
  */
 Timer.Panel.prototype.onclick = function(event) {
   var meta = priv.get(event.target);
+  var value = event.target.dataset.value;
   var panel = meta.panel;
   var nodes = panel.nodes;
   var time;
 
   if (panel.timer && panel.timer[meta.action]) {
-    // meta.action => panel.timer[meta.action]()
-    //
-    // ie.
-    //
-    // if start => panel.timer.start()
-    // if pause => panel.timer.pause()
-    // if cancel => panel.timer.cancel()
-    //
-    panel.timer[meta.action]();
+    if (typeof value !== 'undefined') {
+      // meta.action === 'plus' => panel.timer.plus(+value);
+
+      panel.timer[meta.action](+value);
+      panel.update(panel.timer.remaining);
+    } else {
+      // meta.action => panel.timer[meta.action]()
+      //
+      // ie.
+      //
+      // if start => panel.timer.start()
+      // if pause => panel.timer.pause()
+      // if cancel => panel.timer.cancel()
+      //
+      panel.timer[meta.action]();
+    }
 
     if (meta.action === 'cancel' || meta.action === 'new') {
       // Restore the panel to configured duration

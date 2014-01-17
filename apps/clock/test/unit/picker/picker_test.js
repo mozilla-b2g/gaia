@@ -17,7 +17,9 @@ suite('Picker', function() {
 
   test('shape:prototype ', function() {
     assert.ok(Picker);
-    assert.ok(Picker.prototype.reset);
+    assert.include(Picker.prototype, 'reset');
+    assert.include(Picker.prototype, 'value');
+    assert.isNull(Picker.prototype.value);
   });
 
   test('shape:instance ', function() {
@@ -73,6 +75,27 @@ suite('Picker', function() {
     assert.equal(picker.value, '0:0');
   });
 
+  test('get and set value ', function() {
+    var picker = new Picker({
+      element: document.getElementById('time-picker'),
+      pickers: {
+        hours: {
+          range: [0, 23]
+        },
+        minutes: {
+          range: [0, 59],
+          isPadded: true
+        }
+      }
+    });
+
+    picker.value = '1:59';
+
+    var spinners = picker.spinners;
+
+    assert.equal(spinners.hours.value, '1');
+    assert.equal(spinners.minutes.value, '59');
+  });
 
   test('isPadded = true', function() {
     Spinner.args.length = 0;

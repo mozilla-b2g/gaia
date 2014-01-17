@@ -108,6 +108,22 @@ ul li > label.pack-switch > input + span {
   text-shadow: 0 0;
 }
 
+#timer-plus-time {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+
+  margin-right: 3rem;
+  margin-bottom: 3rem;
+}
+
+#timer-plus-time a {
+  color: #CFE2E6;
+  font: 2.5rem sans-serif;
+  font-weight: normal;
+  text-decoration: none;
+}
+
 @media (min-width: 768px) {
   #timer-controls {
     width: auto;
