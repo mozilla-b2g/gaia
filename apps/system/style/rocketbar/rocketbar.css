@@ -1,82 +1,100 @@
-#search-bar {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: calc(100%);
+#rocketbar {
   pointer-events: none;
-  visibility: hidden;
+  flex-grow: 1;
+  flex-shrink: 1;
+  display: flex;
+  min-width: 33%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  height: 2rem;
+  margin: 0;
 }
 
-#screen.software-button-enabled #search-bar {
-  height: calc(100% - 5rem);
-}
-
-#search-bar[data-visible] {
-  pointer-events: auto;
-}
-
-#search-bar form p {
-  background: #000;
-}
-
-#search-input {
-  margin-top: 2rem;
-  width: calc(100% - 6.5rem);
-  border: 0;
-  border-radius: 0;
-  line-height: 4rem;
-  background: #000;
-  color: #fff;
-}
-
-.task-manager #search-input {
+#rocketbar-input {
+  flex: 1;
+  height: 2rem;
+  font-size: 1.5rem;
+  margin: 0;
+  padding: 0;
   padding-left: 2.6rem;
+  border: none;
+  background-color: transparent;
   background: url(search.png) no-repeat 0.5rem center;
+  text-overflow: ellipsis;
+  color: #fff;
+  transition: font 0.2s ease;
 }
 
-#search-bar #search-input::-moz-placeholder {
-  font-style: italic;
-  color: #929496;
+#rocketbar-input::-moz-placeholder {
+  color: transparent;
 }
 
-#search-reset.hidden {
-  opacity: 0;
+#screen.utility-tray #rocketbar, #screen.locked #rocketbar {
+  display: none;
 }
 
-#search-bar #search-reset {
-  margin-right: 6rem;
+#statusbar.expanded #rocketbar {
+  pointer-events: auto;
+  height: 4rem;
 }
 
-#search-bar #search-cancel {
+#statusbar.expanded #rocketbar-input {
+  pointer-events: auto;
+  height: 4rem;
+  font-size: 1.7rem;
+}
+
+#statusbar.expanded #rocketbar-input::-moz-placeholder {
+  color: #666;
+}
+
+#rocketbar-cancel, #rocketbar-reset {
+  background: none;
+  border-radius: 0;
+  background-color: transparent;
+  color: #fff;
+  border: none;
+  display: none;
+  font-size: 1.5rem;
+}
+
+#rocketbar-cancel {
+  border-left: solid 1px #666;
+}
+
+#statusbar.expanded #rocketbar-cancel, #statusbar.expanded #rocketbar-reset {
+  display: inline;
+}
+
+#statusbar.expanded #rocketbar-reset.hidden {
+  display: none;
+}
+
+#rocketbar-reset:active, #rocketbar-cancel:active {
+  background-color: #666;
+}
+
+#rocketbar-results {
+  display: none;
   position: absolute;
-  right: 0;
-  top: 0;
-  text-decoration: none;
-  outline: 0;
-  padding: 0.5rem 0;
+  top: 4rem;
+  left: 0;
+  background-color: #353534;
+  height: calc(100% - 4rem);
+  width: 100%;
 }
 
-#search-bar #search-cancel span {
-  pointer-events: none;
-  border-left: 1px solid #929496;
-  display: inline-block;
-  padding: 0.7rem 0.8rem 0.5rem;
-  font-size: 1.4rem;
-  color: #929496;
+#rocketbar-results:not(.hidden) {
+  display: block;
 }
 
-#search-bar #search-container {
-  background: #303030;
-  height: calc(100% - 6rem);
-}
-
-#search-bar #search-container iframe {
+#rocketbar-results iframe {
   border: 0;
   width: 100%;
   height: 100%;
 }
 
-#screen.rocketbar-focus .screenshotView {
-  opacity: 0.5;
+#screen.software-button-enabled #rocketbar-results {
+  height: calc(100% - 9rem);
 }
