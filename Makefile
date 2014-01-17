@@ -141,6 +141,7 @@ NPM_REGISTRY?=http://registry.npmjs.org
 # Ensure that NPM only logs warnings and errors
 export npm_config_loglevel=warn
 MARIONETTE_RUNNER_HOST?=marionette-b2gdesktop-host
+TEST_MANIFEST?=./shared/test/integration/travis-manifest.json
 MOZPERFOUT?=""
 
 GAIA_INSTALL_PARENT?=/system/b2g
@@ -698,6 +699,7 @@ b2g: node_modules/.bin/mozilla-download
 test-integration: b2g $(PROFILE_FOLDER)
 	NPM_REGISTRY=$(NPM_REGISTRY) ./bin/gaia-marionette $(shell find . -path "*$(TEST_INTEGRATION_APP_NAME)/test/marionette/*_test.js") \
 		--host $(MARIONETTE_RUNNER_HOST) \
+		--manifest $(TEST_MANIFEST) \
 		--reporter $(REPORTER)
 
 .PHONY: test-perf

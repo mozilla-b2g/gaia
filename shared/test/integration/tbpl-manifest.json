@@ -1,0 +1,5 @@
+{
+  "blacklist": [
+    "apps/system/test/marionette/edges_gesture_test.js"
+  ]
+}
