@@ -327,6 +327,7 @@ function SimPinDialog(dialog) {
 
   function initUI(action) {
     showMessage();
+    showRetryCount();
     dialogDone.disabled = true;
 
     var lockType = 'pin'; // used to query the number of retries left
