@@ -54,6 +54,7 @@ var ThreadUI = global.ThreadUI = {
   // duration of the notification that message type was converted
   CONVERTED_MESSAGE_DURATION: 3000,
   IMAGE_RESIZE_DURATION: 3000,
+  BANNER_DURATION: 2000,
   // delay between 2 counter updates while composing a message
   UPDATE_DELAY: 500,
   recipients: null,
@@ -61,7 +62,10 @@ var ThreadUI = global.ThreadUI = {
   inEditMode: false,
   inThread: false,
   isNewMessageNoticeShown: false,
-  _updateTimeout: null,
+  timeouts: {
+    update: null,
+    subjectLengthNotice: null
+  },
   init: function thui_init() {
     var templateIds = [
       'message',
@@ -104,10 +108,7 @@ var ThreadUI = global.ThreadUI = {
     // Changes on subject input can change the type of the message
     // and size of fields
     this.subjectInput.addEventListener(
-      'keypress', this.onSubjectKeypress.bind(this)
-    );
-    this.subjectInput.addEventListener(
-      'focus', this.onSubjectFocus.bind(this)
+      'keyup', this.onSubjectKeyUp.bind(this)
     );
     this.subjectInput.addEventListener(
       'blur', this.onSubjectBlur.bind(this)
@@ -263,7 +264,7 @@ var ThreadUI = global.ThreadUI = {
     // Initialized here, but used in ThreadUI.cleanFields
     this.previousHash = null;
 
-    this._updateTimeout = null;
+    this.timeouts.update = null;
 
     // Cache fixed measurement while init
     var inputStyle = window.getComputedStyle(this.input);
@@ -437,7 +438,7 @@ var ThreadUI = global.ThreadUI = {
     }
   },
 
-  onSubjectKeypress: function thui_onSubjectKeypress(event) {
+  onSubjectKeyUp: function thui_onSubjectKeyUp(event) {
     Compose.updateType();
     // Handling user warning for max character reached
     // Only show the warning when the subject field has the focus
@@ -447,11 +448,6 @@ var ThreadUI = global.ThreadUI = {
       this.hideMaxLengthNotice();
     }
   },
-  onSubjectFocus: function thui_onSubjectFocus() {
-    if (this.subjectInput.value.length === Compose.SUBJECT_MAX_LENGTH) {
-      this.showMaxLengthNotice('messages-max-subject-length-text');
-    }
-  },
   onSubjectBlur: function thui_onSubjectBlur() {
     this.hideMaxLengthNotice();
   },
@@ -459,9 +455,16 @@ var ThreadUI = global.ThreadUI = {
     navigator.mozL10n.localize(
       this.maxLengthNotice.querySelector('p'), l10nKey);
     this.maxLengthNotice.classList.remove('hide');
+    if (this.timeouts.subjectLengthNotice) {
+      clearTimeout(this.timeouts.subjectLengthNotice);
+    }
+    this.timeouts.subjectLengthNotice =
+      setTimeout(this.hideMaxLengthNotice.bind(this), this.BANNER_DURATION);
   },
   hideMaxLengthNotice: function thui_hideMaxLengthNotice() {
     this.maxLengthNotice.classList.add('hide');
+    this.timeouts.subjectLengthNotice &&
+      clearTimeout(this.timeouts.subjectLengthNotice);
   },
 
   assimilateRecipients: function thui_assimilateRecipients() {
@@ -880,8 +883,8 @@ var ThreadUI = global.ThreadUI = {
       return this.updateCounterForMms();
     } else {
       Compose.lock = false;
-      if (this._updateTimeout === null) {
-        this._updateTimeout = setTimeout(this.updateCounterForSms.bind(this),
+      if (this.timeouts.update === null) {
+        this.timeouts.update = setTimeout(this.updateCounterForSms.bind(this),
             this.UPDATE_DELAY);
       }
       return true;
@@ -896,7 +899,7 @@ var ThreadUI = global.ThreadUI = {
     // returning in a different order, which would actually display old
     // information, is very tiny, so we should be good without adding another
     // lock.
-    this._updateTimeout = null;
+    this.timeouts.update = null;
     this.hideMaxLengthNotice();
     this.updateSmsSegmentLimit((function segmentLimitCallback(overLimit) {
       if (overLimit) {

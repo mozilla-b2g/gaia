@@ -1081,10 +1081,28 @@ suite('thread_ui.js >', function() {
     });
 
     suite('when trying to pass the limit...', function() {
+      var clock;
       setup(function() {
+        clock = this.sinon.useFakeTimers();
         subject.value = '1234567890123456789012345678901234567890'; // 40 char
+        clock.tick(0);
         // Event is launched on keypress
-        subject.dispatchEvent(new CustomEvent('keypress'));
+        subject.dispatchEvent(new CustomEvent('keyup'));
+      });
+
+      teardown(function() {
+        clock.restore();
+      });
+
+      test('should create a timeout', function() {
+        assert.isFalse(!ThreadUI.timeouts.subjectLengthNotice);
+      });
+
+      test('banner should be hidden after an amount of secs.', function(done) {
+        assert.isFalse(banner.classList.contains('hide'));
+        clock.tick(3100);
+        assert.isTrue(banner.classList.contains('hide'));
+        done();
       });
 
       test('should be visible', function() {
@@ -1101,10 +1119,10 @@ suite('thread_ui.js >', function() {
         assert.isTrue(banner.classList.contains('hide'));
       });
 
-      test('should be visible if focus comes back', function() {
+      test('should not be visible if focus comes back.', function() {
         subject.dispatchEvent(new CustomEvent('blur'));
         subject.dispatchEvent(new CustomEvent('focus'));
-        assert.isFalse(banner.classList.contains('hide'));
+        assert.isTrue(banner.classList.contains('hide'));
       });
     });
   });
