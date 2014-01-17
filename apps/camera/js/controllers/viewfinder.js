@@ -42,26 +42,18 @@ function ViewfinderController(app) {
 
 proto.bindEvents = function() {
   this.camera.on('configured', this.onConfigured);
+  this.camera.on('change:mode', this.onConfigured);
   this.viewfinder.on('click', this.onViewfinderClick);
 };
 
-/**
- * The viewfinder size is updated
- * when the camera is changed.
- *
- * HACK: The viewfinder view has a
- * dependency on the camera.js module
- * due to legacy architecture.
- *
- * @param  {MozCamera} camera
- */
 proto.onConfigured = function() {
   debug('camera configured');
-  this.viewfinder.setPreviewSize(this.camera.mozCamera, this.camera);
+  this.viewfinder.updatePreview(this.camera.previewSize,
+                                this.camera.get('number') == 1);
   this.camera.loadStreamInto(this.viewfinder.el, onStreamLoaded);
   function onStreamLoaded(stream) {
     debug('stream loaded %d ms after dom began loading',
-      Date.now() - window.performance.timing.domLoading);
+          Date.now() - window.performance.timing.domLoading);
   }
 };
 
