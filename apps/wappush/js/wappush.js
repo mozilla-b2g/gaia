@@ -163,10 +163,7 @@ var WapPushManager = {
         req.onsuccess = (function wpm_gotApp(event) {
           var _ = navigator.mozL10n.get;
           var app = event.target.result;
-          /* We store the message timestamp as a parameter to be able to
-           * retrieve the message from the notification code */
-          var iconURL = NotificationHelper.getIconURI(app) +
-                       '?timestamp=' + encodeURIComponent(message.timestamp);
+          var iconURL = NotificationHelper.getIconURI(app);
 
           message.text = (message.type == 'text/vnd.wap.connectivity-xml') ?
                          _(message.text) : message.text;
@@ -174,11 +171,20 @@ var WapPushManager = {
 
           text += message.href ? message.href : '';
 
-          NotificationHelper.send(message.sender, text, iconURL,
-            (function wpm_notificationOnClick() {
-              app.launch();
-              this.displayWapPushMessage(message.timestamp);
-            }).bind(this));
+          var options = {
+            icon: iconURL,
+            body: text,
+            tag: message.timestamp
+          };
+
+          var onClick = function wpm_notificationOnClick(timestamp) {
+            app.launch();
+            this.displayWapPushMessage(timestamp);
+          };
+
+          var notification = new Notification(message.sender, options);
+          notification.addEventListener('click',
+            onClick.bind(this, options.tag));
 
           this.finish();
         }).bind(this);
@@ -209,11 +215,10 @@ var WapPushManager = {
     this._closeTimeout = null;
 
     navigator.mozApps.getSelf().onsuccess = (function wpm_gotApp(event) {
-      var params = Utils.deserializeParameters(message.imageURL);
       var app = event.target.result;
 
       app.launch();
-      this.displayWapPushMessage(params.timestamp);
+      this.displayWapPushMessage(message.tag);
     }).bind(this);
   },
 
@@ -225,6 +230,18 @@ var WapPushManager = {
   displayWapPushMessage: function wpm_displayWapPushMessage(timestamp) {
     ParsedMessage.load(timestamp,
       function wpm_loadSuccess(message) {
+        // Retrieve pending notifications and close the matching ones
+        Notification.get({tag: timestamp}).then(
+          function onSuccess(notifications) {
+            for (var i = 0; i < notifications.length; i++) {
+              notifications[i].close();
+            }
+          },
+          function onError(reason) {
+            console.error('Notification.get() promise error: ' + reason);
+          }
+        );
+
         if (message) {
           switch (message.type) {
             case 'text/vnd.wap.si':
