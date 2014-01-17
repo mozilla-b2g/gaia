@@ -8,8 +8,28 @@ suite('FirefoxOS Accounts IAC Client Suite', function() {
   var realMozApps;
 
   var port = {
-    'postMessage': function() {},
-    set onmessage(cb) {cb({data: {data: {}}})}
+    postMessage: function() {},
+
+    methodName: null,
+
+    _onmessage: null,
+
+    set onmessage(cb) {
+      port._onmessage = cb;
+      setTimeout(function() {
+        var msg = {
+          data: {
+            data: {}
+          }
+        };
+
+        if (port.methodName !== null) {
+          msg.data.methodName = port.methodName;
+        }
+
+        cb(msg);
+      }, 0);
+    }
   };
   var postMessageStub;
 
@@ -31,7 +51,6 @@ suite('FirefoxOS Accounts IAC Client Suite', function() {
           'then': function(cb) {}
         };
         var connectStub = sinon.stub(future, 'then', function(cb) {
-          postMessageStub = sinon.stub(port, 'postMessage');
           cb([port]);
         });
         return future;
@@ -48,88 +67,18 @@ suite('FirefoxOS Accounts IAC Client Suite', function() {
 
   test('Library integrity', function() {
     assert.isNotNull(FxAccountsIACHelper);
-    assert.equal(Object.keys(FxAccountsIACHelper).length, 6);
+    assert.equal(Object.keys(FxAccountsIACHelper).length, 7);
   });
 
-  test('Connect with default parameters', function(done) {
-    // Create a specific moc for checking the connect parameters
-    var app = new MockApp({
-      'connect': function(keyword, options) {
-        var future = {'then': function(cb) {}};
+  ['getAccounts', 'openFlow', 'logout'].forEach(function(method) {
+    suite(method + ' suite', function() {
+      setup(function() {
+        postMessageStub = sinon.stub(port, 'postMessage');
+      });
 
-        assert.equal(keyword, 'fxa-mgmt');
-        assert.deepEqual(options, {
-          'manifestURLs':
-            ['app://system.gaiamobile.org/manifest.webapp']
-        });
-
-        done();
-        return future;
-      }
-    });
-    navigator.mozApps.setSelf(app);
-
-    //Invoque one of the methods
-    // We don't care about callbacks, wont ever been invoqued since
-    // the 'then' function doesnt call anything else
-    FxAccountsIACHelper.getAccounts(null, null);
-  });
-
-  test('Connect with custom parameters', function(done) {
-    // Create a specific moc for checking the connect parameters
-    var app = new MockApp({
-      'connect': function(keyword, options) {
-        var future = {'then': function(cb) {}};
-
-        assert.equal(keyword, 'mykeyword');
-        assert.deepEqual(options, {
-          'manifestURLs':
-            ['manifest.webapp']
-        });
-
-        // Reset to default values
-        FxAccountsIACHelper.reset();
-
-        done();
-        return future;
-      }
-    });
-    navigator.mozApps.setSelf(app);
-
-    FxAccountsIACHelper.init({'keyword': 'mykeyword',
-      'rules': {
-        'manifestURLs':
-            ['manifest.webapp']
-      }
-    });
-
-    // Invoque one of the methods
-    // We don't care about callbacks, wont ever been invoqued since
-    // the 'then' function doesnt call anything else
-    FxAccountsIACHelper.getAccounts(null, null);
-
-  });
-
-  test('Something wrong happens with mozApps', function(done) {
-    // Be sure that something is wrong with mozapps ;)
-    navigator.mozApps.setSelf(null);
-    FxAccountsIACHelper.getAccounts(
-    function() {
-      // We should never get a success here
-      assert.ok(false);
-      done();
-    },
-    function() {
-      // So far we need to get an error if
-      // something is wrong
-      assert.ok(true);
-      done();
-    });
-  });
-
-  suite('getAccounts, openFlow, logout suite', function() {
-    ['getAccounts', 'openFlow', 'logout'].forEach(function(method) {
       test('Check that we send the ' + method + ' message', function(done) {
+        this.timeout(20000);
+        port.methodName = method;
         FxAccountsIACHelper[method](
           function() {
             assert.ok(postMessageStub.called);
@@ -152,34 +101,84 @@ suite('FirefoxOS Accounts IAC Client Suite', function() {
           }
         );
       });
+
+      teardown(function() {
+        postMessageStub.restore();
+      });
     });
   });
 
-  suite('changePassword suite', function() {
-    test('Check that we send the correct message', function(done) {
-      var email = 'test@domain.com';
-      FxAccountsIACHelper.changePassword(email,
-        function() {
-          assert.ok(postMessageStub.called);
-          var arg = postMessageStub.args[0][0];
-          // We do have an id for this message
-          assert.isNotNull(arg.id);
-          assert.isNotNull(arg);
-          // Remove the id, as it's automatically generated
-          delete arg.id;
+  suite('addEventListener tests', function() {
+    var callbackCalled = false;
+    var otherCallbackCalled = false;
 
-          assert.deepEqual(arg, {
-            'name': 'changePassword',
-            'accountId': email
-          });
-          done();
-        },
-        function() {
-          assert.ok(false);
-          done();
+    var listener = function() {
+      callbackCalled = true;
+    };
+
+    var otherListener = function() {
+      otherCallbackCalled = true;
+    };
+
+    setup(function() {
+      FxAccountsIACHelper.addEventListener('myEvent', listener);
+      FxAccountsIACHelper.addEventListener('myOtherEvent', otherListener);
+
+      port._onmessage({
+        data: {
+          data: {},
+          eventName: 'myEvent'
         }
-      );
+      });
+    });
+
+    test('Check that we trigger the appropriate callback', function() {
+      assert.ok(callbackCalled);
+      assert.ok(!otherCallbackCalled);
+    });
+
+    teardown(function() {
+      FxAccountsIACHelper.removeEventListener('myEvent', listener);
+      FxAccountsIACHelper.removeEventListener('myOtherEvent', otherListener);
     });
   });
 
+
+  suite('removeEventListener tests', function() {
+    var callbackCalled = false;
+    var otherCallbackCalled = false;
+
+    var listener = function() {
+      callbackCalled = true;
+    };
+
+    var otherListener = function() {
+      otherCallbackCalled = true;
+    };
+
+    setup(function() {
+      FxAccountsIACHelper.addEventListener('myEvent', listener);
+      FxAccountsIACHelper.addEventListener('myOtherEvent', otherListener);
+      FxAccountsIACHelper.removeEventListener('myEvent', listener);
+
+      port._onmessage({
+        data: {
+          data: {},
+          eventName: 'myEvent'
+        }
+      });
+
+      port._onmessage({
+        data: {
+          data: {},
+          eventName: 'myOtherEvent'
+        }
+      });
+    });
+
+    test('Check that we trigger the appropriate callback', function() {
+      assert.ok(!callbackCalled);
+      assert.ok(otherCallbackCalled);
+    });
+  });
 });

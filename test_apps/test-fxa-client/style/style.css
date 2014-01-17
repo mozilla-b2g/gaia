@@ -38,6 +38,14 @@ menu {
   display: block;
 }
 
+#events {
+  display: none;
+}
+
+#events.show {
+  display: block;
+}
+
 h1 {
   padding: 1rem 1.5rem;
   -moz-box-sizing: border-box;

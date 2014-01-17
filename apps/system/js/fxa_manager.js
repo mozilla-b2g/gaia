@@ -28,30 +28,41 @@
  *       \                  /                                     |
  *        \                /       FxAccountsUI                   |
  *       FxAccountsManager ______/       |                        |-mozId API
- *                               \       |                        |
- *                                 FxAccountsClient               |
- *                                    |                           |
- *                                    |                           |
- * =============================Gecko===============================
- *                                    |                           |
- *                                    |-moz(Chrome/Content)Event  |
- *                                    |                           |
- *                         SignInFxAccounts                       |
- *                                ^                               |
- *                                |                               |
- *                                |                               |
- *                                |                               |
- *                      nsIDOMIdentityService ____________________/
+ *            |                  \       |                        |
+ *            |                       FxAccountsClient            |
+ *            |                        |                          |
+ *            |                        |                          |
+ * =============================Gecko======================================
+ *            |                        |                          |
+ *            |                        |-moz(Chrome/Content)Event |
+ *            |                        |                          |
+ *       FxAccountsUIGlue    FxAccountsMgmtService                |
+ *                 |               ^                              |
+ *                 |               |                              |
+ *                 |               |                              |
+ *                 |__________FxAccountsManager                   |
+ *                                 |                              |
+ *                                 |                              |
+ *                          DOM Identity API impl. _______________|
  */
 
 'use strict';
 
 var FxAccountsManager = {
+
   init: function fxa_mgmt_init() {
     // Set up the listener for IAC API connection requests.
     window.addEventListener('iac-fxa-mgmt', this.onPortMessage);
-    // Listen for chrome events coming from the implementation of RP DOM API.
-    window.addEventListener('mozFxAccountsRPChromeEvent', this);
+    // Listen for unsolicited chrome events coming from the implementation o
+    // RP DOM API or the Fx Accounts UI glue.
+    window.addEventListener('mozFxAccountsUnsolChromeEvent', this);
+  },
+
+  sendPortMessage: function fxa_mgmt_sendPortMessage(message) {
+    var port = IACHandler.getPort('fxa-mgmt');
+    if (port) {
+      port.postMessage(message);
+    }
   },
 
   onPortMessage: function fxa_mgmt_onPortMessage(event) {
@@ -60,33 +71,30 @@ var FxAccountsManager = {
       return;
     }
 
-    var _successCb = function _successCb(data) {
-      var port = IACHandler.getPort('fxa-mgmt');
-      port.postMessage({ data: data });
-    };
+    var self = FxAccountsManager;
+    var methodName = event.detail.name;
 
-    var _errorCb = function _errorCb(error) {
-      var port = IACHandler.getPort('fxa-mgmt');
-      port.postMessage({ error: error });
-    };
-
-    var message = event.detail;
-
-    switch (message.name) {
+    switch (methodName) {
       case 'getAccounts':
-        LazyLoader.load('js/fxa_client.js', function() {
-          FxAccountsClient.getAccounts(_successCb, _errorCb);
-        });
+      case 'logout':
+        (function(methodName) {
+          LazyLoader.load('js/fxa_client.js', function() {
+            FxAccountsClient[methodName](function(data) {
+              self.sendPortMessage({ methodName: methodName, data: data });
+            }, function(error) {
+              self.sendPortMessage({ methodName: methodName, error: error });
+            });
+          });
+        })(methodName);
         break;
       case 'openFlow':
-        FxAccountsUI.login(_successCb, _errorCb);
-        break;
-      case 'logout':
-        LazyLoader.load('js/fxa_client.js', function() {
-          FxAccountsClient.logout(_successCb, _errorCb);
-        });
-        break;
-      case 'changePassword':
+        (function(methodName) {
+          FxAccountsUI.login(function(data) {
+            self.sendPortMessage({ methodName: methodName, data: data });
+          }, function(error) {
+            self.sendPortMessage({ methodName: methodName, error: error });
+          });
+        })(methodName);
         break;
     }
   },
@@ -105,12 +113,7 @@ var FxAccountsManager = {
 
     var message = event.detail;
 
-    if (!message.id) {
-      console.warn('Got chrome event without id!');
-      return;
-    }
-
-    switch (message.method) {
+    switch (message.eventName) {
       case 'openFlow':
         FxAccountsUI.login(function(result) {
           FxAccountsManager._sendContentEvent({
@@ -123,6 +126,11 @@ var FxAccountsManager = {
             error: error
           });
         });
+        break;
+      case 'onlogin':
+      case 'onverifiedlogin':
+      case 'onlogout':
+        FxAccountsManager.sendPortMessage({ eventName: message.eventName });
         break;
     }
   }
