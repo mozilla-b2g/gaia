@@ -31,7 +31,6 @@ suite('system/Title', function() {
   }
 
   setup(function(done) {
-    Rocketbar.enabled = true;
     fakeElement = document.createElement('div');
     fakeElement.style.cssText = 'height: 100px; display: block;';
     stubById = this.sinon.stub(document, 'getElementById')
@@ -40,7 +39,6 @@ suite('system/Title', function() {
   });
 
   teardown(function() {
-    Rocketbar.enabled = false;
     stubById.restore();
   });
 

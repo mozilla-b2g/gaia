@@ -26,8 +26,7 @@ Search.ClientOptions = {
   settings: {
     'ftu.manifestURL': null,
     'keyboard.ftu.enabled': false,
-    'lockscreen.enabled': false,
-    'rocketbar.enabled': true
+    'lockscreen.enabled': false
   }
 };
 
