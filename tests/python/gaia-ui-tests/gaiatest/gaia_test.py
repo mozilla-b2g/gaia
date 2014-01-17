@@ -677,6 +677,12 @@ class GaiaDevice(object):
         self.lockscreen_atom = os.path.abspath(
             os.path.join(__file__, os.path.pardir, 'atoms', "gaia_lock_screen.js"))
         self.marionette.import_script(self.lockscreen_atom)
+        self.fakeupdatechecker_atom = os.path.abspath(
+            os.path.join(__file__, os.path.pardir, 'atoms', "fake_update-checker.js"))
+        self.marionette.set_context(self.marionette.CONTEXT_CHROME)
+        self.marionette.import_script(self.fakeupdatechecker_atom)
+        self.marionette.execute_script("GaiaUITests_FakeUpdateChecker();")
+        self.marionette.set_context(self.marionette.CONTEXT_CONTENT)
 
     def add_device_manager(self, device_manager):
         self._manager = device_manager
@@ -769,6 +775,10 @@ window.addEventListener('mozbrowserloadend', function loaded(aEvent) {
             # TODO: Remove this sleep when Bug 924912 is addressed
             time.sleep(5)
         self.marionette.import_script(self.lockscreen_atom)
+        self.marionette.set_context(self.marionette.CONTEXT_CHROME)
+        self.marionette.import_script(self.fakeupdatechecker_atom)
+        self.marionette.execute_script("GaiaUITests_FakeUpdateChecker();")
+        self.marionette.set_context(self.marionette.CONTEXT_CONTENT)
 
     def stop_b2g(self):
         if self.marionette.instance:
