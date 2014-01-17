@@ -810,6 +810,11 @@ proto.toggleMode = function() {
   var isCameraMode = this.get('mode') === 'camera';
   var newMode = isCameraMode ? 'video' : 'camera';
   var previewSizes;
+
+  // NOTE:WP:
+  // This looks hacky to me,
+  // perhaps we can move this logic inside
+  // the configurePreviewSize method.
   if (newMode === 'camera') {
     previewSizes = this.mozCamera.capabilities.previewSizes;
   } else {
@@ -819,6 +824,7 @@ proto.toggleMode = function() {
     }];
   }
   this.configurePreviewSize(previewSizes);
+
   this.set('mode', newMode);
   this.configureFlash(this.flash.all);
   return newMode;
