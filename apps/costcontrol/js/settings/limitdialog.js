@@ -36,10 +36,13 @@ function dataLimitConfigurer(guiWidget, settings, viewManager) {
     );
   }
 
-  // Disable OK button when empty dataLimitInput
+  // Disable OK button when dataLimitInput not matches any positive real number
+  // (up to three digits length), with optional decimal point, accepting up
+  // to 2 decimal places.
   dataLimitInput.addEventListener('input',
     function cc_ondataLimitInputChange(evt) {
-      okButton.disabled = (evt.target.value.trim() === '');
+      var limitRegexp = new RegExp('^[0-9]{1,3}(\\.[0-9]{1,2})?$');
+      okButton.disabled = (!limitRegexp.test(evt.target.value.trim()));
     }
   );
 
