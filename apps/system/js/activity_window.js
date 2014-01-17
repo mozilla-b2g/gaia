@@ -180,7 +180,8 @@
   ActivityWindow.SUB_COMPONENTS = {
     'transitionController': window.AppTransitionController,
     'modalDialog': window.AppModalDialog,
-    'authDialog': window.AppAuthenticationDialog
+    'authDialog': window.AppAuthenticationDialog,
+    'contextmenu': window.BrowserContextMenu
   };
 
   ActivityWindow.REGISTERED_EVENTS =
