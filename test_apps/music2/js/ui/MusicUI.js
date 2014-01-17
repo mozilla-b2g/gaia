@@ -10,21 +10,16 @@ function MusicUI() {
   this.router = new Router(this);
 
   this.viewTable = {
-    '#select-mix': new MixView(),
-    '#select-playlists': new PlaylistsView(),
-    '#select-artists': new ArtistsView(),
-    '#select-albums': new AlbumsView(),
-    '#select-songs': new SongsView()
+    '#mix': new MixView(),
+    '#playlists': new PlaylistsView(),
+    '#artists': new ArtistsView(),
+    '#albums': new AlbumsView(),
+    '#songs': new SongsView()
   };
 
   this.playerView = new PlayerView();
 
   this._setupViewRoutes();
-
-  // Set the default hash to mix view because if there is no hashchange event,
-  // the mix view won't apply the css role for showing and hiding.
-  window.location.hash = '#select-mix';
-  this.currentView = this.viewTable[window.location.hash];
 
   this.dom.titleBack.classList.add('hidden');
   this.dom.titleBack.onclick = (function() {
@@ -51,8 +46,10 @@ function MusicUI() {
 
   this.orientation = null;
 
+  // Set the default hash to mix view because if there is no hashchange event,
+  // the mix view won't apply the css role for showing and hiding.
+  window.location.hash = '#mix';
   window.addEventListener('hashchange', this._setView.bind(this));
-  this._setView();
 
   window.screen.onmozorientationchange = this._relayout.bind(this);
 }
@@ -99,6 +96,7 @@ MusicUI.prototype = {
     if (this.currentView)
       this.currentView.hide();
     this.currentView = this.viewTable[window.location.hash];
+    this.dom.views.dataset.mode = window.location.hash;
     this.dom.titleBack.classList.add('hidden');
     this.currentView.show();
   },
