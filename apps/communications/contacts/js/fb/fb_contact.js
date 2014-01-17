@@ -8,10 +8,6 @@ fb.Contact = function(deviceContact, cid) {
   var devContact = deviceContact;
   var contactid = cid;
 
-  function getContact(contact) {
-    return (contact instanceof mozContact) ? contact : new mozContact(contact);
-  }
-
   function doGetFacebookUid(data) {
     return fb.getFriendUid(data);
   }
@@ -139,7 +135,8 @@ fb.Contact = function(deviceContact, cid) {
     var fbReq = persistToFbCache(contactData);
 
     fbReq.onsuccess = function() {
-      var mozContactsReq = navigator.mozContacts.save(getContact(contactInfo));
+      var mozContactsReq = navigator.mozContacts.save(
+        utils.misc.toMozContact(contactInfo));
       mozContactsReq.onsuccess = function(e) {
         outReq.done(fbReq.result);
       };
@@ -255,7 +252,8 @@ fb.Contact = function(deviceContact, cid) {
 
       var auxReq = new fb.utils.Request();
       auxReq.onsuccess = function() {
-        var mozContactsReq = navigator.mozContacts.save(getContact(devContact));
+        var mozContactsReq = navigator.mozContacts.save(
+          utils.misc.toMozContact(devContact));
         mozContactsReq.onsuccess = function(e) {
           outReq.done();
         };
@@ -472,13 +470,14 @@ fb.Contact = function(deviceContact, cid) {
       }
 
       propagateNames(fbFriend.mozContact, contactdata);
-      var mozContactsReq = navigator.mozContacts.save(getContact(contactdata));
+      var mozContactsReq = navigator.mozContacts.save(
+        utils.misc.toMozContact(contactdata));
 
       mozContactsReq.onsuccess = function(e) {
         // The FB contact on mozContacts needs to be removed
         if (fbFriend.mozContact && !fb.isFbLinked(fbFriend.mozContact)) {
           var deleteReq = navigator.mozContacts.remove(
-            getContact(fbFriend.mozContact));
+            utils.misc.toMozContact(fbFriend.mozContact));
 
           deleteReq.onsuccess = function(e) {
             out.done(e.target.result);
@@ -551,7 +550,7 @@ fb.Contact = function(deviceContact, cid) {
 
     resetNames(dContact);
     fb.markAsUnlinked(dContact);
-    var req = navigator.mozContacts.save(getContact(dContact));
+    var req = navigator.mozContacts.save(utils.misc.toMozContact(dContact));
 
     req.onsuccess = function(e) {
       if (theType !== 'hard') {
@@ -575,7 +574,8 @@ fb.Contact = function(deviceContact, cid) {
               doSetFacebookUid(data, uid);
 
               // The FB contact is restored
-              var reqRestore = navigator.mozContacts.save(getContact(data));
+              var reqRestore = navigator.mozContacts.save(
+                utils.misc.toMozContact(data));
 
               reqRestore.onsuccess = function(e) {
                 out.done(mcontact.id);
@@ -632,7 +632,7 @@ fb.Contact = function(deviceContact, cid) {
         // the device contact is removed
         if (fbNumReq.result === 1) {
           var removeReq = navigator.mozContacts.remove(
-            getContact(devContact));
+            utils.misc.toMozContact(devContact));
           removeReq.onsuccess = function(e) {
             var fbReq = fb.contacts.remove(uid, forceFlush);
             fbReq.onsuccess = function() {
@@ -648,7 +648,8 @@ fb.Contact = function(deviceContact, cid) {
           };
         }
         else {
-          var removeReq = navigator.mozContacts.remove(getContact(devContact));
+          var removeReq = navigator.mozContacts.remove(
+            utils.misc.toMozContact(devContact));
           removeReq.onsuccess = function(e) {
             out.done();
           };

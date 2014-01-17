@@ -169,7 +169,7 @@ function SimContactsImporter(targetIcc) {
 
       // Item is presumably a mozContact but for some reason if
       // we don't create a new mozContact sometimes the save call fails
-      var contact = new mozContact(item);
+      var contact = utils.misc.toMozContact(item);
 
       var cbs = {
         onmatch: function(results) {
