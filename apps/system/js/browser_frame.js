@@ -16,6 +16,7 @@
  */
 
 (function(window) {
+  var DEBUG = false;
   var nextId = 0;
   var apzSetting = 'apz.force-enable';
   var forceEnableApz = false;
@@ -26,67 +27,294 @@
       forceEnableApz = value;
     });
   }
-  window.BrowserFrame = function BrowserFrame() {
+
+  window.BrowserFrame = function BrowserFrame(config, app) {
     this.element = null;
     this._id = nextId++;
+    this.config = config;
+    this.app = app;
     // All arguments are values to createFrame
-    createFrame.apply(this, arguments);
+    this.render();
+    this.element.addEventListener('mozbrowserready', this);
     return this;
   };
 
-  BrowserFrame.prototype.CLASS_NAME = 'browser';
+  BrowserFrame.prototype = {
+    CLASS_NAME: 'browser',
+    /**
+     * A temp variable to store current screenshot blob.
+     * We should store the blob and create objectURL
+     * once we need to display the image,
+     * and revoke right away after we finish rendering the image.
+     */
+    _screenshotBlob: undefined,
+    ready: function bf_ready(callback) {
+      this.element.addEventListener('mozbrowserready', function onready() {
+        callback();
+      });
+    },
+    render: function bf_render() {
+      var browser = document.createElement('iframe');
+      browser.setAttribute('mozallowfullscreen', 'true');
 
-  // These are helper functions and variables used by the methods above
-  // They're not part of the public API of the module, but they're hidden
-  // within this function scope so we don't have to define them as a
-  // property of Browser or prefix them with underscores.
-  function createFrame(config, frame) {
-    var browser = frame || document.createElement('iframe');
-    browser.setAttribute('mozallowfullscreen', 'true');
+      // Most apps currently need to be hosted in a special 'mozbrowser' iframe.
+      // They also need to be marked as 'mozapp' to be recognized as apps by the
+      // platform.
+      browser.setAttribute('mozbrowser', 'true');
 
-    // Most apps currently need to be hosted in a special 'mozbrowser' iframe.
-    // They also need to be marked as 'mozapp' to be recognized as apps by the
-    // platform.
-    browser.setAttribute('mozbrowser', 'true');
+      // Give a name to the frame for differentiating between main frame and
+      // inline frame. With the name we can get frames of the same app using the
+      // window.open method.
+      browser.name = this.config.window_name || 'main';
 
-    // Give a name to the frame for differentiating between main frame and
-    // inline frame. With the name we can get frames of the same app using the
-    // window.open method.
-    browser.name = config.window_name || 'main';
+      if (this.config.oop)
+        browser.setAttribute('remote', 'true');
 
-    if (config.oop)
-      browser.setAttribute('remote', 'true');
+      if (this.config.manifestURL) {
+        browser.setAttribute('mozapp', this.config.manifestURL);
 
-    if (config.manifestURL) {
-      browser.setAttribute('mozapp', config.manifestURL);
+        // Only app with manifest could get system message.
+        browser.setAttribute('expecting-system-message',
+                              'expecting-system-message');
+      }
 
-      // Only app with manifest could get system message.
-      browser.setAttribute('expecting-system-message',
-                            'expecting-system-message');
+      if (this.config.useAsyncPanZoom || forceEnableApz) {
+        // XXX: Move this dataset assignment into app window object.
+        browser.dataset.useAsyncPanZoom = true;
+        browser.setAttribute('mozasyncpanzoom', 'true');
+      }
+
+      setMozAppType(browser, this.config);
+
+      if (this.config.url) {
+        browser.src = this.config.url;
+        // XXX: This one is for some failing python tests using
+        // iframe[data-url*=XXX] to locate. But we shall change it later.
+        browser.dataset.url = this.config.url;
+      }
+
+      browser.id = this.CLASS_NAME + this._id;
+
+      browser.classList.add(this.CLASS_NAME);
+
+      this.element = browser;
+    },
+    try: function bf_try(method) {
+      var args = Array.slice(arguments).concat();
+      args.splice(0, 1);
+      (function(browser, method, args) {
+        var bridge = function() {
+          browser[method].apply(browser, args);
+        };
+        if (method in browser.element) {
+          bridge();
+        } else {
+          browser.ready(bridge);
+        }
+      }(this, method, args));
+    },
+    handleEvent: function bf_handleEvent(evt) {
+      switch (evt.type) {
+        case 'mozbrowserready':
+          this._ready = true;
+          break;
+      }
+    },
+    debug: function bf_debug(msg) {
+      if (DEBUG) {
+        console.log('[Dump: ' + this.CLASS_NAME + ']' +
+          '[' + System.currentTime() + ']' +
+          Array.slice(arguments).concat());
+      }
+    },
+    reload: function bf_reload() {
+      if (this.element) {
+        this.element.reload();
+      }
+    },
+    /**
+     * A static timeout to make sure
+     * the next event don't happen too late.
+     */
+    NEXTPAINT_TIMEOUT: 500,
+
+    /**
+     * Wait for a next paint event from mozbrowser iframe,
+     * The callback would be called in this.NEXTPAINT_TIMEOUT ms
+     * if the next paint event doesn't happen.
+     * The use case is for the moment just before we turn on
+     * the iframe visibility, so the TIMEOUT isn't too long.
+     *
+     * Note: for some reason we intend to use ensureFullRepaint now.
+     *
+     * @param  {Function} callback The callback function to be invoked
+     *                             after we get next paint event.
+     */
+    addNextPaintListener: function bf_addNextPaintListener(callback) {
+      if (!callback || !this.element)
+        return;
+      var iframe = this.element;
+      var nextPaintTimer;
+      var self = this;
+      var onNextPaint = function aw_onNextPaint() {
+        self.debug(' nextpainted.');
+        iframe.removeNextPaintListener(onNextPaint);
+        clearTimeout(nextPaintTimer);
+
+        callback();
+      };
+
+      nextPaintTimer = setTimeout(function ifNextPaintIsTooLate() {
+        self.debug(' nextpaint is timeouted.');
+        iframe.removeNextPaintListener(onNextPaint);
+        callback();
+      }, this.NEXTPAINT_TIMEOUT);
+
+      iframe.addNextPaintListener(onNextPaint);
+    },
+
+    /**
+     * get the screenshot of mozbrowser iframe.
+     * If it succeed, the blob would be stored in this._screenshotBlob.
+     * @param  {Function} callback The callback function to be invoked
+     *                             after we get the screenshot.
+     */
+    getScreenshot: function bf_getScreenshot(callback, width, height, timeout) {
+      // XXX: We had better store offsetWidth/offsetHeight.
+
+      // We don't need the screenshot of homescreen because:
+      // 1. Homescreen background is transparent,
+      //    currently gecko only sends JPG to us.
+      //    See bug 878003.
+      // 2. Homescreen screenshot isn't required by card view.
+      //    Since getScreenshot takes additional memory usage,
+      //    let's early return here.
+      var self = this;
+      var invoked = false;
+      var timer;
+
+      if (timeout) {
+        timer = window.setTimeout(function() {
+          if (invoked)
+            return;
+          invoked = true;
+          callback();
+        }, timeout);
+      }
+
+      var _width = width || this.app ? (this.app.width || LayoutManager.width) :
+                    LayoutManager.width;
+      var _layoutHeight = this.app ?
+        ((this.app.isFullScreen() ?
+          LayoutManager.fullscreenHeight :
+          LayoutManager.usualHeight)) : LayoutManager.usualHeight;
+      var _height = height ||
+        this.app ? (this.app.height || _layoutHeight) : _layoutHeight;
+
+      var req = this.element.getScreenshot(_width, _height);
+
+      req.onsuccess = function gotScreenshotFromFrame(evt) {
+        var result = evt.target.result;
+        if (!width) {
+          // Refresh _screenshotBlob when no width/height is specified.
+          self._screenshotBlob = result;
+        }
+        if (invoked)
+          return;
+        invoked = true;
+        if (timer)
+          window.clearTimeout(timer);
+        if (callback)
+          callback(result);
+      };
+
+      req.onerror = function gotScreenshotFromFrameError(evt) {
+        if (invoked)
+          return;
+        invoked = true;
+        if (timer)
+          window.clearTimeout(timer);
+        if (callback)
+          callback();
+      };
+    },
+
+    focus: function bf_focus() {
+      if (this.element) {
+        this.element.focus();
+      }
+    },
+
+    blur: function bf_blur() {
+      if (this.element) {
+        this.element.blur();
+      }
+    },
+
+    goBack: function bf_goBack() {
+      if (this.element) {
+        this.element.goBack();
+      }
+    },
+
+    goForward: function bf_goForward() {
+      if (this.element) {
+        this.element.goForward();
+      }
+    },
+
+    setVisible: function bf__setVisible(visible) {
+      if (this.element) {
+        this.debug('setVisible: ' + visible);
+        this.element.setVisible(visible);
+      }
+    },
+
+    /**
+     * Fire a DOM Request to detect the history has previous page or not.
+     * @param  {Function} callback Called when DOM Request is done.
+     */
+    getCanGoBack: function bf_cangoback(callback) {
+      var self = this;
+      if (this.element) {
+        var r = this.element.getCanGoBack();
+        r.onsuccess = function(evt) {
+          self._backable = evt.target.result;
+          if (callback)
+            callback(evt.target.result);
+        };
+        r.onerror = function(evt) {
+          if (callback)
+            callback();
+        };
+      } else {
+        if (callback)
+          callback();
+      }
+    },
+
+    /**
+     * Fire a DOM Request to detect the history has next page or not.
+     * @param  {Function} callback Called when DOM Request is done.
+     */
+    getCanGoForward: function bf_cangoforward(callback) {
+      var self = this;
+      if (this.element) {
+        var r = this.element.getCanGoForward();
+        r.onsuccess = function(evt) {
+          self._forwardable = evt.target.result;
+          if (callback)
+            callback(evt.target.result);
+        };
+        r.onerror = function(evt) {
+          if (callback)
+            callback();
+        };
+      } else {
+        if (callback)
+          callback();
+      }
     }
-
-    if (config.useAsyncPanZoom || forceEnableApz) {
-      // XXX: Move this dataset assignment into app window object.
-      browser.dataset.useAsyncPanZoom = true;
-      browser.setAttribute('mozasyncpanzoom', 'true');
-    }
-
-    setMozAppType(browser, config);
-
-    if (config.url) {
-      browser.src = config.url;
-      // XXX: This one is for some failing python tests using
-      // iframe[data-url*=XXX] to locate. But we shall change it later.
-      browser.dataset.url = config.url;
-    }
-
-    browser.id = this.CLASS_NAME + this._id;
-
-    browser.classList.add(this.CLASS_NAME);
-
-    this.config = config;
-
-    this.element = browser;
   };
 
   function setMozAppType(iframe, config) {

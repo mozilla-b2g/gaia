@@ -424,7 +424,7 @@ suite('system/AppWindow', function() {
       var stubCreateObjectURL = this.sinon.stub(URL, 'createObjectURL');
       var stubRevokeObjectURL = this.sinon.stub(URL, 'revokeObjectURL');
 
-      app1._screenshotBlob = 'fakeBlob';
+      app1.browser._screenshotBlob = 'fakeBlob';
 
       stubCreateObjectURL.returns('fakeURL');
       var url = app1.requestScreenshotURL();
@@ -653,7 +653,7 @@ suite('system/AppWindow', function() {
       app1.getScreenshot(callback1);
       assert.isTrue(stubScreenshot.called);
       fakeDOMRequest.onsuccess({ target: { result: 'fakeBlob' } });
-      assert.equal(app1._screenshotBlob, 'fakeBlob');
+      assert.equal(app1.browser._screenshotBlob, 'fakeBlob');
       assert.isTrue(callback1.calledWith('fakeBlob'));
 
       fakeDOMRequest.onerror();
@@ -727,7 +727,7 @@ suite('system/AppWindow', function() {
 
       var callback2 = this.sinon.spy();
       app1.waitForNextPaint(callback2);
-      this.sinon.clock.tick(app1.NEXTPAINT_TIMEOUT);
+      this.sinon.clock.tick(app1.browser.NEXTPAINT_TIMEOUT);
       assert.isTrue(callback2.called);
     });
   });

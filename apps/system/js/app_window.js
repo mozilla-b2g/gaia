@@ -388,7 +388,7 @@
      */
     this.publish('willrender');
     this.containerElement.insertAdjacentHTML('beforeend', this.view());
-    this.browser = new BrowserFrame(this.browser_config);
+    this.browser = new BrowserFrame(this.browser_config, this);
     this.element = document.getElementById(this.instanceID);
 
     // For gaiauitest usage.
@@ -623,14 +623,6 @@
     }
   };
 
-  /**
-   * A temp variable to store current screenshot blob.
-   * We should store the blob and create objectURL
-   * once we need to display the image,
-   * and revoke right away after we finish rendering the image.
-   */
-  AppWindow.prototype._screenshotBlob = undefined;
-
   AppWindow.prototype.CLASS_NAME = 'AppWindow';
 
   AppWindow.prototype.debug = function aw_debug(msg) {
@@ -686,10 +678,10 @@
    */
   AppWindow.prototype.requestScreenshotURL =
     function aw__requestScreenshotURL() {
-      if (!this._screenshotBlob) {
+      if (!this.browser._screenshotBlob) {
         return null;
       }
-      var screenshotURL = URL.createObjectURL(this._screenshotBlob);
+      var screenshotURL = URL.createObjectURL(this.browser._screenshotBlob);
       var self = this;
       setTimeout(function onTimeout() {
         if (screenshotURL) {
@@ -750,13 +742,13 @@
   // Note: the caller should revoke the created ObjectURL once it's finishing.
   AppWindow.prototype.getCachedScreenshotBlob =
     function aw_getCachedScreenshotBlob() {
-      return this._screenshotBlob;
+      return this.browser._screenshotBlob;
     };
 
   // Save and update screenshot Blob.
   AppWindow.prototype.renewCachedScreenshotBlob =
     function aw_renewScreenshot(screenshotBlob) {
-      this._screenshotBlob = screenshotBlob;
+      this.browser._screenshotBlob = screenshotBlob;
     };
 
   /**

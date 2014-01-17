@@ -259,7 +259,7 @@
       window_name: 'inline' + this.instanceID,
       oop: true
     };
-    this.browser = new BrowserFrame(this.browser_config);
+    this.browser = new BrowserFrame(this.browser_config, this);
     this.element =
       document.getElementById('activity-window-' + this.instanceID);
     this.element.insertBefore(this.browser.element, this.element.childNodes[0]);
