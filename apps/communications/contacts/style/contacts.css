@@ -362,7 +362,7 @@ form p textarea + button[type="reset"].hide {
   padding: 0;
 }
 
-section[role="region"] > header .icon.icon-settings { 
+section[role="region"] > header .icon.icon-settings {
   background-image: url(/contacts/style/gphx/bitmap/default/vw-header/icons/settings.png);
 }
 
@@ -637,7 +637,7 @@ section[role="region"] > header .icon.icon-settings {
 }
 
 .remark {
-  color: #d20000;
+  color: #ff4e00;
 }
 
 .valueselector {
