@@ -423,6 +423,40 @@ suite('Renderer', function() {
       assert.equal(keys[1].dataset.keycode, 98);
     });
 
+    test('On uppercase flag, uppercase visually', function() {
+      var layout = {
+        width: 2,
+        keys: [
+          [{ value: 'a' }, { value: 'b' }]
+        ]
+      };
+
+      var uppercaseFn = sinon.stub().returns('U');
+      IMERender.init(uppercaseFn, sinon.stub().returns(false));
+      IMERender.draw(layout, { uppercase: true });
+
+      var keys = document.querySelectorAll('.keyboard-key');
+      assert.equal(keys[0].textContent, 'U');
+      assert.equal(keys[1].textContent, 'U');
+    });
+
+    test('No uppercase flag, don\'t uppercase visually', function() {
+      var layout = {
+        width: 2,
+        keys: [
+          [{ value: 'a' }, { value: 'b' }]
+        ]
+      };
+
+      var uppercaseFn = sinon.stub().returns('U');
+      IMERender.init(uppercaseFn, sinon.stub().returns(false));
+      IMERender.draw(layout, { uppercase: false });
+
+      var keys = document.querySelectorAll('.keyboard-key');
+      assert.equal(keys[0].textContent, 'a');
+      assert.equal(keys[1].textContent, 'b');
+    });
+
     test('candidate-panel class should be set if flag is set', function() {
       // Clear out the ime panel
       IMERender.activeIme = null;
