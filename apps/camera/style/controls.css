@@ -159,10 +159,10 @@
  ---------------------------------------------------------*/
 
 /**
- * @camera
+ * @photo
  */
 
-.controls[data-mode=camera] .capture-button span {
+.controls[data-mode=photo] .capture-button span {
   background-image: url(images/camera.png);
 }
 
@@ -217,10 +217,10 @@
 }
 
 /**
- * @camera
+ * @photo
  */
 
-.controls[data-mode=camera] .switch-button span {
+.controls[data-mode=photo] .switch-button span {
   background-image: url(images/video.png);
 }
 

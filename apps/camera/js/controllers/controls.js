@@ -61,7 +61,6 @@ proto.bindEvents = function() {
 proto.setup = function() {
   var activity = this.activity;
   var controls = this.controls;
-  var mode = this.camera.get('mode');
   var isCancellable = activity.active;
   var showCamera = !activity.active || activity.allowedTypes.image;
   var showVideo = !activity.active || activity.allowedTypes.video;
@@ -72,7 +71,7 @@ proto.setup = function() {
   // or the application is in 'secure mode'.
   var showGallery = !activity.active && !this.app.inSecureMode;
 
-  controls.set('mode', mode);
+  controls.set('mode', this.camera.get('mode'));
   controls.set('gallery', showGallery);
   controls.set('cancel', isCancellable);
   controls.set('switchable', isSwitchable);

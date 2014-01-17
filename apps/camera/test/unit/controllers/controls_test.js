@@ -36,7 +36,7 @@ suite('controllers/controls', function() {
       camera: {
         on: sinon.spy(),
         state: { on: sinon.spy() },
-        get: sinon.stub().withArgs('mode').returns('camera')
+        get: sinon.stub().withArgs('mode').returns('photo')
       },
       activity: new Activity(),
       views: {
@@ -51,7 +51,7 @@ suite('controllers/controls', function() {
   suite('ControlsController()', function() {
     test('Should set the mode to the current camera mode', function() {
       this.controller = new Controller(this.app);
-      assert.isTrue(this.app.views.controls.set.calledWith('mode', 'camera'));
+      assert.isTrue(this.app.views.controls.set.calledWith('mode', 'photo'));
     });
   });
 

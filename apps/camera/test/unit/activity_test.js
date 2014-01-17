@@ -146,10 +146,10 @@ suite('activity', function() {
       }
     });
 
-    assert.equal(output.mode, 'camera');
+    assert.equal(output.mode, 'photo');
   });
 
-  test('Should return \'camera\' mode if just image type allowed', function() {
+  test('Should return \'photo\' mode if just image type allowed', function() {
     var output = this.activity.parse({
       source: {
         name: 'pick',
@@ -159,7 +159,7 @@ suite('activity', function() {
       }
     });
 
-    assert.equal(output.mode, 'camera');
+    assert.equal(output.mode, 'photo');
   });
 
   test('Should return \'video\' mode if just video type allowed', function() {

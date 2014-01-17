@@ -108,7 +108,6 @@ proto.onCameraToggle = function() {
 
   function onFadeOut() {
     camera.toggleCamera();
-    camera.load();
   }
 };
 
