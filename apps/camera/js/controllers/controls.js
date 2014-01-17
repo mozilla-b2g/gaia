@@ -152,6 +152,16 @@ proto.onGalleryButtonClick = function() {
     name: 'browse',
     data: { type: 'photos' }
   });
+
+  // Disable the gallery button (and all the other buttons) while switching
+  var controls = this.controls;
+  controls.disableButtons();
+
+  // And renable them when we are hidden or when we become visible again
+  window.addEventListener('visibilitychange', function reenable() {
+    window.removeEventListener('visibilitychange', reenable);
+    controls.enableButtons();
+  });
 };
 
 /**
