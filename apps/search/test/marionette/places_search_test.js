@@ -33,7 +33,7 @@ marionette('Places tests', function() {
     search.checkResult('firstPlace', 'Sample page');
   });
 
-  test('Ensures urls visited twice only show in results once', function() {
+  test.skip('Ensures urls visited twice only show in results once', function() {
     var url = server.url('sample.html');
     search.doSearch(url + '\uE006');
     search.waitForBrowserFrame();
