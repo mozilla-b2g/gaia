@@ -240,7 +240,6 @@ var NotificationScreen = {
         id: notificationId
       }
     }));
-    window.dispatchEvent(event);
 
     // Desktop notifications are removed when they are clicked (see bug 890440)
     if (notificationNode.dataset.type === 'desktop-notification' &&
