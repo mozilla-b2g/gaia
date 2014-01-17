@@ -2987,13 +2987,21 @@ suite('thread_ui.js >', function() {
       // It should show the list of options of the bubble (forward, delete...)
       assert.ok(MockOptionMenu.calls.length, 1);
     });
-    test(' "long-press" on bubble shows a menu with delete as first option',
+    test(' "long-press" on bubble shows a menu with forward as first option',
       function() {
       // Dispatch custom event for testing long press
       link.dispatchEvent(contextMenuEvent);
       assert.ok(MockOptionMenu.calls.length, 1);
-      // Is first element of the menu 'delete'?
-      assert.equal(MockOptionMenu.calls[0].items[0].l10nId, 'delete');
+      // Is first element of the menu 'forward'?
+      assert.equal(MockOptionMenu.calls[0].items[0].l10nId, 'forward');
+    });
+    test(' "long-press" on bubble shows a menu with delete option',
+      function() {
+      // Dispatch custom event for testing long press
+      link.dispatchEvent(contextMenuEvent);
+      assert.ok(MockOptionMenu.calls.length, 1);
+      // Show menu with 'delete' option
+      assert.equal(MockOptionMenu.calls[0].items[2].l10nId, 'delete');
     });
   });
 
