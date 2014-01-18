@@ -41,6 +41,7 @@ body, html {
 }
 
 #statusbar-icons {
+  pointer-events: none;
   flex-grow: 1;
   flex-shrink: 0;
   min-width: 33%;
