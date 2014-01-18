@@ -22,7 +22,6 @@ suite('system/Title', function() {
     manifest: {},
     manifestURL: 'app://wwww.fake/ManifestURL',
     origin: 'app://www.fake',
-    chrome: true,
     title: 'default'
   };
 
@@ -64,8 +63,11 @@ suite('system/Title', function() {
     });
 
     test('rocketbarshown event', function() {
+      assert.equal(Title.element.textContent, '');
+      Title.element.textContent = 'foo';
       window.dispatchEvent(new CustomEvent('rocketbarshown'));
       assert.isTrue(Title.element.classList.contains('hidden'));
+      assert.equal(Title.element.textContent, '');
     });
 
     test('app events', function() {
