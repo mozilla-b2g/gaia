@@ -57,11 +57,7 @@ var Rocketbar = {
     var input = document.getElementById('search-input');
     var self = this;
     input.addEventListener('input', function onInput(e) {
-      if (!input.value) {
-        self.searchReset.classList.add('hidden');
-      } else {
-        self.searchReset.classList.remove('hidden');
-      }
+      self.updateResetButton();
 
       // If the task manager is shown, hide it
       if (this.screen.classList.contains('task-manager')) {
@@ -141,6 +137,8 @@ var Rocketbar = {
         if (UrlHelper.isNotURL(this.searchInput.value)) {
           this.searchInput.value = '';
         }
+
+        this.updateResetButton();
         break;
       default:
         break;
@@ -184,6 +182,17 @@ var Rocketbar = {
       this.searchManifestURL = url.match(/(^.*?:\/\/.*?\/)/)[1] +
         'manifest.webapp';
     }.bind(this));
+  },
+
+  /**
+   * Displays or hides the reset button as necessary
+   */
+  updateResetButton: function() {
+    if (!this.searchInput.value) {
+      this.searchReset.classList.add('hidden');
+    } else {
+      this.searchReset.classList.remove('hidden');
+    }
   },
 
   /**

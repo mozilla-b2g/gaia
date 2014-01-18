@@ -67,6 +67,17 @@ suite('system/Rocketbar', function() {
       });
       assert.ok(!Rocketbar.screen.classList.contains('rocketbar-focus'));
     });
+
+    test('input on event call updateResetButton', function() {
+      var stub = this.sinon.stub(Rocketbar, 'updateResetButton');
+
+      var evt = document.createEvent('CustomEvent');
+      evt.initEvent('input', true, true);
+      Rocketbar.searchInput.dispatchEvent(evt);
+
+      assert.ok(stub.calledOnce);
+      stub.restore();
+    });
   });
 
   suite('handleEvent', function() {
@@ -130,6 +141,20 @@ suite('system/Rocketbar', function() {
       });
 
       assert.equal(dispatchStub.getCall(0).args[0].type, 'taskmanagershow');
+    });
+
+    test('focus on event call updateResetButton', function() {
+      var stub = this.sinon.stub(Rocketbar, 'updateResetButton');
+
+      Rocketbar.handleEvent({
+        type: 'focus',
+        target: {
+          id: 'search-input'
+        }
+      });
+
+      assert.ok(stub.calledOnce);
+      stub.restore();
     });
   });
 
