@@ -11,6 +11,7 @@ var UIManager = {
     'activation-screen',
     'progress-bar',
     'finish-screen',
+    'update-screen',
     'nav-bar',
     'main-title',
     // Unlock SIM Screen
@@ -86,7 +87,9 @@ var UIManager = {
     'tutorial-screen',
     'tutorial-progress',
     'lets-go-button',
+    'update-lets-go-button',
     'skip-tutorial-button',
+    'update-skip-tutorial-button',
     // Privacy Settings
     'share-performance',
     'offline-error-dialog',
@@ -202,7 +205,7 @@ var UIManager = {
           this.invalidEmailErrorDialog.classList.remove('visible');
         }.bind(this));
 
-    this.skipTutorialButton.addEventListener('click', function() {
+    var skipTutorialAction = function skipTutorialAction() {
       // For tiny devices
       if (ScreenLayout.getCurrentLayout() === 'tiny') {
         WifiManager.finish();
@@ -212,11 +215,22 @@ var UIManager = {
         // for large devices
         Tutorial.jumpToExitStep();
       }
-    });
+    }
+
+    this.skipTutorialButton.addEventListener('click', skipTutorialAction);
+    this.updateSkipTutorialButton.addEventListener('click',
+      skipTutorialAction);
 
     this.letsGoButton.addEventListener('click', function() {
       UIManager.activationScreen.classList.remove('show');
       UIManager.finishScreen.classList.remove('show');
+      UIManager.tutorialScreen.classList.add('show');
+      Tutorial.manageStep();
+    });
+
+    this.updateLetsGoButton.addEventListener('click', function() {
+      UIManager.activationScreen.classList.remove('show');
+      UIManager.updateScreen.classList.remove('show');
       UIManager.tutorialScreen.classList.add('show');
       Tutorial.manageStep();
     });

@@ -113,6 +113,8 @@ var FtuLauncher = {
   close: function fl_close() {
     this._isRunningFirstTime = false;
     window.asyncStorage.setItem('ftu.enabled', false);
+    var lock = navigator.mozSettings.createLock();
+    lock.set({ previous_os: '' });
     // Done with FTU, letting everyone know
     var evt = document.createEvent('CustomEvent');
     evt.initCustomEvent('ftudone',
@@ -128,6 +130,35 @@ var FtuLauncher = {
     window.dispatchEvent(evt);
   },
 
+  launch: function fl_launch() {
+    var self = this;
+    var lock = navigator.mozSettings.createLock();
+    var req = lock.get('ftu.manifestURL');
+    req.onsuccess = function() {
+      self._ftuManifestURL = this.result['ftu.manifestURL'];
+      if (!self._ftuManifestURL) {
+        dump('FTU manifest cannot be found skipping.\n');
+        self.skip();
+        return;
+      }
+      self._ftu = Applications.getByManifestURL(self._ftuManifestURL);
+      if (!self._ftu) {
+        dump('Opps, bogus FTU manifest.\n');
+        self.skip();
+        return;
+      }
+      self._ftuURL =
+        self._ftu.origin + self._ftu.manifest.entry_points['ftu'].launch_path;
+      self._isRunningFirstTime = true;
+      // Open FTU
+      self._ftu.launch('ftu');
+    };
+    req.onerror = function() {
+      dump('Couldn\'t get the ftu manifestURL.\n');
+      self.skip();
+    };
+  },
+
   // Check if the FTU was executed or not, if not, get a
   // reference to the app and launch it.
   // Used by Bootstrap module.
@@ -135,34 +166,24 @@ var FtuLauncher = {
     var self = this;
     window.asyncStorage.getItem('ftu.enabled', function getItem(launchFTU) {
       if (launchFTU === false) {
-        self.skip();
-        return;
+        // Verify if there is any FTU Update to show
+        var lock = navigator.mozSettings.createLock();
+        var req = lock.get('deviceinfo.os');
+        req.onsuccess = function() {
+          var current_os = this.result['deviceinfo.os'];
+          var req = lock.get('deviceinfo.previous');
+          req.onsuccess = function() {
+            var previous_os = this.result['deviceinfo.previous_os'];
+            if (previous_os !== '' && previous_os !== current_os) {
+              self.launch();
+            } else {
+              self.skip();
+            }
+          }
+        }
+      } else {
+        self.launch();
       }
-      var lock = navigator.mozSettings.createLock();
-      var req = lock.get('ftu.manifestURL');
-      req.onsuccess = function() {
-        self._ftuManifestURL = this.result['ftu.manifestURL'];
-        if (!self._ftuManifestURL) {
-          dump('FTU manifest cannot be found skipping.\n');
-          self.skip();
-          return;
-        }
-        self._ftu = Applications.getByManifestURL(self._ftuManifestURL);
-        if (!self._ftu) {
-          dump('Opps, bogus FTU manifest.\n');
-          self.skip();
-          return;
-        }
-        self._ftuURL =
-          self._ftu.origin + self._ftu.manifest.entry_points['ftu'].launch_path;
-        self._isRunningFirstTime = true;
-        // Open FTU
-        self._ftu.launch('ftu');
-      };
-      req.onerror = function() {
-        dump('Couldn\'t get the ftu manifestURL.\n');
-        self.skip();
-      };
     });
   }
 };

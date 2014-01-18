@@ -6,11 +6,11 @@ var Tutorial = {
   currentStep: 1,
   imagesLoaded: [],
   layout: 'tiny',
-  init: function n_init() {
+  init: function n_init(stepsKey) {
     this.layout = (ScreenLayout && ScreenLayout.getCurrentLayout) ?
         ScreenLayout.getCurrentLayout() : 'tiny';
 
-    this.tutorialSteps = TutorialSteps.get();
+    this.tutorialSteps = TutorialSteps.get(stepsKey);
     this.numTutorialSteps = Object.keys(this.tutorialSteps).length;
 
     // register elements after dynamic properties got set
