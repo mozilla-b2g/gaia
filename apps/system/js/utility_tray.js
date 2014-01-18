@@ -89,7 +89,7 @@ var UtilityTray = {
         if (LockScreen.locked)
           return;
         if (evt.target !== this.overlay &&
-            evt.target !== this.statusbar &&
+            evt.currentTarget !== this.statusbar &&
             evt.target !== this.grippy)
           return;
 
