@@ -14,7 +14,6 @@
     name: 'Marketplace',
 
     click: function(e) {
-      Search.close();
       var slug = e.target.dataset.slug;
       var activity = new MozActivity({
         name: 'marketplace-app',
