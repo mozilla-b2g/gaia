@@ -9,7 +9,7 @@
   var MAX_URLS = 50;
 
   // Maximum number of results to show show for a single query
-  var MAX_RESULTS = 5;
+  var MAX_RESULTS = 3;
 
   // Name of the datastore we pick up places from
   var STORE_NAME = 'places';
@@ -93,14 +93,28 @@
         }
 
         var div = document.createElement('div');
-        var nameText = document.createElement('span');
         div.className = 'result';
         div.dataset.url = result.url;
+
+        var description = document.createElement('span');
+        description.className = 'description';
+
+        var nameText = document.createElement('span');
         nameText.textContent = result.title || result.url;
-        div.appendChild(nameText);
+        description.appendChild(nameText);
+
+        if (result.title) {
+          description.appendChild(document.createElement('br'));
+          var urlText = document.createElement('span');
+          urlText.className = 'meta';
+          urlText.textContent = result.url;
+          description.appendChild(urlText);
+        }
+        div.appendChild(description);
+
         fragment.appendChild(div);
 
-        if (++matched > MAX_RESULTS) {
+        if (++matched >= MAX_RESULTS) {
           break;
         }
       }
