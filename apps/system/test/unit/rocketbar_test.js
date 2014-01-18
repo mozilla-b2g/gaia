@@ -108,10 +108,22 @@ suite('system/Rocketbar', function() {
 
     test('cardviewclosed event should trigger focus', function() {
       var focusStub = this.sinon.stub(Rocketbar.searchInput, 'focus');
+      Rocketbar.render();
+      this.sinon.clock.tick(1);
       Rocketbar.handleEvent({
         type: 'cardviewclosed'
       });
+      Rocketbar.hide();
       assert.ok(focusStub.calledOnce);
+    });
+
+    test('should not focus when closing rocketbar', function() {
+      var stub = this.sinon.stub(Rocketbar.searchInput, 'focus').returns(true);
+      Rocketbar.searchBar.dataset.visible = true;
+      Rocketbar.handleEvent({
+        type: 'cardviewclosed'
+      });
+      assert.ok(stub);
     });
 
     test('search-cancel element should hide the task manager', function() {
