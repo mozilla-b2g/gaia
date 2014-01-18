@@ -85,7 +85,9 @@ var Rocketbar = {
         this.searchInput.value = e.detail.title;
         return;
       case 'cardviewclosed':
-          this.searchInput.focus();
+          if (this.shown) {
+            this.searchInput.focus();
+          }
         return;
       case 'keyboardchange':
         // When the keyboard is opened make sure to not resize
