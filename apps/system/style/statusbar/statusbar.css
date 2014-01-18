@@ -17,7 +17,7 @@ body, html {
   left: 0;
   background-color: #000;
 
-  padding: 0.2rem 0;
+  padding: 0.2rem 0 0;
   -moz-box-sizing: border-box;
   -moz-user-focus: ignore;
 
@@ -38,17 +38,6 @@ body, html {
   pointer-events: none;
   float: right;
   margin: 0 0.2rem;
-}
-
-#statusbar-title {
-  pointer-events: none;
-  flex-grow: 1;
-  flex-shrink: 1;
-  min-width: 33%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  padding-left: 0.3rem;
 }
 
 #statusbar-icons {
@@ -113,6 +102,19 @@ body, html {
   bottom: 0.1rem;
   color: #fff;
   font-size: 1.49rem; /* 6.5pt */
+}
+
+#statusbar-title {
+  pointer-events: none;
+  flex-grow: 1;
+  flex-shrink: 1;
+  min-width: 33%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding-left: 0.3rem;
+  font-size: 1.4rem;
+  line-height: 1.7rem;
 }
 
 #statusbar-time span {
