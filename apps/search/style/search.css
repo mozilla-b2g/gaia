@@ -1,15 +1,20 @@
-body {
-  color: #5A5A5A;
+* {
   margin: 0;
   padding: 0;
 }
 
+body {
+  color: #5A5A5A;
+  font-size: 10px;
+}
+
 section {
-  color: #fff;
+  color: #858585;
+  font-size: 1rem;
 }
 
 section.suggestions {
-  border-bottom: 1px solid #5A5A5A;
+  background: #1a1a1a;
 }
 
 section.suggestions ul {
@@ -22,18 +27,42 @@ section.suggestions ul {
 section.suggestions ul li {
   display: inline-block;
   margin-left: 1rem;
-  background: #0B0B0C;
-  padding: 0.5rem 0.7rem;
-  border-radius: 0.3rem;
+  padding: 0.9rem 0.7rem 0.9rem 0;
+  margin: 0;
+}
+
+section.suggestions ul li+li:before {
+  content: "\2022";
+  padding-right: 0.7rem;
+}
+
+section.suggestions ul li:first-child {
+  padding-left: 0.7rem;
+}
+
+section.local {
+  background: #212121;
 }
 
 section.local .result {
-  -moz-box-sizing: border-box;
   padding: 0.5rem;
-  border-bottom: 1px solid #5A5A5A;
-  color: #fff;
-  min-height: 3rem;
-  line-height: 2rem;
+  border-bottom: 1px solid #2c2c2c;
+  min-height: 2rem;
+  overflow: hidden;
+  font-size: 1.2rem;
+  line-height: 1.2rem;
+  color: #858585;
+}
+
+section.local .result .description {
+  -moz-box-sizing: border-box;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+section.local .result .meta {
+  font-size: 1rem;
+  color: #858585;
 }
 
 section:last-child .result:last-child {

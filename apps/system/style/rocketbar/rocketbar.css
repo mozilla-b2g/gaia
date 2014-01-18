@@ -21,7 +21,7 @@
 }
 
 #search-bar form p {
-  background: #0B0B0C;
+  background: #000;
 }
 
 #search-input {
@@ -30,7 +30,7 @@
   border: 0;
   border-radius: 0;
   line-height: 4rem;
-  background: #0B0B0C;
+  background: #000;
   color: #fff;
 }
 
@@ -71,7 +71,7 @@
 }
 
 #search-bar #search-container {
-  background: #353534;
+  background: #303030;
   height: calc(100% - 6rem);
 }
 
