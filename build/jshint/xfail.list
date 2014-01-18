@@ -1077,7 +1077,6 @@ apps/system/js/system.js
 apps/system/js/system_banner.js
 apps/system/js/system_dialog.js
 apps/system/js/telephony_settings.js
-apps/system/js/title.js
 apps/system/js/trusted_ui.js
 apps/system/js/ttlview.js
 apps/system/js/updatable.js
@@ -1233,7 +1232,6 @@ apps/system/test/unit/stack_manager_test.js
 apps/system/test/unit/statusbar_test.js
 apps/system/test/unit/storage_watcher_test.js
 apps/system/test/unit/template_test.js
-apps/system/test/unit/title_test.js
 apps/system/test/unit/updatable_test.js
 apps/system/test/unit/update_manager_test.js
 apps/system/test/unit/utility_tray_test.js
