@@ -56,7 +56,8 @@
           }
 
           formatted.push({
-            title: nameL10n,
+            title: navigator.mozL10n.get('install-marketplace-title',
+              {title: nameL10n}),
             icon: app.icons['64'],
             dataset: {
               slug: app.slug

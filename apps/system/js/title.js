@@ -22,23 +22,18 @@ var Title = {
   },
 
   handleEvent: function(e) {
-
-    if (!Rocketbar.enabled) {
-      return;
-    }
-
     switch (e.type) {
       case 'home':
         this.content = '';
         break;
       case 'rocketbarshown':
+        this.content = '';
         this.element.classList.add('hidden');
         break;
       case 'apploading':
       case 'apptitlechange':
       case 'appforeground':
-        if (e.detail instanceof AppWindow && e.detail.config.chrome &&
-            e.detail.isActive()) {
+        if (e.detail instanceof AppWindow && e.detail.isActive()) {
           this.content = e.detail.title;
           this.element.classList.remove('hidden');
         }
