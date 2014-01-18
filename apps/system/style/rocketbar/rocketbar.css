@@ -5,8 +5,6 @@
   width: 100%;
   height: calc(100%);
   pointer-events: none;
-  transform: translateY(-100%);
-  transition: transform 0.3s ease 0.8s;
   visibility: hidden;
 }
 
@@ -16,8 +14,6 @@
 
 #search-bar[data-visible] {
   pointer-events: auto;
-  transform: translateY(0);
-  transition: transform 0.3s ease;
 }
 
 #search-bar form p {

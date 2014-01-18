@@ -189,7 +189,6 @@
 
     click: function(e) {
       var target = e.target;
-      Search.close();
       window.open(target.dataset.url, '_blank', 'remote=true');
     },
 

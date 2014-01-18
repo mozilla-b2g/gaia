@@ -32,7 +32,6 @@ suite('search/providers/marketplace', function() {
 
   suite('click', function() {
     test('creates an activity to the slug', function() {
-      var searchCloseStub = this.sinon.stub(Search, 'close');
       subject.click({
         target: {
           dataset: {
@@ -43,7 +42,6 @@ suite('search/providers/marketplace', function() {
       var activityInfo = MockMozActivity.calls[0];
       assert.equal(activityInfo.name, 'marketplace-app');
       assert.equal(activityInfo.data.slug, 'gaia');
-      assert.ok(searchCloseStub.calledOnce);
     });
   });
 

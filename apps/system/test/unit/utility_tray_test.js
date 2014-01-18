@@ -194,7 +194,8 @@ suite('system/UtilityTray', function() {
     setup(function() {
       fakeEvt = {
         type: 'touchend',
-        changedTouches: [0]
+        changedTouches: [0],
+        stopImmediatePropagation: function() {}
       };
       UtilityTray.active = true;
       UtilityTray.handleEvent(fakeEvt);
@@ -239,12 +240,32 @@ suite('system/UtilityTray', function() {
 
     test('should display for drag on left half of statusbar', function() {
       fakeEvt = {
-        type: 'touchstart',
-        pageX: 0
+        stopImmediatePropagation: function() {},
+        type: 'touchend',
+        changedTouches: [{
+          pageX: 0
+        }]
       };
       UtilityTray.onTouchStart(fakeEvt);
+      UtilityTray.shown = false;
+      UtilityTray.active = false;
+      UtilityTray.handleEvent(fakeEvt);
       assert.isTrue(rBarRenderStub.calledOnce);
-      assert.isTrue(uHideStub.calledOnce);
+    });
+
+    test('does not render if utility tray not active', function() {
+      fakeEvt = {
+        stopImmediatePropagation: function() {},
+        type: 'touchend',
+        changedTouches: [{
+          pageX: 0
+        }]
+      };
+      UtilityTray.onTouchStart(fakeEvt);
+      UtilityTray.shown = false;
+      UtilityTray.active = true;
+      UtilityTray.handleEvent(fakeEvt);
+      assert.isTrue(rBarRenderStub.notCalled);
     });
 
     test('should not show if we touch to the right', function() {
