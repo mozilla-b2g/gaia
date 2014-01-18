@@ -9,12 +9,6 @@ var bindAll = require('utils/bindAll');
 var debug = require('debug')('controller:hud');
 
 /**
- * Locals
- */
-
-var proto = HudController.prototype;
-
-/**
  * Exports
  */
 
@@ -56,7 +50,7 @@ function HudController(app) {
  * @return {HudController} for chaining
  *
  */
-proto.bindEvents = function() {
+HudController.prototype.bindEvents = function() {
   this.hud.on('flashToggle', this.onFlashToggle);
   this.hud.on('cameraToggle', this.onCameraToggle);
   this.camera.on('configured', this.onCameraConfigured);
@@ -72,7 +66,7 @@ proto.bindEvents = function() {
  * camera is configured.
  *
  */
-proto.onCameraConfigured = function() {
+HudController.prototype.onCameraConfigured = function() {
   var hasFrontCamera = this.camera.hasFrontCamera();
   var flashMode = this.camera.get('flash');
   this.hud.showCameraToggleButton(hasFrontCamera);
@@ -85,7 +79,7 @@ proto.onCameraConfigured = function() {
  * the flash button is pressed.
  *
  */
-proto.onFlashToggle = function() {
+HudController.prototype.onFlashToggle = function() {
   var mode = this.camera.toggleFlash();
   this.hud.setFlashMode(mode);
 };
@@ -95,7 +89,7 @@ proto.onFlashToggle = function() {
  * fading the viewfinder in between.
  *
  */
-proto.onCameraToggle = function() {
+HudController.prototype.onCameraToggle = function() {
   var controls = this.controls;
   var viewfinder = this.viewfinder;
   var camera = this.camera;
@@ -111,7 +105,7 @@ proto.onCameraToggle = function() {
   }
 };
 
-proto.onStreamLoaded = function() {
+HudController.prototype.onStreamLoaded = function() {
   this.viewfinder.fadeIn();
   this.controls.enableButtons();
   this.hud.enableButtons();
@@ -125,7 +119,7 @@ proto.onStreamLoaded = function() {
  * @param  {Boolean} value
  *
  */
-proto.onRecordingChange = function(value) {
+HudController.prototype.onRecordingChange = function(value) {
   this.hud.toggleDisableButtons(value);
 };
 

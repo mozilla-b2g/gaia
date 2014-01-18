@@ -10,11 +10,6 @@ var constants = require('config/camera');
 var bindAll = require('utils/bindAll');
 
 /**
- * Locals
- */
-var proto = CameraController.prototype;
-
-/**
  * Exports
  */
 
@@ -43,7 +38,7 @@ function CameraController(app) {
   debug('initialized');
 }
 
-proto.bindEvents = function() {
+CameraController.prototype.bindEvents = function() {
   this.camera.on('filesizelimitreached', this.onFileSizeLimitReached);
   this.camera.on('recordingstart', this.onRecordingStart);
   this.camera.on('recordingend', this.onRecordingEnd);
@@ -66,23 +61,23 @@ proto.bindEvents = function() {
  * we just default to 'photo'
  *
  */
-proto.setCaptureMode = function() {
+CameraController.prototype.setCaptureMode = function() {
   var initialMode = this.activity.mode ||
                     constants.CAMERA_MODE_TYPE.PHOTO;
   this.camera.set('mode', initialMode);
   debug('capture mode set: %s', initialMode);
 };
 
-proto.setupCamera = function() {
+CameraController.prototype.setupCamera = function() {
   this.camera.load();
 };
 
-proto.onConfigured = function() {
+CameraController.prototype.onConfigured = function() {
   var maxFileSize = this.camera.maxPictureSize;
   this.storage.setMaxFileSize(maxFileSize);
 };
 
-proto.teardownCamera = function() {
+CameraController.prototype.teardownCamera = function() {
   var recording = this.camera.get('recording');
   var camera = this.camera;
 
@@ -110,7 +105,7 @@ proto.teardownCamera = function() {
   debug('torn down');
 };
 
-proto.onNewImage = function(image) {
+CameraController.prototype.onNewImage = function(image) {
   var filmstrip = this.filmstrip;
   var storage = this.storage;
   var blob = image.blob;
@@ -126,7 +121,7 @@ proto.onNewImage = function(image) {
   this.app.emit('newimage', image);
 };
 
-proto.onNewVideo = function(video) {
+CameraController.prototype.onNewVideo = function(video) {
   debug('new video', video);
 
   var storage = this.storage;
@@ -156,12 +151,12 @@ proto.onNewVideo = function(video) {
   });
 };
 
-proto.onFileSizeLimitReached = function() {
+CameraController.prototype.onFileSizeLimitReached = function() {
   this.camera.stopRecording();
   this.showSizeLimitAlert();
 };
 
-proto.showSizeLimitAlert = function() {
+CameraController.prototype.showSizeLimitAlert = function() {
   if (this.sizeLimitAlertActive) { return; }
   this.sizeLimitAlertActive = true;
   var alertText = this.activity.active ?
@@ -176,7 +171,7 @@ proto.showSizeLimitAlert = function() {
  * sound effect.
  *
  */
-proto.onRecordingStart = function() {
+CameraController.prototype.onRecordingStart = function() {
   this.app.sounds.play('recordingStart');
 };
 
@@ -185,7 +180,7 @@ proto.onRecordingStart = function() {
  * sound effect.
  *
  */
-proto.onRecordingEnd = function() {
+CameraController.prototype.onRecordingEnd = function() {
   this.app.sounds.play('recordingEnd');
 };
 
@@ -194,7 +189,7 @@ proto.onRecordingEnd = function() {
  * sound effect.
  *
  */
-proto.onShutter = function() {
+CameraController.prototype.onShutter = function() {
   this.app.sounds.play('shutter');
 };
 

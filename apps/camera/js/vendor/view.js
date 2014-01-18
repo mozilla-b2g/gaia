@@ -51,19 +51,19 @@ define(function(require, exports, module) {
    *
    * @type {Object}
    */
-  var proto = events(View.prototype);
+  events(View.prototype);
 
   // Allow for 'emit' or
   // 'fire' to trigger events
-  proto.fire = proto.fire || proto.emit;
+  View.prototype.fire = View.prototype.fire || View.prototype.emit;
 
   /**
    * Default tagName
    *
    * @type {String}
    */
-  proto.tag = 'div';
-  proto.name = 'noname';
+  View.prototype.tag = 'div';
+  View.prototype.name = 'noname';
 
   /**
    * Appends the root element
@@ -72,7 +72,7 @@ define(function(require, exports, module) {
    * @param  {Element} parent
    * @return {View}
    */
-  proto.appendTo = function(parent) {
+  View.prototype.appendTo = function(parent) {
     if (!parent) return this;
     parent.appendChild(this.el);
     this.fire('inserted');
@@ -86,7 +86,7 @@ define(function(require, exports, module) {
    * @param  {Element} parent
    * @return {View}
    */
-  proto.prependTo = function(parent) {
+  View.prototype.prependTo = function(parent) {
     if (!parent) return this;
     var first = parent.firstChild;
 
@@ -104,7 +104,7 @@ define(function(require, exports, module) {
    * @param  {String} query
    * @return { Element | null}
    */
-  proto.find = function(query) {
+  View.prototype.find = function(query) {
     return this.el.querySelector(query);
   };
 
@@ -115,7 +115,7 @@ define(function(require, exports, module) {
    * @param  {Object} options
    * @return {View}
    */
-  proto.remove = function(options) {
+  View.prototype.remove = function(options) {
     var silent = options && options.silent;
     var parent = this.el.parentNode;
     if (!parent) return this;
@@ -135,20 +135,20 @@ define(function(require, exports, module) {
    *
    * @return {[type]} [description]
    */
-  proto.destroy = function(options) {
+  View.prototype.destroy = function(options) {
     var noRemove = options && options.noRemove;
     if (!noRemove) this.remove();
     this.fire('destroy');
     this.el = null;
   };
 
-  proto.toString = function() {
+  View.prototype.toString = function() {
     return '[object View]';
   };
 
   // Overwrite as required
-  proto.initialize = noop;
-  proto.template = function() { return ''; };
+  View.prototype.initialize = noop;
+  View.prototype.template = function() { return ''; };
 
   /**
    * Extends the base view

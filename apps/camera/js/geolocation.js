@@ -5,7 +5,6 @@ define(function(require, exports, module) {
  * Locals
  */
 
-var proto = GeoLocation.prototype;
 var geolocation = navigator.geolocation;
 
 /**
@@ -31,7 +30,7 @@ function GeoLocation() {
  * Watches device location.
  *
  */
-proto.watch = function() {
+GeoLocation.prototype.watch = function() {
   if (!this.watcher) {
     this.watcher = geolocation.watchPosition(this.setPosition);
   }
@@ -42,7 +41,7 @@ proto.watch = function() {
  * device location.
  *
  */
-proto.stopWatching = function() {
+GeoLocation.prototype.stopWatching = function() {
   geolocation.clearWatch(this.watcher);
   this.watcher = null;
 };
@@ -52,7 +51,7 @@ proto.stopWatching = function() {
  * position object.
  *
  */
-proto.setPosition = function(position) {
+GeoLocation.prototype.setPosition = function(position) {
   this.position = {
     timestamp: position.timestamp,
     altitude: position.coords.altitude,
