@@ -177,6 +177,8 @@ suite('Timer.Panel', function() {
       this.sinon.spy(panel.timer, 'start');
       this.sinon.spy(panel.timer, 'pause');
       this.sinon.spy(panel.timer, 'cancel');
+      this.sinon.spy(panel.nodes.sound, 'focus');
+      this.sinon.spy(panel.timer, 'plus');
     });
 
     test('click: start ', function() {
@@ -219,6 +221,18 @@ suite('Timer.Panel', function() {
       assert.ok(panel.onclick.called);
       // Duration from picker value
       assert.equal(panel.timer.duration, 3600000);
+    });
+
+    test('click: plus ', function() {
+      var plus = panel.nodes.plus;
+      var timer = panel.timer;
+
+
+      plus.dispatchEvent(
+        new CustomEvent('click')
+      );
+      assert.ok(panel.onclick.called);
+      assert.ok(timer.plus.called);
     });
 
     test('blur: sound', function() {
@@ -275,5 +289,4 @@ suite('Timer.Panel', function() {
       assert.isTrue(mockAudio.pause.calledTwice);
     });
   });
-
 });

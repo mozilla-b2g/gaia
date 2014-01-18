@@ -38,9 +38,6 @@
     widgetFrame.setAttribute('mozbrowser', true);
     widgetFrame.setAttribute('remote', 'true');
     widgetFrame.setAttribute('mozapp', origin + '/manifest.webapp');
-    if (Applications.useAsyncPanZoom) {
-      widgetFrame.setAttribute('mozasyncpanzoom', 'true');
-    }
 
     widgetFrame.src = origin + '/widget.html';
     widgetContainer.appendChild(widgetFrame);

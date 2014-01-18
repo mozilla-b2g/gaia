@@ -228,7 +228,6 @@ suite('system/UtilityTray', function() {
         .returns({width: 100, height: 100});
       rBarRenderStub = this.sinon.stub(Rocketbar, 'render');
       uHideStub = this.sinon.stub(UtilityTray, 'hide');
-      Rocketbar.enabled = true;
     });
 
     teardown(function() {

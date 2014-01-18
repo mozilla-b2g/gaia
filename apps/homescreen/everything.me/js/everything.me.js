@@ -8,7 +8,6 @@ var EverythingME = {
     this.debug = !!config.debug;
 
     var self = this;
-
     LazyLoader.load(['shared/js/settings_listener.js'],
       function loaded() {
         SettingsListener.observe('rocketbar.enabled', false,
@@ -60,12 +59,10 @@ var EverythingME = {
      * the keyboard can flicker or not show up.
      */
     function searchFocus(e) {
-      if (self.rocketbarEnabled) {
-        e.preventDefault();
-        // Call stopPropagation to prevent the click event
-        e.stopPropagation();
-        self.openRocketbar();
-      }
+      e.preventDefault();
+      // Call stopPropagation to prevent the click event
+      e.stopPropagation();
+      self.openRocketbar();
     }
 
     // specifically for pseudo searchbar
