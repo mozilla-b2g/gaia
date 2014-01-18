@@ -18,10 +18,15 @@ suite('camera', function() {
   });
 
   setup(function() {
-    navigator.getDeviceStorage =
-      navigator.getDeviceStorage || function() {};
-
+    navigator.getDeviceStorage = navigator.getDeviceStorage || function() {};
     sinon.stub(navigator, 'getDeviceStorage');
+    if (!navigator.mozCameras) {
+      navigator.mozCameras = {
+        getListOfCameras: function() { return []; },
+        getCamera: function() {},
+        release: function() {}
+      };
+    }
     this.camera = new Camera({});
   });
 
@@ -34,14 +39,14 @@ suite('camera', function() {
       var camera = this.camera;
 
       // 1 should toggle to 0
-      camera.set('number', 1);
+      camera.set('selectedCamera', 1);
       camera.toggleCamera();
-      assert.equal(camera.get('number'), 0);
+      assert.equal(camera.get('selectedCamera'), 0);
 
       // 0 should toggle to 1
-      camera.set('number', 0);
+      camera.set('selectedCamera', 0);
       camera.toggleCamera();
-      assert.equal(camera.get('number'), 1);
+      assert.equal(camera.get('selectedCamera'), 1);
     });
   });
 
@@ -74,7 +79,7 @@ suite('camera', function() {
       });
 
       test('Should return an \'available\' list of matching modes', function() {
-        this.camera.set('mode', 'camera');
+        this.camera.set('mode', 'photo');
         this.camera.configureFlash(['off', 'auto']);
 
         var flash = this.camera.flash;

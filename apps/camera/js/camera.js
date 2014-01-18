@@ -33,7 +33,7 @@ var MIN_RECORDING_TIME = constants.MIN_RECORDING_TIME;
 // Our predetermined configuration
 // for camera and video flash
 var flashConfig = {
-  camera: {
+  photo: {
     defaultMode: 'auto',
     supports: ['off', 'auto', 'on']
   },
@@ -86,7 +86,8 @@ function Camera(options) {
     current: null
   };
 
-  this.set('number', 0);
+  // Default front camera
+  this.set('selectedCamera', 0);
   this.autoFocus = {};
   this.tmpVideo = {
     storage: navigator.getDeviceStorage('videos'),
@@ -94,7 +95,7 @@ function Camera(options) {
     filepath: null
   };
 
-  debug('initialized', this.get('number'));
+  debug('initialized', this.get('selectedCamera'));
 }
 
 proto.loadStreamInto = function(el, done) {
@@ -125,8 +126,8 @@ proto.getStream = function(done) {
   debug('get %s stream', mode);
 
   switch (mode) {
-    case 'camera':
-      mozCamera.getPreviewStream(this.previewSize, done);
+    case 'photo':
+      mozCamera.getPreviewStream(this.photoPreviewSize, done);
       break;
     case 'video':
       mozCamera.getPreviewStreamVideoMode(this.videoProfile, done);
@@ -135,25 +136,20 @@ proto.getStream = function(done) {
 };
 
 proto.load = function() {
-  var mozCameras = navigator.mozCameras;
-  var cameraList = mozCameras.getListOfCameras();
-  var number = this.get('number');
+  var cameraList = navigator.mozCameras.getListOfCameras();
+  var selectedCamera = this.get('selectedCamera');
+  var config = { camera: cameraList[selectedCamera] };
   var self = this;
 
   // Store camera count
   this.set('numCameras', cameraList.length);
 
-  // If there is already a camera,
-  // we have to 'release' it first.
-  if (this.mozCamera) { this.release(getCamera); }
-  else { getCamera(); }
-
-  function getCamera() {
-    var config = { camera: cameraList[number] };
-    mozCameras.getCamera(config, self.configureCamera);
-  }
-
-  debug('load camera: ', number);
+  // Releases current camera (async operation)
+  this.release(function() {
+    // Requests selected camera
+    navigator.mozCameras.getCamera(config, self.configureCamera);
+    debug('load camera: ', selectedCamera);
+  });
 };
 
 proto.configureCamera = function(mozCamera) {
@@ -176,9 +172,13 @@ proto.configureCamera = function(mozCamera) {
   // Bind to some hardware events
   mozCamera.onShutter = self.onShutter;
   mozCamera.onRecorderStateChange = self.onRecorderStateChange;
-
   done(function() {
-    self.configurePreviewSize(capabilities.previewSizes);
+    var photoPreviewSizes = capabilities.previewSizes;
+    var videoPreviewSize = {
+      width: self.videoProfile.width,
+      height: self.videoProfile.height
+    };
+    self.configurePreviewSize(photoPreviewSizes, videoPreviewSize);
     debug('configured');
     self.emit('configured');
   });
@@ -249,19 +249,22 @@ proto.configureVideoProfile = function(capabilities, done) {
   });
 };
 
-proto.configurePreviewSize = function(previewSizes) {
+proto.configurePreviewSize = function(photoPreviewSizes, videoPreviewSize) {
   var viewportSize = {
     width: document.body.clientHeight * window.devicePixelRatio,
     height: document.body.clientWidth * window.devicePixelRatio
   };
-  var currentCameraMode = this.get('mode');
-  var pickedPreviewSize;
-  if (currentCameraMode === 'camera') {
-    pickedPreviewSize = CameraUtils.selectOptimalPreviewSize(viewportSize,
-                                                             previewSizes);
-    // We should always have a valid preview size, but just in case
-    // we don't, pick the first provided
-    this.previewSize = pickedPreviewSize || previewSizes[0];
+  var pickedPreviewSize = CameraUtils.selectOptimalPreviewSize(
+      viewportSize,
+      photoPreviewSizes);
+  // We should always have a valid preview size, but just in case
+  // we don't, pick the first provided
+  this.photoPreviewSize = pickedPreviewSize || photoPreviewSizes[0];
+  this.videoPreviewSize = videoPreviewSize;
+  // Default preview size is photo
+  this.previewSize = this.photoPreviewSize;
+  if (this.get('mode') === 'video') {
+    this.previewSize = this.videoPreviewSize;
   }
 };
 
@@ -355,6 +358,7 @@ proto.release = function(done) {
   done = done || function() {};
 
   if (!this.mozCamera) {
+    done();
     return;
   }
 
@@ -511,7 +515,7 @@ proto.pickThumbnailSize = function(thumbnailSizes, pictureSize) {
  */
 proto.capture = function(options) {
   switch (this.get('mode')) {
-    case 'camera': this.takePicture(options); break;
+    case 'photo': this.takePicture(options); break;
     case 'video': this.toggleRecording(options); break;
   }
 };
@@ -638,22 +642,6 @@ proto.startRecording = function(options) {
         self.stopRecording();
       }
 
-      // If the duration is too short,
-      // the nno track may have been recorded.
-      // That creates corrupted video files.
-      // Because media file needs some samples.
-      //
-      // To have more information on video track,
-      // we wait for 500ms to have few video and
-      // audio samples, see bug 899864.
-      window.setTimeout(function() {
-
-        // TODO: Disable then re-enable
-        // capture button after 500ms
-        // This hsould be done in controls
-        // controller.
-
-      }, MIN_RECORDING_TIME);
     }
 };
 
@@ -794,37 +782,26 @@ proto.hasFrontCamera = function() {
  * @return {Number}
  */
 proto.toggleCamera = function() {
-  var newNumber = 1 - this.get('number');
-  this.set('number', newNumber);
+  var newNumber = 1 - this.get('selectedCamera');
+  this.set('selectedCamera', newNumber);
+  this.load();
   debug('toggled: %d', newNumber);
   return this;
 };
 
 /**
- * Toggles between 'camera'
+ * Toggles between 'photo'
  * and 'video' capture modes.
  *
  * @return {String}
  */
 proto.toggleMode = function() {
-  var isCameraMode = this.get('mode') === 'camera';
-  var newMode = isCameraMode ? 'video' : 'camera';
-  var previewSizes;
-
-  // NOTE:WP:
-  // This looks hacky to me,
-  // perhaps we can move this logic inside
-  // the configurePreviewSize method.
-  if (newMode === 'camera') {
-    previewSizes = this.mozCamera.capabilities.previewSizes;
-  } else {
-    previewSizes = [{
-      width: this.videoProfile.width,
-      height: this.videoProfile.height
-    }];
+  var isCameraMode = this.get('mode') === 'photo';
+  var newMode = isCameraMode ? 'video' : 'photo';
+  this.previewSize = this.photoPreviewSize;
+  if (newMode === 'video') {
+    this.previewSize = this.videoPreviewSize;
   }
-  this.configurePreviewSize(previewSizes);
-
   this.set('mode', newMode);
   this.configureFlash(this.flash.all);
   return newMode;
@@ -834,7 +811,7 @@ proto.toggleMode = function() {
  * Cycles through flash
  * modes available for the
  * current camera (0/1) and
- * capture mode ('camera'/'video')
+ * capture mode ('photo'/'video')
  * combination.
  *
  * @return {String}

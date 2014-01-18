@@ -133,8 +133,6 @@ suite('controllers/hud', function() {
 
     test('Should toggle then load the camera', function() {
       this.controller.onCameraToggle();
-      assert.ok(this.camera.toggleCamera.called);
-      assert.ok(this.camera.load.called);
       assert.ok(this.camera.toggleCamera.calledBefore(this.camera.load));
     });
 

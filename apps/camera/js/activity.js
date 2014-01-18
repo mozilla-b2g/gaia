@@ -170,7 +170,7 @@ Activity.prototype.getTypes = function(activity) {
  * @return {String}
  */
 Activity.prototype.modeFromTypes = function(types) {
-  return !types.image && types.video ? 'video' : 'camera';
+  return !types.image && types.video ? 'video' : 'photo';
 };
 
 });

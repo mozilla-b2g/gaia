@@ -49,7 +49,7 @@ proto.bindEvents = function() {
 proto.onConfigured = function() {
   debug('camera configured');
   this.viewfinder.updatePreview(this.camera.previewSize,
-                                this.camera.get('number') === 1);
+                                this.camera.get('selectedCamera') === 1);
   this.camera.loadStreamInto(this.viewfinder.el, onStreamLoaded);
   function onStreamLoaded(stream) {
     debug('stream loaded %d ms after dom began loading',

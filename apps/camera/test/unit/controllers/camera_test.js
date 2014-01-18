@@ -69,7 +69,7 @@ suite('controllers/camera', function() {
 
     test('Should set the capture mode to \'camera\' by default', function() {
       this.controller = new Controller(this.app);
-      assert.isTrue(this.app.camera.set.calledWith('mode', 'camera'));
+      assert.isTrue(this.app.camera.set.calledWith('mode', 'photo'));
     });
 
     test('Should set the capture mode to the mode' +

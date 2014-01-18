@@ -12,8 +12,6 @@ var bindAll = require('utils/bindAll');
 /**
  * Locals
  */
-
-var CAMERA = constants.CAMERA_MODE_TYPE.CAMERA;
 var proto = CameraController.prototype;
 
 /**
@@ -65,11 +63,12 @@ proto.bindEvents = function() {
  *
  * The mode chosen by an
  * activity is chosen, else
- * we just default to 'camera'
+ * we just default to 'photo'
  *
  */
 proto.setCaptureMode = function() {
-  var initialMode = this.activity.mode || CAMERA;
+  var initialMode = this.activity.mode ||
+                    constants.CAMERA_MODE_TYPE.PHOTO;
   this.camera.set('mode', initialMode);
   debug('capture mode set: %s', initialMode);
 };

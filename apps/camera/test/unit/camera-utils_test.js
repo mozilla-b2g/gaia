@@ -242,7 +242,7 @@ suite('utils/camera-utils', function() {
   suite('selectOptimalPreviewSize', function() {
     setup(function() {});
 
-    test('Should select optimal preview size to '
+    test('Should select optimal preview size to ' +
          '*FILL* viewport preserving aspect ratio', function() {
       var viewportSize, optimalPreviewSize;
       var previewSizes = [
