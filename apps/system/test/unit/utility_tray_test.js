@@ -238,10 +238,13 @@ suite('system/UtilityTray', function() {
 
     test('should display for drag on left half of statusbar', function() {
       fakeEvt = {
-        type: 'touchstart',
-        pageX: 0
+        type: 'touchend',
+        changedTouches: [{
+          pageX: 0
+        }]
       };
       UtilityTray.onTouchStart(fakeEvt);
+      UtilityTray.handleEvent(fakeEvt);
       assert.isTrue(rBarRenderStub.calledOnce);
       assert.isTrue(uHideStub.calledOnce);
     });

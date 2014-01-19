@@ -22,7 +22,6 @@
 
       var manifestURL = target.dataset.manifest;
       if (manifestURL && this.apps[manifestURL]) {
-        Search.close();
         if (target.dataset.entryPoint) {
           this.apps[manifestURL].launch(
             target.dataset.entryPoint
