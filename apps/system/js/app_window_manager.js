@@ -225,8 +225,6 @@
       window.addEventListener('overlaystart', this);
       window.addEventListener('homegesture-enabled', this);
       window.addEventListener('homegesture-disabled', this);
-      window.addEventListener('rocketbarhidden', this);
-      window.addEventListener('rocketbarshown', this);
       window.addEventListener('system-resize', this);
 
       // update app name when language setting changes
@@ -248,18 +246,6 @@
 
     handleEvent: function awm_handleEvent(evt) {
       switch (evt.type) {
-        case 'rocketbarhidden':
-          if (this._activeApp) {
-            this._activeApp.setVisible(true);
-          }
-          break;
-
-        case 'rocketbarshown':
-          if (this._activeApp) {
-            this._activeApp.setVisible(false);
-          }
-          break;
-
         case 'system-resize':
           this.debug(' Resizing...');
           if (this._activeApp) {

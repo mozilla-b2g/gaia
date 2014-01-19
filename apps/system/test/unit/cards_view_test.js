@@ -270,12 +270,14 @@ suite('cards view >', function() {
       setTimeout(done);
     });
 
-    test('focuses rocketbar input on empty cards view', function() {
+    test('focuses rocketbar input on empty cards view', function(done) {
       var dispatchStub = this.sinon.stub(window, 'dispatchEvent');
       CardsView.showCardSwitcher(null, true);
-
-      var evt = dispatchStub.getCall(0).args[0];
-      assert.equal(evt.type, 'cardviewclosed');
+      setTimeout(function nextTick() {
+        var evt = dispatchStub.getCall(0).args[0];
+        assert.equal(evt.type, 'cardviewclosed');
+        done();
+      });
     });
   });
 });

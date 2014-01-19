@@ -102,7 +102,9 @@ var CardsView = (function() {
   }
 
   function fireCardViewClosed() {
-    window.dispatchEvent(new CustomEvent('cardviewclosed'));
+    setTimeout(function nextTick() {
+      window.dispatchEvent(new CustomEvent('cardviewclosed'));
+    });
   }
 
   // Build and display the card switcher overlay
@@ -110,7 +112,7 @@ var CardsView = (function() {
   // than trying to keep it in sync with app launches.  Performance is
   // not an issue here given that the user has to hold the HOME button down
   // for one second before the switcher will appear.
-  // The second parameter, isRocketbar, determines how to display the
+  // The second parameter, inRocketbar, determines how to display the
   // cardswitcher inside of the rocketbar. Both modes are necessary until
   // Rocketbar is enabled by default, then this will go away.
   function showCardSwitcher(inTimeCapture, inRocketbar) {
@@ -908,6 +910,8 @@ var CardsView = (function() {
       case 'home':
         if (!cardSwitcherIsShown())
           return;
+
+        window.dispatchEvent(new CustomEvent('cardviewclosedhome'));
 
         evt.stopImmediatePropagation();
         hideCardSwitcher();
