@@ -366,7 +366,7 @@ var NfcManager = {
     window.navigator.vibrate([25, 50, 125]);
 
     // Check for tech types:
-    this._debug('command.tech: ' + command.tech);
+    this._debug('command.techList: ' + command.techList);
     var techList = command.techList;
     var records = null;
     if (command.records.length > 0) {
@@ -410,7 +410,7 @@ var NfcManager = {
     // One shot try. Fallback directly to tag.
     switch (techList[0]) {
       case 'P2P':
-        this.handleP2P(techsList[0], command.sessionToken, records);
+        this.handleP2P(techList[0], command.sessionToken, records);
         break;
       case 'NDEF':
         this.handleNdefDiscovered(techList[0], command.sessionToken, records);
