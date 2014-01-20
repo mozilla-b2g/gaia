@@ -57,9 +57,9 @@ class ManualSetupEmail(Base):
 
     _account_type_locator = (By.CSS_SELECTOR, 'section.card-setup-manual-config .sup-manual-account-type')
 
-    _imap_username_locator = (By.CSS_SELECTOR, 'section.card-setup-manual-config .sup-manual-composite-username')
-    _imap_hostname_locator = (By.CSS_SELECTOR, 'section.card-setup-manual-config .sup-manual-composite-hostname')
-    _imap_port_locator = (By.CSS_SELECTOR, 'section.card-setup-manual-config .sup-manual-composite-port')
+    _imap_pop3_username_locator = (By.CSS_SELECTOR, 'section.card-setup-manual-config .sup-manual-composite-username')
+    _imap_pop3_hostname_locator = (By.CSS_SELECTOR, 'section.card-setup-manual-config .sup-manual-composite-hostname')
+    _imap_pop3_port_locator = (By.CSS_SELECTOR, 'section.card-setup-manual-config .sup-manual-composite-port')
 
     _smtp_username_locator = (By.CSS_SELECTOR, 'section.card-setup-manual-config .sup-manual-smtp-username')
     _smtp_hostname_locator = (By.CSS_SELECTOR, 'section.card-setup-manual-config .sup-manual-smtp-hostname')
@@ -106,17 +106,17 @@ class ManualSetupEmail(Base):
         self.select(value)
 
     def type_imap_name(self, value):
-        el = self.marionette.find_element(*self._imap_username_locator)
+        el = self.marionette.find_element(*self._imap_pop3_username_locator)
         el.clear()
         el.send_keys(value)
 
     def type_imap_hostname(self, value):
-        el = self.marionette.find_element(*self._imap_hostname_locator)
+        el = self.marionette.find_element(*self._imap_pop3_hostname_locator)
         el.clear()
         el.send_keys(value)
 
     def type_imap_port(self, value):
-        el = self.marionette.find_element(*self._imap_port_locator)
+        el = self.marionette.find_element(*self._imap_pop3_port_locator)
         el.clear()
         el.send_keys(value)
 
@@ -147,6 +147,21 @@ class ManualSetupEmail(Base):
 
     def type_activesync_port(self, value):
         el = self.marionette.find_element(*self._activesync_port_locator)
+        el.clear()
+        el.send_keys(value)
+
+    def type_pop3_name(self, value):
+        el = self.marionette.find_element(*self._imap_pop3_username_locator)
+        el.clear()
+        el.send_keys(value)
+
+    def type_pop3_hostname(self, value):
+        el = self.marionette.find_element(*self._imap_pop3_hostname_locator)
+        el.clear()
+        el.send_keys(value)
+
+    def type_pop3_port(self, value):
+        el = self.marionette.find_element(*self._imap_pop3_port_locator)
         el.clear()
         el.send_keys(value)
 

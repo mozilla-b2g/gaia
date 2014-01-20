@@ -37,10 +37,11 @@ class Email(Base):
         self.wait_for_message_list()
 
     def setup_IMAP_email(self, imap):
+        basic_setup = SetupEmail(self.marionette)
+        basic_setup.type_name(imap['name'])
+        basic_setup.type_email(imap['email'])
+        basic_setup.type_password(imap['password'])
         setup = self.tap_manual_setup()
-        setup.type_name(imap['name'])
-        setup.type_email(imap['email'])
-        setup.type_password(imap['password'])
 
         setup.select_account_type('IMAP+SMTP')
 
@@ -61,16 +62,41 @@ class Email(Base):
         self.wait_for_message_list()
 
     def setup_active_sync_email(self, active_sync):
+        basic_setup = SetupEmail(self.marionette)
+        basic_setup.type_name(active_sync['name'])
+        basic_setup.type_email(active_sync['email'])
+        basic_setup.type_password(active_sync['password'])
         setup = self.tap_manual_setup()
-        setup.type_name(active_sync['name'])
-
-        setup.type_email(active_sync['email'])
-        setup.type_password(active_sync['password'])
 
         setup.select_account_type('ActiveSync')
 
         setup.type_activesync_hostname(active_sync['active_sync_hostname'])
         setup.type_activesync_name(active_sync['active_sync_username'])
+
+        setup.tap_next()
+
+        setup.tap_account_prefs_next()
+
+        setup.wait_for_setup_complete()
+        setup.tap_continue()
+        self.wait_for_message_list()
+
+    def setup_POP3_email(self, pop3):
+        basic_setup = SetupEmail(self.marionette)
+        basic_setup.type_name(pop3['name'])
+        basic_setup.type_email(pop3['email'])
+        basic_setup.type_password(pop3['password'])
+        setup = self.tap_manual_setup()
+
+        setup.select_account_type('POP3+SMTP')
+
+        setup.type_pop3_hostname(pop3['pop3_hostname'])
+        setup.type_pop3_name(pop3['pop3_name'])
+        setup.type_pop3_port(pop3['pop3_port'])
+
+        setup.type_smtp_hostname(pop3['smtp_hostname'])
+        setup.type_smtp_name(pop3['smtp_name'])
+        setup.type_smtp_port(pop3['smtp_port'])
 
         setup.tap_next()
 
