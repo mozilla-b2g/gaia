@@ -606,7 +606,7 @@ function fileCreated(fileinfo) {
       for (var i = 0; i < thumbnailElements.length; i++) {
           var thumbnailElem = thumbnailElements[i];
           if (thumbnailElem.dataset.filename == fileinfo.name) {
-              thumbnailElem.classList.add('thumbnailSmall');
+              thumbnailElem.classList.add('thumbnail-small');
               break;
           }
       }
