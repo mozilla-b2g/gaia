@@ -44,7 +44,7 @@ var flashConfig = {
 };
 
 // Mixin model methods (also events)
-var proto = model(Camera.prototype);
+model(Camera.prototype);
 
 /**
  * Exports
@@ -98,7 +98,7 @@ function Camera(options) {
   debug('initialized', this.get('selectedCamera'));
 }
 
-proto.loadStreamInto = function(el, done) {
+Camera.prototype.loadStreamInto = function(el, done) {
   debug('loading stream into element');
 
   var mozCamera = this.mozCamera;
@@ -120,7 +120,7 @@ proto.loadStreamInto = function(el, done) {
   });
 };
 
-proto.getStream = function(done) {
+Camera.prototype.getStream = function(done) {
   var mozCamera = this.mozCamera;
   var mode = this.get('mode');
   debug('get %s stream', mode);
@@ -135,7 +135,7 @@ proto.getStream = function(done) {
   }
 };
 
-proto.load = function() {
+Camera.prototype.load = function() {
   var cameraList = navigator.mozCameras.getListOfCameras();
   var selectedCamera = this.get('selectedCamera');
   var config = { camera: cameraList[selectedCamera] };
@@ -152,7 +152,7 @@ proto.load = function() {
   });
 };
 
-proto.configureCamera = function(mozCamera) {
+Camera.prototype.configureCamera = function(mozCamera) {
   debug('configure');
 
   var capabilities = mozCamera.capabilities;
@@ -185,7 +185,7 @@ proto.configureCamera = function(mozCamera) {
 };
 
 
-proto.configurePictureSize = function(mozCamera) {
+Camera.prototype.configurePictureSize = function(mozCamera) {
   var capabilities = mozCamera.capabilities;
   var pictureSizes = capabilities.pictureSizes;
   var thumbnailSizes = capabilities.thumbnailSizes;
@@ -208,7 +208,7 @@ proto.configurePictureSize = function(mozCamera) {
   debug('configured picture size %d x %d', width, height);
 };
 
-proto.configureFlash = function(allModes) {
+Camera.prototype.configureFlash = function(allModes) {
   this.flash.all = allModes || [];
 
   var cameraMode = this.get('mode');
@@ -228,7 +228,7 @@ proto.configureFlash = function(allModes) {
   debug('configured flash, initial: %d', index);
 };
 
-proto.configureFocus = function(modes) {
+Camera.prototype.configureFocus = function(modes) {
   var supports = this.autoFocus;
   (modes || []).forEach(function(mode) {
     supports[mode] = true;
@@ -236,7 +236,7 @@ proto.configureFocus = function(modes) {
   debug('focus configured', supports);
 };
 
-proto.configureVideoProfile = function(capabilities, done) {
+Camera.prototype.configureVideoProfile = function(capabilities, done) {
   var self = this;
   this.getMozSettingsSizes(function(mozSettingsSizes) {
     var recorderProfiles = capabilities.recorderProfiles;
@@ -249,7 +249,8 @@ proto.configureVideoProfile = function(capabilities, done) {
   });
 };
 
-proto.configurePreviewSize = function(photoPreviewSizes, videoPreviewSize) {
+Camera.prototype.configurePreviewSize = function(photoPreviewSizes,
+                                                 videoPreviewSize) {
   var viewportSize = {
     width: document.body.clientHeight * window.devicePixelRatio,
     height: document.body.clientWidth * window.devicePixelRatio
@@ -275,7 +276,7 @@ proto.configurePreviewSize = function(photoPreviewSizes, videoPreviewSize) {
  *
  * @param {Number} index
  */
-proto.setFlashMode = function(index) {
+Camera.prototype.setFlashMode = function(index) {
   var name = this.flash.available[index];
   this.mozCamera.flashMode = name;
   this.flash.current = index;
@@ -283,7 +284,7 @@ proto.setFlashMode = function(index) {
   debug('flash mode set: %d (%s)', index, name);
 };
 
-proto.getMozSettingsSizes = function(done) {
+Camera.prototype.getMozSettingsSizes = function(done) {
   done = done || function() {};
   var key = 'camera.recording.preferredSizes';
   var self = this;
@@ -309,7 +310,7 @@ proto.getMozSettingsSizes = function(done) {
   }
 };
 
-proto.pickVideoProfile = function(profiles, preferredSizes) {
+Camera.prototype.pickVideoProfile = function(profiles, preferredSizes) {
   debug('pick video profile');
 
   var targetFileSize = this.get('targetFileSize');
@@ -354,7 +355,7 @@ proto.pickVideoProfile = function(profiles, preferredSizes) {
  *
  * @param  {Function} done
  */
-proto.release = function(done) {
+Camera.prototype.release = function(done) {
   done = done || function() {};
 
   if (!this.mozCamera) {
@@ -377,7 +378,7 @@ proto.release = function(done) {
   }
 };
 
-proto.pickPictureSize = function(pictureSizes) {
+Camera.prototype.pickPictureSize = function(pictureSizes) {
   var targetFileSize = this.get('targetFileSize') || 0;
   var targetWidth = this.get('targetWidth');
   var targetHeight = this.get('targetHeight');
@@ -453,7 +454,7 @@ proto.pickPictureSize = function(pictureSizes) {
   return pictureSize;
 };
 
-proto.pickThumbnailSize = function(thumbnailSizes, pictureSize) {
+Camera.prototype.pickThumbnailSize = function(thumbnailSizes, pictureSize) {
   var screenWidth = window.innerWidth * window.devicePixelRatio;
   var screenHeight = window.innerHeight * window.devicePixelRatio;
   var pictureAspectRatio = pictureSize.width / pictureSize.height;
@@ -513,14 +514,14 @@ proto.pickThumbnailSize = function(thumbnailSizes, pictureSize) {
  * @param  {Object} options
  *  public
  */
-proto.capture = function(options) {
+Camera.prototype.capture = function(options) {
   switch (this.get('mode')) {
     case 'photo': this.takePicture(options); break;
     case 'video': this.toggleRecording(options); break;
   }
 };
 
-proto.takePicture = function(options) {
+Camera.prototype.takePicture = function(options) {
   var self = this;
   this.prepareTakePicture(onReady);
 
@@ -556,7 +557,7 @@ proto.takePicture = function(options) {
   }
 };
 
-proto.prepareTakePicture = function(done) {
+Camera.prototype.prepareTakePicture = function(done) {
   var self = this;
 
   if (!this.autoFocus.auto) {
@@ -586,13 +587,13 @@ proto.prepareTakePicture = function(done) {
   }
 };
 
-proto.toggleRecording = function(o) {
+Camera.prototype.toggleRecording = function(o) {
   var recording = this.get('recording');
   if (recording) { this.stopRecording(o); }
   else { this.startRecording(o); }
 };
 
-proto.startRecording = function(options) {
+Camera.prototype.startRecording = function(options) {
   var storage = this.tmpVideo.storage;
   var mozCamera = this.mozCamera;
   var self = this;
@@ -645,7 +646,7 @@ proto.startRecording = function(options) {
     }
 };
 
-proto.stopRecording = function() {
+Camera.prototype.stopRecording = function() {
   debug('stop recording');
 
   var notRecording = !this.get('recording');
@@ -700,24 +701,24 @@ proto.stopRecording = function() {
 
 // TODO: This is UI stuff, so
 // shouldn't be handled in this file.
-proto.onRecordingError = function(id) {
+Camera.prototype.onRecordingError = function(id) {
   id = id || 'error-recording';
   var title = navigator.mozL10n.get(id + '-title');
   var text = navigator.mozL10n.get(id + '-text');
   alert(title + '. ' + text);
 };
 
-proto.onShutter = function() {
+Camera.prototype.onShutter = function() {
   this.emit('shutter');
 };
 
-proto.onRecordingStateChange = function(msg) {
+Camera.prototype.onRecordingStateChange = function(msg) {
   if (msg === 'FileSizeLimitReached') {
     this.emit('filesizelimitreached');
   }
 };
 
-proto.getTmpStorageSpace = function(done) {
+Camera.prototype.getTmpStorageSpace = function(done) {
   debug('get temp storage space');
 
   var storage = this.tmpVideo.storage;
@@ -736,7 +737,7 @@ proto.getTmpStorageSpace = function(done) {
   }
 };
 
-proto.getTmpVideoBlob = function(done) {
+Camera.prototype.getTmpVideoBlob = function(done) {
   debug('get tmp video blob');
 
   var filepath = this.tmpVideo.filepath;
@@ -755,23 +756,23 @@ proto.getTmpVideoBlob = function(done) {
   }
 };
 
-proto.createTmpVideoFilename = function() {
+Camera.prototype.createTmpVideoFilename = function() {
   return Date.now() + '_tmp.3gp';
 };
 
-proto.deleteTmpVideoFile = function() {
+Camera.prototype.deleteTmpVideoFile = function() {
   var storage = this.tmpVideo.storage;
   storage.delete(this.tmpVideo.filepath);
   this.tmpVideo.filename = null;
   this.tmpVideo.filepath = null;
 };
 
-proto.resumePreview = function() {
+Camera.prototype.resumePreview = function() {
   this.mozCamera.resumePreview();
   this.emit('previewresumed');
 };
 
-proto.hasFrontCamera = function() {
+Camera.prototype.hasFrontCamera = function() {
   return this.get('numCameras') > 1;
 };
 
@@ -781,7 +782,7 @@ proto.hasFrontCamera = function() {
  *
  * @return {Number}
  */
-proto.toggleCamera = function() {
+Camera.prototype.toggleCamera = function() {
   var newNumber = 1 - this.get('selectedCamera');
   this.set('selectedCamera', newNumber);
   this.load();
@@ -795,7 +796,7 @@ proto.toggleCamera = function() {
  *
  * @return {String}
  */
-proto.toggleMode = function() {
+Camera.prototype.toggleMode = function() {
   var isCameraMode = this.get('mode') === 'photo';
   var newMode = isCameraMode ? 'video' : 'photo';
   this.previewSize = this.photoPreviewSize;
@@ -816,7 +817,7 @@ proto.toggleMode = function() {
  *
  * @return {String}
  */
-proto.toggleFlash = function() {
+Camera.prototype.toggleFlash = function() {
   var available = this.flash.available;
   var current = this.flash.current;
   var l = available.length;
@@ -833,13 +834,13 @@ proto.toggleFlash = function() {
  * every second.
  *
  */
-proto.startVideoTimer = function() {
+Camera.prototype.startVideoTimer = function() {
   this.set('videoStart', new Date().getTime());
   this.videoTimer = setInterval(this.updateVideoElapsed, 1000);
   this.updateVideoElapsed();
 };
 
-proto.stopVideoTimer = function() {
+Camera.prototype.stopVideoTimer = function() {
   clearInterval(this.videoTimer);
   this.videoTimer = null;
 };
@@ -854,7 +855,7 @@ proto.stopVideoTimer = function() {
  * update the UI accordingly.
  *
  */
-proto.updateVideoElapsed = function() {
+Camera.prototype.updateVideoElapsed = function() {
   var now = new Date().getTime();
   var start = this.get('videoStart');
   this.set('videoElapsed', (now - start));

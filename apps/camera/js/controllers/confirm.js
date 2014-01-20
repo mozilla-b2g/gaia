@@ -14,12 +14,6 @@ var ConfirmView = require('views/confirm');
 var bindAll = require('utils/bindAll');
 
 /**
- * Locals
- */
-
-var proto = ConfirmController.prototype;
-
-/**
  * Exports
  */
 
@@ -52,7 +46,7 @@ function ConfirmController(app) {
  * Bind callbacks to required events.
  *
  */
-proto.bindEvents = function() {
+ConfirmController.prototype.bindEvents = function() {
   this.app.on('newimage', this.onNewImage);
   this.app.on('newvideo', this.onNewVideo);
 };
@@ -67,7 +61,7 @@ proto.bindEvents = function() {
  * @param  {Object} data
  *
  */
-proto.onNewImage = function(data) {
+ConfirmController.prototype.onNewImage = function(data) {
   if (!this.activity.active) { return; }
 
   var confirm = new this.ConfirmView();
@@ -114,7 +108,7 @@ proto.onNewImage = function(data) {
   }
 };
 
-proto.onNewVideo = function(video) {
+ConfirmController.prototype.onNewVideo = function(video) {
   if (!this.activity.active) { return; }
 
   var ConfirmView = this.ConfirmView;

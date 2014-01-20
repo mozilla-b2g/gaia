@@ -10,12 +10,6 @@ var bindAll = require('utils/bindAll');
 var debug = require('debug')('controller:overlay');
 
 /**
- * Locals
- */
-
-var proto = OverlayController.prototype;
-
-/**
  * Exports
  */
 
@@ -46,7 +40,7 @@ function OverlayController(app) {
  *
  * @param  {String} value  ['nospace'|'shared'|'unavailable'|'available']
  */
-proto.onStorageStateChange = function(value) {
+OverlayController.prototype.onStorageStateChange = function(value) {
   debug('storage state change: \'%s\'', value);
   if (value === 'available') {
     this.destroyOverlays();
@@ -55,7 +49,7 @@ proto.onStorageStateChange = function(value) {
   this.insertOverlay(value);
 };
 
-proto.insertOverlay = function(type) {
+OverlayController.prototype.insertOverlay = function(type) {
   var data = this.getOverlayData(type);
   var activity = this.activity;
 
@@ -89,7 +83,7 @@ proto.insertOverlay = function(type) {
  * @param  {String} type
  * @return {Object}
  */
-proto.getOverlayData = function(type) {
+OverlayController.prototype.getOverlayData = function(type) {
   var l10n = navigator.mozL10n;
   var data = {};
 
@@ -123,7 +117,7 @@ proto.getOverlayData = function(type) {
  *
  * @return {undefined}
  */
-proto.onStorageSettingsClick = function() {
+OverlayController.prototype.onStorageSettingsClick = function() {
   var MozActivity = window.MozActivity;
   this.mozActivity = new MozActivity({
     name: 'configure',
@@ -137,7 +131,7 @@ proto.onStorageSettingsClick = function() {
 /**
  * Destroy all overlays.
  */
-proto.destroyOverlays = function() {
+OverlayController.prototype.destroyOverlays = function() {
   this.overlays.forEach(function(overlay) {
     overlay.destroy();
   });

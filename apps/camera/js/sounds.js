@@ -2,12 +2,6 @@ define(function(require, exports, module) {
 'use strict';
 
 /**
- * Locals
- */
-
-var proto = Sounds.prototype;
-
-/**
  * Exports
  */
 
@@ -33,7 +27,7 @@ function Sounds(list) {
  * @param {Object} data
  *
  */
-proto.add = function(data) {
+Sounds.prototype.add = function(data) {
   var self = this;
   var sound = {
     name: data.name,
@@ -63,7 +57,7 @@ proto.add = function(data) {
  * @param  {Object}   sound
  * @param  {Function} done
  */
-proto.isEnabled = function(sound, done) {
+Sounds.prototype.isEnabled = function(sound, done) {
   setTimeout(function() {
     var mozSettings = navigator.mozSettings;
     var key = sound.setting;
@@ -92,7 +86,7 @@ proto.isEnabled = function(sound, done) {
  * @param  {Object} sound
  *
  */
-proto.observeSetting = function(sound) {
+Sounds.prototype.observeSetting = function(sound) {
   var mozSettings = navigator.mozSettings;
   var key = sound.setting;
   var self = this;
@@ -109,7 +103,7 @@ proto.observeSetting = function(sound) {
  * @param {Boolean} value
  *
  */
-proto.setEnabled = function(sound, value) {
+Sounds.prototype.setEnabled = function(sound, value) {
   sound.enabled = value;
 };
 
@@ -119,7 +113,7 @@ proto.setEnabled = function(sound, value) {
  * @param  {String} name
  *
  */
-proto.play = function(name) {
+Sounds.prototype.play = function(name) {
   this.playSound(this.items[name]);
 };
 
@@ -129,7 +123,7 @@ proto.play = function(name) {
  * @param  {Object} sound
  *
  */
-proto.playSound = function(sound) {
+Sounds.prototype.playSound = function(sound) {
   if (sound.enabled) {
     sound.audio.play();
   }
@@ -142,7 +136,7 @@ proto.playSound = function(sound) {
  * @return {HTMLAudioElement}
  *
  */
-proto.createAudio = function(url) {
+Sounds.prototype.createAudio = function(url) {
   var audio = new Audio(url);
   audio.mozAudioChannelType = 'notification';
   return audio;

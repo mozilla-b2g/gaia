@@ -11,12 +11,6 @@ var bindAll = require('utils/bindAll');
 var debug = require('debug')('controller:controls');
 
 /**
- * Locals
- */
-
-var proto = ControlsController.prototype;
-
-/**
  * Exports
  */
 
@@ -37,7 +31,7 @@ function ControlsController(app) {
   debug('initialized');
 }
 
-proto.bindEvents = function() {
+ControlsController.prototype.bindEvents = function() {
   var controls = this.controls;
   var camera = this.camera;
 
@@ -58,7 +52,7 @@ proto.bindEvents = function() {
   debug('events bound');
 };
 
-proto.setup = function() {
+ControlsController.prototype.setup = function() {
   var activity = this.activity;
   var controls = this.controls;
   var isCancellable = activity.active;
@@ -77,16 +71,16 @@ proto.setup = function() {
   controls.set('switchable', isSwitchable);
 };
 
-proto.onCameraModeChange = function(value) {
+ControlsController.prototype.onCameraModeChange = function(value) {
   this.controls.set('mode', value);
   debug('camera mode change: %s', value);
 };
 
-proto.onRecordingChange = function(value) {
+ControlsController.prototype.onRecordingChange = function(value) {
   this.controls.set('recording', value);
 };
 
-proto.onVideoTimeUpdate = function(value) {
+ControlsController.prototype.onVideoTimeUpdate = function(value) {
   this.controls.setVideoTimer(value);
 };
 
@@ -97,7 +91,7 @@ proto.onVideoTimeUpdate = function(value) {
  * back in.
  *
  */
-proto.onSwitchButtonClick = function() {
+ControlsController.prototype.onSwitchButtonClick = function() {
   var controls = this.controls;
   var viewfinder = this.viewfinder;
   var camera = this.camera;
@@ -126,7 +120,7 @@ proto.onSwitchButtonClick = function() {
  * that initiated the activity.
  *
  */
-proto.onCancelButtonClick = function() {
+ControlsController.prototype.onCancelButtonClick = function() {
   this.activity.cancel();
 };
 
@@ -136,7 +130,7 @@ proto.onCancelButtonClick = function() {
  * is pressed.
  *
  */
-proto.onGalleryButtonClick = function() {
+ControlsController.prototype.onGalleryButtonClick = function() {
   var MozActivity = window.MozActivity;
 
   // Can't launch the gallery if the lockscreen is locked.
@@ -158,7 +152,7 @@ proto.onGalleryButtonClick = function() {
  * button is pressed.
  *
  */
-proto.onCaptureButtonClick = function() {
+ControlsController.prototype.onCaptureButtonClick = function() {
   var position = this.app.geolocation.position;
   this.camera.capture({ position: position });
 

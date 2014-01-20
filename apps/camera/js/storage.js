@@ -15,11 +15,7 @@ var createFilename = require('dcf').createDCFFilename;
 
 module.exports = Storage;
 
-/**
- * Locals
- */
-
-var proto = evt.mix(Storage.prototype);
+evt.mix(Storage.prototype);
 
 function Storage() {
   this.check = this.check.bind(this);
@@ -30,7 +26,7 @@ function Storage() {
   debug('initialized');
 }
 
-proto.addImage = function(blob, options, done) {
+Storage.prototype.addImage = function(blob, options, done) {
   if (typeof options === 'function') {
     done = options;
     options = {};
@@ -61,7 +57,7 @@ proto.addImage = function(blob, options, done) {
   }
 };
 
-proto.addVideo = function(blob, done) {
+Storage.prototype.addVideo = function(blob, done) {
   debug('adding video');
   var storage = this.video;
   var self = this;
@@ -99,7 +95,7 @@ proto.addVideo = function(blob, done) {
   }
 };
 
-proto.onStorageChange = function(e) {
+Storage.prototype.onStorageChange = function(e) {
   debug('state change: %s', e.reason);
   var value = e.reason;
 
@@ -116,18 +112,18 @@ proto.onStorageChange = function(e) {
   this.check();
 };
 
-proto.setState = function(value) {
+Storage.prototype.setState = function(value) {
   this.state = value;
   debug('set state: %s', value);
   this.emit('statechange', value);
 };
 
-proto.setMaxFileSize = function(maxFileSize) {
+Storage.prototype.setMaxFileSize = function(maxFileSize) {
   this.maxFileSize = maxFileSize;
   debug('max file size set: %d', maxFileSize);
 };
 
-proto.check = function(done) {
+Storage.prototype.check = function(done) {
   debug('check');
 
   var self = this;
@@ -153,7 +149,7 @@ proto.check = function(done) {
   }
 };
 
-proto.isSpace = function(done) {
+Storage.prototype.isSpace = function(done) {
   var maxFileSize = this.maxFileSize;
   this.image
     .freeSpace()
@@ -165,7 +161,7 @@ proto.isSpace = function(done) {
     };
 };
 
-proto.getState = function(done) {
+Storage.prototype.getState = function(done) {
   this.image
     .available()
     .onsuccess = function(e) {
@@ -173,7 +169,7 @@ proto.getState = function(done) {
     };
 };
 
-proto.available = function() {
+Storage.prototype.available = function() {
   return this.state === 'available';
 };
 
