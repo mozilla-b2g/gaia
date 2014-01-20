@@ -4,6 +4,7 @@ requireApp('communications/dialer/test/unit/mock_lazy_loader.js');
 requireApp('communications/dialer/test/unit/mock_contacts.js');
 requireApp('communications/dialer/test/unit/mock_confirm_dialog.js');
 requireApp('communications/dialer/test/unit/mock_l10n.js');
+requireApp('communications/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 
 requireApp('communications/dialer/test/unit/mock_moztelephony.js');
 requireApp('communications/dialer/test/unit/mock_mozMobileConnection.js');
@@ -23,8 +24,10 @@ var mocksHelperForTelephonyHelper = new MocksHelper([
 
 suite('telephony helper', function() {
   var subject;
+  var realMozSettings;
   var realMozTelephony;
   var realMozMobileConnection;
+  var realMozMobileConnections;
   var realMozL10n;
   var spyConfirmShow;
   var mockTelephony;
@@ -34,19 +37,27 @@ suite('telephony helper', function() {
   suiteSetup(function() {
     subject = TelephonyHelper;
 
+    realMozSettings = navigator.mozSettings;
+    navigator.mozSettings = MockNavigatorSettings;
+
     realMozTelephony = navigator.mozTelephony;
     navigator.mozTelephony = MockMozTelephony;
 
     realMozMobileConnection = navigator.mozMobileConnection;
     navigator.mozMobileConnection = MockMozMobileConnection;
 
+    realMozMobileConnections = navigator.mozMobileConnections;
+    navigator.mozMobileConnections = [];
+
     realMozL10n = navigator.mozL10n;
     navigator.mozL10n = MockMozL10n;
   });
 
   suiteTeardown(function() {
+    navigator.mozSettings = realMozSettings;
     navigator.mozTelephony = realMozTelephony;
     navigator.mozMobileConnection = realMozMobileConnection;
+    navigator.mozMobileConnections = realMozMobileConnections;
     navigator.mozL10n = realMozL10n;
   });
 
@@ -58,6 +69,7 @@ suite('telephony helper', function() {
   teardown(function() {
     MockMozMobileConnection.mTeardown();
     MockMozTelephony.mTeardown();
+    MockNavigatorSettings.mTeardown();
   });
 
   function createCallError(name) {
@@ -288,5 +300,63 @@ suite('telephony helper', function() {
     subject.call('123');
     assert.isTrue(spyConfirmShow.calledWith('unableToCallTitle',
                                             'unableToCallMessage'));
+  });
+
+  suite('DSDS >', function() {
+    setup(function() {
+      navigator.mozMobileConnection = undefined;
+    });
+
+    suite('Only one SIM inserted >', function() {
+      setup(function() {
+        navigator.mozMobileConnections = [MockMozMobileConnection];
+      });
+
+      test('should check the connection on the only sim card', function() {
+        this.sinon.spy(MockNavigatorSettings, 'createLock');
+        var dialNumber = '0145345520';
+        mockTelephony.expects('dial').withArgs('0145345520');
+        subject.call(dialNumber);
+        mockTelephony.verify();
+
+        MockMozMobileConnection.voice.emergencyCallsOnly = true;
+        var dialNumber = '112';
+        mockTelephony.expects('dialEmergency').withArgs('112');
+        subject.call(dialNumber);
+        mockTelephony.verify();
+
+        assert.isTrue(MockNavigatorSettings.createLock.notCalled);
+      });
+    });
+
+    suite('2 SIMs >', function() {
+      setup(function() {
+        navigator.mozMobileConnections =
+          [this.sinon.stub(), MockMozMobileConnection];
+        MockNavigatorSettings.mSyncRepliesOnly = true;
+        MockNavigatorSettings.createLock().set(
+          { 'ril.telephony.defaultServiceId': 1 }
+        );
+      });
+
+      teardown(function() {
+        MockNavigatorSettings.mSyncRepliesOnly = false;
+      });
+
+      test('should check the connection on the primary sim card', function() {
+        var dialNumber = '0145345520';
+        mockTelephony.expects('dial').withArgs('0145345520');
+        subject.call(dialNumber);
+        MockNavigatorSettings.mReplyToRequests();
+        mockTelephony.verify();
+
+        MockMozMobileConnection.voice.emergencyCallsOnly = true;
+        var dialNumber = '112';
+        mockTelephony.expects('dialEmergency').withArgs('112');
+        subject.call(dialNumber);
+        MockNavigatorSettings.mReplyToRequests();
+        mockTelephony.verify();
+      });
+    });
   });
 });
