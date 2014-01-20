@@ -74,12 +74,14 @@ class Camera(Base):
 
     def tap_capture(self):
         self.wait_for_camera_ready()
+        self.wait_for_element_displayed(*self._capture_button_locator)
         self.marionette.find_element(*self._capture_button_locator).tap()
 
     def tap_select_button(self):
         self.marionette.find_element(*self._select_button_locator).tap()
 
     def tap_switch_source(self):
+        self.wait_for_element_displayed(*self._switch_button_locator)
         self.marionette.find_element(*self._switch_button_locator).tap()
         self.wait_for_capture_ready()
 
