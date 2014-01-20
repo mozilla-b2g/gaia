@@ -12,6 +12,7 @@ class System(Base):
     _status_bar_locator = (By.ID, 'statusbar')
     _status_bar_notification_locator = (By.ID, 'statusbar-notification')
     _geoloc_statusbar_locator = (By.ID, 'statusbar-geolocation')
+    _airplane_mode_statusbar_locator = (By.ID, 'statusbar-flight-mode')
 
     _notification_toaster_locator = (By.ID, 'notification-toaster')
     _update_manager_toaster_locator = (By.ID, 'update-manager-toaster')
@@ -50,3 +51,7 @@ class System(Base):
     @property
     def geolocation_icon_displayed(self):
         return self.marionette.find_element(*self._geoloc_statusbar_locator).is_displayed()
+
+    @property
+    def is_airplane_mode_statusbar_displayed(self):
+        return self.marionette.find_element(*self._airplane_mode_statusbar_locator).is_displayed()
