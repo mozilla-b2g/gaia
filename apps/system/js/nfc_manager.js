@@ -369,7 +369,7 @@ var NfcManager = {
     this._debug('command.techList: ' + command.techList);
     var techList = command.techList;
     var records = null;
-    if (command.records.length > 0) {
+    if (command.records && (command.records.length > 0)) {
       records = command.records;
     } else {
       this._debug('No NDEF Message sent to Technology Discovered');
