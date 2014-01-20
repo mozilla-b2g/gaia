@@ -25,9 +25,9 @@ class TestContacts(GaiaTestCase):
         contacts_app.launch()
         contacts_app.wait_for_contacts()
 
-        contact_details = contacts_app.contact(self.contact['givenName'][0]).tap()
+        contact_details = contacts_app.contact(self.contact['givenName']).tap()
 
-        full_name = ' '.join([self.contact['givenName'][0], self.contact['familyName'][0]])
+        full_name = ' '.join([self.contact['givenName'], self.contact['familyName']])
 
         self.assertEqual(full_name, contact_details.full_name)
 

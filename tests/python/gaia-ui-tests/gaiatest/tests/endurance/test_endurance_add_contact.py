@@ -33,12 +33,12 @@ class TestEnduranceAddContact(GaiaEnduranceTestCase):
         contact['givenName'] = "%02dof%02d" % (self.iteration, self.iterations)
         new_contact_form.type_given_name(contact['givenName'])
         new_contact_form.type_family_name(contact['familyName'])
-        new_contact_form.type_phone(contact['tel'][0]['value'])
-        new_contact_form.type_email(contact['email'][0]['value'])
-        new_contact_form.type_street(contact['adr'][0]['streetAddress'])
-        new_contact_form.type_zip_code(contact['adr'][0]['postalCode'])
-        new_contact_form.type_city(contact['adr'][0]['locality'])
-        new_contact_form.type_country(contact['adr'][0]['countryName'])
+        new_contact_form.type_phone(contact['tel']['value'])
+        new_contact_form.type_email(contact['email']['value'])
+        new_contact_form.type_street(contact['adr']['streetAddress'])
+        new_contact_form.type_zip_code(contact['adr']['postalCode'])
+        new_contact_form.type_city(contact['adr']['locality'])
+        new_contact_form.type_country(contact['adr']['countryName'])
         new_contact_form.type_comment(contact['note'])
 
         # Save new contact

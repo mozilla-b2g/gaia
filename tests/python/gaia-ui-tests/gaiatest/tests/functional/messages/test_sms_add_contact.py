@@ -17,9 +17,9 @@ class TestSmsAddContact(GaiaTestCase):
         _text_message_content = "Automated Test %s" % str(time.time())
 
         # insert contact
-        self.contact = MockContact(tel=[{
-            'type': ['Mobile'],
-            'value': '555%s' % repr(time.time()).replace('.', '')[8:]}])
+        self.contact = MockContact(tel={
+            'type': 'Mobile',
+            'value': '555%s' % repr(time.time()).replace('.', '')[8:]})
         self.data_layer.insert_contact(self.contact)
 
         self.messages = Messages(self.marionette)
@@ -29,14 +29,14 @@ class TestSmsAddContact(GaiaTestCase):
         contacts_app = new_message.tap_add_recipient()
         contacts_app.wait_for_contacts()
 
-        contacts_app.contact(self.contact['givenName'][0]).tap(return_details=False)
+        contacts_app.contact(self.contact['givenName']).tap(return_details=False)
         contacts_app.wait_for_contacts_frame_to_close()
 
         # Now switch to the displayed frame which should be Messages app
         self.apps.switch_to_displayed_app()
 
-        self.assertIn(self.contact['givenName'][0], new_message.first_recipient_name)
-        self.assertEquals(self.contact['tel'][0]['value'], new_message.first_recipient_number_attribute)
+        self.assertIn(self.contact['givenName'], new_message.first_recipient_name)
+        self.assertEquals(self.contact['tel']['value'], new_message.first_recipient_number_attribute)
 
         new_message.type_message(_text_message_content)
         self.assertTrue(new_message.is_send_button_enabled)

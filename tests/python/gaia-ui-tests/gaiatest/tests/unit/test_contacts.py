@@ -8,6 +8,18 @@ from gaiatest.mocks.mock_contact import MockContact
 
 class TestContacts(GaiaTestCase):
 
+    def test_create_mozcontact(self):
+        # Initialize a MockContact with the default properties
+        contact = MockContact()
+
+        # Add a list of object properties - multiple telephone numbers
+        contact['objects'] = [contact['tel'], contact['tel']]
+
+        mozcontact = contact.create_mozcontact()
+        for key in mozcontact.iterkeys():
+            self.assertFalse(contact.is_mozcontact_api_format(contact[key]))
+            self.assertTrue(contact.is_mozcontact_api_format(mozcontact[key]))
+
     def test_and_remove_contact(self):
         self.data_layer.insert_contact(MockContact())
         self.assertEqual(len(self.data_layer.all_contacts), 1)
