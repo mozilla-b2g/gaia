@@ -181,8 +181,6 @@ var exposureSlider = (function() {
     var thumbWidth = parseInt(thumb.clientWidth, 10);
     var offset = bar.offsetLeft + 4;
 
-    // Remember the new exposure value
-    currentExposure = exposure;
     // Convert exposure value to a unit coefficient position of thumb center
     var unitCoef = (exposure + 3) / 6;
 
@@ -197,6 +195,14 @@ var exposureSlider = (function() {
 
     // Display exposure value in thumb
     thumb.textContent = exposure;
+
+    // Don't need to update the currentExposure and dispatch the event if they
+    // are the same.
+    if (currentExposure === exposure) {
+      return;
+    }
+    // Remember the new exposure value
+    currentExposure = exposure;
 
     // Dispatch an event to actually change the image
     slider.dispatchEvent(new Event('change', {bubbles: true}));
