@@ -244,9 +244,24 @@ suite('system/UtilityTray', function() {
         }]
       };
       UtilityTray.onTouchStart(fakeEvt);
+      UtilityTray.shown = false;
+      UtilityTray.active = false;
       UtilityTray.handleEvent(fakeEvt);
       assert.isTrue(rBarRenderStub.calledOnce);
-      assert.isTrue(uHideStub.calledOnce);
+    });
+
+    test('does not render if utility tray not active', function() {
+      fakeEvt = {
+        type: 'touchend',
+        changedTouches: [{
+          pageX: 0
+        }]
+      };
+      UtilityTray.onTouchStart(fakeEvt);
+      UtilityTray.shown = false;
+      UtilityTray.active = true;
+      UtilityTray.handleEvent(fakeEvt);
+      assert.isTrue(rBarRenderStub.notCalled);
     });
 
     test('should not show if we touch to the right', function() {

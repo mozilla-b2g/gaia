@@ -99,7 +99,7 @@ var UtilityTray = {
 
       case 'touchend':
         var touch = evt.changedTouches[0];
-        if (!this.shown &&
+        if (!this.active && !this.shown &&
             touch.pageX < this.screenWidth * Rocketbar.triggerWidth) {
           Rocketbar.render(true);
         }
@@ -143,6 +143,9 @@ var UtilityTray = {
   },
 
   onTouchMove: function ut_onTouchMove(touch) {
+    if (!this.active)
+      return;
+
     var screenHeight = this.screenHeight;
 
     var y = touch.pageY;
