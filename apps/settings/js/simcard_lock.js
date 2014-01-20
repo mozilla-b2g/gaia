@@ -120,6 +120,7 @@
       var target = evt.target;
       var cardIndex = target.dataset && target.dataset.simIndex;
       var type = target.dataset && target.dataset.type;
+      var self = this;
 
       switch (type) {
         case 'checkSimPin':
@@ -130,7 +131,26 @@
           // TODO:
           // remember to update SimPinDialog for DSDS structure
           this.simPinDialog.show('change_pin', {
-            cardIndex: cardIndex
+            cardIndex: cardIndex,
+            // show toast after user successfully change pin
+            onsuccess: function toastOnSuccess() {
+              var toast;
+              if (self.isSingleSim()) {
+                toast = {
+                  messageL10nId: 'simPinChangedSuccessfully',
+                  latency: 3000,
+                  useTransition: true
+                };
+              } else {
+                toast = {
+                  messageL10nId: 'simPinChangedSuccessfullyWithIndex',
+                  messageL10nArgs: {'index': cardIndex + 1},
+                  latency: 3000,
+                  useTransition: true
+                };
+              }
+              Toaster.showToast(toast);
+            }
           });
           break;
       }
