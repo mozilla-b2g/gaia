@@ -323,14 +323,30 @@ var icc_worker = {
   // STK_CMD_SET_UP_MENU
   '0x25': function STK_CMD_SET_UP_MENU(message) {
     DUMP('STK_CMD_SET_UP_MENU:', message.command.options);
-    var reqApplications = window.navigator.mozSettings.createLock().set({
-      'icc.applications': JSON.stringify(message.command.options)
-    });
-    reqApplications.onsuccess = function icc_getApplications() {
-      DUMP('Cached');
-      icc.responseSTKCommand(message, {
-        resultCode: icc._iccManager.STK_RESULT_OK
+    var settings = window.navigator.mozSettings;
+
+    var reqCurrentApplications = settings.createLock().get('icc.applications');
+    reqCurrentApplications.onsuccess = function icc_getCurrentApplications() {
+      var json = reqCurrentApplications.result['icc.applications'];
+      var menu = json && JSON.parse(json);
+
+      // With test/fake commands: No SIM detected; we set it as SIM 0
+      menu[icc.getSIMNumber(message.iccId) || 0] = {
+        iccId: message.iccId,
+        entries: message.command.options
+      };
+
+      // Update menu cache
+      var reqApplications = settings.createLock().set({
+        'icc.applications': JSON.stringify(menu)
       });
+      reqApplications.onsuccess = function icc_getApplications() {
+        DUMP('STK: Cached - ', menu);
+        icc.responseSTKCommand(message, {
+          resultCode: icc._iccManager.STK_RESULT_OK
+        });
+      };
+
     };
   },
 
