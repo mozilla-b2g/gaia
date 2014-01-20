@@ -163,7 +163,8 @@
 
   AppWindow.prototype.isActive = function aw_isActive() {
     if (this._transitionState) {
-      return (this._transitionState == 'opened');
+      return (this._transitionState == 'opened' ||
+              this._transitionState == 'opening');
     } else {
       // Fallback
       return (this._visibilityState == 'foreground' ||
