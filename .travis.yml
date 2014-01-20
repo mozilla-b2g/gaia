@@ -11,12 +11,106 @@ branches:
   - master
 env:
   matrix:
-  - CI_ACTION=gjslint
-  - CI_ACTION=test_agent
-  - CI_ACTION=marionette_js
-  - CI_ACTION=gaia_ui_tests
-  - CI_ACTION=build_tests
-  - CI_ACTION=jshint
+  - CI_ACTION=marionette_js TRY=1
+  - CI_ACTION=marionette_js TRY=2
+  - CI_ACTION=marionette_js TRY=3
+  - CI_ACTION=marionette_js TRY=4
+  - CI_ACTION=marionette_js TRY=5
+  - CI_ACTION=marionette_js TRY=6
+  - CI_ACTION=marionette_js TRY=7
+  - CI_ACTION=marionette_js TRY=8
+  - CI_ACTION=marionette_js TRY=9
+  - CI_ACTION=marionette_js TRY=10
+  - CI_ACTION=marionette_js TRY=11
+  - CI_ACTION=marionette_js TRY=12
+  - CI_ACTION=marionette_js TRY=13
+  - CI_ACTION=marionette_js TRY=14
+  - CI_ACTION=marionette_js TRY=15
+  - CI_ACTION=marionette_js TRY=16
+  - CI_ACTION=marionette_js TRY=17
+  - CI_ACTION=marionette_js TRY=18
+  - CI_ACTION=marionette_js TRY=19
+  - CI_ACTION=marionette_js TRY=20
+  - CI_ACTION=marionette_js TRY=21
+  - CI_ACTION=marionette_js TRY=22
+  - CI_ACTION=marionette_js TRY=23
+  - CI_ACTION=marionette_js TRY=24
+  - CI_ACTION=marionette_js TRY=25
+  - CI_ACTION=marionette_js TRY=26
+  - CI_ACTION=marionette_js TRY=27
+  - CI_ACTION=marionette_js TRY=28
+  - CI_ACTION=marionette_js TRY=29
+  - CI_ACTION=marionette_js TRY=30
+  - CI_ACTION=marionette_js TRY=31
+  - CI_ACTION=marionette_js TRY=32
+  - CI_ACTION=marionette_js TRY=33
+  - CI_ACTION=marionette_js TRY=34
+  - CI_ACTION=marionette_js TRY=35
+  - CI_ACTION=marionette_js TRY=36
+  - CI_ACTION=marionette_js TRY=37
+  - CI_ACTION=marionette_js TRY=38
+  - CI_ACTION=marionette_js TRY=39
+  - CI_ACTION=marionette_js TRY=40
+  - CI_ACTION=marionette_js TRY=41
+  - CI_ACTION=marionette_js TRY=42
+  - CI_ACTION=marionette_js TRY=43
+  - CI_ACTION=marionette_js TRY=44
+  - CI_ACTION=marionette_js TRY=45
+  - CI_ACTION=marionette_js TRY=46
+  - CI_ACTION=marionette_js TRY=47
+  - CI_ACTION=marionette_js TRY=48
+  - CI_ACTION=marionette_js TRY=49
+  - CI_ACTION=marionette_js TRY=50
+  - CI_ACTION=marionette_js TRY=51
+  - CI_ACTION=marionette_js TRY=52
+  - CI_ACTION=marionette_js TRY=53
+  - CI_ACTION=marionette_js TRY=54
+  - CI_ACTION=marionette_js TRY=55
+  - CI_ACTION=marionette_js TRY=56
+  - CI_ACTION=marionette_js TRY=57
+  - CI_ACTION=marionette_js TRY=58
+  - CI_ACTION=marionette_js TRY=59
+  - CI_ACTION=marionette_js TRY=60
+  - CI_ACTION=marionette_js TRY=61
+  - CI_ACTION=marionette_js TRY=62
+  - CI_ACTION=marionette_js TRY=63
+  - CI_ACTION=marionette_js TRY=64
+  - CI_ACTION=marionette_js TRY=65
+  - CI_ACTION=marionette_js TRY=66
+  - CI_ACTION=marionette_js TRY=67
+  - CI_ACTION=marionette_js TRY=68
+  - CI_ACTION=marionette_js TRY=69
+  - CI_ACTION=marionette_js TRY=70
+  - CI_ACTION=marionette_js TRY=71
+  - CI_ACTION=marionette_js TRY=72
+  - CI_ACTION=marionette_js TRY=73
+  - CI_ACTION=marionette_js TRY=74
+  - CI_ACTION=marionette_js TRY=75
+  - CI_ACTION=marionette_js TRY=76
+  - CI_ACTION=marionette_js TRY=77
+  - CI_ACTION=marionette_js TRY=78
+  - CI_ACTION=marionette_js TRY=79
+  - CI_ACTION=marionette_js TRY=80
+  - CI_ACTION=marionette_js TRY=81
+  - CI_ACTION=marionette_js TRY=82
+  - CI_ACTION=marionette_js TRY=83
+  - CI_ACTION=marionette_js TRY=84
+  - CI_ACTION=marionette_js TRY=85
+  - CI_ACTION=marionette_js TRY=86
+  - CI_ACTION=marionette_js TRY=87
+  - CI_ACTION=marionette_js TRY=88
+  - CI_ACTION=marionette_js TRY=89
+  - CI_ACTION=marionette_js TRY=90
+  - CI_ACTION=marionette_js TRY=91
+  - CI_ACTION=marionette_js TRY=92
+  - CI_ACTION=marionette_js TRY=93
+  - CI_ACTION=marionette_js TRY=94
+  - CI_ACTION=marionette_js TRY=95
+  - CI_ACTION=marionette_js TRY=96
+  - CI_ACTION=marionette_js TRY=97
+  - CI_ACTION=marionette_js TRY=98
+  - CI_ACTION=marionette_js TRY=99
+  - CI_ACTION=marionette_js TRY=100
   global:
   - ARTIFACTS_S3_BUCKET=mozilla-releng-travis-uploads
   - secure: Gf2qm+xhLRTotuIvDD7HrNRmng3/dctGdsgF5P4aEu3nDujfxtZTp4sGirTqIngbfVzh9WkJ9eoT0yaDXtvWkr40Df6vwAUyI3P1x+NBOa2CkLz7U+f9j1yaJ3pJ121+L3o+7eTzJy/mvXHJYXAfa7rxcmjrCHpH5BSm+9/OZ4s=
