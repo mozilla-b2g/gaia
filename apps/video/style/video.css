@@ -226,6 +226,7 @@ span.line-break {
   top: 0;
   left: 0;
   transform-origin: 0 0;
+  z-index: 10;
 }
 
 /*
@@ -392,7 +393,6 @@ footer {
   left: 0;
   right: 0;
   z-index: 1;
-  box-shadow: 0 -0.2rem 0.5rem rgba(50, 50, 50, 0.75);
 }
 
 #thumbnails-video-button {
@@ -507,48 +507,171 @@ header .icon:after {
    For landscape mode here. Settings for portrait mode is written in
    media query at bottom */
 #videoBar {
-  background: url(images/scroll_bar_bg.png) rgba(0, 0, 0, 0.75) no-repeat 8.5rem center / 100% 2rem;
   position: absolute;
-  overflow: hidden;
-  left: 0;
   right: 0;
   bottom: 4rem;
-  height: 4.5rem;
-  margin: 0;
-  padding: 0;
+  left: 0;
+  height: 4.2rem;
+  font-size: 0;
+  border-bottom: 0.1rem solid rgba(189,189,189, 0.1);
+  background-color: rgba(0,0,0, 0.85);
+  white-space: nowrap;
+  z-index: 10;
 }
 
 #videoBar:last-child {
   bottom: 0;
 }
 
-#play, #play:after {
-  width: 8rem;
-  height: 4.5rem;
+#play,
+#elapsed-text,
+#timeSlider,
+#slider-wrapper,
+#duration-text {
+  display: inline-block;
+  position: relative;
+  line-height: 4.2rem;
+  vertical-align: top;
+}
+
+/* play/pause button */
+#play {
+  width: 6.5rem;
+  height: 4.2rem;
+}
+
+#play:before {
+  content: " ";
+  position: absolute;
+  top: calc(50% - 3.25rem);
+  left: calc(50% - 3.25rem);
+  width: 0;
+  height: 0;
+  border: 3.25rem solid rgba(255,255,255, 0.1);
+  border-radius: 100%;
+  z-index: -1;
+}
+
+#play {
+  position: relative;
+  padding: 0;
+  margin: 0 0 0 0.5rem;
+  border: none;
+  background: none;
+  overflow: hidden;
+  z-index: 20;
+}
+
+#play:after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background-image: url("images/pause.png");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 3rem;
+}
+
+#play:active:before {
+  border-color: #00caf2;
+}
+
+#play.paused:after {
+  background-image: url("images/play.png");
+}
+
+#elapsed-text, #duration-text {
+  color: #ffffff;
+  text-align: right;
+  font-size: 1.4rem;
+}
+
+#elapsed-text {
+  width: 5.2rem;
 }
 
 #duration-text {
-  right: 0;
+  width: 3.2rem;
+  margin-left: 1rem;
+  padding: 0 1rem;
+}
+
+/* time slider */
+#timeSlider {
+  position: relative;
+  width: calc(100% - 6.5rem - 12.4rem);
+  z-index: 10;
 }
 
 #slider-wrapper {
-  position: absolute;
-  top: 0;
-  left: 6.3rem;
-  right: 6.3rem;
-  height: 100%;
+  width: 100%;
+  height: 4.2rem;
 }
 
 #slider-wrapper div {
   position: absolute;
+  left: 1.1rem;
   pointer-events: none;
 }
 
 .progress {
-  height: 0.4rem;
+  height: 0.3rem;
   width: 0%;
   top: 50%;
-  margin-top: -0.2rem;
+  margin-top: -0.1rem;
+}
+
+#elapsedTime {
+  background-color: #00caf2;
+  z-index: 30;
+}
+
+#bufferedTime {
+  background-color: blue;
+  z-index: 20;
+}
+
+#timeBackground {
+  width: 100%;
+  height: 0.1rem;
+  background-color: #a6b4b6;
+  z-index: 10;
+}
+
+#playHead {
+  position: absolute;
+  top: calc(50% - 1.15rem);
+  width: 2.3rem;
+  height: 2.3rem;
+  border: none;
+  background: none;
+  pointer-events: none;
+  z-index: 40;
+}
+
+#playHead:after {
+  content: "";
+  position: absolute;
+  top: calc(50% - 1.15rem);
+  left: calc(50% - 1.15rem);
+  width: 2.3rem;
+  height: 2.3rem;
+  border-radius: 50%;
+  background-color: #fff;
+}
+
+#playHead.active:before {
+  content: "";
+  position: absolute;
+  top: calc(50% - 3.05rem);
+  left: calc(50% - 3.05rem);
+  width: 6.1rem;
+  height: 6.1rem;
+  border-radius: 50%;
+  background-color: #00CAF2;
 }
 
 /* layout changes for pick activity */
@@ -644,99 +767,6 @@ section[role="region"] > header:first-child .icon-back {
   width: 2.3rem;
 }
 
-
-#play {
-  background: url(images/button_bg_normal.png) no-repeat center center / 8rem;
-  position: absolute;
-  border: none;
-  padding: 0;
-  margin: 0;
-  left: 0.5rem;
-  top: 0;
-  z-index: 20;
-}
-
-/* play/pause button */
-#play:active {
-  background-image: url(images/button_bg_pressed.png);
-  background-size: 8rem;
-}
-
-#play:after {
-  background-image: url("images/pause.png");
-  background-position: 2.3rem 0.8rem;
-  background-repeat: no-repeat;
-  background-size: 3rem;
-  content: " ";
-  display: block;
-  position: relative;
-  z-index: 10;
-}
-
-#play.paused:after {
-  background-image: url("images/play.png");
-  background-size: 3rem;
-}
-
-/* time slider */
-#timeSlider {
-  position: absolute;
-  left: 8.5rem;
-  top: 0;
-  right: 0;
-  height: 100%;
-}
-
-#timeSlider span {
-  display: block;
-  width: 5.9rem;
-  position: absolute;
-  color: #A1AFB2;
-  height: 100%;
-  line-height: 4.6rem;
-  text-align: center;
-  font-size: 1.2rem;
-}
-
-#elapsedTime {
-  background: url(images/timeline_filled.png) no-repeat left center / 100% 0.3rem;
-  z-index: 30;
-}
-
-#bufferedTime {
-  background-color: blue;
-  z-index: 20;
-}
-
-#timeBackground {
-  background: url(images/timeline.png) repeat-x left top / 100% 0.3rem;
-  z-index: 10;
-  width: 100%;
-}
-
-/* player head */
-#playHead {
-  -moz-transition: background 1s linear;
-  background: url(images/scrubber.png) no-repeat center center / 100%;
-  margin: -1.1rem 0 0 -1.2rem;
-  position: absolute;
-  pointer-events: none;
-  border: none;
-  display: block;
-  height: 2.4rem;
-  width: 2.7rem;
-  z-index: 100;
-  top: 49%;
-}
-
-#playHead.active {
-  background: url(images/scrubber_pressed.png) no-repeat center center / 100%;
-  width: 8.1rem;
-  height: 4.5rem;
-  margin: -1rem 0 0 -3.93rem;
-  top: 1rem;
-}
-
 /*
  * increase specificity to overwrite confirm.css rules for dialog buttons
  */
@@ -745,39 +775,15 @@ form[role="dialog"][data-type="confirm"] button.hidden {
 }
 
 @media screen and (orientation: portrait) {
-  #play, #play:after {
-    width: 5.6rem;
-  }
-
   li.details {
     width: 8rem;
-  }
-
-  #play {
-    background-image: url(images/portrait/button_bg_normal.png);
-    background-size: 5.6rem;
-  }
-
-  #play:active {
-    background-image: url(images/portrait/button_bg_pressed.png);
-    background-size: 5.6rem;
-  }
-
-  #play:after {
-    background-position: 1.1rem 0.8rem;
-  }
-
-  #timeSlider {
-    left: 6.1rem;
-  }
-
-  #videoBar {
-    background-image: url(images/portrait/scroll_bar_bg.png);
-    background-position: 6.1rem center;
-    background-size: 100% 2.1rem;
   }
 }
 
 
 :focus { outline:none; }
-::-moz-focus-inner { border:0; }
+::-moz-focus-inner {
+  outline: none;
+  border: none;
+  padding: 0;
+}
