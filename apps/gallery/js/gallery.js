@@ -600,13 +600,14 @@ function fileCreated(fileinfo) {
   var thumbnailItem = thumbnailList.addItem(fileinfo);
   var thumbnailElements = document.getElementsByClassName('thumbnail');
 
-  // If the image is smaller than the size of a thumbnail, 
+  // If the image is smaller than the size of a thumbnail,
   // show original image as thumbnail
   if (fileinfo.metadata.smallfile) {
-      for (var i=0; i < thumbnailElements.length; i++) {
+      for (var i = 0; i < thumbnailElements.length; i++) {
           var thumbnailElem = thumbnailElements[i];
           if (thumbnailElem.dataset.filename == fileinfo.name) {
               thumbnailElem.classList.add('thumbnailSmall');
+              break;
           }
       }
   }
