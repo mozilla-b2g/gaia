@@ -49,6 +49,7 @@ body.pick-activity #thumbnails>li:last-child {
   background-image: url(images/tablet_player_mask.png);
   background-repeat: repeat-x;;
   background-size: 100% 8rem;
+  border: 0;
 }
 
 /* player-view of background */
@@ -69,6 +70,10 @@ body.pick-activity #thumbnails>li:last-child {
   z-index: 20;
 }
 
+#play:before {
+  border: 0;
+}
+
 #play:active {
   background: none;
 }
@@ -78,11 +83,8 @@ body.pick-activity #thumbnails>li:last-child {
   background-position: center center;
   background-repeat: no-repeat;
   background-size: 4.6rem;
-  content: " ";
   display: block;
-  position: relative;
   z-index: 10;
-  width: 100%;
 }
 
 #play.paused:after {
@@ -103,6 +105,7 @@ body.pick-activity #thumbnails>li:last-child {
   position: absolute;
   top: 0;
   height: 100%;
+  width: auto;
 }
 
 /* slider text */
@@ -121,6 +124,12 @@ span#elapsed-text {
   width: 6rem;
 }
 
+#duration-text {
+  right: 0;
+  top: 0;
+  padding: 0;
+}
+
 .progress {
   border-radius: 0.2rem;
   height: 0;
@@ -128,7 +137,13 @@ span#elapsed-text {
 
 /* slider */
 #slider-wrapper {
+  top: 0;
   left: 6rem;
+  height: 100%;
+}
+
+#slider-wrapper div{
+  left: 0;
 }
 
 #elapsedTime {
@@ -343,10 +358,15 @@ body.pick-activity #fullscreen-tool-bar {
   .layout-list #timeSlider {
     left: 10rem;
     right: 8rem;
+    width: auto;
   }
 
   .layout-list #slider-wrapper {
+    /* duration text and padding */
     right: 7rem;
+    /* text at left and right are 6rem and 1rem for additional padding between
+     * fullscreen button and duration text */
+    width: calc(100% - 6rem - 7rem);
   }
 
   .layout-list #timeBackground {
@@ -368,6 +388,9 @@ body.pick-activity #fullscreen-tool-bar {
 
   .layout-fullscreen-player #slider-wrapper {
     right: 12rem;
+    /* text at left is 6rem, right is 10rem and additional 2rem for padding
+     * between edge and duration text */
+    width: calc(100% - 6rem - 12rem);
   }
 
   .layout-fullscreen-player #timeBackground {
@@ -555,6 +578,9 @@ body.pick-activity #fullscreen-tool-bar {
 
   .layout-fullscreen-player #slider-wrapper {
     right: 10rem;
+    /* text at left is 6rem, right is 8rem and additional 2rem for padding
+     * between edge and duration text */
+    width: calc(100% - 16rem);
   }
 
   .layout-fullscreen-player #timeBackground {
