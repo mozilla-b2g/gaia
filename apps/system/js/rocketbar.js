@@ -14,23 +14,6 @@ var Rocketbar = {
    */
   triggerWidth: 0.65,
 
-  /**
-   * Minimum swipe to activate the task manager.
-   * This is a % of the total screen height.
-   */
-  swipeThreshold: 0.10,
-
-  /**
-   * Current pointer position of a statusbar swipe.
-   */
-  pointerY: 0,
-
-  /**
-   * Height of the screen.
-   * Currently passed into and populated by the render method.
-   */
-  screenHeight: 0,
-
   searchAppURL: null,
 
   _port: null,
@@ -313,13 +296,12 @@ var Rocketbar = {
 
   /**
    * Renders the rocketbar.
-   * @param {Integer} height of the screen in pixels.
+   * @param {Boolean} isTaskManager, true if we are opening in task manager.
    */
-  render: function(height) {
+  render: function(isTaskManager) {
     if (LockScreen.locked)
       return;
 
-    this.screenHeight = height;
     if (this.shown) {
       return;
     }
@@ -327,7 +309,7 @@ var Rocketbar = {
     var input = this.searchInput;
     input.value = '';
 
-    if (this.pointerY > this.swipeThreshold * this.screenHeight) {
+    if (isTaskManager) {
       this.home = 'tasks';
       window.dispatchEvent(new CustomEvent('taskmanagershow'));
     } else {

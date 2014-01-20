@@ -94,23 +94,14 @@ var UtilityTray = {
         break;
 
       case 'touchmove':
-        var touch = evt.touches[0];
-        if (!this.active) {
-          if (!this.shown &&
-              touch.pageX < this.screenWidth * Rocketbar.triggerWidth) {
-            Rocketbar.pointerY = touch.pageY;
-          }
-          return;
-        }
-
-        this.onTouchMove(touch);
+        this.onTouchMove(evt.touches[0]);
         break;
 
       case 'touchend':
         var touch = evt.changedTouches[0];
         if (!this.shown &&
             touch.pageX < this.screenWidth * Rocketbar.triggerWidth) {
-          Rocketbar.render(this.screenHeight);
+          Rocketbar.render(true);
         }
 
         if (!this.active)
@@ -137,7 +128,6 @@ var UtilityTray = {
     if (!this.shown &&
         touch.pageX < this.screenWidth * Rocketbar.triggerWidth) {
       UtilityTray.hide();
-      Rocketbar.pointerY = touch.pageY;
       return;
     } else {
       window.dispatchEvent(new CustomEvent('taskmanagerhide'));

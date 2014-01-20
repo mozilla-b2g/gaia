@@ -266,7 +266,8 @@ suite('system/Rocketbar', function() {
         Rocketbar.render(100);
         this.sinon.clock.tick();
         assert.equal(false, called);
-        assert.equal(true, focusStub.calledOnce);
+        assert.equal(cardsViewStub.getCall(0).args[0].type, 'taskmanagershow');
+        assert.equal(true, focusStub.notCalled);
         Rocketbar.hide();
       });
     });
