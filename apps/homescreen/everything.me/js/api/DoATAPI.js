@@ -21,6 +21,12 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
       // maximum number of calls to save in the user's cache
       MAX_ITEMS_IN_CACHE = 20,
 
+      MAX_QUERY_LENGTH = {
+        'App': 300,
+        'Search': 128,
+        'Location': 64
+      },
+
       CACHE_EXPIRATION_IN_MINUTES = 24 * 60,
       STORAGE_KEY_CREDS = 'credentials',
       authCookieName = '',
@@ -704,6 +710,12 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
 
       _request;
 
+    // truncate query
+    var nsQueryLength = MAX_QUERY_LENGTH[methodNamespace];
+    if (nsQueryLength && 'query' in params &&
+        params.query.length > nsQueryLength) {
+      params.query = params.query.substr(0, nsQueryLength);
+    }
 
     // init the session (and THEN make the request)
     // if the session expired/non-existent

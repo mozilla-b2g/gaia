@@ -8,23 +8,45 @@
 
     var deviceId = null;
 
-    var self = this;
-
     this.init = function init(config) {
       deviceId = config.deviceId;
 
-      addApiMethod('Apps', 'search');
-      addApiMethod('Search', 'suggestions');
-      addApiMethod('Search', 'bgimage');
+      this.Apps = Apps();
+      this.Search = Search();
     };
 
-    function addApiMethod(service, method) {
-      if (self[service] === undefined) {
-        self[service] = {};
+    function Apps() {
+      var service = 'Apps';
+      var MAX_QUERY_LENGTH = 128;
+
+      function search(options) {
+        var method = 'search';
+
+        if (!!options.query && options.query.length > MAX_QUERY_LENGTH) {
+          options.query = options.query.substr(0, MAX_QUERY_LENGTH);
+        }
+        return apiRequest(service, method, options);
       }
 
-      self[service][method] = function apiMethod(options) {
-        return apiRequest(service + '/' + method, options);
+      return {
+        search: search
+      };
+    }
+
+    function Search() {
+      var service = 'Search';
+
+      function suggestions(options) {
+        return apiRequest(service, 'suggestions', options);
+      }
+
+      function bgimage(options) {
+        return apiRequest(service, 'bgimage', options);
+      }
+
+      return {
+        suggestions: suggestions,
+        bgimage: bgimage
       };
     }
 
@@ -33,7 +55,8 @@
      * Returns a promise which will be resolved/reject on success/error
      * respectively
      */
-    function apiRequest(resource, options) {
+    function apiRequest(service, method, options) {
+      var resource = service + '/' + method;
       var url = API_URL.replace('{resource}', resource);
       var payload = '';
 
