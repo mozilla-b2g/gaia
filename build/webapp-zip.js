@@ -66,9 +66,10 @@ function getCompression(pathInZip, webapp) {
   }
 }
 
-function exclude(path, options, appPath) {
-  var isShared = path.substr(appPath.length+1).indexOf('shared/') === 0;
-  var isTest = path.substr(appPath.length+1).indexOf('test/') === 0;
+function exclude(path, options, appPath, jsExcludeList) {
+  var relativePath = path.substr(appPath.length + 1);
+  var isShared = relativePath.indexOf('shared/') === 0;
+  var isTest = relativePath.indexOf('test/') === 0;
   var file = utils.getFile(path);
 
   // Ignore l10n files if they have been inlined or concatenated
@@ -92,15 +93,24 @@ function exclude(path, options, appPath) {
     return true;
   }
 
+  if (jsExcludeList && jsExcludeList.indexOf(relativePath) !== -1) {
+    return true;
+  }
+
+  if (relativePath.split('/').pop() === utils.JS_EXCLUDE_FILE) {
+    return true;
+  }
+
   return false;
 }
 
 /**
  * Add a file or a directory, recursively, to a zip file
  *
- * @param {nsIZipWriter} zip       zip xpcom instance.
- * @param {String}       pathInZip relative path to use in zip.
- * @param {nsIFile}      file      file xpcom to add.
+ * @param {nsIZipWriter} zip         zip xpcom instance.
+ * @param {String}       pathInZip   relative path to use in zip.
+ * @param {nsIFile}      file        file xpcom to add.
+ * @param {Number}       compression indicating the compression method to use
  */
 function addToZip(zip, pathInZip, file, compression) {
   let suffix = '@' + config.GAIA_DEV_PIXELS_PER_PX + 'x';
@@ -343,8 +353,16 @@ function execute(options) {
     // Add webapp folder to the zip
     debug('# Create zip for: ' + webapp.domain);
     let files = utils.ls(webapp.buildDirectoryFile, true);
+    let jsExcludeList;
+    let jsExcludeFile = webapp.buildDirectoryFile.clone();
+    jsExcludeFile.append(utils.JS_EXCLUDE_FILE);
+    if (jsExcludeFile.exists() && config.GAIA_OPTIMIZE === '1') {
+      jsExcludeList = JSON.parse(utils.getFileContent(jsExcludeFile));
+    }
+
     files.forEach(function(file) {
-      if (!exclude(file.path, options, webapp.buildDirectoryFile.path)) {
+      var rootPath = webapp.buildDirectoryFile.path
+      if (!exclude(file.path, options, rootPath, jsExcludeList)) {
         var pathInZip = file.path.substr(webapp.buildDirectoryFile.path.length);
         var compression = getCompression(pathInZip, webapp);
         addToZip(zip, pathInZip, file, compression);
@@ -511,6 +529,9 @@ function execute(options) {
       }
       var pathInZip = '/shared/js/' + path;
       var compression = getCompression(pathInZip, webapp);
+      if (jsExcludeList && jsExcludeList.indexOf(pathInZip.substr(1)) !== -1) {
+        return;
+      }
       addToZip(zip, pathInZip, file, compression);
     });
 
