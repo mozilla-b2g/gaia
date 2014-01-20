@@ -4,6 +4,9 @@
 'use strict';
 
 (function() {
+  var iccMainHeader = document.getElementById('icc-mainheader');
+  var iccEntries = document.getElementById('icc-entries');
+
   function executeICCCmd(iccCommand) {
     if (!iccCommand)
       return;
@@ -36,19 +39,42 @@
     var lock = settings.createLock();
 
     function showStkEntry(menu) {
-      if (!menu || !menu.items ||
-        (menu.items.length == 1 && menu.items[0] === null)) {
+      DUMP('STK cached menu: ', menu);
+      if (!menu || typeof(menu) !== 'object' || Object.keys(menu).length == 0) {
         DUMP('No STK available - exit');
-        document.getElementById('icc-mainheader').hidden = true;
-        document.getElementById('icc-mainentry').hidden = true;
+        iccMainHeader.hidden = true;
+        iccEntries.hidden = true;
         return;
       }
 
+      // Clean current entries
+      iccEntries.innerHTML = '';
+      iccMainHeader.hidden = true;
+      iccEntries.hidden = true;
+
       // update and show the entry in settings
-      DUMP('STK Main App Menu title: ' + menu.title);
-      document.getElementById('menuItem-icc').textContent = menu.title;
-      document.getElementById('icc-mainheader').hidden = false;
-      document.getElementById('icc-mainentry').hidden = false;
+      Object.keys(menu).forEach(function(SIMNumber) {
+        DUMP('STK Menu for SIM ' + SIMNumber +
+          ' (' + menu[SIMNumber].iccId + ') - ', menu[SIMNumber].entries);
+
+        var li = document.createElement('li');
+        var small = document.createElement('small');
+        small.textContent = 'SIM ' + SIMNumber;
+        small.classList.add('menu-item-desc');
+        li.appendChild(small);
+        var a = document.createElement('a');
+        a.textContent = menu[SIMNumber].entries.title;
+        a.id = 'menuItem-icc-' + menu[SIMNumber].iccId;
+        a.classList.add('menu-item');
+        a.classList.add('menuItem-icc');
+        a.href = '#icc';
+        li.appendChild(a);
+
+        iccEntries.appendChild(li);
+
+        iccMainHeader.hidden = false;
+        iccEntries.hidden = false;
+      });
     }
 
     // Check if SIM card sends an Applications menu
