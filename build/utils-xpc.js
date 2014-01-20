@@ -40,6 +40,15 @@ function getOsType() {
           .getService(Ci.nsIXULRuntime).OS;
 }
 
+function isExternalApp(webapp) {
+  if (!webapp.metaData ||
+    (webapp.metaData && webapp.metaData.external === false)) {
+    return false
+  } else {
+    return true;
+  }
+}
+
 function getFileContent(file) {
   try {
     let fileStream = Cc['@mozilla.org/network/file-input-stream;1']
@@ -730,3 +739,4 @@ exports.writeContentToFile = writeContentToFile;
 exports.processEvents = processEvents;
 exports.readZipManifest = readZipManifest;
 exports.log = log;
+exports.isExternalApp = isExternalApp;

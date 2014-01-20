@@ -103,3 +103,4 @@ exports.writeContentToFile = utils.writeContentToFile;
 exports.processEvents = utils.processEvents;
 exports.log = utils.log;
 exports.getExtension = getExtension;
+exports.isExternalApp = utils.isExternalApp;
