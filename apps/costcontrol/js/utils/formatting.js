@@ -16,7 +16,8 @@ function formatBalance(balance) {
 // Format data using magnitude localization
 // It exepcts a pair with the value and the unit
 function formatData(dataArray) {
-  return _('magnitude', { value: dataArray[0], unit: dataArray[1] });
+  return isNaN(dataArray[0]) ? '' :
+                    _('magnitude', { value: dataArray[0], unit: dataArray[1] });
 }
 
 // Return a fixed point data value in KB/MB/GB
