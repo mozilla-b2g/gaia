@@ -11,39 +11,36 @@ var TelephonyHelper = (function() {
       return;
     }
 
-    // XXX: check bug-926169
-    // this is used to keep all tests passing while introducing multi-sim APIs
-    var conn = window.navigator.mozMobileConnection ||
-               window.navigator.mozMobileConnections &&
-               window.navigator.mozMobileConnections[0];
+    getConnection(function gotConnection(conn) {
+      if (!conn || !conn.voice) {
+        // No voice connection, the call won't make it
+        displayMessage('NoNetwork');
+        return;
+      }
 
-    if (!conn || !conn.voice) {
-      // No voice connection, the call won't make it
-      displayMessage('NoNetwork');
-      return;
-    }
+      var telephony = navigator.mozTelephony;
+      var openLines = telephony.calls.length +
+          (telephony.conferenceGroup.calls.length ? 1 : 0);
+      // User can make call only when there are less than 2 calls by spec.
+      // If the limit reached, return early to prevent holding active call.
+      if (openLines >= 2) {
+        displayMessage('UnableToCall');
+        return;
+      }
 
-    var telephony = navigator.mozTelephony;
-    var openLines = telephony.calls.length +
-        (telephony.conferenceGroup.calls.length ? 1 : 0);
-    // User can make call only when there are less than 2 calls by spec.
-    // If the limit reached, return early to prevent holding active call.
-    if (openLines >= 2) {
-      displayMessage('UnableToCall');
-      return;
-    }
-
-    var activeCall = telephony.active;
-    if (!activeCall) {
-      startDial(sanitizedNumber, oncall, onconnected, ondisconnected, onerror);
-      return;
-    }
-    activeCall.onheld = function activeCallHeld() {
-      delete activeCall.onheld;
-      startDial(
-        sanitizedNumber, oncall, onconnected, ondisconnected, onerror);
-    };
-    activeCall.hold();
+      var activeCall = telephony.active;
+      if (!activeCall) {
+        startDial(
+          conn, sanitizedNumber, oncall, onconnected, ondisconnected, onerror);
+        return;
+      }
+      activeCall.onheld = function activeCallHeld() {
+        delete activeCall.onheld;
+        startDial(
+          conn, sanitizedNumber, oncall, onconnected, ondisconnected, onerror);
+      };
+      activeCall.hold();
+    });
   };
 
   function notifyBusyLine() {
@@ -57,7 +54,9 @@ var TelephonyHelper = (function() {
     TonePlayer.playSequence(sequence);
   };
 
-  function startDial(sanitizedNumber, oncall, connected, disconnected, error) {
+  function startDial(
+    conn, sanitizedNumber, oncall, connected, disconnected, error) {
+
     var telephony = navigator.mozTelephony;
     if (!telephony) {
       return;
@@ -72,12 +71,6 @@ var TelephonyHelper = (function() {
     }
 
     LazyLoader.load('/shared/js/icc_helper.js', function() {
-      // XXX: check bug-926169
-      // this is used to keep all tests passing while introducing multi-sim APIs
-      var conn = window.navigator.mozMobileConnection ||
-                 window.navigator.mozMobileConnections &&
-                 window.navigator.mozMobileConnections[0];
-
       var cardState = IccHelper.cardState;
       var emergencyOnly = conn.voice.emergencyCallsOnly;
       var call;
@@ -135,6 +128,37 @@ var TelephonyHelper = (function() {
   var isValid = function t_isValid(sanitizedNumber) {
     var validExp = /^[0-9#+*]{1,50}$/;
     return validExp.test(sanitizedNumber);
+  };
+
+  var getConnection = function t_getConnection(callback) {
+    var conn = window.navigator.mozMobileConnection;
+    if (conn) {
+      callback(conn);
+      return;
+    }
+
+    var connections = navigator.mozMobileConnections;
+    var settings = navigator.mozSettings;
+    if (!settings || !connections) {
+      callback(null);
+      return;
+    }
+
+    if (connections.length === 1) {
+      callback(connections[0]);
+      return;
+    }
+
+    var req = settings.createLock().get('ril.telephony.defaultServiceId');
+
+    req.onsuccess = function getDefaultServiceId() {
+      var id = req.result['ril.telephony.defaultServiceId'] || 0;
+      callback(connections[id]);
+    };
+
+    req.onerror = function getDefaultServiceIdError() {
+      callback(null);
+    };
   };
 
   var loadConfirm = function t_loadConfirm(cb) {
