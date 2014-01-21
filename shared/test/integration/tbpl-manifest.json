@@ -1,5 +1,6 @@
 {
   "blacklist": [
-    "apps/system/test/marionette/edges_gesture_test.js"
+    "apps/system/test/marionette/edges_gesture_test.js",
+    "apps/system/test/marionette/notification_get_test.js"
   ]
 }
