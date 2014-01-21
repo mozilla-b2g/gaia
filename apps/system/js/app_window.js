@@ -450,6 +450,7 @@
     ['mozbrowserclose', 'mozbrowsererror', 'mozbrowservisibilitychange',
      'mozbrowserloadend', 'mozbrowseractivitydone', 'mozbrowserloadstart',
      'mozbrowsertitlechange', 'mozbrowserlocationchange',
+     'mozbrowsericonchange',
      '_localized', '_swipein', '_swipeout'];
 
   AppWindow.SUB_COMPONENTS = {
@@ -598,6 +599,12 @@
     function aw__handle_mozbrowserlocationchange(evt) {
       this.config.url = evt.detail;
       this.publish('locationchange');
+    };
+
+  AppWindow.prototype._handle_mozbrowsericonchange =
+    function aw__handle_mozbrowsericonchange(evt) {
+      this.config.icon = evt.detail;
+      this.publish('iconchange');
     };
 
   AppWindow.prototype._registerEvents = function aw__registerEvents() {
