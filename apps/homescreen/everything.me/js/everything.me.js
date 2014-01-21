@@ -105,7 +105,7 @@ var EverythingME = {
 
       // load styles required for Collection styling
       LazyLoader.load([
-        'shared/style_unstable/progress_activity.css',
+        'shared/style/progress_activity.css',
         'everything.me/css/common.css',
         'everything.me/modules/Collection/Collection.css',
         document.getElementById('search-page')],
@@ -525,7 +525,7 @@ var EverythingME = {
     var elLoading = document.getElementById('loading-dialog');
 
     LazyLoader.load([
-      'shared/style_unstable/progress_activity.css',
+      'shared/style/progress_activity.css',
       'shared/style/confirm.css',
       elLoading],
       function assetsLoaded() {

@@ -351,7 +351,7 @@ var CallHandler = (function callHandler() {
                      '/dialer/js/mmi_ui.js',
                      '/shared/style/headers.css',
                      '/shared/style/input_areas.css',
-                     '/shared/style_unstable/progress_activity.css',
+                     '/shared/style/progress_activity.css',
                      '/dialer/style/mmi.css'], function() {
 
       if (window.navigator.mozSetMessageHandler) {
