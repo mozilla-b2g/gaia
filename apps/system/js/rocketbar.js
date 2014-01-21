@@ -96,15 +96,6 @@ var Rocketbar = {
         // the current app by swallowing the event.
         e.stopImmediatePropagation();
         return;
-      case 'apptitlechange':
-      case 'applocationchange':
-        // Send a message to the search app to notify if
-        // of updates to places data
-        if (this._port) {
-          this._port.postMessage({
-            action: 'syncPlaces'
-          });
-        }
       default:
         break;
     }
