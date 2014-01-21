@@ -47,6 +47,17 @@ section[role="region"] > header:first-child .icon.icon-attachment {
   background-image: url(images/icons/attachments.png);
 }
 
+/* Override Building Block [Header] first-child hover styles(for v1.3 fixing)
+ * TODO: We will remove this part once Bug 961572 fixing landed in master
+ */
+section[role="region"] > header:first-child > a:not([aria-disabled="true"]):hover:after {
+  background-color: #F97C17 !important;
+}
+
+section[role="region"] > header:first-child > a:not([aria-disabled="true"]):hover:active:after {
+  background-color: #dc6a0e !important;
+}
+
 /* Override Building Block [Imput areas] styles */
 form.bottom[role="search"] {
   z-index: 3;
