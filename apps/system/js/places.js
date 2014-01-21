@@ -18,6 +18,7 @@ var Places = {
   init: function(callback) {
     window.addEventListener('apptitlechange', this);
     window.addEventListener('applocationchange', this);
+    window.addEventListener('appiconchange', this);
 
     navigator.getDataStores(this.STORE_NAME)
       .then(this.initStore.bind(this)).then(callback);
@@ -47,6 +48,9 @@ var Places = {
     case 'applocationchange':
       this.addVisit(evt.detail.config.url);
       break;
+    case 'appiconchange':
+      this.setPlaceIconUri(evt.detail.config.url, evt.detail.config.icon.href);
+      break;
     }
   },
 
@@ -64,11 +68,20 @@ var Places = {
   },
 
   incrementPlaceFrecency: function(url, callback) {
-    this.getPlace(url, (function(err, place) {
-      if (err) { return callback(err); }
+    this.editPlace(url, function(place, cb) {
       place.frecency++;
-      this.updatePlace(url, place, callback);
-    }).bind(this));
+      cb(place);
+    }, callback);
+  },
+
+  editPlace: function(url, fun, callback) {
+    var self = this;
+    this.getPlace(url, function(err, place) {
+      if (err) { return callback(err); }
+      fun(place, function(newPlace) {
+        self.updatePlace(url, newPlace, callback);
+      });
+    });
   },
 
   /**
@@ -141,13 +154,23 @@ var Places = {
    * @param {Function} callback Function to call on success.
    */
   setPlaceTitle: function(url, title, callback) {
-    this.getPlace(url, (function(err, place) {
-      if (err) {
-        if (callback) { callback(err); }
-        return;
-      }
+    this.editPlace(url, function(place, cb) {
       place.title = title;
-      this.updatePlace(url, place, callback);
-    }).bind(this));
+      cb(place);
+    }, callback);
+  },
+
+  /**
+   * Set place icon.
+   *
+   * @param {String} url URL of place to update.
+   * @param {String} iconUri URL of the icon for url
+   * @param {Function} callback Function to call on completion.
+   */
+  setPlaceIconUri: function(url, iconUri, callback) {
+    this.editPlace(url, function(place, cb) {
+      place.iconUri = iconUri;
+      cb(place);
+    }, callback);
   }
 };
