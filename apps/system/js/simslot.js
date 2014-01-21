@@ -19,8 +19,19 @@
   window.SIMSlot = function SIMSlot(conn, index, card) {
     this.index = index;
     this.conn = conn;
+
+    console.log('[EJ] card >> ', card);
+
     if (card) {
       this.update(card);
+    } else {
+      this.conn.addEventListener('iccchange', function onIccChange() {
+        this.conn.removeEventListener('iccchange', onIccChange);
+        console.log('[EJ] iccchange >> ', this.conn.iccId);
+
+        card = navigator.mozIccManager.getIccById(this.conn.iccId);
+        this.update(card);
+      }.bind(this));
     }
 
     /**
