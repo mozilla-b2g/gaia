@@ -239,6 +239,13 @@ var SimPinDialog = {
   },
 
   onclose: null,
+
+  _visible: false,
+
+  get visible() {
+    return this._visible;
+  },
+
   /**
    * Show the SIM pin dialog
    * @param {Object} slot SIMSlot instance
@@ -256,6 +263,7 @@ var SimPinDialog = {
     window.dispatchEvent(new CustomEvent('simpinshow'));
 
     this.systemDialog.show();
+    this._visible = true;
     this.lockType = 'pin';
     this.handleCardState();
 
@@ -283,6 +291,7 @@ var SimPinDialog = {
       detail: this
     }));
     this.systemDialog.hide(reason);
+    this._visible = false;
   },
 
   skip: function spl_skip() {
