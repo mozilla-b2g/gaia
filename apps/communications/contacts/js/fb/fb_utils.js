@@ -309,43 +309,7 @@ window.fb = fb;
 
             window.addEventListener('message', m_listen);
 
-            var xhr = new XMLHttpRequest({
-              mozSystem: true
-            });
-
-            xhr.open('GET', logoutUrl, true);
-            xhr.responseType = 'json';
-
-            xhr.timeout = TIMEOUT_QUERY;
-
-            xhr.onload = function(e) {
-              if (xhr.status === 200 || xhr.status === 0) {
-                if (!xhr.response || !xhr.response.success) {
-                  window.console.error('FB: Logout unexpected redirect or ' +
-                                       'token expired');
-                }
-                window.asyncStorage.removeItem(STORAGE_KEY);
-                outReq.done();
-              }
-              else {
-                window.console.error('FB: Error executing logout. Status: ',
-                                     xhr.status);
-                outReq.failed(xhr.status.toString());
-              }
-            };
-
-            xhr.ontimeout = function(e) {
-              window.console.error('FB: Timeout!!! while logging out');
-              outReq.failed('Timeout');
-            };
-
-            xhr.onerror = function(e) {
-              window.console.error('FB: Error while logging out',
-                                  JSON.stringify(e));
-              outReq.failed(e.name);
-            };
-
-            xhr.send();
+            window.open(logoutUrl);
           } // if
           else {
             outReq.done();
