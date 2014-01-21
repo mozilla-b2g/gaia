@@ -226,7 +226,7 @@ suite('system/UtilityTray', function() {
       overlayStub = this.sinon
         .stub(UtilityTray.overlay, 'getBoundingClientRect')
         .returns({width: 100, height: 100});
-      rBarRenderStub = this.sinon.stub(Rocketbar, 'render');
+      rBarRenderStub = this.sinon.stub(Rocketbar, 'expand');
       uHideStub = this.sinon.stub(UtilityTray, 'hide');
     });
 

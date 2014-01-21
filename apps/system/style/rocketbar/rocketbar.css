@@ -78,10 +78,11 @@
 #rocketbar-results {
   display: none;
   position: absolute;
-  top: 4rem;
+  top: 2rem;
   left: 0;
   background-color: #353534;
   height: calc(100% - 4rem);
+  padding-top: 2rem;
   width: 100%;
 }
 
@@ -97,4 +98,8 @@
 
 #screen.software-button-enabled #rocketbar-results {
   height: calc(100% - 9rem);
+}
+
+#screen.rocketbar-focus .screenshotView {
+  opacity: 0.5;
 }

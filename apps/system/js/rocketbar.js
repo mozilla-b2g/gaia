@@ -21,7 +21,6 @@ var Rocketbar = {
    * Rocketbar states.
    */
   expanded: false,
-  focused: false,
 
   /**
    * DOM elements.
@@ -33,6 +32,22 @@ var Rocketbar = {
   resetButton: document.getElementById('rocketbar-reset'),
   cancelButton: document.getElementById('rocketbar-cancel'),
   results: document.getElementById('rocketbar-results'),
+
+  _focused: false,
+
+  set focused(val) {
+    if (val) {
+      this.screen.classList.add('rocketbar-focus');
+    } else {
+      this.screen.classList.remove('rocketbar-focus');
+    }
+
+    this._focused = val;
+  },
+
+  get focused() {
+    return this._focused;
+  },
 
   /**
    * Initlialise Rocketbar.
@@ -50,8 +65,9 @@ var Rocketbar = {
     window.addEventListener('appforeground', this.updateTitle.bind(this));
     window.addEventListener('apptitlechange', this.updateTitle.bind(this));
     window.addEventListener('appopened', this.collapse.bind(this));
-    window.addEventListener('cardviewclosed', this);
-    window.addEventListener('cardviewclosedhome', this.collapse.bind(this));
+    window.addEventListener('cardviewclosed', this.cardviewClosed.bind(this));
+    window.addEventListener('cardviewclosedhome',
+      this.cardviewClosedHome.bind(this));
     window.addEventListener('home', this.handleHome.bind(this));
 
     // Events from Rocketbar
@@ -70,6 +86,28 @@ var Rocketbar = {
         'manifest.webapp';
     }.bind(this));
 
+  },
+
+  /**
+   * Called when the card view is closed.
+   * We want to focus on the rocketbar if the last view is closed.
+   */
+  cardviewClosed: function() {
+    if (this.expanded) {
+      this.input.focus();
+    }
+  },
+
+  /**
+   * Stop listeneing for cardviewclosed if we pressed the home button.
+   * This to ensure that we do not focus on the rocketbar on home event.
+   */
+  cardviewClosedHome: function() {
+    window.removeEventListener('cardviewclosed', this);
+    window.setTimeout(function nextTick() {
+      window.addEventListener('cardviewclosed', this);
+    }.bind(this));
+    this.collapse();
   },
 
   /**
@@ -145,15 +183,11 @@ var Rocketbar = {
     }
 
     var detail = e.detail;
-    if (detail.action) {
-      switch (e.type) {
-        case 'hide':
-          this.collapse();
-          return;
-      }
+    if (e.type === 'hide') {
+      this.collapse();
     } else if (detail.input) {
       this.input.value = detail.input;
-      this._port.postMessage({ action: 'change', input: input.value });
+      this._port.postMessage({ action: 'change', input: detail.input });
     }
   },
 
@@ -245,6 +279,10 @@ var Rocketbar = {
    * Update Rocketbar title.
    */
   updateTitle: function(e) {
+    if (e.detail instanceof AppWindow && !e.detail.isActive()) {
+      return;
+    }
+
     if (e && e.detail && e.detail.title) {
       this.input.value = e.detail.title;
     } else {
@@ -273,6 +311,7 @@ var Rocketbar = {
    * Handle Rocketbar text input.
    */
   handleInput: function() {
+    this.hideTaskManager();
     this.updateResetButton();
     this._port.postMessage({
       action: 'change',
@@ -316,7 +355,6 @@ var Rocketbar = {
    */
   handleFocus: function(e) {
     this.input.value = '';
-    this.hideTaskManager();
     this.focused = true;
     this.updateResetButton();
   },
