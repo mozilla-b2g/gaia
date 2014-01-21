@@ -2,7 +2,9 @@
   "name": "Games",
   "role": "collection",
   "provider_id": "207",
-  "apps": [],
+  "apps": [
+    ["external-apps", "marketplace.firefox.com"]
+  ],
   "default_locale": "en-US",
   "icons": {
     "60": "/collections/games/icon.png",
