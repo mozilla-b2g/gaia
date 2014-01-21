@@ -1,0 +1,47 @@
+.sublist {
+  background: url("images/app-texture.png") repeat scroll 50% 50%, rgb(243, 243, 243);
+  margin: 0;
+  padding: 0;
+
+  position: absolute;
+  top: 5rem;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  overflow-y: scroll !important;
+  -moz-user-select: none;
+}
+
+.sublist > li {
+  -moz-box-sizing: border-box;
+
+  padding: 0px 16px;
+  border-top: 1px solid hsla(207,22%,92%,1) !important;
+  border-bottom: 1px solid hsla(223,7%,81%,1) !important;
+
+  font-size: 2rem;
+  font-weight: 600;
+}
+
+.sublist > li > a {
+  outline: none;
+  width: 100%;
+  height: 100% !important;
+  white-space: nowrap;
+
+  display: flex !important;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.sublist li:active {
+  background-color: rgba(0,0,0,0.2);
+}
+
+/* replace build blocks CSS */
+.sublist li:hover:after,
+.sublist li > a:hover:after,
+.sublist li:active:after,
+.sublist li > a:active:after {
+  background-color: transparent !important;
+}

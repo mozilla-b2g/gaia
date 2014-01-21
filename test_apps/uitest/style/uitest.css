@@ -1,11 +1,10 @@
-html, body {
-  height: 100%;
-  padding: 0;
-  margin: 0;
-
+html {
+  font-size: 12px;
 }
 
 body {
+  height: 100%;
+  padding: 0;
   margin: 0;
   width: 100%;
   height: 100%;
@@ -22,7 +21,7 @@ body {
 }
 
 .panel {
-  position: absolute;
+  position: fixed;
   display: block;
   width: 100%;
   height: 100%;
@@ -46,123 +45,40 @@ body.test .test-panel {
   -moz-transform: translateX(0);
 }
 
-.toolbar {
-  -moz-box-sizing: border-box;
-  border-top-left-radius: 8px;
-  border-top-right-radius: 8px;
-  position: absolute;
-
-  height: 3rem;
-
-  top: 0;
-  left: 0;
-  right: 0;
-  margin: 0;
-  padding: 0;
-  border-bottom: solid 3px #9b9b9b;
-  background-color: #fff;
-  background: url("images/app-texture.png") repeat scroll 50% 50%, -moz-linear-gradient(center top , rgb(244, 244, 244), rgb(234, 234, 234)) repeat scroll 0% 0% transparent;
-
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-}
-.toolbar-title {
-  font-size: 1.7rem;
-  font-weight: bold;
-  margin: 0;
-  color: rgb(51, 51, 51);
-  text-overflow: ellipsis;
-  overflow: hidden;
-  white-space: nowrap;
-}
-
-.list {
-  background: url("images/app-texture.png") repeat scroll 50% 50%, rgb(243, 243, 243);
-  margin: 0;
-  padding: 0;
-
-  position: absolute;
-  top: 3rem;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  overflow-y: auto;
-  -moz-user-select: none;
-
-  border-bottom-left-radius: 8px;
-  border-bottom-right-radius: 8px;
-}
-
-.list > li {
-  -moz-box-sizing: border-box;
-
-  padding: 0px 16px;
-  border-top: 1px solid hsla(207,22%,92%,1);
-  border-bottom: 1px solid hsla(223,7%,81%,1);
-
-  font-size: 1.7rem;
-  font-weight: 600;
-}
-
-.list > li > a {
-  outline: none;
-  width: 100%; height: 100%;
-  color: rgb(18, 47, 64);
-  text-decoration: none;
-  white-space: nowrap;
-
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
-.list > li:active {
-  background: hsla(35,100%,50%,.2);
-}
 
 #test-iframe {
   border: none;
   width: 100%;
-  height: calc(100% - 3rem);
-  top: 3rem;
+  height: calc(100% - 5rem);
   background-color: #fff;
-  position: absolute;
 }
-
-#test-panel-back {
-  font-size: 1.5rem;
-  height: 2.5rem;
-}
-
 
 @media (orientation: landscape)
 {
-  .list_and_toolbar {
+  .page {
     position: absolute;
     left: 0rem;
-    right: 3rem; /* tabs are at right, keep some space for it */
+    right: 3.5rem; /* tabs are at right, keep some space for it */
     top: 0rem;
     bottom: 0rem;
   }
   
-  .list > li {
-    height: calc(100% / 5);
+  .sublist > li {
+    height: calc(100% / 5) !important;
   }
 }
 
 @media (orientation: portrait)
 {
-  .list_and_toolbar {
+  .page {
     position: absolute;
     left: 0rem;
     right: 0rem;
     top: 0rem;
-    bottom: 3rem; /* tabs are at bottom, keep some space for it */
+    bottom: 3.5rem; /* tabs are at bottom, keep some space for it */
   }
 
-  .list > li {
-    height: calc(100% / 7);
+  .sublist > li {
+    height: calc(100% / 7) !important;
   }
 }

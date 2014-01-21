@@ -7,6 +7,9 @@
   <!-- We don't need localization in this app -->
   <link rel="stylesheet" type="text/css" href="style/uitest.css">
   <link rel="stylesheet" type="text/css" href="style/tabs.css" >
+  <link rel="stylesheet" type="text/css" href="style/lists.css" >
+  <link rel="stylesheet" type="text/css" href="shared/style/headers.css">
+  <link rel="stylesheet" type="text/css" href="shared/style/lists.css">
   <script type="text/javascript" src="js/uitest.js"></script>
   <!-- <script src="shared/js/mime_mapper.js"></script> -->
   <!-- <script src="shared/js/settings_listener.js"></script> -->
@@ -17,79 +20,91 @@
 </head>
 <body>
   <div class="panel list-panel">
-    <div id="UI-tests" class="list_and_toolbar">
-      <div class="toolbar">
-        <p></p><p class="toolbar-title">UI Tests</p><p></p>
-      </div>
-      <ul class="list">
-        <li><a href="#test=UI/alert">Alert/Prompt</a></li>
-        <li><a href="#test=UI/canvas">Canvas Tag</a></li>
-        <li><a href="#test=UI/contextmenu">Contextmenu</a></li>
-        <li><a href="#test=UI/css_dimension">CSS dimension</a></li>
-        <li><a href="#test=UI/empty">Empty</a></li>
-        <li><a href="#test=UI/fullscreen">mozRequestFullScreen</a></li>
-        <li><a href="#test=UI/fullscreen_controls">Fullscreen Ctr</a></li>
-        <li><a href="#test=UI/keyboard">Keyboard</a></li>
-        <li><a href="#test=UI/newnotification">new Notification()</a></li>
-        <li><a href="#test=UI/notification">mozNotification</a></li>
-        <li><a href="#test=UI/open">window.open</a></li>
-        <li><a href="#test=UI/scrollbar">Scroll bar</a></li>
-        <li><a href="#test=UI/select">Select</a></li>
-      </ul>
+    <div id="UI-tests" class="page">
+      <section role="region">
+        <header>
+          <h1>UI Tests</h1>
+        </header>
+      </section>
+      <section data-type="list">
+        <ul class="sublist">
+          <li><a href="#test=UI/alert">Alert/Prompt</a></li>
+          <li><a href="#test=UI/canvas">Canvas Tag</a></li>
+          <li><a href="#test=UI/contextmenu">Contextmenu</a></li>
+          <li><a href="#test=UI/css_dimension">CSS dimension</a></li>
+          <li><a href="#test=UI/empty">Empty</a></li>
+          <li><a href="#test=UI/fullscreen">mozRequestFullScreen</a></li>
+          <li><a href="#test=UI/fullscreen_controls">Fullscreen Ctr</a></li>
+          <li><a href="#test=UI/keyboard">Keyboard</a></li>
+          <li><a href="#test=UI/newnotification">new Notification()</a></li>
+          <li><a href="#test=UI/notification">mozNotification</a></li>
+          <li><a href="#test=UI/open">window.open</a></li>
+          <li><a href="#test=UI/scrollbar">Scroll bar</a></li>
+          <li><a href="#test=UI/select">Select</a></li>
+        </ul>
+      </section>
     </div>
-    <div id="API-tests" class="list_and_toolbar invisible">
-      <div class="toolbar">
-        <p></p><p class="toolbar-title">API Tests</p><p></p>
-      </div>
-      <ul class="list">
-        <li><a href="#test=API/audiotag">audio tag</a></li>
-        <li><a href="#test=API/browseractivities">Browser Activities</a></li>
-        <li><a href="#test=API/composeemail">Compose Email</a></li>
-        <li><a href="#test=API/contacts">Contacts</a></li>
-        <li><a href="#test=API/csp">CSP Warning</a></li>
-        <li><a href="#test=API/dialnumber">Dial Number</a></li>
-        <li><a href="#test=API/geolocation">Geolocation</a></li>
-        <li><a href="#test=API/getusermedia">getUserMedia</a></li>
-        <li><a href="#test=API/httpauthentication">HTTP Auth</a></li>
-        <li><a href="#test=API/identity">navigator.mozId</a></li>
-        <li><a href="#test=API/identity-get">navigator.mozId.get</a></li>
-        <li><a href="#test=API/inlineactivities">Inline Activities</a></li>
-        <li><a href="#test=API/multiactivities">Multi Activities</a></li>
-        <li><a href="#test=API/openaudio">Open Audio</a></li>
-        <li><a href="#test=API/openvideo">Open Video</a></li>
-        <li><a href="#test=API/orientation">mozLockOrientation</a></li>
-        <li><a href="#test=API/pay">navigator.mozPay</a></li>
-        <li><a href="#test=API/pickphoto">Pick Photo</a></li>
-        <li><a href="#test=API/picktype">Pick Photo/Video</a></li>
-        <li><a href="#test=API/pickvideo">Pick Video</a></li>
-        <li><a href="#test=API/savebookmark">Save bookmark</a></li>
-        <li><a href="#test=API/sendsms">Send SMS</a></li>
-        <li><a href="#test=API/shareimage">Share Image</a></li>
-        <li><a href="#test=API/shareurl">Share URL</a></li>
-        <li><a href="#test=API/viewphoto">View Photo</a></li>
-        <li><a href="#test=API/downloads">Downloads</a></li>
-      </ul>
-    </div>
-    <div id="HW-tests" class="list_and_toolbar invisible">
-      <div class="toolbar">
-        <p></p><p class="toolbar-title">Hardware Tests</p><p></p>
-      </div>
-      <ul class="list">
-        <li><a href="#test=HW/battery">Battery</a></li>
-        <li><a href="#test=HW/bluetooth">Bluetooth</a></li>
-        <li><a href="#test=HW/camera">Camera</a></li>
-        <li><a href="#test=HW/fmradio">FM radio</a></li>
-        <li><a href="#test=HW/headphone">Headphone</a></li>
-        <li><a href="#test=HW/lcd">LCD</a></li>
-        <li><a href="#test=HW/physicalkeys">Physical keys</a></li>
-        <li><a href="#test=HW/radio">Radio information</a></li>
-        <li><a href="#test=HW/ringer">Ringer</a></li>
-        <li><a href="#test=HW/sdcards">SD cards</a></li>
-        <li><a href="#test=HW/sensors">Sensors</a></li>
-        <li><a href="#test=HW/touchscreen">Touch screen</a></li>
-        <li><a href="#test=HW/vibrator">Vibrator</a></li>
-        <li><a href="#test=HW/wifi">Wi-Fi</a></li>
-      </ul>
+    <div id="API-tests" class="page invisible">
+      <section role="region">
+        <header>
+          <h1>API Tests</h1>
+        </header>
+      </section>
+      <section data-type="list">
+        <ul class="sublist">
+          <li><a href="#test=API/audiotag">audio tag</a></li>
+          <li><a href="#test=API/browseractivities">Browser Activities</a></li>
+          <li><a href="#test=API/composeemail">Compose Email</a></li>
+          <li><a href="#test=API/contacts">Contacts</a></li>
+          <li><a href="#test=API/csp">CSP Warning</a></li>
+          <li><a href="#test=API/dialnumber">Dial Number</a></li>
+          <li><a href="#test=API/geolocation">Geolocation</a></li>
+          <li><a href="#test=API/getusermedia">getUserMedia</a></li>
+          <li><a href="#test=API/httpauthentication">HTTP Auth</a></li>
+          <li><a href="#test=API/identity">navigator.mozId</a></li>
+          <li><a href="#test=API/identity-get">navigator.mozId.get</a></li>
+          <li><a href="#test=API/inlineactivities">Inline Activities</a></li>
+          <li><a href="#test=API/multiactivities">Multi Activities</a></li>
+          <li><a href="#test=API/openaudio">Open Audio</a></li>
+          <li><a href="#test=API/openvideo">Open Video</a></li>
+          <li><a href="#test=API/orientation">mozLockOrientation</a></li>
+          <li><a href="#test=API/pay">navigator.mozPay</a></li>
+          <li><a href="#test=API/pickphoto">Pick Photo</a></li>
+          <li><a href="#test=API/picktype">Pick Photo/Video</a></li>
+          <li><a href="#test=API/pickvideo">Pick Video</a></li>
+          <li><a href="#test=API/savebookmark">Save bookmark</a></li>
+          <li><a href="#test=API/sendsms">Send SMS</a></li>
+          <li><a href="#test=API/shareimage">Share Image</a></li>
+          <li><a href="#test=API/shareurl">Share URL</a></li>
+          <li><a href="#test=API/viewphoto">View Photo</a></li>
+          <li><a href="#test=API/downloads">Downloads</a></li>
+        </ul>
+      </section>
+    </div>    
+    <div id="HW-tests" class="page invisible">
+      <section role="region">
+        <header>
+          <h1 class="header-title">HW Tests</h1>
+        </header>
+      </section>
+      <section data-type="list">
+        <ul class="sublist">
+          <li><a href="#test=HW/battery">Battery</a></li>
+          <li><a href="#test=HW/bluetooth">Bluetooth</a></li>
+          <li><a href="#test=HW/camera">Camera</a></li>
+          <li><a href="#test=HW/fmradio">FM radio</a></li>
+          <li><a href="#test=HW/headphone">Headphone</a></li>
+          <li><a href="#test=HW/lcd">LCD</a></li>
+          <li><a href="#test=HW/physicalkeys">Physical keys</a></li>
+          <li><a href="#test=HW/radio">Radio information</a></li>
+          <li><a href="#test=HW/ringer">Ringer</a></li>
+          <li><a href="#test=HW/sdcards">SD cards</a></li>
+          <li><a href="#test=HW/sensors">Sensors</a></li>
+          <li><a href="#test=HW/touchscreen">Touch screen</a></li>
+          <li><a href="#test=HW/vibrator">Vibrator</a></li>
+          <li><a href="#test=HW/wifi">Wi-Fi</a></li>
+        </ul>
+      </section>
     </div>
     <div id="tabs" class="tabs">
       <ul role="tablist" data-items="3">
@@ -109,11 +124,12 @@
     </div>
   </div>
   <div id="test-panel" class="panel test-panel">
-    <div class="toolbar">
-      <button id="test-panel-back">back</button>
-      <p id="test-panel-title" class="toolbar-title"></p>
-      <p></p>
-    </div>
+    <section role="region">
+      <header>
+        <button id="test-panel-back"><span class="icon icon-back">back</span></button>
+        <h1 id="test-panel-title" class="header-title"></h1>
+      </header>
+    </section>
     <iframe id="test-iframe" mozallowfullscreen="true"></iframe>
   </div>
 </body>

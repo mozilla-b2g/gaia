@@ -6,7 +6,7 @@
 {
   [role="tablist"] {
     right: 0;
-    width: 3rem;
+    width: 3.5rem;
     height: 100%;
   }
 
@@ -21,7 +21,7 @@
   [role="tablist"] {
     bottom: 0;
     width: 100%;
-    height: 3rem;
+    height: 3.5rem;
   }
 
   [role="tablist"] > [role="tab"] {
@@ -45,7 +45,7 @@
 }
 
 [role="tablist"] > [role="tab"] > a {
-  font-size: 1.3rem;
+  font-size: 1.7rem;
   text-decoration: none;
   text-align: center;
   color: #FFF;
