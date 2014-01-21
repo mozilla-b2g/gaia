@@ -641,31 +641,29 @@
   // @param {changeActivityFrame} to denote if needed to change inline
   //                              activity size
   AppWindow.prototype.resize = function aw_resize() {
-    if (this.isActive() || this.isHomescreen) {
-      var keyboardHeight = KeyboardManager.getHeight();
-      var cssWidth = window.innerWidth + 'px';
-      var cssHeight = window.innerHeight -
-                      StatusBar.height -
-                      SoftwareButtonManager.height -
-                      keyboardHeight;
-      if (!keyboardHeight && 'wrapper' in this.frame.dataset) {
-        cssHeight -= 10;
-      }
-      cssHeight += 'px';
-
-      if (!AttentionScreen.isFullyVisible() && !AttentionScreen.isVisible() &&
-          this.isFullScreen() && !this.isHomescreen) {
-        cssHeight = window.innerHeight - keyboardHeight -
-                    SoftwareButtonManager.height + 'px';
-      }
-
-      this.frame.style.width = cssWidth;
-      this.frame.style.height = cssHeight;
-
-      this.publish('resize');
-      this.debug('W:', cssWidth, 'H:', cssHeight);
-      this.resized = true;
+    var keyboardHeight = KeyboardManager.getHeight();
+    var cssWidth = window.innerWidth + 'px';
+    var cssHeight = window.innerHeight -
+                    StatusBar.height -
+                    SoftwareButtonManager.height -
+                    keyboardHeight;
+    if (!keyboardHeight && 'wrapper' in this.frame.dataset) {
+      cssHeight -= 10;
     }
+    cssHeight += 'px';
+
+    if (!AttentionScreen.isFullyVisible() && !AttentionScreen.isVisible() &&
+        this.isFullScreen() && !this.isHomescreen) {
+      cssHeight = window.innerHeight - keyboardHeight -
+                  SoftwareButtonManager.height + 'px';
+    }
+
+    this.frame.style.width = cssWidth;
+    this.frame.style.height = cssHeight;
+
+    this.publish('resize');
+    this.debug('W:', cssWidth, 'H:', cssHeight);
+    this.resized = true;
 
     if (this.activityCallee &&
         this.activityCallee instanceof ActivityWindow) {
