@@ -52,4 +52,17 @@ marionette('Places tests', function() {
     assert.equal(client.findElements(Search.Selectors.firstPlace).length, 1);
   });
 
+  test.skip('Ensure favicon is loaded', function() {
+    var url = server.url('favicon.html');
+    search.doSearch(url + '\uE006');
+    search.waitForBrowserFrame();
+
+    client.waitFor(function() {
+      search.doSearch(url);
+      search.goToResults();
+      var result = client.helper.waitForElement('#places div .favicon');
+      return !result.getAttribute('class').match('empty');
+    });
+  });
+
 });
