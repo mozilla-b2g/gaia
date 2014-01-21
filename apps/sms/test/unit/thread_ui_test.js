@@ -2995,6 +2995,14 @@ suite('thread_ui.js >', function() {
       // Is first element of the menu 'forward'?
       assert.equal(MockOptionMenu.calls[0].items[0].l10nId, 'forward');
     });
+    test(' "long-press" on bubble shows a menu with delete option',
+      function() {
+      // Dispatch custom event for testing long press
+      link.dispatchEvent(contextMenuEvent);
+      assert.ok(MockOptionMenu.calls.length, 1);
+      // Show menu with 'delete' option
+      assert.equal(MockOptionMenu.calls[0].items[2].l10nId, 'delete');
+    });
   });
 
   suite('Message resending UI', function() {
