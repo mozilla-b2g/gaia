@@ -892,7 +892,7 @@ generateHeightRule() (in ThreadUI/thread_ui.js) will create:
   -moz-box-sizing: border-box;
        box-sizing: border-box;
   max-width: calc(100% - .5rem);
-  height: 2.2rem;
+  height: 2.4rem;
   border: .1rem solid #4d4d4d;
   padding: 0 0.8rem;
 
