@@ -458,6 +458,13 @@ var Compose = (function() {
       return this;
     },
 
+    appendAll: function(items) {
+      items.forEach(function getMulti_attachments(value) {
+        Compose.append(value);
+      });
+      return this;
+    },
+
     clear: function() {
       dom.message.innerHTML = '<br>';
       subject.clear();
