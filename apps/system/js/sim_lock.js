@@ -1,3 +1,4 @@
+/* global SIMSlotManager */
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
@@ -13,6 +14,9 @@ var SimLock = {
       return;
 
     this.onClose = this.onClose.bind(this);
+
+    // for bootup special case
+    this.showIfLocked();
 
     // Watch for apps that need a mobile connection
     window.addEventListener('appopened', this);
@@ -184,4 +188,11 @@ var SimLock = {
   }
 };
 
-SimLock.init();
+if (SIMSlotManager.ready) {
+  SimLock.init();
+} else {
+  window.addEventListener('simslotready', function ready() {
+    window.removeEventListener('simslotready', ready);
+    SimLock.init();
+  });
+}

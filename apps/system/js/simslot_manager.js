@@ -13,6 +13,14 @@
      */
     length: 0,
     _instances: [],
+
+    /**
+     * This property is used to make sure sim_lock won't get inited
+     * before we receive iccdetected when bootup.
+     * @type {Boolean}
+     */
+    ready: false,
+
     init: function ssm_init() {
       if (!IccManager)
         return;
@@ -110,8 +118,16 @@
       switch (evt.type) {
         case 'iccdetected':
           var slot = this.getSlotByIccId(evt.iccId);
-          if (slot)
+          if (slot) {
             slot.update(IccManager.getIccById(evt.iccId));
+
+            // this is used to handle the case if `iccdetected`
+            // got emitted slower than `will-unlock`
+            if (!this.ready) {
+              this.ready = true;
+              System.publish('simslotready');
+            }
+          }
           break;
       }
     }
