@@ -309,7 +309,7 @@ button::-moz-focus-inner {
   background: none;
 }
 
-#lockscreen-alt-camera,
+#lockscreen-alt-camera-button,
 #lockscreen-area-camera > div {
   background-image: url('./images/icon-camera.png');
   background-position: center;
@@ -327,6 +327,15 @@ button::-moz-focus-inner {
   pointer-events: auto;
   opacity: 0.1;
   transition: opacity 0.5s ease;
+}
+
+#lockscreen-alt-camera-button {
+  width: 100%;
+  height: 100%;
+
+  border-radius: 50%;
+
+  pointer-events: auto;
 }
 
 [data-panel="emergency-call"] #lockscreen-panel-passcode {

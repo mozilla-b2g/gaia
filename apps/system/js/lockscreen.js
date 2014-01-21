@@ -233,7 +233,7 @@ var LockScreen = {
     this.area.addEventListener('touchstart', this);
     this.areaCamera.addEventListener('click', this);
     this.areaUnlock.addEventListener('click', this);
-    this.altCamera.addEventListener('touchstart', this);
+    this.altCameraButton.addEventListener('click', this);
     this.iconContainer.addEventListener('touchstart', this);
 
     /* Unlock & camera panel clean up */
@@ -404,6 +404,12 @@ var LockScreen = {
           this.handleIconClick(evt.target);
           break;
         }
+
+        if (this.altCameraButton === evt.target) {
+          this.handleIconClick(evt.target);
+          break;
+        }
+
         if (!evt.target.dataset.key)
           break;
 
@@ -419,11 +425,6 @@ var LockScreen = {
           ('success' === this.overlay.dataset.passcodeStatus);
         if (passcodeValid)
           return;
-        if (evt.target === this.altCamera) {
-          evt.preventDefault();
-          this.handleIconClick(evt.target);
-          break;
-        }
 
         var leftTarget = this.areaCamera;
         var rightTarget = this.areaUnlock;
@@ -545,7 +546,7 @@ var LockScreen = {
     var self = this;
     switch (target) {
       case this.areaCamera:
-      case this.altCamera:
+      case this.altCameraButton:
         this._activateCamera();
         break;
       case this.areaUnlock:
