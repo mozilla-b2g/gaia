@@ -112,6 +112,7 @@ var PlayerView = {
     this.nextControl = document.getElementById('player-controls-next');
 
     this.isTouching = false;
+    this.isFastSeeking = false;
     this.playStatus = PLAYSTATUS_STOPPED;
     this.pausedPosition = null;
     this.dataSource = [];
@@ -119,7 +120,6 @@ var PlayerView = {
     this.currentIndex = 0;
     this.setSeekBar(0, 0, 0); // Set 0 to default seek position
     this.intervalID = null;
-    this.isContextmenu = false;
 
     this.view.addEventListener('click', this);
     this.view.addEventListener('contextmenu', this);
@@ -641,7 +641,7 @@ var PlayerView = {
 
   startFastSeeking: function pv_startFastSeeking(direction) {
     // direction can be 1 or -1, 1 means forward and -1 means rewind.
-    this.isTouching = true;
+    this.isTouching = this.isFastSeeking = true;
     var offset = direction * 2;
 
     this.playStatus = direction ? PLAYSTATUS_FWD_SEEK : PLAYSTATUS_REV_SEEK;
@@ -653,7 +653,7 @@ var PlayerView = {
   },
 
   stopFastSeeking: function pv_stopFastSeeking() {
-    this.isTouching = false;
+    this.isTouching = this.isFastSeeking = false;
     if (this.intervalID)
       window.clearInterval(this.intervalID);
 
@@ -758,8 +758,9 @@ var PlayerView = {
 
   handleEvent: function pv_handleEvent(evt) {
     var target = evt.target;
-      if (!target)
-        return;
+    if (!target)
+      return;
+
     switch (evt.type) {
       case 'click':
         switch (target.id) {
@@ -851,11 +852,10 @@ var PlayerView = {
         }
         break;
       case 'touchend':
-        // If isContextmenu is true then the event is trigger by the long press
+        // If isFastSeeking is true then the event is trigger by the long press
         // of the previous or next buttons, so stop the fast seeking.
         // Otherwise, check the target id then do the corresponding actions.
-        if (this.isContextmenu) {
-          this.isContextmenu = false;
+        if (this.isFastSeeking) {
           this.stopFastSeeking();
         } else if (target.id === 'player-seek-bar') {
           this.seekIndicator.classList.remove('highlight');
@@ -871,11 +871,9 @@ var PlayerView = {
         }
         break;
       case 'contextmenu':
-        this.isContextmenu = true;
-
         if (target.id === 'player-controls-next')
           this.startFastSeeking(1);
-        if (target.id === 'player-controls-previous')
+        else if (target.id === 'player-controls-previous')
           this.startFastSeeking(-1);
         break;
       case 'durationchange':
