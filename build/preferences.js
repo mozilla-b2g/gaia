@@ -16,6 +16,7 @@ function execute(options) {
   let homescreen = config.HOMESCREEN +
     (config.GAIA_PORT ? config.GAIA_PORT : '');
   prefs.push(['browser.manifestURL', homescreen + '/manifest.webapp']);
+  prefs.push(['b2g.neterror.url', homescreen + '/net_error.html']);
   if (homescreen.substring(0, 6) == 'app://') { // B2G bug 773884
       homescreen += '/index.html';
   }
