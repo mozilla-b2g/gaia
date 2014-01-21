@@ -255,6 +255,7 @@ var CallHandler = (function callHandler() {
 
     var error = function() {
       shouldCloseCallScreen = true;
+      KeypadManager.updatePhoneNumber(number, 'begin', true);
     };
 
     var oncall = function() {
