@@ -1,17 +1,39 @@
+'use strict';
+
+/* global CallButton, CallHandler, CallLog, MockMozL10n, MockNotificationAPI,
+          MockNotificationObject, MocksHelper */
+
 requireApp('communications/dialer/js/call_log.js');
 requireApp('communications/dialer/js/utils.js');
+requireApp('communications/dialer/test/unit/mock_call_button.js');
+requireApp('communications/dialer/test/unit/mock_call_handler.js');
+requireApp('communications/dialer/test/unit/mock_call_log_db_manager.js');
 requireApp('communications/dialer/test/unit/mock_l10n.js');
-
 requireApp('communications/shared/test/unit/mocks/mock_notification.js');
+requireApp('communications/contacts/test/unit/mock_fixed_header.js');
+requireApp('sms/test/unit/mock_async_storage.js');
+require('/shared/test/unit/mocks/mock_lazy_loader.js');
 
-if (!this.LazyL10n) {
-  this.LazyL10n = null;
+if (!window.LazyL10n) {
+  window.LazyL10n = null;
 }
+
+var mocksHelperForCallLog = new MocksHelper([
+  'CallButton',
+  'CallHandler',
+  'CallLogDBManager',
+  'FixedHeader',
+  'asyncStorage',
+  'LazyLoader',
+  'LazyL10n'
+]).init();
 
 suite('dialer/call_log', function() {
   var realL10n;
   var realCallLogL10n;
   var realNotification;
+
+  mocksHelperForCallLog.attachTestHelpers();
 
   suiteSetup(function() {
     realL10n = navigator.mozL10n;
@@ -30,12 +52,28 @@ suite('dialer/call_log', function() {
 
   var noResult;
   setup(function() {
-    var fakeDOM = ['headerEditModeText', 'deleteButton', 'selectAllThreads',
-                   'deselectAllThreads', 'callLogContainer', 'allFilter',
-                   'missedFilter', 'callLogIconEdit'];
+    var mainNodes = [
+      'all-filter',
+      'call-log-container',
+      'call-log-edit-mode',
+      'call-log-filter',
+      'call-log-icon-close',
+      'call-log-icon-edit',
+      'call-log-view',
+      'deselect-all-threads',
+      'delete-button',
+      'header-edit-mode-text',
+      'missed-filter',
+      'select-all-threads',
+      'call-log-upgrading',
+      'call-log-upgrade-progress',
+      'call-log-upgrade-percent'
+    ];
 
-    fakeDOM.forEach(function(prop) {
-      CallLog[prop] = document.createElement('div');
+    mainNodes.forEach(function(prop) {
+      var fakeNode = document.createElement('div');
+      fakeNode.id = prop;
+      document.body.appendChild(fakeNode);
     });
 
     noResult = document.createElement('div');
@@ -68,8 +106,7 @@ suite('dialer/call_log', function() {
         value: '111222333',
         type: 'Mobile',
         carrier: 'Telefonica'
-      },
-      photo: null
+      }
     }
   };
 
@@ -87,8 +124,7 @@ suite('dialer/call_log', function() {
         value: '111222333',
         type: 'Home',
         carrier: 'Vodafone'
-      },
-      photo: null
+      }
     }
   };
 
@@ -106,8 +142,7 @@ suite('dialer/call_log', function() {
         value: '111222333',
         type: 'Mobile',
         carrier: 'Telefonica'
-      },
-      photo: null
+      }
     }
   };
 
@@ -171,11 +206,6 @@ suite('dialer/call_log', function() {
     var input = label.getElementsByTagName('input');
     assert.ok(input[0], 'Input ok');
     assert.equal(input[0].getAttribute('value'), group.id);
-
-    // Contact photo.
-    var contactPhotoElement = groupDOM.querySelector('.call-log-contact-photo');
-    assert.ok(contactPhotoElement, 'Contact photo element');
-    assert.equal(contactPhotoElement.className, 'call-log-contact-photo');
 
     // Call type.
     if (group.type === 'dialing' || group.type === 'alerting') {
@@ -252,6 +282,11 @@ suite('dialer/call_log', function() {
     if (group.retryCount > 1) {
       assert.equal(retryCount.innerHTML, '(' + group.retryCount + ')');
     }
+
+    // Call button
+    var callButton = groupDOM.querySelector('button.call-button.pack-end');
+    assert.ok(callButton);
+
     callback();
   }
 
@@ -296,6 +331,38 @@ suite('dialer/call_log', function() {
       callback();
     }
   }
+
+  suite('init', function() {
+    setup(function() {
+      this.sinon.spy(CallButton, 'init');
+      CallLog.init();
+    });
+
+    teardown(function() {
+      CallLog._initialized = false;
+    });
+
+    test('CallButton.init', function() {
+      sinon.assert.calledWith(CallButton.init, CallLog.callLogContainer);
+    });
+
+    test('CallButton.init callback', function() {
+      var evt = {
+        target: {
+          parentNode: {
+            dataset: {
+              phoneNumber: 1234
+            }
+          }
+        }
+      };
+
+      this.sinon.spy(CallHandler, 'call');
+      CallButton.init.yield(evt);
+      sinon.assert.calledWith(CallHandler.call,
+                              evt.target.parentNode.dataset.phoneNumber);
+    });
+  });
 
   suite('createGroup', function() {
     test('Incoming call', function(done) {

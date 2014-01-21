@@ -132,9 +132,8 @@ var KeypadManager = {
 
     // The keypad call bar is only included in the normal version and
     // the emergency call version of the keypad.
-    if (this.callBarCallAction) {
-      this.callBarCallAction.addEventListener('click',
-                                              this.makeCall.bind(this));
+    if (this.callBarCallAction && typeof CallButton !== 'undefined') {
+      CallButton.init(this.callBarCallAction, this.makeCall.bind(this));
     }
 
     // The keypad cancel bar is only the emergency call version of the keypad.

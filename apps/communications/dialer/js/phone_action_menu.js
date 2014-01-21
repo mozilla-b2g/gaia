@@ -1,6 +1,6 @@
 var PhoneNumberActionMenu = (function() {
 
-  var _initiated, _newPhoneNumber, _addContactActionMenu, _callMenuItem,
+  var _initiated, _newPhoneNumber, _addContactActionMenu,
     _createNewContactMenuItem, _addToExistingContactMenuItem,
     _cancelActionMenuItem, _addContactActionTitle;
 
@@ -35,14 +35,6 @@ var PhoneNumberActionMenu = (function() {
       var activity = new MozActivity(options);
     } catch (e) {
       console.error('Error while creating activity');
-    }
-    _addContactActionMenu.classList.remove('visible');
-  };
-
-  var _call = function _call() {
-    if (_newPhoneNumber) {
-      _updateLatestVisit();
-      CallHandler.call(_newPhoneNumber);
     }
     _addContactActionMenu.classList.remove('visible');
   };
@@ -116,8 +108,6 @@ var PhoneNumberActionMenu = (function() {
       '#add-contact-action-title');
     _addContactActionMenu = document.getElementById('add-contact-action-menu');
     _addContactActionMenu.addEventListener('submit', _formSubmit);
-    _callMenuItem = document.getElementById('call-menuitem');
-    _callMenuItem.addEventListener('click', _call);
     _sendSmsMenuItem = document.getElementById('send-sms-menuitem');
     _sendSmsMenuItem.addEventListener('click', _sendSms);
     _createNewContactMenuItem = document.getElementById(
@@ -129,7 +119,6 @@ var PhoneNumberActionMenu = (function() {
       _addToExistingContact);
 
     _optionToMenuItem = {
-      'call': _callMenuItem,
       'send-sms': _sendSmsMenuItem,
       'new-contact': _createNewContactMenuItem,
       'add-to-existent': _addToExistingContactMenuItem

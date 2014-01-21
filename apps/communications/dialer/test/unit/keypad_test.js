@@ -1,6 +1,6 @@
-/* globals CallHandler, CallLogDBManager, gTonesFrequencies, KeypadManager,
-           MockCall, MockCallsHandler, MockDialerIndexHtml, MockMozTelephony,
-           MockSettingsListener, MocksHelper, MockTonePlayer,
+/* globals CallButton, CallHandler, CallLogDBManager, gTonesFrequencies,
+           KeypadManager, MockCall, MockCallsHandler, MockDialerIndexHtml,
+           MockMozTelephony, MockSettingsListener, MocksHelper, MockTonePlayer,
            telephonyAddCall */
 
 'use strict';
@@ -10,6 +10,7 @@ requireApp('communications/dialer/js/keypad.js');
 requireApp('communications/dialer/test/unit/mock_lazy_loader.js');
 requireApp('communications/dialer/test/unit/mock_utils.js');
 requireApp('communications/dialer/test/unit/mock_call.js');
+requireApp('communications/dialer/test/unit/mock_call_button.js');
 requireApp('communications/dialer/test/unit/mock_call_handler.js');
 requireApp('communications/dialer/test/unit/mock_call_log_db_manager.js');
 requireApp('communications/dialer/test/unit/mock_calls_handler.js');
@@ -23,6 +24,7 @@ requireApp('communications/dialer/test/unit/mock_dialer_index.html.js');
 var mocksHelperForKeypad = new MocksHelper([
   'LazyLoader',
   'Utils',
+  'CallButton',
   'CallHandler',
   'CallsHandler',
   'CallLogDBManager',
@@ -53,6 +55,24 @@ suite('dialer/keypad', function() {
   });
 
   suite('Keypad Manager', function() {
+    suite('init', function() {
+      setup(function() {
+        this.sinon.spy(CallButton, 'init');
+        this.sinon.spy(KeypadManager, 'makeCall');
+        KeypadManager.init();
+      });
+
+      test('CallButton.init', function() {
+        sinon.assert.calledWith(CallButton.init,
+                                KeypadManager.callBarCallAction);
+      });
+
+      test('foo', function() {
+        CallButton.init.yield();
+        sinon.assert.called(KeypadManager.makeCall);
+      });
+    });
+
     test('sanitizePhoneNumber', function(done) {
       var testCases = {
           '111-111-1111': '111-111-1111',
