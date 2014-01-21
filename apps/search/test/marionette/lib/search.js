@@ -132,9 +132,9 @@ Search.prototype = {
     // this.actions.flick(statusbar, 1, 1, 20, 200).perform();
 
     this.client.waitFor(function() {
-      var location = this.client
-        .findElement(Search.Selectors.searchInput).location();
-      return location.y >= 20;
+      var size = this.client
+        .findElement(Search.Selectors.searchInput).size();
+      return size.height >= 40;
     }.bind(this));
   },
 

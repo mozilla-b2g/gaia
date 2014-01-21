@@ -21,7 +21,6 @@
 }
 
 #search-input {
-  margin-top: 2rem;
   width: calc(100% - 6.5rem);
   border: 0;
   border-radius: 0;
@@ -68,7 +67,7 @@
 
 #search-bar #search-container {
   background: #303030;
-  height: calc(100% - 6rem);
+  height: calc(100% - 4rem);
 }
 
 #search-bar #search-container iframe {
