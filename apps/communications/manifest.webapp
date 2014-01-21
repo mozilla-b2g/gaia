@@ -156,7 +156,7 @@
     {"from": "facebook_dialogs",
     "to": "/redirects/dialogs_end.html"},
     {"from": "facebook_logout",
-    "to": "/redirects/logout.json"},
+    "to": "/redirects/dialogs_end.html"},
     {"from": "live",
     "to": "/redirects/redirect.html"},
     {"from": "gmail",
