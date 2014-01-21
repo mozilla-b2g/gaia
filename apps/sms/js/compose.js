@@ -68,8 +68,9 @@ var Compose = (function() {
 
   // anytime content changes - takes a parameter to check for image resizing
   function onContentChanged(duck) {
-    // if the duck is an image attachment, handle resizes
-    if (duck instanceof Attachment && duck.type === 'img') {
+    // if the duck is an image attachment or boolean value, handle resizes
+    if ((duck instanceof Attachment && duck.type === 'img') ||
+       (typeof duck === 'boolean' && duck)) {
       return imageAttachmentsHandling();
     }
 
@@ -189,11 +190,11 @@ var Compose = (function() {
       if (++done === images) {
         state.resizing = false;
         onContentChanged();
-      }
+      } else
+        resizedImg(imgNodes[done]);
     }
 
-    state.resizing = true;
-    imgNodes.forEach(function(node) {
+    function resizedImg(node) {
       var item = attachments.get(node);
       if (item.blob.size < limit) {
         imageSized();
@@ -212,7 +213,9 @@ var Compose = (function() {
           imageSized();
         });
       }
-    });
+    }
+    state.resizing = true;
+    resizedImg(imgNodes[done]);
     onContentChanged();
   }
 
@@ -437,24 +440,37 @@ var Compose = (function() {
       return this;
     },
 
-    append: function(item) {
-      var fragment = insert(item);
-
-      if (document.activeElement === dom.message) {
-        // insert element at caret position
-        var range = window.getSelection().getRangeAt(0);
-        var firstNodes = fragment.firstChild;
-        range.deleteContents();
-        range.insertNode(fragment);
-        this.scrollToTarget(range);
-        dom.message.focus();
-        range.setStartAfter(firstNodes);
+    append: function(item, ignoreChange) {
+      var containsImage = false;
+      if (Array.isArray(item)) {
+        item.forEach(function(content) {
+          if (content.type === 'img') {
+            containsImage = true;
+          }
+          this.append(content, true);
+        }, this);
+        onContentChanged(containsImage);
       } else {
-        // insert element at the end of the Compose area
-        dom.message.insertBefore(fragment, dom.message.lastChild);
-        this.scrollToTarget(dom.message.lastChild);
+        var fragment = insert(item);
+
+        if (document.activeElement === dom.message) {
+          // insert element at caret position
+          var range = window.getSelection().getRangeAt(0);
+          var firstNodes = fragment.firstChild;
+          range.deleteContents();
+          range.insertNode(fragment);
+          this.scrollToTarget(range);
+          dom.message.focus();
+          range.setStartAfter(firstNodes);
+        } else {
+          // insert element at the end of the Compose area
+          dom.message.insertBefore(fragment, dom.message.lastChild);
+          this.scrollToTarget(dom.message.lastChild);
+        }
+        if (!ignoreChange) {
+          onContentChanged(item);
+        }
       }
-      onContentChanged(item);
       return this;
     },
 
