@@ -10,7 +10,8 @@ var EdgeSwipeDetector = {
     window.addEventListener('appopen', this);
     window.addEventListener('launchapp', this);
 
-    ['touchstart', 'touchmove', 'touchend'].forEach(function(e) {
+    ['touchstart', 'touchmove', 'touchend',
+     'mousedown', 'mousemove', 'mouseup'].forEach(function(e) {
       this.previous.addEventListener(e, this);
       this.next.addEventListener(e, this);
     }, this);
@@ -36,6 +37,24 @@ var EdgeSwipeDetector = {
 
   handleEvent: function esd_handleEvent(e) {
     switch (e.type) {
+      case 'mousedown':
+      case 'mousemove':
+      case 'mouseup':
+        // Preventing gecko reflows
+        e.preventDefault();
+        break;
+      case 'touchstart':
+        e.preventDefault();
+        this._touchStart(e);
+        break;
+      case 'touchmove':
+        e.preventDefault();
+        this._touchMove(e);
+        break;
+      case 'touchend':
+        e.preventDefault();
+        this._touchEnd(e);
+        break;
       case 'appopen':
         this.screen.classList.add('edges');
         break;
@@ -49,15 +68,6 @@ var EdgeSwipeDetector = {
           this._lifecycleEnabled = true;
           this._updateEnabled();
         }
-        break;
-      case 'touchstart':
-        this._touchStart(e);
-        break;
-      case 'touchmove':
-        this._touchMove(e);
-        break;
-      case 'touchend':
-        this._touchEnd(e);
         break;
     }
   },
@@ -90,8 +100,8 @@ var EdgeSwipeDetector = {
     this._iframe = StackManager.getCurrent().iframe;
 
     var touch = e.changedTouches[0];
-    this._startX = touch.screenX;
-    this._startY = touch.screenY;
+    this._startX = touch.clientX;
+    this._startY = touch.clientY;
     this._deltaX = 0;
     this._deltaY = 0;
     this._notSwiping = false;
@@ -110,8 +120,8 @@ var EdgeSwipeDetector = {
 
   _touchMove: function esd_touchMove(e) {
     var touch = e.touches[0];
-    this._deltaX = Math.abs(touch.screenX - this._startX);
-    this._deltaY = Math.abs(touch.screenY - this._startY);
+    this._deltaX = Math.abs(touch.clientX - this._startX);
+    this._deltaY = Math.abs(touch.clientY - this._startY);
     this._progress = this._deltaX / this._winWidth;
 
     if (this._notSwiping) {

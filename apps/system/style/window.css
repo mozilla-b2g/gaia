@@ -1,6 +1,6 @@
 #windows > .appWindow,
 #windows > .activityWindow {
-  position: fixed;
+  position: absolute;
   border: 0;
   margin: 0;
   padding: 0;
@@ -13,6 +13,8 @@
 
   background-repeat: no-repeat;
   background-position: center center;
+
+  transform: translateX(0);
 }
 
 @media not all and (-moz-physical-home-button) {
@@ -121,7 +123,6 @@
 
 .appWindow.invoked {
   animation: invokedApp 0.6s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
-  box-shadow: -1rem 0 rgba(0, 0, 0, 0.7);
 }
 
 .appWindow.invoking {
@@ -371,11 +372,13 @@
 }
 
 /* Edges */
+#screen.edges #windows > .appWindow {
+  box-shadow: -0.5rem 0 rgba(0, 0, 0, 0.5);
+}
+
 #windows > .appWindow.inside-edges {
   opacity: 1;
   transform: translateX(0);
-
-  box-shadow: -1rem 0 rgba(0, 0, 0, 0.7);
 }
 
 #windows > .appWindow.outside-edges-left {
@@ -386,6 +389,4 @@
 #windows > .appWindow.outside-edges-right {
   opacity: 1;
   transform: translateX(calc(100% + 1rem));
-
-  box-shadow: -1rem 0 rgba(0, 0, 0, 0.7);
 }
