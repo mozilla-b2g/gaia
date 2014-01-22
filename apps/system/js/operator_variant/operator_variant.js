@@ -265,6 +265,7 @@
       }
 
       // Change property mane 'type' by 'types'.
+      // Change values for 'authtype' property as the ones that gecko expects.
       for (var l = 0; l < tmpApnSettings.length; l++) {
         var apn = tmpApnSettings[l];
         apn.types = [];
@@ -272,6 +273,9 @@
           apn.types.push(type);
         });
         delete apn.type;
+        if (apn.authtype) {
+          apn.authtype = AUTH_TYPES[apn.authtype] || 'notDefined';
+        }
         apnSettings.push(apn);
       }
 
