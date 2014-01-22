@@ -1,12 +1,15 @@
 'use strict';
 
 requireApp('system/test/unit/mock_app_window.js');
+requireApp('system/test/unit/mock_app_window_manager.js');
+requireApp('system/test/unit/mock_l10n.js');
 requireApp('system/test/unit/mock_rocketbar.js');
 
 mocha.globals(['Title']);
 
 var mocksHelperForTitle = new MocksHelper([
   'AppWindow',
+  'AppWindowManager',
   'Rocketbar'
 ]);
 mocksHelperForTitle.init();
@@ -15,6 +18,9 @@ suite('system/Title', function() {
   var stubById;
   var fakeEvt;
   var fakeElement;
+  var activeAppStub;
+  var realL10n;
+
   mocksHelperForTitle.attachTestHelpers();
 
   var fakeAppConfig = {
@@ -30,15 +36,24 @@ suite('system/Title', function() {
   }
 
   setup(function(done) {
+    realL10n = navigator.mozL10n;
+    navigator.mozL10n = MockL10n;
+
     fakeElement = document.createElement('div');
     fakeElement.style.cssText = 'height: 100px; display: block;';
     stubById = this.sinon.stub(document, 'getElementById')
                           .returns(fakeElement.cloneNode(true));
+    activeAppStub = this.sinon.stub(AppWindowManager, 'getActiveApp')
+                          .returns({
+                            isHomescreen: false
+                          });
     requireApp('system/js/title.js', done);
   });
 
   teardown(function() {
+    navigator.mozL10n = realL10n;
     stubById.restore();
+    activeAppStub.restore();
   });
 
   suite('handleEvent', function() {
@@ -109,6 +124,38 @@ suite('system/Title', function() {
       window.dispatchEvent(new CustomEvent('apptitlechange', {
         detail: detail}));
       check('default');
+    });
+  });
+
+  suite('defaultTitle', function() {
+    test('input will update', function() {
+      Title.content = '';
+      check('');
+
+      activeAppStub.restore();
+      this.sinon.stub(AppWindowManager, 'getActiveApp')
+                          .returns({
+                            isHomescreen: true
+                          });
+
+      Title.defaultTitle();
+
+      // Mock l10n test result
+      check('search');
+    });
+
+    test('if expanded, title does not update', function() {
+      Title.content = '';
+      check('');
+
+      activeAppStub.restore();
+      this.sinon.stub(AppWindowManager, 'getActiveApp')
+                          .returns({
+                            isHomescreen: false
+                          });
+
+      Title.defaultTitle();
+      check('');
     });
   });
 });

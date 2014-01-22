@@ -50,11 +50,6 @@ body, html {
   -moz-user-select: none;
 }
 
-#statusbar-title {
-  float: left;
-  -moz-transition: visibility 0.5s ease, -moz-transform 0.5s ease;
-}
-
 *[dir=rtl] #statusbar-icons > * {
   float: left;
 }
@@ -112,9 +107,13 @@ body, html {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  padding-left: 0.3rem;
+  padding-left: 1.6rem;
   font-size: 1.4rem;
   line-height: 1.7rem;
+  float: left;
+  -moz-transition: visibility 0.5s ease, -moz-transform 0.5s ease;
+  background: url(../rocketbar/search.png) no-repeat top left;
+  background-size: 1.5rem;
 }
 
 #statusbar-time span {
