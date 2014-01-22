@@ -26,18 +26,5 @@
   "browser": true,
   "devel": true,
   "nonstandard": true,
-  "worker": true,
-  "predef": [
-    "suite",
-    "test",
-    "setup",
-    "teardown",
-    "suiteSetup",
-    "suiteTeardown",
-    "assert",
-    "require",
-    "define",
-    "requireApp",
-    "sinon"
-  ]
+  "worker": true
 }
