@@ -876,7 +876,10 @@ suite('message_manager.js >', function() {
         MessageManager.onVisibilityChange();
 
         sinon.assert.calledOnce(ThreadUI.saveDraft);
-        sinon.assert.calledWithMatch(ThreadUI.saveDraft, {preserve: true});
+        sinon.assert.calledWithMatch(
+          ThreadUI.saveDraft,
+          {preserve: true, autoSave: true}
+        );
       });
 
       test('new: has message, has recipients', function() {
@@ -888,7 +891,10 @@ suite('message_manager.js >', function() {
         MessageManager.onVisibilityChange();
 
         sinon.assert.calledOnce(ThreadUI.saveDraft);
-        sinon.assert.calledWithMatch(ThreadUI.saveDraft, {preserve: true});
+        sinon.assert.calledWithMatch(
+          ThreadUI.saveDraft,
+          {preserve: true, autoSave: true}
+        );
       });
 
       test('thread: has message', function() {
@@ -899,7 +905,10 @@ suite('message_manager.js >', function() {
         MessageManager.onVisibilityChange();
 
         sinon.assert.calledOnce(ThreadUI.saveDraft);
-        sinon.assert.calledWithMatch(ThreadUI.saveDraft, {preserve: true});
+        sinon.assert.calledWithMatch(
+          ThreadUI.saveDraft,
+          {preserve: true, autoSave: true}
+        );
       });
     });
 
@@ -914,7 +923,10 @@ suite('message_manager.js >', function() {
         MessageManager.onVisibilityChange();
 
         sinon.assert.calledOnce(ThreadUI.saveDraft);
-        sinon.assert.calledWithMatch(ThreadUI.saveDraft, {preserve: true});
+        sinon.assert.calledWithMatch(
+          ThreadUI.saveDraft,
+          {preserve: true, autoSave: true}
+        );
       });
 
       test('new: no message, has recipients', function() {
@@ -927,7 +939,10 @@ suite('message_manager.js >', function() {
         MessageManager.onVisibilityChange();
 
         sinon.assert.calledOnce(ThreadUI.saveDraft);
-        sinon.assert.calledWithMatch(ThreadUI.saveDraft, {preserve: true});
+        sinon.assert.calledWithMatch(
+          ThreadUI.saveDraft,
+          {preserve: true, autoSave: true}
+        );
       });
     });
 

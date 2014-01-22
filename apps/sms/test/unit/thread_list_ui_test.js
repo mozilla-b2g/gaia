@@ -37,11 +37,13 @@ var mocksHelperForThreadListUI = new MocksHelper([
 
 suite('thread_list_ui', function() {
   var nativeMozL10n = navigator.mozL10n;
+  var draftSavedBanner;
 
   mocksHelperForThreadListUI.attachTestHelpers();
   suiteSetup(function() {
     loadBodyHTML('/index.html');
     navigator.mozL10n = MockL10n;
+    draftSavedBanner = document.getElementById('threads-draft-saved-banner');
     ThreadListUI.init();
   });
 
@@ -865,6 +867,23 @@ suite('thread_list_ui', function() {
     test('click on a draft populates MessageManager.draft', function() {
       document.querySelector('#thread-101 a').click();
       assert.equal(MessageManager.draft, draft);
+    });
+  });
+
+  suite('draftSaved', function() {
+
+    setup(function() {
+      this.sinon.useFakeTimers();
+    });
+
+    test('draft saved banner shown and hidden', function() {
+      assert.isTrue(draftSavedBanner.classList.contains('hide'));
+      ThreadListUI.onDraftSaved();
+      assert.isFalse(draftSavedBanner.classList.contains('hide'));
+      this.sinon.clock.tick(ThreadListUI.DRAFT_SAVED_DURATION -1);
+      assert.isFalse(draftSavedBanner.classList.contains('hide'));
+      this.sinon.clock.tick(1);
+      assert.isTrue(draftSavedBanner.classList.contains('hide'));
     });
   });
 

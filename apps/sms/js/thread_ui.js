@@ -827,7 +827,7 @@ var ThreadUI = global.ThreadUI = {
         // Thread-less drafts are orphaned at this point
         // so they need to be resaved for persistence
         if (!Threads.currentId) {
-          this.saveDraft();
+          this.saveDraft({autoSave: true});
         }
         leave();
         return;
@@ -2610,6 +2610,7 @@ var ThreadUI = global.ThreadUI = {
    *
    * @param {Object} opts Optional parameters for saving a draft.
    *                  - preserve, boolean whether or not to preserve draft.
+   *                  - autoSave, boolean whether this is an auto save.
    */
   saveDraft: function thui_saveDraft(opts) {
     var content, draft, recipients, subject, thread, threadId, type;
@@ -2663,6 +2664,12 @@ var ThreadUI = global.ThreadUI = {
     // not already set and meant to be preserved
     if (!MessageManager.draft && (opts && opts.preserve)) {
       MessageManager.draft = draft;
+    }
+
+    // Show draft saved banner if not an
+    // auto save operation
+    if (!opts || (opts && !opts.autoSave)) {
+      ThreadListUI.onDraftSaved();
     }
   }
 };

@@ -4040,12 +4040,13 @@ suite('thread_ui.js >', function() {
   });
 
   suite('saveDraft() > ', function() {
-    var addSpy, updateSpy, arg;
+    var addSpy, updateSpy, bannerSpy, arg;
 
     setup(function() {
       window.location.hash = '#new';
       addSpy = this.sinon.spy(Drafts, 'add');
       updateSpy = this.sinon.spy(ThreadListUI, 'updateThread');
+      bannerSpy = this.sinon.spy(ThreadListUI, 'onDraftSaved');
 
       ThreadUI.recipients.add({
         number: '999'
@@ -4190,6 +4191,28 @@ suite('thread_ui.js >', function() {
       ThreadUI.saveDraft();
 
       assert.equal(Threads.get(1).unreadCount, 0);
+    });
+
+    test('shows draft saved banner if not autosaved', function() {
+      Threads.set(1, {
+        participants: ['999']
+      });
+      window.location.hash = '#thread=1';
+
+      ThreadUI.saveDraft();
+
+      sinon.assert.calledOnce(bannerSpy);
+    });
+
+    test('does not show draft saved banner if autosaved', function() {
+      Threads.set(1, {
+        participants: ['999']
+      });
+      window.location.hash = '#thread=1';
+
+      ThreadUI.saveDraft({autoSave: true});
+
+      sinon.assert.notCalled(bannerSpy);
     });
   });
 

@@ -112,7 +112,7 @@ var MessageManager = {
       // in the composer.
       if ((hash === '#new' || hash.startsWith('#thread=')) &&
           (!Compose.isEmpty() || ThreadUI.recipients.length)) {
-        ThreadUI.saveDraft({preserve: true});
+        ThreadUI.saveDraft({preserve: true, autoSave: true});
       }
     }
 
