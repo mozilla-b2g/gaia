@@ -1,6 +1,7 @@
 'use strict';
 
 var MockMessageManager = {
+  getThreads: function() {},
   getMessages: function() {},
   getMessage: function() {},
   deleteMessage: function(messageId, callback) {
