@@ -55,7 +55,7 @@
       // and should be used together, so I wrap them inside this
       // method and expose them outside the world to make sure
       // developers will not call them separately.
-      this._set(serviceName)._on(cardIndex);
+      this._set(serviceName)._on(+cardIndex);
     },
     _set: function(serviceName) {
       // cleanup old keys first
