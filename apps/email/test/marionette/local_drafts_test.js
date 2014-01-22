@@ -20,7 +20,7 @@ marionette('go to local drafts page', function() {
 
   // Disable the test because of http://bugzil.la/925961#c36,
   // and we follow up the issue in http://bugzil.la/936328.
-  test('should show the correct email address ' +
+  test.skip('should show the correct email address ' +
        'in a item of mail list', function() {
     const EMAIL_ADDRESS = 'firefox-os-drafts@example.com';
     const EMAIL_SUBJECT = 'I still have a dream';
@@ -53,7 +53,7 @@ marionette('go to local drafts page', function() {
     );
   });
 
-  test('should show correct name in a item of mail list', function() {
+  test.skip('should show correct name in a item of mail list', function() {
     const NAME = 'FireFox OS';
     const EMAIL_ADDRESS = 'firefox-os-drafts@example.com';
     const MAILBOX = NAME + ' <' + EMAIL_ADDRESS + '>';
