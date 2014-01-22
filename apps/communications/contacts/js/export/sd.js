@@ -37,8 +37,16 @@ var ContactsSDExport = function ContactsSDExport() {
     if (contacts && contacts.length === 1) {
       var contact = contacts[0];
       if (hasName(contact)) {
-        filename.push(contact.givenName[0], contact.familyName[0]);
-      } else {
+        if (contact.givenName && contact.givenName.length > 0) {
+          if (contact.familyName && contact.familyName.length > 0) {
+            filename.push(contact.givenName[0], contact.familyName[0]);
+          } else {
+            filename.push(contact.givenName[0]);
+          }
+        } else {
+          filename.push(contact.familyName[0]);
+        }
+       } else {
         if (contact.org && contact.org.length > 0) {
           filename.push(contact.org[0]);
         } else if (contact.tel && contact.tel.length > 0) {
