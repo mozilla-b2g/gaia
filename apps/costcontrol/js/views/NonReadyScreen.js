@@ -24,6 +24,7 @@ NonReadyScreen.prototype.updateForState = function(cardState) {
     case 'absent':
     case 'pinRequired':
     case 'pukRequired':
+    case 'airplaneMode':
       this.setMessageMode(cardState);
     break;
 
@@ -68,6 +69,8 @@ NonReadyScreen.prototype.getMessageIdFor = function(cardState) {
     cardState === 'pukRequired'
   ) {
     message = 'sim-locked';
+  } else if (cardState === 'airplaneMode') {
+    message = 'airplane-mode';
   }
 
   return message;
