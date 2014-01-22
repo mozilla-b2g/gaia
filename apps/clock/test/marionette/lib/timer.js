@@ -103,7 +103,7 @@ function setSpinnerValue(name, val) {
       .flick(target, center.x, center.y, center.x, center.y + dir * flickAmt)
       .perform();
 
-    waitForSpinEnd.call(this, target);
+    waitForSpinStop.call(this, target);
 
     prev = current;
     current = getSpinnerValue.call(this, name);
@@ -117,16 +117,15 @@ function setSpinnerValue(name, val) {
   } while (current !== val);
 }
 
-// Wait until the spinner's inertial motion has disappated before continuing.
-function waitForSpinEnd(target) {
-  var currentY = target.location().y;
-  var lastY;
+// Wait until the spinner's inertial motion has dissipated before continuing.
+function waitForSpinStop(target) {
+  var currentY, lastY;
 
   this.client.waitFor(function() {
     lastY = currentY;
     currentY = target.location().y;
     return currentY === lastY;
-  }.bind(this), { interval: 0 });
+  }, { interval: 200 });
 }
 
 // Used to sort array of numbers in setSpinnerValue
