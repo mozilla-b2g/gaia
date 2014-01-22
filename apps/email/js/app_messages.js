@@ -59,7 +59,7 @@ define(function(require) {
           data.body = typeof urlParts[2] === 'string' ? urlParts[2] : null;
           data.cc = urlParts[3];
           data.bcc = urlParts[4];
-          data.attachmentBlobs = sourceData.blobs;
+          data.attachmentBlobs = sourceData.blobs || [];
           data.attachmentNames = sourceData.filenames || [];
 
           attachmentName.ensureNameList(data.attachmentBlobs,
