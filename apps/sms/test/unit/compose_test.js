@@ -1,10 +1,10 @@
-/*
-  Compose Tests
-*/
-
-/*global MocksHelper, MockAttachment, MockL10n, loadBodyHTML,
+/* global MocksHelper, MockAttachment, MockL10n, loadBodyHTML,
          Compose, Attachment, MockMozActivity, Settings, Utils,
-         AttachmentMenu */
+         AttachmentMenu, Draft, document, XMLHttpRequest, Blob, navigator,
+         setTimeout */
+
+/*jshint strict:false */
+/*jslint node: true */
 
 'use strict';
 
@@ -96,17 +96,29 @@ suite('compose_test.js', function() {
         Compose.clear();
       });
 
-      test('Toggle change the visibility', function() {
+      test('Toggle field', function() {
         assert.isTrue(subject.classList.contains('hide'));
+        // Show
         Compose.toggleSubject();
         assert.isFalse(subject.classList.contains('hide'));
+        // Hide
         Compose.toggleSubject();
         assert.isTrue(subject.classList.contains('hide'));
       });
 
+      test('Get content from subject field', function() {
+        var content = 'Title';
+        subject.value = content;
+        // We need to show the subject to get content
+        Compose.toggleSubject();
+        assert.equal(Compose.getSubject(), content);
+      });
+
       test('Sent subject doesnt have line breaks (spaces instead)', function() {
+        // Set the value
         subject.value = 'Line 1\nLine 2\n\n\n\nLine 3';
-        Compose.toggleSubject(); // we need to show the subject to get content
+        // We need to show the subject to get content
+        Compose.toggleSubject();
         var text = Compose.getSubject();
         assert.equal(text, 'Line 1 Line 2 Line 3');
       });
@@ -345,6 +357,52 @@ suite('compose_test.js', function() {
 
       teardown(function() {
         Compose.clear();
+      });
+    });
+
+    suite('Preload composer fromDraft', function() {
+      var d1, d2, attachment;
+
+      setup(function() {
+        Compose.clear();
+        d1 = new Draft({
+          subject: '...',
+          content: ['I am a draft'],
+          threadId: 1
+        });
+        attachment = mockAttachment();
+        d2 = new Draft({
+          content: ['I have an attachment!', attachment],
+          threadId: 1
+        });
+      });
+      teardown(function() {
+
+        Compose.clear();
+      });
+
+      test('Draft with text', function() {
+        Compose.fromDraft(d1);
+        assert.equal(Compose.getContent(), d1.content.join(''));
+      });
+
+      test('Draft with subject', function() {
+        assert.isFalse(Compose.isSubjectVisible);
+        Compose.fromDraft(d1);
+        assert.equal(Compose.getSubject(), d1.subject);
+        assert.isTrue(Compose.isSubjectVisible);
+      });
+
+      test('Draft without subject', function() {
+        Compose.fromDraft(d2);
+        assert.isFalse(Compose.isSubjectVisible);
+      });
+
+      test('Draft with attachment', function() {
+        Compose.fromDraft(d2);
+        var txt = Compose.getContent();
+        assert.ok(txt, d2.content.join(''));
+        assert.ok(txt[1] instanceof Attachment);
       });
     });
 
