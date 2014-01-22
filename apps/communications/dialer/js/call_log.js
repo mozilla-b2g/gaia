@@ -659,7 +659,9 @@ var CallLog = {
     this.missedFilter.setAttribute('aria-selected', 'false');
 
     var hiddenContainers = document.getElementsByClassName('groupFiltered');
-    for (var i = 0, l = hiddenContainers.length; i < l; i++) {
+    // hiddenContainers is a live list, so let's iterate on the list in the
+    // reverse order.
+    for (var i = (hiddenContainers.length - 1); i >= 0; i--) {
       hiddenContainers[i].classList.remove('groupFiltered');
     }
   },
