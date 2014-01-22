@@ -799,7 +799,8 @@ window.addEventListener('load', function() {
     variant = Gaia.require('variant');
     Homescreen.gaiaConfig = Gaia.config;
     var {getFile, getBuildConfig} = utils;
-    var configs = getBuildConfig(getFile(Gaia.config.GAIA_DIR, 'build').path);
+    var configs = getBuildConfig(getFile(Gaia.config.GAIA_DIR, 'build',
+      'config').path);
     Homescreen.setBuildConfig(configs);
   });
 
