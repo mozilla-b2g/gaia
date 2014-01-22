@@ -14,7 +14,7 @@ require('/shared/js/l10n_date.js');
 require('/shared/js/gesture_detector.js');
 require('/shared/js/async_storage.js');
 
-requireApp('system/test/unit/mock_gesture_detector.js');
+require('/shared/test/unit/mocks/mock_gesture_detector.js');
 requireApp('sms/test/unit/mock_contact.js');
 requireApp('sms/test/unit/mock_l10n.js');
 requireApp('sms/test/unit/mock_time_headers.js');

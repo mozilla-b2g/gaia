@@ -4,7 +4,7 @@
 // Ignore leak, otherwise an error would occur when using MockMozActivity.
 mocha.setup({ignoreLeaks: true});
 
-requireApp('system/test/unit/mock_gesture_detector.js');
+require('/shared/test/unit/mocks/mock_gesture_detector.js');
 requireApp('system/test/unit/mock_screen_layout.js');
 requireApp('system/test/unit/mock_trusted_ui_manager.js');
 requireApp('system/test/unit/mock_utility_tray.js');
