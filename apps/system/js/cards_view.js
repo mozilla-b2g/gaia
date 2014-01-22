@@ -45,6 +45,8 @@ var CardsView = (function() {
 
   var windowWidth = window.innerWidth;
 
+  var lastInTimeCapture;
+
   // init events
   var gd = new GestureDetector(cardsView);
   gd.startDetecting();
@@ -115,7 +117,11 @@ var CardsView = (function() {
   // The second parameter, inRocketbar, determines how to display the
   // cardswitcher inside of the rocketbar. Both modes are necessary until
   // Rocketbar is enabled by default, then this will go away.
-  function showCardSwitcher(inTimeCapture, inRocketbar) {
+  function showCardSwitcher(inRocketbar) {
+
+    var inTimeCapture = lastInTimeCapture;
+    lastInTimeCapture = false;
+
     if (cardSwitcherIsShown())
       return;
 
@@ -928,7 +934,7 @@ var CardsView = (function() {
         break;
 
       case 'taskmanagershow':
-        showCardSwitcher(null, true);
+        showCardSwitcher(true);
         break;
 
       case 'taskmanagerhide':
@@ -942,10 +948,11 @@ var CardsView = (function() {
         SleepMenu.hide();
         var app = AppWindowManager.getActiveApp();
         if (!app) {
-          showCardSwitcher();
+          Rocketbar.render(true);
         } else {
           app.getScreenshot(function onGettingRealtimeScreenshot() {
-            showCardSwitcher(true);
+            lastInTimeCapture = true;
+            Rocketbar.render(true);
           });
         }
         break;
