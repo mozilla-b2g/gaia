@@ -994,7 +994,6 @@ apps/system/js/app_chrome.js
 apps/system/js/app_install_manager.js
 apps/system/js/app_modal_dialog.js
 apps/system/js/app_transition_controller.js
-apps/system/js/app_window.js
 apps/system/js/app_window_factory.js
 apps/system/js/app_window_manager.js
 apps/system/js/applications.js
