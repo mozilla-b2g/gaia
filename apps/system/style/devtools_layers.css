@@ -1,0 +1,24 @@
+.appWindow > .devtools-layer {
+  z-index: 2;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  display: flex;
+
+  flex-wrap: wrap-reverse;
+  align-content: flex-start;
+  justify-content: flex-end;
+}
+
+.appWindow > .devtools-layer > .widget {
+  font-size: 1.8rem;
+  padding: 0 5px;
+  line-height: 30px;
+  height: 30px;
+  min-width: 30px;
+  text-align: center;
+  opacity: 0.8;
+}
