@@ -17,7 +17,7 @@ body, html {
   left: 0;
   background-color: #000;
 
-  padding: 0.2rem 0;
+  padding: 0.2rem 0 0;
   -moz-box-sizing: border-box;
   -moz-user-focus: ignore;
 
@@ -40,21 +40,6 @@ body, html {
   margin: 0 0.2rem;
 }
 
-#statusbar-title {
-  pointer-events: none;
-  flex-grow: 1;
-  flex-shrink: 1;
-  min-width: 33%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  padding-left: 0.3rem;
-}
-
-body:not(.rb-enabled) #statusbar-title {
-  display: none;
-}
-
 #statusbar-icons {
   pointer-events: none;
   flex-grow: 1;
@@ -63,16 +48,6 @@ body:not(.rb-enabled) #statusbar-title {
   max-width: 67%;
   -moz-user-focus: ignore;
   -moz-user-select: none;
-}
-
-body:not(.rb-enabled) #statusbar-icons {
-  max-width: 100%;
-}
-
-#statusbar-title,
-body:not(.rb-enabled) #statusbar-icons > .sb-start {
-  float: left;
-  -moz-transition: visibility 0.5s ease, -moz-transform 0.5s ease;
 }
 
 *[dir=rtl] #statusbar-icons > * {
@@ -122,6 +97,23 @@ body:not(.rb-enabled) #statusbar-icons > .sb-start {
   bottom: 0.1rem;
   color: #fff;
   font-size: 1.49rem; /* 6.5pt */
+}
+
+#statusbar-title {
+  pointer-events: none;
+  flex-grow: 1;
+  flex-shrink: 1;
+  min-width: 33%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding-left: 1.6rem;
+  font-size: 1.4rem;
+  line-height: 1.7rem;
+  float: left;
+  -moz-transition: visibility 0.5s ease, -moz-transform 0.5s ease;
+  background: url(../rocketbar/search.png) no-repeat top left;
+  background-size: 1.5rem;
 }
 
 #statusbar-time span {

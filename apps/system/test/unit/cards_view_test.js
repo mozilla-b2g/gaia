@@ -11,6 +11,7 @@ requireApp('system/test/unit/mock_utility_tray.js');
 requireApp('system/test/unit/mock_app_window_manager.js');
 requireApp('system/test/unit/mock_lock_screen.js');
 requireApp('system/test/unit/mock_orientation_manager.js');
+requireApp('system/test/unit/mock_rocketbar.js');
 requireApp('system/test/unit/mock_sleep_menu.js');
 requireApp('system/test/unit/mock_popup_manager.js');
 
@@ -21,6 +22,7 @@ var mocksForCardsView = new MocksHelper([
   'UtilityTray',
   'AppWindowManager',
   'LockScreen',
+  'Rocketbar',
   'SleepMenu',
   'OrientationManager',
   'PopupManager'
@@ -174,17 +176,21 @@ suite('cards view >', function() {
     });
 
     suite('display cardsview >', function() {
+      var rocketbarRender;
+
       setup(function(done) {
+        rocketbarRender = this.sinon.stub(Rocketbar, 'render');
         sendHoldhome();
         setTimeout(function() { done(); });
       });
 
       teardown(function() {
         CardsView.hideCardSwitcher();
+        rocketbarRender.restore();
       });
 
       test('cardsview should be active', function() {
-        assert.isTrue(cardsView.classList.contains('active'));
+        assert.isTrue(rocketbarRender.calledWith(true));
       });
     });
 
@@ -245,7 +251,7 @@ suite('cards view >', function() {
 
     suite('populated task manager in rocketbar >', function() {
       setup(function(done) {
-        CardsView.showCardSwitcher(null, true);
+        CardsView.showCardSwitcher(true);
         setTimeout(done);
       });
 
@@ -257,7 +263,7 @@ suite('cards view >', function() {
 
       test('removes task-manager class', function() {
         var screen = document.getElementById('screen');
-        CardsView.hideCardSwitcher();
+        CardsView.hideCardSwitcher(true);
         assert.isFalse(screen.classList.contains('task-manager'));
       });
     });
@@ -266,17 +272,18 @@ suite('cards view >', function() {
 
   suite('empty cards view >', function() {
     setup(function(done) {
-      CardsView.showCardSwitcher(null, true);
+      CardsView.showCardSwitcher(true);
       setTimeout(done);
     });
 
-    test('focuses rocketbar input on empty cards view', function() {
+    test('focuses rocketbar input on empty cards view', function(done) {
       var dispatchStub = this.sinon.stub(window, 'dispatchEvent');
-      CardsView.showCardSwitcher(null, true);
-
-      var evt = dispatchStub.getCall(0).args[0];
-      assert.equal(evt.type, 'cardchange');
-      assert.equal(evt.detail.title, '');
+      CardsView.showCardSwitcher(true);
+      setTimeout(function nextTick() {
+        var evt = dispatchStub.getCall(0).args[0];
+        assert.equal(evt.type, 'cardviewclosed');
+        done();
+      });
     });
   });
 });

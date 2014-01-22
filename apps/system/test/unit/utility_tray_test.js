@@ -228,7 +228,6 @@ suite('system/UtilityTray', function() {
         .returns({width: 100, height: 100});
       rBarRenderStub = this.sinon.stub(Rocketbar, 'render');
       uHideStub = this.sinon.stub(UtilityTray, 'hide');
-      Rocketbar.enabled = true;
     });
 
     teardown(function() {
@@ -239,12 +238,30 @@ suite('system/UtilityTray', function() {
 
     test('should display for drag on left half of statusbar', function() {
       fakeEvt = {
-        type: 'touchstart',
-        pageX: 0
+        type: 'touchend',
+        changedTouches: [{
+          pageX: 0
+        }]
       };
       UtilityTray.onTouchStart(fakeEvt);
+      UtilityTray.shown = false;
+      UtilityTray.active = false;
+      UtilityTray.handleEvent(fakeEvt);
       assert.isTrue(rBarRenderStub.calledOnce);
-      assert.isTrue(uHideStub.calledOnce);
+    });
+
+    test('does not render if utility tray not active', function() {
+      fakeEvt = {
+        type: 'touchend',
+        changedTouches: [{
+          pageX: 0
+        }]
+      };
+      UtilityTray.onTouchStart(fakeEvt);
+      UtilityTray.shown = false;
+      UtilityTray.active = true;
+      UtilityTray.handleEvent(fakeEvt);
+      assert.isTrue(rBarRenderStub.notCalled);
     });
 
     test('should not show if we touch to the right', function() {

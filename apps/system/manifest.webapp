@@ -43,7 +43,8 @@
     "input-manage":{},
     "nfc":{ "access": "readonly" },
     "nfc-manager":{},
-    "downloads":{}
+    "downloads":{},
+    "open-remote-window": {}
   },
   "locales": {
     "ar": {
@@ -115,6 +116,16 @@
     "places": {
       "access": "readwrite",
       "description": "Stores data about browsing history."
+    }
+  },
+  "activities": {
+    "view": {
+      "filters": {
+        "type": "url",
+        "url": {
+          "required":true, "pattern":"https?:.{1,16384}", "patternFlags":"i"
+        }
+      }
     }
   }
 }

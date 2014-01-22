@@ -45,6 +45,8 @@ var CardsView = (function() {
 
   var windowWidth = window.innerWidth;
 
+  var lastInTimeCapture;
+
   // init events
   var gd = new GestureDetector(cardsView);
   gd.startDetecting();
@@ -101,15 +103,25 @@ var CardsView = (function() {
       }}));
   }
 
+  function fireCardViewClosed() {
+    setTimeout(function nextTick() {
+      window.dispatchEvent(new CustomEvent('cardviewclosed'));
+    });
+  }
+
   // Build and display the card switcher overlay
   // Note that we rebuild the switcher each time we need it rather
   // than trying to keep it in sync with app launches.  Performance is
   // not an issue here given that the user has to hold the HOME button down
   // for one second before the switcher will appear.
-  // The second parameter, isRocketbar, determines how to display the
+  // The second parameter, inRocketbar, determines how to display the
   // cardswitcher inside of the rocketbar. Both modes are necessary until
   // Rocketbar is enabled by default, then this will go away.
-  function showCardSwitcher(inTimeCapture, inRocketbar) {
+  function showCardSwitcher(inRocketbar) {
+
+    var inTimeCapture = lastInTimeCapture;
+    lastInTimeCapture = false;
+
     if (cardSwitcherIsShown())
       return;
 
@@ -129,7 +141,7 @@ var CardsView = (function() {
     // Return early if inRocketbar and there are no apps besides homescreen
     if (Object.keys(runningApps).length < 2 && inRocketbar) {
       // Fire a cardchange event to notify the rocketbar that there are no cards
-      fireCardChange();
+      fireCardViewClosed();
       return;
     } else if (inRocketbar) {
       screenElement.classList.add('task-manager');
@@ -453,7 +465,6 @@ var CardsView = (function() {
     }
     // Make the cardsView overlay inactive
     cardsView.classList.remove('active');
-    screenElement.classList.remove('task-manager');
     cardsViewShown = false;
 
     // And remove all the cards from the document after the transition
@@ -463,6 +474,7 @@ var CardsView = (function() {
       cardsList.innerHTML = '';
       prevCardStyle = currentCardStyle = nextCardStyle = currentCard =
       prevCard = nextCard = deltaX = null;
+      screenElement.classList.remove('task-manager');
     }
     if (removeImmediately) {
       removeCards();
@@ -471,7 +483,7 @@ var CardsView = (function() {
       cardsView.addEventListener('transitionend', removeCards);
     }
 
-    fireCardChange();
+    fireCardViewClosed();
   }
 
   function cardSwitcherIsShown() {
@@ -905,6 +917,8 @@ var CardsView = (function() {
         if (!cardSwitcherIsShown())
           return;
 
+        window.dispatchEvent(new CustomEvent('cardviewclosedhome'));
+
         evt.stopImmediatePropagation();
         hideCardSwitcher();
         break;
@@ -920,7 +934,7 @@ var CardsView = (function() {
         break;
 
       case 'taskmanagershow':
-        showCardSwitcher(null, true);
+        showCardSwitcher(true);
         break;
 
       case 'taskmanagerhide':
@@ -934,10 +948,11 @@ var CardsView = (function() {
         SleepMenu.hide();
         var app = AppWindowManager.getActiveApp();
         if (!app) {
-          showCardSwitcher();
+          Rocketbar.render(true);
         } else {
           app.getScreenshot(function onGettingRealtimeScreenshot() {
-            showCardSwitcher(true);
+            lastInTimeCapture = true;
+            Rocketbar.render(true);
           });
         }
         break;

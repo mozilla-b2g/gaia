@@ -7,6 +7,7 @@ var EdgeSwipeDetector = {
 
   init: function esd_init() {
     window.addEventListener('homescreenopening', this);
+    window.addEventListener('rocketbarhidden', this);
     window.addEventListener('appopen', this);
     window.addEventListener('launchapp', this);
 
@@ -38,8 +39,15 @@ var EdgeSwipeDetector = {
     switch (e.type) {
       case 'appopen':
         this.screen.classList.add('edges');
+        this._lifecycleEnabled = true;
+        this._updateEnabled();
         break;
+      case 'rocketbarhidden':
       case 'homescreenopening':
+        // Bug 962355 - Edge gestures don't work when going into rocketbar
+        if (Rocketbar.shown) {
+          return;
+        }
         this.screen.classList.remove('edges');
         this._lifecycleEnabled = false;
         this._updateEnabled();
