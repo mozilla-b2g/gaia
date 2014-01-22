@@ -18,15 +18,19 @@
 
 #search-bar form p {
   background: #000;
+  display: flex;
+  flex-direction: row;
 }
 
 #search-input {
-  width: calc(100% - 6.5rem);
+  flex-grow: 1;
+  width: auto;
   border: 0;
   border-radius: 0;
   line-height: 4rem;
   background: #000;
   color: #fff;
+  padding-right: 0;
 }
 
 .task-manager #search-input {
@@ -44,16 +48,18 @@
 }
 
 #search-bar #search-reset {
-  margin-right: 6rem;
+  display: inline-block;
+  position: static;
+  flex-shrink: 0;
 }
 
 #search-bar #search-cancel {
-  position: absolute;
-  right: 0;
-  top: 0;
+  display: inline-block;
   text-decoration: none;
   outline: 0;
   padding: 0.5rem 0;
+  width: auto;
+  flex-shrink: 0;
 }
 
 #search-bar #search-cancel span {

@@ -17,8 +17,19 @@ var Title = {
     window.addEventListener('appforeground', this);
     window.addEventListener('apptitlechange', this);
     window.addEventListener('home', this);
+    window.addEventListener('homescreenopened', this);
     window.addEventListener('rocketbarhidden', this);
     window.addEventListener('rocketbarshown', this);
+  },
+
+  /**
+   * Sets the default title if we're viewing the homescreen.
+   */
+  defaultTitle: function() {
+    var activeApp = AppWindowManager.getActiveApp();
+    if (!Rocketbar.shown && activeApp.isHomescreen) {
+      this.content = navigator.mozL10n.get('search');
+    }
   },
 
   handleEvent: function(e) {
@@ -38,8 +49,12 @@ var Title = {
           this.element.classList.remove('hidden');
         }
         break;
+      case 'homescreenopened':
+        this.defaultTitle();
+        break;
       case 'rocketbarhidden':
         this.element.classList.remove('hidden');
+        this.defaultTitle();
         break;
       default:
         break;
