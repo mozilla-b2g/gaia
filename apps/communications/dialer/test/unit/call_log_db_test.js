@@ -14,10 +14,6 @@ if (!this.LazyLoader) {
 }
 
 suite('dialer/call_log_db', function() {
-  // we use an asynchronous IndexedDB API and we want to really test it, so
-  // let's increase mocha's timeout a lot
-  this.timeout(20000);
-
   var realLazyLoader;
   var realContacts;
 

@@ -28,7 +28,6 @@ suite('service/ical_recur_expansion', function() {
 
   // setup fixtures...
   suiteSetup(function(done) {
-    this.timeout(10000);
     fixtures = new ServiceSupport.Fixtures('ical');
     fixtures.load('recurring_event');
     fixtures.onready = done;

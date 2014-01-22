@@ -2923,6 +2923,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     ui: 'bdd',
 
     /**
+     * Default test timeout.
+     */
+    timeout: 10000,
+
+    /**
      * Mocha reporter to use.
      * If null is given none will be used.
      */
@@ -3030,7 +3035,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         box.mocha.setup({
           globals: globalIgnores,
           ui: self.ui,
-          reporter: self.getReporter(box)
+          reporter: self.getReporter(box),
+          timeout: self.timeout
         });
       });
 
@@ -3342,8 +3348,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       );
 
       this.element.appendChild(fragment(templates.testRun));
+
       this.initDomEvents();
-      window.dispatchEvent(new CustomEvent('test-agent-list-done'));
     },
 
     initDomEvents: function initDomEvents() {

@@ -26,12 +26,6 @@ suite('Sounds', function() {
     }
   ];
 
-  // Sometimes setup via the
-  // test agent can take a while,
-  // so we need to bump timeout
-  // to prevent test failure.
-  this.timeout(4000);
-
   suiteSetup(function(done) {
     req(['sounds'], function(sounds) {
       Sounds = sounds;

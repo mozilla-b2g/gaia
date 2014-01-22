@@ -4,8 +4,6 @@ requireLib('store/setting.js');
 requireElements('calendar/elements/advanced_settings.html');
 
 suiteGroup('Views.AdvancedSettings', function() {
-  this.timeout(20000);
-
   var subject;
   var template;
   var app;

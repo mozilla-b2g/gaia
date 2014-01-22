@@ -6,8 +6,6 @@ suiteGroup('Views.CalendarColors', function() {
   var store;
 
   setup(function(done) {
-    this.timeout(5000);
-
     app = testSupport.calendar.app();
     store = app.store('Calendar');
     subject = new Calendar.Views.CalendarColors();

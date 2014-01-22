@@ -37,9 +37,10 @@ body > iframe {
   padding: none;
   border: none;
   clear: both;
+  margin-top: 50px;
   overflow: hidden;
-  margin: 4.5rem 0 0 0;
-  padding: 0 0 1rem 0;
+  margin: 0;
+  padding: 0 0 1em 0;
 
   -webkit-column-width: 350px;
      -moz-column-width: 350px;
@@ -53,25 +54,25 @@ body > iframe {
   position: relative;
 
   list-style: none;
-  padding: 0 0 0 1.5rem;
+  padding: 0 0 0 2em;
   margin: 0;
 
   cursor: pointer;
 }
 
-#test-agent-ui .active,
-#test-agent-ui li:not(.test-agent-list-head):hover {
-  color: #00d;
+#test-agent-ui li:hover,
+#test-agent-ui .active {
   text-decoration: underline;
+  color: #00d;
 }
 
 #test-agent-ui .active:before {
   content: '*';
   position: absolute;
   display: block;
-  left: .7rem;
-  top: .2rem;
-  width: 1rem;
+  left: 1em;
+  top: .3em;
+  width: 1em;
 }
 
 #test-agent-ui .working {
@@ -84,46 +85,12 @@ body > iframe {
 
 #test-agent-ui button {
   clear: both;
-  font-size: 1.4rem;
+  font-size: 14px;
   width: 100%;
-  padding: .5rem;
-  height: 3rem;
+  padding: 5px;
+  height: 30px;
   border: 1px solid #E2E2E2;
-}
-
-#test-agent-ui .test-agent-list-head {
-  position: relative;
-
-  width: 100%;
-  margin: 1rem 0;
-
-  font-weight: bolder;
-  font-size: 1.2rem;
-  background: #CCC;
-}
-
-#test-agent-ui .test-agent-list-head-info {
-  position: absolute;
-  right: .5rem;
-
-  font-style: italic;
-  font-weight: normal;
-}
-
-#test-agent-ui .test-agent-list-head:hover {
-  text-decoration: none;
-}
-
-#test-agent-search {
-  position: fixed;
-  top: 0;
-  left: 0;
-  padding-top: 1rem;
-  padding-left: 5rem;
-  background-color: rgba(250,250,250,0.7);
-  width: 100%;
-  height: 4.5rem;
-  z-index: 4;
+  background-color: #FAFAFA;
 }
 
 @media only screen and (max-width: 480px) {
@@ -132,22 +99,13 @@ body > iframe {
   }
 
   #test-agent-ui li {
-    width: 100%;
-    padding: .5rem 1rem .5rem 2rem;
+    min-height: 3em;
     border-bottom: 1px solid #aaa;
+    padding: .5em 1em .5em 2em;
   }
 
   #test-agent-ui .active:before {
-    top: .8rem;
-  }
-
-  #test-agent-search {
-    padding: 1rem;
-    border-bottom: 1px solid #aaa;
-  }
-
-  #test-agent-ui .test-agent-list-head {
-    margin: 0;
+    top: .8em;
   }
 }
 

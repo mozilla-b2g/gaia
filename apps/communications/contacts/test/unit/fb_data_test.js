@@ -6,7 +6,6 @@ require('/shared/test/unit/mocks/mock_navigator_datastore.js');
 require('/shared/test/unit/mocks/mock_moz_phone_number_service.js');
 
 mocha.globals(['SimplePhoneMatcher', 'TelIndexer']);
-mocha.timeout(10000);
 
 var realDatastore, realPhoneNumberService;
 

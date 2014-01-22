@@ -6,7 +6,6 @@ suite('AlarmEditView', function() {
 
   suiteSetup(function(done) {
     this.slow(25000);
-    this.timeout(30000);
     testRequire([
         'alarm',
         'active_alarm',

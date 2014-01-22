@@ -221,9 +221,6 @@ suite('page.js >', function() {
 
         suite('XHR throws an exception >', function() {
           setup(function(done) {
-            // in this case, the code is using an Image to fetch a png, and this
-            // sometimes is slow even if the server is local
-            this.timeout(5000);
             MockXMLHttpRequest.mThrowAtNextSend();
             renderIcon(done);
           });
@@ -265,9 +262,6 @@ suite('page.js >', function() {
 
         suite('XHR throws an exception >', function() {
           setup(function(done) {
-            // in this case, the code is using an Image to fetch a png, and this
-            // sometimes is slow even if the server is local
-            this.timeout(5000);
             MockXMLHttpRequest.mThrowAtNextSend();
             renderIcon(done);
           });

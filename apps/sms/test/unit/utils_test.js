@@ -700,7 +700,6 @@ suite('Utils', function() {
     };
 
     suiteSetup(function(done) {
-      this.timeout(5000);
       // load test blobs for image resize testing
       var assetsNeeded = 0;
 
