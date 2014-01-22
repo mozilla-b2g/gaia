@@ -2,6 +2,7 @@
 
 const FILE_TYPE_FILE = 0;
 const FILE_TYPE_DIRECTORY = 1;
+const JS_EXCLUDE_FILE = 'js_exclude.json';
 
 var utils;
 if (isNode()) {
@@ -88,6 +89,7 @@ exports.getLocaleBasedir = utils.getLocaleBasedir;
 // ===== the following functions support node.js compitable interface.
 exports.FILE_TYPE_FILE = FILE_TYPE_FILE;
 exports.FILE_TYPE_DIRECTORY = FILE_TYPE_DIRECTORY;
+exports.JS_EXCLUDE_FILE = JS_EXCLUDE_FILE;
 exports.deleteFile = utils.deleteFile;
 exports.listFiles = utils.listFiles;
 exports.psParser = psParser;

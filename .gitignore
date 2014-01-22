@@ -4,6 +4,7 @@
 *.swp
 .svn
 *~
+js_exclude.json
 manifest.appcache
 
 /apps/calendar/js/presets.js

@@ -26,6 +26,7 @@ function execute(options) {
         re.test(file.leafName) ||
         file.leafName.indexOf(gaia.aggregatePrefix) === 0
       ) {
+        debug('Removing ' + file.path);
         file.remove(false);
       }
     });

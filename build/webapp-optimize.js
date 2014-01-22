@@ -166,13 +166,15 @@ function optimize_aggregateJsResources(doc, webapp, htmlFile) {
   let deferred = {
     prefix: 'defer_',
     content: '',
-    lastNode: null
+    lastNode: null,
+    scripts: []
   };
 
   let normal = {
     prefix: '',
     content: '',
-    lastNode: null
+    lastNode: null,
+    scripts: []
   };
 
   scripts.forEach(function(script, idx) {
@@ -212,6 +214,7 @@ function optimize_aggregateJsResources(doc, webapp, htmlFile) {
 
     config.content += content;
     config.lastNode = script;
+    config.scripts.push(script.src.replace(/^(\/)/, ''));
 
     // some apps (email) use version in the script types
     //  (text/javascript;version=x).
@@ -268,6 +271,11 @@ function optimize_aggregateJsResources(doc, webapp, htmlFile) {
 
   writeAggregatedScript(deferred);
   writeAggregatedScript(normal);
+
+  let jsExcludeFile = webapp.buildDirectoryFile.clone();
+  jsExcludeFile.append(utils.JS_EXCLUDE_FILE);
+  utils.writeContent(jsExcludeFile,
+    JSON.stringify(deferred.scripts.concat(normal.scripts)));
 
   function commentScript(script) {
     script.outerHTML = '<!-- ' + script.outerHTML + ' -->';
@@ -530,9 +538,8 @@ function optimize_compile(webapp, file, callback) {
 
   // catch the XHR in `loadResource' and use a local file reader instead
   win.XMLHttpRequest = function() {
-    debug('loadResource');
-
     function open(type, url, async) {
+      debug('loadResource ' + url);
       this.readyState = 4;
       this.status = 200;
       this.responseText = optimize_getFileContent(webapp, file, url);
