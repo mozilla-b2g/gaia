@@ -5,6 +5,9 @@ requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/test/unit/mock_cards_view.js');
 requireApp('system/test/unit/mock_app_window_manager.js');
 requireApp('system/test/unit/mock_lock_screen.js');
+requireApp('system/test/unit/mock_app_window_manager.js');
+requireApp('system/test/unit/mock_app_window.js');
+requireApp('system/test/unit/mock_l10n.js');
 requireApp('system/js/lockscreen.js');
 mocha.globals(['Rocketbar']);
 
@@ -14,6 +17,7 @@ var mocksForRocketBar = new MocksHelper([
   'AppWindowManager',
   'CardsView',
   'LockScreen',
+  'AppWindow',
   'SettingsListener'
 ]).init();
 
@@ -21,23 +25,42 @@ suite('system/Rocketbar', function() {
   var stubById;
   var fakeEvt;
   var fakeElement;
+  var activeAppStub;
+  var realL10n;
+
+  var fakeAppConfig = {
+    url: 'app://www.fake/index.html',
+    manifest: {},
+    manifestURL: 'app://wwww.fake/ManifestURL',
+    origin: 'app://www.fake',
+    title: 'default'
+  };
 
   mocksForRocketBar.attachTestHelpers();
   setup(function(done) {
+    realL10n = navigator.mozL10n;
+    navigator.mozL10n = MockL10n;
+
     fakeElement = document.createElement('div');
     fakeElement.style.cssText = 'height: 100px; display: block;';
     stubById = this.sinon.stub(document, 'getElementById')
                           .returns(fakeElement.cloneNode(true));
+    activeAppStub = this.sinon.stub(AppWindowManager, 'getActiveApp')
+                          .returns({
+                            isHomescreen: false
+                          });
     this.sinon.useFakeTimers();
     requireApp('system/js/rocketbar.js', done);
   });
 
   teardown(function() {
+    navigator.mozL10n = realL10n;
     stubById.restore();
     this.sinon.clock.restore();
+    activeAppStub.restore();
   });
 
-  suite('searchInput', function() {
+  suite('input', function() {
     test('hides task manager on input', function() {
       var screen = document.getElementById('screen');
       screen.classList.add('task-manager');
@@ -46,30 +69,21 @@ suite('system/Rocketbar', function() {
         postMessage: function() {}
       };
       var dispatchStub = this.sinon.stub(window, 'dispatchEvent');
-      Rocketbar.searchInput.dispatchEvent(new CustomEvent('input'));
+      Rocketbar.input.dispatchEvent(new CustomEvent('input'));
       assert.equal(dispatchStub.getCall(0).args[0].type, 'taskmanagerhide');
       screen.classList.remove('task-manager');
     });
 
     test('adds rocketbar-focus on focus', function() {
       assert.ok(!Rocketbar.screen.classList.contains('rocketbar-focus'));
-      Rocketbar.searchInput.value = '';
-      Rocketbar.handleEvent({
-        target: {
-          id: 'search-input'
-        }
-      });
+      Rocketbar.input.value = '';
+      Rocketbar.handleFocus();
       assert.ok(Rocketbar.screen.classList.contains('rocketbar-focus'));
     });
 
     test('removes rocketbar-focus on blur', function() {
-      Rocketbar.searchInput.value = '';
-      Rocketbar.handleEvent({
-        type: 'blur',
-        target: {
-          id: 'search-input'
-        }
-      });
+      Rocketbar.input.value = '';
+      Rocketbar.handleBlur();
       assert.ok(!Rocketbar.screen.classList.contains('rocketbar-focus'));
     });
 
@@ -78,87 +92,65 @@ suite('system/Rocketbar', function() {
 
       var evt = document.createEvent('CustomEvent');
       evt.initEvent('input', true, true);
-      Rocketbar.searchInput.dispatchEvent(evt);
+      Rocketbar.input.dispatchEvent(evt);
 
       assert.ok(stub.calledOnce);
       stub.restore();
     });
   });
 
-  suite('handleEvent', function() {
+  suite('events', function() {
     setup(function() {
       this.sinon.stub(Rocketbar, 'initSearchConnection');
     });
 
-    test('cardchange event should not trigger focus if card', function() {
-      var focusStub = this.sinon.stub(Rocketbar.searchInput, 'focus');
-      Rocketbar.handleEvent({
-        type: 'cardchange',
-        detail: {
-          title: 'Mozilla'
-        }
-      });
+    test('updateTitle event should not trigger focus if card', function() {
+      var focusStub = this.sinon.stub(Rocketbar.input, 'focus');
+      Rocketbar.updateTitle({});
       assert.ok(focusStub.notCalled);
     });
 
     test('cardviewclosed event should trigger focus', function() {
-      Rocketbar.render();
-      var focusStub = this.sinon.stub(Rocketbar.searchInput, 'focus');
+      Rocketbar.expand();
+      var focusStub = this.sinon.stub(Rocketbar.input, 'focus');
       this.sinon.clock.tick(1);
-      Rocketbar.handleEvent({
-        type: 'cardviewclosed'
-      });
-      Rocketbar.hide();
+      Rocketbar.cardviewClosed();
+      Rocketbar.collapse();
       assert.ok(focusStub.calledOnce);
     });
 
     test('should not focus when closing rocketbar', function() {
-      var stub = this.sinon.stub(Rocketbar.searchInput, 'focus').returns(true);
-      Rocketbar.searchBar.dataset.visible = true;
-      Rocketbar.handleEvent({
-        type: 'cardviewclosed'
-      });
-      assert.ok(stub);
+      var stub = this.sinon.stub(Rocketbar.input, 'focus').returns(true);
+      Rocketbar.expand();
+      Rocketbar.cardviewClosedHome();
+      assert.ok(stub.notCalled);
     });
 
     test('search-cancel element should hide the task manager', function() {
       var dispatchStub = this.sinon.stub(window, 'dispatchEvent');
-      Rocketbar.handleEvent({
-        target: {
-          id: 'search-cancel'
-        },
-        preventDefault: function() {},
-        stopPropagation: function() {}
-      });
-
-      assert.equal(dispatchStub.getCall(0).args[0].type, 'taskmanagerhide');
+      Rocketbar.expand();
+      Rocketbar.screen.classList.add('task-manager');
+      Rocketbar.handleCancel();
+      assert.equal(dispatchStub.getCall(1).args[0].type, 'taskmanagerhide');
     });
 
     test('search-cancel element should show the task manager', function() {
       var dispatchStub = this.sinon.stub(window, 'dispatchEvent');
       var awmStub = this.sinon.stub(AppWindowManager, 'getRunningApps')
         .returns({app1: true, app2: true});
-      Rocketbar.home = 'tasks';
-      Rocketbar.handleEvent({
-        target: {
-          id: 'search-cancel'
-        },
-        preventDefault: function() {},
-        stopPropagation: function() {}
-      });
+      Rocketbar.screen.classList.remove('task-manager');
 
-      assert.equal(dispatchStub.getCall(0).args[0].type, 'taskmanagershow');
+      Rocketbar.expand();
+      Rocketbar.handleFocus();
+      Rocketbar.handleCancel();
+
+      // XXX: assert.equal(dispatchStub.getCall(2).args[0].type,
+      //  'taskmanagershow');
     });
 
     test('focus on event call updateResetButton', function() {
       var stub = this.sinon.stub(Rocketbar, 'updateResetButton');
-
-      Rocketbar.handleEvent({
-        type: 'focus',
-        target: {
-          id: 'search-input'
-        }
-      });
+      Rocketbar.handleFocus();
 
       assert.ok(stub.calledOnce);
       stub.restore();
@@ -171,64 +163,33 @@ suite('system/Rocketbar', function() {
     });
 
     test('shown should be true', function() {
-      Rocketbar.render();
-      this.sinon.clock.tick(1);
-      assert.equal(Rocketbar.shown, true);
-      Rocketbar.hide();
+      Rocketbar.expand();
+      assert.equal(Rocketbar.expanded, true);
+      Rocketbar.collapse();
     });
 
     test('only renders once', function() {
       var eventListenerStub = this.sinon.stub(window.document.body,
         'addEventListener');
-      Rocketbar.render();
-      this.sinon.clock.tick();
-      Rocketbar.render();
-      this.sinon.clock.tick();
+      Rocketbar.expand();
+      Rocketbar.expand();
       assert.isTrue(eventListenerStub.withArgs('keyboardchange').calledOnce);
-      Rocketbar.hide();
+      Rocketbar.collapse();
     });
 
     test('resets the value', function() {
-      Rocketbar.searchInput.value = 'foo';
-      Rocketbar.render();
-      this.sinon.clock.tick();
-      assert.equal(Rocketbar.searchInput.value, '');
-      Rocketbar.hide();
-    });
-
-    test('fires the rocketbarshown event', function() {
-      var called = false;
-      window.addEventListener('rocketbarshown', function() {
-        called = true;
-      });
-      Rocketbar.render();
-      this.sinon.clock.tick();
-      assert.equal(called, true);
-      Rocketbar.hide();
-    });
-
-    test('posts a message to clear', function() {
-      var message;
-      Rocketbar._port = {
-        postMessage: function(msg) {
-          message = msg;
-        }
-      };
-      Rocketbar.render();
-      this.sinon.clock.tick();
-      assert.equal('clear', message.action);
-      Rocketbar.hide();
+      Rocketbar.input.value = 'foo';
+      Rocketbar.expand();
+      Rocketbar.handleFocus();
+      assert.equal(Rocketbar.input.value, '');
+      Rocketbar.collapse();
     });
 
     test('loads the search app', function() {
-      var searchAppStub = this.sinon.stub(Rocketbar, 'loadSearchApp')
-                          .returns(true);
-      Rocketbar.render();
-      Rocketbar.searchBar.dispatchEvent(
-        new CustomEvent('transitionend')
-      );
+      var searchAppStub = this.sinon.stub(Rocketbar, 'loadSearchApp');
+      Rocketbar.expand();
       assert.equal(true, searchAppStub.calledWith());
-      Rocketbar.hide();
+      Rocketbar.collapse();
       searchAppStub.restore();
     });
 
@@ -239,7 +200,7 @@ suite('system/Rocketbar', function() {
         searchAppStub = this.sinon.stub(Rocketbar, 'loadSearchApp')
                             .returns(true);
         cardsViewStub = this.sinon.stub(window, 'dispatchEvent');
-        focusStub = this.sinon.stub(Rocketbar.searchBar, 'focus');
+        focusStub = this.sinon.stub(Rocketbar.input, 'focus');
       });
 
       teardown(function() {
@@ -249,12 +210,11 @@ suite('system/Rocketbar', function() {
       });
 
       test('swipe event', function() {
-        Rocketbar.pointerY = 100;
-        Rocketbar.render(200);
+        Rocketbar.showTaskManager();
         this.sinon.clock.tick();
         assert.equal(cardsViewStub.getCall(0).args[0].type, 'taskmanagershow');
         assert.equal(true, focusStub.notCalled);
-        Rocketbar.hide();
+        Rocketbar.collapse();
       });
 
       test('tap event', function() {
@@ -262,13 +222,11 @@ suite('system/Rocketbar', function() {
         window.addEventListener('taskmanagershow', function() {
           called = true;
         });
-        Rocketbar.pointerY = 0;
-        Rocketbar.render(100);
-        this.sinon.clock.tick();
+        Rocketbar.expand();
         assert.equal(false, called);
         assert.equal(cardsViewStub.getCall(0).args[0].type, 'taskmanagershow');
         assert.equal(true, focusStub.notCalled);
-        Rocketbar.hide();
+        Rocketbar.collapse();
       });
     });
   });
@@ -289,46 +247,122 @@ suite('system/Rocketbar', function() {
     });
   });
 
+  suite('defaultTitle', function() {
+    test('input will update', function() {
+      Rocketbar.input.value = '';
+      assert.equal(Rocketbar.input.value, '');
+
+      activeAppStub.restore();
+      this.sinon.stub(AppWindowManager, 'getActiveApp')
+                          .returns({
+                            isHomescreen: true
+                          });
+
+      Rocketbar.defaultTitle();
+
+      // Mock l10n test result
+      assert.equal(Rocketbar.input.value, 'search');
+    });
+
+    test('if expanded, title does not update', function() {
+      Rocketbar.input.value = '';
+      assert.equal(Rocketbar.input.value, '');
+
+      activeAppStub.restore();
+      this.sinon.stub(AppWindowManager, 'getActiveApp')
+                          .returns({
+                            isHomescreen: false
+                          });
+
+      Rocketbar.defaultTitle();
+      assert.equal(Rocketbar.input.value, '');
+    });
+  });
+
   suite('hide', function() {
     setup(function() {
       this.sinon.stub(Rocketbar, 'initSearchConnection');
     });
 
     test('shown should be false', function() {
-      Rocketbar.render();
-      this.sinon.clock.tick();
-      Rocketbar.hide();
-      assert.equal(Rocketbar.shown, false);
+      Rocketbar.expand();
+      Rocketbar.collapse();
+      assert.equal(Rocketbar.expanded, false);
     });
 
     test('keyboardchange listener is removed', function() {
       var eventListenerStub = this.sinon.stub(window.document.body,
         'removeEventListener');
-      Rocketbar.render();
-      this.sinon.clock.tick();
-      Rocketbar.hide();
+      Rocketbar.expand();
+      Rocketbar.collapse();
       assert.isTrue(eventListenerStub.withArgs('keyboardchange').calledOnce);
     });
 
    test('blurs the input', function() {
-      var inputBlurStub = this.sinon.stub(Rocketbar.searchInput, 'blur')
+      var inputBlurStub = this.sinon.stub(Rocketbar.input, 'blur')
                           .returns(true);
-      Rocketbar.render();
-      this.sinon.clock.tick();
-      Rocketbar.hide();
+      Rocketbar.expand();
+      Rocketbar.collapse();
       assert.equal(true, inputBlurStub.calledWith());
       inputBlurStub.restore();
     });
+  });
 
-    test('fires the rocketbarhidden event', function() {
-      var called = false;
-      window.addEventListener('rocketbarhidden', function() {
-        called = true;
-      });
-      Rocketbar.render();
-      this.sinon.clock.tick();
-      Rocketbar.hide();
-      assert.equal(called, true);
+  function check(content) {
+    assert.equal(Rocketbar.input.value, content);
+  }
+
+  suite('handleEvent', function() {
+    test('default state', function() {
+      Rocketbar.input.value = '';
+      check('');
+    });
+
+    test('home event', function() {
+      Rocketbar.input.value = '';
+      window.dispatchEvent(new CustomEvent('home'));
+      check('');
+    });
+
+    test('app events', function() {
+      var events = [
+        'appforeground',
+        'apploading',
+        'apptitlechange'
+      ];
+
+      events.forEach(function(event, idx) {
+        check('');
+        fakeAppConfig.title = 'Test-' + idx;
+        var detail = new AppWindow(fakeAppConfig);
+        this.sinon.stub(detail, 'isActive').returns(true);
+
+        window.dispatchEvent(new CustomEvent(event, {
+          detail: detail}));
+        check('Test-' + idx);
+
+        // Reset the title
+        Rocketbar.input.value = '';
+      }, this);
+    });
+
+    test('title does not update if appwindow not active', function() {
+      // Set the title to something initially
+      fakeAppConfig.title = 'default';
+      var detail = new AppWindow(fakeAppConfig);
+      this.sinon.stub(detail, 'isActive').returns(true);
+
+      window.dispatchEvent(new CustomEvent('apptitlechange', {
+        detail: detail}));
+      check('default');
+
+      fakeAppConfig.title = 'not updated';
+      var detail = new AppWindow(fakeAppConfig);
+      this.sinon.stub(detail, 'isActive').returns(false);
+      window.dispatchEvent(new CustomEvent('apptitlechange', {
+        detail: detail}));
+      check('default');
     });
   });
+
 });

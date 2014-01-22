@@ -32,9 +32,8 @@ Search.ClientOptions = {
 
 Search.Selectors = {
   homescreen: '#homescreen',
-  searchBar: '#search-bar',
-  searchCancel: '#search-cancel',
-  searchInput: '#search-input',
+  searchCancel: '#rocketbar-cancel',
+  searchInput: '#rocketbar-input',
   searchResults: 'iframe[mozapptype="mozsearch"]',
   statusBar: '#statusbar',
   firstAppContainer: '#localapps',
@@ -119,7 +118,7 @@ Search.prototype = {
 
     this.client.helper.waitForElement(selectors.homescreen);
     this.client.executeScript(function() {
-      window.wrappedJSObject.Rocketbar.render();
+      window.wrappedJSObject.Rocketbar.expand();
     });
 
     // https://bugzilla.mozilla.org/show_bug.cgi?id=960098
@@ -133,7 +132,7 @@ Search.prototype = {
 
     this.client.waitFor(function() {
       var size = this.client
-        .findElement(Search.Selectors.searchInput).size();
+        .findElement(Search.Selectors.statusBar).size();
       return size.height >= 40;
     }.bind(this));
   },
@@ -162,8 +161,8 @@ Search.prototype = {
 
     this.client.waitFor(function() {
       var el = this.client
-        .findElement(Search.Selectors.searchBar);
-      return el.location().y + el.size().height === 0;
+        .findElement(Search.Selectors.statusBar);
+      return el.location().y + el.size().height <= 20;
     }.bind(this));
   }
 };

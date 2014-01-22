@@ -132,7 +132,7 @@
      */
     close: function() {
       this.abort();
-      this._port.postMessage({'action': 'hide'});
+      this._port.postMessage({'action': 'collapse'});
     },
 
     /**

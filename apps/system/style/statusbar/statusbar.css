@@ -24,6 +24,12 @@ body, html {
   display: flex;
   flex-direction: row;
   -moz-user-select: none;
+  
+  transition: height 0.2s ease;
+}
+
+#statusbar.expanded {
+  height: 4rem;
 }
 
 #screen.locked:not(.attention) #statusbar{
@@ -32,6 +38,10 @@ body, html {
 
 #screen.attention.locked #statusbar-time {
   display: block;
+}
+
+#statusbar.expanded #statusbar-icons {
+  display: none;
 }
 
 #statusbar-icons > * {
@@ -72,9 +82,11 @@ body, html {
   right: 0;
 }
 
-.utility-tray #statusbar-icons > .sb-start-upper,
-.utility-tray #statusbar > #statusbar-title,
-#statusbar-title.hidden {
+#screen.utility-tray #statusbar-icons, #screen.locked #statusbar-icons {
+  max-width: 100%;
+}
+
+.utility-tray #statusbar-icons > .sb-start-upper {
   visibility: visible;
   -moz-transform: translateY(2rem);
 }
@@ -91,7 +103,7 @@ body, html {
   bottom: 0.1rem;
 }
 
-#statusbar-title,
+#rocketbar,
 #statusbar-time, #statusbar-data:not(.sb-icon-data-circle) {
   position: relative;
   bottom: 0.1rem;

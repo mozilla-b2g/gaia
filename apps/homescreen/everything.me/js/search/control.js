@@ -33,7 +33,7 @@
         pendingRender = true;
         return;
       }
-      _port.postMessage({action: 'render'});
+      _port.postMessage({action: 'expand'});
     };
   }
 

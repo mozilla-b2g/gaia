@@ -101,7 +101,7 @@ var UtilityTray = {
         var touch = evt.changedTouches[0];
         if (!this.active && !this.shown &&
             touch.pageX < this.screenWidth * Rocketbar.triggerWidth) {
-          Rocketbar.render(true);
+          Rocketbar.expand();
         }
 
         if (!this.active)
@@ -133,7 +133,7 @@ var UtilityTray = {
       window.dispatchEvent(new CustomEvent('taskmanagerhide'));
     }
 
-    Rocketbar.hide();
+    Rocketbar.collapse();
     this.active = true;
 
     this.startY = touch.pageY;
