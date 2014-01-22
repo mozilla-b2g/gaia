@@ -11,6 +11,12 @@
 var ThreadListUI = {
   draftLinks: null,
   draftRegistry: null,
+  DRAFT_SAVED_DURATION: 5000,
+
+  // Used to track timeouts
+  timeouts: {
+    onDraftSaved: null
+  },
 
   // Used to track the current number of rendered
   // threads. Updated in ThreadListUI.renderThreads
@@ -29,7 +35,7 @@ var ThreadListUI = {
       'container', 'no-messages',
       'check-all-button', 'uncheck-all-button',
       'delete-button', 'cancel-button',
-      'edit-icon', 'edit-mode', 'edit-form'
+      'edit-icon', 'edit-mode', 'edit-form', 'draft-saved-banner'
     ].forEach(function(id) {
       this[Utils.camelCase(id)] = document.getElementById('threads-' + id);
     }, this);
@@ -688,6 +694,17 @@ var ThreadListUI = {
       li.classList.remove(remove);
       li.classList.add(current);
     }
+  },
+
+  onDraftSaved: function thlui_onDraftSaved() {
+    this.draftSavedBanner.classList.remove('hide');
+
+    clearTimeout(this.timeouts.onDraftSaved);
+    this.timeouts.onDraftSaved = null;
+
+    this.timeouts.onDraftSaved = setTimeout(function hideDraftSavedBanner() {
+      this.draftSavedBanner.classList.add('hide');
+    }.bind(this), this.DRAFT_SAVED_DURATION);
   }
 };
 
