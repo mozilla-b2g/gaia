@@ -126,7 +126,7 @@ function waitForSpinEnd(target) {
     lastY = currentY;
     currentY = target.location().y;
     return currentY === lastY;
-  }.bind(this), { interval: 200 });
+  }.bind(this), { interval: 0 });
 }
 
 // Used to sort array of numbers in setSpinnerValue
