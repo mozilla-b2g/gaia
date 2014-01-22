@@ -60,7 +60,7 @@ suite('system/FxAccountsClient >', function() {
   suite('Init', function() {
     test('Integrity', function() {
       assert.isNotNull(FxAccountsClient);
-      assert.equal(Object.keys(FxAccountsClient).length, 7);
+      assert.equal(Object.keys(FxAccountsClient).length, 6);
     });
 
     test('No event listeners', function() {
@@ -154,10 +154,9 @@ suite('system/FxAccountsClient >', function() {
     });
   });
 
-  suite('changePassword', function() {
+  suite('logout', function() {
     setup(function() {
-      FxAccountsClient.changePassword('accountId', 'oldPass', 'newPass',
-                                      successCb, errorCb);
+      FxAccountsClient.logout(successCb, errorCb);
     });
 
     test('Event dispatched to chrome side', function() {
@@ -166,27 +165,12 @@ suite('system/FxAccountsClient >', function() {
       assert.ok(MockDispatchedEvents[0].detail.id);
       assert.ok(MockDispatchedEvents[0].detail.data);
       assert.deepEqual(MockDispatchedEvents[0].detail.data, {
-        method: 'changePassword',
-        accountId: 'accountId',
-        oldPass: 'oldPass',
-        newPass: 'newPass'
-      });
-    });
-  });
-
-  suite('logout', function() {
-    setup(function() {
-      FxAccountsClient.logout(successCb, errorCb);
-    });
-
-    test('Event dispatched to chrome side', function() {
-      assert.equal(MockDispatchedEvents.length, 2);
-      assert.ok(MockEventListener['mozFxAccountsChromeEvent']);
-      assert.ok(MockDispatchedEvents[1].detail.id);
-      assert.ok(MockDispatchedEvents[1].detail.data);
-      assert.deepEqual(MockDispatchedEvents[1].detail.data, {
         method: 'logout'
       });
+    });
+
+    suiteTeardown(function() {
+      MockDispatchedEvents = [];
     });
   });
 
@@ -197,20 +181,24 @@ suite('system/FxAccountsClient >', function() {
     });
 
     test('Event dispatched to chrome side', function() {
-      assert.equal(MockDispatchedEvents.length, 4);
+      assert.equal(MockDispatchedEvents.length, 2);
       assert.ok(MockEventListener['mozFxAccountsChromeEvent']);
-      assert.ok(MockDispatchedEvents[2].detail.id);
-      assert.ok(MockDispatchedEvents[3].detail.id);
-      assert.ok(MockDispatchedEvents[2].detail.data);
-      assert.ok(MockDispatchedEvents[3].detail.data);
-      assert.deepEqual(MockDispatchedEvents[2].detail.data, {
+      assert.ok(MockDispatchedEvents[0].detail.id);
+      assert.ok(MockDispatchedEvents[1].detail.id);
+      assert.ok(MockDispatchedEvents[0].detail.data);
+      assert.ok(MockDispatchedEvents[1].detail.data);
+      assert.deepEqual(MockDispatchedEvents[0].detail.data, {
         method: 'queryAccount',
         accountId: 'accountId'
       });
-      assert.deepEqual(MockDispatchedEvents[3].detail.data, {
+      assert.deepEqual(MockDispatchedEvents[1].detail.data, {
         method: 'verificationStatus',
         accountId: 'accountId'
       });
+    });
+
+    suiteTeardown(function() {
+      MockDispatchedEvents = [];
     });
   });
 
@@ -221,18 +209,18 @@ suite('system/FxAccountsClient >', function() {
     });
 
     test('Event dispatched to chrome side', function() {
-      assert.equal(MockDispatchedEvents.length, 6);
+      assert.equal(MockDispatchedEvents.length, 2);
       assert.ok(MockEventListener['mozFxAccountsChromeEvent']);
-      assert.ok(MockDispatchedEvents[4].detail.id);
-      assert.ok(MockDispatchedEvents[5].detail.id);
-      assert.ok(MockDispatchedEvents[4].detail.data);
-      assert.ok(MockDispatchedEvents[5].detail.data);
-      assert.deepEqual(MockDispatchedEvents[4].detail.data, {
+      assert.ok(MockDispatchedEvents[0].detail.id);
+      assert.ok(MockDispatchedEvents[1].detail.id);
+      assert.ok(MockDispatchedEvents[0].detail.data);
+      assert.ok(MockDispatchedEvents[1].detail.data);
+      assert.deepEqual(MockDispatchedEvents[0].detail.data, {
         method: 'signIn',
         accountId: 'accountId',
         password: 'pass'
       });
-      assert.deepEqual(MockDispatchedEvents[5].detail.data, {
+      assert.deepEqual(MockDispatchedEvents[1].detail.data, {
         method: 'signUp',
         accountId: 'accountId',
         password: 'pass'
