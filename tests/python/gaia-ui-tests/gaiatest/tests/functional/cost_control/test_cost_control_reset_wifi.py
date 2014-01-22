@@ -34,7 +34,8 @@ class TestCostControlReset(GaiaTestCase):
         browser.switch_to_content()
         self.wait_for_element_present(*self._page_title_locator)
 
-        # disable wifi before reset data, wait for wifi to be closed, and switch back to the app
+        # disable wifi and kill the browser before reset data, wait for wifi to be closed, and switch back to the app
+        self.apps.kill(browser.app)
         self.data_layer.disable_wifi()
         time.sleep(5)
 
