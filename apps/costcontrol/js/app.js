@@ -82,19 +82,26 @@ var CostControlApp = (function() {
       cardState === 'pinRequired' ||
       cardState === 'pukRequired'
     ) {
-      showSimErrorDialog('sim-locked');
+      Common.dataSimIcc.oncardstatechange = checkSIMStatus;
+      var checkCardStateBeforeClose = true;
+      showSimErrorDialog('sim-locked', checkCardStateBeforeClose);
       state = 'locked';
     }
 
     return state;
   }
 
-  function showSimErrorDialog(status) {
+  function showSimErrorDialog(status, checkCardStateBeforeClose) {
     function realShowSimError(status) {
       var header = _('widget-' + status + '-heading');
       var msg = _('widget-' + status + '-meta');
       Common.modalAlert(header + '\n' + msg);
-      Common.closeApplication();
+      var readyToClose = !checkCardStateBeforeClose ||
+                          Common.dataSimIcc.cardState === 'pinRequired' ||
+                          Common.dataSimIcc.cardState === 'pukRequired';
+      if (readyToClose) {
+        Common.closeApplication();
+      }
     }
 
     if (isApplicationLocalized) {
