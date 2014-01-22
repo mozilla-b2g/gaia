@@ -286,74 +286,57 @@ var ThreadListUI = {
     this.mainWrapper.classList.remove('edit');
   },
 
-  renderThreads: function thlui_renderThreads(threads, renderCallback) {
+  prepareRendering: function thlui_prepareRendering() {
+    this.container.innerHTML = '';
+  },
 
-    // shut down this render
-    var abort = false;
+  startRendering: function thlui_startRenderingThreads() {
+    this.setEmpty(false);
 
-    // we store the function to kill the previous render on the function itself
-    if (thlui_renderThreads.abort) {
-      thlui_renderThreads.abort();
+    FixedHeader.init('#threads-container',
+                     '#threads-header-container',
+                     'header');
+  },
+
+  finalizeRendering: function thlui_finalizeRendering(empty) {
+    if (empty) {
+      this.setEmpty(true);
     }
 
+    FixedHeader.refresh();
 
-    // TODO: https://bugzilla.mozilla.org/show_bug.cgi?id=854417
-    // Refactor the rendering method: do not empty the entire
-    // list on every render.
-    ThreadListUI.container.innerHTML = '';
+    if (!empty) {
+      TimeHeaders.updateAll('header[data-time-update]');
+    }
+  },
 
-    if (threads.length) {
-      thlui_renderThreads.abort = function thlui_renderThreads_abort() {
-        abort = true;
-      };
+  renderThreads: function thlui_renderThreads(done) {
+    var hasThreads = false;
 
-      ThreadListUI.setEmpty(false);
+    this.prepareRendering();
 
-      FixedHeader.init('#threads-container',
-                       '#threads-header-container',
-                       'header');
-      // Edit mode available
-
-      var appendThreads = function(threads, callback) {
-        if (!threads.length) {
-          if (callback) {
-            callback();
-          }
-          return;
-        }
-
-        setTimeout(function appendThreadsDelayed() {
-          if (abort) {
-            return;
-          }
-          ThreadListUI.appendThread(threads.pop());
-          appendThreads(threads, callback);
-        });
-      };
-
-      appendThreads(threads, function at_callback() {
-        // clear up abort method
-        delete thlui_renderThreads.abort;
-        // set the fixed header
-        FixedHeader.refresh();
-        // Boot update of headers
-        TimeHeaders.updateAll('header[data-time-update]');
-        // Once the rendering it's done, callback if needed
-        if (renderCallback) {
-          renderCallback();
-        }
-      });
-    } else {
-      ThreadListUI.setEmpty(true);
-      FixedHeader.refresh();
-
-      // Callback if exist
-      if (renderCallback) {
-        setTimeout(function executeCB() {
-          renderCallback();
-        });
+    function onRenderThread(thread) {
+      /* jshint validthis: true */
+      if (!hasThreads) {
+        hasThreads = true;
+        this.startRendering();
       }
+
+      this.appendThread(thread);
     }
+
+    function onThreadsRendered() {
+      /* jshint validthis: true */
+      this.finalizeRendering(!hasThreads);
+    }
+
+    var renderingOptions = {
+      each: onRenderThread.bind(this),
+      end: onThreadsRendered.bind(this),
+      done: done
+    };
+
+    MessageManager.getThreads(renderingOptions);
   },
 
   createThread: function thlui_createThread(thread) {

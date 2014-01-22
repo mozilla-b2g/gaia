@@ -1,6 +1,6 @@
 /*global mocha, MocksHelper, loadBodyHTML, MockL10n, ThreadListUI, FixedHeader,
          MessageManager, WaitingScreen, Threads, Template, MockMessages,
-         MockTimeHeaders*/
+         MockThreadList, MockTimeHeaders*/
 
 'use strict';
 
@@ -20,6 +20,8 @@ requireApp('sms/test/unit/mock_message_manager.js');
 requireApp('sms/test/unit/mock_messages.js');
 requireApp('sms/test/unit/mock_utils.js');
 requireApp('sms/test/unit/mock_waiting_screen.js');
+require('/test/unit/thread_list_mockup.js');
+require('/test/unit/utils_mockup.js');
 
 var mocksHelperForThreadListUI = new MocksHelper([
   'FixedHeader',
@@ -75,24 +77,6 @@ suite('thread_list_ui', function() {
 
       setup(function() {
         appendCallCount = 0;
-      });
-
-
-      test('second render aborts first', function(done) {
-        ThreadListUI.renderThreads([{},{}], function() {
-          // this should not be called
-          assert.ok(false);
-        });
-        ThreadListUI.renderThreads([{}], function() {
-          // this should not be called
-          assert.ok(false);
-        });
-        // only the last render should complete
-        ThreadListUI.renderThreads([{okay: true},{okay: true}], function() {
-          assert.ok(true);
-          assert.equal(appendCallCount, 2);
-          done();
-        });
       });
 
     });
@@ -591,13 +575,78 @@ suite('thread_list_ui', function() {
     setup(function() {
       this.sinon.spy(FixedHeader, 'refresh');
       this.sinon.spy(ThreadListUI, 'setEmpty');
+      this.sinon.spy(ThreadListUI, 'prepareRendering');
+      this.sinon.spy(ThreadListUI, 'startRendering');
+      this.sinon.spy(ThreadListUI, 'finalizeRendering');
+      this.sinon.spy(ThreadListUI, 'renderThreads');
+      this.sinon.spy(ThreadListUI, 'appendThread');
+      this.sinon.spy(ThreadListUI, 'createThread');
+      this.sinon.spy(ThreadListUI, 'setContact');
     });
 
-    test('Rendering an empty screen', function() {
-      ThreadListUI.renderThreads([]);
-      assert.ok(FixedHeader.refresh.called);
-      assert.ok(ThreadListUI.setEmpty.called);
-      assert.isTrue(ThreadListUI.setEmpty.args[0][0]);
+    test('Rendering an empty screen', function(done) {
+      this.sinon.stub(MessageManager, 'getThreads', function(options) {
+        options.end();
+        options.done();
+      });
+
+      ThreadListUI.renderThreads(function() {
+        done(function checks() {
+          sinon.assert.called(FixedHeader.refresh);
+          sinon.assert.calledWith(ThreadListUI.finalizeRendering, true);
+          assert.isFalse(ThreadListUI.noMessages.classList.contains('hide'));
+          assert.isTrue(ThreadListUI.container.classList.contains('hide'));
+          assert.isTrue(ThreadListUI.editIcon.classList.contains('disabled'));
+        });
+      });
+    });
+
+    test('Rendering a few threads', function(done) {
+      var container = ThreadListUI.container;
+
+      this.sinon.stub(MessageManager, 'getThreads',
+        function(options) {
+          var threadsMockup = new MockThreadList();
+
+          var each = options.each;
+          var end = options.end;
+          var done = options.done;
+
+          for (var i = 0; i < threadsMockup.length; i++) {
+            each && each(threadsMockup[i]);
+
+            var threads = container.querySelectorAll(
+                '[data-last-message-type="sms"],' +
+                '[data-last-message-type="mms"]'
+            );
+
+            // Check that a thread is inserted per iteration
+            assert.equal(threads.length, i + 1);
+          }
+
+          end && end();
+          done && done();
+        });
+
+      ThreadListUI.renderThreads(function() {
+        done(function checks() {
+          sinon.assert.calledWith(ThreadListUI.finalizeRendering, false);
+          assert.isTrue(ThreadListUI.noMessages.classList.contains('hide'));
+          assert.isFalse(ThreadListUI.container.classList.contains('hide'));
+          assert.isFalse(ThreadListUI.editIcon.classList.contains('disabled'));
+
+          var mmsThreads = container.querySelectorAll(
+            '[data-last-message-type="mms"]'
+          );
+          var smsThreads = container.querySelectorAll(
+            '[data-last-message-type="sms"]'
+          );
+
+          // Check that all threads have been properly inserted in the list
+          assert.equal(mmsThreads.length, 1);
+          assert.equal(smsThreads.length, 4);
+        });
+      });
     });
   });
 });
