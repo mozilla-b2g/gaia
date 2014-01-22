@@ -27,7 +27,9 @@ var StackManager = {
 
     newApp.broadcast('swipein');
     oldApp.broadcast('swipeout');
+
     this._current--;
+    this._stackChanged();
   },
 
   goNext: function sm_goNext() {
@@ -39,7 +41,9 @@ var StackManager = {
 
     newApp.broadcast('swipein');
     oldApp.broadcast('swipeout');
+
     this._current++;
+    this._stackChanged();
   },
 
   get length() {
@@ -73,12 +77,14 @@ var StackManager = {
         break;
       case 'home':
         this._moveToTop(this._current);
+        this._current = -1;
         break;
       case 'appterminated':
         var manifestURL = e.detail.manifestURL;
         this._remove(manifestURL);
         break;
     }
+    this._stackChanged();
   },
 
   _insertBelow: function sm_insertBelow(app) {
@@ -95,7 +101,7 @@ var StackManager = {
   },
 
   _moveToTop: function sm_moveToTop(index) {
-    if (index >= this._stack.length) {
+    if (index === -1 || index >= this._stack.length) {
       return;
     }
 
@@ -128,6 +134,17 @@ var StackManager = {
         return;
       }
     }
+  },
+
+  _stackChanged: function sm_stackChanged() {
+    var details = {
+      position: this._current,
+      sheets: this._stack
+    };
+
+    var evt = new CustomEvent('stackchanged', { detail: details });
+
+    window.dispatchEvent(evt);
   },
 
   /* Debug */

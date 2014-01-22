@@ -1,5 +1,8 @@
 'use strict';
 
+const kEdgeIntertia = 150;
+const kEdgeThreshold = 0.2;
+
 var EdgeSwipeDetector = {
   previous: document.getElementById('left-panel'),
   next: document.getElementById('right-panel'),
@@ -133,10 +136,13 @@ var EdgeSwipeDetector = {
 
     this._checkIfSwiping(e);
 
-    if (this._deltaX > 5) {
-      this._clearForwardTimeout();
-      SheetsTransition.moveInDirection(this._direction, this._progress);
+    if (this._deltaX < 5) {
+      return;
     }
+
+    this._clearForwardTimeout();
+
+    SheetsTransition.moveInDirection(this._direction, this._progress);
   },
 
   _touchEnd: function esd_touchEnd(e) {
@@ -157,10 +163,10 @@ var EdgeSwipeDetector = {
 
     var deltaT = Date.now() - this._startDate;
     var speed = this._progress / deltaT; // progress / ms
-    var inertia = speed * 120; // 120 ms of intertia
+    var inertia = speed * kEdgeIntertia; // ms of intertia
     var adjustedProgress = (this._progress + inertia);
 
-    if (adjustedProgress < 0.33 || this._forwarding) {
+    if (adjustedProgress < kEdgeThreshold || this._forwarding) {
       SheetsTransition.snapInPlace();
       SheetsTransition.end();
       return;
