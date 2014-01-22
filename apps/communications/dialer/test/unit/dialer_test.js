@@ -1,6 +1,11 @@
+'use strict';
+
+/* global NavbarManager */
+
 requireApp('communications/dialer/js/dialer.js');
 
 suite('navigation bar', function() {
+  var domContactsIframe;
   var domOptionRecents;
   var domOptionContacts;
   var domOptionKeypad;
@@ -9,7 +14,6 @@ suite('navigation bar', function() {
   setup(function() {
     domViews = document.createElement('section');
     domViews.id = 'views';
-    document.body.appendChild(domViews);
 
     domOptionRecents = document.createElement('a');
     domOptionRecents.id = 'option-recents';
@@ -23,7 +27,11 @@ suite('navigation bar', function() {
     domOptionKeypad.id = 'option-keypad';
     domViews.appendChild(domOptionKeypad);
 
-    domViews = document.getElementById('views');
+    domContactsIframe = document.createElement('iframe');
+    domContactsIframe.id = 'iframe-contacts';
+    domOptionContacts.appendChild(domContactsIframe);
+
+    document.body.appendChild(domViews);
 
     NavbarManager.init();
   });
@@ -43,6 +51,36 @@ suite('navigation bar', function() {
       NavbarManager.show();
 
       assert.isFalse(domViews.classList.contains('hide-toolbar'));
+    });
+  });
+
+  suite('Second tap on contacts tab', function() {
+    test('Listens to click events', function() {
+      this.sinon.spy(domOptionContacts, 'addEventListener');
+      NavbarManager.init();
+      sinon.assert.calledWith(domOptionContacts.addEventListener, 'click',
+                              NavbarManager.contactsTabTap);
+    });
+
+    suite('contactsTabTap', function() {
+      teardown(function() {
+        window.location.hash = '';
+      });
+
+      test('only works when it is a second tap', function() {
+        NavbarManager.contactsTabTap();
+        assert.isFalse(
+          domContactsIframe.src.contains('/contacts/index.html#home')
+        );
+      });
+
+      test('goes to home list', function() {
+        window.location.hash = '#contacts-view';
+        NavbarManager.contactsTabTap();
+        assert.isTrue(
+          domContactsIframe.src.contains('/contacts/index.html#home')
+        );
+      });
     });
   });
 });
