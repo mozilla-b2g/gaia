@@ -117,7 +117,7 @@ marionette('email next previous', function() {
       ]);
     });
 
-    test.skip('should scroll up when up tapped', function() {
+    test('should scroll up when up tapped', function() {
       // Start by scrolling to the bottom of the scroll container.
       var header = app.getHeaderAtIndex(7);
       var offsetTop = header.getAttribute('offsetTop');
@@ -146,7 +146,7 @@ marionette('email next previous', function() {
       assert.ok(updated < initial);
     });
 
-    test.skip('should scroll down when down tapped', function() {
+    test('should scroll down when down tapped', function() {
       var scrollContainer = app.msgListScrollOuter;
       var initial = parseInt(scrollContainer.getAttribute('scrollTop'), 10);
       app.tapEmailAtIndex(0);
