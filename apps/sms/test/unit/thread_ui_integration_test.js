@@ -6,7 +6,7 @@
 if (typeof GestureDetector === 'undefined') {
   require('/shared/js/gesture_detector.js');
 }
-requireApp('system/test/unit/mock_gesture_detector.js');
+require('/shared/test/unit/mocks/mock_gesture_detector.js');
 
 requireApp('sms/test/unit/mock_contact.js');
 requireApp('sms/test/unit/mock_l10n.js');

@@ -2,7 +2,7 @@
          MockDialog, Template, MockL10n */
 'use strict';
 
-requireApp('system/test/unit/mock_gesture_detector.js');
+require('/shared/test/unit/mocks/mock_gesture_detector.js');
 
 requireApp('sms/js/recipients.js');
 requireApp('sms/js/utils.js');
