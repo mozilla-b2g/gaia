@@ -6,21 +6,27 @@
     <title>mozRequestFullScreen test</title>
     <script defer src="../../js/UI/fullscreen.js"></script>
     <link rel="stylesheet" type="text/css" href="../../style/UI.css">
+    <link rel="stylesheet" type="text/css" href="/shared/style/buttons.css">
   </head>
   <body>
-    <h2>mozRequestFullScreen test</h2>
     <p>Test mozRequestFullScreen() requests from web content.
  System app should handle this properly and properly cancel the full screen
  if there are some concurrent action that cannot work with it.</p>
-    <h2>Test on element of this iframe within mozbrowser.</h2>
-    <div id="fullscreen-div">
-      <p>Am I full screen?</p>
-      <button id="cancleFullscreen-div">Cancel fullscreen</button>
-    </div>
-    <p><button id="fullscreen">Test</button></p>
-    
-    <h2>Test on this iframe, an element within the mozbrowser</h2>
-    <p><button id="fullscreenFrame">Test</button></p>
-    <button id="cancleFullscreen">Cancel fullscreen</button>
+    <fieldset>
+      <legend>Test on <b><u>div element</u></b> of this iframe within mozbrowser</legend>
+      <section>
+        <div id="fullscreen-div">
+          <p>Am I full screen?</p>
+          <button id="testBtn-div">Test</button>
+        </div>
+      </section>
+    </fieldset>
+    <br>    
+    <fieldset>
+      <legend>Test on <b><u>this iframe</u></b>, an element within the mozbrowser</legend>
+      <section>
+        <button id="testBtn">Test</button>
+      </section>
+    </fieldset>
   </body>
 </html>
