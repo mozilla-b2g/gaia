@@ -62,6 +62,9 @@ suite('applications-data', function() {
           enabled: true,
           lookahead: 16  // 60fps = 16ms per frame
         },
+        background: {
+          url: 'resources/images/backgrounds/default.png'
+        },
         grid: [[]],
         bookmarks: 'test'
       });
@@ -92,6 +95,9 @@ suite('applications-data', function() {
         prediction: {
           enabled: true,
           lookahead: 16  // 60fps = 16ms per frame
+        },
+        background: {
+          url: 'resources/images/backgrounds/default.png'
         },
         grid: [[]]
       });
