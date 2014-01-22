@@ -24,7 +24,7 @@ marionette('Places tests', function() {
     search = new Search(client);
   });
 
-  test.skip('Search for previously visited URL', function() {
+  test('Search for previously visited URL', function() {
     var url = server.url('sample.html');
     search.doSearch(url + '\uE006');
     search.waitForBrowserFrame();
@@ -33,7 +33,7 @@ marionette('Places tests', function() {
     search.checkResult('firstPlace', 'Sample page');
   });
 
-  test.skip('Ensures urls visited twice only show in results once', function() {
+  test('Ensures urls visited twice only show in results once', function() {
     var url = server.url('sample.html');
     search.doSearch(url + '\uE006');
     search.waitForBrowserFrame();

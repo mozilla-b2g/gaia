@@ -54,6 +54,14 @@ var Places = {
     }
   },
 
+  defaultPlace: function(url) {
+    return {
+      url: url,
+      title: url,
+      frecency: 1
+    };
+  },
+
   editPlace: function(url, fun) {
     var self = this;
     var rev = this.dataStore.revisionId;
@@ -79,18 +87,14 @@ var Places = {
    * @param {String} url URL of visit to record.
    */
   addVisit: function(url) {
-    return this.editPlace(url, function(place, cb) {
+    return this.editPlace(url, (function(place, cb) {
       if (!place) {
-        cb({
-          url: url,
-          title: url,
-          frecency: 1
-        });
+        cb(this.defaultPlace(url));
       } else {
         place.frecency++;
         cb(place);
       }
-    });
+    }).bind(this));
   },
 
   /**
@@ -108,10 +112,13 @@ var Places = {
    * @param {String} title Title of place to set.
    */
   setPlaceTitle: function(url, title) {
-    return this.editPlace(url, function(place, cb) {
+    return this.editPlace(url, (function(place, cb) {
+      if (!place) {
+        place = this.defaultPlace(url);
+      }
       place.title = title;
       cb(place);
-    });
+    }).bind(this));
   },
 
   /**
@@ -121,9 +128,12 @@ var Places = {
    * @param {String} iconUri URL of the icon for url
    */
   setPlaceIconUri: function(url, iconUri) {
-    return this.editPlace(url, function(place, cb) {
+    return this.editPlace(url, (function(place, cb) {
+      if (!place) {
+        place = this.defaultPlace(url);
+      }
       place.iconUri = iconUri;
       cb(place);
-    });
+    }).bind(this));
   }
 };
