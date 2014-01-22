@@ -133,6 +133,7 @@ suite('system/Title', function() {
       check('');
 
       activeAppStub.restore();
+      Rocketbar.shown = false;
       this.sinon.stub(AppWindowManager, 'getActiveApp')
                           .returns({
                             isHomescreen: true
