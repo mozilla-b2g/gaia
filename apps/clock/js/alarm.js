@@ -169,9 +169,9 @@ define(function(require, exports, module) {
       var summary;
       if (value === 127) { // 127 = 0b1111111
         summary = _('everyday');
-      } else if (value === 31) { // 31 = 0b0011111
+      } else if (value === 62) { // 62 = 0b0111110
         summary = _('weekdays');
-      } else if (value === 96) { // 96 = 0b1100000
+      } else if (value === 65) { // 96 = 0b1000001
         summary = _('weekends');
       } else if (value !== 0) { // any day was true
         var weekdays = [];
@@ -179,8 +179,7 @@ define(function(require, exports, module) {
           var dayName = constants.DAYS[i];
           if (this.repeat[dayName]) {
             // Note: here, Monday is the first day of the week
-            // whereas in JS Date(), it's Sunday -- hence the (+1) here.
-            weekdays.push(_('weekday-' + ((i + 1) % 7) + '-short'));
+            weekdays.push(_('weekday-' + ((i) % 7) + '-short'));
           }
           summary = weekdays.join(', ');
         }
