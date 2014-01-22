@@ -27,6 +27,11 @@ var AttentionScreen = {
             !this.mainScreen.classList.contains('active-statusbar'));
   },
 
+  isHiding: function as_isHiding() {
+    return this.mainScreen.classList.contains('active-statusbar') &&
+           !this.attentionScreen.classList.contains('status-mode');
+  },
+
   init: function as_init() {
     window.addEventListener('mozbrowseropenwindow', this.open.bind(this), true);
 
@@ -247,6 +252,10 @@ var AttentionScreen = {
 
   // expend the attention screen overlay to full screen
   show: function as_show() {
+    if (this.isHiding()) {
+      return;
+    }
+
     // Attention screen now only support default orientation.
     screen.mozLockOrientation(OrientationManager.defaultOrientation);
 
@@ -273,7 +282,7 @@ var AttentionScreen = {
   // shrink the attention screen overlay to status bar
   // invoked when we get a "home" event
   hide: function as_hide() {
-    if (!this.isFullyVisible())
+    if (!this.isFullyVisible() || this.isHiding())
       return;
 
     // Restore the orientation of current displayed app
