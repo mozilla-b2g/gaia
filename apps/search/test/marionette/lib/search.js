@@ -42,7 +42,7 @@ Search.Selectors = {
   firstApp: '#localapps div',
   firstContact: '#contacts div',
   firstContactContainer: '#contacts',
-  firstPlace: '#places div',
+  firstPlace: '#places div .title',
   firstPlaceContainer: '#places'
 };
 
