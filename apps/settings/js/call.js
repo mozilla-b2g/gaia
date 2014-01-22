@@ -717,6 +717,8 @@ var CallSettings = (function(window, document, undefined) {
       return;
     }
 
+    // XXX: Take care of voicemail settings for multi ICC card devices. See bug
+    // 960387 please.
     var transaction = _settings.createLock();
     var request = transaction.get('ril.iccInfo.mbdn');
     request.onsuccess = function() {
@@ -728,13 +730,14 @@ var CallSettings = (function(window, document, undefined) {
        }
        var voicemail = navigator.mozVoicemail;
        if (voicemail) {
-         // TODO: remove this backward compatibility check
-         // after bug-814634 is landed
-         var number = voicemail.number ||
+         number = voicemail.number ||
            voicemail.getNumber && voicemail.getNumber();
 
          if (number) {
            element.textContent = number;
+           cs_setToSettingsDB('ril.iccInfo.mbdn', number, null);
+         } else {
+           element.textContent = _('voiceMail-number-notSet');
          }
          return;
        }
