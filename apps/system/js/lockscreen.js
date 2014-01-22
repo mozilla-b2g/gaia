@@ -296,6 +296,12 @@ var LockScreen = {
 
   },
 
+  initHelpers: function ls_initHelpers() {
+    this.helpers = {
+      altCamera: new window.AltCameraManager()
+    };
+  },
+
   /*
   * Set enabled state.
   * If enabled state is somehow updated when the lock screen is enabled
