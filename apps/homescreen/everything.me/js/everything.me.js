@@ -9,13 +9,10 @@ var EverythingME = {
 
     var self = this;
 
-    LazyLoader.load(['shared/js/settings_listener.js'],
-      function loaded() {
-        SettingsListener.observe('rocketbar.enabled', false,
-          function onSettingChange(value) {
-          self.rocketbarEnabled = value;
-        });
-      });
+    SettingsListener.observe('rocketbar.enabled', false,
+        function onSettingChange(value) {
+        self.rocketbarEnabled = value;
+    });
 
     var footer = document.querySelector('#footer');
     if (footer) {
