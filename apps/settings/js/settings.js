@@ -263,6 +263,18 @@ var Settings = {
       });
     }
 
+    // we hide all entry points by default,
+    // so we have to detect and show them up
+    if (navigator.mozMobileConnections) {
+      if (navigator.mozMobileConnections.length == 1) {
+        // single sim
+        document.getElementById('simCardManager-settings').hidden = true;
+      } else {
+        // dsds
+        document.getElementById('simSecurity-settings').hidden = true;
+      }
+    }
+
     // register web activity handler
     navigator.mozSetMessageHandler('activity', this.webActivityHandler);
 
@@ -802,6 +814,10 @@ window.addEventListener('load', function loadSettings() {
 
     LazyLoader.load(['shared/js/wifi_helper.js'], displayDefaultPanel);
 
+    /**
+     * Enable or disable the menu items related to the ICC card relying on the
+     * card and radio state.
+     */
     LazyLoader.load([
       'shared/js/airplane_mode_helper.js',
       'js/airplane_mode.js',
@@ -819,7 +835,9 @@ window.addEventListener('load', function loadSettings() {
       'js/dsds_settings.js',
       'js/telephony_settings.js',
       'js/telephony_items_handler.js'
-    ], handleTelephonyItems);
+    ], function() {
+      TelephonySettingHelper.init();
+    });
   });
 
   function displayDefaultPanel() {
@@ -837,25 +855,6 @@ window.addEventListener('load', function loadSettings() {
     if (Settings.isTabletAndLandscape()) {
       Settings.currentPanel = Settings.defaultPanelForTablet;
     }
-  }
-
-  /**
-   * Enable or disable the menu items related to the ICC card relying on the
-   * card and radio state.
-   */
-  function handleTelephonyItems() {
-    // we hide all entry points by default,
-    // so we have to detect and show them up
-    if (navigator.mozMobileConnections) {
-      if (navigator.mozMobileConnections.length == 1) {
-        // single sim
-        document.getElementById('simSecurity-settings').hidden = false;
-      } else {
-        // dsds
-        document.getElementById('simCardManager-settings').hidden = false;
-      }
-    }
-    TelephonySettingHelper.init();
   }
 
   // startup
