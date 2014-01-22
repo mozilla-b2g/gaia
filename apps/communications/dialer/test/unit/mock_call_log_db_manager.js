@@ -24,6 +24,7 @@ var MockCallLogDBManager = {
       callback();
     }
   },
+  getGroupList: function() {},
   deleteAll: function deleteAll(callback) {
     this._calls = [];
     callback();
