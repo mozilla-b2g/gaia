@@ -43,7 +43,7 @@ marionette('email notifications, set interval', function() {
     app.launch();
   });
 
-  test.skip('should change sync interval from manual to 1 hour',
+  test('should change sync interval from manual to 1 hour',
   function() {
     app.manualSetupImapEmail(server1);
 

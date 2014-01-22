@@ -63,7 +63,7 @@ marionette('reply to an e-mail', function() {
     app.abortCompose('message_reader');
   });
 
-  test.skip('should be able to forward an email', function() {
+  test('should be able to forward an email', function() {
     app.tapReply('forward');
     var body = app.getComposeBody();
     assert(body.indexOf(BODY_TEXT) != -1,

@@ -11,13 +11,26 @@ branches:
   - master
 env:
   matrix:
-  - CI_ACTION=gjslint
-  - CI_ACTION=unit-tests-in-b2g
-  - CI_ACTION=unit-tests-in-firefox
-  - CI_ACTION=marionette_js
-  - CI_ACTION=gaia_ui_tests
-  - CI_ACTION=build_tests
-  - CI_ACTION=jshint
+  - CI_ACTION=marionette_js APP=email TRY=1
+  - CI_ACTION=marionette_js APP=email TRY=2
+  - CI_ACTION=marionette_js APP=email TRY=3
+  - CI_ACTION=marionette_js APP=email TRY=4
+  - CI_ACTION=marionette_js APP=email TRY=5
+  - CI_ACTION=marionette_js APP=email TRY=6
+  - CI_ACTION=marionette_js APP=email TRY=7
+  - CI_ACTION=marionette_js APP=email TRY=8
+  - CI_ACTION=marionette_js APP=email TRY=9
+  - CI_ACTION=marionette_js APP=email TRY=10
+  - CI_ACTION=marionette_js APP=email TRY=11
+  - CI_ACTION=marionette_js APP=email TRY=12
+  - CI_ACTION=marionette_js APP=email TRY=13
+  - CI_ACTION=marionette_js APP=email TRY=14
+  - CI_ACTION=marionette_js APP=email TRY=15
+  - CI_ACTION=marionette_js APP=email TRY=16
+  - CI_ACTION=marionette_js APP=email TRY=17
+  - CI_ACTION=marionette_js APP=email TRY=18
+  - CI_ACTION=marionette_js APP=email TRY=19
+  - CI_ACTION=marionette_js APP=email TRY=20
   global:
   - ARTIFACTS_S3_BUCKET=mozilla-releng-travis-uploads
   - secure: Gf2qm+xhLRTotuIvDD7HrNRmng3/dctGdsgF5P4aEu3nDujfxtZTp4sGirTqIngbfVzh9WkJ9eoT0yaDXtvWkr40Df6vwAUyI3P1x+NBOa2CkLz7U+f9j1yaJ3pJ121+L3o+7eTzJy/mvXHJYXAfa7rxcmjrCHpH5BSm+9/OZ4s=
