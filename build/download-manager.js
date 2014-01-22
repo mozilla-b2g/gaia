@@ -78,6 +78,7 @@ var DownloadManager = {
        source: url,
        target: tmpFile
     }).then(function(download) {
+      download.source.isPrivate = true;  // don't add to history
       logLine('download for: ' + url + ' is placed.');
       download.start().then(downloadFinished, downloadError);
     }, downloadError);
