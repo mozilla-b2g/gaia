@@ -835,10 +835,22 @@ MessageListCard.prototype = {
   _cacheDomTimeoutId: 0,
 
   /**
+   * Confirms card state is in a visual state suitable for caching.
+   */
+  _isCacheableCardState: function() {
+    return this.cacheableFolderId === this.curFolder.id &&
+           this.mode === 'nonsearch' &&
+           !this.editMode;
+  },
+
+  /**
    * Caches the DOM for this card, but trims it down a bit first.
    */
   _cacheDom: function() {
     this._cacheDomTimeoutId = 0;
+    if (!this._isCacheableCardState()) {
+      return;
+    }
 
     var cacheNode = this.domNode.cloneNode(true);
 
@@ -878,16 +890,14 @@ MessageListCard.prototype = {
   _considerCacheDom: function(index) {
     // Only bother if not already waiting to update cache and
     if (!this._cacheDomTimeoutId &&
-        // is for the folder that is considered cacheable (default inbox)
-        this.cacheableFolderId === this.curFolder.id &&
+        // card visible state is appropriate
+        this._isCacheableCardState() &&
         // if our slice is showing the newest messages in the folder and
         headerCursor.messagesSlice.atTop &&
         // if actually got a numeric index and
         (index || index === 0) &&
         // if it affects the data we cache
-        index < this._cacheListLimit &&
-        // is in non-search mode
-        this.mode === 'nonsearch') {
+        index < this._cacheListLimit) {
       this._cacheDomTimeoutId = setTimeout(this._cacheDom.bind(this), 600);
     }
   },
