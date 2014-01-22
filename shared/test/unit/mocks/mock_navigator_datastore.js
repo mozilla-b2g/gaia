@@ -32,10 +32,10 @@ var MockDatastore = {
     return out;
   },
 
-  _reject: function() {
+  _reject: function(errorName) {
     return new window.Promise(function(resolve, reject) {
       reject({
-        name: 'UnknownError'
+        name: errorName || 'UnknownError'
       });
     });
   },
@@ -67,8 +67,11 @@ var MockDatastore = {
       return this._reject();
     }
 
-    var newId = this._nextId;
+    var newId = dsId || this._nextId;
     this._nextId++;
+    if (typeof this._records[newId] !== 'undefined') {
+      return this._reject('ConstraintError');
+    }
     this._records[newId] = this._clone(obj);
     return new window.Promise(function(resolve, reject) {
       resolve(newId);
