@@ -36,7 +36,6 @@ var MockThreadUI = {
   resetActivityRequestMode: function() {},
   getAllInputs: function() {},
   getSelectedInputs: function() {},
-  setMessageBody: function() {},
   messageComposerInputHandler: function() {},
   assimilateRecipients: function() {},
   messageComposerTypeHandler: function() {},
