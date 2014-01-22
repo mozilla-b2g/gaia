@@ -42,7 +42,7 @@ Search.Selectors = {
   firstApp: '#localapps div',
   firstContact: '#contacts div',
   firstContactContainer: '#contacts',
-  firstPlace: '#places div',
+  firstPlace: '#places div .title',
   firstPlaceContainer: '#places'
 };
 
@@ -77,6 +77,7 @@ Search.prototype = {
    * Opens the rocketbar and enters text
    */
   doSearch: function(input) {
+    this.client.switchToFrame();
     this.openRocketbar();
     this.client.helper
       .waitForElement(Search.Selectors.searchInput)
