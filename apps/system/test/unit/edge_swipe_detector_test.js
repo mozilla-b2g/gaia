@@ -2,11 +2,13 @@
 
 requireApp('system/js/edge_swipe_detector.js');
 
+requireApp('system/test/unit/mock_rocketbar.js');
 requireApp('system/test/unit/mock_sheets_transition.js');
 requireApp('system/test/unit/mock_stack_manager.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 
 var mocksForEdgeSwipeDetector = new MocksHelper([
+  'Rocketbar',
   'SheetsTransition',
   'StackManager',
   'SettingsListener'
@@ -109,6 +111,14 @@ suite('system/EdgeSwipeDetector >', function() {
       assert.isTrue(screen.classList.contains('edges'));
     });
 
+    test('edges should be enabled after app transition',
+    function() {
+      EdgeSwipeDetector._lifecycleEnabled = false;
+      //appLaunch(dialer);
+      launchTransitionEnd();
+      assert.isTrue(EdgeSwipeDetector._lifecycleEnabled);
+    });
+
     suite('in background', function() {
       setup(function() {
         dialer.stayBackground = true;
@@ -188,6 +198,16 @@ suite('system/EdgeSwipeDetector >', function() {
 
       assert.isTrue(EdgeSwipeDetector.previous.classList.contains('disabled'));
       assert.isTrue(EdgeSwipeDetector.next.classList.contains('disabled'));
+    });
+
+    test('edges remain enabled if rocketbar is shown', function() {
+      EdgeSwipeDetector.screen.classList.add('edges');
+
+      Rocketbar.shown = true;
+      homescreen();
+      MockSettingsListener.mCallbacks['edgesgesture.enabled'](true);
+
+      assert.isTrue(EdgeSwipeDetector.screen.classList.contains('edges'));
     });
   });
 
