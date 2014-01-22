@@ -192,7 +192,7 @@ body:not(.rb-enabled) #statusbar-icons > .sb-start {
 .sb-icon {
   width: 1.6rem;
   height: 1.6rem;
-  background: url('images/icons.png') no-repeat;
+  background: url('images/icons.svg') no-repeat;
   background-size: 31.4rem 9.6rem;
 }
 
@@ -350,7 +350,7 @@ body:not(.rb-enabled) #statusbar-icons > .sb-start {
   height: 0.5rem;
   top: 0;
   left: 0;
-  background: url('images/icons.png') no-repeat;
+  background: url('images/icons.svg') no-repeat;
   background-position: -16.8rem -4rem;
   background-size: 31rem;
 }
@@ -441,7 +441,7 @@ body:not(.rb-enabled) #statusbar-icons > .sb-start {
   left: 0;
   width: 1.6rem;
   height: 1.6rem;
-  background: url('images/icons.png') no-repeat;
+  background: url('images/icons.svg') no-repeat;
   background-position: -18.9rem -6rem;
   background-size: 31rem;
 }
