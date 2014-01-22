@@ -113,11 +113,9 @@
       if (enabled !== false) {
         window.addEventListener('ftudone', function ftudone(e) {
           window.removeEventListener('ftudone', ftudone);
-          _ensureWidget();
           widgetFrame.setVisible(false);
         });
       } else {
-        _ensureWidget();
         widgetFrame.setVisible(false);
       }
     });
