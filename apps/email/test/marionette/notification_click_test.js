@@ -82,7 +82,7 @@ marionette('email notifications, click', function() {
     app.waitForMessageReader();
   });
 
-  test('show message_list for multiple message notification',
+  test.skip('show message_list for multiple message notification',
   function() {
     configureAndSend(2);
 
