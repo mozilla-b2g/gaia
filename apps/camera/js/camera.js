@@ -395,15 +395,22 @@ Camera.prototype.pickPictureSize = function(pictureSizes) {
   }
 
   // CONFIG_MAX_IMAGE_PIXEL_SIZE is
-  // maximum image resolution for still
-  // photos taken with camera.
+  // maximum image resolution for images
+  // displayed by the Gallery app.
+  //
+  // CONFIG_MAX_SNAPSHOT_PIXEL_SIZE is
+  // maximum image resolution for snapshots
+  // taken with camera.
+  //
+  // We use the smaller of the two max values
+  // above so we can display captured images
+  // in the gallery.
   //
   // It's from config.js which is
   // generatedin build time, 5 megapixels
   // by default (see build/application-data.js).
-  // It should be synced with Gallery app
-  // and update carefully.
-  var maxRes = CONFIG_MAX_IMAGE_PIXEL_SIZE;
+  var maxRes = Math.min(CONFIG_MAX_IMAGE_PIXEL_SIZE,
+                        CONFIG_MAX_SNAPSHOT_PIXEL_SIZE);
   var size = pictureSizes.reduce(function(acc, size) {
     var mp = size.width * size.height;
 
