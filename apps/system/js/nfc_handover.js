@@ -401,25 +401,27 @@ function HandoverManager() {
    */
   this.settingsNotified = false;
 
-  this.bluetooth.addEventListener('adapteradded', function() {
-    debug('adapteradded');
-    var req = self.bluetooth.getDefaultAdapter();
-    req.onsuccess = function bt_getAdapterSuccess() {
-      self.settingsNotified = false;
-      self.defaultAdapter = req.result;
-      debug('MAC address: ' + self.defaultAdapter.address);
-      debug('MAC name: ' + self.defaultAdapter.name);
-      /*
-       * Call all actions that have queued up while Bluetooth
-       * was turned on.
-       */
-      for (var i = 0; i < self.actionQueue.length; i++) {
-        var action = self.actionQueue[i];
-        action.callback.apply(null, action.args);
-      }
-      self.actionQueue = new Array();
-    };
-  });
+  if (this.bluetooth) {
+    this.bluetooth.addEventListener('adapteradded', function() {
+      debug('adapteradded');
+      var req = self.bluetooth.getDefaultAdapter();
+      req.onsuccess = function bt_getAdapterSuccess() {
+        self.settingsNotified = false;
+        self.defaultAdapter = req.result;
+        debug('MAC address: ' + self.defaultAdapter.address);
+        debug('MAC name: ' + self.defaultAdapter.name);
+        /*
+         * Call all actions that have queued up while Bluetooth
+         * was turned on.
+         */
+        for (var i = 0; i < self.actionQueue.length; i++) {
+          var action = self.actionQueue[i];
+          action.callback.apply(null, action.args);
+        }
+        self.actionQueue = new Array();
+      };
+    });
+  }
 
   /*****************************************************************************
    *****************************************************************************

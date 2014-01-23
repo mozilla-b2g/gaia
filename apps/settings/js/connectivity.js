@@ -45,25 +45,29 @@ var Connectivity = (function(window, document, undefined) {
   //
   // Now register callbacks to track the state of the wifi hardware
   //
-  wifiManager.onenabled = function() {
-    dispatchEvent(new CustomEvent('wifi-enabled'));
-    wifiEnabled();
-  };
-  wifiManager.ondisabled = function() {
-    dispatchEvent(new CustomEvent('wifi-disabled'));
-    wifiDisabled();
-  };
-  wifiManager.onstatuschange = wifiStatusChange;
+  if (wifiManager) {
+    wifiManager.onenabled = function() {
+      dispatchEvent(new CustomEvent('wifi-enabled'));
+      wifiEnabled();
+    };
+    wifiManager.ondisabled = function() {
+      dispatchEvent(new CustomEvent('wifi-disabled'));
+      wifiDisabled();
+    };
+    wifiManager.onstatuschange = wifiStatusChange;
+  }
 
   // Register callbacks to track the state of the bluetooth hardware
-  bluetooth.addEventListener('adapteradded', function() {
-    dispatchEvent(new CustomEvent('bluetooth-adapter-added'));
-    updateBluetooth();
-  });
-  bluetooth.addEventListener('disabled', function() {
-    dispatchEvent(new CustomEvent('bluetooth-disabled'));
-    updateBluetooth();
-  });
+  if (bluetooth) {
+    bluetooth.addEventListener('adapteradded', function() {
+      dispatchEvent(new CustomEvent('bluetooth-adapter-added'));
+      updateBluetooth();
+    });
+    bluetooth.addEventListener('disabled', function() {
+      dispatchEvent(new CustomEvent('bluetooth-disabled'));
+      updateBluetooth();
+    });
+  }
 
   window.addEventListener('bluetooth-pairedstatuschanged', updateBluetooth);
 
@@ -93,6 +97,9 @@ var Connectivity = (function(window, document, undefined) {
   var wifiDesc = document.getElementById('wifi-desc');
 
   function updateWifi() {
+    if (!wifiManager) {
+      return;
+    }
     if (!_initialized) {
       init();
       return; // init will call updateWifi()
@@ -120,6 +127,9 @@ var Connectivity = (function(window, document, undefined) {
   }
 
   function storeMacAddress() {
+    if (!wifiManager) {
+      return;
+    }
     // Store the MAC address in the Settings database.  Note: the wifiManager
     // sets macAddress to the string `undefined' when it is not available.
     if (settings && wifiManager.macAddress &&
@@ -158,6 +168,9 @@ var Connectivity = (function(window, document, undefined) {
    */
 
   function updateBluetooth() {
+    if (!bluetooth) {
+      return;
+    }
     var bluetoothDesc = document.getElementById('bluetooth-desc');
     // if 'adapteradd' or 'disabled' event happens before init
     if (!_initialized) {

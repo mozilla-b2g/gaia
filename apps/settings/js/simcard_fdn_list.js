@@ -4,6 +4,9 @@ var FdnAuthorizedNumbers = {
   fdnContacts: null,
 
   getContacts: function(er, cb) {
+    if (!IccHelper) {
+      return;
+    }
     var request = IccHelper.readContacts('fdn');
     request.onerror = er;
     request.onsuccess = (function onsuccess() {

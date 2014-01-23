@@ -5,6 +5,8 @@
 // handle Nfc settings
 navigator.mozL10n.ready(function nfcSettings() {
   // Check if NFC is available on platform, and update UI
-  document.getElementById('nfc-settings').hidden = !getNfc();
+  if (document.getElementById('nfc-settings')) {
+    document.getElementById('nfc-settings').hidden = !getNfc();
+  }
 });
 
