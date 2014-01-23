@@ -72,7 +72,9 @@ const HomeState = (function() {
           // This works as we're just adding a new object store.
           // Please take into accout that in case we were altering the schema
           // this wouldn't be enough
-          db.createObjectStore(SV_APP_STORE_NAME, { keyPath: 'manifest' });
+          if (!db.objectStoreNames.contains(SV_APP_STORE_NAME)) {
+            db.createObjectStore(SV_APP_STORE_NAME, { keyPath: 'manifest' });
+          }
       }
     };
   }
