@@ -62,7 +62,13 @@ function getCompression(pathInZip, webapp) {
     webapp.metaData.zip.mmap_files.indexOf(pathInZip) !== -1) {
     return Ci.nsIZipWriter.COMPRESSION_NONE;
   } else {
-    return Ci.nsIZipWriter.COMPRESSION_BEST;
+    // Don't store some files compressed since that's not giving us any
+    // benefit but costs cpu when reading from the zip.
+    var ext = pathInZip.split('.').reverse()[0].toLowerCase();
+    return (["gif", "jpg", "jpeg", "png",
+             "ogg", "opus"].indexOf(ext) !== -1)
+      ? Ci.nsIZipWriter.COMPRESSION_NONE
+      : Ci.nsIZipWriter.COMPRESSION_BEST;
   }
 }
 
