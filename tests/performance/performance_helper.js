@@ -85,9 +85,7 @@ function PerformanceHelper(opts) {
 
     reportDuration: function(values, title) {
       title = title || '';
-      var mozPerfDurations = {};
-      mozPerfDurations[title] = values;
-      sendResults('mozPerfDuration', mozPerfDurations);
+      sendResults('mozPerfDuration', { title: title, values: values });
     },
 
     reportMemory: function(values, title) {

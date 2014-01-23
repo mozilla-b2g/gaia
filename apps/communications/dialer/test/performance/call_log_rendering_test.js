@@ -7,7 +7,7 @@ var PerformanceHelper =
   requireGaia('/tests/performance/performance_helper.js');
 var DialerIntegration = require('./integration.js');
 
-marionette(mozTestInfo.appPath + '>', function() {
+marionette(mozTestInfo.appPath + ' >', function() {
   var client = marionette.client({
     settings: {
       'ftu.manifestURL': null

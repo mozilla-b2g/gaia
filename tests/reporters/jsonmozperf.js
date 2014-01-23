@@ -25,7 +25,7 @@ function JSONMozPerfReporter(runner) {
   });
 
   runner.on('mozPerfDuration', function(content) {
-    mozPerfDurations = content;
+    mozPerfDurations[content.title] = content.values;
   });
 
   runner.on('mozPerfMemory', function(content) {
@@ -49,7 +49,7 @@ function JSONMozPerfReporter(runner) {
         duration: test.duration,
         mozPerfDurations: mozPerfDurations[title],
         mozPerfDurationsAverage: average(mozPerfDurations[title]),
-        mozPerfMemory: mozPerfMemory[title],
+        mozPerfMemory: mozPerfMemory[title]
       });
     }
   });
