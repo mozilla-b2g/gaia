@@ -80,6 +80,7 @@ function MediaRemoteControls() {
   this.bluetooth = navigator.mozBluetooth;
   this.defaultAdapter = null;
   this._commandListeners = {};
+  this._isSCOConnected = false;
 
   // Create the empty object for all command listeners.
   for (var command in REMOTE_CONTROLS)
@@ -149,6 +150,7 @@ MediaRemoteControls.prototype.start = function() {
     self.defaultAdapter = event.target.result;
     self.defaultAdapter.onrequestmediaplaystatus = playstatusHandler;
     self.defaultAdapter.ona2dpstatuschanged = a2dpConnectionHandler;
+    self.defaultAdapter.onscostatuschanged = scoConnectionHandler;
   }
 
   function playstatusHandler() {
@@ -164,6 +166,18 @@ MediaRemoteControls.prototype.start = function() {
       self._commandHandler(REMOTE_CONTROLS.UPDATE_METADATA);
     else
       self._commandHandler(AVRCP.PAUSE_PRESS);
+  }
+
+  // Also expose the SCO status with the custom event because the SCO connection
+  // could occupy the audio channel that the media apps using, besides sending
+  // the play/pause commands, these additional status can help the media apps
+  // to decide if they want more interaction with users while SCO is connected.
+  function scoConnectionHandler(event) {
+    self._isSCOConnected = event.status;
+    if (self._isSCOConnected)
+      self._commandHandler(AVRCP.PAUSE_PRESS);
+    else
+      self._commandHandler(AVRCP.PLAY_PRESS);
   }
 
   function resetDefaultAdapter() {
@@ -197,6 +211,29 @@ MediaRemoteControls.prototype.start = function() {
   };
 };
 
+// Synchronous connection-oriented(SCO) link is the type of radio link used
+// for voice data of bluetooth, it establishes when the user is in a call via
+// bluetooth hands-free headset. And since only voice will be routed to the
+// headset during a call, the media apps can use this api to know the SCO
+// status, so that the apps can adjust the ui or notify the user to get better
+// user experience, for more detail, please see:
+// http://en.wikipedia.org/wiki/Bluetooth_protocols
+MediaRemoteControls.prototype.getSCOStatus = function(callback) {
+  if (this.defaultAdapter) {
+    var request = this.defaultAdapter.isScoConnected();
+
+    request.onsuccess = function(event) {
+      callback(event.target.result);
+    };
+
+    request.onerror = function(event) {
+      callback(false);
+    };
+  } else {
+    callback(false);
+  }
+};
+
 MediaRemoteControls.prototype._postMessage = function(name, value) {
   var message = {type: name, data: value};
   if (!this._ports) {
@@ -222,7 +259,10 @@ MediaRemoteControls.prototype._commandHandler = function(message) {
   switch (message) {
     case AVRCP.PLAY_PRESS:
     case IAC.PLAY_PRESS:
-      option.detail = { command: REMOTE_CONTROLS.PLAY };
+      option.detail = {
+        command: REMOTE_CONTROLS.PLAY,
+        isSCOConnected: this._isSCOConnected
+      };
       break;
     case AVRCP.PLAY_PAUSE_PRESS:
     case IAC.PLAY_PAUSE_PRESS:
@@ -230,7 +270,10 @@ MediaRemoteControls.prototype._commandHandler = function(message) {
       break;
     case AVRCP.PAUSE_PRESS:
     case IAC.PAUSE_PRESS:
-      option.detail = { command: REMOTE_CONTROLS.PAUSE };
+      option.detail = {
+        command: REMOTE_CONTROLS.PAUSE,
+        isSCOConnected: this._isSCOConnected
+      };
       break;
     case AVRCP.STOP_PRESS:
     case IAC.STOP_PRESS:

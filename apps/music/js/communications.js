@@ -9,6 +9,7 @@ var MusicComms = {
     // the play status for the player then decide we should play or pause.
     play: function(event) {
       this._getPlayerReady(function() {
+        this.isSCOEnabled = event.detail.isSCOConnected;
         // Play in shuffle order if music app is launched remotely.
         // Please note bug 855208, if music app is launched via system message
         // in background, the audio channel will be paused.
@@ -26,7 +27,7 @@ var MusicComms = {
         } else {
           PlayerView.play();
         }
-      });
+      }.bind(this));
     },
 
     playpause: function(event) {
@@ -40,6 +41,7 @@ var MusicComms = {
       if (!this._isPlayerActivated())
         return;
 
+      this.isSCOEnabled = event.detail.isSCOConnected;
       PlayerView.pause();
     },
 
@@ -90,6 +92,8 @@ var MusicComms = {
 
   enabled: false,
 
+  isSCOEnabled: false,
+
   init: function() {
     // The Media Remote Controls object will handle the remote commands.
     this.mrc = new MediaRemoteControls();
@@ -133,5 +137,13 @@ var MusicComms = {
   notifyStatusChanged: function(info) {
     if (this.enabled)
       this.mrc.notifyStatusChanged(info);
+  },
+
+  updateSCOStatus: function() {
+    if (this.enabled) {
+      this.mrc.getSCOStatus(function(status) {
+        this.isSCOEnabled = status;
+      }.bind(this));
+    }
   }
 };
