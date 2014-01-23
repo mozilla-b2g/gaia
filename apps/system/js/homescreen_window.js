@@ -3,6 +3,9 @@
     this.setBrowserConfig(manifestURL);
     this.render();
     this.publish('created');
+    if (window.AppModalDialog) {
+      new AppModalDialog(this);
+    }
     return this;
   };
 
