@@ -104,6 +104,10 @@ var Contacts = (function() {
           showApp();
         });
         break;
+      case 'home':
+        navigation.home();
+        showApp();
+        break;
       default:
         showApp();
     }
