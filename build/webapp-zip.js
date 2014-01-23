@@ -603,6 +603,9 @@ function execute(options) {
       }
     });
 
+    if (zip.alignStoredFiles) {
+      zip.alignStoredFiles(4096);
+    }
     zip.close();
   });
 }
