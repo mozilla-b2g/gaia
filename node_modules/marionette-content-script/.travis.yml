@@ -1,0 +1,9 @@
+before_install:
+  - "sudo easy_install http://closure-linter.googlecode.com/files/closure_linter-latest.tar.gz"
+before_script:
+  - "export DISPLAY=:99.0"
+  - "sh -e /etc/init.d/xvfb start"
+language: node_js
+node_js:
+  - "0.8"
+  - "0.10"
