@@ -10,11 +10,11 @@ from gaiatest import GaiaTestCase
 from gaiatest.apps.email.app import Email
 
 
-class TestSendIMAPEmail(GaiaTestCase):
+class TestSetupAndSendActiveSyncEmail(GaiaTestCase):
 
     def setUp(self):
         try:
-            account = self.testvars['email']['IMAP']
+            self.account = self.testvars['email']['ActiveSync']
         except KeyError:
             raise SkipTest('account details not present in test variables')
 
@@ -24,20 +24,29 @@ class TestSendIMAPEmail(GaiaTestCase):
         self.email = Email(self.marionette)
         self.email.launch()
 
-        # setup IMAP account
-        self.email.setup_IMAP_email(account)
+    def test_setup_and_send_active_sync_email(self):
 
-    def test_send_imap_email(self):
-        # Bug 878772 - email app doesn't show the last emails by default
+        # setup ActiveSync account
+        self.email.setup_active_sync_email(self.account)
+
+        # check header area
+        self.assertTrue(self.email.header.is_compose_visible)
+        self.assertTrue(self.email.header.is_menu_visible)
+        self.assertEqual(self.email.header.label, 'Inbox')
+
+        # check toolbar area
+        self.assertTrue(self.email.toolbar.is_edit_visible)
+        self.assertTrue(self.email.toolbar.is_refresh_visible)
+
+        # wait for sync to complete
         self.email.wait_for_emails_to_sync()
-        self.email.mails[0].scroll_to_message()
 
         curr_time = repr(time.time()).replace('.', '')
         _subject = 's%s' % curr_time
         _body = 'b%s' % curr_time
         new_email = self.email.header.tap_compose()
 
-        new_email.type_to(self.testvars['email']['IMAP']['email'])
+        new_email.type_to(self.testvars['email']['ActiveSync']['email'])
         new_email.type_subject(_subject)
         new_email.type_body(_body)
 
