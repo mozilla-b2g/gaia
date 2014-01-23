@@ -244,6 +244,10 @@
   visibility: visible;
 }
 
+.appWindow > .contextmenu {
+  z-index: 2;
+}
+
 .appWindow > .modal-dialog {
   z-index: 3;
 }
@@ -282,7 +286,12 @@
   display: none;
 }
 
+.appWindow > .contextmenu {
+  display: none;
+}
+
 .appWindow > .modal-dialog.visible,
+.appWindow > .contextmenu.visible,
 .appWindow > .authentication-dialog.visible,
 .authentication-dialog > .authentication-dialog-http.visible {
   display: block;
@@ -311,6 +320,11 @@
 
 .appWindow > .modal-dialog > form.visible {
   display: block;
+}
+
+.appWindow > form[role="dialog"][data-type="action"],
+.appWindow > form[role="dialog"][data-type="object"] {
+  top: 2rem;
 }
 
 .appWindow > .screenshot-overlay {
