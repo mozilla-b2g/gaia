@@ -4,7 +4,6 @@ var Base = require('./base'),
     HotspotPanel = require('./regions/hotspot');
     HotspotSettingsPanel = require('./regions/hotspot_settings');
     SupportPanel = require('./regions/support');
-    BatteryPanel = require('./regions/battery');
 
 /**
  * Abstraction around settings app
@@ -29,8 +28,7 @@ Settings.Selectors = {
   'hotspotMenuItem': '#menuItem-internetSharing',
   'hotspotPanel': '#hotspot',
   'hotspotSettingsTrigger': '#hotspot-settings-section button',
-  'supportMenuItem': '#menuItem-help',
-  'batteryMenuItem': '#menuItem-battery'
+  'supportMenuItem': '#menuItem-help'
 };
 
 Settings.prototype = {
@@ -65,12 +63,6 @@ Settings.prototype = {
     openPanel.call(this, 'supportMenuItem');
     return this._supportPanel = this._supportPanel ||
       new SupportPanel(this.client);
-  },
-
-  get batteryPanel() {
-    openPanel.call(this, 'batteryMenuItem');
-    return this._batteryPanel = this._batteryPanel ||
-      new BatteryPanel(this.client);
   }
 };
 
