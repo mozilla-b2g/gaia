@@ -456,7 +456,8 @@
   AppWindow.SUB_COMPONENTS = {
     'transitionController': window.AppTransitionController,
     'modalDialog': window.AppModalDialog,
-    'authDialog': window.AppAuthenticationDialog
+    'authDialog': window.AppAuthenticationDialog,
+    'contextmenu': window.BrowserContextMenu
   };
 
   AppWindow.prototype.openAnimation = 'enlarge';
