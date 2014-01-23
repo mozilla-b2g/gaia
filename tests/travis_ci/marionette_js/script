@@ -1,3 +1,4 @@
 #! /bin/bash -v
 
-REPORTER=spec make test-integration
+APP=search REPORTER=spec make test-integration
+
