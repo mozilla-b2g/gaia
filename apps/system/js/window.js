@@ -240,13 +240,24 @@
     // as window disposition activity.
     this.iframe.addEventListener('mozbrowseractivitydone',
       function activitydone(e) {
-        if (this.activityCaller &&
-            this.activityCaller instanceof AppWindow) {
-          // XXX: Do call appWindow.open()
-          WindowManager.setDisplayedApp(this.activityCaller.origin);
-          this.activityCaller.activityCallee = null;
-          this.activityCaller = null;
+        if (!this.activityCaller) {
+          // We have no caller refrernce. Do nothing.
+          return;
         }
+
+        // XXX: We will need to find the first non-ActivityWindow AppWindow
+        // instance in the calling chain and send it to
+        // |WindowManager.setDisplayedApp(app.origin)|.
+        // For v1.4, each AppWindow/ActivityWindow will have their own working
+        // |requestOpen()|.
+        var app = this.activityCaller;
+        while (app instanceof ActivityWindow) {
+          app = app.activityCaller;
+        }
+        WindowManager.setDisplayedApp(app.origin);
+
+        this.activityCaller.activityCallee = null;
+        this.activityCaller = null;
       }.bind(this));
 
     this.iframe.addEventListener('mozbrowserclose',

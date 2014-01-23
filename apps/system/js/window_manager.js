@@ -1023,7 +1023,9 @@ var WindowManager = (function() {
       if (!config.isActivity)
         return;
 
-      var caller = runningApps[displayedApp];
+      // Attempt to identify the correct caller here.
+      var caller = ActivityWindowFactory.getActiveWindow() ||
+        runningApps[displayedApp];
 
       runningApps[config.origin].activityCaller = caller;
       caller.activityCallee = runningApps[config.origin];
