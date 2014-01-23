@@ -8,67 +8,73 @@
     <link rel="stylesheet" type="text/css" href="../../style/UI.css">
   </head>
   <body>
-    <ul>
-      <li>Select:<br>
-      <select id="singleSel">
-	  <option value="Mozilla">Mozilla</option>
-	  <option value="B2G">B2G</option>
-	  <option value="Gaia">Gaia</option>
-	  <option value="Gecko">Gecko</option>
-	  <option value="Basecamp">Basecamp</option>
-      </select>
-      </li>
-
-      <li>Select - more options:<br>
-      <select>
-	  <option value="Mozilla">Mozilla</option>
-	  <option value="B2G">B2G</option>
-	  <option value="Gaia">Gaia</option>
-	  <option value="Gecko">Gecko</option>
-	  <option value="Basecamp">Basecamp</option>
-	  <option value="Mozilla-2">Mozilla-2</option>
-	  <option value="B2G-2">B2G-2</option>
-	  <option value="Gaia-2">Gaia-2</option>
-	  <option value="Gecko-2">Gecko-2</option>
-	  <option value="Basecamp-2">Basecamp-2</option>
-      </select>
-      </li>
-
-      <li>Multiple Select:<br>
-      <select multiple="multiple" id="multiSel">
-	  <option value="Mozilla">Mozilla</option>
-	  <option value="B2G">B2G</option>
-	  <option value="Gaia">Gaia</option>
-	  <option value="Gecko">Gecko</option>
-	  <option value="Basecamp">Basecamp</option>
-      </select>
-      </li>
-
-      <li>
-          <input type="time" placeholder="Time" />
-      </li>
-      <li>
+    <fieldset>
+      <legend>Select</legend>
+      <section>
+        <select id="singleSel">
+	        <option value="Mozilla">Mozilla</option>
+	        <option value="B2G">B2G</option>
+	        <option value="Gaia">Gaia</option>
+	        <option value="Gecko">Gecko</option>
+	        <option value="Basecamp">Basecamp</option>
+        </select>
+      </section>
+    </fieldset>
+    <fieldset>
+      <legend>Select - more options:</legend>
+      <section>
+        <select>
+	        <option value="Mozilla">Mozilla</option>
+	        <option value="B2G">B2G</option>
+	        <option value="Gaia">Gaia</option>
+	        <option value="Gecko">Gecko</option>
+	        <option value="Basecamp">Basecamp</option>
+	        <option value="Mozilla-2">Mozilla-2</option>
+	        <option value="B2G-2">B2G-2</option>
+	        <option value="Gaia-2">Gaia-2</option>
+	        <option value="Gecko-2">Gecko-2</option>
+	        <option value="Basecamp-2">Basecamp-2</option>
+        </select>
+      </section>
+    </fieldset>
+    <fieldset>
+      <legend>Select with size=3:</legend>
+      <section>
+        <select size="3" id="sizeSel">
+	        <option value="Mozilla">Mozilla</option>
+	        <option value="B2G">B2G</option>
+	        <option value="Gaia">Gaia</option>
+	        <option value="Gecko">Gecko</option>
+	        <option value="Basecamp">Basecamp</option>
+        </select>
+      </section>
+    </fieldset>
+    <fieldset>
+      <legend>Multiple Select</legend>
+      <section>
+        <select multiple="multiple" id="multiSel">
+	        <option value="Mozilla">Mozilla</option>
+	        <option value="B2G">B2G</option>
+	        <option value="Gaia">Gaia</option>
+	        <option value="Gecko">Gecko</option>
+	        <option value="Basecamp">Basecamp</option>
+        </select>
+      </section>
+    </fieldset>
+    <fieldset>
+      <legend>Time</legend>
+      <section>
+        <input type="time" placeholder="Time" />
+      </section>
+      <section>
           <input type="date" placeholder="Date" />
-      </li>
-
-      <li>
+      </section>
+      <section>
           <input type="date" placeholder="Time" value="2016-05-20" />
-      </li>
-
-      <li>
+      </section>
+      <section>
           <input type="time" placeholder="Time" value="10:14" />
-      </li>
-
-      <li>Select with size=3:<br>
-      <select size="3" id="sizeSel">
-	  <option value="Mozilla">Mozilla</option>
-	  <option value="B2G">B2G</option>
-	  <option value="Gaia">Gaia</option>
-	  <option value="Gecko">Gecko</option>
-	  <option value="Basecamp">Basecamp</option>
-      </select>
-      </li>
-
-    </ul>
+      </section>
+    </fieldset>
   </body>
 </html>

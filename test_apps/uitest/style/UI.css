@@ -5,7 +5,9 @@ input, textarea, iframe {
   width: 100%;
 }
 button {
-  font-size: 2rem;
+  /* overwrite building blocks settings to display 2-lines button */
+  line-height: normal !important;
+  text-align: center;
 }
 canvas {
   display: none;
@@ -15,21 +17,31 @@ canvas.hidden {
 }
 
 /* keyboard */
+.table {
+  border-collapse: collapse;
+}
 .row {
   display: table-row;
+  border-top: 1px dashed rgba(150,150,150,1);
 }
-.column_left {
-  display: table-cell;
-  width: 20%;
-  padding-right: 1rem;
-}
-.column_middle {
-  display: table-cell;
-  width: 20%;
-  padding-right: 1rem;
-}
+.column_left,
+.column_middle,
 .column_right {
   display: table-cell;
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+}
+.column_left {
+  width: 20%;
+  padding-right: 0.5rem;
+}
+.column_middle {
+  width: 20%;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+}
+.column_right {
+  padding-left: 0.5rem;
 }
 
 .box {

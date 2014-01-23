@@ -2,34 +2,42 @@
 
 function fullscreenTest() {
   var fullscreenDiv = document.getElementById('fullscreen-div');
-  var cancelButtonDiv = document.getElementById('cancleFullscreen-div');
-  var cancelButton = document.getElementById('cancleFullscreen');
+  
+  var testBtnDiv = document.getElementById('testBtn-div');
+  var testBtn = document.getElementById('testBtn');
+  var isFullscreenDiv = false;
+  var isFullscreen = false;
+  var displayMode;
 
   function clickHandlers(evt) {
     switch (evt.target.id) {
-      case 'fullscreen':
-        fullscreenDiv.mozRequestFullScreen();
-        cancelButtonDiv.hidden = false;
-      break;
-      case 'fullscreenFrame':
-        window.parent.document.getElementById('test-iframe')
-                                              .mozRequestFullScreen();
-        cancelButton.hidden = false;
-      break;
-      case 'cancleFullscreen-div':
-        document.mozCancelFullScreen();
-        cancelButtonDiv.hidden = true;
-        cancelButton.hidden = true;
-      break;
-      case 'cancleFullscreen':
-        window.parent.document.mozCancelFullScreen();
-        cancelButton.hidden = true;
+      case 'testBtn':
+        if (!isFullscreen) {
+          window.parent.document.getElementById('test-iframe')
+                                                .mozRequestFullScreen();
+          testBtn.textContent = 'Cancel fullscreen';
+        } else {
+          window.parent.document.mozCancelFullScreen();
+          testBtn.textContent = 'Test';
+        }
+        isFullscreen = !isFullscreen;
+        break;
+      case 'testBtn-div':
+        if (!isFullscreenDiv) {
+          fullscreenDiv.mozRequestFullScreen();
+          testBtnDiv.textContent = 'Cancel fullscreen';
+        } else {
+          document.mozCancelFullScreen();
+          testBtnDiv.textContent = 'Test';
+          
+          // Also cancels fullscreen of caused by another button (if any)
+          isFullscreen = false;
+          testBtn.textContent = 'Test';
+        }
+        isFullscreenDiv = !isFullscreenDiv;
         break;
     }
   };
-
-  cancelButtonDiv.hidden = true;
-  cancelButton.hidden = true;
 
   document.body.addEventListener('click', clickHandlers.bind(this));
 }

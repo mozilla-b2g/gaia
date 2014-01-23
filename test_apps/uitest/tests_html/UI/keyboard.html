@@ -6,221 +6,249 @@
     <title>Keyboard test</title>
     <script defer src="../../js/UI/keyboard.js"></script>
     <link rel="stylesheet" type="text/css" href="../../style/UI.css">
+    <link rel="stylesheet" type="text/css" href="/shared/style/buttons.css">
   </head>
   <body>
-    Test for difference keyboard mode<br>
-    The following elements are<br>
-    &lt;input type="?"&gt; except textarea
+    <h3>This is a test for different keyboard mode, click on elements to show keyboard</h3>
     <div id="readme">
-      <p>
-        Uppercase
-        <ul>
-          <li>latin</li>
-          <li>verbatim</li>
-        </ul>
-      </p>
-      <p>
-        Lowercase
-        <ul>
-          <li>none</li>
-          <li>latin-prose</li>
-          <li>latin-name</li>
-        </ul>
-      </p>
-      <p>[0-9]
-        <ul>
-          <li>digit</li>
-        </ul>
-      </p>
-      <p>[0-9], +, -, comma, dot
-        <ul>
-          <li>numeric</li>
-        </ul>
-      </p>
+      <fieldset>
+        <legend><b><u>x-inputmode</u></b> explanation</legend>
+        <section class="table">
+          <div class="row">
+            <div class="column_left">
+              latin<br>
+              verbatim
+            </div>
+            <div class="column_right">
+              Keyboard in lowercase mode
+            </div>
+          </div>
+          <div class="row">
+            <div class="column_left">
+              none<br>
+              latin-prose<br>
+              latin-name
+            </div>
+            <div class="column_right">
+              Keyboard in uppercase mode
+            </div>
+          </div>
+          <div class="row">
+            <div class="column_left">
+              digit
+            </div>
+            <div class="column_right">
+              Keyboard with only [0-9]
+            </div>
+          </div>
+          <div class="row">
+            <div class="column_left">
+              numeric
+            </div>
+            <div class="column_right">
+              Keyboard with [0-9], +, -, comma, dot
+            </div>
+          </div>
+        </section>
+      </fieldset>
       <p>
         Eventually there will be other
         differences as well (in word suggestions, for example) but for
-        now, inputmode is just controlling auto capitalization
+        now, inputmode is just controlling auto capitalization.
       </p>
     </div>
-    <button id="readme_button">README</button>
-    <h2>Text related</h2>
-    <div class="row">
-      <div class="column_left">type</div>
-      <div class="column_middle">x-inputmode</div>
-      <div class="column_right">element</div>
-    </div>
-    <div class="row">
-      <div class="column_left">text</div>
-      <div class="column_middle"></div>
-      <div class="column_right"><input type="text"></div>
-    </div>
-    <div class="row">
-      <div class="column_left">&lt;textarea&gt;</div>
-      <div class="column_middle"></div>
-      <div class="column_right"><textarea></textarea></div>
-    </div>
-    <div class="row">
-      <div class="column_left">text</div>
-      <div class="column_middle">latin</div>
-      <div class="column_right"><input type="text" x-inputmode="latin"></div>
-    </div>
-    <div class="row">
-      <div class="column_left">&lt;textarea&gt;</div>
-      <div class="column_middle">latin</div>
-      <div class="column_right"><textarea x-inputmode="latin"></textarea></div>
-    </div>
-    <div class="row">
-      <div class="column_left">text</div>
-      <div class="column_middle">verbatim</div>
-      <div class="column_right"><input type="text" x-inputmode="verbatim"></div>
-    </div>
-    <div class="row">
-      <div class="column_left">&lt;textarea&gt;</div>
-      <div class="column_middle">verbatim</div>
-      <div class="column_right"><textarea x-inputmode="verbatim"></textarea></div>
-    </div>
-    <div class="row">
-      <div class="column_left">text</div>
-      <div class="column_middle">latin-prose</div>
-      <div class="column_right"><input type="text" x-inputmode="latin-prose"></div>
-    </div>
-    <div class="row">
-      <div class="column_left">&lt;textarea&gt;</div>
-      <div class="column_middle">latin-prose</div>
-      <div class="column_right"><textarea x-inputmode="latin-prose"></textarea></div>
-    </div>
-    <div class="row">
-      <div class="column_left">text</div>
-      <div class="column_middle">latin-name</div>
-      <div class="column_right"><input type="text" x-inputmode="latin-name"></div>
-    </div>
-    <div class="row">
-      <div class="column_left">&lt;textarea&gt;</div>
-      <div class="column_middle">latin-name</div>
-      <div class="column_right"><textarea x-inputmode="latin-name"></textarea></div>
-    </div>
+    <button id="readme_button">Show README</button>
+    <p>
+      The following elements are<br>
+      &lt;input type="?"&gt; except textarea<br>
+    </p>
+    <fieldset>
+      <legend><b><u>Text related</u></b></legend>
+      <section class="table">
+        <div class="row">
+          <div class="column_left">type</div>
+          <div class="column_middle">x-inputmode</div>
+          <div class="column_right">element</div>
+        </div>
+        <div class="row">
+          <div class="column_left">text</div>
+          <div class="column_middle"></div>
+          <div class="column_right"><input type="text"></div>
+        </div>
+        <div class="row">
+          <div class="column_left">&lt;textarea&gt;</div>
+          <div class="column_middle"></div>
+          <div class="column_right"><textarea></textarea></div>
+        </div>
+        <div class="row">
+          <div class="column_left">text</div>
+          <div class="column_middle">latin</div>
+          <div class="column_right"><input type="text" x-inputmode="latin"></div>
+        </div>
+        <div class="row">
+          <div class="column_left">&lt;textarea&gt;</div>
+          <div class="column_middle">latin</div>
+          <div class="column_right"><textarea x-inputmode="latin"></textarea></div>
+        </div>
+        <div class="row">
+          <div class="column_left">text</div>
+          <div class="column_middle">verbatim</div>
+          <div class="column_right"><input type="text" x-inputmode="verbatim"></div>
+        </div>
+        <div class="row">
+          <div class="column_left">&lt;textarea&gt;</div>
+          <div class="column_middle">verbatim</div>
+          <div class="column_right"><textarea x-inputmode="verbatim"></textarea></div>
+        </div>
+        <div class="row">
+          <div class="column_left">text</div>
+          <div class="column_middle">latin-prose</div>
+          <div class="column_right"><input type="text" x-inputmode="latin-prose"></div>
+        </div>
+        <div class="row">
+          <div class="column_left">&lt;textarea&gt;</div>
+          <div class="column_middle">latin-prose</div>
+          <div class="column_right"><textarea x-inputmode="latin-prose"></textarea></div>
+        </div>
+        <div class="row">
+          <div class="column_left">text</div>
+          <div class="column_middle">latin-name</div>
+          <div class="column_right"><input type="text" x-inputmode="latin-name"></div>
+        </div>
+        <div class="row">
+          <div class="column_left">&lt;textarea&gt;</div>
+          <div class="column_middle">latin-name</div>
+          <div class="column_right"><textarea x-inputmode="latin-name"></textarea></div>
+        </div>
+      </section>
+    </fieldset>
+    <br>
+    <fieldset>
+      <legend><b><u>Number related</u></b></legend>
+      <section class="table">
+        <div class="row">
+          <div class="column_left">type</div>
+          <div class="column_middle">x-inputmode</div>
+          <div class="column_right">element</div>
+        </div>
 
-    <h2>Number related</h2>
-    <div class="row">
-      <div class="column_left">type</div>
-      <div class="column_middle">x-inputmode</div>
-      <div class="column_right">element</div>
-    </div>
+        <div class="row">
+          <div class="column_left">text</div>
+          <div class="column_middle"></div>
+          <div class="column_right"><input type="text"></div>
+        </div>
+        <div class="row">
+          <div class="column_left">number</div>
+          <div class="column_middle"></div>
+          <div class="column_right"><input type="number"></div>
+        </div>
+        <div class="row">
+          <div class="column_left">password</div>
+          <div class="column_middle"></div>
+          <div class="column_right"><input type="password"></div>
+        </div>
+        <div class="row">
+          <div class="column_left">&lt;textarea&gt;</div>
+          <div class="column_middle"></div>
+          <div class="column_right"><textarea></textarea></div>
+        </div>
+        <div class="row">
+          <div class="column_left">text</div>
+          <div class="column_middle">digit</div>
+          <div class="column_right"><input type="text" x-inputmode="digit"></div>
+        </div>
+        <div class="row">
+          <div class="column_left">number</div>
+          <div class="column_middle">digit</div>
+          <div class="column_right"><input type="number" x-inputmode="digit"></div>
+        </div>
+        <div class="row">
+          <div class="column_left">password</div>
+          <div class="column_middle">digit</div>
+          <div class="column_right"><input type="password" x-inputmode="digit"></div>
+        </div>
+        <div class="row">
+          <div class="column_left">&lt;textarea&gt;</div>
+          <div class="column_middle">digit</div>
+          <div class="column_right"><textarea x-inputmode="digit"></textarea></div>
+        </div>
 
-    <div class="row">
-      <div class="column_left">text</div>
-      <div class="column_middle"></div>
-      <div class="column_right"><input type="text"></div>
-    </div>
-    <div class="row">
-      <div class="column_left">number</div>
-      <div class="column_middle"></div>
-      <div class="column_right"><input type="number"></div>
-    </div>
-    <div class="row">
-      <div class="column_left">password</div>
-      <div class="column_middle"></div>
-      <div class="column_right"><input type="password"></div>
-    </div>
-    <div class="row">
-      <div class="column_left">&lt;textarea&gt;</div>
-      <div class="column_middle"></div>
-      <div class="column_right"><textarea></textarea></div>
-    </div>
-      
-    <div class="row">
-      <div class="column_left">text</div>
-      <div class="column_middle">digit</div>
-      <div class="column_right"><input type="text" x-inputmode="digit"></div>
-    </div>
-    <div class="row">
-      <div class="column_left">number</div>
-      <div class="column_middle">digit</div>
-      <div class="column_right"><input type="number" x-inputmode="digit"></div>
-    </div>
-    <div class="row">
-      <div class="column_left">password</div>
-      <div class="column_middle">digit</div>
-      <div class="column_right"><input type="password" x-inputmode="digit"></div>
-    </div>
-    <div class="row">
-      <div class="column_left">&lt;textarea&gt;</div>
-      <div class="column_middle">digit</div>
-      <div class="column_right"><textarea x-inputmode="digit"></textarea></div>
-    </div>
+        <div class="row">
+          <div class="column_left">text</div>
+          <div class="column_middle">numeric</div>
+          <div class="column_right"><input type="text" x-inputmode="numeric"></div>
+        </div>
+        <div class="row">
+          <div class="column_left">number</div>
+          <div class="column_middle">numeric</div>
+          <div class="column_right"><input type="number" x-inputmode="numeric"></div>
+        </div>
+        <div class="row">
+          <div class="column_left">password</div>
+          <div class="column_middle">numeric</div>
+          <div class="column_right"><input type="password" x-inputmode="numeric"></div>
+        </div>
+        <div class="row">
+          <div class="column_left">&lt;textarea&gt;</div>
+          <div class="column_middle">numeric</div>
+          <div class="column_right"><textarea x-inputmode="numeric"></textarea></div>
+        </div>
+      </section>
+    </fieldset>
+    <fieldset>
+      <legend><b><u>Others</u></b></legend>
+      <section class="table">
+        <div class="row">
+          <div class="column_left">type</div>
+          <div class="column_right">element</div>
+        </div>
 
-    <div class="row">
-      <div class="column_left">text</div>
-      <div class="column_middle">numeric</div>
-      <div class="column_right"><input type="text" x-inputmode="numeric"></div>
-    </div>
-    <div class="row">
-      <div class="column_left">number</div>
-      <div class="column_middle">numeric</div>
-      <div class="column_right"><input type="number" x-inputmode="numeric"></div>
-    </div>
-    <div class="row">
-      <div class="column_left">password</div>
-      <div class="column_middle">numeric</div>
-      <div class="column_right"><input type="password" x-inputmode="numeric"></div>
-    </div>
-    <div class="row">
-      <div class="column_left">&lt;textarea&gt;</div>
-      <div class="column_middle">numeric</div>
-      <div class="column_right"><textarea x-inputmode="numeric"></textarea></div>
-    </div>
-
-    <h2>Others</h2>
-    <div class="row">
-      <div class="column_left">type</div>
-      <div class="column_right">element</div>
-    </div>
-
-    <div class="row">
-      <div class="column_left">text</div>
-      <div class="column_right"><input type="text" /></div>
-    </div>
-    <div class="row">
-      <div class="column_left">range</div>
-      <div class="column_right"><input type="range" /></div>
-    </div>
-    <div class="row">
-      <div class="column_left">search</div>
-      <div class="column_right"><input type="search" /></div>
-    </div>
-    <div class="row">
-      <div class="column_left">tel</div>
-      <div class="column_right"><input type="tel" /></div>
-    </div>
-    <div class="row">
-      <div class="column_left">url</div>
-      <div class="column_right"><input type="url" /></div>
-    </div>
-    <div class="row">
-      <div class="column_left">email</div>
-      <div class="column_right"><input type="email" /></div>
-    </div>
-    <div class="row">
-      <div class="column_left">email(multiple)</div>
-      <div class="column_right"><input type="email" multiple="multiple"/></div>
-    </div>
-    <div class="row">
-      <div class="column_left">date</div>
-      <div class="column_right"><input type="date" /></div>
-    </div>
-    <div class="row">
-      <div class="column_left">time</div>
-      <div class="column_right"><input type="time" /></div>
-    </div>
-    <div class="row">
-      <div class="column_left">datetime</div>
-      <div class="column_right"><input type="datetime" /></div>
-    </div>
-    <div class="row">
-      <div class="column_left">datetime-local</div>
-      <div class="column_right"><input type="datetime-local" /></div>
-    </div>
+        <div class="row">
+          <div class="column_left">text</div>
+          <div class="column_right"><input type="text" /></div>
+        </div>
+        <div class="row">
+          <div class="column_left">range</div>
+          <div class="column_right"><input type="range" /></div>
+        </div>
+        <div class="row">
+          <div class="column_left">search</div>
+          <div class="column_right"><input type="search" /></div>
+        </div>
+        <div class="row">
+          <div class="column_left">tel</div>
+          <div class="column_right"><input type="tel" /></div>
+        </div>
+        <div class="row">
+          <div class="column_left">url</div>
+          <div class="column_right"><input type="url" /></div>
+        </div>
+        <div class="row">
+          <div class="column_left">email</div>
+          <div class="column_right"><input type="email" /></div>
+        </div>
+        <div class="row">
+          <div class="column_left">email(multiple)</div>
+          <div class="column_right"><input type="email" multiple="multiple"/></div>
+        </div>
+        <div class="row">
+          <div class="column_left">date</div>
+          <div class="column_right"><input type="date" /></div>
+        </div>
+        <div class="row">
+          <div class="column_left">time</div>
+          <div class="column_right"><input type="time" /></div>
+        </div>
+        <div class="row">
+          <div class="column_left">datetime</div>
+          <div class="column_right"><input type="datetime" /></div>
+        </div>
+        <div class="row">
+          <div class="column_left">datetime-local</div>
+          <div class="column_right"><input type="datetime-local" /></div>
+        </div>
+      </section>
+    </fieldset>
     <p></p>
     <div>Contenteditable:
       <p contenteditable="true">Edit me, <b>please</b>!<br />Second line
