@@ -1,0 +1,82 @@
+/* ----------------------------------
+* Tabs
+* ---------------------------------- */
+
+@media (orientation: landscape)
+{
+  [role="tablist"] {
+    right: 0;
+    width: 3rem;
+    height: 100%;
+  }
+
+  [role="tablist"] > [role="tab"] {
+    width: 100%;
+    height: calc(100% / 3);
+  }
+}
+
+@media (orientation: portrait)
+{
+  [role="tablist"] {
+    bottom: 0;
+    width: 100%;
+    height: 3rem;
+  }
+
+  [role="tablist"] > [role="tab"] {
+    width: calc(100% / 3);
+    height: 100%;
+    float: left;
+  }
+}
+
+[role="tablist"] {
+  margin: 0;
+  padding: 0;
+  position: absolute;
+  bottom: 0;
+}
+
+[role="tablist"] > [role="tab"] {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+[role="tablist"] > [role="tab"] > a {
+  font-size: 1.3rem;
+  text-decoration: none;
+  text-align: center;
+  color: #FFF;
+  float: left;
+  width: 100%;
+  height: 100%;
+  background: #000 no-repeat center top;
+  position: relative;
+  color: #fff;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+[role="tablist"] > [role="tab"] > a:target {
+  background-color: #008aaa;
+}
+
+[role="tablist"] > [role="tab"] > a:active {
+  background-color: #00bbff;
+}
+
+/* Selected state */
+[role="tablist"] > [role="tab"]:target > a,
+[role="tablist"] > [role="tab"][aria-selected="true"] > a {
+  color: #62c6f5
+}
+
+[role="tablist"] :target [role="tabpanel"],
+[role="tablist"] [aria-selected="true"] [role="tabpanel"] {
+  z-index: 1;
+  visibility: visible;
+}
