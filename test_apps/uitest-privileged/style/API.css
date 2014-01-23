@@ -1,0 +1,31 @@
+.center {
+  display: block;
+  margin: 0px auto;
+  text-align: center
+}
+.inline-block {
+  display: inline-block;
+}
+.block {
+  display: block;
+}
+.hidden {
+  display: none;
+}
+p.success {
+  color: green;
+}
+p.error {
+  color: red;
+}
+input {
+  font-size: 1.5rem;
+}
+button, input[type='button'] {
+  font-size: 2rem;
+}
+/* for mozId, smaller buttons */
+li > button, .small {
+  font-size: 1.2rem;
+}
+
