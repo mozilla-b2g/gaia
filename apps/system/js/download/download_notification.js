@@ -138,7 +138,7 @@ DownloadNotification.prototype = {
     };
 
     if (state === 'downloading') {
-      info.text = _('download_downloading_text', {
+      info.text = _('download_downloading_text_2', {
         name: this.fileName,
         percentage: DownloadFormatter.getPercentage(this.download)
       });
