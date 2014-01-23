@@ -29,23 +29,23 @@ class TestSendActiveSyncEmail(GaiaTestCase):
 
     def test_send_active_sync_email(self):
         curr_time = repr(time.time()).replace('.', '')
+        _subject = 's%s' % curr_time
+        _body = 'b%s' % curr_time
         new_email = self.email.header.tap_compose()
 
         new_email.type_to(self.testvars['email']['ActiveSync']['email'])
-        new_email.type_subject('test email %s' % curr_time)
-        new_email.type_body('Lorem ipsum dolor sit amet %s' % curr_time)
+        new_email.type_subject(_subject)
+        new_email.type_body(_body)
 
         self.email = new_email.tap_send()
 
         # wait for the email to be sent before we tap refresh
-        self.email.wait_for_email('test email %s' % curr_time)
+        self.email.wait_for_email(_subject)
 
         # assert that the email app subject is in the email list
-        self.assertIn('test email %s' % curr_time, [
-                      mail.subject for mail in self.email.mails])
+        self.assertIn(_subject, [mail.subject for mail in self.email.mails])
 
         read_email = self.email.mails[0].tap_subject()
 
-        self.assertEqual('Lorem ipsum dolor sit amet %s' %
-                         curr_time, read_email.body)
-        self.assertEqual('test email %s' % curr_time, read_email.subject)
+        self.assertEqual(_body, read_email.body)
+        self.assertEqual(_subject, read_email.subject)
