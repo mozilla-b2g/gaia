@@ -331,6 +331,12 @@ function handleScreenLayoutChange() {
   // text to have correct ellipsis position. Otherwise, we update them when
   // leaving fullscreen mode.
   if (currentLayoutMode !== LAYOUT_MODE.fullscreenPlayer) {
+    // XXX: to workaround bug 961636 which fires two resize event at the app
+    // start-up,we need to check the existence of thumbnailList before using
+    // it.
+    if (!thumbnailList) {
+      return;
+    }
     thumbnailList.upateAllThumbnailTitle();
   } else {
     pendingUpdateTitleText = true;
