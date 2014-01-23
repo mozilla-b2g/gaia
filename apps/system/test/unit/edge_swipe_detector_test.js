@@ -214,7 +214,7 @@ suite('system/EdgeSwipeDetector >', function() {
   });
 
   suite('Touch handling > ', function() {
-    function fakeDispatch(type, panel, x, y) {
+    function fakeTouchDispatch(type, panel, x, y) {
       var touch = document.createTouch(window, panel, 42, x, y,
                                        x, y, x, y,
                                        0, 0, 0, 0);
@@ -230,18 +230,19 @@ suite('system/EdgeSwipeDetector >', function() {
                        touches, null, changed);
 
       panel.dispatchEvent(e);
+      return e.defaultPrevented;
     }
 
     function touchStart(panel, x, y) {
-      fakeDispatch('touchstart', panel, x, y);
+      return fakeTouchDispatch('touchstart', panel, x, y);
     }
 
     function touchMove(panel, x, y) {
-      fakeDispatch('touchmove', panel, x, y);
+      return fakeTouchDispatch('touchmove', panel, x, y);
     }
 
     function touchEnd(panel, x, y) {
-      fakeDispatch('touchend', panel, x, y);
+      return fakeTouchDispatch('touchend', panel, x, y);
     }
 
     function swipe(clock, panel, fromX, toX, fromY, toY, duration, noEnd) {
@@ -280,6 +281,16 @@ suite('system/EdgeSwipeDetector >', function() {
       }
     }
 
+    function fakeMouseDispatch(type, panel, x, y) {
+      var e = document.createEvent('MouseEvent');
+
+      e.initMouseEvent(type, true, true, window, 1, x, y, x, y,
+                       false, false, false, false, 0, null);
+
+      panel.dispatchEvent(e);
+      return e.defaultPrevented;
+    }
+
     var iframe;
     var panel;
     var width;
@@ -297,6 +308,30 @@ suite('system/EdgeSwipeDetector >', function() {
       panel = EdgeSwipeDetector.previous;
       width = window.innerWidth;
       this.sinon.useFakeTimers();
+    });
+
+    suite('Event feast to prevent gecko reflows >', function() {
+      test('it should prevent default on touch events', function() {
+        var touchstartPrevented = touchStart(panel, 0, 100);
+        assert.isTrue(touchstartPrevented);
+
+        var touchmovePrevented = touchMove(panel, 0, 100);
+        assert.isTrue(touchmovePrevented);
+
+        var touchendPrevented = touchEnd(panel, 0, 100);
+        assert.isTrue(touchendPrevented);
+      });
+
+      test('it should prevent default on mouse events', function() {
+        var mousedownPrevented = fakeMouseDispatch('mousedown', panel, 0, 100);
+        assert.isTrue(mousedownPrevented);
+
+        var mousemovePrevented = fakeMouseDispatch('mousemove', panel, 0, 100);
+        assert.isTrue(mousemovePrevented);
+
+        var mouseupPrevented = fakeMouseDispatch('mouseup', panel, 0, 100);
+        assert.isTrue(mouseupPrevented);
+      });
     });
 
     suite('During an edge swipe', function() {
