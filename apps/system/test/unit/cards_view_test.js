@@ -257,7 +257,7 @@ suite('cards view >', function() {
 
       test('removes task-manager class', function() {
         var screen = document.getElementById('screen');
-        CardsView.hideCardSwitcher();
+        CardsView.hideCardSwitcher(true);
         assert.isFalse(screen.classList.contains('task-manager'));
       });
     });
@@ -275,8 +275,7 @@ suite('cards view >', function() {
       CardsView.showCardSwitcher(null, true);
 
       var evt = dispatchStub.getCall(0).args[0];
-      assert.equal(evt.type, 'cardchange');
-      assert.equal(evt.detail.title, '');
+      assert.equal(evt.type, 'cardviewclosed');
     });
   });
 });

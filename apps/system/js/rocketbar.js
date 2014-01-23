@@ -62,11 +62,17 @@ var Rocketbar = {
       } else {
         self.searchReset.classList.remove('hidden');
       }
+
+      // If the task manager is shown, hide it
+      if (this.screen.classList.contains('task-manager')) {
+        window.dispatchEvent(new CustomEvent('taskmanagerhide'));
+      }
+
       self._port.postMessage({
         action: 'change',
         input: input.value
       });
-    });
+    }.bind(this));
     this.searchForm.addEventListener('submit', function onSubmit(e) {
       e.preventDefault();
       self._port.postMessage({
@@ -83,13 +89,9 @@ var Rocketbar = {
     switch (e.type) {
       case 'cardchange':
         this.searchInput.value = e.detail.title;
-
-        // Every app/browser has a title.
-        // If there is no title, there are no cards shown.
-        // We should focus on the rocketbar.
-        if (this.shown && !e.detail.title) {
+        return;
+      case 'cardviewclosed':
           this.searchInput.focus();
-        }
         return;
       case 'keyboardchange':
         // When the keyboard is opened make sure to not resize
@@ -129,7 +131,12 @@ var Rocketbar = {
         this.searchReset.classList.add('hidden');
         break;
       case 'search-input':
-        window.dispatchEvent(new CustomEvent('taskmanagerhide'));
+        if (e.type === 'blur') {
+          this.screen.classList.remove('rocketbar-focus');
+          return;
+        }
+        this.screen.classList.add('rocketbar-focus');
+
         // If the current text is not a URL, clear it.
         if (UrlHelper.isNotURL(this.searchInput.value)) {
           this.searchInput.value = '';
@@ -148,7 +155,10 @@ var Rocketbar = {
     // Hide task manager when we focus on search bar
     this.searchInput.addEventListener('focus', this);
 
+    this.searchInput.addEventListener('blur', this);
+
     window.addEventListener('cardchange', this);
+    window.addEventListener('cardviewclosed', this);
     window.addEventListener('apptitlechange', this);
     window.addEventListener('applocationchange', this);
 
