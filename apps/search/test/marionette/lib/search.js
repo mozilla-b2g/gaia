@@ -77,6 +77,7 @@ Search.prototype = {
    * Opens the rocketbar and enters text
    */
   doSearch: function(input) {
+    this.client.switchToFrame();
     this.openRocketbar();
     this.client.helper
       .waitForElement(Search.Selectors.searchInput)

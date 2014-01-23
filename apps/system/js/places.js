@@ -54,32 +54,17 @@ var Places = {
     }
   },
 
-  addPlace: function(url, callback) {
-    var place = {
-      url: url,
-      title: url,
-      frecency: 1
-    };
-    this.dataStore.add(place, url).then(function(id) {
-      if (callback) {
-        callback(null, place);
-      }
-    });
-  },
-
-  incrementPlaceFrecency: function(url, callback) {
-    this.editPlace(url, function(place, cb) {
-      place.frecency++;
-      cb(place);
-    }, callback);
-  },
-
-  editPlace: function(url, fun, callback) {
+  editPlace: function(url, fun) {
     var self = this;
-    this.getPlace(url, function(err, place) {
-      if (err) { return callback(err); }
-      fun(place, function(newPlace) {
-        self.updatePlace(url, newPlace, callback);
+    var rev = this.dataStore.revisionId;
+    return new Promise(function(resolve) {
+      self.dataStore.get(url).then(function(place) {
+        fun(place, function(newPlace) {
+          if (self.dataStore.revisionId !== rev) {
+            return self.editPlace(url, fun);
+          }
+          self.dataStore.put(newPlace, url, rev).then(resolve);
+        });
       });
     });
   },
@@ -93,57 +78,27 @@ var Places = {
    *
    * @param {String} url URL of visit to record.
    */
-  addVisit: function(url, callback) {
-    this.getPlace(url, (function(err, place) {
-      if (err) {
-        return this.addPlace(url, callback);
+  addVisit: function(url) {
+    return this.editPlace(url, function(place, cb) {
+      if (!place) {
+        cb({
+          url: url,
+          title: url,
+          frecency: 1
+        });
+      } else {
+        place.frecency++;
+        cb(place);
       }
-      this.incrementPlaceFrecency(url, callback);
-    }).bind(this));
+    });
   },
 
   /**
    * Clear all the visits in the store
    *
-   * @param {Function} callback Function to call with result.
    */
-  clear: function(callback) {
-    this.dataStore.clear().then(function() {
-      if (callback) {
-        callback(null);
-      }
-    });
-  },
-
-  /**
-   * Get place.
-   *
-   * @param {String} url URL of place to get.
-   * @param {Function} callback Function to call with result.
-   */
-  getPlace: function(url, callback) {
-    this.dataStore.get(url).then(function(place) {
-      if (place && callback) {
-        callback(null, place);
-      } else if (callback) {
-        callback('not_found');
-      }
-    });
-  },
-
-  /**
-   *  Update place.
-   *
-   *  @param {String} url URL of place to update.
-   *  @param {Object} place New place data.
-   *  @param {Function} callback Function to call on success.
-   */
-  updatePlace: function(url, place, callback) {
-    this.dataStore.put(place, url).then(function(id) {
-      if (callback) {
-        callback(null, place);
-      }
-    });
+  clear: function() {
+    return this.dataStore.clear();
   },
 
   /**
@@ -151,13 +106,12 @@ var Places = {
    *
    * @param {String} url URL of place to update.
    * @param {String} title Title of place to set.
-   * @param {Function} callback Function to call on success.
    */
-  setPlaceTitle: function(url, title, callback) {
-    this.editPlace(url, function(place, cb) {
+  setPlaceTitle: function(url, title) {
+    return this.editPlace(url, function(place, cb) {
       place.title = title;
       cb(place);
-    }, callback);
+    });
   },
 
   /**
@@ -165,12 +119,11 @@ var Places = {
    *
    * @param {String} url URL of place to update.
    * @param {String} iconUri URL of the icon for url
-   * @param {Function} callback Function to call on completion.
    */
-  setPlaceIconUri: function(url, iconUri, callback) {
-    this.editPlace(url, function(place, cb) {
+  setPlaceIconUri: function(url, iconUri) {
+    return this.editPlace(url, function(place, cb) {
       place.iconUri = iconUri;
       cb(place);
-    }, callback);
+    });
   }
 };
