@@ -158,7 +158,7 @@
     title.classList.add('title');
     url.classList.add('url');
 
-    place.dataset.url = place.url;
+    place.dataset.url = placeObj.url;
 
     if (placeObj.iconUri in icons && icons[placeObj.iconUri]) {
       favicon.src = window.URL.createObjectURL(icons[placeObj.iconUri]);

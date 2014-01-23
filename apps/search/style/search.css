@@ -94,6 +94,10 @@ div[data-provider="WebResults"] > img {
   padding: 8px;
 }
 
+.place * {
+  pointer-events: none;
+}
+
 .favicon {
   pointer-events: none;
   margin: 2px 8px 0 0;
