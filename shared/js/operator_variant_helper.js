@@ -348,14 +348,16 @@ OperatorVariantHelper.prototype = {
 
     if (this._addedListener) {
       // Otherwise, unregister.
-      this._iccCard.removeEventListener(
-        'iccinfochange',
-        this._addedListener
-      );
-      this._iccCard.removeEventListener(
-        'cardstatechange',
-        this._addedListener
-      );
+      if (this._iccCard) {
+        this._iccCard.removeEventListener(
+            'iccinfochange',
+            this._addedListener
+        );
+        this._iccCard.removeEventListener(
+            'cardstatechange',
+            this._addedListener
+        );
+      }
       // Clear our reference to the bound listener.
       this._addedListener = null;
     }
