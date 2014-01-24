@@ -5,6 +5,7 @@ function gUMItem() {
   var video_status = false;
   var audio_status = false;
   var capturing = false;
+  var constrain;
 
   var media;
   var video_frame;
@@ -57,18 +58,14 @@ function gUMItem() {
   };
 
   function startVideo() {
-    video_status = true;
     startMedia({video: true});
   }
 
   function startAudioVideo() {
-    video_status = true;
-    audio_status = true;
     startMedia({video: true, audio: true});
   }
 
   function startAudio() {
-    audio_status = true;
     startMedia({audio: true});
   }
 
@@ -86,19 +83,22 @@ function gUMItem() {
   }
 
   function startMedia(param) {
+    constrain = param;
     function success(stream) {
       message.innerHTML = '<p class="success">Success!</p>';
       stopButtons.style.display = 'block';
       startButtons.style.display = 'none';
 
-      if (video_status) {
+      if ('video' in constrain) {
+        video_status = true;
         media.appendChild(video_frame);
         video.mozSrcObject = stream;
         video.play();
         snapshots_frames.innerHTML = '';
         stopButtons.appendChild(snapshotButton);
       }
-      if (audio_status) {
+      if ('audio' in constrain) {
+        audio_status = true;
         media.appendChild(audio);
         audio.mozSrcObject = stream;
         audio.play();
@@ -106,6 +106,8 @@ function gUMItem() {
     }
 
     function error(err) {
+      if (video_status)
+        video_status = false;
         message.innerHTML = '<p class="error">' + err + '</p>';
     }
     window.navigator.mozGetUserMedia(param, success, error);
@@ -207,9 +209,9 @@ function gUMTest() {
       // first copy one from template then modify it.
       var template = document.getElementById('content_template');
       var content = template.cloneNode(true);
-      content.id = 'content' + i + 1;
+      content.id = 'content' + (i + 1);
       content.classList.remove('hidden');
-      gUMItems[i].init(content, i + 1);
+      gUMItems[i].init(content, (i + 1));
       contents.appendChild(content);
     }
   })();

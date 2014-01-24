@@ -6,6 +6,7 @@
     <title>gUM Test Page</title>
     <script defer src="../../js/API/getusermedia.js"></script>
     <link rel="stylesheet" type="text/css" href="../../style/API.css">
+    <link rel="stylesheet" type="text/css" href="/shared/style/buttons.css">
   </head>
   <body>
     <div class="center">
@@ -13,7 +14,7 @@
       Note: Audio will feedback unless you use a headset!<br>
       <h3>gUM is not complete yet, some function may not work!<h2>
       <div id="contents"></div>
-      <div id="content_template" class="hidden">
+      <fieldset id="content_template" class="hidden">
         <div data-type="media" class="block">
           <div data-type="video-frame">
             <video width="640" height="480"></video>
@@ -21,6 +22,7 @@
           </div>
           <audio controls="true"></audio>
         </div>
+        <div data-type="message"></div>
         <div data-type="startbuttons" class="block">
           <button data-type="startVideoButton">Video</button>
           <button data-type="startAudioButton">Audio</button>
@@ -32,8 +34,7 @@
           <button data-type="pauseButton">Pause/Play</button>
           <button data-type="snapshotButton">Snapshot</button>
         </div>
-        <div data-type="message"></div>
-      </div>
+      </fieldset>
     </div>
   </body>
 </html>

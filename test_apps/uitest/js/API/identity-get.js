@@ -36,7 +36,7 @@ function IdentityTests() {
     }
 
     var events = document.getElementById('event-stream');
-    var html = '<span>' + this._eventNum + '</span> ' + message;
+    var html = message;
 
     if (typeof params === 'object') {
       Object.keys(params).forEach(function(key) {
