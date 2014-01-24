@@ -27,8 +27,10 @@ var SimLock = {
     window.addEventListener('will-unlock', this);
 
     // always monitor card state change
-    window.addEventListener('simslot-cardstatechange',
-      this.showIfLocked.bind(this));
+    var self = this;
+    window.addEventListener('simslot-cardstatechange', function(evt) {
+      self.showIfLocked(evt.detail.index);
+    });
 
     // Listen to callscreenwillopen and callscreenwillclose event
     // to discard the cardstatechange event.
