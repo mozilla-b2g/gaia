@@ -27,3 +27,14 @@
   position: fixed;
 }
 
+/**
+ * Right To Left Layout
+ */
+
+html[dir="rtl"] #appPermissions ul li img,
+html[dir="rtl"] #homescreen ul li img {
+  float: right;
+  margin-left: 1.4rem;
+  margin-right: auto;
+}
+

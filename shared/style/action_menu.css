@@ -335,3 +335,74 @@ form[role="dialog"][data-type="object"] > menu > button[disabled] {
   border: none;
   pointer-events: none;
 }
+
+/*
+ * Right to Left view
+ */
+
+html[dir="rtl"] form[role="dialog"][data-type="action"]:before,
+form[role="dialog"][data-type="object"]:before {
+  margin-left: auto;
+  margin-right: -0.1rem;
+}
+
+html[dir="rtl"] form[role="dialog"][data-type="action"] > header h1,
+html[dir="rtl"] form[role="dialog"][data-type="object"] > header h1 {
+  text-align: right;
+}
+
+html[dir="rtl"] form[role="dialog"][data-type="action"] > header menu[type="toolbar"] {
+  float: left;
+  margin-left: -3rem;
+  margin-right: 1rem;
+}
+
+html[dir="rtl"] form[role="dialog"][data-type="action"] > header menu[type="toolbar"] a,
+html[dir="rtl"] form[role="dialog"][data-type="action"] > header menu[type="toolbar"] button {
+  float: right;
+}
+
+html[dir="rtl"] form[role="dialog"][data-type="action"] > header menu[type="toolbar"] a:last-child,
+html[dir="rtl"] form[role="dialog"][data-type="action"] > header menu[type="toolbar"] button:last-child {
+  background-position: right center;
+  margin-left: auto;
+  margin-right: -0.1rem;
+}
+
+html[dir="rtl"] form[role="dialog"][data-type="action"] > header > button,
+html[dir="rtl"] form[role="dialog"][data-type="action"] > header > a {
+  float: right;
+  margin-left: -1rem;
+  margin-right: -3rem;
+}
+
+html[dir="rtl"] form[role="dialog"][data-type="action"] > header > button:after,
+html[dir="rtl"] form[role="dialog"][data-type="action"] > header > a:after {
+  left: auto;
+  right: 0;
+  background-position: 0 top;
+}
+
+html[dir="rtl"] form[role="dialog"][data-type="action"] > header > button .icon:after,
+html[dir="rtl"] form[role="dialog"][data-type="action"] > header > a .icon:after {
+  left: auto;
+  right: 0;
+}
+
+html[dir="rtl"] form[role="dialog"][data-type="action"] > menu > button,
+html[dir="rtl"] form[role="dialog"][data-type="object"] > menu > button {
+  text-align: right;
+}
+
+html[dir="rtl"] form[role="dialog"][data-type="action"] > menu > button:last-child,
+html[dir="rtl"] form[role="dialog"][data-type="object"] > menu > button:last-child {
+  left: auto;
+  right: 0;
+}
+
+html[dir="rtl"] form[role="dialog"][data-type="action"] > menu > button:last-child:before,
+html[dir="rtl"] form[role="dialog"][data-type="object"] > menu > button:last-child:before {
+  left: auto;
+  right: 0;
+}
+

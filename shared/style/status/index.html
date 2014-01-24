@@ -26,6 +26,13 @@
 </head>
 
 <body role="application">
+  <p dir="ltr">
+    <label>
+      <input type="checkbox"
+        onchange="document.documentElement.dir = this.checked ? 'rtl' : 'ltr'">
+      RTL mode
+    </label>
+  </p>
 
   <section role="status">
     <p>The Alarm is set for <strong>7 hours</strong> and <strong>14 minutes</strong> from now</p>
