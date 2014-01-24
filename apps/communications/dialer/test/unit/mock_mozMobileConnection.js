@@ -34,6 +34,7 @@ var MockMozMobileConnection = {
   ICC_SERVICE_CLASS_PAD: (1 << 7),
   ICC_SERVICE_CLASS_MAX: (1 << 7),
 
+  iccId: 12,
   voice: {
     network: 'Fake voice network'
   },
@@ -202,5 +203,6 @@ var MockMozMobileConnection = {
     this.voice = {
       network: 'Fake voice network'
     };
+    this.iccId = 12;
   }
 };
