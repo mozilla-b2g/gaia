@@ -5,7 +5,7 @@
          MockActivityPicker, Threads, Settings, MockMessages, MockUtils,
          MockContacts, ActivityHandler, Recipients, MockMozActivity,
          ThreadListUI, ContactRenderer, UIEvent, Drafts, OptionMenu,
-         ActivityPicker, KeyEvent */
+         ActivityPicker, KeyEvent, WaitingScreen */
 
 'use strict';
 
@@ -52,6 +52,7 @@ requireApp('sms/test/unit/mock_url.js');
 requireApp('sms/test/unit/mock_compose.js');
 requireApp('sms/test/unit/mock_activity_handler.js');
 requireApp('sms/test/unit/mock_information.js');
+requireApp('sms/test/unit/mock_waiting_screen.js');
 require('/test/unit/mock_contact_renderer.js');
 
 var mocksHelperForThreadUI = new MocksHelper([
@@ -73,7 +74,8 @@ var mocksHelperForThreadUI = new MocksHelper([
   'ActivityHandler',
   'TimeHeaders',
   'ContactRenderer',
-  'Information'
+  'Information',
+  'WaitingScreen'
 ]);
 
 mocksHelperForThreadUI.init();
@@ -4039,6 +4041,64 @@ suite('thread_ui.js >', function() {
     });
   });
 
+  suite('discardDraft() > ', function() {
+    var draft;
+
+    setup(function() {
+      window.location.hash = '#new';
+
+      this.sinon.spy(Drafts, 'delete');
+      this.sinon.spy(Drafts, 'store');
+      this.sinon.spy(ThreadListUI, 'updateThread');
+      this.sinon.spy(ThreadListUI, 'removeThread');
+
+      draft = {
+        id: 1
+      };
+
+      MessageManager.draft = draft;
+    });
+
+    test('Deletes draft from in-memory drafts', function() {
+      ThreadUI.discardDraft();
+
+      sinon.assert.calledOnce(Drafts.delete);
+      sinon.assert.calledWithMatch(Drafts.delete, draft);
+      sinon.assert.calledOnce(Drafts.store);
+    });
+
+    test('Removes draft psuedo-thread', function() {
+      ThreadUI.discardDraft();
+
+      sinon.assert.calledOnce(ThreadListUI.removeThread);
+      sinon.assert.calledWithMatch(ThreadListUI.removeThread, draft.id);
+    });
+
+    test('Set thread timestamp to last message timestamp', function() {
+      Threads.set(1, {
+        timestamp: 0,
+        participants: ['999']
+      });
+
+      Threads.registerMessage({
+        id: 2,
+        timestamp: 1,
+        threadId: 1
+      });
+
+      window.location.hash = '#thread=1';
+
+      assert.equal(Threads.active.timestamp, 0);
+
+      ThreadUI.discardDraft();
+
+      sinon.assert.calledOnce(ThreadListUI.updateThread);
+      sinon.assert.calledWithMatch(ThreadListUI.updateThread, Threads.active);
+
+      assert.equal(Threads.active.timestamp, 1);
+    });
+  });
+
   suite('saveDraft() > ', function() {
     var addSpy, updateSpy, bannerSpy, arg;
 
@@ -4584,6 +4644,43 @@ suite('thread_ui.js >', function() {
       var data = ThreadUI.getMessageBubble(li);
 
       assert.equal(data, null);
+    });
+  });
+
+  suite('delete() >', function() {
+    var selectedInputs;
+
+    setup(function() {
+      selectedInputs = [
+        {value: 1}
+      ];
+
+      this.sinon.stub(MessageManager, 'deleteMessage', function(l, callback) {
+        callback();
+      });
+      this.sinon.stub(ThreadUI, 'getSelectedInputs').returns(selectedInputs);
+      this.sinon.stub(ThreadUI, 'deleteUIMessages');
+
+      this.sinon.stub(window, 'confirm').returns(true);
+      this.sinon.stub(WaitingScreen, 'show');
+
+      this.sinon.spy(Threads, 'unregisterMessage');
+
+      Threads.set(1, {});
+
+      Threads.registerMessage({
+        id: 1,
+        threadId: 1
+      });
+    });
+
+    teardown(function() {
+      Threads.clear();
+    });
+
+    test('delete clears registered messages', function() {
+      ThreadUI.delete();
+      sinon.assert.calledOnce(Threads.unregisterMessage);
     });
   });
 });

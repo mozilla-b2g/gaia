@@ -4,6 +4,7 @@
   'use strict';
 
   var threads = new Map();
+  var messages = new Map();
   var rthread = /\bthread=(.+)$/;
   var currentId, lastId;
 
@@ -27,10 +28,13 @@
     }
 
     this.messages = [];
+    this.lastMessageTimestamp = typeof this.timestamp !== 'undefined' ?
+      +this.timestamp : 0;
   }
 
   Thread.FIELDS = [
-    'body', 'id', 'lastMessageSubject', 'lastMessageType',
+    'body', 'id',
+    'lastMessageSubject', 'lastMessageType', 'lastMessageTimestamp',
     'participants', 'timestamp', 'unreadCount'
   ];
 
@@ -97,13 +101,81 @@
   };
 
   var Threads = exports.Threads = {
-    registerMessage: function(message) {
-      var thread = Thread.create(message);
-      var threadId = message.threadId;
-      if (!this.has(threadId)) {
-        this.set(threadId, thread);
+    unregisterMessage: function(id) {
+      var message = messages.get(id);
+      var thread, threadMessages, index, timestamp;
+
+      if (!message) {
+        return false;
       }
-      this.get(threadId).messages.push(message);
+
+      thread = Threads.get(message.threadId);
+      threadMessages = thread.messages;
+      index = threadMessages.indexOf(message);
+
+      if (index === -1) {
+        return false;
+      }
+
+      // There is one `message` object, but there are two strongly
+      // held references to that object the must be severed:
+
+      // 1. Splice the message from the thread object's instance cache
+      threadMessages.splice(index, 1);
+
+      // 2. Clean up the remaining message object reference from the registry
+      messages.delete(id);
+
+      // 3. Update the thread's lastMessageTimestamp to the
+      // modified list's last message.timestamp
+      // (Don't bother updating if the last message was deleted,
+      // ThreadUI.deleteUIMessages will call Threads.delete())
+      if (threadMessages.length) {
+        timestamp = threadMessages[threadMessages.length - 1].timestamp;
+        thread.lastMessageTimestamp = +timestamp;
+      }
+
+      return true;
+    },
+    registerMessage: function(message) {
+      var proxy = Thread.create(message);
+      var threadId = message.threadId;
+      var thread, timestamp;
+
+      if (!this.has(threadId)) {
+        this.set(threadId, proxy);
+      }
+
+      // Get the actual Thread object, which is _not_
+      // the same as the proxy used above.
+      thread = this.get(threadId);
+
+      // Since we're registering all existing
+      // messages for a given thread when they
+      // are requested via MessageManager.getMessages,
+      // we need to prevent subsequent duplicate
+      // registrations that will inevitably occur
+      // every time a conversation is entered.
+      if (messages.has(message.id)) {
+        return false;
+      }
+
+      thread.messages.push(message);
+      thread.messages.sort(function(a, b) {
+        return +a.timestamp > +b.timestamp;
+      });
+
+      timestamp = +thread.messages[thread.messages.length - 1].timestamp;
+
+      if (thread.lastMessageTimestamp < timestamp) {
+        thread.lastMessageTimestamp = timestamp;
+      }
+
+      // Add the newly registered message's id to
+      // the known message id -> message map.
+      messages.set(message.id, message);
+
+      return true;
     },
     set: function(id, thread) {
       var old, length, key;
@@ -137,10 +209,18 @@
           threadId: id
         });
       }
+
+      if (thread && thread.messages) {
+        thread.messages.forEach(function(message) {
+          messages.delete(message.id);
+        }, this);
+      }
+
       return threads.delete(id);
     },
     clear: function() {
       threads = new Map();
+      messages = new Map();
     },
     forEach: function(callback) {
       threads.forEach(function(v, k) {
