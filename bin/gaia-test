@@ -82,11 +82,14 @@ echo "$SELF: Using Firefox $VERSION at '$FIREFOX'."
 #
 # Verify additional dependencies are installed
 #
-NODE=`which node`
+NODE=`which nodejs`
 NPM=`which npm`
 if [ ! -x "$NODE" ] ; then
-  echo "$SELF: Unable to find node; please install node.js."
-  exit 1
+  NODE=`which node`
+  if [ ! -x "$NODE" ] ; then
+    echo "$SELF: Unable to find node; please install node.js."
+    exit 1
+  fi
 elif [ ! -x "$NPM" ] ; then
   echo "$SELF: Unable to find npm; please install npm."
   exit 1
