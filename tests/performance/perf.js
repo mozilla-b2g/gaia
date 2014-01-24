@@ -15,6 +15,7 @@ const excludedApps = [
   'fl', 'pdfjs', 'setringtone', // XXX activities
   'template', // XXX not a real thing.
   'homescreen', // we can't "launch" it
+  'search', // new rocketbar isn't standalone
   'system', // reboots the phone
   'system/camera' // copy of the camera app
 ];
