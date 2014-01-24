@@ -23,7 +23,12 @@ var nextFrame = new MediaFrame($('frame3'));
 var transitioning = false;
 
 // Clicking on the back button will go to the preview view
-fullscreenButtons.back.onclick = setView.bind(null, LAYOUT_MODE.list);
+
+fullscreenButtons.back.onclick = function() {
+  setView(LAYOUT_MODE.list);
+  if (window.navigator.mozNfc && window.navigator.mozNfc.onpeerready)
+    window.navigator.mozNfc.onpeerready = null;
+};
 
 // Clicking the delete button while viewing a single item deletes that item
 fullscreenButtons.delete.onclick = deleteSingleItem;
@@ -401,10 +406,43 @@ function resetFramesPosition() {
   setFramesPosition();
 }
 
+function handlePeerConnectivity(event)
+{
+  var fileinfo = files[currentFileIndex];
+  console.error('handlePeerConnectivity currentFileIndex '+currentFileIndex+' fileinfo.name' + fileinfo.name);
+  var peer = navigator.mozNfc.getNFCPeer(event.detail);
+
+  if (!peer)
+    return null;
+
+  if(fileinfo.name)
+    photodb.getFile(fileinfo.name, function(imagefile) {
+    if (fileinfo.metadata.video) {
+      getVideoFile(fileinfo.metadata.video, function(videofile) {
+         var status = peer.sendFile(videofile);
+      });
+    }
+    else
+        var status = peer.sendFile(imagefile);
+    });
+
+  status.onsuccess = function(e) {
+    console.log("Successfully sent file");
+  };
+  status.onerror = function(e) {
+    console.log("Send file failed!");
+  };
+}
+
 // Switch from thumbnail list view to single-picture fullscreen view
 // and display the specified file.
 function showFile(n) {
   // Mark what we're focusing on and unmark the old one
+
+ if (window.navigator.mozNfc) {
+      window.navigator.mozNfc.onpeerready = handlePeerConnectivity;
+  }
+
   updateFocusThumbnail(n);
   updateFrames();
 
