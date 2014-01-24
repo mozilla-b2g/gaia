@@ -34,7 +34,9 @@ suite('SIMSlot', function() {
 
   test('isAbsent', function() {
     var card = document.createElement('div');
-    card.iccId = 1;
+    card.iccInfo = {
+      iccid: 1
+    };
     var slot1 = new SIMSlot(null, 0, card);
     assert.isFalse(slot1.isAbsent());
 
