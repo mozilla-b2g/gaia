@@ -339,5 +339,16 @@ suite('SimSettingsHelper > ', function() {
         assert.equal(mSettings['ril.data.defaultServiceId'], fakeCardIndex);
       });
     });
+
+    suite('set string index to outgoingData > ', function() {
+      setup(function() {
+        SimSettingsHelper.setServiceOnCard('outgoingData', '' + fakeCardIndex);
+      });
+
+      test('can set on service id with number successfully', function() {
+        assert.equal(mSettings['ril.mms.defaultServiceId'], fakeCardIndex);
+        assert.equal(mSettings['ril.data.defaultServiceId'], fakeCardIndex);
+      });
+    });
   });
 });
