@@ -5,13 +5,12 @@
          SecureWindowManager, HomescreenLauncher,
          FtuLauncher, SourceView, ScreenManager, Places, Activities,
          DeveloperHUD, DialerAgent, RemoteDebugger, HomeGesture,
-         SettingsURL, SettingsListener, VisibilityManager, Storage,
+         VisibilityManager, Storage, InternetSharing, TaskManager,
          TelephonySettings, SuspendingAppPriorityManager, TTLView,
          MediaRecording, AppWindowFactory, SystemDialogManager,
          applications, Rocketbar, LayoutManager, PermissionManager,
          HomeSearchbar, SoftwareButtonManager, Accessibility,
-         InternetSharing, SleepMenu, TaskManager */
-
+         InternetSharing, SleepMenu */
 'use strict';
 
 
@@ -125,6 +124,8 @@ window.addEventListener('load', function startup() {
   window.telephonySettings.start();
   window.ttlView = new TTLView();
   window.visibilityManager = new VisibilityManager().start();
+  window.wallpaperManager = new window.WallpaperManager();
+  window.wallpaperManager.start();
 
   navigator.mozL10n.ready(function l10n_ready() {
     window.mediaRecording = new MediaRecording().start();
@@ -155,17 +156,11 @@ window.addEventListener('localized', function onlocalized() {
   document.documentElement.dir = navigator.mozL10n.language.direction;
 });
 
-var wallpaperURL = new SettingsURL();
-
 // Define the default background to use for all homescreens
-SettingsListener.observe(
-  'wallpaper.image',
-  'resources/images/backgrounds/default.png',
-  function setWallpaper(value) {
-    document.getElementById('screen').style.backgroundImage =
-      'url(' + wallpaperURL.set(value) + ')';
-  }
-);
+window.addEventListener('wallpaperchange', function(evt) {
+  document.getElementById('screen').style.backgroundImage =
+    'url(' + evt.detail.url + ')';
+});
 
 // Use a setting in order to be "called" by settings app
 navigator.mozSettings.addObserver(
