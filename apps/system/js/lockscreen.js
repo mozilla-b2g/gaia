@@ -370,14 +370,10 @@
         this.setEnabled(value);
     }).bind(this));
 
-    var wallpaperURL = new window.SettingsURL();
-
-    window.SettingsListener.observe('wallpaper.image',
-                             'resources/images/backgrounds/default.png',
-                             (function(value) {
-                               this.updateBackground(wallpaperURL.set(value));
-                               this.overlay.classList.remove('uninit');
-                             }).bind(this));
+    window.addEventListener('wallpaperchange', function(evt) {
+      self.updateBackground(evt.detail.url);
+      self.overlay.classList.remove('uninit');
+    });    
 
     window.SettingsListener.observe(
       'lockscreen.passcode-lock.code', '0000', (function(value) {
