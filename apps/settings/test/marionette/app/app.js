@@ -4,6 +4,10 @@ var Base = require('./base'),
     HotspotPanel = require('./regions/hotspot');
     HotspotSettingsPanel = require('./regions/hotspot_settings');
     SupportPanel = require('./regions/support');
+    BatteryPanel = require('./regions/battery');
+
+// origin of the settings app
+const ORIGIN = 'app://settings.gaiamobile.org';
 
 /**
  * Abstraction around settings app
@@ -18,9 +22,6 @@ function Settings(client) {
 
 module.exports = Settings;
 
-// origin of the settings app
-const ORIGIN = 'app://settings.gaiamobile.org';
-
 Settings.Selectors = {
   'menuItemsSection': '#root',
   'bluetoothMenuItem': '#menuItem-bluetooth',
@@ -28,7 +29,8 @@ Settings.Selectors = {
   'hotspotMenuItem': '#menuItem-internetSharing',
   'hotspotPanel': '#hotspot',
   'hotspotSettingsTrigger': '#hotspot-settings-section button',
-  'supportMenuItem': '#menuItem-help'
+  'supportMenuItem': '#menuItem-help',
+  'batteryMenuItem': '#menuItem-battery'
 };
 
 Settings.prototype = {
@@ -37,32 +39,44 @@ Settings.prototype = {
 
   get bluetoothPanel() {
     openPanel.call(this, 'bluetoothMenuItem');
-    return this._bluetoothPanel = this._bluetoothPanel ||
+    this._bluetoothPanel = this._bluetoothPanel ||
       new BluetoothPanel(this.client);
+    return this._bluetoothPanel;
   },
 
   get doNotTrackPanel() {
     openPanel.call(this, 'doNotTrackMenuItem');
-    return this._doNotTrackPanel = this._doNotTrackPanel ||
+    this._doNotTrackPanel = this._doNotTrackPanel ||
       new DoNotTrackPanel(this.client);
+    return this._doNotTrackPanel;
   },
 
   get hotspotPanel() {
     openPanel.call(this, 'hotspotMenuItem');
-    return this._hotspotPanel = this._hotspotPanel ||
+    this._hotspotPanel = this._hotspotPanel ||
       new HotspotPanel(this.client);
+    return this._hotspotPanel;
   },
 
   get hotspotSettingsPanel() {
     openPanel.call(this, 'hotspotSettingsTrigger', 'hotspotPanel');
-    return this._hotspotSettingsPanel = this._hotspotSettingsPanel ||
+    this._hotspotSettingsPanel = this._hotspotSettingsPanel ||
       new HotspotSettingsPanel(this.client);
+    return this._hotspotSettingsPanel;
   },
 
   get supportPanel() {
     openPanel.call(this, 'supportMenuItem');
-    return this._supportPanel = this._supportPanel ||
+    this._supportPanel = this._supportPanel ||
       new SupportPanel(this.client);
+    return this._supportPanel;
+  },
+
+  get batteryPanel() {
+    openPanel.call(this, 'batteryMenuItem');
+    this._batteryPanel = this._batteryPanel ||
+      new BatteryPanel(this.client);
+    return this._batteryPanel;
   }
 };
 
@@ -75,6 +89,6 @@ function openPanel(selector, parentSelector) {
   parentSection = this.waitForElement(parentSelector);
   menuItem.tap();
   this.client.waitFor(function() {
-    return parentSection.location()['x'] + parentSection.size()['width'] == 0;
+    return parentSection.location()['x'] + parentSection.size()['width'] === 0;
   });
 }

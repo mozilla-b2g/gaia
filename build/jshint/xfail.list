@@ -934,6 +934,7 @@ apps/settings/js/wifi_select_certificate_file.js
 apps/settings/test/integration/app.js
 apps/settings/test/marionette/app/app.js
 apps/settings/test/marionette/app/base.js
+apps/settings/test/marionette/app/regions/battery.js
 apps/settings/test/marionette/app/regions/bluetooth.js
 apps/settings/test/marionette/app/regions/do_not_track.js
 apps/settings/test/marionette/app/regions/hotspot.js
