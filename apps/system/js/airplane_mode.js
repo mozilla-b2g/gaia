@@ -391,18 +391,33 @@
     },
 
     /*
+     * We have to handle emergency call case from Gecko
+     *
+     * @param {MozMobileConnection} conn
+     */
+    _bindEmergencyCallEvent: function(conn) {
+      /*
+       * If we are in airplane mode and the user just dial out an
+       * emergency call, we have to exit airplane mode.
+       */
+      conn.addEventListener('radiostatechange', function() {
+        if (conn.radioState === 'enabled' && this._enabled === true) {
+          this.enabled = false;
+        }
+      }.bind(this));
+    },
+
+    /*
      * Entry point
      */
     init: function apm_init() {
       var self = this;
-
-      if (!window.navigator.mozSettings ||
-          !window.navigator.mozMobileConnections) {
-        return;
-      }
-
       var mozSettings = window.navigator.mozSettings;
       var mozMobileConnections = window.navigator.mozMobileConnections;
+
+      if (!mozSettings || !mozMobileConnections) {
+        return;
+      }
 
       this._serviceHelper.init();
 
@@ -420,17 +435,9 @@
         self.enabled = e.settingValue;
       });
 
-      /*
-       * If we are in airplane mode and the user just dial out an
-       * emergency call, we have to exit airplane mode.
-       */
-      mozMobileConnections[0].addEventListener('radiostatechange',
-        function() {
-          if (mozMobileConnections[0].radioState === 'enabled' &&
-            self._enabled === true) {
-              self.enabled = false;
-          }
-      });
+      for (var i = 0; i < mozMobileConnections.length; i++) {
+        this._bindEmergencyCallEvent(mozMobileConnections[i]);
+      }
     }
   };
 
