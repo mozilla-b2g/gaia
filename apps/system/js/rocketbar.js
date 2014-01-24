@@ -315,10 +315,7 @@ var Rocketbar = {
     var input = this.searchInput;
     input.value = '';
 
-    // Mega hack for browser opening page
-    if (isTaskManager === 'browser') {
-      this.home = 'browser';
-    } else if (isTaskManager) {
+    if (isTaskManager) {
       this.home = 'tasks';
       window.dispatchEvent(new CustomEvent('taskmanagershow'));
     } else {

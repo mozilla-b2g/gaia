@@ -64,7 +64,7 @@
 
       // Mega hack for browser icon
       if (url.startsWith('http://browser.gaiamobile.org')) {
-        Rocketbar.render('browser');
+        Rocketbar.render();
         return;
       }
 
