@@ -1,18 +1,23 @@
 APP_DIR := $(CURDIR)
 
 ifneq (,$(findstring MINGW32_,$(SYS)))
-APP_DIR:=$(shell pwd -W | sed -e 's|/|\\\\|g')
+  APP_DIR:=$(shell pwd -W | sed -e 's|/|\\\\|g')
 endif
 
 export APP_DIR
 
 define run-build-test
-  ./node_modules/.bin/mocha \
+  node_modules/.bin/mocha \
     --harmony \
     --reporter $(REPORTER) \
     --ui tdd \
     --timeout 300000 \
     $(strip $1)
+endef
+
+define run-build-coverage
+  TEST_FILES_DIR=$1 node --harmony node_modules/istanbul/lib/cli.js \
+  cover build/test/coverage-checker.js
 endef
 
 # rwildcard is used to recursive wildcard, it will travel all files in
