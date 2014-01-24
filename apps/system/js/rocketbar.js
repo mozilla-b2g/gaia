@@ -66,9 +66,6 @@ var Rocketbar = {
 
   handleEvent: function(e) {
     switch (e.type) {
-      case 'cardchange':
-        this.searchInput.value = e.detail.title;
-        return;
       case 'cardviewclosedhome':
         // Stop listeneing for cardviewclosed if we pressed the home button
         window.removeEventListener('cardviewclosed', this);
