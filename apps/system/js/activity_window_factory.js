@@ -23,6 +23,10 @@
       window.addEventListener('globalorientationchange', this);
     },
 
+    getActiveWindow: function acwf_getActiveWindow() {
+      return this._activeActivity;
+    },
+
     handleEvent: function acwf_handleEvent(evt) {
       switch (evt.type) {
         // XXX: Move into appWindow.
