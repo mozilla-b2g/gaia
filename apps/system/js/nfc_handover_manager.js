@@ -270,7 +270,7 @@ var NfcHandoverManager = {
     }
     if (this.sendFileRequest != null) {
       // This is the response to a file transfer request (negotiated handover)
-      this.doAction({callback: doFileTransfer, args: [mac]});
+      this.doAction({callback: this.doFileTransfer.bind(this), args: [mac]});
     } else {
       // This is a static handover
       this.debug('Pair with: ' + mac);
