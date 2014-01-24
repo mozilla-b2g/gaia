@@ -17,6 +17,15 @@
 
 (function(window) {
   var nextId = 0;
+  var apzSetting = 'apz.force-enable';
+  var forceEnableApz = false;
+  if (SettingsListener) {
+    forceEnableApz = SettingsListener.getSettingsLock().get(apzSetting);
+
+    SettingsListener.observe(apzSetting, false, function(value) {
+      forceEnableApz = value;
+    });
+  }
   window.BrowserFrame = function BrowserFrame() {
     this.element = null;
     this._id = nextId++;
@@ -56,7 +65,7 @@
                             'expecting-system-message');
     }
 
-    if (config.useAsyncPanZoom) {
+    if (config.useAsyncPanZoom || forceEnableApz) {
       // XXX: Move this dataset assignment into app window object.
       browser.dataset.useAsyncPanZoom = true;
       browser.setAttribute('mozasyncpanzoom', 'true');
