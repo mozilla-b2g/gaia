@@ -288,6 +288,16 @@
     document.getElementById('windows');
 
   /**
+   * Bringing ourselves up. To do so we simply do
+   * requestOpen() the original caller app window instance.
+   * Note: this overrides AppWindow.prototype.requestOpen().
+   */
+  ActivityWindow.prototype.requestOpen = function acw_requestOpen() {
+    if (this.activityCaller)
+      this.activityCaller.requestOpen();
+  };
+
+  /**
    * Restore caller's visibility when we start closing.
    * But if the caller is not active, it would return early.
    */

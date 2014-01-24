@@ -129,6 +129,22 @@ suite('system/ActivityWindowFactory', function() {
     }
   };
 
+  var fakeOpenConfig4 = {
+    type: 'activitywillopen',
+    detail: {
+      'isActivity': true,
+      'url': 'app://fakeact4.gaiamobile.org/pick.html',
+      'oop': true,
+      'name': 'Fake Activity 4',
+      'manifestURL': 'app://fakeact4.gaiamobile.org/manifest.webapp',
+      'origin': 'app://fakeact4.gaiamobile.org',
+      'manifest': {
+        'name': 'Fake Activity 4'
+      },
+      'inline': true
+    }
+  };
+
   setup(function(done) {
     stubById = this.sinon.stub(document, 'getElementById');
     stubById.returns(document.createElement('div'));
@@ -172,10 +188,22 @@ suite('system/ActivityWindowFactory', function() {
     });
     test('activity request', function() {
       ActivityWindowFactory._lastActivity = null;
+      ActivityWindowFactory._activeActivity = null;
       ActivityWindowFactory._activities = [];
       ActivityWindowFactory.handleEvent(fakeLaunchConfig1);
 
       assert.isTrue(ActivityWindowFactory._lastActivity != null);
+    });
+
+    test('activity will open', function() {
+      ActivityWindowFactory._lastActivity = null;
+      ActivityWindowFactory._activeActivity = null;
+      ActivityWindowFactory._activities = [];
+      ActivityWindowFactory.handleEvent(fakeOpenConfig4);
+
+      assert.isTrue(ActivityWindowFactory._activeActivity != null);
+      assert.equal(ActivityWindowFactory.getActiveWindow(),
+        ActivityWindowFactory._activeActivity);
     });
 
     test('back to home: one inline activity', function() {

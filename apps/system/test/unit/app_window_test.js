@@ -786,26 +786,12 @@ suite('system/AppWindow', function() {
     });
   });
 
-  test('ActivityDone event', function() {
-    var app1 = new AppWindow(fakeAppConfig1);
-    var app2 = new AppWindow(fakeAppConfig2);
-    app1.setActivityCallee(app2);
-
-    assert.deepEqual(app1.activityCallee, app2);
-    assert.deepEqual(app2.activityCaller, app1);
-
-    app2.handleEvent({
-      type: 'mozbrowseractivitydone'
-    });
-
-    assert.isNull(app1.activityCallee);
-    assert.isNull(app2.activityCaller);
-  });
-
   suite('Event handlers', function() {
     test('ActivityDone event', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       var app2 = new AppWindow(fakeAppConfig2);
+      var spyRequestOpen = this.sinon.spy(app1, 'requestOpen');
+      var stubPublish = this.sinon.stub(app1, 'publish');
       app1.setActivityCallee(app2);
 
       assert.deepEqual(app1.activityCallee, app2);
@@ -817,6 +803,8 @@ suite('system/AppWindow', function() {
 
       assert.isNull(app1.activityCallee);
       assert.isNull(app2.activityCaller);
+      assert.isTrue(spyRequestOpen.called);
+      assert.isTrue(stubPublish.calledWith('requestopen'));
     });
 
     test('Error event', function() {
