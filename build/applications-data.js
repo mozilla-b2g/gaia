@@ -167,7 +167,7 @@ function customizeHomescreen(options) {
     'bookmarks': [
       {
         'name': 'Browser',
-        'bookmarkURL': 'http://mozilla.org',
+        'bookmarkURL': 'http://browser.gaiamobile.org',
         'icon': 'app://homescreen.gaiamobile.org/style/icons/Aurora.png',
         'iconable': false,
         'useAsyncPanZoom': true,

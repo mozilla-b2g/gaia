@@ -62,6 +62,12 @@
       var name = detail.name;
       var url = detail.url;
 
+      // Mega hack for browser icon
+      if (url.startsWith('http://browser.gaiamobile.org')) {
+        Rocketbar.render('browser');
+        return;
+      }
+
       // Use fake origin for named windows in order to be able to reuse them,
       // otherwise always open a new window for '_blank'.
       var origin = null;
