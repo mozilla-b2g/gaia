@@ -320,226 +320,233 @@
 
   // Register in standalone or for application
   var costcontrol;
-  CostControl.getInstance(function _onCostControl(ccontrol) {
-    costcontrol = ccontrol;
+  function _getCCInstance() {
+    CostControl.getInstance(function _onCostControl(ccontrol) {
+      costcontrol = ccontrol;
 
-    if (inStandAloneMode() || inWidgetMode()) {
-      debug('Installing handlers');
+      if (inStandAloneMode() || inWidgetMode()) {
+        debug('Installing handlers');
 
-      // When receiving an SMS, recognize and parse
-      navigator.mozSetMessageHandler('sms-received', function _onSMS(sms) {
-        clearTimeout(closing);
-        ConfigManager.requestAll(function _onInfo(configuration, settings) {
-
-          var isBalanceResponse =
-            configuration.balance &&
-            Array.isArray(configuration.balance.senders) &&
-            configuration.balance.senders.indexOf(sms.sender) > -1;
-
-          var isTopupResponse =
-            configuration.topup &&
-            Array.isArray(configuration.topup.senders) &&
-            configuration.topup.senders.indexOf(sms.sender) > -1;
-
-          // Non expected SMS
-          if (!isBalanceResponse && !isTopupResponse) {
-            closeIfProceeds();
-            return;
-          }
-
-          // Parse the message
-          debug('Parsing received SMS');
-          var isBalance, isConfirmation, isError;
-          isBalance = isConfirmation = isError = false;
-
-          debug('Trying to recognize balance SMS');
-          var description = new RegExp(configuration.balance.regexp);
-          var balanceData = sms.body.match(description);
-
-          if (!balanceData) {
-            debug('Trying to recognize zero balance SMS');
-            // Some carriers use another response messages format
-            // for zero balance
-            var zeroDescription = configuration.balance.zero_regexp ?
-                          new RegExp(configuration.balance.zero_regexp) : null;
-            if (zeroDescription && zeroDescription.test(sms.body)) {
-              balanceData = ['0.00', '0', '0'];
-            }
-          }
-          isBalance = !!balanceData;
-
-          if (!isBalance || balanceData.length < 2) {
-            console.warn('Impossible to parse balance message.');
-
-            debug('Trying to recognize TopUp confirmation SMS');
-            description = new RegExp(configuration.topup.confirmation_regexp);
-            isConfirmation = !!sms.body.match(description);
-            if (!isConfirmation) {
-              console.warn('Impossible to parse TopUp confirmation message.');
-
-              debug('Trying to recognize TopUp error SMS');
-              description =
-                new RegExp(configuration.topup.incorrect_code_regexp);
-              isError = !!sms.body.match(description);
-              if (!isError) {
-                console.warn('Impossible to parse TopUp confirmation message.');
-              }
-            }
-
-          }
-
-          if (!isBalance && !isConfirmation && !isError) {
-            closeIfProceeds();
-            return;
-          }
-
-          // TODO: Remove the SMS
-
-          if (isBalance) {
-            // Compose new balance
-            var integer = balanceData[1].replace(/[^0-9]/g, '');
-            var decimal = balanceData[2] || '0';
-            var newBalance = {
-              balance: parseFloat(integer + '.' + decimal),
-              currency: configuration.credit.currency,
-              timestamp: new Date()
-            };
-
-            // Remove the timeout
-            navigator.mozAlarms.remove(settings.waitingForBalance);
-            debug('Balance timeout:', settings.waitingForBalance, 'removed');
-
-            // Store new balance and sync
-            ConfigManager.setOption(
-              { 'lastBalance': newBalance, 'waitingForBalance': null },
-              function _onSet() {
-                debug('Balance up to date and stored');
-                debug('Trying to synchronize!');
-                localStorage['sync'] = 'lastBalance#' + Math.random();
-                sendBalanceThresholdNotification(newBalance, settings,
-                                                 closeIfProceeds);
-              }
-            );
-          } else if (isConfirmation) {
-            // Store SUCCESS for TopIp and sync
-            navigator.mozAlarms.remove(settings.waitingForTopUp);
-            debug('TopUp timeout:', settings.waitingForTopUp, 'removed');
-            ConfigManager.setOption(
-              {
-                'waitingForTopUp': null,
-                'lowLimitNotified': false,
-                'zeroBalanceNotified': false
-              },
-              function _onSet() {
-                debug('TopUp confirmed!');
-                debug('Trying to synchronize!');
-                localStorage['sync'] = 'waitingForTopUp#' + Math.random();
-                closeIfProceeds();
-              }
-            );
-          } else if (isError) {
-            // Store ERROR for TopUp and sync
-            settings.errors['INCORRECT_TOPUP_CODE'] = true;
-            navigator.mozAlarms.remove(settings.waitingForTopUp);
-            debug('TopUp timeout: ', settings.waitingForTopUp, 'removed');
-            ConfigManager.setOption(
-              {
-                'errors': settings.errors,
-                'waitingForTopUp': null,
-                'lowLimitNotified': false,
-                'zeroBalanceNotified': false
-              },
-              function _onSet() {
-                debug('Balance up to date and stored');
-                debug('Trying to synchronize!');
-                localStorage['sync'] = 'errors#' + Math.random();
-                sendIncorrectTopUpNotification(closeIfProceeds);
-              }
-            );
-          }
-        });
-      });
-
-
-      navigator.mozSetMessageHandler('alarm', _onAlarm);
-
-      // Count a new SMS
-      navigator.mozSetMessageHandler('sms-sent', function _onSent(sms) {
-        clearTimeout(closing);
-        debug('SMS sent!');
-
-        ConfigManager.requestAll(function _onInfo(configuration, settings) {
-          var mode = ConfigManager.getApplicationMode();
-          if (mode === 'PREPAID' &&
-              !costcontrol.isBalanceRequestSMS(sms, configuration)) {
-            costcontrol.request({ type: 'balance' });
-          }
-
-          var mobileMessageManager = window.navigator.mozMobileMessage;
-          var infoRequest =
-            mobileMessageManager.getSegmentInfoForText(sms.body);
-          infoRequest.onsuccess = function onInfo(evt) {
-            var realCount, smsInfo = evt.target.result;
-            if (!smsInfo || !smsInfo.segments) {
-              console.error(
-                'Invalid getSegmentInfoForText() result. Counting 1 segment.');
-              realCount = 1;
-            } else {
-              realCount = smsInfo.segments;
-            }
-            updateSMSCount(settings, realCount);
-          };
-          infoRequest.onerror = function onError() {
-            console.error('Can not retrieve segment info for body ' + sms.body);
-            updateSMSCount(settings, 1);
-          };
-        });
-
-        function updateSMSCount(settings, count) {
-          settings.lastTelephonyActivity.timestamp = new Date();
-          settings.lastTelephonyActivity.smscount += count;
-          ConfigManager.setOption({
-            lastTelephonyActivity: settings.lastTelephonyActivity
-          }, function _sync() {
-            localStorage['sync'] = 'lastTelephonyActivity#' + Math.random();
-            closeIfProceeds();
-          });
-        }
-      });
-
-      // When a call ends
-      navigator.mozSetMessageHandler('telephony-call-ended',
-        function _onCall(tcall) {
+        // When receiving an SMS, recognize and parse
+        navigator.mozSetMessageHandler('sms-received', function _onSMS(sms) {
           clearTimeout(closing);
-          if (tcall.direction !== 'outgoing') {
-            closeIfProceeds();
-            return;
-          }
-          debug('Outgoing call finished!');
+          ConfigManager.requestAll(function _onInfo(configuration, settings) {
 
-          ConfigManager.requestSettings(function _onSettings(settings) {
+            var isBalanceResponse =
+              configuration.balance &&
+              Array.isArray(configuration.balance.senders) &&
+              configuration.balance.senders.indexOf(sms.sender) > -1;
+
+            var isTopupResponse =
+              configuration.topup &&
+              Array.isArray(configuration.topup.senders) &&
+              configuration.topup.senders.indexOf(sms.sender) > -1;
+
+            // Non expected SMS
+            if (!isBalanceResponse && !isTopupResponse) {
+              closeIfProceeds();
+              return;
+            }
+
+            // Parse the message
+            debug('Parsing received SMS');
+            var isBalance, isConfirmation, isError;
+            isBalance = isConfirmation = isError = false;
+
+            debug('Trying to recognize balance SMS');
+            var description = new RegExp(configuration.balance.regexp);
+            var balanceData = sms.body.match(description);
+
+            if (!balanceData) {
+              debug('Trying to recognize zero balance SMS');
+              // Some carriers use another response messages format
+              // for zero balance
+              var zeroDescription = configuration.balance.zero_regexp ?
+                           new RegExp(configuration.balance.zero_regexp) : null;
+              if (zeroDescription && zeroDescription.test(sms.body)) {
+                balanceData = ['0.00', '0', '0'];
+              }
+            }
+            isBalance = !!balanceData;
+
+            if (!isBalance || balanceData.length < 2) {
+              console.warn('Impossible to parse balance message.');
+
+              debug('Trying to recognize TopUp confirmation SMS');
+              description = new RegExp(configuration.topup.confirmation_regexp);
+              isConfirmation = !!sms.body.match(description);
+              if (!isConfirmation) {
+                console.warn('Impossible to parse TopUp confirmation message.');
+
+                debug('Trying to recognize TopUp error SMS');
+                description =
+                  new RegExp(configuration.topup.incorrect_code_regexp);
+                isError = !!sms.body.match(description);
+                if (!isError) {
+                  console.warn('Impossible to parse TopUp confirmation msg.');
+                }
+              }
+
+            }
+
+            if (!isBalance && !isConfirmation && !isError) {
+              closeIfProceeds();
+              return;
+            }
+
+            // TODO: Remove the SMS
+
+            if (isBalance) {
+              // Compose new balance
+              var integer = balanceData[1].replace(/[^0-9]/g, '');
+              var decimal = balanceData[2] || '0';
+              var newBalance = {
+                balance: parseFloat(integer + '.' + decimal),
+                currency: configuration.credit.currency,
+                timestamp: new Date()
+              };
+
+              // Remove the timeout
+              navigator.mozAlarms.remove(settings.waitingForBalance);
+              debug('Balance timeout:', settings.waitingForBalance, 'removed');
+
+              // Store new balance and sync
+              ConfigManager.setOption(
+                { 'lastBalance': newBalance, 'waitingForBalance': null },
+                function _onSet() {
+                  debug('Balance up to date and stored');
+                  debug('Trying to synchronize!');
+                  localStorage['sync'] = 'lastBalance#' + Math.random();
+                  sendBalanceThresholdNotification(newBalance, settings,
+                                                   closeIfProceeds);
+                }
+              );
+            } else if (isConfirmation) {
+              // Store SUCCESS for TopIp and sync
+              navigator.mozAlarms.remove(settings.waitingForTopUp);
+              debug('TopUp timeout:', settings.waitingForTopUp, 'removed');
+              ConfigManager.setOption(
+                {
+                  'waitingForTopUp': null,
+                  'lowLimitNotified': false,
+                  'zeroBalanceNotified': false
+                },
+                function _onSet() {
+                  debug('TopUp confirmed!');
+                  debug('Trying to synchronize!');
+                  localStorage['sync'] = 'waitingForTopUp#' + Math.random();
+                  closeIfProceeds();
+                }
+              );
+            } else if (isError) {
+              // Store ERROR for TopUp and sync
+              settings.errors['INCORRECT_TOPUP_CODE'] = true;
+              navigator.mozAlarms.remove(settings.waitingForTopUp);
+              debug('TopUp timeout: ', settings.waitingForTopUp, 'removed');
+              ConfigManager.setOption(
+                {
+                  'errors': settings.errors,
+                  'waitingForTopUp': null,
+                  'lowLimitNotified': false,
+                  'zeroBalanceNotified': false
+                },
+                function _onSet() {
+                  debug('Balance up to date and stored');
+                  debug('Trying to synchronize!');
+                  localStorage['sync'] = 'errors#' + Math.random();
+                  sendIncorrectTopUpNotification(closeIfProceeds);
+                }
+              );
+            }
+          });
+        });
+
+
+        navigator.mozSetMessageHandler('alarm', _onAlarm);
+
+        // Count a new SMS
+        navigator.mozSetMessageHandler('sms-sent', function _onSent(sms) {
+          clearTimeout(closing);
+          debug('SMS sent!');
+
+          ConfigManager.requestAll(function _onInfo(configuration, settings) {
             var mode = ConfigManager.getApplicationMode();
-            if (mode === 'PREPAID') {
+            if (mode === 'PREPAID' &&
+                !costcontrol.isBalanceRequestSMS(sms, configuration)) {
               costcontrol.request({ type: 'balance' });
             }
 
+            var mobileMessageManager = window.navigator.mozMobileMessage;
+            var infoRequest =
+              mobileMessageManager.getSegmentInfoForText(sms.body);
+            infoRequest.onsuccess = function onInfo(evt) {
+              var realCount, smsInfo = evt.target.result;
+              if (!smsInfo || !smsInfo.segments) {
+                console.error(
+                  'Invalid getSegmentInfoForText() result. Counting 1 segment');
+                realCount = 1;
+              } else {
+                realCount = smsInfo.segments;
+              }
+              updateSMSCount(settings, realCount);
+            };
+            infoRequest.onerror = function onError() {
+              console.error('Can not retrieve segment info for body ' +
+                             sms.body);
+              updateSMSCount(settings, 1);
+            };
+          });
+
+          function updateSMSCount(settings, count) {
             settings.lastTelephonyActivity.timestamp = new Date();
-            settings.lastTelephonyActivity.calltime += tcall.duration;
+            settings.lastTelephonyActivity.smscount += count;
             ConfigManager.setOption({
               lastTelephonyActivity: settings.lastTelephonyActivity
             }, function _sync() {
               localStorage['sync'] = 'lastTelephonyActivity#' + Math.random();
               closeIfProceeds();
             });
-          });
-        }
-      );
+          }
+        });
 
-    }
+        // When a call ends
+        navigator.mozSetMessageHandler('telephony-call-ended',
+          function _onCall(tcall) {
+            clearTimeout(closing);
+            if (tcall.direction !== 'outgoing') {
+              closeIfProceeds();
+              return;
+            }
+            debug('Outgoing call finished!');
 
-    // Notify message handler is ready
-    var readyEvent = new CustomEvent('messagehandlerready');
-    window.parent.dispatchEvent(readyEvent);
-  });
+            ConfigManager.requestSettings(function _onSettings(settings) {
+              var mode = ConfigManager.getApplicationMode();
+              if (mode === 'PREPAID') {
+                costcontrol.request({ type: 'balance' });
+              }
 
+              settings.lastTelephonyActivity.timestamp = new Date();
+              settings.lastTelephonyActivity.calltime += tcall.duration;
+              ConfigManager.setOption({
+                lastTelephonyActivity: settings.lastTelephonyActivity
+              }, function _sync() {
+                localStorage['sync'] = 'lastTelephonyActivity#' + Math.random();
+                closeIfProceeds();
+              });
+            });
+          }
+        );
+
+      }
+
+      // Notify message handler is ready
+      var readyEvent = new CustomEvent('messagehandlerready');
+      window.parent.dispatchEvent(readyEvent);
+    });
+  }
+  if (Common.dataSimIccIdLoaded) {
+    _getCCInstance();
+  } else {
+    Common.loadDataSIMIccId(_getCCInstance);
+  }
 }());
