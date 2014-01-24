@@ -296,7 +296,6 @@ apps/communications/contacts/js/importer_ui.js
 apps/communications/contacts/js/navigation.js
 apps/communications/contacts/js/service_extensions.js
 apps/communications/contacts/js/sms_integration.js
-apps/communications/contacts/js/utilities/binary_search.js
 apps/communications/contacts/js/utilities/config.js
 apps/communications/contacts/js/utilities/confirm.js
 apps/communications/contacts/js/utilities/event_listeners.js
@@ -340,7 +339,6 @@ apps/communications/contacts/test/unit/export/generic_export_test.js
 apps/communications/contacts/test/unit/export/sim_test.js
 apps/communications/contacts/test/unit/fb_data_test.js
 apps/communications/contacts/test/unit/fb_reader_utils_test.js
-apps/communications/contacts/test/unit/fb_tel_index_test.js
 apps/communications/contacts/test/unit/helper.js
 apps/communications/contacts/test/unit/import_vcard_test.js
 apps/communications/contacts/test/unit/link_test.js
@@ -1287,7 +1285,6 @@ shared/js/dump.js
 shared/js/fb/fb_data_reader.js
 shared/js/fb/fb_reader_utils.js
 shared/js/fb/fb_request.js
-shared/js/fb/fb_tel_index.js
 shared/js/format.js
 shared/js/fxa_iac_client.js
 shared/js/gesture_detector.js
