@@ -73,17 +73,11 @@ window.addEventListener('localized', function onlocalized() {
   document.documentElement.dir = navigator.mozL10n.language.direction;
 });
 
-var wallpaperURL = new SettingsURL();
-
 // Define the default background to use for all homescreens
-SettingsListener.observe(
-  'wallpaper.image',
-  'resources/images/backgrounds/default.png',
-  function setWallpaper(value) {
-    document.getElementById('screen').style.backgroundImage =
-      'url(' + wallpaperURL.set(value) + ')';
-  }
-);
+window.addEventListener('wallpaperchange', function(evt) {
+  document.getElementById('screen').style.backgroundImage =
+    'url(' + evt.detail.url + ')';
+});
 
 // Use a setting in order to be "called" by settings app
 navigator.mozSettings.addObserver(

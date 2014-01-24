@@ -265,14 +265,10 @@ var LockScreen = {
       self.setEnabled(value);
     });
 
-    var wallpaperURL = new SettingsURL();
-
-    SettingsListener.observe('wallpaper.image',
-                             'resources/images/backgrounds/default.png',
-                             function(value) {
-                               self.updateBackground(wallpaperURL.set(value));
-                               self.overlay.classList.remove('uninit');
-                             });
+    window.addEventListener('wallpaperchange', function(evt) {
+      self.updateBackground(evt.detail.url);
+      self.overlay.classList.remove('uninit');
+    });
 
     SettingsListener.observe(
       'lockscreen.passcode-lock.code', '0000', function(value) {
