@@ -733,18 +733,28 @@ update-common: common-install
 	# common testing tools
 	mkdir -p $(TEST_COMMON)/vendor/test-agent/
 	mkdir -p $(TEST_COMMON)/vendor/chai/
+	mkdir -p $(TEST_COMMON)/vendor/mocha/
+	mkdir -p $(TEST_COMMON)/vendor/sinon/
+	mkdir -p $(TEST_COMMON)/vendor/blanket/
 	rm -Rf tools/xpcwindow
-	rm -f $(TEST_COMMON)/vendor/test-agent/test-agent*.js
-	rm -f $(TEST_COMMON)/vendor/chai/*.js
+	rm -f $(TEST_COMMON)/vendor/test-agent/*
+	rm -f $(TEST_COMMON)/vendor/chai/*
+	rm -f $(TEST_COMMON)/vendor/mocha/*
+	rm -f $(TEST_COMMON)/vendor/sinon/*
+	rm -f $(TEST_COMMON)/vendor/blanket/*
 	cp -R $(TEST_AGENT_DIR)/node_modules/xpcwindow tools/xpcwindow
 	rm -R tools/xpcwindow/vendor/
 	cp $(TEST_AGENT_DIR)/node_modules/test-agent/test-agent.js $(TEST_COMMON)/vendor/test-agent/
 	cp $(TEST_AGENT_DIR)/node_modules/test-agent/test-agent.css $(TEST_COMMON)/vendor/test-agent/
 	cp $(TEST_AGENT_DIR)/node_modules/chai/chai.js $(TEST_COMMON)/vendor/chai/
+	cp $(TEST_AGENT_DIR)/node_modules/mocha/mocha.js $(TEST_COMMON)/vendor/mocha/
+	cp $(TEST_AGENT_DIR)/node_modules/mocha/mocha.css $(TEST_COMMON)/vendor/mocha/
+	cp $(TEST_AGENT_DIR)/node_modules/sinon/pkg/sinon.js $(TEST_COMMON)/vendor/sinon/
+	cp $(TEST_AGENT_DIR)/node_modules/blanket/dist/qunit/blanket.js $(TEST_COMMON)/vendor/blanket/
 
 # Create the json config file
 # for use with the test agent GUI
-test-agent-config: test-agent-bootstrap-apps
+test-agent-config: test-agent-bootstrap-apps update-common
 ifeq ($(BUILD_APP_NAME),*)
 	@rm -f $(TEST_AGENT_CONFIG)
 	@touch $(TEST_AGENT_CONFIG)

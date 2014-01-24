@@ -8,6 +8,8 @@
     "b2g-scripts": "0.3.0",
     "chai": "0.5.3",
     "mocha": "~1.7",
-    "xpcwindow": "0.4.4"
+    "xpcwindow": "0.4.4",
+    "sinon": "~1.7.3",
+    "blanket": "~1.1.6"
   }
 }
