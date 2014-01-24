@@ -471,7 +471,7 @@ else
 endif
 endif
 
-local-apps:
+local-apps: applications-data
 ifdef VARIANT_PATH
 	@$(call run-js-command, variant)
 endif
