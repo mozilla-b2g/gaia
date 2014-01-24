@@ -1098,7 +1098,9 @@ apps/system/js/wrapper_factory.js
 apps/system/test/marionette/edges_gesture_test.js
 apps/system/test/marionette/fakemusic/js/comms.js
 apps/system/test/marionette/fakemusic/js/fakemusic.js
+apps/system/test/marionette/fullscreen_app_alert_test.js
 apps/system/test/marionette/lib/fake_music.js
+apps/system/test/marionette/lib/fullscreen_app.js
 apps/system/test/marionette/lib/media_playback.js
 apps/system/test/marionette/lib/notification.js
 apps/system/test/marionette/lib/system.js
