@@ -586,6 +586,10 @@ section.has-carrier .article-list header:first-child {
   text-decoration: underline;
 }
 
+.article-list[data-type="list"] .message .bubble p a:active {
+  color: #FF4E00;
+}
+
 /*
   Styles for Edit mode in Messages Container
 */
