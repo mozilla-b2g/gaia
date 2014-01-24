@@ -103,3 +103,13 @@
   100% { transform: translateX(100%) scale(1.0); }
 
 }
+
+#screen:-moz-full-screen-ancestor > #windows > .appWindow.active {
+  top: 0;
+  height: 100%;
+}
+
+#screen:-moz-full-screen-ancestor > #windows > .appWindow.active {
+  top: 0;
+  height: 100%;
+}
