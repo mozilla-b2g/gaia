@@ -65,7 +65,7 @@ var WBMP = (function(document) {
       var canvas = document.createElement('canvas');
       canvas.setAttribute('width', width);
       canvas.setAttribute('height', height);
-      var ctx = canvas.getContext('2d');
+      var ctx = canvas.getContext('2d', { willReadFrequently: true });
       var imageData = ctx.createImageData(width, height);
       var data = imageData.data;
       // Decode the image.
