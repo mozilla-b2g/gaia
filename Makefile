@@ -603,6 +603,12 @@ define run-node-command
 	"require('.$(SEP)build$(SEP)$(strip $1).js').execute($$BUILD_CONFIG)"
 endef
 
+define run-build-coverage
+	./node_modules/.bin/istanbul \
+		--hardmony \
+		cover build/test/coverage-checker.js
+endef
+
 # Optional files that may be provided to extend the set of default
 # preferences installed for gaia.  If the preferences in these files
 # conflict, the result is undefined.
@@ -1003,6 +1009,9 @@ build-test-unit: $(NPM_INSTALLED_PROGRAMS)
 
 build-test-integration: $(NPM_INSTALLED_PROGRAMS)
 	@$(call run-build-test, $(shell find build/test/integration/*.test.js))
+
+build-test-coverage: $(NPM_INSTALLED_PROGRAMS)
+	@$(call run-build-coverage)
 
 docs: $(NPM_INSTALLED_PROGRAMS)
 	grunt docs
