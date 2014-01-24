@@ -32,6 +32,9 @@ var SimFdnLock = {
   currentContact: null,
 
   updateFdnStatus: function spl_updateSimStatus() {
+    if (!IccHelper) {
+      return;
+    }
     var self = this;
     var req = IccHelper.getCardLock('fdn');
     req.onsuccess = function spl_checkSuccess() {
