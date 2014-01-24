@@ -605,6 +605,14 @@ suite('calls handler', function() {
             CallsHandler.holdAndAnswer();
             assert.isTrue(hideSpy.calledOnce);
           });
+
+          test('should not inform bluetooth to answer non-CDMA call',
+          function() {
+            var switchCallsSpy = this.sinon.spy(
+              MockBluetoothHelperInstance, 'answerWaitingCall');
+            CallsHandler.holdAndAnswer();
+            assert.equal(switchCallsSpy.notCalled, true);
+          });
       });
 
       suite('> second incoming call in CDMA mode',
