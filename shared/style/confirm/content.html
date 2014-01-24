@@ -26,6 +26,13 @@
 </head>
 
 <body role="application">
+  <p dir="ltr">
+    <label>
+      <input type="checkbox"
+        onchange="document.documentElement.dir = this.checked ? 'rtl' : 'ltr'">
+      RTL mode
+    </label>
+  </p>
 
   <form role="dialog" data-type="confirm">
     <section>

@@ -321,58 +321,93 @@ dl dd {
  * Right-to-Left layout
  */
 
-/* definition lists */
-html[dir="rtl"] dl dt {
-  padding-left: inherit;
-  padding-right: 3rem;
+html[dir="rtl"] ul > li > progress + span {
+  padding-left: 0;
+  padding-right: 1rem;
 }
 
-/* half-width select boxes */
-html[dir="rtl"] ul li span select {
-  left: 3rem;
-  right: inherit;
+html[dir="rtl"] ul li > a span {
+  left: 1.5rem;
+  right: auto;
 }
 
-/* full-width select boxes */
-html[dir="rtl"] ul li p + select {
-  margin: -1rem 12rem 1rem 3rem;
+html[dir="rtl"] ul li > label.pack-checkbox > small,
+html[dir="rtl"] ul li > label.pack-radio > small {
+  left: 6.1rem;
+  right: 4rem;
 }
 
-/* boolean inputs */
+html[dir="rtl"] ul li > label.pack-checkbox > small:not(.menu-item-desc),
+html[dir="rtl"] ul li > label.pack-radio > small:not(.menu-item-desc) {
+   left: 9rem;
+   right: 2rem;
+}
 
-html[dir="rtl"] ul li button,
-html[dir="rtl"] ul li a[role="button"] {
-  left: inherit;
-  right: 3rem;
+html[dir="rtl"] ul li > label.pack-switch > small {
+   left: 9rem;
+   right: 4rem;
+}
+
+html[dir="rtl"] ul li > label.pack-switch > small:not(.menu-item-desc) {
+   left: 9rem;
+   right: 2rem;
 }
 
 html[dir="rtl"] ul li > label.pack-checkbox > span:after,
 html[dir="rtl"] ul li > label.pack-radio > span:after,
 html[dir="rtl"] ul li > label.pack-switch > input ~ span:after {
-  left: 9rem; /* XXX we use "right: 3rem" for LTR layouts... */
-  right: inherit;
+  left: 0;
+  right: auto;
 }
 
-html[dir="rtl"] ul li > label.pack-checkbox > span,
-html[dir="rtl"] ul li > label.pack-radio > span {
+html[dir="rtl"] ul li > label.pack-checkbox > span {
+  padding-left: 6.1rem;
+  
+}
+html[dir="rtl"] ul li > label.pack-checkbox > span:not(.menu-item) {
   padding-left: 6.1rem;
   padding-right: 3rem;
 }
 
+html[dir="rtl"] ul li > label.pack-radio ~ p {
+  padding-left: 3rem;
+}
+
 html[dir="rtl"] ul li > label.pack-switch > span {
+  padding-left: 9rem;
+}
+
+html[dir="rtl"] ul li > label.pack-switch > span:not(.menu-item) {
   padding-left: 9rem;
   padding-right: 3rem;
 }
 
-/* description + value on the same line */
-html[dir="rtl"] ul li > a span {
-  left: 3rem;
-  right: inherit;
+html[dir="rtl"] ul li > label.pack-radio > span {
+  padding-left: 5.9rem;
 }
 
-/* main list items */
-html[dir="rtl"] ul li > a,
-html[dir="rtl"] ul li > span {
-  padding-left: inherit;
+html[dir="rtl"] ul li > label.pack-radio > span:not(.menu-item) {
+  padding-left: 5.9rem;
   padding-right: 3rem;
 }
+
+html[dir="rtl"] ul li > label input[type="range"] {
+  left: 7rem;
+  right: 5rem;
+}
+
+html[dir="rtl"] ul li.sound-setting > label input[type="range"] {
+  left: auto;
+  right: 1.5rem;
+}
+
+html[dir="rtl"] dl dt {
+  padding-left: 0;
+  padding-right: 3rem;
+}
+
+html[dir="rtl"] ul li.bluetooth-device > a{
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+

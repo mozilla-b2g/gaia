@@ -25,3 +25,13 @@ section[role="status"] p {
 section[role="status"] p strong {
   font-weight: 500;
 }
+
+/*
+ * Right to Left View
+ */
+
+html[dir="rtl"] section[role="status"],
+html[dir="rtl"] section[role="status"] p {
+  text-align: right;
+}
+
