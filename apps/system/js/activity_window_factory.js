@@ -55,6 +55,15 @@
     },
 
     /**
+     * Get current active activity window.
+     * @return {Object} ActivityWindow instance, or null if there is currently
+     *                  no active activity window.
+     */
+    getActiveWindow: function acwf_getActiveWindow() {
+      return this._activeActivity;
+    },
+
+    /**
      * Activity Config
      * @typedef {Object} ActivityConfig
      * @property {String} manifestURL The manifestURL of the activity

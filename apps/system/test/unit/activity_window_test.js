@@ -110,6 +110,24 @@ suite('system/ActivityWindow', function() {
       assert.isTrue(stubSetVisible.calledWith(false, true));
     });
 
+    test('requestOpen', function() {
+      var activity = new ActivityWindow(fakeConfig, app);
+      var fakeAppConfig = {
+        url: 'app://www.fake/index.html',
+        manifest: {},
+        manifestURL: 'app://wwww.fake/ManifestURL',
+        origin: 'app://www.fake'
+      };
+      var app = new AppWindow(fakeAppConfig);
+      activity.activityCaller = app;
+      app.activityCallee = activity;
+      var stubRequestOpen = this.sinon.stub(app, 'requestOpen');
+
+      activity.requestOpen();
+
+      assert.isTrue(stubRequestOpen.calledOnce);
+    });
+
     test('copy fullscreen from caller', function() {
       var activity = new ActivityWindow(fakeConfig, appF);
       assert.isTrue(activity.element.classList.contains('fullscreen-app'));
