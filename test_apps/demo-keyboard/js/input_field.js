@@ -44,9 +44,9 @@
   var context;
 
   // Our local copy of the input state from the input context
-  var inputType, inputMode;
-  var selectionStart, selectionEnd;
-  var textBeforeCursor, textAfterCursor;
+  var inputType = null, inputMode = null;
+  var selectionStart = 0, selectionEnd = 0;
+  var textBeforeCursor = '', textAfterCursor = '';
 
   // A dummy element that we use as EventTarget.
   var dispatcher = document.createElement('div');
@@ -116,7 +116,7 @@
     else {
       inputType = inputMode = null;
       selectionStart = selectionEnd = 0;
-      textBeforeCursor = textAfterCursor = null;
+      textBeforeCursor = textAfterCursor = '';
     }
 
     if (contextchanged) {

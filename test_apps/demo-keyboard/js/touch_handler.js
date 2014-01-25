@@ -17,7 +17,6 @@
 
   // This constant specifies how aggressive we are with our
   // dynamic hit target resizing. Larger numbers mean more resizing.
-  // The amount of resizing is proportional to the square root of this number.
   const RESIZE_FACTOR = 40;
 
   var pageview;
@@ -26,8 +25,6 @@
   var activeKey = null;
   var activeTouch = null;
   var alternativesTimer = null;
-  var alternativesShowing = false;
-  var alternativesRect = null;
   var activeAltKey = null;
   var repeating = false;
   var repeatTimer = null;
@@ -35,7 +32,7 @@
   var dispatcher = document.createElement('div');
 
   // These variables are used by the hit detector
-  var weights = {};
+  var weights = null;  // set by setExpectedChars, cleared by dispatchKeyEvent
   var keyCodeToName = {};  // map keycodes to key names for this page
 
   function setPageView(newpageview) {
@@ -91,7 +88,7 @@
     // If there is already an active key when this touch begins
     // then we're in a multi-touch case. Handle the pending key first
     if (activeKey) {
-      if (alternativesShowing) {
+      if (pageview.alternativesShowing) {
         // If the user touches another key while an alternatives menu is
         // up, just hide the alternatives and don't send anything
         hideAlternatives();
@@ -116,7 +113,7 @@
 
     cancelTimers();
 
-    if (alternativesShowing) {
+    if (pageview.alternativesShowing) {
       sendAltKey();
       hideAlternatives();
     }
@@ -141,8 +138,8 @@
 
     var x = touch.clientX, y = touch.clientY;
 
-    if (alternativesShowing) {
-      var box = alternativesRect;
+    if (pageview.alternativesShowing) {
+      var box = pageview.alternativesMenuBox;
       // If the touch has moved out of the alternatives hide the menu
       // and cancel this touch so that any further events are ignored
       if (x < box.left || x > box.right || y < box.top || y > box.bottom) {
@@ -151,11 +148,17 @@
         activeTouch = null;
       }
       else {
-        var altkey = document.elementFromPoint(x, y);
-        if (altkey !== activeAltKey) {
-          activeAltKey.classList.remove('touched');
-          activeAltKey = altkey;
-          activeAltKey.classList.add('touched');
+        for (var i = 0; i < pageview.alternativeKeyBoxes.length; i++) {
+          box = pageview.alternativeKeyBoxes[i];
+          if (x >= box.left && x < box.right &&
+              y >= box.top && y < box.bottom) {
+            if (box.key !== activeAltKey) {
+              activeAltKey.classList.remove('touched');
+              activeAltKey = box.key;
+              activeAltKey.classList.add('touched');
+            }
+            break;
+          }
         }
       }
     }
@@ -217,15 +220,12 @@
       return;
     pageview.showAlternatives(activeKey);
     pageview.unhighlight(activeKey);
-    alternativesShowing = true;
-    alternativesRect = pageview.alternativesMenu.getBoundingClientRect();
     activeAltKey = pageview.alternativesMenu.firstElementChild;
     activeAltKey.classList.add('touched');
   }
 
   function hideAlternatives() {
     pageview.hideAlternatives(activeKey);
-    alternativesShowing = false;
     activeAltKey = null;
   }
 
@@ -245,12 +245,19 @@
   }
 
   function dispatchKeyEvent(keyname) {
+    // Before sending a new key, discard the weights used to compute this one.
+    weights = null;
     dispatcher.dispatchEvent(new CustomEvent('key', { detail: keyname }));
   }
 
   function setExpectedChars(chars) {
     // The input is an array with 2n elements. Each pair of elements
     // represents a keycode and a weight
+    if (!chars || chars.length === 0) {
+      weights = null;
+      return;
+    }
+
     weights = {};
 
     // The raw weights from the prediction engine are word frequency numbers
@@ -355,7 +362,7 @@
       var dx = x - keydata.cx;
       var dy = y - keydata.cy;
       var distance = dx * dx + dy * dy;
-      var weight = weights[keyname] || 0;
+      var weight = weights && weights[keyname] || 0;
       var power = distance - weight;
       if (power < smallestPower) {
         smallestPower = power;
