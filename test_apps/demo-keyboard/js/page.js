@@ -5,7 +5,7 @@
 // one row of the keyboard.  The pagekeys and layoutkeys arguments are objects
 // from which key definitions should be looked up.
 function KeyboardPage(pagename, variant, layout, pagekeys, layoutkeys) {
-  this.name = name;
+  this.name = pagename;
   this.variant = variant;
 
   // An array of arrays of keynames
