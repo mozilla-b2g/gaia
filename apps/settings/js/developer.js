@@ -1,6 +1,8 @@
+/* global ScreenLayout, Settings */
+
 'use strict';
 
-var AboutMoreInfoDev = {
+var Developer = {
 
   init: function about_init() {
     document.getElementById('ftuLauncher').onclick = this.launchFTU;
@@ -9,15 +11,17 @@ var AboutMoreInfoDev = {
     if (!ScreenLayout.getCurrentLayout('hardwareHomeButton')) {
       document.getElementById('software-home-button').style.display = 'none';
       // always set homegesture enabled on tablet, so hide the setting
-      if (!ScreenLayout.getCurrentLayout('tiny'))
+      if (!ScreenLayout.getCurrentLayout('tiny')) {
         document.getElementById('homegesture').style.display = 'none';
+      }
     }
   },
 
   launchFTU: function about_launchFTU() {
     var settings = Settings.mozSettings;
-    if (!settings)
+    if (!settings) {
       return;
+    }
 
     var key = 'ftu.manifestURL';
     var req = settings.createLock().get(key);
@@ -52,4 +56,4 @@ var AboutMoreInfoDev = {
   }
 };
 
-navigator.mozL10n.ready(AboutMoreInfoDev.init.bind(AboutMoreInfoDev));
+navigator.mozL10n.ready(Developer.init.bind(Developer));
