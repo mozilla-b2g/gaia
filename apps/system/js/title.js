@@ -23,7 +23,7 @@ var Title = {
 
   handleEvent: function(e) {
 
-    if (!Rocketbar.enabled) {
+    if (!RocketbarLauncher.enabled) {
       return;
     }
 

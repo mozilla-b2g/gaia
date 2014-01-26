@@ -100,9 +100,9 @@ var UtilityTray = {
       case 'touchend':
         evt.stopImmediatePropagation();
         var touch = evt.changedTouches[0];
-        if (Rocketbar.enabled && !this.shown && !this.active &&
-            touch.pageX < this.screenWidth * Rocketbar.triggerWidth) {
-          Rocketbar.render(true);
+        if (RocketbarLauncher.enabled && !this.shown && !this.active &&
+            touch.pageX < this.screenWidth * RocketbarLauncher.triggerWidth) {
+          window.dispatchEvent(new CustomEvent('showrocketbar'));
         }
 
         if (!this.active)
@@ -127,15 +127,15 @@ var UtilityTray = {
 
     // Show the rocketbar if it's enabled,
     // Give a slightly larger left area, than right.
-    if (Rocketbar.enabled && !this.shown &&
-        touch.pageX < this.screenWidth * Rocketbar.triggerWidth) {
+    if (RocketbarLauncher.enabled && !this.shown &&
+        touch.pageX < this.screenWidth * RocketbarLauncher.triggerWidth) {
       UtilityTray.hide();
       return;
     } else {
       window.dispatchEvent(new CustomEvent('taskmanagerhide'));
     }
 
-    Rocketbar.hide();
+    window.dispatchEvent(new CustomEvent('hiderocketbar'));
     this.active = true;
 
     this.startY = touch.pageY;

@@ -1,22 +1,60 @@
 'use strict';
 
-var Rocketbar = {
+function Rocketbar(searchAppURL, searchManifestURL) {
 
-  enabled: false,
+  this.searchAppURL = searchAppURL;
+  this.searchManifestURL = searchManifestURL;
+
+  this.instanceID = 'rocketbar';
+  this.setBrowserConfig(searchManifestURL);
+  this.render();
+  this.publish('created');
+  return this;
+}
+
+Rocketbar.REGISTERED_EVENTS = [];
+
+Rocketbar.SUB_COMPONENTS = {};
+
+Rocketbar.prototype = {
+  __proto__: AppWindow.prototype,
+
+  _DEBUG: false,
+
+  CLASS_NAME: 'Rocketbar',
+
+  openAnimation: 'zoom-out',
+
+  closeAnimation: 'zoom-in',
+
+  eventPrefix: 'rocketbar',
+
+  /**
+   * Construct browser config object by manifestURL.
+   * @param {String} manifestURL The manifestURL of rocketbar.
+   */
+  setBrowserConfig: function(manifestURL) {
+    var app = Applications.getByManifestURL(manifestURL);
+    this.origin = app.origin;
+    this.manifestURL = app.manifestURL;
+    this.url = app.origin + '/index.html#root';
+
+    this.browser_config =
+      new BrowserConfigHelper(this.origin, this.manifestURL);
+
+    this.manifest = this.browser_config.manifest;
+    // XXX: Remove this hardcode
+    this.browser_config.url = this.url;
+    this.browser_config.isRocketbar = true;
+    this.config = this.browser_config;
+    this.isRocketbar = true;
+  },
 
   /**
    * Either 'search' or 'tasks'.
    * Let us know how the rocketbar was opened.
    */
   home: 'search',
-
-  /**
-   * How much room on the statusbar will trigger the rocketbar
-   * when tapped on.
-   */
-  triggerWidth: 0.65,
-
-  searchAppURL: null,
 
   _port: null,
 
@@ -36,7 +74,13 @@ var Rocketbar = {
     return ('visible' in this.searchBar.dataset);
   },
 
+  _input: null,
+
   get searchInput() {
+    if (this.__input) {
+      return this._input;
+    }
+
     var input = document.getElementById('search-input');
     var self = this;
     input.addEventListener('input', function onInput(e) {
@@ -63,9 +107,8 @@ var Rocketbar = {
         input: input.value
       });
     });
-
-    delete this.searchInput;
-    return this.searchInput = input;
+    this._input = input;
+    return input;
   },
 
   handleEvent: function(e) {
@@ -179,23 +222,6 @@ var Rocketbar = {
     this.searchReset.addEventListener('mousedown', this);
     // Listen to clicks to keep the keyboard up
     this.searchReset.addEventListener('click', this);
-
-    SettingsListener.observe('rocketbar.enabled', false,
-    function(value) {
-      if (value) {
-        document.body.classList.add('rb-enabled');
-      } else {
-        document.body.classList.remove('rb-enabled');
-      }
-      this.enabled = value;
-    }.bind(this));
-
-    SettingsListener.observe('rocketbar.searchAppURL', false,
-    function(url) {
-      this.searchAppURL = url;
-      this.searchManifestURL = url.match(/(^.*?:\/\/.*?\/)/)[1] +
-        'manifest.webapp';
-    }.bind(this));
   },
 
   /**
@@ -302,20 +328,24 @@ var Rocketbar = {
 
   /**
    * Renders the rocketbar.
-   * @param {Boolean} isTaskManager, true if we are opening in task manager.
+   * @param {Object} Rocketbar configuration.
+   * - config.home, tasks to launch the task manager.
    */
-  render: function(isTaskManager) {
-    if (LockScreen.locked)
+  render: function(config) {
+    if (LockScreen.locked) {
       return;
+    }
 
     if (this.shown) {
       return;
     }
 
+    config = config || {};
+
     var input = this.searchInput;
     input.value = '';
 
-    if (isTaskManager) {
+    if (config.home === 'tasks') {
       this.home = 'tasks';
       window.dispatchEvent(new CustomEvent('taskmanagershow'));
     } else {
@@ -350,5 +380,3 @@ var Rocketbar = {
 
   }
 };
-
-Rocketbar.init();

@@ -4,35 +4,6 @@ var MockAppWindowHelper = {
 };
 
 var MockAppWindow = function AppWindow(config) {
-  this.open = function() {};
-  this.close = function() {};
-  this.kill = function() {};
-  this.toggle = function() {};
-  this.ready = function() {};
-  this.isActive = function() {};
-  this.changeURL = function() {};
-  this.resize = function() {};
-  this.setVisible = function() {};
-  this.blur = function() {};
-  this.publish = function() {};
-  this.broadcast = function() {};
-  this.fadeIn = function() {};
-  this.fadeOut = function() {};
-  this.setOrientation = function() {};
-  this.focus = function() {};
-  this.blur = function() {};
-  this.debug = function() {};
-  this.tryWaitForFullRepaint = function() {};
-  this.waitForNextPaint = function() {};
-  this.forward = function() {};
-  this.canGoForward = function() {};
-  this.canGoBack = function() {};
-  this.back = function() {};
-  this.reload = function() {};
-  this.isFullScreen = function() {};
-  this._changeState = function() {};
-  this._setVisible = function() {};
-  this.modifyURLatBackground = function() {};
   if (config) {
     for (var key in config) {
       this[key] = config[key];
@@ -57,3 +28,18 @@ MockAppWindow.mTeardown = function() {
   MockAppWindowHelper.mInstances = [];
   MockAppWindowHelper.mLatest = null;
 };
+
+// Populate the object prototype.
+// This is necessary so classes that inherit from AppWindow will
+// work properly in unit tests.
+var mockAppWindowPrototype = [
+  'open', 'close', 'kill', 'toggle', 'ready', 'isActive',
+  'changeURL', 'resize', 'setVisible', 'blur', 'publish',
+  'broadcast', 'fadeIn', 'fadeOut', 'setOrientation', 'focus',
+  'blur', 'debug', 'tryWaitForFullRepaint', 'waitForNextPaint',
+  'forward', 'canGoForward', 'canGoBack', 'back', 'reload',
+  'isFullScreen', '_changeState', '_setVisible', 'modifyURLatBackground'];
+
+mockAppWindowPrototype.forEach(function(funcName) {
+  MockAppWindow.prototype[funcName] = function() {};
+});

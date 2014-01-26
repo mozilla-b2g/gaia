@@ -891,8 +891,8 @@ var CardsView = (function() {
   false);
 
   function maybeShowInRocketbar() {
-    if (Rocketbar.enabled) {
-      Rocketbar.render(true);
+    if (RocketbarLauncher.enabled) {
+      window.dispatchEvent(new CustomEvent('showrocketbar'));
     } else {
       showCardSwitcher();
     }
