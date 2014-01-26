@@ -119,7 +119,7 @@ function execute(config) {
   settings['language.current'] = config.GAIA_DEFAULT_LOCALE;
 
   if (config.DEVICE_DEBUG) {
-    settings['debugger.remote-mode'] = 'adb-only';
+    settings['debugger.remote-mode'] = 'adb-devtools';
   }
 
   if (config.NO_LOCK_SCREEN) {
