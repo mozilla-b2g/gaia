@@ -6,6 +6,9 @@ Keyboards.ar = {
   alternateLayoutKey: '123',
   basicLayoutKey: 'أ ب ج',
   width: 11,
+  alt : {
+	  ي:'ى'
+  },
   keys: [
     [
       { value: 'ض' }, { value: 'ص' }, { value: 'ث' }, { value: 'ق' },
