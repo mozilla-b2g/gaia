@@ -13,7 +13,7 @@
     "marionette-apps": "~0.3.3",
     "marionette-client": "~1.1.0",
     "marionette-content-script": "0.0.0",
-    "marionette-device-host": "0.0.1",
+    "marionette-device-host": "0.0.2",
     "marionette-helper": "~0.2.0",
     "marionette-plugin-forms": "0.0.1",
     "marionette-profile-builder": "0.0.3",
