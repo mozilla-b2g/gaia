@@ -42,7 +42,6 @@ suite('search/providers/local_apps', function() {
   suite('click', function() {
     test('launches the application', function() {
       var fakeManifestURL = 'http://mozilla.org/manifest.webapp';
-      var searchCloseStub = this.sinon.stub(Search, 'close');
 
       var launchCalled = false;
       subject.apps = {};
@@ -62,7 +61,6 @@ suite('search/providers/local_apps', function() {
           }
         }
       });
-      assert.ok(searchCloseStub.calledOnce);
       assert.ok(launchCalled);
     });
   });

@@ -1,6 +1,7 @@
 'use strict';
 
 requireApp('system/test/unit/mock_rocketbar.js');
+requireApp('system/test/unit/mock_rocketbar_launcher.js');
 requireApp('system/shared/test/unit/mocks/mock_lazy_loader.js');
 mocha.globals(['UtilityTray', 'Rocketbar']);
 
@@ -11,6 +12,7 @@ var LockScreen = { locked: false };
 
 var mocksHelperForUtilityTray = new MocksHelper([
   'Rocketbar',
+  'RocketbarLauncher',
   'LazyLoader',
   'LockScreen'
 ]);
@@ -194,7 +196,8 @@ suite('system/UtilityTray', function() {
     setup(function() {
       fakeEvt = {
         type: 'touchend',
-        changedTouches: [0]
+        changedTouches: [0],
+        stopImmediatePropagation: function() {}
       };
       UtilityTray.active = true;
       UtilityTray.handleEvent(fakeEvt);
@@ -220,31 +223,52 @@ suite('system/UtilityTray', function() {
 
   suite('onTouchStart: rocketbar logic', function() {
 
-    var overlayStub, uHideStub, rBarRenderStub;
+    var overlayStub, uHideStub, rBarShowStub;
 
     setup(function() {
       overlayStub = this.sinon
         .stub(UtilityTray.overlay, 'getBoundingClientRect')
         .returns({width: 100, height: 100});
-      rBarRenderStub = this.sinon.stub(Rocketbar, 'render');
+      rBarShowStub = this.sinon.stub(window, 'dispatchEvent');
       uHideStub = this.sinon.stub(UtilityTray, 'hide');
-      Rocketbar.enabled = true;
+      RocketbarLauncher.enabled = true;
     });
 
     teardown(function() {
       overlayStub.restore();
-      rBarRenderStub.restore();
+      rBarShowStub.restore();
       uHideStub.restore();
     });
 
     test('should display for drag on left half of statusbar', function() {
-      fakeEvt = {
-        type: 'touchstart',
+      var touchDetail = {
         pageX: 0
       };
+      fakeEvt = {
+        stopImmediatePropagation: function() {},
+        type: 'touchend',
+        changedTouches: [touchDetail]
+      };
+      UtilityTray.onTouchStart(touchDetail);
+      UtilityTray.shown = false;
+      UtilityTray.active = false;
+      UtilityTray.handleEvent(fakeEvt);
+      assert.equal(rBarShowStub.getCall(0).args[0].type, 'showrocketbar');
+    });
+
+    test('does not render if utility tray not active', function() {
+      fakeEvt = {
+        stopImmediatePropagation: function() {},
+        type: 'touchend',
+        changedTouches: [{
+          pageX: 0
+        }]
+      };
       UtilityTray.onTouchStart(fakeEvt);
-      assert.isTrue(rBarRenderStub.calledOnce);
-      assert.isTrue(uHideStub.calledOnce);
+      UtilityTray.shown = false;
+      UtilityTray.active = true;
+      UtilityTray.handleEvent(fakeEvt);
+      assert.equal(rBarShowStub.getCall(0).args[0].type, 'taskmanagerhide');
     });
 
     test('should not show if we touch to the right', function() {
@@ -253,7 +277,7 @@ suite('system/UtilityTray', function() {
         pageX: 70
       };
       UtilityTray.onTouchStart(fakeEvt);
-      assert.isTrue(rBarRenderStub.notCalled);
+      assert.equal(rBarShowStub.getCall(0).args[0].type, 'taskmanagerhide');
       assert.isTrue(uHideStub.notCalled);
     });
 
@@ -266,7 +290,7 @@ suite('system/UtilityTray', function() {
         pageX: 0
       };
       UtilityTray.onTouchStart(fakeEvt);
-      assert.isTrue(rBarRenderStub.notCalled);
+      assert.equal(rBarShowStub.getCall(0).args[0].type, 'taskmanagerhide');
     });
   });
 

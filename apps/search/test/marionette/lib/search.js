@@ -121,7 +121,7 @@ Search.prototype = {
 
     this.client.helper.waitForElement(selectors.homescreen);
     this.client.executeScript(function() {
-      window.wrappedJSObject.Rocketbar.render();
+      window.wrappedJSObject.RocketbarLauncher.show();
     });
 
     // https://bugzilla.mozilla.org/show_bug.cgi?id=960098

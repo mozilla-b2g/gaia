@@ -63,9 +63,6 @@ var UtilityTray = {
       case 'keyboardchangecanceled':
       case 'simpinshow':
       case 'appopening':
-        if (Rocketbar.shown) {
-          Rocketbar.hide(evt.type);
-        }
         if (this.shown) {
           this.hide();
         }
@@ -97,25 +94,23 @@ var UtilityTray = {
         break;
 
       case 'touchmove':
-        var touch = evt.touches[0];
-        if (!this.active) {
-          if (Rocketbar.enabled && !this.shown &&
-              touch.pageX < this.screenWidth * Rocketbar.triggerWidth) {
-            Rocketbar.pointerY = touch.pageY;
-          }
-          return;
-        }
-
-        this.onTouchMove(touch);
+        this.onTouchMove(evt.touches[0]);
         break;
 
       case 'touchend':
+        evt.stopImmediatePropagation();
+        var touch = evt.changedTouches[0];
+        if (RocketbarLauncher.enabled && !this.shown && !this.active &&
+            touch.pageX < this.screenWidth * RocketbarLauncher.triggerWidth) {
+          window.dispatchEvent(new CustomEvent('showrocketbar'));
+        }
+
         if (!this.active)
           return;
 
         this.active = false;
 
-        this.onTouchEnd(evt.changedTouches[0]);
+        this.onTouchEnd(touch);
         break;
 
       case 'transitionend':
@@ -132,17 +127,15 @@ var UtilityTray = {
 
     // Show the rocketbar if it's enabled,
     // Give a slightly larger left area, than right.
-    if (Rocketbar.enabled && !this.shown &&
-        touch.pageX < this.screenWidth * Rocketbar.triggerWidth) {
+    if (RocketbarLauncher.enabled && !this.shown &&
+        touch.pageX < this.screenWidth * RocketbarLauncher.triggerWidth) {
       UtilityTray.hide();
-      Rocketbar.pointerY = touch.pageY;
-      Rocketbar.render(this.screenHeight);
       return;
     } else {
       window.dispatchEvent(new CustomEvent('taskmanagerhide'));
     }
 
-    Rocketbar.hide();
+    window.dispatchEvent(new CustomEvent('hiderocketbar'));
     this.active = true;
 
     this.startY = touch.pageY;
@@ -152,6 +145,10 @@ var UtilityTray = {
   },
 
   onTouchMove: function ut_onTouchMove(touch) {
+    if (!this.active) {
+      return;
+    }
+
     var screenHeight = this.screenHeight;
 
     var y = touch.pageY;

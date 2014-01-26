@@ -75,6 +75,8 @@
 
       if (newApp === HomescreenLauncher.origin) {
         HomescreenLauncher.getHomescreen();
+      } else if (newApp === RocketbarLauncher.origin) {
+        RocketbarLauncher.show();
       } else if (currentApp === null) {
         HomescreenLauncher.getHomescreen().setVisible(false);
       }
@@ -200,6 +202,7 @@
       }
       window.addEventListener('launchapp', this);
       window.addEventListener('home', this);
+      window.addEventListener('showrocketbar', this);
       window.addEventListener('appcreated', this);
       window.addEventListener('appterminated', this);
       window.addEventListener('ftuskip', this);
@@ -388,6 +391,11 @@
               app.blur();
             }
           }
+          break;
+
+        case 'showrocketbar':
+          this.debug('show rocketbar.');
+          this.display(RocketbarLauncher.origin);
           break;
 
         // If the lockscreen is active, it will stop propagation on this event
