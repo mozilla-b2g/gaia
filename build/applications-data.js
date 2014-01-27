@@ -382,17 +382,6 @@ function execute(options) {
   utils.writeContent(init,
     utils.getDistributionFileContent('support', content, distDir));
 
-  // Network Types
-  init = utils.getFile(config.GAIA_DIR,
-    'apps', 'settings', 'resources', 'network.json');
-  content = {
-    'types': ['wcdma/gsm', 'gsm', 'wcdma', 'wcdma/gsm-auto', 'cdma/evdo',
-              'cdma', 'evdo', 'wcdma/gsm/cdma/evdo']
-  };
-
-  utils.writeContent(init,
-    utils.getDistributionFileContent('network', content, distDir));
-
   // ICC / STK
   init = utils.getFile(config.GAIA_DIR,
     'apps', 'system', 'resources', 'icc.json');
