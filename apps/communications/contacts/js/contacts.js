@@ -160,12 +160,13 @@ var Contacts = (function() {
         {type: 'faxHome', value: _('faxHome')},
         {type: 'faxOffice', value: _('faxOffice')},
         {type: 'faxOther', value: _('faxOther')},
-        {type: 'another', value: _('another')}
+        {type: 'other', value: _('other')}
       ],
       'email-type' : [
         {type: 'personal', value: _('personal')},
         {type: 'home', value: _('home')},
-        {type: 'work', value: _('work')}
+        {type: 'work', value: _('work')},
+        {type: 'other', value: _('other')}
       ],
       'address-type' : [
         {type: 'home', value: _('home')},

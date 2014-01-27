@@ -24,6 +24,7 @@ function SimContactsImporter(targetIcc) {
   var _ = navigator.mozL10n.get;
   var mustFinish = false;
   var loadedMatch = false;
+  var DEFAULT_TEL_TYPE = 'other';
   var icc = targetIcc;
   var iccId = icc.iccInfo && icc.iccInfo.iccid;
 
@@ -156,7 +157,7 @@ function SimContactsImporter(targetIcc) {
           var aTel = item.tel[j];
           // Filtering out empty values
           if (aTel.value && aTel.value.trim()) {
-            aTel.type = ['mobile'];
+            aTel.type = [DEFAULT_TEL_TYPE];
             telItems.push(aTel);
           }
         }

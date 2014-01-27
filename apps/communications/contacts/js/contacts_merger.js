@@ -6,8 +6,8 @@ var contacts = window.contacts || {};
 
 contacts.Merger = (function() {
   var DEFAULT_ADR_TYPE = 'home';
-  var DEFAULT_TEL_TYPE = 'another';
-  var DEFAULT_EMAIL_TYPE = 'personal';
+  var DEFAULT_TEL_TYPE = 'other';
+  var DEFAULT_EMAIL_TYPE = 'other';
 
   // Performs the merge passing the master contact and matching contacts
   // The master contact is the one that contains the info with more priority
