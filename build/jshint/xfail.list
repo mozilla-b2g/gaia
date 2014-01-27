@@ -270,7 +270,6 @@ apps/communications/contacts/js/contacts_importer.js
 apps/communications/contacts/js/contacts_matcher.js
 apps/communications/contacts/js/contacts_matching_controller.js
 apps/communications/contacts/js/contacts_matching_ui.js
-apps/communications/contacts/js/contacts_merger.js
 apps/communications/contacts/js/contacts_shortcuts.js
 apps/communications/contacts/js/contacts_tag.js
 apps/communications/contacts/js/export/bt.js
@@ -332,7 +331,6 @@ apps/communications/contacts/test/unit/contacts_activities_test.js
 apps/communications/contacts/test/unit/contacts_matcher_test.js
 apps/communications/contacts/test/unit/contacts_matching_ui_test.js
 apps/communications/contacts/test/unit/contacts_matching_ui_test_data.js
-apps/communications/contacts/test/unit/contacts_merger_test.js
 apps/communications/contacts/test/unit/contacts_tag_test.js
 apps/communications/contacts/test/unit/datastore_migrator_test.js
 apps/communications/contacts/test/unit/export/bt_test.js

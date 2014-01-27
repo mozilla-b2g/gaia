@@ -1,25 +1,16 @@
+/* globals contacts, MockFindMatcher */
+
+'use strict';
+
 require('/shared/js/simple_phone_matcher.js');
 requireApp('communications/contacts/js/utilities/misc.js');
 requireApp('communications/contacts/test/unit/mock_find_matcher.js');
 requireApp('communications/contacts/js/contacts_merger.js');
 
-if (!this.toMergeContacts) {
-  this.toMergeContacts = null;
-}
-
-if (!this.toMergeContact) {
-  this.toMergeContact = null;
-}
-
-if (!this.realmozContacts) {
-  this.realmozContacts = null;
-}
-
-if (!this.SimplePhoneMatcher) {
-  this.SimplePhoneMatcher = null;
-}
-
 suite('Contacts Merging Tests', function() {
+  var toMergeContacts = null,
+      toMergeContact = null,
+      realmozContacts = null;
 
   var aPhoto = new Blob();
 
@@ -151,6 +142,54 @@ suite('Contacts Merging Tests', function() {
       success: function(result) {
         assert.equal(result.givenName[0], 'Alfred');
         assert.equal(result.familyName[0], 'Müller von Bismarck');
+
+        done();
+    }});
+  });
+
+  test('Merge first name and last name. existing and incoming given names' +
+       'empty', function(done) {
+    toMergeContact.matchingContact = {
+      givenName: [],
+      familyName: ['Müller von Bismarck'],
+       tel: [{
+        type: ['work'],
+        value: '67676767'
+      }]
+    };
+
+    var masterContact = new MasterContact();
+
+    masterContact.givenName = null;
+
+    contacts.Merger.merge(masterContact, toMergeContacts, {
+      success: function(result) {
+        assert.isTrue(result.givenName.length === 0);
+        assert.equal(result.familyName[0], 'Müller');
+
+        done();
+    }});
+  });
+
+  test('Merge first name and last name. existing and incoming last names empty',
+       function(done) {
+    toMergeContact.matchingContact = {
+      givenName: ['Alfred Albert'],
+      familyName: [],
+       tel: [{
+        type: ['work'],
+        value: '67676767'
+      }]
+    };
+
+    var masterContact = new MasterContact();
+
+    masterContact.familyName = null;
+
+    contacts.Merger.merge(masterContact, toMergeContacts, {
+      success: function(result) {
+        assert.isTrue(result.familyName.length === 0);
+        assert.equal(result.givenName[0], 'Alfred');
 
         done();
     }});
