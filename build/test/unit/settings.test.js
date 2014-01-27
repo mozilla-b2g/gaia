@@ -247,7 +247,7 @@ suite('settings.js', function() {
 				'rocketbar.searchAppURL': config.GAIA_SCHEME + 'search.' +
 					config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
 				'language.current': config.GAIA_DEFAULT_LOCALE,
-				'debugger.remote-mode': 'adb-only',
+				'debugger.remote-mode': 'adb-devtools',
 				'screen.timeout': 0,
       	'lockscreen.enabled': false,
       	'lockscreen.locked': false,
