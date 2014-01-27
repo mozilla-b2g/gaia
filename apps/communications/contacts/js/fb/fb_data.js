@@ -110,25 +110,20 @@ var fb = window.fb || {};
     }
 
     function doSave(obj, outRequest) {
-      if (obj.uid in index().byUid) {
-        outRequest.failed({
-          name: contacts.ALREADY_EXISTS
-        });
-        return;
-      }
-
-      var globalId;
       LazyLoader.load([TEL_INDEXER_JS, PHONE_MATCHER_JS] , function() {
-        datastore().add(obj).then(function success(newId) {
-          globalId = newId;
-          var uid = obj.uid;
-          index().byUid[uid] = newId;
-          indexByPhone(obj, newId);
-
-          return datastore().put(index(), INDEX_ID);
-        }, defaultError(outRequest)).then(function success() {
-          defaultSuccessCb(outRequest, globalId);
-        }, defaultError(outRequest));
+        var uid = obj.uid;
+        datastore().add(obj, uid).then(function success() {
+          indexByPhone(obj, uid);
+          isIndexDirty = true;
+          outRequest.done();
+        }, function error(err) {
+            if (err.name === 'ConstraintError') {
+              err = {
+                name: contacts.ALREADY_EXISTS
+              };
+            }
+            outRequest.failed(err);
+        });
       });
     }
 
@@ -209,25 +204,23 @@ var fb = window.fb || {};
 
     function doUpdate(obj, outRequest) {
       LazyLoader.load([TEL_INDEXER_JS, PHONE_MATCHER_JS], function() {
-        var dsId = index().byUid[obj.uid];
-
+        var uid = obj.uid;
         var successCb = successUpdate.bind(null, outRequest);
-        var errorCb = errorUpdate.bind(null, outRequest, obj.uid);
+        var errorCb = errorUpdate.bind(null, outRequest, uid);
 
-        if (typeof dsId !== 'undefined') {
-          // It is necessary to get the old object and delete old indexes
-          datastore().get(dsId).then(function success(oldObj) {
-            reIndexByPhone(oldObj, obj, dsId);
-            return datastore().put(obj, dsId);
-          }, errorCb).then(function success() {
+        // It is necessary to get the old object and delete old indexes
+        datastore().get(uid).then(function success(oldObj) {
+          if (!oldObj) {
+            errorCb({
+              name: contacts.UID_NOT_FOUND
+            });
+            return;
+          }
+          reIndexByPhone(oldObj, obj, uid);
+          datastore().put(obj, uid).then(function success() {
             return datastore().put(index(), INDEX_ID);
           }, errorCb).then(successCb, errorCb);
-        }
-        else {
-          errorCb({
-            name: contacts.UID_NOT_FOUND
-          });
-        }
+        }, errorCb);   // datastore.get
       });
     }
 
@@ -242,31 +235,27 @@ var fb = window.fb || {};
 
     function doRemove(uid, outRequest, forceFlush) {
       LazyLoader.load([TEL_INDEXER_JS, PHONE_MATCHER_JS], function() {
-        var dsId = index().byUid[uid];
-
         var errorCb = errorRemove.bind(null, outRequest, uid);
         var objToDelete;
 
-        if (typeof dsId === 'undefined') {
-          errorRemove(outRequest, uid, {
-            name: contacts.UID_NOT_FOUND
-          });
-        }
-        else {
-          datastore().get(dsId).then(function success_get_remove(obj) {
-            objToDelete = obj;
-            return datastore().remove(dsId);
-          }, errorCb).then(function success_rm(removed) {
+        datastore().get(uid).then(function success_get_remove(object) {
+          objToDelete = object;
+          if (!objToDelete) {
+            errorRemove(outRequest, uid, {
+              name: contacts.UID_NOT_FOUND
+            });
+            return;
+          }
+          datastore().remove(uid).then(function success_rm(removed) {
             successRemove(outRequest, objToDelete, forceFlush, removed);
           }, errorCb);
-        }
-      });
+        }, errorCb);
+      });  // LazyLoader.load
     }
 
     // Needs to update the index data conveniently
     function successRemove(outRequest, deletedFriend, forceFlush, removed) {
       if (removed === true) {
-        delete index().byUid[deletedFriend.uid];
         isIndexDirty = true;
 
         removePhoneIndex(deletedFriend);
