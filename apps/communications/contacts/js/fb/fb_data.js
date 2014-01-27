@@ -3,6 +3,7 @@
 // WARNING: This file lazy loads:
 // 'shared/js/fb/fb_data_reader.js
 // 'shared/js/fb/fb_tel_index.js'
+// 'shared/js/binary_search.js'
 // 'shared/js/simple_phone_matcher.js' (will be removed once bug 938265 lands)
 
 var fb = window.fb || {};
@@ -22,6 +23,7 @@ var fb = window.fb || {};
     var TEL_INDEXER_JS = '/shared/js/fb/fb_tel_index.js';
     var PHONE_MATCHER_JS = '/shared/js/simple_phone_matcher.js';
     var FB_READER_JS = '/shared/js/fb/fb_data_reader.js';
+    var BINARY_SEARCH_JS = '/shared/js/binary_search.js';
 
     contacts.UID_NOT_FOUND = 'UIDNotFound';
     contacts.ALREADY_EXISTS = 'AlreadyExists';
@@ -110,7 +112,8 @@ var fb = window.fb || {};
     }
 
     function doSave(obj, outRequest) {
-      LazyLoader.load([TEL_INDEXER_JS, PHONE_MATCHER_JS] , function() {
+      LazyLoader.load([TEL_INDEXER_JS, PHONE_MATCHER_JS,
+                       BINARY_SEARCH_JS] , function() {
         var uid = obj.uid;
         datastore().add(obj, uid).then(function success() {
           indexByPhone(obj, uid);
@@ -147,6 +150,7 @@ var fb = window.fb || {};
     function reIndexByPhone(oldObj, newObj, dsId) {
       removePhoneIndex(oldObj);
       indexByPhone(newObj, dsId);
+      TelIndexer.orderTree(index().treeTel);
     }
 
     function removePhoneIndex(deletedFriend) {
@@ -203,8 +207,10 @@ var fb = window.fb || {};
     };
 
     function doUpdate(obj, outRequest) {
-      LazyLoader.load([TEL_INDEXER_JS, PHONE_MATCHER_JS], function() {
+      LazyLoader.load([TEL_INDEXER_JS, PHONE_MATCHER_JS,
+                       BINARY_SEARCH_JS], function() {
         var uid = obj.uid;
+
         var successCb = successUpdate.bind(null, outRequest);
         var errorCb = errorUpdate.bind(null, outRequest, uid);
 
@@ -234,7 +240,8 @@ var fb = window.fb || {};
     }
 
     function doRemove(uid, outRequest, forceFlush) {
-      LazyLoader.load([TEL_INDEXER_JS, PHONE_MATCHER_JS], function() {
+      LazyLoader.load([TEL_INDEXER_JS, PHONE_MATCHER_JS,
+                       BINARY_SEARCH_JS], function() {
         var errorCb = errorRemove.bind(null, outRequest, uid);
         var objToDelete;
 
@@ -358,6 +365,7 @@ var fb = window.fb || {};
           return;
         }
 
+        TelIndexer.orderTree(index().treeTel);
         datastore().put(index(), INDEX_ID).then(
                                               defaultSuccess(outRequest),
                                               defaultError(outRequest));

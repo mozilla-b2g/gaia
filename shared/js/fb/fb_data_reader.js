@@ -33,7 +33,7 @@ this.fb = fb;
       // (We are not supporting dups right now)
       byTel: Object.create(null),
       // Prefix tree for enabling searching by partial tel numbers
-      treeTel: Object.create(null)
+      treeTel: []
     };
   }
 
@@ -234,7 +234,8 @@ this.fb = fb;
 
   function doSearchByPhone(number, outRequest) {
     var normalizedNumber = navigator.mozPhoneNumberService.normalize(number);
-    LazyLoader.load('/shared/js/fb/fb_tel_index.js', function() {
+    LazyLoader.load(['/shared/js/fb/fb_tel_index.js',
+                    '/shared/js/binary_search.js'], function() {
       var toSearchNumber = normalizedNumber;
       // TODO: Temporal way of searching for international numbers
       // A follow-up is needed by using PhoneNumber.js exposed to Gaia
@@ -244,26 +245,27 @@ this.fb = fb;
       if (datastore.revisionId !== revisionId) {
         window.console.info('Datastore revision id has changed!');
         // Refreshing the index
-        datastore.get(INDEX_ID).then(function success(obj) {
-        setIndex(obj);
-        revisionId = datastore.revisionId;
-        var results = TelIndexer.search(index.treeTel, toSearchNumber);
-        var out = null;
-        if (results.length > 0) {
-          out = datastore.get.apply(datastore, results);
-          if (!Array.isArray(out)) {
-            out = [out];
+          datastore.get(INDEX_ID).then(function success(obj) {
+
+          setIndex(obj);
+          revisionId = datastore.revisionId;
+          var results = TelIndexer.search(index.treeTel, toSearchNumber);
+          var out = null;
+          if (results.length > 0) {
+            out = datastore.get.apply(datastore, results);
           }
-        }
-        else {
-          outRequest.done(results);
-        }
-        return out;
+          return out;
       },function(err) {
         err = safeError(err);
         window.console.error('The index cannot be refreshed: ', err.name);
         outRequest.failed(err);
       }).then(function success(objList) {
+          if (objList && !Array.isArray(objList)) {
+            objList = [objList];
+          }
+          else {
+            objList = [];
+          }
           outRequest.done(objList);
       }, function error(err) {
           err = safeError(err);
@@ -274,7 +276,6 @@ this.fb = fb;
       }
       else {
         var results = TelIndexer.search(index.treeTel, toSearchNumber);
-
         if (results.length > 0) {
           datastore.get.apply(datastore, results).then(
             function success(objList) {
