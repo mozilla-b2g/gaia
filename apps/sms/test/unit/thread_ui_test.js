@@ -5,7 +5,7 @@
          MockActivityPicker, Threads, Settings, MockMessages, MockUtils,
          MockContacts, ActivityHandler, Recipients, MockMozActivity,
          ThreadListUI, ContactRenderer, UIEvent, Drafts, OptionMenu,
-         ActivityPicker, KeyEvent, MockNavigatorSettings */
+         ActivityPicker, KeyEvent, MockNavigatorSettings, Draft */
 
 'use strict';
 
@@ -4243,6 +4243,153 @@ suite('thread_ui.js >', function() {
     });
   });
 
+  suite('onVisibilityChange() >', function() {
+    var isDocumentHidden;
+
+    suiteSetup(function() {
+      Object.defineProperty(document, 'hidden', {
+        configurable: true,
+        get: function() {
+          return isDocumentHidden;
+        }
+      });
+    });
+
+    suiteTeardown(function() {
+      delete document.hidden;
+      MessageManager.draft = null;
+    });
+
+    setup(function() {
+      this.sinon.spy(ThreadUI, 'saveDraft');
+    });
+
+    teardown(function() {
+      isDocumentHidden = false;
+    });
+
+    suite('Draft saved: content AND recipients exist', function() {
+      setup(function() {
+        this.sinon.stub(Compose, 'isEmpty').returns(false);
+      });
+
+      test('new: has message', function() {
+        window.location.hash = '#new';
+
+        isDocumentHidden = true;
+
+        ThreadUI.onVisibilityChange();
+
+        sinon.assert.calledOnce(ThreadUI.saveDraft);
+        sinon.assert.calledWithMatch(
+          ThreadUI.saveDraft,
+          {preserve: true, autoSave: true}
+        );
+      });
+
+      test('new: has message, has recipients', function() {
+        window.location.hash = '#new';
+
+        ThreadUI.recipients.length = 1;
+        isDocumentHidden = true;
+
+        ThreadUI.onVisibilityChange();
+
+        sinon.assert.calledOnce(ThreadUI.saveDraft);
+        sinon.assert.calledWithMatch(
+          ThreadUI.saveDraft,
+          {preserve: true, autoSave: true}
+        );
+      });
+
+      test('thread: has message', function() {
+        window.location.hash = '#thread=1';
+
+        isDocumentHidden = true;
+
+        ThreadUI.onVisibilityChange();
+
+        sinon.assert.calledOnce(ThreadUI.saveDraft);
+        sinon.assert.calledWithMatch(
+          ThreadUI.saveDraft,
+          {preserve: true, autoSave: true}
+        );
+      });
+    });
+
+    suite('Draft saved: content OR recipients exist', function() {
+      test('new: has message, no recipients', function() {
+        window.location.hash = '#new';
+
+        this.sinon.stub(Compose, 'isEmpty').returns(false);
+        ThreadUI.recipients.length = 0;
+        isDocumentHidden = true;
+
+        ThreadUI.onVisibilityChange();
+
+        sinon.assert.calledOnce(ThreadUI.saveDraft);
+        sinon.assert.calledWithMatch(
+          ThreadUI.saveDraft,
+          {preserve: true, autoSave: true}
+        );
+      });
+
+      test('new: no message, has recipients', function() {
+        window.location.hash = '#new';
+
+        this.sinon.stub(Compose, 'isEmpty').returns(true);
+        ThreadUI.recipients.length = 1;
+        isDocumentHidden = true;
+
+        ThreadUI.onVisibilityChange();
+
+        sinon.assert.calledOnce(ThreadUI.saveDraft);
+        sinon.assert.calledWithMatch(
+          ThreadUI.saveDraft,
+          {preserve: true, autoSave: true}
+        );
+      });
+    });
+
+    suite('Draft not saved: content or recipients do not exist', function() {
+      setup(function() {
+        this.sinon.stub(Compose, 'isEmpty').returns(true);
+        ThreadUI.recipients.length = 0;
+      });
+
+      test('new: no message', function() {
+        window.location.hash = '#new';
+
+        isDocumentHidden = true;
+
+        ThreadUI.onVisibilityChange();
+
+        sinon.assert.notCalled(ThreadUI.saveDraft);
+      });
+
+      test('new: no message, no recipients', function() {
+        window.location.hash = '#new';
+
+        ThreadUI.recipients.length = 0;
+        isDocumentHidden = true;
+
+        ThreadUI.onVisibilityChange();
+
+        sinon.assert.notCalled(ThreadUI.saveDraft);
+      });
+
+      test('thread: no message', function() {
+        window.location.hash = '#thread=1';
+
+        isDocumentHidden = true;
+
+        ThreadUI.onVisibilityChange();
+
+        sinon.assert.notCalled(ThreadUI.saveDraft);
+      });
+    });
+  });
+
   suite('Back button behaviour', function() {
 
     suite('During activity', function() {
@@ -4289,6 +4436,7 @@ suite('thread_ui.js >', function() {
           number: '999'
         });
 
+        ThreadUI.draft = null;
       });
 
       test('Displays OptionMenu prompt if recipients', function() {
@@ -4350,7 +4498,7 @@ suite('thread_ui.js >', function() {
         });
 
         test('Discard', function() {
-          ThreadUI.draft = {id: 3};
+          ThreadUI.draft = new Draft({id: 3});
           ThreadUI.draft.isEdited = true;
           var spy = this.sinon.spy(ThreadListUI, 'removeThread');
           ThreadUI.back();
@@ -4369,11 +4517,16 @@ suite('thread_ui.js >', function() {
 
         suite('If draft edited', function() {
 
-          suiteSetup(function() {
-            ThreadUI.draft = {
-              id: 55,
-              isEdited: true
-            };
+          setup(function() {
+            ThreadUI.recipients.add({
+              number: '999'
+            });
+
+            ThreadUI.draft = new Draft({
+              id: 55
+            });
+
+            ThreadUI.draft.isEdited = true; // can't set this via options
           });
 
           test('Prompts for replacement if recipients', function() {
