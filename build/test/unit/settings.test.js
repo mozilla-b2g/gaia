@@ -180,86 +180,98 @@ suite('settings.js', function() {
       };
     });
 
-    test('TARGET_BUILD_VARIANT != user', function() {
+    test('TARGET_BUILD_VARIANT != user', function(done) {
       config.TARGET_BUILD_VARIANT = 'notuser';
-      var result = app.execute(config);
-      assert.deepEqual({
-        'debug.console.enabled': true,
-        'developer.menu.enabled': true,
-        'apz.force-enable': true,
-        'homescreen.manifestURL': config.GAIA_SCHEME +
-          'homescreen.' + config.GAIA_DOMAIN + config.GAIA_PORT +
-          '/manifest.webapp',
-        'rocketbar.searchAppURL': config.GAIA_SCHEME + 'search.' +
-          config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
-        'language.current': config.GAIA_DEFAULT_LOCALE,
-        'debugger.remote-mode': 'adb-only',
-        'wallpaper.image': undefined,
-        'dialer.ringtone': undefined,
-        'notification.ringtone': undefined },
-        result);
+      var queue = app.execute(config);
+      queue.done(function(result) {
+        assert.deepEqual({
+          'debug.console.enabled': true,
+          'developer.menu.enabled': true,
+          'apz.force-enable': true,
+          'homescreen.manifestURL': config.GAIA_SCHEME +
+            'homescreen.' + config.GAIA_DOMAIN + config.GAIA_PORT +
+            '/manifest.webapp',
+          'rocketbar.searchAppURL': config.GAIA_SCHEME + 'search.' +
+            config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
+          'debugger.remote-mode': 'adb-only',
+          'language.current': config.GAIA_DEFAULT_LOCALE,
+          'wallpaper.image': undefined,
+          'dialer.ringtone': undefined,
+          'notification.ringtone': undefined },
+          result);
+        done();
+      });
     });
 
-    test('NOFTU === 0', function() {
+    test('NOFTU === 0', function(done) {
       config.NOFTU = '0';
       config.TARGET_BUILD_VARIANT = 'user';
-      var result = app.execute(config);
-      assert.deepEqual({
-        'homescreen.manifestURL': config.GAIA_SCHEME +
-          'homescreen.' + config.GAIA_DOMAIN + config.GAIA_PORT +
-          '/manifest.webapp',
-        'rocketbar.searchAppURL': config.GAIA_SCHEME + 'search.' +
-          config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
-        'language.current': config.GAIA_DEFAULT_LOCALE,
-        'debugger.remote-mode': 'adb-only',
-        'ftu.manifestURL': config.GAIA_SCHEME +
-          'communications.' + config.GAIA_DOMAIN + config.GAIA_PORT +
-          '/manifest.webapp',
-        'wallpaper.image': undefined,
-        'dialer.ringtone': undefined,
-        'notification.ringtone': undefined },
-        result);
+      var queue = app.execute(config);
+      queue.done(function(result) {
+        assert.deepEqual({
+          'homescreen.manifestURL': config.GAIA_SCHEME +
+            'homescreen.' + config.GAIA_DOMAIN + config.GAIA_PORT +
+            '/manifest.webapp',
+          'rocketbar.searchAppURL': config.GAIA_SCHEME + 'search.' +
+            config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
+          'language.current': config.GAIA_DEFAULT_LOCALE,
+          'debugger.remote-mode': 'adb-only',
+          'ftu.manifestURL': config.GAIA_SCHEME +
+            'communications.' + config.GAIA_DOMAIN + config.GAIA_PORT +
+            '/manifest.webapp',
+          'wallpaper.image': undefined,
+          'dialer.ringtone': undefined,
+          'notification.ringtone': undefined },
+          result);
+        done();
+      });
     });
 
-    test('PRODUCTION === 1', function() {
+    test('PRODUCTION === 1', function(done) {
       config.PRODUCTION = '1';
       config.TARGET_BUILD_VARIANT = 'user';
-      var result = app.execute(config);
-      assert.deepEqual({
-        'homescreen.manifestURL': config.GAIA_SCHEME +
-          'homescreen.' + config.GAIA_DOMAIN + config.GAIA_PORT +
-          '/manifest.webapp',
-        'rocketbar.searchAppURL': config.GAIA_SCHEME + 'search.' +
-          config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
-        'feedback.url': 'https://input.mozilla.org/api/v1/feedback/',
-        'language.current': config.GAIA_DEFAULT_LOCALE,
-        'debugger.remote-mode': 'disabled',
-        'wallpaper.image': undefined,
-        'dialer.ringtone': undefined,
-        'notification.ringtone': undefined },
-        result);
+      var queue = app.execute(config);
+      queue.done(function(result) {
+        assert.deepEqual({
+          'homescreen.manifestURL': config.GAIA_SCHEME +
+            'homescreen.' + config.GAIA_DOMAIN + config.GAIA_PORT +
+            '/manifest.webapp',
+          'rocketbar.searchAppURL': config.GAIA_SCHEME + 'search.' +
+            config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
+          'feedback.url': 'https://input.mozilla.org/api/v1/feedback/',
+          'language.current': config.GAIA_DEFAULT_LOCALE,
+          'debugger.remote-mode': 'disabled',
+          'wallpaper.image': undefined,
+          'dialer.ringtone': undefined,
+          'notification.ringtone': undefined },
+          result);
+        done();
+      });
     });
 
-    test('DEVICE_DEBUG === true', function() {
+    test('DEVICE_DEBUG === true', function(done) {
       config.DEVICE_DEBUG = true;
       config.NO_LOCK_SCREEN = '1';
       config.TARGET_BUILD_VARIANT = 'user';
-      var result = app.execute(config);
-      assert.deepEqual({
-        'homescreen.manifestURL': config.GAIA_SCHEME +
-          'homescreen.' + config.GAIA_DOMAIN + config.GAIA_PORT +
-          '/manifest.webapp',
-        'rocketbar.searchAppURL': config.GAIA_SCHEME + 'search.' +
-          config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
-        'language.current': config.GAIA_DEFAULT_LOCALE,
-        'debugger.remote-mode': 'adb-devtools',
-        'screen.timeout': 0,
-        'lockscreen.enabled': false,
-        'lockscreen.locked': false,
-        'wallpaper.image': undefined,
-        'dialer.ringtone': undefined,
-        'notification.ringtone': undefined },
-        result);
+      var queue = app.execute(config);
+      queue.done(function(result) {
+        assert.deepEqual({
+          'homescreen.manifestURL': config.GAIA_SCHEME +
+            'homescreen.' + config.GAIA_DOMAIN + config.GAIA_PORT +
+            '/manifest.webapp',
+          'rocketbar.searchAppURL': config.GAIA_SCHEME + 'search.' +
+            config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
+          'language.current': config.GAIA_DEFAULT_LOCALE,
+          'debugger.remote-mode': 'adb-devtools',
+          'screen.timeout': 0,
+          'lockscreen.enabled': false,
+          'lockscreen.locked': false,
+          'wallpaper.image': undefined,
+          'dialer.ringtone': undefined,
+          'notification.ringtone': undefined },
+          result);
+        done();
+      });
     });
 
     teardown(function() {
