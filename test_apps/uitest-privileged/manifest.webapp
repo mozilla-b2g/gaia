@@ -1,0 +1,25 @@
+{
+  "name": "UI tests - Privileged App",
+  "launch_path": "/index.html",
+  "type": "privileged",
+  "developer": {
+    "name": "The TW QA Team",
+    "url": "https://github.com/Mozilla-TWQA",
+    "e-mail": "tw-qa@mozilla.com"
+  },
+  "messages": [
+       { "notification": "/index.html" }
+  ],
+  "icons": {
+    "128": "/style/icons/Uitest.png"
+  },
+  "permissions": {
+    "audio-capture":{},
+    "contacts":{ "access": "readwrite" },
+    "device-storage:music":{ "access": "readwrite" },
+    "device-storage:pictures":{ "access": "readwrite" },
+    "device-storage:sdcard":{ "access": "readwrite" },
+    "device-storage:videos":{ "access": "readwrite" },
+    "geolocation":{}
+  }
+}
