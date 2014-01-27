@@ -5,17 +5,24 @@ var gaiaOriginURL = function(name, scheme, domain, port) {
   return scheme + name + '.' + domain + (port ? port : '');
 };
 
+exports.Q = require('q');
+
 exports.joinPath = function() {
 	var args = Array.prototype.slice.call(arguments);
 		return args.join('/');
 	};
 exports.Commander = function(type) {
 	hasRunCommands[type] = [];
-	this.run = function(cmds) {
+	this.run = function(cmds, callback) {
 		hasRunCommands[type].push(cmds.join(' '));
+		callback && callback();
 	};
 	this.initPath = function() {
 	};
+};
+
+exports.killAppByPid = function(appName) {
+	hasRunCommands['sh'].push('-c adb shell kill ' + appName);
 };
 
 exports.hasRunCommands = hasRunCommands;
