@@ -1041,7 +1041,6 @@ apps/system/js/logo_loader.js
 apps/system/js/media_playback.js
 apps/system/js/media_recording.js
 apps/system/js/modal_dialog.js
-apps/system/js/net_error.js
 apps/system/js/nfc_handover.js
 apps/system/js/nfc_handover_manager.js
 apps/system/js/nfc_manager.js

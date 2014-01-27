@@ -278,6 +278,22 @@ function optimize_aggregateJsResources(doc, webapp, htmlFile) {
 }
 
 /**
+ * Append values to the global object on the page
+ *
+ * @param {HTMLDocument} doc DOM document of the file.
+ * @param {Object} globals dictionary containing the appended globals.
+ */
+function optimize_embedGlobals(doc, globals) {
+  var script = doc.createElement('script');
+  var content = '';
+  for (var key in globals) {
+    content += 'window.' + key + '="' + globals[key] + '";';
+  }
+  script.innerHTML = content;
+  doc.documentElement.appendChild(script);
+}
+
+/**
  * Inline and minify all css/script resources on the page
  *
  * @param {HTMLDocument} doc DOM document of the file.
@@ -315,6 +331,13 @@ function optimize_inlineResources(doc, webapp, filePath, htmlFile) {
       oldScript.parentNode.insertBefore(newScript, oldScript);
     }
     oldScript.parentNode.removeChild(oldScript);
+  });
+
+  // add the browser manifest url to our global object for net_error
+  // see: https://bugzilla.mozilla.org/show_bug.cgi?id=959800#c8
+  optimize_embedGlobals(doc, {
+    BROWSER_MANIFEST:
+      'app://browser.' + config.GAIA_DOMAIN + '/manifest.webapp'
   });
 
   // inline stylesheets
