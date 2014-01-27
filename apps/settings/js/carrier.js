@@ -1000,7 +1000,7 @@ var CarrierSettings = (function(window, document, undefined) {
       apnToBeMerged['authtype'] = authType.value;
       keys.push('authtype');
 
-      var newApnsForIccCards = [];
+      var newApnsForIccCards = [[], []];
       for (var iccCardIndex = 0;
            iccCardIndex < apns.length;
            iccCardIndex++) {
@@ -1012,18 +1012,32 @@ var CarrierSettings = (function(window, document, undefined) {
         }
 
         // This is the APN element for the current ICC card, handle it.
+        var apnTypeNotPresent = true;
         var newApnsForIccCard = [];
         var apnsForIccCard = apns[iccCardIndex];
+        var apn = null;
+        for (var j = 0; j < apnsForIccCard.length; j++) {
+          apn = apnsForIccCard[j];
+          if (apn.types.indexOf(type) !== -1) {
+            apnTypeNotPresent = false;
+            break;
+          }
+        }
+        if (apnTypeNotPresent) {
+          apnToBeMerged.types = [type];
+          newApnsForIccCard.push(apnToBeMerged);
+        }
+
         for (var apnIndex = 0; apnIndex < apnsForIccCard.length; apnIndex++) {
-          var apn = apnsForIccCard[apnIndex];
+          apn = apnsForIccCard[apnIndex];
           // Search the existing APN for the type being modified.
           if (apn.types.indexOf(type) !== -1) {
             if (apn.types.length > 1) {
-              // The existing APN being modified is also used for other types of
-              // APNs. We need to keep the existing APN for those types.
-              // Delete the type of APN that we are modifying from the existing
-              // APN and create a new APN for the type we need to modify and add
-              // it to the set of APNs for the ICC card.
+              // The existing APN being modified is also used for other types
+              // of APNs. We need to keep the existing APN for those types.
+              // Delete the type of APN that we are modifying from the
+              // existing APN and create a new APN for the type we need to
+              // modify and add it to the set of APNs for the ICC card.
               var tmpApn = JSON.parse(JSON.stringify(apn));
               tmpApn.types.splice(apn.types.indexOf(type), 1);
               newApnsForIccCard.push(tmpApn);
