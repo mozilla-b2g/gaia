@@ -43,6 +43,7 @@ class KeyboardAddMoreKeyboards(Base):
         By.XPATH,
         "//div[@id='keyboardAppContainer']//li[label[span[text()='%s']]]"
     )
+    _back_button_locator = (By.CSS_SELECTOR, '.current header > a')
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
@@ -62,3 +63,6 @@ class KeyboardAddMoreKeyboards(Base):
         selected_language.tap()
         checkbox = selected_language.find_element(By.TAG_NAME, 'input')
         self.wait_for_condition(lambda m: checkbox.is_selected())
+
+    def go_back(self):
+        self.marionette.find_element(*self._back_button_locator).tap()
