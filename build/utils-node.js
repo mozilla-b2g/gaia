@@ -37,10 +37,9 @@ function getFile() {
   };
 }
 
-function getFileContent(file) {
-  if (file.exists() && file.isFile()) {
-    var content = fs.readFileSync(file.path, {encoding: 'utf-8'});
-    return content;
+function getFileContent(file, type) {
+  if (file.exists() && file.isFile()){
+    return fs.readFileSync(file.path, {encoding: type || 'utf-8'});
   }
 }
 
@@ -99,7 +98,26 @@ function killAppByPid(appName) {
   });
 }
 
-exports.Q = Q;
+function resolve(path, gaiaDir) {
+  return getFile(gaiaDir, path);
+}
+
+function getFileAsDataURI(file) {
+  var data = getFileContent(file, 'base64');
+  return new Buffer(data, 'binary').toString('base64');
+}
+
+function getJSON(file) {
+  var data = getFileContent(file, 'utf-8');
+  return JSON.parse(data);
+}
+
+function processEvents() {}
+
+function writeContent(file, content) {
+  fs.writeFileSync(file.path, content);
+}
+
 exports.joinPath = joinPath;
 exports.getFile = getFile;
 exports.getFileContent = getFileContent;
@@ -108,3 +126,9 @@ exports.getEnvPath = function() {};
 exports.readZipManifest = readZipManifest;
 exports.log = console.log;
 exports.killAppByPid = killAppByPid;
+exports.resolve = resolve;
+exports.getFileAsDataURI = getFileAsDataURI;
+exports.getJSON = getJSON;
+exports.processEvents = processEvents;
+exports.writeContent = writeContent;
+exports.Q = Q;

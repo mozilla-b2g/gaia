@@ -61,6 +61,14 @@ function psParser(out) {
   return result;
 }
 
+function gaiaOriginURL(name, scheme, domain, port) {
+  return scheme + name + '.' + domain + (port ? port : '');
+}
+
+function gaiaManifestURL(name, scheme, domain, port) {
+  return gaiaOriginURL(name, scheme, domain, port) + '/manifest.webapp';
+}
+
 exports.Q = utils.Q;
 exports.isSubjectToBranding = isSubjectToBranding;
 exports.ls = utils.ls;
@@ -71,8 +79,8 @@ exports.ensureFolderExists = utils.ensureFolderExists;
 exports.getJSON = utils.getJSON;
 exports.getFileAsDataURI = utils.getFileAsDataURI;
 exports.makeWebappsObject = utils.makeWebappsObject;
-exports.gaiaOriginURL = utils.gaiaOriginURL;
-exports.gaiaManifestURL = utils.gaiaManifestURL;
+exports.gaiaOriginURL = gaiaOriginURL;
+exports.gaiaManifestURL = gaiaManifestURL;
 exports.getDistributionFileContent = utils.getDistributionFileContent;
 exports.resolve = utils.resolve;
 exports.getGaia = utils.getGaia;
