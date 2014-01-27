@@ -46,6 +46,10 @@
         case 'sleepmenuhide':
         case 'trusteduiclose':
         case 'will-unlock':
+          // We don't need to reset orientation if lockscreen is locked.
+          if (LockScreen.locked) {
+            return;
+          }
         /**
          * Fired when the orientation needs to be locked/unlocked again.
          * @event module:OrientationManager#reset-orientation
