@@ -4,7 +4,7 @@
 
 var Basket = {
 
-  basketUrl: 'http://basket.mozilla.org/news/subscribe/',
+  basketUrl: 'https://basket.mozilla.org/news/subscribe/',
   newsletterId: 'firefox-os',
   callback: null,
   xhr: null,
@@ -38,11 +38,17 @@ var Basket = {
    *                            in the error case.
    */
   send: function b_send(email, callback) {
+    var params = 'email=' + encodeURIComponent(email) +
+                 '&newsletters=' + this.newsletterId;
     this.callback = callback;
     this.xhr = new XMLHttpRequest({mozSystem: true});
     this.xhr.onreadystatechange = this.responseHandler.bind(this);
     this.xhr.open('POST', this.basketUrl, true);
-    this.xhr.send('email=' + email + '&newsletters=' + this.newsletterId);
+    this.xhr.setRequestHeader('Content-type',
+                              'application/x-www-form-urlencoded');
+    this.xhr.setRequestHeader('Content-length', params.length);
+    this.xhr.setRequestHeader('Connection', 'close');
+    this.xhr.send(params);
   },
 
   store: function b_store(email, callback) {
