@@ -58,6 +58,9 @@ var CarrierSettings = (function(window, document, undefined) {
   /** MCC and MNC codes the APNs rely on */
   var _mccMncCodes = { mcc: '000', mnc: '00' };
 
+  /* Store the states of automatic operator selection */
+  var _opAutoSelectStates = null;
+
   /**
    * Init function.
    */
@@ -136,6 +139,7 @@ var CarrierSettings = (function(window, document, undefined) {
                                          result.gsm,
                                          result.cdma);
           }
+          cs_updateAutomaticOperatorSelectionCheckbox();
           return;
         }
 
@@ -339,6 +343,9 @@ var CarrierSettings = (function(window, document, undefined) {
     var opAutoSelectInput = opAutoSelect.querySelector('input');
     var opAutoSelectState = opAutoSelect.querySelector('small');
 
+    _opAutoSelectStates =
+      Array.prototype.map.call(_mobileConnections, function() { return true; });
+
     /**
      * Update selection mode.
      */
@@ -361,9 +368,11 @@ var CarrierSettings = (function(window, document, undefined) {
      * Toggle autoselection.
      */
     opAutoSelectInput.onchange = function() {
+      var targetIndex = DsdsSettings.getIccCardIndexForCellAndDataSettings();
+      _opAutoSelectStates[targetIndex] = opAutoSelectInput.checked;
+
       if (opAutoSelectInput.checked) {
-        gOperatorNetworkList.state = 'off';
-        gOperatorNetworkList.clear();
+        gOperatorNetworkList.stop();
         var req = _mobileConnection.selectNetworkAutomatically();
         req.onsuccess = function() {
           updateSelectionMode(false);
@@ -419,6 +428,8 @@ var CarrierSettings = (function(window, document, undefined) {
       var currentConnectedNetwork = null;
       var connecting = false;
       var operatorItemMap = {};
+
+      var scanRequest = null;
 
       /**
        * Clear the list.
@@ -508,9 +519,12 @@ var CarrierSettings = (function(window, document, undefined) {
       function scan() {
         clear();
         list.dataset.state = 'on'; // "Searching..."
-        var req = _mobileConnection.getNetworks();
-        req.onsuccess = function onsuccess() {
-          var networks = req.result;
+
+        // invalidate the original request if it exists
+        invalidateRequest(scanRequest);
+        scanRequest = _mobileConnection.getNetworks();
+        scanRequest.onsuccess = function onsuccess() {
+          var networks = scanRequest.result;
           for (var i = 0; i < networks.length; i++) {
             var network = networks[i];
             var listItem = newListItem(network, selectOperator);
@@ -522,24 +536,50 @@ var CarrierSettings = (function(window, document, undefined) {
             }
           }
           list.dataset.state = 'ready'; // "Search Again" button
+
+          scanRequest = null;
         };
 
-        req.onerror = function onScanError(error) {
+        scanRequest.onerror = function onScanError(error) {
           console.warn('carrier: could not retrieve any network operator. ');
           list.dataset.state = 'ready'; // "Search Again" button
+
+          scanRequest = null;
         };
+      }
+
+      function invalidateRequest(request) {
+        if (request) {
+          request.onsuccess = request.onerror = function() {};
+        }
+      }
+
+      function stop() {
+        list.dataset.state = 'off';
+        clear();
+        invalidateRequest(scanRequest);
+        scanRequest = null;
       }
 
       // API
       return {
-        get state() { return list.dataset.state; },
-        set state(value) { list.dataset.state = value; },
-        clear: clear,
+        stop: stop,
         scan: scan
       };
     })(document.getElementById('availableOperators'));
 
     updateSelectionMode(true);
+  }
+
+  /**
+   * Update the checkbox of the automatic operator selection.
+   */
+  function cs_updateAutomaticOperatorSelectionCheckbox() {
+    var opAutoSelectInput =
+      document.querySelector('#operator-autoSelect input');
+    var targetIndex = DsdsSettings.getIccCardIndexForCellAndDataSettings();
+    opAutoSelectInput.checked = _opAutoSelectStates[targetIndex];
+    opAutoSelectInput.dispatchEvent(new Event('change'));
   }
 
   /**
