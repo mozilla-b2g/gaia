@@ -165,12 +165,13 @@ inherited by manifest files referenced by an include.
 
 Here is a list of the types used, and when to use them:
 
+* antenna - these tests require an antenna (headphones) to be connected.
 * b2g - this means the test is a B2G (Firefox OS) test. All tests must include
   this type.
-* antenna - these tests require an antenna (headphones) to be connected.
 * bluetooth - requires bluetooth to be available.
 * camera - these tests require use of a camera.
 * carrier - an active SIM card with carrier connection is required.
+* flash - these tests require use of a flash.
 * lan - a local area connection (not cell data) is required by these tests (see
   note below).
 * offline - specifically requires no online connection.
