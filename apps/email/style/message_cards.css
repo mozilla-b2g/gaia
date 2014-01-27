@@ -577,7 +577,7 @@ input.msg-search-text-tease {
 }
 
 .msg-reply-menu-reply-all:before {
-  background-image: url("../shared/style/headers/images/icons/reply-all.png");
+  background-image: url("../shared/style/headers/images/icons/reply_all.png");
 }
 
 .msg-reply-menu-forward:before {
