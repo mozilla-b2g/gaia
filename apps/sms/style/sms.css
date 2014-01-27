@@ -240,25 +240,15 @@ form[data-type="action"] img[src=""] {
   transition: transform .4s ease;
 }
 
-#main-wrapper.peek .panel {
-  transition: transform 1ms linear;
-}
-
-#main-wrapper[data-position='left'].peek .panel {
-  transform: translateX(-0.1rem);
-}
 #main-wrapper[data-position='left'] .panel {
   transform: translateX(-100%);
 }
 
-#main-wrapper[data-position='right'].peek .panel {
-  transform: translateX(calc(-100% + 0.1rem));
-}
 #main-wrapper[data-position='right'] .panel {
   transform: translateX(0%);
 }
 
-#threads-container,#thread-messages {
+#threads-container, #thread-messages {
   z-index: 10;
   background: white;
 }
