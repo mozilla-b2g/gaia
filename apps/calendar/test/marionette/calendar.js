@@ -98,13 +98,7 @@ Calendar.prototype = {
    * @return {Marionette.Element} the element.
    */
   waitForElement: function(name) {
-    var el = this.client.helper.waitForElement(Calendar.Selector[name]);
-    // we add a delay to avoid issues on travis (force next tick)
-    var start = Date.now();
-    this.client.waitFor(function(){
-      return Date.now() > start;
-    });
-    return el;
+    return this.client.helper.waitForElement(Calendar.Selector[name]);
   },
 
   /**
@@ -198,10 +192,6 @@ Calendar.prototype = {
   isViewActive: function(id) {
     id = id || '';
     var url = this.client.getUrl();
-    console.log('actual: '+ url);
-    console.log('expected: '+ Calendar.ORIGIN + id);
-    console.log(url.indexOf(Calendar.ORIGIN + id));
-    console.log('-----');
     return url.indexOf(Calendar.ORIGIN + id) !== -1;
   },
 
@@ -313,5 +303,4 @@ Calendar.prototype = {
       throw new Error(msg);
     }
   }
-
 };

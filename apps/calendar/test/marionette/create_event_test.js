@@ -17,8 +17,8 @@ marionette('creating an event', function() {
   startDate.setMilliseconds(0);
   endDate.setTime(startDate.getTime() + 60 * 60 * 1000 /* one hour */);
   var sourceData = {
-    title: 'Puppy Bowl dogefortlongtextfotestloremipsumdolorsitamet',
-    location: 'Animal Planet reallylongwordthatshouldnotoverflowbecausewewrap',
+    title: 'Puppy Bowl',
+    location: 'Animal Planet',
     description: 'lorem ipsum dolor sit amet maecennas ullamcor',
     startDate: startDate,
     endDate: endDate
@@ -30,13 +30,11 @@ marionette('creating an event', function() {
   });
 
   suite('vanilla event', function() {
-
     setup(function() {
       app.createEvent(sourceData);
 
       // Wait until we return to the base, month view.
       client.waitFor(function() {
-        console.log('after create event')
         return app.isMonthViewActive();
       });
     });
@@ -50,48 +48,17 @@ marionette('creating an event', function() {
     });
 
     suite('view event', function() {
-
       setup(function() {
-        // we change to week view because some months spans through 6 rows which
-        // makes the click event on "monthViewDayEvent" trigger the wrong link
-        console.log('before week button click')
-        app.waitForElement('weekButton').click();
-        console.log('before week view active')
-        client.waitFor(app.isWeekViewActive.bind(app));
-        console.log('*** after week view ***')
-        app.waitForElement('weekViewEvent').click();
-        console.log('after event click')
-      });
-
-      test('should display the created event in read-only view', function() {
-        var title = app.waitForElement('viewEventViewTitle');
-        var actual = app.getViewEventEvent();
-        assert.deepEqual(actual, {
-          calendar: 'Offline calendar',
-          title: sourceData.title,
-          location: sourceData.location,
-          description: sourceData.description
-        }, 'event data should match');
-      });
-
-      test('should not overflow title, location and description',
-        function() {
-          assert.doesNotThrow(
-            app.checkOverflow.bind(app, 'viewEventViewTitle'),
-            'title overflows'
-          );
-          assert.doesNotThrow(
-            app.checkOverflow.bind(app, 'viewEventViewLocation'),
-            'location overflows'
-          );
-          assert.doesNotThrow(
-            app.checkOverflow.bind(app, 'viewEventViewDescription'),
-            'description overflows'
-          );
+        var week = app.waitForElement('weekButton');
+        week.click();
+        client.waitFor(function() {
+          return app.isWeekViewActive();
         });
+      });
 
+      test('week view should be active', function() {
+        assert.ok(app.isWeekViewActive());
+      });
     });
-
   });
-
 });
