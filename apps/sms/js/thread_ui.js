@@ -2168,22 +2168,27 @@ var ThreadUI = global.ThreadUI = {
       var errorCode = (request.error && request.error.name) ?
         request.error.name : null;
 
+      var idList = Settings.nonActivateMmsServiceIds;
+      if (!navigator.mozSettings || !idList) {
+        console.error('Settings unavailable');
+        return;
+      }
+
+      // Just pick the first non-active id since there should be only
+      // one non-active id in the array.
+      var nonActiveId = idList[0];
+
       if (errorCode) {
         this.showMessageError(errorCode, {
           messageId: id,
-          confirmHandler: function simSwitch() {
-            var idList = Settings.nonActivateMmsServiceIds;
-            if (!navigator.mozSettings || !idList) {
-              console.error('Settings unavailable');
-              return;
-            }
-
-            // Just pick the first non-active id since there should be only
-            // one non-active id in the array.
-            var nonActiveId = idList[0];
-            Settings.setSimServiceId(nonActiveId);
-            // Retrieve message again and update the message DOM status.
-            setTimeout(ThreadUI.retrieveMMS(id));
+          confirmHandler: function stateResetAndRetry () {
+            // Avoid user to click the download button while sim state is not
+            // ready yet.
+            messageDOM.classList.add('pending');
+            messageDOM.classList.remove('error');
+            navigator.mozL10n.localize(button, 'downloading');
+            Settings.switchSimHandler(nonActiveId,
+              this.retrieveMMS.bind(this, id));
           }.bind(this)
         });
       }
