@@ -310,7 +310,7 @@ var WindowManager = (function() {
     // We do this because we don't want the trustedUI opener
     // is killed in background due to OOM.
     if (!TrustedUIManager.hasTrustedUI(origin)) {
-      app.setVisible(false, true);
+      app.setVisible(false);
     }
 
     // Inform keyboardmanager that we've finished the transition
@@ -473,6 +473,16 @@ var WindowManager = (function() {
 
     // Make window invisible to screenreader
     app.frame.setAttribute('aria-hidden', 'true');
+
+    // set the closed frame visibility to false
+
+    // XXX: After bug 822325 is fixed in gecko,
+    // we don't need to check trusted ui state here anymore.
+    // We do this because we don't want the trustedUI opener
+    // is killed in background due to OOM.
+    if (!TrustedUIManager.hasTrustedUI(origin)) {
+      app.setVisible(false, true);
+    }
 
     var onSwitchWindow = isSwitchWindow();
 
