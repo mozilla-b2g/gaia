@@ -951,6 +951,7 @@ purge:
 	$(ADB) shell rm -r $(MSYS_FIX)/data/local/webapps
 	$(ADB) remount
 	$(ADB) shell rm -r $(MSYS_FIX)/system/b2g/webapps
+	$(ADB) shell 'if test -d $(MSYS_FIX)/persist/svoperapps; then rm -r $(MSYS_FIX)/persist/svoperapps; fi'
 
 $(PROFILE_FOLDER)/settings.json: profile-dir install-xulrunner-sdk
 ifeq ($(BUILD_APP_NAME),*)
