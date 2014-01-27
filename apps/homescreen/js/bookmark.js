@@ -3,17 +3,19 @@
 var Bookmark = function Bookmark(params) {
   GridItem.call(this, params);
 
-  this.url = this.origin = this.sanitizeURL(params.bookmarkURL);
   // The bookmarkURL is used for indexing bookmarks in the homescreen. "It's not
   // a real URL", just used for indexing in homescreen (bug #976955)
-  this.bookmarkURL = this.generateIndex(this.url);
+  var url = params.bookmarkURL.trim();
+  this.bookmarkURL = this.generateIndex(url);
+  this.setURL(url);
+
   this.type = GridItemsFactory.TYPE.BOOKMARK;
 };
 
 Bookmark.prototype = {
   __proto__: GridItem.prototype,
 
-  _INDEX_PREFIX: 'bookmark:',
+  _INDEX_PREFIX: 'bookmark/',
 
   sanitizeURL: function bookmark_sanitizeURL(url) {
     url = url.trim();
@@ -32,5 +34,9 @@ Bookmark.prototype = {
     window.open(this.url, '_blank', Object.keys(features).map(function(key) {
       return encodeURIComponent(key) + '=' + encodeURIComponent(features[key]);
     }).join(','));
+  },
+
+  setURL: function bookmark_setURL(url) {
+    this.url = this.origin = this.sanitizeURL(url);
   }
 };

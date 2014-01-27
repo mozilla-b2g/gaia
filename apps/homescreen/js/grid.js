@@ -885,7 +885,7 @@ var GridManager = (function() {
   }
 
   function getApp(origin) {
-    var app = appsByOrigin[origin];
+    var app = appsByOrigin[origin] || bookmarkIcons[origin].app;
     if (app) {
       return new Icon(buildDescriptor(app), app);
     }
@@ -1601,6 +1601,10 @@ var GridManager = (function() {
 
     get container() {
       return container;
-    }
+    },
+
+    forgetIcon: forgetIcon,
+
+    rememberIcon: rememberIcon
   };
 })();
