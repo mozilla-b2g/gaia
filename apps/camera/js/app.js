@@ -22,8 +22,10 @@ var dcf = require('dcf');
  */
 
 var LOCATION_PROMPT_DELAY = constants.PROMPT_DELAY;
-evt.mix(App.prototype);
 var unbind = bind.unbind;
+
+// Mixin emitter
+evt.mix(App.prototype);
 
 /**
  * Exports
@@ -47,8 +49,9 @@ function App(options) {
   this.doc = options.doc;
   this.inSecureMode = (this.win.location.hash === '#secure');
   this.geolocation = options.geolocation;
-  this.activity = options.activity;
   this.filmstrip = options.filmstrip;
+  this.activity = options.activity;
+  this.state = options.state;
   this.storage = options.storage;
   this.camera = options.camera;
   this.sounds = options.sounds;
@@ -86,6 +89,7 @@ App.prototype.teardown = function() {
 App.prototype.runControllers = function() {
   debug('running controllers');
   this.controllers.camera(this);
+  this.controllers.settings(this);
   this.controllers.viewfinder(this);
   this.controllers.controls(this);
   this.controllers.confirm(this);
@@ -117,6 +121,7 @@ App.prototype.bindEvents = function() {
   this.storage.once('checked:healthy', this.geolocationWatch);
   bind(this.doc, 'visibilitychange', this.onVisibilityChange);
   bind(this.win, 'beforeunload', this.onBeforeUnload);
+  bind(this.el, 'click', this.onClick);
   this.on('focus', this.onFocus);
   this.on('blur', this.onBlur);
   debug('events bound');
@@ -156,6 +161,10 @@ App.prototype.onBlur = function() {
   this.geolocation.stopWatching();
   this.activity.cancel();
   debug('blur');
+};
+
+App.prototype.onClick = function() {
+  this.emit('settingsdismiss');
 };
 
 /**

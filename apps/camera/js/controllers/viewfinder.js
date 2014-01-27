@@ -29,6 +29,7 @@ function ViewfinderController(app) {
   this.filmstrip = app.filmstrip;
   this.activity = app.activity;
   this.camera = app.camera;
+  this.app = app;
   bindAll(this);
   this.bindEvents();
   debug('initialized');
@@ -52,15 +53,17 @@ ViewfinderController.prototype.onConfigured = function() {
 };
 
 ViewfinderController.prototype.onViewfinderClick = function() {
-  var recording = this.camera.get('recording');
+  // var recording = this.camera.get('recording');
 
-  // The filmstrip shouldn't be
-  // shown while camera is recording.
-  if (recording || this.activity.active) {
-    return;
-  }
+  // // The filmstrip shouldn't be
+  // // shown while camera is recording.
+  // if (recording || this.activity.active) {
+  //   return;
+  // }
 
-  this.filmstrip.toggle();
+  // this.filmstrip.toggle();
+
+  this.app.emit('settingsrequest');
   debug('click');
 };
 

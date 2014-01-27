@@ -1,0 +1,17 @@
+
+.settings {
+  position: absolute;
+  left: 0; top: 0;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  font-size: 1.6rem;
+  list-style: none;
+  background: #333;
+  color: #FFF;
+}
+
+.settings > li {
+  padding: 1rem;
+  border-bottom: solid 1px #666;
+}

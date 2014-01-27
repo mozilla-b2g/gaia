@@ -19,6 +19,8 @@ require(['config/require', 'config'], function() {
     var ControlsView = require('views/controls');
     var ViewfinderView = require('views/viewfinder');
     var sounds = new Sounds(require('config/sounds'));
+    var State = require('state');
+    var allDone = require('utils/alldone');
     var GeoLocation = require('geolocation');
     var Activity = require('activity');
     var Storage = require('storage');
@@ -28,6 +30,7 @@ require(['config/require', 'config'], function() {
       viewfinder: require('controllers/viewfinder'),
       overlay: require('controllers/overlay'),
       confirm: require('controllers/confirm'),
+      settings: require('controllers/settings'),
       camera: require('controllers/camera')
     };
 
@@ -42,7 +45,7 @@ require(['config/require', 'config'], function() {
 
     debug('created views');
 
-    var activity = new Activity();
+    var done = allDone();
     var camera = new Camera({
       maxFileSizeBytes: 0,
       maxWidth: 0,
@@ -59,7 +62,8 @@ require(['config/require', 'config'], function() {
       doc: document,
       el: document.body,
       geolocation: new GeoLocation(),
-      activity: activity,
+      activity: new Activity(),
+      state: new State(),
       camera: camera,
       sounds: sounds,
       views: views,
@@ -73,10 +77,13 @@ require(['config/require', 'config'], function() {
     // Check activity, configure the
     // camera with some of the activity
     // data, then boot the app.
-    activity.check(function() {
-      camera.set('targetFileSize', activity.data.fileSize);
-      camera.set('targetImageWidth', activity.data.width);
-      camera.set('targetImageHeight', activity.data.height);
+    app.activity.check(done());
+    app.state.fetch(done());
+
+    done(function() {
+      camera.set('targetFileSize', app.activity.data.fileSize);
+      camera.set('targetImageWidth', app.activity.data.width);
+      camera.set('targetImageHeight', app.activity.data.height);
       app.boot();
     });
   });

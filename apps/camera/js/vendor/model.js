@@ -7,20 +7,50 @@ module.exports = Model;
 
 function Model(obj) {
   if (!(this instanceof Model)) { return mix(obj, Model.prototype); }
-  this._data = obj;
+  this._data = this.reset(obj, { silent: true });
 }
 
 Model.prototype = evt.mix({
   get: function(key) {
     var data = this._getData();
-    return data[key];
+    return key ? data[key] : data;
   },
 
-  set: function(key, value) {
+  set: function(key, value, options) {
+    options = typeof key === 'object' ? value : options;
+    var silent = options && options.silent;
     var data = this._getData();
-    data[key] = value;
-    this.emit('change:' + key, value);
-    this.emit('change');
+    var keys;
+
+    switch (typeof key) {
+      case 'string':
+        data[key] = value;
+        if (!silent) {
+          this.onKeyChange(key);
+          this.emit('change', [key]);
+        }
+        return;
+      case 'object':
+        mix(data, key);
+        if (!silent) {
+          keys = Object.keys(key);
+          keys.forEach(this.onKeyChange, this);
+          this.emit('change', keys);
+        }
+        return;
+    }
+  },
+
+  reset: function(data, options) {
+    if (!data) { return; }
+    var silent = options && options.silent;
+    this._data = mix({}, data);
+    if (!silent) { this.emit('reset'); }
+  },
+
+  onKeyChange: function(key) {
+    var data = this._getData();
+    this.emit('change:' + key, data[key]);
   },
 
   _getData: function() {
