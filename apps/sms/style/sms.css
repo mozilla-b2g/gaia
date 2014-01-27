@@ -272,7 +272,7 @@ form[data-type="action"] img[src=""] {
 }
 
 #messages-new-message-notice {
-  display: flex;  
+  display: flex;
   flex-direction: row;
 
   padding: 1rem 1.5rem 1rem 2rem;
@@ -738,18 +738,22 @@ form.bottom[role="search"].messages-compose-form {
 #messages-subject-input {
   position: absolute;
   top: 0;
-  height: 2rem;
-  max-height: 4rem;
+
+  -moz-box-sizing: content-box;
+  box-sizing: content-box;
+  height: 1.5rem;
+  max-height: 3.5rem;
   width: -moz-calc(100% - 8.5rem);
-  padding: 0.9rem 0.7rem;
+  padding: 0.5rem 0.7rem;
   border: 0;
   border-bottom: 0.1rem solid #eaeae7;
-  -moz-box-sizing: content-box;
+
   white-space: pre-wrap;
   text-align: left;
   font-family: 'Fira Sans', sans-serif;
   font-style: italic;
   font-size: 1.4rem;
+  line-height: 2rem;
 }
 
 /*
