@@ -220,12 +220,14 @@ ifneq (,$(findstring MINGW32_,$(SYS)))
 CURDIR:=$(shell pwd -W | sed -e 's|/|\\\\|g')
 SEP=\\
 SEP_FOR_SED=\\\\
-BUILDDIR := file:///$(shell pwd -W)/build/
+GAIA_BUILD_DIR := file:///$(shell pwd -W)/build/
 # Mingw mangle path and append c:\mozilla-build\msys\data in front of paths
 MSYS_FIX=/
 else
-BUILDDIR := file://$(CURDIR)/build/
+GAIA_BUILD_DIR := file://$(CURDIR)/build/
 endif
+
+export GAIA_BUILD_DIR
 
 ifndef GAIA_APP_CONFIG
 GAIA_APP_CONFIG=build$(SEP)config$(SEP)apps-$(GAIA_APP_TARGET).list
@@ -588,7 +590,7 @@ define run-js-command
 # in JavaScript module.
 	echo "run-js-command $1";
 	$(XULRUNNERSDK) $(XPCSHELLSDK) \
-		-e "const GAIA_BUILD_DIR='$(BUILDDIR)'" \
+		-e "const GAIA_BUILD_DIR='$(GAIA_BUILD_DIR)'" \
 		-f build/xpcshell-commonjs.js \
 		-e "try { require('$(strip $1)').execute($$BUILD_CONFIG); quit(0);} \
 			catch(e) { \

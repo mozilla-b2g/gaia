@@ -173,13 +173,6 @@ function fillAppManifest(webapp) {
   if (webapp.url.indexOf('communications.gaiamobile.org') !== -1) {
     fillCommsAppManifest(webapp, webappTargetDir);
   }
-  else if (webapp.url.indexOf('://keyboard.gaiamobile.org') !== -1) {
-    let kbdConfig = require('keyboard-config');
-    let kbdManifest = utils.getJSON(webapp.manifestFile);
-    kbdManifest = kbdConfig.addEntryPointsToManifest(config, kbdManifest);
-    utils.writeContent(utils.getFile(webappTargetDir.path, 'manifest.webapp'),
-                       JSON.stringify(kbdManifest));
-  }
 
   manifestInterAppHostnames(webapp, webappTargetDir);
 
