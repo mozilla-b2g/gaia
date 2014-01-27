@@ -263,7 +263,6 @@ apps/clock/test/unit/timer_panel_test.js
 apps/clock/test/unit/timer_test.js
 apps/clock/test/unit/utils_test.js
 apps/clock/test/unit/view_test.js
-apps/communications/contacts/js/activities.js
 apps/communications/contacts/js/contacts.js
 apps/communications/contacts/js/contacts_cleaner.js
 apps/communications/contacts/js/contacts_importer.js
@@ -327,7 +326,6 @@ apps/communications/contacts/test/marionette/form_test.js
 apps/communications/contacts/test/marionette/lib/contacts.js
 apps/communications/contacts/test/marionette/lib/sms.js
 apps/communications/contacts/test/marionette/search_test.js
-apps/communications/contacts/test/unit/contacts_activities_test.js
 apps/communications/contacts/test/unit/contacts_matcher_test.js
 apps/communications/contacts/test/unit/contacts_matching_ui_test.js
 apps/communications/contacts/test/unit/contacts_matching_ui_test_data.js
