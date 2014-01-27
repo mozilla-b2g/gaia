@@ -648,3 +648,28 @@ bubble above the key when you tap and hold. */
   margin: 0;
   padding: 0;
 }
+
+/*
+ * Specific layout rules; When a layoutX.js has specificCssRule set to true
+ * you can use layout name (Example: ar for Arabic) as a class name.
+ * This is useful is cases where characters are outlining their containers.
+ */
+
+/* Arabic */
+
+.ar .keyboard-key > .visual-wrapper > span{
+  font-size: 1.8rem;  
+}
+
+.keyboard-key > .visual-wrapper > span[data-label="ض"],
+.keyboard-key > .visual-wrapper > span[data-label="ش"]{
+  margin-left:-.5rem;
+}
+
+.keyboard-key > .visual-wrapper > span[data-label="س"]{
+  margin-left:-.2rem;
+}
+
+.keyboard-key > .visual-wrapper > span[data-label="ص"]{
+  margin-left:-.1rem;
+}
