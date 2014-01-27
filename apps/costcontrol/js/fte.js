@@ -61,6 +61,9 @@
         defaultLowLimitThreshold = configuration.default_low_limit_threshold;
       }
 
+      // Initialize resetTime and trackingPeriod to default values
+      ConfigManager.setOption({resetTime: 1, trackingPeriod: 'monthly' });
+
       AutoSettings.addType('data-limit', dataLimitConfigurer);
 
       // Currency is set by config as well
@@ -123,6 +126,21 @@
     localizeWeekdaySelector(document.getElementById('pre3-select-weekday'));
     localizeWeekdaySelector(document.getElementById('post2-select-weekday'));
     localizeWeekdaySelector(document.getElementById('non2-select-weekday'));
+
+    function _setResetTimeToDefault(evt) {
+      var firstWeekDay = parseInt(navigator.mozL10n.get('weekStartsOnMonday'),
+                                  10);
+      var defaultResetTime = (evt.target.value === 'weekly') ? firstWeekDay : 1;
+      ConfigManager.setOption({ resetTime: defaultResetTime });
+    }
+
+    // Localized resetTime on trackingPeriod change
+    var trackingPeriodSelector = document
+                            .querySelectorAll('[data-option="trackingPeriod"]');
+    [].forEach.call(trackingPeriodSelector, function _reset(tPeriodSel) {
+      tPeriodSel.addEventListener('change', _setResetTimeToDefault);
+    });
+
   });
 
   if (window.location.hash) {
