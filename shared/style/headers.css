@@ -267,6 +267,7 @@ section[role="region"].skin-dark > header:first-child,
 
 
 /* Navigation links (back, cancel, etc) */
+/* the `organic' blue arrows work fine with the dark theme, let's reuse them */
 section[role="region"].skin-dark > header:first-child .icon.icon-back {
   background-image: url(headers/images/icons/organic/back.png);
 }
@@ -310,8 +311,8 @@ section[role="region"].skin-organic > header:first-child h1,
   color: #868692;
 }
 
+/* clear background => specific dark icons */
 
-/* Navigation links (back, cancel, etc) */
 section[role="region"].skin-organic > header:first-child .icon.icon-back,
 .skin-organic section[role="region"] > header:first-child .icon.icon-back {
   background-image: url(headers/images/icons/organic/back.png);
@@ -320,6 +321,16 @@ section[role="region"].skin-organic > header:first-child .icon.icon-back,
 section[role="region"].skin-organic > header:first-child .icon.icon-close,
 .skin-organic section[role="region"] > header:first-child .icon.icon-close {
   background-image: url(headers/images/icons/organic/close.png);
+}
+
+section[role="region"].skin-organic > header:first-child .icon.icon-add,
+.skin-organic section[role="region"] > header:first-child .icon.icon-add {
+  background-image: url(headers/images/icons/organic/add.png);
+}
+
+section[role="region"].skin-organic > header:first-child .icon.icon-edit,
+.skin-organic section[role="region"] > header:first-child .icon.icon-edit {
+  background-image: url(headers/images/icons/organic/edit.png);
 }
 
 section[role="region"].skin-organic > header:first-child > a:not([aria-disabled="true"]):active:after,
