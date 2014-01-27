@@ -15,7 +15,7 @@ class TestCameraUnlockWithPasscode(GaiaTestCase):
         GaiaTestCase.setUp(self)
 
         # Turn off geolocation prompt
-        self.apps.set_permission('System', 'geolocation', 'deny')
+        self.apps.set_permission('Camera', 'geolocation', 'deny')
 
         self.data_layer.set_setting('lockscreen.passcode-lock.code', self._input_passcode)
         self.data_layer.set_setting('lockscreen.passcode-lock.enabled', True)
