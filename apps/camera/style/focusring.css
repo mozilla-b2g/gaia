@@ -2,7 +2,6 @@
 .focus-ring {
   position: absolute;
   top: 50%; left: 50%;
-  z-index: 100;
   width: 10rem;
   height: 10rem;
   margin-top: -7rem;

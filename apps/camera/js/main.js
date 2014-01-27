@@ -11,38 +11,32 @@ require(['config/require', 'config'], function() {
      */
 
     var App = require('app');
-    var Camera = require('camera');
-    var Sounds = require('sounds');
-    var HudView = require('views/hud');
-    var Filmstrip = require('filmstrip');
-    var FocusRing = require('views/focusring');
-    var ControlsView = require('views/controls');
-    var ViewfinderView = require('views/viewfinder');
+    var Camera = require('lib/camera');
+    var Sounds = require('lib/sounds');
+    var Config = require('lib/config');
+    var Settings = require('lib/settings');
+    var Filmstrip = require('lib/filmstrip');
     var sounds = new Sounds(require('config/sounds'));
-    var GeoLocation = require('geolocation');
-    var Activity = require('activity');
-    var Storage = require('storage');
+    var config = new Config(require('config/app'));
+    var settings = new Settings(config.get());
+    var GeoLocation = require('lib/geo-location');
+    var Activity = require('lib/activity');
+    var allDone = require('lib/all-done');
+    var Storage = require('lib/storage');
     var controllers = {
       hud: require('controllers/hud'),
       controls: require('controllers/controls'),
       viewfinder: require('controllers/viewfinder'),
       overlay: require('controllers/overlay'),
       confirm: require('controllers/confirm'),
-      camera: require('controllers/camera')
+      settings: require('controllers/settings'),
+      activity: require('controllers/activity'),
+      camera: require('controllers/camera'),
+      sounds: require('controllers/sounds')
     };
 
     debug('required dependencies');
 
-    var views = {
-      viewfinder: new ViewfinderView(),
-      controls: new ControlsView(),
-      focusRing: new FocusRing(),
-      hud: new HudView()
-    };
-
-    debug('created views');
-
-    var activity = new Activity();
     var camera = new Camera({
       maxFileSizeBytes: 0,
       maxWidth: 0,
@@ -54,15 +48,16 @@ require(['config/require', 'config'], function() {
      * Create new `App`
      */
 
-    var app = new App({
+    var app = window.app = new App({
       win: window,
       doc: document,
       el: document.body,
       geolocation: new GeoLocation(),
-      activity: activity,
+      activity: new Activity(),
+      config: config,
+      settings: settings,
       camera: camera,
       sounds: sounds,
-      views: views,
       controllers: controllers,
       filmstrip: Filmstrip,
       storage: new Storage()
@@ -70,15 +65,11 @@ require(['config/require', 'config'], function() {
 
     debug('created app');
 
-    // Check activity, configure the
-    // camera with some of the activity
-    // data, then boot the app.
-    activity.check(function() {
-      camera.set('targetFileSize', activity.data.fileSize);
-      camera.set('targetImageWidth', activity.data.width);
-      camera.set('targetImageHeight', activity.data.height);
-      app.boot();
-    });
+    // Async jobs to be
+    // done before boot...
+    var done = allDone()(app.boot);
+    app.activity.check(done());
+    app.settings.fetch(done());
   });
 
   require(['boot']);

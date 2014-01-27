@@ -1,4 +1,4 @@
-/*global mocha*/
+/* global mocha */
 'use strict';
 
 mocha.setup({
@@ -38,7 +38,8 @@ requireApp('camera/js/vendor/alameda.js', function() {
       'GestureDetector': '../shared/js/gesture_detector',
       'VideoPlayer': '../shared/js/media/video_player',
       'MediaFrame': '../shared/js/media/media_frame',
-      'BlobView': '../shared/js/blobview'
+      'BlobView': '../shared/js/blobview',
+      'debug': 'vendor/debug'
     },
     shim: {
       'format': {

@@ -27,7 +27,7 @@ suite('Sounds', function() {
   ];
 
   suiteSetup(function(done) {
-    req(['sounds'], function(sounds) {
+    req(['lib/sounds'], function(sounds) {
       Sounds = sounds;
       done();
     });

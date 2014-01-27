@@ -7,16 +7,18 @@ suite('app', function() {
   suiteSetup(function(done) {
     req([
       'app',
-      'camera',
+      'lib/camera',
       'vendor/view',
-      'geolocation',
-      'activity'
-    ], function(App, Camera, View, GeoLocation, Activity) {
+      'lib/geo-location',
+      'lib/activity',
+      'lib/config'
+    ], function(App, Camera, View, GeoLocation, Activity, Config) {
       modules.app = App;
       modules.view = View;
       modules.camera = Camera;
       modules.geolocation = GeoLocation;
       modules.activity = Activity;
+      modules.config = Config;
       done();
     });
   });
@@ -39,10 +41,11 @@ suite('app', function() {
   };
 
   setup(function() {
-    var View = modules.view;
-    var Activity = modules.activity;
     var GeoLocation = modules.geolocation;
+    var Activity = modules.activity;
     var Camera = modules.camera;
+    var Config = modules.config;
+    var View = modules.view;
     var App = modules.app;
 
     var options = this.options = {
@@ -56,6 +59,7 @@ suite('app', function() {
       storage: {
         once: sinon.spy()
       },
+      config: new Config(),
       views: {
         viewfinder: new View({ name: 'viewfinder' }),
         focusRing: new View({ name: 'focusring' }),
@@ -69,7 +73,10 @@ suite('app', function() {
         viewfinder: sinon.spy(),
         overlay: sinon.spy(),
         confirm: sinon.spy(),
-        camera: sinon.spy()
+        camera: sinon.spy(),
+        settings: sinon.spy(),
+        activity: sinon.spy(),
+        sounds: sinon.spy()
       }
     };
 
@@ -91,6 +98,7 @@ suite('app', function() {
 
     // Create the app
     this.app = new App(options);
+    this.sandbox.spy(this.app, 'set');
   });
 
   teardown(function() {
@@ -108,8 +116,8 @@ suite('app', function() {
       assert.ok(app.activity === options.activity);
       assert.ok(app.camera === options.camera);
       assert.ok(app.storage === options.storage);
+      assert.ok(app.settings === options.settings);
       assert.ok(app.sounds === options.sounds);
-      assert.ok(app.views === options.views);
       assert.ok(app.controllers === options.controllers);
     });
 
@@ -147,7 +155,7 @@ suite('app', function() {
       this.app.boot();
 
       assert.ok(el.querySelector('.viewfinder'));
-      assert.ok(el.querySelector('.focusring'));
+      assert.ok(el.querySelector('.focus-ring'));
       assert.ok(el.querySelector('.controls'));
       assert.ok(el.querySelector('.hud'));
     });
@@ -165,6 +173,13 @@ suite('app', function() {
       var call = doc.addEventListener.getCall(0);
       assert.ok(call.args[0] === 'beforeunload');
       assert.ok(typeof call.args[1] === 'function');
+    });
+
+    test('Should set the \'mode\' to the mode ' +
+         'specified by the activity if present', function() {
+      this.app.activity.mode = 'video';
+      this.app.boot();
+      assert.ok(this.app.set.calledWith('mode', 'video'));
     });
 
     suite('app.geolocation', function() {
