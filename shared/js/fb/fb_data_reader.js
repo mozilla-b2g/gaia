@@ -29,8 +29,6 @@ this.fb = fb;
   // Creates the internal Object in the datastore that will act as an index
   function createIndex() {
     return {
-      // By Facebook UID
-      byUid: Object.create(null),
       // By tel number and all its possible variants
       // (We are not supporting dups right now)
       byTel: Object.create(null),
@@ -120,37 +118,10 @@ this.fb = fb;
   };
 
   function doGet(uid, outRequest) {
-    var dsId;
-
     var successCb = successGet.bind(null, outRequest);
     var errorCb = errorGet.bind(null, outRequest, uid);
 
-    if (datastore.revisionId !== revisionId) {
-      // Refreshing the index just in case
-      datastore.get(INDEX_ID).then(function success_index(obj) {
-        revisionId = datastore.revisionId;
-        setIndex(obj);
-        dsId = index.byUid[uid];
-        if (typeof dsId !== 'undefined') {
-          return datastore.get(dsId);
-        }
-        else {
-          // This is not an error is just that we cannot find it
-          outRequest.done(null);
-          // Just to avoid warnings of function not always returning
-          return null;
-        }
-      }, errorCb).then(successCb, errorCb);
-    }
-    else {
-      dsId = index.byUid[uid];
-      if (typeof dsId === 'number') {
-        datastore.get(dsId).then(successCb, errorCb);
-      }
-      else {
-        outRequest.done(null);
-      }
-    }
+    datastore.get(uid).then(successCb, errorCb);
   }
 
   /**
@@ -253,7 +224,10 @@ this.fb = fb;
         var results = TelIndexer.search(index.treeTel, toSearchNumber);
         var out = null;
         if (results.length > 0) {
-          out = datastore.get(results);
+          out = datastore.get.apply(datastore, results);
+          if (!Array.isArray(out)) {
+            out = [out];
+          }
         }
         else {
           outRequest.done(results);
@@ -274,8 +248,12 @@ this.fb = fb;
         var results = TelIndexer.search(index.treeTel, toSearchNumber);
 
         if (results.length > 0) {
-          datastore.get(results).then(function success(objList) {
-            outRequest.done(objList);
+          datastore.get.apply(datastore, results).then(
+            function success(objList) {
+              if (!Array.isArray(objList)) {
+               objList = [objList];
+              }
+              outRequest.done(objList);
           }, function error(err) {
              window.console.error('Error while retrieving result data: ',
                                   err.name);
