@@ -4,7 +4,7 @@ mocha.globals(['SettingsListener', 'removeEventListener', 'addEventListener',
       'dispatchEvent', 'WindowManager', 'Applications', 'ManifestHelper',
       'HomescreenWindow', 'KeyboardManager', 'StatusBar',
       'SoftwareButtonManager', 'AttentionScreen', 'OrientationManager',
-      'AppWindow']);
+      'AppWindow', 'TrustedUIManager', 'FtuLauncher']);
 
 requireApp('system/js/browser_config_helper.js');
 requireApp('system/js/browser_frame.js');
@@ -13,10 +13,12 @@ requireApp('system/test/unit/mock_orientation_manager.js');
 requireApp('system/test/unit/mock_statusbar.js');
 requireApp('system/test/unit/mock_software_button_manager.js');
 requireApp('system/test/unit/mock_keyboard_manager.js');
-requireApp('/shared/test/unit/mocks/mock_manifest_helper.js');
+requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 requireApp('system/test/unit/mock_window_manager.js');
 requireApp('system/test/unit/mock_applications.js');
 requireApp('system/test/unit/mock_attention_screen.js');
+requireApp('system/test/unit/mock_trusted_ui_manager.js');
+requireApp('system/test/unit/mock_ftu_launcher.js');
 
 function switchProperty(originObject, prop, stub, reals, useDefineProperty) {
   if (!useDefineProperty) {
@@ -53,6 +55,8 @@ suite('system/HomescreenWindow', function() {
     switchProperty(window, 'ManifestHelper', MockManifestHelper, reals);
     switchProperty(window, 'KeyboardManager', MockKeyboardManager, reals);
     switchProperty(window, 'StatusBar', MockStatusBar, reals);
+    switchProperty(window, 'TrustedUIManager', MockTrustedUIManager, reals);
+    switchProperty(window, 'FtuLauncher', MockFtuLauncher, reals);
     switchProperty(window, 'SoftwareButtonManager',
         MockSoftwareButtonManager, reals);
     switchProperty(window, 'AttentionScreen', MockAttentionScreen, reals);
@@ -70,6 +74,7 @@ suite('system/HomescreenWindow', function() {
     MockStatusBar.mTeardown();
     MockSoftwareButtonManager.mTeardown();
     MockAttentionScreen.mTeardown();
+    MockTrustedUIManager.mTeardown();
     clock.restore();
     stubById.restore();
 

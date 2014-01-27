@@ -13,8 +13,12 @@ var MockTrustedUIManager = {
   },
 
   hasTrustedUI: function() {},
+  isVisible: function() {
+    return this.mVisible;
+  },
 
   mOpened: false,
+  mVisible: false,
   mName: null,
   mFrame: null,
   mChromeEventId: null,
