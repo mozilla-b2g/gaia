@@ -5,14 +5,16 @@ define(function(require, exports, module) {
  * Dependencies
  */
 
-var bindAll = require('utils/bindAll');
+var pickPreviewSize = require('lib/camera-utils').selectOptimalPreviewSize;
 var debug = require('debug')('controller:viewfinder');
+var bindAll = require('lib/bind-all');
 
 /**
  * Exports
  */
 
-module.exports = ViewfinderController;
+module.exports = function(app) { return new ViewfinderController(app); };
+module.exports.ViewfinderController = ViewfinderController;
 
 /**
  * Initialize a new `ViewfinderController`
@@ -20,46 +22,87 @@ module.exports = ViewfinderController;
  * @param {App} app
  */
 function ViewfinderController(app) {
-  if (!(this instanceof ViewfinderController)) {
-    return new ViewfinderController(app);
-  }
-
   debug('initializing');
-  this.viewfinder = app.views.viewfinder;
-  this.filmstrip = app.filmstrip;
-  this.activity = app.activity;
-  this.camera = app.camera;
   bindAll(this);
+  this.app = app;
+  this.camera = app.camera;
+  this.activity = app.activity;
+  this.filmstrip = app.filmstrip;
+  this.viewfinder = app.views.viewfinder;
+  this.previewSizes = {};
+  this.streamConfig = {};
   this.bindEvents();
   debug('initialized');
 }
 
 ViewfinderController.prototype.bindEvents = function() {
-  this.camera.on('configured', this.onConfigured);
-  this.camera.on('change:mode', this.onConfigured);
+  var settings = this.app.settings;
   this.viewfinder.on('click', this.onViewfinderClick);
+  this.app.on('camera:loaded', this.viewfinder.fadeIn);
+  this.app.on('settings:configured', this.onSettingsConfigured);
+  settings.on('change:recorderProfiles', this.onRecorderProfilesChange);
+  settings.on('change:mode', this.loadStream);
 };
 
-ViewfinderController.prototype.onConfigured = function() {
-  debug('camera configured');
-  this.viewfinder.updatePreview(this.camera.previewSize,
-                                this.camera.get('selectedCamera') === 1);
-  this.camera.loadStreamInto(this.viewfinder.el, onStreamLoaded);
+ViewfinderController.prototype.onSettingsConfigured = function() {
+  this.configurePhoto();
+  this.configureVideo();
+  this.loadStream();
+};
+
+ViewfinderController.prototype.configurePhoto = function() {
+  var el = this.app.el;
+  var previewSizes = this.app.get('capabilities').previewSizes;
+  var viewport = { width: el.clientWidth, height: el.clientHeight };
+  var photoPreviewSize = pickPreviewSize(viewport, previewSizes);
+  this.streamConfig.photo = photoPreviewSize;
+  this.previewSizes.photo = photoPreviewSize;
+};
+
+ViewfinderController.prototype.configureVideo = function() {
+  var videoSize = this.app.settings.recorderProfiles.value().video;
+  var key = this.app.settings.recorderProfiles.selected('key');
+  this.streamConfig.video = { profile: key };
+  this.previewSizes.video = videoSize;
+  debug('configured video key: %s', key);
+};
+
+ViewfinderController.prototype.onRecorderProfilesChange = function() {
+  var isVideoMode = this.app.settings.value('mode') === 'video';
+  this.configureVideo();
+  if (isVideoMode) { this.loadStream(); }
+};
+
+ViewfinderController.prototype.loadStream = function() {
+  var settings = this.app.settings;
+  var mode = settings.value('mode');
+  var isFrontCamera = settings.cameras.value() === 'front';
+  var previewSize = this.previewSizes[mode];
+  var options = {
+    el: this.viewfinder.el,
+    streamConfig: this.streamConfig[mode]
+  };
+
+  debug('load stream mode: %s', mode);
+  this.viewfinder.updatePreview(previewSize, isFrontCamera);
+  this.camera.loadStreamInto(options, onStreamLoaded);
+
   function onStreamLoaded(stream) {
     debug('stream loaded %d ms after dom began loading',
     Date.now() - window.performance.timing.domLoading);
   }
 };
 
+/**
+ * Toggles the filmstrip, but not
+ * whilst recording or within an
+ * activity session.
+ *
+ * @private
+ */
 ViewfinderController.prototype.onViewfinderClick = function() {
-  var recording = this.camera.get('recording');
-
-  // The filmstrip shouldn't be
-  // shown while camera is recording.
-  if (recording || this.activity.active) {
-    return;
-  }
-
+  var recording = this.app.get('recording');
+  if (recording || this.activity.active) { return; }
   this.filmstrip.toggle();
   debug('click');
 };

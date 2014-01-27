@@ -1,9 +1,12 @@
+
 .hud {
   position: absolute;
   top: 0; left: 0;
   width: 100%;
   height: 7.5rem;
-  z-index: 50;
+  z-index: 10;
+  text-align: center;
+  transform: translateZ(1px);
 }
 
 body:not(.filmstriphidden) .hud {
@@ -21,15 +24,20 @@ body:not(.filmstriphidden) .hud {
  *    back to the default color.
  */
 
-.hud a {
+.hud a,
+.settings_close {
+  display: inline-block;
   height: 5rem;
   width: 5rem;
+  line-height: 5rem;
+  text-align: center;
   border-radius: 50%;
   background-position: center center;
   background-repeat: no-repeat;
   background-color: rgba(0,0,0,.3);
   background-clip: padding-box; /* 1 */
   border: solid 2rem transparent; /* 1 */
+  -moz-box-sizing: content-box; /* 1 */
   transition: background-color 1s; /* 2 */
   color: #fff;
 }
@@ -51,7 +59,7 @@ body:not(.filmstriphidden) .hud {
  * @buttons-disabled
  */
 
-.hud.buttons-disabled a {
+.hud[buttons-enabled=false] a {
   pointer-events: none;
 }
 
@@ -59,34 +67,36 @@ body:not(.filmstriphidden) .hud {
  ---------------------------------------------------------*/
 
 .toggle-camera {
-  display: none;
   background-image: url(images/toggle-camera.png);
   background-size: 100%;
+  transition: opacity 300ms;
+  opacity: 0;
 }
 
 /**
- * @is-toggling-camera
+ * @camera-enabled
  */
 
-.is-toggling-camera .toggle-camera {
+.hud[camera-enabled=true] .toggle-camera {
+  opacity: 1;
+}
+
+/**
+ * @camera-hidden
+ */
+
+.hud[camera-hidden=true] .toggle-camera {
+  opacity: 0;
+}
+
+/**
+ * @toggling-camera
+ */
+
+.hud[toggling-camera=true] .toggle-camera {
   background-color: #00b9df;
 }
 
-/**
- * @has-front-camera
- */
-
-.has-front-camera .toggle-camera {
-  display: block;
-}
-
-/**
- * @recording
- */
-
-.recording .toggle-camera {
-  display: none;
-}
 
 /** Flash Button
  ---------------------------------------------------------*/
@@ -103,27 +113,45 @@ body:not(.filmstriphidden) .hud {
   opacity: 0;
 }
 
-.toggle-flash[data-mode=on],
-.toggle-flash[data-mode=off],
-.toggle-flash[data-mode=auto],
-.toggle-flash[data-mode=torch] {
+/**
+ * @flash-enabled
+ */
+
+.hud[flash-enabled=true] .toggle-flash {
   visibility: visible;
   opacity: 1;
 }
 
-.toggle-flash[data-mode=on] {
+/**
+ * @settings-disabled
+ */
+
+.hud[settings-enabled=false] .toggle-flash {
+  float: right;
+}
+
+
+/**
+ * @camera-hidden
+ */
+
+.hud[flash-hidden=true] .toggle-flash {
+  opacity: 0;
+}
+
+.hud[flash-mode=on] .toggle-flash {
   background-image: url(images/flash_on.png);
 }
 
-.toggle-flash[data-mode=off] {
+.hud[flash-mode=off] .toggle-flash {
   background-image: url(images/flash_off.png);
 }
 
-.toggle-flash[data-mode=auto] {
+.hud[flash-mode=auto] .toggle-flash {
   background-image: url(images/flash_auto.png);
 }
 
-.toggle-flash[data-mode=torch] {
+.hud[flash-mode=torch] .toggle-flash {
   background-image: url(images/flash_on.png);
 }
 
@@ -153,8 +181,8 @@ body:not(.filmstriphidden) .hud {
  * endge of the screen.
  */
 
-body[data-orientation=deg90] .flash-text,
-body[data-orientation=deg180] .flash-text {
+.deg90 .flash-text,
+.deg180 .flash-text {
   left: auto;
   right: 100%;
 }
@@ -167,7 +195,7 @@ body[data-orientation=deg180] .flash-text {
  * the flash text.
  */
 
-.is-toggling .flash-text {
+.hud[toggling-flash=true] .flash-text {
   opacity: 1;
   transition: none;
 }
@@ -177,4 +205,19 @@ body[data-orientation=deg180] .flash-text {
 
 .flash-name {
   text-transform: capitalize;
+}
+
+/** Settings
+ ---------------------------------------------------------*/
+
+.hud_settings {
+  font-size: 2rem;
+}
+
+/**
+ * @settings-disabled
+ */
+
+.hud[settings-enabled=false] .hud_settings {
+  display: none;
 }

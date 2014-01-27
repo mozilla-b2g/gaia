@@ -11,6 +11,7 @@
  */
 
 @import url("app.css");
+@import url("icons.css");
 @import url("viewfinder.css");
 @import url("focusring.css");
 @import url("controls.css");
@@ -18,4 +19,7 @@
 @import url("hud.css");
 @import url("filmstrip.css");
 @import url("confirm.css");
+@import url("settings.css");
+@import url("setting.css");
+@import url("setting-options.css");
 @import url("VideoPlayer.css");
