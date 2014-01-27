@@ -283,8 +283,8 @@ body {
   background-color: #fff;
 }
 
-#screen.active-statusbar #windows > .appWindow,
-#screen.active-statusbar #windows > .appWindow.fullscreen-app {
+#screen.active-statusbar:not(:-moz-full-screen-ancestor) #windows > .appWindow,
+#screen.active-statusbar:not(:-moz-full-screen-ancestor) #windows > .appWindow.fullscreen-app {
   top: 4rem;
   height: calc(100% - 4rem);
 }
@@ -448,7 +448,7 @@ body {
 }
 
 /* Prebuild width/height */
-#screen:not(.active-statusbar):not(.software-button-enabled) > #windows > .appWindow:not(.fullscreen-app) {
+#screen:not(.active-statusbar):not(.software-button-enabled):not(:-moz-full-screen-ancestor) > #windows > .appWindow:not(.fullscreen-app) {
   top: 2rem;
   height: calc(100% - 2rem);
   width: 100%;
@@ -459,20 +459,20 @@ body {
   width: 100%;
 }
 
-#screen.active-statusbar:not(.software-button-enabled) > #windows > .appWindow {
+#screen.active-statusbar:not(.software-button-enabled):not(:-moz-full-screen-ancestor) > #windows > .appWindow {
   top: 4rem;
   height: calc(100% - 4rem);
   width: 100%;
 }
 
-#screen.active-statusbar.software-button-enabled > #windows > .appWindow {
+#screen.active-statusbar.software-button-enabled:not(:-moz-full-screen-ancestor) > #windows > .appWindow {
   top: 4rem;
   bottom: 5rem;
   height: calc(100% - 5rem - 4rem);
   width: 100%;
 }
 
-#screen.software-button-enabled > #windows > .appWindow {
+#screen.software-button-enabled:not(:-moz-full-screen-ancestor) > #windows > .appWindow {
   top: 2rem;
   bottom: 5rem;
   height: calc(100% - 5rem - 2rem);
