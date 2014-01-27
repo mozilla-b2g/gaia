@@ -905,6 +905,15 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
         # restore settings from testvars
         [self.data_layer.set_setting(name, value) for name, value in self.testvars.get('settings', {}).items()]
 
+        # restore prefs from testvars
+        for name, value in self.testvars.get('prefs', {}).items():
+            if type(value) is int:
+                self.data_layer.set_int_pref(name, value)
+            elif type(value) is bool:
+                self.data_layer.set_bool_pref(name, value)
+            else:
+                self.data_layer.set_char_pref(name, value)
+
         # unlock
         self.device.unlock()
 
