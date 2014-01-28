@@ -149,8 +149,7 @@ var AttentionScreen = {
     // alternatively, if the newly appended frame is the visible frame
     // and we are in the status bar mode, expend to full screen mode.
     if (!this.isVisible()) {
-      // Attention screen now only support default orientation.
-      screen.mozLockOrientation(OrientationManager.defaultOrientation);
+      this.tryLockOrientation();
 
       this.attentionScreen.classList.add('displayed');
       this.mainScreen.classList.add('attention');
@@ -242,7 +241,7 @@ var AttentionScreen = {
 
     // Restore the orientation of current displayed app
     var currentApp = WindowManager.getDisplayedApp();
-    if (currentApp)
+    if (currentApp && !LockScreen.locked)
       WindowManager.setOrientationForApp(currentApp);
 
     this.attentionScreen.classList.remove('displayed');
@@ -257,7 +256,7 @@ var AttentionScreen = {
     }
 
     // Attention screen now only support default orientation.
-    screen.mozLockOrientation(OrientationManager.defaultOrientation);
+    this.tryLockOrientation();
 
     delete this.attentionScreen.lastElementChild.dataset.appRequestedSmallSize;
 
@@ -288,7 +287,7 @@ var AttentionScreen = {
     // Restore the orientation of current displayed app
     var currentApp = WindowManager.getDisplayedApp();
 
-    if (currentApp)
+    if (currentApp && !LockScreen.locked)
       WindowManager.setOrientationForApp(currentApp);
 
     // entering "active-statusbar" mode,
@@ -308,6 +307,22 @@ var AttentionScreen = {
       // transition completed, entering "status-mode" (40px height iframe)
       attentionScreen.classList.add('status-mode');
     });
+  },
+
+  // If the lock request fails, request again later.
+  // XXX: Group orientation requests in orientation manager to avoid this.
+  tryLockOrientation: function as_tryLockOrientation() {
+    var tries = 20;
+    var tryToUnlock = function() {
+      var rv = screen.mozLockOrientation(OrientationManager.defaultOrientation);
+      if (!rv && tries--) {
+        console.warn(
+          'Attention screen fails on locking orientation, retrying..');
+        setTimeout(tryToUnlock, 20);
+      }
+    };
+
+    tryToUnlock();
   },
 
   dispatchEvent: function as_dispatchEvent(name, detail) {
