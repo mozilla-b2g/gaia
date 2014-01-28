@@ -13,8 +13,6 @@
 
   background-repeat: no-repeat;
   background-position: center center;
-
-  transform: translateX(0);
 }
 
 @media not all and (-moz-physical-home-button) {
