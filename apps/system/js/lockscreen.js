@@ -634,28 +634,32 @@
     // hardware buttons events. As a result AppWindowManager is not defined when
     // the device is turned on and this file is loaded.
     var app = window.AppWindowManager ?
-      window.AppWindowManager.getActiveApp() : null;
-    var wasAlreadyUnlocked = !this.locked;
-    this.locked = false;
+        window.AppWindowManager.getActiveApp() : null;
+    if (!window.LockScreenMediator) {
 
-    this.mainScreen.focus();
-    this.mainScreen.classList.remove('locked');
+      var wasAlreadyUnlocked = !this.locked;
+      this.locked = false;
 
-    // The lockscreen will be hidden, stop refreshing the clock.
-    this.clock.stop();
+      this.mainScreen.focus();
+      this.mainScreen.classList.remove('locked');
 
-    if (wasAlreadyUnlocked) {
-      return;
+      // The lockscreen will be hidden, stop refreshing the clock.
+      this.clock.stop();
+      if (wasAlreadyUnlocked) {
+        return;
+      }
+      this.dispatchEvent('will-unlock', detail);
+      this.dispatchEvent('secure-modeoff');
     }
-    this.dispatchEvent('will-unlock', detail);
-    this.dispatchEvent('secure-modeoff');
     this.writeSetting(false);
 
+    if (window.LockScreenMediator) {
+      return;
+    }
     if (this.unlockSoundEnabled) {
       var unlockAudio = new Audio('./resources/sounds/unlock.opus');
       unlockAudio.play();
     }
-
     this.overlay.classList.toggle('no-transition', instant);
 
     // Actually begin unlock until the foreground app is painted
