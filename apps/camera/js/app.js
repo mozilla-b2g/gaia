@@ -9,11 +9,12 @@ var performanceTesting = require('performanceTesting');
 var constants = require('config/camera');
 var bindAll = require('utils/bindAll');
 var lockscreen = require('lockscreen');
+var storage = require('asyncStorage');
 var broadcast = require('broadcast');
+var model = require('vendor/model');
 var debug = require('debug')('app');
 var LazyL10n = require('LazyL10n');
 var bind = require('utils/bind');
-var events = require('vendor/evt');
 var dcf = require('dcf');
 
 /**
@@ -21,10 +22,11 @@ var dcf = require('dcf');
  */
 
 var LOCATION_PROMPT_DELAY = constants.PROMPT_DELAY;
+var noop = function() {};
 var unbind = bind.unbind;
 
-// Mixin emitter
-events(App.prototype);
+// Mixin model methods
+model(App.prototype);
 
 /**
  * Exports
@@ -43,20 +45,22 @@ module.exports = App;
  * @constructor
  */
 function App(options) {
+  bindAll(this);
   this.el = options.el;
   this.win = options.win;
   this.doc = options.doc;
   this.inSecureMode = (this.win.location.hash === '#secure');
+  this.controllers = options.controllers;
   this.geolocation = options.geolocation;
   this.filmstrip = options.filmstrip;
   this.activity = options.activity;
-  this.state = options.state;
+  this.config = options.config;
   this.storage = options.storage;
   this.camera = options.camera;
   this.sounds = options.sounds;
   this.views = options.views;
-  this.controllers = options.controllers;
-  bindAll(this);
+  this.storageKey = 'camera_state';
+  this.reset(this.config.values());
   debug('initialized');
 }
 
@@ -64,6 +68,7 @@ function App(options) {
  * Runs all the methods
  * to boot the app.
  *
+ * @public
  */
 App.prototype.boot = function() {
   debug('boot');
@@ -84,6 +89,7 @@ App.prototype.teardown = function() {
  * Runs controllers to glue all
  * the parts of the app together.
  *
+ * @private
  */
 App.prototype.runControllers = function() {
   debug('running controllers');
@@ -101,7 +107,7 @@ App.prototype.runControllers = function() {
  * Injects view DOM into
  * designated root node.
  *
- * @return {[type]} [description]
+ * @private
  */
 App.prototype.injectContent = function() {
   this.views.hud.appendTo(this.el);
@@ -121,6 +127,7 @@ App.prototype.bindEvents = function() {
   bind(this.doc, 'visibilitychange', this.onVisibilityChange);
   bind(this.win, 'beforeunload', this.onBeforeUnload);
   bind(this.el, 'click', this.onClick);
+  this.on('change', this.onStateChange);
   this.on('focus', this.onFocus);
   this.on('blur', this.onBlur);
   debug('events bound');
@@ -186,26 +193,86 @@ App.prototype.geolocationWatch = function() {
  * Responds to the `visibilitychange`
  * event, emitting useful app events
  * that allow us to perform relate
- * work elsewhere,
+ * work elsewhere.
  *
+ * @private
  */
 App.prototype.onVisibilityChange = function() {
-  if (this.doc.hidden) {
-    this.emit('blur');
-  } else {
-    this.emit('focus');
-  }
+  if (this.doc.hidden) { this.emit('blur'); }
+  else { this.emit('focus'); }
 };
 
 /**
  * Runs just before the
  * app is destroyed.
  *
+ * @private
  */
 App.prototype.onBeforeUnload = function() {
   this.views.viewfinder.setPreviewStream(null);
   this.emit('beforeunload');
   debug('beforeunload');
+};
+
+/**
+ * Fetch the state object
+ * held in storage and merge
+ * with existing state model.
+ *
+ * @param  {Function} done
+ */
+App.prototype.fetchState = function(done) {
+  var self = this;
+  storage.getItem(this.storageKey, function(props) {
+    self.set(props, { silent: true });
+    debug('fetched', props);
+    if (done) done();
+  });
+};
+
+/**
+ * Persist the model to storage.
+ *
+ * Excluding keys marked as,
+ * `persist: false` in config json.
+ *
+ * @param  {Function} done
+ * @return {App} for chaining
+ */
+App.prototype.saveState = function(done) {
+  var data = this.getPersistentState();
+  storage.setItem(this.storageKey, data, done || noop);
+  debug('saving');
+  return this;
+};
+
+/**
+ * Returns an filtered version of
+ * the application state object,
+ * containing only keys that should
+ * be persisted to storage.
+ *
+ * @return {Object}
+ */
+App.prototype.getPersistentState = function() {
+  var keys = this.config.persistent();
+  var self = this;
+  var result = {};
+  keys.forEach(function(key) { result[key] = self.get(key); });
+  debug('got persistent keys', result);
+  return result;
+};
+
+/**
+ * Saves state model to persist
+ * storage. Debounced by 2secs.
+ *
+ * @private
+ */
+App.prototype.onStateChange = function(keys) {
+  clearTimeout(this.saveTimeout);
+  this.saveTimeout = setTimeout(this.saveState, 2000);
+  debug('changed', keys);
 };
 
 /**

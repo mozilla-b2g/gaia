@@ -19,7 +19,7 @@ module.exports = View.extend({
 
   initialize: function(options) {
     this.state = options.state;
-    this.items = options.list;
+    this.items = options.items;
     this.hash = {};
     this.items.forEach(this.addToHash);
     attach(this.el, 'click', 'li', this.onItemClick);
