@@ -35,8 +35,8 @@ form[role="dialog"].no-overlay button {
 }
 
 #groups-list.import-list li,
-.facebook #search-list[data-type="list"] li {
-  padding-left: 4rem;
+.import #search-list[data-type="list"] li {
+  padding-left: 3.5rem;
 }
 
 #groups-list.active li:not(:active):after,
