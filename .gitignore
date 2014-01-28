@@ -63,6 +63,7 @@ manifest.appcache
 
 /distribution/
 /node_modules/
+/docs/
 /.cproject
 /.project
 /.settings

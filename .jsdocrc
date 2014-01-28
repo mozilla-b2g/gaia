@@ -1,0 +1,9 @@
+{
+  "plugins": ["plugins/markdown"],
+  "markdown": {
+    "parser": "gfm",
+    "hardwrap": true,
+    "githubRepoName": "gaia",
+    "githubRepoOwner": "mozilla-b2g"
+  }
+}
