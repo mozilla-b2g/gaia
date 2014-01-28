@@ -183,9 +183,20 @@ function addToZip(zip, pathInZip, file, compression) {
   else if (file.isDirectory()) {
     debug(' +directory to zip ' + pathInZip);
 
-    if (!zip.hasEntry(pathInZip)) {
+    if (!zip.hasEntry(pathInZip + '/')) {
       zip.addEntryDirectory(pathInZip, DEFAULT_TIME, false);
     }
+
+    // Append a `/` at end of relative path if it isn't already here
+    if (pathInZip.substr(-1) !== '/') {
+      pathInZip += '/';
+    }
+
+    let files = utils.ls(file);
+    files.forEach(function(subFile) {
+      let subPath = pathInZip + subFile.leafName;
+      addToZip(zip, subPath, subFile, compression);
+    });
   }
 }
 
