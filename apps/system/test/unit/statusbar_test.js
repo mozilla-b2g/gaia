@@ -264,7 +264,6 @@ suite('system/Statusbar', function() {
             StatusBar.update.signal.call(StatusBar);
 
             assert.notEqual(dataset.roaming, 'true');
-            assert.notEqual(dataset.emergency, 'true');
             assert.isUndefined(dataset.level);
             assert.notEqual(dataset.searching, 'true');
           });
@@ -286,7 +285,6 @@ suite('system/Statusbar', function() {
             StatusBar.update.signal.call(StatusBar);
 
             assert.notEqual(dataset.roaming, 'true');
-            assert.notEqual(dataset.emergency, 'true');
             assert.isUndefined(dataset.level);
             assert.notEqual(dataset.searching, 'true');
           });
@@ -308,7 +306,6 @@ suite('system/Statusbar', function() {
             StatusBar.update.signal.call(StatusBar);
 
             assert.notEqual(dataset.roaming, 'true');
-            assert.notEqual(dataset.emergency, 'true');
             assert.equal(dataset.level, -1);
             assert.notEqual(dataset.searching, 'true');
           });
@@ -330,7 +327,6 @@ suite('system/Statusbar', function() {
             StatusBar.update.signal.call(StatusBar);
 
             assert.notEqual(dataset.roaming, 'true');
-            assert.notEqual(dataset.emergency, 'true');
             assert.equal(dataset.level, -1);
             assert.equal(dataset.searching, 'true');
           });
@@ -352,7 +348,6 @@ suite('system/Statusbar', function() {
             StatusBar.update.signal.call(StatusBar);
 
             assert.notEqual(dataset.roaming, 'true');
-            assert.notEqual(dataset.emergency, 'true');
             assert.isUndefined(dataset.level);
             assert.notEqual(dataset.searching, 'true');
           });
@@ -374,7 +369,6 @@ suite('system/Statusbar', function() {
             StatusBar.update.signal.call(StatusBar);
 
             assert.notEqual(dataset.roaming, 'true');
-            assert.equal(dataset.emergency, 'true');
             assert.equal(dataset.level, '-1');
             assert.notEqual(dataset.searching, 'true');
           });
@@ -401,7 +395,6 @@ suite('system/Statusbar', function() {
 
             assert.notEqual(dataset.roaming, 'true');
             assert.equal(dataset.level, 4);
-            assert.notEqual(dataset.emergency, 'true');
             assert.notEqual(dataset.searching, 'true');
           });
 
@@ -427,7 +420,6 @@ suite('system/Statusbar', function() {
 
             assert.notEqual(dataset.roaming, 'true');
             assert.equal(dataset.level, 4);
-            assert.notEqual(dataset.emergency, 'true');
             assert.notEqual(dataset.searching, 'true');
           });
 
@@ -459,7 +451,6 @@ suite('system/Statusbar', function() {
 
             assert.notEqual(dataset.roaming, 'true');
             assert.equal(dataset.level, 4);
-            assert.notEqual(dataset.emergency, 'true');
             assert.notEqual(dataset.searching, 'true');
           });
 
@@ -481,7 +472,6 @@ suite('system/Statusbar', function() {
 
             assert.notEqual(dataset.roaming, 'true');
             assert.equal(dataset.level, 4);
-            assert.notEqual(dataset.emergency, 'true');
             assert.notEqual(dataset.searching, 'true');
           });
 
@@ -503,7 +493,6 @@ suite('system/Statusbar', function() {
 
             assert.equal(dataset.roaming, 'true');
             assert.equal(dataset.level, 4);
-            assert.notEqual(dataset.emergency, 'true');
             assert.notEqual(dataset.searching, 'true');
           });
 
@@ -525,7 +514,6 @@ suite('system/Statusbar', function() {
 
             assert.notEqual(dataset.roaming, 'true');
             assert.equal(dataset.level, -1);
-            assert.equal(dataset.emergency, 'true');
             assert.notEqual(dataset.searching, 'true');
           });
 
