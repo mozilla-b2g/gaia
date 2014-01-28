@@ -1533,7 +1533,7 @@ var Camera = {
     // They come from config.js which is generated in build time,
     // 5 megapixels by default (see build/application-data.js).
     var maxRes = Math.min(CONFIG_MAX_IMAGE_PIXEL_SIZE,
-			  CONFIG_MAX_SNAPSHOT_PIXEL_SIZE);
+      CONFIG_MAX_SNAPSHOT_PIXEL_SIZE);
     var estimatedJpgSize = this.ESTIMATED_JPEG_FILE_SIZE;
     var size = pictureSizes.reduce(function(acc, size) {
       var mp = size.width * size.height;
