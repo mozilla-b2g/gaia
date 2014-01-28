@@ -11,7 +11,6 @@
 'use strict';
 
 var MessageManager = {
-  draft: null,
   activity: null,
   forward: null,
   init: function mm_init(callback) {
@@ -145,7 +144,7 @@ var MessageManager = {
 
   launchComposer: function mm_launchComposer(callback) {
     ThreadUI.cleanFields(true);
-    var draft = MessageManager.draft || Drafts.get(Threads.currentId);
+    var draft = ThreadUI.draft || Drafts.get(Threads.currentId);
     // Draft recipients are added as the composer launches
     if (draft) {
       // Recipients will exist for draft messages in threads
@@ -265,8 +264,8 @@ var MessageManager = {
         MessageManager.launchComposer(function() {
           this.handleActivity(this.activity);
           this.handleForward(this.forward);
-          if (this.draft) {
-            this.draft.isEdited = false;
+          if (ThreadUI.draft) {
+            ThreadUI.draft.isEdited = false;
           }
         }.bind(this));
         break;
@@ -321,11 +320,11 @@ var MessageManager = {
             // Populate draft if there is one
             var thread = Threads.get(threadId);
             if (thread.hasDrafts) {
-              this.draft = thread.drafts.latest;
-              Compose.fromDraft(this.draft);
-              this.draft.isEdited = false;
+              ThreadUI.draft = thread.drafts.latest;
+              Compose.fromDraft(ThreadUI.draft);
+              ThreadUI.draft.isEdited = false;
             } else {
-              this.draft = null;
+              ThreadUI.draft = null;
             }
           }
         }).bind(this);
