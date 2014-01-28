@@ -85,17 +85,17 @@ body {
 }
 
 #poweroff-ring-1 {
-  top: 12rem;
+  top: 25%;
   background-color: #e66600;
 }
 
 #poweroff-ring-2 {
-  top: 24rem;
+  top: 50%;
   background-color: #dc4e00;
 }
 
 #poweroff-ring-3 {
-  top: 36rem;
+  top: 75%;
   background-color: #d24500;
 }
 
