@@ -1152,6 +1152,12 @@ i.hack-first-child {
   background: url("images/checked.png") no-repeat right center / 100%;
 }
 
+/* Right to left: position the check mark to the left */
+html[dir="rtl"] [data-type="list"].pack-value-selector li label:not([for]) input + span:after {
+  left: 0;
+  margin-left: auto;
+}
+
 [data-type="list"].pack-value-selector li label:not([for]) input + span + p {
   font-weight: normal;
 }
