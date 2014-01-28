@@ -80,4 +80,4 @@ MockRecipients.prototype.emit = function(type) {
 
 MockRecipients.View = function() {};
 
-MockRecipients.View.isObscured = false;
+MockRecipients.View.isFocusable = true;

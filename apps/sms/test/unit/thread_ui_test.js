@@ -1474,6 +1474,19 @@ suite('thread_ui.js >', function() {
       window.location.hash = '';
     });
 
+    suite('Recipients.View.isFocusable', function() {
+
+      setup(function() {
+        window.location.hash = '#new';
+        Recipients.View.isFocusable = true;
+      });
+
+      test('Assimilation revokes Recipients focusability ', function() {
+        ThreadUI.assimilateRecipients();
+        assert.isFalse(Recipients.View.isFocusable);
+      });
+    });
+
     suite('Existing Conversation', function() {
 
       setup(function() {
@@ -3936,7 +3949,7 @@ suite('thread_ui.js >', function() {
       this.sinon.spy(ThreadUI, 'assimilateRecipients');
     });
     teardown(function() {
-      Recipients.View.isObscured = false;
+      Recipients.View.isFocusable = true;
     });
 
     test('assimilate called after mousedown on picker button', function() {
@@ -3944,13 +3957,13 @@ suite('thread_ui.js >', function() {
       assert.ok(ThreadUI.assimilateRecipients.called);
     });
 
-    suite('Recipients.View.isObscured', function() {
-      test('true during activity', function() {
+    suite('Recipients.View.isFocusable', function() {
+      test('false during activity', function() {
         ThreadUI.requestContact();
-        assert.isTrue(Recipients.View.isObscured);
+        assert.isFalse(Recipients.View.isFocusable);
       });
 
-      test('false after activity', function() {
+      test('true after activity', function() {
         this.sinon.stub(Utils, 'basicContact').returns({});
 
         ThreadUI.requestContact();
@@ -3963,7 +3976,7 @@ suite('thread_ui.js >', function() {
 
         MockMozActivity.instances[0].onsuccess();
 
-        assert.isFalse(Recipients.View.isObscured);
+        assert.isTrue(Recipients.View.isFocusable);
       });
     });
   });
