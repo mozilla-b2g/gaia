@@ -1,6 +1,6 @@
 /*global mocha, MocksHelper, loadBodyHTML, MockL10n, ThreadListUI, FixedHeader,
          MessageManager, WaitingScreen, Threads, Template, MockMessages,
-         MockThreadList, MockTimeHeaders, Draft, Drafts, Thread
+         MockThreadList, MockTimeHeaders, Draft, Drafts, Thread, ThreadUI
          */
 
 'use strict';
@@ -26,6 +26,7 @@ requireApp('sms/test/unit/mock_utils.js');
 requireApp('sms/test/unit/mock_waiting_screen.js');
 require('/test/unit/thread_list_mockup.js');
 require('/test/unit/utils_mockup.js');
+requireApp('sms/test/unit/mock_thread_ui.js');
 
 var mocksHelperForThreadListUI = new MocksHelper([
   'asyncStorage',
@@ -34,7 +35,8 @@ var mocksHelperForThreadListUI = new MocksHelper([
   'MessageManager',
   'Utils',
   'WaitingScreen',
-  'TimeHeaders'
+  'TimeHeaders',
+  'ThreadUI'
 ]).init();
 
 suite('thread_list_ui', function() {
@@ -907,9 +909,9 @@ suite('thread_list_ui', function() {
       sinon.assert.called(ThreadListUI.setContact);
     });
 
-    test('click on a draft populates MessageManager.draft', function() {
+    test('click on a draft populates ThreadUI.draft', function() {
       document.querySelector('#thread-101 a').click();
-      assert.equal(MessageManager.draft, draft);
+      assert.equal(ThreadUI.draft, draft);
     });
   });
 
