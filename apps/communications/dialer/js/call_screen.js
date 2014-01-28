@@ -49,6 +49,9 @@ var CallScreen = {
   lockedDate: document.getElementById('lockscreen-date'),
 
   statusMessage: document.getElementById('statusMsg'),
+  configs: {
+    lockMode: 'incoming-call'
+  },
   showStatusMessage: function cs_showStatusMesssage(text) {
     var STATUS_TIME = 2000;
     var self = this;
@@ -154,46 +157,8 @@ var CallScreen = {
     // Setup incoming call screen slider
     this.hangUpIcon = document.getElementById('lockscreen-area-hangup');
     this.pickUpIcon = document.getElementById('lockscreen-area-pickup');
-
+    this.initUnlockerEvents();
     new LockScreenSlide(
-      // IntentionRouter
-      {
-        unlockerInitialize: function _unlockerInitialize() {
-          //Seems not necessary for incoming call screen.
-        },
-
-        activateRight: function _activateRight() {
-          CallsHandler.answer();
-        },
-
-        activateLeft: function _activateLeft() {
-          CallsHandler.end();
-        },
-
-        unlockingStart: function _unlockingStart() {
-          // Bug 956074: Needed to make sure the slider will work.
-        },
-
-        unlockingStop: function _unlockingStop() {
-          // Bug 956074: Needed to make sure the slider will work.
-        },
-
-        nearLeft: function _nearLeft(state, statePrev) {
-          if (state === 'accelerating') {
-            CallScreen.hangUpIcon.classList.add('triggered');
-          } else {
-            CallScreen.hangUpIcon.classList.remove('triggered');
-          }
-        },
-
-        nearRight: function _nearRight(state, statePrev) {
-          if (state === 'accelerating') {
-            CallScreen.pickUpIcon.classList.add('triggered');
-          } else {
-            CallScreen.pickUpIcon.classList.remove('triggered');
-          }
-        }
-      },
       // Options
       {
         IDs: {
@@ -559,5 +524,82 @@ var CallScreen = {
     for (var i = 0; i < callElems.length; i++) {
       callElems[i].dataset.groupHangup = 'groupHangup';
     }
+  },
+
+  handleEvent: function cs_handleEvent(evt) {
+    var state = null, statePrev = null;
+    switch (evt.type) {
+      case 'lockscreenslide-unlocker-initializer':
+        break;
+      case 'lockscreenslide-near-left':
+        state = evt.detail.state;
+        statePrev = evt.detail.statePrev;
+        if (state === 'accelerating') {
+          CallScreen.hangUpIcon.classList.add('triggered');
+        } else {
+          CallScreen.hangUpIcon.classList.remove('triggered');
+        }
+        break;
+      case 'lockscreenslide-near-right':
+        state = evt.detail.state;
+        statePrev = evt.detail.statePrev;
+        if (state === 'accelerating') {
+          CallScreen.pickUpIcon.classList.add('triggered');
+        } else {
+          CallScreen.pickUpIcon.classList.remove('triggered');
+        }
+        break;
+      case 'lockscreenslide-unlocking-start':
+        break;
+      case 'lockscreenslide-unlocking-stop':
+        break;
+      case 'lockscreenslide-activate-left':
+        CallsHandler.end();
+        break;
+      case 'lockscreenslide-activate-right':
+        CallsHandler.answer();
+        break;
+      case 'lockscreen-mode-on':
+        this.modeSwitch(evt.detail, true);
+        break;
+      case 'lockscreen-mode-off':
+        this.modeSwitch(evt.detail, false);
+        break;
+    }
+  },
+
+  /**
+   * @param {boolean} switcher - true if mode is on, false if off.
+   */
+  modeSwitch: function cs_modeSwitch(mode, switcher) {
+    if (switcher) {
+      if (mode !== this.configs.lockMode) {
+        this.suspendUnlockerEvents();
+      }
+    } else {
+      if (mode !== this.configs.lockMode) {
+        this.initUnlockerEvents();
+      }
+    }
+  },
+
+  initUnlockerEvents: function cs_initUnlockerEvents() {
+    window.addEventListener('lockscreenslide-unlocker-initializer', this);
+    window.addEventListener('lockscreenslide-near-left', this);
+    window.addEventListener('lockscreenslide-near-right', this);
+    window.addEventListener('lockscreenslide-unlocking-start', this);
+    window.addEventListener('lockscreenslide-activate-left', this);
+    window.addEventListener('lockscreenslide-activate-right', this);
+    window.addEventListener('lockscreenslide-unlocking-stop', this);
+  },
+
+  suspendUnlockerEvents: function cs_initUnlockerEvents() {
+    window.removeEventListener('lockscreenslide-unlocker-initializer', this);
+    window.removeEventListener('lockscreenslide-near-left', this);
+    window.removeEventListener('lockscreenslide-near-right', this);
+    window.removeEventListener('lockscreenslide-unlocking-start', this);
+    window.removeEventListener('lockscreenslide-activate-left', this);
+    window.removeEventListener('lockscreenslide-activate-right', this);
+    window.removeEventListener('lockscreenslide-unlocking-stop', this);
   }
 };

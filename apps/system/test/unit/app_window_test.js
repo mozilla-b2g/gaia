@@ -3,7 +3,7 @@
 mocha.globals(['SettingsListener', 'removeEventListener', 'addEventListener',
       'dispatchEvent', 'Applications', 'ManifestHelper',
       'KeyboardManager', 'StatusBar', 'BrowserMixin',
-      'SoftwareButtonManager', 'AppWindow',
+      'SoftwareButtonManager', 'AppWindow', 'AppChrome',
       'OrientationManager', 'SettingsListener', 'BrowserFrame',
       'BrowserConfigHelper', 'System', 'LayoutManager',
       'AppTransitionController', 'AppWindowManager']);
@@ -14,13 +14,13 @@ requireApp('system/shared/test/unit/mocks/mock_settings_helper.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/test/unit/mock_applications.js');
 requireApp('system/test/unit/mock_layout_manager.js');
-
+requireApp('system/test/unit/mock_app_chrome.js');
 requireApp('system/test/unit/mock_screen_layout.js');
 
 var mocksForAppWindow = new MocksHelper([
   'OrientationManager', 'Applications', 'SettingsListener',
   'ManifestHelper', 'LayoutManager',
-  'ScreenLayout'
+  'ScreenLayout', 'AppChrome'
 ]).init();
 
 suite('system/AppWindow', function() {
@@ -96,6 +96,14 @@ suite('system/AppWindow', function() {
     title: 'Fakebook'
   };
 
+  var fakeChromeConfig = {
+    url: 'http://www.fakeChrome/index.html',
+    origin: 'http://www.fakeChrome',
+    manifest: {
+      chrome: { 'navigation': true }
+    }
+  };
+
   test('App created with instanceID', function() {
     var app1 = new AppWindow(fakeAppConfig1);
     var app2 = new AppWindow(fakeAppConfig2);
@@ -157,6 +165,18 @@ suite('system/AppWindow', function() {
       stubIsActive.returns(true);
       app1.resize();
       assert.isTrue(stubbroadcast.calledWith('withkeyboard'));
+    });
+
+    test('Would get the height of chrome\'s button bar', function() {
+      var stubGetBarHeight =
+        this.sinon.stub(AppChrome.prototype, 'getBarHeight');
+      var chromeApp = new AppWindow(fakeChromeConfig);
+      var stubIsActive = this.sinon.stub(chromeApp, 'isActive');
+      stubIsActive.returns(true);
+      chromeApp.resize();
+      assert.isTrue(stubGetBarHeight.called);
+      stubGetBarHeight.restore();
+      stubIsActive.restore();
     });
   });
 

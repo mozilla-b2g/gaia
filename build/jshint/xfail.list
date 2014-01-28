@@ -935,7 +935,6 @@ apps/system/js/init_logo_handler.js
 apps/system/js/internet_sharing.js
 apps/system/js/keyboard_manager.js
 apps/system/js/layout_manager.js
-apps/system/js/lockscreen.js
 apps/system/js/lockscreen_connection_info_manager.js
 apps/system/js/logo_loader.js
 apps/system/js/media_playback.js

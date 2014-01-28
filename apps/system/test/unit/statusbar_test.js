@@ -6,32 +6,42 @@ requireApp('system/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.
 requireApp('system/shared/test/unit/mocks/mock_icc_helper.js');
 requireApp('system/test/unit/mock_l10n.js');
 requireApp('system/test/unit/mock_navigator_moz_telephony.js');
-requireApp('system/test/unit/mock_lock_screen.js');
+requireApp('system/test/unit/mock_lock_screen.js', function() {
+
+  // Because we can't see it while we attach helpers,
+  // which may not be loaded yet.
+  //
+  // And it can't be used as helper because the name
+  // can't be "MocklockScreen".
+  window.lockScreen = MockLockScreen;
+});
 requireApp('system/test/unit/mock_simslot.js');
 requireApp('system/test/unit/mock_simslot_manager.js');
 requireApp('system/test/unit/mock_app_window_manager.js');
 requireApp('system/test/unit/mock_ftu_launcher.js');
 requireApp('system/test/unit/mock_touch_forwarder.js');
-requireApp('system/js/lockscreen.js');
 
 var mocksForStatusBar = new MocksHelper([
   'FtuLauncher',
   'SettingsListener',
   'MobileOperator',
-  'LockScreen',
   'SIMSlotManager',
   'AppWindowManager',
   'TouchForwarder'
 ]).init();
 
-mocha.globals(['Clock', 'StatusBar']);
+mocha.globals(['Clock', 'StatusBar', 'lockScreen']);
 suite('system/Statusbar', function() {
   var mobileConnectionCount = 2;
   var fakeStatusBarNode, fakeTopPanel;
   var realMozL10n, realMozMobileConnections, realMozTelephony, fakeIcons = [];
+  var originalLocked;
 
   mocksForStatusBar.attachTestHelpers();
   suiteSetup(function(done) {
+    window.lockScreen = MockLockScreen;
+    originalLocked = window.lockScreen.locked;
+    window.lockScreen.locked = false;
     realMozL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
     realMozMobileConnections = navigator.mozMobileConnections;
@@ -43,6 +53,7 @@ suite('system/Statusbar', function() {
   });
 
   suiteTeardown(function() {
+    window.lockScreen.locked = originalLocked;
     navigator.mozL10n = realMozL10n;
     navigator.mozMobileConnections = realMozMobileConnections;
     navigator.mozTelephony = realMozTelephony;
@@ -179,10 +190,14 @@ suite('system/Statusbar', function() {
       assert.equal(StatusBar.icons.time.hidden, false);
     });
     test('attentionsceen hide', function() {
+      // Test this when lockscreen is off.
+      var originalLocked = window.lockScreen.locked;
+      window.lockScreen.locked = false;
       var evt = new CustomEvent('attentionscreenhide');
       StatusBar.handleEvent(evt);
       assert.notEqual(StatusBar.clock.timeoutID, null);
       assert.equal(StatusBar.icons.time.hidden, false);
+      window.lockScreen.locked = originalLocked;
     });
     test('emergency call when locked', function() {
       var evt = new CustomEvent('lockpanelchange', {
