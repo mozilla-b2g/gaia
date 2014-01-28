@@ -21,8 +21,8 @@ module.exports = State;
  * Locals
  */
 
-var defaultState = getDefaultState(config.settings.keys);
 var storageKey = 'camera_state';
+var has = {}.hasOwnProperty;
 var noop = function() {};
 
 // Mixin model methods
@@ -36,9 +36,11 @@ model(State.prototype);
 function State() {
   bindAll(this);
   this.key = storageKey;
-  this.reset(defaultState, { silent: true });
+  this.persist = {};
+  var defaults = this.configDefaults(config);
+  this.reset(defaults, { silent: true });
   this.on('change', this.onChange);
-  debug('initialized with', defaultState);
+  debug('initialized with', defaults);
 }
 
 /**
@@ -52,24 +54,46 @@ State.prototype.fetch = function(done) {
   storage.getItem(this.key, function(props) {
     self.set(props, { silent: true });
     debug('fetched', props);
-    (done || noop)();
+    if (done) done();
   });
 };
 
 /**
  * Persist the model to storage.
  *
+ * Excluding keys marked as,
+ * `persist: false` in config json.
+ *
  * @param  {Function} done
  * @return {State} for chaining
  */
 State.prototype.save = function(done) {
   debug('saving');
-  storage.setItem(this.key, this.get(), done || noop);
+  var data = this.getPersistent();
+  storage.setItem(this.key, data, done || noop);
   return this;
 };
 
 /**
- * Saves state model to persistant
+ * Get a new object containing
+ * just the persistent keys
+ * from the model.
+ *
+ * @return {Object}
+ * @private
+ */
+State.prototype.getPersistent = function() {
+  var json = this.get();
+  var result = {};
+  for (var key in json) {
+    if (this.persist[key]) { result[key] = json[key]; }
+  }
+  debug('got persistent keys', result);
+  return result;
+};
+
+/**
+ * Saves state model to persist
  * storage. Debounced by 2secs.
  *
  * @private
@@ -85,34 +109,53 @@ State.prototype.onChange = function(keys) {
  * from our app config in the form
  * of a flat key/value object.
  *
+ * We also track whether the key
+ * should be persisted to storage
+ * so that when we come to save
+ * we can filter the model down.
+ *
  * @param  {Object} config
  * @return {Object}
  */
-function getDefaultState(keys) {
+State.prototype.configDefaults = function(config) {
   var result = {};
-  for (var key in keys) {
-    result[key] = keys[key]['default'];
-  }
-  return result;
-}
+  var item;
 
-// Might be needed in future
-function deepMix(a, b) {
-  var obj = 'object';
+  for (var key in config) {
+    item = config[key];
 
-  // Don't attempt to mix arrays
-  if (Array.isArray(b)) { return b; }
+    // Remember whether this key should be
+    // persisted or not (defaults to true).
+    this.persist[key] = item.persist !== false;
 
-  // If the key is an 'object' on both
-  // 'a' and 'b', deep mix the two objects
-  for (var key in b) {
-    if (b.hasOwnProperty(key)) {
-      a[key] = (typeof a[key] === obj && typeof b[key] === obj) ?
-        deepMix(a[key], b[key]) : b[key];
+    // Store only if default key given
+    if (has.call(item, 'default')) {
+      result[key] = item['default'];
     }
   }
 
-  return a;
-}
+  debug('persist keys', this.persist);
+  debug('defaults', result);
+  return result;
+};
+
+// Might be needed in future
+// function deepMix(a, b) {
+//   var obj = 'object';
+
+//   // Don't attempt to mix arrays
+//   if (Array.isArray(b)) { return b; }
+
+//   // If the key is an 'object' on both
+//   // 'a' and 'b', deep mix the two objects
+//   for (var key in b) {
+//     if (b.hasOwnProperty(key)) {
+//       a[key] = (typeof a[key] === obj && typeof b[key] === obj) ?
+//         deepMix(a[key], b[key]) : b[key];
+//     }
+//   }
+
+//   return a;
+// }
 
 });

@@ -12,7 +12,9 @@ var debug = require('debug')('controller:viewfinder');
  * Exports
  */
 
-module.exports = ViewfinderController;
+module.exports = function(app) {
+  return new ViewfinderController(app);
+};
 
 /**
  * Initialize a new `ViewfinderController`
@@ -20,10 +22,6 @@ module.exports = ViewfinderController;
  * @param {App} app
  */
 function ViewfinderController(app) {
-  if (!(this instanceof ViewfinderController)) {
-    return new ViewfinderController(app);
-  }
-
   debug('initializing');
   this.viewfinder = app.views.viewfinder;
   this.filmstrip = app.filmstrip;
@@ -52,18 +50,17 @@ ViewfinderController.prototype.onConfigured = function() {
   }
 };
 
+/**
+ * Toggles the filmstrip, but not
+ * whilst recording or within an
+ * activity session.
+ *
+ * @private
+ */
 ViewfinderController.prototype.onViewfinderClick = function() {
-  // var recording = this.camera.get('recording');
-
-  // // The filmstrip shouldn't be
-  // // shown while camera is recording.
-  // if (recording || this.activity.active) {
-  //   return;
-  // }
-
-  // this.filmstrip.toggle();
-
-  this.app.emit('settingsrequest');
+  var recording = this.camera.get('recording');
+  if (recording || this.activity.active) { return; }
+  this.filmstrip.toggle();
   debug('click');
 };
 

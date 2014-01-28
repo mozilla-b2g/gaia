@@ -22,8 +22,8 @@ module.exports = View.extend({
     this.items = options.list;
     this.hash = {};
     this.items.forEach(this.addToHash);
-    attach.on(this.el, 'click', 'li', this.onItemClick);
-    attach.on(this.el, 'click', this.onClick);
+    attach(this.el, 'click', 'li', this.onItemClick);
+    attach(this.el, 'click', this.onClick);
     this.state.on('change', this.onStateChange);
     this.on('destroy', this.onDestroy);
   },
@@ -36,6 +36,7 @@ module.exports = View.extend({
 
   onItemClick: function(e, el) {
     debug('item click');
+    e.stopPropagation();
     var key = el.getAttribute('data-key');
     this.toggleKey(key);
   },

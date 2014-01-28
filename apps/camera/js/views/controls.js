@@ -5,9 +5,9 @@ define(function(require, exports, module) {
  * Dependencies
  */
 
-var View = require('vendor/view');
-var bind = require('utils/bind');
 var find = require('utils/find');
+var View = require('vendor/view');
+var attach = require('vendor/attach');
 var formatTimer = require('utils/formattimer');
 var debug = require('debug')('view:controls');
 
@@ -24,33 +24,22 @@ module.exports = View.extend({
 
   render: function() {
     this.el.innerHTML = this.template();
-
-    // Find elements
-    this.els.switchButton = find('.js-switch', this.el);
-    this.els.captureButton = find('.js-capture', this.el);
-    this.els.galleryButton = find('.js-gallery', this.el);
-    this.els.cancelPickButton = find('.js-cancel-pick', this.el);
     this.els.timer = find('.js-video-timer', this.el);
-
-    // Bind events
-    bind(this.els.switchButton, 'click', this.onButtonClick);
-    bind(this.els.captureButton, 'click', this.onButtonClick);
-    bind(this.els.galleryButton, 'click', this.onButtonClick);
-    bind(this.els.cancelPickButton, 'click', this.onButtonClick);
+    attach.on(this.el, 'click', '.js-btn', this.onButtonClick);
   },
 
   template: function() {
-    return '<a class="switch-button js-switch" name="switch">' +
+    return '<a class="switch-button js-btn" name="switch">' +
       '<span class="rotates"></span>' +
     '</a>' +
-    '<a class="capture-button js-capture" name="capture">' +
+    '<a class="capture-button js-btn" name="capture">' +
       '<span class="rotates"></span>' +
     '</a>' +
     '<div class="misc-button">' +
-      '<a class="gallery-button js-gallery" name="gallery">' +
+      '<a class="gallery-button js-btn" name="gallery">' +
         '<span class="rotates"></span>' +
       '</a>' +
-      '<a class="cancel-pick js-cancel-pick" name="cancel">' +
+      '<a class="cancel-pick js-btn" name="cancel">' +
         '<span></span>' +
       '</a>' +
       '<span class="video-timer js-video-timer">00:00</span>' +
@@ -76,10 +65,10 @@ module.exports = View.extend({
     this.els.timer.textContent = formatted;
   },
 
-  onButtonClick: function(event) {
-    var el = event.currentTarget;
+  onButtonClick: function(e, el) {
+    e.stopPropagation();
     var name = el.getAttribute('name');
-    this.emit('click:' + name);
+    this.emit('click:' + name, e);
   }
 });
 
