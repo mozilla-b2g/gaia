@@ -13,13 +13,14 @@ require(['config/require', 'config'], function() {
     var App = require('app');
     var Camera = require('camera');
     var Sounds = require('sounds');
+    var Config = require('lib/config');
     var HudView = require('views/hud');
     var Filmstrip = require('filmstrip');
     var FocusRing = require('views/focusring');
     var ControlsView = require('views/controls');
     var ViewfinderView = require('views/viewfinder');
     var sounds = new Sounds(require('config/sounds'));
-    var State = require('state');
+    var config = new Config(require('config/app'));
     var allDone = require('utils/alldone');
     var GeoLocation = require('geolocation');
     var Activity = require('activity');
@@ -57,13 +58,13 @@ require(['config/require', 'config'], function() {
      * Create new `App`
      */
 
-    var app = new App({
+    var app = window.app = new App({
       win: window,
       doc: document,
       el: document.body,
       geolocation: new GeoLocation(),
       activity: new Activity(),
-      state: new State(),
+      config: config,
       camera: camera,
       sounds: sounds,
       views: views,
@@ -74,15 +75,13 @@ require(['config/require', 'config'], function() {
 
     debug('created app');
 
-    // Check activity, configure the
-    // camera with some of the activity
-    // data, then boot the app.
+    // Async jobs to be
+    // done before boot...
     app.activity.check(done());
-    app.state.fetch(done());
+    app.fetchState(done());
 
-    done(function() {
-      app.boot();
-    });
+    // ...boot!
+    done(app.boot);
   });
 
   require(['boot']);
