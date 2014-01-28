@@ -468,6 +468,11 @@ var ThreadUI = global.ThreadUI = {
       return;
     }
 
+    // Ensure that Recipients does not trigger focus
+    // on itself, which will cause the cursor to "jump"
+    // back to the recipients input from the message input.
+    Recipients.View.isFocusable = false;
+
     // Restore the recipients list input area to
     // single line view.
     this.recipients.visible('singleline');
@@ -597,7 +602,7 @@ var ThreadUI = global.ThreadUI = {
 
     // Ensure that Recipients does not trigger focus on
     // itself, which causes the keyboard to appear.
-    Recipients.View.isObscured = true;
+    Recipients.View.isFocusable = false;
 
     var activity = new MozActivity({
       name: 'pick',
@@ -615,7 +620,7 @@ var ThreadUI = global.ThreadUI = {
         return;
       }
 
-      Recipients.View.isObscured = false;
+      Recipients.View.isFocusable = true;
 
       var data = Utils.basicContact(
         activity.result.tel[0].value, activity.result
@@ -626,7 +631,7 @@ var ThreadUI = global.ThreadUI = {
     }).bind(this);
 
     activity.onerror = (function(e) {
-      Recipients.View.isObscured = false;
+      Recipients.View.isFocusable = true;
 
       console.log('WebActivities unavailable? : ' + e);
     }).bind(this);
@@ -2100,6 +2105,7 @@ var ThreadUI = global.ThreadUI = {
 
   toFieldInput: function(event) {
     var typed;
+
     if (event.target.isPlaceholder) {
       typed = event.target.textContent.trim();
       this.searchContact(typed, this.listContacts.bind(this));
