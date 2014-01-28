@@ -14,7 +14,7 @@ var broadcast = require('broadcast');
 var debug = require('debug')('app');
 var LazyL10n = require('LazyL10n');
 var bind = require('utils/bind');
-var evt = require('vendor/evt');
+var events = require('vendor/evt');
 var dcf = require('dcf');
 
 /**
@@ -25,7 +25,7 @@ var LOCATION_PROMPT_DELAY = constants.PROMPT_DELAY;
 var unbind = bind.unbind;
 
 // Mixin emitter
-evt.mix(App.prototype);
+events(App.prototype);
 
 /**
  * Exports

@@ -5,7 +5,7 @@ define(function(require, exports, module) {
    * Dependencies
    */
 
-  var events = require('vendor/evt').mix;
+  var events = require('vendor/evt');
   var mixin = require('utils/mixin');
   var bindAll = require('utils/bindAll');
 
