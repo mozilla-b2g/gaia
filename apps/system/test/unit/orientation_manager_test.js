@@ -2,9 +2,10 @@
 
 mocha.globals(['OrientationManager', 'SettingsListener']);
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
+requireApp('system/test/unit/mock_lock_screen.js');
 
 var mocksForOrientationManager = new MocksHelper([
-  'SettingsListener'
+  'SettingsListener', 'LockScreen'
 ]).init();
 
 suite('system/OrientationManager >', function() {
@@ -55,6 +56,15 @@ suite('system/OrientationManager >', function() {
         type: 'will-unlock'
       });
       assert.isTrue(stubPublish.calledWith('reset-orientation'));
+    });
+
+    test('attention screen hides when lockscreen is active', function() {
+      var stubPublish = this.sinon.stub(OrientationManager, 'publish');
+      MockLockScreen.locked = true;
+      OrientationManager.handleEvent({
+        type: 'attentionscreenhide'
+      });
+      assert.isFalse(stubPublish.called);
     });
   });
 });
