@@ -281,9 +281,21 @@ function initDB() {
   // We don't need one of these handlers for the video db, since both
   // will get the same event at more or less the same time.
   photodb.onunavailable = function(event) {
-    // Switch back to the thumbnail view. If we were viewing or editing an image
-    // it might not be there anymore when the MediaDB becomes available again.
-    setView(LAYOUT_MODE.list);
+    // Switch back to the thumbnail view, unless the user is in the middle of
+    // a pick activity in which case the user is either in 'pick' mode or
+    // at the crop screen. If in 'pick' mode before DeviceStorage became
+    // unavailable, they should be in 'pick' mode when it becomes available.
+    // If the user is at the crop screen, having already chosen an image,
+    // it's possible they deleted that image while the phone was mounted as a
+    // USB Mass Storage device. While this is an edge case, to be safe if
+    // unplugging while on the crop screen after having chosen an image, the
+    // user is brought back to the pick view.
+    if (!pendingPick) {
+      setView(LAYOUT_MODE.list);
+    }
+    else {
+      setView(LAYOUT_MODE.pick);
+    }
 
     // If storage becomes unavailble (e.g. the user starts a USB Mass Storage
     // Lock the user out of the app, and tell them why
