@@ -80,6 +80,24 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
       }
     });
 
+  // We get headphoneschange event when the headphones is plugged or unplugged
+  var acm = navigator.mozAudioChannelManager;
+  if (acm) {
+    acm.addEventListener('headphoneschange', function onheadphoneschange() {
+      if (!acm.headphones && playing) {
+        setVideoPlaying(false);
+      }
+    });
+  }
+
+  function setVideoPlaying(playing) {
+    if (playing) {
+      play();
+    } else {
+      pause();
+    }
+  }
+
   function initUI() {
     // Fullscreen mode and inline activities don't seem to play well together
     // so we'll play the video without going into fullscreen mode.
@@ -161,10 +179,7 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
   }
 
   function handlePlayButtonClick() {
-    if (dom.play.classList.contains('paused'))
-      play();
-    else
-      pause();
+    setVideoPlaying(dom.player.paused);
   }
 
   function toggleVideoControls(e) {
