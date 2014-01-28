@@ -25,7 +25,6 @@ var MockCompose = {
   focus: function() {},
   updateType: function() {},
 
-  getText: function() {},
   getSubject: function() {},
   toggleSubject: function() {},
   fromDraft: function() {},
