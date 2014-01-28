@@ -203,7 +203,12 @@
         if (this.activityCallee) {
           this.activityCallee.kill();
         }
-        if (this.activityCaller instanceof AppWindow) {
+        this.debug('request caller to open again');
+        if (this.activityCaller instanceof ActivityWindow) {
+          if (evt) {
+            this.activityCaller.open();
+          }
+        } else if (this.activityCaller instanceof AppWindow) {
           // If we're killed by event handler, display the caller.
           if (evt) {
             // XXX: We should just request this.activityCaller.open()
@@ -215,21 +220,21 @@
               WindowManager.setDisplayedApp(this.activityCaller.origin);
             }
           }
-        } else if (this.activityCaller instanceof ActivityWindow) {
-          if (evt) {
-            this.activityCaller.open();
-          }
         } else {
           console.warn('unknown window type of activity caller.');
         }
-        this.containerElement.removeChild(this.element);
+        var e = this.containerElement.removeChild(this.element);
+        this.debug('removed ' + e);
+        this.publish('removed');
       }.bind(this));
     } else {
       this.publish('terminated');
       if (this.activityCallee) {
         this.activityCallee.kill();
       }
-      this.containerElement.removeChild(this.element);
+      var e = this.containerElement.removeChild(this.element);
+      this.debug('removed ' + e);
+      this.publish('removed');
     }
     this.debug('killed by ', evt ? evt.type : 'direct function call.');
     this.activityCaller.unsetActivityCallee();
