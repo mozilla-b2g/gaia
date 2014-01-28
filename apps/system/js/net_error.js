@@ -1,4 +1,4 @@
-(function(window) {
+(function(exports) {
   'use strict';
 
   /**
@@ -58,7 +58,7 @@
   function addFrameHandlers() {
     document.body.onclick = function bodyClick() {
       document.getElementById('retry-icon').classList.remove('still');
-      window.location.reload(true);
+      NetError.reload(true);
     };
   }
 
@@ -77,7 +77,7 @@
     if (retryBtn) {
       retryBtn.onclick = function retryClick(evt) {
         evt.preventDefault();
-        window.location.reload(true);
+        NetError.reload(true);
       };
     }
   }
@@ -183,6 +183,13 @@
   }
 
   /**
+   * Sets the error type for this page
+   */
+  function applyCommonStyles() {
+    document.body.classList.add(getErrorFromURI().e);
+  }
+
+  /**
    * Mark this page as being an app
    */
   function applyAppStyle() {
@@ -228,6 +235,30 @@
     return _error;
   }
 
+  /*
+   * This method reloads the window if the device is online and in the
+   * foreground
+   */
+  function checkConnection() {
+    if (navigator.onLine && !document.hidden &&
+        !document.body.classList.contains('hidden')) {
+      document.body.classList.add('hidden');
+      NetError.reload(true);
+      window.addEventListener('offline', function onOffline() {
+        window.removeEventListener('offline', onOffline);
+        document.body.classList.remove('hidden');
+      });
+    }
+  }
+
+  function addConnectionHandlers() {
+    var error = getErrorFromURI();
+    if (error.e === 'netOffline') {
+      document.addEventListener('visibilitychange', checkConnection);
+      window.addEventListener('online', checkConnection);
+    }
+  }
+
   /**
    * Initialize the page
    */
@@ -236,6 +267,8 @@
     // in a top level app (hosted/bookmarked), or an iFrame.
     // We need to display different information/user flows
     // based on these states.
+    applyCommonStyles();
+
     if (isFramed()) {
       applyFrameStyle();
       populateFrameMessages();
@@ -245,7 +278,19 @@
       populateAppMessages();
       addAppHandlers();
     }
+
+    addConnectionHandlers();
   }
 
   navigator.mozL10n.ready(initPage);
+
+  var NetError = {
+    init: initPage,
+
+    reload: function reload(forcedReload) {
+      window.location.reload(forcedReload);
+    }
+  };
+
+  exports.NetError = NetError;
 }(this));
