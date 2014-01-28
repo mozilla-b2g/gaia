@@ -3,6 +3,14 @@
 (function(window) {
   var _start = Date.now();
   var DEBUG = false;
+
+  var lockTypes = {
+    'pinRequired': true,
+    'pukRequired': true,
+    'networkLocked': true,
+    'corporateLocked': true,
+    'serviceProviderLocked': true
+  };
   /**
    * SIMSlot is the API wrapper for each mobileConnection,
    * and since one mobileConnection matches one SIM slot,
@@ -116,5 +124,13 @@
   SIMSlot.prototype.isAbsent = function ss_isAbsent() {
     return (!this.simCard || this.simCard &&
       this.simCard.iccInfo && this.simCard.iccInfo.iccid === null);
+  };
+
+  /**
+   * Indicate SIM card in the slot is locked or not.
+   * @return {Boolean} SIM card locked or not.
+   */
+  SIMSlot.prototype.isLocked = function ss_isLocked() {
+    return !!lockTypes[this.simCard.cardState];
   };
 }(this));
