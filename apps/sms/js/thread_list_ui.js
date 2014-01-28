@@ -3,7 +3,8 @@
 
 /*global Template, Utils, Threads, Contacts, URL, Threads,
          WaitingScreen, MozSmsFilter, MessageManager, TimeHeaders,
-         Drafts, Thread, ThreadUI */
+         Drafts, Thread, ThreadUI, OptionMenu, ActivityPicker */
+
 /*exported ThreadListUI */
 (function(exports) {
 'use strict';
@@ -35,7 +36,7 @@ var ThreadListUI = {
       'container', 'no-messages',
       'check-all-button', 'uncheck-all-button',
       'delete-button', 'cancel-button',
-      'edit-icon', 'edit-mode', 'edit-form', 'draft-saved-banner'
+      'options-icon', 'edit-mode', 'edit-form', 'draft-saved-banner'
     ].forEach(function(id) {
       this[Utils.camelCase(id)] = document.getElementById('threads-' + id);
     }, this);
@@ -60,8 +61,8 @@ var ThreadListUI = {
       'click', this.cancelEdit.bind(this)
     );
 
-    this.editIcon.addEventListener(
-      'click', this.startEdit.bind(this)
+    this.optionsIcon.addEventListener(
+      'click', this.showOptions.bind(this)
     );
 
     this.container.addEventListener(
@@ -336,7 +337,30 @@ var ThreadListUI = {
 
     ThreadListUI.noMessages.classList[removeWhenEmpty]('hide');
     ThreadListUI.container.classList[addWhenEmpty]('hide');
-    ThreadListUI.editIcon.classList[addWhenEmpty]('disabled');
+  },
+
+  showOptions: function thlui_options() {
+    var params = {
+      items: [{
+        l10nId: 'settings',
+        method: function oSettings() {
+          ActivityPicker.openSettings();
+        }
+      },{ // Last item is the Cancel button
+        l10nId: 'cancel',
+        incomplete: true
+      }]
+    };
+
+    // Add delete option when list is not empty 
+    if (ThreadListUI.noMessages.classList.contains('hide')) {
+      params.items.unshift({
+        l10nId: 'deleteMessages-label',
+        method: this.startEdit.bind(this)
+      });
+    }
+
+    new OptionMenu(params).show();
   },
 
   startEdit: function thlui_edit() {
