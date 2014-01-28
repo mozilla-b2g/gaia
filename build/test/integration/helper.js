@@ -48,7 +48,8 @@ function checkWebappsScheme(webapps) {
     var webapp = webapps[key];
     var scheme =
       webapp.origin.indexOf('mochi.test') !== -1 ||
-      webapp.origin.indexOf('marketplace.allizom.org') !== -1 ?
+      webapp.origin.indexOf('marketplace.allizom.org') !== -1 ||
+      webapp.origin.indexOf('inapp-pay-test.paas.allizom.org') !== -1 ?
       'http' : 'app';
     assert.equal(webapp.origin.indexOf(scheme), 0);
   });
