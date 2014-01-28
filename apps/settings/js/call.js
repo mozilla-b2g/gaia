@@ -795,7 +795,7 @@ var CallSettings = (function(window, document, undefined) {
    */
   function cs_initVoicePrivacyMode() {
     // get network type
-    getSupportedNetworkInfo(_mobileConnection, function(result) {
+    getSupportedNetworkInfo(function(result) {
       if (!result.cdma) {
         return;
       }
