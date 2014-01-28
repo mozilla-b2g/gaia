@@ -209,53 +209,47 @@ var getNfc = function() {
  * The function returns an object of the supporting state of category of network
  * types. The categories are 'gsm' and 'cdma'.
  */
-var getSupportedNetworkInfo = (function() {
-  var _result = null;
+function getSupportedNetworkInfo(mobileConneciton, callback) {
+  var types = [
+    'wcdma/gsm',
+    'gsm',
+    'wcdma',
+    'wcdma/gsm-auto',
+    'cdma/evdo',
+    'cdma',
+    'evdo',
+    'wcdma/gsm/cdma/evdo'
+  ];
+  if (!mobileConneciton)
+    return;
 
-  return function(callback) {
-    if (!callback)
-      return;
+  var _hwSupportedTypes = mobileConneciton.supportedNetworkTypes;
 
-    // early return if the result is available
-    if (_result) {
-      callback(_result);
-      return;
-    }
-
-    // get network type
-    loadJSON('/resources/network.json', function loadNetwork(network) {
-      _result = {
-        gsm: false,
-        cdma: false,
-        networkTypes: null
-      };
-
-      /*
-       * Possible values of the item in network.types are:
-       * "wcdma/gsm", "gsm", "wcdma", "wcdma/gsm-auto",
-       * "cdma/evdo", "cdma", "evdo", "wcdma/gsm/cdma/evdo"
-       */
-      if (network.types) {
-        var types = _result.networkTypes = network.types;
-        for (var i = 0; i < types.length; i++) {
-          var type = types[i];
-          type.split('/').forEach(function(subType) {
-            _result.gsm = _result.gsm || (subType === 'gsm') ||
-                         (subType === 'gsm-auto') || (subType === 'wcdma');
-            _result.cdma = _result.cdma || (subType === 'cdma') ||
-                          (subType === 'evdo');
-          });
-
-          if (_result.gsm && _result.cdma) {
-            break;
-          }
-        }
-      }
-
-      callback(_result);
-    });
+  var _result = {
+    gsm: _hwSupportedTypes.indexOf('gsm') !== -1,
+    cdma: _hwSupportedTypes.indexOf('cdma') !== -1,
+    wcdma: _hwSupportedTypes.indexOf('wcdma') !== -1,
+    evdo: _hwSupportedTypes.indexOf('evdo') !== -1,
+    networkTypes: null
   };
-})();
+
+  var _networkTypes = [];
+  for (var i = 0; i < types.length; i++) {
+    var type = types[i];
+    var subtypes = type.split('/');
+    var allSubTypesSupported = true;
+    for (var j = 0; j < subtypes.length; j++) {
+      allSubTypesSupported =
+        allSubTypesSupported && _result[subtypes[j].split('-')[0]];
+    }
+    if (allSubTypesSupported)
+      _networkTypes.push(type);
+  }
+  if (_networkTypes.length !== 0) {
+    _result.networkTypes = _networkTypes;
+  }
+  callback(_result);
+}
 
 function isIP(address) {
   return /^\d+\.\d+\.\d+\.\d+$/.test(address);
