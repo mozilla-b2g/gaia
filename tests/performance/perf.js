@@ -16,6 +16,7 @@ const excludedApps = [
   'template', // XXX not a real thing.
   'homescreen', // we can't "launch" it
   'system', // reboots the phone
+  'system/test/marionette/fullscreen-app', // some test app.
   'system/camera' // copy of the camera app
 ];
 
