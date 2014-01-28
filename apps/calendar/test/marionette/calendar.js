@@ -41,7 +41,9 @@ Calendar.Selector = Object.freeze({
   editEventStartDate: '#modify-event-view input[name="startDate"]',
   editEventStartTime: '#modify-event-view input[name="startTime"]',
   editEventTitle: '#modify-event-view input[name="title"]',
+  editEventDescription: '#modify-event-view textarea[name="description"]',
   eventListSection: '#event-list',
+  weekViewEvent: '#week-view .event',
   modifyEventView: '#modify-event-view',
   monthViewDayEvent: '#event-list .event',
   monthViewDayEventName: 'h5',                // Search beneath .event
@@ -54,10 +56,14 @@ Calendar.Selector = Object.freeze({
   viewEventViewCalendar: '#event-view .current-calendar .content',
   viewEventViewEndDate: '#event-view .end-date > .content',
   viewEventViewEndTime: '#event-view .end-date > .end-time > .content',
-  viewEventViewLocation: '#event-view .location > .content',
+  viewEventViewLocation: '#event-view .location',
+  viewEventViewLocationContent: '#event-view .location > .content',
   viewEventViewStartDate: '#event-view .start-date > .content',
   viewEventViewStartTime: '#event-view .start-date > .start-time > .content',
-  viewEventViewTitle: '#event-view .title .content'
+  viewEventViewTitle: '#event-view .title',
+  viewEventViewTitleContent: '#event-view .title .content',
+  viewEventViewDescription: '#event-view .description',
+  viewEventViewDescriptionContent: '#event-view .description .content'
 });
 
 Calendar.prototype = {
@@ -128,9 +134,11 @@ Calendar.prototype = {
 
     // Inject form data.
     var titleInput = this.waitForElement('editEventTitle'),
-        locationInput = this.waitForElement('editEventLocation');
+        locationInput = this.waitForElement('editEventLocation'),
+        descriptionInput = this.waitForElement('editEventDescription');
     titleInput.sendKeys(opts.title);
     locationInput.sendKeys(opts.location);
+    descriptionInput.sendKeys(opts.description);
     var form = this.waitForElement('editEventForm');
     this.client.forms.fill(form, {
       startDate: opts.startDate,
@@ -156,15 +164,16 @@ Calendar.prototype = {
    * @return {Event} The event we're currently looking at.
    */
   getViewEventEvent: function() {
-    if (!this.isViewEventViewActive) {
+    if (!this.isViewEventViewActive()) {
       throw new Error('ViewEvent view inactive');
     }
 
     // TODO(gareth): Sort out the dates and times here.
     return {
       calendar: this.waitForElement('viewEventViewCalendar').text(),
-      title: this.waitForElement('viewEventViewTitle').text(),
-      location: this.waitForElement('viewEventViewLocation').text()
+      title: this.waitForElement('viewEventViewTitleContent').text(),
+      location: this.waitForElement('viewEventViewLocationContent').text(),
+      description: this.waitForElement('viewEventViewDescriptionContent').text()
     };
   },
 
@@ -173,8 +182,7 @@ Calendar.prototype = {
    * @return {boolean} Whether or not the calendar is active.
    */
   isActive: function() {
-    var url = this.client.getUrl();
-    return url.indexOf(Calendar.ORIGIN) !== -1;
+    return this.isViewActive();
   },
 
   /**
@@ -182,38 +190,37 @@ Calendar.prototype = {
    * @return {boolean} Whether or not view is active
    */
   isViewActive: function(id) {
-    var actual = this.client.getUrl();
-    var expected = Calendar.ORIGIN + '/' + id + '/';
-    return actual === expected;
+    id = id || '';
+    var url = this.client.getUrl();
+    return url.indexOf(Calendar.ORIGIN + id) !== -1;
   },
 
   /**
    * @return {boolean} Whether or not week view is active
    */
   isWeekViewActive: function() {
-    return this.isViewActive('week');
+    return this.isViewActive('/week/');
   },
 
   /**
    * @return {boolean} Whether or not the calendar month view is active.
    */
   isMonthViewActive: function() {
-    return this.isViewActive('month');
+    return this.isViewActive('/month/');
   },
 
   /**
    * @return {boolean} Whether or not the calendar day view is active.
    */
   isDayViewActive: function() {
-    return this.isViewActive('day');
+    return this.isViewActive('/day/');
   },
 
   /**
    * @return {boolean} Whether or not the read only event view is active.
    */
   isViewEventViewActive: function() {
-    var url = this.client.getUrl();
-    return url.indexOf('/event/show') !== -1;
+    return this.isViewActive('/event/show/');
   },
 
 
