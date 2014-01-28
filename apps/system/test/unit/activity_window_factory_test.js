@@ -129,8 +129,8 @@ suite('system/ActivityWindowFactory', function() {
     }
   };
 
-  var fakeOpenConfig4 = {
-    type: 'activitywillopen',
+  var fakeOpenConfig = {
+    type: 'activityopening',
     detail: {
       'isActivity': true,
       'url': 'app://fakeact4.gaiamobile.org/pick.html',
@@ -199,11 +199,9 @@ suite('system/ActivityWindowFactory', function() {
       ActivityWindowFactory._lastActivity = null;
       ActivityWindowFactory._activeActivity = null;
       ActivityWindowFactory._activities = [];
-      ActivityWindowFactory.handleEvent(fakeOpenConfig4);
+      ActivityWindowFactory.handleEvent(fakeOpenConfig);
 
       assert.isTrue(ActivityWindowFactory._activeActivity != null);
-      assert.equal(ActivityWindowFactory.getActiveWindow(),
-        ActivityWindowFactory._activeActivity);
     });
 
     test('back to home: one inline activity', function() {
@@ -228,26 +226,6 @@ suite('system/ActivityWindowFactory', function() {
         stubActive.returns(true);
         activity1.activityCallee = activity3;
         var stubKill = this.sinon.stub(activity3, 'kill');
-        ActivityWindowFactory.handleEvent(fakeLaunchConfig2);
-
-        assert.isTrue(stubKill.called);
-        delete activity1.activityCallee;
-      });
-
-    test('second activity request on the same caller which is an app',
-      function() {
-        ActivityWindowFactory._activities = [activity1, activity2, activity3];
-        ActivityWindowFactory._lastActivity = activity1;
-        ActivityWindowFactory._activeActivity = activity1;
-        var stubActive = this.sinon.stub(activity1, 'isActive');
-        stubActive.returns(false);
-        var stubGetActiveApp =
-          this.sinon.stub(MockAppWindowManager, 'getActiveApp');
-        stubGetActiveApp.returns(app1);
-        var stubActiveApp = this.sinon.stub(app1, 'isActive');
-        stubActiveApp.returns(true);
-        app1.activityCallee = activity1;
-        var stubKill = this.sinon.stub(activity1, 'kill');
         ActivityWindowFactory.handleEvent(fakeLaunchConfig2);
 
         assert.isTrue(stubKill.called);
@@ -320,9 +298,9 @@ suite('system/ActivityWindowFactory', function() {
 
     test('update active activity', function() {
       ActivityWindowFactory._activities = [activity1, activity2, activity3];
-      ActivityWindowFactory._lastActivity = activity1;
+      ActivityWindowFactory._activeActivity = activity1;
       ActivityWindowFactory.handleEvent({
-        type: 'activitywillclose',
+        type: 'activityclosing',
         detail: activity1,
         stopImmediatePropagation: function() {}
       });
@@ -330,7 +308,7 @@ suite('system/ActivityWindowFactory', function() {
       assert.isTrue(ActivityWindowFactory._activeActivity == null);
 
       ActivityWindowFactory.handleEvent({
-        type: 'activitywillopen',
+        type: 'activityopening',
         detail: activity1,
         stopImmediatePropagation: function() {}
       });
