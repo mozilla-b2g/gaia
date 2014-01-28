@@ -11,6 +11,7 @@ class Activities(Base):
     _actions_menu_locator = (By.CSS_SELECTOR, 'form[data-type="action"]')
     _action_option_locator = (By.CSS_SELECTOR, 'form[data-type="action"] button')
 
+    _wallpaper_button_locator = (By.XPATH, "//*[text()='Wallpaper']")
     _gallery_button_locator = (By.XPATH, '//*[text()="Gallery"]')
     _camera_button_locator = (By.XPATH, '//*[text()="Camera"]')
     _cancel_button_locator = (By.CSS_SELECTOR, 'form[data-type="action"] button[data-action="cancel"]')
@@ -19,6 +20,13 @@ class Activities(Base):
         Base.__init__(self, marionette)
         self.marionette.switch_to_frame()
         self.wait_for_element_displayed(*self._actions_menu_locator)
+
+    def tap_wallpaper(self):
+        self.marionette.find_element(*self._wallpaper_button_locator).tap()
+        from gaiatest.apps.wallpaper.app import Wallpaper
+        wallpaper = Wallpaper(self.marionette)
+        wallpaper.switch_to_wallpaper_frame()
+        return wallpaper
 
     def tap_gallery(self):
         self.marionette.find_element(*self._gallery_button_locator).tap()
