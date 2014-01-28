@@ -163,6 +163,7 @@ App.prototype.onBlur = function() {
 };
 
 App.prototype.onClick = function() {
+  debug('click');
   this.emit('settingsdismiss');
 };
 

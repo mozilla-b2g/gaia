@@ -8,13 +8,14 @@ define(function(require, exports, module) {
 var bindAll = require('utils/bindAll');
 var debug = require('debug')('controller:settings');
 var SettingsView = require('views/settings');
-var config = require('config/app').settings;
+var config = require('config/app');
 
 /**
  * Locals
  */
 
-var list = createListFromConfig(config);
+var has = {}.hasOwnProperty;
+var list = listFromConfig(config);
 
 /**
  * Exports
@@ -34,11 +35,12 @@ function SettingsController(app) {
 
 SettingsController.prototype = {
   bindEvents: function() {
-    this.app.on('settingsrequest', this.onSettingsRequest);
-    //this.app.on('settingsdismiss', this.onSettingsDismiss);
+    this.app.on('settingsrequest', this.openSettings);
+    this.app.on('settingsdismiss', this.closeSettings);
+    this.app.on('settingstoggle', this.toggleSettings);
   },
 
-  onSettingsRequest: function() {
+  openSettings: function() {
     if (this.view) { return; }
     var options = { state: this.state, list: list };
     this.view = new SettingsView(options).render();
@@ -46,21 +48,34 @@ SettingsController.prototype = {
     debug('appended menu');
   },
 
-  onSettingsDismiss: function() {
+  closeSettings: function() {
     if (!this.view) { return; }
     this.view.destroy();
     this.view = null;
+  },
+
+  toggleSettings: function() {
+    if (this.view) { this.closeSettings(); }
+    else { this.openSettings(); }
   }
 };
 
-function createListFromConfig(config) {
-  var menu = config.menu;
-  var keys = config.keys;
-  var list = menu.map(function(key) {
-    var item = keys[key];
-    item.key = key;
-    return item;
-  });
+function listFromConfig(config) {
+  var list = [];
+  var item;
+
+  // Compile a list of items
+  // which have a 'menu' key
+  for (var key in config) {
+    item = config[key];
+    if (has.call(item, 'menu')) {
+      item.key = key;
+      list.push(item);
+    }
+  }
+
+  // Sort the list by menu index
+  list.sort(function(a, b) { return a.menu - b.menu; });
   debug('list from config', list);
   return list;
 }

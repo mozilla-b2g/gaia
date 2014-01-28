@@ -20,36 +20,6 @@ var matches = proto.matchesSelector ||
   proto.oMatchesSelector;
 
 /**
- * Handles Backbone style
- * shorthand event binding.
- *
- * Example:
- *
- *   attach(myElement, {
- *     'click .foo': onFooClick,
- *     'click .bar': onBarClick
- *   });
- *
- * @param  {element} root
- * @param  {Object} config
- * @param  {Object} ctx
- */
-function attach(root, config, ctx) {
-  var parts;
-  var key;
-
-  for (key in config) {
-    parts = key.split(' ');
-    attach.on(
-      root,
-      parts[0],
-      parts[1],
-      config[key],
-      ctx);
-  }
-}
-
-/**
  * Bind an event listener
  * to the given element.
  *
@@ -65,7 +35,10 @@ function attach(root, config, ctx) {
  * @param  {Function} fn
  * @param  {Object}   ctx (optional)
  */
-attach.on = function(root, type, selector, fn, ctx) {
+function attach(root, type, selector, fn, ctx) {
+  if (arguments.length === 1) {
+    return attach.many.apply(null, arguments);
+  }
 
   // `selector` is optional
   if (typeof selector === 'function') {
@@ -101,19 +74,19 @@ attach.on = function(root, type, selector, fn, ctx) {
    *
    * @param  {Event}   event
    */
-  function callback(event) {
-    var el = event.target;
+  function callback(e) {
+    var el = e.target;
     var selector;
     var matched;
     var out;
     var fn;
-debugger;
+
     // Walk up the DOM tree
     // until we hit the root
     while (el) {
 
       // Loop over each selector
-      // bound to this event type.
+      // bound to this e type.
       for (selector in delegates) {
         fn = delegates[selector];
 
@@ -124,7 +97,7 @@ debugger;
           matches.call(el, selector);
 
         if (matched) {
-          out = fn.call(ctx || el, event, el);
+          out = fn.call(ctx || el, e, el);
 
           // Stop propagation if the
           // user returns false from the
@@ -132,7 +105,7 @@ debugger;
           // use .stopPropagation, but I
           // don't know of any way to detect
           // if this has been called.
-          if (out === false) { return; }
+          if (out === false) { return e.stopPropagation(); }
         }
       }
 
@@ -144,7 +117,9 @@ debugger;
       el = el.parentNode;
     }
   }
-};
+}
+
+attach.on = attach;
 
 /**
  * Unbind an event attach
@@ -193,6 +168,36 @@ attach.off = function(root, type, selector) {
   if (isEmpty(store.delegates[type])) {
     root.removeEventListener(type, master);
     delete store.master[type];
+  }
+};
+
+/**
+ * Handles Backbone style
+ * shorthand event binding.
+ *
+ * Example:
+ *
+ *   attach(myElement, {
+ *     'click .foo': onFooClick,
+ *     'click .bar': onBarClick
+ *   });
+ *
+ * @param  {element} root
+ * @param  {Object} config
+ * @param  {Object} ctx
+ */
+attach.many = function(root, config, ctx) {
+  var parts;
+  var key;
+
+  for (key in config) {
+    parts = key.split(' ');
+    attach.on(
+      root,
+      parts[0],
+      parts[1],
+      config[key],
+      ctx);
   }
 };
 

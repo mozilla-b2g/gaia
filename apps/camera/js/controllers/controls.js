@@ -132,8 +132,12 @@ var throttleGalleryLaunch = false;
  * is pressed.
  *
  */
-ControlsController.prototype.onGalleryButtonClick = function() {
+ControlsController.prototype.onGalleryButtonClick = function(e) {
+  e.stopPropagation();
   var MozActivity = window.MozActivity;
+
+  // DEV: Don't commit this!
+  return this.app.emit('settingstoggle');
 
   // Can't launch the gallery if the lockscreen is locked.
   // The button shouldn't even be visible in this case, but
