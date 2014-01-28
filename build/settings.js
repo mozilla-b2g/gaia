@@ -54,7 +54,7 @@ function setNotification(settings, config) {
 /* Setup the default keyboard layouts according to the current language */
 function setDefaultKeyboardLayouts(lang, settings, config) {
   let layoutConfigFile = utils.resolve(
-    utils.joinPath('shared', 'resources', 'keyboard_layouts.json'),
+    utils.joinPath('build', 'config', 'keyboard-layouts.json'),
     config.GAIA_DIR);
 
   let layoutConfig = utils.getJSON(layoutConfigFile);
