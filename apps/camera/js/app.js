@@ -1,5 +1,4 @@
 define(function(require, exports, module) {
-/*jshint laxbreak:true*/
 'use strict';
 
 /**
