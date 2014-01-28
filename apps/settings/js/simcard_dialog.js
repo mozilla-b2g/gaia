@@ -102,7 +102,7 @@ function SimPinDialog(dialog) {
 
     // after three strikes, ask for PUK/PUK2
     var count = event.retryCount;
-    if (count == 0) {
+    if (count <= 0) {
       if (type === 'pin') {
         _action = initUI('unlock_puk');
         pukInput.focus();
