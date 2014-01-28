@@ -13,7 +13,9 @@ var bindAll = require('utils/bindAll');
  * Exports
  */
 
-module.exports = CameraController;
+module.exports = function(app) {
+  return new CameraController(app);
+};
 
 /**
  * Initialize a new `CameraController`
@@ -21,19 +23,15 @@ module.exports = CameraController;
  * @param {App} app
  */
 function CameraController(app) {
-  if (!(this instanceof CameraController)) {
-    return new CameraController(app);
-  }
-
   debug('initializing');
-  this.viewfinder = app.views.viewfinder;
-  this.filmstrip = app.filmstrip;
-  this.activity = app.activity;
-  this.storage = app.storage;
-  this.camera = app.camera;
-  this.app = app;
   bindAll(this);
-  this.setCaptureMode();
+  this.app = app;
+  this.camera = app.camera;
+  this.storage = app.storage;
+  this.activity = app.activity;
+  this.filmstrip = app.filmstrip;
+  this.viewfinder = app.views.viewfinder;
+  this.initialConfiguration();
   this.bindEvents();
   debug('initialized');
 }
@@ -53,21 +51,29 @@ CameraController.prototype.bindEvents = function() {
 };
 
 /**
- * Sets the initial
- * capture mode.
+ * Configure the camera with
+ * initial configuration derived
+ * from various startup paramenter.
  *
- * The mode chosen by an
- * activity is chosen, else
- * we just default to 'photo'
- *
+ * @private
  */
-CameraController.prototype.setCaptureMode = function() {
-  var initialMode = this.activity.mode ||
-                    constants.CAMERA_MODE_TYPE.PHOTO;
-  this.camera.set('mode', initialMode);
-  debug('capture mode set: %s', initialMode);
+CameraController.prototype.initialConfiguration = function() {
+  debug('initial configuration');
+
+  var initialMode = this.activity.mode || 'photo';
+  var activity = this.activity;
+  var camera = this.camera;
+
+  camera.set('targetFileSize', activity.data.fileSize);
+  camera.set('targetImageWidth', activity.data.width);
+  camera.set('targetImageHeight', activity.data.height);
+  camera.set('mode', initialMode);
 };
 
+/**
+ * Loads the camera with its
+ * @return {[type]} [description]
+ */
 CameraController.prototype.setupCamera = function() {
   this.camera.load();
 };

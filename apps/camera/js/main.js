@@ -81,9 +81,6 @@ require(['config/require', 'config'], function() {
     app.state.fetch(done());
 
     done(function() {
-      camera.set('targetFileSize', app.activity.data.fileSize);
-      camera.set('targetImageWidth', app.activity.data.width);
-      camera.set('targetImageHeight', app.activity.data.height);
       app.boot();
     });
   });
