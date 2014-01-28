@@ -1,3 +1,4 @@
+'use strict';
 /**
  * Base app object to provide common methods to app objects
  * @constructor

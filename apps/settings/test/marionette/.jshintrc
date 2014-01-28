@@ -11,6 +11,7 @@
     "marionetteScriptFinished",
     "require",
     "define",
+    "module",
     "requireApp",
     "sinon"
   ]

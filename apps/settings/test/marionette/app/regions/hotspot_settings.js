@@ -1,3 +1,4 @@
+'use strict';
 var Base = require('../base');
 
 /**
@@ -41,7 +42,8 @@ HotspotSettingsPanel.prototype = {
 
     var bodyWidth = this.findElement('body').size().width;
     this.client.waitFor(function() {
-      return parentSection.location()['x'] >= bodyWidth;
+      var loc = parentSection.location();
+      return loc.x >= bodyWidth;
     });
   }
 
