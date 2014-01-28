@@ -20,7 +20,7 @@ suite(' Customizer > ', function() {
         'support_contacts': '/ftu/test/unit/resources/support_contacts.json',
         'wallpaper': '/resources/wallpaper.jpg',
         'default_contacts': '/resources/contacts.json',
-        'ringtone': '/resources/ringtone.ogg'
+        'ringtone': '/resources/ringtone.opus'
     }
   };
 

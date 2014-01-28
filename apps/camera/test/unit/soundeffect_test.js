@@ -76,7 +76,7 @@ suite('Sound Effect Unit Tests', function() {
                                                settingValue: false});
 
       SoundEffect.playCameraShutterSound();
-      checkSoundPlaying('./resources/sounds/shutter.ogg');
+      checkSoundPlaying('./resources/sounds/shutter.opus');
     });
 
     test('#play camera shutter with recording sound enabled', function() {
@@ -90,7 +90,7 @@ suite('Sound Effect Unit Tests', function() {
                                                settingValue: true});
 
       SoundEffect.playCameraShutterSound();
-      checkSoundNotPlaying('./resources/sounds/shutter.ogg');
+      checkSoundNotPlaying('./resources/sounds/shutter.opus');
     });
 
     test('#play camcorder start with shutter enabled', function() {
