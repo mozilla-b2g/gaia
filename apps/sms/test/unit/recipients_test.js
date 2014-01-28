@@ -534,7 +534,7 @@ suite('Recipients', function() {
       suite('Clicks on accepted recipients', function() {
 
         setup(function() {
-          Recipients.View.isObscured = false;
+          Recipients.View.isFocusable = true;
         });
 
         test('while manually entering a recipient ', function() {
@@ -582,7 +582,15 @@ suite('Recipients', function() {
 
           view.firstElementChild.click();
 
-          assert.isTrue(Recipients.View.isObscured);
+          assert.isFalse(Recipients.View.isFocusable);
+        });
+
+        test('interaction restores focusability ', function() {
+          var view = document.getElementById('messages-recipients-list');
+
+          Recipients.View.isFocusable = false;
+          view.firstElementChild.click();
+          assert.isTrue(Recipients.View.isFocusable);
         });
 
         test('with only accepted recipients ', function() {
