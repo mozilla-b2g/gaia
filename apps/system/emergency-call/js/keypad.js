@@ -176,7 +176,10 @@ var KeypadManager = {
     // The keypad cancel bar is only the emergency call version of the keypad.
     if (this.callBarCancelAction) {
       this.callBarCancelAction.addEventListener('mouseup', function() {
-        window.parent.LockScreen.switchPanel();
+        // Before we make emergency call as an app, we must solve the closing
+        // issue like this. App would have some other formal events to close
+        // itself by SecureWindowManager.
+        window.parent.dispatchEvent(new CustomEvent('emergency-call-leave'));
       });
     }
 

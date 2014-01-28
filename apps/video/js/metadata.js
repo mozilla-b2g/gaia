@@ -117,7 +117,11 @@ function processFirstQueuedItem() {
     processingQueue = false;
     hideThrobber();
     updateDialog();
-    noMoreWorkCallback();
+
+    // To prevent it's null and we still call it.
+    // This would happen sometimes on Travis.
+    if (noMoreWorkCalback)
+      noMoreWorkCallback();
     return;
   }
 

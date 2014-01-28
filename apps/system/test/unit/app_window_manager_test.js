@@ -5,7 +5,7 @@ mocha.globals(['SettingsListener', 'removeEventListener', 'addEventListener',
       'AppWindowManager', 'Applications', 'ManifestHelper',
       'KeyboardManager', 'StatusBar', 'HomescreenWindow',
       'SoftwareButtonManager', 'AttentionScreen', 'AppWindow',
-      'LockScreen', 'OrientationManager', 'BrowserFrame',
+      'lockScreen', 'OrientationManager', 'BrowserFrame',
       'BrowserConfigHelper', 'System', 'BrowserMixin', 'TransitionMixin',
       'HomescreenLauncher', 'LayoutManager']);
 
@@ -27,7 +27,7 @@ requireApp('system/js/system.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 
 var mocksForAppWindowManager = new MocksHelper([
-  'LockScreen', 'OrientationManager', 'AttentionScreen',
+  'OrientationManager', 'AttentionScreen',
   'ActivityWindow', 'ActivityWindowFactory',
   'Applications', 'SettingsListener', 'HomescreenLauncher',
   'ManifestHelper', 'KeyboardManager', 'StatusBar', 'SoftwareButtonManager',
@@ -42,6 +42,7 @@ suite('system/AppWindowManager', function() {
     stubById = this.sinon.stub(document, 'getElementById');
     stubById.returns(document.createElement('div'));
 
+    window.lockScreen = MockLockScreen;
     home = new HomescreenWindow('fakeHome');
     MockHomescreenLauncher.mHomescreenWindow = home;
     MockHomescreenLauncher.origin = 'fakeOrigin';

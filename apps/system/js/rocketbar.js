@@ -1,5 +1,5 @@
 'use strict';
-/* global AppWindowManager, LockScreen, SettingsListener */
+/* global AppWindowManager, SettingsListener */
 
 var Rocketbar = {
 
@@ -329,7 +329,7 @@ var Rocketbar = {
    * @param {Boolean} isTaskManager, true if we are opening in task manager.
    */
   render: function(isTaskManager) {
-    if (LockScreen.locked) {
+    if (window.lockScreen && window.lockScreen.locked) {
       return;
     }
 

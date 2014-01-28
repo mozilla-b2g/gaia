@@ -83,7 +83,7 @@ var UtilityTray = {
         break;
 
       case 'touchstart':
-        if (LockScreen.locked)
+        if (lockScreen.locked)
           return;
         if (evt.target !== this.overlay &&
             evt.currentTarget !== this.statusbar &&
@@ -168,7 +168,7 @@ var UtilityTray = {
   onTouchEnd: function ut_onTouchEnd(touch) {
 
     // Prevent utility tray shows while the screen got black out.
-    if (LockScreen.locked) {
+    if (lockScreen.locked) {
       this.hide(true);
     } else {
       var significant = (Math.abs(this.lastDelta) > (this.screenHeight / 5));
