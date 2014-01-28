@@ -1,3 +1,5 @@
+/*global getSupportedNetworkInfo, SettingsListener, ForwardLock, MozActivity,
+         URL*/
 /* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
@@ -6,11 +8,11 @@
 
   var _ = navigator.mozL10n.get;
   (function() {
-    var mobileConnections = window.navigator.mozMobileConnections;
+  var mobileConnections = window.navigator.mozMobileConnections;
     // Show the touch tone selector if and only if we're on a CDMA network
     var toneSelector = document.getElementById('touch-tone-selector');
-    mobileConnections.forEach(function(mobileConnection) {
-      getSupportedNetworkInfo(mobileConnection, function(result) {
+    [].forEach.call(mobileConnections, function(conn, index) {
+      getSupportedNetworkInfo(conn, function(result) {
         toneSelector.hidden = toneSelector.hidden && !result.cdma;
       });
     });
