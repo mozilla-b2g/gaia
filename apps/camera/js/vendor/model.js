@@ -1,7 +1,7 @@
 define(function(require, exports, module) {
 'use strict';
 
-var evt = require('vendor/evt');
+var events = require('vendor/evt');
 
 module.exports = Model;
 
@@ -10,7 +10,7 @@ function Model(obj) {
   this._data = this.reset(obj, { silent: true });
 }
 
-Model.prototype = evt.mix({
+Model.prototype = events({
   get: function(key) {
     var data = this._getData();
     return key ? data[key] : data;

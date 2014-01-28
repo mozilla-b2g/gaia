@@ -5,7 +5,7 @@ define(function(require, exports, module) {
  * Dependencies
  */
 
-var evt = require('vendor/evt');
+var events = require('vendor/evt');
 var debug = require('debug')('storage');
 var createFilename = require('dcf').createDCFFilename;
 
@@ -15,7 +15,8 @@ var createFilename = require('dcf').createDCFFilename;
 
 module.exports = Storage;
 
-evt.mix(Storage.prototype);
+// Mixin event emitter
+events(Storage.prototype);
 
 function Storage() {
   this.check = this.check.bind(this);
