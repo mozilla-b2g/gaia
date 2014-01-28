@@ -276,8 +276,7 @@ suite('message_manager.js >', function() {
 
     setup(function() {
       ThreadUI.initRecipients();
-      this.sinon.spy(Compose, 'fromDraft');
-      this.sinon.spy(Compose, 'fromMessage');
+      this.sinon.stub(ThreadUI, 'setMessageBody');
       MessageManager.threadMessages = document.createElement('div');
     });
 
@@ -294,7 +293,7 @@ suite('message_manager.js >', function() {
 
       assert.equal(ThreadUI.recipients.numbers.length, 1);
       assert.equal(ThreadUI.recipients.numbers[0], '998');
-      assert.ok(Compose.fromMessage.calledWith(activity));
+      assert.ok(ThreadUI.setMessageBody.calledWith());
     });
 
     test('from activity with known contact', function() {
@@ -305,7 +304,7 @@ suite('message_manager.js >', function() {
 
       assert.equal(ThreadUI.recipients.numbers.length, 1);
       assert.equal(ThreadUI.recipients.numbers[0], '+346578888888');
-      assert.ok(Compose.fromMessage.calledWith(activity));
+      assert.ok(ThreadUI.setMessageBody.calledWith());
     });
 
     test('with message body', function() {
@@ -315,7 +314,7 @@ suite('message_manager.js >', function() {
         body: 'test'
       };
       MessageManager.handleActivity(activity);
-      assert.ok(Compose.fromMessage.calledWith(activity));
+      assert.ok(ThreadUI.setMessageBody.calledWith('test'));
     });
 
     test('No contact and no number', function() {
@@ -326,27 +325,27 @@ suite('message_manager.js >', function() {
       };
       MessageManager.handleActivity(activity);
       assert.equal(ThreadUI.recipients.numbers.length, 0);
-      assert.ok(Compose.fromMessage.calledWith(activity));
+      assert.ok(ThreadUI.setMessageBody.calledWith('Youtube url'));
     });
   });
 
   suite('handleForward() >', function() {
-    var message;
+
     setup(function() {
-      this.sinon.spy(Compose, 'fromMessage');
+      this.sinon.spy(ThreadUI, 'setMessageBody');
+      this.sinon.spy(Compose, 'append');
       this.sinon.stub(MessageManager, 'getMessage', function(id) {
+        var result;
         switch (id) {
           case 1:
-            message = MockMessages.sms();
+            result = MockMessages.sms();
             break;
           case 2:
-            message = MockMessages.mms();
+            result = MockMessages.mms();
             break;
-          case 3:
-            message = MockMessages.mms({subject: 'Title'});
         }
         var request = {
-          result: message,
+          result: result,
           set onsuccess(cb) {
             cb();
           },
@@ -369,7 +368,7 @@ suite('message_manager.js >', function() {
       MessageManager.handleForward(forward);
       assert.ok(MessageManager.getMessage.calledOnce);
       assert.ok(MessageManager.getMessage.calledWith(1));
-      assert.ok(Compose.fromMessage.called);
+      assert.ok(ThreadUI.setMessageBody.called);
     });
 
     test(' forward MMS with attachment', function() {
@@ -379,17 +378,8 @@ suite('message_manager.js >', function() {
       MessageManager.handleForward(forward);
       assert.ok(MessageManager.getMessage.calledOnce);
       assert.ok(MessageManager.getMessage.calledWith(2));
-      assert.isTrue(Compose.fromMessage.calledWith(message));
-    });
-
-    test(' forward MMS with subject', function() {
-      var forward = {
-        messageId: 3
-      };
-      MessageManager.handleForward(forward);
-      assert.ok(MessageManager.getMessage.calledOnce);
-      assert.ok(MessageManager.getMessage.calledWith(3));
-      assert.isTrue(Compose.fromMessage.calledWith(message));
+      assert.isFalse(ThreadUI.setMessageBody.called);
+      assert.ok(Compose.append.called);
     });
   });
 
