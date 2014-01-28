@@ -2383,6 +2383,7 @@ var ThreadUI = global.ThreadUI = {
     this.subheader.classList.add('hide');
     this.container.classList.add('hide');
     this.composeForm.classList.add('hide');
+    this.attachButton.classList.add('hide');
 
     // Append and Show the participants list
     this.participants.appendChild(ul);
@@ -2542,6 +2543,7 @@ ThreadUI.groupView.reset = function groupViewReset() {
   ThreadUI.subheader.classList.remove('hide');
   ThreadUI.container.classList.remove('hide');
   ThreadUI.composeForm.classList.remove('hide');
+  ThreadUI.attachButton.classList.remove('hide');
 };
 
 window.confirm = window.confirm; // allow override in unit tests
