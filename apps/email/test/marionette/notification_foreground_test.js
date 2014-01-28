@@ -64,7 +64,7 @@ marionette('email notifications, foreground', function() {
     app.launch();
   });
 
-  test.skip('should have 1 message notification in the different account',
+  test('should have 1 message notification in the different account',
   function() {
     configureAndSend(1);
 
@@ -78,7 +78,7 @@ marionette('email notifications, foreground', function() {
            .getFirstIconUrl().indexOf('type=message_reader') !== -1);
   });
 
-  test.skip('should have bulk message notification in the different account',
+  test('should have bulk message notification in the different account',
   function() {
     configureAndSend(2);
 
