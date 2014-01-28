@@ -721,7 +721,7 @@ class GaiaDevice(object):
         time.sleep(2)
         self.start_b2g()
 
-    def start_b2g(self):
+    def start_b2g(self, timeout=60000):
         if self.marionette.instance:
             # launch the gecko instance attached to marionette
             self.marionette.instance.start()
@@ -738,7 +738,7 @@ window.addEventListener('mozbrowserloadend', function loaded(aEvent) {
     window.removeEventListener('mozbrowserloadend', loaded);
     marionetteScriptFinished();
   }
-});""", script_timeout=60000)
+});""", script_timeout=timeout)
             # TODO: Remove this sleep when Bug 924912 is addressed
             time.sleep(5)
 
