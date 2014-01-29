@@ -401,7 +401,7 @@ endef
 
 # Generate profile/
 
-$(PROFILE_FOLDER): preferences local-apps app-makefiles test-agent-config offline contacts extensions install-xulrunner-sdk .git/hooks/pre-commit $(PROFILE_FOLDER)/settings.json create-default-data $(PROFILE_FOLDER)/installed-extensions.json
+$(PROFILE_FOLDER): preferences local-apps app-makefiles copy-build-stage-manifest test-agent-config offline contacts extensions install-xulrunner-sdk .git/hooks/pre-commit $(PROFILE_FOLDER)/settings.json create-default-data $(PROFILE_FOLDER)/installed-extensions.json
 ifeq ($(BUILD_APP_NAME),*)
 	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)$(PROFILE_FOLDER)"
 endif
