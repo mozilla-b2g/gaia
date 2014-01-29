@@ -93,13 +93,15 @@ Contacts.prototype = {
       var data;
       xhr.open('GET', file, false); // Intentional sync
       xhr.onload = function(o) {
-        data = JSON.parse(xhr.response);
+        data = xhr.response;
       };
       xhr.send(null);
       return data;
     }, [file, key]);
 
-    return string[key]['_'];
+    var re = new RegExp(key + '\\s*=\\s*(.*)');
+    var result = re.exec(string)[1];
+    return result;
   },
 
   waitSlideLeft: function(elementKey) {

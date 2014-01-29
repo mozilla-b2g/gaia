@@ -381,7 +381,7 @@ function execute(options) {
       return;
     }
 
-    if (utils.isExternalApp(webapp)) {
+    if (webapp.metaData) {
       fillExternalAppManifest(webapp);
     } else {
       fillAppManifest(webapp);
