@@ -59,6 +59,15 @@ Alarm.prototype.toggleClock = function() {
   target.tap();
 };
 
+/**
+ * Insert data into the Alarm form.
+ *
+ * @param settings {Object} settings - An object literal whose keys describe
+ *                                     the name of a "*Input" element in the
+ *                                     Alarm's entry in `selectors.json` and
+ *                                     whose values describe the corresponding
+ *                                     value to enter into the input element.
+ */
 Alarm.prototype.fill = function(settings) {
   Object.keys(settings).forEach(function(name) {
     var value = settings[name];
