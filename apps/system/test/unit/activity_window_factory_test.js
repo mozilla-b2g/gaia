@@ -177,21 +177,27 @@ suite('system/ActivityWindowFactory', function() {
                 })
       };
       MockWindowManager.mDisplayedApp = 'fake';
+      resetActivityWindowFactory();
     });
     teardown(function() {
     });
+
+    function resetActivityWindowFactory() {
+      ActivityWindowFactory._lastActivity = null;
+      ActivityWindowFactory._activeActivity = null;
+      ActivityWindowFactory._activities = [];
+    };
     test('activity request', function() {
       ActivityWindowFactory.handleEvent(fakeLaunchConfig1);
 
       assert.isTrue(ActivityWindowFactory._lastActivity != null);
-
-      ActivityWindowFactory._lastActivity = null;
-      ActivityWindowFactory._activities = [];
     });
 
     test('back to home: one inline activity', function() {
+      ActivityWindowFactory._activeActivity = null;
       ActivityWindowFactory.handleEvent(fakeLaunchConfig1);
       var activity = ActivityWindowFactory._lastActivity;
+      console.log(ActivityWindowFactory);
       var stubKill = this.sinon.stub(activity, 'kill');
 
       ActivityWindowFactory.handleEvent({
@@ -199,10 +205,6 @@ suite('system/ActivityWindowFactory', function() {
       });
 
       assert.isTrue(stubKill.called);
-      stubKill.restore();
-
-      ActivityWindowFactory._lastActivity = null;
-      ActivityWindowFactory._activities = [];
     });
 
     test('second activity request on the same caller', function() {
@@ -216,11 +218,6 @@ suite('system/ActivityWindowFactory', function() {
       ActivityWindowFactory.handleEvent(fakeLaunchConfig2);
 
       assert.isTrue(stubKill.called);
-      stubKill.restore();
-      stubActive.restore();
-
-      ActivityWindowFactory._lastActivity = null;
-      ActivityWindowFactory._activities = [];
     });
 
 
@@ -232,9 +229,6 @@ suite('system/ActivityWindowFactory', function() {
       // launch again.
       ActivityWindowFactory.handleEvent(fakeLaunchConfig1);
       assert.equal(ActivityWindowFactory._activities.length, 1);
-
-      ActivityWindowFactory._lastActivity = null;
-      ActivityWindowFactory._activities = [];
     });
 
     test('maintain activity: created', function() {
@@ -247,8 +241,6 @@ suite('system/ActivityWindowFactory', function() {
       });
 
       assert.isTrue(ActivityWindowFactory._activities.length === current + 1);
-      ActivityWindowFactory._lastActivity = null;
-      ActivityWindowFactory._activities = [];
     });
 
     test('maintain activity: terminated', function() {
@@ -263,9 +255,6 @@ suite('system/ActivityWindowFactory', function() {
       });
 
       assert.isTrue(ActivityWindowFactory._lastActivity == null);
-
-      ActivityWindowFactory._lastActivity = null;
-      ActivityWindowFactory._activities = [];
     });
 
     test('show current activity', function() {
@@ -279,10 +268,6 @@ suite('system/ActivityWindowFactory', function() {
       });
 
       assert.isTrue(stubSetVisible.calledWith(true));
-      stubSetVisible.restore();
-
-      ActivityWindowFactory._lastActivity = null;
-      ActivityWindowFactory._activities = [];
     });
 
     test('hide current activity', function() {
@@ -296,10 +281,6 @@ suite('system/ActivityWindowFactory', function() {
       });
 
       assert.isTrue(stubSetVisible.calledWith(false));
-      stubSetVisible.restore();
-
-      ActivityWindowFactory._lastActivity = null;
-      ActivityWindowFactory._activities = [];
     });
 
     test('update active activity', function() {
@@ -324,9 +305,6 @@ suite('system/ActivityWindowFactory', function() {
       });
 
       assert.equal(ActivityWindowFactory._activeActivity, activity);
-
-      ActivityWindowFactory._lastActivity = null;
-      ActivityWindowFactory._activities = [];
     });
   });
 });

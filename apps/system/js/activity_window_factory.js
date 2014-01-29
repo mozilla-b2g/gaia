@@ -1,4 +1,6 @@
 (function(window) {
+  var DEBUG = false;
+
   var ActivityWindowFactory = {
     // Last created activtiy window object.
     _lastActivity: null,
@@ -6,6 +8,14 @@
     _activeActivity: null,
 
     _activities: [],
+
+    debug: function awm_debug() {
+      if (DEBUG) {
+        console.log('[ActivityWindowFactory]' +
+          '[' + Date.now() / 1000 + ']' +
+          Array.slice(arguments).concat());
+      }
+    },
 
     init: function acwf_init() {
       window.addEventListener('mozChromeEvent', this);
@@ -28,6 +38,7 @@
     },
 
     handleEvent: function acwf_handleEvent(evt) {
+      this.debug('handling ' + evt.type);
       switch (evt.type) {
         // XXX: Move into appWindow.
         case 'appopen':
@@ -70,9 +81,10 @@
 
         case 'launchapp':
           if (evt.detail.isActivity && evt.detail.inline) {
-            if (this._lastActivity && this._lastActivity.isActive()) {
+            if (this._activeActivity) {
+              this.debug('caller is an activity: ', this._activeActivity.name);
               // If we already has a callee, remove it.
-              var callee = this._lastActivity.activityCallee;
+              var callee = this._activeActivity.activityCallee;
               if (callee) {
                 // XXX: We don't know the activity is the same request
                 // or not here. The data passed may be different.
@@ -99,15 +111,16 @@
               });
               // If the lastActivity is the same as launch request, we don't
               // need to create another activity.
-              if (this._lastActivity.manifestURL === evt.detail.manifestURL &&
-                  this._lastActivity.url === evt.detail.url) {
+              if (this._activeActivity.manifestURL === evt.detail.manifestURL &&
+                  this._activeActivity.url === evt.detail.url) {
                 return;
               }
               this._lastActivity = new ActivityWindow(evt.detail,
-                                                      this._lastActivity);
+                                                      this._activeActivity);
               break;
             }
             var app = WindowManager.getCurrentActiveAppWindow();
+            this.debug('caller is an app: ' + (app && app.name));
             var callee = app.activityCallee;
             if (callee) {
               // XXX: We don't know the activity is the same request
@@ -160,15 +173,37 @@
           break;
 
         case 'activitywillopen':
-          this._activeActivity = evt.detail;
+          var activity = evt.detail;
+          this.debug('activity: ' + activity.name +
+            ' is opening, its caller is ' + activity.activityCaller.name);
+          this._activeActivity = activity;
           break;
 
+        /**
+         * We should implement API to find out real active frame
+         * but now we only try to guess.
+         */
         case 'activitywillclose':
-          if (this._activeActivity &&
+          var activity = evt.detail;
+          this.debug('activity: ' + activity.name +
+            ' is closing, its caller is ' + activity.activityCaller.name);
+          if (activity.activityCaller &&
+              activity.activityCaller instanceof ActivityWindow) {
+            this._activeActivity = activity.activityCaller;
+          } else if (this._activeActivity &&
               this._activeActivity.instanceID == evt.detail.instanceID) {
             this._activeActivity = null;
           }
           break;
+      }
+    },
+    _dump: function() {
+      if (DEBUG) {
+        this.debug('dump all activity windows');
+        var a = document.querySelectorAll('.activityWindow > iframe');
+        for (var i = 0; i < a.length; i++) {
+          this.debug(a[i].src);
+        }
       }
     }
   };
