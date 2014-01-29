@@ -1,10 +1,10 @@
-/*
-  Compose Tests
-*/
-
-/*global MocksHelper, MockAttachment, MockL10n, loadBodyHTML,
+/* global MocksHelper, MockAttachment, MockL10n, loadBodyHTML,
          Compose, Attachment, MockMozActivity, Settings, Utils,
-         AttachmentMenu, Draft */
+         AttachmentMenu, Draft, document, XMLHttpRequest, Blob, navigator,
+         setTimeout, MessageManager */
+
+/*jshint strict:false */
+/*jslint node: true */
 
 'use strict';
 
@@ -21,6 +21,7 @@ requireApp('sms/test/unit/mock_recipients.js');
 requireApp('sms/test/unit/mock_settings.js');
 requireApp('sms/test/unit/mock_utils.js');
 requireApp('sms/test/unit/mock_moz_activity.js');
+requireApp('sms/test/unit/mock_message_manager.js');
 
 var mocksHelperForCompose = new MocksHelper([
   'AttachmentMenu',
@@ -28,7 +29,8 @@ var mocksHelperForCompose = new MocksHelper([
   'Recipients',
   'Utils',
   'MozActivity',
-  'Attachment'
+  'Attachment',
+  'MessageManager'
 ]).init();
 
 suite('compose_test.js', function() {
@@ -85,13 +87,15 @@ suite('compose_test.js', function() {
 
   suite('Message Composition', function() {
     var message,
-        subject;
+        subject,
+        sendButton;
 
     setup(function() {
       loadBodyHTML('/index.html');
       Compose.init('messages-compose-form');
       message = document.querySelector('[contenteditable]');
       subject = document.getElementById('messages-subject-input');
+      sendButton = document.getElementById('messages-send-button');
     });
 
     suite('Subject', function() {
@@ -99,17 +103,43 @@ suite('compose_test.js', function() {
         Compose.clear();
       });
 
-      test('Toggle change the visibility', function() {
+      test('Toggle field', function() {
         assert.isTrue(subject.classList.contains('hide'));
+        // Show
         Compose.toggleSubject();
         assert.isFalse(subject.classList.contains('hide'));
+        // Hide
         Compose.toggleSubject();
         assert.isTrue(subject.classList.contains('hide'));
       });
 
+      test('Get content from subject field', function() {
+        var content = 'Title';
+        subject.value = content;
+        // We need to show the subject to get content
+        Compose.toggleSubject();
+        assert.equal(Compose.getSubject(), content);
+      });
+
+      // Per discussion, this is being deferred to another bug
+      // https://bugzilla.mozilla.org/show_bug.cgi?id=959360
+      //
+      // test('Toggle type display visibility', function() {
+      //   assert.isFalse(sendButton.classList.contains('has-counter'));
+
+      //   subject.value = 'hi';
+      //   Compose.toggleSubject();
+      //   assert.isTrue(sendButton.classList.contains('has-counter'));
+
+      //   Compose.toggleSubject();
+      //   assert.isFalse(sendButton.classList.contains('has-counter'));
+      // });
+
       test('Sent subject doesnt have line breaks (spaces instead)', function() {
+        // Set the value
         subject.value = 'Line 1\nLine 2\n\n\n\nLine 3';
-        Compose.toggleSubject(); // we need to show the subject to get content
+        // We need to show the subject to get content
+        Compose.toggleSubject();
         var text = Compose.getSubject();
         assert.equal(text, 'Line 1 Line 2 Line 3');
       });
@@ -377,16 +407,15 @@ suite('compose_test.js', function() {
       });
 
       test('Draft with subject', function() {
-        this.sinon.spy(Compose, 'toggleSubject');
+        assert.isFalse(Compose.isSubjectVisible);
         Compose.fromDraft(d1);
         assert.equal(Compose.getSubject(), d1.subject);
-        assert.isTrue(Compose.isSubjectShowing);
-        sinon.assert.calledOnce(Compose.toggleSubject);
+        assert.isTrue(Compose.isSubjectVisible);
       });
 
       test('Draft without subject', function() {
         Compose.fromDraft(d2);
-        assert.isFalse(Compose.isSubjectShowing);
+        assert.isFalse(Compose.isSubjectVisible);
       });
 
       test('Draft with attachment', function() {
@@ -394,6 +423,30 @@ suite('compose_test.js', function() {
         var txt = Compose.getContent();
         assert.ok(txt, d2.content.join(''));
         assert.ok(txt[1] instanceof Attachment);
+      });
+    });
+
+    suite('Changing content marks draft as edited', function() {
+
+      setup(function() {
+        MessageManager.draft = {
+          isEdited: false
+        };
+      });
+
+      test('Changing message', function() {
+        Compose.append('Message');
+        assert.isTrue(MessageManager.draft.isEdited);
+      });
+
+      test('Changing subject', function() {
+        Compose.toggleSubject();
+        assert.isTrue(MessageManager.draft.isEdited);
+      });
+
+      test('Changing attachments', function() {
+        Compose.append(mockAttachment(12345));
+        assert.isTrue(MessageManager.draft.isEdited);
       });
     });
 

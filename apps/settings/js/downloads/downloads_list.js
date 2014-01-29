@@ -26,6 +26,9 @@
   var numberOfDownloads = 0;
   var numberOfCheckedDownloads = 0;
 
+  var visibilityObserver = null;
+  var updateTimeInfoScheduler = null;
+
   function _checkEmptyList() {
     if (!downloadsContainer) {
       return;
@@ -33,6 +36,7 @@
     var isEmpty = (downloadsContainer.children.length === 0);
 
     if (isEmpty) {
+      _stopTimeInfoUpdater();
       downloadsContainer.hidden = true;
       emptyDownloadsContainer.hidden = false;
     } else {
@@ -51,6 +55,79 @@
     }
   }
 
+  function _initVisibilityObserver() {
+    // Init observer if is the first rendering
+    if (!!visibilityObserver) {
+      return;
+    }
+    // We have 2 cases:
+    // 1.- Update when the panel is visible only
+    visibilityObserver = new MutationObserver(function(mutations) {
+      mutations.forEach(function(mutation) {
+        if (downloadsPanel.classList.contains('current')) {
+          _startTimeInfoUpdater(true);
+        } else {
+          _stopTimeInfoUpdater();
+        }
+      });
+    });
+
+    var options = {
+      'attributes': true,
+      'attributeOldValue': true,
+      'attributeFilter': ['class']
+    };
+
+    visibilityObserver.observe(downloadsPanel, options);
+
+    // 2.-If the app is not the one shown, removing also the timer
+    document.addEventListener('visibilitychange', function() {
+      if (document.hidden) {
+        _stopTimeInfoUpdater();
+      } else {
+        _startTimeInfoUpdater(true);
+      }
+    });
+  }
+
+  function _updateTimeHeader(elem) {
+    var date = new Date(+elem.dataset.timestamp);
+    var status = elem.dataset.state;
+    var infoNode = elem.querySelector('.info');
+    LazyLoader.load(['shared/js/l10n_date.js'], function onload() {
+      var prettyDate = navigator.mozL10n.DateTimeFormat().fromNow(date, true);
+      navigator.mozL10n.localize(infoNode, 'summary', {
+        date: prettyDate,
+        status: status
+      });
+    });
+  }
+
+  function _updateTimeInfo() {
+    // Retrieve elements
+    var elements = downloadsContainer.querySelectorAll('[data-state]');
+    // Only elements which are not 'downloading' shows the date
+    for (var i = 0, length = elements.length; i < length; i++) {
+      if (elements[i].dataset.state != 'downloading') {
+        _updateTimeHeader(elements[i]);
+      }
+    }
+  }
+
+  function _startTimeInfoUpdater(forceUpdate) {
+    // Update first of all the time info nodes
+    if (typeof forceUpdate === 'boolean' && forceUpdate) {
+      _updateTimeInfo();
+    }
+
+    // Activate the scheduler
+    updateTimeInfoScheduler = setInterval(_updateTimeInfo, 60000);
+  }
+
+  function _stopTimeInfoUpdater() {
+    clearInterval(updateTimeInfoScheduler);
+  }
+
   function _render(downloads, oncomplete) {
     if (!downloadsContainer) {
       return;
@@ -64,7 +141,10 @@
     downloadsContainer.innerHTML = '';
     // Render
     downloads.forEach(_append);
-
+    // Start time updaters & observer
+    _initVisibilityObserver();
+    _startTimeInfoUpdater();
+    // Execute complete callback
     oncomplete && oncomplete();
   }
 
@@ -75,9 +155,7 @@
 
   function _create(download) {
     var li = DownloadItem.create(download);
-    if (download.state === 'downloading') {
-      download.onstatechange = _onDownloadStateChange;
-    }
+    download.onstatechange = _onDownloadStateChange;
     li.addEventListener('click', _onDownloadAction);
     return li;
   }
@@ -85,6 +163,8 @@
   function _prepend(download) {
     if (downloadsContainer.children.length === 0) {
       _append(download);
+      _initVisibilityObserver();
+      _startTimeInfoUpdater(true);
       _checkEmptyList();
       return;
     }

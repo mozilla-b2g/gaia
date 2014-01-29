@@ -225,6 +225,8 @@
       window.addEventListener('overlaystart', this);
       window.addEventListener('homegesture-enabled', this);
       window.addEventListener('homegesture-disabled', this);
+      window.addEventListener('rocketbarhidden', this);
+      window.addEventListener('rocketbarshown', this);
       window.addEventListener('system-resize', this);
 
       // update app name when language setting changes
@@ -245,13 +247,26 @@
     },
 
     handleEvent: function awm_handleEvent(evt) {
+      var activeApp = this._activeApp;
       switch (evt.type) {
+        case 'rocketbarhidden':
+          if (activeApp) {
+            activeApp.setVisible(true);
+          }
+          break;
+
+        case 'rocketbarshown':
+          if (activeApp) {
+            activeApp.setVisible(false);
+          }
+          break;
+
         case 'system-resize':
           this.debug(' Resizing...');
-          if (this._activeApp) {
-            this.debug(' Resizing ' + this._activeApp.name);
-            if (!this._activeApp.isTransitioning()) {
-              this._activeApp.resize();
+          if (activeApp) {
+            this.debug(' Resizing ' + activeApp.name);
+            if (!activeApp.isTransitioning()) {
+              activeApp.resize();
             }
           }
           break;
@@ -272,16 +287,15 @@
         case 'appterminated':
           var app = evt.detail;
           var instanceID = evt.detail.instanceID;
-          if (this._activeApp &&
-              app.instanceID === this._activeApp.instanceID) {
-            this._activeApp = null;
+          if (activeApp && app.instanceID === activeApp.instanceID) {
+            activeApp = null;
           }
           delete this.runningApps[evt.detail.origin];
           break;
 
         case 'reset-orientation':
-          if (this._activeApp) {
-            this._activeApp.setOrientation();
+          if (activeApp) {
+            activeApp.setOrientation();
           }
           break;
 
@@ -338,8 +352,7 @@
         case 'hidewindow':
           var detail = evt.detail;
 
-          if (this._activeApp &&
-              this.displayedApp !== HomescreenLauncher.origin) {
+          if (activeApp && this.displayedApp !== HomescreenLauncher.origin) {
             // This is coming from attention screen.
             // If attention screen has the same origin as our active app,
             // we cannot turn off its page visibility
@@ -350,7 +363,7 @@
                 detail.origin === this.displayedApp) {
               return;
             }
-            this._activeApp.setVisible(false);
+            activeApp.setVisible(false);
           } else {
             var home = HomescreenLauncher.getHomescreen();
             home && home.setVisible(false);
@@ -358,9 +371,8 @@
           break;
 
         case 'showwindow':
-          if (this._activeApp &&
-              this.displayedApp !== HomescreenLauncher.origin) {
-            this._activeApp.setVisible(true);
+          if (activeApp && this.displayedApp !== HomescreenLauncher.origin) {
+            activeApp.setVisible(true);
           } else {
             var home = HomescreenLauncher.getHomescreen();
             home && home.setVisible(true);
@@ -369,9 +381,8 @@
 
         case 'overlaystart':
           // Instantly blur the frame in order to ensure hiding the keyboard
-          var app = this._activeApp;
-          if (app) {
-            if (!app.isOOP()) {
+          if (activeApp) {
+            if (!activeApp.isOOP()) {
               // Bug 845661 - Attention screen does not appears when
               // the url bar input is focused.
               // Calling app.iframe.blur() on an in-process window
@@ -383,9 +394,9 @@
               // there is an attention screen and delegate the
               // responsibility to blur the possible focused elements
               // itself.
-              app.setVisible(false, true);
+              activeApp.setVisible(false, true);
             } else {
-              app.blur();
+              activeApp.blur();
             }
           }
           break;
@@ -400,7 +411,7 @@
           if (!HomescreenLauncher.ready)
             return;
 
-          if (this._activeApp && !this._activeApp.isHomescreen) {
+          if (activeApp && !activeApp.isHomescreen) {
             // Make sure this happens before activity frame is removed.
             // Because we will be asked by a 'activity-done' event from gecko
             // to relaunch to activity caller, and this is the only way to
@@ -465,7 +476,9 @@
     },
 
     linkWindowActivity: function awm_linkWindowActivity(config) {
-      var caller = this._activeApp;
+      // Caller should be either the current active inline activity window,
+      // or the active app.
+      var caller = ActivityWindowFactory.getActiveWindow() || this._activeApp;
       this.runningApps[config.origin].activityCaller = caller;
       caller.activityCallee = this.runningApps[config.origin];
     },

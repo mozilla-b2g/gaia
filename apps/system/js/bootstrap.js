@@ -4,6 +4,17 @@
 'use strict';
 
 window.addEventListener('load', function startup() {
+
+  /**
+   * Register global instances and constructors here.
+   */
+  function registerGlobalEntries() {
+    /** @global */
+    window.secureWindowManager = new SecureWindowManager();
+    /** @global */
+    window.secureWindowFactory = new SecureWindowFactory();
+  }
+
   function safelyLaunchFTU() {
     window.addEventListener('homescreen-ready', function onHomescreenReady() {
       window.removeEventListener('homescreen-ready', onHomescreenReady);
@@ -13,10 +24,12 @@ window.addEventListener('load', function startup() {
   }
 
   if (Applications.ready) {
+    registerGlobalEntries();
     safelyLaunchFTU();
   } else {
     window.addEventListener('applicationready', function appListReady(event) {
       window.removeEventListener('applicationready', appListReady);
+      registerGlobalEntries();
       safelyLaunchFTU();
     });
   }

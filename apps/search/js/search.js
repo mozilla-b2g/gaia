@@ -143,15 +143,6 @@
     },
 
     /**
-     * Tells the Places provider to update
-     */
-    syncPlaces: function() {
-      if ('Places' in this.providers) {
-        this.providers.Places.sync();
-      }
-    },
-
-    /**
      * Sends a message to the system app to update the input value
      */
     setInput: function(input) {

@@ -34,9 +34,12 @@
     <script defer src="shared/js/keyboard_helper.js"></script>
     <script defer src="shared/js/template.js"></script>
     -->
+
     <!-- SIMSlot -->
     <script type="text/javascript" defer src="js/simslot.js"></script>
     <script type="text/javascript" defer src="js/simslot_manager.js"></script>
+    <script type="text/javascript" defer src="js/sim_settings_helper.js"></script>
+
 
     <!-- Wrapper -->
     <link rel="stylesheet" type="text/css" href="style/wrapper/wrapper.css">
@@ -120,9 +123,6 @@
     <link rel="stylesheet" type="text/css" href="shared/style/action_menu.css">
     <link rel="stylesheet" type="text/css" href="style/action_menu/action_menu_extended.css">
     <script defer src="js/action_menu.js"></script>
-
-    <!-- Context Menu -->
-    <script defer src="js/context_menu.js"></script>
 
     <!-- Statusbar -->
     <link rel="stylesheet" type="text/css" href="style/statusbar/statusbar.css">
@@ -292,6 +292,7 @@
     <!-- homescreen from being displayed must come before this script. -->
     <link rel="stylesheet" type="text/css" href="style/window.css">
     <script defer src="js/base_ui.js"></script>
+    <script defer src="js/browser_context_menu.js"></script>
     <script defer src="js/app_modal_dialog.js"></script>
     <script defer src="js/app_chrome.js"></script>
     <script defer src="js/app_transition_controller.js"></script>
@@ -307,6 +308,9 @@
     <script defer src="js/activity_window_factory.js"></script>
     <script defer src="js/app_window_factory.js"></script>
     <script defer src="js/app_window_manager.js"></script>
+    <script defer src="js/secure_window.js"></script>
+    <script defer src="js/secure_window_factory.js"></script>
+    <script defer src="js/secure_window_manager.js"></script>
     <script defer src="js/visibility_manager.js"></script>
     <script defer src="js/layout_manager.js"></script>
 
@@ -687,7 +691,7 @@
                 A crash report contains some details about the crash and your device, as well as a snapshot of the state of your device when it crashed.</li>
                 <li class="description" data-l10n-id="crash-reports-description-2">This may include things like open pages and apps, text typed into forms and the content of open messages, recent browsing history, or geolocation used by an open app.</li>
                 <li class="description">
-                  <span data-l10n-id="crash-reports-description-3-start">We use crash reports to try to fix problems and improve our products. We handle your information as we describe in our</span><span data-l10n-id="crash-reports-description-3-privacy">privacy policy</span><span data-l10n-id="crash-reports-description-3-end">.</span>
+                  <span data-l10n-id="crash-reports-description-3-start">We use crash reports to try to fix problems and improve our products. We handle your information as we describe in our </span><span data-l10n-id="crash-reports-description-3-privacy">privacy policy</span><span data-l10n-id="crash-reports-description-3-end">.</span>
                 </li>
               </ul>
             </div>
@@ -1047,7 +1051,7 @@
               <div id="lockscreen-conn-states" hidden></div>
               <div id="lockscreen-mute" hidden></div>
               <div id="lockscreen-alt-camera" class="lockscreen-icon">
-                <div role="button" data-l10n-id="camera-a11y-button" aria-label="Camera"></div>
+                <div id="lockscreen-alt-camera-button" role="button" data-l10n-id="camera-a11y-button" aria-label="Camera"></div>
               </div>
               <div class="lockscreen-clock">
                 <span id="lockscreen-clock-numbers"></span>

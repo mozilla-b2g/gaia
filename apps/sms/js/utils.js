@@ -351,7 +351,7 @@
         var canvas = document.createElement('canvas');
         canvas.width = targetWidth;
         canvas.height = targetHeight;
-        var context = canvas.getContext('2d');
+        var context = canvas.getContext('2d', { willReadFrequently: true });
 
         context.drawImage(img, 0, 0, targetWidth, targetHeight);
         // Bug 889765: Since we couldn't know the quality of the original jpg

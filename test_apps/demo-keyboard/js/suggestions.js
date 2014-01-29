@@ -8,12 +8,26 @@
     .appendChild(suggestionsContainer);
 
   function display(suggestions) {
+    // Clear any previous suggestions
     suggestionsContainer.textContent = '';
-    // Each suggestion gets this much width (-2% for margins)
-    var width = (100 / suggestions.length - 2) + '%';
-    suggestions.forEach(function(word) {
-      appendSuggestion(word, width);
-    });
+
+    if (suggestions.length) {
+      // Add a dismiss button to the container
+      var dismissButton = document.createElement('div');
+      dismissButton.classList.add('dismiss-suggestions-button');
+      suggestionsContainer.appendChild(dismissButton);
+
+      // Figure out how much room is left for each suggestion
+      var width = suggestionsContainer.clientWidth - dismissButton.clientWidth;
+      width /= suggestions.length;
+      width -= 6;    // 3px margin on each side
+      width += 'px'; // Add CSS units
+
+      // And display the suggesions
+      suggestions.forEach(function(word) {
+        appendSuggestion(word, width);
+      });
+    }
   }
 
   function appendSuggestion(word, width) {
@@ -100,7 +114,6 @@
         return .6;   // 6pt font "Body Mini"
       return s;      // Something smaller than 6pt.
     }
-
   }
 
   // Use touchend events to detect clicks on the word suggestions.
@@ -109,11 +122,17 @@
   suggestionsContainer.ontouchend = function(e) {
     var target = e.target;
     // Loop up from the touch target element until we find a suggestion
-    // Then dispatch an event about it
+    // and then dispatch an event about it. Or, if we find the dismiss
+    // button, then dismiss the suggestions.
     while (target !== suggestionsContainer) {
       if (target.classList.contains('suggestion')) {
         var word = target.dataset.word + ' ';
         var event = new CustomEvent('suggestionselected', { detail: word });
+        suggestionsContainer.dispatchEvent(event);
+        return;
+      }
+      else if (target.classList.contains('dismiss-suggestions-button')) {
+        var event = new CustomEvent('suggestionsdismissed');
         suggestionsContainer.dispatchEvent(event);
         return;
       }

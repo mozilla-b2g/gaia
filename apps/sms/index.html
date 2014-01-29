@@ -14,6 +14,7 @@
     <link rel="stylesheet" type="text/css" href="shared/style/switches.css">
     <link rel="stylesheet" type="text/css" href="shared/style/lists.css">
     <link rel="stylesheet" type="text/css" href="shared/style/progress_activity.css">
+    <link rel="stylesheet" type="text/css" href="shared/style/status.css">
     <!-- App styles -->
     <link rel="stylesheet" type="text/css" href="style/root.css">
     <link rel="stylesheet" type="text/css" href="style/common.css">
@@ -113,6 +114,10 @@
             </button>
           </menu>
         </form>
+
+        <section id="threads-draft-saved-banner" class="hide" role="status">
+          <p data-l10n-id="message-draft-saved">Message saved as draft</p>
+        </section>
       </section>
 
       <section id="thread-messages" class="panel" role="region">
@@ -177,14 +182,12 @@
             <section id="messages-new-message-notice"
                     role="notification"
                     class="hide">
-              <div id="new-message-notice-content">
-                <div id="new-message-notice-container-1">
-                  <div id="new-message-notice-text" data-l10n-id="new-message-notice-text">You have new messages</div>
-                  <div id="new-message-notice-contact">Contact</div>
-                </div>
-                <div id="new-message-notice-container-2">
-                  <a role="button" data-l10n-id="new-message-notice-a-text">read it</a>
-                </div>
+              <div>
+                <div data-l10n-id="new-message-notice-text">You have new messages</div>
+                <div class="contact">Contact</div>
+              </div>
+              <div>
+                <a role="button" data-l10n-id="new-message-notice-a-text">read it</a>
               </div>
             </section>
           </div>

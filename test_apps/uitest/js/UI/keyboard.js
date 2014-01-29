@@ -12,11 +12,17 @@ function keyboardTest() {
   })('iframe-contenteditable');
 
   var readme = document.getElementById('readme');
+  var readmeBtn = document.getElementById('readme_button');
   readme.hidden = true;
 
-  document.getElementById('readme_button').addEventListener('click',
+  readmeBtn.addEventListener('click',
     function toggle_readme() {
       readme.hidden = !readme.hidden;
+      if (readme.hidden) {
+        readmeBtn.textContent = 'Show README';
+      } else {
+        readmeBtn.textContent = 'Hide README';
+      }
     }
   );
 }

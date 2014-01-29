@@ -1,10 +1,9 @@
 (function(exports) {
   'use strict';
 
-  // This is the margin between keys.
-  // It must match the CSS file, which makes it brittle
-  // XXX: get rid of it somehow
-  const MARGIN = 2;
+  // This is the left or right offset of the alternative character menu
+  // If the styles change in keyboard.css, this may also need to change.
+  const ALTMENUOFFSET = 12;
 
   // Look up the HTML templates we'll use for building the keyboard page
   var templates = {
@@ -142,7 +141,7 @@
         else
           size = key.size || 1;
 
-        var width = size * unitWidth - MARGIN;
+        var width = size * unitWidth;
         view.keyelts[keyname].style.width = width + 'px';
       });
     }
@@ -226,32 +225,61 @@
     var altrow = this.alternativesMenu;
     var keyrect = this.getKeyRect(keyname);
     var keyOnLeft = ((keyrect.left + keyrect.right) < window.innerWidth);
-    altrow.style.bottom = (window.innerHeight - keyrect.bottom) + 'px';
+    altrow.style.bottom = (window.innerHeight - keyrect.top) + 'px';
     if (keyOnLeft) { // key is on left so alternatives run to the right
-      altrow.style.left = keyrect.left + 'px';
+      altrow.style.left = Math.max(0, keyrect.left - ALTMENUOFFSET) + 'px';
       altrow.style.right = 'auto';
       altrow.dir = 'ltr';  // left to right
     }
     else {           // key is on right so alternatives run to the left
       altrow.style.left = 'auto';
-      altrow.style.right = (window.innerWidth - keyrect.right) + 'px';
+      altrow.style.right = Math.max(0, window.innerWidth - keyrect.right -
+                                    ALTMENUOFFSET) + 'px';
       altrow.dir = 'rtl';  // right to left
     }
-
-    // The first alternative should always be at least as wide as the
-    // key that it is an alternative for.
-    altrow.firstElementChild.style.minWidth =
-      (keyrect.right - keyrect.left) + 'px';
 
     // And make it visible
     keyelt.classList.add('altshown');
     altrow.hidden = false;
+
+    // And record the size and position of the menu and each of its keys
+    // for use by the KeyboardTouchHandler module. But increase the height
+    // of the boxes so that they extend from the top of the alternative menu
+    // to the bottom of the key from which they popped up. This way the user
+    // will be able to slide her finger to the right or left to select
+    // alternatives without covering up the alternatives.
+    this.alternativesShowing = true;
+    var box = this.alternativesMenu.getBoundingClientRect();
+    this.alternativesMenuBox = {
+      left: box.left,
+      right: box.right,
+      top: box.top,
+      bottom: keyrect.bottom  // extend the menu box down
+    };
+
+    // Now compute a box for each individual alternative
+    this.alternativeKeyBoxes = [];
+    var e = this.alternativesMenu.firstElementChild;
+    while (e) {
+      box = e.getBoundingClientRect();
+      this.alternativeKeyBoxes.push({
+        key: e,
+        left: box.left,
+        right: box.right,
+        top: box.top,
+        bottom: keyrect.bottom
+      });
+      e = e.nextElementSibling;
+    }
   };
 
   KeyboardPageView.prototype.hideAlternatives = function(keyname) {
     this.alternativesMenu.hidden = true;
     this.alternativesMenu.textContent = '';
     this.keyelts[keyname].classList.remove('altshown');
+    this.alternativesShowing = false;
+    this.alternativesMenuBox = null;
+    this.alternativeKeyBoxes = null;
   };
 
   KeyboardPageView.prototype.hide = function() {
@@ -282,4 +310,3 @@
 
   exports.KeyboardPageView = KeyboardPageView;
 }(window));
-

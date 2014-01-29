@@ -38,100 +38,108 @@ var metadataParser = (function() {
   // thumbnail image as a blob and pass it to the callback.
   // This utility function is used by both the image and video metadata parsers
   function createThumbnailFromElement(elt, video, rotation,
-                                      mirrored, callback)
-  {
-    // Create a thumbnail image
-    var canvas = document.createElement('canvas');
-    canvas.width = THUMBNAIL_WIDTH;
-    canvas.height = THUMBNAIL_HEIGHT;
-    var context = canvas.getContext('2d');
-    var eltwidth = elt.width;
-    var eltheight = elt.height;
-    var scalex = canvas.width / eltwidth;
-    var scaley = canvas.height / eltheight;
+                                      mirrored, callback, error) {
+    try {
+      // Create a thumbnail image
+      var canvas = document.createElement('canvas');
+      canvas.width = THUMBNAIL_WIDTH;
+      canvas.height = THUMBNAIL_HEIGHT;
+      var context = canvas.getContext('2d');
+      var eltwidth = elt.width;
+      var eltheight = elt.height;
+      var scalex = canvas.width / eltwidth;
+      var scaley = canvas.height / eltheight;
 
-    // Take the larger of the two scales: we crop the image to the thumbnail
-    var scale = Math.max(scalex, scaley);
+      // Take the larger of the two scales: we crop the image to the thumbnail
+      var scale = Math.max(scalex, scaley);
 
-    // Calculate the region of the image that will be copied to the
-    // canvas to create the thumbnail
-    var w = Math.round(THUMBNAIL_WIDTH / scale);
-    var h = Math.round(THUMBNAIL_HEIGHT / scale);
-    var x = Math.round((eltwidth - w) / 2);
-    var y = Math.round((eltheight - h) / 2);
+      // Calculate the region of the image that will be copied to the
+      // canvas to create the thumbnail
+      var w = Math.round(THUMBNAIL_WIDTH / scale);
+      var h = Math.round(THUMBNAIL_HEIGHT / scale);
+      var x = Math.round((eltwidth - w) / 2);
+      var y = Math.round((eltheight - h) / 2);
 
-    var centerX = Math.floor(THUMBNAIL_WIDTH / 2);
-    var centerY = Math.floor(THUMBNAIL_HEIGHT / 2);
+      var centerX = Math.floor(THUMBNAIL_WIDTH / 2);
+      var centerY = Math.floor(THUMBNAIL_HEIGHT / 2);
 
-    // If a orientation is specified, rotate/mirroring the canvas context.
-    if (rotation || mirrored) {
-      context.save();
-      // All transformation are applied to the center of the thumbnail.
-      context.translate(centerX, centerY);
-    }
-
-    if (mirrored) {
-      context.scale(-1, 1);
-    }
-    if (rotation) {
-      switch (rotation) {
-      case 90:
-        context.rotate(Math.PI / 2);
-        break;
-      case 180:
-        context.rotate(Math.PI);
-        break;
-      case 270:
-        context.rotate(-Math.PI / 2);
-        break;
+      // If a orientation is specified, rotate/mirroring the canvas context.
+      if (rotation || mirrored) {
+        context.save();
+        // All transformation are applied to the center of the thumbnail.
+        context.translate(centerX, centerY);
       }
+
+      if (mirrored) {
+        context.scale(-1, 1);
+      }
+      if (rotation) {
+        switch (rotation) {
+        case 90:
+          context.rotate(Math.PI / 2);
+          break;
+        case 180:
+          context.rotate(Math.PI);
+          break;
+        case 270:
+          context.rotate(-Math.PI / 2);
+          break;
+        }
+      }
+
+      if (rotation || mirrored) {
+        context.translate(-centerX, -centerY);
+      }
+
+      // Draw that region of the image into the canvas, scaling it down
+      context.drawImage(elt, x, y, w, h,
+                        0, 0, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
+
+      // Restore the default rotation so the play arrow comes out correctly
+      if (rotation || mirrored) {
+        context.restore();
+      }
+
+      // If this is a video, superimpose a translucent play button over
+      // the captured video frame to distinguish it from a still photo thumbnail
+      if (video) {
+        // First draw a transparent gray circle
+        context.fillStyle = 'rgba(0, 0, 0, .2)';
+        context.beginPath();
+        context.arc(THUMBNAIL_WIDTH / 2, THUMBNAIL_HEIGHT / 2,
+                    THUMBNAIL_HEIGHT / 5, 0, 2 * Math.PI, false);
+        context.fill();
+
+        // Now outline the circle in white
+        context.strokeStyle = 'rgba(255,255,255,.6)';
+        context.lineWidth = 2;
+        context.stroke();
+
+        // And add a white play arrow.
+        context.beginPath();
+        context.fillStyle = 'rgba(255,255,255,.6)';
+        // The height of an equilateral triangle is sqrt(3)/2 times the side
+        var side = THUMBNAIL_HEIGHT / 5;
+        var triangle_height = side * Math.sqrt(3) / 2;
+        context.moveTo(THUMBNAIL_WIDTH / 2 + triangle_height * 2 / 3,
+                       THUMBNAIL_HEIGHT / 2);
+        context.lineTo(THUMBNAIL_WIDTH / 2 - triangle_height / 3,
+                       THUMBNAIL_HEIGHT / 2 - side / 2);
+        context.lineTo(THUMBNAIL_WIDTH / 2 - triangle_height / 3,
+                       THUMBNAIL_HEIGHT / 2 + side / 2);
+        context.closePath();
+        context.fill();
+      }
+
+      canvas.toBlob(callback, 'image/jpeg');
+    } catch (ex) {
+      // An error may be thrown when the drawImage decodes a broken/trancated
+      // image.
+      // The elt may be a offscreen image. So, the image metadata is parsed, and
+      // the image data is loaded but not decoded. The drawImage triggers the
+      // image decoder to decode the image data. And an error may be thrown.
+      error('createThumbnailFromElement:' + ex.message);
     }
-
-    if (rotation || mirrored) {
-      context.translate(-centerX, -centerY);
-    }
-
-    // Draw that region of the image into the canvas, scaling it down
-    context.drawImage(elt, x, y, w, h,
-                      0, 0, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
-
-    // Restore the default rotation so the play arrow comes out correctly
-    if (rotation || mirrored) {
-      context.restore();
-    }
-
-    // If this is a video, superimpose a translucent play button over
-    // the captured video frame to distinguish it from a still photo thumbnail
-    if (video) {
-      // First draw a transparent gray circle
-      context.fillStyle = 'rgba(0, 0, 0, .2)';
-      context.beginPath();
-      context.arc(THUMBNAIL_WIDTH / 2, THUMBNAIL_HEIGHT / 2,
-                  THUMBNAIL_HEIGHT / 5, 0, 2 * Math.PI, false);
-      context.fill();
-
-      // Now outline the circle in white
-      context.strokeStyle = 'rgba(255,255,255,.6)';
-      context.lineWidth = 2;
-      context.stroke();
-
-      // And add a white play arrow.
-      context.beginPath();
-      context.fillStyle = 'rgba(255,255,255,.6)';
-      // The height of an equilateral triangle is sqrt(3)/2 times the side
-      var side = THUMBNAIL_HEIGHT / 5;
-      var triangle_height = side * Math.sqrt(3) / 2;
-      context.moveTo(THUMBNAIL_WIDTH / 2 + triangle_height * 2 / 3,
-                     THUMBNAIL_HEIGHT / 2);
-      context.lineTo(THUMBNAIL_WIDTH / 2 - triangle_height / 3,
-                     THUMBNAIL_HEIGHT / 2 - side / 2);
-      context.lineTo(THUMBNAIL_WIDTH / 2 - triangle_height / 3,
-                     THUMBNAIL_HEIGHT / 2 + side / 2);
-      context.closePath();
-      context.fill();
-    }
-
-    canvas.toBlob(callback, 'image/jpeg');
   }
 
   var VIDEOFILE = /DCIM\/\d{3}MZLLA\/VID_\d{4}\.jpg/;
@@ -306,7 +314,8 @@ var metadataParser = (function() {
           false,
           metadata.rotation || 0,
           metadata.mirrored || false,
-          gotThumbnail);
+          gotThumbnail,
+          error);
       }
 
       function gotThumbnail(thumbnail) {
@@ -438,7 +447,8 @@ var metadataParser = (function() {
                                      metadata.thumbnail = thumbnail;
                                      offscreenImage.src = '';
                                      metadataCallback(metadata);
-                                   });
+                                   },
+                                   errorCallback);
       };
     }
   }

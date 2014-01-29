@@ -40,9 +40,9 @@
     }
   ],
 
-  // Set to 'uglify2' to get uglify to run using the
-  // uglify2 settings below.
-  optimize: 'none',
+  // This is now passed via Makefile's GAIA_EMAIL_MINIFY
+  // but default is uglify2 if not passed at all.
+  // optimize: 'none',
 
   // Just strip comments, no code compression or mangling.
   // Only active if optimize: 'uglify2'
@@ -51,9 +51,7 @@
     // returns and tabs spacing.
     output: {
       beautify: true
-    },
-    compress: false,
-    mangle: false
+    }
   },
 
   fileExclusionRegExp: /^\.|^test$|^build$/,

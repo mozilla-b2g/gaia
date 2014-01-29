@@ -68,10 +68,10 @@ suite('Facebook Connector Tests', function() {
         assert.equal(adapted.givenName[0], 'Carlos Angel');
         assert.equal(adapted.familyName[0], 'Bureta');
 
-        assert.equal(adapted.email[0].type[0], 'personal');
+        assert.equal(adapted.email[0].type[0], 'other');
         assert.equal(adapted.email[0].value, 'ppburetaxyz@gmail.com');
 
-        assert.equal(adapted.tel[0].type[0], 'personal');
+        assert.equal(adapted.tel[0].type[0], 'other');
         assert.equal(adapted.tel[0].value, '+34609274801');
 
         assert.equal(adapted.fbInfo.org[0], 'Telefonica');

@@ -12,7 +12,7 @@ suite('Sounds', function() {
     {
       name: 'camera',
       setting: 'camera.shutter.enabled',
-      url: 'resources/sounds/shutter.ogg'
+      url: 'resources/sounds/shutter.opus'
     },
     {
       name: 'recordingStart',
@@ -25,12 +25,6 @@ suite('Sounds', function() {
       setting: 'camera.recordingsound.enabled'
     }
   ];
-
-  // Sometimes setup via the
-  // test agent can take a while,
-  // so we need to bump timeout
-  // to prevent test failure.
-  this.timeout(4000);
 
   suiteSetup(function(done) {
     req(['sounds'], function(sounds) {
@@ -47,7 +41,7 @@ suite('Sounds', function() {
     this.mockSound = {
       name: 'camera',
       setting: 'camera.shutter.enabled',
-      url: 'resources/sounds/shutter.ogg'
+      url: 'resources/sounds/shutter.opus'
     };
 
     // Keep reference of

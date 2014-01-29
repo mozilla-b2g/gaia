@@ -85,7 +85,7 @@ var NotificationScreen = {
     window.addEventListener('ftuopen', this);
     window.addEventListener('ftudone', this);
 
-    this._sound = 'style/notifications/ringtones/notifier_exclamation.ogg';
+    this._sound = 'style/notifications/ringtones/notifier_exclamation.opus';
 
     this.ringtoneURL = new SettingsURL();
 

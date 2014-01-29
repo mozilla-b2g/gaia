@@ -11,6 +11,12 @@
 var ThreadListUI = {
   draftLinks: null,
   draftRegistry: null,
+  DRAFT_SAVED_DURATION: 5000,
+
+  // Used to track timeouts
+  timeouts: {
+    onDraftSaved: null
+  },
 
   // Used to track the current number of rendered
   // threads. Updated in ThreadListUI.renderThreads
@@ -29,7 +35,7 @@ var ThreadListUI = {
       'container', 'no-messages',
       'check-all-button', 'uncheck-all-button',
       'delete-button', 'cancel-button',
-      'edit-icon', 'edit-mode', 'edit-form'
+      'edit-icon', 'edit-mode', 'edit-form', 'draft-saved-banner'
     ].forEach(function(id) {
       this[Utils.camelCase(id)] = document.getElementById('threads-' + id);
     }, this);
@@ -376,76 +382,61 @@ var ThreadListUI = {
     }.bind(this));
   },
 
-  renderThreads: function thlui_renderThreads(threads, renderCallback) {
+  prepareRendering: function thlui_prepareRendering() {
+    this.container.innerHTML = '';
+    this.renderDrafts();
+  },
 
-    // shut down this render
-    var abort = false;
+  startRendering: function thlui_startRenderingThreads() {
+    this.setEmpty(false);
 
-    // we store the function to kill the previous render on the function itself
-    if (thlui_renderThreads.abort) {
-      thlui_renderThreads.abort();
+    FixedHeader.init('#threads-container',
+                     '#threads-header-container',
+                     'header');
+  },
+
+  finalizeRendering: function thlui_finalizeRendering(empty) {
+    if (empty) {
+      this.setEmpty(true);
     }
 
+    FixedHeader.refresh();
 
-    // TODO: https://bugzilla.mozilla.org/show_bug.cgi?id=854417
-    // Refactor the rendering method: do not empty the entire
-    // list on every render.
-    ThreadListUI.container.innerHTML = '';
+    if (!empty) {
+      TimeHeaders.updateAll('header[data-time-update]');
+    }
+  },
 
-    ThreadListUI.renderDrafts();
+  renderThreads: function thlui_renderThreads(done) {
+    var hasThreads = false;
 
-    if (threads.length) {
-      thlui_renderThreads.abort = function thlui_renderThreads_abort() {
-        abort = true;
-      };
+    this.prepareRendering();
 
-      ThreadListUI.setEmpty(false);
-
-      FixedHeader.init('#threads-container',
-                       '#threads-header-container',
-                       'header');
-      // Edit mode available
-
-      var appendThreads = function(threads, callback) {
-        if (!threads.length) {
-          if (callback) {
-            callback();
-          }
-          return;
-        }
-
-        setTimeout(function appendThreadsDelayed() {
-          if (abort) {
-            return;
-          }
-          ThreadListUI.appendThread(threads.pop());
-          appendThreads(threads, callback);
-        });
-      };
-
-      appendThreads(threads, function at_callback() {
-        // clear up abort method
-        delete thlui_renderThreads.abort;
-        // set the fixed header
-        FixedHeader.refresh();
-        // Boot update of headers
-        TimeHeaders.updateAll('header[data-time-update]');
-        // Once the rendering it's done, callback if needed
-        if (renderCallback) {
-          renderCallback();
-        }
-      });
-    } else {
-      ThreadListUI.setEmpty(true);
-      FixedHeader.refresh();
-
-      // Callback if exist
-      if (renderCallback) {
-        setTimeout(function executeCB() {
-          renderCallback();
-        });
+    function onRenderThread(thread) {
+      /* jshint validthis: true */
+      if (!hasThreads) {
+        hasThreads = true;
+        this.startRendering();
       }
+
+      this.appendThread(thread);
     }
+
+    function onThreadsRendered() {
+      /* jshint validthis: true */
+
+      /* We set the view as empty only if there's no threads and no drafts,
+       * this is done to prevent races between renering threads and drafts. */
+      this.finalizeRendering(!(hasThreads || Drafts.size));
+    }
+
+    var renderingOptions = {
+      each: onRenderThread.bind(this),
+      end: onThreadsRendered.bind(this),
+      done: done
+    };
+
+    MessageManager.getThreads(renderingOptions);
   },
 
   createThread: function thlui_createThread(record) {
@@ -688,6 +679,17 @@ var ThreadListUI = {
       li.classList.remove(remove);
       li.classList.add(current);
     }
+  },
+
+  onDraftSaved: function thlui_onDraftSaved() {
+    this.draftSavedBanner.classList.remove('hide');
+
+    clearTimeout(this.timeouts.onDraftSaved);
+    this.timeouts.onDraftSaved = null;
+
+    this.timeouts.onDraftSaved = setTimeout(function hideDraftSavedBanner() {
+      this.draftSavedBanner.classList.add('hide');
+    }.bind(this), this.DRAFT_SAVED_DURATION);
   }
 };
 

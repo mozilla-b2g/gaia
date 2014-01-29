@@ -18,7 +18,7 @@ define(function(require) {
       if (!name) {
         count = count || 1;
         var suffix = mapper.guessExtensionFromType(blob.type);
-        name = mozL10n.get('default-attachment-name', { n: count }) +
+        name = mozL10n.get('default-attachment-filename', { n: count }) +
                        (suffix ? ('.' + suffix) : '');
       }
       return name;

@@ -241,7 +241,9 @@
           return;
         // XXX: Remove this after SIMPIN Dialog is refactored.
         // See https://bugzilla.mozilla.org/show_bug.cgi?id=938979
-        if (!SimPinDialog.visible)
+        // XXX: Rocketbar losing input focus
+        // See: https://bugzilla.mozilla.org/show_bug.cgi?id=961557
+        if (!SimPinDialog.visible && !Rocketbar.shown)
           this.app.focus();
       }.bind(this));
     };
@@ -282,8 +284,9 @@
       }
 
       var classes = ['enlarge', 'reduce', 'to-cardview', 'from-cardview',
-        'invoking', 'invoked', 'zoom-in', 'zoom-out',
-        'transition-opening', 'transition-closing', 'immediate'];
+        'invoking', 'invoked', 'zoom-in', 'zoom-out', 'fade-in', 'fade-out',
+        'transition-opening', 'transition-closing', 'immediate',
+        'slideleft', 'slideright'];
 
       classes.forEach(function iterator(cls) {
         this.app.element.classList.remove(cls);

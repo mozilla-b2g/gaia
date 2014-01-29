@@ -5,25 +5,26 @@
     <meta charset="utf-8">
     <title>Open test</title>
     <link rel="stylesheet" type="text/css" href="../../style/UI.css">
+    <link rel="stylesheet" type="text/css" href="/shared/style/buttons.css">
     <script type="text/javascript" src="../../js/UI/window_open.js"></script>
   </head>
   <body>
-    <h1>window.open</h1>
-
-    <h2> You should see the keyboard when focusing here </h2>
-    <input type="textarea"></input>
-
-    <h2>Call on mozbrowser frame:</h2>
-    <p><button class="mozbrowser" data-action="open" data-url="./popup.html">window.open</button></p>
-    <p><button class="mozbrowser" data-action="open" data-url="./popup.html#attention">window.open(url, name, 'attention')</button></p>
-    <p><button class="mozbrowser" data-action="close" >window.close()</button></p>
-
-    <h2>Call on this iframe within mozbrowser:</h2>
-    <p><button data-action="open" data-url="./popup.html">window.open</button></p>
-    <p><button data-action="open" data-url="./popup.html#attention">window.open(url, name, 'attention')</button></p>
-
-    <p><button data-action="open" data-url="https://google.com">Open External URL</button></p>
-
-    <p>Press back button to go back.</p>
+    <fieldset>
+      <legend>Call on mozbrowser frame</legend>
+      <section>
+        <button class="mozbrowser" data-action="open" data-url="./popup.html">window.open</button>
+        <button class="mozbrowser" data-action="open" data-url="./popup.html#attention">window.open<br>(url, name, 'attention')</button>
+        <button class="mozbrowser" data-action="close" >window.close()</button>
+      </section>
+    </fieldset>
+    <br>
+    <fieldset>
+      <legend>Call on this iframe within mozbrowser</legend>
+      <section>
+        <button data-action="open" data-url="./popup.html">window.open</button>
+        <button data-action="open" data-url="./popup.html#attention">window.open<br>(url, name, 'attention')</button>
+        <button data-action="open" data-url="https://google.com">Open External URL</button>
+      </section>
+    </fieldset>
   </body>
 </html>

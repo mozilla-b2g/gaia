@@ -26,6 +26,10 @@ function init() {
   // Make it visible
   currentPageView.show();
 
+  // The call to resizeWindow triggers the system app to actually display
+  // the frame that holds the keyboard.
+  resizeWindow();
+
   // Handle events
   KeyboardTouchHandler.setPageView(currentPageView);
   KeyboardTouchHandler.addEventListener('key', handleKey);
@@ -73,7 +77,7 @@ function getVariant() {
 
   // figure out what layout variant we're using
   // XXX: match the old keyboard behavior
-  switch(InputField.inputType) {
+  switch (InputField.inputType) {
   case 'email':
     variant = 'email';
     break;
@@ -83,7 +87,7 @@ function getVariant() {
   default:
     variant = null;
   }
-  console.log("getVariant", variant);
+  console.log('getVariant', variant);
   return variant;
 }
 

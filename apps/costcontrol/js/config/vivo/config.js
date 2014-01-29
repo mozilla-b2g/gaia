@@ -1,3 +1,5 @@
+/* global Format, ConfigManager */
+
 'use strict';
 
 var VivoConfig = (function() {
@@ -90,7 +92,7 @@ var VivoConfig = (function() {
     '1', '1',
     RESERVED,
     OPERATION_CHECK_BALANCE,
-    '([0-9]+)\\.([0-9]{2})' // matches the remaining balance
+    '([0-9]+)\\.([0-9]{1,2})' // matches the remaining balance
   ].join('');
 
   return {

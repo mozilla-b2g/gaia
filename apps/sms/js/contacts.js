@@ -256,9 +256,11 @@
         fb.getContactByNumber(filterValue, function fbByPhone(contact) {
           callback(contact ? [contact] : []);
         }, function error_fbByPhone(err) {
-            console.error('Error while retrieving fb by phone: ',
-                                 err.name);
-            callback(results);
+          if (err.name !== 'DatastoreNotFound') {
+            console.error('Error while retrieving fb by phone: ', err.name);
+          }
+
+          callback(results);
         });
       });
     }

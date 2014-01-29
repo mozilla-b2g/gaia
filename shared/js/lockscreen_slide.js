@@ -207,16 +207,23 @@
           break;
 
         case 'touchstart':
-            if (evt.target === this.area) {
-              this.states.touch.id = evt.touches[0].identifier;
-              this._onSlideBegin(this._dpx(evt.touches[0].pageX));
-              window.addEventListener('touchend', this);
-              window.addEventListener('touchmove', this);
-            }
-            evt.preventDefault();
+          evt.preventDefault();
+          if (evt.target !== this.area || evt.touches.length > 1) {
+            return;
+          }
+          this.states.touch.id = evt.touches[0].identifier;
+          this._onSlideBegin(this._dpx(evt.touches[0].pageX));
+          window.addEventListener('touchend', this);
+          window.addEventListener('touchmove', this);
           break;
 
         case 'touchmove':
+          // In order to prevent pocket unlocks we reset the slide progress and
+          // end the gesture detection if a new touch point appears on screen.
+          if (evt.touches.length > 1) {
+            this._endGesture();
+            return;
+          }
           // Records touch states.
           this._onTouchMove(
             this._dpx(evt.touches[0].pageX),
@@ -230,13 +237,8 @@
         case 'touchend':
           if (evt.changedTouches[0].identifier !== this.states.touch.id)
             return;
-          window.removeEventListener('touchmove', this);
-          window.removeEventListener('touchend', this);
 
-          this.states.sliding = false;
-          this._onSlideEnd();
-          this._resetTouchStates();
-          this.overlay.classList.remove('touched');
+          this._endGesture();
           break;
       }
     };
@@ -450,6 +452,23 @@
       this.states.touch.initX = tx;
       this.states.sliding = true;
       this._lightIcons();
+    };
+
+  /**
+   * Encapsulating all the cleanups needed at the end of a gesture.
+   *
+   * @this {LockScreenSlide}
+   */
+  LockScreenSlidePrototype._endGesture =
+    function lss_endGesture() {
+      window.removeEventListener('touchmove', this);
+      window.removeEventListener('touchend', this);
+
+      this.states.sliding = false;
+      this._onSlideEnd();
+      this._resetTouchStates();
+      this.overlay.classList.remove('touched');
+      this.states.slideReachEnd = false;
     };
 
   /**
@@ -890,6 +909,7 @@
   LockScreenSlidePrototype._resetTouchStates =
     function lss_resetTouchStates() {
       this.states.touch = {
+        id: null,
         touched: false,
         initX: this.center.x,
         pageX: this.center.x,

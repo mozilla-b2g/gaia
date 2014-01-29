@@ -4,8 +4,6 @@ requireApp('settings/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('settings/js/simcard_manager_settings_helper.js');
 
 suite('SimSettingsHelper > ', function() {
-  this.timeout(20000);
-
   var realMozSettings;
 
   suiteSetup(function() {
@@ -337,6 +335,17 @@ suite('SimSettingsHelper > ', function() {
         assert.include(SimSettingsHelper.settingKeys,
           'ril.data.defaultServiceId');
 
+        assert.equal(mSettings['ril.mms.defaultServiceId'], fakeCardIndex);
+        assert.equal(mSettings['ril.data.defaultServiceId'], fakeCardIndex);
+      });
+    });
+
+    suite('set string index to outgoingData > ', function() {
+      setup(function() {
+        SimSettingsHelper.setServiceOnCard('outgoingData', '' + fakeCardIndex);
+      });
+
+      test('can set on service id with number successfully', function() {
         assert.equal(mSettings['ril.mms.defaultServiceId'], fakeCardIndex);
         assert.equal(mSettings['ril.data.defaultServiceId'], fakeCardIndex);
       });

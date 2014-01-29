@@ -20,6 +20,7 @@
   padding: 0 2rem;
   font-size: 1.5rem;
   height: calc(100% - 6rem);
+  width: calc(100% - 4rem);
   overflow-y: scroll;
 }
 

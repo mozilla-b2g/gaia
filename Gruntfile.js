@@ -19,7 +19,8 @@ module.exports = function(grunt) {
         }
       },
       keyboard: {
-        src: ['apps/keyboard/js/**/*.js'],
+        src: ['apps/keyboard/js/**/*.js',
+              '!apps/keyboard/js/render.js'],
         options: {
           destination: 'docs/keyboard'
         }

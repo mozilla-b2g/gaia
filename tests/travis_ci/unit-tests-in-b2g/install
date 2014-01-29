@@ -1,0 +1,9 @@
+#! /bin/bash -ve
+echo 'Downloading b2g-desktop'
+make b2g
+
+echo 'Downloading & installing node dependencies'
+make common-install
+
+echo 'Downloading xulrunner-sdk and making profile for testing (more than 5 minutes)'
+NO_LOCK_SCREEN=1 DEBUG=1 DESKTOP=0 WGET_OPTS=-nv make

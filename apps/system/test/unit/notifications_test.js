@@ -11,7 +11,7 @@ mocha.globals(['ScreenManager']);
 
 require('/shared/test/unit/mocks/mock_settings_url.js');
 require('/test/unit/mock_statusbar.js');
-require('/test/unit/mock_gesture_detector.js');
+require('/shared/test/unit/mocks/mock_gesture_detector.js');
 require('/test/unit/mock_utility_tray.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
 require('/js/notifications.js');

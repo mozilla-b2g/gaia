@@ -17,7 +17,6 @@ suiteGroup('Provider.Caldav', function() {
   var eventStore;
 
   setup(function(done) {
-    this.timeout(10000);
     app = testSupport.calendar.app();
     controller = app.serviceController;
     db = app.db;
@@ -54,7 +53,6 @@ suiteGroup('Provider.Caldav', function() {
 
   var ical;
   suiteSetup(function(done) {
-    this.timeout(10000);
     ical = new ServiceSupport.Fixtures('ical');
     ical.load('daily_event');
     ical.load('recurring_event');

@@ -86,3 +86,46 @@ section.apps img {
 div[data-provider="WebResults"] > img {
   border-radius: 50%;
 }
+
+.place {
+  display: flex;
+  flex-direction: row;
+  border-bottom: 1px solid #5A5A5A;
+  padding: 8px;
+}
+
+.place * {
+  pointer-events: none;
+}
+
+.favicon {
+  pointer-events: none;
+  margin: 2px 8px 0 0;
+  margin-top: 2px;
+  display: block;
+  flex: 0 0 16px;
+  width: 16px;
+  height: 16px;
+}
+
+.favicon.empty {
+  border: 1px dashed #5A5A5A;
+  border-radius: 2px;
+}
+
+.url {
+  color: #CCC;
+}
+
+.title, .url {
+  pointer-events: none;
+  display: block;
+  white-space:nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.highlight {
+  font-weight: bold;
+  text-decoration: underline;
+}

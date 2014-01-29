@@ -229,6 +229,23 @@ function MessageListCard(domNode, mode, args) {
 
   this.onCurrentMessage = this.onCurrentMessage.bind(this);
   headerCursor.on('currentMessage', this.onCurrentMessage);
+
+  // If this card is created after header_cursor is set up
+  // with a messagesSlice, then need to bootstrap this card
+  // to catch up, since the normal events will not fire.
+  // Common scenarios for this case are: going back to the
+  // message list after reading a message from a notification,
+  // or from a compose triggered from an activity. However,
+  // only do this if there is a current folder. A case
+  // where there is not a folder: after deleting an account,
+  // and the UI is bootstrapping back to existing account.
+  if (this.curFolder) {
+    var items = headerCursor.messagesSlice && headerCursor.messagesSlice.items;
+    if (items && items.length) {
+      this.messages_splice(0, 0, items);
+      this.messages_complete(0);
+    }
+  }
 }
 MessageListCard.prototype = {
   /**
@@ -835,10 +852,22 @@ MessageListCard.prototype = {
   _cacheDomTimeoutId: 0,
 
   /**
+   * Confirms card state is in a visual state suitable for caching.
+   */
+  _isCacheableCardState: function() {
+    return this.cacheableFolderId === this.curFolder.id &&
+           this.mode === 'nonsearch' &&
+           !this.editMode;
+  },
+
+  /**
    * Caches the DOM for this card, but trims it down a bit first.
    */
   _cacheDom: function() {
     this._cacheDomTimeoutId = 0;
+    if (!this._isCacheableCardState()) {
+      return;
+    }
 
     var cacheNode = this.domNode.cloneNode(true);
 
@@ -878,16 +907,14 @@ MessageListCard.prototype = {
   _considerCacheDom: function(index) {
     // Only bother if not already waiting to update cache and
     if (!this._cacheDomTimeoutId &&
-        // is for the folder that is considered cacheable (default inbox)
-        this.cacheableFolderId === this.curFolder.id &&
+        // card visible state is appropriate
+        this._isCacheableCardState() &&
         // if our slice is showing the newest messages in the folder and
         headerCursor.messagesSlice.atTop &&
         // if actually got a numeric index and
         (index || index === 0) &&
         // if it affects the data we cache
-        index < this._cacheListLimit &&
-        // is in non-search mode
-        this.mode === 'nonsearch') {
+        index < this._cacheListLimit) {
       this._cacheDomTimeoutId = setTimeout(this._cacheDom.bind(this), 600);
     }
   },

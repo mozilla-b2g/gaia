@@ -23,6 +23,12 @@ function SimPinDialog(dialog) {
   var _onsuccess = function() {};
   var _oncancel = function() {};
 
+  var _allowedRetryCounts = {
+    'pin': 3,
+    'pin2': 3,
+    'puk': 10,
+    'puk2': 10
+  };
 
   /**
    * User Interface constants
@@ -96,7 +102,7 @@ function SimPinDialog(dialog) {
 
     // after three strikes, ask for PUK/PUK2
     var count = event.retryCount;
-    if (count == 0) {
+    if (count <= 0) {
       if (type === 'pin') {
         _action = initUI('unlock_puk');
         pukInput.focus();
@@ -327,6 +333,7 @@ function SimPinDialog(dialog) {
 
   function initUI(action) {
     showMessage();
+    showRetryCount(); // Clear the retry count at first
     dialogDone.disabled = true;
 
     var lockType = 'pin'; // used to query the number of retries left
@@ -394,7 +401,15 @@ function SimPinDialog(dialog) {
     // display the number of remaining retries if necessary
     // XXX this only works with the emulator (and some commercial RIL stacks...)
     // https://bugzilla.mozilla.org/show_bug.cgi?id=905173
-    icc.getCardLockRetryCount(lockType, showRetryCount);
+    var req = icc.getCardLockRetryCount(lockType);
+    req.onsuccess = function() {
+      var retryCount = req.result.retryCount;
+      if (retryCount === _allowedRetryCounts[lockType]) {
+        // hide the retry count if users had not input incorrect codes
+        retryCount = null;
+      }
+      showRetryCount(retryCount);
+    };
     return action;
   }
 

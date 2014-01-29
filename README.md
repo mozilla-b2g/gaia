@@ -173,4 +173,4 @@ See [how to run the Gaia endurance tests](https://developer.mozilla.org/en-US/do
 
 To generate API reference locally:
 
-run `make docs` command to generate docs in `docs` folder
+run `make docs` command to generate docs in `docs` folder.

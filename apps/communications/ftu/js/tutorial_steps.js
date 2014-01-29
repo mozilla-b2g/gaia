@@ -42,7 +42,7 @@
   TutorialSteps.large = {};
 
   TutorialSteps.tiny.stepsCount = 5 + 1;
-  TutorialSteps.large.stepsCount = 5 + 1;
+  TutorialSteps.large.stepsCount = 4 + 1;
 
   for (var supportLayout in TutorialSteps) {
     for (var stepIndex = 1; stepIndex <
@@ -52,9 +52,16 @@
       var imagePathSuffix = (supportLayout === 'tiny') ?
           '.png' : '_' + supportLayout + '.png';
 
+      // Because we may change wordings on FTU, we need a specific suffix
+      // used to concate distinct l10n id in different layout.
+      //
+      // NOTE: If you change any related wordings in properties file, remember
+      // to change the suffix here
+      var l10nKeySuffix = (supportLayout === 'tiny') ? '' : '-2';
+
       TutorialSteps[supportLayout][stepIndex] = {
         hash: '#step' + stepIndex,
-        key: 'tutorial-step' + stepIndex + '-' + supportLayout,
+        key: 'tutorial-step' + stepIndex + '-' + supportLayout + l10nKeySuffix,
         image: 'css/images/tutorial/' + stepIndex + imagePathSuffix
       };
     }

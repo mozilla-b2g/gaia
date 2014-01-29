@@ -1,25 +1,16 @@
+/* globals contacts, MockFindMatcher */
+
+'use strict';
+
 require('/shared/js/simple_phone_matcher.js');
 requireApp('communications/contacts/js/utilities/misc.js');
 requireApp('communications/contacts/test/unit/mock_find_matcher.js');
 requireApp('communications/contacts/js/contacts_merger.js');
 
-if (!this.toMergeContacts) {
-  this.toMergeContacts = null;
-}
-
-if (!this.toMergeContact) {
-  this.toMergeContact = null;
-}
-
-if (!this.realmozContacts) {
-  this.realmozContacts = null;
-}
-
-if (!this.SimplePhoneMatcher) {
-  this.SimplePhoneMatcher = null;
-}
-
 suite('Contacts Merging Tests', function() {
+  var toMergeContacts = null,
+      toMergeContact = null,
+      realmozContacts = null;
 
   var aPhoto = new Blob();
 
@@ -156,6 +147,54 @@ suite('Contacts Merging Tests', function() {
     }});
   });
 
+  test('Merge first name and last name. existing and incoming given names' +
+       'empty', function(done) {
+    toMergeContact.matchingContact = {
+      givenName: [],
+      familyName: ['Müller von Bismarck'],
+       tel: [{
+        type: ['work'],
+        value: '67676767'
+      }]
+    };
+
+    var masterContact = new MasterContact();
+
+    masterContact.givenName = null;
+
+    contacts.Merger.merge(masterContact, toMergeContacts, {
+      success: function(result) {
+        assert.isTrue(result.givenName.length === 0);
+        assert.equal(result.familyName[0], 'Müller');
+
+        done();
+    }});
+  });
+
+  test('Merge first name and last name. existing and incoming last names empty',
+       function(done) {
+    toMergeContact.matchingContact = {
+      givenName: ['Alfred Albert'],
+      familyName: [],
+       tel: [{
+        type: ['work'],
+        value: '67676767'
+      }]
+    };
+
+    var masterContact = new MasterContact();
+
+    masterContact.familyName = null;
+
+    contacts.Merger.merge(masterContact, toMergeContacts, {
+      success: function(result) {
+        assert.isTrue(result.familyName.length === 0);
+        assert.equal(result.givenName[0], 'Alfred');
+
+        done();
+    }});
+  });
+
   test('Merging existing with only familyName with an incoming SIM Contact',
     function(done) {
       var masterContact = new MasterContact();
@@ -245,7 +284,7 @@ suite('Contacts Merging Tests', function() {
         assert.lengthOf(result.email, 1);
 
         assertFieldValues(result.tel, ['67676767', '0987654']);
-        assertFieldValues(result.tel, ['work', 'another'], 'type');
+        assertFieldValues(result.tel, ['work', 'other'], 'type');
 
         done();
     }});
@@ -353,7 +392,7 @@ suite('Contacts Merging Tests', function() {
 
         assertFieldValues(result.email, ['jj@jj.com', 'home@sweet.home']);
 
-        assertFieldValues(result.email, ['work', 'personal'], 'type');
+        assertFieldValues(result.email, ['work', 'other'], 'type');
 
         done();
     }});

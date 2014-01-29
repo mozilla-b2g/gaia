@@ -1,0 +1,12 @@
+{"name": "In-app Payment Tester",
+ "description": "Utility app to test in-app payments.",
+ "version": "1.0",
+ "developer": {"name": "Kumar McMillan"},
+ "launch_path": "/",
+ "default_locale": "en",
+ "icons": {
+   "64": "/img/out-64.png",
+   "128": "/img/out-128.png",
+   "256": "/img/out-256.png"
+  },
+ "installs_allowed_from": ["*"]}

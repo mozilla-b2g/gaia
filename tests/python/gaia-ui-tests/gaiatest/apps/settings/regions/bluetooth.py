@@ -8,7 +8,6 @@ from gaiatest.apps.base import Base
 
 class Bluetooth(Base):
 
-    _bluetooth_region_visible_locator = (By.CSS_SELECTOR, '#bluetooth.current')
     _bluetooth_checkbox_locator = (By.CSS_SELECTOR, '#bluetooth-status input')
     _bluetooth_label_locator = (By.CSS_SELECTOR, '#bluetooth-status span')
 

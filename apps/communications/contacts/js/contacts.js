@@ -104,6 +104,10 @@ var Contacts = (function() {
           showApp();
         });
         break;
+      case 'home':
+        navigation.home();
+        showApp();
+        break;
       default:
         showApp();
     }
@@ -156,12 +160,13 @@ var Contacts = (function() {
         {type: 'faxHome', value: _('faxHome')},
         {type: 'faxOffice', value: _('faxOffice')},
         {type: 'faxOther', value: _('faxOther')},
-        {type: 'another', value: _('another')}
+        {type: 'other', value: _('other')}
       ],
       'email-type' : [
         {type: 'personal', value: _('personal')},
         {type: 'home', value: _('home')},
-        {type: 'work', value: _('work')}
+        {type: 'work', value: _('work')},
+        {type: 'other', value: _('other')}
       ],
       'address-type' : [
         {type: 'home', value: _('home')},
@@ -177,7 +182,9 @@ var Contacts = (function() {
     window.addEventListener('asyncScriptsLoaded', function onAsyncLoad() {
       asyncScriptsLoaded = true;
       window.removeEventListener('asyncScriptsLoaded', onAsyncLoad);
-      contactsList.initAlphaScroll();
+      if (contactsList) {
+        contactsList.initAlphaScroll();
+      }
       checkUrl();
 
       PerformanceTestingHelper.dispatch('init-finished');
@@ -396,13 +403,15 @@ var Contacts = (function() {
   };
 
   var sendSms = function sendSms(number) {
-    if (!ActivityHandler.currentlyHandling)
+    if (!ActivityHandler.currentlyHandling ||
+        ActivityHandler.activityName === 'open')
       SmsIntegration.sendSms(number);
   };
 
   var callOrPick = function callOrPick(number) {
     LazyLoader.load('/dialer/js/mmi.js', function mmiLoaded() {
-      if (ActivityHandler.currentlyHandling) {
+      if (ActivityHandler.currentlyHandling &&
+          ActivityHandler.activityName !== 'open') {
         ActivityHandler.postPickSuccess({ number: number });
       } else if (MmiManager.isMMI(number)) {
         // For security reasons we cannot directly call MmiManager.send(). We

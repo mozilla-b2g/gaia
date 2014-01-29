@@ -7,6 +7,8 @@ fb.PROPAGATED_PREFIX = 'fb_propagated_';
 // Types of URLs for FB Information
 fb.PROFILE_PHOTO_URI = 'fb_profile_photo';
 fb.FRIEND_URI = 'fb_friend';
+fb.DEFAULT_PHONE_TYPE = 'other';
+fb.DEFAULT_EMAIL_TYPE = 'other';
 
 fb.CONTACTS_APP_ORIGIN = 'app://communications.gaiamobile.org';
 
@@ -86,12 +88,10 @@ fb.friend2mozContact = function(f) {
   delete f.middle_name;
   delete f.first_name;
 
-  var privateType = 'personal';
-
   if (f.email) {
     f.email1 = f.email;
     f.email = [{
-                  type: [privateType],
+                  type: [fb.DEFAULT_EMAIL_TYPE],
                   value: f.email
     }];
   }
@@ -104,7 +104,7 @@ fb.friend2mozContact = function(f) {
     f.shortTelephone = [];
     f.phones.forEach(function(aphone) {
       f.tel.push({
-        type: [privateType],
+        type: [fb.DEFAULT_PHONE_TYPE],
         value: normalizeFbPhoneNumber(aphone)
       });
       // Enabling to find FB phones by short number

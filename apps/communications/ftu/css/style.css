@@ -433,6 +433,14 @@ a {
   opacity: 0.6;
 }
 
+#wifi-refresh-button:not(:disabled):hover{
+  background-color: rgba(0, 0,0,0.0) !important;
+}
+
+#wifi-refresh-button:not(:disabled):active{
+  background-color: rgb(170, 225, 233) !important;
+}
+
 /*
   No result container
 */
@@ -612,6 +620,14 @@ aside.connecting {
 
 .finish-screen-base .content {
   background: url(images/icon_tour.png) no-repeat center 95% / 16.9rem;
+}
+
+.finish-screen-base .content .for-tiny {
+  display: block;
+}
+
+.finish-screen-base .content .for-large {
+  display: none;
 }
 
 .tutorial-finish-base .content {

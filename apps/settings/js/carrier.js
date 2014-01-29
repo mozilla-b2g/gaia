@@ -58,6 +58,9 @@ var CarrierSettings = (function(window, document, undefined) {
   /** MCC and MNC codes the APNs rely on */
   var _mccMncCodes = { mcc: '000', mnc: '00' };
 
+  /* Store the states of automatic operator selection */
+  var _opAutoSelectStates = null;
+
   /**
    * Init function.
    */
@@ -89,7 +92,7 @@ var CarrierSettings = (function(window, document, undefined) {
      * Bug 881862 is filed for tracking this.
      */
     // get network type
-    getSupportedNetworkInfo(function(result) {
+    getSupportedNetworkInfo(_mobileConnection, function(result) {
       var content =
         document.getElementById('carrier-operatorSettings-content');
 
@@ -136,6 +139,7 @@ var CarrierSettings = (function(window, document, undefined) {
                                          result.gsm,
                                          result.cdma);
           }
+          cs_updateAutomaticOperatorSelectionCheckbox();
           return;
         }
 
@@ -262,7 +266,8 @@ var CarrierSettings = (function(window, document, undefined) {
     var continueButton = alertDialog.querySelector('button');
     continueButton.addEventListener('click', function onClickHandler() {
       alertDialog.hidden = true;
-      getSupportedNetworkInfo(function getSupportedNetworkInfoCb(result) {
+      getSupportedNetworkInfo(_mobileConnection,
+        function getSupportedNetworkInfoCb(result) {
         if (result.networkTypes) {
           cs_updateNetworkTypeSelector(result.networkTypes,
                                        result.gsm,
@@ -339,6 +344,9 @@ var CarrierSettings = (function(window, document, undefined) {
     var opAutoSelectInput = opAutoSelect.querySelector('input');
     var opAutoSelectState = opAutoSelect.querySelector('small');
 
+    _opAutoSelectStates =
+      Array.prototype.map.call(_mobileConnections, function() { return true; });
+
     /**
      * Update selection mode.
      */
@@ -361,9 +369,11 @@ var CarrierSettings = (function(window, document, undefined) {
      * Toggle autoselection.
      */
     opAutoSelectInput.onchange = function() {
+      var targetIndex = DsdsSettings.getIccCardIndexForCellAndDataSettings();
+      _opAutoSelectStates[targetIndex] = opAutoSelectInput.checked;
+
       if (opAutoSelectInput.checked) {
-        gOperatorNetworkList.state = 'off';
-        gOperatorNetworkList.clear();
+        gOperatorNetworkList.stop();
         var req = _mobileConnection.selectNetworkAutomatically();
         req.onsuccess = function() {
           updateSelectionMode(false);
@@ -419,6 +429,8 @@ var CarrierSettings = (function(window, document, undefined) {
       var currentConnectedNetwork = null;
       var connecting = false;
       var operatorItemMap = {};
+
+      var scanRequest = null;
 
       /**
        * Clear the list.
@@ -508,9 +520,12 @@ var CarrierSettings = (function(window, document, undefined) {
       function scan() {
         clear();
         list.dataset.state = 'on'; // "Searching..."
-        var req = _mobileConnection.getNetworks();
-        req.onsuccess = function onsuccess() {
-          var networks = req.result;
+
+        // invalidate the original request if it exists
+        invalidateRequest(scanRequest);
+        scanRequest = _mobileConnection.getNetworks();
+        scanRequest.onsuccess = function onsuccess() {
+          var networks = scanRequest.result;
           for (var i = 0; i < networks.length; i++) {
             var network = networks[i];
             var listItem = newListItem(network, selectOperator);
@@ -522,24 +537,50 @@ var CarrierSettings = (function(window, document, undefined) {
             }
           }
           list.dataset.state = 'ready'; // "Search Again" button
+
+          scanRequest = null;
         };
 
-        req.onerror = function onScanError(error) {
+        scanRequest.onerror = function onScanError(error) {
           console.warn('carrier: could not retrieve any network operator. ');
           list.dataset.state = 'ready'; // "Search Again" button
+
+          scanRequest = null;
         };
+      }
+
+      function invalidateRequest(request) {
+        if (request) {
+          request.onsuccess = request.onerror = function() {};
+        }
+      }
+
+      function stop() {
+        list.dataset.state = 'off';
+        clear();
+        invalidateRequest(scanRequest);
+        scanRequest = null;
       }
 
       // API
       return {
-        get state() { return list.dataset.state; },
-        set state(value) { list.dataset.state = value; },
-        clear: clear,
+        stop: stop,
         scan: scan
       };
     })(document.getElementById('availableOperators'));
 
     updateSelectionMode(true);
+  }
+
+  /**
+   * Update the checkbox of the automatic operator selection.
+   */
+  function cs_updateAutomaticOperatorSelectionCheckbox() {
+    var opAutoSelectInput =
+      document.querySelector('#operator-autoSelect input');
+    var targetIndex = DsdsSettings.getIccCardIndexForCellAndDataSettings();
+    opAutoSelectInput.checked = _opAutoSelectStates[targetIndex];
+    opAutoSelectInput.dispatchEvent(new Event('change'));
   }
 
   /**
@@ -959,7 +1000,7 @@ var CarrierSettings = (function(window, document, undefined) {
       apnToBeMerged['authtype'] = authType.value;
       keys.push('authtype');
 
-      var newApnsForIccCards = [];
+      var newApnsForIccCards = [[], []];
       for (var iccCardIndex = 0;
            iccCardIndex < apns.length;
            iccCardIndex++) {
@@ -971,18 +1012,32 @@ var CarrierSettings = (function(window, document, undefined) {
         }
 
         // This is the APN element for the current ICC card, handle it.
+        var apnTypeNotPresent = true;
         var newApnsForIccCard = [];
         var apnsForIccCard = apns[iccCardIndex];
+        var apn = null;
+        for (var j = 0; j < apnsForIccCard.length; j++) {
+          apn = apnsForIccCard[j];
+          if (apn.types.indexOf(type) !== -1) {
+            apnTypeNotPresent = false;
+            break;
+          }
+        }
+        if (apnTypeNotPresent) {
+          apnToBeMerged.types = [type];
+          newApnsForIccCard.push(apnToBeMerged);
+        }
+
         for (var apnIndex = 0; apnIndex < apnsForIccCard.length; apnIndex++) {
-          var apn = apnsForIccCard[apnIndex];
+          apn = apnsForIccCard[apnIndex];
           // Search the existing APN for the type being modified.
           if (apn.types.indexOf(type) !== -1) {
             if (apn.types.length > 1) {
-              // The existing APN being modified is also used for other types of
-              // APNs. We need to keep the existing APN for those types.
-              // Delete the type of APN that we are modifying from the existing
-              // APN and create a new APN for the type we need to modify and add
-              // it to the set of APNs for the ICC card.
+              // The existing APN being modified is also used for other types
+              // of APNs. We need to keep the existing APN for those types.
+              // Delete the type of APN that we are modifying from the
+              // existing APN and create a new APN for the type we need to
+              // modify and add it to the set of APNs for the ICC card.
               var tmpApn = JSON.parse(JSON.stringify(apn));
               tmpApn.types.splice(apn.types.indexOf(type), 1);
               newApnsForIccCard.push(tmpApn);

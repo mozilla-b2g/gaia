@@ -51,6 +51,55 @@ function setNotification(settings, config) {
   settings['notification.ringtone'] = utils.getFileAsDataURI(notification);
 }
 
+/* Setup the default keyboard layouts according to the current language */
+function setDefaultKeyboardLayouts(lang, settings, config) {
+  let layoutConfigFile = utils.resolve(
+    utils.joinPath('shared', 'resources', 'keyboard_layouts.json'),
+    config.GAIA_DIR);
+
+  let layoutConfig = utils.getJSON(layoutConfigFile);
+  let keyboardLayouts = layoutConfig['layout'];
+
+  if (!keyboardLayouts) {
+    utils.log('default keyboard layouts are not defined: ' +
+              layoutConfigFile.path + '\n');
+    return;
+  }
+
+  // Get the default layouts for the specified language
+  let defaultLayoutList = keyboardLayouts[lang];
+  if (!defaultLayoutList) {
+    utils.log('Cannot find default layout list for language: ' + lang + '\n');
+    defaultLayoutList = keyboardLayouts['en-US'];
+  }
+
+  let keyboardSettings = {};
+
+  function addLayoutEntry(layout) {
+    let manifestURL = layout.appManifestURL;
+
+    if (!keyboardSettings[manifestURL]) {
+      keyboardSettings[manifestURL] = {};
+    }
+
+    keyboardSettings[manifestURL][layout.layoutId] = true;
+  }
+
+  defaultLayoutList.forEach(addLayoutEntry);
+
+  // Also add language-independent layouts into the sets
+  let langIndependentLayoutList = layoutConfig['langIndependentLayouts'];
+  langIndependentLayoutList.forEach(addLayoutEntry);
+
+  const SETTINGS_KEYS = {
+    ENABLED: 'keyboard.enabled-layouts',
+    DEFAULT: 'keyboard.default-layouts'
+  };
+
+  settings['keyboard.enabled-layouts'] = keyboardSettings;
+  settings['keyboard.default-layouts'] = keyboardSettings;
+}
+
 function overrideSettings(settings, config) {
   // See if any override file exists and eventually override settings
   let override = utils.resolve(config.SETTINGS_PATH,
@@ -116,7 +165,10 @@ function execute(config) {
   settings['devtools.debugger.remote-enabled'] = config.REMOTE_DEBUGGER == true;
 
   if (config.DEVICE_DEBUG) {
-    settings['devtools.debugger.remote-enabled'] = true;
+    settings['debugger.remote-mode'] = 'adb-devtools';
+  }
+
+  if (config.NO_LOCK_SCREEN) {
     settings['screen.timeout'] = 0;
     settings['lockscreen.enabled'] = false;
     settings['lockscreen.locked'] = false;
@@ -126,6 +178,9 @@ function execute(config) {
   setWallpaper(settings, config);
   setRingtone(settings, config);
   setNotification(settings, config);
+
+  setDefaultKeyboardLayouts(config.GAIA_DEFAULT_LOCALE, settings, config);
+
   overrideSettings(settings, config);
   writeSettings(settings, config);
 
@@ -139,3 +194,4 @@ exports.setRingtone = setRingtone;
 exports.setNotification = setNotification;
 exports.overrideSettings = overrideSettings;
 exports.writeSettings = writeSettings;
+exports.setDefaultKeyboardLayouts = setDefaultKeyboardLayouts;

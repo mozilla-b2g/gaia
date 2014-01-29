@@ -248,11 +248,13 @@
         break;
     }
 
+    this.app.browser.element.setAttribute('aria-hidden', true);
     this.element.classList.add('visible');
   };
 
   AppModalDialog.prototype.hide = function amd_hide() {
     this.element.blur();
+    this.app.browser.element.removeAttribute('aria-hidden');
     this.element.classList.remove('visible');
     if (this.app)
       this.app.focus();

@@ -1,6 +1,10 @@
 window.realL10n = window.navigator.mozL10n;
 
 var MockMozL10n = window.navigator.mozL10n = {
+  language: {
+    code: 'en',
+    dir: 'ltr'
+  },
   get: function get(key, params) {
     var out = key;
 

@@ -114,7 +114,7 @@ body > iframe {
   text-decoration: none;
 }
 
-#test-agent-search {
+#test-agent-panel {
   position: fixed;
   top: 0;
   left: 0;
@@ -124,6 +124,11 @@ body > iframe {
   width: 100%;
   height: 4.5rem;
   z-index: 4;
+}
+
+#test-agent-panel .options {
+  margin-top: 0.2rem;
+  margin-left: -0.3rem;
 }
 
 @media only screen and (max-width: 480px) {
@@ -141,7 +146,7 @@ body > iframe {
     top: .8rem;
   }
 
-  #test-agent-search {
+  #test-agent-panel {
     padding: 1rem;
     border-bottom: 1px solid #aaa;
   }

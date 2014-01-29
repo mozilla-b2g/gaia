@@ -6,20 +6,25 @@
     <title>mozNotification test</title>
     <script defer src="../../js/UI/notification.js"></script>
     <link rel="stylesheet" type="text/css" href="../../style/UI.css">
+    <link rel="stylesheet" type="text/css" href="/shared/style/buttons.css">
   </head>
   <body>
-    <h1>mozNotification</h1>
-
-    <h2>Call on mozbrowser frame:</h2>
-    <p><button id="button1">Notification</button></p>
-    <p><button id="button2">Notification (10 sec delay)</button></p>
-    <p><button id="button3">5 Notifications (10 sec delay)</button></p>
-
-    <h2>Call on this iframe within mozbrowser:</h2>
-    <p><button id="button4">Notification</button></p>
-    <p><button id="button5">Notification (10 sec delay)</button></p>
-    <p><button id="button6">5 Notifications (10 sec delay)</button></p>
-
-    <p>Press back button to go back.</p>
+    <fieldset>
+      <legend>Call on mozbrowser frame:</legend>
+      <section>
+        <button id="button1">Notification</button>
+        <button id="button2">Notification<br>(10 sec delay)</button>
+        <button id="button3">5 Notifications<br>(10 sec delay)</button>
+      </section>
+    </fieldset>
+    <br>
+    <fieldset>
+      <legend>Call on this iframe within mozbrowser:</legend>
+      <section>
+        <button id="button4">Notification</button>
+        <button id="button5">Notification<br>(10 sec delay)</button>
+        <button id="button6">5 Notifications<br>(10 sec delay)</button>
+      </section>
+    </fieldset>
   </body>
 </html>

@@ -48,7 +48,6 @@ suite('attachment_test.js', function() {
 
   suiteSetup(function(done) {
     // this sometimes takes longer because we fetch 4 assets via XHR
-    this.timeout(5000);
     this.realMozL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
 

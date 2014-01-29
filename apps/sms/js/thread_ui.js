@@ -13,6 +13,8 @@
 'use strict';
 
 var attachmentMap = new WeakMap();
+var isEmptyOnBackspace = false;
+var isHoldingBackspace = false;
 
 function thui_mmsAttachmentClick(target) {
   var attachment = attachmentMap.get(target);
@@ -106,8 +108,13 @@ var ThreadUI = global.ThreadUI = {
     // Changes on subject input can change the type of the message
     // and size of fields
     this.subjectInput.addEventListener(
-      'keyup', this.onSubjectKeyUp.bind(this)
+      'keydown', this.onSubjectKeydown.bind(this)
     );
+
+    this.subjectInput.addEventListener(
+      'keyup', this.onSubjectKeyup.bind(this)
+    );
+
     this.subjectInput.addEventListener(
       'blur', this.onSubjectBlur.bind(this)
     );
@@ -279,6 +286,9 @@ var ThreadUI = global.ThreadUI = {
   // Initialize Recipients list and Recipients.View (DOM)
   initRecipients: function thui_initRecipients() {
     var recipientsChanged = (function recipientsChanged(length, record) {
+      if (MessageManager.draft) {
+        MessageManager.draft.isEdited = true;
+      }
       var isOk = true;
       var strategy;
 
@@ -338,7 +348,7 @@ var ThreadUI = global.ThreadUI = {
     }
 
     this.sentAudioKey = 'message.sent-sound.enabled';
-    this.sentAudio = new Audio('/sounds/sent.ogg');
+    this.sentAudio = new Audio('/sounds/sent.opus');
     this.sentAudio.mozAudioChannelType = 'notification';
     this.sentAudioEnabled = false;
 
@@ -392,15 +402,6 @@ var ThreadUI = global.ThreadUI = {
     }
   },
 
-  // Method for setting the body of a SMS/MMS from activity
-  setMessageBody: function thui_setMessageBody(value) {
-    Compose.clear();
-    if (value) {
-      Compose.append(value);
-    }
-    Compose.focus();
-  },
-
   messageComposerInputHandler: function thui_messageInputHandler(event) {
     this.updateSubjectHeight();
     this.updateElementsHeight();
@@ -431,17 +432,43 @@ var ThreadUI = global.ThreadUI = {
       }.bind(this), this.IMAGE_RESIZE_DURATION);
     }
   },
+  onSubjectKeydown: function thui_onSubjectKeydown(event) {
+    if (event.keyCode === event.DOM_VK_BACK_SPACE) {
+      // Keydown appears to fire repeatedly (as keypress?),
+      // but keyup only fires once.
+      // https://bugzilla.mozilla.org/show_bug.cgi?id=960946
+      if (!isHoldingBackspace) {
+        isEmptyOnBackspace = !this.subjectInput.value.length;
+      }
 
-  onSubjectKeyUp: function thui_onSubjectKeyUp(event) {
+      isHoldingBackspace = true;
+    } else {
+      isHoldingBackspace = false;
+    }
+  },
+  onSubjectKeyup: function thui_onSubjectKeyup(event) {
+    // Only want to close the subject input when the user
+    // taps backspace on an empty field.
+    if (event.keyCode === event.DOM_VK_BACK_SPACE) {
+      if (isEmptyOnBackspace) {
+        Compose.toggleSubject();
+        this.updateSubjectHeight();
+        isEmptyOnBackspace = false;
+      }
+    }
+
+    isHoldingBackspace = false;
+
     Compose.updateType();
     // Handling user warning for max character reached
     // Only show the warning when the subject field has the focus
-    if (this.subjectInput.value.length === Compose.SUBJECT_MAX_LENGTH) {
+    if (this.subjectInput.value.length === Compose.subjectMaxLength) {
       this.showMaxLengthNotice('messages-max-subject-length-text');
     } else {
       this.hideMaxLengthNotice();
     }
   },
+
   onSubjectBlur: function thui_onSubjectBlur() {
     this.hideMaxLengthNotice();
   },
@@ -706,14 +733,12 @@ var ThreadUI = global.ThreadUI = {
         }
       }
 
-      var newMessageContactNode = document.getElementById(
-        'new-message-notice-contact'
-      );
-
+      var notice = this.newMessageNotice;
+      var newMessageContactNode = notice.querySelector('.contact');
       newMessageContactNode.textContent = sender;
 
       this.isNewMessageNoticeShown = true;
-      this.newMessageNotice.classList.remove('hide');
+      notice.classList.remove('hide');
     }).bind(this));
   },
 
@@ -791,6 +816,19 @@ var ThreadUI = global.ThreadUI = {
       if (Compose.isEmpty() &&
         (Threads.active || this.recipients.length === 0)) {
         this.discardDraft();
+        leave();
+        return;
+      }
+
+      // If there is a draft and the content and recipients
+      // never got edited, re-save if threadless,
+      // then leave without prompting to replace
+      if (MessageManager.draft && !MessageManager.draft.isEdited) {
+        // Thread-less drafts are orphaned at this point
+        // so they need to be resaved for persistence
+        if (!Threads.currentId) {
+          this.saveDraft({autoSave: true});
+        }
         leave();
         return;
       }
@@ -1598,7 +1636,7 @@ var ThreadUI = global.ThreadUI = {
 
     // Subject management
     params.items.push({
-      l10nId: Compose.isSubjectShowing ? 'remove-subject' : 'add-subject',
+      l10nId: Compose.isSubjectVisible ? 'remove-subject' : 'add-subject',
       method: function tSubject() {
         Compose.toggleSubject();
         ThreadUI.updateSubjectHeight();
@@ -2572,6 +2610,7 @@ var ThreadUI = global.ThreadUI = {
    *
    * @param {Object} opts Optional parameters for saving a draft.
    *                  - preserve, boolean whether or not to preserve draft.
+   *                  - autoSave, boolean whether this is an auto save.
    */
   saveDraft: function thui_saveDraft(opts) {
     var content, draft, recipients, subject, thread, threadId, type;
@@ -2579,8 +2618,6 @@ var ThreadUI = global.ThreadUI = {
     content = Compose.getContent();
     subject = Compose.getSubject();
     type = Compose.type;
-
-    // TODO Also store subject
 
     if (Threads.active) {
       recipients = Threads.active.participants;
@@ -2627,6 +2664,12 @@ var ThreadUI = global.ThreadUI = {
     // not already set and meant to be preserved
     if (!MessageManager.draft && (opts && opts.preserve)) {
       MessageManager.draft = draft;
+    }
+
+    // Show draft saved banner if not an
+    // auto save operation
+    if (!opts || (opts && !opts.autoSave)) {
+      ThreadListUI.onDraftSaved();
     }
   }
 };

@@ -165,12 +165,13 @@ inherited by manifest files referenced by an include.
 
 Here is a list of the types used, and when to use them:
 
+* antenna - these tests require an antenna (headphones) to be connected.
 * b2g - this means the test is a B2G (Firefox OS) test. All tests must include
   this type.
-* antenna - these tests require an antenna (headphones) to be connected.
 * bluetooth - requires bluetooth to be available.
 * camera - these tests require use of a camera.
 * carrier - an active SIM card with carrier connection is required.
+* flash - these tests require use of a flash.
 * lan - a local area connection (not cell data) is required by these tests (see
   note below).
 * offline - specifically requires no online connection.
@@ -207,11 +208,11 @@ Variables:
 `"carrier": {} (dict)` The carrier information of the test phone. This contains
 the phone number, country and network of the SIM card.
 
-```
+```json
 "carrier":{
-    "phone_number": "",
-    "country": "",
-    "network": ""
+  "phone_number": "",
+  "country": "",
+  "network": ""
 }
 ```
 `"imei": "" (string)` The 12 digit IMEI code of the test phone.
@@ -223,20 +224,20 @@ this supports WPA/WEP/etc. You can add WiFi networks by doing the following
 (remember to replace "KeyManagement" and "wep" with the value your network
 supports) :
 
-```
+```json
 "wifi": {
-    "ssid": "MyNetwork",
-    "keyManagement": "WEP",
-    "wep": "MyPassword"
+  "ssid": "MyNetwork",
+  "keyManagement": "WEP",
+  "wep": "MyPassword"
 }
 ```
 
 WPA-PSK:
-```
+```json
 "wifi": {
-    "ssid": "MyNetwork",
-    "keyManagement": "WPA-PSK",
-    "psk": "MyPassword"
+  "ssid": "MyNetwork",
+  "keyManagement": "WPA-PSK",
+  "psk": "MyPassword"
 }
 ```
 __Note__: Due to [Bug 775499](http://bugzil.la/775499), WiFi connections via
@@ -246,54 +247,62 @@ WPA-EAP are not capable at this time.
 contain different types of email accounts:
 
 Gmail:
-```
+```json
 "gmail": {
-       "name": "",
-       "email": "",
-       "password": ""
+  "name": "",
+  "email": "",
+  "password": ""
     }
 ```
 
 Or different email protocols:
-```
+```json
 "IMAP": {
-    "name": "",
-    "email": "",
-    "password": "",
-    "imap_hostname": "",
-    "imap_name": "",
-    "imap_port": "",
-    "smtp_hostname": "",
-    "smtp_name": "",
-    "smtp_port": ""
+  "name": "",
+  "email": "",
+  "password": "",
+  "imap_hostname": "",
+  "imap_name": "",
+  "imap_port": "",
+  "smtp_hostname": "",
+  "smtp_name": "",
+  "smtp_port": ""
 }
 ```
 Or:
-```
+```json
 "ActiveSync":{
-    "name": "",
-    "email": "",
-    "password": "",
-    "active_sync_hostname": "",
-    "active_sync_username": ""
+  "name": "",
+  "email": "",
+  "password": "",
+  "active_sync_hostname": "",
+  "active_sync_username": ""
 }
 ```
 `"settings": {} (dict)` Custom settings to override the Gaia default settings.
 These will be set before each test run but are not mandatory.
-```
-"settings:{
-    "<setting>":<value>
+```json
+"settings":{
+  "<setting>":<value>
 }"
 ```
 __Note__: When running with no SIM card or offline the timezone may not be automatically updated to match the local timezone. In that case you may need to force the timezone to match the desired timezone using settings in testvars.json which will set it during the test setUp:
 
-```
-"settings:{
-    "time.timezone": <value>,
-    "time.timezone.user-selected": <value>
+```json
+"settings":{
+  "time.timezone": <value>,
+  "time.timezone.user-selected": <value>
 }"
 ```
 
+
+`"prefs": {} (dict)` Custom preferences  to override the Gecko default preferences.
+These will be set before each test run but are not mandatory.
+```json
+"prefs":{
+  "<name>":<value>
+}"
+```
 
 Don't forget to acknowledged risks in your testvars file after you have visited
 [the Risks page](https://developer.mozilla.org/en-US/docs/Gaia_Test_Runner) to

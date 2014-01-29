@@ -10,7 +10,7 @@ if (!window.LiveConnector) {
       'personal': 'personal',
       'mobile': 'mobile',
       'business': 'work',
-      'other': 'another',
+      'other': 'other',
       'preferred': 'personal'
     };
 

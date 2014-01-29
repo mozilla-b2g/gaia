@@ -14,7 +14,7 @@
     "redirectMsg":
       "http://intense-tundra-4122.herokuapp.com/fbowd/oauth2_new/dialogs_end.html",
     "redirectLogout":
-      "http://intense-tundra-4122.herokuapp.com/fbowd/oauth2_new/logout.json",
+      "http://intense-tundra-4122.herokuapp.com/fbowd/oauth2_new/dialogs_end.html",
     "imgDetailWidth":
       200,
     "imgThumbSize":

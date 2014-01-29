@@ -707,10 +707,10 @@
     }
 
     function saveToHomescreen(data, showConfirm) {
-      var isAppInstalled = EvmeManager.isAppInstalled(data.app.getFavLink()),
+      var isBookmarked = EvmeManager.isBookmarked(data.app.getFavLink()),
         classList = data.el.classList;
 
-      if (isAppInstalled) {
+      if (isBookmarked) {
         classList.add(CLASS_WHEN_SAVING_TO_HOMESCREEN);
         window.alert(Evme.Utils.l10n(L10N_SYSTEM_ALERT, 'app-install-exists', {
           'name': data.data.name

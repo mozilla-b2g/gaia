@@ -58,15 +58,14 @@
 #screen.cards-view > [data-z-index-level="app"] > .appWindow.transition-closing.fullscreen-app.to-cardview:not(.homescreen) {
   z-index: 65537;
 }
+
 #screen.cards-view > [data-z-index-level="cards-view"] {
   z-index: 65535;
 }
 
-/* Transitioning appWindow to task manager should be shown under the rocketbar */
-#screen.cards-view.task-manager > [data-z-index-level="app"] > .appWindow.active:not(.homescreen),
-#screen.cards-view.task-manager > [data-z-index-level="app"] > .appWindow.transition-closing.to-cardview:not(.homescreen),
-#screen.cards-view.task-manager > [data-z-index-level="app"] > .appWindow.transition-closing.fullscreen-app.to-cardview:not(.homescreen) {
-  z-index: 2042;
+/* Keyboard is shown above task manager */
+#screen.cards-view.task-manager > [data-z-index-level="keyboards"] {
+  z-index: 65538;
 }
 
 #screen > [data-z-index-level="keyboards"] {
@@ -135,6 +134,13 @@
 }
 
 /* Level 6: Lock Screen */
+
+#screen > [data-z-index-level="app"] > .secureAppWindow.active:not(.homescreen)
+{
+  /* Or the .appWindow one would be first adopted.*/
+  z-index: 4098 !important;
+}
+
 #screen > [data-z-index-level="lockscreen"] {
   z-index: 2048;
 }
@@ -245,7 +251,7 @@
 #screen:-moz-full-screen-ancestor > [data-z-index-level="value-selector"],
 #screen:-moz-full-screen-ancestor > [data-z-index-level="system-overlay"],
 #screen:-moz-full-screen-ancestor > [data-z-index-level="dialog-overlay"],
-
+#screen:-moz-full-screen-ancestor > [data-z-index-level="app"] > .appWindow.active > .modal-dialog,
 #screen:-moz-full-screen-ancestor > [data-z-index-level="keyboards"],
 
 #screen:-moz-full-screen-ancestor > [data-z-index-level="notification-toaster"],

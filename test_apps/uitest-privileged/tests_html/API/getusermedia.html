@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>gUM Test Page</title>
+    <script defer src="../../js/API/getusermedia.js"></script>
+    <link rel="stylesheet" type="text/css" href="../../style/API.css">
+  </head>
+  <body>
+    <div class="center">
+      Modified from <a href="http://mozilla.github.io/webrtc-landing/gum_test.html" target="_blank">gUM test page</a><br>
+      Note: Audio will feedback unless you use a headset!<br>
+      <h3>gUM is not complete yet, some function may not work!<h2>
+      <div id="contents"></div>
+      <div id="content_template" class="hidden">
+        <div data-type="media" class="block">
+          <div data-type="video-frame">
+            <video width="640" height="480"></video>
+            <div data-type="snapshots-frames" class="block"></div>
+          </div>
+          <audio controls="true"></audio>
+        </div>
+        <div data-type="startbuttons" class="block">
+          <button data-type="startVideoButton">Video</button>
+          <button data-type="startAudioButton">Audio</button>
+          <button data-type="startAudioVideoButton">Audio &amp; Video</button>
+          <button data-type="startDoubleRequest">Double Prompt</button>
+        </div>
+        <div data-type="stopbuttons" class="hidden">
+          <button data-type="stopButton">Stop</button>
+          <button data-type="pauseButton">Pause/Play</button>
+          <button data-type="snapshotButton">Snapshot</button>
+        </div>
+        <div data-type="message"></div>
+      </div>
+    </div>
+  </body>
+</html>

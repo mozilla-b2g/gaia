@@ -15,11 +15,17 @@
 </head>
 <body>
 
-<div id="test-agent-search">
-<form>
-  <input type="text" name="search" id="test-agent-search-input" />
-  <button type="button" id="test-agent-search-submit">Search</button>
-</form>
+<div id="test-agent-panel">
+  <form>
+    <input type="text" name="search" id="test-agent-search-input" />
+    <button type="button" id="test-agent-search-submit">Search</button>
+    <div class="options">
+      <label>
+        <input type="checkbox" id="test-agent-coverage-checkbox" />
+        Enable Coverage
+      </label>
+    </div>
+  </form>
 </div>
 
 <!-- Test Agent UI will be loaded in here -->

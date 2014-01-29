@@ -255,6 +255,7 @@ var CallHandler = (function callHandler() {
 
     var error = function() {
       shouldCloseCallScreen = true;
+      KeypadManager.updatePhoneNumber(number, 'begin', true);
     };
 
     var oncall = function() {
@@ -402,6 +403,9 @@ var NavbarManager = {
       // https://github.com/jcarpenter/Gaia-UI-Building-Blocks/blob/master/inprogress/tabs.html
       self.update();
     });
+
+    var contacts = document.getElementById('option-contacts');
+    contacts.addEventListener('click', this.contactsTabTap);
   },
   resourcesLoaded: false,
   /*
@@ -490,6 +494,22 @@ var NavbarManager = {
   show: function() {
     var views = document.getElementById('views');
     views.classList.remove('hide-toolbar');
+  },
+
+  contactsTabTap: function() {
+    // If we are not in the contacts-view, it's a first tap, do nothing
+    if (window.location.hash != '#contacts-view') {
+      return;
+    }
+    var contactsIframe = document.getElementById('iframe-contacts');
+    if (!contactsIframe) {
+      return;
+    }
+
+    var forceHashChange = new Date().getTime();
+    // Go back to contacts home
+    contactsIframe.src = '/contacts/index.html#home?forceHashChange=' +
+                         forceHashChange;
   }
 };
 

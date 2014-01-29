@@ -4,6 +4,7 @@ apps/email/build/**
 apps/email/built/**
 apps/email/js/ext/**
 apps/calendar/js/ext/**
+apps/system/camera/**
 build/r.js
 apps/communications/contacts/oauth2/js/parameters.js
 apps/calendar/js/presets.js
@@ -11,9 +12,18 @@ apps/email/js/alameda.js
 apps/email/js/tmpl_builder.js
 apps/clock/js/alameda.js
 shared/js/opensearch.js
+shared/js/utilities.js
 apps/keyboard/js/imes/jspinyin/libpinyin.js
+apps/keyboard/js/imes/jszhuyin/lib/**
 shared/js/setImmediate.js
 apps/gallery/test/unit/setImmediate_test.js
 apps/wappush/js/ext/**
 apps/keyboard/js/imes/jsavrophonetic/jsavrophonetic.js
 apps/camera/js/vendor/alameda.js
+apps/camera/js/config.js
+apps/gallery/js/config.js
+apps/gallery/js/frame_scripts.js
+apps/gallery/js/metadata_scripts.js
+apps/keyboard/js/layouts/**
+apps/music/js/metadata_scripts.js
+apps/keyboard/js/imes/jszhuyin/tools/cook.js

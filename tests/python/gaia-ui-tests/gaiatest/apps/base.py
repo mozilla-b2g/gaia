@@ -12,6 +12,7 @@ from marionette.errors import StaleElementException
 
 from gaiatest import GaiaApps
 from gaiatest import GaiaData
+from gaiatest import Accessibility
 
 
 class Base(object):
@@ -20,6 +21,7 @@ class Base(object):
         self.marionette = marionette
         self.apps = GaiaApps(self.marionette)
         self.data_layer = GaiaData(self.marionette)
+        self.accessibility = Accessibility(self.marionette)
         self.frame = None
 
     def launch(self, launch_timeout=None):

@@ -452,6 +452,13 @@ input.msg-search-text-tease {
   background-image: url("images/icons/mark.png") !important;
 }
 
+/* Scrollable Area has to have a solid
+  * opaque background to optimize Gecko.
+  * See Bug 962699. */
+.msg-messages-container {
+   background-color: #fff;
+}
+
 .msg-delete-btn {
   background-image: url("images/icons/delete.png") !important;
 }

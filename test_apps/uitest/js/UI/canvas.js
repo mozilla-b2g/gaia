@@ -25,7 +25,7 @@ var CanvasTests = {
 
   init: function ct_init() {
     this.hiddenStatus.innerHTML =
-      'toggle property hidden = ' +
+      'hidden = ' +
       this.canvas.classList.contains('hidden');
 
     this.drawButton.addEventListener('click', this.draw.bind(this));
@@ -50,7 +50,7 @@ var CanvasTests = {
   toggleShowHide: function ct_toggleShowHide() {
     this.canvas.classList.toggle('hidden');
     var status = this.canvas.classList.contains('hidden');
-    this.hiddenStatus.innerHTML = 'toggle property hidden = ' + status;
+    this.hiddenStatus.innerHTML = 'hidden = ' + status;
   }
 };
 

@@ -5,8 +5,6 @@
   width: 100%;
   height: calc(100%);
   pointer-events: none;
-  transform: translateY(-100%);
-  transition: transform 0.3s ease 0.8s;
   visibility: hidden;
 }
 
@@ -16,22 +14,24 @@
 
 #search-bar[data-visible] {
   pointer-events: auto;
-  transform: translateY(0);
-  transition: transform 0.3s ease;
 }
 
 #search-bar form p {
   background: #0B0B0C;
+  display: flex;
+  flex-direction: row;
+  padding-top: 2rem;
 }
 
 #search-input {
-  margin-top: 2rem;
-  width: calc(100% - 6.5rem);
+  flex-grow: 1;
+  width: auto;
   border: 0;
   border-radius: 0;
   line-height: 4rem;
   background: #0B0B0C;
   color: #fff;
+  padding-right: 0;
 }
 
 .task-manager #search-input {
@@ -49,16 +49,18 @@
 }
 
 #search-bar #search-reset {
-  margin-right: 6rem;
+  display: inline-block;
+  position: static;
+  flex-shrink: 0;
 }
 
 #search-bar #search-cancel {
-  position: absolute;
-  right: 0;
-  top: 0;
+  display: inline-block;
   text-decoration: none;
   outline: 0;
   padding: 0.5rem 0;
+  width: auto;
+  flex-shrink: 0;
 }
 
 #search-bar #search-cancel span {
@@ -79,4 +81,8 @@
   border: 0;
   width: 100%;
   height: 100%;
+}
+
+#screen.rocketbar-focus .screenshotView {
+  opacity: 0.5;
 }

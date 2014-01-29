@@ -4,7 +4,7 @@ requireApp('system/test/unit/mock_navigator_battery.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/test/unit/mock_sleep_menu.js');
 requireApp('system/test/unit/mock_screen_manager.js');
-requireApp('system/test/unit/mock_gesture_detector.js');
+require('/shared/test/unit/mocks/mock_gesture_detector.js');
 requireApp('system/test/unit/mock_l10n.js');
 requireApp('system/js/battery_manager.js');
 

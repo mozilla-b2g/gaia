@@ -61,7 +61,7 @@ var Browser = {
 requireApp('browser/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('browser/shared/js/simple_operator_variant_helper.js');
 
-requireApp('browser/js/utilities.js');
+requireApp('browser/shared/js/utilities.js');
 requireApp('browser/js/browser_db.js');
 
 const DATA_URI =
@@ -87,7 +87,6 @@ var clearBrowserStores = function(done) {
 
 suite('BrowserDB', function() {
   var realMozSettings = null;
-  this.timeout(5000);
 
   suiteSetup(function() {
     realMozSettings = navigator.mozSettings;

@@ -42,9 +42,7 @@ class Browser(Base):
 
     def go_to_url(self, url, timeout=30):
         self.wait_for_element_displayed(*self._awesome_bar_locator)
-        awesome_bar = self.marionette.find_element(*self._awesome_bar_locator)
-        # TODO Tap one pixel above bottom edge to dodge the System update notification banner bug 876723
-        awesome_bar.tap(y=(awesome_bar.size['height'] - 1))
+        self.marionette.find_element(*self._awesome_bar_locator).tap()
         self.wait_for_condition(lambda m: self.keyboard.is_displayed())
         self.keyboard.send(url)
         self.tap_go_button(timeout=timeout)
@@ -69,9 +67,7 @@ class Browser(Base):
         self.marionette.switch_to_frame(self.app.frame)
 
     def tap_go_button(self, timeout=30):
-        url_button = self.marionette.find_element(*self._url_button_locator)
-        # TODO Tap one pixel above bottom edge to dodge the System update notification banner bug 876723
-        url_button.tap(y=(url_button.size['height'] - 1))
+        self.marionette.find_element(*self._url_button_locator).tap()
         self.wait_for_throbber_not_visible(timeout=timeout)
         self.wait_for_element_displayed(*self._bookmark_button_locator)
 
@@ -110,17 +106,11 @@ class Browser(Base):
 
     def tap_tab_badge_button(self):
         self.wait_for_element_displayed(*self._tab_badge_locator)
-        tab_badge_button = self.marionette.find_element(*self._tab_badge_locator)
-        # TODO Tap above bottom edge to dodge the System update notification banner bug 876723
-        tab_badge_button.tap(y=(tab_badge_button.size['height'] - 4))
-
+        self.marionette.find_element(*self._tab_badge_locator).tap()
         self.wait_for_element_not_displayed(*self._tab_badge_locator)
 
     def tap_add_new_tab_button(self):
-        new_tab_button = self.marionette.find_element(*self._new_tab_button_locator)
-        # TODO Tap one pixel above bottom edge to dodge the System update notification banner bug 876723
-        new_tab_button.tap(y=(new_tab_button.size['height'] - 1))
-
+        self.marionette.find_element(*self._new_tab_button_locator).tap()
         self.wait_for_element_displayed(*self._awesome_bar_locator)
 
     @property

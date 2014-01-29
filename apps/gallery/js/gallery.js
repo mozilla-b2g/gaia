@@ -192,8 +192,8 @@ function init() {
   $('overlay-cancel-button').onclick = function() {
     cancelPick();
   };
-
-  window.addEventListener('screenlayoutchange', screenLayoutChange);
+  // Handle resize events
+  window.onresize = resizeHandler;
 
   // If we were not invoked by an activity, then start off in thumbnail
   // list mode, and fire up the MediaDB object.
@@ -1134,17 +1134,24 @@ function share(blobs) {
   };
 }
 
-function screenLayoutChange(evt) {
-  if (evt.detail.name !== 'portrait')
-    return;
-  isPortrait = evt.detail.status;
+// This happens when the user rotates the phone.
+// When we used mozRequestFullscreen, it would also happen
+// when we entered or left fullscreen mode.
+// As a workaround for Bug 961636, use resize event handler
+// in place of screenlayoutchange event handler.
+function resizeHandler() {
+  isPortrait = ScreenLayout.getCurrentLayout('portrait');
 
   // In list view when video is playing, if user rotate screen from
-  // landscape to portrait, the video pause
+  // landscape to portrait, the video pause.
+  // Check if currentFrame is undefined for cases where frame_script.js
+  // is not loaded e.g. if a user rotates phone
+  // in list mode before opening an image.
   if (currentView === LAYOUT_MODE.list && isPortrait &&
-      currentFrame.video) {
+      typeof currentFrame !== 'undefined' && currentFrame.video) {
     currentFrame.video.pause();
   }
+
   // We'll need to resize and reposition frames for below cases, since
   // the size of container has been changed.
   if (currentView === LAYOUT_MODE.fullscreen ||

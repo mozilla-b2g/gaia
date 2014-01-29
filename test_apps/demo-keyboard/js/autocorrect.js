@@ -1,6 +1,16 @@
 (function(exports) {
   'use strict';
 
+  const SPACE = 32;
+  const BACKSPACE = 8;
+  const RETURN = 13; // return keycode code isn't the same as newline charcode
+  const PERIOD = 46;
+  const QUESTION = 63;
+  const EXCLAMATION = 33;
+  const COMMA = 44;
+  const COLON = 58;
+  const SEMICOLON = 59;
+
   var predictionStartTime;
   var correction = null;  // A pending correction
   var reversion = null;   // A pending reversion
@@ -40,13 +50,26 @@
     }
   };
 
+  // XXX
+  // There is a problem here: InputField is not dispatching either event
+  // when the user taps in the input field to move the cursor, so the
+  // word suggestions are not being cleared or changed.
   InputField.addEventListener('inputstatechanged', requestPredictions);
   InputField.addEventListener('inputfieldchanged', requestPredictions);
 
   function requestPredictions() {
     // Undo the result of any previous predictions
+    // Change hit target resizing
     KeyboardTouchHandler.setExpectedChars([]);
-    Suggestions.display([]);
+
+    // Once we start requesting new suggestions, the old ones
+    // are no longer valid, and we should hide them now. But if we do that
+    // there is a visible flash while we search for the new suggestions
+    // before we draw them again. So we don't clear them here and instead
+    // allow invalid suggestions to be displayed for 20 to 100ms.
+    // We do prevent autocorrection, however, even if the autocorrection
+    // is still displayed.
+    correction = null;
 
     // If we're at the end of a word, ask the worker to predict
     // what charcters are most likely next and what words we should suggest
@@ -56,6 +79,9 @@
       // XXX: combine these two into a single call
       worker.postMessage({ cmd: 'predictNextChar', args: [word] });
       worker.postMessage({ cmd: 'predict', args: [word]});
+    }
+    else {
+      Suggestions.display([]);
     }
   }
 
@@ -71,15 +97,17 @@
     autocorrectDisabled = false;
   });
 
-  const SPACE = 32;
-  const BACKSPACE = 8;
-  const RETURN = 13; // return keycode code isn't the same as newline charcode
-  const PERIOD = 46;
-  const QUESTION = 63;
-  const EXCLAMATION = 33;
-  const COMMA = 44;
-  const COLON = 58;
-  const SEMICOLON = 59;
+  Suggestions.addEventListener('suggestionsdismissed', function() {
+    Suggestions.display([]); // clear the suggestions
+
+    // Send a space character
+    InputField.sendKey(0, SPACE, 0);
+
+    // Get rid of pending autocorrection and reset other state
+    correction = null;
+    reversion = null;
+    autocorrectDisabled = false;
+  });
 
   KeyboardTouchHandler.addEventListener('key', function(e) {
     // autocorrect on space, or re-enable corrections.
@@ -124,6 +152,9 @@
         if (InputField.textBeforeCursor.endsWith(reversion.from)) {
           InputField.replaceSurroundingText(reversion.to,
                                             reversion.from.length, 0);
+          // XXX:
+          // if the reversion was from a word suggestion not an autocorrection
+          // then we probably should not disable autocorrect
           autocorrectDisabled = true;
           e.stopImmediatePropagation();
         }
@@ -143,6 +174,7 @@
     if (input !== InputField.wordBeforeCursor()) {
       // If these suggestions no longer match what is in the input field
       // ignore them
+      Suggestions.display([]);
       return;
     }
 
@@ -165,8 +197,10 @@
     }
 
     // If we don't have any suggestions we're done
-    if (suggestions.length === 0)
+    if (suggestions.length === 0) {
+      Suggestions.display([]);
       return;
+    }
 
     // Make sure we have no more than three words
     if (suggestions.length > 3)

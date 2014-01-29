@@ -73,6 +73,7 @@ var TelephonyHelper = (function() {
     LazyLoader.load('/shared/js/icc_helper.js', function() {
       var cardState = IccHelper.cardState;
       var emergencyOnly = conn.voice.emergencyCallsOnly;
+      var hasCard = (conn.iccId !== null);
       var call;
 
       // Note: no need to check for cardState null. While airplane mode is on
@@ -82,7 +83,10 @@ var TelephonyHelper = (function() {
         error();
         return;
       } else if (emergencyOnly) {
-        call = telephony.dialEmergency(sanitizedNumber);
+        // If the mobileConnection has a sim card we let gecko take the
+        // default service, otherwise we force the first slot.
+        var serviceId = hasCard ? undefined : 0;
+        call = telephony.dialEmergency(sanitizedNumber, serviceId);
       } else {
         call = telephony.dial(sanitizedNumber);
       }

@@ -39,7 +39,7 @@ Cu.import('resource://gre/modules/ObjectWrapper.jsm');
 Services.obs.addObserver(function onLaunch(subject, topic, data) {
   let json = JSON.parse(data);
 
-  DOMApplicationRegistry.getManifestFor(json.manifestURL, function(aManifest) {
+  DOMApplicationRegistry.getManifestFor(json.manifestURL).then((aManifest) => {
     if (!aManifest)
       return;
 

@@ -1,17 +1,32 @@
+'use strict';
+
+/* global CallLog */
+
 requireApp('communications/dialer/js/call_log.js');
 requireApp('communications/dialer/js/utils.js');
+requireApp('communications/dialer/test/unit/mock_call_log_db_manager.js');
 requireApp('communications/dialer/test/unit/mock_l10n.js');
+requireApp('sms/test/unit/mock_async_storage.js');
+require('/shared/test/unit/mocks/mock_lazy_loader.js');
 
 requireApp('communications/shared/test/unit/mocks/mock_notification.js');
+requireApp('communications/contacts/test/unit/mock_fixed_header.js');
 
-if (!this.LazyL10n) {
-  this.LazyL10n = null;
-}
+
+var mocksHelperForCallLog = new MocksHelper([
+  'asyncStorage',
+  'CallLogDBManager',
+  'FixedHeader',
+  'LazyLoader',
+  'LazyL10n'
+]).init();
 
 suite('dialer/call_log', function() {
   var realL10n;
   var realCallLogL10n;
   var realNotification;
+
+  mocksHelperForCallLog.attachTestHelpers();
 
   suiteSetup(function() {
     realL10n = navigator.mozL10n;
@@ -30,12 +45,28 @@ suite('dialer/call_log', function() {
 
   var noResult;
   setup(function() {
-    var fakeDOM = ['headerEditModeText', 'deleteButton', 'selectAllThreads',
-                   'deselectAllThreads', 'callLogContainer', 'allFilter',
-                   'missedFilter', 'callLogIconEdit'];
+    var mainNodes = [
+      'all-filter',
+      'call-log-container',
+      'call-log-edit-mode',
+      'call-log-filter',
+      'call-log-icon-close',
+      'call-log-icon-edit',
+      'call-log-view',
+      'deselect-all-threads',
+      'delete-button',
+      'header-edit-mode-text',
+      'missed-filter',
+      'select-all-threads',
+      'call-log-upgrading',
+      'call-log-upgrade-progress',
+      'call-log-upgrade-percent'
+    ];
 
-    fakeDOM.forEach(function(prop) {
-      CallLog[prop] = document.createElement('div');
+    mainNodes.forEach(function(prop) {
+      var fakeNode = document.createElement('div');
+      fakeNode.id = prop;
+      document.body.appendChild(fakeNode);
     });
 
     noResult = document.createElement('div');
@@ -48,15 +79,18 @@ suite('dialer/call_log', function() {
     });
     document.body.appendChild(noResult);
     document.body.classList.remove('recents-edit');
+    CallLog.init();
   });
 
   teardown(function() {
     noResult.parentNode.removeChild(noResult);
+    CallLog._initialized = false;
   });
 
   var incomingGroup = {
     id: '123',
     lastEntryDate: Date.now(),
+    date: 1,
     number: '111222333',
     type: 'incoming',
     status: 'connected',
@@ -76,6 +110,7 @@ suite('dialer/call_log', function() {
   var outgoingGroup = {
     id: '123',
     lastEntryDate: Date.now(),
+    date: 2,
     number: '111222333',
     type: 'dialing',
     status: 'connected',
@@ -457,6 +492,26 @@ suite('dialer/call_log', function() {
       CallLog.unfilter();
 
       assert.isFalse(document.body.classList.contains('recents-edit'));
+    });
+  });
+
+  suite('Filter', function() {
+    setup(function() {
+      var yesterdayGroup = outgoingGroup;
+      yesterdayGroup.id = 456;
+      CallLog.appendGroup(incomingGroup);
+      CallLog.appendGroup(yesterdayGroup);
+    });
+
+    test('filtering should mark all missedgroups', function() {
+      CallLog.filter();
+      assert.equal(document.getElementsByClassName('groupFiltered').length, 2);
+    });
+
+    test('unfiltering should remove all classes', function() {
+      CallLog.filter();
+      CallLog.unfilter();
+      assert.equal(document.getElementsByClassName('groupFiltered').length, 0);
     });
   });
 });

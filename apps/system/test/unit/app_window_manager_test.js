@@ -1,7 +1,8 @@
 'use strict';
 
 mocha.globals(['SettingsListener', 'removeEventListener', 'addEventListener',
-      'dispatchEvent', 'AppWindowManager', 'Applications', 'ManifestHelper',
+      'dispatchEvent', 'ActivityWindow', 'ActivityWindowFactory',
+      'AppWindowManager', 'Applications', 'ManifestHelper',
       'KeyboardManager', 'StatusBar', 'HomescreenWindow',
       'SoftwareButtonManager', 'AttentionScreen', 'AppWindow',
       'LockScreen', 'OrientationManager', 'BrowserFrame',
@@ -12,6 +13,8 @@ requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 requireApp('system/test/unit/mock_lock_screen.js');
 requireApp('system/test/unit/mock_orientation_manager.js');
 requireApp('system/test/unit/mock_applications.js');
+requireApp('system/test/unit/mock_activity_window.js');
+requireApp('system/test/unit/mock_activity_window_factory.js');
 requireApp('system/test/unit/mock_keyboard_manager.js');
 requireApp('system/test/unit/mock_software_button_manager.js');
 requireApp('system/test/unit/mock_attention_screen.js');
@@ -25,6 +28,7 @@ requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 
 var mocksForAppWindowManager = new MocksHelper([
   'LockScreen', 'OrientationManager', 'AttentionScreen',
+  'ActivityWindow', 'ActivityWindowFactory',
   'Applications', 'SettingsListener', 'HomescreenLauncher',
   'ManifestHelper', 'KeyboardManager', 'StatusBar', 'SoftwareButtonManager',
   'HomescreenWindow', 'AppWindow', 'LayoutManager'
@@ -33,7 +37,7 @@ var mocksForAppWindowManager = new MocksHelper([
 suite('system/AppWindowManager', function() {
   mocksForAppWindowManager.attachTestHelpers();
   var stubById;
-  var app1, app2, app3, app4, app5, app6, home;
+  var app1, app2, app3, app4, app5, app6, app7, home;
   setup(function(done) {
     stubById = this.sinon.stub(document, 'getElementById');
     stubById.returns(document.createElement('div'));
@@ -49,6 +53,7 @@ suite('system/AppWindowManager', function() {
     app4 = new AppWindow(fakeAppConfig4Background);
     app5 = new AppWindow(fakeAppConfig5Background);
     app6 = new AppWindow(fakeAppConfig6Browser);
+    app7 = new AppWindow(fakeAppConfig7Activity);
 
     requireApp('system/js/app_window_manager.js', done);
   });
@@ -111,6 +116,14 @@ suite('system/AppWindowManager', function() {
     changeURL: true
   };
 
+  var fakeAppConfig7Activity = {
+    url: 'app://www.fake7/index.html',
+    manifest: {},
+    manifestURL: 'app://wwww.fake7/ManifestURL',
+    origin: 'app://www.fake7',
+    isActivity: true
+  };
+
   function injectRunningApps() {
     AppWindowManager.runningApps = {};
     Array.slice(arguments).forEach(function iterator(app) {
@@ -119,6 +132,22 @@ suite('system/AppWindowManager', function() {
   };
 
   suite('Handle events', function() {
+    test('App is shown on rocketbarhidden', function() {
+      AppWindowManager._activeApp = app1;
+      var stubBroadcastMessage =
+        this.sinon.stub(AppWindowManager._activeApp, 'setVisible');
+      AppWindowManager.handleEvent({ type: 'rocketbarhidden' });
+      assert.isTrue(stubBroadcastMessage.calledWith(true));
+    });
+
+    test('App is hidden on rocketbarshown', function() {
+      AppWindowManager._activeApp = app1;
+      var stubBroadcastMessage =
+        this.sinon.stub(AppWindowManager._activeApp, 'setVisible');
+      AppWindowManager.handleEvent({ type: 'rocketbarshown' });
+      assert.isTrue(stubBroadcastMessage.calledWith(false));
+    });
+
     test('Home Gesture enabled', function() {
       var stubBroadcastMessage =
         this.sinon.stub(AppWindowManager, 'broadcastMessage');
@@ -531,6 +560,33 @@ suite('system/AppWindowManager', function() {
       var stubDisplay = this.sinon.stub(AppWindowManager, 'display');
       AppWindowManager.launch(fakeAppConfig5Background);
       assert.isFalse(stubDisplay.called);
+    });
+
+    test('Launch an activity app', function() {
+      injectRunningApps(app1, app7);
+      AppWindowManager._updateActiveApp(app1.origin);
+
+      var stubDisplay = this.sinon.stub(AppWindowManager, 'display');
+      AppWindowManager.launch(fakeAppConfig7Activity);
+
+      assert.isTrue(stubDisplay.called);
+      assert.equal(app7.activityCaller, app1);
+      assert.equal(app1.activityCallee, app7);
+    });
+
+    test('Launch activity from inline activity', function() {
+      injectRunningApps(app1, app7);
+      AppWindowManager._updateActiveApp(app1.origin);
+
+      var activity = new ActivityWindow({});
+      ActivityWindowFactory._activeActivity = activity;
+
+      var stubDisplay = this.sinon.stub(AppWindowManager, 'display');
+      AppWindowManager.launch(fakeAppConfig7Activity);
+
+      assert.isTrue(stubDisplay.called);
+      assert.equal(app7.activityCaller, activity);
+      assert.equal(activity.activityCallee, app7);
     });
   });
 });

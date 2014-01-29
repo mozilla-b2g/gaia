@@ -1,12 +1,14 @@
 const { Cc, Ci, Cr, Cu } = require('chrome');
-const { btoa } = Cu.import("resource://gre/modules/Services.jsm", {});
+const { btoa } = Cu.import('resource://gre/modules/Services.jsm', {});
 const multilocale = require('./multilocale');
 
 Cu.import('resource://gre/modules/XPCOMUtils.jsm');
 Cu.import('resource://gre/modules/FileUtils.jsm');
 Cu.import('resource://gre/modules/Services.jsm');
 Cu.import('resource://gre/modules/osfile.jsm');
+Cu.import('resource://gre/modules/Promise.jsm');
 
+var utils = require('./utils.js');
 /**
  * Returns an array of nsIFile's for a given directory
  *
@@ -36,17 +38,8 @@ function ls(dir, recursive, exclude) {
 }
 
 function getOsType() {
-  return Cc["@mozilla.org/xre/app-info;1"]
+  return Cc['@mozilla.org/xre/app-info;1']
           .getService(Ci.nsIXULRuntime).OS;
-}
-
-function isExternalApp(webapp) {
-  if (!webapp.metaData ||
-    (webapp.metaData && webapp.metaData.external === false)) {
-    return false
-  } else {
-    return true;
-  }
 }
 
 function getFileContent(file) {
@@ -134,28 +127,29 @@ function getJSON(file) {
 }
 
 function getFileAsDataURI(file) {
-  var contentType = Cc["@mozilla.org/mime;1"]
+  var contentType = Cc['@mozilla.org/mime;1']
                     .getService(Ci.nsIMIMEService)
                     .getTypeFromFile(file);
-  var inputStream = Cc["@mozilla.org/network/file-input-stream;1"]
+  var inputStream = Cc['@mozilla.org/network/file-input-stream;1']
                     .createInstance(Ci.nsIFileInputStream);
   inputStream.init(file, 0x01, 0600, 0);
-  var stream = Cc["@mozilla.org/binaryinputstream;1"]
+  var stream = Cc['@mozilla.org/binaryinputstream;1']
                .createInstance(Ci.nsIBinaryInputStream);
   stream.setInputStream(inputStream);
   var encoded = btoa(stream.readBytes(stream.available()));
-  return "data:" + contentType + ";base64," + encoded;
+  return 'data:' + contentType + ';base64,' + encoded;
 }
 
 function readZipManifest(appDir) {
   let zipFile = appDir.clone();
-  zipFile.append("application.zip");
+  zipFile.append('application.zip');
 
   if (!zipFile.exists()) {
     return null;
   }
 
-  var zipReader = Cc["@mozilla.org/libjar/zip-reader;1"].createInstance(Ci.nsIZipReader);
+  var zipReader =
+    Cc['@mozilla.org/libjar/zip-reader;1'].createInstance(Ci.nsIZipReader);
   zipReader.open(zipFile);
   zipReader.test(null);
   if (zipReader.hasEntry('manifest.webapp')) {
@@ -499,7 +493,7 @@ function processEvents(exitResultFunc) {
   do {
     exitResult = exitResultFunc();
     thread.processNextEvent(true);
-  } while(thread.hasPendingEvents() || exitResult.wait);
+  } while (thread.hasPendingEvents() || exitResult.wait);
   if (exitResult.error) {
     throw exitResult.error;
   }
@@ -516,7 +510,7 @@ function getTempFolder(dirName) {
 
 function getXML(file) {
   try {
-    var parser = Cc["@mozilla.org/xmlextras/domparser;1"]
+    var parser = Cc['@mozilla.org/xmlextras/domparser;1']
              .createInstance(Ci.nsIDOMParser);
     let content = getFileContent(file);
     return parser.parseFromString(content, 'application/xml');
@@ -536,7 +530,7 @@ function log(/*tag, ...*/) {
     return;
   }
   var msg = '[' + arguments[0] + ']';
-  for(var i = 1; i < arguments.length; i++) {
+  for (var i = 1; i < arguments.length; i++) {
     msg += ' ' + arguments[i];
   }
   dump(msg + '\n');
@@ -642,7 +636,7 @@ function Commander(cmd) {
 
   // paths can be string or array, we'll eventually store one workable
   // path as _path.
-  this.initPath = function (paths) {
+  this.initPath = function(paths) {
     if (typeof paths === 'string') {
       _path = paths;
     } else if (typeof paths === 'object' && paths.length) {
@@ -667,10 +661,9 @@ function Commander(cmd) {
     }
   };
 
-  this.run = function (args, callback) {
-    var process = Cc["@mozilla.org/process/util;1"]
+  this.run = function(args, callback) {
+    var process = Cc['@mozilla.org/process/util;1']
                   .createInstance(Ci.nsIProcess);
-    var output = null;
     try {
       process.init(_file);
       process.run(true, args, args.length);
@@ -679,7 +672,7 @@ function Commander(cmd) {
       throw new Error('having trouble when execute ' + command +
         ' ' + args.join(' '));
     }
-    return output;
+    callback && callback();
   };
 };
 
@@ -689,11 +682,11 @@ function getEnvPath() {
   if (!os) {
     throw new Error('cannot not read system type');
   }
-  var env = Cc["@mozilla.org/process/environment;1"].
+  var env = Cc['@mozilla.org/process/environment;1'].
             getService(Ci.nsIEnvironment);
   var p = env.get('PATH');
   var isMsys = env.get('OSTYPE') ? true : false;
-  if (os.indexOf('WIN')!== -1 && !isMsys) {
+  if (os.indexOf('WIN') !== -1 && !isMsys) {
     paths = p.split(';');
   } else {
     paths = p.split(':');
@@ -701,7 +694,24 @@ function getEnvPath() {
   return paths;
 }
 
+function killAppByPid(appName, gaiaDir) {
 
+  var sh = new Commander('sh');
+  sh.initPath(getEnvPath(), function() {});
+  var tempFileName = 'tmpFile';
+  var tmpFileSrc = joinPath(gaiaDir, tempFileName);
+  sh.run(['-c', 'touch ' + tempFileName]);
+  sh.run(['-c', 'adb shell b2g-ps > ' + tmpFileSrc]);
+  var tempFile = getFile(tmpFileSrc);
+  var content = getFileContent(tempFile);
+  var pidMap = utils.psParser(content);
+  sh.run(['-c', 'rm ' + tempFileName]);
+  if (pidMap[appName] && pidMap[appName].PID) {
+    sh.run(['-c', 'adb shell kill ' + pidMap[appName].PID]);
+  }
+}
+
+exports.Q = Promise;
 exports.ls = ls;
 exports.getFileContent = getFileContent;
 exports.writeContent = writeContent;
@@ -739,4 +749,4 @@ exports.writeContentToFile = writeContentToFile;
 exports.processEvents = processEvents;
 exports.readZipManifest = readZipManifest;
 exports.log = log;
-exports.isExternalApp = isExternalApp;
+exports.killAppByPid = killAppByPid;

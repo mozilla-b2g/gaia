@@ -1334,6 +1334,7 @@ var Browser = {
     this.setUrlBar(this.currentTab.title);
     this.updateSecurityIcon();
     Toolbar.refreshButtons();
+    this.showAddressBar();
     // Show start screen if the tab hasn't been navigated
     if (this.currentTab.url == null) {
       this.showStartscreen();

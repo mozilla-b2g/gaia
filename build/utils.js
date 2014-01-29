@@ -61,6 +61,7 @@ function psParser(out) {
   return result;
 }
 
+exports.Q = utils.Q;
 exports.isSubjectToBranding = isSubjectToBranding;
 exports.ls = utils.ls;
 exports.getFileContent = utils.getFileContent;
@@ -103,4 +104,4 @@ exports.writeContentToFile = utils.writeContentToFile;
 exports.processEvents = utils.processEvents;
 exports.log = utils.log;
 exports.getExtension = getExtension;
-exports.isExternalApp = utils.isExternalApp;
+exports.killAppByPid = utils.killAppByPid;

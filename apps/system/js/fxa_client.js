@@ -74,16 +74,6 @@ var FxAccountsClient = function FxAccountsClient() {
 
   // === API ===
 
-  var changePassword = function changePassword(accountId, oldPass, newPass,
-                                               successCb, errorCb) {
-    sendMessage({
-      method: 'changePassword',
-      accountId: accountId,
-      oldPass: oldPass,
-      newPass: newPass
-    }, successCb, errorCb);
-  };
-
   var getAccounts = function getAccounts(successCb, errorCb) {
     sendMessage({
       method: 'getAccounts'
@@ -128,7 +118,6 @@ var FxAccountsClient = function FxAccountsClient() {
   };
 
   return {
-    'changePassword': changePassword,
     'getAccounts': getAccounts,
     'logout': logout,
     'queryAccount': queryAccount,

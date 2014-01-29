@@ -42,6 +42,9 @@
     // See bug 932134
     // To keep all tests passed while introducing multi-sim APIs, in bug 928325
     // we use IccHelper. Stop using IccHelper after the APIs land.
+    if (!IccHelper) {
+      return;
+    }
     icc = IccHelper;
     iccManager = window.navigator.mozIccManager;
 

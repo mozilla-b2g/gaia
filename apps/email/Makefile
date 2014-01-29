@@ -6,6 +6,8 @@ ifndef XPCSHELLSDK
 $(error This Makefile needs to be run by the root gaia makefile. Use `make APP=email` from the root gaia directory.)
 endif
 
+GAIA_EMAIL_MINIFY?=uglify2
+
 rwildcard=$(wildcard $1$2) $(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2))
 
 SHARED_SOURCES := $(call rwildcard,../../shared/,*)
@@ -27,8 +29,13 @@ clean:
 $(BUILD_DIR)/js/mail_app.js: manifest.webapp index.html $(AUTOCONFIG_SOURCES) $(JS_SOURCES) $(LOCALES_SOURCES) $(SOUNDS_SOURCES) $(STYLE_SOURCES) $(SHARED_SOURCES) $(BUILD_SOURCES)
 	@rm -rf $(BUILD_DIR)
 	@mkdir -p $(BUILD_DIR)
-	cp -rp ../../shared $(BUILD_DIR)/shared
-	$(XULRUNNERSDK) $(XPCSHELLSDK) ../../build/r.js -o build/email.build.js
+	@mkdir -p $(BUILD_DIR)/shared
+	@mkdir -p $(BUILD_DIR)/shared/js
+
+	cp -p ../../shared/js/*.js $(BUILD_DIR)/shared/js
+	cp -rp ../../shared/style $(BUILD_DIR)/shared
+
+	$(XULRUNNERSDK) $(XPCSHELLSDK) ../../build/r.js -o build/email.build.js optimize=$(GAIA_EMAIL_MINIFY)
 	@rm -rf $(BUILD_DIR)/build
 	@rm $(BUILD_DIR)/gaia_build.json
 	@rm $(BUILD_DIR)/build.txt

@@ -4,12 +4,6 @@
 suite('camera', function() {
   var Camera;
 
-  // Sometimes setup via the
-  // test agent can take a while,
-  // so we need to bump timeout
-  // to prevent test failure.
-  this.timeout(3000);
-
   suiteSetup(function(done) {
     req(['camera'], function(_camera) {
       Camera = _camera;

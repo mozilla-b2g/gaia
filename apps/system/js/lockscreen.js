@@ -233,7 +233,7 @@ var LockScreen = {
     this.area.addEventListener('touchstart', this);
     this.areaCamera.addEventListener('click', this);
     this.areaUnlock.addEventListener('click', this);
-    this.altCamera.addEventListener('touchstart', this);
+    this.altCameraButton.addEventListener('click', this);
     this.iconContainer.addEventListener('touchstart', this);
 
     /* Unlock & camera panel clean up */
@@ -392,7 +392,9 @@ var LockScreen = {
             this.switchPanel('passcode');
           }
         }
-
+        // No matter turn on or off from screen timeout or poweroff,
+        // all secure apps would be hidden.
+        this.dispatchEvent('secure-killapps');
         this.lockIfEnabled(true);
         break;
 
@@ -404,6 +406,12 @@ var LockScreen = {
           this.handleIconClick(evt.target);
           break;
         }
+
+        if (this.altCameraButton === evt.target) {
+          this.handleIconClick(evt.target);
+          break;
+        }
+
         if (!evt.target.dataset.key)
           break;
 
@@ -419,11 +427,6 @@ var LockScreen = {
           ('success' === this.overlay.dataset.passcodeStatus);
         if (passcodeValid)
           return;
-        if (evt.target === this.altCamera) {
-          evt.preventDefault();
-          this.handleIconClick(evt.target);
-          break;
-        }
 
         var leftTarget = this.areaCamera;
         var rightTarget = this.areaUnlock;
@@ -463,6 +466,7 @@ var LockScreen = {
           } else {
             this.switchPanel();
           }
+          this.dispatchEvent('secure-closeapps');
           evt.stopImmediatePropagation();
         }
         break;
@@ -545,7 +549,7 @@ var LockScreen = {
     var self = this;
     switch (target) {
       case this.areaCamera:
-      case this.altCamera:
+      case this.altCameraButton:
         this._activateCamera();
         break;
       case this.areaUnlock:
@@ -619,10 +623,11 @@ var LockScreen = {
       return;
 
     this.dispatchEvent('will-unlock', detail);
+    this.dispatchEvent('secure-modeoff');
     this.writeSetting(false);
 
     if (this.unlockSoundEnabled) {
-      var unlockAudio = new Audio('./resources/sounds/unlock.ogg');
+      var unlockAudio = new Audio('./resources/sounds/unlock.opus');
       unlockAudio.play();
     }
 
@@ -679,6 +684,7 @@ var LockScreen = {
       // Any changes made to this,
       // also need to be reflected in apps/system/js/storage.js
       this.dispatchEvent('lock');
+      this.dispatchEvent('secure-modeon');
       this.writeSetting(true);
     }
   },
@@ -706,35 +712,23 @@ var LockScreen = {
         break;
 
       case 'camera':
-        // create the <iframe> and load the camera
-        var frame = document.createElement('iframe');
-        frame.setAttribute('mozbrowser', true);
-        frame.setAttribute('remote', 'true');
-
         // XXX hardcode URLs
         // Proper fix should be done in bug 951978 and friends.
         var cameraAppUrl =
           window.location.href.replace('system', 'camera');
         var cameraAppManifestURL =
-          cameraAppUrl.replace('index.html', 'manifest.webapp');
-
+          cameraAppUrl.replace(/(\/)*(index.html)*$/, '/manifest.webapp');
         cameraAppUrl += '#secure';
-
-        frame.src = cameraAppUrl;
-        frame.setAttribute('mozapp', cameraAppManifestURL);
-        frame.addEventListener('mozbrowserloadend', (function cameraLoaded() {
-          this.mainScreen.classList.add('lockscreen-camera');
-          this.overlay.classList.add('unlocked');
-
-          if (callback)
-            callback();
-        }).bind(this));
-        frame.addEventListener('mozbrowsererror', (function cameraError() {
-          this.switchPanel();
-        }).bind(this));
+        window.dispatchEvent(new window.CustomEvent('secure-launchapp',
+          {
+            'detail': {
+             'appURL': cameraAppUrl,
+             'appManifestURL': cameraAppManifestURL
+            }
+          }
+        ));
         this.overlay.classList.remove('no-transition');
-        this.camera.appendChild(frame);
-
+        callback();
         break;
     }
   },

@@ -1,11 +1,13 @@
+/* globals SimplePhoneMatcher, utils */
+
 'use strict';
 
 var contacts = window.contacts || {};
 
 contacts.Merger = (function() {
   var DEFAULT_ADR_TYPE = 'home';
-  var DEFAULT_TEL_TYPE = 'another';
-  var DEFAULT_EMAIL_TYPE = 'personal';
+  var DEFAULT_TEL_TYPE = 'other';
+  var DEFAULT_EMAIL_TYPE = 'other';
 
   // Performs the merge passing the master contact and matching contacts
   // The master contact is the one that contains the info with more priority
@@ -50,7 +52,6 @@ contacts.Merger = (function() {
 
   function mergeAll(masterContact, matchingContacts, callbacks) {
     var emailsHash;
-    var orgsHash;
     var categoriesHash;
     var telsHash;
     var mergedContact = {};
@@ -100,7 +101,7 @@ contacts.Merger = (function() {
       var theMatchingContact = aResult.matchingContact;
 
       var givenName = theMatchingContact.givenName;
-      if (Array.isArray(givenName)) {
+      if (Array.isArray(givenName) && givenName[0]) {
         if (mergedContact.givenName.indexOf(givenName[0]) === -1) {
           if (mergedContact.givenName[0] &&
               mergedContact.givenName[0].trim()) {
@@ -113,7 +114,7 @@ contacts.Merger = (function() {
       }
 
       var familyName = theMatchingContact.familyName;
-      if (Array.isArray(familyName)) {
+      if (Array.isArray(familyName) && familyName[0]) {
         if (mergedContact.familyName.indexOf(familyName[0]) === -1) {
           if (mergedContact.familyName[0] &&
               mergedContact.familyName[0].trim()) {
@@ -161,7 +162,7 @@ contacts.Merger = (function() {
 
       if (Array.isArray(theMatchingContact.tel)) {
         var theMatchings = aResult.matchings || {};
-        var telMatchings = theMatchings['tel'];
+        var telMatchings = theMatchings.tel;
         theMatchingContact.tel.forEach(function(aTel) {
           var theValue = aTel.value;
           var target = theValue, matchedValue = '';

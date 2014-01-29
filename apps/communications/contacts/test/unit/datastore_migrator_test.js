@@ -41,8 +41,6 @@ if (!this.mockIndexedDB) {
 }
 
 suite('IndexedDB --> Datastore migration', function() {
-  this.timeout(5000);
-
   var idbShortData = {
     '123456': {
       uid: '123456'

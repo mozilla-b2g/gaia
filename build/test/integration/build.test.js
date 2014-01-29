@@ -40,6 +40,7 @@ suite('Build Integration tests', function() {
         'dom.payment.provider.0.type': 'mozilla/payments/pay/v1',
         'dom.payment.provider.0.requestMethod': 'GET',
         'dom.payment.skipHTTPSCheck': true,
+        'dom.payment.debug': true,
         'dom.payment.provider.1.name': 'firefoxmarketdev',
         'dom.payment.provider.1.description': 'marketplace-dev.allizom.org',
         'dom.payment.provider.1.uri': 'https://marketplace-dev.allizom.org/mozpay/?req=',
@@ -49,7 +50,12 @@ suite('Build Integration tests', function() {
         'dom.payment.provider.2.description': 'marketplace.allizom.org',
         'dom.payment.provider.2.uri': 'https://marketplace.allizom.org/mozpay/?req=',
         'dom.payment.provider.2.type': 'mozilla-stage/payments/pay/v1',
-        'dom.payment.provider.2.requestMethod': 'GET'
+        'dom.payment.provider.2.requestMethod': 'GET',
+        'dom.payment.provider.3.name': 'mockpayprovider',
+        'dom.payment.provider.3.description': 'Mock Payment Provider',
+        'dom.payment.provider.3.uri': 'http://ferjm.github.io/gaia-mock-payment-provider/index.html?req=',
+        'dom.payment.provider.3.type': 'tests/payments/pay/v1',
+        'dom.payment.provider.3.requestMethod': 'GET'
       };
 
       // expected values for settings.json from build/config/common-settings.json
@@ -136,7 +142,7 @@ suite('Build Integration tests', function() {
         'lockscreen.enabled': false,
         'lockscreen.locked': false,
         'screen.timeout': 0,
-        'debugger.remote-mode': 'adb-only'
+        'debugger.remote-mode': 'adb-devtools'
       };
       var expectedUserPrefs = {
         'browser.startup.homepage': 'app://system.gaiamobile.org/index.html',

@@ -37,14 +37,14 @@ suite('system/FxAccountManager >', function() {
   suite('Init', function() {
     test('Integrity', function() {
       assert.isNotNull(FxAccountsManager);
-      assert.equal(Object.keys(FxAccountsManager).length, 4);
+      assert.equal(Object.keys(FxAccountsManager).length, 5);
     });
 
     test('Test event listeners', function() {
       assert.ok(MockEventListener['iac-fxa-mgmt']);
       assert.ok(MockEventListener['iac-fxa-mgmt'] instanceof Function);
-      assert.ok(MockEventListener['mozFxAccountsRPChromeEvent']);
-      assert.ok(MockEventListener['mozFxAccountsRPChromeEvent'] instanceof
+      assert.ok(MockEventListener['mozFxAccountsUnsolChromeEvent']);
+      assert.ok(MockEventListener['mozFxAccountsUnsolChromeEvent'] instanceof
                 Object);
     });
   });
@@ -74,7 +74,10 @@ suite('system/FxAccountManager >', function() {
     test('Sent success message through port', function() {
       assert.equal(MockIACPort._messages.length, 1);
       assert.ok(MockIACPort._messages[0] instanceof Object);
-      assert.deepEqual(MockIACPort._messages[0], { 'data': 'success' });
+      assert.deepEqual(MockIACPort._messages[0], {
+        'methodName': 'getAccounts',
+        'data': 'success'
+      });
     });
   });
 
@@ -103,7 +106,10 @@ suite('system/FxAccountManager >', function() {
     test('Sent success message through port', function() {
       assert.equal(MockIACPort._messages.length, 1);
       assert.ok(MockIACPort._messages[0] instanceof Object);
-      assert.deepEqual(MockIACPort._messages[0], { 'error': 'error' });
+      assert.deepEqual(MockIACPort._messages[0], {
+        'methodName': 'getAccounts',
+        'error': 'error'
+      });
     });
   });
 
@@ -132,7 +138,10 @@ suite('system/FxAccountManager >', function() {
     test('Sent success message through port', function() {
       assert.equal(MockIACPort._messages.length, 1);
       assert.ok(MockIACPort._messages[0] instanceof Object);
-      assert.deepEqual(MockIACPort._messages[0], { 'data': 'success' });
+      assert.deepEqual(MockIACPort._messages[0], {
+        'methodName': 'logout',
+        'data': 'success'
+      });
     });
   });
 
@@ -161,7 +170,10 @@ suite('system/FxAccountManager >', function() {
     test('Sent success message through port', function() {
       assert.equal(MockIACPort._messages.length, 1);
       assert.ok(MockIACPort._messages[0] instanceof Object);
-      assert.deepEqual(MockIACPort._messages[0], { 'error': 'error' });
+      assert.deepEqual(MockIACPort._messages[0], {
+        'methodName': 'logout',
+        'error': 'error'
+      });
     });
   });
 
@@ -190,7 +202,10 @@ suite('system/FxAccountManager >', function() {
     test('Sent success message through port', function() {
       assert.equal(MockIACPort._messages.length, 1);
       assert.ok(MockIACPort._messages[0] instanceof Object);
-      assert.deepEqual(MockIACPort._messages[0], { 'data': 'success' });
+      assert.deepEqual(MockIACPort._messages[0], {
+        'methodName': 'openFlow',
+        'data': 'success'
+      });
     });
   });
 
@@ -219,7 +234,10 @@ suite('system/FxAccountManager >', function() {
     test('Sent success message through port', function() {
       assert.equal(MockIACPort._messages.length, 1);
       assert.ok(MockIACPort._messages[0] instanceof Object);
-      assert.deepEqual(MockIACPort._messages[0], { 'error': 'error' });
+      assert.deepEqual(MockIACPort._messages[0], {
+        'methodName': 'openFlow',
+        'error': 'error'
+      });
     });
   });
 
@@ -236,7 +254,7 @@ suite('system/FxAccountManager >', function() {
       FxAccountsManager.handleEvent({
         'detail': {
           'id': id,
-          'method': 'openFlow'
+          'eventName': 'openFlow'
         }
       });
     });

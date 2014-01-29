@@ -17,7 +17,7 @@ body, html {
   left: 0;
   background-color: #000;
 
-  padding: 0.2rem 0;
+  padding: 0.2rem 0 0;
   -moz-box-sizing: border-box;
   -moz-user-focus: ignore;
 
@@ -40,15 +40,8 @@ body, html {
   margin: 0 0.2rem;
 }
 
-#statusbar-title {
-  pointer-events: none;
-  flex-grow: 1;
-  flex-shrink: 1;
-  min-width: 33%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  padding-left: 0.3rem;
+#screen.locked #statusbar-title {
+  visibility: hidden;
 }
 
 body:not(.rb-enabled) #statusbar-title {
@@ -122,6 +115,21 @@ body:not(.rb-enabled) #statusbar-icons > .sb-start {
   bottom: 0.1rem;
   color: #fff;
   font-size: 1.49rem; /* 6.5pt */
+}
+
+#statusbar-title {
+  pointer-events: none;
+  flex-grow: 1;
+  flex-shrink: 1;
+  min-width: 33%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding-left: 1.6rem;
+  font-size: 1.4rem;
+  line-height: 1.7rem;
+  background: url(../rocketbar/search.png) no-repeat top left;
+  background-size: 1.5rem;
 }
 
 #statusbar-time span {
@@ -312,7 +320,6 @@ body:not(.rb-enabled) #statusbar-icons > .sb-start {
   background-position: -2.1rem -4rem;
 }
 
-.sb-icon-signal[data-emergency="true"],
 .sb-icon-signal[data-level="0"] {
   background-position: -4.2rem -4rem;
 }

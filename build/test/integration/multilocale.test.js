@@ -75,7 +75,7 @@ suite('multilocale Integration tests', function() {
     makeWithMultilocale(localesFilePath, localesDir, true, done);
   });
 
-  test('make with absolute l10n path', function(done) {
+  test('make with absolute l10 path', function(done) {
     var localesFilePath= path.join(process.cwd(), localesDir, 'languages.json');
     var absoluteLocalesDir = path.join(process.cwd(), localesDir);
     makeWithMultilocale(localesFilePath, absoluteLocalesDir, true, done);
@@ -86,7 +86,7 @@ suite('multilocale Integration tests', function() {
     makeWithMultilocale(localesFilePath, localesDir, false, done);
   });
 
-  test('make with absolute l10n path but without inline & concat', function(done) {
+  test('make with absolute l10 path but without inline & concat', function(done) {
     var localesFilePath= path.join(process.cwd(), localesDir, 'languages.json');
     var absoluteLocalesDir = path.join(process.cwd(), localesDir);
     makeWithMultilocale(localesFilePath, absoluteLocalesDir, false, done);

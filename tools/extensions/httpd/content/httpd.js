@@ -45,7 +45,6 @@ Components.utils.import('resource://gre/modules/Services.jsm');
 const GAIA_DOMAIN = Services.prefs.getCharPref("extensions.gaia.domain");
 const GAIA_APP_RELATIVEPATH = Services.prefs.getCharPref("extensions.gaia.app_relative_path");
 const GAIA_LOCALES_PATH = Services.prefs.getCharPref("extensions.gaia.locales_debug_path");
-const GAIA_OFFICIAL = Services.prefs.getBoolPref("extensions.gaia.official");
 const GAIA_DEVICE_PIXEL_SUFFIX = Services.prefs.getCharPref("extensions.gaia.device_pixel_suffix");
 // -GAIA
 
@@ -604,11 +603,17 @@ nsHttpServer.prototype =
   registerDirectory: function(path, directory)
   {
     // XXX true path validation!
-    if (path.charAt(0) != "/" ||
-        path.charAt(path.length - 1) != "/" ||
-        (directory &&
-         (!directory.exists() || !directory.isDirectory())))
+    if (path.charAt(0) != "/" || path.charAt(path.length - 1) != "/") {
+      dumpn('*** Error: registerDirectory: First argument must start and end ' +
+          'with a / character.');
       throw Cr.NS_ERROR_INVALID_ARG;
+    }
+
+    if (directory && (!directory.exists() || !directory.isDirectory())) {
+      dumpn('*** Error: registerDirectory: Second argument must be a valid ' +
+          'directory.');
+      throw Cr.NS_ERROR_INVALID_ARG;
+    }
 
     // XXX determine behavior of nonexistent /foo/bar when a /foo/bar/ mapping
     //     exists!
@@ -622,6 +627,14 @@ nsHttpServer.prototype =
   registerPathHandler: function(path, handler)
   {
     this._handler.registerPathHandler(path, handler);
+  },
+
+  //
+  // see nsIHttpServer.registerPrefixHandler
+  //
+  registerPrefixHandler: function(prefix, handler)
+  {
+    this._handler.registerPrefixHandler(prefix, handler);
   },
 
   //
@@ -1431,40 +1444,25 @@ RequestReader.prototype =
           var host = (colon < 0) ? hostPort : hostPort.substring(0, colon);
           if (host != GAIA_DOMAIN && host.indexOf(".") != -1) {
             var oldPath = request._path;
-            var applicationName = host.split(".")[0];
+            let file;
 
-            // We store things in /shared/ now.  Although there is magic in
-            // build/webapp-zip.js to handle this when DEBUG=0 and we are
-            // building packages apps, there is no provision for DEBUG=1 in
-            // the build system, so we must map things here.
-            var filePath = this._findRealPath(applicationName);
-            if (oldPath.indexOf("/shared/") === 0) {
-              filePath += "/../..";
-              if (oldPath.indexOf('/branding/') != -1) {
-                oldPath = oldPath.replace('branding', GAIA_OFFICIAL ?
-                                                      'branding/official' :
-                                                      'branding/unofficial');
-              }
-            }
-            request._path = filePath + oldPath;
-
-            // Replace by high quality assets if available.
-            if (GAIA_DEVICE_PIXEL_SUFFIX && (oldPath.endsWith('.png') ||
-                oldPath.endsWith('.gif') || oldPath.endsWith('.jpg'))) {
-              var hidpiPath = filePath + oldPath.slice(0, -4) +
-                    GAIA_DEVICE_PIXEL_SUFFIX + oldPath.slice(-4);
-              var file =
-                    this._connection.server._handler._getFileForPath(hidpiPath);
-              if (file.exists() && file.isFile()) {
-                request._path = hidpiPath;
-              }
+            try {
+              file =
+                    this._connection.server._handler._getFileForPath(oldPath);
+            } catch(e) {
             }
 
-            // Handle localization files
-            if (oldPath.indexOf(".properties") !== -1 &&
-                oldPath.indexOf("en-US.properties") === -1) {
-              request._path = this._findPropertiesPath(request._path);
+            if (!file || !file.exists() || !file.isFile()) {
+              var applicationName = host.split(".")[0];
+
+              // find the file path depending on the application name
+              var filePath = this._findRealPath(applicationName);
+              request._path = filePath + oldPath;
             }
+
+            // TODO refactor this to a "filter" style
+            this._findHidpiPath();
+            this._findLocalizationPath();
           }
         } catch (e) {
           dump(e);
@@ -1478,6 +1476,33 @@ RequestReader.prototype =
     {
       this._handleError(e);
       return false;
+    }
+  },
+
+  _findHidpiPath: function() {
+    var request = this._metadata;
+    var oldPath = request.path;
+
+    // Replace by high quality assets if available.
+    if (GAIA_DEVICE_PIXEL_SUFFIX && (oldPath.endsWith('.png') ||
+        oldPath.endsWith('.gif') || oldPath.endsWith('.jpg'))) {
+      var hidpiPath = oldPath.slice(0, -4) +
+            GAIA_DEVICE_PIXEL_SUFFIX + oldPath.slice(-4);
+      var file =
+            this._connection.server._handler._getFileForPath(hidpiPath);
+      if (file.exists() && file.isFile()) {
+        request._path = hidpiPath;
+      }
+    }
+  },
+
+  _findLocalizationPath: function() {
+    var oldPath = this._metadata.path;
+
+    // Handle localization files
+    if (oldPath.indexOf(".properties") !== -1 &&
+        oldPath.indexOf("en-US.properties") === -1) {
+      this._findPropertiesPath();
     }
   },
 
@@ -1508,38 +1533,50 @@ RequestReader.prototype =
   /**
    * Try finding the localization files in GAIA_LOCALES_PATH
    */
-  _findPropertiesPath: function(path) {
+  _findPropertiesPath: function() {
+    var request = this._metadata;
+    var path = request.path;
+
     // /apps/browser/locales/browser.fr.properties
-    // /apps/calendar/../../shared/locales/date/date.fr.properties
-    var parts = path.split("/");
-    var appDir = parts[1]; // apps, apps
-    var appName = parts[2]; // browser, calendar
-    var component = parts[3]; // locales, ..
+    // /apps/browser/shared/locales/date/date.fr.properties
 
     // browser.fr.properties, date/date.fr.properties
     var resource = path.split("/locales/")[1];
-    var resourceParts = resource.split(".");
-    var resourceName = resourceParts[0]; // browser
-    var localeCode = resourceParts[1]; // date/date
+    if (!resource) {
+      return;
+    }
 
-    var debugPath;
-    if (component === "locales") {
-      // /locales/fr/apps/browser/browser.properties
-      debugPath = ("/" + GAIA_LOCALES_PATH + "/" + localeCode + "/" + appDir +
-                   "/" + appName + "/" + resourceName + ".properties");
+    var resourceParts = resource.split(".");
+    if (!resourceParts.length) {
+      return;
+    }
+
+    var resourceName = resourceParts[0]; // browser, date/date
+    var localeCode = resourceParts[1]; // fr, fr
+
+    var debugPath = "/" + GAIA_LOCALES_PATH + "/" + localeCode;
+    if (path.contains('/shared/')) {
+      // /apps/browser/shared/locales/date/date.fr.properties
+      // -> /locales/fr/shared/date/date.properties
+      //
+      debugPath += "/shared/" + resourceName + ".properties";
+    } else if (path.startsWith('/apps/')) {
+      // /apps/browser/locales/browser.fr.properties
+      // -> /locales/fr/apps/browser/browser.properties
+      //
+      let appName = path.split("/")[2]; // browser
+      debugPath += "/apps/" + appName + "/" + resourceName + ".properties";
     } else {
-      // /locales/fr/shared/date/date.properties
-      debugPath = ("/" + GAIA_LOCALES_PATH + "/" + localeCode + "/shared" +
-                   "/" + resourceName + ".properties");
+      return;
     }
 
     dumpn("l10n: try loading " + debugPath + " instead of " + path);
 
     // check if the file at the new path exists
     var file = this._connection.server._handler._getFileForPath(debugPath);
-    if (file.exists() && file.isFile())
-      return debugPath;
-    return path;
+    if (file.exists() && file.isFile()) {
+      request._path = debugPath;
+    }
   },
 
   /**
@@ -2322,6 +2359,15 @@ function ServerHandler(server)
   this._overridePaths = {};
 
   /**
+   * Custom request handlers for the path prefixes on the server in which this
+   * resides.  Path-handler pairs are stored as property-value pairs in this
+   * property.
+   *
+   * @see ServerHandler.prototype._defaultPaths
+   */
+  this._overridePrefixes = {};
+
+  /**
    * Custom request handlers for the error handlers in the server in which this
    * resides.  Path-handler pairs are stored as property-value pairs in this
    * property.
@@ -2385,7 +2431,23 @@ ServerHandler.prototype =
         }
         else
         {
-          this._handleDefault(request, response);
+          var longestPrefix = "";
+          for (let prefix in this._overridePrefixes) {
+            if (prefix.length > longestPrefix.length &&
+                path.substr(0, prefix.length) == prefix)
+            {
+              longestPrefix = prefix;
+            }
+          }
+          if (longestPrefix.length > 0)
+          {
+            dumpn("calling prefix override for " + longestPrefix);
+            this._overridePrefixes[longestPrefix](request, response);
+          }
+          else
+          {
+            this._handleDefault(request, response);
+          }
         }
       }
       catch (e)
@@ -2488,6 +2550,18 @@ ServerHandler.prototype =
       throw Cr.NS_ERROR_INVALID_ARG;
 
     this._handlerToField(handler, this._overridePaths, path);
+  },
+
+  //
+  // see nsIHttpServer.registerPrefixHandler
+  //
+  registerPrefixHandler: function(path, handler)
+  {
+    // XXX true path validation!
+    if (path.charAt(0) != "/" || path.charAt(path.length - 1) != "/")
+      throw Cr.NS_ERROR_INVALID_ARG;
+
+    this._handlerToField(handler, this._overridePrefixes, path);
   },
 
   //

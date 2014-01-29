@@ -362,6 +362,7 @@ suite('Render contact', function() {
         var currentElem = contactMultTel.tel[1][elem] + 'dup';
         contactMultTel.tel[1][elem] = currentElem;
       }
+      contactMultTel.tel[1].type = '';
       subject.setContact(contactMultTel);
       subject.render(null, TAG_OPTIONS);
       assert.include(container.innerHTML, 'phone-details-template-0');
@@ -371,7 +372,7 @@ suite('Render contact', function() {
       assert.include(container.innerHTML, contactMultTel.tel[0].type);
       assert.include(container.innerHTML, contactMultTel.tel[1].value);
       assert.include(container.innerHTML, contactMultTel.tel[1].carrier);
-      assert.include(container.innerHTML, contactMultTel.tel[1].type);
+      assert.include(container.innerHTML, subject.defaultTelType);
       assert.equal(-1, container.innerHTML.indexOf('phone-details-template-2'));
     });
   });

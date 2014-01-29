@@ -42,7 +42,7 @@ function MockContactAllFields(withoutPhoto) {
     'tel': [
       {
         'value': '+346578888888',
-        'type': ['Mobile'],
+        'type': ['mobile'],
         'carrier': 'TEF',
         'pref': true
       },

@@ -2923,6 +2923,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     ui: 'bdd',
 
     /**
+     * Default test timeout.
+     */
+    timeout: 10000,
+
+    /**
      * Mocha reporter to use.
      * If null is given none will be used.
      */
@@ -3030,7 +3035,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         box.mocha.setup({
           globals: globalIgnores,
           ui: self.ui,
-          reporter: self.getReporter(box)
+          reporter: self.getReporter(box),
+          timeout: self.timeout
         });
       });
 
@@ -3244,6 +3250,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     WORKING: 'working',
     EXECUTE: 'execute',
 
+    tasks: {
+      test: 'run tests',
+      coverage: 'run tests with coverage',
+    },
+
     templates: {
       testList: '<ul class="test-list"></ul>',
       testItem: '<li data-url="%s">%s</li>',
@@ -3259,10 +3270,21 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     },
 
     get execButton() {
-      if(!this._execButton){
+      if (!this._execButton) {
         this._execButton = this.element.querySelector('button');
       }
       return this._execButton;
+    },
+
+    get command() {
+      var covCheckbox = document.querySelector('#test-agent-coverage-checkbox'),
+          covFlag = covCheckbox ? covCheckbox.checked : false;
+
+      if (covFlag) {
+        return this.tasks.coverage;
+      } else {
+        return this.tasks.test;
+      }
     },
 
     enhance: function enhance(worker) {
@@ -3342,7 +3364,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       );
 
       this.element.appendChild(fragment(templates.testRun));
+
       this.initDomEvents();
+
       window.dispatchEvent(new CustomEvent('test-agent-list-done'));
     },
 
@@ -3381,10 +3405,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
           }
         }
 
-        self.worker.emit('run tests', {tests: tests});
+        self.worker.emit(self.command, {tests: tests});
       });
     }
 
   };
 
 }(this));
+
