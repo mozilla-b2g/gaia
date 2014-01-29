@@ -180,7 +180,10 @@ ContactRenderer.prototype = {
         // only considers left aligned exact matches on words
         return new RegExp('^' + k, 'gi');
       }),
-      number: [new RegExp(escaped, 'ig')]
+      number: escsubs.map(function(k) {
+        // Match any of the search terms with the number
+        return new RegExp(k, 'ig');
+      })
     };
 
     var include = renderPhoto ? { photoURL: true } : null;
