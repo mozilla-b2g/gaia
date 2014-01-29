@@ -188,11 +188,11 @@ var Rocketbar = {
       this.enabled = value;
     }.bind(this));
 
-    SettingsListener.observe('rocketbar.searchAppURL', false,
+    SettingsListener.observe('rocketbar.searchAppURL', '',
     function(url) {
       this.searchAppURL = url;
-      this.searchManifestURL = url.match(/(^.*?:\/\/.*?\/)/)[1] +
-        'manifest.webapp';
+      this.searchManifestURL = url ? url.match(/(^.*?:\/\/.*?\/)/)[1] +
+        'manifest.webapp' : '';
     }.bind(this));
   },
 
