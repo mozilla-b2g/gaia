@@ -25,20 +25,30 @@ var ContactsSDExport = function ContactsSDExport() {
     return _('sdExport-title');
   };
 
-  var hasName = function hasName(contact) {
+  var hasGivenName = function hasGivenName(contact) {
     return (Array.isArray(contact.givenName) && contact.givenName[0] &&
-            contact.givenName[0].trim()) ||
-           (Array.isArray(contact.familyName) && contact.familyName[0] &&
+            contact.givenName[0].trim());
+  };
+
+  var hasFamilyName = function hasFamilyName(contact) {
+    return (Array.isArray(contact.familyName) && contact.familyName[0] &&
             contact.familyName[0].trim());
   };
 
   var getFileName = function getFileName() {
     var filename = [];
     if (contacts && contacts.length === 1) {
-      var contact = contacts[0];
-      if (hasName(contact)) {
-        filename.push(contact.givenName[0], contact.familyName[0]);
-      } else {
+      var contact = contacts[0],
+          hasName = false;
+      if (hasGivenName(contact)) {
+        filename.push(contact.givenName[0]);
+        hasName = true;
+      }
+      if (hasFamilyName(contact)) {
+        filename.push(contact.familyName[0]);
+        hasName = true;
+      }
+      if (!hasName) {
         if (contact.org && contact.org.length > 0) {
           filename.push(contact.org[0]);
         } else if (contact.tel && contact.tel.length > 0) {
