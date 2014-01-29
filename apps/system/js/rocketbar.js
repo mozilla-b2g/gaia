@@ -22,6 +22,8 @@ var Rocketbar = {
 
   screen: document.getElementById('screen'),
 
+  statusBar: document.getElementById('statusbar'),
+
   searchContainer: document.getElementById('search-container'),
 
   searchBar: document.getElementById('search-bar'),
@@ -289,6 +291,8 @@ var Rocketbar = {
     if (!this.shown)
       return;
 
+    this.statusBar.style.display = 'flex';
+
     document.body.removeEventListener('keyboardchange', this, true);
 
     this.searchInput.blur();
@@ -320,6 +324,8 @@ var Rocketbar = {
     if (this.shown) {
       return;
     }
+
+    this.statusBar.style.display = 'none';
 
     var input = this.searchInput;
     input.value = '';
