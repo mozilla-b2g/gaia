@@ -81,10 +81,10 @@ assert.hasTime = function(str, date, usrMsg) {
  * - In 1:02:34 we will dine.
  *
  * @param {String} str - The string to test.
- * @param {Number|Array} ms - The expected duration in milliseconds. If an
- *                            array, the first and second elements will be used
- *                            as upper and lower bounds on the accepted
- *                            duration (inclusive).
+ * @param {Number|Object} ms - The expected duration in milliseconds. If an
+ *                             object, the `upper` and `lower` attributes will
+ *                             be used as bounds on the accepted duration
+ *                             (inclusive).
  * @param {String} [usrMsg] - Message to display on failure.
  */
 assert.hasDuration = function(str, ms, usrMsg) {
@@ -107,11 +107,11 @@ assert.hasDuration = function(str, ms, usrMsg) {
     match[3] * 1000 +
     (match[4] || 0) * 10;
 
-  if (Array.isArray(ms)) {
+  if (typeof ms !== 'number') {
     nodeAssert(
-      time >= ms[0] && time <= ms[1],
-      usrMsg + 'expected "' + str + '" to have a duration between ' + ms[0] +
-        'ms and ' + ms[1] + 'ms'
+      time >= ms.lower && time <= ms.upper,
+      usrMsg + 'expected "' + str + '" to have a duration between ' +
+        ms.lower + 'ms and ' + ms.upper + 'ms'
     );
   } else {
     nodeAssert(

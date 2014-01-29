@@ -20,7 +20,7 @@ marionette('Timer Starting', function() {
     // alarm creation and the following "read" operation.
     assert.hasDuration(
       timer.readCountdown(),
-      [durationMs - 3000, durationMs],
+      { lower: durationMs - 3000, upper: durationMs },
       'displays the correct time immediately after creation'
     );
 
@@ -28,7 +28,7 @@ marionette('Timer Starting', function() {
     timer.navigate('timer');
     assert.hasDuration(
       timer.readCountdown(),
-      [durationMs - 3000, durationMs],
+      { lower: durationMs - 3000, upper: durationMs },
       'maintains the correct time across panel naviations'
     );
   });

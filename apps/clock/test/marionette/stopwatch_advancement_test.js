@@ -26,7 +26,7 @@ marionette('Stopwatch advancement', function() {
 
     assert.hasDuration(
       stopwatch.read(),
-      [1200, Infinity]
+      { lower: 1200, upper: Infinity }
     );
   });
 });

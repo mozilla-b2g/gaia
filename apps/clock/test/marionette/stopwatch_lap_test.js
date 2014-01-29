@@ -36,12 +36,12 @@ marionette('Lap creation', function() {
 
     assert.hasDuration(
       laps[0],
-      [1, Infinity],
+      { lower: 1, upper: Infinity },
       '"Current" lap entry contains nonzero time'
     );
 
     assert.hasDuration(laps[1],
-      [1, Infinity],
+      { lower: 1, upper: Infinity },
       'Immediately-created lap entry contains nonzero time'
     );
 
@@ -53,18 +53,18 @@ marionette('Lap creation', function() {
 
     assert.hasDuration(
       laps[0],
-      [0, Infinity],
+      { lower: 0, upper: Infinity },
       'New laps are inserted at the beginning of the lap list'
     );
 
     assert.hasDuration(
       laps[1],
-      [1200, Infinity],
+      { lower: 1200, upper: Infinity },
       'Previously-created lap entries persist'
     );
 
     assert.hasDuration(laps[2],
-      [1, Infinity],
+       { lower: 1, upper: Infinity },
       'Previously-created lap entries persist'
     );
   });
