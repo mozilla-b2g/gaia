@@ -20,6 +20,8 @@ var EdgeSwipeDetector = {
                              this.settingUpdate.bind(this));
     SettingsListener.observe('edgesgesture.debug', false,
                              this.debugUpdate.bind(this));
+    SettingsListener.observe('apz.force-enable', true,
+                             this.apzUpdate.bind(this));
   },
 
   _settingEnabled: false,
@@ -31,6 +33,11 @@ var EdgeSwipeDetector = {
 
   debugUpdate: function esd_debugUpdate(enabled) {
     this.screen.classList.toggle('edges-debug', enabled);
+  },
+
+  _apzSetting: false,
+  apzUpdate: function esd_apzUpdate(value) {
+    this._apzSetting = value;
   },
 
   _lifecycleEnabled: false,
@@ -120,11 +127,15 @@ var EdgeSwipeDetector = {
 
   _touchMove: function esd_touchMove(e) {
     var touch = e.touches[0];
-    this._deltaX = Math.abs(touch.clientX - this._startX);
-    this._deltaY = Math.abs(touch.clientY - this._startY);
-    this._progress = this._deltaX / this._winWidth;
+    this._updateProgress(touch);
 
     if (this._notSwiping) {
+      // If we already started forwarding and AsyncPanZoom is on
+      // we do not care about potential subsequent touchmove events.
+      if (this._usesAsyncPanZoom(this._iframe)) {
+        return;
+      }
+
       this._sendTouchEvent(e);
       return;
     }
@@ -138,6 +149,12 @@ var EdgeSwipeDetector = {
   },
 
   _touchEnd: function esd_touchEnd(e) {
+    // If async pan zoom is enabled, touchmove events are captured by the
+    // child widget and the main process only receives touchstart/touchend.
+    // So we update the progress one last time with the touchend coordinates.
+    var touch = e.changedTouches[0];
+    this._updateProgress(touch);
+
     if ((this._deltaX < 5) && (this._deltaY < 5)) {
       this._sendTap(e);
       this._notSwiping = true;
@@ -174,6 +191,12 @@ var EdgeSwipeDetector = {
     });
   },
 
+  _updateProgress: function esd_updateProgress(touch) {
+    this._deltaX = Math.abs(touch.clientX - this._startX);
+    this._deltaY = Math.abs(touch.clientY - this._startY);
+    this._progress = this._deltaX / this._winWidth;
+  },
+
   _clearForwardTimeout: function esd_clearForwardTimeout() {
     if (this._forwardTimeout) {
       clearTimeout(this._forwardTimeout);
@@ -206,14 +229,19 @@ var EdgeSwipeDetector = {
     if (this._forwardTimeout) {
       this._sendTouchEvent(this._touchStartEvt);
     }
-    this._iframe.sendMouseEvent('mousedown', firstTouch.pageX,
-                                firstTouch.pageY, 0, 1, 0);
 
-    setTimeout((function fakeTap() {
-      this._sendTouchEvent(e);
-      this._iframe.sendMouseEvent('mouseup', lastTouch.pageX,
-                                  lastTouch.pageY, 0, 1, 0);
-    }).bind(this), 80);
+    this._sendTouchEvent(e);
+
+    // We don't need to send mouse events for AsyncPanZoom enabled iframes.
+    if (!this._usesAsyncPanZoom(this._iframe)) {
+      this._sendMouseEvents(lastTouch.pageX, lastTouch.pageY);
+    }
+  },
+
+  _sendMouseEvents: function esd_sendMouseEvents(x, y) {
+    this._iframe.sendMouseEvent('mousemove', x, y, 0, 0, 0);
+    this._iframe.sendMouseEvent('mousedown', x, y, 0, 1, 0);
+    this._iframe.sendMouseEvent('mouseup', x, y, 0, 1, 0);
   },
 
   _unSynthetizeEvent: function esd_unSynthetizeEvent(e) {
@@ -240,6 +268,11 @@ var EdgeSwipeDetector = {
     }
 
     return [type, identifiers, xs, ys, rxs, rys, rs, fs, xs.length];
+  },
+
+  _usesAsyncPanZoom: function esd_usingAyncPanZoom(iframe) {
+    var apzFlag = iframe.getAttribute('mozasyncpanzoom');
+    return (this._apzSetting || apzFlag);
   }
 };
 
