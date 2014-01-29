@@ -27,3 +27,87 @@ form[role="dialog"][data-type="object"].visible {
 	visibility: visible;
 	transform: translateY(0);
 }
+
+@media (min-width: 768px) {
+  form[role="dialog"][data-type="action"],
+  form[role="dialog"][data-type="object"] {
+    -moz-box-sizing: border-box;
+    background-color: rgba(0,0,0,0.6);
+    background: url(../themes/default/images/ui/menu_bg.png) no-repeat;
+  }
+
+  form[role="dialog"][data-type="action"] > header,
+  form[role="dialog"][data-type="object"] > header {
+    background: none;
+    top: calc(50% - 24rem);
+    left: calc(50% - 34rem);
+    width: 68rem;
+    height: 7rem;
+    padding: 0 6rem;
+    font-size: 2.2rem;
+    line-height: 7rem;
+    background-color: #333333;
+    box-shadow: 0 0 1rem #222222;
+    border: 0.1rem solid #282828;
+    border-bottom: none;
+  }
+
+  form[role="dialog"][data-type="action"] > header:after,
+  form[role="dialog"][data-type="object"] > header:after {
+    background: #222323;
+    left: 6rem;
+    width: 54rem;
+  }
+
+  form[role="dialog"][data-type="action"] > menu,
+  form[role="dialog"][data-type="object"] > menu {
+    top: calc(50% - 24rem + 7rem);
+    left: calc(50% - 34rem);
+    width: 55.8rem; /* 68 - 12 - 0.2(border compensate)*/
+    height: 31rem; /* 38 - 7 */
+    padding: 0 6rem;
+    font-size: 2.2rem;
+    background-color: #333333;
+    box-shadow: 0 0 1rem #222222;
+    border: 0.1rem solid #282828;
+    border-top: none;
+    z-index:1;
+  }
+
+  form[role="dialog"][data-type="action"] > menu > button,
+  form[role="dialog"][data-type="object"] > menu > button {
+    box-shadow: 0 0 1rem #222222;
+    border: 0.1rem solid #282828;
+    background: none no-repeat 1rem 50%;
+    background-color: #898989;
+    height: 4.7rem;
+    font-size: 2.3rem;
+    line-height: 3rem;
+    font-weight: 400;
+    padding: 1rem 6rem;
+    margin: 2.4rem 0 0 0;
+  }
+
+  form[role="dialog"][data-type="action"] > menu > button:last-child,
+  form[role="dialog"][data-type="object"] > menu > button:last-child {
+    position: absolute;
+    background: url('../themes/default/images/ui/default.png') repeat-x scroll 0px 100% #FAFAFA;
+    margin-top: 1.5rem;
+    font-size: 2.3rem;
+    line-height: 2.3rem;
+    font-weight: 400;
+    width: 18rem;
+    height: 4rem;
+    margin-left: calc(50% - 9rem);
+  }
+
+  form[role="dialog"][data-type="action"] > menu > button:last-child:before,
+  form[role="dialog"][data-type="object"] > menu > button:last-child:before {
+    background: none;
+    background-color: #333333;
+    width: 67.8rem;
+    left: calc(50% - 33.9rem);
+    bottom: calc(50% - 14rem);
+    z-index: -1;
+  }
+}
