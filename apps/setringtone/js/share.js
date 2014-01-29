@@ -60,10 +60,63 @@ function share(activity) {
   };
 
   control.onclick = function() {
-    if (preview.paused)
-      preview.play();
-    else
+    if (preview.paused) {
+      // HACK HACK HACK
+      //
+      // This is an ugly workaround for bug 956811.
+      //
+      // Bugs in the system app window manager and Gecko's audio
+      // channel manager prevent the music app from being paused when
+      // this set ringtone app previews a ringtone. As a workaround,
+      // the music app listens to the settings database and will pause
+      // itself if we set a magic property that it specifies.  So if
+      // the activity data includes a special magic property then we
+      // know that we were invoked by the music app, and the music app
+      // is playing a song.  The value of the property in the activity
+      // data is the name of the property in the settings database
+      // that it is listening to.
+      //
+      // See also the corresponding code in apps/music/js/Player.js
+      //
+      // This hack is implemented as a single self-invoking function so it is
+      // easy to remove when we have a proper bug fix.
+      //
+      // HACK HACK HACK
+      (function() {
+        var hack_activity_property = '_hack_hack_shut_up';
+        var hack_settings_property = data[hack_activity_property];
+        if (hack_settings_property) {
+          // Query the value of this setting
+          var lock = navigator.mozSettings.createLock();
+          lock.get(hack_settings_property).onsuccess = function(e) {
+            value = e.target.result[hack_settings_property];
+
+            // Once we have the value, set the setting to something different.
+            // This should pause the music app. Wait until we have confirmation
+            // that the setting was set before starting to play the preview
+            // so that the music app has time to pause first
+            var o = {};
+            o[hack_settings_property] = !value;
+            navigator.mozSettings.createLock().set(o).onsuccess = function() {
+              preview.play();
+            };
+
+            // Alter the activity data so we only run this code once.
+            delete data[hack_activity_property];
+          };
+        }
+        else {
+          preview.play();
+        }
+      }());
+      // END OF HACK
+      // When there is a real bug fix, just replace this entire if clause
+      // with:
+      //   preview.play();
+    }
+    else {
       preview.pause();
+    }
   };
 
   preview.onplaying = function() {
