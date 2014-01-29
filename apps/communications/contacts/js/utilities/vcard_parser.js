@@ -398,6 +398,7 @@ var VCFReader = (function _VCFReader() {
     this.processed = 0;
     this.finished = false;
     this.currentChar = 0;
+    this.totalParsed = 0;
   };
 
   // Number of contacts processed at a given time.
@@ -472,6 +473,7 @@ var VCFReader = (function _VCFReader() {
 
     var processed = this.processed;
     if (processed < this.total && processed % VCFReader.CONCURRENCY === 0) {
+      this.totalParsed += processed;
       this.splitLines();
     }
   };
@@ -615,7 +617,7 @@ var VCFReader = (function _VCFReader() {
         cardsProcessed += 1;
 
         if (cardsProcessed === VCFReader.CONCURRENCY ||
-          cardsProcessed === this.total) {
+          (cardsProcessed + this.totalParsed) === this.total) {
           _parseEntries(cardArray, callPost);
           break;
         }
