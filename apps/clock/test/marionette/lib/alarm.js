@@ -9,7 +9,8 @@ module.exports = Alarm;
 
 Alarm.prototype = Object.create(Clock.prototype);
 
-// Amount of time to wait for Alarm creation banner to be hidden
+// Amount of time (in milliseconds) to wait for Alarm creation banner to be
+// hidden
 Alarm.bannerTimeout = 5 * 1000;
 
 [
