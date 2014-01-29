@@ -325,7 +325,7 @@ var GridManager = (function() {
         window.addEventListener(touchmove, pan, true);
 
         removePanHandler = function removePanHandler(e) {
-          touchEndTimestamp = e ? e.timeStamp : Number.MAX_VALUE;
+          touchEndTimestamp = e ? e.timeStamp : 0;
           window.removeEventListener(touchend, removePanHandler, true);
 
           window.removeEventListener(touchmove, pan, true);
@@ -378,6 +378,10 @@ var GridManager = (function() {
         'y': startEvent.pageY
       });
     });
+  }
+
+  function cancelPanning() {
+    removePanHandler();
   }
 
   function onTouchEnd(deltaX, evt) {
@@ -487,6 +491,7 @@ var GridManager = (function() {
     if (index < 0 || index >= pages.length)
       return;
 
+    touchEndTimestamp = touchEndTimestamp || lastGoingPageTimestamp;
     var delay = touchEndTimestamp - lastGoingPageTimestamp ||
                 kPageTransitionDuration;
     lastGoingPageTimestamp += delay;
@@ -1588,6 +1593,8 @@ var GridManager = (function() {
     ensurePagesOverflow: ensurePagesOverflow,
 
     contextmenu: contextmenu,
+
+    cancelPanning: cancelPanning,
 
     get container() {
       return container;
