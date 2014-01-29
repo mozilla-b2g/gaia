@@ -5,8 +5,9 @@
 
 /* Fav star in header */
 #contact-name-title.favorite {
-  background: url(/contacts/style/gphx/bitmap/default/vw-header/icons/fav-star.png) no-repeat right 1rem / 1.2rem;
-  padding-right: 1.5rem;
+  background: url(/contacts/style/gphx/bitmap/default/vw-header/icons/fav-star.png) no-repeat right 1rem / 3rem;
+  padding-right: 3rem;
+  margin-right: -1rem;
 }
 
 section[role="region"] > header:first-child .icon.icon-edit-contact {
@@ -40,7 +41,7 @@ section[role="region"] > header:first-child .icon.icon-edit-contact {
   overflow-y: auto;
   will-change: scroll-position;
 
-  background: #f4f4f4;
+  background: #fff;
 }
 
 .view-contact-profile .view-body-inner {
@@ -53,7 +54,7 @@ section[role="region"] > header:first-child .icon.icon-edit-contact {
   left: 0;
   width: 100%;
   height: 100%;
-  background: #f4f4f4 no-repeat;
+  background: #fff no-repeat;
   background-size: 100% auto;
   transform: translateY(0);
   will-change: transform;
@@ -85,7 +86,7 @@ section[role="region"] > header:first-child .icon.icon-edit-contact {
 .view-contact-profile .view-body-inner {
   position: relative;
   padding: 0 1.5rem;
-  background: #f4f4f4;
+  background: #fff;
   overflow: visible;
   width: 100%;
   min-height: calc(100% - 8rem);
@@ -130,25 +131,17 @@ section[role="region"] > header:first-child .icon.icon-edit-contact {
 #bulkDelete {
   margin-top: 1rem;
 }
+
 #contact-detail h1 {
-  font-size: 1.4rem;
-  line-height: 1.5em;
-  font-weight: 600;
-  border-bottom: solid 0.1rem #dbd9d9;
-  margin-bottom: 1rem;
-  padding-bottom: 0.55rem;
+  font-size: 1.6rem;
+  line-height: 1.8em;
+  font-weight: 400;
+  margin: 0 1.5rem 1rem;
+  color: #333;
   word-wrap: break-word;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-}
-
-#contact-detail li .item-body-exp {
-  padding-bottom: 1rem;
-}
-
-#contact-detail li button {
-  margin: 0.1rem 0;
 }
 
 #contact-detail li button.icon-call {
@@ -157,8 +150,8 @@ section[role="region"] > header:first-child .icon.icon-edit-contact {
 
 #contact-detail li button>div {
   display: inline-flex;
-  width: calc(100% - 20px);
-  margin-left: 20px;
+  width: calc(100% - 1.5rem);
+  margin-left: 1.5rem;
 }
 
 #contact-detail li button>div b {
@@ -179,7 +172,11 @@ section[role="region"] > header:first-child .icon.icon-edit-contact {
 
 #contact-detail h2 {
   text-transform: uppercase;
-  font-size: 1.4rem;
+  font-size: 1.6rem;
+  font-size: 1.8rem;
+  color: #4997a7;
+  font-weight: normal;
+  margin: 0 1.5rem 0.2rem;
 }
 
 #contact-detail .carrier {
@@ -193,23 +190,22 @@ section[role="region"] > header:first-child .icon.icon-edit-contact {
 }
 
 /* Edit contact section */
+.view-edit-contact .item.first,
+.view-edit-contact form li {
+  border-bottom: 0.1rem solid #dbdbdb;
+}
 
 .view-edit-contact .tail-actions {
-  padding-top: 0.7rem;
-  margin: 1rem 0 2rem;
-  border-top: solid 0.1rem #dbdbdb;
+  margin: 1rem 0;
 }
 
 .view-edit-contact form li > section {
   padding: 0;
   border: none;
 }
+
 .view-edit-contact form li > section.first {
   margin: 0;
-}
-
-.view-edit-contact form li {
-  margin-right: 3rem;
 }
 
 .view-edit-contact form li > section{
@@ -220,43 +216,25 @@ section[role="region"] > header:first-child .icon.icon-edit-contact {
   position: relative;
 }
 
-.view-edit-contact fieldset {
-  border-radius: 0.3rem 0.3rem 0 0;
+.view-edit-contact form li fieldset {
+  overflow: visible;
 }
 
-.view-edit-contact form li section + button {
-  margin-top: -0.6rem;
-  border-radius: 0 0 0.4rem 0.4rem;
-}
-
-.view-edit-contact form li section + button:after {
-  display: none;
-}
-
-#contact-detail-inner h1 {
-  padding-left: 0.5rem;
-}
-
-#contact-detail-inner h2 {
-  margin-left: 0.5rem;
+.view-edit-contact form li fieldset legend {
+  width: calc(100% - 5rem);
 }
 
 .view-edit-contact .fillflow-row-action {
-  width: 4.5rem;
-  height: 4.5rem;
-  margin: -2.25rem 0 0 0;
+  width: 4rem;
+  height: 4rem;
 }
 
-.view-edit-contact .fillflow-row-action:after {
-  display: none;
+#contacts-form-notes {
+  margin: 1rem 0 1.5rem 0;
 }
 
-.view-edit-contact .fillflow-row-action:active {
-  background: none;
-}
-
-.view-edit-contact .setbox-item input {
-  border-radius: 0.3rem 0.3rem 0 0;
+#contacts-form-notes .setbox {
+  width: calc(100% - 5rem);
 }
 
 /* FB info (non-editable) */
@@ -343,8 +321,13 @@ form p textarea + button[type="reset"].hide {
   margin-left: 0 !important;
 }
 
-#contact-detail p > strong {
-  font-size: 1.4rem;
+#contact-detail p > strong,
+.action-block b,
+.comment-notes {
+  font-size: 1.6rem;
+  font-weight: normal;
+  padding: 0 1.5rem 1.5rem;
+  display: block;
 }
 
 /* MARK AS REMOVED */
@@ -370,7 +353,6 @@ form p textarea + button[type="reset"].hide {
 
 .with-photo {
   padding-right: 5rem;
-  border: 0.1rem solid #C8C8C8;
   background: none;
 }
 
@@ -383,7 +365,11 @@ form p textarea + button[type="reset"].hide {
 }
 
 .view-edit-contact .with-photo .fillflow-row-action {
-  margin-left: -5rem;
+  right: 0;
+  width: 5rem;
+  z-index: 10;
+  border-radius: 0;
+  background: none;
 }
 
 /* SETTINGS */
@@ -398,6 +384,11 @@ section[role="region"] > header .icon.icon-settings {
 
 #view-settings .view-body-inner {
   padding: 0;
+}
+
+#view-settings .view-body-inner,
+#import-settings .view-body-inner,
+#view-contact-form .view-body-inner {
   background: #f4f4f4;
 }
 

@@ -147,10 +147,6 @@ textarea {
   height: 4.6rem;
 }
 
-input[type="text"]:focus, textarea:focus {
-  border-color: #7a7a7a;
-}
-
 [contenteditable] {
   outline: none;
   word-wrap: break-word;
@@ -215,40 +211,6 @@ li a[role="button"] span {
   font-size: 0;
 }
 
-/* Extending BB list buttons (Activity ones) */
-li button.activity,
-li a[role="button"].activity {
-  background-color: #fff;
-  padding: 0 1rem 0 0;
-}
-
-li button.activity.no-icon,
-li a[role="button"].activity.no-icon {
-  padding-left: 1.5rem;
-}
-
-li button.activity:active,
-li a[role="button"].activity:active {
-  background-color: #008AAA;
-}
-
-/* Icons at left side */
-li button.activity.icon,
-li a[role="button"].activity.icon {
-  padding-left: 3rem;
-}
-
-li button.activity.icon,
-li a[role="button"].activity.icon {
-  text-indent: 1rem;
-}
-
-li button.activity:before,
-li a[role="button"].activity:before {
-  right: auto;
-  left: 0.5rem;
-}
-
 /* Extending components */
 li button.activity > b em ,
 li a[role="button"].activity > b em{
@@ -260,7 +222,6 @@ li a[role="button"].activity > b em{
   margin-left: 1.5rem;
 }
 
-/* Long strings (email) */
 li button.activity > b ,
 li a[role="button"].activity > b{
   font-weight: normal;
@@ -269,8 +230,8 @@ li a[role="button"].activity > b{
   white-space: nowrap;
   display: block;
   position: absolute;
-  left: 3rem;
-  right: 0;
+  left: 1.5rem;
+  right: 3rem;
   top: 0;
   bottom: 0;
 }
@@ -307,17 +268,12 @@ li a[role="button"].activity > b{
   background-color: #fff;
 }
 
-.view-select-tag .selection-list li button:active {
-  background-color: #008AAA;
-}
-
 .view-select-tag .selection-list li button.icon-selected:before {
   background: transparent url(gphx/bitmap/default/lists/tick.png) no-repeat center center / 2rem;
 }
 
-/* Input areas customization*/
-form p + p {
-  margin-top: 0.5rem;
+#custom-tag {
+  margin-bottom: 2rem;
 }
 
 /* Body */
@@ -448,8 +404,7 @@ span[role="button"].icon-grid {
 /* GENERIC BUTTONS */
 span[role="button"].icon-delete {
   background-image: url(/contacts/style/gphx/bitmap/default/forms/delete.png);
-  width: 2.2rem;
-  height: 2.2rem;
+  background-size: 3rem;
 }
 
 span[role="button"].icon-addimage {
@@ -543,6 +498,8 @@ span[role="button"].icon-arrow.icon-arrow-right {
 .action-block span[role="button"] {
   float: left;
   display: inline;
+  background-size: 3rem;
+  display: none; /* Hide unused button */
 }
 .action-block b {
   display: block;
@@ -562,7 +519,6 @@ span[role="button"].icon-arrow.icon-arrow-right {
 
 /* ROW: horizontal separation for elements; */
 .fillflow-row {
-  margin: 0 0 0.5rem;
   position: relative;
 }
 
@@ -586,32 +542,38 @@ span[role="button"].icon-arrow.icon-arrow-right {
 /* ROW ACTION */
 .fillflow-row-action {
   position: absolute;
-  left: 100%;
-  top: 50%;
-  margin: -1rem 0 0 0.5rem;
-  background: none;
-  border: none;
+  right: 0;
+  top: 0;
   width: auto;
   height: auto;
 }
 
 .fillflow-row-action span[role="button"] {
-  display: inline-block;
-  vertical-align: middle;
+  border: none;
   margin: 0;
+  height: 3.8rem;
 }
 
 /* MEDIA: specific ratio used in forms; */
 .fillflow-media {
-  margin: 0 0.5rem 0.5rem 0;
+  margin: 0 1rem 0.5rem 0;
   width: 8.8rem;
-  height: 8.3rem;
+  height: 8.8rem;
   position: relative;
   z-index: 0;
-  border: 0.1rem solid rgb(204, 204, 204);
-  border-radius: 0.3rem 0.3rem 0.3rem 0.3rem;
-  background: #fff url("/contacts/style/gphx/bitmap/default/forms/shadow.png") repeat-x;
+  border: 0.1rem solid #c7c7c7;
+  background: rgba(255, 255, 255, 0.6);
 }
+
+.fillflow-media:active {
+  color: #fff;
+  background: rgba(105,230,255,0.5);
+}
+
+.fillflow-media.with-photo:active {
+  background: none;
+}
+
 .fillflow-media p {
   position: absolute;
   left: 0;
@@ -626,8 +588,8 @@ span[role="button"].icon-arrow.icon-arrow-right {
   color: #858585;
   font-size: 1.3rem;
   font-weight: normal;
-  font-style: normal;
-  margin-top: 0.5rem;
+  font-style: italic;
+  margin-top: 0.2rem;
 }
 
 .fillflow-media .edit-photo {
