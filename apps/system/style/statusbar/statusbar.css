@@ -312,7 +312,6 @@ body:not(.rb-enabled) #statusbar-icons > .sb-start {
   background-position: -2.1rem -4rem;
 }
 
-.sb-icon-signal[data-emergency="true"],
 .sb-icon-signal[data-level="0"] {
   background-position: -4.2rem -4rem;
 }
