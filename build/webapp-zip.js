@@ -1,5 +1,3 @@
-/*global require, FileUtils, exports*/
-
 var utils = require('./utils');
 var config;
 const { Cc, Ci, Cr, Cu } = require('chrome');
@@ -67,10 +65,10 @@ function getCompression(pathInZip, webapp) {
     // Don't store some files compressed since that's not giving us any
     // benefit but costs cpu when reading from the zip.
     var ext = pathInZip.split('.').reverse()[0].toLowerCase();
-    return (['gif', 'jpg', 'jpeg', 'png',
-             'ogg', 'opus'].indexOf(ext) !== -1) ?
-            Ci.nsIZipWriter.COMPRESSION_NONE :
-            Ci.nsIZipWriter.COMPRESSION_BEST;
+    return (["gif", "jpg", "jpeg", "png",
+             "ogg", "opus"].indexOf(ext) !== -1)
+      ? Ci.nsIZipWriter.COMPRESSION_NONE
+      : Ci.nsIZipWriter.COMPRESSION_BEST;
   }
 }
 
@@ -112,9 +110,9 @@ function exclude(path, options, appPath) {
  */
 function addToZip(zip, pathInZip, file, compression) {
   let suffix = '@' + config.GAIA_DEV_PIXELS_PER_PX + 'x';
-  if (file.isHidden()) {
+  if (file.isHidden())
     return;
-  }
+
   // If config.GAIA_DEV_PIXELS_PER_PX is not 1 and the file is a bitmap let's
   // check if there is a bigger version in the directory. If so let's ignore the
   // file in order to use the bigger version later.
@@ -147,9 +145,9 @@ function addToZip(zip, pathInZip, file, compression) {
     file.append((config.OFFICIAL == 1) ? 'official' : 'unofficial');
   }
 
-  if (!file.exists()) {
+  if (!file.exists())
     throw new Error('Can\'t add inexistent file to zip : ' + file.path);
-  }
+
   // nsIZipWriter should not receive any path starting with `/`,
   // it would put files in a folder with empty name...
   pathInZip = pathInZip.replace(/^\/+/, '');
@@ -219,13 +217,11 @@ function copyBuildingBlock(zip, blockName, dirName, webapp) {
   utils.ls(subFolder, true).forEach(function(file) {
       let relativePath = file.getRelativeDescriptor(styleFolder);
       // Ignore HTML files at style root folder
-      if (relativePath.match(/^[^\/]+\.html$/)) {
+      if (relativePath.match(/^[^\/]+\.html$/))
         return;
-      }
       // Do not process directory as `addToZip` will add files recursively
-      if (file.isDirectory()) {
+      if (file.isDirectory())
         return;
-      }
       addToZip(zip, dirPath + relativePath, file);
     });
 }
@@ -246,7 +242,7 @@ function customizeFiles(zip, src, dest, webapp) {
 
 function getResource(distDir, path, resources, json, key) {
   if (path) {
-    var file = utils.getFile(distDir, path);
+    file = utils.getFile(distDir, path);
     if (!file.exists()) {
       throw new Error('Invalid single variant configuration: ' +
                       file.path + ' not found');
@@ -267,10 +263,8 @@ function getSingleVariantResources(conf) {
     let object = {};
 
     getResource(distDir, operator['wallpaper'], resources, object, 'wallpaper');
-    getResource(distDir, operator['default_contacts'],
-      resources, object, 'default_contacts');
-    getResource(distDir, operator['support_contacts'],
-      resources, object, 'support_contacts');
+    getResource(distDir, operator['default_contacts'], resources, object, 'default_contacts');
+    getResource(distDir, operator['support_contacts'], resources, object, 'support_contacts');
 
     let ringtone = operator['ringtone'];
     if (ringtone) {
@@ -287,8 +281,7 @@ function getSingleVariantResources(conf) {
       // Generate ringtone JSON
       let uuidGenerator = Cc['@mozilla.org/uuid-generator;1'].
                             createInstance(Ci.nsIUUIDGenerator);
-      let ringtoneObj = { filename: uuidGenerator.generateUUID().toString() +
-                                    '.json',
+      let ringtoneObj = { filename: uuidGenerator.generateUUID().toString() + '.json',
                           content: { uri: object['ringtone'],
                                      name: ringtoneName }};
 
@@ -308,6 +301,7 @@ function getSingleVariantResources(conf) {
 
 function execute(options) {
   config = options;
+  var gaiadir = config.GAIA_DIR;
   var gaia = utils.getGaia(config);
   var localesFile = utils.resolve(config.LOCALES_FILE,
     config.GAIA_DIR);
@@ -333,8 +327,8 @@ function execute(options) {
       return;
     }
 
-    // Zip generation is not needed for external apps, aaplication data
-    // is copied to profile webapps folder in webapp-manifests.js
+    // Zip generation is not needed for external apps, aaplication data is copied to profile
+    // webapps folder in webapp-manifests.js
     if (utils.isExternalApp(webapp)) {
       return;
     }
@@ -357,10 +351,8 @@ function execute(options) {
     let files = utils.ls(webapp.buildDirectoryFile, true);
     files.forEach(function(file) {
       if (!exclude(file.path, options, webapp.buildDirectoryFile.path)) {
-        var pathInZip = file.path.substr(
-          webapp.buildDirectoryFile.path.length + 1);
+        var pathInZip = file.path.substr(webapp.buildDirectoryFile.path.length);
         var compression = getCompression(pathInZip, webapp);
-        pathInZip = pathInZip.replace(/\\/g, '/');
         addToZip(zip, pathInZip, file, compression);
       }
     });
@@ -408,12 +400,11 @@ function execute(options) {
             if (zip.hasEntry(filename)) {
               zip.removeEntry(filename, false);
             }
-            addEntryStringWithTime(zip, filename, JSON.stringify(file.content),
-              DEFAULT_TIME);
+            addEntryStringWithTime(zip, filename, JSON.stringify(file.content), DEFAULT_TIME);
           }
         });
       } else {
-        utils.log(conf.path + ' not found. Single variant resources will not' +
+        dump(conf.path + ' not found. Single variant resources will not' +
             ' be added.\n');
       }
     }
@@ -446,9 +437,8 @@ function execute(options) {
     function sortResource(kind, path) {
       switch (kind) {
         case 'js':
-          if (used.js.indexOf(path) == -1) {
+          if (used.js.indexOf(path) == -1)
             used.js.push(path);
-          }
           break;
         case 'locales':
           if (config.GAIA_INLINE_LOCALES !== '1') {
@@ -465,15 +455,13 @@ function execute(options) {
           break;
         case 'style':
           let styleName = path.substr(0, path.lastIndexOf('.'));
-          if (used.styles.indexOf(styleName) == -1) {
+          if (used.styles.indexOf(styleName) == -1)
             used.styles.push(styleName);
-          }
           break;
         case 'style_unstable':
           let unstableStyleName = path.substr(0, path.lastIndexOf('.'));
-          if (used.unstable_styles.indexOf(unstableStyleName) == -1) {
+          if (used.unstable_styles.indexOf(unstableStyleName) == -1)
             used.unstable_styles.push(unstableStyleName);
-          }
           break;
       }
     }
@@ -499,7 +487,7 @@ function execute(options) {
       // Only localize app manifest file if we inlined properties files.
       var inlineOrConcat = (config.GAIA_INLINE_LOCALES === '1' ||
         config.GAIA_CONCAT_LOCALES === '1');
-      gaia.l10nManager.localize(files, zip, webapp, inlineOrConcat);
+      gaia.l10nManager.localize(files, zip, webapp, inlineOrConcat)
     }
 
 
@@ -543,9 +531,9 @@ function execute(options) {
                         webapp.domain);
       }
       ini.append(name + '.ini');
-      if (!ini.exists()) {
+      if (!ini.exists())
         throw new Error(name + ' locale doesn`t have `.ini` file.');
-      }
+
       // And the locale folder itself
       addToZip(zip, 'shared/locales/' + name, localeFolder);
 
@@ -563,7 +551,7 @@ function execute(options) {
           fileInSharedLocales.path.substr(config.GAIA_DIR.length);
         var compression = getCompression(relativePath, webapp);
         addToZip(zip, relativePath, fileInSharedLocales, compression);
-      });
+      })
     });
 
     used.resources.forEach(function(path) {
@@ -579,6 +567,7 @@ function execute(options) {
       if (!file.exists()) {
         throw new Error('Using inexistent shared resource: ' + path +
                         ' from: ' + webapp.domain + '\n');
+        return;
       }
 
       if (path === 'languages.json') {
