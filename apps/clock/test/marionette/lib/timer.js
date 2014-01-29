@@ -17,12 +17,10 @@ Timer.prototype.launch = function() {
 };
 
 Timer.prototype.getDuration = function() {
-  return [
-    getSpinnerValue.call(this, 'hour') * 60 * 1000 * 1000,
-    getSpinnerValue.call(this, 'minute') * 1000 * 1000
-  ].reduce(function(prev, current) {
-    return prev + current;
-  }, 0);
+  var hourMs = getSpinnerValue.call(this, 'hour') * 60 * 1000 * 1000;
+  var minuteMs = getSpinnerValue.call(this, 'minute') * 1000 * 1000;
+
+  return hourMs + minuteMs;
 };
 
 Timer.prototype.setDuration = function(hours, minutes, seconds) {
