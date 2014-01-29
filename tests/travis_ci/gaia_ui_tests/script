@@ -15,5 +15,6 @@ $gaiatest --app=b2gdesktop \
           --binary=$b2g \
           --profile=$profile \
           --type=b2g \
+          --timeout=10000 \
           --html-output artifacts/gaia_ui_tests_report.html \
           --restart $root/tests/manifest.ini
