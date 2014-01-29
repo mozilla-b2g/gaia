@@ -56,6 +56,10 @@ Timer.prototype.cancel = function() {
   this.el.timer.cancelBtn.tap();
 };
 
+// Each spinner contains a set of vertically-stacked "value elements" which
+// communicate possible values of the spinner. As the value changes, the stack
+// is offset so the current value is in the center of the spinner. Find this
+// center element as a means of determining the current value of the spinner.
 function getCenterEl(name) {
   var containerEl = this.el.timer.spinner[name];
   var valEls = this.els.timer.spinner[name + 's'];
