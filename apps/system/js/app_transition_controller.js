@@ -241,7 +241,9 @@
           return;
         // XXX: Remove this after SIMPIN Dialog is refactored.
         // See https://bugzilla.mozilla.org/show_bug.cgi?id=938979
-        if (!SimPinDialog.visible)
+        // XXX: Rocketbar losing input focus
+        // See: https://bugzilla.mozilla.org/show_bug.cgi?id=961557
+        if (!SimPinDialog.visible && !Rocketbar.shown)
           this.app.focus();
       }.bind(this));
     };
