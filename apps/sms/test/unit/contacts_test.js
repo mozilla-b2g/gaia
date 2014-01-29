@@ -386,6 +386,38 @@ suite('Contacts', function(done) {
       });
     });
 
+    test('name first, part of tel number last', function(done) {
+      var mozContacts = navigator.mozContacts;
+
+      Contacts.findByString('Pepito 8888', function(contacts) {
+        var mHistory = mozContacts.mHistory;
+
+        // contacts were found
+        assert.ok(Array.isArray(contacts));
+        assert.equal(contacts.length, 1);
+
+        // navigator.mozContacts.find was called?
+        assert.equal(mHistory.length, 1);
+        done();
+      });
+    });
+
+    test('part of tel number first, name last', function(done) {
+      var mozContacts = navigator.mozContacts;
+
+      Contacts.findByString('8888 Pepito', function(contacts) {
+        var mHistory = mozContacts.mHistory;
+
+        // contacts were found
+        assert.ok(Array.isArray(contacts));
+        assert.equal(contacts.length, 1);
+
+        // navigator.mozContacts.find was called?
+        assert.equal(mHistory.length, 1);
+        done();
+      });
+    });
+
     test('string search yields a contact without familyName', function(done) {
       Contacts.findByString('julien 123', function(contacts) {
         done();
