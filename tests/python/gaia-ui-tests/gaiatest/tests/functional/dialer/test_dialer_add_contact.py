@@ -37,11 +37,10 @@ class TestDialerAddContact(GaiaTestCase):
         new_contact.type_given_name(self.contact['givenName'][0])
         new_contact.type_family_name(self.contact['familyName'][0])
 
-        # Click Done button
-        new_contact.tap_done()
+        # Click Done button, don't return Contacts because we return to Dialer
+        new_contact.tap_done(return_contacts=False)
 
         # Switch back to keypad-view
-        self.wait_for_condition(lambda m: self.apps.displayed_app.name == self.phone.name)
         self.apps.switch_to_displayed_app()
 
         #Go to Contact list and Verify result

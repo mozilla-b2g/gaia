@@ -2,6 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+import time
+
 from marionette.by import By
 from gaiatest.apps.base import Base
 
@@ -167,8 +169,13 @@ class NewContact(ContactForm):
         done = self.marionette.find_element(*self._done_button_locator)
         self.wait_for_condition(lambda m: done.location['y'] == 0)
 
-    def tap_done(self):
+    def tap_done(self, return_contacts=True):
+        # NewContact can be opened as an Activity from other apps. In this scenario we don't return Contacts
         self.marionette.find_element(*self._done_button_locator).tap()
-        self.wait_for_element_not_displayed(*self._done_button_locator)
-        from gaiatest.apps.contacts.app import Contacts
-        return Contacts(self.marionette)
+        if return_contacts:
+            self.wait_for_element_not_displayed(*self._done_button_locator)
+            from gaiatest.apps.contacts.app import Contacts
+            return Contacts(self.marionette)
+        else:
+            # Bug 947317 Marionette exception after tap closes a frame
+            time.sleep(2)
