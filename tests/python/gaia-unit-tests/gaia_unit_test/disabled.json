@@ -24,6 +24,7 @@
   "keyboard/test/unit/render_test.js",
   "search/test/unit/providers/contacts_test.js",
   "sms/test/unit/notification_test.js",
+  "sms/test/unit/sms_test.js",
   "system/test/unit/bluetooth_transfer_test.js",
   "system/test/unit/cards_view_test.js",
   "system/test/unit/simslot_manager_test.js",
