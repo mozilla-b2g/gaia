@@ -1001,6 +1001,12 @@ really-clean: clean
 adb-remount:
 	$(ADB) remount
 
+# Generally we got manifest from webapp-manifest.js which is execute in
+# applications-data.js unless manifest is generated from Makefile of app.
+# so we will copy manifest.webapp if it's avaiable in build_stage/
+copy-build-stage-manifest:
+	@$(call run-js-command, copy-build-stage-manifest)
+
 build-test-unit: $(NPM_INSTALLED_PROGRAMS)
 	@$(call run-build-test, $(shell find build/test/unit/*.test.js))
 
