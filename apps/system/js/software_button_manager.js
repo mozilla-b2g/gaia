@@ -35,8 +35,13 @@
       if (isMobile && isOnRealDevice) {
         if (!this.hasHardwareHomeButton) {
           this.OverrideFlag = true;
+
           var lock = SettingsListener.getSettingsLock();
-          lock.set({'software-button.enabled': true});
+          var req = lock.get('homegesture.enabled');
+          req.onsuccess = function sbm_getHomeGestureEnabled() {
+            var gestureEnabled = req.result['homegesture.enabled'];
+            lock.set({'software-button.enabled': !gestureEnabled});
+          };
         }
 
         SettingsListener.observe('software-button.enabled', false,
