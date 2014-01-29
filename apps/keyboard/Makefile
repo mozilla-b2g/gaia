@@ -10,6 +10,7 @@ BUILD_DIR=../../build_stage/keyboard
 
 .PHONY: all clean
 all: clean
+	@echo Building keyboard app to build_stage...
 	@mkdir -p $(BUILD_DIR)
 	@$(XULRUNNERSDK) $(XPCSHELLSDK) \
 	-e "const GAIA_BUILD_DIR='$(GAIA_BUILD_DIR)'" \
@@ -22,4 +23,4 @@ all: clean
     }"
 
 clean:
-	rm -rf $(BUILD_DIR)
+	@rm -rf $(BUILD_DIR)
