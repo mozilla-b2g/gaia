@@ -38,6 +38,8 @@ Timer.prototype.start = function() {
   var createBtn = this.el.timer.createBtn;
   var countdown = this.el.timer.countdown;
 
+  // This operation is not complete until the countdown element is displayed
+  // and its text has been updated from the default state of `00:00`.
   this.client.waitFor(function() {
     createBtn.tap();
     return countdown.displayed() && /[1-9]/.test(countdown.text());
