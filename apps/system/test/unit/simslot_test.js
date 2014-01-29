@@ -44,6 +44,25 @@ suite('SIMSlot', function() {
     assert.isTrue(slot2.isAbsent());
   });
 
+  ['unknown', 'illegal', 'absent', 'ready', null].forEach(function(lockType) {
+    test('isLocked: ' + lockType, function() {
+      var card = document.createElement('div');
+      card.cardState = lockType;
+      var slot = new SIMSlot(null, 0, card);
+      assert.isFalse(slot.isLocked());
+    });
+  });
+
+  ['pinRequired', 'pukRequired', 'networkLocked',
+   'corporateLocked', 'serviceProviderLocked'].forEach(function(lockType) {
+    test('isLocked: ' + lockType, function() {
+      var card = document.createElement('div');
+      card.cardState = lockType;
+      var slot = new SIMSlot(null, 0, card);
+      assert.isTrue(slot.isLocked());
+    });
+  });
+
   suite('handleEvent', function() {
     test('cardstatechange', function() {
       var slot = new SIMSlot(null, 0);
