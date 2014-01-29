@@ -85,6 +85,15 @@ function getSpinnerValue(name) {
   return parseInt(getCenterEl.call(this, name).text(), 10);
 }
 
+// Set the given spinner to the given value according to the following
+// heuristic:
+//
+// 1. Spin with a given direction and force
+// 2. Read the value at this position, and:
+//    - If the current value is the requested value: return
+//    - If the value is less than the requested value: repeat from step #1
+//    - If the value is greater than the requested value: decrease the spinning
+//      force, invert the spinning direction, and repeat from step #1
 function setSpinnerValue(name, val) {
   var flickAmt = MAXFLICK;
   var dir = -1;
