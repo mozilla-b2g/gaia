@@ -64,7 +64,7 @@ suite('search/providers/places', function() {
     test('renders data url', function() {
       subject.search('mozilla');
       
-      var place = subject.container.querySelector('.place');
+      var place = subject.container.querySelector('.result');
       assert.equal(place.dataset.url, 'http://mozilla.org');
     });
   });

@@ -10,7 +10,7 @@
   var MAX_URLS = 50;
 
   // Maximum number of results to show show for a single query
-  var MAX_RESULTS = 5;
+  var MAX_RESULTS = 3;
 
   // Name of the datastore we pick up places from
   var STORE_NAME = 'places';
@@ -136,47 +136,22 @@
     return !value || !filter || value.match(new RegExp(filter, 'i')) !== null;
   }
 
-  function createPlaceDom(placeObj, filter) {
+  function formatPlace(placeObj, filter) {
+    var titleText = placeObj.title || placeObj.url;
 
-    //<div class="place" data-url="mozilla.com">
-    //  <img class="favicon" src="..." />
-    //  <div class="urlwrapper">
-    //    <span class="title">My Urlasljd alskdja lsdjka sldjk</span>
-    //    <small class="url">http://url.com</small>
-    //  </div>
-    //</div>
-
-    var place = document.createElement('div');
-    var favicon = document.createElement('img');
-    var urlwrapper = document.createElement('div');
-    var title = document.createElement('span');
-    var url = document.createElement('small');
-
-    place.classList.add('place');
-    favicon.classList.add('favicon');
-    urlwrapper.classList.add('urlwrapper');
-    title.classList.add('title');
-    url.classList.add('url');
-
-    place.dataset.url = placeObj.url;
+    var renderObj = {
+      title: HtmlHelper.createHighlightHTML(titleText, filter),
+      meta: HtmlHelper.createHighlightHTML(placeObj.url, filter),
+      dataset: {
+        url: placeObj.url
+      }
+    };
 
     if (placeObj.iconUri in icons && icons[placeObj.iconUri]) {
-      favicon.src = window.URL.createObjectURL(icons[placeObj.iconUri]);
-      favicon.onload = function() { window.URL.revokeObjectURL(favicon.src); };
-    } else {
-      favicon.classList.add('empty');
+      renderObj.icon = icons[placeObj.iconUri];
     }
 
-    var titleText = placeObj.title || placeObj.url;
-    title.innerHTML = HtmlHelper.createHighlightHTML(titleText, filter);
-    url.innerHTML = HtmlHelper.createHighlightHTML(placeObj.url, filter);
-
-    urlwrapper.appendChild(title);
-    urlwrapper.appendChild(url);
-    place.appendChild(favicon);
-    place.appendChild(urlwrapper);
-
-    return place;
+    return renderObj;
   }
 
   function Places() {}
@@ -195,21 +170,20 @@
     search: function(filter) {
       this.clear();
       var matched = 0;
-      var fragment = document.createDocumentFragment();
+      var renderResults = [];
       for (var url in results) {
         var result = results[url];
         if (!(matchesFilter(result.title, filter) ||
               matchesFilter(result.url, filter))) {
           continue;
         }
+        renderResults.push(formatPlace(result, filter));
 
-        fragment.appendChild(createPlaceDom(result, filter));
-
-        if (++matched > MAX_RESULTS) {
+        if (++matched >= MAX_RESULTS) {
           break;
         }
       }
-      this.container.appendChild(fragment.cloneNode(true));
+      this.render(renderResults);
     }
   };
 
