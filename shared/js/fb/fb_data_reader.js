@@ -384,7 +384,6 @@ this.fb = fb;
 
     navigator.getDataStores(DATASTORE_NAME).then(function success(ds) {
       if (ds.length < 1) {
-        window.console.error('FB: Cannot get access to the DataStore');
         handleInitError({ name: 'DatastoreNotFound' }, errorCb);
         return;
       }
