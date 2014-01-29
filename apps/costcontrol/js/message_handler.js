@@ -50,7 +50,7 @@
     date.setTime(date.getTime() + delay);
     var request = navigator.mozAlarms.add(date, 'ignoreTimezone', {type: type});
     return request;
-  };
+  }
   window.addAlarmTimeout = addAlarmTimeout;
 
   // XXX: Remove from here when this is solved
@@ -121,6 +121,11 @@
     });
   }
   window.getTopUpTimeout = getTopUpTimeout;
+
+  function addNetworkUsageAlarm(dataInterface, dataLimit, callback) {
+    NetworkUsageAlarm.updateAlarm(dataInterface, dataLimit, callback);
+  }
+  window.addNetworkUsageAlarm = addNetworkUsageAlarm;
 
   // Update the nextResetAlarm and nextReset values and request for
   // synchronization.
@@ -284,51 +289,35 @@
     }
   }
 
-  function checkDataUsageNotification(settings, usage, callback) {
-    // XXX: Hack hiding the message class in the icon URL
-    // Should use the tag element of the notification once the final spec
-    // lands:
-    // See: https://bugzilla.mozilla.org/show_bug.cgi?id=782211
+  function _onNetworkAlarm(alarm) {
     navigator.mozApps.getSelf().onsuccess = function _onAppReady(evt) {
-      var app = evt.target.result;
-      var iconURL = NotificationHelper.getIconURI(app);
-      iconURL += '?dataUsage';
+      ConfigManager.requestSettings(function _onSettings(settings) {
+        clearTimeout(closing);
+        var app = evt.target.result;
+        var iconURL = NotificationHelper.getIconURI(app);
 
-      var goToDataUsage;
-      if (!inStandAloneMode()) {
-        goToDataUsage = function _goToDataUsage() {
-          if (inApplicationMode()) {
-            app.launch();
-            window.parent.CostControlApp.showDataUsageTab();
-          } else {
-            var activity = new MozActivity({ name: 'costcontrol/data_usage' });
-          }
-        };
-      }
-
-      var limit = getDataLimit(settings);
-      if (settings.dataLimit) {
-        if (usage >= limit && !settings.dataUsageNotified) {
-          var limitText = formatData(smartRound(limit));
-          var title = _('data-limit-notification-title2', { limit: limitText });
-          var message = _('data-limit-notification-text2');
-          NotificationHelper.send(title, message, iconURL, goToDataUsage);
-          ConfigManager.setOption({ 'dataUsageNotified': true }, callback);
-          return true;
-
-        } else if (usage < limit && settings.dataUsageNotified) {
-          ConfigManager.setOption({ 'dataUsageNotified': false }, callback);
-          return false;
+        var goToDataUsage;
+        if (!inStandAloneMode()) {
+          goToDataUsage = function _goToDataUsage() {
+            if (inApplicationMode()) {
+              app.launch();
+              window.parent.CostControlApp.showDataUsageTab();
+            } else {
+              var activity = new MozActivity({name: 'costcontrol/data_usage'});
+            }
+          };
         }
-      }
-
-      if (callback) {
-        callback();
-      }
-      return false;
+        var limit = getDataLimit(settings);
+        var limitText = formatData(smartRound(limit));
+        var title = _('data-limit-notification-title2', { limit: limitText });
+        var message = _('data-limit-notification-text2');
+        NotificationHelper.send(title, message, iconURL, goToDataUsage);
+        ConfigManager.setOption({ 'dataUsageNotified': true });
+        closeIfProceeds();
+        return;
+      });
     };
   }
-  window.checkDataUsageNotification = checkDataUsageNotification;
 
   // Register in standalone or for application
   var costcontrol;
@@ -336,7 +325,7 @@
     CostControl.getInstance(function _onCostControl(ccontrol) {
       costcontrol = ccontrol;
 
-      if (inStandAloneMode() || inWidgetMode()) {
+      if (inStandAloneMode() || inApplicationMode()) {
         debug('Installing handlers');
 
         // When receiving an SMS, recognize and parse
@@ -473,6 +462,7 @@
           });
         });
 
+        navigator.mozSetMessageHandler('networkstats-alarm', _onNetworkAlarm);
 
         navigator.mozSetMessageHandler('alarm', _onAlarm);
 

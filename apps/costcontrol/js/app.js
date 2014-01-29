@@ -173,6 +173,14 @@ var CostControlApp = (function() {
     });
   }
 
+  function clearLastSimScenario(callback) {
+    // FTE not finished if exists any alarm we have to reset
+    if (ConfigManager.option('fte')) {
+      NetworkUsageAlarm.clearAlarms(Common.getDataSIMInterface());
+    }
+    (typeof callback === 'function') && callback();
+  }
+
   function startApp(callback) {
 
     function _onNoICCID() {
@@ -199,6 +207,7 @@ var CostControlApp = (function() {
   }
 
   var isApplicationLocalized = false;
+
   window.addEventListener('localized', function _onLocalize() {
     isApplicationLocalized = true;
     if (initialized) {
@@ -272,10 +281,11 @@ var CostControlApp = (function() {
 
     // Avoid reload data sim info on the application startup
     var isFirstCall = true;
+
     // Refresh UI when the user changes the SIM for data connections
     SettingsListener.observe('ril.data.defaultServiceId', 0, function() {
       if (!isFirstCall) {
-        Common.loadDataSIMIccId(startApp);
+        clearLastSimScenario(Common.loadDataSIMIccId.bind(null, startApp));
       } else {
         isFirstCall = false;
       }
