@@ -192,7 +192,11 @@
 }
 
 #downloadList ul > li[data-state="stopped"] progress,
-#downloadList ul > li[data-state="succeeded"] progress {
+#downloadList ul > li[data-state="succeeded"] progress,
+#downloadList ul > li[data-state="failed"] progress,
+#downloadList ul > li[data-state="stopped"] progress:not([value]),
+#downloadList ul > li[data-state="failed"] progress:not([value]),
+#downloadList ul > li[data-state="succeeded"] progress:not([value]) {
   display: none;
 }
 
