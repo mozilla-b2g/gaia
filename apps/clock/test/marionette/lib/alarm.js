@@ -115,7 +115,7 @@ Alarm.prototype.formSubmit = function() {
   var formTime = new Date();
   formTime.setHours.apply(formTime, timeParts);
 
-  dismissForm.call(this, 'doneBtn');
+  this.dismissForm('doneBtn');
 
   // Ensure that an Alarm with the same name and time are present in the DOM
   // before considering the "formSubmit" operation complete.
@@ -133,12 +133,12 @@ Alarm.prototype.formSubmit = function() {
 };
 
 Alarm.prototype.formClose = function() {
-  dismissForm.call(this, 'closeFormBtn');
+  this.dismissForm('closeFormBtn');
 };
 
 Alarm.prototype.formDelete = function() {
   var withDeleted = this.readItems().length;
-  dismissForm.call(this, 'deleteBtn');
+  this.dismissForm('deleteBtn');
 
   // Ensure that the number of alarms has decreased before considering the
   // "formDelete" operation complete.
@@ -147,7 +147,7 @@ Alarm.prototype.formDelete = function() {
   }.bind(this));
 };
 
-function dismissForm(btnName) {
+Alarm.prototype.dismissForm = function(btnName) {
   this.el.alarm[btnName].tap();
   this.waitForSlideEnd(this.el.panels.alarm);
-}
+};
