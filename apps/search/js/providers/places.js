@@ -10,7 +10,7 @@
   var MAX_URLS = 50;
 
   // Maximum number of results to show show for a single query
-  var MAX_RESULTS = 5;
+  var MAX_RESULTS = 3;
 
   // Name of the datastore we pick up places from
   var STORE_NAME = 'places';
@@ -205,7 +205,7 @@
 
         fragment.appendChild(createPlaceDom(result, filter));
 
-        if (++matched > MAX_RESULTS) {
+        if (++matched >= MAX_RESULTS) {
           break;
         }
       }

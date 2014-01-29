@@ -37,7 +37,8 @@ suite('applications-data', function() {
 
 		test('normal', function () {
 			var options = {
-				GAIA_DISTRIBUTION_DIR: 'TESTGAIADIR'
+				GAIA_DISTRIBUTION_DIR: 'TESTGAIADIR',
+				ROCKETBAR: 1
 			};
 			var result = app.customizeHomescreen(options);
 			assert.deepEqual(result, {
@@ -67,7 +68,8 @@ suite('applications-data', function() {
 		test('Not PRODUCTION', function() {
 			var options = {
 				GAIA_DISTRIBUTION_DIR: 'TESTGAIADIR',
-				PRODUCTION: '1'
+				PRODUCTION: '1',
+				ROCKETBAR: 0
 			};
 			var result = app.customizeHomescreen(options);
 			assert.deepEqual(result, {

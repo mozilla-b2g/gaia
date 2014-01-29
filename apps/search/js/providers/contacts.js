@@ -63,9 +63,10 @@
               div.appendChild(contactPhoto);
             }
 
-            var nameText = document.createElement('span');
-            nameText.textContent = result.name[j];
-            div.appendChild(nameText);
+            var description = document.createElement('span');
+            description.className = 'description';
+            description.textContent = result.name[j];
+            div.appendChild(description);
 
             fragment.appendChild(div);
           }
