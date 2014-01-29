@@ -83,8 +83,9 @@ Alarm.prototype.readForm = function() {
   return vals;
 };
 
-Alarm.prototype.toggleAlarm = function(alarmIdx) {
-  var wasEnabled = this.isEnabled(alarmIdx);
+Alarm.prototype.toggleAlarm = function(options) {
+  var alarmIdx = options.index;
+  var wasEnabled = this.isEnabled({ index: alarmIdx });
 
   this.safeInteract(
     function() { return this.els.alarm.enabler[alarmIdx]; },
@@ -95,11 +96,12 @@ Alarm.prototype.toggleAlarm = function(alarmIdx) {
   // code that follows from inspecting elements that the application has yet
   // to re-generate in response to the toggle operation.
   this.client.waitFor(function() {
-    return wasEnabled !== this.isEnabled(alarmIdx);
+    return wasEnabled !== this.isEnabled({ index: alarmIdx });
   }.bind(this));
 };
 
-Alarm.prototype.isEnabled = function(alarmIdx) {
+Alarm.prototype.isEnabled = function(options) {
+  var alarmIdx = options.index;
   return this.safeInteract(
     function() { return this.els.alarm.enabledCheck[alarmIdx]; },
     function(checkbox) { return !!checkbox.getAttribute('checked'); }

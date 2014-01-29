@@ -27,7 +27,7 @@ marionette('Alarm interaction', function() {
     alarms = alarm.readItems();
 
     assert.equal(alarms.length, 1);
-    assert(alarm.isEnabled(0), 'Alarm is enabled');
+    assert(alarm.isEnabled({ index: 0 }), 'Alarm is enabled');
     assert.hasTime(
       alarms[0], twentyFromNow, 'Alarm time is rendered'
     );
@@ -136,17 +136,23 @@ marionette('Alarm interaction', function() {
     });
 
     test('toggling', function() {
-      alarm.toggleAlarm(0);
+      alarm.toggleAlarm({ index: 0 });
 
-      assert(!alarm.isEnabled(0), 'Alarm is disabled after toggling');
+      assert(
+        !alarm.isEnabled({ index: 0 }),
+        'Alarm is disabled after toggling'
+      );
 
       assert(
         !alarm.countdownBannerDisplayed,
         'Countdown banner is not displayed after disabling an alarm'
       );
 
-      alarm.toggleAlarm(0);
-      assert(alarm.isEnabled(0), 'Alarm is re-enabled after toggling');
+      alarm.toggleAlarm({ index: 0 });
+      assert(
+        alarm.isEnabled({ index: 0 }),
+        'Alarm is re-enabled after toggling'
+      );
 
       alarm.waitForBannerHidden();
     });
