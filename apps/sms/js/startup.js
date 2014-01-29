@@ -48,11 +48,13 @@ window.addEventListener('load', function() {
   function initUIApp() {
     TimeHeaders.init();
     ActivityHandler.init();
+
     // Init UI Managers
     ThreadUI.init();
     ThreadListUI.init();
-    // We render the threads
-    MessageManager.getThreads(ThreadListUI.renderThreads);
+
+    ThreadListUI.renderThreads();
+
     // Fetch mmsSizeLimitation
     Settings.init();
   }
