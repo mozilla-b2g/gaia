@@ -160,7 +160,9 @@
     {"from": "live",
     "to": "/redirects/redirect.html"},
     {"from": "gmail",
-    "to": "/redirects/redirect.html"}
+    "to": "/redirects/redirect.html"},
+    {"from": "gmail_logout",
+    "to": "/redirects/dialogs_end.html"}
   ],
   "datastores-owned": {
     "Gaia_Facebook_Friends": {

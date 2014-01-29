@@ -92,7 +92,8 @@ function fillCommsAppManifest(webapp, webappTargetDir) {
     'live': 'redirectURI',
     'gmail': 'redirectURI',
     'facebook_dialogs': 'redirectMsg',
-    'facebook_logout': 'redirectLogout'
+    'facebook_logout': 'redirectLogout',
+    'gmail_logout': 'redirectLogoutManifest'
   };
 
   let content = JSON.parse(utils.getFileContent(utils.getFile(config.GAIA_DIR,

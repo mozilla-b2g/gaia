@@ -205,11 +205,14 @@ if (typeof window.importer === 'undefined') {
       contacts.Search.init(searchSource, true);
     };
 
-    function notifyLogout() {
+    function notifyLogout(numFriends) {
        // Simulating logout finished to enable seamless closing of the iframe
+
       var msg = {
         type: 'logout_finished',
-        data: ''
+        data: typeof numFriends !== 'undefined' ? _('friendsUpdated', {
+            numFriends: numFriends
+          }) : ''
       };
       parent.postMessage(msg, targetApp);
     }
@@ -229,46 +232,30 @@ if (typeof window.importer === 'undefined') {
       window.asyncStorage.removeItem(tokenKey, theCb, theCb);
     }
 
-    function markPendingLogout(url, service, cb) {
-      var PENDING_LOGOUT_KEY = 'pendingLogout';
-      window.asyncStorage.getItem(PENDING_LOGOUT_KEY,
-          function(data) {
-            var obj = data || {};
-            obj[service] = url;
-            var theCb = (typeof cb === 'function') ? cb : function() {};
-            window.asyncStorage.setItem(PENDING_LOGOUT_KEY, obj, theCb, theCb);
-          });
-    }
-
     function serviceLogout(cb) {
       if (serviceConnector.automaticLogout) {
         var serviceName = serviceConnector.name;
-        var logoutUrl = oauthflow.params[serviceName].logoutUrl;
+        var params = oauthflow.params[serviceName];
+        var logoutUrl = params.logoutUrl;
 
-        var callbacks = {
-          error: function() {
-            window.console.warn('Error while logging out user ', logoutUrl);
-            removeToken();
-            markPendingLogout(logoutUrl, serviceName, cb);
-          },
-          timeout: function() {
-            window.console.warn('Timeout while logging out user ', url);
-            removeToken();
-            markPendingLogout(logoutUrl, serviceName, cb);
-          },
-          success: function() {
-            window.console.log('Successfully logged out');
-            removeToken(cb);
+        window.addEventListener('message', function logout(e) {
+          if (e.origin !== location.origin) {
+            return;
           }
-        };
+          if (e.data === 'closed') {
+            window.removeEventListener('message', logout);
+            window.console.log('Successfully logged out');
+            cb();
+          }
+        });
 
         // Prevent false logout positives
         if (navigator.onLine === true) {
-          Rest.get(logoutUrl, callbacks);
-        }
-        else {
+          var additional = params.redirectLogout ?
+                              encodeURIComponent(params.redirectLogout) : '';
+          window.open(logoutUrl + additional);
+          // Token is removed here just in case the user closes window
           removeToken();
-          markPendingLogout(logoutUrl, serviceName, cb);
         }
       }
       else {
@@ -688,14 +675,7 @@ if (typeof window.importer === 'undefined') {
       Importer.baseHandler('error');
     };
 
-    /**
-     *  This function is invoked when importing and updating operations
-     *  finished
-     */
-    function onUpdate(numFriends) {
-      // If the service requires to do the logout it is done
-      serviceLogout(notifyLogout);
-
+    function doOnUpdate(numFriends) {
       if (Importer.getContext() === 'ftu') {
         Curtain.hide(notifyParent.bind(null, {
           type: 'window_close',
@@ -703,7 +683,8 @@ if (typeof window.importer === 'undefined') {
             numFriends: numFriends
           })
         }, targetApp));
-      } else {
+      }
+      else {
         notifyParent({
           type: 'import_updated'
         }, targetApp);
@@ -724,6 +705,29 @@ if (typeof window.importer === 'undefined') {
           }
         });
       }
+    }
+
+    /**
+     *  This function is invoked when importing and updating operations
+     *  finished
+     */
+    function onUpdate(numFriends) {
+      if (!serviceConnector.automaticLogout) {
+        doOnUpdate(numFriends);
+        return;
+      }
+
+      Curtain.hide(notifyParent.bind(null, {
+        type: 'window_close'
+      }, targetApp));
+
+      notifyParent({
+        type: 'import_updated'
+      }, targetApp);
+
+      serviceLogout(function onLogout() {
+        notifyLogout(numFriends);
+      });
     }
 
     function cleanContacts(onsuccess, progress) {
