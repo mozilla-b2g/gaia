@@ -87,8 +87,10 @@
         // the default error message from gecko for all errors that are
         // not directly dealt with.
         localizeElement(title, 'unable-to-connect');
-        // The error message is already localized. Set it directly.
-        message.textContent = error.d;
+        // The error message is already localized. Set it directly. It's still
+        // uri encoded so we must decode it first before setting the
+        // textContent. 1.4 and greater doesn't suffer from this issue.
+        message.textContent = decodeURIComponent(error.d);
       }
     }
   }
@@ -124,8 +126,10 @@
         getAppName(function(appName) {
           // Same thing when we're an iframe for an application.
           localizeElement(title, 'unable-to-connect');
-          // The error message is already localized. Set it directly.
-          message.textContent = error.d;
+          // The error message is already localized. Set it directly. It's still
+          // uri encoded so we must decode it first before setting the
+          // textContent. 1.4 and greater doesn't suffer from this issue.
+          message.textContent = decodeURIComponent(error.d);
         });
       }
     }
