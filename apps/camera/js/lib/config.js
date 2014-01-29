@@ -71,6 +71,11 @@ Config.prototype.get = function(key) {
   return arguments.length ? this.data[key] : this.data;
 };
 
+Config.prototype.options = function(key) {
+  var item = this.get(key);
+  return item && item.options;
+};
+
 Config.prototype.values = function() {
   return this.processed.values;
 };

@@ -9,11 +9,14 @@ module.exports = {
     'default': 'photo'
   },
 
-  cameraNumber: {
-    'default': 0
+  selectedCamera: {
+    title: 'Selected Camera',
+    options: [0, 1],
+    'default': 0,
+    menu: 1
   },
 
-  flash: {
+  flashMode: {
     title: 'Flash',
     options: ['auto', 'on', 'off'],
     'default': 'auto'

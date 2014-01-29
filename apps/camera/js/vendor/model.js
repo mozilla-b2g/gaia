@@ -1,13 +1,21 @@
 define(function(require, exports, module) {
 'use strict';
 
+/**
+ * Dependencies
+ */
+
 var events = require('vendor/evt');
+
+/**
+ * Exports
+ */
 
 module.exports = Model;
 
 function Model(obj) {
   if (!(this instanceof Model)) { return mix(obj, Model.prototype); }
-  this._data = this.reset(obj, { silent: true });
+  this.reset(obj, { silent: true });
 }
 
 Model.prototype = events({
@@ -41,10 +49,15 @@ Model.prototype = events({
     }
   },
 
+  setter: function(key) {
+    return (function(value) { this.set(key, value); }).bind(this);
+  },
+
   reset: function(data, options) {
     if (!data) { return; }
     var silent = options && options.silent;
-    this._data = mix({}, data);
+    var isArray = data instanceof Array;
+    this._data = !isArray ? mix({}, data) : data;
     if (!silent) { this.emit('reset'); }
   },
 

@@ -41,8 +41,8 @@ ViewfinderController.prototype.bindEvents = function() {
 
 ViewfinderController.prototype.onConfigured = function() {
   debug('camera configured');
-  this.viewfinder.updatePreview(this.camera.previewSize,
-                                this.camera.get('selectedCamera') === 1);
+  var isFrontCamera = this.app.get('selectedCamera') === 1;
+  this.viewfinder.updatePreview(this.camera.previewSize, isFrontCamera);
   this.camera.loadStreamInto(this.viewfinder.el, onStreamLoaded);
   function onStreamLoaded(stream) {
     debug('stream loaded %d ms after dom began loading',

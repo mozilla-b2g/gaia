@@ -28,25 +28,33 @@ function CameraController(app) {
   this.app = app;
   this.camera = app.camera;
   this.storage = app.storage;
+  this.storage = app.storage;
   this.activity = app.activity;
   this.filmstrip = app.filmstrip;
   this.viewfinder = app.views.viewfinder;
-  this.initialConfiguration();
+  this.controls = app.views.controls;
+  this.configure();
   this.bindEvents();
   debug('initialized');
 }
 
 CameraController.prototype.bindEvents = function() {
-  this.camera.on('filesizelimitreached', this.onFileSizeLimitReached);
-  this.camera.on('recordingstart', this.onRecordingStart);
-  this.camera.on('recordingend', this.onRecordingEnd);
-  this.camera.on('configured', this.onConfigured);
-  this.camera.on('newimage', this.onNewImage);
-  this.camera.on('newvideo', this.onNewVideo);
-  this.camera.on('shutter', this.onShutter);
-  this.app.on('blur', this.teardownCamera);
-  this.app.on('focus', this.setupCamera);
-  this.app.on('boot', this.setupCamera);
+  var app = this.app;
+  var camera = this.camera;
+  camera.on('change:recording', app.setter('recording'));
+  camera.on('filesizelimitreached', this.onFileSizeLimitReached);
+  camera.on('recordingstart', this.onRecordingStart);
+  camera.on('recordingend', this.onRecordingEnd);
+  camera.on('configured', this.onConfigured);
+  camera.on('newimage', this.onNewImage);
+  camera.on('newvideo', this.onNewVideo);
+  camera.on('shutter', this.onShutter);
+  app.on('change:mode', this.onModeChange);
+  app.on('change:selectedCamera', this.onCameraChange);
+  app.on('change:flashMode', this.onFlashChange);
+  app.on('blur', this.teardownCamera);
+  app.on('focus', this.setupCamera);
+  app.on('boot', this.setupCamera);
   debug('events bound');
 };
 
@@ -57,17 +65,16 @@ CameraController.prototype.bindEvents = function() {
  *
  * @private
  */
-CameraController.prototype.initialConfiguration = function() {
-  debug('initial configuration');
-
-  var initialMode = this.activity.mode || 'photo';
+CameraController.prototype.configure = function() {
   var activity = this.activity;
   var camera = this.camera;
-
   camera.set('targetFileSize', activity.data.fileSize);
   camera.set('targetImageWidth', activity.data.width);
   camera.set('targetImageHeight', activity.data.height);
-  camera.set('mode', initialMode);
+  camera.set('selectedCamera', this.app.get('selectedCamera'));
+  camera.set('flashMode', this.app.get('flashMode'));
+  camera.set('mode', this.app.get('mode'));
+  debug('configured');
 };
 
 /**
@@ -81,6 +88,29 @@ CameraController.prototype.setupCamera = function() {
 CameraController.prototype.onConfigured = function() {
   var maxFileSize = this.camera.maxPictureSize;
   this.storage.setMaxFileSize(maxFileSize);
+  this.app.set('maxFileSize', maxFileSize);
+  this.app.set('supports', {
+    selectedCamera: this.camera.supports('frontCamera'),
+    flashMode: this.camera.supports('flash')
+  });
+
+  // TODO: Adjust settings menu contents
+  // to reflect new found camera capabilities
+  // camera.supports(); //=> ['hdr', 'flash', ...]
+  //
+  //
+  // app.set('cameraSupports', {'hdr': false, 'flash': true })
+  //
+  // // then in settings controller
+  //
+  // app.on(change:cameraSupports, funciton(supports) {
+  //   var filteredMenuItems = this.config.menu().filter(function(item) { return supports[item.key]; });
+  //   this.menuItemsModel.reset(filteredMenuItems);
+  // });
+  //
+  //
+  // camera.supports('hdr'); //=> true|false
+  // app.emit('change:camerasupports')
 };
 
 CameraController.prototype.teardownCamera = function() {
@@ -170,6 +200,53 @@ CameraController.prototype.showSizeLimitAlert = function() {
     'storage-size-limit-reached';
   alert(navigator.mozL10n.get(alertText));
   this.sizeLimitAlertActive = false;
+};
+
+CameraController.prototype.onModeChange = function(mode) {
+  var controls = this.controls;
+  var viewfinder = this.viewfinder;
+  var camera = this.camera;
+
+  camera.set('mode', mode);
+  controls.disableButtons();
+  viewfinder.fadeOut(onFadeOut);
+
+  function onFadeOut() {
+    camera.loadStreamInto(viewfinder.el, onStreamLoaded);
+  }
+
+  function onStreamLoaded() {
+    controls.enableButtons();
+    viewfinder.fadeIn();
+  }
+};
+
+/**
+ * Toggle the camera (front/back),
+ * fading the viewfinder in between.
+ */
+CameraController.prototype.onCameraChange = function() {
+  var controls = this.controls;
+  var viewfinder = this.viewfinder;
+  var camera = this.camera;
+
+  controls.disableButtons();
+  viewfinder.fadeOut(onFadeOut);
+  this.app.emit('cameratoggling');
+
+  function onFadeOut() {
+    camera.toggleCamera();
+  }
+};
+
+/**
+ * Toggles the flash on
+ * the camera and UI when
+ * the flash button is pressed.
+ *
+ */
+CameraController.prototype.onFlashChange = function(mode) {
+  this.camera.setFlashMode(mode);
 };
 
 /**

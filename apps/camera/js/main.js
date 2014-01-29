@@ -14,11 +14,7 @@ require(['config/require', 'config'], function() {
     var Camera = require('camera');
     var Sounds = require('sounds');
     var Config = require('lib/config');
-    var HudView = require('views/hud');
     var Filmstrip = require('filmstrip');
-    var FocusRing = require('views/focusring');
-    var ControlsView = require('views/controls');
-    var ViewfinderView = require('views/viewfinder');
     var sounds = new Sounds(require('config/sounds'));
     var config = new Config(require('config/app'));
     var allDone = require('utils/alldone');
@@ -37,16 +33,6 @@ require(['config/require', 'config'], function() {
 
     debug('required dependencies');
 
-    var views = {
-      viewfinder: new ViewfinderView(),
-      controls: new ControlsView(),
-      focusRing: new FocusRing(),
-      hud: new HudView()
-    };
-
-    debug('created views');
-
-    var done = allDone();
     var camera = new Camera({
       maxFileSizeBytes: 0,
       maxWidth: 0,
@@ -67,7 +53,6 @@ require(['config/require', 'config'], function() {
       config: config,
       camera: camera,
       sounds: sounds,
-      views: views,
       controllers: controllers,
       filmstrip: Filmstrip,
       storage: new Storage()
@@ -75,8 +60,16 @@ require(['config/require', 'config'], function() {
 
     debug('created app');
 
+    function delay(fn, ms) {
+      ms = ms || 4000;
+      return function() {
+        setTimeout(function() { fn.apply(this, arguments); }, ms);
+      };
+    }
+
     // Async jobs to be
     // done before boot...
+    var done = allDone();
     app.activity.check(done());
     app.fetchState(done());
 
