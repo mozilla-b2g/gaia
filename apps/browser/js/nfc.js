@@ -91,7 +91,7 @@ var NfcURI = {
     var payload = StringHelper.fromUTF8(urlPayload);
     var types = StringHelper.fromUTF8(type);
     var ids = new Uint8Array(id);
-    var record = new MozNdefRecord(tnf, types, ids, payload);
+    var record = new MozNDEFRecord(tnf, types, ids, payload);
     return record;
   },
 

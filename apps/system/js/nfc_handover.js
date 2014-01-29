@@ -163,7 +163,7 @@ function HandoverManager() {
      *   var ndef = NdefCodec.parse(buf);
      *
      * 'null' is returned if the message could not be parsed. Otherwise the
-     * result is an array of MozNdefRecord instances.
+     * result is an array of MozNDEFRecord instances.
      */
     parse: function parse(buffer) {
       this.buffer = buffer;
@@ -212,7 +212,7 @@ function HandoverManager() {
       var type = this.buffer.getOctetArray(typeLen);
       var id = this.buffer.getOctetArray(idLen);
       var payload = this.buffer.getOctetArray(payloadLen);
-      return new MozNdefRecord(tnf, type, id, payload);
+      return new MozNDEFRecord(tnf, type, id, payload);
     }
   };
 
@@ -224,7 +224,7 @@ function HandoverManager() {
 
     /**
      * parse(): parse a NDEF message containing a handover message. 'ndefMsg'
-     * is an Array of MozNdefRecord. Only 'Hr' and 'Hs' records are parsed.
+     * is an Array of MozNDEFRecord. Only 'Hr' and 'Hs' records are parsed.
      * The result is an object with the following attributes:
      *   - type: either 'Hr' (Handover Request) or 'Hs' (Handover Select)
      *   - majorVersion
@@ -234,7 +234,7 @@ function HandoverManager() {
      *   - ac: Array of Alternate Carriers. Each object of this array has
      *         the following attributes:
      *           - cps: Carrier Power State
-     *           - cdr: Carrier Data Record: MozNdefRecord containing further
+     *           - cdr: Carrier Data Record: MozNDEFRecord containing further
      *                  info
      */
     parse: function parse(ndefMsg) {
@@ -323,7 +323,7 @@ function HandoverManager() {
      * Alternative Carrier that contains a Bluetooth profile.
      * Parameter 'h' is the result of the parse() function.
      * Returns null if no Bluetooth AC could be found, otherwise
-     * returns a MozNdefRecord.
+     * returns a MozNDEFRecord.
      */
     searchForBluetoothAC: function searchForBluetoothAC(h) {
       for (var i = 0; i < h.ac.length; i++) {
