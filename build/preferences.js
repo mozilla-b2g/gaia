@@ -113,6 +113,9 @@ function execute(options) {
     prefs.push(['font.name.sans-serif.x-western', 'Feura Sans']);
     prefs.push(['font.name.monospace.x-western', 'Source Code Pro']);
     prefs.push(['font.name-list.sans-serif.x-western', 'Feura Sans, Roboto']);
+
+    // Noise reduction
+    //prefs.push(['ums.mode', 0]);
   }
 
   if (config.DEBUG) {

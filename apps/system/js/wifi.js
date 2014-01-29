@@ -37,7 +37,6 @@ var Wifi = {
     // If wifi is turned off by us and phone got rebooted,
     // bring wifi back.
     var name = 'wifi.disabled_by_wakelock';
-
     var req = SettingsListener.getSettingsLock().get(name);
     req.onsuccess = function gotWifiDisabledByWakelock() {
       if (!req.result[name])
