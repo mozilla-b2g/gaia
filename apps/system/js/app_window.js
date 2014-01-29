@@ -39,10 +39,6 @@
    * @mixes BrowserMixin into AppWindow.prototype
    */
   var AppWindow = function AppWindow(configuration) {
-    /**
-     * Add more if we need more styles on the window.
-     */
-    this.classes = this.classes || ['appWindow'];
     this.reConfig(configuration);
     this.render();
     /**
@@ -60,6 +56,13 @@
     return this;
   };
 
+  /**
+   * Change this if new window has its own styles.
+   *
+   * @type string
+   * @memberof AppWindow
+   */
+  AppWindow.prototype.CLASS_LIST = 'appWindow';
   AppWindow.prototype._DEBUG = false;
 
   /**
@@ -370,7 +373,8 @@
   AppWindow.prototype.containerElement = document.getElementById('windows');
 
   AppWindow.prototype.view = function aw_view() {
-    return '<div class="appWindow" id="' + this.instanceID +
+    return '<div class=" ' + this.CLASS_LIST +
+            ' " id="' + this.instanceID +
             '" transition-state="closed">' +
               '<div class="screenshot-overlay"></div>' +
               '<div class="fade-overlay"></div>' +

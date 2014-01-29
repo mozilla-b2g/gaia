@@ -284,7 +284,7 @@
       }
 
       var classes = ['enlarge', 'reduce', 'to-cardview', 'from-cardview',
-        'invoking', 'invoked', 'zoom-in', 'zoom-out',
+        'invoking', 'invoked', 'zoom-in', 'zoom-out', 'fade-in', 'fade-out',
         'transition-opening', 'transition-closing', 'immediate',
         'slideleft', 'slideright'];
 
