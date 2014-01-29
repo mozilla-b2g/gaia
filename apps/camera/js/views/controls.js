@@ -16,20 +16,26 @@ var debug = require('debug')('view:controls');
  */
 
 module.exports = View.extend({
-  className: 'controls js-controls',
+  name: 'controls',
   buttonsDisabledClass: 'buttons-disabled',
-  initialize: function() {
-    this.render();
+
+  initialize: function(options) {
+    this.model = options.model;
+    this.model.on('change:mode', this.setter('mode'));
+    this.model.on('change:recording', this.setter('recording'));
+    this.set('mode', this.model.get('mode'));
   },
 
   render: function() {
     this.el.innerHTML = this.template();
     this.els.timer = find('.js-video-timer', this.el);
+    attach.on(this.el, 'click', '.js-switch', this.onSwitchClick);
     attach.on(this.el, 'click', '.js-btn', this.onButtonClick);
+    return this;
   },
 
   template: function() {
-    return '<a class="switch-button js-btn" name="switch">' +
+    return '<a class="switch-button js-switch" name="switch">' +
       '<span class="rotates"></span>' +
     '</a>' +
     '<a class="capture-button js-btn" name="capture">' +
@@ -47,7 +53,11 @@ module.exports = View.extend({
   },
 
   set: function(key, value) {
-    this.el.setAttribute('data-' + key, value);
+    this.el.setAttribute(key, value);
+  },
+
+  setter: function(key) {
+    return (function(value) { this.set(key, value); }).bind(this);
   },
 
   enableButtons: function() {
@@ -69,6 +79,10 @@ module.exports = View.extend({
     e.stopPropagation();
     var name = el.getAttribute('name');
     this.emit('click:' + name, e);
+  },
+
+  onSwitchClick: function(e) {
+    this.model.toggle('mode');
   }
 });
 

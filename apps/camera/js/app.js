@@ -6,14 +6,19 @@ define(function(require, exports, module) {
  */
 
 var performanceTesting = require('performanceTesting');
+var ViewfinderView = require('views/viewfinder');
+var ControlsView = require('views/controls');
+var FocusRing = require('views/focusring');
 var constants = require('config/camera');
 var bindAll = require('utils/bindAll');
 var lockscreen = require('lockscreen');
 var storage = require('asyncStorage');
 var broadcast = require('broadcast');
+var Filmstrip = require('filmstrip');
 var model = require('vendor/model');
 var debug = require('debug')('app');
 var LazyL10n = require('LazyL10n');
+var HudView = require('views/hud');
 var bind = require('utils/bind');
 var dcf = require('dcf');
 
@@ -46,6 +51,7 @@ module.exports = App;
  */
 function App(options) {
   bindAll(this);
+  this.views = {};
   this.el = options.el;
   this.win = options.win;
   this.doc = options.doc;
@@ -58,9 +64,8 @@ function App(options) {
   this.storage = options.storage;
   this.camera = options.camera;
   this.sounds = options.sounds;
-  this.views = options.views;
-  this.storageKey = 'camera_state';
   this.reset(this.config.values());
+  this.storageKey = 'camera_state';
   debug('initialized');
 }
 
@@ -71,14 +76,19 @@ function App(options) {
  * @public
  */
 App.prototype.boot = function() {
-  debug('boot');
-  this.filmstrip = this.filmstrip(this);
+  this.setInitialMode();
+  this.initializeViews();
   this.runControllers();
-  this.injectContent();
+  this.injectViews();
   this.bindEvents();
   this.miscStuff();
   this.emit('boot');
   debug('booted');
+};
+
+App.prototype.setInitialMode = function() {
+  var mode = this.activity.mode;
+  if (mode) { this.set('mode', mode, { silent: true }); }
 };
 
 App.prototype.teardown = function() {
@@ -93,6 +103,7 @@ App.prototype.teardown = function() {
  */
 App.prototype.runControllers = function() {
   debug('running controllers');
+  this.filmstrip = this.filmstrip(this);
   this.controllers.camera(this);
   this.controllers.settings(this);
   this.controllers.viewfinder(this);
@@ -103,18 +114,20 @@ App.prototype.runControllers = function() {
   debug('controllers run');
 };
 
-/**
- * Injects view DOM into
- * designated root node.
- *
- * @private
- */
-App.prototype.injectContent = function() {
-  this.views.hud.appendTo(this.el);
-  this.views.controls.appendTo(this.el);
-  this.views.viewfinder.appendTo(this.el);
-  this.views.focusRing.appendTo(this.el);
-  debug('content injected');
+App.prototype.initializeViews = function() {
+  this.views.controls = new ControlsView({ model: app });
+  this.views.hud = new HudView({ model: app });
+  this.views.viewfinder = new ViewfinderView();
+  this.views.focusRing = new FocusRing();
+  debug('views initialized');
+};
+
+App.prototype.injectViews = function() {
+  var views = this.views;
+  views.hud.appendTo(this.el);
+  views.viewfinder.appendTo(this.el);
+  views.focusRing.appendTo(this.el);
+  debug('views injected');
 };
 
 /**
@@ -247,6 +260,32 @@ App.prototype.saveState = function(done) {
 };
 
 /**
+ * Toggles an app state through
+ * its `options` defined in the
+ * config.json.
+ *
+ * @param  {String} key
+ */
+App.prototype.toggle = function(key) {
+  var options = this.options(key);
+  var current = this.get(key);
+  var index = options.indexOf(current);
+  var newIndex = (index + 1) % options.length;
+  var newValue = options[newIndex];
+  this.set(key, newValue);
+  debug('%s key toggled to \'%s\'', key, newValue);
+};
+
+App.prototype.toggler = function(key) {
+  return (function() { this.toggle(key); }).bind(this);
+};
+
+// Maybe not-required...
+App.prototype.options = function(key) {
+  return this.config.options(key);
+};
+
+/**
  * Returns an filtered version of
  * the application state object,
  * containing only keys that should
@@ -270,9 +309,14 @@ App.prototype.getPersistentState = function() {
  * @private
  */
 App.prototype.onStateChange = function(keys) {
-  clearTimeout(this.saveTimeout);
-  this.saveTimeout = setTimeout(this.saveState, 2000);
-  debug('changed', keys);
+  var persistent = this.config.persistent();
+  var isPersistent = function(key) { return !!~persistent.indexOf(key); };
+  var filtered = keys.filter(isPersistent);
+  if (filtered.length) {
+    clearTimeout(this.saveTimeout);
+    this.saveTimeout = setTimeout(this.saveState, 2000);
+    debug('%d persistent keys changed', filtered.length);
+  }
 };
 
 /**

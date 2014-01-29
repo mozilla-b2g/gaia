@@ -20,84 +20,78 @@ module.exports = View.extend({
   initialize: function(options) {
     this.state = options.state;
     this.items = options.items;
-    this.hash = {};
-    this.items.forEach(this.addToHash);
+    this.reset(this.items.get());
     attach(this.el, 'click', 'li', this.onItemClick);
-    attach(this.el, 'click', this.onClick);
     this.state.on('change', this.onStateChange);
+    this.items.on('reset', this.onItemsReset);
     this.on('destroy', this.onDestroy);
   },
 
-  // Stop propagation out of menu
-  onClick: function() {
-    debug('menu click');
-    return false;
-  },
-
   onItemClick: function(e, el) {
-    debug('item click');
     e.stopPropagation();
     var key = el.getAttribute('data-key');
-    this.toggleKey(key);
+    debug('item clicked', key);
+    this.state.toggle(key);
   },
 
   onStateChange: function(keys) {
+    var hash = this.hash;
+    keys.map(this.getFromHash).forEach(this.renderItem);
     debug('state change', keys);
-    keys.forEach(this.refreshItem);
+  },
+
+  onItemsReset: function() {
+    this.reset();
+    this.render();
   },
 
   onDestroy: function() {
     this.state.off('change', this.onStateChange);
+    this.items.off('reset', this.onItemsReset);
+  },
+
+  reset: function(items) {
+    this.hash = {};
+    items.forEach(this.addToHash);
   },
 
   render: function() {
-    this.el.innerHTML = this.template(this.items);
+    var items = this.items.get();
+    var self = this;
+    this.els = {};
+    this.el.innerHTML = '';
+    items.map(this.renderItem).forEach(this.append);
     return this;
   },
 
-  template: function(items) {
-    return items.map(this.templateItem, this).join('');
+  renderItem: function(item) {
+    var key = item.key;
+    var el = this.els[key] || document.createElement('li');
+    item.value = this.state.get(key);
+    el.setAttribute('data-key', key);
+    el.setAttribute('data-value', item.value);
+    el.innerHTML = this.templateItem(item);
+    this.els[key] = el;
+    debug('rendered item %s', key);
+    return el;
   },
 
   templateItem: function(item) {
-    var key = item.key;
-    var state = this.state.get(key);
-    var title = item.title || key;
-    var html = '<li data-key="' + key + '" data-state="' + state + '">' + title + ' - ' + state + '</li>';
-    debug('templated item: %s', title, item);
-    return html;
+    var title = item.title || item.key;
+    return title + ' - ' + item.value;
   },
 
-  refreshItem: function(key) {
-    var el = this.find('[data-key=' + key + ']');
-    if (!el) { return; }
-    var item = this.hash[key];
-    var newEl = toElement(this.templateItem(item));
-    el.parentNode.replaceChild(newEl, el);
-    debug('%s item refreshed', key);
+  append: function(el) {
+    this.el.appendChild(el);
   },
 
   addToHash: function(item) {
     this.hash[item.key] = item;
   },
 
-  toggleKey: function(key) {
-    var current = this.state.get(key);
-    var item = this.hash[key];
-    var options = item.options;
-    var index = options.indexOf(current);
-    var newIndex = (index + 1) % options.length;
-    var newValue = options[newIndex];
-    this.state.set(key, newValue);
-    debug('%s key toggled to \'%s\'', key, newValue);
+  getFromHash: function(key) {
+    return this.hash[key];
   }
 });
-
-
-function toElement(html) {
-  var parent = document.createElement('div');
-  parent.innerHTML = html;
-  return parent.firstElementChild;
-}
 
 });

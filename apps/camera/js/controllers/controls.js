@@ -4,6 +4,10 @@ define(function(require, exports, module) {
 'use strict';
 
 /**
+ * TODO: Controllers should create views
+ */
+
+/**
  * Dependencies
  */
 
@@ -20,95 +24,55 @@ exports = module.exports = function(app) {
 
 function ControlsController(app) {
   debug('initializing');
-  this.viewfinder = app.views.viewfinder;
-  this.controls = app.views.controls;
-  this.activity = app.activity;
-  this.camera = app.camera;
-  this.app = app;
   bindAll(this);
+  this.app = app;
+  this.camera = app.camera;
+  this.activity = app.activity;
+  this.controls = app.views.controls;
+  this.viewfinder = app.views.viewfinder;
+  this.controls.render().appendTo(app.el);
   this.bindEvents();
-  this.setup();
+  this.configure();
   debug('initialized');
 }
 
 ControlsController.prototype.bindEvents = function() {
   var controls = this.controls;
   var camera = this.camera;
-
-  // Bind events
   camera.on('focusFailed', controls.enableButtons);
   camera.on('previewResumed', controls.enableButtons);
   camera.on('preparingToTakePicture', controls.disableButtons);
   camera.on('change:videoElapsed', this.onVideoTimeUpdate);
-  camera.on('change:recording', this.onRecordingChange);
-  camera.on('change:mode', this.onCameraModeChange);
-
-  // Respond to UI events
-  controls.on('click:switch', this.onSwitchButtonClick);
+  camera.on('change:recording', this.controls.setter('recording'));
   controls.on('click:capture', this.onCaptureButtonClick);
   controls.on('click:cancel', this.onCancelButtonClick);
   controls.on('click:gallery', this.onGalleryButtonClick);
-
   debug('events bound');
 };
 
-ControlsController.prototype.setup = function() {
+ControlsController.prototype.configure = function() {
   var activity = this.activity;
   var controls = this.controls;
-  var isCancellable = activity.active;
   var showCamera = !activity.active || activity.allowedTypes.image;
   var showVideo = !activity.active || activity.allowedTypes.video;
   var isSwitchable = showVideo && showCamera;
+  var isCancellable = activity.active;
 
   // The gallery button should not
   // be shown if an activity is pending
   // or the application is in 'secure mode'.
   var showGallery = !activity.active && !this.app.inSecureMode;
 
-  controls.set('mode', this.camera.get('mode'));
   controls.set('gallery', showGallery);
   controls.set('cancel', isCancellable);
   controls.set('switchable', isSwitchable);
-};
-
-ControlsController.prototype.onCameraModeChange = function(value) {
-  this.controls.set('mode', value);
-  debug('camera mode change: %s', value);
-};
-
-ControlsController.prototype.onRecordingChange = function(value) {
-  this.controls.set('recording', value);
 };
 
 ControlsController.prototype.onVideoTimeUpdate = function(value) {
   this.controls.setVideoTimer(value);
 };
 
-/**
- * Fades the viewfinder out,
- * changes the camera capture
- * mode. Then fades the viewfinder
- * back in.
- *
- */
-ControlsController.prototype.onSwitchButtonClick = function() {
-  var controls = this.controls;
-  var viewfinder = this.viewfinder;
-  var camera = this.camera;
 
-  camera.toggleMode();
-  controls.disableButtons();
-  viewfinder.fadeOut(onFadeOut);
-
-  function onFadeOut() {
-    camera.loadStreamInto(viewfinder.el, onStreamLoaded);
-  }
-
-  function onStreamLoaded() {
-    controls.enableButtons();
-    viewfinder.fadeIn();
-  }
-};
 
 /**
  * Cancel the current activity

@@ -75,7 +75,7 @@
  * @gallery=true
  */
 
-.controls[data-gallery=true] .gallery-button {
+.controls[gallery=true] .gallery-button {
   display: block;
 }
 
@@ -83,7 +83,7 @@
  * @recording=true
  */
 
-.controls[data-recording=true] .gallery-button {
+.controls[recording=true] .gallery-button {
   display: none;
 }
 
@@ -107,7 +107,7 @@
  * @cancel
  */
 
-.controls[data-cancel=true] .cancel-pick {
+.controls[cancel=true] .cancel-pick {
   display: block;
 }
 
@@ -131,7 +131,7 @@
  * @capturing
  */
 
-.controls[data-recording=true] .video-timer {
+.controls[recording=true] .video-timer {
   display: block;
 }
 
@@ -151,7 +151,7 @@
  * @recording
  */
 
-.controls[data-recording=true] .capture-button {
+.controls[recording=true] .capture-button {
   background-color: #d3361c;
 }
 
@@ -162,7 +162,7 @@
  * @photo
  */
 
-.controls[data-mode=photo] .capture-button span {
+.controls[mode=photo] .capture-button span {
   background-image: url(images/camera.png);
 }
 
@@ -170,7 +170,7 @@
  * @video
  */
 
-.controls[data-mode=video] .capture-button span {
+.controls[mode=video] .capture-button span {
   background-image: url(images/video.png);
 }
 
@@ -178,7 +178,7 @@
  * @capturing
  */
 
-.controls[data-recording=true] .capture-button span {
+.controls[recording=true] .capture-button span {
   background-image: url(images/stop.png);
 }
 
@@ -190,7 +190,7 @@
   left: 66%;
 }
 
-.controls[data-switchable] .switch-button {
+.controls[switchable] .switch-button {
   display: block;
 }
 
@@ -198,7 +198,7 @@
  * @recording
  */
 
-.controls[data-recording=true] .switch-button {
+.controls[recording=true] .switch-button {
   pointer-events: none;
   opacity: 0.5;
 }
@@ -212,7 +212,7 @@
  * Swap the camera and video
  * icons depending on mode
  */
-.controls[data-mode=video] .switch-button span {
+.controls[mode=video] .switch-button span {
   background-image: url(images/camera.png);
 }
 
@@ -220,7 +220,7 @@
  * @photo
  */
 
-.controls[data-mode=photo] .switch-button span {
+.controls[mode=photo] .switch-button span {
   background-image: url(images/video.png);
 }
 

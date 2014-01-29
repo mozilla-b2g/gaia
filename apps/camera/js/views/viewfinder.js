@@ -7,6 +7,7 @@ define(function(require) {
 
 var bind = require('utils/bind');
 var CameraUtils = require('utils/camera-utils');
+var debug = require('debug')('view:viewfinder');
 var constants = require('config/camera');
 var View = require('vendor/view');
 
@@ -140,7 +141,7 @@ return View.extend({
   },
 
   updatePreview: function(previewSize, mirrored) {
-
+    debug('update preview, mirrored: %s', mirrored);
     // Use the device-independent viewport size for transforming the
     // preview using CSS
     var deviceIndependentViewportSize = {
