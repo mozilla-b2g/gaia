@@ -541,6 +541,12 @@ var StatusBar = {
           icon.dataset.roaming = voice.roaming;
 
           delete icon.dataset.searching;
+        } else if (simslot.isLocked()) {
+          // SIM locked
+          // We check if the sim card is locked after checking hasActiveCall
+          // because we still need to show the siganl bars in this case even
+          // the sim card is locked.
+          icon.hidden = true;
         } else {
           // "No Network" / "Emergency Calls Only (REASON)" / trying to connect
           icon.dataset.level = -1;

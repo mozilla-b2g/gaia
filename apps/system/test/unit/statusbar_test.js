@@ -289,7 +289,7 @@ suite('system/Statusbar', function() {
             assert.notEqual(dataset.searching, 'true');
           });
 
-          test('no network with sim', function() {
+          test('no network with sim, sim locked', function() {
             MockNavigatorMozMobileConnections[slotIndex].voice = {
               connected: false,
               relSignalStrength: null,
@@ -302,12 +302,11 @@ suite('system/Statusbar', function() {
             mockSimSlots[slotIndex].simCard.cardState = 'pinRequired';
             mockSimSlots[slotIndex].simCard.iccInfo = {};
             sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(false);
+            sinon.stub(mockSimSlots[slotIndex], 'isLocked').returns(true);
 
             StatusBar.update.signal.call(StatusBar);
 
-            assert.notEqual(dataset.roaming, 'true');
-            assert.equal(dataset.level, -1);
-            assert.notEqual(dataset.searching, 'true');
+            assert.equal(fakeIcons.signals[slotIndex].hidden, true);
           });
 
           test('searching', function() {
@@ -365,12 +364,11 @@ suite('system/Statusbar', function() {
             mockSimSlots[slotIndex].simCard.cardState = 'pinRequired';
             mockSimSlots[slotIndex].simCard.iccInfo = {};
             sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(false);
+            sinon.stub(mockSimSlots[slotIndex], 'isLocked').returns(true);
 
             StatusBar.update.signal.call(StatusBar);
 
-            assert.notEqual(dataset.roaming, 'true');
-            assert.equal(dataset.level, '-1');
-            assert.notEqual(dataset.searching, 'true');
+            assert.equal(fakeIcons.signals[slotIndex].hidden, true);
           });
 
           test('emergency calls only, in call', function() {
@@ -386,6 +384,7 @@ suite('system/Statusbar', function() {
             mockSimSlots[slotIndex].simCard.cardState = 'pinRequired';
             mockSimSlots[slotIndex].simCard.iccInfo = {};
             sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(false);
+            sinon.stub(mockSimSlots[slotIndex], 'isLocked').returns(true);
 
             MockNavigatorMozTelephony.active = {
               state: 'connected'
@@ -411,6 +410,7 @@ suite('system/Statusbar', function() {
             mockSimSlots[slotIndex].simCard.cardState = 'pinRequired';
             mockSimSlots[slotIndex].simCard.iccInfo = {};
             sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(false);
+            sinon.stub(mockSimSlots[slotIndex], 'isLocked').returns(true);
 
             MockNavigatorMozTelephony.active = {
               state: 'dialing'
@@ -436,6 +436,7 @@ suite('system/Statusbar', function() {
             mockSimSlots[slotIndex].simCard.cardState = 'pinRequired';
             mockSimSlots[slotIndex].simCard.iccInfo = {};
             sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(false);
+            sinon.stub(mockSimSlots[slotIndex], 'isLocked').returns(true);
 
             StatusBar.update.signal.call(StatusBar);
 
@@ -530,6 +531,7 @@ suite('system/Statusbar', function() {
             mockSimSlots[slotIndex].simCard.cardState = 'pinRequired';
             mockSimSlots[slotIndex].simCard.iccInfo = {};
             sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(false);
+            sinon.stub(mockSimSlots[slotIndex], 'isLocked').returns(true);
 
             var mockTel = MockNavigatorMozTelephony;
 
