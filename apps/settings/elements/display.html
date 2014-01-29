@@ -24,7 +24,7 @@
         <button id="wallpaper-button"></button>
       </div>
       <header>
-        <h2 data-l10n-id="brightness">Brightness</h2>
+        <h2 id="brightness-heading" data-l10n-id="brightness">Brightness</h2>
       </header>
       <ul>
         <li id="brightness-auto">
@@ -34,9 +34,8 @@
           </label>
         </li>
         <li id="brightness-manual">
-          <label>
-            <input type="range" name="screen.brightness" step="0.01" min="0.1" value="0.5" max="1" />
-            <span class="range-icons brightness"></span>
+          <label class="range-icons brightness">
+            <input aria-labelledby="brightness-heading" type="range" name="screen.brightness" step="0.01" min="0.1" value="0.5" max="1" />
           </label>
         </li>
         <li id="screen-timeout">

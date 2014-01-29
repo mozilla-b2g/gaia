@@ -566,6 +566,14 @@ var GridManager = (function() {
     PaginationBar.update(currentPage, pages.length);
   }
 
+  function updatePageSetSize() {
+    for (var i in pages) {
+      var container = pages[i].container;
+      container.setAttribute('aria-setsize', pages.length);
+      container.setAttribute('aria-posinset', Number(i) + 1);
+    }
+  }
+
   /*
    * UI Localization
    *
@@ -697,6 +705,7 @@ var GridManager = (function() {
       pages.push(page);
 
       pageElement.className = 'page';
+      pageElement.setAttribute('role', 'region');
       container.appendChild(pageElement);
 
       // If the new page is situated right after the current displayed page,
@@ -706,6 +715,7 @@ var GridManager = (function() {
       }
 
       updatePaginationBar();
+      updatePageSetSize();
     },
 
     /*
@@ -717,6 +727,7 @@ var GridManager = (function() {
       pages[index].destroy(); // Destroy page
       pages.splice(index, 1); // Removes page from the list
       updatePaginationBar();
+      updatePageSetSize();
     },
 
     /*

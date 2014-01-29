@@ -1,15 +1,15 @@
 {
   "notifier_bell.opus": "",
   "notifier_dididi.opus": "",
-  "notifier_rewind.ogg": "",
+  "notifier_rewind.opus": "",
   "notifier_ting.opus": "",
   "notifier_bap.opus": "",
   "notifier_boomer.opus": "",
-  "notifier_exclamation.ogg": "",
-  "notifier_ring.ogg": "",
+  "notifier_exclamation.opus": "",
+  "notifier_ring.opus": "",
   "notifier_bell_extd.opus": "",
   "notifier_bop.opus": "",
-  "notifier_minimal_bands.ogg": "",
-  "notifier_spring.ogg": ""
+  "notifier_minimal_bands.opus": "",
+  "notifier_spring.opus": ""
 }
 

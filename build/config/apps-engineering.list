@@ -19,4 +19,5 @@ test_apps/test-receiver-2
 test_apps/test-receiver-inline
 test_apps/test-wappush
 test_apps/uitest
+test_apps/uitest-privileged
 test_apps/test-fxa-client

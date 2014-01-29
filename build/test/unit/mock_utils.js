@@ -45,5 +45,3 @@ exports.gaiaOriginURL = gaiaOriginURL;
 exports.gaiaManifestURL = function(name, scheme, domain, port) {
   return gaiaOriginURL(name, scheme, domain, port) + '/manifest.webapp';
 }
-
-exports.log = console.log;

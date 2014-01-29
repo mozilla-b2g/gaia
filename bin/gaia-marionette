@@ -38,7 +38,7 @@ XPCSHELL_DIR=$(dirname $(find "$XULRUNNER_DIRECTORY"/bin -type f -name "xpcshell
 # wrap marionette-mocha with gaia's defaults. We also need to alter the paths to
 # xpcshell in available for email fake servers.
 PATH=$XPCSHELL_DIR:$PATH $DIR/../node_modules/.bin/marionette-mocha \
-  --timeout 20s \
+  --timeout 60s \
   --ui tdd \
   --profile-builder $SHARED/profile_builder.js \
   --profile-base $SHARED/profile.js \

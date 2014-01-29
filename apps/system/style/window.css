@@ -13,8 +13,6 @@
 
   background-repeat: no-repeat;
   background-position: center center;
-
-  transform: translateX(0);
 }
 
 @media not all and (-moz-physical-home-button) {
@@ -100,6 +98,10 @@
   animation: openAppFromCardView 0.15s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
+#screen.task-manager #windows > .appWindow.from-cardview {
+  animation: openAppFromTaskManager 0.15s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+}
+
 /* Opacity increases start up time then we don't use it anymore for opening */
 @keyframes openApp {
   0%   { transform: scale(0.2);}
@@ -118,6 +120,11 @@
 
 @keyframes openAppFromCardView {
   0%   { transform: scale(0.8); }
+  100% { transform: scale(1.0); }
+}
+
+@keyframes openAppFromTaskManager {
+  0%   { transform: scale(0.6); }
   100% { transform: scale(1.0); }
 }
 
@@ -171,9 +178,12 @@
   100% { transform: scale(1);}
 }
 
-/* Generally transitions, except when going into rocketbar manager */
-#screen:not(.task-manager) #windows > .appWindow.to-cardview {
+#windows > .appWindow.to-cardview {
   animation: closeAppTowardsCardView 0.15s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+}
+
+#screen.task-manager #windows > .appWindow.to-cardview {
+  animation: closeAppTowardsTaskManager 0.15s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
 /* Prebuild width/height */
@@ -224,6 +234,11 @@
 @keyframes closeAppTowardsCardView {
   0%   { transform: scale(1.0); }
   100% { transform: scale(0.8); }
+}
+
+@keyframes closeAppTowardsTaskManager {
+  0%   { transform: scale(1.0); }
+  100% { transform: scale(0.6); }
 }
 
 .appWindow.back {
@@ -317,6 +332,7 @@
   color: white;
   background: none;
   -moz-box-sizing: border-box;
+  margin-bottom: 1.5rem; /* not overlap by menu while keyboard pop */
 }
 
 .appWindow > .modal-dialog > form.visible {

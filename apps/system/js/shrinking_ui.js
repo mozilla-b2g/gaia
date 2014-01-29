@@ -574,11 +574,11 @@
 
       if (this.state.overThreshold && 'TOP' === this.state.toward) {
         var cover = this.cover;
-        window.dispatchEvent(new CustomEvent('shrinking-sent'));
-          this._sendingSlideTo('TOP' , (function() {
-            // When it got sent, freeze it at the top.
-            this._disableSlidingCover();
-          }).bind(this));
+        this._sendingSlideTo('TOP' , (function() {
+          // When it got sent, freeze it at the top.
+          this._disableSlidingCover();
+          window.dispatchEvent(new CustomEvent('shrinking-sent'));
+        }).bind(this));
       } else {
         // Fallback to the bottom if user cancel it.
         this._sendingSlideTo('BOTTOM',

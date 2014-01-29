@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
+  <meta charset="utf-8">
+  <title>UI tests</title>
+  <!-- We don't need localization in this app -->
+  <link rel="stylesheet" type="text/css" href="style/uitest.css">
+  <link rel="stylesheet" type="text/css" href="style/tabs.css" >
+  <script type="text/javascript" src="js/uitest.js"></script>
+  <!-- <script src="shared/js/mime_mapper.js"></script> -->
+  <!-- <script src="shared/js/settings_listener.js"></script> -->
+  <!-- <script src="shared/js/download/download_formatter.js"></script> -->
+  <!-- <script src="shared/js/download/download_helper.js"></script> -->
+  <!-- <script src="shared/js/download/download_store.js"></script> -->
+  <script defer src="shared/js/lazy_loader.js"></script>
+</head>
+<body>
+  <div class="panel list-panel">
+    <div id="API-tests" class="list_and_toolbar">
+      <div class="toolbar">
+        <p></p><p class="toolbar-title">API Tests</p><p></p>
+      </div>
+      <ul class="list">
+        <li><a href="#test=API/contacts">Contacts</a></li>
+        <li><a href="#test=API/devicestorage">Device Storage</a></li>
+        <li><a href="#test=API/geolocation">Geolocation</a></li>
+        <li><a href="#test=API/getusermedia">getUserMedia</a></li>
+      </ul>
+    </div>
+    <div id="tabs" class="tabs">
+      <ul role="tablist" data-items="1">
+        <li id="panel2" role="tab">
+          <a href="#API" id="API">API</a>
+          <div role="tabpanel"></div>
+        </li>
+      </ul>
+    </div>
+  </div>
+  <div id="test-panel" class="panel test-panel">
+    <div class="toolbar">
+      <button id="test-panel-back">back</button>
+      <p id="test-panel-title" class="toolbar-title"></p>
+      <p></p>
+    </div>
+    <iframe id="test-iframe" mozallowfullscreen="true"></iframe>
+  </div>
+</body>
+</html>

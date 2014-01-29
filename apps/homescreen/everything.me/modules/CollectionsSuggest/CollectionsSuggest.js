@@ -115,7 +115,7 @@ Evme.CollectionsSuggest = new function Evme_CollectionsSuggest() {
             translatedName = Evme.Utils.l10n('shortcut', l10nkey);
 
         if (translatedName) {
-          name = translatedName;
+          shortcut.query = query = name = translatedName;
         }
       }
 

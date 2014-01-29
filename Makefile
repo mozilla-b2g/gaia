@@ -244,14 +244,11 @@ endif
 export GAIA_DISTRIBUTION_DIR
 
 SETTINGS_PATH := build/config/custom-settings.json
-KEYBOARD_LAYOUTS_PATH := build/config/keyboard-layouts.json
-
 ifdef GAIA_DISTRIBUTION_DIR
 	DISTRIBUTION_SETTINGS := $(GAIA_DISTRIBUTION_DIR)$(SEP)settings.json
 	DISTRIBUTION_CONTACTS := $(GAIA_DISTRIBUTION_DIR)$(SEP)contacts.json
 	DISTRIBUTION_APP_CONFIG := $(GAIA_DISTRIBUTION_DIR)$(SEP)apps.list
 	DISTRIBUTION_VARIANT := $(GAIA_DISTRIBUTION_DIR)$(SEP)variant.json
-	DISTRIBUTION_KEYBOARD_LAYOUTS := $(GAIA_DISTRIBUTION_DIR)$(SEP)keyboard-layouts.json
 	ifneq ($(wildcard $(DISTRIBUTION_SETTINGS)),)
 		SETTINGS_PATH := $(DISTRIBUTION_SETTINGS)
 	endif
@@ -263,9 +260,6 @@ ifdef GAIA_DISTRIBUTION_DIR
 	endif
 	ifneq ($(wildcard $(DISTRIBUTION_VARIANT)),)
 		VARIANT_PATH := $(DISTRIBUTION_VARIANT)
-	endif
-	ifneq ($(wildcard $(DISTRIBUTION_KEYBOARD_LAYOUTS)),)
-		KEYBOARD_LAYOUTS_PATH := $(DISTRIBUTION_KEYBOARD_LAYOUTS)
 	endif
 endif
 
@@ -389,8 +383,7 @@ define BUILD_CONFIG
 	"REMOTE_DEBUGGER" : "$(REMOTE_DEBUGGER)", \
 	"TARGET_BUILD_VARIANT" : "$(TARGET_BUILD_VARIANT)", \
 	"SETTINGS_PATH" : "$(SETTINGS_PATH)", \
-	"VARIANT_PATH" : "$(VARIANT_PATH)", \
-	"KEYBOARD_LAYOUTS_PATH" : "$(KEYBOARD_LAYOUTS_PATH)" \
+	"VARIANT_PATH" : "$(VARIANT_PATH)" \
 }
 endef
 export BUILD_CONFIG
@@ -993,7 +986,7 @@ endif
 
 # clean out build products
 clean:
-	rm -rf profile profile-debug profile-test $(PROFILE_FOLDER) $(STAGE_FOLDER)
+	rm -rf profile profile-debug profile-test $(PROFILE_FOLDER) $(STAGE_FOLDER) docs
 
 # clean out build products and tools
 really-clean: clean
@@ -1011,3 +1004,7 @@ build-test-unit: $(NPM_INSTALLED_PROGRAMS)
 
 build-test-integration: $(NPM_INSTALLED_PROGRAMS)
 	@$(call run-build-test, $(shell find build/test/integration/*.test.js))
+
+.PHONY: docs
+docs: $(NPM_INSTALLED_PROGRAMS)
+	grunt docs

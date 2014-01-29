@@ -151,6 +151,9 @@ var SleepMenu = {
   },
 
   hide: function lm_hide() {
+    if (!this.elements.overlay.classList.contains('visible')) {
+      return;
+    }
     this.elements.overlay.classList.remove('visible');
     window.dispatchEvent(new Event('sleepmenuhide'));
   },
