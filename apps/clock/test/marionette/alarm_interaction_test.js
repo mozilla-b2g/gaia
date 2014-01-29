@@ -32,7 +32,7 @@ marionette('Alarm interaction', function() {
       alarms[0], twentyFromNow, 'Alarm time is rendered'
     );
     assert(
-      alarms[0].indexOf('coffee break'),
+      alarms[0].indexOf('coffee break') > -1,
       'Alarm title is rendered'
     );
     assert(alarm.countdownBannerDisplayed, 'Countdown banner is displayed');
@@ -57,7 +57,7 @@ marionette('Alarm interaction', function() {
       'Newest alarm title is rendered first'
     );
     assert(
-      alarms[0].indexOf('quitting time'),
+      alarms[0].indexOf('quitting time') > -1,
       'Newest alarm title is rendered first'
     );
     assert.hasTime(
@@ -66,7 +66,7 @@ marionette('Alarm interaction', function() {
       'Previously-created alarm time is rendered second'
     );
     assert(
-      alarms[1].indexOf('coffee break'),
+      alarms[1].indexOf('coffee break') > -1,
       'Previously-created alarm title is rendered second'
     );
     assert(alarm.countdownBannerDisplayed, 'Countdown banner is displayed');
