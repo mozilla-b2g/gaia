@@ -235,15 +235,6 @@
           // we have to set defaultId to available card automatically
           // and disable select/option
           selectedCardIndex = firstCardInfo.absent ? 1 : 0;
-
-          SimSettingsHelper.setServiceOnCard('outgoingCall',
-            selectedCardIndex);
-
-          SimSettingsHelper.setServiceOnCard('outgoingMessages',
-            selectedCardIndex);
-
-          SimSettingsHelper.setServiceOnCard('outgoingData',
-            selectedCardIndex);
         }
 
         // for these two situations, they all have to be disabled
