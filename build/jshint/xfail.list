@@ -825,6 +825,7 @@ apps/homescreen/test/unit/page_test.js
 apps/homescreen/test/unit/request_test.js
 apps/homescreen/test/unit/save_bookmark_test.js
 apps/homescreen/test/unit/wallpaper_test.js
+apps/keyboard/build/keyboard-config.js
 apps/keyboard/js/imes/jspinyin/empinyin_files.js
 apps/keyboard/js/imes/jspinyin/jspinyin.js
 apps/keyboard/js/imes/jspinyin/tests/init.js
