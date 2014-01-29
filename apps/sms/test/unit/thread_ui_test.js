@@ -5,7 +5,7 @@
          MockActivityPicker, Threads, Settings, MockMessages, MockUtils,
          MockContacts, ActivityHandler, Recipients, MockMozActivity,
          ThreadListUI, ContactRenderer, UIEvent, Drafts, OptionMenu,
-         ActivityPicker, KeyEvent */
+         ActivityPicker, KeyEvent, MockNavigatorSettings */
 
 'use strict';
 
@@ -2477,6 +2477,11 @@ suite('thread_ui.js >', function() {
 
         setup(function() {
           localize.reset();
+          if (!('mozSettings' in navigator)) {
+           navigator.mozSettings = null;
+          }
+
+          this.sinon.stub(navigator, 'mozSettings', MockNavigatorSettings);
           showMessageErrorSpy = this.sinon.spy(ThreadUI, 'showMessageError');
           ThreadUI.handleMessageClick({
             target: button
@@ -2532,6 +2537,15 @@ suite('thread_ui.js >', function() {
             assert.equal(opts.messageId, message.id);
             assert.isTrue(!!opts.confirmHandler);
             assert.equal(MockErrorDialog.prototype.show.called, true);
+          });
+
+          test('confirmHandler called with correct state', function() {
+            this.sinon.spy(Settings, 'switchSimHandler');
+            MockErrorDialog.calls[0][1].confirmHandler();
+            assert.isTrue(element.classList.contains('pending'));
+            assert.isFalse(element.classList.contains('error'));
+            sinon.assert.calledWith(localize, button, 'downloading');
+            sinon.assert.called(Settings.switchSimHandler);
           });
         });
         suite('response error with other errorCode', function() {

@@ -76,5 +76,22 @@ var Settings = {
       'ril.mms.defaultServiceId': id,
       'ril.data.defaultServiceId': id
     });
+  },
+
+  switchSimHandler: function switchSimHandler(targetId, callback) {
+    var conn = window.navigator.mozMobileConnections[targetId];
+    if (conn && conn.data.state !== 'registered') {
+      // Listen to MobileConnections datachange to make sure we can start
+      // to retrieve mms only when data.state is registered. But we can't
+      // guarantee datachange event will work in other device.
+      conn.addEventListener('datachange', function onDataChange() {
+        if (conn.data.state === 'registered') {
+          conn.removeEventListener('datachange', onDataChange);
+          callback();
+        }
+      });
+
+      this.setSimServiceId(targetId);
+    }
   }
 };
