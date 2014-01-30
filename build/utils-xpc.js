@@ -689,7 +689,7 @@ function getEnvPath() {
     throw new Error('cannot not read system type');
   }
   var p = getEnv('PATH');
-  var isMsys = env.get('OSTYPE') ? true : false;
+  var isMsys = getEnv('OSTYPE') ? true : false;
   if (os.indexOf('WIN') !== -1 && !isMsys) {
     paths = p.split(';');
   } else {
