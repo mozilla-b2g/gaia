@@ -15,12 +15,6 @@ function Calendar(client) {
 }
 module.exports = Calendar;
 
-/**
- * Month1 Month2 YYYY.
- * @type {RegExp}
- */
-Calendar.HEADER_PATTERN = /^([JFMASOND][a-z]+\s){2}\d{4}$/;
-
 Calendar.ORIGIN = 'app://calendar.gaiamobile.org';
 
 /**

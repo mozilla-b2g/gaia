@@ -88,7 +88,6 @@ apps/calendar/js/views/month.js
 apps/calendar/js/views/month_child.js
 apps/calendar/js/views/months_day.js
 apps/calendar/js/views/settings.js
-apps/calendar/js/views/time_header.js
 apps/calendar/js/views/time_parent.js
 apps/calendar/js/views/view_event.js
 apps/calendar/js/views/week.js
@@ -100,7 +99,6 @@ apps/calendar/test/marionette/calendar.js
 apps/calendar/test/marionette/create_event_test.js
 apps/calendar/test/marionette/day_view_test.js
 apps/calendar/test/marionette/today_test.js
-apps/calendar/test/marionette/week_view_test.js
 apps/calendar/test/unit/app_test.js
 apps/calendar/test/unit/calc_test.js
 apps/calendar/test/unit/calendar_test.js
@@ -181,7 +179,6 @@ apps/calendar/test/unit/views/month_child_test.js
 apps/calendar/test/unit/views/month_test.js
 apps/calendar/test/unit/views/months_day_test.js
 apps/calendar/test/unit/views/settings_test.js
-apps/calendar/test/unit/views/time_header_test.js
 apps/calendar/test/unit/views/time_parent_test.js
 apps/calendar/test/unit/views/view_event_test.js
 apps/calendar/test/unit/views/week_child_test.js

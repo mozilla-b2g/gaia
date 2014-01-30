@@ -1,6 +1,8 @@
+/* globals Calendar */
 Calendar.ns('Views').TimeHeader = (function() {
+  'use strict';
 
-  const SETTINGS = /settings/;
+  var SETTINGS = /settings/;
 
   function TimeHeader() {
     Calendar.View.apply(this, arguments);
@@ -33,7 +35,7 @@ Calendar.ns('Views').TimeHeader = (function() {
       // when week starts in one month and ends
       // in another, we need both of them
       // in the header
-      singleMonth: 'single-month-view-header-format'
+      multiMonth: 'multi-month-view-header-format'
     },
 
     handleEvent: function(e) {
@@ -100,38 +102,33 @@ Calendar.ns('Views').TimeHeader = (function() {
         // are in the next month we don't care about that - we have
         // only 5 days visible, and it looks odd when for example we
         // have Sep 26-30 because 31 & Oct 1 are hidden, and
-        // we use September October 2012 as a header).
-        // According to spec we display only last month's year
-        // (December January 2013, not December 2012 January 2013)
-        // and that's how it's implemented here.
+        // we use "Sep 2012 Oct 2012" as a header).
         var lastWeekday = new Date(
                 firstWeekday.getFullYear(),
                 firstWeekday.getMonth(),
                 firstWeekday.getDate() + 4
               );
         if (firstWeekday.getMonth() !== lastWeekday.getMonth()) {
-          scale = this.app.dateFormat.localeFormat(
-            firstWeekday,
-            navigator.mozL10n.get(this.scales.singleMonth)
-          );
+          scale = this._localeFormat(firstWeekday, 'multiMonth') + ' ' +
+            this._localeFormat(lastWeekday, 'multiMonth');
+        } else {
+          scale = this._localeFormat(lastWeekday, 'month');
         }
-        // Should have a space between two months
-        return scale + ' ' + this.app.dateFormat.localeFormat(
-            lastWeekday,
-            navigator.mozL10n.get(this.scales.month)
-        );
+        return scale;
       }
 
+      return this._localeFormat(this.controller.position, type || 'month');
+    },
+
+    _localeFormat: function(date, scale) {
       return this.app.dateFormat.localeFormat(
-        this.controller.position,
-        navigator.mozL10n.get(this.scales[type] || this.scales.month)
+        date,
+        navigator.mozL10n.get(this.scales[scale])
       );
     },
 
     _updateTitle: function() {
       var con = this.app.timeController;
-      var date = this.getScale(con.scale);
-
       var title = this.title;
 
       title.dataset.l10nDateFormat =
