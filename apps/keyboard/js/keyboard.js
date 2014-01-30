@@ -241,12 +241,12 @@ var enabledKeyboardNames;
 var isSoundEnabled;
 
 // data URL for keyboard click sound
-const CLICK_SOUND = './resources/sounds/key.ogg';
-const SPECIAL_SOUND = './resources/sounds/special.ogg';
+const CLICK_SOUND = '/resources/sounds/key.ogg';
+const SPECIAL_SOUND = '/resources/sounds/special.ogg';
 
-// The audio element used to play the click sound
-var clicker;
-var specialClicker;
+// WebAudio Objects
+var ctx = new AudioContext();
+var buffers = {};
 
 // A MutationObserver we use to spy on the renderer module
 var dimensionsObserver;
@@ -425,13 +425,27 @@ function initKeyboard() {
   }
 }
 
+function fetchSound(path) {
+  var request = new XMLHttpRequest();
+  request.open('GET', path, true);
+  request.responseType = 'arraybuffer';
+  request.send();
+  request.onload = function onLoad() {
+    ctx.decodeAudioData(request.response, function onSuccess(buffer) {
+      buffers[path] = buffer;
+    }, function onFailure() {
+      console.log('Decoding the audio buffer failed');
+    });
+  };
+}
+
 function handleKeyboardSound() {
   if (clickEnabled && isSoundEnabled) {
-    clicker = new Audio(CLICK_SOUND);
-    specialClicker = new Audio(SPECIAL_SOUND);
+    fetchSound(CLICK_SOUND);
+    fetchSound(SPECIAL_SOUND);
   } else {
-    clicker = null;
-    specialClicker = null;
+    buffers[CLICK_SOUND] = null;
+    buffers[SPECIAL_SOUND] = null;
   }
 }
 
@@ -1813,7 +1827,11 @@ function triggerFeedback(isSpecialKey) {
   }
 
   if (clickEnabled && isSoundEnabled) {
-    (isSpecialKey ? specialClicker : clicker).cloneNode(false).play();
+    var buffer = (isSpecialKey ? buffers[SPECIAL_SOUND] : buffers[CLICK_SOUND]);
+    var source = ctx.createBufferSource();
+    source.buffer = buffer;
+    source.connect(ctx.destination);
+    source.start(0);
   }
 }
 
