@@ -1,6 +1,6 @@
 /* global _, debug, BalanceView, AirplaneModeHelper, SettingsListener,
-          ConfigManager, Common, computeTelephonyMinutes, CostControl,
-          formatTimeHTML, getDataLimit, MozActivity, roundData, LazyLoader
+          ConfigManager, Common, CostControl,
+          MozActivity, LazyLoader, Formatting
 */
 /* exported activity */
 
@@ -292,7 +292,7 @@ var Widget = (function() {
       costcontrol.request(requestObj, function _onDataStatistics(result) {
         debug(result);
         var stats = result.data;
-        var data = roundData(stats.mobile.total);
+        var data = Formatting.roundData(stats.mobile.total);
         if (isLimited) {
 
           // UI elements
@@ -304,7 +304,7 @@ var Widget = (function() {
 
           // Progress bar
           var current = stats.mobile.total;
-          var limit = getDataLimit(settings);
+          var limit = Common.getDataLimit(settings);
           debug(limit);
           progress.setAttribute('value', Math.min(current, limit));
           progress.setAttribute('max', Math.max(current, limit));
@@ -324,12 +324,12 @@ var Widget = (function() {
           }
 
           // Texts
-          var currentText = roundData(current);
+          var currentText = Formatting.roundData(current);
           currentText = _('magnitude', {
             value: currentText[0],
             unit: currentText[1]
           });
-          var limitText = roundData(limit);
+          var limitText = Formatting.roundData(limit);
           limitText = _('magnitude', {
             value: limitText[0],
             unit: limitText[1]
@@ -351,7 +351,7 @@ var Widget = (function() {
             _('magnitude', { value: data[0], unit: data[1] });
           var meta = views.dataUsage.querySelector('.meta');
           meta.innerHTML = '';
-          meta.appendChild(formatTimeHTML(stats.timestamp));
+          meta.appendChild(Formatting.formatTimeHTML(stats.timestamp));
         }
         // inform driver in system we are finished to update the widget
         hashMark = 1 - hashMark; // toogle between 0 and 1
@@ -380,7 +380,7 @@ var Widget = (function() {
             var dataActivity = result.data;
             document.getElementById('telephony-calltime').textContent =
               _('magnitude', {
-                value: computeTelephonyMinutes(dataActivity),
+                value: Formatting.computeTelephonyMinutes(dataActivity),
                 unit: 'min'
               }
             );
@@ -392,7 +392,7 @@ var Widget = (function() {
             );
             var meta = views.telephony.querySelector('.meta');
             meta.innerHTML = '';
-            meta.appendChild(formatTimeHTML(dataActivity.timestamp));
+            meta.appendChild(Formatting.formatTimeHTML(dataActivity.timestamp));
           });
         }
       }

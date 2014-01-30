@@ -1,8 +1,12 @@
-/* global ConfigManager, CostControl, debug, Common, asyncStorage,
-          NotificationHelper, _, resetAll, updateNextReset, getDataLimit,
-          formatData, smartRound, MozActivity, NetworkUsageAlarm */
-/*jshint -W020 */
+/* global ConfigManager, CostControl, debug, Common, asyncStorage, Formatting,
+          NotificationHelper, _, MozActivity, NetworkUsageAlarm */
 /* exported activity */
+/*jshint -W020 */
+/* The previous directive,ignore the "Read only" errors, that are produced when
+   redirect global objects (Common and Costcontrol) to parent versions to avoid
+   conflicts.
+*/
+
 (function() {
 
   'use strict';
@@ -251,9 +255,9 @@
     function _launchNextReset() {
       ConfigManager.requestSettings(Common.dataSimIccId,
                                     function _onSettings(settings) {
-        resetAll(function updateNextResetAndClose() {
-          updateNextReset(settings.trackingPeriod, settings.resetTime,
-                          closeIfProceeds);
+        Common.resetAll(function updateNextResetAndClose() {
+          Common.updateNextReset(settings.trackingPeriod, settings.resetTime,
+                                 closeIfProceeds);
         });
       });
     }
@@ -320,8 +324,8 @@
             }
           };
         }
-        var limit = getDataLimit(settings);
-        var limitText = formatData(smartRound(limit));
+        var limit = Common.getDataLimit(settings);
+        var limitText = Formatting.formatData(Formatting.smartRound(limit));
         var title = _('data-limit-notification-title2', { limit: limitText });
         var message = _('data-limit-notification-text2');
         NotificationHelper.send(title, message, iconURL, goToDataUsage);
