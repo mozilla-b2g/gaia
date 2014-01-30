@@ -41,7 +41,7 @@ module.exports = View.extend({
   },
 
   onItemsReset: function() {
-    this.reset();
+    this.reset(this.items.get());
     this.render();
   },
 
@@ -65,6 +65,7 @@ module.exports = View.extend({
   },
 
   renderItem: function(item) {
+    if (!item) { return; }
     var key = item.key;
     var el = this.els[key] || document.createElement('li');
     item.value = this.state.get(key);

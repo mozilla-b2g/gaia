@@ -16,10 +16,10 @@
   position: absolute;
 }
 
-.buttons-disabled .cancel-pick,
-.buttons-disabled .gallery-button,
-.buttons-disabled .capture-button,
-.buttons-disabled .switch-button {
+.controls[buttons-enabled=false] .cancel-pick,
+.controls[buttons-enabled=false] .gallery-button,
+.controls[buttons-enabled=false] .capture-button,
+.controls[buttons-enabled=false] .switch-button {
   pointer-events: none;
 }
 
@@ -190,7 +190,7 @@
   left: 66%;
 }
 
-.controls[switchable] .switch-button {
+.controls[switchable=true] .switch-button {
   display: block;
 }
 

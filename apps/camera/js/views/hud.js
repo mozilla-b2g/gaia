@@ -20,7 +20,6 @@ module.exports = View.extend({
 
   initialize: function(options) {
     this.model = options.model;
-    this.model.on('change:supports', this.onSupportChange);
     this.model.on('change:flashMode', this.setFlashMode);
     this.model.on('change:selectedCamera', this.setter('selectedCamera'));
     this.configure();
@@ -57,32 +56,18 @@ module.exports = View.extend({
    */
   onFlashClick: function() {
     var toggleClass = 'is-toggling';
-    var classes = this.els.flash.classList;
-    var model = this.model;
+    var self = this;
 
-    classes.add(toggleClass);
+    this.model.toggle('flashMode');
+    this.set('toggling-flash', true);
     clearTimeout(this.toggleTimer);
     this.toggleTimer = setTimeout(function() {
-      classes.remove(toggleClass);
-      model.toggle('flashMode');
+      self.set('toggling-flash', false);
     }, 1000);
   },
 
   onCameraClick: function() {
     this.model.toggle('selectedCamera');
-  },
-
-  onSupportChange: function() {
-
-  },
-
-  toggleDisableButtons: function(value) {
-    this.el.classList.toggle(this.buttonsDisabledClass, value);
-  },
-
-  disableButtons: function() {
-    this.el.classList.add(this.buttonsDisabledClass);
-    return this;
   },
 
   set: function(key, value) {
@@ -99,17 +84,12 @@ module.exports = View.extend({
     this.set(key + '-enabled', value);
   },
 
-  enableButtons: function() {
-    this.el.classList.remove(this.buttonsDisabledClass);
-    return this;
+  disable: function(key) {
+    this.enable(key, false);
   },
 
-  showCameraToggleButton: function(hasFrontCamera) {
-    this.el.classList.toggle('has-front-camera', hasFrontCamera);
-  },
-
-  highlightCameraButton: function(value) {
-    this.el.classList.toggle('is-toggling-camera', value);
+  hide: function(key, value) {
+    this.set(key + '-hidden', value);
   },
 
   template: function() {

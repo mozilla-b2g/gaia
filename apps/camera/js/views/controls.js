@@ -34,6 +34,42 @@ module.exports = View.extend({
     return this;
   },
 
+  set: function(key, value) {
+    this.el.setAttribute(key, value);
+  },
+
+  setter: function(key) {
+    return (function(value) { this.set(key, value); }).bind(this);
+  },
+
+  enable: function(key, value) {
+    value = arguments.length === 2 ? value : true;
+    this.set(key + '-enabled', value);
+  },
+
+  enabler: function(key) {
+    return (function(value) { this.enable(key, value); }).bind(this);
+  },
+
+  disable: function(key) {
+    this.enable(key, false);
+  },
+
+  setVideoTimer: function(ms) {
+    var formatted = formatTimer(ms);
+    this.els.timer.textContent = formatted;
+  },
+
+  onButtonClick: function(e, el) {
+    e.stopPropagation();
+    var name = el.getAttribute('name');
+    this.emit('click:' + name, e);
+  },
+
+  onSwitchClick: function(e) {
+    this.model.toggle('mode');
+  },
+
   template: function() {
     return '<a class="switch-button js-switch" name="switch">' +
       '<span class="rotates"></span>' +
@@ -51,39 +87,6 @@ module.exports = View.extend({
       '<span class="video-timer js-video-timer">00:00</span>' +
     '</div>';
   },
-
-  set: function(key, value) {
-    this.el.setAttribute(key, value);
-  },
-
-  setter: function(key) {
-    return (function(value) { this.set(key, value); }).bind(this);
-  },
-
-  enableButtons: function() {
-    this.el.classList.remove(this.buttonsDisabledClass);
-    debug('buttons enabled');
-  },
-
-  disableButtons: function() {
-    this.el.classList.add(this.buttonsDisabledClass);
-    debug('buttons disabled');
-  },
-
-  setVideoTimer: function(ms) {
-    var formatted = formatTimer(ms);
-    this.els.timer.textContent = formatted;
-  },
-
-  onButtonClick: function(e, el) {
-    e.stopPropagation();
-    var name = el.getAttribute('name');
-    this.emit('click:' + name, e);
-  },
-
-  onSwitchClick: function(e) {
-    this.model.toggle('mode');
-  }
 });
 
 });

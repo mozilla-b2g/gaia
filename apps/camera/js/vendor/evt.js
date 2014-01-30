@@ -101,6 +101,15 @@ proto.fire = proto.emit = function(options) {
   return this;
 };
 
+proto.firer = function(name) {
+  var self = this;
+  return function() {
+    var args = slice.call(arguments);
+    args.unshift(name);
+    self.fire.apply(self, args);
+  };
+};
+
 /**
  * Util
  */
