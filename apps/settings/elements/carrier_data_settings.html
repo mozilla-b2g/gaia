@@ -13,7 +13,7 @@
       <ul class="apnSettings-list">
         <li class="apnSettings-custom">
           <label class="pack-radio">
-            <input type="radio" data-setting="ril.data.carrier" name="dataApnSettingsCarrier" value="_custom_" checked>
+            <input type="radio" name="defaultApn" value="_custom_">
             <span data-l10n-id="custom">(custom settings)</span>
           </label>
         </li>
@@ -23,30 +23,33 @@
         <h2 data-l10n-id="advancedSettings"> Advanced Settings </h2>
       </header>
       <ul class="apnSettings-advanced">
+        <li hidden>
+          <input type="text" x-inputmode="verbatim" id="ril.data.carrier" />
+        </li>
         <li>
           <p data-l10n-id="apn">APN</p>
-          <input type="text" x-inputmode="verbatim" data-setting="ril.data.apn" />
+          <input type="text" x-inputmode="verbatim" id="ril.data.apn" />
         </li>
         <li>
           <p data-l10n-id="identity">identity</p>
-          <input type="text" data-setting="ril.data.user" />
+          <input type="text" id="ril.data.user" />
         </li>
         <li>
           <p data-l10n-id="password">password</p>
-          <input type="password" data-setting="ril.data.passwd" />
+          <input type="password" id="ril.data.passwd" />
         </li>
         <li>
           <p data-l10n-id="httpProxyHost">HTTP Proxy Host</p>
-          <input type="text" data-setting="ril.data.httpProxyHost" />
+          <input type="text" id="ril.data.httpProxyHost" />
         </li>
         <li>
           <p data-l10n-id="httpProxyPort">HTTP Proxy Port</p>
-          <input type="text" data-setting="ril.data.httpProxyPort" />
+          <input type="text" id="ril.data.httpProxyPort" />
         </li>
         <li>
           <p data-l10n-id="apn-authType">Authentication</p>
           <span class="button icon icon-dialog">
-            <select id="ril-data-authType" data-setting="ril.data.authtype">
+            <select id="ril.data.authType">
               <option value="notDefined" data-l10n-id="apn-authType-notDefined">Not defined</option>
               <option value="none" data-l10n-id="apn-authType-none">None</option>
               <option value="pap" data-l10n-id="apn-authType-pap">PAP</option>
