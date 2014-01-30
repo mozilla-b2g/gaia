@@ -49,6 +49,7 @@ CameraController.prototype.bindEvents = function() {
   camera.on('loading', app.firer('camera:loading'));
   camera.on('loaded', app.firer('camera:loaded'));
   camera.on('ready', app.firer('camera:ready'));
+  camera.on('busy', app.firer('camera:busy'));
 
   // Camera
   camera.on('filesizelimitreached', this.onFileSizeLimitReached);
