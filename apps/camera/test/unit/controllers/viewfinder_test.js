@@ -1,86 +1,72 @@
-/*jshint maxlen:false*/
 /*global req*/
 'use strict';
 
 suite('controllers/viewfinder', function() {
-  var Controller;
+  var ViewfinderController;
 
   suiteSetup(function(done) {
     var self = this;
 
-    this.modules = {};
-
     req([
+      'app',
+      'camera',
       'controllers/viewfinder',
-      'vendor/view',
+      'views/viewfinder',
       'activity'
-    ], function(controller, View, activity) {
-      Controller = self.modules.controller = controller;
-      self.modules.View = View;
-      self.modules.activity = activity;
+    ], function(App, Camera, _ViewfinderController, ViewfinderView, Activity) {
+      ViewfinderController = _ViewfinderController.ViewfinderController;
+      self.ViewfinderView = ViewfinderView;
+      self.Activity = Activity;
+      self.Camera = Camera;
+      self.App = App;
       done();
     });
   });
 
   setup(function() {
-    var Activity = this.modules.activity;
-    var View = this.modules.View;
-
-    this.app = {
-      camera: {
-        on: sinon.spy(),
-        get: sinon.stub()
-      },
-      activity: new Activity(),
-      filmstrip: new View(),
-      views: {
-        viewfinder: new View()
-      }
+    this.app = sinon.createStubInstance(this.App);
+    this.app.camera = sinon.createStubInstance(this.Camera);
+    this.app.activity = sinon.createStubInstance(this.Activity);
+    this.app.filmstrip = { toggle: sinon.spy() };
+    this.app.views = {
+      viewfinder: sinon.createStubInstance(this.ViewfinderView),
     };
+
+    this.filmstrip = this.app.filmstrip;
+    this.viewfinder = this.app.views.viewfinder;
   });
 
   suite('click:viewfinder', function() {
-    setup(function() {
-      this.app.filmstrip.toggle = sinon.spy();
-    });
-
     test('Should *not* hide the filmstrip if recording', function() {
       this.app.camera.get
         .withArgs('recording')
         .returns(true);
 
-      this.controller = new Controller(this.app);
-      this.app.views.viewfinder.emit('click');
+      this.controller = new ViewfinderController(this.app);
+      this.viewfinder.emit('click');
 
-      assert.isFalse(this.app.filmstrip.toggle.called);
+      assert.isFalse(this.filmstrip.toggle.called);
     });
 
     test('Should *not* hide the filmstrip if activity is pending', function() {
-      this.app.camera.get
+      this.app.get
         .withArgs('recording')
         .returns(false);
 
       this.app.activity.active = true;
-
-      this.controller = new Controller(this.app);
-
-      // Tigger a click event
-      this.app.views.viewfinder.emit('click');
-
-      assert.isFalse(this.app.filmstrip.toggle.called);
+      this.controller = new ViewfinderController(this.app);
+      this.controller.onViewfinderClick();
+      assert.isFalse(this.filmstrip.toggle.called);
     });
 
     test('Should hide the filmstrip if activity is pending', function() {
-      this.app.camera.get
+      this.app.get
         .withArgs('recording')
         .returns(false);
 
-      this.controller = new Controller(this.app);
-
-      // Tigger a click event
-      this.app.views.viewfinder.emit('click');
-
-      assert.isTrue(this.app.filmstrip.toggle.called);
+      this.controller = new ViewfinderController(this.app);
+      this.controller.onViewfinderClick();
+      assert.isTrue(this.filmstrip.toggle.called);
     });
   });
 });

@@ -12,9 +12,8 @@ var debug = require('debug')('controller:viewfinder');
  * Exports
  */
 
-module.exports = function(app) {
-  return new ViewfinderController(app);
-};
+exports = module.exports = function(app) { return new ViewfinderController(app); };
+exports.ViewfinderController = ViewfinderController;
 
 /**
  * Initialize a new `ViewfinderController`
@@ -23,21 +22,21 @@ module.exports = function(app) {
  */
 function ViewfinderController(app) {
   debug('initializing');
-  this.viewfinder = app.views.viewfinder;
-  this.filmstrip = app.filmstrip;
-  this.activity = app.activity;
-  this.camera = app.camera;
-  this.app = app;
   bindAll(this);
+  this.app = app;
+  this.camera = app.camera;
+  this.activity = app.activity;
+  this.filmstrip = app.filmstrip;
+  this.viewfinder = app.views.viewfinder;
   this.bindEvents();
   debug('initialized');
 }
 
 ViewfinderController.prototype.bindEvents = function() {
-  this.app.on('camera:configured', this.onConfigured);
-  this.camera.on('change:mode', this.onConfigured);
   this.viewfinder.on('click', this.onViewfinderClick);
   this.app.on('camera:loaded', this.viewfinder.fadeIn);
+  this.app.on('camera:configured', this.onConfigured);
+  this.app.on('change:mode', this.onConfigured);
 };
 
 ViewfinderController.prototype.onConfigured = function() {
@@ -59,7 +58,7 @@ ViewfinderController.prototype.onConfigured = function() {
  * @private
  */
 ViewfinderController.prototype.onViewfinderClick = function() {
-  var recording = this.camera.get('recording');
+  var recording = this.app.get('recording');
   if (recording || this.activity.active) { return; }
   this.filmstrip.toggle();
   debug('click');

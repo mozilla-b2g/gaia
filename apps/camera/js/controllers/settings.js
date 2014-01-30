@@ -33,9 +33,9 @@ function SettingsController(app) {
 }
 
 SettingsController.prototype.bindEvents = function() {
-  this.app.on('settingsrequest', this.openSettings);
-  this.app.on('settingsdismiss', this.closeSettings);
-  this.app.on('settingstoggle', this.toggleSettings);
+  //this.app.on('settingsrequest', this.openSettings);
+  //this.app.on('settingsdismiss', this.closeSettings);
+  //this.app.on('settingstoggle', this.toggleSettings);
   this.app.on('change:supports', this.onSupportChange);
 };
 

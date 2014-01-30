@@ -20,13 +20,13 @@ module.exports = Config;
 var has = {}.hasOwnProperty;
 
 function Config(data) {
-  this.data = data;
+  this.data = data || {};
   this.processed = {
     persistent: [],
     menu: [],
     values: {}
   };
-  this.set(data);
+  this.set(this.data);
 }
 
 /**

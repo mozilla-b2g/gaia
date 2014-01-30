@@ -24,6 +24,7 @@ module.exports = View.extend({
     this.model.on('change:mode', this.setter('mode'));
     this.model.on('change:recording', this.setter('recording'));
     this.set('mode', this.model.get('mode'));
+    this.render();
   },
 
   render: function() {
@@ -31,7 +32,6 @@ module.exports = View.extend({
     this.els.timer = find('.js-video-timer', this.el);
     attach.on(this.el, 'click', '.js-switch', this.onSwitchClick);
     attach.on(this.el, 'click', '.js-btn', this.onButtonClick);
-    return this;
   },
 
   set: function(key, value) {

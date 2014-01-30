@@ -26,7 +26,6 @@ function ControlsController(app) {
   this.app = app;
   this.activity = app.activity;
   this.controls = app.views.controls;
-  this.controls.render().appendTo(app.el);
   this.bindEvents();
   this.configure();
   debug('initialized');
@@ -49,7 +48,9 @@ ControlsController.prototype.configure = function() {
   var showCamera = !activity.active || activity.allowedTypes.image;
   var showVideo = !activity.active || activity.allowedTypes.video;
   var isSwitchable = showVideo && showCamera;
-  var isCancellable = activity.active;
+  var isCancellable = !!activity.active;
+
+  console.log('isCancellable', isCancellable);
 
   // The gallery button should not
   // be shown if an activity is pending

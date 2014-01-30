@@ -13,13 +13,13 @@ suite('controllers/camera', function() {
       'camera',
       'activity',
       'vendor/view',
-      'vendor/evt'
-    ], function(controller, Camera, View, activity, evt) {
-      Controller = modules.controller = controller;
+      'vendor/model'
+    ], function(controller, Camera, activity, View, Model) {
+      Controller = modules.controller = controller.CameraController;
       modules.activity = activity;
       modules.camera = Camera;
       modules.view = View;
-      modules.evt = evt;
+      modules.model = Model;
       done();
     });
   });
@@ -28,12 +28,12 @@ suite('controllers/camera', function() {
     var Activity = modules.activity;
     var Camera = modules.camera;
     var View = modules.view;
-    var evt = modules.evt;
+    var model = modules.model;
 
     this.sandbox = sinon.sandbox.create();
 
     // Mock app
-    this.app = evt.mix({
+    this.app = model({
       activity: new Activity(),
       camera: new Camera(),
       views: {
@@ -62,15 +62,9 @@ suite('controllers/camera', function() {
     });
 
     test('Should set the capture mode to \'camera\' by default', function() {
+      this.app.set('mode', 'photo');
       this.controller = new Controller(this.app);
       assert.isTrue(this.app.camera.set.calledWith('mode', 'photo'));
-    });
-
-    test('Should set the capture mode to the mode' +
-         'specified by the activity if present', function() {
-      this.app.activity.mode = 'video';
-      this.controller = new Controller(this.app);
-      assert.isTrue(this.app.camera.set.calledWith('mode', 'video'));
     });
 
     test('Should setup camera on app `boot`', function() {

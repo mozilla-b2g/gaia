@@ -1,10 +1,18 @@
-define(function(require) {
+define(function(require, exports, module) {
 'use strict';
+
+/**
+ * Dependencies
+ */
 
 var View = require('vendor/view');
 
-return View.extend({
-  className: 'focus-ring',
+/**
+ * Exports
+ */
+
+module.exports = View.extend({
+  name: 'focus-ring',
   setState: function(state) {
     this.el.setAttribute('data-state', state);
   }
