@@ -536,7 +536,11 @@ var CallsHandler = (function callsHandler() {
     if (telephony.active) {
       // connected, incoming
       telephony.active.hold(); // the incoming call is answered by gecko
-      btHelper.answerWaitingCall();
+
+      // Check for CDMA mode before calling bluetooth CDMA-specific functions
+      if (cdmaCallWaiting()) {
+        btHelper.answerWaitingCall();
+      }
     } else if (handledCalls.length >= 2) {
       // held, incoming
       var lastCall = handledCalls[handledCalls.length - 1].call;
