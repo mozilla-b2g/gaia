@@ -88,7 +88,10 @@ App.prototype.boot = function() {
 
 App.prototype.setInitialMode = function() {
   var mode = this.activity.mode;
-  if (mode) { this.set('mode', mode, { silent: true }); }
+  if (mode) {
+    this.set('mode', mode, { silent: true });
+    console.log('set mode', mode);
+  }
 };
 
 App.prototype.teardown = function() {
@@ -115,18 +118,18 @@ App.prototype.runControllers = function() {
 };
 
 App.prototype.initializeViews = function() {
-  this.views.controls = new ControlsView({ model: app });
-  this.views.hud = new HudView({ model: app });
+  this.views.controls = new ControlsView({ model: this });
+  this.views.hud = new HudView({ model: this });
   this.views.viewfinder = new ViewfinderView();
   this.views.focusRing = new FocusRing();
   debug('views initialized');
 };
 
 App.prototype.injectViews = function() {
-  var views = this.views;
-  views.hud.appendTo(this.el);
-  views.viewfinder.appendTo(this.el);
-  views.focusRing.appendTo(this.el);
+  this.views.hud.appendTo(this.el);
+  this.views.controls.appendTo(this.el);
+  this.views.viewfinder.appendTo(this.el);
+  this.views.focusRing.appendTo(this.el);
   debug('views injected');
 };
 

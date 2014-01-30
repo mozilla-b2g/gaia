@@ -13,9 +13,8 @@ var bindAll = require('utils/bindAll');
  * Exports
  */
 
-module.exports = function(app) {
-  return new CameraController(app);
-};
+exports = module.exports = function(app) { return new CameraController(app); };
+exports.CameraController = CameraController;
 
 /**
  * Initialize a new `CameraController`

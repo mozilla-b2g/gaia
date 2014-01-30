@@ -12,9 +12,8 @@ var debug = require('debug')('controller:hud');
  * Exports
  */
 
-module.exports = function(app) {
-  return new HudController(app);
-};
+exports = module.exports = function(app) { return new HudController(app); };
+exports.HudController = HudController;
 
 /**
  * Initialize a new `HudController`
@@ -37,7 +36,6 @@ function HudController(app) {
  * @return {HudController} for chaining
  */
 HudController.prototype.bindEvents = function() {
-  var hud = this.hud;
   this.app.on('camera:busy', this.disableButtons);
   this.app.on('camera:ready', this.enableButtons);
   this.app.on('camera:loading', this.disableButtons);
