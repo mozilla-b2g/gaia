@@ -47,8 +47,11 @@ var CostControlApp = (function() {
     // SIM not ready
     if (cardState !== 'ready') {
       debug('SIM not ready:', cardState);
-      IccHelper.oncardstatechange = checkSIMStatus;
-
+      if (!cardState || cardState === 'absent' || cardState === 'locked') {
+        IccHelper.oncardstatechange = undefined;
+      } else {
+        IccHelper.oncardstatechange = checkSIMStatus;
+      }
     // SIM is ready, but ICC info is not ready yet
     } else if (!Common.isValidICCID(iccid)) {
       debug('ICC info not ready yet');
