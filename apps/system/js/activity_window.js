@@ -151,6 +151,7 @@
         this.publish('open');
         this._transitionState = 'opened';
         var app = this.activityCaller;
+        this.setOrientation();
         // Set page visibility of focused app to false
         // once inline activity frame's transition is ended.
         // XXX: We have trouble to make all inline activity
