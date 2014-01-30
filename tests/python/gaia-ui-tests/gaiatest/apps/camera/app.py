@@ -3,7 +3,9 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import time
+
 from marionette.by import By
+
 from gaiatest.apps.base import Base
 from gaiatest.apps.base import PageRegion
 import gaiatest.apps.gallery.app
@@ -18,7 +20,6 @@ class Camera(Base):
 
     # Controls View
     _controls_locator = (By.CSS_SELECTOR, '.js-controls')
-    _controls_enabled_locator = (By.CSS_SELECTOR, '.js-controls:not(.buttons-disabled)')
     _switch_button_locator = (By.CSS_SELECTOR, '.js-switch')
     _capture_button_locator = (By.CSS_SELECTOR, '.js-capture')
     _gallery_button_locator = (By.CSS_SELECTOR, '.js-gallery')
@@ -32,7 +33,7 @@ class Camera(Base):
     _toggle_camera_button_locator = (By.CSS_SELECTOR, '.js-toggle-camera')
     _flash_text_visible_locator = (By.CSS_SELECTOR, '.is-toggling .flash-text')
 
-    # FocusRing View
+    _viewfinder_locator = (By.CLASS_NAME, 'viewfinder')
     _focus_ring_locator = (By.CSS_SELECTOR, '.focus-ring')
 
     # Filmstrip View
@@ -46,7 +47,7 @@ class Camera(Base):
 
     def launch(self):
         Base.launch(self)
-        self.wait_for_camera_ready()
+        self.wait_for_capture_ready()
 
     def take_photo(self):
         self.tap_capture()
@@ -73,8 +74,6 @@ class Camera(Base):
         self.wait_for_filmstrip_visible()
 
     def tap_capture(self):
-        self.wait_for_camera_ready()
-        self.wait_for_element_displayed(*self._capture_button_locator)
         self.marionette.find_element(*self._capture_button_locator).tap()
 
     def tap_select_button(self):
@@ -83,6 +82,9 @@ class Camera(Base):
     def tap_switch_source(self):
         self.wait_for_element_displayed(*self._switch_button_locator)
         self.marionette.find_element(*self._switch_button_locator).tap()
+        self.wait_for_condition(
+            lambda m: 'buttons-disabled' not in m.find_element(
+                *self._controls_locator).get_attribute('class'))
         self.wait_for_capture_ready()
 
     def tap_toggle_flash_button(self):
@@ -96,9 +98,6 @@ class Camera(Base):
     def wait_for_select_button_displayed(self):
         self.wait_for_element_displayed(*self._select_button_locator)
 
-    def wait_for_camera_ready(self):
-        self.wait_for_element_present(*self._controls_enabled_locator)
-
     def wait_for_filmstrip_visible(self):
         self.wait_for_condition(lambda m: self.is_filmstrip_visible)
 
@@ -106,10 +105,13 @@ class Camera(Base):
         self.wait_for_condition(lambda m: self.is_filmstrip_hidden)
 
     def wait_for_capture_ready(self):
-        self.wait_for_condition(lambda m: self.marionette.find_element(*self._focus_ring_locator).get_attribute('data-state') is None)
+        self.wait_for_condition(
+            lambda m: m.execute_script('return arguments[0].readyState;', [
+                self.wait_for_element_present(*self._viewfinder_locator)]) > 0)
 
     def wait_for_video_capturing(self):
-        self.wait_for_condition(lambda m: self.marionette.find_element(*self._controls_locator).get_attribute('data-recording') == 'true')
+        self.wait_for_condition(lambda m: m.find_element(
+            *self._controls_locator).get_attribute('data-recording') == 'true')
 
     def wait_for_video_timer_not_visible(self):
         self.wait_for_element_not_displayed(*self._video_timer_locator)
@@ -122,7 +124,7 @@ class Camera(Base):
         self.wait_for_element_present(*self._camera_frame_locator)
         camera_frame = self.marionette.find_element(*self._camera_frame_locator)
         self.marionette.switch_to_frame(camera_frame)
-        self.wait_for_camera_ready()
+        self.wait_for_capture_ready()
 
     def tap_switch_to_gallery(self):
         switch_to_gallery_button = self.marionette.find_element(*self._gallery_button_locator)

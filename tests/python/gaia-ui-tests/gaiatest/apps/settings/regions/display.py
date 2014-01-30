@@ -11,7 +11,6 @@ class Display(Base):
 
     _wallpaper_preview_locator = (By.ID, 'wallpaper-preview')
     _wallpaper_pick_locator = (By.ID, 'wallpaper')
-    _wallpaper_button_locator = (By.XPATH, "//*[text()='Wallpaper']")
     _stock_wallpapers_locator = (By.CSS_SELECTOR, "div[class='wallpaper']")
     _wallpaper_frame_locator = (By.CSS_SELECTOR, "iframe[src^='app://wallpaper'][src$='pick.html']")
 
@@ -22,8 +21,4 @@ class Display(Base):
 
     def pick_wallpaper(self):
         self.marionette.find_element(*self._wallpaper_pick_locator).tap()
-
-        # switch to the system app
-        self.marionette.switch_to_frame()
-
         return Activities(self.marionette)
