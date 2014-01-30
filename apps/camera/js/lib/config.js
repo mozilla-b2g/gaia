@@ -19,6 +19,12 @@ module.exports = Config;
 
 var has = {}.hasOwnProperty;
 
+/**
+ * Initialize a new `Config`
+ *
+ * @constructor
+ * @param {Object} data
+ */
 function Config(data) {
   this.data = data || {};
   this.processed = {
@@ -50,9 +56,7 @@ Config.prototype.set = function(data) {
 
     // Unless its marked as `persist: false`
     // push it into the persistent object.
-    if (item.persist !== false) {
-      this.processed.persistent.push(key);
-    }
+    if (item.persist) { this.processed.persistent.push(key); }
 
     // If the item has a `menu` key, push it onto the menu list.
     if (has.call(item, 'menu')) { this.processed.menu.push(item); }
