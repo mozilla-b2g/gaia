@@ -572,6 +572,7 @@ Cards = {
         for (var i = 0; i < folders.length; i++) {
           var folder = folders[i];
           self.folderPrompt.addToList(folder.name, folder.depth,
+            folder.selectable,
             function(folder) {
               return function() {
                 self.folderPrompt.hide();
