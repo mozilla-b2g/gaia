@@ -101,7 +101,8 @@ suite('system/Rocketbar', function() {
       assert.ok(focusStub.notCalled);
     });
 
-    test('cardviewclosed event should trigger focus', function() {
+    test('cardviewclosed event should trigger focus and clear input',
+      function() {
       Rocketbar.render();
       var focusStub = this.sinon.stub(Rocketbar.searchInput, 'focus');
       this.sinon.clock.tick(1);
@@ -110,6 +111,53 @@ suite('system/Rocketbar', function() {
       });
       Rocketbar.hide();
       assert.ok(focusStub.calledOnce);
+      assert.equal(Rocketbar.searchInput.value, '');
+    });
+
+    test('appforeground event should set currentURL', function() {
+      Rocketbar.handleEvent({
+        type: 'appforeground',
+        detail: {
+          config: {
+            url: 'http://example.com'
+          }
+        }
+      });
+      assert.equal(Rocketbar.currentURL, 'http://example.com');
+    });
+
+    test('applocationchange event should set currentURL', function() {
+      Rocketbar.handleEvent({
+        type: 'applocationchange',
+        detail: {
+          config: {
+            url: 'http://example.com'
+          }
+        }
+      });
+      assert.equal(Rocketbar.currentURL, 'http://example.com');
+    });
+
+    test('applocationchange event should not set currentURL for apps',
+      function() {
+      Rocketbar.handleEvent({
+        type: 'applocationchange',
+        detail: {
+          manifestURL: 'http://example.com/manifest.webapp',
+          config: {
+            url: 'http://example.com'
+          }
+        }
+      });
+      assert.equal(Rocketbar.currentURL, '');
+    });
+
+    test('focus on searchInput should set its value to currentURL', function() {
+      Rocketbar.currentURL = 'http://example.com';
+      Rocketbar.handleEvent({
+        type: 'focus'
+      });
+      assert.equal(Rocketbar.searchInput.value, 'http://example.com');
     });
 
     test('should not focus when closing rocketbar', function() {
@@ -150,11 +198,11 @@ suite('system/Rocketbar', function() {
       assert.equal(dispatchStub.getCall(0).args[0].type, 'taskmanagershow');
     });
 
-    test('focus on event call updateResetButton', function() {
+    test('click on event call updateResetButton', function() {
       var stub = this.sinon.stub(Rocketbar, 'updateResetButton');
 
       Rocketbar.handleEvent({
-        type: 'focus',
+        type: 'click',
         target: {
           id: 'search-input'
         }
@@ -163,6 +211,7 @@ suite('system/Rocketbar', function() {
       assert.ok(stub.calledOnce);
       stub.restore();
     });
+
   });
 
   suite('render', function() {

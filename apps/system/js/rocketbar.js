@@ -18,6 +18,11 @@ var Rocketbar = {
 
   searchAppURL: null,
 
+  /**
+   * Current URL of browser window.
+   */
+  currentURL: '',
+
   _port: null,
 
   screen: document.getElementById('screen'),
@@ -83,6 +88,7 @@ var Rocketbar = {
       case 'cardviewclosed':
           if (this.shown) {
             this.searchInput.focus();
+            this.searchInput.value = '';
           }
         return;
       case 'keyboardchange':
@@ -95,14 +101,22 @@ var Rocketbar = {
         this.hide();
         return;
       case 'apptitlechange':
+        this.updateSearchIndex();
+        return;
+      case 'appforeground':
       case 'applocationchange':
-        // Send a message to the search app to notify if
-        // of updates to places data
-        if (this._port) {
-          this._port.postMessage({
-            action: 'syncPlaces'
-          });
+        // Only set URL for browser windows, not app windows.
+        if (e.detail.config.url && !e.detail.manifestURL) {
+          this.currentURL = e.detail.config.url;
+        } else {
+          this.currentURL = '';
         }
+        this.updateSearchIndex();
+        return;
+      case 'focus':
+        this.searchInput.value = this.currentURL;
+        this.updateResetButton();
+        return;
       default:
         break;
     }
@@ -155,29 +169,28 @@ var Rocketbar = {
   },
 
   init: function() {
-    // IACHandler will dispatch inter-app messages
+    // Listen for Inter-app Communication API messages
     window.addEventListener('iac-search-results',
       this.onSearchMessage.bind(this));
 
-    // Hide task manager when we focus on search bar
-    this.searchInput.addEventListener('focus', this);
-
-    this.searchInput.addEventListener('blur', this);
-
+    // Listen for events from Window Manager
     window.addEventListener('apptitlechange', this);
     window.addEventListener('applocationchange', this);
     window.addEventListener('appopened', this);
+    window.addEventListener('appforeground', this);
     window.addEventListener('cardchange', this);
     window.addEventListener('cardviewclosed', this);
     window.addEventListener('cardviewclosedhome', this);
     window.addEventListener('home', this);
 
+    // Listen for events from DOM elements
+    this.searchInput.addEventListener('focus', this);
+    this.searchInput.addEventListener('blur', this);
     this.searchCancel.addEventListener('click', this);
-    // Prevent default on mousedown
     this.searchReset.addEventListener('mousedown', this);
-    // Listen to clicks to keep the keyboard up
     this.searchReset.addEventListener('click', this);
 
+    // Listen to settings changes
     SettingsListener.observe('rocketbar.enabled', false,
     function(value) {
       if (value) {
@@ -187,7 +200,6 @@ var Rocketbar = {
       }
       this.enabled = value;
     }.bind(this));
-
     SettingsListener.observe('rocketbar.searchAppURL', '',
     function(url) {
       this.searchAppURL = url;
@@ -357,6 +369,19 @@ var Rocketbar = {
       input.focus();
     }
 
+  },
+
+  /**
+   * Update Search Index.
+   *
+   * Notifies search app that places data has changed.
+   */
+  updateSearchIndex: function() {
+    if (this._port) {
+      this._port.postMessage({
+        action: 'syncPlaces'
+      });
+    }
   }
 };
 
