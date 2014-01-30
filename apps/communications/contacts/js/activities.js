@@ -1,3 +1,8 @@
+/* globals _, ConfirmDialog, Contacts, LazyLoader, utils, ValueSelector */
+/* exported ActivityHandler */
+
+'use strict';
+
 var ActivityHandler = {
   _currentActivity: null,
 
@@ -24,8 +29,9 @@ var ActivityHandler = {
   },
 
   launch_activity: function ah_launch(activity, action) {
-    if (this._launchedAsInlineActivity)
+    if (this._launchedAsInlineActivity) {
       return;
+    }
 
     this._currentActivity = activity;
     var hash = action;
@@ -55,8 +61,9 @@ var ActivityHandler = {
         this.launch_activity(activity, 'add-parameters');
         break;
       case 'pick':
-        if (!this._launchedAsInlineActivity)
+        if (!this._launchedAsInlineActivity) {
           return;
+        }
         this._currentActivity = activity;
         Contacts.navigation.home();
         break;
@@ -128,7 +135,7 @@ var ActivityHandler = {
       case 1:
         // if one required type of data
         if (this.activityDataType == 'webcontacts/tel') {
-          result = theContact;
+          result = utils.misc.toMozContact(theContact);
         } else {
           result[type] = dataSet[0].value;
         }
@@ -148,7 +155,7 @@ var ActivityHandler = {
         prompt1.onchange = (function onchange(itemData) {
           if (this.activityDataType == 'webcontacts/tel') {
             // filter phone from data.tel to take out the rest
-            result = theContact;
+            result = utils.misc.toMozContact(theContact);
             result.tel =
               this.filterPhoneNumberForActivity(itemData, result.tel);
           } else {
