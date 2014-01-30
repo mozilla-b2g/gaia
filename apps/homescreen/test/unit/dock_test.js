@@ -109,7 +109,7 @@ suite('dock.js >', function() {
 
     test('#calculateDimentions', function() {
       DockManager.calculateDimentions(dock.getNumIcons());
-      assert.equal(DockManager.cellWidth, 0);
+      assert.equal(DockManager.cellWidth, MockIcon.prototype.getWidth());
     });
 
     test('dock is not scrollable', function() {
