@@ -5,19 +5,12 @@ const CC = Components.Constructor;
 const loaderURI = 'resource://gre/modules/commonjs/toolkit/loader.js';
 
 var { Loader } = Components.utils.import(loaderURI, {});
-
-var paths = {
-  'toolkit/': 'resource://gre/modules/commonjs/toolkit/',
-  'sdk/': 'resource://gre/modules/commonjs/sdk/',
-  '': GAIA_BUILD_DIR
-};
-
-if (typeof APP_BUILD_DIR !== 'undefined') {
-  paths['app/'] = APP_BUILD_DIR;
-}
-
 var loader = Loader.Loader({
-  paths: paths,
+  paths: {
+    'toolkit/': 'resource://gre/modules/commonjs/toolkit/',
+    'sdk/': 'resource://gre/modules/commonjs/sdk/',
+    '': GAIA_BUILD_DIR
+  },
   modules: {
     'toolkit/loader': Loader
   }
