@@ -41,7 +41,6 @@ HudController.prototype.bindEvents = function() {
   this.app.on('camera:busy', this.disableButtons);
   this.app.on('camera:ready', this.enableButtons);
   this.app.on('camera:loading', this.disableButtons);
-  this.app.on('camera:recording', this.disableButtons);
   this.app.on('change:supports', this.onSupportChange);
   this.app.on('change:recording', this.onRecordingChange);
 };
@@ -64,8 +63,8 @@ HudController.prototype.disableButtons = function() {
 };
 
 HudController.prototype.onRecordingChange = function(recording) {
-  this.hud.hide('flash', !recording);
-  this.hud.hide('camera', !recording);
+  this.hud.hide('flash', recording);
+  this.hud.hide('camera', recording);
 };
 
 });

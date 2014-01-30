@@ -20,15 +20,9 @@ module.exports = View.extend({
 
   initialize: function(options) {
     this.model = options.model;
-    this.model.on('change:flashMode', this.setFlashMode);
-    this.model.on('change:selectedCamera', this.setter('selectedCamera'));
-    this.configure();
-    this.render();
-  },
-
-  configure: function() {
     this.set('flashMode', this.model.get('flashMode'));
-    this.set('selectedCamera', this.model.get('selectedCamera'));
+    this.model.on('change:flashMode', this.setFlashMode);
+    this.render();
   },
 
   render: function() {
@@ -81,7 +75,7 @@ module.exports = View.extend({
 
   enable: function(key, value) {
     value = arguments.length === 2 ? value : true;
-    this.set(key + '-enabled', value);
+    this.set(key + '-enabled', !!value);
   },
 
   disable: function(key) {
