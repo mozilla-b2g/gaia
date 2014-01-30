@@ -1,34 +1,25 @@
-let utils = require('./utils');
+let utils = require('utils');
 const { Cc, Ci, Cr, Cu, CC } = require('chrome');
 Cu.import('resource://gre/modules/Services.jsm');
 
 exports.copyLayoutsAndResources = copyLayoutsAndResources;
 exports.addEntryPointsToManifest = addEntryPointsToManifest;
 
-function copyLayoutsAndResources(config) {
-  // This is the source dir for the keyboard app
-  let appDir = utils.getFile(config.GAIA_DIR, 'apps', 'keyboard');
-
+function copyLayoutsAndResources(appDir, distDir, layoutNames) {
   // Here is where the layouts and dictionaries get copied to
-  let layoutDest = utils.getFile(appDir.path, 'js', 'layouts');
-  let dictDest = utils.getFile(appDir.path,
+  let layoutDest = utils.getFile(distDir.path, 'js', 'layouts');
+  let dictDest = utils.getFile(distDir.path,
                                'js', 'imes', 'latin', 'dictionaries');
 
-  let imeDest = utils.getFile(appDir.path, 'js', 'imes');
+  let imeDest = utils.getFile(distDir.path, 'js', 'imes');
 
   // First delete any layouts or dictionaries that are in the src dir
   // from the last time.
   utils.ensureFolderExists(layoutDest);
   utils.ensureFolderExists(dictDest);
-  utils.ls(layoutDest, false).forEach(function(f) { f.remove(false); });
-  utils.ls(dictDest).forEach(function(f) { f.remove(false); });
-  utils.ls(imeDest).forEach(function(f) {
-    if (f.leafName !== 'latin')
-      f.remove(true);
-  });
 
   // Now get the set of layouts for this build
-  let layouts = getLayouts(config);
+  let layouts = getLayouts(appDir, layoutNames);
 
   // Loop through the layouts and copy the layout file and dictionary file
   layouts.forEach(function(layout) {
@@ -57,9 +48,9 @@ function copyLayoutsAndResources(config) {
   });
 }
 
-function addEntryPointsToManifest(config, manifest) {
+function addEntryPointsToManifest(appDir, distDir, layoutNames, manifest) {
   // Get the set of layouts
-  let layouts = getLayouts(config);
+  let layouts = getLayouts(appDir, layoutNames);
 
   // The inputs property of the manifest object has one property
   // for each keyboard layout we support. The manifest file has a hard-coded
@@ -79,14 +70,11 @@ function addEntryPointsToManifest(config, manifest) {
 
 // Read the keyboard layout file for each of the named keyboard layouts in
 // GAIA_KEYBOARD_LAYOUTS, and return an array of layout objects
-function getLayouts(config) {
-  // These are the keyboard layouts requested at build time
-  let layoutNames = config.GAIA_KEYBOARD_LAYOUTS.split(',');
-
+function getLayouts(appDir, layoutNames) {
   // Here is where the layouts and dictionaries come from
-  let layoutSrc = utils.getFile(config.GAIA_DIR, 'keyboard', 'layouts');
-  let dictSrc = utils.getFile(config.GAIA_DIR, 'keyboard', 'dictionaries');
-  let imeSrc = utils.getFile(config.GAIA_DIR, 'keyboard', 'imes');
+  let layoutSrc = utils.getFile(appDir.path, 'js', 'layouts');
+  let dictSrc = utils.getFile(appDir.path, 'js', 'imes', 'latin', 'dictionaries');
+  let imeSrc = utils.getFile(appDir.path, 'js', 'imes');
 
   // Read the layout files and find their names and dictionaries,
   // and copy them into the app package
