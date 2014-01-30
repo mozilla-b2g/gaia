@@ -1,3 +1,4 @@
+/* global ConfigManager */
 'use strict';
 
 var MovistarColombiaConfig = {

@@ -1,3 +1,7 @@
+/* global debug, ConfigManager, SettingsListener, Toolkit, addAlarmTimeout,
+          toMidnight, Common  */
+/* exported CostControl */
+'use strict';
 
 /*
  * CostControl is the singleton in charge of provide data to the views by using
@@ -13,7 +17,6 @@
  */
 
 var CostControl = (function() {
-  'use strict';
 
   var costcontrol;
   function getInstance(onready) {
@@ -42,7 +45,7 @@ var CostControl = (function() {
     ConfigManager.requestAll(setupCostControl);
   }
 
-  var mobileMessageManager, connection, telephony, statistics;
+  var mobileMessageManager, connection, statistics;
   function loadAPIs() {
     if ('mozMobileMessage' in window.navigator) {
       mobileMessageManager = window.navigator.mozMobileMessage;
@@ -133,10 +136,10 @@ var CostControl = (function() {
 
         case 'topup':
           // Check service
-          var issues = getServiceIssues(configuration, settings);
-          if (issues && issues !== 'minimum_delay') {
+          var issuesTopUp = getServiceIssues(configuration, settings);
+          if (issuesTopUp && issuesTopUp !== 'minimum_delay') {
             result.status = 'error';
-            result.details = issues;
+            result.details = issuesTopUp;
             result.data = settings.lastDataUsage;
             if (callback) {
               callback(result);
@@ -144,10 +147,10 @@ var CostControl = (function() {
             return;
           }
 
-          var costIssues = getCostIssues(configuration);
-          if (!force && costIssues) {
+          var costIssuesTopUp = getCostIssues(configuration);
+          if (!force && costIssuesTopUp) {
             result.status = 'error';
-            result.details = costIssues;
+            result.details = costIssuesTopUp;
             result.data = settings.lastBalance;
             if (callback) {
               callback(result);
@@ -156,10 +159,10 @@ var CostControl = (function() {
           }
 
           // Check in-progress
-          var isWaiting = settings.waitingForTopUp !== null;
-          var timeout = Toolkit.checkEnoughDelay(BALANCE_TIMEOUT,
+          var isWaitingTopUp = settings.waitingForTopUp !== null;
+          var timeoutTopUp = Toolkit.checkEnoughDelay(BALANCE_TIMEOUT,
                                                  settings.lastTopUpRequest);
-          if (isWaiting && !timeout && !force) {
+          if (isWaitingTopUp && !timeoutTopUp && !force) {
             result.status = 'in_progress';
             result.data = settings.lastDataUsage;
             if (callback) {
@@ -407,7 +410,7 @@ var CostControl = (function() {
       if (pendingRequests === 0) {
         updateDataUsage();
       }
-    };
+    }
 
     function updateDataUsage() {
       var fakeEmptyResult = {data: []};
@@ -470,7 +473,8 @@ var CostControl = (function() {
     var data = networkStatsResult.data;
     var output = [];
     var totalData, accum = 0;
-    for (var i = 0, item; item = data[i]; i++) {
+    for (var i = 0; i < data.length; i++) {
+      var item = data[i];
       if (item.txBytes === undefined) {
         output.push({ date: item.date });
         continue;

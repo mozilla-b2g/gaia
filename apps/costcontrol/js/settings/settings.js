@@ -1,3 +1,5 @@
+/* global BalanceView, LazyLoader, AutoSettings, BalanceLowLimitView,
+          ViewManager, dataLimitConfigurer */
 /*
  * Settings is in charge of setup the setting section. It uses an AutoSettings
  * object to automatically bind markup with local settings.
@@ -5,13 +7,12 @@
  * Settings have three drawing areas with views for current values of balance,
  * data usage and telephony.
  */
-
+'use strict';
  // Import global objects from parent window
  var ConfigManager = window.parent.ConfigManager;
  var CostControl = window.parent.CostControl;
  var Common = window.parent.Common;
  var NetworkUsageAlarm = window.parent.NetworkUsageAlarm;
- var Formatting = window.parent.Formatting;
 
  // Import global functions from parent window
  var updateNextReset = window.parent.updateNextReset;
@@ -28,13 +29,10 @@
 
  // Import debug
  var DEBUGGING = window.parent.DEBUGGING;
- var debug = window.parent.debug;
 
 var Settings = (function() {
 
-  'use strict';
-
-  var costcontrol, vmanager, autosettings, initialized;
+  var costcontrol, vmanager, initialized;
   var plantypeSelector, phoneActivityTitle, phoneActivitySettings;
   var balanceTitle, balanceSettings, reportsTitle;
   var balanceView;

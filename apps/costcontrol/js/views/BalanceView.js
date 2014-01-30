@@ -1,3 +1,5 @@
+/* global  _, Formatting */
+/* exported BalanceView */
 'use strict';
 
 function BalanceView(balanceLabel, timestampLabel, minimumDelay) {
