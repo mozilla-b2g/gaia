@@ -136,10 +136,9 @@ scanning to find shared resources too.
 For DEBUG=1 builds, the email source directory is used as-is, and the shared
 resources are magically linked in via the Gaia build system.
 
-By default, the email build runs some uglify2 minification on the files. This
-can take a while, and if you are doing multiple, rapid edit-device push cycles,
-you can pass GAIA_EMAIL_MINIFY=none to the `install-gaia` make target to skip
-the uglify work.
+When using GAIA_OPTIMIZE=1, which is set by `make production`, the email build
+runs some uglify2 minification on the files. This can take a while, so if you
+are doing multiple, rapid edit-device push cycles you should not use this.
 
 If you want to give snapshots of builds, say for UX reviews, you should use
 the contents of the `gaia/build_stage/email` directory as it will be a fully
