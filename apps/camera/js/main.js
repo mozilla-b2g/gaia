@@ -28,7 +28,8 @@ require(['config/require', 'config'], function() {
       overlay: require('controllers/overlay'),
       confirm: require('controllers/confirm'),
       settings: require('controllers/settings'),
-      camera: require('controllers/camera')
+      camera: require('controllers/camera'),
+      sounds: require('controllers/sounds')
     };
 
     debug('required dependencies');
