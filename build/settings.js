@@ -108,6 +108,10 @@ function execute(config) {
   settings['rocketbar.searchAppURL'] = utils.gaiaOriginURL('search',
     config.GAIA_SCHEME, config.GAIA_DOMAIN, config.GAIA_PORT) + '/index.html';
 
+  if (config.ROCKETBAR) {
+    settings['rocketbar.enabled'] = true;
+  }
+
   settings['debugger.remote-mode'] = config.REMOTE_DEBUGGER ? 'adb-only'
                                                             : 'disabled';
 

@@ -1,4 +1,16 @@
+'use strict';
+
 var UrlHelper = {
+
+  // Placeholder anchor tag to format URLs.
+  a: null,
+
+  getUrlFromInput: function urlHelper_getUrlFromInput(input) {
+    this.a = this.a || document.createElement('a');
+    this.a.href = input;
+    return this.a.href;
+  },
+
   isURL: function urlHelper_isURL(input) {
     return !UrlHelper.isNotURL(input);
   },
