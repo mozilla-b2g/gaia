@@ -1,5 +1,4 @@
-/* global _, ConfigManager, CostControl, debug, toMidnight, formatData,
-          roundData, smartRound, Common */
+/* global _, ConfigManager, CostControl, debug, Toolkit, Common, Formatting */
 /* jshint -W120 */
 
 /*
@@ -249,7 +248,7 @@ var DataUsageTab = (function() {
   }
 
   function calculateLowerDate(settings) {
-    var lowerDate = toMidnight(new Date());
+    var lowerDate = Toolkit.toMidnight(new Date());
     var nextReset = settings.nextReset;
     var trackingPeriod = settings.trackingPeriod;
 
@@ -315,12 +314,12 @@ var DataUsageTab = (function() {
   }
 
   // Expand the model with some computed values
-  var today = toMidnight(new Date());
+  var today = Toolkit.toMidnight(new Date());
   var CHART_BG_RATIO = 0.87;
   function expandModel(base) {
 
     // Update today
-    today = toMidnight(new Date());
+    today = Toolkit.toMidnight(new Date());
 
     // Graphic settings
     base.originY = Math.floor(base.height * CHART_BG_RATIO);
@@ -329,9 +328,9 @@ var DataUsageTab = (function() {
     base.axis.X.today = today;
 
     // Normalize today
-    toMidnight(base.axis.X.today);
-    toMidnight(base.axis.X.lower);
-    toMidnight(base.axis.X.upper);
+    Toolkit.toMidnight(base.axis.X.today);
+    Toolkit.toMidnight(base.axis.X.lower);
+    Toolkit.toMidnight(base.axis.X.upper);
 
     // X axis projection function to convert a value into a pixel value
     var xLowerBound = base.axis.X.lower.getTime();
@@ -367,8 +366,10 @@ var DataUsageTab = (function() {
 
   function updateUI() {
     // Update overview
-    wifiOverview.textContent = formatData(roundData(model.data.wifi.total));
-    mobileOverview.textContent = formatData(roundData(model.data.mobile.total));
+    var wifiData = Formatting.roundData(model.data.wifi.total);
+    var mobileData = Formatting.roundData(model.data.mobile.total);
+    wifiOverview.textContent = Formatting.formatData(wifiData);
+    mobileOverview.textContent = Formatting.formatData(mobileData);
 
     // Render the charts
     drawBackgroundLayer(model);
@@ -501,20 +502,20 @@ var DataUsageTab = (function() {
 
       // First X label for 0 is aligned with the bottom
       if (value === 0) {
-        lastUnit = smartRound(dataStep, 0)[1];
+        lastUnit = Formatting.smartRound(dataStep, 0)[1];
         ctx.textBaseline = 'bottom';
         ctx.fillStyle = '#6a6a6a';
-        ctx.fillText(formatData([0, lastUnit]), offsetX, y - 2.5);
+        ctx.fillText(Formatting.formatData([0, lastUnit]), offsetX, y - 2.5);
         continue;
       }
 
       // Rest of labels are aligned with the middle
-      var rounded = smartRound(value, -1);
+      var rounded = Formatting.smartRound(value, -1);
       var v = rounded[0];
       var u = rounded[1];
       var label = v;
       if (lastUnit !== u) {
-        label = formatData([v, u]);
+        label = Formatting.formatData([v, u]);
       }
 
       lastUnit = u;
@@ -608,7 +609,7 @@ var DataUsageTab = (function() {
     ctx.lineWidth = toDevicePixels(2);
     ctx.lineJoin = 'round';
     ctx.moveTo(model.originX, model.originY);
-    var today = toMidnight(new Date());
+    var today = Toolkit.toMidnight(new Date());
     var sum = 0; var x, y = model.originY;
     var lastX = model.originX, lastY = model.axis.Y.get(sum);
     for (var i = 0, len = samples.length; i < len; i++) {
@@ -633,7 +634,8 @@ var DataUsageTab = (function() {
         lastY = y;
       }
 
-      if (today.getTime() === toMidnight(new Date(sample.date)).getTime() &&
+      var sampleDate = new Date(sample.date);
+      if (today.getTime() === Toolkit.toMidnight(sampleDate).getTime() &&
           x >= model.originX) {
         drawTodayMark(ctx, x, y, '#8b9052');
       }
@@ -693,7 +695,7 @@ var DataUsageTab = (function() {
     ctx.lineWidth = toDevicePixels(2);
     ctx.lineJoin = 'round';
 
-    var today = toMidnight(new Date());
+    var today = Toolkit.toMidnight(new Date());
     var sum = 0; var x, y = model.originY;
     var lastX = model.originX, lastY = model.axis.Y.get(sum);
     for (var i = 0, len = samples.length; i < len; i++) {
@@ -716,8 +718,8 @@ var DataUsageTab = (function() {
         lastX = x;
         lastY = y;
       }
-
-      if (today.getTime() === toMidnight(new Date(sample.date)).getTime() &&
+      var sampleDate = new Date(sample.date);
+      if (today.getTime() === Toolkit.toMidnight(sampleDate).getTime() &&
           x >= model.originX) {
         drawTodayMark(ctx, x, y, '#762d4a');
       }

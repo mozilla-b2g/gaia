@@ -36,4 +36,4 @@ var MockDateFactory = (function(realDate) {
 
   return buildFakeDateConstructor;
 
-}(this.Date));
+}(window.Date));
