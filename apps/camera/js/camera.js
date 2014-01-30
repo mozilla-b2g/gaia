@@ -876,7 +876,7 @@ Camera.prototype.supports = function(key) {
 
 Camera.prototype.flashSupport = function() {
   var flashModes = this.mozCamera.capabilities.flashModes;
-  return flashModes && !!flashModes.length;
+  return !!(flashModes && flashModes.length);
 };
 
 Camera.prototype.dualCameraSupport = function() {

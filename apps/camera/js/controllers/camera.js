@@ -62,7 +62,7 @@ CameraController.prototype.bindEvents = function() {
   // App
   app.on('change:mode', this.onModeChange);
   app.on('change:selectedCamera', this.onCameraChange);
-  app.on('change:flashMode', this.onFlashChange);
+  app.on('change:flashMode', this.setFlashMode);
   app.on('blur', this.teardownCamera);
   app.on('focus', this.setupCamera);
   app.on('capture', this.onCapture);
@@ -97,7 +97,6 @@ CameraController.prototype.configure = function() {
 
 /**
  * Loads the camera with its
- * @return {[type]} [description]
  */
 CameraController.prototype.setupCamera = function() {
   this.camera.load();
@@ -106,6 +105,7 @@ CameraController.prototype.setupCamera = function() {
 CameraController.prototype.onConfigured = function() {
   var maxFileSize = this.camera.maxPictureSize;
   this.storage.setMaxFileSize(maxFileSize);
+  this.setFlashMode(this.app.get('flashMode'));
   this.app.set('maxFileSize', maxFileSize);
   this.app.set('supports', {
     selectedCamera: this.camera.supports('dualCamera'),
@@ -208,15 +208,20 @@ CameraController.prototype.showSizeLimitAlert = function() {
 };
 
 CameraController.prototype.onModeChange = function(mode) {
-  var controls = this.controls;
   var viewfinder = this.viewfinder;
   var camera = this.camera;
 
+  // We need to force a flash change so that
+  // the camera hardware gets set with the
+  // correct flash for this capture mode.
+  this.setFlashMode(this.app.get('flashMode'));
   camera.set('mode', mode);
-  viewfinder.fadeOut(onFadeOut);
-  function onFadeOut() {
+
+  // Fade out the videfinder,
+  // then load the stream.
+  viewfinder.fadeOut(function() {
     camera.loadStreamInto(viewfinder.el);
-  }
+  });
 };
 
 /**
@@ -233,8 +238,36 @@ CameraController.prototype.onCameraChange = function() {
  * the flash button is pressed.
  *
  */
-CameraController.prototype.onFlashChange = function(mode) {
-  this.camera.setFlashMode(mode);
+CameraController.prototype.setFlashMode = function(flashMode) {
+  flashMode = this.translateFlashMode(flashMode);
+  this.camera.setFlashMode(flashMode);
+};
+
+/**
+ * This is a quick fix to translate
+ * the chosen flash mode into a video
+ * compatible flash mode.
+ *
+ * The reason being, camera will soon
+ * be dual shutter and both camera
+ * and video will support the same
+ * flash options. We don't want to
+ * waste time building support for
+ * deprecated functionality.
+ *
+ * @param  {String} flashMode
+ * @return {String}
+ */
+CameraController.prototype.translateFlashMode = function(flashMode) {
+  var isFrontCamera = this.app.get('selectedCamera') === 1;
+  var isPhotoMode = this.app.get('mode') === 'photo';
+  if (isPhotoMode) { return flashMode; }
+  if (isFrontCamera) { return null; }
+  switch (flashMode) {
+    case 'auto': return 'off';
+    case 'on': return 'torch';
+    default: return flashMode;
+  }
 };
 
 /**
