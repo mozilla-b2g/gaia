@@ -133,7 +133,6 @@
     <link rel="import" href="/elements/app_permissions_details.html">
     <link rel="import" href="/elements/app_permissions.html">
     <link rel="import" href="/elements/do_not_track.html">
-    <link rel="import" href="/elements/about_more_info_developer.html">
     <link rel="import" href="/elements/about_more_info.html">
     <link rel="import" href="/elements/about_your_rights.html">
     <link rel="import" href="/elements/about_your_privacy.html">
@@ -145,6 +144,7 @@
     <link rel="import" href="/elements/application_storage.html">
     <link rel="import" href="/elements/media_storage.html">
     <link rel="import" href="/elements/accessibility.html">
+    <link rel="import" href="/elements/developer.html">
     <link rel="import" href="/elements/crash_reports.html">
     <link rel="import" href="/elements/improve_browser_os_send_feedback.html">
     <link rel="import" href="/elements/improve_browser_os_choose_feedback.html">
@@ -282,8 +282,6 @@
     <!-- Security :: Do Not Track -->
     <section is="doNotTrack" role="region" id="doNotTrack"></section>
 
-    <!-- Device :: Information :: More Information :: Developer -->
-    <section is="about-moreInfo-developer" role="region" id="about-moreInfo-developer"></section>
     <!-- Device :: Information :: More Information -->
     <section is="about-moreInfo" role="region" id="about-moreInfo"></section>
     <!-- Device :: Information :: Your Rights -->
@@ -308,6 +306,8 @@
     <section is="mediaStorage" role="region" id="mediaStorage"></section>
     <!-- Device :: Accessibility -->
     <section is="accessibility" role="region" id="accessibility"></section>
+    <!-- Device :: Developer -->
+    <section is="developer" role="region" id="developer"></section>
     <!-- Device :: Improve Browser OS :: Crash Reports-->
     <section is="crashReports" role="region" id="crashReports"></section>
     <!-- Device :: Send Feedback -->
@@ -485,8 +485,11 @@
             <small id="battery-desc" class="menu-item-desc"></small>
             <a id="menuItem-battery" class="menu-item" href="#battery" data-l10n-id="battery">Battery</a>
           </li>
-          <li hidden="">
+          <li hidden>
             <a id="menuItem-accessibility" class="menu-item" href="#accessibility" data-l10n-id="accessibility">Accessibility</a>
+          </li>
+          <li hidden>
+            <a id="menuItem-developer" class="menu-item" href="#developer" data-l10n-id="developer">Developer</a>
           </li>
           <li>
             <a id="menuItem-improveBrowserOS" class="menu-item" href="#improveBrowserOS" data-l10n-id="improveBrowserOS">Improve Browser OS</a>
