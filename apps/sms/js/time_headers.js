@@ -1,4 +1,4 @@
-/*global FixedHeader, Utils */
+/*global Utils */
 (function(exports) {
   'use strict';
 
@@ -36,8 +36,6 @@
       for (i = 0; i < length; i++) {
         this.update(elements[i]);
       }
-
-      FixedHeader.updateHeaderContent();
     },
     update: function th_update(header) {
       var ts = header.dataset.time;
