@@ -1,4 +1,4 @@
-suite('controllers/hud', function() {
+suite.only('controllers/hud', function() {
   /*global req*/
   'use strict';
 
@@ -42,14 +42,40 @@ suite('controllers/hud', function() {
     this.hudController = new this.HudController(this.app);
   });
 
-  suite('HudController#bindEvents()', function() {
+  suite('HudController()', function() {
     test('Should listen to the following events', function() {
-      this.hudController.bindEvents();
       assert.ok(this.app.on.calledWith('camera:busy'));
       assert.ok(this.app.on.calledWith('camera:ready'));
       assert.ok(this.app.on.calledWith('camera:loading'));
       assert.ok(this.app.on.calledWith('change:supports'));
       assert.ok(this.app.on.calledWith('change:recording'));
+    });
+
+    test('Should disable controls when the camera is \'busy\'', function() {
+      var disableButtons = this.hudController.disableButtons;
+      assert.ok(this.app.on.calledWith('camera:busy', disableButtons));
+    });
+
+    test('Should enable controls when the camera is \'ready\'', function() {
+      var enableButtons = this.hudController.enableButtons;
+      assert.ok(this.app.on.calledWith('camera:ready', enableButtons));
+    });
+  });
+
+  suite('HudController#onSupportChange()', function() {
+    test('Should bind to the app event', function() {
+      var onSupportChange = this.hudController.onSupportChange;
+      assert.ok(this.app.on.calledWith('change:supports', onSupportChange));
+    });
+
+    test('Should enable/disable hud features base on given support', function() {
+      this.hudController.onSupportChange({
+        selectedCamera: true,
+        flashMode: false
+      });
+
+      assert.ok(this.hud.enable.calledWith('camera', true));
+      assert.ok(this.hud.enable.calledWith('flash', false));
     });
   });
 
