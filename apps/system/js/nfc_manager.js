@@ -321,12 +321,7 @@ var NfcManager = {
   },
 
   dispatchP2PUserResponse: function nm_dispatchP2PUserResponse(manifestURL) {
-    var detail = { manifestUrl: manifestURL };
-    var evt = new CustomEvent('nfc-p2p-user-accept', {
-      bubbles: true, cancelable: true,
-      detail: detail
-    });
-    window.dispatchEvent(evt);
+    window.navigator.mozNfc.notifyUserAcceptedP2P(manifestURL);
   },
 
   fireTagDiscovered: function nm_fireTagDiscovered(command) {
