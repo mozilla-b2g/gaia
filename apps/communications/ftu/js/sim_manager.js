@@ -67,6 +67,10 @@ var SimManager = (function() {
     var l10nArgs = {n: data.retryCount};
     switch (data.lockType) {
       case 'pin':
+        if (data.retryCount == 0) {
+          this.showPukScreen(this._unlockingIcc);
+          break;
+        }
         UIManager.pinInput.value = '';
         UIManager.pinInput.classList.add('onerror');
         UIManager.pinError.textContent = _('pinError');
