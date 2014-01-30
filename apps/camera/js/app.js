@@ -88,10 +88,7 @@ App.prototype.boot = function() {
 
 App.prototype.setInitialMode = function() {
   var mode = this.activity.mode;
-  if (mode) {
-    this.set('mode', mode, { silent: true });
-    console.log('set mode', mode);
-  }
+  if (mode) { this.set('mode', mode, { silent: true }); }
 };
 
 App.prototype.teardown = function() {

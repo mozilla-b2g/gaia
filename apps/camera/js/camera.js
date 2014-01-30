@@ -161,7 +161,7 @@ Camera.prototype.configureCamera = function(mozCamera) {
   var capabilities = mozCamera.capabilities;
   var done = allDone();
   var self = this;
-debugger;
+
   // Store the Gecko
   // mozCamera interface
   this.mozCamera = mozCamera;
