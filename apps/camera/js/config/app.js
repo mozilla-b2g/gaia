@@ -6,6 +6,7 @@ module.exports = {
   mode: {
     title: 'Mode',
     options: ['photo', 'video'],
+    persist: true,
     'default': 'photo'
   },
 
@@ -13,13 +14,15 @@ module.exports = {
     title: 'Selected Camera',
     options: [0, 1],
     'default': 0,
+    persist: true,
     menu: 1
   },
 
   flashMode: {
     title: 'Flash',
     options: ['auto', 'on', 'off'],
-    'default': 'auto'
+    'default': 'auto',
+    persist: true
   },
 
   timer: {
@@ -36,6 +39,7 @@ module.exports = {
     options: ['off', 'on', 'auto'],
     'default': 'off',
     type: 'toggle',
+    persist: true,
     menu: 1
   },
 
@@ -44,6 +48,7 @@ module.exports = {
     options: ['normal', 'pano', 'beauty'],
     'default': 'normal',
     type: 'toggle',
+    persist: true,
     menu: 2
   }
 };
