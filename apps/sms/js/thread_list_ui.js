@@ -1,7 +1,7 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/*global Template, Utils, Threads, Contacts, URL, FixedHeader, Threads,
+/*global Template, Utils, Threads, Contacts, URL, Threads,
          WaitingScreen, MozSmsFilter, MessageManager, TimeHeaders,
          Drafts, Thread, ThreadUI */
 /*exported ThreadListUI */
@@ -247,8 +247,6 @@ var ThreadListUI = {
       parent.previousSibling.remove();
       parent.remove();
 
-      FixedHeader.refresh();
-
       // if we have no more elements, set empty classes
       if (!this.container.querySelector('li')) {
         this.setEmpty(true);
@@ -377,8 +375,6 @@ var ThreadListUI = {
           }
         }
       }, this);
-
-      FixedHeader.refresh();
     }.bind(this));
   },
 
@@ -389,18 +385,12 @@ var ThreadListUI = {
 
   startRendering: function thlui_startRenderingThreads() {
     this.setEmpty(false);
-
-    FixedHeader.init('#threads-container',
-                     '#threads-header-container',
-                     'header');
   },
 
   finalizeRendering: function thlui_finalizeRendering(empty) {
     if (empty) {
       this.setEmpty(true);
     }
-
-    FixedHeader.refresh();
 
     if (!empty) {
       TimeHeaders.updateAll('header[data-time-update]');
@@ -529,19 +519,19 @@ var ThreadListUI = {
   },
 
   insertThreadContainer:
-    function thlui_insertThreadContainer(fragment, timestamp) {
+    function thlui_insertThreadContainer(group, timestamp) {
     // We look for placing the group in the right place.
     var headers = ThreadListUI.container.getElementsByTagName('header');
     var groupFound = false;
     for (var i = 0; i < headers.length; i++) {
       if (timestamp >= headers[i].dataset.time) {
         groupFound = true;
-        ThreadListUI.container.insertBefore(fragment, headers[i]);
+        ThreadListUI.container.insertBefore(group, headers[i].parentNode);
         break;
       }
     }
     if (!groupFound) {
-      ThreadListUI.container.appendChild(fragment);
+      ThreadListUI.container.appendChild(group);
     }
   },
 
@@ -572,7 +562,6 @@ var ThreadListUI = {
       }
       this.appendThread(thread);
       this.setEmpty(false);
-      FixedHeader.refresh();
     }
   },
 
@@ -604,13 +593,13 @@ var ThreadListUI = {
     var threadsContainer = document.getElementById(threadsContainerID);
     // If there is no container we create & insert it to the DOM
     if (!threadsContainer) {
-      // We create the fragment with groul 'header' & 'ul'
-      var threadsContainerFragment =
+      // We create the wrapper with a 'header' & 'ul'
+      var threadsContainerWrapper =
         ThreadListUI.createThreadContainer(timestamp);
       // Update threadsContainer with the new value
-      threadsContainer = threadsContainerFragment.childNodes[1];
-      // Place our new fragment in the DOM
-      ThreadListUI.insertThreadContainer(threadsContainerFragment, timestamp);
+      threadsContainer = threadsContainerWrapper.childNodes[1];
+      // Place our new content in the DOM
+      ThreadListUI.insertThreadContainer(threadsContainerWrapper, timestamp);
     }
 
     // Where have I to place the new thread?
@@ -633,7 +622,7 @@ var ThreadListUI = {
   },
   // Adds a new grouping header if necessary (today, tomorrow, ...)
   createThreadContainer: function thlui_createThreadContainer(timestamp) {
-    var threadContainer = document.createDocumentFragment();
+    var threadContainer = document.createElement('div');
     // Create Header DOM Element
     var headerDOM = document.createElement('header');
     // Append 'time-update' state

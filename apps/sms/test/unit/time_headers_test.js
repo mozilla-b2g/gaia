@@ -1,21 +1,14 @@
-/*global Utils, TimeHeaders, MockL10n, MockFixedHeader, MocksHelper */
+/*global Utils, TimeHeaders, MockL10n */
 
 'use strict';
 
 requireApp('sms/js/utils.js');
 requireApp('sms/js/time_headers.js');
 requireApp('sms/test/unit/mock_l10n.js');
-requireApp('sms/test/unit/mock_fixed_header.js');
-
-var mocksHelperForTimeHeaders = new MocksHelper([
-  'FixedHeader'
-]).init();
 
 suite('TimeHeaders > ', function() {
 
   var realMozL10n;
-
-  mocksHelperForTimeHeaders.attachTestHelpers();
 
   suiteSetup(function() {
     realMozL10n = navigator.mozL10n;
@@ -32,7 +25,6 @@ suite('TimeHeaders > ', function() {
 
     setup(function() {
       this.sinon.useFakeTimers(Date.parse('2013-01-01'));
-      this.sinon.spy(MockFixedHeader, 'updateHeaderContent');
       this.sinon.spy(TimeHeaders, 'update');
 
       var additionalDataset = [
@@ -157,10 +149,6 @@ suite('TimeHeaders > ', function() {
         //setup:3(headers)+6(times), test:3(headers)
         assert.equal(TimeHeaders.update.callCount, 12);
       });
-
-      test('should call FixedHeader.updateHeaderContent', function() {
-        assert.ok(MockFixedHeader.updateHeaderContent.called);
-      });
     });
 
     suite('timezone was changed', function() {
@@ -239,10 +227,6 @@ suite('TimeHeaders > ', function() {
         //should call update total 18 times
         //setup:3(headers)+6(times), test:3(headers)+6(times)
         assert.equal(TimeHeaders.update.callCount, 18);
-      });
-
-      test('should call FixedHeader.updateHeaderContent', function() {
-        assert.ok(MockFixedHeader.updateHeaderContent.called);
       });
     });
   });
