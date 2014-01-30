@@ -1,6 +1,4 @@
 define(function(require, exports, module) {
-/*jshint laxbreak:true*/
-
 'use strict';
 
 /**
@@ -26,10 +24,8 @@ function ControlsController(app) {
   debug('initializing');
   bindAll(this);
   this.app = app;
-  this.camera = app.camera;
   this.activity = app.activity;
   this.controls = app.views.controls;
-  this.viewfinder = app.views.viewfinder;
   this.controls.render().appendTo(app.el);
   this.bindEvents();
   this.configure();
@@ -37,22 +33,19 @@ function ControlsController(app) {
 }
 
 ControlsController.prototype.bindEvents = function() {
-  var controls = this.controls;
-  var camera = this.camera;
-  camera.on('focusFailed', controls.enableButtons);
-  camera.on('previewResumed', controls.enableButtons);
-  camera.on('preparingToTakePicture', controls.disableButtons);
-  camera.on('change:videoElapsed', this.onVideoTimeUpdate);
-  camera.on('change:recording', this.controls.setter('recording'));
-  controls.on('click:capture', this.onCaptureButtonClick);
-  controls.on('click:cancel', this.onCancelButtonClick);
-  controls.on('click:gallery', this.onGalleryButtonClick);
+  this.app.on('change:recording', this.controls.setter('recording'));
+  this.app.on('camera:timeupdate', this.controls.setVideoTimer);
+  this.controls.on('click:capture', this.app.firer('capture'));
+  this.controls.on('click:gallery', this.onGalleryButtonClick);
+  this.controls.on('click:cancel', this.onCancelButtonClick);
+  this.app.on('camera:loading', this.disableButtons);
+  this.app.on('camera:ready', this.enableButtons);
+  this.app.on('camera:busy', this.disableButtons);
   debug('events bound');
 };
 
 ControlsController.prototype.configure = function() {
   var activity = this.activity;
-  var controls = this.controls;
   var showCamera = !activity.active || activity.allowedTypes.image;
   var showVideo = !activity.active || activity.allowedTypes.video;
   var isSwitchable = showVideo && showCamera;
@@ -63,16 +56,18 @@ ControlsController.prototype.configure = function() {
   // or the application is in 'secure mode'.
   var showGallery = !activity.active && !this.app.inSecureMode;
 
-  controls.set('gallery', showGallery);
-  controls.set('cancel', isCancellable);
-  controls.set('switchable', isSwitchable);
+  this.controls.set('gallery', showGallery);
+  this.controls.set('cancel', isCancellable);
+  this.controls.set('switchable', isSwitchable);
 };
 
-ControlsController.prototype.onVideoTimeUpdate = function(value) {
-  this.controls.setVideoTimer(value);
+ControlsController.prototype.disableButtons = function() {
+  this.controls.disable('buttons');
 };
 
-
+ControlsController.prototype.enableButtons = function() {
+  this.controls.enable('buttons');
+};
 
 /**
  * Cancel the current activity
@@ -127,21 +122,6 @@ ControlsController.prototype.onGalleryButtonClick = function(e) {
   window.setTimeout(function() {
     throttleGalleryLaunch = false;
   }, 2000);
-};
-
-/**
- * Capture when the capture
- * button is pressed.
- *
- */
-ControlsController.prototype.onCaptureButtonClick = function() {
-  var position = this.app.geolocation.position;
-  this.camera.capture({ position: position });
-
-  // Disable controls for 500ms to
-  // prevent rapid fire button bashing.
-  this.controls.disableButtons();
-  setTimeout(this.controls.enableButtons, 500);
 };
 
 });

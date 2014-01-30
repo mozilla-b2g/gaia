@@ -51,7 +51,7 @@ body:not(.filmstriphidden) .hud {
  * @buttons-disabled
  */
 
-.hud.buttons-disabled a {
+.hud[buttons-enabled=false] a {
   pointer-events: none;
 }
 
@@ -59,34 +59,36 @@ body:not(.filmstriphidden) .hud {
  ---------------------------------------------------------*/
 
 .toggle-camera {
-  display: none;
   background-image: url(images/toggle-camera.png);
   background-size: 100%;
+  transition: opacity 300ms;
+  opacity: 0;
 }
 
 /**
- * @is-toggling-camera
+ * @camera-enabled
  */
 
-.is-toggling-camera .toggle-camera {
+.hud[camera-enabled=true] .toggle-camera {
+  opacity: 1;
+}
+
+/**
+ * @camera-hidden
+ */
+
+.hud[camera-hidden=true] .toggle-camera {
+  opacity: 0;
+}
+
+/**
+ * @toggling-camera
+ */
+
+.hud[toggling-camera=true] .toggle-camera {
   background-color: #00b9df;
 }
 
-/**
- * @has-front-camera
- */
-
-.has-front-camera .toggle-camera {
-  display: block;
-}
-
-/**
- * @recording
- */
-
-.recording .toggle-camera {
-  display: none;
-}
 
 /** Flash Button
  ---------------------------------------------------------*/
@@ -103,27 +105,36 @@ body:not(.filmstriphidden) .hud {
   opacity: 0;
 }
 
-.toggle-flash[data-mode=on],
-.toggle-flash[data-mode=off],
-.toggle-flash[data-mode=auto],
-.toggle-flash[data-mode=torch] {
+/**
+ * @flash-enabled
+ */
+
+.hud[flash-enabled=true] .toggle-flash {
   visibility: visible;
   opacity: 1;
 }
 
-.toggle-flash[data-mode=on] {
+/**
+ * @camera-hidden
+ */
+
+.hud[flash-hidden=true] .toggle-flash {
+  opacity: 0;
+}
+
+.hud[flash-mode=on] .toggle-flash {
   background-image: url(images/flash_on.png);
 }
 
-.toggle-flash[data-mode=off] {
+.hud[flash-mode=off] .toggle-flash {
   background-image: url(images/flash_off.png);
 }
 
-.toggle-flash[data-mode=auto] {
+.hud[flash-mode=auto] .toggle-flash {
   background-image: url(images/flash_auto.png);
 }
 
-.toggle-flash[data-mode=torch] {
+.hud[flash-mode=torch] .toggle-flash {
   background-image: url(images/flash_on.png);
 }
 
@@ -167,7 +178,7 @@ body[data-orientation=deg180] .flash-text {
  * the flash text.
  */
 
-.is-toggling .flash-text {
+.hud[toggling-flash=true] .flash-text {
   opacity: 1;
   transition: none;
 }

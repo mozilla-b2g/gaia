@@ -34,9 +34,10 @@ function ViewfinderController(app) {
 }
 
 ViewfinderController.prototype.bindEvents = function() {
-  this.camera.on('configured', this.onConfigured);
+  this.app.on('camera:configured', this.onConfigured);
   this.camera.on('change:mode', this.onConfigured);
   this.viewfinder.on('click', this.onViewfinderClick);
+  this.app.on('camera:loaded', this.viewfinder.fadeIn);
 };
 
 ViewfinderController.prototype.onConfigured = function() {

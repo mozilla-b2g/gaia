@@ -39,29 +39,47 @@ function CameraController(app) {
 }
 
 CameraController.prototype.bindEvents = function() {
-  var app = this.app;
   var camera = this.camera;
+  var app = this.app;
+
+  // Relaying camera events means other modules
+  // don't have to depend directly on camera
+  camera.on('change:videoElapsed', app.firer('camera:timeupdate'));
+  camera.on('configured', app.firer('camera:configured'));
   camera.on('change:recording', app.setter('recording'));
+  camera.on('loading', app.firer('camera:loading'));
+  camera.on('loaded', app.firer('camera:loaded'));
+  camera.on('ready', app.firer('camera:ready'));
+
+  // Camera
   camera.on('filesizelimitreached', this.onFileSizeLimitReached);
-  camera.on('recordingstart', this.onRecordingStart);
-  camera.on('recordingend', this.onRecordingEnd);
+  camera.on('change:recording', this.onRecordingChange);
   camera.on('configured', this.onConfigured);
   camera.on('newimage', this.onNewImage);
   camera.on('newvideo', this.onNewVideo);
   camera.on('shutter', this.onShutter);
+
+  // App
   app.on('change:mode', this.onModeChange);
   app.on('change:selectedCamera', this.onCameraChange);
   app.on('change:flashMode', this.onFlashChange);
   app.on('blur', this.teardownCamera);
   app.on('focus', this.setupCamera);
+  app.on('capture', this.onCapture);
   app.on('boot', this.setupCamera);
+
+  // New events i'd like camera to emit
+  camera.on('ready', app.firer('camera:ready'));
+  camera.on('focusing', app.firer('camera:focusing'));
+  camera.on('focusfail', app.firer('camera:focusfail'));
+
   debug('events bound');
 };
 
 /**
  * Configure the camera with
  * initial configuration derived
- * from various startup paramenter.
+ * from various startup parameters.
  *
  * @private
  */
@@ -90,27 +108,9 @@ CameraController.prototype.onConfigured = function() {
   this.storage.setMaxFileSize(maxFileSize);
   this.app.set('maxFileSize', maxFileSize);
   this.app.set('supports', {
-    selectedCamera: this.camera.supports('frontCamera'),
+    selectedCamera: this.camera.supports('dualCamera'),
     flashMode: this.camera.supports('flash')
   });
-
-  // TODO: Adjust settings menu contents
-  // to reflect new found camera capabilities
-  // camera.supports(); //=> ['hdr', 'flash', ...]
-  //
-  //
-  // app.set('cameraSupports', {'hdr': false, 'flash': true })
-  //
-  // // then in settings controller
-  //
-  // app.on(change:cameraSupports, funciton(supports) {
-  //   var filteredMenuItems = this.config.menu().filter(function(item) { return supports[item.key]; });
-  //   this.menuItemsModel.reset(filteredMenuItems);
-  // });
-  //
-  //
-  // camera.supports('hdr'); //=> true|false
-  // app.emit('change:camerasupports')
 };
 
 CameraController.prototype.teardownCamera = function() {
@@ -139,6 +139,11 @@ CameraController.prototype.teardownCamera = function() {
   }
 
   debug('torn down');
+};
+
+CameraController.prototype.onCapture = function() {
+  var position = this.app.geolocation.position;
+  this.camera.capture({ position: position });
 };
 
 CameraController.prototype.onNewImage = function(image) {
@@ -208,16 +213,9 @@ CameraController.prototype.onModeChange = function(mode) {
   var camera = this.camera;
 
   camera.set('mode', mode);
-  controls.disableButtons();
   viewfinder.fadeOut(onFadeOut);
-
   function onFadeOut() {
-    camera.loadStreamInto(viewfinder.el, onStreamLoaded);
-  }
-
-  function onStreamLoaded() {
-    controls.enableButtons();
-    viewfinder.fadeIn();
+    camera.loadStreamInto(viewfinder.el);
   }
 };
 
@@ -226,17 +224,7 @@ CameraController.prototype.onModeChange = function(mode) {
  * fading the viewfinder in between.
  */
 CameraController.prototype.onCameraChange = function() {
-  var controls = this.controls;
-  var viewfinder = this.viewfinder;
-  var camera = this.camera;
-
-  controls.disableButtons();
-  viewfinder.fadeOut(onFadeOut);
-  this.app.emit('cameratoggling');
-
-  function onFadeOut() {
-    camera.toggleCamera();
-  }
+  this.viewfinder.fadeOut(this.camera.toggleCamera);
 };
 
 /**
@@ -251,26 +239,18 @@ CameraController.prototype.onFlashChange = function(mode) {
 
 /**
  * Plays the 'recordingStart'
- * sound effect.
+ * or `recordingEnd` sound effect.
  *
+ * TODO: Move sounds into a sounds controller
  */
-CameraController.prototype.onRecordingStart = function() {
-  this.app.sounds.play('recordingStart');
-};
-
-/**
- * Plays the 'recordingEnd'
- * sound effect.
- *
- */
-CameraController.prototype.onRecordingEnd = function() {
-  this.app.sounds.play('recordingEnd');
+CameraController.prototype.onRecordingChange = function(recording) {
+  if (recording) { this.app.sounds.play('recordingStart'); }
+  else { this.app.sounds.play('recordingEnd'); }
 };
 
 /**
  * Plays the 'shutter'
  * sound effect.
- *
  */
 CameraController.prototype.onShutter = function() {
   this.app.sounds.play('shutter');

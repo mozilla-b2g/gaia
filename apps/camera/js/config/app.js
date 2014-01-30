@@ -24,7 +24,7 @@ module.exports = {
 
   timer: {
     title: 'Self Timer',
-    options: ['off', '2', '5', '10'],
+    options: ['off', '3', '5', '10'],
     'default': 'off',
     type: 'toggle',
     menu: 3,

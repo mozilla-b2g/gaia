@@ -74,7 +74,7 @@ require(['config/require', 'config'], function() {
     app.fetchState(done());
 
     // ...boot!
-    done(app.boot);
+    done(delay(app.boot));
   });
 
   require(['boot']);
