@@ -1024,3 +1024,24 @@ build-test-integration: $(NPM_INSTALLED_PROGRAMS)
 .PHONY: docs
 docs: $(NPM_INSTALLED_PROGRAMS)
 	grunt docs
+
+
+test: test-lint test-unit-firefox test-unit-b2g test-marionette-js test-marionette-python test-build
+
+test-lint:
+	./tests/travis_ci/linters/script
+
+test-unit-firefox:
+	./tests/travis_ci/unit-tests-in-firefox/script
+
+test-unit-b2g:
+	./tests/travis_ci/unit-tests-in-b2g/script
+
+test-marionette-js:
+	./tests/travis_ci/marionette_js/script
+
+test-marionette-python:
+	./tests/travis_ci/gaia_ui_tests/script
+
+test-build:
+	./tests/travis_ci/build_tests/script
