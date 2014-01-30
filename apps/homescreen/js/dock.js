@@ -12,7 +12,7 @@ var DockManager = (function() {
   var windowWidth = window.innerWidth;
   var duration = 300;
 
-  var initialOffsetLeft, initialOffsetRight, numApps, cellWidth;
+  var initialOffsetLeft, initialOffsetRight, numApps, cellWidth = 0;
   var isPanning = false, startEvent, currentX, deltaX, tapThreshold;
 
   var isTouch = 'ontouchstart' in window;
@@ -188,7 +188,14 @@ var DockManager = (function() {
       container.classList.add('scrollable');
     }
 
-    cellWidth = numIcons ? dock.getFirstIcon().getWidth() : 0;
+    if (numIcons > 0) {
+      cellWidth = dock.getFirstIcon().getWidth();
+    }
+
+    if (cellWidth === 0) {
+      cellWidth = windowWidth / maxNumAppInViewPort;
+    }
+
     maxOffsetLeft = windowWidth - numIcons * cellWidth;
   }
 
