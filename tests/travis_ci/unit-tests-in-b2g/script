@@ -1,3 +1,32 @@
 #! /bin/bash -v
 
+echo 'Downloading b2g-desktop'
+make b2g
+
+echo 'Downloading & installing node dependencies'
+make common-install
+
+echo 'Downloading xulrunner-sdk and making profile for testing (more than 5 minutes)'
+NO_LOCK_SCREEN=1 DEBUG=1 DESKTOP=0 WGET_OPTS=-nv make
+
+RETRY=10
+
+function waiting_port {
+  for i in $(seq 1 $RETRY); do
+    nc -z localhost $1
+    if [ $? -eq 0 ]; then return; fi
+    sleep 1
+  done
+  echo "Waiting for server on port $1 failed."
+  exit 1
+}
+
+echo "Starting test-agent-server"
+make test-agent-server &
+
+echo 'Starting B2G Desktop'
+
+./b2g/b2g-bin -profile `pwd`/profile-debug --runapp 'Test Agent' &
+waiting_port 8080
+
 make test-agent-test REPORTER=Min
