@@ -47,31 +47,30 @@ CameraController.prototype.bindEvents = function() {
   camera.on('configured', app.firer('camera:configured'));
   camera.on('change:recording', app.setter('recording'));
   camera.on('loading', app.firer('camera:loading'));
+  camera.on('shutter', app.firer('camera:shutter'));
   camera.on('loaded', app.firer('camera:loaded'));
   camera.on('ready', app.firer('camera:ready'));
   camera.on('busy', app.firer('camera:busy'));
 
   // Camera
   camera.on('filesizelimitreached', this.onFileSizeLimitReached);
-  camera.on('change:recording', this.onRecordingChange);
   camera.on('configured', this.onConfigured);
   camera.on('newimage', this.onNewImage);
   camera.on('newvideo', this.onNewVideo);
-  camera.on('shutter', this.onShutter);
 
   // App
-  app.on('change:mode', this.onModeChange);
   app.on('change:selectedCamera', this.onCameraChange);
   app.on('change:flashMode', this.setFlashMode);
+  app.on('change:mode', this.onModeChange);
   app.on('blur', this.teardownCamera);
   app.on('focus', this.setupCamera);
   app.on('capture', this.onCapture);
   app.on('boot', this.setupCamera);
 
   // New events i'd like camera to emit
-  camera.on('ready', app.firer('camera:ready'));
-  camera.on('focusing', app.firer('camera:focusing'));
-  camera.on('focusfail', app.firer('camera:focusfail'));
+  // camera.on('ready', app.firer('camera:ready'));
+  // camera.on('focusing', app.firer('camera:focusing'));
+  // camera.on('focusfail', app.firer('camera:focusfail'));
 
   debug('events bound');
 };
@@ -268,25 +267,6 @@ CameraController.prototype.translateFlashMode = function(flashMode) {
     case 'on': return 'torch';
     default: return flashMode;
   }
-};
-
-/**
- * Plays the 'recordingStart'
- * or `recordingEnd` sound effect.
- *
- * TODO: Move sounds into a sounds controller
- */
-CameraController.prototype.onRecordingChange = function(recording) {
-  if (recording) { this.app.sounds.play('recordingStart'); }
-  else { this.app.sounds.play('recordingEnd'); }
-};
-
-/**
- * Plays the 'shutter'
- * sound effect.
- */
-CameraController.prototype.onShutter = function() {
-  this.app.sounds.play('shutter');
 };
 
 });

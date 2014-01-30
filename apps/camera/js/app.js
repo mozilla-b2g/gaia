@@ -113,6 +113,7 @@ App.prototype.runControllers = function() {
   this.controllers.controls(this);
   this.controllers.confirm(this);
   this.controllers.overlay(this);
+  this.controllers.sounds(this);
   this.controllers.hud(this);
   debug('controllers run');
 };
