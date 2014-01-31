@@ -180,6 +180,8 @@ ifeq ($(DOGFOOD), 1)
 GAIA_APP_TARGET=dogfood
 endif
 
+CLOSURE_URL=http://closure-linter.googlecode.com/files/closure_linter-latest.tar.gz
+
 ###############################################################################
 # The above rules generate the profile/ folder and all its content.           #
 # The profile folder content depends on different rules:                      #
@@ -862,9 +864,12 @@ endif
 lint:
 	NO_XFAIL=1 $(MAKE) -k gjslint hint
 
+check-gjslint-installed:
+	command -v gjslint >/dev/null 2>&1 || sudo easy_install "$(CLOSURE_URL)"
+
 gjslint: GJSLINT_EXCLUDED_DIRS = $(shell grep '\/\*\*$$' .jshintignore | sed 's/\/\*\*$$//' | paste -s -d, -)
 gjslint: GJSLINT_EXCLUDED_FILES = $(shell egrep -v '(\/\*\*|^\s*)$$' .jshintignore | paste -s -d, -)
-gjslint:
+gjslint: check-gjslint-installed
 	# gjslint --disable 210,217,220,225 replaces --nojsdoc because it's broken in closure-linter 2.3.10
 	# http://code.google.com/p/closure-linter/issues/detail?id=64
 	@echo Running gjslint...
@@ -1026,10 +1031,7 @@ docs: $(NPM_INSTALLED_PROGRAMS)
 	grunt docs
 
 
-test: test-lint test-unit-firefox test-unit-b2g test-marionette-js test-marionette-python test-build
-
-test-lint:
-	./tests/travis_ci/linters/script
+test: lint test-unit-firefox test-unit-b2g test-marionette-js test-marionette-python test-build
 
 test-unit-firefox:
 	./tests/travis_ci/unit-tests-in-firefox/script

@@ -9,7 +9,7 @@ branches:
   - master
 env:
   matrix:
-  - CI_ACTION=test-lint
+  - CI_ACTION=lint
   - CI_ACTION=test-unit-b2g
   - CI_ACTION=test-unit-firefox
   - CI_ACTION=test-marionette-js
