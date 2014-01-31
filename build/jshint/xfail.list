@@ -18,7 +18,6 @@ apps/browser/test/marionette/navigate_test.js
 apps/browser/test/marionette/settings_test.js
 apps/browser/test/marionette/share_url_test.js
 apps/browser/test/unit/browser_db_test.js
-apps/browser/test/unit/utilities_test.js
 apps/calendar/caldav_worker.js
 apps/calendar/js/app.js
 apps/calendar/js/calc.js
