@@ -132,7 +132,9 @@ function manifestInterAppHostnames(webapp, webappTargetDir) {
       .replace(/gaiamobile.org(:[0-9])?/, host);
   }
 
-  let manifest = utils.getJSON(webapp.manifestFile);
+  let manifest = utils.getJSON(
+    utils.getFile(webappTargetDir.path, 'manifest.webapp'));
+
   if (manifest.connections) {
     for (let i in manifest.connections) {
       let connection = manifest.connections[i];
@@ -148,6 +150,45 @@ function manifestInterAppHostnames(webapp, webappTargetDir) {
     utils.writeContent(utils.getFile(webappTargetDir.path, 'manifest.webapp'),
                        JSON.stringify(manifest));
   }
+}
+
+/**
+ * Modifies the system manifest when rocketbar is enabled.
+ * Adds view URL activity handling to the system app.
+ * This will be removed once Rocketbar is turned on for good.
+ */
+function modifySystemForRocketbar(webapp, webappTargetDir) {
+  let manifest = utils.getJSON(webapp.manifestFile);
+  manifest.activities = manifest.activities || {};
+
+  // This is the activity definition that defines which URLs we match against.
+  // The pattern must match against the input for the URL to open.
+  manifest.activities.view = {
+    filters: {
+      type: 'url',
+      url: {
+        required: true,
+        pattern: 'https?:.{1,16384}',
+        patternFlags: 'i'
+      }
+    }
+  };
+
+  let file = utils.getFile(webappTargetDir.path, 'manifest.webapp');
+  utils.writeContent(file, JSON.stringify(manifest));
+}
+
+/**
+ * Modifies the browser manifest when rocketbar is enabled.
+ * Hides the browser from the system so it will not display.
+ * This will be removed once Rocketbar is turned on for good.
+ */
+function modifyBrowserForRocketbar(webapp, webappTargetDir) {
+  let manifest = utils.getJSON(webapp.manifestFile);
+  manifest.role = 'system';
+  delete manifest.activities;
+  let file = utils.getFile(webappTargetDir.path, 'manifest.webapp');
+  utils.writeContent(file, JSON.stringify(manifest));
 }
 
 function fillAppManifest(webapp) {
@@ -170,8 +211,12 @@ function fillAppManifest(webapp) {
     webapp.manifestFile.copyTo(webappTargetDir, 'manifest.webapp');
   }
 
-  if (webapp.url.indexOf('communications.gaiamobile.org') !== -1) {
+  if (webapp.url.indexOf('communications.' + config.GAIA_DOMAIN) !== -1) {
     fillCommsAppManifest(webapp, webappTargetDir);
+  } else if (config.ROCKETBAR && webapp.url.indexOf('browser.' + config.GAIA_DOMAIN) !== -1) {
+    modifyBrowserForRocketbar(webapp, webappTargetDir);
+  } else if (config.ROCKETBAR && webapp.url.indexOf('system.' + config.GAIA_DOMAIN) !== -1) {
+    modifySystemForRocketbar(webapp, webappTargetDir);
   }
 
   manifestInterAppHostnames(webapp, webappTargetDir);

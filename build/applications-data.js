@@ -141,8 +141,7 @@ function customizeHomescreen(options) {
       [
         ['apps', 'communications', 'dialer'],
         ['apps', 'sms'],
-        ['apps', 'communications', 'contacts'],
-        ['apps', 'browser']
+        ['apps', 'communications', 'contacts']
       ], [
         ['apps/homescreen/collections', 'social'],
         ['apps/homescreen/collections', 'games'],
@@ -167,7 +166,7 @@ function customizeHomescreen(options) {
     },
     'bookmarks': [
       {
-        'name': 'Browser2',
+        'name': 'Browser',
         'bookmarkURL': 'http://mozilla.org',
         'icon': 'app://homescreen.gaiamobile.org/style/icons/Aurora.png',
         'iconable': false,
@@ -176,6 +175,11 @@ function customizeHomescreen(options) {
       }
     ]
   };
+
+  // Add the browser icon if rocketbar is not enabled
+  if (config.ROCKETBAR != 1) {
+    customize.homescreens[0].push(['apps', 'browser']);
+  }
 
   if (config.DOGFOOD == 1) {
     customize.homescreens[0].push(['dogfood_apps', 'feedback']);
@@ -283,7 +287,7 @@ function customizeHomescreen(options) {
   };
 
   // Only enable configurable bookmarks for dogfood devices
-  if (config.PRODUCTION !== '1') {
+  if (config.ROCKETBAR == 1) {
     content.bookmarks = customize.bookmarks;
   }
 
