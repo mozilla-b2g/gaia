@@ -29,7 +29,8 @@ require(['config/require', 'config'], function() {
       confirm: require('controllers/confirm'),
       settings: require('controllers/settings'),
       camera: require('controllers/camera'),
-      sounds: require('controllers/sounds')
+      sounds: require('controllers/sounds'),
+      battery: require('controllers/battery')
     };
 
     debug('required dependencies');

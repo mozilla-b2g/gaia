@@ -104,6 +104,7 @@ App.prototype.teardown = function() {
 App.prototype.runControllers = function() {
   debug('running controllers');
   this.filmstrip = this.filmstrip(this);
+  this.controllers.battery(this);
   this.controllers.camera(this);
   this.controllers.settings(this);
   this.controllers.viewfinder(this);
