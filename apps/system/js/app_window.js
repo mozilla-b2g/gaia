@@ -613,7 +613,7 @@
 
   AppWindow.prototype._handle_mozbrowsericonchange =
     function aw__handle_mozbrowsericonchange(evt) {
-      this.config.icon = evt.detail;
+      this.config.favicon = evt.detail;
       this.publish('iconchange');
     };
 
