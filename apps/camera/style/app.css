@@ -28,3 +28,7 @@ body[data-orientation=deg180] .rotates {
 body[data-orientation=deg270] .rotates {
   transform: rotate(-270deg)
 }
+
+.hidden {
+  display: none;
+}

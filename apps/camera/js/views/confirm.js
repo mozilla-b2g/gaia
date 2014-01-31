@@ -24,6 +24,8 @@ module.exports = View.extend({
   render: function() {
     var l10n = navigator.mozL10n;
 
+    this.show();
+
     this.el.innerHTML = this.template({
       retake: l10n.get('retake-button'),
       select: l10n.get('select-button')
@@ -37,6 +39,8 @@ module.exports = View.extend({
     // Events
     bind(this.els.retake, 'click', this.onButtonClick);
     bind(this.els.select, 'click', this.onButtonClick);
+
+    this.setupMediaFrame();
     return this;
   },
 
@@ -44,6 +48,14 @@ module.exports = View.extend({
     this.mediaFrame = new MediaFrame(this.els.mediaFrame);
     addPanAndZoomHandlers(this.mediaFrame);
     return this;
+  },
+
+  hide: function() {
+    this.el.classList.add('hidden');
+  },
+
+  show: function() {
+    this.el.classList.remove('hidden');
   },
 
   showImage: function(image) {
