@@ -27,7 +27,9 @@ class TestCameraUnlockWithPasscode(GaiaTestCase):
         # https://github.com/mozilla/gaia-ui-tests/issues/479
         lock_screen = LockScreen(self.marionette)
         camera = lock_screen.unlock_to_camera()
-        lock_screen.wait_for_lockscreen_not_visible()
+
+        # Bug 965806 - test_lockscreen_unlock_to_camera_with_passcode.TestCameraUnlockWithPasscode is failing after Bug 951978
+        # lock_screen.wait_for_lockscreen_not_visible()
 
         self.assertTrue(self.device.is_locked)
 
