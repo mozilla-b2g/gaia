@@ -359,7 +359,7 @@ body:not(.rb-enabled) #statusbar-icons > .sb-start {
   left: 0;
   background: url('images/icons.png') no-repeat;
   background-position: -16.8rem -4rem;
-  background-size: 31rem;
+  background-size: 31.4rem 9.6rem;
 }
 
 .sb-icon-network-activity {
@@ -450,7 +450,7 @@ body:not(.rb-enabled) #statusbar-icons > .sb-start {
   height: 1.6rem;
   background: url('images/icons.png') no-repeat;
   background-position: -18.9rem -6rem;
-  background-size: 31rem;
+  background-size: 31.4rem 9.6rem;
 }
 
 *[dir=rtl] .sb-icon-notification::before {
