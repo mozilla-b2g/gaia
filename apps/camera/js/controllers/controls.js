@@ -52,8 +52,6 @@ ControlsController.prototype.configure = function() {
   var isSwitchable = showVideo && showCamera;
   var isCancellable = !!activity.active;
 
-  console.log('isCancellable', isCancellable);
-
   // The gallery button should not
   // be shown if an activity is pending
   // or the application is in 'secure mode'.
