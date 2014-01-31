@@ -1,4 +1,8 @@
-requireApp('browser/js/utilities.js');
+/* globals DateHelper, HtmlHelper */
+
+'use strict';
+
+requireApp('search/shared/js/utilities.js');
 
 suite('Date Helper', function() {
 
@@ -7,7 +11,7 @@ suite('Date Helper', function() {
     assert.equal(date.getMinutes(), 0);
     assert.equal(date.getSeconds(), 0);
     assert.equal(date.getMilliseconds(), 0);
-  };
+  }
 
   suite('started', function() {
 
