@@ -1943,6 +1943,21 @@ var ThreadUI = global.ThreadUI = {
           type: 'action',
           header: navigator.mozL10n.get('message-options')
         };
+        if (messageBubble.node.parentNode.classList.contains('error')) {
+          params.items.splice(2, 0, {
+            l10nId: 'resend-message',
+            method: function resendMessage(messageId) {
+              messageId = +messageId;
+              var request = MessageManager.getMessage(messageId);
+              request.onsuccess = (function() {
+                var message = request.result;
+                messageBubble.node.parentNode.remove();
+                MessageManager.resendMessage(message);
+              }).bind(this);
+            },
+            params: [messageId]
+          });
+        }
 
         var options = new OptionMenu(params);
         options.show();
@@ -2186,7 +2201,7 @@ var ThreadUI = global.ThreadUI = {
       if (errorCode) {
         this.showMessageError(errorCode, {
           messageId: id,
-          confirmHandler: function stateResetAndRetry () {
+          confirmHandler: function stateResetAndRetry() {
             // Avoid user to click the download button while sim state is not
             // ready yet.
             messageDOM.classList.add('pending');
