@@ -77,7 +77,22 @@ suite('Operator variant', function() {
 
   setup(function() {
     mozIcc = {
-      'cardState': 'ready'
+      'cardState': 'ready',
+      matchMvno: function mi_matchMvno(mvnoType, matchData) {
+        var req = {
+          onsuccess: null,
+          onerror: null,
+          result: false
+        };
+
+        setTimeout(function() {
+          if (req.onsuccess) {
+            req.onsuccess();
+          }
+        });
+
+        return req;
+      }
     };
     MockNavigatorMozIccManager.addIcc(FAKE_ICC_ID, mozIcc);
     MockNavigatorMozIccManager.getIccById(FAKE_ICC_ID).iccInfo =
