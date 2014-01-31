@@ -60,7 +60,6 @@ var ThreadUI = global.ThreadUI = {
   BANNER_DURATION: 2000,
   // delay between 2 counter updates while composing a message
   UPDATE_DELAY: 500,
-  draft: null,
   recipients: null,
   // Set to |true| when in edit mode
   inEditMode: false,
@@ -287,8 +286,8 @@ var ThreadUI = global.ThreadUI = {
   // Initialize Recipients list and Recipients.View (DOM)
   initRecipients: function thui_initRecipients() {
     var recipientsChanged = (function recipientsChanged(length, record) {
-      if (this.draft) {
-        this.draft.isEdited = true;
+      if (MessageManager.draft) {
+        MessageManager.draft.isEdited = true;
       }
       var isOk = true;
       var strategy;
@@ -829,7 +828,7 @@ var ThreadUI = global.ThreadUI = {
       // If there is a draft and the content and recipients
       // never got edited, re-save if threadless,
       // then leave without prompting to replace
-      if (this.draft && !this.draft.isEdited) {
+      if (MessageManager.draft && !MessageManager.draft.isEdited) {
         // Thread-less drafts are orphaned at this point
         // so they need to be resaved for persistence
         if (!Threads.currentId) {
@@ -840,7 +839,7 @@ var ThreadUI = global.ThreadUI = {
       }
 
       var prompt = 'save-as-draft';
-      if (this.draft) {
+      if (MessageManager.draft) {
         prompt = 'replace-draft';
       }
 
@@ -2023,10 +2022,10 @@ var ThreadUI = global.ThreadUI = {
 
     // If there was a draft, it just got sent
     // so delete it
-    if (this.draft) {
-      ThreadListUI.removeThread(this.draft.id);
-      Drafts.delete(this.draft);
-      this.draft = null;
+    if (MessageManager.draft) {
+      ThreadListUI.removeThread(MessageManager.draft.id);
+      Drafts.delete(MessageManager.draft);
+      MessageManager.draft = null;
     }
 
     this.updateHeaderData();
@@ -2597,15 +2596,15 @@ var ThreadUI = global.ThreadUI = {
     // If we were tracking a draft
     // properly update the Drafts object
     // and ThreadList entries
-    if (this.draft) {
-      Drafts.delete(this.draft);
+    if (MessageManager.draft) {
+      Drafts.delete(MessageManager.draft);
       if (Threads.active) {
         Threads.active.timestamp = Date.now();
         ThreadListUI.updateThread(Threads.active);
       } else {
-        ThreadListUI.removeThread(this.draft.id);
+        ThreadListUI.removeThread(MessageManager.draft.id);
       }
-      this.draft = null;
+      MessageManager.draft = null;
     }
   },
 
@@ -2615,7 +2614,7 @@ var ThreadUI = global.ThreadUI = {
    * Saves the currently unsent message content or recipients
    * into a Draft object.  Preserves the currently marked
    * draft if specified.  Draft preservation is intended to
-   * keep this.draft populated with the currently
+   * keep MessageManager.draft populated with the currently
    * showing draft when the app is hidden, so when the app
    * comes out of hiding, it knows there is a draft to continue
    * to keep track of.
@@ -2638,7 +2637,7 @@ var ThreadUI = global.ThreadUI = {
       recipients = this.recipients.numbers;
     }
 
-    var draftId = this.draft ? this.draft.id : null;
+    var draftId = MessageManager.draft ? MessageManager.draft.id : null;
 
     draft = new Draft({
       recipients: recipients,
@@ -2669,13 +2668,13 @@ var ThreadUI = global.ThreadUI = {
     // not explicitly preserved for the
     // draft replacement case
     if (!opts || (opts && !opts.preserve)) {
-      this.draft = null;
+      MessageManager.draft = null;
     }
 
     // Set the MessageManager draft if it is
     // not already set and meant to be preserved
-    if (!this.draft && (opts && opts.preserve)) {
-      this.draft = draft;
+    if (!MessageManager.draft && (opts && opts.preserve)) {
+      MessageManager.draft = draft;
     }
 
     // Show draft saved banner if not an

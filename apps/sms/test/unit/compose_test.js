@@ -1,7 +1,7 @@
 /* global MocksHelper, MockAttachment, MockL10n, loadBodyHTML,
          Compose, Attachment, MockMozActivity, Settings, Utils,
          AttachmentMenu, Draft, document, XMLHttpRequest, Blob, navigator,
-         setTimeout, ThreadUI */
+         setTimeout, MessageManager */
 
 /*jshint strict:false */
 /*jslint node: true */
@@ -21,7 +21,7 @@ requireApp('sms/test/unit/mock_recipients.js');
 requireApp('sms/test/unit/mock_settings.js');
 requireApp('sms/test/unit/mock_utils.js');
 requireApp('sms/test/unit/mock_moz_activity.js');
-requireApp('sms/test/unit/mock_thread_ui.js');
+requireApp('sms/test/unit/mock_message_manager.js');
 
 var mocksHelperForCompose = new MocksHelper([
   'AttachmentMenu',
@@ -30,7 +30,7 @@ var mocksHelperForCompose = new MocksHelper([
   'Utils',
   'MozActivity',
   'Attachment',
-  'ThreadUI'
+  'MessageManager'
 ]).init();
 
 suite('compose_test.js', function() {
@@ -429,24 +429,24 @@ suite('compose_test.js', function() {
     suite('Changing content marks draft as edited', function() {
 
       setup(function() {
-        ThreadUI.draft = new Draft({
+        MessageManager.draft = {
           isEdited: false
-        });
+        };
       });
 
       test('Changing message', function() {
         Compose.append('Message');
-        assert.isTrue(ThreadUI.draft.isEdited);
+        assert.isTrue(MessageManager.draft.isEdited);
       });
 
       test('Changing subject', function() {
         Compose.toggleSubject();
-        assert.isTrue(ThreadUI.draft.isEdited);
+        assert.isTrue(MessageManager.draft.isEdited);
       });
 
       test('Changing attachments', function() {
         Compose.append(mockAttachment(12345));
-        assert.isTrue(ThreadUI.draft.isEdited);
+        assert.isTrue(MessageManager.draft.isEdited);
       });
     });
 

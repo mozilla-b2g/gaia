@@ -3892,7 +3892,7 @@ suite('thread_ui.js >', function() {
     test('Deletes draft if there was a draft', function() {
       spy = this.sinon.spy(Drafts, 'delete');
 
-      ThreadUI.draft = {id: 3};
+      MessageManager.draft = {id: 3};
       ThreadUI.recipients.add({
         number: '888'
       });
@@ -3901,13 +3901,13 @@ suite('thread_ui.js >', function() {
       ThreadUI.onSendClick();
 
       assert.isTrue(spy.calledOnce);
-      assert.isNull(ThreadUI.draft);
+      assert.isNull(MessageManager.draft);
     });
 
     test('Removes draft thread if there was a draft thread', function() {
       spy = this.sinon.spy(ThreadListUI, 'removeThread');
 
-      ThreadUI.draft = {id: 3};
+      MessageManager.draft = {id: 3};
       ThreadUI.recipients.add({
         number: '888'
       });
@@ -4085,26 +4085,26 @@ suite('thread_ui.js >', function() {
     test('do not preserve draft for replacement', function() {
       ThreadUI.saveDraft();
 
-      assert.isNull(ThreadUI.draft);
+      assert.isNull(MessageManager.draft);
     });
 
     test('preserve pre-existing draft for replacement', function() {
       var draft = {id: 55};
-      ThreadUI.draft = draft;
+      MessageManager.draft = draft;
       ThreadUI.saveDraft({preserve: true});
 
-      assert.isNotNull(ThreadUI.draft);
-      assert.equal(ThreadUI.draft, draft);
+      assert.isNotNull(MessageManager.draft);
+      assert.equal(MessageManager.draft, draft);
     });
 
     test('preserve new draft for replacement', function() {
-      ThreadUI.draft = null;
+      MessageManager.draft = null;
       ThreadUI.saveDraft({preserve: true});
 
-      assert.isNotNull(ThreadUI.draft);
-      assert.deepEqual(ThreadUI.draft.recipients, ['999']);
-      assert.equal(ThreadUI.draft.content, 'foo');
-      assert.equal(ThreadUI.draft.threadId, null);
+      assert.isNotNull(MessageManager.draft);
+      assert.deepEqual(MessageManager.draft.recipients, ['999']);
+      assert.equal(MessageManager.draft.content, 'foo');
+      assert.equal(MessageManager.draft.threadId, null);
     });
 
     test('has entered content and recipients', function() {
@@ -4153,15 +4153,15 @@ suite('thread_ui.js >', function() {
     test('saves brand new threadless draft if not within thread', function() {
       Drafts.clear();
 
-      ThreadUI.draft = {id: 1};
+      MessageManager.draft = {id: 1};
       ThreadUI.saveDraft();
       assert.equal(Drafts.byThreadId(null).length, 1);
 
-      ThreadUI.draft = {id: 2};
+      MessageManager.draft = {id: 2};
       ThreadUI.saveDraft();
       assert.equal(Drafts.byThreadId(null).length, 2);
 
-      ThreadUI.draft = {id: 3};
+      MessageManager.draft = {id: 3};
       ThreadUI.saveDraft();
       assert.equal(Drafts.byThreadId(null).length, 3);
     });
@@ -4350,8 +4350,8 @@ suite('thread_ui.js >', function() {
         });
 
         test('Discard', function() {
-          ThreadUI.draft = {id: 3};
-          ThreadUI.draft.isEdited = true;
+          MessageManager.draft = {id: 3};
+          MessageManager.draft.isEdited = true;
           var spy = this.sinon.spy(ThreadListUI, 'removeThread');
           ThreadUI.back();
 
@@ -4361,7 +4361,7 @@ suite('thread_ui.js >', function() {
           assert.equal(ThreadUI.recipients.length, 0);
           assert.equal(Compose.getContent(), '');
           assert.isTrue(spy.calledOnce);
-          assert.isNull(ThreadUI.draft);
+          assert.isNull(MessageManager.draft);
         });
       });
 
@@ -4370,7 +4370,7 @@ suite('thread_ui.js >', function() {
         suite('If draft edited', function() {
 
           suiteSetup(function() {
-            ThreadUI.draft = {
+            MessageManager.draft = {
               id: 55,
               isEdited: true
             };
@@ -4425,11 +4425,11 @@ suite('thread_ui.js >', function() {
         suite('If draft not edited', function() {
 
           setup(function() {
-            ThreadUI.draft = {id: 55};
+            MessageManager.draft = {id: 55};
           });
 
           test('No prompt for replacement if recipients', function() {
-            ThreadUI.draft.isEdited = false;
+            MessageManager.draft.isEdited = false;
             ThreadUI.back();
 
             assert.isFalse(OptionMenu.calledOnce);
@@ -4438,7 +4438,7 @@ suite('thread_ui.js >', function() {
 
           test('No prompt for replacement if recipients & content', function() {
             Compose.append('foo');
-            ThreadUI.draft.isEdited = false;
+            MessageManager.draft.isEdited = false;
             ThreadUI.back();
 
             assert.isFalse(OptionMenu.calledOnce);
@@ -4448,7 +4448,7 @@ suite('thread_ui.js >', function() {
           test('No prompt for replacement if content', function() {
             ThreadUI.recipients.remove('999');
             Compose.append('foo');
-            ThreadUI.draft.isEdited = false;
+            MessageManager.draft.isEdited = false;
             ThreadUI.back();
 
             assert.isFalse(OptionMenu.calledOnce);
