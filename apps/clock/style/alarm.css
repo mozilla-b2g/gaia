@@ -63,7 +63,7 @@ li .button.icon-dialog:before {
 }
 
 .new #edit-alarm {
-  height: calc(100% - 6.5rem);
+  height: calc(100% - 5rem);
 }
 
 .new #delete-menu {
