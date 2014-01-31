@@ -26,26 +26,42 @@ function HudController(app) {
   bindAll(this);
   this.app = app;
   this.hud = app.views.hud;
+  this.configure();
   this.bindEvents();
   debug('initialized');
 }
 
 /**
+ * Initially configure state.
+ *
+ * @private
+ */
+HudController.prototype.configure = function() {
+  this.hud.set('flashMode', this.app.get('flashMode'));
+};
+
+/**
  * Bind callbacks to events.
  *
  * @return {HudController} for chaining
+ * @private
  */
 HudController.prototype.bindEvents = function() {
+  this.hud.on('click:camera', this.app.toggler('selectedCamera'));
+  this.hud.on('click:flash', this.app.toggler('flashMode'));
+  this.app.on('change:recording', this.onRecordingChange);
+  this.app.on('change:flashMode', this.hud.setFlashMode);
+  this.app.on('change:supports', this.onSupportChange);
+  this.app.on('camera:loading', this.disableButtons);
   this.app.on('camera:busy', this.disableButtons);
   this.app.on('camera:ready', this.enableButtons);
-  this.app.on('camera:loading', this.disableButtons);
-  this.app.on('change:supports', this.onSupportChange);
-  this.app.on('change:recording', this.onRecordingChange);
 };
 
 /**
  * Update UI when a new
  * camera is configured.
+ *
+ * @private
  */
 HudController.prototype.onSupportChange = function(supports) {
   this.hud.enable('camera', supports.selectedCamera);

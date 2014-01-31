@@ -18,10 +18,7 @@ module.exports = View.extend({
   name: 'hud',
   buttonsDisabledClass: 'buttons-disabled',
 
-  initialize: function(options) {
-    this.model = options.model;
-    this.set('flashMode', this.model.get('flashMode'));
-    this.model.on('change:flashMode', this.setFlashMode);
+  initialize: function() {
     this.render();
   },
 
@@ -51,8 +48,7 @@ module.exports = View.extend({
   onFlashClick: function() {
     var toggleClass = 'is-toggling';
     var self = this;
-
-    this.model.toggle('flashMode');
+    this.emit('click:flash');
     this.set('toggling-flash', true);
     clearTimeout(this.toggleTimer);
     this.toggleTimer = setTimeout(function() {
@@ -61,7 +57,7 @@ module.exports = View.extend({
   },
 
   onCameraClick: function() {
-    this.model.toggle('selectedCamera');
+    this.emit('click:camera');
   },
 
   set: function(key, value) {
