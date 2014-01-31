@@ -59,8 +59,8 @@ a {
   white-space: nowrap;
   margin: 0;
   padding: 1.5rem;
-  border-top: 0.1rem solid #a6a6a6;
-  background: rgba(0,0,0,0.05);
+  border-top: 0.1rem solid #e7e7e7;
+  background: none;
   display: block;
   overflow: hidden;
   position: absolute;
@@ -91,14 +91,15 @@ a {
 [role=navigation] button span {
   width: 3rem;
   height: 100%;
-  left: 0;
+  left: 0.5rem;
   position: absolute;
   pointer-events: none;
   background: url(images/prev.png) no-repeat center center / 1.1rem;
 }
 
 [role=navigation] button.recommend span {
-  left: calc(100% - 3rem);
+  left: auto;
+  right: 0.5rem;
   background-image: url(images/next.png);
 }
 

@@ -89,7 +89,7 @@ body[role="application"] [role="dialog"] {
   left: 0;
   right: 0;
   bottom: 0;
-  border-top: solid 0.1rem #a6a6a6;
+  border-top: solid 0.1rem #e7e7e7;
   padding: 1.5rem;
   /* Legacy unstable BB */
   background: transparent;
@@ -107,7 +107,7 @@ body[role="application"] [role="dialog"] {
   float: left;
   width: 1.3rem;
   height: 2.5rem;
-  margin: 0.7rem -1rem 0;
+  margin: 0.7rem -0.5rem 0;
   background: url(../images/app/icons/prev.png) no-repeat center center / 1.3rem;
 }
 
