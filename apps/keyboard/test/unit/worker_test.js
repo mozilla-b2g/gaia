@@ -252,7 +252,7 @@ suite('Latin en_us worker', function() {
   }
 
   test('Worker should throw if language doesnt exist', function(next) {
-    worker.postMessage({ cmd: 'setLanguage', args: ['en'] });
+    worker.postMessage({ cmd: 'setLanguage', args: ['no-existente'] });
     onWorkerMessage(function(data) {
 
       assert.equal(data.cmd, 'error');
