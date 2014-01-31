@@ -61,6 +61,7 @@ var ActivityHandler = {
 
       Contacts.findByPhoneNumber(number, function findContact(results) {
         var record, details, name, contact;
+        var mozfilter = new MozSmsFilter();
 
         // Bug 867948: results null is a legitimate case
         if (results && results.length) {
@@ -74,11 +75,33 @@ var ActivityHandler = {
           };
         }
 
-        ActivityHandler.toView({
+        var viewInfo = {
           body: body,
           number: number,
-          contact: contact || null
-        });
+          contact: contact || null,
+          threadId: null
+        }
+
+        // is there already a thread for this contact?
+        mozfilter.numbers = [number];
+        MessageManager.getMessages(
+          {
+            filter: mozfilter,
+            each: function (message) {
+              // we test if message is defined because MessageManager always start with an undefined object.
+              if (message && (message.receiver === number || message.sender === number)) {
+                viewInfo.threadId = message.threadId || null;
+                return false; //we found the message, stop iterating
+              } else {
+                return true;
+              }
+            },
+            done: function() {
+              ActivityHandler.toView(viewInfo);
+            }
+          }
+        );
+
       });
 
       ThreadUI.enableActivityRequestMode();
