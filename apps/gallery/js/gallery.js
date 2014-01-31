@@ -1045,6 +1045,21 @@ function launchCameraApp() {
       type: 'photos'
     }
   });
+
+  // We don't want to allow the user to request multiple launches.
+  // So disable all buttons that can launch the camera after we request this.
+  fullscreenButtons.camera.classList.add('disabled');
+  $('thumbnails-camera-button').classList.add('disabled');
+  $('overlay-camera-button').disabled = true;
+
+  // Re-enable them when we get a visibility change event telling us
+  // that we've become hidden or have become visible again.
+  window.addEventListener('visibilitychange', function reenable() {
+    window.removeEventListener('visibilitychange', reenable);
+    fullscreenButtons.camera.classList.remove('disabled');
+    $('thumbnails-camera-button').classList.remove('disabled');
+    $('overlay-camera-button').disabled = false;
+  });
 }
 
 function deleteSelectedItems() {
