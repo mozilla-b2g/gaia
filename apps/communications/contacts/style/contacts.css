@@ -39,6 +39,8 @@ section[role="region"] > header:first-child .icon.icon-edit-contact {
   overflow-x: hidden;
   overflow-y: auto;
   will-change: scroll-position;
+
+  background: #f4f4f4;
 }
 
 .view-contact-profile #cover-img {
