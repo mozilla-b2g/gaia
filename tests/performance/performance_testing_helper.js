@@ -2,9 +2,13 @@
 
 Components.utils.import('resource://gre/modules/Services.jsm');
 
+dump('adding observer');
+
 Services.obs.addObserver(function(document) {
+  dump('inserting testing helper');
   if (!document || !document.location)
     return;
+  dump('inserting testing helper #2');
 
   var window = document.defaultView.wrappedJSObject;
 
@@ -16,7 +20,7 @@ Services.obs.addObserver(function(document) {
     var now = window.performance.now();
 
     setTimeout(function() {
-      //console.log('PerformanceTestingHelper: dispatching event', name);
+      console.log('PerformanceTestingHelper: dispatching event', name);
 
       var detail = {
         name: name,

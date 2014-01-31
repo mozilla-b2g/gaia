@@ -55,6 +55,7 @@ function PerformanceHelper(opts) {
       var registerListener =
         'var w = global.wrappedJSObject;' +
         'w.loadTimes = [];' +
+        'dump(\'loadTimes\');' +
         'if (w.onapplicationloaded) {' +
         /* We've been here before, let's clean ! */
         '  w.removeEventListener("apploadtime", w.onapplicationloaded);' +
