@@ -35,7 +35,7 @@ var MIN_RECORDING_TIME = constants.MIN_RECORDING_TIME;
 var flashConfig = {
   photo: {
     defaultMode: 'auto',
-    supports: ['off', 'auto', 'on']
+    supports: ['off', 'auto', 'on', 'torch']
   },
   video: {
     defaultMode: 'off',
@@ -87,103 +87,109 @@ function Camera(options) {
   };
 
   // Default front camera
-  this.set('selectedCamera', 0);
+  this.set('selectedCamera', 'back');
   this.autoFocus = {};
   this.tmpVideo = {
     storage: navigator.getDeviceStorage('videos'),
     filename: null,
     filepath: null
   };
-
   debug('initialized', this.get('selectedCamera'));
 }
 
-Camera.prototype.loadStreamInto = function(el, done) {
-  debug('loading stream into element');
-
-  var mozCamera = this.mozCamera;
+Camera.prototype.start = function() {
   var self = this;
+  var errorGettingCamera = function(errorMessage) {
+    console.log('Error Requesting Camera Hardware: ' + errorMessage);
+  };
 
-  this.getStream(function(stream) {
-    el.mozSrcObject = stream;
-    debug('got stream');
-
-    // Wait till we know the stream is flowing.
-    mozCamera.onPreviewStateChange = function(state) {
-      if (state === 'started') {
-        mozCamera.onPreviewStateChange = null;
-        self.emit('streamloaded');
-        debug('stream loaded');
-        done();
-      }
-    };
-  });
-};
-
-Camera.prototype.getStream = function(done) {
-  var mozCamera = this.mozCamera;
-  var mode = this.get('mode');
-  debug('get %s stream', mode);
-
-  switch (mode) {
-    case 'photo':
-      mozCamera.getPreviewStream(this.photoPreviewSize, done);
-      break;
-    case 'video':
-      mozCamera.getPreviewStreamVideoMode(this.videoProfile, done);
-      break;
+  // If the camera has been already requested in the past
+  if (this.mozCamera) {
+    this.configure(this.mozCamera);
+  } else { // Camera never requested before
+    navigator.mozCameras.getCamera(
+      this.get('selectedCamera'),
+      {},
+      this.configure,
+      errorGettingCamera);
   }
 };
 
-Camera.prototype.load = function() {
-  var cameraList = navigator.mozCameras.getListOfCameras();
-  var selectedCamera = this.get('selectedCamera');
-  var config = { camera: cameraList[selectedCamera] };
-  var self = this;
 
-  // Store camera count
-  this.set('numCameras', cameraList.length);
-
-  // Releases current camera (async operation)
-  this.release(function() {
-    // Requests selected camera
-    navigator.mozCameras.getCamera(config, self.configureCamera);
-    debug('load camera: ', selectedCamera);
-  });
-};
-
-Camera.prototype.configureCamera = function(mozCamera) {
+Camera.prototype.configure = function(mozCamera, success, error) {
   debug('configure');
 
   var capabilities = mozCamera.capabilities;
   var done = allDone();
+  var onPreviewStateChange;
   var self = this;
+  var success = success || function() {
+    debug('load camera: ', this.get('selectedCamera'));
+  };
+  var error = error || function() {
+    console.log('Error configuring camera');
+  };
 
-  // Store the Gecko
-  // mozCamera interface
+  if (!mozCamera) {
+    return;
+  }
   this.mozCamera = mozCamera;
 
   // Configure all the things
   this.configurePictureSize(mozCamera);
   this.configureFocus(capabilities.focusModes);
   this.configureFlash(capabilities.flashModes);
+  this.configurePreviewSize(capabilities.previewSizes);
   this.configureVideoProfile(capabilities, done());
 
   // Bind to some hardware events
+  onPreviewStateChange = function(state) {
+    if (state === 'started') {
+      self.emit('streamloaded');
+      debug('stream loaded');
+    }
+  };
   mozCamera.onShutter = self.onShutter;
   mozCamera.onRecorderStateChange = self.onRecorderStateChange;
+  mozCamera.onPreviewStateChange = onPreviewStateChange;
+  if (!mozCamera.onPreviewStateChange) {
+    mozCamera.onPreviewStateChange = onPreviewStateChange;
+  }
+
   done(function() {
-    var photoPreviewSizes = capabilities.previewSizes;
-    var videoPreviewSize = {
-      width: self.videoProfile.width,
-      height: self.videoProfile.height
+    var options = {
+      mode: self.get('mode') === 'photo' ? 'picture' : 'video',
+      recorderProfile: self.videoProfile.name,
+      previewSize: self.photoPreviewSize
     };
-    self.configurePreviewSize(photoPreviewSizes, videoPreviewSize);
-    debug('configured');
-    self.emit('configured');
+    var success = success;
+    mozCamera.setConfiguration(options, function() {
+        self.previewSize = self.photoPreviewSize;
+        if (self.get('mode') === 'video') {
+          self.previewSize = self.videoPreviewSize;
+        }
+        debug('configured');
+        self.emit('configured');
+        if (success) {
+          success();
+        }
+      },
+      error
+    );
   });
 };
 
+Camera.prototype.loadStreamInto = function(videoElement) {
+  if (!this.mozCamera) {
+    return;
+  }
+  // Plugs Video Stream in Video Element
+  if (videoElement &&
+      videoElement.mozSrcObject !== this.mozCamera) {
+    videoElement.mozSrcObject = this.mozCamera;
+    videoElement.play();
+  }
+};
 
 Camera.prototype.configurePictureSize = function(mozCamera) {
   var capabilities = mozCamera.capabilities;
@@ -244,6 +250,10 @@ Camera.prototype.configureVideoProfile = function(capabilities, done) {
       recorderProfiles,
       mozSettingsSizes);
     self.videoProfile.rotation = orientation.get();
+    self.videoPreviewSize = {
+      height: self.videoProfile.height,
+      width: self.videoProfile.width
+    };
     debug('video profile configured', self.videoProfile);
     done();
   });
@@ -261,10 +271,10 @@ Camera.prototype.configurePreviewSize = function(photoPreviewSizes,
   // We should always have a valid preview size, but just in case
   // we don't, pick the first provided
   this.photoPreviewSize = pickedPreviewSize || photoPreviewSizes[0];
-  this.videoPreviewSize = videoPreviewSize;
   // Default preview size is photo
   this.previewSize = this.photoPreviewSize;
-  if (this.get('mode') === 'video') {
+  if (this.get('mode') === 'video' && videoPreviewSize) {
+    this.videoPreviewSize = videoPreviewSize;
     this.previewSize = this.videoPreviewSize;
   }
 };
@@ -340,7 +350,7 @@ Camera.prototype.pickVideoProfile = function(profiles, preferredSizes) {
   }
 
   profile = {
-    profile: profileName,
+    name: profileName,
     rotation: 0,
     width: profiles[profileName].video.width,
     height: profiles[profileName].video.height
@@ -530,12 +540,16 @@ Camera.prototype.capture = function(options) {
 
 Camera.prototype.takePicture = function(options) {
   var self = this;
+  var rotation = orientation.get();
+  if (this.get('selectedCamera') === 'front') {
+    rotation = -rotation;
+  }
   this.prepareTakePicture(onReady);
 
   function onReady() {
     var position = options && options.position;
     var config = {
-      orientation: orientation.get(),
+      rotation: rotation,
       dateTime: Date.now() / 1000,
       fileFormat: 'jpeg'
     };
@@ -615,7 +629,8 @@ Camera.prototype.startRecording = function(options) {
     var remaining = freeBytes - RECORD_SPACE_PADDING;
     var targetFileSize = self.get('targetFileSize');
     var maxFileSizeBytes = Math.min(remaining, targetFileSize);
-
+    var config;
+    var rotation = orientation.get();
     // Don't continue if there
     // is not enough space
     if (notEnoughSpace) {
@@ -623,10 +638,14 @@ Camera.prototype.startRecording = function(options) {
       return;
     }
 
+    if (self.get('selectedCamera') === 'front') {
+      rotation = -rotation;
+    }
+
     // TODO: Callee should
     // pass in orientation
-    var config = {
-      rotation: orientation.get(),
+    config = {
+      rotation: rotation,
       maxFileSizeBytes: maxFileSizeBytes
     };
 
@@ -780,21 +799,24 @@ Camera.prototype.resumePreview = function() {
 };
 
 Camera.prototype.hasFrontCamera = function() {
-  return this.get('numCameras') > 1;
+  return navigator.mozCameras.getListOfCameras().length > 1;
 };
 
 /**
  * Toggles the camera number
- * between back (0) and front(1).
+ * between back and front.
  *
  * @return {Number}
  */
 Camera.prototype.toggleCamera = function() {
-  var newNumber = 1 - this.get('selectedCamera');
-  this.set('selectedCamera', newNumber);
-  this.load();
-  debug('toggled: %d', newNumber);
-  return this;
+  var newSelectedCamera = 'front';
+  if (this.get('selectedCamera') === 'front') {
+    newSelectedCamera = 'back';
+  }
+  this.set('selectedCamera', newSelectedCamera);
+  debug('toggled: %d', newSelectedCamera);
+  this.release(this.start);
+  return newSelectedCamera;
 };
 
 /**
@@ -804,14 +826,9 @@ Camera.prototype.toggleCamera = function() {
  * @return {String}
  */
 Camera.prototype.toggleMode = function() {
-  var isCameraMode = this.get('mode') === 'photo';
-  var newMode = isCameraMode ? 'video' : 'photo';
-  this.previewSize = this.photoPreviewSize;
-  if (newMode === 'video') {
-    this.previewSize = this.videoPreviewSize;
-  }
+  var newMode = this.get('mode') === 'photo' ? 'video' : 'photo';
   this.set('mode', newMode);
-  this.configureFlash(this.flash.all);
+  this.start();
   return newMode;
 };
 

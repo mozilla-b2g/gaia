@@ -35,7 +35,8 @@ suite('controllers/viewfinder', function() {
       filmstrip: new View(),
       views: {
         viewfinder: new View()
-      }
+      },
+      on: sinon.spy()
     };
   });
 

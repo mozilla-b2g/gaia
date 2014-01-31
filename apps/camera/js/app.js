@@ -194,7 +194,6 @@ App.prototype.onVisibilityChange = function() {
  *
  */
 App.prototype.onBeforeUnload = function() {
-  this.views.viewfinder.setPreviewStream(null);
   this.emit('beforeunload');
   debug('beforeunload');
 };
