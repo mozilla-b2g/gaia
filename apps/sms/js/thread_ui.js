@@ -2068,7 +2068,7 @@ var ThreadUI = global.ThreadUI = {
       if (errorCode) {
         this.showMessageError(errorCode, {
           messageId: id,
-          confirmHandler: function stateResetAndRetry () {
+          confirmHandler: function stateResetAndRetry() {
             // Avoid user to click the download button while sim state is not
             // ready yet.
             messageDOM.classList.add('pending');
