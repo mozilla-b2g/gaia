@@ -445,7 +445,6 @@ apps/communications/dialer/test/unit/mock_simple_phone_matcher.js
 apps/communications/dialer/test/unit/mock_utils.js
 apps/communications/dialer/test/unit/simple_phone_matcher_test.js
 apps/communications/dialer/test/unit/suggestion_bar_test.js
-apps/communications/dialer/test/unit/telephony_helper_test.js
 apps/communications/dialer/test/unit/utils_test.js
 apps/communications/dialer/test/unit/voicemail_test.js
 apps/communications/facebook/js/console.js
