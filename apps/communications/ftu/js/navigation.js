@@ -301,7 +301,7 @@ var Navigation = {
     if (futureLocation.requireSIM) {
       SimManager.handleCardState(function check_cardState(response) {
         self.skipped = false;
-        if (!response) {
+        if (!response || !SimManager.available()) {
           self.skipStep();
         }
       });
