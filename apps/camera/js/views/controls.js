@@ -19,15 +19,15 @@ module.exports = View.extend({
   name: 'controls',
   className: 'test-controls',
 
-  initialize: function(options) {
+  initialize: function() {
     this.render();
   },
 
   render: function() {
     this.el.innerHTML = this.template();
-    this.els.timer = find('.js-video-timer', this.el);
     attach.on(this.el, 'click', '.js-switch', this.onSwitchClick);
     attach.on(this.el, 'click', '.js-btn', this.onButtonClick);
+    this.els.timer = find('.js-video-timer', this.el);
   },
 
   set: function(key, value) {

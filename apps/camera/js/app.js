@@ -116,10 +116,10 @@ App.prototype.runControllers = function() {
 };
 
 App.prototype.initializeViews = function() {
-  this.views.controls = new ControlsView({ model: this });
-  this.views.hud = new HudView({ model: this });
   this.views.viewfinder = new ViewfinderView();
+  this.views.controls = new ControlsView();
   this.views.focusRing = new FocusRing();
+  this.views.hud = new HudView();
   debug('views initialized');
 };
 
