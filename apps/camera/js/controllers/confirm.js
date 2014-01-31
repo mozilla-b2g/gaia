@@ -31,6 +31,7 @@ function ConfirmController(app) {
   this.activity = app.activity;
   this.container = app.el;
   this.app = app;
+  this.camera = app.camera;
 
   // Allow these dependencies
   // to be injected if need be.
@@ -96,6 +97,8 @@ ConfirmController.prototype.onNewImage = function(data) {
   }
 
   function onRetakeClick() {
+    confirm.removeListener('click:select', onSelectClick);
+    confirm.removeListener('click:retake', onRetakeClick);
     confirm.destroy();
     camera.resumePreview();
   }
@@ -133,8 +136,10 @@ ConfirmController.prototype.onNewVideo = function(video) {
   }
 
   function onRetakeClick() {
-    camera.resumePreview();
+    confirm.removeListener('click:select', onSelectClick);
+    confirm.removeListener('click:retake', onRetakeClick);
     confirm.destroy();
+    camera.resumePreview();
   }
 };
 
