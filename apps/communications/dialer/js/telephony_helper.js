@@ -115,7 +115,8 @@ var TelephonyHelper = (function() {
           } else if (errorName === 'BusyError') {
             notifyBusyLine();
             displayMessage('NumberIsBusy');
-          } else if (errorName === 'FDNBlockedError') {
+          } else if (errorName === 'FDNBlockedError' ||
+                     errorName === 'FdnCheckFailure') {
             displayMessage('FixedDialingNumbers');
           } else {
             // If the call failed for some other reason we should still
