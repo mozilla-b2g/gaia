@@ -124,6 +124,8 @@ ControlsController.prototype.onCancelButtonClick = function() {
   this.activity.cancel();
 };
 
+var throttleGalleryLaunch = false;
+
 /**
  * Open the gallery app
  * when the gallery button
@@ -140,11 +142,23 @@ ControlsController.prototype.onGalleryButtonClick = function() {
     return;
   }
 
+  if (throttleGalleryLaunch) {
+    return;
+  }
+
+  throttleGalleryLaunch = true;
+
   // Launch the gallery with an activity
   this.mozActivity = new MozActivity({
     name: 'browse',
     data: { type: 'photos' }
   });
+
+  // Wait 2000ms before re-enabling the Gallery to be launched
+  // (Bug 957709)
+  window.setTimeout(function() {
+    throttleGalleryLaunch = false;
+  }, 2000);
 };
 
 /**
