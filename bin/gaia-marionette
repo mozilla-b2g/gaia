@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# All options are passed to `./node_modules/.bin/marionette-mocha` so
+# you can also use mocha commands like `--grep`, `--timeout` see `--help`
+# for more options.
+
 # Find the source of this file
 SOURCE="${BASH_SOURCE[0]}"
 # Make it an absolute path
@@ -20,6 +24,14 @@ fi
 # tests can timeout without the profile-test folder so build it here.
 if [ ! -d $DIR/../profile-test ]; then
   PROFILE_FOLDER=profile-test make -C $DIR/../
+fi
+
+if [ -z "$TEST_FILES" ]; then
+    if [ -z "$APP" ]; then
+        TEST_FILES=$(find $DIR/.. -path "*/test/marionette/*_test.js")
+    else
+        TEST_FILES=$(find $DIR/.. -path "*$APP/test/marionette/*_test.js")
+    fi
 fi
 
 if [ -z "$XULRUNNER_DIRECTORY" ] ; then
@@ -43,4 +55,5 @@ PATH=$XPCSHELL_DIR:$PATH $DIR/../node_modules/.bin/marionette-mocha \
   --profile-builder $SHARED/profile_builder.js \
   --profile-base $SHARED/profile.js \
   $SHARED/setup.js \
+  $TEST_FILES \
   $@
