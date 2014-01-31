@@ -43,6 +43,7 @@
    "deviceinfo.software": "",
    "deviceinfo.update_channel": "",
    "device.storage.writable.name": "sdcard",
+   "devtools.overlay": false,
    "dom.mozContacts.debugging.enabled": false,
    "feedback.url": "https://input.allizom.org/api/v1/feedback/",
    "gaia.system.checkForUpdates": false,
