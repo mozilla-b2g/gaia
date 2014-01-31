@@ -35,7 +35,7 @@ var TelephonyHelper = (function() {
         return;
       }
       activeCall.onheld = function activeCallHeld() {
-        delete activeCall.onheld;
+        activeCall.onheld = null;
         startDial(
           conn, sanitizedNumber, oncall, onconnected, ondisconnected, onerror);
       };
