@@ -18,13 +18,8 @@ var debug = require('debug')('view:controls');
 module.exports = View.extend({
   name: 'controls',
   className: 'test-controls',
-  buttonsDisabledClass: 'buttons-disabled',
 
   initialize: function(options) {
-    this.model = options.model;
-    this.model.on('change:mode', this.setter('mode'));
-    this.model.on('change:recording', this.setter('recording'));
-    this.set('mode', this.model.get('mode'));
     this.render();
   },
 
@@ -67,12 +62,8 @@ module.exports = View.extend({
     this.emit('click:' + name, e);
   },
 
-  onSwitchClick: function(e) {
-    this.model.toggle('mode');
-  },
-
   template: function() {
-    return '<a class="switch-button test-switch js-switch" name="switch">' +
+    return '<a class="switch-button test-switch js-btn" name="switch">' +
       '<span class="rotates"></span>' +
     '</a>' +
     '<a class="capture-button test-capture js-btn" name="capture">' +
