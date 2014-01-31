@@ -93,31 +93,33 @@ Calendar.ns('Views').TimeHeader = (function() {
     },
 
     getScale: function(type) {
-      // If we are creating header for the week view
+      var position = this.controller.position;
       if (type === 'week') {
-        var scale = '';
-        var firstWeekday = this.controller.position;
-        // We check if current week ends in the current month.
-        // We check only 5 days ahead (so even if last two days
-        // are in the next month we don't care about that - we have
-        // only 5 days visible, and it looks odd when for example we
-        // have Sep 26-30 because 31 & Oct 1 are hidden, and
-        // we use "Sep 2012 Oct 2012" as a header).
-        var lastWeekday = new Date(
-                firstWeekday.getFullYear(),
-                firstWeekday.getMonth(),
-                firstWeekday.getDate() + 4
-              );
-        if (firstWeekday.getMonth() !== lastWeekday.getMonth()) {
-          scale = this._localeFormat(firstWeekday, 'multiMonth') + ' ' +
+        var lastWeekday = this._getLastWeekday();
+        if (position.getMonth() !== lastWeekday.getMonth()) {
+          // when displaying dates from multiple months we use a different
+          // format to avoid overflowing
+          return this._localeFormat(position, 'multiMonth') + ' ' +
             this._localeFormat(lastWeekday, 'multiMonth');
-        } else {
-          scale = this._localeFormat(lastWeekday, 'month');
         }
-        return scale;
+        // if it isn't "multiMonth" we use "month" instead
+        type = 'month';
       }
 
-      return this._localeFormat(this.controller.position, type || 'month');
+      return this._localeFormat(position, type || 'month');
+    },
+
+    _getLastWeekday: function(){
+      var position = this.controller.position;
+      // since we break the week into Sun-Wed and Thr-Sat we need to compute
+      // what is going to be the last date displayed on the current view
+      var weekday = position.getDay();
+      var diff = ((weekday <= 3) ? 3 : 6) - weekday;
+      return new Date(
+        position.getFullYear(),
+        position.getMonth(),
+        position.getDate() + diff
+      );
     },
 
     _localeFormat: function(date, scale) {
