@@ -100,8 +100,6 @@ var ThreadUI = global.ThreadUI = {
       window.DesktopMockNavigatormozMobileMessage;
 
     window.addEventListener('resize', this.resizeHandler.bind(this));
-    document.addEventListener('visibilitychange',
-                              this.onVisibilityChange.bind(this));
 
     // In case of input, we have to resize the input following UX Specs.
     Compose.on('input', this.messageComposerInputHandler.bind(this));
@@ -284,22 +282,6 @@ var ThreadUI = global.ThreadUI = {
     this.HEADER_HEIGHT = document.querySelector('.view-header').offsetHeight;
 
     ThreadUI.updateInputMaxHeight();
-  },
-
-  onVisibilityChange: function mm_onVisibilityChange(e) {
-    // If we leave the app and are in a thread or compose window
-    // save a message draft if necessary
-    if (document.hidden) {
-      var hash = window.location.hash;
-
-      // Auto-save draft if the user has entered anything
-      // in the composer.
-      if ((hash === '#new' || hash.startsWith('#thread=')) &&
-          (!Compose.isEmpty() || ThreadUI.recipients.length)) {
-        ThreadUI.saveDraft({preserve: true, autoSave: true});
-        Drafts.store();
-      }
-    }
   },
 
   // Initialize Recipients list and Recipients.View (DOM)
