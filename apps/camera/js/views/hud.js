@@ -87,12 +87,12 @@ module.exports = View.extend({
   },
 
   template: function() {
-    return '<a class="toggle-flash rotates js-toggle-flash-mode">' +
-      '<div class="flash-text">' +
+    return '<a class="toggle-flash rotates test-toggle-flash js-toggle-flash-mode">' +
+      '<div class="flash-text test-flash-text">' +
         'Flash: <span class="flash-name js-flash-mode-name"></span>' +
       '</div>' +
     '</a>' +
-    '<a class="toggle-camera rotates js-toggle-selected-camera"></a>';
+    '<a class="toggle-camera rotates test-toggle-camera js-toggle-selected-camera"></a>';
   }
 });
 

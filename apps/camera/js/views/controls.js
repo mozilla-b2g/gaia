@@ -17,6 +17,7 @@ var debug = require('debug')('view:controls');
 
 module.exports = View.extend({
   name: 'controls',
+  className: 'test-controls',
   buttonsDisabledClass: 'buttons-disabled',
 
   initialize: function(options) {
@@ -71,20 +72,20 @@ module.exports = View.extend({
   },
 
   template: function() {
-    return '<a class="switch-button js-switch" name="switch">' +
+    return '<a class="switch-button test-switch js-switch" name="switch">' +
       '<span class="rotates"></span>' +
     '</a>' +
-    '<a class="capture-button js-btn" name="capture">' +
+    '<a class="capture-button test-capture js-btn" name="capture">' +
       '<span class="rotates"></span>' +
     '</a>' +
     '<div class="misc-button">' +
-      '<a class="gallery-button js-btn" name="gallery">' +
+      '<a class="gallery-button test-gallery js-btn" name="gallery">' +
         '<span class="rotates"></span>' +
       '</a>' +
-      '<a class="cancel-pick js-btn" name="cancel">' +
+      '<a class="cancel-pick test-cancel-pick js-btn" name="cancel">' +
         '<span></span>' +
       '</a>' +
-      '<span class="video-timer js-video-timer">00:00</span>' +
+      '<span class="video-timer test-video-timer js-video-timer">00:00</span>' +
     '</div>';
   },
 });
