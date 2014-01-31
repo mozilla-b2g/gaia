@@ -96,8 +96,6 @@ apps/calendar/js/views/week_child.js
 apps/calendar/js/worker/manager.js
 apps/calendar/js/worker/thread.js
 apps/calendar/test/assertions.js
-apps/calendar/test/marionette/calendar.js
-apps/calendar/test/marionette/create_event_test.js
 apps/calendar/test/marionette/day_view_test.js
 apps/calendar/test/marionette/today_test.js
 apps/calendar/test/marionette/week_view_test.js
