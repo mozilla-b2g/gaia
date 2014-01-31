@@ -400,15 +400,12 @@ this.fb = fb;
           return datastore.get(INDEX_ID);
         }
         else if (datastore.readOnly === true) {
-          // Index is created in order not to cause errors
           window.console.warn('The datastore is empty and readonly');
-          revisionId = datastore.revisionId;
-          setIndex(createIndex());
-          notifyOpenSuccess(cb);
         }
         return null;
       }).then(function add_index_success(v) {
-        if (typeof v === 'object') {
+        // Index is created in order not to cause errors
+        if (typeof v !== 'number') {
           setIndex(v);
         }
         revisionId = datastore.revisionId;
