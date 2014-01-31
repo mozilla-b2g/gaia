@@ -85,7 +85,7 @@ module.exports = View.extend({
     '<footer id="confirm-controls" class="confirm-controls">' +
       '<button class="retake-button js-retake" name="retake">' +
       data.retake + '</button>' +
-      '<button class="select-button recommend js-select" name="select">' +
+      '<button class="select-button test-confirm-select js-select" name="select">' +
       data.select + '</button>' +
     '</footer>';
   },

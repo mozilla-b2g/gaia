@@ -19,19 +19,29 @@ class Camera(Base):
     _body_locator = (By.TAG_NAME, 'body')
 
     # Controls View
+<<<<<<< HEAD
     _controls_locator = (By.CSS_SELECTOR, '.js-controls')
     _switch_button_locator = (By.CSS_SELECTOR, '.js-switch')
     _capture_button_locator = (By.CSS_SELECTOR, '.js-capture')
     _gallery_button_locator = (By.CSS_SELECTOR, '.js-gallery')
     _cancel_pick_button_locator = (By.CSS_SELECTOR, '.js-cancel-pick')
     _video_timer_locator = (By.CSS_SELECTOR, '.js-video-timer')
+=======
+    _controls_locator = (By.CSS_SELECTOR, '.controls')
+    _controls_enabled_locator = (By.CSS_SELECTOR, '.controls:not([buttons-enabled=false])')
+    _switch_button_locator = (By.CSS_SELECTOR, '.test-switch')
+    _capture_button_locator = (By.CSS_SELECTOR, '.test-capture')
+    _gallery_button_locator = (By.CSS_SELECTOR, '.test-gallery')
+    _cancel_pick_button_locator = (By.CSS_SELECTOR, '.test-cancel-pick')
+    _video_timer_locator = (By.CSS_SELECTOR, '.test-video-timer')
+>>>>>>> Fix functional tests. Added 'test-*' class hooks to avoid future breakage
 
     # HUD View
     _hud_locator = (By.CSS_SELECTOR, '.hud')
-    _hud_enabled_locator = (By.CSS_SELECTOR, '.hud:not(.buttons-disabled)')
-    _toggle_flash_button_locator = (By.CSS_SELECTOR, '.js-toggle-flash')
-    _toggle_camera_button_locator = (By.CSS_SELECTOR, '.js-toggle-camera')
-    _flash_text_visible_locator = (By.CSS_SELECTOR, '.is-toggling .flash-text')
+    _hud_enabled_locator = (By.CSS_SELECTOR, '.hud:not([buttons-enabled=false])')
+    _toggle_flash_button_locator = (By.CSS_SELECTOR, '.test-toggle-flash')
+    _toggle_camera_button_locator = (By.CSS_SELECTOR, '.test-toggle-camera')
+    _flash_text_visible_locator = (By.CSS_SELECTOR, '[toggling-flash=true] .test-flash-text')
 
     _viewfinder_locator = (By.CLASS_NAME, 'viewfinder')
     _focus_ring_locator = (By.CSS_SELECTOR, '.focus-ring')
@@ -43,7 +53,7 @@ class Camera(Base):
     _filmstrip_hidden_locator = (By.CSS_SELECTOR, 'body.filmstriphidden')
 
     # ConfirmDialog
-    _select_button_locator = (By.CSS_SELECTOR, '.select-button')
+    _select_button_locator = (By.CSS_SELECTOR, '.test-confirm-select')
 
     def launch(self):
         Base.launch(self)
@@ -110,8 +120,8 @@ class Camera(Base):
                 self.wait_for_element_present(*self._viewfinder_locator)]) > 0)
 
     def wait_for_video_capturing(self):
-        self.wait_for_condition(lambda m: m.find_element(
-            *self._controls_locator).get_attribute('data-recording') == 'true')
+        self.wait_for_condition(lambda m: self.marionette.find_element(
+            *self._controls_locator).get_attribute('recording') == 'true')
 
     def wait_for_video_timer_not_visible(self):
         self.wait_for_element_not_displayed(*self._video_timer_locator)
@@ -162,7 +172,7 @@ class Camera(Base):
 
     @property
     def current_flash_mode(self):
-        return self.marionette.find_element(*self._toggle_flash_button_locator).get_attribute('data-mode')
+        return self.marionette.find_element(*self._hud_locator).get_attribute('flash-mode')
 
     @property
     def is_flash_text_visible(self):
