@@ -16,25 +16,40 @@
     handleEvent: function ssh_handleEvent(evt) {
       switch (evt.type) {
         case 'simslot-updated':
-          this.updateSimSettings();
+          this.simslotUpdatedHandler();
         break;
       }
     },
-    updateSimSettings: function ssh_updateSimSettings() {
+    hasOneSim: function() {
       var slots = SIMSlotManager.getSlots();
-
-      if (slots[0].isAbsent() && slots[1].isAbsent()) {
-        // all absent, do nothing
-      } else if (!slots[0].isAbsent() && !slots[1].isAbsent()) {
-        // all not absent, do nothing
-      } else {
-        var availableSIMIndex =
-          slots[0].isAbsent() ? 1 : 0;
-
-        this.setServiceOnCard('outgoingCall', availableSIMIndex);
-        this.setServiceOnCard('outgoingMessages', availableSIMIndex);
-        this.setServiceOnCard('outgoingData', availableSIMIndex);
+      var sim0Absent = slots[0].isAbsent();
+      var sim1Absent = slots[1].isAbsent();
+      if ((sim0Absent && !sim1Absent) ||
+          (!sim0Absent && sim1Absent)) {
+        return true;
       }
+      return false;
+    },
+    overrideUserSimSettings: function() {
+      if (!this.hasOneSim()) {
+        return;
+      }
+      var slots = SIMSlotManager.getSlots();
+      var availableSIMIndex = slots[0].isAbsent() ? 1 : 0;
+
+      this.setServiceOnCard('outgoingCall', availableSIMIndex);
+      this.setServiceOnCard('outgoingMessages', availableSIMIndex);
+      this.setServiceOnCard('outgoingData', availableSIMIndex);
+    },
+    simslotUpdatedHandler: function() {
+      // If the device has 0 or 2 SIMs present, we keep the user settings intact
+      if (!this.hasOneSim()) {
+        return;
+      }
+
+      // We have detected one SIM but we may receive the event for the second
+      // one. So we delay writing the settings, hoping that 1s is enough
+      setTimeout(this.overrideUserSimSettings.bind(this), 1000);
     },
     setServiceOnCard: function ssh_setServiceOnCard(serviceName, cardIndex) {
       var mozKeys = [];
