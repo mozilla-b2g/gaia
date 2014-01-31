@@ -3,7 +3,7 @@
 
 /*global Template, Utils, Threads, Contacts, URL, FixedHeader, Threads,
          WaitingScreen, MozSmsFilter, MessageManager, TimeHeaders,
-         Drafts, Thread */
+         Drafts, Thread, ThreadUI */
 /*exported ThreadListUI */
 (function(exports) {
 'use strict';
@@ -172,7 +172,7 @@ var ThreadListUI = {
         }
 
         if ((draftId = this.draftLinks.get(event.target))) {
-          MessageManager.draft = Drafts.get(draftId);
+          ThreadUI.draft = Drafts.get(draftId);
         }
 
         break;
@@ -519,7 +519,7 @@ var ThreadListUI = {
     TimeHeaders.update(li.querySelector('time'));
 
     if (draftId) {
-      // Used in handleEvent to set the MessageManager.draft object
+      // Used in handleEvent to set the ThreadUI.draft object
       this.draftLinks.set(
         li.querySelector('a'), draftId
       );
