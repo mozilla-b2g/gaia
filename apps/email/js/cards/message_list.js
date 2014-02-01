@@ -239,7 +239,10 @@ function MessageListCard(domNode, mode, args) {
   // only do this if there is a current folder. A case
   // where there is not a folder: after deleting an account,
   // and the UI is bootstrapping back to existing account.
-  if (this.curFolder) {
+  // Also, search pushes a new message_list card, but search
+  // needs a special slice, created only when the search
+  // actually starts. So do not bootstrap in that case.
+  if (this.curFolder && this.mode === 'nonsearch') {
     var items = headerCursor.messagesSlice && headerCursor.messagesSlice.items;
     if (items && items.length) {
       this.messages_splice(0, 0, items);
