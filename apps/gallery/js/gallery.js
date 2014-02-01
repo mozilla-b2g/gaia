@@ -269,12 +269,19 @@ function initDB() {
     initThumbnails();
   };
 
+  var screenLock;
+
   photodb.onscanstart = function onscanstart() {
     // Prevents user to edit images when scanning pictures from storage
     $('fullscreen-edit-button').classList.add('disabled');
     // Show the scanning indicator
     $('progress').classList.remove('hidden');
     $('throbber').classList.add('throb');
+
+    // Don't let the screen blank during scanning because that turns us into
+    // a background app and we get an OOM.
+    if (!screenLock)
+      screenLock = navigator.requestWakeLock('screen');
   };
 
   photodb.onscanend = function onscanend() {
@@ -287,6 +294,10 @@ function initDB() {
     // Hide the scanning indicator
     $('progress').classList.add('hidden');
     $('throbber').classList.remove('throb');
+
+    // Allow the screen to blank now
+    screenLock.unlock();
+    screenLock = null;
   };
 
   // On devices with internal and external device storage, this handler is
