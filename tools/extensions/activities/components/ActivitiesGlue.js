@@ -10,7 +10,6 @@ const Cu = Components.utils;
 
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource://gre/modules/Services.jsm");
-Cu.import('resource://gre/modules/ObjectWrapper.jsm');
 
 function ActivitiesDialog() {
   this._id = 0;
@@ -55,7 +54,7 @@ ActivitiesDialog.prototype = {
 
     let event = content.document.createEvent('CustomEvent');
     event.initCustomEvent('mozChromeEvent', true, true,
-                          ObjectWrapper.wrap(detail, content));
+                          Cu.cloneInto(detail, content));
     content.dispatchEvent(event);
   },
 
