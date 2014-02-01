@@ -66,6 +66,9 @@ var Rocketbar = {
 
   handleEvent: function(e) {
     switch (e.type) {
+      case 'iac-homescreenPainted':
+        this.hideRocketbarIframe();
+        return;
       case 'cardchange':
         this.searchInput.value = e.detail.title;
         return;
@@ -171,6 +174,7 @@ var Rocketbar = {
     window.addEventListener('cardviewclosed', this);
     window.addEventListener('cardviewclosedhome', this);
     window.addEventListener('home', this);
+    window.addEventListener('iac-homescreenPainted', this);
 
     this.searchCancel.addEventListener('click', this);
     // Prevent default on mousedown
@@ -281,6 +285,20 @@ var Rocketbar = {
     }
   },
 
+  /*
+   * Don't actually hide rocketbar
+   * until the homescreen behind it has painted.
+   * See bug 960683
+   */
+  hideRocketbarIframe: function() {
+    var searchFrame = this.searchContainer.querySelector('iframe');
+    if (searchFrame && searchFrame.setVisible) {
+      searchFrame.setVisible(false);
+    }
+    delete this.searchBar.dataset.visible;
+    this.searchBar.style.display = 'none';
+  },
+
   /**
    * Hides the rocketbar.
    * @param {String} event type that triggers the hide.
@@ -290,16 +308,7 @@ var Rocketbar = {
       return;
 
     document.body.removeEventListener('keyboardchange', this, true);
-
     this.searchInput.blur();
-
-    var searchFrame = this.searchContainer.querySelector('iframe');
-    if (searchFrame && searchFrame.setVisible) {
-      searchFrame.setVisible(false);
-    }
-    delete this.searchBar.dataset.visible;
-    this.searchBar.style.display = 'none';
-
     window.dispatchEvent(new CustomEvent('rocketbarhidden'));
 
     setTimeout(function nextTick() {

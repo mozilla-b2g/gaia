@@ -105,6 +105,10 @@
       "rules": {
         "minimumAccessLevel": "certified"
       }
+    },
+    "homescreenPainted" : {
+      "description": "Homescreen Finished Painting",
+      "rules": {}
     }
   },
   "datastores-owned": {

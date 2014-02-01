@@ -7,6 +7,7 @@ var Homescreen = (function() {
     document.location.host.replace(/(^[\w\d]+.)?([\w\d]+.[a-z]+)/, '$2');
   setLocale();
   var iconGrid = document.getElementById('icongrid');
+  var systemAppPort;
 
   navigator.mozL10n.ready(function localize() {
     setLocale();
@@ -36,6 +37,15 @@ var Homescreen = (function() {
       swipeFriction: swipeSection.friction,
       swipeTransitionDuration: swipeSection.transition_duration
     };
+
+    var wallpaperURL = new SettingsURL();
+
+    SettingsListener.observe('wallpaper.image',
+                             'resources/images/backgrounds/default.png',
+                             function(value) {
+                               var url = 'url(' + wallpaperURL.set(value) + ')';
+                               document.body.style.backgroundImage = url;
+                             });
 
     GridManager.init(options, function gm_init() {
       window.addEventListener('hashchange', function() {
@@ -68,6 +78,21 @@ var Homescreen = (function() {
         onInit();
       }
     });
+
+    connectToSystemApp();
+  }
+
+  function connectToSystemApp() {
+    navigator.mozApps.getSelf().onsuccess = function(evt) {
+      var selfApp = evt.target.result;
+
+      selfApp.connect('homescreenPainted').then(function(ports) {
+        systemAppPort = ports[0];
+      }, function rejected(reason) {
+        dump('Homescreen could not connect to system app: ' + reason);
+      }); // End app connect then
+
+    }; // end on success
   }
 
   function onContextMenu(evt) {
@@ -123,15 +148,33 @@ var Homescreen = (function() {
     }
   }
 
+  function updateSystemAppHomescreenRepainted() {
+    window.requestAnimationFrame(function(t1) {
+      window.requestAnimationFrame(function(t2) {
+        if (systemAppPort) {
+          systemAppPort.postMessage({
+            visible: true
+          });
+        } else {
+          dump('No system app port\n');
+        }
+      }); // end 2nd rAF
+    }); // end first rAF
+  }
+
   document.addEventListener('visibilitychange', function mozVisChange() {
     if (document.hidden && Homescreen.isInEditMode()) {
       exitFromEditMode();
     }
 
     if (document.hidden == false) {
+      var helper = document.getElementById('repaint-helper');
+      helper.classList.toggle('displayed');
+
       setTimeout(function forceRepaint() {
         var helper = document.getElementById('repaint-helper');
         helper.classList.toggle('displayed');
+        updateSystemAppHomescreenRepainted();
       });
     }
   });
