@@ -674,6 +674,7 @@ var LockScreen = {
     switch (panel) {
       case 'passcode':
       case 'main':
+        this.overlay.classList.add('no-transition');
         if (callback)
           setTimeout(callback);
         break;
