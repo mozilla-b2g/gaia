@@ -158,9 +158,9 @@ function sendKey(keycode) {
 function resizeWindow() {
   window.resizeTo(window.innerWidth, keyboardContainer.clientHeight);
 
-  layout.forEachPageView(function(pageview) {
-    pageview.resize();
-  });
+  // We only resize the currently displayed page view. Other page views
+  // are resized as needed when they're retrieved from the cache.
+  currentPageView.resize();
 }
 
 var englishLayout = {
