@@ -22,8 +22,8 @@ var Title = {
   init: function() {
     window.addEventListener('apploading', this);
     window.addEventListener('appforeground', this);
+    window.addEventListener('appnamechanged', this);
     window.addEventListener('apptitlechange', this);
-    window.addEventListener('home', this);
     window.addEventListener('homescreenopened', this);
     window.addEventListener('rocketbarhidden', this);
     window.addEventListener('rocketbarshown', this);
@@ -44,21 +44,18 @@ var Title = {
     if (!Rocketbar.enabled) {
       return;
     }
-
     switch (e.type) {
-      case 'home':
-        this.content = '';
-        break;
       case 'rocketbarshown':
         this.content = '';
         this.element.classList.add('hidden');
         break;
+      case 'appnamechanged':
       case 'apploading':
       case 'apptitlechange':
       case 'appforeground':
         var detail = e.detail;
         if (detail instanceof AppWindow && detail.isActive()) {
-          this.content = detail.title;
+          this.content = detail.name;
           this.element.classList.remove('hidden');
         }
         break;

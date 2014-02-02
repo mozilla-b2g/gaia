@@ -29,7 +29,7 @@ suite('system/Title', function() {
     manifest: {},
     manifestURL: 'app://wwww.fake/ManifestURL',
     origin: 'app://www.fake',
-    title: 'default'
+    name: 'default'
   };
 
   function check(content) {
@@ -67,12 +67,7 @@ suite('system/Title', function() {
     test('shown should be true', function() {
       Title.content = 'Foo';
       check('Foo');
-    });
-
-    test('home event', function() {
-      Title.content = 'Bar';
-      window.dispatchEvent(new CustomEvent('home'));
-      check('');
+      Title.content = '';
     });
 
     test('rocketbarhidden event', function() {
@@ -98,7 +93,7 @@ suite('system/Title', function() {
 
       events.forEach(function(event, idx) {
         check('');
-        fakeAppConfig.title = 'Test-' + idx;
+        fakeAppConfig.name = 'Test-' + idx;
         var detail = new AppWindow(fakeAppConfig);
         this.sinon.stub(detail, 'isActive').returns(true);
 
@@ -113,7 +108,7 @@ suite('system/Title', function() {
 
     test('title does not update if appwindow not active', function() {
       // Set the title to something initially
-      fakeAppConfig.title = 'default';
+      fakeAppConfig.name = 'default';
       var detail = new AppWindow(fakeAppConfig);
       this.sinon.stub(detail, 'isActive').returns(true);
 

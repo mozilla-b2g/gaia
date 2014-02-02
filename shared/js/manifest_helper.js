@@ -12,7 +12,9 @@ function ManifestHelper_get(prop) {
 
   // if this stage of the manifest has locales
   if (manifest.locales) {
-    var lang = document.documentElement.lang || '';
+    // documentElement.lang is updated after mozL10n is.
+    // Ensure we have the latest language code.
+    var lang = navigator.mozL10n.language.code || '';
 
     // try to replace values from the locales object using the best language
     // match.  stop when a replacement is found
@@ -47,7 +49,7 @@ function ManifestHelper(manifest) {
       enumerable: true
     });
   }
-};
+}
 
 exports.ManifestHelper = ManifestHelper;
 

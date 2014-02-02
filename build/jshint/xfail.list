@@ -620,7 +620,6 @@ apps/email/shared/js/idletimer.js
 apps/email/shared/js/l10n.js
 apps/email/shared/js/lazy_l10n.js
 apps/email/shared/js/lazy_loader.js
-apps/email/shared/js/manifest_helper.js
 apps/email/shared/js/media/get_video_rotation.js
 apps/email/shared/js/media/jpeg_metadata_parser.js
 apps/email/shared/js/media/media_frame.js
@@ -1150,7 +1149,6 @@ apps/system/test/unit/layout_manager_test.js
 apps/system/test/unit/lockscreen_conn_info_manager_test.js
 apps/system/test/unit/lockscreen_test.js
 apps/system/test/unit/logo_loader_test.js
-apps/system/test/unit/manifest_helper_test.js
 apps/system/test/unit/media_recording_test.js
 apps/system/test/unit/mobile_operator_test.js
 apps/system/test/unit/mock_activity.js
@@ -1179,7 +1177,6 @@ apps/system/test/unit/mock_iac_handler.js
 apps/system/test/unit/mock_iachandler.js
 apps/system/test/unit/mock_icc_manager.js
 apps/system/test/unit/mock_keyboard_manager.js
-apps/system/test/unit/mock_l10n.js
 apps/system/test/unit/mock_layout_manager.js
 apps/system/test/unit/mock_lock_screen.js
 apps/system/test/unit/mock_media_files.js
@@ -1286,7 +1283,6 @@ shared/js/lazy_l10n.js
 shared/js/lazy_loader.js
 shared/js/lazyloader.js
 shared/js/lockscreen_slide.js
-shared/js/manifest_helper.js
 shared/js/media/get_video_rotation.js
 shared/js/media/jpeg_metadata_parser.js
 shared/js/media/media_frame.js

@@ -1,9 +1,22 @@
 // Tests the manifest_helper.js from shared
 'use strict';
+/* global ManifestHelper, MockL10n */
 
+requireApp('/system/test/unit/mock_l10n.js');
 requireApp('system/shared/js/manifest_helper.js');
 
 suite('ManifestHelper', function() {
+  var realL10n;
+
+  suiteSetup(function() {
+    realL10n = navigator.mozL10n;
+    navigator.mozL10n = MockL10n;
+  });
+
+  suiteTeardown(function() {
+    navigator.mozL10n = realL10n;
+  });
+
   test('All properties the same when no locales', function() {
     var data = {
       name: 'Built-in Keyboard',
@@ -18,7 +31,7 @@ suite('ManifestHelper', function() {
   });
   suite('Properties with locale overrides', function() {
     setup(function() {
-      document.documentElement.lang = 'en-US';
+      navigator.mozL10n.language.code = 'en-US';
       this.data = {
         name: 'Built-in Keyboard',
         description: 'Built-in Keyboard',
@@ -63,7 +76,7 @@ suite('ManifestHelper', function() {
       assert.ok(this.helper.sub.array instanceof Array);
     });
     test('helper is sensitive to change in locale', function() {
-      document.documentElement.lang = 'en-GB';
+      navigator.mozL10n.language.code = 'en-GB';
       assert.equal(this.helper.test, 'en');
     });
   });
