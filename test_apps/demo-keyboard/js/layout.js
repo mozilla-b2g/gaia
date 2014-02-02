@@ -114,8 +114,6 @@ KeyboardLayout.prototype.getPageView = function(container, pagename, variant) {
   if (!pagename)
     pagename = Object.keys(this.pages)[0];
 
-  console.log('getPageView', pagename, variant);
-
   if (!(pagename in this.pages)) {
     throw Error('unknown page: ', pagename);
   }
@@ -128,16 +126,18 @@ KeyboardLayout.prototype.getPageView = function(container, pagename, variant) {
     page = this.pages[pagename].variants[variant];
   }
 
-  console.log('getPageView', cachekey);
-
   var pageview = this.pageViewCache[cachekey];
 
   if (!pageview) {
-    console.log('creating new page view');
     pageview = new KeyboardPageView(page);
     this.pageViewCache[cachekey] = pageview;
     pageview.resize();
     container.appendChild(pageview.element);
+  }
+  else {
+    // Resize in case the orientation has changed since we were last displayed.
+    // If the page view is already the right size this call is a no-op.
+    pageview.resize();
   }
 
   return pageview;
