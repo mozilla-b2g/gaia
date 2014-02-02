@@ -10,6 +10,7 @@ var mainpageName;
 
 var pages = {};
 var pageviews = {};
+var settings;
 
 window.addEventListener('load', init);
 
@@ -70,6 +71,28 @@ function init() {
     currentPageView.show();
     KeyboardTouchHandler.setPageView(currentPageView);
   });
+
+  var settings = new Settings({
+    click: {
+      defaultValue: false,
+      key: 'keyboard.clicksound'
+    },
+    vibrate: {
+      defaultValue: false,
+      key: 'keyboard.vibration'
+    },
+    correct: {
+      defaultValue: true,
+      key: 'keyboard.autocorrect'
+    },
+    suggest: {
+      defaultValue: true,
+      key: 'keyboard.wordsuggestion'
+    }
+  });
+  settings.addEventListener('settingschanged', function() {
+    console.log('settingschanged', JSON.stringify(settings));
+  });
 }
 
 function getVariant() {
@@ -87,7 +110,6 @@ function getVariant() {
   default:
     variant = null;
   }
-  console.log('getVariant', variant);
   return variant;
 }
 
