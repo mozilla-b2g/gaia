@@ -221,14 +221,12 @@ ifneq (,$(findstring MINGW32_,$(SYS)))
 CURDIR:=$(shell pwd -W | sed -e 's|/|\\\\|g')
 SEP=\\
 SEP_FOR_SED=\\\\
-GAIA_BUILD_DIR := file:///$(shell pwd -W)/build/
+BUILDDIR := file:///$(shell pwd -W)/build/
 # Mingw mangle path and append c:\mozilla-build\msys\data in front of paths
 MSYS_FIX=/
 else
-GAIA_BUILD_DIR := file://$(CURDIR)/build/
+BUILDDIR := file://$(CURDIR)/build/
 endif
-
-export GAIA_BUILD_DIR
 
 ifndef GAIA_APP_CONFIG
 GAIA_APP_CONFIG=build$(SEP)config$(SEP)apps-$(GAIA_APP_TARGET).list
@@ -403,7 +401,7 @@ endef
 
 # Generate profile/
 
-$(PROFILE_FOLDER): preferences local-apps app-makefiles copy-build-stage-manifest test-agent-config offline contacts extensions install-xulrunner-sdk .git/hooks/pre-commit $(PROFILE_FOLDER)/settings.json create-default-data $(PROFILE_FOLDER)/installed-extensions.json
+$(PROFILE_FOLDER): preferences local-apps app-makefiles test-agent-config offline contacts extensions install-xulrunner-sdk .git/hooks/pre-commit $(PROFILE_FOLDER)/settings.json create-default-data $(PROFILE_FOLDER)/installed-extensions.json
 ifeq ($(BUILD_APP_NAME),*)
 	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)$(PROFILE_FOLDER)"
 endif
@@ -592,7 +590,7 @@ define run-js-command
 # in JavaScript module.
 	echo "run-js-command $1";
 	$(XULRUNNERSDK) $(XPCSHELLSDK) \
-		-e "const GAIA_BUILD_DIR='$(GAIA_BUILD_DIR)'" \
+		-e "const GAIA_BUILD_DIR='$(BUILDDIR)'" \
 		-f build/xpcshell-commonjs.js \
 		-e "try { require('$(strip $1)').execute($$BUILD_CONFIG); quit(0);} \
 			catch(e) { \
@@ -1002,12 +1000,6 @@ really-clean: clean
 .PHONY: adb-remount
 adb-remount:
 	$(ADB) remount
-
-# Generally we got manifest from webapp-manifest.js which is execute in
-# applications-data.js unless manifest is generated from Makefile of app.
-# so we will copy manifest.webapp if it's avaiable in build_stage/
-copy-build-stage-manifest:
-	@$(call run-js-command, copy-build-stage-manifest)
 
 build-test-unit: $(NPM_INSTALLED_PROGRAMS)
 	@$(call run-build-test, $(shell find build/test/unit/*.test.js))
