@@ -81,10 +81,9 @@ input:focus:invalid {
   content: "]";
 }
 
-
 .sup-progress-region {
   width: calc(100% - 3rem);
-  margin: 16rem auto 0;
+  margin: 12.8rem auto 0px;
   padding-top: 1.2rem;
   vertical-align: middle;
   border-top: 0.1rem solid #bdbdbb;
