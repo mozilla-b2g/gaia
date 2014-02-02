@@ -159,7 +159,6 @@
   transform-origin: 50% 30%;
 }
 
-#screen.task-manager #cards-view .card > h1,
 #screen.task-manager #cards-view .card > p {
   display: none;
 }

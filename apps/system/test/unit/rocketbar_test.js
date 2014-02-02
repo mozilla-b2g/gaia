@@ -90,17 +90,6 @@ suite('system/Rocketbar', function() {
       this.sinon.stub(Rocketbar, 'initSearchConnection');
     });
 
-    test('cardchange event should not trigger focus if card', function() {
-      var focusStub = this.sinon.stub(Rocketbar.searchInput, 'focus');
-      Rocketbar.handleEvent({
-        type: 'cardchange',
-        detail: {
-          title: 'Mozilla'
-        }
-      });
-      assert.ok(focusStub.notCalled);
-    });
-
     test('cardviewclosed event should trigger focus', function() {
       Rocketbar.render();
       var focusStub = this.sinon.stub(Rocketbar.searchInput, 'focus');

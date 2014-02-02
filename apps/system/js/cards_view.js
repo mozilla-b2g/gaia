@@ -91,18 +91,6 @@ var CardsView = (function() {
     return stringHTML;
   }
 
-  function fireCardChange() {
-    var current = cardsList.children[currentDisplayed];
-    var title = '';
-    if (current) {
-      title = runningApps[current.dataset.origin].name;
-    }
-    window.dispatchEvent(new CustomEvent('cardchange', {
-      detail: {
-        title: title
-      }}));
-  }
-
   function fireCardViewClosed() {
     setTimeout(function nextTick() {
       window.dispatchEvent(new CustomEvent('cardviewclosed'));
@@ -231,7 +219,6 @@ var CardsView = (function() {
     placeCards();
     // At the beginning only the current card can listen to tap events
     currentCardStyle.pointerEvents = 'auto';
-    fireCardChange();
     window.addEventListener('tap', CardsView);
 
     function addCard(origin, app, displayedAppCallback) {
@@ -609,8 +596,6 @@ var CardsView = (function() {
     if (noTransition) {
       currentCard.dispatchEvent(new Event('transitionend'));
     }
-
-    fireCardChange();
   }
 
   function moveCards() {
