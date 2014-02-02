@@ -15,7 +15,7 @@ marionette('today item', function() {
     app.launch({ hideSwipeHint: true });
   });
 
-  test('should highlight today item in month view', function() {
+  test.skip('should highlight today item in month view', function() {
     var currentMonthYearHeader = app
       .waitForElement('monthYearHeader')
       .getAttribute('data-date');
