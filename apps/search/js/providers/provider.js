@@ -1,3 +1,5 @@
+'use strict';
+
 /**
  * Base Provider class
  */
@@ -45,6 +47,7 @@ Provider.prototype = {
    * Renders a set of results.
    * Each result may contain the following attributes:
    * - title: The title of the app.
+   * - meta: Secondary content to show for the result.
    * - icon: The icon of the result.
    * - dataset: Data attributes to apply to the result.
    */
@@ -76,7 +79,9 @@ Provider.prototype = {
         result.dataset[i] = config.dataset[i];
       }
 
-      if (config.icon) {
+      if (config.icon && /^(app|http)/.test(config.icon)) {
+        icon.src = config.icon;
+      } else if (config.icon) {
         icon.src = window.URL.createObjectURL(config.icon);
         icon.onload = function() { window.URL.revokeObjectURL(icon.src); };
       } else {
