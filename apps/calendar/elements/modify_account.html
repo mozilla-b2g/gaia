@@ -14,12 +14,16 @@
       <h1 data-l10n-id="account-header">Account</h1>
     </header>
 
-    <section class="during-progress">
-      <div>
-        <progress class="small"></progress>
-        <span data-l10n-id="modify-account-setting-up">SeTtiNg uP ACcOunt</span>
-      </div>
-    </section>
+    <form role="dialog" data-type="confirm" class="during-progress">
+      <section>
+        <h1 data-l10n-id="setup-progress-wait-msg">SettinG UP AccounT</h1>
+        <p class="sup-progress-container"><progress></progress></p>
+      </section>
+      <menu>
+        <button class="cancel full"
+          data-l10n-id="cancel">CanceL</button>
+      </menu>
+    </form>
 
     <form>
       <fieldset>
