@@ -13,12 +13,6 @@ form[role="dialog"][data-type="edit"] header .icon {
   pointer-events: auto;
 }
 
-/* Override Building Block [Edit mode] styles */
-form[role="dialog"][data-type="edit"] header,
-form[role="dialog"][data-type="edit"] > menu {
-  transition: all 0.3s ease;
-}
-
 form[role="dialog"][data-type="edit"] header {
   transform: translateY(-110%);
 }
@@ -92,7 +86,6 @@ ol, ul {
   background : white;
   color: black;
   height: -moz-calc(100% - 9.1rem);
-  -moz-transition: height .15s ease-in;
   position: absolute;
   overflow: hidden;
   width: 100%;
@@ -183,12 +176,10 @@ ol, ul {
 
 .recents-edit .pack-checkbox.call-log-selection {
   transform: translateX(4rem);
-  transition: transform 0.3s ease;
 }
 
 .recents-edit .log-item a {
   transform: translateX(3rem);
-  transition: all 0.3s ease;
 }
 
 .recents-edit .log-item a > p {
@@ -196,7 +187,6 @@ ol, ul {
 }
 
 .recents-edit .pack-end {
-  transition: all 0.3s ease;
   transform: translateX(6rem);
 }
 
