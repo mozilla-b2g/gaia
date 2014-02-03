@@ -1,6 +1,7 @@
 define(function(require, exports, module) {
 'use strict';
 
-module.exports = require('vendor/evt').mix({});
+var Events = require('vendor/evt');
+module.exports = new Events();
 
 });

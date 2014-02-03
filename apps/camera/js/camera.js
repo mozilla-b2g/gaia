@@ -104,6 +104,7 @@ Camera.prototype.loadStreamInto = function(el, done) {
   var mozCamera = this.mozCamera;
   var self = this;
 
+  this.emit('streamloading');
   this.getStream(function(stream) {
     el.mozSrcObject = stream;
     debug('got stream');
@@ -112,9 +113,10 @@ Camera.prototype.loadStreamInto = function(el, done) {
     mozCamera.onPreviewStateChange = function(state) {
       if (state === 'started') {
         mozCamera.onPreviewStateChange = null;
-        self.emit('streamloaded');
+        self.emit('loaded');
+        self.emit('ready');
         debug('stream loaded');
-        done();
+        if (done) { done(); }
       }
     };
   });
@@ -143,6 +145,7 @@ Camera.prototype.load = function() {
 
   // Store camera count
   this.set('numCameras', cameraList.length);
+  this.emit('loading');
 
   // Releases current camera (async operation)
   this.release(function() {
@@ -180,7 +183,7 @@ Camera.prototype.configureCamera = function(mozCamera) {
     };
     self.configurePreviewSize(photoPreviewSizes, videoPreviewSize);
     debug('configured');
-    self.emit('configured');
+    self.emit('configured', self);
   });
 };
 
@@ -274,14 +277,11 @@ Camera.prototype.configurePreviewSize = function(photoPreviewSizes,
  * both on the Camera instance
  * and on the cameraObj hardware.
  *
- * @param {Number} index
+ * @param {String} key
  */
-Camera.prototype.setFlashMode = function(index) {
-  var name = this.flash.available[index];
-  this.mozCamera.flashMode = name;
-  this.flash.current = index;
-  this.set('flash', name);
-  debug('flash mode set: %d (%s)', index, name);
+Camera.prototype.setFlashMode = function(key) {
+  this.mozCamera.flashMode = key;
+  debug('flash mode set: %d (%s)', key);
 };
 
 Camera.prototype.getMozSettingsSizes = function(done) {
@@ -530,6 +530,8 @@ Camera.prototype.capture = function(options) {
 
 Camera.prototype.takePicture = function(options) {
   var self = this;
+
+  this.emit('busy');
   this.prepareTakePicture(onReady);
 
   function onReady() {
@@ -555,12 +557,14 @@ Camera.prototype.takePicture = function(options) {
     self.resumePreview();
     self.set('focus', 'none');
     self.emit('newimage', { blob: blob });
+    self.emit('ready');
   }
 
   function onError() {
     var title = navigator.mozL10n.get('error-saving-title');
     var text = navigator.mozL10n.get('error-saving-text');
     alert(title + '. ' + text);
+    self.emit('ready');
   }
 };
 
@@ -572,7 +576,6 @@ Camera.prototype.prepareTakePicture = function(done) {
     return;
   }
 
-  this.emit('preparingtotakepicture');
   this.mozCamera.autoFocus(onFocus);
   this.set('focus', 'focusing');
 
@@ -637,7 +640,6 @@ Camera.prototype.startRecording = function(options) {
       self.tmpVideo.filename,
       onSuccess,
       self.onRecordingError);
-      self.emit('recordingstart');
     }
 
     function onSuccess() {
@@ -667,7 +669,6 @@ Camera.prototype.stopRecording = function() {
 
   this.mozCamera.stopRecording();
   this.set('recording', false);
-  this.emit('recordingend');
   this.stopVideoTimer();
 
   // Register a listener for writing
@@ -866,6 +867,20 @@ Camera.prototype.updateVideoElapsed = function() {
   var now = new Date().getTime();
   var start = this.get('videoStart');
   this.set('videoElapsed', (now - start));
+};
+
+Camera.prototype.supports = function(key) {
+  var method = this[key + 'Support'];
+  return method ? method() : false;
+};
+
+Camera.prototype.flashSupport = function() {
+  var flashModes = this.mozCamera.capabilities.flashModes;
+  return !!(flashModes && flashModes.length);
+};
+
+Camera.prototype.dualCameraSupport = function() {
+  return this.get('numCameras') > 1;
 };
 
 });

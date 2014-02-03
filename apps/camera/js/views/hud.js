@@ -5,6 +5,7 @@ define(function(require, exports, module) {
  * Dependencies
  */
 
+var attach = require('vendor/attach');
 var View = require('vendor/view');
 var bind = require('utils/bind');
 var find = require('utils/find');
@@ -18,21 +19,20 @@ module.exports = View.extend({
   buttonsDisabledClass: 'buttons-disabled',
 
   initialize: function() {
-    this.el.innerHTML = this.render();
+    this.render();
+  },
 
-    // Get elements
-    this.els.flash = find('.js-toggle-flash', this.el);
+  render: function() {
+    this.el.innerHTML = this.template();
+    this.els.flash = find('.js-toggle-flash-mode', this.el);
     this.els.flashModeName = find('.js-flash-mode-name', this.el);
-    this.els.camera = find('.js-toggle-camera', this.el);
-
-    // Bind events
+    this.els.camera = find('.js-toggle-selected-camera', this.el);
     bind(this.els.flash, 'click', this.onFlashClick, this);
     bind(this.els.camera, 'click', this.onCameraClick, this);
   },
 
   setFlashMode: function(mode) {
-    mode = mode || 'none';
-    this.els.flash.setAttribute('data-mode', mode);
+    this.set('flash-mode', mode);
     this.els.flashModeName.textContent = mode;
   },
 
@@ -47,52 +47,55 @@ module.exports = View.extend({
    */
   onFlashClick: function() {
     var toggleClass = 'is-toggling';
-    var classes = this.els.flash.classList;
-
-    classes.add(toggleClass);
+    var self = this;
+    this.emit('click:flash');
+    this.set('toggling-flash', true);
     clearTimeout(this.toggleTimer);
-
     this.toggleTimer = setTimeout(function() {
-      classes.remove(toggleClass);
+      self.set('toggling-flash', false);
     }, 1000);
-
-    this.emit('flashToggle');
   },
 
   onCameraClick: function() {
-    this.emit('cameraToggle');
+    this.emit('click:camera');
   },
 
-  toggleDisableButtons: function(value) {
-    this.el.classList.toggle(this.buttonsDisabledClass, value);
+  set: function(key, value) {
+    value = arguments.length === 2 ? value : true;
+    this.el.setAttribute(toDash(key), value);
   },
 
-  disableButtons: function() {
-    this.el.classList.add(this.buttonsDisabledClass);
-    return this;
+  setter: function(key) {
+    return (function(value) { this.set(key, value); }).bind(this);
   },
 
-  enableButtons: function() {
-    this.el.classList.remove(this.buttonsDisabledClass);
-    return this;
+  enable: function(key, value) {
+    value = arguments.length === 2 ? value : true;
+    this.set(key + '-enabled', !!value);
   },
 
-  showCameraToggleButton: function(hasFrontCamera) {
-    this.el.classList.toggle('has-front-camera', hasFrontCamera);
+  disable: function(key) {
+    this.enable(key, false);
   },
 
-  highlightCameraButton: function(value) {
-    this.el.classList.toggle('is-toggling-camera', value);
+  hide: function(key, value) {
+    this.set(key + '-hidden', value);
   },
 
-  render: function() {
-    return '<a class="toggle-flash rotates js-toggle-flash">' +
-      '<div class="flash-text">' +
+  template: function() {
+    return '<a class="toggle-flash rotates test-toggle-flash js-toggle-flash-mode">' +
+      '<div class="flash-text test-flash-text">' +
         'Flash: <span class="flash-name js-flash-mode-name"></span>' +
       '</div>' +
     '</a>' +
-    '<a class="toggle-camera rotates js-toggle-camera"></a>';
+    '<a class="toggle-camera rotates test-toggle-camera js-toggle-selected-camera"></a>';
   }
 });
+
+function toDash(s) {
+  return s.replace(/\W+/g, '-')
+    .replace(/([a-z\d])([A-Z])/g, '$1-$2')
+    .toLowerCase();
+}
 
 });

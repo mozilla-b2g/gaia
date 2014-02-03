@@ -12,7 +12,8 @@ var debug = require('debug')('controller:viewfinder');
  * Exports
  */
 
-module.exports = ViewfinderController;
+exports = module.exports = function(app) { return new ViewfinderController(app); };
+exports.ViewfinderController = ViewfinderController;
 
 /**
  * Initialize a new `ViewfinderController`
@@ -20,30 +21,28 @@ module.exports = ViewfinderController;
  * @param {App} app
  */
 function ViewfinderController(app) {
-  if (!(this instanceof ViewfinderController)) {
-    return new ViewfinderController(app);
-  }
-
   debug('initializing');
-  this.viewfinder = app.views.viewfinder;
-  this.filmstrip = app.filmstrip;
-  this.activity = app.activity;
-  this.camera = app.camera;
   bindAll(this);
+  this.app = app;
+  this.camera = app.camera;
+  this.activity = app.activity;
+  this.filmstrip = app.filmstrip;
+  this.viewfinder = app.views.viewfinder;
   this.bindEvents();
   debug('initialized');
 }
 
 ViewfinderController.prototype.bindEvents = function() {
-  this.camera.on('configured', this.onConfigured);
-  this.camera.on('change:mode', this.onConfigured);
   this.viewfinder.on('click', this.onViewfinderClick);
+  this.app.on('camera:loaded', this.viewfinder.fadeIn);
+  this.app.on('camera:configured', this.onConfigured);
+  this.app.on('change:mode', this.onConfigured);
 };
 
 ViewfinderController.prototype.onConfigured = function() {
   debug('camera configured');
-  this.viewfinder.updatePreview(this.camera.previewSize,
-                                this.camera.get('selectedCamera') === 1);
+  var isFrontCamera = this.app.get('selectedCamera') === 1;
+  this.viewfinder.updatePreview(this.camera.previewSize, isFrontCamera);
   this.camera.loadStreamInto(this.viewfinder.el, onStreamLoaded);
   function onStreamLoaded(stream) {
     debug('stream loaded %d ms after dom began loading',
@@ -51,15 +50,16 @@ ViewfinderController.prototype.onConfigured = function() {
   }
 };
 
+/**
+ * Toggles the filmstrip, but not
+ * whilst recording or within an
+ * activity session.
+ *
+ * @private
+ */
 ViewfinderController.prototype.onViewfinderClick = function() {
-  var recording = this.camera.get('recording');
-
-  // The filmstrip shouldn't be
-  // shown while camera is recording.
-  if (recording || this.activity.active) {
-    return;
-  }
-
+  var recording = this.app.get('recording');
+  if (recording || this.activity.active) { return; }
   this.filmstrip.toggle();
   debug('click');
 };

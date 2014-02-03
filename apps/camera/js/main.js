@@ -13,12 +13,11 @@ require(['config/require', 'config'], function() {
     var App = require('app');
     var Camera = require('camera');
     var Sounds = require('sounds');
-    var HudView = require('views/hud');
+    var Config = require('lib/config');
     var Filmstrip = require('filmstrip');
-    var FocusRing = require('views/focusring');
-    var ControlsView = require('views/controls');
-    var ViewfinderView = require('views/viewfinder');
     var sounds = new Sounds(require('config/sounds'));
+    var config = new Config(require('config/app'));
+    var allDone = require('utils/alldone');
     var GeoLocation = require('geolocation');
     var Activity = require('activity');
     var Storage = require('storage');
@@ -28,21 +27,14 @@ require(['config/require', 'config'], function() {
       viewfinder: require('controllers/viewfinder'),
       overlay: require('controllers/overlay'),
       confirm: require('controllers/confirm'),
-      camera: require('controllers/camera')
+      settings: require('controllers/settings'),
+      camera: require('controllers/camera'),
+      sounds: require('controllers/sounds'),
+      battery: require('controllers/battery')
     };
 
     debug('required dependencies');
 
-    var views = {
-      viewfinder: new ViewfinderView(),
-      controls: new ControlsView(),
-      focusRing: new FocusRing(),
-      hud: new HudView()
-    };
-
-    debug('created views');
-
-    var activity = new Activity();
     var camera = new Camera({
       maxFileSizeBytes: 0,
       maxWidth: 0,
@@ -54,15 +46,15 @@ require(['config/require', 'config'], function() {
      * Create new `App`
      */
 
-    var app = new App({
+    var app = window.app = new App({
       win: window,
       doc: document,
       el: document.body,
       geolocation: new GeoLocation(),
-      activity: activity,
+      activity: new Activity(),
+      config: config,
       camera: camera,
       sounds: sounds,
-      views: views,
       controllers: controllers,
       filmstrip: Filmstrip,
       storage: new Storage()
@@ -70,15 +62,21 @@ require(['config/require', 'config'], function() {
 
     debug('created app');
 
-    // Check activity, configure the
-    // camera with some of the activity
-    // data, then boot the app.
-    activity.check(function() {
-      camera.set('targetFileSize', activity.data.fileSize);
-      camera.set('targetImageWidth', activity.data.width);
-      camera.set('targetImageHeight', activity.data.height);
-      app.boot();
-    });
+    function delay(fn, ms) {
+      ms = ms || 4000;
+      return function() {
+        setTimeout(function() { fn.apply(this, arguments); }, ms);
+      };
+    }
+
+    // Async jobs to be
+    // done before boot...
+    var done = allDone();
+    app.activity.check(done());
+    app.fetchState(done());
+
+    // ...boot!
+    done(app.boot);
   });
 
   require(['boot']);

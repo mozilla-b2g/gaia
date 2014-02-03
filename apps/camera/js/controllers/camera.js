@@ -13,7 +13,8 @@ var bindAll = require('utils/bindAll');
  * Exports
  */
 
-module.exports = CameraController;
+exports = module.exports = function(app) { return new CameraController(app); };
+exports.CameraController = CameraController;
 
 /**
  * Initialize a new `CameraController`
@@ -21,53 +22,81 @@ module.exports = CameraController;
  * @param {App} app
  */
 function CameraController(app) {
-  if (!(this instanceof CameraController)) {
-    return new CameraController(app);
-  }
-
   debug('initializing');
-  this.viewfinder = app.views.viewfinder;
-  this.filmstrip = app.filmstrip;
-  this.activity = app.activity;
-  this.storage = app.storage;
-  this.camera = app.camera;
-  this.app = app;
   bindAll(this);
-  this.setCaptureMode();
+  this.app = app;
+  this.camera = app.camera;
+  this.storage = app.storage;
+  this.storage = app.storage;
+  this.activity = app.activity;
+  this.filmstrip = app.filmstrip;
+  this.viewfinder = app.views.viewfinder;
+  this.controls = app.views.controls;
+  this.configure();
   this.bindEvents();
   debug('initialized');
 }
 
 CameraController.prototype.bindEvents = function() {
-  this.camera.on('filesizelimitreached', this.onFileSizeLimitReached);
-  this.camera.on('recordingstart', this.onRecordingStart);
-  this.camera.on('recordingend', this.onRecordingEnd);
-  this.camera.on('configured', this.onConfigured);
-  this.camera.on('newimage', this.onNewImage);
-  this.camera.on('newvideo', this.onNewVideo);
-  this.camera.on('shutter', this.onShutter);
-  this.app.on('blur', this.teardownCamera);
-  this.app.on('focus', this.setupCamera);
-  this.app.on('boot', this.setupCamera);
+  var camera = this.camera;
+  var app = this.app;
+
+  // Relaying camera events means other modules
+  // don't have to depend directly on camera
+  camera.on('change:videoElapsed', app.firer('camera:timeupdate'));
+  camera.on('configured', app.firer('camera:configured'));
+  camera.on('change:recording', app.setter('recording'));
+  camera.on('loading', app.firer('camera:loading'));
+  camera.on('shutter', app.firer('camera:shutter'));
+  camera.on('loaded', app.firer('camera:loaded'));
+  camera.on('ready', app.firer('camera:ready'));
+  camera.on('busy', app.firer('camera:busy'));
+
+  // Camera
+  camera.on('filesizelimitreached', this.onFileSizeLimitReached);
+  camera.on('configured', this.onConfigured);
+  camera.on('newimage', this.onNewImage);
+  camera.on('newvideo', this.onNewVideo);
+
+  // App
+  app.on('change:selectedCamera', this.onCameraChange);
+  app.on('change:flashMode', this.setFlashMode);
+  app.on('change:mode', this.onModeChange);
+  app.on('blur', this.teardownCamera);
+  app.on('focus', this.setupCamera);
+  app.on('capture', this.onCapture);
+  app.on('boot', this.setupCamera);
+
+  // New events i'd like camera to emit
+  // camera.on('ready', app.firer('camera:ready'));
+  // camera.on('focusing', app.firer('camera:focusing'));
+  // camera.on('focusfail', app.firer('camera:focusfail'));
+
   debug('events bound');
 };
 
 /**
- * Sets the initial
- * capture mode.
+ * Configure the camera with
+ * initial configuration derived
+ * from various startup parameters.
  *
- * The mode chosen by an
- * activity is chosen, else
- * we just default to 'photo'
- *
+ * @private
  */
-CameraController.prototype.setCaptureMode = function() {
-  var initialMode = this.activity.mode ||
-                    constants.CAMERA_MODE_TYPE.PHOTO;
-  this.camera.set('mode', initialMode);
-  debug('capture mode set: %s', initialMode);
+CameraController.prototype.configure = function() {
+  var activity = this.activity;
+  var camera = this.camera;
+  camera.set('targetFileSize', activity.data.fileSize);
+  camera.set('targetImageWidth', activity.data.width);
+  camera.set('targetImageHeight', activity.data.height);
+  camera.set('selectedCamera', this.app.get('selectedCamera'));
+  camera.set('flashMode', this.app.get('flashMode'));
+  camera.set('mode', this.app.get('mode'));
+  debug('configured');
 };
 
+/**
+ * Loads the camera with its
+ */
 CameraController.prototype.setupCamera = function() {
   this.camera.load();
 };
@@ -75,6 +104,12 @@ CameraController.prototype.setupCamera = function() {
 CameraController.prototype.onConfigured = function() {
   var maxFileSize = this.camera.maxPictureSize;
   this.storage.setMaxFileSize(maxFileSize);
+  this.setFlashMode(this.app.get('flashMode'));
+  this.app.set('maxFileSize', maxFileSize);
+  this.app.set('supports', {
+    selectedCamera: this.camera.supports('dualCamera'),
+    flashMode: this.camera.supports('flash')
+  });
 };
 
 CameraController.prototype.teardownCamera = function() {
@@ -103,6 +138,11 @@ CameraController.prototype.teardownCamera = function() {
   }
 
   debug('torn down');
+};
+
+CameraController.prototype.onCapture = function() {
+  var position = this.app.geolocation.position;
+  this.camera.capture({ position: position });
 };
 
 CameraController.prototype.onNewImage = function(image) {
@@ -166,31 +206,67 @@ CameraController.prototype.showSizeLimitAlert = function() {
   this.sizeLimitAlertActive = false;
 };
 
-/**
- * Plays the 'recordingStart'
- * sound effect.
- *
- */
-CameraController.prototype.onRecordingStart = function() {
-  this.app.sounds.play('recordingStart');
+CameraController.prototype.onModeChange = function(mode) {
+  var viewfinder = this.viewfinder;
+  var camera = this.camera;
+
+  // We need to force a flash change so that
+  // the camera hardware gets set with the
+  // correct flash for this capture mode.
+  this.setFlashMode(this.app.get('flashMode'));
+  camera.set('mode', mode);
+
+  // Fade out the videfinder,
+  // then load the stream.
+  viewfinder.fadeOut(function() {
+    camera.loadStreamInto(viewfinder.el);
+  });
 };
 
 /**
- * Plays the 'recordingEnd'
- * sound effect.
- *
+ * Toggle the camera (front/back),
+ * fading the viewfinder in between.
  */
-CameraController.prototype.onRecordingEnd = function() {
-  this.app.sounds.play('recordingEnd');
+CameraController.prototype.onCameraChange = function() {
+  this.viewfinder.fadeOut(this.camera.toggleCamera);
 };
 
 /**
- * Plays the 'shutter'
- * sound effect.
+ * Toggles the flash on
+ * the camera and UI when
+ * the flash button is pressed.
  *
  */
-CameraController.prototype.onShutter = function() {
-  this.app.sounds.play('shutter');
+CameraController.prototype.setFlashMode = function(flashMode) {
+  flashMode = this.translateFlashMode(flashMode);
+  this.camera.setFlashMode(flashMode);
+};
+
+/**
+ * This is a quick fix to translate
+ * the chosen flash mode into a video
+ * compatible flash mode.
+ *
+ * The reason being, camera will soon
+ * be dual shutter and both camera
+ * and video will support the same
+ * flash options. We don't want to
+ * waste time building support for
+ * deprecated functionality.
+ *
+ * @param  {String} flashMode
+ * @return {String}
+ */
+CameraController.prototype.translateFlashMode = function(flashMode) {
+  var isFrontCamera = this.app.get('selectedCamera') === 1;
+  var isPhotoMode = this.app.get('mode') === 'photo';
+  if (isPhotoMode) { return flashMode; }
+  if (isFrontCamera) { return null; }
+  switch (flashMode) {
+    case 'auto': return 'off';
+    case 'on': return 'torch';
+    default: return flashMode;
+  }
 };
 
 });
