@@ -65,7 +65,25 @@
     "ftu": {
       "launch_path": "/ftu/index.html",
       "name": "FTU",
-      "fullscreen": "true"
+      "fullscreen": "true",
+      "locales": {
+        "ar": {
+          "name": "FTU",
+          "description": "FTU"
+        },
+        "en-US": {
+          "name": "FTU",
+          "description": "FTU"
+        },
+        "fr": {
+          "name": "FTU",
+          "description": "FTU"
+        },
+        "zh-TW": {
+          "name": "FTU",
+          "description": "FTU"
+        }
+      }
     }
   },
   "permissions": {
