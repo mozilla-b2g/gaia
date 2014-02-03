@@ -14,15 +14,15 @@
 }
 
 #stopwatch-controls {
-  width: 100%;
-  margin: 0px 0.5rem 0px -2.5rem;
+  display: flex;
+  padding: 0;
+  margin: 2rem 1rem 0;
 }
 
 #stopwatch-controls button {
-  float: left;
-
-  width: 45%;
-  margin: 0 1rem 0 0;
+  flex: auto;
+  height: 3.8rem;
+  margin: 0 0.5rem;
 }
 
 .stopwatch-laps {
