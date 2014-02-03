@@ -132,22 +132,6 @@ suite('system/AppWindowManager', function() {
   };
 
   suite('Handle events', function() {
-    test('App is shown on rocketbarhidden', function() {
-      AppWindowManager._activeApp = app1;
-      var stubBroadcastMessage =
-        this.sinon.stub(AppWindowManager._activeApp, 'setVisible');
-      AppWindowManager.handleEvent({ type: 'rocketbarhidden' });
-      assert.isTrue(stubBroadcastMessage.calledWith(true));
-    });
-
-    test('App is hidden on rocketbarshown', function() {
-      AppWindowManager._activeApp = app1;
-      var stubBroadcastMessage =
-        this.sinon.stub(AppWindowManager._activeApp, 'setVisible');
-      AppWindowManager.handleEvent({ type: 'rocketbarshown' });
-      assert.isTrue(stubBroadcastMessage.calledWith(false));
-    });
-
     test('Home Gesture enabled', function() {
       var stubBroadcastMessage =
         this.sinon.stub(AppWindowManager, 'broadcastMessage');
