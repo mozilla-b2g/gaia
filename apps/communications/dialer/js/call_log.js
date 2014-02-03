@@ -18,13 +18,11 @@ var CallLog = {
     this._initialized = true;
 
     var lazyFiles = [
-      '/dialer/style/fixed_header.css',
       '/shared/style/confirm.css',
       '/shared/style/switches.css',
       '/shared/style/lists.css',
       '/contacts/js/utilities/confirm.js',
       '/dialer/js/phone_action_menu.js',
-      '/dialer/js/fixed_header.js',
       '/dialer/js/utils.js'
     ];
     var self = this;
@@ -81,10 +79,6 @@ var CallLog = {
 
       LazyL10n.get(function localized(_) {
         self._ = _;
-        var headerSelector = '#call-log-container header';
-        FixedHeader.init('#call-log-container',
-                         '#fixed-container', headerSelector);
-
         self.render();
 
         self.callLogIconEdit.addEventListener('click',
@@ -207,7 +201,6 @@ var CallLog = {
             PerformanceTestingHelper.dispatch('first-chunk-ready');
           }
           self.enableEditMode();
-          FixedHeader.refresh();
           self.updateHeadersContinuously();
           PerformanceTestingHelper.dispatch('call-log-ready');
         }
@@ -351,8 +344,6 @@ var CallLog = {
       }
       container.appendChild(callLogSection);
     }
-
-    FixedHeader.refresh();
   },
 
   // Method that places a log group in the right place inside a section
