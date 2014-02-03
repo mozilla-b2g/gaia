@@ -14,6 +14,7 @@ var TonePlayer = {
 
   init: function tp_init(channel) {
     this.setChannel(channel);
+    this._startAt([440], 0, 0.001);
   },
 
   ensureAudio: function tp_ensureAudio() {
