@@ -142,13 +142,17 @@ var CpScreenHelper = (function() {
     // process when this process was performed by gecko
     isDocumentValid = message.provisioning.authInfo.pass;
 
+    var help = document.getElementById('cp-accept-help');
     if (showPINInput) {
       // If the document has not been authenticated yet and the PIN code is
       // needed, show some info and the PIN input element to the user.
-      var help = document.getElementById('cp-accept-help');
       help.textContent = _('cp-accept-help-pin');
       pin.type = 'text';
       pin.focus();
+    } else {
+      help.textContent = _('cp-accept-help');
+      pin.type = 'hidden';
+      pin.blur();
     }
 
     title.textContent = message.sender;
