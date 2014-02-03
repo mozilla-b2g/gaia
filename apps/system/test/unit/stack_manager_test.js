@@ -9,6 +9,8 @@ var mocksForStackManager = new MocksHelper([
 
 suite('system/StackManager >', function() {
   var dialer, contact, settings, google;
+  var contact_sheet_1, contact_sheet_2;
+  var settings_sheet_1, settings_sheet_2, settings_sheet_3;
   mocksForStackManager.attachTestHelpers();
 
   setup(function() {
@@ -38,6 +40,54 @@ suite('system/StackManager >', function() {
       url: 'http://google.com/index.html',
       origin: 'http://google.com'
     });
+
+    contact_sheet_1 = new AppWindow({
+      url: 'app://communications.gaiamobile.org/contact/sheet1.html',
+      origin: 'app://communications.gaiamobile.org/',
+      manifestURL:
+        'app://communications.gaiamobile.org/contact/manifest.webapp',
+      name: 'Contact',
+      parentWindow: contact
+    });
+
+    contact_sheet_2 = new AppWindow({
+      url: 'app://communications.gaiamobile.org/contact/sheet1.html',
+      origin: 'app://communications.gaiamobile.org/',
+      manifestURL:
+        'app://communications.gaiamobile.org/contact/manifest.webapp',
+      name: 'Contact',
+      parentWindow: contact_sheet_1
+    });
+
+    settings_sheet_1 = new AppWindow({
+      url: 'app://settings.gaiamobile.org/sheet1.html',
+      origin: 'app://settings.gaiamobile.org/',
+      manifestURL: 'app://settings.gaiamobile.org/manifest.webapp',
+      name: 'Settings',
+      parentWindow: settings
+    });
+
+    settings_sheet_2 = new AppWindow({
+      url: 'app://settings.gaiamobile.org/sheet1.html',
+      origin: 'app://settings.gaiamobile.org/',
+      manifestURL: 'app://settings.gaiamobile.org/manifest.webapp',
+      name: 'Settings',
+      parentWindow: settings_sheet_1
+    });
+
+    settings_sheet_3 = new AppWindow({
+      url: 'app://settings.gaiamobile.org/sheet1.html',
+      origin: 'app://settings.gaiamobile.org/',
+      manifestURL: 'app://settings.gaiamobile.org/manifest.webapp',
+      name: 'Settings',
+      parentWindow: settings_sheet_2
+    });
+
+    contact_sheet_1.sheetID = contact.sheetID;
+    contact_sheet_2.sheetID = contact.sheetID;
+    settings_sheet_1.sheetID = settings.sheetID;
+    settings_sheet_2.sheetID = settings.sheetID;
+    settings_sheet_3.sheetID = settings.sheetID;
   });
 
   teardown(function() {
@@ -72,7 +122,8 @@ suite('system/StackManager >', function() {
     var evt = document.createEvent('CustomEvent');
     evt.initCustomEvent('appterminated', true, false, {
       origin: app.origin,
-      manifestURL: app.manifestURL
+      manifestURL: app.manifestURL,
+      instanceID: app.instanceID
     });
     window.dispatchEvent(evt);
   }
@@ -141,6 +192,7 @@ suite('system/StackManager >', function() {
     });
   });
 
+
   suite('When an app is launched', function() {
     setup(function() {
       appLaunch(dialer);
@@ -190,8 +242,11 @@ suite('system/StackManager >', function() {
       });
 
       test('it should bring the current app on top too', function() {
+        StackManager._dump();
         StackManager.goPrev();
+        StackManager._dump();
         appLaunch(dialer, true);
+        StackManager._dump();
 
         assert.deepEqual(StackManager.getPrev(), contact);
       });
@@ -210,6 +265,7 @@ suite('system/StackManager >', function() {
         assert.deepEqual(StackManager.getCurrent().config, contact.config);
         assert.isUndefined(StackManager.getPrev());
       });
+
     });
 
     suite('if it\'s launched in background', function() {
@@ -333,6 +389,63 @@ suite('system/StackManager >', function() {
         assert.deepEqual(StackManager.getPrev().config, dialer.config);
         assert.deepEqual(StackManager.getCurrent().config, settings.config);
       });
+    });
+  });
+
+  suite('in-app sheets', function() {
+    setup(function() {
+      appLaunch(dialer);
+      appLaunch(contact);
+      appLaunch(settings);
+    });
+    test('the current sheet has parent window', function() {
+      var stub1 = this.sinon.stub(settings, 'getActiveWindow');
+      stub1.returns(settings_sheet_2);
+      var stub2 = this.sinon.stub(settings_sheet_2, 'getPrev');
+      stub2.returns(settings_sheet_1);
+      var stubBroadcast1 = this.sinon.stub(settings_sheet_1, 'broadcast');
+      var stubBroadcast2 = this.sinon.stub(settings_sheet_2, 'broadcast');
+
+      StackManager.goPrev();
+      assert.isTrue(stubBroadcast1.calledWith('swipein'));
+      assert.isTrue(stubBroadcast2.calledWith('swipeout'));
+    });
+    test('the current sheet has child window', function() {
+      var stub1 = this.sinon.stub(settings, 'getActiveWindow');
+      stub1.returns(settings_sheet_2);
+      var stub2 = this.sinon.stub(settings_sheet_2, 'getNext');
+      stub2.returns(settings_sheet_3);
+      var stubBroadcast1 = this.sinon.stub(settings_sheet_2, 'broadcast');
+      var stubBroadcast2 = this.sinon.stub(settings_sheet_3, 'broadcast');
+
+      StackManager.goNext();
+      assert.isTrue(stubBroadcast1.calledWith('swipeout'));
+      assert.isTrue(stubBroadcast2.calledWith('swipein'));
+    });
+    test('the next sheet has root window', function() {
+      StackManager.goPrev();
+      var stub1 = this.sinon.stub(settings, 'getRootWindow');
+      stub1.returns(settings);
+      var stub2 = this.sinon.stub(contact, 'getActiveWindow');
+      stub2.returns(contact_sheet_2);
+      var stubBroadcast1 = this.sinon.stub(settings, 'broadcast');
+      var stubBroadcast2 = this.sinon.stub(contact_sheet_2, 'broadcast');
+
+      StackManager.goNext();
+      assert.isTrue(stubBroadcast2.calledWith('swipeout'));
+      assert.isTrue(stubBroadcast1.calledWith('swipein'));
+    });
+    test('the prev sheet has leaf window', function() {
+      var stub1 = this.sinon.stub(contact, 'getLeafWindow');
+      stub1.returns(contact_sheet_2);
+      var stub2 = this.sinon.stub(settings, 'getActiveWindow');
+      stub2.returns(settings);
+      var stubBroadcast1 = this.sinon.stub(settings, 'broadcast');
+      var stubBroadcast2 = this.sinon.stub(contact_sheet_2, 'broadcast');
+
+      StackManager.goPrev();
+      assert.isTrue(stubBroadcast1.calledWith('swipeout'));
+      assert.isTrue(stubBroadcast2.calledWith('swipein'));
     });
   });
 

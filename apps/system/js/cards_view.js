@@ -11,7 +11,6 @@ var CardsView = (function() {
 
   //display icon of an app on top of app's card
   var DISPLAY_APP_ICON = false;
-  var USER_DEFINED_ORDERING = false;
   // if 'true' user can close the app
   // by dragging it upwards
   var MANUAL_CLOSING = true;
@@ -20,8 +19,8 @@ var CardsView = (function() {
   var cardsView = document.getElementById('cards-view');
   var screenElement = document.getElementById('screen');
   var cardsList = cardsView.firstElementChild;
-  var displayedApp;
   var runningApps;
+  var activeApp;
   // Unkillable apps which have attention screen now
   var attentionScreenApps = [];
   // Card which we are re-ordering now
@@ -56,8 +55,8 @@ var CardsView = (function() {
    *
    * @param{String} the app's origin
    */
-  function getIconURI(origin) {
-    var icons = runningApps[origin].manifest.icons;
+  function getIconURI(id) {
+    var icons = runningApps[id].manifest.icons;
     if (!icons) {
       return null;
     }
@@ -122,9 +121,9 @@ var CardsView = (function() {
     UtilityTray.hide(true);
 
     // Apps info from WindowManager
-    displayedApp = AppWindowManager.getDisplayedApp();
+    activeApp = AppWindowManager.getActiveApp();
     currentDisplayed = 0;
-    runningApps = AppWindowManager.getRunningApps();
+    runningApps = AppWindowManager.getApps();
 
     // Return early if inRocketbar and there are no apps besides homescreen
     if (Object.keys(runningApps).length < 2 && inRocketbar) {
@@ -144,58 +143,33 @@ var CardsView = (function() {
     AppWindowManager.display(null, null, 'to-cardview');
     cardsViewShown = true;
 
-    // If user is not able to sort apps manualy,
-    // display most recetly active apps on the far left
-    if (!USER_DEFINED_ORDERING) {
-      var sortable = [];
-      for (var origin in runningApps)
-        sortable.push({origin: origin, app: runningApps[origin]});
+    var sortable = [];
+    for (var id in runningApps)
+      sortable.push({instanceID: runningApps[id].instanceID,
+                      app: runningApps[id]});
 
-      sortable.sort(function(a, b) {
-        return b.app.launchTime - a.app.launchTime;
-      });
-      runningApps = {};
+    sortable.sort(function(a, b) {
+      return b.app.launchTime - a.app.launchTime;
+    });
+    runningApps = {};
 
-      // I assume that object properties are enumerated in
-      // the same order they were defined.
-      // There is nothing about that in spec, but I've never
-      // seen any unexpected behavior.
-      sortable.forEach(function(element) {
-        runningApps[element.origin] = element.app;
-      });
+    // I assume that object properties are enumerated in
+    // the same order they were defined.
+    // There is nothing about that in spec, but I've never
+    // seen any unexpected behavior.
+    sortable.forEach(function(element) {
+      runningApps[element.instanceID] = element.app;
+    });
 
-      // First add an item to the cardsList for each running app
-      for (var origin in runningApps) {
-        addCard(origin, runningApps[origin], function showCards() {
-          cardsView.classList.add('active');
-        });
+    // First add an item to the cardsList for each running app
+    for (var id in runningApps) {
+      if (runningApps[id].childWindow) {
+        continue;
       }
-
-    } else { // user ordering
-
-      // first run
-      if (userSortedApps.length === 0) {
-        for (var origin in runningApps) {
-          userSortedApps.push(origin);
-        }
-      } else {
-        for (var origin in runningApps) {
-          // if we have some new app opened
-          if (userSortedApps.indexOf(origin) === -1) {
-            userSortedApps.push(origin);
-          }
-        }
-      }
-
-      userSortedApps.forEach(function(origin) {
-        addCard(origin, runningApps[origin], function showCards() {
-          screenElement.classList.add('cards-view');
-          cardsView.classList.add('active');
-        });
+      addCard(runningApps[id].instanceID,
+              runningApps[id], function showCards() {
+        cardsView.classList.add('active');
       });
-
-      cardsView.addEventListener('contextmenu', CardsView);
-
     }
 
     if (MANUAL_CLOSING) {
@@ -213,8 +187,8 @@ var CardsView = (function() {
     screen.mozLockOrientation(OrientationManager.defaultOrientation);
 
     // If there is a displayed app, take keyboard focus away
-    if (displayedApp)
-      runningApps[displayedApp].frame.blur();
+    if (activeApp)
+      activeApp.blur();
 
     placeCards();
     // At the beginning only the current card can listen to tap events
@@ -222,10 +196,11 @@ var CardsView = (function() {
     window.addEventListener('tap', CardsView);
     window.addEventListener('opencurrentcard', CardsView);
 
-    function addCard(origin, app, displayedAppCallback) {
+    function addCard(instanceID, app, displayedAppCallback) {
       // Display card switcher background first to make user focus on the
       // frame closing animation without disturbing by homescreen display.
-      if (displayedApp == origin && displayedAppCallback) {
+      if (activeApp &&
+          activeApp.instanceID == instanceID && displayedAppCallback) {
         setTimeout(displayedAppCallback);
       }
       // Not showing homescreen
@@ -237,7 +212,8 @@ var CardsView = (function() {
       // And add it to the card switcher
       var card = document.createElement('li');
       card.classList.add('card');
-      card.dataset.origin = origin;
+      card.dataset.origin = app.origin;
+      card.dataset.instanceID = app.instanceID;
 
       var screenshotView = document.createElement('div');
       screenshotView.classList.add('screenshotView');
@@ -245,7 +221,7 @@ var CardsView = (function() {
 
       //display app icon on the tab
       if (DISPLAY_APP_ICON) {
-        var iconURI = getIconURI(origin);
+        var iconURI = getIconURI(instanceID);
         if (iconURI) {
           var appIcon = document.createElement('img');
           appIcon.classList.add('appIcon');
@@ -260,25 +236,25 @@ var CardsView = (function() {
 
       var frameForScreenshot = app.iframe;
 
-      if (PopupManager.getPopupFromOrigin(origin)) {
-        var popupFrame = PopupManager.getPopupFromOrigin(origin);
+      if (PopupManager.getPopupFromOrigin(app.origin)) {
+        var popupFrame = PopupManager.getPopupFromOrigin(app.origin);
         frameForScreenshot = popupFrame;
 
         var subtitle = document.createElement('p');
         subtitle.textContent =
-          PopupManager.getOpenedOriginFromOpener(origin);
+          PopupManager.getOpenedOriginFromOpener(app.origin);
         card.appendChild(subtitle);
         card.classList.add('popup');
       } else if (getOffOrigin(app.iframe.dataset.url ?
-            app.iframe.dataset.url : app.iframe.src, origin)) {
+            app.iframe.dataset.url : app.iframe.src, app.origin)) {
         var subtitle = document.createElement('p');
         subtitle.textContent = getOffOrigin(app.iframe.dataset.url ?
-            app.iframe.dataset.url : app.iframe.src, origin);
+            app.iframe.dataset.url : app.iframe.src, app.origin);
         card.appendChild(subtitle);
       }
 
-      if (TrustedUIManager.hasTrustedUI(origin)) {
-        var popupFrame = TrustedUIManager.getDialogFromOrigin(origin);
+      if (TrustedUIManager.hasTrustedUI(app.origin)) {
+        var popupFrame = TrustedUIManager.getDialogFromOrigin(app.origin);
         frameForScreenshot = popupFrame.frame;
         var header = document.createElement('section');
         header.setAttribute('role', 'region');
@@ -289,7 +265,7 @@ var CardsView = (function() {
         header.innerHTML += '</h1></header>';
         card.appendChild(header);
         card.classList.add('trustedui');
-      } else if (attentionScreenApps.indexOf(origin) == -1) {
+      } else if (attentionScreenApps.indexOf(app.origin) == -1) {
         var closeButton = document.createElement('div');
         closeButton.setAttribute('role', 'button');
         closeButton.classList.add('close-card');
@@ -338,7 +314,7 @@ var CardsView = (function() {
         // (instead of -moz-element backgrounds)
         // Only take a new screenshot if is the active app
         if (!cachedLayer || (
-          origin === displayedApp && !inTimeCapture)) {
+          app.instanceID === activeApp.instanceID && !inTimeCapture)) {
           if (typeof frameForScreenshot.getScreenshot !== 'function') {
             return;
           }
@@ -379,14 +355,15 @@ var CardsView = (function() {
       var element = e.target.parentNode;
       cardsList.removeChild(element);
       closeApp(element, true);
-    } else if ('origin' in e.target.dataset) {
-      AppWindowManager.display(e.target.dataset.origin, 'from-cardview', null);
+    } else if ('instanceID' in e.target.dataset &&
+                runningApps[e.target.dataset.instanceID]) {
+      runningApps[e.target.dataset.instanceID].open('from-cardview');
     }
   }
 
   function closeApp(element, removeImmediately) {
     // Stop the app itself
-    AppWindowManager.kill(element.dataset.origin);
+    runningApps[element.dataset.instanceID].kill();
 
     // Fix for non selectable cards when we remove the last card
     // Described in https://bugzilla.mozilla.org/show_bug.cgi?id=825293
@@ -631,7 +608,7 @@ var CardsView = (function() {
   }
 
   function isReorderingMode() {
-    return (USER_DEFINED_ORDERING && reorderedCard !== null);
+    return (reorderedCard !== null);
   }
 
   function onMoveEventForScrolling(evt) {
@@ -790,8 +767,7 @@ var CardsView = (function() {
 
         // remove the app also from the ordering list
         if (
-          userSortedApps.indexOf(element.dataset.origin) !== -1 &&
-          USER_DEFINED_ORDERING
+          userSortedApps.indexOf(element.dataset.origin) !== -1
         ) {
           userSortedApps.splice(
             userSortedApps.indexOf(element.dataset.origin),

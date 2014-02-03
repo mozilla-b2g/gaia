@@ -174,7 +174,7 @@ var TrustedUIManager = {
     if (!AppWindowManager.getActiveApp().isHomescreen) {
       this.publish('trusteduihide', { origin: origin });
     }
-    if (AppWindowManager.getDisplayedApp() == origin) {
+    if (AppWindowManager.getActiveApp().origin == origin) {
       frame.classList.add('restored');
       frame.addEventListener('transitionend', function removeRestored() {
         frame.removeEventListener('transitionend', removeRestored);
