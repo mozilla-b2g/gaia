@@ -98,7 +98,7 @@ section.apps section {
   font-size: 1rem;
 }
 
-section.apps div {
+section.apps .result {
   width: calc(100%/4 - 0.4rem);
   display: inline-block;
   text-align: center;

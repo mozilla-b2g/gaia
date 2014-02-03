@@ -844,12 +844,8 @@ apps/search/js/eme/api.js
 apps/search/js/eme/eme.js
 apps/search/js/providers/app_provider.js
 apps/search/js/providers/contacts.js
-apps/search/js/providers/local_apps.js
-apps/search/js/providers/marketplace.js
 apps/search/js/providers/places.js
-apps/search/js/providers/provider.js
 apps/search/js/providers/suggestions.js
-apps/search/js/providers/webresults.js
 apps/search/js/search.js
 apps/search/test/marionette/app_search_test.js
 apps/search/test/marionette/contacts_search_test.js

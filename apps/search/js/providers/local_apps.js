@@ -1,3 +1,5 @@
+/* global Provider, Search */
+
 (function() {
 
   'use strict';
@@ -13,7 +15,7 @@
 
   LocalApps.prototype = {
 
-    __proto__: AppProvider.prototype,
+    __proto__: Provider.prototype,
 
     name: 'LocalApps',
 

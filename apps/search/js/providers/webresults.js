@@ -1,3 +1,5 @@
+/* global eme, Provider, Search */
+
 (function() {
 
   'use strict';
@@ -6,12 +8,12 @@
 
   WebResults.prototype = {
 
-    __proto__: AppProvider.prototype,
+    __proto__: Provider.prototype,
 
     name: 'WebResults',
 
     init: function() {
-      AppProvider.prototype.init.apply(this, arguments);
+      Provider.prototype.init.apply(this, arguments);
       eme.init();
     },
 
