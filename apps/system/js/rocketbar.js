@@ -14,7 +14,7 @@ var Rocketbar = {
    * How much room on the statusbar will trigger the rocketbar
    * when tapped on.
    */
-  triggerWidth: 0.65,
+  triggerWidth: 0.5,
 
   searchAppURL: null,
 
