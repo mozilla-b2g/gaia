@@ -61,11 +61,12 @@ function App(options) {
   this.filmstrip = options.filmstrip;
   this.activity = options.activity;
   this.config = options.config;
+  this.settings = options.settings;
   this.storage = options.storage;
   this.camera = options.camera;
   this.sounds = options.sounds;
-  this.reset(this.config.values());
-  this.storageKey = 'camera_state';
+  //this.reset(this.config.values());
+  //this.storageKey = 'camera_state';
   debug('initialized');
 }
 
@@ -141,7 +142,7 @@ App.prototype.bindEvents = function() {
   bind(this.doc, 'visibilitychange', this.onVisibilityChange);
   bind(this.win, 'beforeunload', this.onBeforeUnload);
   bind(this.el, 'click', this.onClick);
-  this.on('change', this.onStateChange);
+  //this.on('change', this.onStateChange);
   this.on('focus', this.onFocus);
   this.on('blur', this.onBlur);
   debug('events bound');
@@ -185,7 +186,7 @@ App.prototype.onBlur = function() {
 
 App.prototype.onClick = function() {
   debug('click');
-  this.emit('settingsdismiss');
+  this.emit('click');
 };
 
 /**

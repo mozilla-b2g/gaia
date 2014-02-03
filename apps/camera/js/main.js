@@ -15,8 +15,10 @@ require(['config/require', 'config'], function() {
     var Sounds = require('sounds');
     var Config = require('lib/config');
     var Filmstrip = require('filmstrip');
+    var Settings = require('lib/settings');
     var sounds = new Sounds(require('config/sounds'));
     var config = new Config(require('config/app'));
+    var settings = new Settings(config.get());
     var allDone = require('utils/alldone');
     var GeoLocation = require('geolocation');
     var Activity = require('activity');
@@ -52,6 +54,7 @@ require(['config/require', 'config'], function() {
       geolocation: new GeoLocation(),
       activity: new Activity(),
       config: config,
+      settings: settings,
       camera: camera,
       sounds: sounds,
       controllers: controllers,
@@ -72,10 +75,13 @@ require(['config/require', 'config'], function() {
     // done before boot...
     var done = allDone();
     app.activity.check(done());
-    app.fetchState(done());
+    //app.fetchState(done());
+
+// debugger;
+// app.settings = new Settings(config.get());
 
     // ...boot!
-    done(app.boot);
+    done(delay(app.boot));
   });
 
   require(['boot']);

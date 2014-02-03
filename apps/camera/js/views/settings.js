@@ -18,20 +18,18 @@ module.exports = View.extend({
   tag: 'ul',
 
   initialize: function(options) {
-    this.state = options.state;
-    this.items = options.items;
-    this.reset(this.items.get());
+    this.collection = options.collection;
+    this.items = this.collection.filter(this.isPersistent);
     attach(this.el, 'click', 'li', this.onItemClick);
-    this.state.on('change', this.onStateChange);
-    this.items.on('reset', this.onItemsReset);
     this.on('destroy', this.onDestroy);
   },
 
   onItemClick: function(e, el) {
     e.stopPropagation();
     var key = el.getAttribute('data-key');
+    var model = this.collection.get(key);
     debug('item clicked', key);
-    this.state.toggle(key);
+    model.next();
   },
 
   onStateChange: function(keys) {
@@ -40,58 +38,43 @@ module.exports = View.extend({
     debug('state change', keys);
   },
 
-  onItemsReset: function() {
-    this.reset(this.items.get());
-    this.render();
-  },
-
-  onDestroy: function() {
-    this.state.off('change', this.onStateChange);
-    this.items.off('reset', this.onItemsReset);
-  },
-
-  reset: function(items) {
-    this.hash = {};
-    items.forEach(this.addToHash);
-  },
+  onDestroy: function() {},
 
   render: function() {
-    var items = this.items.get();
-    var self = this;
     this.els = {};
     this.el.innerHTML = '';
-    items.map(this.renderItem).forEach(this.append);
-    return this;
+
+    this.items
+      .map(this.renderItem)
+      .forEach(this.append);
   },
 
-  renderItem: function(item) {
-    if (!item) { return; }
-    var key = item.key;
+  renderItem: function(model) {
+    var data = model.get();
+    var key = data.key;
     var el = this.els[key] || document.createElement('li');
-    item.value = this.state.get(key);
     el.setAttribute('data-key', key);
-    el.setAttribute('data-value', item.value);
-    el.innerHTML = this.templateItem(item);
+    el.setAttribute('data-value', data.value);
+    el.innerHTML = this.templateItem(data);
     this.els[key] = el;
     debug('rendered item %s', key);
     return el;
   },
 
   templateItem: function(item) {
-    var title = item.title || item.key;
-    return title + ' - ' + item.value;
+    return item.title + ' - ' + item.value;
   },
 
   append: function(el) {
     this.el.appendChild(el);
   },
 
-  addToHash: function(item) {
-    this.hash[item.key] = item;
-  },
-
   getFromHash: function(key) {
     return this.hash[key];
+  },
+
+  isPersistent: function(item) {
+    return item.get('persistent');
   }
 });
 

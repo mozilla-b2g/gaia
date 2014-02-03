@@ -3,54 +3,95 @@ define(function(require, exports, module) {
 
 module.exports = {
   maxResolution: 99999999,
+
   mode: {
     title: 'Mode',
-    options: ['photo', 'video'],
-    persist: true,
-    'default': 'photo'
+    options: [
+      {
+        value: 'photo',
+        title: 'Photo'
+      },
+      {
+        value: 'video',
+        title: 'Video'
+      }
+    ],
+    default: 0,
+    persistent: true
   },
 
-  selectedCamera: {
+  cameras: {
     title: 'Selected Camera',
-    options: [0, 1],
-    'default': 0,
-    persist: true,
-    menu: 1
+    options: [
+      {
+        value: 'back',
+        title: 'Back'
+      },
+      {
+        value: 'front',
+        title: 'Front'
+      }
+    ],
+    default: 1,
+    persistent: true
   },
 
-  flashMode: {
+  flashModes: {
     title: 'Flash',
-    options: ['auto', 'on', 'off'],
-    'default': 'auto',
-    persist: true
+    options: [
+      {
+        value: 'auto',
+        title: 'Auto',
+        icon: 'A'
+      },
+      {
+        value: 'on',
+        title: 'On',
+        icon: 'O'
+      },
+      {
+        value: 'off',
+        title: 'Off',
+        icon: 'O'
+      }
+    ],
+    default: 0,
+    persistent: true
   },
 
-  timer: {
-    title: 'Self Timer',
-    options: ['off', '3', '5', '10'],
-    'default': 'off',
-    type: 'toggle',
-    menu: 3,
-    persist: false
-  },
+  // flashModes: {
+  //   title: 'Flash',
+  //   options: ['auto', 'on', 'off'],
+  //   'default': 'auto',
+  //   persist: true
+  // },
 
-  hdr: {
-    title: 'HDR',
-    options: ['off', 'on', 'auto'],
-    'default': 'off',
-    type: 'toggle',
-    persist: true,
-    menu: 1
-  },
+  // timer: {
+  //   title: 'Self Timer',
+  //   options: ['off', '3', '5', '10'],
+  //   'default': 'off',
+  //   type: 'toggle',
+  //   menu: 3,
+  //   persist: false
+  // },
 
-  scene: {
-    title: 'Scene Mode',
-    options: ['normal', 'pano', 'beauty'],
-    'default': 'normal',
-    type: 'toggle',
-    persist: true,
-    menu: 2
-  }
+  // hdr: {
+  //   title: 'HDR',
+  //   options: ['off', 'on', 'auto'],
+  //   'default': 'off',
+  //   type: 'toggle',
+  //   persist: true,
+  //   menu: 1
+  // },
+
+  // scene: {
+  //   title: 'Scene Mode',
+  //   options: ['normal', 'pano', 'beauty'],
+  //   'default': 'normal',
+  //   type: 'toggle',
+  //   persist: true,
+  //   menu: 2
+  // }
 };
 
 });

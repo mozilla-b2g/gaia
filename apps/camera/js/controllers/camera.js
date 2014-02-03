@@ -59,9 +59,9 @@ CameraController.prototype.bindEvents = function() {
   camera.on('newvideo', this.onNewVideo);
 
   // App
-  app.on('change:selectedCamera', this.onCameraChange);
-  app.on('change:flashMode', this.setFlashMode);
-  app.on('change:mode', this.onModeChange);
+  app.settings.on('change:cameras', this.onCameraChange);
+  app.settings.on('change:flashModes', this.setFlashMode);
+  app.settings.on('change:mode', this.onModeChange);
   app.on('blur', this.teardownCamera);
   app.on('focus', this.setupCamera);
   app.on('capture', this.onCapture);
@@ -83,14 +83,17 @@ CameraController.prototype.bindEvents = function() {
  * @private
  */
 CameraController.prototype.configure = function() {
+  var settings = this.app.settings;
   var activity = this.activity;
   var camera = this.camera;
+
   camera.set('targetFileSize', activity.data.fileSize);
   camera.set('targetImageWidth', activity.data.width);
   camera.set('targetImageHeight', activity.data.height);
-  camera.set('selectedCamera', this.app.get('selectedCamera'));
-  camera.set('flashMode', this.app.get('flashMode'));
-  camera.set('mode', this.app.get('mode'));
+  camera.set('selectedCamera', settings.value('cameras'));
+  camera.set('flashMode', settings.value('flashModes'));
+  camera.set('mode', settings.value('mode'));
+
   debug('configured');
 };
 
@@ -101,15 +104,27 @@ CameraController.prototype.setupCamera = function() {
   this.camera.load();
 };
 
-CameraController.prototype.onConfigured = function() {
+CameraController.prototype.onConfigured = function(capabilities) {
   var maxFileSize = this.camera.maxPictureSize;
   this.storage.setMaxFileSize(maxFileSize);
   this.setFlashMode(this.app.get('flashMode'));
   this.app.set('maxFileSize', maxFileSize);
-  this.app.set('supports', {
-    selectedCamera: this.camera.supports('dualCamera'),
-    flashMode: this.camera.supports('flash')
-  });
+  this.app.set('capabilities', capabilities);
+
+  // function toMegaPixels(sizes) {
+  //   return sizes.map(function(size) {
+  //     return {
+  //       mp: ((size.width * size.height)/1000000).toFixed(1),
+  //       aspect: aspect(size.width, size.height)
+  //     };
+  //   });
+  // }
+
+  // function aspect(w, h) {
+  //   var gcd = function(a, b) { return (b === 0) ? a : gcd(b, a%b); };
+  //   var divisor = gcd(w, h);
+  //   return (w/divisor) + ':' + (h/divisor);
+  // }
 };
 
 CameraController.prototype.teardownCamera = function() {
@@ -228,7 +243,7 @@ CameraController.prototype.onModeChange = function(mode) {
  * fading the viewfinder in between.
  */
 CameraController.prototype.onCameraChange = function() {
-  this.viewfinder.fadeOut(this.camera.toggleCamera);
+  this.viewfinder.fadeOut(this.camera.load);
 };
 
 /**

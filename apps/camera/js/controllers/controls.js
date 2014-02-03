@@ -32,7 +32,7 @@ function ControlsController(app) {
 }
 
 ControlsController.prototype.bindEvents = function() {
-  this.app.on('change:mode', this.controls.setter('mode'));
+  this.app.settings.on('change:mode', this.controls.setter('mode'));
   this.app.on('change:recording', this.controls.setter('recording'));
   this.app.on('camera:timeupdate', this.controls.setVideoTimer);
   this.controls.on('click:capture', this.app.firer('capture'));
@@ -57,10 +57,10 @@ ControlsController.prototype.configure = function() {
   // or the application is in 'secure mode'.
   var showGallery = !activity.active && !this.app.inSecureMode;
 
-  this.controls.set('mode', this.app.get('mode'));
   this.controls.set('gallery', showGallery);
   this.controls.set('cancel', isCancellable);
   this.controls.set('switchable', isSwitchable);
+  this.controls.set('mode', this.app.settings.value('mode'));
 };
 
 ControlsController.prototype.disableButtons = function() {

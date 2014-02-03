@@ -43,7 +43,7 @@ Activity.prototype.check = function(done) {
 
   if (!hasMessage) {
     debug('none');
-    done();
+    setTimeout(done);
     return;
   }
 

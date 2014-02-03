@@ -16,6 +16,7 @@ module.exports = Model;
 function Model(obj) {
   if (!(this instanceof Model)) { return mix(obj, Model.prototype); }
   this.reset(obj, { silent: true });
+  this.id = obj.id || obj.key;
 }
 
 Model.prototype = events({

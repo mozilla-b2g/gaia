@@ -35,13 +35,13 @@ function ViewfinderController(app) {
 ViewfinderController.prototype.bindEvents = function() {
   this.viewfinder.on('click', this.onViewfinderClick);
   this.app.on('camera:loaded', this.viewfinder.fadeIn);
-  this.app.on('camera:configured', this.onConfigured);
-  this.app.on('change:mode', this.onConfigured);
+  this.app.on('camera:configured', this.loadStream);
+  this.app.settings.on('change:mode', this.loadStream);
 };
 
-ViewfinderController.prototype.onConfigured = function() {
+ViewfinderController.prototype.loadStream = function() {
   debug('camera configured');
-  var isFrontCamera = this.app.get('selectedCamera') === 1;
+  var isFrontCamera = this.app.settings.value('cameras') === 'front';
   this.viewfinder.updatePreview(this.camera.previewSize, isFrontCamera);
   this.camera.loadStreamInto(this.viewfinder.el, onStreamLoaded);
   function onStreamLoaded(stream) {

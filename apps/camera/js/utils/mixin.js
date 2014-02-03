@@ -1,13 +1,8 @@
-/*global define*/
-
-define(function() {
+define(function(require, exports, module) {
   'use strict';
 
-  return function(a, b) {
-    for (var key in b) {
-      a[key] = b[key];
-    }
-
+  module.exports = function(a, b) {
+    for (var key in b) { a[key] = b[key]; }
     return a;
   };
 });

@@ -27,22 +27,26 @@ module.exports = function(app) {
 function SettingsController(app) {
   bindAll(this);
   this.app = app;
+  this.settings = app.settings;
+  this.configure();
   this.bindEvents();
-  this.items = new Model(app.config.menu());
+  //this.items = new Model(app.config.menu());
   debug('initialized');
 }
 
+SettingsController.prototype.configure = function() {
+  this.settings.get('cameras').configureOptions(this.app.camera.cameraList);
+};
+
 SettingsController.prototype.bindEvents = function() {
-  //this.app.on('settingsrequest', this.openSettings);
-  //this.app.on('settingsdismiss', this.closeSettings);
-  //this.app.on('settingstoggle', this.toggleSettings);
-  this.app.on('change:supports', this.onSupportChange);
+  this.app.on('change:capabilities', this.onCapabilitiesChange);
+  this.app.on('click', this.toggleSettings);
 };
 
 SettingsController.prototype.openSettings = function() {
   if (this.view) { return; }
-  var options = { state: this.app, items: this.items };
-  this.view = new SettingsView(options).render();
+  var collection = settings.menuItems();
+  this.view = new SettingsView({ collection: collection }).render();
   this.view.appendTo(this.app.el);
   debug('appended menu');
 };
@@ -75,6 +79,28 @@ SettingsController.prototype.onSupportChange = function(supports) {
 
   this.items.reset(filtered);
   debug('items reset after filtering');
+};
+
+SettingsController.prototype.onCapabilitiesChange = function(capabilities) {
+  this.app.settings.forEach(function(setting) {
+    var key = setting.key;
+
+    if (!(key in capabilities)) { return; }
+
+    var options = capabilities[setting.key];
+    //var formatted = this.formatHardwareOptions(key, options);
+
+    setting.configureOptions(options);
+  });
+};
+
+SettingsController.prototype.formatHardwareOptions = function(key, options) {
+  switch (key) {
+    case 'pictureSizes':
+    case 'videoSizes':
+      return options;
+    default: return options;
+  }
 };
 
 });

@@ -37,7 +37,8 @@ function HudController(app) {
  * @private
  */
 HudController.prototype.configure = function() {
-  this.hud.set('flashMode', this.app.get('flashMode'));
+  this.hud.set('flashMode', this.app.settings.value('flashMode'));
+  this.hud.set('flashMode', this.app.settings.value('flashMode'));
 };
 
 /**
@@ -47,25 +48,35 @@ HudController.prototype.configure = function() {
  * @private
  */
 HudController.prototype.bindEvents = function() {
-  this.hud.on('click:camera', this.app.toggler('selectedCamera'));
-  this.hud.on('click:flash', this.app.toggler('flashMode'));
+  var flash = this.app.settings.get('flashModes');
+  var cameras = this.app.settings.get('cameras');
+
+  flash.on('change:options', this.onFlashOptionsChange);
+  cameras.on('change:options', this.onCameraOptionsChange);
+  flash.on('change:value', this.hud.setter('flash'));
+
+  this.hud.on('click:camera', this.onCameraClick);
+  this.hud.on('click:flash', this.onFlashClick);
   this.app.on('change:recording', this.onRecordingChange);
-  this.app.on('change:flashMode', this.hud.setFlashMode);
-  this.app.on('change:supports', this.onSupportChange);
   this.app.on('camera:loading', this.disableButtons);
   this.app.on('camera:busy', this.disableButtons);
   this.app.on('camera:ready', this.enableButtons);
 };
 
-/**
- * Update UI when a new
- * camera is configured.
- *
- * @private
- */
-HudController.prototype.onSupportChange = function(supports) {
-  this.hud.enable('camera', supports.selectedCamera);
-  this.hud.enable('flash', supports.flashMode);
+HudController.prototype.onCameraClick = function() {
+  this.app.settings.get('selectedCamera').next();
+};
+
+HudController.prototype.onFlashClick = function() {
+  this.app.settings.get('flashMode').next();
+};
+
+HudController.prototype.onCameraOptionsChange = function(options) {
+ this.hud.enable('camera', !!options.length);
+};
+
+HudController.prototype.onFlashOptionsChange = function(options) {
+ this.hud.enable('flash', !!options.length);
 };
 
 HudController.prototype.enableButtons = function() {

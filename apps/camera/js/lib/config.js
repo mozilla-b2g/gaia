@@ -26,13 +26,8 @@ var has = {}.hasOwnProperty;
  * @param {Object} data
  */
 function Config(data) {
-  this.data = data || {};
-  this.processed = {
-    persistent: [],
-    menu: [],
-    values: {}
-  };
-  this.set(this.data);
+  this.data = {};
+  this.set(data);
 }
 
 /**
@@ -45,26 +40,24 @@ function Config(data) {
  * @return {Object}
  */
 Config.prototype.set = function(data) {
-  var item;
-  for (var key in data) {
-    item = data[key];
-    item.key = key;
+  if (!data) { return; }
 
-    // Derive a value from the items
-    this.processed.values[key] = (typeof item === 'object') ?
-      item['default'] : item;
+  var newItem;
+  var key;
 
-    // Unless its marked as `persist: false`
-    // push it into the persistent object.
-    if (item.persist) { this.processed.persistent.push(key); }
-
-    // If the item has a `menu` key, push it onto the menu list.
-    if (has.call(item, 'menu')) { this.processed.menu.push(item); }
+  for (key in data) {
+    this.data[key] = this.normalizeItem(key, data[key]);
   }
+};
 
-  // Sort the menu items by the given `menu` key in config json
-  this.processed.menu.sort(function(a, b) { return a.menu - b.menu; });
-  debug('processed', this.processed);
+Config.prototype.normalizeItem = function(key, value) {
+  return {
+    title: value.title || key,
+    options: value.options || [{ key: value }],
+    default: value.default || 0,
+    persistent: value.persistent || false,
+    menu: value.menu || false
+  };
 };
 
 Config.prototype.menu = function() {

@@ -86,8 +86,7 @@ function Camera(options) {
     current: null
   };
 
-  // Default front camera
-  this.set('selectedCamera', 0);
+  this.cameraList = navigator.mozCameras.getListOfCameras();
   this.autoFocus = {};
   this.tmpVideo = {
     storage: navigator.getDeviceStorage('videos'),
@@ -138,20 +137,23 @@ Camera.prototype.getStream = function(done) {
 };
 
 Camera.prototype.load = function() {
-  var cameraList = navigator.mozCameras.getListOfCameras();
   var selectedCamera = this.get('selectedCamera');
-  var config = { camera: cameraList[selectedCamera] };
+  var config = { camera: selectedCamera };
   var self = this;
 
   // Store camera count
-  this.set('numCameras', cameraList.length);
+  //this.set('numCameras', cameraList.length);
   this.emit('loading');
 
   // Releases current camera (async operation)
   this.release(function() {
+    debugger;
     // Requests selected camera
-    navigator.mozCameras.getCamera(config, self.configureCamera);
-    debug('load camera: ', selectedCamera);
+    navigator.mozCameras.getCamera(config, self.configureCamera, function(e) {
+      debugger;
+      debug('load error', e);
+    });
+    debug('load camera: %s', selectedCamera);
   });
 };
 
@@ -183,7 +185,7 @@ Camera.prototype.configureCamera = function(mozCamera) {
     };
     self.configurePreviewSize(photoPreviewSizes, videoPreviewSize);
     debug('configured');
-    self.emit('configured', self);
+    self.emit('configured', capabilities);
   });
 };
 
@@ -781,21 +783,7 @@ Camera.prototype.resumePreview = function() {
 };
 
 Camera.prototype.hasFrontCamera = function() {
-  return this.get('numCameras') > 1;
-};
-
-/**
- * Toggles the camera number
- * between back (0) and front(1).
- *
- * @return {Number}
- */
-Camera.prototype.toggleCamera = function() {
-  var newNumber = 1 - this.get('selectedCamera');
-  this.set('selectedCamera', newNumber);
-  this.load();
-  debug('toggled: %d', newNumber);
-  return this;
+  //return this.get('numCameras') > 1;
 };
 
 /**
@@ -880,7 +868,7 @@ Camera.prototype.flashSupport = function() {
 };
 
 Camera.prototype.dualCameraSupport = function() {
-  return this.get('numCameras') > 1;
+  //return this.get('numCameras') > 1;
 };
 
 });
