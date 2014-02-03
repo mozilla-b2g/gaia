@@ -349,7 +349,7 @@ navigator.mozL10n.ready(function wifiSettings() {
       }
 
       scanning = true;
-      var req = WifiHelper.getAvailableAndKnownNetworks();
+      var req = gWifiManager.getNetworks();
 
       req.onsuccess = function onScanSuccess() {
         clear(false);
