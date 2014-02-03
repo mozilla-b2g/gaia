@@ -96,14 +96,6 @@ Timer.Panel = function(element) {
   this.soundButton = new FormButton(sound, soundMenuConfig);
   this.soundButton.refresh();
 
-  // If the phone locks during preview, pause the sound.
-  // TODO: When this is no longer a singleton, unbind the listener.
-  window.addEventListener('visibilitychange', function() {
-    if (document.hidden) {
-      this.pauseAlarm();
-    }
-  }.bind(this));
-
   View.instance(element, Timer.Panel).on(
     'visibilitychange', this.onvisibilitychange.bind(this)
   );
@@ -139,6 +131,8 @@ Timer.Panel.prototype.onvisibilitychange = function(isVisible) {
         this.tick();
       }
     }
+  } else {
+    this.pauseAlarm();
   }
 };
 
