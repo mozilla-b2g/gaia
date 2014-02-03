@@ -170,20 +170,10 @@ var NfcHandoverManager = {
       this.debug('No pending sendFileRequest');
       return;
     }
+    this.debug('Send blob to ' + mac);
     this.remoteMAC = mac;
-    var self = this;
-    var onsuccess = function() {
-      var blob = self.sendFileRequest.blob;
-      var mac = self.remoteMAC;
-      self.debug('Send blob to ' + mac);
-      BluetoothTransfer.sendFile(mac, blob);
-    };
-    var onerror = function() {
-      self.sendFileRequest.onerror();
-      self.sendFileRequest = null;
-      self.remoteMAC = null;
-    };
-    this.doPairing(mac, onsuccess, onerror);
+    var blob = this.sendFileRequest.blob;
+    BluetoothTransfer.sendFile(mac, blob);
   },
 
   doHandoverRequest: function doHandoverRequest(ndef, session) {
@@ -299,7 +289,7 @@ var NfcHandoverManager = {
       if (succeeded == true) {
         this.sendFileRequest.onsuccess();
       } else {
-        this.sendFIleRequest.onerror();
+        this.sendFileRequest.onerror();
       }
       this.sendFileRequest = null;
     }
