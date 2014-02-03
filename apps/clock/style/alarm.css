@@ -23,13 +23,16 @@ ul.compact li:last-child {
 
 ul.compact li label {
   color: #9a9898;
+  font-size: 1.9rem;
 }
 
 li button.icon-dialog {
   border: none;
-
   color: #fff;
   background-color: #4d4d4d;
+  font-weight: normal;
+  font-size: 1.7rem;
+  text-shadow: none !important; /* override `button` */
 }
 
 li button.icon-dialog:before,
