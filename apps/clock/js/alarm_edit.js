@@ -92,6 +92,8 @@ var AlarmEdit = {
     });
 
     mozL10n.translate(this.element);
+    // TODO: When this class gets refactored to be not a singleton,
+    // add methods to remove all of these event listeners as applicable.
     this.buttons.close.addEventListener('click', this);
     this.buttons.done.addEventListener('click', this);
     this.selects.sound.addEventListener('change', this);
@@ -99,6 +101,15 @@ var AlarmEdit = {
     this.selects.repeat.addEventListener('change', this);
     this.buttons.delete.addEventListener('click', this);
     this.inputs.name.addEventListener('keypress', this.handleNameInput);
+
+    // If the phone locks during preview, pause the sound.
+    // TODO: When this is no longer a singleton, unbind the listener.
+    window.addEventListener('visibilitychange', function() {
+      if (document.hidden) {
+        this.stopPreviewSound();
+      }
+    }.bind(this));
+
     this.init = function() {};
   },
 
