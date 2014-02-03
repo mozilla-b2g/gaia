@@ -24,6 +24,14 @@ Alarm.bannerTimeout = 5 * 1000;
 });
 
 // Ensure that the 'Countdown banner' element is eventually hidden.
+// This method contains a race condition: if the banner has already been
+// displayed *and* hidden before the initial invocation of
+// `this.client.waitFor`, this method will time out. This is unfortunately
+// unavoidable because it is impossible to differentiate between these two
+// application states at the onset of this method:
+//
+// 1. The banner is not displayed, but it scheduled to be displayed
+// 2. The banner is not displayed, and it has already been displayed and hidden
 Alarm.prototype.waitForBannerHidden = function() {
    this.client.waitFor(function() {
      return this.el.alarm.countdownBanner.displayed();
