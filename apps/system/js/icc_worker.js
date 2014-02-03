@@ -301,7 +301,7 @@ var icc_worker = {
       'icc.data': JSON.stringify(command)
     });
     reqIccData.onsuccess = function icc_getIccData() {
-      if (AppWindowManager.getRunningApps()[application]) {
+      if (AppWindowManager.getApps(application)) {
         return DUMP('Settings is running. Ignoring');
       }
       navigator.mozApps.mgmt.getAll().onsuccess = function gotApps(evt) {

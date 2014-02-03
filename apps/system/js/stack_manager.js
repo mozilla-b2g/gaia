@@ -4,42 +4,53 @@ var StackManager = {
   init: function sm_init() {
     window.addEventListener('appcreated', this);
     window.addEventListener('launchapp', this);
+    window.addEventListener('appopening', this);
     window.addEventListener('appterminated', this);
     window.addEventListener('home', this);
   },
 
   getCurrent: function sm_getCurrent() {
-    return this._stack[this._current];
+    return this._stack[this._current].getActiveWindow();
   },
   getPrev: function sm_getPrev() {
-    return this._stack[this._current - 1];
+    var prev = this.getCurrent().getActiveWindow().getPrev() ||
+              (this._stack[this._current - 1] ?
+              this._stack[this._current - 1].getLeafWindow() : undefined);
+    return prev;
   },
   getNext: function sm_getNext() {
-    return this._stack[this._current + 1];
+    var next = this.getCurrent().getActiveWindow().getNext() ||
+            (this._stack[this._current + 1] ?
+            this._stack[this._current + 1].getRootWindow() : undefined);
+    return next;
   },
 
   goPrev: function sm_goPrev() {
-    var newApp = this.getPrev();
     var oldApp = this.getCurrent();
+    var newApp = this.getPrev();
     if (!newApp || !oldApp) {
       return;
     }
 
     newApp.broadcast('swipein');
     oldApp.broadcast('swipeout');
-    this._current--;
+    if (newApp.sheetID !== oldApp.sheetID) {
+      this._current--;
+    }
   },
 
   goNext: function sm_goNext() {
-    var newApp = this.getNext();
     var oldApp = this.getCurrent();
+    var newApp = this.getNext();
     if (!newApp || !oldApp) {
       return;
     }
 
     newApp.broadcast('swipein');
     oldApp.broadcast('swipeout');
-    this._current++;
+    if (newApp.sheetID !== oldApp.sheetID) {
+      this._current++;
+    }
   },
 
   get length() {
@@ -53,6 +64,9 @@ var StackManager = {
     switch (e.type) {
       case 'appcreated':
         var app = e.detail;
+        if (app.parentWindow) {
+          return;
+        }
         if (app.stayBackground) {
           this._insertBelow(app);
         } else {
@@ -71,12 +85,21 @@ var StackManager = {
           }
         }
         break;
+      case 'appopening':
+        var app = e.detail;
+        var root = app.getRootWindow();
+
+        var idx = this._indexOfInstanceID(root.instanceID);
+        if (idx !== undefined && idx !== this._current) {
+          this._moveToTop(idx);
+        }
+        break;
       case 'home':
         this._moveToTop(this._current);
         break;
       case 'appterminated':
-        var manifestURL = e.detail.manifestURL;
-        this._remove(manifestURL);
+        var instanceID = e.detail.instanceID;
+        this._remove(instanceID);
         break;
     }
   },
@@ -116,11 +139,24 @@ var StackManager = {
     return result;
   },
 
-  _remove: function sm_remove(manifestURL) {
+  _indexOfInstanceID: function sm_indexOfIntanceID(instanceID) {
+    var result = undefined;
+    this._stack.some(function(app, idx) {
+      if (app.instanceID == instanceID) {
+        result = idx;
+        return true;
+      }
+      return false;
+    });
+
+    return result;
+  },
+
+  _remove: function sm_remove(instanceID) {
     for (var i = (this._stack.length - 1); i >= 0; i--) {
       var sConfig = this._stack[i];
 
-      if (sConfig.manifestURL == manifestURL) {
+      if (sConfig.instanceID == instanceID) {
         this._stack.splice(i, 1);
         if (i <= this._current) {
           this._current--;
@@ -136,7 +172,15 @@ var StackManager = {
     var prefix = 'StackManager';
     for (var i = 0; i < this._stack.length; i++) {
       var separator = (i == this._current) ? ' * ' : ' - ';
-      console.log(prefix + separator + i + ' -> ' + this._stack[i].name);
+      console.log(prefix + separator + i + ' -> ' + this._stack[i].name +
+        '/' + this._stack[i].instanceID);
+      var child = this._stack[i].childWindow;
+      while (child) {
+        var separator = (child.isActive()) ? ' @ ' : ' = ';
+        console.log(prefix + separator + i + ' ---> ' + this._stack[i].name +
+                  '/' + this._stack[i].instanceID);
+        child = child.childWindow;
+      }
     }
   },
   __clearAll: function sm_clearAll() {

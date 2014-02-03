@@ -112,7 +112,7 @@ suite('system/Rocketbar', function() {
 
     test('search-cancel sends event to launch active card', function() {
       Rocketbar.screen.classList.add('task-manager');
-      this.sinon.stub(AppWindowManager, 'getRunningApps')
+      this.sinon.stub(AppWindowManager, 'getApps')
         .returns({app1: true, app2: true});
       var dispatchStub = this.sinon.stub(window, 'dispatchEvent');
       Rocketbar.handleEvent({
@@ -142,7 +142,7 @@ suite('system/Rocketbar', function() {
 
     test('search-cancel element should show the task manager', function() {
       var dispatchStub = this.sinon.stub(window, 'dispatchEvent');
-      this.sinon.stub(AppWindowManager, 'getRunningApps')
+      this.sinon.stub(AppWindowManager, 'getApps')
         .returns({app1: true, app2: true});
       Rocketbar.home = 'tasks';
 

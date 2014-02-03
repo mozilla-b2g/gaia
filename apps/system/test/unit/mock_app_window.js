@@ -1,3 +1,5 @@
+var _id = 0;
+
 var MockAppWindowHelper = {
   mInstances: [],
   mLatest: null
@@ -50,10 +52,20 @@ var MockAppWindow = function AppWindow(config) {
   this.isTransitioning = function() { return false; };
   this.calibratedHeight = function() { return false; };
   this.isOOP = function() { return true; };
-  this.isDead = function() { return false};
+  this.isDead = function() { return false; };
+  this.getPrev = function() { return undefined; };
+  this.getNext = function() { return undefined; };
+  var self = this;
+  this.getRootWindow = function() { return self; };
+  this.getLeafWindow = function() { return self; };
+  this.getActiveWindow = function() { return self; };
+  this.requestOpen = function() {};
+  this.instanceID = _id++;
+  this.sheetID = this.instanceID;
 };
 
 MockAppWindow.mTeardown = function() {
   MockAppWindowHelper.mInstances = [];
   MockAppWindowHelper.mLatest = null;
+  _id = 0;
 };

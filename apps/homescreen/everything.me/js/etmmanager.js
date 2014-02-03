@@ -268,7 +268,8 @@ var EvmeManager = (function EvmeManager() {
     });
 
     activity.onerror = function() {
-      window.open('https://marketplace.firefox.com/app/' + data.slug, 'e.me');
+      window.open('https://marketplace.firefox.com/app/' + data.slug,
+        'e.me', 'dialog');
     };
   }
 
@@ -282,7 +283,7 @@ var EvmeManager = (function EvmeManager() {
 
     activity.onerror = function() {
       window.open('https://marketplace.firefox.com/search/?q=' + data.query,
-                                                                        'e.me');
+        'e.me', 'dialog');
     };
   }
 

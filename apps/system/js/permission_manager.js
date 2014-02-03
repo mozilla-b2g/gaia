@@ -166,7 +166,7 @@ var PermissionManager = {
       this.cancelRequest(this.fullscreenRequest);
       this.fullscreenRequest = undefined;
     }
-    if (detail.fullscreenorigin != AppWindowManager.getDisplayedApp()) {
+    if (detail.fullscreenorigin != AppWindowManager.getActiveApp().origin) {
       var _ = navigator.mozL10n.get;
       // The message to be displayed on the approval UI.
       var message =

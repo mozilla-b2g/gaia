@@ -55,6 +55,7 @@
       window.addEventListener('trusteduishow', this);
       window.addEventListener('trusteduihide', this);
       window.addEventListener('appopening', this);
+      window.addEventListener('appopened', this);
     },
 
     handleEvent: function hl_handleEvent(evt) {
@@ -72,6 +73,9 @@
               evt.detail.rotatingDegree === 270) {
             this.getHomescreen().fadeOut();
           }
+          break;
+        case 'appopened':
+          this.getHomescreen().fadeOut();
           break;
       }
     },
