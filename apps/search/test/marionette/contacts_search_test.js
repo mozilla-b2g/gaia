@@ -1,3 +1,5 @@
+'use strict';
+
 var Search = require('./lib/search');
 var Contacts = require(
   '../../../communications/contacts/test/marionette/lib/contacts');
@@ -14,7 +16,7 @@ marionette('contact search', function() {
     search = new Search(client);
   });
 
-  test('able to search contact from rocketbar', function() {
+  test.skip('able to search contact from rocketbar', function() {
     var contactTel = 1231231234;
     contacts.launch();
     contacts.addContact({
