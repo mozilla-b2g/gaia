@@ -171,7 +171,8 @@ function customizeHomescreen(options) {
         'icon': 'app://homescreen.gaiamobile.org/style/icons/Aurora.png',
         'iconable': false,
         'useAsyncPanZoom': true,
-        'features': 'toolbar=yes,location=yes'
+        'features': 'toolbar=yes,location=yes',
+        'removable': false
       }
     ]
   };
