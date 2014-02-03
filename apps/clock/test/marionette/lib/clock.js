@@ -1,3 +1,4 @@
+'use strict';
 var selectors = require('./selectors');
 var utils = require('./utils');
 
@@ -50,17 +51,17 @@ Clock.prototype.fromNow = function(ms) {
   return new Date(ms);
 };
 
+var ready = function() {
+  return this.el.alarm.analogClock.displayed() ||
+    this.el.alarm.digitalClock.displayed();
+};
+
 Clock.prototype.launch = function() {
   this.client.apps.launch(Clock.ORIGIN);
   this.client.apps.switchToApp(Clock.ORIGIN);
 
   this.client.waitFor(ready.bind(this));
 };
-
-function ready() {
-  return this.el.alarm.analogClock.displayed() ||
-    this.el.alarm.digitalClock.displayed();
-}
 
 Clock.prototype.navigate = function(panelName) {
   var button, panel;

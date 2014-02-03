@@ -1,9 +1,10 @@
+'use strict';
 var nodeAssert = require('assert');
 
 // The exported function proxies to Node.js's `assert` function.
-function assert() {
+var assert = function() {
   return nodeAssert.apply(this, arguments);
-}
+};
 
 module.exports = assert;
 
@@ -55,7 +56,7 @@ assert.hasTime = function(str, date, usrMsg) {
   minutes = (minutes < 10 ? '0' : '') + minutes;
   meridian = meridian + '\\.?M\\.?';
 
-  var timeRe = new RegExp([
+  timeRe = new RegExp([
     '\\b(',
       hours12, '\\s*:\\s*', minutes, '\\s*', meridian,
       '|',

@@ -1,3 +1,4 @@
+'use strict';
 var Clock = require('./clock');
 
 function Stopwatch(client) {

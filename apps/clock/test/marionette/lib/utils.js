@@ -1,3 +1,4 @@
+'use strict';
 /**
  * Transform a nested lookup table according to the provided `transform`
  * function.

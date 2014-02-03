@@ -1,3 +1,5 @@
+'use strict';
+
 var Clock = require('./clock');
 var clockAssert = require('./assert');
 

@@ -1,4 +1,5 @@
 marionette('Alarm interaction', function() {
+  'use strict';
   var assert = require('./lib/assert');
   var Alarm = require('./lib/alarm');
   var client = marionette.client();

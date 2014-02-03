@@ -1,4 +1,5 @@
 marionette('Stopwatch resetting', function() {
+  'use strict';
   var assert = require('./lib/assert');
   var Stopwatch = require('./lib/stopwatch');
   var client = marionette.client();
