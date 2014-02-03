@@ -14,6 +14,7 @@ requireApp('costcontrol/shared/test/unit/mocks/' +
            'mock_navigator_moz_set_message_handler.js');
 requireApp('costcontrol/test/unit/mock_cost_control.js');
 requireApp('costcontrol/test/unit/mock_config_manager.js');
+requireApp('costcontrol/test/unit/mock_non_ready_screen.js');
 requireApp('costcontrol/js/utils/toolkit.js');
 requireApp('costcontrol/js/view_manager.js');
 requireApp('costcontrol/js/app.js');
@@ -26,7 +27,8 @@ var realCommon,
     realSettingsListener,
     realCostControl,
     realConfigManager,
-    realMozSetMessageHandler;
+    realMozSetMessageHandler,
+    realNonReadyScreen;
 
 if (!this.Common) {
   this.Common = null;
@@ -56,6 +58,10 @@ if (!this.navigator.mozSetMessageHandler) {
   this.navigator.mozSetMessageHandler = null;
 }
 
+if (!this.NonReadyScreen) {
+  this.NonReadyScreen = null;
+}
+
 suite('Application Startup Modes Test Suite >', function() {
 
   var iframe;
@@ -79,6 +85,9 @@ suite('Application Startup Modes Test Suite >', function() {
     window.navigator.mozSetMessageHandler =
       window.MockNavigatormozSetMessageHandler;
     window.navigator.mozSetMessageHandler.mSetup();
+
+    realNonReadyScreen = window.NonReadyScreen;
+    window.NonReadyScreen = window.MockNonReadyScreen;
 
     iframe = document.createElement('iframe');
     iframe.id = 'message-handler';
@@ -105,24 +114,14 @@ suite('Application Startup Modes Test Suite >', function() {
     window.SettingsListener = realSettingsListener;
     window.navigator.mozSetMessageHandler.mTeardown();
     window.navigator.mozSetMessageHandler = realMozSetMessageHandler;
+    window.NonReadyScreen = realNonReadyScreen;
   });
 
-  function assertAlertMessageAndClose(msg, done) {
-    var expectedEvents = 2;
-    function checkDone() {
-      expectedEvents--;
-      if (expectedEvents === 0) {
-        done();
-      }
-    }
-    window.addEventListener('fakealert', function _onalert(evt) {
-      window.removeEventListener('fakealert', _onalert);
-      assert.equal(evt.detail, msg);
-      checkDone();
-    });
-    window.addEventListener('appclosed', function _onappclosed() {
-      window.removeEventListener('appclosed', _onappclosed);
-      checkDone();
+  function assertNonReadyScreen(done) {
+    window.addEventListener('viewchanged', function _onalert(evt) {
+      window.removeEventListener('viewchanged', _onalert);
+      assert.equal(evt.detail, 'non-ready-screen');
+      done();
     });
   }
 
@@ -193,34 +192,28 @@ suite('Application Startup Modes Test Suite >', function() {
   }
 
   test('SIM is not ready', function(done) {
-    setupCardState({cardState: 'absent'});
+    loadBodyHTML('/index.html');
+    setupCardState({cardState: null});
 
-    assertAlertMessageAndClose(
-      'widget-no-sim2-heading\nwidget-no-sim2-meta',
-      done
-    );
+    assertNonReadyScreen(done);
 
     CostControlApp.init();
   });
 
   test('SIM is locked by PIN', function(done) {
+    loadBodyHTML('/index.html');
     setupCardState({cardState: 'pinRequired'});
 
-    assertAlertMessageAndClose(
-      'widget-sim-locked-heading\nwidget-sim-locked-meta',
-      done
-    );
+    assertNonReadyScreen(done);
 
     CostControlApp.init();
   });
 
   test('SIM is locked by PUK', function(done) {
+    loadBodyHTML('/index.html');
     setupCardState({cardState: 'pukRequired'});
 
-    assertAlertMessageAndClose(
-      'widget-sim-locked-heading\nwidget-sim-locked-meta',
-      done
-    );
+    assertNonReadyScreen(done);
 
     CostControlApp.init();
   });
