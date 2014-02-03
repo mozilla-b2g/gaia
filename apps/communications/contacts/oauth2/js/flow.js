@@ -91,7 +91,7 @@ if (typeof window.oauthflow === 'undefined') {
     var query = queryParams.join('&');
     var url = params[ENDPOINT] + query;
 
-    window.open(url);
+    window.open(url, '', 'dialog');
   }
 
   })(document);
