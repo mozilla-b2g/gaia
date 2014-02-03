@@ -24,6 +24,7 @@ define(function(require) {
     this.nodes = {};
     this.lapTemplate = new Template('lap-list-item-tmpl');
     this.interval = null;
+    this.screenWakeLock = null;
 
     // Gather elements
     [
@@ -169,6 +170,7 @@ define(function(require) {
     tickfn();
     this.showButtons('pause', 'lap');
     this.hideButtons('start', 'resume', 'reset');
+    this.screenWakeLock = navigator.requestWakeLock('screen');
   };
 
   Stopwatch.Panel.prototype.onpause = function() {
@@ -177,6 +179,10 @@ define(function(require) {
     this.nodes.reset.removeAttribute('disabled');
     this.showButtons('resume', 'reset');
     this.hideButtons('pause', 'start', 'lap');
+    if (this.screenWakeLock) {
+      this.screenWakeLock.unlock();
+      this.screenWakeLock = null;
+    }
   };
 
   Stopwatch.Panel.prototype.onresume = function() {
