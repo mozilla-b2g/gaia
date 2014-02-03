@@ -146,6 +146,14 @@ suite('system/EdgeSwipeDetector >', function() {
       assert.isTrue(screen.classList.contains('edges'));
     });
 
+    test('the edges should be enabled if an app is launched from cards view',
+    function() {
+      launchTransitionEnd();
+      MockSettingsListener.mCallbacks['edgesgesture.enabled'](true);
+      assert.isFalse(EdgeSwipeDetector.previous.classList.contains('disabled'));
+      assert.isFalse(EdgeSwipeDetector.next.classList.contains('disabled'));
+    });
+
     suite('in background', function() {
       setup(function() {
         dialer.stayBackground = true;

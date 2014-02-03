@@ -111,7 +111,7 @@ MediaPlaybackWidget.prototype = {
       var evt = new CustomEvent('displayapp', {
         bubbles: true,
         cancelable: true,
-        detail: { origin: this.origin }
+        detail: AppWindowManager.getApp(this.origin)
       });
       window.dispatchEvent(evt);
     }
