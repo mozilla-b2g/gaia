@@ -22,6 +22,10 @@ var GridItem = function GridItem(params) {
   // Grid components are removable by default
   this.removable = true;
 
+  if ('removable' in params && !params.removable) {
+    this.removable = false;
+  }
+
   this.iconable = 'iconable' in params ? params.iconable : true;
 
   this.id = params.id || '';
