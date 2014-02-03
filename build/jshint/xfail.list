@@ -844,13 +844,11 @@ apps/search/js/eme/api.js
 apps/search/js/eme/eme.js
 apps/search/js/providers/app_provider.js
 apps/search/js/providers/contacts.js
-apps/search/js/providers/places.js
 apps/search/js/providers/suggestions.js
 apps/search/js/search.js
 apps/search/test/marionette/app_search_test.js
 apps/search/test/marionette/lib/search.js
 apps/search/test/marionette/navigation_test.js
-apps/search/test/marionette/places_search_test.js
 apps/search/test/unit/mock_search.js
 apps/search/test/unit/providers/contacts_test.js
 apps/search/test/unit/providers/local_apps_test.js

@@ -1,3 +1,5 @@
+/* globals HtmlHelper, Provider, Search */
+
 (function() {
 
   'use strict';
@@ -73,14 +75,14 @@
 
       img.onload = function() {
         window.URL.revokeObjectURL(img.src);
-        if (!(img.naturalWidth > 0)) {
+        if (img.naturalWidth <= 0) {
           return callback(new Error('Cannot load image'));
         }
         callback(null, blob);
       };
 
       img.onerror = function() {
-        window.URL.revokeObjectURL(src);
+        window.URL.revokeObjectURL(img.src);
         return callback(new Error('Cannot load image'));
       };
     });
@@ -92,7 +94,9 @@
   }
 
   function doSync() {
-    if (syncing) return;
+    if (syncing) {
+      return;
+    }
     syncing = true;
     var cursor = store.sync(lastRevision);
 
@@ -133,7 +137,7 @@
   }
 
   function matchesFilter(value, filter) {
-    return !value || !filter || value.match(new RegExp(filter, 'i')) !== null;
+    return !filter || (value && value.match(new RegExp(filter, 'i')) !== null);
   }
 
   function formatPlace(placeObj, filter) {
