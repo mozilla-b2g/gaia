@@ -73,7 +73,7 @@ var MockCommon = function(config) {
       setTimeout(function() {
         self.dataSimIccId = fakeAllInterfaces[1].id;
         if (typeof onsuccess === 'function') {
-          onsuccess(self.dataSimIccId);
+          onsuccess();
         }
       }, 0);
     }
