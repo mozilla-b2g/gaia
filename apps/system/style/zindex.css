@@ -196,7 +196,8 @@
  * - app frame must be on top of homescreen frame, inactive or active.
  * - finally, everything else needs to be on top of them (hence the lowest nums)
  */
-#screen > [data-z-index-level="app"] > .appWindow[data-z-index-level="top-app"] {
+#screen > [data-z-index-level="app"] > .appWindow[data-z-index-level="top-app"],
+#screen > [data-z-index-level="app"] > .appWindow.out-to-right {
   z-index: 8;
 }
 
@@ -212,7 +213,8 @@
   z-index: 6;
 }
 
-#screen > [data-z-index-level="app"] > .appWindow[data-z-index-level="bottom-app"] {
+#screen > [data-z-index-level="app"] > .appWindow[data-z-index-level="bottom-app"],
+#screen > [data-z-index-level="app"] > .appWindow.in-from-left {
   z-index: 5;
 }
 
