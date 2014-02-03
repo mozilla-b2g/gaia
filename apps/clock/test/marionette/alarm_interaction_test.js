@@ -14,62 +14,102 @@ marionette('Alarm interaction', function() {
     alarm.openForm();
   });
 
-  test('Creation', function() {
+  suite('Creation', function() {
+    // Each assertion is made in a separate test to facilitate parallelization.
     var alarms;
 
-    alarm.fill({
-      name: 'coffee break',
-      time: twentyFromNow
+    setup(function() {
+      alarm.fill({
+        name: 'coffee break',
+        time: twentyFromNow
+      });
+      alarm.formSubmit();
+
+      alarms = alarm.readItems();
     });
 
-    alarm.formSubmit();
 
-    alarms = alarm.readItems();
-
-    assert.equal(alarms.length, 1);
-    assert(alarm.isEnabled({ index: 0 }), 'Alarm is enabled');
-    assert.hasTime(
-      alarms[0], twentyFromNow, 'Alarm time is rendered'
-    );
-    assert(
-      alarms[0].indexOf('coffee break') > -1,
-      'Alarm title is rendered'
-    );
-    assert(alarm.countdownBannerDisplayed, 'Countdown banner is displayed');
-
-    alarm.waitForBannerHidden();
-
-    alarm.openForm();
-
-    alarm.fill({
-      name: 'quitting time',
-      time: thirtyFromNow
+    test('insertion of a new row in the alarms list', function() {
+      assert.equal(alarms.length, 1);
     });
 
-    alarm.formSubmit();
+    test('new alarm item is enabled by default', function() {
+      assert(alarm.isEnabled({ index: 0 }), 'Alarm is enabled');
+    });
 
-    alarms = alarm.readItems();
+    test('new alarm item has the correct time', function() {
+      assert.hasTime(
+        alarms[0], twentyFromNow, 'Alarm time is rendered'
+      );
+    });
 
-    assert.equal(alarms.length, 2);
-    assert.hasTime(
-      alarms[0],
-      thirtyFromNow,
-      'Newest alarm title is rendered first'
-    );
-    assert(
-      alarms[0].indexOf('quitting time') > -1,
-      'Newest alarm title is rendered first'
-    );
-    assert.hasTime(
-      alarms[1],
-      twentyFromNow,
-      'Previously-created alarm time is rendered second'
-    );
-    assert(
-      alarms[1].indexOf('coffee break') > -1,
-      'Previously-created alarm title is rendered second'
-    );
-    assert(alarm.countdownBannerDisplayed, 'Countdown banner is displayed');
+    test('new alarm item has the correct title', function() {
+      assert(
+        alarms[0].indexOf('coffee break') > -1,
+        'Alarm title is rendered'
+      );
+    });
+
+    test('the countdown banner is displayed and hidden', function() {
+      assert(alarm.countdownBannerDisplayed, 'Countdown banner is displayed');
+      alarm.waitForBannerHidden();
+    });
+
+    suite('creation of multiple alarms', function() {
+
+      setup(function() {
+        alarm.waitForBannerHidden();
+        alarm.openForm();
+
+        alarm.fill({
+          name: 'quitting time',
+          time: thirtyFromNow
+        });
+
+        alarm.formSubmit();
+
+        alarms = alarm.readItems();
+      });
+
+      test('insertion of a new row in the alarms list', function() {
+        assert.equal(alarms.length, 2);
+      });
+
+      test('new alarm item has the correct time', function() {
+        assert.hasTime(
+          alarms[0],
+          thirtyFromNow,
+          'Newest alarm title is rendered first'
+        );
+      });
+
+      test('new alarm item has the correct title', function() {
+        assert(
+          alarms[0].indexOf('quitting time') > -1,
+          'Newest alarm title is rendered first'
+        );
+      });
+
+      test('previously-created alarm maintains its time', function() {
+        assert.hasTime(
+          alarms[1],
+          twentyFromNow,
+          'Previously-created alarm time is rendered second'
+        );
+      });
+
+      test('previously-created alarm maintains its title', function() {
+        assert(
+          alarms[1].indexOf('coffee break') > -1,
+          'Previously-created alarm title is rendered second'
+        );
+      });
+
+      test('the countdown banner is displayed and hidden', function() {
+        assert(alarm.countdownBannerDisplayed, 'Countdown banner is displayed');
+        alarm.waitForBannerHidden();
+      });
+    });
   });
 
   test('Closing form', function() {
