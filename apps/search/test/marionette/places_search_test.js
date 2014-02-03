@@ -1,3 +1,7 @@
+/* globals __dirname */
+
+'use strict';
+
 var Search = require('./lib/search');
 var Server = require('../../../../shared/test/integration/server');
 var assert = require('assert');
@@ -31,6 +35,16 @@ marionette('Places tests', function() {
     search.doSearch(url);
     search.goToResults();
     search.checkResult('firstPlace', 'Sample page');
+  });
+
+  test('Search for a string that doesnt match visited url', function() {
+    var url = server.url('sample.html');
+    search.doSearch(url + '\uE006');
+    search.waitForBrowserFrame();
+    search.doSearch('nonmatchedstring');
+    search.goToResults();
+    client.helper.wait(1000);
+    assert.equal(client.findElements(Search.Selectors.firstPlace).length, 0);
   });
 
   test('Ensures urls visited twice only show in results once', function() {
