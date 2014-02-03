@@ -1,4 +1,4 @@
-suite.skip('Sounds', function() {
+suite('Sounds', function() {
   /*jshint maxlen:false*/
   /*global req*/
   'use strict';

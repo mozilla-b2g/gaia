@@ -23,6 +23,7 @@ apps/wappush/js/ext/**
 apps/keyboard/js/imes/jsavrophonetic/jsavrophonetic.js
 apps/camera/js/vendor/alameda.js
 apps/camera/js/config.js
+apps/camera/test/unit/**
 apps/gallery/js/config.js
 apps/gallery/js/frame_scripts.js
 apps/gallery/js/metadata_scripts.js

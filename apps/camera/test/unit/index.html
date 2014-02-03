@@ -1,0 +1,45 @@
+<html>
+  <head>
+    <title>Camera Unit Tests</title>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="mocha.css" />
+     <script src="mocha.js"></script>
+     <script src="chai.js"></script>
+     <script src="sinon.js"></script>
+     <script>
+       mocha.ui('tdd');
+       mocha.reporter('html');
+     </script>
+     <script src="../../js/vendor/alameda.js"></script>
+     <script src="setupBrowser.js"></script>
+     <script>
+      assert = (typeof chai !== "undefined" && chai !== null ? chai.assert : void 0) || require('chai').assert;
+       onload = function() {
+         if (window.mochaPhantomJS) {
+           mochaPhantomJS.run();
+         } else {
+           mocha.run();
+         }
+       }
+     </script>
+     <script src="app_test.js"></script>
+     <script src="lib/activity_test.js"></script>
+     <script src="lib/camera-utils_test.js"></script>
+     <script src="lib/camera_test.js"></script>
+     <script src="lib/config_test.js"></script>
+     <script src="lib/dcf_test.js"></script>
+     <script src="lib/format-timer_test.js"></script>
+     <script src="lib/geo-location_test.js"></script>
+     <script src="lib/setting_test.js"></script>
+     <script src="lib/sounds_test.js"></script>
+     <script src="controllers/camera_test.js"></script>
+     <script src="controllers/confirm_test.js"></script>
+     <script src="controllers/controls_test.js"></script>
+     <script src="controllers/hud_test.js"></script>
+     <script src="controllers/overlay_test.js"></script>
+     <script src="controllers/viewfinder_test.js"></script>
+  </head>
+  <body>
+    <div id="mocha"></div>
+  </body>
+</html>
