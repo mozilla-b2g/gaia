@@ -9,6 +9,10 @@
 
     <!-- Building blocks Temporal -->
     <link rel="stylesheet" type="text/css" href="style/bb/input-areas/style.css">
+    <link rel="stylesheet" type="text/css" href="style/bb/menus-dialogues/valueselector/date/style.css">
+    <link rel="stylesheet" type="text/css" href="style/bb/menus-dialogues/valueselector/style.css">
+    <link rel="stylesheet" type="text/css" href="style/bb/menus-dialogues/core.css">
+    <link rel="stylesheet" type="text/css" href="style/bb/menus-dialogues/prompt/style.css">
 
     <!-- Building blocks -->
     <link rel="stylesheet" type="text/css" href="shared/style/headers.css">
@@ -46,6 +50,7 @@
     <script type="text/javascript" defer src="js/common.js"></script>
     <script type="text/javascript" defer src="js/costcontrol.js"></script>
     <script type="text/javascript" defer src="js/costcontrol_init.js"></script>
+    <script type="text/javascript" defer src="js/views/NonReadyScreen.js"></script>
     <script type="text/javascript" defer src="js/view_manager.js"></script>
     <script type="text/javascript" defer src="js/app.js"></script>
 
@@ -90,26 +95,38 @@ the overlays) and we should distinguish between TABS and OVERLAY VIEWS -->
         </li>
       </ul>
 
-    <!-- BALANCE TAB -->
-    <section is="balance-tab" role="region" id="balance-tab" class="view" data-viewport="left" hidden></section>
+      <!-- BALANCE TAB -->
+      <section is="balance-tab" role="region" id="balance-tab" class="view" data-viewport="left" hidden></section>
 
-    <!-- TELEPHONY TAB -->
-    <section is="telephony-tab" role="region" id="telephony-tab" class="view" data-viewport="left" hidden></section>
+      <!-- TELEPHONY TAB -->
+      <section is="telephony-tab" role="region" id="telephony-tab" class="view" data-viewport="left" hidden></section>
 
-    <!-- The top up input -->
-    <section is="topup-dialog" role="region" id="topup-dialog" class="view" data-viewport="bottom" hidden></section>
+      <!-- The top up input -->
+      <section is="topup-dialog" role="region" id="topup-dialog" class="view" data-viewport="bottom" hidden></section>
 
-    <!-- DATA USAGE TAB -->
-    <section is="datausage-tab" id="datausage-tab" role="region" class="view" data-viewport="right" hidden></section
+      <!-- DATA USAGE TAB -->
+      <section is="datausage-tab" id="datausage-tab" role="region" class="view" data-viewport="right" hidden></section>
 
-    <!-- Settings view -->
-    <section id="settings-view" class="view" data-viewport="bottom">
-      <iframe id="settings-view-placeholder"></iframe>
-    </section>
+      <!-- Settings view -->
+      <section id="settings-view" class="view" data-viewport="bottom">
+        <iframe id="settings-view-placeholder"></iframe>
+      </section>
 
   </section>
   <iframe id="message-handler" src="">
   </iframe>
   <iframe id="fte_view" class="window non-ready"></iframe>
+
+  <!-- SIM non ready screen -->
+  <section role="dialog" class="view" data-viewport="ethereal" id="non-ready-screen">
+    <div class="center">
+      <h3>Card is not ready</h3>
+      <p>The button will close the application.</p>
+      <progress></progress>
+    </div>
+    <menu>
+      <button class="full" data-l10n-id="confirm">Ok</button>
+    </menu>
+  </section>
 </body>
 </html>
