@@ -149,6 +149,7 @@ var StatusBar = {
   },
 
   hide: function sb_hide() {
+    this._releaseBar();
     this.element.classList.add('invisible');
   },
 
@@ -194,6 +195,12 @@ var StatusBar = {
     // Listen to 'attentionscreenshow/hide' from attention_screen.js
     window.addEventListener('attentionscreenshow', this);
     window.addEventListener('attentionscreenhide', this);
+
+    window.addEventListener('utilitytrayshow', this);
+    window.addEventListener('utilitytrayhide', this);
+    window.addEventListener('rocketbarshown', this);
+    window.addEventListener('rocketbarhidden', this);
+
     // Listen to 'screenchange' from screen_manager.js
     window.addEventListener('screenchange', this);
 
@@ -229,6 +236,11 @@ var StatusBar = {
     window.addEventListener('appopened', this);
     window.addEventListener('homescreenopened', this.show.bind(this));
 
+    var touchEvents = ['touchstart', 'touchmove', 'touchend'];
+    touchEvents.forEach(function bindEvents(name) {
+      this.topPanel.addEventListener(name, this.panelTouchHandler.bind(this));
+    }, this);
+
     this.systemDownloadsCount = 0;
     this.setActive(true);
   },
@@ -243,18 +255,34 @@ var StatusBar = {
           this.show();
         }
         break;
+
       case 'screenchange':
         this.setActive(evt.detail.screenEnabled);
         break;
+
       case 'attentionscreenhide':
       case 'lock':
         // Hide the clock in the statusbar when screen is locked
         this.toggleTimeLabel(!LockScreen.locked);
         break;
+
       case 'attentionscreenshow':
       case 'unlock':
         // Display the clock in the statusbar when screen is unlocked
         this.toggleTimeLabel(true);
+        break;
+
+      case 'utilitytrayshow':
+      case 'rocketbarshown':
+        this.show();
+        break;
+
+      case 'utilitytrayhide':
+      case 'rocketbarhidden':
+        var app = AppWindowManager.getActiveApp();
+        if (app && app.isFullScreen()) {
+          this.hide();
+        }
         break;
 
       case 'lockpanelchange':
@@ -349,6 +377,100 @@ var StatusBar = {
         this.update.networkActivity.call(this);
         break;
     }
+  },
+
+  _startX: null,
+  _startY: null,
+  _releaseTimeout: null,
+  _touchStart: null,
+  _touchForwarder: new TouchForwarder(),
+  _shouldForwardTap: false,
+  panelTouchHandler: function sb_panelTouchHandler(evt) {
+    evt.preventDefault();
+
+    var elem = this.element;
+    switch (evt.type) {
+      case 'touchstart':
+        clearTimeout(this._releaseTimeout);
+
+        var iframe = AppWindowManager.getActiveApp().iframe;
+        this._touchForwarder.destination = iframe;
+        this._touchStart = evt;
+        this._shouldForwardTap = true;
+
+
+        var touch = evt.changedTouches[0];
+        this._startX = touch.clientX;
+        this._startY = touch.clientY;
+        elem.style.transition = 'transform';
+        break;
+
+      case 'touchmove':
+        var touch = evt.touches[0];
+        var deltaX = touch.clientX - this._startX;
+        var deltaY = touch.clientY - this._startY;
+
+        if (Math.abs(deltaX) > 5 || Math.abs(deltaY) > 5) {
+          this._shouldForwardTap = false;
+        }
+
+        var translate = Math.min(deltaY, this.height);
+        elem.style.transform = 'translateY(calc(' + translate + 'px - 100%)';
+
+        if (translate == this.height) {
+          if (this._touchStart) {
+            this._touchForwarder.forward(this._touchStart);
+            this._touchStart = null;
+          }
+          this._touchForwarder.forward(evt);
+        }
+        break;
+
+      case 'touchend':
+        clearTimeout(this._releaseTimeout);
+
+        if (this._touchStart) {
+          if (this._shouldForwardTap) {
+            this._touchForwarder.forward(this._touchStart);
+            this._touchForwarder.forward(evt);
+            this._touchStart = null;
+          }
+          this._releaseBar();
+        } else {
+          // If we already forwarded the touchstart it means the bar
+          // if fully open, releasing after a timeout.
+          this._touchForwarder.forward(evt);
+          this._releaseAfterTimeout();
+        }
+
+        break;
+    }
+  },
+
+  _releaseBar: function sb_releaseBar() {
+    this.element.style.transform = '';
+    this.element.style.transition = '';
+
+    clearTimeout(this._releaseTimeout);
+    this._releaseTimeout = null;
+  },
+
+  _releaseAfterTimeout: function sb_releaseAfterTimeout() {
+    var self = this;
+    self._releaseTimeout = setTimeout(function() {
+      self._releaseBar();
+      window.removeEventListener('touchstart', closeOnTap);
+    }, 5000);
+
+    function closeOnTap(evt) {
+      if (evt.target != self._touchForwarder.destination) {
+        return;
+      }
+
+      window.removeEventListener('touchstart', closeOnTap);
+      self._releaseBar();
+    };
+    window.addEventListener('touchstart', closeOnTap);
   },
 
   setActive: function sb_setActive(active) {
@@ -911,6 +1033,8 @@ var StatusBar = {
     this.element = document.getElementById('statusbar');
     this.screen = document.getElementById('screen');
     this.attentionBar = document.getElementById('attention-bar');
+
+    this.topPanel = document.getElementById('top-panel');
   }
 };
 

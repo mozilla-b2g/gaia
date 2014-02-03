@@ -3,6 +3,14 @@ body, html {
   font-size: 10px;
 }
 
+#top-panel {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2rem;
+}
+
 #screen.lockscreen-camera > #statusbar {
   display: none;
 }
@@ -24,10 +32,16 @@ body, html {
   display: flex;
   flex-direction: row;
   -moz-user-select: none;
+  transition: transform 0.2s linear 0s;
 }
 
-#screen.locked:not(.attention) #statusbar{
+#screen.locked:not(.attention) #statusbar {
   background-color: transparent;
+}
+
+#statusbar.invisible {
+  transition: transform 0.2s linear 0.25s;
+  transform: translateY(-100%);
 }
 
 #screen.attention.locked #statusbar-time {

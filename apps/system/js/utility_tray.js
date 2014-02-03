@@ -141,7 +141,6 @@ var UtilityTray = {
     this.startY = touch.pageY;
 
     this.screen.classList.add('utility-tray');
-    this.onTouchMove({ pageY: touch.pageY + this.statusbar.offsetHeight });
   },
 
   onTouchMove: function ut_onTouchMove(touch) {
@@ -186,12 +185,12 @@ var UtilityTray = {
     var alreadyHidden = !this.shown;
     var style = this.overlay.style;
     style.MozTransition = instant ? '' : '-moz-transform 0.2s linear';
-    style.MozTransform = 'translateY(0)';
+    style.MozTransform = '';
     this.shown = false;
 
     // If the transition has not started yet there won't be any transitionend
     // event so let's not wait in order to remove the utility-tray class.
-    if (instant || style.MozTransform == 'translateY(0px)') {
+    if (instant || style.MozTransform == '') {
       this.screen.classList.remove('utility-tray');
     }
 
