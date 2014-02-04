@@ -472,24 +472,18 @@ var Contacts = (function() {
   };
 
   var sendEmailOrPick = function sendEmailOrPick(address) {
-    if (ActivityHandler.currentlyHandling) {
-      // Placeholder for the email app if we want to
-      // launch contacts to select an email address.
-      // So far we do nothing
-    } else {
-      try {
-        // We don't check the email format, lets the email
-        // app do that
-        var activity = new MozActivity({
-          name: 'new',
-          data: {
-            type: 'mail',
-            URI: 'mailto:' + address
-          }
-        });
-      } catch (e) {
-        console.log('WebActivities unavailable? : ' + e);
-      }
+    try {
+      // We don't check the email format, lets the email
+      // app do that
+      var activity = new MozActivity({
+        name: 'new',
+        data: {
+          type: 'mail',
+          URI: 'mailto:' + address
+        }
+      });
+    } catch (e) {
+      console.log('WebActivities unavailable? : ' + e);
     }
   };
 
