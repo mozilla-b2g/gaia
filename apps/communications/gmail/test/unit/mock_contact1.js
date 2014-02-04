@@ -12,9 +12,19 @@ var MockGoogleEntry = (function MockGoogleEntry() {
   return parser.parseFromString(entryBuffer, 'text/xml');
 })();
 
-var MockGoogleEntryWoName = (function MockGoogleEntryWoName() {
+var MockGoogleEntryNoName = (function MockGoogleEntryNoName() {
   var req = new XMLHttpRequest();
   req.open('GET', '/gmail/test/unit/mock_contact2.xml', false);
+  req.send(null);
+
+  var entryBuffer = req.responseText;
+  var parser = new DOMParser();
+  return parser.parseFromString(entryBuffer, 'text/xml');
+})();
+
+var MockGoogleEntryInvalidDate = (function MockGoogleEntryWoName() {
+  var req = new XMLHttpRequest();
+  req.open('GET', '/gmail/test/unit/mock_contact3.xml', false);
   req.send(null);
 
   var entryBuffer = req.responseText;

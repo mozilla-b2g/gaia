@@ -509,8 +509,6 @@ apps/communications/ftu/test/unit/tutorial_test.js
 apps/communications/ftu/test/unit/variant_test.js
 apps/communications/ftu/test/unit/wallpaper_customizer_test.js
 apps/communications/ftu/test/unit/wifi_test.js
-apps/communications/gmail/js/gmail_connector.js
-apps/communications/gmail/test/unit/gmail_connector_test.js
 apps/communications/gmail/test/unit/mock_contact1.js
 apps/communications/gmail/test/unit/mock_groups.js
 apps/communications/gmail/test/unit/mock_listing.js
