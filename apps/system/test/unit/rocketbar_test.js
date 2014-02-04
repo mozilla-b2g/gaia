@@ -152,6 +152,18 @@ suite('system/Rocketbar', function() {
       assert.ok(stub.calledOnce);
       stub.restore();
     });
+
+    test('rocketbar hide events', function() {
+      var hideEvents = ['home', 'lock', 'appopened'];
+      hideEvents.forEach(function(evtType) {
+        var hideStub = this.sinon.stub(Rocketbar, 'hide');
+        Rocketbar.handleEvent({
+          type: evtType
+        });
+        assert.ok(hideStub.calledOnce);
+        hideStub.restore();
+      }, this);
+    });
   });
 
   suite('render', function() {

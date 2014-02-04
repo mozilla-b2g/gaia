@@ -88,6 +88,7 @@ var Rocketbar = {
         e.stopImmediatePropagation();
         return;
       case 'home':
+      case 'lock':
       case 'appopened':
         this.hide();
         return;
@@ -158,7 +159,6 @@ var Rocketbar = {
 
     // Hide task manager when we focus on search bar
     this.searchInput.addEventListener('focus', this);
-
     this.searchInput.addEventListener('blur', this);
 
     window.addEventListener('apptitlechange', this);
@@ -167,6 +167,7 @@ var Rocketbar = {
     window.addEventListener('cardviewclosed', this);
     window.addEventListener('cardviewclosedhome', this);
     window.addEventListener('home', this);
+    window.addEventListener('lock', this);
 
     this.searchCancel.addEventListener('click', this);
     // Prevent default on mousedown
