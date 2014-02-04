@@ -29,13 +29,19 @@ Calendar.ns('Views').DayChild = (function() {
         );
       }
 
+      var time = Calendar.App.dateFormat.localeFormat(
+        event.remote.startDate,
+        navigator.mozL10n.get('shortTimeFormat')
+      );
       return template.event.render({
         classes: classes,
         busytimeId: busytime._id,
         calendarId: event.calendarId,
         title: event.remote.title,
         location: event.remote.location,
-        attendees: attendees
+        attendees: attendees,
+        displayTime: Calendar.App.dateFormat.localeFormat(
+          event.remote.startDate, navigator.mozL10n.get('shortTimeFormat'))
       });
     },
 

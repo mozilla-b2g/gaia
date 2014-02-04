@@ -19,6 +19,10 @@
   border-bottom: 0.1rem solid #D0D0D0;
 }
 
+#months-day-view .day-events > .hour {
+  border-bottom: none !important;
+}
+
 .day-events > .hour:last-child {
   border-bottom: none !important;
 }
@@ -42,6 +46,10 @@
   font-weight: 400;
 }
 
+#months-day-view .day-events > .hour h4 {
+  display: none;
+}
+
 /** events */
 
 .day-events .events {
@@ -51,6 +59,15 @@
   height: 6rem;
   margin-left: 7.4rem;
   border-left: 0.1rem solid #bbb;
+}
+
+#months-day-view .day-events .events {
+  border-left: none !important;
+}
+
+#months-day-view .day-events .events {
+  margin-left: 0rem !important;
+  width: calc(100% - 1.5rem);
 }
 
 .day-events .event {
@@ -73,6 +90,14 @@
   padding: 0.8rem 1rem 2.2rem;
 }
 
+#months-day-view .day-events .container {
+  border-bottom: 0.1rem solid rgb(250, 250, 250) !important;
+  border-left: none !important;
+  border-right: none !important;
+  border-top: none !important;
+  padding: 0;
+}
+
 .day-events .event.has-alarms .container {
   background: #FFF url(/style/icons/alarm.png) no-repeat top right / 3rem !important;
 }
@@ -86,6 +111,7 @@
 }
 
 .day-events .event h5 {
+  color: #252525;
   width: calc(100% - 1rem - 0.6rem);
   min-height: 2.2rem;
   padding-top: 0.6rem;
@@ -105,12 +131,47 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: #5b5b5b;
-  font-size: 1.5rem;
+  color: #A2A2A2;
+  font-size: 1.4rem;
 }
 
 .day-events .event.partial-hour .details {
   display: none;
+}
+
+.day-events .event .event-dot {
+  display: none;
+}
+
+#months-day-view .day-events .event .event-dot {
+  color: #00A8C9;
+  display: block !important;
+  float: left;
+  font-size: 3.5rem;
+  height: 6rem;
+  line-height: 6rem;
+  width: 3%;
+}
+
+.day-events .event .event-time {
+  display: none;
+}
+
+#months-day-view .day-events .event .event-time {
+  color: #657073;
+  display: block !important;
+  float: left;
+  font-size: 1.5rem;
+  height: 6rem;
+  line-height: 6rem;
+  text-align: center;
+  width: 37%;
+}
+
+#months-day-view .day-events .event .event-details {
+  float: left;
+  height: 100%;
+  width: 60%;
 }
 
 .attendee {
@@ -170,4 +231,14 @@
   box-shadow: 0px 5px 5px 0px rgba(1, 1, 1, 0.2);
   position: relative;
   z-index: 11;
+}
+
+#event-list-date {
+  border-bottom: 0.1rem solid #00AACC;
+  color: #00A8C9;
+  font-size: 16px;
+  height: 3rem;
+  line-height: 3rem;
+  margin: 1rem 1.5rem 0.5rem;
+  text-transform: uppercase;
 }

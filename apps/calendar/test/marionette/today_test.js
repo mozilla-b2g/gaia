@@ -1,8 +1,10 @@
+'use strict';
+
 var Calendar = require('./calendar'),
     assert = require('chai').assert,
     moment = require('moment');
 
-const DATE_FORMAT = 'YYYY-MM-DD';
+var DATE_FORMAT = 'YYYY-MM-DD';
 
 marionette('today item', function() {
   var client = marionette.client({
