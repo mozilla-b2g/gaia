@@ -1,4 +1,5 @@
 'use strict';
+/* global AppWindowManager, MocksHelper, Rocketbar */
 
 requireApp('system/shared/js/url_helper.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
@@ -8,7 +9,7 @@ requireApp('system/test/unit/mock_lock_screen.js');
 requireApp('system/js/lockscreen.js');
 mocha.globals(['Rocketbar']);
 
-var LockScreen = { locked: false };
+mocha.globals(['dispatchEvent']);
 
 var mocksForRocketBar = new MocksHelper([
   'AppWindowManager',
@@ -19,7 +20,6 @@ var mocksForRocketBar = new MocksHelper([
 
 suite('system/Rocketbar', function() {
   var stubById;
-  var fakeEvt;
   var fakeElement;
 
   mocksForRocketBar.attachTestHelpers();
@@ -142,9 +142,13 @@ suite('system/Rocketbar', function() {
 
     test('search-cancel element should show the task manager', function() {
       var dispatchStub = this.sinon.stub(window, 'dispatchEvent');
-      var awmStub = this.sinon.stub(AppWindowManager, 'getRunningApps')
+      this.sinon.stub(AppWindowManager, 'getRunningApps')
         .returns({app1: true, app2: true});
       Rocketbar.home = 'tasks';
+
+      // Set the value to ensure that it clears when the task manager shows
+      Rocketbar.searchInput.value = 'http://mozilla.org';
+
       Rocketbar.handleEvent({
         target: {
           id: 'search-cancel'
@@ -154,6 +158,7 @@ suite('system/Rocketbar', function() {
       });
 
       assert.equal(dispatchStub.getCall(0).args[0].type, 'taskmanagershow');
+      assert.equal(Rocketbar.searchInput.value, '');
     });
 
     test('focus on event call updateResetButton', function() {
