@@ -92,3 +92,28 @@ label.pack-switch input:disabled ~ span:after {
 label.pack-switch input.uninit ~ span:after {
   transition: none;
 }
+
+/******************************************************************************
+ * Right-To-Left tweaks
+ */
+
+html[dir="rtl"] label.pack-checkbox input,
+html[dir="rtl"] label.pack-radio input,
+html[dir="rtl"] label.pack-switch input {
+  left: auto;
+  right: 0;
+}
+
+html[dir="rtl"] label.pack-checkbox input ~ span:after,
+html[dir="rtl"] label.pack-radio input ~ span:after {
+  left: auto;
+  right: 50%;
+  margin-left: auto;
+  margin-right: -1.1rem;
+}
+
+html[dir="rtl"] label.pack-switch input ~ span:after {
+  left: 0;
+  right: auto;
+}
+

@@ -628,28 +628,6 @@ ul li > label.range-icons.brightness:before {
 }
 
 /******************************************************************************
- * Right-To-Left layout
- */
-
-html[dir="rtl"] section[role="region"] {
-  transform: translateX(-100%);
-}
-
-html[dir="rtl"] section[role="region"].previous  {
-  transform: translateX(+100%);
-}
-
-html[dir="rtl"] section[role="region"].current {
-  transform: translateX(0);
-}
-
-/* 'show password' checkboxes */
-html[dir="rtl"] label[for^="pwd"] {
-  padding-left: inherit;
-  padding-right: 3rem;
-}
-
-/******************************************************************************
  * Bluetooth
  */
 #update-device-name > section p {
@@ -679,3 +657,115 @@ section[role="status"] {
 section[role="status"].toast-visible {
   opacity: 1;
 }
+
+/******************************************************************************
+ * Right-To-Left layout
+ */
+
+html[dir="rtl"] section[role="region"] {
+  transform: translateX(-100%);
+}
+
+html[dir="rtl"] section[role="region"].previous  {
+  transform: translateX(+100%);
+}
+
+html[dir="rtl"] section[role="region"].current {
+  transform: translateX(0);
+}
+
+/* 'show password' checkboxes */
+html[dir="rtl"] label[for^="pwd"] {
+  padding-left: inherit;
+  padding-right: 3rem;
+}
+
+/* Following RTL Tweaks */
+
+html[dir="rtl"] .hint .explanation {
+  padding-left: 4rem;
+  padding-right: 1.5rem;
+  white-space: normal;
+}
+
+html[dir="rtl"] .hint > label:not([for]) ~ .explanation {
+  padding-left: 8rem;
+  padding-right: 1.5rem;
+}
+
+html[dir="rtl"] ul[data-state="ready"] li > a {
+  padding-left: 6.2rem; /* 3rem (initial padding) + 3.2rem (wifi icon width) */
+  padding-right: 3rem;
+}
+
+html[dir="rtl"] section li.password {
+  padding-left: 0;
+}
+
+html[dir="rtl"] section li.password > label {
+  left: 1.5rem;
+  right: 0;
+}
+
+html[dir="rtl"] section li.password > label > span:after {
+  left: auto;
+  right: 0;
+  margin-left: auto;
+  margin-right: 0;
+}
+
+html[dir="rtl"] section li.password > label > span {
+  left: auto;
+  right: 1.5rem;
+  padding-right: 3rem;
+}
+
+html[dir="rtl"] #mediaStorage .stackedbar-color-label {
+  left: auto;
+  right: 1.5rem;
+}
+
+html[dir="rtl"] #mediaStorage .stackedbar-color-label + a {
+  padding-left: 0;
+  padding-right: 4rem;
+}
+
+html[dir="rtl"] #call .cw-alert .cw-alert-checkbox-label {
+  left: 0;
+  right: auto;
+}
+
+html[dir="rtl"] #wallpaper-button {
+  left: auto;
+  right: 0;
+}
+
+html[dir="rtl"] ul li > label.range-icons.brightness:before {
+  background-position: 100% 50%, 0 50%;
+  left: auto;
+  right: 1rem;
+}
+
+html[dir="rtl"] #brightness-manual div {
+  left: auto;
+  right: 5rem;
+}
+
+html[dir="rtl"] #time-manual input {
+  left: auto;
+  right: 0;
+}
+
+html[dir="rtl"] #sendFeedback .pack-checkbox span {
+  left: auto;
+  right: 3rem;
+}
+
+html[dir="rtl"] #feedback-happy {
+  float: right;
+}
+
+html[dir="rtl"] #feedback-sad {
+  float: left;
+}
+

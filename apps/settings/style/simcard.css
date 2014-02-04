@@ -139,3 +139,12 @@
   padding: 0;
   color: #6d7374;
 }
+
+/*
+ * Right to Left layout
+ */
+
+html[dir="rtl"] .sim-card-icon {
+  float: right;
+}
+

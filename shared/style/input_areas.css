@@ -362,33 +362,71 @@ form button::-moz-focus-inner {
  * Right-to-Left layout
  */
 
-html[dir="rtl"] form p input:valid,
-html[dir="rtl"] form p input:valid:focus {
-  padding: 0 1.2rem 0 3rem;
-}
-
 html[dir="rtl"] form p input + button[type="reset"],
-html[dir="rtl"] form p textarea + button[type="reset"] {
-  right: auto;
+form p textarea + button[type="reset"] {
   left: 0;
+  right: auto;
 }
 
-html[dir="rtl"] fieldset legend.action:after {
-  margin: 0 0.5rem 0 0;
+html[dir="rtl"] form p input:focus {
+  padding-left: 3rem;
+  padding-right: inherit;
 }
 
 html[dir="rtl"] fieldset legend {
-  padding: 0 1.5rem 0 0.5rem;
+  padding-left: .5rem;
+  padding-right: 1.5rem;
 }
 
-html[dir="rtl"] form[role="search"] p input {
-  padding: 0;
+html[dir="rtl"] fieldset section {
+  border-left: none;
+  border-right: 0.1rem solid #ddd;
+  border-radius: 0.3rem 0 0 0.3rem;
+  margin-left: auto;
+  margin-right: 9.5rem;
+}
+
+html[dir="rtl"] form[role="search"]:before {
+  left: auto;
+  right: 1rem;
+}
+
+html[dir="rtl"] form[role="search"] p {
+  padding-left: 1.2rem;
+  padding-right: 3.2rem;
 }
 
 html[dir="rtl"] form[role="search"] p input:focus {
-  padding: 0 0 0 2rem;
+  padding-left: 2rem;
+  padding-right: 0;
 }
 
-html[dir="rtl"] form[role="search"] button[type="submit"] + p > button {
-  left: 0;
+html[dir="rtl"] form[role="search"] button.icon {
+  float: right;
+  background-position: 0 50%, 0 100%;
 }
+
+html[dir="rtl"] form[role="search"] button.icon:before {
+  left: auto;
+  right: 0;
+}
+
+html[dir="rtl"] form[role="search"] p button[type="reset"] {
+  left: 0;
+  right: auto;
+}
+
+html[dir="rtl"] form[role="search"] button[type="submit"] {
+  float: left;
+  background-position: 100% 50%;
+}
+
+html[dir="rtl"] fieldset legend.action {
+  background-position: 0 100%;
+}
+
+html[dir="rtl"] form[role="search"] button[type="submit"][disabled],
+html[dir="rtl"] form[role="search"].bottom button[type="submit"] {
+  background-position: 100% 50%, 0 100%;
+}
+

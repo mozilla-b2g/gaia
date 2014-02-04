@@ -257,3 +257,47 @@ body[role="application"] .button input {
 .button.icon select {
    width: 130%;
 }
+
+/******************************************************************************
+ * Right-To-Left layout
+ */
+
+html[dir="rtl"] li button,
+html[dir="rtl"] li a[role="button"],
+html[dir="rtl"] li .button {
+  text-align: right;
+}
+
+html[dir="rtl"] li button:after,
+html[dir="rtl"] li a[role="button"]:after,
+html[dir="rtl"] li .button:after {
+  background-position: right bottom;
+}
+
+html[dir="rtl"] li button.icon,
+html[dir="rtl"] li a[role="button"].icon,
+html[dir="rtl"] li .button.icon {
+  padding-left: 3rem;
+  padding-right: 1rem;
+}
+
+html[dir="rtl"] li button.icon:before,
+html[dir="rtl"] li a[role="button"].icon:before,
+html[dir="rtl"] li .button.icon:before {
+  left: -1rem;
+  right: inherit;
+}
+
+html[dir="rtl"] li button.icon-view:before,
+html[dir="rtl"] li a[role="button"].icon-view:before {
+  background-image: url(buttons/images/icons/view_rtl.png);
+  background-position: 1.6rem 0;
+}
+
+html[dir="rtl"] li button.icon-dialog:before,
+html[dir="rtl"] li a[role="button"].icon-dialog:before,
+html[dir="rtl"] li .button.icon-dialog:before {
+  background-image: url(buttons/images/icons/dialog_rtl.png);
+  background-position: 1.6rem 0;
+}
+
