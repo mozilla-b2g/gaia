@@ -2777,6 +2777,19 @@ suite('thread_ui.js >', function() {
         attachments: [],
         timestamp: +new Date(Date.now() - 100000),
         expiryDate: +new Date(Date.now())
+      },
+      {
+        id: 3,
+        threadId: 8,
+        sender: '123456',
+        type: 'mms',
+        delivery: 'received',
+        deliveryInfo: [{receiver: null, deliveryStatus: 'success'}],
+        subject: '',
+        smil: '',
+        attachments: [],
+        timestamp: +new Date(Date.now() - 50000),
+        expiryDate: +new Date(Date.now())
       }];
 
       return testMessages[index];
@@ -2809,26 +2822,14 @@ suite('thread_ui.js >', function() {
       test('no-attachment class present', function() {
         assert.isTrue(element.classList.contains('no-attachment'));
       });
-      test('error class present', function() {
-        assert.isTrue(element.classList.contains('error'));
+      test('error class absent', function() {
+        assert.isFalse(element.classList.contains('error'));
       });
       test('pending class absent', function() {
         assert.isFalse(element.classList.contains('pending'));
       });
       test('message is correct', function() {
-        assert.ok(
-          localize.calledWith(noAttachmentMessage, 'no-attachment-text')
-        );
-      });
-      suite('clicking', function() {
-        setup(function() {
-          ThreadUI.handleMessageClick({
-            target: element
-          });
-        });
-        test('Should not call retrieveMMS', function() {
-          assert.isFalse(MessageManager.retrieveMMS.called);
-        });
+        assert.equal(noAttachmentMessage.textContent, '');
       });
     });
 
@@ -2848,16 +2849,42 @@ suite('thread_ui.js >', function() {
       test('no-attachment class present', function() {
         assert.isTrue(element.classList.contains('no-attachment'));
       });
+      test('error class absent', function() {
+        assert.isFalse(element.classList.contains('error'));
+      });
+      test('pending class absent', function() {
+        assert.isFalse(element.classList.contains('pending'));
+      });
+      test('message is Empty', function() {
+        assert.equal(noAttachmentMessage.textContent, '');
+      });
+    });
+
+    suite('Invalid empty content message', function() {
+      var message;
+      var element;
+      var noAttachmentMessage;
+      setup(function() {
+        message = getTestMessage(2);
+        ThreadUI.appendMessage(message);
+        element = document.getElementById('message-' + message.id);
+        noAttachmentMessage = element.querySelector('p');
+      });
+      test('element has correct data-message-id', function() {
+        assert.equal(element.dataset.messageId, message.id);
+      });
+      test('invalid-empty-content class present', function() {
+        assert.isTrue(element.classList.contains('invalid-empty-content'));
+      });
       test('error class present', function() {
         assert.isTrue(element.classList.contains('error'));
       });
       test('pending class absent', function() {
         assert.isFalse(element.classList.contains('pending'));
       });
-      test('message is correct', function() {
-        assert.ok(
-          localize.calledWith(noAttachmentMessage, 'no-attachment-text')
-        );
+      test('message is Empty', function() {
+        sinon.assert.calledWithMatch(localize, noAttachmentMessage,
+          'no-attachment-text');
       });
       suite('clicking', function() {
         setup(function() {
@@ -2866,7 +2893,7 @@ suite('thread_ui.js >', function() {
           });
         });
         test('Should not call retrieveMMS', function() {
-          assert.isFalse(MessageManager.retrieveMMS.called);
+          sinon.assert.notCalled(MessageManager.retrieveMMS);
         });
       });
     });
