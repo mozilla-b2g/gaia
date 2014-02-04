@@ -199,5 +199,8 @@ form[role="dialog"][data-type="value-selector"] menu button.full {
 html[dir="rtl"] #value-selector li input:checked + span,
 html[dir="rtl"] #value-selector li[aria-selected="true"] span {
   padding-left: 2.6rem;
+  padding-right: 1.5rem;
   margin-left: 1.2rem;
+  margin-right: 0;
+  background-position: 0 50%;
 }
