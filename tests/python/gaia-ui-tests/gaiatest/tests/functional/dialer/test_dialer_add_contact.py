@@ -47,7 +47,7 @@ class TestDialerAddContact(GaiaTestCase):
         contacts = self.phone.tap_contacts()
 
         # Check only one contact is created
-        self.assertEqual(1, len(contacts.contacts))
+        contacts.wait_for_contacts(1)
 
         #  Tap on the new contact
         contact_details = contacts.contacts[0].tap()

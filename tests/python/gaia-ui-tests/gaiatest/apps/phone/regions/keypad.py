@@ -70,6 +70,11 @@ class Keypad(Phone):
         self.marionette.find_element(*self._search_popup_locator).tap()
         return CallScreen(self.marionette)
 
+    def wait_for_phone_number_ready(self):
+        # Entering dialer and expecting a phone number there is js that sets the phone value and enables this button
+        self.wait_for_condition(lambda m:
+            'disabled' not in m.find_element(*self._add_new_contact_button_locator).get_attribute('class'))
+
     def switch_to_keypad_frame(self):
         app = self.apps.displayed_app
         self.marionette.switch_to_frame(app.frame)

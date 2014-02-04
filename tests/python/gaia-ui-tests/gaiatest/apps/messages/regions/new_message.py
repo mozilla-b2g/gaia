@@ -96,6 +96,3 @@ class NewMessage(Messages):
 
     def tap_recipient_name(self):
         self.marionette.find_element(*self._receiver_input_locator).tap()
-
-    def tap_message_field(self):
-        self.marionette.find_element(*self._message_field_locator).tap()

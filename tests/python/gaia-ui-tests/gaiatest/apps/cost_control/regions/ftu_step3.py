@@ -2,6 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+import time
+
 from marionette.by import By
 from gaiatest.apps.cost_control.app import CostControl
 
@@ -62,4 +64,7 @@ class FTUStep3(CostControl):
         self.wait_for_element_displayed(*self._go_button_locator)
         self.marionette.find_element(*self._go_button_locator).tap()
         self.apps.switch_to_displayed_app()
-        self.wait_for_element_not_displayed(*self._ftu_section_locator)
+        self.wait_for_element_not_displayed(*self._ftu_frame_locator)
+
+        # TODO Some wait for Usage to fully initialize
+        time.sleep(2)

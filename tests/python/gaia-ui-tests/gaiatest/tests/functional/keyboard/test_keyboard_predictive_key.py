@@ -26,7 +26,6 @@ class TestKeyboardPredictiveKey(GaiaTestCase):
         keyboard = keyboard_page.tap_text_input()
 
         # type first 6 letters of the expected word
-        keyboard.switch_to_keyboard()
         expected_word = 'keyboard '
         keyboard.send(expected_word[:6])
 
