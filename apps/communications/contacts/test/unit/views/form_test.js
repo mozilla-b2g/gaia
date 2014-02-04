@@ -8,12 +8,16 @@ requireApp('communications/contacts/js/views/form.js');
 requireApp('communications/contacts/js/utilities/templates.js');
 requireApp('communications/contacts/js/utilities/dom.js');
 requireApp('communications/contacts/js/utilities/event_listeners.js');
+requireApp('communications/contacts/js/utilities/misc.js');
 requireApp('communications/contacts/test/unit/mock_navigation.js');
 requireApp('communications/contacts/test/unit/mock_contacts.js');
 requireApp('communications/contacts/test/unit/mock_mozContacts.js');
 requireApp('communications/contacts/test/unit/mock_fb.js');
 requireApp('communications/contacts/test/unit/mock_contacts_search.js');
 requireApp('communications/contacts/test/unit/mock_confirm_dialog.js');
+requireApp('communications/contacts/test/unit/mock_image_thumbnail.js');
+
+require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 
 var subject,
     realL10n,
@@ -22,6 +26,7 @@ var subject,
     Contacts,
     realContacts,
     realFb,
+    realThumbnailImage,
     mozL10n,
     mockContact,
     footer,
@@ -29,7 +34,8 @@ var subject,
     ActivityHandler;
 
 var mocksForm = new MocksHelper([
-  'ConfirmDialog'
+  'ConfirmDialog',
+  'ContactPhotoHelper'
 ]).init();
 
 suite('Render contact form', function() {
@@ -53,6 +59,8 @@ suite('Render contact form', function() {
     window.Contacts = MockContacts;
     realFb = window.fb;
     window.fb = Mockfb;
+    realThumbnailImage = utils.thumbnailImage;
+    utils.thumbnailImage = MockThumbnailImage;
     document.body.innerHTML = MockFormDom;
     footer = document.querySelector('footer');
     subject = contacts.Form;
@@ -68,6 +76,7 @@ suite('Render contact form', function() {
   suiteTeardown(function() {
     window.Contacts = realContacts;
     window.fb = realFb;
+    utils.thumbnailImage = realThumbnailImage;
     window.mozL10n = realL10n;
 
     mocksForm.suiteTeardown();
