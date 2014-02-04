@@ -743,7 +743,6 @@ apps/homescreen/everything.me/modules/Results/providers/StaticApps.js
 apps/homescreen/everything.me/modules/SearchHistory/SearchHistory.js
 apps/homescreen/everything.me/modules/Searchbar/Searchbar.js
 apps/homescreen/js/bookmark.js
-apps/homescreen/js/bookmark_editor.js
 apps/homescreen/js/components/status.js
 apps/homescreen/js/configurator.js
 apps/homescreen/js/contextmenu.js
@@ -757,7 +756,6 @@ apps/homescreen/js/icon_retriever.js
 apps/homescreen/js/pagbar.js
 apps/homescreen/js/page.js
 apps/homescreen/js/request.js
-apps/homescreen/js/save-bookmark.js
 apps/homescreen/js/state.js
 apps/homescreen/js/wallpaper.js
 apps/homescreen/test/marionette/install_bookmark_test.js
@@ -766,7 +764,6 @@ apps/homescreen/test/marionette/lib/browser.js
 apps/homescreen/test/marionette/lib/homescreen.js
 apps/homescreen/test/marionette/lib/server.js
 apps/homescreen/test/marionette/lib/server_child.js
-apps/homescreen/test/unit/bookmark_editor_test.js
 apps/homescreen/test/unit/bookmark_test.js
 apps/homescreen/test/unit/configurator_test.js
 apps/homescreen/test/unit/contextmenu_test.js
