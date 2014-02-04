@@ -41,6 +41,7 @@ Calendar.Selector = Object.freeze({
   eventListSection: '#event-list',
   weekViewEvent: '#week-view .event',
   modifyEventView: '#modify-event-view',
+  monthView: '#month-view',
   monthViewDayEvent: '#event-list .event',
   monthViewDayEventName: 'h5',                // Search beneath .event
   monthViewDayEventLocation: '.location',     // for these guys.
@@ -59,7 +60,8 @@ Calendar.Selector = Object.freeze({
   viewEventViewTitle: '#event-view .title',
   viewEventViewTitleContent: '#event-view .title .content',
   viewEventViewDescription: '#event-view .description',
-  viewEventViewDescriptionContent: '#event-view .description .content'
+  viewEventViewDescriptionContent: '#event-view .description .content',
+  weekdayHeaders: '#month-days'
 });
 
 Calendar.prototype = {
