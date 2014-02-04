@@ -6,8 +6,8 @@ define(function(require, exports, module) {
    */
 
   var events = require('vendor/evt');
-  var mixin = require('utils/mixin');
-  var bindAll = require('utils/bindAll');
+  var mixin = require('lib/mixin');
+  var bindAll = require('lib/bindAll');
 
   /**
    * Locals

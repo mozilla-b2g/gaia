@@ -6,7 +6,7 @@ define(function(require, exports, module) {
  */
 
 var debug = require('debug')('settings');
-var allDone = require('utils/allDone');
+var allDone = require('lib/allDone');
 var Setting = require('./setting');
 var evt = require('vendor/evt');
 

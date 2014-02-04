@@ -19,7 +19,7 @@ require(['config/require', 'config'], function() {
     var sounds = new Sounds(require('config/sounds'));
     var config = new Config(require('config/app'));
     var settings = new Settings(config.get());
-    var allDone = require('utils/alldone');
+    var allDone = require('lib/alldone');
     var GeoLocation = require('geolocation');
     var Activity = require('activity');
     var Storage = require('storage');

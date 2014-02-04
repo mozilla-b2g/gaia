@@ -1,7 +1,7 @@
 define(function(require, exports, module) {
   'use strict';
 
-  var listener = require('utils/orientation');
+  var listener = require('lib/orientation');
   var current = 0;
 
   listener.on('orientation', onOrientationChange);

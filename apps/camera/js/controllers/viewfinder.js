@@ -5,7 +5,7 @@ define(function(require, exports, module) {
  * Dependencies
  */
 
-var bindAll = require('utils/bindAll');
+var bindAll = require('lib/bindAll');
 var debug = require('debug')('controller:viewfinder');
 
 /**

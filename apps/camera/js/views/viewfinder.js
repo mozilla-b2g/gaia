@@ -5,8 +5,8 @@ define(function(require) {
  * Dependencies
  */
 
-var bind = require('utils/bind');
-var CameraUtils = require('utils/camera-utils');
+var bind = require('lib/bind');
+var CameraUtils = require('lib/camera-utils');
 var debug = require('debug')('view:viewfinder');
 var constants = require('config/camera');
 var View = require('vendor/view');

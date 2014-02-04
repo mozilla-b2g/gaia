@@ -10,14 +10,14 @@ var ViewfinderView = require('views/viewfinder');
 var ControlsView = require('views/controls');
 var FocusRing = require('views/focusring');
 var constants = require('config/camera');
-var bindAll = require('utils/bindAll');
+var bindAll = require('lib/bindAll');
 var lockscreen = require('lockscreen');
 var broadcast = require('broadcast');
 var model = require('vendor/model');
 var debug = require('debug')('app');
 var LazyL10n = require('LazyL10n');
 var HudView = require('views/hud');
-var bind = require('utils/bind');
+var bind = require('lib/bind');
 var dcf = require('dcf');
 
 /**

@@ -6,7 +6,7 @@ define(function(require, exports, module) {
  */
 
 var debug = require('debug')('controller:camera');
-var bindAll = require('utils/bindAll');
+var bindAll = require('lib/bindAll');
 
 /**
  * Exports

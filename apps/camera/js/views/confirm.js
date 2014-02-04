@@ -5,10 +5,10 @@ define(function(require, exports, module) {
  * Dependencies
  */
 
-var bind = require('utils/bind');
-var View = require('vendor/view');
 var addPanAndZoomHandlers = require('panzoom');
 var MediaFrame = require('MediaFrame');
+var View = require('vendor/view');
+var bind = require('lib/bind');
 
 /**
  * Exports

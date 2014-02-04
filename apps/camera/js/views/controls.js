@@ -5,10 +5,10 @@ define(function(require, exports, module) {
  * Dependencies
  */
 
-var find = require('utils/find');
+var find = require('lib/find');
 var View = require('vendor/view');
 var attach = require('vendor/attach');
-var formatTimer = require('utils/formattimer');
+var formatTimer = require('lib/formattimer');
 var debug = require('debug')('view:controls');
 
 /**
@@ -28,6 +28,7 @@ module.exports = View.extend({
     attach.on(this.el, 'click', '.js-switch', this.onSwitchClick);
     attach.on(this.el, 'click', '.js-btn', this.onButtonClick);
     this.els.timer = find('.js-video-timer', this.el);
+    debug('rendered');
   },
 
   set: function(key, value) {

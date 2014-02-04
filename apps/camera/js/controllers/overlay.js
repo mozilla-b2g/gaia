@@ -6,7 +6,7 @@ define(function(require, exports, module) {
  */
 
 var Overlay = require('views/overlay');
-var bindAll = require('utils/bindAll');
+var bindAll = require('lib/bindAll');
 var debug = require('debug')('controller:overlay');
 
 /**

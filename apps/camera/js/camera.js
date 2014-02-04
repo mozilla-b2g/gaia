@@ -9,14 +9,14 @@ define(function(require, exports, module) {
 
 var getVideoMetaData = require('lib/getvideometadata');
 var getPictureSizeKey = require('lib/getpicturesizekey');
-var CameraUtils = require('utils/camera-utils');
+var CameraUtils = require('lib/camera-utils');
 var constants = require('config/camera');
 var orientation = require('orientation');
 var debug = require('debug')('camera');
-var allDone = require('utils/alldone');
-var bindAll = require('utils/bindAll');
+var allDone = require('lib/alldone');
+var bindAll = require('lib/bindAll');
 var model = require('vendor/model');
-var mixin = require('utils/mixin');
+var mixin = require('lib/mixin');
 
 /**
  * Locals
