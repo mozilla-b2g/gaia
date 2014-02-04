@@ -1,16 +1,25 @@
-/* globals contacts, MockFindMatcher */
+/* globals contacts, MockFindMatcher, utils, MocksHelper, MockThumbnailImage  */
 
 'use strict';
 
 require('/shared/js/simple_phone_matcher.js');
 requireApp('communications/contacts/js/utilities/misc.js');
 requireApp('communications/contacts/test/unit/mock_find_matcher.js');
+requireApp('communications/contacts/test/unit/mock_image_thumbnail.js');
+require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
+
 requireApp('communications/contacts/js/contacts_merger.js');
 
+var mocksHelperForContactsMerger = new MocksHelper([
+  'ContactPhotoHelper'
+]).init();
+
 suite('Contacts Merging Tests', function() {
+  mocksHelperForContactsMerger.attachTestHelpers();
   var toMergeContacts = null,
       toMergeContact = null,
-      realmozContacts = null;
+      realmozContacts = null,
+      realThumbnailImage = null;
 
   var aPhoto = new Blob();
 
@@ -51,10 +60,14 @@ suite('Contacts Merging Tests', function() {
 
     realmozContacts = navigator.mozContacts;
     navigator.mozContacts = MockFindMatcher;
+
+    realThumbnailImage = utils.thumbnailImage;
+    utils.thumbnailImage = MockThumbnailImage;
   });
 
   suiteTeardown(function() {
     navigator.mozContacts = realmozContacts;
+    utils.thumbnailImage = realThumbnailImage;
   });
 
   function assertFieldValues(field, values, property) {

@@ -56,14 +56,29 @@
     }
 
     function pictureReady(blobPicture) {
+      var serviceContact = this;
+
+      var done = function() {
+        var deviceContact = self.adapt(serviceContact);
+        self.persist(deviceContact, contactSaved.bind(serviceContact),
+                     contactSaveError);
+      };
+
       // Photo is assigned to the service contact as it is needed by the
       // Fb Connector
-      if (blobPicture) {
-        this.photo = [blobPicture];
+      if (!blobPicture) {
+        done();
+        return;
       }
-      var deviceContact = self.adapt(this);
 
-      self.persist(deviceContact, contactSaved.bind(this), contactSaveError);
+      utils.thumbnailImage(blobPicture, function gotThumbnail(thumbnail) {
+        if (blobPicture !== thumbnail) {
+          serviceContact.photo = [blobPicture, thumbnail];
+        } else {
+          serviceContact.photo = [blobPicture];
+        }
+        done();
+      });
     }
 
     function pictureError() {
