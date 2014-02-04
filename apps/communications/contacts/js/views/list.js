@@ -803,7 +803,7 @@ contacts.List = (function() {
   var updatePhoto = function updatePhoto(contact, id) {
     id = id || contact.id;
     var prevPhoto = photosById[id];
-    var newPhoto = Array.isArray(contact.photo) ? contact.photo[0] : null;
+    var newPhoto = ContactPhotoHelper.getThumbnail(contact);
 
     // Do nothing if photo did not change
     if ((!prevPhoto && !newPhoto) || (prevPhoto === newPhoto)) {

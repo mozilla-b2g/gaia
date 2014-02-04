@@ -22,6 +22,8 @@ requireApp('communications/contacts/test/unit/mock_mozContacts.js');
 requireApp(
         'communications/contacts/test/unit/mock_performance_testing_helper.js');
 
+require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
+
 // We're going to swap those with mock objects
 // so we need to make sure they are defined.
 if (!this.Contacts) {
@@ -67,9 +69,13 @@ if (!window.asyncScriptsLoaded) {
   window.asyncScriptsLoaded = null;
 }
 
-var URL = null;
+var mocksForListView = new MocksHelper([
+  'ContactPhotoHelper'
+]).init();
 
 suite('Render contacts list', function() {
+  mocksForListView.attachTestHelpers();
+
   var subject,
       container,
       containerSection,
