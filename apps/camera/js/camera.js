@@ -8,6 +8,7 @@ define(function(require, exports, module) {
  */
 
 var getVideoMetaData = require('lib/getvideometadata');
+var getPictureSizeKey = require('lib/getpicturesizekey');
 var CameraUtils = require('utils/camera-utils');
 var constants = require('config/camera');
 var orientation = require('orientation');
@@ -166,21 +167,13 @@ Camera.prototype.setPictureSize = function(value) {
 };
 
 Camera.prototype.formatPictureSizes = function(sizes) {
-  var map = this.pictureSizes = {};
-  var values = [];
-
-  sizes.forEach(function(size) {
-    var mp = toMegaPixels(size);
-    values.push(mp);
-    map[mp] = size;
+  var hash = this.pictureSizes = {};
+  return sizes.map(function(size) {
+    var key = getPictureSizeKey(size);
+    hash[key] = size;
+    return key;
   });
-
-  return values;
 };
-
-function toMegaPixels(size) {
-  return Math.round((size.width * size.height) / 1000000);
-}
 
 Camera.prototype.configurePictureSize = function(mozCamera) {
   var capabilities = mozCamera.capabilities;

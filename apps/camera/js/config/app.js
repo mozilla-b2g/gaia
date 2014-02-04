@@ -3,17 +3,19 @@ define(function(require, exports, module) {
 
 module.exports = {
   maxResolution: 99999999,
-  showSettings: false,
+  showSettings: true,
   mode: {
     title: 'Mode',
     options: [
       {
         value: 'photo',
-        title: 'Photo'
+        title: 'Photo',
+        //disables: ['videoFlashModes']
       },
       {
         value: 'video',
-        title: 'Video'
+        title: 'Video',
+        //disables: ['photoFlashModes']
       }
     ],
     selected: 0,
@@ -41,20 +43,24 @@ module.exports = {
     title: 'Picture Sizes',
     options: [
       {
-        value: 8,
+        value: '8mp',
         title: '8MP',
       },
       {
-        value: 5,
+        value: '5mp',
         title: '5MP'
       },
       {
-        value: 3,
+        value: '3mp',
         title: '3MP'
       },
       {
-        value: 1,
+        value: '1mp',
         title: '1MP'
+      },
+      {
+        value: 'vga',
+        title: 'VGA'
       }
     ],
     selected: 0,
