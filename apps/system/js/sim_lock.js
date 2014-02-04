@@ -32,6 +32,14 @@ var SimLock = {
       self.showIfLocked(evt.detail.index);
     });
 
+    // In some case, we can have 'iccdetected' and then 'iccinfochange'
+    // happening after 'cardstatechange'. We add a listener on
+    // 'simslot-iccinfochange' and if the SIM is locked, we will display the SIM
+    // PIN UI.
+    window.addEventListener('simslot-iccinfochange', function(evt) {
+      self.showIfLocked(evt.detail.index);
+    });
+
     // Listen to callscreenwillopen and callscreenwillclose event
     // to discard the cardstatechange event.
     window.addEventListener('callscreenwillopen', this);
