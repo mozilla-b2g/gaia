@@ -100,6 +100,8 @@ var DCFApi = (function() {
 })();
 
 var screenLock = null;
+var preventGalleryLaunch = false;
+
 var Camera = {
   _initialised: false,
   _cameras: null,
@@ -446,6 +448,15 @@ var Camera = {
     if (this._pendingPick) {
       this.cancelPickButton.removeAttribute('disabled');
     }
+
+    else if (!this._secureMode) {
+
+      // Wait 100ms before re-enabling the Camera button to prevent
+      // hammering it and causing a crash (Bug 957709)
+      window.setTimeout(function() {
+        Camera.galleryButton.removeAttribute('disabled');
+      }, 100);
+    }
   },
 
   disableButtons: function camera_disableButtons() {
@@ -456,6 +467,10 @@ var Camera = {
 
     if (this._pendingPick) {
       this.cancelPickButton.setAttribute('disabled', 'disabled');
+    }
+
+    else if (!this._secureMode) {
+      this.galleryButton.setAttribute('disabled', 'disabled');
     }
   },
 
@@ -881,6 +896,15 @@ var Camera = {
     if (this._secureMode)
       return;
 
+    // Check flag to determine if we are throttling the launching
+    // of Gallery -- Using a flag here instead of disabling the
+    // button in the DOM to work around a strange race condition
+    if (preventGalleryLaunch) {
+      return;
+    }
+
+    preventGalleryLaunch = true;
+
     // Launch the gallery with an activity
     var a = new MozActivity({
       name: 'browse',
@@ -888,6 +912,11 @@ var Camera = {
         type: 'photos'
       }
     });
+
+    // Wait 2000ms before re-enabling the Gallery to be launched (Bug 957709)
+    window.setTimeout(function() {
+      preventGalleryLaunch = false;
+    }, 2000);
   },
 
   handleOrientationChanged: function camera_orientationChanged(orientation) {
@@ -904,7 +933,13 @@ var Camera = {
     document.body.classList.add(mode);
   },
 
-  toggleFilmStrip: function camera_toggleFilmStrip(ev) {
+  toggleFilmStrip: function camera_toggleFilmStrip(evt) {
+
+    // Ignore if the click did not occur directly on the
+    // viewfinder (e.g.: disabled controls)
+    if (evt.originalTarget !== this.viewfinder)
+      return;
+
     // We will just ignore
     // because the filmstrip shouldn't be shown
     // while Camera is recording
