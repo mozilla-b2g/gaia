@@ -16,7 +16,7 @@ module.exports = {
         title: 'Video'
       }
     ],
-    default: 0,
+    selected: 0,
     persistent: true,
     menu: 5
   },
@@ -33,7 +33,7 @@ module.exports = {
         title: 'Front'
       }
     ],
-    default: 0,
+    selected: 0,
     persistent: true
   },
 
@@ -57,7 +57,7 @@ module.exports = {
         title: '1MP'
       }
     ],
-    default: 0,
+    selected: 0,
     persistent: true,
     menu: 4
   },
@@ -81,7 +81,7 @@ module.exports = {
         icon: 'O'
       }
     ],
-    default: 0,
+    selected: 0,
     persistent: true
   },
 
@@ -105,7 +105,7 @@ module.exports = {
         value: 10
       }
     ],
-    default: 0,
+    selected: 0,
     persistent: false,
     menu: 3
   },
@@ -129,7 +129,7 @@ module.exports = {
         icon: 'O'
       }
     ],
-    default: 0,
+    selected: 0,
     persistent: true,
     menu: 1
   },
@@ -150,7 +150,7 @@ module.exports = {
         value: 'beauty'
       }
     ],
-    default: 0,
+    selected: 0,
     persistent: true,
     menu: 2
   },
@@ -167,7 +167,7 @@ module.exports = {
         value: false
       }
     ],
-    default: 1,
+    selected: 1,
     persistent: true,
     menu: 3
   }

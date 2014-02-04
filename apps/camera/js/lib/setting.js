@@ -29,7 +29,6 @@ Setting.prototype.configure = function(data) {
   var options = data.options;
   data.originalOptions = data.options;
   data.optionValues = options.map(function(option) { return option.value; });
-  data.selected = data.default;
 };
 
 Setting.prototype.next = function() {
