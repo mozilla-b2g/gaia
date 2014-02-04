@@ -44,7 +44,7 @@ var metadataParser = (function() {
       var canvas = document.createElement('canvas');
       canvas.width = THUMBNAIL_WIDTH;
       canvas.height = THUMBNAIL_HEIGHT;
-      var context = canvas.getContext('2d');
+      var context = canvas.getContext('2d', { willReadFrequently: true });
       var eltwidth = elt.width;
       var eltheight = elt.height;
       var scalex = canvas.width / eltwidth;
@@ -346,7 +346,7 @@ var metadataParser = (function() {
         var canvas = document.createElement('canvas');
         canvas.width = pw;
         canvas.height = ph;
-        var context = canvas.getContext('2d');
+        var context = canvas.getContext('2d', { willReadFrequently: true });
         context.drawImage(offscreenImage, 0, 0, iw, ih, 0, 0, pw, ph);
         canvas.toBlob(function(blob) {
           offscreenImage.src = '';
