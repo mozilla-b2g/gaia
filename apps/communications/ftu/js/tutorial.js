@@ -2,7 +2,6 @@
 
 var Tutorial = {
   tutorialSteps: {},
-  numTutorialSteps: null,
   currentStep: 1,
   imagesLoaded: [],
   layout: 'tiny',
@@ -11,7 +10,6 @@ var Tutorial = {
         ScreenLayout.getCurrentLayout() : 'tiny';
 
     this.tutorialSteps = TutorialSteps.get();
-    this.numTutorialSteps = Object.keys(this.tutorialSteps).length;
 
     // register elements after dynamic properties got set
     this.initElements();
@@ -104,7 +102,47 @@ var Tutorial = {
   jumpToExitStep: function jumpToLastStep() {
     this.jumpTo(this.numTutorialSteps + 1);
   },
+  getSettingValue: function(step, cb) {
+    if (step > this._countSteps) {
+      cb();
+      return;
+    }
+    var settingKey = this.tutorialSteps[step].setting;
+    if (settingKey === undefined) {
+      this.getSettingValue(step + 1, cb);
+      return;
+    }
+    if (!navigator.mozSettings) {
+      return;
+    }
+    var req = navigator.mozSettings.createLock().get(settingKey);
+    var self = this;
+    req.onsuccess = function cb_getSettingValue() {
+      if (!req.result[settingKey]) {
+        delete self.tutorialSteps[step];
+      }
+      self.getSettingValue(step + 1, cb);
+    };
+    req.onerror = function err_getSettingValue() {
+      console.error('Cant retrieve', settingKey, 'value');
+    };
+  },
+  computeNumTutorialSteps: function computeNumTutorialSteps(cb) {
+    if (this.numTutorialSteps) {
+      cb();
+      return;
+    }
+    this._countSteps = Object.keys(this.tutorialSteps).length;
+    this.getSettingValue(1, function() {
+      var finalCount = Object.keys(this.tutorialSteps).length;
+      this.numTutorialSteps = finalCount;
+      cb();
+    }.bind(this));
+  },
   manageStep: function manageStep() {
+    this.computeNumTutorialSteps(this.onNumStepsReady.bind(this));
+  },
+  onNumStepsReady: function() {
     // If first step, we can't go back from here
     if (this.currentStep > 1) {
       this.tutorialNavBar.classList.remove('forward-only');
@@ -131,8 +169,10 @@ var Tutorial = {
         };
       }
     } else {
-      UIManager.tutorialProgress.className =
-        'step-state step-' + this.currentStep;
+      UIManager.tutorialProgressState.style.width =
+        'calc(100% / ' + this.numTutorialSteps + ')';
+      UIManager.tutorialProgressState.style.transform =
+        'translate(' + ((this.currentStep - 1) * 100) + '%)';
       window.location.hash = this.tutorialSteps[this.currentStep].hash;
     }
   }
