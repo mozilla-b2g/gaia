@@ -1,3 +1,5 @@
+/* global Search, UrlHelper */
+
 (function() {
   'use strict';
 
@@ -5,12 +7,15 @@
   var SEARCH_DELAY = 600;
   var SEARCH_URI = 'http://www.google.com/search?q={searchTerms}';
 
-  var timeoutSearchWhileTyping = null;
-
-  var rscheme = /^(?:[a-z\u00a1-\uffff0-9-+]+)(?::|:\/\/)/i;
+  var rscheme = /^([a-z\u00a1-\uffff0-9-+]+)(?::|:\/\/)/i;
 
   function getUrlFromInput(input) {
-    var hasScheme = !!(rscheme.exec(input) || [])[0];
+    var scheme = (rscheme.exec(input) || [])[1];
+
+    // Disallow app urls.
+    if (scheme === 'app') {
+      return false;
+    }
 
     // Not a valid URL, could be a search term
     if (UrlHelper.isNotURL(input) && SEARCH_URI) {
@@ -18,11 +23,11 @@
     }
 
     // No scheme, prepend basic protocol and return
-    if (!hasScheme) {
+    if (!scheme) {
       return 'http://' + input;
     }
     return input;
-  };
+  }
 
   window.Search = {
     _port: null,
@@ -43,7 +48,7 @@
             setConnectionHandler();
           },
           function onConnectionRejected(reason) {
-            dump('Error connecting: ' + reason + '\n');
+            console.log('Error connecting: ' + reason + '\n');
           }
         );
       };
@@ -104,7 +109,10 @@
      * Called when the user submits the search form
      */
     submit: function(msg) {
-      Search.navigate(getUrlFromInput(msg.data.input));
+      var url = getUrlFromInput(msg.data.input);
+      if (url) {
+        Search.navigate(url);
+      }
     },
 
     /**

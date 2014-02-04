@@ -1,4 +1,5 @@
 'use strict';
+/* global Search, MockNavigatormozApps, MockNavigatormozSetMessageHandler */
 
 require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
@@ -61,11 +62,7 @@ suite('search/search', function() {
   suite('provider', function() {
     test('increments number of providers', function() {
       function numProviders() {
-        var num = 0;
-        for (var i in Search.providers) {
-          num++;
-        }
-        return num;
+        return Object.keys(Search.providers).length;
       }
 
       var count = numProviders();
@@ -146,6 +143,33 @@ suite('search/search', function() {
       });
       clock.tick(1000); // For typing timeout
       assert.ok(stub.calledOnce);
+      stub.restore();
+    });
+
+    test('does not navigate for invalid schemes', function() {
+      var stub = this.sinon.stub(Search, 'navigate');
+      Search.dispatchMessage({
+        data: {
+          action: 'submit',
+          input: 'app://search.gaiamobile.org'
+        }
+      });
+      clock.tick(1000); // For typing timeout
+      assert.ok(stub.notCalled);
+      stub.restore();
+    });
+
+    test('searches for non-urls', function() {
+      var stub = this.sinon.stub(Search, 'navigate');
+      Search.dispatchMessage({
+        data: {
+          action: 'submit',
+          input: 'gaia'
+        }
+      });
+      clock.tick(1000); // For typing timeout
+      assert.ok(stub.calledWith('http://www.google.com/search?q=gaia'));
+      stub.restore();
     });
   });
 
@@ -198,6 +222,7 @@ suite('search/search', function() {
       var stub = this.sinon.stub(window, 'open');
       Search.navigate(url);
       assert.ok(stub.calledWith(url));
+      stub.restore();
     });
   });
 
