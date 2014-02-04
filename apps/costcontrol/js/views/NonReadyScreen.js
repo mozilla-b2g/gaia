@@ -35,7 +35,7 @@ NonReadyScreen.prototype.updateForState = function(cardState) {
 
 NonReadyScreen.prototype.setMessageMode = function(cardState) {
   this.activity.setAttribute('aria-hidden', true);
-  [this.header, this.message, this.button.parentNode].forEach(function (el) {
+  [this.header, this.message, this.button.parentNode].forEach(function(el) {
     el.setAttribute('aria-hidden', false);
   });
 
@@ -50,7 +50,7 @@ NonReadyScreen.prototype.setMessageMode = function(cardState) {
 
 NonReadyScreen.prototype.setWaitingMode = function() {
   this.activity.setAttribute('aria-hidden', false);
-  [this.header, this.message, this.button.parentNode].forEach(function (el) {
+  [this.header, this.message, this.button.parentNode].forEach(function(el) {
     el.setAttribute('aria-hidden', true);
   });
 };

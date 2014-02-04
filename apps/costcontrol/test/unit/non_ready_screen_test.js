@@ -80,7 +80,7 @@ suite('SIM non-ready waiting screen >', function() {
     'Gets the correct message id for the card states.',
     function() {
       var message;
-      CARD_STATES.forEach(function (state, i) {
+      CARD_STATES.forEach(function(state, i) {
         message = screen.getMessageIdFor(state);
         assert.strictEqual(message, EXPECTED_IDS[i]);
       });
@@ -108,7 +108,7 @@ suite('SIM non-ready waiting screen >', function() {
     'updateForState() sets the non ready screen in proper mode according to ' +
     'the card state.',
     function() {
-      CARD_STATES.forEach(function (state, i) {
+      CARD_STATES.forEach(function(state, i) {
         screen.updateForState(state);
         EXPECTED_MODES[i](state);
       });
