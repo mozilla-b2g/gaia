@@ -41,7 +41,7 @@
   TutorialSteps.tiny = {};
   TutorialSteps.large = {};
 
-  TutorialSteps.tiny.stepsCount = 6 + 1;
+  TutorialSteps.tiny.stepsCount = 5 + 1;
   TutorialSteps.large.stepsCount = 4 + 1;
 
   for (var supportLayout in TutorialSteps) {
@@ -64,12 +64,6 @@
         key: 'tutorial-step' + stepIndex + '-' + supportLayout + l10nKeySuffix,
         image: 'css/images/tutorial/' + stepIndex + imagePathSuffix
       };
-      // Add setting key to the last tutorial step
-      // You can add a 'setting' key to add a condition to the step
-      if (stepIndex === TutorialSteps[supportLayout].stepsCount - 1) {
-        TutorialSteps[supportLayout][stepIndex]['setting'] =
-          'edgesgesture.enabled';
-      }
     }
     delete TutorialSteps[supportLayout].stepsCount;
   }

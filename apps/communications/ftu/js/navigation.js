@@ -135,15 +135,21 @@ var Navigation = {
     window.open(href);
   },
 
-  getProgressBarState: function n_getProgressBarState() {
+  getProgressBarClassName: function n_getProgressBarClassName() {
     // Manage step state (dynamically change)
-    return (this.skipped && this.currentStep > 2) ? this.currentStep - 2 :
-      this.currentStep - 1;
+    var className = 'step-state step-';
+    if (this.skipped && this.currentStep > 2) {
+      className += (this.currentStep - 1) + ' less-steps';
+    } else {
+      className += this.currentStep;
+    }
+
+    return className;
   },
 
   handleEvent: function n_handleEvent(event) {
     var actualHash = window.location.hash;
-    UIManager.progressBar.classList.remove('hidden');
+    var className = this.getProgressBarClassName();
     switch (actualHash) {
       case '#languages':
         UIManager.mainTitle.innerHTML = _('language');
@@ -201,15 +207,13 @@ var Navigation = {
       case '#about-your-privacy':
       case '#sharing-performance-data':
         UIManager.mainTitle.innerHTML = _('aboutBrowser');
-        UIManager.progressBar.classList.add('hidden');
+        // override the className here
+        className = 'hidden';
         UIManager.navBar.classList.add('back-only');
         break;
     }
 
-    UIManager.progressBarState.style.width =
-      'calc(100% / ' + numSteps + ')';
-    UIManager.progressBarState.style.transform =
-      'translateX(' + (this.getProgressBarState() * 100) + '%)';
+    UIManager.progressBar.className = className;
 
     // If SIM card is mandatory, we hide the button skip
     if (this.simMandatory) {
