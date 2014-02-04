@@ -1,3 +1,6 @@
+'use strict';
+/* global BrowserDB, NumberHelper, MockNavigatorSettings */
+
 // Stub of Browser object.
 var Browser = {
   _doNotCustomize: true,
@@ -193,6 +196,41 @@ suite('BrowserDB', function() {
       var bookmark = {
         uri: 'http://mozilla.org/test1',
         title: 'Mozilla',
+        timestamp: new Date().valueOf()
+      };
+      BrowserDB.db.saveBookmark(bookmark, function() {
+        done();
+      });
+    });
+
+    // TODO: SHOULD FAIL
+    test('saveBookmarkInvalidURI', function(done) {
+      var bookmark = {
+        uri: 'notAURI',
+        title: 'Mozilla',
+        timestamp: new Date().valueOf()
+      };
+      BrowserDB.db.saveBookmark(bookmark, function() {
+        done();
+      });
+    });
+
+    // TODO: SHOULD FAIL
+    test('saveBookmarkInvalidTitle', function(done) {
+      var bookmark = {
+        uri: 'http://mozilla.org/test1',
+        title: '',
+        timestamp: new Date().valueOf()
+      };
+      BrowserDB.db.saveBookmark(bookmark, function() {
+        done();
+      });
+    });
+
+    test('saveBookmarkNonHTTP(S)', function(done) {
+      var bookmark = {
+        uri: 'rtsp://mozilla.org/test1',
+        title: '',
         timestamp: new Date().valueOf()
       };
       BrowserDB.db.saveBookmark(bookmark, function() {

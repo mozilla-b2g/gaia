@@ -1,5 +1,7 @@
 'use strict';
 
+/* global utils, BookmarkEditor */
+
 if (navigator.mozSetMessageHandler) {
   navigator.mozSetMessageHandler('activity', function onActivity(activity) {
     switch (activity.source.name) {

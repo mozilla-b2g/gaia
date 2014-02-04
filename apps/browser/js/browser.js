@@ -756,8 +756,10 @@ var Browser = {
 
   addBookmark: function browser_addBookmark(e) {
     e.preventDefault();
-    if (!this.currentTab.url)
+    if (!this.currentTab.url || UrlHelper.isNotURL(this.currentTab.url)) {
+      // TODO: don't silently fail here
       return;
+    }
     BrowserDB.addBookmark(this.currentTab.url, this.currentTab.title,
       Toolbar.refreshBookmarkButton.bind(Toolbar));
     this.hideBookmarkMenu();
@@ -844,6 +846,14 @@ var Browser = {
       this.bookmarkTitle.value = bookmark.title;
       this.bookmarkUrl.value = bookmark.uri;
       this.bookmarkPreviousUrl.value = bookmark.uri;
+
+      this.bookmarkUrl.addEventListener('keydown', (function() {
+        if (UrlHelper.isURL(this.bookmarkUrl.value)) {
+          this.bookmarkEntrySheetDone.disabled = 'disabled';
+        } else {
+          this.bookmarkEntrySheetDone.disabled = '';
+        }
+      }).bind(this), false);
     }).bind(this));
   },
 
@@ -869,8 +879,10 @@ var Browser = {
   },
 
   addLinkToHome: function browser_addLinkToHome() {
-    if (!this.currentTab.url)
+    if (!this.currentTab.url || UrlHelper.isNotURL(this.currentTab.url)) {
+      // TODO: don't silently fail here
       return;
+    }
 
     BrowserDB.getPlace(this.currentTab.url, (function(place) {
       new MozActivity({
@@ -881,6 +893,10 @@ var Browser = {
           name: this.currentTab.title,
           icon: place.iconUri,
           useAsyncPanZoom: true
+        },
+        onerror: function(e) {
+          console.warn('Unhandled error from save-bookmark activity: ' +
+                       e.target.error.message + '\n');
         }
       });
     }).bind(this));
