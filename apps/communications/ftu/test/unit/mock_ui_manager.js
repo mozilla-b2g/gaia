@@ -55,6 +55,7 @@ var MockUIManager = {
     // Tutorial
     'tutorial-screen',
     'tutorial-progress',
+    'tutorial-progress-state',
     'lets-go-button',
     'skip-tutorial-button',
     // Navigation
