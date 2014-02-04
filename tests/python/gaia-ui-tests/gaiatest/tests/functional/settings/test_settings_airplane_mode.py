@@ -21,6 +21,8 @@ class TestAirplaneMode(GaiaTestCase):
         settings = Settings(self.marionette)
         settings.launch()
 
+        settings.wait_for_airplane_toggle_ready()
+
         # Switch on Airplane mode
         settings.toggle_airplane_mode()
 

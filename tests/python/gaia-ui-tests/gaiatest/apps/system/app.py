@@ -21,10 +21,10 @@ class System(Base):
     def wait_for_status_bar_displayed(self):
         self.wait_for_element_displayed(*self._status_bar_locator)
 
-    def wait_for_notification_toaster_displayed(self):
+    def wait_for_notification_toaster_displayed(self, timeout=10):
         # TODO Re-enable this when Bug 861874
         # self.wait_for_element_displayed(*self._notification_toaster_locator)
-        self.wait_for_condition(lambda m: m.find_element(*self._notification_toaster_locator).location['y'] == 0)
+        self.wait_for_condition(lambda m: m.find_element(*self._notification_toaster_locator).location['y'] == 0, timeout=timeout)
 
     def wait_for_notification_toaster_not_displayed(self, timeout=10):
         # TODO Re-enable this when Bug 861874

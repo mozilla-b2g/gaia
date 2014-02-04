@@ -45,9 +45,13 @@ class Persona(Base):
 
     def type_email(self, value):
         self.marionette.find_element(*self._email_input_locator).send_keys(value)
+        self.keyboard.dismiss()
+        self.switch_to_persona_frame()
 
     def type_password(self, value):
         self.marionette.find_element(*self._password_input_locator).send_keys(value)
+        self.keyboard.dismiss()
+        self.switch_to_persona_frame()
 
     def tap_continue(self):
         self.marionette.find_element(*self._continue_button_locator).tap()

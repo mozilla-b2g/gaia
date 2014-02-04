@@ -9,7 +9,7 @@ from gaiatest.apps.base import PageRegion
 
 class EditPhoto(Base):
 
-    _edit_view_locator = (By.ID, 'edit-view')
+    _canvas_locator = (By.ID, 'edit-preview-canvas')
     _edit_effect_button_locator = (By.ID, 'edit-effect-button')
     _effect_options_locator = (By.CSS_SELECTOR, '#edit-effect-options a')
     _edit_save_locator = (By.ID, 'edit-save-button')
@@ -19,7 +19,8 @@ class EditPhoto(Base):
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
-        self.wait_for_element_displayed(*self._edit_view_locator)
+        # <canvas> is dynamically inserted
+        self.wait_for_element_displayed(*self._canvas_locator)
 
     def tap_edit_effects_button(self):
         self.marionette.find_element(*self._edit_effect_button_locator).tap()

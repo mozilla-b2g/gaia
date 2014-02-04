@@ -24,7 +24,7 @@ class Calendar(Base):
 
     def launch(self):
         Base.launch(self)
-        self.wait_for_element_displayed(*self._current_month_year_locator)
+        self.wait_for_element_displayed(*self._hint_swipe_to_navigate_locator)
         self.marionette.find_element(*self._hint_swipe_to_navigate_locator).tap()
         self.wait_for_element_not_displayed(*self._hint_swipe_to_navigate_locator)
 
@@ -105,8 +105,8 @@ class Calendar(Base):
 
         x_start = (month.size['width'] / 100) * (direction == 'next' and 90 or 10)
         x_end = (month.size['width'] / 100) * (direction == 'next' and 10 or 90)
-        y_start = month.size['height'] / 2
-        y_end = month.size['height'] / 2
+        y_start = month.size['height'] / 4
+        y_end = month.size['height'] / 4
 
         action.flick(month, x_start, y_start, x_end, y_end, 200).perform()
 

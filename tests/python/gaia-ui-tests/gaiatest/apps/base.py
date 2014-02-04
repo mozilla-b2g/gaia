@@ -31,24 +31,22 @@ class Base(object):
             lambda m: m.find_element(by, locator))
 
     def wait_for_element_not_present(self, by, locator, timeout=None):
-        if self.is_element_present(by, locator):
-            try:
-                return Wait(self.marionette, timeout).until(
-                    lambda m: not m.find_element(by, locator))
-            except NoSuchElementException:
-                pass
+        try:
+            return Wait(self.marionette, timeout).until(
+                lambda m: not m.find_element(by, locator))
+        except NoSuchElementException:
+            pass
 
     def wait_for_element_displayed(self, by, locator, timeout=None):
-        Wait(self.marionette, timeout).until(
-            lambda m: self.wait_for_element_present(by, locator, timeout).is_displayed())
+        Wait(self.marionette, timeout, ignored_exceptions=[NoSuchElementException, StaleElementException]).until(
+            lambda m: m.find_element(by, locator).is_displayed())
 
     def wait_for_element_not_displayed(self, by, locator, timeout=None):
-        if self.is_element_displayed(by, locator):
-            try:
-                Wait(self.marionette, timeout).until(
-                    lambda m: not self.wait_for_element_present(by, locator, timeout).is_displayed())
-            except (NoSuchElementException, StaleElementException):
-                pass
+        try:
+            Wait(self.marionette, timeout, ignored_exceptions=StaleElementException).until(
+                lambda m: not m.find_element(by, locator).is_displayed())
+        except NoSuchElementException:
+            pass
 
     def wait_for_condition(self, method, timeout=None, message=None):
         Wait(self.marionette, timeout).until(method, message=message)

@@ -15,7 +15,8 @@ class PhoneLock(Base):
 
     def enable_passcode_lock(self):
         self.marionette.find_element(*self._passcode_enable_locator).tap()
-        self.wait_for_element_displayed(*self._phone_lock_passcode_section_locator)
+        self.wait_for_condition(lambda m:
+            m.find_element(*self._phone_lock_passcode_section_locator).location['x'] == 0)
 
     def create_passcode(self, passcode):
 
@@ -23,10 +24,7 @@ class PhoneLock(Base):
         for times in range(2):
             self.keyboard.send("".join(passcode))
 
-        # switch to settings frame
-        self.apps.switch_to_displayed_app()
-
-        # create passcode
+        # Back to create passcode
         self.wait_for_element_displayed(*self._phone_lock_passcode_section_locator)
         self.marionette.find_element(*self._passcode_create_locator).tap()
         self.wait_for_element_displayed(*self._phone_lock_section_locator)

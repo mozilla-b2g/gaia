@@ -81,6 +81,6 @@ class SearchPanel(Base):
         def tap(self):
             expected_name = self.name
             self.root_element.tap()
-            self.wait_for_condition(
+            Wait(self.marionette, ignored_exceptions=StaleElementException).until(
                 lambda m: self.apps.displayed_app.name.lower() == expected_name.lower())
             self.apps.switch_to_displayed_app()

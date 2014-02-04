@@ -27,7 +27,6 @@ class TestCostControlReset(GaiaTestCase):
         cost_control.toggle_wifi_data_tracking(True)
 
         # open browser to get some data downloaded
-        # please remove this once there is a better way than launching browser app/obj to do so
         browser = Browser(self.marionette)
         browser.launch()
         browser.go_to_url('http://mozqa.com/data/firefox/layout/mozilla.html')

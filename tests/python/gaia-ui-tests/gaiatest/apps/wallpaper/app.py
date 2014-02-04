@@ -21,9 +21,8 @@ class Wallpaper(Base):
             self.marionette.find_element(*self._wallpaper_frame_locator))
 
     def tap_wallpaper_by_index(self, index):
-        stock_wallpapers = self.marionette.find_elements(*self._stock_wallpapers_locator)
-        if len(stock_wallpapers) == 0:
-            raise Exception('No stock wallpapers found')
-        stock_wallpapers[index].tap()
+        self.wait_for_condition(lambda m: len(m.find_elements(*self._stock_wallpapers_locator)) >= index,
+            message = '%s Wallpapers not present after timeout' % index)
+        self.marionette.find_elements(*self._stock_wallpapers_locator)[index].tap()
         self.marionette.switch_to_frame()
         self.wait_for_element_not_present(*self._wallpaper_frame_locator)

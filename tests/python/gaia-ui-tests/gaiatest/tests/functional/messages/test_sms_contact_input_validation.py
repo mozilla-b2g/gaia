@@ -2,6 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+import time
+
 from gaiatest import GaiaTestCase
 from gaiatest.apps.messages.app import Messages
 
@@ -26,8 +28,10 @@ class TestContactValidation(GaiaTestCase):
 
         self.assertTrue(new_message.is_recipient_name_editable == 'true')
 
-        # extra step to place the cursor in the message field
-        new_message.tap_message_field()
+        # Type_message will tap in the field to focus it
         new_message.type_message('This is a test message')
+
+        #TODO Wait for the javascript
+        time.sleep(1)
 
         self.assertFalse(new_message.is_send_button_enabled)
