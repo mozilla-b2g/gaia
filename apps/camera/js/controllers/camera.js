@@ -6,7 +6,6 @@ define(function(require, exports, module) {
  */
 
 var debug = require('debug')('controller:camera');
-var constants = require('config/camera');
 var bindAll = require('utils/bindAll');
 
 /**
@@ -60,6 +59,7 @@ CameraController.prototype.bindEvents = function() {
 
   // App
   app.settings.on('change:cameras', this.onCameraChange);
+  app.settings.on('change:pictureSizes', this.camera.setPictureSize);
   app.settings.on('change:flashModes', this.setFlashMode);
   app.settings.on('change:mode', this.onModeChange);
   app.on('blur', this.teardownCamera);
@@ -87,6 +87,10 @@ CameraController.prototype.configure = function() {
   var activity = this.activity;
   var camera = this.camera;
 
+  // Configure the 'cameras' setting using the
+  // cameraList data given by the camera hardware
+  settings.get('cameras').configureOptions(camera.cameraList);
+
   camera.set('targetFileSize', activity.data.fileSize);
   camera.set('targetImageWidth', activity.data.width);
   camera.set('targetImageHeight', activity.data.height);
@@ -107,26 +111,11 @@ CameraController.prototype.setupCamera = function() {
 CameraController.prototype.onConfigured = function(capabilities) {
   var maxFileSize = this.camera.maxPictureSize;
   this.storage.setMaxFileSize(maxFileSize);
-  this.setFlashMode(this.app.get('flashMode'));
   this.app.set('maxFileSize', maxFileSize);
   this.app.set('capabilities', capabilities);
-
-  // function toMegaPixels(sizes) {
-  //   return sizes.map(function(size) {
-  //     return {
-  //       mp: ((size.width * size.height)/1000000).toFixed(1),
-  //       aspect: aspect(size.width, size.height)
-  //     };
-  //   });
-  // }
-
-  // function aspect(w, h) {
-  //   var gcd = function(a, b) { return (b === 0) ? a : gcd(b, a%b); };
-  //   var divisor = gcd(w, h);
-  //   return (w/divisor) + ':' + (h/divisor);
-  // }
 };
 
+// TODO: Tidy this crap
 CameraController.prototype.teardownCamera = function() {
   var recording = this.camera.get('recording');
   var camera = this.camera;
@@ -222,14 +211,15 @@ CameraController.prototype.showSizeLimitAlert = function() {
 };
 
 CameraController.prototype.onModeChange = function(mode) {
+  var flashMode = this.app.settings.value('flashMode');
   var viewfinder = this.viewfinder;
   var camera = this.camera;
 
   // We need to force a flash change so that
   // the camera hardware gets set with the
   // correct flash for this capture mode.
-  this.setFlashMode(this.app.get('flashMode'));
-  camera.set('mode', mode);
+  this.setFlashMode(flashMode);
+  camera.setMode(mode);
 
   // Fade out the videfinder,
   // then load the stream.
@@ -242,7 +232,8 @@ CameraController.prototype.onModeChange = function(mode) {
  * Toggle the camera (front/back),
  * fading the viewfinder in between.
  */
-CameraController.prototype.onCameraChange = function() {
+CameraController.prototype.onCameraChange = function(value) {
+  this.camera.set('selectedCamera', value);
   this.viewfinder.fadeOut(this.camera.load);
 };
 
@@ -250,7 +241,6 @@ CameraController.prototype.onCameraChange = function() {
  * Toggles the flash on
  * the camera and UI when
  * the flash button is pressed.
- *
  */
 CameraController.prototype.setFlashMode = function(flashMode) {
   flashMode = this.translateFlashMode(flashMode);
@@ -274,7 +264,7 @@ CameraController.prototype.setFlashMode = function(flashMode) {
  */
 CameraController.prototype.translateFlashMode = function(flashMode) {
   var isFrontCamera = this.app.get('selectedCamera') === 1;
-  var isPhotoMode = this.app.get('mode') === 'photo';
+  var isPhotoMode = this.app.settings.value('mode') === 'photo';
   if (isPhotoMode) { return flashMode; }
   if (isFrontCamera) { return null; }
   switch (flashMode) {

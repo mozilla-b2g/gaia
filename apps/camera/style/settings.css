@@ -1,7 +1,7 @@
 
 .settings {
   position: absolute;
-  left: 0; top: 0;
+  left: 0; top: 5rem;
   z-index: 20;
   width: 100%;
   margin: 0;
@@ -10,6 +10,7 @@
   list-style: none;
   background: #333;
   color: #FFF;
+  transform: translateZ(1px);
 }
 
 .settings > li {

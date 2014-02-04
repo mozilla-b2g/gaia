@@ -64,24 +64,14 @@ require(['config/require', 'config'], function() {
 
     debug('created app');
 
-    function delay(fn, ms) {
-      ms = ms || 4000;
-      return function() {
-        setTimeout(function() { fn.apply(this, arguments); }, ms);
-      };
-    }
-
     // Async jobs to be
     // done before boot...
     var done = allDone();
     app.activity.check(done());
-    //app.fetchState(done());
-
-// debugger;
-// app.settings = new Settings(config.get());
+    app.settings.fetch(done());
 
     // ...boot!
-    done(delay(app.boot));
+    done(app.boot);
   });
 
   require(['boot']);

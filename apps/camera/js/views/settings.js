@@ -7,6 +7,7 @@ define(function(require, exports, module) {
 
 var View = require('vendor/view');
 var attach = require('vendor/attach');
+var SettingView = require('views/setting');
 var debug = require('debug')('view:settings');
 
 /**
@@ -18,63 +19,41 @@ module.exports = View.extend({
   tag: 'ul',
 
   initialize: function(options) {
-    this.collection = options.collection;
-    this.items = this.collection.filter(this.isPersistent);
+    this.items = options.items;
+    this.children = [];
     attach(this.el, 'click', 'li', this.onItemClick);
     this.on('destroy', this.onDestroy);
   },
 
-  onItemClick: function(e, el) {
-    e.stopPropagation();
+  onItemClick: function(event, el) {
+    event.stopPropagation();
     var key = el.getAttribute('data-key');
-    var model = this.collection.get(key);
-    debug('item clicked', key);
-    model.next();
+    debug('item click', key);
+    this.emit('click:item', key);
   },
 
-  onStateChange: function(keys) {
-    var hash = this.hash;
-    keys.map(this.getFromHash).forEach(this.renderItem);
-    debug('state change', keys);
+  onDestroy: function() {
+    this.children.forEach(this.destroyChild);
+    debug('destroyed');
   },
-
-  onDestroy: function() {},
 
   render: function() {
-    this.els = {};
     this.el.innerHTML = '';
-
-    this.items
-      .map(this.renderItem)
-      .forEach(this.append);
+    this.items.forEach(this.initializeChild);
+    debug('rendered');
+    return this;
   },
 
-  renderItem: function(model) {
-    var data = model.get();
-    var key = data.key;
-    var el = this.els[key] || document.createElement('li');
-    el.setAttribute('data-key', key);
-    el.setAttribute('data-value', data.value);
-    el.innerHTML = this.templateItem(data);
-    this.els[key] = el;
-    debug('rendered item %s', key);
-    return el;
+  destroyChild: function(view) {
+    view.destroy();
+    debug('destroyed child');
   },
 
-  templateItem: function(item) {
-    return item.title + ' - ' + item.value;
-  },
-
-  append: function(el) {
-    this.el.appendChild(el);
-  },
-
-  getFromHash: function(key) {
-    return this.hash[key];
-  },
-
-  isPersistent: function(item) {
-    return item.get('persistent');
+  initializeChild: function(model) {
+    var view = new SettingView({ model: model });
+    view.render().appendTo(this.el);
+    this.children.push(view);
+    debug('initialized child');
   }
 });
 

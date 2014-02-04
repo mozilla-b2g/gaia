@@ -24,11 +24,13 @@ module.exports = View.extend({
 
   render: function() {
     this.el.innerHTML = this.template();
-    this.els.flash = find('.js-toggle-flash-mode', this.el);
-    this.els.flashModeName = find('.js-flash-mode-name', this.el);
-    this.els.camera = find('.js-toggle-selected-camera', this.el);
-    bind(this.els.flash, 'click', this.onFlashClick, this);
-    bind(this.els.camera, 'click', this.onCameraClick, this);
+    this.els.flash = find('.js-flash', this.el);
+    this.els.flashModeName = find('.js-flash-name', this.el);
+    this.els.camera = find('.js-camera', this.el);
+    this.els.settings = find('.js-settings', this.el);
+    bind(this.els.flash, 'click', this.onFlashClick);
+    bind(this.els.camera, 'click', this.onCameraClick);
+    bind(this.els.settings, 'click', this.onSettingsClick, true);
   },
 
   setFlashMode: function(mode) {
@@ -45,7 +47,8 @@ module.exports = View.extend({
    * show the flash name text.
    *
    */
-  onFlashClick: function() {
+  onFlashClick: function(e) {
+    e.stopPropagation();
     var toggleClass = 'is-toggling';
     var self = this;
     this.emit('click:flash');
@@ -56,13 +59,19 @@ module.exports = View.extend({
     }, 1000);
   },
 
-  onCameraClick: function() {
+  onCameraClick: function(event) {
+    event.stopPropagation();
     this.emit('click:camera');
+  },
+
+  onSettingsClick: function(event) {
+    event.stopPropagation();
+    this.emit('click:settings');
   },
 
   set: function(key, value) {
     value = arguments.length === 2 ? value : true;
-    this.el.setAttribute(toDash(key), value);
+    this.el.setAttribute(toDashed(key), value);
   },
 
   setter: function(key) {
@@ -83,16 +92,18 @@ module.exports = View.extend({
   },
 
   template: function() {
-    return '<a class="toggle-flash rotates test-toggle-flash js-toggle-flash-mode">' +
+    return '<a class="toggle-camera rotates test-toggle-camera ' +
+    'js-camera"></a>' +
+    '<a class="toggle-flash rotates test-toggle-flash js-flash">' +
       '<div class="flash-text test-flash-text">' +
-        'Flash: <span class="flash-name js-flash-mode-name"></span>' +
+        'Flash: <span class="flash-name js-flash-name"></span>' +
       '</div>' +
     '</a>' +
-    '<a class="toggle-camera rotates test-toggle-camera js-toggle-selected-camera"></a>';
+    '<a class="hud_settings-btn rotates js-settings"></a>';
   }
 });
 
-function toDash(s) {
+function toDashed(s) {
   return s.replace(/\W+/g, '-')
     .replace(/([a-z\d])([A-Z])/g, '$1-$2')
     .toLowerCase();

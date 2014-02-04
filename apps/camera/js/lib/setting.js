@@ -6,6 +6,7 @@ define(function(require, exports, module) {
  */
 
 var Model = require('vendor/model');
+var storage = require('asyncStorage');
 var debug = require('debug')('setting');
 
 /**
@@ -14,40 +15,27 @@ var debug = require('debug')('setting');
 
 module.exports = Setting;
 
-/**
- * Locals
- */
-
-var has = {}.hasOwnProperty;
-
 // Extend Model
 Setting.prototype = Object.create(Model.prototype);
 
 function Setting(data) {
   this.key = data.key;
-  data = this.configure(data);
+  this.configure(data);
   this.reset(data, { silent: true });
-  this.updateSelected({ silent: true });
+  if (data.persistent) { this.on('change:selected', this.save); }
 }
 
 Setting.prototype.configure = function(data) {
-  var newData = {};
   var options = data.options;
-
-  newData.options = data.options;
-  newData.originalOptions = data.options;
-  newData.optionsKeys = options.map(function(option) { return option.key; });
-  newData.selected = data.default;
-  newData.value = options[newData.selected];
-
-  return newData;
+  data.originalOptions = data.options;
+  data.optionValues = options.map(function(option) { return option.value; });
+  data.selected = data.default;
 };
 
 Setting.prototype.next = function() {
   var options = this.get('options');
   var index = this.get('selected');
   var newIndex = (index + 1) % options.length;
-
   this.setOptionByIndex(newIndex);
 };
 
@@ -70,11 +58,12 @@ Setting.prototype.setValue = function(value) {
 
 // Not needed yet
 Setting.prototype.setOptionByValue = function(value) {
-  var keys = this.get('optionsKeys');
+  var keys = this.get('optionValues');
   var index = keys.indexOf(value);
   this.setOptionByIndex(index);
 };
 
+// TODO: Tidy this mess
 Setting.prototype.setOptionByIndex = function(index, options) {
   debug('set option by index:', index);
 
@@ -82,12 +71,16 @@ Setting.prototype.setOptionByIndex = function(index, options) {
   var oldIndex = this.get('selected');
   var oldOption = list[oldIndex];
   var newOption = list[index];
-  var newValue = newOption.value;
 
-  delete oldOption.selected;
+  if (!list.length) { return; }
+  if (!newOption) {
+    this.setOptionByIndex(0);
+    return;
+  }
+
+  if (oldOption) { delete oldOption.selected; }
   newOption.selected = true;
-
-  this.set({ selected: index, value: newValue }, options);
+  this.set('selected', index, options);
 };
 
 Setting.prototype.updateSelected = function(options) {
@@ -101,15 +94,23 @@ Setting.prototype.configureOptions = function(values) {
   });
 
   this.set('options', filtered);
-  this.updateSelected({ silent: true });
+  this.updateSelected();
 };
 
-Setting.prototype.saveValue = function() {
-
+Setting.prototype.save = function() {
+  storage.setItem('settings:' + this.key, this.get('selected'));
+  debug('saving key: %s', this.key);
+  return this;
 };
 
-Setting.prototype.fetchValue = function() {
-
+Setting.prototype.fetch = function(done) {
+  var self = this;
+  debug('fetch value');
+  storage.getItem('settings:' + this.key, function(value) {
+    if (value) { self.set('selected', value, { silent: true }); }
+    debug('fetched %s value: %s', self.key, value);
+    if (done) { done(); }
+  });
 };
 
 });

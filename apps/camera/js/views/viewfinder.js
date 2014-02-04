@@ -52,8 +52,9 @@ var getDeltaScale = function(touchA, touchB) {
 };
 
 return View.extend({
+  name: 'viewfinder',
   tag: 'video',
-  className: 'viewfinder js-viewfinder',
+  className: 'js-viewfinder',
   fadeTime: 200,
   initialize: function() {
     bind(this.el, 'click', this.onClick);

@@ -35,8 +35,8 @@ module.exports = View.extend({
     };
 
     // Attach event listeners
-    bind(this.els.buttons.storage, 'click', this.onButtonClick, this);
-    bind(this.els.buttons.close, 'click', this.onButtonClick, this);
+    bind(this.els.buttons.storage, 'click', this.onButtonClick);
+    bind(this.els.buttons.close, 'click', this.onButtonClick);
   },
 
   template: function(data) {

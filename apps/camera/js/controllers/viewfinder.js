@@ -12,8 +12,8 @@ var debug = require('debug')('controller:viewfinder');
  * Exports
  */
 
-exports = module.exports = function(app) { return new ViewfinderController(app); };
-exports.ViewfinderController = ViewfinderController;
+module.exports = function(app) { return new ViewfinderController(app); };
+module.exports.ViewfinderController = ViewfinderController;
 
 /**
  * Initialize a new `ViewfinderController`
@@ -40,8 +40,8 @@ ViewfinderController.prototype.bindEvents = function() {
 };
 
 ViewfinderController.prototype.loadStream = function() {
-  debug('camera configured');
   var isFrontCamera = this.app.settings.value('cameras') === 'front';
+  debug('load preview stream frontCamera: %s', isFrontCamera);
   this.viewfinder.updatePreview(this.camera.previewSize, isFrontCamera);
   this.camera.loadStreamInto(this.viewfinder.el, onStreamLoaded);
   function onStreamLoaded(stream) {

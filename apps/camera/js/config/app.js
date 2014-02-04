@@ -17,7 +17,8 @@ module.exports = {
       }
     ],
     default: 0,
-    persistent: true
+    persistent: true,
+    menu: 5
   },
 
   cameras: {
@@ -32,8 +33,33 @@ module.exports = {
         title: 'Front'
       }
     ],
-    default: 1,
+    default: 0,
     persistent: true
+  },
+
+  pictureSizes: {
+    title: 'Picture Sizes',
+    options: [
+      {
+        value: 8,
+        title: '8MP',
+      },
+      {
+        value: 5,
+        title: '5MP'
+      },
+      {
+        value: 3,
+        title: '3MP'
+      },
+      {
+        value: 1,
+        title: '1MP'
+      }
+    ],
+    default: 0,
+    persistent: true,
+    menu: 4
   },
 
   flashModes: {
@@ -59,39 +85,92 @@ module.exports = {
     persistent: true
   },
 
-  // flashModes: {
-  //   title: 'Flash',
-  //   options: ['auto', 'on', 'off'],
-  //   'default': 'auto',
-  //   persist: true
-  // },
+  timer: {
+    title: 'Self Timer',
+    options: [
+      {
+        title: 'Off',
+        value: 0
+      },
+      {
+        title: '3secs',
+        value: 3
+      },
+      {
+        title: '5secs',
+        value: 5
+      },
+      {
+        title: '10secs ',
+        value: 10
+      }
+    ],
+    default: 0,
+    persistent: false,
+    menu: 3
+  },
 
-  // timer: {
-  //   title: 'Self Timer',
-  //   options: ['off', '3', '5', '10'],
-  //   'default': 'off',
-  //   type: 'toggle',
-  //   menu: 3,
-  //   persist: false
-  // },
+  hdr: {
+    title: 'HDR',
+    options: [
+      {
+        value: 'auto',
+        title: 'Auto',
+        icon: 'A'
+      },
+      {
+        value: 'on',
+        title: 'On',
+        icon: 'O'
+      },
+      {
+        value: 'off',
+        title: 'Off',
+        icon: 'O'
+      }
+    ],
+    default: 0,
+    persistent: true,
+    menu: 1
+  },
 
-  // hdr: {
-  //   title: 'HDR',
-  //   options: ['off', 'on', 'auto'],
-  //   'default': 'off',
-  //   type: 'toggle',
-  //   persist: true,
-  //   menu: 1
-  // },
+  scene: {
+    title: 'Scene Mode',
+    options: [
+      {
+        title: 'Normal',
+        value: 'normal'
+      },
+      {
+        title: 'Panorama',
+        value: 'pano'
+      },
+      {
+        title: 'Beauty',
+        value: 'beauty'
+      }
+    ],
+    default: 0,
+    persistent: true,
+    menu: 2
+  },
 
-  // scene: {
-  //   title: 'Scene Mode',
-  //   options: ['normal', 'pano', 'beauty'],
-  //   'default': 'normal',
-  //   type: 'toggle',
-  //   persist: true,
-  //   menu: 2
-  // }
+  grid: {
+    title: 'Grid',
+    options: [
+      {
+        title: 'On',
+        value: true
+      },
+      {
+        title: 'Off',
+        value: false
+      }
+    ],
+    default: 1,
+    persistent: true,
+    menu: 3
+  }
 };
 
 });

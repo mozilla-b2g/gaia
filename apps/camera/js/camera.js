@@ -1,4 +1,3 @@
-
 define(function(require, exports, module) {
 /*global CONFIG_MAX_IMAGE_PIXEL_SIZE*/
 
@@ -9,13 +8,14 @@ define(function(require, exports, module) {
  */
 
 var getVideoMetaData = require('lib/getvideometadata');
+var CameraUtils = require('utils/camera-utils');
 var constants = require('config/camera');
 var orientation = require('orientation');
 var debug = require('debug')('camera');
 var allDone = require('utils/alldone');
 var bindAll = require('utils/bindAll');
-var CameraUtils = require('utils/camera-utils');
 var model = require('vendor/model');
+var mixin = require('utils/mixin');
 
 /**
  * Locals
@@ -29,19 +29,6 @@ var MIN_RECORDING_TIME = constants.MIN_RECORDING_TIME;
 /**
  * Locals
  */
-
-// Our predetermined configuration
-// for camera and video flash
-var flashConfig = {
-  photo: {
-    defaultMode: 'auto',
-    supports: ['off', 'auto', 'on']
-  },
-  video: {
-    defaultMode: 'off',
-    supports: ['off', 'torch']
-  }
-};
 
 // Mixin model methods (also events)
 model(Camera.prototype);
@@ -63,29 +50,10 @@ module.exports = Camera;
  */
 function Camera(options) {
   debug('initializing');
+  bindAll(this);
   options = options || {};
   this.container = options.container;
   this.mozCamera = null;
-  bindAll(this);
-
-  // Flash state
-  this.flash = {
-
-    // All flash hardware modes
-    // on this current camera.
-    all: [],
-
-    // Flash modes currently
-    // available with the current
-    // combination of hardware
-    // and capture mode.
-    available: [],
-
-    // The index of the current
-    // flash in the avaiable list.
-    current: null
-  };
-
   this.cameraList = navigator.mozCameras.getListOfCameras();
   this.autoFocus = {};
   this.tmpVideo = {
@@ -94,7 +62,7 @@ function Camera(options) {
     filepath: null
   };
 
-  debug('initialized', this.get('selectedCamera'));
+  debug('initialized');
 }
 
 Camera.prototype.loadStreamInto = function(el, done) {
@@ -147,12 +115,8 @@ Camera.prototype.load = function() {
 
   // Releases current camera (async operation)
   this.release(function() {
-    debugger;
     // Requests selected camera
-    navigator.mozCameras.getCamera(config, self.configureCamera, function(e) {
-      debugger;
-      debug('load error', e);
-    });
+    navigator.mozCameras.getCamera(config, self.configureCamera);
     debug('load camera: %s', selectedCamera);
   });
 };
@@ -171,7 +135,6 @@ Camera.prototype.configureCamera = function(mozCamera) {
   // Configure all the things
   this.configurePictureSize(mozCamera);
   this.configureFocus(capabilities.focusModes);
-  this.configureFlash(capabilities.flashModes);
   this.configureVideoProfile(capabilities, done());
 
   // Bind to some hardware events
@@ -185,10 +148,39 @@ Camera.prototype.configureCamera = function(mozCamera) {
     };
     self.configurePreviewSize(photoPreviewSizes, videoPreviewSize);
     debug('configured');
-    self.emit('configured', capabilities);
+    self.emit('configured', self.formatCapabilities(capabilities));
   });
 };
 
+Camera.prototype.formatCapabilities = function(capabilities) {
+  capabilities = mixin({}, capabilities);
+  var pictureSizes = capabilities.pictureSizes;
+  return mixin(capabilities, {
+    pictureSizes: this.formatPictureSizes(pictureSizes)
+  });
+};
+
+Camera.prototype.setPictureSize = function(value) {
+  var geckoValue = this.pictureSizes[value];
+  this.mozCamera.pictureSize = geckoValue;
+};
+
+Camera.prototype.formatPictureSizes = function(sizes) {
+  var map = this.pictureSizes = {};
+  var values = [];
+
+  sizes.forEach(function(size) {
+    var mp = toMegaPixels(size);
+    values.push(mp);
+    map[mp] = size;
+  });
+
+  return values;
+};
+
+function toMegaPixels(size) {
+  return Math.round((size.width * size.height) / 1000000);
+}
 
 Camera.prototype.configurePictureSize = function(mozCamera) {
   var capabilities = mozCamera.capabilities;
@@ -211,26 +203,6 @@ Camera.prototype.configurePictureSize = function(mozCamera) {
   }
 
   debug('configured picture size %d x %d', width, height);
-};
-
-Camera.prototype.configureFlash = function(allModes) {
-  this.flash.all = allModes || [];
-
-  var cameraMode = this.get('mode');
-  var config = flashConfig[cameraMode];
-  var supported = config.supports;
-  var index;
-
-  this.flash.available = this.flash.all.filter(function(mode) {
-    return !!~supported.indexOf(mode);
-  });
-
-  // Decide on the initial mode
-  index = this.flash.available.indexOf(config.defaultMode);
-  if (!~index) { index = 0; }
-
-  this.setFlashMode(index);
-  debug('configured flash, initial: %d', index);
 };
 
 Camera.prototype.configureFocus = function(modes) {
@@ -260,18 +232,21 @@ Camera.prototype.configurePreviewSize = function(photoPreviewSizes,
     width: document.body.clientHeight * window.devicePixelRatio,
     height: document.body.clientWidth * window.devicePixelRatio
   };
+  var isPhotoMode = this.get('mode') === 'photo';
   var pickedPreviewSize = CameraUtils.selectOptimalPreviewSize(
       viewportSize,
       photoPreviewSizes);
+
   // We should always have a valid preview size, but just in case
   // we don't, pick the first provided
   this.photoPreviewSize = pickedPreviewSize || photoPreviewSizes[0];
   this.videoPreviewSize = videoPreviewSize;
-  // Default preview size is photo
-  this.previewSize = this.photoPreviewSize;
-  if (this.get('mode') === 'video') {
-    this.previewSize = this.videoPreviewSize;
-  }
+
+  // Assign the correct preview size
+  this.previewSize = isPhotoMode ?
+    this.photoPreviewSize : this.videoPreviewSize;
+
+  debug('configured preview size isPhotoMode: %s', isPhotoMode);
 };
 
 /**
@@ -283,7 +258,7 @@ Camera.prototype.configurePreviewSize = function(photoPreviewSizes,
  */
 Camera.prototype.setFlashMode = function(key) {
   this.mozCamera.flashMode = key;
-  debug('flash mode set: %d (%s)', key);
+  debug('flash mode set: %s', key);
 };
 
 Camera.prototype.getMozSettingsSizes = function(done) {
@@ -782,46 +757,16 @@ Camera.prototype.resumePreview = function() {
   this.emit('previewresumed');
 };
 
-Camera.prototype.hasFrontCamera = function() {
-  //return this.get('numCameras') > 1;
-};
-
 /**
  * Toggles between 'photo'
  * and 'video' capture modes.
  *
  * @return {String}
  */
-Camera.prototype.toggleMode = function() {
-  var isCameraMode = this.get('mode') === 'photo';
-  var newMode = isCameraMode ? 'video' : 'photo';
-  this.previewSize = this.photoPreviewSize;
-  if (newMode === 'video') {
-    this.previewSize = this.videoPreviewSize;
-  }
-  this.set('mode', newMode);
-  this.configureFlash(this.flash.all);
-  return newMode;
-};
-
-/**
- * Cycles through flash
- * modes available for the
- * current camera (0/1) and
- * capture mode ('photo'/'video')
- * combination.
- *
- * @return {String}
- */
-Camera.prototype.toggleFlash = function() {
-  var available = this.flash.available;
-  var current = this.flash.current;
-  var l = available.length;
-  var next = (current + 1) % l;
-  var name = available[next];
-
-  this.setFlashMode(next);
-  return name;
+Camera.prototype.setMode = function(mode) {
+  this.previewSize = mode === 'photo' ?
+    this.photoPreviewSize : this.videoPreviewSize;
+  this.set('mode', mode);
 };
 
 /**
@@ -855,20 +800,6 @@ Camera.prototype.updateVideoElapsed = function() {
   var now = new Date().getTime();
   var start = this.get('videoStart');
   this.set('videoElapsed', (now - start));
-};
-
-Camera.prototype.supports = function(key) {
-  var method = this[key + 'Support'];
-  return method ? method() : false;
-};
-
-Camera.prototype.flashSupport = function() {
-  var flashModes = this.mozCamera.capabilities.flashModes;
-  return !!(flashModes && flashModes.length);
-};
-
-Camera.prototype.dualCameraSupport = function() {
-  //return this.get('numCameras') > 1;
 };
 
 });

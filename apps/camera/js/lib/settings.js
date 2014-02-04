@@ -5,7 +5,8 @@ define(function(require, exports, module) {
  * Dependencies
  */
 
-var storage = require('asyncStorage');
+var debug = require('debug')('settings');
+var allDone = require('utils/allDone');
 var Setting = require('./setting');
 var evt = require('vendor/evt');
 
@@ -30,9 +31,10 @@ function Settings(items) {
 
 Settings.prototype.add = function(data) {
   var setting = new Setting(data);
+  var self = this;
   this.items.push(setting);
-  this.ids[setting.key] = setting;
-  setting.on('change:value', this.firer('change:' + setting.key));
+  this.ids[setting.key] = this[setting.key] = setting;
+  setting.on('change:selected', function() { self.onSettingChange(setting); });
 };
 
 Settings.prototype.addEach = function(items) {
@@ -51,20 +53,22 @@ Settings.prototype.get = function(key) {
   return this.ids[key];
 };
 
-Settings.prototype.setValues = function(values) {
-  for (var key in values) { this.value(key, values[key]); }
+Settings.prototype.onSettingChange = function(setting) {
+  debug('setting change %s', setting.key);
+  this.fire('change:' + setting.key, setting.value(), setting);
 };
 
 Settings.prototype.persistent = function(key) {
+  debug('get persistent');
   return this.items.filter(function(item) {
-    return item.persist;
+    return item.get('persistent');
   });
 };
 
 Settings.prototype.menu = function(key) {
   return this.items
-    .filter(function(item) { return item.menu; })
-    .sort(function(a, b) { return a.menu - b.menu; });
+    .filter(function(item) { return !!item.get('menu'); })
+    .sort(function(a, b) { return a.get('menu') - b.get('menu'); });
 };
 
 
@@ -76,15 +80,22 @@ Settings.prototype.value = function(key, value) {
   }
 };
 
-Settings.prototype.persistentValues = function(key, value) {
-  var items = this.persistent();
-  var data = {};
-  items.forEach(function(item) { data[item.id] = item.get('value'); });
-  return data;
+Settings.prototype.toggler = function(key) {
+  return (function() { this.get(key).next(); }).bind(this);
+};
+
+Settings.prototype.fetch = function(done) {
+  var persistent = this.persistent();
+  var all = allDone();
+  debug('fetching %d settings', persistent.length);
+  persistent.forEach(function(setting) { setting.fetch(all()); });
+  all(done);
 };
 
 Settings.prototype.forEach = function(fn) { this.items.forEach(fn); };
 Settings.prototype.filter = function(fn) { return this.items.filter(fn); };
+
+
 
 /**
  * Saves state model to persist
