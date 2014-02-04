@@ -6,6 +6,7 @@
   height: 7.5rem;
   z-index: 10;
   text-align: center;
+  transform: translateZ(1px);
 }
 
 body:not(.filmstriphidden) .hud {
