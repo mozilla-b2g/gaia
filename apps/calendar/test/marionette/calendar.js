@@ -28,6 +28,8 @@ Calendar.Selector = Object.freeze({
   weekButton: '#view-selector .week a',
   dayButton: '#view-selector .day a',
   hintSwipeToNavigate: '#hint-swipe-to-navigate',
+  daySquare: '#month-view section.month > ol li',
+  daySquareToday: '#month-view section.month > ol li.present',
   editEventForm: '#modify-event-view form',
   editEventAlarm: '#modify-event-view select[name="alarm[]"]',
   editEventEndDate: '#modify-event-view input[name="endDate"]',
@@ -38,12 +40,16 @@ Calendar.Selector = Object.freeze({
   editEventStartTime: '#modify-event-view input[name="startTime"]',
   editEventTitle: '#modify-event-view input[name="title"]',
   editEventDescription: '#modify-event-view textarea[name="description"]',
-  eventListSection: '#event-list',
   weekViewEvent: '#week-view .event',
   modifyEventView: '#modify-event-view',
+  monthView: '#month-view',
+  monthViewSection: '#month-view section.month',
+  monthViewDayDate: '#event-list-date',
   monthViewDayEvent: '#event-list .event',
-  monthViewDayEventName: 'h5',                // Search beneath .event
-  monthViewDayEventLocation: '.location',     // for these guys.
+  monthViewDayEventName: '#event-list .event h5',
+  monthViewDayEventLocation: '#event-list .event .location',
+  monthViewDayEventDot: '#event-list .event .event-dot',
+  monthViewDayEventTime: '#event-list .event .event-time',
   monthViewpresent: '#month-view li.present',
   monthViewselected: '#month-view li.selected',
   monthYearHeader: '#current-month-year',
@@ -59,7 +65,8 @@ Calendar.Selector = Object.freeze({
   viewEventViewTitle: '#event-view .title',
   viewEventViewTitleContent: '#event-view .title .content',
   viewEventViewDescription: '#event-view .description',
-  viewEventViewDescriptionContent: '#event-view .description .content'
+  viewEventViewDescriptionContent: '#event-view .description .content',
+  weekdayHeaders: '#month-days'
 });
 
 Calendar.prototype = {
