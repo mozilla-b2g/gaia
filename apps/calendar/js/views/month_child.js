@@ -213,7 +213,7 @@
           name = navigator.mozL10n.get(l10n);
           html += template.weekDaysHeaderDay.render({
             day: String(day),
-            dayName: name
+            dayName: name[0]
           });
         }
 
@@ -326,6 +326,19 @@
           'afterbegin',
           template.busy.render(data)
         );
+
+        // Remove all text nodes.
+        var iterator = document.createNodeIterator(element, 4);
+        var node;
+        while (node = iterator.nextNode()) {
+          node.parentNode.removeChild(node);
+        }
+
+        // Count the number of busytimes in the day.
+        var children = element.getElementsByTagName('span');
+        for (var i = 0; i < Math.min(3, children.length); i++) {
+          element.insertAdjacentHTML('afterbegin', '&bull;');
+        }
       }
     },
 

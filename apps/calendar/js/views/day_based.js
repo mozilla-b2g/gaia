@@ -105,7 +105,9 @@ Calendar.ns('Views').DayBased = (function() {
      */
     _resetHourCache: function() {
       this._idsToHours = Object.create(null);
-      this.overlaps = new Calendar.Utils.Overlap();
+      if (!(this instanceof Calendar.Views.MonthsDay)) {
+        this.overlaps = new Calendar.Utils.Overlap();
+      }
       this.hours = new OrderedMap([], Calc.compareHours);
     },
 
@@ -198,7 +200,9 @@ Calendar.ns('Views').DayBased = (function() {
 
         if (hour !== Calendar.Calc.ALLDAY) {
           this._assignPosition(busytime, el);
-          this.overlaps.add(busytime, el);
+          if (!(this instanceof Calendar.Views.MonthsDay)) {
+            this.overlaps.add(busytime, el);
+          }
         } else {
           /**
            * Because we have two types of events (hourly & allday)
@@ -477,14 +481,15 @@ Calendar.ns('Views').DayBased = (function() {
         hour.records.remove(id);
       }, this);
 
-      // remove event from tree
-      var eventEl = this.overlaps.getElement(busytime);
-      if (eventEl) {
-        eventEl.parentNode.removeChild(eventEl);
-        // remove it from overlaps
-        this.overlaps.remove(busytime);
+      if (!(this instanceof Calendar.Views.MonthsDay)) {
+        // remove event from tree
+        var eventEl = this.overlaps.getElement(busytime);
+        if (eventEl) {
+          eventEl.parentNode.removeChild(eventEl);
+          // remove it from overlaps
+          this.overlaps.remove(busytime);
+        }
       }
-
     },
 
     /**
