@@ -5,9 +5,9 @@ define(function(require, exports, module) {
    * Dependencies
    */
 
+  var bindAll = require('lib/bind-all');
   var events = require('vendor/evt');
   var mixin = require('lib/mixin');
-  var bindAll = require('lib/bindAll');
 
   /**
    * Locals

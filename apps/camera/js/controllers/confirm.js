@@ -9,9 +9,9 @@ define(function(require, exports, module) {
 
 var prepareBlob = require('lib/prepare-preview-blob');
 var debug = require('debug')('controller:confirm');
-var resizeImage = require('lib/resizeimage');
+var resizeImage = require('lib/resize-image');
 var ConfirmView = require('views/confirm');
-var bindAll = require('lib/bindAll');
+var bindAll = require('lib/bind-all');
 
 /**
  * Exports

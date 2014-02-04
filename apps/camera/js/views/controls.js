@@ -5,11 +5,11 @@ define(function(require, exports, module) {
  * Dependencies
  */
 
-var find = require('lib/find');
-var View = require('vendor/view');
-var attach = require('vendor/attach');
-var formatTimer = require('lib/formattimer');
+var formatTimer = require('lib/format-timer');
 var debug = require('debug')('view:controls');
+var attach = require('vendor/attach');
+var View = require('vendor/view');
+var find = require('lib/find');
 
 /**
  * Exports

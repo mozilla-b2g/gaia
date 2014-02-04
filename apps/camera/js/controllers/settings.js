@@ -5,9 +5,9 @@ define(function(require, exports, module) {
  * Dependencies
  */
 
-var bindAll = require('lib/bindAll');
 var debug = require('debug')('controller:settings');
 var SettingsView = require('views/settings');
+var bindAll = require('lib/bind-all');
 
 /**
  * Exports

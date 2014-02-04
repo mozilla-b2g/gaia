@@ -5,9 +5,9 @@ define(function(require, exports, module) {
  * Dependencies
  */
 
-var events = require('vendor/evt');
+var createFilename = require('lib/dcf').createDCFFilename;
 var debug = require('debug')('storage');
-var createFilename = require('dcf').createDCFFilename;
+var events = require('vendor/evt');
 
 /**
  * Expose `Storage`

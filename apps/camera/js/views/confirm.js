@@ -5,7 +5,7 @@ define(function(require, exports, module) {
  * Dependencies
  */
 
-var addPanAndZoomHandlers = require('panzoom');
+var addPanAndZoomHandlers = require('lib/panzoom');
 var MediaFrame = require('MediaFrame');
 var View = require('vendor/view');
 var bind = require('lib/bind');

@@ -11,18 +11,18 @@ require(['config/require', 'config'], function() {
      */
 
     var App = require('app');
-    var Camera = require('camera');
-    var Sounds = require('sounds');
+    var Camera = require('lib/camera');
+    var Sounds = require('lib/sounds');
     var Config = require('lib/config');
-    var Filmstrip = require('filmstrip');
     var Settings = require('lib/settings');
+    var Filmstrip = require('lib/filmstrip');
     var sounds = new Sounds(require('config/sounds'));
     var config = new Config(require('config/app'));
     var settings = new Settings(config.get());
-    var allDone = require('lib/alldone');
-    var GeoLocation = require('geolocation');
-    var Activity = require('activity');
-    var Storage = require('storage');
+    var GeoLocation = require('lib/geo-location');
+    var Activity = require('lib/activity');
+    var allDone = require('lib/all-done');
+    var Storage = require('lib/storage');
     var controllers = {
       hud: require('controllers/hud'),
       controls: require('controllers/controls'),

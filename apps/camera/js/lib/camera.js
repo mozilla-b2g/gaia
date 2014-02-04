@@ -1,20 +1,19 @@
 define(function(require, exports, module) {
-/*global CONFIG_MAX_IMAGE_PIXEL_SIZE*/
-
+/*global CONFIG_MAX_IMAGE_PIXEL_SIZE, CONFIG_MAX_SNAPSHOT_PIXEL_SIZE*/
 'use strict';
 
 /**
  * Module Dependencies
  */
 
-var getVideoMetaData = require('lib/getvideometadata');
-var getPictureSizeKey = require('lib/getpicturesizekey');
+var getPictureSizeKey = require('lib/get-picture-size-key');
+var getVideoMetaData = require('lib/get-video-meta-data');
 var CameraUtils = require('lib/camera-utils');
+var orientation = require('lib/orientation');
 var constants = require('config/camera');
-var orientation = require('orientation');
 var debug = require('debug')('camera');
-var allDone = require('lib/alldone');
-var bindAll = require('lib/bindAll');
+var bindAll = require('lib/bind-all');
+var allDone = require('lib/all-done');
 var model = require('vendor/model');
 var mixin = require('lib/mixin');
 
@@ -25,7 +24,6 @@ var mixin = require('lib/mixin');
 var RECORD_SPACE_MIN = constants.RECORD_SPACE_MIN;
 var RECORD_SPACE_PADDING = constants.RECORD_SPACE_PADDING;
 var ESTIMATED_JPEG_FILE_SIZE = constants.ESTIMATED_JPEG_FILE_SIZE;
-var MIN_RECORDING_TIME = constants.MIN_RECORDING_TIME;
 
 /**
  * Locals

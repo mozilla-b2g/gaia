@@ -5,8 +5,8 @@ define(function(require, exports, module) {
  * Dependencies
  */
 
-var bindAll = require('lib/bindAll');
 var debug = require('debug')('controller:hud');
+var bindAll = require('lib/bind-all');
 
 /**
  * Exports

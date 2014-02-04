@@ -8,17 +8,17 @@ define(function(require, exports, module) {
 var performanceTesting = require('performanceTesting');
 var ViewfinderView = require('views/viewfinder');
 var ControlsView = require('views/controls');
-var FocusRing = require('views/focusring');
+var FocusRing = require('views/focus-ring');
+var lockscreen = require('lib/lock-screen');
 var constants = require('config/camera');
-var bindAll = require('lib/bindAll');
-var lockscreen = require('lockscreen');
-var broadcast = require('broadcast');
+var broadcast = require('lib/broadcast');
+var bindAll = require('lib/bind-all');
 var model = require('vendor/model');
 var debug = require('debug')('app');
 var LazyL10n = require('LazyL10n');
 var HudView = require('views/hud');
 var bind = require('lib/bind');
-var dcf = require('dcf');
+var dcf = require('lib/dcf');
 
 /**
  * Locals
