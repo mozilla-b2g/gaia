@@ -845,7 +845,6 @@ apps/search/js/eme/eme.js
 apps/search/js/providers/app_provider.js
 apps/search/js/providers/contacts.js
 apps/search/js/providers/suggestions.js
-apps/search/js/search.js
 apps/search/test/marionette/app_search_test.js
 apps/search/test/marionette/lib/search.js
 apps/search/test/marionette/navigation_test.js
@@ -856,7 +855,6 @@ apps/search/test/unit/providers/marketplace_test.js
 apps/search/test/unit/providers/provider_test.js
 apps/search/test/unit/providers/suggestions_test.js
 apps/search/test/unit/providers/webresults_test.js
-apps/search/test/unit/search_test.js
 apps/setringtone/js/share.js
 apps/settings/js/about.js
 apps/settings/js/about_more_info.js
