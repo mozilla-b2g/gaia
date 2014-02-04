@@ -60,12 +60,4 @@ Config.prototype.options = function(key) {
   return item && item.options;
 };
 
-Config.prototype.values = function() {
-  return this.processed.values;
-};
-
-Config.prototype.persistent = function() {
-  return this.processed.persistent;
-};
-
 });

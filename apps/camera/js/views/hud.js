@@ -5,7 +5,6 @@ define(function(require, exports, module) {
  * Dependencies
  */
 
-var attach = require('vendor/attach');
 var View = require('vendor/view');
 var bind = require('utils/bind');
 var find = require('utils/find');
@@ -49,7 +48,6 @@ module.exports = View.extend({
    */
   onFlashClick: function(e) {
     e.stopPropagation();
-    var toggleClass = 'is-toggling';
     var self = this;
     this.emit('click:flash');
     this.set('toggling-flash', true);
