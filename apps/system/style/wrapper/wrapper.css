@@ -1,4 +1,13 @@
 .appWindow > .chrome {
+  transform: translateY(4rem);
+  transition: transform 1s;
+}
+
+.appWindow.navigation > .chrome {
+  transform: translateY(0);
+}
+
+.appWindow > .chrome {
   pointer-events: none;
   width: 100%;
   height: 100%;
@@ -19,7 +28,7 @@
 
 .chrome > .progress {
   position: fixed;
-  top: 2rem; /* This is the status bar height */
+  top: 0;
   left: 0;
   margin: 0;
   padding: 0;
@@ -41,7 +50,6 @@
   margin: 0;
   padding: 0;
   width: 100%;
-  height: 5rem;
   background-color: black;
   pointer-events: none;
   visibility: hidden;
@@ -70,9 +78,9 @@
   height: 4rem;
   margin: 0;
   padding: 0;
-  background-color: rgba(0,0,0,.8);
+  background-color: black;
   -moz-transform: translateY(-4rem);
-  -moz-transition: -moz-transform .4s ease;
+  -moz-transition: -moz-transform .2s ease;
 }
 
 .chrome > .navigation.closed menu {

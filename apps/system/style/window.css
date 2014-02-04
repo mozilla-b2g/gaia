@@ -45,15 +45,20 @@
   width: 100%;
   height: 100%;
   border: none;
+  transition: height 0s step-end;
+}
+
+.appWindow.navigation > iframe, .appWindow.rocketbar > iframe {
+  transition: height 1s step-end; /* no anim */
 }
 
 .appWindow.navigation:not(.rocketbar) > iframe {
   position: absolute;
   top: 0;
   left: 0;
-  bottom: 1rem;
+  bottom: 4rem;
   width: 100%;
-  height: calc(100% - 1rem);
+  height: calc(100% - 4rem);
 }
 
 .appWindow.rocketbar:not(.navigation) > iframe {

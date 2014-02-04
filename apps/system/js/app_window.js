@@ -528,7 +528,7 @@
     ['mozbrowserclose', 'mozbrowsererror', 'mozbrowservisibilitychange',
      'mozbrowserloadend', 'mozbrowseractivitydone', 'mozbrowserloadstart',
      'mozbrowsertitlechange', 'mozbrowserlocationchange',
-     'mozbrowsericonchange',
+     'mozbrowsericonchange', 'mozbrowserasyncscroll',
      '_localized', '_swipein', '_swipeout', '_kill_suspended'];
 
   AppWindow.SUB_COMPONENTS = {
@@ -688,6 +688,11 @@
     function aw__handle_mozbrowserlocationchange(evt) {
       this.config.url = evt.detail;
       this.publish('locationchange');
+    };
+
+  AppWindow.prototype._handle_mozbrowserasyncscroll =
+    function aw__handle_mozbrowserasyncscroll(evt) {
+      this.publish('asyncscroll');
     };
 
   AppWindow.prototype._handle_mozbrowsericonchange =
