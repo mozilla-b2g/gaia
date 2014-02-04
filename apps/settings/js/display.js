@@ -30,6 +30,34 @@ var Display = {
         settings.createLock().set(cset);
       }
     });
+
+    // LGE_only_S_hyuna.cho@lge.com : add brightness level request by HW
+    settings.addObserver('screen.brightness', function(event) {
+        Display.updateBrightnessLevel(event.settingValue);
+    });
+
+    this.updateBrightnessLevel();
+    // LGE_only_E_hyuna.cho@lge.com : add brightness level request by HW
+
+  },
+
+  updateBrightnessLevel: function settings_updateBrightnessLevel(value) {
+  var brightnessValue = document.querySelector('#brightness-manual-level');
+    var _ = navigator.mozL10n.get;
+    if (value == undefined) {
+        var settings = navigator.mozSettings;
+        var req = settings.createLock().get('screen.brightness');
+        req.onsuccess = function brightness_onsuccess() {
+            var value = req.result['screen.brightness'];
+            var text = _('brightness-level-percent', { level: value * 100 });
+            brightnessValue.textContent = text;
+        };
+    }
+    else {
+        var text = _('brightness-level-percent', { level: value * 100 });
+        brightnessValue.textContent = text;
+    }
   }
+
 };
 Display.init();

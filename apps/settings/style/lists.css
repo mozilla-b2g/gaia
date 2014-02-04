@@ -262,7 +262,11 @@ ul li.sound-setting > label input[type="range"] {
 ul li#brightness-manual > label input[type="range"] {
   margin: 0 auto;
   width: calc(100% - 10rem);
-  display: inline;
+  left: 0.5rem;
+}
+
+ul li#brightness-manual > small#brightness-manual-level {
+  padding-top: 1.2rem;
 }
 
 /******************************************************************************
