@@ -57,6 +57,11 @@
           break;
         }
 
+        // Only display results which have icons.
+        if (!imgUrl) {
+          return;
+        }
+
         formatted.push({
           title: result.manifest.name,
           icon: imgUrl,
