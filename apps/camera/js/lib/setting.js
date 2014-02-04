@@ -5,9 +5,9 @@ define(function(require, exports, module) {
  * Dependencies
  */
 
-var Model = require('vendor/model');
-var storage = require('asyncStorage');
 var debug = require('debug')('setting');
+var storage = require('asyncStorage');
+var model = require('vendor/model');
 
 /**
  * Exports
@@ -15,22 +15,34 @@ var debug = require('debug')('setting');
 
 module.exports = Setting;
 
-// Extend Model
-Setting.prototype = Object.create(Model.prototype);
+// Mixin Model methods
+model(Setting.prototype);
 
+/**
+ * Initialize a new `Setting` model.
+ *
+ * @param {Object} data
+ */
 function Setting(data) {
   this.key = data.key;
   this.configure(data);
   this.reset(data, { silent: true });
-  if (data.persistent) { this.on('change:selected', this.save); }
 }
 
 Setting.prototype.configure = function(data) {
   var options = data.options;
   data.originalOptions = data.options;
   data.optionValues = options.map(function(option) { return option.value; });
+  if (data.persistent) { this.on('change:selected', this.save); }
 };
 
+/**
+ * Set the `selected` option to
+ * the next option in the list.
+ *
+ * First option is chosen if
+ * there is no next option.
+ */
 Setting.prototype.next = function() {
   var options = this.get('options');
   var index = this.get('selected');
@@ -38,11 +50,24 @@ Setting.prototype.next = function() {
   this.setOptionByIndex(newIndex);
 };
 
-Setting.prototype.value = function(value) {
-  if (value) { return this.setValue(value); }
+/**
+ * Get the value of the currently
+ * selected option.
+ *
+ * @return {*}
+ */
+Setting.prototype.value = function() {
   return this.selected('value');
 };
 
+/**
+ * Get the selected option,
+ * or just a particular key
+ * if given.
+ *
+ * @param  {String} key
+ * @return {Object|*}
+ */
 Setting.prototype.selected = function(key) {
   var options = this.get('options');
   var selected = this.get('selected');
@@ -50,44 +75,43 @@ Setting.prototype.selected = function(key) {
   return key ? option && option[key] : option;
 };
 
-Setting.prototype.setValue = function(value) {
-  switch (typeof value) {
-    case 'number': return this.setOptionByIndex(value);
-    case 'string': return this.setOptionByValue(value);
-  }
-};
-
-// Not needed yet
-Setting.prototype.setOptionByValue = function(value) {
-  var keys = this.get('optionValues');
-  var index = keys.indexOf(value);
-  this.setOptionByIndex(index);
-};
-
-// TODO: Tidy this mess
-Setting.prototype.setOptionByIndex = function(index, options) {
+/**
+ * Set the `selected` option to
+ * the given option index.
+ *
+ * @param {Number} index
+ * @param {Object} opts  Model#set() options
+ */
+Setting.prototype.setOptionByIndex = function(index, opts) {
   debug('set option by index:', index);
 
-  var list = this.get('options');
-  var oldIndex = this.get('selected');
-  var oldOption = list[oldIndex];
-  var newOption = list[index];
+  var options = this.get('options');
+  var index_old = this.get('selected');
+  var selected_old = options[index_old];
+  var selected_new = options[index];
 
-  if (!list.length) { return; }
-  if (!newOption) {
-    this.setOptionByIndex(0);
-    return;
-  }
+  // Remove old `selected` key
+  if (selected_old) { delete selected_old.selected; }
 
-  if (oldOption) { delete oldOption.selected; }
-  newOption.selected = true;
-  this.set('selected', index, options);
+  // Edge cases
+  if (!options.length) { return; }
+  if (!selected_new) { return this.setOptionByIndex(0); }
+
+  // Add new `selected` key and save
+  selected_new.selected = true;
+  this.set('selected', index, opts);
 };
 
 Setting.prototype.updateSelected = function(options) {
   this.setOptionByIndex(this.get('selected'), options);
 };
 
+/**
+ * Filters the setting's `option`s
+ * based on the list of values given.
+ *
+ * @param  {Array} values
+ */
 Setting.prototype.configureOptions = function(values) {
   var config = this.get('originalOptions');
   var filtered = config.filter(function(option) {
@@ -98,12 +122,23 @@ Setting.prototype.configureOptions = function(values) {
   this.updateSelected();
 };
 
+/**
+ * Persists the current selection
+ * to storage for retreval in the
+ * next session.
+ */
 Setting.prototype.save = function() {
   storage.setItem('settings:' + this.key, this.get('selected'));
   debug('saving key: %s', this.key);
-  return this;
 };
 
+/**
+ * Fetches the persisted selection
+ * from storage, updating the
+ * `selected` key.
+ *
+ * @param  {Function} done
+ */
 Setting.prototype.fetch = function(done) {
   var self = this;
   debug('fetch value');
