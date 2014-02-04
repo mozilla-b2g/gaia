@@ -1,4 +1,5 @@
 'use strict';
+/* global AppWindowManager, LockScreen, SettingsListener */
 
 var Rocketbar = {
 
@@ -61,7 +62,8 @@ var Rocketbar = {
     });
 
     delete this.searchInput;
-    return this.searchInput = input;
+    this.searchInput = input;
+    return input;
   },
 
   handleEvent: function(e) {
@@ -101,6 +103,7 @@ var Rocketbar = {
             action: 'syncPlaces'
           });
         }
+        break;
       default:
         break;
     }
@@ -115,6 +118,7 @@ var Rocketbar = {
         if (!this.screen.classList.contains('task-manager') &&
             this.home === 'tasks' && Object.keys(runningApps).length > 1) {
           window.dispatchEvent(new CustomEvent('taskmanagershow'));
+          this.searchInput.value = '';
           // Send a message to the search app to clear results
           if (this._port) {
             this._port.postMessage({
@@ -135,15 +139,15 @@ var Rocketbar = {
         break;
       case 'search-input':
         if (e.type === 'blur') {
+          // Clear the input if we are in task manager and blur
+          if (this.screen.classList.contains('task-manager')) {
+            this.searchInput.value = '';
+          }
+
           this.screen.classList.remove('rocketbar-focus');
           return;
         }
         this.screen.classList.add('rocketbar-focus');
-
-        // If the current text is not a URL, clear it.
-        if (UrlHelper.isNotURL(this.searchInput.value)) {
-          this.searchInput.value = '';
-        }
 
         this.updateResetButton();
         break;
@@ -254,7 +258,7 @@ var Rocketbar = {
           }
         },
         function onConnectionRejected(reason) {
-          dump('Error connecting: ' + reason + '\n');
+          console.log('Error connecting: ' + reason + '\n');
         }
       );
     };
@@ -283,8 +287,9 @@ var Rocketbar = {
    * @param {String} event type that triggers the hide.
    */
   hide: function() {
-    if (!this.shown)
+    if (!this.shown) {
       return;
+    }
 
     document.body.removeEventListener('keyboardchange', this, true);
 
@@ -311,8 +316,9 @@ var Rocketbar = {
    * @param {Boolean} isTaskManager, true if we are opening in task manager.
    */
   render: function(isTaskManager) {
-    if (LockScreen.locked)
+    if (LockScreen.locked) {
       return;
+    }
 
     if (this.shown) {
       return;
