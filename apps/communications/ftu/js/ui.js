@@ -10,6 +10,7 @@ var UIManager = {
     'splash-screen',
     'activation-screen',
     'progress-bar',
+    'progress-bar-state',
     'finish-screen',
     'nav-bar',
     'main-title',
@@ -85,6 +86,7 @@ var UIManager = {
     // Tutorial
     'tutorial-screen',
     'tutorial-progress',
+    'tutorial-progress-state',
     'lets-go-button',
     'skip-tutorial-button',
     // Privacy Settings
