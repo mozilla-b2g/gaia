@@ -45,6 +45,7 @@ class MessageThread(Base):
         from gaiatest.apps.phone.regions.keypad import Keypad
         keypad = Keypad(self.marionette)
         keypad.switch_to_keypad_frame()
+        keypad.wait_for_phone_number_ready()
         return keypad
 
 

@@ -8,13 +8,14 @@ import time
 import warnings
 from functools import wraps
 
-from marionette import MarionetteTestCase, EnduranceTestCaseMixin, B2GTestCaseMixin, \
-                       MemoryEnduranceTestCaseMixin
+from marionette import MarionetteTestCase, EnduranceTestCaseMixin, \
+    B2GTestCaseMixin, MemoryEnduranceTestCaseMixin
+from marionette.by import By
 from marionette.errors import NoSuchElementException
-from marionette.errors import ElementNotVisibleException
-from marionette.errors import TimeoutException
 from marionette.errors import StaleElementException
+from marionette.errors import TimeoutException
 from marionette.errors import InvalidResponseException
+from marionette.wait import Wait
 from yoctopuce.yocto_api import YAPI, YRefParam, YModule
 from yoctopuce.yocto_current import YCurrent
 from yoctopuce.yocto_datalogger import YDataLogger
@@ -800,10 +801,30 @@ window.addEventListener('mozbrowserloadend', function loaded(aEvent) {
         return self.marionette.execute_script('return window.wrappedJSObject.ScreenManager.screenEnabled')
 
     def touch_home_button(self):
+        apps = GaiaApps(self.marionette)
+        if apps.displayed_app.name.lower() != 'homescreen':
+            # touching home button will return to homescreen
+            self._dispatch_home_button_event()
+            Wait(self.marionette).until(
+                lambda m: apps.displayed_app.name.lower() == 'homescreen')
+            apps.switch_to_displayed_app()
+        else:
+            apps.switch_to_displayed_app()
+            mode = self.marionette.find_element(By.TAG_NAME, 'body').get_attribute('data-mode')
+            self._dispatch_home_button_event()
+            apps.switch_to_displayed_app()
+            if mode == 'edit':
+                # touching home button will exit edit mode
+                Wait(self.marionette).until(lambda m: m.find_element(
+                    By.TAG_NAME, 'body').get_attribute('data-mode') == 'normal')
+            else:
+                # touching home button will move to first page
+                Wait(self.marionette).until(lambda m: m.execute_script(
+                    'return window.wrappedJSObject.GridManager.pageHelper.getCurrentPageNumber();') == 0)
+
+    def _dispatch_home_button_event(self):
         self.marionette.switch_to_frame()
         self.marionette.execute_script("window.wrappedJSObject.dispatchEvent(new Event('home'));")
-        apps = GaiaApps(self.marionette)
-        apps.switch_to_displayed_app()
 
     def hold_home_button(self):
         self.marionette.switch_to_frame()
@@ -1026,97 +1047,48 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
         return self.marionette.execute_script('return window.screen.mozOrientation')
 
     def wait_for_element_present(self, by, locator, timeout=None):
-        timeout = timeout or (self.marionette.timeout and self.marionette.timeout / 1000) or 30
-        end_time = float(timeout) + time.time()
-
-        while time.time() < end_time:
-            time.sleep(0.5)
-            try:
-                return self.marionette.find_element(by, locator)
-            except NoSuchElementException:
-                pass
-        else:
-            raise TimeoutException(
-                'Element %s not present before timeout' % locator)
+        return Wait(self.marionette, timeout, ignored_exceptions=NoSuchElementException).until(
+            lambda m: m.find_element(by, locator))
 
     def wait_for_element_not_present(self, by, locator, timeout=None):
-        timeout = timeout or (self.marionette.timeout and self.marionette.timeout / 1000) or 30
-        end_time = float(timeout) + time.time()
-
-        while time.time() < end_time:
-            time.sleep(0.5)
-            try:
-                self.marionette.find_element(by, locator)
-            except NoSuchElementException:
-                break
-        else:
-            raise TimeoutException(
-                'Element %s still present after timeout' % locator)
+        try:
+            return Wait(self.marionette, timeout).until(
+                lambda m: not m.find_element(by, locator))
+        except NoSuchElementException:
+            pass
 
     def wait_for_element_displayed(self, by, locator, timeout=None):
-        timeout = timeout or (self.marionette.timeout and self.marionette.timeout / 1000) or 30
-        end_time = float(timeout) + time.time()
-        e = None
-        while time.time() < end_time:
-            time.sleep(0.5)
-            try:
-                if self.marionette.find_element(by, locator).is_displayed():
-                    break
-            except (NoSuchElementException, StaleElementException) as e:
-                pass
-        else:
-            # This is an effortless way to give extra debugging information
-            if isinstance(e, NoSuchElementException):
-                raise TimeoutException('Element %s not present before timeout' % locator)
-            else:
-                raise TimeoutException('Element %s present but not displayed before timeout' % locator)
+        Wait(self.marionette, timeout, ignored_exceptions=[NoSuchElementException, StaleElementException]).until(
+            lambda m: m.find_element(by, locator).is_displayed())
 
     def wait_for_element_not_displayed(self, by, locator, timeout=None):
-        timeout = timeout or (self.marionette.timeout and self.marionette.timeout / 1000) or 30
-        end_time = float(timeout) + time.time()
+        try:
+            Wait(self.marionette, timeout, ignored_exceptions=StaleElementException).until(
+                lambda m: not m.find_element(by, locator).is_displayed())
+        except NoSuchElementException:
+            pass
 
-        while time.time() < end_time:
-            time.sleep(0.5)
-            try:
-                if not self.marionette.find_element(by, locator).is_displayed():
-                    break
-            except StaleElementException:
-                pass
-            except NoSuchElementException:
-                break
-        else:
-            raise TimeoutException(
-                'Element %s still visible after timeout' % locator)
-
-    def wait_for_condition(self, method, timeout=None,
-                           message="Condition timed out"):
-        """Calls the method provided with the driver as an argument until the \
-        return value is not False."""
-        timeout = timeout or (self.marionette.timeout and self.marionette.timeout / 1000) or 30
-        end_time = float(timeout) + time.time()
-        while time.time() < end_time:
-            try:
-                value = method(self.marionette)
-                if value:
-                    return value
-            except (NoSuchElementException, StaleElementException):
-                pass
-            time.sleep(0.5)
-        else:
-            raise TimeoutException(message)
+    def wait_for_condition(self, method, timeout=None, message=None):
+        Wait(self.marionette, timeout).until(method, message=message)
 
     def is_element_present(self, by, locator):
+        self.marionette.set_search_timeout(0)
         try:
             self.marionette.find_element(by, locator)
             return True
-        except:
+        except NoSuchElementException:
             return False
+        finally:
+            self.marionette.set_search_timeout(self.marionette.timeout or 10000)
 
     def is_element_displayed(self, by, locator):
+        self.marionette.set_search_timeout(0)
         try:
             return self.marionette.find_element(by, locator).is_displayed()
-        except (NoSuchElementException, ElementNotVisibleException):
+        except NoSuchElementException:
             return False
+        finally:
+            self.marionette.set_search_timeout(self.marionette.timeout or 10000)
 
     def tearDown(self):
         self.lockscreen = None

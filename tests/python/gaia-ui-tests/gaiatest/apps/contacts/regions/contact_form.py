@@ -10,6 +10,7 @@ from gaiatest.apps.base import Base
 
 class ContactForm(Base):
 
+    _contacts_frame_locator = (By.CSS_SELECTOR, 'iframe[src*="contacts"][src*="/index.html"]')
     _given_name_locator = (By.ID, 'givenName')
     _family_name_locator = (By.ID, 'familyName')
     _phone_locator = (By.ID, 'number_0')
@@ -39,6 +40,8 @@ class ContactForm(Base):
         element = self.marionette.find_element(*self._family_name_locator)
         element.clear()
         element.send_keys(value)
+        self.keyboard.dismiss()
+        self.switch_to_contacts_frame()
 
     @property
     def phone(self):
@@ -48,6 +51,8 @@ class ContactForm(Base):
         element = self.marionette.find_element(*self._phone_locator)
         element.clear()
         element.send_keys(value)
+        self.keyboard.dismiss()
+        self.switch_to_contacts_frame()
 
     @property
     def email(self):
@@ -116,6 +121,14 @@ class ContactForm(Base):
     def wait_for_image_to_load(self):
         self.wait_for_condition(lambda m: 'background-image' in self.picture_style)
 
+    # TODO: Replace this by using apps.displayed_app when bug 951815 is fixed
+    def switch_to_contacts_frame(self):
+        self.marionette.switch_to_frame()
+        self.wait_for_element_present(*self._contacts_frame_locator)
+        contacts_frame = self.marionette.find_element(*self._contacts_frame_locator)
+        self.marionette.switch_to_frame(contacts_frame)
+
+
 class EditContact(ContactForm):
 
     _update_locator = (By.ID, 'save-button')
@@ -157,7 +170,8 @@ class EditContact(ContactForm):
         self.marionette.find_element(*self._confirm_delete_locator).tap()
 
     def wait_for_update_button_enabled(self):
-        self.wait_for_condition(lambda m: self.marionette.find_element(*self._update_locator).is_enabled())
+        self.wait_for_condition(lambda m: m.find_element(
+            *self._update_locator).is_enabled())
 
 
 class NewContact(ContactForm):

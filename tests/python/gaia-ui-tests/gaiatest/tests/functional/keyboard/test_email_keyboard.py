@@ -18,7 +18,6 @@ class TestEmailKeyboard(GaiaTestCase):
         keyboard_page.switch_to_frame()
 
         keyboard = keyboard_page.tap_email_input()
-        keyboard.switch_to_keyboard()
         keyboard.send('post')
         self.apps.switch_to_displayed_app()
 

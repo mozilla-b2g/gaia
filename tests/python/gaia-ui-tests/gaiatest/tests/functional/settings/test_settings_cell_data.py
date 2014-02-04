@@ -37,5 +37,6 @@ class TestSettingsCellData(GaiaTestCase):
 
         # verify that cell data is now enabled and connected
         self.assertTrue(self.data_layer.is_cell_data_enabled, "Cell data was not enabled via Settings app")
-        self.wait_for_condition(lambda m: self.data_layer.is_cell_data_connected,
-                                message="Cell data was not connected via Settings app")
+        self.wait_for_condition(
+            lambda m: self.data_layer.is_cell_data_connected,
+            message='Cell data was not connected via Settings app')

@@ -26,8 +26,7 @@ class TestEverythingMeLaunchApp(GaiaTestCase):
 
         search_panel.wait_for_everything_me_results_to_load()
 
-        results = search_panel.results
-        self.assertGreater(len(results), 0)
+        self.assertGreater(len(search_panel.results), 0)
 
-        results[0].tap()
+        search_panel.results[0].tap()
         self.assertIn(app_name, self.marionette.title)

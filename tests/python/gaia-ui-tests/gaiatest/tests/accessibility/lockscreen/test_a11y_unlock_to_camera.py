@@ -5,13 +5,13 @@
 from marionette.by import By
 from gaiatest import GaiaTestCase
 from gaiatest.apps.lockscreen.app import LockScreen
-from gaiatest.apps.camera.app import Camera
 
 
 class TestLockScreenAccessibility(GaiaTestCase):
 
     def setUp(self):
         GaiaTestCase.setUp(self)
+        self.apps.set_permission('Camera', 'geolocation', 'deny')
         self.device.lock()
 
     def test_a11y_unlock_to_camera(self):
@@ -24,4 +24,4 @@ class TestLockScreenAccessibility(GaiaTestCase):
         self.assertFalse(self.accessibility.is_hidden(windows))
 
         camera.switch_to_camera_frame()
-        camera.wait_for_camera_ready()
+        camera.wait_for_capture_ready()

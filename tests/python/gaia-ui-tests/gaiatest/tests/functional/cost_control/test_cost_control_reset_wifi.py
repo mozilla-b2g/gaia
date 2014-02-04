@@ -27,7 +27,6 @@ class TestCostControlReset(GaiaTestCase):
         cost_control.toggle_wifi_data_tracking(True)
 
         # open browser to get some data downloaded
-        # please remove this once there is a better way than launching browser app/obj to do so
         browser = Browser(self.marionette)
         browser.launch()
         browser.go_to_url('http://mozqa.com/data/firefox/layout/mozilla.html')
@@ -50,4 +49,6 @@ class TestCostControlReset(GaiaTestCase):
         settings.tap_done()
 
         # wait for usage to be refreshed
-        self.wait_for_condition(lambda m: cost_control.wifi_data_usage_figure == u'0.00 B', message='Wifi usage did not reset back to 0.00 B')
+        self.wait_for_condition(
+            lambda m: cost_control.wifi_data_usage_figure == u'0.00 B',
+            message='Wifi usage did not reset back to 0.00 B')

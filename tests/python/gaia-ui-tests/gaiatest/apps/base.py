@@ -6,9 +6,8 @@ import time
 
 from marionette.by import By
 from marionette.errors import NoSuchElementException
-from marionette.errors import ElementNotVisibleException
-from marionette.errors import TimeoutException
 from marionette.errors import StaleElementException
+from marionette.wait import Wait
 
 from gaiatest import GaiaApps
 from gaiatest import GaiaData
@@ -28,81 +27,29 @@ class Base(object):
         self.app = self.apps.launch(self.name, launch_timeout=launch_timeout)
 
     def wait_for_element_present(self, by, locator, timeout=None):
-        timeout = timeout or (self.marionette.timeout and self.marionette.timeout / 1000) or 30
-        end_time = float(timeout) + time.time()
-
-        while time.time() < end_time:
-            time.sleep(0.5)
-            try:
-                return self.marionette.find_element(by, locator)
-            except NoSuchElementException:
-                pass
-        else:
-            raise TimeoutException(
-                'Element %s not found before timeout' % locator)
+        return Wait(self.marionette, timeout, ignored_exceptions=NoSuchElementException).until(
+            lambda m: m.find_element(by, locator))
 
     def wait_for_element_not_present(self, by, locator, timeout=None):
-        timeout = timeout or (self.marionette.timeout and self.marionette.timeout / 1000) or 30
-        end_time = float(timeout) + time.time()
-
-        while time.time() < end_time:
-            time.sleep(0.5)
-            try:
-                self.marionette.find_element(by, locator)
-            except NoSuchElementException:
-                break
-        else:
-            raise TimeoutException(
-                'Element %s still present after timeout' % locator)
+        try:
+            return Wait(self.marionette, timeout).until(
+                lambda m: not m.find_element(by, locator))
+        except NoSuchElementException:
+            pass
 
     def wait_for_element_displayed(self, by, locator, timeout=None):
-        timeout = timeout or (self.marionette.timeout and self.marionette.timeout / 1000) or 30
-        end_time = float(timeout) + time.time()
-        e = None
-        while time.time() < end_time:
-            time.sleep(0.5)
-            try:
-                if self.marionette.find_element(by, locator).is_displayed():
-                    break
-            except (NoSuchElementException, StaleElementException, ElementNotVisibleException) as e:
-                pass
-        else:
-            if isinstance(e, NoSuchElementException):
-                raise TimeoutException('Element %s not present before timeout' % locator)
-            else:
-                raise TimeoutException('Element %s present but not displayed before timeout' % locator)
+        Wait(self.marionette, timeout, ignored_exceptions=[NoSuchElementException, StaleElementException]).until(
+            lambda m: m.find_element(by, locator).is_displayed())
 
     def wait_for_element_not_displayed(self, by, locator, timeout=None):
-        timeout = timeout or (self.marionette.timeout and self.marionette.timeout / 1000) or 30
-        end_time = float(timeout) + time.time()
+        try:
+            Wait(self.marionette, timeout, ignored_exceptions=StaleElementException).until(
+                lambda m: not m.find_element(by, locator).is_displayed())
+        except NoSuchElementException:
+            pass
 
-        while time.time() < end_time:
-            time.sleep(0.5)
-            try:
-                if not self.marionette.find_element(by, locator).is_displayed():
-                    break
-            except StaleElementException:
-                pass
-            except NoSuchElementException:
-                break
-        else:
-            raise TimeoutException(
-                'Element %s still visible after timeout' % locator)
-
-    def wait_for_condition(self, method, timeout=None, message="Condition timed out"):
-        """Calls the method provided with the driver as an argument until the return value is not False."""
-        timeout = timeout or (self.marionette.timeout and self.marionette.timeout / 1000) or 30
-        end_time = float(timeout) + time.time()
-        while time.time() < end_time:
-            try:
-                value = method(self.marionette)
-                if value:
-                    return value
-            except (NoSuchElementException, StaleElementException):
-                pass
-            time.sleep(0.5)
-        else:
-            raise TimeoutException(message)
+    def wait_for_condition(self, method, timeout=None, message=None):
+        Wait(self.marionette, timeout).until(method, message=message)
 
     def is_element_present(self, by, locator):
         self.marionette.set_search_timeout(0)
@@ -115,10 +62,13 @@ class Base(object):
             self.marionette.set_search_timeout(self.marionette.timeout or 10000)
 
     def is_element_displayed(self, by, locator):
+        self.marionette.set_search_timeout(0)
         try:
             return self.marionette.find_element(by, locator).is_displayed()
-        except (NoSuchElementException, ElementNotVisibleException):
+        except NoSuchElementException:
             return False
+        finally:
+            self.marionette.set_search_timeout(self.marionette.timeout or 10000)
 
     def select(self, match_string):
         # cheeky Select wrapper until Marionette has its own
@@ -129,6 +79,9 @@ class Base(object):
 
         # have to go back to top level to get the B2G select box wrapper
         self.marionette.switch_to_frame()
+        # TODO we should find something suitable to wait for, but this goes too
+        # fast against desktop builds causing intermittent failures
+        time.sleep(0.2)
 
         li = self.wait_for_element_present(*_list_item_locator)
 
@@ -137,11 +90,14 @@ class Base(object):
             'arguments[0].scrollIntoView(false);', [li])
         li.tap()
 
-        close_button = self.marionette.find_element(*_close_button_locator)
-
         # Tap close and wait for it to hide
+        close_button = self.marionette.find_element(*_close_button_locator)
         close_button.tap()
         self.wait_for_element_not_displayed(*_close_button_locator)
+
+        # TODO we should find something suitable to wait for, but this goes too
+        # fast against desktop builds causing intermittent failures
+        time.sleep(0.2)
 
         # now back to app
         self.apps.switch_to_displayed_app()

@@ -34,8 +34,9 @@ class TestMusic(GaiaTestCase):
         player_view = sublist_view.tap_play()
 
         # play for a short duration
-        self.wait_for_condition(lambda m: player_view.player_elapsed_time == '00:05',
-                                message='Mp3 sample did not start playing')
+        self.wait_for_condition(
+            lambda m: player_view.player_elapsed_time == '00:05',
+            message='Mp3 sample did not start playing')
 
         # validate playback
         self.assertTrue(player_view.is_player_playing(), 'The player is not playing')

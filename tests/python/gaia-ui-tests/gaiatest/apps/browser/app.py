@@ -16,6 +16,7 @@ class Browser(Base):
     name = "Browser"
 
     _browser_frame_locator = (By.CSS_SELECTOR, 'iframe.browser-tab')
+    _main_screen_locator = (By.ID, 'main-screen')
 
     # Awesome bar/url bar
     _awesome_bar_locator = (By.ID, 'url-input')
@@ -68,6 +69,8 @@ class Browser(Base):
 
     def tap_go_button(self, timeout=30):
         self.marionette.find_element(*self._url_button_locator).tap()
+        # TODO wait_for_throbber can resolve before the page has started loading
+        time.sleep(1)
         self.wait_for_throbber_not_visible(timeout=timeout)
         self.wait_for_element_displayed(*self._bookmark_button_locator)
 
@@ -89,7 +92,7 @@ class Browser(Base):
         self.wait_for_element_displayed(*self._add_bookmark_to_home_screen_choice_locator)
         self.marionette.find_element(*self._add_bookmark_to_home_screen_choice_locator).tap()
         # TODO: Remove sleep when Bug # 815115 is addressed, or if we can wait for a Javascript condition
-        time.sleep(1)
+        time.sleep(2)
         return BookmarkMenu(self.marionette)
 
     def wait_for_throbber_not_visible(self, timeout=30):
@@ -107,11 +110,12 @@ class Browser(Base):
     def tap_tab_badge_button(self):
         self.wait_for_element_displayed(*self._tab_badge_locator)
         self.marionette.find_element(*self._tab_badge_locator).tap()
-        self.wait_for_element_not_displayed(*self._tab_badge_locator)
+        self.wait_for_condition(self.tab_list_loaded())
 
     def tap_add_new_tab_button(self):
         self.marionette.find_element(*self._new_tab_button_locator).tap()
-        self.wait_for_element_displayed(*self._awesome_bar_locator)
+        main_screen = self.marionette.find_element(*self._main_screen_locator)
+        self.wait_for_condition(lambda m: main_screen.location['x'] == 0)
 
     @property
     def displayed_tabs_number(self):
@@ -126,6 +130,16 @@ class Browser(Base):
     def tabs(self):
         return [self.Tab(marionette=self.marionette, element=tab)
                 for tab in self.marionette.find_elements(*self._tabs_list_locator)]
+
+    class tab_list_loaded(object):
+
+        def __call__(self, marionette):
+            el = marionette.find_element(*Browser._main_screen_locator)
+            locations = []
+            for i in range(3):
+                locations.append(el.location)
+                time.sleep(0.1)
+            return locations[1:] == locations[:-1]
 
     class Tab(PageRegion):
 

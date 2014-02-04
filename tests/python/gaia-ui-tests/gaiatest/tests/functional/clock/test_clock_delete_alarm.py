@@ -17,7 +17,7 @@ class TestClockDeleteAlarm(GaiaTestCase):
         # create a new alarm with the default values that are available
         new_alarm = self.clock.tap_new_alarm()
         self.clock = new_alarm.tap_done()
-        self.clock.wait_for_banner_not_visible()
+        self.clock.dismiss_banner()
 
     def test_clock_delete_alarm(self):
         """ Delete alarm

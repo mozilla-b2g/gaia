@@ -30,8 +30,7 @@ class Settings(Base):
     _app_permissions_menu_item_locator = (By.ID, 'menuItem-appPermissions')
     _battery_menu_item_locator = (By.ID, 'menuItem-battery')
 
-    def launch(self):
-        Base.launch(self)
+    def wait_for_airplane_toggle_ready(self):
         checkbox = self.marionette.find_element(*self._airplane_checkbox_locator)
         self.wait_for_condition(lambda m: checkbox.is_enabled())
 
@@ -134,8 +133,12 @@ class Settings(Base):
         return Battery(self.marionette)
 
     def _tap_menu_item(self, menu_item_locator):
-        self.wait_for_element_displayed(*menu_item_locator)
         menu_item = self.marionette.find_element(*menu_item_locator)
         parent_section = menu_item.find_element(By.XPATH, 'ancestor::section')
+
+        # Some menu items require some async setup to be completed
+        self.wait_for_condition(lambda m:
+            not menu_item.find_element(By.XPATH, 'ancestor::li').get_attribute('aria-disabled'))
+
         menu_item.tap()
         self.wait_for_condition(lambda m: parent_section.location['x'] + parent_section.size['width'] == 0)
