@@ -14,12 +14,6 @@ var debug = require('debug')('config');
 module.exports = Config;
 
 /**
- * Locals
- */
-
-var has = {}.hasOwnProperty;
-
-/**
  * Initialize a new `Config`
  *
  * @constructor
@@ -41,27 +35,20 @@ function Config(data) {
  */
 Config.prototype.set = function(data) {
   if (!data) { return; }
-
-  var newItem;
-  var key;
-
-  for (key in data) {
+  for (var key in data) {
     this.data[key] = this.normalizeItem(key, data[key]);
   }
 };
 
 Config.prototype.normalizeItem = function(key, value) {
+  debug('normalising %s', key);
   return {
     title: value.title || key,
-    options: value.options || [{ key: value }],
+    options: value.options || [{ value: value }],
     default: value.default || 0,
     persistent: value.persistent || false,
     menu: value.menu || false
   };
-};
-
-Config.prototype.menu = function() {
-  return this.processed.menu;
 };
 
 Config.prototype.get = function(key) {

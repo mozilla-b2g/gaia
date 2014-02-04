@@ -3,7 +3,7 @@ define(function(require, exports, module) {
 
 module.exports = {
   maxResolution: 99999999,
-
+  showSettings: false,
   mode: {
     title: 'Mode',
     options: [

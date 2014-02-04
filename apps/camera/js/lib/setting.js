@@ -41,12 +41,14 @@ Setting.prototype.next = function() {
 
 Setting.prototype.value = function(value) {
   if (value) { return this.setValue(value); }
+  return this.selected('value');
+};
 
+Setting.prototype.selected = function(key) {
   var options = this.get('options');
   var selected = this.get('selected');
   var option = options[selected];
-
-  return option && option.value;
+  return key ? option && option[key] : option;
 };
 
 Setting.prototype.setValue = function(value) {

@@ -1,3 +1,4 @@
+
 .hud {
   position: absolute;
   top: 0; left: 0;
@@ -117,6 +118,15 @@ body:not(.filmstriphidden) .hud {
 }
 
 /**
+ * @settings-disabled
+ */
+
+.hud[settings-enabled=false] .toggle-flash {
+  float: right;
+}
+
+
+/**
  * @camera-hidden
  */
 
@@ -190,4 +200,17 @@ body[data-orientation=deg180] .flash-text {
 
 .flash-name {
   text-transform: capitalize;
+}
+
+/** Settings
+ ---------------------------------------------------------*/
+
+.hud_settings {}
+
+/**
+ * @settings-disabled
+ */
+
+.hud[settings-enabled=false] .hud_settings {
+  display: none;
 }

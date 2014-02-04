@@ -37,6 +37,7 @@ function HudController(app) {
  * @private
  */
 HudController.prototype.configure = function() {
+  this.hud.enable('settings', this.app.settings.value('showSettings'));
   this.hud.set('flashMode', this.app.settings.value('flashModes'));
   this.hud.enable('camera', this.app.settings.value('cameras'));
 };

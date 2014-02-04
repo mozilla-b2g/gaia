@@ -28,17 +28,15 @@ module.exports = View.extend({
 
   render: function() {
     var data = this.model.get();
-    var key = data.key;
-    data.value = this.model.value();
-    this.el.setAttribute('data-key', key);
-    this.el.setAttribute('data-value', data.value);
+    data.selected = this.model.selected();
+    this.el.setAttribute('data-key', data.key);
     this.el.innerHTML = this.template(data);
-    debug('rendered item %s', key);
+    debug('rendered item %s', data.key);
     return this;
   },
 
-  template: function(item) {
-    return item.title + ' - ' + item.value;
+  template: function(data) {
+    return data.title + ' - ' + data.selected.title;
   },
 });
 

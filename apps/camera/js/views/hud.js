@@ -99,7 +99,7 @@ module.exports = View.extend({
         'Flash: <span class="flash-name js-flash-name"></span>' +
       '</div>' +
     '</a>' +
-    '<a class="hud_settings-btn rotates js-settings"></a>';
+    '<a class="hud_settings rotates js-settings"></a>';
   }
 });
 
