@@ -37,9 +37,8 @@ class TestPersonaStandard(GaiaTestCase):
         moz_id.switch_to_frame()
 
         persona = moz_id.launch_standard_sign_in()
-        persona.login(self.user.email, self.user.password)
 
-        self.apps.switch_to_displayed_app()
+        persona.login(self.user.email, self.user.password)
 
         moz_id.switch_to_frame()
         moz_id.wait_for_login_event()
