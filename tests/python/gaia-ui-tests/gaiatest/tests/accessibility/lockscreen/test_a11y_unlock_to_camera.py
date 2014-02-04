@@ -14,7 +14,7 @@ class TestLockScreenAccessibility(GaiaTestCase):
         GaiaTestCase.setUp(self)
         self.device.lock()
 
-    def test_unlock_to_camera(self):
+    def test_a11y_unlock_to_camera(self):
         lock_screen = LockScreen(self.marionette)
         camera = lock_screen.a11y_click_camera_button()
         lock_screen.wait_for_lockscreen_not_visible()
