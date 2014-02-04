@@ -1,4 +1,5 @@
 'use strict';
+/* global Search, MockNavigatormozApps */
 
 require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 requireApp('search/test/unit/mock_search.js');
@@ -8,8 +9,6 @@ requireApp('search/js/providers/app_provider.js');
 suite('search/providers/local_apps', function() {
 
   var realMozApps;
-  var realSetMessageHandler;
-  var clock;
 
   suiteSetup(function() {
     realMozApps = navigator.mozApps;
@@ -50,7 +49,10 @@ suite('search/providers/local_apps', function() {
           launchCalled = true;
         },
         manifest: {
-          name: 'Mozilla Fake App'
+          name: 'Mozilla Fake App',
+          icons: {
+            60: 'http://mozilla.org/favicon.ico'
+          }
         }
       };
 
@@ -73,8 +75,16 @@ suite('search/providers/local_apps', function() {
     });
 
     test('application is rendered', function() {
+      // Add app without icon
+      subject.apps['http://app2.mozilla.org/manifest.webapp'] = {
+        manifest: {
+          name: 'Mozilla Without Icon'
+        }
+      };
+
       subject.search('moz');
       assert.notEqual(subject.container.innerHTML.indexOf('Mozilla Fake'), -1);
+      assert.equal(subject.container.innerHTML.indexOf('Without Icon'), -1);
     });
   });
 
