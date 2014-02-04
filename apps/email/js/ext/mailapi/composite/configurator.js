@@ -9402,6 +9402,7 @@ exports.configurator = {
         incomingInfo.preferredAuthMethod = null;
       }
       smtpConnInfo = {
+        emailAddress: userDetails.emailAddress, // used for probing
         hostname: domainInfo.outgoing.hostname,
         port: domainInfo.outgoing.port,
         crypto: (typeof domainInfo.outgoing.socketType === 'string' ?

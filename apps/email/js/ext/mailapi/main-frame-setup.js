@@ -360,6 +360,7 @@ function MailAccount(api, wireRep, acctsSlice) {
   /**
    * @listof[@oneof[
    *   @case['bad-user-or-pass']
+   *   @case['bad-address']
    *   @case['needs-app-pass']
    *   @case['imap-disabled']
    *   @case['pop-server-not-great']{
@@ -2944,6 +2945,9 @@ MailAPI.prototype = {
    *   @case['bad-user-or-pass']{
    *     The username and password didn't check out.  We don't know which one
    *     is wrong, just that one of them is wrong.
+   *   }
+   *   @case['bad-address']{
+   *     The e-mail address provided was rejected by the SMTP probe.
    *   }
    *   @case['pop-server-not-great']{
    *     The POP3 server doesn't support IDLE and TOP, so we can't use it.
