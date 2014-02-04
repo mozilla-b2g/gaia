@@ -199,7 +199,10 @@ var Widget = (function() {
   function showSimError(status) {
     // Wait to l10n resources are ready
     navigator.mozL10n.ready(function showErrorStatus() {
-      var fte = document.getElementById('fte-view');
+      fte = document.getElementById('fte-view');
+      // Avoid launch CC application when the SIM is not ready
+      fte.removeEventListener('click', launchFte);
+
       var leftPanel = document.getElementById('left-panel');
       var rightPanel = document.getElementById('right-panel');
 
@@ -215,16 +218,18 @@ var Widget = (function() {
     });
   }
 
+  function launchFte() {
+    fte.removeEventListener('click', launchFte);
+    var activity = new MozActivity({ name: 'costcontrol/balance' });
+  }
+
   function setupFte(provider, mode) {
 
     fte.setAttribute('aria-hidden', false);
     leftPanel.setAttribute('aria-hidden', true);
     rightPanel.setAttribute('aria-hidden', true);
 
-    fte.addEventListener('click', function launchFte() {
-      fte.removeEventListener('click', launchFte);
-      var activity = new MozActivity({ name: 'costcontrol/balance' });
-    });
+    fte.addEventListener('click', launchFte);
 
     var keyLookup = {
         PREPAID: 'widget-authed-sim',
