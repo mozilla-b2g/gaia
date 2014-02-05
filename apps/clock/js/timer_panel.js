@@ -200,7 +200,7 @@ Timer.Panel.prototype.previewAlarm = function() {
   }
   this.ringtonePlayer.pause();
 
-  var ringtoneName = Utils.getSelectedValue(this.nodes.sound);
+  var ringtoneName = Utils.getSelectedValueByIndex(this.nodes.sound);
   var previewRingtone = 'shared/resources/media/alarms/' + ringtoneName;
   this.ringtonePlayer.src = previewRingtone;
   this.ringtonePlayer.play();

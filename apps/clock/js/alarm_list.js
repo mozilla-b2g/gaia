@@ -20,17 +20,17 @@ var AlarmList = {
 
   get alarms() {
     delete this.alarms;
-    return this.alarms = document.getElementById('alarms');
+    return (this.alarms = document.getElementById('alarms'));
   },
 
   get title() {
     delete this.title;
-    return this.title = document.getElementById('alarms-title');
+    return (this.title = document.getElementById('alarms-title'));
   },
 
   get newAlarmButton() {
     delete this.newAlarmButton;
-    return this.newAlarmButton = document.getElementById('alarm-new');
+    return (this.newAlarmButton = document.getElementById('alarm-new'));
   },
 
   template: null,
@@ -38,8 +38,9 @@ var AlarmList = {
   handleEvent: function al_handleEvent(evt) {
 
     var link = evt.target;
-    if (!link)
+    if (!link) {
       return;
+    }
 
     if (link === this.newAlarmButton) {
       this.alarmEditView();
@@ -65,6 +66,11 @@ var AlarmList = {
     this.newAlarmButton.addEventListener('click', this);
     this.alarms.addEventListener('click', this);
     this.banner = new Banner('banner-countdown', 'banner-tmpl');
+
+    // Bind this.refresh so that the listener can be easily removed.
+    this.refresh = this.refresh.bind(this);
+    // Update the dropdown when the language changes.
+    window.addEventListener('localized', this.refresh);
     this.refresh();
     AlarmManager.regUpdateAlarmEnableState(this.refreshItem.bind(this));
   },
@@ -137,7 +143,7 @@ var AlarmList = {
   },
 
   refreshItem: function al_refreshItem(alarm) {
-    var li, index;
+    var li;
     var id = alarm.id;
 
     if (!this.getAlarmFromList(id)) {
@@ -179,8 +185,9 @@ var AlarmList = {
 
   getAlarmFromList: function al_getAlarmFromList(id) {
     for (var i = 0; i < this.alarmList.length; i++) {
-      if (this.alarmList[i].id === id)
+      if (this.alarmList[i].id === id) {
         return this.alarmList[i];
+      }
     }
     return null;
   },

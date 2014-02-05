@@ -69,6 +69,12 @@ li .button.icon-dialog:before {
   display: none;
 }
 
+.new-alarm-title {
+  display: none;
+}
+.new .new-alarm-title { display: block; }
+.new .edit-alarm-title { display: none; }
+
 /* ----------- Alarm List ---------- */
 #alarms {
   position: absolute;

@@ -201,8 +201,6 @@ apps/camera/test/unit/utils/formattimer_test.js
 apps/clock/build/make_gaia_shared.js
 apps/clock/js/active_alarm.js
 apps/clock/js/alarm.js
-apps/clock/js/alarm_edit.js
-apps/clock/js/alarm_list.js
 apps/clock/js/alarm_manager.js
 apps/clock/js/alarmsdb.js
 apps/clock/js/app.js
