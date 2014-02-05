@@ -685,15 +685,23 @@ function setView(view) {
       // or video, so make sure its thumbnail is fully on the screen.
       // XXX: do we need to defer this?
       scrollToShowThumbnail(currentFileIndex);
+      if (currentView === LAYOUT_MODE.fullscreen) {
+        // only do it when we back from fullscreen.
+        setNFCSharing(false);
+      }
       break;
     case LAYOUT_MODE.fullscreen:
       resizeFrames();
+      setNFCSharing(true);
       break;
     case LAYOUT_MODE.select:
       clearSelection();
       // When entering select view, we pause the video
       if (!isPhone && currentFrame.video && !isPortrait)
         currentFrame.video.pause();
+      break;
+    case LAYOUT_MODE.edit:
+      setNFCSharing(false);
       break;
   }
 
@@ -710,6 +718,35 @@ function setView(view) {
   }
   // Remember the current view
   currentView = view;
+}
+
+function setNFCSharing(enable) {
+  if (!window.navigator.mozNfc) {
+    return;
+  }
+
+  if (enable) {
+    // If we have NFC, we need to put the callback to have shrinking UI.
+    window.navigator.mozNfc.onpeerready = function(event) {
+      // The callback function is called when user confirm to share the
+      // content, send it with NFC Peer.
+      var fileInfo = files[currentFileIndex];
+      if (fileInfo.metadata.video) {
+        // share video
+        getVideoFile(fileInfo.metadata.video, function(file) {
+          navigator.mozNfc.getNFCPeer(event.detail).sendFile(file);
+        });
+      } else {
+        // share photo
+        photodb.getFile(fileInfo.name, function(file) {
+          navigator.mozNfc.getNFCPeer(event.detail).sendFile(file);
+        });
+      }
+    };
+  } else {
+    // We need to remove onpeerready while out of fullscreen view.
+    window.navigator.mozNfc.onpeerready = null;
+  }
 }
 
 // monitorChildVisibility() calls this when a thumbnail comes onscreen
