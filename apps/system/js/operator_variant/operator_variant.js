@@ -121,6 +121,81 @@
     },
 
     /**
+     * Given the list of APNs for the current operator numeric value (MCC and
+     * MNC codes in the ICC card) filter those ones matching the MVNO rules.
+     * The MVNO rules allow us to pre-select the APN relying on several things
+     * such as the IMSI code, the carrier name in the ICC card, etc. This rules
+     * could be used as well for non-MVNO carriers that provides different APN
+     * for their subscribers relying on the IMSI code in the ICC card.
+     *
+     */
+    filterApnsByMvnoRules: function ovh_filterApnsByMvnoRules(apnIndex,
+                                                              allApnList,
+                                                              filteredApnList,
+                                                              mvnoType,
+                                                              mvnoMatchData,
+                                                              onFinish) {
+      if (apnIndex === allApnList.length) {
+        if (onFinish && (typeof onFinish === 'function')) {
+          onFinish(filteredApnList);
+        }
+        return;
+      }
+
+      var apn = allApnList[apnIndex];
+      var listMvnoType = apn.mvno_type || '';
+      var listMvnoMatchData = apn.mvno_match_data || '';
+
+      if (mvnoType &&
+         (mvnoType === listMvnoType) &&
+         (mvnoMatchData === listMvnoMatchData)) {
+          filteredApnList.push(apn);
+          return this.filterApnsByMvnoRules(apnIndex + 1,
+                                            allApnList,
+                                            filteredApnList,
+                                            mvnoType,
+                                            mvnoMatchData,
+                                            onFinish);
+      }
+
+      var iccCard = navigator.mozIccManager.getIccById(this._iccId);
+      var request = iccCard.matchMvno(listMvnoType, listMvnoMatchData);
+      request.onsuccess = (function onSuccessHandler() {
+        var match = request.result;
+        if (match) {
+          filteredApnList = [];
+          filteredApnList.push(apn);
+          return this.filterApnsByMvnoRules(apnIndex + 1,
+                                            allApnList,
+                                            filteredApnList,
+                                            listMvnoType,
+                                            listMvnoMatchData,
+                                            onFinish);
+        }
+        if (!listMvnoType) {
+          filteredApnList.push(apn);
+        }
+        this.filterApnsByMvnoRules(apnIndex + 1,
+                                   allApnList,
+                                   filteredApnList,
+                                   mvnoType,
+                                   mvnoMatchData,
+                                   onFinish);
+      }).bind(this);
+      request.onerror = (function onErrorHandler() {
+        if (!listMvnoType) {
+          filteredApnList.push(apn);
+        }
+        this.filterApnsByMvnoRules(apnIndex + 1,
+                                   allApnList,
+                                   filteredApnList,
+                                   mvnoType,
+                                   mvnoMatchData,
+                                   onFinish);
+      }).bind(this);
+    },
+
+    /**
      * Store the carrier settings.
      *
      * @param {Array} result Settings to be stored.
@@ -209,7 +284,10 @@
         }
       }
 
-      this.buildApnSettings(result);
+      this.filterApnsByMvnoRules(0, result, [], '', '',
+        (function onFinishCb(filteredApnList) {
+          this.buildApnSettings(filteredApnList);
+      }).bind(this));
     },
 
     /**
