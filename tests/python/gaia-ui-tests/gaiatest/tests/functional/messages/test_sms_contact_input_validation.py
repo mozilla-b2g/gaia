@@ -29,9 +29,6 @@ class TestContactValidation(GaiaTestCase):
         self.assertTrue(new_message.is_recipient_name_editable == 'true')
 
         # Type_message will tap in the field to focus it
-        new_message.type_message('This is a test message')
-
-        #TODO Wait for the javascript
-        time.sleep(1)
+        new_message.type_message('Test message')
 
         self.assertFalse(new_message.is_send_button_enabled)
