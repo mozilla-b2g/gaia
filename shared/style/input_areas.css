@@ -9,18 +9,25 @@ input[type="search"],
 input[type="url"],
 input[type="number"],
 textarea {
+  font-family: sans-serif;
   -moz-box-sizing: border-box;
   display: block;
   width: 100%;
   height: 4rem;
   resize: none;
-  padding: 0 1.2rem;
-  font-size: 1.8rem;
+  padding: 0 1.5rem;
+  font-size: 1.6rem;
   line-height: 4rem;
-  border: 0.1rem solid #ccc;
-  border-radius: 0.3rem;
+  border: 0;
+  border-bottom: 0.1rem solid #d7dee4;
+  border-radius: 0;
   box-shadow: none; /* override the box-shadow from the system (performance issue) */
-  background: #fff url(input_areas/images/ui/shadow.png) repeat-x;
+  color: #333;
+  background: url(input_areas/images/ui/input.png) no-repeat bottom left,
+    url(input_areas/images/ui/input.png) no-repeat bottom right;
+  background-color: transparent;
+  background-size: 0.1rem 1.2rem;
+  margin: 0 0 0.5rem 0;
 }
 
 textarea {
@@ -28,25 +35,50 @@ textarea {
   max-height: 10rem;
   line-height: 2rem;
   margin: 0;
+  border-top: 0.1rem solid #d7dee4;
+}
+
+input:focus,
+textarea:focus {
+  border-color: #00aacc;
+  background-image: url(input_areas/images/ui/input_focus.png),
+    url(input_areas/images/ui/input_focus.png);
 }
 
 /* fix for required inputs with wrong or empty value e.g. [type=email] */
 input:invalid,
 textarea:invalid {
-  border: 0.1rem solid #820000;
+  border-color: #820000;
+  background-image: url(input_areas/images/ui/input_invalid.png),
+    url(input_areas/images/ui/input_invalid.png);
   color: #b90000;
 }
 
 input::-moz-placeholder,
 textarea::-moz-placeholder {
-  color: #858585;
+  color: #a6a6a6;
   opacity: 1;
+  font-style: italic;
+  font-weight: 400;
 }
 
 input:-moz-placeholder,
 textarea:-moz-placeholder {
-  color: #858585;
+  color: #a6a6a6;
   opacity: 1;
+  font-style: italic;
+  font-weight: 400;
+}
+
+.skin-dark input[type="text"],
+.skin-dark input[type="password"],
+.skin-dark input[type="email"],
+.skin-dark input[type="tel"],
+.skin-dark input[type="search"],
+.skin-dark input[type="url"],
+.skin-dark input[type="number"],
+.skin-dark textarea  {
+  color: #fff;
 }
 
 form p {
@@ -54,27 +86,29 @@ form p {
   margin: 0;
 }
 
-form p + p {
-  margin-top: 1rem;
-}
-
 form p input + button[type="reset"],
 form p textarea + button[type="reset"] {
   position: absolute;
-  top: 50%;
+  top: 0;
   right: 0;
-  width: 3rem;
-  height: 4rem;
+  width: 4.5rem;
+  height: 3.7rem;
   padding: 0;
   border: none;
   font-size: 0;
   opacity: 0;
   pointer-events: none;
-  background: transparent url(input_areas/images/icons/clear.png) no-repeat 50% 50% / 1.7rem auto;
+  background: url(input_areas/images/icons/clear.png) no-repeat center / 1.7rem;
+}
+
+form[role="search"] p input + button[type="reset"],
+form[role="search"] p textarea + button[type="reset"] {
+  background-color: #f4f4f4;
 }
 
 form.skin-dark p input + button[type="reset"],
 form.skin-dark p textarea + button[type="reset"] {
+  background-color: #333;
   background-image: url(input_areas/images/icons/clear-dark.png);
 }
 
@@ -108,156 +142,86 @@ form p textarea:focus + button[type="reset"] {
 fieldset {
   position: relative;
   overflow: hidden;
-  margin: 0;
+  margin: 1.5rem 0;
   padding: 0;
-  border-radius: 0.3rem;
-  border: 0.1rem solid rgba(0,0,0,.2);
-  font-size: 1.8rem;
+  border: 0;
+  font-size: 2rem;
   line-height: 1em;
-  background: #fff url(input_areas/images/ui/shadow.png) repeat-x left top;
-}
-
-fieldset  + fieldset {
-  margin-top: 1.5rem;
-}
-
-fieldset legend {
-  -moz-box-sizing: border-box;
-  position: absolute;
-  width: 9.5rem;
-  height: 100%;
-  padding: 0 0.5rem 0 1.5rem;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  overflow: hidden;
-  color: #333;
-  line-height: 4rem;
-  text-transform: uppercase;
-}
-
-fieldset legend.action {
-  background: url(input_areas/images/icons/arrow.png) no-repeat 100% 100% / 1.2rem;
-}
-
-fieldset legend:active {
-  background-color: #008caa;
-  text-shadow: 0.1rem 0.1rem 0 rgba(255,255,255,.3);
-}
-
-fieldset section input[type="text"],
-fieldset section input[type="password"],
-fieldset section input[type="email"],
-fieldset section input[type="tel"],
-fieldset section input[type="search"],
-fieldset section input[type="number"],
-fieldset section textarea {
-  height: 4rem;
-  border: none;
-  border-radius: 0;
   background: none;
 }
 
-fieldset section {
-  display: block;
-  border-left: 0.1rem solid #ddd;
-  border-radius: 0 0.3rem 0.3rem 0;
+fieldset legend {
+  border: 0.1rem solid #d7dee4;
+  width: 100%;
+  -moz-box-sizing: border-box;
+  font-family: sans-serif;
+  font-style: italic;
+  font-size: 1.6rem;
+  color: #00aacc;
+  margin: 0 0 0.5rem;
+  padding: 1rem  0 0 1.5rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   overflow: hidden;
-  margin-left: 9.5rem;
+  height: 4rem;
+  color: #00aacc;
+  background: url(input_areas/images/ui/dialog.svg) no-repeat calc(100% - 1rem) calc(100% - 1rem);
 }
 
-fieldset section p {
-  margin: 0;
-  border-bottom: 0.1rem solid #ddd;
+fieldset[disabled] {
+  opacity: 0.6;
+  pointer-events: none;
 }
 
-fieldset section p:last-child {
-  border-bottom: none;
+fieldset[disabled] legend {
+  color: rgba(51, 51, 51, 0.5);
+  background-image: url(input_areas/images/ui/dialog_disabled.svg);
 }
 
 /* Tidy (search/submit) */
 form[role="search"] {
   position: relative;
   height: 3.7rem;
-  background: #dbe3eb;
+  background: #f4f4f4;
 }
 
 form[role="search"].skin-dark {
-  background: url(input_areas/images/ui/background-dark.png) repeat;
-  background-size: 2rem;
-}
-
-form[role="search"].bottom {
-  background: #fff;
-}
-
-form[role="search"]:before {
-  content: "";
-  position: absolute;
-  top: 1rem;
-  left: 1rem;
-  height: 1.6rem;
-  width: 1.6rem;
-  background: url(input_areas/images/icons/search.png) no-repeat;
-  background-size: 1.6rem;
-}
-
-form[role="search"].bottom:before {
-  display: none;
-}
-
-form[role="search"].skin-dark:before {
-  background-image: url(input_areas/images/icons/search-dark.png);
-}
-
-form[role="search"]:after {
-  content: "";
-  position: absolute;
-  top: 3.6rem;
-  right: 0;
-  left: 0;
-  height: 0.4rem;
-  background: url(input_areas/images/ui/shadow-search.png) repeat-x left top;
-  border-top: 0.1rem solid #fff;
-}
-
-form[role="search"].bottom:after {
-  content: "";
-  position: absolute;
-  top: -0.4rem;
-  background: url(input_areas/images/ui/shadow-invert.png) repeat-x 0 100%;
-  border-color: transparent;
-}
-form[role="search"].skin-dark:after {
-  border-color: #2b3538;
-}
-
-section[role="region"] > header:first-child + form[role="search"]:after{
-  background: none;
+  background: #333;
 }
 
 form[role="search"] p {
-  padding: 0.4rem 1.2rem 0 3.2rem;
+  padding: 0 1.5rem 0 3rem;
   overflow: hidden;
-}
-
-form[role="search"].bottom p {
-  padding: 0.4rem 1.2rem 0 1.2rem;
+  position: relative;
 }
 
 form[role="search"] p input,
 form[role="search"] p textarea {
-  height: 3rem;
+  height: 3.7rem;
   border: none;
   background: none;
-  font-size: 1.8rem;
-  padding: 0.5rem 0;
+  padding: 0;
+  margin: 0;
+}
+
+form[role="search"] p textarea {
+  padding: 1rem 0 0 0;
+}
+
+form[role="search"] p input::-moz-placeholder {
+  background: url(input_areas/images/icons/search.png) right center no-repeat;
+  background-size: 1.6rem;
+}
+
+form[role="search"].skin-dark p input::-moz-placeholder {
+  background-image: url(input_areas/images/icons/search-dark.png);
 }
 
 form[role="search"] p input:focus {
   padding: 0 2rem 0 0;
 }
 
-form[role="search"] p input:invalid, 
+form[role="search"] p input:invalid,
 form[role="search"] p textarea:invalid {
   border: none;
 }
@@ -265,32 +229,6 @@ form[role="search"] p textarea:invalid {
 form[role="search"].skin-dark p input,
 form[role="search"].skin-dark p textarea {
   color: #fff;
-}
-
-form[role="search"] button.icon {
-  float: left;
-  height: 3.7rem;
-  width: 3rem;
-  border: none;
-  font-size: 0;
-  background: url(input_areas/images/ui/separator.png) no-repeat 100% 50%,
-              url(input_areas/images/ui/background.png) repeat-x 0 100%;
-  background-size: auto 100%;
-  border-radius: 0;
-  margin: 0;
-  padding: 0;
-  margin: 0;
-  position: relative;
-}
-
-form[role="search"] button.icon:before {
-  content: "";
-  position: absolute;
-  width: 3rem;
-  height: 3.7rem;
-  background: transparent center no-repeat;
-  top: 0;
-  left: 0;
 }
 
 form[role="search"] p button[type="reset"] {
@@ -303,33 +241,36 @@ form[role="search"] button[type="submit"] {
   height: 3.7rem;
   padding: 0 1.5rem;
   border: none;
-  color: #000;
-  font-weight: 500;
+  color: #00AACC;
+  font-weight: normal;
   font-size: 1.6rem;
   line-height: 3.7rem;
-  background: url(input_areas/images/ui/separator.png) no-repeat 0 50%;
-  background-size: auto 100%;
   border-radius: 0;
   width: auto;
   border-radius: 0;
   margin: 0;
+  position: relative;
+  background: none;
+  font-style: italic;
 }
 
-form[role="search"].bottom button[type="submit"] {
-  color: #333;
-  background: url(input_areas/images/ui/separator.png) no-repeat 0 50%,
-              url(input_areas/images/ui/active.png) repeat-x 0 100%;
+form[role="search"] button[type="submit"]:after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.7rem;
+  bottom: 0.7rem;
+  width: 0.1rem;
+  background: #c7c7c7;
 }
 
-form[role="search"].skin-dark button[type="submit"] {
-  color: #fff;
-  background-image: url(input_areas/images/ui/separator-dark.png);
+form[role="search"].skin-dark button[type="submit"]:after {
+  background-color: #575757;
 }
 
 form[role="search"] button[type="submit"] + p > textarea {
-  height: 3rem;
+  height: 3.7rem;
   line-height: 2rem;
-  font-size: 1.8rem;
 }
 
 form[role="search"] button[type="submit"] + p button {
@@ -342,91 +283,51 @@ form[role="search"].full button[type="submit"] {
 
 form[role="search"] button.icon:active,
 form[role="search"] button[type="submit"]:active {
-  background: #008caa;
-  text-shadow: 0.1rem 0.1rem 0 rgba(255,255,255,.3);
+  background: #b2f2ff;
+  color: #fff;
 }
 
 form[role="search"] button[type="submit"][disabled] {
   color: #adadad;
-  background: url(input_areas/images/ui/separator.png) no-repeat 0 50%,
-              url(input_areas/images/ui/background.png) repeat-x 0 100%;
+  pointer-events: none;
 }
 
 form button::-moz-focus-inner {
   border: none;
   outline: none;
-  margin-top: -0.2rem; /* To fix line-height bug (697451) */
 }
 
 /******************************************************************************
  * Right-to-Left layout
  */
 
-html[dir="rtl"] form p input + button[type="reset"],
-form p textarea + button[type="reset"] {
-  left: 0;
-  right: auto;
+html[dir="rtl"] form p input:valid,
+html[dir="rtl"] form p input:valid:focus {
+  padding: 0 1.5rem 0 3rem;
 }
 
-html[dir="rtl"] form p input:focus {
-  padding-left: 3rem;
-  padding-right: inherit;
+html[dir="rtl"] form p input + button[type="reset"],
+html[dir="rtl"] form p textarea + button[type="reset"] {
+  right: auto;
+  left: 0;
+}
+
+html[dir="rtl"] fieldset legend.action:after {
+  margin: 0 0.5rem 0 0;
 }
 
 html[dir="rtl"] fieldset legend {
-  padding-left: .5rem;
-  padding-right: 1.5rem;
+  padding: 0 1.5rem 0 0.5rem;
 }
 
-html[dir="rtl"] fieldset section {
-  border-left: none;
-  border-right: 0.1rem solid #ddd;
-  border-radius: 0.3rem 0 0 0.3rem;
-  margin-left: auto;
-  margin-right: 9.5rem;
-}
-
-html[dir="rtl"] form[role="search"]:before {
-  left: auto;
-  right: 1rem;
-}
-
-html[dir="rtl"] form[role="search"] p {
-  padding-left: 1.2rem;
-  padding-right: 3.2rem;
+html[dir="rtl"] form[role="search"] p input {
+  padding: 0;
 }
 
 html[dir="rtl"] form[role="search"] p input:focus {
-  padding-left: 2rem;
-  padding-right: 0;
+  padding: 0 0 0 2rem;
 }
 
-html[dir="rtl"] form[role="search"] button.icon {
-  float: right;
-  background-position: 0 50%, 0 100%;
-}
-
-html[dir="rtl"] form[role="search"] button.icon:before {
-  left: auto;
-  right: 0;
-}
-
-html[dir="rtl"] form[role="search"] p button[type="reset"] {
+html[dir="rtl"] form[role="search"] button[type="submit"] + p > button {
   left: 0;
-  right: auto;
 }
-
-html[dir="rtl"] form[role="search"] button[type="submit"] {
-  float: left;
-  background-position: 100% 50%;
-}
-
-html[dir="rtl"] fieldset legend.action {
-  background-position: 0 100%;
-}
-
-html[dir="rtl"] form[role="search"] button[type="submit"][disabled],
-html[dir="rtl"] form[role="search"].bottom button[type="submit"] {
-  background-position: 100% 50%, 0 100%;
-}
-
