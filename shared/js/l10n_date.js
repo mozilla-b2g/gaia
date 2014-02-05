@@ -21,7 +21,17 @@
  * which is specific to Firefox -- no other browser is supported.
  */
 
-navigator.mozL10n.DateTimeFormat = function(locales, options) {
+(function(root, factory) {
+  if (typeof define === 'function' && define.amd) {
+    define(['l10n'], function(mozL10n) {
+      return (mozL10n.DateTimeFormat = factory(mozL10n));
+    });
+  } else {
+    root.navigator.mozL10n.DateTimeFormat = factory(root.navigator.mozL10n);
+  }
+})(this, function() {
+
+return function(locales, options) {
   var _ = navigator.mozL10n.get;
 
   // https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Date/toLocaleFormat
@@ -170,3 +180,4 @@ navigator.mozL10n.DateTimeFormat = function(locales, options) {
     relativeParts: relativeParts
   };
 };
+});

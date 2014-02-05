@@ -6,6 +6,7 @@ var AlarmList = require('alarm_list');
 var Utils = require('utils');
 var SETTINGS_CLOCKMODE = 'settings_clockoptions_mode';
 var mozL10n = require('l10n');
+var DateTimeFormat = require('l10n-date');
 var viewMode = null;
 
 // Retrieve stored view mode data as early as possible.
@@ -118,7 +119,7 @@ var ClockView = {
 
   updateDayDate: function cv_updateDayDate() {
     var d = new Date();
-    var f = new mozL10n.DateTimeFormat();
+    var f = new DateTimeFormat();
     var format = mozL10n.get('dateFormat');
 
     // If the date of the month is part of the locale format as a

@@ -9,6 +9,7 @@ var Utils = require('utils');
 var Timer = require('timer');
 var Sounds = require('sounds');
 var FormButton = require('form_button');
+var _ = require('l10n').get;
 
 var priv = new WeakMap();
 
