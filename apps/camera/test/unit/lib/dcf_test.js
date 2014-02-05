@@ -1,17 +1,15 @@
-/*
-  Dcf Test.
-*/
-'use strict';
-
 require('/shared/js/format.js');
 
 suite('Format Timer Unit Tests', function() {
+  /*global asyncStorage*/
+  'use strict';
 
+  var require = window.req;
   var subject;
 
   suiteSetup(function(done) {
-    req([
-      'dcf'
+    require([
+      'lib/dcf'
     ], function(dcf) {
       subject = dcf;
       done();

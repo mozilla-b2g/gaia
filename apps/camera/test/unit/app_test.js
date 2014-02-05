@@ -7,10 +7,10 @@ suite('app', function() {
   suiteSetup(function(done) {
     req([
       'app',
-      'camera',
+      'lib/camera',
       'vendor/view',
-      'geolocation',
-      'activity',
+      'lib/geo-location',
+      'lib/activity',
       'lib/config'
     ], function(App, Camera, View, GeoLocation, Activity, Config) {
       modules.app = App;
@@ -75,6 +75,7 @@ suite('app', function() {
         confirm: sinon.spy(),
         camera: sinon.spy(),
         settings: sinon.spy(),
+        sounds: sinon.spy()
       }
     };
 
@@ -114,6 +115,7 @@ suite('app', function() {
       assert.ok(app.activity === options.activity);
       assert.ok(app.camera === options.camera);
       assert.ok(app.storage === options.storage);
+      assert.ok(app.settings === options.settings);
       assert.ok(app.sounds === options.sounds);
       assert.ok(app.controllers === options.controllers);
     });

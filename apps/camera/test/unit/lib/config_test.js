@@ -1,32 +1,6 @@
-suite.only('Sounds', function() {
-  /*jshint maxlen:false*/
+suite('lib/config', function() {
   /*global req*/
   'use strict';
-
-  /**
-   * Locals
-   */
-
-  var has = {}.hasOwnProperty;
-
-  var Sounds;
-  var list = [
-    {
-      name: 'camera',
-      setting: 'camera.shutter.enabled',
-      url: 'resources/sounds/shutter.opus'
-    },
-    {
-      name: 'recordingStart',
-      url: 'resources/sounds/camcorder_start.opus',
-      setting: 'camera.recordingsound.enabled'
-    },
-    {
-      name: 'recordingEnd',
-      url: 'resources/sounds/camcorder_end.opus',
-      setting: 'camera.recordingsound.enabled'
-    }
-  ];
 
   suiteSetup(function(done) {
     var self = this;
@@ -39,46 +13,71 @@ suite.only('Sounds', function() {
   setup(function() {
     this.config = new this.Config({
       maxResolution: 999,
+
+      flashModes: {
+        title: 'Flash',
+        options: [
+          {
+            value: 'auto',
+            title: 'Auto',
+            icon: 'A'
+          },
+          {
+            value: 'on',
+            title: 'On',
+            icon: 'O'
+          },
+          {
+            value: 'off',
+            title: 'Off',
+            icon: 'O'
+          }
+        ],
+        selected: 0,
+        persistent: true
+      },
+
       timer: {
         title: 'Self Timer',
-        options: ['off', '3', '5', '10'],
-        'default': 'off',
-        type: 'toggle',
-        menu: 3,
-        persist: false
+        options: [
+          {
+            title: 'Off',
+            value: 0
+          },
+          {
+            title: '3secs',
+            value: 3
+          },
+          {
+            title: '5secs',
+            value: 5
+          },
+          {
+            title: '10secs ',
+            value: 10
+          }
+        ],
+        selected: 0,
+        persistent: false,
+        menu: 3
       },
+    });
+  });
 
-      hdr: {
-        title: 'HDR',
-        options: ['off', 'on'],
-        'default': 'off',
-        type: 'toggle',
-        persist: true,
-        menu: 1
-      },
+  suite('Config()', function() {
+    test('Should normalize flat properties', function() {
+      var maxResolution = this.config.get('maxResolution');
 
-      scene: {
-        title: 'Scene Mode',
-        options: ['normal', 'pano', 'beauty'],
-        'default': 'normal',
-        type: 'toggle',
-        persist: true,
-        menu: 2
-      },
-
-      mode: {
-        title: 'Mode',
-        options: ['photo', 'video'],
-        'default': 'photo',
-        persist: true
-      },
+      assert.ok(maxResolution.options.length === 1);
+      assert.ok(maxResolution.options[0].value === 999);
+      assert.ok(maxResolution.title === 'maxResolution');
     });
   });
 
   suite('Config#get()', function() {
     test('Should return the key from the config', function() {
-      var hdr = this.config.get('hdr');
-      assert.ok(hdr.title === 'HDR');
+      var hdr = this.config.get('timer');
+      assert.ok(hdr.title === 'Self Timer');
     });
 
     test('Should return undefined for undefined keys', function() {
@@ -87,64 +86,4 @@ suite.only('Sounds', function() {
     });
   });
 
-  suite('Config#menu()', function() {
-    test('Should return an array of just the items with a `menu` key', function() {
-      var items = this.config.menu();
-      var keys = items.map(function(item) { return item.key; });
-
-      assert.ok(!~keys.indexOf('maxResolution'));
-      assert.ok(!~keys.indexOf('mode'));
-      assert.ok(~keys.indexOf('timer'));
-      assert.ok(~keys.indexOf('hdr'));
-      assert.ok(~keys.indexOf('scene'));
-    });
-
-    test('Should sort the items by given `menu` index', function() {
-      var items = this.config.menu();
-
-      assert.ok(items[0].key === 'hdr');
-      assert.ok(items[1].key === 'scene');
-      assert.ok(items[2].key === 'timer');
-    });
-  });
-
-  suite('Config#values()', function() {
-    test('Should return default values derived from each item', function() {
-      var items = this.config.values();
-
-      assert.ok(items.maxResolution === 999);
-      assert.ok(items.timer === 'off');
-      assert.ok(items.hdr === 'off');
-      assert.ok(items.scene === 'normal');
-      assert.ok(items.mode === 'photo');
-    });
-  });
-
-  suite('Config#options()', function() {
-    test('Should the options list for the given key', function() {
-      var scene = this.config.options('scene');
-      var hdr = this.config.options('hdr');
-
-      assert.deepEqual(hdr, ['off', 'on']);
-      assert.deepEqual(scene, ['normal', 'pano', 'beauty']);
-    });
-
-    test('Should return undefined if item has no options', function() {
-      var scene = this.config.options('maxResolution');
-      assert.ok(scene === undefined);
-    });
-  });
-
-  suite('Config#persistent()', function() {
-    test('Should return a list of config keys ' +
-      'not marked `persist: false`', function() {
-      var keys = this.config.persistent();
-
-      assert.ok(!~keys.indexOf('maxResolution'));
-      assert.ok(!~keys.indexOf('timer'));
-      assert.ok(~keys.indexOf('mode'));
-      assert.ok(~keys.indexOf('hdr'));
-      assert.ok(~keys.indexOf('scene'));
-    });
-  });
 });

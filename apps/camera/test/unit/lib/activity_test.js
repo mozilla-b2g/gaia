@@ -1,10 +1,12 @@
-'use strict';
 
 suite('activity', function() {
+  'use strict';
+
+  var require = window.req;
   var Activity;
 
   suiteSetup(function(done) {
-    req(['activity'], function(_activity) {
+    require(['lib/activity'], function(_activity) {
       Activity = _activity;
       done();
     });
@@ -30,16 +32,20 @@ suite('activity', function() {
     this.sandbox.restore();
   });
 
-  test('Should call the callback synchronously if there ' +
-    'is no pending activity', function() {
+  test('Should call the callback (async) if there ' +
+    'is no pending activity', function(done) {
     var callback = this.sinon.spy();
 
     // Instruct the stub to return false
     // when called with 'activity' argument.
     navigator.mozHasPendingMessage.withArgs('activity').returns(false);
 
-    this.activity.check(callback);
-    assert.ok(callback.called);
+    this.activity.check(function() {
+      callback();
+      done();
+    });
+
+    assert.ok(!callback.called);
   });
 
   test('Should call the callback when the \'activity\' ' +

@@ -2,20 +2,23 @@
 'use strict';
 
 suite('controllers/viewfinder', function() {
-  var ViewfinderController;
-
   suiteSetup(function(done) {
     var self = this;
 
     req([
       'app',
-      'camera',
+      'lib/camera',
       'controllers/viewfinder',
       'views/viewfinder',
-      'activity'
-    ], function(App, Camera, _ViewfinderController, ViewfinderView, Activity) {
-      ViewfinderController = _ViewfinderController.ViewfinderController;
+      'lib/activity',
+      'lib/settings'
+    ], function(
+      App, Camera, ViewfinderController,
+      ViewfinderView, Activity, Settings
+    ) {
+      self.ViewfinderController = ViewfinderController.ViewfinderController;
       self.ViewfinderView = ViewfinderView;
+      self.Settings = Settings;
       self.Activity = Activity;
       self.Camera = Camera;
       self.App = App;
@@ -27,6 +30,7 @@ suite('controllers/viewfinder', function() {
     this.app = sinon.createStubInstance(this.App);
     this.app.camera = sinon.createStubInstance(this.Camera);
     this.app.activity = sinon.createStubInstance(this.Activity);
+    this.app.settings = sinon.createStubInstance(this.Settings);
     this.app.filmstrip = { toggle: sinon.spy() };
     this.app.views = {
       viewfinder: sinon.createStubInstance(this.ViewfinderView),
@@ -42,7 +46,7 @@ suite('controllers/viewfinder', function() {
         .withArgs('recording')
         .returns(true);
 
-      this.controller = new ViewfinderController(this.app);
+      this.controller = new this.ViewfinderController(this.app);
       this.viewfinder.emit('click');
 
       assert.isFalse(this.filmstrip.toggle.called);
@@ -54,7 +58,7 @@ suite('controllers/viewfinder', function() {
         .returns(false);
 
       this.app.activity.active = true;
-      this.controller = new ViewfinderController(this.app);
+      this.controller = new this.ViewfinderController(this.app);
       this.controller.onViewfinderClick();
       assert.isFalse(this.filmstrip.toggle.called);
     });
@@ -64,7 +68,7 @@ suite('controllers/viewfinder', function() {
         .withArgs('recording')
         .returns(false);
 
-      this.controller = new ViewfinderController(this.app);
+      this.controller = new this.ViewfinderController(this.app);
       this.controller.onViewfinderClick();
       assert.isTrue(this.filmstrip.toggle.called);
     });

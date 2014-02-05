@@ -95,9 +95,7 @@ CameraController.prototype.configure = function() {
   camera.set('targetImageWidth', activity.data.width);
   camera.set('targetImageHeight', activity.data.height);
   camera.set('selectedCamera', settings.value('cameras'));
-  camera.set('flashMode', settings.value('flashModes'));
-  camera.set('mode', settings.value('mode'));
-
+  camera.setMode(settings.value('mode'));
   debug('configured');
 };
 

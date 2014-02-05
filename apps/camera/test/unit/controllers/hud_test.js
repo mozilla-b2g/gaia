@@ -1,4 +1,4 @@
-suite.only('controllers/hud', function() {
+suite('controllers/hud', function() {
   /*global req*/
   'use strict';
 
@@ -7,15 +7,20 @@ suite.only('controllers/hud', function() {
 
     req([
       'app',
-      'camera',
+      'lib/camera',
       'controllers/hud',
       'views/hud',
       'views/controls',
-      'views/viewfinder'
-    ], function(App,Camera, HudController, HudView, ControlsView, ViewfinderView) {
+      'views/viewfinder',
+      'lib/settings'
+    ], function(
+      App, Camera, HudController, HudView,
+      ControlsView, ViewfinderView, Settings
+    ) {
       self.HudController = HudController.HudController;
-      self.ControlsView = ControlsView;
       self.ViewfinderView = ViewfinderView;
+      self.ControlsView = ControlsView;
+      self.Settings = Settings;
       self.HudView = HudView;
       self.Camera = Camera;
       self.App = App;
@@ -26,11 +31,21 @@ suite.only('controllers/hud', function() {
   setup(function() {
     this.app = sinon.createStubInstance(this.App);
     this.app.camera = sinon.createStubInstance(this.Camera);
+    this.app.settings = sinon.createStubInstance(this.Settings);
     this.app.views = {
       viewfinder: sinon.createStubInstance(this.ViewfinderView),
       controls: sinon.createStubInstance(this.ControlsView),
       hud: sinon.createStubInstance(this.HudView)
     };
+
+    // Stub 'cameras' setting
+    this.app.settings.cameras = sinon.createStubInstance(this.Setting);
+    this.app.settings.flashModes = sinon.createStubInstance(this.Setting);
+    this.app.settings.cameras.get.withArgs('options').returns([]);
+    this.app.settings.get.withArgs('cameras')
+      .returns(this.app.settings.cameras);
+    this.app.settings.get.withArgs('flashModes')
+      .returns(this.app.settings.flashModes);
 
     // For convenience
     this.hud = this.app.views.hud;
@@ -47,7 +62,6 @@ suite.only('controllers/hud', function() {
       assert.ok(this.app.on.calledWith('camera:busy'));
       assert.ok(this.app.on.calledWith('camera:ready'));
       assert.ok(this.app.on.calledWith('camera:loading'));
-      assert.ok(this.app.on.calledWith('change:supports'));
       assert.ok(this.app.on.calledWith('change:recording'));
     });
 
@@ -59,23 +73,6 @@ suite.only('controllers/hud', function() {
     test('Should enable controls when the camera is \'ready\'', function() {
       var enableButtons = this.hudController.enableButtons;
       assert.ok(this.app.on.calledWith('camera:ready', enableButtons));
-    });
-  });
-
-  suite('HudController#onSupportChange()', function() {
-    test('Should bind to the app event', function() {
-      var onSupportChange = this.hudController.onSupportChange;
-      assert.ok(this.app.on.calledWith('change:supports', onSupportChange));
-    });
-
-    test('Should enable/disable hud features base on given support', function() {
-      this.hudController.onSupportChange({
-        selectedCamera: true,
-        flashMode: false
-      });
-
-      assert.ok(this.hud.enable.calledWith('camera', true));
-      assert.ok(this.hud.enable.calledWith('flash', false));
     });
   });
 
