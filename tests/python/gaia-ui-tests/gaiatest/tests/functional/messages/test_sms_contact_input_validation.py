@@ -31,7 +31,4 @@ class TestContactValidation(GaiaTestCase):
         # Type_message will tap in the field to focus it
         new_message.type_message('This is a test message')
 
-        #TODO Wait for the javascript
-        time.sleep(1)
-
         self.assertFalse(new_message.is_send_button_enabled)
