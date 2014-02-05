@@ -2,12 +2,14 @@
 
 'use strict';
 
+mocha.globals(['DownloadUI']);
+
 requireApp('settings/test/unit/mock_l10n.js');
 // Mockup the API
 require('/shared/test/unit/mocks/mock_download.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_downloads.js');
 // We retrieve them for stubbing
-require('/shared/js/download/download_ui.js');
+requireApp('settings/test/unit/mock_download_ui.js');
 require('/shared/js/mime_mapper.js');
 
 // Mocks for several functions
@@ -37,7 +39,8 @@ suite('DownloadList', function() {
     'DownloadFormatter',
     'DownloadStore',
     'LazyLoader',
-    'DownloadHelper'
+    'DownloadHelper',
+    'DownloadUI'
   ]);
   var realMozDownloads, realL10n;
 
