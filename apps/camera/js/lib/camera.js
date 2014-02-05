@@ -287,7 +287,7 @@ Camera.prototype.getMozSettingsSizes = function(done) {
   function onSuccess() {
     self.mozSettingsSizes = req.result[key] || [];
     debug('got settings sizes', self.mozSettingsSizes);
-    done(self.getMozSettingsSizes);
+    done(self.mozSettingsSizes);
   }
 };
 
