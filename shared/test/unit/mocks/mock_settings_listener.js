@@ -1,20 +1,16 @@
 'use strict';
 /* global MockNavigatorSettings */
-/* global requireApp */
+/* global require */
 /* exported MockSettingsListener */
 
-requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 
 var MockLock = {
   locks: [],
   mCallbacks: {},
   mObject: {},
   set: function set(lock) {
-    for (var name in lock) {
-      var object = {};
-      object[name] = lock[name];
-      MockNavigatorSettings.createLock().set(object);
-    }
+    this.mCallbacks = MockNavigatorSettings.createLock().set(lock);
     this.locks.push(lock);
     return this.mCallbacks;
   },

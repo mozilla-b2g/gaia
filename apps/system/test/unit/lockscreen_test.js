@@ -63,6 +63,7 @@ suite('system/LockScreen >', function() {
   var domMainScreen;
   var domCamera;
   var stubById;
+  var domMessage;
   mocksForLockScreen.attachTestHelpers();
 
   setup(function() {
@@ -106,6 +107,8 @@ suite('system/LockScreen >', function() {
     document.body.appendChild(domPasscodePad);
     domMainScreen = document.createElement('div');
     subject.passcodePad = domPasscodePad;
+    domMessage = document.createElement('div');
+    subject.message = domMessage;
 
     var mockClock = {
       stop: function() {}
@@ -233,6 +236,19 @@ suite('system/LockScreen >', function() {
         'the corresponding creation method was no invoked');
       stubDispatch.restore();
     });
+
+  test('Message: message should appear on screen when set', function() {
+    var message = 'message';
+    subject.setLockMessage(message);
+    assert.equal(subject.message.hidden, false);
+    assert.equal(subject.message.textContent, message);
+  });
+
+  test('Message: message should disappear when unset', function() {
+    subject.setLockMessage('');
+    assert.equal(subject.message.textContent, '');
+    assert.equal(subject.message.hidden, true);
+  });
 
   // XXX: Test 'Screen off: by proximity sensor'.
 
