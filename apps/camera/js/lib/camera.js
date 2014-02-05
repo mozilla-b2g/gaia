@@ -6,10 +6,10 @@ define(function(require, exports, module) {
  * Module Dependencies
  */
 
-var getPictureSizeKey = require('lib/get-picture-size-key');
 var getVideoMetaData = require('lib/get-video-meta-data');
 var CameraUtils = require('lib/camera-utils');
 var orientation = require('lib/orientation');
+var getSizeKey = require('lib/get-size-key');
 var constants = require('config/camera');
 var debug = require('debug')('camera');
 var bindAll = require('lib/bind-all');
@@ -55,6 +55,10 @@ function Camera(options) {
   this.mozCamera = null;
   this.cameraList = navigator.mozCameras.getListOfCameras();
   this.autoFocus = {};
+  this.sizes = {
+    picture: {},
+    video: {}
+  };
   this.tmpVideo = {
     storage: navigator.getDeviceStorage('videos'),
     filename: null,
@@ -154,20 +158,28 @@ Camera.prototype.configureCamera = function(mozCamera) {
 Camera.prototype.formatCapabilities = function(capabilities) {
   capabilities = mixin({}, capabilities);
   var pictureSizes = capabilities.pictureSizes;
+  var videoSizes = capabilities.videoSizes;
+
   return mixin(capabilities, {
-    pictureSizes: this.formatPictureSizes(pictureSizes)
+    pictureSizes: this.formatSizes('picture', pictureSizes),
+    videoSizes: this.formatSizes('video', videoSizes)
   });
 };
 
 Camera.prototype.setPictureSize = function(value) {
-  var geckoValue = this.pictureSizes[value];
+  var geckoValue = this.sizes.picture[value];
   this.mozCamera.pictureSize = geckoValue;
 };
 
-Camera.prototype.formatPictureSizes = function(sizes) {
-  var hash = this.pictureSizes = {};
+Camera.prototype.setVideoSize = function(value) {
+  var geckoValue = this.sizes.video[value];
+  this.mozCamera.pictureSize = geckoValue;
+};
+
+Camera.prototype.formatSizes = function(type, sizes) {
+  var hash = this.sizes[type] = {};
   return sizes.map(function(size) {
-    var key = getPictureSizeKey(size);
+    var key = getSizeKey[type](size);
     hash[key] = size;
     return key;
   });
@@ -252,6 +264,7 @@ Camera.prototype.setFlashMode = function(key) {
   debug('flash mode set: %s', key);
 };
 
+// TODO: Move out of camera.js and integrate into app settings
 Camera.prototype.getMozSettingsSizes = function(done) {
   done = done || function() {};
   var key = 'camera.recording.preferredSizes';
@@ -261,8 +274,8 @@ Camera.prototype.getMozSettingsSizes = function(done) {
   // have already been retrieved.
   // setTimeout used to ensure the
   // callback is always called async.
-  if (this.getMozSettingsSizes) {
-    setTimeout(function() { done(this.getMozSettingsSizes); });
+  if (this.mozSettingsSizes) {
+    setTimeout(function() { done(this.mozSettingsSizes); });
     return;
   }
 
@@ -272,12 +285,13 @@ Camera.prototype.getMozSettingsSizes = function(done) {
     .onsuccess = onSuccess;
 
   function onSuccess() {
-    self.getMozSettingsSizes = req.result[key] || [];
-    debug('got settings sizes', self.getMozSettingsSizes);
+    self.mozSettingsSizes = req.result[key] || [];
+    debug('got settings sizes', self.mozSettingsSizes);
     done(self.getMozSettingsSizes);
   }
 };
 
+// TODO: Move out of camera.js and integrate into app settings
 Camera.prototype.pickVideoProfile = function(profiles, preferredSizes) {
   debug('pick video profile');
 
@@ -346,6 +360,7 @@ Camera.prototype.release = function(done) {
   }
 };
 
+// TODO: Move out of camera.js and integrate into app settings
 Camera.prototype.pickPictureSize = function(pictureSizes) {
   var targetFileSize = this.get('targetFileSize') || 0;
   var targetWidth = this.get('targetWidth');
@@ -429,6 +444,7 @@ Camera.prototype.pickPictureSize = function(pictureSizes) {
   return pictureSize;
 };
 
+// TODO: Move out of camera.js and integrate into app settings
 Camera.prototype.pickThumbnailSize = function(thumbnailSizes, pictureSize) {
   var screenWidth = window.innerWidth * window.devicePixelRatio;
   var screenHeight = window.innerHeight * window.devicePixelRatio;

@@ -68,6 +68,27 @@ module.exports = {
     menu: 4
   },
 
+  videoSizes: {
+    title: 'Video Sizes',
+    options: [
+      {
+        value: 'hd',
+        title: 'HD 1280X720'
+      },
+      {
+        value: 'qvga',
+        title: 'QVGA 320X240'
+      },
+      {
+        value: 'qcif',
+        title: 'QCIF 176X144'
+      }
+    ],
+    selected: 0,
+    persistent: true,
+    menu: 4
+  },
+
   flashModes: {
     title: 'Flash',
     options: [
