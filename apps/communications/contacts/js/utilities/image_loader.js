@@ -43,6 +43,7 @@ if (!window.ImageLoader) {
     }
 
     function onScroll() {
+      console.log('omfg scroll!');
       if (imgsLoading > 0) {
         // Stop the pending images load
         window.stop();
