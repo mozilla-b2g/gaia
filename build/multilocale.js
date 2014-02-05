@@ -278,8 +278,11 @@ function L10nManager(gaiaDir, sharedDir, localesFilePath, localeBasedir) {
       return true;
     });
 
+    var manifestFile = webapp.buildManifestFile.exists() ?
+      webapp.buildManifestFile : webapp.manifestFile;
+
     var manifest = addLocaleManifest(localesForManifest, localesProps,
-      utils.getJSON(webapp.manifestFile));
+      utils.getJSON(manifestFile));
     return manifest;
   }
 
