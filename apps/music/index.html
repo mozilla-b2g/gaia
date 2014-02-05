@@ -72,7 +72,8 @@
             <button id="views-sublist-controls-shuffle" class="album-controls-button"></button>
           </div>
         </div>
-        <div id="views-sublist-anchor"></div>
+        <!-- Bug 968456. Scrollable area needs to be inside an opaque background div to improve gecko -->
+        <div id="views-scrollable-sublist-anchor"><div id="views-sublist-anchor"></div></div>
       </div>
       <div id="views-player" class="view hidden">
         <div id="player-cover">
