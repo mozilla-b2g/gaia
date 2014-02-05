@@ -10,13 +10,9 @@ var MockLock = {
   mCallbacks: {},
   mObject: {},
   set: function set(lock) {
-    for (var name in lock) {
-      var object = {};
-      object[name] = lock[name];
-      MockNavigatorSettings.createLock().set(object);
-    }
+    var req = MockNavigatorSettings.createLock().set(lock);
     this.locks.push(lock);
-    return this.mCallbacks;
+    return req;
   },
   get: function get(name) {
     this.mObject[name] = {};
