@@ -203,6 +203,7 @@ function makeWebappsObject(appdirs, domain, scheme, port) {
         let webapp = {
           manifest: getJSON(manifest),
           manifestFile: manifest,
+          buildManifestFile: manifest,
           url: scheme + appDomain + (port ? port : ''),
           domain: appDomain,
           sourceDirectoryFile: manifestFile.parent,
@@ -235,6 +236,11 @@ function makeWebappsObject(appdirs, domain, scheme, port) {
             });
 
             webapp.buildDirectoryFile = buildDirectoryFile;
+
+            let buildManifestFile = buildDirectoryFile.clone();
+            buildManifestFile.append('manifest.webapp');
+
+            webapp.buildManifestFile = buildManifestFile;
           }
         }
 
