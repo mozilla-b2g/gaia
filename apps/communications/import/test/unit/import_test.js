@@ -9,7 +9,6 @@ requireApp('communications/contacts/js/utilities/dom.js');
 requireApp('communications/contacts/js/fb/friends_list.js');
 requireApp('communications/contacts/js/utilities/templates.js');
 requireApp('communications/contacts/test/unit/mock_contacts_shortcuts.js');
-requireApp('communications/contacts/test/unit/mock_fixed_header.js');
 requireApp('communications/contacts/test/unit/mock_utils.js');
 requireApp('communications/facebook/test/unit/mock_curtain.js');
 requireApp('communications/import/test/unit/mock_connector.js');
@@ -18,16 +17,11 @@ requireApp('communications/contacts/js/views/search.js');
 requireApp('communications/contacts/js/importer_ui.js');
 
 var realSearch,
-    realFixedHeader,
     realImageLoader,
     realAlphaScroll,
     realAsyncStorage,
     realOauthflow,
     groupsListChild, groupsList;
-
-if (!this.FixedHeader) {
-  this.FixedHeader = null;
-}
 
 if (!this.asyncStorage) {
   this.asyncStorage = null;
@@ -62,9 +56,6 @@ suite('Import Friends Test Suite', function() {
   suiteSetup(function() {
     realAlphaScroll = utils.AlphaScroll;
     utils.alphaScroll = MockAlphaScroll;
-
-    realFixedHeader = window.FixedHeader;
-    window.FixedHeader = MockFixedHeader;
 
     realImageLoader = window.ImageLoader;
     window.ImageLoader = MockImageLoader;
@@ -207,7 +198,6 @@ suite('Import Friends Test Suite', function() {
 
   suiteTeardown(function() {
     utils.alphaScroll = realAlphaScroll;
-    window.FixedHeader = realFixedHeader;
     window.ImageLoader = realImageLoader;
     window.contacts.Search = realSearch;
     window.asyncStorage = realAsyncStorage;

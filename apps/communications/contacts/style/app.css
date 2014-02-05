@@ -287,8 +287,16 @@ li a[role="button"].activity > b{
   padding: 2.5rem 2.5rem 0 0;
 }
 
+.active[data-type="list"] li:after, [data-type="list"] li > a:after {
+  left: 0;
+}
+
 [data-type="list"] header {
   padding: 0 0 0 1.5rem;
+  position: sticky;
+  top: -1.5rem;
+  background: #FFF;
+  z-index: 2;
 }
 
 [data-type="list"].active li:after {
