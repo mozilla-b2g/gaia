@@ -147,8 +147,12 @@
       var goToTopUpCode;
       if (!inStandAloneMode()) {
         goToTopUpCode = function _goToTopUpCode() {
-          app.launch();
-          window.parent.BalanceTab.topUpWithCode(true);
+          if (inApplicationMode()) {
+            app.launch();
+            window.parent.BalanceTab.topUpWithCode(true);
+          } else {
+            var activity = new MozActivity({ name: 'costcontrol/balance' });
+          }
         };
       }
 
@@ -175,8 +179,12 @@
       var goToBalance;
       if (!inStandAloneMode()) {
         goToBalance = function _goToBalance() {
-          app.launch();
-          window.parent.CostControlApp.showBalanceTab();
+          if (inApplicationMode()) {
+            app.launch();
+            window.parent.CostControlApp.showBalanceTab();
+          } else {
+            var activity = new MozActivity({ name: 'costcontrol/balance' });
+          }
         };
       }
 
@@ -289,8 +297,12 @@
       var goToDataUsage;
       if (!inStandAloneMode()) {
         goToDataUsage = function _goToDataUsage() {
-          app.launch();
-          window.parent.CostControlApp.showDataUsageTab();
+          if (inApplicationMode()) {
+            app.launch();
+            window.parent.CostControlApp.showDataUsageTab();
+          } else {
+            var activity = new MozActivity({ name: 'costcontrol/data_usage' });
+          }
         };
       }
 
