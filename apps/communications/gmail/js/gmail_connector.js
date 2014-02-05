@@ -1,3 +1,7 @@
+/* globals Rest */
+
+/* exported GmailConnector */
+
 'use strict';
 
 /*
@@ -46,7 +50,7 @@ var GmailConnector = (function GmailConnector() {
   // Returns the object used to build the headers necesary by the service
   var buildRequestHeaders = function buildRequestHeaders(access_token) {
     var requestHeaders = EXTRA_HEADERS;
-    requestHeaders['Authorization'] = 'OAuth ' + access_token;
+    requestHeaders.Authorization = 'OAuth ' + access_token;
 
     return requestHeaders;
   };
@@ -271,7 +275,10 @@ var GmailConnector = (function GmailConnector() {
 
     var bday = googleContact.querySelector('birthday');
     if (bday) {
-      output.bday = new Date(Date.parse(bday.getAttribute('when')));
+      var bdayMS = Date.parse(bday.getAttribute('when'));
+      if (!isNaN(bdayMS)) {
+        output.bday = new Date(bdayMS);
+      }
     }
 
     var content = googleContact.querySelector('content');
@@ -400,7 +407,7 @@ var GmailConnector = (function GmailConnector() {
   // return the google contact id if we find it on
   // the uri, -1 otherwise
   var resolveURI = function resolveURI(uri) {
-    if (uri && uri.indexOf(URN_IDENTIFIER) == 0) {
+    if (uri && uri.indexOf(URN_IDENTIFIER) === 0) {
       var output = uri.substr(URN_IDENTIFIER.length);
       if (output && output.length > 0) {
         return output;
