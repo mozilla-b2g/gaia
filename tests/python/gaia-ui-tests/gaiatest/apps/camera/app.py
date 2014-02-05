@@ -19,14 +19,6 @@ class Camera(Base):
     _body_locator = (By.TAG_NAME, 'body')
 
     # Controls View
-<<<<<<< HEAD
-    _controls_locator = (By.CSS_SELECTOR, '.js-controls')
-    _switch_button_locator = (By.CSS_SELECTOR, '.js-switch')
-    _capture_button_locator = (By.CSS_SELECTOR, '.js-capture')
-    _gallery_button_locator = (By.CSS_SELECTOR, '.js-gallery')
-    _cancel_pick_button_locator = (By.CSS_SELECTOR, '.js-cancel-pick')
-    _video_timer_locator = (By.CSS_SELECTOR, '.js-video-timer')
-=======
     _controls_locator = (By.CSS_SELECTOR, '.controls')
     _controls_enabled_locator = (By.CSS_SELECTOR, '.controls:not([buttons-enabled=false])')
     _switch_button_locator = (By.CSS_SELECTOR, '.test-switch')
@@ -34,7 +26,6 @@ class Camera(Base):
     _gallery_button_locator = (By.CSS_SELECTOR, '.test-gallery')
     _cancel_pick_button_locator = (By.CSS_SELECTOR, '.test-cancel-pick')
     _video_timer_locator = (By.CSS_SELECTOR, '.test-video-timer')
->>>>>>> Fix functional tests. Added 'test-*' class hooks to avoid future breakage
 
     # HUD View
     _hud_locator = (By.CSS_SELECTOR, '.hud')
