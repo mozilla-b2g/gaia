@@ -298,14 +298,6 @@ function getLocaleBasedir(original) {
     original.replace('/', '\\', 'g') : original;
 }
 
-function gaiaOriginURL(name, scheme, domain, port) {
-  return scheme + name + '.' + domain + (port ? port : '');
-}
-
-function gaiaManifestURL(name, scheme, domain, port) {
-  return gaiaOriginURL(name, scheme, domain, port) + '/manifest.webapp';
-}
-
 function getDistributionFileContent(name, defaultContent, distDir) {
   if (distDir) {
     let distributionFile = getFile(distDir, name + '.json');
@@ -720,8 +712,6 @@ exports.ensureFolderExists = ensureFolderExists;
 exports.getJSON = getJSON;
 exports.getFileAsDataURI = getFileAsDataURI;
 exports.makeWebappsObject = makeWebappsObject;
-exports.gaiaOriginURL = gaiaOriginURL;
-exports.gaiaManifestURL = gaiaManifestURL;
 exports.getDistributionFileContent = getDistributionFileContent;
 exports.resolve = resolve;
 exports.getGaia = getGaia;
