@@ -39,6 +39,11 @@ form[role="dialog"][data-type="edit"] > menu {
 
 #call-log-container[data-type="list"] ol {
   padding: 0 1.5rem;
+
+  /* Bug 967880 - [Call Log] Background doesn't scroll with the logs causing
+   * expensive over-invalidation.
+   */
+  background-color: white;
 }
 
 #call-log-container[data-type="list"] li {
