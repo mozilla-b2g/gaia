@@ -965,7 +965,7 @@ suite('Render contacts list', function() {
         var contact = container.querySelector(selectorContact1);
 
         doOnscreen(subject, contact, function() {
-          var img = contact.querySelector('img');
+          var img = contact.querySelector('span[data-type=img]');
 
           assert.equal(img.dataset.src, 'test.png',
                         'At the begining contact 1 img === "test.png"');
@@ -979,7 +979,7 @@ suite('Render contacts list', function() {
             contact = container.querySelector(selectorContact1);
 
             doOnscreen(subject, contact, function() {
-              img = contact.querySelector('img');
+              img = contact.querySelector('span[data-type=img]');
 
               assert.equal(img.dataset.src, 'one.png',
                             'After updating contact 1 img === "one.png"');
@@ -1002,7 +1002,7 @@ suite('Render contacts list', function() {
         var contact = container.querySelector(selectorContact1);
 
         doOnscreen(subject, contact, function() {
-          var img = contact.querySelector('img');
+          var img = contact.querySelector('span[data-type=img]');
           assert.equal(img.dataset.src, 'test.png',
                         'At the begining contact 1 img === "test.png"');
 
@@ -1012,7 +1012,7 @@ suite('Render contacts list', function() {
             contact = container.querySelector(selectorContact1);
 
             doOnscreen(subject, contact, function() {
-              img = contact.querySelector('img');
+              img = contact.querySelector('span[data-type=img]');
               assert.equal(img.dataset.src, 'test.png',
                             'At the begining contact 1 img === "test.png"');
               done();
