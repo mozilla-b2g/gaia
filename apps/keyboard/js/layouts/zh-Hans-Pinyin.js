@@ -1,6 +1,6 @@
 Keyboards['zh-Hans-Pinyin'] = {
   label: 'Chinese - Simplified - Pinyin',
-  menuLabel: '拼音输入',
+  menuLabel: '拼音',
   needsCandidatePanel: true,
   disableAlternateLayout: true,
   imEngine: 'jspinyin',
