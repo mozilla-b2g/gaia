@@ -668,6 +668,13 @@ section[role="region"] > header .icon.icon-settings {
   overflow: scroll;
 }
 
+/* Bug 967274 - Background doesn't scroll with the contacts causing
+ * expensive over-invalidation
+ */
+#groups-container-background {
+  background-color: #fff;
+}
+
 /* Do not remove overflow: hidden as it fixes bug 937291 */
 .group-section {
   overflow: hidden;
