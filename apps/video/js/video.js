@@ -952,6 +952,17 @@ function showPlayer(video, autoPlay, enterFullscreen, keepControls) {
     } else {
       doneSeeking();
     }
+
+   if (window.navigator.mozNfc) {
+      // If we have NFC, we need to put the callback to have shrinking UI.
+      window.navigator.mozNfc.onpeerready = function(event) {
+        // The callback function is called when user confirm to share the
+        // content, send it with NFC Peer.
+        videodb.getFile(video.name, function(file) {
+          navigator.mozNfc.getNFCPeer(event.detail).sendFile(file);
+        });
+      };
+    }
   });
 }
 
@@ -964,6 +975,10 @@ function hidePlayer(updateVideoMetadata, callback) {
   }
 
   dom.player.pause();
+  if (window.navigator.mozNfc) {
+    // We need to remove onpeerready while out of sharable context.
+    window.navigator.mozNfc.onpeerready = null;
+  }
 
   function completeHidingPlayer() {
     // switch to the video gallery view
