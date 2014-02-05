@@ -26,7 +26,7 @@ class TestLockScreen(GaiaTestCase):
         https://github.com/mozilla/gaia-ui-tests/issues/478
         """
         lock_screen = LockScreen(self.marionette)
-        homescreen = lock_screen.unlock()
-        lock_screen.passcode_pad.type_passcode(self._input_passcode)
+        passcode_pad = lock_screen.unlock_to_passcode_pad()
+        homescreen = passcode_pad.type_passcode(self._input_passcode)
 
         self.wait_for_condition(lambda m: self.apps.displayed_app.name == homescreen.name)
