@@ -1,3 +1,8 @@
+/* global MockLazyLoader, MockMatcher, MockMozContacts, MocksHelper,
+    mozContact, VCFReader */
+
+'use strict';
+
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 requireApp('communications/contacts/test/unit/mock_contacts_match.js');
 requireApp('communications/contacts/js/utilities/vcard_parser.js');
@@ -124,16 +129,16 @@ var vcardUnicodeQuotedPrintable = 'BEGIN:VCARD\n' +
   '=55=20=44=72=65=73=64=65=6E\n' +
   'END:VCARD\n';
 
-if (!this.contacts) {
-  this.contacts = null;
+if (!window.contacts) {
+  window.contacts = null;
 }
 
-if (!this.LazyLoader) {
-  LazyLoader = null;
+if (!window.LazyLoader) {
+  window.LazyLoader = null;
 }
 
-if (!this.utils) {
-  this.utils = null;
+if (!window.utils) {
+  window.utils = null;
 }
 
 var mocksHelperForVCardParsing = new MocksHelper([
@@ -142,15 +147,17 @@ var mocksHelperForVCardParsing = new MocksHelper([
 
 suite('vCard parsing settings', function() {
   function stub(additionalCode, ret) {
-    if (additionalCode && typeof additionalCode !== 'function')
+    if (additionalCode && typeof additionalCode !== 'function') {
       ret = additionalCode;
+    }
 
     var nfn = function() {
       nfn.callCount++;
       nfn.calledWith = [].slice.call(arguments);
 
-      if (typeof additionalCode === 'function')
+      if (typeof additionalCode === 'function') {
         additionalCode.apply(this, arguments);
+      }
 
       return ret;
     };
@@ -176,7 +183,9 @@ suite('vCard parsing settings', function() {
             req.result = self.contacts;
             cb();
           },
-          set onerror(cb) {}
+          get onsuccess() {},
+          set onerror(cb) {},
+          get onerror() {}
         };
         return req;
       };
@@ -535,6 +544,24 @@ suite('vCard parsing settings', function() {
     test('- vcards with more than 5 elements', function(done) {
       var superVcard = '';
       var CARDS = 6;
+      for (var i = 0; i < CARDS; i++) {
+        superVcard += vcf1 + '\n';
+      }
+
+      var reader = new VCFReader(superVcard);
+      reader.onread = stub();
+      reader.onimported = stub();
+      reader.onerror = stub();
+
+      reader.process(function import_finish(total) {
+        assert.equal(CARDS, total);
+        done();
+      });
+    });
+
+    test('- vcards with more than 25 elements', function(done) {
+      var superVcard = '';
+      var CARDS = 26;
       for (var i = 0; i < CARDS; i++) {
         superVcard += vcf1 + '\n';
       }

@@ -1,4 +1,7 @@
-/* global mozContact contacts LazyLoader */
+/* global contacts, LazyLoader, utils */
+
+/* exported VCFReader */
+
 'use strict';
 
 var VCFReader = (function _VCFReader() {
@@ -238,7 +241,8 @@ var VCFReader = (function _VCFReader() {
       contactObj.adr.push(cur);
     }
     return contactObj;
-  };
+  }
+  
   /**
    * Takes an object with vCard properties and a mozContact object and returns
    * the latter with the computed phone, email and url fields properly filled,
@@ -256,7 +260,22 @@ var VCFReader = (function _VCFReader() {
         return;
       }
 
-      var len = vcardObj[field].length;
+      var len = vcardObj[field].length,
+          hasTypeMapper = function (x) {
+            return x.trim().toLowerCase();
+          },
+          notTypeMapper = function (v, key) {
+            return v.meta[key].trim().toLowerCase();
+          },
+          noType = function (field) {
+            return field !== 'type';
+          },
+          noPref = function (field) {
+            return field !== 'pref';
+          },
+          typeFilter = function (metaValue) {
+            return !!VCARD_SIMPLE_TYPES[metaValue];
+          };
       for (var i = 0; i < len; i++) {
         var v = vcardObj[field][i];
         var metaValues;
@@ -269,24 +288,15 @@ var VCFReader = (function _VCFReader() {
           }
 
           if (v.meta.type) {
-            metaValues = ([].slice.call(v.meta.type)).map(function(x) {
-              return x.trim().toLowerCase();
-            });
+            metaValues = ([].slice.call(v.meta.type)).map(hasTypeMapper);
           } else {
-            metaValues = Object.keys(v.meta).filter(
-                function noType(field) {
-                  return field !== 'type';
-                }
-              ).map(function(key) {
-                return v.meta[key].trim().toLowerCase();
-              });
+            metaValues = Object.keys(v.meta).filter(noType).map(
+              notTypeMapper.bind(null, v));
           }
 
           if (metaValues.indexOf('pref') !== -1) {
             cur.pref = true;
-            metaValues = metaValues.filter(
-              function noPref(field) { return field !== 'pref'; }
-            );
+            metaValues = metaValues.filter(noPref);
           }
 
           /*
@@ -320,9 +330,6 @@ var VCFReader = (function _VCFReader() {
                           DEFAULT_PHONE_TYPE];
               break;
             default:
-              var typeFilter = function(metaValue) {
-                  return !!VCARD_SIMPLE_TYPES[metaValue];
-              };
               cur.type = [
                 VCARD_SIMPLE_TYPES[metaValues.filter(typeFilter).shift()] ||
                 DEFAULT_PHONE_TYPE
@@ -398,7 +405,6 @@ var VCFReader = (function _VCFReader() {
     this.processed = 0;
     this.finished = false;
     this.currentChar = 0;
-    this.totalParsed = 0;
   };
 
   // Number of contacts processed at a given time.
@@ -473,7 +479,6 @@ var VCFReader = (function _VCFReader() {
 
     var processed = this.processed;
     if (processed < this.total && processed % VCFReader.CONCURRENCY === 0) {
-      this.totalParsed += processed;
       this.splitLines();
     }
   };
@@ -562,7 +567,6 @@ var VCFReader = (function _VCFReader() {
     // We start at the last cursor position
     var i = this.currentChar;
 
-    var self = this;
     var callPost = this.post.bind(this);
 
     for (var l = this.contents.length; i < l; i++) {
@@ -617,7 +621,7 @@ var VCFReader = (function _VCFReader() {
         cardsProcessed += 1;
 
         if (cardsProcessed === VCFReader.CONCURRENCY ||
-          (cardsProcessed + this.totalParsed) === this.total) {
+          (cardsProcessed + this.processed) === this.total) {
           _parseEntries(cardArray, callPost);
           break;
         }

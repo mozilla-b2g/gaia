@@ -1,3 +1,5 @@
+/* exported MockmozContact */
+
 'use strict';
 
 var MockmozContact = function(obj) {

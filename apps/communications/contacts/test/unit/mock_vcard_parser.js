@@ -9,7 +9,6 @@ MockVcardParser.prototype.process = function process(cb) {
 };
 
 function MockVCFReader(textToParse) {
-  var f = 0;
   this.text = textToParse;
 }
 

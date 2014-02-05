@@ -302,7 +302,6 @@ apps/communications/contacts/js/utilities/sdcard.js
 apps/communications/contacts/js/utilities/sim_dom_generator.js
 apps/communications/contacts/js/utilities/status.js
 apps/communications/contacts/js/utilities/templates.js
-apps/communications/contacts/js/utilities/vcard_parser.js
 apps/communications/contacts/js/value_selector.js
 apps/communications/contacts/js/views/details.js
 apps/communications/contacts/js/views/form.js
@@ -371,10 +370,8 @@ apps/communications/contacts/test/unit/mock_search.js
 apps/communications/contacts/test/unit/mock_sim_importer.js
 apps/communications/contacts/test/unit/mock_utils.js
 apps/communications/contacts/test/unit/mock_value_selector.js
-apps/communications/contacts/test/unit/mock_vcard_parser.js
 apps/communications/contacts/test/unit/mock_wakelock.js
 apps/communications/contacts/test/unit/navigation_test.js
-apps/communications/contacts/test/unit/vcard_parsing_test.js
 apps/communications/contacts/test/unit/views/details_test.js
 apps/communications/contacts/test/unit/views/form_test.js
 apps/communications/contacts/test/unit/views/list_test.js
