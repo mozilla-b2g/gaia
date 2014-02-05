@@ -31,8 +31,10 @@ function addEntryFileWithTime(zip, pathInZip, file, time) {
               createInstance(Ci.nsIFileInputStream);
   fis.init(file, -1, -1, 0);
 
+  const variant = utils.getEnv('TARGET_BUILD_VARIANT') || 'user';
+  var compression = variant == 'eng' ? Ci.nsIZipWriter.COMPRESSION_BEST :
   zip.addEntryStream(
-    pathInZip, time, Ci.nsIZipWriter.COMPRESSION_BEST, fis, false);
+    pathInZip, time, compression, fis, false);
   fis.close();
 }
 
