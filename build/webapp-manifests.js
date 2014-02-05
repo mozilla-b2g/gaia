@@ -218,13 +218,6 @@ function fillAppManifest(webapp) {
   } else if (config.ROCKETBAR && webapp.url.indexOf('system.' + config.GAIA_DOMAIN) !== -1) {
     modifySystemForRocketbar(webapp, webappTargetDir);
   }
-  else if (webapp.url.indexOf('://keyboard.gaiamobile.org') !== -1) {
-    let kbdConfig = require('keyboard-config');
-    let kbdManifest = utils.getJSON(webapp.manifestFile);
-    kbdManifest = kbdConfig.addEntryPointsToManifest(config, kbdManifest);
-    utils.writeContent(utils.getFile(webappTargetDir.path, 'manifest.webapp'),
-                       JSON.stringify(kbdManifest));
-  }
 
   manifestInterAppHostnames(webapp, webappTargetDir);
 

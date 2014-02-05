@@ -537,10 +537,6 @@ function execute(options) {
                          'gallery', 'js', 'config.js');
     utils.writeContent(file, content);
   }());
-
-  // Configure the system keyboard app by copying the keyboard layouts and
-  // autocorrect dictionary files we need into the app directory.
-  require('keyboard-config').copyLayoutsAndResources(config);
 }
 
 exports.execute = execute;
