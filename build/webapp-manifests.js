@@ -214,7 +214,9 @@ function fillAppManifest(webapp) {
   if (webapp.url.indexOf('communications.' + config.GAIA_DOMAIN) !== -1) {
     fillCommsAppManifest(webapp, webappTargetDir);
   } else if (config.ROCKETBAR && webapp.url.indexOf('browser.' + config.GAIA_DOMAIN) !== -1) {
-    modifyBrowserForRocketbar(webapp, webappTargetDir);
+    // DISABLED to allow browser to live independently still, until it's functionality
+    // is available via system browser.
+    //modifyBrowserForRocketbar(webapp, webappTargetDir);
   } else if (config.ROCKETBAR && webapp.url.indexOf('system.' + config.GAIA_DOMAIN) !== -1) {
     modifySystemForRocketbar(webapp, webappTargetDir);
   }
