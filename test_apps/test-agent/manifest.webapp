@@ -19,7 +19,16 @@
   "icons": {
     "120": "/style/icons/Test-agent.png"
   },
-  "orientation": "portrait-primary"
+  "orientation": "portrait-primary",
+  "datastores-owned": {
+    "download_store": {
+      "access": "readwrite",
+      "description": "Stores successful downloads"
+    },
+    "places": {
+      "access": "readwrite",
+      "description": "Stores data about browsing history."
+    }
+  }
 }
-
 

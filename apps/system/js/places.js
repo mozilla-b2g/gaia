@@ -12,6 +12,8 @@
 
 var Places = {
 
+  MAX_URL_ICONS: 5,
+
   STORE_NAME: 'places',
 
   dataStore: null,
@@ -52,8 +54,8 @@ var Places = {
       this.addVisit(evt.detail.config.url);
       break;
     case 'appiconchange':
-      this.setPlaceIconUri(evt.detail.config.url,
-                           evt.detail.config.favicon.href);
+      this.setPlaceIcon(evt.detail.config.url,
+                           evt.detail.config.favicon);
       break;
     }
   },
@@ -62,6 +64,7 @@ var Places = {
     return {
       url: url,
       title: url,
+      icons: [],
       frecency: 1
     };
   },
@@ -129,14 +132,41 @@ var Places = {
    * Set place icon.
    *
    * @param {String} url URL of place to update.
-   * @param {String} iconUri URL of the icon for url
+   * @param {Object} icon icon object
    */
-  setPlaceIconUri: function(url, iconUri) {
+  setPlaceIcon: function(url, icon) {
     return this.editPlace(url, (function(place, cb) {
       if (!place) {
         place = this.defaultPlace(url);
       }
-      place.iconUri = iconUri;
+
+      var sizes = [];
+      if (icon.sizes && icon.sizes !== '') {
+        // The `sizes` property contains a string like '32x32 48x48',
+        // we store it as an array of integers.
+        sizes = icon.sizes.split(/\s/).map(function(size) {
+          return parseInt(size.substring(0, size.indexOf('x')), 10);
+        });
+      }
+
+      var newIcon = {
+        url: icon.href,
+        sizes: sizes
+      };
+
+      function iconExists(url) {
+        for (var i = 0; i < place.icons.length; i++) {
+          if (place.icons[i].url === url) {
+            return true;
+          }
+        }
+        return false;
+      }
+
+      if (!iconExists(newIcon.url) &&
+        place.icons.length < this.MAX_URL_ICONS) {
+        place.icons.push(newIcon);
+      }
       cb(place);
     }).bind(this));
   }
