@@ -778,8 +778,10 @@ var TilesView = {
     titleBar.className = 'tile-title-bar';
     var artistName = document.createElement('div');
     artistName.className = 'tile-title-artist';
+    artistName.dir = 'auto';
     var albumName = document.createElement('div');
     albumName.className = 'tile-title-album';
+    albumName.dir = 'auto';
     artistName.textContent = result.metadata.artist || unknownArtist;
     artistName.dataset.l10nId =
       result.metadata.artist ? '' : unknownArtistL10nId;

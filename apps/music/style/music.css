@@ -631,6 +631,13 @@ body.picker-mode #title-player {
   font-size: 1.7rem;
 }
 
+#player-cover-artist:-moz-dir(rtl),
+#player-cover-album:-moz-dir(rtl) {
+  text-align: right;
+  right:-5rem;
+  left: auto;
+}
+
 #player-cover-artist.hidden-cover-share,
 #player-cover-album.hidden-cover-share {
   width: 100%;
@@ -1116,3 +1123,131 @@ form p input + button[type="reset"] {
   opacity: 1;
   transition: all 600ms ease;
 }
+
+/*
+ * RTL Layout
+ */
+
+html[dir="rtl"] li.list-header {
+  margin-left: 8rem;
+  margin-right: 3rem;
+}
+
+html[dir="rtl"] .list-single-title,
+html[dir="rtl"] .list-main-title,
+html[dir="rtl"] .list-sub-title {
+  padding-left: .5rem;
+  padding-right: 3rem;
+}
+
+html[dir="rtl"] li.list-item {
+  background-position: 2.5rem -0.1rem;
+}
+
+html[dir="rtl"] .list-playlist-title {
+  padding-left: .5rem;
+  padding-right: 3rem;
+}
+
+html[dir="rtl"] .list-playlist-icon {
+  left: 2rem;
+  right: auto;
+}
+
+html[dir="rtl"] #player-controls,
+html[dir="rtl"] #player-seek{
+  direction: ltr;
+}
+
+html[dir="rtl"] #player-cover-share {
+  left: -2%;
+  right: auto;
+}
+
+html[dir="rtl"] #player-cover-artist:-moz-dir(rtl),
+html[dir="rtl"] #player-cover-album:-moz-dir(rtl) {
+  text-align: right;
+  right: auto;
+  left: auto;
+}
+
+html[dir="rtl"] #player-cover-artist:-moz-dir(ltr),
+html[dir="rtl"] #player-cover-album:-moz-dir(ltr){
+  text-align: left;
+  left: -5rem;
+  right: auto;
+}
+
+html[dir="rtl"] .tile-title-artist:-moz-dir(ltr),
+html[dir="rtl"] .tile-title-album:-moz-dir(ltr) {
+  text-align: left;
+}
+
+html[dir="rtl"] .tile-title-artist:-moz-dir(rtl),
+html[dir="rtl"] .tile-title-album:-moz-dir(rtl) {
+  text-align: right;
+}
+
+html[dir="rtl"] #title-player > .icon-player {
+  background-image: url("./images/now_playing_rtl.png");
+}
+
+html[dir="rtl"] #views-sublist-controls-shuffle,
+html[dir="rtl"] .list-playlist-icon {
+  background-image: url("./images/IconAction_Media_ShuffleOn_30x30_rtl.png");
+}
+
+html[dir="rtl"] #views-sublist-controls-play {
+  background-image: url("./images/IconAction_Media_Play_30x30_rtl.png");
+}
+
+html[dir="rtl"] #views-sublist-controls-play,
+html[dir="rtl"] #views-sublist-controls-shuffle {
+  float: right;
+}
+
+/* RTL Transitions */
+
+html[dir="rtl"] body.list-mode #views,
+html[dir="rtl"] body.picker-mode #views {
+  transform: translateX(100%);
+}
+
+html[dir="rtl"] body.search-from-list-mode #views {
+  transform: translateX(100%) translateY(-5rem);
+}
+
+html[dir="rtl"] body.search-from-tiles-mode #search,
+html[dir="rtl"] body.search-from-list-mode #search {
+  transform: translateY( calc(100%) );
+}
+
+html[dir="rtl"] body.sublist-mode #views {
+  transform: translateX(200%);
+}
+
+html[dir="rtl"] body.player-mode #views {
+  transform: translateX(300%);
+}
+
+html[dir="rtl"] #views-list {
+  left: auto;
+  right: 100%;
+}
+
+html[dir="rtl"] #views-sublist {
+  left: auto;
+  right: 200%;
+}
+
+html[dir="rtl"] #views-player {
+  left: auto;
+  right: 300%;
+}
+
+html[dir="rtl"] #views-tiles,
+html[dir="rtl"] #views-player.open-mode {
+  left: auto;
+  right: 0%;
+}
+
