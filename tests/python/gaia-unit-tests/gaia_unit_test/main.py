@@ -58,13 +58,13 @@ class TestAgentServer(tornado.websocket.WebSocketHandler):
                 print '\n'.join(self.envs[env].output)
 
         self.close()
-        self.runner.cleanup()
 
         self.logger.info('passed: %d' % self.passes)
         self.logger.info('failed: %d' % self.failures)
         self.logger.info('todo: 0')
 
-        sys.exit(exitCode)
+        crashed = self.runner.cleanup()
+        sys.exit(1 if crashed else exitCode)
 
     def handle_event(self, event, data):
         if event == 'set test envs':
@@ -114,7 +114,8 @@ class TestAgentServer(tornado.websocket.WebSocketHandler):
                     self.on_envs_complete()
 
     def on_close(self):
-        print "Closed down"
+        self.logger.warning("Build shut down unexpectedly")
+        self.runner.cleanup()
         sys.exit(1)
 
     def on_message(self, message):
@@ -125,9 +126,10 @@ class TestAgentServer(tornado.websocket.WebSocketHandler):
 
 class GaiaUnitTestRunner(object):
 
-    def __init__(self, binary=None, profile=None):
+    def __init__(self, binary=None, profile=None, symbols_path=None):
         self.binary = binary
         self.profile = profile
+        self.symbols_path = symbols_path
 
     def run(self):
         self.profile_dir = os.path.join(tempfile.mkdtemp(suffix='.gaiaunittest'),
@@ -137,12 +139,16 @@ class GaiaUnitTestRunner(object):
         self.runner = Runner.create(binary=self.binary,
                                     profile_args={'profile': self.profile_dir},
                                     clean_profile=False,
-                                    cmdargs=['--runapp', 'Test Agent'])
+                                    cmdargs=['--runapp', 'Test Agent'],
+                                    symbols_path=self.symbols_path)
         self.runner.start()
 
     def cleanup(self):
+        print 'checking for crashes'
+        crashed = self.runner.check_for_crashes()
         self.runner.cleanup()
         shutil.rmtree(os.path.dirname(self.profile_dir))
+        return crashed
 
     __del__ = cleanup
 
@@ -157,6 +163,10 @@ def cli():
                       action="store", dest="profile",
                       default=None,
                       help="path to gaia profile directory")
+    parser.add_option("--symbols-path",
+                      action="store", dest="symbols_path",
+                      default=None,
+                      help="path or url to breakpad symbols")
 
     options, tests = parser.parse_args()
 
@@ -192,7 +202,8 @@ def cli():
                         tests.append(full_path)
 
     runner = GaiaUnitTestRunner(binary=options.binary,
-                                profile=options.profile)
+                                profile=options.profile,
+                                symbols_path=options.symbols_path)
     runner.run()
 
     # Lame but necessary hack to prevent tornado's logger from duplicating
