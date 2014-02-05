@@ -29,7 +29,7 @@ class NewAlarm(Clock):
         self.wait_for_condition(lambda m: view.location['x'] == 0)
 
     def type_alarm_label(self, value):
-        self.marionette.find_element(*self._alarm_name_locator).clear()
+        self.marionette.find_element(*self._alarm_name_locator).tap()
         self.keyboard.send(value)
         self.keyboard.dismiss()
 

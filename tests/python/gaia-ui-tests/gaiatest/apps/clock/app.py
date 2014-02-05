@@ -52,8 +52,7 @@ class Clock(Base):
     def dismiss_banner(self):
         self.wait_for_element_displayed(
             *self._banner_countdown_notification_locator)
-        self.marionette.find_element(
-            *self._banner_countdown_notification_locator).tap()
+        # We can't tap to clear the banner as sometimes it taps the underlying alarm changing the UI
         self.wait_for_element_not_displayed(
             *self._banner_countdown_notification_locator)
 
