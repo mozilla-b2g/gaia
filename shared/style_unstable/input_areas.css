@@ -1,0 +1,320 @@
+/* ----------------------------------
+* Input areas
+* ---------------------------------- */
+input[type="text"],
+input[type="password"],
+input[type="email"],
+input[type="tel"],
+input[type="search"],
+input[type="url"],
+input[type="number"],
+textarea {
+  font-family: sans-serif;
+  -moz-box-sizing: border-box;
+  display: block;
+  width: 100%;
+  height: 4rem;
+  resize: none;
+  padding: 0 1.5rem;
+  font-size: 1.6rem;
+  line-height: 4rem;
+  border: 0;
+  border-bottom: 0.1rem solid #d7dee4;
+  border-radius: 0;
+  box-shadow: none; /* override the box-shadow from the system (performance issue) */
+  color: #333;
+  background: url(input_areas/images/ui/input.png) no-repeat bottom left,
+    url(input_areas/images/ui/input.png) no-repeat bottom right;
+  background-color: transparent;
+  background-size: 0.1rem 1.2rem;
+  margin: 0 0 0.5rem 0;
+}
+
+textarea {
+  height: 10rem;
+  max-height: 10rem;
+  line-height: 2rem;
+  margin: 0;
+  border-top: 0.1rem solid #d7dee4;
+}
+
+input:focus,
+textarea:focus {
+  border-color: #00aacc;
+  background-image: url(input_areas/images/ui/input_focus.png),
+    url(input_areas/images/ui/input_focus.png);
+}
+
+/* fix for required inputs with wrong or empty value e.g. [type=email] */
+input:invalid,
+textarea:invalid {
+  border-color: #820000;
+  background-image: url(input_areas/images/ui/input_invalid.png),
+    url(input_areas/images/ui/input_invalid.png);
+  color: #b90000;
+}
+
+input::-moz-placeholder,
+textarea::-moz-placeholder {
+  color: #a6a6a6;
+  opacity: 1;
+  font-style: italic;
+  font-weight: 400;
+}
+
+.skin-dark input[type="text"],
+.skin-dark input[type="password"],
+.skin-dark input[type="email"],
+.skin-dark input[type="tel"],
+.skin-dark input[type="search"],
+.skin-dark input[type="url"],
+.skin-dark input[type="number"],
+.skin-dark textarea  {
+  color: #fff;
+  background-image: url(input_areas/images/ui/input_dark.png),
+    url(input_areas/images/ui/input_dark.png);
+  border-color: #858585;
+}
+
+form p {
+  position: relative;
+  margin: 0;
+}
+
+form p input + button[type="reset"],
+form p textarea + button[type="reset"] {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 4rem;
+  height: 4rem;
+  padding: 0;
+  border: none;
+  font-size: 0;
+  opacity: 0;
+  pointer-events: none;
+  background: url(input_areas/images/icons/clear.png) no-repeat center / 1.7rem;
+}
+
+
+.skin-dark p input + button[type="reset"],
+.skin-dark p textarea + button[type="reset"] {
+  background-image: url(input_areas/images/icons/clear-dark.png);
+}
+
+/* To avoid colission with BB butons */
+li input + button[type="reset"]:after,
+li textarea + button[type="reset"]:after {
+  background: none;
+}
+
+form p input + button[type="reset"],
+form p textarea + button[type="reset"] {
+  top: 0;
+  margin: 0;
+}
+
+textarea {
+  padding: 1.2rem;
+}
+
+form p input:focus + button[type="reset"],
+form p textarea:focus + button[type="reset"] {
+  opacity: 1;
+  pointer-events: all;
+}
+
+/* Fieldset */
+fieldset {
+  position: relative;
+  overflow: hidden;
+  margin: 1rem 0;
+  padding: 0;
+  border: 0;
+  font-size: 2rem;
+  line-height: 1em;
+  background: none;
+}
+
+fieldset legend {
+  border: 0.1rem solid #d7dee4;
+  width: 100%;
+  -moz-box-sizing: border-box;
+  font-family: sans-serif;
+  font-style: italic;
+  font-size: 1.6rem;
+  color: #00aacc;
+  margin: 0 0 0.5rem;
+  padding: 1rem 1.5rem 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  height: 4rem;
+  color: #00aacc;
+  background: url(input_areas/images/ui/dialog.svg) no-repeat calc(100% - 1rem) calc(100% - 1rem);
+}
+
+fieldset[disabled] {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+fieldset[disabled] legend {
+  color: rgba(51, 51, 51, 0.5);
+  background-image: url(input_areas/images/ui/dialog_disabled.svg);
+}
+
+/* Tidy (search/submit) */
+form[role="search"] {
+  position: relative;
+  height: 3.7rem;
+  background: #f4f4f4;
+}
+
+form[role="search"].skin-dark {
+  background: #333;
+}
+
+form[role="search"] p {
+  padding: 0 1.5rem 0 3rem;
+  overflow: hidden;
+  position: relative;
+}
+
+form[role="search"] p input,
+form[role="search"] p textarea {
+  height: 3.7rem;
+  border: none;
+  background: none;
+  padding: 0;
+  margin: 0;
+}
+
+form[role="search"] p textarea {
+  padding: 1rem 0 0 0;
+}
+
+form[role="search"] p input::-moz-placeholder {
+  background: url(input_areas/images/icons/search.png) right center no-repeat;
+  background-size: 1.6rem;
+}
+
+form[role="search"].skin-dark p input::-moz-placeholder {
+  background-image: url(input_areas/images/icons/search-dark.png);
+}
+
+form[role="search"] p input:focus::-moz-placeholder {
+  background: none;
+}
+
+form[role="search"] p input:invalid, 
+form[role="search"] p textarea:invalid {
+  border: none;
+}
+
+form[role="search"].skin-dark p input,
+form[role="search"].skin-dark p textarea {
+  color: #fff;
+  background: none;
+}
+
+form[role="search"] button[type="submit"] {
+  float: right;
+  min-width: 6rem;
+  height: 3.7rem;
+  padding: 0 1.5rem;
+  border: none;
+  color: #00AACC;
+  font-weight: normal;
+  font-size: 1.6rem;
+  line-height: 3.7rem;
+  border-radius: 0;
+  width: auto;
+  border-radius: 0;
+  margin: 0;
+  position: relative;
+  background: none;
+  font-style: italic;
+}
+
+form[role="search"] button[type="submit"]:after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.7rem;
+  bottom: 0.7rem;
+  width: 0.1rem;
+  background: #c7c7c7;
+}
+
+form[role="search"] p input + button[type="reset"]{
+  height: 3.7rem;
+}
+
+form[role="search"].skin-dark button[type="submit"]:after {
+  background-color: #575757;
+}
+
+form[role="search"] button[type="submit"] + p > textarea {
+  height: 3.7rem;
+  line-height: 2rem;
+}
+
+form[role="search"] button[type="submit"] + p button {
+  height: 3.7rem;
+}
+
+form[role="search"].full button[type="submit"] {
+  display: none;
+}
+
+form[role="search"] button.icon:active,
+form[role="search"] button[type="submit"]:active {
+  background: #b2f2ff;
+  color: #fff;
+}
+
+form[role="search"] button[type="submit"][disabled] {
+  color: #adadad;
+  pointer-events: none;
+}
+
+form button::-moz-focus-inner {
+  border: none;
+  outline: none;
+}
+
+/******************************************************************************
+ * Right-to-Left layout
+ */
+
+html[dir="rtl"] fieldset legend {
+  background: url(input_areas/images/ui/dialog_rtl.svg) no-repeat 1rem calc(100% - 1rem);
+}
+
+html[dir="rtl"] fieldset[disabled] legend {
+  background-image: url(input_areas/images/ui/dialog_disabled_rtl.svg);
+}
+
+html[dir="rtl"] form p input + button[type="reset"],
+html[dir="rtl"] form p textarea + button[type="reset"] {
+  right: auto;
+  left: 0;
+}
+
+html[dir="rtl"] form[role="search"] p {
+  padding: 0 3rem 0 1.5rem;
+}
+
+html[dir="rtl"] form[role="search"] p input::-moz-placeholder {
+  background-position: 0 center;
+}
+
+html[dir="rtl"] form[role="search"] button[type="submit"] {
+  float: left;
+}
+
+html[dir="rtl"] form[role="search"] button[type="submit"]:after {
+  right: 0;
+  left: auto;
+}
