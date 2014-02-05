@@ -678,30 +678,29 @@ form.bottom[role="search"].messages-compose-form {
 
 #messages-send-button.has-counter:before {
   content: attr(data-counter);
-
   position: absolute;
-  left: 0;
   top: -1.9rem;
-
-  -moz-box-sizing: border-box;
+  box-sizing: border-box;
   height: 1.8rem;
-  padding: 0 0.5rem;
-
-  color: rgb(133, 133, 133);
+  color: #858585;
   font-weight: normal;
   font-size: 1.4rem;
-  text-align: left;
+  text-align: center;
   line-height: 1.8rem;
+  font-style: normal;
+  left: 0;
+  right: 0;
+  display: block;
 }
 
-/*[data-message-type="mms"] #messages-send-button.has-counter:before {
+[data-message-type="mms"] #messages-send-button.has-counter:after {
   content: 'MMS';
   color: #FF4E00;
   font-size: 1.5rem;
   padding-left: -moz-calc(100% - 5rem);
   margin-top: -1.2rem;
 }
-*/
+
 #messages-input {
   padding: 1rem 1.5rem;
   margin: 0;
@@ -749,7 +748,7 @@ form.bottom[role="search"].messages-compose-form {
 #messages-subject-input {
   position: absolute;
   top: 0;
-  max-height: 3.2rem;
+  max-height: 3.3rem;
   width: 100%;
   box-sizing: border-box;
   background-color: #F5F5F5;
@@ -760,14 +759,7 @@ form.bottom[role="search"].messages-compose-form {
   line-height: 1.4rem;
   white-space: pre-wrap;
   border: none;
-}
-
-#messages-subject-input:before {
-  content: 'MMS';
-  color: #FF4E00;
-  font-size: 1.5rem;
-  padding-left: -moz-calc(100% - 5rem);
-  margin-top: -1.2rem;
+  border-top: 1px solid #FFFFFF;
 }
 
 #messages-input:after {
@@ -894,7 +886,7 @@ section[role="region"].new #messages-to-field {
 #messages-recipients-list-container {
   -moz-box-sizing: border-box;
   min-height: 4rem;
-  margin: 0 4rem 0px 3.3rem;
+  margin: 0 4rem 0 3.3rem;
   line-height: 1.7rem;
 }
 
