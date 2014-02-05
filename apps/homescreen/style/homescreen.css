@@ -156,3 +156,10 @@ body[data-mode = 'normal'] ol > li span.options {
   .apps > div { height: 100% !important; }
   #bg-overlay { height: 100%;}
 }
+
+/* Default state for the dialogs.
+ * Will be overwritten when their respective CSS is lazy loaded.
+ */
+#contextmenu-dialog, #confirm-dialog {
+  display: none;
+}
