@@ -815,10 +815,14 @@ apps/homescreen/test/unit/page_test.js
 apps/homescreen/test/unit/request_test.js
 apps/homescreen/test/unit/save_bookmark_test.js
 apps/homescreen/test/unit/wallpaper_test.js
+apps/keyboard/build/keyboard-config.js
+apps/keyboard/js/imes/jshangul/jshangul.js
+apps/keyboard/js/imes/jskanji/jskanji.js
 apps/keyboard/js/imes/jspinyin/empinyin_files.js
 apps/keyboard/js/imes/jspinyin/jspinyin.js
 apps/keyboard/js/imes/jspinyin/tests/init.js
 apps/keyboard/js/imes/jspinyin/worker.js
+apps/keyboard/js/imes/jszhuyin/jszhuyin.js
 apps/keyboard/js/imes/latin/latin.js
 apps/keyboard/js/imes/latin/predictions.js
 apps/keyboard/js/imes/latin/worker.js

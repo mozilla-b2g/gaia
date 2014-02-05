@@ -668,16 +668,20 @@ function Commander(cmd) {
   };
 };
 
+function getEnv(name) {
+  var env = Cc['@mozilla.org/process/environment;1'].
+            getService(Ci.nsIEnvironment);
+  return env.get(name);
+}
+
 // Get PATH of the environment
 function getEnvPath() {
   var os = getOsType();
   if (!os) {
     throw new Error('cannot not read system type');
   }
-  var env = Cc['@mozilla.org/process/environment;1'].
-            getService(Ci.nsIEnvironment);
-  var p = env.get('PATH');
-  var isMsys = env.get('OSTYPE') ? true : false;
+  var p = getEnv('PATH');
+  var isMsys = getEnv('OSTYPE') ? true : false;
   if (os.indexOf('WIN') !== -1 && !isMsys) {
     paths = p.split(';');
   } else {
@@ -740,3 +744,4 @@ exports.processEvents = processEvents;
 exports.readZipManifest = readZipManifest;
 exports.log = log;
 exports.killAppByPid = killAppByPid;
+exports.getEnv = getEnv;
