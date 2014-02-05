@@ -1,6 +1,6 @@
 Keyboards['zh-Hant-Zhuyin'] = {
   label: 'Chinese - Traditional - Zhuyin',
-  menuLabel: '繁體注音輸入',
+  menuLabel: '注音',
   needsCandidatePanel: true,
   imEngine: 'jszhuyin',
   types: ['text', 'url', 'email'],
