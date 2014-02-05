@@ -9,6 +9,7 @@ manifest.appcache
 /apps/calendar/js/presets.js
 /apps/camera/js/config.js
 /apps/gallery/js/config.js
+/apps/findmydevice/js/config.js
 /apps/homescreen/js/init.json
 /apps/homescreen/everything.me/config/local.json
 /apps/costcontrol/js/config.json
@@ -22,6 +23,7 @@ manifest.appcache
 /apps/settings/resources/network.json
 /apps/settings/resources/support.json
 /apps/settings/resources/sensors.json
+/apps/settings/resources/findmydevice.json
 /apps/system/resources/icc.json
 /apps/system/resources/wapuaprof.json
 /test_apps/*/test/unit/_sandbox.html
