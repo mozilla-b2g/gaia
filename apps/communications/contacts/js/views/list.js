@@ -856,7 +856,7 @@ contacts.List = (function() {
       return;
     }
 
-    var img = link.querySelector('aside > img');
+    var img = link.querySelector('aside > span[data-type=img]');
     if (img) {
       setImageURL(img, photo, asClone);
       return;
@@ -864,7 +864,8 @@ contacts.List = (function() {
     if (!photoTemplate) {
       photoTemplate = document.createElement('aside');
       photoTemplate.className = 'pack-end';
-      var img = document.createElement('img');
+      var img = document.createElement('span');
+      img.dataset.type = 'img';
       photoTemplate.appendChild(img);
     }
 

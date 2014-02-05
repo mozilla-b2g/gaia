@@ -122,6 +122,7 @@ li a:active {
   overflow: hidden;
 }
 
+[data-type="list"] aside span[data-type=img],
 [data-type="list"] aside img {
   display: block;
   overflow: hidden;
