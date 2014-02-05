@@ -376,13 +376,13 @@ var SimManager = (function() {
       case 'corporateLocked':
         UIManager.unlockSimHeader.textContent = _('cckcodeTitle',
                                                   {n: simNumber});
-        UIManager.xckLabel.textContent = _('cckcodeTitle',
+        UIManager.xckLabel.textContent = _('cckcodeLabel',
                                            {n: simNumber});
         break;
       case 'serviceProviderLocked':
         UIManager.unlockSimHeader.textContent = _('spckcodeTitle',
                                                   {n: simNumber});
-        UIManager.xckLabel.textContent = _('spckcodeTitle',
+        UIManager.xckLabel.textContent = _('spckcodeLabel',
                                            {n: simNumber});
         break;
     }
