@@ -1,25 +1,6 @@
 /**
- * todo, only do anim on the navigation bar instead of on chrome
+ * General chrome rules
  */
-.appWindow > .chrome {
-  transform: translateY(4rem);
-  transition: transform 0.4s;
-}
-
-.appWindow.no-animate > .chrome {
-  transition: none;
-}
-
-.appWindow.navigation > .chrome {
-  transform: translateY(0);
-}
-
-.appWindow.has-context-menu > .chrome {
-  /* if context menu is shown we want to have pointer events to
-     prevent interacting with the page */
-  pointer-events: auto;
-}
-
 .appWindow > .chrome {
   pointer-events: none;
   width: 100%;
@@ -39,9 +20,12 @@
   pointer-events: auto;
 }
 
+/**
+ * Progress bar
+ */
 .chrome > .progress {
-  position: fixed;
-  top: -4rem;
+  position: absolute;
+  top: 0;
   left: 0;
   margin: 0;
   padding: 0;
@@ -51,30 +35,35 @@
   visibility: hidden;
 }
 
-.appWindow.navigation > .chrome > .progress {
-  top: 0;
-}
-
 .chrome > .progress.visible {
   visibility: visible;
   background-image: url('../shared/progress.gif');
 }
 
+/**
+ * Navigation bar at the bottom
+ */
 .chrome > .navigation {
   position: fixed;
-  bottom: -4rem;
+  bottom: 0;
   left: 0;
   margin: 0;
   padding: 0;
   width: 100%;
   background-color: black;
-  pointer-events: none;
-  visibility: hidden;
+  transform: translateY(4rem);
+  transition: transform .4s ease;
+  pointer-events: auto;
 }
 
-.chrome > .navigation.visible {
-  pointer-events: auto;
-  visibility: visible;
+.appWindow.has-navigation .chrome > .navigation {
+  transform: translateY(0);
+}
+
+/* if context menu is shown, hide us immediately */
+.appWindow.has-context-menu .chrome > .navigation {
+  transform: translateY(4rem);
+  transition: none;
 }
 
 .chrome > .navigation .handler {
@@ -85,23 +74,12 @@
   background-position: right;
 }
 
-.chrome > .navigation.closed .handler {
-  background-image: url("images/open.png");
-  background-size: 5rem 1rem;
-}
-
 .chrome > .navigation menu[type="buttonbar"] {
   width: 100%;
   height: 4rem;
   margin: 0;
   padding: 0;
   background-color: black;
-  -moz-transform: translateY(-4rem);
-  -moz-transition: -moz-transform .2s ease;
-}
-
-.chrome > .navigation.closed menu {
-  -moz-transform: translateY(0);
 }
 
 .chrome > .navigation menu button {
@@ -158,7 +136,13 @@
   background: transparent !important;
 }
 
+/**
+ * Context menu
+ */
+
+/* show overlay over the page, no pointer events to avoid scrolling on the iframe */
 .appWindow.has-context-menu > .chrome {
+  pointer-events: auto;
   background: linear-gradient(to bottom, rgba(231,231,231,0) 0%,rgba(231,231,231,0.75) 100%);
 }
 
@@ -168,7 +152,7 @@
 
 .context-menu {
   position: fixed;
-  bottom: 7rem; /* 3rem + 4rem for the transform of the chrome */
+  bottom: 3rem;
   width: 26rem;
   margin-left: calc(50% - 13rem);
   border: solid 1px rgba(189, 189, 189, 0.3); /* 0.3? */
@@ -190,12 +174,22 @@
   background-position: 1.8rem center;
 }
 
+.context-menu .item:active {
+  background-color: #00aac5;
+  color: #f4f4f4;
+}
+
 .context-menu .close {
   height: 6rem;
   background: white;
   text-align: center;
   color: #363636;
   line-height: 6rem;
+}
+
+.context-menu .close:active {
+  background: #363636;
+  color: white;
 }
 
 .context-menu .reload {

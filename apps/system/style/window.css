@@ -45,14 +45,14 @@
   width: 100%;
   height: 100%;
   border: none;
-  transition: height 0s step-end;
+  transition: none;
 }
 
-.appWindow.navigation > iframe, .appWindow.rocketbar > iframe {
+.appWindow.has-navigation:not(.has-context-menu) > iframe, .appWindow.rocketbar > iframe {
   transition: height 1s step-end; /* no anim */
 }
 
-.appWindow.navigation:not(.rocketbar) > iframe {
+.appWindow.has-navigation:not(.rocketbar):not(.has-context-menu) > iframe {
   position: absolute;
   top: 0;
   left: 0;
@@ -61,7 +61,7 @@
   height: calc(100% - 4rem);
 }
 
-.appWindow.rocketbar:not(.navigation) > iframe {
+.appWindow.rocketbar:not(.has-navigation) > iframe {
   position: absolute;
   top: 5rem;
   left: 0;
@@ -70,7 +70,7 @@
   height: calc(100% - 5rem);
 }
 
-.appWindow.navigation.rocketbar > iframe {
+.appWindow.has-navigation.rocketbar > iframe {
   position: absolute;
   top: 5rem;
   left: 0;

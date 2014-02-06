@@ -21,7 +21,7 @@
     this.render();
 
     if (this.app.config.chrome && this.app.config.chrome.navigation) {
-      this.app.element.classList.add('navigation');
+      this.app.element.classList.add('has-navigation');
     }
 
     if (this.app.config.chrome && this.app.config.chrome.rocketbar) {
@@ -56,7 +56,7 @@
             this.CLASS_NAME + this.instanceID + '">' +
             '<header class="progress"></header>' +
             ctx +
-            '<footer class="navigation visible">' +
+            '<footer class="navigation">' +
               '<menu type="buttonbar">' +
                 '<button type="button" class="back-button"' +
                 ' alt="Back" data-disabled="disabled"></button>' +
@@ -286,11 +286,11 @@
 
     if (evt.detail.top - threshold > this.lastTop) {
       // scrolling down
-      this.app.frame.classList.remove('navigation');
+      this.app.frame.classList.remove('has-navigation');
       this.lastTop = evt.detail.top;
     }
     else if (evt.detail.top + threshold < this.lastTop) {
-      this.app.frame.classList.add('navigation');
+      this.app.frame.classList.add('has-navigation');
       this.lastTop = evt.detail.top;
     }
   };
@@ -366,20 +366,6 @@
     var self = this;
 
     if (!self.app) return;
-
-    self.app.frame.classList.add('no-animate');
-    setTimeout(function() {
-      self.app.frame.classList.remove('no-animate');
-    });
-
-    // closing menu? show navigation
-    if (self.app.frame.classList.contains('has-context-menu')) {
-      self.app.frame.classList.add('navigation');
-    }
-    // opening? hide it.
-    else {
-      self.app.frame.classList.remove('navigation');
-    }
 
     self.app.frame.classList.toggle('has-context-menu');
   };
