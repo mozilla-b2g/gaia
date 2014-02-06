@@ -119,6 +119,10 @@
           setState(wakeState, type);
         } else {
           setState(sleepState, type);
+          if(!LockScreen.locked){
+		 	      var lockSound= new Audio("./resources/sounds/unlock.ogg");
+		  	    lockSound.play();
+		      }
         }
         return;
       case 'volume-up-button-press':
