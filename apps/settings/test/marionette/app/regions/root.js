@@ -17,6 +17,7 @@ module.exports = RootPanel;
 
 RootPanel.Selectors = {
   'airplaneModeCheckbox': '#airplaneMode-input',
+  'airplaneModeMenuItem': '#menuItem-airplaneMode',
   'airplaneModeSpan': '#airplaneMode-input ~ span',
   'applicationStorageDesc': '#application-storage-desc',
   'batteryDesc': '.battery-desc',
@@ -34,7 +35,8 @@ RootPanel.Selectors = {
   'usbStorageSpan': '#ums-switch-root ~ span',
   'usbStorageDesc': '#ums-desc-root',
   'usbStorageConfirmDialog': '#turn-on-ums-dialog',
-  'usbStorageConfirmButton': '#ums-confirm-option'
+  'usbStorageConfirmButton': '#ums-confirm-option',
+  'nfcCheckbox': '#nfc-input'
 };
 
 RootPanel.prototype = {
@@ -60,14 +62,27 @@ RootPanel.prototype = {
 
   // airplane mode
   airplaneMode: function(enabled) {
+    var self = this;
+
     this.client.waitFor(function() {
-      return this.airplaneModeCheckboxEnabled;
-    }.bind(this));
+      return self.airplaneModeCheckboxEnabled;
+    });
+
     if (enabled !== this.airplaneModeCheckboxChecked) {
       this.waitForElement('airplaneModeSpan').tap();
       this.client.waitFor(function() {
-        return enabled === this.airplaneModeCheckboxChecked;
-      }.bind(this));
+        return enabled === self.airplaneModeCheckboxChecked;
+      });
+    }
+
+    // make sure we would wait for two more status here
+    if (enabled === true) {
+      this.client.waitFor(function() {
+        return self.WiFiDesc === 'Disabled';
+      });
+      this.client.waitFor(function() {
+        return self.bluetoothDesc === 'Turned off';
+      });
     }
   },
 
@@ -110,6 +125,18 @@ RootPanel.prototype = {
 
   get geolocationEnabledSetting() {
     return this.client.settings.get('geolocation.enabled');
+  },
+
+  get wifiEnabledSetting() {
+    return this.client.settings.get('wifi.enabled');
+  },
+
+  get bluetoothEnabledSetting() {
+    return this.client.settings.get('bluetooth.enabled');
+  },
+
+  get nfcCheckboxChecked() {
+    return !!this.findElement('nfcCheckbox').getAttribute('checked');
   },
 
   // language
