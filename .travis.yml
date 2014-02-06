@@ -25,7 +25,4 @@ matrix:
   fast_finish: true
 notifications:
   email: false
-  irc:
-    on_success: change
-    channels:
-    - irc.mozilla.org#gaia
+  irc: false
