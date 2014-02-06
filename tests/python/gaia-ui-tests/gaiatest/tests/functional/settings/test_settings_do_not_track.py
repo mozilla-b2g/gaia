@@ -25,23 +25,23 @@ class TestSettingsDoNotTrack(GaiaTestCase):
         # turn to "disallow tracking"
         do_not_track_settings.tap_disallow_tracking()
 
-        # should be enabled
-        self.assertEqual(self.data_layer.get_bool_pref('privacy.donottrackheader.enabled'), True)
         # should be 1
         self.assertEqual(self.data_layer.get_int_pref('privacy.donottrackheader.value'), 1)
+        # should be enabled
+        self.assertEqual(self.data_layer.get_bool_pref('privacy.donottrackheader.enabled'), True)
 
         # turn to "allow tracking"
         do_not_track_settings.tap_allow_tracking()
 
-        # should be enabled
-        self.assertEqual(self.data_layer.get_bool_pref('privacy.donottrackheader.enabled'), True)
         # should be 0
         self.assertEqual(self.data_layer.get_int_pref('privacy.donottrackheader.value'), 0)
+        # should be enabled
+        self.assertEqual(self.data_layer.get_bool_pref('privacy.donottrackheader.enabled'), True)
 
         # turn back to "no pref"
         do_not_track_settings.tap_do_not_have_pref_on_tracking()
 
-        # should be disabled
-        self.assertEqual(self.data_layer.get_bool_pref('privacy.donottrackheader.enabled'), False)
         # should be back to "no pref"
         self.assertEqual(self.data_layer.get_int_pref('privacy.donottrackheader.value'), -1)
+        # should be disabled
+        self.assertEqual(self.data_layer.get_bool_pref('privacy.donottrackheader.enabled'), False)
