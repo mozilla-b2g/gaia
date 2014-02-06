@@ -1,6 +1,6 @@
 /*global
   KeyboardManager, sinon, KeyboardHelper, MockKeyboardHelper,
-  MocksHelper, TransitionEvent */
+  MocksHelper, TransitionEvent, MockNavigatorSettings */
 'use strict';
 
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
@@ -359,6 +359,21 @@ suite('KeyboardManager', function() {
     });
   });
 
+  suite('Switching keyboard focus before keyboard is shown', function() {
+    setup(function() {
+      this.sinon.stub(KeyboardManager, 'resetShowingKeyboard');
+    });
+
+    test('Switching from "text" to another field before' +
+         'the keyboard is shown.', function() {
+
+      simulateInputChangeEvent('text');
+      KeyboardManager.hideKeyboard();
+
+      sinon.assert.callCount(KeyboardManager.resetShowingKeyboard, 1);
+    });
+  });
+
   suite('removeKeyboard test', function() {
     var fakeFrame_A, fakeFrame_B;
     setup(function() {
@@ -628,7 +643,7 @@ suite('KeyboardManager', function() {
     test('height is zero.', function() {
       fakeMozbrowserResize(0);
       sinon.assert.callCount(showKeyboard, 0,
-                                          'showKeyboard should not nt called');
+                                          'showKeyboard should not be called');
     });
 
     test('keyboardFrameContainer is ready to show.', function() {
