@@ -12,9 +12,17 @@ Day.prototype = {
 
   selector: '#day-view',
 
+  get activeDay() {
+    return this.findElement('section[data-date].active');
+  },
+
   get events() {
     // FIXME: use a very specific selector because of Bug 988079
-    return this.findElements('section[data-date].active .event');
+    return this.activeDay.findElements('.event');
+  },
+
+  get allDayIcon() {
+    return this.activeDay.findElement('.hour-allday .icon-allday');
   }
 
 };

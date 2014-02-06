@@ -63,7 +63,7 @@ EditEvent.prototype = {
       .click();
   },
 
-  delete: function() {
+  'delete': function() {
     this
       .findElement('.delete-record')
       .click();

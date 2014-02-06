@@ -1,3 +1,4 @@
+/*global Calendar*/
 /**
  * Representation of conflicts over a span of time, organized into
  * non-overlapping columns tracked by IntervalTree instances.
@@ -271,6 +272,17 @@ Calendar.ConflictSpan = (function() {
           var el = this.parent.getElement(busytime);
           el.style.width = width + '%';
           el.style.left = (width * cIdx) + '%';
+          // we toggle the display based on amount of overlaps
+          if (numCols > 4) {
+            el.classList.add('many-overlaps');
+          } else {
+            el.classList.remove('many-overlaps');
+          }
+          if (numCols > 1) {
+            el.classList.add('has-overlaps');
+          } else {
+            el.classList.remove('has-overlaps');
+          }
         }
       }
     }
@@ -407,6 +419,7 @@ Calendar.ns('Utils').Overlap = (function() {
       var el = this.elements[busytime._id];
       el.style.width = '';
       el.style.left = '';
+      el.classList.remove('has-overlaps', 'many-overlaps');
     }
 
   };

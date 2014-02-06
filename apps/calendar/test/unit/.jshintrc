@@ -10,6 +10,7 @@
     "InputParser",
     "NotAmd",
     "ServiceSupport",
+    "Factory",
     "assert",
     "suite",
     "test",

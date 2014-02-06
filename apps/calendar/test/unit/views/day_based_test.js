@@ -251,7 +251,7 @@ suiteGroup('Views.DayBased', function() {
       subject._assignPosition(busy, el);
 
       assert.equal(el.style.top, '83.3333%', 'top');
-      assert.equal(el.style.height, '50%', 'height');
+      assert.equal(el.style.height, 'calc(50% - 0.1rem)', 'height');
       assert.match(el.className, /\bpartial-hour\b/, 'partial-hour found');
     });
 
@@ -260,7 +260,7 @@ suiteGroup('Views.DayBased', function() {
       subject._assignPosition(busy, el);
 
       assert.ok(!el.style.top, 'no top');
-      assert.equal(el.style.height, '150%', 'height');
+      assert.equal(el.style.height, 'calc(150% - 0.1rem)', 'height');
     });
 
     test('25% minutes into hour for 3.25 hours', function() {
@@ -268,7 +268,7 @@ suiteGroup('Views.DayBased', function() {
       subject._assignPosition(busy, el);
 
       assert.equal(el.style.top, '25%', 'top');
-      assert.equal(el.style.height, '325%', 'height');
+      assert.equal(el.style.height, 'calc(325% - 0.1rem)', 'height');
     });
 
     test('cross the next day', function() {
@@ -277,7 +277,7 @@ suiteGroup('Views.DayBased', function() {
       subject._assignPosition(busy, el);
 
       assert.ok(!el.style.top, 'no top');
-      assert.equal(el.style.height, '100%', 'height');
+      assert.equal(el.style.height, 'calc(100% - 0.1rem)', 'height');
     });
   });
 

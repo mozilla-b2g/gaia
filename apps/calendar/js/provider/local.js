@@ -13,6 +13,7 @@ Calendar.ns('Provider').Local = (function() {
   }
 
   Local.calendarId = LOCAL_CALENDAR_ID;
+  Local.defaultColor = '#f97c17';
 
   /**
    * Returns the details for the default calendars.
@@ -37,7 +38,7 @@ Calendar.ns('Provider').Local = (function() {
       // XXX localize this name somewhere
       name: name,
       id: LOCAL_CALENDAR_ID,
-      color: Local.prototype.defaultColor
+      color: Local.defaultColor
     };
 
   };

@@ -12,7 +12,8 @@ marionette('toggle calendar', function() {
 
     app.createEvent({
       title: 'Toggle Calendar Test',
-      location: 'Some Place'
+      location: 'Some Place',
+      reminders: []
     });
 
     toggleLocalCalendar();

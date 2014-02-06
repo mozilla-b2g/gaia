@@ -201,9 +201,13 @@ Calendar.prototype = {
       endDate = new Date(startDate.getTime() + duration * 60 * 60 * 1000);
     }
 
-    this.addEventButton.click();
     var editEvent = this.editEvent;
-    editEvent.waitForDisplay();
+    this.client.waitFor(function() {
+      // if creating multiple events in a row the notification might cover the
+      // addEventButton, so we need to pool the UI
+      this.addEventButton.click();
+      return editEvent.displayed();
+    }.bind(this), { interval: 500, timeout: 3000 });
     editEvent.title = opts.title;
     editEvent.location = opts.location || '';
     editEvent.description = opts.description || '';
@@ -211,7 +215,10 @@ Calendar.prototype = {
     editEvent.startTime = startDate;
     editEvent.endDate = endDate;
     editEvent.endTime = endDate;
-    editEvent.reminders = opts.reminders || [];
+    if (opts.reminders != null) {
+      // default reminder by default
+      editEvent.reminders = opts.reminders;
+    }
     editEvent.save();
 
     this.waitForKeyboardHide();
@@ -309,12 +316,12 @@ Calendar.prototype = {
     // (x1, y1) is swipe start.
     // (x2, y2) is swipe end.
     var x1, x2, y1, y2;
-    y1 = y2 = bodySize.height * 0.2;
+    y1 = y2 = bodySize.height * 0.5;
     if (options.direction === 'left') {
-      x1 = bodySize.width * 0.2;
+      x1 = bodySize.width * 0.8;
       x2 = 0;
     } else if (options.direction === 'right') {
-      x1 = bodySize.width * 0.8;
+      x1 = bodySize.width * 0.2;
       x2 = bodySize.width;
     } else {
       throw new Error('swipe needs a direction');
