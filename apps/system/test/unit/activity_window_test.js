@@ -244,6 +244,7 @@ suite('system/ActivityWindow', function() {
       activity.setOrientation();
       assert.isTrue(stubLockOrientation.calledWith('landscape'));
     });
+
     test('Activity set orientation use callee', function() {
       var activity = new ActivityWindow(fakeConfig, app);
       var stubIsActive = this.sinon.stub(activity, 'isActive');
@@ -257,6 +258,7 @@ suite('system/ActivityWindow', function() {
       activity.setOrientation();
       assert.isTrue(stubLockOrientation.calledWith('default'));
     });
+    
     test('Activity setOrientation use global orientation', function() {
       var activity = new ActivityWindow(fakeConfig, appOrientationUndefined);
       var stubIsActive = this.sinon.stub(activity, 'isActive');
