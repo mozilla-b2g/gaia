@@ -8,20 +8,44 @@
 
     <div>
       <ul>
-        <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="accessibility.invert">
-            <span data-l10n-id="invertColors">Invert Colors</span>
+        <li id="screenreader-enable" class="hint">
+          <label class="pack-switch">
+            <input type="checkbox" data-ignore>
+            <span data-l10n-id="screenReader">Screen Reader</span>
+          </label>
+          <p data-l10n-id="screenReader-enable-msg" id="screenreader-enable-msg" class="explanation">
+            When screen reader is enabled, your device will provide spoken feedback to assist blind and low-vision users.
+          </p>
+        </li>
+        <li class="sound-setting">
+          <label class="range-icons volume">
+            <p data-l10n-id="screen-reader-speech-volume">Speech Volume</p>
+            <input name="accessibility.screenreader-volume"
+                   step="0.1" min="0" value="1" max="1" type="range">
           </label>
         </li>
-        <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="accessibility.screenreader">
-            <span data-l10n-id="screenReader">Screen Reader</span>
+        <li class="sound-setting">
+          <label class="range-icons volume">
+            <p data-l10n-id="screen-reader-speech-rate">Speech Rate</p>
+            <input name="accessibility.screenreader-rate"
+                   step="1" min="-4" value="0" max="9" type="range">
           </label>
         </li>
       </ul>
     </div>
+
+    <form role="dialog" data-type="confirm" id="screenreader-confirm-dialog" hidden>
+      <section>
+        <h1></h1>
+        <p></p>
+      </section>
+      <menu>
+        <button data-l10n-id="cancel">Cancel</button>
+        <button id="screenreader-confirm-dialog-button" class="danger"></button>
+      </menu>
+    </form>
+
+    <script src="js/accessibility.js"></script>
 
   </template>
 </element>
