@@ -125,12 +125,6 @@ Email.prototype = {
       .text();
   },
 
-  getComposeBody: function() {
-    var input = this.client.helper.waitForElement(Selector.composeBodyInput);
-    var value = input.getAttribute('value');
-    return value;
-  },
-
   getComposeTo: function() {
     var container =
       this.client.helper.waitForElement(Selector.composeEmailContainer);
@@ -279,15 +273,17 @@ Email.prototype = {
       .sendKeys(subject);
   },
 
-  typeBody: function(body) {
-    this.client.helper
-      .waitForElement(Selector.composeBodyInput)
-      .sendKeys(body);
+  typeBody: function(string) {
+    var bodyInput = this.client.
+      findElement(Selector.composeBodyInput);
+    bodyInput.click();
+    bodyInput.sendKeys(string);
   },
 
   getComposeBody: function() {
+    var el = this._waitForElementNoTransition(Selector.composeBodyInput);
     return this._waitForElementNoTransition(Selector.composeBodyInput)
-           .getAttribute('value');
+           .getAttribute('innerHTML');
   },
 
   abortCompose: function(cardId) {

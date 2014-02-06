@@ -49,4 +49,41 @@ marionette('local draft', function() {
       .text();
     assert.equal(author, EMAIL_ADDRESS);
   });
+
+  test('should maintain formatting', function() {
+    const NAME = 'FireFox OS';
+    const EMAIL_ADDRESS = 'firefox-os-drafts@example.com';
+    const MAILBOX = NAME + ' <' + EMAIL_ADDRESS + '>';
+    const EMAIL_SUBJECT = 'I still have a linebreak';
+    const SPACE = ' ';
+    const BODY = '  line\uE006break';
+    const EXPECTED = '  line<br>break';
+
+    // go to the Local Drafts page
+    app.tapFolderListButton();
+    app.tapLocalDraftsItem();
+
+    // save a local draft
+    app.tapCompose();
+    app.typeTo(MAILBOX);
+    // type a space to create the bubble
+    app.typeTo(SPACE);
+    app.typeSubject(EMAIL_SUBJECT);
+    app.typeBody(BODY);
+
+    app.saveLocalDrafts();
+
+    // compare the body content
+    app.tapEmailBySubject(EMAIL_SUBJECT, 'compose');
+
+    var body = app.getComposeBody();
+
+    // Currently fighting travis on Linux where it wants to
+    // append an additional newline
+    assert.equal(
+      body.indexOf(EXPECTED),
+      0,
+      body + ' should contain ' + EXPECTED
+    );
+  });
 });
