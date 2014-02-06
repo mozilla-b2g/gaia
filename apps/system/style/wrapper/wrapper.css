@@ -187,7 +187,7 @@
   color: #00aac5;
   padding-left: 6rem;
   background-repeat: no-repeat;
-  background-position: 2.5rem center;
+  background-position: 1.8rem center;
 }
 
 .context-menu .close {
@@ -196,4 +196,23 @@
   text-align: center;
   color: #363636;
   line-height: 6rem;
+}
+
+.context-menu .reload {
+  background-image: url('images/context-menu/reload.png' );
+}
+.context-menu .new {
+  background-image: url('images/context-menu/new.png');
+}
+.context-menu .homescreen {
+  background-image: url('images/context-menu/bookmark.png');
+}
+.context-menu .share {
+  background-image: url('images/context-menu/share.png');
+}
+.context-menu .forward {
+  background-image: url('images/context-menu/browser_forward.png');
+}
+.context-menu .settings {
+  background-image: url('images/context-menu/settings.png');
 }
