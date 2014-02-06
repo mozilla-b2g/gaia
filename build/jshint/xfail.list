@@ -830,6 +830,7 @@ apps/music/js/utils.js
 apps/music/test/unit/remote_controls_test.js
 apps/ringtones/js/pick.js
 apps/ringtones/js/ringtones.js
+apps/ringtones/js/share.js
 apps/search/js/eme/api.js
 apps/search/js/eme/eme.js
 apps/search/js/providers/app_provider.js
@@ -846,7 +847,6 @@ apps/search/test/unit/providers/provider_test.js
 apps/search/test/unit/providers/suggestions_test.js
 apps/search/test/unit/providers/webresults_test.js
 apps/search/test/unit/search_test.js
-apps/setringtone/js/share.js
 apps/settings/js/about.js
 apps/settings/js/about_more_info.js
 apps/settings/js/airplane_mode.js

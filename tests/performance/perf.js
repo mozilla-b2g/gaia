@@ -13,7 +13,7 @@ const excludedApps = [
   'costcontrol', // XXX FIXME. Hang for now. See bug 971438
   'camera', // XXX FIXME. hang too often. See bug 971771
   'email/shared', // not an app
-  'fl', 'pdfjs', 'setringtone', // XXX activities
+  'fl', 'pdfjs', // XXX activities
   'template', // XXX not a real thing.
   'homescreen', // we can't "launch" it
   'search', // new rocketbar isn't standalone

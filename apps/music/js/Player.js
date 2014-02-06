@@ -798,12 +798,12 @@ var PlayerView = {
         // If the setting changes, we pause our playback and don't resume
         // until the activity returns. Then we pass the name of this magic
         // setting as a secret undocumented property of the activity so that
-        // the setringtone app can use it.
+        // the ringtones app can use it.
         //
         // This done as much as possible in a self-invoking function to make it
         // easier to remove the hack when we have a real bug fix.
         //
-        // See also the corresponding code in apps/setringtone/js/share.js
+        // See also the corresponding code in apps/ringtones/js/share.js
         //
         // HACK HACK HACK
         (function() {
@@ -831,7 +831,7 @@ var PlayerView = {
           function observer(e) {
             // If the value of the setting has changed, then we pause the music.
             // Note that we don't care what the new value of the setting is.
-            // We only care whether it has changed. The setringtone app will
+            // We only care whether it has changed. The ringtones app will
             // just toggle it back and forth between true and false.
             PlayerView.pause();
           }

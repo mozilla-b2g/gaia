@@ -1,5 +1,5 @@
 {
-  "name": "System Ringtones",
+  "name": "Ringtones",
   "description": "Gaia Ringtone Picker",
   "type": "certified",
   "role": "system",
@@ -11,15 +11,15 @@
   "entry_points": {
     "ringtone": {
       "launch_path": "/manage.html#ringtone",
-      "name": "System Ringtones"
+      "name": "Ringtones"
     },
     "alerttone": {
       "launch_path": "/manage.html#alerttone",
-      "name": "System Ringtones"
+      "name": "Alert Tones"
     }
   },
   "permissions": {
-    "settings":{ "access": "readonly" }
+    "settings": { "access": "readwrite" }
   },
   "activities": {
     "pick": {
@@ -29,11 +29,35 @@
       "disposition": "inline",
       "returnValue": true,
       "href": "/pick.html"
+    },
+    "share": {
+      "filters": {
+        "type": {
+          "required": true,
+          "pattern": "^audio/.*$"
+        },
+        "number": 1
+      },
+      "disposition": "inline",
+      "returnValue": true,
+      "href": "/share.html"
+    },
+    "setringtone": {
+      "filters": {
+        "type": {
+          "required": true,
+          "pattern": "^audio/.*$"
+        },
+        "number": 1
+      },
+      "disposition": "inline",
+      "returnValue": true,
+      "href": "/share.html"
     }
   },
   "locales": {
     "en-US": {
-      "name": "System Ringtones",
+      "name": "Ringtones",
       "description": "Gaia Ringtone Picker"
     }
   },
