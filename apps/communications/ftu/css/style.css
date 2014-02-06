@@ -145,53 +145,15 @@ a {
   z-index: 100;
 }
 
-.step-state:before {
+.step-state-bar {
   content: "";
   height: 0.3rem;
-  width: calc(100% / 7);
   position: absolute;
   top: 50%;
   left: 0;
   margin-top: -0.2rem;
   background: #858585;
   transition: all 0.35s cubic-bezier(0.000, 1.000, 0.535, 1.110);
-}
-
-.less-steps.step-state:before {
-  width: calc(100% / 6) !important;
-}
-
-/* STATES */
-.step-1.step-state:before {
-  transform: translateX(0);
-}
-
-.step-2.step-state:before {
-  transform: translateX(75%);
-}
-
-.step-3.step-state:before {
-  transform: translateX(150%);
-}
-
-.step-4.step-state:before {
-  transform: translateX(225%);
-}
-
-.step-5.step-state:before {
-  transform: translateX(300%);
-}
-
-.step-6.step-state:before {
-  transform: translateX(400%);
-}
-
-.step-7.step-state:before {
-  transform: translateX(500%);
-}
-
-.step-8.step-state:before {
-  transform: translateX(600%);
 }
 
 /*
