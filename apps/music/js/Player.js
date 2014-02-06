@@ -111,8 +111,6 @@ var PlayerView = {
     this.previousControl = document.getElementById('player-controls-previous');
     this.nextControl = document.getElementById('player-controls-next');
 
-    this.banner = document.getElementById('info-banner');
-
     this.isTouching = false;
     this.isFastSeeking = false;
     this.playStatus = PLAYSTATUS_STOPPED;
@@ -144,20 +142,6 @@ var PlayerView = {
     // A timer we use to work around
     // https://bugzilla.mozilla.org/show_bug.cgi?id=783512
     this.endedTimer = null;
-  },
-
-  // When SCO is connected, music is unable to play sounds even it's in the
-  // foreground, this is a limitation for 1.3, see bug 946556. To adapt this,
-  // we regulate the controls to restrict some actions and hope it can give
-  // better ux to the specific scenario.
-  checkSCOStatus: function pv_checkSCOStatus() {
-    var SCOStatus = MusicComms.isSCOEnabled;
-
-    this.playControl.disabled = this.previousControl.disabled =
-      this.nextControl.disabled = SCOStatus;
-
-    this.seekRegion.parentNode.classList.toggle('disabled', SCOStatus);
-    this.banner.classList.toggle('visible', SCOStatus);
   },
 
   clean: function pv_clean() {
@@ -503,7 +487,6 @@ var PlayerView = {
   },
 
   play: function pv_play(targetIndex) {
-    this.checkSCOStatus();
     this.showInfo();
 
     if (arguments.length > 0) {
@@ -523,10 +506,7 @@ var PlayerView = {
           // When we need to preview an audio like in picker mode,
           // we will not autoplay the picked song unless the user taps to play
           // And we just call pause right after play.
-          // Also we pause at beginning when SCO is enabled, the user can still
-          // select songs to the player but it won't start, they have to wait
-          // until the SCO is disconnected.
-          if (this.sourceType === TYPE_SINGLE || MusicComms.isSCOEnabled)
+          if (this.sourceType === TYPE_SINGLE)
             this.pause();
         }.bind(this));
       }.bind(this));
@@ -549,7 +529,6 @@ var PlayerView = {
   },
 
   pause: function pv_pause() {
-    this.checkSCOStatus();
     this.audio.pause();
   },
 
