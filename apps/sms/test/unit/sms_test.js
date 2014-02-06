@@ -22,7 +22,6 @@ requireApp('sms/test/unit/mock_attachment_menu.js');
 
 requireApp('sms/js/link_helper.js');
 requireApp('sms/js/contacts.js');
-requireApp('sms/js/fixed_header.js');
 requireApp('sms/js/utils.js');
 requireApp('sms/js/compose.js');
 requireApp('sms/js/threads.js');
