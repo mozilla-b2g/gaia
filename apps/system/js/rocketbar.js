@@ -112,8 +112,10 @@ var Rocketbar = {
         // Show the card switcher again if we opened the rocketbar
         // in task manager mode. There needs to be a current card.
         var runningApps = AppWindowManager.getRunningApps();
-        if (!this.screen.classList.contains('task-manager') &&
-            this.home === 'tasks' && Object.keys(runningApps).length > 1) {
+        var numRunningApps = Object.keys(runningApps).length;
+        var inTaskManager = this.screen.classList.contains('task-manager');
+
+        if (!inTaskManager && this.home === 'tasks' && numRunningApps > 1) {
           window.dispatchEvent(new CustomEvent('taskmanagershow'));
           // Send a message to the search app to clear results
           if (this._port) {
@@ -121,8 +123,9 @@ var Rocketbar = {
               action: 'clear'
             });
           }
+        } else if (inTaskManager && numRunningApps > 1) {
+          window.dispatchEvent(new CustomEvent('opencurrentcard'));
         } else {
-          window.dispatchEvent(new CustomEvent('taskmanagerhide'));
           this.hide();
         }
         break;

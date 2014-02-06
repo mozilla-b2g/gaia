@@ -110,7 +110,10 @@ suite('system/Rocketbar', function() {
       assert.ok(stub);
     });
 
-    test('search-cancel element should hide the task manager', function() {
+    test('search-cancel sends event to launch active card', function() {
+      Rocketbar.screen.classList.add('task-manager');
+      this.sinon.stub(AppWindowManager, 'getRunningApps')
+        .returns({app1: true, app2: true});
       var dispatchStub = this.sinon.stub(window, 'dispatchEvent');
       Rocketbar.handleEvent({
         target: {
@@ -120,7 +123,21 @@ suite('system/Rocketbar', function() {
         stopPropagation: function() {}
       });
 
-      assert.equal(dispatchStub.getCall(0).args[0].type, 'taskmanagerhide');
+      assert.equal(dispatchStub.getCall(0).args[0].type, 'opencurrentcard');
+      Rocketbar.screen.classList.remove('task-manager');
+    });
+
+    test('search-cancel calls Rocketbar.hide', function() {
+      var hideStub = this.sinon.stub(Rocketbar, 'hide');
+      Rocketbar.handleEvent({
+        target: {
+          id: 'search-cancel'
+        },
+        preventDefault: function() {},
+        stopPropagation: function() {}
+      });
+
+      assert.ok(hideStub.calledOnce);
     });
 
     test('search-cancel element should show the task manager', function() {

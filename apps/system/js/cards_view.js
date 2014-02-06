@@ -220,6 +220,7 @@ var CardsView = (function() {
     // At the beginning only the current card can listen to tap events
     currentCardStyle.pointerEvents = 'auto';
     window.addEventListener('tap', CardsView);
+    window.addEventListener('opencurrentcard', CardsView);
 
     function addCard(origin, app, displayedAppCallback) {
       // Display card switcher background first to make user focus on the
@@ -446,6 +447,7 @@ var CardsView = (function() {
     // events to handle
     window.removeEventListener('lock', CardsView);
     window.removeEventListener('tap', CardsView);
+    window.removeEventListener('opencurrentcard', CardsView);
 
     if (removeImmediately) {
       cardsView.classList.add('no-transition');
@@ -900,6 +902,11 @@ var CardsView = (function() {
 
       case 'contextmenu':
         manualOrderStart(evt);
+        break;
+
+      case 'opencurrentcard':
+        AppWindowManager.display(currentCard.dataset.origin,
+          'from-cardview', null);
         break;
 
       case 'tap':
