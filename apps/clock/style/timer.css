@@ -106,7 +106,6 @@ ul li > label.pack-switch > input + span {
   color: #FFF;
   text-align: left;
   background-color: #4D4D4D;
-  text-shadow: 0 0;
 }
 
 #timer-plus-time {
