@@ -2,6 +2,11 @@
   height: auto;
 }
 
+#media-playback-container.disabled {
+  opacity: 0.3;
+  pointer-events: none;
+}
+
 #lockscreen-media-container {
   position: absolute;
   left: 0;
@@ -11,6 +16,11 @@
   background: rgba(0, 0, 0, 0.75);
   border-top: 1px solid #9c9a9c;
   border-bottom: 1px solid black;
+}
+
+#lockscreen-media-container.disabled {
+  opacity: 0.3;
+  pointer-events: none;
 }
 
 /* The "Now Playing" section */
