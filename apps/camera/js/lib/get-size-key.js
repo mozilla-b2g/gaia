@@ -25,9 +25,9 @@ exports.video = function(size) {
   var w = size.width;
   var h = size.height;
   switch (true) {
+    case (w === 352 && h === 288): return 'cif';
     case (w === 176 && h === 144): return 'qcif';
-    case (w === 320 && h === 240): return 'qvga';
-    case (w === 1280 && h === 720): return 'hd';
+    case (w === 1280 && h === 720): return '720p';
   }
 };
 
