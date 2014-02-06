@@ -1140,7 +1140,7 @@ var Browser = {
 
     var cancel = document.createElement('li');
     cancel.id = 'cancel';
-    cancel.appendChild(this.createButton('Cancel'));
+    cancel.appendChild(this.createButton(_('cancel')));
     list.appendChild(cancel);
 
     cancel.addEventListener('click', function(e) {
