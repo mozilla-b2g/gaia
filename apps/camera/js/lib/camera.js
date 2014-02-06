@@ -68,14 +68,16 @@ function Camera(options) {
   debug('initialized');
 }
 
-Camera.prototype.loadStreamInto = function(el, done) {
+Camera.prototype.loadStreamInto = function(options, done) {
   debug('loading stream into element');
 
+  var streamConfig = options.streamConfig;
   var mozCamera = this.mozCamera;
+  var el = options.el;
   var self = this;
 
   this.emit('streamloading');
-  this.getStream(function(stream) {
+  this.getStream(streamConfig, function(stream) {
     el.mozSrcObject = stream;
     debug('got stream');
 
@@ -92,18 +94,13 @@ Camera.prototype.loadStreamInto = function(el, done) {
   });
 };
 
-Camera.prototype.getStream = function(done) {
+Camera.prototype.getStream = function(config, done) {
   var mozCamera = this.mozCamera;
   var mode = this.get('mode');
-  debug('get %s stream', mode);
-
+  debug('get stream: %s', mode);
   switch (mode) {
-    case 'photo':
-      mozCamera.getPreviewStream(this.photoPreviewSize, done);
-      break;
-    case 'video':
-      mozCamera.getPreviewStreamVideoMode(this.videoProfile, done);
-      break;
+    case 'photo': mozCamera.getPreviewStream(config, done); break;
+    case 'video': mozCamera.getPreviewStreamVideoMode(config, done); break;
   }
 };
 
