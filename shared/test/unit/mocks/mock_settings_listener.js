@@ -39,6 +39,11 @@ var MockSettingsListener = {
   mDefaultValue: null,
   mCallback: null,
   mCallbacks: {},
+  mTriggerCallback: function msl_mTriggerCallback(name, value) {
+    if (this.mCallbacks[name]) {
+      this.mCallbacks[name](value);
+    }
+  },
   mTeardown: function teardown() {
     this.mName = null;
     this.mDefaultValue = null;
