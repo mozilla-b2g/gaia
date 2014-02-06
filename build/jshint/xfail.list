@@ -435,7 +435,6 @@ apps/communications/ftu/test/unit/navigation_test.js
 apps/communications/ftu/test/unit/operatorVariant_test.js
 apps/communications/ftu/test/unit/resources_test.js
 apps/communications/ftu/test/unit/ringtone_customizer_test.js
-apps/communications/ftu/test/unit/sim_manager_test.js
 apps/communications/ftu/test/unit/support_contacts_customizer_test.js
 apps/communications/ftu/test/unit/tutorial_steps_test.js
 apps/communications/ftu/test/unit/tutorial_test.js
