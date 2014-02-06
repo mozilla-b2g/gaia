@@ -1,3 +1,4 @@
+/* global SettingsListener */
 'use strict';
 
 (function(exports) {
@@ -47,7 +48,7 @@
      */
     this.publish('created');
 
-    if (DEBUG) {
+    if (DEBUG || this._DEBUG) {
       AppWindow[this.instanceID] = this;
     }
 
@@ -55,6 +56,18 @@
 
     return this;
   };
+
+  /**
+   * When this option is set to true,
+   * an app would not be removed while it's crashed.
+   * And while it's opened next, we will re-render the mozbrowser iframe.
+   * @type {Boolean}
+   */
+  AppWindow.SUSPENDING_ENABLED = false;
+  SettingsListener.observe('app-suspending.enabled', false, function(value) {
+    console.log('appwindow:', value);
+    AppWindow.SUSPENDING_ENABLED = !!value;
+  });
 
   /**
    * Change this if new window has its own styles.
@@ -277,6 +290,62 @@
   };
 
   /**
+   * If the instance is crashed but not resumed yet,
+   * it would be in suspended state.
+   *
+   * The state would be turned off once we render the browser again.
+   * @type {Boolean}
+   */
+  AppWindow.prototype.suspended = false;
+
+  /**
+   * Re-render the browser element with the same config.
+   */
+  AppWindow.prototype.reviveBrowser = function() {
+    if (this.browser) {
+      return;
+    }
+    this.debug(' ...revived!');
+    this.browser = new self.BrowserFrame(this.browser_config);
+    this.element.appendChild(this.browser.element);
+    this.launchTime = Date.now();
+    this.suspended = false;
+    this.publish('resumed');
+  };
+
+  /**
+   * Remove the browser element and clear the states of the browser.
+   * @fires AppWindow#suspended
+   */
+  AppWindow.prototype.destroyBrowser = function() {
+    if (!this.browser) {
+      return;
+    }
+    this.loading = false;
+    this.loaded = false;
+    this.suspended = true;
+    this.setFrameBackgroundWithScreenshot();
+    this.element.removeChild(this.browser.element);
+    this.browser = null;
+    this.publish('suspended');
+  };
+
+  /**
+   * Render the container background with cached screenshot.
+   * @fires AppWindow#resumed
+   */
+  AppWindow.prototype.setFrameBackgroundWithScreenshot = function() {
+    var screenshotURL = this.requestScreenshotURL();
+    if (!screenshotURL) {
+      return;
+    }
+    this.element.classList.remove('render');
+    this.element.style.backgroundImage =
+      'url(' + screenshotURL + ')';
+    this.element.style.backgroundSize = 'auto';
+  };
+
+  /**
    * Kill an instance.
    *
    * 1. If this instance has any living activity window as callee,
@@ -285,10 +354,11 @@
    *
    * @fires AppWindow#appterminated
    */
-  AppWindow.prototype.kill = function aw_kill() {
+  AppWindow.prototype.kill = function aw_kill(evt) {
     if (this._killed) {
       return;
     }
+
     this._killed = true;
 
     if (DEBUG) {
@@ -359,6 +429,7 @@
     this.publish('willdestroy');
     this.uninstallSubComponents();
     if (this.element) {
+      this.debug(' removing element... ');
       this.element.parentNode.removeChild(this.element);
       this.element = null;
     }
@@ -458,7 +529,7 @@
      'mozbrowserloadend', 'mozbrowseractivitydone', 'mozbrowserloadstart',
      'mozbrowsertitlechange', 'mozbrowserlocationchange',
      'mozbrowsericonchange',
-     '_localized', '_swipein', '_swipeout'];
+     '_localized', '_swipein', '_swipeout', '_kill_suspended'];
 
   AppWindow.SUB_COMPONENTS = {
     'transitionController': window.AppTransitionController,
@@ -557,7 +628,13 @@
       }
       // Send event instead of call crash reporter directly.
       this.publish('crashed');
-      this.kill();
+
+      if (this.constructor.SUSPENDING_ENABLED && !this.isActive()) {
+        this.debug(' ..sleep! I will come back.');
+        this.destroyBrowser();
+      } else {
+        this.kill(evt);
+      }
     };
 
   AppWindow.prototype._handle_mozbrowserloadstart =
@@ -586,6 +663,8 @@
       this.loading = false;
       this.loaded = true;
       this.element.classList.add('render');
+      // Force removing background image.
+      this.element.style.backgroundImage = 'none';
       this._changeState('loading', false);
       this.publish('loaded');
       var backgroundColor = evt.detail.backgroundColor;
@@ -728,6 +807,7 @@
         this._hideFrame();
         return;
       }
+
       this.getScreenshot(function onGettingScreenshot(screenshotBlob) {
         // If the callback is too late,
         // and we're brought to foreground by somebody.
@@ -1286,6 +1366,8 @@
   };
 
   AppWindow.prototype._handle__swipein = function aw_swipein() {
+    // Revive the browser element if it's got killed in background.
+    this.reviveBrowser();
     // Request "open" to our internal transition controller.
     if (this.transitionController) {
       this.transitionController.switchTransitionState('opened');
@@ -1298,6 +1380,12 @@
     if (this.transitionController) {
       this.transitionController.switchTransitionState('closed');
       this.publish('closed');
+    }
+  };
+
+  AppWindow.prototype._handle__kill_suspended = function aw() {
+    if (this.suspended) {
+      this.kill();
     }
   };
 
