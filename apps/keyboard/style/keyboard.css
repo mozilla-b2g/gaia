@@ -658,7 +658,7 @@ bubble above the key when you tap and hold. */
 /* Arabic */
 
 .ar .keyboard-key > .visual-wrapper > span{
-  font-size: 1.8rem;  
+  font-size: 1.8rem;
 }
 
 .keyboard-key > .visual-wrapper > span[data-label="ض"],
@@ -672,4 +672,13 @@ bubble above the key when you tap and hold. */
 
 .keyboard-key > .visual-wrapper > span[data-label="ص"]{
   margin-left:-.1rem;
+}
+
+/* Bangla Probhat */
+.bn-Probhat .keyboard-key:not(.special-key) > .visual-wrapper > span {
+  font-size: 1.6rem;
+}
+
+.bn-Probhat #keyboard-accent-char-menu .keyboard-key > .visual-wrapper > span {
+  font-size: 2.4rem;
 }
