@@ -63,6 +63,7 @@ suite('Tutorial >', function() {
 
     setup(function() {
       Tutorial.init();
+      Tutorial.numTutorialSteps = Object.keys(TutorialSteps.tiny).length;
     });
 
     test('forward', function() {
@@ -91,6 +92,7 @@ suite('Tutorial >', function() {
     setup(function() {
       ScreenLayout.setDevice('large');
       Tutorial.init();
+      Tutorial.numTutorialSteps = Object.keys(TutorialSteps.large).length;
     });
 
     test('forward', function() {
