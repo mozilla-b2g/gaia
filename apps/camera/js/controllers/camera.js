@@ -99,18 +99,14 @@ CameraController.prototype.configure = function() {
   debug('configured');
 };
 
-/**
- * Loads the camera with its
- */
 CameraController.prototype.setupCamera = function() {
   this.camera.load();
 };
 
-CameraController.prototype.onConfigured = function(capabilities) {
-  var maxFileSize = this.camera.maxPictureSize;
+CameraController.prototype.onSettingsConfigured = function() {
+  var pictureSize = this.app.settings.pictureSizes.value();
+  var maxFileSize = (pictureSize.width * pictureSize.height * 4) + 4096;
   this.storage.setMaxFileSize(maxFileSize);
-  this.app.set('maxFileSize', maxFileSize);
-  this.app.set('capabilities', capabilities);
 };
 
 // TODO: Tidy this crap

@@ -134,7 +134,6 @@ App.prototype.injectViews = function() {
  *
  */
 App.prototype.bindEvents = function() {
-  this.camera.once('configured', this.storage.check);
   this.storage.once('checked:healthy', this.geolocationWatch);
   bind(this.doc, 'visibilitychange', this.onVisibilityChange);
   bind(this.win, 'beforeunload', this.onBeforeUnload);

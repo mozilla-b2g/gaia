@@ -19,6 +19,7 @@ module.exports = Storage;
 events(Storage.prototype);
 
 function Storage() {
+  this.maxFileSize = 0;
   this.check = this.check.bind(this);
   this.onStorageChange = this.onStorageChange.bind(this);
   this.video = navigator.getDeviceStorage('videos');
@@ -121,6 +122,7 @@ Storage.prototype.setState = function(value) {
 
 Storage.prototype.setMaxFileSize = function(maxFileSize) {
   this.maxFileSize = maxFileSize;
+  this.check();
   debug('max file size set: %d', maxFileSize);
 };
 
