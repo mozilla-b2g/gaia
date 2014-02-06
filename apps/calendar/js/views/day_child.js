@@ -1,7 +1,8 @@
+/*global Calendar*/
 Calendar.ns('Views').DayChild = (function() {
+  'use strict';
 
   var template = Calendar.Templates.Day;
-  var OrderedMap = Calendar.Utils.OrderedMap;
 
   function Day(options) {
     Calendar.Views.DayBased.apply(this, arguments);
@@ -17,24 +18,19 @@ Calendar.ns('Views').DayChild = (function() {
     _renderEvent: function(busytime, event) {
       var remote = event.remote;
       var attendees;
-      var classes;
 
-      if (event.remote.alarms && event.remote.alarms.length) {
-        classes = 'has-alarms';
-      }
-
-      if (event.remote.attendees) {
+      if (remote.attendees) {
         attendees = this._renderAttendees(
-          event.remote.attendees
+          remote.attendees
         );
       }
 
       return template.event.render({
-        classes: classes,
+        hasAlarm: Boolean(remote.alarms && remote.alarms.length),
         busytimeId: busytime._id,
         calendarId: event.calendarId,
-        title: event.remote.title,
-        location: event.remote.location,
+        title: remote.title,
+        location: remote.location,
         attendees: attendees
       });
     },

@@ -34,7 +34,23 @@ Calendar.ns('Provider').Caldav = (function() {
     this.busytimes = this.app.store('Busytime');
     this.events = this.app.store('Event');
     this.icalComponents = this.app.store('IcalComponent');
+    this._colorIndex = -1;
   }
+
+  /**
+   * Calendar Colors
+   */
+  CaldavProvider.COLOR_PALETTE = [
+    // '#f97c17' (orange) is always used by local provider, so we remove it
+    // from the list
+    '#00aacc', // light blue
+    '#bad600', // light green
+    '#df4784', // pink
+    '#f9bc17', // yellow
+    '#0766b7', // dark blue
+    '#76a408', // dark green
+    '#33a185'  // teal
+  ];
 
   CaldavProvider.prototype = {
     __proto__: Calendar.Provider.Abstract.prototype,
@@ -197,10 +213,18 @@ Calendar.ns('Provider').Caldav = (function() {
      * Hook to format remote data if needed.
      */
     formatRemoteCalendar: function(calendar) {
-      if (!calendar.color)
-        calendar.color = this.defaultColor;
-
+      // use ignore the remote color and use our own palette
+      calendar.color = this._getNextColor();
       return calendar;
+    },
+
+    /**
+     * Cycle through colors
+     */
+    _getNextColor: function() {
+      var palette = CaldavProvider.COLOR_PALETTE;
+      this._colorIndex = (this._colorIndex + 1) % palette.length;
+      return palette[this._colorIndex];
     },
 
     findCalendars: function(account, callback) {
