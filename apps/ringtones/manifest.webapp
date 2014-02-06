@@ -8,6 +8,16 @@
     "name": "The Gaia Team",
     "url": "https://github.com/mozilla-b2g/gaia"
   },
+  "entry_points": {
+    "ringtone": {
+      "launch_path": "/manage.html#ringtone",
+      "name": "System Ringtones"
+    },
+    "alerttone": {
+      "launch_path": "/manage.html#alerttone",
+      "name": "System Ringtones"
+    }
+  },
   "permissions": {
     "settings":{ "access": "readonly" }
   },

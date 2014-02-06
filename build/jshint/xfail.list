@@ -829,6 +829,7 @@ apps/music/js/open.js
 apps/music/js/utils.js
 apps/music/test/unit/remote_controls_test.js
 apps/ringtones/js/pick.js
+apps/ringtones/js/ringtones.js
 apps/search/js/eme/api.js
 apps/search/js/eme/eme.js
 apps/search/js/providers/app_provider.js

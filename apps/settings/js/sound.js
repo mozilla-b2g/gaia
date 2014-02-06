@@ -53,95 +53,34 @@
       tone.button.textContent = tonename || _('change');
     });
 
-    // When the user clicks the button, we launch an activity that lets
-    // the user select new ringtone.
     tone.button.onclick = function() {
+      var key = 'ringtones.manifestURL';
+      var req = navigator.mozSettings.createLock().get(key);
+      req.onsuccess = function() {
+        var ringtonesManifestURL = req.result[key];
 
-      // Before we can start the Pick activity, we need to know if there
-      // is locked content on the phone because we don't want the user to
-      // see "Purchased Media" as a choice if there isn't any purchased
-      // media on the phone. The ForwardLock secret key is not generated
-      // until it is needed, so we can use its existance to determine whether
-      // to show the Purchased Media app.
-      ForwardLock.getKey(function(secret) {
-        var activity = new MozActivity({
-          name: 'pick',
-          data: {
-            type: tone.pickType,
-            allowNone: tone.allowNone,
-            // If we have a secret then there is locked content on the phone
-            // so include it as a choice for the user
-            includeLocked: (secret !== null)
-          }
-        });
+        // fallback if no settings present
+        if (!ringtonesManifestURL) {
+          ringtonesManifestURL = document.location.protocol +
+            '//ringtones.gaiamobile.org' +
+            (location.port ? (':' + location.port) : '') +
+            '/manifest.webapp';
+        }
 
-        activity.onsuccess = function() {
-          var blob = activity.result.blob;  // The returned ringtone sound
-          var name = activity.result.name;  // The name of this ringtone
+        var ringtonesApp = null;
+        navigator.mozApps.mgmt.getAll().onsuccess = function(evt) {
+          var apps = evt.target.result;
+          var ringtonesApp = apps.find(function(app) {
+            return app.manifestURL === ringtonesManifestURL;
+          });
 
-          if (!blob) {
-            if (tone.allowNone) {
-              // If we allow a null blob, then everything is okay
-              setRingtone(blob, name);
-            }
-            else {
-              // Otherwise this is an error and we should not change the
-              // current setting. (The ringtones app should never return
-              // a null blob if allowNone is false, but other apps might.)
-              alert(_('unplayable-ringtone'));
-            }
-            return;
-          }
-
-          // If we got a locked ringtone, we have to unlock it first
-          if (blob.type.split('/')[1] === ForwardLock.mimeSubtype) {
-            ForwardLock.unlockBlob(secret, blob, function(unlocked) {
-              checkRingtone(unlocked, name);
-            });
-          } else {  // Otherwise we can just use the blob directly.
-            checkRingtone(blob, name);
-          }
-
-          // Make sure that the blob we got from the activity is actually
-          // a playable audio file. It would be very bad to set an corrupt
-          // blob as a ringtone because then the phone wouldn't ring!
-          function checkRingtone(blob, name) {
-            var oldRingtoneName = tone.button.textContent;
-            tone.button.textContent = _('savingringtone');
-
-            var player = new Audio();
-            player.preload = 'metadata';
-            player.src = URL.createObjectURL(blob);
-            player.oncanplay = function() {
-              release();
-              setRingtone(blob, name);  // this will update the button text
-            };
-            player.onerror = function() {
-              release();
-              tone.button.textContent = oldRingtoneName;
-              alert(_('unplayable-ringtone'));
-            };
-
-            function release() {
-              URL.revokeObjectURL(player.src);
-              player.removeAttribute('src');
-              player.load();
-            }
-          }
-
-          // Save the sound in the settings db so that other apps can use it.
-          // Also save the sound name in the db so we can display it in the
-          // future.  And update the button text to the new name now.
-          function setRingtone(blob, name) {
-            // Update the settings database. This will cause the button
-            // text to change as well because of the SettingsListener above.
-            var values = {};
-            values[tone.settingsKey] = blob;
-            values[namekey] = name || '';
-            navigator.mozSettings.createLock().set(values);
+          if (ringtonesApp) {
+            ringtonesApp.launch(tone.pickType);
+          } else {
+            alert('Well, crap.');
           }
         };
-      });
+      };
     };
   });
 }());
