@@ -16,7 +16,7 @@ class TestNotificationBar(GaiaTestCase):
         system = System(self.marionette)
 
         # Push a notification
-        self.marionette.execute_script('navigator.mozNotification.createNotification("%s", "%s").show();'
+        self.marionette.execute_script('Notification("%s", {body: "%s"});'
                                        % (self._notification_title, self._notification_body))
 
         system.wait_for_notification_toaster_displayed()
