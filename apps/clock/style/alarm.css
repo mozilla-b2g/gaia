@@ -23,6 +23,9 @@ ul.compact li:last-child {
 
 ul.compact li label {
   color: #9a9898;
+  font-size: 1.7rem;
+  font-weight: bold;
+  font-family: Fira Sans;
 }
 
 li button.icon-dialog {
@@ -36,6 +39,17 @@ li button.icon-dialog:before,
 li a[role="button"].icon-dialog:before,
 li .button.icon-dialog:before {
   background-image: url(images/dialog.png);
+}
+
+#time-select-menu,
+#repeat-select-menu,
+#sound-select-menu,
+#vibrate-select-menu,
+#snooze-select-menu {
+  font-size: 1.5rem;
+  font-weight: normal;
+  font-family: Fira Sans;
+  text-shadow: 0 0;
 }
 
 #alarm-new {
