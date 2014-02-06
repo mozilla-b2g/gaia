@@ -72,15 +72,15 @@ module.exports = {
     title: 'Video Sizes',
     options: [
       {
-        value: 'hd',
-        title: 'HD 1280X720'
+        key: '720p',
+        title: '720p 1280X720'
       },
       {
-        value: 'qvga',
-        title: 'QVGA 320X240'
+        key: 'cif',
+        title: 'CIF 352X288'
       },
       {
-        value: 'qcif',
+        key: 'qcif',
         title: 'QCIF 176X144'
       }
     ],
