@@ -125,12 +125,6 @@ Email.prototype = {
       .text();
   },
 
-  getComposeBody: function() {
-    var input = this.client.helper.waitForElement(Selector.composeBodyInput);
-    var value = input.getAttribute('value');
-    return value;
-  },
-
   getComposeTo: function() {
     var container =
       this.client.helper.waitForElement(Selector.composeEmailContainer);
@@ -279,15 +273,30 @@ Email.prototype = {
       .sendKeys(subject);
   },
 
-  typeBody: function(body) {
-    this.client.helper
-      .waitForElement(Selector.composeBodyInput)
-      .sendKeys(body);
+  typeBody: function(string) {
+    var bodyInput = this.client.
+      findElement(Selector.composeBodyInput);
+    bodyInput.click();
+    bodyInput.sendKeys(string);
   },
 
+  /**
+   * Retrieve the textual representation of the contenteditable that is our
+   * compose area using the app logic that does this for when we save and
+   * send the draft.  Using innerHTML would not be realistic and textContent
+   * over-simplifies our newline handling as well as risking oddities in the
+   * future if we inline various affordances proposed by UX.
+   */
   getComposeBody: function() {
-    return this._waitForElementNoTransition(Selector.composeBodyInput)
-           .getAttribute('value');
+    return client.executeScript(function() {
+      var Cards = window.wrappedJSObject.require('mail_common').Cards,
+          card = Cards._cardStack[Cards.activeCardIndex];
+      if (card.cardDef.name !== 'compose')
+        throw new Error('active card should be compose!');
+
+      var composeCard = card.cardImpl;
+      return composeCard.fromEditor();
+    }, []);
   },
 
   abortCompose: function(cardId) {
