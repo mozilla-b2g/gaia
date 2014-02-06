@@ -43,6 +43,10 @@
     "scope":
       ["https://www.google.com/m8/feeds/"],
     "logoutUrl":
-      "https://accounts.google.com/Logout"
+      "https://accounts.google.com/Logout?continue=",
+    "redirectLogout":
+      "https://www.google.com/",
+    "redirectLogoutManifest":
+      "https://www.google"
   }
 }

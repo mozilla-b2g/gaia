@@ -340,6 +340,9 @@ if (typeof Contacts.extServices === 'undefined') {
           if (closeRequested && canClose) {
             unload();
           }
+          if (data.data) {
+            Contacts.showStatus(data.data);
+          }
         break;
 
         case 'item_selected':
