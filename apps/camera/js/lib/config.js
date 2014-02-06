@@ -44,7 +44,7 @@ Config.prototype.normalizeItem = function(key, value) {
   debug('normalising %s', key);
   return {
     title: value.title || key,
-    options: value.options || [{ value: value }],
+    options: value.options || [{ key: key, value: value }],
     selected: value.selected || 0,
     persistent: value.persistent || false,
     menu: value.menu || false

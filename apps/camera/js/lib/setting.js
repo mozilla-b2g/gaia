@@ -8,6 +8,7 @@ define(function(require, exports, module) {
 var debug = require('debug')('setting');
 var storage = require('asyncStorage');
 var model = require('vendor/model');
+var mixin = require('lib/mixin');
 
 /**
  * Exports
@@ -30,10 +31,20 @@ function Setting(data) {
 }
 
 Setting.prototype.configure = function(data) {
-  var options = data.options;
-  data.originalOptions = data.options;
-  data.optionValues = options.map(function(option) { return option.value; });
+  data.optionsHash = this.optionsToHash(data.options);
+  //data.optionValues = options.map(function(option) { return option.value; });
   if (data.persistent) { this.on('change:selected', this.save); }
+};
+
+Setting.prototype.optionsToHash = function(options) {
+  var hash = {};
+  options.forEach(function(option, index) {
+    var key = option.key;
+    option.index = index;
+    option.value = option.value || key;
+    hash[key] = option;
+  });
+  return hash;
 };
 
 /**
@@ -107,18 +118,31 @@ Setting.prototype.updateSelected = function(options) {
 };
 
 /**
- * Filters the setting's `option`s
- * based on the list of values given.
+ * Add each matched option key to the
+ * new options array.
+ *
+ * If the option is an object, we mixin
+ * any extra properties. This allows
+ * hardware to give us more data about
+ * the option that just the key.
  *
  * @param  {Array} values
  */
 Setting.prototype.configureOptions = function(values) {
-  var config = this.get('originalOptions');
-  var filtered = config.filter(function(option) {
-    return values && !!~values.indexOf(option.value);
+  var optionsHash = this.get('optionsHash');
+  var options = [];
+
+  values.map(function(value) {
+    var isObject = typeof value === 'object';
+    var key = isObject ? value.key : value;
+    var option = optionsHash[key];
+    if (!option) { return; }
+    if (isObject) { mixin(option, value); }
+    options.push(option);
   });
 
-  this.set('options', filtered);
+  options.sort(function(a, b) { return a - b; });
+  this.set('options', options);
   this.updateSelected();
 };
 

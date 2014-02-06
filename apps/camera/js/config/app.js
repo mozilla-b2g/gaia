@@ -8,13 +8,13 @@ module.exports = {
     title: 'Mode',
     options: [
       {
-        value: 'photo',
-        title: 'Photo',
+        key: 'photo',
+        title: 'Photo'
         //disables: ['videoFlashModes']
       },
       {
-        value: 'video',
-        title: 'Video',
+        key: 'video',
+        title: 'Video'
         //disables: ['photoFlashModes']
       }
     ],
@@ -27,11 +27,11 @@ module.exports = {
     title: 'Selected Camera',
     options: [
       {
-        value: 'back',
+        key: 'back',
         title: 'Back'
       },
       {
-        value: 'front',
+        key: 'front',
         title: 'Front'
       }
     ],
@@ -43,23 +43,23 @@ module.exports = {
     title: 'Picture Sizes',
     options: [
       {
-        value: '8mp',
+        key: '8mp',
         title: '8MP',
       },
       {
-        value: '5mp',
+        key: '5mp',
         title: '5MP'
       },
       {
-        value: '3mp',
+        key: '3mp',
         title: '3MP'
       },
       {
-        value: '1mp',
+        key: '1mp',
         title: '1MP'
       },
       {
-        value: 'vga',
+        key: 'vga',
         title: 'VGA'
       }
     ],
@@ -72,17 +72,17 @@ module.exports = {
     title: 'Flash',
     options: [
       {
-        value: 'auto',
+        key: 'auto',
         title: 'Auto',
         icon: 'A'
       },
       {
-        value: 'on',
+        key: 'on',
         title: 'On',
         icon: 'O'
       },
       {
-        value: 'off',
+        key: 'off',
         title: 'Off',
         icon: 'O'
       }
@@ -95,18 +95,22 @@ module.exports = {
     title: 'Self Timer',
     options: [
       {
+        key: 'off',
         title: 'Off',
         value: 0
       },
       {
+        key: '3secs',
         title: '3secs',
         value: 3
       },
       {
+        key: '5secs',
         title: '5secs',
         value: 5
       },
       {
+        key: '10secs',
         title: '10secs ',
         value: 10
       }
@@ -120,17 +124,17 @@ module.exports = {
     title: 'HDR',
     options: [
       {
-        value: 'auto',
+        key: 'auto',
         title: 'Auto',
         icon: 'A'
       },
       {
-        value: 'on',
+        key: 'on',
         title: 'On',
         icon: 'O'
       },
       {
-        value: 'off',
+        key: 'off',
         title: 'Off',
         icon: 'O'
       }
@@ -144,16 +148,16 @@ module.exports = {
     title: 'Scene Mode',
     options: [
       {
-        title: 'Normal',
-        value: 'normal'
+        key: 'normal',
+        title: 'Normal'
       },
       {
-        title: 'Panorama',
-        value: 'pano'
+        key: 'pano',
+        title: 'Panorama'
       },
       {
-        title: 'Beauty',
-        value: 'beauty'
+        key: 'beauty',
+        title: 'Beauty'
       }
     ],
     selected: 0,
@@ -165,10 +169,12 @@ module.exports = {
     title: 'Grid',
     options: [
       {
+        key: 'on',
         title: 'On',
         value: true
       },
       {
+        key: 'off',
         title: 'Off',
         value: false
       }
