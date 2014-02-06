@@ -23,7 +23,7 @@ class TestLockScreenNotification(GaiaTestCase):
         # Check if the screen is turned off
         self.assertFalse(self.device.is_screen_enabled)
 
-        self.marionette.execute_script('navigator.mozNotification.createNotification("%s", "%s").show();'
+        self.marionette.execute_script('Notification("%s", {body: "%s"});'
                                        % (self._notification_title, self._notification_body))
         lock_screen.wait_for_notification()
 
