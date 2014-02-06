@@ -9,10 +9,9 @@ from gaiatest.apps.settings.app import Settings
 class TestBluetoothSettings(GaiaTestCase):
 
     def test_toggle_bluetooth_settings(self):
-        """ Toggle Bluetooth via Settings - Networks & Connectivity
+        """Toggle Bluetooth via Settings - Networks & Connectivity
 
-        https://moztrap.mozilla.org/manage/case/3346/
-
+        https://moztrap.mozilla.org/manage/case/6071/
         """
         settings = Settings(self.marionette)
         settings.launch()

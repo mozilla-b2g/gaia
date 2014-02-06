@@ -24,7 +24,8 @@ class TestCameraUnlockWithPasscode(GaiaTestCase):
         self.device.lock()
 
     def test_unlock_to_camera_with_passcode(self):
-        # https://github.com/mozilla/gaia-ui-tests/issues/479
+        """https://moztrap.mozilla.org/manage/case/2460/"""
+
         lock_screen = LockScreen(self.marionette)
         camera = lock_screen.unlock_to_camera()
 

@@ -19,7 +19,8 @@ class TestContacts(GaiaTestCase):
         self.data_layer.insert_contact(self.contact)
 
     def test_edit_contact(self):
-        # https://moztrap.mozilla.org/manage/case/1310/
+        """https://moztrap.mozilla.org/manage/case/1310/"""
+
         # First insert a new contact to edit
 
         contacts_app = Contacts(self.marionette)

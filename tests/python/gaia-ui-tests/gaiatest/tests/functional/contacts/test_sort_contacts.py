@@ -24,12 +24,6 @@ class TestContacts(GaiaTestCase):
         self.sorted_contacts_name_by_last = sorted(self._contacts_name_list, key=lambda name: name[1])
 
     def test_sort_contacts(self):
-        """ Test sorting of contacts
-
-        https://github.com/mozilla/gaia-ui-tests/issues/467
-
-        """
-
         contacts_app = Contacts(self.marionette)
         contacts_app.launch()
         contacts_app.wait_for_contacts(number_to_wait_for=len(self._contacts_name_list))

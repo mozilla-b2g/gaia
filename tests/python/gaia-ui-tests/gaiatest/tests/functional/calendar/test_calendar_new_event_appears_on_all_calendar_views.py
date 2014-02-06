@@ -12,6 +12,7 @@ class TestCalendar(GaiaTestCase):
 
 
     def test_that_new_event_appears_on_all_calendar_views(self):
+        """https://moztrap.mozilla.org/manage/case/6118/"""
 
         # We get the actual time of the device
         _seconds_since_epoch = self.marionette.execute_script("return Date.now();")

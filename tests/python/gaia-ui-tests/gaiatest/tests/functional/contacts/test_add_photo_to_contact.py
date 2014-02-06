@@ -19,7 +19,7 @@ class TestContacts(GaiaTestCase):
         self.push_resource('IMG_0001.jpg', destination='DCIM/100MZLLA')
 
     def test_add_photo_from_gallery_to_contact(self):
-        # https://moztrap.mozilla.org/manage/case/5551/
+        """https://moztrap.mozilla.org/manage/case/5551/"""
 
         contacts_app = Contacts(self.marionette)
         contacts_app.launch()

@@ -17,12 +17,6 @@ class TestContacts(GaiaTestCase):
         self.data_layer.insert_contact(self.contact)
 
     def test_delete_contact(self):
-        """ Test delete contact
-
-        https://github.com/mozilla/gaia-ui-tests/issues/493
-
-        """
-
         contacts_app = Contacts(self.marionette)
         contacts_app.launch()
         contacts_app.wait_for_contacts()

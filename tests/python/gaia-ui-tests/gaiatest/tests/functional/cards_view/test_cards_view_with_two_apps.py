@@ -21,7 +21,8 @@ class TestCardsView(GaiaTestCase):
         self.marionette.switch_to_frame()
 
     def test_that_app_can_be_launched_from_cards_view(self):
-        # https://bugzilla.mozilla.org/show_bug.cgi?id=943338
+        """https://moztrap.mozilla.org/manage/case/2462/"""
+
         cards_view = CardsView(self.marionette)
         self.assertFalse(cards_view.is_cards_view_displayed, 'Cards view not expected to be visible')
 

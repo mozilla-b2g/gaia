@@ -13,7 +13,7 @@ class TestWallpaper(GaiaTestCase):
     _new_wallpaper_settings = None
 
     def test_change_wallpaper(self):
-        # https://moztrap.mozilla.org/manage/case/3449/
+        """https://moztrap.mozilla.org/manage/case/3449/"""
 
         settings = Settings(self.marionette)
         settings.launch()

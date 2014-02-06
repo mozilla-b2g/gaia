@@ -16,7 +16,7 @@ class TestCallLogAllCalls(GaiaTestCase):
         self.phone.launch()
 
     def test_call_log_all_calls(self):
-        # https://moztrap.mozilla.org/manage/case/1306/
+        """https://moztrap.mozilla.org/manage/case/1306/"""
 
         self.phone.tap_call_log_toolbar_button()
 

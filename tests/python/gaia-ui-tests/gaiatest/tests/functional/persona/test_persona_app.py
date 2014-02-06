@@ -27,9 +27,6 @@ class TestPersonaStandard(GaiaTestCase):
         )
 
     def test_persona_standard_sign_in(self):
-        """
-        Test standard sign in to UI tests app
-        """
         uitests = UiTests(self.marionette)
         uitests.launch()
         uitests.tap_api_button()

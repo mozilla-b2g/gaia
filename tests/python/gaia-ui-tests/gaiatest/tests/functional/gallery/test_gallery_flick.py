@@ -18,7 +18,7 @@ class TestGallery(GaiaTestCase):
         self.push_resource(self.images, self.image_count, 'DCIM/100MZLLA')
 
     def test_gallery_full_screen_image_flicks(self):
-        # https://moztrap.mozilla.org/manage/case/1326/
+        """https://moztrap.mozilla.org/manage/case/1326/"""
 
         gallery = Gallery(self.marionette)
         gallery.launch()
