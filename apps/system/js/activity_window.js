@@ -126,22 +126,14 @@
   ActivityWindow.prototype.setOrientation =
     function acw_setOrientation(noCapture) {
       if (this.isActive()) {
-        var manifest = this.manifest || this.config.manifest ||
-                       (this.activityCaller ?
-                        this.activityCaller.manifest : null);
 
-        if (!manifest) {
-          if ('unlockOrientation' in screen) {
-            screen.unlockOrientation();
-          } else if ('mozUnlockOrientation' in screen) {
-            screen.mozUnlockOrientation();
-          }
-          return;
-        }
+        var orientation1 = (this.manifest) ? this.manifest.orientation : null;
+        var orientation2 = (this.config.manifest) ? this.config.manifest.orientation : null;
+        var orientation3 = (this.activityCaller.manifest) ? this.activityCaller.manifest.orientation : null;
+        var orientation4 = OrientationManager.globalOrientation;
 
-        var orientation = manifest ? (manifest.orientation ||
-                          OrientationManager.globalOrientation) :
-                          OrientationManager.globalOrientation;
+        var orientation = orientation1 || orientation2 || orientation3 || orientation4;
+
         if (orientation) {
           var rv = false;
           if ('lockOrientation' in screen) {

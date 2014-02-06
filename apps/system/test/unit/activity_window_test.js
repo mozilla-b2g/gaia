@@ -61,7 +61,7 @@ suite('system/ActivityWindow', function() {
   });
 
   suite('activity window instance.', function() {
-    var app, appF;
+    var app, appF, appOrientationUndefined;
     setup(function() {
       app = new AppWindow({
         iframe: document.createElement('iframe'),
@@ -71,7 +71,7 @@ suite('system/ActivityWindow', function() {
         manifestURL: 'http://fakemanifesturl',
         name: 'fake',
         manifest: {
-          orientation: 'default'
+          orientation: 'portrait'
         }
       });
       appF = new AppWindow({
@@ -84,6 +84,16 @@ suite('system/ActivityWindow', function() {
         manifest: {
           orientation: 'default',
           fullscreen: true
+        }
+      });
+      appOrientationUndefined = new AppWindow({
+        iframe: document.createElement('iframe'),
+        frame: document.createElement('div'),
+        origin: 'http://fake',
+        url: 'http://fakeurl/index.html',
+        manifestURL: 'http://fakemanifesturl',
+        name: 'fake',
+        manifest: {
         }
       });
     });
@@ -220,8 +230,8 @@ suite('system/ActivityWindow', function() {
       assert.isTrue(stubSetOrientation2.called);
     });
 
-    test('Activity set orientation', function() {
-      var activity = new ActivityWindow(fakeConfigWithOrientation, app);
+    test('Activity setOrientation use config', function() {
+      var activity = new ActivityWindow(fakeConfigWithOrientation, appOrientationUndefined);
       var stubIsActive = this.sinon.stub(activity, 'isActive');
       stubIsActive.returns(true);
       var stubLockOrientation;
@@ -232,6 +242,32 @@ suite('system/ActivityWindow', function() {
       }
       activity.setOrientation();
       assert.isTrue(stubLockOrientation.calledWith('landscape'));
+    });
+    test('Activity setOrientation use callee', function() {
+      var activity = new ActivityWindow(fakeConfig, app);
+      var stubIsActive = this.sinon.stub(activity, 'isActive');
+      stubIsActive.returns(true);
+      var stubLockOrientation;
+      if ('lockOrientation' in screen) {
+        stubLockOrientation = this.sinon.stub(screen, 'lockOrientation');
+      } else if ('mozLockOrientation' in screen) {
+        stubLockOrientation = this.sinon.stub(screen, 'mozLockOrientation');
+      }
+      activity.setOrientation();
+      assert.isTrue(stubLockOrientation.calledWith('portrait'));
+    });
+    test('Activity setOrientation use globalOrientation', function() {
+      var activity = new ActivityWindow(fakeConfig, appOrientationUndefined);
+      var stubIsActive = this.sinon.stub(activity, 'isActive');
+      stubIsActive.returns(true);
+      var stubLockOrientation;
+      if ('lockOrientation' in screen) {
+        stubLockOrientation = this.sinon.stub(screen, 'lockOrientation');
+      } else if ('mozLockOrientation' in screen) {
+        stubLockOrientation = this.sinon.stub(screen, 'mozLockOrientation');
+      }
+      activity.setOrientation();
+      assert.isTrue(stubLockOrientation.calledWith('portrait-primary'));
     });
   });
 });
