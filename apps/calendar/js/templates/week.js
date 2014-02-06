@@ -22,7 +22,8 @@
     event: function() {
       return '<li class="event" data-id="' + this.h('busytimeId') + '">' +
           '<div class="container calendar-id-' + this.h('calendarId') + ' ' +
-                      'calendar-display calendar-color">' +
+                      'calendar-display calendar-bg-color ' +
+                      'calendar-border-color">' +
             this.h('title') +
           '</div>' +
         '</li>';

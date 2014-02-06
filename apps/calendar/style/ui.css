@@ -88,7 +88,7 @@ body[data-path="/day/"] #view-selector > .day > a:active {
 #time-views > section {
   display: none;
   position: relative;
-  height: calc(100% - 9.6rem);
+  height: calc(100% - 9.5rem);
   background: #fff;
 }
 
