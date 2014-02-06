@@ -10,6 +10,8 @@
   var WrapperFactory = {
     init: function wf_init() {
       window.addEventListener('mozbrowseropenwindow', this, true);
+      window.addEventListener('cardsview-launch', this);
+
       // Use capture in order to catch the event before PopupManager does
     },
 
@@ -107,10 +109,12 @@
         browser_config.title = url;
       }
 
-      this.launchWrapper(browser_config);
+      browser_config.features = features;
+
+      this.launchWrapper(browser_config, evt.type);
     },
 
-    launchWrapper: function wf_launchWrapper(config) {
+    launchWrapper: function wf_launchWrapper(config, type) {
       var app = AppWindowManager.runningApps[config.origin];
       if (!app) {
         config.chrome = {
@@ -122,7 +126,7 @@
         app.updateName(config.title);
       }
 
-      this.publish('launchapp', { origin: config.origin });
+      this.publish('launchapp', { origin: config.origin, type: type });
     },
 
     hasPermission: function wf_hasPermission(app, permission) {

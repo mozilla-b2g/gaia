@@ -456,7 +456,11 @@
         if (config.origin == HomescreenLauncher.origin) {
           this.display();
         } else {
-          this.display(config.origin);
+          if (config.type && config.type === 'cardsview-launch') {
+            this.display(config.origin, 'from-cardview', null);
+          } else {
+            this.display(config.origin);
+          }
         }
       }
     },

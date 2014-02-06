@@ -238,6 +238,9 @@ var CardsView = (function() {
       var card = document.createElement('li');
       card.classList.add('card');
       card.dataset.origin = origin;
+      card.dataset.url = app.config.url;
+      card.dataset.manifestURL = app.config.manifestURL;
+      card.dataset.features = app.config.features;
 
       var screenshotView = document.createElement('div');
       screenshotView.classList.add('screenshotView');
@@ -379,8 +382,14 @@ var CardsView = (function() {
       var element = e.target.parentNode;
       cardsList.removeChild(element);
       closeApp(element, true);
-    } else if ('origin' in e.target.dataset) {
-      AppWindowManager.display(e.target.dataset.origin, 'from-cardview', null);
+    } else if ('url' in e.target.dataset) {
+      window.dispatchEvent(new CustomEvent('cardsview-launch', {
+        detail: {
+          url: e.target.dataset.url,
+          manifestURL: e.target.dataset.manifestURL,
+          features: e.target.dataset.features
+        }
+      }));
     }
   }
 
