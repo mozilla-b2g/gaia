@@ -97,6 +97,7 @@ input.cmp-subject-text {
   -moz-box-sizing: border-box;
   width: calc(100% - 4rem);
   min-height: 10rem;
+  max-height: none !important;
   margin: 1rem 1.5rem;
   display: block;
   padding: 0rem;
