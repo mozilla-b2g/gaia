@@ -6,19 +6,19 @@ define(function(require, exports) {
   // Constants
 
   var DAYS = exports.DAYS = [
-    'monday', 'tuesday', 'wednesday', 'thursday', 'friday',
-    'saturday', 'sunday'
-  ];
+   'sunday', 'monday', 'tuesday', 'wednesday', 'thursday',
+   'friday', 'saturday'
+   ];
 
   var RDAYS = exports.RDAYS = DAYS.map(function(_, n) {
     return n;
   });
 
-  var WEEKDAYS = exports.WEEKDAYS = [0, 1, 2, 3, 4].map(function(x) {
+  var WEEKDAYS = exports.WEEKDAYS = [1, 2, 3, 4, 5].map(function(x) {
     return DAYS[x];
   });
 
-  var WEEKENDS = exports.WEEKENDS = [5, 6].map(function(x) {
+  var WEEKENDS = exports.WEEKENDS = [0, 6].map(function(x) {
     return DAYS[x];
   });
 
