@@ -152,6 +152,21 @@ suite('ContactRenderer', function() {
       );
     });
 
+    test('Rendered Contact highlighted "name number"', function() {
+      var html;
+
+      renderer.render({
+        contact: contact,
+        input: 'Pepito 346578888888',
+        target: ul
+      });
+
+      html = ul.firstElementChild.innerHTML;
+
+      assert.include(html, '<span class="highlight">Pepito</span>');
+      assert.include(html, '+<span class="highlight">346578888888</span>');
+    });
+
     test('Rendered Contact "type | number"', function() {
       var html;
 
