@@ -522,7 +522,7 @@ contacts.Form = (function() {
       myContact['photo'] = [currentPhoto];
     }
 
-    createName(myContact);
+    myContact.name = utils.contactFields.createNameField(myContact);
 
     getPhones(myContact);
     getEmails(myContact);
@@ -562,7 +562,7 @@ contacts.Form = (function() {
         } else {
           setPropagatedFlag('givenName', deviceGivenName[0], contact);
           setPropagatedFlag('familyName', deviceFamilyName[0], contact);
-          createName(contact);
+          contact.name = utils.contactFields.createNameField(contact);
         }
       }
 
@@ -603,7 +603,8 @@ contacts.Form = (function() {
               window.postMessage({
                 type: 'show_duplicate_contacts',
                 data: {
-                  name: getCompleteName(getDisplayName(contact)),
+                  name: utils.contactFields.getDisplayName(contact)
+                        .displayName,
                   duplicateContacts: duplicateContacts
                 }
               }, fb.CONTACTS_APP_ORIGIN);
@@ -660,49 +661,6 @@ contacts.Form = (function() {
       }
     };
   };
-
-  function getCompleteName(contact) {
-    var givenName = Array.isArray(contact.givenName) ?
-                    contact.givenName[0] : '';
-
-    var familyName = Array.isArray(contact.familyName) ?
-                    contact.familyName[0] : '';
-
-    var completeName = givenName && familyName ?
-                       givenName + ' ' + familyName :
-                       givenName || familyName;
-
-    return completeName;
-  }
-
-  // Fills the contact data to display if no givenName and familyName
-  function getDisplayName(contact) {
-    if (hasName(contact))
-      return { givenName: contact.givenName, familyName: contact.familyName };
-
-    var givenName = [];
-    if (Array.isArray(contact.name) && contact.name.length > 0) {
-      givenName.push(contact.name[0]);
-    } else if (contact.org && contact.org.length > 0) {
-      givenName.push(contact.org[0]);
-    } else if (contact.tel && contact.tel.length > 0) {
-      givenName.push(contact.tel[0].value);
-    } else if (contact.email && contact.email.length > 0) {
-      givenName.push(contact.email[0].value);
-    } else {
-      givenName.push(_('noName'));
-    }
-
-    return { givenName: givenName, modified: true };
-  };
-
-  function hasName(contact) {
-    return (Array.isArray(contact.givenName) && contact.givenName[0] &&
-              contact.givenName[0].trim()) ||
-            (Array.isArray(contact.familyName) && contact.familyName[0] &&
-              contact.familyName[0].trim());
-  };
-
 
   var doMerge = function doMerge(contact, list, cb) {
     var callbacks = {
@@ -764,20 +722,6 @@ contacts.Form = (function() {
 
   var hideThrobber = function hideThrobber() {
     throbber.classList.add('hide');
-  };
-
-  var createName = function createName(myContact) {
-    var givenName = Array.isArray(myContact.givenName) ?
-                    myContact.givenName[0] : '';
-
-    var familyName = Array.isArray(myContact.familyName) ?
-                     myContact.familyName[0] : '';
-
-    var completeName = givenName && familyName ?
-                       givenName + ' ' + familyName :
-                       givenName || familyName;
-
-    myContact.name = completeName ? [completeName] : [];
   };
 
   var setPropagatedFlag = function setPropagatedFlag(field, value, contact) {

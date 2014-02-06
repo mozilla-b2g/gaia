@@ -457,7 +457,8 @@ contacts.Matcher = (function() {
                 target: targetFamilyName,
                 matchedValue: Array.isArray(aMatching.contact.name) ?
                               aMatching.contact.name[0] :
-                              getCompleteName(aMatching.contact)
+                              utils.contactFields
+                                .createName(aMatching.contact)
               }]
             },
             matchingContact: aMatching.contact
@@ -545,7 +546,7 @@ contacts.Matcher = (function() {
                      aContact.name[0].trim() : getCompleteName(aContact),
             matchedValue: Array.isArray(aResult.name) ?
                           aResult.name[0] :
-                          getCompleteName(aResult)
+                          utils.contactFields.createName(aResult)
           }]
         },
         matchingContact: aResult
@@ -566,20 +567,6 @@ contacts.Matcher = (function() {
     else {
       notifyMismatch(callbacks);
     }
-  }
-
-  function getCompleteName(contact) {
-    var givenName = Array.isArray(contact.givenName) ?
-                    contact.givenName[0] : '';
-
-    var familyName = Array.isArray(contact.familyName) ?
-                    contact.familyName[0] : '';
-
-    var completeName = givenName && familyName ?
-                       givenName + ' ' + familyName :
-                       givenName || familyName;
-
-    return completeName;
   }
 
   function isEmpty(collection) {

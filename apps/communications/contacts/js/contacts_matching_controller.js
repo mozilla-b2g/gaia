@@ -125,7 +125,8 @@ if (!contacts.MatchingController) {
 
     function showUI(results) {
       matchings = results;
-      LazyLoader.load('/contacts/js/contacts_matching_ui.js',
+      LazyLoader.load(['/contacts/js/utilities/contact_fields.js',
+                      '/contacts/js/contacts_matching_ui.js'],
                         function done() {
         contacts.MatchingUI.load(type, contact, results, function() {
           // We start the open-animation when the UI is ready

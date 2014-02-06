@@ -5,6 +5,7 @@ requireApp('communications/contacts/test/unit/mock_matching_contacts.html.js');
 requireApp('communications/contacts/test/unit/mock_l10n.js');
 requireApp('communications/contacts/test/unit/mock_utils.js');
 requireApp('communications/contacts/js/utilities/templates.js');
+requireApp('communications/contacts/js/utilities/contact_fields.js');
 requireApp('communications/contacts/test/unit/' +
            'contacts_matching_ui_test_data.js');
 

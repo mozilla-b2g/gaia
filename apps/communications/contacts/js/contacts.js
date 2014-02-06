@@ -674,7 +674,8 @@ var Contacts = (function() {
       '/contacts/js/utilities/sdcard.js',
       '/contacts/js/utilities/vcard_parser.js',
       '/contacts/js/utilities/status.js',
-      '/contacts/js/utilities/dom.js'
+      '/contacts/js/utilities/dom.js',
+      '/contacts/js/utilities/contact_fields.js'
     ];
 
     LazyLoader.load(lazyLoadFiles, function() {
