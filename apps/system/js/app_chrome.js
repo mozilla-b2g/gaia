@@ -27,8 +27,6 @@
     if (this.app.config.chrome && this.app.config.chrome.rocketbar) {
       this.app.element.classList.add('rocketbar');
     }
-
-    this.lastTop = 0;
   };
 
   AppChrome.prototype.__proto__ = window.BaseUI.prototype;
@@ -91,6 +89,7 @@
         break;
 
       case '_loading':
+        this.app.frame.classList.add('has-navigation');
         this.show(this.progress);
         break;
 
@@ -106,14 +105,6 @@
         this.handleScroll(evt);
         break;
 
-      case '_opened':
-        this.handleOpened(evt);
-        break;
-
-      case '_closing':
-        this.handleClosing(evt);
-        break;
-
       case '_withkeyboard':
         if (this.app && this.app.isActive()) {
           this.hide(this.navigation);
@@ -127,31 +118,20 @@
           this.hidingNavigation = false;
         }
         break;
-
-      case '_homegesture-enabled':
-        this.holdNavigation();
-        break;
-
-      case '_homegesture-disabled':
-        this.releaseNavigation();
-        break;
     }
   };
 
   AppChrome.prototype.handleClickEvent = function ac_handleClickEvent(evt) {
     switch (evt.target) {
       case this.reloadButton:
-        this.clearButtonBarTimeout();
         this.app.reload();
         break;
 
       case this.backButton:
-        this.clearButtonBarTimeout();
         this.app.back();
         break;
 
       case this.forwardButton:
-        this.clearButtonBarTimeout();
         this.app.forward();
         break;
 
@@ -218,38 +198,11 @@
   };
 
   /**
-   * Force the navigation to stay opened,
-   * because we don't want to conflict with home gesture.
-   */
-  AppChrome.prototype.holdNavigation = function ac_holdNavigation() {
-  };
-
-  /**
-   * Release the navigation opened state.
-   */
-  AppChrome.prototype.releaseNavigation = function ac_releaseNavigation() {
-  };
-
-  /**
    * Return buttonbar height for AppWindow calibration
    */
   AppChrome.prototype.getBarHeight = function ac_getBarHeight() {
     return _buttonBarHeight;
   };
-
-  AppChrome.prototype.isButtonBarDisplayed = true;
-
-  AppChrome.prototype.toggleButtonBar = function ac_toggleButtonBar(time) {
-  };
-
-  AppChrome.prototype.clearButtonBarTimeout =
-    function ac_clearButtonBarTimeout() {
-    };
-
-  AppChrome.prototype.handleOpened =
-    function ac_handleOpened() {
-
-    };
 
   AppChrome.prototype.handleLocationChanged =
     function ac_handleLocationChange() {
@@ -270,19 +223,22 @@
           this.backButton.dataset.disabled = true;
         }
       }.bind(this));
-
-      this.app.frame.classList.remove('context-menu');
     };
 
   AppChrome.prototype.handleScroll = function ac_scroll(evt) {
     if (!this.app)
       return;
 
+    // context menu visible or progress visible, return...
     if (this.app.frame.classList.contains('has-context-menu'))
       return;
 
+    if (this.progress.classList.contains('visible')) {
+      return;
+    }
+
     // Scrolling threshold before we do anything with the navigation bar
-    var threshold = 20;
+    var threshold = 40;
 
     if (evt.detail.top - threshold > this.lastTop) {
       // scrolling down
@@ -299,7 +255,6 @@
     if (this.bookmarkButton.dataset.disabled)
       return;
 
-    this.clearButtonBarTimeout();
     var dataset = this.app.config;
     var self = this;
 
