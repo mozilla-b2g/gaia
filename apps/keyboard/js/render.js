@@ -90,6 +90,8 @@ const IMERender = (function() {
     var placeHolderWidth = totalWidth / layoutWidth;
     var inputType = flags.inputType || 'text';
 
+    this.ime.className = '';
+
     layout.upperCase = layout.upperCase || {};
 
     var content = document.createDocumentFragment();
@@ -194,6 +196,10 @@ const IMERender = (function() {
       this.ime.classList.add('candidate-panel');
     } else {
       this.ime.classList.remove('candidate-panel');
+    }
+
+    if (layout.specificCssRule) {
+      this.ime.classList.add(keyboardName);
     }
 
     resizeUI(layout);
