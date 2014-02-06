@@ -52,6 +52,14 @@
   var HOLD_INTERVAL = 750;   // How long for press and hold Home or Sleep
   var REPEAT_DELAY = 700;     // How long before volume autorepeat begins
   var REPEAT_INTERVAL = 100;  // How fast the autorepeat is.
+  var vibrationEnabled = true;
+  var req = navigator.mozSettings.createLock().get('keyboard.vibration');
+  req.onsuccess = function() {
+    vibrationEnabled = req.result['keyboard.vibration']
+  }
+  navigator.mozSettings.addObserver('keyboard.vibration', function(e) {
+    vibrationEnabled = e.settingValue;
+  });
 
   // Dispatch a high-level event of the specified type
   function fire(type) {
@@ -144,7 +152,8 @@
     enter: function() {
       this.timer = setTimeout(function() {
         fire('holdhome');
-        navigator.vibrate(50);
+        if (vibrationEnabled)
+          navigator.vibrate(50);
         setState(baseState);
       }, HOLD_INTERVAL);
     },
@@ -158,7 +167,8 @@
       switch (type) {
       case 'home-button-release':
         fire('home');
-        navigator.vibrate(50);
+        if (vibrationEnabled)
+          navigator.vibrate(50);
         setState(baseState, type);
         return;
       case 'sleep-button-press':
