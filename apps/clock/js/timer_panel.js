@@ -131,6 +131,8 @@ Timer.Panel.prototype.onvisibilitychange = function(isVisible) {
         this.tick();
       }
     }
+  } else {
+    this.pauseAlarm();
   }
 };
 
