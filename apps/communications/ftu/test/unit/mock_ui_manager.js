@@ -4,6 +4,7 @@ var MockUIManager = {
   domSelectors: [
     'activation-screen',
     'progress-bar',
+    'progress-bar-state',
     'finish-screen',
     'nav-bar',
     'main-title',
@@ -55,6 +56,7 @@ var MockUIManager = {
     // Tutorial
     'tutorial-screen',
     'tutorial-progress',
+    'tutorial-progress-state',
     'lets-go-button',
     'skip-tutorial-button',
     // Navigation
