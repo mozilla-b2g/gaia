@@ -208,20 +208,12 @@ CameraController.prototype.showSizeLimitAlert = function() {
 
 CameraController.prototype.onModeChange = function(mode) {
   var flashMode = this.app.settings.value('flashMode');
-  var viewfinder = this.viewfinder;
-  var camera = this.camera;
 
   // We need to force a flash change so that
   // the camera hardware gets set with the
   // correct flash for this capture mode.
   this.setFlashMode(flashMode);
-  camera.setMode(mode);
-
-  // Fade out the videfinder,
-  // then load the stream.
-  viewfinder.fadeOut(function() {
-    camera.loadStreamInto(viewfinder.el);
-  });
+  this.camera.setMode(mode);
 };
 
 /**
