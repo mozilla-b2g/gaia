@@ -480,6 +480,30 @@ suite('Renderer', function() {
       assert.equal(ime.classList.contains('candidate-panel'), false);
     });
 
+    suite('CSS classes on activeIme', function() {
+      test('with specificCssRule', function() {
+        var layout = {
+          width: 1,
+          keys: [],
+          keyboardName: 'ar',
+          specificCssRule: true
+        };
+        IMERender.draw(layout);
+        assert.equal(IMERender.activeIme.classList.contains('ar'), true);
+      });
+
+      test('without specificCssRule', function() {
+        var layout = {
+          width: 1,
+          keys: [],
+          keyboardName: 'ar',
+          specificCssRule: false
+        };
+        IMERender.draw(layout);
+        assert.equal(IMERender.activeIme.classList.contains('ar'), false);
+      });
+    });
+
     suite('showCandidates', function() {
       test('Has dismiss-suggestions-button', function() {
         var el = document.createElement('div');
