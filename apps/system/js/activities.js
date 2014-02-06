@@ -47,7 +47,7 @@ var Activities = {
     var returnedChoice = {
       id: this._id,
       type: 'activity-choice',
-      value: choice
+      value: String(choice) // Gecko can't handle the number 0, so send "0".
     };
 
     this._sendEvent(returnedChoice);
