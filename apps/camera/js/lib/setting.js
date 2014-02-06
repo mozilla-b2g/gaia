@@ -132,16 +132,19 @@ Setting.prototype.configureOptions = function(values) {
   var optionsHash = this.get('optionsHash');
   var options = [];
 
-  values.map(function(value) {
-    var isObject = typeof value === 'object';
-    var key = isObject ? value.key : value;
-    var option = optionsHash[key];
-    if (!option) { return; }
-    if (isObject) { mixin(option, value); }
-    options.push(option);
-  });
+  if (values) {
+    values.forEach(function(value) {
+      var isObject = typeof value === 'object';
+      var key = isObject ? value.key : value;
+      var option = optionsHash[key];
+      if (!option) { return; }
+      if (isObject) { mixin(option, value); }
+      options.push(option);
+    });
 
-  options.sort(function(a, b) { return a - b; });
+    options.sort(function(a, b) { return a.index - b.index; });
+  }
+
   this.set('options', options);
   this.updateSelected();
 };
