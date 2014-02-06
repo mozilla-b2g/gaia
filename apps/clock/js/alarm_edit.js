@@ -5,6 +5,7 @@ var AlarmList = require('alarm_list');
 var AlarmManager = require('alarm_manager');
 var ClockView = require('clock_view');
 var FormButton = require('form_button');
+var Sounds = require('sounds');
 var Utils = require('utils');
 var constants = require('constants');
 var mozL10n = require('l10n');
@@ -71,11 +72,7 @@ var AlarmEdit = {
     });
     this.buttons.sound = new FormButton(this.selects.sound, {
       id: 'sound-menu',
-      formatLabel: function(sound) {
-        return (sound === null || sound === '0') ?
-          _('noSound') :
-          _(sound.replace('.', '_'));
-      }
+      formatLabel: Sounds.formatLabel
     });
     this.buttons.vibrate = new FormButton(this.selects.vibrate, {
       formatLabel: function(vibrate) {
