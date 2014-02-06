@@ -881,7 +881,15 @@ navigator.mozL10n.ready(function bluetoothSettings() {
     function setConfirmation(address, confirmed) {
       if (!bluetooth.enabled || !defaultAdapter)
         return;
+
       userCanceledPairing = !confirmed;
+      /*
+       * Only clear pairingAddress when in passive mode as pairingAddress is
+       * used in the onerror function when in active mode.
+       */
+      if (pairingMode === 'passive' && userCanceledPairing) {
+        pairingAddress = null;
+      }
       var req = defaultAdapter.setPairingConfirmation(address, confirmed);
     }
 
