@@ -228,6 +228,7 @@ else
 GAIA_BUILD_DIR := file://$(CURDIR)/build/
 endif
 
+export SYS
 export GAIA_BUILD_DIR
 
 ifndef GAIA_APP_CONFIG
