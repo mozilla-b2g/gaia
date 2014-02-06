@@ -558,10 +558,6 @@ var ModeManager = {
           PlayerView.setOptions(playerSettings);
         }
 
-        // Update the SCO status because when SCO is connected, we have to
-        // disable the player and show a message to the user.
-        MusicComms.updateSCOStatus();
-
         if (callback)
           callback();
       });
