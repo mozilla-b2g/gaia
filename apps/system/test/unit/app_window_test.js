@@ -966,4 +966,68 @@ suite('system/AppWindow', function() {
     var app1 = new AppWindow(fakeWrapperConfig);
     assert.equal(app1.name, 'Fakebook');
   });
+
+  function genFakeConfig(id) {
+    return {
+      url: 'app://www.fake' + id + '/index.html',
+      manifest: {},
+      manifestURL: 'app://wwww.fake' + id + '/ManifestURL',
+      origin: 'app://www.fake' + id
+    };
+  }
+
+  function openSheets(count) {
+    var sheets = [];
+    for (var i = 0; i < count; i++) {
+      sheets.push(new AppWindow(genFakeConfig(i)));
+      if (i > 0) {
+        sheets[i - 1].childWindow = sheets[i];
+        sheets[i].parentWindow = sheets[i - 1];
+      }
+    }
+    return sheets;
+  }
+
+  suite('root/leaf windows', function() {
+    test('kill chain', function() {
+      var sheets = openSheets(3);
+      var stubKill = this.sinon.stub(sheets[2], 'kill');
+      sheets[0].kill();
+      assert.isTrue(stubKill.called);
+    });
+
+    test('kill chain', function() {
+      var sheets = openSheets(5);
+      var stubKill = this.sinon.stub(sheets[4], 'kill');
+      sheets[2].kill();
+      assert.isTrue(stubKill.called);
+    });
+
+    test('get root and leaf window', function() {
+      var sheets = openSheets(7);
+      assert.equal(sheets[0].getLeafWindow(), sheets[6]);
+      assert.equal(sheets[3].getRootWindow(), sheets[0]);
+    });
+
+    test('get active window', function() {
+      var sheets = openSheets(7);
+      var stubIsActive = this.sinon.stub(sheets[2], 'isActive');
+      stubIsActive.returns(true);
+      assert.equal(sheets[0].getActiveWindow(), sheets[2]);
+    });
+
+    test('get next window', function() {
+      var sheets = openSheets(7);
+      var stubIsActive = this.sinon.stub(sheets[2], 'isActive');
+      stubIsActive.returns(true);
+      assert.equal(sheets[0].getNext(), sheets[3]);
+    });
+
+    test('get previous window', function() {
+      var sheets = openSheets(7);
+      var stubIsActive = this.sinon.stub(sheets[2], 'isActive');
+      stubIsActive.returns(true);
+      assert.equal(sheets[0].getPrev(), sheets[1]);
+    });
+  });
 });

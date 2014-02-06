@@ -102,6 +102,10 @@
     this.getIconForSplash();
 
     this.generateID();
+    this.sheetID = this.getRootWindow().instanceID;
+    if (this.parentWindow) {
+      this.parentWindow.setChildWindow(this);
+    }
   };
 
   /**
@@ -319,6 +323,14 @@
       }
     }
 
+    if (this.childWindow) {
+      this.childWindow.kill();
+      this.childWindow = null;
+    }
+    if (this.parentWindow) {
+      this.parentWindow = null;
+    }
+
     // If the app is the currently displayed app, switch to the homescreen
     if (this.isActive() && !this.isHomescreen) {
       // XXX: Refine this in transition state controller.
@@ -358,7 +370,7 @@
      */
     this.publish('willdestroy');
     this.uninstallSubComponents();
-    if (this.element) {
+    if (this.element && this.element.parentNode) {
       this.element.parentNode.removeChild(this.element);
       this.element = null;
     }
@@ -395,7 +407,13 @@
      */
     this.publish('willrender');
     this.containerElement.insertAdjacentHTML('beforeend', this.view());
-    this.browser = new self.BrowserFrame(this.browser_config);
+    if (!this.iframe) {
+      this.browser = new self.BrowserFrame(this.browser_config);
+    } else {
+      this.browser = {
+        element: this.iframe
+      };
+    }
     this.element = document.getElementById(this.instanceID);
 
     // For gaiauitest usage.
@@ -464,7 +482,8 @@
     'transitionController': window.AppTransitionController,
     'modalDialog': window.AppModalDialog,
     'authDialog': window.AppAuthenticationDialog,
-    'contextmenu': window.BrowserContextMenu
+    'contextmenu': window.BrowserContextMenu,
+    'childWindowFactory': window.ChildWindowFactory
   };
 
   AppWindow.prototype.openAnimation = 'enlarge';
@@ -547,7 +566,26 @@
 
   AppWindow.prototype._handle_mozbrowserclose =
     function aw__handle_mozbrowserclose(evt) {
-      this.kill();
+      if (this._closed) {
+        return;
+      }
+      this._closed = true;
+      if (this.childWindow) {
+        this.childWindow.kill();
+      }
+      if (this.parentWindow && this.isActive()) {
+        this.element.addEventListener('_closed', (function onClosed() {
+          window.removeEventListener('_closed', onClosed);
+          this.destroy();
+        }).bind(this));
+        this.parentWindow.open('in-from-left');
+        this.close('out-to-right');
+        this.parentWindow.childWindow = null;
+        this.parentWindow = null;
+        this.publish('terminated');
+      } else {
+        this.kill();
+      }
     };
 
   AppWindow.prototype._handle_mozbrowsererror =
@@ -655,6 +693,7 @@
     if (DEBUG || this._DEBUG) {
       console.log('[Dump: ' + this.CLASS_NAME + ']' +
         '[' + (this.name || this.origin) + ']' +
+        '[' + this.instanceID + ']' +
         '[' + self.System.currentTime() + ']' +
         Array.slice(arguments).concat());
     }
@@ -967,7 +1006,7 @@
     }
   };
 
- /**
+  /**
   * Set the size of the app's iframe to match the size of the screen.
   * We have to call this on resize events (which happen when the
   * phone orientation is changed). And also when an app is launched
@@ -1299,6 +1338,69 @@
       this.transitionController.switchTransitionState('closed');
       this.publish('closed');
     }
+  };
+
+  /**
+   * Link child window to this app window instance.
+   * If there's already one, kill it at first.
+   * @param {ChildWindow} childWindow The child window instance.
+   */
+  AppWindow.prototype.setChildWindow = function aw_setChildWindow(childWindow) {
+    if (this.childWindow) {
+      this.childWindow.kill();
+    }
+    this.childWindow = childWindow;
+  };
+
+  AppWindow.prototype.unsetChildWindow = function aw_unsetChildWindow() {
+    if (this.childWindow) {
+      this.childWindow = null;
+    }
+  };
+
+  AppWindow.prototype.getPrev = function() {
+    var current = this.getActiveWindow();
+    if (current) {
+      return current.parentWindow;
+    } else {
+      return null;
+    }
+  };
+
+  AppWindow.prototype.getNext = function() {
+    var current = this.getActiveWindow();
+    if (current) {
+      return current.childWindow;
+    } else {
+      return null;
+    }
+  };
+
+  AppWindow.prototype.getActiveWindow = function() {
+    var app = this;
+    while (app) {
+      if (app.isActive()) {
+        return app;
+      }
+      app = app.childWindow;
+    }
+    return null;
+  };
+
+  AppWindow.prototype.getRootWindow = function() {
+    var app = this;
+    while (app.parentWindow) {
+      app = app.parentWindow;
+    }
+    return app;
+  };
+
+  AppWindow.prototype.getLeafWindow = function() {
+    var app = this;
+    while (app.childWindow) {
+      app = app.childWindow;
+    }
+    return app;
   };
 
   exports.AppWindow = AppWindow;

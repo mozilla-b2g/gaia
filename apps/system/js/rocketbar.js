@@ -114,7 +114,7 @@ var Rocketbar = {
         e.stopPropagation();
         // Show the card switcher again if we opened the rocketbar
         // in task manager mode. There needs to be a current card.
-        var runningApps = AppWindowManager.getRunningApps();
+        var runningApps = AppWindowManager.getApps();
         var numRunningApps = Object.keys(runningApps).length;
         var inTaskManager = this.screen.classList.contains('task-manager');
 

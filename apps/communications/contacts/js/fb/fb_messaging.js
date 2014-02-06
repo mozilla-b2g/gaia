@@ -67,7 +67,7 @@ if (typeof fb.msg === 'undefined') {
       ];
 
       var target = dialogURI + params.join('&');
-      window.open(target);
+      window.open(target, '', 'dialog');
     }
 
     // Use the FB Dialogs functionality for posting to the wall
@@ -86,7 +86,8 @@ if (typeof fb.msg === 'undefined') {
     UI.sendPrivateMsg = function(contactId) {
       getFbContactUid(contactId, function ui_sendMsg(uid) {
         if (uid) {
-           window.open('https://m.facebook.com/compose_message/?uid=' + uid);
+           window.open('https://m.facebook.com/compose_message/?uid=' + uid,
+            '', 'dialog');
         }
       });
     };
