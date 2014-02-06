@@ -90,6 +90,24 @@ function writeContent(file, content) {
   converterStream.close();
 }
 
+function writeBlobs(file, blobs) {
+  var outputStream = Cc["@mozilla.org/network/file-output-stream;1"].
+    createInstance(Ci.nsIFileOutputStream);
+  // WR_ONLY|CREAT|TRUNC
+  outputStream.init(file, 0x02 | 0x08 | 0x20, 0644, null);
+
+  var bos = Cc["@mozilla.org/binaryoutputstream;1"].
+    createInstance(Ci.nsIBinaryOutputStream);
+  bos.setOutputStream(outputStream);
+  for (var i = 0; i < blobs.length; ++i) {
+    var blob = new Uint8Array(blobs[i].buffer);
+    for (var j = 0; j < blob.length; ++j) {
+      bos.write8(blob[j]);
+    }
+  }
+  outputStream.close();
+}
+
 // Return an nsIFile by joining paths given as arguments
 // First path has to be an absolute one
 function getFile() {
@@ -726,6 +744,7 @@ exports.Q = Promise;
 exports.ls = ls;
 exports.getFileContent = getFileContent;
 exports.writeContent = writeContent;
+exports.writeBlobs = writeBlobs;
 exports.getFile = getFile;
 exports.ensureFolderExists = ensureFolderExists;
 exports.getJSON = getJSON;

@@ -74,6 +74,7 @@ exports.isSubjectToBranding = isSubjectToBranding;
 exports.ls = utils.ls;
 exports.getFileContent = utils.getFileContent;
 exports.writeContent = utils.writeContent;
+exports.writeBlobs = utils.writeBlobs;
 exports.getFile = utils.getFile;
 exports.ensureFolderExists = utils.ensureFolderExists;
 exports.getJSON = utils.getJSON;

@@ -37,7 +37,7 @@ suite('multilocale Integration tests', function() {
   function makeWithMultilocale(localesFilePath, localesDir, inlineAndConcat, done) {
     var settingsZipPath = path.join(process.cwd(), 'profile', 'webapps',
       'settings.gaiamobile.org', 'application.zip');
-    var cnPathInZip = 'locales-obj/zh-CN.json';
+    var cnPathInZip = 'locales-obj/zh-CN.data';
     var cnSettingsProperties = 'locales/settings.zh-CN.properties';
     var cnTzIni = 'shared/locales/tz.ini';
     var langPathInZip = 'shared/resources/languages.json';

@@ -466,11 +466,11 @@ function optimize_concatL10nResources(doc, webapp, dictionary) {
       }
     }
     if (fetch) {
-      let jsonLink = doc.createElement('link');
-      jsonLink.href = '/locales-obj/{{locale}}.json';
-      jsonLink.type = 'application/l10n';
-      jsonLink.rel = 'prefetch';
-      parentNode.appendChild(jsonLink);
+      let dataLink = doc.createElement('link');
+      dataLink.href = '/locales-obj/{{locale}}.data';
+      dataLink.type = 'application/l10n';
+      dataLink.rel = 'prefetch';
+      parentNode.appendChild(dataLink);
     }
   }
 
@@ -565,7 +565,7 @@ function optimize_compile(webapp, file, callback) {
     function open(type, url, async) {
       this.readyState = 4;
       this.status = 200;
-      this.responseText = optimize_getFileContent(webapp, file, url);
+      this.response = optimize_getFileContent(webapp, file, url);
     }
 
     function send() {
@@ -694,8 +694,10 @@ function execute(options) {
       // create all JSON dictionaries in /locales-obj
       for (let lang in webapp.dictionary) {
         let file = localeDir.clone();
-        file.append(lang + '.json');
-        utils.writeContent(file, JSON.stringify(webapp.dictionary[lang]));
+        file.append(lang + '.data');
+        var blobParts =
+          win.navigator.mozL10n.toBlobParts(webapp.dictionary[lang]);
+        utils.writeBlobs(file, blobParts);
       }
     }
 

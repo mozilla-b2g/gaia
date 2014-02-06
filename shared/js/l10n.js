@@ -9,7 +9,7 @@
  */
 
 (function(window) {
-  var gL10nData = {};
+  var gL10nData;
   var gLanguage = '';
   var gMacros = {};
   var gReadyState = 'loading';
@@ -25,15 +25,14 @@
    * are listed / defined / imported, and where a fallback locale can easily be
    * defined.
    *
-   * These *.ini files can also be compiled to locale-specific JSON dictionaries
-   * with the `getDictionary()' method.  Such JSON dictionaries can be used:
+   * These *.ini files can also be compiled to locale-specific compressed data
+   * file. Such data file can be used by:
    *  - either with a <link> node:
-   *   <link rel="prefetch" type="application/l10n" href="{{locale}}.json" />
+   *   <link rel="prefetch" type="application/l10n" href="{{locale}}.data" />
    *   (in which case, {{locale}} will be replaced by `navigator.language')
    *  - or with an inline <script> node:
    *   <script type="application/l10n" lang="fr"> ... </script>
    *   (in which case, the script matching `navigator.language' will be parsed)
-   *
    * This is where `gDefaultLocale' comes in: if a JSON dictionary for the
    * current `navigator.language' value can't be found, use the one matching the
    * default locale.  Note that if the <html> element has a `lang' attribute,
@@ -182,7 +181,7 @@
    * l10n resource parser:
    *  - reads (async XHR) the l10n resource matching `lang';
    *  - imports linked resources (synchronously) when specified;
-   *  - parses the text data (fills `gL10nData');
+   *  - parses the text data (and creates `gL10nData');
    *  - triggers success/failure callbacks when done.
    *
    * @param {string} href
@@ -198,7 +197,7 @@
    *    triggered when the an error has occured.
    *
    * @return {void}
-   *    fills gL10nData.
+   *    create gL10nData.
    */
 
   function parseResource(href, lang, successCallback, failureCallback) {
@@ -306,13 +305,23 @@
 
       var xhr = new XMLHttpRequest();
       xhr.open('GET', url, asynchronous);
-      if (xhr.overrideMimeType) {
-        xhr.overrideMimeType('text/plain; charset=utf-8');
+      // XXX implicitly decide the responseType with file name
+      if (url.endsWith('.data')) {
+        if (!asynchronous) {
+          throw '[l10n.js] Synchronous loading of blob data is not supported.';
+        }
+        xhr.responseType = 'arraybuffer';
+      } else if (url.endsWith('.json')) {
+        if (!asynchronous) {
+          throw '[l10n.js] Synchronous loading of JSON data is not supported.';
+        }
+        xhr.responseType = 'json';
       }
+
       xhr.onreadystatechange = function() {
         if (xhr.readyState == 4) {
           if (xhr.status == 200 || xhr.status === 0) {
-            onSuccess(xhr.responseText);
+            onSuccess(xhr.response || xhr.responseText);
           } else {
             onFailure();
           }
@@ -332,10 +341,30 @@
 
     // load and parse l10n data (warning: global variables are used here)
     loadResource(href, function(response) {
-      if (/\.json$/.test(href)) {
-        gL10nData = JSON.parse(response); // TODO: support multiple JSON files
+      if (!response) {
+        consoleWarn(href + ' can not be loaded.');
+        if (failureCallback) {
+          failureCallback();
+        }
+        return;
+      }
+
+      if (typeof response !== 'string') { // json or binary data
+        // This case should be in run time, we always overrite existing one
+        gL10nData = new L10nDataStore(response);
+
       } else { // *.ini or *.properties file
+        // This case should be in build time, we are constructing a dictionary
+        // This case should be in build time and/or running w/o inline'ing and
+        // concat'ing locale data (in eng. build or debug build).
+        // We are constructing a dictionary for a given language. All data in
+        // the {locale}.properties files should be merged into a json, so we
+        // won't overrite gL10nData if there is one.
+        if (!gL10nData) {
+          gL10nData = new L10nDataStore({});
+        }
         var data = parseProperties(response);
+
         for (var key in data) {
           var id, prop, nestedProp, index = key.lastIndexOf('.');
           if (index > 0) { // a property name has been specified
@@ -359,10 +388,7 @@
               prop = '_';
             }
           }
-          if (!gL10nData[id]) {
-            gL10nData[id] = {};
-          }
-          gL10nData[id][prop] = data[key];
+          gL10nData.put(id, prop, data[key]);
         }
       }
 
@@ -380,12 +406,11 @@
     gLanguage = lang;
 
     var untranslatedElements = [];
-
     // if there is an inline / pre-compiled dictionary,
     // the current HTML document can be translated right now
     var inlineDict = getL10nDictionary(lang);
     if (inlineDict) {
-      gL10nData = inlineDict;
+      gL10nData = new L10nDataStore(inlineDict);
       if (translationRequired) {
         untranslatedElements = translateFragment();
       }
@@ -471,7 +496,7 @@
 
   // clear all l10n data
   function clear() {
-    gL10nData = {};
+    gL10nData = undefined;
     gLanguage = '';
     // TODO: clear all non predefined macros.
     // There's no such macro /yet/ but we're planning to have some...
@@ -898,7 +923,7 @@
       return str;
     }
 
-    var data = gL10nData[key];
+    var data = gL10nData.get(key);
     if (!data) {
       return str;
     }
@@ -935,7 +960,10 @@
 
   // fetch an l10n object, warn if not found, apply `args' if possible
   function getL10nData(key, args) {
-    var data = gL10nData[key];
+    if (!gL10nData)
+      return;
+
+    var data = gL10nData.get(key);
     if (!data) {
       return null;
     }
@@ -974,7 +1002,7 @@
   // return a sub-dictionary sufficient to translate a given fragment
   function getSubDictionary(fragment) {
     if (!fragment) { // by default, return a clone of the whole dictionary
-      return JSON.parse(JSON.stringify(gL10nData));
+      return JSON.parse(JSON.stringify(gL10nData.getAll()));
     }
 
     var dict = {};
@@ -984,15 +1012,15 @@
       var match = getL10nArgs(str);
       for (var i = 0; i < match.length; i++) {
         var arg = match[i].name;
-        if (arg in gL10nData) {
-          dict[arg] = gL10nData[arg];
+        if (gL10nData.has(arg)) {
+          dict[arg] = gL10nData.get(arg);
         }
       }
     }
 
     for (var i = 0, l = elements.length; i < l; i++) {
       var id = getL10nAttributes(elements[i]).id;
-      var data = gL10nData[id];
+      var data = gL10nData.get(id);
       if (!id || !data) {
         continue;
       }
@@ -1005,9 +1033,10 @@
         if (reIndex.test(str)) { // macro index
           for (var j = 0; j < kPluralForms.length; j++) {
             var key = id + '[' + kPluralForms[j] + ']';
-            if (key in gL10nData) {
-              dict[key] = gL10nData[key];
-              checkGlobalArguments(gL10nData[key]);
+            if (gL10nData.has(key)) {
+              var str = gL10nData.get(key);
+              dict[key] = str;
+              checkGlobalArguments(str);
             }
           }
         }
@@ -1031,8 +1060,8 @@
     var param;
     if (args && paramName in args) {
       param = args[paramName];
-    } else if (paramName in gL10nData) {
-      param = gL10nData[paramName];
+    } else if (gL10nData.has(paramName)) {
+      param = gL10nData.get(paramName);
     }
 
     // there's no macro parser yet: it has to be defined in gMacros
@@ -1050,8 +1079,8 @@
       var sub, arg = match[i].name;
       if (args && arg in args) {
         sub = args[arg];
-      } else if (arg in gL10nData) {
-        sub = gL10nData[arg]['_'];
+      } else if (gL10nData.has(arg)) {
+        sub = gL10nData.get(arg)['_'];
       } else {
         consoleLog('argument {{' + arg + '}} for #' + key + ' is undefined.');
         return str;
@@ -1233,8 +1262,272 @@
       } else {
         window.addEventListener('localized', callback);
       }
+    },
+    toBlobParts: function(data) {
+      return (new L10nDataStore(data)).toBlobParts();
     }
   };
+
+  /*
+   * L10nDataStore converts original json data to a compressed typed array.
+   * To initialize a L10nDataStore, you have to pass in either a json object
+   * or a typed array. There operation you can do for the data.
+   *
+   * - get(id): given a l10n id, query its localized data in the json or in
+   *   the typed array, depends on which type of data you initialized.
+   *   It returns a json object which includes plural forms of the string
+   *   (if it has)
+   *
+   * - put(id, prop, string): update a l10n id's data in a json object. Please
+   *   note you can't modify a typed arra, it's read-only.
+   *
+   * - toBlobParts(): if you've given a json object, the function converts
+   *   it to four parts of typed arrays and returns them.
+   */
+
+  var L10nDataStore = function(data) {
+    if (!data) {
+      throw new Error('Missing data');
+    }
+
+    if (data.constructor === Object) {
+      this._jsonData = data;
+    }
+    else if (data.constructor === ArrayBuffer) {
+      this._blobData = data;
+    }
+    else {
+      throw new Error('Unknown data type');
+    }
+
+    if (this._blobData) {
+      this._createArrayBufferViews();
+    }
+  };
+
+  /*
+   * Define some constants of the blob format
+   * - HEADER_LENGTH: two 32-bit elements
+   * - BYTES_PER_ADDRESS: a 16-bit number to represent an address
+   * - BYTES_PER_L10ID_CHAR: assume it will be ASCII (if not, we could encode
+   *   it in UTF-8, but we haven't do that.)
+   */
+  L10nDataStore.prototype.HEADER_LENGTH = (Uint32Array.BYTES_PER_ELEMENT << 1);
+  L10nDataStore.prototype.BYTES_PER_ADDRESS = Uint16Array.BYTES_PER_ELEMENT;
+  L10nDataStore.prototype.BYTES_PER_L10ID_CHAR = Uint8Array.BYTES_PER_ELEMENT;
+
+  /*
+   * We've given a json object which looks like this:
+   * {
+   *   'title': {
+   *     '_', 'tooltip to the book label'
+   *   },
+   *   'n-book': {
+   *     '_': '{[ plural(n) ]}',
+   *     '_[one]': 'one book',
+   *     '_[many]': '{{ n }} books.'
+   *   }
+   * }
+   *
+   * The generated typed array will be in four parts
+   * - block 0: header, includes only two 32-bit numbers to specify the
+   *   starting addresses of block 2 and block 3.
+   *
+   * - block 1: indexes of ids and strings, record their offsets in the
+   *   typed array. An offset is a 16-bit value relative to its block's
+   *   starting address, representing # of elements into the view of the
+   *   given block.
+   *   {key#1-offset, string#1-offset, key#2-offset, string#2-offset, ... }
+   *
+   * - block 2: all l10n ids concatenated, and stores each character's charcode
+   *   in 8 bits (assume they are all on ASCII table)
+   *
+   * - block 3: all l10n strings concatenated.
+   *   If id and string is one to one, just stores the plain string.
+   *   Otherwise, serializes the mapping object to a string.
+   *   Stores each character's charcode in 16 bits since JavaScript string is
+   *   simply in UTF-16.
+   */
+
+  L10nDataStore.prototype._stringToArray = function(str) {
+    return Array.map(str, function(c) { return String.charCodeAt(c) });
+  };
+
+  L10nDataStore.prototype._createArrayBufferViews = function() {
+    try {
+      var headerView = new Uint32Array(this._blobData, 0, 2);
+      var keyOffset = headerView[0];
+      var valueOffset = headerView[1];
+
+      // # of elements = ( starting address of the key block - length of the
+      // header) / ( byte length of each elements)
+      var elements = (keyOffset - this.HEADER_LENGTH) / this.BYTES_PER_ADDRESS;
+      this._indexView = new Uint16Array(this._blobData,
+          this.HEADER_LENGTH, elements);
+
+      // every two elements are a (key, value) pair.
+      this._keysNum = elements >> 1;
+
+      this._keyView = new Uint8Array(this._blobData, keyOffset,
+          (valueOffset - keyOffset) / this.BYTES_PER_L10ID_CHAR);
+      this._valueView = new Uint16Array(this._blobData, valueOffset);
+    } catch (e) {
+      throw new Error('Unable to parse this l10n data');
+    }
+  };
+
+  L10nDataStore.prototype.toBlobParts = function() {
+    if (!this._jsonData && !this._blobData) {
+      throw new Error('No data can be converted');
+    }
+    if (this._blobData) {
+      return this._blobData;
+    }
+
+    var indexTable = [], keysTable = [], valuesTable = [];
+    var keys = Object.keys(this._jsonData).sort();
+
+    for (var i = 0; i < keys.length; ++i) {
+      var key = keys[i];
+      indexTable.push(keysTable.length, valuesTable.length);
+
+      var bytes = this._stringToArray(key);
+      keysTable = keysTable.concat(bytes);
+      var valueObj = this._jsonData[key];
+      var value = (Object.keys(valueObj).length === 1 && valueObj['_']) ?
+        valueObj['_'] : JSON.stringify(valueObj);
+      var strBytes = this._stringToArray(value);
+      valuesTable = valuesTable.concat(strBytes);
+    }
+    if (keysTable.length % 2) {
+      keysTable[keysTable.length] = 0;
+    }
+
+    // An index is a pair of key address and value address
+    var keyStartOffset = this.HEADER_LENGTH +
+      keys.length * (this.BYTES_PER_ADDRESS << 1);
+    var valueStartOffset = keyStartOffset +
+      keysTable.length * this.BYTES_PER_L10ID_CHAR;
+
+    var header = [keyStartOffset, valueStartOffset];
+    var blobParts = [];
+    blobParts.push(new Uint32Array(header));
+    blobParts.push(new Uint16Array(indexTable));
+    blobParts.push(new Uint8Array(keysTable));
+    blobParts.push(new Uint16Array(valuesTable));
+    return blobParts;
+  };
+
+  L10nDataStore.prototype.getAll = function() {
+    return this._jsonData || {};
+  };
+
+  /*
+   * Insert a key's property value into the json object.
+   */
+  L10nDataStore.prototype.put = function(id, prop, str) {
+    if (!this._jsonData) {
+      throw new Error('Read-only binary data');
+    }
+    this._jsonData[id] = this._jsonData[id] || {};
+    this._jsonData[id][prop] = str;
+  };
+
+  /*
+   * Private method.
+   * Do binary search in the index table for a given l10n id.
+   */
+  L10nDataStore.prototype._search = function(target, indexView, keyView, end) {
+    var left = 0, right = end, mid;
+    var isEqual = -1;
+
+    while (left <= right) {
+      mid = (left + right) >> 1;
+      var startAddr = indexView[(mid << 1)];
+      var endAddr = (mid < end) ?
+        indexView[((mid + 1) << 1)] : keyView.length;
+      isEqual = this._byteCompare(target, keyView, startAddr, endAddr);
+      if (isEqual === 0) {
+        return mid;
+      }
+      if (isEqual < 0) {
+        right = mid - 1;
+      } else {
+        left = mid + 1;
+      }
+    }
+
+    return -1;
+  };
+
+  /*
+   * Private method.
+   * Do byte to byte charcode comparison, so we don't have to extract l10n id
+   * from typed array and convert it to a string.
+   */
+  L10nDataStore.prototype._byteCompare = function(target, view, start, end) {
+    for (var i = 0; i < target.length && (start + i) < end; ++i) {
+      if (target[i] === view[start + i]) {
+        continue;
+      } else {
+        return (target[i] < view[start + i]) ? -1 : 1;
+      }
+    }
+
+    // both strings have the same prefix, so we can compare them by length
+    // positive: bigger; negative: smaller
+    return (target.length - (end - start));
+  };
+
+  /*
+   * Get the corresponding localization object for a given l10n id.
+   */
+  L10nDataStore.prototype._getValueAddress = function(id) {
+    var target = this._stringToArray(id);
+    var cell = this._search(target, this._indexView, this._keyView,
+        this._keysNum - 1);
+    if (cell === -1) {
+      consoleWarn('#' + id + ' is undefined.');
+      return null;
+    }
+    return cell;
+  };
+
+  L10nDataStore.prototype.get = function(id) {
+    if (this._jsonData) {
+      return this._jsonData[id];
+    }
+
+    // search to see if the id is in the blob
+    var cell = this._getValueAddress(id);
+    if (cell === null)
+      return null;
+
+    var startAddr = this._indexView[(cell << 1) + 1];
+    var endAddr = ((cell + 1) < this._keysNum) ?
+      this._indexView[((cell + 1) << 1) + 1] : this._valueView.length;
+    var subView = this._valueView.subarray(startAddr, endAddr);
+    var str = String.fromCharCode.apply(null, Array.apply(null, subView));
+
+    // we don't know if it's a JSON or a pure string
+    try {
+      return JSON.parse(str);
+    } catch (e) {
+      return {'_': str};
+    }
+  };
+
+  /*
+   * To test if a l10n id exists.
+   */
+  L10nDataStore.prototype.has = function(id) {
+    if (this._jsonData) {
+      return (this._jsonData[id]) ? true : false;
+    } else {
+      return (this._getValueAddress(id) !== null) ? true : false;
+    }
+  };
+
 
   consoleLog('library loaded.');
 })(this);
