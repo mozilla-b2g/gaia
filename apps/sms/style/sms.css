@@ -114,22 +114,8 @@ form[role="dialog"][data-type="edit"] header menu[type="toolbar"] button {
   margin: 0 1.5rem;
 }
 
-#threads-container[data-type="list"] header {
-  position: sticky;
-  top: 0;
-  background: #fff;
-  z-index: 2;
-  padding-top: 0.7rem;
-}
-
-
 #threads-container[data-type="list"] ul {
   padding: 0 1.5rem;
-
-  /* Bug 967878 - [Messages] Background doesn't scroll with the threads causing
-  * expensive over-invalidation
-  */
-  background-color: white;
 }
 
 [data-type="list"] li {
@@ -353,19 +339,35 @@ section[role="region"].new > header:first-child form {
 
 .new #messages-contact-pick-button {
   display: block;
+  position: relative;
+  right: 0.5rem;
+  bottom: 0.9rem;
 }
 
 #messages-contact-pick-button .icon-user {
   display: block;
-  height: 2rem;
-  width: 2rem;
-
-  background-image: url(images/add_contact.png);
-  background-size: 2rem;
 }
 
-#messages-contact-pick-button .icon-user:active {
-  background-position: 0 2rem;
+#messages-contact-pick-button .icon-user:after {
+  content: "+";
+  display: block;
+  position: absolute;
+  width: 2.8rem;
+  height: 2.8rem;
+  color: #575757;
+  background-color: #FFF;
+  border-radius: 1.4rem;
+  right: -0.5rem;
+  text-align: center;
+  line-height: 2.8rem;
+  font-weight: 500;
+  top: 0.2rem;
+  font-size: 2.1rem;
+}
+
+#messages-contact-pick-button .icon-user:active:after {
+  background: #00aacb;
+  color: #FFFFFF;
 }
 
 /*
@@ -389,7 +391,7 @@ section.has-carrier .article-list header:first-child {
 
   padding: 0;
 
-  background: none repeat scroll 0 0 #E4E4E4;
+  background-color: #FFFFFF;
   text-align: left;
 }
 
@@ -460,7 +462,7 @@ section.has-carrier .article-list header:first-child {
 }
 
 .article-list[data-type="list"] .has-subject .bubble {
-  padding-top: 0rem;
+  padding-top: 0;
 }
 
 .article-list[data-type="list"] .has-subject .subject {
@@ -605,10 +607,6 @@ section.has-carrier .article-list header:first-child {
   padding: 0;
 }
 
-.article-list[data-type="list"] .message.no-attachment .bubble p {
-  height: 2.3rem;
-}
-
 .article-list[data-type="list"] .message .bubble p a {
   color: #000;
   text-decoration: underline;
@@ -669,9 +667,9 @@ form.bottom[role="search"].messages-compose-form {
 
 /* Fix the compose buttons to the bottom of their container. */
 #messages-send-button {
-  position: relative;
   bottom: 0;
   right: 0;
+  position: relative;
 }
 
 #messages-send-button.active {
@@ -680,23 +678,22 @@ form.bottom[role="search"].messages-compose-form {
 
 #messages-send-button.has-counter:before {
   content: attr(data-counter);
-
   position: absolute;
-  left: 0;
   top: -1.9rem;
-
-  -moz-box-sizing: border-box;
+  box-sizing: border-box;
   height: 1.8rem;
-  padding: 0 0.5rem;
-
-  color: rgb(133, 133, 133);
+  color: #858585;
   font-weight: normal;
   font-size: 1.4rem;
-  text-align: left;
+  text-align: center;
   line-height: 1.8rem;
+  font-style: normal;
+  left: 0;
+  right: 0;
+  display: block;
 }
 
-[data-message-type="mms"] #messages-send-button.has-counter:before {
+[data-message-type="mms"] #messages-send-button.has-counter:after {
   content: 'MMS';
   color: #FF4E00;
   font-size: 1.5rem;
@@ -705,8 +702,8 @@ form.bottom[role="search"].messages-compose-form {
 }
 
 #messages-input {
-  padding: 0.1rem 0.5rem;
-  margin: 0.8rem 0.2rem;
+  padding: 1rem 1.5rem;
+  margin: 0;
   line-height: 2rem;
   min-height: 2.3rem;
   -moz-box-sizing: border-box;
@@ -714,15 +711,28 @@ form.bottom[role="search"].messages-compose-form {
   white-space: pre-wrap;
   text-align: left;
   font-size: 1.8rem;
+  max-width: calc(100% - 7rem);
+  position: relative;
 }
 
-#messages-input.placeholder:after,
+#messages-input.placeholder:before,
 #messages-subject-input::-moz-placeholder {
-  color: #888;
+  content: attr(data-placeholder);
+  color: #858585;
   position: absolute;
   bottom: 1rem;
-  content: attr(data-placeholder);
   pointer-events: none;
+  font-style: italic;
+}
+
+#messages-input:after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 0.1rem;
+  bottom: 0.5rem;
+  background-color: #eaeae7;
 }
 
 #messages-subject-input::-moz-placeholder {
@@ -738,22 +748,28 @@ form.bottom[role="search"].messages-compose-form {
 #messages-subject-input {
   position: absolute;
   top: 0;
-
-  -moz-box-sizing: content-box;
-  box-sizing: content-box;
-  height: 1.5rem;
-  max-height: 3.5rem;
-  width: -moz-calc(100% - 8.5rem);
-  padding: 0.5rem 0.7rem;
-  border: 0;
-  border-bottom: 0.1rem solid #eaeae7;
-
-  white-space: pre-wrap;
+  max-height: 3.3rem;
+  width: 100%;
+  box-sizing: border-box;
+  background-color: #F5F5F5;
+  padding: 0.9rem 7.5rem 0.9rem 1.5rem;
   text-align: left;
-  font-family: 'Fira Sans', sans-serif;
   font-style: italic;
   font-size: 1.4rem;
-  line-height: 2rem;
+  line-height: 1.4rem;
+  white-space: pre-wrap;
+  border: none;
+  border-top: 1px solid #FFFFFF;
+}
+
+#messages-input:after {
+  content: "";
+  position: absolute;
+  top: 1rem;
+  right: 0;
+  width: 0.1rem;
+  bottom: 0.6rem;
+  background-color: #eaeae7;
 }
 
 /*
@@ -812,18 +828,46 @@ form.bottom[role="search"].messages-compose-form {
 }
 
 /*
+  Fixed headers
+*/
+.fixed-title {
+  position: absolute;
+  z-index: 4;
+  top: 5rem;
+  left: 0;
+  right: 0;
+  height: 3rem;
+  line-height: 4rem;
+  padding: 0 1.5rem;
+  margin: 0 1.5rem;
+  border-bottom: solid 0.1rem #ff4e00;
+  background-repeat: no-repeat;
+  background-color: #FFFFFF;
+  color: #FF4E00;
+  pointer-events: none;
+  text-align: left;
+  text-transform: uppercase;
+  font-size: 1.6rem;
+  font-weight: normal;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fixed-title.no-fixed-header {
+  transform: translateY(-100%);
+}
+
+/*
   Styles related to the layout of the composer
 */
 #messages-to-field {
   position: relative;
-  z-index: 10;
-
   display: none;
-  height: 0; /* see bug 941353 */
-
   text-align: left;
   color: black;
   font-size: 1.465rem;
+  background-color: #f2f2f2;
 }
 
 section[role="region"].new #messages-to-field {
@@ -831,28 +875,26 @@ section[role="region"].new #messages-to-field {
 }
 
 #to-label {
-  margin: 1.5rem 0 0 1.5rem;
-  overflow: hidden;
-
-  white-space: nowrap;
+  font-weight: 200;
   color: black;
   font-size: 1.465rem;
-  float: left;
+  position: absolute;
+  left: 1.5rem;
+  top: 1.1rem;
 }
 
 #messages-recipients-list-container {
-  z-index: -1;
   -moz-box-sizing: border-box;
-  border-bottom: 0.1rem solid #4d4d4d;
-  width: 100%;
-
-  background-color: #fff;
-  transition: transform 0.2s ease-in-out;
-  transform: translateY(calc(-100% + 4.5rem));
+  min-height: 4rem;
+  margin: 0 4rem 0 3.3rem;
+  line-height: 1.7rem;
 }
 
 #messages-recipients-list {
-  padding: 1.4rem 0 0 0.5rem;
+  padding: 0.6rem;
+  max-height: 5.5rem;
+  min-height: 4rem;
+  -moz-box-sizing: border-box;
 }
 /*
 Used by Recipients.View to display multi or single line.
@@ -877,33 +919,28 @@ generateHeightRule() (in ThreadUI/thread_ui.js) will create:
   display: inline-block;
   overflow: hidden;
   -moz-box-sizing: border-box;
-       box-sizing: border-box;
-  max-width: calc(100% - .5rem);
-  height: 2.4rem;
-  border: .1rem solid #4d4d4d;
-  padding: 0 0.8rem;
-
-  background: -moz-linear-gradient(#fff, #f1f1f1);
+  max-width: calc(100% - 0.5rem);
+  height: 2.8rem;
+  padding: 0 1.8rem;
+  background: #FFFFFF;
   white-space: nowrap;
   text-overflow: ellipsis;
   color: #2c2c2c;
-  margin-right: 0.5rem;
-  border-radius: .3rem;
+  margin-right: 1.2rem;
+  border-radius: 1.4rem;
   font-size: 1.7rem;
+  font-style: italic;
+  line-height: 2.8rem;
+}
+.recipient:active {
+  background: #00aacb;
+  color: #FFFFFF;
 }
 
 .recipient[contenteditable=true] {
   overflow: hidden;
-  /* Editable recipients have no `padding-left` so that they align with
-   * "assimilated" recipients (see `ThreadUI.assimilateRecipients`), but they
-   * maintain twice the `padding-right` so they wrap as if "assimilated". For
-   * discussion of this behavior, see "Bug 905260 - [messages] padding issues
-   * in the recipient panel". */
-  padding-left: 0;
-  padding-right: 1.6rem;
-
+  padding: 0 0.2rem;
   background: none;
-  border-color: transparent;
   white-space: normal;
   text-overflow: normal;
   color: black;
@@ -923,30 +960,13 @@ generateHeightRule() (in ThreadUI/thread_ui.js) will create:
 .recipient[contenteditable=true]:empty:focus {
   margin-right: 0.5rem;
   padding: 0 0.8rem;
-  border-width: 0.1rem;
+  border-width: 0;
 }
 
 .recipient[contenteditable=false].attention {
   position: relative;
-
-  padding-left: 1.2rem;
-  border: 0.1rem solid #b90000;
-
-  background: transparent;
-}
-
-.recipient[contenteditable=false].attention::before {
-  position: absolute;
-
-  border-bottom-left-radius: 0.3rem;
-  border-top-left-radius: 0.3rem;
-  padding: 0.2rem 0.2rem 0 0.2rem;
-  margin-left: -1.2rem;
-  margin-top: -0.1rem;
-
-  background-color: #b90000;
-  color: #fff;
-  content: "!";
+  color: #b80404;
+  background-color: #fedcdc;
 }
 
 .article-list[data-type="list"] ul.contact-list {
@@ -1029,15 +1049,6 @@ section[role="region"].new .article-list[data-type="list"]  li {
   pointer-events: none;
 }
 
-.subheader {
-  position: absolute;
-  z-index: 6; /* should be between 4 and 9 (inclusive). 3 is the z-index for
-                 the input form, 10 is the z-index for the header */
-  left: 0;
-  right: 0;
-  top: 5rem;
-}
-
 .subheader menu {
   margin: 1.5rem 1.5rem 0 0;
   float: right;
@@ -1054,4 +1065,9 @@ section[role="region"].information #messages-compose-form {
 
 section[role="region"].information > header:first-child .icon.icon-back {
   background-image: url(images/icons/close.png);
+}
+
+/* Overwrite BB */
+form[role="search"] button[type="submit"]:after {
+    display: none;
 }
