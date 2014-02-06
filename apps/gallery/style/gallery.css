@@ -377,7 +377,7 @@ body.hidden *[data-l10n-id] {
 
 #throbber {
   height: 2.4rem;
-  background-image: url(images/progress.png);
+  background-image: url(images/progress.gif);
   background-size: auto 100%;
 }
 

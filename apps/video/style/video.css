@@ -346,7 +346,7 @@ section[role="region"] header:first-child h1 {
 
 #throbber > div {
   height: 2.4rem;
-  background-image: url(images/progress.png);
+  background-image: url(images/progress.gif);
   background-size: auto 100%;
 }
 
