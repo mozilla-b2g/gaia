@@ -77,7 +77,7 @@ Gaia uses
 to run the tests with a custom builder for gaia. Tests should live with the rest of your apps code (in apps/my_app/test/marionette) and
 test files should end in _test.js.
 
-All integration tests run under a node environment. You need node >= 0.8
+All integration tests run under a node environment. You need node >= 0.10
 for this to work predictably.
 
 Shared code for tests lives under shared/test/integration.
