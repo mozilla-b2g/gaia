@@ -721,6 +721,11 @@ button::-moz-focus-inner {
   background-color: rgba(0,0,0, 0.85);
 }
 
+#player-seek.disabled {
+  pointer-events: none;
+  opacity: 0.3;
+}
+
 #player-seek-elapsed,
 #player-seek-bar,
 #player-seek-remaining {
@@ -1085,4 +1090,16 @@ form[role="search"] button {
 form p input + button[type="reset"] {
   width: 4rem;
   padding: 1rem;
+}
+
+#info-banner {
+  z-index: -1;
+  opacity: 0;
+  transition: all 600ms ease;
+}
+
+#info-banner.visible {
+  z-index: 100;
+  opacity: 1;
+  transition: all 600ms ease;
 }
