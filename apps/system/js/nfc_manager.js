@@ -257,8 +257,7 @@ var NfcManager = {
         var req = nfctag.readNDEF();
         req.onsuccess = function() {
           self._debug('NDEF Read result: ' + JSON.stringify(req.result));
-          self.handleNdefDiscovered(tech, session,
-                                              req.result.records);
+          self.handleNdefDiscovered(tech, session, req.result);
           self.doClose(nfctag);
         };
         req.onerror = function() {
