@@ -114,3 +114,4 @@ exports.log = utils.log;
 exports.getExtension = getExtension;
 exports.killAppByPid = utils.killAppByPid;
 exports.getEnv = utils.getEnv;
+exports.isExternalApp = utils.isExternalApp;
