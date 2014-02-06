@@ -151,7 +151,7 @@ Resources.prototype.getRingtoneResource = function(ringtone) {
 
     var content = { uri: uri,
                     name: ringtoneName,
-                    default: this.settings['dialer.ringtone.name'] };
+                    default: this.settings['dialer.ringtone.id'] };
 
     return this.createJSON(jsonName, content);
   }
