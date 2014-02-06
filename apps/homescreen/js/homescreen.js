@@ -37,14 +37,6 @@ var Homescreen = (function() {
       swipeTransitionDuration: swipeSection.transition_duration
     };
 
-    var wallpaperURL = new SettingsURL();
-
-    SettingsListener.observe('wallpaper.image',
-                             'resources/images/backgrounds/default.png',
-                             function(value) {
-                               var url = 'url(' + wallpaperURL.set(value) + ')';
-                               document.body.style.backgroundImage = url;
-                             });
 
     GridManager.init(options, function gm_init() {
       window.addEventListener('hashchange', function() {
@@ -77,6 +69,8 @@ var Homescreen = (function() {
         onInit();
       }
     });
+
+    initWallpaper();
   }
 
   function onContextMenu(evt) {
@@ -170,6 +164,19 @@ var Homescreen = (function() {
     document.body.dataset.online = mode;
   }
 
+  function initWallpaper() {
+    var wallpaperURL = new SettingsURL();
+    var defaultWallpaper = Configurator.getSection('background');
+
+    var setNewWallpaper = function(value) {
+      var url = 'url(' + wallpaperURL.set(value) + ')';
+      document.body.style.backgroundImage = url;
+    };
+
+    SettingsListener.observe('wallpaper.image',
+                              defaultWallpaper.url, setNewWallpaper);
+  }
+
   window.addEventListener('online', function onOnline(evt) {
     onConnectionChange(true);
   });
@@ -206,6 +213,8 @@ var Homescreen = (function() {
     },
 
     init: initialize,
+
+    initWallpaper: initWallpaper,
 
     setMode: function(newMode) {
       mode = document.body.dataset.mode = newMode;

@@ -34,13 +34,22 @@
     'https://aHost/aMan8' : {
       'screen' : 2,
       'manifest' : 'https://aHost/aMan6',
-      'location': 0}
+      'location': 0},
+    // Make sure this is the same as in
+    // application-data. If you change it in one,
+    // change it in both
+    background: {
+      url: 'resources/images/backgrounds/default.png'
+    }
   };
 
   var MockConfigurator = {
     mSimPresentOnFirstBoot: true,
     mIsSVReady: true,
-    getSection: function() { return null; },
+    getSection: function(section) {
+      return singleVariantConf[section];
+    },
+
     getSingleVariantApps: function() {
       return singleVariantConf;
     },
