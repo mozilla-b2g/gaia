@@ -465,7 +465,6 @@ apps/communications/ftu/js/navigation.js
 apps/communications/ftu/js/operatorVariant.js
 apps/communications/ftu/js/resources.js
 apps/communications/ftu/js/services_launcher.js
-apps/communications/ftu/js/sim_manager.js
 apps/communications/ftu/js/time.js
 apps/communications/ftu/js/tutorial.js
 apps/communications/ftu/js/tutorial_steps.js
@@ -1039,7 +1038,6 @@ apps/system/js/screenshot.js
 apps/system/js/sheets_transition.js
 apps/system/js/shrinking_ui.js
 apps/system/js/sim_lock.js
-apps/system/js/simcard_dialog.js
 apps/system/js/simslot.js
 apps/system/js/simslot_manager.js
 apps/system/js/sleep_menu.js
@@ -1175,7 +1173,6 @@ apps/system/test/unit/mock_rocketbar.js
 apps/system/test/unit/mock_screen_layout.js
 apps/system/test/unit/mock_settingslistener_installer.js
 apps/system/test/unit/mock_sheets_transition.js
-apps/system/test/unit/mock_simslot.js
 apps/system/test/unit/mock_simslot_manager.js
 apps/system/test/unit/mock_sleep_menu.js
 apps/system/test/unit/mock_software_button_manager.js
