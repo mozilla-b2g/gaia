@@ -213,9 +213,9 @@ function fillAppManifest(webapp) {
 
   if (webapp.url.indexOf('communications.' + config.GAIA_DOMAIN) !== -1) {
     fillCommsAppManifest(webapp, webappTargetDir);
-  } else if (config.ROCKETBAR && webapp.url.indexOf('browser.' + config.GAIA_DOMAIN) !== -1) {
+  } else if (config.ROCKETBAR === 'full' && webapp.url.indexOf('browser.' + config.GAIA_DOMAIN) !== -1) {
     modifyBrowserForRocketbar(webapp, webappTargetDir);
-  } else if (config.ROCKETBAR && webapp.url.indexOf('system.' + config.GAIA_DOMAIN) !== -1) {
+  } else if (config.ROCKETBAR !== 'none' && webapp.url.indexOf('system.' + config.GAIA_DOMAIN) !== -1) {
     modifySystemForRocketbar(webapp, webappTargetDir);
   }
 

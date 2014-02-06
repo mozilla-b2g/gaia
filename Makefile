@@ -80,7 +80,12 @@ DESKTOP_SHIMS?=0
 GAIA_OPTIMIZE?=0
 GAIA_DEV_PIXELS_PER_PX?=1
 DOGFOOD?=0
-ROCKETBAR?=1
+
+# Rocketbar customization
+# none - Do not enable rocketbar
+# half - Rocketbar is enabled, and so is browser app
+# full - Rocketbar is enabled, no browser app
+ROCKETBAR?=half
 TEST_AGENT_PORT?=8789
 GAIA_APP_TARGET?=engineering
 
@@ -385,7 +390,7 @@ define BUILD_CONFIG
 	"GAIA_APPDIRS" : "$(GAIA_APPDIRS)", \
 	"NOFTU" : "$(NOFTU)", \
 	"REMOTE_DEBUGGER" : "$(REMOTE_DEBUGGER)", \
-	"ROCKETBAR" : $(ROCKETBAR), \
+	"ROCKETBAR" : "$(ROCKETBAR)", \
 	"TARGET_BUILD_VARIANT" : "$(TARGET_BUILD_VARIANT)", \
 	"SETTINGS_PATH" : "$(SETTINGS_PATH)", \
 	"VARIANT_PATH" : "$(VARIANT_PATH)" \

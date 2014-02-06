@@ -18,7 +18,7 @@ suite('Build Integration tests', function() {
   });
 
   test('make without rule & variable', function(done) {
-    exec('ROCKETBAR=0 make', function(error, stdout, stderr) {
+    exec('ROCKETBAR=none make', function(error, stdout, stderr) {
       helper.checkError(error, stdout, stderr);
 
       // expected values for prefs and user_prefs

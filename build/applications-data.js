@@ -178,7 +178,7 @@ function customizeHomescreen(options) {
   };
 
   // Add the browser icon if rocketbar is not enabled
-  if (config.ROCKETBAR != 1) {
+  if (config.ROCKETBAR !== 'full') {
     customize.homescreens[0].push(['apps', 'browser']);
   }
 
@@ -288,7 +288,7 @@ function customizeHomescreen(options) {
   };
 
   // Only enable configurable bookmarks for dogfood devices
-  if (config.ROCKETBAR == 1) {
+  if (config.ROCKETBAR !== 'none') {
     content.bookmarks = customize.bookmarks;
   }
 
