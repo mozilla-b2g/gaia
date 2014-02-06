@@ -7,13 +7,11 @@ define(function(require, exports, module) {
  */
 
 var getVideoMetaData = require('lib/get-video-meta-data');
-var CameraUtils = require('lib/camera-utils');
 var orientation = require('lib/orientation');
 var getSizeKey = require('lib/get-size-key');
 var constants = require('config/camera');
 var debug = require('debug')('camera');
 var bindAll = require('lib/bind-all');
-var allDone = require('lib/all-done');
 var model = require('vendor/model');
 var mixin = require('lib/mixin');
 
@@ -55,10 +53,6 @@ function Camera(options) {
   this.mozCamera = null;
   this.cameraList = navigator.mozCameras.getListOfCameras();
   this.autoFocus = {};
-  this.sizes = {
-    picture: {},
-    video: {}
-  };
   this.tmpVideo = {
     storage: navigator.getDeviceStorage('videos'),
     filename: null,
@@ -125,7 +119,6 @@ Camera.prototype.configureCamera = function(mozCamera) {
   debug('configure');
 
   var capabilities = mozCamera.capabilities;
-  var done = allDone();
   var self = this;
 
   // Store the Gecko
@@ -133,23 +126,24 @@ Camera.prototype.configureCamera = function(mozCamera) {
   this.mozCamera = mozCamera;
 
   // Configure all the things
-  this.configurePictureSize(mozCamera);
+  //this.configurePictureSize(mozCamera);
   this.configureFocus(capabilities.focusModes);
-  this.configureVideoProfile(capabilities, done());
+  //this.configureVideoProfile(capabilities, done());
 
   // Bind to some hardware events
   mozCamera.onShutter = self.onShutter;
   mozCamera.onRecorderStateChange = self.onRecorderStateChange;
-  done(function() {
-    var photoPreviewSizes = capabilities.previewSizes;
-    var videoPreviewSize = {
-      width: self.videoProfile.width,
-      height: self.videoProfile.height
-    };
-    self.configurePreviewSize(photoPreviewSizes, videoPreviewSize);
+
+  //done(function() {
+    // var photoPreviewSizes = capabilities.previewSizes;
+    // var videoPreviewSize = {
+    //   width: self.videoProfile.width,
+    //   height: self.videoProfile.height
+    // };
+    //self.configurePreviewSize(photoPreviewSizes, videoPreviewSize);
     debug('configured');
     self.emit('configured', self.formatCapabilities(capabilities));
-  });
+  //});
 };
 
 Camera.prototype.formatCapabilities = function(capabilities) {
@@ -164,46 +158,49 @@ Camera.prototype.formatCapabilities = function(capabilities) {
 };
 
 Camera.prototype.setPictureSize = function(value) {
-  var geckoValue = this.sizes.picture[value];
-  this.mozCamera.pictureSize = geckoValue;
+  this.mozCamera.pictureSize = value;
 };
 
 Camera.prototype.setVideoSize = function(value) {
-  var geckoValue = this.sizes.video[value];
-  this.mozCamera.pictureSize = geckoValue;
+  this.mozCamera.videoSize = value;
 };
 
 Camera.prototype.formatSizes = function(type, sizes) {
-  var hash = this.sizes[type] = {};
   return sizes.map(function(size) {
     var key = getSizeKey[type](size);
-    hash[key] = size;
-    return key;
+    return { key: key, value: size };
   });
 };
 
-Camera.prototype.configurePictureSize = function(mozCamera) {
-  var capabilities = mozCamera.capabilities;
-  var pictureSizes = capabilities.pictureSizes;
-  var thumbnailSizes = capabilities.thumbnailSizes;
+// It seems this is an attempt to restrict picture size
+// to match requirements from activity or build time configurations
+// this work should be done inside CameraController before
+// passing values to be set onto settings.
+//
+// Camera.prototype.configurePictureSize = function(mozCamera) {
+//   var capabilities = mozCamera.capabilities;
+//   var pictureSizes = capabilities.pictureSizes;
+//   var thumbnailSizes = capabilities.thumbnailSizes;
 
-  // Store picked pictureSize
-  this.pictureSize = this.pickPictureSize(pictureSizes);
+//   // Store picked pictureSize
+//   this.pictureSize = this.pickPictureSize(pictureSizes);
 
-  var width = this.pictureSize.width;
-  var height = this.pictureSize.height;
+//   var width = this.pictureSize.width;
+//   var height = this.pictureSize.height;
 
-  // Store picked maxPictureSize
-  this.maxPictureSize = (width * height * 4) + 4096;
+//   // Store picked maxPictureSize
+//   this.maxPictureSize = (width * height * 4) + 4096;
 
-  var thumbnailSize = this.pickThumbnailSize(thumbnailSizes, this.pictureSize);
+//   // Pull this out into CameraController
+//   var thumbnailSize = this.pickThumbnailSize(
+//   thumbnailSizes, this.pictureSize);
 
-  if (thumbnailSize) {
-    mozCamera.thumbnailSize = thumbnailSize;
-  }
+//   if (thumbnailSize) {
+//     mozCamera.thumbnailSize = thumbnailSize;
+//   }
 
-  debug('configured picture size %d x %d', width, height);
-};
+//   debug('configured picture size %d x %d', width, height);
+// };
 
 Camera.prototype.configureFocus = function(modes) {
   var supports = this.autoFocus;
@@ -213,41 +210,39 @@ Camera.prototype.configureFocus = function(modes) {
   debug('focus configured', supports);
 };
 
-Camera.prototype.configureVideoProfile = function(capabilities, done) {
-  var self = this;
-  this.getMozSettingsSizes(function(mozSettingsSizes) {
-    var recorderProfiles = capabilities.recorderProfiles;
-    self.videoProfile = self.pickVideoProfile(
-      recorderProfiles,
-      mozSettingsSizes);
-    self.videoProfile.rotation = orientation.get();
-    debug('video profile configured', self.videoProfile);
-    done();
-  });
-};
+// Camera.prototype.configureVideoProfile = function(capabilities, done) {
+//   var self = this;
+//   //this.getMozSettingsSizes(function(mozSettingsSizes) {
+//     var recorderProfiles = capabilities.recorderProfiles;
+//     self.videoProfile = self.pickVideoProfile(recorderProfiles);
+//     self.videoProfile.rotation = orientation.get();
+//     debug('video profile configured', self.videoProfile);
+//     done();
+//   //});
+// };
 
-Camera.prototype.configurePreviewSize = function(photoPreviewSizes,
-                                                 videoPreviewSize) {
-  var viewportSize = {
-    width: document.body.clientHeight * window.devicePixelRatio,
-    height: document.body.clientWidth * window.devicePixelRatio
-  };
-  var isPhotoMode = this.get('mode') === 'photo';
-  var pickedPreviewSize = CameraUtils.selectOptimalPreviewSize(
-      viewportSize,
-      photoPreviewSizes);
+// Camera.prototype.configurePreviewSize = function(photoPreviewSizes,
+//                                                  videoPreviewSize) {
+//   var viewportSize = {
+//     width: document.body.clientHeight * window.devicePixelRatio,
+//     height: document.body.clientWidth * window.devicePixelRatio
+//   };
+//   var isPhotoMode = this.get('mode') === 'photo';
+//   var pickedPreviewSize = CameraUtils.selectOptimalPreviewSize(
+//       viewportSize,
+//       photoPreviewSizes);
 
-  // We should always have a valid preview size, but just in case
-  // we don't, pick the first provided
-  this.photoPreviewSize = pickedPreviewSize || photoPreviewSizes[0];
-  this.videoPreviewSize = videoPreviewSize;
+//   // We should always have a valid preview size, but just in case
+//   // we don't, pick the first provided
+//   this.photoPreviewSize = pickedPreviewSize || photoPreviewSizes[0];
+//   this.videoPreviewSize = videoPreviewSize;
 
-  // Assign the correct preview size
-  this.previewSize = isPhotoMode ?
-    this.photoPreviewSize : this.videoPreviewSize;
+//   // Assign the correct preview size
+//   this.previewSize = isPhotoMode ?
+//     this.photoPreviewSize : this.videoPreviewSize;
 
-  debug('configured preview size isPhotoMode: %s', isPhotoMode);
-};
+//   debug('configured preview size isPhotoMode: %s', isPhotoMode);
+// };
 
 /**
  * Sets the current flash mode,
@@ -261,73 +256,69 @@ Camera.prototype.setFlashMode = function(key) {
   debug('flash mode set: %s', key);
 };
 
+// NOTE: There doesn't seem to be a camera setting
+// in the device settings app. So disabling this.
+//
+// Camera.prototype.getMozSettingsSizes = function(done) {
+//   done = done || function() {};
+//   var key = 'camera.recording.preferredSizes';
+//   var self = this;
+
+//   // Return the settings if they
+//   // have already been retrieved.
+//   // setTimeout used to ensure the
+//   // callback is always called async.
+//   if (this.mozSettingsSizes) {
+//     setTimeout(function() { done(this.mozSettingsSizes); });
+//     return;
+//   }
+
+//   navigator.mozSettings
+//     .createLock()
+//     .get(key)
+//     .onsuccess = onSuccess;
+
+//   function onSuccess(e) {
+//     self.mozSettingsSizes = e.target.result[key] || [];
+//     debug('got settings sizes', self.mozSettingsSizes);
+//     done(self.mozSettingsSizes);
+//   }
+// };
+
 // TODO: Move out of camera.js and integrate into app settings
-Camera.prototype.getMozSettingsSizes = function(done) {
-  done = done || function() {};
-  var key = 'camera.recording.preferredSizes';
-  var self = this;
+// Analysis: Seems this function selects:
+//   - 'qcif' (quarter cif) profile if a target
+//     size size has been specified.
+//   - ''
+// Camera.prototype.pickVideoProfile = function(profiles) {
+//   debug('pick video profile');
 
-  // Return the settings if they
-  // have already been retrieved.
-  // setTimeout used to ensure the
-  // callback is always called async.
-  if (this.mozSettingsSizes) {
-    setTimeout(function() { done(this.mozSettingsSizes); });
-    return;
-  }
+//   var targetFileSize = this.get('targetFileSize');
+//   var profileName;
+//   var profile;
 
-  var req = navigator.mozSettings
-    .createLock()
-    .get(key)
-    .onsuccess = onSuccess;
+//   if (targetFileSize && 'qcif' in profiles) {
+//     profileName = 'qcif';
+//   } else if (matchedProfileName) {
+//     profileName = matchedProfileName;
+//   // Default to cif profile
+//   } else if ('cif' in profiles) {
+//     profileName = 'cif';
+//   // Fallback to first valid profile if none found
+//   } else {
+//     profileName = Object.keys(profiles)[0];
+//   }
 
-  function onSuccess() {
-    self.mozSettingsSizes = req.result[key] || [];
-    debug('got settings sizes', self.mozSettingsSizes);
-    done(self.mozSettingsSizes);
-  }
-};
+//   profile = {
+//     profile: profileName,
+//     rotation: 0,
+//     width: profiles[profileName].video.width,
+//     height: profiles[profileName].video.height
+//   };
 
-// TODO: Move out of camera.js and integrate into app settings
-Camera.prototype.pickVideoProfile = function(profiles, preferredSizes) {
-  debug('pick video profile');
-
-  var targetFileSize = this.get('targetFileSize');
-  var matchedProfileName;
-  var profileName;
-  var profile;
-
-  if (preferredSizes) {
-    for (var i = 0; i < preferredSizes.length; i++) {
-      if (preferredSizes[i] in profiles) {
-        matchedProfileName = preferredSizes[i];
-        break;
-      }
-    }
-  }
-
-  if (targetFileSize && 'qcif' in profiles) {
-    profileName = 'qcif';
-  } else if (matchedProfileName) {
-    profileName = matchedProfileName;
-  // Default to cif profile
-  } else if ('cif' in profiles) {
-    profileName = 'cif';
-  // Fallback to first valid profile if none found
-  } else {
-    profileName = Object.keys(profiles)[0];
-  }
-
-  profile = {
-    profile: profileName,
-    rotation: 0,
-    width: profiles[profileName].video.width,
-    height: profiles[profileName].video.height
-  };
-
-  debug('video profile picked', profile);
-  return profile;
-};
+//   debug('video profile picked', profile);
+//   return profile;
+// };
 
 /**
  * Releases the camera hardware.
