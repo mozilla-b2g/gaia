@@ -43,6 +43,7 @@ CameraController.prototype.bindEvents = function() {
   // Relaying camera events means other modules
   // don't have to depend directly on camera
   camera.on('change:videoElapsed', app.firer('camera:timeupdate'));
+  camera.on('configured', this.app.setter('capabilities'));
   camera.on('configured', app.firer('camera:configured'));
   camera.on('change:recording', app.setter('recording'));
   camera.on('loading', app.firer('camera:loading'));
@@ -53,15 +54,16 @@ CameraController.prototype.bindEvents = function() {
 
   // Camera
   camera.on('filesizelimitreached', this.onFileSizeLimitReached);
-  camera.on('configured', this.onConfigured);
   camera.on('newimage', this.onNewImage);
   camera.on('newvideo', this.onNewVideo);
 
   // App
   app.settings.on('change:cameras', this.onCameraChange);
   app.settings.on('change:pictureSizes', this.camera.setPictureSize);
+  app.settings.on('change:videoSizes', this.camera.setVideoSize);
   app.settings.on('change:flashModes', this.setFlashMode);
   app.settings.on('change:mode', this.onModeChange);
+  app.on('settings:configured', this.onSettingsConfigured);
   app.on('blur', this.teardownCamera);
   app.on('focus', this.setupCamera);
   app.on('capture', this.onCapture);

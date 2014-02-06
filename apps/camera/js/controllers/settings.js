@@ -69,6 +69,7 @@ SettingsController.prototype.onCapabilitiesChange = function(capabilities) {
     var options = capabilities[setting.key];
     setting.configureOptions(options);
   });
+  this.app.emit('settings:configured');
 };
 
 });
