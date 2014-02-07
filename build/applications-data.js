@@ -405,13 +405,6 @@ function execute(options) {
   utils.writeContent(init,
     utils.getDistributionFileContent('wapuaprof.json', content, distDir));
 
-  // WAP Push
-  init = utils.getFile(config.GAIA_DIR, 'apps', 'wappush', 'js', 'whitelist.json');
-  content = [];
-
-  utils.writeContent(init,
-    utils.getDistributionFileContent('wappush-whitelist', content));
-
   // Communications config
   init = utils.getFile(config.GAIA_DIR,
     'apps', 'communications', 'contacts', 'config.json');
