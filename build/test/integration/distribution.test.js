@@ -35,6 +35,18 @@ suite('Distribution mechanism', function() {
       'Local', 'Property providerType should equal "Local"')
   }
 
+  function validateWappush() {
+    var wappushZip = new AdmZip(path.join(process.cwd(), 'profile',
+      'webapps', 'wappush.gaiamobile.org', 'application.zip'));
+    var whitelist =
+      wappushZip.readAsText(wappushZip.getEntry('js/whitelist.json'));
+    assert.isNotNull(whitelist, 'js/whitelist.json should exist');
+    var list = JSON.parse(whitelist);
+    assert.isDefined(list[0], 'whitelist[0] should be defined');
+    assert.equal(list[0], '9871010079',
+      'whitelist[0] should equal "9871010079"');
+  }
+
   test('build with GAIA_DISTRIBUTION_DIR', function(done) {
     var distDir = path.join(process.cwd(), 'build', 'test', 'resources',
       'distribution_test');
@@ -43,6 +55,7 @@ suite('Distribution mechanism', function() {
       helper.checkError(error, stdout, stderr);
       validateSettings();
       validateCalendar();
+      validateWappush();
       done();
     });
   });
