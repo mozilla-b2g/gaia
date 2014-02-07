@@ -8,7 +8,6 @@ define(function(require, exports, module) {
 var debug = require('debug')('setting');
 var storage = require('asyncStorage');
 var model = require('vendor/model');
-var mixin = require('lib/mixin');
 
 /**
  * Exports
@@ -136,7 +135,6 @@ Setting.prototype.configureOptions = function(values) {
   var isArray = Array.isArray(values);
   var silent = { silent: true };
   var options = [];
-  var key;
 
   if (values) {
     each(values, function(value, key) {

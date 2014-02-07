@@ -59,7 +59,7 @@ ActivityController.prototype.configurePictureSize = function(data) {
 };
 
 ActivityController.prototype.configureActivityVideoSize = function(data) {
-  var setting = this.app.settings.videoSizes;
+  var setting = this.app.settings.recorderProfiles;
   var maxFileSize = data.maxFileSizeBytes;
   var options = setting.get('options');
 

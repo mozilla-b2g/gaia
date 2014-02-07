@@ -64,7 +64,6 @@ CameraController.prototype.bindEvents = function() {
   app.on('blur', this.teardownCamera);
   app.on('settings:configured', this.onSettingsConfigured);
   app.settings.on('change:pictureSizes', this.camera.setPictureSize);
-  app.settings.on('change:videoSizes', this.camera.setVideoSize);
   app.settings.on('change:flashModes', this.setFlashMode);
   app.settings.on('change:cameras', this.loadCamera);
   app.settings.on('change:mode', this.setMode);
@@ -97,7 +96,6 @@ CameraController.prototype.configure = function() {
 
 CameraController.prototype.onSettingsConfigured = function() {
   this.camera.setPictureSize(this.app.settings.value('pictureSizes'));
-  this.camera.setVideoSize(this.app.settings.value('videoSizes'));
   this.camera.setFlashMode(this.app.settings.value('flashModes'));
   debug('camera configured with final settings');
 
