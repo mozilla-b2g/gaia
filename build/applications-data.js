@@ -445,6 +445,7 @@ function execute(options) {
     distDir) + ';');
 
   // Customize the maximum image size for Camera and Gallery
+  /*
   (function customizeMaximumImageSize() {
     let defaultValue = {
       maxImagePixelSize: 5 * 1024 * 1024,
@@ -473,6 +474,7 @@ function execute(options) {
                          'gallery', 'js', 'config.js');
     utils.writeContent(file, content);
   }());
+*/
 }
 
 exports.execute = execute;
