@@ -37,7 +37,6 @@ var Homescreen = (function() {
       swipeTransitionDuration: swipeSection.transition_duration
     };
 
-
     GridManager.init(options, function gm_init() {
       window.addEventListener('hashchange', function() {
         if (!window.location.hash.replace('#', '')) {
