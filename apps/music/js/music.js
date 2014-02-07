@@ -657,6 +657,11 @@ var TitleBar = {
 
               cleanupPick();
             }
+            // clear onpeerready while come out from PLAYER MODE.
+            if (ModeManager.currentMode == MODE_PLAYER &&
+               window.navigator.mozNfc) {
+              window.navigator.mozNfc.onpeerready = null;
+            }
 
             ModeManager.pop();
 

@@ -849,10 +849,29 @@ var PlayerView = {
     });
   },
 
+  handlePeerConnectivity: function nfc_handlePeerConnectivity(event) {
+    var peer = navigator.mozNfc.getNFCPeer(event.detail);
+
+    if (!peer)
+      return null;
+
+    if (PlayerView.playingBlob) {
+      // send music file
+      peer.sendFile(PlayerView.playingBlob);
+    }
+  },
+
   handleEvent: function pv_handleEvent(evt) {
     var target = evt.target;
     if (!target)
       return;
+    // NFC enabled, assign the callback to have shrink UI
+    if (ModeManager.currentMode == MODE_PLAYER && window.navigator.mozNfc) {
+        window.navigator.mozNfc.onpeerready = this.handlePeerConnectivity;
+    } else {
+    // clear onpeerready if not in PLAYER MODE.
+      window.navigator.mozNfc.onpeerready = null;
+    }
 
     switch (evt.type) {
       case 'click':
