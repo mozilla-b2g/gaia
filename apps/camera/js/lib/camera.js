@@ -1,5 +1,4 @@
 define(function(require, exports, module) {
-/*global CONFIG_MAX_IMAGE_PIXEL_SIZE, CONFIG_MAX_SNAPSHOT_PIXEL_SIZE*/
 'use strict';
 
 /**
@@ -21,7 +20,6 @@ var mixin = require('lib/mixin');
 
 var RECORD_SPACE_MIN = constants.RECORD_SPACE_MIN;
 var RECORD_SPACE_PADDING = constants.RECORD_SPACE_PADDING;
-var ESTIMATED_JPEG_FILE_SIZE = constants.ESTIMATED_JPEG_FILE_SIZE;
 
 /**
  * Locals

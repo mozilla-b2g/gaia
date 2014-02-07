@@ -6,7 +6,6 @@ define(function(require, exports, module) {
  */
 
 var debug = require('debug')('activity');
-var mixin = require('lib/mixin');
 
 /**
  * Exports
@@ -52,7 +51,7 @@ Activity.prototype.check = function(done) {
     // behaviour of the camera app
     // for 'pick' activities.
     if (data.name !== 'pick') {
-      debug('type \'%s\'not supported', parsed.name);
+      debug('type \'%s\'not supported', data.name);
       done();
       return;
     }
@@ -60,7 +59,7 @@ Activity.prototype.check = function(done) {
     self.active = true;
     self.data = data;
     self.raw = activity;
-    debug('parsed \'%s\' activity', self.data.name);
+    debug('parsed \'%s\' activity', data.name);
     done();
   }
 };

@@ -5,7 +5,6 @@ define(function(require, exports, module) {
  * Dependencies
  */
 
-var debug = require('debug')('controller:settings');
 var bindAll = require('lib/bind-all');
 
 /**
