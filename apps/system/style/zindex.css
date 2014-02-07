@@ -64,7 +64,8 @@
 }
 
 /* Keyboard is shown above task manager */
-#screen.cards-view.task-manager > [data-z-index-level="keyboards"] {
+#screen.cards-view.task-manager > [data-z-index-level="keyboards"],
+#screen.cards-view.task-manager > [data-z-index-level="software-buttons"] {
   z-index: 65538;
 }
 
