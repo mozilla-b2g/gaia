@@ -1,3 +1,7 @@
+-include $(PWD)/build/common.mk
+
+BUILD_DIR=$(PWD)/build_stage/gallery
+
 FULLSCREEN_SCRIPTS = \
  ../../shared/js/gesture_detector.js \
  ../../shared/js/format.js \
@@ -12,6 +16,12 @@ METADATA_SCRIPTS = \
  js/imagesize.js \
  js/MetadataParser.js
 
+all: concatenated_scripts clean
+	@echo Building gallery app to build_stage...
+	@mkdir -p $(BUILD_DIR)
+	@cp -r * $(BUILD_DIR)
+	@$(call run-app-js-command, build)
+
 concatenated_scripts: js/frame_scripts.js js/metadata_scripts.js
 
 js/frame_scripts.js: Makefile $(FULLSCREEN_SCRIPTS)
@@ -19,3 +29,6 @@ js/frame_scripts.js: Makefile $(FULLSCREEN_SCRIPTS)
 
 js/metadata_scripts.js: Makefile $(METADATA_SCRIPTS)
 	cat $(METADATA_SCRIPTS) > js/metadata_scripts.js
+
+clean:
+	@rm -rf $(BUILD_DIR)
