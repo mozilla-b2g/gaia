@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html dir="ltr">
+<head>
+  <meta charset="utf-8">
+
+  <title>Buttons</title>
+  <link rel="stylesheet" href="../buttons.css">
+
+  <!--
+    This <style>, <script> and <link> is only used for the example code,
+    is no needed for the real case use
+  -->
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-size: 10px;
+      background-color: #fff;
+    }
+
+    label.bb-docs {
+      font-family: sans-serif;
+      font-size: 1.2rem;
+      margin-left: 1.5rem;
+    }
+
+    h2.bb-docs {
+      font-size: 1.8rem;
+      font-weight: lighter;
+      color: #666;
+      margin: -0.1rem 0 0;
+      background-color: #f5f5f5;
+      padding: 0.4rem 3rem;
+      border: solid 0.1rem #e8e8e8;
+      font-family: sans-serif;
+    }
+
+    div.bb-docs {
+      padding: 1.5rem;
+    }
+
+    div.bb-docs.dark {
+      background: #000;
+    }
+
+    ul {
+      padding: 0;
+      margin: 0;
+      list-style: none;
+    }
+
+    body[role="application"] > [role="region"] {
+      height: 100%;
+      position: relative;
+    }
+  </style>
+  <script>
+    window.onload = function(){
+      document.getElementById('dir').checked = false;
+    };
+  </script>
+</head>
+<body role="application">
+  <p dir="ltr">
+    <label class="bb-docs">
+      <input id="dir" type="checkbox" checked="false"
+        onchange="document.documentElement.dir = this.checked ? 'rtl' : 'ltr'">
+      RTL mode
+    </label>
+  </p>
+  <h2 class="bb-docs">Normal</h2>
+  <div class="bb-docs">
+    <button>Default</button>
+    <button class="recommend">Recommend</button>
+    <button class="danger">Danger</button>
+   </div>
+
+  <h2 class="bb-docs">Disabled</h2>
+  <div class="bb-docs">
+    <button disabled>Default</button>
+    <a href="#" role="button" aria-disabled="true" class="recommend">Recommend</a>
+    <button disabled class="danger">Danger</button>
+  </div>
+
+  <h2 class="bb-docs">Disabled with dark background</h2>
+  <div class="bb-docs dark">
+    <button disabled>Default</button>
+    <a href="#" role="button" aria-disabled="true" class="recommend">Recommend</a>
+    <button disabled class="danger">Danger</button>
+  </div>
+
+  <h2 class="bb-docs">Button List </h2>
+  <div class="bb-docs">
+    <ul>
+      <li>
+        <button>Default</button>
+      </li>
+      <li>
+        <button disabled="disabled">Disabled</button>
+      </li>
+      <li>
+        <button class="icon icon-view">
+          View Name
+        </button>
+      </li>
+      <li>
+        <button disabled="disabled" class="icon icon-view">
+          View Name
+        </button>
+      </li>
+      <li>
+        <a role="button" class="icon icon-dialog">
+          Tuesday Sept. 18, 2012
+        </a>
+      </li>
+      <li>
+        <a role="button" aria-disabled="true" class="icon icon-dialog">
+          Tuesday Sept. 18, 2012
+        </a>
+      </li>
+    </ul>
+  </div>
+
+  <h2 class="bb-docs">Dark button List </h2>
+  <div class="bb-docs dark">
+    <ul>
+      <li>
+        <button>Default</button>
+      </li>
+      <li>
+        <button disabled="disabled">Disabled</button>
+      </li>
+      <li>
+        <button class="icon icon-view">
+          View Name
+        </button>
+      </li>
+      <li>
+        <button disabled="disabled" class="icon icon-view">
+          View Name
+        </button>
+      </li>
+      <li>
+        <a role="button" class="icon icon-dialog">
+          Tuesday Sept. 18, 2012
+        </a>
+      </li>
+      <li>
+        <a role="button" aria-disabled="true" class="icon icon-dialog">
+          Tuesday Sept. 18, 2012
+        </a>
+      </li>
+    </ul>
+  </div>
+
+  <h2 class="bb-docs">Select</h2>
+  <div class="bb-docs">
+    <select>
+      <option>option 1</option>
+      <option>option 2</option>
+    </select>
+  </div>
+
+  <h2 class="bb-docs">Fake select</h2>
+  <div class="bb-docs">
+    <ul>
+      <li>
+        <span class="button icon icon-dialog">
+          <select>
+            <option>option 1</option>
+            <option>option 2</option>
+          </select>
+        </span>
+      </li>
+    </ul>
+  </div>
+
+</body>
+</html>
+
