@@ -1,11 +1,14 @@
 
 'use strict';
 
+mocha.globals(['DownloadUI']);
+
 require('/shared/test/unit/mocks/mock_download.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_downloads.js');
 
 require('/shared/test/unit/mocks/mock_navigator_datastore.js');
 require('/shared/js/download/download_formatter.js');
+requireApp('settings/test/unit/mock_download_ui.js');
 require('/shared/js/download/download_store.js');
 requireApp('settings/test/unit/mock_download_store.js');
 
@@ -19,7 +22,8 @@ if (!window.DownloadHelper) {
 
 suite('DownloadApiManager', function() {
   var mocksHelperForDownloadApi = new MocksHelper([
-    'DownloadStore'
+    'DownloadStore',
+    'DownloadUI'
   ]);
   var realMozDownloads, realDatastore, realDownloadHelper;
   suiteSetup(function() {
@@ -109,19 +113,36 @@ suite('DownloadApiManager', function() {
       assert.isFalse(previousState === download.state);
     });
 
-    test(' > deleteDownload given an ID', function(done) {
-      var helperDeleteSpy = this.sinon.spy(DownloadHelper, 'remove');
+    test(' > deleteDownload given an ID (user cancels)', function(done) {
+      var showStub = this.sinon.stub(DownloadUI, 'show', function() {
+        return {
+          set oncancel(cb) {cb();}
+        };
+      });
+
+      this.sinon.spy(DownloadHelper, 'remove');
+      DownloadApiManager.deleteDownloads([0], function() {}, function() {
+        // Once cancelled, we get the same object
+        var download = DownloadApiManager.getDownload(0);
+        // and the object still exists
+        assert.ok(download);
+        assert.isFalse(DownloadHelper.remove.called);
+        showStub.restore();
+        done();
+      });
+    });
+
+    test(' > deleteDownload given an ID (user confirms)', function(done) {
+      this.sinon.spy(DownloadHelper, 'remove');
       DownloadApiManager.deleteDownloads([0], function() {
         // Once deleted, we try to get the same object
         var download = DownloadApiManager.getDownload(0);
         // Now the object does not exist
         assert.ok(!download);
-        assert.ok(helperDeleteSpy.called);
+        assert.ok(DownloadHelper.remove.called);
         DownloadHelper.remove.restore();
         done();
       });
     });
   });
 });
-
-

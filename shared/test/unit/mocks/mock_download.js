@@ -28,6 +28,14 @@ function MockDownload(params) {
 }
 
 MockDownload.prototype = {
-  pause: function() {},
-  resume: function() {}
+  pause: function() {
+    return {
+      then: function() {}
+    };
+  },
+  resume: function() {
+    return {
+      then: function() {}
+    };
+  }
 };
