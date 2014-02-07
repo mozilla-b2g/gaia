@@ -333,28 +333,6 @@ suite('Build Integration tests', function() {
     });
   });
 
-  test('make with GAIA_DISTRIBUTION_DIR=distribution_tablet', function(done) {
-    exec('GAIA_DISTRIBUTION_DIR=distribution_tablet make',
-      function(error, stdout, stderr) {
-        helper.checkError(error, stdout, stderr);
-
-        var hsZip = new AdmZip(path.join(process.cwd(), 'profile',
-          'webapps', 'homescreen.gaiamobile.org', 'application.zip'));
-        var hsInit = JSON.parse(hsZip.readAsText(hsZip.getEntry('js/init.json')));
-        var settingsPath = path.join(process.cwd(), 'profile', 'settings.json');
-        var settings = JSON.parse(fs.readFileSync(settingsPath));
-        var expectedSettings = {
-          'wap.push.enabled': false
-        };
-
-        helper.checkSettings(settings, expectedSettings);
-        assert.equal(hsInit['search_page'].enabled, false);
-        assert.equal(hsInit.swipe.threshold, 0.25);
-        done();
-      }
-    );
-  });
-
   teardown(function() {
     rmrf('profile');
     rmrf('profile-debug');
