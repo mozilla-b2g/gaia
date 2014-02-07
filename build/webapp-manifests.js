@@ -178,19 +178,6 @@ function modifySystemForRocketbar(webapp, webappTargetDir) {
   utils.writeContent(file, JSON.stringify(manifest));
 }
 
-/**
- * Modifies the browser manifest when rocketbar is enabled.
- * Hides the browser from the system so it will not display.
- * This will be removed once Rocketbar is turned on for good.
- */
-function modifyBrowserForRocketbar(webapp, webappTargetDir) {
-  let manifest = utils.getJSON(webapp.manifestFile);
-  manifest.role = 'system';
-  delete manifest.activities;
-  let file = utils.getFile(webappTargetDir.path, 'manifest.webapp');
-  utils.writeContent(file, JSON.stringify(manifest));
-}
-
 function fillAppManifest(webapp) {
   // Compute webapp folder name in profile
   let webappTargetDirName = webapp.domain;
@@ -213,8 +200,6 @@ function fillAppManifest(webapp) {
 
   if (webapp.url.indexOf('communications.' + config.GAIA_DOMAIN) !== -1) {
     fillCommsAppManifest(webapp, webappTargetDir);
-  } else if (config.ROCKETBAR === 'full' && webapp.url.indexOf('browser.' + config.GAIA_DOMAIN) !== -1) {
-    modifyBrowserForRocketbar(webapp, webappTargetDir);
   } else if (config.ROCKETBAR !== 'none' && webapp.url.indexOf('system.' + config.GAIA_DOMAIN) !== -1) {
     modifySystemForRocketbar(webapp, webappTargetDir);
   }

@@ -8,6 +8,7 @@ var assert = require('chai').assert;
 var fs = require('fs');
 
 suite('Distribution mechanism', function() {
+  var distDir;
   suiteSetup(function() {
     rmrf('profile');
   });
@@ -102,8 +103,19 @@ suite('Distribution mechanism', function() {
     assert.isNotNull(file, 'rresources/320x480/efefef.png should exist');
   }
 
+  function validateBrowser() {
+    var appPath = path.join(distDir, 'browser.json');
+    var appConfig = JSON.parse(fs.readFileSync(appPath));
+    var broZip = new AdmZip(path.join(process.cwd(), 'profile',
+      'webapps', 'browser.gaiamobile.org', 'application.zip'));
+    var presetsContent = broZip.readAsText(broZip.getEntry('js/init.json'));
+    assert.isNotNull(presetsContent, 'js/init.json should exist');
+    assert.deepEqual(JSON.parse(presetsContent), appConfig);
+
+  }
+
   test('build with GAIA_DISTRIBUTION_DIR', function(done) {
-    var distDir = path.join(process.cwd(), 'build', 'test', 'resources',
+    distDir = path.join(process.cwd(), 'build', 'test', 'resources',
       'distribution_test');
     var cmd = 'GAIA_DISTRIBUTION_DIR=' + distDir + ' make';
     exec(cmd, function(error, stdout, stderr) {
@@ -112,6 +124,7 @@ suite('Distribution mechanism', function() {
       validateSettings();
       validateCalendar();
       validateWappush();
+      validateBrowser();
       done();
     });
   });

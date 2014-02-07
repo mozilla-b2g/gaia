@@ -1,4 +1,4 @@
-const { Cc, Ci, Cr, Cu } = require('chrome');
+const { Cc, Ci, Cr, Cu, CC } = require('chrome');
 const { btoa } = Cu.import('resource://gre/modules/Services.jsm', {});
 const multilocale = require('./multilocale');
 
@@ -722,6 +722,11 @@ function killAppByPid(appName, gaiaDir) {
   }
 }
 
+function getDocument(content) {
+  var DOMParser = CC('@mozilla.org/xmlextras/domparser;1', 'nsIDOMParser');
+  return document = (new DOMParser()).parseFromString(content, 'text/html');
+}
+
 exports.Q = Promise;
 exports.ls = ls;
 exports.getFileContent = getFileContent;
@@ -761,3 +766,4 @@ exports.log = log;
 exports.killAppByPid = killAppByPid;
 exports.getEnv = getEnv;
 exports.isExternalApp = isExternalApp;
+exports.getDocument = getDocument;
