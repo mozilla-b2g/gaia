@@ -17,6 +17,7 @@ exports.picture = function(size) {
   var h = size.height;
   switch (true) {
     case (w === 640 && h === 480): return 'vga';
+    case (w === 320 && h === 240): return 'qvga';
     default: return toMegaPixels(w, h) + 'mp';
   }
 };

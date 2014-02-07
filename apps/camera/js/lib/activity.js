@@ -6,6 +6,7 @@ define(function(require, exports, module) {
  */
 
 var debug = require('debug')('activity');
+var mixin = require('lib/mixin');
 
 /**
  * Exports
@@ -19,14 +20,8 @@ module.exports = Activity;
  * @constructor
  */
 function Activity() {
-  this.name = null;
   this.active = false;
   this.data = {};
-  this.allowedTypes = {
-    image: false,
-    video: false,
-    both: false
-  };
   debug('initialized');
 }
 
@@ -51,24 +46,21 @@ Activity.prototype.check = function(done) {
   navigator.mozSetMessageHandler('activity', onActivity);
 
   function onActivity(activity) {
-    var parsed = self.parse(activity);
+    var data = self.parse(activity);
 
     // We currently only alter the
     // behaviour of the camera app
     // for 'pick' activities.
-    if (parsed.name !== 'pick') {
+    if (data.name !== 'pick') {
       debug('type \'%s\'not supported', parsed.name);
       done();
       return;
     }
 
-    self.data = parsed;
     self.active = true;
-    self.name = parsed.name;
-    self.allowedTypes = parsed.types;
-    self.mode = parsed.mode;
+    self.data = data;
     self.raw = activity;
-    debug('parsed \'%s\' activity', self);
+    debug('parsed \'%s\' activity', self.data.name);
     done();
   }
 };
@@ -82,16 +74,10 @@ Activity.prototype.check = function(done) {
  */
 Activity.prototype.parse = function(activity) {
   var data = activity.source.data;
-  var parsed = {
-    name: activity.source.name,
-    types: this.getTypes(activity),
-    fileSize: data.maxFileSizeBytes,
-    width: data.width,
-    height: data.height
-  };
-  parsed.mode = this.modeFromTypes(parsed.types);
-  debug('parsed', parsed);
-  return parsed;
+  data.name = activity.source.name;
+  data.modes = this.getTypes(activity);
+  debug('parsed', data);
+  return data;
 };
 
 /**
@@ -128,9 +114,7 @@ Activity.prototype.cancel = function() {
  *
  */
 Activity.prototype.reset = function() {
-  this.raw = null;
-  this.name = null;
-  this.active = false;
+  Activity.call(this);
 };
 
 /**
@@ -142,35 +126,23 @@ Activity.prototype.reset = function() {
  * @param  {Activity} activity
  * @return {Object}
  */
-Activity.prototype.getTypes = function(activity) {
+Activity.prototype.getModes = function(activity) {
   var raw = activity.source.data.type || ['image/*', 'video/*'];
-  var types = {};
+  var map = {
+    video: 'video',
+    image: 'photo'
+  };
 
   if (raw === 'videos') {
-    types.video = true;
-    return types;
+    return [map.video];
   }
 
   // Make sure it's an array
   raw = [].concat(raw);
-
-  raw.forEach(function(type) {
-    var prefix = type.split('/')[0];
-    types[prefix] = true;
+  return raw.filter(function(item) {
+    var type = item.split('/')[0];
+    return map[type];
   });
-
-  return types;
-};
-
-/**
- * Returns an appropriate capture
- * mode when given a types object.
- *
- * @param  {Object} types
- * @return {String}
- */
-Activity.prototype.modeFromTypes = function(types) {
-  return !types.image && types.video ? 'video' : 'photo';
 };
 
 });

@@ -62,8 +62,6 @@ function App(options) {
   this.storage = options.storage;
   this.camera = options.camera;
   this.sounds = options.sounds;
-  //this.reset(this.config.values());
-  //this.storageKey = 'camera_state';
   debug('initialized');
 }
 
@@ -103,6 +101,7 @@ App.prototype.runControllers = function() {
   debug('running controllers');
   this.filmstrip = this.filmstrip(this);
   this.controllers.settings(this);
+  this.controllers.activity(this);
   this.controllers.camera(this);
   this.controllers.viewfinder(this);
   this.controllers.controls(this);

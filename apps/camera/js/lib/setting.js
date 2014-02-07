@@ -126,27 +126,33 @@ Setting.prototype.updateSelected = function(options) {
  * hardware to give us more data about
  * the option that just the key.
  *
+ * We make these updates silently so that
+ * other parts of the app, can make alterations
+ * to options before the UI is updated.
+ *
  * @param  {Array} values
  */
 Setting.prototype.configureOptions = function(values) {
   var optionsHash = this.get('optionsHash');
+  var silent = { silent: true };
   var options = [];
 
   if (values) {
     values.forEach(function(value) {
       var isObject = typeof value === 'object';
+      var isSetting = value instanceof Setting;
       var key = isObject ? value.key : value;
       var option = optionsHash[key];
       if (!option) { return; }
-      if (isObject) { mixin(option, value); }
+      if (isObject && !isSetting) { mixin(option, value); }
       options.push(option);
     });
 
     options.sort(function(a, b) { return a.index - b.index; });
   }
 
-  this.set('options', options);
-  this.updateSelected();
+  this.set('options', options, silent);
+  this.updateSelected(silent);
 };
 
 /**

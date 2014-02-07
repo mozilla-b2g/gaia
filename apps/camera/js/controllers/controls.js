@@ -46,21 +46,19 @@ ControlsController.prototype.bindEvents = function() {
 };
 
 ControlsController.prototype.configure = function() {
-  var activity = this.activity;
-  var showCamera = !activity.active || activity.allowedTypes.image;
-  var showVideo = !activity.active || activity.allowedTypes.video;
-  var isSwitchable = showVideo && showCamera;
-  var isCancellable = !!activity.active;
+  var isSwitchable = this.app.settings.mode.get('options').length > 1;
+  var initialMode = this.app.settings.value('mode');
+  var isCancellable = !!this.app.activity.active;
 
   // The gallery button should not
   // be shown if an activity is pending
   // or the application is in 'secure mode'.
-  var showGallery = !activity.active && !this.app.inSecureMode;
+  var showGallery = !this.app.activity.active && !this.app.inSecureMode;
 
   this.controls.set('gallery', showGallery);
   this.controls.set('cancel', isCancellable);
   this.controls.set('switchable', isSwitchable);
-  this.controls.set('mode', this.app.settings.value('mode'));
+  this.controls.set('mode', initialMode);
 };
 
 ControlsController.prototype.disableButtons = function() {

@@ -52,15 +52,21 @@ HudController.prototype.configure = function() {
  */
 HudController.prototype.bindEvents = function() {
   var flash = this.app.settings.get('flashModes');
-  this.app.settings.on('change:flashModes', this.hud.setFlashMode);
   flash.on('change:options', this.onFlashOptionsChange);
+  this.app.settings.on('change:flashModes', this.hud.setFlashMode);
   this.hud.on('click:settings', this.app.firer('settings:toggle'));
   this.hud.on('click:camera', this.onCameraClick);
   this.hud.on('click:flash', this.onFlashClick);
+  this.app.on('settings:configured', this.onSettingsConfigured);
   this.app.on('change:recording', this.onRecordingChange);
   this.app.on('camera:loading', this.disableButtons);
   this.app.on('camera:busy', this.disableButtons);
   this.app.on('camera:ready', this.enableButtons);
+};
+
+HudController.prototype.onSettingsConfigured = function() {
+  var hasFlash = this.app.settings.flashModes.get('options').length;
+  this.hud.enable('flash', hasFlash);
 };
 
 HudController.prototype.onCameraClick = function() {

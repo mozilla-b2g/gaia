@@ -63,13 +63,31 @@ SettingsController.prototype.toggleSettings = function() {
   else { this.openSettings(); }
 };
 
+/**
+ * When the hardware capabilities change
+ * we update the available options for
+ * each setting to match what is available.
+ *
+ * The rest of the app should listen for
+ * the 'settings:configured' event as an
+ * indication to update UI etc.
+ *
+ * We fire the 'settings:beforeconfigured'
+ * event to allow other parts of the app
+ * a last chance to manipulate options
+ * before they are rendered to the UI.
+ *
+ * @param  {Object} capabilities
+ */
 SettingsController.prototype.onCapabilitiesChange = function(capabilities) {
   this.app.settings.forEach(function(setting) {
-    if (!(setting.key in capabilities)) { return; }
-    var options = capabilities[setting.key];
-    setting.configureOptions(options);
+    var match = setting.key in capabilities;
+    if (match) { setting.configureOptions(capabilities[setting.key]); }
   });
+
+  this.app.emit('settings:beforeconfigured');
   this.app.emit('settings:configured');
 };
+
 
 });

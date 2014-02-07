@@ -61,6 +61,10 @@ module.exports = {
       {
         key: 'vga',
         title: 'VGA'
+      },
+      {
+        key: 'qvga',
+        title: 'QVGA'
       }
     ],
     selected: 0,

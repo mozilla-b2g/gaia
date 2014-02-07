@@ -58,22 +58,16 @@ CameraController.prototype.bindEvents = function() {
   camera.on('newvideo', this.onNewVideo);
 
   // App
-  app.settings.on('change:cameras', this.onCameraChange);
+  app.on('boot', this.camera.load);
+  app.on('focus', this.camera.load);
+  app.on('capture', this.onCapture);
+  app.on('blur', this.teardownCamera);
+  app.on('settings:configured', this.onSettingsConfigured);
   app.settings.on('change:pictureSizes', this.camera.setPictureSize);
   app.settings.on('change:videoSizes', this.camera.setVideoSize);
   app.settings.on('change:flashModes', this.setFlashMode);
-  app.settings.on('change:mode', this.onModeChange);
-  app.on('settings:configured', this.onSettingsConfigured);
-  app.on('blur', this.teardownCamera);
-  app.on('focus', this.setupCamera);
-  app.on('capture', this.onCapture);
-  app.on('boot', this.setupCamera);
-
-  // New events i'd like camera to emit
-  // camera.on('ready', app.firer('camera:ready'));
-  // camera.on('focusing', app.firer('camera:focusing'));
-  // camera.on('focusfail', app.firer('camera:focusfail'));
-
+  app.settings.on('change:cameras', this.loadCamera);
+  app.settings.on('change:mode', this.setMode);
   debug('events bound');
 };
 
@@ -93,19 +87,21 @@ CameraController.prototype.configure = function() {
   // cameraList data given by the camera hardware
   settings.get('cameras').configureOptions(camera.cameraList);
 
-  camera.set('targetFileSize', activity.data.fileSize);
-  camera.set('targetImageWidth', activity.data.width);
-  camera.set('targetImageHeight', activity.data.height);
+  // This is set so that the video recorder can
+  // automatically stop when video size limit is reached.
+  camera.set('maxFileSizeBytes', activity.data.maxFileSizeBytes);
   camera.set('selectedCamera', settings.value('cameras'));
   camera.setMode(settings.value('mode'));
   debug('configured');
 };
 
-CameraController.prototype.setupCamera = function() {
-  this.camera.load();
-};
-
 CameraController.prototype.onSettingsConfigured = function() {
+  this.camera.setPictureSize(this.app.settings.value('pictureSizes'));
+  this.camera.setVideoSize(this.app.settings.value('videoSizes'));
+  this.camera.setFlashMode(this.app.settings.value('flashModes'));
+  debug('camera configured with final settings');
+
+  // TODO: Move to a new StorageController (or App?)
   var pictureSize = this.app.settings.pictureSizes.value();
   var maxFileSize = (pictureSize.width * pictureSize.height * 4) + 4096;
   this.storage.setMaxFileSize(maxFileSize);
@@ -206,7 +202,7 @@ CameraController.prototype.showSizeLimitAlert = function() {
   this.sizeLimitAlertActive = false;
 };
 
-CameraController.prototype.onModeChange = function(mode) {
+CameraController.prototype.setMode = function(mode) {
   var flashMode = this.app.settings.value('flashMode');
 
   // We need to force a flash change so that
@@ -216,11 +212,7 @@ CameraController.prototype.onModeChange = function(mode) {
   this.camera.setMode(mode);
 };
 
-/**
- * Toggle the camera (front/back),
- * fading the viewfinder in between.
- */
-CameraController.prototype.onCameraChange = function(value) {
+CameraController.prototype.loadCamera = function(value) {
   this.camera.set('selectedCamera', value);
   this.viewfinder.fadeOut(this.camera.load);
 };
