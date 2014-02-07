@@ -101,11 +101,9 @@
     }
 
     function onTouchMove(e) {
-      // messages panning handler to prevent it
-      e.preventPanning = true;
-
       var currPos = [el.scrollLeft, el.scrollTop],
-          touch = 'touches' in e ? e.touches[0] : e;
+          touch = 'touches' in e ? e.touches[0] : e,
+          preventPanning = true;
 
       updateY();
       self.distX = touch.pageX - startPointer[0];
@@ -118,8 +116,12 @@
                                                 THRESHOLD_ALLOW_SYSTEM_SWIPE) {
           reportedDirection = true;
           // messages panning handler to pan normally
-          e.preventPanning = false;
+          preventPanning = false;
         }
+      }
+
+      if (preventPanning) {
+        e.preventDefault();
       }
 
       optionsOnTouchMove && optionsOnTouchMove(e);

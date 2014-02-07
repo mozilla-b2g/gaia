@@ -227,10 +227,6 @@ var GridManager = (function() {
         break;
 
       case touchmove:
-        if (evt.preventPanning === true) {
-          return;
-        }
-
         // Start panning immediately but only disable
         // the tap when we've moved far enough.
         startX = startEvent.pageX;
