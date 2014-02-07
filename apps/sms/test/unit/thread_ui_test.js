@@ -3147,7 +3147,7 @@ suite('thread_ui.js >', function() {
         id: messageId,
         type: 'sms',
         body: 'This is a test with 123123123',
-        delivery: 'error',
+        delivery: 'sent',
         timestamp: Date.now()
       });
       // Retrieve DOM element for executing the event
@@ -3194,6 +3194,28 @@ suite('thread_ui.js >', function() {
       assert.ok(MockOptionMenu.calls.length, 1);
       // Show menu with 'delete' option
       assert.equal(MockOptionMenu.calls[0].items[2].l10nId, 'delete');
+    });
+    test(' "long-press" on an error bubble shows a menu with resend option',
+      function() {
+
+      // Create a message with a delivery error:
+      ThreadUI.appendMessage({
+        id: 9,
+        type: 'sms',
+        body: 'This is a test with 123123123',
+        delivery: 'error',
+        timestamp: Date.now()
+      });
+
+      // Retrieve the message node
+      link = document.getElementById('message-9').querySelector('a');
+
+      // Dispatch custom event for testing long press
+      link.dispatchEvent(contextMenuEvent);
+      assert.ok(MockOptionMenu.calls.length, 1);
+
+      // Confirm that the menu contained a "resend-message" option
+      assert.equal(MockOptionMenu.calls[0].items[2].l10nId, 'resend-message');
     });
   });
 
