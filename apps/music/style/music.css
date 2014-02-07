@@ -329,7 +329,7 @@ body.picker-mode #title-player {
  */
 #views-tiles-anchor,
 #views-list-anchor,
-#views-sublist-anchor > li.list-item {
+#views-sublist-anchor {
   background-color: #0E1214;
 }
 
@@ -344,11 +344,16 @@ body.picker-mode #title-player {
   height: 8rem;
 }
 
+#views-scrollable-sublist-anchor {
+  overflow-x: hidden;
+  overflow-y: auto;
+  width: 100%;
+  height: calc(100% - 8rem);
+}
+
 #views-sublist-anchor {
   width: 100%;
   height: calc(100% - 8rem);
-  overflow-x: hidden;
-  overflow-y: auto;
   will-change: scroll-position;
 }
 
