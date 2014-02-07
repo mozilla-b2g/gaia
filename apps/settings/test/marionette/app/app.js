@@ -1,13 +1,14 @@
+'use strict';
 var Base = require('./base'),
     BluetoothPanel = require('./regions/bluetooth'),
     DoNotTrackPanel = require('./regions/do_not_track'),
-    HotspotPanel = require('./regions/hotspot');
-    HotspotSettingsPanel = require('./regions/hotspot_settings');
-    SupportPanel = require('./regions/support');
+    HotspotPanel = require('./regions/hotspot'),
+    HotspotSettingsPanel = require('./regions/hotspot_settings'),
+    SupportPanel = require('./regions/support'),
     BatteryPanel = require('./regions/battery');
 
 // origin of the settings app
-const ORIGIN = 'app://settings.gaiamobile.org';
+var ORIGIN = 'app://settings.gaiamobile.org';
 
 /**
  * Abstraction around settings app
@@ -38,57 +39,59 @@ Settings.prototype = {
   __proto__: Base.prototype,
 
   get bluetoothPanel() {
-    openPanel.call(this, 'bluetoothMenuItem');
+    this.openPanel('bluetoothMenuItem');
     this._bluetoothPanel = this._bluetoothPanel ||
       new BluetoothPanel(this.client);
     return this._bluetoothPanel;
   },
 
   get doNotTrackPanel() {
-    openPanel.call(this, 'doNotTrackMenuItem');
+    this.openPanel('doNotTrackMenuItem');
     this._doNotTrackPanel = this._doNotTrackPanel ||
       new DoNotTrackPanel(this.client);
     return this._doNotTrackPanel;
   },
 
   get hotspotPanel() {
-    openPanel.call(this, 'hotspotMenuItem');
+    this.openPanel('hotspotMenuItem');
     this._hotspotPanel = this._hotspotPanel ||
       new HotspotPanel(this.client);
     return this._hotspotPanel;
   },
 
   get hotspotSettingsPanel() {
-    openPanel.call(this, 'hotspotSettingsTrigger', 'hotspotPanel');
+    this.openPanel('hotspotSettingsTrigger', 'hotspotPanel');
     this._hotspotSettingsPanel = this._hotspotSettingsPanel ||
       new HotspotSettingsPanel(this.client);
     return this._hotspotSettingsPanel;
   },
 
   get supportPanel() {
-    openPanel.call(this, 'supportMenuItem');
+    this.openPanel('supportMenuItem');
     this._supportPanel = this._supportPanel ||
       new SupportPanel(this.client);
     return this._supportPanel;
   },
 
   get batteryPanel() {
-    openPanel.call(this, 'batteryMenuItem');
+    this.openPanel('batteryMenuItem');
     this._batteryPanel = this._batteryPanel ||
       new BatteryPanel(this.client);
     return this._batteryPanel;
+  },
+
+  /**
+   * @private
+   */
+  openPanel: function app_openPanel(selector, parentSelector) {
+    var localParentSelector = parentSelector || 'menuItemsSection';
+    var menuItem = this.waitForElement(selector);
+    var parentSection = this.waitForElement(localParentSelector);
+    menuItem.tap();
+    this.client.waitFor(function() {
+      var loc = parentSection.location();
+      var size = parentSection.size();
+      return (loc.x + size.width) === 0;
+    });
   }
 };
-
-/**
-* @private
-*/
-function openPanel(selector, parentSelector) {
-  parentSelector = parentSelector || 'menuItemsSection';
-  menuItem = this.waitForElement(selector);
-  parentSection = this.waitForElement(parentSelector);
-  menuItem.tap();
-  this.client.waitFor(function() {
-    return parentSection.location()['x'] + parentSection.size()['width'] === 0;
-  });
-}
