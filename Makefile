@@ -1019,3 +1019,7 @@ build-test-integration: $(NPM_INSTALLED_PROGRAMS)
 .PHONY: docs
 docs: $(NPM_INSTALLED_PROGRAMS)
 	grunt docs
+
+.PHONY: watch
+watch: $(NPM_INSTALLED_PROGRAMS)
+	node build/watcher.js
