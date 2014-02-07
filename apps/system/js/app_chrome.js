@@ -3,8 +3,6 @@
 (function(window) {
   var _id = 0;
   var _ = navigator.mozL10n.get;
-  var BUTTONBAR_TIMEOUT = 5000;
-  var BUTTONBAR_INITIAL_OPEN_TIMEOUT = 1500;
   var _buttonBarHeight = 0;
 
   /**
@@ -27,6 +25,11 @@
     if (this.app.config.chrome && this.app.config.chrome.rocketbar) {
       this.app.element.classList.add('rocketbar');
     }
+
+    this.bottomChromeThreshold = this.navigation.clientHeight + 2;
+
+    this.scrollState = { scrolling: false, atTop: false, atBottom: false };
+    this.lastTop = 0;
   };
 
   AppChrome.prototype.__proto__ = window.BaseUI.prototype;
@@ -46,7 +49,6 @@
         '<div class="item homescreen">Add to Home Screen</div>' +
         '<div class="item share">Share</div>' +
         '<div class="item forward">Forward</div>' +
-        '<div class="item settings">Settings</div>' +
         '<div class="close">Close</div>' +
       '</div>';
 
@@ -58,12 +60,6 @@
               '<menu type="buttonbar">' +
                 '<button type="button" class="back-button"' +
                 ' alt="Back" data-disabled="disabled"></button>' +
-                '<button type="button" class="forward-button"' +
-                ' alt="Forward" data-disabled="disabled"></button>' +
-                '<button type="button" class="reload-button"' +
-                ' alt="Reload"></button>' +
-                '<button type="button" class="bookmark-button"' +
-                ' alt="Bookmark" data-disabled="disabled"></button>' +
                 '<button type="button" class="close-button"' +
                 ' alt="Close"></button>' +
               '</menu>' +
@@ -75,9 +71,6 @@
     this.element = this.containerElement.querySelector('.chrome');
     this.navigation = this.element.querySelector('.navigation');
     this.progress = this.element.querySelector('.progress');
-    this.bookmarkButton = this.element.querySelector('.bookmark-button');
-    this.reloadButton = this.element.querySelector('.reload-button');
-    this.forwardButton = this.element.querySelector('.forward-button');
     this.backButton = this.element.querySelector('.back-button');
     this.closeButton = this.element.querySelector('.close-button');
   };
@@ -123,20 +116,8 @@
 
   AppChrome.prototype.handleClickEvent = function ac_handleClickEvent(evt) {
     switch (evt.target) {
-      case this.reloadButton:
-        this.app.reload();
-        break;
-
       case this.backButton:
         this.app.back();
-        break;
-
-      case this.forwardButton:
-        this.app.forward();
-        break;
-
-      case this.bookmarkButton:
-        this.addBookmark();
         break;
 
       case this.closeButton:
@@ -146,10 +127,7 @@
   };
 
   AppChrome.prototype._registerEvents = function ac__registerEvents() {
-    this.reloadButton.addEventListener('click', this);
-    this.forwardButton.addEventListener('click', this);
     this.backButton.addEventListener('click', this);
-    this.bookmarkButton.addEventListener('click', this);
     this.closeButton.addEventListener('click', this);
     this.app.element.addEventListener('mozbrowserlocationchange', this);
     this.app.element.addEventListener('mozbrowserasyncscroll', this);
@@ -159,11 +137,9 @@
     this.app.element.addEventListener('_closing', this);
     this.app.element.addEventListener('_withkeyboard', this);
     this.app.element.addEventListener('_withoutkeyboard', this);
-    this.app.element.addEventListener('_homegesture-enabled', this);
-    this.app.element.addEventListener('_homegesture-disabled', this);
 
     var app = this.app;
-    var ctx = this.app.frame.querySelector('.context-menu');
+    var ctx = app.frame.querySelector('.context-menu');
 
     // Always hide when click on any of the items
     ctx.onclick = this.toggleContextMenu.bind(this);
@@ -173,14 +149,10 @@
     ctx.querySelector('.new').onclick = alert.bind(window, 'New window');
     ctx.querySelector('.forward').onclick = app.forward.bind(app);
     ctx.querySelector('.homescreen').onclick = this.addBookmark.bind(this);
-    ctx.querySelector('.settings').onclick = alert.bind(window, 'Settings');
   };
 
   AppChrome.prototype._unregisterEvents = function ac__unregisterEvents() {
-    this.reloadButton.removeEventListener('click', this);
-    this.forwardButton.removeEventListener('click', this);
     this.backButton.removeEventListener('click', this);
-    this.bookmarkButton.removeEventListener('click', this);
     this.closeButton.removeEventListener('click', this);
     if (!this.app)
       return;
@@ -210,9 +182,7 @@
         return;
       this.app.canGoForward(function forwardSuccess(result) {
         if (result === true) {
-          delete this.forwardButton.dataset.disabled;
-        } else {
-          this.forwardButton.dataset.disabled = true;
+          // use in ctx menu
         }
       }.bind(this));
 
@@ -230,31 +200,30 @@
       return;
 
     // context menu visible or progress visible, return...
-    if (this.app.frame.classList.contains('has-context-menu'))
+    if (this.app.frame.classList.contains('has-context-menu') ||
+        this.progress.classList.contains('visible'))
       return;
-
-    if (this.progress.classList.contains('visible')) {
-      return;
-    }
 
     // Scrolling threshold before we do anything with the navigation bar
-    var threshold = 40;
+    var threshold = this.bottomChromeThreshold;
+    var top = evt.detail.top | 0;
 
-    if (evt.detail.top - threshold > this.lastTop) {
+    if (top === 0) {
+      this.app.frame.classList.add('has-navigation');
+      this.lastTop = top;
+    }
+    else if (top - threshold > this.lastTop) {
       // scrolling down
       this.app.frame.classList.remove('has-navigation');
-      this.lastTop = evt.detail.top;
+      this.lastTop = top;
     }
-    else if (evt.detail.top + threshold < this.lastTop) {
+    else if (top + threshold < this.lastTop) {
       this.app.frame.classList.add('has-navigation');
-      this.lastTop = evt.detail.top;
+      this.lastTop = top;
     }
   };
 
   AppChrome.prototype.addBookmark = function ac_addBookmark() {
-    if (this.bookmarkButton.dataset.disabled)
-      return;
-
     var dataset = this.app.config;
     var self = this;
 
@@ -296,7 +265,6 @@
 
         if (!self.app.config.originURL &&
           !self.app.config.searchURL) {
-          self.bookmarkButton.dataset.disabled = true;
         }
       };
     };

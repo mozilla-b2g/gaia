@@ -31,8 +31,7 @@
   position: fixed;
   bottom: 0;
   width: 100%;
-  background-color: black;
-  transform: translateY(4rem);
+  transform: translateY(4.6rem); /* this is buttonbar height + border */
   transition: transform .4s ease;
   pointer-events: auto;
 }
@@ -41,61 +40,47 @@
   transform: translateY(0);
 }
 
-/* if context menu is shown, hide us immediately */
-.appWindow.has-context-menu .chrome > .navigation {
-  transform: translateY(4rem);
-  transition: none;
-}
-
 .chrome > .navigation menu[type="buttonbar"] {
   width: 100%;
-  height: 4rem;
+  height: 4.5rem;
   margin: 0;
   padding: 0;
+  background: white;
+  border-top: solid 0.1rem #bdbdbd;
 }
 
 .chrome > .navigation menu button {
   background-color: transparent;
   border: none;
-  width: 20%;
   height: 100%;
-  float: left;
   background-position: center;
   background-repeat: no-repeat;
   opacity: 1;
+  position: absolute;
+  width: 6rem; /* nice hit state */
 }
 
 .chrome > .navigation .back-button {
   background-image: url("images/back.png");
-  background-size: 2rem;
+  left: 0.5rem; /* should be half the image width - whitespace in image (7 - 2) */
 }
 
-.chrome > .navigation .forward-button {
-  background-image: url("images/forward.png");
-  background-size: 3rem;
-}
-
-.chrome > .navigation .reload-button {
-  background-image: url("images/reload.png");
-  background-size: 2.6rem;
-}
-
-.chrome > .navigation .bookmark-button {
-  background-image: url("images/bookmark.png");
-  background-size: 3rem;
-}
-
-.chrome > .navigation .bookmark-button[data-disabled] {
-  background-image: none;
+.chrome > .navigation .back-button:active {
+  background-image: url("images/back-hit.png");
 }
 
 .chrome > .navigation .close-button {
   background-image: url("images/close.png");
-  background-size: 2.1rem;
+  right: 0.9rem; /* should be half the image width - whitespace in image (11 - 2) */
+}
+
+/* hit state, and when context menu is visible */
+.chrome > .navigation .close-button:active, .appWindow.has-context-menu .chrome > .navigation .close-button {
+  background-image: url("images/close-hit.png");
 }
 
 .chrome > .navigation menu button[data-disabled] {
-  opacity: .2;
+  display: none;
   pointer-events: none;
 }
 
@@ -115,17 +100,30 @@
 }
 
 .appWindow.has-context-menu .context-menu {
-  display: block;
+  /* display: block; */
+
+  transform: scale(1);
+  transition: transform 0.3s ease-in;
+}
+
+.appWindow.has-context-menu .chrome > .navigation {
+  pointer-events: none;
+}
+
+.appWindow.has-context-menu .chrome > .navigation .back-button {
+  transition: opacity 0.4s ease-in;
+  opacity: 0.25;
 }
 
 .context-menu {
   position: fixed;
-  bottom: 3rem;
+  bottom: 8rem;
   width: 26rem;
   margin-left: calc(50% - 13rem);
   border: solid 1px rgba(189, 189, 189, 0.3); /* 0.3? */
   font: italic 300 1.7rem sans-serif;
-  display: none;
+  /* display: none; */
+  transform: scale(0);
 }
 
 .context-menu .item {
