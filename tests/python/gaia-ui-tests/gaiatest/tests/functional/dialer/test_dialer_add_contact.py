@@ -19,7 +19,7 @@ class TestDialerAddContact(GaiaTestCase):
 
     def test_dialer_add_contact(self):
 
-        number_to_verify = self.contact['tel'][0]['value']
+        number_to_verify = self.contact['tel']['value']
 
         # Dial number
         self.phone.keypad.dial_phone_number(number_to_verify)
@@ -34,8 +34,8 @@ class TestDialerAddContact(GaiaTestCase):
         new_contact = add_new_number.tap_create_new_contact()
 
         # Enter data into fields
-        new_contact.type_given_name(self.contact['givenName'][0])
-        new_contact.type_family_name(self.contact['familyName'][0])
+        new_contact.type_given_name(self.contact['givenName'])
+        new_contact.type_family_name(self.contact['familyName'])
 
         # Click Done button, don't return Contacts because we return to Dialer
         new_contact.tap_done(return_contacts=False)
@@ -53,7 +53,7 @@ class TestDialerAddContact(GaiaTestCase):
         contact_details = contacts.contacts[0].tap()
 
         # Verify full name
-        full_name = self.contact['givenName'][0] + " " + self.contact['familyName'][0]
+        full_name = self.contact['givenName'] + " " + self.contact['familyName']
         self.assertEqual(contact_details.full_name, full_name)
 
         # Verify phone number
