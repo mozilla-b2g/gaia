@@ -14,7 +14,7 @@ class CropView(Base):
     def __init__(self, marionette):
         Base.__init__(self, marionette)
         self.wait_for_element_displayed(*self._crop_view_locator)
+        self.wait_for_condition(lambda m: m.find_element(*self._crop_done_button_locator).is_enabled())
 
     def tap_crop_done(self):
-        self.wait_for_element_displayed(*self._crop_done_button_locator)
         self.marionette.find_element(*self._crop_done_button_locator).tap()
