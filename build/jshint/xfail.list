@@ -1127,7 +1127,6 @@ apps/system/test/unit/iac_handler_test.js
 apps/system/test/unit/identity_test.js
 apps/system/test/unit/internet_sharing_test.js
 apps/system/test/unit/keyboard_helper_test.js
-apps/system/test/unit/keyboard_manager_test.js
 apps/system/test/unit/layout_manager_test.js
 apps/system/test/unit/lockscreen_conn_info_manager_test.js
 apps/system/test/unit/lockscreen_test.js
