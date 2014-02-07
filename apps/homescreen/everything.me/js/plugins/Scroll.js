@@ -101,7 +101,6 @@
     }
 
     function onTouchMove(e) {
-      // messages panning handler to prevent it
       e.preventPanning = true;
 
       var currPos = [el.scrollLeft, el.scrollTop],
@@ -117,9 +116,12 @@
         } else if (Math.abs(self[altDirProperty]) >=
                                                 THRESHOLD_ALLOW_SYSTEM_SWIPE) {
           reportedDirection = true;
-          // messages panning handler to pan normally
           e.preventPanning = false;
         }
+      }
+
+      if (e.preventPanning) {
+        e.preventDefault();
       }
 
       optionsOnTouchMove && optionsOnTouchMove(e);
