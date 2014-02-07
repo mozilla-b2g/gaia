@@ -134,11 +134,8 @@ Camera.prototype.configureCamera = function(mozCamera) {
 Camera.prototype.formatCapabilities = function(capabilities) {
   capabilities = mixin({}, capabilities);
   var pictureSizes = capabilities.pictureSizes;
-  var videoSizes = capabilities.videoSizes;
-
   return mixin(capabilities, {
-    pictureSizes: this.formatSizes('picture', pictureSizes),
-    videoSizes: this.formatSizes('video', videoSizes)
+    pictureSizes: this.formatPictureSizes(pictureSizes)
   });
 };
 
@@ -154,15 +151,13 @@ Camera.prototype.setThumbnailSize = function() {
   if (picked) { this.mozCamera.thumbnailSize = picked; }
 };
 
-Camera.prototype.setVideoSize = function(value) {
-  this.mozCamera.videoSize = value;
-};
-
-Camera.prototype.formatSizes = function(type, sizes) {
-  return sizes.map(function(size) {
-    var key = getSizeKey[type](size);
-    return { key: key, value: size };
+Camera.prototype.formatPictureSizes = function(sizes) {
+  var hash = {};
+  sizes.forEach(function(size) {
+    var key = getSizeKey.picture(size);
+    hash[key] = size;
   });
+  return hash;
 };
 
 Camera.prototype.configureFocus = function(modes) {

@@ -32,7 +32,6 @@ function Setting(data) {
 
 Setting.prototype.configure = function(data) {
   data.optionsHash = this.optionsToHash(data.options);
-  //data.optionValues = options.map(function(option) { return option.value; });
   if (data.persistent) { this.on('change:selected', this.save); }
 };
 
@@ -134,17 +133,31 @@ Setting.prototype.updateSelected = function(options) {
  */
 Setting.prototype.configureOptions = function(values) {
   var optionsHash = this.get('optionsHash');
+  var isArray = Array.isArray(values);
   var silent = { silent: true };
   var options = [];
+  var key;
 
   if (values) {
-    values.forEach(function(value) {
-      var isObject = typeof value === 'object';
-      var isSetting = value instanceof Setting;
-      var key = isObject ? value.key : value;
-      var option = optionsHash[key];
+    each(values, function(value, key) {
+      var valueIsObject = typeof value === 'object';
+      var option;
+
+      // If we're iterating an object the key
+      // is derived from the object key. If we're
+      // iterating an array the key is derived
+      // from the value:
+      // 1. Array: ['key1', 'key2' ]
+      // 2. Object: { key1: {}, key2: {} }
+      key = isArray ? value : key;
+      option = optionsHash[key];
+
+      // Skip if no matching
+      // option is found.
       if (!option) { return; }
-      if (isObject && !isSetting) { mixin(option, value); }
+
+      // If the value is an object, we store it.
+      if (valueIsObject) { option.value = value; }
       options.push(option);
     });
 
@@ -181,5 +194,16 @@ Setting.prototype.fetch = function(done) {
     if (done) { done(); }
   });
 };
+
+/**
+ * Loops arrays or objects.
+ *
+ * @param  {Array|Object}   obj
+ * @param  {Function} fn
+ */
+function each(obj, fn) {
+  if (Array.isArray(obj)) { obj.forEach(fn); }
+  else { for (var key in obj) { fn(obj[key], key, true); } }
+}
 
 });
