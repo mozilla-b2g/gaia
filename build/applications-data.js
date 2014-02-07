@@ -72,14 +72,16 @@ function getIconInfo(directory, app_name, entry_point) {
   metadataFile.append('metadata.json');
   if (metadataFile.exists()) {
     let metadata = utils.getJSON(metadataFile);
-    origin = metadata.origin.replace(/^\s+|\s+$/, '');
-    manifestURL = metadata.manifestURL;
-    if (manifestURL) {
-      manifestURL = manifestURL.replace(/^\s+|\s+$/, '');
-    } else if (origin.slice(-1) == '/') {
-      manifestURL = origin + 'manifest.webapp';
-    } else {
-      manifestURL = origin + '/manifest.webapp';
+    if (metadata.origin) {
+      origin = metadata.origin.replace(/^\s+|\s+$/, '');
+      manifestURL = metadata.manifestURL;
+      if (manifestURL) {
+        manifestURL = manifestURL.replace(/^\s+|\s+$/, '');
+      } else if (origin.slice(-1) == '/') {
+        manifestURL = origin + 'manifest.webapp';
+      } else {
+        manifestURL = origin + '/manifest.webapp';
+      }
     }
   }
 
