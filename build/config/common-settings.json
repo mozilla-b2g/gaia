@@ -64,7 +64,7 @@
    "icc.goBackTimeout": 1000,
    "icc.selectTimeout": 150000,
    "keyboard.vibration": true,
-   "keyboard.clicksound": true,
+   "keyboard.clicksound": false,
    "keyboard.autocorrect": true,
    "keyboard.wordsuggestion": true,
    "keyboard.current": null,
