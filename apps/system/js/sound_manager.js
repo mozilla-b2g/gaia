@@ -633,6 +633,15 @@
 
     if (vibrationEnabledOld != vibrationEnabled) {
       setVibrationEnabled(vibrationEnabled);
+      if (!vibrationEnabledOld)
+      {
+        window.navigator.vibrate(200);
+      }
+    }
+
+    if (volume == 0 && vibrationEnabled)
+    {
+      window.navigator.vibrate(200);
     }
 
     var steps =
