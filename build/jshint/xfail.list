@@ -263,7 +263,6 @@ apps/communications/contacts/js/contacts_importer.js
 apps/communications/contacts/js/contacts_matcher.js
 apps/communications/contacts/js/contacts_matching_controller.js
 apps/communications/contacts/js/contacts_matching_ui.js
-apps/communications/contacts/js/contacts_shortcuts.js
 apps/communications/contacts/js/contacts_tag.js
 apps/communications/contacts/js/export/bt.js
 apps/communications/contacts/js/export/contacts_exporter.js
@@ -281,7 +280,6 @@ apps/communications/contacts/js/fb/fb_utils.js
 apps/communications/contacts/js/fb/friends_list.js
 apps/communications/contacts/js/fb_loader.js
 apps/communications/contacts/js/fb_resolver.js
-apps/communications/contacts/js/fixed_header.js
 apps/communications/contacts/js/import_init.js
 apps/communications/contacts/js/import_utils.js
 apps/communications/contacts/js/importer_ui.js
@@ -353,7 +351,6 @@ apps/communications/contacts/test/unit/mock_fb.js
 apps/communications/contacts/test/unit/mock_fb_data.js
 apps/communications/contacts/test/unit/mock_fb_loader.js
 apps/communications/contacts/test/unit/mock_find_matcher.js
-apps/communications/contacts/test/unit/mock_fixed_header.js
 apps/communications/contacts/test/unit/mock_get_device_storage.js
 apps/communications/contacts/test/unit/mock_icc_helper.js
 apps/communications/contacts/test/unit/mock_l10n.js
@@ -385,7 +382,6 @@ apps/communications/dialer/js/conference_group_handler.js
 apps/communications/dialer/js/contacts.js
 apps/communications/dialer/js/dialer.js
 apps/communications/dialer/js/fake-oncall-desktop.js
-apps/communications/dialer/js/fixed_header.js
 apps/communications/dialer/js/handled_call.js
 apps/communications/dialer/js/index.js
 apps/communications/dialer/js/keypad.js
