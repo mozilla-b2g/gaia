@@ -23,29 +23,41 @@ var TelephonySettingHelper = (function(window, document, undefined) {
       return;
     }
 
-    TelephonyItemsHandler.init();
-    TelephonyItemsHandler.handleItems();
+    navigator.mozL10n.ready(function loadWhenIdle() {
+      var idleObserver = {
+        time: 3,
+        onidle: function() {
+          navigator.removeIdleObserver(idleObserver);
 
-    AirplaneModeHelper.addEventListener('statechange',
-      TelephonyItemsHandler.handleItems);
+          DsdsSettings.init();
 
-    tsh_addListeners();
-
-    _iccManager.addEventListener('iccdetected',
-      function iccDetectedHandler(evt) {
-        if (_mobileConnections[0].iccId &&
-           (_mobileConnections[0].iccId === evt.iccId)) {
+          TelephonyItemsHandler.init();
           TelephonyItemsHandler.handleItems();
-          tsh_addListeners();
-        }
-    });
 
-    _iccManager.addEventListener('iccundetected',
-      function iccUndetectedHandler(evt) {
-        if (_iccId === evt.iccId) {
-          _mobileConnections[0].removeEventListener('datachange',
+          AirplaneModeHelper.addEventListener('statechange',
             TelephonyItemsHandler.handleItems);
+
+          tsh_addListeners();
+
+          _iccManager.addEventListener('iccdetected',
+            function iccDetectedHandler(evt) {
+              if (_mobileConnections[0].iccId &&
+                 (_mobileConnections[0].iccId === evt.iccId)) {
+                TelephonyItemsHandler.handleItems();
+                tsh_addListeners();
+              }
+          });
+
+          _iccManager.addEventListener('iccundetected',
+            function iccUndetectedHandler(evt) {
+              if (_iccId === evt.iccId) {
+                _mobileConnections[0].removeEventListener('datachange',
+                  TelephonyItemsHandler.handleItems);
+              }
+          });
         }
+      };
+      navigator.addIdleObserver(idleObserver);
     });
   }
 

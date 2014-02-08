@@ -61,6 +61,7 @@ MediaFrame.prototype.displayImage = function displayImage(blob,
                                                           rotation,
                                                           mirrored)
 {
+  var self = this;
   var previewSizeFillsScreen;
   this.clear();  // Reset everything
 
@@ -79,11 +80,19 @@ MediaFrame.prototype.displayImage = function displayImage(blob,
   this.displayingImage = true;
 
   function isPreviewBigEnough(preview) {
-
     if (!preview || !preview.width || !preview.height)
       return false;
 
-    // A preview is big enough if at least one dimension is >= the
+    // If setMinimumPreviewSize has been called, then a preview is big
+    // enough if it is at least that big.
+    if (self.minimumPreviewWidth && self.minimumPreviewHeight) {
+      return Math.max(preview.width, preview.height) >=
+        Math.max(self.minimumPreviewWidth, self.minimumPreviewHeight) &&
+        Math.min(preview.width, preview.height) >=
+        Math.min(self.minimumPreviewWidth, self.minimumPreviewHeight);
+    }
+
+    // Otherwise a preview is big enough if at least one dimension is >= the
     // screen size in both portait and landscape mode.
     var screenWidth = window.innerWidth * window.devicePixelRatio;
     var screenHeight = window.innerHeight * window.devicePixelRatio;
@@ -114,7 +123,6 @@ MediaFrame.prototype.displayImage = function displayImage(blob,
     else {
       var storage = navigator.getDeviceStorage('pictures');
       var getreq = storage.get(preview.filename);
-      var self = this;
       getreq.onsuccess = function() {
         self.previewblob = getreq.result;
         self._displayImage(self.previewblob);
@@ -582,4 +590,9 @@ MediaFrame.prototype.pan = function(dx, dy) {
 
   this.setPosition();
   return extra;
+};
+
+MediaFrame.prototype.setMinimumPreviewSize = function(w, h) {
+  this.minimumPreviewWidth = w;
+  this.minimumPreviewHeight = h;
 };

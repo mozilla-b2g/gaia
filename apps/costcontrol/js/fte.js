@@ -12,22 +12,28 @@
   // Fallback from some values, just in case they are missed from configuration
   var DEFAULT_LOW_LIMIT_THRESHOLD = 3;
   var defaultLowLimitThreshold = DEFAULT_LOW_LIMIT_THRESHOLD;
-  window.addEventListener('DOMContentLoaded', function _onDOMReady() {
+  window.addEventListener('DOMContentLoaded', function _onDomReady() {
+    Common.loadDataSIMIccId(_onIccReady);
+  });
+
+  function _onIccReady(iccid) {
     var stepsLeft = 2;
+    // Load iccInfo of current data simcard
+    var dataSimIccInfo = Common.dataSimIcc;
 
     // No SIM
-    if (!IccHelper || IccHelper.cardState === 'absent') {
+    if (!dataSimIccInfo || dataSimIccInfo.cardState === 'absent') {
       hasSim = false;
       trySetup();
 
     // SIM is not ready
-    } else if (IccHelper.cardState !== 'ready') {
-      debug('SIM not ready:', IccHelper.cardState);
-      IccHelper.oniccinfochange = _onDOMReady;
+    } else if (dataSimIccInfo.cardState !== 'ready') {
+      debug('SIM not ready:', dataSimIccInfo);
+      dataSimIccInfo.oniccinfochange = _onIccReady;
 
     // SIM is ready
     } else {
-      IccHelper.oniccinfochange = undefined;
+      dataSimIccInfo.oniccinfochange = undefined;
       trySetup();
     }
 
@@ -41,7 +47,7 @@
         setupFTE();
       }
     }
-  });
+  }
 
   var wizard, vmanager;
   var toStep2, step = 0;
@@ -54,6 +60,9 @@
       if (configuration && configuration.default_low_limit_threshold) {
         defaultLowLimitThreshold = configuration.default_low_limit_threshold;
       }
+
+      // Initialize resetTime and trackingPeriod to default values
+      ConfigManager.setOption({resetTime: 1, trackingPeriod: 'monthly' });
 
       AutoSettings.addType('data-limit', dataLimitConfigurer);
 
@@ -117,6 +126,21 @@
     localizeWeekdaySelector(document.getElementById('pre3-select-weekday'));
     localizeWeekdaySelector(document.getElementById('post2-select-weekday'));
     localizeWeekdaySelector(document.getElementById('non2-select-weekday'));
+
+    function _setResetTimeToDefault(evt) {
+      var firstWeekDay = parseInt(navigator.mozL10n.get('weekStartsOnMonday'),
+                                  10);
+      var defaultResetTime = (evt.target.value === 'weekly') ? firstWeekDay : 1;
+      ConfigManager.setOption({ resetTime: defaultResetTime });
+    }
+
+    // Localized resetTime on trackingPeriod change
+    var trackingPeriodSelector = document
+                            .querySelectorAll('[data-option="trackingPeriod"]');
+    [].forEach.call(trackingPeriodSelector, function _reset(tPeriodSel) {
+      tPeriodSel.addEventListener('change', _setResetTimeToDefault);
+    });
+
   });
 
   if (window.location.hash) {

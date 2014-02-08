@@ -26,7 +26,7 @@ var IccHandlerForCallSettings = (function(window, document, undefined) {
   var _settings = window.navigator.mozSettings;
   var _iccManager = window.navigator.mozIccManager;
   var _mobileConnections = null;
-
+  var _telephony = window.navigator.mozTelephony;
 
   /** Array of menu item ids. */
   var _menuItemIds = ['menuItem-call-sim1', 'menuItem-call-sim2'];
@@ -35,11 +35,19 @@ var IccHandlerForCallSettings = (function(window, document, undefined) {
   var _menuItemDescriptions = [];
 
   /**
+   * Holds the ICC code from the ICC card that might be active during
+   * the time the settings app is open. We need to keep this value in order to
+   * disable the call settings from the ICC card not being the active one for
+   * the current call. It will be used for multi ICC card devices only.
+   */
+  var _iccIdOnCall = null;
+
+  /**
    * Init function.
    */
   function ihfcs_init() {
     _mobileConnections = window.navigator.mozMobileConnections;
-    if (!_settings || !_mobileConnections || !_iccManager) {
+    if (!_settings || !_mobileConnections || !_iccManager || !_telephony) {
       return;
     }
     if (DsdsSettings.getNumberOfIccSlots() === 1) {
@@ -109,6 +117,31 @@ var IccHandlerForCallSettings = (function(window, document, undefined) {
         mobileConnection.removeEventListener('datachange', eventHandler);
         mobileConnection.removeEventListener('radiostatechange', eventHandler);
     });
+
+    function callsChangedHandler() {
+      if (!_telephony.active && !_iccIdOnCall) {
+        return;
+      }
+
+      if (_telephony.active) {
+        _iccIdOnCall = _mobileConnections[_telephony.active.serviceId].iccId;
+      } else {
+        _iccIdOnCall = null;
+      }
+
+      var numberOfIccCards = _mobileConnections.length;
+      for (var i = 0; i < numberOfIccCards; i++) {
+        var mobileConnection = _mobileConnections[i];
+        if (mobileConnection.iccId) {
+          ihfcs_showICCCardDetails(mobileConnection.iccId);
+        }
+      }
+    }
+
+    // Disable the call settings from the ICC card not being the active one for
+    // the current call (if any).
+    callsChangedHandler();
+    _telephony.addEventListener('callschanged', callsChangedHandler);
   }
 
   /**
@@ -170,7 +203,9 @@ var IccHandlerForCallSettings = (function(window, document, undefined) {
     }
     desc.textContent = carrier;
 
-    ihfcs_disableItems(_menuItemIds[iccCardIndex], false);
+    ihfcs_disableItems(_menuItemIds[iccCardIndex],
+                       _iccIdOnCall && (_iccIdOnCall !== iccId) ?
+                       true : false);
   }
 
   /**

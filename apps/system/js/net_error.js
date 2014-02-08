@@ -1,7 +1,55 @@
-'use strict';
 (function(window) {
+  'use strict';
+
+  /**
+   * Return the current application object
+   */
+  var _app;
+  function getAppObject(cb) {
+    if (_app) {
+      cb(_app);
+      return;
+    }
+
+    var request = navigator.mozApps.getSelf();
+    request.onsuccess = function() {
+      cb(request.result);
+    };
+    request.onerror = function() {
+      console.warn('about:netError error fetching app: ' + request.error.name);
+      cb();
+    };
+  }
+
+  /**
+   * Check if net_error is coming from within an iframe
+   */
   function isFramed() {
-    return window !== window.parent;
+    var error = getErrorFromURI();
+    var manifestURL = error.m;
+
+    // frame type values (regular, browser, app)
+    var frameType = error.f;
+    switch (frameType) {
+
+      // if we are in a "regular" frame, we are indeed framed
+      case 'regular':
+        return true;
+
+      // if we are an "app" frame, we are not framed
+      case 'app':
+        return false;
+
+      // If we are in a "browser" frame, we are either in a browser tab
+      // or a mozbrowser iframe within in app. Since browser tabs are
+      // considered unframed, we must perform a check here to distinguish
+      // between the two cases.
+      case 'browser':
+        return manifestURL !== window.BROWSER_MANIFEST;
+
+      default:
+        throw new Error('about:netError: invalid frame type - ' + frameType);
+    }
   }
 
   /**
@@ -39,17 +87,13 @@
    * of an app simply return the URI
    */
   function getAppName(cb) {
-    var request = navigator.mozApps.getSelf();
-    request.onsuccess = function() {
-      if (request.result && request.result.manifest.name) {
-        cb(request.result.manifest.name);
+    getAppObject(function(app) {
+      if (app && app.manifest.name) {
+        cb(app.manifest.name);
       } else {
         cb(location.protocol + '//' + location.host);
       }
-    };
-    request.onerror = function() {
-      cb(location.protocol + '//' + location.host);
-    };
+    });
   }
 
   /**
@@ -87,10 +131,8 @@
         // the default error message from gecko for all errors that are
         // not directly dealt with.
         localizeElement(title, 'unable-to-connect');
-        // The error message is already localized. Set it directly. It's still
-        // uri encoded so we must decode it first before setting the
-        // textContent. 1.4 and greater doesn't suffer from this issue.
-        message.textContent = decodeURIComponent(error.d);
+        // The error message is already localized. Set it directly.
+        message.textContent = error.d;
       }
     }
   }
@@ -126,10 +168,8 @@
         getAppName(function(appName) {
           // Same thing when we're an iframe for an application.
           localizeElement(title, 'unable-to-connect');
-          // The error message is already localized. Set it directly. It's still
-          // uri encoded so we must decode it first before setting the
-          // textContent. 1.4 and greater doesn't suffer from this issue.
-          message.textContent = decodeURIComponent(error.d);
+          // The error message is already localized. Set it directly.
+          message.textContent = error.d;
         });
       }
     }
@@ -159,15 +199,20 @@
    * m - Manifest URI of the application that generated the error.
    * c - Character set for default gecko error message (eg. 'UTF-8').
    * d - Default gecko error message.
+   * f - The frame type ("regular", "browser", "app")
    */
+  var _error;
   function getErrorFromURI() {
-    var error = {};
+    if (_error) {
+      return _error;
+    }
+    _error = {};
     var uri = document.documentURI;
 
     // Quick check to ensure it's the URI format we're expecting.
     if (!uri.startsWith('about:neterror?')) {
       // A blank error will generate the default error message (no network).
-      return error;
+      return _error;
     }
 
     // Small hack to get the URL object to parse the URI correctly.
@@ -175,10 +220,12 @@
     // Remove the leading '?' in the search string and set the error attributes.
     url.search.slice(1).split('&').forEach(function(v) {
       v = v.split('=');
-      error[v[0]] = v[1];
+      // In 1.3, the URL parser does not automatically decode the URI
+      // parameters for us, so we do it here manually.
+      _error[v[0]] = decodeURIComponent(v[1]);
     });
 
-    return error;
+    return _error;
   }
 
   /**

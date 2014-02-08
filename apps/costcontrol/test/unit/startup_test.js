@@ -12,9 +12,9 @@ requireApp('costcontrol/test/unit/mock_moz_mobile_connection.js');
 requireApp('costcontrol/test/unit/mock_settings_listener.js');
 requireApp('costcontrol/shared/test/unit/mocks/' +
            'mock_navigator_moz_set_message_handler.js');
-requireApp('costcontrol/test/unit/mock_icc_helper.js');
 requireApp('costcontrol/test/unit/mock_cost_control.js');
 requireApp('costcontrol/test/unit/mock_config_manager.js');
+requireApp('costcontrol/test/unit/mock_non_ready_screen.js');
 requireApp('costcontrol/js/utils/toolkit.js');
 requireApp('costcontrol/js/view_manager.js');
 requireApp('costcontrol/js/app.js');
@@ -27,8 +27,8 @@ var realCommon,
     realSettingsListener,
     realCostControl,
     realConfigManager,
-    realIccHelper,
-    realMozSetMessageHandler;
+    realMozSetMessageHandler,
+    realNonReadyScreen;
 
 if (!this.Common) {
   this.Common = null;
@@ -54,12 +54,12 @@ if (!this.ConfigManager) {
   this.ConfigManager = null;
 }
 
-if (!this.IccHelper) {
-  this.IccHelper = null;
-}
-
 if (!this.navigator.mozSetMessageHandler) {
   this.navigator.mozSetMessageHandler = null;
+}
+
+if (!this.NonReadyScreen) {
+  this.NonReadyScreen = null;
 }
 
 suite('Application Startup Modes Test Suite >', function() {
@@ -81,12 +81,13 @@ suite('Application Startup Modes Test Suite >', function() {
 
     realConfigManager = window.ConfigManager;
 
-    realIccHelper = window.IccHelper;
-
     realMozSetMessageHandler = window.navigator.mozSetMessageHandler;
     window.navigator.mozSetMessageHandler =
       window.MockNavigatormozSetMessageHandler;
     window.navigator.mozSetMessageHandler.mSetup();
+
+    realNonReadyScreen = window.NonReadyScreen;
+    window.NonReadyScreen = window.MockNonReadyScreen;
 
     iframe = document.createElement('iframe');
     iframe.id = 'message-handler';
@@ -99,35 +100,28 @@ suite('Application Startup Modes Test Suite >', function() {
     window.dispatchEvent(new Event('localized'));
   });
 
+  teardown(function() {
+    window.location.hash = '';
+  });
+
   suiteTeardown(function() {
     window.Common = realCommon;
     window.navigator.mozMobileConnection = realMozMobileConnection;
     window.navigator.mozL10n = realMozL10n;
     window.CostControl = realCostControl;
     window.ConfigManager = realConfigManager;
-    window.IccHelper = realIccHelper;
     window.SettingsListener.mTeardown();
     window.SettingsListener = realSettingsListener;
     window.navigator.mozSetMessageHandler.mTeardown();
     window.navigator.mozSetMessageHandler = realMozSetMessageHandler;
+    window.NonReadyScreen = realNonReadyScreen;
   });
 
-  function assertAlertMessageAndClose(msg, done) {
-    var expectedEvents = 2;
-    function checkDone() {
-      expectedEvents--;
-      if (expectedEvents === 0) {
-        done();
-      }
-    }
-    window.addEventListener('fakealert', function _onalert(evt) {
-      window.removeEventListener('fakealert', _onalert);
-      assert.equal(evt.detail, msg);
-      checkDone();
-    });
-    window.addEventListener('appclosed', function _onappclosed() {
-      window.removeEventListener('appclosed', _onappclosed);
-      checkDone();
+  function assertNonReadyScreen(done) {
+    window.addEventListener('viewchanged', function _onalert(evt) {
+      window.removeEventListener('viewchanged', _onalert);
+      assert.equal(evt.detail, 'non-ready-screen');
+      done();
     });
   }
 
@@ -190,42 +184,36 @@ suite('Application Startup Modes Test Suite >', function() {
     assert.isFalse(dataUsageTab.classList.contains('standalone'));
   }
 
-  function setupCardState(cardState) {
+  function setupCardState(icc) {
     window.Common = new MockCommon({ isValidICCID: true });
     window.CostControl = new MockCostControl();
-    window.IccHelper = new MockIccHelper(cardState);
     window.navigator.mozMobileConnection = new MockMozMobileConnection({});
+    Common.dataSimIcc = icc;
   }
 
   test('SIM is not ready', function(done) {
-    setupCardState('absent');
+    loadBodyHTML('/index.html');
+    setupCardState({cardState: null});
 
-    assertAlertMessageAndClose(
-      'widget-no-sim2-heading\nwidget-no-sim2-meta',
-      done
-    );
+    assertNonReadyScreen(done);
 
     CostControlApp.init();
   });
 
   test('SIM is locked by PIN', function(done) {
-    setupCardState('pinRequired');
+    loadBodyHTML('/index.html');
+    setupCardState({cardState: 'pinRequired'});
 
-    assertAlertMessageAndClose(
-      'widget-sim-locked-heading\nwidget-sim-locked-meta',
-      done
-    );
+    assertNonReadyScreen(done);
 
     CostControlApp.init();
   });
 
   test('SIM is locked by PUK', function(done) {
-    setupCardState('pukRequired');
+    loadBodyHTML('/index.html');
+    setupCardState({cardState: 'pukRequired'});
 
-    assertAlertMessageAndClose(
-      'widget-sim-locked-heading\nwidget-sim-locked-meta',
-      done
-    );
+    assertNonReadyScreen(done);
 
     CostControlApp.init();
   });
@@ -234,7 +222,7 @@ suite('Application Startup Modes Test Suite >', function() {
     'First Time Experience Loaded when new SIM > DATA_USAGE_ONLY',
     function(done) {
       var applicationMode = 'DATA_USAGE_ONLY';
-      setupCardState('ready');
+      setupCardState({cardState: 'ready'});
       window.ConfigManager = new MockConfigManager({
         fakeSettings: { fte: true },
         applicationMode: applicationMode
@@ -250,7 +238,7 @@ suite('Application Startup Modes Test Suite >', function() {
     'First Time Experience Loaded when new SIM > PREPAID',
     function(done) {
       var applicationMode = 'PREPAID';
-      setupCardState('ready');
+      setupCardState({cardState: 'ready'});
       window.ConfigManager = new MockConfigManager({
         fakeSettings: { fte: true },
         applicationMode: applicationMode
@@ -266,7 +254,7 @@ suite('Application Startup Modes Test Suite >', function() {
     'First Time Experience Loaded when new SIM > POSTPAID',
     function(done) {
       var applicationMode = 'POSTPAID';
-      setupCardState('ready');
+      setupCardState({cardState: 'ready'});
       window.ConfigManager = new MockConfigManager({
         fakeSettings: { fte: true },
         applicationMode: applicationMode
@@ -287,7 +275,7 @@ suite('Application Startup Modes Test Suite >', function() {
       fakeSettings: { fte: false },
       applicationMode: applicationMode
     });
-    window.IccHelper = new MockIccHelper('ready');
+    Common.dataSimIcc = {cardState: 'ready'};
   }
 
   test('Layout: Data Usage Only', function(done) {

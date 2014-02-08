@@ -1,3 +1,5 @@
+'use strict';
+
 require('/shared/js/lazy_loader.js');
 require('/shared/js/simple_phone_matcher.js');
 require('/shared/js/fb/fb_request.js');
@@ -5,7 +7,7 @@ requireApp('communications/contacts/js/fb/fb_data.js');
 require('/shared/test/unit/mocks/mock_navigator_datastore.js');
 require('/shared/test/unit/mocks/mock_moz_phone_number_service.js');
 
-mocha.globals(['SimplePhoneMatcher', 'TelIndexer']);
+mocha.globals(['SimplePhoneMatcher', 'TelIndexer', 'utils', 'Node']);
 
 var realDatastore, realPhoneNumberService;
 
@@ -35,13 +37,11 @@ suite('Facebook datastore suite', function() {
 
   var MockFbFriendData = createFbContact(mockUid, 'Jose Manuel', mockTel);
 
-  function assertRemove(obj, oldDsId) {
+  function assertRemove(obj) {
     var uid = obj.uid;
     var index = fb.contacts.dsIndex;
 
-    // Here checking the status of the "in memory" index
-    assert.isUndefined(index.byUid[uid]);
-    assert.isUndefined(MockDatastore._records[oldDsId]);
+    assert.isUndefined(MockDatastore._records[uid]);
 
     var variants = SimplePhoneMatcher.generateVariants(obj.tel[0].value);
 
@@ -64,58 +64,56 @@ suite('Facebook datastore suite', function() {
     assert.deepEqual(index, MockDatastore._records[1]);
 
     assert.equal(Object.keys(index.byTel).length, 0);
-    assert.equal(Object.keys(index.byUid).length, 0);
   }
 
   function assertAdded(friend) {
     var uid = friend.uid;
 
     var index = fb.contacts.dsIndex;
-    var friendDsId = index.byUid[uid];
-    assert.isDefined(friendDsId);
 
-    assert.equal(MockDatastore._records[friendDsId].uid, uid);
+    assert.equal(MockDatastore._records[uid].uid, uid);
 
     // Testing that all telVariants have been captured in the index
     var mockTelVariants = SimplePhoneMatcher.generateVariants(
                                                           friend.tel[0].value);
     mockTelVariants.forEach(function(aTelVariant) {
-      assert.equal(index.byTel[aTelVariant], friendDsId);
+      assert.equal(index.byTel[aTelVariant], uid);
     });
   }
 
   function doRemove(objToRemove, flush, done) {
     var toRemoveUid = objToRemove.uid;
+    var toRemoveTel = objToRemove.tel[0].value;
 
     var saveReq = fb.contacts.save(objToRemove);
     saveReq.onsuccess = function() {
       // Precondition
       assertAdded(objToRemove);
-      var friendDsId = fb.contacts.dsIndex.byUid[toRemoveUid];
-      var req = fb.contacts.remove(toRemoveUid, flush);
-      req.onsuccess = function() {
-        if (flush === false) {
-          // There has not been flush
-          // thus the "persistent" index is out of date
-          assert.equal(MockDatastore._records['1'].byUid[toRemoveUid],
-                                                                  friendDsId);
-        }
-        else {
-          assert.isUndefined(MockDatastore._records['1'].byUid[toRemoveUid]);
-        }
-        assertRemove(objToRemove, friendDsId);
-        done();
+      // It is needed to flush as add does not automatically flush the index
+      var flushReq = fb.contacts.flush();
+      flushReq.onsuccess = function() {
+        var req = fb.contacts.remove(toRemoveUid, flush);
+        req.onsuccess = function() {
+          if (flush) {
+            assert.isUndefined(MockDatastore._records['1'].byTel[toRemoveTel]);
+          }
+          else {
+            assert.equal(MockDatastore._records['1'].byTel[toRemoveTel],
+                                                                  toRemoveUid);
+          }
+          assertRemove(objToRemove);
+          done();
+        };
       };
+      flushReq.onerror = errorNotExpected.bind(flushReq, done);
+    };
+    saveReq.onerror = errorNotExpected.bind(saveReq, done);
+  }
 
-      req.onerror = function() {
-        assert.fail('Error while removing: ' + req.error.name);
-        done();
-      };
-    };
-    saveReq.onerror = function() {
-      assert.fail('Error while adding: ' + req.error.name);
-      done();
-    };
+  function errorNotExpected(done) {
+    done(function() {
+      assert.fail('Error not expected: ' + this.error.name);
+    });
   }
 
   suiteSetup(function() {
@@ -233,15 +231,14 @@ suite('Facebook datastore suite', function() {
     req.onsuccess = function() {
       var index = fb.contacts.dsIndex;
 
-      // Let's check that the object persisted on the DB
-      var dsId = index.byUid[updatedObj.uid];
-      assert.deepEqual(updatedObj, MockDatastore._records[dsId]);
+      assert.deepEqual(updatedObj,
+                       MockDatastore._records[MockFbFriendData.uid]);
 
       var telVariants = SimplePhoneMatcher.generateVariants(
                                                     updatedObj.tel[0].value);
       // Testing that all telVariants have been captured in the index
       telVariants.forEach(function(aTelVariant) {
-        assert.equal(index.byTel[aTelVariant], dsId);
+        assert.equal(index.byTel[aTelVariant], MockFbFriendData.uid);
       });
 
       var telMockVariants = SimplePhoneMatcher.generateVariants(

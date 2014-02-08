@@ -39,6 +39,8 @@ section[role="region"] > header:first-child .icon.icon-edit-contact {
   overflow-x: hidden;
   overflow-y: auto;
   will-animate: scroll;
+
+  background: #f4f4f4;
 }
 
 .view-contact-profile #cover-img {
@@ -664,6 +666,13 @@ section[role="region"] > header .icon.icon-settings {
 #groups-container {
   height: 100%;
   overflow: scroll;
+}
+
+/* Bug 967274 - Background doesn't scroll with the contacts causing
+ * expensive over-invalidation
+ */
+#groups-container-background {
+  background-color: #fff;
 }
 
 /* Do not remove overflow: hidden as it fixes bug 937291 */

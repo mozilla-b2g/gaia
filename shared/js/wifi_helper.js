@@ -62,12 +62,13 @@ var WifiHelper = {
   getSecurity: function(network) {
     // Bug 791506: Code for backward compatibility. Modify after landed.
     return network.security === undefined ?
-      network.capabilities : network.security;
+      (network.capabilities || []) : network.security;
   },
 
   getCapabilities: function(network) {
     // Bug 791506: Code for backward compatibility. Modify after landed.
-    return network.security === undefined ? [] : network.capabilities;
+    return ((network.security === undefined ||
+      network.capabilities === undefined) ? [] : network.capabilities);
   },
 
   getKeyManagement: function(network) {

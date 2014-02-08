@@ -17,3 +17,11 @@ var MockImageLoader = function() {
   this.setResolver = function() {};
   this.releaseImage = function() {};
 };
+
+var MockUtils = {
+  'misc' : {
+    'toMozContact': function(c) {
+      return c;
+    }
+  }
+};

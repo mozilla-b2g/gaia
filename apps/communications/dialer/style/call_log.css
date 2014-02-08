@@ -28,6 +28,14 @@ form[role="dialog"][data-type="edit"] > menu {
 }
 
 /* Override Building Block styles for lists */
+
+#call-log-container[data-type="list"] ol {
+  /* Bug 967880 - [Call Log] Background doesn't scroll with the logs causing
+   * expensive over-invalidation.
+   */
+  background-color: white;
+}
+
 #call-log-container[data-type="list"] li {
   height: 7rem;
   padding: 0.5rem 0 0;

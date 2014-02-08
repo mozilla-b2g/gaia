@@ -271,66 +271,58 @@
     display: none;
   }
 
-  .callbar-button {
-    height: 4rem;
-    border:0;
-    border-radius:.3rem;
+  #callbar > button,
+  #callbar > button:active {
+    padding: none;
+
+    border: none;
+    background: none;
+  }
+
+  .callbar-inner-button {
     display: block;
-  }
-
-  #callbar-hang-up-action {
-    background: url("images/btn_hang_up.png") repeat-x;
-    background-size: auto 100%;
-    margin: 1rem .5rem 1.5rem 1.5rem;
-  }
-
-  #callbar-hang-up-action:active {
-    background: #820000;
-  }
-
-  #callbar-hang-up-action > div {
-    margin: 0 auto;
-    background-image: url('images/ActionIcon_40x40_hangup.png');
-    background-repeat: no-repeat;
-    background-size: 4rem;
-    background-position: center;
-    width: 4rem;
     height: 4rem;
-  }
+    margin: 1rem .5rem 1.5rem .5rem;
 
-  #callbar-start-call-action {
-    background: url("images/btn_pick_up.png") repeat-x;
+    border: 0;
+    border-radius: .3rem;
+
     background-size: auto 100%;
-    margin: 1rem 1.5rem 1.5rem .5rem;
   }
 
-  #callbar-start-call-action:active {
-    background: #4B780A;
+  #callbar-hang-up > .callbar-inner-button {
+    margin: 1rem 0rem 1.5rem .5rem;
+    background: url('images/ActionIcon_40x40_hangup.png') center / 4rem no-repeat,
+                url('images/btn_hang_up.png') repeat-x;
   }
 
-  #callbar-start-call-action > div {
-    margin: 0 auto;
-    background-image: url('images/ActionIcon_40x40_pickup.png');
-    background-repeat: no-repeat;
-    background-size: 4rem;
-    background-position: center;
-    width: 4rem;
-    height: 4rem;
+  #callbar-hang-up:active > .callbar-inner-button {
+    background: url('images/ActionIcon_40x40_hangup.png') center / 4rem no-repeat,
+                #820000;
   }
 
-  #callbar-hold-action {
-    background: url("images/btn_resume.png") repeat-x;
-    background-size: auto 100%;
-    margin: 1rem 1.5rem 1.5rem .5rem;
-    line-height: 4rem;
-    font-size: 1.8rem;
-    font-weight: 700;
+  #callbar-answer > .callbar-inner-button {
+    background: url('images/ActionIcon_40x40_pickup.png') center / 4rem no-repeat,
+                url('images/btn_pick_up.png') repeat-x;
+  }
+
+  #callbar-answer:active > .callbar-inner-button {
+    background: url('images/ActionIcon_40x40_pickup.png') center / 4rem no-repeat,
+                #4B780A;
+  }
+
+  #callbar-hold > .callbar-inner-button {
+    background: url('images/btn_resume.png') repeat-x;
+
+    color: #333;
     text-align: center;
     text-shadow: 0.1rem 0.1rem 0 rgba(255,255,255,0.3);
-    color: #333;
+    font-size: 1.8rem;
+    font-weight: 700;
+    line-height: 4rem;
   }
 
-  #callbar-hold-action:active {
+  #callbar-hold:active > .callbar-inner-button {
     background: #00aacc;
   }
 
@@ -795,9 +787,9 @@
     width: 100%;
   }
 
-  #call-screen[data-layout="dialing"] #callbar-hang-up-action,
-  #call-screen[data-layout="connected"] #callbar-hang-up-action {
-    margin: 1rem 1.5rem 1.5rem;
+  #call-screen[data-layout="dialing"] #callbar-hang-up > .callbar-inner-button,
+  #call-screen[data-layout="connected"] #callbar-hang-up > .callbar-inner-button {
+    margin: 1rem .5rem 1.5rem .5rem;
   }
 
   #call-screen[data-layout="incoming"] #co-advanced,

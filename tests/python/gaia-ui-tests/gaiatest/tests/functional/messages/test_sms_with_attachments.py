@@ -40,7 +40,7 @@ class TestSmsWithAttachments(GaiaTestCase):
         new_message.wait_for_resizing_to_finish()
 
         #click send
-        self.message_thread = new_message.tap_send(timeout=300)
+        self.message_thread = new_message.tap_send(timeout=400)
         self.message_thread.wait_for_received_messages(timeout=300)
 
         # get the most recent listed and most recent received text message

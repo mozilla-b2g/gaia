@@ -95,15 +95,26 @@ body.hidden *[data-l10n-id] {
 /* Making lazy loading look nice */
 #contacts-view [role="tabpanel"],
 #recents-view.hidden [role="tabpanel"] {
-  background-image: url(/shared/style/headers/images/ui/header.png),
-                    url(/shared/style/headers/images/ui/shadow.png);
-  background-repeat: repeat-x;
-  background-position: 0 0, 0 5rem;
-  background-size: 100% 5rem, 100% 0.3rem;
+  background-color: white;
+}
+
+#contacts-view [role="tabpanel"]:before,
+#recents-view.hidden [role="tabpanel"]:before {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 5rem;
+
+  background-color: #F97C17;
+  content: "";
 }
 
 #iframe-contacts-container {
   overflow: hidden;
+}
+
+#iframe-contacts {
+  position: absolute;
 }
 
 #recents-view.hidden [role="tabpanel"] section {

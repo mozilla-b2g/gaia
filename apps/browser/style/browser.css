@@ -292,10 +292,12 @@ input[type="image"] {
   background-position: center;
   display: none;
   height: 3.2rem;
-  width: 3.2rem;
+  width: 2.6rem;
   background-size: 3rem;
   float: right;
   background-repeat: no-repeat;
+  background-position: right center;
+  margin-left: 0.6rem;
 }
 
 #ssl-indicator {
@@ -331,7 +333,8 @@ input[type="image"] {
   background-color: transparent;
   background: none;
   text-overflow: ellipsis;
-  padding: 0 0;
+  padding: 0;
+  padding-right: 0.6rem;
   width: calc(100% - 3.2rem);
 }
 
@@ -710,7 +713,7 @@ a.recommend[role="button"]:active  {
 #bookmark-entry-sheet {
   z-index: 101;
   display: block;
-  position: absolute;
+  position: fixed;
   top: 0;
   width: 100%;
   height: 100%;

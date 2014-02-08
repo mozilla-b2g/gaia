@@ -468,6 +468,11 @@ var ThreadUI = global.ThreadUI = {
       return;
     }
 
+    // Ensure that Recipients does not trigger focus
+    // on itself, which will cause the cursor to "jump"
+    // back to the recipients input from the message input.
+    Recipients.View.isFocusable = false;
+
     // Restore the recipients list input area to
     // single line view.
     this.recipients.visible('singleline');
@@ -597,7 +602,7 @@ var ThreadUI = global.ThreadUI = {
 
     // Ensure that Recipients does not trigger focus on
     // itself, which causes the keyboard to appear.
-    Recipients.View.isObscured = true;
+    Recipients.View.isFocusable = false;
 
     var activity = new MozActivity({
       name: 'pick',
@@ -615,7 +620,7 @@ var ThreadUI = global.ThreadUI = {
         return;
       }
 
-      Recipients.View.isObscured = false;
+      Recipients.View.isFocusable = true;
 
       var data = Utils.basicContact(
         activity.result.tel[0].value, activity.result
@@ -626,7 +631,7 @@ var ThreadUI = global.ThreadUI = {
     }).bind(this);
 
     activity.onerror = (function(e) {
-      Recipients.View.isObscured = false;
+      Recipients.View.isFocusable = true;
 
       console.log('WebActivities unavailable? : ' + e);
     }).bind(this);
@@ -1379,10 +1384,16 @@ var ThreadUI = global.ThreadUI = {
 
     var notDownloaded = delivery === 'not-downloaded';
     var attachments = message.attachments;
+
+    // If the MMS has invalid empty content(message without attachment and
+    // subject) or contains only subject, we will display corresponding message
+    // and layout type in the message bubble.
+    //
     // Returning attachments would be different based on gecko version:
     // null in b2g18 / empty array in master.
     var noAttachment = (message.type === 'mms' && !notDownloaded &&
       (attachments === null || attachments.length === 0));
+    var invalidEmptyContent = (noAttachment && !message.subject);
 
     if (delivery === 'received' || notDownloaded) {
       classNames.push('incoming');
@@ -1411,8 +1422,10 @@ var ThreadUI = global.ThreadUI = {
       bodyHTML = this._createNotDownloadedHTML(message, classNames);
     }
 
-    if (noAttachment) {
-      classNames = classNames.concat(['error', 'no-attachment']);
+    if (invalidEmptyContent) {
+      classNames = classNames.concat(['error', 'invalid-empty-content']);
+    } else if (noAttachment) {
+      classNames.push('no-attachment');
     }
 
     messageDOM.className = classNames.join(' ');
@@ -1430,7 +1443,7 @@ var ThreadUI = global.ThreadUI = {
     navigator.mozL10n.translate(messageDOM);
 
     var pElement = messageDOM.querySelector('p');
-    if (noAttachment) {
+    if (invalidEmptyContent) {
       navigator.mozL10n.localize(pElement, 'no-attachment-text');
     }
 
@@ -1719,9 +1732,9 @@ var ThreadUI = global.ThreadUI = {
       return;
     }
 
-    // Do nothing for no attachment error because it's not possible to
+    // Do nothing for invalid empty content error because it's not possible to
     // retrieve message again in this edge case.
-    if (elems.message.classList.contains('no-attachment')) {
+    if (elems.message.classList.contains('invalid-empty-content')) {
       return;
     }
 
@@ -2050,22 +2063,27 @@ var ThreadUI = global.ThreadUI = {
       var errorCode = (request.error && request.error.name) ?
         request.error.name : null;
 
+      var idList = Settings.nonActivateMmsServiceIds;
+      if (!navigator.mozSettings || !idList) {
+        console.error('Settings unavailable');
+        return;
+      }
+
+      // Just pick the first non-active id since there should be only
+      // one non-active id in the array.
+      var nonActiveId = idList[0];
+
       if (errorCode) {
         this.showMessageError(errorCode, {
           messageId: id,
-          confirmHandler: function simSwitch() {
-            var idList = Settings.nonActivateMmsServiceIds;
-            if (!navigator.mozSettings || !idList) {
-              console.error('Settings unavailable');
-              return;
-            }
-
-            // Just pick the first non-active id since there should be only
-            // one non-active id in the array.
-            var nonActiveId = idList[0];
-            Settings.setSimServiceId(nonActiveId);
-            // Retrieve message again and update the message DOM status.
-            setTimeout(ThreadUI.retrieveMMS(id));
+          confirmHandler: function stateResetAndRetry() {
+            // Avoid user to click the download button while sim state is not
+            // ready yet.
+            messageDOM.classList.add('pending');
+            messageDOM.classList.remove('error');
+            navigator.mozL10n.localize(button, 'downloading');
+            Settings.switchSimHandler(nonActiveId,
+              this.retrieveMMS.bind(this, id));
           }.bind(this)
         });
       }
@@ -2100,6 +2118,7 @@ var ThreadUI = global.ThreadUI = {
 
   toFieldInput: function(event) {
     var typed;
+
     if (event.target.isPlaceholder) {
       typed = event.target.textContent.trim();
       this.searchContact(typed, this.listContacts.bind(this));

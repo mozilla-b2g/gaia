@@ -574,6 +574,7 @@ var KeyboardManager = {
   hideKeyboard: function km_hideKeyboard() {
     // prevent hidekeyboard trigger again while 'appwillclose' is fired.
     if (this.keyboardFrameContainer.classList.contains('hide')) {
+      this.resetShowingKeyboard();
       return;
     }
 

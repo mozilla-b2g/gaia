@@ -1,6 +1,6 @@
 'use strict';
-
-var utils = this.utils || {};
+/* exported utils */
+var utils = window.utils || {};
 
 /**
  * This function performs a binary search over an already sorted array
@@ -76,7 +76,7 @@ utils.binarySearch = function(target, array, options) {
     var next = from + middleIndex + 1;
     var finish = false;
     while (next <= (array.length - 1) && !finish) {
-      var item = getItem(array, next);
+      item = getItem(array, next);
 
       if (compare(target, item) === 0) {
         results.push(next);
@@ -91,7 +91,7 @@ utils.binarySearch = function(target, array, options) {
     next = from + middleIndex - 1;
 
     while (next >= 0 && !finish) {
-      var item = getItem(array, next);
+      item = getItem(array, next);
 
       if (compare(target, item) === 0) {
         results.push(next);

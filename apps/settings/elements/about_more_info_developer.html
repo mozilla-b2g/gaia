@@ -51,12 +51,6 @@
         </li>
         <li>
           <label class="pack-checkbox">
-            <input type="checkbox" name="apz.force-enable"/>
-            <span data-l10n-id="apz-force-enable">Enable APZ for all content processes</span>
-          </label>
-        </li>
-        <li>
-          <label class="pack-checkbox">
             <input type="checkbox" name="debug.log-animations.enabled">
             <span data-l10n-id="log-animations">Log slow animations</span>
           </label>
@@ -125,6 +119,43 @@
           <label>
             <button id="ftuLauncher" data-l10n-id="launch-ftu">Launch FTU</button>
           </label>
+        </li>
+        <li>
+          <label class="pack-checkbox">
+            <input type="checkbox" name="apz.force-enable"/>
+            <span data-l10n-id="apz-force-enable">Enable APZ for all content processes</span>
+          </label>
+        </li>
+        <li>
+          <label class="pack-checkbox">
+            <input type="checkbox" name="layers.enable-tiles"/>
+            <span data-l10n-id="layers-enable-tiles">Layers: Enable Tiles</span>
+          </label>
+        </li>
+        <li>
+          <label class="pack-checkbox">
+            <input type="checkbox" name="layers.progressive-paint"/>
+            <span data-l10n-id="layers-progressive-paint">Layers: Progressive Paint</span>
+          </label>
+        </li>
+        <li>
+          <label class="pack-checkbox">
+            <input type="checkbox" name="layers.draw-tile-borders"/>
+            <span data-l10n-id="layers-draw-tile-borders">Layers: Draw Tile Borders</span>
+          </label>
+        </li>
+        <li>
+          <p data-l10n-id="apz-displayport-heuristics">Displayport Heuristics</p>
+          <span class="button icon icon-dialog">
+            <select name="apz.displayport.heuristics">
+              <option data-l10n-id="apz-heuristic-default" value="default">Default</option>
+              <option data-l10n-id="apz-heuristic-center" value="center-displayport">Center displayport</option>
+              <option data-l10n-id="apz-heuristic-perfect" value="perfect-paint-times">Assume perfect paints</option>
+              <option data-l10n-id="apz-heuristic-taller" value="taller-displayport">Taller displayport</option>
+              <option data-l10n-id="apz-heuristic-faster" value="faster-paint">Faster paints</option>
+              <option data-l10n-id="apz-heuristic-nocheck" value="no-checkerboard">No checkerboarding</option>
+            </select>
+          </span>
         </li>
       </ul>
 

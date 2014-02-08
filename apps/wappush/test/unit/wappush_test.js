@@ -173,7 +173,7 @@ suite('WAP Push', function() {
   });
 
   suite('receiving and displaying a CP message', function() {
-    var message;
+    var messages;
 
      // UI elements
     var screen;
@@ -189,16 +189,30 @@ suite('WAP Push', function() {
       );
       WapPushManager.init(done);
 
-      message = {
-        sender: '22997',
-        contentType: 'text/vnd.wap.connectivity-xml',
-        content: '<wap-provisioningdoc></wap-provisioningdoc>',
-        authInfo: {
-           pass: true,
-           checked: true,
-           sec: 'NETWPIN',
-           mac: 'FAKEMAC',
-           data: 'FAKEDATA'
+      messages = {
+        netwpin: {
+          sender: '22997',
+          contentType: 'text/vnd.wap.connectivity-xml',
+          content: '<wap-provisioningdoc></wap-provisioningdoc>',
+          authInfo: {
+             pass: true,
+             checked: true,
+             sec: 'NETWPIN',
+             mac: 'FAKEMAC',
+             data: 'FAKEDATA'
+          }
+        },
+        userpin: {
+          sender: '22997',
+          contentType: 'text/vnd.wap.connectivity-xml',
+          content: '<wap-provisioningdoc></wap-provisioningdoc>',
+          authInfo: {
+             pass: true,
+             checked: true,
+             sec: 'USERPIN',
+             mac: 'FAKEMAC',
+             data: 'FAKEDATA'
+          }
         }
       };
     });
@@ -216,26 +230,56 @@ suite('WAP Push', function() {
 
     test('the notification is sent', function() {
       var sendSpy = this.sinon.spy(MockNotificationHelper, 'send');
-      MockNavigatormozSetMessageHandler.mTrigger('wappush-received', message);
+      MockNavigatormozSetMessageHandler.mTrigger(
+        'wappush-received',
+        messages.netwpin
+      );
       MockNavigatormozApps.mTriggerLastRequestSuccess();
       assert.isTrue(sendSpy.calledOnce);
     });
 
-    test('the display is populated with the message contents', function() {
-      closeButton = document.getElementById('close');
-      title = document.getElementById('title');
-      screen = document.getElementById('cp-screen');
-      acceptButton = document.getElementById('accept');
-      pin = screen.querySelector('input');
+    test('the display is populated with the NETWPIN message contents',
+      function() {
+        closeButton = document.getElementById('close');
+        title = document.getElementById('title');
+        screen = document.getElementById('cp-screen');
+        acceptButton = document.getElementById('accept');
+        pin = screen.querySelector('input');
 
-      var retrieveSpy = this.sinon.spy(MockMessageDB, 'retrieve');
-      MockNavigatormozSetMessageHandler.mTrigger('wappush-received', message);
-      MockNavigatormozApps.mTriggerLastRequestSuccess();
-      WapPushManager.displayWapPushMessage(0);
-      retrieveSpy.yield(ParsedMessage.from(message, 0));
-      assert.equal(title.textContent, message.sender);
-      assert.equal(acceptButton.hidden, false);
-      assert.equal(pin.type, 'hidden');
+        var retrieveSpy = this.sinon.spy(MockMessageDB, 'retrieve');
+
+        MockNavigatormozSetMessageHandler.mTrigger(
+          'wappush-received',
+          messages.netwpin
+        );
+        MockNavigatormozApps.mTriggerLastRequestSuccess();
+        WapPushManager.displayWapPushMessage(0);
+        retrieveSpy.yield(ParsedMessage.from(messages.netwpin, 0));
+        assert.equal(title.textContent, messages.netwpin.sender);
+        assert.equal(acceptButton.hidden, false);
+        assert.equal(pin.type, 'hidden');
+    });
+
+    test('the display is populated with the USERPIN message contents',
+      function() {
+        closeButton = document.getElementById('close');
+        title = document.getElementById('title');
+        screen = document.getElementById('cp-screen');
+        acceptButton = document.getElementById('accept');
+        pin = screen.querySelector('input');
+
+        var retrieveSpy = this.sinon.spy(MockMessageDB, 'retrieve');
+
+        MockNavigatormozSetMessageHandler.mTrigger(
+          'wappush-received',
+          messages.netwpin
+        );
+        MockNavigatormozApps.mTriggerLastRequestSuccess();
+        WapPushManager.displayWapPushMessage(0);
+        retrieveSpy.yield(ParsedMessage.from(messages.userpin, 0));
+        assert.equal(title.textContent, messages.netwpin.sender);
+        assert.equal(acceptButton.hidden, false);
+        assert.equal(pin.type, 'text');
     });
   });
 

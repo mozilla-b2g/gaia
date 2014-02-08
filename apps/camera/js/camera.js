@@ -100,6 +100,8 @@ var DCFApi = (function() {
 })();
 
 var screenLock = null;
+var preventGalleryLaunch = false;
+
 var Camera = {
   _initialised: false,
   _cameras: null,
@@ -446,6 +448,15 @@ var Camera = {
     if (this._pendingPick) {
       this.cancelPickButton.removeAttribute('disabled');
     }
+
+    else if (!this._secureMode) {
+
+      // Wait 100ms before re-enabling the Camera button to prevent
+      // hammering it and causing a crash (Bug 957709)
+      window.setTimeout(function() {
+        Camera.galleryButton.removeAttribute('disabled');
+      }, 100);
+    }
   },
 
   disableButtons: function camera_disableButtons() {
@@ -456,6 +467,10 @@ var Camera = {
 
     if (this._pendingPick) {
       this.cancelPickButton.setAttribute('disabled', 'disabled');
+    }
+
+    else if (!this._secureMode) {
+      this.galleryButton.setAttribute('disabled', 'disabled');
     }
   },
 
@@ -503,7 +518,7 @@ var Camera = {
       this._cameraObj.getPreviewStream(this._previewConfig,
                                        gotPreviewStream.bind(this));
     } else {
-      this._videoProfile.rotation = this._phoneOrientation;
+      this._videoProfile.rotation = this.getCameraOrientation();
       this._cameraObj.getPreviewStreamVideoMode(this._videoProfile,
                                                 gotPreviewStream.bind(this));
     }
@@ -680,7 +695,7 @@ var Camera = {
       }
 
       var config = {
-        rotation: this._phoneOrientation,
+        rotation: this.getCameraOrientation(),
         maxFileSizeBytes: freeBytes - this.RECORD_SPACE_PADDING
       };
 
@@ -881,6 +896,15 @@ var Camera = {
     if (this._secureMode)
       return;
 
+    // Check flag to determine if we are throttling the launching
+    // of Gallery -- Using a flag here instead of disabling the
+    // button in the DOM to work around a strange race condition
+    if (preventGalleryLaunch) {
+      return;
+    }
+
+    preventGalleryLaunch = true;
+
     // Launch the gallery with an activity
     var a = new MozActivity({
       name: 'browse',
@@ -888,6 +912,11 @@ var Camera = {
         type: 'photos'
       }
     });
+
+    // Wait 2000ms before re-enabling the Gallery to be launched (Bug 957709)
+    window.setTimeout(function() {
+      preventGalleryLaunch = false;
+    }, 2000);
   },
 
   handleOrientationChanged: function camera_orientationChanged(orientation) {
@@ -904,7 +933,13 @@ var Camera = {
     document.body.classList.add(mode);
   },
 
-  toggleFilmStrip: function camera_toggleFilmStrip(ev) {
+  toggleFilmStrip: function camera_toggleFilmStrip(evt) {
+
+    // Ignore if the click did not occur directly on the
+    // viewfinder (e.g.: disabled controls)
+    if (evt.originalTarget !== this.viewfinder)
+      return;
+
     // We will just ignore
     // because the filmstrip shouldn't be shown
     // while Camera is recording
@@ -989,30 +1024,55 @@ var Camera = {
   },
 
   setPreviewSize: function(camera) {
+    function getRotatedDimension(rotateAngle, width, height) {
+      if (rotateAngle % 180 == 0) {
+        return [width, height];
+      } else {
+        return [height, width];
+      }
+    }
 
     var viewfinder = this.viewfinder;
     var style = viewfinder.style;
-    // Switch screen dimensions to landscape. The screen width/height is css
-    // pixel size. The following calculation are all based on css pixel.
-    var screenWidth = document.body.clientHeight;
-    var screenHeight = document.body.clientWidth;
-    var pictureAspectRatio = this._pictureSize.height / this._pictureSize.width;
-    var screenAspectRatio = screenHeight / screenWidth;
+    var screenWidth = document.body.clientWidth;
+    var screenHeight = document.body.clientHeight;
 
+    // sensorAngle exposes the orientation of the camera image. The value is
+    // the angle that the camera image needs to be rotated clockwise so it shows
+    // correctly on the display in its natural orientation. See also:
+    // http://developer.android.com/reference/android/hardware/
+    // Camera.CameraInfo.html#orientation
+    //
+    // The visible portion of preview must cover the screen. Camera direction
+    // can differ from the device so the preview is rotated before showing on
+    // the screen. To compare the minimum preview size really need, instead of
+    // rotating every preview candidates, we start by rotating the screen size
+    // counter-clockwise to find the size required (the minus sign before
+    // sensorAngle).
+    //
+    // Example: On a 320x480 portrait device with sensorAngle in 90deg, rotating
+    // screen size by -90deg retrieves the visible portion of preview should not
+    // be smaller than 480x320.
+    var [minPreviewWidth, minPreviewHeight] = getRotatedDimension(
+                          -camera.sensorAngle, screenWidth, screenHeight);
+    var screenAspectRatio = minPreviewWidth / minPreviewHeight;
+
+    var pictureAspectRatio = this._pictureSize.width / this._pictureSize.height;
     // Previews should match the aspect ratio and not be smaller than the screen
     var validPreviews = camera.capabilities.previewSizes.filter(function(res) {
       // Note that we are using the screen size in CSS pixels and not
       // multiplying by devicePixelRatio. We assume that the preview sizes
       // returned by the camera are in CSS pixels, not device pixels.
       // This is the way things seem to work on the Helix.
-      var isLarger = res.height >= screenHeight && res.width >= screenWidth;
-      var aspectRatio = res.height / res.width;
+      var isLarger = res.height >= minPreviewHeight &&
+                     res.width >= minPreviewWidth;
+      var aspectRatio = res.width / res.height;
       var matchesRatio = Math.abs(aspectRatio - pictureAspectRatio) < 0.05;
       return matchesRatio && isLarger;
     });
 
     // We should always have a valid preview size, but just in case
-    // we dont, pick the first provided.
+    // we don't, pick the first provided.
     if (validPreviews.length) {
       // Pick the smallest valid preview
       this._previewConfig = validPreviews.sort(function(a, b) {
@@ -1022,42 +1082,42 @@ var Camera = {
       this._previewConfig = camera.capabilities.previewSizes[0];
     }
 
-    var transform = 'rotate(90deg)';
-    var width, height;
-    var translateX = 0;
-
+    // Now we have actual picture aspect ratio to determine actual preview size.
     // The preview should be larger than the screen, shrink it so that as
     // much as possible is on screen.
+    //
+    // Example: we selected a 512x384 preview (ratio 1.33). The minimum preview
+    // size is 480x320 (1.5). So it goes through the following else clause,
+    // obtaining 480x360 which covers the whole screen.
+    var previewWidth, previewHeight;
     if (screenAspectRatio < pictureAspectRatio) {
-      width = screenWidth;
-      height = screenWidth * pictureAspectRatio;
+      previewWidth = minPreviewHeight * pictureAspectRatio;
+      previewHeight = minPreviewHeight;
     } else {
-      width = screenHeight / pictureAspectRatio;
-      height = screenHeight;
+      previewWidth = minPreviewWidth;
+      previewHeight = previewWidth / pictureAspectRatio;
     }
 
+    // The last step here is to apply CSS transform, rotating camera preview
+    // into direction of screen. And we set left and top here to let center of
+    // viewfinder coincide with center of the screen, thus preventing unwanted
+    // displacement introduced by rotation.
+    var transform = '';
     if (this._cameraNumber == 1) {
-      /* backwards-facing camera */
-      transform += ' scale(-1, 1)';
-      translateX = width;
+      // Front-facing (selfie) camera: The preview needs to be mirrored.
+      // before mirroring, it needs to be rotated by sensorAngle in clockwise,
+      // but after mirroring it needs to be rotated by sensorAngle in
+      // *counter-clockwise*, which is just the case here if we add scale()
+      // before rotate().
+      transform += 'scale(-1, 1) ';
     }
-
-    // Counter the position due to the rotation
-    // This translation goes after the rotation so the element is shifted up
-    // (for back camera) - shifted up after it is rotated 90 degress clockwise.
-    // (for front camera) - shifted up-left after it is mirrored and rotated.
-    transform += ' translate(-' + translateX + 'px, -' + height + 'px)';
-
-    // Now add another translation at to center the viewfinder on the screen.
-    // We put this at the start of the transform, which means it is applied
-    // last, after the rotation, so width and height are reversed.
-    var dx = -(height - screenHeight) / 2;
-    var dy = -(width - screenWidth) / 2;
-    transform = 'translate(' + dx + 'px,' + dy + 'px) ' + transform;
-
+    transform += 'rotate(' + camera.sensorAngle + 'deg)';
     style.transform = transform;
-    style.width = width + 'px';
-    style.height = height + 'px';
+
+    style.left = ((screenWidth - previewWidth) / 2) + 'px';
+    style.top = ((screenHeight - previewHeight) / 2) + 'px';
+    style.width = previewWidth + 'px';
+    style.height = previewHeight + 'px';
   },
 
   recordingStateChanged: function(msg) {
@@ -1408,8 +1468,25 @@ var Camera = {
     this.takePicture();
   },
 
+  // If the user rotates the phone by 90 degrees clockwise, then the camera on
+  // the back of the phone has been rotated by 90 degrees clockwise. But the
+  // camera on the front of the phone (the selfie camera) has been rotated by 90
+  // degrees counter clockwise. This function computes the camera orientation
+  // based on the phone orientation and which camera is being used. Using the
+  // correct orientation matters so that the camera firmware can encode the
+  // photo right-side up.
+  getCameraOrientation: function camera_getCameraOrientation() {
+    if (this._cameraNumber == 0) {
+      // Back camera
+      return this._phoneOrientation;
+    } else {
+      // Front (selfie) camera
+      return -this._phoneOrientation;
+    }
+  },
+
   takePicture: function camera_takePicture() {
-    this._config.rotation = this._phoneOrientation;
+    this._config.rotation = this.getCameraOrientation();
     this._cameraObj.pictureSize = this._pictureSize;
     this._config.dateTime = Date.now() / 1000;
     // We do not attach our current position to the exif of photos

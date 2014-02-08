@@ -7,20 +7,31 @@
 (function(exports) {
 
   var AirplaneModeServiceHelper = {
-    _settings: {
-      // mozSetting state for Data connection, Bluetooth, Wifi, GPS
-      'ril.data.enabled': false,
-      'bluetooth.enabled': false,
-      'wifi.enabled': false,
-      'geolocation.enabled': false,
-      'nfc.enabled': false,
-
+    _settings: {},
+    _initSetting: function(settingID) {
+      var self = this;
+      var settingEnabledID = settingID + '.enabled';
+      var settingSuspendedID = settingID + '.suspended';
+      // forget the mozSetting states when user toggle 'xyz' on manually,
+      // e.g. set 'xyz'.suspend = false when 'xyz'.enabled === true
+      window.navigator.mozSettings.addObserver(
+        settingEnabledID,
+        function(e) {
+          if (e.settingValue) {
+            self._unsuspend(settingSuspendedID);
+          }
+        });
+      // init and observe the corresponding mozSettings
+      // for Data connection, Bluetooth, Wifi, GPS, and NFC
+      SettingsListener.observe(settingEnabledID, false,
+        function(value) {
+          self._settings[settingEnabledID] = value;
+        });
       // remember the mozSetting states before the airplane mode disables them
-      'ril.data.suspended': false,
-      'bluetooth.suspended': false,
-      'wifi.suspended': false,
-      'geolocation.suspended': false,
-      'nfc.suspended': false
+      SettingsListener.observe(settingSuspendedID, false,
+        function(value) {
+          self._settings[settingSuspendedID] = value;
+        });
     },
     // turn off the mozSetting corresponding to `key'
     // and remember its initial state by storing it in another setting
@@ -61,6 +72,12 @@
         SettingsListener.getSettingsLock().set(rset);
       }
     },
+    _unsuspend: function(settingSuspendedID) {
+      // clear the 'suspended' state
+      var sset = {};
+      sset[settingSuspendedID] = false;
+      SettingsListener.getSettingsLock().set(sset);
+    },
     isEnabled: function(key) {
       return this._settings[key + '.enabled'];
     },
@@ -68,16 +85,9 @@
       return this._settings[key + '.suspended'];
     },
     init: function() {
-      var self = this;
-
-      // observe the corresponding mozSettings
-      for (var key in this._settings) {
-        (function(settingID) {
-          SettingsListener.observe(settingID, false, function(value) {
-            self._settings[settingID] = value;
-          });
-        })(key);
-      }
+      ['ril.data', 'bluetooth', 'wifi', 'geolocation', 'nfc'].forEach(
+        this._initSetting.bind(this)
+      );
     },
     updateStatus: function(value) {
       var mozSettings = window.navigator.mozSettings;

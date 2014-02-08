@@ -24,7 +24,13 @@ suite('Sd export', function() {
         familyName: ['foo'],
         givenName: ['bar']
       },
-      c2 = {}, c3 = {}, c4 = {};
+      c2 = {
+        givenName: ['bar']
+      },
+      c3 = {
+        familyName: ['foo']
+      },
+      c4 = {};
   var updateSpy = null;
   var progressMock = function dummy() {};
   var realContactToVcard = null;
@@ -81,6 +87,32 @@ suite('Sd export', function() {
 
   test('Calling with 1 contact', function(done) {
     subject.setContactsToExport([c1]);
+
+    subject.doExport(function onFinish(error, exported, msg) {
+      done(function() {
+        assert.equal(false, subject.hasDeterminativeProgress());
+        assert.equal(1, updateSpy.callCount);
+        assert.isNull(error);
+        assert.equal(1, exported);
+      });
+    });
+  });
+
+  test('Calling with 1 contact with no given name', function(done) {
+    subject.setContactsToExport([c2]);
+
+    subject.doExport(function onFinish(error, exported, msg) {
+      done(function() {
+        assert.equal(false, subject.hasDeterminativeProgress());
+        assert.equal(1, updateSpy.callCount);
+        assert.isNull(error);
+        assert.equal(1, exported);
+      });
+    });
+  });
+
+  test('Calling with 1 contact with no family name', function(done) {
+    subject.setContactsToExport([c3]);
 
     subject.doExport(function onFinish(error, exported, msg) {
       done(function() {

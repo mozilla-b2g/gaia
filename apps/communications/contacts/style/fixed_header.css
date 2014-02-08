@@ -30,8 +30,11 @@
   z-index: 1;
 }
 
-.facebook .fixed-title {
+.import .fixed-title {
   top: 0;
+}
+
+.facebook .fixed-title {
   color: #4D77CF;
 }
 

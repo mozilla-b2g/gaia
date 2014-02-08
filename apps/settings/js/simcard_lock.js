@@ -65,7 +65,8 @@
         simPinHTMLs.push(
           this.simPinTemplate.interpolate({
             'sim-index': index.toString(),
-            'sim-name': _('simPinWithIndex', { 'index': simPinIndex })
+            'sim-name': _('simPinWithIndex', { 'index': simPinIndex }),
+            'change-sim-label': _('changeSimPin')
           })
         );
       }.bind(this));

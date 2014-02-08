@@ -296,14 +296,25 @@ var MessageManager = {
   },
   // TODO: Optimize this method. Tracked:
   // https://bugzilla.mozilla.org/show_bug.cgi?id=929919
-  getThreads: function mm_getThreads(callback, extraArg) {
-    var cursor = this._mozMobileMessage.getThreads(),
-        threads = [];
+  getThreads: function mm_getThreads(options) {
+    /*
+    options {
+      each: callback function invoked for each message
+      end: callback function invoked when cursor is "done"
+      done: callback function invoked when we stopped iterating, either because
+            it's the end or because it was stopped. It's invoked after the "end"
+            callback.
+    }
+    */
+
+    var cursor = this._mozMobileMessage.getThreads();
+
+    var each = options.each;
+    var end = options.end;
+    var done = options.done;
 
     cursor.onsuccess = function onsuccess() {
       if (this.result) {
-        threads.push(this.result);
-
         // Register all threads to the Threads object.
         Threads.set(this.result.id, this.result);
 
@@ -313,17 +324,19 @@ var MessageManager = {
           ThreadUI.updateHeaderData();
         }
 
+        each && each(this.result);
+
         this.continue();
         return;
       }
-      if (callback) {
-        callback(threads, extraArg);
-      }
+
+      end && end();
+      done && done();
     };
 
     cursor.onerror = function onerror() {
-      var msg = 'Reading the database. Error: ' + this.error.name;
-      console.log(msg);
+      console.error('Reading the database. Error: ' + this.error.name);
+      done && done();
     };
   },
 

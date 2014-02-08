@@ -782,7 +782,7 @@ var CallSettings = (function(window, document, undefined) {
    */
   function cs_initVoicePrivacyMode() {
     // get network type
-    getSupportedNetworkInfo(function(result) {
+    getSupportedNetworkInfo(_mobileConnection, function(result) {
       if (!result.cdma) {
         return;
       }

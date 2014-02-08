@@ -1,3 +1,5 @@
+/* global getSupportedNetworkInfo, SettingsListener, ForwardLock, URL,
+          MozActivity */
 /* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
@@ -5,13 +7,16 @@
   'use strict';
 
   var _ = navigator.mozL10n.get;
-
-  // Show the touch tone selector if and only if we're on a CDMA network
-  getSupportedNetworkInfo(function(result) {
+  (function() {
+    var mobileConnections = window.navigator.mozMobileConnections;
+    // Show the touch tone selector if and only if we're on a CDMA network
     var toneSelector = document.getElementById('touch-tone-selector');
-    toneSelector.hidden = !result.cdma;
-  });
-
+    Array.prototype.forEach.call(mobileConnections, function(mobileConnection) {
+      getSupportedNetworkInfo(mobileConnection, function(result) {
+        toneSelector.hidden = toneSelector.hidden && !result.cdma;
+      });
+    });
+  })();
   // Now initialize the ring tone and alert tone menus.
 
   // This array has one element for each selectable tone that appears in the

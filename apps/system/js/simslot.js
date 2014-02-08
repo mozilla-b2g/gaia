@@ -3,6 +3,14 @@
 (function(window) {
   var _start = Date.now();
   var DEBUG = false;
+
+  var lockTypes = {
+    'pinRequired': true,
+    'pukRequired': true,
+    'networkLocked': true,
+    'corporateLocked': true,
+    'serviceProviderLocked': true
+  };
   /**
    * SIMSlot is the API wrapper for each mobileConnection,
    * and since one mobileConnection matches one SIM slot,
@@ -51,7 +59,6 @@
    * @param  {Object} iccObj The iccObj belongs to this slot.
    */
   SIMSlot.prototype.update = function ss_update(iccObj) {
-    this.publish('updated');
     this.simCard = iccObj;
     this.constructor.EVENTS.forEach(function iterater(evt) {
       iccObj.addEventListener(evt, this);
@@ -68,6 +75,8 @@
         return iccObj[method].apply(iccObj, arguments);
       };
     }, this);
+
+    this.publish('updated');
   };
 
   /**
@@ -113,6 +122,15 @@
    * @return {Boolean} Without SIM card or not.
    */
   SIMSlot.prototype.isAbsent = function ss_isAbsent() {
-    return (!this.simCard || this.simCard.iccId === null);
+    return (!this.simCard || this.simCard &&
+      this.simCard.iccInfo && this.simCard.iccInfo.iccid === null);
+  };
+
+  /**
+   * Indicate SIM card in the slot is locked or not.
+   * @return {Boolean} SIM card locked or not.
+   */
+  SIMSlot.prototype.isLocked = function ss_isLocked() {
+    return !!lockTypes[this.simCard.cardState];
   };
 }(this));

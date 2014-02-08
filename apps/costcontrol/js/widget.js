@@ -15,38 +15,35 @@ var Widget = (function() {
   var costcontrol;
   function checkSIMStatus() {
 
-    // XXX: check bug-926169
-    // this is used to keep all tests passing while introducing multi-sim APIs
-    var mobileConnection = window.navigator.mozMobileConnection ||
-      window.navigator.mozMobileConnections &&
-      window.navigator.mozMobileConnections[0];
+    var mobileConnection = window.navigator.mozMobileConnections;
 
     if (!mobileConnection) {
       console.error('No mozMobileConnection available');
       return;
     }
+    var iccid = Common.dataSimIccId;
+    var dataSimIccInfo = Common.dataSimIcc;
     var cardState = checkCardState();
-    var iccid = IccHelper.iccInfo ? IccHelper.iccInfo.iccid : null;
 
-    if (!IccHelper.iccInfo) {
+    if (!dataSimIccInfo || !dataSimIccInfo.iccInfo) {
       debug('ICC info not ready yet.');
-      IccHelper.oniccinfochange = checkSIMStatus;
+      dataSimIccInfo.oniccinfochange = checkSIMStatus;
 
     // SIM not ready
     } else if (cardState !== 'ready') {
-      debug('SIM not ready:', IccHelper.cardState);
-      IccHelper.oncardstatechange = checkSIMStatus;
+      debug('SIM not ready:', dataSimIccInfo.cardState);
+      dataSimIccInfo.oncardstatechange = checkSIMStatus;
 
     // SIM is ready, but ICC info is not ready yet
     } else if (!Common.isValidICCID(iccid)) {
       debug('ICC info not ready yet');
-      IccHelper.oniccinfochange = checkSIMStatus;
+      dataSimIccInfo.oniccinfochange = checkSIMStatus;
 
     // All ready
     } else {
       debug('SIM ready. ICCID:', iccid);
-      IccHelper.oncardstatechange = undefined;
-      IccHelper.oniccinfochange = undefined;
+      dataSimIccInfo.oncardstatechange = undefined;
+      dataSimIccInfo.oniccinfochange = undefined;
       document.getElementById('message-handler').src = 'message_handler.html';
       Common.waitForDOMAndMessageHandler(window, startWidget);
     }
@@ -56,7 +53,7 @@ var Widget = (function() {
   // special situations such as 'pin/puk locked' or 'absent'.
   function checkCardState() {
     var state, cardState;
-    state = cardState = IccHelper.cardState;
+    state = cardState = Common.dataSimIcc.cardState;
 
     // SIM is absent
     if (!cardState || cardState === 'absent') {
@@ -128,8 +125,8 @@ var Widget = (function() {
     // Update UI when visible
     document.addEventListener('visibilitychange',
       function _onVisibilityChange(evt) {
-        if (!document.hidden && initialized &&
-            checkCardState() === 'ready') {
+        if (!document.hidden && initialized) {
+          checkCardState(Common.dataSimIccId);
           updateUI();
         }
       }
@@ -450,7 +447,13 @@ var Widget = (function() {
 
   return {
     init: function() {
-      checkSIMStatus();
+      Common.loadDataSIMIccId(checkSIMStatus, function _errorNoSim() {
+        console.warn('Error when trying to get the ICC ID');
+        showSimError('no-sim2');
+      });
+      // XXX: See bug 944342 -[Cost control] move all the process related to the
+      // network and data interfaces loading to the start-up process of CC
+      Common.loadNetworkInterfaces();
     }
   };
 

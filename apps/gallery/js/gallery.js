@@ -955,12 +955,24 @@ function updateSelection(thumbnail) {
 }
 
 function launchCameraApp() {
+  $('fullscreen-camera-button').classList.add('disabled');
+  $('thumbnails-camera-button').classList.add('disabled');
+  $('overlay-camera-button').classList.add('disabled');
+
   var a = new MozActivity({
     name: 'record',
     data: {
       type: 'photos'
     }
   });
+
+  // Wait 2000ms before re-enabling the Camera buttons to prevent
+  // hammering them and causing a crash (Bug 957709)
+  window.setTimeout(function() {
+    $('fullscreen-camera-button').classList.remove('disabled');
+    $('thumbnails-camera-button').classList.remove('disabled');
+    $('overlay-camera-button').classList.remove('disabled');
+  }, 2000);
 }
 
 function deleteSelectedItems() {

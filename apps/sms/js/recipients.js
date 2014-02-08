@@ -432,7 +432,7 @@
     this.reset().focus();
   };
 
-  Recipients.View.isObscured = false;
+  Recipients.View.isFocusable = true;
 
   Recipients.View.prototype.reset = function() {
     // Clear any displayed text (not likely to exist)
@@ -570,7 +570,16 @@
    * focus
    *
    * Focus on the last editable in the list.
-   * Generally, this will be the placeholder
+   * Generally, this will be the placeholder.
+   *
+   * The behaviour of focus in this Recipients View context can
+   * be summarized as:
+   *
+   *   Place the cursor at the end of any existing text in
+   *   an explicit node or the current placeholder node by default.
+   *
+   *   If the node is the current placeholder, make it editable
+   *   and set focus.
    *
    * @return {Recipients.View} Recipients.View instance.
    */
@@ -579,30 +588,29 @@
     var range = document.createRange();
     var selection = window.getSelection();
 
-    if (!node) {
-      node = view.inner.lastElementChild;
-      if (!node.isPlaceholder) {
-        node = view.inner.appendChild(
-          this.placeholder
-        );
+    if (Recipients.View.isFocusable) {
+      if (!node) {
+        node = view.inner.lastElementChild;
+        if (!node.isPlaceholder) {
+          node = view.inner.appendChild(
+            this.placeholder
+          );
+        }
       }
-    }
 
-    if (node && node.isPlaceholder) {
-      node.contentEditable = true;
-
-      if (!Recipients.View.isObscured) {
+      if (node && node.isPlaceholder) {
+        node.contentEditable = true;
         node.focus();
       }
+
+      range.selectNodeContents(node);
+      range.collapse(false);
+      selection.removeAllRanges();
+      selection.addRange(range);
+
+      // scroll to the bottom of the inner view
+      view.inner.scrollTop = view.inner.scrollHeight;
     }
-
-    range.selectNodeContents(node);
-    range.collapse(false);
-    selection.removeAllRanges();
-    selection.addRange(range);
-
-    // scroll to the bottom of the inner view
-    view.inner.scrollTop = view.inner.scrollHeight;
     return this;
   };
 
@@ -716,6 +724,10 @@
     var lastElement = view.inner.lastElementChild;
     var typed, recipient, length, previous;
 
+    // If the user moved away from the recipients field
+    // and has now returned, we need to restore "focusability"
+    Recipients.View.isFocusable = true;
+
     // All keyboard events will need some information
     // about the input that the user typed.
     if (event.type === 'keypress' || event.type === 'keyup') {
@@ -823,7 +835,7 @@
                   );
                   this.reset();
                 }
-                Recipients.View.isObscured = false;
+                Recipients.View.isFocusable = true;
 
                 // #1 & #2
                 this.focus();
@@ -1083,7 +1095,7 @@
         });
       dialog.show();
 
-      Recipients.View.isObscured = true;
+      Recipients.View.isFocusable = false;
     }
   };
 

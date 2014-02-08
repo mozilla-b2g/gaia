@@ -93,6 +93,50 @@ suite('Message App settings Unit-Test', function() {
                                                 {settingValue: 1});
         assert.equal(Settings.mmsServiceId, 1);
       });
+
+      suite('switchSimHandler for async callback when ready', function() {
+        var conn;
+        var listenerSpy;
+        var mockMozMobileConnections = {
+          1: {
+            addEventListener: function() {},
+            removeEventListener: function() {},
+            data: {
+              state: 'searching'
+            }
+          }
+        };
+
+        setup(function() {
+          if (!('mozMobileConnections' in navigator)) {
+            navigator.mozMobileConnections = null;
+          }
+
+          this.sinon.stub(window.navigator, 'mozMobileConnections',
+            mockMozMobileConnections);
+          this.sinon.spy(Settings, 'setSimServiceId');
+          conn = window.navigator.mozMobileConnections[1];
+          listenerSpy = this.sinon.spy(conn, 'addEventListener');
+        });
+
+        test('callback should not be triggered if state did not change',
+          function() {
+          var stub = sinon.stub();
+          Settings.switchSimHandler(1, stub);
+          listenerSpy.yield();
+          sinon.assert.calledWith(Settings.setSimServiceId, 1);
+          sinon.assert.notCalled(stub);
+        });
+
+        test('callback when data connection state changes', function() {
+          var stub = sinon.stub();
+          Settings.switchSimHandler(1, stub);
+          conn.data.state = 'registered';
+          listenerSpy.yield();
+          sinon.assert.calledWith(Settings.setSimServiceId, 1);
+          sinon.assert.calledOnce(stub);
+        });
+      });
     });
   });
 });

@@ -1,3 +1,4 @@
+/* global SIMSlot, System, SIMSlotManager */
 'use strict';
 
 (function(window) {
@@ -22,12 +23,16 @@
     ready: false,
 
     init: function ssm_init() {
-      if (!IccManager)
+      if (!IccManager) {
         return;
+      }
+
       this._conns = Array.prototype.slice.call(navigator.mozMobileConnections);
       this.length = this._conns.length;
-      if (this._conns.length === 0)
+
+      if (this._conns.length === 0) {
         return;
+      }
 
       this._conns.forEach(function iterator(conn, index) {
         this._instances.push(new SIMSlot(conn, index,
@@ -64,8 +69,9 @@
      * @return {Boolean} There is no sim card.
      */
     noSIMCardOnDevice: function ssm_noSIMCardOnDevice(index) {
-      if (!IccManager || !IccManager.iccIds)
+      if (!IccManager || !IccManager.iccIds) {
         return true;
+      }
       return (IccManager.iccIds.length === 0);
     },
 
@@ -75,8 +81,9 @@
      * @return {Object} The SIMSlot instance.
      */
     get: function ssm_get(index) {
-      if (index >= this.length - 1)
+      if (index >= this.length - 1) {
         return null;
+      }
 
       return this._instances[index];
     },
@@ -87,8 +94,9 @@
      * @return {Object} The mobile connection object.
      */
     getMobileConnection: function ssm_getMobileConnection(index) {
-      if (index >= this.length - 1)
+      if (index >= this.length - 1) {
         return null;
+      }
 
       return this._instances[index].conn;
     },
@@ -118,6 +126,7 @@
       switch (evt.type) {
         case 'iccdetected':
           var slot = this.getSlotByIccId(evt.iccId);
+
           if (slot) {
             slot.update(IccManager.getIccById(evt.iccId));
 

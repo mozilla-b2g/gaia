@@ -1074,7 +1074,7 @@ contacts.Form = (function() {
       var canvas = document.createElement('canvas');
       canvas.width = target_width;
       canvas.height = target_height;
-      var context = canvas.getContext('2d');
+      var context = canvas.getContext('2d', { willReadFrequently: true });
 
       context.drawImage(img, x, y, w, h, 0, 0, target_width, target_height);
       URL.revokeObjectURL(url);

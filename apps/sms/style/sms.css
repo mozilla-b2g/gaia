@@ -114,8 +114,21 @@ form[role="dialog"][data-type="edit"] header menu[type="toolbar"] button {
   margin: 0 1.5rem;
 }
 
+#threads-container[data-type="list"] header {
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 2;
+  padding-top: 0.7rem;
+}
+
 #threads-container[data-type="list"] ul {
   padding: 0 1.5rem;
+
+  /* Bug 967878 - [Messages] Background doesn't scroll with the threads causing
+  * expensive over-invalidation
+  */
+  background-color: white;
 }
 
 [data-type="list"] li {
@@ -581,9 +594,17 @@ section.has-carrier .article-list header:first-child {
   padding: 0;
 }
 
+.article-list[data-type="list"] .message.no-attachment .bubble p {
+  height: 2.3rem;
+}
+
 .article-list[data-type="list"] .message .bubble p a {
   color: #000;
   text-decoration: underline;
+}
+
+.article-list[data-type="list"] .message .bubble p a:active {
+  color: #FF4E00;
 }
 
 /*
@@ -773,37 +794,6 @@ form.bottom[role="search"].messages-compose-form {
   color: #606060;
   font-weight: 300;
   font-size: 2.2rem;
-}
-
-/*
-  Fixed headers
-*/
-.fixed-title {
-  position: absolute;
-  z-index: 4;
-  top: 5rem;
-  left: 0;
-  right: 0;
-  height: 3rem;
-  line-height: 4rem;
-  padding: 0 1.5rem;
-  margin: 0 1.5rem;
-  border-bottom: solid 0.1rem #ff4e00;
-  background-repeat: no-repeat;
-  background-color: #FFFFFF;
-  color: #FF4E00;
-  pointer-events: none;
-  text-align: left;
-  text-transform: uppercase;
-  font-size: 1.6rem;
-  font-weight: normal;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.fixed-title.no-fixed-header {
-  transform: translateY(-100%);
 }
 
 /*

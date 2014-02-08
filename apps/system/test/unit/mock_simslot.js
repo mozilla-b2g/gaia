@@ -6,6 +6,7 @@ var MockSIMSlot = function(conn, index) {
   };
   this.update = function() {};
   this.isAbsent = function() {};
+  this.isLocked = function() { return false };
   // Inject method
   ['sendStkResponse', 'sendStkMenuSelection',
     'sendStkTimerExpiration', 'sendStkEventDownload'].forEach(function(name) {

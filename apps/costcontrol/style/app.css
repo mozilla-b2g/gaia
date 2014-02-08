@@ -16,7 +16,7 @@ html {
 }
 
 body {
-  background: url('/shared/resources/branding/splash_screen_generic.png') 0 0 no-repeat;
+  background-color: #000;
 }
 
 form {

@@ -34,12 +34,33 @@ suite('SIMSlot', function() {
 
   test('isAbsent', function() {
     var card = document.createElement('div');
-    card.iccId = 1;
+    card.iccInfo = {
+      iccid: 1
+    };
     var slot1 = new SIMSlot(null, 0, card);
     assert.isFalse(slot1.isAbsent());
 
     var slot2 = new SIMSlot(null, 0);
     assert.isTrue(slot2.isAbsent());
+  });
+
+  ['unknown', 'illegal', 'absent', 'ready', null].forEach(function(lockType) {
+    test('isLocked: ' + lockType, function() {
+      var card = document.createElement('div');
+      card.cardState = lockType;
+      var slot = new SIMSlot(null, 0, card);
+      assert.isFalse(slot.isLocked());
+    });
+  });
+
+  ['pinRequired', 'pukRequired', 'networkLocked',
+   'corporateLocked', 'serviceProviderLocked'].forEach(function(lockType) {
+    test('isLocked: ' + lockType, function() {
+      var card = document.createElement('div');
+      card.cardState = lockType;
+      var slot = new SIMSlot(null, 0, card);
+      assert.isTrue(slot.isLocked());
+    });
   });
 
   suite('handleEvent', function() {

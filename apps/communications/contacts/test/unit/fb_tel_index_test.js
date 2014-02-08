@@ -1,22 +1,31 @@
+'use strict';
+
+/* globals TelIndexer */
+
 require('/shared/js/fb/fb_tel_index.js');
+require('/shared/js/binary_search.js');
 
 suite('Telephone Prefix Indexes test', function() {
   var Tree;
-  var id = 1234;
-  var number = '655890765';
+  var ids = ['1234', '4567'];
+  var numbers = ['655890765', '655890700'];
 
   suiteSetup(function() {
-    Tree = Object.create(null);
-    TelIndexer.index(Tree, number, id);
+    Tree = [];
+    TelIndexer.index(Tree, numbers[0], ids[0]);
+    TelIndexer.index(Tree, numbers[1], ids[1]);
+    TelIndexer.orderTree(Tree);
   });
 
   suiteTeardown(function() {
     Tree = null;
   });
 
-  function assertFound(result) {
-    assert.equal(result.length, 1);
-    assert.equal(result[0], id);
+  function assertFound(result, target) {
+    assert.equal(result.length, target.length);
+    for (var j = 0; j < target.length; j++) {
+      assert.isTrue(result.indexOf(target[j]) !== -1);
+    }
   }
 
   function assertNotFound(result) {
@@ -24,7 +33,8 @@ suite('Telephone Prefix Indexes test', function() {
   }
 
   test('Find the whole number', function() {
-    assertFound(TelIndexer.search(Tree, number));
+    assertFound(TelIndexer.search(Tree, numbers[0]), [ids[0]]);
+    assertFound(TelIndexer.search(Tree, numbers[1]), [ids[1]]);
   });
 
   test('Partial find. Length insufficient', function() {
@@ -33,19 +43,23 @@ suite('Telephone Prefix Indexes test', function() {
   });
 
   test('Partial find. Minimum length', function() {
-    assertFound(TelIndexer.search(Tree, '655'));
+    assertFound(TelIndexer.search(Tree, '655'), ids);
   });
 
   test('Partial find. Start', function() {
-    assertFound(TelIndexer.search(Tree, '6558'));
+    assertFound(TelIndexer.search(Tree, '6558'), ids);
   });
 
   test('Partial find. Middle', function() {
-    assertFound(TelIndexer.search(Tree, '58907'));
+    assertFound(TelIndexer.search(Tree, '58907'), ids);
   });
 
   test('Partial find. End', function() {
-    assertFound(TelIndexer.search(Tree, '765'));
+    assertFound(TelIndexer.search(Tree, '765'), [ids[0]]);
+  });
+
+   test('Match. Middle', function() {
+    assertFound(TelIndexer.search(Tree, '89070'), [ids[1]]);
   });
 
   test('No match. End', function() {
@@ -65,8 +79,8 @@ suite('Telephone Prefix Indexes test', function() {
   });
 
   test('Remove a tel number. No longer found', function() {
-    TelIndexer.remove(Tree, number, id);
-    assertNotFound(TelIndexer.search(Tree, number));
-    assertNotFound(TelIndexer.search(Tree, '655'));
+    TelIndexer.remove(Tree, numbers[0], ids[0]);
+    assertNotFound(TelIndexer.search(Tree, numbers[0]));
+    assertNotFound(TelIndexer.search(Tree, '89076'));
   });
 });

@@ -13,7 +13,7 @@ class CallScreen(Phone):
     _calling_contact_locator = (By.CSS_SELECTOR, 'div.number')
     _calling_contact_information_locator = (By.CSS_SELECTOR, 'div.additionalContactInfo')
     _outgoing_call_locator = (By.CSS_SELECTOR, '.handled-call.outgoing')
-    _hangup_bar_locator = (By.ID, 'callbar-hang-up-action')
+    _hangup_bar_locator = (By.ID, 'callbar-hang-up')
 
     def __init__(self, marionette):
         Phone.__init__(self, marionette)

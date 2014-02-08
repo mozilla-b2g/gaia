@@ -118,17 +118,3 @@ var DsdsSettings = (function(window, document, undefined) {
       ds_setIccCardIndexForCellAndDataSettings
   };
 })(this, document);
-
-/**
- * Startup.
- */
-navigator.mozL10n.ready(function loadWhenIdle() {
-  var idleObserver = {
-    time: 3,
-    onidle: function() {
-      DsdsSettings.init();
-      navigator.removeIdleObserver(idleObserver);
-    }
-  };
-  navigator.addIdleObserver(idleObserver);
-});

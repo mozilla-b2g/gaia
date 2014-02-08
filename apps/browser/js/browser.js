@@ -1119,7 +1119,7 @@ var Browser = {
 
     var cancel = document.createElement('li');
     cancel.id = 'cancel';
-    cancel.appendChild(this.createButton('Cancel'));
+    cancel.appendChild(this.createButton(_('cancel')));
     list.appendChild(cancel);
 
     cancel.addEventListener('click', function(e) {
@@ -1313,6 +1313,7 @@ var Browser = {
     this.setUrlBar(this.currentTab.title);
     this.updateSecurityIcon();
     Toolbar.refreshButtons();
+    this.showAddressBar();
     // Show start screen if the tab hasn't been navigated
     if (this.currentTab.url == null) {
       this.showStartscreen();

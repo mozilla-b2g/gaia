@@ -499,7 +499,6 @@ var StatusBar = {
         if (simslot.isAbsent()) {
           // no SIM
           delete icon.dataset.level;
-          delete icon.dataset.emergency;
           delete icon.dataset.searching;
           delete icon.dataset.roaming;
         } else if (data && data.connected && data.type.startsWith('evdo')) {
@@ -508,23 +507,26 @@ var StatusBar = {
           icon.dataset.level = Math.ceil(data.relSignalStrength / 20); // 0-5
           icon.dataset.roaming = data.roaming;
 
-          delete icon.dataset.emergency;
           delete icon.dataset.searching;
         } else if (voice.connected || self.hasActiveCall()) {
           // "Carrier" / "Carrier (Roaming)"
           icon.dataset.level = Math.ceil(voice.relSignalStrength / 20); // 0-5
           icon.dataset.roaming = voice.roaming;
 
-          delete icon.dataset.emergency;
           delete icon.dataset.searching;
+        } else if (simslot.isLocked()) {
+          // SIM locked
+          // We check if the sim card is locked after checking hasActiveCall
+          // because we still need to show the siganl bars in this case even
+          // the sim card is locked.
+          icon.hidden = true;
         } else {
           // "No Network" / "Emergency Calls Only (REASON)" / trying to connect
           icon.dataset.level = -1;
-          // logically, we should have "&& !voice.connected" as well but we
-          // already know this.
-          icon.dataset.searching = (!voice.emergencyCallsOnly &&
-                                    voice.state !== 'notSearching');
-          icon.dataset.emergency = (voice.emergencyCallsOnly);
+          // emergencyCallsOnly is always true if voice.connected is false. Show
+          // searching icon if the device is searching. Or show the signal bars
+          // with a red "x", which stands for emergency calls only.
+          icon.dataset.searching = (voice.state === 'searching');
           delete icon.dataset.roaming;
         }
       }

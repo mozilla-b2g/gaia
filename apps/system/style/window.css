@@ -54,6 +54,7 @@
   color: white;
   background: none;
   -moz-box-sizing: border-box;
+  margin-bottom: 1.5rem; /* not overlap by menu while keyboard pop */
 }
 
 .appWindow > .modal-dialog > form.visible {

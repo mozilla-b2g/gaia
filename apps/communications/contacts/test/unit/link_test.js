@@ -6,7 +6,7 @@ requireApp('communications/contacts/test/unit/mock_utils.js');
 requireApp('communications/contacts/test/unit/mock_asyncstorage.js');
 requireApp('communications/contacts/js/import_utils.js');
 requireApp('communications/contacts/js/utilities/dom.js');
-requireApp('communications/contacts/js/utilities/binary_search.js');
+require('/shared/js/binary_search.js');
 requireApp('communications/contacts/js/utilities/templates.js');
 requireApp('communications/contacts/test/unit/mock_linked_contacts.js');
 requireApp('communications/contacts/test/unit/mock_fb.js');

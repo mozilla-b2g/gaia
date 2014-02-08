@@ -203,6 +203,8 @@ var Common = {
 
   dataSimIccIdLoaded: false,
 
+  dataSimIcc: null,
+
   isValidICCID: function(iccid) {
     return typeof iccid === 'string' && iccid.length;
   },
@@ -245,7 +247,7 @@ var Common = {
   // Checks for a SIM change
   checkSIMChange: function(callback, onerror) {
     asyncStorage.getItem('lastSIM', function _compareWithCurrent(lastSIM) {
-      var currentSIM = IccHelper.iccInfo.iccid;
+      var currentSIM = Common.dataSimIccId;
       if (currentSIM === null) {
         console.error('Impossible: or we don\'t have SIM (so this method ' +
                       'should not be called) or the RIL is returning null ' +
@@ -308,6 +310,19 @@ var Common = {
 
   get localize() {
     return navigator.mozL10n.localize;
+  },
+
+  getIccInfo: function _getIccInfo(iccId) {
+    if (!iccId) {
+      return undefined;
+    }
+    var iccManager = window.navigator.mozIccManager;
+    var iccInfo = iccManager.getIccById(iccId);
+    if (!iccInfo) {
+      console.error('Unrecognized iccID: ' + iccId);
+      return undefined;
+    }
+    return iccInfo;
   },
 
   // Returns whether exists an nsIDOMNetworkStatsInterfaces object
@@ -394,8 +409,9 @@ var Common = {
       }
       self.dataSimIccId = iccId;
       self.dataSimIccIdLoaded = true;
+      self.dataSimIcc = self.getIccInfo(iccId);
       if (onsuccess) {
-        onsuccess();
+        onsuccess(iccId);
       }
     };
 
@@ -419,9 +435,9 @@ var Common = {
 
       self.dataSimIccId = iccId;
       self.dataSimIccIdLoaded = true;
-
+      self.dataSimIcc = self.getIccInfo(iccId);
       if (onsuccess) {
-        onsuccess();
+        onsuccess(iccId);
       }
     };
   }

@@ -1,8 +1,9 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/*global Template, Utils, Threads, Contacts, URL, FixedHeader, Threads,
-         WaitingScreen, MozSmsFilter, MessageManager, TimeHeaders */
+/*global Template, Utils, Threads, Contacts, URL, Threads,
+         WaitingScreen, MozSmsFilter, MessageManager, TimeHeaders,
+         Drafts, Thread, ThreadUI */
 /*exported ThreadListUI */
 
 'use strict';
@@ -208,7 +209,6 @@ var ThreadListUI = {
       var grandparent = parent.parentNode;
       grandparent.removeChild(parent.previousSibling);
       grandparent.removeChild(parent);
-      FixedHeader.refresh();
 
       // if we have no more elements, set empty classes
       if (!this.container.querySelector('li')) {
@@ -286,74 +286,51 @@ var ThreadListUI = {
     this.mainWrapper.classList.remove('edit');
   },
 
-  renderThreads: function thlui_renderThreads(threads, renderCallback) {
+  prepareRendering: function thlui_prepareRendering() {
+    this.container.innerHTML = '';
+  },
 
-    // shut down this render
-    var abort = false;
+  startRendering: function thlui_startRenderingThreads() {
+    this.setEmpty(false);
+  },
 
-    // we store the function to kill the previous render on the function itself
-    if (thlui_renderThreads.abort) {
-      thlui_renderThreads.abort();
+  finalizeRendering: function thlui_finalizeRendering(empty) {
+    if (empty) {
+      this.setEmpty(true);
     }
 
+    if (!empty) {
+      TimeHeaders.updateAll('header[data-time-update]');
+    }
+  },
 
-    // TODO: https://bugzilla.mozilla.org/show_bug.cgi?id=854417
-    // Refactor the rendering method: do not empty the entire
-    // list on every render.
-    ThreadListUI.container.innerHTML = '';
+  renderThreads: function thlui_renderThreads(done) {
+    var hasThreads = false;
 
-    if (threads.length) {
-      thlui_renderThreads.abort = function thlui_renderThreads_abort() {
-        abort = true;
-      };
+    this.prepareRendering();
 
-      ThreadListUI.setEmpty(false);
-
-      FixedHeader.init('#threads-container',
-                       '#threads-header-container',
-                       'header');
-      // Edit mode available
-
-      var appendThreads = function(threads, callback) {
-        if (!threads.length) {
-          if (callback) {
-            callback();
-          }
-          return;
-        }
-
-        setTimeout(function appendThreadsDelayed() {
-          if (abort) {
-            return;
-          }
-          ThreadListUI.appendThread(threads.pop());
-          appendThreads(threads, callback);
-        });
-      };
-
-      appendThreads(threads, function at_callback() {
-        // clear up abort method
-        delete thlui_renderThreads.abort;
-        // set the fixed header
-        FixedHeader.refresh();
-        // Boot update of headers
-        TimeHeaders.updateAll('header[data-time-update]');
-        // Once the rendering it's done, callback if needed
-        if (renderCallback) {
-          renderCallback();
-        }
-      });
-    } else {
-      ThreadListUI.setEmpty(true);
-      FixedHeader.refresh();
-
-      // Callback if exist
-      if (renderCallback) {
-        setTimeout(function executeCB() {
-          renderCallback();
-        });
+    function onRenderThread(thread) {
+      /* jshint validthis: true */
+      if (!hasThreads) {
+        hasThreads = true;
+        this.startRendering();
       }
+
+      this.appendThread(thread);
     }
+
+    function onThreadsRendered() {
+      /* jshint validthis: true */
+      this.finalizeRendering(!hasThreads);
+    }
+
+    var renderingOptions = {
+      each: onRenderThread.bind(this),
+      end: onThreadsRendered.bind(this),
+      done: done
+    };
+
+    MessageManager.getThreads(renderingOptions);
   },
 
   createThread: function thlui_createThread(thread) {
@@ -393,19 +370,19 @@ var ThreadListUI = {
   },
 
   insertThreadContainer:
-    function thlui_insertThreadContainer(fragment, timestamp) {
+    function thlui_insertThreadContainer(group, timestamp) {
     // We look for placing the group in the right place.
     var headers = ThreadListUI.container.getElementsByTagName('header');
     var groupFound = false;
     for (var i = 0; i < headers.length; i++) {
       if (timestamp >= headers[i].dataset.time) {
         groupFound = true;
-        ThreadListUI.container.insertBefore(fragment, headers[i]);
+        ThreadListUI.container.insertBefore(group, headers[i].parentNode);
         break;
       }
     }
     if (!groupFound) {
-      ThreadListUI.container.appendChild(fragment);
+      ThreadListUI.container.appendChild(group);
     }
   },
 
@@ -429,7 +406,6 @@ var ThreadListUI = {
       }
       this.appendThread(thread);
       this.setEmpty(false);
-      FixedHeader.refresh();
     }
   },
 
@@ -455,13 +431,13 @@ var ThreadListUI = {
     var threadsContainer = document.getElementById(threadsContainerID);
     // If there is no container we create & insert it to the DOM
     if (!threadsContainer) {
-      // We create the fragment with groul 'header' & 'ul'
-      var threadsContainerFragment =
+      // We create the wrapper with a 'header' & 'ul'
+      var threadsContainerWrapper =
         ThreadListUI.createThreadContainer(timestamp);
       // Update threadsContainer with the new value
-      threadsContainer = threadsContainerFragment.childNodes[1];
-      // Place our new fragment in the DOM
-      ThreadListUI.insertThreadContainer(threadsContainerFragment, timestamp);
+      threadsContainer = threadsContainerWrapper.childNodes[1];
+      // Place our new content in the DOM
+      ThreadListUI.insertThreadContainer(threadsContainerWrapper, timestamp);
     }
 
     // Where have I to place the new thread?
@@ -484,7 +460,7 @@ var ThreadListUI = {
   },
   // Adds a new grouping header if necessary (today, tomorrow, ...)
   createThreadContainer: function thlui_createThreadContainer(timestamp) {
-    var threadContainer = document.createDocumentFragment();
+    var threadContainer = document.createElement('div');
     // Create Header DOM Element
     var headerDOM = document.createElement('header');
     // Append 'time-update' state

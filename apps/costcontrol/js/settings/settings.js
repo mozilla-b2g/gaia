@@ -102,11 +102,25 @@ var Settings = (function() {
         closeSettings();
       });
 
+      function _setResetTimeToDefault(value, old, key, settings) {
+        var firstWeekDay = parseInt(navigator.mozL10n.get('weekStartsOnMonday'),
+                                    10);
+        var defaultResetTime = (settings.trackingPeriod === 'weekly') ?
+                                                                  firstWeekDay :
+                                                                  1;
+        if (settings.resetTime !== defaultResetTime) {
+          ConfigManager.setOption({ resetTime: defaultResetTime });
+        } else {
+          updateNextReset(settings.trackingPeriod, settings.resetTime);
+        }
+      }
+
       function _updateNextReset(value, old, key, settings) {
         updateNextReset(settings.trackingPeriod, settings.resetTime);
       }
+
       ConfigManager.observe('resetTime', _updateNextReset, true);
-      ConfigManager.observe('trackingPeriod', _updateNextReset, true);
+      ConfigManager.observe('trackingPeriod', _setResetTimeToDefault, true);
 
       initialized = true;
 

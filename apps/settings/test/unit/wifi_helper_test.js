@@ -18,6 +18,7 @@ suite('WifiHelper', function() {
           {
             ssid: 'Mozilla',
             bssid: 'xx:xx:xx:xx:xx:xx',
+            capabilities: [],
             security: ['WPA-EAP'],
             relSignalStrength: 67,
             connected: false
@@ -25,6 +26,7 @@ suite('WifiHelper', function() {
           {
             ssid: 'Mozilla-Guest',
             bssid: 'xx:xx:xx:xx:xx:xx',
+            capabilities: [],
             security: [],
             relSignalStrength: 50,
             connected: false
@@ -42,6 +44,19 @@ suite('WifiHelper', function() {
             bssid: 'xx:xx:xx:xx:xx:xx',
             security: ['WEP'],
             relSignalStrength: 89,
+            connected: false
+          },
+          {
+            ssid: 'Another no broadcast',
+            bssid: 'xx:xx:xx:xx:xx:xx',
+            capabilities: [],
+            relSignalStrength: 88,
+            connected: false
+          },
+          {
+            ssid: 'Yet another no broadcast',
+            bssid: 'xx:xx:xx:xx:xx:xx',
+            relSignalStrength: 88,
             connected: false
           }
         ],
@@ -70,13 +85,13 @@ suite('WifiHelper', function() {
     });
 
     test('> getNetworks return 2 networks then getKnownNetworks' +
-      'return 1 network successfully', function() {
+      'return 3 networks successfully', function() {
         var req = WifiHelper.getAvailableAndKnownNetworks();
         var callbackInvokedTimes = 0;
         req.onsuccess = function success() {
           callbackInvokedTimes += 1;
           assert.isTrue(req.result !== null);
-          assert.isTrue(req.result.length === 3);
+          assert.isTrue(req.result.length === 5);
         };
         req.onerror = function error() {
           assert.fail();
@@ -116,6 +131,24 @@ suite('WifiHelper', function() {
       triggerCallback('getNetworks', 'onerror');
       triggerCallback('getKnownNetworks', 'onerror');
       assert.isTrue(callbackInvokedTimes === 1);
+    });
+
+    test('> getCapabilities should not return undefined or null', function() {
+      var req = WifiHelper.getAvailableAndKnownNetworks();
+      req.onsuccess = function success() {
+        assert.isTrue(req.result !== null);
+        assert.isTrue(req.result.length > 0);
+        req.result.forEach(function(network) {
+          var capabilities = WifiHelper.getCapabilities(network);
+          assert.isTrue(capabilities != null);
+        });
+
+      };
+      req.onerror = function error() {
+        assert.fail();
+      };
+      triggerCallback('getNetworks', 'onsuccess');
+      triggerCallback('getKnownNetworks', 'onsuccess');
     });
   });
 

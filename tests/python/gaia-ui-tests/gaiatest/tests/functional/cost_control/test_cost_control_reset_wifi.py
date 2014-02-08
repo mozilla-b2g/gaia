@@ -50,4 +50,6 @@ class TestCostControlReset(GaiaTestCase):
         settings.tap_done()
 
         # wait for usage to be refreshed
-        self.wait_for_condition(lambda m: cost_control.wifi_data_usage_figure == u'0.00 B', message='Wifi usage did not reset back to 0.00 B')
+        self.wait_for_condition(lambda m: cost_control.wifi_data_usage_figure == u'0.00 B',
+                                message='Wifi usage did not reset back to 0.00 B, is currently %s'
+                                        % cost_control.wifi_data_usage_figure)
