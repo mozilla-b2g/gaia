@@ -633,14 +633,12 @@
 
     if (vibrationEnabledOld != vibrationEnabled) {
       setVibrationEnabled(vibrationEnabled);
-      if (!vibrationEnabledOld)
-      {
+      if (!vibrationEnabledOld) {
         window.navigator.vibrate(200);
       }
     }
 
-    if (volume == 0 && vibrationEnabled)
-    {
+    if (volume == 0 && vibrationEnabled) {
       window.navigator.vibrate(200);
     }
 
