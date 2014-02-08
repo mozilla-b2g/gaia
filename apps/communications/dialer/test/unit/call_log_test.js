@@ -10,13 +10,10 @@ requireApp('sms/test/unit/mock_async_storage.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 
 requireApp('communications/shared/test/unit/mocks/mock_notification.js');
-requireApp('communications/contacts/test/unit/mock_fixed_header.js');
-
 
 var mocksHelperForCallLog = new MocksHelper([
   'asyncStorage',
   'CallLogDBManager',
-  'FixedHeader',
   'LazyLoader',
   'LazyL10n'
 ]).init();

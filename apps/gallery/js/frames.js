@@ -18,6 +18,15 @@ var previousFrame = new MediaFrame($('frame1'));
 var currentFrame = new MediaFrame($('frame2'));
 var nextFrame = new MediaFrame($('frame3'));
 
+if (CONFIG_REQUIRED_EXIF_PREVIEW_WIDTH) {
+  previousFrame.setMinimumPreviewSize(CONFIG_REQUIRED_EXIF_PREVIEW_WIDTH,
+                                      CONFIG_REQUIRED_EXIF_PREVIEW_HEIGHT);
+  currentFrame.setMinimumPreviewSize(CONFIG_REQUIRED_EXIF_PREVIEW_WIDTH,
+                                     CONFIG_REQUIRED_EXIF_PREVIEW_HEIGHT);
+  nextFrame.setMinimumPreviewSize(CONFIG_REQUIRED_EXIF_PREVIEW_WIDTH,
+                                  CONFIG_REQUIRED_EXIF_PREVIEW_HEIGHT);
+}
+
 // When this variable is set to true, we ignore any user gestures
 // so we don't try to pan or zoom during a frame transition.
 var transitioning = false;
