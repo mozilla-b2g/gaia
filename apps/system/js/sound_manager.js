@@ -626,7 +626,8 @@
     }
 
     if (vibrationEnabled) {
-      classes.add('vibration');
+      classes.add('vibration'); 
+      window.navigator.vibrate(200);	
     } else {
       classes.remove('vibration');
     }
