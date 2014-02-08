@@ -45,6 +45,10 @@ var Filmstrip = (function() {
 
   // Create the MediaFrame for previews
   var frame = new MediaFrame(mediaFrame);
+  if (CONFIG_REQUIRED_EXIF_PREVIEW_WIDTH) {
+    frame.setMinimumPreviewSize(CONFIG_REQUIRED_EXIF_PREVIEW_WIDTH,
+                                CONFIG_REQUIRED_EXIF_PREVIEW_HEIGHT);
+  }
 
   // Enable panning and zooming for images
   addPanAndZoomHandlers(frame);
