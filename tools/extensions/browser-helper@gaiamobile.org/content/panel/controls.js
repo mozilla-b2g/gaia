@@ -63,8 +63,10 @@ function Workflow() {
 
 Workflow.prototype = {
   reload: function() {
-    var wm = tab.wrappedJSObject.WindowManager
-    var app = wm.getRunningApps()[wm.getDisplayedApp()];
+    var global = tab.wrappedJSObject;
+    var wm = global.AppWindowManager;
+    var app = wm.getActiveApp();
+
     app.reload();
   },
 
