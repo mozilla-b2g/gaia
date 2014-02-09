@@ -180,11 +180,13 @@ var CallLog = {
   render: function cl_render() {
     var self = this;
 
+    var daysToRender = [];
     var chunk = [];
     var prevDate;
     var startDate = new Date().getTime();
     var screenRendered = false;
-    var FIRST_CHUNK_SIZE = 6;
+    var MAX_GROUPS_FOR_FIRST_RENDER = 6;
+    var MAX_DAYS_TO_BATCH_RENDER = 60;
     this._groupCounter = 0;
 
     CallLogDBManager.getGroupList(function logGroupsRetrieved(cursor) {
@@ -196,7 +198,8 @@ var CallLog = {
           self.renderEmptyCallLog();
           self.disableEditMode();
         } else {
-          self.renderChunk(chunk);
+          daysToRender.push(chunk);
+          self.renderSeveralDays(daysToRender);
           if (!screenRendered) {
             PerformanceTestingHelper.dispatch('first-chunk-ready');
           }
@@ -209,20 +212,35 @@ var CallLog = {
 
       self._empty = false;
       var currDate = new Date(cursor.value.date);
-      if (!prevDate || ((currDate - prevDate) === 0)) {
-        self._groupCounter++;
+      self._groupCounter++;
+      if (!prevDate || (currDate.getTime() == prevDate.getTime())) {
         chunk.push(cursor.value);
       } else {
-        if (self._groupCounter >= FIRST_CHUNK_SIZE && !screenRendered) {
+        var renderNow = false;
+        if (self._groupCounter >= MAX_GROUPS_FOR_FIRST_RENDER &&
+            !screenRendered) {
+          renderNow = true;
           screenRendered = true;
           PerformanceTestingHelper.dispatch('first-chunk-ready');
+        } else if (daysToRender.length >= MAX_DAYS_TO_BATCH_RENDER) {
+          renderNow = true;
         }
-        self.renderChunk(chunk);
+        if (renderNow) {
+          self.renderSeveralDays(daysToRender);
+          daysToRender = [];
+        }
+        daysToRender.push(chunk);
         chunk = [cursor.value];
       }
       prevDate = currDate;
       cursor.continue();
     }, 'lastEntryDate', true, true);
+  },
+
+  renderSeveralDays: function cl_renderSeveralDays(chunks) {
+    for (var i = 0, l = chunks.length; i < l; i++) {
+      this.renderChunk(chunks[i]);
+    }
   },
 
   renderChunk: function cl_renderChunk(chunk) {
