@@ -855,14 +855,6 @@ window.addEventListener('load', function loadSettings() {
       'js/telephony_items_handler.js'
     ], function() {
       TelephonySettingHelper.init();
-
-      // show the developer menu only when enabled
-      SettingsListener.observe('developer.menu.enabled', false,
-        function(value) {
-          var item = document.getElementById('menuItem-developer');
-          item.parentElement.hidden = !value;
-        }
-      );
     });
   });
 
