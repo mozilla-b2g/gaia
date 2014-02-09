@@ -180,11 +180,13 @@ var CallLog = {
   render: function cl_render() {
     var self = this;
 
+    var renderChunks = [];
     var chunk = [];
     var prevDate;
     var startDate = new Date().getTime();
     var screenRendered = false;
     var FIRST_CHUNK_SIZE = 6;
+    var INCREMENTAL_RENDER_SIZE = 60;
     this._groupCounter = 0;
 
     CallLogDBManager.getGroupList(function logGroupsRetrieved(cursor) {
@@ -196,7 +198,8 @@ var CallLog = {
           self.renderEmptyCallLog();
           self.disableEditMode();
         } else {
-          self.renderChunk(chunk);
+          renderChunks.push(chunk);
+          self.renderChunkArray(renderChunks);
           if (!screenRendered) {
             PerformanceTestingHelper.dispatch('first-chunk-ready');
           }
@@ -213,11 +216,19 @@ var CallLog = {
         self._groupCounter++;
         chunk.push(cursor.value);
       } else {
+        var renderNow = false;
         if (self._groupCounter >= FIRST_CHUNK_SIZE && !screenRendered) {
+          renderNow = true;
           screenRendered = true;
           PerformanceTestingHelper.dispatch('first-chunk-ready');
+        } else if (renderChunks.length >= INCREMENTAL_RENDER_SIZE) {
+          renderNow = true;
         }
-        self.renderChunk(chunk);
+        if (renderNow) {
+          self.renderChunkArray(renderChunks);
+          renderChunks = [];
+        }
+        renderChunks.push(chunk);
         chunk = [cursor.value];
       }
       prevDate = currDate;
@@ -225,6 +236,12 @@ var CallLog = {
     }, 'lastEntryDate', true, true);
   },
 
+  renderChunkArray: function cl_renderChunkArray(chunks) {
+    for (var i=0, l=chunks.length; i < l; i++) {
+      this.renderChunk(chunks[i]);
+    }
+  },
+  
   renderChunk: function cl_renderChunk(chunk) {
     var callLogSection = this.createSectionForGroup(chunk[0]);
     var phoneNumbers = [];
