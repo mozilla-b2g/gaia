@@ -313,6 +313,7 @@ apps/settings/js/wifi_select_certificate_file.js
 apps/settings/test/marionette/app/regions/feedback.js
 apps/settings/test/marionette/app/regions/improve.js
 apps/settings/test/marionette/tests/improve_settings_test.js
+apps/settings/test/marionette/app/mocks/mock_navigator_moz_time.js
 apps/settings/test/unit/download_api_manager_test.js
 apps/settings/test/unit/download_formatter_test.js
 apps/settings/test/unit/download_helper_test.js
