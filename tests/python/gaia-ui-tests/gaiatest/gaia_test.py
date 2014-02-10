@@ -782,6 +782,14 @@ window.addEventListener('mozbrowserloadend', function loaded(aEvent) {
         self.marionette.session = None
         self.marionette.window = None
 
+    def press_sleep_button(self):
+        self.marionette.execute_script("""
+            window.wrappedJSObject.dispatchEvent(new CustomEvent('mozChromeEvent', {
+              detail: {
+                type: 'sleep-button-press'
+              }
+            }));""")
+
     def turn_screen_off(self):
         self.marionette.execute_script("window.wrappedJSObject.ScreenManager.turnScreenOff(true)")
 
