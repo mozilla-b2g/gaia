@@ -329,24 +329,6 @@ function execute(options) {
   utils.writeContent(init,
     utils.getDistributionFileContent('support', content, distDir));
 
-  // ICC / STK
-  init = utils.getFile(config.GAIA_DIR,
-    'apps', 'system', 'resources', 'icc.json');
-  content = {
-    'defaultURL': 'http://www.mozilla.org/en-US/firefoxos/'
-  };
-
-  utils.writeContent(init,
-    utils.getDistributionFileContent('icc', content, distDir));
-
-  // WAP UA profile url
-  init = utils.getFile(config.GAIA_DIR,
-    'apps', 'system', 'resources', 'wapuaprof.json');
-  content = {};
-
-  utils.writeContent(init,
-    utils.getDistributionFileContent('wapuaprof.json', content, distDir));
-
   // Communications config
   init = utils.getFile(config.GAIA_DIR,
     'apps', 'communications', 'contacts', 'config.json');
