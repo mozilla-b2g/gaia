@@ -703,7 +703,10 @@ ComposeCard.prototype = {
       activity.onsuccess = function success() {
         if (this.result.email) {
           var emt = contactBtn.parentElement.querySelector('.cmp-addr-text');
-          self.insertBubble(emt, this.result.name, this.result.email);
+          if (this.result.name != '')
+            self.insertBubble(emt, this.result.name, this.result.email);
+          else
+            self.insertBubble(emt, this.result.email, this.result.email);
           self.sendButton.setAttribute('aria-disabled', 'false');
         }
       };
