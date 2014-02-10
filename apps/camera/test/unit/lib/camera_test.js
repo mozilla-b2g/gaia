@@ -28,4 +28,5 @@ suite('camera', function() {
   // teardown(function() {
   //   navigator.getDeviceStorage.restore();
   // });
+
 });

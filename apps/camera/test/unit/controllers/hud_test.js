@@ -12,15 +12,17 @@ suite('controllers/hud', function() {
       'views/hud',
       'views/controls',
       'views/viewfinder',
-      'lib/settings'
+      'lib/settings',
+      'lib/setting'
     ], function(
       App, Camera, HudController, HudView,
-      ControlsView, ViewfinderView, Settings
+      ControlsView, ViewfinderView, Settings, Setting
     ) {
       self.HudController = HudController.HudController;
       self.ViewfinderView = ViewfinderView;
       self.ControlsView = ControlsView;
       self.Settings = Settings;
+      self.Setting = Setting;
       self.HudView = HudView;
       self.Camera = Camera;
       self.App = App;

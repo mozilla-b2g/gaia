@@ -2,20 +2,20 @@ define(function(require, exports, module) {
 'use strict';
 
 module.exports = {
-  showSettings: true,
+  showSettings: false,
   mode: {
     title: 'Mode',
     options: [
       {
-        key: 'photo',
-        title: 'Photo'
+        key: 'picture',
+        title: 'Picture'
       },
       {
         key: 'video',
         title: 'Video'
       }
     ],
-    persistent: true
+    persistent: false
   },
 
   cameras: {
@@ -30,7 +30,7 @@ module.exports = {
         title: 'Front'
       }
     ],
-    persistent: true
+    persistent: false
   },
 
   pictureSizes: {

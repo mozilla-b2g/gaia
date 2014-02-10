@@ -83,7 +83,7 @@ suite('activity', function() {
   test('Should return correct modes from parsed mime types', function() {
     var parsed;
 
-    // 'video' and 'photo'
+    // 'video' and 'picture'
     parsed = this.activity.parse({
       source: {
         name: 'pick',
@@ -91,7 +91,7 @@ suite('activity', function() {
       }
     });
 
-    assert.ok(~parsed.modes.indexOf('photo'));
+    assert.ok(~parsed.modes.indexOf('picture'));
     assert.ok(~parsed.modes.indexOf('video'));
 
     // 'video'
@@ -102,10 +102,10 @@ suite('activity', function() {
       }
     });
 
-    assert.ok(!~parsed.modes.indexOf('photo'));
+    assert.ok(!~parsed.modes.indexOf('picture'));
     assert.ok(~parsed.modes.indexOf('video'));
 
-    // 'photo'
+    // 'picture'
     parsed = this.activity.parse({
       source: {
         name: 'pick',
@@ -113,7 +113,7 @@ suite('activity', function() {
       }
     });
 
-    assert.ok(~parsed.modes.indexOf('photo'));
+    assert.ok(~parsed.modes.indexOf('picture'));
     assert.ok(!~parsed.modes.indexOf('video'));
   });
 
@@ -125,7 +125,7 @@ suite('activity', function() {
       }
     });
 
-    assert.ok(~parsed.modes.indexOf('photo'));
+    assert.ok(~parsed.modes.indexOf('picture'));
     assert.ok(~parsed.modes.indexOf('video'));
   });
 
@@ -139,7 +139,7 @@ suite('activity', function() {
       }
     });
 
-    assert.ok(!~parsed.modes.indexOf('photo'));
+    assert.ok(!~parsed.modes.indexOf('picture'));
     assert.ok(~parsed.modes.indexOf('video'));
   });
 });

@@ -48,6 +48,14 @@ suite('app', function() {
     var View = modules.view;
     var App = modules.app;
 
+    if (!navigator.mozCameras) {
+      navigator.mozCameras = {
+        getListOfCameras: function() { return []; },
+        getCamera: function() {},
+        release: function() {}
+      };
+    }
+
     var options = this.options = {
       doc: mocks.doc(),
       win: mocks.win(),
@@ -99,10 +107,12 @@ suite('app', function() {
     // Create the app
     this.app = new App(options);
     this.sandbox.spy(this.app, 'set');
+
   });
 
   teardown(function() {
     this.sandbox.restore();
+    delete navigator.mozCameras;
   });
 
   suite('App()', function() {

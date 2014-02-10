@@ -130,7 +130,7 @@ Activity.prototype.getModes = function(activity) {
   var modes = [];
   var map = {
     video: 'video',
-    image: 'photo'
+    image: 'picture'
   };
 
   if (raw === 'videos') {
