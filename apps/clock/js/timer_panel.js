@@ -7,6 +7,7 @@ var View = require('view');
 
 var Utils = require('utils');
 var Timer = require('timer');
+var Sounds = require('sounds');
 var FormButton = require('form_button');
 var _ = require('l10n').get;
 
@@ -87,11 +88,7 @@ Timer.Panel = function(element) {
 
   var soundMenuConfig = {
     id: 'timer-sound-menu',
-    formatLabel: function(sound) {
-      return (sound === null || sound === '0') ?
-        _('noSound') :
-        _(sound.replace('.', '_'));
-    }
+    formatLabel: Sounds.formatLabel
   };
   this.soundButton = new FormButton(sound, soundMenuConfig);
   this.soundButton.refresh();
