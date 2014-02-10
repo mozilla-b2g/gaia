@@ -12,8 +12,6 @@ suite('camera', function() {
   });
 
   setup(function() {
-    navigator.getDeviceStorage = navigator.getDeviceStorage || function() {};
-    sinon.stub(navigator, 'getDeviceStorage');
     if (!navigator.mozCameras) {
       navigator.mozCameras = {
         getListOfCameras: function() { return []; },
@@ -24,43 +22,37 @@ suite('camera', function() {
     this.camera = new Camera({});
   });
 
-  teardown(function() {
-    navigator.getDeviceStorage.restore();
-  });
-
   suite('camera.toggleCamera', function() {
     test('Should have toggle the cameraNumber', function() {
       var camera = this.camera;
 
       // 1 should toggle to 0
-      camera.set('selectedCamera', 1);
+      camera.set('selectedCamera', 'back');
       camera.toggleCamera();
-      assert.equal(camera.get('selectedCamera'), 0);
+      assert.equal(camera.get('selectedCamera'), 'front');
 
       // 0 should toggle to 1
-      camera.set('selectedCamera', 0);
+      camera.set('selectedCamera', 'front');
       camera.toggleCamera();
-      assert.equal(camera.get('selectedCamera'), 1);
+      assert.equal(camera.get('selectedCamera'), 'back');
     });
   });
 
-  // suite.skip('camera.toggleMode', function() {
-  //   setup(function() {
-  //     this.camera.flash.all = [];
-  //     sinon.stub(this.camera, 'configureFlash');
-  //   });
+  suite('camera.toggleMode', function() {
+    test('Should have toggle the camera mode', function() {
+      var camera = this.camera;
 
-  //   teardown(function() {
-  //     this.camera.configureFlash.restore();
-  //   });
+      // 1 should toggle to 0
+      camera.set('mode', 'photo');
+      camera.toggleMode();
+      assert.equal(camera.get('mode'), 'video');
 
-  //   test('Should call camera.configureFlash' +
-  //        'with the current cameras.flashModes', function() {
-  //     var allFlashModes = this.camera.flash.all;
-  //     this.camera.toggleMode();
-  //     assert.isTrue(this.camera.configureFlash.calledWith(allFlashModes));
-  //   });
-  // });
+     // 0 should toggle to 1
+     camera.set('mode', 'video');
+     camera.toggleMode();
+     assert.equal(camera.get('mode'), 'photo');
+    });
+  });
 
   suite('flash', function() {
     suite('camera.configureFlash', function() {

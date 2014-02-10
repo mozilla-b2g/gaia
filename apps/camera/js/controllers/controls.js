@@ -42,6 +42,7 @@ ControlsController.prototype.bindEvents = function() {
   camera.on('change:videoElapsed', this.onVideoTimeUpdate);
   camera.on('change:recording', this.onRecordingChange);
   camera.on('change:mode', this.onCameraModeChange);
+  camera.on('streamloaded', this.onStreamLoaded);
 
   // Respond to UI events
   controls.on('click:switch', this.onSwitchButtonClick);
@@ -92,22 +93,18 @@ ControlsController.prototype.onVideoTimeUpdate = function(value) {
  *
  */
 ControlsController.prototype.onSwitchButtonClick = function() {
-  var controls = this.controls;
-  var viewfinder = this.viewfinder;
-  var camera = this.camera;
+  this.controls.disableButtons();
+  this.app.emit('cameraToggled');
+};
 
-  camera.toggleMode();
-  controls.disableButtons();
-  viewfinder.fadeOut(onFadeOut);
-
-  function onFadeOut() {
-    camera.loadStreamInto(viewfinder.el, onStreamLoaded);
-  }
-
-  function onStreamLoaded() {
-    controls.enableButtons();
-    viewfinder.fadeIn();
-  }
+/**
+*
+* Fades the viewfinder in
+* when the camera preview stream is available
+*
+*/
+ControlsController.prototype.onStreamLoaded = function() {
+  this.controls.enableButtons();
 };
 
 /**

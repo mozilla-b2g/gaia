@@ -52,12 +52,12 @@ suite('controllers/camera', function() {
 
   suite('CameraController()', function() {
     setup(function() {
-      sinon.stub(Controller.prototype, 'setupCamera');
+      sinon.stub(Controller.prototype, 'start');
       sinon.stub(Controller.prototype, 'teardownCamera');
     });
 
     teardown(function() {
-      Controller.prototype.setupCamera.restore();
+      Controller.prototype.start.restore();
       Controller.prototype.teardownCamera.restore();
     });
 
@@ -73,16 +73,16 @@ suite('controllers/camera', function() {
       assert.isTrue(this.app.camera.set.calledWith('mode', 'video'));
     });
 
-    test('Should setup camera on app `boot`', function() {
+    test('Should start camera on app `boot`', function() {
       this.controller = new Controller(this.app);
       this.app.emit('boot');
-      assert.isTrue(Controller.prototype.setupCamera.called);
+      assert.isTrue(Controller.prototype.start.called);
     });
 
-    test('Should setup camera on app `focus`', function() {
+    test('Should start camera on app `focus`', function() {
       this.controller = new Controller(this.app);
       this.app.emit('focus');
-      assert.isTrue(Controller.prototype.setupCamera.called);
+      assert.isTrue(Controller.prototype.start.called);
     });
 
     test('Should teardown camera on app `blur`', function() {
