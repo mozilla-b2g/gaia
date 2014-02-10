@@ -711,6 +711,7 @@ apps/settings/test/unit/sim_settings_helper_test.js
 apps/settings/test/unit/simcard_manager_simcard_helper_test.js
 apps/settings/test/unit/toaster_test.js
 apps/settings/test/unit/wifi_helper_test.js
+apps/settings/test/unit/setup.js
 apps/system/emergency-call/js/keypad.js
 apps/system/js/accessibility.js
 apps/system/js/activity_window.js
