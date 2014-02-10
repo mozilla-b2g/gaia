@@ -1,0 +1,83 @@
+/**
+  Zoom Bar Container
+
+  Dimensions: 20px x 300px
+ */
+.zoom-bar {
+  cursor: pointer;
+  display: inline-block;
+  position: relative;
+  padding: 30px 8.75px;
+}
+
+/**
+  Zoom Bar
+ */
+.zoom-bar-inner {
+  background: linear-gradient(to top,
+    rgba(255,255,255,1) 0%,
+    rgba(113,145,155,0.75) 0%);
+  display: block;
+  position: relative;
+  width: 2px;
+  height: 240px;
+}
+
+.zoom-bar-inner:before,
+.zoom-bar-inner:after {
+  border-radius: 100%;
+  content: '';
+  display: block;
+  position: absolute;
+}
+
+/**
+  Max Zoom Indicator
+ */
+.zoom-bar-inner:before {
+  background: #71919b;
+  top: -36px;
+  left: -5px; /* (zoom-bar-inner.width - width) / 2 */
+  width: 12px;
+  height: 12px;
+  opacity: 0.75;
+}
+
+/**
+  Min Zoom Indicator
+ */
+.zoom-bar-inner:after {
+  background: #ffffff;
+  bottom: -33px;
+  left: -2px; /* (zoom-bar-inner.width - width) / 2 */
+  width: 6px;
+  height: 6px;
+  opacity: 1;
+}
+
+/**
+  Zoom Scrubber
+ */
+.zoom-bar-handle {
+  display: block;
+  position: absolute;
+  bottom: 0%;
+  left: 50%;
+  width: 0;
+  height: 0;
+}
+
+.zoom-bar-handle:before {
+  background: #93bac2;
+  border: 1.5px solid #ffffff;
+  border-radius: 100%;
+  content: '';
+  display: block;
+  position: absolute;
+  margin-top: -10.25px;  /* -(width + (border-width * 2)) / 2 */
+  margin-left: -10.25px; /* -(width + (border-width * 2)) / 2 */
+  top: 0;
+  left: 0;
+  width: 17.5px;
+  height: 17.5px;
+}

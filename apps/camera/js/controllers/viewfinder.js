@@ -40,6 +40,7 @@ ViewfinderController.prototype.configure = function() {
 ViewfinderController.prototype.bindEvents = function() {
   this.app.settings.on('change:grid', this.viewfinder.setter('grid'));
   this.viewfinder.on('click', this.onViewfinderClick);
+  this.viewfinder.on('scaleChange', this.onScaleChange);
   this.app.on('camera:configured', this.loadStream);
   this.app.on('camera:configured', this.updatePreview);
   this.app.on('blur', this.onBlur);
@@ -57,6 +58,12 @@ ViewfinderController.prototype.updatePreview = function() {
   // Fade in 100ms later to avoid
   // seeing viewfinder being resized
   setTimeout(this.viewfinder.fadeIn, 100);
+};
+
+ViewfinderController.prototype.onScaleChange = function(scale) {
+  window.c = this.camera.mozCamera;
+  console.log(scale);
+  this.camera.mozCamera.zoom = scale;
 };
 
 /**

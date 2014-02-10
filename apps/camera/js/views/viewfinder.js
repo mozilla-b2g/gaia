@@ -6,7 +6,9 @@ define(function(require, exports, module) {
  */
 
 var bind = require('lib/bind');
+var find = require('lib/find');
 var CameraUtils = require('lib/camera-utils');
+var ZoomBar = require('lib/zoom-bar');
 var debug = require('debug')('view:viewfinder');
 var constants = require('config/camera');
 var View = require('vendor/view');
@@ -20,7 +22,8 @@ var MAX_VIEWFINDER_SCALE = constants.MAX_VIEWFINDER_SCALE;
 var lastTouchA = null;
 var lastTouchB = null;
 var isScaling = false;
-var scale = 1.0;
+var isScalingEnabled = true;
+var scale = MIN_VIEWFINDER_SCALE;
 var scaleSizeTo = {
   fill: CameraUtils.scaleSizeToFillViewport,
   fit: CameraUtils.scaleSizeToFitViewport
@@ -62,15 +65,45 @@ module.exports = View.extend({
 
   initialize: function() {
     this.render();
+
+    // Bind events
     bind(this.el, 'click', this.onClick);
-    this.els.video.autoplay = true;
+
     this.on('inserted', raf(this.getSize));
+
+    bind(this.el, 'touchstart', this.onTouchStart);
+    bind(this.el, 'touchmove', this.onTouchMove);
+    bind(this.el, 'touchend', this.onTouchEnd);
+    bind(this.els.zoomBar, 'change', this.onZoomBarChange);
   },
 
   render: function() {
     this.el.innerHTML = this.template();
+
+    // Find elements
     this.els.frame = this.find('.js-frame');
     this.els.video = this.find('.js-video');
+    this.els.zoomBar = find('.zoom-bar', this.el);
+
+    // Initialize ZoomBar
+    this.zoomBar = new ZoomBar(this.els.zoomBar);
+  },
+
+  template: function() {
+    return '<div class="viewfinder_frame js-frame">' +
+        '<video class="viewfinder_video js-video" autoplay></video>' +
+      '</div>' +
+      '<div class="viewfinder_grid">' +
+        '<div class="row-1"></div>' +
+        '<div class="row-2"></div>' +
+        '<div class="col-1"></div>' +
+        '<div class="col-2"></div>' +
+      '</div>' +
+      '<div class="zoom-bar">' +
+        '<div class="zoom-bar-inner">' +
+          '<div class="zoom-bar-handle"></div>' +
+        '</div>' +
+      '</div>';
   },
 
   onClick: function() {
@@ -83,6 +116,8 @@ module.exports = View.extend({
       lastTouchA = evt.touches[0];
       lastTouchB = evt.touches[1];
       isScaling = true;
+
+      evt.preventDefault();
     }
   },
 
@@ -118,10 +153,46 @@ module.exports = View.extend({
     };
   },
 
+  onZoomBarChange: function(evt) {
+    var value = evt.detail / 100;
+    var range = MAX_VIEWFINDER_SCALE - MIN_VIEWFINDER_SCALE;
+    var scale = (range * value) + MIN_VIEWFINDER_SCALE;
+
+    this.setScale(scale);
+  },
+
+  enableScaling: function() {
+    isScalingEnabled = true;
+  },
+
+  disableScaling: function() {
+    this.setScale(MIN_VIEWFINDER_SCALE);
+
+    isScalingEnabled = false;
+  },
+
   setScale: function(scale) {
+    if (!isScalingEnabled) {
+      return;
+    }
+
     scale = Math.min(Math.max(scale, MIN_VIEWFINDER_SCALE),
                      MAX_VIEWFINDER_SCALE);
-    this.els.frame.style.transform = 'scale(' + scale + ', ' + scale + ')';
+
+    this.emit('scaleChange', scale);
+
+    if (scale > MIN_VIEWFINDER_SCALE) {
+      this.el.classList.add('zooming');
+    }
+
+    else {
+      this.el.classList.remove('zooming');
+    }
+
+    var range = MAX_VIEWFINDER_SCALE - MIN_VIEWFINDER_SCALE;
+    var percent = (scale - MIN_VIEWFINDER_SCALE) / range * 100;
+
+    this.zoomBar.setValue(percent);
   },
 
   setPreviewStream: function(previewStream) {
@@ -174,18 +245,6 @@ module.exports = View.extend({
       mirrored, scaleType, yOffset);
 
     return this;
-  },
-
-  template: function() {
-    return '<div class="viewfinder_frame js-frame">' +
-      '<video class="viewfinder_video js-video"></video>' +
-      '<div class="viewfinder_grid">' +
-        '<div class="row-1"></div>' +
-        '<div class="row-2"></div>' +
-        '<div class="col-1"></div>' +
-        '<div class="col-2"></div>' +
-      '</div>' +
-    '</div>';
   }
 });
 
