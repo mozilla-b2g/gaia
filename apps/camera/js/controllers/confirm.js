@@ -100,12 +100,12 @@ ConfirmController.prototype.onSelectMedia = function() {
     media.poster = this.newMedia.poster.blob;
   } else { // Is Image
     media.type = 'image/jpeg';
-    needsResizing = this.newMedia.width || this.newMedia.height;
+    needsResizing = activity.data.width || activity.data.height;
     if (needsResizing) {
       resizeImage({
         blob: this.newMedia.blob,
-        width: this.newMedia.width,
-        height: this.newMedia.height
+        width: activity.data.width,
+        height: activity.data.height
       }, function(newBlob) {
         media.blob = newBlob;
         activity.postResult(media);
