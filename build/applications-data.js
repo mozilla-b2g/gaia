@@ -208,6 +208,8 @@ function customizeHomescreen(options) {
   let swipe_friction = 0.1;
   // Page transition duration defined in ms (300 ms by default)
   let transition_duration = 300;
+  // Default homescreen background
+  let background_url = 'resources/images/backgrounds/default.png';
 
   if (customize.swipe) {
     if (customize.swipe.threshold)
@@ -216,6 +218,10 @@ function customizeHomescreen(options) {
       swipe_friction = customize.swipe.friction;
     if (customize.swipe.transition_duration)
       transition_duration = customize.swipe.transition_duration;
+  }
+
+  if (customize.background) {
+    background_url = customize.background.url || background_url;
   }
 
   // if we disabled search_page
@@ -272,6 +278,10 @@ function customizeHomescreen(options) {
     prediction: {
       enabled: true,
       lookahead: 16  // 60fps = 16ms per frame
+    },
+
+    background: {
+      url: background_url
     },
 
     grid: customize.homescreens.map(
