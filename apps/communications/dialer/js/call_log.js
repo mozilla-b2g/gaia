@@ -932,8 +932,9 @@ var CallLog = {
       primInfoCont.textContent = primaryInfo;
     }
 
-    if (contact && contact.photo && contact.photo[0]) {
-      var image_url = contact.photo[0];
+    var photo = ContactPhotoHelper.getThumbnail(contact);
+    if (photo) {
+      var image_url = photo;
       var photoURL;
       var isString = (typeof image_url == 'string');
       contactPhoto.src = isString ? image_url : URL.createObjectURL(image_url);
