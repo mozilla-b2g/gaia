@@ -96,13 +96,43 @@ var FxAccountsManager = {
           });
         })(methodName);
         break;
+      case 'refreshAuthentication':
+        (function(methodName) {
+          var accountId = event.detail.accountId;
+          if (!accountId) {
+            self.sendPortMessage({ methodName: methodName,
+                                   error: 'NO_VALID_ACCOUNTID' });
+            return;
+          }
+
+          FxAccountsUI.refreshAuthentication(accountId, function(data) {
+            self.sendPortMessage({ methodName: methodName, data: data });
+          }, function(error) {
+            self.sendPortMessage({ methodName: methodName, error: error });
+          });
+        })(methodName);
+        break;
     }
   },
 
-  _sendContentEvent: function fxa_mgmt_sendContentEvent(aMsg) {
+  _sendContentEvent: function fxa_mgmt_sendContentEvent(msg) {
     var event = document.createEvent('CustomEvent');
-    event.initCustomEvent('mozFxAccountsRPContentEvent', true, true, aMsg);
+    event.initCustomEvent('mozFxAccountsRPContentEvent', true, true, msg);
     window.dispatchEvent(event);
+  },
+
+  _uiSuccessCb: function fxa_mgmt_uiSuccessCb(result) {
+    this._sendContentEvent({
+      id: message.id,
+      result: result
+    });
+  },
+
+  _uiErrorCb: function fxa_mgmt_uiErrorCb(error) {
+    this._sendContentEvent({
+      id: message.id,
+      error: error
+    });
   },
 
   handleEvent: function fxa_mgmt_handleEvent(event) {
@@ -115,17 +145,18 @@ var FxAccountsManager = {
 
     switch (message.eventName) {
       case 'openFlow':
-        FxAccountsUI.login(function(result) {
-          FxAccountsManager._sendContentEvent({
-            id: message.id,
-            result: result
-          });
-        }, function(error) {
-          FxAccountsManager._sendContentEvent({
-            id: message.id,
-            error: error
-          });
-        });
+        FxAccountsUI.login(this._uiSuccessCb.bind(this),
+                           this._uiErrorCb.bind(this));
+        break;
+      case 'refreshAuthentication':
+        var accountId = message.accountId;
+        if (!accountId) {
+          console.error('No account id specified');
+          return;
+        }
+        FxAccountsUI.refreshAuthentication(accountId,
+                                           this._uiSucessCb.bind(this),
+                                           this._uiErrorCb.bind(this));
         break;
       case 'onlogin':
       case 'onverifiedlogin':

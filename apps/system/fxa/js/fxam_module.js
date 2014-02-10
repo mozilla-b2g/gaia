@@ -22,6 +22,10 @@ var FxaModule = (function() {
       // handle "back" button presses.
     },
 
+    onDone: function fxam_onDone(doneCallback) {
+      doneCallback();
+    },
+
     importElements: function fxam_importElements() {
       var args = [].slice.call(arguments);
       // context to import into is the first argument to importElements
