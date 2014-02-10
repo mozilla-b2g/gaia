@@ -647,3 +647,12 @@ bubble above the key when you tap and hold. */
   margin: 0;
   padding: 0;
 }
+
+/* Bangla Probhat */
+.keyboard-key > .visual-wrapper > span[data-label="ো"] {
+  font-size: 1.6rem;
+}
+
+.keyboard-key > .visual-wrapper > span[data-label="া"] {
+  font-size: 1.7rem;
+}
