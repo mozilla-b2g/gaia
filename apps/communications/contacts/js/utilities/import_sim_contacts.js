@@ -79,6 +79,7 @@ function SimContactsImporter(targetIcc) {
       '/shared/js/simple_phone_matcher.js',
       '/contacts/js/contacts_matcher.js',
       '/contacts/js/contacts_merger.js',
+      '/contacts/js/utilities/image_thumbnail.js',
       '/contacts/js/merger_adapter.js'
     ], function loaded() {
       loadedMatch = true;

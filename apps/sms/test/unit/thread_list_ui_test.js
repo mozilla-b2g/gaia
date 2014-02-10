@@ -19,6 +19,7 @@ requireApp('sms/test/unit/mock_message_manager.js');
 requireApp('sms/test/unit/mock_messages.js');
 requireApp('sms/test/unit/mock_utils.js');
 requireApp('sms/test/unit/mock_waiting_screen.js');
+require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 require('/test/unit/thread_list_mockup.js');
 require('/test/unit/utils_mockup.js');
 
@@ -26,7 +27,8 @@ var mocksHelperForThreadListUI = new MocksHelper([
   'MessageManager',
   'Utils',
   'WaitingScreen',
-  'TimeHeaders'
+  'TimeHeaders',
+  'ContactPhotoHelper'
 ]).init();
 
 suite('thread_list_ui', function() {

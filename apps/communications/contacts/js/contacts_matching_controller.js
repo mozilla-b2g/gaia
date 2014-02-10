@@ -125,7 +125,8 @@ if (!contacts.MatchingController) {
 
     function showUI(results) {
       matchings = results;
-      LazyLoader.load('/contacts/js/contacts_matching_ui.js',
+      LazyLoader.load(['/contacts/js/contacts_matching_ui.js',
+                       '/shared/js/contact_photo_helper.js'],
                         function done() {
         contacts.MatchingUI.load(type, contact, results, function() {
           // We start the open-animation when the UI is ready
@@ -168,7 +169,9 @@ if (!contacts.MatchingController) {
         return;
       }
 
-      LazyLoader.load('/contacts/js/contacts_merger.js', function loaded() {
+      LazyLoader.load(['/contacts/js/contacts_merger.js',
+                       '/contacts/js/utilities/image_thumbnail.js'],
+      function loaded() {
         var cb = function cb() {
           Curtain.hide(function() {
             parent.postMessage({

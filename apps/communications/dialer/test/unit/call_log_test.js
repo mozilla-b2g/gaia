@@ -1,14 +1,18 @@
 requireApp('communications/dialer/js/call_log.js');
 requireApp('communications/dialer/js/utils.js');
 requireApp('communications/dialer/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 
-if (!this.LazyL10n) {
-  this.LazyL10n = null;
-}
+var mocksHelperForCallLog = new MocksHelper([
+  'LazyL10n',
+  'ContactPhotoHelper'
+]).init();
 
 suite('dialer/call_log', function() {
   var realL10n;
   var realCallLogL10n;
+
+  mocksHelperForCallLog.attachTestHelpers();
 
   suiteSetup(function() {
     realL10n = navigator.mozL10n;

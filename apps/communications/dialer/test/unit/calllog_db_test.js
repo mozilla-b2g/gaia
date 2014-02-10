@@ -2,17 +2,20 @@ requireApp('communications/dialer/js/call_log_db.js');
 requireApp('communications/dialer/js/utils.js');
 requireApp('communications/dialer/test/unit/mock_lazy_loader.js');
 requireApp('communications/dialer/test/unit/mock_contacts.js');
+require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 
 if (!this.Contacts) {
   this.Contacts = null;
 }
 
-if (!this.LazyLoader) {
-  this.LazyLoader = null;
-}
+var mocksHelperForCallLogDB = new MocksHelper([
+  'LazyLoader',
+  'ContactPhotoHelper'
+]).init();
 
 suite('dialer/call_log_db', function() {
-  var realLazyLoader;
+  mocksHelperForCallLogDB.attachTestHelpers();
+
   var realContacts;
 
   // According to mock_contacts.js, 123 will have an associated test contact
@@ -78,15 +81,11 @@ suite('dialer/call_log_db', function() {
   }
 
   setup(function() {
-    realLazyLoader = window.LazyLoader;
-    window.LazyLoader = MockLazyLoader;
-
     realContacts = window.Contacts;
     window.Contacts = MockContacts;
   });
 
   teardown(function() {
-    window.LazyLoader = realLazyLoader;
     window.Contacts = realContacts;
   });
 

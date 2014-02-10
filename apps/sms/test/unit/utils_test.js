@@ -1,5 +1,5 @@
-/*global MockL10n, Utils, MockContact, FixturePhones,
-         MockContacts, MockMozPhoneNumberService */
+/*global MockL10n, Utils, MockContact, FixturePhones, MockContactPhotoHelper,
+         MockContacts, MockMozPhoneNumberService, MocksHelper */
 
 'use strict';
 
@@ -7,9 +7,17 @@ requireApp('sms/test/unit/mock_contact.js');
 requireApp('sms/test/unit/mock_contacts.js');
 requireApp('sms/test/unit/mock_l10n.js');
 requireApp('sms/test/unit/mock_navigator_mozphonenumberservice.js');
+require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 requireApp('sms/js/utils.js');
 
+var MocksHelperForUtilsUnitTest = new MocksHelper([
+  'ContactPhotoHelper'
+]).init();
+
+
 suite('Utils', function() {
+  MocksHelperForUtilsUnitTest.attachTestHelpers();
+
   var nativeMozL10n = navigator.mozL10n;
   var nmpns = navigator.mozPhoneNumberService;
 
@@ -252,9 +260,8 @@ suite('Utils', function() {
 
     test('(number, contact, { photoURL: true })', function() {
       var contact = new MockContact();
-      contact.photo = [
-        new Blob(['foo'], { type: 'text/plain' })
-      ];
+      var blob = new Blob(['foo'], { type: 'text/plain' });
+      this.sinon.stub(MockContactPhotoHelper, 'getThumbnail').returns(blob);
 
       var details = Utils.getContactDetails('999', contact, {
         photoURL: true

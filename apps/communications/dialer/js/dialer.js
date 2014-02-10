@@ -477,8 +477,10 @@ var NavbarManager = {
       case '#call-log-view':
         checkContactsTab();
         this.ensureResources(function() {
-          recent.classList.add('toolbar-option-selected');
-          CallLog.init();
+          LazyLoader.load(['/shared/js/contact_photo_helper.js'], function() {
+            recent.classList.add('toolbar-option-selected');
+            CallLog.init();
+          });
         });
         break;
       case '#contacts-view':
