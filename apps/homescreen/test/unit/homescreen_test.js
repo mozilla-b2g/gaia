@@ -84,7 +84,7 @@ suite('homescreen.js >', function() {
     assert.deepEqual(defaultURL, currentSetting);
   });
 
-  test(' Homescreen Correctly Sets Wallpaper ', function() {
+  test(' Homescreen correctly sets wallpaper ', function() {
     var newWallpaper = 'testFakeBackground.png';
     var wallpaperURL = new SettingsURL();
     var changedURL = 'url(\"' + wallpaperURL.set(newWallpaper) + '\")';

@@ -62,6 +62,7 @@ var Configurator = (function() {
   }
 
   function loadFile(file, successCallback, errorCallback) {
+
     try {
       var xhr = new XMLHttpRequest();
       xhr.overrideMimeType('application/json');

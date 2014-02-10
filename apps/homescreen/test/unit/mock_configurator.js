@@ -34,7 +34,10 @@
     'https://aHost/aMan8' : {
       'screen' : 2,
       'manifest' : 'https://aHost/aMan6',
-      'location': 0},
+      'location': 0}
+  };
+
+  var conf = {
     // Make sure this is the same as in
     // application-data. If you change it in one,
     // change it in both
@@ -47,7 +50,7 @@
     mSimPresentOnFirstBoot: true,
     mIsSVReady: true,
     getSection: function(section) {
-      return singleVariantConf[section];
+      return conf[section] || singleVariantConf[section];
     },
 
     getSingleVariantApps: function() {
