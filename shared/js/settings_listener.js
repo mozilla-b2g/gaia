@@ -79,4 +79,3 @@ var SettingsListener = {
     });
   }
 };
-

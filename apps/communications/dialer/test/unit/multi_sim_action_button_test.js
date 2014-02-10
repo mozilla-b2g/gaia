@@ -104,6 +104,7 @@ suite('multi SIM action button', function() {
   });
 
   setup(function() {
+    MockNavigatorSettings.mSyncRepliesOnly = true;
     phoneNumber = '';
     button = document.createElement('button');
     initSubject();
