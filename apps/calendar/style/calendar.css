@@ -68,7 +68,5 @@ html, body {
 #week-view .sidebar,
 #week-view .scroll > .children,
 .day-events > .hour {
-  background-color: #ffffff;
-
+  background-color: #fff;
 }
-
