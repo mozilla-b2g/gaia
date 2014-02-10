@@ -132,7 +132,6 @@ Setting.prototype.updateSelected = function(options) {
  */
 Setting.prototype.configureOptions = function(values) {
   var optionsHash = this.get('optionsHash');
-  var isArray = Array.isArray(values);
   var silent = { silent: true };
   var options = [];
 
@@ -141,13 +140,15 @@ Setting.prototype.configureOptions = function(values) {
       var valueIsObject = typeof value === 'object';
       var option;
 
-      // If we're iterating an object the key
-      // is derived from the object key. If we're
-      // iterating an array the key is derived
-      // from the value:
-      // 1. Array: ['key1', 'key2' ]
+      // Convert string values to objects
+      // to make deriving the option key
+      // a little simple in the next step.
+      value = typeof value === 'string' ? { key: value } : value;
+
+      // Keys can be derived in several ways:
+      // 1. Array: [{ key: 'key1' }, { key: 'key2' }]
       // 2. Object: { key1: {}, key2: {} }
-      key = isArray ? value : key;
+      key = value.key || key;
       option = optionsHash[key];
 
       // Skip if no matching
@@ -155,7 +156,12 @@ Setting.prototype.configureOptions = function(values) {
       if (!option) { return; }
 
       // If the value is an object, we store it.
-      if (valueIsObject) { option.value = value; }
+      // But as we accept options objects as values
+      // we don't want to set the value of the option to itself
+      if (valueIsObject && value !== option) {
+        option.value = value;
+      }
+
       options.push(option);
     });
 
@@ -164,6 +170,7 @@ Setting.prototype.configureOptions = function(values) {
 
   this.set('options', options, silent);
   this.updateSelected(silent);
+  debug('options configured for %s', this.key, options);
 };
 
 /**

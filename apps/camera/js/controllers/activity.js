@@ -5,6 +5,7 @@ define(function(require, exports, module) {
  * Dependencies
  */
 
+var debug = require('debug')('controller:activity');
 var bindAll = require('lib/bind-all');
 
 /**
@@ -34,10 +35,11 @@ ActivityController.prototype.bindEvents = function() {
 };
 
 ActivityController.prototype.configureMediaSizes = function() {
+  debug('configure media sizes');
   var activity = this.app.activity;
   if (activity.active) {
-    this.configureActivityPictureSize(activity.data);
-    this.configureActivityVideoSize(activity.data);
+    this.configurePictureSize(activity.data);
+    this.configureVideoSize(activity.data);
   }
 };
 
@@ -54,11 +56,12 @@ ActivityController.prototype.configurePictureSize = function(data) {
 
   if (data.width || data.height) {
     options = [pickBySize(options, data)];
+    debug('picked picture size ', JSON.stringify(options));
     setting.configureOptions(options);
   }
 };
 
-ActivityController.prototype.configureActivityVideoSize = function(data) {
+ActivityController.prototype.configureVideoSize = function(data) {
   var setting = this.app.settings.recorderProfiles;
   var maxFileSize = data.maxFileSizeBytes;
   var options = setting.get('options');
@@ -78,11 +81,13 @@ function getPictureSizesSmallerThan(options, bytes) {
 }
 
 function pickBySize(options, target) {
+  debug('picking closest picture size');
+
   var width = target.width || 0;
   var height = target.height || 0;
 
   return options.reduce(function(result, option) {
-    var resultSize = result.value;
+    var resultSize = result && result.value;
     var size = option.value;
 
     var largerThanTarget =

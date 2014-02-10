@@ -59,7 +59,7 @@ Activity.prototype.check = function(done) {
     self.active = true;
     self.data = data;
     self.raw = activity;
-    debug('parsed \'%s\' activity', data.name);
+    debug('parsed \'%s\' activity', data.name, JSON.stringify(data));
     done();
   }
 };
@@ -74,7 +74,7 @@ Activity.prototype.check = function(done) {
 Activity.prototype.parse = function(activity) {
   var data = activity.source.data;
   data.name = activity.source.name;
-  data.modes = this.getTypes(activity);
+  data.modes = this.getModes(activity);
   debug('parsed', data);
   return data;
 };
@@ -127,6 +127,7 @@ Activity.prototype.reset = function() {
  */
 Activity.prototype.getModes = function(activity) {
   var raw = activity.source.data.type || ['image/*', 'video/*'];
+  var modes = [];
   var map = {
     video: 'video',
     image: 'photo'
@@ -138,10 +139,12 @@ Activity.prototype.getModes = function(activity) {
 
   // Make sure it's an array
   raw = [].concat(raw);
-  return raw.filter(function(item) {
+  raw.forEach(function(item) {
     var type = item.split('/')[0];
-    return map[type];
+    if (map[type]) { modes.push(map[type]); }
   });
+
+  return modes;
 };
 
 });

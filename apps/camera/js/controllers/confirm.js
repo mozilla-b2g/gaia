@@ -17,9 +17,8 @@ var bindAll = require('lib/bind-all');
  * Exports
  */
 
-module.exports = function(options) {
-  return new ConfirmController(options);
-};
+module.exports = function(options) { return new ConfirmController(options); };
+module.exports.ConfirmController = ConfirmController;
 
 /**
  * Initialize a new `ConfirmController`
@@ -27,11 +26,10 @@ module.exports = function(options) {
  * @param {Object} options
  */
 function ConfirmController(app) {
-  debug('initializing');
   this.activity = app.activity;
+  this.camera = app.camera;
   this.container = app.el;
   this.app = app;
-  this.camera = app.camera;
 
   // Allow these dependencies
   // to be injected if need be.
@@ -40,7 +38,6 @@ function ConfirmController(app) {
 
   bindAll(this);
   this.bindEvents();
-
   debug('initialized');
 }
 
@@ -89,8 +86,8 @@ ConfirmController.prototype.onNewMedia = function(newMedia) {
 };
 
 ConfirmController.prototype.onSelectMedia = function() {
-  var needsResizing;
   var activity = this.activity;
+  var needsResizing;
   var media = {
     blob: this.newMedia.blob
   };
