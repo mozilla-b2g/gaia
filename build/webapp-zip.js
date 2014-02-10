@@ -372,11 +372,6 @@ function execute(options) {
       }
     }
 
-    if (webapp.sourceDirectoryName === 'wallpaper' && gaia.distributionDir &&
-      utils.getFile(gaia.distributionDir, 'wallpapers').exists()) {
-      customizeFiles(zip, 'wallpapers', 'resources/320x480/', webapp);
-    }
-
     if (webapp.sourceDirectoryName === 'homescreen' && gaia.distributionDir) {
       let customization = utils.getFile(gaia.distributionDir,
         'temp', 'apps', 'conf', 'singlevariantconf.json');

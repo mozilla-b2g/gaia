@@ -47,6 +47,26 @@ suite('Distribution mechanism', function() {
       'whitelist[0] should equal "9871010079"');
   }
 
+  function validateWallpaper() {
+    var zip = new AdmZip(path.join(process.cwd(), 'profile',
+      'webapps', 'wallpaper.gaiamobile.org', 'application.zip'));
+    var listText = zip.readAsText(
+      zip.getEntry('resources/320x480/list.json'));
+    assert.isNotNull(listText, 'resources/320x480/list.json should exist');
+    var list = JSON.parse(listText);
+    var expectedList = [
+      "efefef.png",
+      "FXOS_Illus_Blocks.png",
+      "FXOS_Illus_Fox_Nature.png",
+      "FXOS_Illus_Mountains.png"
+    ];
+    assert.deepEqual(list, expectedList,
+      'list should match the expected list.');
+
+    var file = zip.readFile(zip.getEntry('resources/320x480/efefef.png'));
+    assert.isNotNull(file, 'rresources/320x480/efefef.png should exist');
+  }
+
   test('build with GAIA_DISTRIBUTION_DIR', function(done) {
     var distDir = path.join(process.cwd(), 'build', 'test', 'resources',
       'distribution_test');
