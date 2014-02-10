@@ -59,14 +59,10 @@ li .button.icon-dialog:before {
 #edit-alarm {
   overflow: auto;
   width: calc(100% - 3rem);
-  height: calc(100% - 13.4rem);
+  height: calc(100% - 5rem);
   padding: 0 1.5rem;
 
   pointer-events: auto;
-}
-
-.new #edit-alarm {
-  height: calc(100% - 5rem);
 }
 
 .new #delete-menu {
