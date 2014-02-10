@@ -278,6 +278,11 @@ Calendar.ConflictSpan = (function() {
           } else {
             el.classList.remove('many-overlaps');
           }
+          if (numCols > 1) {
+            el.classList.add('has-overlaps');
+          } else {
+            el.classList.remove('has-overlaps');
+          }
         }
       }
     }
@@ -414,6 +419,7 @@ Calendar.ns('Utils').Overlap = (function() {
       var el = this.elements[busytime._id];
       el.style.width = '';
       el.style.left = '';
+      el.classList.remove('has-overlaps', 'many-overlaps');
     }
 
   };

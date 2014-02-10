@@ -49,13 +49,17 @@ Calendar.Calc = (function() {
      * a display hour localizes for am/pm
      */
     formatHour: function(hour) {
+      var format = navigator.mozL10n.get('hour-format');
+      return this._formatHour(hour, format);
+    },
+
+    /**
+     * formats a numeric value for an hour
+     */
+    _formatHour: function(hour, format) {
       if (hour === Calc.ALLDAY) {
         return Calc.ALLDAY;
       }
-
-      var format = navigator.mozL10n.get('hour-format');
-
-      format = format || '%I %p';
 
       Calc._hourDate.setHours(hour);
 
@@ -64,14 +68,23 @@ Calendar.Calc = (function() {
         format
       );
 
-
       // remove leading zero
-      // XXX: rethink this?
-      if (result[0] == '0') {
-        result = result.slice(1);
-      }
+      result = result.replace(/^0/, '');
 
       return result;
+    },
+
+    /**
+     * Formats a numeric value for an hour into an abbreviated format.
+     */
+    formatHourAbbr: function(hour) {
+      // since week view use an abbreviated value for "am" and "pm" we need
+      // to use special keys for each one to avoid conflicts (specially since
+      // some locales will use 24h time format for both cases)
+      var id = 'hour-format-abbr-';
+      id += hour < 11 ? 'am' : 'pm';
+      var format = navigator.mozL10n.get(id);
+      return this._formatHour(hour, format);
     },
 
     daysInWeek: function() {

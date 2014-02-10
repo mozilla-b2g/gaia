@@ -295,7 +295,7 @@ suiteGroup('Views.Week', function() {
       for (; i < 24; i++) {
         assert.include(html, i, 'has hour #' + i);
         assert.include(
-          html, Calendar.Calc.formatHour(i),
+          html, Calendar.Calc.formatHourAbbr(i),
           'has display hour #' + i
         );
       }
