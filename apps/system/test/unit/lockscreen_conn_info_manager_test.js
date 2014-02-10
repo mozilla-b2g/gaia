@@ -72,6 +72,95 @@ suite('system/LockScreenConnInfoManager >', function() {
     MockSIMSlotManager.mTeardown();
   });
 
+  suite('Update conn states when events', function() {
+    var mockMobileConnection;
+    var iccObj;
+
+    suiteSetup(function() {
+      mockMobileConnection = MockMobileconnection();
+
+      MockMobileOperator.mOperator = 'operator';
+      MockMobileOperator.mCarrier = 'carrier';
+      MockMobileOperator.mRegion = 'region';
+
+      MockSIMSlotManager.mInstances =
+        [new MockSIMSlot(mockMobileConnection, 0)];
+      iccObj = MockSIMSlotManager.mInstances[0].simCard;
+    });
+
+    suiteTeardown(function() {
+      MockMobileOperator.mTeardown();
+    });
+
+    setup(function() {
+      // add a sim card
+      mockMobileConnection.iccId = 'iccid1';
+      mockMobileConnection.voice = {};
+      MockNavigatorMozIccManager.addIcc('iccid1');
+
+      subject = new LockScreenConnInfoManager();
+      subject._initialize(domConnStates);
+
+      this.sinon.stub(MockSIMSlotManager, 'isMultiSIM').returns(false);
+      this.sinon.stub(MockSIMSlotManager, 'noSIMCardOnDevice').returns(false);
+
+      this.sinon.stub(subject, 'updateConnStates');
+      this.sinon.stub(subject, 'updateConnState');
+    });
+
+    teardown(function() {
+      mockMobileConnection.mTeardown();
+      MockNavigatorMozIccManager.mTeardown();
+      subject.updateConnStates.restore();
+      subject.updateConnState.restore();
+    });
+
+    // sim related changes
+    test('voicechange', function() {
+      mockMobileConnection.triggerEventListeners('voicechange', {});
+      sinon.assert.called(subject.updateConnState);
+    });
+
+    ['simslot-cardstatechange',
+     'simslot-iccinfochange'].forEach(function(eventName) {
+      test(eventName, function() {
+        var simInfo = {
+          conn: mockMobileConnection,
+          index: 0
+        };
+        window.dispatchEvent(new CustomEvent(eventName, { detail: simInfo }));
+        sinon.assert.calledWith(subject.updateConnState, simInfo);
+      });
+    });
+
+    test('cellbroadcastmsgchanged', function() {
+      var testLabelName = 'testLabelName';
+      window.dispatchEvent(new CustomEvent('cellbroadcastmsgchanged', {
+        detail: testLabelName
+      }));
+      assert.isTrue(subject.updateConnStates.called);
+      assert.equal(subject._cellbroadcastLabel, testLabelName);
+    });
+
+    test('ril.radio.disabled', function() {
+      var airplaneModeEnabled = true;
+      MockNavigatorSettings.createLock().set({
+        'ril.radio.disabled': airplaneModeEnabled
+      });
+      assert.isTrue(subject.updateConnStates.called);
+      assert.equal(subject._airplaneMode, airplaneModeEnabled);
+    });
+
+    test('ril.telephony.defaultServiceId', function() {
+      var defaultServiceId = 'iccid1';
+      MockNavigatorSettings.createLock().set({
+        'ril.telephony.defaultServiceId': defaultServiceId
+      });
+      assert.isTrue(subject.updateConnStates.called);
+      assert.equal(subject._telephonyDefaultServiceId, defaultServiceId);
+    });
+  });
+
   suite('Single sim devices', function() {
     var mockMobileConnection;
     var domConnstateIDLine;
@@ -100,6 +189,7 @@ suite('system/LockScreenConnInfoManager >', function() {
     setup(function() {
       // add a sim card
       mockMobileConnection.iccId = 'iccid1';
+      mockMobileConnection.voice = {};
       MockNavigatorMozIccManager.addIcc('iccid1');
 
       subject._initialize(domConnStates);

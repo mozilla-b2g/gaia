@@ -11,6 +11,7 @@
         _mock[prop] = null;
       });
       eventListeners = {
+        'voicechange': [],
         'iccinfochange': [],
         'radiostatechange': []
       };
