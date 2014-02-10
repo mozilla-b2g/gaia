@@ -670,6 +670,7 @@ function updateLoadingSpinner() {
   if (processingQueue) {
     noMoreWorkCallback = updateLoadingSpinner;
   } else {
+    PerformanceTestingHelper.dispatch('scan-finished');
     dom.spinnerOverlay.classList.add('hidden');
     dom.playerView.classList.remove('disabled');
     if (thumbnailList.count) {
