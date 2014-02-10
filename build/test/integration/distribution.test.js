@@ -58,6 +58,28 @@ suite('Distribution mechanism', function() {
       'sensors data should match the expected data.');
   }
 
+  function validateComm() {
+    var distPath = path.join(process.cwd(), 'build', 'test', 'resources',
+      'distribution_test');
+    var zipPath = path.join(process.cwd(), 'profile',
+      'webapps', 'communications.gaiamobile.org', 'application.zip');
+    var expectedCustom = {
+      '310-260': {
+        'wallpaper':'/resources/mobizilla_wallpaper.png',
+        'default_contacts':'/resources/mobizilla_contacts.json',
+        'support_contacts':'/resources/mobizilla_support_contacts.json'
+      }
+    };
+    helper.checkFileContentInZip(zipPath, 'resources/customization.json',
+      expectedCustom, true);
+    helper.checkFileInZip(zipPath, 'resources/mobizilla_wallpaper.png',
+      path.join(distPath, 'mobizilla', 'mobizilla_wallpaper.png'));
+    helper.checkFileInZip(zipPath, 'resources/mobizilla_contacts.json',
+      path.join(distPath, 'mobizilla', 'mobizilla_contacts.json'));
+    helper.checkFileInZip(zipPath, 'resources/mobizilla_support_contacts.json',
+      path.join(distPath, 'mobizilla', 'mobizilla_support_contacts.json'));
+  }
+
   function validateCalendar() {
     var calZip = new AdmZip(path.join(process.cwd(), 'profile',
       'webapps', 'calendar.gaiamobile.org', 'application.zip'));
@@ -68,7 +90,7 @@ suite('Distribution mechanism', function() {
     assert.isDefined(sandbox.Calendar.Presets['Test Provider'],
       'Test Provider should be defined');
     assert.equal(sandbox.Calendar.Presets['Test Provider'].providerType,
-      'Local', 'Property providerType should equal "Local"')
+      'Local', 'Property providerType should equal "Local"');
   }
 
   function validateWappush() {
@@ -148,6 +170,7 @@ suite('Distribution mechanism', function() {
       validateWappush();
       validateBrowser();
       validateSystem();
+      validateComm();
       done();
     });
   });

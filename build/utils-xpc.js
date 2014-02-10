@@ -184,79 +184,79 @@ function readZipManifest(appDir) {
                   ' app (' + appDir.leafName + ')\n');
 }
 
-function makeWebappsObject(appdirs, domain, scheme, port) {
-  return {
-    forEach: function(fun) {
-      appdirs.forEach(function(app) {
-        let appDir = getFile(app);
-        if (!appDir.exists()) {
-          throw new Error(' -*- build/utils.js: file not found (' +
-            app + ')\n');
-        }
+function getWebapp(app, domain, scheme, port) {
+  let appDir = getFile(app);
+  if (!appDir.exists()) {
+    throw new Error(' -*- build/utils.js: file not found (' +
+      app + ')\n');
+  }
 
-        let manifestFile = appDir.clone();
-        manifestFile.append('manifest.webapp');
+  let manifestFile = appDir.clone();
+  manifestFile.append('manifest.webapp');
 
-        let updateFile = appDir.clone();
-        updateFile.append('update.webapp');
+  let updateFile = appDir.clone();
+  updateFile.append('update.webapp');
 
-        // Ignore directories without manifest
-        if (!manifestFile.exists() && !updateFile.exists()) {
-          return;
-        }
+  // Ignore directories without manifest
+  if (!manifestFile.exists() && !updateFile.exists()) {
+    return;
+  }
 
-        let manifest = manifestFile.exists() ? manifestFile : updateFile;
+  let manifest = manifestFile.exists() ? manifestFile : updateFile;
 
-        // Use the folder name as the the domain name
-        let appDomain = appDir.leafName + '.' + domain;
-        let webapp = {
-          manifest: getJSON(manifest),
-          manifestFile: manifest,
-          buildManifestFile: manifest,
-          url: scheme + appDomain + (port ? port : ''),
-          domain: appDomain,
-          sourceDirectoryFile: manifestFile.parent,
-          buildDirectoryFile: manifestFile.parent,
-          sourceDirectoryName: appDir.leafName,
-          sourceAppDirectoryName: appDir.parent.leafName
-        };
-
-        // External webapps have a `metadata.json` file
-        let metaData = webapp.sourceDirectoryFile.clone();
-        metaData.append('metadata.json');
-        if (metaData.exists()) {
-          webapp.pckManifest = readZipManifest(webapp.sourceDirectoryFile);
-          webapp.metaData = getJSON(metaData);
-        }
-
-        // Some webapps control their own build
-        let buildMetaData = webapp.sourceDirectoryFile.clone();
-        buildMetaData.append('gaia_build.json');
-        if (buildMetaData.exists()) {
-          webapp.build = getJSON(buildMetaData);
-
-          if (webapp.build.dir) {
-            let buildDirectoryFile = webapp.sourceDirectoryFile.clone();
-            webapp.build.dir.split('/').forEach(function(segment) {
-              if (segment == '..')
-                buildDirectoryFile = buildDirectoryFile.parent;
-              else
-                buildDirectoryFile.append(segment);
-            });
-
-            webapp.buildDirectoryFile = buildDirectoryFile;
-
-            let buildManifestFile = buildDirectoryFile.clone();
-            buildManifestFile.append('manifest.webapp');
-
-            webapp.buildManifestFile = buildManifestFile;
-          }
-        }
-
-        fun(webapp);
-      });
-    }
+  // Use the folder name as the the domain name
+  let appDomain = appDir.leafName + '.' + domain;
+  let webapp = {
+    manifest: getJSON(manifest),
+    manifestFile: manifest,
+    buildManifestFile: manifest,
+    url: scheme + appDomain + (port ? port : ''),
+    domain: appDomain,
+    sourceDirectoryFile: manifestFile.parent,
+    buildDirectoryFile: manifestFile.parent,
+    sourceDirectoryName: appDir.leafName,
+    sourceAppDirectoryName: appDir.parent.leafName
   };
+
+  // External webapps have a `metadata.json` file
+  let metaData = webapp.sourceDirectoryFile.clone();
+  metaData.append('metadata.json');
+  if (metaData.exists()) {
+    webapp.pckManifest = readZipManifest(webapp.sourceDirectoryFile);
+    webapp.metaData = getJSON(metaData);
+  }
+
+  // Some webapps control their own build
+  let buildMetaData = webapp.sourceDirectoryFile.clone();
+  buildMetaData.append('gaia_build.json');
+  if (buildMetaData.exists()) {
+    webapp.build = getJSON(buildMetaData);
+
+    if (webapp.build.dir) {
+      let buildDirectoryFile = webapp.sourceDirectoryFile.clone();
+      webapp.build.dir.split('/').forEach(function(segment) {
+        if (segment == '..')
+          buildDirectoryFile = buildDirectoryFile.parent;
+        else
+          buildDirectoryFile.append(segment);
+      });
+
+      webapp.buildDirectoryFile = buildDirectoryFile;
+
+      let buildManifestFile = buildDirectoryFile.clone();
+      buildManifestFile.append('manifest.webapp');
+
+      webapp.buildManifestFile = buildManifestFile;
+    }
+  }
+
+  return webapp;
+}
+
+function makeWebappsObject(appdirs, domain, scheme, port) {
+  return appdirs.map(function(app) {
+    return getWebapp(app, domain, scheme, port);
+  });
 }
 
 function registerProfileDirectory(profileDir) {
@@ -767,3 +767,4 @@ exports.killAppByPid = killAppByPid;
 exports.getEnv = getEnv;
 exports.isExternalApp = isExternalApp;
 exports.getDocument = getDocument;
+exports.getWebapp = getWebapp;

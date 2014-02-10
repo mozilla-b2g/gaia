@@ -329,38 +329,6 @@ function execute(options) {
   utils.writeContent(init,
     utils.getDistributionFileContent('support', content, distDir));
 
-  // Communications config
-  init = utils.getFile(config.GAIA_DIR,
-    'apps', 'communications', 'contacts', 'config.json');
-  content = {
-    'defaultContactsOrder': 'givenName',
-    'facebookEnabled': true,
-    'operationsTimeout': 25000,
-    'logLevel': 'DEBUG',
-    'facebookSyncPeriod': 24,
-    'testToken': ''
-  };
-  utils.writeContent(init,
-    utils.getDistributionFileContent('communications', content, distDir));
-
-  // Communications External Services
-  init = utils.getFile(config.GAIA_DIR,
-    'apps', 'communications', 'contacts', 'oauth2', 'js', 'parameters.js');
-  content = JSON.parse(utils.getFileContent(utils.getFile(config.GAIA_DIR,
-                                            'build', 'config',
-                                            'communications_services.json')));
-
-  // Bug 883344 Only use default facebook app id if is mozilla partner build
-  if (config.OFFICIAL === '1') {
-    content.facebook.applicationId = '395559767228801';
-    content.live.applicationId = '00000000440F8B08';
-  }
-
-  utils.writeContent(init,
-    'var oauthflow = this.oauthflow || {}; oauthflow.params = ' +
-    utils.getDistributionFileContent('communications_services', content,
-    distDir) + ';');
-
   // Customize the maximum image size for Camera and Gallery
   (function customizeMaximumImageSize() {
     let defaultValue = {
