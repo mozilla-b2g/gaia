@@ -69,6 +69,7 @@ class Contacts(Base):
                 return contact
 
     def tap_new_contact(self):
+        self.wait_for_element_displayed(*self._new_contact_button_locator)
         self.marionette.find_element(*self._new_contact_button_locator).tap()
         from gaiatest.apps.contacts.regions.contact_form import NewContact
         return NewContact(self.marionette)
