@@ -42,6 +42,8 @@ function share(activity) {
     else if (data.filenames && data.filenames[0])
       name = data.filenames[0];
 
+    window.customRingtones.add(name);
+
     var settings = {
       'dialer.ringtone': blob,
       'dialer.ringtone.name': name

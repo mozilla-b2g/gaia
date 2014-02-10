@@ -6,6 +6,7 @@
     <title>System Ringtones</title>
     <link rel="stylesheet" type="text/css" href="shared/style/headers.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/switches.css"/>
+    <link rel="stylesheet" type="text/css" href="style/lists.css"/>
     <link rel="stylesheet" type="text/css" href="style/ringtones.css"/>
     <!-- shared resources -->
     <!-- this is here so the directory gets copied -->
@@ -14,11 +15,11 @@
     <!-- Localization -->
     <link rel="resource" type="application/l10n" href="locales/locales.ini" />
     <script type="text/javascript" src="shared/js/l10n.js"></script>
+    <script type="text/javascript" src="shared/js/template.js"></script>
 
-    <script src="shared/js/template.js"></script>
-
-    <script type="text/javascript" src="js/built_in.js" defer></script>
-    <script type="text/javascript" src="js/ringtones.js" defer></script>
+    <script type="text/javascript" src="js/default_ringtones.js" defer></script>
+    <script type="text/javascript" src="js/custom_ringtones.js" defer></script>
+    <script type="text/javascript" src="js/manage.js" defer></script>
   </head>
 
   <body>
@@ -28,15 +29,21 @@
         <menu type="toolbar"><button id="done" data-l10n-id="done">done</button></menu>
         <h1 id="title"></h1>
       </header>
+
+      <article>
+        <ul id="default-list"></ul>
+        <header>
+          <h2>Custom</h2>
+        </header>
+        <ul id="custom-list"></ul>
+      </article>
     </section>
-    <ul id="sounds"></ul>
     <div id="sound-item-template" hidden>
       <!-- <li>
         <label class="pack-radio">
           <input type="radio" name="sounds"/>
-          <span/>
+          <span data-l10n-id="${l10nId}">${title}</span>
         </label>
-        <anchor class="sound-name">${title}</anchor>
       </li> -->
   </div>
   </body>

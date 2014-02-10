@@ -828,8 +828,10 @@ apps/music/js/music.js
 apps/music/js/open.js
 apps/music/js/utils.js
 apps/music/test/unit/remote_controls_test.js
+apps/ringtones/js/custom_ringtones.js
+apps/ringtones/js/default_ringtones.js
 apps/ringtones/js/pick.js
-apps/ringtones/js/ringtones.js
+apps/ringtones/js/manage.js
 apps/ringtones/js/share.js
 apps/search/js/eme/api.js
 apps/search/js/eme/eme.js
