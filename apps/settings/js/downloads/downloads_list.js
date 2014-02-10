@@ -215,7 +215,10 @@
           var downloadId = DownloadItem.getDownloadId(d);
           var elementToDelete = _getElementForId(downloadId);
           DownloadApiManager.deleteDownloads(
-            [downloadId],
+            [{
+              id: downloadId,
+              force: true // deleting download without confirmation
+            }],
             function onDeleted() {
               _removeDownloadsFromUI([elementToDelete]);
               _checkEmptyList();
@@ -282,9 +285,11 @@
 
   function _deleteDownloads() {
     var downloadsChecked = _getAllChecked() || [];
-    var downloadIDs = [], downloadElements = {};
+    var downloadItems = [], downloadElements = {};
     for (var i = 0; i < downloadsChecked.length; i++) {
-      downloadIDs.push(downloadsChecked[i].value);
+      downloadItems.push({
+        id: downloadsChecked[i].value
+      });
       downloadElements[downloadsChecked[i].value] =
         downloadsChecked[i].parentNode.parentNode;
     }
@@ -295,7 +300,7 @@
     }
 
     DownloadApiManager.deleteDownloads(
-      downloadIDs,
+      downloadItems,
       function downloadsDeleted(downloadID) {
         _removeDownloadsFromUI([downloadElements[downloadID]]);
       },
