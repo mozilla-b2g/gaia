@@ -95,7 +95,9 @@ CameraController.prototype.configure = function() {
 };
 
 CameraController.prototype.onSettingsConfigured = function() {
+  var recorderProfile = this.app.settings.recorderProfiles.selected().key;
   this.camera.setPictureSize(this.app.settings.value('pictureSizes'));
+  this.camera.setVideoProfile(recorderProfile);
   this.camera.setFlashMode(this.app.settings.value('flashModes'));
   debug('camera configured with final settings');
 
@@ -202,12 +204,14 @@ CameraController.prototype.showSizeLimitAlert = function() {
 
 CameraController.prototype.setMode = function(mode) {
   var flashMode = this.app.settings.value('flashMode');
-
+  var self = this;
   // We need to force a flash change so that
   // the camera hardware gets set with the
   // correct flash for this capture mode.
   this.setFlashMode(flashMode);
-  this.camera.setMode(mode);
+  this.viewfinder.fadeOut(function() {
+    self.camera.setMode(mode);
+  });
 };
 
 CameraController.prototype.loadCamera = function(value) {
@@ -242,7 +246,7 @@ CameraController.prototype.setFlashMode = function(flashMode) {
  */
 CameraController.prototype.translateFlashMode = function(flashMode) {
   var isFrontCamera = this.app.get('selectedCamera') === 1;
-  var isPhotoMode = this.app.settings.value('mode') === 'photo';
+  var isPhotoMode = this.app.settings.value('mode') === 'picture';
   if (isPhotoMode) { return flashMode; }
   if (isFrontCamera) { return null; }
   switch (flashMode) {

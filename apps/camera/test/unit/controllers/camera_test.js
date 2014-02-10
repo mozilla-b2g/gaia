@@ -55,9 +55,9 @@ suite('controllers/camera', function() {
     });
 
     test('Should set the capture mode to \'camera\' by default', function() {
-      this.app.settings.value.withArgs('mode').returns('photo');
+      this.app.settings.value.withArgs('mode').returns('picture');
       this.controller = new this.CameraController(this.app);
-      assert.isTrue(this.app.camera.setMode.calledWith('photo'));
+      assert.isTrue(this.app.camera.setMode.calledWith('picture'));
     });
 
     test('Should setup camera on app `boot`', function() {
