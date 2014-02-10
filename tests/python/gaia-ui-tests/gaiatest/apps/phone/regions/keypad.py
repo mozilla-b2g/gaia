@@ -25,6 +25,8 @@ class Keypad(Phone):
 
     def __init__(self, marionette):
         Phone.__init__(self, marionette)
+        # TODO sometimes we may tap before the click handlers are ready
+        time.sleep(0.5)
 
     @property
     def phone_number(self):
