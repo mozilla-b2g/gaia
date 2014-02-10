@@ -173,8 +173,7 @@ var StatusBar = {
       'audio.volume.notification': ['mute'],
       'alarm.enabled': ['alarm'],
       'vibration.enabled': ['vibration'],
-      'ril.cf.enabled': ['callForwarding'],
-      'operatorResources.data.icon': ['iconData']
+      'ril.cf.enabled': ['callForwarding']
     };
 
     var self = this;
@@ -543,20 +542,6 @@ var StatusBar = {
   },
 
   update: {
-    iconData: function sb_updateIconData(aData) {
-      var dataIconValues = this.settingValues['operatorResources.data.icon'];
-      if (!dataIconValues) {
-        return;
-      }
-
-      for (var key in dataIconValues) {
-        //Change only dataIcon values that actually really know
-        if (this.mobileDataIconTypes[key]) {
-          this.mobileDataIconTypes[key] = dataIconValues[key];
-        }
-      }
-    },
-
     label: function sb_updateLabel() {
       var conns = window.navigator.mozMobileConnections;
       var conn;
