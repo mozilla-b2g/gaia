@@ -206,8 +206,10 @@ body.pickView #thumbnails {
  * background color. Need in all four
  * containers below.
  */
-#thumbnails>li, #thumbnails>li>ul,
-.thumbnail-group-header, .thumbnail-group-container {
+#thumbnails > li,
+#thumbnails > li > ul,
+.thumbnail-group-header,
+.thumbnail-group-container {
   background-color: #0E1214;
 }
 
