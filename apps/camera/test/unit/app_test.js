@@ -75,6 +75,7 @@ suite('app', function() {
         confirm: sinon.spy(),
         camera: sinon.spy(),
         settings: sinon.spy(),
+        activity: sinon.spy(),
         sounds: sinon.spy()
       }
     };

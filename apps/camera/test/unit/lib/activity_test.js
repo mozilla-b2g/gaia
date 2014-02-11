@@ -80,50 +80,57 @@ suite('activity', function() {
     assert.isFalse(callback.called);
   });
 
-  test('Should return correct allowed type when ' +
-       'just images are accepted', function() {
-    var output = this.activity.parse({
+  test('Should return correct modes from parsed mime types', function() {
+    var parsed;
+
+    // 'video' and 'photo'
+    parsed = this.activity.parse({
       source: {
         name: 'pick',
-        data: {
-          type: ['image/*']
-        }
+        data: { type: ['image/*', 'video/*'] }
       }
     });
 
-    assert.isTrue(output.types.image);
-    assert.isUndefined(output.types.video);
-  });
+    assert.ok(~parsed.modes.indexOf('photo'));
+    assert.ok(~parsed.modes.indexOf('video'));
 
-  test('Should return correct allowed types when ' +
-       'image and video are accepted', function() {
-    var output = this.activity.parse({
+    // 'video'
+    parsed = this.activity.parse({
       source: {
         name: 'pick',
-        data: {
-          type: ['image/*', 'video/*']
-        }
+        data: { type: ['video/*'] }
       }
     });
 
-    assert.isTrue(output.types.image);
-    assert.isTrue(output.types.video);
+    assert.ok(!~parsed.modes.indexOf('photo'));
+    assert.ok(~parsed.modes.indexOf('video'));
+
+    // 'photo'
+    parsed = this.activity.parse({
+      source: {
+        name: 'pick',
+        data: { type: ['image/*'] }
+      }
+    });
+
+    assert.ok(~parsed.modes.indexOf('photo'));
+    assert.ok(!~parsed.modes.indexOf('video'));
   });
 
   test('Should allow both image and video if no types given', function() {
-    var output = this.activity.parse({
+    var parsed = this.activity.parse({
       source: {
         name: 'pick',
         data: {}
       }
     });
 
-    assert.isTrue(output.types.image);
-    assert.isTrue(output.types.video);
+    assert.ok(~parsed.modes.indexOf('photo'));
+    assert.ok(~parsed.modes.indexOf('video'));
   });
 
-  test('Should accept a given type string of videos(unsure why)', function() {
-    var output = this.activity.parse({
+  test('Should accept a given type string of videos (unsure why)', function() {
+    var parsed = this.activity.parse({
       source: {
         name: 'pick',
         data: {
@@ -132,46 +139,7 @@ suite('activity', function() {
       }
     });
 
-    assert.isUndefined(output.types.image);
-    assert.isTrue(output.types.video);
-  });
-
-  test('Should return \'camera\' mode if both types allowed', function() {
-    var output = this.activity.parse({
-      source: {
-        name: 'pick',
-        data: {
-          type: ['image/*', 'video/*']
-        }
-      }
-    });
-
-    assert.equal(output.mode, 'photo');
-  });
-
-  test('Should return \'photo\' mode if just image type allowed', function() {
-    var output = this.activity.parse({
-      source: {
-        name: 'pick',
-        data: {
-          type: ['image/*']
-        }
-      }
-    });
-
-    assert.equal(output.mode, 'photo');
-  });
-
-  test('Should return \'video\' mode if just video type allowed', function() {
-    var output = this.activity.parse({
-      source: {
-        name: 'pick',
-        data: {
-          type: ['video/*']
-        }
-      }
-    });
-
-    assert.equal(output.mode, 'video');
+    assert.ok(!~parsed.modes.indexOf('photo'));
+    assert.ok(~parsed.modes.indexOf('video'));
   });
 });

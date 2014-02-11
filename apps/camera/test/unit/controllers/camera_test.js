@@ -47,12 +47,10 @@ suite('controllers/camera', function() {
 
   suite('CameraController()', function() {
     setup(function() {
-      sinon.stub(this.CameraController.prototype, 'setupCamera');
       sinon.stub(this.CameraController.prototype, 'teardownCamera');
     });
 
     teardown(function() {
-      this.CameraController.prototype.setupCamera.restore();
       this.CameraController.prototype.teardownCamera.restore();
     });
 
@@ -64,12 +62,12 @@ suite('controllers/camera', function() {
 
     test('Should setup camera on app `boot`', function() {
       this.controller = new this.CameraController(this.app);
-      this.app.on.calledWith('boot', this.controller.setupCamera);
+      this.app.on.calledWith('boot', this.app.camera.load);
     });
 
     test('Should setup camera on app `focus`', function() {
       this.controller = new this.CameraController(this.app);
-      this.app.on.calledWith('focus', this.controller.setupCamera);
+      this.app.on.calledWith('focus', this.app.camera.load);
     });
 
     test('Should teardown camera on app `blur`', function() {
