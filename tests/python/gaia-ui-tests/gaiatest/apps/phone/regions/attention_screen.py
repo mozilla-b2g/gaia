@@ -3,18 +3,16 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from marionette.by import By
-from gaiatest.apps.phone.app import Phone
+from gaiatest.apps.base import Base
 
 
-class AttentionScreen(Phone):
+class AttentionScreen(Base):
 
-    _attention_frame_locator = (By.CSS_SELECTOR, 'iframe[src^="app://communications"][src$="index.html#keyboard-view"]')
     _message_locator = (By.ID, 'message')
 
     def __init__(self, marionette):
-        Phone.__init__(self, marionette)
-        self.marionette.switch_to_frame()
-        self.marionette.switch_to_frame(self.marionette.find_element(*self._attention_frame_locator))
+        Base.__init__(self, marionette)
+        self.wait_for_element_displayed(*self._message_locator)
 
     @property
     def message(self):
