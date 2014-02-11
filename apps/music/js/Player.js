@@ -849,10 +849,35 @@ var PlayerView = {
     });
   },
 
+  handlePeerConnectivity: function nfc_handlePeerConnectivity(event) {
+    var status;
+    var peer = navigator.mozNfc.getNFCPeer(event.detail);
+
+    if (!peer)
+      return null;
+
+    if(PlayerView.playingBlob){
+	status = peer.sendFile(PlayerView.playingBlob);
+    }
+
+    status.onsuccess = function(e) {
+      console.log("Successfully sent file");
+    };
+    status.onerror = function(e) {
+      console.log("Send file failed!");
+    };
+  },
+
   handleEvent: function pv_handleEvent(evt) {
     var target = evt.target;
     if (!target)
       return;
+
+    if (ModeManager.currentMode == MODE_PLAYER) {
+      if (window.navigator.mozNfc && (!window.navigator.mozNfc.onpeerready))
+        window.navigator.mozNfc.onpeerready = this.handlePeerConnectivity;
+    } else
+      window.navigator.mozNfc.onpeerready = null;
 
     switch (evt.type) {
       case 'click':

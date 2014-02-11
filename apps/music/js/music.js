@@ -657,6 +657,9 @@ var TitleBar = {
 
               cleanupPick();
             }
+            if (window.navigator.mozNfc) {
+              window.navigator.mozNfc.onpeerready = null;
+            }
 
             ModeManager.pop();
 
