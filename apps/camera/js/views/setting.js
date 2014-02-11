@@ -20,6 +20,7 @@ module.exports = View.extend({
     this.model = options.model;
     this.model.on('change', this.render);
     this.on('destroy', this.onDestroy);
+    this.el.classList.add(this.model.get('icon'));
   },
 
   onDestroy: function() {
@@ -36,8 +37,10 @@ module.exports = View.extend({
   },
 
   template: function(data) {
-    return '<h4 class="setting_title">' + data.title + '</h4>' +
-    '<h5 class="setting_value">' + data.selected.title + '</h5>';
+    return '<div class="setting_text">' +
+      '<h4 class="setting_title">' + data.title + '</h4>' +
+      '<h5 class="setting_value">' + data.selected.title + '</h5>' +
+    '</div>';
   },
 });
 

@@ -10,17 +10,14 @@ module.exports = {
       {
         key: 'photo',
         title: 'Photo'
-        //disables: ['videoFlashModes']
       },
       {
         key: 'video',
         title: 'Video'
-        //disables: ['photoFlashModes']
       }
     ],
     selected: 0,
-    persistent: true,
-    menu: 5
+    persistent: true
   },
 
   cameras: {
@@ -41,6 +38,7 @@ module.exports = {
 
   pictureSizes: {
     title: 'Picture Sizes',
+    icon: 'icon-picture-size',
     options: [
       {
         key: '8mp',
@@ -74,6 +72,7 @@ module.exports = {
 
   recorderProfiles: {
     title: 'Video Sizes',
+    icon: 'icon-video-size',
     options: [
 
       // NOTE: Disabled due to Helix crashing
@@ -126,6 +125,7 @@ module.exports = {
 
   timer: {
     title: 'Self Timer',
+    icon: 'icon-self-timer',
     options: [
       {
         key: 'off',
@@ -155,6 +155,7 @@ module.exports = {
 
   hdr: {
     title: 'HDR',
+    icon: 'icon-hdr',
     options: [
       {
         key: 'auto',
@@ -179,6 +180,7 @@ module.exports = {
 
   scene: {
     title: 'Scene Mode',
+    icon: 'icon-scene',
     options: [
       {
         key: 'normal',
@@ -200,6 +202,7 @@ module.exports = {
 
   grid: {
     title: 'Grid',
+    icon: 'icon-frame-grid',
     options: [
       {
         key: 'on',

@@ -41,14 +41,14 @@ Config.prototype.set = function(data) {
 };
 
 Config.prototype.normalizeItem = function(key, value) {
-  debug('normalising %s', key);
-  return {
-    title: value.title || key,
-    options: value.options || [{ key: key, value: value }],
-    selected: value.selected || 0,
-    persistent: value.persistent || false,
-    menu: value.menu || false
-  };
+  var item = typeof value === 'object' ? value : {};
+  item.title = value.title || key;
+  item.options = value.options || [{ key: key, value: value }];
+  item.selected = value.selected || 0;
+  item.persistent = value.persistent || false;
+  item.menu = value.menu || false;
+  debug('normalised %s', key, item);
+  return item;
 };
 
 Config.prototype.get = function(key) {
