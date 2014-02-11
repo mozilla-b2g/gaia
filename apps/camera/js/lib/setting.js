@@ -41,7 +41,7 @@ Setting.prototype.optionsToHash = function(options) {
   options.forEach(function(option, index) {
     var key = option.key;
     option.index = index;
-    option.value = option.value || key;
+    option.value = 'value' in option ? option.value : key;
     hash[key] = option;
   });
   return hash;
