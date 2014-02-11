@@ -1034,8 +1034,8 @@ var Camera = {
 
     var viewfinder = this.viewfinder;
     var style = viewfinder.style;
-    var screenWidth = document.body.clientWidth;
-    var screenHeight = document.body.clientHeight;
+    var screenWidth = window.innerWidth * window.devicePixelRatio;
+    var screenHeight = window.innerHeight * window.devicePixelRatio;
 
     // sensorAngle exposes the orientation of the camera image. The value is
     // the angle that the camera image needs to be rotated clockwise so it shows
@@ -1058,27 +1058,33 @@ var Camera = {
     var screenAspectRatio = minPreviewWidth / minPreviewHeight;
 
     var pictureAspectRatio = this._pictureSize.width / this._pictureSize.height;
-    // Previews should match the aspect ratio and not be smaller than the screen
-    var validPreviews = camera.capabilities.previewSizes.filter(function(res) {
-      // Note that we are using the screen size in CSS pixels and not
-      // multiplying by devicePixelRatio. We assume that the preview sizes
-      // returned by the camera are in CSS pixels, not device pixels.
-      // This is the way things seem to work on the Helix.
-      var isLarger = res.height >= minPreviewHeight &&
-                     res.width >= minPreviewWidth;
-      var aspectRatio = res.width / res.height;
-      var matchesRatio = Math.abs(aspectRatio - pictureAspectRatio) < 0.05;
-      return matchesRatio && isLarger;
+
+    // Start with a list of all available preview sizes
+    var previews = camera.capabilities.previewSizes;
+
+    // Filter it so we only consider sizes that match the photo size
+    previews = previews.filter(function(size) {
+      return Math.abs(size.width / size.height - pictureAspectRatio) < 0.05;
     });
 
-    // We should always have a valid preview size, but just in case
-    // we don't, pick the first provided.
-    if (validPreviews.length) {
-      // Pick the smallest valid preview
-      this._previewConfig = validPreviews.sort(function(a, b) {
-        return a.width * a.height - b.width * b.height;
-      }).shift();
-    } else {
+    // Sort the previews from smallest to largest
+    previews.sort(function(a, b) { return a.width - b.width; });
+
+    // Now loop through these sorted preview sizes and pick the first
+    // one that is bigger than or equal to the screen. If we don't
+    // find any that is bigger, use the last one. If there are no
+    // previews at all, we'll just use the first one that the camera offers us.
+    if (previews.length) {
+      for (var i = 0; i < previews.length; i++) {
+        if (previews[i].width >= minPreviewWidth &&
+            previews[i].height >= minPreviewHeight)
+          break;
+      }
+      if (i === previews.length) // If none were big enough
+        i = previews.length - 1; // pick the bigest one we've got
+      this._previewConfig = previews[i];
+    } else { // No valid previews: this should never happen!
+      console.warn('Preview size does not have correct aspect ratio.');
       this._previewConfig = camera.capabilities.previewSizes[0];
     }
 
