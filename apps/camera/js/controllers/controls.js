@@ -47,7 +47,7 @@ ControlsController.prototype.bindEvents = function() {
 
 ControlsController.prototype.configure = function() {
   var isSwitchable = this.app.settings.mode.get('options').length > 1;
-  var initialMode = this.app.settings.value('mode');
+  var initialMode = this.app.settings.mode.value();
   var isCancellable = !!this.app.activity.active;
 
   // The gallery button should not

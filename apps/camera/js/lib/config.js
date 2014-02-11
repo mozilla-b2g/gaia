@@ -44,7 +44,6 @@ Config.prototype.normalizeItem = function(key, value) {
   var item = typeof value === 'object' ? value : {};
   item.title = value.title || key;
   item.options = value.options || [{ key: key, value: value }];
-  item.selected = value.selected || 0;
   item.persistent = value.persistent || false;
   item.menu = value.menu || false;
   debug('normalised %s', key, item);

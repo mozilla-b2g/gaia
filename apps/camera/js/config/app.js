@@ -16,7 +16,6 @@ module.exports = {
         title: 'Video'
       }
     ],
-    selected: 0,
     persistent: true
   },
 
@@ -32,7 +31,6 @@ module.exports = {
         title: 'Front'
       }
     ],
-    selected: 0,
     persistent: true
   },
 
@@ -65,7 +63,6 @@ module.exports = {
         title: 'QVGA'
       }
     ],
-    selected: 0,
     persistent: true,
     menu: 4
   },
@@ -95,7 +92,6 @@ module.exports = {
         title: 'QCIF 176X144'
       }
     ],
-    selected: 0,
     persistent: true,
     menu: 4
   },
@@ -119,7 +115,6 @@ module.exports = {
         icon: 'O'
       }
     ],
-    selected: 0,
     persistent: true
   },
 
@@ -148,7 +143,6 @@ module.exports = {
         value: 10
       }
     ],
-    selected: 0,
     persistent: false,
     menu: 3
   },
@@ -173,7 +167,6 @@ module.exports = {
         icon: 'O'
       }
     ],
-    selected: 0,
     persistent: true,
     menu: 1
   },
@@ -195,7 +188,6 @@ module.exports = {
         title: 'Beauty'
       }
     ],
-    selected: 0,
     persistent: true,
     menu: 2
   },
@@ -215,7 +207,7 @@ module.exports = {
         value: false
       }
     ],
-    selected: 1,
+    selected: 'off',
     persistent: true,
     menu: 3
   }
