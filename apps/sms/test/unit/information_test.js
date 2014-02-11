@@ -214,6 +214,7 @@ suite('Information view', function() {
       };
       window.location.hash = '#report-view=1';
       reportView.render();
+      assert.isFalse(reportView.container.classList.contains('received'));
       sinon.assert.calledWith(navigator.mozL10n.localize, reportView.type,
         'message-type-sms');
       sinon.assert.calledWith(navigator.mozL10n.localize, reportView.status,
@@ -234,6 +235,7 @@ suite('Information view', function() {
       };
       window.location.hash = '#report-view=1';
       reportView.render();
+      assert.isFalse(reportView.container.classList.contains('received'));
       sinon.assert.calledWith(navigator.mozL10n.localize, reportView.type,
         'message-type-sms');
       sinon.assert.calledWith(navigator.mozL10n.localize, reportView.status,
@@ -253,6 +255,7 @@ suite('Information view', function() {
       };
       window.location.hash = '#report-view=1';
       reportView.render();
+      assert.isFalse(reportView.container.classList.contains('received'));
       sinon.assert.calledWith(navigator.mozL10n.localize, reportView.type,
         'message-type-sms');
       sinon.assert.calledWith(navigator.mozL10n.localize, reportView.status,
@@ -275,6 +278,7 @@ suite('Information view', function() {
       };
       window.location.hash = '#report-view=2';
       reportView.render();
+      assert.isFalse(reportView.container.classList.contains('received'));
       assert.equal(reportView.subject.textContent, messageOpts.subject);
       sinon.assert.calledWith(navigator.mozL10n.localize, reportView.type,
         'message-type-mms');
@@ -297,6 +301,7 @@ suite('Information view', function() {
       };
       window.location.hash = '#report-view=2';
       reportView.render();
+      assert.isFalse(reportView.container.classList.contains('received'));
       assert.equal(reportView.subject.textContent, '');
       sinon.assert.calledWith(navigator.mozL10n.localize, reportView.type,
         'message-type-mms');
@@ -318,6 +323,7 @@ suite('Information view', function() {
       var message = MockMessages.sms(messageOpts);
       window.location.hash = '#report-view=1';
       reportView.render();
+      assert.isTrue(reportView.container.classList.contains('received'));
       sinon.assert.calledWith(navigator.mozL10n.localize, reportView.type,
         'message-type-sms');
       sinon.assert.calledWith(navigator.mozL10n.localize, reportView.status,
@@ -338,6 +344,7 @@ suite('Information view', function() {
       var message = MockMessages.mms(messageOpts);
       window.location.hash = '#report-view=2';
       reportView.render();
+      assert.isTrue(reportView.container.classList.contains('received'));
       assert.equal(reportView.subject.textContent, message.subject);
       sinon.assert.calledWith(navigator.mozL10n.localize, reportView.type,
         'message-type-mms');
@@ -360,6 +367,7 @@ suite('Information view', function() {
       };
       window.location.hash = '#report-view=2';
       reportView.render();
+      assert.isTrue(reportView.container.classList.contains('received'));
       sinon.assert.calledWith(navigator.mozL10n.localize, reportView.type,
         'message-type-mms');
       sinon.assert.calledWith(navigator.mozL10n.localize, reportView.status,

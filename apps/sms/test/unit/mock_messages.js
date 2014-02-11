@@ -24,6 +24,7 @@ var MockMessages = {
       type: 'sms',
       messageClass: 'normal',
       timestamp: Date.now(),
+      sentTimestamp: Date.now(),
       read: true
     };
 
@@ -55,6 +56,7 @@ var MockMessages = {
       }],
       type: 'mms',
       timestamp: +now,
+      sentTimestamp: +now,
       read: true,
       subject: '',
       smil: this.smilMockup,
