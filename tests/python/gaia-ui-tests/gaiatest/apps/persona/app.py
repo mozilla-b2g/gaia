@@ -8,6 +8,8 @@ from gaiatest.apps.base import Base
 
 class Persona(Base):
 
+    _frame_src_match = "persona.org/sign_in#NATIVE"
+
     # iframes
     _persona_frame_locator = (By.CSS_SELECTOR, "iframe.screen[data-url*='persona.org/sign_in#NATIVE']")
 
@@ -32,27 +34,21 @@ class Persona(Base):
 
         self.marionette.switch_to_frame()
         self.wait_for_element_not_present(*self._persona_frame_locator)
-        self.apps.switch_to_displayed_app()
+
+        # Switch to top frame
+        self.frame_manager.switch_to_top_frame()
 
     def wait_for_persona_to_load(self):
         # Wait a bit more because it's an external resource that's loading
         self.wait_for_element_not_displayed(*self._body_loading_locator, timeout=30)
 
-    def switch_to_persona_frame(self):
-        self.marionette.switch_to_frame()
-        self.frame = self.wait_for_element_present(*self._persona_frame_locator)
-        self.marionette.switch_to_frame(self.frame)
-        self.wait_for_persona_to_load()
-
     def type_email(self, value):
         self.marionette.find_element(*self._email_input_locator).send_keys(value)
         self.keyboard.dismiss()
-        self.switch_to_persona_frame()
 
     def type_password(self, value):
         self.marionette.find_element(*self._password_input_locator).send_keys(value)
         self.keyboard.dismiss()
-        self.switch_to_persona_frame()
 
     def tap_continue(self):
         self.marionette.find_element(*self._continue_button_locator).tap()

@@ -46,4 +46,4 @@ class Language(Base):
         close_button.tap()
 
         # now back to app
-        self.apps.switch_to_displayed_app()
+        self.frame_manager.switch_to_top_frame()

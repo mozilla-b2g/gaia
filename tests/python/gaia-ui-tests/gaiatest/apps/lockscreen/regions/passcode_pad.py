@@ -13,6 +13,7 @@ class PasscodePad(Base):
     _emergency_button_locator = (By.CSS_SELECTOR, '.lockscreen-panel a[data-key="e"]')
 
     def __init__(self, marionette):
+        Base.__init__(self, marionette)
         self.marionette = marionette
         self.wait_for_element_displayed(*self._emergency_button_locator)
 
@@ -28,6 +29,5 @@ class PasscodePad(Base):
 
         from gaiatest.apps.system.regions.emergency_call import EmergencyCallScreen
         emergency_screen = EmergencyCallScreen(self.marionette)
-        emergency_screen.switch_to_emergency_call_screen()
-
+        self.frame_manager.wait_for_and_switch_to_top_frame(emergency_screen._frame_src_match)
         return emergency_screen

@@ -31,26 +31,27 @@ class Activities(Base):
         self.marionette.find_element(*self._wallpaper_button_locator).tap()
         from gaiatest.apps.wallpaper.app import Wallpaper
         wallpaper = Wallpaper(self.marionette)
-        wallpaper.switch_to_wallpaper_frame()
+        self.frame_manager.wait_for_and_switch_to_top_frame(wallpaper.name.lower())
         return wallpaper
 
     def tap_gallery(self):
         self.marionette.find_element(*self._gallery_button_locator).tap()
         from gaiatest.apps.gallery.app import Gallery
         gallery = Gallery(self.marionette)
-        gallery.switch_to_gallery_frame()
+        self.frame_manager.wait_for_and_switch_to_top_frame(gallery.name.lower())
         return gallery
 
     def tap_camera(self):
         self.marionette.find_element(*self._camera_button_locator).tap()
         from gaiatest.apps.camera.app import Camera
         camera = Camera(self.marionette)
-        camera.switch_to_camera_frame()
+        self.frame_manager.wait_for_and_switch_to_top_frame(camera.name.lower())
+        camera.wait_for_capture_ready()
         return camera
 
     def tap_cancel(self):
         self.marionette.find_element(*self._cancel_button_locator).tap()
-        self.apps.switch_to_displayed_app()
+        self.frame_manager.switch_to_top_frame()
 
     @property
     def options_count(self):

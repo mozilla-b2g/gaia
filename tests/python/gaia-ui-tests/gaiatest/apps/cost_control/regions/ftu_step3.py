@@ -63,8 +63,9 @@ class FTUStep3(CostControl):
     def tap_lets_go(self):
         self.wait_for_element_displayed(*self._go_button_locator)
         self.marionette.find_element(*self._go_button_locator).tap()
-        self.apps.switch_to_displayed_app()
-        self.wait_for_element_not_displayed(*self._ftu_frame_locator)
+
+        self.frame_manager.switch_to_top_frame()
+        self.wait_for_element_not_displayed(*self._ftu_section_locator)
 
         # TODO Some wait for Usage to fully initialize
         time.sleep(2)

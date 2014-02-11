@@ -23,7 +23,7 @@ class TestNumberKeyboard(GaiaTestCase):
 
         keyboard.switch_to_keyboard()
         keyboard._tap('1')
-        self.apps.switch_to_displayed_app()
+        self.frame_manager.switch_to_top_frame()
 
         keyboard_page.switch_to_frame()
         typed_number = keyboard_page.number_input

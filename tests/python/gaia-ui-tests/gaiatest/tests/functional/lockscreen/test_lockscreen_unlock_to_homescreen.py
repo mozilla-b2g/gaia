@@ -20,4 +20,4 @@ class TestLockScreen(GaiaTestCase):
         lock_screen = LockScreen(self.marionette)
         homescreen = lock_screen.unlock()
 
-        self.wait_for_condition(lambda m: self.apps.displayed_app.name == homescreen.name)
+        self.frame_manager.wait_for_and_switch_to_top_frame(homescreen.name.lower())

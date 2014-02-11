@@ -12,7 +12,6 @@ class Gallery(Base):
 
     name = 'Gallery'
 
-    _gallery_frame_locator = (By.CSS_SELECTOR, "iframe[src^='app://gallery'][src$='index.html#pick']")
     _gallery_items_locator = (By.CSS_SELECTOR, 'li.thumbnail')
     _empty_gallery_title_locator = (By.ID, 'overlay-title')
     _empty_gallery_text_locator = (By.ID, 'overlay-text')
@@ -24,10 +23,6 @@ class Gallery(Base):
         Base.launch(self)
         self.wait_for_element_not_displayed(*self._progress_bar_locator)
         self.wait_for_element_displayed(*self._thumbnail_list_view_locator)
-
-    def switch_to_gallery_frame(self):
-        self.wait_for_element_displayed(*self._gallery_frame_locator)
-        self.marionette.switch_to_frame(self.marionette.find_element(*self._gallery_frame_locator))
 
     def wait_for_files_to_load(self, files_number):
         self.wait_for_condition(lambda m: m.execute_script('return window.wrappedJSObject.files.length') == files_number)
@@ -64,6 +59,5 @@ class Gallery(Base):
         switch_to_camera_button = self.marionette.find_element(*self._switch_to_camera_button_locator)
         switch_to_camera_button.tap()
         camera_app = gaiatest.apps.camera.app.Camera(self.marionette)
-        self.wait_for_condition(lambda m: self.apps.displayed_app.name == camera_app.name)
-        self.apps.switch_to_displayed_app()
+        self.frame_manager.wait_for_and_switch_to_top_frame(camera_app.name.lower())
         return camera_app

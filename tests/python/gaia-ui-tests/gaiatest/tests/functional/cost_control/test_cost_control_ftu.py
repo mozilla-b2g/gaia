@@ -26,6 +26,4 @@ class TestCostControlFTU(GaiaTestCase):
         ftu_step3.select_when_use_is_above_unit_and_value(u'MB', '0.1')
         ftu_step3.tap_lets_go()
 
-        self.apps.switch_to_displayed_app()
-        self.wait_for_condition(
-            lambda m: cost_control.is_mobile_data_tracking_on)
+        self.assertTrue(cost_control.is_mobile_data_tracking_on)

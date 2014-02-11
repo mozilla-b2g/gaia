@@ -29,14 +29,15 @@ class TestEdgeGestures(GaiaTestCase):
         '''
 
         # Swipe to the left on the displayed frame
-        displayed_frame = self.apps.displayed_app.frame
+        self.marionette.switch_to_frame()
+        displayed_frame = self.frame_manager.top_frame
         action = Actions(self.marionette)
         action.flick(displayed_frame, 0, 100, -200, 0, 50).perform()
 
         self.wait_for_condition(lambda m: self.apps.displayed_app.name == self._apps_under_test[0])
 
         # Swipe to the right
-        displayed_frame = self.apps.displayed_app.frame
+        displayed_frame = self.frame_manager.top_frame
         action = Actions(self.marionette)
         action.flick(displayed_frame, displayed_frame.size['width'], 100, 200, 0, 50).perform()
 

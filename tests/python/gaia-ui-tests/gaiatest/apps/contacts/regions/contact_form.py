@@ -176,10 +176,11 @@ class EditContact(ContactForm):
 
 class NewContact(ContactForm):
 
+    _frame_src_match = "contacts/index.html?new"
+
     _done_button_locator = (By.ID, 'save-button')
 
-    def __init__(self, marionette):
-        ContactForm.__init__(self, marionette)
+    def wait_for_new_contact_form_to_load(self):
         done = self.marionette.find_element(*self._done_button_locator)
         self.wait_for_condition(lambda m: done.location['y'] == 0)
 

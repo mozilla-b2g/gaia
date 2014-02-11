@@ -9,10 +9,10 @@ from gaiatest.apps.base import Base
 class Messages(Base):
 
     name = 'Messages'
+    _frame_src_match = "sms.gaiamobile"
 
     _create_new_message_locator = (By.ID, 'icon-add')
     _first_message_locator = (By.ID, 'thread-1')
-    _messages_frame_locator = (By.CSS_SELECTOR, 'iframe[data-url*=sms]')
 
     def launch(self):
         Base.launch(self)
@@ -33,9 +33,3 @@ class Messages(Base):
         self.marionette.find_element(*self._first_message_locator).tap()
         from gaiatest.apps.messages.regions.message_thread import MessageThread
         return MessageThread(self.marionette)
-
-    def switch_to_messages_frame(self):
-        self.marionette.switch_to_frame()
-        self.wait_for_element_present(*self._messages_frame_locator)
-        messages_frame = self.marionette.find_element(*self._messages_frame_locator)
-        self.marionette.switch_to_frame(messages_frame)

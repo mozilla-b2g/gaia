@@ -20,7 +20,7 @@ class Persona(Base):
         self.tap_standard_button()
         from gaiatest.apps.persona.app import Persona
         persona = Persona(self.marionette)
-        persona.switch_to_persona_frame()
+        self.frame_manager.wait_for_and_switch_to_top_frame(persona._frame_src_match)
         return persona
 
     def switch_to_frame(self):

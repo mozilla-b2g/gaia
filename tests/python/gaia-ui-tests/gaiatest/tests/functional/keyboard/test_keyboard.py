@@ -35,7 +35,7 @@ class TestKeyboard(GaiaTestCase):
         keyboard.choose_extended_character('A', 8)
 
         # go back to app frame and finish this
-        self.apps.switch_to_displayed_app()
+        self.frame_manager.switch_to_top_frame()
         new_contact_form.tap_done()
         self.wait_for_condition(lambda m: len(contacts_app.contacts) == 1)
 

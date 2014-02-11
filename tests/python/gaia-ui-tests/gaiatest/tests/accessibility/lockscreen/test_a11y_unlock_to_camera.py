@@ -23,5 +23,5 @@ class TestLockScreenAccessibility(GaiaTestCase):
         windows = self.marionette.find_element(By.ID, 'windows')
         self.assertFalse(self.accessibility.is_hidden(windows))
 
-        camera.switch_to_camera_frame()
+        self.frame_manager.wait_for_and_switch_to_top_frame(camera.name.lower())
         camera.wait_for_capture_ready()

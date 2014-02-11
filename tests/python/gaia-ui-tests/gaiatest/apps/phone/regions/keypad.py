@@ -14,6 +14,8 @@ from gaiatest.apps.phone.regions.call_screen import CallScreen
 
 class Keypad(Phone):
 
+    _frame_src_match = "dialer/index.html#keyboard-view"
+
     #locators
     _keyboard_container_locator = (By.ID, 'keyboard-container')
     _phone_number_view_locator = (By.ID, 'phone-number-view')
@@ -75,14 +77,9 @@ class Keypad(Phone):
         self.wait_for_condition(lambda m:
             'disabled' not in m.find_element(*self._add_new_contact_button_locator).get_attribute('class'))
 
-    def switch_to_keypad_frame(self):
-        app = self.apps.displayed_app
-        self.marionette.switch_to_frame(app.frame)
-
 
 class AddNewNumber(Base):
     _create_new_contact_locator = (By.ID, 'create-new-contact-menuitem')
-    _new_contact_frame_locator = (By.CSS_SELECTOR, "iframe[src^='app://communications'][src$='contacts/index.html?new']")
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
@@ -91,10 +88,8 @@ class AddNewNumber(Base):
     def tap_create_new_contact(self):
         self.marionette.find_element(*self._create_new_contact_locator).tap()
 
-        self.marionette.switch_to_frame()
-        self.wait_for_element_present(*self._new_contact_frame_locator)
-        frame = self.marionette.find_element(*self._new_contact_frame_locator)
-        self.marionette.switch_to_frame(frame)
-
         from gaiatest.apps.contacts.regions.contact_form import NewContact
-        return NewContact(self.marionette)
+        new_contact = NewContact(self.marionette)
+        self.frame_manager.wait_for_and_switch_to_top_frame(new_contact._frame_src_match)
+        new_contact.wait_for_new_contact_form_to_load()
+        return new_contact

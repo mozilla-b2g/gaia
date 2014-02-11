@@ -29,8 +29,7 @@ class TestCallLogAllCalls(GaiaTestCase):
         self.phone.make_call_and_hang_up(test_phone_number)
 
         # Wait for fall back to phone app
-        self.wait_for_condition(lambda m: self.apps.displayed_app.name == self.phone.name)
-        self.apps.switch_to_displayed_app()
+        self.frame_manager.wait_for_and_switch_to_top_frame(self.phone.keypad._frame_src_match)
 
         call_log = self.phone.tap_call_log_toolbar_button()
 

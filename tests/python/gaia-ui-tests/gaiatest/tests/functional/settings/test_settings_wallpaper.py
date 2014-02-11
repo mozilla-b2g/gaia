@@ -28,8 +28,6 @@ class TestWallpaper(GaiaTestCase):
         wallpaper = activities_menu.tap_wallpaper()
         wallpaper.tap_wallpaper_by_index(3)
 
-        self.apps.switch_to_displayed_app()
-
         self._new_wallpaper_settings = self.data_layer.get_setting('wallpaper.image')
 
         self.assertNotEqual(self._default_wallpaper_settings, self._new_wallpaper_settings)

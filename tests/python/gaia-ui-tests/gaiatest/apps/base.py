@@ -11,6 +11,7 @@ from marionette.wait import Wait
 
 from gaiatest import GaiaApps
 from gaiatest import Accessibility
+from gaiatest import GaiaFrameManager
 
 
 class Base(object):
@@ -18,6 +19,7 @@ class Base(object):
     def __init__(self, marionette):
         self.marionette = marionette
         self.apps = GaiaApps(self.marionette)
+        self.frame_manager = GaiaFrameManager(self.marionette)
         self.accessibility = Accessibility(self.marionette)
         self.frame = None
 
@@ -98,7 +100,7 @@ class Base(object):
         time.sleep(0.2)
 
         # now back to app
-        self.apps.switch_to_displayed_app()
+        self.frame_manager.switch_to_top_frame()
 
     @property
     def keyboard(self):

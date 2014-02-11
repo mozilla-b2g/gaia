@@ -23,7 +23,7 @@ class TestUrlKeyboard(GaiaTestCase):
         # Test forward slash
         keyboard._tap('/')
 
-        self.apps.switch_to_displayed_app()
+        self.frame_manager.switch_to_top_frame()
         keyboard_page.switch_to_frame()
         typed_key = keyboard_page.url_input
         self.assertEqual(typed_key, u'/')
