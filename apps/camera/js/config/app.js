@@ -39,10 +39,6 @@ module.exports = {
     icon: 'icon-picture-size',
     options: [
       {
-        key: '8mp',
-        title: '8MP',
-      },
-      {
         key: '5mp',
         title: '5MP'
       },
