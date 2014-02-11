@@ -1120,12 +1120,12 @@ exports.CONNECT_TIMEOUT_MS = 30000;
  * The process here is in two steps: First, connect to the server and
  * make sure that we can authenticate properly. Then, if that
  * succeeds, we send a "MAIL FROM:<our address>" line to see if the
- * server will reject the e-mail address. This could happen if the
- * user uses manual setup and gets everything right except for their
- * e-mail address. We want to catch this error before they complete
- * account setup; if we don't, they'll be left with an account that
- * can't send e-mail, and we currently don't allow them to change
- * their address after setup.
+ * server will reject the e-mail address, followed by "RCPT TO" for
+ * the same purpose. This could fail if the user uses manual setup and
+ * gets everything right except for their e-mail address. We want to
+ * catch this error before they complete account setup; if we don't,
+ * they'll be left with an account that can't send e-mail, and we
+ * currently don't allow them to change their address after setup.
  */
 function SmtpProber(credentials, connInfo) {
   console.log("PROBE:SMTP attempting to connect to", connInfo.hostname);
@@ -1199,7 +1199,14 @@ SmtpProber.prototype = {
       console.log('PROBE:SMTP connected, checking address validity');
       // For clarity, send callbacks to onAddressValidityResult.
       this.setConnectionListenerCallback(this.onAddressValidityResult);
-      this._conn.useEnvelope({ from: this.emailAddress });
+      this._conn.useEnvelope({
+        from: this.emailAddress,
+        to: [this.emailAddress]
+      });
+      this._conn.on('message', function() {
+        // Success! Our recipient was valid.
+        this.onAddressValidityResult(null);
+      }.bind(this));
     }
   },
 
@@ -1214,14 +1221,9 @@ SmtpProber.prototype = {
     if (!this.onresult)
       return; // We already handled the result.
 
-    if (err && err.name === 'SenderError') {
+    if (err && (err.name === 'SenderError' ||
+                err.name === 'RecipientError')) {
       err = 'bad-address';
-    } else if (err && err.name === 'RecipientError') {
-      // This error indicates that the SMTP server _accepted_ our
-      // "MAIL FROM" line, but the SMTP client complained that we
-      // didn't provide any "to" addresses. That's expected and
-      // indicates that we succeeded.
-      err = null;
     } else if (err && err.name) {
       // This error wasn't normalized (so it's not
       // "unresponsive-server"); we don't expect any auth or
