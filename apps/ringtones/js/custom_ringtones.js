@@ -12,7 +12,7 @@ this.customRingtones = function() {
       // Lazily get the URL for the blob, but once we've done it once, we don't
       // need to use the getter again. XXX: We could be smarter here and have a
       // way of revoking URLs when we're done with them.
-      return this.url = URL.createObjectURL(this.blob);
+      return this._url || (this._url = URL.createObjectURL(this._blob));
     },
 
     getBlob: function(callback) {
