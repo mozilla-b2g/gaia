@@ -16,7 +16,6 @@ var debug = require('debug')('view:settings');
 
 module.exports = View.extend({
   name: 'settings',
-  tag: 'ul',
 
   initialize: function(options) {
     this.items = options.items;
@@ -38,7 +37,8 @@ module.exports = View.extend({
   },
 
   render: function() {
-    this.el.innerHTML = '';
+    this.el.innerHTML = this.template();
+    this.els.items = this.find('.js-items');
     this.items.forEach(this.initializeChild);
     debug('rendered');
     return this;
@@ -51,9 +51,16 @@ module.exports = View.extend({
 
   initializeChild: function(model) {
     var view = new SettingView({ model: model });
-    view.render().appendTo(this.el);
+    view.render().appendTo(this.els.items);
     this.children.push(view);
     debug('initialized child');
+  },
+
+  template: function() {
+    return '<div class="inner">' +
+      '<h2 class="settings_title">Options</h2>' +
+      '<ul class="settings_items js-items"></ul>' +
+    '</div>';
   }
 });
 

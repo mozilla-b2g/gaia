@@ -36,7 +36,8 @@ module.exports = View.extend({
   },
 
   template: function(data) {
-    return data.title + ' - ' + data.selected.title;
+    return '<h4 class="setting_title">' + data.title + '</h4>' +
+    '<h5 class="setting_value">' + data.selected.title + '</h5>';
   },
 });
 
