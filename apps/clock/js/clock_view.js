@@ -125,7 +125,13 @@ var ClockView = {
                             d.getMinutes() * 60 * 1000 -
                             d.getMilliseconds();
 
-    this.dayDate.innerHTML = formated.replace(/([0-9]+)/, '<b>$1</b>');
+    //Check for English, French and Arabic locales
+    if (isNaN(formated.charAt(0))) {
+      this.dayDate.innerHTML = formated.replace(/([0-9]+)/, '<b>$1</b>');
+    } else {
+      //For Chinese traditional
+      this.dayDate.innerHTML = formated.replace(/(\s[0-9]+)/, ' <b>$1</b>');
+    }
 
     this.timeouts.dayDate = setTimeout(
       this.updateDayDate.bind(this), remainMillisecond
