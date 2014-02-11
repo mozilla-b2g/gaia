@@ -85,7 +85,8 @@ define(function(require, exports, module) {
 
     // Create the MediaFrame for previews
     var frame = new MediaFrame(mediaFrame);
-    if (CONFIG_REQUIRED_EXIF_PREVIEW_WIDTH) {
+    if (window.CONFIG_REQUIRED_EXIF_PREVIEW_WIDTH &&
+        window.CONFIG_REQUIRED_EXIF_PREVIEW_HEIGHT) {
       frame.setMinimumPreviewSize(CONFIG_REQUIRED_EXIF_PREVIEW_WIDTH,
                                   CONFIG_REQUIRED_EXIF_PREVIEW_HEIGHT);
     }
