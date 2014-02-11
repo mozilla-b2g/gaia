@@ -2226,7 +2226,7 @@ var ThreadUI = global.ThreadUI = {
       var nonActiveId = idList[0];
 
       if (errorCode) {
-        this.showMessageError(errorCode, {
+        this.showMessageError(errorCode, 
           messageId: id,
           confirmHandler: function stateResetAndRetry() {
             // Avoid user to click the download button while sim state is not
