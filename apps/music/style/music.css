@@ -323,6 +323,16 @@ body.picker-mode #title-player {
   min-height: 100%;
 }
 
+/*
+ * Bug 968456 - Ensure background
+ * scrolls w/ the content
+ */
+#views-tiles-anchor,
+#views-list-anchor,
+#views-sublist-anchor {
+  background-color: #0E1214;
+}
+
 #views-sublist-header,
 #views-sublist-anchor {
   position: relative;
@@ -334,11 +344,16 @@ body.picker-mode #title-player {
   height: 8rem;
 }
 
+#views-scrollable-sublist-anchor {
+  overflow-x: hidden;
+  overflow-y: auto;
+  width: 100%;
+  height: calc(100% - 8rem);
+}
+
 #views-sublist-anchor {
   width: 100%;
   height: calc(100% - 8rem);
-  overflow-x: hidden;
-  overflow-y: auto;
   will-change: scroll-position;
 }
 
