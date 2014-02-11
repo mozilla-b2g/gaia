@@ -15,6 +15,7 @@ class TestPlay3GPMusic(GaiaTestCase):
         self.push_resource('MUS_0001.3gp')
 
     def test_select_songs_play_3gp_file(self):
+        """https://moztrap.mozilla.org/manage/case/4031/"""
 
         music_app = Music(self.marionette)
         music_app.launch()

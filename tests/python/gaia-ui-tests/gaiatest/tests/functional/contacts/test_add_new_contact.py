@@ -11,7 +11,8 @@ from gaiatest.apps.contacts.app import Contacts
 class TestContacts(GaiaTestCase):
 
     def test_add_new_contact(self):
-        # https://moztrap.mozilla.org/manage/case/1309/
+        """https://moztrap.mozilla.org/manage/case/1309/"""
+
         self.contact = MockContact()
 
         contacts_app = Contacts(self.marionette)

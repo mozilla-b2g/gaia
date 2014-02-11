@@ -23,7 +23,7 @@ class TestCardsViewTwoApps(GaiaTestCase):
             time.sleep(2)
 
     def test_kill_app_from_cards_view(self):
-        # https://moztrap.mozilla.org/manage/case/1917/
+        """https://moztrap.mozilla.org/manage/case/1917/"""
 
         # Pull up the cards view
         self.device.hold_home_button()

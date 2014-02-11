@@ -18,7 +18,7 @@ class TestCalendar(GaiaTestCase):
         self.next_month_year = self.today.replace(day=1) + datetime.timedelta(days=32)
 
     def test_calendar_flick_through_months(self):
-        # https://bugzilla.mozilla.org/show_bug.cgi?id=937085
+        """https://bugzilla.mozilla.org/show_bug.cgi?id=937085"""
 
         MONTH_YEAR_PATTERN = '%B %Y'
 

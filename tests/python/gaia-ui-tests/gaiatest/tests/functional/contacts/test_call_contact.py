@@ -20,10 +20,10 @@ class TestContacts(GaiaTestCase):
         self.data_layer.insert_contact(self.contact)
 
     def test_call_contact(self):
-        # NB This is not a listed smoke test
-        # Call phone from a contact
-        # https://moztrap.mozilla.org/manage/case/5679/
-
+        """NB This is not a listed smoke test
+        Call phone from a contact
+        https://moztrap.mozilla.org/manage/case/5679/
+        """
         contacts = Contacts(self.marionette)
         contacts.launch()
         contacts.wait_for_contacts()

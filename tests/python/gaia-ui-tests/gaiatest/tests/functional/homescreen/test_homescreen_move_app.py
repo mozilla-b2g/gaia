@@ -15,8 +15,8 @@ class TestMoveApp(GaiaTestCase):
         self.apps.switch_to_displayed_app()
 
     def test_move_app_position(self):
-        """
-        Verify the user can move an application around on the homescreen.
+        """Verify the user can move an application around on the homescreen.
+
         https://moztrap.mozilla.org/manage/case/1317/
         """
 

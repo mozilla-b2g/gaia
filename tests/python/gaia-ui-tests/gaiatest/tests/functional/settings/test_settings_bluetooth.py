@@ -18,10 +18,9 @@ class TestBluetoothSettings(GaiaTestCase):
         self.bluetooth_host = BluetoothHost(self.marionette)
 
     def test_toggle_bluetooth_settings(self):
-        """ Toggle Bluetooth via Settings - Networks & Connectivity
+        """Toggle Bluetooth via Settings - Networks & Connectivity
 
-        https://moztrap.mozilla.org/manage/case/3346/
-
+        https://moztrap.mozilla.org/manage/case/6071/
         """
         device_name = str(time.time())
 

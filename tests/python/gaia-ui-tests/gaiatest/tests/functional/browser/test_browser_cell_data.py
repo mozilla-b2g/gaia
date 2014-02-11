@@ -17,7 +17,7 @@ class TestBrowserCellData(GaiaTestCase):
         self.data_layer.connect_to_cell_data()
 
     def test_browser_cell_data(self):
-        # https://moztrap.mozilla.org/manage/case/1328/
+        """https://moztrap.mozilla.org/manage/case/1328/"""
 
         browser = Browser(self.marionette)
         browser.launch()

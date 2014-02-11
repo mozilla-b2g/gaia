@@ -18,6 +18,7 @@ class TestCostControlDataAlertMobile(GaiaTestCase):
     _page_body_locator = (By.ID, 'home')
 
     def test_cost_control_data_alert_mobile(self):
+        """https://moztrap.mozilla.org/manage/case/8938/"""
 
         self.data_layer.connect_to_cell_data()
         cost_control = CostControl(self.marionette)

@@ -14,8 +14,6 @@ class TestEverythingMeLaunchApp(GaiaTestCase):
         self.connect_to_network()
 
     def test_launch_everything_me_app(self):
-        # https://github.com/mozilla/gaia-ui-tests/issues/69
-
         app_name = 'Twitter'
         homescreen = Homescreen(self.marionette)
         self.apps.switch_to_displayed_app()
