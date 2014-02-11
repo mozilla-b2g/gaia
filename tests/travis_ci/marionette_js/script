@@ -1,3 +1,9 @@
 #! /bin/bash -v
 
+echo "Downloading b2g-desktop"
+make b2g
+
+echo "Building test profile"
+PROFILE_FOLDER=profile-test make
+
 REPORTER=spec make test-integration

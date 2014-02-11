@@ -1,3 +1,36 @@
 #! /bin/bash -v
 
+echo 'Downloading Firefox'
+./node_modules/.bin/mozilla-download --product firefox \
+                 --channel tinderbox \
+                 --branch mozilla-central \
+                 $PWD/firefox
+
+echo 'Downloading & installing node dependencies'
+make common-install
+
+echo 'Downloading xulrunner-sdk and making profile for testing (more than 5 minutes)'
+DEBUG=1 DESKTOP=0 WGET_OPTS=-nv make
+
+RETRY=10
+
+function waiting_port {
+  for i in $(seq 1 $RETRY); do
+    nc -z localhost $1
+    if [ $? -eq 0 ]; then return; fi
+    sleep 1
+  done
+  echo "Waiting for server on port $1 failed."
+  exit 1
+}
+
+echo "Starting test-agent-server"
+make test-agent-server &
+
+echo 'Starting Firefox'
+
+FIREFOX=`find firefox -name "firefox" | tail -n 1`
+$FIREFOX -profile `pwd`/profile-debug "http://test-agent.gaiamobile.org:8080" &
+waiting_port 8080
+
 make test-agent-test REPORTER=Min

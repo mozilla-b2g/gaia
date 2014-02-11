@@ -37,6 +37,7 @@ manifest.appcache
 
 /shared/test/integration/node_modules
 
+/firefox
 /b2g
 /profile/
 /profile-debug/
