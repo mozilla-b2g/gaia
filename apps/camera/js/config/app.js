@@ -2,8 +2,7 @@ define(function(require, exports, module) {
 'use strict';
 
 module.exports = {
-  maxResolution: 99999999,
-  showSettings: true,
+  showSettings: false,
   mode: {
     title: 'Mode',
     options: [
