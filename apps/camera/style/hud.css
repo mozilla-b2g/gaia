@@ -206,7 +206,10 @@ body[data-orientation=deg180] .flash-text {
 /** Settings
  ---------------------------------------------------------*/
 
-.hud_settings {}
+.hud_settings {
+  font-size: 2rem;
+  line-height: 5rem;
+}
 
 /**
  * @settings-disabled
