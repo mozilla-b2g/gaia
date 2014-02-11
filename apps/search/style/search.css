@@ -116,6 +116,6 @@ section.apps img {
   width: 2.75rem;
 }
 
-div[data-provider="WebResults"] > img {
+#webresults .result img {
   border-radius: 50%;
 }
