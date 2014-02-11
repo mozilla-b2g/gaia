@@ -1,6 +1,32 @@
 'use strict';
 
 this.defaultRingtones = function() {
+  function DefaultRingtone(filename, baseURL) {
+    this.l10nId = filename.replace('.', '_');
+    this.id = 'default:' + filename;
+    this.url = baseURL + filename;
+  }
+
+  DefaultRingtone.prototype = {
+    get name() {
+      return navigator.mozL10n.get(this.l10nId);
+    },
+
+    getBlob: function(callback) {
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', this.url);
+      // XXX
+      // This assumes that all system tones are ogg files
+      // Maybe map based on the extension instead?
+      xhr.overrideMimeType('audio/ogg');
+      xhr.responseType = 'blob';
+      xhr.send();
+      xhr.onload = function() {
+        callback(xhr.response);
+      };
+    }
+  };
+
   // Read the list.json file to get the names of all sounds we know about
   // and pass an array of filenames to the callback function. These filenames
   // are relative to baseURL.
@@ -42,8 +68,7 @@ this.defaultRingtones = function() {
 
     getSoundFilenames(listURL, function(filenames) {
       filenames.forEach(function(filename) {
-        var l10nId = filename.replace('.', '_');
-        callback({l10nId: l10nId, url: baseURL + filename});
+        callback(new DefaultRingtone(filename, baseURL));
       });
     });
   }

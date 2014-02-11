@@ -833,6 +833,7 @@ apps/ringtones/js/default_ringtones.js
 apps/ringtones/js/pick.js
 apps/ringtones/js/manage.js
 apps/ringtones/js/share.js
+apps/ringtones/js/utils.js
 apps/search/js/eme/api.js
 apps/search/js/eme/eme.js
 apps/search/js/providers/app_provider.js

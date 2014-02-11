@@ -42,23 +42,19 @@ function share(activity) {
     else if (data.filenames && data.filenames[0])
       name = data.filenames[0];
 
-    window.customRingtones.add(name);
-
-    var settings = {
-      'dialer.ringtone': blob,
-      'dialer.ringtone.name': name
-    };
-
-    navigator.mozSettings.createLock().set(settings).onsuccess = function() {
-      activity.postResult({});
-    };
-
     // Disable the button so the user can't click it twice
     set.disabled = true;
 
     // For a large blob this can take a while, so display a message
     document.getElementById('title').textContent =
       navigator.mozL10n.get('settingringtone');
+
+    // Add to the custom ringtones DB and then set it in the settings
+    window.customRingtones.add(name, blob, function(tone) {
+      setTone('ringtone', tone, function() {
+        activity.postResult({});
+      });
+    });
   };
 
   control.onclick = function() {

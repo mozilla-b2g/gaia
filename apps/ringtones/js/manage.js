@@ -1,6 +1,7 @@
 'use strict';
 
 var toneType = location.hash.substr(1);
+var pendingTone = null;
 
 // Until Haida lands this is how users could go back to Settings app
 document.getElementById('back').addEventListener('click', function() {
@@ -11,42 +12,51 @@ document.getElementById('back').addEventListener('click', function() {
     }
   });
 
-  // Close ourself after the activity transition is completed.
-  setTimeout(function() {
-    window.close();
-  }, 1000);
-});
-
-function domify(htmlText) {
-  // Convert to DOM node.
-  var dummyDiv = document.createElement('div');
-  dummyDiv.innerHTML = htmlText;
-
-  return dummyDiv.firstElementChild;
-}
-
-function getCurrentToneName(toneType, callback) {
-  var settingKey;
-  switch (toneType) {
-  case 'ringtone':
-    settingKey = 'dialer.ringtone.name';
-    break;
-  case 'alerttone':
-    settingKey = 'notification.ringtone.name';
-    break;
-  default:
-    throw new Error('pick type not supported');
+  // Close the window when all remaining tasks are done.
+  var remaining = 1;
+  function done() {
+    if (--remaining === 0) {
+      window.close();
+    }
   }
 
-  navigator.mozSettings.createLock().get(settingKey).onsuccess = function(e) {
-    callback(e.target.result[settingKey]);
-  };
-}
+  // Close ourselves after the activity transition is completed.
+  setTimeout(done, 1000);
 
-getCurrentToneName(toneType, function(currentToneName) {
+  // If we have a tone that needs to be saved, save it too (and keep the window
+  // around until saving is finished.
+  if (pendingTone) {
+    remaining = 2;
+    setTone(toneType, pendingTone, done);
+  }
+});
+
+getCurrentToneId(toneType, function(currentToneId) {
   var defaultList = document.getElementById('default-list');
   var customList = document.getElementById('custom-list');
   var template = new Template('sound-item-template');
+
+  function domify(htmlText) {
+    // Convert to DOM node.
+    var dummyDiv = document.createElement('div');
+    dummyDiv.innerHTML = htmlText;
+
+    return dummyDiv.firstElementChild;
+  }
+
+  var player = document.createElement('audio'); // for previewing sounds
+  function previewTone(tone) {
+    if (player.currentURL === tone.url && !player.paused && !player.ended) {
+      player.pause();
+    } else {
+      player.src = player.currentURL = tone.url;
+      player.play();
+    }
+  }
+
+  function selectTone(tone) {
+    pendingTone = tone;
+  }
 
   window.defaultRingtones.list(toneType, function(tone) {
     var item = domify(template.interpolate({
@@ -55,15 +65,23 @@ getCurrentToneName(toneType, function(currentToneName) {
     navigator.mozL10n.ready(function() {
       navigator.mozL10n.translate(item);
     });
-    item.querySelector('input').checked = (name === currentToneName);
 
+    var input = item.querySelector('input');
+    input.checked = (tone.id === currentToneId);
+    input.addEventListener('click', previewTone.bind(input, tone));
+    input.addEventListener('change', selectTone.bind(input, tone));
     defaultList.appendChild(item);
   });
 
-  window.customRingtones.list(function(name) {
+  window.customRingtones.list(function(tone) {
     var item = domify(template.interpolate({
-      title: name
+      title: tone.name
     }));
+
+    var input = item.querySelector('input');
+    input.checked = (tone.id === currentToneId);
+    input.addEventListener('click', previewTone.bind(input, tone));
+    input.addEventListener('change', selectTone.bind(input, tone));
     customList.appendChild(item);
   });
 });
