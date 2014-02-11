@@ -13,6 +13,8 @@ requireApp('communications/contacts/test/unit/mock_contacts_list_obj.js');
 requireApp('communications/contacts/test/unit/mock_fb.js');
 requireApp('communications/contacts/test/unit/mock_extfb.js');
 
+require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
+
 var subject,
     container,
     realL10n,
@@ -47,7 +49,12 @@ var subject,
 
 var SCALE_RATIO = 1;
 
+var mocksHelperForDetailView = new MocksHelper([
+  'ContactPhotoHelper'
+]).init();
+
 suite('Render contact', function() {
+  mocksHelperForDetailView.attachTestHelpers();
 
   var isOnLine = true;
   function navigatorOnLine() {

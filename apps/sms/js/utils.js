@@ -1,6 +1,8 @@
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
+/* globals ContactPhotoHelper */
+
 (function(exports) {
   'use strict';
   var rdashes = /-(.)/g;
@@ -104,8 +106,9 @@
 
         // Add photo
         if (include.photoURL) {
-          if (contact.photo && contact.photo[0]) {
-            details.photoURL = window.URL.createObjectURL(contact.photo[0]);
+          var photo = ContactPhotoHelper.getThumbnail(contact);
+          if (photo) {
+            details.photoURL = window.URL.createObjectURL(photo);
           }
         }
 

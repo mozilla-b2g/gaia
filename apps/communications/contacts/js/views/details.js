@@ -561,8 +561,9 @@ contacts.Details = (function() {
     if (isFbContact) {
       contactDetails.classList.add('fb-contact');
     }
-    if (Array.isArray(contact.photo) && contact.photo[0]) {
-      var photo = contact.photo[0];
+
+    var photo = ContactPhotoHelper.getFullResolution(contact);
+    if (photo) {
       var currentHash = cover.dataset.imgHash;
       if (!currentHash) {
         Contacts.updatePhoto(photo, cover);

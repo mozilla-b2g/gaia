@@ -511,11 +511,14 @@ var Contacts = (function() {
       callback();
     } else {
       initDetails(function onDetails() {
-        Contacts.view('Form', function viewLoaded() {
-          formReady = true;
-          contactsForm = contacts.Form;
-          contactsForm.init(TAG_OPTIONS);
-          callback();
+        LazyLoader.load(['/contacts/js/utilities/image_thumbnail.js'],
+        function() {
+          Contacts.view('Form', function viewLoaded() {
+            formReady = true;
+            contactsForm = contacts.Form;
+            contactsForm.init(TAG_OPTIONS);
+            callback();
+          });
         });
       });
     }

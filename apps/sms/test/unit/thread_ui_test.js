@@ -48,6 +48,7 @@ requireApp('sms/test/unit/mock_url.js');
 requireApp('sms/test/unit/mock_compose.js');
 requireApp('sms/test/unit/mock_activity_handler.js');
 require('/test/unit/mock_contact_renderer.js');
+require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 
 var mocksHelperForThreadUI = new MocksHelper([
   'Attachment',
@@ -67,7 +68,8 @@ var mocksHelperForThreadUI = new MocksHelper([
   'SMIL',
   'ActivityHandler',
   'TimeHeaders',
-  'ContactRenderer'
+  'ContactRenderer',
+  'ContactPhotoHelper'
 ]);
 
 mocksHelperForThreadUI.init();
