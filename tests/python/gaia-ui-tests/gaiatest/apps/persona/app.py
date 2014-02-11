@@ -35,7 +35,8 @@ class Persona(Base):
         self.apps.switch_to_displayed_app()
 
     def wait_for_persona_to_load(self):
-        self.wait_for_element_not_displayed(*self._body_loading_locator)
+        # Wait a bit more because it's an external resource that's loading
+        self.wait_for_element_not_displayed(*self._body_loading_locator, timeout=30)
 
     def switch_to_persona_frame(self):
         self.marionette.switch_to_frame()
