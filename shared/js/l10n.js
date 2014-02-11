@@ -12,7 +12,6 @@
   var gL10nData = {};
   var gLanguage = '';
   var gMacros = {};
-  var gReadyState = 'loading';
 
   // DOM element properties that may be localized with a key:value pair.
   var gNestedProps = ['style', 'dataset'];
@@ -100,6 +99,45 @@
 
 
   /**
+   * All functions piled in gReadyCallbacks are triggered (and cleared)
+   * when gReadyState is 'complete'.
+   */
+
+  var gReadyState = 'loading';
+  var gReadyCallbacks = [];
+
+  function pushL10nReadyCallback(callback) {
+    if (!callback) {
+      return;
+    } else if (gReadyState == 'complete') {
+      window.setTimeout(callback);
+    } else {
+      gReadyCallbacks.push(callback);
+    }
+  }
+
+  function fireL10nReadyEvent(lang) {
+    gReadyState = 'complete';
+
+    // fire a `localized' event *after* setting `gReadyState' to `complete',
+    // so that localizeElement() works as expected
+    var event = new CustomEvent('localized', {
+      detail: { 'language': lang },
+      bubbles: false,
+      cancelable: false
+    });
+    window.dispatchEvent(event);
+
+    // start callbacks *after* firing the `localized' event, so that
+    // applications can make the difference between an l10n initialization
+    // and a language change
+    while (gReadyCallbacks.length) {
+      gReadyCallbacks.pop().call();
+    }
+  }
+
+
+  /**
    * DOM helpers for the so-called "HTML API".
    *
    * These functions are written for modern browsers. For old versions of IE,
@@ -170,11 +208,30 @@
     }
   }
 
-  function fireL10nReadyEvent() {
-    var evtObject = document.createEvent('Event');
-    evtObject.initEvent('localized', false, false);
-    evtObject.language = gLanguage;
-    window.dispatchEvent(evtObject);
+  function xhrLoadText(url, onSuccess, onFailure, asynchronous) {
+    onSuccess = onSuccess || function _onSuccess(data) {};
+    onFailure = onFailure || function _onFailure() {
+      consoleWarn(url + ' not found.');
+    };
+
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', url, asynchronous);
+    if (xhr.overrideMimeType) {
+      xhr.overrideMimeType('text/plain; charset=utf-8');
+    }
+    xhr.onload = function() {
+      onSuccess(xhr.responseText);
+    };
+    xhr.onerror = onFailure;
+    xhr.ontimeout = onFailure;
+
+    // in Firefox OS with the app:// protocol, trying to XHR a non-existing
+    // URL will raise an exception here -- hence this ugly try...catch.
+    try {
+      xhr.send(null);
+    } catch (e) {
+      onFailure();
+    }
   }
 
 
@@ -202,7 +259,7 @@
    */
 
   function parseResource(href, lang, successCallback, failureCallback) {
-    var baseURL = href.replace(/\/[^\/]*$/, '/');
+    var baseURL = href.replace(/[^\/]*$/, '') || './';
 
     // handle escaped characters (backslashes) in a string
     function evalString(text) {
@@ -287,7 +344,7 @@
 
       // import another *.properties file
       function loadImport(url) {
-        loadResource(url, function(content) {
+        xhrLoadText(url, function(content) {
           parseRawLines(content, false); // don't allow recursive imports
         }, null, false); // load synchronously
       }
@@ -297,41 +354,8 @@
       return dictionary;
     }
 
-    // load the specified resource file
-    function loadResource(url, onSuccess, onFailure, asynchronous) {
-      onSuccess = onSuccess || function _onSuccess(data) {};
-      onFailure = onFailure || function _onFailure() {
-        consoleWarn(url + ' not found.');
-      };
-
-      var xhr = new XMLHttpRequest();
-      xhr.open('GET', url, asynchronous);
-      if (xhr.overrideMimeType) {
-        xhr.overrideMimeType('text/plain; charset=utf-8');
-      }
-      xhr.onreadystatechange = function() {
-        if (xhr.readyState == 4) {
-          if (xhr.status == 200 || xhr.status === 0) {
-            onSuccess(xhr.responseText);
-          } else {
-            onFailure();
-          }
-        }
-      };
-      xhr.onerror = onFailure;
-      xhr.ontimeout = onFailure;
-
-      // in Firefox OS with the app:// protocol, trying to XHR a non-existing
-      // URL will raise an exception here -- hence this ugly try...catch.
-      try {
-        xhr.send(null);
-      } catch (e) {
-        onFailure();
-      }
-    }
-
     // load and parse l10n data (warning: global variables are used here)
-    loadResource(href, function(response) {
+    xhrLoadText(href, function(response) {
       if (/\.json$/.test(href)) {
         gL10nData = JSON.parse(response); // TODO: support multiple JSON files
       } else { // *.ini or *.properties file
@@ -405,9 +429,6 @@
         }
       }
       // tell the rest of the world we're done
-      // -- note that `gReadyState' must be set before the `localized' event is
-      //    fired for `localizeElement()' to work as expected
-      gReadyState = 'complete';
       fireL10nReadyEvent(lang);
       consoleWarn_missingKeys(untranslatedElements, lang);
     }
@@ -1224,16 +1245,7 @@
 
     // this can be used to prevent race conditions
     get readyState() { return gReadyState; },
-    ready: function l10n_ready(callback) {
-      if (!callback) {
-        return;
-      }
-      if (gReadyState == 'complete') {
-        window.setTimeout(callback);
-      } else {
-        window.addEventListener('localized', callback);
-      }
-    }
+    ready: pushL10nReadyCallback
   };
 
   consoleLog('library loaded.');

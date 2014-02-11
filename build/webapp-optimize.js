@@ -555,9 +555,9 @@ function optimize_compile(webapp, file, callback) {
     info: optimize_dump
   };
 
-  // catch the XHR in `loadResource' and use a local file reader instead
+  // catch the XHR in `xhrLoadText' and use a local file reader instead
   win.XMLHttpRequest = function() {
-    debug('loadResource');
+    debug('xhrLoadText');
 
     function open(type, url, async) {
       this.readyState = 4;
