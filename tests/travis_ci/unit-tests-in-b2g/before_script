@@ -18,5 +18,16 @@ make test-agent-server &
 
 echo 'Starting B2G Desktop'
 
-./b2g/b2g-bin -profile `pwd`/profile-debug --runapp 'Test Agent' &
+B2G_DESKTOP_PATH="./b2g/b2g-bin"
+if [ ! -x "$B2G_DESKTOP_PATH" ] ; then
+  # set the path for Mac OS X
+  B2G_DESKTOP_PATH="./b2g/Contents/MacOS/b2g-bin"
+fi
+
+# if we still don't have it, fail
+if [ ! -x "$B2G_DESKTOP_PATH" ] ; then
+  echo "b2g desktop path doesn't exists"
+  exit 1
+fi
+$B2G_DESKTOP_PATH -profile `pwd`/profile-debug --runapp 'Test Agent' &
 waiting_port 8080
