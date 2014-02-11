@@ -8,8 +8,6 @@
   left: 0; top: 0;
   bottom: 4.5rem; /* 1 */
   width: 100%;
-  margin: 0;
-  padding: 0;
   font-size: 1.6rem;
   color: #FFF;
   transform: translateZ(1px);
@@ -26,7 +24,10 @@
  ---------------------------------------------------------*/
 
 .settings_title {
-  height: 7.5rem;
+  display: flex;
+  align-items: center;
+  height: 10.5rem;
+  padding: 0 1rem;
 }
 
 /** Items

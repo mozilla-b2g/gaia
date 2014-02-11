@@ -10,7 +10,12 @@ body {
   background-color: black;
 }
 
-* { margin: 0; }
+* {
+  -moz-box-sizing: border-box;
+  font-weight: inherit;
+  margin: 0;
+}
+
 
 /** Rotates
  ---------------------------------------------------------*/

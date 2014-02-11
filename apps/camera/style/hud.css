@@ -34,6 +34,7 @@ body:not(.filmstriphidden) .hud {
   background-color: rgba(0,0,0,.3);
   background-clip: padding-box; /* 1 */
   border: solid 2rem transparent; /* 1 */
+  -moz-box-sizing: content-box; /* 1 */
   transition: background-color 1s; /* 2 */
   color: #fff;
 }
