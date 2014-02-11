@@ -474,6 +474,12 @@ navigator.mozL10n.ready(function wifiSettings() {
     };
   }) (document.getElementById('wifi-availableNetworks'));
 
+  // When user change language, re-load network list
+  window.addEventListener('localized', function() {
+    gNetworkList.clear(true);
+    gNetworkList.scan();
+  });
+
   // saved network list
   var gKnownNetworkList = (function knownNetworkList(list) {
     // clear the network list
