@@ -47,8 +47,8 @@ CameraController.prototype.bindEvents = function() {
   this.camera.on('newvideo', this.onNewVideo);
   this.camera.on('shutter', this.onShutter);
   this.app.on('blur', this.teardownCamera);
-  this.app.on('focus', this.start);
-  this.app.on('boot', this.start);
+  this.app.on('focus', this.setupCamera);
+  this.app.on('boot', this.setupCamera);
   debug('events bound');
 };
 
@@ -68,8 +68,8 @@ CameraController.prototype.setCaptureMode = function() {
   debug('capture mode set: %s', initialMode);
 };
 
-CameraController.prototype.start = function() {
-  this.camera.start();
+CameraController.prototype.setupCamera = function() {
+  this.camera.load();
 };
 
 CameraController.prototype.onConfigured = function() {
@@ -86,9 +86,10 @@ CameraController.prototype.teardownCamera = function() {
       camera.stopRecording();
     }
 
-    this.viewfinder.el.stop();
+    this.viewfinder.stopPreview();
     camera.set('previewActive', false);
     camera.set('focus', 'none');
+    this.viewfinder.setPreviewStream(null);
   } catch (e) {
     console.error('error while stopping preview', e.message);
   } finally {

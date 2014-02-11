@@ -106,6 +106,23 @@ return View.extend({
     this.el.style.transform = 'scale(' + scale + ', ' + scale + ')';
   },
 
+  setPreviewStream: function(previewStream) {
+    this.el.mozSrcObject = previewStream;
+  },
+
+  setStream: function(stream, done) {
+    this.setPreviewStream(stream);
+    this.startPreview();
+  },
+
+  startPreview: function() {
+    this.el.play();
+  },
+
+  stopPreview: function() {
+    this.el.pause();
+  },
+
   fadeOut: function(done) {
     this.el.classList.add('fade-out');
 

@@ -29,7 +29,6 @@ function ViewfinderController(app) {
   this.filmstrip = app.filmstrip;
   this.activity = app.activity;
   this.camera = app.camera;
-  this.app = app;
   bindAll(this);
   this.bindEvents();
   debug('initialized');
@@ -38,27 +37,18 @@ function ViewfinderController(app) {
 ViewfinderController.prototype.bindEvents = function() {
   this.camera.on('configured', this.onConfigured);
   this.camera.on('change:mode', this.onConfigured);
-  this.camera.on('streamloaded', this.onStreamLoaded);
   this.viewfinder.on('click', this.onViewfinderClick);
-  this.app.on('cameraToggled', this.onCameraToggled);
-};
-
-ViewfinderController.prototype.onStreamLoaded = function() {
-  this.viewfinder.fadeIn();
-};
-
-ViewfinderController.prototype.onCameraToggled = function() {
-  var self = this;
-  this.viewfinder.fadeOut(
-    function(){
-      self.camera.toggleMode();
-  });
 };
 
 ViewfinderController.prototype.onConfigured = function() {
-  this.camera.loadStreamInto(this.viewfinder.el);
+  debug('camera configured');
   this.viewfinder.updatePreview(this.camera.previewSize,
-                                this.camera.get('selectedCamera') === 'front');
+                                this.camera.get('selectedCamera') === 1);
+  this.camera.loadStreamInto(this.viewfinder.el, onStreamLoaded);
+  function onStreamLoaded(stream) {
+    debug('stream loaded %d ms after dom began loading',
+    Date.now() - window.performance.timing.domLoading);
+  }
 };
 
 ViewfinderController.prototype.onViewfinderClick = function() {
