@@ -200,8 +200,6 @@ function fillAppManifest(webapp) {
 
   if (webapp.url.indexOf('communications.' + config.GAIA_DOMAIN) !== -1) {
     fillCommsAppManifest(webapp, webappTargetDir);
-  } else if (config.ROCKETBAR !== 'none' && webapp.url.indexOf('system.' + config.GAIA_DOMAIN) !== -1) {
-    modifySystemForRocketbar(webapp, webappTargetDir);
   }
 
   manifestInterAppHostnames(webapp, webappTargetDir);

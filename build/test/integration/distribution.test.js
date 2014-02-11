@@ -111,7 +111,29 @@ suite('Distribution mechanism', function() {
     var presetsContent = broZip.readAsText(broZip.getEntry('js/init.json'));
     assert.isNotNull(presetsContent, 'js/init.json should exist');
     assert.deepEqual(JSON.parse(presetsContent), appConfig);
+  }
 
+  function validateSystem() {
+    var icc = path.join(distDir, 'icc.json');
+    var iccConfig = JSON.parse(fs.readFileSync(icc));
+    var wapuaprof = path.join(distDir, 'wapuaprof.json');
+    var wapuaprofConfig = JSON.parse(fs.readFileSync(wapuaprof));
+    var power = path.join(distDir, 'power', 'fakePowerFile.json');
+    var powerFile = JSON.parse(fs.readFileSync(power));
+    var sysZip = new AdmZip(path.join(process.cwd(), 'profile',
+                'webapps', 'system.gaiamobile.org', 'application.zip'));
+
+    var realIcc = sysZip.readAsText(sysZip.getEntry('js/icc.json'));
+    var realWap = sysZip.readAsText(sysZip.getEntry('js/wapuaprof.json'));
+    var realPower = sysZip.readAsText(sysZip.getEntry(
+      'resources/power/fakePowerFile.json'));
+
+    assert.isNotNull(realIcc, 'js/icc.json should exist');
+    assert.deepEqual(JSON.parse(realIcc), iccConfig);
+    assert.isNotNull(realWap, 'js/wapuaprof.json should exist');
+    assert.deepEqual(JSON.parse(realWap), wapuaprofConfig);
+    assert.isNotNull(realPower, 'resources/power/ should exist');
+    assert.deepEqual(JSON.parse(realPower), powerFile);
   }
 
   test('build with GAIA_DISTRIBUTION_DIR', function(done) {
@@ -125,6 +147,7 @@ suite('Distribution mechanism', function() {
       validateCalendar();
       validateWappush();
       validateBrowser();
+      validateSystem();
       done();
     });
   });
