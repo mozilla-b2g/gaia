@@ -3,7 +3,7 @@
 
 /* global loadBodyHTML, mocha, MockL10n, MockMessageDB, MockNavigatormozApps,
           MockNavigatormozSetMessageHandler, MockNavigatorSettings,
-          MockNotification, MockNotificationHelper, MocksHelper, ParsedMessage,
+          MockNotification, MocksHelper, Notification, ParsedMessage,
           WapPushManager */
 
 'use strict';
@@ -43,6 +43,7 @@ suite('WAP Push', function() {
   var realMozSettings;
   var realSetMessageHandler;
   var realMozL10n;
+  var isDocumentHidden = false;
 
   mocksHelperWapPush.attachTestHelpers();
 
@@ -85,9 +86,17 @@ suite('WAP Push', function() {
     mocksHelperWapPush.setup();
     MockNavigatorSettings.createLock().set({ 'wap.push.enabled': 'true' });
     loadBodyHTML('/index.html');
+
+    Object.defineProperty(document, 'hidden', {
+      configurable: true,
+      get: function() {
+        return isDocumentHidden;
+      }
+    });
   });
 
   teardown(function() {
+    delete document.hidden;
     MockNavigatormozApps.mTeardown();
     MockNavigatorSettings.mTeardown();
     mocksHelperWapPush.teardown();
@@ -484,7 +493,6 @@ suite('WAP Push', function() {
   });
 
   suite('automatic closing of the application', function() {
-    var isDocumentHidden;
     var message = {
       sender: '+31641600986',
       contentType: 'text/vnd.wap.si',
@@ -498,17 +506,9 @@ suite('WAP Push', function() {
 
       this.clock = this.sinon.useFakeTimers();
       this.sinon.spy(window, 'close');
-
-      Object.defineProperty(document, 'hidden', {
-        configurable: true,
-        get: function() {
-          return isDocumentHidden;
-        }
-      });
     });
 
     teardown(function() {
-      delete document.hidden;
       this.clock.restore();
       MockNavigatormozApps.mTeardown();
       MockNavigatormozSetMessageHandler.mTeardown();

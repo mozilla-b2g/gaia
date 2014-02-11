@@ -1213,8 +1213,6 @@ apps/video/test/unit/video_utils_test.js
 apps/wallpaper/js/pick.js
 apps/wallpaper/js/share.js
 apps/wallpaper/test/unit/pick_test.js
-apps/wappush/js/wappush.js
-apps/wappush/test/unit/wappush_test.js
 shared/js/advanced_timer.js
 shared/js/airplane_mode_helper.js
 shared/js/async_storage.js
