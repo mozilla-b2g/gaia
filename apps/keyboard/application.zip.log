@@ -1,0 +1,9 @@
+index.html
+gaia_build_defer_index.js
+shared/style/confirm.css
+style/keyboard.css
+locales-obj/en-US.json
+js/layouts/en.js
+resources/sounds/key.opus
+resources/sounds/special.opus
+js/imes/latin/latin.js
