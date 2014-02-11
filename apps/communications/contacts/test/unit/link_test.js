@@ -13,8 +13,7 @@ requireApp('communications/contacts/test/unit/mock_fb.js');
 requireApp('communications/contacts/test/unit/mock_oauthflow.js');
 requireApp('communications/contacts/js/fb/fb_link.js');
 
-var realImageLoader,
-    realAsyncStorage,
+var realAsyncStorage,
     realFb,
     realOauthflow,
     linkProposal,
@@ -23,10 +22,6 @@ var realImageLoader,
 
 if (!this.asyncStorage) {
   this.asyncStorage = null;
-}
-
-if (!this.ImageLoader) {
-  this.ImageLoader = null;
 }
 
 if (!this.fb) {
@@ -40,9 +35,6 @@ if (!this.oauthflow) {
 suite('Link Friends Test Suite', function() {
 
   suiteSetup(function() {
-    realImageLoader = window.ImageLoader;
-    window.ImageLoader = MockImageLoader;
-
     realAsyncStorage = window.asyncStorage;
     window.asyncStorage = MockasyncStorage;
 
@@ -197,7 +189,6 @@ suite('Link Friends Test Suite', function() {
 
 
   suiteTeardown(function() {
-    window.ImageLoader = realImageLoader;
     window.asyncStorage = realAsyncStorage;
     window.navigator.mozL10n = realL10n;
     window.fb = realFb;

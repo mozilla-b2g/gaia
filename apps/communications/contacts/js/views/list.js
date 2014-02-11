@@ -11,8 +11,6 @@ contacts.List = (function() {
       scrollable,
       settingsView,
       noContacts,
-      imgLoader = null,
-      needImgLoaderReload = false,
       orderByLastName = null,
       photoTemplate,
       headers = {},
@@ -130,7 +128,6 @@ contacts.List = (function() {
 
   function show() {
     contactsListView.classList.remove('hide');
-    needImgLoaderReload = true;
   }
 
   // Define a source adapter object to pass to contacts.Search.
@@ -718,8 +715,7 @@ contacts.List = (function() {
   }
 
   // "Render" the photo by setting the img tag's dataset-src attribute to the
-  // value in our photo cache.  This in turn will allow the imgLoader to load
-  // the image once we have stopped scrolling.
+  // value in our photo cache.
   var renderPhoto = function renderPhoto(link, id, asClone) {
     id = id || link.dataset.uuid;
     var photo = photosById[id];
@@ -951,16 +947,6 @@ contacts.List = (function() {
       addToGroup(cloned, list);
     }
     toggleNoContactsScreen(false);
-
-    // Avoid calling imgLoader.reload() here because it causes a sync reflow
-    // of the entire list.  Ideally it would only do this if the new contact
-    // was added on screen or earlier, but unfortunately it doesn't have
-    // enough information.  The visibility monitor, however, does have this
-    // information.  Therefore set a flag here and then defer the reload until
-    // the next monitor onscreen() call.
-    if (imgLoader) {
-      needImgLoaderReload = true;
-    }
 
     // When we add a new contact to the list we will by default
     // select it depending on this two cases:

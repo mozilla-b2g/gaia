@@ -63,8 +63,6 @@ if (typeof window.importer === 'undefined') {
         friendsMsgElement,
         scrollableElement;
 
-    var imgLoader;
-
     // More than this number will not trigger sync when clicking
     // on "Update Facebook Friends"
     var HARD_LIMIT_SYNC = 300;
@@ -411,9 +409,6 @@ if (typeof window.importer === 'undefined') {
      *
      */
     function friendsAvailable() {
-      imgLoader = new ImageLoader('#mainContent',
-                                ".block-item:not([data-uuid='#uid#'])");
-
       var s = '.block-item:not([data-uuid="#uid#"]) input[type="checkbox"]';
       checkNodeList = contactList.querySelectorAll(s);
       Array.prototype.slice.call(checkNodeList, 0, checkNodeList.length);
