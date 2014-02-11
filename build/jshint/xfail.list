@@ -810,6 +810,7 @@ apps/homescreen/test/unit/request_test.js
 apps/homescreen/test/unit/save_bookmark_test.js
 apps/homescreen/test/unit/wallpaper_test.js
 apps/keyboard/build/keyboard-config.js
+apps/keyboard/js/imes/jsbogo/jsbogo.js
 apps/keyboard/js/imes/jshangul/jshangul.js
 apps/keyboard/js/imes/jskanji/jskanji.js
 apps/keyboard/js/imes/jspinyin/empinyin_files.js
