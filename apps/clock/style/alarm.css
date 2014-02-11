@@ -65,6 +65,11 @@ li .button.icon-dialog:before {
   pointer-events: auto;
 }
 
+#alarm-volume-input {
+  width: calc(100% - 3rem);
+  margin: 0 0 1.5rem 1.5rem;
+}
+
 .new #delete-menu {
   display: none;
 }
@@ -219,4 +224,56 @@ a.alarm-item.with-repeat > .repeat {
 
 #digital-clock.visible ~ #alarms.count4 li:first-child {
   background: none;
+}
+
+
+/**
+ * These range input values were taken from the System App and
+ * retooled for the dark theme currently used by Clock. When
+ * changing to a light theme in the UI overhaul, it may make
+ * sense to pull this directly from System again.
+ */
+
+input[type=range] {
+  -moz-appearance: none;
+  border: none;
+  background: none;
+}
+
+input[type=range]:-moz-focusring {
+  outline: none;
+}
+
+ul li > label input[type="range"] {
+  position: relative;
+  top: calc(50% - 1.5rem);
+  left: 5rem;
+  right: 7rem;
+  height: 3rem;
+  width: calc(100% - 15rem);
+}
+
+input[type=range]::-moz-range-track {
+  height: 0.1rem;
+  background-color: #7e7e7e;
+}
+
+input[type=range]::-moz-range-progress {
+  height: 0.3rem;
+  background-color: #01c5ed;
+}
+
+input[type=range]::-moz-range-thumb {
+  width: 2.8rem;
+  height: 2.8rem;
+  border: solid 0.1rem transparent;
+  border-radius: 3rem;
+  transition: border 0.15s ease;
+  -moz-box-sizing: border-box;
+  background: #fff no-repeat 50% 50%;
+  background-size: 2.8rem 2.8rem;
+}
+
+input[type=range]:active::-moz-range-thumb {
+  border: solid 0.4rem #01c5ed;
 }
