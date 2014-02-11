@@ -32,8 +32,8 @@ document.getElementById('back').addEventListener('click', function() {
 });
 
 getCurrentToneId(toneType, function(currentToneId) {
-  var defaultList = document.getElementById('default-list');
-  var customList = document.getElementById('custom-list');
+  var defaultTones = document.getElementById('default-tones');
+  var customTones = document.getElementById('custom-tones');
   var template = new Template('sound-item-template');
 
   function domify(htmlText) {
@@ -49,11 +49,13 @@ getCurrentToneId(toneType, function(currentToneId) {
     // This will pause the tone if it's currently playing (good for really long
     // ones). However, it can be a bit confusing if the tone ends in a bunch of
     // silence, since it pauses it, but you'd expect it to replay the tone.
-    if (player.currentURL === tone.url && !player.paused && !player.ended) {
+    var isPlaying = !player.paused && !player.ended;
+    if (player.currentURL === tone.url && isPlaying) {
       player.pause();
     } else {
       player.src = player.currentURL = tone.url;
-      player.play();
+      if (tone.url)
+        player.play();
     }
   }
 
@@ -61,42 +63,41 @@ getCurrentToneId(toneType, function(currentToneId) {
     pendingTone = tone;
   }
 
-  window.defaultRingtones.list(toneType, function(tone) {
-    var item = domify(template.interpolate({
-      l10nId: tone.l10nId
-    }));
-    navigator.mozL10n.ready(function() {
-      navigator.mozL10n.translate(item);
-    });
+  function addToneToList(list, tone) {
+    var item = domify(template.interpolate(tone));
+    if (tone.l10nId) {
+      navigator.mozL10n.ready(function() {
+        navigator.mozL10n.translate(item);
+      });
+    }
 
     var input = item.querySelector('input');
     input.checked = (tone.id === currentToneId);
     input.addEventListener('click', previewTone.bind(input, tone));
     input.addEventListener('change', selectTone.bind(input, tone));
-    defaultList.appendChild(item);
-  });
 
-  window.customRingtones.list(function(tone) {
-    document.getElementById('custom').hidden = false;
+    list.querySelector('ul').appendChild(item);
+    list.hidden = false;
+  }
 
-    var item = domify(template.interpolate({
-      title: tone.name
-    }));
+  if (toneType === 'alerttone')
+    addToneToList(defaultTones, new NullRingtone());
 
-    var input = item.querySelector('input');
-    input.checked = (tone.id === currentToneId);
-    input.addEventListener('click', previewTone.bind(input, tone));
-    input.addEventListener('change', selectTone.bind(input, tone));
-    customList.appendChild(item);
-  });
+  window.defaultRingtones.list(
+    toneType, addToneToList.bind(null, defaultTones)
+  );
+
+  window.customRingtones.list(
+    addToneToList.bind(null, customTones)
+  );
 });
 
 window.addEventListener('localized', function() {
   // Localize the titles text based on the tone type
-  navigator.mozL10n.localize(
-    document.getElementById('title'), toneType + '-title'
-  );
-  navigator.mozL10n.localize(
-    document.getElementById('custom-title'), toneType + '-custom-title'
-  );
+  var titles = ['title', 'default-title', 'custom-title'];
+  titles.forEach(function(title) {
+    navigator.mozL10n.localize(
+      document.getElementById(title), toneType + '-' + title
+    );
+  });
 });

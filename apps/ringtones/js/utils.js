@@ -32,3 +32,26 @@ function getCurrentToneId(toneType, callback) {
   };
 }
 
+function NullRingtone() {}
+
+NullRingtone.prototype = {
+  get l10nId() {
+    return 'none';
+  },
+
+  get id() {
+    return 'none';
+  },
+
+  get name() {
+    return navigator.mozL10n.get(this.l10nId);
+  },
+
+  get url() {
+    return '';
+  },
+
+  getBlob: function(callback) {
+    callback(null);
+  }
+};
