@@ -29,6 +29,7 @@ class Settings(Base):
     _device_info_menu_item_locator = (By.ID, 'menuItem-deviceInfo')
     _app_permissions_menu_item_locator = (By.ID, 'menuItem-appPermissions')
     _battery_menu_item_locator = (By.ID, 'menuItem-battery')
+    _sim_manager_menu_item_locator = (By.ID, 'menuItem-simManager')
 
     def wait_for_airplane_toggle_ready(self):
         checkbox = self.marionette.find_element(*self._airplane_checkbox_locator)
@@ -68,9 +69,13 @@ class Settings(Base):
     def wifi_menu_item_description(self):
         return self.marionette.find_element(*self._wifi_text_locator).text
 
-    def open_cell_and_data_settings(self):
+    def open_cell_and_data_settings(self, *sim):
         from gaiatest.apps.settings.regions.cell_data import CellData
         self._tap_menu_item(self._cell_data_menu_item_locator)
+        if len(sim) == 1 and sim[0] == 'SIM 1':
+            self.marionette.find_element(*self._cell_data_sim1_menu_item_locator).tap()
+        elif len(sim) == 1 and sim[0] == 'SIM 2':
+            self.marionette.find_element(*self._cell_data_sim2_menu_item_locator).tap()
         return CellData(self.marionette)
 
     def open_bluetooth_settings(self):
@@ -131,6 +136,11 @@ class Settings(Base):
         from gaiatest.apps.settings.regions.battery import Battery
         self._tap_menu_item(self._battery_menu_item_locator)
         return Battery(self.marionette)
+
+    def open_sim_manager_settings(self):
+        from gaiatest.apps.settings.regions.sim_manager import SimManager
+        self._tap_menu_item(self._sim_manager_menu_item_locator)
+        return SimManager(self.marionette)
 
     def _tap_menu_item(self, menu_item_locator):
         menu_item = self.marionette.find_element(*menu_item_locator)
