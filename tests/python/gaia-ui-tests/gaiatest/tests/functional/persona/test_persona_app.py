@@ -36,7 +36,7 @@ class TestPersonaStandard(GaiaTestCase):
         moz_id = uitests.tap_moz_id_button()
         moz_id.switch_to_frame()
 
-        persona = moz_id.launch_standard_sign_in()
+        persona = moz_id.tap_standard_sign_in()
 
         persona.login(self.user.email, self.user.password)
 
