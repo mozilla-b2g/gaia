@@ -333,6 +333,29 @@ suite('Build Integration tests', function() {
     });
   });
 
+  test('make with ROCKETBAR=full', function(done) {
+    exec('ROCKETBAR=full make',
+      function(error, stdout, stderr) {
+        helper.checkError(error, stdout, stderr);
+
+        var hsZip = new AdmZip(path.join(process.cwd(), 'profile',
+          'webapps', 'browser.gaiamobile.org', 'application.zip'));
+        var hsInit =
+          JSON.parse(hsZip.readAsText(hsZip.getEntry('js/init.json')));
+        var hsManifest =
+          JSON.parse(hsZip.readAsText(hsZip.getEntry('manifest.webapp')));
+        var defaultJSONPath =
+          path.join(process.cwd(), 'apps', 'browser', 'build', 'default.json');
+        var expectedInitJson = JSON.parse(fs.readFileSync(defaultJSONPath));
+
+        helper.checkSettings(hsInit, expectedInitJson);
+        assert.equal(hsManifest.role, 'system');
+        assert.equal(hsManifest.activities, null);
+        done();
+      }
+    );
+  });
+
   teardown(function() {
     rmrf('profile');
     rmrf('profile-debug');
