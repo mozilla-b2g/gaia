@@ -209,6 +209,7 @@ var LockScreen = {
 
     if (this.ready) { // already initialized: just trigger a translation
       this.refreshClock(new Date());
+      this._lockscreenConnInfoManager.updateConnStates();
       return;
     }
     this.ready = true;

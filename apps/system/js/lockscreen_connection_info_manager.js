@@ -52,58 +52,57 @@
       this._connStates = root;
       this._settings = navigator.mozSettings;
 
+      var self = this;
+
       this._connStates.hidden = false;
-      SIMSlotManager.getSlots().forEach((function(simslot, index) {
+      SIMSlotManager.getSlots().forEach(function(simslot, index) {
         // connection state
-        this._connStates.appendChild(this._createConnStateElement());
+        self._connStates.appendChild(self._createConnStateElement());
         simslot.conn.addEventListener('voicechange',
           function(index) {
-            this.updateConnState(simslot);
+            self.updateConnState(simslot);
         });
-      }).bind(this));
-
+      });
 
       // event handlers
-      navigator.mozL10n.ready(this.updateConnStates.bind(this));
+      window.addEventListener('simslot-cardstatechange', function(evt) {
+        self.updateConnState(evt.detail);
+      });
 
-      window.addEventListener('simslot-cardstatechange', (function(evt) {
-        this.updateConnState(evt.detail);
-      }).bind(this));
-
-      window.addEventListener('simslot-iccinfochange', (function(evt) {
-        this.updateConnState(evt.detail);
-      }).bind(this));
+      window.addEventListener('simslot-iccinfochange', function(evt) {
+        self.updateConnState(evt.detail);
+      });
 
       // Handle incoming CB messages that need to be displayed.
-      window.addEventListener('cellbroadcastmsgchanged', (function(evt) {
-        this._cellbroadcastLabel = evt.detail;
-        this.updateConnStates();
-      }).bind(this));
+      window.addEventListener('cellbroadcastmsgchanged', function(evt) {
+        self._cellbroadcastLabel = evt.detail;
+        self.updateConnStates();
+      });
 
-      this._settings.addObserver('ril.radio.disabled', (function(evt) {
-        this._airplaneMode = evt.settingValue;
-        this.updateConnStates();
-      }).bind(this));
+      this._settings.addObserver('ril.radio.disabled', function(evt) {
+        self._airplaneMode = evt.settingValue;
+        self.updateConnStates();
+      });
 
       this._settings.addObserver('ril.telephony.defaultServiceId',
-        (function(evt) {
-          this._telephonyDefaultServiceId = evt.settingValue;
-          this.updateConnStates();
-      }).bind(this));
+        function(evt) {
+          self._telephonyDefaultServiceId = evt.settingValue;
+          self.updateConnStates();
+      });
 
       // update UI
       var req = SettingsListener.getSettingsLock().get('ril.radio.disabled');
-      req.onsuccess = (function() {
-        this._airplaneMode = !!req.result['ril.radio.disabled'];
+      req.onsuccess = function() {
+        self._airplaneMode = !!req.result['ril.radio.disabled'];
         var req2 =
           SettingsListener.getSettingsLock()
             .get('ril.telephony.defaultServiceId');
         req.onsuccess = function() {
-          this._telephonyDefaultServiceId =
+          self._telephonyDefaultServiceId =
             req2.result['ril.telephony.defaultServiceId'] || 0;
-          this.updateConnStates();
+          self.updateConnStates();
         };
-      }).bind(this);
+      };
   };
 
   /**
