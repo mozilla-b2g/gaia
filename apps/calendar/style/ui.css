@@ -255,6 +255,7 @@ body[data-path="/day/"] #view-selector > .day > a:active {
 /* sub common: day headers, day boxes */
 
 #month-days {
+  border-bottom: solid 0.1rem #F8F8F8;
   overflow: scroll;
 }
 
@@ -284,14 +285,12 @@ body[data-path="/day/"] #view-selector > .day > a:active {
 #week-view .day-header,
 #month-days li {
   height: 2rem;
-  color: white;
+  color: black;
   text-align: center;
-  background-color: #242931;
+  background-color: #F8F8F8;
   text-transform: uppercase;
   font-size: 1.3rem;
   padding: 0.185rem 0;
-  border-right: 0.1rem solid #131314;
-  border-left: 0.1rem solid #515051;
 }
 
 #month-days li:first-child {
@@ -309,7 +308,6 @@ body[data-path^="/month/"] section.month.previous {
 
 section.month {
   height: 100%;
-  color: #484848;
   border-left: 0.1rem solid #AAA;
   border-right: 0.1rem solid #AAA;
   display: none;
@@ -321,40 +319,12 @@ section.month.active {
   display: block;
 }
 
-section.month li > .day {
-  font-size: 1.5rem;
-  line-height: 140%;
-}
-
-.rtl section.month li {
-  text-align: left;
-}
-
-.rtl section.month li > .day {
-  padding-left: 0.296rem;
-}
-
-.ltr section.month li {
-  text-align: right;
-}
-
-.ltr section.month li > .day {
-  padding-right: 0.35rem;
-}
-
 section.month ol {
-  height: 4.5rem;
+  height: 4.4rem;
 }
 
 section.month #month-days ol {
   height: auto;
-}
-
-/* Make the rows a bit taller for larger resolutions */
-@media (min-device-height: 640px) {
-  section.month ol {
-    height: 6rem;
-  }
 }
 
 section.month ol:last-child {
@@ -372,124 +342,61 @@ section.month li:last-child {
 }
 
 section.month li {
+  border-bottom: 0.1rem solid #F8F8F8;
+  border-left: 0.1rem solid #F8F8F8;
+  border-right: 0.1rem solid #F8F8F8;
   padding-top: 0.3%;
-
-  border-right: 0.1rem solid #A4A4A4;
-  border-left: 0.1rem solid #FDFDFD;
-  border-top: 0.1rem solid white;
-  border-bottom: 0.1rem solid #9D9D9D;
   height: 100%;
   position: relative;
   background-color: white;
+  text-align: center;
+}
+
+section.month li.other-month {
+  color: #BDBDBD !important;
+}
+
+section.month li span {
+  display: block;
+  font-size: 1.8rem;
+  line-height: 3.6rem;
 }
 
 section.month ol:last-child li {
   border-bottom: none;
 }
 
-section.month li.past {
-  background-color: #E6E6E6;
-  color: #484848;
-}
-
 section.month li.present {
-  background-color: #525963;
-  box-shadow: inset 0.1rem 0.2rem 0.3rem 0 #333;
-  color: white;
-  border-left: none;
-  border-top: none;
-}
-
-section.month li.future {
-  background-color: #E6E6E6;
+  /* TODO(gaye): Make this work with siblings */
+  border: 0.1rem solid #F97C17;
 }
 
 section.month li.selected {
   color: white !important;
-  background-color: #1BA8C6 !important;
+  background-color: #00A8C9 !important;
 }
-
-section.month li.past.other-month {
-  background-color: #C1C1C1;
-}
-
-section.month li.future.other-month {
-  background-color: #C1C1C1;
-}
-
-
 
 /* sub day rows: busy indicators */
 
-section.month li .busy-indicator,
-section.month li .busy-indicator > span{
-  height: 0.8rem;
-  padding-top: 0.37rem;
-}
-
 section.month li .busy-indicator {
-  overflow: hidden;
-  clear: both;
   bottom: 0;
+  clear: both;
+  color: #CBCBCB;
+  height: 1.4rem;
+  font-size: 1.8rem;
+  line-height: 1.4rem;
+  overflow: hidden;
   position: absolute;
   width: 100%;
 }
 
-section.month li .busy-indicator:before {
-  /* &nsbp; */
-  content:"\00a0";
+section.month li.selected .busy-indicator {
+  color: white !important;
 }
 
-section.month li .busy-indicator > span {
-  top: 0;
-  position: absolute;
-  text-indent: -1000em;
+section.month li .busy-indicator span {
+  display: none;
 }
-
-/**
-Indicators are in units of 12
-*/
-.busy-length-1 { width: 8.33%; }
-.busy-length-2 { width: 16.66%; }
-.busy-length-3 { width: 24.990000000000002%; }
-.busy-length-4 { width: 33.32%; }
-.busy-length-5 { width: 41.65%; }
-.busy-length-6 { width: 49.980000000000004%; }
-.busy-length-7 { width: 58.31%; }
-.busy-length-8 { width: 66.64%; }
-.busy-length-9 { width: 74.97%; }
-.busy-length-10 { width: 83.3%; }
-.busy-length-11 { width: 91.63%; }
-.busy-length-12 { width: 100%; }
-
-/* ltr busy units */
-.ltr .busy-indicator .busy-1 { left: 0%; }
-.ltr .busy-indicator .busy-2 { left: 8.33%; }
-.ltr .busy-indicator .busy-3 { left: 16.66%; }
-.ltr .busy-indicator .busy-4 { left: 24.990000000000002%; }
-.ltr .busy-indicator .busy-5 { left: 33.32%; }
-.ltr .busy-indicator .busy-6 { left: 41.65%; }
-.ltr .busy-indicator .busy-7 { left: 49.980000000000004%; }
-.ltr .busy-indicator .busy-8 { left: 58.31%; }
-.ltr .busy-indicator .busy-9 { left: 66.64%; }
-.ltr .busy-indicator .busy-10 { left: 74.97%; }
-.ltr .busy-indicator .busy-11 { left: 83.3%; }
-.ltr .busy-indicator .busy-12 { left: 91.63%; }
-
-
-/* rtl busy units */
-.rtl .busy-indicator .busy-1 { right: 0%; }
-.rtl .busy-indicator .busy-2 { right: 8.33%; }
-.rtl .busy-indicator .busy-3 { right: 16.66%; }
-.rtl .busy-indicator .busy-4 { right: 24.990000000000002%; }
-.rtl .busy-indicator .busy-5 { right: 33.32%; }
-.rtl .busy-indicator .busy-6 { right: 41.65%; }
-.rtl .busy-indicator .busy-7 { right: 49.980000000000004%; }
-.rtl .busy-indicator .busy-8 { right: 58.31%; }
-.rtl .busy-indicator .busy-9 { right: 66.64%; }
-.rtl .busy-indicator .busy-10 { right: 74.97%; }
-.rtl .busy-indicator .busy-11 { right: 83.3%; }
-.rtl .busy-indicator .busy-12 { right: 91.63%; }
 
 /* sub: months day view */
 #months-day-view  h1 {
@@ -509,6 +416,10 @@ Indicators are in units of 12
 
 #view-selector > li > a {
   outline: none;
+}
+
+#today {
+  border-right: 0.1rem solid #F8F8F8;
 }
 
 @keyframes fade-status {
