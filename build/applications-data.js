@@ -313,22 +313,6 @@ function execute(options) {
   utils.writeContent(init,
     utils.getDistributionFileContent('sms-blacklist', content, distDir));
 
-  // Active Sensors
-  init = utils.getFile(config.GAIA_DIR,
-    'apps', 'settings', 'resources', 'sensors.json');
-  content = { ambientLight: true };
-
-  utils.writeContent(init,
-    utils.getDistributionFileContent('sensors', content, distDir));
-
-  // Support
-  init = utils.getFile(config.GAIA_DIR,
-    'apps', 'settings', 'resources', 'support.json');
-  content = null;
-
-  utils.writeContent(init,
-    utils.getDistributionFileContent('support', content, distDir));
-
   // Browser
   init = utils.getFile(config.GAIA_DIR, 'apps', 'browser', 'js', 'init.json');
 
