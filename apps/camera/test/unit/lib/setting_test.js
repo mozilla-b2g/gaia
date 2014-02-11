@@ -25,7 +25,11 @@ suite('lib/setting', function() {
             value: 'value1'
           },
           {
-            key: 'option2'
+            key: 'option2',
+            value: false
+          },
+          {
+            key: 'option3'
           }
         ]
       });
@@ -34,7 +38,9 @@ suite('lib/setting', function() {
 
       assert.ok(hash.option1);
       assert.ok(hash.option2);
+      assert.ok(hash.option3);
       assert.ok(hash.option1.value === 'value1');
+      assert.ok(hash.option2.value === false, 'should recognize falsey values');
     });
 
     test('Should assign the `key` as the `value` when no `value` is present',
