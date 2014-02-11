@@ -12,7 +12,7 @@ suite('Distribution mechanism', function() {
     rmrf('profile');
   });
 
-  function validateSettings() {
+  function validatePreloadSettingDB() {
     var settingsPath = path.join(process.cwd(), 'profile', 'settings.json');
     var settings = JSON.parse(fs.readFileSync(settingsPath));
     var expectedSettings = {
@@ -20,6 +20,41 @@ suite('Distribution mechanism', function() {
     };
 
     helper.checkSettings(settings, expectedSettings);
+  }
+
+  function validateSettings() {
+    var setingsZip = new AdmZip(path.join(process.cwd(), 'profile',
+      'webapps', 'settings.gaiamobile.org', 'application.zip'));
+    var supportContent =
+      setingsZip.readAsText(setingsZip.getEntry('resources/support.json'));
+    assert.isNotNull(supportContent, 'resources/support.json should exist');
+    var supportData = JSON.parse(supportContent);
+    var expectedSupportData = {
+      "onlinesupport": {
+        "href": "http://support.mozilla.org/",
+        "title": "Mozilla Support"
+      },
+      "callsupport": [
+        {
+          "href": "tel:12345678",
+          "title": "Call Support 1"
+        },
+        {
+          "href": "tel:87654321",
+          "title": "Call Support 2"
+        }
+      ]
+    };
+    assert.deepEqual(supportData, expectedSupportData,
+      'support info should match the expected info.');
+
+    var sensorsContent =
+      setingsZip.readAsText(setingsZip.getEntry('resources/sensors.json'));
+    assert.isNotNull(sensorsContent, 'resources/sensors.json should exist');
+    var sensorsData = JSON.parse(sensorsContent);
+    var expectedSensorsData = { ambientLight: false };
+    assert.deepEqual(sensorsData, expectedSensorsData,
+      'sensors data should match the expected data.');
   }
 
   function validateCalendar() {
@@ -73,6 +108,7 @@ suite('Distribution mechanism', function() {
     var cmd = 'GAIA_DISTRIBUTION_DIR=' + distDir + ' make';
     exec(cmd, function(error, stdout, stderr) {
       helper.checkError(error, stdout, stderr);
+      validatePreloadSettingDB();
       validateSettings();
       validateCalendar();
       validateWappush();
