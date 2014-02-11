@@ -84,6 +84,8 @@ if (typeof window.oauthflow === 'undefined') {
                           'redirect_uri=' + redirect_uri,
                           'response_type=token',
                           'scope=' + scopeParam,
+                          // Only needed for Gmail (see Bug 962377)
+                          'approval_prompt=force',
                           'state=' + state
       ]; // Query params
 
