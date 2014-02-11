@@ -15,9 +15,8 @@ this.defaultRingtones = function() {
     getBlob: function(callback) {
       var xhr = new XMLHttpRequest();
       xhr.open('GET', this.url);
-      // XXX
-      // This assumes that all system tones are ogg files
-      // Maybe map based on the extension instead?
+      // XXX: This assumes that all system tones are ogg files. Maybe map based
+      // on the extension instead?
       xhr.overrideMimeType('audio/ogg');
       xhr.responseType = 'blob';
       xhr.send();

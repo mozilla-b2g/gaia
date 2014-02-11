@@ -46,6 +46,9 @@ getCurrentToneId(toneType, function(currentToneId) {
 
   var player = document.createElement('audio'); // for previewing sounds
   function previewTone(tone) {
+    // This will pause the tone if it's currently playing (good for really long
+    // ones). However, it can be a bit confusing if the tone ends in a bunch of
+    // silence, since it pauses it, but you'd expect it to replay the tone.
     if (player.currentURL === tone.url && !player.paused && !player.ended) {
       player.pause();
     } else {
@@ -74,6 +77,8 @@ getCurrentToneId(toneType, function(currentToneId) {
   });
 
   window.customRingtones.list(function(tone) {
+    document.getElementById('custom').hidden = false;
+
     var item = domify(template.interpolate({
       title: tone.name
     }));
@@ -87,8 +92,11 @@ getCurrentToneId(toneType, function(currentToneId) {
 });
 
 window.addEventListener('localized', function() {
-  var title = document.getElementById('title');
-
-  // Localize the titlebar text based on the tone type
-  navigator.mozL10n.localize(title, toneType + '-title');
+  // Localize the titles text based on the tone type
+  navigator.mozL10n.localize(
+    document.getElementById('title'), toneType + '-title'
+  );
+  navigator.mozL10n.localize(
+    document.getElementById('custom-title'), toneType + '-custom-title'
+  );
 });
