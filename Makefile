@@ -376,7 +376,7 @@ export BUILD_CONFIG
 
 # Generate profile/
 
-$(PROFILE_FOLDER): multilocale applications-data preferences local-apps app-makefiles test-agent-config offline contacts extensions install-xulrunner-sdk .git/hooks/pre-commit $(PROFILE_FOLDER)/settings.json create-default-data $(PROFILE_FOLDER)/installed-extensions.json
+$(PROFILE_FOLDER): multilocale applications-data preferences local-apps app-makefiles test-agent-config offline contacts extensions install-xulrunner-sdk .git/hooks/pre-commit $(PROFILE_FOLDER)/settings.json create-default-data $(PROFILE_FOLDER)/installed-extensions.json reorder
 ifeq ($(BUILD_APP_NAME),*)
 	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)$(PROFILE_FOLDER)"
 endif
@@ -805,6 +805,23 @@ ifeq ($(BUILD_APP_NAME),*)
 		cp -f $(TEST_COMMON)$(SEP)test$(SEP)boilerplate$(SEP)_sandbox.html $$d$(SEP)test$(SEP)unit$(SEP)_sandbox.html; \
 	done
 	@echo "Finished: bootstrapping test proxies/sandboxes";
+endif
+
+# Reorder application.zip for each app if we have a reordering log file
+# available for this app.
+.PHONY: reorder
+reorder: profile-dir
+ifeq ($(BUILD_APP_NAME),*)
+	@for d in ${GAIA_APPDIRS} ;\
+	do \
+		if [[ -e $$d/application.zip.log ]]; then \
+			fullappname="`basename $$d`.$(GAIA_DOMAIN)"; \
+			echo "Reordering $$fullappname into $(PROFILE_FOLDER)"; \
+			python build/optimizejars.py --optimize $$d $(PROFILE_FOLDER)$(SEP)webapps$(SEP)$$fullappname build_stage | grep Ordered; \
+			mv build_stage$(SEP)application.zip $(PROFILE_FOLDER)$(SEP)webapps$(SEP)$$fullappname; \
+		fi; \
+	done
+	@echo "Finished reordering";
 endif
 
 # For test coverage report
