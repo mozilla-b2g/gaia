@@ -27,3 +27,4 @@ class TestLockScreen(GaiaTestCase):
 
         self.assertTrue(emergency_screen.is_emergency_dialer_keypad_displayed,
                         'emergency dialer keypad is not displayed')
+        self.assertEqual(self.marionette.execute_script('return document.title'), 'Emergency Call Dialer')

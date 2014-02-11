@@ -29,8 +29,7 @@ class TestLaunchApp(GaiaTestCase):
         # Confirm the installation and wait for the app icon to be present
         confirm_install = ConfirmInstall(self.marionette)
         confirm_install.tap_confirm()
-        self.wait_for_condition(lambda m: self.apps.displayed_app.name == self.homescreen.name)
-        self.apps.switch_to_displayed_app()
+        self.frame_manager.wait_for_and_switch_to_top_frame(self.homescreen.name.lower())
 
         self.homescreen.wait_for_app_icon_present(APP_NAME)
 

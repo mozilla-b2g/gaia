@@ -100,10 +100,6 @@ class GaiaApps(object):
                        name=result.get('name'),
                        origin=result.get('origin'))
 
-    def switch_to_displayed_app(self):
-        self.marionette.switch_to_default_content()
-        self.marionette.switch_to_frame(self.displayed_app.frame)
-
     def is_app_installed(self, app_name):
         self.marionette.switch_to_frame()
         return self.marionette.execute_async_script("GaiaApps.locateWithName('%s')" % app_name)
@@ -168,11 +164,38 @@ class GaiaApps(object):
             time.sleep(2)
         raise TimeoutException('Could not switch to app frame %s in time' % app_frame)
 
+class GaiaFrameManager(object):
+
+    def __init__(self, marionette):
+        self.marionette = marionette
+
+    @property
+    def _element_from_center_point(self):
+        return self.marionette.execute_script(
+            "return document.elementFromPoint(window.innerWidth/2, window.innerHeight/2)")
+
+    @property
+    def top_frame(self):
+        self.marionette.switch_to_frame()
+        # When an app is loading the element can be something else before the iframe is loaded
+        Wait(marionette=self.marionette, ignored_exceptions=StaleElementException).until(
+            lambda m: self._element_from_center_point.tag_name == 'iframe',
+            message= "Frame at point was %s, not iframe" % self._element_from_center_point.tag_name)
+        return self._element_from_center_point
+
+    def switch_to_top_frame(self):
+        self.marionette.switch_to_frame(self.top_frame)
+
+    def wait_for_and_switch_to_top_frame(self, match_in_src):
+        Wait(marionette=self.marionette, ignored_exceptions=TypeError).until(
+            lambda m: match_in_src in self.top_frame.get_attribute('src'))
+        self.switch_to_top_frame()
+
 
 class GaiaData(object):
 
     def __init__(self, marionette, testvars=None):
-        self.apps = GaiaApps(marionette)
+        self.frame_manager = GaiaFrameManager(marionette)
         self.marionette = marionette
         self.testvars = testvars or {}
         js = os.path.abspath(os.path.join(__file__, os.path.pardir, 'atoms', "gaia_data_layer.js"))
@@ -221,14 +244,14 @@ class GaiaData(object):
     def _get_pref(self, datatype, name):
         self.marionette.switch_to_frame()
         pref = self.marionette.execute_script("return SpecialPowers.get%sPref('%s');" % (datatype, name), special_powers=True)
-        self.apps.switch_to_displayed_app()
+        self.frame_manager.switch_to_top_frame()
         return pref
 
     def _set_pref(self, datatype, name, value):
         value = json.dumps(value)
         self.marionette.switch_to_frame()
         self.marionette.execute_script("SpecialPowers.set%sPref('%s', %s);" % (datatype, name, value), special_powers=True)
-        self.apps.switch_to_displayed_app()
+        self.frame_manager.switch_to_top_frame()
 
     def get_bool_pref(self, name):
         """Returns the value of a Gecko boolean pref, which is different from a Gaia setting."""
@@ -799,17 +822,18 @@ window.addEventListener('mozbrowserloadend', function loaded(aEvent) {
 
     def touch_home_button(self):
         apps = GaiaApps(self.marionette)
+        frame_manager = GaiaFrameManager(self.marionette)
         if apps.displayed_app.name.lower() != 'homescreen':
             # touching home button will return to homescreen
             self._dispatch_home_button_event()
             Wait(self.marionette).until(
                 lambda m: apps.displayed_app.name.lower() == 'homescreen')
-            apps.switch_to_displayed_app()
+            frame_manager.switch_to_top_frame()
         else:
-            apps.switch_to_displayed_app()
+            frame_manager.switch_to_top_frame()
             mode = self.marionette.find_element(By.TAG_NAME, 'body').get_attribute('data-mode')
             self._dispatch_home_button_event()
-            apps.switch_to_displayed_app()
+            frame_manager.switch_to_top_frame()
             if mode == 'edit':
                 # touching home button will exit edit mode
                 Wait(self.marionette).until(lambda m: m.find_element(
@@ -890,6 +914,7 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
 
         self.lockscreen = LockScreen(self.marionette)
         self.apps = GaiaApps(self.marionette)
+        self.frame_manager = GaiaFrameManager(self.marionette)
         self.data_layer = GaiaData(self.marionette, self.testvars)
         from gaiatest.apps.keyboard.app import Keyboard
         self.keyboard = Keyboard(self.marionette)

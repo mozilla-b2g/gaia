@@ -70,4 +70,4 @@ class Settings(Base):
         self.wait_for_element_displayed(*self._done_button_locator)
         self.marionette.find_element(*self._done_button_locator).tap()
         # Switch back to Cost Control app frame
-        self.apps.switch_to_displayed_app()
+        self.frame_manager.switch_to_top_frame()

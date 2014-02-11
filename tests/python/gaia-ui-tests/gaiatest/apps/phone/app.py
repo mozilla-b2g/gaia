@@ -16,6 +16,7 @@ class Phone(Base):
     _contacts_view_locator = (By.ID, 'option-contacts')
     _keypad_toolbar_button_locator = (By.ID, 'option-keypad')
 
+    # Nested contacts frame
     _contacts_frame_locator = (By.ID, 'iframe-contacts')
 
     @property
@@ -25,11 +26,8 @@ class Phone(Base):
 
     def tap_contacts(self):
         self.marionette.find_element(*self._contacts_view_locator).tap()
-
-        self.wait_for_element_present(*self._contacts_frame_locator)
-        frame = self.marionette.find_element(*self._contacts_frame_locator)
+        frame = self.wait_for_element_present(*self._contacts_frame_locator)
         self.marionette.switch_to_frame(frame)
-
         from gaiatest.apps.contacts.app import Contacts
         return Contacts(self.marionette)
 

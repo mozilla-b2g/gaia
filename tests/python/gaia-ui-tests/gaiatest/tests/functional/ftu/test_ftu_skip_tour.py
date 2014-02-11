@@ -156,7 +156,7 @@ class TestFtu(GaiaTestCase):
                         "WiFi was not connected via FTU app")
 
         # is_wifi_connected() calls switch_to_frame()
-        self.apps.switch_to_displayed_app()
+        self.frame_manager.switch_to_top_frame()
 
         # Tap next
         self.marionette.find_element(*self._next_button_locator).tap()
@@ -212,7 +212,7 @@ class TestFtu(GaiaTestCase):
         self.assertEqual(len(self.data_layer.all_contacts), import_sim_count)
 
         # all_contacts switches to top frame; Marionette needs to be switched back to ftu
-        self.apps.switch_to_displayed_app()
+        self.frame_manager.switch_to_top_frame()
 
         # Tap next
         self.marionette.find_element(*self._next_button_locator).tap()
@@ -264,4 +264,4 @@ class TestFtu(GaiaTestCase):
         self.wait_for_element_not_displayed(*_close_button_locator)
 
         # now back to app
-        self.apps.switch_to_displayed_app()
+        self.frame_manager.switch_to_top_frame()

@@ -8,6 +8,8 @@ from gaiatest.apps.base import Base
 
 class BookmarkMenu(Base):
 
+    _frame_src_match = "save-bookmark.html"
+
     # System app - add bookmark to homescreen dialog
     _add_bookmark_to_home_screen_frame_locator = (By.CSS_SELECTOR, 'iframe[src^="app://homescreen"][src$="save-bookmark.html"]')
     _add_bookmark_to_home_screen_dialog_button_locator = (By.ID, 'button-bookmark-add')
@@ -26,12 +28,3 @@ class BookmarkMenu(Base):
         element.clear()
         self.keyboard.send(value)
         self.keyboard.dismiss()
-        self.switch_to_add_bookmark_frame()
-
-    def switch_to_add_bookmark_frame(self):
-        # Switch to System app where the add bookmark dialog resides
-        self.marionette.switch_to_frame()
-        self.wait_for_element_displayed(*self._add_bookmark_to_home_screen_frame_locator)
-        self.frame = self.marionette.find_element(*self._add_bookmark_to_home_screen_frame_locator)
-        self.marionette.switch_to_frame(self.frame)
-        self.wait_for_element_displayed(*self._bookmark_title_input_locator)

@@ -7,7 +7,7 @@ from gaiatest.apps.homescreen.app import Homescreen
 from marionette.by import By
 
 class TestMarketplaceLaunch(GaiaTestCase):
-    
+
     _marketplace_iframe_locator = (By.CSS_SELECTOR, 'iframe[src*="marketplace"]')
     _loading_fragment_locator = (By.CSS_SELECTOR, 'div.loading-fragment')
     _site_header_locator = (By.ID, 'site-header')
@@ -21,7 +21,7 @@ class TestMarketplaceLaunch(GaiaTestCase):
         
         app_name = 'Marketplace'
         homescreen = Homescreen(self.marionette)
-        self.apps.switch_to_displayed_app()
+        self.frame_manager.switch_to_top_frame()
         
         self.assertTrue(homescreen.is_app_installed(app_name))
         
@@ -29,9 +29,8 @@ class TestMarketplaceLaunch(GaiaTestCase):
         marketplace.tap_icon()
         
         self.wait_for_element_not_displayed(*self._loading_fragment_locator)
-        
+
+        # Here we still need to explicitly switch into the frame because it is a child frame
         iframe = self.marionette.find_element(*self._marketplace_iframe_locator)
         self.marionette.switch_to_frame(iframe)
-        
         self.wait_for_element_displayed(*self._site_header_locator)
-

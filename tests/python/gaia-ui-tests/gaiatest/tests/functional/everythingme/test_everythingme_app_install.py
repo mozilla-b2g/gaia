@@ -15,7 +15,7 @@ class TestEverythingMeInstallApp(GaiaTestCase):
 
     def test_installing_everything_me_app(self):
         homescreen = Homescreen(self.marionette)
-        self.apps.switch_to_displayed_app()
+        self.frame_manager.switch_to_top_frame()
 
         self.assertGreater(homescreen.collections_count, 0)
         collection = homescreen.tap_collection('Social')

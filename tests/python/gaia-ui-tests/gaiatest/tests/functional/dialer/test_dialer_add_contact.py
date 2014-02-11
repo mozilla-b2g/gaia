@@ -41,7 +41,7 @@ class TestDialerAddContact(GaiaTestCase):
         new_contact.tap_done(return_contacts=False)
 
         # Switch back to keypad-view
-        self.apps.switch_to_displayed_app()
+        self.frame_manager.wait_for_and_switch_to_top_frame(self.phone.keypad._frame_src_match)
 
         #Go to Contact list and Verify result
         contacts = self.phone.tap_contacts()

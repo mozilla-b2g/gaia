@@ -23,7 +23,7 @@ class NewMessage(Messages):
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
-        self.switch_to_messages_frame()
+        self.frame_manager.wait_for_and_switch_to_top_frame(self._frame_src_match)
         section = self.marionette.find_element(*self._thread_messages_locator)
         self.wait_for_condition(lambda m: section.location['x'] == 0)
 
@@ -55,7 +55,7 @@ class NewMessage(Messages):
     def tap_add_recipient(self):
         self.marionette.find_element(*self._add_recipient_button_locator).tap()
         contacts_app = Contacts(self.marionette)
-        contacts_app.switch_to_contacts_frame()
+        self.frame_manager.wait_for_and_switch_to_top_frame(contacts_app.name.lower())
         return contacts_app
 
     def tap_options(self):

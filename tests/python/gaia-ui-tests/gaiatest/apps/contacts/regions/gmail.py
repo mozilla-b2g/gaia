@@ -26,4 +26,6 @@ class GmailLogin(Base):
         self.marionette.find_element(*self._password_locator).send_keys(passwd)
         self.marionette.find_element(*self._sign_in_locator).tap()
         from gaiatest.apps.contacts.app import Contacts
-        return Contacts(self.marionette)
+        contacts = Contacts(self.marionette)
+        self.frame_manager.wait_for_and_switch_to_top_frame(contacts.name.lower())
+        return contacts

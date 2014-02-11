@@ -20,4 +20,4 @@ class TestQuickSettingsButton(GaiaTestCase):
         utility_tray.tap_settings_button()
 
         #wait for and assert that settings app is launched
-        self.wait_for_condition(lambda m: self.apps.displayed_app.name == "Settings")
+        self.wait_for_condition(lambda m: "settings" in self.frame_manager.top_frame.get_attribute('src'))

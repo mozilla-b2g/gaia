@@ -27,5 +27,5 @@ class TestLockScreen(GaiaTestCase):
         self.assertFalse(self.device.is_locked)
 
         # Wait fot the capture button displayed. no need to take a photo.
-        camera.switch_to_camera_frame()
+        self.frame_manager.wait_for_and_switch_to_top_frame(camera.name.lower())
         camera.wait_for_capture_ready()

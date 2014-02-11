@@ -43,7 +43,7 @@ class TestAirplaneMode(GaiaTestCase):
         self.assertFalse(self.data_layer.get_setting('geolocation.enabled'), "GPS was still connected after switching on Airplane mode")
 
         # switch back to app frame
-        self.apps.switch_to_displayed_app()
+        self.frame_manager.switch_to_top_frame()
 
         # Switch off Airplane mode
         settings.toggle_airplane_mode()

@@ -42,7 +42,7 @@ class TestPersonaCookie(GaiaTestCase):
         login_button.tap()
 
         persona = Persona(self.marionette)
-        persona.switch_to_persona_frame()
+        self.frame_manager.wait_for_and_switch_to_top_frame(persona._frame_src_match)
         persona.login(self.user.email, self.user.password)
 
         # Back to browser content

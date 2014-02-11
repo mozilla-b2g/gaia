@@ -49,8 +49,7 @@ class TestContacts(GaiaTestCase):
         image.tap_crop_done()
 
         # fall back to the contacts app
-        self.wait_for_condition(lambda m: self.apps.displayed_app.name == contacts_app.name)
-        self.apps.switch_to_displayed_app()
+        self.frame_manager.wait_for_and_switch_to_top_frame(contacts_app.name.lower())
 
         edit_contact.wait_for_image_to_load()
 

@@ -12,7 +12,6 @@ class Display(Base):
     _wallpaper_preview_locator = (By.ID, 'wallpaper-preview')
     _wallpaper_pick_locator = (By.ID, 'wallpaper')
     _stock_wallpapers_locator = (By.CSS_SELECTOR, "div[class='wallpaper']")
-    _wallpaper_frame_locator = (By.CSS_SELECTOR, "iframe[src^='app://wallpaper'][src$='pick.html']")
 
     @property
     def wallpaper_preview_src(self):

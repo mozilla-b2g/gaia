@@ -17,7 +17,7 @@ class Activities(Base):
 
     def tap_settings(self):
         self.marionette.find_element(*self._settings_button_locator).tap()
-        self.wait_for_condition(lambda m: self.apps.displayed_app.name == 'Settings')
-        self.apps.switch_to_displayed_app()
+
+        self.frame_manager.wait_for_and_switch_to_top_frame("settings")
         from gaiatest.apps.messages.regions.messaging_settings import MessagingSettings
         return MessagingSettings(self.marionette)

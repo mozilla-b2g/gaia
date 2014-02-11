@@ -62,4 +62,4 @@ class System(Base):
         self.marionette.switch_to_frame()
         self.wait_for_element_displayed(*self._banner_locator)
         self.wait_for_element_not_displayed(*self._banner_locator)
-        self.apps.switch_to_displayed_app()
+        self.frame_manager.switch_to_top_frame()

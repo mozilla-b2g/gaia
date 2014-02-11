@@ -47,11 +47,12 @@ class CardsView(Base):
         self.wait_for_element_not_displayed(*self._cards_view_locator)
 
     def swipe_to_next_app(self):
-        current_frame = self.apps.displayed_app.frame
+        current_card = self.marionette.execute_script(
+            "return document.elementFromPoint(window.innerWidth/2, window.innerHeight/2)")
 
-        start_x_position = current_frame.size['width']
-        start_y_position = current_frame.size['height'] // 2
+        start_x_position = current_card.size['width']
+        start_y_position = current_card.size['height'] // 2
 
         # swipe backward to get next app card
         Actions(self.marionette).flick(
-            current_frame, start_x_position, start_y_position, 0, start_y_position).perform()
+            current_card, start_x_position, start_y_position, 0, start_y_position).perform()

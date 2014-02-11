@@ -12,7 +12,7 @@ class TestEditMode(GaiaTestCase):
         GaiaTestCase.setUp(self)
 
         self.homescreen = Homescreen(self.marionette)
-        self.apps.switch_to_displayed_app()
+        self.frame_manager.switch_to_top_frame()
 
     def test_access_and_leave_edit_mode(self):
 

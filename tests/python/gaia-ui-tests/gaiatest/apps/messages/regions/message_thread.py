@@ -44,7 +44,7 @@ class MessageThread(Base):
         self.wait_for_element_not_displayed(*self._call_button_locator)
         from gaiatest.apps.phone.regions.keypad import Keypad
         keypad = Keypad(self.marionette)
-        keypad.switch_to_keypad_frame()
+        self.frame_manager.wait_for_and_switch_to_top_frame(keypad._frame_src_match)
         keypad.wait_for_phone_number_ready()
         return keypad
 

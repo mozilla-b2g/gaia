@@ -34,7 +34,7 @@ class TestDeleteApp(GaiaTestCase):
         confirm_install = ConfirmInstall(self.marionette)
         confirm_install.tap_confirm()
 
-        self.apps.switch_to_displayed_app()
+        self.frame_manager.switch_to_top_frame()
 
         # Wait for the app to be installed
         self.homescreen.wait_for_app_icon_present(self.APP_NAME)
@@ -49,8 +49,7 @@ class TestDeleteApp(GaiaTestCase):
         # Tap on the (x) to start delete process and tap on the confirm delete button
         self.homescreen.installed_app(self.APP_NAME).tap_delete_app().tap_confirm()
 
-        self.wait_for_condition(lambda m: self.apps.displayed_app.name == self.homescreen.name)
-        self.apps.switch_to_displayed_app()
+        self.frame_manager.wait_for_and_switch_to_top_frame(self.homescreen.name.lower())
         self.homescreen.wait_for_app_icon_not_present(self.APP_NAME)
 
         # Check that the app is no longer available

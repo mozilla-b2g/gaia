@@ -193,7 +193,7 @@ class Keyboard(Base):
             action.move(extend_keys[selection - 1]).perform()
         action.release().perform()
 
-        self.apps.switch_to_displayed_app()
+        self.frame_manager.switch_to_top_frame()
 
     def enable_caps_lock(self):
         self.switch_to_keyboard()
@@ -201,7 +201,7 @@ class Keyboard(Base):
             self._tap(self._alpha_key)
         key_obj = self.marionette.find_element(*self._key_locator(self._upper_case_key))
         self.marionette.double_tap(key_obj)
-        self.apps.switch_to_displayed_app()
+        self.frame_manager.switch_to_top_frame()
 
     # this would go through fastest way to tap/click through a string
     def send(self, string):
@@ -226,7 +226,7 @@ class Keyboard(Base):
                 self._switch_to_correct_layout(val)
                 self._tap(val)
 
-        self.apps.switch_to_displayed_app()
+        self.frame_manager.switch_to_top_frame()
 
     # Switch keyboard language
     # Mapping of language code => {
@@ -259,25 +259,25 @@ class Keyboard(Base):
         action.press(language_key).wait(1).perform()
         target_kb_layout = self.marionette.find_element(*keyboard_language_locator)
         action.move(target_kb_layout).release().perform()
-        self.apps.switch_to_displayed_app()
+        self.frame_manager.switch_to_top_frame()
 
     def tap_keyboard_language_key(self):
         self.switch_to_keyboard()
         self.wait_for_element_displayed(*self._language_key_locator)
         self.marionette.find_element(*self._language_key_locator).tap()
-        self.apps.switch_to_displayed_app()
+        self.frame_manager.switch_to_top_frame()
 
     # switch to keyboard with numbers and special characters
     def switch_to_number_keyboard(self):
         self.switch_to_keyboard()
         self._tap(self._numeric_sign_key)
-        self.apps.switch_to_displayed_app()
+        self.frame_manager.switch_to_top_frame()
 
     # switch to keyboard with alphabetic keys
     def switch_to_alpha_keyboard(self):
         self.switch_to_keyboard()
         self._tap(self._alpha_key)
-        self.apps.switch_to_displayed_app()
+        self.frame_manager.switch_to_top_frame()
 
     # following are "5 functions" to substitute finish switch_to_frame()s and tap() for you
     def tap_shift(self):
@@ -285,36 +285,36 @@ class Keyboard(Base):
         if self.is_element_present(*self._key_locator(self._alpha_key)):
             self._tap(self._alpha_key)
         self._tap(self._upper_case_key)
-        self.apps.switch_to_displayed_app()
+        self.frame_manager.switch_to_top_frame()
 
     def tap_backspace(self):
         self.switch_to_keyboard()
         backspace = self.marionette.find_element(self._button_locator[0], self._button_locator[1] % (self._backspace_key, self._backspace_key))
         backspace.tap()
-        self.apps.switch_to_displayed_app()
+        self.frame_manager.switch_to_top_frame()
 
     def tap_space(self):
         self.switch_to_keyboard()
         self._tap(self._space_key)
-        self.apps.switch_to_displayed_app()
+        self.frame_manager.switch_to_top_frame()
 
     def tap_enter(self):
         self.switch_to_keyboard()
         self._tap(self._enter_key)
-        self.apps.switch_to_displayed_app()
+        self.frame_manager.switch_to_top_frame()
 
     def tap_alt(self):
         self.switch_to_keyboard()
         if self.is_element_present(*self._key_locator(self._numeric_sign_key)):
             self._tap(self._numeric_sign_key)
         self._tap(self._alt_key)
-        self.apps.switch_to_displayed_app()
+        self.frame_manager.switch_to_top_frame()
 
     def tap_dotcom(self):
         self.switch_to_keyboard()
         dotcom = self.marionette.find_element(*self._dotcom_key_locator)
         dotcom.tap()
-        self.apps.switch_to_displayed_app()
+        self.frame_manager.switch_to_top_frame()
 
     def dismiss(self):
         self.marionette.switch_to_frame()
@@ -323,18 +323,19 @@ class Keyboard(Base):
         Wait(self.marionette).until(
             lambda m: 'hide' in keyboards.get_attribute('class') and
             not keyboards.get_attribute('data-transition-out'))
-        self.apps.switch_to_displayed_app()
+        self.wait_for_condition(lambda m: not self.is_displayed())
+        self.frame_manager.switch_to_top_frame()
 
     def is_displayed(self):
         self.marionette.switch_to_frame()
         keyboards = self.marionette.find_element(By.ID, 'keyboards')
         is_visible = 'hide' not in keyboards.get_attribute('class') and \
             not keyboards.get_attribute('data-transition-in')
-        self.apps.switch_to_displayed_app()
+        self.frame_manager.switch_to_top_frame()
         return is_visible
 
     def tap_first_predictive_word(self):
         self.switch_to_keyboard()
         self.wait_for_element_displayed(*self._predicted_word_locator)
         self.marionette.find_element(*self._predicted_word_locator).tap()
-        self.apps.switch_to_displayed_app()
+        self.frame_manager.switch_to_top_frame()

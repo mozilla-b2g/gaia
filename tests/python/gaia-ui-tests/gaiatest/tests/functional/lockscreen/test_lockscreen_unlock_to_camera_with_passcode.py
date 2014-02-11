@@ -34,7 +34,8 @@ class TestCameraUnlockWithPasscode(GaiaTestCase):
 
         self.assertTrue(self.device.is_locked)
 
-        camera.switch_to_camera_frame()
+        self.frame_manager.wait_for_and_switch_to_top_frame(camera.name.lower())
+        camera.wait_for_capture_ready()
         camera.take_photo()
 
         # Check that Filmstrip is visible

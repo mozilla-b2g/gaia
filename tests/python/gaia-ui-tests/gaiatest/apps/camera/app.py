@@ -15,7 +15,6 @@ class Camera(Base):
 
     name = 'Camera'
 
-    _camera_frame_locator = (By.CSS_SELECTOR, 'iframe[src*="camera"][src*="/index.html"]')
     _body_locator = (By.TAG_NAME, 'body')
 
     # Controls View
@@ -119,19 +118,11 @@ class Camera(Base):
     def wait_for_flash_text_visible(self):
         self.wait_for_condition(lambda m: self.is_flash_text_visible)
 
-    def switch_to_camera_frame(self):
-        self.marionette.switch_to_frame()
-        self.wait_for_element_present(*self._camera_frame_locator)
-        camera_frame = self.marionette.find_element(*self._camera_frame_locator)
-        self.marionette.switch_to_frame(camera_frame)
-        self.wait_for_capture_ready()
-
     def tap_switch_to_gallery(self):
         switch_to_gallery_button = self.marionette.find_element(*self._gallery_button_locator)
         switch_to_gallery_button.tap()
         gallery_app = gaiatest.apps.gallery.app.Gallery(self.marionette)
-        self.wait_for_condition(lambda m: self.apps.displayed_app.name == gallery_app.name)
-        self.apps.switch_to_displayed_app()
+        self.frame_manager.wait_for_and_switch_to_top_frame(gallery_app.name.lower())
         return gallery_app
 
     @property
