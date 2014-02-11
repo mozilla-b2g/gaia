@@ -57,9 +57,9 @@
         // connection state
         this._connStates.appendChild(this._createConnStateElement());
         simslot.conn.addEventListener('voicechange',
-          function(index) {
-            this.updateConnState(simslot);
-        });
+          (function(index) {
+             this.updateConnState(simslot);
+           }).bind(this));
       }).bind(this));
 
 
