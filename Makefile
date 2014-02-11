@@ -534,6 +534,11 @@ reference-workload-heavy:
 reference-workload-x-heavy:
 	test_media/reference-workload/makeReferenceWorkload.sh x-heavy
 
+# Create a tarako demo reference workload
+.PHONY: reference-workload-tarako
+reference-workload-tarako:
+	test_media/reference-workload/makeReferenceWorkload.sh tarako
+
 
 # The install-xulrunner target arranges to get xulrunner downloaded and sets up
 # some commands for invoking it. But it is platform dependent
