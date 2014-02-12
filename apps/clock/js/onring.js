@@ -278,7 +278,7 @@ RingView.prototype.onClick = domEventMap['click'] =
       }, window.location.origin);
       window.close();
       break;
-    case 'ring-button-close':
+    case 'ring-button-stop':
       this.stopNotify();
       window.close();
       break;
@@ -290,7 +290,7 @@ RingView.prototype.onClick = domEventMap['click'] =
     hourState: '#ring-clock-hour24-state',
     ringLabel: '#ring-label',
     snoozeButton: '#ring-button-snooze',
-    closeButton: '#ring-button-close',
+    closeButton: '#ring-button-stop',
     ringDisplay: '.ring-display'
   };
   for (var i in domMap) {
