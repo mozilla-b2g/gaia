@@ -1,5 +1,10 @@
 'use strict';
 
+/**
+ * Get the base path for the tone settings.
+ *
+ * @param {String} toneType The type of the tone ('ringtone' or 'alerttone').
+ */
 function getSettingsBase(toneType) {
   switch (toneType) {
   case 'ringtone':
@@ -11,20 +16,38 @@ function getSettingsBase(toneType) {
   }
 }
 
+/**
+ * Store a tone in the settings.
+ *
+ * @param {String} toneType The type of the tone ('ringtone' or 'alerttone').
+ * @param {Object} tone The tone to store.
+ * @param {Function} callback A callback to call when storing has finished. If
+ *   an error occurs, the first argument will be the error object.
+ */
 function setTone(toneType, tone, callback) {
   tone.getBlob(function(blob) {
-    var settingsBase = getSettingsBase(toneType);
-    var settings = {};
-    settings[settingsBase] = blob;
-    settings[settingsBase + '.name'] = tone.name;
-    settings[settingsBase + '.id'] = tone.id;
+    try {
+      var settingsBase = getSettingsBase(toneType);
+      var settings = {};
+      settings[settingsBase] = blob;
+      settings[settingsBase + '.name'] = tone.name;
+      settings[settingsBase + '.id'] = tone.id;
 
-    navigator.mozSettings.createLock().set(settings).onsuccess = function() {
-      callback();
-    };
+      var result = navigator.mozSettings.createLock().set(settings);
+      result.onsuccess = function() { callback(); };
+      result.onerror = function() { callback(result.error); };
+    } catch (e) {
+      callback(e);
+    }
   });
 }
 
+/**
+ * Get the ID of the current tone.
+ *
+ * @param {String} toneType The type of the tone ('ringtone' or 'alerttone').
+ * @param {Function} callback A callback to call once the ID has been retrieved.
+ */
 function getCurrentToneId(toneType, callback) {
   var settingKey = getSettingsBase(toneType) + '.id';
   navigator.mozSettings.createLock().get(settingKey).onsuccess = function(e) {
@@ -48,7 +71,7 @@ NullRingtone.prototype = {
   },
 
   get url() {
-    return '';
+    return null;
   },
 
   getBlob: function(callback) {

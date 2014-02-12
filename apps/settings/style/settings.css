@@ -250,6 +250,13 @@ section ul.operate-certificate {
   pointer-events: none;
 }
 
+/******************************************************************************
+* Sound settings
+*/
+
+#ring-tone-locked-selection[hidden] {
+  display: none;
+}
 
 /******************************************************************************
 * Media Storage settings
