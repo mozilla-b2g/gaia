@@ -14,7 +14,7 @@ marionette('day view', function() {
     client.waitFor(app.isDayViewActive.bind(app));
   });
 
-  test('header copy should not overflow', function() {
+  test.skip('header copy should not overflow', function() {
     assert.doesNotThrow(app.checkOverflow.bind(app, 'monthYearHeader'));
   });
 });
