@@ -42,13 +42,17 @@
         'data-id="' + this.h('busytimeId') + '">' +
           '<div class="container calendar-id-' + calendarId +
               ' calendar-color">' +
-            '<h5>' + this.h('title') + '</h5>' +
-            '<span class="details">' +
-              '<span class="location">' +
-                this.h('location') +
+            '<div class="event-dot">&#9702;</div>' +
+            '<div class="event-time">' + this.h('displayTime') + '</div>' +
+            '<div class="event-details">' +
+              '<h5>' + this.h('title') + '</h5>' +
+              '<span class="details">' +
+                '<span class="location">' +
+                  this.h('location') +
+                '</span>' +
+                this.s('attendees') +
               '</span>' +
-              this.s('attendees') +
-            '</span>' +
+            '</div>' +
           '</div>' +
         '</section>';
     }
