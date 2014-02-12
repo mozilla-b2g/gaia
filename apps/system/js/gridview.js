@@ -1,21 +1,48 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-
 'use strict';
+/* global SettingsListener */
 
-var GridView = {
+/**
+ * When the GridView is enabled, it causes the display
+ * to be overlaid with a grid pattern to help you gauge
+ * positioning and alignment of items.
+ * @class
+ */
+function GridView() {
+  SettingsListener.observe('debug.grid.enabled', false, function(value) {
+    !!value ? this.show() : this.hide();
+  }.bind(this));
+}
+
+GridView.prototype = {
+  /** @lends GridView */
+
+  /**
+   * A reference to the element which contains the grid overlay.
+   * @type {Element}
+   */
   grid: null,
 
+  /**
+   * Whether or not the GridView is visible.
+   * @return {Boolean} The GridView is visible.
+   */
   get visible() {
-    return this.grid && this.grid.style.display === 'block';
+    return this.grid && this.grid.style.visibility === 'visible';
   },
 
-  hide: function gv_hide() {
-    if (this.grid)
+  /**
+   * Hides the overlay.
+   */
+  hide: function() {
+    if (this.grid) {
       this.grid.style.visibility = 'hidden';
+    }
   },
 
-  show: function gv_show() {
+  /**
+   * Shows the overlay.
+   */
+  show: function() {
     var grid = this.grid;
     if (!grid) {
       grid = document.createElement('div');
@@ -25,16 +52,13 @@ var GridView = {
       this.grid = grid;
       document.getElementById('screen').appendChild(grid);
     }
-
     grid.style.visibility = 'visible';
   },
 
-  toggle: function gv_toggle() {
+  /**
+   * Toggles the displayed state of the overlay.
+   */
+  toggle: function() {
     this.visible ? this.hide() : this.show();
   }
 };
-
-SettingsListener.observe('debug.grid.enabled', false, function(value) {
-  !!value ? GridView.show() : GridView.hide();
-});
-
