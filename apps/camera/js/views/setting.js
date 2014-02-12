@@ -5,8 +5,9 @@ define(function(require, exports, module) {
  * Dependencies
  */
 
-var View = require('vendor/view');
 var debug = require('debug')('view:setting');
+var View = require('vendor/view');
+var bind = require('lib/bind');
 
 /**
  * Exports
@@ -21,6 +22,11 @@ module.exports = View.extend({
     this.model.on('change', this.render);
     this.on('destroy', this.onDestroy);
     this.el.classList.add(this.model.get('icon'));
+    bind(this.el, 'click', this.onClick);
+  },
+
+  onClick: function() {
+    this.emit('click', this);
   },
 
   onDestroy: function() {

@@ -1,0 +1,71 @@
+
+/** Setting Options
+ ---------------------------------------------------------*/
+
+.setting-options {
+  font-size: 1.6rem;
+  color: #FFF;
+}
+
+/** Inner
+ ---------------------------------------------------------*/
+
+.setting-options > .inner {
+  display: flex;
+  flex-direction: column;
+  max-height: 100%;
+  background: rgba(0,0,0,0.85);
+}
+
+/** Title
+ ---------------------------------------------------------*/
+
+.setting-options_title {
+  display: flex;
+  align-items: center;
+  height: 10.5rem;
+  padding: 0 1rem;
+}
+
+/** Items
+ ---------------------------------------------------------*/
+
+.setting-options_items {
+  flex: 1;
+  padding: 0 1rem;
+  list-style: none;
+  overflow: scroll;
+}
+
+/** Item
+ ---------------------------------------------------------*/
+
+.setting-options_items li {
+  padding: 1.5rem 0;
+  border-bottom: solid 1px rgba(255,255,255,0.15);
+  text-transform: uppercase;
+}
+
+/**
+ * @selected
+ */
+
+.setting-options_items li.selected {
+  color: #008eab
+}
+
+/** Item Icon
+ ---------------------------------------------------------*/
+
+.setting-options_items li:before {
+  float: right;
+  visibility: hidden;
+}
+
+/**
+ * @selected
+ */
+
+.setting-options_items li.selected:before {
+  visibility: visible;
+}

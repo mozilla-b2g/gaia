@@ -5,6 +5,7 @@ define(function(require, exports, module) {
  * Dependencies
  */
 
+var SettingOptionsView = require('views/setting-options');
 var debug = require('debug')('controller:settings');
 var SettingsView = require('views/settings');
 var bindAll = require('lib/bind-all');
@@ -38,8 +39,7 @@ SettingsController.prototype.openSettings = function() {
   this.view
     .render()
     .appendTo(this.app.el)
-    .on('click:item', this.onItemClick)
-    .on('click:option', this.onOptionClick);
+    .on('click:item', this.onItemClick);
 
   debug('settings opened');
 };
@@ -51,11 +51,15 @@ SettingsController.prototype.closeSettings = function() {
 };
 
 SettingsController.prototype.onItemClick = function(key) {
-  this.settings.get(key).next();
-};
+  var setting = this.settings.get(key);
+  var view = new SettingOptionsView({ model: setting });
 
-SettingsController.prototype.onOptionClick = function(key, value) {
-  this.settings.get(key).value(value);
+  this.closeSettings();
+
+  view
+    .render()
+    .appendTo(this.app.el)
+    .on('click:item', setting.select);
 };
 
 SettingsController.prototype.toggleSettings = function() {
@@ -88,6 +92,5 @@ SettingsController.prototype.onCapabilitiesChange = function(capabilities) {
   this.app.emit('settings:beforeconfigured');
   this.app.emit('settings:configured');
 };
-
 
 });

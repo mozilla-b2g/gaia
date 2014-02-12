@@ -2,7 +2,7 @@ define(function(require, exports, module) {
 'use strict';
 
 module.exports = {
-  showSettings: false,
+  showSettings: true,
   mode: {
     title: 'Mode',
     options: [

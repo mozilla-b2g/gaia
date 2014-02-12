@@ -41,8 +41,8 @@ exports.video = function(size) {
  * @return {Number}
  */
 function toMegaPixels(w, h) {
-  var MP = 1048576;
-  return Math.round((w * h) / MP);
+  var mp = 1000000;
+  return Math.round((w * h) / mp);
 }
 
 });

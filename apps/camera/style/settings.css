@@ -1,16 +1,20 @@
 
 /**
  * 1. Height of controls
+ * 2. Stack on top of hud.
  */
 
 .settings {
   position: absolute;
   left: 0; top: 0;
   bottom: 4.5rem; /* 1 */
+  z-index: 20; /* 2 */
   width: 100%;
   font-size: 1.6rem;
   color: #FFF;
+  white-space: nowrap;
   transform: translateZ(1px);
+  overflow: hidden;
 }
 
 /**
@@ -66,10 +70,34 @@
   transform-origin: 0 0;
 }
 
+/** Pane
+ ---------------------------------------------------------*/
+
+.pane {
+  display: inline-block;
+  vertical-align: top;
+  width: 100%;
+  height: 100%;
+  transform: translateX(0);
+}
+
+[show-pane=pane-2] .pane {
+  transform: translateX(-100%);
+}
+
+/** Pane 1
+ ---------------------------------------------------------*/
+
+
+
+/** Pane 2
+ ---------------------------------------------------------*/
+
+
 /** Inner
  ---------------------------------------------------------*/
 
-.settings > .inner {
+.settings_inner {
   display: flex;
   flex-direction: column;
   max-height: 100%;
