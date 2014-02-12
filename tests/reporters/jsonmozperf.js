@@ -21,7 +21,7 @@ function JSONMozPerfReporter(runner) {
   var mozPerfMemory;
 
   runner.on('test', function(test) {
-    mozPerfDurations = [];
+    mozPerfDurations = {};
   });
 
   runner.on('mozPerfDuration', function(content) {
@@ -35,10 +35,8 @@ function JSONMozPerfReporter(runner) {
   runner.on('pass', function(test) {
 
     if (mozPerfDurations === null || Object.keys(mozPerfDurations).length == 0) {
-      // this stuff is specific to moch implementation. It might break.
-      ++this.failures;
-      --this.stats.passes;
-      test.state = 'failed';
+      // this stuff is specific to mocha implementation. It might break.
+      --self.stats.passes;
 
       var err = new Error('No perf data was reported');
 
