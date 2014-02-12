@@ -121,6 +121,36 @@ ul li small:not(:empty) + span {
   padding-bottom: 0.1rem; /* Bug 903438 */
 }
 
+/* color previews */
+ul li > label.pack-checkbox > .color-preview:before {
+  height: 2rem;
+  width: 2rem;
+  background-color: red;
+  content: "";
+  display: inline-block;
+  margin: 0 1rem -0.2rem -1rem;
+}
+
+ul li > label.pack-checkbox > .error-counter:before {
+  background-color: red;
+}
+
+ul li > label.pack-checkbox > .warning-counter:before {
+  background-color: orange;
+}
+
+ul li > label.pack-checkbox > .reflow-counter:before {
+  background-color: purple;
+}
+
+ul li > label.pack-checkbox > .fps-monitor:before {
+  background-color: fuchsia;
+}
+
+ul li > label.pack-checkbox > .ttl-monitor:before {
+  background-color: darkgreen;
+}
+
 
 /******************************************************************************
  * Boolean inputs
