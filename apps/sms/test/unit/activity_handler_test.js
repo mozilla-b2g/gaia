@@ -112,7 +112,8 @@ suite('ActivityHandler', function() {
   });
 
   suite('"share" activity', function() {
-    var shareActivity;
+    var shareActivity, blobs, names;
+    var arr = [];
 
     setup(function() {
       this.prevHash = window.location.hash;
@@ -123,9 +124,13 @@ suite('ActivityHandler', function() {
           data: {
             blobs: [
               new Blob(['test'], { type: 'text/plain' }),
-              new Blob(['string'], { type: 'text/plain' })
+              new Blob(['string'], { type: 'text/plain' }),
+              new Blob(),
+              new Blob(),
+              new Blob()
             ],
-            filenames: ['testBlob1', 'testBlob2']
+            filenames: ['testBlob1', 'testBlob2', 'testBlob3', 'testBlob4',
+                        'testBlob5']
           }
         }
       };
@@ -135,6 +140,23 @@ suite('ActivityHandler', function() {
       window.location.hash = this.prevHash;
     });
 
+    test('test for pushing an attachments to an array', function() {
+      blobs = shareActivity.source.data.blobs;
+      names = shareActivity.source.data.filenames;
+      assert.ok(arr.length === 0);
+
+      blobs.forEach(function(blob, idx) {
+        var attachment = new Attachment(blob, {
+          name: names[idx],
+          isDraft: true
+        });
+        arr.push(attachment);
+      });
+      ThreadUI.cleanFields(true);
+      //checks an array length after pushing the data to an array
+      assert.ok(arr.length > 0);
+    });
+
     test('modifies the URL "hash" when necessary', function() {
       window.location.hash = '#wrong-location';
       MockNavigatormozSetMessageHandler.mTrigger('activity', shareActivity);
@@ -142,19 +164,18 @@ suite('ActivityHandler', function() {
     });
 
     test('Appends an attachment to the Compose field for each media file',
-      function(done) {
-      this.sinon.stub(Compose, 'append', function(attachment) {
-
-        assert.instanceOf(attachment, Attachment);
-        assert.ok(Compose.append.callCount < 3);
-        assert.equal(Mockalert.mLastMessage, null);
-
-        if (Compose.append.callCount === 2) {
-          done();
-        }
-      });
+      function() {
+      this.sinon.stub(Compose, 'append');
 
       MockNavigatormozSetMessageHandler.mTrigger('activity', shareActivity);
+
+      sinon.assert.calledWith(Compose.append, [
+        sinon.match.instanceOf(Attachment),
+        sinon.match.instanceOf(Attachment),
+        sinon.match.instanceOf(Attachment),
+        sinon.match.instanceOf(Attachment),
+        sinon.match.instanceOf(Attachment)
+      ]);
     });
     test('Attachment size over max mms should not be appended', function() {
           // Adjust mmsSizeLimitation for verifying alert popup when size over

@@ -58,7 +58,9 @@
     "share": {
       "filters": {
         "type": ["image/*", "audio/*", "video/*"],
-        "number": 1
+        "number": {
+          "max": 5
+        }
        },
       "disposition": "window"
     }

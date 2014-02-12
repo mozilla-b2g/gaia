@@ -84,6 +84,7 @@ var ActivityHandler = {
       ThreadUI.enableActivityRequestMode();
     },
     share: function shareHandler(activity) {
+      var arr = [];
       var blobs = activity.source.data.blobs,
         names = activity.source.data.filenames;
 
@@ -102,8 +103,10 @@ var ActivityHandler = {
             alert(navigator.mozL10n.get('file-too-large'));
             return;
           }
-          Compose.append(attachment);
+          arr.push(attachment);
         });
+        ThreadUI.cleanFields(true);
+        Compose.append(arr);
       }
 
       // Navigating to the 'New Message' page is an asynchronous operation that
