@@ -124,17 +124,17 @@ module.exports = {
       },
       {
         key: '3secs',
-        title: '3secs',
+        title: '3 Seconds',
         value: 3
       },
       {
         key: '5secs',
-        title: '5secs',
+        title: '5 Seconds',
         value: 5
       },
       {
         key: '10secs',
-        title: '10secs ',
+        title: '10 Seconds',
         value: 10
       }
     ],

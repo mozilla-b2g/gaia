@@ -28,6 +28,7 @@ function Setting(data) {
   this.configure(data);
   this.reset(data, { silent: true });
   this.updateSelected({ silent: true });
+  this.select = this.select.bind(this);
 }
 
 Setting.prototype.configure = function(data) {

@@ -8,7 +8,6 @@ define(function(require, exports, module) {
 var OptionsView = require('views/setting-options');
 var debug = require('debug')('view:settings');
 var SettingView = require('views/setting');
-var attach = require('vendor/attach');
 var View = require('vendor/view');
 var bind = require('lib/bind');
 
@@ -38,7 +37,7 @@ module.exports = View.extend({
     optionsView
       .render()
       .appendTo(this.els.pane2)
-      .on('click:item', model.select)
+      .on('click:option', model.select)
       .on('click:back', function() {
         self.showPane(1);
         optionsView.destroy();
