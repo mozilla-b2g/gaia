@@ -14,18 +14,14 @@ else
 	GAIA_EMAIL_MINIFY?=none
 endif
 
-.PHONY: all clean $(STAGE_APP_DIR)/js/mail_app.js
+.PHONY: all $(STAGE_APP_DIR)/js/mail_app.js
 
 all: $(STAGE_APP_DIR)/js/mail_app.js
 clean:
 	rm -rf $(STAGE_APP_DIR)
 
 $(STAGE_APP_DIR)/js/mail_app.js:
-	@rm -rf $(STAGE_APP_DIR)
 	mkdir -p $(STAGE_APP_DIR)/shared
-
-	cp -rp ../../shared/js $(STAGE_APP_DIR)/shared
-	cp -rp ../../shared/style $(STAGE_APP_DIR)/shared
 
 	$(XULRUNNERSDK) $(XPCSHELLSDK) ../../build/r.js -o build/email.build.js optimize=$(GAIA_EMAIL_MINIFY)
 	@rm -rf $(STAGE_APP_DIR)/build
@@ -35,3 +31,4 @@ $(STAGE_APP_DIR)/js/mail_app.js:
 	@rm $(STAGE_APP_DIR)/README.md
 	@rm -rf $(STAGE_APP_DIR)/test
 	$(XULRUNNERSDK) $(XPCSHELLSDK) build/make_gaia_shared.js
+	@rm -rf $(BUILD_DIR)/shared
