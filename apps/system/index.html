@@ -142,6 +142,7 @@
     <script defer src="js/icc_events.js"></script>
     <script defer src="js/icc_worker.js"></script>
     <script defer src="js/icc.js"></script>
+    <script defer src="js/stkTester.js"></script>
 
     <!-- Media Playback -->
     <script defer src="js/media_playback.js"></script>
@@ -1166,7 +1167,7 @@
       <div id="icc-view" data-z-index-level="icc-view">
         <form role="dialog" class="generic-dialog" data-type="confirm" id="icc-alert">
           <section>
-            <h1 data-l10n-id="icc-message">STK Message</h1>
+            <h1 id="icc-alert-title">STK Message</h1>
             <p id="icc-alert-msg"></p>
           </section>
           <menu>
@@ -1175,7 +1176,7 @@
         </form>
         <form role="dialog" class="generic-dialog" data-type="confirm" id="icc-confirm">
           <section>
-            <h1 data-l10n-id="icc-message">STK Message</h1>
+            <h1 id="icc-confirm-title">STK Message</h1>
             <p id="icc-confirm-msg"></p>
           </section>
           <menu>
@@ -1186,7 +1187,7 @@
         </form>
         <form role="dialog" class="generic-dialog" data-type="confirm" id="icc-asyncconfirm">
           <section>
-            <h1 data-l10n-id="icc-message">STK Message</h1>
+            <h1 id="icc-asyncconfirm-title">STK Message</h1>
             <p id="icc-asyncconfirm-msg"></p>
           </section>
           <menu data-items="2">
@@ -1196,7 +1197,7 @@
         </form>
         <form role="dialog" class="generic-dialog" data-type="confirm" id="icc-input">
           <section>
-            <h1 data-l10n-id="icc-inputtitle">STK Query</h1>
+            <h1 id="icc-input-title">STK Query</h1>
             <p id="icc-input-msg"></p>
             <input id="icc-input-box" required="" type="text">
           </section>
