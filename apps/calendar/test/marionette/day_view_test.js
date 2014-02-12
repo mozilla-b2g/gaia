@@ -1,5 +1,5 @@
 var Calendar = require('./calendar'),
-    Marionette = require('marionette-client');
+    Marionette = require('marionette-client'),
     assert = require('chai').assert;
 
 marionette('day view', function() {
