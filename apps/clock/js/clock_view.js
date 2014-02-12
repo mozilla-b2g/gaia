@@ -120,12 +120,17 @@ var ClockView = {
     var d = new Date();
     var f = new mozL10n.DateTimeFormat();
     var format = mozL10n.get('dateFormat');
-    var formated = f.localeFormat(d, format);
+
+    // If the date of the month is part of the locale format as a
+    // number, insert bold tags to accentuate the number itself. %d
+    // and %e are strings that represent the day of the month (1-31).
+    format = format.replace(/(%d|%e)/g, '<b>$1</b>');
+
     var remainMillisecond = (24 - d.getHours()) * 3600 * 1000 -
                             d.getMinutes() * 60 * 1000 -
                             d.getMilliseconds();
 
-    this.dayDate.innerHTML = formated.replace(/([0-9]+)/, '<b>$1</b>');
+    this.dayDate.innerHTML = f.localeFormat(d, format);
 
     this.timeouts.dayDate = setTimeout(
       this.updateDayDate.bind(this), remainMillisecond
