@@ -1,10 +1,12 @@
+-include $(PWD)/build/common.mk
+
 GAIA_ROOT_PATH?=../..
 
 .PHONY: all build stamp-commit-hash
 all: build stamp-commit-hash
 
 build:
-	@echo 'Building wappush app...'
+	@echo 'Building settings app...'
 	@$(call run-app-js-command, build)
 
 # Generate a text file containing the current changeset of Gaia
