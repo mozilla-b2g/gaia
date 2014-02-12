@@ -270,10 +270,10 @@ navigator.mozL10n.ready(function wifiSettings() {
     var small = document.createElement('small');
     var keys = WifiHelper.getSecurity(network);
     if (keys && keys.length) {
-      small.textContent = _('securedBy', { capabilities: keys.join(', ') });
+      localize(small, 'securedBy', { capabilities: keys.join(', ') });
       icon.classList.add('secured');
     } else {
-      small.textContent = _('securityOpen');
+      localize(small, 'securityOpen');
     }
 
     // create list item
@@ -285,7 +285,7 @@ navigator.mozL10n.ready(function wifiSettings() {
     // Show connection status
     icon.classList.add('wifi-signal');
     if (WifiHelper.isConnected(network)) {
-      small.textContent = _('shortStatus-connected');
+      localize(small, 'shortStatus-connected');
       icon.classList.add('connected');
       li.classList.add('active');
     }
