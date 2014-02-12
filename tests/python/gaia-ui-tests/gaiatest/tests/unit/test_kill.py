@@ -23,7 +23,9 @@ class TestKill(GaiaTestCase):
 
         for app in running_apps:
             self.apps.launch(app.name)
+            time.sleep(1)
             self.apps.kill(app)
+            time.sleep(1)
 
         self.check_no_apps_running()
 
