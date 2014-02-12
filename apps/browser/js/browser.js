@@ -632,10 +632,12 @@ var Browser = {
 
   reviveCrashedTab: function browser_reviveCrashedTab(tab) {
     this.createTab(null, null, tab);
+    tab.crashed = false;
+    if (!tab.url)
+      return;
     this.setTabVisibility(tab, true);
     Toolbar.refreshButtons();
     this.navigate(tab.url);
-    tab.crashed = false;
     this.hideCrashScreen();
   },
 
