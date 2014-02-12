@@ -57,15 +57,6 @@ var Browser = {
     this.getAllElements();
     if (window.navigator.mozNfc) {
       window.navigator.mozNfc.onpeerready = NfcURI.handlePeerConnectivity;
-
-      window.navigator.mozSetMessageHandler(
-      'nfc-manager-tech-discovered',
-      NfcURI.handleTechnologyDiscovered.bind(this));
-
-      window.navigator.mozSetMessageHandler(
-      'nfc-manager-tech-lost',
-      NfcURI.handleTechLost.bind(this));
-
     }
     // Add event listeners
     this.urlBar.addEventListener('submit', this.handleUrlFormSubmit.bind(this));
@@ -616,12 +607,8 @@ var Browser = {
       if (window.navigator.mozNfc) {
         window.navigator.mozNfc.onpeerready = NfcURI.handlePeerConnectivity;
       }
-    } else {
-      if (window.navigator.mozNfc && window.navigator.mozNfc.onpeerready &&
-        (!NfcURI.nfcState)) {
-        window.navigator.mozNfc.onpeerready = null;
-      }
     }
+
     // Bug 845661 - Attention screen does not appears when
     // the url bar input is focused.
     if (document.hidden) {
