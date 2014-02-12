@@ -7,10 +7,13 @@ var gaiaOriginURL = function(name, scheme, domain, port) {
 
 exports.Q = require('q');
 
-exports.joinPath = function() {
+var joinPath = function() {
   var args = Array.prototype.slice.call(arguments);
     return args.join('/');
   };
+
+exports.joinPath = joinPath;
+
 exports.Commander = function(type) {
   hasRunCommands[type] = [];
   this.run = function(cmds, callback) {
@@ -47,3 +50,11 @@ exports.gaiaManifestURL = function(name, scheme, domain, port) {
 };
 
 exports.log = console.log;
+exports.getExtension = function(filename) {
+  return filename.substr(filename.lastIndexOf('.') + 1).toLowerCase();
+};
+
+exports.isSubjectToBranding = function(path) {
+  return /shared[\/\\][a-zA-Z]+[\/\\]branding$/.test(path) ||
+         /branding[\/\\]initlogo.png/.test(path);
+};
