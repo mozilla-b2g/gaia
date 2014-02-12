@@ -178,8 +178,8 @@ body:not(.filmstriphidden) .hud {
  * endge of the screen.
  */
 
-body[data-orientation=deg90] .flash-text,
-body[data-orientation=deg180] .flash-text {
+.deg90 .flash-text,
+.deg180 .flash-text {
   left: auto;
   right: 100%;
 }

@@ -10,32 +10,24 @@ body {
   background-color: black;
 }
 
+/** Mini reset
+ ---------------------------------------------------------*/
+
 * {
   -moz-box-sizing: border-box;
   font-weight: inherit;
   margin: 0;
 }
 
-
 /** Rotates
  ---------------------------------------------------------*/
 
-body[data-orientation=deg0] .rotates {
-  transform: rotate(0deg)
-}
+.deg0 .rotates { transform: rotate(0deg); }
+.deg90 .rotates { transform: rotate(-90deg); }
+.deg180 .rotates { transform: rotate(-180deg); }
+.deg270 .rotates { transform: rotate(-270deg); }
 
-body[data-orientation=deg90] .rotates {
-  transform: rotate(-90deg)
-}
+/** Hidden
+ ---------------------------------------------------------*/
 
-body[data-orientation=deg180] .rotates {
-  transform: rotate(-180deg)
-}
-
-body[data-orientation=deg270] .rotates {
-  transform: rotate(-270deg)
-}
-
-.hidden {
-  display: none;
-}
+.hidden { display: none; }

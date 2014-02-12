@@ -13,6 +13,62 @@
   transform: translateZ(1px);
 }
 
+/**
+ * COMPLEX
+ *
+ * The camera app has fixed rotation,
+ * this means that when the orientation of the
+ * device changes, the application doesn't rotate.
+ *
+ * Although the settings menu must rotate. This
+ * means we need to use CSS transforms to reposition
+ * the settings menu so that it appears rotate with
+ * the orientation of the device.
+ *
+ */
+
+/**
+ * @deg90
+ *
+ * 1. Viewport height minus controls height
+ */
+
+.deg90 .settings {
+  width: calc(100vh - 4.5rem); /* 1 */
+  height: 100vw;
+  transform:
+    rotate(270deg)
+    translate(-100vh, 0)
+    translate(4.5rem, 0);
+  transform-origin: 0 0;
+}
+
+/**
+ * @deg180
+ */
+
+.deg180 .settings {
+  transform: rotate(180deg);
+}
+
+/**
+ * @deg270
+ *
+ * 1. Viewport height minus controls height
+ */
+
+.deg270 .settings {
+  width: calc(100vh - 4.5rem);
+  height: 100vw;
+  transform:
+    rotate(90deg)
+    translate(0px, -100vw);
+  transform-origin: 0 0;
+}
+
+/** Inner
+ ---------------------------------------------------------*/
+
 .settings > .inner {
   display: flex;
   flex-direction: column;
