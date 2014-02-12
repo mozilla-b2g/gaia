@@ -598,6 +598,20 @@ function fileCreated(fileinfo) {
 
   // Create a thumbnailItem for this image and insert it at the right spot
   var thumbnailItem = thumbnailList.addItem(fileinfo);
+  var thumbnailElements = document.getElementsByClassName('thumbnail');
+
+  // If the image is smaller than the size of a thumbnail,
+  // show original image as thumbnail
+  if (fileinfo.metadata.smallfile) {
+      for (var i = 0; i < thumbnailElements.length; i++) {
+          var thumbnailElem = thumbnailElements[i];
+          if (thumbnailElem.dataset.filename == fileinfo.name) {
+              thumbnailElem.classList.add('thumbnail-small');
+              break;
+          }
+      }
+  }
+
   insertPosition = getFileIndex(fileinfo.name);
   if (insertPosition < 0)
     return;
