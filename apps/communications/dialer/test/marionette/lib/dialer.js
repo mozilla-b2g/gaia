@@ -13,12 +13,13 @@ function Dialer(client) {
 Dialer.URL = 'app://communications.gaiamobile.org';
 
 Dialer.config = {
-  prefs: {
-    'dom.w3c_touch_events.enabled': 1
-  },
   settings: {
-    // disable keyboard ftu because it blocks our display
-    'keyboard.ftu.enabled': false
+    'ftu.manifestURL': null,
+    'lockscreen.enabled': false
+  },
+  prefs: {
+    'dom.w3c_touch_events.enabled': 1,
+    'devtools.debugger.forbid-certified-apps': false
   }
 };
 

@@ -1,6 +1,8 @@
 'use strict';
 
 var Dialer = require('./lib/dialer');
+var ReflowHelper =
+  require('../../../../../tests/js-marionette/reflow_helper.js');
 
 marionette('Dialer > Keypad', function() {
   var assert = require('assert');
@@ -12,6 +14,8 @@ marionette('Dialer > Keypad', function() {
   var Actions = require('marionette-client').Actions;
   var actions = new Actions(client);
 
+  var reflowHelper;
+
   setup(function() {
     subject = new Dialer(client);
     subject.launch();
@@ -22,15 +26,18 @@ marionette('Dialer > Keypad', function() {
     client.waitFor(function() {
       return keypad.displayed();
     });
+
+    reflowHelper = new ReflowHelper(client);
   });
 
   function typeNumber() {
     var one = subject.client.findElement(selectors.one);
-    var two = subject.client.findElement(selectors.two);
-    var three = subject.client.findElement(selectors.three);
-
     keypadTap(one);
+
+    var two = subject.client.findElement(selectors.two);
     keypadTap(two);
+
+    var three = subject.client.findElement(selectors.three);
     keypadTap(three);
   }
 
@@ -49,11 +56,15 @@ marionette('Dialer > Keypad', function() {
     });
   }
 
-  test('Entering a number with the keypad', function() {
+  test('Entering a 3 digits number with the keypad', function() {
+    reflowHelper.startTracking(Dialer.URL + '/manifest.webapp');
     typeNumber();
 
     var number = subject.client.findElement(selectors.phoneNumber);
     assert.equal(number.getAttribute('value'), '123');
+    var reflowCount = reflowHelper.getCount();
+    assert.equal(reflowCount, 16, 'you need more than 16 reflows for that?');
+    reflowHelper.stopTracking();
   });
 
   test('Using the special extention key', function() {
