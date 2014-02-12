@@ -3084,7 +3084,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
      * Default config when config file not found.
      */
     _defaultConfig: {
-      'data-cover-only': 'js/'
+      'data-cover-only': 'js/',
+      'data-cover-never': 'shared/js/'
     },
 
     enhance: function enhance(worker) {
@@ -3366,7 +3367,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       this.element.appendChild(fragment(templates.testRun));
 
       this.initDomEvents();
-
       window.dispatchEvent(new CustomEvent('test-agent-list-done'));
     },
 
@@ -3412,4 +3412,3 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
   };
 
 }(this));
-
