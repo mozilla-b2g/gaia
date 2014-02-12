@@ -548,10 +548,17 @@ webapp-manifests: $(XULRUNNER_BASE_DIRECTORY)
 
 .PHONY: webapp-zip
 # Generate $(PROFILE_FOLDER)/webapps/APP/application.zip
-webapp-zip: webapp-optimize app-makefiles keyboard-layouts $(XULRUNNER_BASE_DIRECTORY)
+webapp-zip: webapp-optimize webapp-shared app-makefiles keyboard-layouts $(XULRUNNER_BASE_DIRECTORY)
 ifneq ($(DEBUG),1)
 	@mkdir -p $(PROFILE_FOLDER)/webapps
 	@$(call run-js-command,webapp-zip)
+endif
+
+.PHONY: webapp-shared
+# Copy shared files to stage folders
+webapp-shared: $(BUILD_STAGE_APPS) $(XULRUNNER_BASE_DIRECTORY)
+ifneq ($(DEBUG),1)
+	@$(call run-js-command, webapp-shared)
 endif
 
 .PHONY: webapp-optimize

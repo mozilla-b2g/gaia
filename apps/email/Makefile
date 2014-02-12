@@ -35,3 +35,4 @@ $(STAGE_APP_DIR)/js/mail_app.js:
 	@rm $(STAGE_APP_DIR)/README.md
 	@rm -rf $(STAGE_APP_DIR)/test
 	$(XULRUNNERSDK) $(XPCSHELLSDK) build/make_gaia_shared.js
+	@rm -rf $(BUILD_DIR)/shared
