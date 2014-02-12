@@ -77,6 +77,14 @@
     PAGEVIEW_SOURCES = _config.pageViewSources;
 
     DISPLAY_INSTALLED_APPS = _config.displayInstalledApps;
+
+    if (mozSettings) {
+      mozSettings.addObserver('language.current', function onLanguageChange(e) {
+        // close any open collection when language changes
+        // to force UI update to the new language
+        Evme.Collection.hide();
+      });
+    }
   };
 
   // l10n: create a mutation observer to know when a node was added
