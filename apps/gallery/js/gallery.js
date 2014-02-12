@@ -212,8 +212,8 @@ function initDB() {
   photodb = new MediaDB('pictures', metadataParserWrapper, {
     version: 2,
     autoscan: false,     // We're going to call scan() explicitly
-    batchHoldTime: 150,  // Batch files during scanning
-    batchSize: PAGE_SIZE // Max batch size: one screenful
+    batchHoldTime: 2000, // Batch files during scanning
+    batchSize: 3         // Max batch size when scanning
   });
 
   // This is where we find videos once the photodb notifies us that a
@@ -543,38 +543,47 @@ function deleteFile(n) {
 }
 
 function fileCreated(fileinfo) {
-  var insertPosition;
-
   // If the new file is a video and we're handling an image pick activity
   // then we won't display the new file.
   if (pendingPick && fileinfo.metadata.video)
     return;
 
-  // If we were showing the 'no pictures' overlay, hide it
-  if (currentOverlay === 'emptygallery' || currentOverlay === 'scanning')
-    showOverlay(null);
+  // The fileinfo object that MediaDB sends us has a thumbnail blob in it,
+  // fresh from the metadata parser. This blob has been stored in the db, but
+  // the copy we have is still a memory-backed blob. We need to be using a
+  // file backed blob here so that we don't leak memory if the user scans a
+  // fresh sdcard full of hundreds of photos. So we go get the db record out
+  // of the database. It should be an exact copy of what we already have,
+  // except that the thumbnail will be file-backed instead of memory-backed.
+  photodb.getFileInfo(fileinfo.name, function(fileinfo) {
+    var insertPosition;
 
-  // Create a thumbnailItem for this image and insert it at the right spot
-  var thumbnailItem = thumbnailList.addItem(fileinfo);
-  insertPosition = getFileIndex(fileinfo.name);
-  if (insertPosition < 0)
-    return;
+    // If we were showing the 'no pictures' overlay, hide it
+    if (currentOverlay === 'emptygallery' || currentOverlay === 'scanning')
+      showOverlay(null);
 
-  // Insert the image info into the array
-  files.splice(insertPosition, 0, fileinfo);
+    // Create a thumbnailItem for this image and insert it at the right spot
+    var thumbnailItem = thumbnailList.addItem(fileinfo);
+    insertPosition = getFileIndex(fileinfo.name);
+    if (insertPosition < 0)
+      return;
 
-  if (currentFileIndex >= insertPosition)
-    currentFileIndex++;
-  if (editedPhotoIndex >= insertPosition)
-    editedPhotoIndex++;
+    // Insert the image info into the array
+    files.splice(insertPosition, 0, fileinfo);
 
-  // Redisplay the current photo if we're in photo view. The current
-  // photo should not change, but the content of the next or previous frame
-  // might. This call will only make changes if the filename to display
-  // in a frame has actually changed.
-  if (currentView === fullscreenView) {
-    showFile(currentFileIndex);
-  }
+    if (currentFileIndex >= insertPosition)
+      currentFileIndex++;
+    if (editedPhotoIndex >= insertPosition)
+      editedPhotoIndex++;
+
+    // Redisplay the current photo if we're in photo view. The current
+    // photo should not change, but the content of the next or previous frame
+    // might. This call will only make changes if the filename to display
+    // in a frame has actually changed.
+    if (currentView === fullscreenView) {
+      showFile(currentFileIndex);
+    }
+  });
 }
 
 // Make the thumbnail for image n visible
