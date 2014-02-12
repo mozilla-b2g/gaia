@@ -34,9 +34,15 @@ function JSONMozPerfReporter(runner) {
 
   runner.on('pass', function(test) {
 
-    if (mozPerfDurations === null) {
-      test.err = new Error('No perf data was reported');
-      failures.push(test);
+    if (mozPerfDurations === null || Object.keys(mozPerfDurations).length == 0) {
+      // this stuff is specific to moch implementation. It might break.
+      ++this.failures;
+      --this.stats.passes;
+      test.state = 'failed';
+
+      var err = new Error('No perf data was reported');
+
+      this.emit('fail', test, err);
       return;
     }
 
