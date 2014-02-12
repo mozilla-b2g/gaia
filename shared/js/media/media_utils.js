@@ -15,7 +15,7 @@ var MediaUtils = {
       return;
     }
     var dtf = new navigator.mozL10n.DateTimeFormat();
-    return dtf.localeFormat(new Date(timestamp), '%m-%d-%Y');
+    return dtf.localeFormat(new Date(timestamp), this._('dateTimeFormat_%x'));
   },
 
   // Format Size

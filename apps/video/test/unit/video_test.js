@@ -12,11 +12,18 @@ requireApp('/video/js/video.js');
 requireApp('/video/test/unit/mock_l10n.js');
 
 suite('Video App Unit Tests', function() {
-
+  var nativeMozL10n;
   suiteSetup(function() {
     // Create DOM structure
     loadBodyHTML('/index.html');
     dom.infoView = document.getElementById('info-view');
+    nativeMozL10n = navigator.mozL10n;
+    navigator.mozL10n = MockL10n;
+    MediaUtils._ = MockL10n.get;
+  });
+
+  suiteTeardown(function() {
+    navigator.mozL10n = nativeMozL10n;
   });
 
   suite('#Video Info Populate Data', function() {
@@ -43,7 +50,7 @@ suite('Video App Unit Tests', function() {
       assert.equal(document.getElementById('info-type').textContent,
         'webm');
       assert.equal(document.getElementById('info-date').textContent,
-        '08-07-2013');
+        '08/07/2013');
       assert.equal(document.getElementById('info-resolution').textContent,
         '560x320');
     });
@@ -69,7 +76,7 @@ suite('Video App Unit Tests', function() {
       };
       showInfoView();
       assert.equal(document.getElementById('info-date').textContent,
-        '08-19-2013');
+        '08/19/2013');
     });
 
     test('#Test Video date null', function() {
@@ -97,16 +104,6 @@ suite('Video App Unit Tests', function() {
 
 
   suite('#Video Format Size', function() {
-
-    var nativeMozL10n = navigator.mozL10n;
-    suiteSetup(function() {
-      navigator.mozL10n = MockL10n;
-      MediaUtils._ = MockL10n.get;
-    });
-
-    suiteTeardown(function() {
-      navigator.mozL10n = nativeMozL10n;
-    });
 
     test('#Test Video size', function() {
       currentVideo = {
