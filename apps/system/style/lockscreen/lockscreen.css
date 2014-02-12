@@ -138,8 +138,9 @@
  * Because of the individual background element, the slide would appear
  * after the passcode pad got invoked, so we need to hide it here.
  */
-[data-panel="passcode"] #lockscreen-icon-container,
-[data-panel="emergency-call"] #lockscreen-icon-container {
+[data-panel="passcode"] #notifications-lockscreen-container,
+[data-panel="passcode"] #lockscreen-media-container,
+[data-panel="passcode"] #lockscreen-icon-container {
   visibility: hidden;
 }
 

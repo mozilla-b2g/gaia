@@ -261,6 +261,7 @@ Calendar.ConflictSpan = (function() {
      * Update layout for all events participating in this conflict span.
      */
     _updateLayout: function() {
+      // We don't have any "conflicts" in the month's day view.
       var numCols = this.columns.length;
       var width = (100 / numCols);
       for (var cIdx = 0; cIdx < numCols; cIdx++) {

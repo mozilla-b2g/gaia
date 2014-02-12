@@ -12,6 +12,7 @@ mocha.globals(['ScreenManager']);
 require('/shared/test/unit/mocks/mock_settings_url.js');
 require('/test/unit/mock_statusbar.js');
 require('/shared/test/unit/mocks/mock_gesture_detector.js');
+require('/test/unit/mock_screen_manager.js');
 require('/test/unit/mock_utility_tray.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
 require('/js/notifications.js');
@@ -19,6 +20,7 @@ require('/js/notifications.js');
 var mocksForNotificationScreen = new MocksHelper([
   'StatusBar',
   'GestureDetector',
+  'ScreenManager',
   'SettingsListener',
   'SettingsURL',
   'UtilityTray'
@@ -109,14 +111,8 @@ suite('system/NotificationScreen >', function() {
   });
 
   suite('updateStatusBarIcon >', function() {
-    var realScreenManager;
     setup(function() {
       this.sinon.spy(MockStatusBar, 'updateNotification');
-      realScreenManager = window.ScreenManager;
-      window.ScreenManager = {
-        screenEnabled: true,
-        turnScreenOn: sinon.stub()
-      };
       NotificationScreen.updateStatusBarIcon();
     });
 
@@ -223,10 +219,6 @@ suite('system/NotificationScreen >', function() {
         null,
         fakeLockScreenContainer.querySelector(
           '[data-notification-i-d="id-10000"]'));
-    });
-
-    teardown(function() {
-      window.ScreenManager = realScreenManager;
     });
   });
 

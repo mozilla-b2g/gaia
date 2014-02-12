@@ -34,14 +34,22 @@ window.addEventListener('load', function startup() {
     });
   }
 
-  window.addEventListener('ftudone', function doneWithFTU() {
+  /**
+   * Enable checkForUpdate after FTU is either done or skipped.
+   */
+  function doneWithFTU() {
     window.removeEventListener('ftudone', doneWithFTU);
-
+    window.removeEventListener('ftuskip', doneWithFTU);
     var lock = window.navigator.mozSettings.createLock();
     lock.set({
       'gaia.system.checkForUpdates': true
     });
-  });
+  }
+
+  window.addEventListener('ftudone', doneWithFTU);
+  // Enable checkForUpdate as well if booted without FTU
+  window.addEventListener('ftuskip', doneWithFTU);
+
 
   SourceView.init();
   Shortcuts.init();
