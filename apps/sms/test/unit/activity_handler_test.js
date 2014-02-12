@@ -374,6 +374,10 @@ suite('ActivityHandler', function() {
     setup(function() {
       // find no contact in here
       this.sinon.stub(Contacts, 'findByPhoneNumber').callsArgWith(1, []);
+      // find no message with current number. Just call done().
+      this.sinon.stub(MessageManager, 'getMessages', function(options) {
+        options.done();
+      });
     });
 
     teardown(function() {
@@ -481,6 +485,32 @@ suite('ActivityHandler', function() {
       this.sinon.stub(ThreadUI, 'enableActivityRequestMode');
       MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
       assert.isTrue(ThreadUI.enableActivityRequestMode.called);
+    });
+
+    test('new message with no existing thread should redirect to new message view', function(){
+      this.sinon.spy(ActivityHandler, 'toView');
+      MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
+      assert.isTrue(ActivityHandler.toView.calledOnce);
+      // toView should be called with a null threadId
+      assert.isNull(ActivityHandler.toView.getCall(0).args[0].threadId);
+      // sanity check
+      assert.equal(ActivityHandler.toView.getCall(0).args[0].number, '123');
+    });
+
+    test('new message with existing thread should redirect to this thread', function(){
+      //find one message with current number. Each should be called with this message.
+      MessageManager.getMessages.restore();
+      this.sinon.stub(MessageManager, 'getMessages', function(options) {
+        options.each({receiver: '123', threadId: '42'});
+        options.done();
+      });
+      this.sinon.spy(ActivityHandler, 'toView');
+      MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
+      assert.isTrue(ActivityHandler.toView.calledOnce);
+      // toView should be called with the right threadId
+      assert.equal(ActivityHandler.toView.getCall(0).args[0].threadId, '42');
+      // sanity check
+      assert.equal(ActivityHandler.toView.getCall(0).args[0].number, '123');
     });
 
   });
