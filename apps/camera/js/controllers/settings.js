@@ -5,7 +5,6 @@ define(function(require, exports, module) {
  * Dependencies
  */
 
-var SettingOptionsView = require('views/setting-options');
 var debug = require('debug')('controller:settings');
 var SettingsView = require('views/settings');
 var bindAll = require('lib/bind-all');
@@ -17,6 +16,12 @@ var bindAll = require('lib/bind-all');
 module.exports = function(app) { return new SettingsController(app); };
 module.exports.SettingsController = SettingsController;
 
+/**
+ * Initialize a new `SettingsController`
+ *
+ * @constructor
+ * @param {App} app
+ */
 function SettingsController(app) {
   bindAll(this);
   this.app = app;
@@ -25,43 +30,68 @@ function SettingsController(app) {
   debug('initialized');
 }
 
+/**
+ * Bind to app events.
+ *
+ * @private
+ */
 SettingsController.prototype.bindEvents = function() {
   this.app.on('change:capabilities', this.onCapabilitiesChange);
   this.app.on('settings:toggle', this.toggleSettings);
 };
 
+/**
+ * Render and display the settings menu.
+ *
+ * We use settings.menu() to retrieve
+ * and ordered list of settings that
+ * have a `menu` property.
+ *
+ * @private
+ */
 SettingsController.prototype.openSettings = function() {
   if (this.view) { return; }
   debug('open settings');
 
-  this.view = new SettingsView({ items: this.settings.menu() });
-
-  this.view
+  var items = this.settings.menu();
+  this.view = new SettingsView({ items: items })
     .render()
     .appendTo(this.app.el)
-    .on('click:item', this.onItemClick);
+    .on('tap:close', this.closeSettings)
+    .on('tap:option', this.onOptionTap);
 
   debug('settings opened');
 };
 
+/**
+ * Destroy the settings menu.
+ *
+ * @private
+ */
 SettingsController.prototype.closeSettings = function() {
-  if (!this.view) { return; }
-  this.view.destroy();
-  this.view = null;
+  if (this.view) {
+    this.view.destroy();
+    this.view = null;
+  }
 };
 
-SettingsController.prototype.onItemClick = function(key) {
-  var setting = this.settings.get(key);
-  var view = new SettingOptionsView({ model: setting });
-
-  this.closeSettings();
-
-  view
-    .render()
-    .appendTo(this.app.el)
-    .on('click:item', setting.select);
+/**
+ * Selects the option that was
+ * tapped on the setting.
+ *
+ * @param  {String} key
+ * @param  {Setting} setting
+ * @private
+ */
+SettingsController.prototype.onOptionTap = function(key, setting) {
+  setting.select(key);
 };
 
+/**
+ * Toggle the settings menu open/closed.
+ *
+ * @private
+ */
 SettingsController.prototype.toggleSettings = function() {
   if (this.view) { this.closeSettings(); }
   else { this.openSettings(); }

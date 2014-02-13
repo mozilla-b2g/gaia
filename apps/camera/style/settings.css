@@ -105,14 +105,31 @@
   background: rgba(0,0,0,0.85);
 }
 
+/** Header
+ ---------------------------------------------------------*/
+
+.settings_header {}
+
 /** Title
  ---------------------------------------------------------*/
 
 .settings_title {
+  float: left;
   display: flex;
   align-items: center;
-  height: 10.5rem;
-  padding: 0 1rem;
+}
+
+/** Button
+ ---------------------------------------------------------*/
+
+/**
+ * @extends .hud a
+ */
+
+.settings_close {
+  float: right;
+  font-size: 2rem;
+  background-color: #008eab;
 }
 
 /** Items

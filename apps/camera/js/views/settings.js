@@ -31,24 +31,19 @@ module.exports = View.extend({
 
   onItemClick: function(view) {
     var model = view.model;
-    var optionsView = new OptionsView({ model: model });
-    var self = this;
 
-    optionsView
+    this.optionsView = new OptionsView({ model: model })
       .render()
       .appendTo(this.els.pane2)
-      .on('click:option', model.select)
-      .on('click:back', function() {
-        self.showPane(1);
-        setTimeout(optionsView.destroy, 400);
-      });
+      .on('tap:option', this.firer('tap:option'))
+      .on('tap:back', this.goBack);
 
     this.showPane(2);
-    this.children.push(optionsView);
   },
 
   onDestroy: function() {
     this.children.forEach(this.destroyChild);
+    this.destroyOptionsView();
     debug('destroyed');
   },
 
@@ -56,9 +51,16 @@ module.exports = View.extend({
     this.el.innerHTML = this.template();
     this.els.items = this.find('.js-items');
     this.els.pane2 = this.find('.js-pane-2');
+    this.els.close = this.find('.js-close');
+    bind(this.els.close, 'click', this.firer('tap:close'));
     this.items.forEach(this.addItem);
     debug('rendered');
     return this;
+  },
+
+  goBack: function() {
+    this.showPane(1);
+    setTimeout(this.destroyOptionsView, 400);
   },
 
   destroyChild: function(view) {
@@ -66,16 +68,21 @@ module.exports = View.extend({
     debug('destroyed child');
   },
 
-  addItem: function(model) {
-    var view = new SettingView({ model: model });
+  destroyOptionsView: function() {
+    if (this.optionsView) {
+      this.optionsView.destroy();
+      this.optionsView = null;
+    }
+  },
 
-    view
+  addItem: function(model) {
+    var setting = new SettingView({ model: model })
       .render()
       .appendTo(this.els.items)
       .on('click', this.onItemClick);
 
-    this.children.push(view);
-    debug('initialized child');
+    this.children.push(setting);
+    debug('add item key: %s', model.key);
   },
 
   showPane: function(name) {
@@ -85,7 +92,10 @@ module.exports = View.extend({
   template: function() {
     return '<div class="pane pane-1">' +
       '<div class="settings_inner">' +
-        '<h2 class="settings_title">Options</h2>' +
+        '<div class="settings_header">' +
+          '<h2 class="settings_title">Options</h2>' +
+          '<div class="settings_close icon-settings js-close"></div>' +
+        '</div>' +
         '<ul class="settings_items js-items"></ul>' +
       '</div>' +
     '</div>' +
