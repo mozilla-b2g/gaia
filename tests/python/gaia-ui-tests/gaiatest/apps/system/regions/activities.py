@@ -23,7 +23,7 @@ class Activities(Base):
         view = self.marionette.find_element(*self._actions_menu_locator)
         if 'contextmenu' in view.get_attribute('class'):
             # final position is below the status bar
-            self.wait_for_condition(lambda m: view.location['y'] == 20)
+            self.wait_for_condition(lambda m: view.location['y'] == 24)
         else:
             self.wait_for_condition(lambda m: view.location['y'] == 0)
 

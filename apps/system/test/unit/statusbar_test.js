@@ -33,7 +33,8 @@ var mocksForStatusBar = new MocksHelper([
 mocha.globals(['Clock', 'StatusBar', 'lockScreen', 'System']);
 suite('system/Statusbar', function() {
   var mobileConnectionCount = 2;
-  var fakeStatusBarNode, fakeTopPanel;
+  var fakeStatusBarNode, fakeTopPanel, fakeStatusBarBackground,
+    fakeStatusBarIcons;
   var realMozL10n, realMozMobileConnections, realMozTelephony, fakeIcons = [];
   var originalLocked;
 
@@ -70,6 +71,14 @@ suite('system/Statusbar', function() {
     fakeTopPanel = document.createElement('div');
     fakeTopPanel.id = 'top-panel';
     document.body.appendChild(fakeTopPanel);
+
+    fakeStatusBarBackground = document.createElement('div');
+    fakeStatusBarBackground.id = 'statusbar-background';
+    document.body.appendChild(fakeStatusBarBackground);
+
+    fakeStatusBarIcons = document.createElement('div');
+    fakeStatusBarIcons.id = 'statusbar-icons';
+    document.body.appendChild(fakeStatusBarIcons);
 
     StatusBar.ELEMENTS.forEach(function testAddElement(elementName) {
       var elt;
@@ -1206,6 +1215,27 @@ suite('system/Statusbar', function() {
       StatusBar.handleEvent(evt);
 
       assert.isFalse(StatusBar.element.classList.contains('invisible'));
+    });
+
+    test('the status bar should expand when the Rocketbar expands',
+      function() {
+      StatusBar.collapse();
+
+      var evt = new CustomEvent('rocketbarexpand');
+      StatusBar.handleEvent(evt);
+
+      assert.isTrue(StatusBar.background.classList.contains('expanded'));
+    });
+
+
+    test('the status bar should collapse when the Rocketbar collapses',
+      function() {
+      StatusBar.expand();
+
+      var evt = new CustomEvent('rocketbarcollapse');
+      StatusBar.handleEvent(evt);
+
+      assert.isFalse(StatusBar.background.classList.contains('expanded'));
     });
 
     suite('Revealing the StatusBar >', function() {

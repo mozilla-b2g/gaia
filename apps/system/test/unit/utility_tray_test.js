@@ -1,13 +1,11 @@
 'use strict';
 
-requireApp('system/test/unit/mock_rocketbar.js');
 requireApp('system/shared/test/unit/mocks/mock_lazy_loader.js');
-mocha.globals(['UtilityTray', 'Rocketbar', 'lockScreen']);
+mocha.globals(['UtilityTray', 'lockScreen']);
 
 requireApp('system/test/unit/mock_lock_screen.js');
 
 var mocksHelperForUtilityTray = new MocksHelper([
-  'Rocketbar',
   'LazyLoader'
 ]);
 mocksHelperForUtilityTray.init();
@@ -54,6 +52,9 @@ suite('system/UtilityTray', function() {
     var statusbar = document.createElement('div');
     statusbar.style.cssText = 'height: 100px; display: block;';
 
+    var statusbarIcons = document.createElement('div');
+    statusbarIcons.style.cssText = 'height: 100px; display: block;';
+
     var grippy = document.createElement('div');
     grippy.style.cssText = 'height: 100px; display: block;';
 
@@ -67,6 +68,8 @@ suite('system/UtilityTray', function() {
       switch (id) {
         case 'statusbar':
           return statusbar;
+        case 'statusbar-icons':
+          return statusbarIcons;
         case 'utility-tray-grippy':
           return grippy;
         case 'utility-tray':
@@ -230,14 +233,14 @@ suite('system/UtilityTray', function() {
     test('onTouchStart is not called if LockScreen is locked', function() {
       window.lockScreen.locked = true;
       var stub = this.sinon.stub(UtilityTray, 'onTouchStart');
-      UtilityTray.statusbar.dispatchEvent(fakeEvt);
+      UtilityTray.statusbarIcons.dispatchEvent(fakeEvt);
       assert.ok(stub.notCalled);
     });
 
     test('onTouchStart is called if LockScreen is not locked', function() {
       window.lockScreen.locked = false;
       var stub = this.sinon.stub(UtilityTray, 'onTouchStart');
-      UtilityTray.statusbar.dispatchEvent(fakeEvt);
+      UtilityTray.statusbarIcons.dispatchEvent(fakeEvt);
       assert.ok(stub.calledOnce);
     });
 
@@ -246,7 +249,7 @@ suite('system/UtilityTray', function() {
     });
 
     test('preventDefault if the target is the statusbar', function() {
-      assert.isFalse(UtilityTray.statusbar.dispatchEvent(fakeEvt));
+      assert.isFalse(UtilityTray.statusbarIcons.dispatchEvent(fakeEvt));
     });
 
     test('preventDefault if the target is the grippy', function() {
@@ -273,7 +276,7 @@ suite('system/UtilityTray', function() {
     });
 
     test('preventDefault if the target is the statusbar', function() {
-      assert.isFalse(UtilityTray.statusbar.dispatchEvent(fakeEvt));
+      assert.isFalse(UtilityTray.statusbarIcons.dispatchEvent(fakeEvt));
     });
 
     test('preventDefault if the target is the grippy', function() {
@@ -281,7 +284,7 @@ suite('system/UtilityTray', function() {
     });
 
     test('Test UtilityTray.active, should be false', function() {
-      UtilityTray.statusbar.dispatchEvent(fakeEvt);
+      UtilityTray.statusbarIcons.dispatchEvent(fakeEvt);
       assert.equal(UtilityTray.active, false);
     });
   });
@@ -298,67 +301,4 @@ suite('system/UtilityTray', function() {
         classList.contains('utility-tray'), false);
     });
   });
-
-  suite('onTouchStart: rocketbar logic', function() {
-
-    var overlayStub, uHideStub, rBarRenderStub;
-
-    setup(function() {
-      overlayStub = this.sinon
-        .stub(UtilityTray.overlay, 'getBoundingClientRect')
-        .returns({width: 100, height: 100});
-      rBarRenderStub = this.sinon.stub(Rocketbar, 'render');
-      uHideStub = this.sinon.stub(UtilityTray, 'hide');
-      Rocketbar.enabled = true;
-    });
-
-    teardown(function() {
-      overlayStub.restore();
-      rBarRenderStub.restore();
-      uHideStub.restore();
-    });
-
-    test('should display for drag on left half of statusbar', function() {
-      fakeEvt = createEvent('touchend');
-      fakeEvt.changedTouches = [{ pageX: 0 }];
-
-      UtilityTray.onTouchStart(fakeEvt);
-      UtilityTray.shown = false;
-      UtilityTray.active = false;
-      UtilityTray.handleEvent(fakeEvt);
-      assert.isTrue(rBarRenderStub.calledOnce);
-    });
-
-    test('does not render if utility tray not active', function() {
-      fakeEvt = createEvent('touchend');
-      fakeEvt.changedTouches = [{ pageX: 0 }];
-      UtilityTray.onTouchStart(fakeEvt);
-      UtilityTray.shown = false;
-      UtilityTray.active = true;
-      UtilityTray.handleEvent(fakeEvt);
-      assert.isTrue(rBarRenderStub.notCalled);
-    });
-
-    test('should not show if we touch to the right', function() {
-      fakeEvt = createEvent('touchstart');
-      fakeEvt.pageX = 70;
-
-      UtilityTray.onTouchStart(fakeEvt);
-      assert.isTrue(rBarRenderStub.notCalled);
-      assert.isTrue(uHideStub.notCalled);
-    });
-
-
-    test('should not show if we touch the open statusbar', function() {
-      fakeTouches(0, 100);
-      assert.equal(UtilityTray.shown, true);
-
-      fakeEvt = createEvent('touchstart');
-      fakeEvt.pageX = 0;
-
-      UtilityTray.onTouchStart(fakeEvt);
-      assert.isTrue(rBarRenderStub.notCalled);
-    });
-  });
-
 });

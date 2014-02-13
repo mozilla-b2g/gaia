@@ -350,7 +350,6 @@
     <!-- Rocketbar -->
     <script defer src="js/browser.js"></script>
     <script defer src="js/rocketbar.js"></script>
-    <script defer src="js/title.js"></script>
     <script defer src="shared/js/url_helper.js"></script>
     <link rel="stylesheet" type="text/css" href="style/rocketbar/rocketbar.css">
 
@@ -430,11 +429,21 @@
       <div id="os-logo" data-z-index-level="initlogo">
         <div id="carrier-logo"></div>
       </div>
-
+      <!-- Statusbar -->
+      <div id="statusbar-background" data-z-index-level="statusbar"></div>
       <div id="statusbar" data-z-index-level="statusbar">
-        <!-- Browser chrome title-->
-        <div id="statusbar-title"></div>
-
+        <!-- Rocketbar-->
+        <div id="rocketbar">
+          <div id="rocketbar-title">
+            <span id="rocketbar-title-content" data-l10n-id="search">Search</span>
+          </div>
+          <form id="rocketbar-form" class="hidden">
+            <input id="rocketbar-input" type="text" x-inputmode="verbatim"
+              placeholder="Search" data-l10n-id="search" value="">
+            </input>
+          </form>
+        </div>
+        <!-- Statusbar icons -->
         <div id="statusbar-icons">
           <!-- Time -->
           <div id="statusbar-time"></div>
@@ -482,19 +491,11 @@
             data-num="" hidden></div>
         </div>
       </div>
-      <div id="search-bar" data-z-index-level="search-bar">
-        <form id="search-form" class="skin-dark">
-          <p>
-            <input id="search-input" type="search" x-inputmode="verbatim" placeholder="Search or type address" data-l10n-id="search-or-type-address"></input>
-            <button id="search-reset" type="reset"></button>
-            <a href="#" id="search-cancel">
-                <span data-l10n-id="cancel">Cancel</span>
-            </a>
-          </p>
-        </form>
-        <div id="search-container"></div>
-      </div>
 
+      <!-- Rocketbar Results -->
+      <div id="rocketbar-results" class="hidden" data-z-index-level="rocketbar-results"></div>
+
+      <!-- Utility Tray -->
       <div id="utility-tray" data-z-index-level="utility-tray">
         <!-- notifications -->
         <div id="notification-bar">

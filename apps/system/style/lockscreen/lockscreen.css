@@ -170,7 +170,7 @@
 #lockscreen-header {
   z-index: 9999;
   position: absolute;
-  top: 2rem;   /* 2rem = height of status bar */
+  top: 2.4rem;   /* 2.4rem = height of status bar */
   left: 0;
   width: 100%;
   -moz-box-sizing: border-box;

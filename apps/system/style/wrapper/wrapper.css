@@ -19,7 +19,7 @@
 
 .chrome > .progress {
   position: fixed;
-  top: 2rem; /* This is the status bar height */
+  top: 2.4rem; /* This is the status bar height */
   left: 0;
   margin: 0;
   padding: 0;

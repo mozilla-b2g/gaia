@@ -331,21 +331,17 @@ suite('cards view >', function() {
     });
 
     suite('display cardsview (in rocketbar) >', function() {
-      var rocketbarRender;
-
       setup(function(done) {
-        rocketbarRender = this.sinon.stub(Rocketbar, 'render');
         sendHoldhome();
         setTimeout(function() { done(); });
       });
 
       teardown(function() {
         CardsView.hideCardSwitcher(true);
-        rocketbarRender.restore();
       });
 
       test('cardsview should be active', function() {
-        assert.isTrue(rocketbarRender.calledWith(true));
+        assert.isTrue(cardsView.classList.contains('active'));
       });
     });
 
