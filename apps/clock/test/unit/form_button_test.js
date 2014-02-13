@@ -1,3 +1,4 @@
+'use strict';
 suite('FormButton', function() {
   var doc, input, formButton, FormButton, Constants, Utils;
 

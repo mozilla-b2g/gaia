@@ -1,5 +1,4 @@
 define(function(require) {
-
   'use strict';
 
   var Template = require('shared/js/template');
@@ -25,7 +24,7 @@ define(function(require) {
     constructor: Banner,
 
     render: function bn_render(alarmTime) {
-      var timeLeft, displayTime, tl, countdownType, localTimes, unitObj;
+      var timeLeft, tl, countdownType, localTimes, unitObj;
 
       timeLeft = +alarmTime - Date.now();
       // generate human readable numbers to pass to localization function

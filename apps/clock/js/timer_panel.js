@@ -9,7 +9,6 @@ var Utils = require('utils');
 var Timer = require('timer');
 var Sounds = require('sounds');
 var FormButton = require('form_button');
-var _ = require('l10n').get;
 
 var priv = new WeakMap();
 
@@ -171,7 +170,6 @@ Timer.Panel.prototype.tick = function() {
  * @return {Object} Timer.Panel.
  */
 Timer.Panel.prototype.update = function(remaining = 0) {
-  var cur = this.nodes.time.textContent;
   this.nodes.time.textContent = Utils.format.hms(
     (remaining - (remaining % 1000)) / 1000, 'hh:mm:ss');
   return this;

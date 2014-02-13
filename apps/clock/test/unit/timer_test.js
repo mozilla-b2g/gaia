@@ -1,3 +1,4 @@
+'use strict';
 suite('Timer', function() {
   var Timer, MockMozAlarm;
   var now, duration;
@@ -31,7 +32,6 @@ suite('Timer', function() {
   }
 
   test('start new timer ', function() {
-    var stored;
     var timer = getTimer();
     timer.start();
     this.clock.tick(200);
@@ -40,7 +40,6 @@ suite('Timer', function() {
   });
 
   test('reactivate an un-paused timer ', function() {
-    var stored;
     var timer = getTimer();
 
     timer.start();

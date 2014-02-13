@@ -1,5 +1,6 @@
-define('startup_init', function(require) {
 'use strict';
+
+define('startup_init', function(require) {
 
 var App = require('app');
 var ClockView = require('clock_view');

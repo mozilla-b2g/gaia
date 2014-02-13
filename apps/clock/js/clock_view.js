@@ -56,33 +56,33 @@ var ClockView = {
 
   get digital() {
     delete this.digital;
-    return this.digital = document.getElementById('digital-clock');
+    return (this.digital = document.getElementById('digital-clock'));
   },
 
   get analog() {
     delete this.analog;
-    return this.analog = document.getElementById('analog-clock');
+    return (this.analog = document.getElementById('analog-clock'));
   },
 
   get time() {
     delete this.time;
-    return this.time = document.getElementById('clock-time');
+    return (this.time = document.getElementById('clock-time'));
   },
 
   get hourState() {
     delete this.hourState;
-    return this.hourState = document.getElementById('clock-hour24-state');
+    return (this.hourState = document.getElementById('clock-hour24-state'));
   },
 
   get dayDate() {
     delete this.dayDate;
-    return this.dayDate = document.getElementById('clock-day-date');
+    return (this.dayDate = document.getElementById('clock-day-date'));
   },
 
   get container() {
     delete this.container;
-    return this.container =
-      document.getElementById('analog-clock-container');
+    return (this.container =
+      document.getElementById('analog-clock-container'));
   },
   isInitialized: false,
 

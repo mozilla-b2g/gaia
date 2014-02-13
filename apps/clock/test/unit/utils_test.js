@@ -1,3 +1,5 @@
+'use strict';
+/* global MockRequestWakeLock */
 requireApp('clock/test/unit/mocks/mock_request_wake_lock.js');
 
 suite('Time functions', function() {
@@ -53,7 +55,7 @@ suite('Time functions', function() {
     test('12:00pm', function() {
       var time = parseTime('12:00PM');
       assert.equal(time.hour, 12);
-      assert.equal(time.minute, 00);
+      assert.equal(time.minute, 0);
     });
 
     test('11:30pm', function() {

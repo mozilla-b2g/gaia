@@ -33,7 +33,7 @@ define(function() {
     obj.laps = opts.laps ? opts.laps.slice() : defaults.laps;
 
     priv.set(this, obj);
-  };
+  }
 
   Stopwatch.MaxLapsException = function() {
     this.message = 'You have created too many laps';
@@ -140,7 +140,7 @@ define(function() {
       if (sw.laps.length >=
           99 /* ensure that this matches the value in
                 apps/clock/js/stopwatch_panel.js#checkLapButton */) {
-        throw new MaxLapsException();
+        throw new Stopwatch.MaxLapsException();
       }
       if (sw.state !== Stopwatch.RUNNING) {
         return 0;
