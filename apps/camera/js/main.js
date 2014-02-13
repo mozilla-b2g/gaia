@@ -67,12 +67,9 @@ require(['config/require', 'config'], function() {
 
     // Async jobs to be
     // done before boot...
-    var done = allDone();
+    var done = allDone()(app.boot);
     app.activity.check(done());
     app.settings.fetch(done());
-
-    // ...boot!
-    done(app.boot);
   });
 
   require(['boot']);

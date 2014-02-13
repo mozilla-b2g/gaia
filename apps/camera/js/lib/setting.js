@@ -6,7 +6,6 @@ define(function(require, exports, module) {
  */
 
 var debug = require('debug')('setting');
-var storage = require('asyncStorage');
 var model = require('vendor/model');
 
 /**
@@ -14,6 +13,12 @@ var model = require('vendor/model');
  */
 
 module.exports = Setting;
+
+/**
+ * Locals
+ */
+
+var noop = function() {};
 
 // Mixin Model methods
 model(Setting.prototype);
@@ -196,11 +201,18 @@ Setting.prototype.value = function() {
  * Persists the current selection
  * to storage for retreval in the
  * next session.
+ *
+ * We're using localStorage as performance
+ * vastly outweighed indexedBD (asyncStorage)
+ * by 1ms/500ms on Hamachi device.
+ *
+ * @public
  */
 Setting.prototype.save = function() {
   var selected = this.get('selected');
-  storage.setItem('setting:' + this.key, selected);
   debug('saving key: %s, selected: %s', this.key, selected);
+  localStorage.setItem('setting:' + this.key, selected);
+  debug('saved key: %s', selected);
 };
 
 /**
@@ -208,16 +220,24 @@ Setting.prototype.save = function() {
  * from storage, updating the
  * `selected` key.
  *
+ * We're using localStorage, as performance
+ * vastly outweighed indexedBD (asyncStorage)
+ * by 1ms/500ms on Hamachi device.
+ *
+ * Leaving in the `done` callback in-case
+ * storage goes async again in future.
+ *
  * @param  {Function} done
+ * @public
  */
 Setting.prototype.fetch = function(done) {
-  var self = this;
+  done = done || noop;
+  if (!this.get('persistent')) { return done(); }
   debug('fetch value');
-  storage.getItem('setting:' + this.key, function(value) {
-    if (value) { self.select(value, { silent: true }); }
-    debug('fetched %s value: %s', self.key, value);
-    if (done) { done(); }
-  });
+  var value = localStorage.getItem('setting:' + this.key);
+  debug('fetched %s value: %s, time: %s', self.key, value);
+  if (value) { self.select(value, { silent: true }); }
+  done();
 };
 
 /**

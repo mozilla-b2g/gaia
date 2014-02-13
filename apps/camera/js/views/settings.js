@@ -40,7 +40,7 @@ module.exports = View.extend({
       .on('click:option', model.select)
       .on('click:back', function() {
         self.showPane(1);
-        optionsView.destroy();
+        setTimeout(optionsView.destroy, 400);
       });
 
     this.showPane(2);
