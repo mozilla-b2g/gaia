@@ -5,7 +5,9 @@
   "description": "A bundle of components which Gaia needs in order to leverage marionette-js-runner",
   "author": "Gareth Aye <gaye@mozilla.com>",
   "devDependencies": {
+    "dateformat": "1.0.6-1.2.3",
     "debug": "*",
+    "ejs": "0.8.4",
     "empty-port": "~0.0.1",
     "ffi-prebuilt": "~1.2.6",
     "jshint": "2.4.2",

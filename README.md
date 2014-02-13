@@ -88,6 +88,9 @@ Shared code for tests lives under shared/test/integration.
 make test-integration TEST_FILES=<test>
 ```
 
+If you would like to run a test with a CalDAV server,
+please give the `RUN_CALDAV_SERVER=1` parameter after the command.
+
 #### Invoking tests for a specific app
 
 ```sh

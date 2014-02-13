@@ -3,6 +3,34 @@
 # All options are passed to `./node_modules/.bin/marionette-mocha` so
 # you can also use mocha commands like `--grep`, `--timeout` see `--help`
 # for more options.
+# run tests with a CalDAV server.
+if [ "$1" == "RUN_CALDAV_SERVER=1" ]; then
+  PIP=$(which pip)
+  VIRTUAL_ENV=$(which virtualenv)
+  RADICALE=$(which radicale)
+
+  # Make sure we have pip before we install the CalDav server.
+  if [ ! -x "$PIP" ]; then
+    echo "$SELF: Unable to find pip to install Python packages."
+    exit 1
+  fi
+
+  if [ ! -x "$VIRTUAL_ENV" ]; then
+    echo "Install Virtualenv."
+    sudo pip install virtualenv
+  fi
+  # Go to the isolated Python environment.
+  virtualenv ENV
+  source ./ENV/bin/activate
+
+  # Install the Radicale CalDAV server for
+  # doing testing things with Calendar App.
+  # See more in http://radicale.org.
+  if [ ! -x "$RADICALE" ]; then
+    echo "Install Radicale."
+    sudo pip install radicale
+  fi
+fi
 
 # Find the source of this file
 SOURCE="${BASH_SOURCE[0]}"
