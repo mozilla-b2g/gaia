@@ -15,7 +15,7 @@ class UtilityTray(Base):
 
     def wait_for_notification_container_displayed(self):
         # Marionette cannot read the displayed state of the notification container so we wait for its location
-        self.wait_for_condition(lambda m: m.find_element(*self._notification_container_locator).location['y'] == 50)
+        self.wait_for_condition(lambda m: m.find_element(*self._notification_container_locator).location['y'] == 54)
 
     @property
     def notifications(self):

@@ -1,23 +1,24 @@
-/* globals __dirname */
-
 'use strict';
 
+/* globals __dirname */
+
+var System = require('../../../system/test/marionette/lib/system');
 var Search = require('./lib/search');
+var Rocketbar = require('../../../system/test/marionette/lib/rocketbar.js');
 var Server = require('../../../../shared/test/integration/server');
 var assert = require('assert');
 
 marionette('Places tests', function() {
 
-  var client = marionette.client(Search.ClientOptions);
-
-  var search;
-  var server;
+  var client = marionette.client(Rocketbar.clientOptions);
+  var search, server, rocketbar, system;
 
   suiteSetup(function(done) {
     Server.create(__dirname + '/fixtures/', function(err, _server) {
       server = _server;
       done();
     });
+    system = new System(client);
   });
 
   suiteTeardown(function() {
@@ -26,34 +27,45 @@ marionette('Places tests', function() {
 
   setup(function() {
     search = new Search(client);
+    rocketbar = new Rocketbar(client);
+    system.waitForStartup();
   });
 
   test('Search for previously visited URL', function() {
     var url = server.url('sample.html');
-    search.doSearch(url + '\uE006');
-    search.waitForBrowserFrame();
-    search.doSearch(url);
+    rocketbar.focus();
+    rocketbar.enterText(url + '\uE006');
+    rocketbar.waitForBrowserFrame();
+    client.switchToFrame();
+    rocketbar.focus();
+    rocketbar.enterText(url);
     search.goToResults();
     search.checkResult('firstPlace', 'Sample page');
   });
 
   test('Search for a string that doesnt match visited url', function() {
     var url = server.url('sample.html');
-    search.doSearch(url + '\uE006');
-    search.waitForBrowserFrame();
-    search.doSearch('nonmatchedstring');
+    rocketbar.focus();
+    rocketbar.enterText(url + '\uE006');
+    rocketbar.waitForBrowserFrame();
+    client.switchToFrame();
+    rocketbar.focus();
+    rocketbar.enterText('non_matching_string');
     search.goToResults();
-    client.helper.wait(1000);
     assert.equal(client.findElements(Search.Selectors.firstPlace).length, 0);
   });
 
   test('Ensures urls visited twice only show in results once', function() {
     var url = server.url('sample.html');
-    search.doSearch(url + '\uE006');
-    search.waitForBrowserFrame();
-    search.doSearch(url + '\uE006');
-    search.waitForBrowserFrame();
-    search.doSearch(url);
+    rocketbar.focus();
+    rocketbar.enterText(url + '\uE006');
+    rocketbar.waitForBrowserFrame();
+    rocketbar.focus();
+    rocketbar.enterText(url + '\uE006');
+    rocketbar.waitForBrowserFrame();
+    client.switchToFrame();
+    rocketbar.focus();
+    rocketbar.enterText(url);
     search.goToResults();
 
     // Wait to get the correct amount of results
@@ -68,11 +80,14 @@ marionette('Places tests', function() {
 
   test('Ensure favicon is loaded', function() {
     var url = server.url('favicon.html');
-    search.doSearch(url + '\uE006');
-    search.waitForBrowserFrame();
+    rocketbar.focus();
+    rocketbar.enterText(url + '\uE006');
+    rocketbar.waitForBrowserFrame();
 
     client.waitFor(function() {
-      search.doSearch(url);
+      client.switchToFrame();
+      rocketbar.focus();
+      rocketbar.enterText(url);
       search.goToResults();
       var result = client.helper.waitForElement('#places div .icon');
       return !result.getAttribute('class').match('empty');

@@ -192,8 +192,8 @@
 #updates-download-dialog[data-nowifi="true"] section {
   /* Fixing at the top of the screen to properly make room for the warning */
   position: absolute;
-  top: 2rem;
-  max-height: calc(100% - 15rem - 2rem);
+  top: 2.4rem;
+  max-height: calc(100% - 15rem - 2.4rem);
 }
 
 #updates-download-dialog #updates-download-button[data-online="false"] {
