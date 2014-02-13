@@ -16,7 +16,6 @@ var CardsView = (function() {
   // by dragging it upwards
   var MANUAL_CLOSING = true;
 
-  var DEVICE_RATIO = window.devicePixelRatio || 1;
   var cardsView = document.getElementById('cards-view');
   var screenElement = document.getElementById('screen');
   var cardsList = cardsView.firstElementChild;
@@ -348,7 +347,7 @@ var CardsView = (function() {
           var width = isLandscape ? rect.height : rect.width;
           var height = isLandscape ? rect.width : rect.height;
           frameForScreenshot.getScreenshot(
-            width * DEVICE_RATIO, height * DEVICE_RATIO).onsuccess =
+            width, height).onsuccess =
             function gotScreenshot(screenshot) {
               var blob = screenshot.target.result;
               if (blob) {
