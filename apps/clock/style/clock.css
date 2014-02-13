@@ -156,6 +156,7 @@ html, body {
 
 /* banner*/
 #banner-countdown {
+  z-index: -1;
   opacity: 0;
   -moz-transition: opacity 600ms ease;
 }
