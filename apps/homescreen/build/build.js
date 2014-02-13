@@ -1,57 +1,87 @@
 'use strict';
 
-var utils = require('./utils');
-var webappManifests = require('./webapp-manifests');
-var config;
+/* global require, exports */
+var utils = require('utils');
+var manifestModule = require('webapp-manifests');
+var svoperapps = require('./homescreen-svoperapps');
 
-const PREFERRED_ICON_SIZE = 60;
-const GAIA_CORE_APP_SRCDIR = 'apps';
-const GAIA_EXTERNAL_APP_SRCDIR = 'external-apps';
-const INSTALL_TIME = 132333986000; // Match this to value in webapp-manifests.js
+var HomescreenAppBuilder = function() {
+};
 
-var webapps = {};
+HomescreenAppBuilder.prototype.BASE_ICON_SIZE = 60;
+HomescreenAppBuilder.prototype.GAIA_CORE_APP_SRCDIR = 'apps';
+HomescreenAppBuilder.prototype.STAGE_DIR = 'build_stage/homescreen';
+HomescreenAppBuilder.prototype.GAIA_EXTERNAL_APP_SRCDIR = 'external-apps';
 
-// Initial Homescreen icon descriptors.
+HomescreenAppBuilder.prototype.setOptions = function(options) {
+  var stageDirPath = [options.GAIA_DIR].concat(this.STAGE_DIR.split('/'));
+  this.stageDir = utils.getFile.apply(utils, stageDirPath);
+
+  let mappingFile = utils.getFile(options.GAIA_DIR, 'build_stage',
+    'webapps-mapping.json');
+  if (!mappingFile.exists()) {
+    throw new Error('webapps mapping file not found, you should use' +
+      ' webapp-manifests.js to create it first, path: ' + mappingFile.path);
+  }
+  this.webappsMapping = utils.getJSON(mappingFile);
+
+  let defaultConfig = utils.getFile(utils.joinPath(options.GAIA_DIR,
+    this.GAIA_CORE_APP_SRCDIR, 'homescreen', 'build',
+    'default-homescreens.json'));
+  this.defaultConfig = utils.getJSON(defaultConfig);
+
+  this.preferredIconSize =
+    this.BASE_ICON_SIZE * parseFloat(options.GAIA_DEV_PIXELS_PER_PX);
+
+  this.options = options;
+};
 
 // c.f. the corresponding implementation in the Homescreen app.
-function bestMatchingIcon(preferred_size, manifest, origin) {
+HomescreenAppBuilder.prototype.bestMatchingIcon =
+  function(preferred_size, manifest, origin) {
   var icons = manifest.icons;
   if (!icons) {
     return undefined;
   }
 
-  var preferredSize = Number.MAX_VALUE;
+  var preferredIconSize = Number.MAX_VALUE;
   var max = 0;
 
   for (var size in icons) {
     size = parseInt(size, 10);
-    if (size > max)
+    if (size > max) {
       max = size;
+    }
 
-    if (size >= PREFERRED_ICON_SIZE && size < preferredSize)
-      preferredSize = size;
+    if (size >= this.preferredIconSize && size < preferredIconSize) {
+      preferredIconSize = size;
+    }
   }
   // If there is an icon matching the preferred size, we return the result,
   // if there isn't, we will return the maximum available size.
-  if (preferredSize === Number.MAX_VALUE)
-    preferredSize = max;
+  if (preferredIconSize === Number.MAX_VALUE) {
+    preferredIconSize = max;
+  }
 
-  var url = icons[preferredSize];
+  var url = icons[preferredIconSize];
   if (!url) {
     return undefined;
   }
 
   // If the icon path is not an absolute URL, prepend the app's origin.
-  if (url.indexOf('data:') == 0 ||
-      url.indexOf('app://') == 0 ||
-      url.indexOf('http://') == 0 ||
-      url.indexOf('https://') == 0)
+  if (url.indexOf('data:') === 0 ||
+      url.indexOf('app://') === 0 ||
+      url.indexOf('http://') === 0 ||
+      url.indexOf('https://') === 0) {
     return url;
+  }
 
   return origin + url;
-}
+};
 
-function getCollectionManifest(directory, app_name) {
+HomescreenAppBuilder.prototype.getCollectionManifest =
+  function(directory, app_name) {
+  var config = this.options;
   let gaia = utils.getGaia(config);
 
   // Locate the directory of a given app.
@@ -73,36 +103,38 @@ function getCollectionManifest(directory, app_name) {
   }
 
   return null;
-}
+};
 
-function iconDescriptor(directory, app_name, entry_point) {
+HomescreenAppBuilder.prototype.getIconDiscriptorFromApp =
+  function(directory, app_name, entry_point) {
+  var config = this.options;
   let manifest = null;
   let origin = null;
   let manifestURL = null;
 
-  manifest = getCollectionManifest(directory, app_name);
+  manifest = this.getCollectionManifest(directory, app_name);
   if (!manifest) {
-    if (!webapps[app_name]) {
+    if (!this.webappsMapping[app_name]) {
       throw new Error(
         'Can not find application ' + app_name + ' at ' + directory
       );
     }
 
-    manifest = webapps[app_name].manifest;
+    manifest = this.webappsMapping[app_name].originalManifest;
     if (entry_point &&
       manifest.entry_points &&
       manifest.entry_points[entry_point]) {
     manifest = manifest.entry_points[entry_point];
     }
 
-    origin = webapps[app_name].webappsJson.origin;
-    manifestURL = webapps[app_name].webappsJson.manifestURL;
+    origin = this.webappsMapping[app_name].origin;
+    manifestURL = this.webappsMapping[app_name].manifestURL;
   }
 
   let descriptor = {
     //TODO set localizedName once we know the default locale
     entry_point: entry_point,
-    updateTime: INSTALL_TIME,
+    updateTime: manifestModule.INSTALL_TIME,
     name: manifest.name
   };
 
@@ -118,64 +150,25 @@ function iconDescriptor(directory, app_name, entry_point) {
     let apps = [];
     if (Array.isArray(manifest.apps)) {
       manifest.apps.forEach(function iterate(app) {
-        let iconInfo = iconDescriptor.apply(null, app);
+        let iconInfo = this.getIconDiscriptorFromApp.apply(this, app);
         app.splice(0, 2, iconInfo.manifestURL);
         apps.push(app);
-      });
+      }, this);
     }
     descriptor.apps = apps;
   }
 
   descriptor.manifestURL = manifestURL;
-  descriptor.icon = bestMatchingIcon(PREFERRED_ICON_SIZE, manifest, origin);
+  descriptor.icon = this.bestMatchingIcon(this.preferredIconSize, manifest,
+    origin);
 
   return descriptor;
-}
+};
 
-function customizeHomescreen(options) {
-  config = options;
+HomescreenAppBuilder.prototype.customizeHomescreen = function() {
+  var config = this.options;
 
-  // zeroth grid page is the dock
-  let customize = {
-    'homescreens': [
-      [
-        ['apps', 'communications', 'dialer'],
-        ['apps', 'sms'],
-        ['apps', 'communications', 'contacts']
-      ], [
-        ['apps/homescreen/collections', 'social'],
-        ['apps/homescreen/collections', 'games'],
-        ['apps/homescreen/collections', 'music'],
-        ['apps/homescreen/collections', 'showbiz']
-      ], [
-        ['apps', 'camera'],
-        ['apps', 'gallery'],
-        ['apps', 'fm'],
-        ['apps', 'settings'],
-        [GAIA_EXTERNAL_APP_SRCDIR, 'marketplace.firefox.com'],
-        ['apps', 'calendar'],
-        ['apps', 'clock'],
-        ['apps', 'costcontrol'],
-        ['apps', 'email'],
-        ['apps', 'music'],
-        ['apps', 'video']
-      ]
-    ],
-    'search_page': {
-      'enabled': true
-    },
-    'bookmarks': [
-      {
-        'name': 'Browser',
-        'bookmarkURL': 'http://mozilla.org',
-        'icon': 'app://homescreen.gaiamobile.org/style/icons/Aurora.png',
-        'iconable': false,
-        'useAsyncPanZoom': true,
-        'features': 'toolbar=yes,location=yes',
-        'removable': false
-      }
-    ]
-  };
+  let customize = this.defaultConfig;
 
   // Add the browser icon if rocketbar is not enabled
   if (config.ROCKETBAR !== 'full') {
@@ -210,12 +203,15 @@ function customizeHomescreen(options) {
   let transition_duration = 300;
 
   if (customize.swipe) {
-    if (customize.swipe.threshold)
+    if (customize.swipe.threshold) {
       swipe_threshold = customize.swipe.threshold;
-    if (customize.swipe.friction)
+    }
+    if (customize.swipe.friction) {
       swipe_friction = customize.swipe.friction;
-    if (customize.swipe.transition_duration)
+    }
+    if (customize.swipe.transition_duration) {
       transition_duration = customize.swipe.transition_duration;
+    }
   }
 
   // if we disabled search_page
@@ -232,14 +228,15 @@ function customizeHomescreen(options) {
     // then it means we have to take off them in build time.
     if (hasCollection) {
       throw new Error(
-        'bad homescreens.json, please remove collections when disabling search_page');
+        'bad homescreens.json, please remove collections when disabling' +
+        ' search_page');
     }
   }
 
   var search_page_debug;
   try {
     let local_settings_file =
-      utils.getFile(config.GAIA_DIR, GAIA_CORE_APP_SRCDIR,
+      utils.getFile(config.GAIA_DIR, this.GAIA_CORE_APP_SRCDIR,
         'homescreen', 'everything.me', 'config', 'local.json');
 
     let local_settings = utils.getJSON(local_settings_file);
@@ -279,12 +276,12 @@ function customizeHomescreen(options) {
         var output = [];
         for (var i = 0; i < applist.length; i++) {
           if (applist[i] !== null) {
-            output.push(iconDescriptor.apply(null, applist[i]));
+            output.push(this.getIconDiscriptorFromApp.apply(this, applist[i]));
           }
         }
         return output;
       }
-    )
+    , this)
   };
 
   // Only enable configurable bookmarks for dogfood devices
@@ -293,19 +290,19 @@ function customizeHomescreen(options) {
   }
 
   return content;
-}
+};
 
-function execute(options) {
-  webapps = webappManifests.execute(options);
+HomescreenAppBuilder.prototype.execute = function(options) {
+  this.setOptions(options);
+  var homescreen = this.customizeHomescreen();
+  let configFile = utils.getFile(this.stageDir.path, 'js', 'init.json');
+  utils.writeContent(configFile, JSON.stringify(homescreen));
 
-  var distDir = options.GAIA_DISTRIBUTION_DIR;
+  if (options.VARIANT_PATH) {
+    svoperapps.execute(options, homescreen, this.stageDir);
+  }
+};
 
-  // Homescreen
-  var homescreen = customizeHomescreen(options);
-  let init = utils.getFile(config.GAIA_DIR, GAIA_CORE_APP_SRCDIR,
-                      'homescreen', 'js', 'init.json');
-  utils.writeContent(init, JSON.stringify(homescreen));
-}
-
-exports.execute = execute;
-exports.customizeHomescreen = customizeHomescreen;
+exports.execute = function(options) {
+  (new HomescreenAppBuilder()).execute(options);
+};
