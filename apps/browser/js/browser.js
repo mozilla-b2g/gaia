@@ -539,7 +539,8 @@ var Browser = {
   },
 
   showAddressBar: function browser_showAddressBar() {
-    if (this.addressBarState === this.VISIBLE ||
+    if (this.addressBarState === null ||
+        this.addressBarState === this.VISIBLE ||
         this.addressBarState === this.TRANSITIONING) {
       return;
     }
