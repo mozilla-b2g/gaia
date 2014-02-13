@@ -96,6 +96,10 @@ Timer.Panel = function(element) {
   View.instance(element, Timer.Panel).on(
     'visibilitychange', this.onvisibilitychange.bind(this)
   );
+
+  View.instance(element, Timer.Panel).once(
+    'visibilitychange',
+    setTimeout.bind(window, this.picker.reset.bind(this.picker), 0));
 };
 
 Timer.Panel.prototype = Object.create(Panel.prototype);
@@ -147,8 +151,6 @@ Timer.Panel.prototype.dialog = function(opts = { isVisible: true }) {
     Utils.cancelAnimationAfter(this.tickTimeout);
   }
   View.instance(this.nodes.dialog).visible = opts.isVisible;
-
-  setTimeout(this.picker.reset.bind(this.picker), 0);
   return this;
 };
 
