@@ -20,15 +20,8 @@ marionette('Lap creation', function() {
     );
 
     stopwatch.start();
-    // Ensure that enough time has passed for the stopwatch to
-    // reliably show a nonzero lap count.
-    client.helper.wait(20);
 
     stopwatch.lap();
-
-    // Ensure that enough time has passed for the stopwatch to
-    // reliably show a nonzero lap count.
-    client.helper.wait(20);
 
     laps = stopwatch.readLaps();
 
