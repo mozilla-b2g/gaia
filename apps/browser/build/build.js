@@ -20,8 +20,6 @@ BrowserAppBuilder.prototype.setOptions = function(options) {
 };
 
 BrowserAppBuilder.prototype.initJSON = function() {
-  // Note: The variant integration test in FTU will need to be changed if the
-  // defaults here change, otherwise the tests will fail.
   var defaultJSONpath =
     utils.joinPath(this.appDir.path, 'build', 'default.json');
   var defaultJson = utils.getJSON(utils.getFile(defaultJSONpath));
