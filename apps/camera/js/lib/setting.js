@@ -233,10 +233,10 @@ Setting.prototype.save = function() {
 Setting.prototype.fetch = function(done) {
   done = done || noop;
   if (!this.get('persistent')) { return done(); }
-  debug('fetch value');
+  debug('fetch value key: %s', this.key);
   var value = localStorage.getItem('setting:' + this.key);
-  debug('fetched %s value: %s, time: %s', self.key, value);
-  if (value) { self.select(value, { silent: true }); }
+  debug('fetched %s value: %s', this.key, value);
+  if (value) { this.select(value, { silent: true }); }
   done();
 };
 
