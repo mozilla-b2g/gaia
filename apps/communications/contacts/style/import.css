@@ -19,6 +19,15 @@ form[role="dialog"].no-overlay button {
   pointer-events: auto;
 }
 
+/* BB lists */
+.import-list header {
+  padding-left: 0 0 0 1.5rem;
+  position: sticky;
+  top: -3.7rem;
+  background: #fff;
+  z-index: 2;
+}
+
 /* Force having always checkboxes */
 #groups-list.import-list label,
 #search-list label {

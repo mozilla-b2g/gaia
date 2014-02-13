@@ -36,8 +36,8 @@ if (!utils.alphaScroll) {
     var touchend = isTouch ? 'touchend' : 'mouseup';
 
     var getY = (function getYWrapper() {
-      return isTouch ? function(e) { return e.touches[0].pageY } :
-                       function(e) { return e.pageY };
+      return isTouch ? function(e) { return e.touches[0].pageY; } :
+                       function(e) { return e.pageY; };
     })();
 
     var getTarget = (function getTargetWrapper() {
@@ -45,11 +45,11 @@ if (!utils.alphaScroll) {
         return function(e) {
           var touch = e.touches[0];
           return document.elementFromPoint(touch.pageX, touch.pageY);
-        }
+        };
       } else {
         return function(e) {
           return e.target;
-        }
+        };
       }
     })();
 
@@ -113,27 +113,6 @@ if (!utils.alphaScroll) {
       hideExtraItems(type === 'short');
     };
 
-    function scrollStart(evt) {
-      evt.preventDefault();
-      evt.stopPropagation();
-      offset = offset || jumper.querySelector('[data-anchor]').offsetHeight;
-      overlayStyle.MozTransitionDelay = RESET_TRANSITION;
-      overlayStyle.MozTransitionDuration = RESET_TRANSITION;
-      overlayStyle.opacity = '1';
-      isScrolling = true;
-      scrollTo(evt);
-    }
-
-    function scrollEnd(evt) {
-      evt.preventDefault();
-      evt.stopPropagation();
-      overlayStyle.MozTransitionDelay = TRANSITION_DELAY;
-      overlayStyle.MozTransitionDuration = TRANSITION_DURATION;
-      overlayStyle.opacity = '0';
-      overlay.textContent = null;
-      isScrolling = false;
-    }
-
     function scrollTo(evt) {
       evt.preventDefault();
       evt.stopPropagation();
@@ -161,17 +140,42 @@ if (!utils.alphaScroll) {
         overlay.appendChild(img);
       }
 
+      // The headers are sticky, and can have wrong offsetTop,
+      // so scroll to the top of each section on jump click.
       var anch = dataset.anchor;
       var selector = anch === 'group-#' ? 'group-und' : anch;
-      var domTarget = doc.querySelector('#' + selector);
-      if (!domTarget)
+      var domTarget = doc.querySelector('#section-' + selector +
+        ', #' + selector);
+      if (!domTarget) {
         return;
+      }
 
       scrollToCallback(domTarget, selector.replace('group-', ''));
     }
 
+    function scrollStart(evt) {
+      evt.preventDefault();
+      evt.stopPropagation();
+      offset = offset || jumper.querySelector('[data-anchor]').offsetHeight;
+      overlayStyle.MozTransitionDelay = RESET_TRANSITION;
+      overlayStyle.MozTransitionDuration = RESET_TRANSITION;
+      overlayStyle.opacity = '1';
+      isScrolling = true;
+      scrollTo(evt);
+    }
+
+    function scrollEnd(evt) {
+      evt.preventDefault();
+      evt.stopPropagation();
+      overlayStyle.MozTransitionDelay = TRANSITION_DELAY;
+      overlayStyle.MozTransitionDuration = TRANSITION_DURATION;
+      overlayStyle.opacity = '0';
+      overlay.textContent = null;
+      isScrolling = false;
+    }
+
     // Cache images refered in 'data-img'es
-    var imgCache = (function(doc) {
+    (function(doc) {
       var images = doc.querySelectorAll('li[data-img]');
       Object.keys(images).forEach(function(value) {
         var img = new Image();
