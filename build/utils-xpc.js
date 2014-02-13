@@ -77,6 +77,7 @@ function getFileContent(file) {
   return content;
 }
 
+// Write content to file, if the file doesn't exist, the it will auto create one
 function writeContent(file, content) {
   var fileStream = Cc['@mozilla.org/network/file-output-stream;1']
                      .createInstance(Ci.nsIFileOutputStream);
