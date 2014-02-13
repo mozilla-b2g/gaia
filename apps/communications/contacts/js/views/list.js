@@ -651,10 +651,8 @@ contacts.List = (function() {
     // onscreen() calls when adding those first contacts.
     var vm_file = '/shared/js/tag_visibility_monitor.js';
     LazyLoader.load([vm_file], function() {
-      var scrollMargin = ~~(getViewHeight() * 1.5);
-      // NOTE: Making scrollDelta too large will cause janky scrolling
-      //       due to bursts of onscreen() calls from the monitor.
-      var scrollDelta = ~~(scrollMargin / 15);
+      var scrollMargin = 1000000;
+      var scrollDelta = 1000000;
       monitor = monitorTagVisibility(scrollable, 'li', scrollMargin,
                                      scrollDelta, onscreen, offscreen);
     });
