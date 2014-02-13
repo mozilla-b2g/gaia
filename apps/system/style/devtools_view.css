@@ -1,4 +1,4 @@
-.devtools-layer {
+.devtools-view {
   z-index: 2;
   position: absolute;
   top: 0;
@@ -13,7 +13,7 @@
   justify-content: flex-end;
 }
 
-.devtools-layer > .widget {
+.devtools-view > .widget {
   font-size: 1.8rem;
   padding: 0 5px;
   line-height: 30px;
