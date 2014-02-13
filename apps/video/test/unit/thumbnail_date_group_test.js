@@ -130,7 +130,7 @@ suite('Thumbnail Date Group Unit Tests', function() {
 
     test('#normal', function() {
       assert.equal(domNode.firstElementChild.textContent,
-                   '1375873140000,%B %Y');
+                   '1375873140000,date-group-header');
     });
   });
 
