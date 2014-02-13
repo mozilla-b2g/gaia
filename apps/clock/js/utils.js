@@ -243,10 +243,9 @@ Utils.changeSelectByValue = function(selectElement, value) {
   }
 };
 
-Utils.getSelectedValue = function(selectElement) {
+Utils.getSelectedValueByIndex = function(selectElement) {
   return selectElement.options[selectElement.selectedIndex].value;
 };
-
 
 Utils.parseTime = function(time) {
   var parsed = time.split(':');

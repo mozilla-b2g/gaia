@@ -6,20 +6,17 @@ suite('AlarmList', function() {
     testRequire([
         'alarm_list',
         'alarm',
-        'mocks/mock_moz_alarm',
-        'mocks/mock_navigator_mozl10n'
+        'mocks/mock_moz_alarm'
       ], {
         mocks: ['alarm_manager', 'alarmsdb', 'banner']
       },
-      function(alarmList, alarm, mockMozAlarms, mockL10n) {
+      function(alarmList, alarm, mockMozAlarms) {
         AlarmList = alarmList;
         loadBodyHTML('/index.html');
         AlarmList.init();
         Alarm = alarm;
         nma = navigator.mozAlarms;
-        nml = navigator.mozL10n;
         navigator.mozAlarms = mockMozAlarms;
-        navigator.mozL10n = mockL10n;
         done();
       }
     );
@@ -27,7 +24,6 @@ suite('AlarmList', function() {
 
   suiteTeardown(function() {
     navigator.mozAlarms = nma;
-    navigator.mozL10n = nml;
   });
 
   setup(function() {

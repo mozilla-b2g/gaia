@@ -122,6 +122,12 @@ define(function(require, exports, module) {
       return idMap.get(this) || undefined;
     },
 
+    // this is needed because the unit tests need to set ID,
+    // and 'use strict' forbids setting if there's a getter
+    set id(id) {
+      idMap.set(this, id);
+    },
+
     get registeredAlarms() {
       return registeredAlarmsMap.get(this) || {};
     },

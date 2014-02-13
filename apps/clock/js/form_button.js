@@ -24,9 +24,6 @@ function createButton(formButton) {
  * and should return a string which will be used as the textContent of
  * the button.
  *
- * `selectOptions` - An array of values that will be used as keynames
- * in the value object returned when the input is a select multiple list.
- *
  * `tagName` - The name of the tag to create and insert into the
  * document as the main button used to trigger the input. The default
  * value is 'button'
@@ -48,6 +45,7 @@ function FormButton(input, config) {
   this.input = input;
   createButton(this);
 
+  this.input.classList.add('form-button-input');
   // hide input
   this.input.classList.add('form-button-hide');
 
@@ -60,9 +58,20 @@ function FormButton(input, config) {
 
   input.addEventListener('change', this.refresh.bind(this), false);
   input.addEventListener('blur', this.refresh.bind(this), false);
+
+  // Bind this.refresh so that the listener can be easily removed.
+  this.refresh = this.refresh.bind(this);
+  // Update the dropdown when the language changes.
+  window.addEventListener('localized', this.refresh);
 }
 
 FormButton.prototype = {
+
+  /** Remove all event handlers. */
+  destroy: function() {
+    window.removeEventListener('localized', this.refresh);
+  },
+
   /**
    * focus Triggers a focus event on the input associated with this
    * FormButton.
@@ -97,13 +106,13 @@ FormButton.prototype = {
         var options = this.input.options;
         for (var i = 0; i < options.length; i++) {
           if (options[i].selected) {
-            selectedOptions[this.selectOptions[i]] = true;
+            selectedOptions[options[i].value] = true;
           }
         }
         return selectedOptions;
       }
       if (this.input.selectedIndex !== -1) {
-        return Utils.getSelectedValue(this.input);
+        return Utils.getSelectedValueByIndex(this.input);
       }
       return null;
     }
@@ -116,8 +125,8 @@ FormButton.prototype = {
    * button text.
    *
    * @param {String|Object} value A string of the current values or an
-   * object with properties that map (via the selectOptions property) to
-   * input options if the input is a multi select.
+   * object with properties that map to input options if the input is
+   * a multi select.
    *
    */
   set value(value) {
@@ -126,7 +135,7 @@ FormButton.prototype = {
         // multi select
         var options = this.input.options;
         for (var i = 0; i < options.length; i++) {
-          options[i].selected = value[this.selectOptions[i]] === true;
+          options[i].selected = value[options[i].value] === true;
         }
       } else {
         // normal select element
