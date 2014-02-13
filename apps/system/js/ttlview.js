@@ -9,7 +9,7 @@
    * There are two possible types of load events, [c] and [w].
    * [c] cold load time, is measured when the app is not currently running.
    * [w] warm load time, is measured when the app is backgrounded then launched.
-   * @class
+   * @class TTLView
    */
   function TTLView() {
     SettingsListener.observe('debug.ttl.enabled', false, function(value) {
@@ -22,12 +22,14 @@
 
     /**
      * A reference to the element which contains the TTLView.
+     * @memberof TTLView.prototype
      * @type {Element}
      */
     element: null,
 
     /**
      * Whether or not the TTLView is visible.
+     * @memberof TTLView.prototype
      * @return {Boolean} The TTLView is visible.
      */
     get visible() {
@@ -36,6 +38,7 @@
 
     /**
      * Hides the overlay.
+     * @memberof TTLView.prototype
      */
     hide: function() {
       if (this.element) {
@@ -50,6 +53,7 @@
 
     /**
      * Shows the overlay.
+     * @memberof TTLView.prototype
      */
     show: function() {
       if (!this.element) {
@@ -68,6 +72,7 @@
 
     /**
      * Creates the element for the overlay.
+     * @memberof TTLView.prototype
      */
     createElement: function() {
       var element = document.createElement('div');
@@ -82,6 +87,7 @@
     /**
      * General event handler interface.
      * Updates the overlay with as we receive load events.
+     * @memberof TTLView.prototype
      * @param  {DOMEvent} evt The event.
      */
     handleEvent: function(evt) {
@@ -100,6 +106,7 @@
 
     /**
      * Resets the load time to a clean slate.
+     * @memberof TTLView.prototype
      */
     resetLoadtime: function() {
       if (!this.element) {
@@ -110,6 +117,7 @@
 
     /**
      * Updates the load time.
+     * @memberof TTLView.prototype
      * @param {Number} time The time to load.
      * @param {String} type The type of event. Generally a single character.
      */
@@ -122,6 +130,7 @@
 
     /**
      * Toggles visibility of the overlay.
+     * @memberof TTLView.prototype
      */
     toggle: function() {
       this.visible ? this.hide() : this.show();
