@@ -88,8 +88,15 @@ Shared code for tests lives under shared/test/integration.
 make test-integration TEST_FILES=<test>
 ```
 
-If you would like to run a test with a CalDAV server,
-please give the `RUN_CALDAV_SERVER=1` parameter after the command.
+For example, we could run the `day_view_test.js` test in calendar app with the below command.
+```
+make test-integration TEST_FILES=./apps/calendar/test/marionette/day_view_test.js
+```
+
+If you would like to run more than one test, we could do the below command.
+```
+make test-integration TEST_FILES="./apps/calendar/test/marionette/day_view_test.js ./apps/calendar/test/marionette/today_test.js"
+```
 
 #### Invoking tests for a specific app
 
