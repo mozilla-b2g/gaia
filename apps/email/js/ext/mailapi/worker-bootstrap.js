@@ -13578,7 +13578,6 @@ MailBridge.prototype = {
       // we're offline.
       if (!err || (
           err !== 'bad-user-or-pass' &&
-          err !== 'bad-address' &&
           err !== 'needs-app-pass' &&
           err !== 'imap-disabled'
         )) {
@@ -16754,7 +16753,6 @@ MailUniverse.prototype = {
 
     switch (problem) {
       case 'bad-user-or-pass':
-      case 'bad-address':
       case 'imap-disabled':
       case 'needs-app-pass':
         this.__notifyBadLogin(account, problem);
