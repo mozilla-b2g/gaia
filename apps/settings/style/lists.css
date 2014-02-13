@@ -143,6 +143,10 @@ ul li > label.pack-checkbox > .reflow-counter:before {
   background-color: purple;
 }
 
+ul li > label.pack-checkbox > .jank-monitor:before {
+  background-color: cornflowerblue;
+}
+
 ul li > label.pack-checkbox > .fps-monitor:before {
   background-color: fuchsia;
 }
