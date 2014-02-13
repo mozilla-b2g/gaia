@@ -56,7 +56,7 @@ module.exports = View.extend({
 
     li.textContent = option.title;
     li.setAttribute('data-key', option.key);
-    li.className = 'icon-tick';
+    li.className = 'setting-option icon-tick';
     this.els.ul.appendChild(li);
     this.els[option.key] = li;
 
@@ -68,9 +68,9 @@ module.exports = View.extend({
 
   template: function(data) {
     return '<div class="inner">' +
-      '<h2 class="setting-options_title icon-back-arrow js-back">' +
+      '<h2 class="settings_title icon-back-arrow js-back">' +
       data.title + '</h2>' +
-      '<ul class="setting-options_items js-list"></ul>' +
+      '<div class="settings_items"><ul class="inner js-list"></ul></div>' +
     '</div>';
   }
 });

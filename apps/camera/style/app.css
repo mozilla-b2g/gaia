@@ -17,7 +17,13 @@ body {
   -moz-box-sizing: border-box;
   font-weight: inherit;
   margin: 0;
+  padding: 0;
 }
+
+/** Lists
+ ---------------------------------------------------------*/
+
+ul { list-style: none; }
 
 /** Rotates
  ---------------------------------------------------------*/

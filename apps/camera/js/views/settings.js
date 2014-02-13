@@ -92,14 +92,12 @@ module.exports = View.extend({
   template: function() {
     return '<div class="pane pane-1">' +
       '<div class="settings_inner">' +
-        '<div class="settings_header">' +
-          '<h2 class="settings_title">Options</h2>' +
-          '<div class="settings_close icon-settings js-close"></div>' +
-        '</div>' +
-        '<ul class="settings_items js-items"></ul>' +
+        '<h2 class="settings_title">Options</h2>' +
+        '<div class="settings_items"><ul class="inner js-items"></ul></div>' +
       '</div>' +
     '</div>' +
-    '<div class="pane pane-2 js-pane-2"></div>';
+    '<div class="pane pane-2 js-pane-2"></div>' +
+    '<div class="settings_close icon-settings js-close"></div>';
   }
 });
 

@@ -101,35 +101,30 @@
 .settings_inner {
   display: flex;
   flex-direction: column;
-  max-height: 100%;
-  background: rgba(0,0,0,0.85);
+  height: 100%;
 }
 
 /** Header
  ---------------------------------------------------------*/
 
-.settings_header {}
+.settings_header {
+
+}
 
 /** Title
  ---------------------------------------------------------*/
 
 .settings_title {
-  float: left;
-  display: flex;
-  align-items: center;
+  height: 9rem;
+  line-height: 9rem;
+  padding-left: 3rem;
+  font-size: 2rem;
+  color: rgba(255,255,255,0.8);
+  background: rgba(0,0,0,0.85);
 }
 
-/** Button
- ---------------------------------------------------------*/
-
-/**
- * @extends .hud a
- */
-
-.settings_close {
-  float: right;
-  font-size: 2rem;
-  background-color: #008eab;
+.deg270 .settings_title {
+  padding-left: 10.5rem;
 }
 
 /** Items
@@ -137,7 +132,32 @@
 
 .settings_items {
   flex: 1;
-  padding: 0 1rem;
-  list-style: none;
   overflow: scroll;
+}
+
+.settings_items > .inner {
+  background: rgba(0,0,0,0.85);
+}
+
+.deg270 .settings_items > .inner {
+  padding-left: 7.5rem;
+}
+
+/** Close
+ ---------------------------------------------------------*/
+
+/**
+ * @extends .hud a
+ */
+
+.settings_close {
+  position: absolute;
+  top: 0; right: 0;
+  font-size: 2rem;
+  background-color: #008eab;
+}
+
+.deg270 .settings_close {
+  right: auto;
+  left: 0;
 }
