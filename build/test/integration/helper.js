@@ -62,9 +62,17 @@ function checkFileInZip(zipPath, pathInZip, expectedPath) {
   assert.deepEqual(actual, expected);
 }
 
+function checkFileContentInZip(zipPath, pathInZip, expectedContent, isJSON) {
+  var zip = new AdmZip(zipPath);
+  var entry = zip.getEntry(pathInZip);
+  var actual = isJSON ? JSON.parse(zip.readAsText(entry)) : zip.readFile(entry);
+  assert.deepEqual(actual, expectedContent);
+}
+
 exports.getPrefsSandbox = getPrefsSandbox;
 exports.checkError = checkError;
 exports.checkSettings = checkSettings;
 exports.checkPrefs = checkPrefs;
 exports.checkWebappsScheme = checkWebappsScheme;
 exports.checkFileInZip = checkFileInZip;
+exports.checkFileContentInZip = checkFileContentInZip;

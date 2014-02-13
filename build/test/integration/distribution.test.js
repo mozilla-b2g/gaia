@@ -24,38 +24,31 @@ suite('Distribution mechanism', function() {
   }
 
   function validateSettings() {
-    var setingsZip = new AdmZip(path.join(process.cwd(), 'profile',
-      'webapps', 'settings.gaiamobile.org', 'application.zip'));
-    var supportContent =
-      setingsZip.readAsText(setingsZip.getEntry('resources/support.json'));
-    assert.isNotNull(supportContent, 'resources/support.json should exist');
-    var supportData = JSON.parse(supportContent);
+    var setingsZipPath = path.join(process.cwd(), 'profile',
+      'webapps', 'settings.gaiamobile.org', 'application.zip');
     var expectedSupportData = {
-      "onlinesupport": {
-        "href": "http://support.mozilla.org/",
-        "title": "Mozilla Support"
+      'onlinesupport': {
+        'href': 'http://support.mozilla.org/',
+        'title': 'Mozilla Support'
       },
-      "callsupport": [
+      'callsupport': [
         {
-          "href": "tel:12345678",
-          "title": "Call Support 1"
+          'href': 'tel:12345678',
+          'title': 'Call Support 1'
         },
         {
-          "href": "tel:87654321",
-          "title": "Call Support 2"
+          'href': 'tel:87654321',
+          'title': 'Call Support 2'
         }
       ]
     };
-    assert.deepEqual(supportData, expectedSupportData,
-      'support info should match the expected info.');
+    helper.checkFileContentInZip(setingsZipPath, 'resources/support.json',
+      expectedSupportData, true);
 
-    var sensorsContent =
-      setingsZip.readAsText(setingsZip.getEntry('resources/sensors.json'));
-    assert.isNotNull(sensorsContent, 'resources/sensors.json should exist');
-    var sensorsData = JSON.parse(sensorsContent);
     var expectedSensorsData = { ambientLight: false };
-    assert.deepEqual(sensorsData, expectedSensorsData,
-      'sensors data should match the expected data.');
+
+    helper.checkFileContentInZip(setingsZipPath, 'resources/sensors.json',
+      expectedSensorsData, true);
   }
 
   function validateCalendar() {
@@ -120,20 +113,25 @@ suite('Distribution mechanism', function() {
     var wapuaprofConfig = JSON.parse(fs.readFileSync(wapuaprof));
     var power = path.join(distDir, 'power', 'fakePowerFile.json');
     var powerFile = JSON.parse(fs.readFileSync(power));
-    var sysZip = new AdmZip(path.join(process.cwd(), 'profile',
-                'webapps', 'system.gaiamobile.org', 'application.zip'));
+    var sysZipPath = path.join(process.cwd(), 'profile',
+          'webapps', 'system.gaiamobile.org', 'application.zip');
 
-    var realIcc = sysZip.readAsText(sysZip.getEntry('js/icc.json'));
-    var realWap = sysZip.readAsText(sysZip.getEntry('js/wapuaprof.json'));
-    var realPower = sysZip.readAsText(sysZip.getEntry(
-      'resources/power/fakePowerFile.json'));
+    helper.checkFileContentInZip(sysZipPath, 'js/icc.json',
+      iccConfig, true);
+    helper.checkFileContentInZip(sysZipPath, 'js/wapuaprof.json',
+      wapuaprofConfig, true);
+    helper.checkFileContentInZip(sysZipPath,
+      'resources/power/fakePowerFile.json', powerFile, true);
 
-    assert.isNotNull(realIcc, 'js/icc.json should exist');
-    assert.deepEqual(JSON.parse(realIcc), iccConfig);
-    assert.isNotNull(realWap, 'js/wapuaprof.json should exist');
-    assert.deepEqual(JSON.parse(realWap), wapuaprofConfig);
-    assert.isNotNull(realPower, 'resources/power/ should exist');
-    assert.deepEqual(JSON.parse(realPower), powerFile);
+  }
+
+  function validateSms() {
+    var appPath = path.join(distDir, 'sms-blacklist.json');
+    var appConfig = JSON.parse(fs.readFileSync(appPath));
+    var zipPath = path.join(process.cwd(), 'profile',
+      'webapps', 'sms.gaiamobile.org', 'application.zip');
+    helper.checkFileContentInZip(zipPath, 'js/blacklist.json',
+      appConfig, true);
   }
 
   test('build with GAIA_DISTRIBUTION_DIR', function(done) {
@@ -148,6 +146,7 @@ suite('Distribution mechanism', function() {
       validateWappush();
       validateBrowser();
       validateSystem();
+      validateSms();
       done();
     });
   });

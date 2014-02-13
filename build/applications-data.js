@@ -306,33 +306,10 @@ function execute(options) {
                       'homescreen', 'js', 'init.json');
   utils.writeContent(init, JSON.stringify(homescreen));
 
-  // SMS
-  init = utils.getFile(config.GAIA_DIR, 'apps', 'sms', 'js', 'blacklist.json');
-  let content = ['4850', '7000'];
-
-  utils.writeContent(init,
-    utils.getDistributionFileContent('sms-blacklist', content, distDir));
-
-  // Active Sensors
-  init = utils.getFile(config.GAIA_DIR,
-    'apps', 'settings', 'resources', 'sensors.json');
-  content = { ambientLight: true };
-
-  utils.writeContent(init,
-    utils.getDistributionFileContent('sensors', content, distDir));
-
-  // Support
-  init = utils.getFile(config.GAIA_DIR,
-    'apps', 'settings', 'resources', 'support.json');
-  content = null;
-
-  utils.writeContent(init,
-    utils.getDistributionFileContent('support', content, distDir));
-
   // Communications config
   init = utils.getFile(config.GAIA_DIR,
     'apps', 'communications', 'contacts', 'config.json');
-  content = {
+  var content = {
     'defaultContactsOrder': 'givenName',
     'facebookEnabled': true,
     'operationsTimeout': 25000,
