@@ -101,10 +101,13 @@ fb.Contact = function(deviceContact, cid) {
     if (contactData && navigator.mozContacts) {
       window.setTimeout(function save_do() {
         var photoList = contactData.fbInfo.photo;
-        if (photoList && photoList.length > 0 && photoList[0]) {
+        if (photoList && photoList.length > 0) {
           utils.squareImage(photoList[0], function squared(squared_image) {
             photoList[0] = squared_image;
-            doSave(outReq);
+            utils.squareImage(photoList[1], function squared(newImg) {
+               photoList[1] = squared_image;
+              doSave(outReq);
+            });
           });
         }
         else {
@@ -214,9 +217,12 @@ fb.Contact = function(deviceContact, cid) {
         utils.squareImage(contactData.fbInfo.photo[0],
           function sq_img(squaredImg) {
             contactData.fbInfo.photo[0] = squaredImg;
-            auxCachePersist(contactData, outReq, true);
-          }
-        );
+            utils.squareImage(contactData.fbInfo.photo[1],
+              function sq_img(newImg) {
+                contactData.fbInfo.photo[1] = newImg;
+                auxCachePersist(contactData, outReq, true);
+              });
+          });
       }
     }
 
