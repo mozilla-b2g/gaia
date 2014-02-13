@@ -65,14 +65,14 @@ module.exports = View.extend({
 
   template: function() {
     return '<a class="switch-button test-switch js-btn" name="switch">' +
-      '<span class="rotates"></span>' +
+      '<span class="icon rotates"></span>' +
     '</a>' +
     '<a class="capture-button test-capture js-btn" name="capture">' +
-      '<span class="rotates"></span>' +
+      '<span class="icon rotates"></span>' +
     '</a>' +
     '<div class="misc-button">' +
       '<a class="gallery-button test-gallery js-btn" name="gallery">' +
-        '<span class="rotates"></span>' +
+        '<span class="icon-gallery rotates"></span>' +
       '</a>' +
       '<a class="cancel-pick test-cancel-pick js-btn" name="cancel">' +
         '<span></span>' +
