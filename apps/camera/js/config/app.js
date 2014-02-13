@@ -34,7 +34,7 @@ module.exports = {
   },
 
   pictureSizes: {
-    title: 'Picture Sizes',
+    title: 'Camera Resolution',
     icon: 'icon-picture-size',
     options: [
       {
@@ -63,7 +63,7 @@ module.exports = {
   },
 
   recorderProfiles: {
-    title: 'Video Sizes',
+    title: 'Video Resolution',
     icon: 'icon-video-size',
     options: [
 
