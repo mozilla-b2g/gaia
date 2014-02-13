@@ -400,9 +400,11 @@ suite('Build Integration tests', function() {
         var defaultJSONPath =
           path.join(process.cwd(), 'apps', 'browser', 'build', 'default.json');
         var hsIcc =
-          JSON.parse(hsSysZip.readAsText(hsSysZip.getEntry('js/icc.json')));
+          JSON.parse(hsSysZip.readAsText(
+            hsSysZip.getEntry('resources/icc.json')));
         var hsWapuaprof =
-          JSON.parse(hsSysZip.readAsText(hsSysZip.getEntry('js/wapuaprof.json')));
+          JSON.parse(hsSysZip.readAsText(hsSysZip.getEntry(
+            'resources/wapuaprof.json')));
         var hsSysManifest =
           JSON.parse(hsSysZip.readAsText(hsSysZip.getEntry('manifest.webapp')));
 

@@ -39,8 +39,9 @@ SystemAppBuilder.prototype.initConfigJsons = function() {
   };
   var wapuaprofDefault = {
   };
-  var iccFile = utils.getFile(this.stageDir.path, 'js', 'icc.json');
-  var wapFile = utils.getFile(this.stageDir.path, 'js', 'wapuaprof.json');
+  var iccFile = utils.getFile(this.stageDir.path, 'resources', 'icc.json');
+  var wapFile = utils.getFile(this.stageDir.path, 'resources',
+    'wapuaprof.json');
 
   utils.writeContent(iccFile,
     utils.getDistributionFileContent('icc', iccDefault, this.distDirPath));
