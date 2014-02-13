@@ -116,9 +116,9 @@ suite('Distribution mechanism', function() {
     var sysZipPath = path.join(process.cwd(), 'profile',
           'webapps', 'system.gaiamobile.org', 'application.zip');
 
-    helper.checkFileContentInZip(sysZipPath, 'js/icc.json',
+    helper.checkFileContentInZip(sysZipPath, 'resources/icc.json',
       iccConfig, true);
-    helper.checkFileContentInZip(sysZipPath, 'js/wapuaprof.json',
+    helper.checkFileContentInZip(sysZipPath, 'resources/wapuaprof.json',
       wapuaprofConfig, true);
     helper.checkFileContentInZip(sysZipPath,
       'resources/power/fakePowerFile.json', powerFile, true);
