@@ -742,6 +742,10 @@ class GaiaDevice(object):
 
             self.manager.removeFile(destination)
 
+    @property
+    def is_b2g_running(self):
+        return 'b2g' in self.manager.shellCheckOutput(['toolbox', 'ps'])
+
     def restart_b2g(self):
         self.stop_b2g()
         time.sleep(2)
@@ -777,6 +781,10 @@ class GaiaDevice(object):
         self.marionette.client.close()
         self.marionette.session = None
         self.marionette.window = None
+        if self.is_android_build and self.is_b2g_running:
+            time.sleep(2)
+            self.manager.reboot(True)
+            self.manager.forward('tcp:2828', 'tcp:2828')
 
     def press_sleep_button(self):
         self.marionette.execute_script("""
