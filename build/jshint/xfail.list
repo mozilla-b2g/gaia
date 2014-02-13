@@ -779,6 +779,7 @@ apps/homescreen/test/unit/mock_apps_mgmt.js
 apps/homescreen/test/unit/mock_asyncStorage.js
 apps/homescreen/test/unit/mock_bookmark.js
 apps/homescreen/test/unit/mock_bookmark_editor.js
+apps/homescreen/test/unit/mock_configurator.js
 apps/homescreen/test/unit/mock_dock_manager.js
 apps/homescreen/test/unit/mock_dragdrop.html.js
 apps/homescreen/test/unit/mock_everything.me.html.js
