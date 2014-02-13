@@ -14,8 +14,8 @@ class TestContactMatch(GaiaTestCase):
     def test_contact_match(self):
 
         # insert contact
-        self.contact = MockContact(tel=[{
-            'value': '555%s' % repr(time.time()).replace('.', '')[8:]}])
+        self.contact = MockContact(tel={
+            'value': '555%s' % repr(time.time()).replace('.', '')[8:]})
         self.data_layer.insert_contact(self.contact)
 
         # launch Messages app
@@ -24,10 +24,10 @@ class TestContactMatch(GaiaTestCase):
 
         new_message = self.messages.tap_create_new_message()
         keyboard = new_message.tap_recipient_section()
-        keyboard.send(self.contact['name'][0])
+        keyboard.send(self.contact['name'])
         keyboard.tap_enter()
 
         # verify that contacts and tel number match
-        self.assertEqual(self.contact['name'][0], new_message.first_recipient_name)
-        self.assertEqual(self.contact['tel'][0]['value'], new_message.first_recipient_number_attribute)
+        self.assertEqual(self.contact['name'], new_message.first_recipient_name)
+        self.assertEqual(self.contact['tel']['value'], new_message.first_recipient_number_attribute)
 

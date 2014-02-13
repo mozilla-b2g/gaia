@@ -18,7 +18,6 @@ class TestBrowserNavigation(GaiaTestCase):
         self.connect_to_network()
 
     def test_browser_back_button(self):
-        # https://github.com/mozilla/gaia-ui-tests/issues/450
         browser = Browser(self.marionette)
         browser.launch()
 

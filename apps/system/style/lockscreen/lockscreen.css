@@ -4,14 +4,13 @@
   width: 100%;
   height: 100%;
   overflow: hidden;
-  background-color: #000;
   -moz-user-select: none;
   opacity: 1;
   /* Utilzing a cubic bezier timing function to hide the fact
      that we might be slow at the beginning of the transition. */
   transition:
     transform 0.5s cubic-bezier(0.7, 0.0, 1.0, 1.0),
-    opacity 0.5s cubic-bezier(0.7, 0.0, 1.0, 1.0),
+    opacity 0.5s cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
 #screen.active-statusbar > #lockscreen {
@@ -20,9 +19,35 @@
 }
 
 #lockscreen.unlocked {
-  transform: scale(2);
+  /* Workaround specifically targetting Gecko:
+     The transform here is equal to scale(2),
+     however this will stop Gecko from creating a 2x big layer (4x the memory),
+     resulting super-smooth transition. */
+  transform: perspective(1000px) translateZ(500px);
   opacity: 0;
   pointer-events: none;
+}
+
+/**
+ * Because of performance issue, we need to use an individual
+ * background element instead of setting the background inside the container.
+ *
+ * This would be a step toward removing the overhead while a large container
+ * contains children and do the opacity animation, which would cost lot on
+ * temporary surfaces.
+ **/
+#lockscreen-background {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: #000;
+  background-repeat: no-repeat;
+  background-size: 100%;
+  -moz-user-select: none;
+  opacity: 1;
+  z-index: 1;
 }
 
 #screen.screenoff > #lockscreen,
@@ -89,7 +114,6 @@
   position: absolute;
   width: 100%;
   height: 100%;
-  background-color: #000;
   background-size: cover;
   background-repeat: no-repeat;
   background-position: 50% 50%;
@@ -97,7 +121,7 @@
   transition: visibility 0.5s ease, transform 0.5s ease;
 }
 
-.lockscreen-panel::before {
+.lockscreen-background::before {
   content: '';
   display: block;
   width: 100%;
@@ -108,6 +132,16 @@
   /* Replace this with radical gradient */
   background: transparent url('./images/mask.png') 50% 50% no-repeat;
   background-size: cover;
+}
+
+/**
+ * Because of the individual background element, the slide would appear
+ * after the passcode pad got invoked, so we need to hide it here.
+ */
+[data-panel="passcode"] #notifications-lockscreen-container,
+[data-panel="passcode"] #lockscreen-media-container,
+[data-panel="passcode"] #lockscreen-icon-container {
+  visibility: hidden;
 }
 
 [data-panel="main"] #lockscreen-panel-main,
@@ -215,6 +249,7 @@
   left: 0;
   right: 0;
   bottom: 0;
+  z-index: 4;
 }
 
 .lockscreen-icon-area {
@@ -577,6 +612,7 @@ button::-moz-focus-inner {
   pointer-events: none;
   border-top: 0.1rem solid #989898;
   background-image: linear-gradient(to bottom, rgba(0,0,0,0.8), rgba(0,0,0,0.2) 20%);
+  z-index: 2;
 }
 
 .touched #lockscreen-icon-container {

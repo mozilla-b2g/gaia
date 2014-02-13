@@ -396,6 +396,29 @@
         timestamp: now
       },
       {
+        threadId: 3,
+        sender: null,
+        receiver: '+18001114321',
+        read: true,
+        type: 'mms',
+        deliveryInfo: [{deliveryStatus: 'not-applicable'}],
+        delivery: 'sent',
+        timestamp: now,
+        subject: 'subject only message',
+        attachments: []
+      },
+      {
+        threadId: 3,
+        sender: '+18001114321',
+        read: true,
+        type: 'mms',
+        deliveryInfo: [{deliveryStatus: 'not-applicable'}],
+        delivery: 'received',
+        timestamp: now,
+        subject: '',
+        attachments: []
+      },
+      {
         threadId: 4,
         sender: null,
         read: true,

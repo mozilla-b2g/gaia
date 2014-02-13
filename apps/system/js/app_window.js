@@ -522,6 +522,7 @@
     this.name = new self.ManifestHelper(this.manifest).name;
     // For uitest.
     this.element.dataset.localizedName = this.name;
+    this.publish('namechanged');
   };
 
   AppWindow.prototype._handle_mozbrowservisibilitychange =
@@ -613,7 +614,7 @@
 
   AppWindow.prototype._handle_mozbrowsericonchange =
     function aw__handle_mozbrowsericonchange(evt) {
-      this.config.icon = evt.detail;
+      this.config.favicon = evt.detail;
       this.publish('iconchange');
     };
 

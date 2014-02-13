@@ -1,3 +1,6 @@
+/* globals SettingsListener, Promise */
+/* exported Places */
+
 /**
  * Places.
  *
@@ -49,7 +52,8 @@ var Places = {
       this.addVisit(evt.detail.config.url);
       break;
     case 'appiconchange':
-      this.setPlaceIconUri(evt.detail.config.url, evt.detail.config.icon.href);
+      this.setPlaceIconUri(evt.detail.config.url,
+                           evt.detail.config.favicon.href);
       break;
     }
   },

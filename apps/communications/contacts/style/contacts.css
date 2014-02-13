@@ -39,6 +39,8 @@ section[role="region"] > header:first-child .icon.icon-edit-contact {
   overflow-x: hidden;
   overflow-y: auto;
   will-change: scroll-position;
+
+  background: #f4f4f4;
 }
 
 .view-contact-profile #cover-img {
@@ -260,7 +262,7 @@ form p textarea + button[type="reset"].hide {
 }
 
 /* Favorites handling */
-#group-favorites abbr, .fixed-title abbr {
+#group-favorites abbr {
   background: url(gphx/bitmap/default/lists/favorites.png);
   display: block;
   background-size: 100% auto;
@@ -666,8 +668,13 @@ section[role="region"] > header .icon.icon-settings {
   overflow: scroll;
 }
 
-/* Do not remove overflow: hidden as it fixes bug 937291 */
+/* Bug 967274 - Background doesn't scroll with the contacts causing
+ * expensive over-invalidation
+ */
+#groups-container-background {
+  background-color: #fff;
+}
+
 .group-section {
-  overflow: hidden;
   padding-left: 1.5rem;
 }

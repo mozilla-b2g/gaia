@@ -1,0 +1,13 @@
+{
+  "bookmarks": [
+    { "title": "Test",
+      "uri": "http://www.google.com",
+      "iconUri": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAC[truncated]"
+    },
+    { "title": "Also Test",
+      "uri": "http://www.google.co.uk",
+      "iconUri": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAC[truncated]"
+    }
+
+  ]
+}

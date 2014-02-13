@@ -31,6 +31,7 @@ function execute(options) {
 
   prefs.push(['network.http.max-connections-per-server', 15]);
   prefs.push(['dom.mozInputMethod.enabled', true]);
+  prefs.push(['layout.css.sticky.enabled', true]);
 
   // for https://bugzilla.mozilla.org/show_bug.cgi?id=811605 to let user know
   //what prefs is for ril debugging
@@ -127,6 +128,7 @@ function execute(options) {
     prefs.push(['dom.report_all_js_exceptions', true]);
     prefs.push(['dom.w3c_touch_events.enabled', 1]);
     prefs.push(['dom.promise.enabled', true]);
+    prefs.push(['dom.wakelock.enabled', true]);
     prefs.push(['webgl.verbose', true]);
 
     // Turn off unresponsive script dialogs so test-agent can keep running...

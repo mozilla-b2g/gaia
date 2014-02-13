@@ -14,12 +14,9 @@ class TestEverythingMeSearchPanel(GaiaTestCase):
         GaiaTestCase.setUp(self)
 
     def test_launch_packaged_app_from_search_panel(self):
-        """Launch packaged app from homescreen search panel.
-
-        https://github.com/mozilla/gaia-ui-tests/issues/1169
-        """
         homescreen = Homescreen(self.marionette)
         self.apps.switch_to_displayed_app()
+        homescreen.wait_for_homescreen_to_load()
 
         search_panel = homescreen.tap_search_bar()
         search_panel.wait_for_everything_me_loaded()

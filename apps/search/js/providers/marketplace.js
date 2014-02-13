@@ -1,3 +1,5 @@
+/* global Provider, MozActivity, Search */
+
 (function() {
 
   'use strict';
@@ -9,7 +11,7 @@
 
   Marketplace.prototype = {
 
-    __proto__: AppProvider.prototype,
+    __proto__: Provider.prototype,
 
     name: 'Marketplace',
 

@@ -1,6 +1,8 @@
+/* globals Calendar */
 Calendar.ns('Views').TimeHeader = (function() {
+  'use strict';
 
-  const SETTINGS = /settings/;
+  var SETTINGS = /settings/;
 
   function TimeHeader() {
     Calendar.View.apply(this, arguments);
@@ -33,7 +35,7 @@ Calendar.ns('Views').TimeHeader = (function() {
       // when week starts in one month and ends
       // in another, we need both of them
       // in the header
-      singleMonth: 'single-month-view-header-format'
+      multiMonth: 'multi-month-view-header-format'
     },
 
     handleEvent: function(e) {
@@ -91,47 +93,44 @@ Calendar.ns('Views').TimeHeader = (function() {
     },
 
     getScale: function(type) {
-      // If we are creating header for the week view
+      var position = this.controller.position;
       if (type === 'week') {
-        var scale = '';
-        var firstWeekday = this.controller.position;
-        // We check if current week ends in the current month.
-        // We check only 5 days ahead (so even if last two days
-        // are in the next month we don't care about that - we have
-        // only 5 days visible, and it looks odd when for example we
-        // have Sep 26-30 because 31 & Oct 1 are hidden, and
-        // we use September October 2012 as a header).
-        // According to spec we display only last month's year
-        // (December January 2013, not December 2012 January 2013)
-        // and that's how it's implemented here.
-        var lastWeekday = new Date(
-                firstWeekday.getFullYear(),
-                firstWeekday.getMonth(),
-                firstWeekday.getDate() + 4
-              );
-        if (firstWeekday.getMonth() !== lastWeekday.getMonth()) {
-          scale = this.app.dateFormat.localeFormat(
-            firstWeekday,
-            navigator.mozL10n.get(this.scales.singleMonth)
-          );
+        var lastWeekday = this._getLastWeekday();
+        if (position.getMonth() !== lastWeekday.getMonth()) {
+          // when displaying dates from multiple months we use a different
+          // format to avoid overflowing
+          return this._localeFormat(position, 'multiMonth') + ' ' +
+            this._localeFormat(lastWeekday, 'multiMonth');
         }
-        // Should have a space between two months
-        return scale + ' ' + this.app.dateFormat.localeFormat(
-            lastWeekday,
-            navigator.mozL10n.get(this.scales.month)
-        );
+        // if it isn't "multiMonth" we use "month" instead
+        type = 'month';
       }
 
+      return this._localeFormat(position, type || 'month');
+    },
+
+    _getLastWeekday: function(){
+      var position = this.controller.position;
+      // since we break the week into Sun-Wed and Thr-Sat we need to compute
+      // what is going to be the last date displayed on the current view
+      var weekday = position.getDay();
+      var diff = ((weekday <= 3) ? 3 : 6) - weekday;
+      return new Date(
+        position.getFullYear(),
+        position.getMonth(),
+        position.getDate() + diff
+      );
+    },
+
+    _localeFormat: function(date, scale) {
       return this.app.dateFormat.localeFormat(
-        this.controller.position,
-        navigator.mozL10n.get(this.scales[type] || this.scales.month)
+        date,
+        navigator.mozL10n.get(this.scales[scale])
       );
     },
 
     _updateTitle: function() {
       var con = this.app.timeController;
-      var date = this.getScale(con.scale);
-
       var title = this.title;
 
       title.dataset.l10nDateFormat =

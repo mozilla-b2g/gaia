@@ -1,3 +1,5 @@
+'use strict';
+
 /**
  * @fileoverview Contains some useful helper functions for driving gaia's
  *     calendar application through the marionette js client.
@@ -15,12 +17,6 @@ function Calendar(client) {
 }
 module.exports = Calendar;
 
-/**
- * Month1 Month2 YYYY.
- * @type {RegExp}
- */
-Calendar.HEADER_PATTERN = /^([JFMASOND][a-z]+\s){2}\d{4}$/;
-
 Calendar.ORIGIN = 'app://calendar.gaiamobile.org';
 
 /**
@@ -29,8 +25,8 @@ Calendar.ORIGIN = 'app://calendar.gaiamobile.org';
 Calendar.Selector = Object.freeze({
   todayTabItem: '#today',
   addEventButton: 'a[href="/event/add/"]',
-  weekButton: 'a[href="/week/"]',
-  dayButton: 'a[href="/day/"]',
+  weekButton: '#view-selector .week a',
+  dayButton: '#view-selector .day a',
   hintSwipeToNavigate: '#hint-swipe-to-navigate',
   editEventForm: '#modify-event-view form',
   editEventAlarm: '#modify-event-view select[name="alarm[]"]',
@@ -41,7 +37,9 @@ Calendar.Selector = Object.freeze({
   editEventStartDate: '#modify-event-view input[name="startDate"]',
   editEventStartTime: '#modify-event-view input[name="startTime"]',
   editEventTitle: '#modify-event-view input[name="title"]',
+  editEventDescription: '#modify-event-view textarea[name="description"]',
   eventListSection: '#event-list',
+  weekViewEvent: '#week-view .event',
   modifyEventView: '#modify-event-view',
   monthViewDayEvent: '#event-list .event',
   monthViewDayEventName: 'h5',                // Search beneath .event
@@ -54,10 +52,14 @@ Calendar.Selector = Object.freeze({
   viewEventViewCalendar: '#event-view .current-calendar .content',
   viewEventViewEndDate: '#event-view .end-date > .content',
   viewEventViewEndTime: '#event-view .end-date > .end-time > .content',
-  viewEventViewLocation: '#event-view .location > .content',
+  viewEventViewLocation: '#event-view .location',
+  viewEventViewLocationContent: '#event-view .location > .content',
   viewEventViewStartDate: '#event-view .start-date > .content',
   viewEventViewStartTime: '#event-view .start-date > .start-time > .content',
-  viewEventViewTitle: '#event-view .title .content'
+  viewEventViewTitle: '#event-view .title',
+  viewEventViewTitleContent: '#event-view .title .content',
+  viewEventViewDescription: '#event-view .description',
+  viewEventViewDescriptionContent: '#event-view .description .content'
 });
 
 Calendar.prototype = {
@@ -107,6 +109,36 @@ Calendar.prototype = {
     return this.client.helper.waitForChild(parent, child);
   },
 
+  waitForMonthView: function() {
+    this.client.waitFor(this.isMonthViewActive.bind(this));
+  },
+
+  waitForWeekView: function() {
+    this.client.waitFor(this.isWeekViewActive.bind(this));
+  },
+
+  // TODO: extract this logic into the marionette-helper repository since this
+  // can be useful for other apps as well
+  waitForKeyboardHide: function() {
+    // FIXME: keyboard might affect the click if test is being executed on
+    // a slow machine (eg. travis-ci) so we do this hack until Bug 965131 is
+    // fixed
+    var client = this.client;
+
+    // need to go back to top most frame before being able to switch to
+    // a different app!!!
+    client.switchToFrame();
+    client.apps.switchToApp('app://keyboard.gaiamobile.org');
+    client.waitFor(function() {
+      return client.executeScript(function() {
+        return document.hidden;
+      });
+    });
+
+    client.switchToFrame();
+    client.apps.switchToApp(Calendar.ORIGIN);
+  },
+
   /**
    * Create an offline event with a single reminder (alarm) that fires when
    * the event begins.
@@ -128,9 +160,11 @@ Calendar.prototype = {
 
     // Inject form data.
     var titleInput = this.waitForElement('editEventTitle'),
-        locationInput = this.waitForElement('editEventLocation');
+        locationInput = this.waitForElement('editEventLocation'),
+        descriptionInput = this.waitForElement('editEventDescription');
     titleInput.sendKeys(opts.title);
     locationInput.sendKeys(opts.location);
+    descriptionInput.sendKeys(opts.description);
     var form = this.waitForElement('editEventForm');
     this.client.forms.fill(form, {
       startDate: opts.startDate,
@@ -156,15 +190,16 @@ Calendar.prototype = {
    * @return {Event} The event we're currently looking at.
    */
   getViewEventEvent: function() {
-    if (!this.isViewEventViewActive) {
+    if (!this.isViewEventViewActive()) {
       throw new Error('ViewEvent view inactive');
     }
 
     // TODO(gareth): Sort out the dates and times here.
     return {
       calendar: this.waitForElement('viewEventViewCalendar').text(),
-      title: this.waitForElement('viewEventViewTitle').text(),
-      location: this.waitForElement('viewEventViewLocation').text()
+      title: this.waitForElement('viewEventViewTitleContent').text(),
+      location: this.waitForElement('viewEventViewLocationContent').text(),
+      description: this.waitForElement('viewEventViewDescriptionContent').text()
     };
   },
 
@@ -182,9 +217,11 @@ Calendar.prototype = {
    * @return {boolean} Whether or not view is active
    */
   isViewActive: function(id) {
-    var actual = this.client.getUrl();
-    var expected = Calendar.ORIGIN + '/' + id + '/';
-    return actual === expected;
+    id = id || '';
+    // we do not use the URL since that might happen before the [data-path] is
+    // updated and styles/views are toggled based on [data-path]
+    var path = this.client.findElement('body').getAttribute('data-path');
+    return path.indexOf(id) !== -1;
   },
 
   /**
@@ -212,8 +249,7 @@ Calendar.prototype = {
    * @return {boolean} Whether or not the read only event view is active.
    */
   isViewEventViewActive: function() {
-    var url = this.client.getUrl();
-    return url.indexOf('/event/show') !== -1;
+    return this.isViewActive('event/show');
   },
 
 
@@ -247,7 +283,7 @@ Calendar.prototype = {
    * @param {Marionette.Element} [element] the panel element.
    */
   swipe: function(element) {
-    var bodySize = client.executeScript(function() {
+    var bodySize = this.client.executeScript(function() {
       return {
         height: document.body.clientHeight,
         width: document.body.clientWidth
@@ -256,10 +292,10 @@ Calendar.prototype = {
 
     // (x1, y1) is swipe start.
     // (x2, y2) is swipe end.
-    const x1 = bodySize.width * 0.2,
-          y1 = bodySize.height * 0.2,
-          x2 = 0,
-          y2 = bodySize.height * 0.2;
+    var x1 = bodySize.width * 0.2,
+        y1 = bodySize.height * 0.2,
+        x2 = 0,
+        y2 = bodySize.height * 0.2;
 
     var panel = element || this.client.helper.waitForElement('body');
     this.actions
@@ -271,10 +307,12 @@ Calendar.prototype = {
    * checks if content is bigger than container. if something is wrong it
    * throws errors. use `assert.doesNotThrow()` on your tests, it will give
    * better error messages than a simple truthy test.
-   * @param {Marionette.Element|String} [element] the container element.
+   * @param {Marionette.Element|String} element the container element.
+   * @param {String} [message] default value prepended to error message.
    */
-  checkOverflow: function(element) {
+  checkOverflow: function(element, msg) {
     element = this.waitForElement(element);
+    msg = msg? msg + ': ' : '';
 
     var wid = element.scriptWith(function(el) {
       return {
@@ -283,17 +321,18 @@ Calendar.prototype = {
       };
     });
     if (!wid.content) {
-      throw new Error('invalid content width');
+      throw new Error(msg + 'invalid content width');
     }
     if (!wid.container) {
-      throw new Error('invalid container width');
+      throw new Error(msg + 'invalid container width');
     }
     // we use a buffer of 1px to account for potential rounding issues
     // see: Bug 959901
     if (Math.abs(wid.content - wid.container) > 1) {
-      var msg = 'content (' + wid.content + 'px) is wider than container (' +
+      msg += 'content (' + wid.content + 'px) is wider than container (' +
         wid.container + 'px)';
       throw new Error(msg);
     }
   }
+
 };

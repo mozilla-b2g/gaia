@@ -170,20 +170,10 @@ var NfcHandoverManager = {
       this.debug('No pending sendFileRequest');
       return;
     }
+    this.debug('Send blob to ' + mac);
     this.remoteMAC = mac;
-    var self = this;
-    var onsuccess = function() {
-      var blob = self.sendFileRequest.blob;
-      var mac = self.remoteMAC;
-      self.debug('Send blob to ' + mac);
-      BluetoothTransfer.sendFile(mac, blob);
-    };
-    var onerror = function() {
-      self.sendFileRequest.onerror();
-      self.sendFileRequest = null;
-      self.remoteMAC = null;
-    };
-    this.doPairing(mac, onsuccess, onerror);
+    var blob = this.sendFileRequest.blob;
+    BluetoothTransfer.sendFile(mac, blob);
   },
 
   doHandoverRequest: function doHandoverRequest(ndef, session) {
@@ -243,17 +233,9 @@ var NfcHandoverManager = {
   },
 
   dispatchSendFileStatus: function dispatchSendFileStatus(status) {
-    this.debug('In initiateFileTransfer ' + status);
-    var detail = {
-                   status: status,
-                   requestId: this.sendFileRequest.requestId,
-                   sessionToken: this.sendFileRequest.session
-                 };
-    var evt = new CustomEvent('nfc-send-file-status', {
-      bubbles: true, cancelable: true,
-      detail: detail
-    });
-    window.dispatchEvent(evt);
+    this.debug('In dispatchSendFileStatus ' + status);
+    window.navigator.mozNfc.notifySendFileStatus(status,
+                         this.sendFileRequest.requestId);
   },
 
   /*****************************************************************************
@@ -270,7 +252,7 @@ var NfcHandoverManager = {
     }
     if (this.sendFileRequest != null) {
       // This is the response to a file transfer request (negotiated handover)
-      this.doAction({callback: doFileTransfer, args: [mac]});
+      this.doAction({callback: this.doFileTransfer.bind(this), args: [mac]});
     } else {
       // This is a static handover
       this.debug('Pair with: ' + mac);
@@ -307,7 +289,7 @@ var NfcHandoverManager = {
       if (succeeded == true) {
         this.sendFileRequest.onsuccess();
       } else {
-        this.sendFIleRequest.onerror();
+        this.sendFileRequest.onerror();
       }
       this.sendFileRequest = null;
     }

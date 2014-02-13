@@ -256,3 +256,18 @@
   background-repeat: no-repeat;
   background-position: center;
 }
+
+/**
+ * Setting `direction: ltr;` to every element in the "Downloads" section because
+ * downloaded item names are always LTR: elements should stay as they are no
+ * matter what direction the system uses.
+ */
+ 
+html[dir="rtl"] #downloadList {
+  direction: ltr;
+}
+
+html[dir="rtl"] #downloadList ul li > label.pack-checkbox {
+  margin-left: .5rem;
+}
+

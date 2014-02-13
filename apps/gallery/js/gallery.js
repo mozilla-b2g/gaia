@@ -246,8 +246,8 @@ function initDB() {
   photodb = new MediaDB('pictures', metadataParserWrapper, {
     version: 2,
     autoscan: false,     // We're going to call scan() explicitly
-    batchHoldTime: 150,  // Batch files during scanning
-    batchSize: PAGE_SIZE // Max batch size: one screenful
+    batchHoldTime: 2000, // Batch files during scanning
+    batchSize: 3         // Max batch size when scanning
   });
 
   // This is where we find videos once the photodb notifies us that a
@@ -586,42 +586,52 @@ function deleteFile(n) {
 }
 
 function fileCreated(fileinfo) {
-  var insertPosition;
   // If the new file is a video and we're handling an image pick activity
   // then we won't display the new file.
   if (pendingPick && fileinfo.metadata.video)
     return;
 
-  // If we were showing the 'no pictures' overlay, hide it
-  if (currentOverlay === 'emptygallery' || currentOverlay === 'scanning')
-    showOverlay(null);
+  // The fileinfo object that MediaDB sends us has a thumbnail blob in it,
+  // fresh from the metadata parser. This blob has been stored in the db, but
+  // the copy we have is still a memory-backed blob. We need to be using a
+  // file backed blob here so that we don't leak memory if the user scans a
+  // fresh sdcard full of hundreds of photos. So we go get the db record out
+  // of the database. It should be an exact copy of what we already have,
+  // except that the thumbnail will be file-backed instead of memory-backed.
+  photodb.getFileInfo(fileinfo.name, function(fileinfo) {
+    var insertPosition;
 
-  // Create a thumbnailItem for this image and insert it at the right spot
-  var thumbnailItem = thumbnailList.addItem(fileinfo);
-  insertPosition = getFileIndex(fileinfo.name);
-  if (insertPosition < 0)
-    return;
+    // If we were showing the 'no pictures' overlay, hide it
+    if (currentOverlay === 'emptygallery' || currentOverlay === 'scanning')
+      showOverlay(null);
 
-  // Insert the image info into the array
-  files.splice(insertPosition, 0, fileinfo);
+    // Create a thumbnailItem for this image and insert it at the right spot
+    var thumbnailItem = thumbnailList.addItem(fileinfo);
+    insertPosition = getFileIndex(fileinfo.name);
+    if (insertPosition < 0)
+      return;
 
-  if (currentFileIndex >= insertPosition)
-    currentFileIndex++;
-  if (editedPhotoIndex >= insertPosition)
-    editedPhotoIndex++;
+    // Insert the image info into the array
+    files.splice(insertPosition, 0, fileinfo);
 
-  // Redisplay the current photo if we're in photo view. The current
-  // photo should not change, but the content of the next or previous frame
-  // might. This call will only make changes if the filename to display
-  // in a frame has actually changed.
-  if (currentView === LAYOUT_MODE.fullscreen) {
-    if (hasSaved) {
-      showFile(0);
-    } else {
-      showFile(currentFileIndex);
+    if (currentFileIndex >= insertPosition)
+      currentFileIndex++;
+    if (editedPhotoIndex >= insertPosition)
+      editedPhotoIndex++;
+
+    // Redisplay the current photo if we're in photo view. The current
+    // photo should not change, but the content of the next or previous frame
+    // might. This call will only make changes if the filename to display
+    // in a frame has actually changed.
+    if (currentView === LAYOUT_MODE.fullscreen) {
+      if (hasSaved) {
+        showFile(0);
+      } else {
+        showFile(currentFileIndex);
+      }
     }
-  }
-  hasSaved = false;
+    hasSaved = false;
+  });
 }
 
 // Make the thumbnail for image n visible
@@ -685,15 +695,23 @@ function setView(view) {
       // or video, so make sure its thumbnail is fully on the screen.
       // XXX: do we need to defer this?
       scrollToShowThumbnail(currentFileIndex);
+      if (currentView === LAYOUT_MODE.fullscreen) {
+        // only do it when we back from fullscreen.
+        setNFCSharing(false);
+      }
       break;
     case LAYOUT_MODE.fullscreen:
       resizeFrames();
+      setNFCSharing(true);
       break;
     case LAYOUT_MODE.select:
       clearSelection();
       // When entering select view, we pause the video
       if (!isPhone && currentFrame.video && !isPortrait)
         currentFrame.video.pause();
+      break;
+    case LAYOUT_MODE.edit:
+      setNFCSharing(false);
       break;
   }
 
@@ -710,6 +728,35 @@ function setView(view) {
   }
   // Remember the current view
   currentView = view;
+}
+
+function setNFCSharing(enable) {
+  if (!window.navigator.mozNfc) {
+    return;
+  }
+
+  if (enable) {
+    // If we have NFC, we need to put the callback to have shrinking UI.
+    window.navigator.mozNfc.onpeerready = function(event) {
+      // The callback function is called when user confirm to share the
+      // content, send it with NFC Peer.
+      var fileInfo = files[currentFileIndex];
+      if (fileInfo.metadata.video) {
+        // share video
+        getVideoFile(fileInfo.metadata.video, function(file) {
+          navigator.mozNfc.getNFCPeer(event.detail).sendFile(file);
+        });
+      } else {
+        // share photo
+        photodb.getFile(fileInfo.name, function(file) {
+          navigator.mozNfc.getNFCPeer(event.detail).sendFile(file);
+        });
+      }
+    };
+  } else {
+    // We need to remove onpeerready while out of fullscreen view.
+    window.navigator.mozNfc.onpeerready = null;
+  }
 }
 
 // monitorChildVisibility() calls this when a thumbnail comes onscreen
@@ -1039,12 +1086,24 @@ function updateSelection(thumbnail) {
 }
 
 function launchCameraApp() {
+  fullscreenButtons.camera.classList.add('disabled');
+  $('thumbnails-camera-button').classList.add('disabled');
+  $('overlay-camera-button').classList.add('disabled');
+
   var a = new MozActivity({
     name: 'record',
     data: {
       type: 'photos'
     }
   });
+
+  // Wait 2000ms before re-enabling the Camera buttons to prevent
+  // hammering them and causing a crash (Bug 957709)
+  window.setTimeout(function() {
+    fullscreenButtons.camera.classList.remove('disabled');
+    $('thumbnails-camera-button').classList.remove('disabled');
+    $('overlay-camera-button').classList.remove('disabled');
+  }, 2000);
 }
 
 function deleteSelectedItems() {

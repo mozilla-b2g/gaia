@@ -77,7 +77,7 @@ Gaia uses
 to run the tests with a custom builder for gaia. Tests should live with the rest of your apps code (in apps/my_app/test/marionette) and
 test files should end in _test.js.
 
-All integration tests run under a node environment. You need node >= 0.8
+All integration tests run under a node environment. You need node >= 0.10
 for this to work predictably.
 
 Shared code for tests lives under shared/test/integration.
@@ -85,12 +85,8 @@ Shared code for tests lives under shared/test/integration.
 #### Invoking a test
 
 ```sh
-./bin/gaia-marionette <test> [test...]
+make test-integration TEST_FILES=<test>
 ```
-
-All options are passed to `./node_modules/.bin/marionette-mocha` so
-you can also use mocha commands like `--grep`, `--timeout` see `--help`
-for more options.
 
 #### Invoking tests for a specific app
 
@@ -155,7 +151,7 @@ PULSE_SERVER=":" xvfb-run make test-integration
 - To get debug information from the b2g desktop client, run this:
 `DEBUG=b2g-desktop ./bin/gaia-marionette name/of/test.js`
 
-- To get debug information from b2g desktop and all of the marionette 
+- To get debug information from b2g desktop and all of the marionette
 plugins, run this:
 `DEBUG=* ./bin/gaia-marionette name/of/test.js`
 
@@ -171,6 +167,9 @@ See [how to run the Gaia endurance tests](https://developer.mozilla.org/en-US/do
 
 ## Generate jsdoc
 
-To generate API reference locally:
+To generate API reference locally, you have to install grunt with following command:
 
-run `make docs` command to generate docs in `docs` folder.
+    $ npm -g grunt-cli
+
+then run `make docs` command to generate docs.
+The generated API docs will be located in `docs` folder.

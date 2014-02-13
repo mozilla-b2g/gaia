@@ -17,6 +17,7 @@ class TestEverythingMeAddCollection(GaiaTestCase):
         collection = 'Weather'
         homescreen = Homescreen(self.marionette)
         self.apps.switch_to_displayed_app()
+        homescreen.wait_for_homescreen_to_load()
 
         contextmenu = homescreen.open_context_menu()
         contextmenu.tap_add_collection()

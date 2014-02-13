@@ -14,22 +14,22 @@ class TestContacts(GaiaTestCase):
         GaiaTestCase.setUp(self)
 
         # Seed the contact with the remote phone number so we don't call random people
-        self.contact = MockContact(tel=[{
-            'type': ['Mobile'],
-            'value': "%s" % self.testvars['remote_phone_number']}])
+        self.contact = MockContact(tel={
+            'type': 'Mobile',
+            'value': "%s" % self.testvars['remote_phone_number']})
         self.data_layer.insert_contact(self.contact)
 
     def test_call_contact(self):
-        # NB This is not a listed smoke test
-        # Call phone from a contact
-        # https://moztrap.mozilla.org/manage/case/5679/
-
+        """NB This is not a listed smoke test
+        Call phone from a contact
+        https://moztrap.mozilla.org/manage/case/5679/
+        """
         contacts = Contacts(self.marionette)
         contacts.launch()
         contacts.wait_for_contacts()
 
         # tap on the created contact
-        contact_details = contacts.contact(self.contact['givenName'][0]).tap()
+        contact_details = contacts.contact(self.contact['givenName']).tap()
 
         # tap the phone number and switch to call screen frame
         call_screen = contact_details.tap_phone_number()
@@ -37,10 +37,10 @@ class TestContacts(GaiaTestCase):
         call_screen.wait_for_outgoing_call()
 
         # Check the number displayed is the one we dialed
-        self.assertIn(self.contact['tel'][0]['value'],
+        self.assertIn(self.contact['tel']['value'],
                       call_screen.calling_contact_information)
 
-        self.assertIn(self.contact['givenName'][0],
+        self.assertIn(self.contact['givenName'],
                       call_screen.outgoing_calling_contact)
 
         call_screen.hang_up()

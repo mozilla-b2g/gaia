@@ -12,9 +12,9 @@ class TestDialerFindContact(GaiaTestCase):
     def setUp(self):
         GaiaTestCase.setUp(self)
         # Seed the contact with the remote phone number so we don't call random people
-        self.contact = MockContact(tel=[{
-            'type': ['Mobile'],
-            'value': "%s" % self.testvars['remote_phone_number']}])
+        self.contact = MockContact(tel={
+            'type': 'Mobile',
+            'value': "%s" % self.testvars['remote_phone_number']})
         self.data_layer.insert_contact(self.contact)
 
         # launch the Phone app
@@ -23,7 +23,7 @@ class TestDialerFindContact(GaiaTestCase):
 
     def test_dialer_find_contact(self):
 
-        number_to_verify = self.contact['tel'][0]['value']
+        number_to_verify = self.contact['tel']['value']
 
         # Dial number
         self.phone.keypad.dial_phone_number(number_to_verify[:5])
@@ -32,7 +32,7 @@ class TestDialerFindContact(GaiaTestCase):
         self.phone.keypad.wait_for_search_popup_visible()
 
         # Assert name and phone number are the ones in the saved contact
-        self.assertEqual(self.phone.keypad.suggested_name, self.contact['name'][0])
+        self.assertEqual(self.phone.keypad.suggested_name, self.contact['name'])
         self.assertEqual(self.phone.keypad.suggested_phone_number, number_to_verify)
 
         # Tap search popup suggestion

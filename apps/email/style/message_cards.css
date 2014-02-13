@@ -223,9 +223,8 @@ input.msg-search-text-tease {
 }
 
 .msg-body-container {
-  font-family: monospace;
   white-space: pre-wrap;
-  font-size: 1.9rem;
+  font-size: 1.7rem;
   line-height: 2.6rem;
   margin: 1rem 1.5rem;
 }

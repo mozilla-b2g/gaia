@@ -65,7 +65,8 @@
         simPinHTMLs.push(
           this.simPinTemplate.interpolate({
             'sim-index': index.toString(),
-            'sim-name': _('simPinWithIndex', { 'index': simPinIndex })
+            'sim-name': _('simPinWithIndex', { 'index': simPinIndex }),
+            'change-sim-label': _('changeSimPin')
           })
         );
       }.bind(this));
@@ -202,6 +203,7 @@
       this.simSecurityDesc = document.getElementById('simCardLock-desc');
     },
     addIccDetectedEvent: function() {
+      var self = this;
       // if there is a change that icc instance is available
       // we can update its cardstatus to make it reflect the
       // real world.
@@ -220,6 +222,7 @@
       });
     },
     addIccUndetectedEvent: function() {
+      var self = this;
       // if there is a change that icc instance is not available
       // we have to update all cards' status
       this.iccManager.addEventListener('iccundetected', function(evt) {

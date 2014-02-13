@@ -20,7 +20,6 @@
     <link href="/contacts/style/contacts.css" rel="stylesheet">
     <link href="/contacts/style/overlay.css" rel="stylesheet">
     <link href="/contacts/style/search.css" rel="stylesheet">
-    <link href="/contacts/style/fixed_header.css" rel="stylesheet">
     <link href="/contacts/style/animations.css" rel="stylesheet">
     <link href="/facebook/style/curtain_frame.css" rel="stylesheet">
     <link href="/contacts/style/status.css" rel="stylesheet">
@@ -28,6 +27,7 @@
 
     <script defer src="/contacts/js/activities.js"></script>
     <script defer src="/shared/js/lazy_loader.js"></script>
+    <script defer src="/shared/js/contact_photo_helper.js"></script>
 
     <script defer src="/shared/js/async_storage.js"></script>
     <script defer src="/contacts/js/utilities/config.js"></script>
@@ -51,9 +51,6 @@
     <script defer src="/shared/js/l10n.js"></script>
     <script defer src="/shared/js/l10n_date.js"></script>
     <script defer src="/contacts/js/fb_loader.js"></script>
-
-    <!-- Loading FB indexedDB related stuff -->
-    <script defer src="/contacts/js/fixed_header.js"></script>
 
     <!-- For the build system to include in zip:
     <link href="/shared/js/tag_visibility_monitor.js">
@@ -147,17 +144,19 @@
           </nav>
           <div id="groups-container-box">
             <div id="groups-container" class="view-body-inner">
-              <form id="search-container" class="search" role="search">
-                <p>
-                  <label for="search" id="search-start">
-                    <input type="search" name="search" class="textfield" x-inputmode="verbatim"
-                           placeholder="Search" data-l10n-id="search-contact">
-                  </label>
-                </p>
-              </form>
-              <section id="groups-list" data-type="list" class="active">
-                <!-- Group template here -->
-              </section>
+              <div id="groups-container-background">
+                <form id="search-container" class="search" role="search">
+                  <p>
+                    <label for="search" id="search-start">
+                      <input type="search" name="search" class="textfield" x-inputmode="verbatim"
+                             placeholder="Search" data-l10n-id="search-contact">
+                    </label>
+                 </p>
+                </form>
+                <section id="groups-list" data-type="list" class="active">
+                  <!-- Group template here -->
+                </section>
+              </div>
             </div>
           </div>
           <form id="selectable-form" role="dialog" data-type="confirm" class="hide no-overlay">
@@ -171,7 +170,6 @@
             </menu>
           </form>
         </article>
-        <div id='fixed-container' class='fixed-title'></div>
       </section>
 
     <section is="search-view" id="search-view" class="view"></section>

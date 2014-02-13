@@ -38,14 +38,19 @@ suite('SimSettingsHelper > ', function() {
 
   suite('slots > ', function() {
     setup(function() {
+      this.sinon.useFakeTimers();
       this.sinon.stub(SimSettingsHelper, 'setServiceOnCard');
+      setSlotAbsent(0, true);
+      setSlotAbsent(1, true);
     });
 
     suite('are all absent > ', function() {
       setup(function() {
         setSlotAbsent(0, true);
+        emitSimslotUpdateEvent();
         setSlotAbsent(1, true);
         emitSimslotUpdateEvent();
+        this.sinon.clock.tick(1000);
       });
       test('setServiceOnCard > ', function() {
         assert.isFalse(SimSettingsHelper.setServiceOnCard.called);
@@ -54,9 +59,11 @@ suite('SimSettingsHelper > ', function() {
 
     suite('are all not absent > ', function() {
       setup(function() {
-        setSlotAbsent(0, true);
-        setSlotAbsent(1, true);
+        setSlotAbsent(0, false);
         emitSimslotUpdateEvent();
+        setSlotAbsent(1, false);
+        emitSimslotUpdateEvent();
+        this.sinon.clock.tick(1000);
       });
       test('setServiceOnCard > ', function() {
         assert.isFalse(SimSettingsHelper.setServiceOnCard.called);
@@ -66,8 +73,10 @@ suite('SimSettingsHelper > ', function() {
     suite('one is absent while the other one is not >', function() {
       setup(function() {
         setSlotAbsent(0, true);
+        emitSimslotUpdateEvent();
         setSlotAbsent(1, false);
         emitSimslotUpdateEvent();
+        this.sinon.clock.tick(1000);
       });
       test('setServiceOnCard > ', function() {
         var calledkeys = [];

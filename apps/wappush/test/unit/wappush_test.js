@@ -3,7 +3,7 @@
 
 /* global loadBodyHTML, mocha, MockL10n, MockMessageDB, MockNavigatormozApps,
           MockNavigatormozSetMessageHandler, MockNavigatorSettings,
-          MockNotification, MockNotificationHelper, MocksHelper, ParsedMessage,
+          MockNotification, MocksHelper, Notification, ParsedMessage,
           WapPushManager */
 
 'use strict';
@@ -43,6 +43,7 @@ suite('WAP Push', function() {
   var realMozSettings;
   var realSetMessageHandler;
   var realMozL10n;
+  var isDocumentHidden = false;
 
   mocksHelperWapPush.attachTestHelpers();
 
@@ -85,9 +86,17 @@ suite('WAP Push', function() {
     mocksHelperWapPush.setup();
     MockNavigatorSettings.createLock().set({ 'wap.push.enabled': 'true' });
     loadBodyHTML('/index.html');
+
+    Object.defineProperty(document, 'hidden', {
+      configurable: true,
+      get: function() {
+        return isDocumentHidden;
+      }
+    });
   });
 
   teardown(function() {
+    delete document.hidden;
     MockNavigatormozApps.mTeardown();
     MockNavigatorSettings.mTeardown();
     mocksHelperWapPush.teardown();
@@ -205,7 +214,7 @@ suite('WAP Push', function() {
   });
 
   suite('receiving and displaying a CP message', function() {
-    var message;
+    var messages;
 
      // UI elements
     var screen;
@@ -221,16 +230,30 @@ suite('WAP Push', function() {
       );
       WapPushManager.init(done);
 
-      message = {
-        sender: '22997',
-        contentType: 'text/vnd.wap.connectivity-xml',
-        content: '<wap-provisioningdoc></wap-provisioningdoc>',
-        authInfo: {
-           pass: true,
-           checked: true,
-           sec: 'NETWPIN',
-           mac: 'FAKEMAC',
-           data: 'FAKEDATA'
+      messages = {
+        netwpin: {
+          sender: '22997',
+          contentType: 'text/vnd.wap.connectivity-xml',
+          content: '<wap-provisioningdoc></wap-provisioningdoc>',
+          authInfo: {
+             pass: true,
+             checked: true,
+             sec: 'NETWPIN',
+             mac: 'FAKEMAC',
+             data: 'FAKEDATA'
+          }
+        },
+        userpin: {
+          sender: '22997',
+          contentType: 'text/vnd.wap.connectivity-xml',
+          content: '<wap-provisioningdoc></wap-provisioningdoc>',
+          authInfo: {
+             pass: true,
+             checked: true,
+             sec: 'USERPIN',
+             mac: 'FAKEMAC',
+             data: 'FAKEDATA'
+          }
         }
       };
     });
@@ -248,40 +271,75 @@ suite('WAP Push', function() {
 
     test('the notification is sent', function() {
       var notificationSpy = this.sinon.spy(window, 'Notification');
-      MockNavigatormozSetMessageHandler.mTrigger('wappush-received', message);
+      MockNavigatormozSetMessageHandler.mTrigger(
+        'wappush-received',
+        messages.netwpin
+      );
       MockNavigatormozApps.mTriggerLastRequestSuccess();
       assert.isTrue(notificationSpy.calledOnce);
     });
 
     test('Notification.get() called with correct tag', function() {
-      MockNavigatormozSetMessageHandler.mTrigger('wappush-received', message);
+      MockNavigatormozSetMessageHandler.mTrigger(
+        'wappush-received',
+        messages.netwpin
+      );
       MockNavigatormozApps.mTriggerLastRequestSuccess();
       WapPushManager.displayWapPushMessage(0);
       assert.ok(Notification.get.calledWith({tag: 0}));
     });
 
-    test('the display is populated with the message contents', function() {
-      closeButton = document.getElementById('close');
-      title = document.getElementById('title');
-      screen = document.getElementById('cp-screen');
-      acceptButton = document.getElementById('accept');
-      pin = screen.querySelector('input');
+    test('the display is populated with the NETWPIN message contents',
+      function() {
+        closeButton = document.getElementById('close');
+        title = document.getElementById('title');
+        screen = document.getElementById('cp-screen');
+        acceptButton = document.getElementById('accept');
+        pin = screen.querySelector('input');
 
-      var retrieveSpy = this.sinon.spy(MockMessageDB, 'retrieve');
+        var retrieveSpy = this.sinon.spy(MockMessageDB, 'retrieve');
 
-      MockNavigatormozSetMessageHandler.mTrigger('wappush-received', message);
-      MockNavigatormozApps.mTriggerLastRequestSuccess();
-      WapPushManager.displayWapPushMessage(0);
-      retrieveSpy.yield(ParsedMessage.from(message, 0));
-      assert.equal(title.textContent, message.sender);
-      assert.equal(acceptButton.hidden, false);
-      assert.equal(pin.type, 'hidden');
+        MockNavigatormozSetMessageHandler.mTrigger(
+          'wappush-received',
+          messages.netwpin
+        );
+        MockNavigatormozApps.mTriggerLastRequestSuccess();
+        WapPushManager.displayWapPushMessage(0);
+        retrieveSpy.yield(ParsedMessage.from(messages.netwpin, 0));
+        assert.equal(title.textContent, messages.netwpin.sender);
+        assert.equal(acceptButton.hidden, false);
+        assert.equal(pin.type, 'hidden');
+    });
+
+    test('the display is populated with the USERPIN message contents',
+      function() {
+        closeButton = document.getElementById('close');
+        title = document.getElementById('title');
+        screen = document.getElementById('cp-screen');
+        acceptButton = document.getElementById('accept');
+        pin = screen.querySelector('input');
+
+        var retrieveSpy = this.sinon.spy(MockMessageDB, 'retrieve');
+
+        MockNavigatormozSetMessageHandler.mTrigger(
+          'wappush-received',
+          messages.netwpin
+        );
+        MockNavigatormozApps.mTriggerLastRequestSuccess();
+        WapPushManager.displayWapPushMessage(0);
+        retrieveSpy.yield(ParsedMessage.from(messages.userpin, 0));
+        assert.equal(title.textContent, messages.netwpin.sender);
+        assert.equal(acceptButton.hidden, false);
+        assert.equal(pin.type, 'text');
     });
 
     test('Notification is closed', function() {
       var closeSpy = this.sinon.spy(MockNotification.prototype, 'close');
 
-      MockNavigatormozSetMessageHandler.mTrigger('wappush-received', message);
+      MockNavigatormozSetMessageHandler.mTrigger(
+        'wappush-received',
+        messages.netwpin
+      );
       MockNavigatormozApps.mTriggerLastRequestSuccess();
       WapPushManager.displayWapPushMessage(0);
       sinon.assert.called(closeSpy);
@@ -435,7 +493,6 @@ suite('WAP Push', function() {
   });
 
   suite('automatic closing of the application', function() {
-    var isDocumentHidden;
     var message = {
       sender: '+31641600986',
       contentType: 'text/vnd.wap.si',
@@ -449,17 +506,9 @@ suite('WAP Push', function() {
 
       this.clock = this.sinon.useFakeTimers();
       this.sinon.spy(window, 'close');
-
-      Object.defineProperty(document, 'hidden', {
-        configurable: true,
-        get: function() {
-          return isDocumentHidden;
-        }
-      });
     });
 
     teardown(function() {
-      delete document.hidden;
       this.clock.restore();
       MockNavigatormozApps.mTeardown();
       MockNavigatormozSetMessageHandler.mTeardown();

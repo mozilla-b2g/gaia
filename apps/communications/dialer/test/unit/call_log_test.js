@@ -8,17 +8,16 @@ requireApp('communications/dialer/test/unit/mock_call_log_db_manager.js');
 requireApp('communications/dialer/test/unit/mock_l10n.js');
 requireApp('sms/test/unit/mock_async_storage.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
+require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 
 requireApp('communications/shared/test/unit/mocks/mock_notification.js');
-requireApp('communications/contacts/test/unit/mock_fixed_header.js');
-
 
 var mocksHelperForCallLog = new MocksHelper([
   'asyncStorage',
   'CallLogDBManager',
-  'FixedHeader',
   'LazyLoader',
-  'LazyL10n'
+  'LazyL10n',
+  'ContactPhotoHelper'
 ]).init();
 
 suite('dialer/call_log', function() {

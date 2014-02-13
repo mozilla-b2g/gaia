@@ -3,6 +3,9 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from marionette.by import By
+from marionette.errors import JavascriptException
+from marionette import Wait
+
 from gaiatest.apps.base import Base
 from gaiatest.apps.base import PageRegion
 
@@ -27,9 +30,10 @@ class Contacts(Base):
 
     def launch(self):
         Base.launch(self)
+        Wait(self.marionette, ignored_exceptions=JavascriptException).until(
+            lambda m: m.execute_script('return window.wrappedJSObject.Contacts.asyncScriptsLoaded') is True)
         self.wait_for_element_displayed(*self._settings_button_locator)
 
-    # TODO: Replace this by using apps.displayed_app when bug 951815 is fixed
     def switch_to_contacts_frame(self):
         self.marionette.switch_to_frame()
         self.wait_for_element_present(*self._contacts_frame_locator)

@@ -1,5 +1,5 @@
 /*global ContactRenderer, loadBodyHTML, MockContact, MockL10n, MocksHelper,
-         Utils, Template */
+         Utils, Template, MockContactPhotoHelper */
 
 'use strict';
 
@@ -8,10 +8,12 @@ require('/test/unit/mock_utils.js');
 
 require('/test/unit/mock_contact.js');
 require('/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 require('/js/contact_renderer.js');
 
 var mocksHelperForContactRenderer = new MocksHelper([
-  'Utils'
+  'Utils',
+  'ContactPhotoHelper',
 ]).init();
 
 suite('ContactRenderer', function() {
@@ -150,6 +152,21 @@ suite('ContactRenderer', function() {
       assert.ok(
         html.contains('+<span class="highlight">346578888888</span>')
       );
+    });
+
+    test('Rendered Contact highlighted "name number"', function() {
+      var html;
+
+      renderer.render({
+        contact: contact,
+        input: 'Pepito 346578888888',
+        target: ul
+      });
+
+      html = ul.firstElementChild.innerHTML;
+
+      assert.include(html, '<span class="highlight">Pepito</span>');
+      assert.include(html, '+<span class="highlight">346578888888</span>');
     });
 
     test('Rendered Contact "type | number"', function() {
@@ -324,7 +341,8 @@ suite('ContactRenderer', function() {
 
     test('Render contact with photo renders the image', function() {
       var html;
-      contact.photo = [testImageBlob];
+      var blob = testImageBlob;
+      this.sinon.stub(MockContactPhotoHelper, 'getThumbnail').returns(blob);
 
       renderer.render({
         contact: contact,

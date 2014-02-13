@@ -26,7 +26,7 @@ function sendChromeEvent(details, type) {
 
   let event = content.document.createEvent('CustomEvent');
   event.initCustomEvent(type, true, true,
-                        ObjectWrapper.wrap(details, content));
+                        Cu.cloneInto(details, content));
   content.dispatchEvent(event);
 }
 
@@ -34,7 +34,6 @@ function sendChromeEvent(details, type) {
 // Copy of /b2g/chrome/content/shell.js
 Cu.import('resource://gre/modules/Webapps.jsm');
 Cu.import('resource://gre/modules/AppsUtils.jsm');
-Cu.import('resource://gre/modules/ObjectWrapper.jsm');
 
 Services.obs.addObserver(function onLaunch(subject, topic, data) {
   let json = JSON.parse(data);

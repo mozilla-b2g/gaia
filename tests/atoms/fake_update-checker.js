@@ -107,10 +107,14 @@ function GaiaUITests_FakeUpdateChecker() {
         QueryInterface: XPCOMUtils.generateQI([Ci.nsIFactory])
       };
 
-      let oldFactory =
-        Cm.getClassObjectByContractID(contract, Ci.nsIFactory);
-      Cm.unregisterFactory(oldCid, oldFactory);
-      Cm.registerFactory(newCid, '', contract, newFactory);
+      try {
+        let oldFactory =
+          Cm.getClassObjectByContractID(contract, Ci.nsIFactory);
+        Cm.unregisterFactory(oldCid, oldFactory);
+        Cm.registerFactory(newCid, '', contract, newFactory);
+      } catch (ex) {
+        // If nothing is already registered, it's fine
+      }
     }
   }
 

@@ -387,6 +387,59 @@ suite('calls handler', function() {
         assert.isTrue(toggleSpy.calledOnce);
       });
     });
+
+    suite('> hanging up the second call', function() {
+      var firstCall;
+
+      setup(function() {
+        firstCall = new MockCall('543552', 'held');
+        var secondCall = new MockCall('12334', 'incoming');
+
+        telephonyAddCall.call(this, firstCall, {trigger: true});
+        telephonyAddCall.call(this, secondCall, {trigger: true});
+
+        MockMozTelephony.calls = [firstCall];
+      });
+
+      test('should resume the first call', function() {
+        this.sinon.spy(firstCall, 'resume');
+        MockMozTelephony.mTriggerCallsChanged();
+        sinon.assert.called(firstCall.resume);
+      });
+    });
+
+    suite('> hanging up the second call when the first line is a conference',
+          function() {
+      var extraCall;
+
+      setup(function() {
+        var firstConfCall = new MockCall('543552', 'held');
+        var secondConfCall = new MockCall('12334', 'held');
+        extraCall = new MockCall('424242', 'incoming');
+
+        telephonyAddCall.call(this, firstConfCall, {trigger: true});
+        telephonyAddCall.call(this, secondConfCall, {trigger: true});
+        telephonyAddCall.call(this, extraCall, {trigger: true});
+
+        MockMozTelephony.calls = [extraCall];
+        MockMozTelephony.conferenceGroup.calls = [firstConfCall,
+                                                  secondConfCall];
+        firstConfCall.group = MockMozTelephony.conferenceGroup;
+        secondConfCall.group = MockMozTelephony.conferenceGroup;
+
+        MockMozTelephony.mTriggerGroupCallsChanged();
+        MockMozTelephony.mTriggerCallsChanged();
+      });
+
+      test('should resume the conference call', function() {
+        this.sinon.spy(MockMozTelephony.conferenceGroup, 'resume');
+        MockMozTelephony.calls = [];
+        MockMozTelephony.mTriggerCallsChanged();
+        sinon.assert.called(MockMozTelephony.conferenceGroup.resume);
+      });
+    });
+
+
   });
 
   suite('> Public methods', function() {
@@ -604,6 +657,14 @@ suite('calls handler', function() {
             var hideSpy = this.sinon.spy(MockCallScreen, 'hideIncoming');
             CallsHandler.holdAndAnswer();
             assert.isTrue(hideSpy.calledOnce);
+          });
+
+          test('should not inform bluetooth to answer non-CDMA call',
+          function() {
+            var switchCallsSpy = this.sinon.spy(
+              MockBluetoothHelperInstance, 'answerWaitingCall');
+            CallsHandler.holdAndAnswer();
+            assert.equal(switchCallsSpy.notCalled, true);
           });
       });
 

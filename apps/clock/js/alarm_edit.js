@@ -5,6 +5,7 @@ var AlarmList = require('alarm_list');
 var AlarmManager = require('alarm_manager');
 var ClockView = require('clock_view');
 var FormButton = require('form_button');
+var Sounds = require('sounds');
 var Utils = require('utils');
 var constants = require('constants');
 var mozL10n = require('l10n');
@@ -71,11 +72,7 @@ var AlarmEdit = {
     });
     this.buttons.sound = new FormButton(this.selects.sound, {
       id: 'sound-menu',
-      formatLabel: function(sound) {
-        return (sound === null || sound === '0') ?
-          _('noSound') :
-          _(sound.replace('.', '_'));
-      }
+      formatLabel: Sounds.formatLabel
     });
     this.buttons.vibrate = new FormButton(this.selects.vibrate, {
       formatLabel: function(vibrate) {
@@ -92,6 +89,8 @@ var AlarmEdit = {
     });
 
     mozL10n.translate(this.element);
+    // TODO: When this class gets refactored to be not a singleton,
+    // add methods to remove all of these event listeners as applicable.
     this.buttons.close.addEventListener('click', this);
     this.buttons.done.addEventListener('click', this);
     this.selects.sound.addEventListener('change', this);
@@ -99,6 +98,15 @@ var AlarmEdit = {
     this.selects.repeat.addEventListener('change', this);
     this.buttons.delete.addEventListener('click', this);
     this.inputs.name.addEventListener('keypress', this.handleNameInput);
+
+    // If the phone locks during preview, pause the sound.
+    // TODO: When this is no longer a singleton, unbind the listener.
+    window.addEventListener('visibilitychange', function() {
+      if (document.hidden) {
+        this.stopPreviewSound();
+      }
+    }.bind(this));
+
     this.init = function() {};
   },
 

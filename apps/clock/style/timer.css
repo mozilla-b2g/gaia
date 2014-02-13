@@ -33,14 +33,15 @@
 }
 
 #timer-controls {
-  width: calc(100% - 0.13rem);
-  margin: 0px 0.5rem 0px -1rem;
+  display: flex;
+  margin: 2rem 1rem 0;
+  padding: 0;
 }
 
 #timer-controls button {
-  float: left;
-  margin: 0 1rem 0 0;
-  width: 40%;
+  height: 3.8rem;
+  margin: 0 0.5rem;
+  flex: auto;
 }
 
 #timer-edit {
@@ -105,7 +106,6 @@ ul li > label.pack-switch > input + span {
   color: #FFF;
   text-align: left;
   background-color: #4D4D4D;
-  text-shadow: 0 0;
 }
 
 #timer-plus-time {

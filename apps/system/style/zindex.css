@@ -64,7 +64,8 @@
 }
 
 /* Keyboard is shown above task manager */
-#screen.cards-view.task-manager > [data-z-index-level="keyboards"] {
+#screen.cards-view.task-manager > [data-z-index-level="keyboards"],
+#screen.cards-view.task-manager > [data-z-index-level="software-buttons"] {
   z-index: 65538;
 }
 
@@ -103,11 +104,6 @@
 }
 
 /* Level 5: Statusbar, Utility-Tray */
-#screen > [data-z-index-level="app"] > .appWindow.transition-opening.fullscreen-app:not(.homescreen),
-#screen > [data-z-index-level="app"] > .appWindow.transition-closing.fullscreen-app:not(.homescreen) {
-  z-index: 4097;
-}
-
 #screen > [data-z-index-level="statusbar"] {
   z-index: 4096;
 }
@@ -118,10 +114,6 @@
 
 /* Demote level 5 elements to homescreen level if there is an active
  * full screen app frame */
-#screen.fullscreen-app:not(.locked):not(.attention) > [data-z-index-level="statusbar"],
-#screen.fullscreen-app:not(.locked):not(.attention) > [data-z-index-level="utility-tray"] {
-  z-index: 1;
-}
 
 /* Promote level 5 elements to attention screen level when
  * there is an active attention screen not minimized in

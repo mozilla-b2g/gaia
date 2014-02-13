@@ -7,7 +7,7 @@ if (!contacts.MatchingUI) {
 
     var _ = navigator.mozL10n.get;
 
-    var CONTACTS_APP_ORIGIN = 'app://communications.gaiamobile.org';
+    var CONTACTS_APP_ORIGIN = location.origin;
 
     // Counter for checked list items
     var checked = 0;
@@ -113,8 +113,9 @@ if (!contacts.MatchingUI) {
 
       out.displayName = getDisplayName(contact);
       out.mainReason = selectMainReason(reasons);
-      if (Array.isArray(out.photo) && out.photo[0]) {
-        out.thumb = window.URL.createObjectURL(out.photo[0]);
+      var photo = ContactPhotoHelper.getThumbnail(out);
+      if (photo) {
+        out.thumb = window.URL.createObjectURL(photo);
       }
 
       return out;
@@ -271,9 +272,10 @@ if (!contacts.MatchingUI) {
 
     function showMatchingDetails(uuid) {
       var theContact = matchingResults[uuid].matchingContact;
-      if (Array.isArray(theContact.photo) && theContact.photo[0]) {
+      var photo = ContactPhotoHelper.getThumbnail(theContact);
+      if (photo) {
         // If the contact has a photo, preload it before showing the overlay.
-        var url = window.URL.createObjectURL(theContact.photo[0]);
+        var url = window.URL.createObjectURL(photo);
 
         // Check to see if the image is already loaded, if so process
         // it immediately.  We won't get another 'load' event by resetting the

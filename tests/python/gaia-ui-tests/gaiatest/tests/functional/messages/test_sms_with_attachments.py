@@ -29,7 +29,6 @@ class TestSmsWithAttachments(GaiaTestCase):
         activities_list = new_message.tap_attachment()
         camera = activities_list.tap_camera()
 
-        camera.wait_for_camera_ready()
         camera.switch_to_camera_frame()
         camera.tap_capture()
         camera.wait_for_select_button_displayed()

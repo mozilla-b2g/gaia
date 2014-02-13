@@ -1,5 +1,7 @@
+-include $(PWD)/build/common.mk
+
 all:
-	@echo
+	@$(call run-app-js-command, build)
 
 .PHONY: web_assets
 web_assets:

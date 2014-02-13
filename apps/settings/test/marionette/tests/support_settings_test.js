@@ -1,5 +1,6 @@
-var Settings = require('../app/app'),
-    assert = require('assert');
+'use strict';
+// var Settings = require('../app/app'),
+//     assert = require('assert');
 
 // marionette('manipulate support settings', function() {
 //   var client = marionette.client();

@@ -13,4 +13,5 @@ class ConfirmInstall(Base):
         def tap_confirm(self):
             self.wait_for_element_displayed(*self._confirm_install_button_locator)
             self.marionette.find_element(*self._confirm_install_button_locator).tap()
-            self.wait_for_element_not_displayed(*self._confirm_install_button_locator)
+            from gaiatest.apps.system.app import System
+            System(self.marionette).wait_for_banner()

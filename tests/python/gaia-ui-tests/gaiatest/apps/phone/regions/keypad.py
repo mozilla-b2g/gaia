@@ -25,6 +25,8 @@ class Keypad(Phone):
 
     def __init__(self, marionette):
         Phone.__init__(self, marionette)
+        # TODO sometimes we may tap before the click handlers are ready
+        time.sleep(0.5)
 
     @property
     def phone_number(self):
@@ -69,6 +71,11 @@ class Keypad(Phone):
     def tap_search_popup(self):
         self.marionette.find_element(*self._search_popup_locator).tap()
         return CallScreen(self.marionette)
+
+    def wait_for_phone_number_ready(self):
+        # Entering dialer and expecting a phone number there is js that sets the phone value and enables this button
+        self.wait_for_condition(lambda m:
+            'disabled' not in m.find_element(*self._add_new_contact_button_locator).get_attribute('class'))
 
     def switch_to_keypad_frame(self):
         app = self.apps.displayed_app

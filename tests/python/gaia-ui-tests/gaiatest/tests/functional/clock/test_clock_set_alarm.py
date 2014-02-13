@@ -52,7 +52,7 @@ class TestClockSetAlarm(GaiaTestCase):
 
         # Save the alarm
         new_alarm.tap_done()
-        self.clock.wait_for_banner_not_visible()
+        self.clock.dismiss_banner()
 
         # Tap to Edit alarm
         edit_alarm = self.clock.alarms[0].tap()
@@ -63,4 +63,4 @@ class TestClockSetAlarm(GaiaTestCase):
         self.assertEqual('15 minutes', new_alarm.alarm_snooze)
 
         edit_alarm.tap_done()
-        self.clock.wait_for_banner_not_visible()
+        self.clock.dismiss_banner()

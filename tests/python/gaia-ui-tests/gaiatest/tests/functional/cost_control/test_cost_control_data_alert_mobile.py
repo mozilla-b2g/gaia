@@ -18,6 +18,7 @@ class TestCostControlDataAlertMobile(GaiaTestCase):
     _page_body_locator = (By.ID, 'home')
 
     def test_cost_control_data_alert_mobile(self):
+        """https://moztrap.mozilla.org/manage/case/8938/"""
 
         self.data_layer.connect_to_cell_data()
         cost_control = CostControl(self.marionette)
@@ -54,6 +55,6 @@ class TestCostControlDataAlertMobile(GaiaTestCase):
 
         # make sure the color changed
         self.wait_for_condition(
-            lambda m: 'reached-limit' in self.marionette.find_element(*self._data_usage_view_locator).get_attribute('class'),
-            message='Data usage bar did not breach limit'
-        )
+            lambda m: 'reached-limit' in self.marionette.find_element(
+                *self._data_usage_view_locator).get_attribute('class'),
+            message='Data usage bar did not breach limit')

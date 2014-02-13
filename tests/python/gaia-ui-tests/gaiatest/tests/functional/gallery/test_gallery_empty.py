@@ -12,14 +12,13 @@ class TestGalleryEmpty(GaiaTestCase):
         GaiaTestCase.setUp(self)
 
     def test_empty_gallery(self):
-        # https://moztrap.mozilla.org/manage/case/4003/
+        """https://moztrap.mozilla.org/manage/case/4003/"""
         # Requires there to be no photos on SDCard which is the default
 
         gallery = Gallery(self.marionette)
         gallery.launch()
 
+        self.wait_for_condition(lambda m: gallery.empty_gallery_text == 'Use the Camera app to get started.')
+
         # Verify empty gallery title
         self.assertEqual(gallery.empty_gallery_title, 'No photos or videos')
-
-        # Verify empty gallery text
-        self.assertEqual(gallery.empty_gallery_text, 'Use the Camera app to get started.')

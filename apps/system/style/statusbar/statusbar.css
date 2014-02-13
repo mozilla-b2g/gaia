@@ -3,6 +3,14 @@ body, html {
   font-size: 10px;
 }
 
+#top-panel {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2rem;
+}
+
 #screen.lockscreen-camera > #statusbar {
   display: none;
 }
@@ -21,13 +29,17 @@ body, html {
   -moz-box-sizing: border-box;
   -moz-user-focus: ignore;
 
-  display: flex;
-  flex-direction: row;
   -moz-user-select: none;
+  transition: transform 0.2s linear 0s;
 }
 
-#screen.locked:not(.attention) #statusbar{
+#screen.locked:not(.attention) #statusbar {
   background-color: transparent;
+}
+
+#statusbar.invisible {
+  transition: transform 0.2s linear 0.25s;
+  transform: translateY(-100%);
 }
 
 #screen.attention.locked #statusbar-time {
@@ -49,23 +61,27 @@ body:not(.rb-enabled) #statusbar-title {
 }
 
 #statusbar-icons {
+  position: absolute;
+  right: 0;
   pointer-events: none;
-  flex-grow: 1;
-  flex-shrink: 0;
-  min-width: 33%;
-  max-width: 67%;
+  width: 50%;
   -moz-user-focus: ignore;
   -moz-user-select: none;
 }
 
 body:not(.rb-enabled) #statusbar-icons {
-  max-width: 100%;
+  width: 100%;
 }
 
 #statusbar-title,
 body:not(.rb-enabled) #statusbar-icons > .sb-start {
   float: left;
   -moz-transition: visibility 0.5s ease, -moz-transform 0.5s ease;
+}
+
+*[dir=rtl] #statusbar-icons {
+  right: auto;
+  left: 0;
 }
 
 *[dir=rtl] #statusbar-icons > * {
@@ -109,6 +125,10 @@ body:not(.rb-enabled) #statusbar-icons > .sb-start {
   bottom: 0.1rem;
 }
 
+body.rb-enabled #statusbar-label {
+  display: none;
+}
+
 #statusbar-title,
 #statusbar-time, #statusbar-data:not(.sb-icon-data-circle) {
   position: relative;
@@ -118,10 +138,11 @@ body:not(.rb-enabled) #statusbar-icons > .sb-start {
 }
 
 #statusbar-title {
+  position: absolute;
+  left: 0;
+  box-sizing: border-box;
   pointer-events: none;
-  flex-grow: 1;
-  flex-shrink: 1;
-  min-width: 33%;
+  width: 50%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -130,6 +151,14 @@ body:not(.rb-enabled) #statusbar-icons > .sb-start {
   line-height: 1.7rem;
   background: url(../rocketbar/search.png) no-repeat top left;
   background-size: 1.5rem;
+}
+
+*[dir=rtl] #statusbar-title {
+  left: auto;
+  right: 0;
+  background: url(../rocketbar/search.png) no-repeat bottom right;
+  padding-left: 0;
+  padding-right: 1.6rem;
 }
 
 #statusbar-time span {
@@ -359,7 +388,7 @@ body:not(.rb-enabled) #statusbar-icons > .sb-start {
   left: 0;
   background: url('images/icons.png') no-repeat;
   background-position: -16.8rem -4rem;
-  background-size: 31rem;
+  background-size: 31.4rem 9.6rem;
 }
 
 .sb-icon-network-activity {
@@ -450,7 +479,7 @@ body:not(.rb-enabled) #statusbar-icons > .sb-start {
   height: 1.6rem;
   background: url('images/icons.png') no-repeat;
   background-position: -18.9rem -6rem;
-  background-size: 31rem;
+  background-size: 31.4rem 9.6rem;
 }
 
 *[dir=rtl] .sb-icon-notification::before {

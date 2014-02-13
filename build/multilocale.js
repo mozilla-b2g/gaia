@@ -3,7 +3,7 @@
 const { Cc, Ci, Cr, Cu } = require('chrome');
 Cu.import('resource://gre/modules/osfile.jsm');
 
-const utils = require('./utils');
+const utils = require('utils');
 const webappZip = require('./webapp-zip');
 const RE_SECTION_LINE = /\[(.*)\]/;
 const RE_IMPORT_LINE = /@import url\((.*)\)/;
@@ -110,7 +110,7 @@ function L10nManager(gaiaDir, sharedDir, localesFilePath, localeBasedir) {
    * @param {Object}       webapp       - A webapp object for specific app
    * @param {String}       IniPathInZip - INI file path in zip
    */
-  function localizeIni(zip, iniFile, webapp, IniPathInZip) {
+  function localizeIni(zip, iniFile, webapp, IniPathInZip, compression) {
     var localesClone = JSON.parse(JSON.stringify(self.locales));
 
     var enIndex = localesClone.indexOf('en-US');
@@ -126,7 +126,8 @@ function L10nManager(gaiaDir, sharedDir, localesFilePath, localeBasedir) {
       zip.removeEntry(IniPathInZip, false);
     }
 
-    webappZip.addEntryStringWithTime(zip, IniPathInZip, iniContent, DEFAULT_TIME);
+    webappZip.addEntryStringWithTime(zip, IniPathInZip, iniContent,
+      DEFAULT_TIME, compression);
 
     localesClone.forEach(function(locale) {
       ini[locale].forEach(function(path) {
@@ -141,7 +142,7 @@ function L10nManager(gaiaDir, sharedDir, localesFilePath, localeBasedir) {
           zip.removeEntry(propsFilePathInZip, false);
         }
         webappZip.addEntryFileWithTime(zip, propsFilePathInZip, propFile,
-          DEFAULT_TIME);
+          DEFAULT_TIME, compression);
       });
     });
   }
@@ -278,8 +279,11 @@ function L10nManager(gaiaDir, sharedDir, localesFilePath, localeBasedir) {
       return true;
     });
 
+    var manifestFile = webapp.buildManifestFile.exists() ?
+      webapp.buildManifestFile : webapp.manifestFile;
+
     var manifest = addLocaleManifest(localesForManifest, localesProps,
-      utils.getJSON(webapp.manifestFile));
+      utils.getJSON(manifestFile));
     return manifest;
   }
 

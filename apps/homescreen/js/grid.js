@@ -985,8 +985,8 @@ var GridManager = (function() {
       for (var manifestURL in iconsByManifestURL) {
         var iconsForApp = iconsByManifestURL[manifestURL];
         for (var entryPoint in iconsForApp) {
-          if (entryPoint) {
-            var icon = iconsForApp[entryPoint];
+          var icon = iconsForApp[entryPoint];
+          if (icon) {
             icon.remove();
             markDirtyState();
           }
@@ -1520,6 +1520,7 @@ var GridManager = (function() {
         for (var entryPoint in iconsForApp) {
           var icon = iconsForApp[entryPoint];
           updateDock = updateDock || dock.containsIcon(icon);
+          icon.app.ondownloadapplied = icon.app.ondownloaderror = null;
           icon.remove();
         }
         delete appIcons[app.manifestURL];

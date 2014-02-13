@@ -127,14 +127,19 @@ if (!fb.sync) {
       var uid = fb.getFriendUid(contact);
       var updatedFbData = fbFriendsDataByUid[uid];
 
-      if (data.photo) {
-        var fbInfo = {};
-        fbInfo.photo = [data.photo];
-        fb.setFriendPictureUrl(fbInfo, updatedFbData.pic_big);
-        updatedFbData.fbInfo = fbInfo;
+      if (!data.photo) {
+        updateFbFriend(data.contactId, updatedFbData);
+        return;
       }
 
-      updateFbFriend(data.contactId, updatedFbData);
+      utils.thumbnailImage(data.photo, function gotTumbnail(thumbnail) {
+        var fbInfo = {};
+        fbInfo.photo = [data.photo, thumbnail];
+        fb.setFriendPictureUrl(fbInfo, updatedFbData.pic_big);
+        updatedFbData.fbInfo = fbInfo;
+
+        updateFbFriend(data.contactId, updatedFbData);
+      });
     }
 
     function onsuccessCb() {

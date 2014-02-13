@@ -1,3 +1,5 @@
+/* global Provider, Search */
+
 (function() {
 
   'use strict';
@@ -13,7 +15,7 @@
 
   LocalApps.prototype = {
 
-    __proto__: AppProvider.prototype,
+    __proto__: Provider.prototype,
 
     name: 'LocalApps',
 
@@ -53,6 +55,11 @@
           a.href = result.origin;
           imgUrl = a.protocol + '//' + a.host + icons[i];
           break;
+        }
+
+        // Only display results which have icons.
+        if (!imgUrl) {
+          return;
         }
 
         formatted.push({

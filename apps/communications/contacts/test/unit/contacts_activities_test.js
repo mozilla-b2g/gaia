@@ -1,7 +1,11 @@
+/* globals ActivityHandler, ConfirmDialog, MockContactAllFields, MocksHelper,
+    MockMozL10n */
+
 'use strict';
 
 require('/shared/test/unit/mocks/mock_contact_all_fields.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
+requireApp('communications/contacts/js/utilities/misc.js');
 requireApp('communications/contacts/js/activities.js');
 requireApp('communications/contacts/test/unit/mock_l10n.js');
 requireApp('communications/contacts/test/unit/mock_navigation.js');
@@ -9,11 +13,13 @@ requireApp('communications/contacts/test/unit/mock_contacts.js');
 requireApp('communications/contacts/test/unit/mock_value_selector.js');
 requireApp('communications/dialer/test/unit/mock_confirm_dialog.js');
 
-if (!this._)
-  this._ = null;
+if (!window._) {
+  window._ = null;
+}
 
-if (!this.utils)
-  this.utils = null;
+if (!window.utils) {
+  window.utils = null;
+}
 
 var mocksHelperForActivities = new MocksHelper([
   'Contacts',
@@ -33,8 +39,9 @@ suite('Test Activities', function() {
     real_ = window._;
     window._ = navigator.mozL10n.get;
 
-    if (!window.utils)
+    if (!window.utils) {
       window.utils = {};
+    }
 
     window.utils.overlay = {
       show: function() {},
@@ -59,7 +66,7 @@ suite('Test Activities', function() {
     setup(function() {
       ActivityHandler._currentActivity = null;
       ActivityHandler._launchedAsInlineActivity = false;
-      utils.importedID = null;
+      window.utils.importedID = null;
       document.location.hash = '';
     });
 
@@ -120,7 +127,7 @@ suite('Test Activities', function() {
           }
         }
       };
-      utils.importedID = '1';
+      window.utils.importedID = '1';
       ActivityHandler.handle(activity);
       assert.equal(ActivityHandler._currentActivity, activity);
       assert.include(document.location.hash, 'view-contact-details');
@@ -177,7 +184,7 @@ suite('Test Activities', function() {
       ActivityHandler.dataPickHandler(contact);
       assert.isTrue(ConfirmDialog.showing);
       assert.isNull(ConfirmDialog.title);
-      assert.equal(ConfirmDialog.text, _('no_contact_phones'));
+      assert.equal(ConfirmDialog.text, window._('no_contact_phones'));
     });
 
      test('webcontacts/tel, 1 result', function() {
@@ -191,8 +198,16 @@ suite('Test Activities', function() {
       ActivityHandler.dataPickHandler(newContact);
       assert.isFalse(ConfirmDialog.showing);
       // Check if all the properties are the same
-      for (var prop in contact)
-        assert.equal(result[prop], contact[prop]);
+      contact = window.utils.misc.toMozContact(contact);
+      for (var prop in contact) {
+        if (prop === 'photo' && result[prop] && result[prop][0]) {
+          assert.equal(result[prop][0].size, contact[prop][0].size);
+          assert.equal(result[prop][0].type, contact[prop][0].type);
+        } else {
+          assert.equal(JSON.stringify(result[prop]),
+                       JSON.stringify(contact[prop]));
+        }
+      }
     });
 
    test('webcontacts/tel, many results', function() {
@@ -221,7 +236,7 @@ suite('Test Activities', function() {
       ActivityHandler.dataPickHandler(contact);
       assert.isTrue(ConfirmDialog.showing);
       assert.isNull(ConfirmDialog.title);
-      assert.equal(ConfirmDialog.text, _('no_contact_phones'));
+      assert.equal(ConfirmDialog.text, window._('no_contact_phones'));
     });
 
     test('webcontacts/contact, 1 result', function() {
@@ -248,7 +263,7 @@ suite('Test Activities', function() {
       ActivityHandler.dataPickHandler(contact);
       assert.isTrue(ConfirmDialog.showing);
       assert.isNull(ConfirmDialog.title);
-      assert.equal(ConfirmDialog.text, _('no_contact_email'));
+      assert.equal(ConfirmDialog.text, window._('no_contact_email'));
     });
 
     test('webcontacts/email, 1 result', function() {

@@ -6,7 +6,11 @@ ifndef XPCSHELLSDK
 $(error This Makefile needs to be run by the root gaia makefile. Use `make APP=email` from the root gaia directory.)
 endif
 
-GAIA_EMAIL_MINIFY?=uglify2
+ifeq ($(GAIA_OPTIMIZE), 1)
+	GAIA_EMAIL_MINIFY?=uglify2
+else
+	GAIA_EMAIL_MINIFY?=none
+endif
 
 rwildcard=$(wildcard $1$2) $(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2))
 

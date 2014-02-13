@@ -61,9 +61,12 @@
         }
 
         for (var k = 0, klen = contact[field].length; k < klen; k++) {
-          var value = contact[field][k].trim();
+          var value = contact[field][k];
+          if (typeof value.value !== 'undefined') {
+            value = value.value;
+          }
 
-          if ((found[term] = filterFn(value, term))) {
+          if ((found[term] = filterFn(value.trim(), term))) {
             continue outer;
           }
         }
@@ -183,7 +186,7 @@
 
       request.onsuccess = function onsuccess() {
         var contacts = this.result.slice();
-        var fields = ['givenName', 'familyName'];
+        var fields = ['tel', 'givenName', 'familyName'];
         var criteria = { fields: fields, terms: lower };
         var results = [];
         var contact;

@@ -13,7 +13,6 @@ requireApp('communications/contacts/test/unit/mock_navigation.js');
 requireApp('communications/contacts/test/unit/mock_contacts.js');
 requireApp('communications/contacts/test/unit/mock_contacts_list.js');
 requireApp('communications/contacts/test/unit/mock_contacts_shortcuts.js');
-requireApp('communications/contacts/test/unit/mock_fixed_header.js');
 requireApp('communications/contacts/test/unit/mock_fb.js');
 requireApp('communications/contacts/test/unit/mock_extfb.js');
 requireApp('communications/contacts/test/unit/mock_activities.js');
@@ -21,6 +20,8 @@ requireApp('communications/contacts/test/unit/mock_utils.js');
 requireApp('communications/contacts/test/unit/mock_mozContacts.js');
 requireApp(
         'communications/contacts/test/unit/mock_performance_testing_helper.js');
+
+require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 
 // We're going to swap those with mock objects
 // so we need to make sure they are defined.
@@ -38,9 +39,6 @@ if (!this.contacts) {
 
 if (!this.fb) {
   this.fb = null;
-}
-if (!this.FixedHeader) {
-  this.FixedHeader = null;
 }
 
 if (!this.mozL10n) {
@@ -67,9 +65,13 @@ if (!window.asyncScriptsLoaded) {
   window.asyncScriptsLoaded = null;
 }
 
-var URL = null;
+var mocksForListView = new MocksHelper([
+  'ContactPhotoHelper'
+]).init();
 
 suite('Render contacts list', function() {
+  mocksForListView.attachTestHelpers();
+
   var subject,
       container,
       containerSection,
@@ -83,8 +85,6 @@ suite('Render contacts list', function() {
       realAsyncStorage,
       Contacts,
       fb,
-      FixedHeader,
-      realFixedHeader,
       utils,
       mockContacts,
       mozL10n,
@@ -272,8 +272,6 @@ suite('Render contacts list', function() {
     groupsContainer.id = 'groups-container';
     groupsContainer.innerHTML += '<section data-type="list" ' +
       'id="groups-list"></section>';
-    groupsContainer.innerHTML += '<div id="fixed-container" ';
-    groupsContainer.innerHTML += 'class="fixed-title"> </div>';
     groupsContainer.innerHTML += '<nav data-type="scrollbar">';
     groupsContainer.innerHTML += '<p></p></nav>';
 
@@ -383,8 +381,6 @@ suite('Render contacts list', function() {
     realFb = window.fb;
     window.fb = Mockfb;
     window.Contacts.extServices = MockExtFb;
-    realFixedHeader = window.FixedHeader;
-    window.FixedHeader = MockFixedHeader;
     realActivities = window.ActivityHandler;
     window.ActivityHandler = MockActivities;
     realImageLoader = window.ImageLoader;
@@ -965,7 +961,7 @@ suite('Render contacts list', function() {
         var contact = container.querySelector(selectorContact1);
 
         doOnscreen(subject, contact, function() {
-          var img = contact.querySelector('img');
+          var img = contact.querySelector('span[data-type=img]');
 
           assert.equal(img.dataset.src, 'test.png',
                         'At the begining contact 1 img === "test.png"');
@@ -979,7 +975,7 @@ suite('Render contacts list', function() {
             contact = container.querySelector(selectorContact1);
 
             doOnscreen(subject, contact, function() {
-              img = contact.querySelector('img');
+              img = contact.querySelector('span[data-type=img]');
 
               assert.equal(img.dataset.src, 'one.png',
                             'After updating contact 1 img === "one.png"');
@@ -1002,7 +998,7 @@ suite('Render contacts list', function() {
         var contact = container.querySelector(selectorContact1);
 
         doOnscreen(subject, contact, function() {
-          var img = contact.querySelector('img');
+          var img = contact.querySelector('span[data-type=img]');
           assert.equal(img.dataset.src, 'test.png',
                         'At the begining contact 1 img === "test.png"');
 
@@ -1012,7 +1008,7 @@ suite('Render contacts list', function() {
             contact = container.querySelector(selectorContact1);
 
             doOnscreen(subject, contact, function() {
-              img = contact.querySelector('img');
+              img = contact.querySelector('span[data-type=img]');
               assert.equal(img.dataset.src, 'test.png',
                             'At the begining contact 1 img === "test.png"');
               done();

@@ -17,8 +17,8 @@ if (typeof window.oauthflow === 'undefined') {
     var OAUTH_REDIRECT = 'redirectURI';
     var ENDPOINT = 'loginPage';
     var APP_ID = 'applicationId';
-    var APP_ORIGIN = 'appOrigin';
     var SCOPE = 'scope';
+    var APP_ORIGIN = location.origin;
 
     // The access token
     var accessToken;
@@ -44,8 +44,7 @@ if (typeof window.oauthflow === 'undefined') {
           parameters[values[0]] = values[1];
         });
 
-        window.opener.postMessage(parameters,
-                                  oauthflow.params[service][APP_ORIGIN]);
+        window.opener.postMessage(parameters, APP_ORIGIN);
 
         // Finally the window is closed
         window.close();
@@ -84,6 +83,8 @@ if (typeof window.oauthflow === 'undefined') {
                           'redirect_uri=' + redirect_uri,
                           'response_type=token',
                           'scope=' + scopeParam,
+                          // Only needed for Gmail (see Bug 962377)
+                          'approval_prompt=force',
                           'state=' + state
       ]; // Query params
 

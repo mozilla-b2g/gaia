@@ -16,8 +16,15 @@
         debug('setCardLock');
       },
       getCardLock: FFOS_RUNTIME.domRequest({ enabled: false }),
-      getCardLockRetryCount: function(type, callback) {
-        callback(this._retryCount);
+      getCardLockRetryCount: function(type) {
+        var request = {};
+        setTimeout(function() {
+          request.result = {
+            retryCount: this._retryCount
+          };
+          request.onsuccess && request.onsuccess();
+        }.bind(this));
+        return request;
       },
       unlockCardLock: function() {
         // simulate invalid input
@@ -52,8 +59,15 @@
         debug('setCardLock');
       },
       getCardLock: FFOS_RUNTIME.domRequest({ enabled: false }),
-      getCardLockRetryCount: function(type, callback) {
-        callback(this._retryCount);
+      getCardLockRetryCount: function(type) {
+        var request = {};
+        setTimeout(function() {
+          request.result = {
+            retryCount: this._retryCount
+          };
+          request.onsuccess && request.onsuccess();
+        }.bind(this));
+        return request;
       },
       unlockCardLock: function() {
         this.cardState = 'ready';

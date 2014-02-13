@@ -12,16 +12,14 @@ class TestCalendar(GaiaTestCase):
 
 
     def test_that_new_event_appears_on_all_calendar_views(self):
+        """https://moztrap.mozilla.org/manage/case/6118/"""
 
         # We get the actual time of the device
         _seconds_since_epoch = self.marionette.execute_script("return Date.now();")
         now = datetime.fromtimestamp(_seconds_since_epoch / 1000)
 
-        # We know that the default event time will be rounded up 1 hour
-        event_start_date_time = now + timedelta(hours=1)
-
-        event_title = 'Event Title %s' % str(event_start_date_time.time())
-        event_location = 'Event Location %s' % str(event_start_date_time.time())
+        event_title = 'Event Title %s' % str(now.time())
+        event_location = 'Event Location %s' % str(now.time())
 
         calendar = Calendar(self.marionette)
         calendar.launch()
@@ -31,7 +29,7 @@ class TestCalendar(GaiaTestCase):
         new_event.fill_event_title(event_title)
         new_event.fill_event_location(event_location)
 
-        new_event.tap_save_event()
+        event_start_date_time = new_event.tap_save_event()
 
         # assert that the event is displayed as expected in month view
         self.assertIn(event_title, calendar.displayed_events_in_month_view(event_start_date_time))

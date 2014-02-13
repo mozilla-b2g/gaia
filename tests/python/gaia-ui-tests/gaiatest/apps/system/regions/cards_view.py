@@ -12,7 +12,6 @@ class CardsView(Base):
 
     # Home/Cards view locators
     _cards_view_locator = (By.CSS_SELECTOR, '#cards-view.active')
-    _no_apps_locator = (By.CSS_SELECTOR, '.no-recent-apps')
     # Check that the origin contains the current app name, origin is in the format:
     # app://clock.gaiamobile.org
     _apps_cards_locator = (By.CSS_SELECTOR, '#cards-view li[data-origin*="%s"]')
@@ -46,10 +45,6 @@ class CardsView(Base):
 
     def wait_for_cards_view_not_displayed(self):
         self.wait_for_element_not_displayed(*self._cards_view_locator)
-
-    @property
-    def no_recent_apps_message(self):
-        return self.marionette.find_element(*self._no_apps_locator).text
 
     def swipe_to_next_app(self):
         current_frame = self.apps.displayed_app.frame

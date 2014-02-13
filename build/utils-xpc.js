@@ -1,4 +1,4 @@
-const { Cc, Ci, Cr, Cu } = require('chrome');
+const { Cc, Ci, Cr, Cu, CC } = require('chrome');
 const { btoa } = Cu.import('resource://gre/modules/Services.jsm', {});
 const multilocale = require('./multilocale');
 
@@ -40,6 +40,15 @@ function ls(dir, recursive, exclude) {
 function getOsType() {
   return Cc['@mozilla.org/xre/app-info;1']
           .getService(Ci.nsIXULRuntime).OS;
+}
+
+function isExternalApp(webapp) {
+  if (!webapp.metaData ||
+    (webapp.metaData && webapp.metaData.external === false)) {
+    return false
+  } else {
+    return true;
+  }
 }
 
 function getFileContent(file) {
@@ -203,6 +212,7 @@ function makeWebappsObject(appdirs, domain, scheme, port) {
         let webapp = {
           manifest: getJSON(manifest),
           manifestFile: manifest,
+          buildManifestFile: manifest,
           url: scheme + appDomain + (port ? port : ''),
           domain: appDomain,
           sourceDirectoryFile: manifestFile.parent,
@@ -235,6 +245,11 @@ function makeWebappsObject(appdirs, domain, scheme, port) {
             });
 
             webapp.buildDirectoryFile = buildDirectoryFile;
+
+            let buildManifestFile = buildDirectoryFile.clone();
+            buildManifestFile.append('manifest.webapp');
+
+            webapp.buildManifestFile = buildManifestFile;
           }
         }
 
@@ -296,14 +311,6 @@ function getGaia(options) {
 function getLocaleBasedir(original) {
   return (getOsType().indexOf('WIN') !== -1) ?
     original.replace('/', '\\', 'g') : original;
-}
-
-function gaiaOriginURL(name, scheme, domain, port) {
-  return scheme + name + '.' + domain + (port ? port : '');
-}
-
-function gaiaManifestURL(name, scheme, domain, port) {
-  return gaiaOriginURL(name, scheme, domain, port) + '/manifest.webapp';
 }
 
 function getDistributionFileContent(name, defaultContent, distDir) {
@@ -676,16 +683,20 @@ function Commander(cmd) {
   };
 };
 
+function getEnv(name) {
+  var env = Cc['@mozilla.org/process/environment;1'].
+            getService(Ci.nsIEnvironment);
+  return env.get(name);
+}
+
 // Get PATH of the environment
 function getEnvPath() {
   var os = getOsType();
   if (!os) {
     throw new Error('cannot not read system type');
   }
-  var env = Cc['@mozilla.org/process/environment;1'].
-            getService(Ci.nsIEnvironment);
-  var p = env.get('PATH');
-  var isMsys = env.get('OSTYPE') ? true : false;
+  var p = getEnv('PATH');
+  var isMsys = getEnv('OSTYPE') ? true : false;
   if (os.indexOf('WIN') !== -1 && !isMsys) {
     paths = p.split(';');
   } else {
@@ -711,6 +722,11 @@ function killAppByPid(appName, gaiaDir) {
   }
 }
 
+function getDocument(content) {
+  var DOMParser = CC('@mozilla.org/xmlextras/domparser;1', 'nsIDOMParser');
+  return document = (new DOMParser()).parseFromString(content, 'text/html');
+}
+
 exports.Q = Promise;
 exports.ls = ls;
 exports.getFileContent = getFileContent;
@@ -720,8 +736,6 @@ exports.ensureFolderExists = ensureFolderExists;
 exports.getJSON = getJSON;
 exports.getFileAsDataURI = getFileAsDataURI;
 exports.makeWebappsObject = makeWebappsObject;
-exports.gaiaOriginURL = gaiaOriginURL;
-exports.gaiaManifestURL = gaiaManifestURL;
 exports.getDistributionFileContent = getDistributionFileContent;
 exports.resolve = resolve;
 exports.getGaia = getGaia;
@@ -750,3 +764,6 @@ exports.processEvents = processEvents;
 exports.readZipManifest = readZipManifest;
 exports.log = log;
 exports.killAppByPid = killAppByPid;
+exports.getEnv = getEnv;
+exports.isExternalApp = isExternalApp;
+exports.getDocument = getDocument;

@@ -895,6 +895,7 @@ suite('system/AppWindow', function() {
     test('Localized event', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       var spy = this.sinon.spy(window, 'ManifestHelper');
+      var stubPublish = this.sinon.stub(app1, 'publish');
 
       app1.handleEvent({
         type: '_localized'
@@ -902,6 +903,7 @@ suite('system/AppWindow', function() {
 
       assert.isTrue(spy.calledWithNew());
       assert.isTrue(spy.calledWithExactly(app1.manifest));
+      assert.isTrue(stubPublish.calledWithExactly('namechanged'));
     });
 
     test('Localized event', function() {

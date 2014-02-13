@@ -46,7 +46,7 @@ function installSvoperapps(profileFolder) {
     return sh.run(['-c', 'adb shell rm -r ' + svoperappsUrl]);
   }).then(function() {
     return sh.run(['-c', 'adb push "' + utils.joinPath(profileFolder,
-      'svoperapps') + '"', svoperappsUrl]);
+      'svoperapps') + '" ' + svoperappsUrl]);
   });
 }
 

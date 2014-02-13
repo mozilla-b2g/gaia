@@ -135,21 +135,15 @@ var Navigation = {
     window.open(href);
   },
 
-  getProgressBarClassName: function n_getProgressBarClassName() {
+  getProgressBarState: function n_getProgressBarState() {
     // Manage step state (dynamically change)
-    var className = 'step-state step-';
-    if (this.skipped && this.currentStep > 2) {
-      className += (this.currentStep - 1) + ' less-steps';
-    } else {
-      className += this.currentStep;
-    }
-
-    return className;
+    return (this.skipped && this.currentStep > 2) ? this.currentStep - 2 :
+      this.currentStep - 1;
   },
 
   handleEvent: function n_handleEvent(event) {
     var actualHash = window.location.hash;
-    var className = this.getProgressBarClassName();
+    UIManager.progressBar.classList.remove('hidden');
     switch (actualHash) {
       case '#languages':
         UIManager.mainTitle.innerHTML = _('language');
@@ -207,13 +201,15 @@ var Navigation = {
       case '#about-your-privacy':
       case '#sharing-performance-data':
         UIManager.mainTitle.innerHTML = _('aboutBrowser');
-        // override the className here
-        className = 'hidden';
+        UIManager.progressBar.classList.add('hidden');
         UIManager.navBar.classList.add('back-only');
         break;
     }
 
-    UIManager.progressBar.className = className;
+    UIManager.progressBarState.style.width =
+      'calc(100% / ' + numSteps + ')';
+    UIManager.progressBarState.style.transform =
+      'translateX(' + (this.getProgressBarState() * 100) + '%)';
 
     // If SIM card is mandatory, we hide the button skip
     if (this.simMandatory) {
@@ -301,7 +297,7 @@ var Navigation = {
     if (futureLocation.requireSIM) {
       SimManager.handleCardState(function check_cardState(response) {
         self.skipped = false;
-        if (!response) {
+        if (!response || !SimManager.available()) {
           self.skipStep();
         }
       });

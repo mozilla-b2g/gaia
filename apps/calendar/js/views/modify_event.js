@@ -11,6 +11,11 @@ Calendar.ns('Views').ModifyEvent = (function() {
 
     ERROR_PREFIX: 'event-error-',
 
+    formats: {
+      date: 'dateTimeFormat_%x',
+      time: 'shortTimeFormat'
+    },
+
     selectors: {
       element: '#modify-event-view',
       alarmList: '#modify-event-view .alarms',
@@ -567,32 +572,26 @@ Calendar.ns('Views').ModifyEvent = (function() {
         endDate = this.formatEndDate(endDate);
       }
 
-      this.getEl('startDate').value =
-        InputParser.exportDate(startDate);
-      this._updateDateTimeLocale(
+      this.getEl('startDate').value = InputParser.exportDate(startDate);
+      this._setupDateTimeSync(
         'date', 'startDate', 'start-date-locale', startDate);
 
-      this.getEl('endDate').value =
-        InputParser.exportDate(endDate);
-      this._updateDateTimeLocale(
+      this.getEl('endDate').value = InputParser.exportDate(endDate);
+      this._setupDateTimeSync(
         'date', 'endDate', 'end-date-locale', endDate);
 
-      this.getEl('startTime').value =
-        InputParser.exportTime(startDate);
-      this._updateDateTimeLocale(
+      this.getEl('startTime').value = InputParser.exportTime(startDate);
+      this._setupDateTimeSync(
         'time', 'startTime', 'start-time-locale', startDate);
 
-      this.getEl('endTime').value =
-        InputParser.exportTime(endDate);
-      this._updateDateTimeLocale(
+      this.getEl('endTime').value = InputParser.exportTime(endDate);
+      this._setupDateTimeSync(
         'time', 'endTime', 'end-time-locale', endDate);
 
-      this.getEl('description').textContent =
-        model.description;
+      this.getEl('description').textContent = model.description;
 
       // update calendar id
-      this.getEl('calendarId').value =
-        model.calendarId;
+      this.getEl('calendarId').value = model.calendarId;
 
       // calendar display
       var currentCalendar = this.getEl('currentCalendar');
@@ -611,42 +610,41 @@ Calendar.ns('Views').ModifyEvent = (function() {
      * Handling a layer over <input> to have localized
      * date/time
      */
-    _updateDateTimeLocale: function(type, date, target, value) {
-      var _ = navigator.mozL10n.get;
-      var localeFormat = Calendar.App.dateFormat.localeFormat;
-
-      var _formats = {
-        date: _('dateTimeFormat_%x'),
-        time: _('shortTimeFormat')
-      };
-
+    _setupDateTimeSync: function(type, src, target, value) {
       var targetElement = document.getElementById(target);
-      if (!targetElement)
+      if (!targetElement) {
         return;
+      }
+      this._renderDateTimeLocale(type, targetElement, value);
 
-      targetElement.textContent = localeFormat(
-        value, _formats[type]);
+      var callback = type === 'date' ?
+        this._updateDateLocaleOnInput : this._updateTimeLocaleOnInput;
 
-      this.getEl(date).addEventListener('input', function(e) {
-        var selected;
-        var newDate = new Date();
+      this.getEl(src)
+        .addEventListener('input', callback.bind(this, targetElement));
+    },
 
-        if (type == 'date') {
-          selected = InputParser.importDate(e.target.value);
-          newDate.setFullYear(selected.year);
-          newDate.setMonth(selected.month);
-          newDate.setDate(selected.date);
-        }
-        if (type == 'time') {
-          selected = InputParser.importTime(e.target.value);
-          newDate.setHours(selected.hours);
-          newDate.setMinutes(selected.minutes);
-          newDate.setSeconds(0);
-        }
+    _renderDateTimeLocale: function(type, targetElement, value) {
+      // we inject the targetElement to make it easier to test
+      var localeFormat = Calendar.App.dateFormat.localeFormat;
+      var format = navigator.mozL10n.get(this.formats[type]);
+      targetElement.textContent = localeFormat(value, format);
+    },
 
-        targetElement.textContent = localeFormat(
-          newDate, _formats[type]);
-      });
+    _updateDateLocaleOnInput: function(targetElement, e) {
+      var selected = InputParser.importDate(e.target.value);
+      // use date constructor to avoid issues, see Bug 966516
+      var date = new Date(selected.year, selected.month, selected.date);
+      this._renderDateTimeLocale('date', targetElement, date);
+    },
+
+    _updateTimeLocaleOnInput: function(targetElement, e) {
+      var selected = InputParser.importTime(e.target.value);
+      var date = new Date();
+      date.setHours(selected.hours);
+      date.setMinutes(selected.minutes);
+      date.setSeconds(0);
+      this._renderDateTimeLocale('time', targetElement, date);
     },
 
     /**

@@ -201,6 +201,18 @@ body.pickView #thumbnails {
   width:100%;
   float:left;
 }
+
+/* Bug 968311 - Keep Gallery in scrollable
+ * background color. Need in all four
+ * containers below.
+ */
+#thumbnails > li,
+#thumbnails > li > ul,
+.thumbnail-group-header,
+.thumbnail-group-container {
+  background-color: #0E1214;
+}
+
 .thumbnail-group-container {
   padding: 0;
 }
@@ -210,12 +222,10 @@ body.pickView #thumbnails {
   list-style-type: none;
 }
 
-
 #thumbnails>li:first-child .thumbnail-group-header {
   border-top: 0.1rem solid;
   border-color:rgba(255,255,255, 0.1);
 }
-
 
 .thumbnail {
   margin-right: 0.1rem;

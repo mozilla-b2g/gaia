@@ -14,7 +14,8 @@ How to:
     }
   ]);
 
-  prompt1.addToList('Another button', function(){alert('Another action');});
+  prompt1.addToList('Another button', 'depth0',
+                    true, function(){alert('Another action');});
   prompt1.show();
 */
 /*jshint browser: true */
@@ -23,6 +24,9 @@ define(function(require) {
 
 var FOLDER_DEPTH_CLASSES = require('folder_depth_classes'),
     mozL10n = require('l10n!');
+
+// Used for empty click handlers.
+function noop() {}
 
 function ValueSelector(title, list) {
   var init, show, hide, render, setTitle, emptyList, addToList,
@@ -124,7 +128,13 @@ function ValueSelector(title, list) {
       var depthIdx = data.list[i].depth;
       depthIdx = Math.min(FOLDER_DEPTH_CLASSES.length - 1, depthIdx);
       label.classList.add(FOLDER_DEPTH_CLASSES[depthIdx]);
-      li.addEventListener('click', data.list[i].callback, false);
+
+      // If not selectable use an empty click handler. Because of event
+      // fuzzing, we want to have something registered, otherwise an
+      // adjacent list item may receive the click.
+      var callback = data.list[i].selectable ? data.list[i].callback : noop;
+      li.addEventListener('click', callback, false);
+
       li.appendChild(label);
       list.appendChild(li);
     }
@@ -138,10 +148,11 @@ function ValueSelector(title, list) {
     data.list = [];
   };
 
-  addToList = function(label, depth, callback) {
+  addToList = function(label, depth, selectable, callback) {
     data.list.push({
       label: label,
       depth: depth,
+      selectable: selectable,
       callback: callback
     });
   };

@@ -34,12 +34,17 @@
 
   function _deleteDownload(id, successCb, errorCb) {
     var download = downloadsCache[id];
-    _deleteFromDownloadsCache(id);
-    var req = DownloadHelper.remove(download);
-    req.onsuccess = successCb;
-    req.onerror = errorCb;
 
-    return req;
+    var reqShow = DownloadUI.show(DownloadUI.TYPE.DELETE, download);
+
+    reqShow.onconfirm = function confirmed() {
+      _deleteFromDownloadsCache(id);
+      var reqRemove = DownloadHelper.remove(download);
+      reqRemove.onsuccess = successCb;
+      reqRemove.onerror = errorCb;
+    };
+
+    reqShow.oncancel = errorCb;
   }
 
   var DownloadApiManager = {

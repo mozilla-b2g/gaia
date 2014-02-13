@@ -2,7 +2,7 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 /*global Settings, Utils, Attachment, AttachmentMenu, MozActivity, SMIL,
-        MessageManager */
+        ThreadUI */
 /*exported Compose */
 
 'use strict';
@@ -91,8 +91,8 @@ var Compose = (function() {
   // anytime content changes - takes a parameter to check for image resizing
   function onContentChanged(duck) {
     // Track when content is edited for draft replacement case
-    if (MessageManager.draft) {
-      MessageManager.draft.isEdited = true;
+    if (ThreadUI.draft) {
+      ThreadUI.draft.isEdited = true;
     }
 
     // if the duck is an image attachment, handle resizes

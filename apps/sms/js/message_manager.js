@@ -11,7 +11,6 @@
 'use strict';
 
 var MessageManager = {
-  draft: null,
   activity: null,
   forward: null,
   init: function mm_init(callback) {
@@ -103,20 +102,6 @@ var MessageManager = {
 
   onVisibilityChange: function mm_onVisibilityChange(e) {
     LinkActionHandler.reset();
-    // If we leave the app and are in a thread or compose window
-    // save a message draft if necessary
-    if (document.hidden) {
-      var hash = window.location.hash;
-
-      // Auto-save draft if the user has entered anything
-      // in the composer.
-      if ((hash === '#new' || hash.startsWith('#thread=')) &&
-          (!Compose.isEmpty() || ThreadUI.recipients.length)) {
-        ThreadUI.saveDraft({preserve: true, autoSave: true});
-      }
-    }
-
-    Drafts.store();
   },
 
   slide: function mm_slide(direction, callback) {
@@ -145,7 +130,7 @@ var MessageManager = {
 
   launchComposer: function mm_launchComposer(callback) {
     ThreadUI.cleanFields(true);
-    var draft = MessageManager.draft || Drafts.get(Threads.currentId);
+    var draft = ThreadUI.draft || Drafts.get(Threads.currentId);
     // Draft recipients are added as the composer launches
     if (draft) {
       // Recipients will exist for draft messages in threads
@@ -265,8 +250,8 @@ var MessageManager = {
         MessageManager.launchComposer(function() {
           this.handleActivity(this.activity);
           this.handleForward(this.forward);
-          if (this.draft) {
-            this.draft.isEdited = false;
+          if (ThreadUI.draft) {
+            ThreadUI.draft.isEdited = false;
           }
         }.bind(this));
         break;
@@ -321,11 +306,11 @@ var MessageManager = {
             // Populate draft if there is one
             var thread = Threads.get(threadId);
             if (thread.hasDrafts) {
-              this.draft = thread.drafts.latest;
-              Compose.fromDraft(this.draft);
-              this.draft.isEdited = false;
+              ThreadUI.draft = thread.drafts.latest;
+              Compose.fromDraft(ThreadUI.draft);
+              ThreadUI.draft.isEdited = false;
             } else {
-              this.draft = null;
+              ThreadUI.draft = null;
             }
           }
         }).bind(this);

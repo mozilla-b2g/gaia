@@ -9,7 +9,11 @@
 }
 
 html {
-  font-size: 10px;
+  /*
+   * We define the font size so that 1/32nd of the screen width is one rem.
+   * We'll change this in landscape mode to be 1/64th of the screen width
+   */
+  font-size: 3.125vw;
   pointer-events: none;
 }
 
@@ -198,7 +202,6 @@ body {
   height: 5.6rem;
   color: #fff;
   font-size: 2.8rem;
-  font-weight: medium;
   line-height: 5.6rem;
   border-radius: 50%;
   background-color: #00aacc;
@@ -319,4 +322,75 @@ body {
   background: url('images/icon_dismiss.png') 0.5rem center /2.4rem no-repeat;
   margin: 0;
   padding: 0;
+}
+
+/*
+ * We define rems differently in landscape than we do in portrait so that
+ * the keyboard isn't too high in landscape mode. But if we do only that
+ * then the fonts end up too small, so we adjust font sizes and related
+ * properties here so that the fonts in landscape are a little bigger
+ * But still not as big as in portrait mode.
+ * On a 320x480 phone, rems shrink by 3/4ths, but we increase the font size
+ * by roughly 7/6ths, so we end up with fonts that are 21/24th in landscape.
+ */
+@media (orientation:landscape) {
+  html {
+    /*
+     * In landscape mode, we define 1 rem to equal 1/64th of the screen width.
+     * It is not clear if this is a careful design choice or just a convenient
+     * heuristic that works out okay for the form factors we use.
+     */
+    font-size: 1.5625vw;
+  }
+
+  #keyboardContainer {
+    height: 24.1rem; /* 20.4rem keyboard, 3.5rem suggestions 0.2 rem border*/
+  }
+
+  .key {
+    font-size: 2.8rem;
+  }
+
+  .key.specialkey:not([data-name=SPACE]) {
+    font-size: 2.1rem;
+  }
+
+  .key:not(.specialkey).touched::before {
+    top: -7rem;
+    left: calc(50% - 3.5rem);
+    width: 7rem;
+    height: 7rem;
+    font-size: 3.5rem;
+    line-height: 7rem;
+  }
+
+  .altmenu {
+    height: 7rem;
+    border-radius: 3.5rem;
+  }
+
+  .altkey {
+    height: 7rem;
+    min-width: 3.5rem;
+    font-size: 3.5rem;
+    line-height: 7rem;
+  }
+
+  .altkey:first-child, .altkey:last-child {
+      min-width: 4.9rem;
+  }
+
+  .altkey:first-child:last-child {
+      min-width: 7rem;
+  }
+
+  .suggestions {
+    height: 3.5rem;
+  }
+
+  .suggestion {
+    font-size: 2.7rem;
+    line-height: 3.5rem;
+    height: 3.5rem;
+  }
 }

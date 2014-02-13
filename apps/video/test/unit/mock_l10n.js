@@ -6,7 +6,14 @@
   }
   DateTimeFormat.prototype = {
     localeFormat: function mockLocaleFormat(time, strFormat) {
-      return time.getTime() + ',' + strFormat;
+      var d = new Date(time.getTime());
+
+      switch (strFormat) {
+        case 'dateTimeFormat_%x':
+          return d.toLocaleFormat('%m/%d/%Y');
+        default:
+          return time.getTime() + ',' + strFormat;
+      }
     }
   };
 

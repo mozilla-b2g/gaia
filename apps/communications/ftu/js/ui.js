@@ -10,6 +10,7 @@ var UIManager = {
     'splash-screen',
     'activation-screen',
     'progress-bar',
+    'progress-bar-state',
     'finish-screen',
     'nav-bar',
     'main-title',
@@ -85,6 +86,7 @@ var UIManager = {
     // Tutorial
     'tutorial-screen',
     'tutorial-progress',
+    'tutorial-progress-state',
     'lets-go-button',
     'skip-tutorial-button',
     // Privacy Settings
@@ -239,7 +241,7 @@ var UIManager = {
         if (window.navigator.onLine) {
           Basket.send(emailValue, function emailSent(err, data) {
             if (err) {
-              if (err.desc && err.desc.indexOf('email address') > -1) {
+              if (err.code && err.code === Basket.errors.INVALID_EMAIL) {
                 ConfirmDialog.show(_('invalid-email-dialog-title'),
                                    _('invalid-email-dialog-text'),
                                    {

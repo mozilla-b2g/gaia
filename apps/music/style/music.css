@@ -323,6 +323,16 @@ body.picker-mode #title-player {
   min-height: 100%;
 }
 
+/*
+ * Bug 968456 - Ensure background
+ * scrolls w/ the content
+ */
+#views-tiles-anchor,
+#views-list-anchor,
+#views-sublist-anchor {
+  background-color: #0E1214;
+}
+
 #views-sublist-header,
 #views-sublist-anchor {
   position: relative;
@@ -331,14 +341,19 @@ body.picker-mode #title-player {
 }
 
 #views-sublist-header {
-  height: 8rem;
+  height: 8.1rem;
+}
+
+#views-scrollable-sublist-anchor {
+  overflow-x: hidden;
+  overflow-y: auto;
+  width: 100%;
+  height: calc(100% - 8rem);
 }
 
 #views-sublist-anchor {
   width: 100%;
   height: calc(100% - 8rem);
-  overflow-x: hidden;
-  overflow-y: auto;
   will-change: scroll-position;
 }
 
@@ -721,6 +736,11 @@ button::-moz-focus-inner {
   background-color: rgba(0,0,0, 0.85);
 }
 
+#player-seek.disabled {
+  pointer-events: none;
+  opacity: 0.3;
+}
+
 #player-seek-elapsed,
 #player-seek-bar,
 #player-seek-remaining {
@@ -1085,4 +1105,16 @@ form[role="search"] button {
 form p input + button[type="reset"] {
   width: 4rem;
   padding: 1rem;
+}
+
+#info-banner {
+  z-index: -1;
+  opacity: 0;
+  transition: all 600ms ease;
+}
+
+#info-banner.visible {
+  z-index: 100;
+  opacity: 1;
+  transition: all 600ms ease;
 }

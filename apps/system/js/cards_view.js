@@ -91,18 +91,6 @@ var CardsView = (function() {
     return stringHTML;
   }
 
-  function fireCardChange() {
-    var current = cardsList.children[currentDisplayed];
-    var title = '';
-    if (current) {
-      title = runningApps[current.dataset.origin].name;
-    }
-    window.dispatchEvent(new CustomEvent('cardchange', {
-      detail: {
-        title: title
-      }}));
-  }
-
   function fireCardViewClosed() {
     setTimeout(function nextTick() {
       window.dispatchEvent(new CustomEvent('cardviewclosed'));
@@ -231,8 +219,8 @@ var CardsView = (function() {
     placeCards();
     // At the beginning only the current card can listen to tap events
     currentCardStyle.pointerEvents = 'auto';
-    fireCardChange();
     window.addEventListener('tap', CardsView);
+    window.addEventListener('opencurrentcard', CardsView);
 
     function addCard(origin, app, displayedAppCallback) {
       // Display card switcher background first to make user focus on the
@@ -459,6 +447,7 @@ var CardsView = (function() {
     // events to handle
     window.removeEventListener('lock', CardsView);
     window.removeEventListener('tap', CardsView);
+    window.removeEventListener('opencurrentcard', CardsView);
 
     if (removeImmediately) {
       cardsView.classList.add('no-transition');
@@ -609,8 +598,6 @@ var CardsView = (function() {
     if (noTransition) {
       currentCard.dispatchEvent(new Event('transitionend'));
     }
-
-    fireCardChange();
   }
 
   function moveCards() {
@@ -915,6 +902,11 @@ var CardsView = (function() {
 
       case 'contextmenu':
         manualOrderStart(evt);
+        break;
+
+      case 'opencurrentcard':
+        AppWindowManager.display(currentCard.dataset.origin,
+          'from-cardview', null);
         break;
 
       case 'tap':

@@ -38,7 +38,7 @@ class NewMessage(Messages):
         self.wait_for_element_displayed(*self._message_field_locator)
         message_field = self.marionette.find_element(*self._message_field_locator)
         message_field.tap()
-        message_field.send_keys(value)
+        self.keyboard.send(value)
 
     def tap_send(self, timeout=120):
         self.wait_for_condition(lambda m: m.find_element(*self._send_message_button_locator).is_enabled())
@@ -96,6 +96,3 @@ class NewMessage(Messages):
 
     def tap_recipient_name(self):
         self.marionette.find_element(*self._receiver_input_locator).tap()
-
-    def tap_message_field(self):
-        self.marionette.find_element(*self._message_field_locator).tap()

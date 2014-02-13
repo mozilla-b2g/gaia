@@ -4,9 +4,9 @@ requireLib('querystring.js');
 requireElements('calendar/elements/modify_event.html');
 requireElements('calendar/elements/show_event.html');
 
+mocha.globals(['InputParser']);
+
 suiteGroup('Views.ModifyEvent', function() {
-  /** disabled because of intermittent failures see bug 917537 */
-  return;
 
   var subject;
   var controller;
@@ -351,7 +351,7 @@ suiteGroup('Views.ModifyEvent', function() {
     });
 
 
-    // this allows to test _updateDateTimeLocale()
+    // this allows to test _setupDateTimeSync() - before user changes value
     test('date/time are displayed according to the locale', function(done) {
       remote.startDate = new Date(2012, 11, 30, 1, 2);
       remote.endDate = new Date(2012, 11, 31, 13, 4);
@@ -372,6 +372,50 @@ suiteGroup('Views.ModifyEvent', function() {
         });
       });
     });
+
+    suite('#_updateDateLocaleOnInput', function() {
+      var clock;
+      var element;
+      var evt;
+
+      setup(function() {
+        element = {};
+        evt = { target: {} };
+      });
+
+      teardown(function() {
+        clock.restore();
+      });
+
+      test('should localize date', function() {
+        var baseTimestamp = (new Date(2014, 0, 20).getTime());
+        clock = sinon.useFakeTimers(baseTimestamp);
+        evt.target.value = '2014-01-21';
+        subject._updateDateLocaleOnInput(element, evt);
+        assert.equal(element.textContent, '01/21/2014');
+      });
+
+      test('display proper month - Bug 966516', function() {
+        // it's really important to mock the Date to be able to reproduce the
+        // Bug 966516, since it only happened if system date was a day higher
+        // than next month end date (eg. Jan 31 and you pick Feb 28)
+        var baseTimestamp = (new Date(2014, 0, 31, 2, 30)).getTime();
+        clock = sinon.useFakeTimers(baseTimestamp);
+        evt.target.value = '2014-02-28';
+        subject._updateDateLocaleOnInput(element, evt);
+        assert.equal(element.textContent, '02/28/2014');
+      });
+    });
+
+    suite('#_updateTimeLocaleOnInput', function() {
+      test('should localize time', function() {
+        var element = {};
+        var evt = { target: { value: '22:31' } };
+        subject._updateTimeLocaleOnInput(element, evt);
+        assert.equal(element.textContent, '10:31 PM');
+      });
+    });
+
   });
 
   suite('#_overrideEvent', function(done) {

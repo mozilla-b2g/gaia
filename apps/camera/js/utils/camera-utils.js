@@ -77,6 +77,9 @@ define(function() {
       // Calculate the overflow area (number of pixels)
       overflow = (pw * ph) - (vw * vh);
 
+      // Round overflow down to integer to reduce rounding errors
+      overflow = Math.floor(overflow);
+
       if (overflow < minimumOverflow) {
         minimumOverflow = overflow;
       }
@@ -98,7 +101,7 @@ define(function() {
 
     // Sort the preview sizes by scale closest to 1.0
     calculatedPreviewSizes = calculatedPreviewSizes.sort(function(a, b) {
-      return a - b;
+      return a.scale - b.scale;
     }).sort(function(a, b) {
       return Math.abs(a.scale - 1) - Math.abs(b.scale - 1);
     });

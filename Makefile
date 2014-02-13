@@ -80,6 +80,12 @@ DESKTOP_SHIMS?=0
 GAIA_OPTIMIZE?=0
 GAIA_DEV_PIXELS_PER_PX?=1
 DOGFOOD?=0
+
+# Rocketbar customization
+# none - Do not enable rocketbar
+# half - Rocketbar is enabled, and so is browser app
+# full - Rocketbar is enabled, no browser app
+ROCKETBAR?=half
 TEST_AGENT_PORT?=8789
 GAIA_APP_TARGET?=engineering
 
@@ -132,13 +138,8 @@ endif
 HOMESCREEN?=$(SCHEME)system.$(GAIA_DOMAIN)
 
 BUILD_APP_NAME?=*
-TEST_INTEGRATION_APP_NAME?=*
 ifneq ($(APP),)
-	ifeq ($(MAKECMDGOALS), test-integration)
-	TEST_INTEGRATION_APP_NAME=$(APP)
-	else
 	BUILD_APP_NAME=$(APP)
-	endif
 endif
 
 REPORTER?=spec
@@ -220,12 +221,15 @@ ifneq (,$(findstring MINGW32_,$(SYS)))
 CURDIR:=$(shell pwd -W | sed -e 's|/|\\\\|g')
 SEP=\\
 SEP_FOR_SED=\\\\
-BUILDDIR := file:///$(shell pwd -W)/build/
+GAIA_BUILD_DIR := file:///$(shell pwd -W)/build/
 # Mingw mangle path and append c:\mozilla-build\msys\data in front of paths
 MSYS_FIX=/
 else
-BUILDDIR := file://$(CURDIR)/build/
+GAIA_BUILD_DIR := file://$(CURDIR)/build/
 endif
+
+export SYS
+export GAIA_BUILD_DIR
 
 ifndef GAIA_APP_CONFIG
 GAIA_APP_CONFIG=build$(SEP)config$(SEP)apps-$(GAIA_APP_TARGET).list
@@ -381,6 +385,7 @@ define BUILD_CONFIG
 	"GAIA_APPDIRS" : "$(GAIA_APPDIRS)", \
 	"NOFTU" : "$(NOFTU)", \
 	"REMOTE_DEBUGGER" : "$(REMOTE_DEBUGGER)", \
+	"ROCKETBAR" : "$(ROCKETBAR)", \
 	"TARGET_BUILD_VARIANT" : "$(TARGET_BUILD_VARIANT)", \
 	"SETTINGS_PATH" : "$(SETTINGS_PATH)", \
 	"VARIANT_PATH" : "$(VARIANT_PATH)" \
@@ -399,7 +404,7 @@ endef
 
 # Generate profile/
 
-$(PROFILE_FOLDER): preferences local-apps app-makefiles test-agent-config offline contacts extensions install-xulrunner-sdk .git/hooks/pre-commit $(PROFILE_FOLDER)/settings.json create-default-data $(PROFILE_FOLDER)/installed-extensions.json
+$(PROFILE_FOLDER): preferences local-apps app-makefiles copy-build-stage-manifest test-agent-config offline contacts extensions install-xulrunner-sdk .git/hooks/pre-commit $(PROFILE_FOLDER)/settings.json create-default-data $(PROFILE_FOLDER)/installed-extensions.json
 ifeq ($(BUILD_APP_NAME),*)
 	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)$(PROFILE_FOLDER)"
 endif
@@ -588,7 +593,7 @@ define run-js-command
 # in JavaScript module.
 	echo "run-js-command $1";
 	$(XULRUNNERSDK) $(XPCSHELLSDK) \
-		-e "const GAIA_BUILD_DIR='$(BUILDDIR)'" \
+		-e "const GAIA_BUILD_DIR='$(GAIA_BUILD_DIR)'" \
 		-f build/xpcshell-commonjs.js \
 		-e "try { require('$(strip $1)').execute($$BUILD_CONFIG); quit(0);} \
 			catch(e) { \
@@ -702,8 +707,8 @@ b2g: node_modules/.bin/mozilla-download
 
 .PHONY: test-integration
 # $(PROFILE_FOLDER) should be `profile-test` when we do `make test-integration`.
-test-integration: b2g $(PROFILE_FOLDER)
-	NPM_REGISTRY=$(NPM_REGISTRY) ./bin/gaia-marionette $(shell find . -path "*$(TEST_INTEGRATION_APP_NAME)/test/marionette/*_test.js") \
+test-integration: $(PROFILE_FOLDER)
+	NPM_REGISTRY=$(NPM_REGISTRY) ./bin/gaia-marionette \
 		--host $(MARIONETTE_RUNNER_HOST) \
 		--manifest $(TEST_MANIFEST) \
 		--reporter $(REPORTER)
@@ -754,7 +759,7 @@ ifeq ($(BUILD_APP_NAME),*)
 	do \
 		parent="`dirname $$d`"; \
 		pathlen=`expr $${#parent} + 2`; \
-		find "$$d" -name '*_test.js' | awk '{print substr($$0,'$${pathlen}')}' >> /tmp/test-agent-config; \
+		find "$$d" -name '*_test.js' -path '*/test/unit/*' | awk '{print substr($$0,'$${pathlen}')}' >> /tmp/test-agent-config; \
 	done;
 	@echo '{"tests": [' >> $(TEST_AGENT_CONFIG)
 	@cat /tmp/test-agent-config |  \
@@ -844,7 +849,7 @@ ifdef APP
   JSHINTED_PATH = apps/$(APP)
   GJSLINTED_PATH = $(shell grep "^apps/$(APP)" build/jshint/xfail.list | ( while read file ; do test -f "$$file" && echo $$file ; done ) )
 else
-  JSHINTED_PATH = apps shared
+  JSHINTED_PATH = apps shared build/test/unit
   GJSLINTED_PATH = $(shell ( while read file ; do test -f "$$file" && echo $$file ; done ) < build/jshint/xfail.list )
 endif
 endif
@@ -999,6 +1004,12 @@ really-clean: clean
 adb-remount:
 	$(ADB) remount
 
+# Generally we got manifest from webapp-manifest.js which is execute in
+# applications-data.js unless manifest is generated from Makefile of app.
+# so we will copy manifest.webapp if it's avaiable in build_stage/
+copy-build-stage-manifest: app-makefiles
+	@$(call run-js-command, copy-build-stage-manifest)
+
 build-test-unit: $(NPM_INSTALLED_PROGRAMS)
 	@$(call run-build-test, $(shell find build/test/unit/*.test.js))
 
@@ -1008,3 +1019,7 @@ build-test-integration: $(NPM_INSTALLED_PROGRAMS)
 .PHONY: docs
 docs: $(NPM_INSTALLED_PROGRAMS)
 	grunt docs
+
+.PHONY: watch
+watch: $(NPM_INSTALLED_PROGRAMS)
+	node build/watcher.js

@@ -289,6 +289,12 @@ body > iframe {
   padding-top: 11px;
 }
 
+#blanket-main * {
+  -moz-box-sizing: initial;
+  -webkit-box-sizing: initial;
+  box-sizing: initial;
+}
+
 code .comment { color: #ddd }
 code .init { color: #2F6FAD }
 code .string { color: #5890AD }

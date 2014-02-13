@@ -9,11 +9,8 @@ from gaiatest.apps.settings.app import Settings
 class TestSettingsCellData(GaiaTestCase):
 
     def test_enable_cell_data_via_settings_app(self):
-        """ Enable cell data via the Settings app
+        """https://moztrap.mozilla.org/manage/case/1373/"""
 
-        https://moztrap.mozilla.org/manage/case/1373/
-
-        """
         settings = Settings(self.marionette)
         settings.launch()
         cell_and_data_settings = settings.open_cell_and_data_settings()
@@ -37,5 +34,6 @@ class TestSettingsCellData(GaiaTestCase):
 
         # verify that cell data is now enabled and connected
         self.assertTrue(self.data_layer.is_cell_data_enabled, "Cell data was not enabled via Settings app")
-        self.wait_for_condition(lambda m: self.data_layer.is_cell_data_connected,
-                                message="Cell data was not connected via Settings app")
+        self.wait_for_condition(
+            lambda m: self.data_layer.is_cell_data_connected,
+            message='Cell data was not connected via Settings app')

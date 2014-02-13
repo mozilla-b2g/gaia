@@ -18,7 +18,8 @@ class TestLockScreen(GaiaTestCase):
         self.device.lock()
 
     def test_unlock_to_camera(self):
-        # https://moztrap.mozilla.org/manage/case/1296/
+        """https://moztrap.mozilla.org/manage/case/2460/"""
+
         lock_screen = LockScreen(self.marionette)
         camera = lock_screen.unlock_to_camera()
         lock_screen.wait_for_lockscreen_not_visible()
@@ -27,4 +28,4 @@ class TestLockScreen(GaiaTestCase):
 
         # Wait fot the capture button displayed. no need to take a photo.
         camera.switch_to_camera_frame()
-        camera.wait_for_camera_ready()
+        camera.wait_for_capture_ready()

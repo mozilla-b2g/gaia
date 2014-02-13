@@ -29,7 +29,7 @@
     // SIM is not ready
     } else if (dataSimIccInfo.cardState !== 'ready') {
       debug('SIM not ready:', dataSimIccInfo);
-      dataSimIccInfo.oniccinfochange = _onDOMReady;
+      dataSimIccInfo.oniccinfochange = _onIccReady;
 
     // SIM is ready
     } else {

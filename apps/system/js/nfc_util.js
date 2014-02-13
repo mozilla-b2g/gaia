@@ -158,7 +158,7 @@ var NfcUtil = {
    *   var ndef = NdefCodec.parse(buf);
    *
    * 'null' is returned if the message could not be parsed. Otherwise the
-   * result is an array of MozNdefRecord instances.
+   * result is an array of MozNDEFRecord instances.
    */
   parseNDEF: function parseNDEF(buffer) {
     try {
@@ -206,12 +206,12 @@ var NfcUtil = {
     var type = buffer.getOctetArray(typeLen);
     var id = buffer.getOctetArray(idLen);
     var payload = buffer.getOctetArray(payloadLen);
-    return new MozNdefRecord(tnf, type, id, payload);
+    return new MozNDEFRecord(tnf, type, id, payload);
   },
 
   /**
    * parseHandoverNDEF(): parse a NDEF message containing a handover message.
-   * 'ndefMsg' is an Array of MozNdefRecord. Only 'Hr' and 'Hs' records are
+   * 'ndefMsg' is an Array of MozNDEFRecord. Only 'Hr' and 'Hs' records are
    * parsed (NFCForum-TS-ConnectionHandover_1_2.doc)
    * The result is an object with the following attributes:
    *   - type: either 'Hr' (Handover Request) or 'Hs' (Handover Select)
@@ -222,7 +222,7 @@ var NfcUtil = {
    *   - ac: Array of Alternate Carriers. Each object of this array has
    *         the following attributes:
    *           - cps: Carrier Power State
-   *           - cdr: Carrier Data Record: MozNdefRecord containing further
+   *           - cdr: Carrier Data Record: MozNDEFRecord containing further
    *                  info
    */
   parseHandoverNDEF: function parseHandoverNDEF(ndefMsg) {
@@ -312,7 +312,7 @@ var NfcUtil = {
    * Alternative Carrier that contains a Bluetooth profile.
    * Parameter 'h' is the result of the parse() function.
    * Returns null if no Bluetooth AC could be found, otherwise
-   * returns a MozNdefRecord.
+   * returns a MozNDEFRecord.
    */
   searchForBluetoothAC: function searchForBluetoothAC(h) {
     for (var i = 0; i < h.ac.length; i++) {
@@ -388,13 +388,13 @@ var NfcUtil = {
     }
     var rndLSB = rnd & 0xff;
     var rndMSB = rnd >>> 8;
-    var hr = [new MozNdefRecord(this.NdefConsts.tnf_well_known,
+    var hr = [new MozNDEFRecord(this.NdefConsts.tnf_well_known,
                                 this.NdefConsts.rtd_handover_request,
                                 new Uint8Array([]),
                                 new Uint8Array([18, 145, 2, 2, 99, 114,
                                                 rndMSB, rndLSB, 81, 2, 4, 97,
                                                 99, cps, 1, 98, 0])),
-              new MozNdefRecord(2,
+              new MozNDEFRecord(2,
                                 new Uint8Array([97, 112, 112, 108, 105, 99,
                                                 97, 116, 105, 111, 110, 47,
                                                 118, 110, 100, 46, 98, 108,
@@ -422,12 +422,12 @@ var NfcUtil = {
     for (var i = 5; i >= 0; i--) {
       m.push(parseInt(macVals[i], 16));
     }
-    var hs = [new MozNdefRecord(this.NdefConsts.tnf_well_known,
+    var hs = [new MozNDEFRecord(this.NdefConsts.tnf_well_known,
                                 this.NdefConsts.rtd_handover_select,
                                 new Uint8Array([]),
                                 new Uint8Array([0x12, 0xD1, 0x02, 0x04, 0x61,
                                               0x63, cps, 0x01, 0x30, 0x00])),
-              new MozNdefRecord(this.NdefConsts.tnf_mime_media,
+              new MozNDEFRecord(this.NdefConsts.tnf_mime_media,
                                 new Uint8Array([97, 112, 112, 108, 105, 99,
                                                 97, 116, 105, 111, 110, 47,
                                                 118, 110, 100, 46, 98, 108,

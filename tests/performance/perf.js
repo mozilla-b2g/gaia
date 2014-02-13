@@ -11,6 +11,7 @@ const excludedApps = [
   'communications/import', 'communications/live', // part of other apps
   'communications', // not an app
   'costcontrol', // XXX FIXME. Hang for now
+  'camera', // XXX FIXME. hang too often.
   'email/shared', // not an app
   'fl', 'pdfjs', 'setringtone', // XXX activities
   'template', // XXX not a real thing.

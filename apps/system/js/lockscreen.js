@@ -694,6 +694,7 @@ var LockScreen = {
     switch (panel) {
       case 'passcode':
       case 'main':
+        this.overlay.classList.add('no-transition');
         if (callback)
           setTimeout(callback);
         break;
@@ -895,11 +896,9 @@ var LockScreen = {
   },
 
   updateBackground: function ls_updateBackground(value) {
-    var panels = document.querySelectorAll('.lockscreen-panel');
-    var url = 'url(' + value + ')';
-    for (var i = 0; i < panels.length; i++) {
-      panels[i].style.backgroundImage = url;
-    }
+    var background = document.getElementById('lockscreen-background'),
+        url = 'url(' + value + ')';
+    background.style.backgroundImage = url;
   },
 
   /**

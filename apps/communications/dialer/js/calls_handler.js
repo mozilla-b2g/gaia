@@ -249,33 +249,37 @@ var CallsHandler = (function callsHandler() {
     var removedCall = handledCalls[index];
     handledCalls.splice(index, 1);
 
-    if (handledCalls.length > 0) {
-      // Only hiding the incoming bar if we have another one to display.
-      // Let handledCall catches disconnect event itself.
-      CallScreen.hideIncoming();
-
-      var remainingCall = handledCalls[0];
-      if (remainingCall.call.state == 'incoming') {
-        // The active call ended, showing the incoming call
-        remainingCall.show();
-
-        // This is the difference between an endAndAnswer() and
-        // the active call being disconnected while a call is waiting
-        setTimeout(function nextTick() {
-          if (remainingCall.call.state == 'incoming') {
-            CallScreen.render('incoming');
-          }
-        });
-
-        return;
-      }
-
-      // The incoming call was rejected, resuming...
-      remainingCall.call.resume();
+    if (handledCalls.length === 0) {
+      exitCallScreen(true);
       return;
     }
 
-    exitCallScreen(true);
+    // Only hiding the incoming bar if we have another one to display.
+    // Let handledCall catches disconnect event itself.
+    CallScreen.hideIncoming();
+
+    var remainingCall = handledCalls[0];
+    if (remainingCall.call.state == 'incoming') {
+      // The active call ended, showing the incoming call
+      remainingCall.show();
+
+      // This is the difference between an endAndAnswer() and
+      // the active call being disconnected while a call is waiting
+      setTimeout(function nextTick() {
+        if (remainingCall.call.state == 'incoming') {
+          CallScreen.render('incoming');
+        }
+      });
+
+      return;
+    }
+
+    // The remaining call was held, resume it
+    if (remainingCall.call.group) {
+      remainingCall.call.group.resume();
+    } else {
+      remainingCall.call.resume();
+    }
   }
 
   function handleFirstIncoming(call) {
@@ -536,7 +540,11 @@ var CallsHandler = (function callsHandler() {
     if (telephony.active) {
       // connected, incoming
       telephony.active.hold(); // the incoming call is answered by gecko
-      btHelper.answerWaitingCall();
+
+      // Check for CDMA mode before calling bluetooth CDMA-specific functions
+      if (cdmaCallWaiting()) {
+        btHelper.answerWaitingCall();
+      }
     } else if (handledCalls.length >= 2) {
       // held, incoming
       var lastCall = handledCalls[handledCalls.length - 1].call;

@@ -100,7 +100,7 @@ const IMERender = (function() {
       container.classList.add('keyboard-type-container');
       container.classList.add(keyboardClass);
       if (layout.specificCssRule) {
-        container.classList.add(keyboardName);
+        container.classList.add(layout.keyboardName);
       }
       buildKeyboard(container, flags, layout);
       ime.appendChild(container);

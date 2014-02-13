@@ -235,7 +235,7 @@ contacts.Form = (function() {
     }
 
     if (contact.photo && contact.photo.length > 0) {
-      currentPhoto = contact.photo[0];
+      currentPhoto = ContactPhotoHelper.getFullResolution(contact);
       var button = addRemoveIconToPhoto();
       // Only can be removed a device contact photo
       if (!(deviceContact.photo && deviceContact.photo.length > 0)) {
@@ -482,6 +482,30 @@ contacts.Form = (function() {
     }
   }
 
+  var fillContact = function(contact, done) {
+    createName(contact);
+
+    getPhones(contact);
+    getEmails(contact);
+    getAddresses(contact);
+    getNotes(contact);
+
+    var currentPhoto = getCurrentPhoto();
+    if (!currentPhoto) {
+      done(contact);
+      return;
+    }
+
+    utils.thumbnailImage(currentPhoto, function gotTumbnail(thumbnail) {
+      if (currentPhoto !== thumbnail) {
+        contact.photo = [currentPhoto, thumbnail];
+      } else {
+        contact.photo = [currentPhoto];
+      }
+      done(contact);
+    });
+  };
+
   var saveContact = function saveContact() {
     saveButton.setAttribute('disabled', 'disabled');
     showThrobber();
@@ -503,7 +527,7 @@ contacts.Form = (function() {
       'org': company
     };
 
-    for (field in inputs) {
+    for (var field in inputs) {
       var value = inputs[field].value;
       if (!inputs[field].parentNode.classList.contains(REMOVED_CLASS) &&
                                           value && value.length > 0) {
@@ -517,65 +541,55 @@ contacts.Form = (function() {
       myContact['category'] = currentContact['category'];
     }
 
-    var currentPhoto = getCurrentPhoto();
-    if (currentPhoto) {
-      myContact['photo'] = [currentPhoto];
-    }
-
-    createName(myContact);
-
-    getPhones(myContact);
-    getEmails(myContact);
-    getAddresses(myContact);
-    getNotes(myContact);
-
-    // Use the isEmpty function to check fields but address
-    // and inspect address by it self.
-    var fields = ['givenName', 'familyName', 'org', 'tel',
-      'email', 'note', 'adr'];
-    if (Contacts.isEmpty(myContact, fields)) {
-      return;
-    }
-
-    var contact;
-    if (myContact.id) { //Editing a contact
-      currentContact.tel = [];
-      currentContact.email = [];
-      currentContact.adr = [];
-      currentContact.note = [];
-      currentContact.photo = [];
-      var readOnly = ['id', 'updated', 'published'];
-      for (var field in myContact) {
-        if (readOnly.indexOf(field) == -1) {
-          currentContact[field] = myContact[field];
-        }
-      }
-      contact = currentContact;
-
-      if (fb.isFbContact(contact)) {
-        // If it is a FB Contact not linked it will be automatically linked
-        // As now there is additional contact data entered by the user
-        if (!fb.isFbLinked(contact)) {
-          var fbContact = new fb.Contact(contact);
-          // Here the contact has been promoted to linked but not saved yet
-          fbContact.promoteToLinked();
-        } else {
-          setPropagatedFlag('givenName', deviceGivenName[0], contact);
-          setPropagatedFlag('familyName', deviceFamilyName[0], contact);
-          createName(contact);
-        }
+    fillContact(myContact, function contactFilled(myContact) {
+      // Use the isEmpty function to check fields but address
+      // and inspect address by it self.
+      var fields = ['givenName', 'familyName', 'org', 'tel',
+        'email', 'note', 'adr'];
+      if (Contacts.isEmpty(myContact, fields)) {
+        return;
       }
 
-    } else {
-      contact = utils.misc.toMozContact(myContact);
-    }
+      var contact;
+      if (myContact.id) { //Editing a contact
+        currentContact.tel = [];
+        currentContact.email = [];
+        currentContact.adr = [];
+        currentContact.note = [];
+        currentContact.photo = [];
+        var readOnly = ['id', 'updated', 'published'];
+        for (var field in myContact) {
+          if (readOnly.indexOf(field) == -1) {
+            currentContact[field] = myContact[field];
+          }
+        }
+        contact = currentContact;
 
-    updateCategoryForImported(contact);
+        if (fb.isFbContact(contact)) {
+          // If it is a FB Contact not linked it will be automatically linked
+          // As now there is additional contact data entered by the user
+          if (!fb.isFbLinked(contact)) {
+            var fbContact = new fb.Contact(contact);
+            // Here the contact has been promoted to linked but not saved yet
+            fbContact.promoteToLinked();
+          } else {
+            setPropagatedFlag('givenName', deviceGivenName[0], contact);
+            setPropagatedFlag('familyName', deviceFamilyName[0], contact);
+            createName(contact);
+          }
+        }
 
-    var callbacks = cookMatchingCallbacks(contact);
-    cancelHandler = doCancel.bind(callbacks);
-    cancelButton.addEventListener('click', cancelHandler);
-    doMatch(contact, callbacks);
+      } else {
+        contact = utils.misc.toMozContact(myContact);
+      }
+
+      updateCategoryForImported(contact);
+
+      var callbacks = cookMatchingCallbacks(contact);
+      cancelHandler = doCancel.bind(callbacks);
+      cancelButton.addEventListener('click', cancelHandler);
+      doMatch(contact, callbacks);
+    });
   };
 
   var cookMatchingCallbacks = function cookMatchingCallbacks(contact) {
@@ -1074,7 +1088,7 @@ contacts.Form = (function() {
       var canvas = document.createElement('canvas');
       canvas.width = target_width;
       canvas.height = target_height;
-      var context = canvas.getContext('2d');
+      var context = canvas.getContext('2d', { willReadFrequently: true });
 
       context.drawImage(img, x, y, w, h, 0, 0, target_width, target_height);
       URL.revokeObjectURL(url);

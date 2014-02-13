@@ -77,5 +77,6 @@ class CostControl(Base):
 
     def switch_to_ftu(self):
         ftu_iframe = self.marionette.find_element(*self._ftu_frame_locator)
+        self.wait_for_condition(lambda m: 'non-ready' not in ftu_iframe.get_attribute('class'))
         self.marionette.switch_to_frame(ftu_iframe)
         self.wait_for_element_present(*self._ftu_section_locator)

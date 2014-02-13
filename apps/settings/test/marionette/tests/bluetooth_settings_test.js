@@ -1,9 +1,11 @@
+'use strict';
 var Settings = require('../app/app'),
     assert = require('assert');
 
 marionette('manipulate bluetooth settings', function() {
   var client = marionette.client();
   var settingsApp;
+  var bluetoothPanel;
 
   setup(function() {
     settingsApp = new Settings(client);

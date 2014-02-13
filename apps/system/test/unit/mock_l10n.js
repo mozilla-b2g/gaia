@@ -1,6 +1,12 @@
 'use strict';
+/* exported MockL10n */
 
 var MockL10n = {
+
+  language: {
+    code: 'en-US'
+  },
+
   get: function get(key, params) {
     if (params) {
       key += JSON.stringify(params);

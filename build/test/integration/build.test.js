@@ -18,7 +18,7 @@ suite('Build Integration tests', function() {
   });
 
   test('make without rule & variable', function(done) {
-    exec('make', function(error, stdout, stderr) {
+    exec('ROCKETBAR=none make', function(error, stdout, stderr) {
       helper.checkError(error, stdout, stderr);
 
       // expected values for prefs and user_prefs
@@ -333,23 +333,54 @@ suite('Build Integration tests', function() {
     });
   });
 
-  test('make with GAIA_DISTRIBUTION_DIR=distribution_tablet', function(done) {
-    exec('GAIA_DISTRIBUTION_DIR=distribution_tablet make',
+  test('make with ROCKETBAR=full', function(done) {
+    exec('ROCKETBAR=full make',
       function(error, stdout, stderr) {
         helper.checkError(error, stdout, stderr);
 
-        var hsZip = new AdmZip(path.join(process.cwd(), 'profile',
-          'webapps', 'homescreen.gaiamobile.org', 'application.zip'));
-        var hsInit = JSON.parse(hsZip.readAsText(hsZip.getEntry('js/init.json')));
-        var settingsPath = path.join(process.cwd(), 'profile', 'settings.json');
-        var settings = JSON.parse(fs.readFileSync(settingsPath));
-        var expectedSettings = {
-          'wap.push.enabled': false
-        };
+        var hsBroZip = new AdmZip(path.join(process.cwd(), 'profile',
+          'webapps', 'browser.gaiamobile.org', 'application.zip'));
+        var hsSysZip = new AdmZip(path.join(process.cwd(), 'profile',
+          'webapps', 'system.gaiamobile.org', 'application.zip'));
 
-        helper.checkSettings(settings, expectedSettings);
-        assert.equal(hsInit['search_page'].enabled, false);
-        assert.equal(hsInit.swipe.threshold, 0.25);
+        var hsInit =
+          JSON.parse(hsBroZip.readAsText(hsBroZip.getEntry('js/init.json')));
+        var hsBroManifest =
+          JSON.parse(hsBroZip.readAsText(hsBroZip.getEntry('manifest.webapp')));
+        var defaultJSONPath =
+          path.join(process.cwd(), 'apps', 'browser', 'build', 'default.json');
+        var hsIcc =
+          JSON.parse(hsSysZip.readAsText(hsSysZip.getEntry('js/icc.json')));
+        var hsWapuaprof =
+          JSON.parse(hsSysZip.readAsText(hsSysZip.getEntry('js/wapuaprof.json')));
+        var hsSysManifest =
+          JSON.parse(hsSysZip.readAsText(hsSysZip.getEntry('manifest.webapp')));
+
+        var expectedInitJson = JSON.parse(fs.readFileSync(defaultJSONPath));
+        var expectedIcc = {
+          'defaultURL': 'http://www.mozilla.org/en-US/firefoxos/'
+        };
+        var expectedWap = {};
+        var expectedManifest = {
+          activities: {
+            view: {
+              filters: {
+                type: 'url',
+                url: {
+                  required: true,
+                  pattern: 'https?:.{1,16384}',
+                  patternFlags: 'i'
+                }
+              }
+            }
+          }
+        };
+        helper.checkSettings(hsInit, expectedInitJson);
+        assert.equal(hsBroManifest.role, 'system');
+        assert.equal(hsBroManifest.activities, null);
+        helper.checkSettings(hsIcc, expectedIcc);
+        helper.checkSettings(hsWapuaprof, expectedWap);
+        helper.checkSettings(hsSysManifest, expectedManifest);
         done();
       }
     );

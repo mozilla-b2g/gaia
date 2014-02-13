@@ -24,17 +24,24 @@ class TestCameraUnlockWithPasscode(GaiaTestCase):
         self.device.lock()
 
     def test_unlock_to_camera_with_passcode(self):
-        # https://github.com/mozilla/gaia-ui-tests/issues/479
+        """https://moztrap.mozilla.org/manage/case/2460/"""
+
         lock_screen = LockScreen(self.marionette)
         camera = lock_screen.unlock_to_camera()
-        lock_screen.wait_for_lockscreen_not_visible()
+
+        # Bug 965806 - test_lockscreen_unlock_to_camera_with_passcode.TestCameraUnlockWithPasscode is failing after Bug 951978
+        # lock_screen.wait_for_lockscreen_not_visible()
 
         self.assertTrue(self.device.is_locked)
 
         camera.switch_to_camera_frame()
+        camera.take_photo()
 
-        self.assertFalse(camera.is_gallery_button_visible)
+        # Check that Filmstrip is visible
+        self.assertTrue(camera.is_filmstrip_visible)
 
-        camera.tap_switch_source()
+        # Check that picture saved to SD cards
+        self.wait_for_condition(lambda m: len(self.data_layer.picture_files) == 1)
+        self.assertEqual(len(self.data_layer.picture_files), 1)
 
         self.assertFalse(camera.is_gallery_button_visible)

@@ -9,6 +9,7 @@
     <link rel="stylesheet" type="text/css" href="shared/style/confirm.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/progress_activity.css"/>
+    <link rel="stylesheet" type="text/css" href="shared/style/status.css">
     <link rel="stylesheet" type="text/css" href="shared/style/tabs.css"/>
     <link rel="stylesheet" type="text/css" href="style/music.css"/>
     <!-- Localization -->
@@ -71,7 +72,8 @@
             <button id="views-sublist-controls-shuffle" class="album-controls-button"></button>
           </div>
         </div>
-        <div id="views-sublist-anchor"></div>
+        <!-- Bug 968456. Scrollable area needs to be inside an opaque background div to help gecko -->
+        <div id="views-scrollable-sublist-anchor"><div id="views-sublist-anchor"></div></div>
       </div>
       <div id="views-player" class="view hidden">
         <div id="player-cover">
@@ -92,6 +94,9 @@
             </div>
             <button id="player-album-shuffle" class="player-cover-button"></button>
           </div>
+          <section id="info-banner" role="status">
+            <p data-l10n-id="music-paused-notification"></p>
+          </section>
         </div>
         <div id="player-seek">
           <span id="player-seek-elapsed">00:00</span>

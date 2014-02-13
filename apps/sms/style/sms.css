@@ -114,8 +114,22 @@ form[role="dialog"][data-type="edit"] header menu[type="toolbar"] button {
   margin: 0 1.5rem;
 }
 
+#threads-container[data-type="list"] header {
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 2;
+  padding-top: 0.7rem;
+}
+
+
 #threads-container[data-type="list"] ul {
   padding: 0 1.5rem;
+
+  /* Bug 967878 - [Messages] Background doesn't scroll with the threads causing
+  * expensive over-invalidation
+  */
+  background-color: white;
 }
 
 [data-type="list"] li {
@@ -258,7 +272,7 @@ form[data-type="action"] img[src=""] {
 }
 
 #messages-new-message-notice {
-  display: flex;  
+  display: flex;
   flex-direction: row;
 
   padding: 1rem 1.5rem 1rem 2rem;
@@ -402,6 +416,7 @@ section.has-carrier .article-list header:first-child {
 
 .article-list[data-type="list"] .message {
   position: relative;
+  z-index: 0; /* bug 970422 */
 
   display: block;
   overflow: hidden;
@@ -591,6 +606,10 @@ section.has-carrier .article-list header:first-child {
   padding: 0;
 }
 
+.article-list[data-type="list"] .message.no-attachment .bubble p {
+  height: 2.3rem;
+}
+
 .article-list[data-type="list"] .message .bubble p a {
   color: #000;
   text-decoration: underline;
@@ -720,18 +739,22 @@ form.bottom[role="search"].messages-compose-form {
 #messages-subject-input {
   position: absolute;
   top: 0;
-  height: 2rem;
-  max-height: 4rem;
+
+  -moz-box-sizing: content-box;
+  box-sizing: content-box;
+  height: 1.5rem;
+  max-height: 3.5rem;
   width: -moz-calc(100% - 8.5rem);
-  padding: 0.9rem 0.7rem;
+  padding: 0.5rem 0.7rem;
   border: 0;
   border-bottom: 0.1rem solid #eaeae7;
-  -moz-box-sizing: content-box;
+
   white-space: pre-wrap;
   text-align: left;
   font-family: 'Fira Sans', sans-serif;
   font-style: italic;
   font-size: 1.4rem;
+  line-height: 2rem;
 }
 
 /*
@@ -787,37 +810,6 @@ form.bottom[role="search"].messages-compose-form {
   color: #606060;
   font-weight: 300;
   font-size: 2.2rem;
-}
-
-/*
-  Fixed headers
-*/
-.fixed-title {
-  position: absolute;
-  z-index: 4;
-  top: 5rem;
-  left: 0;
-  right: 0;
-  height: 3rem;
-  line-height: 4rem;
-  padding: 0 1.5rem;
-  margin: 0 1.5rem;
-  border-bottom: solid 0.1rem #ff4e00;
-  background-repeat: no-repeat;
-  background-color: #FFFFFF;
-  color: #FF4E00;
-  pointer-events: none;
-  text-align: left;
-  text-transform: uppercase;
-  font-size: 1.6rem;
-  font-weight: normal;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.fixed-title.no-fixed-header {
-  transform: translateY(-100%);
 }
 
 /*

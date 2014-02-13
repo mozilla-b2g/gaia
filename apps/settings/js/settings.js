@@ -214,6 +214,13 @@ var Settings = {
         }
       }
 
+      // hide or unhide items
+      rule = '[data-show-name="' + key + '"]:not([data-ignore])';
+      var item = document.querySelector(rule);
+      if (item) {
+        item.hidden = !value;
+      }
+
       // update <input> values when the corresponding setting is changed
       var input = document.querySelector('input[name="' + key + '"]');
       if (!input)
@@ -252,7 +259,7 @@ var Settings = {
       return;
     }
 
-    // hide telephony related entries if not supportted
+    // hide telephony related entries if not supported
     if (!navigator.mozTelephony) {
       var elements = ['call-settings',
                       'data-connectivity',
@@ -539,6 +546,15 @@ var Settings = {
           }
         }
       }
+
+      // unhide items according to preferences.
+      rule = '[data-show-name]:not([data-ignore])';
+      var hiddenItems = panel.querySelectorAll(rule);
+      for (i = 0; i < hiddenItems.length; i++) {
+        var key = hiddenItems[i].dataset.showName;
+        hiddenItems[i].hidden = !result[key];
+      }
+
     });
   },
 

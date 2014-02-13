@@ -114,6 +114,8 @@ var NfcManager = {
   NFC_HW_STATE_ENABLE_DISCOVERY: 2,
   NFC_HW_STATE_DISABLE_DISCOVERY: 3,
 
+  hwState: 0,
+
   _debug: function nm_debug(msg, optObject) {
     if (this.DEBUG) {
       var output = '[DEBUG] SYSTEM NFC: ' + msg;
@@ -139,26 +141,24 @@ var NfcManager = {
     window.addEventListener('lock', this);
     window.addEventListener('unlock', this);
     var self = this;
-    SettingsListener.observe('nfc.enabled', false, function(e) {
-      var state = (e.settingValue === true) ? self.NFC_HW_STATE_ON :
-                                              self.NFC_HW_STATE_OFF;
+    SettingsListener.observe('nfc.enabled', false, function(enabled) {
+      var state = enabled ?
+                    (LockScreen.locked ?
+                       self.NFC_HW_STATE_DISABLE_DISCOVERY :
+                       self.NFC_HW_STATE_ON) :
+                    self.NFC_HW_STATE_OFF;
       self.dispatchHardwareChangeEvt(state);
     });
   },
 
-  acceptNfcEvents: function nm_acceptNfcEvents() {
+  isScreenUnlockAndEnabled: function nm_isScreenUnlockAndEnabled() {
     // Policy:
-    if (ScreenManager.screenEnabled && !LockScreen.locked) {
-      return true;
-    } else {
-      return false;
-    }
+    return !LockScreen.locked && ScreenManager.screenEnabled;
   },
 
   dispatchHardwareChangeEvt: function nm_dispatchHardwareChangeEvt(state) {
-    var acceptEvents = this.acceptNfcEvents();
-    this._debug('dispatchHardwareChangeEvt : acceptEvents : ' + acceptEvents +
-                                 'state : ' + JSON.stringify(state));
+    this._debug('dispatchHardwareChangeEvt - state : ' + state);
+    this.hwState = state;
     var detail = {
       type: 'nfc-hardware-state-change',
       nfcHardwareState: state
@@ -170,15 +170,19 @@ var NfcManager = {
   },
 
   handleEvent: function nm_handleEvent(evt) {
-    var state = this.NFC_HW_STATE_ENABLE_DISCOVERY;
+    var state;
     switch (evt.type) {
       case 'lock': // Fall thorough
       case 'unlock':
       case 'screenchange':
-        if ((evt.detail && evt.detail.screenEnabled) && !LockScreen.locked) {
-          state = this.NFC_HW_STATE_ENABLE_DISCOVERY;
-        } else {
-          state = this.NFC_HW_STATE_DISABLE_DISCOVERY;
+        if (this.hwState == this.NFC_HW_STATE_OFF) {
+          return;
+        }
+        state = this.isScreenUnlockAndEnabled() ?
+                this.NFC_HW_STATE_ENABLE_DISCOVERY :
+                this.NFC_HW_STATE_DISABLE_DISCOVERY;
+        if (state == this.hwState) {
+          return;
         }
         this.dispatchHardwareChangeEvt(state);
         break;
@@ -257,8 +261,7 @@ var NfcManager = {
         var req = nfctag.readNDEF();
         req.onsuccess = function() {
           self._debug('NDEF Read result: ' + JSON.stringify(req.result));
-          self.handleNdefDiscovered(tech, session,
-                                              req.result.records);
+          self.handleNdefDiscovered(tech, session, req.result);
           self.doClose(nfctag);
         };
         req.onerror = function() {
@@ -321,12 +324,7 @@ var NfcManager = {
   },
 
   dispatchP2PUserResponse: function nm_dispatchP2PUserResponse(manifestURL) {
-    var detail = { manifestUrl: manifestURL };
-    var evt = new CustomEvent('nfc-p2p-user-accept', {
-      bubbles: true, cancelable: true,
-      detail: detail
-    });
-    window.dispatchEvent(evt);
+    window.navigator.mozNfc.notifyUserAcceptedP2P(manifestURL);
   },
 
   fireTagDiscovered: function nm_fireTagDiscovered(command) {
@@ -350,11 +348,6 @@ var NfcManager = {
   handleTechnologyDiscovered: function nm_handleTechnologyDiscovered(command) {
     this._debug('Technology Discovered: ' + JSON.stringify(command));
 
-    if (!this.acceptNfcEvents()) {
-      this._debug(
-        'Ignoring NFC technology tag message. NFC is in disabled state.');
-      return;
-    }
     // UX: TODO
     window.navigator.vibrate([25, 50, 125]);
 

@@ -4,9 +4,8 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from marionette.by import By
-from marionette.errors import NoSuchElementException
-from marionette.errors import ElementNotVisibleException
 from marionette.marionette import Actions
+from marionette.wait import Wait
 
 from gaiatest.apps.base import Base
 
@@ -80,7 +79,7 @@ class Keyboard(Base):
     _space_key = '32'
 
     # keyboard app locators
-    _keyboard_frame_locator = (By.CSS_SELECTOR, '#keyboards iframe')
+    _keyboard_frame_locator = (By.CSS_SELECTOR, '#keyboards iframe:not([hidden])')
     _keyboard_locator = (By.CSS_SELECTOR, '#keyboard')
     _button_locator = (By.CSS_SELECTOR, '.keyboard-type-container[data-active] button.keyboard-key[data-keycode="%s"], .keyboard-type-container[data-active] button.keyboard-key[data-keycode-upper="%s"]')
     _highlight_key_locator = (By.CSS_SELECTOR, 'div.highlighted button')
@@ -129,6 +128,10 @@ class Keyboard(Base):
         return self.marionette.execute_script('return window.wrappedJSObject.isUpperCase;')
 
     @property
+    def _is_upper_case_locked(self):
+        return self.marionette.execute_script('return window.wrappedJSObject.isUpperCaseLocked;')
+
+    @property
     def _current_input_type(self):
         return self.marionette.execute_script('return window.wrappedJSObject.currentInputType;')
 
@@ -158,6 +161,7 @@ class Keyboard(Base):
     # this is to tap on desired key on keyboard
     def _tap(self, val):
         is_upper_case = self._is_upper_case
+        is_upper_case_locked = self._is_upper_case_locked
 
         self.wait_for_element_displayed(*self._key_locator(val))
         key = self.marionette.find_element(*self._key_locator(val))
@@ -167,9 +171,9 @@ class Keyboard(Base):
         if val.isspace():
             # Space switches back to Default layout
             self.wait_for_condition(lambda m: self._layout_page == 'Default')
-        if val.isupper() and is_upper_case:
+        if val.isupper() and is_upper_case and not is_upper_case_locked:
             # Tapping key with shift enabled causes the keyboard to switch back to lower
-            self.wait_for_condition(lambda m: self._is_upper_case == False)
+            self.wait_for_condition(lambda m: not self._is_upper_case)
 
     # This is for selecting special characters after long pressing
     # "selection" is the nth special element you want to select (n>=1)
@@ -313,16 +317,19 @@ class Keyboard(Base):
         self.apps.switch_to_displayed_app()
 
     def dismiss(self):
-        self.wait_for_condition(lambda m: self.is_displayed())
         self.marionette.switch_to_frame()
         self.marionette.execute_script('navigator.mozKeyboard.removeFocus();')
-        self.wait_for_condition(lambda m: not self.is_displayed())
+        keyboards = self.marionette.find_element(By.ID, 'keyboards')
+        Wait(self.marionette).until(
+            lambda m: 'hide' in keyboards.get_attribute('class') and
+            not keyboards.get_attribute('data-transition-out'))
         self.apps.switch_to_displayed_app()
 
     def is_displayed(self):
         self.marionette.switch_to_frame()
-        keyboard = self.marionette.find_element(*self._keyboard_frame_locator)
-        is_visible = keyboard.is_displayed() and keyboard.location['y'] == 0
+        keyboards = self.marionette.find_element(By.ID, 'keyboards')
+        is_visible = 'hide' not in keyboards.get_attribute('class') and \
+            not keyboards.get_attribute('data-transition-in')
         self.apps.switch_to_displayed_app()
         return is_visible
 

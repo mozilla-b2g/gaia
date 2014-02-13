@@ -1,6 +1,6 @@
-/*global mocha, MocksHelper, loadBodyHTML, MockL10n, ThreadListUI, FixedHeader,
+/*global mocha, MocksHelper, loadBodyHTML, MockL10n, ThreadListUI,
          MessageManager, WaitingScreen, Threads, Template, MockMessages,
-         MockThreadList, MockTimeHeaders, Draft, Drafts, Thread
+         MockThreadList, MockTimeHeaders, Draft, Drafts, Thread, ThreadUI
          */
 
 'use strict';
@@ -18,23 +18,25 @@ requireApp('sms/js/thread_list_ui.js');
 requireApp('sms/test/unit/mock_async_storage.js');
 requireApp('sms/test/unit/mock_contacts.js');
 requireApp('sms/test/unit/mock_time_headers.js');
-requireApp('sms/test/unit/mock_fixed_header.js');
 requireApp('sms/test/unit/mock_l10n.js');
 requireApp('sms/test/unit/mock_message_manager.js');
 requireApp('sms/test/unit/mock_messages.js');
 requireApp('sms/test/unit/mock_utils.js');
 requireApp('sms/test/unit/mock_waiting_screen.js');
+require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 require('/test/unit/thread_list_mockup.js');
 require('/test/unit/utils_mockup.js');
+requireApp('sms/test/unit/mock_thread_ui.js');
 
 var mocksHelperForThreadListUI = new MocksHelper([
   'asyncStorage',
   'Contacts',
-  'FixedHeader',
   'MessageManager',
   'Utils',
   'WaitingScreen',
-  'TimeHeaders'
+  'TimeHeaders',
+  'ThreadUI',
+  'ContactPhotoHelper'
 ]).init();
 
 suite('thread_list_ui', function() {
@@ -142,15 +144,11 @@ suite('thread_list_ui', function() {
         '<li id="thread-2"></li></ul>' +
         '<h2 id="header-2"></h2>' +
         '<ul id="list-2"><li id="thread-3"></li></ul>';
-      this.sinon.stub(FixedHeader, 'refresh');
     });
 
     suite('remove last thread in header', function() {
       setup(function() {
         ThreadListUI.removeThread(3);
-      });
-      test('calls FixedHeader.refresh', function() {
-        assert.isTrue(FixedHeader.refresh.called);
       });
       test('leaves other threads alone', function() {
         assert.ok(ThreadListUI.container.querySelector('#thread-1'));
@@ -170,9 +168,6 @@ suite('thread_list_ui', function() {
     suite('remove thread with others in header', function() {
       setup(function() {
         ThreadListUI.removeThread(2);
-      });
-      test('no FixedHeader.refresh when not removing a header', function() {
-        assert.isFalse(FixedHeader.refresh.called);
       });
       test('leaves other threads alone', function() {
         assert.ok(ThreadListUI.container.querySelector('#thread-1'));
@@ -240,7 +235,6 @@ suite('thread_list_ui', function() {
       this.sinon.spy(ThreadListUI, 'appendThread');
       this.sinon.spy(ThreadListUI, 'mark');
       this.sinon.spy(ThreadListUI, 'setEmpty');
-      this.sinon.spy(FixedHeader, 'refresh');
     });
 
     teardown(function() {
@@ -307,10 +301,6 @@ suite('thread_list_ui', function() {
         // But we have appended twice
         sinon.assert.calledTwice(ThreadListUI.appendThread);
       });
-
-      test('refresh the fixed header', function() {
-        sinon.assert.called(FixedHeader.refresh);
-      });
     });
 
     suite(' > same thread exist, older', function() {
@@ -373,10 +363,6 @@ suite('thread_list_ui', function() {
 
       test('no thread is removed', function() {
         assert.isFalse(ThreadListUI.removeThread.called);
-      });
-
-      test('refresh the fixed header', function() {
-        sinon.assert.called(FixedHeader.refresh);
       });
     });
 
@@ -748,7 +734,6 @@ suite('thread_list_ui', function() {
 
   suite('renderThreads', function() {
     setup(function() {
-      this.sinon.spy(FixedHeader, 'refresh');
       this.sinon.spy(ThreadListUI, 'setEmpty');
       this.sinon.spy(ThreadListUI, 'prepareRendering');
       this.sinon.spy(ThreadListUI, 'startRendering');
@@ -769,7 +754,6 @@ suite('thread_list_ui', function() {
       ThreadListUI.renderThreads(function() {
         done(function checks() {
           sinon.assert.called(ThreadListUI.renderDrafts);
-          sinon.assert.called(FixedHeader.refresh);
           sinon.assert.calledWith(ThreadListUI.finalizeRendering, true);
           assert.isFalse(ThreadListUI.noMessages.classList.contains('hide'));
           assert.isTrue(ThreadListUI.container.classList.contains('hide'));
@@ -907,9 +891,9 @@ suite('thread_list_ui', function() {
       sinon.assert.called(ThreadListUI.setContact);
     });
 
-    test('click on a draft populates MessageManager.draft', function() {
+    test('click on a draft populates ThreadUI.draft', function() {
       document.querySelector('#thread-101 a').click();
-      assert.equal(MessageManager.draft, draft);
+      assert.equal(ThreadUI.draft, draft);
     });
   });
 

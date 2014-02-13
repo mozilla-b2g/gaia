@@ -139,7 +139,7 @@
      * Opens a browser to a URL
      */
     navigate: function(url) {
-      window.open(url, '_blank', 'remote=true');
+      window.open(url, '_blank', 'remote=true,useAsyncPanZoom=true');
     },
 
     /**

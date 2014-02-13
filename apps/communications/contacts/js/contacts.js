@@ -2,8 +2,7 @@
 
 var _;
 var TAG_OPTIONS;
-var COMMS_APP_ORIGIN = document.location.protocol + '//' +
-  document.location.host;
+var COMMS_APP_ORIGIN = location.origin;
 var asyncScriptsLoaded;
 
 // Scale ratio for different devices
@@ -473,24 +472,18 @@ var Contacts = (function() {
   };
 
   var sendEmailOrPick = function sendEmailOrPick(address) {
-    if (ActivityHandler.currentlyHandling) {
-      // Placeholder for the email app if we want to
-      // launch contacts to select an email address.
-      // So far we do nothing
-    } else {
-      try {
-        // We don't check the email format, lets the email
-        // app do that
-        var activity = new MozActivity({
-          name: 'new',
-          data: {
-            type: 'mail',
-            URI: 'mailto:' + address
-          }
-        });
-      } catch (e) {
-        console.log('WebActivities unavailable? : ' + e);
-      }
+    try {
+      // We don't check the email format, lets the email
+      // app do that
+      var activity = new MozActivity({
+        name: 'new',
+        data: {
+          type: 'mail',
+          URI: 'mailto:' + address
+        }
+      });
+    } catch (e) {
+      console.log('WebActivities unavailable? : ' + e);
     }
   };
 
@@ -522,11 +515,14 @@ var Contacts = (function() {
       callback();
     } else {
       initDetails(function onDetails() {
-        Contacts.view('Form', function viewLoaded() {
-          formReady = true;
-          contactsForm = contacts.Form;
-          contactsForm.init(TAG_OPTIONS);
-          callback();
+        LazyLoader.load(['/contacts/js/utilities/image_thumbnail.js'],
+        function() {
+          Contacts.view('Form', function viewLoaded() {
+            formReady = true;
+            contactsForm = contacts.Form;
+            contactsForm.init(TAG_OPTIONS);
+            callback();
+          });
         });
       });
     }
