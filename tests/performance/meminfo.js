@@ -27,7 +27,7 @@ var MemInfo = {
 
   _currentLineNumber: 0,
   /* state in parser */
-  _state: 'none', // 'ps', 'done'
+  _state: 'none', // 'header', 'ps', 'done'
 
   _parsePsLine: function MemInfo_parsePsLine(line, keys) {
     var fields = line.split(' ').filter(isNotEmpty);
@@ -60,19 +60,22 @@ var MemInfo = {
 
   _processLine: function(line) {
     this._currentLineNumber++;
-    if (this._state == 'done')
+    switch(this._state) {
+
+    case 'none':
+      var regex = /bytes/;
+      var r = line.match(regex);
+      if(r) {
+        this._state = 'header';
+      }
       return;
 
-    if (this._currentLineNumber == 1)
-      return; // skip first line. XXX maybe parse it to know the units.
-
-    if (this._currentLineNumber == 2) {
+    case 'header':
       this._keys = line.split(' ').filter(isNotEmpty);
       this._state = 'ps';
-      return;
-    }
+      break;
 
-    if (this._state == 'ps') {
+    case 'ps':
       if (line == '') {
         // an empty line means we are done with ps.
         // if we need more info change the state to something else.
@@ -84,6 +87,13 @@ var MemInfo = {
       if(ps != null) {
         this._meminfo.push(ps);
       }
+      break;
+
+    case 'done':
+      return;
+
+    default:
+      break;
     }
   },
 
