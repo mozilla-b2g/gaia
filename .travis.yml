@@ -16,6 +16,7 @@ env:
   - CI_ACTION=unit-tests-in-b2g
   - CI_ACTION=unit-tests-in-firefox
   - CI_ACTION=marionette_js
+  - CI_ACTION=marionette_js_stable_check
   - CI_ACTION=gaia_ui_tests
   - CI_ACTION=build_tests
   - CI_ACTION=unit-tests-coverage
@@ -28,6 +29,7 @@ matrix:
   allow_failures:
     - env: CI_ACTION=unit-tests-in-b2g
     - env: CI_ACTION=unit-tests-coverage
+    - env: CI_ACTION=marionette_js_stable_check
 notifications:
   email: false
   irc:
