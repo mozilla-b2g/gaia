@@ -158,12 +158,11 @@ html, body {
 #banner-countdown {
   z-index: -1;
   opacity: 0;
-  -moz-transition: all 600ms ease;
+  -moz-transition: opacity 600ms ease;
 }
 #banner-countdown.visible {
   z-index: 1;
   opacity: 1;
-  -moz-transition: all 600ms ease;
 }
 
 #banner-countdown strong {
