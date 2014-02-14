@@ -145,12 +145,15 @@ CameraController.prototype.onNewImage = function(image) {
   var filmstrip = this.filmstrip;
   var storage = this.storage;
   var blob = image.blob;
+  var self = this;
 
   // In either case, save
   // the photo to device storage
   storage.addImage(blob, function(filepath) {
     debug('stored image', filepath);
-    filmstrip.addImageAndShow(filepath, blob);
+    if (!self.activity.active) {
+      filmstrip.addImageAndShow(filepath, blob);
+    }
   });
 
   debug('new image', image);
@@ -168,7 +171,9 @@ CameraController.prototype.onNewVideo = function(video) {
 
   // Add the video to the filmstrip,
   // then save lazily so as not to block UI
-  this.filmstrip.addVideoAndShow(video);
+  if (!this.activity.active) {
+    this.filmstrip.addVideoAndShow(video);
+  }
   storage.addVideo(tmpBlob, function(blob, filepath) {
     debug('stored video', filepath);
     video.filepath = filepath;
