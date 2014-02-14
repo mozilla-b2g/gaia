@@ -1,5 +1,5 @@
 'use strict';
-/* global lockScreen, SettingsListener */
+/* global LockScreen, SettingsListener */
 
 (function(exports) {
 
