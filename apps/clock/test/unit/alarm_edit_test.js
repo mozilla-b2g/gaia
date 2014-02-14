@@ -1,3 +1,4 @@
+'use strict';
 mocha.setup({ globals: ['GestureDetector'] });
 
 suite('AlarmEditView', function() {
@@ -186,7 +187,6 @@ suite('AlarmEditView', function() {
       // mock the view to turn off vibrate
       AlarmEdit.getVibrateSelect.returns('0');
 
-      var curid = AlarmsDB.idCount;
       AlarmEdit.alarm = new Alarm({
         hour: 5,
         minute: 17,

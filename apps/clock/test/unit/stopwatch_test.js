@@ -1,3 +1,4 @@
+'use strict';
 suite('Stopwatch', function() {
 
   var Stopwatch;

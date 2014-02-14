@@ -1,6 +1,7 @@
+'use strict';
 suite('Stopwatch.Panel', function() {
 
-  var defaultSw, sevenMinSw, fourSecPausedSw, withLapsSw, runningSw;
+  var sevenMinSw, fourSecPausedSw, withLapsSw, runningSw;
   var isHidden;
   var panel;
   var clock;
@@ -145,7 +146,7 @@ suite('Stopwatch.Panel', function() {
   test('Pre-existing laps', function() {
     var tmp = withLapsSw();
     panel.setStopwatch(tmp); //withLapsSw());
-    var laps = panel.nodes['laps'].querySelectorAll('li');
+    var laps = panel.nodes.laps.querySelectorAll('li');
     assert.equal(laps.length, 3);
     var lapTime;
 
@@ -170,7 +171,7 @@ suite('Stopwatch.Panel', function() {
           lapTime: e.children[1].textContent.trim()
         };
       });
-    };
+    }
 
     panel.setStopwatch(runningSw());
     assert.equal(panel.nodes.time.textContent, '00:00.00');
@@ -214,13 +215,13 @@ suite('Stopwatch.Panel', function() {
     panel.update(); // required due to requestAnimationFrame not being called
     panel.nodes.lap.click();
 
-    laps = panel.nodes['laps'].querySelectorAll('li');
+    laps = panel.nodes.laps.querySelectorAll('li');
     assert.equal(laps.length, 3);
 
     //Reset
     panel.nodes.pause.click();
     panel.nodes.reset.click();
-    laps = panel.nodes['laps'].querySelectorAll('li');
+    laps = panel.nodes.laps.querySelectorAll('li');
     assert.equal(laps.length, 0);
     assert.equal(panel.nodes.time.textContent, '00:00.00');
 

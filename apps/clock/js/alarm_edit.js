@@ -38,6 +38,11 @@ var AlarmEdit = {
     return document.getElementById('repeat-select-sunday');
   },
 
+  get alarmTitle() {
+    delete this.alarmTitle;
+    return (this.alarmTitle = document.getElementById('alarm-title'));
+  },
+
   init: function aev_init() {
     this.selects = {};
     [

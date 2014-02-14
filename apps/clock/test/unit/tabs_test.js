@@ -1,3 +1,4 @@
+'use strict';
 suite('Tabs', function() {
   var Tabs;
 

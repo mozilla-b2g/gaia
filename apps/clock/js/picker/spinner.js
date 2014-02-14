@@ -19,6 +19,7 @@ define(function(require) {
   var DRAGGING_TIMEOUT = 200;
 
   function calculateSpeed(previous, current) {
+    /* jshint validthis:true */
     var motion = (previous.y - current.y) / this.unitHeight;
     var delta = current.time - previous.time;
     var speed = motion / delta;
@@ -164,7 +165,7 @@ define(function(require) {
   Spinner.prototype.onpan = function(event) {
     event.stopPropagation();
     var position = event.detail.position;
-    var diff, moving;
+    var diff;
 
     // If this is the first pan event after a swipe...
     if (this.element.classList.contains('animation-on')) {

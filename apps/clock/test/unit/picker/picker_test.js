@@ -1,3 +1,4 @@
+'use strict';
 mocha.setup({ globals: ['GestureDetector'] });
 
 suite('Picker', function() {
@@ -100,6 +101,7 @@ suite('Picker', function() {
   test('isPadded = true', function() {
     Spinner.args.length = 0;
 
+    /* jshint unused:false */
     var picker = new Picker({
       element: document.getElementById('time-picker'),
       pickers: {

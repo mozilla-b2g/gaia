@@ -81,8 +81,6 @@ define(function(require) {
         this.ringerWaitList.push(callback.bind(null, this.childwindow));
       } else {
         // prepare to pop out attention screen, ring the ringtone, vibrate
-        var protocol = window.location.protocol;
-        var host = window.location.host;
         var childwindow = this.childwindow = window.open(
           window.location.origin + '/onring.html', '_blank', 'attention');
         this.ringerWaitList.push(callback.bind(null, childwindow));

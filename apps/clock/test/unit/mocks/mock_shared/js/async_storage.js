@@ -1,3 +1,4 @@
+'use strict';
 define(function() {
   return {
     getItem: function() {},

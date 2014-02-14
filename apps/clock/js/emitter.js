@@ -125,7 +125,7 @@ Emitter.prototype.emit = function(type, data) {
   events.once.length = 0;
 
   if (allEvents.length) {
-    while (event = allEvents.shift()) {
+    while ((event = allEvents.shift())) {
       event.call(this, data);
     }
   }

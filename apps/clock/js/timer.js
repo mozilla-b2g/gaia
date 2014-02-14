@@ -4,8 +4,6 @@ define(function(require) {
 var Emitter = require('emitter');
 var asyncStorage = require('shared/js/async_storage');
 var Utils = require('utils');
-var storeName = 'timers';
-var timer = null;
 
 var timerPrivate = new WeakMap();
 

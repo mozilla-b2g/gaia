@@ -1,3 +1,4 @@
+'use strict';
 suite('ClockView', function() {
   var ClockView;
   var AlarmList;

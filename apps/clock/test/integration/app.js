@@ -1,4 +1,5 @@
 'use strict';
+/* global AppIntegration */
 
 require('/tests/js/app_integration.js');
 require('/tests/js/integration_helper.js');

@@ -1,5 +1,6 @@
 suite('AlarmList', function() {
-  var nml, nma, fixture, dom;
+  'use strict';
+  var nma, fixture, dom;
   var AlarmList, Alarm;
 
   suiteSetup(function(done) {
