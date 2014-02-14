@@ -6,8 +6,6 @@
 
   var timeoutSearchWhileTyping = null;
 
-  var rscheme = /^(?:[a-z\u00a1-\uffff0-9-+]+)(?::|:\/\/)/i;
-
   window.Search = {
     _port: null,
 
@@ -106,7 +104,7 @@
         return;
       }
 
-      var hasScheme = !!(rscheme.exec(input) || [])[0];
+      var hasScheme = UrlHelper.hasScheme(input);
 
       // No scheme, prepend basic protocol and return
       if (!hasScheme) {

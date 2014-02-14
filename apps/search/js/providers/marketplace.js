@@ -1,4 +1,4 @@
-/* global Provider, MozActivity, Search */
+/* global Dedupe, Provider, MozActivity, Search */
 
 (function() {
 
@@ -41,11 +41,17 @@
           return;
         }
 
-        var length = Math.min(NUM_DISPLAY, results.meta.total_count);
+        // Dedupe results from previous containers
+        Dedupe.add({
+          key: 'manifest_url',
+          objects: results.objects
+        });
+        var objects = Dedupe.reduce();
+
+        var length = Math.min(NUM_DISPLAY, objects.length);
         var formatted = [];
         for (var i = 0; i < length; i++) {
-          var app = results.objects[i];
-
+          var app = objects[i];
           var nameL10n = '';
           for (var locale in app.name) {
             // Default the app name if we haven't found a matching locale

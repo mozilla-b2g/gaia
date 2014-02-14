@@ -1,8 +1,10 @@
 'use strict';
-/* global Search, MockNavigatormozApps */
+/* global Dedupe, Search, MockNavigatormozApps */
 
 require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 requireApp('search/test/unit/mock_search.js');
+requireApp('search/shared/js/url_helper.js');
+requireApp('search/js/dedupe.js');
 requireApp('search/js/providers/provider.js');
 requireApp('search/js/providers/app_provider.js');
 
@@ -68,6 +70,23 @@ suite('search/providers/local_apps', function() {
   });
 
   suite('search', function() {
+    test('dedupe handling', function() {
+      var resetStub = this.sinon.stub(Dedupe, 'reset');
+      var addStub = this.sinon.stub(Dedupe, 'add');
+      var fakeApp = {
+        manifestURL: 'foo',
+        manifest: {}
+      };
+
+      this.sinon.stub(subject, 'find').returns([fakeApp]);
+      subject.search('foo');
+      assert.ok(resetStub.calledOnce);
+      assert.ok(addStub.calledWith({
+        key: 'manifestURL',
+        objects: [fakeApp]
+      }));
+    });
+
     test('clears results', function() {
       var stub = this.sinon.stub(subject, 'clear');
       subject.search('foo');

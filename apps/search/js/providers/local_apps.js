@@ -1,4 +1,4 @@
-/* global Provider, Search */
+/* global Dedupe, Provider, Search, UrlHelper */
 
 (function() {
 
@@ -6,11 +6,22 @@
 
   function LocalApps() {
     this.apps = {};
-    navigator.mozApps.mgmt.getAll().onsuccess = (function(evt) {
-      evt.target.result.forEach(function r_getApps(app) {
-        this.apps[app.manifestURL] = app;
-      }, this);
-    }).bind(this);
+    var mozApps = navigator.mozApps.mgmt;
+    var self = this;
+
+    mozApps.oninstall = function oninstall(e) {
+      self.apps[e.application.manifestURL] = e.application;
+    };
+
+    mozApps.onuninstall = function oninstall(e) {
+      delete self.apps[e.application.manifestURL];
+    };
+
+    mozApps.getAll().onsuccess = function r_getApps(e) {
+      e.target.result.forEach(function r_AppsForEach(app) {
+        self.apps[app.manifestURL] = app;
+      });
+    };
   }
 
   LocalApps.prototype = {
@@ -39,6 +50,13 @@
 
       var results = this.find(input);
       var formatted = [];
+
+      Dedupe.reset();
+      Dedupe.add({
+        key: 'manifestURL',
+        objects: results
+      });
+
       results.forEach(function eachResult(result) {
         var dataset = {
           manifest: result.manifestURL
@@ -51,10 +69,15 @@
         var icons = result.manifest.icons || {};
         var imgUrl = '';
         for (var i in icons) {
-          var a = document.createElement('a');
-          a.href = result.origin;
-          imgUrl = a.protocol + '//' + a.host + icons[i];
-          break;
+          var eachUrl = icons[i];
+          if (UrlHelper.hasScheme(eachUrl)) {
+            imgUrl = eachUrl;
+          } else {
+            // For relative URLs
+            var a = document.createElement('a');
+            a.href = result.origin;
+            imgUrl = a.protocol + '//' + a.host + eachUrl;
+          }
         }
 
         // Only display results which have icons.
