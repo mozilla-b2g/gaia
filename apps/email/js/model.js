@@ -61,8 +61,18 @@ define(function(require) {
     **/
     folder: null,
 
+    /**
+     * emits an event based on a property value. Since the
+     * event is based on a property value that is on this
+     * object, *do not* use emitWhenListener, since, due to
+     * the possibility of queuing old values with that
+     * method, it could cause bad results (bug 971617), and
+     * it is not needed since the latest* methods will get
+     * the latest value on this object.
+     * @param  {String} id event ID/property name
+     */
     _callEmit: function(id) {
-      this.emitWhenListener(id, this[id]);
+      this.emit(id, this[id]);
     },
 
     inited: false,
