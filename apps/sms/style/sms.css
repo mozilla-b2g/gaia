@@ -906,7 +906,7 @@ generateHeightRule() (in ThreadUI/thread_ui.js) will create:
   background: none;
   border-color: transparent;
   white-space: normal;
-  text-overflow: normal;
+  text-overflow: clip;
   color: black;
   font-size: 1.8rem;
 }
@@ -965,7 +965,7 @@ body[role="application"] form[role="dialog"][data-type="action"] > section:first
   height: auto;
   border-bottom: 0.1rem solid #616262;
   padding-bottom: 1rem;
-  padding-left: 2rem 2.5rem 0 2.5rem;
+  padding-left: 2.5rem;
 }
 
 /* building blocks overload
@@ -1023,7 +1023,7 @@ section[role="region"].new .article-list[data-type="list"]  li:first-child {
 }
 
 section[role="region"].new .article-list[data-type="list"]  li {
-  pointer-events: normal;
+  pointer-events: auto;
 }
 
 .suggestion * {
