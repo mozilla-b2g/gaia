@@ -123,7 +123,7 @@ button::-moz-focus-inner {
 .keyboard-key > .visual-wrapper > span:after {
   content: attr(data-label);
   position: absolute;
-  top: -5.4rem;
+  top: -5.8rem;
   left: calc(50% - 2.8rem);
   width: 5.6rem;
   height: 5.6rem;
@@ -135,6 +135,10 @@ button::-moz-focus-inner {
   opacity: 0;
 }
 
+.keyboard-key.highlighted {
+  background-color: #4a5255;
+}
+
 .keyboard-key:last-child > .visual-wrapper > span {
   border-right: transparent;
 }
@@ -142,8 +146,6 @@ button::-moz-focus-inner {
 .keyboard-key.highlighted > .visual-wrapper > span {
   color: #00caf2;
   background-color: #4a5255;
-  margin: -0.4rem 0 -0.4rem -0.1rem;
-  padding: 0.4rem 0 0 0.1rem;
 }
 
 /* Show the bubble text when the button is highlighted. */
