@@ -77,6 +77,11 @@
           color = 'purple';
           break;
 
+        case 'jank':
+          color = 'cornflowerblue';
+          value += 'ms';
+          break;
+
         default:
           color = this.colorHash(metric.name);
           break;
