@@ -1247,8 +1247,10 @@ var Camera = {
 
     // In either case, save the photo to device storage
     this._addPictureToStorage(blob, function(name, absolutePath) {
-      Filmstrip.addImage(absolutePath, blob);
-      Filmstrip.show(Camera.FILMSTRIP_DURATION);
+      if (!this._pendingPick) {
+        Filmstrip.addImage(absolutePath, blob);
+        Filmstrip.show(Camera.FILMSTRIP_DURATION);
+      }
       this.checkStorageSpace();
     }.bind(this));
   },
