@@ -2347,7 +2347,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
             formatPrefix = (filename === "Global Total" ? "\n" : "  "),
             seperator = ' - ';
 
-        filename = (filename === "Global Total" ? filename : filename.substr(0, filename.indexOf('?')));
+        filename = (filename === "Global Total" ? filename :
+          (filename.substr(0, filename.indexOf('?')) || filename));
         outputFormat = formatPrefix;
         outputFormat += fileNameColor + filename + originColor + seperator;
         outputFormat += stmtColor + dataItem.stmts + originColor  + seperator;
