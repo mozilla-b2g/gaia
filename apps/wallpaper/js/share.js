@@ -1,7 +1,7 @@
 window.onload = function() {
   navigator.mozSetMessageHandler('activity', function handler(activityRequest) {
     var activityName = activityRequest.source.name;
-    if (activityName !== 'share')
+    if (activityName !== 'share' && activityName !== 'setwallpaper')
       return;
     startShare(activityRequest);
   });

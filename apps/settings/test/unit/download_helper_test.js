@@ -84,7 +84,7 @@ suite('DownloadHelper', function() {
         }
       );
 
-      var req = DownloadHelper.launch(download);
+      var req = DownloadHelper.open(download);
 
       req.onsuccess = function() {
         assert.ok(false);
@@ -99,7 +99,7 @@ suite('DownloadHelper', function() {
     }
 
     test('Invalid state download', function(done) {
-      var req = DownloadHelper.launch(download);
+      var req = DownloadHelper.open(download);
 
       req.onsuccess = function() {
         assert.ok(false);
@@ -120,7 +120,7 @@ suite('DownloadHelper', function() {
         return 'xxxxx.xxx';
       });
 
-      var req = DownloadHelper.launch(download);
+      var req = DownloadHelper.open(download);
 
       req.onsuccess = function() {
         assert.ok(false);
@@ -161,7 +161,7 @@ suite('DownloadHelper', function() {
 
     test('Success', function(done) {
       download.state = 'succeeded';
-      var req = DownloadHelper.launch(download);
+      var req = DownloadHelper.open(download);
       req.onsuccess = function() {
         assert.ok(true);
         done();

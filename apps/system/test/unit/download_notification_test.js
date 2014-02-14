@@ -162,7 +162,7 @@ suite('system/DownloadNotification >', function() {
 
     test('Finished notification was clicked > Open file', function() {
       notification.onClick(function() {});
-      assert.equal(DownloadHelper.methodCalled, 'launch');
+      assert.equal(DownloadHelper.methodCalled, 'open');
 
       assert.isNull(notification.id);
       assert.isNull(notification.download);
