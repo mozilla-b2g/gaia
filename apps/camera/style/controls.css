@@ -191,6 +191,10 @@
   height: 3rem;
 }
 
+.controls[recording=true] .capture-button span:before {
+  visibility: hidden;
+}
+
 /** Switch Button
  ---------------------------------------------------------*/
 

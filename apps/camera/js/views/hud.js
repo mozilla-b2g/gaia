@@ -33,8 +33,13 @@ module.exports = View.extend({
   },
 
   setFlashMode: function(mode) {
-    this.set('flash-mode', mode);
-    this.els.flashModeName.textContent = mode;
+    if (!mode) { return; }
+    var classes = this.els.flash.classList;
+    var oldIcon = this.flashMode && this.flashMode.icon;
+    this.els.flashModeName.textContent = mode.title;
+    if (oldIcon) { classes.remove(oldIcon); }
+    classes.add(mode.icon);
+    this.flashMode = mode;
   },
 
   /**
@@ -90,14 +95,15 @@ module.exports = View.extend({
   },
 
   template: function() {
-    return '<a class="toggle-camera rotates test-toggle-camera ' +
-    'js-camera"></a>' +
-    '<a class="toggle-flash rotates test-toggle-flash js-flash">' +
-      '<div class="flash-text test-flash-text">' +
+    return '<div class="hud_btn hud_camera rotates icon-toggle-camera ' +
+    'test-toggle-camera js-camera"></div>' +
+    '<div class="hud_btn hud_flash rotates test-toggle-flash js-flash">' +
+      '<div class="hud_flash-text test-flash-text">' +
         'Flash: <span class="flash-name js-flash-name"></span>' +
       '</div>' +
-    '</a>' +
-    '<a class="hud_settings rotates icon-settings js-settings"></a>';
+    '</div>' +
+    '<div class="hud_btn hud_settings rotates icon-settings js-settings">' +
+    '</div>';
   }
 });
 
