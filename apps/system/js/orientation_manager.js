@@ -47,7 +47,7 @@
         case 'trusteduiclose':
         case 'will-unlock':
           // We don't need to reset orientation if lockscreen is locked.
-          if (LockScreen.locked) {
+          if (lockScreen.locked) {
             return;
           }
         /**

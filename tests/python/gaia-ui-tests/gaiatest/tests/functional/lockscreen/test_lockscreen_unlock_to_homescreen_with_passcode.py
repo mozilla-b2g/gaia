@@ -5,7 +5,6 @@
 from gaiatest import GaiaTestCase
 from gaiatest.apps.lockscreen.app import LockScreen
 
-
 class TestLockScreen(GaiaTestCase):
 
     _input_passcode = '7931'

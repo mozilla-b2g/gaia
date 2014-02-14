@@ -190,7 +190,7 @@
      * @memberOf module:AppWindowManager
      */
     init: function awm_init() {
-      if (LockScreen && LockScreen.locked) {
+      if (lockScreen && lockScreen.locked) {
         this.element.setAttribute('aria-hidden', 'true');
       }
       if (System.slowTransition) {

@@ -16,7 +16,7 @@ var Storage = {
 
     SettingsListener.observe(this.umsEnabled, false, function umsChanged(val) {
       self._mode = Storage.modeFromBool(val);
-      if (LockScreen && LockScreen.locked) {
+      if (lockScreen && lockScreen.locked) {
         // covers startup
         self.setMode(Storage.automounterDisable, 'screen locked');
       } else {
