@@ -13,21 +13,16 @@ branches:
 env:
   matrix:
   - CI_ACTION=linters
-  - CI_ACTION=unit-tests-in-b2g
   - CI_ACTION=unit-tests-in-firefox
   - CI_ACTION=marionette_js
   - CI_ACTION=gaia_ui_tests
   - CI_ACTION=build_tests
-  - CI_ACTION=unit-tests-coverage
   global:
   - ARTIFACTS_S3_BUCKET=mozilla-releng-travis-uploads
   - secure: Gf2qm+xhLRTotuIvDD7HrNRmng3/dctGdsgF5P4aEu3nDujfxtZTp4sGirTqIngbfVzh9WkJ9eoT0yaDXtvWkr40Df6vwAUyI3P1x+NBOa2CkLz7U+f9j1yaJ3pJ121+L3o+7eTzJy/mvXHJYXAfa7rxcmjrCHpH5BSm+9/OZ4s=
   - secure: JgNTK2gfJY1UcpXU/j0MFUvB1P7GaQyOVKBT19uwE2xCsO+T00YWnEhDGFZ9CxYDsATQ5EG5cW/eaoqXOpI9QQsR5kEJp1N1rLvKliqtGcm/ocVjWl/dhsG1i+ksJSCm1oDwduEuLFZ7tChrXihiZ2Sn1RAWns0mjZw9+8+tDhU=
 matrix:
   fast_finish: true
-  allow_failures:
-    - env: CI_ACTION=unit-tests-in-b2g
-    - env: CI_ACTION=unit-tests-coverage
 notifications:
   email: false
   irc:
