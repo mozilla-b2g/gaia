@@ -9,7 +9,6 @@ after_script: ./node_modules/.bin/travisaction $CI_ACTION after_script
 branches:
   only:
   - master
-  - calendar-1.4-visual-refresh
 env:
   matrix:
   - CI_ACTION=linters
@@ -18,7 +17,6 @@ env:
   - CI_ACTION=marionette_js
   - CI_ACTION=gaia_ui_tests
   - CI_ACTION=build_tests
-  - CI_ACTION=unit-tests-coverage
   global:
   - ARTIFACTS_S3_BUCKET=mozilla-releng-travis-uploads
   - secure: Gf2qm+xhLRTotuIvDD7HrNRmng3/dctGdsgF5P4aEu3nDujfxtZTp4sGirTqIngbfVzh9WkJ9eoT0yaDXtvWkr40Df6vwAUyI3P1x+NBOa2CkLz7U+f9j1yaJ3pJ121+L3o+7eTzJy/mvXHJYXAfa7rxcmjrCHpH5BSm+9/OZ4s=
@@ -27,7 +25,6 @@ matrix:
   fast_finish: true
   allow_failures:
     - env: CI_ACTION=unit-tests-in-b2g
-    - env: CI_ACTION=unit-tests-coverage
 notifications:
   email: false
   irc:
