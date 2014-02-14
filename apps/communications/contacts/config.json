@@ -1,0 +1,8 @@
+{
+  "defaultContactsOrder": "givenName",
+  "facebookEnabled": true,
+  "operationsTimeout": 25000,
+  "logLevel": "DEBUG",
+  "facebookSyncPeriod": 24,
+  "testToken": ""
+}
