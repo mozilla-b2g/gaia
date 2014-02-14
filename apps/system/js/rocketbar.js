@@ -317,11 +317,14 @@ var Rocketbar = {
 
     window.dispatchEvent(new CustomEvent('rocketbarhidden'));
 
-    setTimeout(function nextTick() {
-      this._port.postMessage({
-        action: 'clear'
+    var port = this._port;
+    if (port) {
+      setTimeout(function nextTick() {
+        port.postMessage({
+          action: 'clear'
+        });
       });
-    }.bind(this));
+    }
   },
 
   /**
