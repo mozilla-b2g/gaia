@@ -1,0 +1,29 @@
+{
+  "apps": {
+    "Twitter":
+      {
+        "origin": "https://mobile.twitter.com",
+        "manifestURL": "https://mobile.twitter.com/cache/twitter.webapp",
+        "installOrigin": "https://marketplace.firefox.com",
+        "etag": "\"3471914f48f497d06248794ae4d4dc2d\""
+      }
+  },
+  "operators": [
+    {
+      "id": "t-mobile us",
+      "mcc-mnc": [
+        "310-260"
+      ],
+      "apps": [
+        {
+          "id": "Twitter",
+          "screen": 1,
+          "location": 4
+        }
+      ],
+      "support_contacts": "mobizilla/mobizilla_support_contacts.json",
+      "default_contacts": "mobizilla/mobizilla_contacts.json",
+      "wallpaper": "mobizilla/mobizilla_wallpaper.png"
+    }
+  ]
+}
