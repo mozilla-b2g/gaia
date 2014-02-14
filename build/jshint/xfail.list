@@ -940,7 +940,6 @@ apps/system/fxa/js/utils.js
 apps/system/fxa/view/view_login.js
 apps/system/js/accessibility.js
 apps/system/js/action_menu.js
-apps/system/js/activities.js
 apps/system/js/activity_window.js
 apps/system/js/activity_window_factory.js
 apps/system/js/airplane_mode.js

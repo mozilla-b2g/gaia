@@ -57,6 +57,7 @@ window.addEventListener('load', function startup() {
   Shortcuts.init();
   ScreenManager.turnScreenOn();
   Places.init();
+  window.activities = new Activities();
   window.devtoolsView = new DevtoolsView();
   window.ttlView = new TTLView();
 

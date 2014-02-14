@@ -9,6 +9,7 @@ requireApp('system/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_url.js');
+requireApp('system/test/unit/mock_activities.js');
 requireApp('system/test/unit/mock_applications.js');
 requireApp('system/test/unit/mock_devtools_view.js');
 requireApp('system/test/unit/mock_ftu_launcher.js');
@@ -21,6 +22,7 @@ requireApp('system/test/unit/mock_ttl_view.js');
 mocha.globals([
   'Shortcuts',
   'wallpaperURL',
+  'activities',
   'cancelHomeTouchstart',
   'cancelHomeTouchend',
   'secureWindowManager',
@@ -30,6 +32,7 @@ mocha.globals([
 ]);
 
 var mocksForBootstrap = new MocksHelper([
+  'Activities',
   'Applications',
   'DevtoolsView',
   'FtuLauncher',
