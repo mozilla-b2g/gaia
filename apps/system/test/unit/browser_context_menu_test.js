@@ -44,7 +44,10 @@ suite('system/BrowserContextMenu', function() {
 
   var fakeContextMenuEvent = {
     type: 'mozbrowsercontextmenu',
-    preventDefault: function() {},
+    defaultPrevented: false,
+    preventDefault: function() {
+      this.defaultPrevented = true;
+    },
     detail: {
       contextmenu: {
         items: [
@@ -52,6 +55,28 @@ suite('system/BrowserContextMenu', function() {
             label: 'test0',
             icon: 'test'
           }]
+      }
+    }
+  };
+
+  var fakeEmptyContextMenuEvent = {
+    type: 'mozbrowsercontextmenu',
+    defaultPrevented: false,
+    preventDefault: function() {
+      this.defaultPrevented = true;
+    },
+    detail: {}
+  };
+
+  var fakeNoItemsContextMenuEvent = {
+    type: 'mozbrowsercontextmenu',
+    defaultPrevented: false,
+    preventDefault: function() {
+      this.defaultPrevented = true;
+    },
+    detail: {
+      contextmenu: {
+        items: []
       }
     }
   };
@@ -75,5 +100,29 @@ suite('system/BrowserContextMenu', function() {
       md1.elements.list.querySelector('button:first-child').
         style.backgroundImage,
       'url("' + fakeContextMenuEvent.detail.contextmenu.items[0].icon + '")');
+  });
+
+  test('Check that a context menu containing items is prevented', function() {
+    var app1 = new AppWindow(fakeAppConfig1);
+    var md1 = new BrowserContextMenu(app1);
+
+    md1.handleEvent(fakeContextMenuEvent);
+    assert.isTrue(fakeContextMenuEvent.defaultPrevented);
+  });
+
+  test('Check that an empty context menu is not prevented', function() {
+    var app1 = new AppWindow(fakeAppConfig1);
+    var md1 = new BrowserContextMenu(app1);
+
+    md1.handleEvent(fakeEmptyContextMenuEvent);
+    assert.isTrue(!fakeContextMenuEvent.defaultPrevented);
+  });
+
+  test('Check that a context menu without items is not prevented', function() {
+    var app1 = new AppWindow(fakeAppConfig1);
+    var md1 = new BrowserContextMenu(app1);
+
+    md1.handleEvent(fakeNoItemsContextMenuEvent);
+    assert.isTrue(!fakeContextMenuEvent.defaultPrevented);
   });
 });
