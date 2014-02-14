@@ -42,7 +42,6 @@
   };
 
   BrowserContextMenu.prototype.handleEvent = function bcm_handleEvent(evt) {
-    evt.preventDefault();
     this.event = evt;
     if (!this._injected) {
       this.render();
