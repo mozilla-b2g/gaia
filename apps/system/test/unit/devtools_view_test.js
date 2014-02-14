@@ -1,10 +1,16 @@
 'use strict';
+/* global DevtoolsView */
 
-require('/js/devtools_layers.js');
+require('/js/devtools_view.js');
 
 suite('devtoolsWidgetPanel', function() {
 
   var manifest = 'app://fakeapp.gaiamobile.org/fake.html';
+  var subject;
+
+  setup(function() {
+    subject = new DevtoolsView();
+  });
 
   function updateMetrics(metrics) {
     var data = {
@@ -14,10 +20,10 @@ suite('devtoolsWidgetPanel', function() {
     window.dispatchEvent(evt);
   }
 
-  function getWidgetLayer() {
+  function getWidgetView() {
     var iframe = document.querySelector('iframe[mozapp="' + manifest + '"]');
     var appwindow = iframe.parentElement;
-    return appwindow.querySelector('.devtools-layer');
+    return appwindow.querySelector('.devtools-view');
   }
 
   suite('display()', function() {
@@ -35,9 +41,9 @@ suite('devtoolsWidgetPanel', function() {
       updateMetrics([
         {name: 'bugs', value: 42}
       ]);
-      var layer = getWidgetLayer();
-      assert.isDefined(layer);
-      var widget = layer.querySelector('.widget');
+      var view = getWidgetView();
+      assert.isDefined(view);
+      var widget = view.querySelector('.widget');
       assert.isDefined(widget);
       assert.equal(widget.textContent, '42');
     });
@@ -47,9 +53,9 @@ suite('devtoolsWidgetPanel', function() {
         {name: 'errors', value: 23},
         {name: 'warnings', value: 16}
       ]);
-      var layer = getWidgetLayer();
-      assert.isDefined(layer);
-      var widgets = layer.querySelectorAll('.widget');
+      var view = getWidgetView();
+      assert.isDefined(view);
+      var widgets = view.querySelectorAll('.widget');
       assert.equal(widgets.length, 2);
     });
 
@@ -60,7 +66,7 @@ suite('devtoolsWidgetPanel', function() {
         {name: 'chaos', value: 4}
       ]);
       updateMetrics();
-      assert.isNull(getWidgetLayer());
+      assert.isNull(getWidgetView());
     });
 
   });

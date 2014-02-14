@@ -57,6 +57,7 @@ window.addEventListener('load', function startup() {
   Shortcuts.init();
   ScreenManager.turnScreenOn();
   Places.init();
+  window.devtoolsView = new DevtoolsView();
   window.ttlView = new TTLView();
 
   // We need to be sure to get the focus in order to wake up the screen
