@@ -237,14 +237,18 @@ var PlayerView = {
   },
 
   setCoverImage: function pv_setCoverImage(fileinfo) {
-    // Reset the image to be ready for fade-in
-    this.offscreenImage.src = '';
-    this.coverImage.classList.remove('fadeIn');
 
     getThumbnailURL(fileinfo, function(url) {
       url = url || generateDefaultThumbnailURL(fileinfo.metadata);
-      this.offscreenImage.addEventListener('load', pv_showImage.bind(this));
-      this.offscreenImage.src = url;
+      // If the cover art is not changing, don't do anything
+      if (url != this.offscreenImage.src) {
+        // Reset the image to be ready for fade-in
+        this.offscreenImage.src = '';
+        this.coverImage.classList.remove('fadeIn');
+
+        this.offscreenImage.addEventListener('load', pv_showImage.bind(this));
+        this.offscreenImage.src = url;
+      }
     }.bind(this));
 
     function pv_showImage(evt) {
