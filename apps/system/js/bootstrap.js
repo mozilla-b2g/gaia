@@ -77,6 +77,8 @@ window.addEventListener('load', function startup() {
   window.dispatchEvent(evt);
 });
 
+window.storage = new Storage();
+
 /* === Shortcuts === */
 /* For hardware key handling that doesn't belong to anywhere */
 var Shortcuts = {

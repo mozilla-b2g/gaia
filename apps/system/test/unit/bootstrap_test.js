@@ -17,6 +17,7 @@ requireApp('system/test/unit/mock_homescreen_launcher.js');
 requireApp('system/test/unit/mock_places.js');
 requireApp('system/test/unit/mock_screen_manager.js');
 requireApp('system/test/unit/mock_source_view.js');
+requireApp('system/test/unit/mock_storage.js');
 requireApp('system/test/unit/mock_ttl_view.js');
 
 mocha.globals([
@@ -28,6 +29,7 @@ mocha.globals([
   'secureWindowManager',
   'secureWindowFactory',
   'devtoolsView',
+  'storage',
   'ttlView',
 ]);
 
@@ -42,6 +44,7 @@ var mocksForBootstrap = new MocksHelper([
   'SettingsListener',
   'SettingsURL',
   'SourceView',
+  'Storage',
   'TTLView',
 ]).init();
 
