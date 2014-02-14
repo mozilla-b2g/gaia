@@ -122,6 +122,12 @@ define(function(require, exports, module) {
       return idMap.get(this) || undefined;
     },
 
+    // this is needed because the unit tests need to set ID,
+    // and 'use strict' forbids setting if there's a getter
+    set id(id) {
+      idMap.set(this, id);
+    },
+
     get registeredAlarms() {
       return registeredAlarmsMap.get(this) || {};
     },
@@ -158,10 +164,11 @@ define(function(require, exports, module) {
 
     summarizeDaysOfWeek: function alarm_summarizeRepeat() {
       var _ = mozL10n.get;
+      var i, dayName;
       // Build a bitset
       var value = 0;
-      for (var i = 0; i < constants.DAYS.length; i++) {
-        var dayName = constants.DAYS[i];
+      for (i = 0; i < constants.DAYS.length; i++) {
+        dayName = constants.DAYS[i];
         if (this.repeat[dayName] === true) {
           value |= (1 << i);
         }
@@ -175,8 +182,8 @@ define(function(require, exports, module) {
         summary = _('weekends');
       } else if (value !== 0) { // any day was true
         var weekdays = [];
-        for (var i = 0; i < constants.DAYS.length; i++) {
-          var dayName = constants.DAYS[i];
+        for (i = 0; i < constants.DAYS.length; i++) {
+          dayName = constants.DAYS[i];
           if (this.repeat[dayName]) {
             // Note: here, Monday is the first day of the week
             // whereas in JS Date(), it's Sunday -- hence the (+1) here.
@@ -354,10 +361,11 @@ define(function(require, exports, module) {
         return;
       }
       this.cancel(options.type);
+      var firedate;
       if (options.type === 'normal') {
-        var firedate = this.getNextAlarmFireTime();
+        firedate = this.getNextAlarmFireTime();
       } else if (options.type === 'snooze') {
-        var firedate = this.getNextSnoozeFireTime();
+        firedate = this.getNextSnoozeFireTime();
       }
       this.scheduleHelper(options.type, firedate, callback);
     },
@@ -366,6 +374,7 @@ define(function(require, exports, module) {
       // cancel an alarm type ('normal' or 'snooze')
       // type == false to cancel all
       function removeAlarm(type, id) {
+        /* jshint validthis:true */
         navigator.mozAlarms.remove(id);
         var registeredAlarms = this.registeredAlarms;
         delete registeredAlarms[type];

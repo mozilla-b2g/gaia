@@ -85,12 +85,18 @@ Shared code for tests lives under shared/test/integration.
 #### Invoking a test
 
 ```sh
-./bin/gaia-marionette <test> [test...]
+make test-integration TEST_FILES=<test>
 ```
 
-All options are passed to `./node_modules/.bin/marionette-mocha` so
-you can also use mocha commands like `--grep`, `--timeout` see `--help`
-for more options.
+For example, we could run the `day_view_test.js` test in calendar app with the below command.
+```
+make test-integration TEST_FILES=./apps/calendar/test/marionette/day_view_test.js
+```
+
+If you would like to run more than one test, we could do the below command.
+```
+make test-integration TEST_FILES="./apps/calendar/test/marionette/day_view_test.js ./apps/calendar/test/marionette/today_test.js"
+```
 
 #### Invoking tests for a specific app
 
@@ -155,7 +161,7 @@ PULSE_SERVER=":" xvfb-run make test-integration
 - To get debug information from the b2g desktop client, run this:
 `DEBUG=b2g-desktop ./bin/gaia-marionette name/of/test.js`
 
-- To get debug information from b2g desktop and all of the marionette 
+- To get debug information from b2g desktop and all of the marionette
 plugins, run this:
 `DEBUG=* ./bin/gaia-marionette name/of/test.js`
 

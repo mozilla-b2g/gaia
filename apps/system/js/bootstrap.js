@@ -34,19 +34,30 @@ window.addEventListener('load', function startup() {
     });
   }
 
-  window.addEventListener('ftudone', function doneWithFTU() {
+  /**
+   * Enable checkForUpdate after FTU is either done or skipped.
+   */
+  function doneWithFTU() {
     window.removeEventListener('ftudone', doneWithFTU);
-
+    window.removeEventListener('ftuskip', doneWithFTU);
     var lock = window.navigator.mozSettings.createLock();
     lock.set({
       'gaia.system.checkForUpdates': true
     });
-  });
+  }
+
+  window.addEventListener('ftudone', doneWithFTU);
+  // Enable checkForUpdate as well if booted without FTU
+  window.addEventListener('ftuskip', doneWithFTU);
+
 
   SourceView.init();
   Shortcuts.init();
   ScreenManager.turnScreenOn();
   Places.init();
+  window.activities = new Activities();
+  window.devtoolsView = new DevtoolsView();
+  window.ttlView = new TTLView();
 
   // We need to be sure to get the focus in order to wake up the screen
   // if the phone goes to sleep before any user interaction.
@@ -63,6 +74,8 @@ window.addEventListener('load', function startup() {
         detail: { type: 'system-message-listener-ready' } });
   window.dispatchEvent(evt);
 });
+
+window.storage = new Storage();
 
 /* === Shortcuts === */
 /* For hardware key handling that doesn't belong to anywhere */

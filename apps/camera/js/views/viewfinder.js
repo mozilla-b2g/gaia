@@ -56,9 +56,6 @@ return View.extend({
   fadeTime: 200,
   initialize: function() {
     bind(this.el, 'click', this.onClick);
-    bind(this.el, 'touchstart', this.onTouchStart);
-    bind(this.el, 'touchmove', this.onTouchMove);
-    bind(this.el, 'touchend', this.onTouchEnd);
     this.el.autoplay = true;
   },
 

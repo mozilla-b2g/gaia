@@ -1,3 +1,4 @@
+'use strict';
 suite('FormButton', function() {
   var doc, input, formButton, FormButton, Constants, Utils;
 
@@ -152,13 +153,13 @@ suite('FormButton', function() {
     setup(function() {
       doc = document.createElement('div');
       doc.innerHTML = ['<select id="repeat-select" multiple="true">',
-                       '<option value="0">Monday</option>',
-                       '<option value="1">Tuesday</option>',
-                       '<option value="2">Wednesday</option>',
-                       '<option value="3">Thursday</option>',
-                       '<option value="4">Friday</option>',
-                       '<option value="5">Saturday</option>',
-                       '<option value="6">Sunday</option>',
+                       '<option value="monday">Monday</option>',
+                       '<option value="tuesday">Tuesday</option>',
+                       '<option value="wednesday">Wednesday</option>',
+                       '<option value="thursday">Thursday</option>',
+                       '<option value="friday">Friday</option>',
+                       '<option value="saturday">Saturday</option>',
+                       '<option value="sunday">Sunday</option>',
                        '</select>'].join('');
       input = doc.querySelector('#repeat-select');
       formButton = new FormButton(input, {
@@ -168,13 +169,13 @@ suite('FormButton', function() {
     });
 
     test('the change event should update the button text', function() {
-      Utils.changeSelectByValue(formButton.input, '3');
+      Utils.changeSelectByValue(formButton.input, 'thursday');
       formButton.input.dispatchEvent(new Event('change'));
       assert.equal(formButton.button.textContent, '{"thursday":true}');
     });
 
     test('getValue should return the current value', function() {
-      Utils.changeSelectByValue(formButton.input, '1');
+      Utils.changeSelectByValue(formButton.input, 'tuesday');
       assert.deepEqual(formButton.value, { tuesday: true });
     });
 

@@ -378,7 +378,7 @@ var CallLog = {
   //      <span></span>
   //    </label>
   //    <aside class="pack-end">
-  //      <img src="" class="call-log-contact-photo">
+  //      <span data-type="img" class="call-log-contact-photo">
   //    </aside>
   //    <a>
   //      <aside class="icon call-type-icon icon icon-outgoing">
@@ -440,11 +440,12 @@ var CallLog = {
 
     var aside = document.createElement('aside');
     aside.className = 'pack-end';
-    var img = document.createElement('img');
+    var img = document.createElement('span');
+    img.dataset.type = 'img';
     img.className = 'call-log-contact-photo';
+
     if (contact && contact.photo) {
-      img.src = typeof contact.photo == 'string' ? contact.photo :
-                URL.createObjectURL(contact.photo);
+      this.loadBackgroundImage(img, contact.photo);
       groupDOM.classList.add('hasPhoto');
     }
 
@@ -919,7 +920,7 @@ var CallLog = {
         // Remove contact info.
         primInfoCont.textContent = element.dataset.phoneNumber;
         addInfoCont.textContent = '';
-        contactPhoto.src = '';
+        this.unloadBackgroundImage(contactPhoto);
         element.classList.remove('hasPhoto');
         delete element.dataset.contactId;
       }
@@ -934,13 +935,10 @@ var CallLog = {
 
     var photo = ContactPhotoHelper.getThumbnail(contact);
     if (photo) {
-      var image_url = photo;
-      var photoURL;
-      var isString = (typeof image_url == 'string');
-      contactPhoto.src = isString ? image_url : URL.createObjectURL(image_url);
+      this.loadBackgroundImage(contactPhoto, photo);
       element.classList.add('hasPhoto');
     } else {
-      contactPhoto.src = '';
+      this.unloadBackgroundImage(contactPhoto);
       element.classList.remove('hasPhoto');
     }
 
@@ -953,6 +951,28 @@ var CallLog = {
     if (contact) {
       element.dataset.contactId = contact.id;
     }
+  },
+
+  loadBackgroundImage: function cl_loadBackgroundImage(element, url) {
+    if (typeof url === 'string') {
+      element.style.backgroundImage = 'url(' + url + ')';
+    } else if (url instanceof Blob) {
+      url = URL.createObjectURL(url);
+      element.style.backgroundImage = 'url(' + url + ')';
+
+      // Revoke the blob once it's ready.
+      setTimeout(function() {
+        var image = new Image();
+        image.src = url;
+        image.onload = image.onerror = function() {
+          URL.revokeObjectURL(this.src);
+        };
+      });
+    }
+  },
+
+  unloadBackgroundImage: function cl_unloadBackgroundImage(element) {
+    element.style.backgroundImage = '';
   },
 
   cleanNotifications: function cl_cleanNotifcations() {

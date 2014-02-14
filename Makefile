@@ -138,13 +138,8 @@ endif
 HOMESCREEN?=$(SCHEME)system.$(GAIA_DOMAIN)
 
 BUILD_APP_NAME?=*
-TEST_INTEGRATION_APP_NAME?=*
 ifneq ($(APP),)
-	ifeq ($(MAKECMDGOALS), test-integration)
-	TEST_INTEGRATION_APP_NAME=$(APP)
-	else
 	BUILD_APP_NAME=$(APP)
-	endif
 endif
 
 REPORTER?=spec
@@ -712,8 +707,8 @@ b2g: node_modules/.bin/mozilla-download
 
 .PHONY: test-integration
 # $(PROFILE_FOLDER) should be `profile-test` when we do `make test-integration`.
-test-integration: b2g $(PROFILE_FOLDER)
-	NPM_REGISTRY=$(NPM_REGISTRY) ./bin/gaia-marionette $(shell find . -path "*$(TEST_INTEGRATION_APP_NAME)/test/marionette/*_test.js") \
+test-integration: $(PROFILE_FOLDER)
+	NPM_REGISTRY=$(NPM_REGISTRY) ./bin/gaia-marionette RUN_CALDAV_SERVER=1 \
 		--host $(MARIONETTE_RUNNER_HOST) \
 		--manifest $(TEST_MANIFEST) \
 		--reporter $(REPORTER)
@@ -1024,3 +1019,7 @@ build-test-integration: $(NPM_INSTALLED_PROGRAMS)
 .PHONY: docs
 docs: $(NPM_INSTALLED_PROGRAMS)
 	grunt docs
+
+.PHONY: watch
+watch: $(NPM_INSTALLED_PROGRAMS)
+	node build/watcher.js

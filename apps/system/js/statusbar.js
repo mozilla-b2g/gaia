@@ -387,6 +387,12 @@ var StatusBar = {
   _touchForwarder: new TouchForwarder(),
   _shouldForwardTap: false,
   panelTouchHandler: function sb_panelTouchHandler(evt) {
+
+    // Do not forward events if FTU is running
+    if (FtuLauncher.isFtuRunning()) {
+      return;
+    }
+
     evt.preventDefault();
 
     var elem = this.element;

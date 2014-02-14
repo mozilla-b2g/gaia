@@ -18,8 +18,7 @@ class TestGalleryEmpty(GaiaTestCase):
         gallery = Gallery(self.marionette)
         gallery.launch()
 
+        self.wait_for_condition(lambda m: gallery.empty_gallery_text == 'Use the Camera app to get started.')
+
         # Verify empty gallery title
         self.assertEqual(gallery.empty_gallery_title, 'No photos or videos')
-
-        # Verify empty gallery text
-        self.assertEqual(gallery.empty_gallery_text, 'Use the Camera app to get started.')

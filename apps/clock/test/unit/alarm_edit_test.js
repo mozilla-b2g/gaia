@@ -1,8 +1,10 @@
+'use strict';
 mocha.setup({ globals: ['GestureDetector'] });
 
 suite('AlarmEditView', function() {
   var nativeMozAlarms = navigator.mozAlarms;
-  var Alarm, AlarmEdit, ActiveAlarm, AlarmsDB, AlarmList, AlarmManager;
+  var Alarm, AlarmEdit, ActiveAlarm, AlarmsDB, AlarmList, AlarmManager,
+      mozL10n;
 
   suiteSetup(function(done) {
     this.slow(25000);
@@ -14,17 +16,18 @@ suite('AlarmEditView', function() {
         'mocks/mock_alarm_list',
         'mocks/mock_alarm_manager',
         'mocks/mock_moz_alarm',
-        'mocks/mock_navigator_mozl10n'
+        'mocks/mock_shared/js/l10n'
       ], {
         mocks: ['alarmsdb', 'alarm_list', 'alarm_manager']
       }, function(alarm, activeAlarm, alarmEdit, mockAlarmsDB, mockAlarmList,
-        mockAlarmManager, mockMozAlarms) {
+        mockAlarmManager, mockMozAlarms, mockMozL10n) {
         Alarm = alarm;
         ActiveAlarm = activeAlarm;
         AlarmEdit = alarmEdit;
         AlarmsDB = mockAlarmsDB;
         AlarmList = mockAlarmList;
         AlarmManager = mockAlarmManager;
+        mozL10n = mockMozL10n;
         navigator.mozAlarms = new mockMozAlarms.MockMozAlarms(
           ActiveAlarm.handler
         );
@@ -184,7 +187,6 @@ suite('AlarmEditView', function() {
       // mock the view to turn off vibrate
       AlarmEdit.getVibrateSelect.returns('0');
 
-      var curid = AlarmsDB.idCount;
       AlarmEdit.alarm = new Alarm({
         hour: 5,
         minute: 17,
@@ -228,6 +230,32 @@ suite('AlarmEditView', function() {
       });
 
       this.sinon.clock.tick(10);
+    });
+
+    test('should update start of week for l10n, Monday first', function() {
+      var sunday = document.querySelector('#repeat-select-sunday');
+      var parent = sunday.parentElement;
+      // Sunday gets moved to the end.
+      parent.appendChild(sunday);
+
+      mozL10n.setForTest('weekStartsOnMonday', '0');
+      window.dispatchEvent(new Event('localized'));
+
+      assert.ok(!sunday.previousSibling, 'Sunday should be first (prev)');
+      assert.ok(sunday.nextSibling, 'Sunday should be first (next)');
+    });
+
+    test('should update start of week for l10n, Sunday first', function() {
+      var sunday = document.querySelector('#repeat-select-sunday');
+      var parent = sunday.parentElement;
+      // Sunday goes first.
+      parent.insertBefore(sunday, parent.firstChild);
+
+      mozL10n.setForTest('weekStartsOnMonday', '1');
+      window.dispatchEvent(new Event('localized'));
+
+      assert.ok(sunday.previousSibling, 'Sunday should be last (prev)');
+      assert.ok(!sunday.nextSibling, 'Sunday should be last (next)');
     });
 
   });

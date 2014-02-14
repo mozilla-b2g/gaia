@@ -10,10 +10,12 @@ requireApp('system/test/unit/mock_lock_screen.js');
 requireApp('system/test/unit/mock_simslot.js');
 requireApp('system/test/unit/mock_simslot_manager.js');
 requireApp('system/test/unit/mock_app_window_manager.js');
+requireApp('system/test/unit/mock_ftu_launcher.js');
 requireApp('system/test/unit/mock_touch_forwarder.js');
 requireApp('system/js/lockscreen.js');
 
 var mocksForStatusBar = new MocksHelper([
+  'FtuLauncher',
   'SettingsListener',
   'MobileOperator',
   'LockScreen',
@@ -1235,6 +1237,14 @@ suite('system/Statusbar', function() {
 
         assert.equal(StatusBar.element.style.transform, transform);
         fakeDispatch('touchend', 100, 15);
+      });
+
+      test('it should not reveal when ftu is running', function() {
+        FtuLauncher.mIsRunning = true;
+        fakeDispatch('touchstart', 100, 0);
+        fakeDispatch('touchmove', 100, 5);
+        assert.equal(StatusBar.element.style.transform, '');
+        FtuLauncher.mIsRunning = false;
       });
 
       suite('after the gesture', function() {

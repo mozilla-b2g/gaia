@@ -550,7 +550,8 @@ var Browser = {
   },
 
   showAddressBar: function browser_showAddressBar() {
-    if (this.addressBarState === this.VISIBLE ||
+    if (this.addressBarState === null ||
+        this.addressBarState === this.VISIBLE ||
         this.addressBarState === this.TRANSITIONING) {
       return;
     }
@@ -632,10 +633,12 @@ var Browser = {
 
   reviveCrashedTab: function browser_reviveCrashedTab(tab) {
     this.createTab(null, null, tab);
+    tab.crashed = false;
+    if (!tab.url)
+      return;
     this.setTabVisibility(tab, true);
     Toolbar.refreshButtons();
     this.navigate(tab.url);
-    tab.crashed = false;
     this.hideCrashScreen();
   },
 

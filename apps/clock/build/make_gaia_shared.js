@@ -1,10 +1,11 @@
+'use strict';
 /**
  * Scans the built directory's JS and CSS files looking for shared resources
  * to generate a gaia_shared.json
  */
 /*jshint moz: true */
-/*global load, requirejs, Components */
-
+/*global load */
+/* jshint unused:false */
 var requirejsAsLib = true;
 load('../../build/r.js');
 

@@ -44,7 +44,7 @@ var metadataParser = (function() {
       var canvas = document.createElement('canvas');
       canvas.width = THUMBNAIL_WIDTH;
       canvas.height = THUMBNAIL_HEIGHT;
-      var context = canvas.getContext('2d');
+      var context = canvas.getContext('2d', { willReadFrequently: true });
       var eltwidth = elt.width;
       var eltheight = elt.height;
       var scalex = canvas.width / eltwidth;
@@ -69,7 +69,6 @@ var metadataParser = (function() {
         // All transformation are applied to the center of the thumbnail.
         context.translate(centerX, centerY);
       }
-
       if (mirrored) {
         context.scale(-1, 1);
       }
@@ -131,7 +130,12 @@ var metadataParser = (function() {
         context.fill();
       }
 
-      canvas.toBlob(callback, 'image/jpeg');
+      canvas.toBlob(function(blob) {
+        context = null;
+        canvas.width = canvas.height = 0;
+        canvas = null;
+        callback(blob);
+      }, 'image/jpeg');
     } catch (ex) {
       // An error may be thrown when the drawImage decodes a broken/trancated
       // image.
@@ -364,7 +368,7 @@ var metadataParser = (function() {
         var canvas = document.createElement('canvas');
         canvas.width = pw;
         canvas.height = ph;
-        var context = canvas.getContext('2d');
+        var context = canvas.getContext('2d', { willReadFrequently: true });
         context.drawImage(offscreenImage, 0, 0, iw, ih, 0, 0, pw, ph);
         canvas.toBlob(function(blob) {
           offscreenImage.src = '';

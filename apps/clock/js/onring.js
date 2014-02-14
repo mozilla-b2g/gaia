@@ -1,5 +1,5 @@
-define(function(require) {
 'use strict';
+define(function(require) {
 
 var Utils = require('utils');
 var mozL10n = require('l10n');
@@ -34,7 +34,7 @@ RingView.prototype = {};
 RingView.prototype.handleMessage = function rv_handleMessage(ev) {
   Utils.safeWakeLock({type: 'cpu', timeoutMs: 5000}, function(done) {
     var err = [];
-    var data = ev.data, source = ev.source;
+    var data = ev.data;
     var messageTypes = data.type.split(' ');
     var gen = Utils.async.generator(done);
     var lp = gen();
@@ -60,6 +60,7 @@ RingView.prototype.handleMessage = function rv_handleMessage(ev) {
 };
 
 function isVisibleWorkaround(callback) {
+  /* jshint validthis:true */
   // See https://bugzilla.mozilla.org/show_bug.cgi?id=810431
   document.addEventListener('visibilitychange', this);
   if (!document.hidden) {
@@ -246,7 +247,7 @@ RingView.prototype.handleEvent = function rv_handleEvent(evt) {
   }
 };
 
-RingView.prototype.onVisibilityChange = domEventMap['visibilitychange'] =
+RingView.prototype.onVisibilityChange = domEventMap.visibilitychange =
   function rv_onVisibilityChange(evt) {
   // There's chance to miss the hidden state when initiated,
   // before setVisible take effects, there may be a latency.
@@ -255,7 +256,7 @@ RingView.prototype.onVisibilityChange = domEventMap['visibilitychange'] =
   }
 };
 
-RingView.prototype.onMozInterruptBegin = domEventMap['onmozinterruptbegin'] =
+RingView.prototype.onMozInterruptBegin = domEventMap.mozinterruptbegin =
   function rv_onMozInterruptBegin(evt) {
   // Only ringer/telephony channel audio could trigger 'mozinterruptbegin'
   // event on the 'alarm' channel audio element.
@@ -264,11 +265,12 @@ RingView.prototype.onMozInterruptBegin = domEventMap['onmozinterruptbegin'] =
   this.stopNotify(true);
 };
 
-RingView.prototype.onClick = domEventMap['click'] =
+RingView.prototype.onClick = domEventMap.click =
   function rv_onClick(evt) {
   var input = evt.target;
-  if (!input)
+  if (!input) {
     return;
+  }
   switch (input.id) {
     case 'ring-button-snooze':
       this.stopNotify();
@@ -278,7 +280,7 @@ RingView.prototype.onClick = domEventMap['click'] =
       }, window.location.origin);
       window.close();
       break;
-    case 'ring-button-close':
+    case 'ring-button-stop':
       this.stopNotify();
       window.close();
       break;
@@ -290,7 +292,7 @@ RingView.prototype.onClick = domEventMap['click'] =
     hourState: '#ring-clock-hour24-state',
     ringLabel: '#ring-label',
     snoozeButton: '#ring-button-snooze',
-    closeButton: '#ring-button-close',
+    closeButton: '#ring-button-stop',
     ringDisplay: '.ring-display'
   };
   for (var i in domMap) {

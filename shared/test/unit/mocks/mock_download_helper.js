@@ -1,7 +1,7 @@
 'use strict';
 
 var MockDownloadHelper = {
-  launch: function() {
+  open: function() {
     return {
       set onsuccess(s) { setTimeout(function() {
        s();

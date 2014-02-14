@@ -1,6 +1,8 @@
+'use strict';
+/* global asyncStorage */
 suite('Timer.Panel', function() {
   var clock;
-  var isHidden, isVisible;
+  var isHidden;
   var ActiveAlarm, View, Timer, Utils;
   var nativeMozAlarms = navigator.mozAlarms;
 

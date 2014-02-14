@@ -1,5 +1,4 @@
 define(function(require) {
-
   'use strict';
 
   var Panel = require('panel');
@@ -190,6 +189,7 @@ define(function(require) {
   };
 
   function createLapDom(num, time) {
+    /* jshint validthis:true */
     var li = document.createElement('li');
     li.setAttribute('class', 'lap-cell');
     var html = this.lapTemplate.interpolate({

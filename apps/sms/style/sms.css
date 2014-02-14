@@ -416,6 +416,7 @@ section.has-carrier .article-list header:first-child {
 
 .article-list[data-type="list"] .message {
   position: relative;
+  z-index: 0; /* bug 970422 */
 
   display: block;
   overflow: hidden;

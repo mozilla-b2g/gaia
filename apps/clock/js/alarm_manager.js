@@ -1,4 +1,5 @@
 define(function(require) {
+'use strict';
 /* An Alarm's ID:
  * ID in Clock app                              ID in mozAlarms API
  * id (unique)                                  id (unique)
@@ -65,6 +66,7 @@ var AlarmManager = {
   },
 
   updateAlarmStatusBar: function am_updateAlarmStatusBar() {
+    /* jshint loopfunc:true */
     var request = navigator.mozAlarms.getAll();
     request.onsuccess = function(e) {
       var hasAlarmEnabled = false;

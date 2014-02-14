@@ -1,3 +1,5 @@
+'use strict';
+/* global KeyEvent */
 define(function(require) {
 
 var Alarm = require('alarm');
@@ -7,7 +9,6 @@ var ClockView = require('clock_view');
 var FormButton = require('form_button');
 var Sounds = require('sounds');
 var Utils = require('utils');
-var constants = require('constants');
 var mozL10n = require('l10n');
 var _ = mozL10n.get;
 
@@ -25,17 +26,21 @@ var AlarmEdit = {
 
   get element() {
     delete this.element;
-    return this.element = document.getElementById('alarm-edit-panel');
+    return (this.element = document.getElementById('alarm-edit-panel'));
   },
 
   get scrollList() {
     delete this.scrollList;
-    return this.scrollList = document.getElementById('edit-alarm');
+    return (this.scrollList = document.getElementById('edit-alarm'));
+  },
+
+  get sundayListItem() {
+    return document.getElementById('repeat-select-sunday');
   },
 
   get alarmTitle() {
     delete this.alarmTitle;
-    return this.alarmTitle = document.getElementById('alarm-title');
+    return (this.alarmTitle = document.getElementById('alarm-title'));
   },
 
   init: function aev_init() {
@@ -64,7 +69,6 @@ var AlarmEdit = {
       }.bind(this)
     });
     this.buttons.repeat = new FormButton(this.selects.repeat, {
-      selectOptions: constants.DAYS,
       id: 'repeat-menu',
       formatLabel: function(daysOfWeek) {
         return this.alarm.summarizeDaysOfWeek(daysOfWeek);
@@ -89,8 +93,13 @@ var AlarmEdit = {
     });
 
     mozL10n.translate(this.element);
-    // TODO: When this class gets refactored to be not a singleton,
-    // add methods to remove all of these event listeners as applicable.
+
+    // When the language changes, the value of 'weekStartsOnMonday'
+    // might change. Since that's more than a simple text string, we
+    // can't just use mozL10n.translate().
+    window.addEventListener('localized', this.updateL10n.bind(this));
+    this.updateL10n();
+
     this.buttons.close.addEventListener('click', this);
     this.buttons.done.addEventListener('click', this);
     this.selects.sound.addEventListener('change', this);
@@ -121,11 +130,26 @@ var AlarmEdit = {
     }
   },
 
+  updateL10n: function() {
+    // Move the weekdays around to properly account for whether the
+    // week starts on Sunday or Monday.
+    var weekStartsOnMonday = parseInt(_('weekStartsOnMonday'), 10);
+    var parent = this.sundayListItem.parentElement;
+    if (weekStartsOnMonday) {
+      // Sunday gets moved to the end.
+      parent.appendChild(this.sundayListItem);
+    } else {
+      // Sunday goes first.
+      parent.insertBefore(this.sundayListItem, parent.firstChild);
+    }
+  },
+
   handleEvent: function aev_handleEvent(evt) {
     evt.preventDefault();
     var input = evt.target;
-    if (!input)
+    if (!input) {
       return;
+    }
 
     switch (input) {
       case this.buttons.close:
@@ -169,18 +193,14 @@ var AlarmEdit = {
     // scroll to top of form list
     this.scrollList.scrollTop = 0;
 
-    if (!alarm) {
-      this.element.classList.add('new');
-      this.alarmTitle.textContent = _('newAlarm');
-      alarm = new Alarm();
-    } else {
-      this.element.classList.remove('new');
-      this.alarmTitle.textContent = _('editAlarm');
-    }
-    this.alarm = new Alarm(alarm);
+    this.element.classList.toggle('new', !alarm);
+    this.alarm = new Alarm(alarm); // alarm may be null
 
-    this.element.dataset.id = alarm.id;
-    this.inputs.name.value = alarm.label;
+    // Set to empty string if the Alarm doesn't have an ID,
+    // otherwise dataset will automatically stringify it
+    // to be "undefined" rather than "".
+    this.element.dataset.id = this.alarm.id || '';
+    this.inputs.name.value = this.alarm.label;
 
     // Init time, repeat, sound, snooze selection menu.
     this.initTimeSelect();
@@ -230,8 +250,9 @@ var AlarmEdit = {
   },
 
   stopPreviewSound: function aev_stopPreviewSound() {
-    if (this.previewRingtonePlayer)
+    if (this.previewRingtonePlayer) {
       this.previewRingtonePlayer.pause();
+    }
   },
 
   initVibrateSelect: function aev_initVibrateSelect() {

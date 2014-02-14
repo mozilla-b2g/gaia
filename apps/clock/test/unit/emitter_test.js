@@ -1,3 +1,4 @@
+'use strict';
 requireApp('clock/js/emitter.js', loaded);
 
 // since we need to generate tests using Emitter, we must wait for it to load
@@ -34,14 +35,14 @@ function loaded() {
     [Emitter, Simple, Complex, MixedIn, MixedInProto].forEach(function(ctor) {
       suite(ctor.name + '()', function() {
         setup(function() {
-          this.emitter = new ctor;
+          this.emitter = new ctor();
           this.handlers = [];
           for (var x = 0; x < 5; x++) {
             this.handlers.push(this.sinon.spy());
           }
         });
         test('object has no owned properties', function() {
-          var ownProperty = undefined;
+          var ownProperty;
           for (var property in this.emitter) {
             if (this.emitter.hasOwnProperty(property)) {
               ownProperty = property;

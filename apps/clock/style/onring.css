@@ -77,7 +77,7 @@ html, body {
   position: absolute;
 }
 
-#ring-button-close {
+#ring-button-stop {
   float: left;
   display: inline-block;
   overflow: hidden;
@@ -102,7 +102,7 @@ html, body {
   white-space: nowrap;
 }
 
-#ring-button-close:active {
+#ring-button-stop:active {
   background: none repeat scroll 0 0 #008AAA;
   border-color: #008AAA;
   color: #333333;
@@ -144,7 +144,7 @@ html, body {
   width: calc((100% - 4.06rem) / 2);
 }
 
-.ring-display[data-ring-type="timer"] #ring-button-close {
+.ring-display[data-ring-type="timer"] #ring-button-stop {
   width: calc(100% - (4.06rem * .7666));
 }
 

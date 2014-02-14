@@ -2,8 +2,8 @@
 'use strict';
 
 var MockDownloadHelper = {
-  launch: function() {
-    this.methodCalled = 'launch';
+  open: function() {
+    this.methodCalled = 'open';
     return {};
   },
 

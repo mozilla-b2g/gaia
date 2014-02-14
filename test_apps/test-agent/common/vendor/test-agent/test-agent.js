@@ -1653,21 +1653,35 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     }
   };
 
-  function RunnerStreamProxy(runner) {
-    var self = this;
+  function RunnerStreamProxy(runner, options) {
+    var self = this,
+        key;
+
+    if (typeof(options) === 'undefined') {
+      options = {};
+    }
+
+    for (key in options) {
+      if (options.hasOwnProperty(key)) {
+        this[key] = options[key];
+      }
+    }
 
     Responder.apply(this, arguments);
 
     this.runner = runner;
 
+    // We ignore log if coverage is enabled
+    if (!this.coverage) {
+      this.on('log', function onLog(data) {
+        console.log.apply(console, data.messages);
+      });
+    }
+
     this.on({
 
       'start': function onStart(data) {
         runner.emit('start', data);
-      },
-
-      'log': function onLog(data) {
-        console.log.apply(console, data.messages);
       },
 
       'end': function onEnd(data) {
@@ -2080,7 +2094,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       envs: this.envs
     });
 
-    this.proxy = new Proxy(this.runner);
+    this.proxy = new Proxy(this.runner, { coverage: this.coverage });
     this.envs = [];
 
     this.runner.once('start', this._onStart.bind(this));
@@ -2295,7 +2309,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
   Blanket.prototype = {
 
     enhance: function enhance(server) {
-      this.server = server;
       server.on('coverage data', this._onCoverageData.bind(this));
 
       if (typeof(window) !== 'undefined') {
@@ -2323,18 +2336,19 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
           originColor = '\033[0m';
 
       // Print title
-      console.info('\n\n    ' + titleColor + '-- Blanket.js Test Coverage Result --' + originColor + '\n');
-      console.info('    ' + fileNameColor + 'File Name' + originColor +
+      console.info('\n' + titleColor + '-- Blanket.js Test Coverage Result --' + originColor + '\n');
+      console.info(fileNameColor + 'File Name' + originColor +
         ' - ' + stmtColor + 'Covered/Total Smts' + originColor +
         ' - ' + percentageColor + 'Coverage (\%)\n' + originColor);
 
       // Print coverage result for each file
       coverResults.forEach(function(dataItem) {
         var filename = dataItem.filename,
-            formatPrefix = (filename === "Global Total" ? "\n    " : "      "),
+            formatPrefix = (filename === "Global Total" ? "\n" : "  "),
             seperator = ' - ';
 
-        filename = (filename === "Global Total" ? filename : filename.substr(0, filename.indexOf('?')));
+        filename = (filename === "Global Total" ? filename :
+          (filename.substr(0, filename.indexOf('?')) || filename));
         outputFormat = formatPrefix;
         outputFormat += fileNameColor + filename + originColor + seperator;
         outputFormat += stmtColor + dataItem.stmts + originColor  + seperator;
@@ -3412,4 +3426,3 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
   };
 
 }(this));
-

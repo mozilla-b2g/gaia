@@ -340,18 +340,19 @@ suite('system/Rocketbar', function() {
   });
 
   suite('onSearchMessage', function() {
-    test('fires a change event', function() {
-      var message;
-      Rocketbar._port = {
-        postMessage: function(msg) {
-          message = msg;
-        }
-      };
+    test('sets the input value', function() {
       Rocketbar.onSearchMessage({
         detail: {input: 'foo'}
       });
-      assert.equal(message.action, 'change');
-      assert.equal(message.input, 'foo');
+      assert.equal(Rocketbar.searchInput.value, 'foo');
+    });
+
+    test('can hide the rocketbar', function() {
+      var stub = this.sinon.stub(Rocketbar, 'hide');
+      Rocketbar.onSearchMessage({
+        detail: {action: 'hide'}
+      });
+      assert.ok(stub.calledOnce);
     });
   });
 

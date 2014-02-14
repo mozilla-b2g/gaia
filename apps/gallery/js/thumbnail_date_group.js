@@ -57,10 +57,11 @@ function ThumbnailDateGroup(item) {
     throw new Error('template is required while rendering.');
   }
 
+  var _ = navigator.mozL10n.get;
   var dateFormatter = new navigator.mozL10n.DateTimeFormat();
   var htmlText = ThumbnailDateGroup.Template.interpolate({
     'group-header': dateFormatter.localeFormat(new Date(item.date),
-                                               '%B %Y')});
+                                               _('date-group-header'))});
 
   // create dummy node for converting to DOM node.
   var dummyDiv = document.createElement('DIV');

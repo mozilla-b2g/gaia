@@ -149,17 +149,17 @@ function convertTo12(alarm) {
     repeat: {}
   }, alarm);
   if (typeof alarm.enabled !== 'undefined') {
-    delete ret['enabled'];
+    delete ret.enabled;
   }
   // Extract a normalAlarmId
   if (typeof alarm.normalAlarmId !== 'undefined') {
-    ret.registeredAlarms['normal'] = alarm.normalAlarmId;
-    delete ret['normalAlarmId'];
+    ret.registeredAlarms.normal = alarm.normalAlarmId;
+    delete ret.normalAlarmId;
   }
   // Extract a snoozeAlarmId
   if (typeof alarm.snoozeAlarmId !== 'undefined') {
-    ret.registeredAlarms['snooze'] = alarm.snoozeAlarmId;
-    delete ret['snoozeAlarmId'];
+    ret.registeredAlarms.snooze = alarm.snoozeAlarmId;
+    delete ret.snoozeAlarmId;
   }
   // Map '1111100' string bitmap to a 1.2 repeat object with day name
   // properties.

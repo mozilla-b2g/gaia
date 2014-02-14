@@ -694,7 +694,7 @@ class GaiaDevice(object):
     @property
     def is_android_build(self):
         if self.testvars.get('is_android_build') is None:
-            self.testvars['is_android_build'] = 'Android' in self.marionette.session_capabilities['platformName']
+            self.testvars['is_android_build'] = 'android' in self.marionette.session_capabilities['platformName'].lower()
         return self.testvars['is_android_build']
 
     @property
@@ -757,16 +757,12 @@ class GaiaDevice(object):
             raise Exception('Unable to start B2G')
         self.marionette.wait_for_port()
         self.marionette.start_session()
-        if self.is_android_build:
-            self.marionette.execute_async_script("""
-window.addEventListener('mozbrowserloadend', function loaded(aEvent) {
-  if (aEvent.target.src.indexOf('ftu') != -1 || aEvent.target.src.indexOf('homescreen') != -1) {
-    window.removeEventListener('mozbrowserloadend', loaded);
-    marionetteScriptFinished();
-  }
-});""", script_timeout=timeout)
-            # TODO: Remove this sleep when Bug 924912 is addressed
-            time.sleep(5)
+
+        # Wait for the AppWindowManager to have registered the frame as active (loaded)
+        locator = (By.CSS_SELECTOR, 'div.appWindow.active')
+        Wait(marionette=self.marionette, timeout=timeout, ignored_exceptions=NoSuchElementException)\
+            .until(lambda m: m.find_element(*locator).is_displayed())
+
         self.marionette.import_script(self.lockscreen_atom)
         self.update_checker.check_updates()
 
@@ -871,8 +867,7 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
 
         self.device = GaiaDevice(self.marionette, self.testvars)
         if self.device.is_android_build:
-            self.device.add_device_manager(
-                self.get_device_manager(deviceSerial = self.marionette.device_serial))
+            self.device.add_device_manager(self.get_device_manager())
         if self.restart and (self.device.is_android_build or self.marionette.instance):
             self.device.stop_b2g()
             if self.device.is_android_build:

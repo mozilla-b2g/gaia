@@ -292,7 +292,6 @@ var Rocketbar = {
     } else if (detail.input) {
       var input = this.searchInput;
       input.value = detail.input;
-      this._port.postMessage({ action: 'change', input: input.value });
     }
   },
 
@@ -318,11 +317,14 @@ var Rocketbar = {
 
     window.dispatchEvent(new CustomEvent('rocketbarhidden'));
 
-    setTimeout(function nextTick() {
-      this._port.postMessage({
-        action: 'clear'
+    var port = this._port;
+    if (port) {
+      setTimeout(function nextTick() {
+        port.postMessage({
+          action: 'clear'
+        });
       });
-    }.bind(this));
+    }
   },
 
   /**

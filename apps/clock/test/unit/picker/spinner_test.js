@@ -2,7 +2,7 @@ mocha.setup({ globals: ['GestureDetector'] });
 
 suite('Spinner', function() {
   'use strict';
-
+  
   var Spinner, Template, GestureDetector;
   var _clientHeight;
   var VALUE_ELEMENT_HEIGHT = 20;
@@ -144,7 +144,8 @@ suite('Spinner', function() {
     });
     suite('pan down by 15px over 1 second', function() {
       setup(function() {
-        var event = new CustomEvent('pan', {
+        var event;
+        event = new CustomEvent('pan', {
           detail: {
             position: {
               clientY: 0,
@@ -154,7 +155,7 @@ suite('Spinner', function() {
           bubbles: true
         });
         this.container.dispatchEvent(event);
-        var event = new CustomEvent('pan', {
+        event = new CustomEvent('pan', {
           detail: {
             position: {
               clientY: 15,
@@ -170,7 +171,8 @@ suite('Spinner', function() {
     });
     suite('pan up by 15px over 1 second', function() {
       setup(function() {
-        var event = new CustomEvent('pan', {
+        var event;
+        event = new CustomEvent('pan', {
           detail: {
             position: {
               clientY: 15,
@@ -180,7 +182,7 @@ suite('Spinner', function() {
           bubbles: true
         });
         this.container.dispatchEvent(event);
-        var event = new CustomEvent('pan', {
+        event = new CustomEvent('pan', {
           detail: {
             position: {
               clientY: 0,
@@ -220,7 +222,8 @@ suite('Spinner', function() {
     checkCreation();
     suite('pan up by 35px over 70ms', function() {
       setup(function() {
-        var event = new CustomEvent('pan', {
+        var event;
+        event = new CustomEvent('pan', {
           detail: {
             position: {
               clientY: 35,
@@ -230,7 +233,7 @@ suite('Spinner', function() {
           bubbles: true
         });
         this.container.dispatchEvent(event);
-        var event = new CustomEvent('pan', {
+        event = new CustomEvent('pan', {
           detail: {
             position: {
               clientY: 0,
@@ -269,7 +272,8 @@ suite('Spinner', function() {
     });
     suite('pan up by 100px over 1ms', function() {
       setup(function() {
-        var event = new CustomEvent('pan', {
+        var event;
+        event = new CustomEvent('pan', {
           detail: {
             position: {
               clientY: 100,
@@ -279,7 +283,7 @@ suite('Spinner', function() {
           bubbles: true
         });
         this.container.dispatchEvent(event);
-        var event = new CustomEvent('pan', {
+        event = new CustomEvent('pan', {
           detail: {
             position: {
               clientY: 0,
@@ -372,7 +376,8 @@ suite('Spinner', function() {
     checkCreation();
     suite('pan up by 70px over 70ms', function() {
       setup(function() {
-        var event = new CustomEvent('pan', {
+        var event;
+        event = new CustomEvent('pan', {
           detail: {
             position: {
               clientY: 70,
@@ -382,7 +387,7 @@ suite('Spinner', function() {
           bubbles: true
         });
         this.container.dispatchEvent(event);
-        var event = new CustomEvent('pan', {
+        event = new CustomEvent('pan', {
           detail: {
             position: {
               clientY: 0,
