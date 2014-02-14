@@ -19,5 +19,5 @@ make test-agent-server &
 echo 'Starting Firefox'
 
 FIREFOX=`find firefox -name "firefox" | tail -n 1`
-$FIREFOX -profile `pwd`/profile-debug "http://test-agent.gaiamobile.org:8080" &
+$FIREFOX -profile `pwd`/profile-debug "http://test-agent.gaiamobile.org:8080" > /dev/null 2>&1 &
 waiting_port 8080
