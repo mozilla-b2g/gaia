@@ -3,9 +3,8 @@
   position: absolute;
   left: 0;
   top: 0;
-  z-index: 25;
   opacity: 1;
-  transition: opacity 200ms ease-in-out;
+  transition: opacity 25ms ease-in-out;
 }
 
 .viewfinder.fade-out {

@@ -5,10 +5,10 @@ define(function(require, exports, module) {
  * Dependencies
  */
 
-var bind = require('utils/bind');
-var View = require('vendor/view');
-var addPanAndZoomHandlers = require('panzoom');
+var addPanAndZoomHandlers = require('lib/panzoom');
 var MediaFrame = require('MediaFrame');
+var View = require('vendor/view');
+var bind = require('lib/bind');
 
 /**
  * Exports
@@ -85,7 +85,7 @@ module.exports = View.extend({
     '<footer id="confirm-controls" class="confirm-controls">' +
       '<button class="retake-button js-retake" name="retake">' +
       data.retake + '</button>' +
-      '<button class="select-button recommend js-select" name="select">' +
+      '<button class="select-button test-confirm-select js-select" name="select">' +
       data.select + '</button>' +
     '</footer>';
   },

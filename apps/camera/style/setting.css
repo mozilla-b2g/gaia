@@ -1,0 +1,45 @@
+
+.setting {
+  display: flex;
+  height: 7rem;
+  align-items: center;
+  margin: 0 1.5rem;
+  border-top: solid 1px rgba(255,255,255,0.15);
+}
+
+/**
+ * @active
+ */
+
+.setting:active {
+  background: rgba(0,190,171,0.3);
+}
+
+/** Icon
+ ---------------------------------------------------------*/
+
+.setting:before {
+  display: block;
+  width: 4rem;
+  font-size: 3rem;
+}
+
+/** Text
+ ---------------------------------------------------------*/
+
+.setting_text {}
+
+/** Title
+ ---------------------------------------------------------*/
+
+.setting_title {
+  margin-bottom: 0.5rem;
+  color: rgba(255,255,255,0.5);
+}
+
+/** Value
+ ---------------------------------------------------------*/
+
+.setting_value {
+  text-transform: uppercase;
+}

@@ -1,0 +1,163 @@
+
+/**
+ * 1. Height of controls
+ * 2. Stack on top of hud.
+ */
+
+.settings {
+  position: absolute;
+  left: 0; top: 0;
+  bottom: 4.5rem; /* 1 */
+  z-index: 20; /* 2 */
+  width: 100%;
+  font-size: 1.6rem;
+  color: #FFF;
+  white-space: nowrap;
+  transform: translateZ(1px);
+  overflow: hidden;
+}
+
+/**
+ * COMPLEX
+ *
+ * The camera app has fixed rotation,
+ * this means that when the orientation of the
+ * device changes, the application doesn't rotate.
+ *
+ * Although the settings menu must rotate. This
+ * means we need to use CSS transforms to reposition
+ * the settings menu so that it appears rotate with
+ * the orientation of the device.
+ *
+ */
+
+/**
+ * @deg90
+ *
+ * 1. Viewport height minus controls height
+ */
+
+.deg90 .settings {
+  width: calc(100vh - 4.5rem); /* 1 */
+  height: 100vw;
+  transform:
+    rotate(270deg)
+    translate(-100vh, 0)
+    translate(4.5rem, 0);
+  transform-origin: 0 0;
+}
+
+/**
+ * @deg180
+ */
+
+.deg180 .settings {
+  transform: rotate(180deg);
+}
+
+/**
+ * @deg270
+ *
+ * 1. Viewport height minus controls height
+ */
+
+.deg270 .settings {
+  width: calc(100vh - 4.5rem);
+  height: 100vw;
+  transform:
+    rotate(90deg)
+    translate(0px, -100vw);
+  transform-origin: 0 0;
+}
+
+/** Pane
+ ---------------------------------------------------------*/
+
+.pane {
+  display: inline-block;
+  vertical-align: top;
+  width: 100%;
+  height: 100%;
+  transform: translateX(0);
+  /*transition: transform 300ms;*/
+}
+
+[show-pane=pane-2] .pane {
+  transform: translateX(-100%);
+}
+
+/** Pane 1
+ ---------------------------------------------------------*/
+
+
+
+/** Pane 2
+ ---------------------------------------------------------*/
+
+
+/** Inner
+ ---------------------------------------------------------*/
+
+.settings_inner {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/** Header
+ ---------------------------------------------------------*/
+
+.settings_header {
+
+}
+
+/** Title
+ ---------------------------------------------------------*/
+
+.settings_title {
+  height: 9rem;
+  line-height: 9rem;
+  padding-left: 3rem;
+  font-size: 2rem;
+  color: rgba(255,255,255,0.8);
+  background: rgba(0,0,0,0.85);
+}
+
+.deg270 .settings_title {
+  padding-left: 10.5rem;
+}
+
+/** Items
+ ---------------------------------------------------------*/
+
+.settings_items {
+  flex: 1;
+  overflow: scroll;
+}
+
+.settings_items > .inner {
+  background: rgba(0,0,0,0.85);
+}
+
+.deg270 .settings_items > .inner {
+  padding-left: 7.5rem;
+}
+
+/** Close
+ ---------------------------------------------------------*/
+
+/**
+ * @extends .hud a
+ */
+
+.settings_close {
+  position: absolute;
+  top: 0; right: 0;
+  font-size: 2rem;
+  background-color: #008eab;
+}
+
+.deg270 .settings_close {
+  right: auto;
+  left: 0;
+}

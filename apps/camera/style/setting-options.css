@@ -1,0 +1,82 @@
+
+/** Setting Options
+ ---------------------------------------------------------*/
+
+.setting-options {
+  font-size: 1.6rem;
+  color: #FFF;
+}
+
+/** Inner
+ ---------------------------------------------------------*/
+
+.setting-options > .inner {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/** Title
+ ---------------------------------------------------------*/
+
+.setting-options .settings_title:before {
+  margin-left: -1.9rem;
+  margin-right: 0.3rem;
+}
+
+/** Items
+ ---------------------------------------------------------*/
+
+.setting-options_items {
+  flex: 1;
+  overflow: scroll;
+}
+
+.setting-options_items > .inner {
+  padding: 0 1.5rem;
+  background: rgba(0,0,0,0.85);
+}
+
+/** Item
+ ---------------------------------------------------------*/
+
+.setting-option {
+  height: 7rem;
+  margin: 0 1.5rem;
+  padding: 0 1.5rem;
+  line-height: 7rem;
+  border-top: solid 1px rgba(255,255,255,0.15);
+  text-transform: uppercase;
+}
+
+/**
+ * @active
+ */
+
+.setting-option:active {
+  background: rgba(0,190,171,0.3);
+}
+
+/**
+ * @selected
+ */
+
+.setting-option.selected {
+  color: #008eab;
+}
+
+/** Item Icon
+ ---------------------------------------------------------*/
+
+.setting-option:before {
+  float: right;
+  visibility: hidden;
+}
+
+/**
+ * @selected
+ */
+
+.setting-option.selected:before {
+  visibility: visible;
+}
