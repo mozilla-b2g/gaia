@@ -1,6 +1,10 @@
 'use strict';
+/* global DialerComms, MocksHelper, IACHandler */
 
 requireApp('system/test/unit/mock_iachandler.js');
+requireApp('system/js/dialercomms.js');
+
+mocha.globals(['addEventListener']);
 
 var mocksHelperForDialercomms = new MocksHelper([
   'IACHandler'
@@ -8,17 +12,17 @@ var mocksHelperForDialercomms = new MocksHelper([
 
 suite('Inter App Communication with Dialer', function() {
   mocksHelperForDialercomms.attachTestHelpers();
+  var subject;
 
-  test('should listen to sleep and volumedown events', function(done) {
+  test('should listen to sleep and volumedown events', function() {
     var addEventListenerSpy = this.sinon.spy(window, 'addEventListener');
-    requireApp('system/js/dialercomms.js', function() {
-      assert.isTrue(addEventListenerSpy.calledWith('sleep'));
-      assert.isTrue(addEventListenerSpy.calledWith('volumedown'));
-      done();
-    });
+    subject = new DialerComms();
+    assert.isTrue(addEventListenerSpy.calledWith('sleep'));
+    assert.isTrue(addEventListenerSpy.calledWith('volumedown'));
   });
 
   test('should send a message to stop the ringtone', function() {
+    subject = new DialerComms();
     var postMessageSpy = this.sinon.spy();
     var portStub = this.sinon.stub(IACHandler, 'getPort');
     portStub.returns({postMessage: postMessageSpy});

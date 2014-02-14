@@ -911,7 +911,6 @@ apps/system/js/cell_broadcast_system.js
 apps/system/js/context_menu.js
 apps/system/js/cost_control.js
 apps/system/js/crash_reporter.js
-apps/system/js/dialercomms.js
 apps/system/js/download/download_manager.js
 apps/system/js/download/download_notification.js
 apps/system/js/edge_swipe_detector.js
@@ -1015,7 +1014,6 @@ apps/system/test/unit/captive_portal_test.js
 apps/system/test/unit/cards_view_test.js
 apps/system/test/unit/carrier_info_notifier_test.js
 apps/system/test/unit/date_picker_test.js
-apps/system/test/unit/dialercomms_test.js
 apps/system/test/unit/download_manager_test.js
 apps/system/test/unit/download_notification_test.js
 apps/system/test/unit/edge_swipe_detector_test.js
