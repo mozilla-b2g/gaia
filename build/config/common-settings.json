@@ -28,6 +28,7 @@
    "developer.hud.errors": true,
    "developer.hud.warnings": true,
    "developer.hud.reflows": true,
+   "developer.hud.jank": false,
    "debug.oop.disabled": false,
    "debug.fps.enabled": false,
    "debug.ttl.enabled": false,
