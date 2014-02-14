@@ -9,7 +9,8 @@ var MockThreadUI = {
   CONVERTED_MESSAGE_DURATION: 3000,
   IMAGE_RESIZE_DURATION: 3000,
   recipients: {
-    add: function() {}
+    add: function() {},
+    focus: function() {}
   },
   recipientsList: document.createElement('div'),
 
