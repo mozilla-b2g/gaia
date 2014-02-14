@@ -1,5 +1,5 @@
 /*global Notify, Compose, mocha, MocksHelper, ActivityHandler, Contacts,
-         MessageManager, Attachment, ThreadUI */
+         MessageManager, Attachment, ThreadUI, Settings */
 /*global MockNavigatormozSetMessageHandler, MockNavigatormozApps,
          MockNavigatorWakeLock, MockOptionMenu, Mockalert,
          MockMessages, MockNavigatorSettings, MockL10n,
@@ -30,6 +30,7 @@ requireApp('sms/test/unit/mock_message_manager.js');
 requireApp('sms/test/unit/mock_threads.js');
 requireApp('sms/test/unit/mock_thread_ui.js');
 requireApp('sms/test/unit/mock_action_menu.js');
+requireApp('sms/test/unit/mock_settings.js');
 
 requireApp('sms/js/utils.js');
 requireApp('sms/test/unit/mock_utils.js');
@@ -50,7 +51,8 @@ var mocksHelperForActivityHandler = new MocksHelper([
   'Threads',
   'ThreadUI',
   'Utils',
-  'alert'
+  'alert',
+  'Settings'
 ]).init();
 
 suite('ActivityHandler', function() {
@@ -122,11 +124,13 @@ suite('ActivityHandler', function() {
         }
       };
       this.prevAppend = Compose.append;
+      this.prevLimit = Settings.mmsSizeLimitation;
     });
 
     teardown(function() {
       window.location.hash = this.prevHash;
       Compose.append = this.prevAppend;
+      Settings.mmsSizeLimitation = this.prevLimit;
     });
 
     test('modifies the URL "hash" when necessary', function() {
@@ -141,6 +145,7 @@ suite('ActivityHandler', function() {
 
         assert.instanceOf(attachment, Attachment);
         assert.ok(Compose.append.callCount < 3);
+        assert.equal(Mockalert.mLastMessage, null);
 
         if (Compose.append.callCount === 2) {
           done();
@@ -148,6 +153,18 @@ suite('ActivityHandler', function() {
       });
 
       MockNavigatormozSetMessageHandler.mTrigger('activity', shareActivity);
+    });
+
+    test('Attachment size over mms limitation should not be appended',
+      function() {
+      Settings.mmsSizeLimitation = -1;
+      this.sinon.spy(Compose, 'append');
+      window.location.hash = 'new';
+
+      MockNavigatormozSetMessageHandler.mTrigger('activity', shareActivity);
+      sinon.assert.notCalled(Compose.append);
+      assert.equal(Mockalert.mLastMessage,
+        navigator.mozL10n.get('file-too-large'));
     });
 
     test('share shouldn\'t change the ThreadUI back button', function() {
