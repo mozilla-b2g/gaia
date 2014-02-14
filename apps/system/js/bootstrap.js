@@ -63,6 +63,8 @@ window.addEventListener('load', function startup() {
   window.devtoolsView = new DevtoolsView();
   window.ttlView = new TTLView();
 
+  window.title = new Title();
+
   // We need to be sure to get the focus in order to wake up the screen
   // if the phone goes to sleep before any user interaction.
   // Apparently it works because no other window has the focus at this point.
