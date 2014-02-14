@@ -1,18 +1,17 @@
 'use strict';
 
-mocha.globals(['OrientationManager', 'SettingsListener', 'lockScreen']);
+mocha.globals(['OrientationManager', 'SettingsListener']);
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/test/unit/mock_lock_screen.js');
 
 var mocksForOrientationManager = new MocksHelper([
-  'SettingsListener'
+  'SettingsListener', 'LockScreen'
 ]).init();
 
 suite('system/OrientationManager >', function() {
   mocksForOrientationManager.attachTestHelpers();
   setup(function(done) {
     requireApp('system/js/orientation_manager.js', done);
-    window.lockScreen = MockLockScreen;
   });
 
   teardown(function() {

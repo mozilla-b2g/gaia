@@ -18,7 +18,7 @@
 
     SettingsListener.observe(this.umsEnabled, false, function umsChanged(val) {
       this._mode = this.modeFromBool(val);
-      if (lockScreen && lockScreen.locked) {
+      if (LockScreen && LockScreen.locked) {
         // covers startup
         // Setting mode due to screen locked
         this.setMode(this.automounterDisable);

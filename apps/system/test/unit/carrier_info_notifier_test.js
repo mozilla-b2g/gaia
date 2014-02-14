@@ -11,8 +11,8 @@ if (typeof window.ModalDialog == 'undefined') {
   window.ModalDialog = null;
 }
 
-if (typeof window.lockScreen == 'undefined') {
-  window.lockScreen = null;
+if (typeof window.LockScreen == 'undefined') {
+  window.LockScreen = null;
 }
 
 if (typeof window.NotificationScreen == 'undefined') {
@@ -46,8 +46,8 @@ suite('carrier info notifier >', function() {
     realModalDialog = window.ModalDialog;
     window.ModalDialog = MockModalDialog;
 
-    realLockScreen = window.lockScreen;
-    window.lockScreen = MockLockScreen;
+    realLockScreen = window.LockScreen;
+    window.LockScreen = MockLockScreen;
 
     realNotificationScreen = window.NotificationScreen;
     window.NotificationScreen = MockNotificationScreen;
@@ -69,7 +69,7 @@ suite('carrier info notifier >', function() {
 
   test('CDMA record information: locked', function(done) {
     var ptr = 0;
-    lockScreen.locked = true;
+    LockScreen.locked = true;
     MockNotificationScreen.mCallback = function(param) {
       assert.equal(param.text, expectedDisplay[ptr]);
       ptr++;
@@ -86,8 +86,8 @@ suite('carrier info notifier >', function() {
     window.ModalDialog.mTeardown();
     window.ModalDialog = realModalDialog;
 
-    window.lockScreen.mTeardown();
-    window.lockScreen = realLockScreen;
+    window.LockScreen.mTeardown();
+    window.LockScreen = realLockScreen;
 
     window.NotificationScreen.mTeardown();
     window.NotificationScreen = realNotificationScreen;

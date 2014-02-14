@@ -10,11 +10,9 @@ window.addEventListener('load', function startup() {
    */
   function registerGlobalEntries() {
     /** @global */
-    window.secureWindowManager = window.secureWindowManager ||
-      new SecureWindowManager();
+    window.secureWindowManager = new SecureWindowManager();
     /** @global */
-    window.secureWindowFactory = window.secureWindowFactory ||
-      new SecureWindowFactory();
+    window.secureWindowFactory = new SecureWindowFactory();
   }
 
   function safelyLaunchFTU() {
