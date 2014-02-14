@@ -26,6 +26,7 @@
       }
       return key;
     },
+    ready: function(cb) { setTimeout(cb); },
     translate: function() {},
     localize: function() {},
     DateTimeFormat: DateTimeFormat
