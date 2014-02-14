@@ -106,7 +106,7 @@
   function mns_mTriggerObservers(name, args) {
     var theseObservers = observers[name];
 
-    if (! theseObservers) {
+    if (!theseObservers) {
       return;
     }
 
