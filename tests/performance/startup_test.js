@@ -22,6 +22,7 @@ marionette('startup test > ' + mozTestInfo.appPath + ' >', function() {
   });
 
   var performanceHelper;
+  var isHostRunner = (process.env.MARIONETTE_RUNNER_HOST == 'marionette-device-host');
 
   app = new App(client, mozTestInfo.appPath);
   if (app.skip) {
@@ -46,9 +47,12 @@ marionette('startup test > ' + mozTestInfo.appPath + ' >', function() {
     var memStats = [];
     performanceHelper.repeatWithDelay(function(app, next) {
       app.launch();
-      var memUsage = performanceHelper.getMemoryUsage(app);
-      assert.ok(memUsage, 'couldn\'t collect mem usage');
-      memStats.push(memUsage);
+      if (isHostRunner) {
+        // we can only collect memory if we have a host device (adb)
+        var memUsage = performanceHelper.getMemoryUsage(app);
+        assert.ok(memUsage, 'couldn\'t collect mem usage');
+        memStats.push(memUsage);
+      }
       app.close();
     });
 

@@ -47,7 +47,7 @@ marionette(mozTestInfo.appPath + ' >', function() {
       performanceHelper.waitForPerfEvent(function(runResults) {
         performanceHelper.reportRunDurations(runResults);
 
-        assert.ok(Object.keys(runResults).length != 0, 'empty results');
+        assert.ok(Object.keys(runResults).length, 'empty results');
         app.close();
       });
 
