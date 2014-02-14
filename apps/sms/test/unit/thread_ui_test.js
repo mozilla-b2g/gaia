@@ -2128,7 +2128,7 @@ suite('thread_ui.js >', function() {
       oneHourFiveMinAgo = new Date(2013, 11, 31, 22, 54);
     });
 
-    suite('last message block alone today >', function() {
+    suite('latest block alone today >', function() {
       var subject;
 
       setup(function() {
@@ -2137,23 +2137,6 @@ suite('thread_ui.js >', function() {
 
       test('New created block should have message-list class', function() {
         assert.isTrue(subject.classList.contains('message-list'));
-      });
-
-      test('has both the date and the time', function() {
-        var header = subject.previousElementSibling;
-        assert.notEqual(header.dataset.timeOnly, 'true');
-      });
-    });
-
-    suite('last message block with another block today >', function() {
-      var subject;
-      setup(function() {
-        ThreadUI.getMessageContainer(+elevenMinAgo);
-        subject = ThreadUI.getMessageContainer(+fiveMinAgo);
-      });
-
-      test('has only the time', function() {
-        assert.equal(subject.previousElementSibling.dataset.timeOnly, 'true');
       });
     });
 
@@ -2189,17 +2172,18 @@ suite('thread_ui.js >', function() {
         secondContainer = ThreadUI.getMessageContainer(Date.now());
       });
 
-      test('different containers', function() {
-        assert.notEqual(secondContainer, firstContainer);
+      test('same containers', function() {
+        assert.equal(secondContainer, firstContainer);
       });
 
-      test('has only the time', function() {
-        var secondHeader = secondContainer.previousElementSibling;
-        assert.equal(secondHeader.dataset.timeOnly, 'true');
+      test('should have only 1 blocks', function() {
+        assert.equal(ThreadUI.container.querySelectorAll('header').length, 1);
+        assert.equal(ThreadUI.container.querySelectorAll('ul').length, 1);
       });
 
-      test('first container has now a start-of-the-day timestamp', function() {
-        assert.notEqual(firstContainer.dataset.timestamp, firstTimestamp);
+
+      test('container has a start-of-the-day timestamp', function() {
+        assert.equal(firstContainer.dataset.timestamp, firstTimestamp);
       });
     });
 
@@ -2260,16 +2244,16 @@ suite('thread_ui.js >', function() {
       });
     });
 
-    suite('4 blocks suite >', function() {
+    suite('3 blocks suite >', function() {
       var lastYearContainer, yesterdayContainer;
       var elevenMinContainer, fiveMinContainer;
       var oneHourContainer, oneHourFiveContainer;
 
       setup(function() {
         yesterdayContainer = ThreadUI.getMessageContainer(+yesterday);
+        // Messages created today should be in the same block and last message
+        // block should not exist anymore
         fiveMinContainer = ThreadUI.getMessageContainer(+fiveMinAgo);
-        // this one is asked after the last message block to see if the
-        // header are updated
         elevenMinContainer = ThreadUI.getMessageContainer(+elevenMinAgo);
         oneHourContainer = ThreadUI.getMessageContainer(+oneHourAgo);
         oneHourFiveContainer = ThreadUI.getMessageContainer(+oneHourFiveMinAgo);
@@ -2278,9 +2262,9 @@ suite('thread_ui.js >', function() {
         lastYearContainer = ThreadUI.getMessageContainer(+lastYear);
       });
 
-      test('should have 4 blocks', function() {
-        assert.equal(ThreadUI.container.querySelectorAll('header').length, 4);
-        assert.equal(ThreadUI.container.querySelectorAll('ul').length, 4);
+      test('should have 3 blocks', function() {
+        assert.equal(ThreadUI.container.querySelectorAll('header').length, 3);
+        assert.equal(ThreadUI.container.querySelectorAll('ul').length, 3);
       });
 
       test('should be in the correct order', function() {
@@ -2288,7 +2272,6 @@ suite('thread_ui.js >', function() {
         var expectedContainers = [
           lastYearContainer,
           yesterdayContainer,
-          elevenMinContainer,
           fiveMinContainer
         ];
 
@@ -2300,15 +2283,10 @@ suite('thread_ui.js >', function() {
       test('some containers are the same', function() {
         assert.equal(oneHourContainer, elevenMinContainer);
         assert.equal(oneHourFiveContainer, elevenMinContainer);
+        assert.equal(fiveMinContainer, elevenMinContainer);
       });
 
-      test('last message block should not show the date', function() {
-        // because there is another earlier block the same day
-        var header = fiveMinContainer.previousElementSibling;
-        assert.equal(header.dataset.timeOnly, 'true');
-      });
-
-      test('adding a new message in the last message block', function() {
+      test('adding a new message in the latest block', function() {
         var twoMinAgo = new Date(2013, 11, 31, 23, 57);
         var twoMinContainer = ThreadUI.getMessageContainer(+twoMinAgo);
         assert.equal(twoMinContainer, fiveMinContainer);
@@ -2327,8 +2305,8 @@ suite('thread_ui.js >', function() {
           container = ThreadUI.getMessageContainer(+yesterdayEarlier);
         });
 
-        test('still 4 blocks', function() {
-          assert.equal(ThreadUI.container.querySelectorAll('header').length, 4);
+        test('still 3 blocks', function() {
+          assert.equal(ThreadUI.container.querySelectorAll('header').length, 3);
         });
 
         test('same container as the existing yesterday container', function() {
@@ -2397,8 +2375,10 @@ suite('thread_ui.js >', function() {
     });
 
     test('calls template with subject for MMS', function() {
+      var now = Date.now();
       ThreadUI.buildMessageDOM({
         id: '1',
+        timestamp: now,
         subject: 'subject',
         type: 'mms',
         deliveryInfo: [],
@@ -2407,6 +2387,7 @@ suite('thread_ui.js >', function() {
       assert.ok(ThreadUI.tmpl.message.interpolate.calledWith({
         id: '1',
         bodyHTML: '',
+        timestamp: '' + now,
         subject: 'subject',
         progressIndicatorClassName: ''
       }));

@@ -51,8 +51,6 @@ function thui_generateSmilSlides(slides, content) {
 }
 
 var ThreadUI = global.ThreadUI = {
-  // Time buffer for the 'last-messages' set. In this case 10 min
-  LAST_MESSAGES_BUFFERING_TIME: 10 * 60 * 1000,
   CHUNK_SIZE: 10,
   // duration of the notification that message type was converted
   CONVERTED_MESSAGE_DURATION: 3000,
@@ -1097,32 +1095,8 @@ var ThreadUI = global.ThreadUI = {
   getMessageContainer:
     function thui_getMessageContainer(messageTimestamp, hidden) {
     var startOfDayTimestamp = Utils.getDayDate(messageTimestamp);
-    var now = Date.now();
-    var messageContainer, header;
-    // If timestamp belongs to [now, now - TimeBuffer]
-    var lastMessageDelay = this.LAST_MESSAGES_BUFFERING_TIME;
-    var isLastMessagesBlock =
-      (messageTimestamp >= (now - lastMessageDelay));
-
-    // Is there any container with our requirements?
-    if (isLastMessagesBlock) {
-      messageContainer = document.getElementById('last-messages');
-      if (messageContainer) {
-        var oldTimestamp = messageContainer.dataset.timestamp;
-        var oldDayTimestamp = Utils.getDayDate(oldTimestamp);
-        var shouldCreateNewBlock =
-          (oldDayTimestamp !== startOfDayTimestamp) || // new day
-          (oldTimestamp < messageTimestamp - lastMessageDelay); // too old
-
-        if (shouldCreateNewBlock) {
-          messageContainer.id = 'mc_' + Utils.getDayDate(oldTimestamp);
-          messageContainer.dataset.timestamp = oldDayTimestamp;
-          messageContainer = null;
-        }
-      }
-    } else {
-      messageContainer = document.getElementById('mc_' + startOfDayTimestamp);
-    }
+    var header;
+    var messageContainer = document.getElementById('mc_' + startOfDayTimestamp);
 
     if (messageContainer) {
       header = messageContainer.previousElementSibling;
@@ -1141,37 +1115,16 @@ var ThreadUI = global.ThreadUI = {
     // Append 'time-update' state
     header.dataset.timeUpdate = 'repeat';
     header.dataset.time = messageTimestamp;
+    header.dataset.dateOnly = true;
 
-    // Add text
-    if (isLastMessagesBlock) {
-      var lastContainer = this.container.lastElementChild;
-      if (lastContainer) {
-        var lastDay = Utils.getDayDate(lastContainer.dataset.timestamp);
-        if (lastDay === startOfDayTimestamp) {
-          // same day -> show only the time
-          header.dataset.timeOnly = 'true';
-        }
-      }
-
-      messageContainer.id = 'last-messages';
-      messageContainer.dataset.timestamp = messageTimestamp;
-    } else {
-      messageContainer.id = 'mc_' + startOfDayTimestamp;
-      messageContainer.dataset.timestamp = startOfDayTimestamp;
-    }
+    // Add timestamp text
+    messageContainer.id = 'mc_' + startOfDayTimestamp;
+    messageContainer.dataset.timestamp = startOfDayTimestamp;
 
     if (hidden) {
       header.classList.add('hidden');
     } else {
       TimeHeaders.update(header);
-    }
-
-    // Where do I have to append the Container?
-    // If is the 'last-messages' one should be the most recent one.
-    if (isLastMessagesBlock) {
-      this.container.appendChild(header);
-      this.container.appendChild(messageContainer);
-      return messageContainer;
     }
 
     // In other case we have to look for the right place for appending
@@ -1192,14 +1145,6 @@ var ThreadUI = global.ThreadUI = {
       insertBeforeContainer ? insertBeforeContainer.previousSibling : null);
     this.container.insertBefore(header, messageContainer);
 
-    // if the next container is the same date => we must update his header
-    if (insertBeforeContainer) {
-      var nextContainerTimestamp = insertBeforeContainer.dataset.timestamp;
-      if (startOfDayTimestamp === Utils.getDayDate(nextContainerTimestamp)) {
-        header = insertBeforeContainer.previousElementSibling;
-        header.dataset.timeOnly = 'true';
-      }
-    }
     return messageContainer;
   },
 
@@ -1546,6 +1491,7 @@ var ThreadUI = global.ThreadUI = {
     messageDOM.innerHTML = this.tmpl.message.interpolate({
       id: String(message.id),
       bodyHTML: bodyHTML,
+      timestamp: String(message.timestamp),
       subject: String(message.subject),
       // Incoming and outgoing messages are displayed using different
       // backgrounds, therefore progress indicator should be styled differently.
@@ -1555,6 +1501,7 @@ var ThreadUI = global.ThreadUI = {
     });
 
     navigator.mozL10n.translate(messageDOM);
+    TimeHeaders.update(messageDOM.querySelector('time'));
 
     var pElement = messageDOM.querySelector('p');
     if (invalidEmptyContent) {
