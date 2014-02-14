@@ -388,7 +388,10 @@
   })(fetchCachedVolume);
 
   SettingsListener.observe('vibration.enabled', true, function(vibration) {
-    var setBySelf = false,
+   if (!vibrationEnabled && vibration) {
+     window.navigator.vibrate(200);
+   }
+   var setBySelf = false,
       toggleVibrationEnabled = function toggle_vibration_enabled() {
         // XXX: If the value does not set by sound manager,
         //      we assume it comes from
@@ -626,8 +629,10 @@
     }
 
     if (vibrationEnabled) {
-      classes.add('vibration'); 
-      window.navigator.vibrate(200);	
+      classes.add('vibration');
+      if (volume == 0) {
+        window.navigator.vibrate(200);
+      }
     } else {
       classes.remove('vibration');
     }
@@ -687,6 +692,9 @@
     SettingsListener.getSettingsLock().set({
       'vibration.enabled': enabled
     });
+    if (enabled) {
+      window.navigator.vibrate(200);
+    }
   }
 })();
 
