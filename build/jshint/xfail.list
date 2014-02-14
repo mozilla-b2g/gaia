@@ -921,7 +921,6 @@ apps/system/js/fxa_client.js
 apps/system/js/fxa_manager.js
 apps/system/js/fxa_ui.js
 apps/system/js/gridview.js
-apps/system/js/hardware_buttons.js
 apps/system/js/home_gesture.js
 apps/system/js/homescreen_launcher.js
 apps/system/js/homescreen_window.js
