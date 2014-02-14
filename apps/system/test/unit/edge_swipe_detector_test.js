@@ -49,6 +49,13 @@ suite('system/EdgeSwipeDetector >', function() {
     window.dispatchEvent(new Event('homescreenopening'));
   }
 
+  function cardsViewShowCard(position) {
+    var cardClosedEvent =
+      new CustomEvent('cardviewclosed',
+                      { 'detail': { 'newStackPosition': position }});
+    window.dispatchEvent(cardClosedEvent);
+  }
+
   function launchTransitionEnd() {
     var evt = document.createEvent('CustomEvent');
     evt.initCustomEvent('appopen', true, false, null);
@@ -71,6 +78,34 @@ suite('system/EdgeSwipeDetector >', function() {
 
     test('the screen should go out of edges mode', function() {
       assert.isFalse(screen.classList.contains('edges'));
+    });
+  });
+
+  suite('When the cardsview is displayed', function() {
+    setup(function() {
+      EdgeSwipeDetector.previous.classList.remove('disabled');
+      EdgeSwipeDetector.next.classList.remove('disabled');
+      screen.classList.add('edges');
+
+      // currently we always go to the homescreen before showing
+      // the cards view. This test will fail when this behavior changes.
+      homescreen();
+    });
+
+    test('the edges should be disabled', function() {
+      assert.isTrue(EdgeSwipeDetector.previous.classList.contains('disabled'));
+      assert.isTrue(EdgeSwipeDetector.next.classList.contains('disabled'));
+    });
+
+    test('the screen should go out of edges mode', function() {
+      assert.isFalse(screen.classList.contains('edges'));
+    });
+
+    test('after a card was shown from the cards view edges should be enabled',
+         function() {
+      cardsViewShowCard(1);
+      assert.isFalse(EdgeSwipeDetector.previous.classList.contains('disabled'));
+      assert.isFalse(EdgeSwipeDetector.next.classList.contains('disabled'));
     });
   });
 

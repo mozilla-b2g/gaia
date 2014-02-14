@@ -8,7 +8,7 @@ var mocksForStackManager = new MocksHelper([
 ]).init();
 
 suite('system/StackManager >', function() {
-  var dialer, contact, settings, google;
+  var dialer, contact, settings, google, system;
   mocksForStackManager.attachTestHelpers();
 
   setup(function() {
@@ -38,6 +38,16 @@ suite('system/StackManager >', function() {
       url: 'http://google.com/index.html',
       origin: 'http://google.com'
     });
+
+    system = new AppWindow({
+      url: 'app://system.gaiamobile.org/index.html',
+      origin: 'app://system.gaiamobile.org/',
+      manifestURL:
+        'app://system.gaiamobile.org/contact/manifest.webapp',
+      name: 'System',
+      manifest: { role: 'system' }
+    });
+
   });
 
   teardown(function() {
@@ -92,11 +102,69 @@ suite('system/StackManager >', function() {
     return config;
   }
 
+  suite('Stack vs System App', function() {
+    setup(function() {
+      appLaunch(system);
+    });
+
+    test('system app should never be in the stack', function() {
+      StackManager.snapshot().forEach(function(app) {
+        if (app.manifest) {
+          assert.notEqual(app.manifest.role,
+                          'system',
+                          'system app should not be in snapshot');
+        }
+      });
+    });
+
+    teardown(function() {
+      StackManager.__clearAll();
+    });
+  });
+
+  suite('Cards View Events', function() {
+    setup(function() {
+      appLaunch(dialer);
+      appLaunch(contact);
+      appLaunch(settings);
+    });
+
+    test('stack position updates on cardviewclosed', function() {
+      assert.equal(StackManager.position, 2, 'wrong starting position');
+      var cardClosedEvent =
+        new CustomEvent('cardviewclosed',
+                        { 'detail': { 'newStackPosition': 1 }});
+      StackManager.handleEvent(cardClosedEvent);
+      assert.equal(StackManager.position, 1, 'new position is wrong');
+    });
+
+    test('and does not cause the position to stringify', function() {
+      assert.equal(StackManager.position, 2, 'wrong starting position');
+      StackManager.position = '2';
+      StackManager.goPrev();
+      StackManager.goNext();
+      assert.deepEqual(StackManager.getCurrent(), settings);
+      assert.equal(StackManager.position, 2, 'wrong end position');
+    });
+
+    teardown(function() {
+      StackManager.__clearAll();
+    });
+  });
+
   suite('Moving through history', function() {
     setup(function() {
       appLaunch(dialer);
       appLaunch(contact);
       appLaunch(settings);
+      appLaunch(system);
+    });
+
+    suite('> snapshot()', function() {
+      test('snapshot returned should equal stack internal value', function() {
+        var snapshot = StackManager.snapshot();
+        assert.deepEqual(snapshot, StackManager._stack);
+      });
     });
 
     suite('> goPrev()', function() {
@@ -107,6 +175,10 @@ suite('system/StackManager >', function() {
         assert.deepEqual(StackManager.getPrev().config, dialer.config);
       });
 
+      test('and the position should be updated properly', function() {
+        assert.equal(StackManager.position, 2);
+      });
+
       test('should do nothing when we\'re at the bottom of the stack',
       function() {
         StackManager.goPrev();
@@ -114,6 +186,10 @@ suite('system/StackManager >', function() {
         assert.deepEqual(StackManager.getCurrent().config, dialer.config);
         StackManager.goPrev();
         assert.deepEqual(StackManager.getCurrent().config, dialer.config);
+      });
+
+      test('and the position should not change', function() {
+        assert.equal(StackManager.position, 2);
       });
     });
 
@@ -144,6 +220,10 @@ suite('system/StackManager >', function() {
         });
 
         StackManager.goNext();
+      });
+
+      test('the position should be updated properly', function() {
+        assert.equal(StackManager.position, 0);
       });
 
       test('should do nothing when we\'re at the top of the stack',
@@ -205,6 +285,10 @@ suite('system/StackManager >', function() {
         assert.deepEqual(StackManager.getPrev().config, settings.config);
       });
 
+      test('and the position should be updated properly', function() {
+        assert.equal(StackManager.position, 2);
+      });
+
       test('it should bring the current app on top too', function() {
         StackManager.goPrev();
         appLaunch(dialer, true);
@@ -262,6 +346,10 @@ suite('system/StackManager >', function() {
         assert.deepEqual(StackManager.getPrev().config, settings.config);
       });
 
+      test('and the position should remain the same', function() {
+        assert.equal(StackManager.position, 1);
+      });
+
       suite('and the stack is empty', function() {
         setup(function() {
           StackManager.__clearAll();
@@ -273,6 +361,10 @@ suite('system/StackManager >', function() {
           assert.deepEqual(StackManager.getCurrent().config, settings.config);
           assert.isUndefined(StackManager.getPrev());
           assert.isUndefined(StackManager.getNext());
+        });
+
+        test('and the position should be 0', function() {
+          assert.equal(StackManager.position, 0);
         });
       });
     });
@@ -327,6 +419,10 @@ suite('system/StackManager >', function() {
         assert.equal(StackManager.length, 2);
       });
 
+      test('the position should be updated properly', function() {
+        assert.equal(StackManager.position, 1);
+      });
+
       test('the current should go back',
       function() {
         assert.deepEqual(StackManager.getPrev().config, dialer.config);
@@ -341,6 +437,10 @@ suite('system/StackManager >', function() {
 
       test('it should be removed from the stack', function() {
         assert.equal(StackManager.length, 2);
+      });
+
+      test('the position should be updated properly', function() {
+        assert.equal(StackManager.position, 1);
       });
 
       test('the current should go back',
@@ -358,6 +458,10 @@ suite('system/StackManager >', function() {
 
       test('it should be removed from the stack', function() {
         assert.equal(StackManager.length, 2);
+      });
+
+      test('the position should not change', function() {
+        assert.equal(StackManager.position, 1);
       });
 
       test('the current should not move',
@@ -410,6 +514,15 @@ suite('system/StackManager >', function() {
 
       test('it shouldn\'t do anything', function() {
         assert.equal(StackManager.length, 0);
+      });
+
+      test('the position should be -1', function() {
+        assert.equal(StackManager.position, -1);
+      });
+
+      test('setting the position should do nothing', function() {
+        StackManager.position = 2;
+        assert.equal(StackManager.position, -1);
       });
 
       suite('and we press home a second time', function() {
