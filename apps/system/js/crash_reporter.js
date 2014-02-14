@@ -93,7 +93,8 @@ var CrashReporter = (function() {
       };
     }
 
-    SystemBanner.show(message, button);
+    var systemBanner = new SystemBanner();
+    systemBanner.show(message, button);
   }
 
   function deleteCrash(crashID) {

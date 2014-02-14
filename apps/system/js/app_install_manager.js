@@ -13,6 +13,7 @@ var AppInstallManager = {
   },
 
   init: function ai_init() {
+    this.systemBanner = new SystemBanner();
     this.dialog = document.getElementById('app-install-dialog');
     this.msg = document.getElementById('app-install-message');
     this.size = document.getElementById('app-install-size');
@@ -224,7 +225,7 @@ var AppInstallManager = {
     var name = appManifest.name;
     var _ = navigator.mozL10n.get;
     var msg = _('app-install-success', { appName: name });
-    SystemBanner.show(msg);
+    this.systemBanner.show(msg);
   },
 
   checkSetupQueue: function ai_checkSetupQueue() {
@@ -355,7 +356,7 @@ var AppInstallManager = {
 
         var key = this.mapDownloadErrorsToMessage[errorName] || 'generic-error';
         var msg = _('app-install-' + key, { appName: name });
-        SystemBanner.show(msg);
+        this.systemBanner.show(msg);
     }
 
     this.onDownloadStop(app);
