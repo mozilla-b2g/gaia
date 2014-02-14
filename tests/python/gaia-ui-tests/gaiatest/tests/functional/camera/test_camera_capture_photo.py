@@ -15,7 +15,8 @@ class TestCamera(GaiaTestCase):
         self.apps.set_permission('Camera', 'geolocation', 'deny')
 
     def test_capture_a_photo(self):
-        # https://moztrap.mozilla.org/manage/case/1325/
+        """https://moztrap.mozilla.org/manage/case/1325/"""
+
         self.camera = Camera(self.marionette)
         self.camera.launch()
 

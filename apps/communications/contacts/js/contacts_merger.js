@@ -1,4 +1,4 @@
-/* globals SimplePhoneMatcher, utils */
+/* globals SimplePhoneMatcher, utils, ContactPhotoHelper */
 
 'use strict';
 
@@ -96,6 +96,8 @@ contacts.Merger = (function() {
 
     mergedContact.url = masterContact.url || [];
     mergedContact.note = masterContact.note || [];
+
+    var mergedPhoto = null;
 
     matchingContacts.forEach(function(aResult) {
       var theMatchingContact = aResult.matchingContact;
@@ -198,9 +200,9 @@ contacts.Merger = (function() {
         });
       }
 
-      if (!isDefined(mergedContact.photo) &&
-                                          isDefined(theMatchingContact.photo)) {
-        mergedContact.photo.push(theMatchingContact.photo[0]);
+      if (!mergedPhoto && isDefined(theMatchingContact.photo)) {
+        var photo = ContactPhotoHelper.getFullResolution(theMatchingContact);
+        mergedPhoto = photo;
       }
 
       populateField(theMatchingContact.adr, mergedContact.adr,
@@ -216,36 +218,33 @@ contacts.Merger = (function() {
                           (mergedContact.familyName[0] ?
                             mergedContact.familyName[0] : '')).trim()];
 
-    var fields = ['familyName', 'givenName', 'name', 'org', 'email', 'tel',
-                  'bday', 'adr', 'category', 'url', 'note', 'photo'];
+    fillMasterContact(masterContact, mergedContact, mergedPhoto,
+    function filled(masterContact) {
+      // Updating the master contact
+      var req = navigator.mozContacts.save(
+        utils.misc.toMozContact(masterContact));
 
-    fields.forEach(function(aField) {
-      masterContact[aField] = mergedContact[aField];
-    });
+      req.onsuccess = function() {
+        // Now for all the matchingContacts they have to be removed
+        matchingContacts.forEach(function(aMatchingContact) {
+          // Only remove those contacts which are already in the DB
+          if (aMatchingContact.matchingContact.id) {
+            var contact = aMatchingContact.matchingContact;
+            navigator.mozContacts.remove(utils.misc.toMozContact(contact));
+          }
+        });
 
-    // Updating the master contact
-    var req = navigator.mozContacts.save(
-      utils.misc.toMozContact(masterContact));
-
-    req.onsuccess = function() {
-      // Now for all the matchingContacts they have to be removed
-      matchingContacts.forEach(function(aMatchingContact) {
-        // Only remove those contacts which are already in the DB
-        if (aMatchingContact.matchingContact.id) {
-          var contact = aMatchingContact.matchingContact;
-          navigator.mozContacts.remove(utils.misc.toMozContact(contact));
+        if (typeof callbacks.success === 'function') {
+          callbacks.success(masterContact);
         }
-      });
+      };
 
-      typeof callbacks.success === 'function' &&
-                                              callbacks.success(mergedContact);
-    };
-
-    req.onerror = function() {
-      window.console.error('Error while saving merged Contact: ',
-                           req.error.name);
-      typeof callbacks.error === 'function' && callbacks.error(req.error);
-    };
+      req.onerror = function() {
+        window.console.error('Error while saving merged Contact: ',
+                             req.error.name);
+        typeof callbacks.error === 'function' && callbacks.error(req.error);
+      };
+    });
   }
 
   function isDefined(field) {
@@ -302,6 +301,29 @@ contacts.Merger = (function() {
         destination.push(as);
       });
     }
+  }
+
+  function fillMasterContact(masterContact, mergedContact, mergedPhoto, done) {
+    var fields = ['familyName', 'givenName', 'name', 'org', 'email', 'tel',
+                  'bday', 'adr', 'category', 'url', 'note', 'photo'];
+
+    fields.forEach(function(aField) {
+      masterContact[aField] = mergedContact[aField];
+    });
+
+    if (!mergedPhoto) {
+      done(masterContact);
+      return;
+    }
+
+    utils.thumbnailImage(mergedPhoto, function gotTumbnail(thumbnail) {
+      if (mergedPhoto !== thumbnail) {
+        masterContact.photo = [mergedPhoto, thumbnail];
+      } else {
+        masterContact.photo = [mergedPhoto];
+      }
+      done(masterContact);
+    });
   }
 
   return {

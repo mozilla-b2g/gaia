@@ -415,8 +415,9 @@ var CallLogDBManager = {
             };
             if (contact && contact !== null) {
               group.contactId = contact.id;
-              if (Array.isArray(contact.photo) && contact.photo[0]) {
-                group.contactPhoto = contact.photo[0];
+              var photo = ContactPhotoHelper.getThumbnail(contact);
+              if (photo) {
+                group.contactPhoto = photo;
               }
               if (matchingTel) {
                 var primaryInfo = Utils.getPhoneNumberPrimaryInfo(matchingTel,
@@ -682,8 +683,9 @@ var CallLogDBManager = {
                                 function(contact, matchingTel) {
             if (contact && contact !== null) {
               group.contactId = contact.id;
-              if (Array.isArray(contact.photo) && contact.photo[0]) {
-                group.contactPhoto = contact.photo[0];
+              var photo = ContactPhotoHelper.getThumbnail(contact);
+              if (photo) {
+                group.contactPhoto = photo;
               }
               if (matchingTel) {
                 var primaryInfo = Utils.getPhoneNumberPrimaryInfo(matchingTel,
@@ -1174,8 +1176,9 @@ var CallLogDBManager = {
         if (cursor && cursor.value) {
           var group = cursor.value;
           group.contactId = contact.id;
-          if (Array.isArray(contact.photo) && contact.photo[0]) {
-            group.contactPhoto = contact.photo[0];
+          var photo = ContactPhotoHelper.getThumbnail(contact);
+          if (photo) {
+            group.contactPhoto = photo;
           }
           if (matchingTel) {
             var primaryInfo = Utils.getPhoneNumberPrimaryInfo(matchingTel,
@@ -1340,9 +1343,9 @@ var CallLogDBManager = {
             }
           } else {
             group.contactId = contact.id;
-            if (Array.isArray(contact.photo) && contact.photo[0] &&
-                group.contactPhoto != contact.photo[0]) {
-              group.contactPhoto = contact.photo[0];
+            var photo = ContactPhotoHelper.getThumbnail(contact);
+            if (photo && group.contactPhoto != photo) {
+              group.contactPhoto = photo;
               needsUpdate = true;
             }
             var primaryInfo = Utils.getPhoneNumberPrimaryInfo(matchingTel,

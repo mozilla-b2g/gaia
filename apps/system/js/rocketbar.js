@@ -17,6 +17,12 @@ var Rocketbar = {
    */
   triggerWidth: 0.5,
 
+  /**
+   * The URL of the page that opened rocketbar.
+   * This is so the user can edit URLs.
+   */
+  currentURL: null,
+
   searchAppURL: null,
 
   _port: null,
@@ -152,6 +158,11 @@ var Rocketbar = {
         }
         this.screen.classList.add('rocketbar-focus');
 
+        if (this.currentURL) {
+          this.searchInput.value = this.currentURL;
+          this.searchInput.select();
+        }
+
         this.updateResetButton();
         break;
       default:
@@ -281,7 +292,6 @@ var Rocketbar = {
     } else if (detail.input) {
       var input = this.searchInput;
       input.value = detail.input;
-      this._port.postMessage({ action: 'change', input: input.value });
     }
   },
 
@@ -329,8 +339,15 @@ var Rocketbar = {
 
     var input = this.searchInput;
     input.value = '';
+    this.currentURL = null;
 
     if (isTaskManager) {
+      // If there is an active app, and it has a URL, select it on focus.
+      var app = AppWindowManager.getActiveApp();
+      if (app &&  app.config.chrome) {
+        this.currentURL = app.config.url;
+      }
+
       this.home = 'tasks';
       window.dispatchEvent(new CustomEvent('taskmanagershow'));
     } else {

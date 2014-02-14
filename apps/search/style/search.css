@@ -3,6 +3,14 @@
   padding: 0;
 }
 
+html, body {
+  height: 100%;
+}
+
+html {
+  background: #212121;
+}
+
 body {
   color: #5A5A5A;
   font-size: 10px;
@@ -10,7 +18,6 @@ body {
 
 section {
   color: #858585;
-  background: #212121;
   font-size: 1rem;
 }
 
@@ -39,10 +46,6 @@ section.suggestions ul li+li:before {
 
 section.suggestions ul li:first-child {
   padding-left: 0.7rem;
-}
-
-section.local {
-  background: #212121;
 }
 
 section .result * {
@@ -116,6 +119,6 @@ section.apps img {
   width: 2.75rem;
 }
 
-div[data-provider="WebResults"] > img {
+#webresults .result img {
   border-radius: 50%;
 }

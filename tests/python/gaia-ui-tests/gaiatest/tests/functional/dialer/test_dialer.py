@@ -10,7 +10,7 @@ from gaiatest.apps.phone.app import Phone
 class TestDialer(GaiaTestCase):
 
     def test_dialer_make_call(self):
-        # https://moztrap.mozilla.org/manage/case/1298/
+        """https://moztrap.mozilla.org/manage/case/1298/"""
 
         test_phone_number = self.testvars['remote_phone_number']
 

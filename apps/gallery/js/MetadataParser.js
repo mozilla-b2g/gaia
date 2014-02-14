@@ -44,7 +44,7 @@ var metadataParser = (function() {
       var canvas = document.createElement('canvas');
       canvas.width = THUMBNAIL_WIDTH;
       canvas.height = THUMBNAIL_HEIGHT;
-      var context = canvas.getContext('2d');
+      var context = canvas.getContext('2d', { willReadFrequently: true });
       var eltwidth = elt.width;
       var eltheight = elt.height;
       var scalex = canvas.width / eltwidth;
@@ -69,7 +69,6 @@ var metadataParser = (function() {
         // All transformation are applied to the center of the thumbnail.
         context.translate(centerX, centerY);
       }
-
       if (mirrored) {
         context.scale(-1, 1);
       }
@@ -131,7 +130,12 @@ var metadataParser = (function() {
         context.fill();
       }
 
-      canvas.toBlob(callback, 'image/jpeg');
+      canvas.toBlob(function(blob) {
+        context = null;
+        canvas.width = canvas.height = 0;
+        canvas = null;
+        callback(blob);
+      }, 'image/jpeg');
     } catch (ex) {
       // An error may be thrown when the drawImage decodes a broken/trancated
       // image.
@@ -235,13 +239,31 @@ var metadataParser = (function() {
       }
 
       function previewsuccess(previewmetadata) {
-        var pw = previewmetadata.width;      // size of the preview image
+        // Size of the preview image
+        var pw = previewmetadata.width;
         var ph = previewmetadata.height;
+        // optional configuration specifying minimum size
+        var mw = CONFIG_REQUIRED_EXIF_PREVIEW_WIDTH;
+        var mh = CONFIG_REQUIRED_EXIF_PREVIEW_HEIGHT;
+
+        var bigenough;
+
+        // If config.js specifies a minimum required preview size,
+        // then this preview is big enough if both dimensions are
+        // larger than that configured minimum. Otherwise, the preview
+        // is big enough if at least one dimension is >= the screen
+        // size in both portait and landscape mode.
+        if (mw && mh) {
+          bigenough =
+            Math.max(pw, ph) >= Math.max(mw, mh) &&
+            Math.min(pw, ph) >= Math.min(mw, mh);
+        }
+        else {
+          bigenough = (pw >= sw || ph >= sh) && (pw >= sh || ph >= sw);
+        }
 
         // If the preview is big enough, use it to create a thumbnail.
-        // A preview is big enough if at least one dimension is >= the
-        // screen size in both portait and landscape mode.
-        if ((pw >= sw || ph >= sh) && (pw >= sh || ph >= sw)) {
+        if (bigenough) {
           metadata.preview.width = pw;
           metadata.preview.height = ph;
           // The 4th argument true means don't actually create a preview
@@ -346,7 +368,7 @@ var metadataParser = (function() {
         var canvas = document.createElement('canvas');
         canvas.width = pw;
         canvas.height = ph;
-        var context = canvas.getContext('2d');
+        var context = canvas.getContext('2d', { willReadFrequently: true });
         context.drawImage(offscreenImage, 0, 0, iw, ih, 0, 0, pw, ph);
         canvas.toBlob(function(blob) {
           offscreenImage.src = '';

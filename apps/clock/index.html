@@ -130,7 +130,7 @@
                   <select id="timer-sound">
                     <option value="0" data-l10n-id="noSound">No Sound</option>
                     <option value="ac_classic_clock_alarm.opus" data-l10n-id="ac_classic_clock_alarm_opus"></option>
-                    <option value="ac_classic_clock_alarm_prog.opus" data-l10n-id="ac_classic_clock_alarm_prog_opus"></option>
+                    <option value="ac_classic_clock_alarm_prog.opus" data-l10n-id="ac_classic_clock_alarm_prog_opus2"></option>
                     <option value="ac_classic_clock_radio.opus" data-l10n-id="ac_classic_clock_radio_opus"></option>
                     <option value="ac_normal_gem_echoes.opus" data-l10n-id="ac_normal_gem_echoes_opus"></option>
                     <option value="ac_normal_ringing_strings.opus" data-l10n-id="ac_normal_ringing_strings_opus"></option>
@@ -172,7 +172,10 @@
           <menu type="toolbar">
             <button id="alarm-done" data-l10n-id="done"></button>
           </menu>
-          <h1 id="alarm-title"></h1>
+          <h1 id="alarm-title">
+            <span class="new-alarm-title" data-l10n-id="newAlarm">NeW AlarM</span>
+            <span class="edit-alarm-title" data-l10n-id="editAlarm">Edit AlarM</span>
+          </h1>
         </header>
         <ul id="edit-alarm" class="compact">
           <li>
@@ -185,13 +188,16 @@
           <li>
             <label data-l10n-id="repeat">Repeat</label>
             <select id="repeat-select" multiple="true">
-              <option value="0" data-l10n-id="weekday-1-long">Monday</option>
-              <option value="1" data-l10n-id="weekday-2-long">Tuesday</option>
-              <option value="2" data-l10n-id="weekday-3-long">Wednesday</option>
-              <option value="3" data-l10n-id="weekday-4-long">Thursday</option>
-              <option value="4" data-l10n-id="weekday-5-long">Friday</option>
-              <option value="5" data-l10n-id="weekday-6-long">Saturday</option>
-              <option value="6" data-l10n-id="weekday-0-long">Sunday</option>
+              <!-- NOTE: These are reordered based upon the value for
+                         the l10n variable 'weekStartsOnMonday'. -->
+              <option value="monday" data-l10n-id="weekday-1-long">Monday</option>
+              <option value="tuesday" data-l10n-id="weekday-2-long">Tuesday</option>
+              <option value="wednesday" data-l10n-id="weekday-3-long">Wednesday</option>
+              <option value="thursday" data-l10n-id="weekday-4-long">Thursday</option>
+              <option value="friday" data-l10n-id="weekday-5-long">Friday</option>
+              <option value="saturday" data-l10n-id="weekday-6-long">Saturday</option>
+              <option value="sunday" id="repeat-select-sunday"
+                      data-l10n-id="weekday-0-long">Sunday</option>
             </select>
           </li>
           <li>
@@ -199,7 +205,7 @@
             <select id="sound-select">
               <option value="0" data-l10n-id="noSound">No Sound</option>
               <option value="ac_classic_clock_alarm.opus" data-l10n-id="ac_classic_clock_alarm_opus"></option>
-              <option value="ac_classic_clock_alarm_prog.opus" data-l10n-id="ac_classic_clock_alarm_prog_opus"></option>
+              <option value="ac_classic_clock_alarm_prog.opus" data-l10n-id="ac_classic_clock_alarm_prog_opus2"></option>
               <option value="ac_classic_clock_radio.opus" data-l10n-id="ac_classic_clock_radio_opus"></option>
               <option value="ac_normal_gem_echoes.opus" data-l10n-id="ac_normal_gem_echoes_opus"></option>
               <option value="ac_normal_ringing_strings.opus" data-l10n-id="ac_normal_ringing_strings_opus"></option>
@@ -224,10 +230,10 @@
               <option data-l10n-id="nMinutes" data-l10n-args='{"n": "20"}' value="20">20 minutes</option>
             </select>
           </li>
+          <li id="delete-menu">
+            <button id="alarm-delete" class="danger full" data-l10n-id="delete">Delete</button>
+          </li>
         </ul>
-        <menu id="delete-menu">
-          <button id="alarm-delete" class="danger full" data-l10n-id="delete">Delete</button>
-        </menu>
       </form>
     </div>
 

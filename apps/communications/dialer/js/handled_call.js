@@ -191,14 +191,13 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
       self._cachedAdditionalInfo =
         Utils.getPhoneNumberAdditionalInfo(matchingTel);
       self.replaceAdditionalContactInfo(self._cachedAdditionalInfo);
-      if (contact.photo && contact.photo.length > 0) {
-        self.photo = contact.photo[0];
-        CallScreen.setCallerContactImage(self.photo);
-        if (typeof self.photo === 'string') {
-          contactCopy.photo = self.photo;
-        } else {
-          contactCopy.photo = [URL.createObjectURL(self.photo)];
-        }
+      var photo = ContactPhotoHelper.getFullResolution(contact);
+      if (photo) {
+        self.photo = photo;
+        CallScreen.setCallerContactImage(photo);
+
+        var thumbnail = ContactPhotoHelper.getThumbnail(contact);
+        contactCopy.photo = [thumbnail];
       }
 
       self.recentsEntry.contactInfo = {

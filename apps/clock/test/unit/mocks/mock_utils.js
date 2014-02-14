@@ -10,7 +10,7 @@ define(function() {
       };
     },
     changeSelectByValue: function() {},
-    getSelectedValue: function() {},
+    getSelectedValueByIndex: function() {},
     formatTime: function() {},
     parseTime: function() {},
     safeCpuLock: function() {},

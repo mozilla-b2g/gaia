@@ -94,8 +94,10 @@ class TestFtu(GaiaTestCase):
         return (By.CSS_SELECTOR, "#languages ul li input[name='language.current'][value='%s'] ~ p" % language)
 
     def test_ftu_skip_tour(self):
-        # https://moztrap.mozilla.org/manage/case/3876/
-        # 3876, 3879
+        """https://moztrap.mozilla.org/manage/case/3876/
+
+        https://moztrap.mozilla.org/manage/case/3879/
+        """
 
         self.wait_for_element_displayed(*self._section_languages_locator)
 

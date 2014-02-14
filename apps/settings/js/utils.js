@@ -224,6 +224,8 @@ function getSupportedNetworkInfo(mobileConneciton, callback) {
     return;
 
   var _hwSupportedTypes = mobileConneciton.supportedNetworkTypes;
+  if (!_hwSupportedTypes)
+    return;
 
   var _result = {
     gsm: _hwSupportedTypes.indexOf('gsm') !== -1,

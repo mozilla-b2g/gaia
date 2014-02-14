@@ -15,7 +15,8 @@ class TestMusic(GaiaTestCase):
         self.push_resource('MUS_0001.mp3')
 
     def test_select_album_play(self):
-        # https://moztrap.mozilla.org/manage/case/4031/
+        """https://moztrap.mozilla.org/manage/case/4031/"""
+
         music_app = Music(self.marionette)
         music_app.launch()
 

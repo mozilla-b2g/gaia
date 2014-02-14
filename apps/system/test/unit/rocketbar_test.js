@@ -62,6 +62,34 @@ suite('system/Rocketbar', function() {
       assert.ok(Rocketbar.screen.classList.contains('rocketbar-focus'));
     });
 
+    test('focus, when currentURL is set', function() {
+      Rocketbar.searchInput.select = function() {};
+      var selectStub = this.sinon.stub(Rocketbar.searchInput, 'select');
+      Rocketbar.currentURL = 'http://mozilla.org';
+      Rocketbar.searchInput.value = '';
+      Rocketbar.handleEvent({
+        target: {
+          id: 'search-input'
+        }
+      });
+      assert.equal(Rocketbar.searchInput.value, 'http://mozilla.org');
+      assert.ok(selectStub.calledOnce);
+    });
+
+    test('focus, when currentURL is not set', function() {
+      Rocketbar.searchInput.select = function() {};
+      var selectStub = this.sinon.stub(Rocketbar.searchInput, 'select');
+      Rocketbar.currentURL = null;
+      Rocketbar.searchInput.value = '';
+      Rocketbar.handleEvent({
+        target: {
+          id: 'search-input'
+        }
+      });
+      assert.equal(Rocketbar.searchInput.value, '');
+      assert.ok(selectStub.notCalled);
+    });
+
     test('removes rocketbar-focus on blur', function() {
       Rocketbar.searchInput.value = '';
       Rocketbar.handleEvent({
@@ -255,6 +283,21 @@ suite('system/Rocketbar', function() {
       searchAppStub.restore();
     });
 
+    test('sets currentURL', function() {
+      assert.equal(Rocketbar.currentURL, null);
+      this.sinon.stub(AppWindowManager, 'getActiveApp')
+        .returns({
+          config: {
+            chrome: true,
+            url: 'http://mozilla.org'
+          }
+        });
+      Rocketbar.render(true);
+
+      assert.equal(Rocketbar.currentURL, 'http://mozilla.org');
+      Rocketbar.hide();
+    });
+
     suite('interactions', function() {
       var searchAppStub, cardsViewStub, focusStub;
 
@@ -297,18 +340,19 @@ suite('system/Rocketbar', function() {
   });
 
   suite('onSearchMessage', function() {
-    test('fires a change event', function() {
-      var message;
-      Rocketbar._port = {
-        postMessage: function(msg) {
-          message = msg;
-        }
-      };
+    test('sets the input value', function() {
       Rocketbar.onSearchMessage({
         detail: {input: 'foo'}
       });
-      assert.equal(message.action, 'change');
-      assert.equal(message.input, 'foo');
+      assert.equal(Rocketbar.searchInput.value, 'foo');
+    });
+
+    test('can hide the rocketbar', function() {
+      var stub = this.sinon.stub(Rocketbar, 'hide');
+      Rocketbar.onSearchMessage({
+        detail: {action: 'hide'}
+      });
+      assert.ok(stub.calledOnce);
     });
   });
 

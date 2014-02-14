@@ -10,10 +10,12 @@ requireApp('system/test/unit/mock_lock_screen.js');
 requireApp('system/test/unit/mock_simslot.js');
 requireApp('system/test/unit/mock_simslot_manager.js');
 requireApp('system/test/unit/mock_app_window_manager.js');
+requireApp('system/test/unit/mock_ftu_launcher.js');
 requireApp('system/test/unit/mock_touch_forwarder.js');
 requireApp('system/js/lockscreen.js');
 
 var mocksForStatusBar = new MocksHelper([
+  'FtuLauncher',
   'SettingsListener',
   'MobileOperator',
   'LockScreen',
@@ -592,6 +594,110 @@ suite('system/Statusbar', function() {
     }
   });
 
+  suite('Icon Data', function() {
+    var mobileDataIconTypesOrig = {};
+
+    suiteSetup(function() {
+      for (var key in StatusBar.mobileDataIconTypes) {
+        mobileDataIconTypesOrig[key] = StatusBar.mobileDataIconTypes[key];
+      }
+    });
+
+    suiteTeardown(function() {
+      for (var key in mobileDataIconTypesOrig) {
+        StatusBar.mobileDataIconTypes[key] = mobileDataIconTypesOrig[key];
+      }
+    });
+
+    setup(function() {
+      for (var key in StatusBar.mobileDataIconTypes) {
+        StatusBar.mobileDataIconTypes[key] = mobileDataIconTypesOrig[key];
+      }
+    });
+
+    teardown(function() {
+      StatusBar.settingValues = {};
+    });
+
+    var testCases = [
+      {
+        title: 'No setting value >',
+        setting: 'operatorResources.data.icon',
+        fc: 'iconData',
+        inputVal: {
+        },
+        expectVal: {
+          'lte': '4G',
+          'ehrpd': '4G',
+          'hspa+': 'H+',
+          'hsdpa': 'H', 'hsupa': 'H', 'hspa': 'H',
+          'evdo0': 'Ev', 'evdoa': 'Ev', 'evdob': 'Ev',
+          'umts': '3G',
+          'edge': 'E',
+          'gprs': '2G',
+          '1xrtt': '1x', 'is95a': '1x', 'is95b': '1x'
+        }
+      },
+      {
+        title: 'Change all values >',
+        setting: 'operatorResources.data.icon',
+        fc: 'iconData',
+        inputVal: {
+          'lte': '4GChng',
+          'ehrpd': '4GChng',
+          'hspa+': 'H+Chng',
+          'hsdpa': 'HChng', 'hsupa': 'HChng', 'hspa': 'HChng',
+          'evdo0': 'EvChng', 'evdoa': 'EvChng', 'evdob': 'EvChng',
+          'umts': '3GChng',
+          'edge': 'EChng',
+          'gprs': '2GChng',
+          '1xrtt': '1xChng', 'is95a': '1xChng', 'is95b': '1xChng'
+        },
+        expectVal: {
+          'lte': '4GChng',
+          'ehrpd': '4GChng',
+          'hspa+': 'H+Chng',
+          'hsdpa': 'HChng', 'hsupa': 'HChng', 'hspa': 'HChng',
+          'evdo0': 'EvChng', 'evdoa': 'EvChng', 'evdob': 'EvChng',
+          'umts': '3GChng',
+          'edge': 'EChng',
+          'gprs': '2GChng',
+          '1xrtt': '1xChng', 'is95a': '1xChng', 'is95b': '1xChng'
+        }
+      },
+      {
+        title: 'Change some values >',
+        setting: 'operatorResources.data.icon',
+        fc: 'iconData',
+        inputVal: {
+          'lte': '4GChng',
+          'ehrpd': '4GChng',
+          'hspa+': 'H+Chng',
+          'hsdpa': 'HChng', 'hsupa': 'HChng', 'hspa': 'HChng'
+        },
+        expectVal: {
+          'lte': '4GChng',
+          'ehrpd': '4GChng',
+          'hspa+': 'H+Chng',
+          'hsdpa': 'HChng', 'hsupa': 'HChng', 'hspa': 'HChng',
+          'evdo0': 'Ev', 'evdoa': 'Ev', 'evdob': 'Ev',
+          'umts': '3G',
+          'edge': 'E',
+          'gprs': '2G',
+          '1xrtt': '1x', 'is95a': '1x', 'is95b': '1x'
+        }
+      }
+    ];
+
+    testCases.forEach(function(testCase) {
+      test(testCase.title, function() {
+        StatusBar.settingValues[testCase.setting] = testCase.inputVal;
+        StatusBar.update[testCase.fc].call(StatusBar);
+        assert.deepEqual(StatusBar.mobileDataIconTypes, testCase.expectVal);
+      });
+    });
+  });
+
   suite('data connection', function() {
     for (var i = 0; i < mobileConnectionCount; i++) {
       (function(slotIndex) {
@@ -1131,6 +1237,14 @@ suite('system/Statusbar', function() {
 
         assert.equal(StatusBar.element.style.transform, transform);
         fakeDispatch('touchend', 100, 15);
+      });
+
+      test('it should not reveal when ftu is running', function() {
+        FtuLauncher.mIsRunning = true;
+        fakeDispatch('touchstart', 100, 0);
+        fakeDispatch('touchmove', 100, 5);
+        assert.equal(StatusBar.element.style.transform, '');
+        FtuLauncher.mIsRunning = false;
       });
 
       suite('after the gesture', function() {

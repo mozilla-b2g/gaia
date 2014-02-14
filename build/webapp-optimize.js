@@ -390,10 +390,7 @@ function optimize_embedHtmlImports(doc, webapp, htmlFile) {
   Array.prototype.forEach.call(imports, function eachImport(eachImport) {
     let content = optimize_getFileContent(webapp, htmlFile, eachImport.href);
     content = '<div>' + content + '</div>';
-
-    let DOMParser = CC('@mozilla.org/xmlextras/domparser;1', 'nsIDOMParser');
-    let elementRoot = (new DOMParser()).
-        parseFromString(content, 'text/html');
+    let elementRoot = utils.getDocument(content);
     let elements = elementRoot.querySelectorAll('element');
 
     // Remove import node from doc
@@ -614,9 +611,7 @@ function optimize_compile(webapp, file, callback) {
   };
 
   // load and parse the HTML document
-  let DOMParser = CC('@mozilla.org/xmlextras/domparser;1', 'nsIDOMParser');
-  win.document = (new DOMParser()).
-      parseFromString(utils.getFileContent(file), 'text/html');
+  win.document = utils.getDocument(utils.getFileContent(file));
 
   // If this HTML document uses l10n.js, pre-localize it --
   //   note: a document can use l10n.js by including either l10n.js or

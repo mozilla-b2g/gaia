@@ -12,6 +12,7 @@
     <script type="text/javascript" src="/shared/js/lazy_loader.js"></script>
     <script defer type="text/javascript" src="/shared/js/text_normalizer.js"></script>
     <script defer type="text/javascript" src="/shared/js/simple_phone_matcher.js"></script>
+    <script defer type="text/javascript" src="/shared/js/contact_photo_helper.js"></script>
 
     <script type="text/javascript" src="oauth2/js/flow.js"></script>
     <script type="text/javascript" src="oauth2/js/oauth20.js"></script>
@@ -31,9 +32,9 @@
 
     <script defer type="text/javascript" src="js/views/search.js"></script>
     <script defer type="text/javascript" src="js/utilities/image_square.js"></script>
+    <script defer type="text/javascript" src="js/utilities/image_thumbnail.js"></script>
     <script defer type="text/javascript" src="js/utilities/dom.js"></script>
 
-    <script defer type="text/javascript" src="js/fixed_header.js"></script>
     <script defer type="text/javascript" src="js/utilities/http_rest.js"></script>
     <script defer type="text/javascript" src="js/contacts_importer.js"></script>
     <script defer type="text/javascript" src="js/contacts_cleaner.js"></script>
@@ -59,7 +60,6 @@
 
     <link rel="stylesheet" href="style/root.css">
     <link rel="stylesheet" href="style/import.css">
-    <link rel="stylesheet" href="style/fixed_header.css">
     <link rel="stylesheet" href="style/search.css">
     <link rel="stylesheet" href="/contacts/style/animations.css">
   </head>
@@ -116,7 +116,6 @@
           </section> <!-- groupsList -->
         </section> <!-- mainContent -->
 
-
         <form role="dialog" data-type="confirm" class="no-overlay">
           <menu id="select-all-wrapper">
             <button id="deselect-all" class="edit-button" data-l10n-id="deselectAll">
@@ -127,8 +126,6 @@
             </button>
           </menu>
         </form>
-
-        <section id='fixed-container' class='fixed-title'></section>
 
         <nav data-type="scrollbar">
           <p></p>

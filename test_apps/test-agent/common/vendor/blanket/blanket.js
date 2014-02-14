@@ -5328,7 +5328,14 @@ _blanket.extend({
                             //An http 4xx or 5xx error. Signal an error.
                             err = new Error(url + ' HTTP status: ' + status);
                             err.xhr = xhr;
-                            errback(err);
+
+                            // This change is made for Gaia Test-Agent.
+                            // Buzilla Bug 971647: https://bugzilla.mozilla.org/show_bug.cgi?id=971647
+                            // Blanket Github Issue: https://github.com/alex-seville/blanket/issues/385
+                            // Ignore error loading source script
+                            // errback(err);
+                            // Continue the blanket with a empty script
+                            callback('');
                         } else {
                             callback(xhr.responseText);
                         }

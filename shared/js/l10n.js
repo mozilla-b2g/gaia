@@ -1056,6 +1056,10 @@
         consoleLog('argument {{' + arg + '}} for #' + key + ' is undefined.');
         return str;
       }
+      if (typeof sub == 'string') {
+        // dollar signs would be interpreted as replacement patterns
+        sub = sub.replace(/\$/g, '$$$$');
+      }
       str = str.replace(match[i].subst, sub);
     }
     return str;

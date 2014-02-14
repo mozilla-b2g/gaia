@@ -14,10 +14,9 @@ class TestEverythingMeInstallApp(GaiaTestCase):
         self.connect_to_network()
 
     def test_installing_everything_me_app(self):
-        # https://github.com/mozilla/gaia-ui-tests/issues/67
-
         homescreen = Homescreen(self.marionette)
         self.apps.switch_to_displayed_app()
+        homescreen.wait_for_homescreen_to_load()
 
         self.assertGreater(homescreen.collections_count, 0)
         collection = homescreen.tap_collection('Social')

@@ -14,6 +14,8 @@ class PhoneLock(Base):
     _passcode_create_locator = (By.ID, 'passcode-create')
 
     def enable_passcode_lock(self):
+        # This wait would be in __init__ but lockscreen could be disabled meaning init would timeout
+        self.wait_for_element_displayed(*self._passcode_enable_locator)
         self.marionette.find_element(*self._passcode_enable_locator).tap()
         self.wait_for_condition(lambda m:
             m.find_element(*self._phone_lock_passcode_section_locator).location['x'] == 0)

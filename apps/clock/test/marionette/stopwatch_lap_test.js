@@ -20,15 +20,8 @@ marionette('Lap creation', function() {
     );
 
     stopwatch.start();
-    // Ensure that at least one centisecond has passed on the device before
-    // continuing.
-    client.helper.wait(11);
 
     stopwatch.lap();
-
-    // Ensure that at least one centisecond has passed on the device before
-    // continuing.
-    client.helper.wait(11);
 
     laps = stopwatch.readLaps();
 

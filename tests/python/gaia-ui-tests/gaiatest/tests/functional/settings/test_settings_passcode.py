@@ -12,12 +12,6 @@ class TestSettingsPasscode(GaiaTestCase):
     _input_passcode = ['7', '9', '3', '1']
 
     def test_set_passcode_by_settings(self):
-        """ Set a passcode using Settings app
-
-        https://github.com/mozilla/gaia-ui-tests/issues/477
-
-        """
-
         settings = Settings(self.marionette)
         settings.launch()
         phone_lock_settings = settings.open_phone_lock_settings()

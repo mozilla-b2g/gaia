@@ -21,7 +21,6 @@ class TestGalleryTilesView(GaiaTestCase):
         Tap the tile view toolbar icon.
         Assert that the app returns to the main/tile view screen.
         """
-
         gallery = Gallery(self.marionette)
         gallery.launch()
         gallery.wait_for_files_to_load(1)

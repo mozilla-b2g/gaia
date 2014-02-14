@@ -1,10 +1,12 @@
 'use strict';
+/* global MockSaveBookmarkHtml, BookmarkEditor, Bookmark, GridItemsFactory */
 
 requireApp('homescreen/test/unit/mock_save_bookmark.html.js');
 
 requireApp('homescreen/js/grid_components.js');
 requireApp('homescreen/js/bookmark.js');
 requireApp('homescreen/js/bookmark_editor.js');
+require('/shared/js/url_helper.js');
 
 suite('bookmark.js >', function() {
 
@@ -94,6 +96,42 @@ suite('bookmark.js >', function() {
 
     test('This bookmark defines the title correctly >', function() {
       assert.equal(bookmark.manifest.name, name);
+    });
+
+  });
+
+  suite('BookmarkEditor - Invalid URL >', function() {
+
+    suiteSetup(function() {
+      BookmarkEditor.init({
+        data: {
+          name: 'Mozilla',
+          url: 'justAString'
+        }
+      });
+    });
+
+    test('Bookmarks with invalid URL should not be saved >', function() {
+      assert.ok(BookmarkEditor.addButton.disabled,
+                'Invalid URL, add button should be disabled');
+    });
+
+  });
+
+  suite('BookmarkEditor - Non-HTTP(S) URL >', function() {
+
+    suiteSetup(function() {
+      BookmarkEditor.init({
+        data: {
+          name: 'Mozilla',
+          url: 'rtsp://whatever.com'
+        }
+      });
+    });
+
+    test('Bookmarks with non-HTTP(S) URLs should be saved >', function() {
+      assert.isFalse(BookmarkEditor.addButton.disabled,
+                     'Non-HTTP(S) URLs is ok, add button should be enabled');
     });
 
   });

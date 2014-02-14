@@ -201,8 +201,6 @@ apps/camera/test/unit/utils/formattimer_test.js
 apps/clock/build/make_gaia_shared.js
 apps/clock/js/active_alarm.js
 apps/clock/js/alarm.js
-apps/clock/js/alarm_edit.js
-apps/clock/js/alarm_list.js
 apps/clock/js/alarm_manager.js
 apps/clock/js/alarmsdb.js
 apps/clock/js/app.js
@@ -263,7 +261,6 @@ apps/communications/contacts/js/contacts_importer.js
 apps/communications/contacts/js/contacts_matcher.js
 apps/communications/contacts/js/contacts_matching_controller.js
 apps/communications/contacts/js/contacts_matching_ui.js
-apps/communications/contacts/js/contacts_shortcuts.js
 apps/communications/contacts/js/contacts_tag.js
 apps/communications/contacts/js/export/bt.js
 apps/communications/contacts/js/export/contacts_exporter.js
@@ -281,7 +278,6 @@ apps/communications/contacts/js/fb/fb_utils.js
 apps/communications/contacts/js/fb/friends_list.js
 apps/communications/contacts/js/fb_loader.js
 apps/communications/contacts/js/fb_resolver.js
-apps/communications/contacts/js/fixed_header.js
 apps/communications/contacts/js/import_init.js
 apps/communications/contacts/js/import_utils.js
 apps/communications/contacts/js/importer_ui.js
@@ -353,7 +349,6 @@ apps/communications/contacts/test/unit/mock_fb.js
 apps/communications/contacts/test/unit/mock_fb_data.js
 apps/communications/contacts/test/unit/mock_fb_loader.js
 apps/communications/contacts/test/unit/mock_find_matcher.js
-apps/communications/contacts/test/unit/mock_fixed_header.js
 apps/communications/contacts/test/unit/mock_get_device_storage.js
 apps/communications/contacts/test/unit/mock_icc_helper.js
 apps/communications/contacts/test/unit/mock_l10n.js
@@ -385,7 +380,6 @@ apps/communications/dialer/js/conference_group_handler.js
 apps/communications/dialer/js/contacts.js
 apps/communications/dialer/js/dialer.js
 apps/communications/dialer/js/fake-oncall-desktop.js
-apps/communications/dialer/js/fixed_header.js
 apps/communications/dialer/js/handled_call.js
 apps/communications/dialer/js/index.js
 apps/communications/dialer/js/keypad.js
@@ -747,7 +741,6 @@ apps/homescreen/everything.me/modules/Results/providers/StaticApps.js
 apps/homescreen/everything.me/modules/SearchHistory/SearchHistory.js
 apps/homescreen/everything.me/modules/Searchbar/Searchbar.js
 apps/homescreen/js/bookmark.js
-apps/homescreen/js/bookmark_editor.js
 apps/homescreen/js/components/status.js
 apps/homescreen/js/configurator.js
 apps/homescreen/js/contextmenu.js
@@ -761,7 +754,6 @@ apps/homescreen/js/icon_retriever.js
 apps/homescreen/js/pagbar.js
 apps/homescreen/js/page.js
 apps/homescreen/js/request.js
-apps/homescreen/js/save-bookmark.js
 apps/homescreen/js/state.js
 apps/homescreen/js/wallpaper.js
 apps/homescreen/test/marionette/install_bookmark_test.js
@@ -770,7 +762,6 @@ apps/homescreen/test/marionette/lib/browser.js
 apps/homescreen/test/marionette/lib/homescreen.js
 apps/homescreen/test/marionette/lib/server.js
 apps/homescreen/test/marionette/lib/server_child.js
-apps/homescreen/test/unit/bookmark_editor_test.js
 apps/homescreen/test/unit/bookmark_test.js
 apps/homescreen/test/unit/configurator_test.js
 apps/homescreen/test/unit/contextmenu_test.js
@@ -1041,7 +1032,6 @@ apps/system/js/system_banner.js
 apps/system/js/system_dialog.js
 apps/system/js/telephony_settings.js
 apps/system/js/trusted_ui.js
-apps/system/js/ttlview.js
 apps/system/js/updatable.js
 apps/system/js/update_manager.js
 apps/system/js/utility_tray.js
@@ -1220,8 +1210,6 @@ apps/video/test/unit/video_utils_test.js
 apps/wallpaper/js/pick.js
 apps/wallpaper/js/share.js
 apps/wallpaper/test/unit/pick_test.js
-apps/wappush/js/wappush.js
-apps/wappush/test/unit/wappush_test.js
 shared/js/advanced_timer.js
 shared/js/airplane_mode_helper.js
 shared/js/async_storage.js

@@ -10,8 +10,17 @@
     }
   };
 
+  var testDefaults = {};
+
   var MockL10n = {
+    /** For unit testing: */
+    setForTest: function(key, value) {
+      testDefaults[key] = value;
+    },
     get: function get(key, params) {
+      if (key in testDefaults) {
+        return testDefaults[key];
+      }
       if (params) {
         return key + JSON.stringify(params);
       }

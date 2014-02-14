@@ -17,7 +17,6 @@ class TestBrowserSearch(GaiaTestCase):
         self.connect_to_network()
 
     def test_browser_search(self):
-        # https://github.com/mozilla/gaia-ui-tests/issues/451
         browser = Browser(self.marionette)
         browser.launch()
 

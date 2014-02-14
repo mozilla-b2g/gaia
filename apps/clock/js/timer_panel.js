@@ -7,6 +7,7 @@ var View = require('view');
 
 var Utils = require('utils');
 var Timer = require('timer');
+var Sounds = require('sounds');
 var FormButton = require('form_button');
 var _ = require('l10n').get;
 
@@ -87,11 +88,7 @@ Timer.Panel = function(element) {
 
   var soundMenuConfig = {
     id: 'timer-sound-menu',
-    formatLabel: function(sound) {
-      return (sound === null || sound === '0') ?
-        _('noSound') :
-        _(sound.replace('.', '_'));
-    }
+    formatLabel: Sounds.formatLabel
   };
   this.soundButton = new FormButton(sound, soundMenuConfig);
   this.soundButton.refresh();
@@ -99,6 +96,10 @@ Timer.Panel = function(element) {
   View.instance(element, Timer.Panel).on(
     'visibilitychange', this.onvisibilitychange.bind(this)
   );
+
+  View.instance(element, Timer.Panel).once(
+    'visibilitychange',
+    setTimeout.bind(window, this.picker.reset.bind(this.picker), 0));
 };
 
 Timer.Panel.prototype = Object.create(Panel.prototype);
@@ -150,8 +151,6 @@ Timer.Panel.prototype.dialog = function(opts = { isVisible: true }) {
     Utils.cancelAnimationAfter(this.tickTimeout);
   }
   View.instance(this.nodes.dialog).visible = opts.isVisible;
-
-  setTimeout(this.picker.reset.bind(this.picker), 0);
   return this;
 };
 
@@ -203,7 +202,7 @@ Timer.Panel.prototype.previewAlarm = function() {
   }
   this.ringtonePlayer.pause();
 
-  var ringtoneName = Utils.getSelectedValue(this.nodes.sound);
+  var ringtoneName = Utils.getSelectedValueByIndex(this.nodes.sound);
   var previewRingtone = 'shared/resources/media/alarms/' + ringtoneName;
   this.ringtonePlayer.src = previewRingtone;
   this.ringtonePlayer.play();
