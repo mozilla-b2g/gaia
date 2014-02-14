@@ -572,13 +572,6 @@ section.has-carrier .article-list header:first-child {
   background-size: 2.2rem;
 }
 
-.article-list[data-type="list"] .message button.download {
-  padding: 0.5em;
-  margin: 0.5em;
-  background: #ccc;
-  width: 100%;
-}
-
 .article-list[data-type="list"] .message.pending .bubble aside,
 .article-list[data-type="list"] .message.sending .bubble aside {
   display: block;
