@@ -156,7 +156,7 @@ define(function() {
   }
 
   function fireOrientationChangeEvent(orientation) {
-    eventListeners['orientation'].forEach(function(listener) {
+    eventListeners.orientation.forEach(function(listener) {
       if (listener.handleEvent) {
         listener.handleEvent(orientation);
       } else if ((typeof listener) === 'function') {

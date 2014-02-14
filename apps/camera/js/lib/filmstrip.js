@@ -22,11 +22,12 @@ define(function(require, exports, module) {
    */
 
   var parseJPEGMetadata = require('jpegMetaDataParser');
-  var addPanAndZoomHandlers = require('panzoom');
-  var orientation = require('orientation');
-  var constants = require('config/camera');
-  var broadcast = require('broadcast');
+  var addPanAndZoomHandlers = require('lib/panzoom');
+  var orientation = require('lib/orientation');
   var debug = require('debug')('filmstrip');
+  var constants = require('config/camera');
+  var broadcast = require('lib/broadcast');
+  var MediaFrame = require('MediaFrame');
 
   /**
    * Locals
@@ -295,7 +296,7 @@ define(function(require, exports, module) {
       var type = item.isImage ? 'image/*' : 'video/*';
       var nameonly = item.filepath.substring(
         item.filepath.lastIndexOf('/') + 1);
-      var activity = new MozActivity({
+      var activity = new window.MozActivity({
         name: 'share',
         data: {
           type: type,
@@ -318,26 +319,23 @@ define(function(require, exports, module) {
 
       switch (e.detail.direction) {
       case 'up':   // close the preview if the swipe is fast enough
-        if (e.detail.vy < -1)
-          hidePreview();
+        if (e.detail.vy < -1) { hidePreview(); }
         break;
       case 'left': // go to next image if fast enough
-        if (e.detail.vx < -1 && currentItemIndex < items.length - 1)
-          previewItem(currentItemIndex + 1);
+        if (e.detail.vx < -1 && currentItemIndex < items.length - 1) {
+          previewItem(currentItemIndex + 1); }
         break;
       case 'right': // go to previous image if fast enough
-        if (e.detail.vx > 1 && currentItemIndex > 0)
-          previewItem(currentItemIndex - 1);
+        if (e.detail.vx > 1 && currentItemIndex > 0) {
+          previewItem(currentItemIndex - 1); }
         break;
       }
     }
 
     function addImage(filepath, blob) {
       parseJPEGMetadata(blob, function getPreviewBlob(metadata) {
-        if (!metadata.rotation)
-          metadata.rotation = 0;
-        if (!metadata.mirrored)
-          metadata.mirrored = false;
+        if (!metadata.rotation) { metadata.rotation = 0; }
+        if (!metadata.mirrored) { metadata.mirrored = false; }
 
         if (metadata.preview) {
           var previewBlob = blob.slice(metadata.preview.start,
@@ -465,8 +463,7 @@ define(function(require, exports, module) {
           // But if we just deleted the last item, then we'll need to
           // display the previous item.
           var newindex = currentItemIndex;
-          if (newindex >= items.length)
-            newindex = items.length - 1;
+          if (newindex >= items.length) { newindex = items.length - 1; }
           currentItemIndex = null;
           previewItem(newindex);
         }
@@ -476,8 +473,7 @@ define(function(require, exports, module) {
     // Remove all items from the filmstrip. Don't delete the files, but
     // forget all of our state. This also exits preview mode if we're in it.
     function clear() {
-      if (!preview.classList.contains('offscreen'))
-        hidePreview();
+      if (!preview.classList.contains('offscreen')) { hidePreview(); }
       items.forEach(function(item) {
         filmstrip.removeChild(item.element);
         URL.revokeObjectURL(item.element.src);

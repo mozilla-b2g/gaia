@@ -12,7 +12,7 @@ suite('controllers/overlay', function() {
 
     req([
       'controllers/overlay',
-      'activity',
+      'lib/activity',
       'views/overlay'
     ], function(controller, activity, Overlay) {
       Controller = self.modules.controller = controller;

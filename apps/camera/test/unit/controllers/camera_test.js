@@ -1,94 +1,78 @@
-/*jshint maxlen:false*/
-/*global req*/
-'use strict';
 
 suite('controllers/camera', function() {
-  var modules = {};
-  var Controller;
+  'use strict';
 
   suiteSetup(function(done) {
+    var require = window.req;
+    var self = this;
 
-    req([
+    require([
+      'app',
       'controllers/camera',
-      'camera',
-      'activity',
+      'lib/camera',
+      'lib/activity',
       'vendor/view',
-      'vendor/evt'
-    ], function(controller, Camera, View, activity, evt) {
-      Controller = modules.controller = controller;
-      modules.activity = activity;
-      modules.camera = Camera;
-      modules.view = View;
-      modules.evt = evt;
+      'lib/settings',
+      'lib/setting'
+    ], function(
+      App, CameraController, Camera, Activity,
+      View, Settings, Setting
+    ) {
+      self.CameraController = CameraController.CameraController;
+      self.Activity = Activity;
+      self.Settings = Settings;
+      self.Setting = Setting;
+      self.Camera = Camera;
+      self.View = View;
+      self.App = App;
       done();
     });
   });
 
   setup(function() {
-    var Activity = modules.activity;
-    var Camera = modules.camera;
-    var View = modules.view;
-    var evt = modules.evt;
-
-    this.sandbox = sinon.sandbox.create();
-
-    // Mock app
-    this.app = evt.mix({
-      activity: new Activity(),
-      camera: new Camera(),
-      views: {
-        filmstrip: new View(),
-        viewfinder: new View()
-      }
-    });
-
-    this.sandbox.stub(this.app.camera);
+    this.app = sinon.createStubInstance(this.App);
+    this.app.activity = new this.Activity();
+    this.app.settings = sinon.createStubInstance(this.Settings);
+    this.app.camera = sinon.createStubInstance(this.Camera);
+    this.app.views = {
+      filmstrip: sinon.createStubInstance(this.View),
+      viewfinder: sinon.createStubInstance(this.View)
+    };
     this.app.views.filmstrip.clear = sinon.spy();
-  });
-
-  teardown(function() {
-    this.sandbox.restore();
+    this.app.settings.cameras = sinon.createStubInstance(this.Setting);
+    this.app.settings.get
+      .withArgs('cameras')
+      .returns(this.app.settings.cameras);
   });
 
   suite('CameraController()', function() {
     setup(function() {
-      sinon.stub(Controller.prototype, 'setupCamera');
-      sinon.stub(Controller.prototype, 'teardownCamera');
+      sinon.stub(this.CameraController.prototype, 'teardownCamera');
     });
 
     teardown(function() {
-      Controller.prototype.setupCamera.restore();
-      Controller.prototype.teardownCamera.restore();
+      this.CameraController.prototype.teardownCamera.restore();
     });
 
     test('Should set the capture mode to \'camera\' by default', function() {
-      this.controller = new Controller(this.app);
-      assert.isTrue(this.app.camera.set.calledWith('mode', 'photo'));
-    });
-
-    test('Should set the capture mode to the mode' +
-         'specified by the activity if present', function() {
-      this.app.activity.mode = 'video';
-      this.controller = new Controller(this.app);
-      assert.isTrue(this.app.camera.set.calledWith('mode', 'video'));
+      this.app.settings.value.withArgs('mode').returns('picture');
+      this.controller = new this.CameraController(this.app);
+      assert.isTrue(this.app.camera.setMode.calledWith('picture'));
     });
 
     test('Should setup camera on app `boot`', function() {
-      this.controller = new Controller(this.app);
-      this.app.emit('boot');
-      assert.isTrue(Controller.prototype.setupCamera.called);
+      this.controller = new this.CameraController(this.app);
+      this.app.on.calledWith('boot', this.app.camera.load);
     });
 
     test('Should setup camera on app `focus`', function() {
-      this.controller = new Controller(this.app);
-      this.app.emit('focus');
-      assert.isTrue(Controller.prototype.setupCamera.called);
+      this.controller = new this.CameraController(this.app);
+      this.app.on.calledWith('focus', this.app.camera.load);
     });
 
     test('Should teardown camera on app `blur`', function() {
-      this.controller = new Controller(this.app);
-      this.app.emit('blur');
-      assert.isTrue(Controller.prototype.teardownCamera.called);
+      this.controller = new this.CameraController(this.app);
+      this.app.on.calledWith('blur', this.controller.teardownCamera);
     });
   });
 });
