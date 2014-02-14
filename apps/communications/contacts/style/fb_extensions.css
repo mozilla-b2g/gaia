@@ -16,8 +16,8 @@
   -moz-transform: translateY(-100%);
 }
 
-#fb-extensions.closing {
-  -moz-transform: translateY(0);
+#fb-extensions.hidden {
+  visibility: hidden;
 }
 
 .facebook.removed dl,
