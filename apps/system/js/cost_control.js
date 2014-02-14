@@ -67,23 +67,29 @@
       activityCounter = 0;
       window.removeEventListener('moznetworkupload', _onNetworkActivity);
       window.removeEventListener('moznetworkdownload', _onNetworkActivity);
-      widgetFrame.addEventListener('mozbrowserlocationchange', _onUpdateDone);
-      widgetFrame.src = origin + '/widget.html#update#' + hashMark;
-      hashMark = 1 - hashMark; // toogle between 0 and 1
+      if (widgetFrame) {
+        widgetFrame.addEventListener('mozbrowserlocationchange', _onUpdateDone);
+        widgetFrame.src = origin + '/widget.html#update#' + hashMark;
+        hashMark = 1 - hashMark; // toogle between 0 and 1
+      }
     }
   }
 
   function _onUpdateDone(evt) {
     if (evt.detail.split('#')[1] === 'updateDone') {
-      widgetFrame.removeEventListener('mozbrowserlocationchange',
-                                      _onUpdateDone);
+      if (widgetFrame) {
+        widgetFrame.removeEventListener('mozbrowserlocationchange',
+                                        _onUpdateDone);
+      }
       _attachNetworkEvents();
     }
   }
 
   function _showWidget() {
     _ensureWidget();
-    widgetFrame.setVisible(true);
+    if (widgetFrame) {
+      widgetFrame.setVisible(true);
+    }
   }
 
   function _hideWidget() {
