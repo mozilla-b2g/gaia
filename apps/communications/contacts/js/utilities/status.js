@@ -9,20 +9,24 @@ utils.status = (function() {
   var showStatus = function(text) {
     LazyLoader.load([statusMsg], function _loaded() {
       statusMsg.querySelector('p').textContent = text;
-      statusMsg.classList.add('visible');
-      statusMsg.classList.add('bannerStart');
-      statusMsg.addEventListener('transitionend', function tend() {
-        statusMsg.removeEventListener('transitionend', tend);
-        setTimeout(function hide() {
-          statusMsg.classList.remove('visible');
-          statusMsg.classList.add('bannerEnd');
-        }, STATUS_TIME);
-        statusMsg.addEventListener('transitionend', function bannerEnd() {
-          statusMsg.removeEventListener('transitionend', bannerEnd);
-          statusMsg.classList.remove('bannerStart');
-          statusMsg.classList.remove('bannerEnd');
+      statusMsg.classList.remove('hidden');
+      setTimeout(function displaying() {
+        statusMsg.classList.add('opening');
+        statusMsg.classList.add('bannerStart');
+        statusMsg.addEventListener('transitionend', function tend() {
+          statusMsg.removeEventListener('transitionend', tend);
+          setTimeout(function hide() {
+            statusMsg.classList.remove('opening');
+            statusMsg.classList.add('bannerEnd');
+          }, STATUS_TIME);
+          statusMsg.addEventListener('transitionend', function bannerEnd() {
+            statusMsg.removeEventListener('transitionend', bannerEnd);
+            statusMsg.classList.add('hidden');
+            statusMsg.classList.remove('bannerStart');
+            statusMsg.classList.remove('bannerEnd');
+          });
         });
-      });
+      }, 0);
     });
   };
   return {

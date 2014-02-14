@@ -74,6 +74,7 @@ if (typeof Contacts.extServices === 'undefined') {
     function close(message) {
       extensionFrame.addEventListener('transitionend', function tclose() {
         extensionFrame.removeEventListener('transitionend', tclose);
+        extensionFrame.classList.add('hidden');
         if (canClose === true && canCloseLogout === true) {
           unload();
         }
@@ -86,7 +87,7 @@ if (typeof Contacts.extServices === 'undefined') {
         }
       // Otherwise we do nothing as the sync process will finish sooner or later
       });
-      extensionFrame.className = 'closing';
+      extensionFrame.classList.remove('opening');
     }
 
     function openURL(url) {
@@ -284,14 +285,17 @@ if (typeof Contacts.extServices === 'undefined') {
 
       switch (data.type) {
         case 'ready':
-          extensionFrame.className = 'opening';
-          extensionFrame.addEventListener('transitionend', function topen() {
-            extensionFrame.removeEventListener('transitionend', topen);
-            extensionFrame.contentWindow.postMessage({
-              type: 'dom_transition_end',
-              data: ''
-            }, fb.CONTACTS_APP_ORIGIN);
-          });
+          extensionFrame.classList.remove('hidden');
+          window.setTimeout(function displaying() {
+            extensionFrame.classList.add('opening');
+            extensionFrame.addEventListener('transitionend', function topen() {
+              extensionFrame.removeEventListener('transitionend', topen);
+              extensionFrame.contentWindow.postMessage({
+                type: 'dom_transition_end',
+                data: ''
+              }, fb.CONTACTS_APP_ORIGIN);
+            });
+          }, 0);
         break;
 
         case 'authenticated':
