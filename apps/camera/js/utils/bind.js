@@ -13,8 +13,9 @@ exports = module.exports = bind;
  * @param  {String}   name
  * @param  {Function} fn
  */
-function bind(el, name, fn, capture) {
-  el.addEventListener(name, fn, capture || false);
+function bind(el, name, fn, context) {
+  if (context) { fn = fn.bind(context); }
+  el.addEventListener(name, fn);
 }
 
 /**
@@ -23,8 +24,8 @@ function bind(el, name, fn, capture) {
  * @param  {String}   name
  * @param  {Function} fn
  */
-exports.unbind = function(el, name, fn, capture) {
-  el.removeEventListener(name, fn, capture || false);
+exports.unbind = function(el, name, fn) {
+  el.removeEventListener(name, fn);
 };
 
 });

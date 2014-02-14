@@ -6,7 +6,7 @@ define(function(require, exports, module) {
  */
 
 var GestureDetector = require('GestureDetector');
-var orientation = require('lib/orientation');
+var orientation = require('orientation');
 
 /**
  * Exports
@@ -33,12 +33,10 @@ function addPanAndZoomHandlers(frame) {
 
   function handleDoubleTap(e) {
     var scale;
-    if (frame.fit.scale > frame.fit.baseScale) {
+    if (frame.fit.scale > frame.fit.baseScale)
       scale = frame.fit.baseScale / frame.fit.scale;
-    }
-    else {
+    else
       scale = 2;
-    }
 
     // If the phone orientation is 0 (unrotated) then the gesture detector's
     // event coordinates match what's on the screen, and we use them to

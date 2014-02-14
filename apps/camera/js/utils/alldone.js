@@ -15,7 +15,7 @@ function allDone() {
   return function done(callback) {
     if (callback) {
       master = callback;
-      return done;
+      return;
     }
     counter++;
     return decrement;

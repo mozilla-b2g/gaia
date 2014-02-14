@@ -1,115 +1,109 @@
+/*jshint maxlen:false*/
 /*global req*/
 'use strict';
 
-suite.skip('controllers/controls', function() {
+suite('controllers/controls', function() {
+  var Controller;
 
   suiteSetup(function(done) {
     var self = this;
 
+    this.modules = {};
+
     req([
-      'app',
-      'lib/camera',
       'controllers/controls',
-      'views/Controls',
-      'lib/activity',
-      'lib/settings',
-      'lib/setting'
-    ], function(
-    App, Camera, ControlsController,
-    ControlsView, Activity, Settings, Setting) {
-      self.App = App;
-      self.Camera = Camera;
-      self.ControlsController = ControlsController;
-      self.ControlsView = ControlsView;
-      self.Activity = Activity;
-      self.Settings = Settings;
-      self.Setting = Setting;
+      'vendor/view',
+      'activity'
+    ], function(controlsController, View, activity) {
+      Controller = self.modules.controller = controlsController;
+      self.modules.View = View;
+      self.modules.activity = activity;
       done();
     });
   });
 
   setup(function() {
-    this.app = sinon.createStubInstance(this.App);
-    this.app.camera = sinon.createStubInstance(this.Camera);
-    this.app.settings = sinon.createStubInstance(this.Settings);
-    this.app.settings.mode = sinon.createStubInstance(this.Setting);
-    this.app.views = { controls: sinon.createStubInstance(this.ControlsView) };
-    this.app.activity = sinon.createStubInstance(this.Activity);
-    this.app.activity.allowedTypes = {};
+    var View = this.modules.View;
+    var Activity = this.modules.activity;
 
-    // Fake available modes
-    this.app.settings.mode.get
-      .withArgs('options')
-      .returns([{ key: 'picture' }, { key: 'video' }]);
+    this.app = {
+      camera: {
+        on: sinon.spy(),
+        state: { on: sinon.spy() },
+        get: sinon.stub().withArgs('mode').returns('photo')
+      },
+      activity: new Activity(),
+      views: {
+        viewfinder: new View(),
+        controls: new View()
+      }
+    };
 
-    // Fake current mode
-    this.app.settings.mode.value.returns('picture');
+    this.app.views.controls.set = sinon.spy();
   });
 
   suite('ControlsController()', function() {
+    test('Should set the mode to the current camera mode', function() {
+      this.controller = new Controller(this.app);
+      assert.isTrue(this.app.views.controls.set.calledWith('mode', 'photo'));
+    });
+  });
+
+  suite('ControlsController#setup()', function() {
     test('Should *not* show the gallery if in \'secureMode\'', function() {
       this.app.inSecureMode = true;
-      this.controller = new this.ControlsController(this.app);
+      this.controller = new Controller(this.app);
       assert.isTrue(this.app.views.controls.set.calledWith('gallery', false));
     });
 
     test('Should *not* show the gallery if in pending activity', function() {
       this.app.activity.active = true;
-      this.controller = new this.ControlsController(this.app);
+      this.controller = new Controller(this.app);
       assert.isTrue(this.app.views.controls.set.calledWith('gallery', false));
     });
 
     test('Should show the gallery if no pending activity' +
          'and not in \'secureMode\'', function() {
-      this.controller = new this.ControlsController(this.app);
+      this.controller = new Controller(this.app);
       assert.isTrue(this.app.views.controls.set.calledWith('gallery', true));
     });
 
-    test('Should *not* show the cancel button when ' +
+    test('Should *not* show the cancel button when' +
          '*not* within a \'pick\' activity', function() {
-      this.controller = new this.ControlsController(this.app);
+      this.controller = new Controller(this.app);
       assert.isTrue(this.app.views.controls.set.calledWith('cancel', false));
     });
 
     test('Should show the cancel button when within activity', function() {
       this.app.activity.active = true;
-      this.controller = new this.ControlsController(this.app);
+      this.controller = new Controller(this.app);
       assert.isTrue(this.app.views.controls.set.calledWith('cancel', true));
     });
 
     test('Should be switchable when no activity is active', function() {
       this.app.activity.active = false;
-      this.controller = new this.ControlsController(this.app);
+      this.controller = new Controller(this.app);
       assert.isTrue(this.app.views.controls.set.calledWith('switchable', true));
     });
 
-    test('Should not be switchable when only one mode is available', function() {
-
-      // Fake avaialable modes
-      this.app.settings.mode.get
-        .withArgs('options')
-        .returns([{ key: 'picture' }]);
-
-      this.controller = new this.ControlsController(this.app);
-
+    test('Should not be switchable when activity is active and' +
+         'only images are supported', function() {
+      this.app.activity.active = true;
+      this.app.activity.allowedTypes.image = true;
+      this.app.activity.allowedTypes.video = false;
+      this.controller = new Controller(this.app);
       assert.isTrue(
         this.app.views.controls.set.calledWith('switchable', false));
     });
 
-    test('Should set the mode to the value of the \'mode\' setting', function() {
-      var controls = this.app.views.controls;
-
-      // Test 'picture'
-      this.app.settings.mode.value.returns('picture');
-      this.controller = new this.ControlsController(this.app);
-      assert.ok(controls.set.calledWith('mode', 'picture'));
-      controls.set.reset();
-
-      // Test 'video'
-      this.app.settings.mode.value.returns('video');
-      this.controller = new this.ControlsController(this.app);
-      assert.ok(controls.set.calledWith('mode', 'video'));
-      controls.set.reset();
+    test('Should not be switchable when activity is active and' +
+         'only videos are supported', function() {
+      this.app.activity.active = true;
+      this.app.activity.allowedTypes.image = false;
+      this.app.activity.allowedTypes.video = true;
+      this.controller = new Controller(this.app);
+      assert.isTrue(
+        this.app.views.controls.set.calledWith('switchable', false));
     });
   });
 });

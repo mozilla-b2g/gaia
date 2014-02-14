@@ -8,10 +8,6 @@
   z-index: 50;
   background-color: rgba(0, 0, 0, 0.8);
   overflow: hidden;
-  font-size: 3rem;
-  line-height: 5rem;
-  text-align: center;
-  color: #fff;
 }
 
 .switch-button,
@@ -20,10 +16,10 @@
   position: absolute;
 }
 
-.controls[buttons-enabled=false] .cancel-pick,
-.controls[buttons-enabled=false] .gallery-button,
-.controls[buttons-enabled=false] .capture-button,
-.controls[buttons-enabled=false] .switch-button {
+.buttons-disabled .cancel-pick,
+.buttons-disabled .gallery-button,
+.buttons-disabled .capture-button,
+.buttons-disabled .switch-button {
   pointer-events: none;
 }
 
@@ -33,16 +29,37 @@
   width: 33%;
 }
 
+.switch-button span,
+.capture-button span,
+.gallery-button span,
+.cancel-pick span {
+  transition: transform 0.2s ease-in-out;
+  pointer-events: none;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: 3rem;
+  display: block;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin-left: -1.5rem;
+  margin-top: -1.5rem;
+  width: 3rem;
+  height: 3rem;
+}
+
 .misc-button {
   text-align: center;
   left: 0;
 }
 
-/** Icon
+/** Video Timer
  ---------------------------------------------------------*/
 
-.controls .icon {
-  display: inline-block;
+.video-timer {
+  position:relative;
+  top:50%;
+  margin-top:-0.5em;
 }
 
 /** Gallery Button
@@ -58,7 +75,7 @@
  * @gallery=true
  */
 
-.controls[gallery=true] .gallery-button {
+.controls[data-gallery=true] .gallery-button {
   display: block;
 }
 
@@ -66,7 +83,7 @@
  * @recording=true
  */
 
-.controls[recording=true] .gallery-button {
+.controls[data-recording=true] .gallery-button {
   display: none;
 }
 
@@ -74,7 +91,7 @@
  ---------------------------------------------------------*/
 
 .gallery-button span {
-  /*background-image: url(images/grid.png);*/
+  background-image: url(images/grid.png);
 }
 
 /** Cancel Pick Button
@@ -90,7 +107,7 @@
  * @cancel
  */
 
-.controls[cancel=true] .cancel-pick {
+.controls[data-cancel=true] .cancel-pick {
   display: block;
 }
 
@@ -106,31 +123,22 @@
 
 .video-timer {
   display: none;
-  position: relative;
   font-size: 1.8rem;
-  line-height: 1;
-  margin-top: -0.9rem;
   color: white;
-  top:50%;
 }
 
 /**
  * @capturing
  */
 
-.controls[recording=true] .video-timer {
+.controls[data-recording=true] .video-timer {
   display: block;
 }
 
 /** Capture Button
  ---------------------------------------------------------*/
 
-/**
- * 1. Vertically center icon
- */
-
 .capture-button {
-  line-height: 10.4rem; /* 1 */
   background-color: #03a2b4;
   border-radius: 10rem;
   left: 33%;
@@ -143,7 +151,7 @@
  * @recording
  */
 
-.controls[recording=true] .capture-button {
+.controls[data-recording=true] .capture-button {
   background-color: #d3361c;
 }
 
@@ -154,41 +162,24 @@
  * @photo
  */
 
-.controls[mode=picture] .capture-button span:before {
-  content: "\e60f"; */
-  /* background-image: url(images/camera.png); */
+.controls[data-mode=photo] .capture-button span {
+  background-image: url(images/camera.png);
 }
 
 /**
  * @video
  */
 
-.controls[mode=video] .capture-button span:before {
-  content: "\e602";
-  /* background-image: url(images/video.png); */
+.controls[data-mode=video] .capture-button span {
+  background-image: url(images/video.png);
 }
 
 /**
  * @capturing
  */
 
- .controls[recording=true] .capture-button span:before {
-   content: "";
- }
-
-.controls[recording=true] .capture-button span {
-  display: block;
-  position: absolute;
+.controls[data-recording=true] .capture-button span {
   background-image: url(images/stop.png);
-  background-position: center center;
-  background-repeat: no-repeat;
-  background-size: 3rem;
-  top: 50%;
-  left: 50%;
-  margin-left: -1.5rem;
-  margin-top: -1.5rem;
-  width: 3rem;
-  height: 3rem;
 }
 
 /** Switch Button
@@ -199,23 +190,7 @@
   left: 66%;
 }
 
-/*.capture-button span {
-  transition: transform 0.2s ease-in-out;
-  pointer-events: none;
-  background-position: center center;
-  background-repeat: no-repeat;
-  background-size: 3rem;
-  display: block;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  margin-left: -1.5rem;
-  margin-top: -1.5rem;
-  width: 3rem;
-  height: 3rem;
-}*/
-
-.controls[switchable=true] .switch-button {
+.controls[data-switchable] .switch-button {
   display: block;
 }
 
@@ -223,7 +198,7 @@
  * @recording
  */
 
-.controls[recording=true] .switch-button {
+.controls[data-recording=true] .switch-button {
   pointer-events: none;
   opacity: 0.5;
 }
@@ -237,18 +212,16 @@
  * Swap the camera and video
  * icons depending on mode
  */
-.controls[mode=video] .switch-button span:before {
-  content: "\e60f";
-  /*background-image: url(images/camera.png);*/
+.controls[data-mode=video] .switch-button span {
+  background-image: url(images/camera.png);
 }
 
 /**
- * @picture
+ * @photo
  */
 
-.controls[mode=picture] .switch-button span:before {
-  content: "\e602";
-  /*background-image: url(images/video.png);*/
+.controls[data-mode=photo] .switch-button span {
+  background-image: url(images/video.png);
 }
 
 

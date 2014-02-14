@@ -1,17 +1,14 @@
 define(function(require, exports, module) {
   'use strict';
 
-  var listener = require('vendor/orientation');
-  var body = document.body;
-  var classes = body.classList;
+  var listener = require('utils/orientation');
   var current = 0;
 
   listener.on('orientation', onOrientationChange);
   listener.start();
 
   function onOrientationChange(degrees) {
-    classes.remove('deg' + current);
-    classes.add('deg' + degrees);
+    document.body.setAttribute('data-orientation', 'deg' + degrees);
     current = degrees;
   }
 

@@ -7,18 +7,19 @@ define(function(require, exports, module) {
  * Module Dependencies
  */
 
-var prepareBlob = require('lib/prepare-preview-blob');
+var prepareBlob = require('utils/prepare-preview-blob');
 var debug = require('debug')('controller:confirm');
-var resizeImage = require('lib/resize-image');
+var resizeImage = require('utils/resizeimage');
 var ConfirmView = require('views/confirm');
-var bindAll = require('lib/bind-all');
+var bindAll = require('utils/bindAll');
 
 /**
  * Exports
  */
 
-module.exports = function(options) { return new ConfirmController(options); };
-module.exports.ConfirmController = ConfirmController;
+module.exports = function(options) {
+  return new ConfirmController(options);
+};
 
 /**
  * Initialize a new `ConfirmController`
@@ -26,10 +27,11 @@ module.exports.ConfirmController = ConfirmController;
  * @param {Object} options
  */
 function ConfirmController(app) {
+  debug('initializing');
   this.activity = app.activity;
-  this.camera = app.camera;
   this.container = app.el;
   this.app = app;
+  this.camera = app.camera;
 
   // Allow these dependencies
   // to be injected if need be.
@@ -38,6 +40,7 @@ function ConfirmController(app) {
 
   bindAll(this);
   this.bindEvents();
+
   debug('initialized');
 }
 
@@ -86,8 +89,8 @@ ConfirmController.prototype.onNewMedia = function(newMedia) {
 };
 
 ConfirmController.prototype.onSelectMedia = function() {
-  var activity = this.activity;
   var needsResizing;
+  var activity = this.activity;
   var media = {
     blob: this.newMedia.blob
   };
@@ -97,12 +100,12 @@ ConfirmController.prototype.onSelectMedia = function() {
     media.poster = this.newMedia.poster.blob;
   } else { // Is Image
     media.type = 'image/jpeg';
-    needsResizing = activity.data.width || activity.data.height;
+    needsResizing = this.newMedia.width || this.newMedia.height;
     if (needsResizing) {
       resizeImage({
         blob: this.newMedia.blob,
-        width: activity.data.width,
-        height: activity.data.height
+        width: this.newMedia.width,
+        height: this.newMedia.height
       }, function(newBlob) {
         media.blob = newBlob;
         activity.postResult(media);

@@ -5,9 +5,8 @@ define(function(require) {
  * Dependencies
  */
 
-var bind = require('lib/bind');
-var CameraUtils = require('lib/camera-utils');
-var debug = require('debug')('view:viewfinder');
+var bind = require('utils/bind');
+var CameraUtils = require('utils/camera-utils');
 var constants = require('config/camera');
 var View = require('vendor/view');
 
@@ -52,9 +51,8 @@ var getDeltaScale = function(touchA, touchB) {
 };
 
 return View.extend({
-  name: 'viewfinder',
   tag: 'video',
-  className: 'js-viewfinder',
+  className: 'viewfinder js-viewfinder',
   fadeTime: 200,
   initialize: function() {
     bind(this.el, 'click', this.onClick);
@@ -139,7 +137,7 @@ return View.extend({
   },
 
   updatePreview: function(previewSize, mirrored) {
-    debug('update preview, mirrored: %s', mirrored);
+
     // Use the device-independent viewport size for transforming the
     // preview using CSS
     var deviceIndependentViewportSize = {

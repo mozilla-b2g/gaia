@@ -11,7 +11,7 @@ suite('utils/camera-utils', function() {
     this.modules = {};
 
     req([
-      'lib/camera-utils'
+      'utils/camera-utils'
     ], function(_CameraUtils) {
       CameraUtils = self.modules.CameraUtils = _CameraUtils;
 

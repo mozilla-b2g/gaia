@@ -6,8 +6,8 @@ define(function(require, exports, module) {
  */
 
 var View = require('vendor/view');
-var bind = require('lib/bind');
-var find = require('lib/find');
+var bind = require('utils/bind');
+var find = require('utils/find');
 
 /**
  * Exports
@@ -18,22 +18,21 @@ module.exports = View.extend({
   buttonsDisabledClass: 'buttons-disabled',
 
   initialize: function() {
-    this.render();
-  },
+    this.el.innerHTML = this.render();
 
-  render: function() {
-    this.el.innerHTML = this.template();
-    this.els.flash = find('.js-flash', this.el);
-    this.els.flashModeName = find('.js-flash-name', this.el);
-    this.els.camera = find('.js-camera', this.el);
-    this.els.settings = find('.js-settings', this.el);
-    bind(this.els.flash, 'click', this.onFlashClick);
-    bind(this.els.camera, 'click', this.onCameraClick);
-    bind(this.els.settings, 'click', this.onSettingsClick, true);
+    // Get elements
+    this.els.flash = find('.js-toggle-flash', this.el);
+    this.els.flashModeName = find('.js-flash-mode-name', this.el);
+    this.els.camera = find('.js-toggle-camera', this.el);
+
+    // Bind events
+    bind(this.els.flash, 'click', this.onFlashClick, this);
+    bind(this.els.camera, 'click', this.onCameraClick, this);
   },
 
   setFlashMode: function(mode) {
-    this.set('flash-mode', mode);
+    mode = mode || 'none';
+    this.els.flash.setAttribute('data-mode', mode);
     this.els.flashModeName.textContent = mode;
   },
 
@@ -46,65 +45,54 @@ module.exports = View.extend({
    * show the flash name text.
    *
    */
-  onFlashClick: function(e) {
-    e.stopPropagation();
-    var self = this;
-    this.emit('click:flash');
-    this.set('toggling-flash', true);
+  onFlashClick: function() {
+    var toggleClass = 'is-toggling';
+    var classes = this.els.flash.classList;
+
+    classes.add(toggleClass);
     clearTimeout(this.toggleTimer);
+
     this.toggleTimer = setTimeout(function() {
-      self.set('toggling-flash', false);
+      classes.remove(toggleClass);
     }, 1000);
+
+    this.emit('flashToggle');
   },
 
-  onCameraClick: function(event) {
-    event.stopPropagation();
-    this.emit('click:camera');
+  onCameraClick: function() {
+    this.emit('cameraToggle');
   },
 
-  onSettingsClick: function(event) {
-    event.stopPropagation();
-    this.emit('click:settings');
+  toggleDisableButtons: function(value) {
+    this.el.classList.toggle(this.buttonsDisabledClass, value);
   },
 
-  set: function(key, value) {
-    value = arguments.length === 2 ? value : true;
-    this.el.setAttribute(toDashed(key), value);
+  disableButtons: function() {
+    this.el.classList.add(this.buttonsDisabledClass);
+    return this;
   },
 
-  setter: function(key) {
-    return (function(value) { this.set(key, value); }).bind(this);
+  enableButtons: function() {
+    this.el.classList.remove(this.buttonsDisabledClass);
+    return this;
   },
 
-  enable: function(key, value) {
-    value = arguments.length === 2 ? value : true;
-    this.set(key + '-enabled', !!value);
+  showCameraToggleButton: function(hasFrontCamera) {
+    this.el.classList.toggle('has-front-camera', hasFrontCamera);
   },
 
-  disable: function(key) {
-    this.enable(key, false);
+  highlightCameraButton: function(value) {
+    this.el.classList.toggle('is-toggling-camera', value);
   },
 
-  hide: function(key, value) {
-    this.set(key + '-hidden', value);
-  },
-
-  template: function() {
-    return '<a class="toggle-camera rotates test-toggle-camera ' +
-    'js-camera"></a>' +
-    '<a class="toggle-flash rotates test-toggle-flash js-flash">' +
-      '<div class="flash-text test-flash-text">' +
-        'Flash: <span class="flash-name js-flash-name"></span>' +
+  render: function() {
+    return '<a class="toggle-flash rotates js-toggle-flash">' +
+      '<div class="flash-text">' +
+        'Flash: <span class="flash-name js-flash-mode-name"></span>' +
       '</div>' +
     '</a>' +
-    '<a class="hud_settings rotates icon-settings js-settings"></a>';
+    '<a class="toggle-camera rotates js-toggle-camera"></a>';
   }
 });
-
-function toDashed(s) {
-  return s.replace(/\W+/g, '-')
-    .replace(/([a-z\d])([A-Z])/g, '$1-$2')
-    .toLowerCase();
-}
 
 });

@@ -99,7 +99,6 @@ Sounds.prototype.observeSetting = function(sound) {
 
 /**
  * Set a sounds `enabled` key.
- *
  * @param {Object} sound
  * @param {Boolean} value
  *
@@ -112,22 +111,10 @@ Sounds.prototype.setEnabled = function(sound, value) {
  * Play a sound by name.
  *
  * @param  {String} name
- * @public
+ *
  */
 Sounds.prototype.play = function(name) {
   this.playSound(this.items[name]);
-};
-
-/**
- * Return a function that plays
- * the given sound when called.
- *
- * @param  {String} name
- * @return {Funciton}
- * @public
- */
-Sounds.prototype.player = function(name) {
-  return (function() { this.play(name); }).bind(this);
 };
 
 /**
@@ -147,6 +134,7 @@ Sounds.prototype.playSound = function(sound) {
  *
  * @param  {String} url
  * @return {HTMLAudioElement}
+ *
  */
 Sounds.prototype.createAudio = function(url) {
   var audio = new Audio(url);

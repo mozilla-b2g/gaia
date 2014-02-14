@@ -19,8 +19,14 @@ module.exports = Activity;
  * @constructor
  */
 function Activity() {
+  this.name = null;
   this.active = false;
   this.data = {};
+  this.allowedTypes = {
+    image: false,
+    video: false,
+    both: false
+  };
   debug('initialized');
 }
 
@@ -37,7 +43,7 @@ Activity.prototype.check = function(done) {
 
   if (!hasMessage) {
     debug('none');
-    setTimeout(done);
+    done();
     return;
   }
 
@@ -45,21 +51,24 @@ Activity.prototype.check = function(done) {
   navigator.mozSetMessageHandler('activity', onActivity);
 
   function onActivity(activity) {
-    var data = self.parse(activity);
+    var parsed = self.parse(activity);
 
     // We currently only alter the
     // behaviour of the camera app
     // for 'pick' activities.
-    if (data.name !== 'pick') {
-      debug('type \'%s\'not supported', data.name);
+    if (parsed.name !== 'pick') {
+      debug('type \'%s\'not supported', parsed.name);
       done();
       return;
     }
 
+    self.data = parsed;
     self.active = true;
-    self.data = data;
+    self.name = parsed.name;
+    self.allowedTypes = parsed.types;
+    self.mode = parsed.mode;
     self.raw = activity;
-    debug('parsed \'%s\' activity', data.name, JSON.stringify(data));
+    debug('parsed \'%s\' activity', self);
     done();
   }
 };
@@ -73,10 +82,16 @@ Activity.prototype.check = function(done) {
  */
 Activity.prototype.parse = function(activity) {
   var data = activity.source.data;
-  data.name = activity.source.name;
-  data.modes = this.getModes(activity);
-  debug('parsed', data);
-  return data;
+  var parsed = {
+    name: activity.source.name,
+    types: this.getTypes(activity),
+    fileSize: data.maxFileSizeBytes,
+    width: data.width,
+    height: data.height
+  };
+  parsed.mode = this.modeFromTypes(parsed.types);
+  debug('parsed', parsed);
+  return parsed;
 };
 
 /**
@@ -113,7 +128,9 @@ Activity.prototype.cancel = function() {
  *
  */
 Activity.prototype.reset = function() {
-  Activity.call(this);
+  this.raw = null;
+  this.name = null;
+  this.active = false;
 };
 
 /**
@@ -125,26 +142,35 @@ Activity.prototype.reset = function() {
  * @param  {Activity} activity
  * @return {Object}
  */
-Activity.prototype.getModes = function(activity) {
+Activity.prototype.getTypes = function(activity) {
   var raw = activity.source.data.type || ['image/*', 'video/*'];
-  var modes = [];
-  var map = {
-    video: 'video',
-    image: 'picture'
-  };
+  var types = {};
 
   if (raw === 'videos') {
-    return [map.video];
+    types.video = true;
+    return types;
   }
 
   // Make sure it's an array
   raw = [].concat(raw);
-  raw.forEach(function(item) {
-    var type = item.split('/')[0];
-    if (map[type]) { modes.push(map[type]); }
+
+  raw.forEach(function(type) {
+    var prefix = type.split('/')[0];
+    types[prefix] = true;
   });
 
-  return modes;
+  return types;
+};
+
+/**
+ * Returns an appropriate capture
+ * mode when given a types object.
+ *
+ * @param  {Object} types
+ * @return {String}
+ */
+Activity.prototype.modeFromTypes = function(types) {
+  return !types.image && types.video ? 'video' : 'photo';
 };
 
 });

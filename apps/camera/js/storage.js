@@ -5,9 +5,9 @@ define(function(require, exports, module) {
  * Dependencies
  */
 
-var createFilename = require('lib/dcf').createDCFFilename;
+var evt = require('vendor/evt');
 var debug = require('debug')('storage');
-var events = require('vendor/evt');
+var createFilename = require('dcf').createDCFFilename;
 
 /**
  * Expose `Storage`
@@ -15,11 +15,9 @@ var events = require('vendor/evt');
 
 module.exports = Storage;
 
-// Mixin event emitter
-events(Storage.prototype);
+evt.mix(Storage.prototype);
 
 function Storage() {
-  this.maxFileSize = 0;
   this.check = this.check.bind(this);
   this.onStorageChange = this.onStorageChange.bind(this);
   this.video = navigator.getDeviceStorage('videos');
@@ -122,7 +120,6 @@ Storage.prototype.setState = function(value) {
 
 Storage.prototype.setMaxFileSize = function(maxFileSize) {
   this.maxFileSize = maxFileSize;
-  this.check();
   debug('max file size set: %d', maxFileSize);
 };
 

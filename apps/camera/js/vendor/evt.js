@@ -1,143 +1,161 @@
-
-/**
- * Event
+/*global define, setTimeout */
+/*
+ * Custom events lib. Notable features:
  *
- * A super lightweight
- * event emitter library.
+ * - the module itself is an event emitter. Useful for "global" pub/sub.
+ * - evt.mix can be used to mix in an event emitter into existing object.
+ * - notification of listeners is done in a try/catch, so all listeners
+ *   are notified even if one fails. Errors are thrown async via setTimeout
+ *   so that all the listeners can be notified without escaping from the
+ *   code via a throw within the listener group notification.
+ * - new evt.Emitter() can be used to create a new instance of an
+ *   event emitter.
+ * - Uses "this" insternally, so always call object with the emitter args
  *
- * @version 0.3.3
- * @author Wilson Page <wilson.page@me.com>
  */
+define(function() {
 
-;(function() {
+  var evt,
+      slice = Array.prototype.slice,
+      props = ['_events', '_pendingEvents', 'on', 'once', 'latest',
+               'latestOnce', 'removeListener', 'emitWhenListener', 'emit'];
 
-/**
- * Locals
- */
-
-var proto = Events.prototype;
-var slice = [].slice;
-
-/**
- * Creates a new event emitter
- * instance, or if passed an
- * object, mixes the event logic
- * into it.
- *
- * @param  {Object} obj
- * @return {Object}
- */
-function Events(obj) {
-  if (!(this instanceof Events)) { return new Events(obj); }
-  if (obj) { return mixin(obj, proto); }
-}
-
-/**
- * Registers a callback
- * with an event name.
- *
- * @param  {String}   name
- * @param  {Function} cb
- * @return {Event}
- */
-proto.on = function(name, cb) {
-  this._cbs = this._cbs || {};
-  (this._cbs[name] || (this._cbs[name] = [])).push(cb);
-  return this;
-};
-
-proto.once = function(name, cb) {
-  this.on(name, one);
-  function one() {
-    cb.apply(this, arguments);
-    this.off(name, one);
+  function Emitter() {
+    this._events = {};
+    this._pendingEvents = {};
   }
-};
 
-/**
- * Removes a single callback,
- * or all callbacks associated
- * with the passed event name.
- *
- * @param  {String}   name
- * @param  {Function} cb
- * @return {Event}
- */
-proto.off = function(name, cb) {
-  this._cbs = this._cbs || {};
+  Emitter.prototype = {
+    on: function(id, fn) {
+      var listeners = this._events[id],
+          pending = this._pendingEvents[id];
+      if (!listeners) {
+        listeners = this._events[id] = [];
+      }
+      listeners.push(fn);
 
-  if (!name) { this._cbs = {}; return; }
-  if (!cb) { return delete this._cbs[name]; }
+      if (pending) {
+        pending.forEach(function(args) {
+          fn.apply(null, args);
+        });
+        delete this._pendingEvents[id];
+      }
+      return this;
+    },
 
-  var cbs = this._cbs[name] || [];
-  var i;
+    once: function(id, fn) {
+      var self = this,
+          fired = false;
+      function one() {
+        if (fired)
+          return;
+        fired = true;
+        fn.apply(null, arguments);
+        // Remove at a further turn so that the event
+        // forEach in emit does not get modified during
+        // this turn.
+        setTimeout(function() {
+          self.removeListener(id, one);
+        });
+      }
+      return this.on(id, one);
+    },
 
-  while (cbs && ~(i = cbs.indexOf(cb))) { cbs.splice(i, 1); }
-  return this;
-};
+    /**
+     * Waits for a property on the object that has the event interface
+     * to be available. That property MUST EVALUATE TO A TRUTHY VALUE.
+     * hasOwnProperty is not used because many objects are created with
+     * null placeholders to give a proper JS engine shape to them, and
+     * this method should not trigger the listener for those cases.
+     * If the property is already available, call the listener right
+     * away. If not available right away, listens for an event name that
+     * matches the property name.
+     * @param  {String}   id property name.
+     * @param  {Function} fn listener.
+     */
+    latest: function(id, fn) {
+      if (this[id] && !this._pendingEvents[id]) {
+        fn(this[id]);
+      }
+      this.on(id, fn);
+    },
 
-/**
- * Fires an event, triggering
- * all callbacks registered on this
- * event name.
- *
- * @param  {String} name
- * @return {Event}
- */
-proto.fire = proto.emit = function(options) {
-  this._cbs = this._cbs || {};
-  var name = options.name || options;
-  var ctx = options.ctx || this;
-  var cbs = this._cbs[name];
+    /**
+     * Same as latest, but only calls the listener once.
+     * @param  {String}   id property name.
+     * @param  {Function} fn listener.
+     */
+    latestOnce: function(id, fn) {
+      if (this[id] && !this._pendingEvents[id])
+        fn(this[id]);
+      else
+        this.once(id, fn);
+    },
 
-  if (cbs) {
-    var args = slice.call(arguments, 1);
-    var batch = slice.call(cbs);
-    while (batch.length) {
-      batch.shift().apply(ctx, args);
+    removeListener: function(id, fn) {
+      var i,
+          listeners = this._events[id];
+      if (listeners) {
+        i = listeners.indexOf(fn);
+        if (i !== -1) {
+          listeners.splice(i, 1);
+        }
+        if (listeners.length === 0)
+          delete this._events[id];
+      }
+    },
+
+    /**
+     * Like emit, but if no listeners yet, holds on
+     * to the value until there is one. Any other
+     * args after first one are passed to listeners.
+     * @param  {String} id event ID.
+     */
+    emitWhenListener: function(id) {
+      var listeners = this._events[id];
+      if (listeners) {
+        this.emit.apply(this, arguments);
+      } else {
+        if (!this._pendingEvents[id])
+          this._pendingEvents[id] = [];
+        this._pendingEvents[id].push(slice.call(arguments, 1));
+      }
+    },
+
+    emit: function(id) {
+      var args = slice.call(arguments, 1),
+          listeners = this._events[id];
+      if (listeners) {
+        listeners.forEach(function(fn) {
+          try {
+            fn.apply(null, args);
+          } catch (e) {
+            // Throw at later turn so that other listeners
+            // can complete. While this messes with the
+            // stack for the error, continued operation is
+            // valued more in this tradeoff.
+            setTimeout(function() {
+              throw e;
+            });
+          }
+        });
+      }
     }
-  }
-
-  return this;
-};
-
-proto.firer = function(name) {
-  var self = this;
-  return function() {
-    var args = slice.call(arguments);
-    args.unshift(name);
-    self.fire.apply(self, args);
   };
-};
 
-/**
- * Util
- */
+  evt = new Emitter();
+  evt.Emitter = Emitter;
 
-/**
- * Mixes in the properties
- * of the second object into
- * the first.
- *
- * @param  {Object} a
- * @param  {Object} b
- * @return {Object}
- */
-function mixin(a, b) {
-  for (var key in b) { a[key] = b[key]; }
-  return a;
-}
+  evt.mix = function(obj) {
+    var e = new Emitter();
+    props.forEach(function(prop) {
+      if (obj.hasOwnProperty(prop)) {
+        throw new Error('Object already has a property "' + prop + '"');
+      }
+      obj[prop] = e[prop];
+    });
+    return obj;
+  };
 
-/**
- * Expose 'Event' (UMD)
- */
-
-if (typeof exports === 'object') {
-  module.exports = Events;
-} else if (typeof define === 'function' && define.amd) {
-  define(function(){ return Events; });
-} else {
-  window.evt = Events;
-}
-
-})();
+  return evt;
+});
