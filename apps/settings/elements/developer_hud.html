@@ -43,6 +43,17 @@
           </label>
         </li>
         <li>
+          <p data-l10n-id="jank-threshold">Jank Threshold</p>
+          <span class="button icon icon-dialog">
+            <select name="devtools.eventlooplag.threshold" data-value-type="integer">
+              <option value="20">20</option>
+              <option value="50">50</option>
+              <option value="100" selected>100</option>
+              <option value="200">200</option>
+            </select>
+          </span>
+        </li>
+        <li>
           <label class="pack-checkbox">
             <input type="checkbox" name="debug.fps.enabled">
             <span class="color-preview fps-monitor" data-l10n-id="developer-hud-fps">Frames per second</span>
