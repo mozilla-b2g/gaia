@@ -757,7 +757,7 @@
      *
      * @type Boolean
      */
-    bustCache: true,
+    bustCache: false,
 
     /**
      * Current window in which required files will be injected.
