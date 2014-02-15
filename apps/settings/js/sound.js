@@ -9,6 +9,8 @@
   var _ = navigator.mozL10n.get;
   (function() {
     var mobileConnections = window.navigator.mozMobileConnections;
+    if (!mobileConnections)
+      return;
     // Show the touch tone selector if and only if we're on a CDMA network
     var toneSelector = document.getElementById('touch-tone-selector');
     Array.prototype.forEach.call(mobileConnections, function(mobileConnection) {
