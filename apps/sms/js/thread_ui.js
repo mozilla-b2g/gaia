@@ -587,6 +587,7 @@ var ThreadUI = global.ThreadUI = {
 
   onMessageReceived: function thui_onMessageReceived(message) {
     this.onMessage(message);
+    this.scrollViewToBottom();
     if (this.isScrolledManually) {
       this.showNewMessageNotice(message);
     }
