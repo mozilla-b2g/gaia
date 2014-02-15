@@ -262,6 +262,13 @@ body.pickView #thumbnails {
   padding-bottom: calc((100% - 0.2rem) / 3 );
 }
 
+  /*
+   * Images smaller than the size of a thumbnail are not scaled up
+   */
+.thumbnail-small {
+  background-size: auto;
+}
+
 .thumbnail:nth-child(3n) {
   margin-right: 0;
 }

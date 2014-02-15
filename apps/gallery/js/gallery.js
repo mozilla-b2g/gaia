@@ -1238,3 +1238,31 @@ function showOverlay(id) {
 // make it opaque to touch events. Without this, it does not prevent
 // the user from interacting with the UI.
 $('overlay').addEventListener('click', function dummyHandler() {});
+
+// If we generate our own thumbnails, aim for this size.
+// Calculate needed size from longer side of the screen.
+var THUMBNAIL_WIDTH = computeThumbnailWidth();
+var THUMBNAIL_HEIGHT = THUMBNAIL_WIDTH;
+
+function computeThumbnailWidth() {
+  // Make sure this works regardless of current device orientation
+  var portraitWidth = Math.min(window.innerWidth, window.innerHeight);
+  var landscapeWidth = Math.max(window.innerWidth, window.innerHeight);
+  var thumbnailsPerRowPortrait = isPhone ? 3 : 4;
+  var thumbnailsPerRowLandscape = isPhone ? 4 : 6;
+
+  return Math.round(window.devicePixelRatio *
+           Math.max(portraitWidth / thumbnailsPerRowPortrait,
+                    landscapeWidth / thumbnailsPerRowLandscape));
+}
+
+// If image is 'small', thumbnail will be image itself
+function isSmallImage(metadata) {
+  if (metadata && metadata.width && metadata.height &&
+      metadata.width <= THUMBNAIL_WIDTH &&
+      metadata.height <= THUMBNAIL_HEIGHT) {
+    return true;
+  }
+
+  return false;
+}

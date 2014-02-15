@@ -19,6 +19,13 @@ function ThumbnailItem(fileData) {
 
   this.htmlNode = document.createElement('li');
   this.htmlNode.classList.add('thumbnail');
+
+  // if the image is smaller than the size of a thumbnail,
+  // don't scale it up
+  if (isSmallImage(fileData.metadata)) {
+    this.htmlNode.classList.add('thumbnail-small');
+  }
+
   this.htmlNode.dataset.filename = fileData.name;
 
   // We revoke this url in imageDeleted
