@@ -294,23 +294,24 @@ body.pickView #thumbnails {
 }
 
 #fullscreen-back-button-tiny {
+  /*
+    these particular sizes, positions, and colors are chosen
+    to line up with the focus mode button of the camera app
+  */
   position: absolute;
-  top: 0.5rem;
-  left: 0.5rem;
-  width: 4.5rem;
-  height: 4.5rem;
+  top: 2rem;
+  left: 1.4rem;
+  width: 5rem;
+  height: 5rem;
   font-size: 0;
   border-radius: 50%;
   border: none;
-  color: #605c59;
-  box-shadow: 0 0.1rem 0 inset;
-  background: rgba(114, 111, 106, 0.8) url(images/back.png) no-repeat 50% 50%;
+  background: rgba(95, 95, 95, 0.3) url(images/back.png) no-repeat 50% 50%;
   transition: opacity 0.2s linear;
 }
 
 #fullscreen-back-button-tiny:active {
-  color: #107788;
-  background-color: #00b0d5;
+  background-color: #008eab;
 }
 
 #frames {
