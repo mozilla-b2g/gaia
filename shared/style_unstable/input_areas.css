@@ -19,7 +19,7 @@ textarea {
   font-size: 1.6rem;
   line-height: 4rem;
   border: 0;
-  border-bottom: 0.1rem solid #d7dee4;
+  border-bottom: 0.1rem solid #c7c7c7;
   border-radius: 0;
   box-shadow: none; /* override the box-shadow from the system (performance issue) */
   color: #333;
@@ -35,7 +35,7 @@ textarea {
   max-height: 10rem;
   line-height: 2rem;
   margin: 0;
-  border-top: 0.1rem solid #d7dee4;
+  border-top: 0.1rem solid #c7c7c7;
 }
 
 input:focus,
@@ -137,7 +137,7 @@ fieldset {
 }
 
 fieldset legend {
-  border: 0.1rem solid #d7dee4;
+  border: 0.1rem solid #c7c7c7;
   width: 100%;
   -moz-box-sizing: border-box;
   font-family: sans-serif;
@@ -172,7 +172,7 @@ form[role="search"] {
 }
 
 form[role="search"].skin-dark {
-  background: #333;
+  background: #202020;
 }
 
 form[role="search"] p {

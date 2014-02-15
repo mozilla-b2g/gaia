@@ -40,7 +40,10 @@
     form[role="search"] { margin: 1rem 0; }
 
     div.skin-dark {
-      background: #333;
+      background: #000;
+    }
+
+    div.skin-dark.margins {
       margin: 1rem -1.5rem;
       padding: 1rem 1.5rem;
     }
@@ -76,7 +79,7 @@
       <button type="reset">Clear</button>
     </p>
 
-    <div class="skin-dark">
+    <div class="skin-dark margins">
       <p>
         <input type="text" placeholder="Placeholder" value="Some written text">
         <button type="reset">Clear</button>
@@ -127,22 +130,41 @@
       <button type="reset">Clear</button>
     </p>
   </form>
+  
+  <div class="skin-dark">
+  <h2 class="bb-docs">Skin dark</h2>
+    <form role="search" class="skin-dark">
+      <p>
+        <input type="text" placeholder="Search..." required>
+        <button type="reset">Clear</button>
+      </p>
+    </form>
 
-  <form role="search" class="skin-dark">
+    <form role="search" class="skin-dark">
+      <button type="submit">Cancel</button>
+      <p>
+        <input type="text" placeholder="Search..." required value="Some text here">
+        <button type="reset">Clear</button>
+      </p>
+    </form>
+  </div>
+  <h2 class="bb-docs">Forms: Text area</h2>
+
+  <form role="search" class="bottom">
+    <!-- this button should be enabled after start typing in the input field-->
+    <button type="submit" disabled>Send</button>
     <p>
-      <input type="text" placeholder="Search..." required>
-      <button type="reset">Clear</button>
+      <textarea required></textarea>
     </p>
   </form>
 
-  <form role="search" class="skin-dark">
-    <button type="submit">Cancel</button>
+  <form role="search" class="bottom">
+    <button type="submit">Send</button>
     <p>
-      <input type="text" placeholder="Search..." required value="Some text here">
-      <button type="reset">Clear</button>
+      <textarea required>Some text here</textarea>
     </p>
   </form>
-
+  
   <h2 class="bb-docs">Forms: Text area</h2>
 
   <form role="search" class="bottom">
