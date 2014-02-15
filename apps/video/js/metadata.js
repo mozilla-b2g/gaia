@@ -117,7 +117,10 @@ function processFirstQueuedItem() {
     processingQueue = false;
     hideThrobber();
     updateDialog();
-    noMoreWorkCallback();
+    // Check explicitly for noMoreWorkCallBack as function, see bug 972651
+    if (typeof(noMoreWorkCallback) === 'function') {
+      noMoreWorkCallback();
+    }
     return;
   }
 
