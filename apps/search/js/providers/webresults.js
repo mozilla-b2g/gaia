@@ -20,7 +20,11 @@
     click: function(e) {
       var url = e.target && e.target.dataset.url;
       if (url) {
-        Search.navigate(url);
+        Search.navigate(url, {
+          icon: e.target.dataset.icon,
+          originUrl: url,
+          originName: e.target.dataset.title
+        });
       }
     },
 
@@ -42,7 +46,9 @@
               title: app.name,
               icon: app.icon,
               dataset: {
-                url: app.appUrl
+                title: app.name,
+                url: app.appUrl,
+                icon: app.icon
               }
             };
           });
