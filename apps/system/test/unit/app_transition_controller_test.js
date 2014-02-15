@@ -98,9 +98,11 @@ suite('system/AppTransitionController', function() {
   test('Handle opening', function() {
     var app1 = new MockAppWindow(fakeAppConfig1);
     var acn1 = new AppTransitionController(app1);
+    var stubReviveBrowser = this.sinon.stub(app1, 'reviveBrowser');
     var stubSetVisible = this.sinon.stub(app1, 'setVisible');
     acn1.handle_opening();
     assert.isTrue(stubSetVisible.calledWith(true));
+    assert.isTrue(stubReviveBrowser.called);
   });
 
   suite('Opened', function() {

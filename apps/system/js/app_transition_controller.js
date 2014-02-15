@@ -193,6 +193,7 @@
     function atc_handle_opening() {
       if (!this.app || !this.app.element)
         return;
+      this.app.reviveBrowser();
       this.app.launchTime = Date.now();
       this.app.fadeIn();
       this.app.element.removeAttribute('aria-hidden');

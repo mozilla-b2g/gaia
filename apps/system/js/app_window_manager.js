@@ -242,6 +242,14 @@
             return;
           this.continuousTransition = !!value;
         }.bind(this));
+
+      SettingsListener.observe('app-suspending.enabled', false,
+        function(value) {
+          // Kill all instances if they are suspended.
+          if (!value) {
+            this.broadcastMessage('kill_suspended');
+          }
+        }.bind(this));
     },
 
     handleEvent: function awm_handleEvent(evt) {

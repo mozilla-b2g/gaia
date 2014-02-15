@@ -13,6 +13,10 @@ window.addEventListener('load', function startup() {
     window.secureWindowManager = new SecureWindowManager();
     /** @global */
     window.secureWindowFactory = new SecureWindowFactory();
+    /** @global */
+    if (window.SuspendingAppPriorityManager) {
+      window.suspendingAppPriorityManager = new SuspendingAppPriorityManager();
+    }
   }
 
   function safelyLaunchFTU() {

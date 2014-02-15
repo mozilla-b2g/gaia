@@ -6,10 +6,11 @@ mocha.globals(['SettingsListener', 'removeEventListener', 'addEventListener',
       'SoftwareButtonManager', 'AppWindow',
       'OrientationManager', 'SettingsListener', 'BrowserFrame',
       'BrowserConfigHelper', 'System', 'LayoutManager',
-      'AppTransitionController']);
+      'AppTransitionController', 'AppWindowManager']);
 
 requireApp('system/test/unit/mock_orientation_manager.js');
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
+requireApp('system/shared/test/unit/mocks/mock_settings_helper.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/test/unit/mock_applications.js');
 requireApp('system/test/unit/mock_layout_manager.js');
@@ -395,12 +396,18 @@ suite('system/AppWindow', function() {
       stubGetScreenshot.getCall(0).args[0]('fakeBlob');
       assert.isFalse(stubRequestScreenshotURL.called);
 
+      stubHideFrame.reset();
+      stubRequestScreenshotURL.reset();
+
       app1._screenshotOverlayState = 'screenshot';
       app1._showScreenshotOverlay();
       stubGetScreenshot.getCall(1).args[0]('');
       assert.isTrue(stubHideFrame.called);
       stubGetScreenshot.getCall(1).args[0]('fakeBlob');
       assert.isTrue(stubRequestScreenshotURL.called);
+
+      stubHideFrame.reset();
+      stubRequestScreenshotURL.reset();
 
       app1._screenshotOverlayState = 'none';
       app1._showScreenshotOverlay();
@@ -416,6 +423,10 @@ suite('system/AppWindow', function() {
       injectFakeMozBrowserAPI(app1.browser.element);
       // The DOM is not appended exactly so we create a fake one.
       app1.screenshotOverlay = document.createElement('div');
+      app1._screenshotOverlayState = 'none';
+      app1.screenshotOverlay.classList.add('visible');
+      app1._hideScreenshotOverlay();
+      assert.isFalse(app1.screenshotOverlay.classList.contains('visible'));
     });
 
     test('Request screenshotURL', function() {
@@ -822,6 +833,44 @@ suite('system/AppWindow', function() {
       assert.isTrue(stubPublish.calledWith('crashed'));
     });
 
+    test('Destroy only the browser when app crashed and ' +
+          'suspending is enabled',
+      function() {
+        var app1 = new AppWindow(fakeAppConfig1);
+        var stubDestroyBrowser = this.sinon.stub(app1, 'destroyBrowser');
+        var stubIsActive = this.sinon.stub(app1, 'isActive');
+        stubIsActive.returns(false);
+        AppWindow.SUSPENDING_ENABLED = true;
+        app1.handleEvent({
+          type: 'mozbrowsererror',
+          detail: {
+            type: 'fatal'
+          }
+        });
+
+        assert.isTrue(stubDestroyBrowser.called);
+        AppWindow.SUSPENDING_ENABLED = false;
+      });
+
+    test('Kill the app directly even suspending is enabled ' +
+          'when the app is active',
+      function() {
+        var app1 = new AppWindow(fakeAppConfig1);
+        var stubKill = this.sinon.stub(app1, 'kill');
+        var stubIsActive = this.sinon.stub(app1, 'isActive');
+        stubIsActive.returns(true);
+        AppWindow.SUSPENDING_ENABLED = true;
+        app1.handleEvent({
+          type: 'mozbrowsererror',
+          detail: {
+            type: 'fatal'
+          }
+        });
+
+        assert.isTrue(stubKill.called);
+        AppWindow.SUSPENDING_ENABLED = false;
+      });
+
     test('Close event', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       var stubKill = this.sinon.stub(app1, 'kill');
@@ -924,6 +973,7 @@ suite('system/AppWindow', function() {
         switchTransitionState: function() {}
       };
       var spy = this.sinon.spy(atc1, 'switchTransitionState');
+      var revive = this.sinon.spy(app1, 'reviveBrowser');
       app1.transitionController = atc1;
 
       app1.handleEvent({
@@ -931,6 +981,7 @@ suite('system/AppWindow', function() {
       });
 
       assert.isTrue(spy.calledWith('opened'));
+      assert.isTrue(revive.called);
     });
 
     test('Swipe out event', function() {
@@ -965,5 +1016,27 @@ suite('system/AppWindow', function() {
   test('Launch wrapper should have name from title config', function() {
     var app1 = new AppWindow(fakeWrapperConfig);
     assert.equal(app1.name, 'Fakebook');
+  });
+
+  test('revive browser', function() {
+    var app1 = new AppWindow(fakeWrapperConfig);
+    var stubPublish = this.sinon.stub(app1, 'publish');
+    app1.browser = null;
+    app1.reviveBrowser();
+    assert.isNotNull(app1.browser);
+    assert.isFalse(app1.suspended);
+    assert.isTrue(stubPublish.calledWith('resumed'));
+  });
+
+  test('destroy browser', function() {
+    var app1 = new AppWindow(fakeWrapperConfig);
+    var stubPublish = this.sinon.stub(app1, 'publish');
+    var stub_setFrameBackgroundWithScreenshot =
+      this.sinon.spy(app1, 'setFrameBackgroundWithScreenshot');
+    app1.destroyBrowser();
+    assert.isNull(app1.browser);
+    assert.isTrue(app1.suspended);
+    assert.isTrue(stub_setFrameBackgroundWithScreenshot.called);
+    assert.isTrue(stubPublish.calledWith('suspended'));
   });
 });

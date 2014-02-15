@@ -573,4 +573,25 @@ suite('system/AppWindowManager', function() {
       assert.equal(activity.activityCallee, app7);
     });
   });
+
+  suite('Settings change', function() {
+    test('app-suspending.enabled', function() {
+      var stubBroadcastMessage =
+        this.sinon.stub(AppWindowManager, 'broadcastMessage');
+      MockSettingsListener.mCallbacks['app-suspending.enabled'](false);
+      assert.ok(stubBroadcastMessage.calledWith('kill_suspended'));
+    });
+
+    test('language.current', function() {
+      var stubBroadcastMessage =
+        this.sinon.stub(AppWindowManager, 'broadcastMessage');
+      MockSettingsListener.mCallbacks['language.current']('chinese');
+      assert.ok(stubBroadcastMessage.calledWith('localized'));
+    });
+
+    test('continuous-transition.enabled', function() {
+      MockSettingsListener.mCallbacks['continuous-transition.enabled'](true);
+      assert.isTrue(AppWindowManager.continuousTransition);
+    });
+  });
 });

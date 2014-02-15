@@ -30,8 +30,12 @@
      *                             after we get next paint event.
      */
     waitForNextPaint: function bm_waitForNextPaint(callback) {
-      if (!callback || !this.browser.element)
+      if (!this.browser || !this.browser.element) {
+        if (callback) {
+          callback();
+        }
         return;
+      }
       var iframe = this.browser.element;
       var nextPaintTimer;
       var self = this;
@@ -59,8 +63,12 @@
      *                             after we get the screenshot.
      */
     getScreenshot: function bm_getScreenshot(callback, width, height, timeout) {
-      // XXX: We had better store offsetWidth/offsetHeight.
-
+      if (!this.browser || !this.browser.element) {
+        if (callback) {
+          callback();
+        }
+        return;
+      }
       // We don't need the screenshot of homescreen because:
       // 1. Homescreen background is transparent,
       //    currently gecko only sends JPG to us.
@@ -138,7 +146,8 @@
     },
 
     _setVisible: function bm__setVisible(visible) {
-      if (this.browser.element && 'setVisible' in this.browser.element) {
+      if (this.browser && this.browser.element &&
+          'setVisible' in this.browser.element) {
         this.debug('setVisible on browser element:' + visible);
         this.browser.element.setVisible(visible);
       }
