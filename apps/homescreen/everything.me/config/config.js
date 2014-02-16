@@ -54,62 +54,6 @@ Evme.Config = Evme.__config = {
     }
   },
   'maxHistoryEntries': '10',
-  'iconsGroupSettings': {
-    '1': [{
-      'x': 'center',
-      'y': 'center',
-      'size': 0.65,
-      'shadowOffsetX': 0,
-      'shadowOffsetY': 2,
-      'shadowBlur': 2,
-      'shadowOpacity': 0.8
-    }],
-    '2': [{
-      'x': 24,
-      'y': 'center',
-      'size': 0.5,
-      'shadowOffsetX': 0,
-      'shadowOffsetY': 2,
-      'shadowBlur': 2,
-      'shadowOpacity': 0.7
-    },
-    {
-      'x': 6,
-      'y': 'center',
-      'size': 0.6,
-      'shadowOffsetX': 0,
-      'shadowOffsetY': 2,
-      'shadowBlur': 2,
-      'shadowOpacity': 0.8
-    }],
-    '3': [{
-      'x': 'right',
-      'y': 'center',
-      'size': 0.45,
-      'shadowOffsetX': 1,
-      'shadowOffsetY': 1,
-      'shadowBlur': 2,
-      'shadowOpacity': 0.4
-    },
-    {
-      'x': 'center+4',
-      'y': 'center',
-      'size': 0.5,
-      'shadowOffsetX': 1,
-      'shadowOffsetY': 1,
-      'shadowBlur': 2,
-      'shadowOpacity': 0.7
-    },
-    {
-      'x': 'left',
-      'y': 'center',
-      'size': 0.6,
-      'shadowOffsetX': 1,
-      'shadowOffsetY': 1,
-      'shadowBlur': 2,
-      'shadowOpacity': 0.9
-    }]
-  },
   'design': {
     'apps': {
       'defaultIconUrl': {

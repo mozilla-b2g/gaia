@@ -254,7 +254,8 @@ var EverythingME = {
           'modules/Results/ResultManager.js',
           'modules/Searchbar/Searchbar.js',
           'modules/SearchHistory/SearchHistory.js',
-          'modules/Collection/Collection.js'
+          'modules/Collection/Collection.js',
+          'modules/Collection/CollectionIcon.js'
         ],
         css_files = [
           'shared/style/confirm.css',

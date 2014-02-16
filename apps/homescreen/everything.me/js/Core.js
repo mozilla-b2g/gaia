@@ -292,8 +292,6 @@ window.Evme = new function Evme_Core() {
 
     Evme.InstalledAppsService.init();
 
-    Evme.IconGroup.init({});
-
     Evme.IconManager.init({});
 
     Evme.SearchHistory.init({
