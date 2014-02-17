@@ -104,15 +104,13 @@
 
       case '_withkeyboard':
         if (this.app && this.app.isActive()) {
-          this.hide(this.navigation);
-          this.hidingNavigation = true;
+          this.app.frame.classList.remove('has-navigation');
         }
         break;
 
       case '_withoutkeyboard':
         if (this.app) {
-          this.show(this.navigation);
-          this.hidingNavigation = false;
+          this.app.frame.classList.add('has-navigation');
         }
         break;
     }
