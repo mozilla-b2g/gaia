@@ -18,11 +18,6 @@ class TestCallLogAllCalls(GaiaTestCase):
     def test_call_log_all_calls(self):
         """https://moztrap.mozilla.org/manage/case/1306/"""
 
-        self.phone.tap_call_log_toolbar_button()
-
-        # switch back to keypad for the test
-        self.phone.tap_keypad_toolbar_button()
-
         test_phone_number = self.testvars['remote_phone_number']
 
         # Make a call so it will appear in the call log
