@@ -238,7 +238,7 @@ suite('Contacts settings', function() {
       function(done) {
         var observer = new MutationObserver(function(record) {
           observer.disconnect();
-          assert.isTrue(record[0].target.classList.contains('visible'));
+          assert.isTrue(record[0].target.classList.contains('opening'));
           done();
         });
         observer.observe(document.getElementById('statusMsg'), {
