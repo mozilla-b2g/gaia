@@ -2,6 +2,10 @@ html {
   font-size: 10px;
 }
 
+#net-error.hidden {
+  display: none;
+}
+
 #net-error #actions {
   display: none;
 }
