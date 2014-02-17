@@ -132,10 +132,12 @@ var Settings = {
     }
 
     // If we're handling an activity and the 'back' button is hit,
-    // close the activity.
+    // close the activity if the activity section is different than root panel.
     // XXX this assumes the 'back' button of the activity panel
     //     points to the root panel.
-    if (this._currentActivity !== null && hash === '#root') {
+    if (this._currentActivity !== null &&
+          (hash === '#home' ||
+          (hash === '#root' && Settings._currentActivitySection !== 'root'))) {
       Settings.finishActivityRequest();
       return;
     }
@@ -583,6 +585,8 @@ var Settings = {
       Settings._currentActivity.postResult(null);
       Settings._currentActivity = null;
     }
+
+    Settings._currentActivitySection = null;
   },
 
   // When we finish an activity we need to leave the DOM
@@ -592,6 +596,7 @@ var Settings = {
     if (currentPanel !== null) {
       delete currentPanel.dataset.dialog;
     }
+    delete document.body.dataset.filterBy;
   },
 
   visibilityHandler: function settings_visibilityHandler(evt) {
@@ -608,7 +613,8 @@ var Settings = {
     Settings._currentActivity = activityRequest;
     switch (name) {
       case 'configure':
-        section = activityRequest.source.data.section;
+        section = Settings._currentActivitySection =
+                                          activityRequest.source.data.section;
 
         if (!section) {
           // If there isn't a section specified,
@@ -623,6 +629,11 @@ var Settings = {
           console.warn(msg);
           activityRequest.postError(msg);
           return;
+        } else if (section === 'root') {
+          var filterBy = activityRequest.source.data.filterBy;
+          if (filterBy) {
+            document.body.dataset.filterBy = filterBy;
+          }
         }
 
         // Go to that section
@@ -631,7 +642,7 @@ var Settings = {
         });
         break;
       default:
-        Settings._currentActivity = null;
+        Settings._currentActivity = Settings._currentActivitySection = null;
         break;
     }
 

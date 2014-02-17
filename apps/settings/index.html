@@ -334,16 +334,19 @@
     <!-- Main List -->
     <section role="region" id="root" class="current" data-rendered="true">
       <header>
+        <menu id="activityDoneButton" type="toolbar">
+          <a href="#home" role="menuitem" data-l10n-id="done">Done</a>
+        </menu>
         <h1 data-l10n-id="settings"> Settings </h1>
       </header>
 
       <div>
         <!-- Main :: Network & Connectivity -->
-        <header>
+        <header data-category="connectivity">
           <h2 data-l10n-id="networkAndConnectivity">Network &amp; Connectivity</h2>
         </header>
         <ul>
-          <li>
+          <li data-category="connectivity">
             <label class="pack-switch">
               <input id="airplaneMode-input" class="uninit" type="checkbox" disabled>
               <span id="menuItem-airplaneMode" class="menu-item" data-l10n-id="airplaneMode">Airplane Mode</span>
@@ -355,7 +358,7 @@
               <span id="menuItem-gps" class="menu-item" data-l10n-id="geolocation">Geolocation</span>
             </label>
           </li>
-          <li>
+          <li data-category="connectivity">
             <small id="wifi-desc" class="menu-item-desc"></small>
             <a id="menuItem-wifi" class="menu-item" href="#wifi" data-l10n-id="wifi">Wi-Fi</a>
           </li>
@@ -371,7 +374,7 @@
             <small id="messaging-desc" class="menu-item-desc"></small>
             <a id="menuItem-messagingSettings" class="menu-item" href="#messaging" data-l10n-id="messagingSettings">Messaging Settings</a>
           </li>
-          <li id="data-connectivity" aria-disabled="true">
+          <li id="data-connectivity" data-category="connectivity" aria-disabled="true">
             <small id="data-desc" class="menu-item-desc"></small>
             <a id="menuItem-cellularAndData" class="menu-item" href="#carrier" data-l10n-id="cellularAndData">Cellular &amp; Data</a>
           </li>
