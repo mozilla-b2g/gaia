@@ -1,4 +1,4 @@
-/* global SystemDialog, FtuLauncher */
+/* global FxAccountsDialog, FtuLauncher */
 
 'use strict';
 
@@ -12,8 +12,10 @@ var FxAccountsUI = {
     var dialogOptions = {
       onHide: this.reset.bind(this)
     };
-    this.dialog = SystemDialog('fxa-dialog', dialogOptions);
-    this.panel = document.getElementById('fxa-dialog');
+    if (!this.dialog) {
+      this.dialog = new FxAccountsDialog(dialogOptions);
+    }
+    this.panel = this.dialog.getView();
     this.iframe = document.createElement('iframe');
     this.iframe.id = 'fxa-iframe';
   },
