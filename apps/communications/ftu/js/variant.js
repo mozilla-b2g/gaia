@@ -25,6 +25,7 @@ var VariantManager = {
     // Base class, dont remove!
     '/ftu/js/customizers/customizer.js',
     // Extended classes from 'Customizer'
+    '/ftu/js/customizers/known_networks_customizer.js',
     '/ftu/js/customizers/wallpaper_customizer.js',
     '/ftu/js/customizers/data_icon_statusbar_customizer.js',
     '/ftu/js/customizers/ringtone_customizer.js',
