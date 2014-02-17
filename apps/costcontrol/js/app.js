@@ -286,9 +286,15 @@ var CostControlApp = (function() {
     updateUI(callback);
     ConfigManager.observe('plantype', updateUI, true);
 
+    // Avoid reload data sim info on the application startup
+    var isFirstCall = true;
     // Refresh UI when the user changes the SIM for data connections
     SettingsListener.observe('ril.data.defaultServiceId', 0, function() {
-      Common.loadDataSIMIccId(updateUI);
+      if (!isFirstCall) {
+        Common.loadDataSIMIccId(updateUI);
+      } else {
+        isFirstCall = false;
+      }
     });
 
     initialized = true;
