@@ -18,6 +18,7 @@ var MockThreadListUI = {
   removeThread: function() {},
   delete: function() {},
   setEmpty: function() {},
+  showOptions: function() {},
   startEdit: function() {},
   cancelEdit: function() {},
   renderThreads: function() {},

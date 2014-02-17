@@ -1,6 +1,7 @@
 /*global mocha, MocksHelper, loadBodyHTML, MockL10n, ThreadListUI,
          MessageManager, WaitingScreen, Threads, Template, MockMessages,
-         MockThreadList, MockTimeHeaders, Draft, Drafts, Thread, ThreadUI
+         MockThreadList, MockTimeHeaders, Draft, Drafts, Thread, ThreadUI,
+         MockOptionMenu
          */
 
 'use strict';
@@ -27,6 +28,7 @@ require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 require('/test/unit/thread_list_mockup.js');
 require('/test/unit/utils_mockup.js');
 requireApp('sms/test/unit/mock_thread_ui.js');
+requireApp('sms/test/unit/mock_action_menu.js');
 
 var mocksHelperForThreadListUI = new MocksHelper([
   'asyncStorage',
@@ -36,7 +38,8 @@ var mocksHelperForThreadListUI = new MocksHelper([
   'WaitingScreen',
   'TimeHeaders',
   'ThreadUI',
-  'ContactPhotoHelper'
+  'ContactPhotoHelper',
+  'OptionMenu'
 ]).init();
 
 suite('thread_list_ui', function() {
@@ -102,7 +105,6 @@ suite('thread_list_ui', function() {
         // set wrong states
         ThreadListUI.noMessages.classList.add('hide');
         ThreadListUI.container.classList.remove('hide');
-        ThreadListUI.editIcon.classList.remove('disabled');
         // make sure it sets em all
         ThreadListUI.setEmpty(true);
       });
@@ -112,16 +114,12 @@ suite('thread_list_ui', function() {
       test('adds container hide', function() {
         assert.isTrue(ThreadListUI.container.classList.contains('hide'));
       });
-      test('adds editIcon disabled', function() {
-        assert.isTrue(ThreadListUI.editIcon.classList.contains('disabled'));
-      });
     });
     suite('(false)', function() {
       setup(function() {
         // set wrong states
         ThreadListUI.noMessages.classList.remove('hide');
         ThreadListUI.container.classList.add('hide');
-        ThreadListUI.editIcon.classList.add('disabled');
         // make sure it sets em all
         ThreadListUI.setEmpty(false);
       });
@@ -131,9 +129,36 @@ suite('thread_list_ui', function() {
       test('removes container hide', function() {
         assert.isFalse(ThreadListUI.container.classList.contains('hide'));
       });
-      test('removes editIcon disabled', function() {
-        assert.isFalse(ThreadListUI.editIcon.classList.contains('disabled'));
-      });
+    });
+  });
+
+  suite('showOptions', function() {
+    setup(function() {
+      MockOptionMenu.mSetup();
+    });
+    teardown(function() {
+      MockOptionMenu.mTeardown();
+    });
+
+    test('show settings/cancel options when list is empty', function() {
+      ThreadListUI.setEmpty(true);
+      ThreadListUI.showOptions();
+
+      var optionItems = MockOptionMenu.calls[0].items;
+      assert.equal(optionItems.length, 2);
+      assert.equal(optionItems[0].l10nId, 'settings');
+      assert.equal(optionItems[1].l10nId, 'cancel');
+    });
+
+    test('show delete/settings/cancel options when list existed', function() {
+      ThreadListUI.setEmpty(false);
+      ThreadListUI.showOptions();
+
+      var optionItems = MockOptionMenu.calls[0].items;
+      assert.equal(optionItems.length, 3);
+      assert.equal(optionItems[0].l10nId, 'deleteMessages-label');
+      assert.equal(optionItems[1].l10nId, 'settings');
+      assert.equal(optionItems[2].l10nId, 'cancel');
     });
   });
 
@@ -757,7 +782,6 @@ suite('thread_list_ui', function() {
           sinon.assert.calledWith(ThreadListUI.finalizeRendering, true);
           assert.isFalse(ThreadListUI.noMessages.classList.contains('hide'));
           assert.isTrue(ThreadListUI.container.classList.contains('hide'));
-          assert.isTrue(ThreadListUI.editIcon.classList.contains('disabled'));
         });
       });
     });
@@ -794,7 +818,6 @@ suite('thread_list_ui', function() {
           sinon.assert.calledWith(ThreadListUI.finalizeRendering, false);
           assert.isTrue(ThreadListUI.noMessages.classList.contains('hide'));
           assert.isFalse(ThreadListUI.container.classList.contains('hide'));
-          assert.isFalse(ThreadListUI.editIcon.classList.contains('disabled'));
 
           var mmsThreads = container.querySelectorAll(
             '[data-last-message-type="mms"]'
