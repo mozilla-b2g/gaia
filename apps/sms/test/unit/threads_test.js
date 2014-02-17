@@ -43,7 +43,7 @@ suite('Threads', function() {
     });
 
     test(' > create with unread status in options', function() {
-      var options = { read: false };
+      var options = { unread: true };
       var thread = Thread.create(message, options);
 
       assert.equal(thread.unreadCount, 1);
@@ -69,7 +69,7 @@ suite('Threads', function() {
     });
 
     test(' > create from SMS received', function() {
-      var options = { read: false };
+      var options = { unread: true };
       message.delivery = 'received';
       var thread = Thread.create(message, options);
       assert.equal(thread.participants.length, 1);
@@ -85,7 +85,7 @@ suite('Threads', function() {
     });
 
     test(' > create from MMS received', function() {
-      var options = { read: false };
+      var options = { unread: true };
       var mms = MockMessages.mms();
       mms.delivery = 'received';
       var thread = Thread.create(mms, options);

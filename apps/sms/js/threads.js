@@ -51,7 +51,7 @@
       participants: participants,
       body: record.body,
       timestamp: record.timestamp,
-      unreadCount: (options && !options.read) ? 1 : 0,
+      unreadCount: (options && options.unread) ? 1 : 0,
       lastMessageType: record.type || 'sms'
     });
   };
@@ -72,7 +72,7 @@
       participants: participants,
       body: body,
       timestamp: new Date(record.timestamp),
-      unreadCount: (options && !options.read) ? 1 : 0,
+      unreadCount: (options && options.unread) ? 1 : 0,
       lastMessageType: record.type || 'sms'
     });
   };
