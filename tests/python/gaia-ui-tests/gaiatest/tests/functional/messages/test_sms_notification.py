@@ -5,9 +5,19 @@
 import time
 from gaiatest import GaiaTestCase
 from gaiatest.apps.system.app import System
+from gaiatest.apps.homescreen.app import Homescreen
 
 
 class TestSmsNotification(GaiaTestCase):
+
+    def setUp(self):
+        GaiaTestCase.setUp(self)
+
+        # Wait for homescreen to fully load
+        homescreen = Homescreen(self.marionette)
+        homescreen.launch()
+        homescreen.wait_for_homescreen_to_load()
+        self.marionette.switch_to_frame()
 
     def test_sms_notification(self):
 
