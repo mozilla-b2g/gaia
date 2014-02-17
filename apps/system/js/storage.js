@@ -1,5 +1,5 @@
 'use strict';
-/* global lockScreen, SettingsListener */
+/* global SettingsListener */
 
 (function(exports) {
 
@@ -18,7 +18,7 @@
 
     SettingsListener.observe(this.umsEnabled, false, function umsChanged(val) {
       this._mode = this.modeFromBool(val);
-      if (lockScreen && lockScreen.locked) {
+      if (window.lockScreen && window.lockScreen.locked) {
         // covers startup
         // Setting mode due to screen locked
         this.setMode(this.automounterDisable);

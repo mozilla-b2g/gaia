@@ -518,8 +518,7 @@
       // If the passcode is enabled and it has a timeout which has passed
       // switch to secure camera
       if (this.passCodeEnabled && this._passCodeTimeoutCheck) {
-        // Go to secure camera panel
-        this.switchPanel('camera');
+        this.invokeSecureApp('camera');
         return;
       }
 
@@ -573,11 +572,29 @@
     }
   };
 
+  LockScreen.prototype.invokeSecureApp =
+  function ls_invokeSecureApp(name) {
+    var url =
+          window.location.href.replace('system', name),
+        manifestUrl =
+          url.replace(/(\/)*(index.html)*$/, '/manifest.webapp');
+
+    url += '#secure';
+    window.dispatchEvent(new window.CustomEvent('secure-launchapp',
+      {
+        'detail': {
+         'appURL': url,
+         'appManifestURL': manifestUrl
+        }
+      }
+    ));
+  };
+
   LockScreen.prototype.handlePassCodeInput =
   function ls_handlePassCodeInput(key) {
     switch (key) {
       case 'e': // 'E'mergency Call
-        this.switchPanel('emergency-call');
+        this.invokeSecureApp('emergency-call');
         break;
 
       case 'c': // 'C'ancel
@@ -715,7 +732,6 @@
 
   LockScreen.prototype.loadPanel =
   function ls_loadPanel(panel, callback) {
-    var frame = null;
     this._loadingPanel = true;
 
     switch (panel) {
@@ -725,38 +741,6 @@
         if (callback) {
           setTimeout(callback);
         }
-        break;
-
-      case 'emergency-call':
-        // create the <iframe> and load the emergency call
-        frame = document.createElement('iframe');
-        frame.src = './emergency-call/index.html';
-        frame.onload = function emergencyCallLoaded() {
-          if (callback) {
-            callback();
-          }
-        };
-        this.panelEmergencyCall.appendChild(frame);
-        break;
-
-      case 'camera':
-        // XXX hardcode URLs
-        // Proper fix should be done in bug 951978 and friends.
-        var cameraAppUrl =
-          window.location.href.replace('system', 'camera');
-        var cameraAppManifestURL =
-          cameraAppUrl.replace(/(\/)*(index.html)*$/, '/manifest.webapp');
-        cameraAppUrl += '#secure';
-        window.dispatchEvent(new window.CustomEvent('secure-launchapp',
-          {
-            'detail': {
-             'appURL': cameraAppUrl,
-             'appManifestURL': cameraAppManifestURL
-            }
-          }
-        ));
-        this.overlay.classList.remove('no-transition');
-        callback();
         break;
     }
   };
