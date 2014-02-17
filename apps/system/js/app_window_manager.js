@@ -160,7 +160,7 @@
 
         if (appNext.resized &&
             !LayoutManager.match(appNext.width,
-              appNext.height - appNext.calibratedHeight(),
+              appNext.height,
               appNext.isFullScreen())) {
           immediateTranstion = true;
         }
