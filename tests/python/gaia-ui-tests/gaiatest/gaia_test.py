@@ -823,6 +823,10 @@ class GaiaDevice(object):
         self.marionette.switch_to_frame()
         self.marionette.execute_script("window.wrappedJSObject.dispatchEvent(new Event('holdhome'));")
 
+    def hold_sleep_button(self):
+        self.marionette.switch_to_frame()
+        self.marionette.execute_script("window.wrappedJSObject.dispatchEvent(new Event('holdsleep'));")
+
     @property
     def is_locked(self):
         self.marionette.switch_to_frame()
