@@ -92,6 +92,77 @@ class Homescreen(Base):
             release().\
             perform()
 
+    def move_app_to_next_screen(self, app_position):
+        # get the test app and the current page
+        app = self.marionette.find_elements(*self._visible_icons_locator)[app_position]
+        screen = self.marionette.find_element(By.CSS_SELECTOR, 'body')
+        # Start building action chains
+        action_chain = Actions(self.marionette)
+        # Press and wait for app to enter in drag and drop mode
+        action_chain.press(app)
+        action_chain.wait(3)
+        # get the margin area of the screen where the "move to next screen" is triggered
+
+        # calculate the center of the app
+        x1 = app.size['width']
+        y1 = app.size['height']
+
+        # end coordonates
+        x2 = screen.size['width'] + 40
+        y2 = app.size['height']
+
+        # split the move in multiple steps
+        move_x = 10 * 1.0 / 200 * (x2 - x1)
+        move_y = 10 * 1.0 / 200 * (y2 - y1)
+
+        # actually move the app one step at a time
+        elapsed = 0
+        while elapsed < 200:
+            elapsed += 10
+            action_chain.move_by_offset(move_x, move_y)
+            action_chain.wait(10 / 1000)
+        # Wait for the app to trigger the next screen and release it
+        action_chain.wait(0.25)
+        action_chain.release()
+        # Perform the magic
+        action_chain.perform()
+
+
+    def move_app_to_previous_screen(self, app_position):
+        # get the test app and the current page
+        app = self.marionette.find_elements(*self._visible_icons_locator)[app_position]
+        screen = self.marionette.find_element(By.CSS_SELECTOR, 'body')
+        # Start building action chains
+        action_chain = Actions(self.marionette)
+        # Press and wait for app to enter in drag and drop mode
+        action_chain.press(app)
+        action_chain.wait(3)
+        # get the margin area of the screen where the "move to next screen" is triggered
+
+        # calculate the center of the app
+        x1 = app.size['width']
+        y1 = app.size['height']
+
+        # end coordonates
+        x2 = 0
+        y2 = app.size['height']
+
+        # split the move in multiple steps
+        move_x = 10 * 1.0 / 200 * (x2 - x1)
+        move_y = 10 * 1.0 / 200 * (y2 - y1)
+
+        # actually move the app one step at a time
+        elapsed = 0
+        while elapsed < 200:
+            elapsed += 10
+            action_chain.move_by_offset(move_x, move_y)
+            action_chain.wait(10 / 1000)
+        # Wait for the app to trigger the next screen and release it
+        action_chain.wait(0.10)
+        action_chain.release()
+        # Perform the magic
+        action_chain.perform()
+
     @property
     def is_edit_mode_active(self):
         return self.is_element_present(*self._edit_mode_locator)
@@ -101,6 +172,15 @@ class Homescreen(Base):
         return self.marionette.execute_script("""
         var pageHelper = window.wrappedJSObject.GridManager.pageHelper;
         return pageHelper.getTotalPagesNumber();""")
+
+    @property
+    def homescreen_get_current_page_number(self):
+        return self.marionette.execute_script("""
+        var pageHelper = window.wrappedJSObject.GridManager.pageHelper;
+        return pageHelper.getCurrentPageNumber();""")
+
+
+
 
     @property
     def homescreen_has_more_pages(self):
