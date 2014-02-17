@@ -38,6 +38,7 @@
 
 .appWindow.has-navigation .chrome > .navigation {
   transform: translateY(0);
+  border-top: 0.1rem solid rgba(189, 189, 189, 0.2);
 }
 
 .chrome > .navigation menu[type="buttonbar"] {
@@ -46,7 +47,6 @@
   margin: 0;
   padding: 0;
   background: white;
-  border-top: solid 0.1rem #bdbdbd;
 }
 
 .chrome > .navigation menu button {
@@ -61,22 +61,22 @@
 }
 
 .chrome > .navigation .back-button {
-  background-image: url("images/back.png");
+  background-image: url("images/actionicon_back.png");
   left: 0.5rem; /* should be half the image width - whitespace in image (7 - 2) */
 }
 
 .chrome > .navigation .back-button:active {
-  background-image: url("images/back-hit.png");
+  background-image: url("images/actionicon_back_on.png");
 }
 
 .chrome > .navigation .close-button {
-  background-image: url("images/close.png");
+  background-image: url("images/actionicon_options_grey.png");
   right: 0.9rem; /* should be half the image width - whitespace in image (11 - 2) */
 }
 
 /* hit state, and when context menu is visible */
 .chrome > .navigation .close-button:active, .appWindow.has-context-menu .chrome > .navigation .close-button {
-  background-image: url("images/close-hit.png");
+  background-image: url("images/actionicon_options_on.png");
 }
 
 .chrome > .navigation menu button[data-disabled] {
@@ -96,7 +96,7 @@
 /* show overlay over the page, no pointer events to avoid scrolling on the iframe */
 .appWindow.has-context-menu > .chrome {
   pointer-events: auto;
-  background: linear-gradient(to bottom, rgba(231,231,231,0) 0%,rgba(231,231,231,0.75) 100%);
+  background-image: linear-gradient( 0deg, rgb(244,244,244) 0%, rgb(247,247,247) 25%, rgba(255,255,255,0) 100%);
 }
 
 .appWindow.has-context-menu .context-menu {
@@ -106,13 +106,10 @@
   transition: transform 0.3s ease-in;
 }
 
-.appWindow.has-context-menu .chrome > .navigation {
-  pointer-events: none;
-}
-
 .appWindow.has-context-menu .chrome > .navigation .back-button {
   transition: opacity 0.4s ease-in;
   opacity: 0.25;
+  pointer-events: none;
 }
 
 .context-menu {
@@ -122,12 +119,11 @@
   margin-left: calc(50% - 13rem);
   border: solid 1px rgba(189, 189, 189, 0.3); /* 0.3? */
   font: italic 300 1.7rem sans-serif;
-  /* display: none; */
   transform: scale(0);
 }
 
 .context-menu .item {
-  background-color: #f4f4f4;
+  background-color: white;
   height: 5rem;
   line-height: 5rem;
   border-bottom: solid 1px #e7e7e7;
@@ -138,21 +134,7 @@
 }
 
 .context-menu .item:active {
-  background-color: #00aac5;
-  color: #f4f4f4;
-}
-
-.context-menu .close {
-  height: 6rem;
-  background: white;
-  text-align: center;
-  color: #363636;
-  line-height: 6rem;
-}
-
-.context-menu .close:active {
-  background: #363636;
-  color: white;
+  background-color: #e7e7e7;
 }
 
 .context-menu .reload {
@@ -168,7 +150,7 @@
   background-image: url('images/context-menu/share.png');
 }
 .context-menu .forward {
-  background-image: url('images/context-menu/browser_forward.png');
+  background-image: url('images/context-menu/actionicon_forward.png');
 }
 .context-menu .settings {
   background-image: url('images/context-menu/settings.png');

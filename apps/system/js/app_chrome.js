@@ -3,7 +3,6 @@
 (function(window) {
   var _id = 0;
   var _ = navigator.mozL10n.get;
-  var _buttonBarHeight = 0;
 
   /**
    * The chrome UI of the AppWindow.
@@ -49,8 +48,9 @@
         '<div class="item homescreen">Add to Home Screen</div>' +
         '<div class="item share">Share</div>' +
         '<div class="item forward">Forward</div>' +
-        '<div class="close">Close</div>' +
       '</div>';
+
+    // @todo: hide add to homescreen button if launched from homescreen
 
     return '<div class="chrome" id="' +
             this.CLASS_NAME + this.instanceID + '">' +
@@ -98,6 +98,10 @@
         this.handleScroll(evt);
         break;
 
+      case 'mozbrowsertitlechange':
+        this.windowTitle = evt.detail;
+        break;
+
       case '_withkeyboard':
         if (this.app && this.app.isActive()) {
           this.hide(this.navigation);
@@ -131,6 +135,7 @@
     this.closeButton.addEventListener('click', this);
     this.app.element.addEventListener('mozbrowserlocationchange', this);
     this.app.element.addEventListener('mozbrowserasyncscroll', this);
+    this.app.element.addEventListener('mozbrowsertitlechange', this);
     this.app.element.addEventListener('_loading', this);
     this.app.element.addEventListener('_loaded', this);
     this.app.element.addEventListener('_opened', this);
@@ -141,11 +146,14 @@
     var app = this.app;
     var ctx = app.frame.querySelector('.context-menu');
 
-    // Always hide when click on any of the items
-    ctx.onclick = this.toggleContextMenu.bind(this);
+    // Tapping the chrome with the context menu open should close the menu
+    // Normally this doesn't trigger because of pointer events on the chrome
+    this.element.addEventListener('click', this.handleChromeClick.bind(this));
 
+    ctx.onclick = this.toggleContextMenu.bind(this);
     ctx.querySelector('.reload').onclick = app.reload.bind(app);
-    ctx.querySelector('.share').onclick = alert.bind(window, 'Share');
+    ctx.querySelector('.share').onclick = this.share.bind(this);
+    // @todo: implement new window action
     ctx.querySelector('.new').onclick = alert.bind(window, 'New window');
     ctx.querySelector('.forward').onclick = app.forward.bind(app);
     ctx.querySelector('.homescreen').onclick = this.addBookmark.bind(this);
@@ -158,6 +166,7 @@
       return;
     this.app.element.removeEventListener('mozbrowserlocationchange', this);
     this.app.element.removeEventListener('mozbrowserasyncscroll', this);
+    this.app.element.removeEventListener('mozbrowsertitlechange', this);
     this.app.element.removeEventListener('_loading', this);
     this.app.element.removeEventListener('_loaded', this);
     this.app.element.removeEventListener('_opened', this);
@@ -166,14 +175,16 @@
     this.app.element.removeEventListener('_withoutkeyboard', this);
     this.app.element.removeEventListener('_homegesture-enabled', this);
     this.app.element.removeEventListener('_homegesture-disabled', this);
-    this.app = null;
-  };
 
-  /**
-   * Return buttonbar height for AppWindow calibration
-   */
-  AppChrome.prototype.getBarHeight = function ac_getBarHeight() {
-    return _buttonBarHeight;
+    var ctx = this.app.frame.querySelector('.context-menu');
+    ctx.querySelector('.reload').onclick = null;
+    ctx.querySelector('.share').onclick = null;
+    ctx.querySelector('.new').onclick = null;
+    ctx.querySelector('.forward').onclick = null;
+    ctx.querySelector('.homescreen').onclick = null;
+    // @todo un-bind the app.frame.onclick handle
+
+    this.app = null;
   };
 
   AppChrome.prototype.handleLocationChanged =
@@ -181,9 +192,7 @@
       if (!this.app)
         return;
       this.app.canGoForward(function forwardSuccess(result) {
-        if (result === true) {
-          // use in ctx menu
-        }
+        // @todo: disable forward button in context menu if result === false
       }.bind(this));
 
       this.app.canGoBack(function backSuccess(result) {
@@ -225,71 +234,39 @@
 
   AppChrome.prototype.addBookmark = function ac_addBookmark() {
     var dataset = this.app.config;
-    var self = this;
 
-    function selected(value) {
-      if (!value)
-        return;
-
-      var name, url;
-      if (value === 'origin') {
-        name = dataset.originName;
-        url = dataset.originURL;
+    new MozActivity({
+      name: 'save-bookmark',
+      data: {
+        type: 'url',
+        url: dataset.url,
+        name: this.windowTitle,
+        icon: dataset.icon,
+        useAsyncPanZoom: dataset.useAsyncPanZoom,
+        iconable: false
       }
+    });
+  };
 
-      if (value === 'search') {
-        name = dataset.searchName;
-        url = dataset.searchURL;
+  AppChrome.prototype.share = function ac_share() {
+    new MozActivity({
+      name: 'share',
+      data: {
+        type: 'url',
+        url: this.app.config.url
       }
-
-      var activity = new MozActivity({
-        name: 'save-bookmark',
-        data: {
-          type: 'url',
-          url: url,
-          name: name,
-          icon: dataset.icon,
-          useAsyncPanZoom: dataset.useAsyncPanZoom,
-          iconable: false
-        }
-      });
-
-      activity.onsuccess = function onsuccess() {
-        if (value === 'origin') {
-          delete self.app.config.originURL;
-        }
-
-        if (value === 'search') {
-          delete self.app.config.searchURL;
-        }
-
-        if (!self.app.config.originURL &&
-          !self.app.config.searchURL) {
-        }
-      };
-    };
-
-    var data = {
-      title: _('add-to-home-screen'),
-      options: []
-    };
-
-    if (dataset.originURL) {
-      data.options.push({ id: 'origin', text: dataset.originName });
-    }
-
-    if (dataset.searchURL) {
-      data.options.push({ id: 'search', text: dataset.searchName });
-    }
-
-    ModalDialog.selectOne(data, selected);
+    });
   };
 
   AppChrome.prototype.toggleContextMenu = function() {
-    var self = this;
+    if (!this.app) return;
 
-    if (!self.app) return;
+    this.app.frame.classList.toggle('has-context-menu');
+  };
 
-    self.app.frame.classList.toggle('has-context-menu');
+  AppChrome.prototype.handleChromeClick = function(e) {
+    if (e.target === e.currentTarget) {
+      this.toggleContextMenu();
+    }
   };
 }(this));

@@ -994,11 +994,7 @@
     };
 
   AppWindow.prototype.calibratedHeight = function aw_calibratedHeight() {
-    if (this.appChrome && this.appChrome.hidingNavigation) {
-      return this.appChrome.getBarHeight();
-    } else {
-      return 0;
-    }
+    return 0;
   };
 
   AppWindow.prototype._resize = function aw__resize() {

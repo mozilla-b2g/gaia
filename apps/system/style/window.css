@@ -56,9 +56,9 @@
   position: absolute;
   top: 0;
   left: 0;
-  bottom: 4.6rem;
+  bottom: 4.5rem;
   width: 100%;
-  height: calc(100% - 4.6rem);
+  height: calc(100% - 4.5rem);
 }
 
 .appWindow.rocketbar:not(.has-navigation) > iframe {
