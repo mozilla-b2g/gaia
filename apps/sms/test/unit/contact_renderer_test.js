@@ -280,7 +280,7 @@ suite('ContactRenderer', function() {
       });
       html = ul.firstElementChild.innerHTML;
 
-      assert.isFalse(html.contains('img'));
+      assert.isFalse(html.contains('span[data-type=img]'));
     });
 
     test('append information block in the li', function() {
@@ -336,7 +336,7 @@ suite('ContactRenderer', function() {
       });
       html = ul.firstElementChild.innerHTML;
 
-      assert.isFalse(html.contains('img'));
+      assert.isFalse(html.contains('span[data-type=img]'));
     });
 
     test('Render contact with photo renders the image', function() {
@@ -354,20 +354,21 @@ suite('ContactRenderer', function() {
         photoURL: sinon.match(/^blob:/)
       });
 
+      var photo = 'span data-type="img" style="background-image: url(blob:';
       sinon.assert.calledWithMatch(Template.prototype.interpolate, {
         carrier: 'XXX, ',
         name: 'Pepito O\'Hare',
         nameHTML: 'Pepito O&apos;Hare',
         number: '+12125559999',
         numberHTML: '+12125559999',
-        photoHTML: sinon.match('img src="blob:'),
+        photoHTML: sinon.match(photo),
         separator: ' | ',
         type: 'B'
       });
 
       html = ul.firstElementChild.innerHTML;
 
-      assert.ok(html.contains('img'));
+      assert.ok(html.contains('span'));
     });
   });
 
