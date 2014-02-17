@@ -9,6 +9,7 @@ var EdgeSwipeDetector = {
 
   init: function esd_init() {
     window.addEventListener('homescreenopening', this);
+    window.addEventListener('rocketbarhidden', this);
     window.addEventListener('appopen', this);
     window.addEventListener('launchapp', this);
 
@@ -58,14 +59,15 @@ var EdgeSwipeDetector = {
         e.preventDefault();
         this._touchEnd(e);
         break;
-      case 'appopen':
-        this.screen.classList.add('edges');
-        break;
+      case 'rocketbarhidden':
       case 'homescreenopening':
         this.screen.classList.remove('edges');
         this._lifecycleEnabled = false;
         this._updateEnabled();
         break;
+      case 'appopen':
+        this.screen.classList.add('edges');
+        /* Intentional fallthrough */
       case 'launchapp':
         if (!e.detail.stayBackground) {
           this._lifecycleEnabled = true;

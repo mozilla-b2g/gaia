@@ -3,6 +3,7 @@
 var StackManager = {
   init: function sm_init() {
     window.addEventListener('appcreated', this);
+    window.addEventListener('appopen', this);
     window.addEventListener('launchapp', this);
     window.addEventListener('appterminated', this);
     window.addEventListener('home', this);
@@ -60,6 +61,7 @@ var StackManager = {
           this._insertOnTop(app);
         }
         break;
+      case 'appopen':
       case 'launchapp':
         var config = e.detail;
         if (!config.stayBackground) {
