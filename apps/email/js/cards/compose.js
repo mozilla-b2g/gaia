@@ -81,10 +81,6 @@ function ComposeCard(domNode, mode, args) {
   this.bccNode = domNode.getElementsByClassName('cmp-bcc-text')[0];
   this.subjectNode = domNode.getElementsByClassName('cmp-subject-text')[0];
   this.textBodyNode = domNode.getElementsByClassName('cmp-body-text')[0];
-  this.textBodyNode.addEventListener('input',
-                                     this.onTextBodyDelta.bind(this));
-  this.textBodyNode.addEventListener('change',
-                                     this.onTextBodyDelta.bind(this));
   this.htmlBodyContainer = domNode.getElementsByClassName('cmp-body-html')[0];
   this.htmlIframeNode = null;
 
@@ -142,6 +138,38 @@ function ComposeCard(domNode, mode, args) {
   }
 }
 ComposeCard.prototype = {
+
+  /**
+   * Inserts an email into the contenteditable element
+   */
+  populateEditor: function(value) {
+    var lines = value.split('\n');
+    var frag = document.createDocumentFragment();
+    for (var i = 0, len = lines.length; i < len; i++) {
+      frag.appendChild(document.createTextNode(lines[i]));
+      frag.appendChild(document.createElement('br'));
+    }
+    this.textBodyNode.appendChild(frag);
+  },
+
+  /**
+   * Gets the raw value from a contenteditable div
+   */
+  fromEditor: function(value) {
+    var content = '';
+    var len = this.textBodyNode.childNodes.length;
+    for (var i = 0; i < len; i++) {
+      var node = this.textBodyNode.childNodes[i];
+      if (node.nodeName.toLowerCase() === 'br') {
+        content += '\n';
+      } else {
+        content += node.textContent;
+      }
+    }
+
+    return content;
+  },
+
   postInsert: function() {
     // the HTML bit needs us linked into the DOM so the iframe can be
     // linked in, hence this happens in postInsert.
@@ -197,9 +225,7 @@ ComposeCard.prototype = {
     this.insertAttachments();
 
     this.subjectNode.value = this.composer.subject;
-    this.textBodyNode.value = this.composer.body.text;
-    // force the textarea to be sized.
-    this.onTextBodyDelta();
+    this.populateEditor(this.composer.body.text);
 
     if (this.composer.body.html) {
       // Although (still) sanitized, this is still HTML we did not create and so
@@ -234,7 +260,7 @@ ComposeCard.prototype = {
     this.composer.cc = frobAddressNode(this.ccNode);
     this.composer.bcc = frobAddressNode(this.bccNode);
     this.composer.subject = this.subjectNode.value;
-    this.composer.body.text = this.textBodyNode.value;
+    this.composer.body.text = this.fromEditor(this.textBodyNode.innerHTML);
     // The HTML representation cannot currently change in our UI, so no
     // need to save it.  However, what we send to the back-end is what gets
     // sent, so if you want to implement editing UI and change this here,
@@ -261,7 +287,7 @@ ComposeCard.prototype = {
     // body, there are attachments, or we already created a draft for this
     // guy in which case we really want to provide the option to delete the
     // draft.
-    return (this.subjectNode.value || this.textBodyNode.value ||
+    return (this.subjectNode.value || this.textBodyNode.textContent ||
         !checkAddressEmpty() || this.composer.attachments.length ||
         this.composer.hasDraft);
   },
@@ -440,23 +466,6 @@ ComposeCard.prototype = {
     // the keyboard.
     var input = evt.currentTarget.getElementsByClassName('cmp-addr-text')[0];
     focusInputAndPositionCursorFromContainerClick(evt, input);
-  },
-
-  /**
-   * Make our textarea grow as new lines are added...
-   */
-  onTextBodyDelta: function() {
-    var value = this.textBodyNode.value, newlines = 0, idx = -1;
-    while (true) {
-      idx = value.indexOf('\n', idx + 1);
-      if (idx === -1)
-        break;
-      newlines++;
-    }
-    // the last line won't have a newline
-    var neededRows = newlines + 1;
-    if (this.textBodyNode.rows !== neededRows)
-      this.textBodyNode.rows = neededRows;
   },
 
   insertAttachments: function() {

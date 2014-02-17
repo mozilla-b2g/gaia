@@ -96,7 +96,10 @@ input.cmp-subject-text {
 .cmp-body-text {
   -moz-box-sizing: border-box;
   width: calc(100% - 4rem);
+  overflow-x: auto;
+  overflow-y: hidden;
   min-height: 10rem;
+  max-height: none;
   margin: 1rem 1.5rem;
   display: block;
   padding: 0rem;
@@ -107,6 +110,8 @@ input.cmp-subject-text {
   border: none;
   box-shadow: none;
   background: #fff;
+  outline: 0;
+  white-space: pre-wrap;
 }
 
 /* Attachment */
