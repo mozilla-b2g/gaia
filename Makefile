@@ -730,7 +730,7 @@ common-install:
 	@test -x "$(NODEJS)" || (echo "Please Install NodeJS -- (use aptitude on linux or homebrew on osx)" && exit 1 )
 	@test -x "$(NPM)" || (echo "Please install NPM (node package manager) -- http://npmjs.org/" && exit 1 )
 
-	cd $(TEST_AGENT_DIR) && npm install .
+	@cd $(TEST_AGENT_DIR) && test -h node_modules/test-agent && echo '`npm link` is in use, skipping npm install.' || npm install .
 
 .PHONY: update-common
 update-common: common-install
