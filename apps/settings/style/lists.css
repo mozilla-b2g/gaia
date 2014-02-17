@@ -253,6 +253,10 @@ input[type=range]:-moz-focusring {
   outline: none;
 }
 
+input[type=range]::-moz-focus-inner {
+  border: 0;
+}
+
 ul li > label input[type="range"] {
   position: relative;
   top: calc(50% - 1.5rem);
