@@ -25,5 +25,6 @@ var MockUtils = {
   removeNonDialables: Utils.removeNonDialables,
   probablyMatches: Utils.probablyMatches,
   getDisplayObject: Utils.getDisplayObject,
-  basicContact: Utils.basicContact
+  basicContact: Utils.basicContact,
+  asyncLoadRevokeURL: Utils.asyncLoadRevokeURL
 };
