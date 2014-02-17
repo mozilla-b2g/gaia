@@ -1,4 +1,3 @@
-
 suite('controllers/camera', function() {
   'use strict';
 
@@ -13,15 +12,17 @@ suite('controllers/camera', function() {
       'lib/activity',
       'vendor/view',
       'lib/settings',
-      'lib/setting'
+      'lib/setting',
+      'lib/storage'
     ], function(
       App, CameraController, Camera, Activity,
-      View, Settings, Setting
+      View, Settings, Setting, Storage
     ) {
       self.CameraController = CameraController.CameraController;
       self.Activity = Activity;
       self.Settings = Settings;
       self.Setting = Setting;
+      self.Storage = Storage;
       self.Camera = Camera;
       self.View = View;
       self.App = App;
@@ -32,17 +33,22 @@ suite('controllers/camera', function() {
   setup(function() {
     this.app = sinon.createStubInstance(this.App);
     this.app.activity = new this.Activity();
-    this.app.settings = sinon.createStubInstance(this.Settings);
     this.app.camera = sinon.createStubInstance(this.Camera);
     this.app.views = {
       filmstrip: sinon.createStubInstance(this.View),
       viewfinder: sinon.createStubInstance(this.View)
     };
     this.app.views.filmstrip.clear = sinon.spy();
+
+    // Settings
+    this.app.settings = sinon.createStubInstance(this.Settings);
     this.app.settings.cameras = sinon.createStubInstance(this.Setting);
     this.app.settings.get
       .withArgs('cameras')
       .returns(this.app.settings.cameras);
+
+    this.app.storage = sinon.createStubInstance(this.Storage);
+    this.camera = this.app.camera;
   });
 
   suite('CameraController()', function() {
@@ -73,6 +79,11 @@ suite('controllers/camera', function() {
     test('Should teardown camera on app `blur`', function() {
       this.controller = new this.CameraController(this.app);
       this.app.on.calledWith('blur', this.controller.teardownCamera);
+    });
+
+    test('Should set the camera createVideoFilepath method', function() {
+      this.controller = new this.CameraController(this.app);
+      this.camera.createVideoFilepath = this.app.storage.createVideoFilepath;
     });
   });
 });

@@ -25,6 +25,7 @@ function Storage() {
   this.video = navigator.getDeviceStorage('videos');
   this.image = navigator.getDeviceStorage('pictures');
   this.image.addEventListener('change', this.onStorageChange);
+  this.createVideoFilepath = this.createVideoFilepath.bind(this);
   debug('initialized');
 }
 
@@ -59,43 +60,40 @@ Storage.prototype.addImage = function(blob, options, done) {
   }
 };
 
-Storage.prototype.addVideo = function(blob, done) {
-  debug('adding video');
-  var storage = this.video;
-  var self = this;
-
-  createFilename(this.video, 'video', onCreated);
-
-  function onCreated(filepath) {
-    debug('filename created', filepath);
-    var req = storage.addNamed(blob, filepath);
-    req.onerror = onError;
-    req.onsuccess = onStored;
-
-    function onStored(e) {
-      debug('video stored', e.target.result);
-      var absolutePath = e.target.result;
-      var req = storage.get(filepath);
-      req.onerror = onError;
-      req.onsuccess = onGotBlob;
-
-      function onGotBlob() {
-        var blob = req.result;
-        done(blob, filepath, absolutePath);
-
-        // Healthcheck the storage
-        // *after* the callback, to give
-        // the user chance to delete
-        // the old blob.
-        self.check();
-      }
-    }
-  }
-
-  function onError() {
-    self.emit('error');
-  }
+/**
+ * Create a new video filepath.
+ *
+ * The CameraControl API will not
+ * automatically create directories
+ * for the new file if they do not
+ * exist.
+ *
+ * So we write a dummy file to the
+ * same directory via DeviceStorage
+ * to ensure that the directory exists
+ * before attempting to record to this
+ * filepath.
+ *
+ * @param  {Function} done
+ * @public
+ */
+Storage.prototype.createVideoFilepath = function(done) {
+  var videoStorage = this.video;
+  createFilename(this.video, 'video', function(filepath) {
+    var dummyFilepath = getDir(filepath) + 'tmp.3gp';
+    var blob = new Blob([''], { type: 'video/3gpp' });
+    var req = videoStorage.addNamed(blob, dummyFilepath);
+    req.onsuccess = function(e) {
+      videoStorage.delete(e.target.result);
+      done(filepath);
+    };
+  });
 };
+
+function getDir(filepath) {
+  var index = filepath.lastIndexOf('/') + 1;
+  return index ? filepath.substring(0, index) : '';
+}
 
 Storage.prototype.onStorageChange = function(e) {
   debug('state change: %s', e.reason);
