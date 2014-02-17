@@ -297,7 +297,9 @@ var Navigation = {
     if (futureLocation.requireSIM) {
       SimManager.handleCardState(function check_cardState(response) {
         self.skipped = false;
-        if (!response || !SimManager.available()) {
+        if (!response || (!SimManager.available() &&
+          // Don't skip it if next step is data 3g
+         futureLocation.hash !== '#data_3g')) {
           self.skipStep();
         }
       });

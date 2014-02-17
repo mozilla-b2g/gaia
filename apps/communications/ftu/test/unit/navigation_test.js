@@ -231,6 +231,47 @@ suite('navigation >', function() {
     });
   });
 
+
+  suite('SIM pin > ', function() {
+    var cardStateChangeCallback = null;
+
+    setup(function() {
+      setStepState(1);
+    });
+
+    teardown(function() {
+    });
+
+    suiteSetup(function() {
+      sinon.stub(SimManager, 'handleCardState', function(cb) {
+        cardStateChangeCallback = cb;
+      });
+      sinon.stub(SimManager, 'available', function() {
+        return true;
+      });
+    });
+
+    suiteTeardown(function() {
+      SimManager.handleCardState.restore();
+      SimManager.available.restore();
+    });
+
+    test('with SIM card pin required', function() {
+      MockIccHelper.setProperty('cardState', 'pinRequired');
+      Navigation.forward();
+
+      assert.equal(Navigation.previousStep, 1);
+      assert.equal(Navigation.currentStep, 2);
+
+      // Fire a cardstate change
+      cardStateChangeCallback('ready');
+      // Ensure we don't skip this current state
+      assert.equal(Navigation.previousStep, 1);
+      assert.equal(Navigation.currentStep, 2);
+
+    });
+  });
+
   suite('SIM mandatory', function() {
     var hash = '#SIM_mandatory';
 
@@ -267,6 +308,7 @@ suite('navigation >', function() {
       assert.equal(Navigation.currentStep, 2);
       assert.equal(window.location.hash, steps[Navigation.currentStep].hash);
     });
+
   });
 
   suite('external-url-loader >', function() {
