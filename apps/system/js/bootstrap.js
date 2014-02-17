@@ -62,6 +62,7 @@ window.addEventListener('load', function startup() {
   Places.init();
   window.activities = new Activities();
   window.devtoolsView = new DevtoolsView();
+  window.dialerComms = new DialerComms();
   window.ttlView = new TTLView();
 
   // We need to be sure to get the focus in order to wake up the screen
