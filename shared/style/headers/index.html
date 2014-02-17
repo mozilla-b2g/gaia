@@ -5,7 +5,7 @@
   <title>Headers</title>
   <meta name="description" content="Providing top-level navigation and inputs for the active view">
   <!--
-    - This <style> and <link> is only used for the example preview,
+    - This <style>, <script> and <link> is only used for the example preview,
     - it isn't needed for the real use case.
     -->
   <link rel="stylesheet" href="../headers.css">
@@ -24,11 +24,16 @@
       position: relative;
     }
   </style>
+  <script>
+    window.onload = function(){
+      document.getElementById('dir').checked = false;
+    };
+  </script>
 </head>
 <body role="application">
   <p dir="ltr">
     <label>
-      <input type="checkbox"
+      <input id="dir" type="checkbox" checked="false"
         onchange="document.documentElement.dir = this.checked ? 'rtl' : 'ltr'">
       RTL mode
     </label>
