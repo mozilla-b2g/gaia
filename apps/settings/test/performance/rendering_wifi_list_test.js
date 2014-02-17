@@ -1,6 +1,8 @@
 'use strict';
 
-requireGaia('/test_apps/test-agent/common/test/synthetic_gestures.js');
+
+var assert = require('assert');
+
 var MarionetteHelper = requireGaia('/tests/js-marionette/helper.js');
 
 var PerformanceHelper =
@@ -44,7 +46,7 @@ marionette(mozTestInfo.appPath + ' >', function() {
 
       performanceHelper.waitForPerfEvent(function(runResults) {
         performanceHelper.reportRunDurations(runResults);
-
+        assert.ok(Object.keys(runResults).length, 'empty results');
         app.close();
       });
     });

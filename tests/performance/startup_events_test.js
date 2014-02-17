@@ -1,5 +1,6 @@
 'use strict';
 
+var assert = require('assert');
 
 var App = require('./app');
 var PerformanceHelper = requireGaia('/tests/performance/performance_helper.js');
@@ -56,6 +57,7 @@ marionette('startup event test > ' + mozTestInfo.appPath + ' >', function() {
 
       performanceHelper.waitForPerfEvent(function(runResults) {
         performanceHelper.reportRunDurations(runResults);
+        assert.ok(Object.keys(runResults).length, 'empty results');
         app.close();
       });
     });
