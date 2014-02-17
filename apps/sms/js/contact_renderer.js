@@ -246,12 +246,9 @@ ContactRenderer.prototype = {
       target.appendChild(element);
 
       // Revoke contact photo after image onload.
-      var photo = element.querySelector('img');
-      if (photo) {
-        photo.onload = photo.onerror = function revokePhotoURL() {
-          this.onload = this.onerror = null;
-          window.URL.revokeObjectURL(this.src);
-        };
+      var photo = element.querySelector('span[data-type=img]');
+      if (photo && photo.src) {
+        Utils.asyncLoadRevokeURL(photo.src);
       }
       tempDiv.textContent = '';
     }, this);
