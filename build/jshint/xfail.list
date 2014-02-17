@@ -831,6 +831,8 @@ apps/video/test/unit/video_utils_test.js
 apps/wallpaper/js/pick.js
 apps/wallpaper/js/share.js
 apps/wallpaper/test/unit/pick_test.js
+apps/emergency-call/test/unit/setup.js
+apps/emergency-call/test/unit/dialer_test.js
 test_apps/demo-keyboard/js/predictions.js
 test_apps/demo-keyboard/js/settings_panel.js
 test_apps/demo-keyboard/js/worker.js

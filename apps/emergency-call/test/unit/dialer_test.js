@@ -2,13 +2,16 @@
 
 /* global CallHandler, KeypadManager, MockNavigatorMozTelephony, MocksHelper,
           Promise */
-
+require('/test/unit/mock_keypad.js', function() {
+  // Don't know why mocks helper doesn't work.
+  window.KeypadManager = MockKeypadManager;
+});
+require('/shared/test/unit/mocks/mocks_helper.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
-require('/test/unit/mock_keypad.js');
 
-require('/emergency-call/js/dialer.js');
+require('/js/dialer.js');
 
-var mocksHelperForDialer = new MocksHelper([
+var mocksHelperForDialer = new window.MocksHelper([
   'KeypadManager'
 ]).init();
 
