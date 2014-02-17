@@ -25,6 +25,14 @@ const IMERender = (function() {
 
   var inputMethodName; // used as a CSS class on the candidatePanel
 
+  var cachedWindowHeight = -1;
+  var cachedWindowWidth = -1;
+
+  window.addEventListener('resize', function kr_onresize() {
+    cachedWindowHeight = window.innerHeight;
+    cachedWindowWidth = window.innerWidth;
+  });
+
   // Initialize the render. It needs some business logic to determine:
   //   1- The uppercase for a key object
   //   2- When a key is a special key
@@ -90,7 +98,8 @@ const IMERender = (function() {
       ('' + flags.inputType).substr(0, 1),
       ('' + flags.showCandidatePanel).substr(0, 1),
       ('' + flags.uppercase).substr(0, 1),
-      supportsSwitching
+      supportsSwitching,
+      ('width' + cachedWindowWidth)
     ].join('-');
 
     // lets see if we have this keyboard somewhere already...
@@ -522,7 +531,7 @@ const IMERender = (function() {
   // Show char alternatives.
   var showAlternativesCharMenu = function(key, altChars) {
     var content = document.createDocumentFragment();
-    var left = (window.innerWidth / 2 > key.offsetLeft);
+    var left = (cachedWindowWidth / 2 > key.offsetLeft);
 
     // Place the menu to the left
     if (!left) {
@@ -576,23 +585,23 @@ const IMERender = (function() {
 
     var offset;
 
-    if (alternativesLeft < 0 || alternativesRight > window.innerWidth) {
+    if (alternativesLeft < 0 || alternativesRight > cachedWindowWidth) {
       if (left) {  // alternatives menu extends to the right
         // Figure out what the current offset is. This is set in CSS to -1.2rem
         offset = parseInt(getComputedStyle(menu).left);
         if (alternativesLeft < 0) {                       // extends past left
           offset += -alternativesLeft;
         }
-        else if (alternativesRight > window.innerWidth) { // extends past right
-          offset -= (alternativesRight - window.innerWidth);
+        else if (alternativesRight > cachedWindowWidth) { // extends past right
+          offset -= (alternativesRight - cachedWindowWidth);
         }
         menu.style.left = offset + 'px';
       }
       else {       // alternatives menu extends to the left
         // Figure out what the current offset is. This is set in CSS to -1.2rem
         offset = parseInt(getComputedStyle(menu).right);
-        if (alternativesRight > window.innerWidth) {      // extends past right
-          offset += (alternativesRight - window.innerWidth);
+        if (alternativesRight > cachedWindowWidth) {      // extends past right
+          offset += (alternativesRight - cachedWindowWidth);
         }
         else if (alternativesLeft < 0) {                  // extends past left
           offset += alternativesLeft;
@@ -708,13 +717,13 @@ const IMERender = (function() {
     var changeScale;
 
     // Font size recalc
-    if (window.innerWidth <= window.innerHeight) {
-      changeScale = window.innerWidth / 32;
+    if (cachedWindowWidth <= cachedWindowHeight) {
+      changeScale = cachedWindowWidth / 32;
       document.documentElement.style.fontSize = changeScale + 'px';
       ime.classList.remove('landscape');
       ime.classList.add('portrait');
     } else {
-      changeScale = window.innerWidth / 64;
+      changeScale = cachedWindowWidth / 64;
       document.documentElement.style.fontSize = changeScale + 'px';
       ime.classList.remove('portrait');
       ime.classList.add('landscape');
@@ -736,7 +745,7 @@ const IMERender = (function() {
     layoutWidth = layout.width || 10;
     // Hack alert! we always use 100% of width so we avoid calling
     // keyboard.clientWidth because that causes a costy reflow...
-    var totalWidth = window.innerWidth;
+    var totalWidth = cachedWindowWidth;
     var placeHolderWidth = totalWidth / layoutWidth;
     var rows = activeIme.querySelectorAll('.keyboard-row');
 
