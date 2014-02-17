@@ -37,6 +37,14 @@ var Contacts = (function() {
 
   var customTag, customTagReset, tagDone, tagCancel, lazyLoadedTagsDom = false;
 
+  // Shows the edit form for the current contact being in an update activity
+  // It receives an array of two elements with the facebook data && values
+  function showEditForm(facebookData, params) {
+    contactsForm.render(currentContact, goToForm,
+                                    facebookData, params['fromUpdateActivity']);
+    showApp();
+  }
+
   var checkUrl = function checkUrl() {
     var hasParams = window.location.hash.split('?');
     var hash = hasParams[0];
@@ -81,11 +89,22 @@ var Contacts = (function() {
                 if ('extras' in params) {
                   addExtrasToContact(params['extras']);
                 }
-                contactsForm.render(currentContact, goToForm,
-                                    null, params['fromUpdateActivity']);
-                showApp();
+                if (fb.isFbContact(savedContact)) {
+                  var fbContact = new fb.Contact(savedContact);
+                  var req = fbContact.getDataAndValues();
+                  req.onsuccess = function() {
+                    showEditForm(req.result, params);
+                  };
+                  req.onerror = function() {
+                    console.error('Error retrieving FB information');
+                    showEditForm(null, params);
+                  };
+                }
+                else {
+                  showEditForm(null, params);
+                }
               }, function onError() {
-                console.log('Error retrieving contact to be edited');
+                console.error('Error retrieving contact to be edited');
                 contactsForm.render(null, goToForm);
                 showApp();
               });
