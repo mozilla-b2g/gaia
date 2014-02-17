@@ -8,6 +8,7 @@ input[type="tel"],
 input[type="search"],
 input[type="url"],
 input[type="number"],
+input[type="date"],
 textarea {
   -moz-box-sizing: border-box;
   display: block;
@@ -267,7 +268,7 @@ form[role="search"] p input:focus {
   padding: 0 2rem 0 0;
 }
 
-form[role="search"] p input:invalid, 
+form[role="search"] p input:invalid,
 form[role="search"] p textarea:invalid {
   border: none;
 }
@@ -443,4 +444,3 @@ html[dir="rtl"] form[role="search"] button[type="submit"][disabled],
 html[dir="rtl"] form[role="search"].bottom button[type="submit"] {
   background-position: 100% 50%, 0 100%;
 }
-
