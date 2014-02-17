@@ -98,7 +98,8 @@ const IMERender = (function() {
       ('' + flags.inputType).substr(0, 1),
       ('' + flags.showCandidatePanel).substr(0, 1),
       ('' + flags.uppercase).substr(0, 1),
-      supportsSwitching
+      supportsSwitching,
+      ('width' + cachedWindowWidth)
     ].join('-');
 
     // lets see if we have this keyboard somewhere already...
