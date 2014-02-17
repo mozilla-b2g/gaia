@@ -250,6 +250,24 @@ suite('thread_ui.js >', function() {
       assert.ok((container.scrollTop + container.clientHeight) ==
                 container.scrollHeight);
     });
+
+    suite('when a new message is received >', function() {
+      setup(function() {
+        this.sinon.spy(HTMLElement.prototype, 'scrollIntoView');
+      });
+
+      test('should scroll it into view if we are at the bottom', function() {
+        ThreadUI.isScrolledManually = false;
+        ThreadUI.onMessageReceived(MockMessages.sms());
+        sinon.assert.calledOnce(HTMLElement.prototype.scrollIntoView);
+      });
+
+      test('should not scroll if we are not at the bottom', function() {
+        ThreadUI.isScrolledManually = true;
+        ThreadUI.onMessageReceived(MockMessages.sms());
+        sinon.assert.notCalled(HTMLElement.prototype.scrollIntoView);
+      });
+    });
   });
 
   suite('Search', function() {

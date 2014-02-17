@@ -73,6 +73,10 @@ Evme.StaticAppsRenderer = function Evme_StaticAppsRenderer() {
       result = new Evme.CloudAppResult(app.collectionQuery);
     } else {
       result = new Evme.InstalledAppResult();
+      var localizedName = EvmeManager.getIconName(app.appUrl, app.entry_point);
+      if (localizedName) {
+        app.name = localizedName;
+      }
     }
 
     el = result.init(app);
