@@ -94,19 +94,24 @@ input.cmp-subject-text {
 }
 
 .cmp-body-text {
-  -moz-box-sizing: border-box;
-  width: calc(100% - 4rem);
-  min-height: 10rem;
-  margin: 1rem 1.5rem;
+  width: calc(100% - 3rem);
+  overflow-x: auto;
+  overflow-y: hidden;
+  max-height: none;
+  margin: 1rem 1.5rem 0rem 1.5rem;
   display: block;
   padding: 0rem;
   font-family: inherit;
+  /* be careful about specifying a line-height different than the font-size,
+     as it may result in the text visuall shifting upwards when typing the
+     first character on a blank/new line and then back down when deleted. */
   font-size: 1.7rem;
-  line-height: 1.9rem;
   font-weight: normal;
   border: none;
   box-shadow: none;
   background: #fff;
+  outline: 0;
+  white-space: pre-wrap;
 }
 
 /* Attachment */

@@ -185,9 +185,6 @@ function createAndInsertIframeForContent(htmlStr, scrollContainer,
 
   var viewportWidth = parentNode.offsetWidth - scrollPad;
   var viewport = document.createElement('div');
-  var title = document.getElementsByClassName('msg-reader-header')[0];
-  var header = document.getElementsByClassName('msg-envelope-bar')[0];
-  var extraHeight = title.clientHeight + header.clientHeight;
   viewport.setAttribute(
     'style',
     'overflow: hidden; position: relative; ' +
@@ -329,6 +326,14 @@ function createAndInsertIframeForContent(htmlStr, scrollContainer,
   if (!newsletterMode || interactiveMode !== 'interactive') {
     return iframeShims;
   }
+  // XXX these live down here now because these hardcoded hacks will
+  // explode when we use this logic in the composer (when there isn't
+  // a message reader on the stack).  This is okay / not any more horrible
+  // because the compose iframe is entirely noninteractive so these values
+  // aren't used anyways.
+  var title = document.getElementsByClassName('msg-reader-header')[0];
+  var header = document.getElementsByClassName('msg-envelope-bar')[0];
+  var extraHeight = title.clientHeight + header.clientHeight;
   detectorTarget.addEventListener('dbltap', function(e) {
     var newScale = scale;
     if (lastScale === scale) {
