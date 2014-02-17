@@ -1,0 +1,28 @@
+#! /bin/bash -v
+
+###############################################################################
+# For having stable marionette tests,                                         #
+# we run specfic marionette tests for 30 times on Travis.                     #
+###############################################################################
+
+MARIONETTE_TEST_FILE_NAMES=$(node tests/travis_ci/marionette_js_stable_check/pull-request-marionette-test)
+
+if [ ${#MARIONETTE_TEST_FILE_NAMES} -gt 0 ]; then
+  TEST_RESULT=0
+  RUN_SPECIFIC_TESTS="make test-integration TEST_FILES=\"$MARIONETTE_TEST_FILE_NAMES\" REPORTER=spec"
+
+  for i in {1..30}
+  do
+    eval ${RUN_SPECIFIC_TESTS}
+    if [ $? -ne 0 ]; then
+      TEST_RESULT=1
+    fi
+  done
+
+  if [ $TEST_RESULT -eq 1 ]; then
+    echo "The marionette tests are not passed for 30 times continually."
+    exit 1
+  fi
+else
+  echo "The pull request has no marionette test to run."
+fi
