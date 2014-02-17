@@ -1,11 +1,13 @@
 'use strict';
 /* global AppWindow, AppWindowManager,
-MocksHelper, MockL10n, Rocketbar, Title */
+MocksHelper, MockL10n, Rocketbar, Title, requireApp, mocha, suite, test,
+assert, CustomEvent, setup, teardown */
 
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_app_window_manager.js');
 requireApp('system/test/unit/mock_l10n.js');
 requireApp('system/test/unit/mock_rocketbar.js');
+requireApp('system/js/title.js');
 
 mocha.globals(['Title']);
 
@@ -17,10 +19,10 @@ var mocksHelperForTitle = new MocksHelper([
 mocksHelperForTitle.init();
 
 suite('system/Title', function() {
-  var stubById;
   var fakeElement;
   var activeAppStub;
   var realL10n;
+  var subject;
 
   mocksHelperForTitle.attachTestHelpers();
 
@@ -33,29 +35,29 @@ suite('system/Title', function() {
   };
 
   function check(content) {
-    assert.equal(Title.element.innerHTML, content);
+    assert.equal(subject.element.innerHTML, content);
   }
 
-  setup(function(done) {
+  setup(function() {
     Rocketbar.enabled = true;
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
 
     fakeElement = document.createElement('div');
     fakeElement.style.cssText = 'height: 100px; display: block;';
-    stubById = this.sinon.stub(document, 'getElementById')
-      .returns(fakeElement.cloneNode(true));
+
     activeAppStub = this.sinon.stub(AppWindowManager, 'getActiveApp')
       .returns({
         isHomescreen: false
       });
-    requireApp('system/js/title.js', done);
+
+    subject = new Title();
+    subject.element = fakeElement;
   });
 
   teardown(function() {
     Rocketbar.enabled = false;
     navigator.mozL10n = realL10n;
-    stubById.restore();
     activeAppStub.restore();
   });
 
@@ -65,22 +67,22 @@ suite('system/Title', function() {
     });
 
     test('shown should be true', function() {
-      Title.content = 'Foo';
+      subject.content = 'Foo';
       check('Foo');
-      Title.content = '';
+      subject.content = '';
     });
 
     test('rocketbarhidden event', function() {
       window.dispatchEvent(new CustomEvent('rocketbarhidden'));
-      assert.isTrue(!Title.element.classList.contains('hidden'));
+      assert.isTrue(!subject.element.classList.contains('hidden'));
     });
 
     test('rocketbarshown event', function() {
-      assert.equal(Title.element.textContent, '');
-      Title.element.textContent = 'foo';
+      assert.equal(subject.element.textContent, '');
+      subject.element.textContent = 'foo';
       window.dispatchEvent(new CustomEvent('rocketbarshown'));
-      assert.isTrue(Title.element.classList.contains('hidden'));
-      assert.equal(Title.element.textContent, '');
+      assert.isTrue(subject.element.classList.contains('hidden'));
+      assert.equal(subject.element.textContent, '');
     });
 
     test('app events', function() {
@@ -102,7 +104,7 @@ suite('system/Title', function() {
         check('Test-' + idx);
 
         // Reset the title
-        Title.content = '';
+        subject.content = '';
       }, this);
     });
 
@@ -127,7 +129,7 @@ suite('system/Title', function() {
 
   suite('reset', function() {
     test('input will update', function() {
-      Title.content = '';
+      subject.content = '';
       check('');
 
       activeAppStub.restore();
@@ -137,14 +139,14 @@ suite('system/Title', function() {
           isHomescreen: true
         });
 
-      Title.reset();
+      subject.reset();
 
       // Mock l10n test result
       check('search');
     });
 
     test('if expanded, title does not update', function() {
-      Title.content = '';
+      subject.content = '';
       check('');
 
       activeAppStub.restore();
@@ -153,7 +155,7 @@ suite('system/Title', function() {
           isHomescreen: false
         });
 
-      Title.reset();
+      subject.reset();
       check('');
     });
   });
