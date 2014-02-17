@@ -857,33 +857,10 @@ var PlayerView = {
     });
   },
 
-  handlePeerConnectivity: function nfc_handlePeerConnectivity(event) {
-    // Only trigger NFC sharing when launched regular music.
-    if (typeof ModeManager !== 'undefined' && navigator.mozNfc) {
-      // NFC enabled, assign the callback to have shrink UI
-      if (ModeManager.currentMode == MODE_PLAYER) {
-        navigator.mozNfc.onpeerready = (function(event) {
-          var peer = navigator.mozNfc.getNFCPeer(event.detail);
-          if (peer && this.playingBlob) {
-            // send music file
-            peer.sendFile(this.playingBlob);
-          }
-        }.bind(this));
-      } else {
-        // clear onpeerready if not in PLAYER MODE.
-        navigator.mozNfc.onpeerready = null;
-      }
-    }
-  },
-
   handleEvent: function pv_handleEvent(evt) {
     var target = evt.target;
     if (!target)
       return;
-
-    // Currently we are unable to distinguish the nfc event and the others.
-    // So we just pass all the event to the peer connectivity handler.
-    this.handlePeerConnectivity(evt);
 
     switch (evt.type) {
       case 'click':
