@@ -853,6 +853,7 @@ apps/system/fxa/js/fxam_overlay.js
 apps/system/fxa/js/fxam_server_request.js
 apps/system/fxa/js/fxam_states.js
 apps/system/fxa/js/fxam_ui.js
+apps/system/fxa/js/screens/fxam_refresh_auth.js
 apps/system/fxa/js/screens/fxam_enter_email.js
 apps/system/fxa/js/screens/fxam_enter_password.js
 apps/system/fxa/js/screens/fxam_password_reset_success.js
@@ -861,6 +862,7 @@ apps/system/fxa/js/screens/fxam_signin_success.js
 apps/system/fxa/js/screens/fxam_signup_success.js
 apps/system/fxa/js/utils.js
 apps/system/fxa/view/view_login.js
+apps/system/fxa/view/view_refresh_auth.js
 apps/system/js/accessibility.js
 apps/system/js/action_menu.js
 apps/system/js/activity_window.js
@@ -1007,6 +1009,7 @@ apps/system/test/unit/fxa_test/mock_fxam_ui.js
 apps/system/test/unit/fxa_test/screens/fxam_enter_email_test.js
 apps/system/test/unit/fxa_test/screens/fxam_enter_password_test.js
 apps/system/test/unit/fxa_test/screens/fxam_password_reset_success_test.js
+apps/system/test/unit/fxa_test/screens/fxam_refresh_auth_test.js
 apps/system/test/unit/fxa_test/screens/fxam_set_password_test.js
 apps/system/test/unit/fxa_test/screens/fxam_signin_success_test.js
 apps/system/test/unit/fxa_test/screens/fxam_signup_success_test.js

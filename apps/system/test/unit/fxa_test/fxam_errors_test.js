@@ -5,6 +5,7 @@ requireApp('system/fxa/js/fxam_errors.js');
 
 suite('Error manager', function() {
   var errorsObject = {
+    'ACCOUNT_DOES_NOT_EXIST': 'account-does-not-exist',
     'CANNOT_CREATE_ACCOUNT': 'cannot-create',
     'RESET_PASSWORD_ERROR': 'reset-password-error',
     'INVALID_ACCOUNTID': 'invalid-email',
@@ -13,7 +14,8 @@ suite('Error manager', function() {
     'INTERNAL_ERROR_INVALID_USER': 'generic-error',
     'SERVER_ERROR': 'generic-error',
     'NO_TOKEN_SESSION': 'generic-error',
-    'GENERIC_ERROR': 'generic-error'
+    'GENERIC_ERROR': 'generic-error',
+    'UNKNOWN': 'unknown-error'
   };
   var response;
   var realL10n;
@@ -146,4 +148,29 @@ suite('Error manager', function() {
       'fxa-' + errorsObject[response.error] + '-message')
     );
   });
+
+  test('Account does not exist', function() {
+    response.error = 'ACCOUNT_DOES_NOT_EXIST';
+    FxaModuleErrors.responseToParams(response);
+
+    assert.ok(navigator.mozL10n.get.calledWith(
+      'fxa-' + errorsObject[response.error] + '-title'
+    ));
+    assert.ok(navigator.mozL10n.get.calledWith(
+      'fxa-' + errorsObject[response.error] + '-message')
+    );
+  });
+
+  test('Unknown error', function() {
+    response.error = 'UNKNOWN';
+    FxaModuleErrors.responseToParams(response);
+
+    assert.ok(navigator.mozL10n.get.calledWith(
+      'fxa-' + errorsObject[response.error] + '-title'
+    ));
+    assert.ok(navigator.mozL10n.get.calledWith(
+      'fxa-' + errorsObject[response.error] + '-message')
+    );
+  });
+
 });
