@@ -36,3 +36,7 @@ notifications:
     on_success: change
     channels:
     - irc.mozilla.org#gaia
+cache:
+  directories:
+    - node_modules
+    - tools/test-agent/node_modules
