@@ -18,7 +18,6 @@
   }
 
   TTLView.prototype = {
-    /** @lends TTLView */
 
     /**
      * A reference to the element which contains the TTLView.

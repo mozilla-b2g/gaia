@@ -71,7 +71,8 @@ var DeviceStorageWatcher = {
     } else {
       notification = msg + this._('unknown-free-space');
     }
-    SystemBanner.show(notification);
+    var systemBanner = new SystemBanner();
+    systemBanner.show(notification);
 
     this._message.textContent = msg;
     this.updateAvailableSpace(space);

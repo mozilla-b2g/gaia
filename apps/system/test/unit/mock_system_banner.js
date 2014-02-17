@@ -1,13 +1,18 @@
-var MockSystemBanner = {
-  show: function(message) {
-    this.mShowCount++;
-    this.mMessage = message;
-  },
+'use strict';
+/* exported MockSystemBanner */
 
-  mShowCount: 0,
-  mMessage: null,
-  mTeardown: function teardown() {
-    this.mShowCount = 0;
-    this.mMessage = null;
+var MockSystemBanner = function() {};
+
+MockSystemBanner.prototype = {
+  show: function(message) {
+    MockSystemBanner.mShowCount++;
+    MockSystemBanner.mMessage = message;
   }
+};
+
+MockSystemBanner.mShowCount = 0;
+MockSystemBanner.mMessage = null;
+MockSystemBanner.mTeardown = function() {
+  this.mShowCount = 0;
+  this.mMessage = null;
 };

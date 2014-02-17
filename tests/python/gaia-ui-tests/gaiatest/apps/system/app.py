@@ -16,7 +16,7 @@ class System(Base):
 
     _notification_toaster_locator = (By.ID, 'notification-toaster')
     _update_manager_toaster_locator = (By.ID, 'update-manager-toaster')
-    _banner_locator = (By.ID, 'system-banner')
+    _banner_locator = (By.CSS_SELECTOR, '.banner.generic-dialog')
 
     def wait_for_status_bar_displayed(self):
         self.wait_for_element_displayed(*self._status_bar_locator)
