@@ -97,6 +97,8 @@ var FxaModuleSetPassword = (function() {
       function(response) {
         _hideRegistering();
 
+        FxaModuleManager.setParam('success', true);
+
         var isAccountCreated = response.accountCreated;
 
         if (!isAccountCreated) {

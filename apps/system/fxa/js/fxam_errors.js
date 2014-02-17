@@ -6,6 +6,10 @@
 (function(exports) {
 
   var Errors = {
+    ACCOUNT_DOES_NOT_EXIST: {
+      title: 'fxa-account-does-not-exist-title',
+      message: 'fxa-account-does-not-exist-message'
+    },
     CANNOT_CREATE_ACCOUNT: {
       title: 'fxa-cannot-create-title',
       message: 'fxa-cannot-create-message'

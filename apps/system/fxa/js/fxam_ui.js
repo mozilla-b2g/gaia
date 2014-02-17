@@ -28,7 +28,7 @@ var FxaModuleUI = {
     });
 
     this.fxaModuleDone.addEventListener('click', function() {
-      FxaModuleManager.done();
+      FxaModuleNavigation.done();
     });
 
     FxaModuleNavigation.init(flow);
@@ -122,5 +122,11 @@ var FxaModuleUI = {
   },
   enableNextButton: function() {
     this.fxaModuleNext.removeAttribute('disabled');
+  },
+  disableDoneButton: function() {
+    this.fxaModuleDone.setAttribute('disabled', 'disabled');
+  },
+  enableDoneButton: function() {
+    this.fxaModuleDone.removeAttribute('disabled');
   }
 };

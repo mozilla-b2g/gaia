@@ -143,11 +143,13 @@ var FxaModuleEnterPassword = (function() {
   Module.onNext = function onNext(gotoNextStepCallback) {
     FxaModuleOverlay.show(_('fxa-authenticating'));
 
+    FxaModuleManager.setParam('success', true);
     FxModuleServerRequest.signIn(
       this.email,
       this.fxaPwInput.value,
       function onServerResponse(response) {
         FxaModuleOverlay.hide();
+
         if (!response.authenticated) {
           _notVerifiedUser(gotoNextStepCallback);
           return;
