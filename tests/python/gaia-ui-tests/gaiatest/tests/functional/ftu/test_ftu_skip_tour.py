@@ -150,7 +150,8 @@ class TestFtu(GaiaTestCase):
             lambda m: 'connected' in m.find_element(
                 By.CSS_SELECTOR,
                 '#networks-list li[data-ssid="%s"] aside' %
-                self.testvars['wifi']['ssid']).get_attribute('class'))
+                self.testvars['wifi']['ssid']).get_attribute('class'),
+            timeout=60)
 
         self.assertTrue(self.data_layer.is_wifi_connected(self.testvars['wifi']),
                         "WiFi was not connected via FTU app")
