@@ -3,22 +3,33 @@
 /* exported CallHandler */
 /* global KeypadManager */
 
-var CallHandler = {
+window.CallHandler = {
   _telephony: window.navigator.mozTelephony,
 
   call: function ch_call(number) {
     var sanitizedNumber = number.replace(/-/g, '');
     var telephony = this._telephony;
     if (telephony) {
-      /* XXX: Temporary fix to handle old and new telephony API
-         To remove when bug 969218 lands */
-      var promiseOrCall = telephony.dialEmergency(sanitizedNumber);
-      if (promiseOrCall && promiseOrCall.then) {
-        promiseOrCall.then(function(call) {
-          this._installHandlers(call);
-        }.bind(this));
-      } else {
-        this._installHandlers(promiseOrCall);
+      var call = telephony.dialEmergency(sanitizedNumber);
+      if (call) {
+        var cb = function clearPhoneView() {
+          KeypadManager.updatePhoneNumber('');
+        };
+        call.onconnected = cb;
+
+        call.ondisconnected = function callEnded() {
+          cb();
+        };
+      var call = telephony.dialEmergency(sanitizedNumber);
+      if (call) {
+        var cb = function clearPhoneView() {
+          window.KeypadManager.updatePhoneNumber('');
+        };
+        call.onconnected = cb;
+
+        call.ondisconnected = function callEnded() {
+          cb();
+        };
       }
     }
   },
@@ -39,5 +50,5 @@ var CallHandler = {
 
 window.addEventListener('load', function onload() {
   window.removeEventListener('load', onload);
-  KeypadManager.init();
+  window.KeypadManager.init();
 });
