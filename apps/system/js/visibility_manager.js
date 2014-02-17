@@ -34,7 +34,7 @@
         case 'status-active':
         case 'attentionscreenhide':
         case 'will-unlock':
-          if (LockScreen.locked)
+          if (window.lockScreen && window.lockScreen.locked)
             return;
 
           this.publish('showwindows');
@@ -77,7 +77,7 @@
 
             if (this._normalAudioChannelActive &&
                 evt.detail.channel !== 'normal' &&
-                LockScreen.locked) {
+                window.lockScreen && window.lockScreen.locked) {
               this._deviceLockedTimer = setTimeout(function setVisibility() {
                 this.publish('hidewindow',
                   { screenshoting: false, type: evt.type });

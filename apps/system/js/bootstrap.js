@@ -10,7 +10,8 @@ window.addEventListener('load', function startup() {
    */
   function registerGlobalEntries() {
     /** @global */
-    window.secureWindowManager = new SecureWindowManager();
+    window.secureWindowManager = window.secureWindowManager ||
+      new SecureWindowManager();
     /** @global */
     window.secureWindowFactory = new SecureWindowFactory();
     /** @global */

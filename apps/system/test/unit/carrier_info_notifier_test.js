@@ -6,23 +6,23 @@ requireApp('system/test/unit/mock_lock_screen.js');
 requireApp('system/test/unit/mock_notification_screen.js');
 requireApp('system/test/unit/mock_l10n.js');
 
-
 if (typeof window.ModalDialog == 'undefined') {
   window.ModalDialog = null;
 }
 
-if (typeof window.LockScreen == 'undefined') {
-  window.LockScreen = null;
+if (typeof window.lockScreen == 'undefined') {
+  window.lockScreen = null;
 }
 
 if (typeof window.NotificationScreen == 'undefined') {
   window.NotificationScreen = null;
 }
 
-
+mocha.globals(['ModalDialog', 'NotificationScreen', 'lockScreen']);
 suite('carrier info notifier >', function() {
   var subject;
 
+  var originalLocked;
   var realL10n;
   var realModalDialog;
   var realLockScreen;
@@ -46,8 +46,9 @@ suite('carrier info notifier >', function() {
     realModalDialog = window.ModalDialog;
     window.ModalDialog = MockModalDialog;
 
-    realLockScreen = window.LockScreen;
-    window.LockScreen = MockLockScreen;
+    window.lockScreen = window.MockLockScreen;
+    originalLocked = window.lockScreen.locked;
+    window.lockScreen.locked = false;
 
     realNotificationScreen = window.NotificationScreen;
     window.NotificationScreen = MockNotificationScreen;
@@ -69,7 +70,7 @@ suite('carrier info notifier >', function() {
 
   test('CDMA record information: locked', function(done) {
     var ptr = 0;
-    LockScreen.locked = true;
+    window.lockScreen.locked = true;
     MockNotificationScreen.mCallback = function(param) {
       assert.equal(param.text, expectedDisplay[ptr]);
       ptr++;
@@ -86,8 +87,7 @@ suite('carrier info notifier >', function() {
     window.ModalDialog.mTeardown();
     window.ModalDialog = realModalDialog;
 
-    window.LockScreen.mTeardown();
-    window.LockScreen = realLockScreen;
+    window.lockScreen.locked = originalLocked;
 
     window.NotificationScreen.mTeardown();
     window.NotificationScreen = realNotificationScreen;

@@ -565,7 +565,6 @@
             new this.constructor.SUB_COMPONENTS[componentName](this);
         }
       }
-
       if (this.config.chrome) {
         this.appChrome = new self.AppChrome(this);
       }

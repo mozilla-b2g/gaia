@@ -105,7 +105,7 @@ var FtuLauncher = {
 
       case 'lock':
         if (this._isRunningFirstTime)
-          LockScreen.unlock(true);
+          lockScreen.unlock(true);
         break;
     }
   },

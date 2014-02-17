@@ -153,7 +153,11 @@ var NfcManager = {
 
   isScreenUnlockAndEnabled: function nm_isScreenUnlockAndEnabled() {
     // Policy:
-    return !LockScreen.locked && ScreenManager.screenEnabled;
+    if (ScreenManager.screenEnabled && lockScreen && !lockScreen.locked) {
+      return true;
+    } else {
+      return false;
+    }
   },
 
   dispatchHardwareChangeEvt: function nm_dispatchHardwareChangeEvt(state) {
