@@ -24,7 +24,7 @@ suite('Renderer', function() {
       return row;
     }
 
-    var ime, activeIme, _iw, _ih;
+    var ime, activeIme;
     setup(function() {
       document.body.innerHTML = '';
 
@@ -41,28 +41,14 @@ suite('Renderer', function() {
       activeIme = document.createElement('div');
       ime.appendChild(activeIme);
 
-      // we're testing layout stuff, so make sure to also have width/height
-      // in a headless browser
-      _iw = Object.getOwnPropertyDescriptor(window, 'innerWidth');
-      _ih = Object.getOwnPropertyDescriptor(window, 'innerHeight');
-
-      Object.defineProperty(window, 'innerWidth', makeDescriptor(300));
-      Object.defineProperty(window, 'innerHeight', makeDescriptor(400));
       Object.defineProperty(ime, 'clientWidth', makeDescriptor(300));
 
       IMERender.init();
       IMERender.activeIme = activeIme;
     });
 
-    teardown(function() {
-      Object.defineProperty(window, 'innerWidth', _iw);
-      Object.defineProperty(window, 'innerHeight', _ih);
-      _iw = _ih = null;
-    });
-
     test('Add portrait class to IME in portrait mode', function() {
-      Object.defineProperty(window, 'innerWidth', makeDescriptor(200));
-      Object.defineProperty(window, 'innerHeight', makeDescriptor(400));
+      IMERender.setCachedWindowSize(200, 400);
 
       IMERender.resizeUI(null);
 
@@ -71,8 +57,7 @@ suite('Renderer', function() {
     });
 
     test('Add landscape class to IME in landscape mode', function() {
-      Object.defineProperty(window, 'innerWidth', makeDescriptor(400));
-      Object.defineProperty(window, 'innerHeight', makeDescriptor(200));
+      IMERender.setCachedWindowSize(400, 200);
 
       IMERender.resizeUI(null);
 
@@ -124,9 +109,8 @@ suite('Renderer', function() {
     });
 
     test('Side keys should fill up space', function(next) {
-      Object.defineProperty(window, 'innerWidth', makeDescriptor(200));
+      IMERender.setCachedWindowSize(200, 400);
       Object.defineProperty(ime, 'clientWidth', makeDescriptor(200));
-      Object.defineProperty(window, 'innerHeight', makeDescriptor(400));
 
       var row = createKeyboardRow(['a', 'b', 'c'], 3);
 
@@ -159,9 +143,8 @@ suite('Renderer', function() {
     });
 
     test('Side keys should fill up space in landscape', function(next) {
-      Object.defineProperty(window, 'innerWidth', makeDescriptor(400));
+      IMERender.setCachedWindowSize(400, 200);
       Object.defineProperty(ime, 'clientWidth', makeDescriptor(400));
-      Object.defineProperty(window, 'innerHeight', makeDescriptor(200));
 
       var row = createKeyboardRow(['a', 'b', 'c'], 3);
 
@@ -190,12 +173,9 @@ suite('Renderer', function() {
     });
 
     test('Sidekeys should adjust space when rotating', function(next) {
-      Object.defineProperty(Window.prototype, 'innerWidth',
-        makeDescriptor(400));
+      IMERender.setCachedWindowSize(400, 200);
       Object.defineProperty(ime, 'clientWidth',
         makeDescriptor(400));
-      Object.defineProperty(Window.prototype, 'innerHeight',
-        makeDescriptor(200));
 
       var row = createKeyboardRow(['a', 'b', 'c'], 3);
 
@@ -209,12 +189,8 @@ suite('Renderer', function() {
       IMERender.resizeUI(layout, function() {
         var visual = row.querySelectorAll('.visual-wrapper');
 
-        Object.defineProperty(Window.prototype, 'innerWidth',
-          makeDescriptor(700));
-        Object.defineProperty(ime, 'clientWidth',
-          makeDescriptor(700));
-        Object.defineProperty(Window.prototype, 'innerHeight',
-          makeDescriptor(1000));
+        IMERender.setCachedWindowSize(700, 1000);
+        Object.defineProperty(ime, 'clientWidth', makeDescriptor(700));
 
         IMERender.resizeUI(layout, function() {
             assert.equal(visual[0].clientWidth, visual[1].clientWidth,
@@ -540,7 +516,11 @@ suite('Renderer', function() {
         // 3 px margin on both sides
         var expected = ((el.offsetWidth - dismissWidth) / 3) - 6 | 0;
         for (var i = 0; i < spans.length; i++) {
-          assert.equal(spans[i].parentNode.offsetWidth, expected);
+          // it can differ 1 pixel because of outlining here, depending
+          // on window size
+          assert.equal(
+            Math.abs(spans[i].parentNode.offsetWidth - expected) <= 1,
+            true);
         }
       });
 
