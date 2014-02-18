@@ -4,6 +4,11 @@ var utils = window.utils || {};
 
 if (typeof utils.squareImage === 'undefined') {
   utils.squareImage = function(blob, callback) {
+    if (!blob) {
+      callback();
+      return;
+    }
+
     var img = document.createElement('img');
     var url = URL.createObjectURL(blob);
     img.src = url;
