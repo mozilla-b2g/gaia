@@ -6,6 +6,7 @@ define(function(require, exports, module) {
  */
 
 var debug = require('debug')('setting');
+var storage = require('vendor/cookies');
 var model = require('vendor/model');
 
 /**
@@ -13,12 +14,6 @@ var model = require('vendor/model');
  */
 
 module.exports = Setting;
-
-/**
- * Locals
- */
-
-var noop = function() {};
 
 // Mixin Model methods
 model(Setting.prototype);
@@ -93,7 +88,7 @@ Setting.prototype.select = function(key, options) {
 
   // If an option was not found,
   // default to selecting the first.
-  if (!selected) { return this.select(0); }
+  if (!selected) { return this.select(0, options); }
 
   // Store the new choice
   this.set('selected', selected.key, options);
@@ -202,17 +197,13 @@ Setting.prototype.value = function() {
  * to storage for retreval in the
  * next session.
  *
- * We're using localStorage as performance
- * vastly outweighed indexedBD (asyncStorage)
- * by 1ms/500ms on Hamachi device.
- *
  * @public
  */
 Setting.prototype.save = function() {
   var selected = this.get('selected');
   debug('saving key: %s, selected: %s', this.key, selected);
-  localStorage.setItem('setting:' + this.key, selected);
-  debug('saved key: %s', selected);
+  storage.setItem('setting_' + this.key, selected, Infinity);
+  debug('saved key: %s, value: %s', this.key, selected);
 };
 
 /**
@@ -220,24 +211,18 @@ Setting.prototype.save = function() {
  * from storage, updating the
  * `selected` key.
  *
- * We're using localStorage, as performance
- * vastly outweighed indexedBD (asyncStorage)
- * by 1ms/500ms on Hamachi device.
- *
  * Leaving in the `done` callback in-case
  * storage goes async again in future.
  *
  * @param  {Function} done
  * @public
  */
-Setting.prototype.fetch = function(done) {
-  done = done || noop;
-  if (!this.get('persistent')) { return done(); }
+Setting.prototype.fetch = function() {
+  if (!this.get('persistent')) { return; }
   debug('fetch value key: %s', this.key);
-  var value = localStorage.getItem('setting:' + this.key);
+  var value = storage.getItem('setting_' + this.key);
   debug('fetched %s value: %s', this.key, value);
   if (value) { this.select(value, { silent: true }); }
-  done();
 };
 
 /**
