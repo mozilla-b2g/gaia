@@ -5,9 +5,13 @@ requireApp('system/js/sheets_transition.js');
 requireApp('system/test/unit/mock_stack_manager.js');
 requireApp('system/test/unit/mock_app_window_manager.js');
 requireApp('system/test/unit/mock_homescreen_launcher.js');
+requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 
 var mocksForSheetsTransition = new MocksHelper([
-  'StackManager', 'AppWindowManager', 'HomescreenLauncher'
+  'StackManager',
+  'AppWindowManager',
+  'HomescreenLauncher',
+  'SettingsListener'
 ]).init();
 
 suite('system/SheetsTransition >', function() {
@@ -58,7 +62,7 @@ suite('system/SheetsTransition >', function() {
 
     test('it should set the transition property on the current sheet',
     function() {
-      var transition = 'transform 0s ease 0s, opacity 0s ease 0s';
+      var transition = 'transform 0ms linear 0s, opacity 0ms linear 0s';
       assert.equal(settingsFrame.style.transition, transition);
     });
 
@@ -69,7 +73,7 @@ suite('system/SheetsTransition >', function() {
 
     test('it should set the transition property on the new sheet',
     function() {
-      var transition = 'transform 0s ease 0s, opacity 0s ease 0s';
+      var transition = 'transform 0ms linear 0s, opacity 0ms linear 0s';
       assert.equal(dialerFrame.style.transition, transition);
     });
 
@@ -97,7 +101,7 @@ suite('system/SheetsTransition >', function() {
 
       test('it should set the transition property on the new sheet',
       function() {
-        var transition = 'transform 0s ease 0s, opacity 0s ease 0s';
+        var transition = 'transform 0ms linear 0s, opacity 0ms linear 0s';
         assert.equal(contactsFrame.style.transition, transition);
       });
 
@@ -465,6 +469,89 @@ suite('system/SheetsTransition >', function() {
         getNextStub.returns(null);
         SheetsTransition.begin('rtl');
         assert.isTrue(true, 'did not fail');
+      });
+    });
+  });
+
+  suite('Preparing edge candidates >', function() {
+    function dispatchStackChanged(apps, position) {
+      var details = {
+        position: position,
+        sheets: apps
+      };
+
+      var evt = new CustomEvent('stackchanged', { detail: details });
+      window.dispatchEvent(evt);
+    };
+
+    setup(function() {
+      SheetsTransition.init();
+      MockSettingsListener.mCallbacks['edgesgesture.enabled'](true);
+    });
+
+    suite('Going back to the homescreen', function() {
+      setup(function() {
+        dialerFrame.classList.add('edge-candidate');
+        dispatchStackChanged([dialer, contacts, settings], null);
+      });
+
+      test('it should remove the css class', function() {
+        assert.isFalse(dialerFrame.classList.contains('edge-candidate'));
+        assert.isFalse(contactsFrame.classList.contains('edge-candidate'));
+        assert.isFalse(settingsFrame.classList.contains('edge-candidate'));
+      });
+    });
+
+    suite('With one sheet before and one after', function() {
+      setup(function() {
+        dispatchStackChanged([dialer, contacts, settings], 1);
+      });
+
+      test('it should put the css class on all of them', function() {
+        assert.isTrue(dialerFrame.classList.contains('edge-candidate'));
+        assert.isTrue(contactsFrame.classList.contains('edge-candidate'));
+        assert.isTrue(settingsFrame.classList.contains('edge-candidate'));
+      });
+    });
+
+    suite('With sheets only after', function() {
+      setup(function() {
+        dispatchStackChanged([dialer, contacts, settings], 0);
+      });
+
+      test('it should put the css class on the next one', function() {
+        assert.isTrue(dialerFrame.classList.contains('edge-candidate'));
+        assert.isTrue(contactsFrame.classList.contains('edge-candidate'));
+        assert.isFalse(settingsFrame.classList.contains('edge-candidate'));
+      });
+    });
+
+    suite('With sheets only before', function() {
+      setup(function() {
+        dispatchStackChanged([dialer, contacts, settings], 2);
+      });
+
+      test('it should put the css class on the previous one', function() {
+        assert.isFalse(dialerFrame.classList.contains('edge-candidate'));
+        assert.isTrue(contactsFrame.classList.contains('edge-candidate'));
+        assert.isTrue(settingsFrame.classList.contains('edge-candidate'));
+      });
+    });
+
+    suite('If the edge gestures are disabled', function() {
+      setup(function() {
+        MockSettingsListener.mCallbacks['edgesgesture.enabled'](false);
+        dispatchStackChanged([dialer, contacts, settings], 1);
+      });
+
+      teardown(function() {
+        MockSettingsListener.mCallbacks['edgesgesture.enabled'](true);
+      });
+
+      test('it should not touch the sheets', function() {
+        assert.isFalse(dialerFrame.classList.contains('edge-candidate'));
+        assert.isFalse(contactsFrame.classList.contains('edge-candidate'));
+        assert.isFalse(settingsFrame.classList.contains('edge-candidate'));
       });
     });
   });

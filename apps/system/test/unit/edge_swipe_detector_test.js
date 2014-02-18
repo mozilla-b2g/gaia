@@ -545,41 +545,41 @@ suite('system/EdgeSwipeDetector >', function() {
     });
 
     suite('Snaping >', function() {
-      suite('when the progress was < 33%', function() {
+      suite('when the progress was < 20%', function() {
         test('it should snap the sheets in place', function() {
           var snapSpy = this.sinon.spy(MockSheetsTransition, 'snapInPlace');
-          swipe(this.sinon.clock, panel, 3, (width / 5), 240, 250);
+          swipe(this.sinon.clock, panel, 3, (width / 8), 240, 250);
           assert.isTrue(snapSpy.calledOnce);
         });
 
         test('it should snap before we end the sheets transition', function() {
           var snapSpy = this.sinon.spy(MockSheetsTransition, 'snapInPlace');
           var endSpy = this.sinon.spy(MockSheetsTransition, 'end');
-          swipe(this.sinon.clock, panel, 3, (width / 5), 240, 250);
+          swipe(this.sinon.clock, panel, 3, (width / 8), 240, 250);
           assert.isTrue(snapSpy.calledBefore(endSpy));
         });
 
         suite('but there is inertia', function() {
           test('it should snap the sheets back', function() {
             var snapSpy = this.sinon.spy(MockSheetsTransition, 'snapBack');
-            swipe(this.sinon.clock, panel, 3, (width / 4), 240, 250, 100);
+            swipe(this.sinon.clock, panel, 3, (width / 8), 240, 250, 100);
             assert.isTrue(snapSpy.calledOnce);
           });
 
           test('it should pass the speed to snapBack', function() {
             var snapSpy = this.sinon.spy(MockSheetsTransition, 'snapBack');
-            swipe(this.sinon.clock, panel, 3, (width / 4), 240, 250, 100);
+            swipe(this.sinon.clock, panel, 3, (width / 8), 240, 250, 100);
 
             var givenSpeed = snapSpy.firstCall.args[0];
 
-            assert.isTrue(givenSpeed > 0.0015);
-            assert.isTrue(givenSpeed < 0.0030);
+            assert.isTrue(givenSpeed > 0.0010);
+            assert.isTrue(givenSpeed < 0.0020);
           });
 
           test('it should go back in the stack after the transition',
           function() {
             var goSpy = this.sinon.spy(MockStackManager, 'goPrev');
-            swipe(this.sinon.clock, panel, 3, (width / 4), 240, 250, 100);
+            swipe(this.sinon.clock, panel, 3, (width / 8), 240, 250, 100);
             assert.isFalse(goSpy.calledOnce);
             this.sinon.clock.tick();
             assert.isTrue(goSpy.calledOnce);
@@ -587,16 +587,16 @@ suite('system/EdgeSwipeDetector >', function() {
         });
       });
 
-      suite('when the progress was > 33% ltr', function() {
+      suite('when the progress was > 20% ltr', function() {
         test('it should snap the sheets back', function() {
           var snapSpy = this.sinon.spy(MockSheetsTransition, 'snapBack');
-          swipe(this.sinon.clock, panel, 3, (width / 1.5), 240, 250);
+          swipe(this.sinon.clock, panel, 3, (width / 1.4), 240, 250);
           assert.isTrue(snapSpy.calledOnce);
         });
 
         test('it should pass the speed to snapBack', function() {
           var snapSpy = this.sinon.spy(MockSheetsTransition, 'snapBack');
-          swipe(this.sinon.clock, panel, 3, (width / 1.5), 240, 250);
+          swipe(this.sinon.clock, panel, 3, (width / 1.4), 240, 250);
 
           var givenSpeed = snapSpy.firstCall.args[0];
 
@@ -607,7 +607,7 @@ suite('system/EdgeSwipeDetector >', function() {
         test('it should snap go back in the stack after the transition',
         function() {
           var goSpy = this.sinon.spy(MockStackManager, 'goPrev');
-          swipe(this.sinon.clock, panel, 3, (width / 1.5), 240, 250);
+          swipe(this.sinon.clock, panel, 3, (width / 1.4), 240, 250);
           assert.isFalse(goSpy.calledOnce);
           this.sinon.clock.tick();
           assert.isTrue(goSpy.calledOnce);
@@ -616,12 +616,12 @@ suite('system/EdgeSwipeDetector >', function() {
         test('it should snap before we end the sheets transition', function() {
           var snapSpy = this.sinon.spy(MockSheetsTransition, 'snapBack');
           var endSpy = this.sinon.spy(MockSheetsTransition, 'end');
-          swipe(this.sinon.clock, panel, 3, (width / 1.5), 240, 250);
+          swipe(this.sinon.clock, panel, 3, (width / 1.4), 240, 250);
           assert.isTrue(snapSpy.calledBefore(endSpy));
         });
       });
 
-      suite('when the progress was > 33% rtl', function() {
+      suite('when the progress was > 20% rtl', function() {
         setup(function() {
           panel = EdgeSwipeDetector.next;
         });

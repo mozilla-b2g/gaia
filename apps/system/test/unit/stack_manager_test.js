@@ -130,6 +130,22 @@ suite('system/StackManager >', function() {
         assert.deepEqual(StackManager.getPrev().config, dialer.config);
       });
 
+      test('it should dispatch a stackchanged event', function(done) {
+        window.addEventListener('stackchanged', function onStackChanged(evt) {
+          window.removeEventListener('stackchanged', onStackChanged);
+
+          var detail = evt.detail;
+          assert.equal(detail.position, 1);
+          assert.equal(detail.sheets.length, 3);
+          assert.deepEqual(detail.sheets[0].config, dialer.config);
+          assert.deepEqual(detail.sheets[1].config, contact.config);
+          assert.deepEqual(detail.sheets[2].config, settings.config);
+          done();
+        });
+
+        StackManager.goNext();
+      });
+
       test('should do nothing when we\'re at the top of the stack',
       function() {
         StackManager.goNext();
@@ -209,6 +225,22 @@ suite('system/StackManager >', function() {
         StackManager.goPrev();
         assert.deepEqual(StackManager.getCurrent().config, contact.config);
         assert.isUndefined(StackManager.getPrev());
+      });
+
+      test('it should dispatch a stackchanged event', function(done) {
+        window.addEventListener('stackchanged', function onStackChanged(evt) {
+          window.removeEventListener('stackchanged', onStackChanged);
+
+          var detail = evt.detail;
+          assert.equal(detail.position, 2);
+          assert.equal(detail.sheets.length, 3);
+          assert.deepEqual(detail.sheets[0].config, contact.config);
+          assert.deepEqual(detail.sheets[1].config, settings.config);
+          assert.deepEqual(detail.sheets[2].config, dialer.config);
+          done();
+        });
+
+        appLaunch(dialer, true);
       });
     });
 
@@ -343,12 +375,31 @@ suite('system/StackManager >', function() {
       StackManager.goPrev();
     });
 
+    test('the current position should be set to null', function() {
+      home();
+      assert.isUndefined(StackManager.getCurrent());
+    });
+
     test('the current sheet should move to the top of the stack', function() {
       assert.deepEqual(StackManager.getCurrent().config, dialer.config);
-      assert.deepEqual(StackManager.getNext().config, contact.config);
       home();
-      assert.deepEqual(StackManager.getCurrent().config, dialer.config);
-      assert.deepEqual(StackManager.getPrev().config, contact.config);
+      appLaunch(settings);
+      assert.deepEqual(StackManager.getPrev().config, dialer.config);
+    });
+
+    test('it should dispatch a stackchanged event', function(done) {
+      window.addEventListener('stackchanged', function onStackChanged(evt) {
+        window.removeEventListener('stackchanged', onStackChanged);
+
+        var detail = evt.detail;
+        assert.equal(detail.position, -1);
+        assert.equal(detail.sheets.length, 2);
+        assert.deepEqual(detail.sheets[0].config, contact.config);
+        assert.deepEqual(detail.sheets[1].config, dialer.config);
+        done();
+      });
+
+      home();
     });
 
     suite('if the stack is empty', function() {
@@ -359,6 +410,16 @@ suite('system/StackManager >', function() {
 
       test('it shouldn\'t do anything', function() {
         assert.equal(StackManager.length, 0);
+      });
+
+      suite('and we press home a second time', function() {
+        setup(function() {
+          home();
+        });
+
+        test('the stack should still be empty', function() {
+          assert.equal(StackManager.length, 0);
+        });
       });
     });
   });
