@@ -4815,4 +4815,30 @@ suite('thread_ui.js >', function() {
       assert.equal(data, null);
     });
   });
+
+  suite('Edit mode tests', function() {
+    var mainWrapper;
+
+    setup(function() {
+      mainWrapper = document.getElementById('main-wrapper');
+    });
+
+    test('Enter edit mode', function() {
+      ThreadUI.startEdit();
+      assert.isTrue(mainWrapper.classList.contains('edit'));
+    });
+
+    test('Exit edit mode', function() {
+      ThreadUI.cancelEdit();
+      assert.isTrue(!mainWrapper.classList.contains('edit'));
+    });
+
+    test('Exit edit mode is idempotent', function() {
+      ThreadUI.startEdit();
+      assert.isTrue(mainWrapper.classList.contains('edit'));
+      ThreadUI.cancelEdit();
+      assert.isTrue(!mainWrapper.classList.contains('edit'));
+      assert.isTrue(!mainWrapper.classList.contains('edit'));
+    });
+  });
 });

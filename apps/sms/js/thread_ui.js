@@ -423,7 +423,6 @@ var ThreadUI = global.ThreadUI = {
 
   messageComposerInputHandler: function thui_messageInputHandler(event) {
     this.updateSubjectHeight();
-    this.updateElementsHeight();
     this.enableSend();
 
     if (Compose.type === 'sms') {
@@ -1056,18 +1055,17 @@ var ThreadUI = global.ThreadUI = {
   // TODO this function probably triggers synchronous workflows, we should
   // remove them (Bug 891029)
   updateElementsHeight: function thui_updateElementsHeight() {
+    // we need to set it back to auto so that we know its "natural size"
+    // this will trigger a sync reflow when we get its scrollHeight below,
+    // so we should try to find something better maybe in Bug 888950
+    this.input.style.height = 'auto';
+
     // First of all we retrieve all CSS info which we need
     var verticalMargin = this.INPUT_MARGIN;
     var inputMaxHeight = parseInt(this.input.style.maxHeight, 10);
     var buttonHeight = this.sendButton.offsetHeight;
     var subjectHeight = this.subjectInput.offsetHeight;
     var availableHeight = window.innerHeight - this.HEADER_HEIGHT;
-
-    // we need to set it back to auto so that we know its "natural size"
-    // this will trigger a sync reflow when we get its scrollHeight at the next
-    // line, so we should try to find something better
-    // maybe in Bug 888950
-    this.input.style.height = 'auto';
 
     // the new height is different whether the current height is bigger than the
     // max height
@@ -1780,9 +1778,11 @@ var ThreadUI = global.ThreadUI = {
   },
 
   cancelEdit: function thlui_cancelEdit() {
-    this.inEditMode = false;
-    this.updateElementsHeight();
-    this.mainWrapper.classList.remove('edit');
+    if (this.inEditMode) {
+      this.inEditMode = false;
+      this.updateElementsHeight();
+      this.mainWrapper.classList.remove('edit');
+    }
   },
 
   chooseMessage: function thui_chooseMessage(target) {
