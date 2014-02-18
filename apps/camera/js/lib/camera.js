@@ -307,6 +307,7 @@ Camera.prototype.takePicture = function(options) {
   var self = this;
   var rotation = orientation.get();
   var selectedCamera = this.get('selectedCamera');
+  var takenImage;
   rotation = selectedCamera === 'front'? -rotation: rotation;
 
   this.emit('busy');
@@ -331,13 +332,6 @@ Camera.prototype.takePicture = function(options) {
     self.mozCamera.takePicture(config, onSuccess, onError);
   }
 
-  function onSuccess(blob) {
-    self.resumePreview();
-    self.set('focus', 'none');
-    self.emit('newimage', { blob: blob });
-    complete();
-  }
-
   function onError() {
     var title = navigator.mozL10n.get('error-saving-title');
     var text = navigator.mozL10n.get('error-saving-text');
@@ -345,13 +339,23 @@ Camera.prototype.takePicture = function(options) {
     complete();
   }
 
+  function onSuccess(blob) {
+    self.resumePreview();
+    self.set('focus', 'none');
+    takenImage = {
+      blob: blob
+    };
+    self.emit('newimage', takenImage);
+    complete();
+  }
+
   function complete() {
     self.emit('ready');
   }
+
 };
 
-/**
- * Focus the camera, callback when done.
+/** Focus the camera, callback when done.
  *
  * If the camera don't support focus,
  * callback is called (sync).
@@ -390,7 +394,7 @@ Camera.prototype.focus = function(done) {
  */
 Camera.prototype.toggleRecording = function(options) {
   var recording = this.get('recording');
-  if (recording) { this.stopRecording(options); }
+  if (recording) { this.stopRecording(); }
   else { this.startRecording(options); }
 };
 
@@ -465,6 +469,7 @@ Camera.prototype.stopRecording = function() {
   var storage = this.video.storage;
   var video = this.video;
   var self = this;
+  var takenVideo;
 
   if (notRecording) {
     return;
@@ -494,21 +499,25 @@ Camera.prototype.stopRecording = function() {
   }
 
   function gotVideoBlob(blob) {
-    getVideoMetaData(blob, function(err, data) {
-      if (err) { return this.onRecordingError(); }
-
-      self.emit('newvideo', {
-        blob: blob,
-        filepath: video.filepath,
-        poster: data.poster,
-        width: data.width,
-        height: data.height,
-        rotation: data.rotation
-      });
-
-      self.emit('ready');
-    });
+    takenVideo = {
+      blob: blob,
+      filepath: video.filepath
+    };
+    getVideoMetaData(blob, gotVideoMetaData);
   }
+
+  function gotVideoMetaData(error, data) {
+    if (error) {
+      return self.onRecordingError();
+    }
+    takenVideo.poster = data.poster;
+    takenVideo.width = data.width;
+    takenVideo.height = data.height;
+    takenVideo.rotation = data.rotation;
+    self.emit('newvideo', takenVideo);
+    self.emit('ready');
+  }
+
 };
 
 // TODO: This is UI stuff, so
@@ -633,6 +642,8 @@ Camera.prototype.resumePreview = function() {
  * @return {String}
  */
 Camera.prototype.setMode = function(mode) {
+  var recording = this.get('recording');
+  if (recording) { this.stopRecording(); }
   this.mode = mode;
   return this;
 };
