@@ -71,7 +71,7 @@
    */
   HomescreenWindow.prototype.setBrowserConfig =
     function hw_setBrowserConfig(manifestURL) {
-      var app = Applications.getByManifestURL(manifestURL);
+      var app = applications.getByManifestURL(manifestURL);
       this.origin = app.origin;
       this.manifestURL = app.manifestURL;
       this.url = app.origin + '/index.html#root';

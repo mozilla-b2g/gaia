@@ -37,7 +37,7 @@
    * @class BrowserConfigHelper
    */
   window.BrowserConfigHelper = function(appURL, manifestURL) {
-    var app = Applications.getByManifestURL(manifestURL);
+    var app = applications.getByManifestURL(manifestURL);
     this.url = appURL;
 
     if (app) {

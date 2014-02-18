@@ -1,7 +1,7 @@
 'use strict';
 
 mocha.globals(['SettingsListener', 'removeEventListener', 'addEventListener',
-      'dispatchEvent', 'AppWindowManager', 'Applications', 'ManifestHelper',
+      'dispatchEvent', 'AppWindowManager', 'applications', 'ManifestHelper',
       'HomescreenWindow', 'AttentionScreen', 'OrientationManager', 'System',
       'AppWindow', 'BrowserFrame', 'BrowserConfigHelper', 'BrowserMixin',
       'homescreenLauncher']);
@@ -25,6 +25,7 @@ suite('system/HomescreenWindow', function() {
   mocksForHomescreenWindow.attachTestHelpers();
   var homescreenWindow;
   var stubById;
+  var realApplications;
 
   setup(function(done) {
     this.sinon.useFakeTimers();
@@ -37,11 +38,16 @@ suite('system/HomescreenWindow', function() {
     requireApp('system/js/app_window.js');
     requireApp('system/js/browser_mixin.js');
     requireApp('system/js/homescreen_window.js', done);
+
+    realApplications = window.applications;
+    window.applications = MockApplications;
   });
 
   teardown(function() {
     window.homescreenLauncher = undefined;
     stubById.restore();
+    window.applications = realApplications;
+    realApplications = null;
   });
 
   suite('homescreen window instance.', function() {
