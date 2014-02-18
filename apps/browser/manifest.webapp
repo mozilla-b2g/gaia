@@ -58,6 +58,14 @@
           "required":true, "pattern":"https?:.{1,16384}", "patternFlags":"i"
         }
       }
+    },
+    "nfc-ndef-discovered": {
+      "filters": {
+        "type": "url",
+        "url": {
+          "required":true, "pattern":"https?:.{1,16384}", "patternFlags":"i"
+         }
+      }
     }
   }
 }

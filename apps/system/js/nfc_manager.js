@@ -523,28 +523,45 @@ var NfcManager = {
       return null;
     }
 
-    if (prefix == 'tel:') {
-      // handle special case
-      var number = NfcUtil.toUTF8(record.payload.subarray(1));
-      this._debug('Handle Ndef URI type, TEL');
-      activityText = {
-        name: 'dial',
-        data: {
-          type: 'webtelephony/number',
-          number: number,
-          uri: prefix + number
-        }
-      };
-    } else {
-      activityText = {
-        name: 'nfc-ndef-discovered',
-        data: {
-          type: 'uri',
-          rtd: record.type,
-          uri: prefix + NfcUtil.toUTF8(record.payload.subarray(1))
-        }
-      };
+    switch (prefix) {
+      case 'tel:':
+        var number = NfcUtil.toUTF8(record.payload.subarray(1));
+        this._debug('Handle Ndef URI type, TEL');
+        activityText = {
+          name: 'dial',
+          data: {
+            type: 'webtelephony/number',
+            number: number,
+            uri: prefix + number
+          }
+        };
+        break;
+      case 'http://www.':
+      case 'https://www.': // Fall through.
+      case 'http://':
+      case 'https://':
+        this._debug('Handle Ndef URI type, Http(s)');
+        activityText = {
+          name: 'nfc-ndef-discovered',
+          data: {
+            type: 'url',
+            rtd: record.type,
+            url: prefix + NfcUtil.toUTF8(record.payload.subarray(1))
+          }
+        };
+        break;
+      default:
+        activityText = {
+          name: 'nfc-ndef-discovered',
+          data: {
+            type: 'uri',
+            rtd: record.type,
+            uri: prefix + NfcUtil.toUTF8(record.payload.subarray(1))
+          }
+        };
+        break;
     }
+
     return activityText;
   },
 
