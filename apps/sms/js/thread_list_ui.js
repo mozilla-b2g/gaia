@@ -388,25 +388,33 @@ var ThreadListUI = {
 
   updateThread: function thlui_updateThread(message, options) {
     var thread = Threads.createThreadMockup(message, options);
-    // We remove the previous one in order to place the new one properly
     var existingThreadElement = document.getElementById('thread-' + thread.id);
+    var threadElementTime =
+      existingThreadElement ? +existingThreadElement.dataset.time : NaN;
+    var messageTime = +thread.timestamp;
 
-    // New message is older than the latest one?
-    var timestamp = +message.timestamp;
-    if (existingThreadElement &&
-      existingThreadElement.dataset.time > timestamp) {
-      // If the received SMS it's older that the latest one
-      // We need only to update the 'unread status' if needed
-      if (options && !options.read) {
-        this.mark(thread.id, 'unread');
-      }
-    } else {
-      if (existingThreadElement) {
-        this.removeThread(thread.id);
-      }
-      this.appendThread(thread);
-      this.setEmpty(false);
+    // Edge case: if we just received a message that is older than the latest
+    // one in the thread, we only need to update the 'unread' status.
+    var newMessageReceived = options && options.unread;
+    if (newMessageReceived && threadElementTime > messageTime) {
+      this.mark(thread.id, 'unread');
+      return;
     }
+
+    // If we just deleted messages in a thread but kept the last message
+    // unchanged, we don't need to update the thread UI.
+    var messagesDeleted = options && options.deleted;
+    if (messagesDeleted && threadElementTime === messageTime) {
+      return;
+    }
+
+    // General case: update the thread UI.
+    if (existingThreadElement) {
+      // remove the current thread node in order to place the new one properly
+      this.removeThread(thread.id);
+    }
+    this.appendThread(thread);
+    this.setEmpty(false);
   },
 
   onMessageSending: function thlui_onMessageSending(message) {
@@ -414,7 +422,7 @@ var ThreadListUI = {
   },
 
   onMessageReceived: function thlui_onMessageReceived(message) {
-    this.updateThread(message, {read: false});
+    this.updateThread(message, { unread: true });
   },
 
   appendThread: function thlui_appendThread(thread) {
@@ -458,6 +466,7 @@ var ThreadListUI = {
       this.checkInputs();
     }
   },
+
   // Adds a new grouping header if necessary (today, tomorrow, ...)
   createThreadContainer: function thlui_createThreadContainer(timestamp) {
     var threadContainer = document.createElement('div');
@@ -480,6 +489,7 @@ var ThreadListUI = {
     threadContainer.appendChild(threadsContainerDOM);
     return threadContainer;
   },
+
   // Method for updating all contact info after creating a contact
   updateContactsInfo: function mm_updateContactsInfo() {
     // Prevents cases where updateContactsInfo method is called
