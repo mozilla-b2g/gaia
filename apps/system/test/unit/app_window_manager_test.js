@@ -7,7 +7,7 @@ mocha.globals(['SettingsListener', 'removeEventListener', 'addEventListener',
       'SoftwareButtonManager', 'AttentionScreen', 'AppWindow',
       'lockScreen', 'OrientationManager', 'BrowserFrame',
       'BrowserConfigHelper', 'System', 'BrowserMixin', 'TransitionMixin',
-      'HomescreenLauncher', 'layoutManager']);
+      'homescreenLauncher', 'layoutManager']);
 
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 requireApp('system/test/unit/mock_lock_screen.js');
@@ -43,13 +43,16 @@ suite('system/AppWindowManager', function() {
     stubById.returns(document.createElement('div'));
 
     window.lockScreen = MockLockScreen;
-    window.activityWindowFactory = MockActivityWindowFactory;
+    window.activityWindowFactory = new ActivityWindowFactory();
     window.layoutManager = new LayoutManager().start();
 
     home = new HomescreenWindow('fakeHome');
-    MockHomescreenLauncher.mHomescreenWindow = home;
-    MockHomescreenLauncher.origin = 'fakeOrigin';
-    MockHomescreenLauncher.ready = true;
+    window.homescreenLauncher = new HomescreenLauncher().start();
+    homescreenLauncher.mFeedFixtures({
+      mHomescreenWindow: home,
+      mOrigin: 'fakeOrigin',
+      mReady: true
+    });
 
     app1 = new AppWindow(fakeAppConfig1);
     app2 = new AppWindow(fakeAppConfig2);
@@ -66,6 +69,10 @@ suite('system/AppWindowManager', function() {
     delete window.layoutManager;
     delete window.lockScreen;
     delete window.activityWindowFactory;
+    // MockHelper won't invoke mTeardown() for us
+    // since MockHomescreenLauncher is instantiable now
+    window.homescreenLauncher.mTeardown();
+    delete window.homescreenLauncher;
     stubById.restore();
   });
 
@@ -156,8 +163,8 @@ suite('system/AppWindowManager', function() {
     test('Press home on home displayed', function() {
       injectRunningApps(home);
       var stubEnsure = this.sinon.stub(home, 'ensure');
-      AppWindowManager._activeApp = MockHomescreenLauncher.mHomescreenWindow;
-      AppWindowManager.displayedApp = MockHomescreenLauncher.origin;
+      AppWindowManager._activeApp = homescreenLauncher.mHomescreenWindow;
+      AppWindowManager.displayedApp = homescreenLauncher.origin;
       AppWindowManager.handleEvent({ type: 'home' });
       assert.isTrue(stubEnsure.called);
     });
@@ -546,7 +553,7 @@ suite('system/AppWindowManager', function() {
       AppWindowManager._updateActiveApp(app1.instanceID);
 
       var activity = new ActivityWindow({});
-      ActivityWindowFactory._activeActivity = activity;
+      activityWindowFactory._activeActivity = activity;
 
       var stubDisplay = this.sinon.stub(AppWindowManager, 'display');
       AppWindowManager.launch(fakeAppConfig7Activity);

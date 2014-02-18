@@ -2,6 +2,7 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 /*global MockNavigatormozApps, MockNavigatorSettings, MocksHelper, MockL10n*/
+/*global Applications*/
 
 'use strict';
 
@@ -27,6 +28,9 @@ requireApp('system/test/unit/mock_title.js');
 requireApp('system/test/unit/mock_visibility_manager.js');
 requireApp('system/test/unit/mock_call_forwarding.js');
 requireApp('system/test/unit/mock_layout_manager.js');
+requireApp('system/test/unit/mock_secure_window_manager.js');
+requireApp('system/test/unit/mock_secure_window_factory.js');
+requireApp('system/test/unit/mock_activity_window_factory.js');
 
 mocha.globals([
   'Shortcuts',
@@ -44,10 +48,14 @@ mocha.globals([
   'storage',
   'ttlView',
   'title',
-  'ActivityWindowFactory',
   'visibilityManager',
   'callForwarding',
-  'layoutManager'
+  'layoutManager',
+  'visibilityManager',
+  'ActivityWindowFactory',
+  'activityWindowFactory',
+  'HomescreenLauncher',
+  'homescreenLauncher'
 ]);
 
 var mocksForBootstrap = new MocksHelper([
@@ -69,7 +77,10 @@ var mocksForBootstrap = new MocksHelper([
   'Title',
   'VisibilityManager',
   'CallForwarding',
-  'LayoutManager'
+  'LayoutManager',
+  'SecureWindowManager',
+  'SecureWindowFactory',
+  'ActivityWindowFactory'
 ]).init();
 
 suite('system/Bootstrap', function() {
@@ -127,6 +138,7 @@ suite('system/Bootstrap', function() {
 
     suite('at boot, if NOFTU is defined (i.e in DEBUG mode)', function() {
       setup(function() {
+        Applications.ready = true;
         MockNavigatorSettings.mSettings[setting] = false;
         window.dispatchEvent(new CustomEvent('load'));
         window.dispatchEvent(new CustomEvent('ftuskip'));
