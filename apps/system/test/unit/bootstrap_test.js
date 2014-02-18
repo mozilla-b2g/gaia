@@ -32,7 +32,8 @@ mocha.globals([
   'devtoolsView',
   'storage',
   'ttlView',
-  'title'
+  'title',
+  'ActivityWindowFactory'
 ]);
 
 var mocksForBootstrap = new MocksHelper([

@@ -472,7 +472,7 @@
     linkWindowActivity: function awm_linkWindowActivity(config) {
       // Caller should be either the current active inline activity window,
       // or the active app.
-      var caller = ActivityWindowFactory.getActiveWindow() || this._activeApp;
+      var caller = activityWindowFactory.getActiveWindow() || this._activeApp;
       this.runningApps[config.origin].activityCaller = caller;
       caller.activityCallee = this.runningApps[config.origin];
     },

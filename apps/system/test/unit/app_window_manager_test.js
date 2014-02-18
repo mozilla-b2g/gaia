@@ -1,7 +1,7 @@
 'use strict';
 
 mocha.globals(['SettingsListener', 'removeEventListener', 'addEventListener',
-      'dispatchEvent', 'ActivityWindow', 'ActivityWindowFactory',
+      'dispatchEvent', 'ActivityWindow', 'activityWindowFactory',
       'AppWindowManager', 'Applications', 'ManifestHelper',
       'KeyboardManager', 'StatusBar', 'HomescreenWindow',
       'SoftwareButtonManager', 'AttentionScreen', 'AppWindow',
@@ -43,6 +43,8 @@ suite('system/AppWindowManager', function() {
     stubById.returns(document.createElement('div'));
 
     window.lockScreen = MockLockScreen;
+    window.activityWindowFactory = MockActivityWindowFactory;
+
     home = new HomescreenWindow('fakeHome');
     MockHomescreenLauncher.mHomescreenWindow = home;
     MockHomescreenLauncher.origin = 'fakeOrigin';
