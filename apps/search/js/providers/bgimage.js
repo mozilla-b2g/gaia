@@ -31,6 +31,8 @@
     container: document.createElement('div'),
 
     init: function() {
+      this.width = Math.floor(window.innerWidth * window.devicePixelRatio);
+      this.height = Math.floor(window.innerHeight * window.devicePixelRatio);
       eme.init();
     },
 
@@ -39,6 +41,7 @@
      * It only searches in the expaned view, so just clear.
      */
     search: function() {
+      this.abort();
       this.clear();
     },
 
@@ -54,7 +57,9 @@
       }
 
       this.request = eme.api.Search.bgimage({
-        'query': input
+        query: input,
+        width: this.width,
+        height: this.height
       });
 
       this.request.then((function resolve(data) {
