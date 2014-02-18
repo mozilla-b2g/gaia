@@ -34,7 +34,8 @@ mocha.globals([
   'dialerComms',
   'storage',
   'ttlView',
-  'title'
+  'title',
+  'ActivityWindowFactory'
 ]);
 
 var mocksForBootstrap = new MocksHelper([
