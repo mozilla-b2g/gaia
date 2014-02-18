@@ -68,7 +68,11 @@
 
   var worker = new TestAgent.BrowserWorker({
         /* this is where your tests will be loaded into */
-        sandbox: './sandbox.html'
+        sandbox: './sandbox.html',
+        loader: {
+          /* httpd.js is giving adequate caching headers now */
+          bustCache: false
+        }
       });
 
   worker.use(TestAgent.BrowserWorker.Config, {
