@@ -166,5 +166,10 @@
     "Gaia_Facebook_Friends": {
       "description": "Imported Facebook Friends"
     }
+  },
+  "icons": {
+      "60": "/style/icons/Communications_60.png",
+      "90": "/style/icons/Communications_90.png",
+      "120": "/style/icons/Communications_120.png"
   }
 }
