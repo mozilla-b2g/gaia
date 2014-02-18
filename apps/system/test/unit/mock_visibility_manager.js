@@ -1,4 +1,4 @@
 'use strict';
 
 var MockVisibilityManager = function() {};
-MockVisibilityManager.prototype.init = function() {};
+MockVisibilityManager.prototype.start = function() {};

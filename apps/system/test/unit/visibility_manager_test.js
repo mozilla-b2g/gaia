@@ -1,3 +1,5 @@
+/* globals MocksHelper, MockLockScreen, VisibilityManager,
+           MockAttentionScreen */
 'use strict';
 
 mocha.globals(['VisibilityManager', 'System', 'lockScreen']);
@@ -16,15 +18,17 @@ suite('system/VisibilityManager', function() {
   var stubById;
   var visibilityManager;
   mocksForVisibilityManager.attachTestHelpers();
-  setup(function() {
-    visibilityManager = new VisibilityManager().init();
-
+  setup(function(done) {
     window.lockScreen = MockLockScreen;
     this.sinon.useFakeTimers();
 
     stubById = this.sinon.stub(document, 'getElementById');
     stubById.returns(document.createElement('div'));
     requireApp('system/js/system.js');
+    requireApp('system/js/visibility_manager.js', function() {
+      visibilityManager = new VisibilityManager().start();
+      done();
+    });
   });
 
   teardown(function() {
