@@ -71,12 +71,12 @@
     display: function awm_display(origin, openAnimation, closeAnimation) {
       this.debug('displaying ' + origin);
       var currentApp = this.displayedApp, newApp = origin ||
-        HomescreenLauncher.origin;
+        homescreenLauncher.origin;
 
-      if (newApp === HomescreenLauncher.origin) {
-        HomescreenLauncher.getHomescreen();
+      if (newApp === homescreenLauncher.origin) {
+        homescreenLauncher.getHomescreen();
       } else if (currentApp === null) {
-        HomescreenLauncher.getHomescreen().setVisible(false);
+        homescreenLauncher.getHomescreen().setVisible(false);
       }
 
       this.debug(' current is ' + currentApp + '; next is ' + newApp);
@@ -144,9 +144,9 @@
         }
         this.debug('ready to open/close' + switching);
         if (switching)
-          HomescreenLauncher.getHomescreen().fadeOut();
+          homescreenLauncher.getHomescreen().fadeOut();
         this._updateActiveApp(appNext.isHomescreen ?
-          HomescreenLauncher.origin : appNext.origin);
+          homescreenLauncher.origin : appNext.origin);
 
         var immediateTranstion = false;
         if (appNext.rotatingDegree === 90 || appNext.rotatingDegree === 270) {
@@ -302,12 +302,12 @@
           // Someone else may open the app,
           // so we need to update active app.
           this._updateActiveApp(evt.detail.isHomescreen ?
-            HomescreenLauncher.origin :
+            homescreenLauncher.origin :
             evt.detail.origin);
           break;
 
         case 'homescreencreated':
-          this.runningApps[HomescreenLauncher.origin] = evt.detail;
+          this.runningApps[homescreenLauncher.origin] = evt.detail;
           break;
 
         case 'homescreen-changed':
@@ -346,7 +346,7 @@
         case 'hidewindow':
           var detail = evt.detail;
 
-          if (activeApp && this.displayedApp !== HomescreenLauncher.origin) {
+          if (activeApp && this.displayedApp !== homescreenLauncher.origin) {
             // This is coming from attention screen.
             // If attention screen has the same origin as our active app,
             // we cannot turn off its page visibility
@@ -359,16 +359,16 @@
             }
             activeApp.setVisible(false);
           } else {
-            var home = HomescreenLauncher.getHomescreen();
+            var home = homescreenLauncher.getHomescreen();
             home && home.setVisible(false);
           }
           break;
 
         case 'showwindow':
-          if (activeApp && this.displayedApp !== HomescreenLauncher.origin) {
+          if (activeApp && this.displayedApp !== homescreenLauncher.origin) {
             activeApp.setVisible(true);
           } else {
-            var home = HomescreenLauncher.getHomescreen();
+            var home = homescreenLauncher.getHomescreen();
             home && home.setVisible(true);
           }
           break;
@@ -402,7 +402,7 @@
         // be included in index.html before this one, so they can register their
         // event handlers before we do.
         case 'home':
-          if (!HomescreenLauncher.ready)
+          if (!homescreenLauncher.ready)
             return;
 
           if (activeApp && !activeApp.isHomescreen) {
@@ -412,11 +412,11 @@
             // determine if we are going to homescreen or the original app.
 
             this.debug('back to home.');
-            this.display(HomescreenLauncher.origin);
+            this.display(homescreenLauncher.origin);
           } else {
             // dispatch event to close activity.
             this.debug('ensure home.');
-            HomescreenLauncher.getHomescreen().ensure(true);
+            homescreenLauncher.getHomescreen().ensure(true);
           }
           break;
 
@@ -461,7 +461,7 @@
         if (config.isActivity && this._activeApp) {
           this.linkWindowActivity(config);
         }
-        if (config.origin == HomescreenLauncher.origin) {
+        if (config.origin == homescreenLauncher.origin) {
           this.display();
         } else {
           this.display(config.origin);
