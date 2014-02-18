@@ -300,8 +300,12 @@ ComposeCard.prototype = {
    *               insert a bubble before text input.
    */
   insertBubble: function(node, name, address) {
+    if (name == '')
+      var displayName = address;
+    else
+      var displayName = name;
     var container = node.parentNode;
-    var bubble = this.createBubbleNode(name, address);
+    var bubble = this.createBubbleNode(displayName, address);
     container.insertBefore(bubble, node);
   },
   /**
@@ -703,10 +707,7 @@ ComposeCard.prototype = {
       activity.onsuccess = function success() {
         if (this.result.email) {
           var emt = contactBtn.parentElement.querySelector('.cmp-addr-text');
-          if (this.result.name != '')
-            self.insertBubble(emt, this.result.name, this.result.email);
-          else
-            self.insertBubble(emt, this.result.email, this.result.email);
+          self.insertBubble(emt, this.result.name, this.result.email);
           self.sendButton.setAttribute('aria-disabled', 'false');
         }
       };
