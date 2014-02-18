@@ -25,4 +25,4 @@ class Wallpaper(Base):
             message = '%s Wallpapers not present after timeout' % index)
         self.marionette.find_elements(*self._stock_wallpapers_locator)[index].tap()
         self.marionette.switch_to_frame()
-        self.wait_for_element_not_present(*self._wallpaper_frame_locator, timeout=10)
+        self.wait_for_element_not_present(*self._wallpaper_frame_locator)
