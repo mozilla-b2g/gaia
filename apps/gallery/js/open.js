@@ -53,6 +53,8 @@ window.addEventListener('localized', function() {
       frame.container.addEventListener('pan', handlePan);
       frame.container.addEventListener('swipe', handleSwipe);
 
+      window.addEventListener('resize', frame.resize.bind(frame));
+
       // Report errors if we're passed an invalid image
       frame.onerror = function invalid() {
         displayError('imageinvalid');
