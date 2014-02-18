@@ -6,7 +6,6 @@ define(function(require, exports, module) {
  */
 
 var debug = require('debug')('settings');
-var allDone = require('lib/all-done');
 var Setting = require('./setting');
 var evt = require('vendor/evt');
 
@@ -73,9 +72,8 @@ Settings.prototype.toggler = function(key) {
   return (function() { this.get(key).next(); }).bind(this);
 };
 
-Settings.prototype.fetch = function(done) {
-  done = allDone()(done);
-  this.items.forEach(function(setting) { setting.fetch(done()); });
+Settings.prototype.fetch = function() {
+  this.items.forEach(function(setting) { setting.fetch(); });
 };
 
 Settings.prototype.forEach = function(fn) { this.items.forEach(fn); };
