@@ -161,6 +161,9 @@ function initPlayerControls() {
 
   dom.player.addEventListener('timeupdate', timeUpdated);
   dom.player.addEventListener('ended', playerEnded);
+  dom.play.addEventListener('click', function() {
+    setVideoPlaying(dom.player.paused);
+  });
 }
 
 function initOptionsButtons() {
@@ -583,9 +586,7 @@ function handlePlayerTouchStart(event) {
     event.preventDefault();
     return;
   }
-  if (event.target == dom.play) {
-    setVideoPlaying(dom.player.paused);
-  } else if (event.target == dom.close) {
+  if (event.target == dom.close) {
     hidePlayer(true);
     // call preventDefault to prevent the click for underlying thumbnail items.
     event.preventDefault();
@@ -599,7 +600,7 @@ function handlePlayerTouchStart(event) {
     cleanupPick();
   } else if (pendingPick) {
     showVideoControls(true);
-  } else {
+  } else if (event.target !== dom.play) {
     showVideoControls(false);
   }
 }
