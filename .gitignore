@@ -33,6 +33,7 @@ manifest.appcache
 /showcase_apps/*/locales-obj
 
 /shared/test/integration/node_modules
+/shared/resources/keyboard_layouts.json
 
 /b2g
 /profile/
