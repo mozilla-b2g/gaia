@@ -17,7 +17,7 @@
 }
 
 #fb-extensions.hidden {
-  display: none;
+  visibility: hidden;
 }
 
 .facebook.removed dl,
