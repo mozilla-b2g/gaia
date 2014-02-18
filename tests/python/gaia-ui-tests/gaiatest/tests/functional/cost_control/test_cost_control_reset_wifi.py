@@ -45,7 +45,7 @@ class TestCostControlReset(GaiaTestCase):
 
         # # go to settings section
         settings = cost_control.tap_settings()
-        settings.reset_data_usage()
+        settings.reset_wifi_usage()
         settings.tap_done()
 
         # wait for usage to be refreshed
