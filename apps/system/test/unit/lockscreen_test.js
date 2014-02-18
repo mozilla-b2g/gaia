@@ -3,8 +3,7 @@
 mocha.globals(['SecureWindowManager', 'SecureWindowFactory', 'LockScreen',
                'LockScreenSlide', 'Clock', 'OrientationManager',
                'addEventListener', 'dispatchEvent', 'secureWindowManager',
-               'secureWindowFactory', 'lockScreen', 'LockScreenConnInfoManager',
-               'MediaPlaybackWidget', 'SettingsListener', 'SettingsURL']);
+               'secureWindowFactory']);
 
 requireApp('system/test/unit/mock_l10n.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
@@ -34,7 +33,7 @@ if (!this.SettingsListener) {
 
 var mocksForLockScreen = new window.MocksHelper([
   'OrientationManager', 'AppWindowManager', 'AppWindow', 'LockScreenSlide',
-  'Clock', 'SettingsListener'
+  'Clock'
 ]).init();
 
 requireApp('system/test/unit/mock_clock.js', function() {
@@ -62,19 +61,10 @@ suite('system/LockScreen >', function() {
   var domPasscodeCode;
   var domMainScreen;
   var domCamera;
-  var stubById;
   mocksForLockScreen.attachTestHelpers();
 
   setup(function() {
-    stubById = sinon.stub(document, 'getElementById');
-    stubById.returns(document.createElement('div'));
-
-    window.LockScreenConnInfoManager = function() {
-      this.updateConnStates = function() {};
-    };
-    window.MediaPlaybackWidget = function() {};
-    window.SettingsURL = function() {};
-
+    subject = window.LockScreen;
     realL10n = navigator.mozL10n;
     navigator.mozL10n = window.MockL10n;
 
@@ -92,8 +82,6 @@ suite('system/LockScreen >', function() {
 
     realSettingsListener = window.SettingsListener;
     window.SettingsListener = window.MockSettingsListener;
-
-    subject = new window.LockScreen();
 
     domCamera = document.createElement('div');
     domPasscodePad = document.createElement('div');
@@ -242,12 +230,12 @@ suite('system/LockScreen >', function() {
     window.Clock = window.realClock;
     window.OrientationManager = window.realOrientationManager;
     window.FtuLauncher = realFtuLauncher;
+    window.OrientationManager = window.realOrientationManager;
     window.SettingsListener = realSettingsListener;
 
     document.body.removeChild(domPasscodePad);
     subject.passcodePad = null;
 
     window.MockSettingsListener.mTeardown();
-    stubById.restore();
   });
 });

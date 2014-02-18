@@ -16,18 +16,18 @@ var GaiaLockScreen = {
 
     waitFor(
       function() {
-        window.wrappedJSObject.lockScreen.unlock(true);
+        window.wrappedJSObject.LockScreen.unlock(true);
         waitFor(
           function() {
-            finish(window.wrappedJSObject.lockScreen.locked);
+            finish(window.wrappedJSObject.LockScreen.locked);
           },
           function() {
-            return !window.wrappedJSObject.lockScreen.locked;
+            return !window.wrappedJSObject.LockScreen.locked;
           }
         );
       },
       function() {
-        return !!window.wrappedJSObject.lockScreen;
+        return !!window.wrappedJSObject.LockScreen;
       }
     );
   },
@@ -42,18 +42,18 @@ var GaiaLockScreen = {
 
     waitFor(
       function() {
-        window.wrappedJSObject.lockScreen.lock(true);
+        window.wrappedJSObject.LockScreen.lock(true);
         waitFor(
           function() {
-            finish(!window.wrappedJSObject.lockScreen.locked);
+            finish(!window.wrappedJSObject.LockScreen.locked);
           },
           function() {
-            return window.wrappedJSObject.lockScreen.locked;
+            return window.wrappedJSObject.LockScreen.locked;
           }
         );
       },
       function() {
-        return !!window.wrappedJSObject.lockScreen;
+        return !!window.wrappedJSObject.LockScreen;
       }
     );
   }

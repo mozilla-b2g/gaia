@@ -15,13 +15,14 @@
    * We should care about the need of testing,
    * and make all stateful objects become instance-able.
    *
+   * @param {LockScreen.intentionRouter} |ir| intentionRouter.
    * @param {Object} |opts| (Opional) addtional, options that may overwrite the
    *                        default settings.
    *                        The options should follow default settings above.
    * @constructor
    */
-  var LockScreenSlide = function(opts) {
-    this.initialize(opts);
+  var LockScreenSlide = function(ir, opts) {
+    this.initialize(ir, opts);
   };
 
   var LockScreenSlidePrototype = {
@@ -134,23 +135,28 @@
     resources: {
       larrow: '/style/lockscreen/images/larrow.png',
       rarrow: '/style/lockscreen/images/rarrow.png'
-    }
+    },
+
+    // How we communicate with the LockScreen.
+    intentionRouter: null
   };
 
   /**
    * Initialize this unlocker strategy.
    *
+   * @param {IntentionRouter} |ir| see LockScreen's intentionRouter.
    * @param {Object} |opts| (Opional) addtional, options that may overwrite the
    *                        default settings.
    *                        The options should follow default settings above.
    * @this {LockScreenSlide}
    */
   LockScreenSlidePrototype.initialize =
-    function(opts) {
+    function(ir, opts) {
+      this.intentionRouter = ir;
       if (opts)
         this._overwriteSettings(opts);
       this._initializeCanvas();
-      this.publish('lockscreenslide-unlocker-initializer');
+      ir.unlockerInitialize();
       this.states.initialized = true;
     };
 
@@ -393,13 +399,11 @@
           if (isLeft) {
             slow = this.states.touch.deltaX > 0;
             if (prevState !== currentState)
-              this.publish('lockscreenslide-near-left',
-                  {'currentState': currentState, 'prevState': prevState});
+              this.intentionRouter.nearLeft(currentState, prevState);
           } else {
             slow = this.states.touch.deltaX < 0;
             if (prevState !== currentState)
-              this.publish('lockscreenslide-near-right',
-                  {'currentState': currentState, 'prevState': prevState});
+              this.intentionRouter.nearRight(currentState, prevState);
           }
       } else {
         var prevState = this.handle.autoExpand.accState;
@@ -408,12 +412,10 @@
         if (prevState !== currentState) {
           if (isLeft) {
             if (prevState !== currentState)
-              this.publish('lockscreenslide-near-left',
-                  {'currentState': currentState, 'prevState': prevState});
+              this.intentionRouter.nearLeft(currentState, prevState);
           } else {
             if (prevState !== currentState)
-              this.publish('lockscreenslide-near-right',
-                  {'currentState': currentState, 'prevState': prevState});
+              this.intentionRouter.nearRight(currentState, prevState);
           }
         }
       }
@@ -446,7 +448,7 @@
         return; // Do nothing.
       }
 
-      this.publish('lockscreenslide-unlocking-start');
+      this.intentionRouter.unlockingStart();
       this.states.touch.initX = tx;
       this.states.sliding = true;
       this._lightIcons();
@@ -489,16 +491,16 @@
       if (false === this.states.slideReachEnd) {
         this._bounceBack(this.states.touch.pageX, bounceEnd);
       } else {
-        var intention = isLeft ? 'lockscreenslide-activate-left' :
-          'lockscreenslide-activate-right';
-        this.publish(intention);
+        var intention = isLeft ? this.intentionRouter.activateLeft :
+          this.intentionRouter.activateRight;
+        intention();
 
         // Restore it only after screen changed.
         var appLaunchDelay = 400;
         setTimeout(bounceEnd, appLaunchDelay);
       }
 
-      this.publish('lockscreenslide-unlocking-stop');
+      this.intentionRouter.unlockingStop();
       this._darkIcons();
     };
 
@@ -916,11 +918,6 @@
         prevX: this.center.x,
         deltaX: 0
       };
-    };
-
-  LockScreenSlidePrototype.publish =
-    function lss_publish(type, detail) {
-      window.dispatchEvent(new CustomEvent(type, {'detail': detail}));
     };
 
   LockScreenSlide.prototype = LockScreenSlidePrototype;

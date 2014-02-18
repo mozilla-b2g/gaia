@@ -2,13 +2,17 @@
 
 requireApp('system/test/unit/mock_rocketbar.js');
 requireApp('system/shared/test/unit/mocks/mock_lazy_loader.js');
-mocha.globals(['UtilityTray', 'Rocketbar', 'lockScreen']);
+mocha.globals(['UtilityTray', 'Rocketbar']);
 
 requireApp('system/test/unit/mock_lock_screen.js');
+requireApp('system/js/lockscreen.js');
+
+var LockScreen = { locked: false };
 
 var mocksHelperForUtilityTray = new MocksHelper([
   'Rocketbar',
-  'LazyLoader'
+  'LazyLoader',
+  'LockScreen'
 ]);
 mocksHelperForUtilityTray.init();
 
@@ -16,7 +20,6 @@ suite('system/UtilityTray', function() {
   var stubById;
   var fakeEvt;
   var fakeElement;
-  var originalLocked;
   mocksHelperForUtilityTray.attachTestHelpers();
 
   var FakeEvent = function(y) {
@@ -42,9 +45,6 @@ suite('system/UtilityTray', function() {
   }
 
   setup(function(done) {
-    window.lockScreen = window.MockLockScreen;
-    originalLocked = window.lockScreen.locked;
-    window.lockScreen.locked = false;
     fakeElement = document.createElement('div');
     fakeElement.style.cssText = 'height: 100px; display: block;';
     stubById = this.sinon.stub(document, 'getElementById')
@@ -54,7 +54,6 @@ suite('system/UtilityTray', function() {
 
   teardown(function() {
     stubById.restore();
-    window.lockScreen.locked = originalLocked;
   });
 
 
@@ -190,10 +189,10 @@ suite('system/UtilityTray', function() {
           this.defaultPrevented = true;
         }
       };
+      UtilityTray.handleEvent(fakeEvt);
     });
 
     test('preventDefault() should have been called on touchstart', function() {
-      UtilityTray.handleEvent(fakeEvt);
       assert.isTrue(fakeEvt.defaultPrevented);
     });
 

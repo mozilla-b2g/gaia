@@ -21,6 +21,7 @@ var mocksForCardsView = new MocksHelper([
   'TrustedUIManager',
   'UtilityTray',
   'AppWindowManager',
+  'LockScreen',
   'Rocketbar',
   'SleepMenu',
   'OrientationManager',
@@ -32,12 +33,9 @@ suite('cards view >', function() {
 
   var screenNode, realMozLockOrientation, realScreenLayout;
   var cardsView;
-  var originalLockScreen;
 
   mocksForCardsView.attachTestHelpers();
   suiteSetup(function(done) {
-    originalLockScreen = window.lockScreen;
-    window.lockScreen = MockLockScreen;
     screenNode = document.createElement('div');
     screenNode.id = 'screen';
     cardsView = document.createElement('div');
@@ -55,7 +53,6 @@ suite('cards view >', function() {
   });
 
   suiteTeardown(function() {
-    window.lockScreen = originalLockScreen;
     screenNode.parentNode.removeChild(screenNode);
     window.ScreenLayout = realScreenLayout;
     screen.mozLockOrientation = realMozLockOrientation;

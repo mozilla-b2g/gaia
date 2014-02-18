@@ -1,6 +1,6 @@
 'use strict';
 
-mocha.globals(['VisibilityManager', 'System', 'lockScreen']);
+mocha.globals(['VisibilityManager', 'System', 'LockScreen']);
 
 requireApp('system/test/unit/mock_orientation_manager.js');
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
@@ -8,14 +8,13 @@ requireApp('system/test/unit/mock_attention_screen.js');
 requireApp('system/test/unit/mock_lock_screen.js');
 
 var mocksForVisibilityManager = new MocksHelper([
-  'AttentionScreen'
+  'LockScreen', 'AttentionScreen'
 ]).init();
 
 suite('system/VisibilityManager', function() {
   var stubById;
   mocksForVisibilityManager.attachTestHelpers();
   setup(function(done) {
-    window.lockScreen = MockLockScreen;
     this.sinon.useFakeTimers();
 
     stubById = this.sinon.stub(document, 'getElementById');

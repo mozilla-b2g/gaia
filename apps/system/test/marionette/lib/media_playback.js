@@ -163,13 +163,13 @@ MediaPlayback.prototype = {
 
   lockScreen: function() {
     this.client.executeScript(function() {
-      window.wrappedJSObject.lockScreen.lock();
+      window.wrappedJSObject.LockScreen.lock();
     });
   },
 
   unlockScreen: function() {
     this.client.executeScript(function() {
-      window.wrappedJSObject.lockScreen.unlock();
+      window.wrappedJSObject.LockScreen.unlock();
     });
   },
 
