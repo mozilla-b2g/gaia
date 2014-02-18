@@ -12,15 +12,9 @@ Settings.prototype = {
 
   selector: '#settings',
 
-  createAccount: function() {
-    this
-      .findElement('a[href="/select-preset/"]')
-      .click();
-  },
-
   setupAdvancedSettings: function() {
     this.client
-      .findElement('a[href="/advanced-settings/"]')
+      .findElement('button.settings')
       .click();
   },
 

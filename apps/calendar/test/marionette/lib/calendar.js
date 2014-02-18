@@ -74,18 +74,29 @@ Calendar.prototype = {
   },
 
   _toggleSettingsView: function(isOpen) {
-    var client = this.client,
-        timeView = client.findElement('#time-views');
-
+    var client = this.client;
     client.helper
       .waitForElement(this.settingsButton)
       .click();
-    // Wait for #time-views is on the transition end state.
-    client.waitFor(function() {
-      var transform = timeView.cssProperty('transform');
-      return (isOpen && transform === 'matrix(1, 0, 0, 1, 256, 0)') ||
-             (!isOpen && transform === 'matrix(1, 0, 0, 1, 0, 0)');
+
+    // Wait for the animation to be complete before trying to click on
+    // items in the drawer.
+    var drawer = this.client.findElement('#settings .settings-drawer');
+
+    this.client.waitFor(function() {
+      return drawer.getAttribute('data-animstate') === 'done';
     });
+
+    if (!isOpen) {
+      var body = this.client.findElement('body');
+      // Also wait for the UI to be in a non-settings state after
+      // waiting for the animation to finish and the app UI to go
+      // back to non-settings state.
+      this.client.waitFor(function() {
+        return body.getAttribute('data-path') !== '/settings/';
+      });
+    }
+    return this;
   },
 
   openAdvancedSettingsView: function() {
@@ -129,9 +140,9 @@ Calendar.prototype = {
   createCalDavAccount: function(opts) {
     var modifyAccount = this.modifyAccount;
 
-    this.openSettingsView();
+    this.openAdvancedSettingsView();
 
-    this.settings.createAccount();
+    this.advancedSettings.createAccount();
     this.createAccount.waitForDisplay();
 
     this.createAccount.createCalDavAccount();

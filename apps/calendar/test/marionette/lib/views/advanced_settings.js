@@ -10,5 +10,11 @@ module.exports = AdvancedSettings;
 AdvancedSettings.prototype = {
   __proto__: View.prototype,
 
-  selector: '#advanced-settings-view'
+  selector: '#advanced-settings-view',
+
+  createAccount: function() {
+    this
+      .findElement('[href="/select-preset/"]')
+      .click();
+  }
 };
