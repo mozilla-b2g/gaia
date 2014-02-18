@@ -25,8 +25,7 @@ module.exports = View.extend({
 
   render: function() {
     this.el.innerHTML = this.template();
-    attach.on(this.el, 'click', '.js-switch', this.onSwitchClick);
-    attach.on(this.el, 'click', '.js-btn', this.onButtonClick);
+    attach.on(this.el, 'click', '.js-btn', this.onButtonTap);
     this.els.timer = find('.js-video-timer', this.el);
     debug('rendered');
   },
@@ -36,13 +35,14 @@ module.exports = View.extend({
     this.els.timer.textContent = formatted;
   },
 
-  onButtonClick: function(e, el) {
+  onButtonTap: function(e, el) {
     var name = el.getAttribute('name');
-    this.emit('click:' + name, e);
+    this.emit('tap:' + name, e);
   },
 
   template: function() {
-    return '<a class="switch-button test-switch js-btn" name="switch">' +
+    return '' +
+    '<a class="switch-button test-switch js-btn" name="switch">' +
       '<span class="icon rotates"></span>' +
     '</a>' +
     '<a class="capture-button test-capture js-btn" name="capture">' +
@@ -58,6 +58,9 @@ module.exports = View.extend({
       '<span class="video-timer test-video-timer js-video-timer">00:00</span>' +
     '</div>';
   },
+
+  setThumbnail: function(blob) {}
+
 });
 
 });
