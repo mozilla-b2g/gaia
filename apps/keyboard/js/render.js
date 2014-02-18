@@ -124,6 +124,11 @@ const IMERender = (function() {
       // Only resize UI if layout changed
       resizeUI(layout, callback);
     }
+    else if ((ime.classList.contains('landscape') && screenInPortraitMode()) ||
+             (ime.classList.contains('portrait') && !screenInPortraitMode())) {
+      // screen orientation changed since last time, need to resize UI
+      resizeUI(layout, callback);
+    }
     else { // activeIME is already correct
       if (callback) {
         // The callback might be blocking, so we want to process
@@ -713,7 +718,7 @@ const IMERender = (function() {
     var changeScale;
 
     // Font size recalc
-    if (cachedWindowWidth <= cachedWindowHeight) {
+    if (screenInPortraitMode()) {
       changeScale = cachedWindowWidth / 32;
       document.documentElement.style.fontSize = changeScale + 'px';
       ime.classList.remove('landscape');
@@ -900,6 +905,10 @@ const IMERender = (function() {
     if (s >= .6)
       return .6;   // 6pt font "Body Mini"
     return s;      // Something smaller than 6pt.
+  };
+
+  var screenInPortraitMode = function() {
+    return cachedWindowWidth <= cachedWindowHeight;
   };
 
   var _t = {};
