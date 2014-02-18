@@ -8,24 +8,28 @@ function MockRecipients(setup) {
     add: [],
     remove: []
   };
-  this.numbers = [];
+  this.valid = [];
+  this.all = [];
   this.inputValue = '';
 }
 
 MockRecipients.prototype.add = function(contact) {
   var span = document.createElement('span');
+  span.dataset.number = contact.number;
   span.textContent = contact.number;
   this.recipientsList.appendChild(span);
   this.length++;
-  this.numbers.push(contact.number);
+  this.valid.push(contact.number);
+  this.all.push(contact.number);
   this.emit('add', this.length, contact);
   return this;
 };
 
 MockRecipients.prototype.remove = function(phone) {
-  var index = this.numbers.indexOf(phone);
+  var index = this.valid.indexOf(phone);
   if (index != -1) {
-    this.numbers.splice(this.numbers.indexOf(phone), 1);
+    this.valid.splice(this.valid.indexOf(phone), 1);
+    this.all.splice(this.all.indexOf(phone), 1);
     this.length--;
     this.emit('remove', this.length);
   }

@@ -153,7 +153,18 @@
           return list.slice();
         }
       },
-      numbers: {
+      all: {
+        get: function() {
+          return list.reduce(function(unique, recipient) {
+            var value = recipient.number || recipient.email;
+            if (unique.indexOf(value) === -1) {
+              unique.push(value);
+            }
+            return unique;
+          }, []);
+        }
+      },
+      valid: {
         get: function() {
           return list.reduce(function(unique, recipient) {
             var value = recipient.number || recipient.email;

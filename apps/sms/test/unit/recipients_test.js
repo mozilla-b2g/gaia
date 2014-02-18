@@ -217,31 +217,31 @@ suite('Recipients', function() {
       assert.equal(recipients.length, 0);
     });
 
-    test('recipients.numbers (accessor, get) ', function() {
+    test('recipients.valid (accessor, get) ', function() {
       recipients.add(fixture);
-      assert.equal(recipients.numbers.length, 1);
-      assert.equal(recipients.numbers[0], '999');
+      assert.equal(recipients.valid.length, 1);
+      assert.equal(recipients.valid[0], '999');
     });
 
-    test('recipients.numbers (accessor, set/no-op) ', function() {
+    test('recipients.valid (accessor, set/no-op) ', function() {
       recipients.add(fixture);
-      assert.equal(recipients.numbers.length, 1);
-      assert.equal(recipients.numbers[0], '999');
+      assert.equal(recipients.valid.length, 1);
+      assert.equal(recipients.valid[0], '999');
 
-      recipients.numbers[0] = '***';
-      assert.equal(recipients.numbers[0], '999');
+      recipients.valid[0] = '***';
+      assert.equal(recipients.valid[0], '999');
     });
 
-    test('recipients.numbers is a unique list ', function() {
+    test('recipients.valid is a unique list ', function() {
       recipients.add(fixture);
       recipients.add(fixture);
       recipients.add(fixture);
 
-      assert.equal(recipients.numbers.length, 1);
-      assert.equal(recipients.numbers[0], '999');
+      assert.equal(recipients.valid.length, 1);
+      assert.equal(recipients.valid[0], '999');
     });
 
-    test('recipients.numbers contains no invalid entries ', function() {
+    test('recipients.valid contains no invalid entries ', function() {
       recipients.add({
         number: '999'
       });
@@ -250,14 +250,50 @@ suite('Recipients', function() {
         isInvalid: true
       });
 
-      assert.equal(recipients.numbers.length, 1);
+      assert.equal(recipients.valid.length, 1);
+    });
+
+    test('recipients.all (accessor, get) ', function() {
+      recipients.add(fixture);
+      assert.equal(recipients.all.length, 1);
+      assert.equal(recipients.all[0], '999');
+    });
+
+    test('recipients.all (accessor, set/no-op) ', function() {
+      recipients.add(fixture);
+      assert.equal(recipients.all.length, 1);
+      assert.equal(recipients.all[0], '999');
+
+      recipients.all[0] = '***';
+      assert.equal(recipients.all[0], '999');
+    });
+
+    test('recipients.all is a unique list ', function() {
+      recipients.add(fixture);
+      recipients.add(fixture);
+      recipients.add(fixture);
+
+      assert.equal(recipients.all.length, 1);
+      assert.equal(recipients.all[0], '999');
+    });
+
+    test('recipients.all contains both valid and invalid entries ', function() {
+      recipients.add({
+        number: '999'
+      });
+      recipients.add({
+        number: 'foo',
+        isInvalid: true
+      });
+
+      assert.equal(recipients.all.length, 2);
     });
 
     test('recipients.on(add, ...)', function(done) {
       recipients.on('add', function(count) {
         assert.ok(true);
-        assert.equal(recipients.numbers.length, 1);
-        assert.equal(recipients.numbers[0], '999');
+        assert.equal(recipients.valid.length, 1);
+        assert.equal(recipients.valid[0], '999');
         assert.equal(count, 1);
 
         recipients.off('add');
@@ -269,7 +305,7 @@ suite('Recipients', function() {
     test('recipients.on(remove, ...)', function(done) {
       recipients.on('remove', function(count) {
         assert.ok(true);
-        assert.equal(recipients.numbers.length, 0);
+        assert.equal(recipients.valid.length, 0);
         assert.equal(count, 0);
         recipients.off('remove');
         done();

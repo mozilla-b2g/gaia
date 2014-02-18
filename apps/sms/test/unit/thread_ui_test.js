@@ -1797,7 +1797,7 @@ suite('thread_ui.js >', function() {
           ThreadUI.validateContact(fixture, '', []);
 
           sinon.assert.calledOnce(ThreadUI.recipients.update);
-          sinon.assert.calledWithMatch(ThreadUI.recipients.update, 1, fixture);
+          sinon.assert.calledWithMatch(ThreadUI.recipients.update, 0, fixture);
 
           assert.isTrue(fixture.isInvalid);
         });
@@ -1805,34 +1805,47 @@ suite('thread_ui.js >', function() {
 
       suite('Has Recipients', function() {
 
+        setup(function() {
+          ThreadUI.recipientsList.innerHTML = '';
+        });
 
         test('input value has matching duplicate record w/ ' +
               'multiple, different tel records (accept) ', function() {
 
+          fixture.source = 'contacts';
+
           // An actual accepted recipient from contacts
           ThreadUI.recipients.add(fixture);
 
+          var manuallyEntered = {
+            name: 'Janet Jones',
+            number: 'Janet Jones',
+            source: 'manual'
+          };
+
           // The last accepted recipient, manually entered.
+          // This is the one that should be updated with the
+          // new phone number. It's index will be 1
           ThreadUI.recipients.add({
             name: 'Janet Jones',
             number: 'Janet Jones',
             source: 'manual'
           });
 
-          ThreadUI.validateContact(fixture, '', contacts);
+          ThreadUI.validateContact(manuallyEntered, '', contacts);
 
+          // This is call that will remove the recipient added above
+          // at index 1.
           sinon.assert.calledOnce(ThreadUI.recipients.remove);
           sinon.assert.calledWith(ThreadUI.recipients.remove, 1);
 
-          assert.equal(
-            ThreadUI.recipients.add.lastCall.args[0].source, 'contacts'
-          );
-          assert.equal(
-            ThreadUI.recipients.add.lastCall.args[0].number, '+12125559999'
-          );
-          assert.equal(
-            Utils.basicContact.returnValues[0].number, '+12125559999'
-          );
+          // This is call that "replaced" the removed recipient
+          // with the match to that known contact's OTHER
+          // phone number.
+          var args = ThreadUI.recipients.add.lastCall.args[0];
+          assert.equal(args.name, 'Janet Jones');
+          assert.equal(args.number, '+12125559999');
+          assert.equal(args.source, 'contacts');
         });
 
         test('input value has multiple matching records, the ' +
@@ -4219,6 +4232,18 @@ suite('thread_ui.js >', function() {
       assert.deepEqual(arg.content, []);
     });
 
+    test('has entered invalid recipients', function() {
+      ThreadUI.recipients.add({
+        number: 'aaa',
+        isInvalid: true
+      });
+
+      ThreadUI.saveDraft();
+      arg = addSpy.firstCall.args[0];
+
+      assert.deepEqual(arg.recipients, ['999', 'aaa']);
+    });
+
     test('has entered content but not recipients', function() {
       ThreadUI.recipients.remove('999');
       ThreadUI.saveDraft();
@@ -4352,7 +4377,7 @@ suite('thread_ui.js >', function() {
 
     suiteTeardown(function() {
       delete document.hidden;
-      MessageManager.draft = null;
+      ThreadUI.draft = null;
     });
 
     setup(function() {
