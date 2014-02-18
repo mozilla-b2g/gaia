@@ -347,12 +347,10 @@ apps/communications/dialer/test/unit/call_log_test.js
 apps/communications/dialer/test/unit/call_screen_test.js
 apps/communications/dialer/test/unit/calls_handler_test.js
 apps/communications/dialer/test/unit/conference_group_handler_test.js
-apps/communications/dialer/test/unit/dialer_test.js
 apps/communications/dialer/test/unit/handled_call_test.js
 apps/communications/dialer/test/unit/lazy_l10n_test.js
 apps/communications/dialer/test/unit/mmi_test.js
 apps/communications/dialer/test/unit/mock_bluetooth_helper.js
-apps/communications/dialer/test/unit/mock_call.js
 apps/communications/dialer/test/unit/mock_call_handler.js
 apps/communications/dialer/test/unit/mock_call_log_db_manager.js
 apps/communications/dialer/test/unit/mock_call_screen.js
@@ -363,8 +361,6 @@ apps/communications/dialer/test/unit/mock_dialer_index.html.js
 apps/communications/dialer/test/unit/mock_dialer_oncall.html.js
 apps/communications/dialer/test/unit/mock_icc_helper.js
 apps/communications/dialer/test/unit/mock_keypad.js
-apps/communications/dialer/test/unit/mock_l10n.js
-apps/communications/dialer/test/unit/mock_lazy_loader.js
 apps/communications/dialer/test/unit/mock_mmi_ui.js
 apps/communications/dialer/test/unit/mock_mozMobileConnection.js
 apps/communications/dialer/test/unit/mock_mozVoicemail.js

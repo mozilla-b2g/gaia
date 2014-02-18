@@ -213,7 +213,8 @@ var CallsHandler = (function callsHandler() {
         if (call.state == 'disconnected') {
           var callInfo = {
             type: 'notification',
-            number: call.number
+            number: call.number,
+            serviceId: call.serviceId
           };
           postToMainWindow(callInfo);
         }

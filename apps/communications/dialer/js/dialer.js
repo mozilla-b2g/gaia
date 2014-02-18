@@ -50,11 +50,16 @@ var CallHandler = (function callHandler() {
     };
   }
 
-  function handleNotificationRequest(number) {
+  function handleNotificationRequest(number, serviceId) {
     LazyLoader.load('/dialer/js/utils.js', function() {
       Contacts.findByNumber(number, function lookup(contact, matchingTel) {
         LazyL10n.get(function localized(_) {
-          var title = _('missedCall');
+          var title;
+          if (navigator.mozIccManager.iccIds.length > 1) {
+            title = _('missedCallMultiSim', {n: serviceId + 1});
+          } else {
+            title = _('missedCall');
+          }
 
           var body;
           if (!number) {
@@ -219,7 +224,7 @@ var CallHandler = (function callHandler() {
     } else if (data.type === 'notification') {
       // We're being asked to send a missed call notification
       NavbarManager.ensureResources(function() {
-        handleNotificationRequest(data.number);
+        handleNotificationRequest(data.number, data.serviceId);
       });
     } else if (data.type === 'recent') {
       NavbarManager.ensureResources(function() {
