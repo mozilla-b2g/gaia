@@ -67,6 +67,7 @@ window.addEventListener('load', function startup() {
   window.activities = new Activities();
   window.devtoolsView = new DevtoolsView();
   window.dialerComms = new DialerComms();
+  window.remoteDebugger = new RemoteDebugger();
   window.title = new Title();
   window.ttlView = new TTLView();
 
