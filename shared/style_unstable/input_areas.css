@@ -82,7 +82,9 @@ form p {
 }
 
 form p input + button[type="reset"],
-form p textarea + button[type="reset"] {
+form p textarea + button[type="reset"],
+form p input + button.reset,
+form p textarea + button.reset {
   position: absolute;
   top: 0;
   right: 0;
@@ -98,18 +100,24 @@ form p textarea + button[type="reset"] {
 
 
 .skin-dark p input + button[type="reset"],
-.skin-dark p textarea + button[type="reset"] {
+.skin-dark p textarea + button[type="reset"],
+.skin-dark p input + button.reset,
+.skin-dark p textarea + button.reset {
   background-image: url(input_areas/images/icons/clear-dark.png);
 }
 
 /* To avoid colission with BB butons */
 li input + button[type="reset"]:after,
-li textarea + button[type="reset"]:after {
+li textarea + button[type="reset"]:after,
+li input + button.reset:after,
+li textarea + button.reset:after {
   background: none;
 }
 
 form p input + button[type="reset"],
-form p textarea + button[type="reset"] {
+form p textarea + button[type="reset"],
+form p input + button.reset,
+form p textarea + button.reset {
   top: 0;
   margin: 0;
 }
@@ -119,7 +127,9 @@ textarea {
 }
 
 form p input:focus + button[type="reset"],
-form p textarea:focus + button[type="reset"] {
+form p textarea:focus + button[type="reset"],
+form p input:focus + button.reset,
+form p textarea:focus + button.reset {
   opacity: 1;
   pointer-events: all;
 }
@@ -247,7 +257,8 @@ form[role="search"] button[type="submit"]:after {
   background: #c7c7c7;
 }
 
-form[role="search"] p input + button[type="reset"]{
+form[role="search"] p input + button[type="reset"],
+form[role="search"] p input + button.reset{
   height: 3.7rem;
 }
 
@@ -297,7 +308,9 @@ html[dir="rtl"] fieldset[disabled] legend {
 }
 
 html[dir="rtl"] form p input + button[type="reset"],
-html[dir="rtl"] form p textarea + button[type="reset"] {
+html[dir="rtl"] form p textarea + button[type="reset"],
+html[dir="rtl"] form p input + button.reset,
+html[dir="rtl"] form p textarea + button.reset {
   right: auto;
   left: 0;
 }
