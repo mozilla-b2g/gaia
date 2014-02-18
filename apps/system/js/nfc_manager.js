@@ -293,10 +293,7 @@ var NfcManager = {
 
   handleNdefDiscoveredEmpty:
     function nm_handleNdefDiscoveredEmpty(tech, sessionToken) {
-      var empty = new Uint8Array(0);
-      var emptyRec = [new MozNDEFRecord(NDEF.tnf_empty,
-                                        NDEF.rtd_text,
-                                        empty, empty)];
+      var emptyRec = [new MozNDEFRecord(NDEF.tnf_empty, NDEF.rtd_text)];
       this.handleNdefDiscovered(tech, sessionToken, emptyRec);
   },
 
