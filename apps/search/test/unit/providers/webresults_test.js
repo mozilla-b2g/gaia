@@ -40,11 +40,16 @@ suite('search/providers/webresults', function() {
       subject.click({
         target: {
           dataset: {
-            url: 'http://mozilla.org'
+            url: 'http://mozilla.org',
+            icon: 'http://mozilla.org/img'
           }
         }
       });
-      assert.ok(stub.calledWith('http://mozilla.org'));
+      assert.ok(stub.calledWith('http://mozilla.org', {
+        icon: 'http://mozilla.org/img',
+        originName: undefined,
+        originUrl: 'http://mozilla.org'
+      }));
     });
   });
 

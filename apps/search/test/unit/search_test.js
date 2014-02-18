@@ -199,6 +199,17 @@ suite('search/search', function() {
       Search.navigate(url);
       assert.ok(stub.calledWith(url));
     });
+
+    test('parses features', function() {
+      var url = 'http://mozilla.org';
+      var stub = this.sinon.stub(window, 'open');
+      Search.navigate(url, {
+        a: 1,
+        b: 2
+      });
+      assert.ok(stub.calledWith(url, '_blank',
+        'remote=true,useAsyncPanZoom=true,a=1,b=2'));
+    });
   });
 
   suite('expandSearch', function() {

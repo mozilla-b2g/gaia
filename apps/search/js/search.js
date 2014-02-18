@@ -146,9 +146,26 @@
 
     /**
      * Opens a browser to a URL
+     * @param {String} url The url to navigate to
+     * @param {Object} config Optional configuration.
      */
-    navigate: function(url) {
-      window.open(url, '_blank', 'remote=true,useAsyncPanZoom=true');
+    navigate: function(url, config) {
+      var features = {
+        remote: true,
+        useAsyncPanZoom: true
+      };
+
+      config = config || {};
+      for (var i in config) {
+        features[i] = config[i];
+      }
+
+      var featureStr = Object.keys(features)
+        .map(function(key) {
+          return encodeURIComponent(key) + '=' +
+            encodeURIComponent(features[key]);
+        }).join(',');
+      window.open(url, '_blank', featureStr);
     },
 
     /**
