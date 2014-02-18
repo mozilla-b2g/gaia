@@ -247,11 +247,14 @@ endif
 export GAIA_DISTRIBUTION_DIR
 
 SETTINGS_PATH := build/config/custom-settings.json
+KEYBOARD_LAYOUTS_PATH := build/config/keyboard-layouts.json
+
 ifdef GAIA_DISTRIBUTION_DIR
 	DISTRIBUTION_SETTINGS := $(GAIA_DISTRIBUTION_DIR)$(SEP)settings.json
 	DISTRIBUTION_CONTACTS := $(GAIA_DISTRIBUTION_DIR)$(SEP)contacts.json
 	DISTRIBUTION_APP_CONFIG := $(GAIA_DISTRIBUTION_DIR)$(SEP)apps.list
 	DISTRIBUTION_VARIANT := $(GAIA_DISTRIBUTION_DIR)$(SEP)variant.json
+	DISTRIBUTION_KEYBOARD_LAYOUTS := $(GAIA_DISTRIBUTION_DIR)$(SEP)keyboard-layouts.json
 	ifneq ($(wildcard $(DISTRIBUTION_SETTINGS)),)
 		SETTINGS_PATH := $(DISTRIBUTION_SETTINGS)
 	endif
@@ -263,6 +266,9 @@ ifdef GAIA_DISTRIBUTION_DIR
 	endif
 	ifneq ($(wildcard $(DISTRIBUTION_VARIANT)),)
 		VARIANT_PATH := $(DISTRIBUTION_VARIANT)
+	endif
+	ifneq ($(wildcard $(DISTRIBUTION_KEYBOARD_LAYOUTS)),)
+		KEYBOARD_LAYOUTS_PATH := $(DISTRIBUTION_KEYBOARD_LAYOUTS)
 	endif
 endif
 
@@ -387,7 +393,8 @@ define BUILD_CONFIG
 	"ROCKETBAR" : "$(ROCKETBAR)", \
 	"TARGET_BUILD_VARIANT" : "$(TARGET_BUILD_VARIANT)", \
 	"SETTINGS_PATH" : "$(SETTINGS_PATH)", \
-	"VARIANT_PATH" : "$(VARIANT_PATH)" \
+	"VARIANT_PATH" : "$(VARIANT_PATH)", \
+	"KEYBOARD_LAYOUTS_PATH" : "$(KEYBOARD_LAYOUTS_PATH)" \
 }
 endef
 export BUILD_CONFIG
@@ -403,7 +410,7 @@ endef
 
 # Generate profile/
 
-$(PROFILE_FOLDER): preferences app-makefiles copy-build-stage-manifest test-agent-config offline contacts extensions install-xulrunner-sdk .git/hooks/pre-commit $(PROFILE_FOLDER)/settings.json create-default-data $(PROFILE_FOLDER)/installed-extensions.json
+$(PROFILE_FOLDER): preferences app-makefiles shared-makefiles copy-build-stage-manifest test-agent-config offline contacts extensions install-xulrunner-sdk .git/hooks/pre-commit $(PROFILE_FOLDER)/settings.json create-default-data $(PROFILE_FOLDER)/installed-extensions.json
 ifeq ($(BUILD_APP_NAME),*)
 	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)$(PROFILE_FOLDER)"
 endif
@@ -422,7 +429,7 @@ LANG=POSIX # Avoiding sort order differences between OSes
 # - build_stage/APPNAME/gaia_shared.json: This file lists shared resource
 #   dependencies that build/webapp-zip.js's detection logic might not determine
 #   because of lazy loading, etc.
-app-makefiles: svoperapps webapp-manifests install-xulrunner-sdk
+app-makefiles: svoperapps webapp-manifests shared-makefiles install-xulrunner-sdk
 	@for d in ${GAIA_APPDIRS}; \
 	do \
 		if [[ ("$$d" =~ "${BUILD_APP_NAME}") || (${BUILD_APP_NAME} == "*") ]]; then \
@@ -448,7 +455,7 @@ webapp-manifests: install-xulrunner-sdk
 
 .PHONY: webapp-zip
 # Generate $(PROFILE_FOLDER)/webapps/APP/application.zip
-webapp-zip: webapp-optimize app-makefiles install-xulrunner-sdk
+webapp-zip: webapp-optimize app-makefiles shared-makefiles install-xulrunner-sdk
 ifneq ($(DEBUG),1)
 	@mkdir -p $(PROFILE_FOLDER)/webapps
 	@$(call run-js-command, webapp-zip)
@@ -467,6 +474,11 @@ webapp-optimize: app-makefiles install-xulrunner-sdk
 # on webapp-zip so it runs to completion before we start the cleanup.
 optimize-clean: webapp-zip install-xulrunner-sdk
 	@$(call run-js-command, optimize-clean)
+
+.PHONY: shared-makefiles
+# A separate step for shared/ folder to generate its content in build time
+shared-makefiles: install-xulrunner-sdk
+	@$(call run-js-command, shared-makefiles)
 
 # Get additional extensions
 $(PROFILE_FOLDER)/installed-extensions.json: build/config/additional-extensions.json $(wildcard .build/config/custom-extensions.json)

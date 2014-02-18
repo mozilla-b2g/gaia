@@ -316,12 +316,6 @@ function execute(options) {
   }
 
   utils.getGaia(config).webapps.forEach(function(webapp) {
-    // If BUILD_APP_NAME isn't `*`, we only accept one webapp
-    if (config.BUILD_APP_NAME != '*' &&
-      webapp.sourceDirectoryName != config.BUILD_APP_NAME) {
-      return;
-    }
-
     if (utils.isExternalApp(webapp)) {
       fillExternalAppManifest(webapp);
     } else {
