@@ -762,7 +762,6 @@ apps/system/js/value_selector/date_picker.js
 apps/system/js/value_selector/spin_date_picker.js
 apps/system/js/value_selector/value_picker.js
 apps/system/js/value_selector/value_selector.js
-apps/system/js/visibility_manager.js
 apps/system/js/voicemail.js
 apps/system/js/wifi.js
 apps/system/test/marionette/edges_gesture_test.js
@@ -901,7 +900,6 @@ apps/system/test/unit/update_manager_test.js
 apps/system/test/unit/utility_tray_test.js
 apps/system/test/unit/value_picker_test.js
 apps/system/test/unit/value_selector_test.js
-apps/system/test/unit/visibility_manager_test.js
 apps/system/test/unit/voicemail_test.js
 apps/system/test/unit/wifi_test.js
 apps/system/test/unit/wrapper_factory_test.js
