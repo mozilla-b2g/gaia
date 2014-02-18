@@ -1,0 +1,248 @@
+
+/**
+ * Controls
+ *
+ * The main camera control bar.
+ */
+
+.controls-2 {
+  display: flex;
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  left: 0;
+  height: 75px;
+  z-index: 50;
+  background: linear-gradient(
+    to bottom,
+    rgba(0,0,0,0) 0%,
+    rgba(0,0,0,0.4) 100%);
+  overflow: hidden;
+}
+
+/** Left
+ ---------------------------------------------------------*/
+
+.controls-2_left,
+.controls-2_right {
+  display: flex;
+  flex: 1;
+  align-items: center;
+}
+
+.controls-2_left {}
+
+/** Thumbnail
+ ---------------------------------------------------------*/
+
+.controls-2_thumbnail {
+  width: 40px;
+  margin-left: 1.4rem;
+}
+
+.controls-2_thumbnail > img {
+  display: block;
+  animation: thumbnail-fade-in 300ms;
+}
+
+/** Middle
+ ---------------------------------------------------------*/
+
+.controls-2_middle {
+
+}
+
+/** Right
+ ---------------------------------------------------------*/
+
+.controls-2_right {
+  justify-content: flex-end;
+}
+
+.controls-2_right :first-child {
+  margin-right: 1.4rem;
+}
+
+/** Mode Toggle
+ ---------------------------------------------------------*/
+
+.mode-toggle {
+  box-sizing: content-box;
+  display: block;
+  font-size: 32px;
+  width: 2.1em;
+  height: 1em;
+  background: rgba(51, 51, 51, 0.65);
+  border-radius: 1em;
+  padding: 3px;
+  overflow: hidden;
+}
+
+.mode-toggle_switch {
+  position: relative;
+  width: 1em;
+  height: 1em;
+  border-radius: 1em;
+  background: #EEE;
+  transition: transform 100ms;
+}
+
+.mode-toggle input:checked + div {
+  transform: translateX(1.2em);
+}
+
+.mode-toggle input {
+  display: none;
+}
+
+/** Capture Button
+ ---------------------------------------------------------*/
+
+.capture-button-2 {
+  position:relative;
+  font-size: 128px;
+  width: 1em;
+  height: 1em;
+  margin-top: -27px;
+}
+
+.capture-button-2[disabled] {
+  pointer-events: none;
+}
+
+/** Circle
+ ---------------------------------------------------------*/
+
+.capture-button-2 .circle {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+}
+
+/** Outer Circle
+ ---------------------------------------------------------*/
+
+.outer-circle {
+  background: rgba(0, 202, 242, 0.35);
+}
+
+[mode=video] .outer-circle {
+  background: rgba(205, 0, 0, 0.35);
+}
+
+/** Middle Circle
+ ---------------------------------------------------------*/
+
+.middle-circle {
+  background-color: rgb(26,203,255);
+  transform: scale(0.57);
+  transition-property: transform;
+  transition-duration: 200ms;
+  transition-timing-function: ease-in;
+  animation: pulse 240ms ease-out;
+}
+
+/**
+ * @capturing=true
+ */
+
+[capturing=true] .middle-circle {
+  transform: scale(1);
+  transition-duration: 140ms;
+  animation: none;
+}
+
+/**
+ * @mode=video
+ */
+
+[mode=video] .middle-circle {
+  background: rgb(236, 14, 14);
+  animation: none;
+}
+
+/**
+ * @mode=video
+ */
+
+[mode=video][capturing=true] .middle-circle {
+  transform: scale(1);
+}
+
+/** Inner Circle
+ ---------------------------------------------------------*/
+
+.inner-circle {
+  background-color: rgb(24, 189, 240);
+  transform: scale(0.29);
+  transition: opacity 200ms ease-in-out;
+}
+
+/**
+ * @capturing=true
+ */
+
+[capturing=true] .inner-circle {
+  opacity: 0;
+}
+
+/**
+ * @mode=video
+ */
+
+[mode=video] .inner-circle {
+  background-color: rgba(159, 0, 0, 0.2);
+  opacity: 1;
+  transition: transform 200ms ease-in;
+}
+
+/**
+ * @mode=video
+ */
+
+[mode=video][capturing=true] .inner-circle {
+  transform: scale(0.57);
+  transition-duration: 220ms;
+}
+
+/** Icon
+ ---------------------------------------------------------*/
+
+.capture-button .center {
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 14%;
+  height: 14%;
+  margin-top: -7%;
+  margin-left: -7%;
+  opacity: 0;
+  border-radius: 50%;
+  background: #FFF;
+}
+
+/**
+ * @capturing=true
+ */
+
+[capturing=true] .capture-button .center {
+  opacity: 1;
+}
+
+[mode=video] .capture-button .center {
+  border-radius: 1px;
+}
+
+/** Pulse Animation
+ ---------------------------------------------------------*/
+
+@keyframes pulse {
+  0% { transform: scale(1) }
+  50% { transform: scale(0) }
+  100% { transform: scale(0.57) }
+}
+
+@keyframes thumbnail-fade-in {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}

@@ -35,10 +35,10 @@ ControlsController.prototype.bindEvents = function() {
   this.app.settings.on('change:mode', this.controls.setter('mode'));
   this.app.on('change:recording', this.controls.setter('recording'));
   this.app.on('camera:timeupdate', this.controls.setVideoTimer);
-  this.controls.on('click:capture', this.app.firer('capture'));
-  this.controls.on('click:gallery', this.onGalleryButtonClick);
-  this.controls.on('click:switch', this.app.settings.mode.next);
-  this.controls.on('click:cancel', this.onCancelButtonClick);
+  this.controls.on('tap:capture', this.app.firer('capture'));
+  this.controls.on('tap:gallery', this.onGalleryButtonClick);
+  this.controls.on('tap:switch', this.app.settings.mode.next);
+  this.controls.on('tap:cancel', this.onCancelButtonClick);
   this.app.on('camera:loading', this.disableButtons);
   this.app.on('camera:ready', this.enableButtons);
   this.app.on('camera:busy', this.disableButtons);
@@ -67,10 +67,6 @@ ControlsController.prototype.disableButtons = function() {
 
 ControlsController.prototype.enableButtons = function() {
   this.controls.enable('buttons');
-};
-
-ControlsController.prototype.onSwitchClick = function() {
-  this.app.settings.get('mode').next();
 };
 
 /**

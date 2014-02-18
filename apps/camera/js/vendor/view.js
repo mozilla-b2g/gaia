@@ -164,6 +164,23 @@ define(function(require, exports, module) {
     this.el = null;
   };
 
+  View.prototype.set = function(key, value) {
+    this.el.setAttribute(key, value);
+  };
+
+  View.prototype.setter = function(key) {
+    return (function(value) { this.set(key, value); }).bind(this);
+  };
+
+  View.prototype.enable = function(key, value) {
+    value = arguments.length === 2 ? value : true;
+    this.set(key + '-enabled', value);
+  };
+
+  View.prototype.disable = function(key) {
+    this.enable(key, false);
+  };
+
   View.prototype.toString = function() {
     return '[object View]';
   };
