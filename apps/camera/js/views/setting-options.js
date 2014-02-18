@@ -20,7 +20,7 @@ module.exports = View.extend({
     this.model = options.model;
     this.on('destroy', this.onDestroy);
     attach(this.el, 'click', 'li', this.onOptionClick);
-    attach(this.el, 'click', '.js-back', this.firer('tap:back'));
+    attach(this.el, 'click', '.js-back', this.firer('click:back'));
     this.model.on('change:selected', this.onSelectedChange);
     debug('initialized');
   },
@@ -31,7 +31,7 @@ module.exports = View.extend({
 
   onOptionClick: function(event, el) {
     var key = el.getAttribute('data-key');
-    this.emit('tap:option', key, this.model);
+    this.emit('click:option', key, this.model);
   },
 
   onSelectedChange: function(key) {

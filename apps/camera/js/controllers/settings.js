@@ -65,8 +65,8 @@ SettingsController.prototype.openSettings = function() {
   this.view = new SettingsView({ items: items })
     .render()
     .appendTo(this.app.el)
-    .on('tap:close', this.closeSettings)
-    .on('tap:option', this.onOptionTap);
+    .on('click:close', this.closeSettings)
+    .on('click:option', this.onOptionTap);
 
   this.app.emit('settings:opened');
   debug('settings opened');
@@ -89,7 +89,7 @@ SettingsController.prototype.closeSettings = function() {
 
 /**
  * Selects the option that was
- * tapped on the setting.
+ * clicked on the setting.
  *
  * @param  {String} key
  * @param  {Setting} setting
