@@ -36,6 +36,9 @@
   /** Close button node */
   var closeButton = null;
 
+  /** The message currently displayed or null if none are displayed */
+  var displayedMessage = null;
+
   /** Callback function to be invoqued when closing the app from either mode
     * CP or SI/SL */
   var onCloseCallback = null;
@@ -76,6 +79,10 @@
       navigator.mozSettings.addObserver(wapPushEnableKey, wpm_onSettingsChange);
     }
 
+    // Clear the internal state
+    displayedMessage = null;
+    pendingMessages = 0;
+
     // Retrieve the various page elements
     closeButton = document.getElementById('close');
 
@@ -94,12 +101,12 @@
   }
 
   /**
-   * Closes the application whenever it is hidden
+   * Prevents the application from being automatically closed when it's brought
+   * into the foreground. This is required because we automatically schedule
+   * closing the application on a timer after processing a message.
    */
   function wpm_onVisibilityChange() {
-    if (document.hidden) {
-      wpm_close();
-    } else {
+    if (!document.hidden) {
       window.clearTimeout(closeTimeout);
       closeTimeout = null;
     }
@@ -255,6 +262,8 @@
               CpScreenHelper.populateScreen(message);
               break;
           }
+
+          displayedMessage = message;
         } else {
           // Notify the user that the message has expired
           SiSlScreenHelper.populateScreen();
@@ -273,7 +282,7 @@
   function wpm_finish() {
     pendingMessages--;
 
-    if (document.hidden) {
+    if (document.hidden && !displayedMessage) {
       wpm_close();
     }
   }

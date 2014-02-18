@@ -506,6 +506,7 @@ suite('WAP Push', function() {
 
       this.clock = this.sinon.useFakeTimers();
       this.sinon.spy(window, 'close');
+      this.sinon.stub(MockMessageDB, 'retrieve');
     });
 
     teardown(function() {
@@ -526,6 +527,17 @@ suite('WAP Push', function() {
     test('the app is not closed if it is visible', function() {
       isDocumentHidden = false;
 
+      MockNavigatormozSetMessageHandler.mTrigger('wappush-received', message);
+      MockNavigatormozApps.mTriggerLastRequestSuccess();
+      this.clock.tick(100);
+      sinon.assert.notCalled(window.close);
+    });
+
+    test('the app is not closed if it is displaying a message', function() {
+      isDocumentHidden = true;
+
+      WapPushManager.displayWapPushMessage(0);
+      MockMessageDB.retrieve.yield(ParsedMessage.from(message, 0));
       MockNavigatormozSetMessageHandler.mTrigger('wappush-received', message);
       MockNavigatormozApps.mTriggerLastRequestSuccess();
       this.clock.tick(100);
@@ -557,16 +569,6 @@ suite('WAP Push', function() {
       WapPushManager.onVisibilityChange();
       this.clock.tick(100);
       sinon.assert.notCalled(window.close);
-    });
-
-    test('the app is closed when hidden', function() {
-      isDocumentHidden = false;
-      WapPushManager.onVisibilityChange();
-      this.clock.tick(100);
-      isDocumentHidden = true;
-      WapPushManager.onVisibilityChange();
-      this.clock.tick(100);
-      sinon.assert.calledOnce(window.close);
     });
   });
 });
