@@ -81,6 +81,28 @@ Timer.Panel = function(element) {
   }, this);
 
   var sound = this.nodes.sound;
+  document.getElementById('timer-tone-selection').onclick = function() {
+   var activity = new MozActivity({
+  // Ask for the "pick" activity
+  name: 'pick',
+
+  // Provide the data required by the filters of the activity
+  data: {
+    type: 'ringtone',
+    allowNone: 'allowNone'
+  }
+});
+
+activity.onsuccess = function() {
+    blob = activity.result.blob;  // The returned ringtone sound
+          var name = activity.result.name;  // The name of this ringtone
+          selectedSoundURL = activity.result.url;
+          document.getElementById('timer-tone-selection').innerHTML = name;
+};
+activity.onerror = function() {
+  console.log(this.error);
+};
+};
 
   sound.addEventListener('blur', this.pauseAlarm.bind(this), false);
   sound.addEventListener('change', this.previewAlarm.bind(this), false);
@@ -275,7 +297,7 @@ Timer.Panel.prototype.onclick = function(event) {
         panel.timer.duration = time;
       }
 
-      panel.timer.sound = nodes.sound.value;
+      panel.timer.sound = blob;
       panel.timer.vibrate = nodes.vibrate.checked;
       panel.timer.start();
       panel.tick();

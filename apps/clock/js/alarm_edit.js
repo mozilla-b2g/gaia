@@ -54,14 +54,13 @@ var AlarmEdit = {
     this.inputs = {
       name: document.getElementById('alarm-name')
     };
-
     this.buttons = {};
     [
       'delete', 'close', 'done'
     ].forEach(function(id) {
       this.buttons[id] = document.getElementById('alarm-' + id);
     }, this);
-
+    this.button = {ringer: document.getElementById('ring-tone-selection')};
     this.buttons.time = new FormButton(this.selects.time, {
       formatLabel: function(value) {
         var time = Utils.parseTime(value);
@@ -101,6 +100,7 @@ var AlarmEdit = {
     this.updateL10n();
 
     this.buttons.close.addEventListener('click', this);
+    this.button.ringer.addEventListener('click', this);
     this.buttons.done.addEventListener('click', this);
     this.selects.sound.addEventListener('change', this);
     this.selects.sound.addEventListener('blur', this);
@@ -155,6 +155,9 @@ var AlarmEdit = {
       case this.buttons.close:
         ClockView.show();
         break;
+     case this.button.ringer:
+        this.ringertone();
+    break;
       case this.buttons.done:
         ClockView.show();
         this.save(function aev_saveCallback(err, alarm) {
@@ -254,6 +257,28 @@ var AlarmEdit = {
       this.previewRingtonePlayer.pause();
     }
   },
+  ringertone: function ringer_sound() {
+  var activity = new MozActivity({
+  // Ask for the "pick" activity
+  name: 'pick',
+
+  // Provide the data required by the filters of the activity
+  data: {
+    type: 'ringtone',
+    allowNone: 'allowNone'
+  }
+});
+
+activity.onsuccess = function() {
+    blob = activity.result.blob;  // The returned ringtone sound
+          var name = activity.result.name;  // The name of this ringtone
+          selectedSoundURL = activity.result.url;
+          document.getElementById('ring-tone-selection').innerHTML = name;
+};
+activity.onerror = function() {
+  console.log(this.error);
+};
+  },
 
   initVibrateSelect: function aev_initVibrateSelect() {
     this.buttons.vibrate.value = this.alarm.vibrate;
@@ -288,7 +313,7 @@ var AlarmEdit = {
     var time = this.getTimeSelect();
     this.alarm.time = [time.hour, time.minute];
     this.alarm.repeat = this.buttons.repeat.value;
-    this.alarm.sound = this.getSoundSelect();
+    this.alarm.sound = blob;
     this.alarm.vibrate = this.getVibrateSelect();
     this.alarm.snooze = parseInt(this.getSnoozeSelect(), 10);
 

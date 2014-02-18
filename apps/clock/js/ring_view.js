@@ -164,9 +164,9 @@ RingView.prototype.ring = function rv_ring(state) {
       ringtonePlayer.addEventListener('mozinterruptbegin', this);
       ringtonePlayer.mozAudioChannelType = 'alarm';
       ringtonePlayer.loop = true;
-      ringtonePlayer.src = 'shared/resources/media/alarms/' +
-        this.notificationOptions.sound;
+      ringtonePlayer.src = URL.createObjectURL(this.notificationOptions.sound);
       ringtonePlayer.play();
+      URL.revokeObjectURL(this.notificationOptions.sound);
     }
   } else if (this.ringtonePlayer) {
     this.ringtonePlayer.pause();
