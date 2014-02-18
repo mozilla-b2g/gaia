@@ -668,14 +668,17 @@ class FakeUpdateChecker(object):
 
 class GaiaDevice(object):
 
-    def __init__(self, marionette, testvars=None):
+    def __init__(self, marionette, testvars=None,
+                 install_fake_update_checker=True):
         self.marionette = marionette
+        self.install_fake_update_checker = install_fake_update_checker
         self.testvars = testvars or {}
-        self.update_checker = FakeUpdateChecker(self.marionette)
         self.lockscreen_atom = os.path.abspath(
             os.path.join(__file__, os.path.pardir, 'atoms', "gaia_lock_screen.js"))
         self.marionette.import_script(self.lockscreen_atom)
-        self.update_checker.check_updates()
+        if self.install_fake_update_checker:
+            self.update_checker = FakeUpdateChecker(self.marionette)
+            self.update_checker.check_updates()
 
     def add_device_manager(self, device_manager):
         self._manager = device_manager
@@ -764,7 +767,8 @@ class GaiaDevice(object):
             .until(lambda m: m.find_element(*locator).is_displayed())
 
         self.marionette.import_script(self.lockscreen_atom)
-        self.update_checker.check_updates()
+        if self.install_fake_update_checker:
+            self.update_checker.check_updates()
 
     def stop_b2g(self):
         if self.marionette.instance:
