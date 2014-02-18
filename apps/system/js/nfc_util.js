@@ -390,7 +390,7 @@ var NfcUtil = {
     var rndMSB = rnd >>> 8;
     var hr = [new MozNDEFRecord(this.NdefConsts.tnf_well_known,
                                 this.NdefConsts.rtd_handover_request,
-                                new Uint8Array([]),
+                                undefined,
                                 new Uint8Array([18, 145, 2, 2, 99, 114,
                                                 rndMSB, rndLSB, 81, 2, 4, 97,
                                                 99, cps, 1, 98, 0])),
@@ -424,7 +424,7 @@ var NfcUtil = {
     }
     var hs = [new MozNDEFRecord(this.NdefConsts.tnf_well_known,
                                 this.NdefConsts.rtd_handover_select,
-                                new Uint8Array([]),
+                                undefined,
                                 new Uint8Array([0x12, 0xD1, 0x02, 0x04, 0x61,
                                               0x63, cps, 0x01, 0x30, 0x00])),
               new MozNDEFRecord(this.NdefConsts.tnf_mime_media,
