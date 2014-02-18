@@ -17,7 +17,7 @@ module.exports = {
     ],
     persistent: false
   },
-  
+
   isoModes: {
     disabled: false,
     options: [

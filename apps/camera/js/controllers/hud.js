@@ -92,8 +92,7 @@ HudController.prototype.disableButtons = function() {
 };
 
 HudController.prototype.onRecordingChange = function(recording) {
-  this.hud.hide('flash', recording);
-  this.hud.hide('camera', recording);
+  this.hud.toggle(!recording);
 };
 
 });

@@ -5,11 +5,9 @@ define(function(require, exports, module) {
  * Dependencies
  */
 
-var formatTimer = require('lib/format-timer');
 var debug = require('debug')('view:controls');
 var attach = require('vendor/attach');
 var View = require('vendor/view');
-var find = require('lib/find');
 
 /**
  * Exports
@@ -25,38 +23,54 @@ module.exports = View.extend({
 
   render: function() {
     this.el.innerHTML = this.template();
-    attach.on(this.el, 'click', '.js-switch', this.onSwitchClick);
+    this.els.thumbnail = this.find('.js-thumbnail');
+
+    // Bind events
     attach.on(this.el, 'click', '.js-btn', this.onButtonClick);
-    this.els.timer = find('.js-video-timer', this.el);
+    attach.on(this.el, 'click', '.js-switch', this.onButtonClick);
     debug('rendered');
   },
 
-  setVideoTimer: function(ms) {
-    var formatted = formatTimer(ms);
-    this.els.timer.textContent = formatted;
-  },
-
   onButtonClick: function(e, el) {
-    e.stopPropagation();
     var name = el.getAttribute('name');
+    e.stopPropagation();
     this.emit('click:' + name, e);
   },
 
   template: function() {
-    return '<a class="switch-button test-switch js-btn" name="switch">' +
-      '<span class="icon rotates"></span>' +
-    '</a>' +
-    '<a class="capture-button test-capture js-btn" name="capture">' +
-      '<span class="icon rotates"></span>' +
-    '</a>' +
-    '<div class="misc-button">' +
-      '<a class="gallery-button test-gallery js-btn" name="gallery">' +
-        '<span class="icon-gallery rotates"></span>' +
-      '</a>' +
-      '<a class="cancel-pick test-cancel-pick js-btn" name="cancel"></a>' +
-      '<span class="video-timer test-video-timer js-video-timer">00:00</span>' +
-    '</div>';
+    /*jshint maxlen:false*/
+    return '' +
+      '<div class="controls-left">' +
+        '<div class="controls-button controls-gallery-button test-gallery icon-gallery js-thumbnail js-btn rotates" name="gallery"></div>' +
+        '<div class="controls-button controls-cancel-pick-button test-cancel-pick icon-cancel js-btn" name="cancel">x</div>' +
+      '</div>' +
+      '<div class="controls-middle">' +
+        '<div class="capture-button test-capture js-btn rotates" name="capture">' +
+          '<div class="circle outer-circle"></div>' +
+          '<div class="circle inner-circle"></div>' +
+          '<div class="center icon"></div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="controls-right">' +
+        '<div class="mode-switch test-switch js-switch icon" name="switch">' +
+          '<div class="mode-icon icon rotates"></div>' +
+          '<div class="selected-mode">' +
+            '<div class="selected-mode-icon rotates"></div>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
   },
+
+  setThumbnail: function(blob) {
+    if (!this.els.image) {
+      this.els.image = new Image();
+      this.els.thumbnail.appendChild(this.els.image);
+    } else {
+      window.URL.revokeObjectURL(this.els.image.src);
+    }
+    this.els.image.src = window.URL.createObjectURL(blob);
+  }
+
 });
 
 });

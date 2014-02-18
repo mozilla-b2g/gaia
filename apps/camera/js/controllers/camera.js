@@ -7,6 +7,8 @@ define(function(require, exports, module) {
 
 var debug = require('debug')('controller:camera');
 var bindAll = require('lib/bind-all');
+var parseJPEGMetadata = require('jpegMetaDataParser');
+var createThumbnailImage = require('lib/create-thumbnail-image');
 
 /**
  * Exports
@@ -14,6 +16,7 @@ var bindAll = require('lib/bind-all');
 
 exports = module.exports = function(app) { return new CameraController(app); };
 exports.CameraController = CameraController;
+
 
 /**
  * Initialize a new `CameraController`
@@ -33,6 +36,11 @@ function CameraController(app) {
   this.controls = app.views.controls;
   this.configure();
   this.bindEvents();
+  /**
+    Default Thumbnail sizes in css pixels
+  */
+  this.thumbnailWidth = 54;
+  this.thumbnailHeight = 54;
   debug('initialized');
 }
 
@@ -43,7 +51,7 @@ CameraController.prototype.bindEvents = function() {
 
   // Relaying camera events means other modules
   // don't have to depend directly on camera
-  camera.on('change:videoElapsed', app.firer('camera:timeupdate'));
+  camera.on('change:videoElapsed', app.firer('camera:recorderTimeUpdate'));
   camera.on('change:capabilities', this.app.setter('capabilities'));
   camera.on('configured', app.firer('camera:configured'));
   camera.on('change:recording', app.setter('recording'));
@@ -132,25 +140,24 @@ CameraController.prototype.onNewImage = function(image) {
   var memoryBlob = image.blob;
   var self = this;
 
-  // In either case, save the memory-backed photo blob to
-  // device storage, retrieve the resulting File (blob) and
-  // pass that around instead of the original memory blob.
-  // This is critical for "pick" activity consumers where
-  // the memory-backed Blob is either highly inefficent or
-  // will almost-immediately become inaccesible, depending
-  // on the state of the platform. https://bugzil.la/982779
-  storage.addImage(
-    memoryBlob,
-    function(filepath, abspath, fileBlob) {
-      debug('stored image', filepath);
-      image.blob = fileBlob;
-      if (!self.activity.active) {
-        filmstrip.addImageAndShow(filepath, fileBlob);
-      }
+  // In either case, save
+  // the photo to device storage
+  storage.addImage(blob, function(filepath) {
+    debug('stored image', filepath);
+    if (!self.activity.active) {
+      filmstrip.addImageAndShow(filepath, blob);
+    }
+  });
 
-      debug('new image', image);
-      this.app.emit('newimage', image);
-    }.bind(this));
+  debug('new image', image);
+  this.app.emit('newimage', image);
+
+  this.createThumbnail(image, onThumbnailCreated);
+
+  function onThumbnailCreated(thumbnailBlob) {
+    self.app.emit('newthumbnail', thumbnailBlob);
+  }
+
 };
 
 /**
@@ -171,6 +178,7 @@ CameraController.prototype.onNewVideo = function(video) {
 
   var storage = this.storage;
   var poster = video.poster;
+  video.isVideo = true;
 
   // Add the video to the filmstrip,
   // then save lazily so as not to block UI
@@ -180,15 +188,14 @@ CameraController.prototype.onNewVideo = function(video) {
 
   // Add the poster image to the image storage
   poster.filepath = video.filepath.replace('.3gp', '.jpg');
-  storage.addImage(
-    poster.blob, { filepath: poster.filepath },
-    function(path, absolutePath, fileBlob) {
-      // Replace the memory-backed Blob with the DeviceStorage file-backed File.
-      // Note that "video" references "poster", so video previews will use this
-      // File.
-      poster.blob = fileBlob;
-      this.app.emit('newvideo', video);
-    }.bind(this));
+  storage.addImage(poster.blob, { filepath: poster.filepath });
+  this.app.emit('newvideo', video);
+
+  this.createThumbnail(video, onThumbnailCreated);
+
+  function onThumbnailCreated(thumbnailBlob) {
+    self.app.emit('newthumbnail', thumbnailBlob);
+  }
 };
 
 CameraController.prototype.onPictureSizeChange = function() {
@@ -275,6 +282,44 @@ CameraController.prototype.setISO = function() {
 CameraController.prototype.setWhiteBalance = function() {
   if (!this.settings.whiteBalance.get('disabled')) {
     this.camera.setWhiteBalance(this.settings.whiteBalance.selected('key'));
+  }
+};
+
+CameraController.prototype.createThumbnail = function(media,
+                                                      onThumbnailCreated) {
+  var thumbnailWidth = this.thumbnailWidth * window.devicePixelRatio;
+  var thumbnailHeight = this.thumbnailHeight * window.devicePixelRatio;
+
+  if (media.isVideo) {
+    createThumbnailImage(
+      media.poster.blob,
+      thumbnailWidth,
+      thumbnailHeight,
+      media.isVideo,
+      false,
+      media.mirrored,
+      onThumbnailCreated);
+  } else {
+    parseJPEGMetadata(media.blob, onJPEGParsed);
+  }
+
+  function onJPEGParsed(metadata) {
+    var blob = media.blob;
+    // If JPEG contains a preview we use it to create the thumbnail
+    if (metadata.preview) {
+      blob = blob.slice(
+        metadata.preview.start,
+        metadata.preview.end,
+        'image/jpeg');
+    }
+    createThumbnailImage(
+      blob,
+      thumbnailWidth,
+      thumbnailHeight,
+      false,
+      metadata.rotation,
+      metadata.mirrored,
+      onThumbnailCreated);
   }
 };
 
