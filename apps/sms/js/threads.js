@@ -50,7 +50,7 @@
         participants: participants,
         body: message.body,
         timestamp: +message.timestamp,
-        unreadCount: (options && !options.read) ? 1 : 0,
+        unreadCount: (options && options.unread) ? 1 : 0,
         lastMessageType: message.type || 'sms'
       };
     },

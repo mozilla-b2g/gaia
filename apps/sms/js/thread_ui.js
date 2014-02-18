@@ -1607,33 +1607,32 @@ var ThreadUI = global.ThreadUI = {
     if (!Array.isArray(list)) {
       list = [list];
     }
+
     // Removing from DOM all messages to delete
     for (var i = 0, l = list.length; i < l; i++) {
       ThreadUI.removeMessageDOM(
         document.getElementById('message-' + list[i])
       );
     }
+
     callback = typeof callback === 'function' ? callback : function() {};
-    // Retrieve threadID
-    var threadId = Threads.currentId;
+
     // Do we remove all messages of the Thread?
     if (!ThreadUI.container.firstElementChild) {
       // Remove the thread from DOM and go back to the thread-list
-      ThreadListUI.removeThread(threadId);
+      ThreadListUI.removeThread(Threads.currentId);
       callback();
       window.location.hash = '#thread-list';
     } else {
       // Retrieve latest message in the UI
-      var lastMessageId =
-        ThreadUI.container.querySelector('li:last-child').dataset.messageId;
-      var request = MessageManager.getMessage(+lastMessageId);
+      var lastMessage =
+        ThreadUI.container.querySelector('ul:last-child li:last-child');
       // We need to make Thread-list to show the same info
+      var request = MessageManager.getMessage(+lastMessage.dataset.messageId);
       request.onsuccess = function() {
-        var message = request.result;
         callback();
-        ThreadListUI.updateThread(message);
+        ThreadListUI.updateThread(request.result, { deleted: true });
       };
-
       request.onerror = function() {
         console.error('Error when updating the list of threads');
         callback();
