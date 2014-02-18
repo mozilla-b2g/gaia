@@ -59,7 +59,9 @@ form p + p {
 }
 
 form p input + button[type="reset"],
-form p textarea + button[type="reset"] {
+form p textarea + button[type="reset"],
+form p input + button.reset,
+form p textarea + button.reset {
   position: absolute;
   top: 50%;
   right: 0;
@@ -74,18 +76,24 @@ form p textarea + button[type="reset"] {
 }
 
 form.skin-dark p input + button[type="reset"],
-form.skin-dark p textarea + button[type="reset"] {
+form.skin-dark p textarea + button[type="reset"],
+form.skin-dark p input + button.reset,
+form.skin-dark p textarea + button.reset {
   background-image: url(input_areas/images/icons/clear-dark.png);
 }
 
 /* To avoid colission with BB butons */
 li input + button[type="reset"]:after,
-li textarea + button[type="reset"]:after {
+li textarea + button[type="reset"]:after,
+li input + button.reset:after,
+li textarea + button.reset:after {
   background: none;
 }
 
 form p input + button[type="reset"],
-form p textarea + button[type="reset"] {
+form p textarea + button[type="reset"],
+form p input + button.reset,
+form p textarea + button.reset {
   top: 0;
   margin: 0;
 }
@@ -99,7 +107,9 @@ form p input:focus {
 }
 
 form p input:focus + button[type="reset"],
-form p textarea:focus + button[type="reset"] {
+form p textarea:focus + button[type="reset"],
+form p input:focus + button.reset,
+form p textarea:focus + button.reset {
   opacity: 1;
   pointer-events: all;
 }
@@ -293,7 +303,8 @@ form[role="search"] button.icon:before {
   left: 0;
 }
 
-form[role="search"] p button[type="reset"] {
+form[role="search"] p button[type="reset"],
+form[role="search"] p button.reset {
   right: 0;
 }
 
@@ -363,7 +374,9 @@ form button::-moz-focus-inner {
  */
 
 html[dir="rtl"] form p input + button[type="reset"],
-form p textarea + button[type="reset"] {
+form p textarea + button[type="reset"],
+html[dir="rtl"] form p input + button.reset,
+form p textarea + button.reset {
   left: 0;
   right: auto;
 }
@@ -411,7 +424,8 @@ html[dir="rtl"] form[role="search"] button.icon:before {
   right: 0;
 }
 
-html[dir="rtl"] form[role="search"] p button[type="reset"] {
+html[dir="rtl"] form[role="search"] p button[type="reset"],
+html[dir="rtl"] form[role="search"] p button.reset {
   left: 0;
   right: auto;
 }
