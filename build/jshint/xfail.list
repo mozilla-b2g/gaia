@@ -663,7 +663,6 @@ apps/system/js/edge_swipe_detector.js
 apps/system/js/emergency_callback_manager.js
 apps/system/js/entry_sheet.js
 apps/system/js/ftu_launcher.js
-apps/system/js/homescreen_launcher.js
 apps/system/js/homescreen_window.js
 apps/system/js/icc.js
 apps/system/js/icc_events.js
