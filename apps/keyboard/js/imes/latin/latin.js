@@ -119,11 +119,7 @@
   // Don't offer to autocorrect unless we're reasonably certain that the
   // user wants this correction. The first suggested word must be at least
   // this much more highly weighted than the second suggested word.
-  // XXX: this seems too low, but we get a root word and the root with suffix
-  // that have similar weights, and should probably auto correct on one.
-  // Maybe the prediction engine should weight on the length of the word so
-  // that we can raise this to 1.25 or something.
-  const AUTO_CORRECT_THRESHOLD = 1.05;
+  const AUTO_CORRECT_THRESHOLD = 1.30;
 
   // keyboard.js calls this to pass us the interface object we need
   // to communicate with it
@@ -639,8 +635,10 @@
     // Also, don't autocorrect if the input is a single letter and
     // the first word is more than a single letter. (But still autocorrect
     // "i" to "I")
-    if (correcting && !correctionDisabled &&
-        (!inputIsSuggestion || suggestions[0][1] > inputWeight) &&
+    if (correcting &&
+        !correctionDisabled &&
+        (!inputIsSuggestion ||
+          suggestions[0][1] > inputWeight * AUTO_CORRECT_THRESHOLD) &&
         (input.length > 1 || words[0].length === 1)) {
       // Remember the word to use if the next character is a space.
       autoCorrection = words[0];
