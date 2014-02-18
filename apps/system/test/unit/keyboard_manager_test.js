@@ -372,6 +372,16 @@ suite('KeyboardManager', function() {
 
       sinon.assert.callCount(KeyboardManager.resetShowingKeyboard, 1);
     });
+
+    test('Trigger "hideKeyboardImmediately"' +
+         'while keyboard is in "TransitionIn" status.', function() {
+
+      simulateInputChangeEvent('text');
+      KeyboardManager.hideKeyboardImmediately();
+
+      sinon.assert.callCount(KeyboardManager.resetShowingKeyboard, 1);
+    });
+
   });
 
   suite('removeKeyboard test', function() {

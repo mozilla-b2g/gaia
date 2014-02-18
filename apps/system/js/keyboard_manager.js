@@ -646,6 +646,7 @@ var KeyboardManager = {
   hideKeyboardImmediately: function km_hideImmediately() {
     // Don't need to trigger keyboardhide event if we're already hidden.
     if (this.keyboardFrameContainer.classList.contains('hide')) {
+      this.resetShowingKeyboard();
       return;
     }
     this.keyboardHeight = 0;
