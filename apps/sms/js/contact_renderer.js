@@ -222,10 +222,14 @@ ContactRenderer.prototype = {
       });
 
       // Render contact photo only for specific flavor
-      data.photoHTML = renderPhoto && details.photoURL ?
-        this.templates.photo.interpolate({
-          photoURL: details.photoURL || ''
-        }) : '';
+      if (renderPhoto && details.photoURL) {
+        data.photoHTML = this.templates.photo.interpolate({
+          photoURL: details.photoURL
+        });
+        Utils.asyncLoadRevokeURL(details.photoURL);
+      } else {
+        data.photoHTML = '';
+      }
 
       // Interpolate HTML template with data and inject.
       // Known "safe" HTML values will not be re-sanitized.
@@ -245,11 +249,6 @@ ContactRenderer.prototype = {
 
       target.appendChild(element);
 
-      // Revoke contact photo after image onload.
-      var photo = element.querySelector('span[data-type=img]');
-      if (photo && photo.src) {
-        Utils.asyncLoadRevokeURL(photo.src);
-      }
       tempDiv.textContent = '';
     }, this);
 
