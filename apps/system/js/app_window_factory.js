@@ -98,8 +98,11 @@
       // the search app
       if (config.manifest.role === 'search') {
         return;
-      } else if (!AppWindowManager.isRunning(config) &&
-           config.origin !== HomescreenLauncher.origin) {
+      }
+      var app = AppWindowManager.getApp(config.origin);
+      if (app) {
+        app.reviveBrowser();
+      } else if (config.origin !== HomescreenLauncher.origin) {
         new AppWindow(config);
       } else if (config.origin == HomescreenLauncher.origin) {
         HomescreenLauncher.getHomescreen().ensure();

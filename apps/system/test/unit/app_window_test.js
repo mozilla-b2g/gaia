@@ -1041,10 +1041,12 @@ suite('system/AppWindow', function() {
   test('revive browser', function() {
     var app1 = new AppWindow(fakeWrapperConfig);
     var stubPublish = this.sinon.stub(app1, 'publish');
+    var stub_setVisble = this.sinon.stub(app1, '_setVisible');
     app1.browser = null;
     app1.reviveBrowser();
     assert.isNotNull(app1.browser);
     assert.isFalse(app1.suspended);
+    assert.isTrue(stub_setVisble.calledWith(false));
     assert.isTrue(stubPublish.calledWith('resumed'));
   });
 

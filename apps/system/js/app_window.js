@@ -310,6 +310,8 @@
     this.element.appendChild(this.browser.element);
     this.launchTime = Date.now();
     this.suspended = false;
+    // Launch as background by default.
+    this._setVisible(false);
     this.publish('resumed');
   };
 
