@@ -114,7 +114,7 @@
       }
 
       this._started = true;
-      if (Applications.ready) {
+      if (applications.ready) {
         this._fetchSettings();
       } else {
         window.addEventListener('applicationready',
