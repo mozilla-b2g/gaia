@@ -1,0 +1,40 @@
+{
+  "homescreens": [
+    [
+      ["apps", "communications", "dialer"],
+      ["apps", "sms"],
+      ["apps", "communications", "contacts"]
+    ], [
+      ["apps/homescreen/collections", "social"],
+      ["apps/homescreen/collections", "games"],
+      ["apps/homescreen/collections", "music"],
+      ["apps/homescreen/collections", "showbiz"]
+    ], [
+      ["apps", "camera"],
+      ["apps", "gallery"],
+      ["apps", "fm"],
+      ["apps", "settings"],
+      ["external-apps", "marketplace.firefox.com"],
+      ["apps", "calendar"],
+      ["apps", "clock"],
+      ["apps", "costcontrol"],
+      ["apps", "email"],
+      ["apps", "music"],
+      ["apps", "video"]
+    ]
+  ],
+  "search_page": {
+    "enabled": true
+  },
+  "bookmarks": [
+    {
+      "name": "Browser",
+      "bookmarkURL": "http://mozilla.org",
+      "icon": "app://homescreen.gaiamobile.org/style/icons/Aurora.png",
+      "iconable": false,
+      "useAsyncPanZoom": true,
+      "features": "toolbar=yes,location=yes",
+      "removable": false
+    }
+  ]
+}

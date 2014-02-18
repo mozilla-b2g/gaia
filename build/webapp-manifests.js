@@ -102,32 +102,6 @@ function manifestInterAppHostnames(webapp, webappTargetDir) {
   }
 }
 
-/**
- * Modifies the system manifest when rocketbar is enabled.
- * Adds view URL activity handling to the system app.
- * This will be removed once Rocketbar is turned on for good.
- */
-function modifySystemForRocketbar(webapp, webappTargetDir) {
-  let manifest = utils.getJSON(webapp.manifestFile);
-  manifest.activities = manifest.activities || {};
-
-  // This is the activity definition that defines which URLs we match against.
-  // The pattern must match against the input for the URL to open.
-  manifest.activities.view = {
-    filters: {
-      type: 'url',
-      url: {
-        required: true,
-        pattern: 'https?:.{1,16384}',
-        patternFlags: 'i'
-      }
-    }
-  };
-
-  let file = utils.getFile(webappTargetDir.path, 'manifest.webapp');
-  utils.writeContent(file, JSON.stringify(manifest));
-}
-
 function fillAppManifest(webapp) {
   // Compute webapp folder name in profile
   let webappTargetDirName = webapp.domain;
@@ -370,7 +344,27 @@ function execute(options) {
   // stringify json with 2 spaces indentation
   utils.writeContent(manifestFile, JSON.stringify(manifests, null, 2) + '\n');
 
+  var mapping = {};
+  for (var appname in webapps) {
+    mapping[appname] = {};
+    // this property contains manifest information before running app-makefiles.
+    mapping[appname].originalManifest = webapps[appname].manifest;
+    mapping[appname].origin = webapps[appname].webappsJson.origin;
+    mapping[appname].manifestURL = webapps[appname].webappsJson.manifestURL;
+  }
+
+  let stageFolder = utils.getEnv('STAGE_FOLDER');
+  let stageDir;
+  if (stageFolder) {
+    stageDir = utils.getFile(config.GAIA_DIR, stageFolder);
+    utils.ensureFolderExists(stageDir);
+  }
+  let mappingFile = stageDir.clone();
+  mappingFile.append('webapps-mapping.json');
+  utils.writeContent(mappingFile, JSON.stringify(mapping, null, 2));
+
   return webapps;
 }
 
 exports.execute = execute;
+exports.INSTALL_TIME = INSTALL_TIME;
