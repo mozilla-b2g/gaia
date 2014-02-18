@@ -81,6 +81,7 @@ var MockThreadUI = {
   onMessageSent: function() {},
   onMessageFailed: function() {},
   onDeliverySuccess: function() {},
+  onReadSuccess: function() {},
   removeMessageDOM: function() {},
   retrieveMMS: function() {},
   resendMessage: function() {},

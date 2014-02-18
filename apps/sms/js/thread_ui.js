@@ -1478,7 +1478,7 @@ var ThreadUI = global.ThreadUI = {
   // Check deliveryStatus for both single and multiple recipient case.
   // In multiple recipient case, we return true only when all the recipients
   // deliveryStatus set to success.
-  isDeliveryStatusSuccess: function thui_isDeliveryStatusSuccess(message) {
+  shouldShowDeliveryStatus: function thui_shouldShowDeliveryStatus(message) {
     if (message.delivery !== 'sent') {
       return false;
     }
@@ -1492,10 +1492,26 @@ var ThreadUI = global.ThreadUI = {
     }
   },
 
+  // Check readStatus for both single and multiple recipient case.
+  // In multiple recipient case, we return true only when all the recipients
+  // deliveryStatus set to success.
+  shouldShowReadStatus: function thui_shouldShowReadStatus(message) {
+    // Only mms message has readStatus
+    if (message.delivery !== 'sent' || message.type === 'sms' ||
+      !message.deliveryInfo) {
+      return false;
+    }
+
+    return message.deliveryInfo.every(function(info) {
+      return info.readStatus === 'success';
+    });
+  },
+
   buildMessageDOM: function thui_buildMessageDOM(message, hidden) {
     var bodyHTML = '';
     var delivery = message.delivery;
-    var isDelivered = this.isDeliveryStatusSuccess(message);
+    var isDelivered = this.shouldShowDeliveryStatus(message);
+    var isRead = this.shouldShowReadStatus(message);
     var messageDOM = document.createElement('li');
 
     var classNames = ['message', message.type, delivery];
@@ -1519,7 +1535,7 @@ var ThreadUI = global.ThreadUI = {
       classNames.push('outgoing');
     }
 
-    if (isDelivered) {
+    if (isDelivered || isRead) {
       classNames.push('delivered');
     }
 
@@ -2158,7 +2174,22 @@ var ThreadUI = global.ThreadUI = {
 
   onDeliverySuccess: function thui_onDeliverySuccess(message) {
     // We need to make sure all the recipients status got success event.
-    if (!this.isDeliveryStatusSuccess(message)) {
+    if (!this.shouldShowDeliveryStatus(message)) {
+      return;
+    }
+
+    var messageDOM = document.getElementById('message-' + message.id);
+
+    if (!messageDOM) {
+      return;
+    }
+    // Update class names to reflect message state
+    messageDOM.classList.add('delivered');
+  },
+
+  onReadSuccess: function thui_onReadSuccess(message) {
+    // We need to make sure all the recipients status got success event.
+    if (!this.shouldShowReadStatus(message)) {
       return;
     }
 

@@ -16,6 +16,7 @@ var mocksForMessaging = new MocksHelper([
 suite('Messaging settings', function() {
   var realMozSettings;
   var realMozL10n;
+  var elementIds;
 
   mocksForMessaging.attachTestHelpers();
   suiteSetup(function() {
@@ -41,6 +42,16 @@ suite('Messaging settings', function() {
             '<label class="pack-switch">' +
               '<input type="checkbox" ' +
                      'name="ril.sms.requestStatusReport.enabled"/>' +
+              '<span></span>' +
+            '</label>' +
+          '</li>' +
+        '</ul>' +
+        '<ul id="mmsSettings-list">' +
+          '<li id="menuItem-readReport"' +
+              'aria-disabled="true" class="hint">' +
+            '<label class="pack-switch">' +
+              '<input type="checkbox" ' +
+                     'name="ril.mms.requestReadReport.enabled"/>' +
               '<span></span>' +
             '</label>' +
           '</li>' +
@@ -72,6 +83,14 @@ suite('Messaging settings', function() {
     navigator.mozSettings = realMozSettings;
   });
 
+  setup(function() {
+    elementIds = ['menuItem-deliveryReport',
+                  'menuItem-readReport',
+                  'menuItem-autoRetrieve',
+                  'menuItem-wapPush',
+                  'menuItem-cellBroadcast'];
+  });
+
   suite('init function, cardState ready', function() {
     setup(function() {
       MockIccHelper.mProps.cardState = 'ready';
@@ -79,11 +98,6 @@ suite('Messaging settings', function() {
     });
 
     test('panel items are enabled', function() {
-      var elementIds = ['menuItem-deliveryReport',
-                        'menuItem-autoRetrieve',
-                        'menuItem-wapPush',
-                        'menuItem-cellBroadcast'];
-
       elementIds.forEach(function(id) {
         var element = document.getElementById(id);
         var input = element.querySelector('input');
@@ -102,11 +116,6 @@ suite('Messaging settings', function() {
     });
 
     test('panel items are disabled', function() {
-      var elementIds = ['menuItem-deliveryReport',
-                        'menuItem-autoRetrieve',
-                        'menuItem-wapPush',
-                        'menuItem-cellBroadcast'];
-
       elementIds.forEach(function(id) {
         var element = document.getElementById(id);
         var input = element.querySelector('input');
@@ -125,11 +134,6 @@ suite('Messaging settings', function() {
     });
 
     test('panel items are disabled', function() {
-      var elementIds = ['menuItem-deliveryReport',
-                        'menuItem-autoRetrieve',
-                        'menuItem-wapPush',
-                        'menuItem-cellBroadcast'];
-
       elementIds.forEach(function(id) {
         var element = document.getElementById(id);
         var input = element.querySelector('input');
@@ -148,11 +152,6 @@ suite('Messaging settings', function() {
     });
 
     test('panel items are disabled', function() {
-      var elementIds = ['menuItem-deliveryReport',
-                        'menuItem-autoRetrieve',
-                        'menuItem-wapPush',
-                        'menuItem-cellBroadcast'];
-
       elementIds.forEach(function(id) {
         var element = document.getElementById(id);
         var input = element.querySelector('input');
@@ -171,11 +170,6 @@ suite('Messaging settings', function() {
     });
 
     test('panel items are disabled', function() {
-      var elementIds = ['menuItem-deliveryReport',
-                        'menuItem-autoRetrieve',
-                        'menuItem-wapPush',
-                        'menuItem-cellBroadcast'];
-
       elementIds.forEach(function(id) {
         var element = document.getElementById(id);
         var input = element.querySelector('input');
@@ -194,11 +188,6 @@ suite('Messaging settings', function() {
     });
 
     test('panel items are disabled', function() {
-      var elementIds = ['menuItem-deliveryReport',
-                        'menuItem-autoRetrieve',
-                        'menuItem-wapPush',
-                        'menuItem-cellBroadcast'];
-
       elementIds.forEach(function(id) {
         var element = document.getElementById(id);
         var input = element.querySelector('input');
@@ -217,11 +206,6 @@ suite('Messaging settings', function() {
     });
 
     test('panel items are disabled', function() {
-      var elementIds = ['menuItem-deliveryReport',
-                        'menuItem-autoRetrieve',
-                        'menuItem-wapPush',
-                        'menuItem-cellBroadcast'];
-
       elementIds.forEach(function(id) {
         var element = document.getElementById(id);
         var input = element.querySelector('input');
@@ -240,11 +224,6 @@ suite('Messaging settings', function() {
     });
 
     test('panel items are disabled', function() {
-      var elementIds = ['menuItem-deliveryReport',
-                        'menuItem-autoRetrieve',
-                        'menuItem-wapPush',
-                        'menuItem-cellBroadcast'];
-
       elementIds.forEach(function(id) {
         var element = document.getElementById(id);
         var input = element.querySelector('input');
@@ -263,11 +242,6 @@ suite('Messaging settings', function() {
     });
 
     test('panel items are disabled', function() {
-      var elementIds = ['menuItem-deliveryReport',
-                        'menuItem-autoRetrieve',
-                        'menuItem-wapPush',
-                        'menuItem-cellBroadcast'];
-
       elementIds.forEach(function(id) {
         var element = document.getElementById(id);
         var input = element.querySelector('input');
@@ -286,11 +260,6 @@ suite('Messaging settings', function() {
     });
 
     test('panel items are disabled', function() {
-      var elementIds = ['menuItem-deliveryReport',
-                        'menuItem-autoRetrieve',
-                        'menuItem-wapPush',
-                        'menuItem-cellBroadcast'];
-
       elementIds.forEach(function(id) {
         var element = document.getElementById(id);
         var input = element.querySelector('input');
@@ -309,11 +278,6 @@ suite('Messaging settings', function() {
     });
 
     test('panel items are disabled', function() {
-      var elementIds = ['menuItem-deliveryReport',
-                        'menuItem-autoRetrieve',
-                        'menuItem-wapPush',
-                        'menuItem-cellBroadcast'];
-
       elementIds.forEach(function(id) {
         var element = document.getElementById(id);
         var input = element.querySelector('input');
@@ -332,11 +296,6 @@ suite('Messaging settings', function() {
     });
 
     test('panel items are disabled', function() {
-      var elementIds = ['menuItem-deliveryReport',
-                        'menuItem-autoRetrieve',
-                        'menuItem-wapPush',
-                        'menuItem-cellBroadcast'];
-
       elementIds.forEach(function(id) {
         var element = document.getElementById(id);
         var input = element.querySelector('input');
@@ -355,11 +314,6 @@ suite('Messaging settings', function() {
     });
 
     test('panel items are disabled', function() {
-      var elementIds = ['menuItem-deliveryReport',
-                        'menuItem-autoRetrieve',
-                        'menuItem-wapPush',
-                        'menuItem-cellBroadcast'];
-
       elementIds.forEach(function(id) {
         var element = document.getElementById(id);
         var input = element.querySelector('input');
@@ -378,11 +332,6 @@ suite('Messaging settings', function() {
     });
 
     test('panel items are disabled', function() {
-      var elementIds = ['menuItem-deliveryReport',
-                        'menuItem-autoRetrieve',
-                        'menuItem-wapPush',
-                        'menuItem-cellBroadcast'];
-
       elementIds.forEach(function(id) {
         var element = document.getElementById(id);
         var input = element.querySelector('input');
@@ -401,11 +350,6 @@ suite('Messaging settings', function() {
     });
 
     test('panel items are disabled', function() {
-      var elementIds = ['menuItem-deliveryReport',
-                        'menuItem-autoRetrieve',
-                        'menuItem-wapPush',
-                        'menuItem-cellBroadcast'];
-
       elementIds.forEach(function(id) {
         var element = document.getElementById(id);
         var input = element.querySelector('input');
@@ -424,11 +368,6 @@ suite('Messaging settings', function() {
     });
 
     test('panel items are disabled', function() {
-      var elementIds = ['menuItem-deliveryReport',
-                        'menuItem-autoRetrieve',
-                        'menuItem-wapPush',
-                        'menuItem-cellBroadcast'];
-
       elementIds.forEach(function(id) {
         var element = document.getElementById(id);
         var input = element.querySelector('input');
@@ -447,11 +386,6 @@ suite('Messaging settings', function() {
     });
 
     test('panel items are disabled', function() {
-      var elementIds = ['menuItem-deliveryReport',
-                        'menuItem-autoRetrieve',
-                        'menuItem-wapPush',
-                        'menuItem-cellBroadcast'];
-
       elementIds.forEach(function(id) {
         var element = document.getElementById(id);
         var input = element.querySelector('input');
@@ -470,11 +404,6 @@ suite('Messaging settings', function() {
     });
 
     test('panel items are disabled', function() {
-      var elementIds = ['menuItem-deliveryReport',
-                        'menuItem-autoRetrieve',
-                        'menuItem-wapPush',
-                        'menuItem-cellBroadcast'];
-
       elementIds.forEach(function(id) {
         var element = document.getElementById(id);
         var input = element.querySelector('input');
