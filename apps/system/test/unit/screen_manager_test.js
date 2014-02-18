@@ -1,6 +1,6 @@
 'use strict';
 
-mocha.globals(['SettingsListener', 'lockScreen', 'Bluetooth', 'StatusBar',
+mocha.globals(['SettingsListener', 'LockScreen', 'Bluetooth', 'StatusBar',
       'AttentionScreen', 'removeEventListener', 'addEventListener',
       'ScreenManager', 'clearIdleTimeout', 'setIdleTimeout', 'dispatchEvent',
       'AppWindowManager']);
@@ -37,7 +37,7 @@ function restoreProperty(originObject, prop, reals, useDefineProperty) {
 }
 
 var mocksForScreenManager = new MocksHelper([
-  'SettingsListener', 'Bluetooth', 'StatusBar',
+  'SettingsListener', 'LockScreen', 'Bluetooth', 'StatusBar',
   'AppWindowManager'
 ]).init();
 
@@ -46,7 +46,6 @@ suite('system/ScreenManager', function() {
   mocksForScreenManager.attachTestHelpers();
 
   setup(function(done) {
-    window.lockScreen = MockLockScreen;
     switchProperty(navigator, 'mozPower', MockMozPower, reals, true);
     this.sinon.useFakeTimers();
 
@@ -74,12 +73,12 @@ suite('system/ScreenManager', function() {
       this.sinon.stub(ScreenManager, '_setIdleTimeout');
 
       switchProperty(navigator, 'mozTelephony', stubTelephony, reals);
-      switchProperty(window, 'lockScreen', stubLockscreen, reals);
+      switchProperty(window, 'LockScreen', stubLockscreen, reals);
     });
 
     teardown(function() {
       restoreProperty(navigator, 'mozTelephony', reals);
-      restoreProperty(window, 'lockScreen', reals);
+      restoreProperty(window, 'LockScreen', reals);
     });
 
     test('Event listener adding', function() {

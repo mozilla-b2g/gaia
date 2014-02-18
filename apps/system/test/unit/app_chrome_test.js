@@ -211,4 +211,13 @@ suite('system/AppChrome', function() {
     chrome1.handleOpened();
     assert.isTrue(stubToggleButtonBar.called);
   });
+
+  test('get bottonbar height', function() {
+    var app1 = new AppWindow(fakeAppConfig1);
+    var chrome1 = new AppChrome(app1);
+
+    var spyGetBarHeight = this.sinon.spy(chrome1, 'getBarHeight');
+
+    assert.isTrue(chrome1.getBarHeight.called);
+  }
 });
