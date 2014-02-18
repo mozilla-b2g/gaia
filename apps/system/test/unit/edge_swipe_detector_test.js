@@ -467,8 +467,6 @@ suite('system/EdgeSwipeDetector >', function() {
         var fwSpy = this.sinon.spy(MockTouchForwarder.prototype, 'forward');
         var recvEvents = swipe(this.sinon.clock, panel, 10, 10, 10, 10);
 
-        this.sinon.clock.tick();
-
         var call = fwSpy.firstCall;
         assert.equal(call.args[0], recvEvents[0]);
       });
@@ -476,9 +474,8 @@ suite('system/EdgeSwipeDetector >', function() {
       test('it should forward the touchend event',
       function() {
         var fwSpy = this.sinon.spy(MockTouchForwarder.prototype, 'forward');
-        var recvEvents = swipe(this.sinon.clock, panel, 10, 10, 10, 10);
 
-        this.sinon.clock.tick();
+        var recvEvents = swipe(this.sinon.clock, panel, 10, 10, 10, 10);
 
         var call = fwSpy.lastCall;
         assert.equal(call.args[0], recvEvents[(recvEvents.length - 1)]);
