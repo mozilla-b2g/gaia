@@ -78,12 +78,10 @@ suite('controllers/hud', function() {
   suite('HudController#onRecordingChange', function() {
     test('Should disable the hide the hud buttons when recording', function() {
       this.hudController.onRecordingChange(true);
-      assert.ok(this.hud.hide.calledWithExactly('flash', true));
-      assert.ok(this.hud.hide.calledWithExactly('camera', true));
+      assert.ok(this.hud.toggle.calledWithExactly(false));
       this.hud.hide.reset();
       this.hudController.onRecordingChange(false);
-      assert.ok(this.hud.hide.calledWithExactly('flash', false));
-      assert.ok(this.hud.hide.calledWithExactly('camera', false));
+      assert.ok(this.hud.toggle.calledWithExactly(true));
     });
   });
 });

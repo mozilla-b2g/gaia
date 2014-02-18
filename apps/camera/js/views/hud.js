@@ -72,10 +72,6 @@ module.exports = View.extend({
     this.emit('click:settings');
   },
 
-  hide: function(key, value) {
-    this.set(key + '-hidden', value);
-  },
-
   template: function() {
     return '<div class="hud_btn hud_camera rotates icon-toggle-camera ' +
     'test-toggle-camera js-camera"></div>' +

@@ -86,7 +86,8 @@ suite('app', function() {
         camera: sinon.spy(),
         settings: sinon.spy(),
         activity: sinon.spy(),
-        sounds: sinon.spy()
+        sounds: sinon.spy(),
+        recordingTimer: sinon.spy()
       }
     };
 
