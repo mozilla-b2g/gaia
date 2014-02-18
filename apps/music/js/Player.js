@@ -159,7 +159,7 @@ var PlayerView = {
   // we regulate the controls to restrict some actions and hope it can give
   // better ux to the specific scenario.
   checkSCOStatus: function pv_checkSCOStatus() {
-    if (typeof MusicComms !== 'undefined') {
+    if (typeof MusicComms !== 'undefined' && MusicComms.enabled) {
       var SCOStatus = MusicComms.isSCOEnabled;
 
       this.playControl.disabled = this.previousControl.disabled =
