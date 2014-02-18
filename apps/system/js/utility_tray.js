@@ -83,8 +83,7 @@ var UtilityTray = {
         break;
 
       case 'touchstart':
-        evt.preventDefault();
-        if (window.lockScreen && window.lockScreen.locked)
+        if (LockScreen.locked)
           return;
         if (evt.target !== this.overlay &&
             evt.currentTarget !== this.statusbar &&
@@ -95,12 +94,10 @@ var UtilityTray = {
         break;
 
       case 'touchmove':
-        evt.preventDefault();
         this.onTouchMove(evt.touches[0]);
         break;
 
       case 'touchend':
-        evt.preventDefault();
         evt.stopImmediatePropagation();
         var touch = evt.changedTouches[0];
         if (Rocketbar.enabled && !this.shown && !this.active &&

@@ -19,18 +19,13 @@ suite('system/UtilityTray', function() {
   var originalLocked;
   mocksHelperForUtilityTray.attachTestHelpers();
 
-  var FakeEvent = function(y) {
-    this.pageY = y;
-    this.preventDefault = function() {};
-  };
-
   function fakeTouches(start, end) {
-    UtilityTray.onTouchStart(new FakeEvent(start));
+    UtilityTray.onTouchStart({ pageY: start });
     UtilityTray.screenHeight = 480;
 
     var y = start;
     while (y != end) {
-      UtilityTray.onTouchMove(new FakeEvent(y));
+      UtilityTray.onTouchMove({ pageY: y });
 
       if (y < end) {
         y++;
@@ -38,7 +33,7 @@ suite('system/UtilityTray', function() {
         y--;
       }
     }
-    UtilityTray.onTouchEnd(new FakeEvent());
+    UtilityTray.onTouchEnd();
   }
 
   setup(function(done) {
@@ -184,17 +179,8 @@ suite('system/UtilityTray', function() {
       fakeEvt = {
         type: 'touchstart',
         target: UtilityTray.overlay,
-        touches: [0],
-        defaultPrevented: false,
-        preventDefault: function() {
-          this.defaultPrevented = true;
-        }
+        touches: [0]
       };
-    });
-
-    test('preventDefault() should have been called on touchstart', function() {
-      UtilityTray.handleEvent(fakeEvt);
-      assert.isTrue(fakeEvt.defaultPrevented);
     });
 
     test('Test UtilityTray.active, should be true', function() {
@@ -209,18 +195,10 @@ suite('system/UtilityTray', function() {
       fakeEvt = {
         type: 'touchend',
         changedTouches: [0],
-        stopImmediatePropagation: function() {},
-        defaultPrevented: false,
-        preventDefault: function() {
-          this.defaultPrevented = true;
-        }
+        stopImmediatePropagation: function() {}
       };
       UtilityTray.active = true;
       UtilityTray.handleEvent(fakeEvt);
-    });
-
-    test('preventDefault() should have been called on touchend', function() {
-      assert.isTrue(fakeEvt.defaultPrevented);
     });
 
     test('Test UtilityTray.active, should be false', function() {
@@ -263,7 +241,6 @@ suite('system/UtilityTray', function() {
     test('should display for drag on left half of statusbar', function() {
       fakeEvt = {
         stopImmediatePropagation: function() {},
-        preventDefault: function() {},
         type: 'touchend',
         changedTouches: [{
           pageX: 0
@@ -279,7 +256,6 @@ suite('system/UtilityTray', function() {
     test('does not render if utility tray not active', function() {
       fakeEvt = {
         stopImmediatePropagation: function() {},
-        preventDefault: function() {},
         type: 'touchend',
         changedTouches: [{
           pageX: 0
@@ -295,7 +271,6 @@ suite('system/UtilityTray', function() {
     test('should not show if we touch to the right', function() {
       fakeEvt = {
         type: 'touchstart',
-        preventDefault: function() {},
         pageX: 70
       };
       UtilityTray.onTouchStart(fakeEvt);
@@ -309,7 +284,6 @@ suite('system/UtilityTray', function() {
       assert.equal(UtilityTray.shown, true);
       fakeEvt = {
         type: 'touchstart',
-        preventDefault: function() {},
         pageX: 0
       };
       UtilityTray.onTouchStart(fakeEvt);
