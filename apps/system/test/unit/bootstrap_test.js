@@ -12,6 +12,7 @@ requireApp('system/shared/test/unit/mocks/mock_settings_url.js');
 requireApp('system/test/unit/mock_activities.js');
 requireApp('system/test/unit/mock_applications.js');
 requireApp('system/test/unit/mock_devtools_view.js');
+requireApp('system/test/unit/mock_dialer_comms.js');
 requireApp('system/test/unit/mock_ftu_launcher.js');
 requireApp('system/test/unit/mock_homescreen_launcher.js');
 requireApp('system/test/unit/mock_places.js');
@@ -30,6 +31,7 @@ mocha.globals([
   'secureWindowManager',
   'secureWindowFactory',
   'devtoolsView',
+  'dialerComms',
   'storage',
   'ttlView',
   'title'
@@ -39,6 +41,7 @@ var mocksForBootstrap = new MocksHelper([
   'Activities',
   'Applications',
   'DevtoolsView',
+  'DialerComms',
   'FtuLauncher',
   'HomescreenLauncher',
   'Places',
