@@ -26,6 +26,5 @@ var MockUtils = {
   multiRecipientMatch: Utils.multiRecipientMatch,
   probablyMatches: Utils.probablyMatches,
   getDisplayObject: Utils.getDisplayObject,
-  basicContact: Utils.basicContact,
-  asyncLoadRevokeURL: Utils.asyncLoadRevokeURL
+  basicContact: Utils.basicContact
 };

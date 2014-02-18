@@ -504,20 +504,6 @@
       };
 
       return data;
-    },
-
-    /*
-      TODO: It's workaround to avoid url revoke bug. Need platform fixing
-            to remove the async load/remove.(Please ref bug 972245)
-    */
-    asyncLoadRevokeURL: function(url) {
-      setTimeout(function() {
-        var image = new Image();
-        image.src = url;
-        image.onload = image.onerror = function revokePhotoURL() {
-          window.URL.revokeObjectURL(this.src);
-        };
-      });
     }
   };
 

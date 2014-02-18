@@ -1,7 +1,7 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/*global Template, Utils, Threads, Contacts, Threads,
+/*global Template, Utils, Threads, Contacts, URL, Threads,
          WaitingScreen, MozSmsFilter, MessageManager, TimeHeaders,
          Drafts, Thread, ThreadUI, OptionMenu, ActivityPicker */
 
@@ -130,7 +130,7 @@ var ThreadListUI = {
 
     Contacts.findByPhoneNumber(number, function gotContact(contacts) {
       var name = node.getElementsByClassName('name')[0];
-      var photo = node.querySelector('span[data-type=img]');
+      var photo = node.getElementsByTagName('img')[0];
       var title, src, details;
 
       if (contacts && contacts.length) {
@@ -145,7 +145,10 @@ var ThreadListUI = {
       }
 
       if (src) {
-        Utils.asyncLoadRevokeURL(src);
+        photo.onload = photo.onerror = function revokePhotoURL() {
+          this.onload = this.onerror = null;
+          URL.revokeObjectURL(this.src);
+        };
       }
 
       navigator.mozL10n.localize(name, 'thread-header-text', {
@@ -153,7 +156,7 @@ var ThreadListUI = {
         n: others
       });
 
-      photo.style.backgroundImage = 'url(' + src + ')';
+      photo.src = src;
     });
   },
 
