@@ -21,6 +21,7 @@ requireApp('system/test/unit/mock_source_view.js');
 requireApp('system/test/unit/mock_storage.js');
 requireApp('system/test/unit/mock_ttl_view.js');
 requireApp('system/test/unit/mock_title.js');
+requireApp('system/test/unit/mock_layout_manager.js');
 
 mocha.globals([
   'Shortcuts',
@@ -35,7 +36,8 @@ mocha.globals([
   'storage',
   'ttlView',
   'title',
-  'ActivityWindowFactory'
+  'ActivityWindowFactory',
+  'layoutManager'
 ]);
 
 var mocksForBootstrap = new MocksHelper([
@@ -52,7 +54,8 @@ var mocksForBootstrap = new MocksHelper([
   'SourceView',
   'Storage',
   'TTLView',
-  'Title'
+  'Title',
+  'LayoutManager'
 ]).init();
 
 suite('system/Bootstrap', function() {

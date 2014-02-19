@@ -69,6 +69,7 @@ window.addEventListener('load', function startup() {
   window.dialerComms = new DialerComms();
   window.title = new Title();
   window.ttlView = new TTLView();
+  window.layoutManager = new LayoutManager().start();
 
   // We need to be sure to get the focus in order to wake up the screen
   // if the phone goes to sleep before any user interaction.
