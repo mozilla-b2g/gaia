@@ -14,7 +14,7 @@
     "mail-fakeservers": "~0.0.11",
     "marionette-apps": "~0.3.3",
     "marionette-client": "~1.1.0",
-    "marionette-content-script": "0.0.3",
+    "marionette-content-script": "0.0.0",
     "marionette-device-host": "0.0.2",
     "marionette-helper": "~0.2.0",
     "marionette-plugin-forms": "0.0.1",
