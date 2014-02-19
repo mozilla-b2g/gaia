@@ -46,12 +46,12 @@ SetupProgressCard.prototype = {
   onBack: function(e) {
     e.preventDefault();
     this.cancelCreation();
-    Cards.removeCardAndSuccessors(this.domNode, 'animate');
+    Cards.removeCardAndSuccessors(this.domNode, 'animate', 1);
   },
 
   onCreationError: function(err, errDetails) {
     this.callingCard.showError(err, errDetails);
-    Cards.removeCardAndSuccessors(this.domNode, 'animate');
+    Cards.removeCardAndSuccessors(this.domNode, 'animate', 1);
   },
 
   onCreationSuccess: function(account) {
