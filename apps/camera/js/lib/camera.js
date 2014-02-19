@@ -5,15 +5,13 @@ define(function(require, exports, module) {
  * Module Dependencies
  */
 
-var pickPreviewSize = require('lib/camera-utils').selectOptimalPreviewSize;
+var CameraUtils = require('lib/camera-utils');
 var getVideoMetaData = require('lib/get-video-meta-data');
 var orientation = require('lib/orientation');
-var getSizeKey = require('lib/get-size-key');
 var constants = require('config/camera');
 var debug = require('debug')('camera');
 var bindAll = require('lib/bind-all');
 var model = require('vendor/model');
-var mixin = require('lib/mixin');
 
 /**
  * Locals
@@ -63,98 +61,119 @@ function Camera(options) {
   debug('initialized');
 }
 
+/**
+ * Plugs Video Stream into Video Element.
+ *
+ * @param  {Elmement} videoElement
+ */
 Camera.prototype.loadStreamInto = function(videoElement) {
   debug('loading stream into element');
-
   if (!this.mozCamera) {
+    debug('error - `mozCamera` is undefined or null');
     return;
   }
 
-  // Plugs Video Stream in Video Element
-  if (videoElement &&
-      videoElement.mozSrcObject !== this.mozCamera) {
-    videoElement.mozSrcObject = this.mozCamera;
-    videoElement.play();
-    debug('stream loaded');
-    this.emit('streamLoaded');
-    this.emit('ready');
+  if (!videoElement) {
+    debug('error - `videoElement` is undefined or null');
+    return;
   }
+
+  // Don't load the same camera stream again
+  var isCurrent = videoElement.mozSrcObject === this.mozCamera;
+  if (isCurrent) { return debug('camera didn\'t change'); }
+
+  videoElement.mozSrcObject = this.mozCamera;
+  videoElement.play();
+  debug('stream loaded into video');
+
+  this.emit('streamLoaded');
+  this.emit('ready');
 };
 
 Camera.prototype.load = function() {
+  debug('load camera');
+
   var selectedCamera = this.get('selectedCamera');
   var loadingNewCamera = selectedCamera !== this.lastLoadedCamera;
   this.lastLoadedCamera = selectedCamera;
   this.emit('loading');
-  // It just configures if the camera has been previously loaded
+
+  // It just configures if the
+  // camera has been previously loaded
   if (this.mozCamera && !loadingNewCamera) {
-    this.configure(this.mozCamera);
+    this.gotCamera(this.mozCamera);
     return;
   }
-  if (this.mozCamera) { // Camera previously loaded
-    this.release(this.requestCamera);
-  } else { // No camera previously loaded. App fresh start
-    this.requestCamera();
-  }
-  debug('load camera: %s', selectedCamera);
+
+  // If a camera is already loaded,
+  // it must be 'released' first.
+  if (this.mozCamera) { this.release(this.requestCamera); }
+  else { this.requestCamera(); }
 };
 
 Camera.prototype.requestCamera = function() {
   var selectedCamera = this.get('selectedCamera');
-  navigator.mozCameras.getCamera(selectedCamera, {}, this.configure);
+  navigator.mozCameras.getCamera(selectedCamera, {}, this.gotCamera);
 };
 
-Camera.prototype.configure = function(mozCamera) {
-  debug('configure');
+Camera.prototype.gotCamera = function(mozCamera) {
+  debug ('got camera');
+  var capabilities = mozCamera.capabilities;
+  this.mozCamera = mozCamera;
+  this.mozCamera.onShutter = this.onShutter;
+  this.mozCamera.onRecorderStateChange = self.onRecorderStateChange;
+  this.configureFocus(capabilities.focusModes);
+  this.set('capabilities', capabilities);
+};
+
+Camera.prototype.configure = function() {
   var self = this;
-  var capabilities;
-  var options;
   var success = function() {
-    // Format the capabilites then pass them out via
-    // the 'configured' event. This gives the application
-    // a change to match device capabilities with app config.
-    debug('configured');
-    self.emit('configured', self.formatCapabilities(capabilities));
+    self.emit('configured');
   };
+
   var error = function() {
     console.log('Error configuring camera');
   };
 
-  if (!mozCamera) {
-    return;
-  }
-
-  // Store the Gecko
-  // mozCamera interface
-  this.mozCamera = mozCamera;
-  capabilities = mozCamera.capabilities;
-  this.configureFocus(capabilities.focusModes);
-  this.configurePicturePreviewSize(capabilities.previewSizes);
-  // Bind to some hardware events
-  mozCamera.onShutter = this.onShutter;
-  mozCamera.onRecorderStateChange = self.onRecorderStateChange;
-  options = {
-    mode: this.get('mode'),
-    previewSize: this.picturePreviewSize
+  var options = {
+    mode: this.mode,
+    previewSize: this.previewSize(),
+    recorderProfile: this.recorderProfile.key
   };
-  if (this.videoProfile) {
-    options.recorderProfile = this.videoProfile;
-  }
-  mozCamera.setConfiguration(options, success, error);
+
+  debug('mozCamera configuration pw: %s, ph: %s',
+    options.previewSize.width,
+    options.previewSize.height);
+
+  this.mozCamera.setConfiguration(options, success, error);
 };
 
-Camera.prototype.formatCapabilities = function(capabilities) {
-  capabilities = mixin({}, capabilities);
-  return mixin(capabilities, {
-    pictureSizes: this.formatPictureSizes(capabilities.pictureSizes),
-    pictureFlashModes: capabilities.flashModes,
-    videoFlashModes: capabilities.flashModes
-  });
+Camera.prototype.previewSizes = function() {
+  return this.mozCamera.capabilities.previewSizes;
+};
+
+Camera.prototype.previewSize = function() {
+  var sizes = this.previewSizes();
+  var profile = this.resolution();
+  var size = CameraUtils.getOptimalPreviewSize(sizes, profile);
+  debug('resolution w: %s, h: %s', profile.width, profile.height);
+  debug('previewSize w: %s, h: %s', size.width, size.height);
+  return size;
+};
+
+Camera.prototype.resolution = function(mode) {
+  switch (mode || this.mode) {
+    case 'picture': return this.pictureSize;
+    case 'video': return this.recorderProfile.video;
+  }
 };
 
 Camera.prototype.setPictureSize = function(value) {
-  this.mozCamera.pictureSize = value;
+  this.mozCamera.pictureSize = this.pictureSize = value;
   this.setThumbnailSize();
+  debug('set picture size w: %s, h: %s', value.width, value.height);
+  return this;
 };
 
 Camera.prototype.setThumbnailSize = function() {
@@ -164,41 +183,12 @@ Camera.prototype.setThumbnailSize = function() {
   if (picked) { this.mozCamera.thumbnailSize = picked; }
 };
 
-Camera.prototype.formatPictureSizes = function(sizes) {
-  var hash = {};
-  sizes.forEach(function(size) {
-    var key = getSizeKey.picture(size);
-    hash[key] = size;
-  });
-  return hash;
-};
-
-Camera.prototype.setVideoProfile = function(profileName) {
-  var capabilities = this.mozCamera.capabilities;
-  var recorderProfile = capabilities.recorderProfiles[profileName].video;
-  this.videoProfile = profileName;
-  this.videoPreviewSize = {
-    height: recorderProfile.height,
-    width: recorderProfile.width
-  };
-  this.updatePreviewSize();
-  debug('video profile configured', profileName);
-};
-
-Camera.prototype.configurePicturePreviewSize = function(availablePreviewSizes) {
-  var viewportSize;
-  if (!this.mozCamera) {
-    return;
-  }
-  // If no viewportSize provided it uses screen size.
-  viewportSize = this.viewportSize || {
-    width: window.innerWidth,
-    height: window.innerHeight
-  };
-  this.picturePreviewSize = pickPreviewSize(
-    viewportSize,
-    availablePreviewSizes);
-  this.updatePreviewSize();
+Camera.prototype.setRecorderProfile = function(key) {
+  var recorderProfiles = this.mozCamera.capabilities.recorderProfiles;
+  this.recorderProfile = recorderProfiles[key];
+  this.recorderProfile.key = key;
+  debug('video profile set: %s', key);
+  return this;
 };
 
 Camera.prototype.configureFocus = function(modes) {
@@ -217,6 +207,7 @@ Camera.prototype.configureFocus = function(modes) {
 Camera.prototype.setFlashMode = function(key) {
   this.mozCamera.flashMode = key;
   debug('flash mode set: %s', key);
+  return this;
 };
 
 /**
@@ -308,7 +299,7 @@ Camera.prototype.pickThumbnailSize = function(thumbnailSizes, pictureSize) {
  *  public
  */
 Camera.prototype.capture = function(options) {
-  switch (this.get('mode')) {
+  switch (this.mode) {
     case 'picture': this.takePicture(options); break;
     case 'video': this.toggleRecording(options); break;
   }
@@ -637,14 +628,8 @@ Camera.prototype.resumePreview = function() {
  * @return {String}
  */
 Camera.prototype.setMode = function(mode) {
-  this.updatePreviewSize(mode);
-  this.set('mode', mode);
-  this.configure(this.mozCamera);
-};
-
-Camera.prototype.updatePreviewSize = function(mode) {
-  this.previewSize = mode === 'picture' ?
-    this.picturePreviewSize : this.videoPreviewSize;
+  this.mode = mode;
+  return this;
 };
 
 /**
