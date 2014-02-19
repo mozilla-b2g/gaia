@@ -7,6 +7,7 @@ define(function(require, exports, module) {
 
 var performanceTesting = require('performanceTesting');
 var ViewfinderView = require('views/viewfinder');
+var Controls2 = require('controllers/controls-2');
 var ControlsView2 = require('views/controls-2');
 var ControlsView = require('views/controls');
 var FocusRing = require('views/focus-ring');
@@ -102,6 +103,9 @@ App.prototype.teardown = function() {
  */
 App.prototype.runControllers = function() {
   debug('running controllers');
+  var newControls = this.settings.newControls.value();
+  var Controls = this.controllers.controls;
+  this.controllers.controls = newControls ? Controls2 : Controls;
   this.filmstrip = this.filmstrip(this);
   this.controllers.settings(this);
   this.controllers.activity(this);

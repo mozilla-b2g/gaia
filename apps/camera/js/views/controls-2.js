@@ -7,6 +7,7 @@ define(function(require, exports, module) {
 
 var View = require('vendor/view');
 var bind = require('lib/bind');
+var attach = require('vendor/attach');
 
 /**
  * Exports
@@ -39,8 +40,9 @@ module.exports = View.extend({
     this.els.cancelPickButton = this.find('.js-cancel-pick');
 
     // Bind events
-    bind(this.els.toggle, 'change', this.onModeToggle);
-    bind(this.els.capture, 'click', this.onButtonTap);
+    attach.on(this.el, 'click', '.js-capture', this.onButtonTap);
+    //bind(this.els.toggle, 'change', this.onModeToggle);
+    //bind(this.els.capture, 'click', this.onButtonTap);
     // bind(this.els.galleryButton, 'click', this.onButtonClick);
     // bind(this.els.cancelPickButton, 'click', this.onButtonClick);
   },
@@ -60,9 +62,8 @@ module.exports = View.extend({
     '<div class="controls-2_middle">' +
       '<div class="capture-button-2 js-capture" name="capture">' +
         '<div class="circle outer-circle"></div>' +
-        '<div class="circle middle-circle"></div>' +
         '<div class="circle inner-circle"></div>' +
-        '<div class="center"></div>' +
+        '<div class="center icon-camera"></div>' +
       '</div>' +
     '</div>' +
     '<div class="controls-2_right">' +

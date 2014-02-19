@@ -5,6 +5,7 @@ define(function(require, exports, module) {
  * Module Dependencies
  */
 
+var createThumbnailImage = require('lib/createThumbnailImage');
 var getVideoMetaData = require('lib/get-video-meta-data');
 var orientation = require('lib/orientation');
 var constants = require('config/camera');
@@ -355,11 +356,17 @@ Camera.prototype.takePicture = function(options) {
 
     self.mozCamera.takePicture(config, onSuccess, onError);
   }
-
   function onSuccess(blob) {
     self.resumePreview();
     self.set('focus', 'none');
-    self.emit('newimage', { blob: blob });
+    createThumbnailImage(blob, false, rotation, false, function(thumbnail) {
+      var image = {
+        blob: blob,
+        thumbnail: thumbnail
+      };
+      blob.thumbnail = thumbnail;
+      self.emit('newimage', image);
+    });
     self.emit('ready');
   }
 
