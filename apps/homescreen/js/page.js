@@ -544,7 +544,7 @@ Icon.prototype = {
     draggableElem.className = 'draggable';
     if (this.descriptor.type !== GridItemsFactory.TYPE.COLLECTION) {
       // Collections cannot be appended to others so this operation isn't needed
-      this.savePostion(draggableElem.dataset);
+      this.savePosition(draggableElem.dataset);
     }
 
     // For some reason, cloning and moving a node re-triggers the blob
@@ -583,7 +583,7 @@ Icon.prototype = {
    *
    * @param{Object} Source object to set results
    */
-  savePostion: function icon_savePosition(obj) {
+  savePosition: function icon_savePosition(obj) {
     var page;
 
     if (this.container.parentNode === DockManager.page.olist) {
