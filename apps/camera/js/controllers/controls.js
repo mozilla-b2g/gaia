@@ -37,7 +37,6 @@ ControlsController.prototype.bindEvents = function() {
   this.app.on('newimage', this.onNewMedia);
   this.app.on('newvideo', this.onNewMedia);
   this.app.on('change:recording', this.controls.setter('recording'));
-  this.app.on('camera:timeupdate', this.controls.setVideoTimer);
 
   this.controls.on('tap:capture', this.app.firer('capture'));
   this.controls.on('tap:gallery', this.onGalleryButtonClick);

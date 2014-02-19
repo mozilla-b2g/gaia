@@ -26,6 +26,7 @@ require(['config/require', 'config'], function() {
       viewfinder: require('controllers/viewfinder'),
       indicators: require('controllers/indicators'),
       controls: require('controllers/controls'),
+      recordingTimer: require('controllers/recording-timer'),
       settings: require('controllers/settings'),
       activity: require('controllers/activity'),
       overlay: require('controllers/overlay'),
