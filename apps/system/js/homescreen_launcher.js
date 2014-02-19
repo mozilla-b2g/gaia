@@ -55,6 +55,7 @@
       window.addEventListener('trusteduishow', this);
       window.addEventListener('trusteduihide', this);
       window.addEventListener('appopening', this);
+      window.addEventListener('keyboardchange', this);
     },
 
     handleEvent: function hl_handleEvent(evt) {
@@ -72,6 +73,11 @@
               evt.detail.rotatingDegree === 270) {
             this.getHomescreen().fadeOut();
           }
+          break;
+        case 'keyboardchange':
+          // Fade out the homescreen, so that it won't be seen when showing/
+          // hiding/switching keyboard.
+          this.getHomescreen().fadeOut();
           break;
       }
     },

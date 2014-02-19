@@ -128,4 +128,15 @@ suite('system/HomescreenLauncher', function() {
     assert.isTrue(stubToggle.calledWith(false));
     stubToggle.restore();
   });
+
+  test('keyboard showed', function() {
+    MockSettingsListener.mCallbacks['homescreen.manifestURL']('first.home');
+    homescreen = HomescreenLauncher.getHomescreen();
+    var stubFadeOut = this.sinon.stub(homescreen, 'fadeOut');
+    HomescreenLauncher.handleEvent({
+      type: 'keyboardchange'
+    });
+    assert.isTrue(stubFadeOut.called);
+    stubFadeOut.restore();
+  });
 });

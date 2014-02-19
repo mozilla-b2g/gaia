@@ -8,6 +8,7 @@ require('/shared/test/unit/mocks/mock_keyboard_helper.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/test/unit/mock_applications.js');
+require('/test/unit/mock_homescreen_launcher.js');
 requireApp('system/js/keyboard_manager.js');
 
 var mocksHelperForKeyboardManager = new MocksHelper([
@@ -263,7 +264,7 @@ suite('KeyboardManager', function() {
 
         sinon.assert.calledWith(KeyboardManager.setKeyboardToShow, 'text');
         sinon.assert.calledWith(KeyboardManager.setKeyboardToShow, 'number');
-        sinon.assert.callCount(KeyboardManager.resetShowingKeyboard, 1);
+        sinon.assert.callCount(KeyboardManager.resetShowingKeyboard, 0);
       });
 
       test('Switching from "text" to "text"', function() {
