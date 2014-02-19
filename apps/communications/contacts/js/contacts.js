@@ -168,6 +168,7 @@ var Contacts = (function() {
         {type: 'other', value: _('other')}
       ],
       'address-type' : [
+        {type: 'current', value: _('current')},
         {type: 'home', value: _('home')},
         {type: 'work', value: _('work')}
       ]
