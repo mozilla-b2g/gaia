@@ -3,7 +3,9 @@
 /*global MockNavigatormozSetMessageHandler, MockNavigatormozApps,
          MockNavigatorWakeLock, MockOptionMenu, Mockalert,
          MockMessages, MockNavigatorSettings, MockL10n,
-         MockNavigatormozMobileMessage */
+         MockNavigatormozMobileMessage,
+         Settings
+*/
 
 'use strict';
 
@@ -30,6 +32,7 @@ requireApp('sms/test/unit/mock_message_manager.js');
 requireApp('sms/test/unit/mock_threads.js');
 requireApp('sms/test/unit/mock_thread_ui.js');
 requireApp('sms/test/unit/mock_action_menu.js');
+require('/test/unit/mock_settings.js');
 
 requireApp('sms/js/utils.js');
 requireApp('sms/test/unit/mock_utils.js');
@@ -46,6 +49,7 @@ var mocksHelperForActivityHandler = new MocksHelper([
   'Notification',
   'NotificationHelper',
   'OptionMenu',
+  'Settings',
   'SettingsURL',
   'Threads',
   'ThreadUI',
@@ -172,12 +176,13 @@ suite('ActivityHandler', function() {
     });
 
     suite('contact retrieved (after getSelf)', function() {
-      var contactName = '<&>';
+      var contactName = '<&>'; // testing potentially unsafe characters
       var sendSpy;
       setup(function() {
         sendSpy = this.sinon.spy(window, 'Notification');
         this.sinon.stub(Contacts, 'findByPhoneNumber')
-          .callsArgWith(1, [{name: [contactName]}]);
+          .yields([{name: [contactName]}]);
+
         MockNavigatormozApps.mTriggerLastRequestSuccess();
       });
 
@@ -190,24 +195,18 @@ suite('ActivityHandler', function() {
 
     suite('contact without name (after getSelf)', function() {
       var phoneNumber = '+1111111111';
-      var oldSender;
       var sendSpy;
+
       setup(function() {
         sendSpy = this.sinon.spy(window, 'Notification');
-        oldSender = message.sender;
         message.sender = phoneNumber;
         this.sinon.stub(Contacts, 'findByPhoneNumber')
-          .callsArgWith(1, [{
+          .yields([{
             name: [''],
             tel: {'value': phoneNumber}
           }]);
         MockNavigatormozApps.mTriggerLastRequestSuccess();
       });
-
-      suiteTeardown(function() {
-        message.sender = oldSender;
-      });
-
 
       test('phone in notification title when contact without name', function() {
         sinon.assert.called(sendSpy);
@@ -282,6 +281,57 @@ suite('ActivityHandler', function() {
       test('vibrate', function() {
         var spied = Notify.vibrate;
         assert.ok(spied.called);
+      });
+    });
+  });
+
+  suite('Dual SIM behavior >', function() {
+    var message;
+
+    setup(function() {
+      message = MockMessages.sms({
+        iccId: '0'
+      });
+
+      this.sinon.stub(Settings, 'hasSeveralSim').returns(true);
+      this.sinon.spy(window, 'Notification');
+
+      MockNavigatormozSetMessageHandler.mTrigger('sms-received', message);
+    });
+
+    suite('contact retrieved (after getSelf)', function() {
+      var contactName = 'contact';
+      setup(function() {
+        this.sinon.stub(Contacts, 'findByPhoneNumber')
+          .yields([{name: [contactName]}]);
+
+        MockNavigatormozApps.mTriggerLastRequestSuccess();
+      });
+
+      test('prefix the contact name with the SIM information', function() {
+        var expected = 'dsds-notification-title-with-sim' +
+         '{"sim":"sim-name-0","sender":"contact"}';
+        sinon.assert.calledWith(window.Notification, expected);
+      });
+    });
+
+    suite('contact without name (after getSelf)', function() {
+      var phoneNumber = '+1111111111';
+
+      setup(function() {
+        message.sender = phoneNumber;
+        this.sinon.stub(Contacts, 'findByPhoneNumber')
+          .yields([{
+            name: [''],
+            tel: {value: phoneNumber}
+          }]);
+        MockNavigatormozApps.mTriggerLastRequestSuccess();
+      });
+
+      test('phone in notification title when contact without name', function() {
+        var expected = 'dsds-notification-title-with-sim' +
+          '{"sim":"sim-name-0","sender":"+1111111111"}';
+        sinon.assert.calledWith(window.Notification, expected);
       });
     });
   });
