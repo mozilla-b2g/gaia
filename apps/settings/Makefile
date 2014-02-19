@@ -1,58 +1,40 @@
+# We can't figure out XULRUNNERSDK on our own; it's complex and some builders
+# # may want to override our find logic (ex: TBPL), so let's just leave it up to
+# # the root Makefile.  If you know what you're doing, you can manually define
+# # XULRUNNERSDK and XPCSHELLSDK on the command line.
+ifndef XPCSHELLSDK
+$(error This Makefile needs to be run by the root gaia makefile. Use `make APP=camera` from the root gaia directory.)
+endif
+
 -include $(PWD)/build/common.mk
 
+.PHONY: all clean $(STAGE_APP_DIR)/resources/gaia_commit.txt $(STAGE_APP_DIR)/resources/support.json $(STAGE_APP_DIR)/resources/sensors.json $(STAGE_APP_DIR)/js/main.js
 
-ifdef XPCSHELLSDK
-	JS_RUN_ENVIRONMENT := $(XULRUNNERSDK) $(XPCSHELLSDK)
-else ifndef JS_RUN_ENVIRONMENT
-    NODEJS := $(shell which node)
-    JS_RUN_ENVIRONMENT := $(NODEJS)
-endif
-
-rwildcard=$(wildcard $1$2) $(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2))
-
-SHARED_SOURCES := $(call rwildcard,../../shared/,*)
-JS_SOURCES := $(call rwildcard,js/,*)
-LOCALES_SOURCES := $(call rwildcard,locales/,*)
-RESOURCES_SOURCES := $(call rwildcard,resources/,*)
-STYLE_SOURCES := $(call rwildcard,style/,*)
-BUILD_SOURCES := $(call rwildcard,build/,*)
-
-BUILD_DIR=../../build_stage/settings
-
-.PHONY: all clean
-
-all: js_environment_available stamp-commit-hash settings_configuration $(BUILD_DIR)/js/main.js
+all: $(STAGE_APP_DIR)/resources/gaia_commit.txt $(STAGE_APP_DIR)/resources/support.json $(STAGE_APP_DIR)/resources/sensors.json $(STAGE_APP_DIR)/js/main.js
 
 clean:
-	rm -rf $(BUILD_DIR)
-
-js_environment_available:
-ifndef JS_RUN_ENVIRONMENT
-  $(error Environment to run r.js is not available. Please Install NodeJS -- (use aptitude on linux or homebrew on osx))
-endif
+	rm -rf $(STAGE_APP_DIR)
 
 GAIA_ROOT_PATH?=../..
 
 # Generate a text file containing the current changeset of Gaia
-stamp-commit-hash:
+$(STAGE_APP_DIR)/resources/gaia_commit.txt: | $(STAGE_APP_DIR)
+	mkdir -p $(STAGE_APP_DIR)/resources/
 	@(if [ -e ${GAIA_ROOT_PATH}/gaia_commit_override.txt ]; then \
-		cp ${GAIA_ROOT_PATH}/gaia_commit_override.txt ./resources/gaia_commit.txt; \
+		cp ${GAIA_ROOT_PATH}/gaia_commit_override.txt $(STAGE_APP_DIR)/resources/gaia_commit.txt; \
 	elif [ -d ${GAIA_ROOT_PATH}/.git ]; then \
-		git --git-dir=${GAIA_ROOT_PATH}/.git log -1 --format="%H%n%ct" HEAD > ./resources/gaia_commit.txt; \
+		git --git-dir=${GAIA_ROOT_PATH}/.git log -1 --format="%H%n%ct" HEAD > $(STAGE_APP_DIR)/resources/gaia_commit.txt; \
 	else \
-		echo 'Unknown Git commit; build date shown here.' > ./resources/gaia_commit.txt; \
-		date +%s >> ./resources/gaia_commit.txt; \
+		echo 'Unknown Git commit; build date shown here.' > $(STAGE_APP_DIR)/resources/gaia_commit.txt; \
+		date +%s >> $(STAGE_APP_DIR)/resources/gaia_commit.txt; \
 	fi)
 
-$(BUILD_DIR)/js/main.js: manifest.webapp index.html $(SHARED_SOURCES) $(JS_SOURCES) $(LOCALES_SOURCES) $(RESOURCES_SOURCES) $(STYLE_SOURCES) $(BUILD_SOURCES)
-	@rm -rf $(BUILD_DIR)
-	@mkdir -p $(BUILD_DIR)
-	cp -rp ../../shared $(BUILD_DIR)/shared
-	$(JS_RUN_ENVIRONMENT) ../../build/r.js -o build/require_config.jslike
+$(STAGE_APP_DIR): clean
+	@mkdir -p $(STAGE_APP_DIR)
 
-settings_configuration:
-ifdef XPCSHELLSDK
-	@$(call run-app-js-command, build)
-else ifndef JS_RUN_ENVIRONMENT
-	@$(NODEJS) build/configure.js
-endif
+$(STAGE_APP_DIR)/js/main.js: | $(STAGE_APP_DIR)
+	cp -rp ../../shared $(STAGE_APP_DIR)/shared
+	$(XULRUNNERSDK) $(XPCSHELLSDK) ../../build/r.js -o build/require_config.jslike
+
+$(STAGE_APP_DIR)/resources/support.json $(STAGE_APP_DIR)/resources/sensors.json: build/build.js $(STAGE_APP_DIR)
+	@$(call run-js-command,app/build,$(CURDIR))
