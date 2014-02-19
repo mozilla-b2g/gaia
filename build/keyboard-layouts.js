@@ -72,7 +72,7 @@ function genDefaultLayouts(config, webappsMapping) {
 
 function execute(options) {
   // Get web apps mapping file
-  let stageFolder = utils.getEnv('STAGE_FOLDER');
+  let stageFolder = utils.getEnv('STAGE_DIR');
   let webappsMappingFile = utils.resolve(
     utils.joinPath(stageFolder, 'webapps-mapping.json'),
     options.GAIA_DIR);
@@ -84,7 +84,6 @@ function execute(options) {
   }
 
   let webappsMapping = utils.getJSON(webappsMappingFile);
-  utils.log(JSON.stringify(webappsMapping));
 
   genDefaultLayouts(options, webappsMapping);
 }

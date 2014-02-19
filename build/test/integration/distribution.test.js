@@ -14,6 +14,7 @@ suite('Distribution mechanism', function() {
   var cusDir;
   suiteSetup(function() {
     rmrf('profile');
+    rmrf('build_stage');
   });
 
   function validatePreloadSettingDB() {
@@ -247,5 +248,6 @@ suite('Distribution mechanism', function() {
 
   teardown(function() {
     rmrf('profile');
+    rmrf('build_stage');
   });
 });
