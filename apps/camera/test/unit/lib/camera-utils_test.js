@@ -433,8 +433,8 @@ suite('utils/camera-utils', function() {
 
       optimalPreviewSize = CameraUtils.selectOptimalPreviewSize(viewportSize,
                                                                 previewSizes);
-      assert.equal(optimalPreviewSize.width, 720);
-      assert.equal(optimalPreviewSize.height, 480);
+      assert.equal(optimalPreviewSize.width, 1280);
+      assert.equal(optimalPreviewSize.height, 720);
     });
   });
 });
