@@ -118,10 +118,10 @@ function processFirstQueuedItem() {
     hideThrobber();
     updateDialog();
 
-    // To prevent it's null and we still call it.
-    // This would happen sometimes on Travis.
-    if (noMoreWorkCalback)
+    // Check explicitly for noMoreWorkCallBack as function, see bug 972651
+    if (typeof(noMoreWorkCallback) === 'function') {
       noMoreWorkCallback();
+    }
     return;
   }
 
