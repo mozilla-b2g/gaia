@@ -34,22 +34,17 @@ function ViewfinderController(app) {
 ViewfinderController.prototype.bindEvents = function() {
   this.viewfinder.on('click', this.onViewfinderClick);
   this.app.on('camera:configured', this.loadStream);
-  this.app.on('settings:configured', this.configureCamera);
-};
-
-ViewfinderController.prototype.configureCamera = function() {
-  this.camera.viewportSize = {
-    width: this.app.el.clientWidth,
-    height: this.app.el.clientHeight
-  };
+  this.app.on('camera:configured', this.updatePreview);
 };
 
 ViewfinderController.prototype.loadStream = function() {
-  var isFrontCamera = this.app.settings.cameras.value() === 'front';
-  debug('load stream mode: %s', this.app.settings.value('mode'));
-  this.viewfinder.updatePreview(this.camera.previewSize, isFrontCamera);
-  this.camera.loadStreamInto(this.viewfinder.el);
+  this.camera.loadStreamInto(this.viewfinder.els.video);
   this.viewfinder.fadeIn();
+};
+
+ViewfinderController.prototype.updatePreview = function() {
+  var isFrontCamera = this.app.settings.cameras.value() === 'front';
+  this.viewfinder.updatePreview(this.camera.previewSize(), isFrontCamera);
 };
 
 /**
