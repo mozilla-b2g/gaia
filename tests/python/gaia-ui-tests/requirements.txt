@@ -1,4 +1,4 @@
-marionette_client==0.7.3
+marionette_client==0.7.5
 mozdevice
 requests
 moztest>=0.3
