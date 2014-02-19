@@ -7,11 +7,6 @@
 
 (function(exports) {
 
-  // track used constants here
-  const EMPTY_OPTION_TEXT = '--';
-  const EMPTY_OPTION_VALUE = '-2';
-  const ALWAYS_ASK_OPTION_VALUE = '-1';
-
   var _ = window.navigator.mozL10n.get;
 
   /*
@@ -67,7 +62,7 @@
 
       // it means users is seleting '--' options
       // when simcards are all disabled
-      if (cardIndex == EMPTY_OPTION_VALUE) {
+      if (cardIndex == SimSettingsHelper.EMPTY_OPTION_VALUE) {
         return;
       }
 
@@ -261,8 +256,8 @@
         option.text = simcardInfo.name;
 
         if (simcardInfo.absent) {
-          option.value = EMPTY_OPTION_VALUE;
-          option.text = EMPTY_OPTION_TEXT;
+          option.value = SimSettingsHelper.EMPTY_OPTION_VALUE;
+          option.text = SimSettingsHelper.EMPTY_OPTION_TEXT;
         }
 
         if (index == selectedCardIndex) {
@@ -275,10 +270,10 @@
       // we will add `always ask` option these two select
       if (storageKey === 'outgoingCall' || storageKey === 'outgoingMessages') {
         var option = document.createElement('option');
-        option.value = ALWAYS_ASK_OPTION_VALUE;
+        option.value = SimSettingsHelper.ALWAYS_ASK_OPTION_VALUE;
         localize(option, 'sim-manager-always-ask');
 
-        if (ALWAYS_ASK_OPTION_VALUE == selectedCardIndex) {
+        if (SimSettingsHelper.ALWAYS_ASK_OPTION_VALUE == selectedCardIndex) {
           option.selected = true;
         }
         selectDOM.add(option);
