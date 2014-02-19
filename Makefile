@@ -145,7 +145,7 @@ endif
 REPORTER?=spec
 NPM_REGISTRY?=http://registry.npmjs.org
 # Ensure that NPM only logs warnings and errors
-export npm_config_loglevel=warn
+export npm_config_loglevel=verbose
 MARIONETTE_RUNNER_HOST?=marionette-b2gdesktop-host
 TEST_MANIFEST?=./shared/test/integration/travis-manifest.json
 MOZPERFOUT?=""
@@ -681,7 +681,7 @@ endif
 
 NPM_INSTALLED_PROGRAMS = node_modules/.bin/mozilla-download node_modules/.bin/jshint node_modules/.bin/mocha
 $(NPM_INSTALLED_PROGRAMS): package.json
-	npm install --registry $(NPM_REGISTRY)
+	npm install --verbose --registry $(NPM_REGISTRY)
 	touch $(NPM_INSTALLED_PROGRAMS)
 
 ###############################################################################
