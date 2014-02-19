@@ -9,24 +9,18 @@ var HomescreenAppBuilder = function() {
 };
 
 HomescreenAppBuilder.prototype.BASE_ICON_SIZE = 60;
-HomescreenAppBuilder.prototype.GAIA_CORE_APP_SRCDIR = 'apps';
-HomescreenAppBuilder.prototype.STAGE_DIR = 'build_stage/homescreen';
-HomescreenAppBuilder.prototype.GAIA_EXTERNAL_APP_SRCDIR = 'external-apps';
 
 HomescreenAppBuilder.prototype.setOptions = function(options) {
-  var stageDirPath = [options.GAIA_DIR].concat(this.STAGE_DIR.split('/'));
-  this.stageDir = utils.getFile.apply(utils, stageDirPath);
+  this.stageDir = utils.getFile(options.STAGE_APP_DIR);
 
-  let mappingFile = utils.getFile(options.GAIA_DIR, 'build_stage',
-    'webapps-mapping.json');
+  let mappingFile = utils.getFile(options.STAGE_DIR, 'webapps-mapping.json');
   if (!mappingFile.exists()) {
     throw new Error('build_stage/webapps-mapping.json not found.');
   }
   this.webappsMapping = utils.getJSON(mappingFile);
 
-  let defaultConfig = utils.getFile(utils.joinPath(options.GAIA_DIR,
-    this.GAIA_CORE_APP_SRCDIR, 'homescreen', 'build',
-    'default-homescreens.json'));
+  let defaultConfig = utils.getFile(options.APP_DIR, 'build',
+    'default-homescreens.json');
   this.defaultConfig = utils.getJSON(defaultConfig);
 
   this.preferredIconSize =
@@ -238,8 +232,7 @@ HomescreenAppBuilder.prototype.customizeHomescreen = function() {
   var search_page_debug;
   try {
     let local_settings_file =
-      utils.getFile(config.GAIA_DIR, this.GAIA_CORE_APP_SRCDIR,
-        'homescreen', 'everything.me', 'config', 'local.json');
+      utils.getFile(config.APP_DIR, 'everything.me', 'config', 'local.json');
 
     let local_settings = utils.getJSON(local_settings_file);
     search_page_debug = local_settings.debug;
