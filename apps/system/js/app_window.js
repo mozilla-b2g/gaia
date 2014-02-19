@@ -1057,7 +1057,7 @@
   AppWindow.prototype._resize = function aw__resize() {
     var height, width;
     this.debug('force RESIZE...');
-    if (self.LayoutManager.keyboardEnabled) {
+    if (self.layoutManager.keyboardEnabled) {
       /**
        * The event is dispatched on the app window only when keyboard is up.
        *
@@ -1075,13 +1075,13 @@
       this.broadcast('withoutkeyboard');
     }
     if (this.isFullScreen()) {
-      height = self.LayoutManager.fullscreenHeight + this.calibratedHeight();
+      height = self.layoutManager.fullscreenHeight + this.calibratedHeight();
     } else {
-      height = self.LayoutManager.usualHeight + this.calibratedHeight();
+      height = self.layoutManager.usualHeight + this.calibratedHeight();
     }
 
-    // If we have sidebar in the future, change LayoutManager then.
-    width = self.LayoutManager.width;
+    // If we have sidebar in the future, change layoutManager then.
+    width = self.layoutManager.width;
 
     this.width = width;
     this.height = height;

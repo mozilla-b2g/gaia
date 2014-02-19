@@ -26,6 +26,7 @@ requireApp('system/test/unit/mock_ttl_view.js');
 requireApp('system/test/unit/mock_title.js');
 requireApp('system/test/unit/mock_visibility_manager.js');
 requireApp('system/test/unit/mock_call_forwarding.js');
+requireApp('system/test/unit/mock_layout_manager.js');
 
 mocha.globals([
   'Shortcuts',
@@ -44,7 +45,8 @@ mocha.globals([
   'title',
   'ActivityWindowFactory',
   'visibilityManager',
-  'callForwarding'
+  'callForwarding',
+  'layoutManager'
 ]);
 
 var mocksForBootstrap = new MocksHelper([
@@ -65,7 +67,8 @@ var mocksForBootstrap = new MocksHelper([
   'TTLView',
   'Title',
   'VisibilityManager',
-  'CallForwarding'
+  'CallForwarding',
+  'LayoutManager'
 ]).init();
 
 suite('system/Bootstrap', function() {
