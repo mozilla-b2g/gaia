@@ -219,24 +219,6 @@ suite('Distribution mechanism', function() {
     validateCustomizeMaximumImageSize(distConfig, appConfig);
   }
 
-  function validateHomescreen() {
-    var appZip = new AdmZip(path.join(process.cwd(), 'profile',
-      'webapps', 'homescreen.gaiamobile.org', 'application.zip'));
-    var config = JSON.parse(appZip.readAsText(appZip.getEntry('js/init.json')));
-    assert.equal(config.grid[0][0].name, 'Camera');
-    assert.equal(config.grid[0][1].entry_point, 'dialer');
-    assert.equal(config.grid[0][2].name, 'Messages');
-    assert.equal(config.grid[0][3].name, 'Marketplace');
-    assert.equal(config.grid[1][0].name, 'Gallery');
-
-    assert.isTrue(fs.existsSync(path.join(process.cwd(), 'profile',
-      'svoperapps', 'Twitter')),
-      'profile/svoperapps/Twitter directory should exist');
-    assert.isTrue(fs.existsSync(path.join(process.cwd(), 'profile',
-      'svoperapps', 'Twitter', 'manifest.webapp')),
-      'manifest for Twitter should exist');
-  }
-
   test('build with GAIA_DISTRIBUTION_DIR', function(done) {
     distDir = path.join(process.cwd(), 'build', 'test', 'resources',
       'distribution_test');
@@ -253,7 +235,6 @@ suite('Distribution mechanism', function() {
       validateGallery();
       validateCamera();
       validateComm();
-      validateHomescreen();
       done();
     });
   });

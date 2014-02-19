@@ -304,6 +304,14 @@ function execute(options) {
       }
     });
 
+    if (webapp.sourceDirectoryName === 'homescreen' && gaia.distributionDir) {
+      let customization = utils.getFile(gaia.distributionDir,
+        'temp', 'apps', 'conf', 'singlevariantconf.json');
+      if (customization.exists()) {
+        addToZip(zip, 'js/singlevariantconf.json', customization);
+      }
+    }
+
     // Put shared files, but copy only files actually used by the webapp.
     // We search for shared file usage by parsing webapp source code.
     let EXTENSIONS_WHITELIST = ['html'];
