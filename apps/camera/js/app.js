@@ -64,6 +64,9 @@ function App(options) {
   this.camera = options.camera;
   this.sounds = options.sounds;
   this.cookies = cookies;
+
+  // this.activity.active = true;
+  // this.activity.data.maxFileSizeBytes = 3000000;
   debug('initialized');
 }
 

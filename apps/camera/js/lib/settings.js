@@ -25,7 +25,6 @@ function Settings(items) {
   this.ids = {};
   this.items = [];
   this.addEach(items);
-  this.storageKey = 'settings';
 }
 
 Settings.prototype.add = function(data) {
@@ -63,20 +62,15 @@ Settings.prototype.menu = function(key) {
     .sort(function(a, b) { return a.get('menu') - b.get('menu'); });
 };
 
-Settings.prototype.value = function(key, value) {
-  var item = this.get(key);
-  return item && item.value();
-};
-
-Settings.prototype.toggler = function(key) {
-  return (function() { this.get(key).next(); }).bind(this);
+Settings.prototype.options = function(options) {
+  this.items.forEach(function(setting) {
+    var match = setting.key in options;
+    if (match) { setting.resetOptions(options[setting.key]); }
+  });
 };
 
 Settings.prototype.fetch = function() {
   this.items.forEach(function(setting) { setting.fetch(); });
 };
-
-Settings.prototype.forEach = function(fn) { this.items.forEach(fn); };
-Settings.prototype.filter = function(fn) { return this.items.filter(fn); };
 
 });

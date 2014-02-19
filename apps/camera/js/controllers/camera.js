@@ -84,7 +84,7 @@ CameraController.prototype.configure = function() {
 
   // Configure the 'cameras' setting using the
   // cameraList data given by the camera hardware
-  settings.get('cameras').configureOptions(camera.cameraList);
+  settings.cameras.resetOptions(camera.cameraList);
 
   // Give the camera a way to create video filepaths. This
   // is so that the camera can record videos directly to
@@ -95,8 +95,8 @@ CameraController.prototype.configure = function() {
   // This is set so that the video recorder can
   // automatically stop when video size limit is reached.
   camera.set('maxFileSizeBytes', activity.data.maxFileSizeBytes);
-  camera.set('selectedCamera', settings.value('cameras'));
-  camera.setMode(settings.value('mode'));
+  camera.set('selectedCamera', settings.cameras.value());
+  camera.setMode(settings.mode.value());
   debug('configured');
 };
 
@@ -105,13 +105,14 @@ CameraController.prototype.onSettingsConfigured = function() {
 
   var recorderProfile = this.app.settings.recorderProfiles.selected().key;
   var pictureSize = this.app.settings.pictureSizes.value();
-  var maxFileSize = (pictureSize.width * pictureSize.height * 4) + 4096;
 
   this.camera.setVideoProfile(recorderProfile);
   this.camera.setPictureSize(pictureSize);
   this.setFlashMode();
+  debug('camera configured with final settings');
 
   // TODO: Move to a new StorageController (or App?)
+  var maxFileSize = (pictureSize.width * pictureSize.height * 4) + 4096;
   this.storage.setMaxFileSize(maxFileSize);
 };
 
