@@ -651,8 +651,8 @@ Icon.prototype = {
 
     var draggableElem = this.draggableElem;
     var style = draggableElem.style;
-    style.MozTransition = '-moz-transform .4s';
-    style.MozTransform = 'translate(' + x + 'px,' + y + 'px)';
+    style.transition = 'transform .4s';
+    style.transform = 'translate(' + x + 'px,' + y + 'px)';
 
     var finishDrag = function() {
       delete container.dataset.dragging;
@@ -672,7 +672,7 @@ Icon.prototype = {
 
     var content = draggableElem.querySelector('div');
     scale = typeof scale !== 'undefined' ? scale : 1;
-    content.style.MozTransform = 'scale(' + scale + ')';
+    content.style.transform = 'scale(' + scale + ')';
     content.addEventListener('transitionend', function tEnd(e) {
       e.target.removeEventListener('transitionend', tEnd);
       if (fallbackID !== null) {
@@ -758,7 +758,7 @@ Page.prototype = {
 
   ICONS_PER_ROW: 4,
 
-  DRAGGING_TRANSITION: '-moz-transform .3s',
+  DRAGGING_TRANSITION: 'transform .3s',
 
   REARRANGE_DELAY: 50,
 
@@ -793,8 +793,8 @@ Page.prototype = {
   moveByWithEffect: function pg_moveByWithEffect(scrollX, duration) {
     var container = this.movableContainer;
     var style = container.style;
-    style.MozTransform = 'translateX(' + scrollX + 'px)';
-    style.MozTransition = '-moz-transform ' + duration + 'ms ease';
+    style.transform = 'translateX(' + scrollX + 'px)';
+    style.transition = 'transform ' + duration + 'ms ease';
   },
 
   /*
@@ -804,8 +804,8 @@ Page.prototype = {
    */
   moveBy: function pg_moveBy(scrollX) {
     var style = this.movableContainer.style;
-    style.MozTransform = 'translateX(' + scrollX + 'px)';
-    style.MozTransition = '';
+    style.transform = 'translateX(' + scrollX + 'px)';
+    style.transition = '';
   },
 
   ready: true,
@@ -879,7 +879,7 @@ Page.prototype = {
 
   doDragLeave: function pg_doReArrange(callback, reflow) {
     this.iconsWhileDragging.forEach(function reset(node) {
-      node.style.MozTransform = node.style.MozTransition = '';
+      node.style.transform = node.style.transition = '';
       delete node.dataset.posX;
       delete node.dataset.posY;
     });
@@ -938,9 +938,9 @@ Page.prototype = {
                         Math.floor(from / this.ICONS_PER_ROW)) * 100);
 
     window.mozRequestAnimationFrame(function() {
-      node.style.MozTransform = 'translate(' + x + '%, ' + y + '%)';
+      node.style.transform = 'translate(' + x + '%, ' + y + '%)';
       if (transition)
-        node.style.MozTransition = transition;
+        node.style.transition = transition;
     });
   },
 
@@ -1302,15 +1302,15 @@ dockProto.render = function dk_render(apps, target) {
 dockProto.moveByWithEffect = function dk_moveByWithEffect(scrollX, duration) {
   var container = this.movableContainer;
   var style = container.style;
-  style.MozTransform = 'translateX(' + scrollX + 'px)';
-  style.MozTransition = '-moz-transform ' + duration + 'ms ease';
+  style.transform = 'translateX(' + scrollX + 'px)';
+  style.transition = 'transform ' + duration + 'ms ease';
 };
 
 dockProto.moveByWithDuration = function dk_moveByWithDuration(scrollX,
                                                               duration) {
   var style = this.movableContainer.style;
-  style.MozTransform = 'translateX(' + scrollX + 'px)';
-  style.MozTransition = '-moz-transform ' + duration + 'ms ease';
+  style.transform = 'translateX(' + scrollX + 'px)';
+  style.transition = 'transform ' + duration + 'ms ease';
 };
 
 dockProto.getLeft = function dk_getLeft() {
@@ -1318,7 +1318,7 @@ dockProto.getLeft = function dk_getLeft() {
 };
 
 dockProto.getTransform = function dk_getTransform() {
-  return this.movableContainer.style.MozTransform;
+  return this.movableContainer.style.transform;
 };
 
 /**
@@ -1345,9 +1345,9 @@ dockProto.placeIcon = function pg_placeIcon(node, from, to, transition) {
   var x = node.dataset.posX = parseInt(node.dataset.posX || 0) + (to - from) *
                               100;
 
-  node.style.MozTransform = 'translateX(' + x + '%)';
+  node.style.transform = 'translateX(' + x + '%)';
   if (transition)
-    node.style.MozTransition = transition;
+    node.style.transition = transition;
 };
 
 var TextOverflowDetective = (function() {
