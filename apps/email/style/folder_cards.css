@@ -1,4 +1,151 @@
+.card-folder-picker .fld-header-placeholder {
+  height: 5rem;
+}
+
+.card-folder-picker .fld-header-placeholder .fld-header-back {
+  width: 3em;
+  height: 3em;
+  background: transparent;
+  border: 0;
+}
+
+.card-folder-picker .fld-acct-header {
+  position: relative;
+  display: block;
+  clear: both;
+  padding: 0.6rem 0 0.6rem 3rem;
+  font-size: 1.7rem;
+  line-height: 3.8rem;
+  color: #5f5f5f;
+  background: white;
+  border-bottom: 0.1rem solid #dfdfdf;
+}
+
+.card-folder-picker.one-account .fld-acct-header,
+.card-folder-picker.one-account .fld-accountlist-container {
+  display: none;
+}
+
+.card-folder-picker.one-account .fld-folders-container {
+  border-top: 0;
+}
+
+.fld-content-container {
+  position: absolute;
+  top: 5em;
+  width: 100%;
+  height: calc(100% - 9.5em);
+  overflow: hidden;
+}
+
+.fld-content {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+
+  transform: translateY(-100%);
+  transition-property: transform;
+  transition-duration: 0.3s;
+  transition-timing-function: ease;
+  transition-delay: 0s;
+}
+
+.card-folder-picker.opened .fld-content {
+  transform: translateY(0);
+}
+
+.fld-shield {
+  position: absolute;
+  top: 5em;
+  width: 100%;
+  height: calc(100% - 5em);
+  background-color: black;
+
+  opacity: 0;
+  transition-property: opacity;
+  transition-duration: 0.3s;
+  transition-timing-function: ease;
+  transition-delay: 0s;
+}
+
+.card-folder-picker.opened .fld-shield {
+  opacity: .6;
+}
+
+.fld-shield.transparent,
+.fld-shield.hidden {
+  opacity: 0;
+}
+
+.card-folder-picker .fld-acct-scrollouter {
+  position: relative;
+  overflow-x: hidden;
+  overflow-y: auto;
+  height: calc(100% - 4.5rem);
+  background-color: #e7e7e7;
+}
+
+.fld-acct-scrollinner {
+  overflow: hidden;
+}
+
+.fld-acct-container {
+  width: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+
+}
+
+.fld-acct-container.animated {
+  transition-property: transform;
+  transition-duration: 0.2s;
+  transition-timing-function: ease;
+  transition-delay: 0s;
+}
+
+.fld-accountlist-container {
+  background: #e7e7e7;
+}
+
+/*.fld-accountlist-container.closed {
+  display: none;
+}*/
+
+.fld-folders-container {
+  background-color: #eeeeee;
+}
+
+/*.fld-folders-container.closed {
+  transform: translateY(0);
+}
+*/
+.card-folder-picker.one-account .fld-folders-container {
+  padding-top: 0;
+}
+
+.card-folder-picker,
 .card-account-picker {
+  background-color: transparent;
+  color: white;
+}
+
+.fld-nav-toolbar.bottom-toolbar {
+  text-align: center;
+  background: white;
+  color: black;
+  bottom: 0;
+  height: 4.5rem;
+  line-height: 4.5rem;
+}
+
+.card-account-picker {
+}
+
+.fld-arrow {
+  position: absolute;
+  right: 1rem;
 }
 
 .fld-accounts-header {
@@ -7,28 +154,36 @@
   color: red;
 }
 
-.fld-account-item, .fld-folder-item, .fld-folder-list-header {
+.fld-account-item,
+.fld-folder-item,
+.fld-folder-list-header {
+  position: relative;
   display: block;
-  line-height: 2.5rem;
+  line-height: 3.5rem;
   padding: 0.6rem 2rem;
   border-bottom: 0.1rem solid #333b41;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  color: #5f5f5f;
 }
-.fld-account-selected {
-  background-color: rgba(0, 0, 0, 0.5);
-  font-weight: bold;
+
+.fld-folder-item {
+  color: #5f5f5f;
+  background-color: #eeeeee;
+  border-bottom: 0.1rem solid #dfdfdf;
 }
+
+.fld-account-item {
+  padding-left: 2rem;
+  border-bottom: 0.1rem solid #dfdfdf;
+  color: #5f5f5f;
+  background-color: white;
+}
+
 .fld-account-name {
   font-size: 1.7rem;
   padding: 0 1rem;
-}
-.fld-account-problem {
-  color: red;
-  font-size: 200%;
-  font-weight: bold;
-  padding-left: 2rem;
 }
 
 .fld-account-lastsync {
@@ -38,57 +193,108 @@
   padding: 0 1rem;
 }
 
-.card-folder-picker,
-.card-account-picker {
-  box-shadow: inset 0 0 1rem black;
-  background-color: rgba(0, 0, 0, 0.6);
-  color: white;
-}
-
-.fld-folders-container,
-.acct-scroller-region {
-  background-color: #2c353b;
-  overflow-x: hidden;
-  overflow-y: auto;
-}
-
-.fld-folders-container {
-  padding-bottom: 9.6rem;
-}
-
-.folder-scroller-region.scrollregion-below-header,
-.acct-scroller-region.scrollregion-below-header {
-  height: calc(100% - 5rem);
-}
-
-.fld-folders-container {
-  -moz-transition: transform .2s ease-in;
-  overflow-y: auto;
-}
-
 .fld-accounts-btn {
   font-size: 1.2rem;
 }
-.fld-folders-header-account-label {
+
+.fld-acct-header-account-header,
+.fld-acct-header-account-label {
+  display: block;
+  width: calc(100% - 5rem);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
+.fld-acct-header .fld-acct-header-account-label,
+.fld-acct-header.closed .fld-acct-header-account-header {
+  display: none;
+}
+
+.fld-acct-header.closed .fld-acct-header-account-label,
+.fld-acct-header .fld-acct-header-account-header {
+  display: block;
+}
+
+.fld-account-switch-arrow {
+  position: absolute;
+  top: 0.6rem;
+  right: 1.5rem;
+  width: 3rem;
+  height: 3.8rem;
+  border: 0;
+  color: #5F5F5F;
+}
+
+.fld-account-switch-arrow {
+  background: url(images/icons/arrow_up.png) no-repeat scroll 50% 50% transparent;
+}
+
+.fld-acct-header:active .fld-account-switch-arrow {
+  background: url(images/icons/arrow_up_press.png) no-repeat scroll 50% 50% transparent;
+}
+
+.fld-acct-header.closed .fld-account-switch-arrow {
+  background: url(images/icons/arrow_down.png) no-repeat scroll 50% 50% transparent;
+}
+
+.fld-acct-header.closed:active .fld-account-switch-arrow {
+  background: url(images/icons/arrow_down_press.png) no-repeat scroll 50% 50% transparent;
+}
+
 .fld-folder-item:last-child {
   border-bottom: none;
 }
-.fld-folder-item.fld-folder-selected {
-  background-color: #2a7796;
-  font-weight: bold;
+
+.fld-folder-item .selected-indicator,
+.fld-account-item .selected-indicator {
+  position: absolute;
+  top: 2rem;
+  left: 1.1rem;
+  display: none;
+  width: 0.8rem;
+  height: 0.8rem;
+  border-radius: 0.8rem;
+  background-color: #ff8019;
 }
-.fld-folder-unselectable {
-  color: #444;
-  background-color: #eee;
+
+.fld-folder-item.fld-folder-selected .selected-indicator,
+.fld-account-item.fld-account-selected .selected-indicator {
+  display: block;
 }
-.fld-account-item:active, .fld-folder-item:active, .fld-folder-list-header:active {
-  border-color: #008aaa;
-  background: #008aaa;
+
+.fld-folders-container .fld-folder-depth0 {
+  padding-left: 3rem;
+}
+.fld-folders-container .fld-folder-depth1 {
+  padding-left: 3rem;
+}
+.fld-folders-container .fld-folder-depth2 {
+  padding-left: 4.5rem;
+}
+.fld-folders-container .fld-folder-depth3 {
+  padding-left: 6rem;
+}
+.fld-folders-container .fld-folder-depth4 {
+  padding-left: 6.5rem;
+}
+.fld-folders-container .fld-folder-depth5 {
+  padding-left: 9rem;
+}
+.fld-folders-container .fld-folder-depthmax {
+  padding-left: 9.5rem;
+}
+
+.fld-acct-header:active,
+.fld-account-item:active,
+.fld-folder-item:active,
+.fld-folder-list-header:active,
+.fld-settings-link:active,
+.fld-nav-toolbar:active,
+.fld-nav-toolbar:active .fld-settings-link {
+  color: white;
+  border-color: #00caf2;
+  background: #00caf2;
 }
 .fld-folder-name {
   font-size: 1.7rem;
@@ -102,34 +308,29 @@ There are fld-folder-depth* styles in common.css because they are
 also used in value_selector.
 */
 
-.fld-nav-settings-btn {
-  background-image: url("images/icons/settings.png") !important;
+.fld-folder-depthnonzero .fld-folder-name {
+  background: url('images/icons/folder_icon.png') center left no-repeat;
+  padding-left: 2.5rem;
 }
 
-.fld-nav-last-synced {
-  display: inline-block;
-  /* There is 1 button to our left; it is 6rem wide (which includes its padding
-     as a result of box-sizing).  It also has complicated border-sizing rules
-     from button.css that try and provide each button with fixed spacing. The
-     2rem is because we are absolutely positioned 2rem in from the right. */
-  max-width: calc(100% - (6rem + (100% - 25rem)/4) - 2rem);
-  overflow: hidden;
-  position: absolute;
-  right: 2rem;
-  /* Using ellipsis wastes too much space on overflow; use '' to avoid clipping
-     leaving part of a character visible but otherwise not waste space.
-     Note that gecko nightly currently won't do the right thing if we use the
-     2-value form and try and put our ellipsis on the left; this is probably
-     because we are using 2 spans. */
-  text-overflow: '';
-  white-space: nowrap;
+.fld-folder-depthnonzero .fld-folder-name:active,
+.fld-folder-depthnonzero:active .fld-folder-name {
+  background: url('images/icons/folder_icon_press.png') center left no-repeat;
 }
 
-.fld-nav-account-problem {
-  display: inline-block;
-  color: red;
-  font-weight: bold;
-  font-size: 200%;
-  position: absolute;
-  right: 0;
+.fld-settings-link {
+  display: block;
+  width: 2rem;
+  height: 4.5rem;
+  margin: 0 auto;
+  background: url("images/icons/settings_icon.png") center left no-repeat;
+  color: #858585;
+  font-size: 0;
 }
+
+.fld-settings-link:active,
+.fld-nav-toolbar:active .fld-settings-link {
+  background: url("images/icons/settings_icon_press.png") center left no-repeat;
+}
+
+

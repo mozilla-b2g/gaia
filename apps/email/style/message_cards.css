@@ -431,8 +431,12 @@ input.msg-search-text-tease {
   background-position: 50% 100% !important;
 }
 
-.msg-search-btn {
-  background-image: url("images/icons/search.png") !important;
+[role="tablist"] > [role="tab"].msg-last-sync {
+  text-align: center;
+  line-height: 4.5rem;
+  color: #5f5f5f;
+  flex: 2 2 0px;
+  font-style: italic;
 }
 
 .msg-edit-btn {

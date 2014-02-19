@@ -1,5 +1,5 @@
 /*global define, console */
-
+'use strict';
 define(function(require) {
   var evt = require('evt');
 
@@ -184,6 +184,7 @@ define(function(require) {
       var foldersSlice = this.api.viewFolders('account', account);
       foldersSlice.oncomplete = (function() {
         this.foldersSlice = foldersSlice;
+        this.foldersSlice.onchange = this.notifyFoldersSliceOnChange.bind(this);
         this.selectInbox(callback);
         this._callEmit('foldersSlice');
       }).bind(this);
@@ -253,6 +254,14 @@ define(function(require) {
     notifyInboxMessages: function(accountUpdate) {
       if (accountUpdate.id === this.account.id)
         model.emit('newInboxMessages', accountUpdate.count);
+    },
+
+    /**
+     * Triggered by the foldersSlice onchange event
+     * @param  {Object} folder the folder that changed.
+     */
+    notifyFoldersSliceOnChange: function(folder) {
+      model.emit('foldersSliceOnChange', folder);
     },
 
     _dieFolders: function() {

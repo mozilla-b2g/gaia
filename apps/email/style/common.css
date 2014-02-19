@@ -37,19 +37,23 @@ body {
   width: 100%;
   height: 100%;
   background-color: white;
-  -moz-transition-property: transform;
-  -moz-transition-duration: 0.3s;
-  -moz-transition-timing-function: ease;
+  transition-property: transform;
+  transition-duration: 0.3s;
+  transition-timing-function: ease;
   transition-delay: 0s;
 
 }
 
-.card.anim-up center {
-  transform: translateX(0);
+.card.anim-fade {
+  transition-property: opacity;
+  transition-duration: .3s;
+  transition-timing-function: ease;
+  transition-delay: 0s;
+  transition: translateX(0);
 }
 
 .card.no-anim {
-  -moz-transition-property: none;
+  transition-property: none;
 }
 
 .card.center {
@@ -60,12 +64,25 @@ body {
   transform: translateY(0);
 }
 
+.card.center.anim-fade {
+  opacity: 1;
+}
+
 .card.before {
   transform: translateX(-100%);
 }
 
 .card.before.anim-vertical {
   transform: translateY(100%);
+}
+
+.card.before.anim-fade {
+  transform: translateX(0);
+  opacity: 0;
+}
+
+.card.before.upflow.anim-vertical {
+  transform: translateY(-100%);
 }
 
 .card.after {
@@ -76,15 +93,13 @@ body {
   transform: translateY(-100%);
 }
 
-
-.card.center.card-folder-picker,
-.card.center.card-account-picker,
-.card.card-account-picker {
-  width: calc(100% - 5em);
+.card.after.upflow.anim-vertical {
+  transform: translateY(100%);
 }
 
-.card.center.card-folder-picker + .card.after {
-  transform: translateX(calc(100% - 5em));
+.card.after.anim-fade {
+  transform: translateX(0);
+  opacity: 0;
 }
 
 .form-card {
@@ -156,8 +171,8 @@ body {
   bottom: 0;
   width: 100%;
   height: 4rem;
-  background-color: rgba(0, 0, 0, 0.85);
-  z-index: 10;
+  background-color: rgba(0, 0, 0, 0.75);
+  z-index: 8;
 }
 
 .bottom-btn {
@@ -227,7 +242,7 @@ section[role="status"].customized {
 }
 
 section[role="status"].fadeout {
-  -moz-transition: opacity 500ms ease;
+  transition: opacity 500ms ease;
   opacity: 0;
 }
 
@@ -252,38 +267,42 @@ section[role="status"][title="retry"] .toaster-banner-retry {
   display: inline;
 }
 
+/* General helpers for opacity transition */
+.anim-opacity {
+  transition-property: opacity;
+  transition-duration: 0.3s;
+  transition-timing-function: ease;
+  transition-delay: 0s;
+}
+
+.transparent {
+  opacity: 0;
+}
 
 /*
 These folder-depth* styles are here instead of folder_cards.css
 because they are also used by the value_selector for showing
-the list of folders. folder-item specific styles so that these
-paddings override other styles in folder_cards.css
+the list of folders.
 */
-.fld-folder-item.fld-folder-depth0,
 .fld-folder-depth0 {
   padding-left: 1.5rem;
 }
-.fld-folder-item.fld-folder-depth1,
 .fld-folder-depth1 {
   padding-left: 3rem;
 }
-.fld-folder-item.fld-folder-depth2,
 .fld-folder-depth2 {
   padding-left: 4.5rem;
 }
-.fld-folder-item.fld-folder-depth3,
 .fld-folder-depth3 {
   padding-left: 6rem;
 }
-.fld-folder-item.fld-folder-depth4,
 .fld-folder-depth4 {
   padding-left: 6.5rem;
 }
-.fld-folder-item.fld-folder-depth5,
 .fld-folder-depth5 {
   padding-left: 9.5rem;
 }
-.fld-folder-item.fld-folder-depth6,
+.fld-folder-depth6,
 .fld-folder-depthmax {
   padding-left: 11rem;
 }

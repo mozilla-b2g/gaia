@@ -1,23 +1,28 @@
-<div class="card-folder-picker card">
-  <section class="fld-folders-header skin-dark" role="region">
-    <header>
-      <a href="#" class="fld-accounts-btn">
-        <span class="icon icon-back"></span>
-      </a>
-      <h1 class="fld-folders-header-account-label"></h1>
-    </header>
-  </section>
-  <div class="scrollregion-below-header folder-scroller-region">
-    <div class="fld-folders-container">
-    </div>
+<div class="card-folder-picker card anim-vertical anim-overlay one-account">
+  <div class="fld-header-placeholder">
+    <button class="fld-header-back"></button>
   </div>
-  <div class="fld-nav-toolbar bottom-toolbar">
-    <button class="fld-nav-settings-btn bottom-btn"></button>
-    <h3 class="fld-nav-last-synced">
-      <span class="fld-nav-last-synced-label"
-            data-l10n-id="account-last-synced-label"></span>
-      <span class="fld-nav-last-synced-value"></span>
-    </h3>
-    <span class="fld-nav-account-problem icon collapsed">!</span>
+  <div class="fld-shield"></div>
+  <div class="fld-content-container">
+    <div class="fld-content">
+      <div class="fld-acct-scrollouter">
+        <a class="fld-acct-header closed" role="region">
+          <span class="fld-acct-header-account-label"></span>
+          <span class="fld-acct-header-account-header">Accounts</span>
+          <span class="fld-account-switch-arrow"></span>
+        </a>
+        <div class="fld-acct-scrollinner">
+          <div class="fld-acct-container">
+            <div class="fld-accountlist-container">
+            </div>
+            <div class="fld-folders-container">
+            </div>
+          </div>
+        </div>
+      </div>
+      <a class="fld-nav-toolbar bottom-toolbar">
+        <span class="fld-settings-link" data-l10n-id="fld-settings-link">SettingS</span>
+      </a>
+    </div>
   </div>
 </div>
