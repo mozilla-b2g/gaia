@@ -946,14 +946,19 @@ var Camera = {
 
     var viewfinder = this.viewfinder;
     var style = viewfinder.style;
-    // Switch screen dimensions to landscape
-    var screenWidth = document.body.clientHeight * window.devicePixelRatio;
-    var screenHeight = document.body.clientWidth * window.devicePixelRatio;
+    // Switch screen dimensions to landscape. The screen width/height is css
+    // pixel size. The following calculation are all based on css pixel.
+    var screenWidth = document.body.clientHeight;
+    var screenHeight = document.body.clientWidth;
     var pictureAspectRatio = this._pictureSize.height / this._pictureSize.width;
     var screenAspectRatio = screenHeight / screenWidth;
 
     // Previews should match the aspect ratio and not be smaller than the screen
     var validPreviews = camera.capabilities.previewSizes.filter(function(res) {
+      // Note that we are using the screen size in CSS pixels and not
+      // multiplying by devicePixelRatio. We assume that the preview sizes
+      // returned by the camera are in CSS pixels, not device pixels.
+      // This is the way things seem to work on the Helix.
       var isLarger = res.height >= screenHeight && res.width >= screenWidth;
       var aspectRatio = res.height / res.width;
       var matchesRatio = Math.abs(aspectRatio - pictureAspectRatio) < 0.05;

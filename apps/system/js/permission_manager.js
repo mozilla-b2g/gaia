@@ -36,6 +36,11 @@ var PermissionManager = {
         case 'permission-prompt':
           self.overlay.dataset.type = detail.permission;
           self.currentPermission = detail.permission;
+          // bug 949799 hidden "More Info" box
+          if (!self.moreInfoBox.classList.contains('hidden')) {
+            self.moreInfoBox.classList.add('hidden');
+          }
+
           // not show remember my choice option in gUM
           if ('video-capture' === detail.permission ||
               'audio-capture' === detail.permission) {
@@ -189,15 +194,13 @@ var PermissionManager = {
     this.overlay.classList.remove('visible');
     this.currentRequestId = undefined;
     // Cleanup the event handlers.
-    this.yes.removeEventListener('click',
-      this.clickHandler.bind(this));
+    this.yes.removeEventListener('click', this.yesHandler);
     this.yes.callback = null;
-    this.no.removeEventListener('click',
-      this.clickHandler.bind(this));
+    this.no.removeEventListener('click', this.noHandler);
     this.no.callback = null;
 
     this.moreInfoLink.removeEventListener('click',
-      this.clickHandler.bind(this));
+      this.moreInfoHandler);
     this.moreInfo.classList.add('hidden');
   },
 
@@ -280,8 +283,8 @@ var PermissionManager = {
     if (moreInfoText) {
       // Show the "More info… " link.
       this.moreInfo.classList.remove('hidden');
-      this.moreInfoLink.addEventListener('click',
-        this.clickHandler.bind(this));
+      this.moreInfoHandler = this.clickHandler.bind(this);
+      this.moreInfoLink.addEventListener('click', this.moreInfoHandler);
       this.moreInfoBox.textContent = moreInfoText;
     }
     this.currentRequestId = id;
@@ -298,12 +301,14 @@ var PermissionManager = {
 
     this.yes.textContent =
       isSharedPermission ? _('share-' + this.currentPermission) : _('allow');
-    this.yes.addEventListener('click', this.clickHandler.bind(this));
+    this.yesHandler = this.clickHandler.bind(this);
+    this.yes.addEventListener('click', this.yesHandler);
     this.yes.callback = yescallback;
 
     this.no.textContent =
       isSharedPermission ? _('dontshare-' + this.currentPermission) : _('deny');
-    this.no.addEventListener('click', this.clickHandler.bind(this));
+    this.noHandler = this.clickHandler.bind(this);
+    this.no.addEventListener('click', this.noHandler);
     this.no.callback = nocallback;
   },
 
