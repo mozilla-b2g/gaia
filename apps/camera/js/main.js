@@ -27,6 +27,7 @@ require(['config/require', 'config'], function() {
       hud: require('controllers/hud'),
       controls: require('controllers/controls'),
       viewfinder: require('controllers/viewfinder'),
+      recordingTimer: require('controllers/recording-timer'),
       overlay: require('controllers/overlay'),
       confirm: require('controllers/confirm'),
       settings: require('controllers/settings'),
