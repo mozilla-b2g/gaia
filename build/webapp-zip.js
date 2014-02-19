@@ -78,6 +78,7 @@ function exclude(path, options, appPath) {
   var firstDir = path.substr(appPath.length+1).split(/[\\/]/)[0];
   var isShared = firstDir === 'shared';
   var isTest = firstDir === 'test';
+  var isGit = firstDir === '.git';
   var file = utils.getFile(path);
 
   // Ignore l10n files if they have been inlined or concatenated
@@ -98,6 +99,11 @@ function exclude(path, options, appPath) {
   // Ignore files from /shared directory (these files were created by
   // Makefile code). Also ignore files in the /test directory.
   if (isShared || isTest) {
+    return true;
+  }
+
+  // Ignore everything under .git/
+  if (isGit) {
     return true;
   }
 
