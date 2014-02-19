@@ -9,7 +9,7 @@ require(['config/require', 'config'], function() {
     /**
      * Module Dependencies
      */
-
+// setTimeout(function() {
     var App = require('app');
     var Camera = require('lib/camera');
     var Sounds = require('lib/sounds');
@@ -68,7 +68,8 @@ require(['config/require', 'config'], function() {
     app.settings.fetch();
 
     // Check for activities, then boot
-    app.activity.check(app.boot);
+   app.activity.check(app.boot);
+// }, 3000);
   });
 
   require(['boot']);

@@ -26,9 +26,14 @@ function SettingsController(app) {
   bindAll(this);
   this.app = app;
   this.settings = app.settings;
+  this.configure();
   this.bindEvents();
   debug('initialized');
 }
+
+SettingsController.prototype.configure = function() {
+  this.settings.pictureSizes.format = formatters.pictureSizes;
+};
 
 /**
  * Bind to app events.
@@ -114,13 +119,46 @@ SettingsController.prototype.toggleSettings = function() {
  * @param  {Object} capabilities
  */
 SettingsController.prototype.onCapabilitiesChange = function(capabilities) {
-  this.app.settings.forEach(function(setting) {
-    var match = setting.key in capabilities;
-    if (match) { setting.configureOptions(capabilities[setting.key]); }
-  });
-
-  this.app.emit('settings:beforeconfigured');
+  this.app.settings.options(capabilities);
   this.app.emit('settings:configured');
 };
+
+var formatters = {
+  pictureSizes: function(options) {
+    var getMP = function(w, h) { return Math.round((w * h) / 1000000); };
+    var maxBytes = this.get('maxBytes');
+    var normalized = [];
+
+    options.forEach(function(option) {
+      var w = option.width;
+      var h = option.height;
+      var bytes = w * h;
+
+      // Don't allow pictureSizes above the maxBytes limit
+      if (maxBytes && bytes > maxBytes) { return; }
+
+      option.aspect = getAspect(w, h);
+      option.mp = getMP(w, h);
+
+      var mp = option.mp ? option.mp + 'MP ' : '';
+
+      normalized.push({
+        key: w + 'x' + h,
+        title: mp + w + 'x' + h + ' ' + option.aspect,
+        value: option
+      });
+    });
+
+    return normalized;
+  }
+};
+
+function getAspect(w, h) {
+  var getDevisor = function(a, b) {
+    return (b === 0) ? a : getDevisor(b, a % b);
+  };
+  var devisor = getDevisor(w, h);
+  return (w / devisor) + ':' + (h / devisor);
+}
 
 });
