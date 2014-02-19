@@ -10,6 +10,12 @@ const LAYOUT_MODE = {
   fullscreenPlayer: 'layout-fullscreen-player'
 };
 
+const CRITICAL_BATTERY_LEVEL = {
+   'FIVE': 5,
+   'FIFTEEN': 15
+  };
+const LOW_POWER_BRIGHTNESS = 0.5;
+
 var dom = {};
 
 var ids = ['thumbnail-list-view', 'thumbnails-bottom', 'thumbnail-list-title',
@@ -26,7 +32,7 @@ var ids = ['thumbnail-list-view', 'thumbnails-bottom', 'thumbnail-list-title',
            'close', 'play', 'playHead', 'timeSlider', 'elapsedTime',
            'video-title', 'duration-text', 'elapsed-text', 'bufferedTime',
            'slider-wrapper', 'throbber', 'delete-video-button',
-           'picker-close', 'picker-title', 'picker-done'];
+           'picker-close', 'picker-title', 'picker-done', 'low-battery-info'];
 
 ids.forEach(function createElementRef(name) {
   dom[toCamelCase(name)] = document.getElementById(name);
@@ -94,6 +100,8 @@ var pendingUpdateTitleText = false;
 // Videos recorded by our own camera have filenames of this form
 var FROMCAMERA = /DCIM\/\d{3}MZLLA\/VID_\d{4}\.3gp$/;
 
+var powerManager = navigator.mozPower;
+
 // Pause on visibility change
 document.addEventListener('visibilitychange', function visibilityChange() {
   if (document.hidden) {
@@ -125,8 +133,10 @@ navigator.mozL10n.ready(function initVideo() {
   // mozL10n.ready, it may become the event handler of localized. So, we need to
   // prevent database re-initialize.
   // XXX: once bug 882592 is fixed, we should remove it and just call init.
-  if (!videodb)
+  if (!videodb) {
     init();
+    lowBatteryHandler();
+  }
 
   if (!isPhone) {
     // reload the thumbnail list title field for tablet which is the app name.
@@ -685,6 +695,21 @@ function updateLoadingSpinner() {
 }
 
 function thumbnailClickHandler(videodata) {
+  // Low Battery Message Handling in while clicking thumbnail
+  var batteryVal = BatteryHelper.batteryLevel();
+  var isCharging = BatteryHelper.isCharging();
+
+  if (batteryVal < CRITICAL_BATTERY_LEVEL.FIVE) {
+    if (!isCharging) {
+      var msg = navigator.mozL10n.get('low-battery-less-than-5percent');
+      alert(msg);
+      return;
+    }
+  } else if (batteryVal < CRITICAL_BATTERY_LEVEL.FIFTEEN) {
+      if (!isCharging) {
+        lowBattery15PercentHandler();
+      }
+  }
   if (!isPhone && !isPortrait) {
     // if the screen is large and landscape, we need to lock the operations
     // while scanning and metadata parsing.
@@ -1249,4 +1274,41 @@ function showThrobber() {
 function hideThrobber() {
   dom.throbber.classList.add('hidden');
   dom.throbber.classList.remove('throb');
+}
+
+function lowBatteryHandler() {
+  BatteryHelper.addBatteryListener(CRITICAL_BATTERY_LEVEL.FIVE,
+  function(value) {
+    var msg = navigator.mozL10n.get('low-battery-less-than-5percent');
+    alert(msg);
+    handleCloseButtonClick();
+  });
+
+  BatteryHelper.addBatteryListener(CRITICAL_BATTERY_LEVEL.FIFTEEN,
+  function(value) {
+    if (currentLayoutMode === LAYOUT_MODE.list) {
+      return;
+    }
+    lowBattery15PercentHandler();
+  });
+}
+
+function lowBattery15PercentHandler(value) {
+  var msg = navigator.mozL10n.get('low-battery-less-than-15percent');
+  dom.videoBar.classList.add('hidden');
+  dom.videoActionBar.classList.add('hidden');
+  dom.lowBatteryInfo.classList.remove('hidden');
+  dom.lowBatteryInfo.firstElementChild.textContent = msg;
+  dom.lowBatteryInfo.style.zIndex = '999';
+  setTimeout(function() {
+    dom.lowBatteryInfo.classList.add('hidden');
+    dom.videoBar.classList.remove('hidden');
+    dom.videoActionBar.classList.remove('hidden');
+    dom.lowBatteryInfo.style.zIndex = '0';
+    }, 4000);
+  if (powerManager) {
+    if (powerManager.screenBrightness > LOW_POWER_BRIGHTNESS) {
+       powerManager.screenBrightness = LOW_POWER_BRIGHTNESS;
+    }
+  }
 }
