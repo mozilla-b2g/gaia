@@ -216,42 +216,50 @@ suite('system/EdgeSwipeDetector >', function() {
   });
 
   suite('Touch handling > ', function() {
-    function fakeTouchDispatch(type, panel, x, y) {
-      var touch = document.createTouch(window, panel, 42, x, y,
-                                       x, y, x, y,
-                                       0, 0, 0, 0);
-      var touchList = document.createTouchList(touch);
-      var touches = (type == 'touchstart' || type == 'touchmove') ?
-                         touchList : null;
-      var changed = (type == 'touchmove') ?
-                         null : touchList;
+    function fakeTouchDispatch(type, panel, xs, ys) {
+      var touches = [];
+
+      for (var i = 0; i < xs.length; i++) {
+        var x = xs[i];
+        var y = ys[i];
+        var touch = document.createTouch(window, panel, 42, x, y,
+                                         x, y, x, y,
+                                         0, 0, 0, 0);
+        touches.push(touch);
+      }
+      var touchList = document.createTouchList(touches);
+
+      var eventTouches = (type == 'touchstart' || type == 'touchmove') ?
+                          touchList : null;
+      var eventChanged = (type == 'touchmove') ?
+                          null : touchList;
 
       var e = document.createEvent('TouchEvent');
       e.initTouchEvent(type, true, true,
                        null, null, false, false, false, false,
-                       touches, null, changed);
+                       eventTouches, null, eventChanged);
 
       panel.dispatchEvent(e);
       return e;
     }
 
-    function touchStart(panel, x, y) {
-      return fakeTouchDispatch('touchstart', panel, x, y);
+    function touchStart(panel, xs, ys) {
+      return fakeTouchDispatch('touchstart', panel, xs, ys);
     }
 
-    function touchMove(panel, x, y) {
-      return fakeTouchDispatch('touchmove', panel, x, y);
+    function touchMove(panel, xs, ys) {
+      return fakeTouchDispatch('touchmove', panel, xs, ys);
     }
 
-    function touchEnd(panel, x, y) {
-      return fakeTouchDispatch('touchend', panel, x, y);
+    function touchEnd(panel, xs, ys) {
+      return fakeTouchDispatch('touchend', panel, xs, ys);
     }
 
     function swipe(clock, panel, fromX, toX, fromY, toY, duration, noEnd) {
       var events = [];
 
       var duration = duration || 350;
-      events.push(touchStart(panel, fromX, fromY));
+      events.push(touchStart(panel, [fromX], [fromY]));
 
       var diffX = Math.abs(toX - fromX);
       var diffY = Math.abs(toY - fromY);
@@ -263,7 +271,7 @@ suite('system/EdgeSwipeDetector >', function() {
         var newX = fromX + x;
         var newY = fromY + y;
 
-        events.push(touchMove(panel, newX, newY));
+        events.push(touchMove(panel, [newX], [newY]));
         clock.tick(tick);
 
         if (newX < toX) {
@@ -281,8 +289,34 @@ suite('system/EdgeSwipeDetector >', function() {
       }
 
       if (!noEnd) {
-        events.push(touchEnd(panel, toX, toY));
+        events.push(touchEnd(panel, [toX], [toY]));
       }
+      return events;
+    }
+
+    // Always pinch horizontally from the edges of the screen
+    function pinch(clock, panel, toX, toY, duration) {
+      var events = [];
+
+      var screenWidth = window.innerWidth;
+
+      var duration = duration || 350;
+      events.push(touchStart(panel, [0, screenWidth], [toY, toY]));
+
+      var delta = Math.abs(toX);
+
+      var x = 0, y = 0;
+      var tick = duration / delta;
+      for (var i = 0; i < delta; i++) {
+        events.push(touchMove(panel, [x, (screenWidth - x)], [toY, toY]));
+        clock.tick(tick);
+
+        if (x < toX) {
+          x++;
+        }
+      }
+
+      events.push(touchEnd(panel, [toX, toX], [toY, toY]));
       return events;
     }
 
@@ -314,13 +348,13 @@ suite('system/EdgeSwipeDetector >', function() {
 
     suite('Event feast to prevent gecko reflows >', function() {
       test('it should prevent default on touch events', function() {
-        var touchstart = touchStart(panel, 0, 100);
+        var touchstart = touchStart(panel, [0], [100]);
         assert.isTrue(touchstart.defaultPrevented);
 
-        var touchmove = touchMove(panel, 0, 100);
+        var touchmove = touchMove(panel, [0], [100]);
         assert.isTrue(touchmove.defaultPrevented);
 
-        var touchend = touchEnd(panel, 0, 100);
+        var touchend = touchEnd(panel, [0], [100]);
         assert.isTrue(touchend.defaultPrevented);
       });
 
@@ -402,7 +436,7 @@ suite('system/EdgeSwipeDetector >', function() {
 
       suite('as soon as we get a touchstart', function() {
         setup(function() {
-          touchStart(panel, 12, 32);
+          touchStart(panel, [12], [32]);
         });
 
         test('it should set the destination of the TouchForwarder', function() {
@@ -442,6 +476,49 @@ suite('system/EdgeSwipeDetector >', function() {
       test('it should forward the touchend event', function() {
         var fwSpy = this.sinon.spy(MockTouchForwarder.prototype, 'forward');
         var recvEvents = swipe(this.sinon.clock, panel, 3, 7, 20, halfScreen);
+
+        var call = fwSpy.lastCall;
+        assert.equal(call.args[0], recvEvents[(recvEvents.length - 1)]);
+      });
+    });
+
+    suite('During a 2 fingers pinch', function() {
+      var centerX, centerY;
+
+      setup(function() {
+        centerX = Math.floor(window.innerWidth / 2);
+        centerY = Math.floor(window.innerHeight / 2);
+      });
+
+      test('it should not move the sheets', function() {
+        var moveSpy = this.sinon.spy(MockSheetsTransition, 'moveInDirection');
+        pinch(this.sinon.clock, panel, centerX, centerY);
+        assert.isFalse(moveSpy.called);
+      });
+
+      test('it should forward the touchstart event', function() {
+        var fwSpy = this.sinon.spy(MockTouchForwarder.prototype, 'forward');
+        var recvEvents = pinch(this.sinon.clock, panel, centerX, centerY);
+
+        var call = fwSpy.firstCall;
+        assert.equal(call.args[0], recvEvents[0]);
+      });
+
+      test('it should forward the touchmove events right away',
+      function() {
+        var fwSpy = this.sinon.spy(MockTouchForwarder.prototype, 'forward');
+        var recvEvents = pinch(this.sinon.clock, panel, centerX, centerY);
+
+        var call = fwSpy.secondCall;
+        assert.equal(call.args[0], recvEvents[1]);
+
+        call = fwSpy.thirdCall;
+        assert.equal(call.args[0], recvEvents[2]);
+      });
+
+      test('it should forward the touchend event', function() {
+        var fwSpy = this.sinon.spy(MockTouchForwarder.prototype, 'forward');
+        var recvEvents = pinch(this.sinon.clock, panel, centerX, centerY);
 
         var call = fwSpy.lastCall;
         assert.equal(call.args[0], recvEvents[(recvEvents.length - 1)]);
@@ -488,9 +565,9 @@ suite('system/EdgeSwipeDetector >', function() {
     suite('During a long press', function() {
       function longPress(clock, panel, x, y) {
         var events = [];
-        events.push(touchStart(panel, x, y));
+        events.push(touchStart(panel, [x], [y]));
         clock.tick(500);
-        events.push(touchEnd(panel, x, y));
+        events.push(touchEnd(panel, [x], [y]));
         return events;
       }
 
@@ -504,7 +581,7 @@ suite('system/EdgeSwipeDetector >', function() {
       function() {
         var fwSpy = this.sinon.spy(MockTouchForwarder.prototype, 'forward');
 
-        var receivedEvent = touchStart(panel, 10, 10);
+        var receivedEvent = touchStart(panel, [10], [10]);
         this.sinon.clock.tick(500);
 
         var call = fwSpy.firstCall;
