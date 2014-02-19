@@ -1,4 +1,11 @@
-/*global loadBodyHTML, Dialog, ErrorDialog, MockL10n, MocksHelper*/
+/*global
+   loadBodyHTML,
+   Dialog,
+   ErrorDialog,
+   MockL10n,
+   MocksHelper,
+   MockSettings
+*/
 'use strict';
 
 requireApp('sms/test/unit/mock_settings.js');
@@ -344,6 +351,8 @@ suite('Dialog', function() {
     });
 
     test('show non-active sim card error', function() {
+      MockSettings.mmsServiceId = 0;
+
       var handler = function() {};
       var dialog = new ErrorDialog(
         'NonActiveSimCardError', {

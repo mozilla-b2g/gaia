@@ -14,6 +14,7 @@ var MockMessages = {
     // default sms message
     var message = {
       id: 1,
+      iccId: null,
       threadId: 1,
       sender: 'sender',
       receiver: 'receiver',
@@ -45,6 +46,7 @@ var MockMessages = {
     // default mms message
     var message = {
       id: 1,
+      iccId: null,
       threadId: 1,
       sender: 'sender',
       receivers: ['receiver'],
