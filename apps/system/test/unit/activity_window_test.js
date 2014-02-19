@@ -1,11 +1,10 @@
 'use strict';
 
 mocha.globals(['AppWindow', 'BrowserMixin', 'ActivityWindow',
-  'System', 'BrowserFrame', 'BrowserConfigHelper', 'LayoutManager',
-  'OrientationManager', 'SettingsListener', 'Applications']);
+  'System', 'BrowserFrame', 'BrowserConfigHelper', 'OrientationManager',
+  'SettingsListener', 'Applications']);
 
 requireApp('system/test/unit/mock_orientation_manager.js');
-requireApp('system/test/unit/mock_layout_manager.js');
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/test/unit/mock_applications.js');
@@ -15,7 +14,7 @@ requireApp('system/shared/test/unit/mocks/mock_screen_layout.js');
 
 var mocksForActivityWindow = new MocksHelper([
   'OrientationManager', 'Applications', 'SettingsListener',
-  'ManifestHelper', 'LayoutManager', 'AttentionScreen'
+  'ManifestHelper', 'AttentionScreen'
 ]).init();
 
 suite('system/ActivityWindow', function() {

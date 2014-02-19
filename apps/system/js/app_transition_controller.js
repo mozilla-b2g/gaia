@@ -1,9 +1,8 @@
+/* global SettingsListener, System, layoutManager, SimPinDialog, Rocketbar */
 'use strict';
 
-(function(window) {
-  var DEBUG = false;
+(function(exports) {
   var TransitionEvents = ['open', 'close', 'complete', 'timeout'];
-  var screenElement = document.getElementById('screen');
 
   var TransitionStateTable = {
     'closed': ['opening', null, null, null],
@@ -34,17 +33,20 @@
    *
    * @class AppTransitionController
    */
-  window.AppTransitionController =
+  var AppTransitionController =
     function AppTransitionController(app) {
-      if (!app || !app.element)
+      if (!app || !app.element) {
         return;
+      }
 
       this.app = app;
-      if (this.app.openAnimation)
+      if (this.app.openAnimation) {
         this.openAnimation = this.app.openAnimation;
+      }
 
-      if (this.app.closeAnimation)
+      if (this.app.closeAnimation){
         this.closeAnimation = this.app.closeAnimation;
+      }
 
       this.app.element.addEventListener('_opening', this);
       this.app.element.addEventListener('_closing', this);
@@ -58,8 +60,9 @@
     };
 
   AppTransitionController.prototype.destroy = function() {
-    if (!this.app || !this.app.element)
+    if (!this.app || !this.app.element) {
       return;
+    }
 
     this.app.element.removeEventListener('_opening', this);
     this.app.element.removeEventListener('_closing', this);
@@ -165,24 +168,27 @@
   AppTransitionController.prototype.switchTransitionState =
     function atc_switchTransitionState(state) {
       this._transitionState = state;
-      if (!this.app)
+      if (!this.app) {
         return;
+      }
       this.app._changeState('transition', this._transitionState);
     };
 
   // TODO: move general transition handlers into another object.
   AppTransitionController.prototype.handle_closing =
     function atc_handle_closing() {
-      if (!this.app || !this.app.element)
+      if (!this.app || !this.app.element) {
         return;
+      }
       this.app.element.setAttribute('aria-hidden', 'true');
       this.switchTransitionState('closing');
     };
 
   AppTransitionController.prototype.handle_closed =
     function atc_handle_closed() {
-      if (!this.app || !this.app.element)
+      if (!this.app || !this.app.element) {
         return;
+      }
 
       this.app.setVisible(false, true);
       this.app.element.setAttribute('aria-hidden', 'true');
@@ -191,8 +197,9 @@
 
   AppTransitionController.prototype.handle_opening =
     function atc_handle_opening() {
-      if (!this.app || !this.app.element)
+      if (!this.app || !this.app.element) {
         return;
+      }
       this.app.reviveBrowser();
       this.app.launchTime = Date.now();
       this.app.fadeIn();
@@ -208,8 +215,9 @@
 
   AppTransitionController.prototype.handle_opened =
     function atc_handle_opened() {
-      if (!this.app || !this.app.element)
+      if (!this.app || !this.app.element) {
         return;
+      }
 
       if (this.app.loaded) {
         // Perf test needs.
@@ -232,20 +240,22 @@
       // this.app.width is defined means we're resized ever.
       // but this.app.resized may be cleared.
       if (this.app.resized &&
-          !LayoutManager.match(this.app.width,
+          !layoutManager.match(this.app.width,
             this.app.height - this.app.calibratedHeight(),
             this.app.isFullScreen())) {
         this.app.resize();
       }
       this.app.waitForNextPaint(function() {
-        if (this._transitionState !== 'opened')
+        if (this._transitionState !== 'opened') {
           return;
+        }
         // XXX: Remove this after SIMPIN Dialog is refactored.
         // See https://bugzilla.mozilla.org/show_bug.cgi?id=938979
         // XXX: Rocketbar losing input focus
         // See: https://bugzilla.mozilla.org/show_bug.cgi?id=961557
-        if (!SimPinDialog.visible && !Rocketbar.shown)
+        if (!SimPinDialog.visible && !Rocketbar.shown) {
           this.app.focus();
+        }
       }.bind(this));
     };
 
@@ -320,4 +330,5 @@
           break;
       }
     };
-}(this));
+  exports.AppTransitionController = AppTransitionController;
+}(window));
