@@ -26,9 +26,14 @@ function SettingsController(app) {
   bindAll(this);
   this.app = app;
   this.settings = app.settings;
+  this.configure();
   this.bindEvents();
   debug('initialized');
 }
+
+SettingsController.prototype.configure = function() {
+  this.settings.pictureSizes.format = formatters.pictureSizes;
+};
 
 /**
  * Bind to app events.
@@ -114,13 +119,65 @@ SettingsController.prototype.toggleSettings = function() {
  * @param  {Object} capabilities
  */
 SettingsController.prototype.onCapabilitiesChange = function(capabilities) {
-  this.app.settings.forEach(function(setting) {
-    var match = setting.key in capabilities;
-    if (match) { setting.configureOptions(capabilities[setting.key]); }
-  });
-
-  this.app.emit('settings:beforeconfigured');
+  this.app.settings.options(capabilities);
   this.app.emit('settings:configured');
 };
+
+var formatters = {
+  pictureSizes: function(options) {
+    var normalized = [];
+    var maxBytes = this.get('maxBytes');
+
+    options.forEach(function(option) {
+      var w = option.width;
+      var h = option.height;
+      var bytes = w * h;
+
+      // Don't allow pictureSizes above the maxBytes limit
+      if (maxBytes && bytes > maxBytes) { return; }
+
+      option.aspect = getAspect(w, h);
+      option.mp = getMP(w, h);
+
+      // Don't include MP value when < 1
+      var mp = option.mp ? option.mp + 'MP ' : '';
+
+      normalized.push({
+        key: w + 'x' + h,
+        title: mp + w + 'x' + h + ' ' + option.aspect,
+        value: option
+      });
+    });
+
+    return normalized;
+  }
+};
+
+/**
+ * Returns rounded mega-pixel value.
+ *
+ * @param  {Number} w
+ * @param  {Number} h
+ * @return {Number}
+ */
+function getMP(w, h) {
+  return Math.round((w * h) / 1000000);
+}
+
+/**
+ * Returns aspect ratio string.
+ *
+ * Makes use of Euclid's GCD algorithm,
+ * http://en.wikipedia.org/wiki/Euclidean_algorithm
+ *
+ * @param  {Number} w
+ * @param  {Number} h
+ * @return {String}
+ */
+function getAspect(w, h) {
+  var gcd = function(a, b) { return (b === 0) ? a : gcd(b, a % b); };
+  var divisor = gcd(w, h);
+  return (w / divisor) + ':' + (h / divisor);
+}
 
 });

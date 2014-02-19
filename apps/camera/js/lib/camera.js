@@ -8,7 +8,6 @@ define(function(require, exports, module) {
 var pickPreviewSize = require('lib/camera-utils').selectOptimalPreviewSize;
 var getVideoMetaData = require('lib/get-video-meta-data');
 var orientation = require('lib/orientation');
-var getSizeKey = require('lib/get-size-key');
 var constants = require('config/camera');
 var debug = require('debug')('camera');
 var bindAll = require('lib/bind-all');
@@ -146,7 +145,6 @@ Camera.prototype.configure = function(mozCamera) {
 Camera.prototype.formatCapabilities = function(capabilities) {
   capabilities = mixin({}, capabilities);
   return mixin(capabilities, {
-    pictureSizes: this.formatPictureSizes(capabilities.pictureSizes),
     pictureFlashModes: capabilities.flashModes,
     videoFlashModes: capabilities.flashModes
   });
@@ -162,15 +160,6 @@ Camera.prototype.setThumbnailSize = function() {
   var pictureSize = this.mozCamera.pictureSize;
   var picked = this.pickThumbnailSize(sizes, pictureSize);
   if (picked) { this.mozCamera.thumbnailSize = picked; }
-};
-
-Camera.prototype.formatPictureSizes = function(sizes) {
-  var hash = {};
-  sizes.forEach(function(size) {
-    var key = getSizeKey.picture(size);
-    hash[key] = size;
-  });
-  return hash;
 };
 
 Camera.prototype.setVideoProfile = function(profileName) {

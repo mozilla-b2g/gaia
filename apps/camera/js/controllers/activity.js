@@ -15,65 +15,67 @@ var bindAll = require('lib/bind-all');
 module.exports = function(app) { return new ActivityController(app); };
 module.exports.ActivityController = ActivityController;
 
+/**
+ * Initialize new `ActivityController`
+ *
+ * @param {App} app
+ */
 function ActivityController(app) {
-  bindAll(this);
-  this.activity = app.activity;
-  this.settings = app.settings;
-  this.app = app;
-  this.configure();
-  this.bindEvents();
+  if (app.activity.active) {
+    bindAll(this);
+    this.activity = app.activity;
+    this.settings = app.settings;
+    this.app = app;
+    this.configure();
+    this.bindEvents();
+  }
 }
 
 ActivityController.prototype.configure = function() {
-  if (!this.activity.active) { return; }
+  this.configureMode();
+};
+
+ActivityController.prototype.configureMode = function() {
   var values = this.activity.data.modes;
-  this.settings.mode.configureOptions(values);
+  this.settings.mode.resetOptions(values);
 };
 
 ActivityController.prototype.bindEvents = function() {
-  this.app.on('settings:beforeconfigured', this.configureMediaSizes);
+  this.settings.pictureSizes.on('optionsreset', this.configurePictureSize);
+  this.settings.recorderProfiles.on('optionsreset', this.configureVideoSize);
 };
 
-ActivityController.prototype.configureMediaSizes = function() {
-  debug('configure media sizes');
-  var activity = this.app.activity;
-  if (activity.active) {
-    this.configurePictureSize(activity.data);
-    this.configureVideoSize(activity.data);
-  }
-};
-
-ActivityController.prototype.configurePictureSize = function(data) {
-  var setting = this.app.settings.pictureSizes;
-  var maxFileSize = data.maxFileSizeBytes;
-  var options = setting.get('options');
+ActivityController.prototype.configurePictureSize = function(options) {
+  var maxFileSize = this.activity.data.maxFileSizeBytes;
+  var setting = this.settings.pictureSizes;
+  var data = this.activity.data;
 
   if (maxFileSize) {
-    options = getPictureSizesSmallerThan(options, maxFileSize);
-    setting.configureOptions(options);
-    return;
-  }
-
-  if (data.width || data.height) {
+    options = filterBytesLessThan(maxFileSize, options);
+    setting.set('options', options);
+  } else if (data.width || data.height) {
     options = [pickBySize(options, data)];
     debug('picked picture size ', JSON.stringify(options));
-    setting.configureOptions(options);
+    setting.set('options', options);
   }
 };
 
-ActivityController.prototype.configureVideoSize = function(data) {
-  var setting = this.app.settings.recorderProfiles;
-  var maxFileSize = data.maxFileSizeBytes;
-  var options = setting.get('options');
+ActivityController.prototype.configureVideoSize = function(options) {
+  var maxFileSize = this.activity.data.maxFileSizeBytes;
+  var setting = this.settings.recorderProfiles;
 
   if (maxFileSize) {
     options = [getLowResVideoSize(options)];
-    setting.configureOptions(options);
+    setting.set('options', options);
   }
 };
 
-function getPictureSizesSmallerThan(options, bytes) {
-  return options.filter(function(option) {
+/**
+ * Utils
+ */
+
+function filterBytesLessThan(bytes, sizes) {
+  return sizes.filter(function(option) {
     var size = option.value;
     var mp = size.width * size.height;
     return mp <= bytes;
