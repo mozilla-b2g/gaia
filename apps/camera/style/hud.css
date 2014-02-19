@@ -142,15 +142,9 @@ body:not(.filmstriphidden) .hud {
 /** Flash Text
  ---------------------------------------------------------*/
 
-/**
- * 1. Hide this as it's not apparent
- *    in UX spec for v1.4.
- */
-
 .hud_flash-text {
-  display: none; /* 1 */
   position: absolute;
-  top: 50%; left: 100%;
+  top: 50%; right: 100%;
   margin: 0 1rem;
   margin-top: -0.4em;
   text-shadow: 1px 1px 1px rgba(0,0,0,0.5);
@@ -171,10 +165,10 @@ body:not(.filmstriphidden) .hud {
  * endge of the screen.
  */
 
-.deg90 .hud_flash-text,
+.deg270 .hud_flash-text,
 .deg180 .hud_flash-text {
-  left: auto;
-  right: 100%;
+  right: 0;
+  left: 100%;
 }
 
 /**
