@@ -720,6 +720,34 @@ suite('Recipients', function() {
 
           assert.isTrue(view.lastElementChild.focus.called);
         });
+
+        test('test for comma as a recipient delimiter ', function() {
+          var view = document.getElementById('messages-recipients-list');
+          var event;
+
+          event = new CustomEvent('keyup', {
+            bubbles: true
+          });
+
+          view.lastElementChild.textContent = '963852,';
+          view.lastElementChild.dispatchEvent(event);
+
+          assert.equal(recipients.numbers[0], '963852');
+        });
+
+        test('test for semicolon as a recipient delimiter ', function() {
+          var view = document.getElementById('messages-recipients-list');
+          var event;
+
+          event = new CustomEvent('keyup', {
+            bubbles: true
+          });
+
+          view.lastElementChild.textContent = '987654;';
+          view.lastElementChild.dispatchEvent(event);
+
+          assert.equal(recipients.numbers[0], '987654');
+        });
       });
     });
 
