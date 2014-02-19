@@ -3,12 +3,15 @@
 'use strict';
 
 (function(exports) {
-
   /*
    * SimSettingsHelper is a helper to provide semantic ways set / get
    * mozSettings. It is used by SimCardManager.
    */
   var SimSettingsHelper = {
+    EMPTY_OPTION_TEXT: '--',
+    EMPTY_OPTION_VALUE: '-2',
+    ALWAYS_ASK_OPTION_VALUE: '-1',
+
     getCardIndexFrom: function(serviceName, callback) {
       // _get(), _onWhichCard() and _getFromSettingsDB() are internal methods
       // and should be used together, so I wrap them inside this method

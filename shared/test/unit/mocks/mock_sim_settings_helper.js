@@ -1,3 +1,5 @@
+/* exported MockSimSettingsHelper */
+
 'use strict';
 
 var MockSimSettingsHelper = {
@@ -7,8 +9,8 @@ var MockSimSettingsHelper = {
     outgoingMessages: 1,
     outgoingData: 0
   },
-  getCardIndexFrom: function() {
-
+  getCardIndexFrom: function(service, callback) {
+    callback(this._defaultCards[service]);
   },
   get: function(option) {
     // we will cache our option in _getOption to for later test
