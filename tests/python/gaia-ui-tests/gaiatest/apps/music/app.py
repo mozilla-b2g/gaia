@@ -13,6 +13,7 @@ class Music(Base):
     name = 'Music'
 
     _loading_spinner_locator = (By.ID, 'spinner-overlay')
+    _music_tiles_locator = (By.CSS_SELECTOR, '#views-tiles-anchor > div')
     _empty_music_title_locator = (By.ID, 'overlay-title')
     _empty_music_text_locator = (By.ID, 'overlay-text')
     _albums_tab_locator = (By.ID, 'tabs-albums')
@@ -21,6 +22,9 @@ class Music(Base):
     def launch(self):
         Base.launch(self)
         self.wait_for_element_not_displayed(*self._loading_spinner_locator)
+
+    def wait_for_music_tiles_displayed(self):
+        self.wait_for_element_displayed(*self._music_tiles_locator)
 
     def wait_for_empty_message_to_load(self):
         empty_title = self.marionette.find_element(*self._empty_music_title_locator)
