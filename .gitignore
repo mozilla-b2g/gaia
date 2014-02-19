@@ -58,6 +58,7 @@ manifest.appcache
 
 /distribution/
 /node_modules/
+/.modules.tar
 /docs/
 /.cproject
 /.project
