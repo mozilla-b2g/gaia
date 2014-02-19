@@ -152,7 +152,7 @@ var NfcHandoverManager = {
     return btssp.mac;
   },
 
-  doPairing: function doPairing(mac, onsuccess, onerror) {
+  doPairing: function doPairing(mac) {
     this.debug('doPairing: ' + mac);
     if (this.defaultAdapter == null) {
       // No BT
@@ -160,8 +160,14 @@ var NfcHandoverManager = {
       return;
     }
     var req = this.defaultAdapter.pair(mac);
-    req.onsuccess = onsuccess;
-    req.onerror = onerror;
+    var self = this;
+    req.onsuccess = function() {
+      self.debug('Pairing succeeded');
+      self.doConnect(mac);
+    };
+    req.onerror = function() {
+      self.debug('Pairing failed');
+    };
   },
 
   doFileTransfer: function doFileTransfer(mac) {
@@ -233,6 +239,37 @@ var NfcHandoverManager = {
       };
   },
 
+  doConnect: function doConnect(mac) {
+    this.debug('doConnect with: ' + mac);
+    /*
+     * Bug 979427:
+     * After pairing we connect to the remote device. The only thing we
+     * know here is the MAC address, but the defaultAdapter.connect()
+     * requires a BluetoothDevice argument. So we use getPairedDevices()
+     * to map the MAC to a BluetoothDevice instance.
+     */
+    var req = this.defaultAdapter.getPairedDevices();
+    var self = this;
+    req.onsuccess = function() {
+      var devices = req.result;
+      self.debug('# devices: ' + devices.length);
+      for (var i = 0; i < devices.length; i++) {
+        var device = devices[i];
+        self.debug('Address: ' + device.address);
+        self.debug('Connected: ' + device.connected);
+        if (device.address.toLowerCase() == mac.toLowerCase()) {
+              self.debug('Connecting to ' + mac);
+              var r = self.defaultAdapter.connect(device);
+              r.onsuccess = function() { self.debug('Connect succeeded'); };
+              r.onerror = function() { self.debug('Connect failed'); };
+        }
+      }
+    };
+    req.onerror = function() {
+      self.debug('Cannot get paired devices from adapter.');
+    };
+  },
+
   dispatchSendFileStatus: function dispatchSendFileStatus(status) {
     this.debug('In dispatchSendFileStatus ' + status);
     window.navigator.mozNfc.notifySendFileStatus(status,
@@ -253,14 +290,10 @@ var NfcHandoverManager = {
     }
     if (this.sendFileRequest != null) {
       // This is the response to a file transfer request (negotiated handover)
-      this.doAction({callback: this.doFileTransfer.bind(this), args: [mac]});
+      this.doAction({callback: this.doFileTransfer, args: [mac]});
     } else {
       // This is a static handover
-      this.debug('Pair with: ' + mac);
-      var onsuccess = function() { this.debug('Pairing succeeded'); };
-      var onerror = function() { this.debug('Pairing failed'); };
-      this.doAction({callback: this.doPairing,
-                     args: [mac, onsuccess, onerror]});
+      this.doAction({callback: this.doPairing, args: [mac]});
     }
   },
 
