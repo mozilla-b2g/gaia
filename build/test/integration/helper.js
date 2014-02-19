@@ -57,14 +57,9 @@ function checkWebappsScheme(webapps) {
 
 function checkFileInZip(zipPath, pathInZip, expectedPath) {
   var expected = fs.readFileSync(expectedPath);
-  checkFileContentInZip(zipPath, pathInZip, expected);
-}
-
-function checkFileContentInZip(zipPath, pathInZip, expectedContent, isJSON) {
   var zip = new AdmZip(zipPath);
-  var entry = zip.getEntry(pathInZip);
-  var actual = isJSON ? JSON.parse(zip.readAsText(entry)) : zip.readFile(entry);
-  assert.deepEqual(actual, expectedContent);
+  var actual = zip.readFile(zip.getEntry(pathInZip));
+  assert.deepEqual(actual, expected);
 }
 
 function checkFileContentInZip(zipPath, pathInZip, expectedContent, isJSON) {

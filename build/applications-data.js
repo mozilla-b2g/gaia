@@ -305,6 +305,38 @@ function execute(options) {
   let init = utils.getFile(config.GAIA_DIR, GAIA_CORE_APP_SRCDIR,
                       'homescreen', 'js', 'init.json');
   utils.writeContent(init, JSON.stringify(homescreen));
+
+  // Communications config
+  init = utils.getFile(config.GAIA_DIR,
+    'apps', 'communications', 'contacts', 'config.json');
+  var content = {
+    'defaultContactsOrder': 'givenName',
+    'facebookEnabled': true,
+    'operationsTimeout': 25000,
+    'logLevel': 'DEBUG',
+    'facebookSyncPeriod': 24,
+    'testToken': ''
+  };
+  utils.writeContent(init,
+    utils.getDistributionFileContent('communications', content, distDir));
+
+  // Communications External Services
+  init = utils.getFile(config.GAIA_DIR,
+    'apps', 'communications', 'contacts', 'oauth2', 'js', 'parameters.js');
+  content = JSON.parse(utils.getFileContent(utils.getFile(config.GAIA_DIR,
+                                            'build', 'config',
+                                            'communications_services.json')));
+
+  // Bug 883344 Only use default facebook app id if is mozilla partner build
+  if (config.OFFICIAL === '1') {
+    content.facebook.applicationId = '395559767228801';
+    content.live.applicationId = '00000000440F8B08';
+  }
+
+  utils.writeContent(init,
+    'var oauthflow = this.oauthflow || {}; oauthflow.params = ' +
+    utils.getDistributionFileContent('communications_services', content,
+    distDir) + ';');
 }
 
 exports.execute = execute;
