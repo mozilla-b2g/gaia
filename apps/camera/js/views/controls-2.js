@@ -66,10 +66,7 @@ module.exports = View.extend({
       this.els.thumbnail.appendChild(this.els.image);
     }
     this.els.image.src = window.URL.createObjectURL(blob);
-  },
-
-  // V1 API
-  setVideoTimer: function() {}
+  }
 });
 
 });

@@ -68,7 +68,7 @@ CameraController.prototype.bindEvents = function() {
 
   // Relaying camera events means other modules
   // don't have to depend directly on camera
-  camera.on('change:videoElapsed', app.firer('camera:timeupdate'));
+  camera.on('change:videoElapsed', app.firer('camera:recorderTimeUpdate'));
   camera.on('change:capabilities', this.app.setter('capabilities'));
   camera.on('configured', app.firer('camera:configured'));
   camera.on('change:recording', app.setter('recording'));
