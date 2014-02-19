@@ -12,6 +12,8 @@ class TestEverythingMeSearchPanel(GaiaTestCase):
 
     def setUp(self):
         GaiaTestCase.setUp(self)
+        # Force disable rocketbar
+        self.data_layer.set_setting('rocketbar.enabled', False)
 
     def test_launch_packaged_app_from_search_panel(self):
         homescreen = Homescreen(self.marionette)

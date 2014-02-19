@@ -5,6 +5,7 @@
 from marionette import Wait
 from marionette.by import By
 from marionette.errors import StaleElementException
+from marionette.errors import NoSuchElementException
 
 from gaiatest.apps.base import Base
 from gaiatest.apps.base import PageRegion
@@ -36,8 +37,8 @@ class SearchPanel(Base):
         self.wait_for_element_displayed(*self._search_results_from_everything_me_locator)
 
     def wait_for_type(self, type):
-        self.wait_for_condition(lambda m: type.lower() in m.find_element(
-            *self._search_title_type_locator).text.lower())
+        Wait(self.marionette, ignored_exceptions=[StaleElementException, NoSuchElementException]).until(
+            lambda m: type.lower() in m.find_element(*self._search_title_type_locator).text.lower())
 
     def wait_for_app_icons_displayed(self):
         self.wait_for_element_displayed(*self._app_icon_locator)

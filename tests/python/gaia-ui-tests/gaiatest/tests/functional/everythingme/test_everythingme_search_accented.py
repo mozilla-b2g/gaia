@@ -11,6 +11,8 @@ class TestEverythingMeSearchAccented(GaiaTestCase):
 
     def setUp(self):
         GaiaTestCase.setUp(self)
+        # Force disable rocketbar
+        self.data_layer.set_setting('rocketbar.enabled', False)
         self.apps.set_permission('Homescreen', 'geolocation', 'deny')
         self.connect_to_network()
 
