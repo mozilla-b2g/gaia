@@ -3,7 +3,7 @@
 
 /*global Utils, MessageManager, Compose, OptionMenu, NotificationHelper,
          Attachment, Template, Notify, BlackList, Threads, SMIL, Contacts,
-         ThreadUI, Notification */
+         ThreadUI, Notification, Settings */
 /*exported ActivityHandler */
 
 'use strict';
@@ -373,10 +373,34 @@ var ActivityHandler = {
           'id=' + id
         ].join('&');
 
-        var goToMessage = function goToMessage() {
+        function goToMessage() {
           app.launch();
           ActivityHandler.handleMessageNotification(message);
-        };
+        }
+
+        function continueWithNotification(sender, body) {
+          Settings.whenReady().then(function() {
+            var title = sender;
+            if (Settings.isDoubleSim() && message.iccId) {
+              title = navigator.mozL10n.get(
+                'dsds-notification-title-with-sim',
+                { id: message.iccId, sender: sender }
+              );
+            }
+
+            var options = {
+              icon: iconURL,
+              body: body,
+              tag: 'threadId:' + threadId
+            };
+
+            var notification = new Notification(title, options);
+            notification.addEventListener('click', goToMessage);
+            releaseWakeLock();
+          }).catch(function(e) {
+            console.error(e);
+          });
+        }
 
         function getTitleFromMms(callback) {
           // If message is not downloaded notification, we need to apply
@@ -420,18 +444,6 @@ var ActivityHandler = {
             contact[0].name.length && contact[0].name[0]) {
             sender = contact[0].name[0];
           }
-
-          var continueWithNotification =
-            function ah_continueWithNotification(sender, body) {
-              var options = {
-                icon: iconURL,
-                body: body,
-                tag: 'threadId:' + threadId
-              };
-              var notification = new Notification(sender, options);
-              notification.addEventListener('click', goToMessage.bind(this));
-              releaseWakeLock();
-            };
 
           if (message.type === 'sms') {
             continueWithNotification(sender, message.body);

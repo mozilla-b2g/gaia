@@ -3,14 +3,17 @@
 
 var MockSettings = {
   mmsSizeLimitation: 300 * 1024,
-  mmsServiceId: 0,
-  nonActivateMmsServiceIds: [1],
+  mmsServiceId: null,
+  nonActivateMmsServiceIds: [],
   setSimServiceId: function() {},
   switchSimHandler: function() {},
+  whenReady: function() { return Promise.resolve(); },
+  isDoubleSim: function() { return false; },
 
   mSetup: function() {
     MockSettings.mmsSizeLimitation = 300 * 1024;
-    MockSettings.mmsServiceId = 0;
+    MockSettings.mmsServiceId = null;
+    MockSettings.nonActivateMmsServiceIds = [];
   }
 };
 

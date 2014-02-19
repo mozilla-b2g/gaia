@@ -2,28 +2,34 @@
   Settings Tests
 */
 
-/*global Settings, MockNavigatorSettings */
+/*global
+   Settings,
+   MockNavigatorSettings
+*/
 
 'use strict';
 
-requireApp('sms/shared/test/unit/mocks/mock_navigator_moz_settings.js');
-requireApp('sms/js/settings.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+require('/js/settings.js');
 
 
 suite('Message App settings Unit-Test', function() {
   var nativeSettings = navigator.mozSettings;
   teardown(function() {
+    MockNavigatorSettings.mTeardown();
     navigator.mozSettings = nativeSettings;
     Settings.mmsSizeLimitation = 300 * 1024;
   });
 
   suite('Init fetches settings', function() {
     suite('Without mozSettings', function() {
-      setup(function() {
+      setup(function(done) {
         navigator.mozSettings = null;
         Settings.mmsSizeLimitation = 'whatever is default';
         Settings.mmsServiceId = 'no service ID';
-        Settings.init();
+
+        // using "then" ensures that init returns a resolved promise
+        Settings.init().then(done);
       });
 
       test('Query size limitation without settings', function() {
@@ -33,8 +39,28 @@ suite('Message App settings Unit-Test', function() {
       test('Query mmsServiceId without settings', function() {
         assert.equal(Settings.mmsServiceId, 'no service ID');
       });
+
+      test('Settings is ready', function(done) {
+        Settings.whenReady().then(done);
+      });
+
+      test('Reports no double SIM', function() {
+        assert.isFalse(Settings.isDoubleSim());
+      });
+
     });
+
     suite('With mozSettings', function() {
+      function findSettingsReq(key) {
+        var locks = navigator.mozSettings.createLock.returnValues;
+
+        var foundLock = locks.find(function(lock) {
+          return lock.get.calledWith(key);
+        });
+
+        return foundLock ? foundLock.get.firstCall.returnValue : null;
+      }
+
       setup(function() {
         navigator.mozSettings = MockNavigatorSettings;
         Settings.mmsSizeLimitation = 'whatever is default';
@@ -67,6 +93,7 @@ suite('Message App settings Unit-Test', function() {
         req.onsuccess();
 
         assert.equal(Settings.mmsSizeLimitation, 500 * 1024);
+        assert.isFalse(Settings.isDoubleSim());
       });
 
       test('Query mmsServiceId with settings exist(ID=0)', function() {
@@ -86,9 +113,98 @@ suite('Message App settings Unit-Test', function() {
         req.onsuccess();
 
         assert.equal(Settings.mmsServiceId, 0);
+        assert.isTrue(Settings.isDoubleSim());
+      });
+
+      test('Query mmsServiceId with only one SIM', function() {
+        navigator.mozMobileConnections = ['SIM 1'];
+        Settings.init();
+
+        sinon.assert.calledOnce(navigator.mozSettings.createLock);
+        assert.isNull(findSettingsReq(Settings.MMS_SERVICE_ID_KEY));
+        assert.isFalse(Settings.isDoubleSim());
+      });
+
+      suite('Ready resolution >', function() {
+        setup(function() {
+          navigator.mozMobileConnections = ['SIM 1', 'SIM 2'];
+
+          Settings.init();
+        });
+
+        suite('Not ready when some setting is missing >', function() {
+          // calling "done" twice makes mocha report an error
+          test('no setting was retrieved', function(done) {
+            Settings.whenReady().then(function() {
+              done(new Error('Should not be ready'));
+            });
+
+            done();
+          });
+
+          test('only the size limitation', function(done) {
+            Settings.whenReady().then(function() {
+              done(new Error('Should not be ready'));
+            });
+
+            var serviceIdReq = findSettingsReq(Settings.MMS_SERVICE_ID_KEY);
+            serviceIdReq.result = {
+              'ril.mms.defaultServiceId': 0
+            };
+
+            serviceIdReq.onsuccess();
+
+            done();
+          });
+
+
+          test('only the service id', function(done) {
+            Settings.whenReady().then(function() {
+              done(new Error('Should not be ready'));
+            });
+
+            var sizeReq = findSettingsReq('dom.mms.operatorSizeLimitation');
+            sizeReq.result = {
+              'dom.mms.operatorSizeLimitation': 300
+            };
+            sizeReq.onsuccess();
+
+            done();
+          });
+        });
+
+        test('Ready when all settings are retrieved', function(done) {
+          Settings.init();
+
+          Settings.whenReady().then(done);
+
+          var serviceIdReq = findSettingsReq(Settings.MMS_SERVICE_ID_KEY);
+
+          serviceIdReq.result = {
+            'ril.mms.defaultServiceId': 0
+          };
+
+          serviceIdReq.onsuccess();
+
+          var sizeReq = findSettingsReq('dom.mms.operatorSizeLimitation');
+          sizeReq.result = {
+            'dom.mms.operatorSizeLimitation': 300
+          };
+          sizeReq.onsuccess();
+        });
       });
 
       test('mmsServiceId observer and update', function() {
+        navigator.mozMobileConnections = ['SIM 1', 'SIM 2'];
+        Settings.init();
+
+        var serviceIdReq = findSettingsReq(Settings.MMS_SERVICE_ID_KEY);
+
+        serviceIdReq.result = {
+          'ril.mms.defaultServiceId': 0
+        };
+        serviceIdReq.onsuccess();
+
         MockNavigatorSettings.mTriggerObservers('ril.mms.defaultServiceId',
                                                 {settingValue: 1});
         assert.equal(Settings.mmsServiceId, 1);
