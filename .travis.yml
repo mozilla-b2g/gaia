@@ -12,8 +12,6 @@ branches:
   - calendar-1.4-visual-refresh
 env:
   matrix:
-  - CI_ACTION=linters
-  - CI_ACTION=unit-tests-in-firefox
   - CI_ACTION=marionette_js X=1
   - CI_ACTION=marionette_js X=2
   - CI_ACTION=marionette_js X=3
@@ -44,9 +42,6 @@ env:
   - CI_ACTION=marionette_js X=28
   - CI_ACTION=marionette_js X=29
   - CI_ACTION=marionette_js X=30
-  - CI_ACTION=marionette_js_stable_check
-  - CI_ACTION=gaia_ui_tests
-  - CI_ACTION=build_tests
   global:
   - ARTIFACTS_S3_BUCKET=mozilla-releng-travis-uploads
   - secure: Gf2qm+xhLRTotuIvDD7HrNRmng3/dctGdsgF5P4aEu3nDujfxtZTp4sGirTqIngbfVzh9WkJ9eoT0yaDXtvWkr40Df6vwAUyI3P1x+NBOa2CkLz7U+f9j1yaJ3pJ121+L3o+7eTzJy/mvXHJYXAfa7rxcmjrCHpH5BSm+9/OZ4s=
