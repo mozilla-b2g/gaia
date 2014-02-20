@@ -4,8 +4,12 @@ var Calendar = require('./calendar'),
     assert = require('chai').assert;
 
 
-// test is disabled see: Bug 919066
 marionette('creating an event', function() {
+
+  // test is disabled see: Bug 919066, 974731
+  /*jshint -W027*/
+  return;
+
   var app;
   var client = marionette.client();
 

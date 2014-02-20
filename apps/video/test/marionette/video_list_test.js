@@ -3,6 +3,9 @@ var Video = require('./lib/video'),
 
 marionette('video list', function() {
 
+  // Disabled: bug 974732
+  return;
+
   var app, client, selectors;
 
   client = marionette.client({
