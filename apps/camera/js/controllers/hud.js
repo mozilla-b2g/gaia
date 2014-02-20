@@ -58,7 +58,6 @@ HudController.prototype.bindEvents = function() {
   this.hud.on('click:flash', this.onFlashClick);
   this.app.on('settings:configured', this.onSettingsConfigured);
   this.app.on('change:recording', this.onRecordingChange);
-  this.app.on('camera:loading', this.disableButtons);
   this.app.on('camera:busy', this.disableButtons);
   this.app.on('camera:ready', this.enableButtons);
 };
