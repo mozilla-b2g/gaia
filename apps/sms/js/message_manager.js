@@ -11,6 +11,11 @@
 'use strict';
 
 var MessageManager = {
+  LAYOUT: {
+    DEFAULT: '',
+    COMPOSER: 'composer',
+    THREAD: 'thread'
+  },
   activity: null,
   forward: null,
   init: function mm_init(callback) {
@@ -38,7 +43,7 @@ var MessageManager = {
 
     // Initialize DOM elements which will be used in this code
     [
-      'main-wrapper', 'thread-messages'
+      'main-wrapper', 'thread-messages', 'composer-container'
     ].forEach(function(id) {
       this[Utils.camelCase(id)] = document.getElementById(id);
     }, this);
@@ -262,6 +267,7 @@ var MessageManager = {
     switch (window.location.hash.split('=')[0]) {
       case '#new':
         ThreadUI.inThread = false;
+        this.composerContainer.dataset.composerLayout = this.LAYOUT.COMPOSER;
         MessageManager.launchComposer(function() {
           this.handleActivity(this.activity);
           this.handleForward(this.forward);
@@ -272,6 +278,7 @@ var MessageManager = {
         }.bind(this));
         break;
       case '#thread-list':
+        this.composerContainer.dataset.composerLayout = this.LAYOUT.DEFAULT;
         ThreadUI.inThread = false;
 
         //Keep the visible button the :last-child
@@ -305,9 +312,10 @@ var MessageManager = {
         ReportView.show();
         break;
       default:
+
         var threadId = Threads.currentId;
         var willSlide = true;
-
+        this.composerContainer.dataset.composerLayout = this.LAYOUT.THREAD;
         var finishTransition = (function finishTransition() {
           // hashchanges from #group-view back to #thread=n
           // are considered "in thread" and should not

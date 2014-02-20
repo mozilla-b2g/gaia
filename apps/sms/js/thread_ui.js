@@ -298,23 +298,11 @@ var ThreadUI = global.ThreadUI = {
 
     this.timeouts.update = null;
 
-    // Cache fixed measurement while init
-    var inputStyle = window.getComputedStyle(this.input);
-    this.INPUT_MARGIN_TOP =
-      parseInt(inputStyle.getPropertyValue('margin-top'), 10);
-    var INPUT_MARGIN_BOTTOM =
-      parseInt(inputStyle.getPropertyValue('margin-bottom'), 10);
-    this.INPUT_MARGIN = this.INPUT_MARGIN_TOP + INPUT_MARGIN_BOTTOM;
-    var subjectStyle = window.getComputedStyle(this.subjectInput);
-    this.SUBJECT_MAX_HEIGHT =
-      parseInt(subjectStyle.getPropertyValue('max-height'), 10);
-
-    this.HEADER_HEIGHT = document.querySelector('.view-header').offsetHeight;
-
     this.shouldChangePanelNextEvent = false;
+
     this.showErrorInFailedEvent = '';
 
-    ThreadUI.updateInputMaxHeight();
+    this.inActivity = false;
   },
 
   onVisibilityChange: function mm_onVisibilityChange(e) {
@@ -464,7 +452,6 @@ var ThreadUI = global.ThreadUI = {
   },
 
   messageComposerInputHandler: function thui_messageInputHandler(event) {
-    this.updateSubjectHeight();
     this.enableSend();
 
     if (Compose.type === 'sms') {
@@ -494,39 +481,38 @@ var ThreadUI = global.ThreadUI = {
   },
   onSubjectKeydown: function thui_onSubjectKeydown(event) {
     if (event.keyCode === event.DOM_VK_BACK_SPACE) {
-      // Keydown appears to fire repeatedly (as keypress?),
-      // but keyup only fires once.
-      // https://bugzilla.mozilla.org/show_bug.cgi?id=960946
       if (!isHoldingBackspace) {
-        isEmptyOnBackspace = !this.subjectInput.value.length;
+        isEmptyOnBackspace = Compose.isSubjectEmpty();
+        isHoldingBackspace = true;
       }
-
-      isHoldingBackspace = true;
     } else {
       isHoldingBackspace = false;
+      // We dont let to add more characters if we reach the maximum
+      if (Compose.isSubjectMaxLength()) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
     }
   },
   onSubjectKeyup: function thui_onSubjectKeyup(event) {
-    // Only want to close the subject input when the user
-    // taps backspace on an empty field.
-    if (event.keyCode === event.DOM_VK_BACK_SPACE) {
-      if (isEmptyOnBackspace) {
-        Compose.toggleSubject();
-        this.updateSubjectHeight();
-        isEmptyOnBackspace = false;
-      }
-    }
-
-    isHoldingBackspace = false;
-
-    Compose.updateType();
-    // Handling user warning for max character reached
-    // Only show the warning when the subject field has the focus
-    if (this.subjectInput.value.length === Compose.subjectMaxLength) {
+    // Show the warning when the subject field has the focus
+    if (Compose.isSubjectMaxLength()) {
       this.showSubjectMaxLengthNotice();
     } else {
       this.hideSubjectMaxLengthNotice();
     }
+    // User removes subject field by either:
+    // - Selecting options menu in top right hand corner, or
+    // - Selecting the delete button in the keyboard. if all
+    // the text is removed from the subject field and the user
+    // selects delete on the keyboard the subject field is removed
+    if (event.keyCode === event.DOM_VK_BACK_SPACE &&
+        isHoldingBackspace &&
+        isEmptyOnBackspace) {
+      Compose.toggleSubject();
+    }
+    isEmptyOnBackspace = false;
+    isHoldingBackspace = false;
   },
 
   onSubjectBlur: function thui_onSubjectBlur() {
@@ -692,11 +678,6 @@ var ThreadUI = global.ThreadUI = {
 
   // Triggered when the onscreen keyboard appears/disappears.
   resizeHandler: function thui_resizeHandler() {
-    if (!this.inEditMode) {
-      this.updateInputMaxHeight();
-      this.updateElementsHeight();
-    }
-
     // Scroll to bottom
     this.scrollViewToBottom();
     // Make sure the caret in the "Compose" area is visible
@@ -832,32 +813,6 @@ var ThreadUI = global.ThreadUI = {
     this.isNewMessageNoticeShown = false;
     //Hide the new message's banner
     this.newMessageNotice.classList.add('hide');
-  },
-  // Limit the maximum height of the Compose input field such that it never
-  // grows larger than the space available.
-  updateInputMaxHeight: function thui_updateInputMaxHeight() {
-    // the minimum height of the visible part of the thread
-    var threadSliverHeight = 30;
-    // The max height should be constrained by the following factors:
-    var adjustment =
-      // The height of the absolutely-position sub-header element
-      this.subheader.offsetHeight +
-      // the vertical margin of the input field
-      this.INPUT_MARGIN +
-      // the height of the subject input (0 if hidden)
-      this.subjectInput.offsetHeight;
-
-    // Further constrain the max height by an artificial spacing to prevent the
-    // input field from completely occluding the message thread (not necessary
-    // when creating a new thread).
-    if (window.location.hash !== '#new') {
-      adjustment += threadSliverHeight;
-    }
-
-    var availableHeight = window.innerHeight - this.HEADER_HEIGHT;
-    var maxHeight = availableHeight - adjustment;
-    this.input.style.maxHeight = maxHeight + 'px';
-    generateHeightRule(maxHeight);
   },
 
   close: function thui_close() {
@@ -1117,56 +1072,6 @@ var ThreadUI = global.ThreadUI = {
     return true;
   },
 
-  updateSubjectHeight: function thui_updateSubjectHeight() {
-    // Reset the height
-    this.subjectInput.style.height = '';
-    // Apply the new value
-    this.subjectInput.style.height = Math.min(this.subjectInput.scrollHeight,
-                                              this.SUBJECT_MAX_HEIGHT) + 'px';
-    this.updateInputMaxHeight();
-    this.updateElementsHeight();
-  },
-
-  // TODO this function probably triggers synchronous workflows, we should
-  // remove them (Bug 891029)
-  updateElementsHeight: function thui_updateElementsHeight() {
-    // we need to set it back to auto so that we know its "natural size"
-    // this will trigger a sync reflow when we get its scrollHeight below,
-    // so we should try to find something better maybe in Bug 888950
-    this.input.style.height = 'auto';
-
-    // First of all we retrieve all CSS info which we need
-    var verticalMargin = this.INPUT_MARGIN;
-    var inputMaxHeight = parseInt(this.input.style.maxHeight, 10);
-    var buttonHeight = this.sendButton.offsetHeight;
-    var subjectHeight = this.subjectInput.offsetHeight;
-    var availableHeight = window.innerHeight - this.HEADER_HEIGHT;
-
-    // the new height is different whether the current height is bigger than the
-    // max height
-    var minHeight = Math.min(this.input.scrollHeight, inputMaxHeight);
-    var composeHeight = minHeight + verticalMargin + subjectHeight;
-    // in DSDS buttonHeight can be bigger than the planned composeHeight
-    var dsdsComposeAdjustment = Math.max(buttonHeight - composeHeight, 0);
-    composeHeight += dsdsComposeAdjustment;
-
-    this.input.style.height = minHeight + 'px';
-
-    // We also need to push the input field lower when subject field is shown
-    this.input.style.marginTop =
-      (subjectHeight + dsdsComposeAdjustment + this.INPUT_MARGIN_TOP) + 'px';
-
-    this.composeForm.style.height = composeHeight + 'px';
-    this.container.style.height = (availableHeight - composeHeight) + 'px';
-
-    // We set the buttons' top margin to ensure they render at the bottom of
-    // the container
-    var buttonOffset = composeHeight - buttonHeight;
-    this.sendButton.style.marginTop = buttonOffset + 'px';
-
-    this.scrollViewToBottom();
-  },
-
   findNextContainer: function thui_findNextContainer(container) {
     if (!container) {
       return null;
@@ -1302,7 +1207,6 @@ var ThreadUI = global.ThreadUI = {
     var carrierTag = document.getElementById('contact-carrier');
     var threadMessages = document.getElementById('thread-messages');
     var number = thread.participants[0];
-    var wasCarrierTagShown = threadMessages.classList.contains('has-carrier');
     var isCarrierTagShown = false;
     var carrierText;
 
@@ -1334,10 +1238,6 @@ var ThreadUI = global.ThreadUI = {
       threadMessages.classList.remove('has-carrier');
     }
 
-    if (wasCarrierTagShown !== isCarrierTagShown) {
-      this.updateInputMaxHeight();
-      this.updateElementsHeight();
-    }
   },
 
   // Method for updating the header with the info retrieved from Contacts API
@@ -1766,7 +1666,6 @@ var ThreadUI = global.ThreadUI = {
       l10nId: Compose.isSubjectVisible ? 'remove-subject' : 'add-subject',
       method: function tSubject() {
         Compose.toggleSubject();
-        ThreadUI.updateSubjectHeight();
       }
     });
 
@@ -1868,7 +1767,6 @@ var ThreadUI = global.ThreadUI = {
   cancelEdit: function thlui_cancelEdit() {
     if (this.inEditMode) {
       this.inEditMode = false;
-      this.updateElementsHeight();
       this.mainWrapper.classList.remove('edit');
     }
   },
@@ -2924,53 +2822,5 @@ Object.defineProperty(ThreadUI, 'selectedInputs', {
 });
 
 window.confirm = window.confirm; // allow override in unit tests
-
-/**
- * generateHeightRule
- *
- * Generates a new style element, appends to head
- * and inserts a generated rule for applying a class
- * to the recipients list to set its height for
- * multiline mode.
- *
- * @param {Number} height available height (in pixels).
- *
- * @return {Boolean} true if rule was modified, false if not.
- */
-
-function generateHeightRule(height) {
-  var css, index, sheet, sheets, style, tmpl;
-
-  if (height === generateHeightRule.prev) {
-    return false;
-  }
-
-  if (!generateHeightRule.sheet) {
-    style = document.createElement('style');
-    document.head.appendChild(style);
-    sheets = document.styleSheets;
-  }
-
-  sheet = generateHeightRule.sheet || sheets[sheets.length - 1];
-  index = generateHeightRule.index || sheet.cssRules.length;
-  tmpl = generateHeightRule.tmpl || Template('height-rule-tmpl');
-
-  css = tmpl.interpolate({
-    height: String(height)
-  }, { safe: ['height'] });
-
-  if (generateHeightRule.index) {
-    sheet.deleteRule(index);
-  }
-
-  sheet.insertRule(css, index);
-
-  generateHeightRule.prev = height;
-  generateHeightRule.index = index;
-  generateHeightRule.sheet = sheet;
-  generateHeightRule.tmpl = tmpl;
-
-  return true;
-}
 
 }(this));
