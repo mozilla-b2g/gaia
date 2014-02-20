@@ -46,7 +46,6 @@ CameraController.prototype.bindEvents = function() {
   camera.on('configured', this.app.setter('capabilities'));
   camera.on('configured', app.firer('camera:configured'));
   camera.on('change:recording', app.setter('recording'));
-  camera.on('loading', app.firer('camera:loading'));
   camera.on('shutter', app.firer('camera:shutter'));
   camera.on('loaded', app.firer('camera:loaded'));
   camera.on('ready', app.firer('camera:ready'));

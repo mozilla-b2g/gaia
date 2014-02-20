@@ -60,7 +60,7 @@ body:not(.filmstriphidden) .hud {
  * @buttons-disabled
  */
 
-.hud[buttons-enabled=false] a {
+.hud[buttons-enabled=false] .hud_btn {
   pointer-events: none;
 }
 
