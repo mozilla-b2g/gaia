@@ -452,6 +452,17 @@
   };
 
   /**
+   * Leaving the state.
+   * @memberof HardwareButtonsVolumeState.prototype
+   */
+  HardwareButtonsVolumeState.prototype.exit = function() {
+    if (this.timer) {
+      clearTimeout(this.timer);
+      this.timer = undefined;
+    }
+  };
+
+  /**
    * Process the event, maybe transition the state.
    * @memberof HardwareButtonsVolumeState.prototype
    * @param  {String} type Name of the event to process.
