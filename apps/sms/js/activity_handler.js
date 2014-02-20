@@ -74,18 +74,16 @@ var ActivityHandler = {
     }
   },
 
-  _onNewActivity: function newHandler(activity) {
-    // This lock is for avoiding several calls at the same time.
-    if (this.isLocked) {
-      return;
-    }
-
-    this.isLocked = true;
-
-    var number = activity.source.data.number;
-    var body = activity.source.data.body;
-
-    Contacts.findByPhoneNumber(number, function findContact(results) {
+  /**
+  * Finds a contact from a number.
+  * Returns a promise that resolve with a contact
+  * or is rejected if not found
+  * @returns Promise that resolve to a
+  * {number: String, name: String, source: 'contacts'}
+  */
+  _findContactByNumber: function findContactByNumber(number) {
+    var deferred = Utils.Promise.defer();
+    Contacts.findByPhoneNumber(number, (results) => {
       var record, name, contact;
 
       // Bug 867948: results null is a legitimate case
@@ -97,14 +95,49 @@ var ActivityHandler = {
           name: name,
           source: 'contacts'
         };
-      }
 
-      ActivityHandler.toView({
-        body: body,
-        number: number,
-        contact: contact || null
-      });
+        deferred.resolve(contact);
+        return;
+      }
+      deferred.reject(new Error('No contact found with number: ' + number));
+      return;
+
     });
+
+    return deferred.promise;
+  },
+
+  _onNewActivity: function newHandler(activity) {
+
+    // This lock is for avoiding several calls at the same time.
+    if (this.isLocked) {
+      return;
+    }
+
+    this.isLocked = true;
+
+    var viewInfo = {
+      body: activity.source.data.body,
+      number: activity.source.data.number,
+      contact: null,
+      threadId: null
+    };
+
+    // try to get a thread from number
+    // if no thread, promise is rejected and we try to find a contact
+    return MessageManager.findThreadFromNumber(viewInfo.number).then(
+      function onResolve(threadId) {
+        viewInfo.threadId = threadId;
+      },
+      function onReject() {
+        return ActivityHandler._findContactByNumber(viewInfo.number)
+          .then( (contact) => viewInfo.contact = contact);
+      }
+    )
+    // case no contact and no thread id: gobble the error
+    .catch(() => {})
+    // finally call toView whatever contact and threadId we have.
+    .then( () => this.toView(viewInfo) );
   },
 
   _onShareActivity: function shareHandler(activity) {
