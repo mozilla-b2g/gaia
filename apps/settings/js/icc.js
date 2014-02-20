@@ -300,8 +300,8 @@
         id: 'stk-menuitem-' + menuItem.identifier,
         text: menuItem.text,
         nai: _(menuItem.nai),
-        onclick: function __onSelectionClicked__(event) {
-          onSelectOptionClick(message, event);
+        onclick: function onSelectOptionClick(event) {
+          onSelectOption(message, event);
         },
         attributes: [['stk-select-option-identifier', menuItem.identifier]]
       }));
@@ -310,7 +310,7 @@
     stkResNoResponse(message);
   }
 
-  function onSelectOptionClick(message, event) {
+  function onSelectOption(message, event) {
     var identifier = event.target.getAttribute('stk-select-option-identifier');
     responseSTKCommand(message, {
       resultCode: iccManager.STK_RESULT_OK,
