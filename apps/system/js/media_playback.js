@@ -36,6 +36,8 @@ function MediaPlaybackWidget(container, options) {
 }
 
 MediaPlaybackWidget.prototype = {
+  isInterrupted: false,
+
   handleMessage: function mpw_handleMessage(event) {
     var message = event.detail;
     switch (message.type) {
@@ -93,12 +95,20 @@ MediaPlaybackWidget.prototype = {
   updatePlaybackStatus: function mp_updatePlaybackStatus(status) {
     switch (status.playStatus) {
       case 'PLAYING':
+      case 'mozinterruptend':
         this.container.hidden = false;
         this.playPauseButton.classList.remove('is-paused');
+
+        if (status.playStatus === 'mozinterruptend')
+          this.isInterrupted = false;
         break;
       case 'PAUSED':
+      case 'mozinterruptbegin':
         this.container.hidden = false;
         this.playPauseButton.classList.add('is-paused');
+
+        if (status.playStatus === 'mozinterruptbegin')
+          this.isInterrupted = true;
         break;
       case 'STOPPED':
         this.container.hidden = true;
@@ -138,6 +148,17 @@ MediaPlaybackWidget.prototype = {
       case this.nextButton:
         command = 'nexttrack';
         break;
+    }
+
+    // If we found the media app has been interrupted, try to bring it to the
+    // foreground then it should automatically resume and the mozinterruptend
+    // event will fire later to revert to the original state.
+    if (this.isInterrupted) {
+      this.openMediaApp();
+      // Don't send playpause command because we shouldn't play or pause the
+      // media app when it's interrupted by a higher audio channel.
+      if (command === 'playpause')
+        return;
     }
 
     if (command)
