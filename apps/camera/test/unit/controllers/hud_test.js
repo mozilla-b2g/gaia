@@ -63,7 +63,6 @@ suite('controllers/hud', function() {
     test('Should listen to the following events', function() {
       assert.ok(this.app.on.calledWith('camera:busy'));
       assert.ok(this.app.on.calledWith('camera:ready'));
-      assert.ok(this.app.on.calledWith('camera:loading'));
       assert.ok(this.app.on.calledWith('change:recording'));
     });
 
