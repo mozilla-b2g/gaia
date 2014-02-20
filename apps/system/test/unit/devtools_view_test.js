@@ -3,7 +3,7 @@
 
 require('/js/devtools_view.js');
 
-suite('devtoolsWidgetPanel', function() {
+suite('developerHUD', function() {
 
   var manifest = 'app://fakeapp.gaiamobile.org/fake.html';
   var subject;
@@ -16,7 +16,7 @@ suite('devtoolsWidgetPanel', function() {
     var data = {
       detail: {manifestURL: manifest, metrics: metrics}
     };
-    var evt = new CustomEvent('widget-panel-update', data);
+    var evt = new CustomEvent('developer-hud-update', data);
     window.dispatchEvent(evt);
   }
 

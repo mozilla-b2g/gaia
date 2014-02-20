@@ -8,7 +8,7 @@
    * @class DevtoolsView
    */
   function DevtoolsView() {
-    window.addEventListener('widget-panel-update', function updateHandler(e){
+    window.addEventListener('developer-hud-update', function updateHandler(e) {
       this.display(e.detail);
       e.preventDefault();
     }.bind(this));
@@ -82,6 +82,16 @@
           value += 'ms';
           break;
 
+        case 'uss':
+          color = 'navy';
+          value = this.formatMemory(value);
+          break;
+
+        case 'memory':
+          color = 'slategrey';
+          value = this.formatMemory(value);
+          break;
+
         default:
           color = this.colorHash(metric.name);
           break;
@@ -102,6 +112,15 @@
         hue += name.charCodeAt(i);
       }
       return 'hsl(' + (hue % 360) + ', 75%, 50%)';
+    },
+
+    formatMemory: function(bytes) {
+      var prefix = ['','K','M','G','T','P','E','Z','Y'];
+      var i = 0;
+      for (; bytes > 1024 && i < prefix.length; ++i) {
+        bytes /= 1024;
+      }
+      return (Math.round(bytes * 100) / 100) + ' ' + prefix[i] + 'B';
     }
   };
 
