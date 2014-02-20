@@ -50,6 +50,12 @@ Stopwatch.prototype.read = function() {
   return this.el.stopwatch.timeDisplay.text();
 };
 
+Stopwatch.prototype.setMaxLaps = function(max) {
+  this.client.executeScript(function(el, max) {
+    el.dataset.maxLaps = max;
+  }, [this.el.panels.stopwatch, max]);
+};
+
 Stopwatch.prototype.readLaps = function() {
   return this.els.stopwatch.lap.map(function(lapEl) {
     return lapEl.text();
