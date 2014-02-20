@@ -14,7 +14,36 @@ env:
   matrix:
   - CI_ACTION=linters
   - CI_ACTION=unit-tests-in-firefox
-  - CI_ACTION=marionette_js
+  - CI_ACTION=marionette_js X=1
+  - CI_ACTION=marionette_js X=2
+  - CI_ACTION=marionette_js X=3
+  - CI_ACTION=marionette_js X=4
+  - CI_ACTION=marionette_js X=5
+  - CI_ACTION=marionette_js X=6
+  - CI_ACTION=marionette_js X=7
+  - CI_ACTION=marionette_js X=8
+  - CI_ACTION=marionette_js X=9
+  - CI_ACTION=marionette_js X=10
+  - CI_ACTION=marionette_js X=11
+  - CI_ACTION=marionette_js X=12
+  - CI_ACTION=marionette_js X=13
+  - CI_ACTION=marionette_js X=14
+  - CI_ACTION=marionette_js X=15
+  - CI_ACTION=marionette_js X=16
+  - CI_ACTION=marionette_js X=17
+  - CI_ACTION=marionette_js X=18
+  - CI_ACTION=marionette_js X=19
+  - CI_ACTION=marionette_js X=10
+  - CI_ACTION=marionette_js X=21
+  - CI_ACTION=marionette_js X=22
+  - CI_ACTION=marionette_js X=23
+  - CI_ACTION=marionette_js X=24
+  - CI_ACTION=marionette_js X=25
+  - CI_ACTION=marionette_js X=26
+  - CI_ACTION=marionette_js X=27
+  - CI_ACTION=marionette_js X=28
+  - CI_ACTION=marionette_js X=29
+  - CI_ACTION=marionette_js X=30
   - CI_ACTION=marionette_js_stable_check
   - CI_ACTION=gaia_ui_tests
   - CI_ACTION=build_tests
