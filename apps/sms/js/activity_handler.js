@@ -75,6 +75,82 @@ var ActivityHandler = {
   },
 
   _onNewActivity: function newHandler(activity) {
+
+    function isMessageBelongTo1to1Conversation(number, message) {
+      // if it is a received message, it is a candidate
+      // we still need to test the sender in case the user filters with his own
+      // number, because we would get all the received messages in this case.
+      var matchingReceivedMessage = message.delivery === 'received' &&
+        Utils.probablyMatches(message.sender, number);
+      if (matchingReceivedMessage) {
+        return true;
+      }
+      // in case of sent messages and sms, we test if the receiver match the
+      // filter, to filter out other sent messages in the case user is sending
+      // message to himself
+      if (message.delivery === 'sent') {
+        if (message.type === 'sms' &&
+            Utils.probablyMatches(message.receiver, number)) {
+          return true;
+        }
+        // For MMS, we are only interested in 1-to-1 messages.
+        return message.type === 'mms' && message.receivers.length === 1 &&
+                Utils.probablyMatches(message.receivers[0], number);
+      }
+      return false;
+    }
+
+    function findThread(viewInfo) {
+
+      function checkCandidate(message) {
+        var isMessageInThread =
+          isMessageBelongTo1to1Conversation(viewInfo.number, message);
+        if (isMessageInThread) {
+          viewInfo.threadId = message.threadId || null;
+          return false; // found the message, stop iterating
+        }
+      }
+
+      var deferred = Utils.Promise.defer();
+
+      MessageManager.getMessages({
+          filter: { numbers: [viewInfo.number] },
+          each: checkCandidate,
+          done: function() { deferred.resolve(viewInfo); }
+      });
+
+      return deferred.promise;
+    }
+
+    function findContact(viewInfo) {
+
+      // if we have a threadId, we don't need to look for a contact.
+      var deferred = Utils.Promise.defer();
+      if (viewInfo.threadId == null) {
+        Contacts.findByPhoneNumber(viewInfo.number, function(results) {
+          var record, name, contact;
+
+          // Bug 867948: results null is a legitimate case
+          if (results && results.length) {
+            record = results[0];
+            name = record.name.length && record.name[0];
+            contact = {
+              number: viewInfo.number,
+              name: name,
+              source: 'contacts'
+            };
+          }
+
+          viewInfo.contact = contact || null;
+          deferred.resolve(viewInfo);
+        });
+      } else {
+        deferred.resolve(viewInfo);
+      }
+
+      return deferred.promise;
+    }
+
     // This lock is for avoiding several calls at the same time.
     if (this.isLocked) {
       return;
@@ -82,29 +158,21 @@ var ActivityHandler = {
 
     this.isLocked = true;
 
-    var number = activity.source.data.number;
-    var body = activity.source.data.body;
-
-    Contacts.findByPhoneNumber(number, function findContact(results) {
-      var record, name, contact;
-
-      // Bug 867948: results null is a legitimate case
-      if (results && results.length) {
-        record = results[0];
-        name = record.name.length && record.name[0];
-        contact = {
-          number: number,
-          name: name,
-          source: 'contacts'
-        };
-      }
-
-      ActivityHandler.toView({
-        body: body,
-        number: number,
-        contact: contact || null
+    var viewInfo = {
+      body: activity.source.data.body,
+      number: activity.source.data.number,
+      contact: null,
+      threadId: null
+    };
+    // is there already a thread for this contact?
+    findThread(viewInfo)
+      .then(findContact)
+      .then(this.toView.bind(this))
+      .catch(function(err) {
+        this.leaveActivity(
+          'Got an error while transitioning to correct thread : ' + err);
+        return;
       });
-    });
   },
 
   _onShareActivity: function shareHandler(activity) {
