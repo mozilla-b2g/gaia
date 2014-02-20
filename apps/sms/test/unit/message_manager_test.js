@@ -896,4 +896,194 @@ suite('message_manager.js >', function() {
       MockNavigatormozMobileMessage.mTriggerSegmentInfoError();
     });
   });
+
+  suite('findThreadFromNumber()', function() {
+    setup(function() {
+      this.sinon.stub(MessageManager, 'getMessages');
+    });
+
+    test('Message manager found no message : reject the promise',
+    function(done) {
+      // promise must be rejected
+      assert.isRejected(MessageManager.findThreadFromNumber('123'))
+            .notify(done);
+      MessageManager.getMessages.yieldTo('done');
+    });
+
+    test('Message manager found messages that are not candidates : ' +
+    'redirect to new message', function(done) {
+      // promise must be rejected
+      assert.isRejected(MessageManager.findThreadFromNumber('123'))
+            .notify(done);
+      // 123 is user own number
+      // User wants threadId with his/herself, eliminate received messages
+      // from others
+      MessageManager.getMessages.yieldTo(
+        'each', MockMessages.sms({
+          delivery: 'received',
+          sender: '124',
+          receiver: '123',
+          threadId: 1
+      }));
+      MessageManager.getMessages.yieldTo(
+        'each', MockMessages.mms({
+          delivery: 'received',
+          sender: '124',
+          receivers: ['123'],
+          threadId: 3
+      }));
+      // user wants threadId with his/herself, eliminate sent messages to
+      // others
+      MessageManager.getMessages.yieldTo(
+        'each', MockMessages.sms({
+          delivery: 'sent',
+          sender: '123',
+          receiver: '124',
+          threadId: 4
+      }));
+      MessageManager.getMessages.yieldTo(
+        'each', MockMessages.mms({
+          delivery: 'sent',
+          sender: '123',
+          receivers: ['124'],
+          threadId: 5
+      }));
+      // 123 is not user number
+      // MMS case: we eliminate thread with good sender/receivers, but with
+      // more than one thread participants.
+      MessageManager.getMessages.yieldTo(
+        'each', MockMessages.mms({
+          delivery: 'sent',
+          sender: '122',
+          receivers: ['123', '124'],
+          threadId: 6
+      }));
+      MessageManager.getMessages.yieldTo(
+        'each', MockMessages.mms({
+          delivery: 'sent',
+          sender: '123',
+          receivers: ['123', '124'],
+          threadId: 7
+      }));
+      MessageManager.getMessages.yieldTo('done');
+    });
+
+    test('Message manager found a candidate : sent sms to oneself',
+    function(done) {
+      // promise must be accepted with 3
+      assert.becomes(MessageManager.findThreadFromNumber('123'), 3)
+            .notify(done);
+
+      // user wants threadId with his/herself,
+      var message = MockMessages.sms({
+        delivery: 'sent',
+        sender: '123',
+        receiver: '123',
+        threadId: 3
+      });
+      MessageManager.getMessages.yieldTo('each', message);
+      MessageManager.getMessages.yieldTo('done');
+    });
+
+    test('Message manager found a candidate : sent sms', function(done) {
+      assert.becomes(MessageManager.findThreadFromNumber('123'), 4)
+            .notify(done);
+
+      // user is 122, wants the conversation with 123
+      var message = MockMessages.sms({
+        delivery: 'sent',
+        sender: '122',
+        receiver: '123',
+        threadId: 4
+      });
+      MessageManager.getMessages.yieldTo('each', message );
+      MessageManager.getMessages.yieldTo('done');
+    });
+
+    test('Message manager found a candidate : received  sms from oneself',
+    function(done) {
+      assert.becomes(MessageManager.findThreadFromNumber('123'), 1)
+            .notify(done);
+      // user wants threadId with his/herself,
+      var message = MockMessages.sms({
+        delivery: 'not-downloaded',
+        sender: '123',
+        receiver: '123',
+        type: 'sms',
+        threadId: 1
+      });
+      MessageManager.getMessages.yieldTo('each', message);
+      MessageManager.getMessages.yieldTo('done');
+    });
+
+    test('Message manager found a candidate : received  sms',
+    function(done) {
+      assert.becomes(MessageManager.findThreadFromNumber('123'), 2)
+            .notify(done);
+      // user wants threadId with 123, he is 122
+      var message = MockMessages.sms({
+        delivery: 'received',
+        sender: '123',
+        receiver: '122',
+        threadId: 2
+      });
+      MessageManager.getMessages.yieldTo('each', message);
+      MessageManager.getMessages.yieldTo('done');
+    });
+
+    test('Message manager found a candidate : sent mms to oneself',
+    function(done) {
+      assert.becomes(MessageManager.findThreadFromNumber('123'), 3)
+            .notify(done);
+      var message = MockMessages.mms({
+        delivery: 'sent',
+        sender: '123',
+        receivers: ['123'],
+        threadId: 3
+      });
+      MessageManager.getMessages.yieldTo('each', message);
+      MessageManager.getMessages.yieldTo('done');
+    });
+
+    test('Message manager found a candidate : sent mms', function(done) {
+      assert.becomes(MessageManager.findThreadFromNumber('123'), 4)
+            .notify(done);
+      var message = MockMessages.mms({
+        delivery: 'sent',
+        sender: '122',
+        receivers: ['123'],
+        threadId: 4
+      });
+      MessageManager.getMessages.yieldTo('each', message);
+      MessageManager.getMessages.yieldTo('done');
+    });
+
+    test('Message manager found a candidate : received mms from oneself',
+    function(done) {
+      assert.becomes(MessageManager.findThreadFromNumber('123'), 5)
+            .notify(done);
+      var message = MockMessages.mms({
+        delivery: 'received',
+        sender: '123',
+        receivers: ['123'],
+        threadId: 5
+      });
+      MessageManager.getMessages.yieldTo('each', message);
+      MessageManager.getMessages.yieldTo('done');
+    });
+
+    test('Message manager found a candidate : received mms',
+    function(done) {
+      assert.becomes(MessageManager.findThreadFromNumber('123'), 6)
+            .notify(done);
+      var message = MockMessages.mms({
+        delivery: 'received',
+        sender: '123',
+        receivers: ['122'],
+        threadId: 6
+      });
+      MessageManager.getMessages.yieldTo('each', message);
+      MessageManager.getMessages.yieldTo('done');
+    });
+  });
 });
