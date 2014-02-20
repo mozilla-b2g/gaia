@@ -148,7 +148,6 @@ ifneq ($(APP),)
 endif
 
 REPORTER?=Spec
-NPM_REGISTRY?=http://registry.npmjs.org
 # Ensure that NPM only logs warnings and errors
 export npm_config_loglevel=warn
 MARIONETTE_RUNNER_HOST?=marionette-b2gdesktop-host
@@ -320,7 +319,7 @@ GAIA_KEYBOARD_LAYOUTS?=en,pt-BR,es,de,fr,pl
 ifeq ($(SYS),Darwin)
 MD5SUM = md5 -r
 SED_INPLACE_NO_SUFFIX = /usr/bin/sed -i ''
-DOWNLOAD_CMD = /usr/bin/curl -O
+DOWNLOAD_CMD = /usr/bin/curl -OL
 else
 MD5SUM = md5sum -b
 SED_INPLACE_NO_SUFFIX = sed -i
@@ -719,8 +718,17 @@ endif
 
 NPM_INSTALLED_PROGRAMS = node_modules/.bin/mozilla-download node_modules/.bin/jshint
 $(NPM_INSTALLED_PROGRAMS): package.json
-	npm install --registry $(NPM_REGISTRY)
-	touch $(NPM_INSTALLED_PROGRAMS)
+	# Allow the user to keep a local modules.tar around.
+	# This is so we can skip downloading these again in some instances.
+	# The really-clean target will remove this.
+	if [ ! -f "modules.tar" ]; then \
+		$(DOWNLOAD_CMD) https://github.com/mozilla-b2g/gaia-node-modules/tarball/master && \
+		mv master modules.tar && \
+		tar xvf modules.tar && \
+		mv mozilla-b2g-gaia-node-modules-*/node_modules node_modules && \
+		rm -rf mv mozilla-b2g-gaia-node-modules-*/ && \
+		npm install && npm rebuild; \
+	fi
 
 ###############################################################################
 # Tests                                                                       #
@@ -739,6 +747,10 @@ ifndef APPS
 	endif
 endif
 
+.PHONY: node_modules
+node_modules: $(NPM_INSTALLED_PROGRAMS)
+	echo "node_modules installed."
+
 b2g: node_modules/.bin/mozilla-download
 	./node_modules/.bin/mozilla-download  \
 		--verbose \
@@ -749,13 +761,13 @@ b2g: node_modules/.bin/mozilla-download
 .PHONY: test-integration
 # $(PROFILE_FOLDER) should be `profile-test` when we do `make test-integration`.
 test-integration: b2g $(PROFILE_FOLDER)
-	NPM_REGISTRY=$(NPM_REGISTRY) ./bin/gaia-marionette $(shell find . -path "*$(TEST_INTEGRATION_APP_NAME)/test/marionette/*_test.js") \
+	./bin/gaia-marionette $(shell find . -path "*$(TEST_INTEGRATION_APP_NAME)/test/marionette/*_test.js") \
 		--host $(MARIONETTE_RUNNER_HOST) \
 		--reporter $(REPORTER)
 
 .PHONY: test-perf
 test-perf:
-	MOZPERFOUT="$(MOZPERFOUT)" APPS="$(APPS)" MARIONETTE_RUNNER_HOST=$(MARIONETTE_RUNNER_HOST) GAIA_DIR="`pwd`" NPM_REGISTRY=$(NPM_REGISTRY) ./bin/gaia-perf-marionette
+	MOZPERFOUT="$(MOZPERFOUT)" APPS="$(APPS)" MARIONETTE_RUNNER_HOST=$(MARIONETTE_RUNNER_HOST) GAIA_DIR="`pwd`" ./bin/gaia-perf-marionette
 
 .PHONY: tests
 tests: webapp-manifests offline
@@ -1071,7 +1083,7 @@ clean:
 
 # clean out build products and tools
 really-clean: clean
-	rm -rf xulrunner-* .xulrunner-* node_modules b2g
+	rm -rf xulrunner-* .xulrunner-* node_modules b2g modules.tar
 
 .git/hooks/pre-commit: tools/pre-commit
 	test -d .git && cp tools/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit || true
