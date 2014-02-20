@@ -295,6 +295,7 @@ var Camera = {
         '/shared/js/media/media_frame.js',
         '/shared/js/gesture_detector.js',
         '/shared/js/lazy_l10n.js',
+        '/shared/js/custom_dialog.js',
         'js/panzoom.js',
         'js/filmstrip.js',
         'js/confirm.js',
