@@ -40,9 +40,10 @@ var NfcHandoverManager = {
   sendFileRequest: null,
 
   /*
-   * remoteMAC is the MAC address of the remote device during a file transfer.
+   * incomingFileTransferInProgress is set to true during a file transfer
+   * that was initiated by another device.
    */
-  remoteMAC: null,
+  incomingFileTransferInProgress: false,
 
   /*
    * settingsNotified is used to prevent triggering Settings multiple times.
@@ -171,32 +172,32 @@ var NfcHandoverManager = {
       return;
     }
     this.debug('Send blob to ' + mac);
-    this.remoteMAC = mac;
     var blob = this.sendFileRequest.blob;
     BluetoothTransfer.sendFile(mac, blob);
   },
 
   doHandoverRequest: function doHandoverRequest(ndef, session) {
     this.debug('doHandoverRequest');
-    var mac = this.getBluetoothMAC(ndef);
-    if (mac == null) {
+    if (this.getBluetoothMAC(ndef) == null) {
+      /*
+       * The handover request didn't contain a valid MAC address. Simply
+       * ignore the request.
+       */
       return;
     }
 
-    this.remoteMAC = mac;
     var nfcPeer = this.nfc.getNFCPeer(session);
     var carrierPowerState = this.bluetooth.enabled ? 1 : 2;
-    var mymac = this.defaultAdapter.address;
-    var hs = NfcUtil.encodeHandoverSelect(mymac, carrierPowerState);
+    var mac = this.defaultAdapter.address;
+    var hs = NfcUtil.encodeHandoverSelect(mac, carrierPowerState);
     var req = nfcPeer.sendNDEF(hs);
     var self = this;
     req.onsuccess = function() {
       self.debug('sendNDEF(hs) succeeded');
-      self.doPairing(mac);
+      self.incomingFileTransferInProgress = true;
     };
     req.onerror = function() {
       self.debug('sendNDEF(hs) failed');
-      self.remoteMAC = null;
     };
   },
 
@@ -275,15 +276,12 @@ var NfcHandoverManager = {
   },
 
   isHandoverInProgress: function isHandoverInProgress() {
-    return this.remoteMAC != null;
+    return (this.sendFileRequest != null) ||
+           (this.incomingFileTransferInProgress == true);
   },
 
   transferComplete: function transferComplete(succeeded) {
     this.debug('transferComplete');
-    if ((this.defaultAdapter != null) && (this.remoteMAC != null)) {
-      this.defaultAdapter.unpair(this.remoteMAC);
-      this.remoteMAC = null;
-    }
     if (this.sendFileRequest != null) {
       // Completed an outgoing send file request. Call onsuccess/onerror
       if (succeeded == true) {
@@ -292,6 +290,7 @@ var NfcHandoverManager = {
         this.sendFileRequest.onerror();
       }
       this.sendFileRequest = null;
+      this.incomingFileTransferInProgress = false;
     }
   }
 };
