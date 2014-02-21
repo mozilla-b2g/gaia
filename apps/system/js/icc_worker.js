@@ -4,6 +4,10 @@
 'use strict';
 
 var icc_worker = {
+  // STK Applications menu list. On bootup this object is empty,
+  // will be filled by 0x25 (STK_CMD_SET_UP_MENU) command.
+  iccApplicationsMenu: {},
+
   dummy: function icc_worker_dummy(message) {
     DUMP('STK Command not implemented yet');
     icc.responseSTKCommand(message, {
@@ -325,28 +329,22 @@ var icc_worker = {
     DUMP('STK_CMD_SET_UP_MENU:', message.command.options);
     var settings = window.navigator.mozSettings;
 
-    var reqCurrentApplications = settings.createLock().get('icc.applications');
-    reqCurrentApplications.onsuccess = function icc_getCurrentApplications() {
-      var json = reqCurrentApplications.result['icc.applications'];
-      var menu = json && JSON.parse(json);
+    // With test/fake commands: No SIM detected; we set it as SIM 0
+    this.iccApplicationsMenu[icc.getSIMNumber(message.iccId) || 0] = {
+      iccId: message.iccId,
+      entries: message.command.options
+    };
 
-      // With test/fake commands: No SIM detected; we set it as SIM 0
-      menu[icc.getSIMNumber(message.iccId) || 0] = {
-        iccId: message.iccId,
-        entries: message.command.options
-      };
-
-      // Update menu cache
-      var reqApplications = settings.createLock().set({
-        'icc.applications': JSON.stringify(menu)
+    // Update this.iccApplicationsMenu cache
+    var reqApplications = settings.createLock().set({
+      'icc.applications': JSON.stringify(this.iccApplicationsMenu)
+    });
+    var self = this;
+    reqApplications.onsuccess = function icc_getApplications() {
+      DUMP('STK: Cached - ', self.iccApplicationsMenu);
+      icc.responseSTKCommand(message, {
+        resultCode: icc._iccManager.STK_RESULT_OK
       });
-      reqApplications.onsuccess = function icc_getApplications() {
-        DUMP('STK: Cached - ', menu);
-        icc.responseSTKCommand(message, {
-          resultCode: icc._iccManager.STK_RESULT_OK
-        });
-      };
-
     };
   },
 
