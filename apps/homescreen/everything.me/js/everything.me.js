@@ -309,7 +309,7 @@ var EverythingME = {
 
     var e = EverythingME.pendingEvent;
 
-    if (e && evmeInput && 
+    if (e && evmeInput &&
         (e.target === activationIcon || e.target === activationIconInput)) {
       // set the query the user entered before loaded
       if (existingQuery) {
