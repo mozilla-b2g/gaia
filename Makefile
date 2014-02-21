@@ -321,10 +321,12 @@ ifeq ($(SYS),Darwin)
 MD5SUM = md5 -r
 SED_INPLACE_NO_SUFFIX = /usr/bin/sed -i ''
 DOWNLOAD_CMD = /usr/bin/curl -OL
+TAR_WILDCARDS = tar
 else
 MD5SUM = md5sum -b
 SED_INPLACE_NO_SUFFIX = sed -i
 DOWNLOAD_CMD = wget $(WGET_OPTS)
+TAR_WILDCARDS = tar --wildcards
 endif
 
 # Test agent setup
@@ -680,18 +682,16 @@ endif
 # this lists the programs we need in the Makefile and that are installed by npm
 
 NPM_INSTALLED_PROGRAMS = node_modules/.bin/mozilla-download node_modules/.bin/jshint node_modules/.bin/mocha
-$(NPM_INSTALLED_PROGRAMS): package.json
-	# Allow the user to keep a local modules.tar around.
-	# This is so we can skip downloading these again in some instances.
-	# The really-clean target will remove this.
-	if [ ! -f "modules.tar" ]; then \
-		$(DOWNLOAD_CMD) https://github.com/mozilla-b2g/gaia-node-modules/tarball/master && \
-		mv master modules.tar && \
-		tar xvf modules.tar && \
-		mv mozilla-b2g-gaia-node-modules-*/node_modules node_modules && \
-		rm -rf mv mozilla-b2g-gaia-node-modules-*/ && \
-		npm install && npm rebuild; \
-	fi
+$(NPM_INSTALLED_PROGRAMS): package.json node_modules
+
+modules.tar:
+	$(DOWNLOAD_CMD) https://github.com/mozilla-b2g/gaia-node-modules/tarball/master
+	mv master modules.tar
+
+node_modules: modules.tar
+	$(TAR_WILDCARDS) --strip-components 1 -x -m -f modules.tar "mozilla-b2g-gaia-node-modules-*/node_modules"
+	npm install && npm rebuild
+	@echo "node_modules installed."
 
 ###############################################################################
 # Tests                                                                       #
@@ -709,10 +709,6 @@ ifndef APPS
 		APPS=template $(shell find apps -type d -name 'test' | sed -e 's|^apps/||' -e 's|/test$$||' )
 	endif
 endif
-
-.PHONY: node_modules
-node_modules: $(NPM_INSTALLED_PROGRAMS)
-	echo "node_modules installed."
 
 b2g: node_modules/.bin/mozilla-download
 	./node_modules/.bin/mozilla-download  \
