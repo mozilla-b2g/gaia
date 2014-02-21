@@ -59,6 +59,9 @@ manifest.appcache
 /distribution/
 /node_modules/
 /.modules.tar
+ENV/
+modules.tar
+mozilla-b2g-gaia-node-modules-*
 /docs/
 /.cproject
 /.project
