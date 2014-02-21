@@ -44,7 +44,10 @@ module.exports = {
 
   MIN_VIEWFINDER_SCALE: 1.0,
 
-  MAX_VIEWFINDER_SCALE: 4.0
+  MAX_VIEWFINDER_SCALE: 4.0,
+
+  // Focus Area size
+  FOCUS_ROI_SIZE: 40
 };
 
 });

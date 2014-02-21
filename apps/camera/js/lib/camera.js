@@ -21,6 +21,7 @@ var mixin = require('lib/mixin');
 
 var RECORD_SPACE_MIN = constants.RECORD_SPACE_MIN;
 var RECORD_SPACE_PADDING = constants.RECORD_SPACE_PADDING;
+var FOCUS_ROI_SIZE = constants.FOCUS_ROI_SIZE;
 
 /**
  * Locals
@@ -318,7 +319,7 @@ Camera.prototype.takePicture = function(options) {
   rotation = selectedCamera === 'front'? -rotation: rotation;
 
   this.emit('busy');
-  this.prepareTakePicture(onReady);
+  this.setAutoFocus(onReady);
 
   function onReady() {
     var position = options && options.position;
@@ -354,7 +355,7 @@ Camera.prototype.takePicture = function(options) {
   }
 };
 
-Camera.prototype.prepareTakePicture = function(done) {
+Camera.prototype.setAutoFocus = function(done) {
   var self = this;
 
   if (!this.autoFocus.auto) {
@@ -620,4 +621,59 @@ Camera.prototype.updateVideoElapsed = function() {
   this.set('videoElapsed', (now - start));
 };
 
+/**
+*set touch focus using the
+*coordinated of preview buffer
+**/
+Camera.prototype.setTouchFocus = function(x, y, done) {
+  // view port size
+  var deviceIndependentViewportSize = {
+      width: document.body.clientHeight,
+      height: document.body.clientWidth
+  };
+
+
+ // find scale ratio
+  var sw = this.previewSize.width / deviceIndependentViewportSize.width;
+  var sh = this.previewSize.height / deviceIndependentViewportSize.height;
+
+  // Apply scaling on each
+  // row and column
+  var px = x * sh;
+  var py = y * sw;
+
+  // set left, right, top, bottom
+  // of focus ROI
+  var side_of_ROI = FOCUS_ROI_SIZE / 2;
+  var _left = px - side_of_ROI;
+  var _right = px + side_of_ROI;
+  var _top = py - side_of_ROI;
+  var _bottom = py + side_of_ROI;
+
+  // set focus area
+  this.mozCamera.focusAreas = [
+    {top: _top, bottom: _bottom, left: _left, right: _right, weight: 1}
+    ];
+
+  // set metering area
+  this.mozCamera.meteringAreas = [
+    {top: _top, bottom: _bottom, left: _left, right: _right, weight: 1}
+    ];
+
+  // Once focus and metering areas are set,
+  // start focusing to that area by calling
+  // autofocus
+  this.setAutoFocus(done);
+};
+
+/**
+*once touch focus is done
+*clear the ring UI
+**/
+Camera.prototype.clearFocusRing = function() {
+  var self = this;
+  setTimeout(function() {
+  self.set('focus', 'none');
+  }, 1000);
+};
 });
