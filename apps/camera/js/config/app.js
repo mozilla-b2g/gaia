@@ -91,23 +91,40 @@ module.exports = {
     menu: 4
   },
 
-  flashModes: {
-    title: 'Flash',
+  pictureFlashModes: {
+    title: 'Picture Flash',
     options: [
       {
         key: 'auto',
         title: 'Auto',
-        icon: 'A'
+        icon: 'icon-flash-auto'
       },
       {
         key: 'on',
         title: 'On',
-        icon: 'O'
+        icon: 'icon-flash-on'
       },
       {
         key: 'off',
         title: 'Off',
-        icon: 'O'
+        icon: 'icon-flash-off'
+      }
+    ],
+    persistent: true
+  },
+
+  videoFlashModes: {
+    title: 'Video Flash',
+    options: [
+      {
+        key: 'torch',
+        title: 'On',
+        icon: 'icon-flash-on'
+      },
+      {
+        key: 'off',
+        title: 'Off',
+        icon: 'icon-flash-off'
       }
     ],
     persistent: true

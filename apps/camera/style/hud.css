@@ -24,11 +24,12 @@ body:not(.filmstriphidden) .hud {
  *    back to the default color.
  */
 
-.hud a,
+.hud_btn,
 .settings_close {
   display: inline-block;
   height: 5rem;
   width: 5rem;
+  font-size: 2rem;
   line-height: 5rem;
   text-align: center;
   border-radius: 50%;
@@ -42,16 +43,16 @@ body:not(.filmstriphidden) .hud {
   color: #fff;
 }
 
-.hud a:active {
+.hud_btn:active {
   background-color: #00b9df;
   transition: none; /* 2 */
 }
 
-.hud a:first-child {
+.hud_btn:first-child {
   float: left;
 }
 
-.hud a:last-child {
+.hud_btn:last-child {
   float: right;
 }
 
@@ -66,9 +67,8 @@ body:not(.filmstriphidden) .hud {
 /** Camera Button
  ---------------------------------------------------------*/
 
-.toggle-camera {
-  background-image: url(images/toggle-camera.png);
-  background-size: 100%;
+.hud_camera {
+  font-size: 2.6rem;
   transition: opacity 300ms;
   opacity: 0;
 }
@@ -77,7 +77,7 @@ body:not(.filmstriphidden) .hud {
  * @camera-enabled
  */
 
-.hud[camera-enabled=true] .toggle-camera {
+.hud[camera-enabled=true] .hud_camera {
   opacity: 1;
 }
 
@@ -85,7 +85,7 @@ body:not(.filmstriphidden) .hud {
  * @camera-hidden
  */
 
-.hud[camera-hidden=true] .toggle-camera {
+.hud[camera-hidden=true] .hud_camera {
   opacity: 0;
 }
 
@@ -93,7 +93,7 @@ body:not(.filmstriphidden) .hud {
  * @toggling-camera
  */
 
-.hud[toggling-camera=true] .toggle-camera {
+.hud[toggling-camera=true] .hud_camera {
   background-color: #00b9df;
 }
 
@@ -105,10 +105,10 @@ body:not(.filmstriphidden) .hud {
  * 1. Required to position the flash text.
  */
 
-.toggle-flash {
+.hud_flash {
   position: relative; /* 1 */
   visibility: hidden;
-  background-size: 100%;
+  font-size: 2.5rem;
   transition: opacity 300ms;
   opacity: 0;
 }
@@ -117,7 +117,7 @@ body:not(.filmstriphidden) .hud {
  * @flash-enabled
  */
 
-.hud[flash-enabled=true] .toggle-flash {
+.hud[flash-enabled=true] .hud_flash {
   visibility: visible;
   opacity: 1;
 }
@@ -126,7 +126,7 @@ body:not(.filmstriphidden) .hud {
  * @settings-disabled
  */
 
-.hud[settings-enabled=false] .toggle-flash {
+.hud[settings-enabled=false] .hud_flash {
   float: right;
 }
 
@@ -135,30 +135,20 @@ body:not(.filmstriphidden) .hud {
  * @camera-hidden
  */
 
-.hud[flash-hidden=true] .toggle-flash {
+.hud[flash-hidden=true] .hud_flash {
   opacity: 0;
-}
-
-.hud[flash-mode=on] .toggle-flash {
-  background-image: url(images/flash_on.png);
-}
-
-.hud[flash-mode=off] .toggle-flash {
-  background-image: url(images/flash_off.png);
-}
-
-.hud[flash-mode=auto] .toggle-flash {
-  background-image: url(images/flash_auto.png);
-}
-
-.hud[flash-mode=torch] .toggle-flash {
-  background-image: url(images/flash_on.png);
 }
 
 /** Flash Text
  ---------------------------------------------------------*/
 
-.flash-text {
+/**
+ * 1. Hide this as it's not apparent
+ *    in UX spec for v1.4.
+ */
+
+.hud_flash-text {
+  display: none; /* 1 */
   position: absolute;
   top: 50%; left: 100%;
   margin: 0 1rem;
@@ -181,8 +171,8 @@ body:not(.filmstriphidden) .hud {
  * endge of the screen.
  */
 
-.deg90 .flash-text,
-.deg180 .flash-text {
+.deg90 .hud_flash-text,
+.deg180 .hud_flash-text {
   left: auto;
   right: 100%;
 }
@@ -195,7 +185,7 @@ body:not(.filmstriphidden) .hud {
  * the flash text.
  */
 
-.hud[toggling-flash=true] .flash-text {
+.hud[toggling-flash=true] .hud_flash-text {
   opacity: 1;
   transition: none;
 }
@@ -210,9 +200,7 @@ body:not(.filmstriphidden) .hud {
 /** Settings
  ---------------------------------------------------------*/
 
-.hud_settings {
-  font-size: 2rem;
-}
+.hud_settings {}
 
 /**
  * @settings-disabled
