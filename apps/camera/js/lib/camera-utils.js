@@ -43,7 +43,8 @@ define(function() {
     - If there is an exact match found, all further calculations are
       canceled and the preview size is returned immediately
   */
-  CameraUtils.selectOptimalPreviewSize = function(viewportSize, previewSizes) {
+  CameraUtils.selectOptimalPreviewSize = function(viewportSize,
+    previewSizes, aspectRatio) {
     if (previewSizes && previewSizes.length === 0) {
       return null;
     }
@@ -54,6 +55,10 @@ define(function() {
         minimumOverflow = Number.MAX_VALUE,
         pw, ph, sw, sh, scale, overflow;
 
+    var ar = Math.round(aspectRatio*10);
+    var pAr;
+    var diff;
+
     for (var i = 0, length = previewSizes.length; i < length; i++) {
       pw = previewSizes[i].width;
       ph = previewSizes[i].height;
@@ -62,7 +67,13 @@ define(function() {
       if (pw == vw && ph == vh) {
         return previewSizes[i];
       }
-
+      // skip if aspect ratio not matched
+      pAr = (previewSizes[i].width / previewSizes[i].height);
+      pAr = Math.round(pAr * 10);
+      diff = Math.abs(ar - pAr);
+      if (diff > 0) {
+        continue;
+      }
       // Calculate the scale required to FILL the viewport
       sw = vw / pw;
       sh = vh / ph;
