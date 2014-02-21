@@ -1,0 +1,43 @@
+/** Timer
+ ---------------------------------------------------------*/
+.capturetimer {
+  z-index:50;
+  position: absolute;
+  top:35%;
+  left: 30%;
+  font-size: 48pt;
+  color:#ffffff;
+  border-radius: 50%;
+  background-color: #000000;
+  opacity: 0.4;
+  height: 155px;
+  width:155px;
+  text-align: center;
+  padding-top: 35px;
+}
+
+.capturetimer[data-value = "3"]{
+  opacity: 0.4;
+   background-color: #f52323;
+}
+.capturetimer[data-value = "2"]{
+  opacity: 0.4;
+  background-color: #f52323;
+}
+.capturetimer[data-value = "1"]{
+  opacity: 0.4;
+  background-color: #f52323;
+}
+.capturetimer span{
+  opacity: 1;
+}
+.captureDiv{
+  z-index: 40;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.8;
+  background-color: #000000;
+}
