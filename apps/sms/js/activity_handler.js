@@ -43,11 +43,11 @@ var ActivityHandler = {
 
     // We want to register the handler only when we're on the launch path
     if (!window.location.hash.length) {
-      window.navigator.mozSetMessageHandler('sms-received',
-        this.onSmsReceived.bind(this));
-
-      window.navigator.mozSetMessageHandler('notification',
-        this.onNotification.bind(this));
+      ['sms-received', 'sms-delivery-success', 'sms-read-success',
+        'notification'].forEach(function(key){
+        var handler = Utils.camelCase('on-' + key);
+        window.navigator.mozSetMessageHandler(key, this[handler].bind(this));
+      }, this);
     }
   },
 
@@ -325,7 +325,7 @@ var ActivityHandler = {
 
   /* === Incoming SMS support === */
 
-  onSmsReceived: function ah_onSmsReceived(message) {
+  onSmsReceived: function ah_onSmsReceived(message, messageOpt) {
     var _ = navigator.mozL10n.get;
 
     // Acquire the cpu wake lock when we receive an SMS.  This raises the
@@ -351,7 +351,9 @@ var ActivityHandler = {
     }
     timeoutID = setTimeout(releaseWakeLock, 30 * 1000);
 
-    var number = message.sender;
+    var delivered = messageOpt && messageOpt.delivered;
+    var read = messageOpt && messageOpt.read;
+    var number = this.getPhoneNumber(message, messageOpt);
     var threadId = message.threadId;
     var id = message.id;
 
@@ -473,21 +475,27 @@ var ActivityHandler = {
           }
         }
 
-        Contacts.findByPhoneNumber(message.sender, function gotContact(
+        Contacts.findByPhoneNumber(number, function gotContact(
                                                                 contact) {
-          var sender = message.sender;
+          var name = ActivityHandler.getPhoneNumber(message, messageOpt);
           if (!contact) {
-            console.error('We got a null contact for sender:', sender);
+            console.error('We got a null contact for sender:', number);
           } else if (contact.length && contact[0].name &&
             contact[0].name.length && contact[0].name[0]) {
-            sender = contact[0].name[0];
+            name = contact[0].name[0];
           }
 
-          if (message.type === 'sms') {
-            continueWithNotification(sender, message.body);
+          if (delivered) {
+            continueWithNotification(
+              navigator.mozL10n.get('message-received-by'), name);
+          } else if (read) {
+            continueWithNotification(
+              navigator.mozL10n.get('message-read-by'), name);
+          } else if (message.type === 'sms') {
+            continueWithNotification(name, message.body);
           } else { // mms
             getTitleFromMms(function textCallback(text) {
-              continueWithNotification(sender, text);
+              continueWithNotification(name, text);
             });
           }
         });
@@ -521,6 +529,45 @@ var ActivityHandler = {
       }
     }
     SilentSms.checkSilentModeFor(message.sender).then(handleNotification);
+  },
+
+  onSmsDeliverySuccess: function ah_onSmsDeliverySuccess(message) {
+    this.onSmsReceived(message, {delivered : true});
+  },
+
+  onSmsReadSuccess: function ah_onSmsReadSuccess(message) {
+    this.onSmsReceived(message, {read : true});
+  },
+
+  getPhoneNumber: function ah_getPhoneNumber(message, option) {
+    // Incoming message
+    var delivery = message.delivery;
+    if (delivery === 'received' || delivery === 'not-downloaded') {
+      return message.sender;
+    }
+
+    // Outgoing  message (delivery/read status return)
+    var number;
+    if (!message.deliveryInfo) { // sms
+      number = message.receiver;
+    } else if (message.deliveryInfo.length === 1) { // mms with single receiver
+      number = message.receivers[0];
+    } else if (option && (option.delivered || option.read)) {
+      var latestInfo;
+      var type = option.delivered ? 'delivery' : 'read';
+      var status = type + 'Status';
+      var timestamp = type + 'Timestamp';
+
+      message.deliveryInfo.forEach(function(info) {
+        if (info[status] === 'success') {
+          if (!latestInfo || (latestInfo[timestamp] < info[timestamp])) {
+            latestInfo = info;
+          }
+        }
+      });
+      number = (latestInfo && latestInfo.receiver) ? latestInfo.receiver : null;
+    }
+    return number;
   },
 
   onNotification: function ah_onNotificationClick(message) {

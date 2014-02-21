@@ -353,6 +353,7 @@ suite('ActivityHandler', function() {
       setup(function() {
         sendSpy = this.sinon.spy(window, 'Notification');
         message.sender = phoneNumber;
+        message.delivery = 'received';
         this.sinon.stub(Contacts, 'findByPhoneNumber')
           .yields([{
             name: [''],
@@ -362,7 +363,7 @@ suite('ActivityHandler', function() {
       });
 
       test('phone in notification title when contact without name', function() {
-        sinon.assert.called(sendSpy);
+        sinon.assert.calledWith(sendSpy, phoneNumber);
         var notification = sendSpy.firstCall.thisValue;
         assert.equal(notification.title, phoneNumber);
       });
@@ -554,6 +555,95 @@ suite('ActivityHandler', function() {
           '{"sim":"sim-name-0","sender":"+1111111111"}';
         sinon.assert.calledWith(window.Notification, expected);
       });
+    });
+  });
+  suite('get phone number', function() {
+    var message;
+
+    test('received message', function() {
+      message = MockMessages.sms();
+      assert.equal(message.sender, ActivityHandler.getPhoneNumber(message));
+    });
+
+    test('not downloaded message', function() {
+      message = MockMessages.mms({ delivery: 'not-downloaded' });
+      assert.equal(message.sender, ActivityHandler.getPhoneNumber(message));
+    });
+
+    test('sms delivery status return', function() {
+      message = MockMessages.sms({ delivery: 'sent'});
+      assert.equal(message.receiver, ActivityHandler.getPhoneNumber(message));
+    });
+
+    test('mms delivery status return(single receiver)', function() {
+      message = MockMessages.mms({ delivery: 'sent'});
+      assert.equal(message.deliveryInfo[0].receiver,
+        ActivityHandler.getPhoneNumber(message));
+    });
+
+    test('mms delivery success return(multiple receiver)', function() {
+      message = MockMessages.mms({
+        delivery: 'sent',
+        deliveryInfo: [{
+          receiver: 'receiver1',
+          deliveryStatus: 'success',
+          deliveryTimestamp: 1000000
+        },
+        {
+          receiver: 'receiver2',
+          deliveryStatus: 'success',
+          deliveryTimestamp: 1200000
+        }]
+      });
+      assert.equal(message.deliveryInfo[1].receiver,
+        ActivityHandler.getPhoneNumber(message, {delivered: true}));
+    });
+
+    test('mms read success return(multiple receiver)', function() {
+      message = MockMessages.mms({
+        delivery: 'sent',
+        deliveryInfo: [{
+          receiver: 'receiver1',
+          readStatus: 'not-applicable',
+          deliveryStatus: 'success',
+          deliveryTimestamp: 1200000
+        },
+        {
+          receiver: 'receiver2',
+          readStatus: 'success',
+          readTimestamp: 1000000
+        }]
+      });
+      assert.equal(message.deliveryInfo[1].receiver,
+        ActivityHandler.getPhoneNumber(message, {read: true}));
+    });
+  });
+
+  suite('sms delivery success', function() {
+    setup(function() {
+
+    });
+
+    test('single receiver delivery success', function() {
+
+    });
+
+    test('multiple receiver delivery success', function() {
+
+    });
+  });
+
+  suite('sms read success', function() {
+    setup(function() {
+
+    });
+
+    test('single receiver read success', function() {
+
+    });
+
+    test('multiple receiver read success', function() {
+
     });
   });
 
