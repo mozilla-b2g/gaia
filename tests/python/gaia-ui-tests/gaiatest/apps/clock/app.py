@@ -92,6 +92,7 @@ class Clock(Base):
 
         @property
         def is_alarm_active(self):
+            time.sleep(1)
             return self.root_element.find_element(*self._check_box_locator).is_selected()
 
         def tap_checkbox(self):
