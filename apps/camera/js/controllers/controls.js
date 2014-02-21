@@ -33,15 +33,16 @@ function ControlsController(app) {
 
 ControlsController.prototype.bindEvents = function() {
   this.app.settings.on('change:mode', this.controls.setter('mode'));
+  this.app.on('newimage', this.onNewMedia);
+  this.app.on('newvideo', this.onNewMedia);
+  this.app.on('camera:ready', this.enableButtons);
+  this.app.on('camera:busy', this.disableButtons);
   this.app.on('change:recording', this.controls.setter('recording'));
   this.app.on('camera:timeupdate', this.controls.setVideoTimer);
   this.controls.on('tap:capture', this.app.firer('capture'));
   this.controls.on('tap:gallery', this.onGalleryButtonClick);
   this.controls.on('tap:switch', this.app.settings.mode.next);
   this.controls.on('tap:cancel', this.onCancelButtonClick);
-  this.app.on('camera:loading', this.disableButtons);
-  this.app.on('camera:ready', this.enableButtons);
-  this.app.on('camera:busy', this.disableButtons);
   debug('events bound');
 };
 
@@ -67,6 +68,13 @@ ControlsController.prototype.disableButtons = function() {
 
 ControlsController.prototype.enableButtons = function() {
   this.controls.enable('buttons');
+};
+
+/**
+  When a new image is available it displays the thumbnail on the gallery button
+*/
+ControlsController.prototype.onNewMedia = function(image) {
+  this.controls.setThumbnail(image.thumbnail);
 };
 
 /**

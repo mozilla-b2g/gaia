@@ -81,6 +81,9 @@ module.exports = View.extend({
       '<span class="video-timer test-video-timer js-video-timer">00:00</span>' +
     '</div>';
   },
+
+  setThumbnail: function(blob) {}
+
 });
 
 });

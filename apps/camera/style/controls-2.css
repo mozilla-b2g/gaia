@@ -147,10 +147,15 @@
 /** Inner Circle
  ---------------------------------------------------------*/
 
-.inner-circle {
+.capture-button-2 .inner-circle {
   background-color: white;
   transform: scale(0.74);
-  transition: opacity 200ms ease-in-out;
+}
+
+.capture-button-2:active .inner-circle {
+  background-color: #00caf2;
+  transform: scale(1.0);
+  transition: transform 200ms ease-in;
 }
 
 /**
@@ -196,6 +201,10 @@
   color: #81ACB6;
 }
 
+.capture-button-2:active .center{
+  color: #ffffff;
+}
+
 /**
  * @capturing=true
  */
@@ -212,9 +221,9 @@
  ---------------------------------------------------------*/
 
 @keyframes pulse {
-  0% { transform: scale(1) }
-  50% { transform: scale(0) }
-  100% { transform: scale(0.57) }
+  0% { transform: scale(0.74) }
+  50% { transform: scale(1) }
+  100% { transform: scale(0.74) }
 }
 
 @keyframes thumbnail-fade-in {
