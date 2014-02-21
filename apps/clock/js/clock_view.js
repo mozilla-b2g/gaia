@@ -194,7 +194,9 @@ var ClockView = {
     }
     // Use transform rotate on the rect itself vs on a child element
     // avoids unexpected behavior if either dur and fill are set to defaults
-    hand.style.transform = 'rotate(' + conv(angle) + 'deg)';
+    // Use translateZ to force it on its own layer, which will invoke the GPU
+    // and thus do the minimum amount of work required (reduces power usage)
+    hand.style.transform = 'rotate(' + conv(angle) + 'deg) translateZ(1px)';
   },
 
   handleEvent: function cv_handleEvent(event) {
