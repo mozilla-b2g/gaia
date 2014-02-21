@@ -629,7 +629,8 @@ Camera.prototype.updateVideoElapsed = function() {
 Camera.prototype.configureWhiteBalance = function(value){
   var modes =  this.mozCamera.capabilities.whiteBalanceModes;
   console.log(' Modes ::'+modes);
-  if(modes.indexOf(value) > -1)
+  if (modes.indexOf(value) > -1){
     this.mozCamera.whiteBalanceMode  = value;
+  }
 };
 });
