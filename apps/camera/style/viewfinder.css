@@ -1,12 +1,31 @@
 
 .viewfinder {
   position: absolute;
-  left: 0;
-  top: 0;
+  left: 0; top: 0;
+  height: 100%;
+  width: 100%;
   opacity: 1;
   transition: opacity 25ms ease-in-out;
 }
 
 .viewfinder.fade-out {
   opacity: 0;
+}
+
+/** Video
+ ---------------------------------------------------------*/
+
+.viewfinder video {
+  position: absolute;
+  left: 0; top: 0;
+  transform: rotate(90deg) translate(0px, -100%);
+  transform-origin: 0 0;
+}
+
+/**
+ * @reversed
+ */
+
+.viewfinder video.reversed {
+  transform: rotate(-90deg) translate(-100%, 0%);
 }

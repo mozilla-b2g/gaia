@@ -183,7 +183,7 @@ Setting.prototype.next = function() {
  */
 Setting.prototype.value = function() {
   var selected = this.selected();
-  return selected.value || selected.key;
+  return selected && (selected.value || selected.key);
 };
 
 /**
