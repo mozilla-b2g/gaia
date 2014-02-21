@@ -31,6 +31,7 @@ function CameraController(app) {
   this.filmstrip = app.filmstrip;
   this.viewfinder = app.views.viewfinder;
   this.controls = app.views.controls;
+  this.hud = app.views.hud;
   this.configure();
   this.bindEvents();
   debug('initialized');
@@ -71,6 +72,7 @@ CameraController.prototype.bindEvents = function() {
   camera.on('change:capabilities', this.app.setter('capabilities'));
   camera.on('configured', app.firer('camera:configured'));
   camera.on('change:recording', app.setter('recording'));
+  camera.on('recording', app.firer('camera:recording'));
   camera.on('shutter', app.firer('camera:shutter'));
   camera.on('loaded', app.firer('camera:loaded'));
   camera.on('ready', app.firer('camera:ready'));
@@ -83,8 +85,9 @@ CameraController.prototype.bindEvents = function() {
 
   // App
   app.on('settings:configured', this.onSettingsConfigured);
+  app.on('timer:end', this.capture);
   app.on('focus', this.camera.load);
-  app.on('capture', this.onCapture);
+  app.on('capture', this.capture);
   app.on('boot', this.camera.load);
   app.on('blur', this.onBlur);
 
@@ -95,6 +98,7 @@ CameraController.prototype.bindEvents = function() {
   settings.on('change:cameras', this.loadCamera);
   settings.on('change:mode', this.setFlashMode);
   settings.on('change:mode', this.setMode);
+
   debug('events bound');
 };
 
@@ -113,7 +117,7 @@ CameraController.prototype.onSettingsConfigured = function() {
   debug('camera configured with final settings');
 };
 
-CameraController.prototype.onCapture = function() {
+CameraController.prototype.capture = function() {
   var position = this.app.geolocation.position;
   this.camera.capture({ position: position });
 };
@@ -289,5 +293,27 @@ CameraController.prototype.onBlur = function() {
 
   debug('torn down');
 };
+/**
+* set Self timer value when change from settings
+*@ paramet
+**/
+CameraController.prototype.setSelfTimer = function(value){
+  this.camera.configureSelfTimer(value);
+};
 
+/**
+* cancel Self timer if clicked on viewfinder or any other copenet on screen
+*@ paramet
+**/
+CameraController.prototype.cancelSelfTimer = function(){
+    if(this.selfTimer)
+    {
+      clearInterval(this.selfTimer);
+      clearTimeout(this.selfTimeout);
+      this.selfTimer = null;
+      this.selfTimeout = null;
+      // hide timer UI
+      this.selfTimerView.removeTimerUI();
+    }
+};
 });

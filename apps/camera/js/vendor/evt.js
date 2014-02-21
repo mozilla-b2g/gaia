@@ -89,11 +89,13 @@ proto.fire = proto.emit = function(options) {
   var name = options.name || options;
   var batch = (cbs[name] || []).concat(cbs['*'] || []);
   var ctx = options.ctx || this;
+  var out;
 
   if (batch.length) {
     var args = slice.call(arguments, 1);
     while (batch.length) {
-      batch.shift().apply(ctx, args);
+      out = batch.shift().apply(ctx, args);
+      if (out === false) { break; }
     }
   }
 

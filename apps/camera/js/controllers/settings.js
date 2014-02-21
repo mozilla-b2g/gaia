@@ -46,6 +46,7 @@ SettingsController.prototype.bindEvents = function() {
   this.app.on('change:capabilities', this.onCapabilitiesChange);
   this.app.on('settings:configured', this.settings.localize);
   this.app.on('settings:toggle', this.toggleSettings);
+  this.app.on('viewfinder:click', this.closeSettings);
   this.app.on('click', this.closeSettings);
 };
 

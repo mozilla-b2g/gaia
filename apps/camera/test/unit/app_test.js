@@ -67,16 +67,22 @@ suite('app', function() {
       storage: {
         once: sinon.spy()
       },
+      settings: {
+        newControls: {
+          selected: sinon.stub()
+        }
+      },
       config: new Config(),
       views: {
         viewfinder: new View({ name: 'viewfinder' }),
-        focusRing: new View({ name: 'focusring' }),
+        focusRing: new View({ name: 'focus-ring' }),
         controls: new View({ name: 'controls' }),
         hud: new View({ name: 'hud' })
       },
       filmstrip: sinon.spy(),
       controllers: {
         hud: sinon.spy(),
+        timer: sinon.spy(),
         controls: sinon.spy(),
         viewfinder: sinon.spy(),
         overlay: sinon.spy(),
@@ -145,6 +151,13 @@ suite('app', function() {
   });
 
   suite('App#boot()', function() {
+    test('Should run controller.timer controller ' +
+      'before the controller.camera', function() {
+      var controllers = this.app.controllers;
+      this.app.boot();
+      assert.ok(controllers.timer.calledBefore(controllers.camera));
+    });
+
     test('Should run each of the controllers,' +
          'passing itself as first argument', function() {
       var controllers = this.app.controllers;
