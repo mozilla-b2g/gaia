@@ -182,6 +182,25 @@ Camera.prototype.setVideoProfile = function(profileName) {
   debug('video profile configured', profileName);
 };
 
+Camera.prototype.changeVideoProfile = function(profileName) {
+  var capabilities = this.mozCamera.capabilities;
+  var recorderProfile = capabilities.recorderProfiles[profileName].video;
+  this.videoProfile = profileName;
+  var mode = this.get('mode');
+
+  this.videoPreviewSize = {
+    height: recorderProfile.height,
+    width: recorderProfile.width
+  };
+
+  this.updatePreviewSize(mode);
+  if (mode === 'video') {
+    this.emit('changePreview');
+  }
+
+  debug('video profile configured', profileName);
+};
+
 Camera.prototype.configurePicturePreviewSize = function(availablePreviewSizes) {
   var viewportSize;
   if (!this.mozCamera) {

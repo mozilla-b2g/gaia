@@ -45,6 +45,7 @@ CameraController.prototype.bindEvents = function() {
   camera.on('change:videoElapsed', app.firer('camera:timeupdate'));
   camera.on('configured', this.app.setter('capabilities'));
   camera.on('configured', app.firer('camera:configured'));
+  camera.on('changePreview', app.firer('camera:changePreview'));
   camera.on('change:recording', app.setter('recording'));
   camera.on('loading', app.firer('camera:loading'));
   camera.on('shutter', app.firer('camera:shutter'));
@@ -64,6 +65,7 @@ CameraController.prototype.bindEvents = function() {
   app.on('blur', this.teardownCamera);
   app.on('settings:configured', this.onSettingsConfigured);
   app.settings.on('change:pictureSizes', this.camera.setPictureSize);
+  app.settings.on('change:recorderProfiles', this.onVideoProfileChanged);
   app.settings.on('change:flashModes', this.setFlashMode);
   app.settings.on('change:cameras', this.loadCamera);
   app.settings.on('change:mode', this.setMode);
@@ -92,6 +94,19 @@ CameraController.prototype.configure = function() {
   camera.set('selectedCamera', settings.value('cameras'));
   camera.setMode(settings.value('mode'));
   debug('configured');
+};
+
+CameraController.prototype.onVideoProfileChanged = function() {
+  var recorderProfile = this.app.settings.recorderProfiles.selected().key;
+  var mode = this.app.settings.value('mode');
+  var self = this;
+  if (mode === 'video') {
+    this.viewfinder.fadeOut(function() {
+    self.camera.changeVideoProfile(recorderProfile);
+    });
+  } else {
+    this.camera.changeVideoProfile(recorderProfile);
+  }
 };
 
 CameraController.prototype.onSettingsConfigured = function() {
