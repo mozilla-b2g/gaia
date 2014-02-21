@@ -128,6 +128,8 @@ Camera.prototype.configure = function(mozCamera) {
   capabilities = mozCamera.capabilities;
   this.configureFocus(capabilities.focusModes);
   this.configurePicturePreviewSize(capabilities.previewSizes);
+  //set default WhiteBalance mode as Auto
+  this.configureWhiteBalance('auto');
   // Bind to some hardware events
   mozCamera.onShutter = this.onShutter;
   mozCamera.onRecorderStateChange = self.onRecorderStateChange;
@@ -620,4 +622,14 @@ Camera.prototype.updateVideoElapsed = function() {
   this.set('videoElapsed', (now - start));
 };
 
+/**
+* configure white balace value on camera configuration
+*@ parameter value to set in white balance
+**/
+Camera.prototype.configureWhiteBalance = function(value){
+  var modes =  this.mozCamera.capabilities.whiteBalanceModes;
+  console.log(' Modes ::'+modes);
+  if(modes.indexOf(value) > -1)
+    this.mozCamera.whiteBalanceMode  = value;
+};
 });
