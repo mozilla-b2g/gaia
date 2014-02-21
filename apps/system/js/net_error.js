@@ -288,7 +288,22 @@
     init: initPage,
 
     reload: function reload(forcedReload) {
+
+      // When reloading a page with POSTDATA the user will be prompted to
+      // confirm if he wants to resend the data. If the user accepted to resend
+      // the data, during the reload function call the onbeforeunload event is
+      // fired, otherwise if the event is not triggered then the last url from
+      // the history is loaded.
+      var isReloading = false;
+      window.addEventListener('beforeunload', function onBeforeunload() {
+        isReloading = true;
+      });
+
       window.location.reload(forcedReload);
+
+      if (!isReloading) {
+        history.back();
+      }
     }
   };
 
