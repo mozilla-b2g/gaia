@@ -244,9 +244,9 @@
               setAirplaneModeEnabled(self._enabled);
             } else {
               self._enabled = !enabled;
-              checkedActions['conn'] = true;
-              self._updateAirplaneModeStatus(checkedActions);
             }
+            checkedActions['conn'] = true;
+            self._updateAirplaneModeStatus(checkedActions);
           }
         };
 
