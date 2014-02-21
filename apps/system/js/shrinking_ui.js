@@ -57,6 +57,7 @@
    */
   ShrinkingUI.initialize =
     (function su_initialize() {
+      window.addEventListener('home', this);
       window.addEventListener('appcreated', this);
       window.addEventListener('appterminated', this);
       window.addEventListener('appopen', this);
@@ -87,6 +88,16 @@
       }
 
       switch (evt.type) {
+        // Mimic what the lockscreen does: stop home key event
+        // be passed to the AppWindowManager, which would fade out
+        // the current app and show the homescreen.
+        //
+        // This require that the shrinking file must be loaded before
+        // the AppWindowManager.
+        case 'home':
+          if (this._state())
+            evt.stopImmediatePropagation();
+          break;
         case 'appcreated':
           var app = evt.detail;
           this._register(app);
