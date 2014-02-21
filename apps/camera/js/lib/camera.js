@@ -484,6 +484,7 @@ Camera.prototype.stopRecording = function() {
   this.mozCamera.stopRecording();
   this.set('recording', false);
   this.stopVideoTimer();
+  this.emit('busy');
 
   // Register a listener for writing
   // completion of current video file
@@ -517,6 +518,8 @@ Camera.prototype.stopRecording = function() {
         height: data.height,
         rotation: data.rotation
       });
+
+      self.emit('ready');
     });
   }
 };
@@ -652,9 +655,10 @@ Camera.prototype.updateVideoElapsed = function() {
 };
 
 /**
-* configure white balace value on camera configuration
-*@ parameter value to set in white balance
-**/
+ * Set the mozCamera white-balance value.
+ *
+ * @param {String} value
+ */
 Camera.prototype.setWhiteBalance = function(value){
   var capabilities = this.get('capabilities');
   var modes = capabilities.whiteBalanceModes;

@@ -6,11 +6,22 @@
   height: 7.5rem;
   z-index: 10;
   text-align: center;
+  opacity: 1;
+  transition: opacity 300ms;
   transform: translateZ(1px);
 }
 
 body:not(.filmstriphidden) .hud {
   transform: translateY(5rem);
+}
+
+/**
+ * @hidden
+ */
+
+.hud.hidden {
+  pointer-events: none;
+  opacity: 0;
 }
 
 /** Buttons
@@ -85,7 +96,7 @@ body:not(.filmstriphidden) .hud {
  * @camera-hidden
  */
 
-.hud[camera-hidden=true] .hud_camera {
+.hud.camera-hidden .hud_camera {
   opacity: 0;
 }
 
@@ -135,7 +146,7 @@ body:not(.filmstriphidden) .hud {
  * @camera-hidden
  */
 
-.hud[flash-hidden=true] .hud_flash {
+.hud.flash-hidden .hud_flash {
   opacity: 0;
 }
 
