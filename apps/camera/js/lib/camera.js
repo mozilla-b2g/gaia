@@ -620,4 +620,12 @@ Camera.prototype.updateVideoElapsed = function() {
   this.set('videoElapsed', (now - start));
 };
 
+
+/**
+* configure self timer 
+*@ parameter value to set in scene mode
+**/
+Camera.prototype.configureSelfTimer = function(timer){
+  this.set('selftimer',timer);
+};
 });

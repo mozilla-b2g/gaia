@@ -7,6 +7,7 @@ define(function(require, exports, module) {
 
 var debug = require('debug')('controller:camera');
 var bindAll = require('lib/bind-all');
+var selfTimerView = require('views/selftimer');
 
 /**
  * Exports
@@ -31,6 +32,10 @@ function CameraController(app) {
   this.filmstrip = app.filmstrip;
   this.viewfinder = app.views.viewfinder;
   this.controls = app.views.controls;
+  this.hud = app.views.hud;
+  this.selfTimer = null;
+  this.selfTimeout = null;
+  this.selfTimerView = new selfTimerView();
   this.configure();
   this.bindEvents();
   debug('initialized');
@@ -67,6 +72,16 @@ CameraController.prototype.bindEvents = function() {
   app.settings.on('change:flashModes', this.setFlashMode);
   app.settings.on('change:cameras', this.loadCamera);
   app.settings.on('change:mode', this.setMode);
+  //added for setting change listenr change listener
+  app.settings.on('change:timer', this.setSelfTimer);
+  // click event to cancel self timer
+  this.app.on('settings:toggle', this.cancelSelfTimer);
+  this.hud.on('click:camera', this.cancelSelfTimer);
+  this.hud.on('click:flash', this.cancelSelfTimer);
+  this.controls.on('click:capture', this.cancelSelfTimer);
+  this.controls.on('click:gallery', this.cancelSelfTimer);
+  this.controls.on('click:switch', this.cancelSelfTimer);
+  this.viewfinder.on('click', this.cancelSelfTimer);
   debug('events bound');
 };
 
@@ -135,12 +150,48 @@ CameraController.prototype.teardownCamera = function() {
 
   debug('torn down');
 };
-
+/**
+ * if self timer is set 
+ * it will show the timer UI and wait 
+ * wait for time out to capture 
+ **/
 CameraController.prototype.onCapture = function() {
   var position = this.app.geolocation.position;
-  this.camera.capture({ position: position });
+  var timer = this.camera.get('selftimer');
+  var self = this;
+  if(timer){
+    timer = parseInt(timer);
+    timer++;
+    timer = timer * 1000;
+    //show timer UI
+    this.showTimerUI();
+    //set time out
+    this.selfTimeout = setTimeout(function(){
+      self.camera.capture({ position: position });
+      self.cancelSelfTimer();
+    },timer);
+  }else{  this.camera.capture({ position: position });  }
 };
 
+/**
+ * if self timer is set 
+ * it will show the timer UI 
+ **/
+CameraController.prototype.showTimerUI = function(){
+  var counter = parseInt(this.camera.get('selftimer'));
+  var apps = this.app;
+  var timerview = this.selfTimerView;
+  timerview.addTimerUI(counter--);
+  if (counter <= 3) {
+    apps.sounds.play('recordingStart');
+  }
+  this.selfTimer = setInterval(function(){
+    if(counter <= 3 && counter >= 0){
+      apps.sounds.play('recordingStart');
+    }
+    timerview.updateTumerUI(counter--);
+  },1000);
+};
 CameraController.prototype.onNewImage = function(image) {
   var filmstrip = this.filmstrip;
   var storage = this.storage;
@@ -260,5 +311,27 @@ CameraController.prototype.translateFlashMode = function(flashMode) {
     default: return flashMode;
   }
 };
+/**
+* set Self timer value when change from settings 
+*@ paramet
+**/
+CameraController.prototype.setSelfTimer = function(value){
+  this.camera.configureSelfTimer(value);
+};
 
+/**
+* cancel Self timer if clicked on viewfinder or any other copenet on screen
+*@ paramet
+**/
+CameraController.prototype.cancelSelfTimer = function(){
+    if(this.selfTimer)
+    {
+      clearInterval(this.selfTimer);
+      clearTimeout(this.selfTimeout);
+      this.selfTimer = null;
+      this.selfTimeout = null;
+      // hide timer UI
+      this.selfTimerView.removeTimerUI();
+    }
+};
 });
