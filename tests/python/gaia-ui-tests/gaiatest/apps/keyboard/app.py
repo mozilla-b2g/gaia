@@ -322,7 +322,7 @@ class Keyboard(Base):
         keyboards = self.marionette.find_element(By.ID, 'keyboards')
         Wait(self.marionette).until(
             lambda m: 'hide' in keyboards.get_attribute('class') and
-            not keyboards.get_attribute('data-transition-out'))
+            not keyboards.is_displayed())
         self.apps.switch_to_displayed_app()
 
     def is_displayed(self):
