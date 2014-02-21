@@ -57,12 +57,12 @@ suite('search/providers/places', function() {
   suite('search', function() {
     test('calls clear', function() {
       var stub = this.sinon.stub(subject, 'clear');
-      subject.search('foo', function() {});
+      subject.search('foo');
       assert.ok(stub.calledOnce);
     });
 
     test('renders data url', function() {
-      subject.search('mozilla', Search.collect.bind(Search, subject));
+      subject.search('mozilla');
       
       var place = subject.container.querySelector('.result');
       assert.equal(place.dataset.url, 'http://mozilla.org');

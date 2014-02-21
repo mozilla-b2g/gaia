@@ -26,7 +26,7 @@
       });
     },
 
-    search: function(input, collect) {
+    search: function(input) {
       var options = {
         filterValue: input,
         filterBy: ['givenName'],
@@ -60,7 +60,7 @@
             renderResults.push(renderObj);
           }
         }
-        collect(renderResults);
+        this.render(renderResults);
       }).bind(this);
 
       request.onerror = function() {
