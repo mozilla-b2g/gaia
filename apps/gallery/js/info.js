@@ -18,12 +18,24 @@ function showFileInformation(fileinfo) {
   $('info-view').classList.remove('hidden');
 
   function populateMediaInfo(fileinfo) {
+    if(!fileinfo.metadata.video) {
+      document.getElementById('info-duration').style.display = "none";
+      document.getElementById('vid-duration').style.display = "none";
+    }
+    else {
+      document.getElementById('info-duration').style.display = "block";
+      document.getElementById('vid-duration').style.display = "block";
+      document.getElementById('info-duration').style.visibility = 'visible';
+      document.getElementById('vid-duration').style.visibility = 'visible';
+    }
+
     var data = {
       //set the video filename using metadata
       'info-name': getFileName(fileinfo.metadata.video || fileinfo.name),
       'info-size': MediaUtils.formatSize(fileinfo.size),
       'info-type': fileinfo.type,
       'info-date': MediaUtils.formatDate(fileinfo.date),
+      'info-duration' : MediaUtils.formatDuration(fileinfo.metadata.duration),
       'info-resolution':
         fileinfo.metadata.width + 'x' + fileinfo.metadata.height
     };
