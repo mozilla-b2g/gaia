@@ -19,6 +19,7 @@ class TestPlay3GPMusic(GaiaTestCase):
 
         music_app = Music(self.marionette)
         music_app.launch()
+        music_app.wait_for_music_tiles_displayed()
 
         # switch to songs view
         list_view = music_app.tap_songs_tab()
