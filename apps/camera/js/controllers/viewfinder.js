@@ -39,6 +39,7 @@ ViewfinderController.prototype.configure = function() {
 
 ViewfinderController.prototype.bindEvents = function() {
   this.app.settings.on('change:grid', this.viewfinder.setter('grid'));
+  this.viewfinder.on('click', this.app.firer('viewfinder:click'));
   this.viewfinder.on('click', this.onViewfinderClick);
   this.app.on('camera:configured', this.loadStream);
   this.app.on('camera:configured', this.updatePreview);

@@ -62,7 +62,7 @@ module.exports = View.extend({
 
   initialize: function() {
     this.render();
-    bind(this.el, 'click', this.onClick);
+    // bind(this.el, 'click', this.onClick);
     this.els.video.autoplay = true;
     this.on('inserted', raf(this.getSize));
   },
@@ -71,9 +71,11 @@ module.exports = View.extend({
     this.el.innerHTML = this.template();
     this.els.frame = this.find('.js-frame');
     this.els.video = this.find('.js-video');
+    bind(this.els.frame, 'click', this.onClick);
   },
 
-  onClick: function() {
+  onClick: function(e) {
+    e.stopPropagation();
     this.emit('click');
   },
 
@@ -156,7 +158,7 @@ module.exports = View.extend({
     var aspects = {
       container: container.width / container.height,
       preview: preview.width / preview.height,
-      standard: 1.2
+      standard: 4 / 3
     };
 
     var aspectFill = aspects.preview > aspects.container;

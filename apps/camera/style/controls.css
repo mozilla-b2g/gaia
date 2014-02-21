@@ -148,6 +148,7 @@
 
 .controls[recording=true] .capture-button {
   background-color: #d3361c;
+  pointer-events: auto;
 }
 
 /** Capture Button Icon
