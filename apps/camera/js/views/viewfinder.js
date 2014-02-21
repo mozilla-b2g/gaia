@@ -21,6 +21,8 @@ var lastTouchA = null;
 var lastTouchB = null;
 var isScaling = false;
 var scale = 1.0;
+var touchFocusPt = {x: 0, y: 0}; // touch focus
+var touchFocusDone = false;
 
 var getNewTouchA = function(touches) {
   if (!lastTouchA) return null;
@@ -58,6 +60,7 @@ return View.extend({
   fadeTime: 200,
   initialize: function() {
     bind(this.el, 'click', this.onClick);
+    bind(this.el, 'touchstart', this.onTouchStart);
     this.el.autoplay = true;
   },
 
@@ -71,7 +74,21 @@ return View.extend({
       lastTouchA = evt.touches[0];
       lastTouchB = evt.touches[1];
       isScaling = true;
+    } else if (touchCount === 1 && touchFocusDone === false) {
+      touchFocusPt.x = evt.touches[0].pageX;
+      touchFocusPt.y = evt.touches[0].pageY;
+      this.emit('touchFocusPts');
+      touchFocusDone = true;
     }
+  },
+  setTouchFocusDone: function() {
+    // to avoid multiple calls to
+    // set auto focus
+    touchFocusDone = false;
+  },
+
+  getTouchFocusPts: function() {
+    return touchFocusPt;
   },
 
   onTouchMove: function(evt) {
@@ -90,6 +107,7 @@ return View.extend({
 
     lastTouchA = touchA;
     lastTouchB = touchB;
+    this.emit('touchmove');
   },
 
   onTouchEnd: function(evt) {

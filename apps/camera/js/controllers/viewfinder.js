@@ -33,6 +33,7 @@ function ViewfinderController(app) {
 
 ViewfinderController.prototype.bindEvents = function() {
   this.viewfinder.on('click', this.onViewfinderClick);
+  this.viewfinder.on('touchFocusPts', this.ontouchFocusPts); // touch focus
   this.app.on('camera:configured', this.loadStream);
   this.app.on('settings:configured', this.configureCamera);
 };
@@ -42,6 +43,27 @@ ViewfinderController.prototype.configureCamera = function() {
     width: this.app.el.clientWidth,
     height: this.app.el.clientHeight
   };
+};
+
+/**
+ * capture touch coordinates
+ * when user clicks view finder
+ * and call touch focus function.
+ *
+ */
+ViewfinderController.prototype.ontouchFocusPts = function() {
+  var self = this;
+  var touchFocusPts = this.viewfinder.getTouchFocusPts();
+  this.app.views.focusRing.el.style.left = touchFocusPts.x + 'px';
+  this.app.views.focusRing.el.style.top = touchFocusPts.y + 'px';
+  this.camera.setTouchFocus(touchFocusPts.x, touchFocusPts.y, focusDone);
+  function focusDone() {
+    // clear ring UI
+    self.camera.clearFocusRing();
+
+    // update focus flag when touch is available
+    self.viewfinder.setTouchFocusDone();
+  }
 };
 
 ViewfinderController.prototype.loadStream = function() {
