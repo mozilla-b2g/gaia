@@ -37,8 +37,8 @@ class CardsView(Base):
         return self.marionette.find_element(*self._app_card_locator(app)).tap()
 
     def close_app(self, app):
-        return self.marionette.find_element(*self._close_button_locator(app)).tap()
-        self.wait_for_element_not_present(*self._close_button_locator(app))
+        self.marionette.find_element(*self._close_button_locator(app)).tap()
+        return self.wait_for_element_not_present(*self._app_card_locator(app))
 
     def wait_for_cards_view(self):
         self.wait_for_element_displayed(*self._cards_view_locator)

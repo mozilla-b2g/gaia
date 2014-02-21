@@ -6,16 +6,17 @@ var StackManager = {
     window.addEventListener('launchapp', this);
     window.addEventListener('appterminated', this);
     window.addEventListener('home', this);
+    window.addEventListener('cardviewclosed', this);
   },
 
   getCurrent: function sm_getCurrent() {
-    return this._stack[this._current];
+    return this._stack[this.position];
   },
   getPrev: function sm_getPrev() {
-    return this._stack[this._current - 1];
+    return this._stack[this.position - 1];
   },
   getNext: function sm_getNext() {
-    return this._stack[this._current + 1];
+    return this._stack[this.position + 1];
   },
 
   goPrev: function sm_goPrev() {
@@ -28,7 +29,7 @@ var StackManager = {
     newApp.broadcast('swipein');
     oldApp.broadcast('swipeout');
 
-    this._current--;
+    this.position--;
     this._stackChanged();
   },
 
@@ -42,12 +43,30 @@ var StackManager = {
     newApp.broadcast('swipein');
     oldApp.broadcast('swipeout');
 
-    this._current++;
+    this.position++;
     this._stackChanged();
+  },
+
+  snapshot: function sm_snapshot() {
+    return this._stack.slice(0);
   },
 
   get length() {
     return this._stack.length;
+  },
+
+  get position() {
+    return this._current;
+  },
+  set position(position) {
+    var _position = parseInt(position);
+    if (_position < -1 || _position >= this._stack.length) {
+      console.warn('bad stack position. requested position = ',
+                   _position, '; stack length = ', this._stack.length);
+      return;
+    }
+
+    this._current = _position;
   },
 
   _stack: [],
@@ -57,17 +76,30 @@ var StackManager = {
     switch (e.type) {
       case 'appcreated':
         var app = e.detail;
+
+        // The system application should never show up in the stack.
+        // XXX: This code will be removed when bug 967405 lands.
+        if (app.manifest && app.manifest.role == 'system') {
+          return;
+        }
+
+        // The FTU application should never show up in the stack.
+        // XXX: This code will be removed when bug 967405 lands.
+        if (app.name == 'FTU') {
+          return;
+        }
+
         if (app.stayBackground) {
           this._insertBelow(app);
         } else {
-          this._moveToTop(this._current);
+          this._moveToTop(this.position);
           this._insertOnTop(app);
         }
         break;
       case 'launchapp':
         var config = e.detail;
         if (!config.stayBackground) {
-          this._moveToTop(this._current);
+          this._moveToTop(this.position);
 
           var idx = this._indexOfURL(config.url);
           if (idx !== undefined) {
@@ -76,12 +108,17 @@ var StackManager = {
         }
         break;
       case 'home':
-        this._moveToTop(this._current);
-        this._current = -1;
+        this._moveToTop(this.position);
+        this.position = -1;
         break;
       case 'appterminated':
         var manifestURL = e.detail.manifestURL;
         this._remove(manifestURL);
+        break;
+      case 'cardviewclosed':
+        if (e.detail && e.detail.newStackPosition) {
+          this.position = e.detail.newStackPosition;
+        }
         break;
     }
     this._stackChanged();
@@ -90,14 +127,14 @@ var StackManager = {
   _insertBelow: function sm_insertBelow(app) {
     this._stack.splice(0, 0, app);
     if (this._stack.length > 1) {
-      this._current++;
+      this.position++;
     } else {
-      this._current = 0;
+      this.position = 0;
     }
   },
 
   _insertOnTop: function sm_insertOnTop(app) {
-    this._current = this._stack.push(app) - 1;
+    this.position = this._stack.push(app) - 1;
   },
 
   _moveToTop: function sm_moveToTop(index) {
@@ -106,7 +143,7 @@ var StackManager = {
     }
 
     var sheet = this._stack.splice(index, 1)[0];
-    this._current = this._stack.push(sheet) - 1;
+    this.position = this._stack.push(sheet) - 1;
   },
 
   _indexOfURL: function sm_indexOfURL(url) {
@@ -128,8 +165,8 @@ var StackManager = {
 
       if (sConfig.manifestURL == manifestURL) {
         this._stack.splice(i, 1);
-        if (i <= this._current) {
-          this._current--;
+        if (i <= this.position) {
+          this.position--;
         }
         return;
       }
@@ -138,7 +175,7 @@ var StackManager = {
 
   _stackChanged: function sm_stackChanged() {
     var details = {
-      position: this._current,
+      position: this.position,
       sheets: this._stack
     };
 
@@ -152,13 +189,13 @@ var StackManager = {
     console.log('StackManager : dump');
     var prefix = 'StackManager';
     for (var i = 0; i < this._stack.length; i++) {
-      var separator = (i == this._current) ? ' * ' : ' - ';
+      var separator = (i == this.position) ? ' * ' : ' - ';
       console.log(prefix + separator + i + ' -> ' + this._stack[i].name);
     }
   },
   __clearAll: function sm_clearAll() {
     this._stack = [];
-    this._current = 0;
+    this.position = 0;
   }
 };
 

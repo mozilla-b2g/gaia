@@ -14,6 +14,7 @@ var EdgeSwipeDetector = {
     window.addEventListener('homescreenopening', this);
     window.addEventListener('appopen', this);
     window.addEventListener('launchapp', this);
+    window.addEventListener('cardviewclosed', this);
 
     ['touchstart', 'touchmove', 'touchend',
      'mousedown', 'mousemove', 'mouseup'].forEach(function(e) {
@@ -41,6 +42,14 @@ var EdgeSwipeDetector = {
 
   _lifecycleEnabled: false,
 
+  get lifecycleEnabled() {
+    return this._lifecycleEnabled;
+  },
+  set lifecycleEnabled(enable) {
+    this._lifecycleEnabled = enable;
+    this._updateEnabled();
+  },
+
   handleEvent: function esd_handleEvent(e) {
     switch (e.type) {
       case 'mousedown':
@@ -66,13 +75,16 @@ var EdgeSwipeDetector = {
         break;
       case 'homescreenopening':
         this.screen.classList.remove('edges');
-        this._lifecycleEnabled = false;
-        this._updateEnabled();
+        this.lifecycleEnabled = false;
         break;
       case 'launchapp':
         if (!e.detail.stayBackground) {
-          this._lifecycleEnabled = true;
-          this._updateEnabled();
+          this.lifecycleEnabled = true;
+        }
+        break;
+      case 'cardviewclosed':
+        if (e.detail && e.detail.newStackPosition) {
+          this.lifecycleEnabled = true;
         }
         break;
     }

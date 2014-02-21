@@ -14,6 +14,7 @@ requireApp('system/test/unit/mock_orientation_manager.js');
 requireApp('system/test/unit/mock_rocketbar.js');
 requireApp('system/test/unit/mock_sleep_menu.js');
 requireApp('system/test/unit/mock_popup_manager.js');
+requireApp('system/test/unit/mock_stack_manager.js');
 
 var mocksForCardsView = new MocksHelper([
   'GestureDetector',
@@ -24,14 +25,104 @@ var mocksForCardsView = new MocksHelper([
   'Rocketbar',
   'SleepMenu',
   'OrientationManager',
-  'PopupManager'
+  'PopupManager',
+  'StackManager'
 ]).init();
+
+var apps =
+{
+  'http://sms.gaiamobile.org': {
+    launchTime: 5,
+    name: 'SMS',
+    frame: document.createElement('div'),
+    iframe: document.createElement('iframe'),
+    manifest: {
+      orientation: 'portrait-primary'
+    },
+    rotatingDegree: 0,
+    requestScreenshotURL: function() {
+      return null;
+    },
+    getScreenshot: function(callback) {
+      callback();
+    },
+    origin: 'http://sms.gaiamobile.org'
+  },
+  'http://game.gaiamobile.org': {
+    launchTime: 4,
+    name: 'GAME',
+    frame: document.createElement('div'),
+    iframe: document.createElement('iframe'),
+    manifest: {
+      orientation: 'landscape-primary'
+    },
+    rotatingDegree: 90,
+    requestScreenshotURL: function() {
+      return null;
+    },
+    getScreenshot: function(callback) {
+      callback();
+    },
+    origin: 'http://game.gaiamobile.org'
+  },
+  'http://game2.gaiamobile.org': {
+    launchTime: 3,
+    name: 'GAME2',
+    frame: document.createElement('div'),
+    iframe: document.createElement('iframe'),
+    manifest: {
+      orientation: 'landscape-secondary'
+    },
+    rotatingDegree: 270,
+    requestScreenshotURL: function() {
+      return null;
+    },
+    getScreenshot: function(callback) {
+      callback();
+    },
+    origin: 'http://game2.gaiamobile.org'
+  },
+  'http://game3.gaiamobile.org': {
+    launchTime: 2,
+    name: 'GAME3',
+    frame: document.createElement('div'),
+    iframe: document.createElement('iframe'),
+    manifest: {
+      orientation: 'landscape'
+    },
+    rotatingDegree: 90,
+    requestScreenshotURL: function() {
+      return null;
+    },
+    getScreenshot: function(callback) {
+      callback();
+    },
+    origin: 'http://game3.gaiamobile.org'
+  },
+  'http://game4.gaiamobile.org': {
+    launchTime: 1,
+    name: 'GAME4',
+    frame: document.createElement('div'),
+    iframe: document.createElement('iframe'),
+    manifest: {
+      orientation: 'portrait-secondary'
+    },
+    rotatingDegree: 180,
+    requestScreenshotURL: function() {
+      return null;
+    },
+    getScreenshot: function(callback) {
+      callback();
+    },
+    origin: 'http://game4.gaiamobile.org'
+  }
+};
 
 suite('cards view >', function() {
   var subject;
 
   var screenNode, realMozLockOrientation, realScreenLayout;
-  var cardsView;
+  var cardsView, cardsList;
   var originalLockScreen;
 
   mocksForCardsView.attachTestHelpers();
@@ -43,7 +134,9 @@ suite('cards view >', function() {
     cardsView = document.createElement('div');
     cardsView.id = 'cards-view';
 
-    cardsView.innerHTML = '<ul></ul>';
+    cardsList = document.createElement('ul');
+    cardsList.id = 'cards-list';
+    cardsView.appendChild(cardsList);
 
     screenNode.appendChild(cardsView);
     document.body.appendChild(screenNode);
@@ -67,88 +160,13 @@ suite('cards view >', function() {
     });
 
     setup(function() {
-      MockAppWindowManager.mRunningApps = {
-        'http://sms.gaiamobile.org': {
-          launchTime: 5,
-          name: 'SMS',
-          frame: document.createElement('div'),
-          iframe: document.createElement('iframe'),
-          manifest: {
-            orientation: 'portrait-primary'
-          },
-          rotatingDegree: 0,
-          requestScreenshotURL: function() {
-            return null;
-          },
-          getScreenshot: function(callback) {
-            callback();
-          }
-        },
-        'http://game.gaiamobile.org': {
-          launchTime: 4,
-          name: 'GAME',
-          frame: document.createElement('div'),
-          iframe: document.createElement('iframe'),
-          manifest: {
-            orientation: 'landscape-primary'
-          },
-          rotatingDegree: 90,
-          requestScreenshotURL: function() {
-            return null;
-          },
-          getScreenshot: function(callback) {
-            callback();
-          }
-        },
-        'http://game2.gaiamobile.org': {
-          launchTime: 3,
-          name: 'GAME2',
-          frame: document.createElement('div'),
-          iframe: document.createElement('iframe'),
-          manifest: {
-            orientation: 'landscape-secondary'
-          },
-          rotatingDegree: 270,
-          requestScreenshotURL: function() {
-            return null;
-          },
-          getScreenshot: function(callback) {
-            callback();
-          }
-        },
-        'http://game3.gaiamobile.org': {
-          launchTime: 2,
-          name: 'GAME3',
-          frame: document.createElement('div'),
-          iframe: document.createElement('iframe'),
-          manifest: {
-            orientation: 'landscape'
-          },
-          rotatingDegree: 90,
-          requestScreenshotURL: function() {
-            return null;
-          },
-          getScreenshot: function(callback) {
-            callback();
-          }
-        },
-        'http://game4.gaiamobile.org': {
-          launchTime: 1,
-          name: 'GAME4',
-          frame: document.createElement('div'),
-          iframe: document.createElement('iframe'),
-          manifest: {
-            orientation: 'portrait-secondary'
-          },
-          rotatingDegree: 180,
-          requestScreenshotURL: function() {
-            return null;
-          },
-          getScreenshot: function(callback) {
-            callback();
-          }
-        }
-      };
+      MockStackManager.mStack = [];
+      for (var app in apps) {
+        MockStackManager.mStack.push(apps[app]);
+      }
+      MockStackManager.mCurrent = 0;
+
+      MockAppWindowManager.mRunningApps = apps;
       MockAppWindowManager.mDisplayedApp = 'http://sms.gaiamobile.org';
     });
 
@@ -222,7 +240,16 @@ suite('cards view >', function() {
       });
 
       var testCardOrientation = function(origin, orientation) {
-        var card = cardsView.querySelector('li[data-origin="' + origin + '"]');
+        var app = StackManager.mStack.find(function(app) {
+          if (app.origin == origin) {
+            return true;
+          }
+          return false;
+        });
+
+        var ordinal = StackManager.mStack.indexOf(app);
+        var card =
+          cardsView.querySelector('li[data-position="' + ordinal + '"]');
         card.dispatchEvent(new CustomEvent('onviewport'));
         return card.querySelector('.screenshotView')
             .classList.contains(orientation);
@@ -275,6 +302,8 @@ suite('cards view >', function() {
 
   suite('empty cards view >', function() {
     setup(function(done) {
+      MockStackManager.mStack = [];
+      MockStackManager.mCurrent = -1;
       CardsView.showCardSwitcher(true);
       setTimeout(done);
     });
@@ -292,4 +321,3 @@ suite('cards view >', function() {
 });
 
 mocha.setup({ignoreLeaks: false});
-
