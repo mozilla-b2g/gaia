@@ -64,14 +64,13 @@ suite('controllers/hud', function() {
       assert.ok(this.app.on.calledWith('change:recording'));
     });
 
-    test('Should disable controls when the camera is \'busy\'', function() {
-      var disableButtons = this.hudController.disableButtons;
-      assert.ok(this.app.on.calledWith('camera:busy', disableButtons));
+    test('Should hide controls when the camera is \'busy\'', function() {
+      assert.ok(this.app.on.calledWith('camera:busy', this.hud.hide));
     });
 
-    test('Should enable controls when the camera is \'ready\'', function() {
-      var enableButtons = this.hudController.enableButtons;
-      assert.ok(this.app.on.calledWith('camera:ready', enableButtons));
+    test('Should show controls when the camera is \'ready\'', function() {
+      this.hudController.onCameraReady();
+      assert.ok(this.hud.show.called);
     });
   });
 
