@@ -47,6 +47,12 @@
         initY: -1,
         prevY: -1
       }
+    },
+    configs: {
+      degreeLandscape: '1.2deg',
+      degreePortrait: '0.5deg',
+      overDegreeLandscape: '1.4deg',
+      overDegreePortrait: '0.7deg'
     }
   };
 
@@ -343,8 +349,9 @@
         }
       }).bind(this);
       this.current.appFrame.addEventListener('transitionend', cbDone);
-      this.current.appFrame.style.transform = 'rotateX(0.8deg) ' +
-                                             'translateY(-' + y + 'px)';
+      this.current.appFrame.style.transform =
+        'rotateX(' + this._getTiltingDegree() + ') ' +
+        'translateY(-' + y + 'px)';
     }).bind(ShrinkingUI);
 
   /**
@@ -451,7 +458,8 @@
         this.current.appFrame.removeEventListener('transitionend', bounceBack);
         this.current.appFrame.addEventListener('transitionend', bounceBackEnd);
         this.current.appFrame.style.transition = 'transform 0.3s ease';
-        this.current.appFrame.style.transform = 'rotateX(0.8deg)';
+        this.current.appFrame.style.transform =
+          'rotateX(' + this._getTiltingDegree() + ') ';
       }).bind(this);
 
       var bounceBackEnd = (function on_bounceBackEnd(evt) {
@@ -466,7 +474,8 @@
 
       // After set up, trigger the transition.
       this.current.appFrame.style.transformOrigin = '50% 100% 0';
-      this.current.appFrame.style.transform = 'rotateX(1.0deg)';
+      this.current.appFrame.style.transform =
+        'rotateX(' + this._getOverTiltingDegree() + ')';
     }).bind(ShrinkingUI);
 
   /**
@@ -614,6 +623,22 @@
       this.current.wrapper = null;
       this.current.appFrame = null;
       this.current.cover = null;
+    }).bind(ShrinkingUI);
+
+  ShrinkingUI._getTiltingDegree =
+    (function su_getTiltingDegree() {
+      return 'landscape-primary' === window.OrientationManager.
+        fetchCurrentOrientation() ?
+        this.configs.degreeLandscape :
+        this.configs.degreePortrait;
+    }).bind(ShrinkingUI);
+
+  ShrinkingUI._getOverTiltingDegree =
+    (function su_getOverTiltingDegree() {
+      return 'landscape-primary' === window.OrientationManager.
+        fetchCurrentOrientation() ?
+        this.configs.overDegreeLandscape :
+        this.configs.overDegreePortrait;
     }).bind(ShrinkingUI);
 
   exports.ShrinkingUI = ShrinkingUI;
