@@ -4,16 +4,12 @@
 }
 
 .report-view > div {
-  padding: 1.5rem 1.5rem 3rem 3rem;
+  padding: 1.5rem 1.5rem 0 3rem;
   font-size: 1.8rem;
 }
 
 .report-view  p, .report-view  span {
   font-family: 'Fira Sans', sans-serif;
-}
-
-.report-view > div:first-child {
-  padding-bottom: 0;
 }
 
 .report-view .description > .type {
@@ -26,9 +22,36 @@
   font-style: italic;
 }
 
-.report-view .description > .datetime {
+.report-view .datetime,
+.report-view .received-detail {
   font-size: 1.5rem;
   color: #858585;
+}
+
+.report-view .sent-detail {
+  padding-top: 0;
+}
+
+/* Default layout (sent message) */
+.report-view .received-detail {
+  display: none;
+}
+
+.report-view .sent-detail {
+  padding-bottom: 3rem;
+}
+
+/* Layout for received message */
+.report-view.received .sent-detail {
+  display: none;
+}
+
+.report-view.received .received-detail {
+  display: block;
+}
+
+.report-view.received .description {
+  padding-bottom: 3rem;
 }
 
 .report-view .status-container {
@@ -104,7 +127,8 @@
   opacity: 0.5;
 }
 
-.report-view .size-block {
+.report-view .size-block,
+.report-view .received-detail {
   padding-top: 0;
 }
 

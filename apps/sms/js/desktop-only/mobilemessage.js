@@ -79,7 +79,8 @@
         location: 'example.jpg',
         content: testImageBlob
       }],
-      timestamp: now
+      timestamp: now,
+      sentTimestamp: now - 100000
     });
     messagesDb.messages.push({
       id: messagesDb.id++,
@@ -127,7 +128,8 @@
         location: 'example.ogv',
         content: testVideoBlob
       }],
-      timestamp: now
+      timestamp: now,
+      sentTimestamp: now - 100000
     });
     messagesDb.messages.push({
       id: messagesDb.id++,
@@ -174,7 +176,8 @@
         location: 'example.ogg',
         content: testAudioBlob
       }],
-      timestamp: now
+      timestamp: now,
+      sentTimestamp: now - 100000
     });
     messagesDb.messages.push({
       id: messagesDb.id++,
@@ -223,7 +226,8 @@
         location: 'example.bmp',
         content: testImageBlob
       }],
-      timestamp: now
+      timestamp: now,
+      sentTimestamp: now - 100000
     });
   });
 
@@ -247,7 +251,8 @@
         location: 'grid.wbmp',
         content: testImageBlob
       }],
-      timestamp: now
+      timestamp: now,
+      sentTimestamp: now - 100000
     });
   });
 
@@ -267,7 +272,8 @@
         location: 'contact.vcf',
         content: contactBlob
       }],
-      timestamp: now
+      timestamp: now,
+      sentTimestamp: now - 100000
     });
 
     messagesDb.messages.push({
@@ -289,7 +295,8 @@
         location: 'contact.vcf',
         content: contactBlob
       }],
-      timestamp: now
+      timestamp: now,
+      sentTimestamp: now - 100000
     });
   });
 
@@ -424,6 +431,7 @@
         deliveryInfo: [{deliveryStatus: 'not-applicable'}],
         delivery: 'received',
         timestamp: now,
+        sentTimestamp: now - 100000,
         subject: '',
         attachments: []
       },
@@ -496,7 +504,8 @@
         delivery: 'received',
         deliveryStatus: 'success',
         type: 'sms',
-        timestamp: now - 500000
+        timestamp: now - 500000,
+        sentTimestamp: now - 600000
       },
       {
         threadId: 4,
@@ -552,7 +561,8 @@
         delivery: 'received',
         type: 'sms',
         deliveryStatus: 'success',
-        timestamp: now - 100000
+        timestamp: now - 100000,
+        sentTimestamp: now - 200000
       },
       {
         threadId: 8,
@@ -594,6 +604,7 @@
         smil: '<smil><body><par><text src="text1"/></par></body></smil>',
         attachments: null,
         timestamp: now - 150000,
+        sentTimestamp: now - 250000,
         expiryDate: now + ONE_DAY_TIME
       },
       {
@@ -603,7 +614,8 @@
         body: '<html>',
         delivery: 'received',
         type: 'sms',
-        timestamp: now
+        timestamp: now,
+        sentTimestamp: now - 100000
       },
       {
         threadId: 11,
@@ -612,7 +624,8 @@
         body: 'Hello!',
         delivery: 'received',
         type: 'sms',
-        timestamp: now - 3600000
+        timestamp: now - 3600000,
+        sentTimestamp: now - 3700000
       }
     ],
     threads: [
@@ -721,7 +734,8 @@
       delivery: 'received',
       id: messagesDb.id++,
       type: 'sms',
-      timestamp: now - 60000000
+      timestamp: now - 60000000,
+      sentTimestamp: now - 60100000
     });
   }
 
@@ -748,7 +762,8 @@
         location: 'text1',
         content: new Blob(['hi! this is ' + sender], { type: 'text/plain' })
       }],
-      timestamp: now - first
+      timestamp: now - first,
+      sentTimestamp: now - first - 100000
     });
     first -= 60000;
   }
@@ -775,7 +790,8 @@
         location: 'text1',
         content: new Blob(['hi! this is ' + sender], { type: 'text/plain' })
       }],
-      timestamp: now - first
+      timestamp: now - first,
+      sentTimestamp: now - first - 100000
     });
     first -= 60000;
   }
@@ -802,7 +818,8 @@
          { type: 'text/plain' }
       )
     }],
-    timestamp: now
+    timestamp: now,
+    sentTimestamp: now - 100000
   });
 
 
@@ -950,6 +967,7 @@
           type: 'sms',
           read: false,
           timestamp: now,
+          sentTimestamp: now - 100000,
           threadId: thread.id
         }
       };
@@ -1075,6 +1093,7 @@
             delivery: 'received',
             id: messagesDb.id++,
             timestamp: Date.now(),
+            sentTimestamp: Date.now() - 100000,
             threadId: thread.id,
             type: 'mms',
             deliveryInfo: [{deliveryStatus: 'success'}],
