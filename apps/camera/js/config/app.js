@@ -2,7 +2,7 @@ define(function(require, exports, module) {
 'use strict';
 
 module.exports = {
-  showSettings: false,
+  showSettings: true,
   mode: {
     title: 'Mode',
     options: [
@@ -70,14 +70,14 @@ module.exports = {
       // NOTE: Disabled due to Helix crashing
       // when trying to record at these resolutions.
 
-      // {
-      //   key: '720p',
-      //   title: '720p 1040X720'
-      // },
-      // {
-      //   key: '480p',
-      //   title: '480p 720X480'
-      // },
+      {
+        key: '720p',
+        title: '720p 1280X720'
+      },
+      {
+        key: '480p',
+        title: '480p 720X480'
+      },
       {
         key: 'cif',
         title: 'CIF 352X288'
