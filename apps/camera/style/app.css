@@ -31,8 +31,3 @@ ul { list-style: none; }
 .deg90 .rotates { transform: rotate(-90deg); }
 .deg180 .rotates { transform: rotate(-180deg); }
 .deg270 .rotates { transform: rotate(-270deg); }
-
-/** Hidden
- ---------------------------------------------------------*/
-
-.hidden { display: none; }

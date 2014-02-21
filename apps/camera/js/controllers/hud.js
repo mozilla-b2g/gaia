@@ -58,8 +58,10 @@ HudController.prototype.bindEvents = function() {
   this.hud.on('click:flash', this.onFlashClick);
   this.app.on('settings:configured', this.onSettingsConfigured);
   this.app.on('change:recording', this.onRecordingChange);
-  this.app.on('camera:busy', this.disableButtons);
-  this.app.on('camera:ready', this.enableButtons);
+  this.app.on('camera:ready', this.onCameraReady);
+  this.app.on('camera:busy', this.hud.hide);
+  this.app.on('timer:started', this.hud.hide);
+  this.app.on('timer:cleared', this.hud.show);
 };
 
 HudController.prototype.onSettingsConfigured = function() {
@@ -83,14 +85,23 @@ HudController.prototype.updateFlash = function() {
   this.hud.setFlashMode(selected);
 };
 
-HudController.prototype.enableButtons = function() {
-  this.hud.enable('buttons');
+
+HudController.prototype.onCameraReady = function() {
+  // If the camera is ready but we are recording we don't show
+  var recording = this.app.get('recording');
+  if (recording) {
+    return;
+  }
+  this.hud.show();
 };
 
-HudController.prototype.disableButtons = function() {
-  this.hud.disable('buttons');
-};
-
+/**
+ * Toggles the visibility of the view
+ * depending on recording state.
+ *
+ * @param  {Boolean} recording
+ * @private
+ */
 HudController.prototype.onRecordingChange = function(recording) {
   this.hud.toggle(!recording);
 };

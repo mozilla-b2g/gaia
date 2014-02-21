@@ -34,15 +34,18 @@ function ControlsController(app) {
 ControlsController.prototype.bindEvents = function() {
   this.app.settings.on('change:mode', this.controls.setter('mode'));
   this.app.on('newthumbnail', this.onNewThumbnail);
-  this.app.on('camera:ready', this.enableButtons);
-  this.app.on('camera:busy', this.disableButtons);
-  this.app.on('camera:loading', this.disableButtons);
+  this.app.on('camera:ready', this.controls.enable);
+  this.app.on('camera:busy', this.controls.disable);
+  this.app.on('camera:loading', this.controls.disable);
   this.app.on('change:recording', this.controls.setter('recording'));
   this.app.on('camera:timeupdate', this.controls.setVideoTimer);
   this.controls.on('click:capture', this.app.firer('capture'));
   this.controls.on('click:gallery', this.onGalleryButtonClick);
   this.controls.on('click:switch', this.app.settings.mode.next);
   this.controls.on('click:cancel', this.onCancelButtonClick);
+  this.app.on('timer:started', this.controls.disable);
+  this.app.on('timer:cleared', this.controls.enable);
+  this.app.on('timer:ended', this.controls.enable);
   debug('events bound');
 };
 
@@ -67,19 +70,21 @@ ControlsController.prototype.configure = function() {
   debug('mode: %s', initialMode);
 };
 
-ControlsController.prototype.disableButtons = function() {
-  this.controls.disable('buttons');
-};
-
-ControlsController.prototype.enableButtons = function() {
-  this.controls.enable('buttons');
-};
-
 /**
   When new thumbnail is available it is displated in the gallery button
 */
 ControlsController.prototype.onNewThumbnail = function(thumbnailBlob) {
   this.controls.setThumbnail(thumbnailBlob);
+};
+
+ControlsController.prototype.onTimerStarted = function(image) {
+  this.controls.set('capture-active', true);
+  this.disableButtons();
+};
+
+ControlsController.prototype.onTimerEnd = function(image) {
+  this.controls.set('capture-active', false);
+  this.enableButtons();
 };
 
 /**
@@ -91,16 +96,17 @@ ControlsController.prototype.onNewThumbnail = function(thumbnailBlob) {
  * navigate back to the app
  * that initiated the activity.
  *
+ * @private
  */
 ControlsController.prototype.onCancelButtonClick = function() {
   this.activity.cancel();
 };
 
 /**
- * Open the gallery app
- * when the gallery button
- * is pressed.
+ * Open the gallery app when the
+ * gallery button is pressed.
  *
+ * @private
  */
 ControlsController.prototype.onGalleryButtonClick = function(event) {
   event.stopPropagation();

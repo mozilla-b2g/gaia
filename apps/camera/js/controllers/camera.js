@@ -69,7 +69,8 @@ CameraController.prototype.bindEvents = function() {
   // App
   app.on('boot', this.camera.load);
   app.on('focus', this.camera.load);
-  app.on('capture', this.onCapture);
+  app.on('capture', this.capture);
+  app.on('timer:ended', this.capture);
   app.on('blur', this.onBlur);
   app.on('settings:configured', this.onSettingsConfigured);
   settings.pictureSizes.on('change:selected', this.onPictureSizeChange);
@@ -133,10 +134,40 @@ CameraController.prototype.onSettingsConfigured = function() {
   this.storage.setMaxFileSize(maxFileSize);
 };
 
-
-CameraController.prototype.onCapture = function() {
+/**
+ * Begins capture, first checking if
+ * a countdown timer should be installed.
+ *
+ * @return {[type]} [description]
+ */
+ CameraController.prototype.capture = function() {
+  if (this.shouldCountdown()) { return; }
   var position = this.app.geolocation.position;
   this.camera.capture({ position: position });
+};
+
+/**
+ * Fires a 'startcountdown' event if:
+ * A timer settings is set, no timer is
+ * already active, and the camera is
+ * not currently recording.
+ *
+ * This event triggers the TimerController
+ * to begin counting down, using the TimerView
+ * to communicate the remaining seconds.
+ *
+ * @private
+ */
+CameraController.prototype.shouldCountdown = function() {
+  var timerSet = this.settings.timer.selected('value');
+  var timerActive = this.app.get('timerActive');
+  var recording = this.app.get('recording');
+  var shouldCountdown = timerSet && !timerActive && !recording;
+  debug('should countdown: %s', shouldCountdown);
+  if (shouldCountdown) {
+    this.app.emit('startcountdown');
+    return true;
+  }
 };
 
 CameraController.prototype.onNewImage = function(image) {

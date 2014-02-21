@@ -72,13 +72,14 @@ suite('app', function() {
       config: new Config(),
       views: {
         viewfinder: new View({ name: 'viewfinder' }),
-        focusRing: new View({ name: 'focusring' }),
+        focusRing: new View({ name: 'focus-ring' }),
         controls: new View({ name: 'controls' }),
         hud: new View({ name: 'hud' })
       },
       filmstrip: sinon.spy(),
       controllers: {
         hud: sinon.spy(),
+        timer: sinon.spy(),
         controls: sinon.spy(),
         viewfinder: sinon.spy(),
         overlay: sinon.spy(),
