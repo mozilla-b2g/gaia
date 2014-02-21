@@ -42,7 +42,7 @@ module.exports = {
       //   key: '2048x1536'
       // }
     ],
-    persistent: true,
+    // persistent: true,
     menu: 4
   },
 

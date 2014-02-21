@@ -40,6 +40,7 @@ HudController.prototype.configure = function() {
   var camerasSetting = this.app.settings.cameras;
   var hasDualCamera = camerasSetting.get('options').length > 1;
   this.hud.enable('settings', this.app.settings.showSettings.value());
+  this.hud.set('flashMode', this.getFlashSetting().value());
   this.hud.enable('camera', hasDualCamera);
 };
 

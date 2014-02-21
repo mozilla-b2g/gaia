@@ -119,6 +119,8 @@ SettingsController.prototype.toggleSettings = function() {
  * @param  {Object} capabilities
  */
 SettingsController.prototype.onCapabilitiesChange = function(capabilities) {
+  capabilities.pictureFlashModes = capabilities.flashModes;
+  capabilities.videoFlashModes = capabilities.flashModes;
   this.app.settings.options(capabilities);
   this.app.emit('settings:configured');
 };

@@ -21,6 +21,10 @@ var lastTouchA = null;
 var lastTouchB = null;
 var isScaling = false;
 var scale = 1.0;
+var scaleSizeTo = {
+  fill: CameraUtils.scaleSizeToFillViewport,
+  fit: CameraUtils.scaleSizeToFitViewport
+};
 
 var getNewTouchA = function(touches) {
   if (!lastTouchA) return null;
@@ -53,12 +57,13 @@ var getDeltaScale = function(touchA, touchB) {
 
 return View.extend({
   name: 'viewfinder',
-  tag: 'video',
   className: 'js-viewfinder',
   fadeTime: 200,
   initialize: function() {
+    this.els.video = document.createElement('video');
     bind(this.el, 'click', this.onClick);
-    this.el.autoplay = true;
+    this.els.video.autoplay = true;
+    this.el.appendChild(this.els.video);
   },
 
   onClick: function() {
@@ -102,11 +107,11 @@ return View.extend({
   setScale: function(scale) {
     scale = Math.min(Math.max(scale, MIN_VIEWFINDER_SCALE),
                      MAX_VIEWFINDER_SCALE);
-    this.el.style.transform = 'scale(' + scale + ', ' + scale + ')';
+    this.els.video.style.transform = 'scale(' + scale + ', ' + scale + ')';
   },
 
   setPreviewStream: function(previewStream) {
-    this.el.mozSrcObject = previewStream;
+    this.els.video.mozSrcObject = previewStream;
   },
 
   setStream: function(stream, done) {
@@ -115,11 +120,11 @@ return View.extend({
   },
 
   startPreview: function() {
-    this.el.play();
+    this.els.video.play();
   },
 
   stopPreview: function() {
-    this.el.pause();
+    this.els.video.pause();
   },
 
   fadeOut: function(done) {
@@ -138,41 +143,32 @@ return View.extend({
     }
   },
 
-  updatePreview: function(previewSize, mirrored) {
-    debug('update preview, mirrored: %s', mirrored);
-    // Use the device-independent viewport size for transforming the
-    // preview using CSS
-    var deviceIndependentViewportSize = {
-      width: document.body.clientHeight,
-      height: document.body.clientWidth
+  updatePreview: function(preview, mirrored) {
+    var container = {
+      width: this.el.clientHeight,
+      height: this.el.clientWidth
     };
 
-    // Scale the optimal preview size to fill the viewport (will
-    // overflow if necessary)
-    var scaledPreviewSize = CameraUtils.scaleSizeToFillViewport(
-                              deviceIndependentViewportSize,
-                              previewSize);
+    var aspects = {
+      container: container.width / container.height,
+      preview: preview.width / preview.height,
+      standard: 4 / 3
+    };
 
-    this.el.style.width = scaledPreviewSize.width + 'px';
-    this.el.style.height = scaledPreviewSize.height + 'px';
+    var aspectFill = aspects.preview > aspects.container;
+    var scaleType = aspectFill ? 'fill' : 'fit';
+    var scaled = scaleSizeTo[scaleType](container, preview);
+    var centered = aspects.preview < aspects.standard;
+    var yOffset = aspectFill || centered ?
+      (container.width - scaled.width) / 2 : 0;
 
-    // Rotate the preview image 90 degrees
-    var transform = 'rotate(90deg)';
+    this.els.video.style.width = scaled.width + 'px';
+    this.els.video.style.height = scaled.height + 'px';
+    this.els.video.style.top = yOffset + 'px';
+    this.els.video.classList.toggle('reversed', mirrored);
 
-    if (mirrored) {
-      // backwards-facing camera
-      transform += ' scale(-1, 1)';
-    }
-
-    this.el.style.transform = transform;
-
-    var offsetX = (deviceIndependentViewportSize.height -
-                   scaledPreviewSize.width) / 2;
-    var offsetY = (deviceIndependentViewportSize.width -
-                   scaledPreviewSize.height) / 2;
-
-    this.el.style.left = offsetX + 'px';
-    this.el.style.top = offsetY + 'px';
+    debug('update preview, mirrored: %s, scale: %s, yOffset: %s',
+      mirrored, scaleType, yOffset);
   }
 });
 
