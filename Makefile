@@ -85,7 +85,7 @@ DOGFOOD?=0
 # none - Do not enable rocketbar
 # half - Rocketbar is enabled, and so is browser app
 # full - Rocketbar is enabled, no browser app
-ROCKETBAR?=half
+ROCKETBAR?=none
 TEST_AGENT_PORT?=8789
 GAIA_APP_TARGET?=engineering
 
