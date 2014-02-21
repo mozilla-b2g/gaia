@@ -1,0 +1,112 @@
+.fullscreenmsg{
+	position: absolute;
+	top: 0;
+	left: 0;
+	z-index: 80;
+	width: 100%;
+	height: 100%;
+	background-color: #000000; 
+	color: #F0F0F0;
+	opacity: 0.8;
+	transition: 2s ease-in-out;
+}
+
+.fullscreenmsg .msgTitle{
+	position: relative;
+	top:20%;
+	text-align: left;
+	padding: .2rem;
+	border-bottom: .2rem solid #BFBFBF;
+	font-size: 2.5rem;
+	font-weight: bold;
+}
+
+.fullscreenmsg .message{
+	position: relative;
+	top:20%;
+	font-size: 2rem;
+}
+
+.bottomToastmsg{
+	position: absolute;
+	bottom:15%;
+ 	left: 20%;
+	z-index: 80;
+	background-color: transparent;
+	width: 60%;
+	height: auto;
+	text-align: center;
+	font-size: 2rem;
+	color: #FFFFFF;
+	transition: 2s ease-in-out;
+}
+
+
+.toastmessage{
+	position: absolute;
+	bottom:20%;
+ 	left: 20%;
+	z-index: 80;
+	background-color: #4D4D4D;
+	width: 70%;
+	height: auto;
+	text-align: center;
+	font-size: 2rem;
+	color: #F0F0F0;
+	transition: 2s ease-in-out;
+}
+.blinkToast{
+	position: absolute;
+	bottom:20%;
+ 	left: 20%;
+	z-index: 80;
+	background-color: transparent;
+	width: 60%;
+	height: auto;
+	text-align: center;
+	font-size: 2rem;
+	color: #FFFFFF;
+	opacity:1;
+	transition:opacity 2s ease-in-out;
+	animation-name: cf3FadeInOut;
+	animation-timing-function: ease-in-out;
+	animation-iteration-count: infinite;
+	animation-duration: 3s;
+	animation-direction: alternate;
+}
+
+@keyframes cf3FadeInOut {
+  0% {
+  opacity:1;
+}
+45% {
+opacity:1;
+}
+55% {
+opacity:0;
+}
+100% {
+opacity:0;
+}
+}
+
+
+
+#messageDiv[data-orientation="90"] {
+left:50%;
+bottom: 45%;
+transform:rotate(270deg);
+}
+
+
+#messageDiv[data-orientation="270"] {
+left:-5%;
+bottom: 45%;
+transform:rotate(90deg);
+}
+
+.lowbattery{
+ width:5rem;
+ height: 4rem;	
+}
+

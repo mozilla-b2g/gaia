@@ -9,6 +9,7 @@ var performanceTesting = require('performanceTesting');
 var ViewfinderView = require('views/viewfinder');
 var ControlsView = require('views/controls');
 var FocusRing = require('views/focus-ring');
+var indicatorView = require('views/indicator');
 var lockscreen = require('lib/lock-screen');
 var constants = require('config/camera');
 var broadcast = require('lib/broadcast');
@@ -100,6 +101,7 @@ App.prototype.teardown = function() {
 App.prototype.runControllers = function() {
   debug('running controllers');
   this.filmstrip = this.filmstrip(this);
+  this.controllers.lowbattery(this);
   this.controllers.settings(this);
   this.controllers.activity(this);
   this.controllers.camera(this);
@@ -117,6 +119,7 @@ App.prototype.initializeViews = function() {
   this.views.controls = new ControlsView();
   this.views.focusRing = new FocusRing();
   this.views.hud = new HudView();
+  this.views.indicator = new indicatorView();
   debug('views initialized');
 };
 
@@ -125,6 +128,7 @@ App.prototype.injectViews = function() {
   this.views.controls.appendTo(this.el);
   this.views.viewfinder.appendTo(this.el);
   this.views.focusRing.appendTo(this.el);
+  this.views.indicator.appendTo(this.el);
   debug('views injected');
 };
 
@@ -198,6 +202,7 @@ App.prototype.geolocationWatch = function() {
     debug('geolocation watched');
   }
 };
+
 
 /**
  * Responds to the `visibilitychange`
