@@ -410,7 +410,7 @@ endef
 
 # Generate profile/
 
-$(PROFILE_FOLDER): preferences app-makefiles shared-makefiles copy-build-stage-manifest test-agent-config offline contacts extensions install-xulrunner-sdk .git/hooks/pre-commit $(PROFILE_FOLDER)/settings.json create-default-data $(PROFILE_FOLDER)/installed-extensions.json
+$(PROFILE_FOLDER): preferences app-makefiles keyboard-layouts copy-build-stage-manifest test-agent-config offline contacts extensions install-xulrunner-sdk .git/hooks/pre-commit $(PROFILE_FOLDER)/settings.json create-default-data $(PROFILE_FOLDER)/installed-extensions.json
 ifeq ($(BUILD_APP_NAME),*)
 	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)$(PROFILE_FOLDER)"
 endif
@@ -429,7 +429,7 @@ LANG=POSIX # Avoiding sort order differences between OSes
 # - build_stage/APPNAME/gaia_shared.json: This file lists shared resource
 #   dependencies that build/webapp-zip.js's detection logic might not determine
 #   because of lazy loading, etc.
-app-makefiles: svoperapps webapp-manifests shared-makefiles install-xulrunner-sdk
+app-makefiles: svoperapps webapp-manifests keyboard-layouts install-xulrunner-sdk
 	@for d in ${GAIA_APPDIRS}; \
 	do \
 		if [[ ("$$d" =~ "${BUILD_APP_NAME}") || (${BUILD_APP_NAME} == "*") ]]; then \
@@ -455,7 +455,7 @@ webapp-manifests: install-xulrunner-sdk
 
 .PHONY: webapp-zip
 # Generate $(PROFILE_FOLDER)/webapps/APP/application.zip
-webapp-zip: webapp-optimize app-makefiles shared-makefiles install-xulrunner-sdk
+webapp-zip: webapp-optimize app-makefiles keyboard-layouts install-xulrunner-sdk
 ifneq ($(DEBUG),1)
 	@mkdir -p $(PROFILE_FOLDER)/webapps
 	@$(call run-js-command, webapp-zip)
@@ -475,10 +475,10 @@ webapp-optimize: app-makefiles install-xulrunner-sdk
 optimize-clean: webapp-zip install-xulrunner-sdk
 	@$(call run-js-command, optimize-clean)
 
-.PHONY: shared-makefiles
+.PHONY: keyboard-layouts
 # A separate step for shared/ folder to generate its content in build time
-shared-makefiles: install-xulrunner-sdk
-	@$(call run-js-command, shared-makefiles)
+ keyboard-layouts: webapp-manifests install-xulrunner-sdk
+	@$(call run-js-command, keyboard-layouts)
 
 # Get additional extensions
 $(PROFILE_FOLDER)/installed-extensions.json: build/config/additional-extensions.json $(wildcard .build/config/custom-extensions.json)
@@ -985,7 +985,7 @@ purge:
 	$(ADB) shell rm -r $(MSYS_FIX)/system/b2g/webapps
 	$(ADB) shell 'if test -d $(MSYS_FIX)/persist/svoperapps; then rm -r $(MSYS_FIX)/persist/svoperapps; fi'
 
-$(PROFILE_FOLDER)/settings.json: profile-dir install-xulrunner-sdk
+$(PROFILE_FOLDER)/settings.json: profile-dir keyboard-layouts install-xulrunner-sdk
 ifeq ($(BUILD_APP_NAME),*)
 	@$(call run-js-command, settings)
 endif

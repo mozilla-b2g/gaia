@@ -9,29 +9,29 @@ var utils = require('./utils');
 // To get the manifestURL of an app from webapps collection.
 // Note: right now directory is used only for logging the directory info.
 // For now, we would not allow multiple apps with the same appName.
-function getManifestURL(webapps, directory, appName) {
-  if (!webapps[appName]) {
+function getManifestURL(webappsMapping, appName) {
+  if (!webappsMapping[appName]) {
     throw new Error(
-      'Can not find application ' + appName + ' at ' + directory
+      'Can not find application ' + appName + 'in webappsMapping'
     );
   }
 
-  return webapps[appName].webappsJson.manifestURL;
+  return webappsMapping[appName].manifestURL;
 }
 
 // Helper function to return a layout entry which represents a layout
 // in the keyboard_layouts.json.
-function getLayoutEntry(layout, webapps) {
+function getLayoutEntry(layout, webappsMapping) {
   return {
     layoutId: layout.layoutId,
-    appManifestURL: getManifestURL(webapps, layout.app[0], layout.app[1])
+    appManifestURL: getManifestURL(webappsMapping, layout.app[1])
   };
 }
 
 // Generate the default layout mapping from language-> keyboard layouts
 // config:  the build config
-// webapps: all the webapps
-function genDefaultLayouts(config, webapps) {
+// webappsMapping: all the webapps mapping
+function genDefaultLayouts(config, webappsMapping) {
   let layoutDefFile = utils.resolve(config.KEYBOARD_LAYOUTS_PATH,
     config.GAIA_DIR);
 
@@ -50,18 +50,17 @@ function genDefaultLayouts(config, webapps) {
   let mapping = defaultKeyboards.layout;
 
   function parseLayout(layout) {
-      result.layout[key].push(getLayoutEntry(layout, webapps));
+    return getLayoutEntry(layout, webappsMapping);
   }
 
   for (var key in mapping) {
-    result.layout[key] = [];
-    mapping[key].forEach(parseLayout);
+    result.layout[key] = mapping[key].map(parseLayout);
   }
 
   // handle language-independent layouts
   let langIndLayouts = defaultKeyboards.langIndependentLayouts;
   langIndLayouts.forEach(function parseLayout(layout) {
-    result.langIndependentLayouts.push(getLayoutEntry(layout, webapps));
+    result.langIndependentLayouts.push(getLayoutEntry(layout, webappsMapping));
   });
 
   // Write the result to file
@@ -71,4 +70,24 @@ function genDefaultLayouts(config, webapps) {
   utils.writeContent(resultFile, JSON.stringify(result));
 }
 
+function execute(options) {
+  // Get web apps mapping file
+  let stageFolder = utils.getEnv('STAGE_FOLDER');
+  let webappsMappingFile = utils.resolve(
+    utils.joinPath(stageFolder, 'webapps-mapping.json'),
+    options.GAIA_DIR);
+
+  if (!webappsMappingFile.exists()) {
+    throw new Error('webapps mapping file not found, you should use' +
+      ' webapp-manifests.js to create it first, path: ' +
+      webappsMappingFile.path);
+  }
+
+  let webappsMapping = utils.getJSON(webappsMappingFile);
+  utils.log(JSON.stringify(webappsMapping));
+
+  genDefaultLayouts(options, webappsMapping);
+}
+
+exports.execute = execute;
 exports.genDefaultLayouts = genDefaultLayouts;
