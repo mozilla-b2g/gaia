@@ -3985,7 +3985,8 @@ suite('thread_ui.js >', function() {
     });
 
     test('Deletes draft if there was a draft', function() {
-      spy = this.sinon.spy(Drafts, 'delete');
+      this.sinon.spy(Drafts, 'delete');
+      this.sinon.spy(Drafts, 'store');
 
       ThreadUI.draft = {id: 3};
       ThreadUI.recipients.add({
@@ -3995,7 +3996,10 @@ suite('thread_ui.js >', function() {
 
       ThreadUI.onSendClick();
 
-      assert.isTrue(spy.calledOnce);
+      sinon.assert.calledOnce(Drafts.delete);
+      sinon.assert.calledOnce(Drafts.store);
+      sinon.assert.callOrder(Drafts.delete, Drafts.store);
+
       assert.isNull(ThreadUI.draft);
     });
 
