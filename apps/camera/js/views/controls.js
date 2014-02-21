@@ -7,9 +7,8 @@ define(function(require, exports, module) {
 
 var formatTimer = require('lib/format-timer');
 var debug = require('debug')('view:controls');
-var attach = require('vendor/attach');
 var View = require('vendor/view');
-var find = require('lib/find');
+var bind = require('lib/bind');
 
 /**
  * Exports
@@ -25,8 +24,14 @@ module.exports = View.extend({
 
   render: function() {
     this.el.innerHTML = this.template();
-    attach.on(this.el, 'click', '.js-btn', this.onButtonTap);
-    this.els.timer = find('.js-video-timer', this.el);
+    this.els.timer = this.find('.js-video-timer');
+    this.els.cancel = this.find('.js-cancel-pick');
+    this.els.capture = this.find('.js-capture');
+    this.els.switch = this.find('.js-switch');
+    bind(this.els.timer, 'click', this.onButtonTap);
+    bind(this.els.switch, 'click', this.onButtonTap);
+    bind(this.els.capture, 'click', this.onButtonTap);
+    bind(this.els.cancel, 'click', this.onButtonTap);
     debug('rendered');
   },
 
@@ -42,17 +47,17 @@ module.exports = View.extend({
 
   template: function() {
     return '' +
-    '<a class="switch-button test-switch js-btn" name="switch">' +
+    '<a class="switch-button test-switch" name="switch">' +
       '<span class="icon rotates"></span>' +
     '</a>' +
-    '<a class="capture-button test-capture js-btn" name="capture">' +
+    '<a class="capture-button test-capture js-capture" name="capture">' +
       '<span class="icon rotates"></span>' +
     '</a>' +
     '<div class="misc-button">' +
-      '<a class="gallery-button test-gallery js-btn" name="gallery">' +
+      '<a class="gallery-button test-gallery js-gallery" name="gallery">' +
         '<span class="icon-gallery rotates"></span>' +
       '</a>' +
-      '<a class="cancel-pick test-cancel-pick js-btn" name="cancel">' +
+      '<a class="cancel-pick test-cancel-pick js-cancel-pick" name="cancel">' +
         '<span></span>' +
       '</a>' +
       '<span class="video-timer test-video-timer js-video-timer">00:00</span>' +

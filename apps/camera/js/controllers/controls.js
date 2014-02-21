@@ -33,16 +33,24 @@ function ControlsController(app) {
 
 ControlsController.prototype.bindEvents = function() {
   this.app.settings.on('change:mode', this.controls.setter('mode'));
+
   this.app.on('newimage', this.onNewMedia);
   this.app.on('newvideo', this.onNewMedia);
-  this.app.on('camera:ready', this.enableButtons);
-  this.app.on('camera:busy', this.disableButtons);
   this.app.on('change:recording', this.controls.setter('recording'));
   this.app.on('camera:timeupdate', this.controls.setVideoTimer);
+
   this.controls.on('tap:capture', this.app.firer('capture'));
   this.controls.on('tap:gallery', this.onGalleryButtonClick);
   this.controls.on('tap:switch', this.app.settings.mode.next);
   this.controls.on('tap:cancel', this.onCancelButtonClick);
+
+  this.app.on('camera:loading', this.disableButtons);
+  this.app.on('camera:ready', this.enableButtons);
+  this.app.on('camera:busy', this.disableButtons);
+  this.app.on('timer:clear', this.enableButtons);
+  this.app.on('timer:end', this.enableButtons);
+  this.app.on('timer:start', this.disableButtons);
+
   debug('events bound');
 };
 
@@ -56,23 +64,32 @@ ControlsController.prototype.configure = function() {
   // or the application is in 'secure mode'.
   var showGallery = !this.app.activity.active && !this.app.inSecureMode;
 
-  this.controls.set('gallery', showGallery);
-  this.controls.set('cancel', isCancellable);
   this.controls.set('switchable', isSwitchable);
+  this.controls.set('cancel', isCancellable);
+  this.controls.set('gallery', showGallery);
   this.controls.set('mode', initialMode);
 };
 
 ControlsController.prototype.disableButtons = function() {
   this.controls.disable('buttons');
+  debug('buttons disabled');
 };
 
 ControlsController.prototype.enableButtons = function() {
-  this.controls.enable('buttons');
+  var self = this;
+  setTimeout(function() {
+    self.controls.enable('buttons');
+    debug('buttons enabled!!!!');
+  });
 };
 
 /**
-  When a new image is available it displays the thumbnail on the gallery button
-*/
+ * When a new image is available
+ * it displays the thumbnail on
+ * the gallery button.
+ *
+ * @param  {Object} image
+ */
 ControlsController.prototype.onNewMedia = function(image) {
   this.controls.setThumbnail(image.thumbnail);
 };
@@ -86,16 +103,17 @@ ControlsController.prototype.onNewMedia = function(image) {
  * navigate back to the app
  * that initiated the activity.
  *
+ * @private
  */
 ControlsController.prototype.onCancelButtonClick = function() {
   this.activity.cancel();
 };
 
 /**
- * Open the gallery app
- * when the gallery button
- * is pressed.
+ * Open the gallery app when the
+ * gallery button is pressed.
  *
+ * @private
  */
 ControlsController.prototype.onGalleryButtonClick = function(event) {
   var MozActivity = window.MozActivity;

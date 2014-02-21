@@ -58,8 +58,10 @@ HudController.prototype.bindEvents = function() {
   this.hud.on('click:flash', this.onFlashClick);
   this.app.on('settings:configured', this.onSettingsConfigured);
   this.app.on('change:recording', this.onRecordingChange);
-  this.app.on('camera:busy', this.disableButtons);
-  this.app.on('camera:ready', this.enableButtons);
+  this.app.on('camera:ready', this.hud.show);
+  this.app.on('camera:busy', this.hud.hide);
+  this.app.on('timer:start', this.hud.hide);
+  this.app.on('timer:clear', this.hud.show);
 };
 
 HudController.prototype.onSettingsConfigured = function() {
@@ -82,17 +84,8 @@ HudController.prototype.updateFlash = function() {
   this.hud.setFlashMode(selected);
 };
 
-HudController.prototype.enableButtons = function() {
-  this.hud.enable('buttons');
-};
-
-HudController.prototype.disableButtons = function() {
-  this.hud.disable('buttons');
-};
-
 HudController.prototype.onRecordingChange = function(recording) {
-  this.hud.hide('flash', recording);
-  this.hud.hide('camera', recording);
+  this.hud.toggle(!recording);
 };
 
 });

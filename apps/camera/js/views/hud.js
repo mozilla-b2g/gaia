@@ -70,8 +70,20 @@ module.exports = View.extend({
     this.emit('click:settings');
   },
 
-  hide: function(key, value) {
-    this.set(key + '-hidden', value);
+  hide: function(key) {
+    key = key ? key + '-' : '';
+    this.el.classList.add(key + 'hidden');
+  },
+
+  show: function(key) {
+    key = key ? key + '-' : '';
+    this.el.classList.remove(key + 'hidden');
+  },
+
+  toggle: function(key, value) {
+    key = key ? key + '-' : '';
+    key = arguments.length === 1 && typeof key === 'boolean' ? '' : key;
+    this.el.classList.toggle(key + 'hidden', !value);
   },
 
   template: function() {
