@@ -20,8 +20,13 @@ suite('system/AppModalDialog', function() {
 
     stubById = this.sinon.stub(document, 'getElementById');
     var e = document.createElement('div');
+
     stubQuerySelector = this.sinon.stub(e, 'querySelector');
-    stubQuerySelector.returns(document.createElement('div'));
+    var parent = document.createElement('div');
+    var child = document.createElement('div');
+    parent.appendChild(child);
+    stubQuerySelector.returns(child);
+
     stubById.returns(e);
     requireApp('system/js/system.js');
     requireApp('system/js/base_ui.js');
@@ -68,6 +73,17 @@ suite('system/AppModalDialog', function() {
     }
   };
 
+  var fakeCustomPromptEvent = {
+    type: 'mozbrowsermodalprompt',
+    preventDefault: function() {},
+    detail: {
+      type: 'custom-prompt',
+      unblock: function() {},
+      buttons: [{'messageType': 'custom', 'message': 'Resend'},
+                {'messageType': 'builtin', 'message': 'cancel'}]
+    }
+  };
+
   test('New', function() {
     var app1 = new AppWindow(fakeAppConfig1);
     var md1 = new AppModalDialog(app1);
@@ -99,6 +115,15 @@ suite('system/AppModalDialog', function() {
 
     assert.isTrue(md1.element.classList.contains('visible'));
     assert.isTrue(md1.elements.prompt.classList.contains('visible'));
+  });
+
+  test('CustomPrompt', function() {
+    var app1 = new AppWindow(fakeAppConfig1);
+    var md1 = new AppModalDialog(app1);
+    md1.handleEvent(fakeCustomPromptEvent);
+
+    assert.isTrue(md1.element.classList.contains('visible'));
+    assert.isTrue(md1.elements.customPrompt.classList.contains('visible'));
   });
 
 });

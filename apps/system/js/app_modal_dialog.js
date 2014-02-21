@@ -68,7 +68,10 @@
       'prompt', 'prompt-ok', 'prompt-cancel', 'prompt-input', 'prompt-message',
       'confirm', 'confirm-ok', 'confirm-cancel', 'confirm-message',
       'select-one', 'select-one-cancel', 'select-one-menu', 'select-one-title',
-      'alert-title', 'confirm-title', 'prompt-title'];
+      'alert-title', 'confirm-title', 'prompt-title',
+      'custom-prompt', 'custom-prompt-message', 'custom-prompt-buttons',
+      'custom-prompt-checkbox'];
+
 
     // Loop and add element with camel style name to Modal Dialog attribute.
     this.elementClasses.forEach(function createElementRef(name) {
@@ -171,6 +174,20 @@
               'data-l10n-id="cancel">Cancel</button>' +
             '</menu>' +
           '</form>' +
+          '<form class="modal-dialog-custom-prompt generic-dialog" ' +
+            'role="dialog" ' +
+            'tabindex="-1">' +
+            '<div class="modal-dialog-message-container inner">' +
+              '<h3 class="modal-dialog-custom-prompt-title"></h3>' +
+              '<p class="modal-dialog-custom-prompt-message"></p>' +
+              '<label class="pack-checkbox">' +
+                '<input class="modal-dialog-custom-prompt-checkbox" ' +
+                'type="checkbox"/>' +
+                '<span></span>' +
+              '</label>' +
+            '</div>' +
+            '<menu class="modal-dialog-custom-prompt-buttons"></menu>' +
+          '</form>' +
         '</div>';
   };
 
@@ -246,6 +263,51 @@
         elements.selectOne.classList.add('visible');
         elements.selectOne.focus();
         break;
+
+      case 'custom-prompt':
+        var customPrompt = evt.detail;
+        elements.customPrompt.classList.add('visible');
+        elements.customPromptMessage.innerHTML = customPrompt.message;
+        // Display custom list of buttons
+        elements.customPromptButtons.innerHTML = '';
+        elements.customPromptButtons.setAttribute('data-items',
+                                                  customPrompt.buttons.length);
+        var domElement = null;
+        for (var i = customPrompt.buttons.length - 1; i >= 0; i--) {
+          var button = customPrompt.buttons[i];
+          domElement = document.createElement('button');
+          domElement.dataset.buttonIndex = i;
+          if (button.messageType === 'builtin') {
+            domElement.textContent = navigator.mozL10n.get(button.message);
+          } else if (button.messageType === 'custom') {
+            // For custom button, we assume that the text is already translated
+            domElement.textContent = button.message;
+          } else {
+            console.error('Unexpected button type : ' + button.messageType);
+            continue;
+          }
+          domElement.addEventListener('click', this.confirmHandler.bind(this));
+          elements.customPromptButtons.appendChild(domElement);
+        }
+        domElement.classList.add('affirmative');
+
+        // Eventualy display a checkbox:
+        var checkbox = elements.customPromptCheckbox;
+        if (customPrompt.showCheckbox) {
+          if (customPrompt.checkboxCheckedByDefault) {
+            checkbox.setAttribute('checked', 'true');
+          } else {
+            checkbox.removeAttribute('checked');
+          }
+          // We assume that checkbox custom message is already translated
+          checkbox.nextElementSibling.textContent =
+            customPrompt.checkboxMessage;
+        } else {
+          checkbox.parentNode.classList.add('hidden');
+        }
+
+        elements.customPrompt.focus();
+        break;
     }
 
     this.app.browser.element.setAttribute('aria-hidden', true);
@@ -295,6 +357,16 @@
         case 'confirm':
           evt.detail.returnValue = true;
           elements.confirm.classList.remove('visible');
+          break;
+
+        case 'custom-prompt':
+          var returnValue = {
+            selectedButton: clickEvt.target.dataset.buttonIndex
+          };
+          if (evt.detail.showCheckbox)
+            returnValue.checked = elements.customPromptCheckbox.checked;
+          evt.detail.returnValue = returnValue;
+          elements.customPrompt.classList.remove('visible');
           break;
       }
 
