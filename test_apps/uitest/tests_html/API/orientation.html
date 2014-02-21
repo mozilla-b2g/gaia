@@ -5,26 +5,41 @@
     <meta charset="utf-8">
     <title>Alert/prompt test</title>
     <script defer src="../../js/API/orientation.js"></script>
+    <link rel="stylesheet" type="text/css" href="/shared/style/buttons.css">
     <link rel="stylesheet" type="text/css" href="../../style/API.css">
+    <link rel="stylesheet" type="text/css" href="../../style/API/orientation.css">
   </head>
   <body>
-    <h1>Lock Orientation</h1>
-
     <h2>Call on mozbrowser frame:</h2>
-    <p><button id="lock1" class="small">Lock(portrait)</button></p>
-    <p><button id="lock2" class="small">Lock(landscape)</button></p>
-    <p><button id="lock3" class="small">Lock(portrait-primary)</button></p>
-    <p><button id="lock4" class="small">Lock(portrait-secondary)</button></p>
-    <p><button id="lock5" class="small">Lock(landscape-primary)</button></p>
-    <p><button id="lock6" class="small">Lock(landscape-secondary)</button></p>
-    <p><button id="lock7" class="small">Lock(portrait+landscape-primary)</button></p>
-    <p><button id="lock8" class="small">Lock(portrait+landscape-secondary)</button></p>
-    <p><button id="lock9" class="small">Lock(landscape+portrait-primary)</button></p>
-    <p><button id="lock10" class="small">Lock(landscape+portrait-secondary)</button></p>
-    <p><button id="lock11" class="small">Lock(portrait-primary+landscape-primary)</button></p>
-    <p><button id="lock12" class="small">Lock(portrait-secondary+landscape-primary)</button></p>
-    <p><button id="lock13" class="small">Lock(portrait-primary+landscape-secondary)</button></p>
-    <p><button id="lock14" class="small">Lock(portrait-secondary+landscape-secondary)</button></p>
-    <p><button id="unlock" class="small">Unlock</button></p>
+    <fieldset>
+      <legend>Single orientation lock</legend>
+      <section>
+        <button id="lock1">portrait
+        <button id="lock2">landscape
+        <button id="lock3">portrait-primary
+        <button id="lock4">portrait-secondary
+        <button id="lock5">landscape-primary
+        <button id="lock6">landscape-secondary
+      </section>
+    </fieldset>
+    <fieldset>
+      <legend>Double orientations locks</legend>
+      <section>
+        <button id="lock7">portrait<br>+landscape-primary
+        <button id="lock8">portrait<br>+landscape-secondary
+        <button id="lock9">landscape<br>+portrait-primary
+        <button id="lock10">landscape<br>+portrait-secondary
+        <button id="lock11">portrait-primary<br>+landscape-primary
+        <button id="lock12">portrait-secondary<br>+landscape-primary
+        <button id="lock13">portrait-primary<br>+landscape-secondary
+        <button id="lock14">portrait-secondary<br>+landscape-secondary
+      </section>
+    </fieldset>
+    <fieldset>
+      <legend>Unlock</legend>
+      <section>
+        <button id="unlock">Unlock</button>
+      </section>
+    </fieldset>
   </body>
 </html>

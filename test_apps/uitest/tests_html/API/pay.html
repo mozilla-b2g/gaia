@@ -5,6 +5,7 @@
     <meta charset="utf-8">
     <title>Payment Demo</title>
     <script type="text/javascript" src="../../js/API/pay.js"></script>
+    <link rel="stylesheet" type="text/css" href="/shared/style/buttons.css">
     <link rel="stylesheet" type="text/css" href="../../style/API.css">
   </head>
   <body>
@@ -14,27 +15,19 @@
     <div>
       <span id="result"></span>
     </div>
-    <ul>
-      <li>
-        <button id="test-pmpp">
-          Successful mozPay call
-        </button>
-      </li>
-      <li>
-        <button id="test-invalid">
-          Pay with invalid JWT
-        </button>
-      </li>
-      <li>
-        <button id="test-nojwt">
-          Pay with no JWT
-        </button>
-      </li>
-      <li>
-        <button id="test-repeated">
-          Pay with repeated Mock JWT
-        </button>
-      </li>
-    </ul>
+    <div>
+      <button id="test-pmpp" type=button>
+        Successful mozPay call
+      </button>
+      <button id="tests-invalid" type=button>
+        Pay with<br>invalid JWT
+      </button>
+      <button id="test-nojwt" type=button>
+        Pay with<br>no JWT
+      </button>
+      <button id="test-repeated" type=button>
+        Pay with<br>repeated Mock JWT
+      </button>
+    </div>
   </body>
 </html>

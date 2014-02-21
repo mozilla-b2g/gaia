@@ -1,7 +1,7 @@
 .center {
   display: block;
   margin: 0px auto;
-  text-align: center
+  text-align: center;
 }
 .inline-block {
   display: inline-block;
@@ -21,11 +21,11 @@ p.error {
 input {
   font-size: 1.5rem;
 }
-button, input[type='button'] {
+button {
+  /* overwrite building blocks settings to display 2-lines button */
+  line-height: normal !important;
+  text-align: center;
+}
+input[type='button'] {
   font-size: 2rem;
 }
-/* for mozId, smaller buttons */
-li > button, .small {
-  font-size: 1.2rem;
-}
-
