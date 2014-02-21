@@ -1230,7 +1230,24 @@ suite('system/Statusbar', function() {
     });
 
     suite('Revealing the StatusBar >', function() {
+      var transitionEndSpy;
+      setup(function() {
+        transitionEndSpy = this.sinon.spy(StatusBar.element,
+                                          'addEventListener');
+      });
+
+      function assertStatusBarReleased() {
+        assert.equal(StatusBar.element.style.transform, '');
+        assert.equal(StatusBar.element.style.transition, '');
+
+        // We remove the background after the transition
+        assert.isTrue(StatusBar.element.classList.contains('dragged'));
+        transitionEndSpy.yield();
+        assert.isFalse(StatusBar.element.classList.contains('dragged'));
+      }
+
       teardown(function() {
+        StatusBar.element.style.transition = '';
         StatusBar.element.style.transform = '';
       });
 
@@ -1240,6 +1257,12 @@ suite('system/Statusbar', function() {
         var transform = 'translateY(calc(5px - 100%))';
 
         assert.equal(StatusBar.element.style.transform, transform);
+        fakeDispatch('touchend', 100, 5);
+      });
+
+      test('it should set the dragged class on touchstart', function() {
+        fakeDispatch('touchstart', 100, 0);
+        assert.isTrue(StatusBar.element.classList.contains('dragged'));
         fakeDispatch('touchend', 100, 5);
       });
 
@@ -1271,8 +1294,7 @@ suite('system/Statusbar', function() {
           });
 
           test('it should hide it right away', function() {
-            assert.equal(StatusBar.element.style.transform, '');
-            assert.equal(StatusBar.element.style.transition, '');
+            assertStatusBarReleased();
           });
         });
 
@@ -1293,8 +1315,7 @@ suite('system/Statusbar', function() {
 
           test('but after 5 seconds', function() {
             this.sinon.clock.tick(5000);
-            assert.equal(StatusBar.element.style.transform, '');
-            assert.equal(StatusBar.element.style.transition, '');
+            assertStatusBarReleased();
           });
 
           test('or if the user interacts with the app', function() {
@@ -1305,8 +1326,7 @@ suite('system/Statusbar', function() {
             var e = forgeTouchEvent('touchstart', 100, 100);
             window.dispatchEvent(e);
 
-            assert.equal(StatusBar.element.style.transform, '');
-            assert.equal(StatusBar.element.style.transition, '');
+            assertStatusBarReleased();
             StatusBar._touchForwarder.destination = iframe;
           });
         });

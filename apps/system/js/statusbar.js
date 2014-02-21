@@ -411,6 +411,7 @@ var StatusBar = {
         this._startX = touch.clientX;
         this._startY = touch.clientY;
         elem.style.transition = 'transform';
+        elem.classList.add('dragged');
         break;
 
       case 'touchmove':
@@ -456,8 +457,13 @@ var StatusBar = {
   },
 
   _releaseBar: function sb_releaseBar() {
-    this.element.style.transform = '';
-    this.element.style.transition = '';
+    var elem = this.element;
+    elem.style.transform = '';
+    elem.style.transition = '';
+    elem.addEventListener('transitionend', function trWait() {
+      elem.removeEventListener('transitionend', trWait);
+      elem.classList.remove('dragged');
+    });
 
     clearTimeout(this._releaseTimeout);
     this._releaseTimeout = null;
