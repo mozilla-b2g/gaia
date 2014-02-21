@@ -35,6 +35,7 @@ manifest.appcache
 /shared/test/integration/node_modules
 
 /b2g
+/jsmarionette-virtualenv/
 /profile/
 /profile-debug/
 /profile-test/
