@@ -76,7 +76,7 @@ function getPictureSizesSmallerThan(options, bytes) {
   return options.filter(function(option) {
     var size = option.value;
     var mp = size.width * size.height;
-    return mp < bytes;
+    return mp <= bytes;
   });
 }
 
