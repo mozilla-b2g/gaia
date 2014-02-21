@@ -107,8 +107,7 @@ suite('ActivityHandler', function() {
   });
 
   suite('"share" activity', function() {
-    var shareActivity, blobs, names;
-    var arr = [];
+    var shareActivity;
 
     setup(function() {
       this.prevHash = window.location.hash;
@@ -117,9 +116,8 @@ suite('ActivityHandler', function() {
         source: {
           name: 'share',
           data: {
-            blobs: [new Blob(), new Blob(), new Blob(), new Blob(), new Blob()],
-            filenames: ['testBlob1', 'testBlob2', 'testBlob3', 'testBlob4',
-                        'testBlob5']
+            blobs: [new Blob(), new Blob()],
+            filenames: ['testBlob1', 'testBlob2']
           }
         }
       };
@@ -131,23 +129,6 @@ suite('ActivityHandler', function() {
       Compose.append = this.prevAppend;
     });
 
-    test('test for pushing an attachments to an array', function() {
-      blobs = shareActivity.source.data.blobs;
-      names = shareActivity.source.data.filenames;
-      assert.ok(arr.length === 0);
-
-      blobs.forEach(function(blob, idx) {
-        var attachment = new Attachment(blob, {
-          name: names[idx],
-          isDraft: true
-        });
-        arr.push(attachment);
-      });
-      ThreadUI.cleanFields(true);
-      //checks an array length after pushing the data to an array
-      assert.ok(arr.length > 0);
-    });
-
     test('modifies the URL "hash" when necessary', function() {
       window.location.hash = '#wrong-location';
       MockNavigatormozSetMessageHandler.mTrigger('activity', shareActivity);
@@ -156,12 +137,14 @@ suite('ActivityHandler', function() {
 
     test('Appends an attachment to the Compose field for each media file',
       function(done) {
-      this.sinon.stub(Compose, 'append', function(arr) {
-        assert.equal(arr.length, 5);
-        arr.forEach(function(attachment) {
-          assert.instanceOf(attachment, Attachment);
-        });
-        done();
+      this.sinon.stub(Compose, 'append', function(attachment) {
+
+        assert.instanceOf(attachment, Attachment);
+        assert.ok(Compose.append.callCount < 3);
+
+        if (Compose.append.callCount === 2) {
+          done();
+        }
       });
 
       MockNavigatormozSetMessageHandler.mTrigger('activity', shareActivity);

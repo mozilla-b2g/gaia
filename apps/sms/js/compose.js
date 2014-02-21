@@ -95,9 +95,8 @@ var Compose = (function() {
       ThreadUI.draft.isEdited = true;
     }
 
-    // if the duck is an image attachment or object, handle resizes
-    if ((duck instanceof Attachment && duck.type === 'img') ||
-       (duck && duck.containsImage)) {
+    // if the duck is an image attachment, handle resizes
+    if (duck instanceof Attachment && duck.type === 'img') {
       return imageAttachmentsHandling();
     }
 
@@ -217,12 +216,11 @@ var Compose = (function() {
       if (++done === images) {
         state.resizing = false;
         onContentChanged();
-      } else {
-        resizedImg(imgNodes[done]);
       }
     }
 
-    function resizedImg(node) {
+    state.resizing = true;
+    imgNodes.forEach(function(node) {
       var item = attachments.get(node);
       if (item.blob.size < limit) {
         imageSized();
@@ -241,9 +239,7 @@ var Compose = (function() {
           imageSized();
         });
       }
-    }
-    state.resizing = true;
-    resizedImg(imgNodes[done]);
+    });
     onContentChanged();
   }
 
@@ -497,39 +493,24 @@ var Compose = (function() {
       return this;
     },
 
-    // if item is an array,ignore calling onContentChanged for each item
-    append: function(item, options) {
-      options = options || {};
-      if (Array.isArray(item)) {
-        var containsImage = false;
-        item.forEach(function(content) {
-          if (content.type === 'img') {
-            containsImage = true;
-          }
-          this.append(content, {ignoreChange: true});
-        }, this);
-        onContentChanged({containsImage: containsImage});
-      } else {
-        var fragment = insert(item);
+    append: function(item) {
+      var fragment = insert(item);
 
-        if (document.activeElement === dom.message) {
-          // insert element at caret position
-          var range = window.getSelection().getRangeAt(0);
-          var firstNodes = fragment.firstChild;
-          range.deleteContents();
-          range.insertNode(fragment);
-          this.scrollToTarget(range);
-          dom.message.focus();
-          range.setStartAfter(firstNodes);
-        } else {
-          // insert element at the end of the Compose area
-          dom.message.insertBefore(fragment, dom.message.lastChild);
-          this.scrollToTarget(dom.message.lastChild);
-        }
-        if (!options.ignoreChange) {
-          onContentChanged(item);
-        }
+      if (document.activeElement === dom.message) {
+        // insert element at caret position
+        var range = window.getSelection().getRangeAt(0);
+        var firstNodes = fragment.firstChild;
+        range.deleteContents();
+        range.insertNode(fragment);
+        this.scrollToTarget(range);
+        dom.message.focus();
+        range.setStartAfter(firstNodes);
+      } else {
+        // insert element at the end of the Compose area
+        dom.message.insertBefore(fragment, dom.message.lastChild);
+        this.scrollToTarget(dom.message.lastChild);
       }
+      onContentChanged(item);
       return this;
     },
 
