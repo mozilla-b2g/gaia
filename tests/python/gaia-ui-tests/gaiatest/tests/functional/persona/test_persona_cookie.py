@@ -32,7 +32,7 @@ class TestPersonaCookie(GaiaTestCase):
         browser = Browser(self.marionette)
         browser.launch()
 
-        browser.go_to_url('http://firefoxos.123done.org')
+        browser.go_to_url('http://firefoxos.123done.org', timeout=120)
 
         browser.switch_to_content()
 
