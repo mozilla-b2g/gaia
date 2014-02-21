@@ -498,7 +498,8 @@ var CardsView = (function() {
     },
     dispatchEvent: function() {
       // Do nothing
-    }
+    },
+    addEventListener: function() {}
   };
 
   var onViewPortEvent = new CustomEvent('onviewport');

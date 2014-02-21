@@ -125,13 +125,21 @@ var apps =
 
 suite('cards view >', function() {
   var subject;
+  var fakeInnerHeight = 200;
 
   var screenNode, realMozLockOrientation, realScreenLayout;
   var cardsView, cardsList;
   var originalLockScreen;
+  var ihDescriptor;
 
   mocksForCardsView.attachTestHelpers();
   suiteSetup(function(done) {
+    ihDescriptor = Object.getOwnPropertyDescriptor(window, 'innerHeight');
+    Object.defineProperty(window, 'innerHeight', {
+      value: fakeInnerHeight,
+      configurable: true
+    });
+
     originalLockScreen = window.lockScreen;
     window.lockScreen = MockLockScreen;
     screenNode = document.createElement('div');
@@ -153,6 +161,7 @@ suite('cards view >', function() {
   });
 
   suiteTeardown(function() {
+    Object.defineProperty(window, 'innerHeight', ihDescriptor);
     window.lockScreen = originalLockScreen;
     screenNode.parentNode.removeChild(screenNode);
     window.ScreenLayout = realScreenLayout;
@@ -216,7 +225,7 @@ suite('cards view >', function() {
       });
 
       teardown(function() {
-        CardsView.hideCardSwitcher();
+        CardsView.hideCardSwitcher(true);
       });
     });
 
@@ -230,7 +239,7 @@ suite('cards view >', function() {
       });
 
       teardown(function() {
-        CardsView.hideCardSwitcher();
+        CardsView.hideCardSwitcher(true);
         rocketbarRender.restore();
       });
 
@@ -249,6 +258,10 @@ suite('cards view >', function() {
         });
       });
 
+      teardown(function() {
+        CardsView.hideCardSwitcher(true);
+      });
+
       test('cardsview should not be active', function() {
         assert.isFalse(cardsView.classList.contains('active'));
       });
@@ -260,7 +273,7 @@ suite('cards view >', function() {
       });
 
       teardown(function() {
-        CardsView.hideCardSwitcher();
+        CardsView.hideCardSwitcher(true);
       });
 
       var testCardOrientation = function(origin, orientation) {
@@ -309,6 +322,10 @@ suite('cards view >', function() {
         setTimeout(done);
       });
 
+      teardown(function() {
+        CardsView.hideCardSwitcher(true);
+      });
+
       test('has correct classes', function() {
         var screen = document.getElementById('screen');
         assert.isTrue(cardsView.classList.contains('active'));
@@ -332,6 +349,10 @@ suite('cards view >', function() {
       setTimeout(done);
     });
 
+    teardown(function() {
+      CardsView.hideCardSwitcher(true);
+    });
+
     test('focuses rocketbar input on empty cards view', function(done) {
       var dispatchStub = this.sinon.stub(window, 'dispatchEvent');
       CardsView.showCardSwitcher(true);
@@ -340,6 +361,44 @@ suite('cards view >', function() {
         assert.equal(evt.type, 'cardviewclosed');
         done();
       });
+    });
+  });
+
+  suite('one app is displayed >', function() {
+    setup(function() {
+      MockStackManager.mStack = [apps['http://sms.gaiamobile.org']];
+      MockStackManager.mCurrent = 0;
+      MockAppWindowManager.mRunningApps = {
+        'http://sms.gaiamobile.org': apps['http://sms.gaiamobile.org']
+      };
+      CardsView.showCardSwitcher(true);
+    });
+
+    teardown(function() {
+      CardsView.hideCardSwitcher(true);
+    });
+
+    test('remove the app with a gesture doesn\'t fail', function() {
+      var card = document.querySelector('.card');
+
+      var mousedown = new MouseEvent('mousedown', {
+        bubbles: true,
+        cancelable: true,
+        clientY: 500
+      });
+      var mousemove = new MouseEvent('mousemove', {
+        bubbles: true,
+        cancelable: true,
+        clientY: 200
+      });
+      var mouseup = new MouseEvent('mouseup', {
+        bubbles: true,
+        cancelable: true,
+        clientY: 200
+      });
+      card.dispatchEvent(mousedown);
+      card.dispatchEvent(mousemove);
+      card.dispatchEvent(mouseup);
     });
   });
 });
