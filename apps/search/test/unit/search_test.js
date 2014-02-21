@@ -252,4 +252,231 @@ suite('search/search', function() {
     });
   });
 
+  suite('collect', function() {
+
+    setup(function() {
+      Search.exactResults = {};
+      Search.fuzzyResults = {};
+    });
+
+    // Suppport functions
+    function exactProvider() {
+      return {
+        dedupes: true,
+        dedupeStrategy: 'exact',
+        render: function() {}
+      };
+    }
+
+    function fuzzyProvider() {
+      return {
+        dedupes: true,
+        dedupeStrategy: 'fuzzy',
+        render: function() {}
+      };
+    }
+
+    test('provider does not de-dupe', function() {
+      var results = [
+        {dedupeId: 'a'},
+        {dedupeId: 'b'}
+      ];
+
+      var provider = {
+        dedupes: false,
+        render: function() {}
+      };
+
+      var renderStub = this.sinon.stub(provider, 'render');
+      Search.collect(provider, results);
+      assert.equal(renderStub.getCall(0).args[0].length, 2);
+    });
+
+    test('when no de-duplication necessary', function() {
+      var provider1 = exactProvider();
+      var provider2 = exactProvider();
+
+      var renderStub1 = this.sinon.stub(provider1, 'render');
+      var renderStub2 = this.sinon.stub(provider2, 'render');
+      Search.collect(provider1, [{dedupeId: 'a'}]);
+      Search.collect(provider2, [{dedupeId: 'b'}]);
+      assert.equal(renderStub1.getCall(0).args[0].length, 1);
+      assert.equal(renderStub2.getCall(0).args[0].length, 1);
+    });
+
+    test('de-duplicates an exact manifestURL', function() {
+      var results1 = [
+        {dedupeId: 'http://mozilla.org/manifest.webapp'}
+      ];
+
+      var results2 = [
+        {dedupeId: 'http://mozilla.org/manifest.webapp'}
+      ];
+
+      var provider1 = exactProvider();
+      var provider2 = exactProvider();
+
+      var renderStub1 = this.sinon.stub(provider1, 'render');
+      var renderStub2 = this.sinon.stub(provider2, 'render');
+      Search.collect(provider1, results1);
+      Search.collect(provider2, results2);
+      assert.equal(renderStub1.getCall(0).args[0].length, 1);
+      assert.equal(renderStub2.getCall(0).args[0].length, 0);
+    });
+
+    test('de-duplicates a fuzzy match /w same domain', function() {
+      var results1 = [
+        {dedupeId: 'http://mozilla.org/manifest.webapp'}
+      ];
+
+      var results2 = [
+        {dedupeId: 'http://mozilla.org/awesome/app'}
+      ];
+
+      var provider1 = fuzzyProvider();
+      var provider2 = fuzzyProvider();
+
+      var renderStub1 = this.sinon.stub(provider1, 'render');
+      var renderStub2 = this.sinon.stub(provider2, 'render');
+      Search.collect(provider1, results1);
+      Search.collect(provider2, results2);
+      assert.equal(renderStub1.getCall(0).args[0].length, 1);
+      assert.equal(renderStub2.getCall(0).args[0].length, 0);
+    });
+
+    test('de-duplicates a fuzzy match /w subdomain', function() {
+      var results1 = [
+        {dedupeId: 'http://mozilla.org/manifest.webapp'}
+      ];
+
+      var results2 = [
+        {dedupeId: 'http://omggame.mozilla.org/awesome/app'}
+      ];
+
+      var provider1 = fuzzyProvider();
+      var provider2 = fuzzyProvider();
+
+      var renderStub1 = this.sinon.stub(provider1, 'render');
+      var renderStub2 = this.sinon.stub(provider2, 'render');
+      Search.collect(provider1, results1);
+      Search.collect(provider2, results2);
+      assert.equal(renderStub1.getCall(0).args[0].length, 1);
+      assert.equal(renderStub2.getCall(0).args[0].length, 0);
+    });
+
+    test('attempt to avoid de-duplicating second level domains', function() {
+      var results1 = [
+        {dedupeId: 'http://mozilla.co.org/manifest.webapp'}
+      ];
+
+      var results2 = [
+        {dedupeId: 'http://bob.co.org/awesome/app'}
+      ];
+
+      var provider1 = exactProvider();
+      var provider2 = fuzzyProvider();
+
+      var renderStub1 = this.sinon.stub(provider1, 'render');
+      var renderStub2 = this.sinon.stub(provider2, 'render');
+      Search.collect(provider1, results1);
+      Search.collect(provider2, results2);
+      assert.equal(renderStub1.getCall(0).args[0].length, 1);
+      assert.equal(renderStub2.getCall(0).args[0].length, 1);
+    });
+
+    test('installed hosted app /w web result', function() {
+      var results1 = [
+        {dedupeId:
+          'https://m.facebook.com/openwebapp/manifest.webapp'
+        }
+      ];
+
+      var results2 = [
+        {dedupeId: 'https://www.facebook.com/'}
+      ];
+
+      var provider1 = exactProvider();
+      var provider2 = fuzzyProvider();
+
+      var renderStub1 = this.sinon.stub(provider1, 'render');
+      var renderStub2 = this.sinon.stub(provider2, 'render');
+      Search.collect(provider1, results1);
+      Search.collect(provider2, results2);
+      assert.equal(renderStub1.getCall(0).args[0].length, 1);
+      assert.equal(renderStub2.getCall(0).args[0].length, 0);
+    });
+
+    test('mis-matching domain against manifest url', function() {
+      var results1 = [
+        {dedupeId:
+          'https://bits.wikimedia.org/wikipediamobilefirefoxos/manifest.webapp'
+        }
+      ];
+
+      var results2 = [
+        {dedupeId: 'http://en.m.wikipedia.org'}
+      ];
+
+      var provider1 = fuzzyProvider();
+      var provider2 = fuzzyProvider();
+
+      var renderStub1 = this.sinon.stub(provider1, 'render');
+      var renderStub2 = this.sinon.stub(provider2, 'render');
+      Search.collect(provider1, results1);
+      Search.collect(provider2, results2);
+      assert.equal(renderStub1.getCall(0).args[0].length, 1);
+      assert.equal(renderStub2.getCall(0).args[0].length, 0);
+    });
+
+    test('common domain parts filtered out', function() {
+      Search.fuzzyResults = {
+        'touch': true,
+        'mobile': true
+      };
+
+      var results1 = [
+        {dedupeId: 'https://touch.www.linkedin.com/login.html'}
+      ];
+
+      var results2 = [
+        {dedupeId: 'https://touch.mozilla.org/fake.html'}
+      ];
+
+      var provider1 = fuzzyProvider();
+      var provider2 = fuzzyProvider();
+
+      var renderStub1 = this.sinon.stub(provider1, 'render');
+      var renderStub2 = this.sinon.stub(provider2, 'render');
+      Search.collect(provider1, results1);
+      Search.collect(provider2, results2);
+      assert.equal(renderStub1.getCall(0).args[0].length, 1);
+      assert.equal(renderStub2.getCall(0).args[0].length, 1);
+    });
+
+    test('exact provider does not de-dupe against itself', function() {
+      var results = [
+        {dedupeId: 'https://mozilla.org/index.html'},
+        {dedupeId: 'https://mozilla.org/sauce.html'}
+      ];
+
+      var provider = exactProvider();
+
+      var renderStub = this.sinon.stub(provider, 'render');
+      Search.collect(provider, results);
+      assert.equal(renderStub.getCall(0).args[0].length, 2);
+    });
+
+    test('fuzzy provider does not de-dupe against itself', function() {
+      var results = [
+        {dedupeId: 'https://mozilla.org/index.html'},
+        {dedupeId: 'https://mozilla.org/sauce.html'}
+      ];
+
+      var provider = fuzzyProvider();
+
+      var renderStub = this.sinon.stub(provider, 'render');
+      Search.collect(provider, results);
+      assert.equal(renderStub.getCall(0).args[0].length, 2);
+    });
+  });
 });

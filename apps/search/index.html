@@ -12,12 +12,15 @@
     <script defer src="js/eme/eme.js"></script>
     <script defer src="js/eme/api.js"></script>
     <script defer src="js/providers/provider.js"></script>
-    <script defer src="js/providers/bgimage.js"></script>
-    <script defer src="js/providers/places.js"></script>
-    <script defer src="js/providers/suggestions.js"></script>
-    <script defer src="js/providers/webresults.js"></script>
-    <script defer src="js/providers/local_apps.js"></script>
+
+    <!-- Ordering of the following files will impact which queries we send first -->
     <script defer src="js/providers/marketplace.js"></script>
+    <script defer src="js/providers/places.js"></script>
+    <script defer src="js/providers/local_apps.js"></script>
+    <script defer src="js/providers/suggestions.js"></script>
+    <script defer src="js/providers/bgimage.js"></script>
+    <script defer src="js/providers/webresults.js"></script>
+
     <script defer src="shared/js/l10n.js"></script>
   <head>
   <body>
