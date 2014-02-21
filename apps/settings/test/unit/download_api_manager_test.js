@@ -121,7 +121,7 @@ suite('DownloadApiManager', function() {
       });
 
       this.sinon.spy(DownloadHelper, 'remove');
-      DownloadApiManager.deleteDownloads([0], function() {}, function() {
+      DownloadApiManager.deleteDownloads([{id: 0}], function() {}, function() {
         // Once cancelled, we get the same object
         var download = DownloadApiManager.getDownload(0);
         // and the object still exists
@@ -134,13 +134,32 @@ suite('DownloadApiManager', function() {
 
     test(' > deleteDownload given an ID (user confirms)', function(done) {
       this.sinon.spy(DownloadHelper, 'remove');
-      DownloadApiManager.deleteDownloads([0], function() {
+      this.sinon.spy(DownloadUI, 'show');
+      DownloadApiManager.deleteDownloads([{id: 0}], function() {
         // Once deleted, we try to get the same object
         var download = DownloadApiManager.getDownload(0);
         // Now the object does not exist
         assert.ok(!download);
+        sinon.assert.called(DownloadUI.show);
         assert.ok(DownloadHelper.remove.called);
         DownloadHelper.remove.restore();
+        DownloadUI.show.restore();
+        done();
+      });
+    });
+
+    test(' > force deleteDownload given an ID', function(done) {
+      this.sinon.spy(DownloadHelper, 'remove');
+      this.sinon.spy(DownloadUI, 'show');
+      DownloadApiManager.deleteDownloads([{id: 1, force: true}], function() {
+        // Once deleted, we try to get the same object
+        var download = DownloadApiManager.getDownload(1);
+        // Now the object does not exist
+        assert.ok(!download);
+        assert.ok(!DownloadUI.show.called);
+        sinon.assert.called(DownloadHelper.remove);
+        DownloadHelper.remove.restore();
+        DownloadUI.show.restore();
         done();
       });
     });
