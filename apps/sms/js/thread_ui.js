@@ -2083,6 +2083,7 @@ var ThreadUI = global.ThreadUI = {
     if (this.draft) {
       ThreadListUI.removeThread(this.draft.id);
       Drafts.delete(this.draft);
+      Drafts.store();
       this.draft = null;
     }
 
