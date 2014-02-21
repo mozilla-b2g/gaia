@@ -103,6 +103,7 @@ App.prototype.runControllers = function() {
   this.filmstrip = this.filmstrip(this);
   this.controllers.settings(this);
   this.controllers.activity(this);
+  this.controllers.timer(this);
   this.controllers.camera(this);
   this.controllers.viewfinder(this);
   this.controllers.recordingTimer(this);
