@@ -435,13 +435,40 @@ var metadataParser = (function() {
       getVideoRotation(videofile, function(rotation) {
         if (typeof rotation === 'number') {
           metadata.rotation = rotation;
-          getVideoThumbnailAndSize();
+          getVideoMetadata(videofile, getVideoThumbnailAndSize);
         }
         else if (typeof rotation === 'string') {
           errorCallback('Video rotation:', rotation);
         }
       });
     };
+
+    var offscreenVideo = document.createElement('video');
+
+    function getVideoMetadata(videofile, callback) {
+      var url = URL.createObjectURL(videofile);
+
+      offscreenVideo.preload = 'metadata';
+      offscreenVideo.src = url;
+
+      offscreenVideo.onerror = function(e) {
+        //Something went wrong. Maybe the file was corrupt?
+        unload();
+        callback();
+      };
+
+      offscreenVideo.onloadedmetadata = function() {
+        metadata.duration = offscreenVideo.duration;
+        unload();
+        callback();
+      };
+    }
+
+    function unload() {
+      URL.revokeObjectURL(offscreenVideo.src);
+      offscreenVideo.removeAttribute('src');
+      offscreenVideo.load();
+    }
 
     function getVideoThumbnailAndSize() {
       var url = URL.createObjectURL(file);
