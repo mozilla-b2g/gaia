@@ -142,33 +142,28 @@ if (!window.FacebookConnector) {
         nextUpdateTime = Date.now();
         var photoTimeout = false;
 
+        var successCb = this.success;
+
         var friend = response.data[0];
         if (friend) {
           var out1 = self.adaptDataForShowing(friend);
           var photoCbs = {};
 
-          photoCbs.success = (function(blobPicture) {
-            if (blobPicture) {
-              out1.photo = [blobPicture];
+          photoCbs.success = function(blobPicture) {
+            if (!blobPicture) {
+              pictureLoaded(out1, options, successCb);
+              return;
             }
-
-            var success = this.success;
-            var data = self.adaptDataForSaving(out1);
-            persistFbData(data, function() {
-                                      success({
-                                        uid: friend.uid,
-                                        url: friend.pic_big
-                                      });
-                                }, this.error, options);
-
-            // If there is no an alarm set it has to be set
-            window.asyncStorage.getItem(fb.utils.ALARM_ID_KEY, function(data) {
-              if (!data) {
-                fb.utils.setLastUpdate(nextUpdateTime,
-                                       fb.sync.scheduleNextSync);
+            utils.thumbnailImage(blobPicture,
+                                 function gotThumbnail(thumbnail) {
+              if (blobPicture !== thumbnail) {
+                out1.photo = [blobPicture, thumbnail];
+              } else {
+                out1.photo = [blobPicture];
               }
+              pictureLoaded(out1, options, successCb);
             });
-          }).bind(this); // successCb
+          }; // successCb
 
           self.downloadContactPicture(friend, acc_tk, photoCbs);
         } // if friend
@@ -180,6 +175,24 @@ if (!window.FacebookConnector) {
       else {
         this.error(response.error);
       }
+    }
+
+    function pictureLoaded(friend, options, success) {
+      var data = self.adaptDataForSaving(friend);
+      persistFbData(data, function() {
+                                      success({
+                                        uid: friend.uid,
+                                        url: friend.pic_big
+                                      });
+                                }, this.error, options);
+
+      // If there is no an alarm set it has to be set
+      window.asyncStorage.getItem(fb.utils.ALARM_ID_KEY, function(data) {
+        if (!data) {
+          fb.utils.setLastUpdate(nextUpdateTime,
+                                 fb.sync.scheduleNextSync);
+        }
+      });
     }
 
     function FacebookConnector() { }
