@@ -154,6 +154,35 @@ Camera.prototype.setPictureSize = function(value) {
   this.setThumbnailSize();
 };
 
+Camera.prototype.changePictureSize = function(value) {
+  this.mozCamera.pictureSize = value;
+  var viewportSize;
+  var aspectRatio = this.mozCamera.pictureSize.width /
+    this.mozCamera.pictureSize.height;
+
+  //  calculating the preview sizes
+  var availablePreviewSizes = this.mozCamera.capabilities.previewSizes;
+  var mode = this.get('mode');
+
+  // view port size
+  viewportSize = this.viewportSize || {
+    width: window.innerHeight * window.devicePixelRatio,
+    height: window.innerWidth * window.devicePixelRatio
+  };
+
+  // pick picture preview size
+  this.picturePreviewSize = pickPreviewSize(
+    viewportSize,
+    availablePreviewSizes, aspectRatio);
+
+  this.setThumbnailSize();
+  this.updatePreviewSize(mode);
+  
+  if (mode === 'picture') {
+    this.emit('changePreview');
+  }
+};
+
 Camera.prototype.setThumbnailSize = function() {
   var sizes = this.mozCamera.capabilities.thumbnailSizes;
   var pictureSize = this.mozCamera.pictureSize;
