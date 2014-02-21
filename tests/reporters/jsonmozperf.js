@@ -109,6 +109,9 @@ function average(arr) {
 }
 
 function averageObjects(arr) {
+  if (!arr) {
+    return undefined;
+  }
   if (arr.length === 0) {
     return null;
   }
@@ -138,7 +141,7 @@ function averageObjects(arr) {
 
   for (var part in total) {
     for (var type in total[part]) {
-      total[part][type] /= arr.length;
+      total[part][type] = (total[part][type] / arr.length).toFixed(3);
     }
   }
 
