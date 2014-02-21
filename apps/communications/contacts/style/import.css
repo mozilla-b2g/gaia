@@ -41,6 +41,7 @@ form[role="dialog"].no-overlay button {
 
 [data-type="list"].import-list.active li:after {
   right: 0;
+  left: 0;
 }
 
 #groups-list.import-list li,
@@ -50,7 +51,7 @@ form[role="dialog"].no-overlay button {
 
 #groups-list.active li:not(:active):after,
 #search-list.active li:not(:active):after {
-  display: none !important;
+  background-color: transparent;
 }
 
 /* End BB */
