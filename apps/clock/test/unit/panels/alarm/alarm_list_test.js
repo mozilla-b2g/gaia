@@ -1,20 +1,33 @@
 suite('AlarmList', function() {
   'use strict';
   var nma, fixture, dom;
-  var AlarmList, Alarm;
+  var AlarmList, Alarm, panel;
 
   suiteSetup(function(done) {
+    // Account for potentially-slow file loading operations
+    this.timeout(60000);
+
     testRequire([
-        'alarm_list',
+        'panels/alarm/main',
+        'panels/alarm/alarm_list',
         'alarm',
         'mocks/mock_moz_alarm'
       ], {
-        mocks: ['alarm_manager', 'alarmsdb', 'banner']
+        mocks: [
+          'alarm_manager',
+          'alarmsdb',
+          'banner/main',
+          'panels/alarm/active_alarm'
+        ]
       },
-      function(alarmList, alarm, mockMozAlarms) {
+      function(AlarmPanel, alarmList, alarm, mockMozAlarms) {
+        // Instantiate an Alarm Panel to ensure that elements are initialized
+        // properly
+        var div = document.createElement('div');
+        document.body.appendChild(div);
+        panel = new AlarmPanel(div);
+
         AlarmList = alarmList;
-        loadBodyHTML('/index.html');
-        AlarmList.init();
         Alarm = alarm;
         nma = navigator.mozAlarms;
         navigator.mozAlarms = mockMozAlarms;

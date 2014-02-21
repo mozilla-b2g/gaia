@@ -198,6 +198,7 @@ apps/camera/test/unit/dcf_test.js
 apps/camera/test/unit/geolocation_test.js
 apps/camera/test/unit/media_frame_test.js
 apps/camera/test/unit/utils/formattimer_test.js
+apps/clock/js/text.js
 apps/communications/contacts/js/contacts.js
 apps/communications/contacts/js/contacts_cleaner.js
 apps/communications/contacts/js/contacts_importer.js
