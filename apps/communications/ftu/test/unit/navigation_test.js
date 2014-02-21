@@ -270,6 +270,22 @@ suite('navigation >', function() {
       assert.equal(Navigation.currentStep, 2);
 
     });
+
+    test('skip pin and go back', function() {
+      MockIccHelper.setProperty('cardState', 'pinRequired');
+      Navigation.forward();
+
+      assert.equal(Navigation.previousStep, 1);
+      assert.equal(Navigation.currentStep, 2);
+
+      // Skip step 2, sim pin entry
+      Navigation.skipStep();
+      assert.equal(Navigation.currentStep, 3);
+
+      // Go back
+      Navigation.back();
+      assert.equal(Navigation.currentStep, 2);
+    });
   });
 
   suite('SIM mandatory', function() {
