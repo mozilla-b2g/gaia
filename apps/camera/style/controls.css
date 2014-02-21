@@ -16,6 +16,10 @@
   overflow: hidden;
 }
 
+.controls[enabled=false] {
+  pointer-events: none;
+}
+
 /** Left and Right
  ---------------------------------------------------------*/
 
@@ -98,6 +102,8 @@
 
 .controls-cancel-pick-button{
   display: none;
+  font-size: 4rem;
+  line-height: 4rem;
 }
 
 /**
@@ -185,10 +191,6 @@
   width: 10.2rem;
   height: 10.2rem;
   -moz-user-select: none;
-}
-
-.controls[buttons-enabled=false][recording=false] .capture-button {
-  pointer-events: none;
 }
 
 /** Circle

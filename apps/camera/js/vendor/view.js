@@ -134,8 +134,24 @@ define(function(require, exports, module) {
   };
 
   View.prototype.enable = function(key, value) {
-    value = arguments.length === 2 ? value : true;
-    this.set(key + '-enabled', !!value);
+    switch(arguments.length) {
+      case 0:
+        value = true;
+        key = 'enabled';
+        break;
+      case 1:
+        if (typeof key === 'boolean') {
+          value = key;
+          key = 'enabled';
+        } else {
+          value = true;
+          key = key ? key + '-enabled' : 'enabled';
+        }
+        break;
+      default:
+        key = key ? key + '-enabled' : 'enabled';
+    }
+    this.set(key, !!value);
   };
 
   View.prototype.disable = function(key) {
