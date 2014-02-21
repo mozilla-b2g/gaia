@@ -271,6 +271,10 @@ HomescreenAppBuilder.prototype.customizeHomescreen = function() {
       lookahead: 16  // 60fps = 16ms per frame
     },
 
+    background: {
+      url: 'resources/images/backgrounds/default.png'
+    },
+
     grid: customize.homescreens.map(
       function map_homescreens(applist) {
         var output = [];
