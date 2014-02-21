@@ -25,6 +25,7 @@ class KeyboardSelectKeyboard(Base):
 
     _section_locator = (By.ID, 'keyboard-selection')
     _add_more_keyboards_button_locator = (By.CSS_SELECTOR, "button[data-l10n-id='addMoreKeyboards']")
+    _built_in_keyboard_list_element_locator = (By.CSS_SELECTOR, '#enabledKeyboardList > li >span')
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
@@ -34,6 +35,16 @@ class KeyboardSelectKeyboard(Base):
     def tap_add_more_keyboards(self):
         self.marionette.find_element(*self._add_more_keyboards_button_locator).tap()
         return KeyboardAddMoreKeyboards(self.marionette)
+
+    def wait_for_built_in_keyboard(self, language):
+        self.wait_for_condition(lambda m: self.is_built_in_keyboard_present(language))
+
+    def is_built_in_keyboard_present(self, language):
+        for element in self.marionette.find_elements(*self._built_in_keyboard_list_element_locator):
+            if language in element.text:
+                return True
+
+        return False
 
 
 class KeyboardAddMoreKeyboards(Base):
