@@ -17,6 +17,7 @@ class UiTests(Base):
     _moz_id_tests_button_locator = (By.LINK_TEXT, 'navigator.mozId')
     _keyboard_locator = (By.LINK_TEXT, 'Keyboard')
     _context_menu_locator = (By.LINK_TEXT, 'Contextmenu')
+    _window_open_menu_locator = (By.LINK_TEXT, 'window.open')
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
@@ -66,3 +67,10 @@ class UiTests(Base):
         from gaiatest.apps.ui_tests.regions.context_menu import ContextMenuPage
 
         return ContextMenuPage(self.marionette)
+
+    def tap_window_open_menu_option(self):
+        self.wait_for_element_displayed(*self._window_open_menu_locator)
+        self.marionette.find_element(*self._window_open_menu_locator).tap()
+
+        from gaiatest.apps.ui_tests.regions.window_open import WindowOpenPage
+        return WindowOpenPage(self.marionette)
