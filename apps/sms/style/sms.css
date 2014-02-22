@@ -190,12 +190,6 @@ form[role="dialog"][data-type="edit"] header menu[type="toolbar"] button {
   color: #1D8399;
 }
 
-[data-type="list"] aside.pack-end img[src=""],
-form[data-type="action"] img[src=""] {
-  opacity: 0;
-  width: 0;
-}
-
 /* Lists: edit mode */
 .edit [data-type="list"] li > label {
   opacity: 1;
@@ -1003,7 +997,7 @@ form[role="dialog"][data-type="action"].contact-prompt > header {
   font-size: 1.5rem;
 }
 
-.contact-header img {
+.contact-header span[data-type=img] {
   display: block;
   width: 6rem;
   height: 6rem;
