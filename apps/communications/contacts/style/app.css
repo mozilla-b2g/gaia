@@ -268,6 +268,13 @@ li a[role="button"].activity > b em{
   margin-left: 1.5rem;
 }
 
+#item-template,
+li.item.contact-item {
+  display: block;
+  height: 6rem;
+  position: absolute;
+}
+
 /* Long strings (email) */
 li button.activity > b ,
 li a[role="button"].activity > b{
