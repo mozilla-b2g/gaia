@@ -120,11 +120,9 @@ class TestFtu(GaiaTestCase):
         self.marionette.find_element(*self._next_button_locator).tap()
         self.wait_for_element_displayed(*self._section_wifi_locator)
 
-        # Wait for some networks to be found
-        self.wait_for_condition(lambda m: len(m.find_elements(*self._found_wifi_networks_locator)) > 0,
-                                message="No networks listed on screen")
-
-        wifi_network = self.marionette.find_element(By.ID, self.testvars['wifi']['ssid'])
+        # Wait for the networks to be found
+        wifi_network_locator = (By.ID, self.testvars['wifi']['ssid'])
+        wifi_network = self.wait_for_element_present(*wifi_network_locator)
         wifi_network.tap()
 
         # This is in the event we are using a Wifi Network that requires a password

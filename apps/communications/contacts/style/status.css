@@ -5,7 +5,11 @@
   pointer-events: none;
 }
 
-#statusMsg.visible {
+#statusMsg.opening {
   -moz-transform: translateY(0);
   z-index: 1001 !important;
+}
+
+#statusMsg.hidden {
+  display: none;
 }
