@@ -26,7 +26,7 @@ function CameraController(app) {
   this.app = app;
   this.camera = app.camera;
   this.storage = app.storage;
-  this.storage = app.storage;
+  this.settings = app.settings;
   this.activity = app.activity;
   this.filmstrip = app.filmstrip;
   this.viewfinder = app.views.viewfinder;
@@ -55,12 +55,13 @@ CameraController.prototype.configure = function() {
   // This is set so that the video recorder can
   // automatically stop when video size limit is reached.
   camera.set('maxFileSizeBytes', activity.data.maxFileSizeBytes);
-  camera.set('selectedCamera', settings.cameras.value());
-  camera.setMode(settings.mode.value());
+  camera.set('selectedCamera', settings.cameras.selected('key'));
+  camera.setMode(settings.mode.selected('key'));
   debug('configured');
 };
 
 CameraController.prototype.bindEvents = function() {
+  var settings = this.settings;
   var camera = this.camera;
   var app = this.app;
 
@@ -80,24 +81,24 @@ CameraController.prototype.bindEvents = function() {
   camera.on('newimage', this.onNewImage);
   camera.on('newvideo', this.onNewVideo);
 
-  // // App
+  // App
   app.on('boot', this.camera.load);
   app.on('focus', this.camera.load);
   app.on('capture', this.onCapture);
   app.on('blur', this.teardownCamera);
   app.on('settings:configured', this.onSettingsConfigured);
-  app.settings.on('change:pictureSizes', this.setPictureSize);
-  app.settings.on('change:pictureFlashModes', this.setFlashMode);
-  app.settings.on('change:videoFlashModes', this.setFlashMode);
-  app.settings.on('change:cameras', this.loadCamera);
-  app.settings.on('change:mode', this.setMode);
+  settings.pictureSizes.on('change:selected', this.onPictureSizeChange);
+  settings.recorderProfiles.on('change:selected', this.onRecorderProfileChange);
+  settings.flashModes.on('change:selected', this.setFlashMode);
+  settings.on('change:cameras', this.loadCamera);
+  settings.on('change:mode', this.setMode);
   debug('events bound');
 };
 
 CameraController.prototype.onSettingsConfigured = function() {
   var settings = this.app.settings;
   var recorderProfile = settings.recorderProfiles.selected('key');
-  var pictureSize = settings.pictureSizes.value();
+  var pictureSize = settings.pictureSizes.selected('data');
   this.setFlashMode();
   this.camera
     .setRecorderProfile(recorderProfile)
@@ -167,6 +168,16 @@ CameraController.prototype.onNewVideo = function(video) {
   this.app.emit('newvideo', video);
 };
 
+CameraController.prototype.onPictureSizeChange = function() {
+  var value = this.settings.pictureSizes.selected('data');
+  this.setPictureSize(value);
+};
+
+CameraController.prototype.onRecorderProfileChange = function() {
+  var value = this.settings.recorderProfiles.selected('key');
+  this.camera.setRecorderProfile(value);
+};
+
 CameraController.prototype.onFileSizeLimitReached = function() {
   this.camera.stopRecording();
   this.showSizeLimitAlert();
@@ -197,15 +208,9 @@ CameraController.prototype.loadCamera = function(value) {
 };
 
 CameraController.prototype.setFlashMode = function() {
-  var flashSetting = this.getFlashSetting();
-  this.camera.setFlashMode(flashSetting.value());
+  var flashSetting = this.settings.aliases.flashModes;
+  this.camera.setFlashMode(flashSetting.selected('key'));
 };
-
-CameraController.prototype.getFlashSetting = function() {
-  var mode = this.app.settings.mode.value();
-  return this.app.settings.get(mode + 'FlashModes');
-};
-
 
 // TODO: Tidy this crap
 CameraController.prototype.teardownCamera = function() {
