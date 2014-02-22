@@ -41,13 +41,13 @@ ActivityController.prototype.configureMode = function() {
 };
 
 ActivityController.prototype.bindEvents = function() {
-  this.settings.pictureSizes.on('optionsreset', this.configurePictureSize);
-  this.settings.recorderProfiles.on('optionsreset', this.configureVideoSize);
+  this.settings.pictureSizes().on('optionsreset', this.configurePictureSize);
+  this.settings.recorderProfiles().on('optionsreset', this.configureVideoSize);
 };
 
 ActivityController.prototype.configurePictureSize = function(options) {
   var maxFileSize = this.activity.data.maxFileSizeBytes;
-  var setting = this.settings.pictureSizes;
+  var setting = this.settings.pictureSizes();
   var data = this.activity.data;
 
   if (maxFileSize) {
@@ -62,7 +62,7 @@ ActivityController.prototype.configurePictureSize = function(options) {
 
 ActivityController.prototype.configureVideoSize = function(options) {
   var maxFileSize = this.activity.data.maxFileSizeBytes;
-  var setting = this.settings.recorderProfiles;
+  var setting = this.settings.recorderProfiles();
 
   if (maxFileSize) {
     options = [getLowResVideoSize(options)];
