@@ -18,7 +18,7 @@ function JSONMozPerfReporter(runner) {
   var failures = [];
   var passes = [];
   var mozPerfDurations;
-  var mozPerfMemory;
+  var mozPerfMemory = [];
 
   runner.on('test', function(test) {
     mozPerfDurations = {};
