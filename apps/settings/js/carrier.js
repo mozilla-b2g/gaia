@@ -11,6 +11,9 @@ var CarrierSettings = (function(window, document, undefined) {
   var AUTH_TYPES = ['none', 'pap', 'chap', 'papOrChap'];
   var CP_APN_KEY = 'ril.data.cp.apns';
 
+  var NETWORK_TYPE_SETTING = 'operatorResources.data.icon';
+  var networkTypeMapping = {};
+
   var NETWORK_GSM_MAP = {
     'wcdma/gsm': 'operator-networkType-auto',
     'gsm': 'operator-networkType-2G',
@@ -77,7 +80,7 @@ var CarrierSettings = (function(window, document, undefined) {
     cs_showCarrierName();
 
     // Init network type selector.
-    cs_initNetworkTypeSelector();
+    cs_initNetworkTypeText(cs_initNetworkTypeSelector());
 
     // Set the navigation correctly when on a multi ICC card device.
     if (DsdsSettings.getNumberOfIccSlots() > 1) {
@@ -254,6 +257,30 @@ var CarrierSettings = (function(window, document, undefined) {
     });
   }
 
+  function cs_initNetworkTypeText(aNext) {
+    var req;
+    try {
+      networkTypeMapping = {};
+      req = _settings.createLock().get(NETWORK_TYPE_SETTING);
+      req.onsuccess = function() {
+        var networkTypeValues = req.result[NETWORK_TYPE_SETTING] || {};
+        for (var key in networkTypeValues) {
+          networkTypeMapping[key] = networkTypeValues[key];
+        }
+        aNext && aNext();
+      };
+      req.onerror = function() {
+        console.error('Error loading ' + NETWORK_TYPE_SETTING + ' settings. ' +
+                      req.error && req.error.name);
+        aNext && aNext();
+      };
+    } catch (e) {
+      console.error('Error loading ' + NETWORK_TYPE_SETTING + ' settings. ' +
+                    e);
+      aNext && aNext();
+    }
+  }
+
   /**
    * Init network type selector. Add the event listener that handles the changes
    * for the network type.
@@ -309,20 +336,24 @@ var CarrierSettings = (function(window, document, undefined) {
           option.value = type;
           option.selected = (networkType === type);
           // show user friendly network mode names
-          if (gsm && cdma) {
-            if (type in NETWORK_DUALSTACK_MAP) {
-              localize(option, NETWORK_DUALSTACK_MAP[type]);
+          if (type in networkTypeMapping) {
+            option.text = networkTypeMapping[type];
+          } else {
+            if (gsm && cdma) {
+              if (type in NETWORK_DUALSTACK_MAP) {
+                localize(option, NETWORK_DUALSTACK_MAP[type]);
+              }
+            } else if (gsm) {
+              if (type in NETWORK_GSM_MAP) {
+                localize(option, NETWORK_GSM_MAP[type]);
+              }
+            } else if (cdma) {
+              if (type in NETWORK_CDMA_MAP) {
+                localize(option, NETWORK_CDMA_MAP[type]);
+              }
+            } else { //failback only
+              option.textContent = type;
             }
-          } else if (gsm) {
-            if (type in NETWORK_GSM_MAP) {
-              localize(option, NETWORK_GSM_MAP[type]);
-            }
-          } else if (cdma) {
-            if (type in NETWORK_CDMA_MAP) {
-              localize(option, NETWORK_CDMA_MAP[type]);
-            }
-          } else { //failback only
-            option.textContent = type;
           }
           selector.appendChild(option);
         });
