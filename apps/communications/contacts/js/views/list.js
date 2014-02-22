@@ -3,6 +3,9 @@
 var contacts = window.contacts || {};
 contacts.List = (function() {
   var allContacts = [],
+      elementsByIndex = [],
+      renderPhotosQueue = [],
+      renderPhotosScheduled = false,
       _,
       groupsList,
       loaded = false,
@@ -753,19 +756,18 @@ contacts.List = (function() {
               element.dataset.uuid = contact.id;
               element.children[1].appendChild(nameElement);
 
-              // Set the photo if there is one
-              var photo = ContactPhotoHelper.getThumbnail(contact);
-              if (photo) {
-                element.dataset.photoUrl = URL.createObjectURL(photo);
-                element.children[0].children[0].style.backgroundImage =
-                  'url(' + element.dataset.photoUrl + ')';
-              }
+              elementsByIndex[index] = element;
+
+              renderPhotosQueue.push(index);
+              scheduleRenderPhotos();
             },
             forget: function(element, index) {
               if (element.dataset.photoUrl) {
                 URL.revokeObjectURL(element.dataset.photoUrl);
                 element.dataset.photoUrl = '';
+                element.children[0].children[0].style.backgroundImage = '';
               }
+              delete elementsByIndex[index];
             },
             scrollParent: groupsContainer,
             scrollChild: groupsList,
@@ -774,7 +776,9 @@ contacts.List = (function() {
             },
             getScrollPos: function() {
               return groupsList.scrollTop;
-            }
+            },
+            syncBufferMultiplier: 1,
+            bufferMultiplier: 8
           });
           recyclist.init();
 
@@ -784,6 +788,43 @@ contacts.List = (function() {
       cursor.onerror = errorCb;
     });
   };
+
+  function scheduleRenderPhotos() {
+    if (renderPhotosScheduled) {
+      return;
+    }
+    renderPhotosScheduled = true;
+    requestAnimationFrame(renderPhotos);
+  }
+
+  function renderPhotos() {
+    renderPhotosScheduled = false;
+    var start = Date.now();
+    while (renderPhotosQueue.length) {
+      var index = renderPhotosQueue.shift();
+      var element = elementsByIndex[index];
+      var contact = allContacts[index];
+      if (!element || !contact) {
+        continue;
+      }
+      var photo = ContactPhotoHelper.getThumbnail(contact);
+      if (!photo) {
+        continue;
+      }
+      element.dataset.photoUrl = URL.createObjectURL(photo);
+      element.children[0].children[0].style.backgroundImage =
+        'url(' + element.dataset.photoUrl + ')';
+
+      var elapsed = Date.now() - start;
+      if (elapsed > 12) {
+        break;
+      }
+    }
+
+    if (renderPhotosQueue.length) {
+      scheduleRenderPhotos();
+    }
+  }
 
   var hasName = function hasName(contact) {
     return (Array.isArray(contact.givenName) && contact.givenName[0] &&
