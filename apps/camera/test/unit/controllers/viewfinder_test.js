@@ -11,14 +11,16 @@ suite('controllers/viewfinder', function() {
       'controllers/viewfinder',
       'views/viewfinder',
       'lib/activity',
-      'lib/settings'
+      'lib/settings',
+      'lib/setting'
     ], function(
       App, Camera, ViewfinderController,
-      ViewfinderView, Activity, Settings
+      ViewfinderView, Activity, Settings, Setting
     ) {
       self.ViewfinderController = ViewfinderController.ViewfinderController;
       self.ViewfinderView = ViewfinderView;
       self.Settings = Settings;
+      self.Setting = Setting;
       self.Activity = Activity;
       self.Camera = Camera;
       self.App = App;
@@ -31,6 +33,7 @@ suite('controllers/viewfinder', function() {
     this.app.camera = sinon.createStubInstance(this.Camera);
     this.app.activity = sinon.createStubInstance(this.Activity);
     this.app.settings = sinon.createStubInstance(this.Settings);
+    this.app.settings.grid = sinon.createStubInstance(this.Setting);
     this.app.filmstrip = { toggle: sinon.spy() };
     this.app.views = {
       viewfinder: sinon.createStubInstance(this.ViewfinderView),

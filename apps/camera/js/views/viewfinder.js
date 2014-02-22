@@ -10,7 +10,7 @@ var CameraUtils = require('lib/camera-utils');
 var debug = require('debug')('view:viewfinder');
 var constants = require('config/camera');
 var View = require('vendor/view');
-
+var find = require('lib/find');
 /**
  * Locals
  */
@@ -59,11 +59,17 @@ return View.extend({
   name: 'viewfinder',
   className: 'js-viewfinder',
   fadeTime: 200,
+
   initialize: function() {
-    this.els.video = document.createElement('video');
+    this.render();
     bind(this.el, 'click', this.onClick);
     this.els.video.autoplay = true;
-    this.el.appendChild(this.els.video);
+  },
+
+  render: function() {
+    this.el.innerHTML = this.template();
+    this.els.frame = this.find('.js-frame');
+    this.els.video = this.find('.js-video');
   },
 
   onClick: function() {
@@ -107,7 +113,7 @@ return View.extend({
   setScale: function(scale) {
     scale = Math.min(Math.max(scale, MIN_VIEWFINDER_SCALE),
                      MAX_VIEWFINDER_SCALE);
-    this.els.video.style.transform = 'scale(' + scale + ', ' + scale + ')';
+    this.els.frame.style.transform = 'scale(' + scale + ', ' + scale + ')';
   },
 
   setPreviewStream: function(previewStream) {
@@ -158,17 +164,27 @@ return View.extend({
     var aspectFill = aspects.preview > aspects.container;
     var scaleType = aspectFill ? 'fill' : 'fit';
     var scaled = scaleSizeTo[scaleType](container, preview);
-    var centered = aspects.preview < aspects.standard;
-    var yOffset = aspectFill || centered ?
-      (container.width - scaled.width) / 2 : 0;
+    var centered = aspectFill || (aspects.preview < aspects.standard);
+    var yOffset = centered ? (container.width - scaled.width) / 2 : 0;
 
-    this.els.video.style.width = scaled.width + 'px';
-    this.els.video.style.height = scaled.height + 'px';
-    this.els.video.style.top = yOffset + 'px';
-    this.els.video.classList.toggle('reversed', mirrored);
-
+    this.els.frame.style.width = scaled.width + 'px';
+    this.els.frame.style.height = scaled.height + 'px';
+    this.els.frame.style.top = yOffset + 'px';
+    this.els.frame.classList.toggle('reversed', mirrored);
     debug('update preview, mirrored: %s, scale: %s, yOffset: %s',
       mirrored, scaleType, yOffset);
+  },
+
+  template: function() {
+    return '<div class="viewfinder_frame js-frame">' +
+      '<video class="viewfinder_video js-video"></video>' +
+      '<div class="viewfinder_grid">' +
+        '<div class="row-1"></div>' +
+        '<div class="row-2"></div>' +
+        '<div class="col-1"></div>' +
+        '<div class="col-2"></div>' +
+      '</div>' +
+    '</div>';
   }
 });
 
