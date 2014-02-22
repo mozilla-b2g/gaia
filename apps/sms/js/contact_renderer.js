@@ -246,12 +246,15 @@ ContactRenderer.prototype = {
       target.appendChild(element);
 
       // Revoke contact photo after image onload.
-      var photo = element.querySelector('img');
+      var photo = element.querySelector('span[data-type=img]');
       if (photo) {
-        photo.onload = photo.onerror = function revokePhotoURL() {
-          this.onload = this.onerror = null;
-          window.URL.revokeObjectURL(this.src);
-        };
+        setTimeout(function() {
+          var image = new Image();
+          image.src = photo.src;
+          image.onload = image.onerror = function revokePhotoURL() {
+            window.URL.revokeObjectURL(this.src);
+          };
+        });
       }
       tempDiv.textContent = '';
     }, this);

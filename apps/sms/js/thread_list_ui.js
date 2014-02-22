@@ -130,7 +130,7 @@ var ThreadListUI = {
 
     Contacts.findByPhoneNumber(number, function gotContact(contacts) {
       var name = node.getElementsByClassName('name')[0];
-      var photo = node.getElementsByTagName('img')[0];
+      var photo = node.querySelectorAll('span[data-type=img]')[0];
       var title, src, details;
 
       if (contacts && contacts.length) {
@@ -145,10 +145,13 @@ var ThreadListUI = {
       }
 
       if (src) {
-        photo.onload = photo.onerror = function revokePhotoURL() {
-          this.onload = this.onerror = null;
-          URL.revokeObjectURL(this.src);
-        };
+        setTimeout(function() {
+          var image = new Image();
+          image.src = src;
+          image.onload = image.onerror = function revokePhotoURL() {
+            URL.revokeObjectURL(this.src);
+          };
+        });
       }
 
       navigator.mozL10n.localize(name, 'thread-header-text', {
@@ -156,7 +159,7 @@ var ThreadListUI = {
         n: others
       });
 
-      photo.src = src;
+      photo.style.backgroundImage = 'url(' + src + ')';
     });
   },
 
