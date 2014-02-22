@@ -82,6 +82,7 @@ Recyclist.prototype = {
     var recyclableItems = [];
     for (var i in this.domItems) {
       if (i < startIndex || i >= endIndex) {
+        this.forget(this.domItems[i], i);
         recyclableItems.push(i);
       }
     }

@@ -756,8 +756,15 @@ contacts.List = (function() {
               // Set the photo if there is one
               var photo = ContactPhotoHelper.getThumbnail(contact);
               if (photo) {
+                element.dataset.photoUrl = URL.createObjectURL(photo);
                 element.children[0].children[0].style.backgroundImage =
-                  'url(' + URL.createObjectURL(photo) + ')';
+                  'url(' + element.dataset.photoUrl + ')';
+              }
+            },
+            forget: function(element, index) {
+              if (element.dataset.photoUrl) {
+                URL.revokeObjectURL(element.dataset.photoUrl);
+                element.dataset.photoUrl = '';
               }
             },
             scrollParent: groupsContainer,
