@@ -157,7 +157,7 @@ Camera.prototype.resolution = function(mode) {
 };
 
 Camera.prototype.setPictureSize = function(value) {
-  this.pictureSize = this.mozCamera.pictureSize = value;
+  this.mozCamera.pictureSize = this.pictureSize = value;
   this.setThumbnailSize();
   debug('set picture size w: %s, h: %s', value.width, value.height);
   return this;

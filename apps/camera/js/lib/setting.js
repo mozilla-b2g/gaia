@@ -16,11 +16,14 @@ var mixin = require('lib/mixin');
 
 module.exports = Setting;
 
-// Mixin Model methods
+/**
+ * Mixin `Model` methods
+ */
+
 model(Setting.prototype);
 
 /**
- * Initialize a new `Setting` model.
+ * Initialize a new `Setting`.
  *
  * @param {Object} data
  */
@@ -29,7 +32,8 @@ function Setting(data) {
   this.configure(data);
   this.reset(data, { silent: true });
   this.updateSelected({ silent: true });
-  this.anyOptions = data.options.length === 0;
+
+  // Bind context
   this.isValidOption = this.isValidOption.bind(this);
   this.inflateOption = this.inflateOption.bind(this);
   this.select = this.select.bind(this);
@@ -37,13 +41,25 @@ function Setting(data) {
 }
 
 Setting.prototype.configure = function(data) {
+  var optionsHash = this.optionsToHash(data.options);
+  var options = data.options;
+
   this._options = {};
-  this._options.config = this.optionsToHash(data.options);
-  this._options.hash = this._options.config;
+  this._options.config = this._options.hash = options.length && optionsHash;
+
+  // Configure options whenever they change
   this.on('change:options', this.onOptionsChange);
+
+  // Save the Setting when it's changed
   if (data.persistent) { this.on('change:selected', this.save); }
 };
 
+/**
+ * Perform some admin whenever
+ * the settings are changed.
+ *
+ * @private
+ */
 Setting.prototype.onOptionsChange = function() {
   this.resetOptionsHash();
   this.sortOptions();
@@ -51,17 +67,24 @@ Setting.prototype.onOptionsChange = function() {
   debug('options changed');
 };
 
+/**
+ * Converts an options array to
+ * a hash with `index` properties.
+ *
+ * We use this hash to validate
+ * incoming options and ot mixin
+ * config data with dynamic options.
+ *
+ * @param  {Array} options
+ * @return {undefined|Object}
+ */
 Setting.prototype.optionsToHash = function(options) {
   var hash = {};
-
   options.forEach(function(option, index) {
-    var key = option.key;
     option.index = index;
-    // option.value = 'value' in option ? option.value : key;
-    hash[key] = option;
+    hash[option.key] = option;
   });
-
-  return options.length && hash;
+  return hash;
 };
 
 /**
@@ -109,6 +132,15 @@ Setting.prototype.select = function(key, options) {
   this.set('selected', selected.key, options);
 };
 
+/**
+ * Completely reset the Setting's options.
+ *
+ * Passed options go through formatting
+ * and validation before being set.
+ *
+ * @param  {Array|Object} options
+ * @public
+ */
 Setting.prototype.resetOptions = function(options) {
   options = this.format(options || [])
     .filter(this.isValidOption)
@@ -118,40 +150,113 @@ Setting.prototype.resetOptions = function(options) {
   this.emit('optionsreset', options);
 };
 
+/**
+ * Sorts the current options list
+ * by their originally defined
+ * index in the config JSON.
+ *
+ * @private
+ */
 Setting.prototype.sortOptions = function() {
   var options = this.get('options');
   options.sort(function(a, b) { return a.index - b.index; });
 };
 
+/**
+ * Rebuilds the options hash
+ * fresh from the latest options
+ * list.
+ *
+ * We duplicate options in a hash
+ * so that we can have super-fast
+ * lookups when calling `value()`
+ * and `.selected()` methods.
+ *
+ * We maintain an array becuase the
+ * order of options is very important.
+ *
+ * @private
+ */
 Setting.prototype.resetOptionsHash = function() {
   var options = this.get('options');
   var hash = this._options.hash = {};
   options.forEach(function(option) { hash[option.key] = option; });
 };
 
+/**
+ * Silently updates the `selected`
+ * property of the Setting.
+ *
+ * If no selected key is present
+ * we attempt to select the last
+ * fetched persited selection.
+ *
+ * @private
+ */
 Setting.prototype.updateSelected = function() {
   this.select(this.get('selected') || this.fetched, { silent: true });
 };
 
-// Override this for custom options formatting
+/**
+ * Normalizes incoming options data.
+ *
+ * For settings that need more complex
+ * formatting (eg. pictureSizes), you
+ * can override this method to perform
+ * more bespoke formatting.
+ *
+ * @param  {Array|Object} options
+ * @return {Array}
+ */
 Setting.prototype.format = function(options) {
   var isArray = Array.isArray(options);
   var normalized = [];
 
-  each(options, function(value, key) {
+  each(options, function(item, key) {
+    var isObject = typeof item === 'object';
     var option = {};
-    option.key = isArray ? (value.key || value) : key;
-    option.value = value.value || value;
+
+    // The key can come from several places
+    option.key = isArray ? (isObject ? item.key : item) : key;
+    option.data = item.data || isObject && item || !isArray && item;
     normalized.push(option);
   });
 
   return normalized;
 };
 
+/**
+ * Defines whether the given
+ * option is valid.
+ *
+ * An option is 'valid' if it matches
+ * one of the defined options keys,
+ * in the config JSON.
+ *
+ * If no options keys are given in the
+ * config, all options are valid.
+ *
+ * @param  {Object}  option
+ * @return {Boolean}
+ * @private
+ */
 Setting.prototype.isValidOption = function(option) {
   return !!(this._options.config[option.key] || !this._options.config);
 };
 
+/**
+ * Mixes any config data into
+ * the given option object.
+ *
+ * This allows us to have an option
+ * that comprises partly of config
+ * data, and partly of data sourced
+ * from hardware capabilites.
+ *
+ * @param  {Object} option
+ * @return {Object}
+ * @private
+ */
 Setting.prototype.inflateOption = function(option) {
   var key = option.key;
   var config = this._options.config;
@@ -165,6 +270,8 @@ Setting.prototype.inflateOption = function(option) {
  *
  * First option is chosen if
  * there is no next option.
+ *
+ * @public
  */
 Setting.prototype.next = function() {
   var options = this.get('options');
@@ -175,16 +282,17 @@ Setting.prototype.next = function() {
   debug('set \'%s\' to index: %s', this.key, newIndex);
 };
 
-/**
- * Get the value of the currently
- * selected option.
- *
- * @return {*}
- */
-Setting.prototype.value = function() {
-  var selected = this.selected();
-  return selected && (selected.value || selected.key);
-};
+// /**
+//  * Get the value of the currently
+//  * selected option.
+//  *
+//  * @return {*}
+//  * @public
+//  */
+// Setting.prototype.value = function() {
+//   var selected = this.selected();
+//   return selected && (selected.value || selected.key);
+// };
 
 /**
  * Persists the current selection
@@ -222,12 +330,12 @@ Setting.prototype.fetch = function() {
 /**
  * Loops arrays or objects.
  *
- * @param  {Array|Object}   obj
+ * @param  {Array|Object} obj
  * @param  {Function} fn
  */
 function each(obj, fn) {
   if (Array.isArray(obj)) { obj.forEach(fn); }
-  else { for (var key in obj) { fn(obj[key], key, true); } }
+  else { for (var key in obj) { fn(obj[key], key); } }
 }
 
 });

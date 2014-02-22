@@ -40,9 +40,10 @@ suite('controllers/camera', function() {
     };
     this.app.views.filmstrip.clear = sinon.spy();
     this.app.settings.cameras = sinon.createStubInstance(this.Setting);
-    this.app.settings.get
-      .withArgs('cameras')
-      .returns(this.app.settings.cameras);
+    this.app.settings.mode = sinon.createStubInstance(this.Setting);
+    this.app.settings.pictureSizes = sinon.createStubInstance(this.Setting);
+    this.app.settings.recorderProfiles = sinon.createStubInstance(this.Setting);
+    this.app.settings.flashModes = sinon.createStubInstance(this.Setting);
   });
 
   suite('CameraController()', function() {
@@ -55,7 +56,7 @@ suite('controllers/camera', function() {
     });
 
     test('Should set the capture mode to \'camera\' by default', function() {
-      this.app.settings.value.withArgs('mode').returns('picture');
+      this.app.settings.mode.selected.returns('picture');
       this.controller = new this.CameraController(this.app);
       assert.isTrue(this.app.camera.setMode.calledWith('picture'));
     });
