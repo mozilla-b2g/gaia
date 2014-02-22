@@ -238,13 +238,11 @@ module.exports = {
     options: [
       {
         key: 'on',
-        title: 'On',
-        value: true
+        title: 'On'
       },
       {
         key: 'off',
-        title: 'Off',
-        value: false
+        title: 'Off'
       }
     ],
     selected: 'off',

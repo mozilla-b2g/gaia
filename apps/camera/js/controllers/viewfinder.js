@@ -28,10 +28,17 @@ function ViewfinderController(app) {
   this.filmstrip = app.filmstrip;
   this.viewfinder = app.views.viewfinder;
   this.bindEvents();
+  this.configure();
   debug('initialized');
 }
 
+ViewfinderController.prototype.configure = function() {
+  var grid = this.app.settings.grid.selected('key');
+  this.viewfinder.set('grid', grid);
+};
+
 ViewfinderController.prototype.bindEvents = function() {
+  this.app.settings.on('change:grid', this.viewfinder.setter('grid'));
   this.viewfinder.on('click', this.onViewfinderClick);
   this.app.on('camera:configured', this.loadStream);
   this.app.on('camera:configured', this.updatePreview);
