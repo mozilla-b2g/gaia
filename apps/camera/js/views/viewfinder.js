@@ -10,7 +10,7 @@ var CameraUtils = require('lib/camera-utils');
 var debug = require('debug')('view:viewfinder');
 var constants = require('config/camera');
 var View = require('vendor/view');
-
+var find = require('lib/find');
 /**
  * Locals
  */
@@ -57,10 +57,38 @@ return View.extend({
   className: 'js-viewfinder',
   fadeTime: 200,
   initialize: function() {
+    //render the frame grid
+    this.render();
+    //get frame grid element
+    this.els.frameGrid = find('.js-frame-grid',document);
+    this.els.frameGrid.setAttribute('data-visible',false);
+    //bind event with viewFinder
     bind(this.el, 'click', this.onClick);
     this.el.autoplay = true;
   },
-
+  render: function() {
+    var gridDiv = document.createElement('div');
+    gridDiv.classList.add('js-frame-grid');
+    gridDiv.classList.add('frameGrid');
+    gridDiv.innerHTML = this.template();
+    document.body.appendChild(gridDiv);
+  },
+  template: function() {
+    return '<div class=" divTable ">'+
+            '<div class=" row  Row1">'+
+            '<div class=" cell Cell1"></div>'+
+            '<div  class=" cell Cell2"></div>'+
+            '<div  class=" cell Cell3"></div>'+
+            '</div><div class="row Row2">'+
+            '<div class=" cell Cell1"></div>'+
+            '<div  class=" cell Cell2"></div>'+
+            '<div  class=" cell Cell3"></div>'+
+            '</div><div class="row Row3">'+
+            '<div class=" cell Cell1"></div>'+
+            '<div  class=" cell Cell2"></div>'+
+            '<div  class=" cell Cell3"></div>'+
+            '</div></div>';
+  }, 
   onClick: function() {
     this.emit('click');
   },
@@ -153,8 +181,8 @@ return View.extend({
                               deviceIndependentViewportSize,
                               previewSize);
 
-    this.el.style.width = scaledPreviewSize.width + 'px';
-    this.el.style.height = scaledPreviewSize.height + 'px';
+    this.el.style.width = this.els.frameGrid.style.width = scaledPreviewSize.width + 'px';
+    this.el.style.height = this.els.frameGrid.style.height = scaledPreviewSize.height + 'px';
 
     // Rotate the preview image 90 degrees
     var transform = 'rotate(90deg)';
@@ -165,15 +193,20 @@ return View.extend({
     }
 
     this.el.style.transform = transform;
+    this.els.frameGrid.style.transform = transform;
 
     var offsetX = (deviceIndependentViewportSize.height -
                    scaledPreviewSize.width) / 2;
     var offsetY = (deviceIndependentViewportSize.width -
                    scaledPreviewSize.height) / 2;
-
-    this.el.style.left = offsetX + 'px';
-    this.el.style.top = offsetY + 'px';
-  }
+    this.el.style.left = this.els.frameGrid.style.left = offsetX + 'px';
+    this.el.style.top = this.els.frameGrid.style.top = offsetY + 'px';
+    
+  },
+  toggleFrameGrid: function(value){
+    this.els.frameGrid.setAttribute('data-visible',value);
+  },
+  
 });
 
 });

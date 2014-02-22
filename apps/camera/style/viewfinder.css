@@ -10,3 +10,62 @@
 .viewfinder.fade-out {
   opacity: 0;
 }
+.frameGrid{
+  position: absolute;
+  z-index: 5;  /*5 just above the veiw finder */
+  left: 0;
+  top: 0;
+  background: transparent;
+  margin: 0;
+  padding: 0;
+  pointer-events:none;
+  text-align: center;
+  width: 100%;
+  height: 100%;
+}
+.frameGrid .divTable{
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+  border-spacing:0;
+  border-collapse:collapse;
+  display: table;
+}
+.divTable .row{
+  margin: 0;
+  padding: 0;
+  width:100%;
+  display: table-row;
+}
+.divTable .cell{
+  margin: 0;
+  padding: 0;
+  width: 30%;
+  height: 30%;
+  border: solid 0.2rem  #7D7D7D;
+	/*border-right:0.2rem solid  #7D7D7D;
+	background: transparent;
+	pointer-events:none;*/
+  display: table-cell;
+}
+.divTable .Row1 .cell{
+  border-top: 0;
+}
+.divTable .Row3 .cell{
+  border-bottom: 0;
+}
+.divTable .row .Cell1{
+  border-left: 0;
+}
+.divTable .row .Cell3{
+  border-right: 0;
+}
+
+.frameGrid[data-visible=false]{
+  display: none;
+}
+.frameGrid[data-visible=true]{
+  display: block;
+}
