@@ -775,7 +775,7 @@ contacts.List = (function() {
               return groupsContainer.clientHeight;
             },
             getScrollPos: function() {
-              return groupsList.scrollTop;
+              return groupsContainer.scrollTop;
             },
             syncBufferMultiplier: 1,
             bufferMultiplier: 8
