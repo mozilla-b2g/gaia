@@ -101,6 +101,7 @@ ul li > label.pack-switch > input + span {
 }
 
 #timer-sound-menu {
+  visibility:hidden;
   border-width: 0;
 
   color: #FFF;

@@ -13,5 +13,13 @@
   "ringer_progressive_dapple.opus": "",
   "ringer_digital_dapple.opus": "",
   "ringer_loud_windchimes.opus": "",
-  "ringer_bitbounce.opus": ""
+  "ringer_bitbounce.opus": "",
+  "ac_classic_clock_alarm.opus": "",
+  "ac_classic_clock_alarm_prog.opus": "",
+  "ac_classic_clock_radio.opus": "",
+  "ac_normal_gem_echoes.opus": "",
+  "ac_normal_ringing_strings.opus": "",
+  "ac_soft_humming_waves.opus": "",
+  "ac_soft_into_the_void.opus": "",
+  "ac_soft_smooth_strings.opus": ""
 }

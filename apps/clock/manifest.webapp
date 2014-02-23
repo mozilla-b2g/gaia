@@ -11,6 +11,9 @@
     "storage":{},
     "alarms":{},
     "settings":{ "access": "readwrite" },
+	"System Ringtones": {
+      "access": "readonly"
+    },
     "attention":{},
     "audio-channel-alarm":{}
   },
