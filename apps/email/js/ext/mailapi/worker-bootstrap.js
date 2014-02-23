@@ -16744,9 +16744,16 @@ MailUniverse.prototype = {
    * a bad login notification.
    */
   __reportAccountProblem: function(account, problem) {
+    var suppress = false;
     // nothing to do if the problem is already known
-    if (account.problems.indexOf(problem) !== -1)
+    if (account.problems.indexOf(problem) !== -1) {
+      suppress = true;
+    }
+    this._LOG.reportProblem(problem, suppress, account.id);
+    if (suppress) {
       return;
+    }
+
     account.problems.push(problem);
     account.enabled = false;
 
@@ -16776,6 +16783,7 @@ MailUniverse.prototype = {
   },
 
   clearAccountProblems: function(account) {
+    this._LOG.clearAccountProblems(account.id);
     // TODO: this would be a great time to have any slices that had stalled
     // syncs do whatever it takes to make them happen again.
     account.enabled = true;
@@ -17908,6 +17916,8 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
       configMigrating: {},
       configLoaded: {},
       createAccount: { type: true, id: false },
+      reportProblem: { type: true, suppressed: true, id: false },
+      clearAccountProblems: { id: false },
       opDeferred: { type: true, id: false },
       opTryLimitReached: { type: true, id: false },
       opGaveUp: { type: true, id: false },
