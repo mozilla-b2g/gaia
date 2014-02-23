@@ -347,15 +347,19 @@ OperatorVariantHelper.prototype = {
     }
 
     if (this._addedListener) {
-      // Otherwise, unregister.
-      this._iccCard.removeEventListener(
-        'iccinfochange',
-        this._addedListener
-      );
-      this._iccCard.removeEventListener(
-        'cardstatechange',
-        this._addedListener
-      );
+      var iccManager = window.navigator.mozIccManager;
+      this._iccCard = iccManager.getIccById(this._iccId);
+      if (this._iccCard) {
+        // Otherwise, unregister.
+        this._iccCard.removeEventListener(
+          'iccinfochange',
+          this._addedListener
+        );
+        this._iccCard.removeEventListener(
+          'cardstatechange',
+          this._addedListener
+        );
+      }
       // Clear our reference to the bound listener.
       this._addedListener = null;
     }
