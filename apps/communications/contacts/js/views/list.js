@@ -425,6 +425,10 @@ contacts.List = (function() {
   function getHighlightedName(contact, ele) {
     if (!ele) {
       ele = document.createElement('p');
+    } else {
+      while (ele.firstChild) {
+        ele.removeChild(ele.firstChild);
+      }
     }
     ele.classList.add('contact-text');
     var givenName = (contact.givenName && contact.givenName[0]) || '';
@@ -751,10 +755,12 @@ contacts.List = (function() {
             populate: function(element, index) {
               var contact = allContacts[index];
               var display = getDisplayName(contact);
-              var nameElement = getHighlightedName(display);
+
+              var nameElement = element.children[1].children[0];
+
+              getHighlightedName(display, nameElement);
 
               element.dataset.uuid = contact.id;
-              element.children[1].appendChild(nameElement);
 
               elementsByIndex[index] = element;
 
