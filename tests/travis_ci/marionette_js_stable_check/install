@@ -3,11 +3,5 @@
 echo "Downloading b2g-desktop"
 make b2g
 
-# We need to have the permission to install Python package on Travis.
-echo "Install virtualenv."
-sudo pip install virtualenv
-echo "Install radicale."
-sudo pip install radicale
-
 echo "Building test profile"
 PROFILE_FOLDER=profile-test make

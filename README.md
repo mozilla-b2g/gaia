@@ -114,13 +114,6 @@ automatically picked up by `make test-integration`.
 ```sh
 make test-integration
 ```
-
-#### Invoking tests without CalDAV server installation.
-
-```sh
-make test-integration INSTALL_CALDAV_SERVER=0
-```
-
 #### Running tests while working
 
 If you wish to run many tests in background you might not want to be disturbed
