@@ -2,6 +2,7 @@ define(function(require) {
 'use strict';
 
 var mozL10n = require('l10n');
+var DateTimeFormat = require('l10n-date');
 
 var Utils = {};
 // Maintain references to millisecond multipliers
@@ -223,7 +224,7 @@ Utils.is12hFormat = function() {
 };
 
 Utils.getLocaleTime = function(d) {
-  var f = new mozL10n.DateTimeFormat();
+  var f = new DateTimeFormat();
   var is12h = Utils.is12hFormat();
   return {
     t: f.localeFormat(d, (is12h ? '%I:%M' : '%H:%M')).replace(/^0/, ''),

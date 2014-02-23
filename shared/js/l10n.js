@@ -8,7 +8,15 @@
  * application localization. See: https://github.com/fabi1cazenave/webL10n
  */
 
-(function(window) {
+(function(root, factory) {
+  if (typeof define === 'function' && define.amd) {
+    define([], function() {
+      return root.navigator.mozL10n = factory(root);
+    });
+  } else {
+    root.navigator.mozL10n = factory(root);
+  }
+}(this, function(window) {
   var gL10nData = {};
   var gLanguage = '';
   var gMacros = {};
@@ -1191,8 +1199,10 @@
     });
   }
 
+  consoleLog('library loaded.');
+
   // public API
-  navigator.mozL10n = {
+  return {
     // get a localized string
     get: function l10n_get(key, args) {
       var data = getL10nData(key, args);
@@ -1244,6 +1254,4 @@
     }
   };
 
-  consoleLog('library loaded.');
-})(this);
-
+}));
