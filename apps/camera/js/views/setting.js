@@ -25,7 +25,8 @@ module.exports = View.extend({
     bind(this.el, 'click', this.onClick);
   },
 
-  onClick: function() {
+  onClick: function(e) {
+    e.stopPropagation();
     this.emit('click', this);
   },
 

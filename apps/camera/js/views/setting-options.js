@@ -31,6 +31,7 @@ module.exports = View.extend({
 
   onOptionClick: function(event, el) {
     var key = el.getAttribute('data-key');
+    event.stopPropagation();
     this.emit('tap:option', key, this.model);
   },
 
