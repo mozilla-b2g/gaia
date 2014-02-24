@@ -114,7 +114,7 @@ suite('dialer/handled_call', function() {
     });
 
     test('call event listener', function() {
-      assert.isTrue(mockCall._listenerAdded);
+      assert.isTrue(mockCall._eventListeners.statechange.length > 0);
     });
 
     suite('node', function() {
@@ -359,6 +359,7 @@ suite('dialer/handled_call', function() {
 
     suite('from a regular call', function() {
       setup(function() {
+        this.sinon.spy(mockCall, 'removeEventListener');
         mockCall._disconnect();
       });
       test('should save the recents entry', function() {
@@ -371,7 +372,8 @@ suite('dialer/handled_call', function() {
       });
 
       test('should remove listener on the call', function() {
-        assert.isTrue(mockCall._listenerRemoved);
+        sinon.assert.calledWith(mockCall.removeEventListener,
+                                'statechange', subject);
       });
 
       test('should keep the call', function() {
