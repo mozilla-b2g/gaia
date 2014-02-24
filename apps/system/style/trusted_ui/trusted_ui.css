@@ -81,3 +81,24 @@
 #trustedui-inner iframe:not(.selected) {
   display: none;
 }
+
+#trustedui-error-dialog {
+  -moz-box-sizing: border-box;
+  height: 100%;
+  width: 100%;
+  z-index: 1024;
+  display: none;
+  background-color: black;
+  background-image: url(../modal_dialog/images/error_bk.png);
+}
+
+#trustedui-frame-container.error > #trustedui-error-dialog {
+  display: block;
+}
+
+#trustedui-frame-container > * {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
