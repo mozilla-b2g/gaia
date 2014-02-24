@@ -91,7 +91,7 @@ p#friends-msg {
 
 #main {
   position: fixed;
-  top: 5rem;
+  top: 2rem;
   height: calc(100% - 5rem);
   width: 100%;
 }
