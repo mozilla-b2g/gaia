@@ -908,7 +908,6 @@
           isDeletingRecipient = true;
         }
 
-
         break;
 
       case 'keypress':
@@ -1003,20 +1002,28 @@
 
         // Clear the displayed list
         // Render the recipients as a fresh list
-        // Set focus on the very placeholder item.
-        this.render().focus();
+        this.render();
+
+        // Defer setting focus to the next execution turn to allow
+        // recipients list rendering (innerHTML) to complete.
+        setTimeout(this.focus.bind(this), 0);
       }
     }
 
     if (isDeletingRecipient) {
-      this.render().focus();
+      this.render();
+
+      // Defer setting focus
+      setTimeout(this.focus.bind(this), 0);
     }
 
     if (isEdittingRecipient) {
       // Make the last added entry "editable"
       target.contentEditable = true;
       target.isPlaceholder = true;
-      this.focus(target);
+
+      // Defer setting focus
+      setTimeout(this.focus.bind(this, target), 0);
     }
 
     if (isPreventingDefault) {
