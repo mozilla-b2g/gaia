@@ -30,8 +30,7 @@ function Recyclist(config) {
     this[i] = config[i];
   }
 
-  this.syncBufferMultiplier = config.syncBufferMultiplier || 1;
-  this.bufferMultiplier = config.bufferMultiplier || 8;
+  this.bufferMultiplier = this.bufferMultiplier || 8;
 }
 
 Recyclist.prototype = {
@@ -52,8 +51,6 @@ Recyclist.prototype = {
     this.scrollParent.addEventListener('scroll', this);
     this.scrollParent.addEventListener('resize', this);
 
-    this.lastScrollPos = this.getScrollPos();
-
     this.fix();
   },
 
@@ -62,7 +59,7 @@ Recyclist.prototype = {
    * If you only wanted to render what's on screen, you would just pass 1.
    * @param {Integer} multiplier A multiplier of the display port size.
    */
-  generate: function(multiplier, recycleMultiplier) {
+  generate: function(multiplier) {
     var itemHeight = this.itemHeight;
     var scrollPos = this.getScrollPos();
     var scrollPortHeight = this.getScrollHeight();
@@ -81,18 +78,10 @@ Recyclist.prototype = {
       Math.ceil((scrollPos + scrollPortHeight + displayPortMargin) /
         itemHeight));
 
-    var recycleDisplayPortMargin = recycleMultiplier * scrollPortHeight;
-    var recycleStartIndex = Math.max(0,
-      Math.floor((scrollPos - recycleDisplayPortMargin) / itemHeight));
-
-    var recycleEndIndex = Math.min(this.numItems,
-      Math.ceil((scrollPos + scrollPortHeight + recycleDisplayPortMargin) /
-        itemHeight));
-
     // indices of items which are eligible for recycling
     var recyclableItems = [];
     for (var i in this.domItems) {
-      if (i < recycleStartIndex || i >= recycleEndIndex) {
+      if (i < startIndex || i >= endIndex) {
         this.forget(this.domItems[i], i);
         recyclableItems.push(i);
       }
@@ -108,35 +97,23 @@ Recyclist.prototype = {
       return distanceFromDisplayPort(a) - distanceFromDisplayPort(b);
     });
 
-    if (scrollPos < this.lastScrollPos) {
-      for (i = endIndex - 1; i >= startIndex; --i) {
-        this.populateIndex(i, recyclableItems);
+    for (i = startIndex; i < endIndex; ++i) {
+      if (this.domItems[i]) {
+        continue;
       }
-    } else {
-      for (i = startIndex; i < endIndex; ++i) {
-        this.populateIndex(i, recyclableItems);
+      var item;
+      if (recyclableItems.length > 0) {
+        var recycleIndex = recyclableItems.pop();
+        item = this.domItems[recycleIndex];
+        delete this.domItems[recycleIndex];
+      } else {
+        item = this.template.cloneNode(true);
+        this.scrollChild.appendChild(item);
       }
+      this.populate(item, i);
+      item.style.top = i * itemHeight + 'px';
+      this.domItems[i] = item;
     }
-
-    this.lastScrollPos = scrollPos;
-  },
-
-  populateIndex: function(i, recyclableItems) {
-    if (this.domItems[i]) {
-      return;
-    }
-    var item;
-    if (recyclableItems.length > 0) {
-      var recycleIndex = recyclableItems.pop();
-      item = this.domItems[recycleIndex];
-      delete this.domItems[recycleIndex];
-    } else {
-      item = this.template.cloneNode(true);
-      this.scrollChild.appendChild(item);
-    }
-    this.populate(item, i);
-    item.style.top = i * this.itemHeight + 'px';
-    this.domItems[i] = item;
   },
 
   /**
@@ -145,11 +122,10 @@ Recyclist.prototype = {
    */
   fix: function() {
     // Synchronously generate all items that are immediately or nearly visible
-    this.generate(this.syncBufferMultiplier, this.bufferMultiplier);
+    this.generate(1);
 
     // Asynchronously generate the other items for the displayport
-    setTimeout(this.generate.bind(this, this.bufferMultiplier,
-                                        this.bufferMultiplier));
+    setTimeout(this.generate.bind(this, this.bufferMultiplier));
   },
 
   handleEvent: function() {
