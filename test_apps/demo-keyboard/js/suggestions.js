@@ -4,7 +4,7 @@
   // Add the suggestions panel to the keyboard display area
   var suggestionsContainer = document.createElement('div');
   suggestionsContainer.className = 'suggestions';
-  document.getElementById('keyboardContainer')
+  document.getElementById('keyboard-container')
     .appendChild(suggestionsContainer);
 
   function display(suggestions) {
