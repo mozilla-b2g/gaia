@@ -151,6 +151,7 @@
 [data-panel="main"] #lockscreen-panel-main,
 [data-panel="passcode"] #lockscreen-panel-main,
 [data-panel="passcode"] #lockscreen-panel-passcode,
+[data-panel="emergency-call"] #lockscreen-panel-passcode,
 [data-panel="emergency-call"] #lockscreen-panel-emergency-call {
   visibility: inherit;
 }
@@ -161,10 +162,6 @@
 
 [data-panel="passcode"] #lockscreen-alt-camera {
   opacity: 1;
-}
-
-[data-panel="emergency-call"] #lockscreen-panel-main {
-  transform: translateX(-100%);
 }
 
 #lockscreen-header {
@@ -375,10 +372,6 @@ button::-moz-focus-inner {
   border-radius: 50%;
 
   pointer-events: auto;
-}
-
-[data-panel="emergency-call"] #lockscreen-panel-passcode {
-  transform: translateX(-100%);
 }
 
 #lockscreen-panel-passcode {

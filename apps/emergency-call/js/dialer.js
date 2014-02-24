@@ -1,6 +1,6 @@
 'use strict';
 
-var CallHandler = {
+window.CallHandler = {
   _telephony: window.navigator.mozTelephony,
 
   call: function ch_call(number) {
@@ -10,7 +10,7 @@ var CallHandler = {
       var call = telephony.dialEmergency(sanitizedNumber);
       if (call) {
         var cb = function clearPhoneView() {
-          KeypadManager.updatePhoneNumber('');
+          window.KeypadManager.updatePhoneNumber('');
         };
         call.onconnected = cb;
 
@@ -24,5 +24,5 @@ var CallHandler = {
 
 window.addEventListener('load', function onload() {
   window.removeEventListener('load', onload);
-  KeypadManager.init();
+  window.KeypadManager.init();
 });
