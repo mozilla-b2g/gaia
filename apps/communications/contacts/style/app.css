@@ -310,6 +310,13 @@ li a[role="button"].activity > b{
   pointer-events: none;
 }
 
+[data-type="list"] li aside span {
+  height: 60px;
+  width: 60px;
+  display: block;
+  background-size: cover;
+}
+
 /* Selection tag extended from shared/style/buttons.css */
 .view-select-tag .selection-list li button {
   background-color: #fff;

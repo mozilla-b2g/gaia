@@ -49,10 +49,6 @@ if (!this.ActivityHandler) {
   this.ActivityHandler = null;
 }
 
-if (!this.ImageLoader) {
-  this.ImageLoader = null;
-}
-
 if (!this.PerformanceTestingHelper) {
   this.PerformanceTestingHelper = null;
 }
@@ -80,7 +76,6 @@ suite('Render contacts list', function() {
       realL10n,
       realContacts,
       realFb,
-      realImageLoader,
       realPerformanceTestingHelper,
       realAsyncStorage,
       Contacts,
@@ -89,7 +84,6 @@ suite('Render contacts list', function() {
       mockContacts,
       mozL10n,
       mockActivities,
-      mockImageLoader,
       mockURL,
       realActivities,
       realURL,
@@ -383,8 +377,6 @@ suite('Render contacts list', function() {
     window.Contacts.extServices = MockExtFb;
     realActivities = window.ActivityHandler;
     window.ActivityHandler = MockActivities;
-    realImageLoader = window.ImageLoader;
-    window.ImageLoader = MockImageLoader;
     realURL = window.URL || {};
     realPerformanceTestingHelper = window.PerformanceTestingHelper;
     window.PerformanceTestingHelper = MockPerformanceTestingHelper;
@@ -413,7 +405,6 @@ suite('Render contacts list', function() {
     window.fb = realFb;
     window.mozL10n = realL10n;
     window.ActivityHandler = realActivities;
-    window.ImageLoader = realActivities;
     window.PerformanceTestingHelper = realPerformanceTestingHelper;
     window.asyncStorage = realAsyncStorage;
     navigator.mozContacts = realMozContacts;

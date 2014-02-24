@@ -67,8 +67,7 @@ if (!contacts.MatchingUI) {
       renderList(results, cb);
     }
 
-    var listDependencies = ['/contacts/js/utilities/image_loader.js',
-                            '/contacts/js/utilities/templates.js'];
+    var listDependencies = ['/contacts/js/utilities/templates.js'];
 
     function renderList(contacts, success) {
       LazyLoader.load(listDependencies, function loaded() {
@@ -90,7 +89,6 @@ if (!contacts.MatchingUI) {
 
         // The template is deleted from the list
         contactsList.removeChild(contactsList.firstElementChild);
-        new ImageLoader('#main', 'li');
         setTimeout(success);
       });
     }

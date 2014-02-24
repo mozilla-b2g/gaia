@@ -11,15 +11,12 @@ contacts.List = (function() {
       scrollable,
       settingsView,
       noContacts,
-      imgLoader = null,
-      needImgLoaderReload = false,
       orderByLastName = null,
       photoTemplate,
       headers = {},
       loadedContacts = {},
       viewHeight = -1,
       rowsPerPage = -1,
-      monitor = null,
       loading = false,
       cancelLoadCB = null,
       photosById = {},
@@ -80,34 +77,6 @@ contacts.List = (function() {
 
   var NOP_FUNCTION = function() {};
 
-  var onscreen = function(row) {
-    var id = row.dataset.uuid;
-    var group = row.dataset.group;
-    if (!id || !group) {
-      return;
-    }
-
-    rowsOnScreen[id] = rowsOnScreen[id] || {};
-    rowsOnScreen[id][group] = row;
-
-    monitor && monitor.pauseMonitoringMutations();
-    renderLoadedContact(row, id);
-    updateRowStyle(row, true);
-    renderPhoto(row, id);
-    updateSingleRowSelection(row, id);
-
-    // Since imgLoader.reload() causes sync reflows we only want to make this
-    // call when something happens that affects our onscreen view.  Therefore
-    // we defer the call until here when we know the visibility monitor has
-    // detected a change and called onscreen().
-    if (imgLoader && needImgLoaderReload) {
-      needImgLoaderReload = false;
-      imgLoader.reload();
-    }
-
-    monitor && monitor.resumeMonitoringMutations(false);
-  };
-
   var renderLoadedContact = function(el, id) {
     if (el.dataset.rendered) {
       return;
@@ -130,23 +99,6 @@ contacts.List = (function() {
     group = group || el.dataset.group;
     if (loadedContacts[id])
       loadedContacts[id][group] = null;
-  };
-
-  var offscreen = function(row) {
-    var id = row.dataset.uuid;
-    var group = row.dataset.group;
-    if (!id || !group) {
-      return;
-    }
-
-    if (rowsOnScreen[id]) {
-      delete rowsOnScreen[id][group];
-    }
-
-    monitor && monitor.pauseMonitoringMutations();
-    updateRowStyle(row, false);
-    releasePhoto(row);
-    monitor && monitor.resumeMonitoringMutations(false);
   };
 
   var init = function load(element, reset) {
@@ -172,17 +124,10 @@ contacts.List = (function() {
 
   function hide() {
     contactsListView.classList.add('hide');
-    if (monitor) {
-      monitor.pauseMonitoringMutations();
-    }
   }
 
   function show() {
     contactsListView.classList.remove('hide');
-    needImgLoaderReload = true;
-    if (monitor) {
-      monitor.resumeMonitoringMutations(true);
-    }
   }
 
   // Define a source adapter object to pass to contacts.Search.
@@ -445,6 +390,17 @@ contacts.List = (function() {
     var timestampDate = contact.updated || contact.published || new Date();
     container.dataset.updated = timestampDate.getTime();
 
+    // Render the contact photo
+    var newPhoto = Array.isArray(contact.photo) ? contact.photo[0] : null;
+    if (newPhoto) {
+      var photoTemplate = document.createElement('aside');
+      photoTemplate.className = 'pack-end';
+      var img = document.createElement('span');
+      img.style.backgroundImage = 'url(' + window.URL.createObjectURL(newPhoto) + ')';
+      photoTemplate.appendChild(img);
+      container.appendChild(photoTemplate);
+    }
+
     var check = getSelectCheck(contact.id);
     container.appendChild(check);
 
@@ -615,16 +571,8 @@ contacts.List = (function() {
   function loadChunk(chunk) {
     var nodes = [];
     for (var i = 0, n = chunk.length; i < n; ++i) {
-      if (i === getRowsPerPage()) {
-        notifyAboveTheFold();
-      }
-
       var newNodes = appendToLists(chunk[i]);
       nodes.push.apply(nodes, newNodes);
-    }
-
-    if (i < getRowsPerPage()) {
-      notifyAboveTheFold();
     }
 
     // If the search view has been activated by the user, then send newly
@@ -634,31 +582,6 @@ contacts.List = (function() {
       contacts.Search.appendNodes(nodes);
     }
   }
-
-  // Time until we show the first contacts "above the fold" is a very
-  // important usability metric.  Emit an event when as soon as we reach
-  // this point so tools can measure the time.
-  var notifiedAboveTheFold = false;
-  function notifyAboveTheFold() {
-    if (notifiedAboveTheFold)
-      return;
-
-    notifiedAboveTheFold = true;
-    PerformanceTestingHelper.dispatch('above-the-fold-ready');
-
-    // Don't bother loading the monitor until we have rendered our
-    // first screen of contacts.  This avoids the overhead of
-    // onscreen() calls when adding those first contacts.
-    var vm_file = '/shared/js/tag_visibility_monitor.js';
-    LazyLoader.load([vm_file], function() {
-      var scrollMargin = ~~(getViewHeight() * 1.5);
-      // NOTE: Making scrollDelta too large will cause janky scrolling
-      //       due to bursts of onscreen() calls from the monitor.
-      var scrollDelta = ~~(scrollMargin / 15);
-      monitor = monitorTagVisibility(scrollable, 'li', scrollMargin,
-                                     scrollDelta, onscreen, offscreen);
-    });
-  };
 
   function getViewHeight(config) {
     if (viewHeight < 0) {
@@ -671,34 +594,6 @@ contacts.List = (function() {
       }
     }
     return viewHeight;
-  }
-
-  function getRowsPerPage() {
-    if (rowsPerPage < 0) {
-      var config = utils.cookie.load();
-      if (config && config.rowsPerPage > -1) {
-        rowsPerPage = config.rowsPerPage;
-      }
-    }
-
-    // If we couldn't load from config, then return max int since we can't
-    // calculate yet
-    if (rowsPerPage < 0) {
-      return MAX_INT;
-    }
-
-    // Otherwise return loaded config value
-    return rowsPerPage;
-  }
-
-  function setRowsPerPage(row) {
-    if (rowsPerPage > -1) {
-      return;
-    }
-
-    var rowHeight = row.getBoundingClientRect().height;
-    rowsPerPage = Math.ceil(getViewHeight() / rowHeight);
-    utils.cookie.update({rowsPerPage: rowsPerPage});
   }
 
   // Utility function for appending a newly loaded contact to both its default
@@ -728,10 +623,7 @@ contacts.List = (function() {
     ph = ph || createPlaceholder(contact, group);
     var list = getGroupList(group);
 
-    // If above the fold for list, render immediately
-    if (list.children.length < getRowsPerPage()) {
-      renderContact(contact, ph);
-    }
+    renderContact(contact, ph);
 
     if (!loadedContacts[contact.id])
       loadedContacts[contact.id] = {};
@@ -741,7 +633,6 @@ contacts.List = (function() {
     list.appendChild(ph);
     if (list.children.length === 1) {
       showGroupByList(list);
-      setRowsPerPage(list.firstChild);
     }
 
     return ph;
@@ -756,34 +647,17 @@ contacts.List = (function() {
     // and we didn't unselected any other contact
     selectAllPending = false;
 
-    // If there are zero contacts, then we still need to notify
-    // that the initial screen has been displayed.  This is a no-op
-    // if the notification has already happened.
-    notifyAboveTheFold();
-
     PerformanceTestingHelper.dispatch('startup-path-done');
     fb.init(function contacts_init() {
       if (fb.isEnabled) {
         Contacts.loadFacebook(NOP_FUNCTION);
       }
-      lazyLoadImages();
       loaded = true;
     });
   };
 
   var isFavorite = function isFavorite(contact) {
     return contact.category && contact.category.indexOf('favorite') != -1;
-  };
-
-  var lazyLoadImages = function lazyLoadImages() {
-    LazyLoader.load(['/contacts/js/utilities/image_loader.js',
-                     '/contacts/js/fb_resolver.js'], function() {
-      if (!imgLoader) {
-        imgLoader = new ImageLoader('#groups-container', 'li');
-        imgLoader.setResolver(fb.resolver);
-      }
-      imgLoader.reload();
-    });
   };
 
   var dispatchCustomEvent = function dispatchCustomEvent(eventName) {
@@ -822,16 +696,16 @@ contacts.List = (function() {
   // to only modify this attribute from this function in order to ensure that
   // the URLs are properly revoked.
   function setImageURL(img, photo, asClone) {
-    var oldURL = img.dataset.src;
+    var oldURL = img.style.backgroundImage;
     if (oldURL) {
       if (!asClone) {
         window.URL.revokeObjectURL(oldURL);
       }
-      img.dataset.src = '';
+      img.style.backgroundImage = '';
     }
     if (photo) {
       try {
-        img.dataset.src = window.URL.createObjectURL(photo);
+        img.style.backgroundImage = 'url(' + window.URL.createObjectURL(photo) + ')';
       } catch (err) {
         // Warn, but do nothing else.  We cleared the old URL above.
         console.warn('Failed to create URL for contacts image blob: ' + photo +
@@ -841,8 +715,7 @@ contacts.List = (function() {
   }
 
   // "Render" the photo by setting the img tag's dataset-src attribute to the
-  // value in our photo cache.  This in turn will allow the imgLoader to load
-  // the image once we have stopped scrolling.
+  // value in our photo cache.
   var renderPhoto = function renderPhoto(link, id, asClone) {
     id = id || link.dataset.uuid;
     var photo = photosById[id];
@@ -869,22 +742,6 @@ contacts.List = (function() {
 
     link.insertBefore(figure, link.children[0]);
     return;
-  };
-
-  // Remove the image for the given list item.  Leave the photo in our cache,
-  // however, so the image can be reloaded later.
-  var releasePhoto = function releasePhoto(el) {
-    // If the imgLoader isn't ready yet, we should have nothing to release
-    if (!imgLoader) {
-      return;
-    }
-
-    var img = imgLoader.releaseImage(el);
-    if (!img) {
-      return;
-    }
-
-    setImageURL(img, null);
   };
 
   var renderOrg = function renderOrg(contact, link, add) {
@@ -978,7 +835,6 @@ contacts.List = (function() {
       });
       return;
     }
-    notifiedAboveTheFold = false;
     if (contacts) {
       if (!contacts.length) {
         toggleNoContactsScreen(true);
@@ -1091,16 +947,6 @@ contacts.List = (function() {
       addToGroup(cloned, list);
     }
     toggleNoContactsScreen(false);
-
-    // Avoid calling imgLoader.reload() here because it causes a sync reflow
-    // of the entire list.  Ideally it would only do this if the new contact
-    // was added on screen or earlier, but unfortunately it doesn't have
-    // enough information.  The visibility monitor, however, does have this
-    // information.  Therefore set a flag here and then defer the reload until
-    // the next monitor onscreen() call.
-    if (imgLoader) {
-      needImgLoaderReload = true;
-    }
 
     // When we add a new contact to the list we will by default
     // select it depending on this two cases:
@@ -1670,10 +1516,6 @@ contacts.List = (function() {
   };
 
   var updateRowsOnScreen = function updateRowsOnScreen() {
-    // Update style of nodes on screen
-    if (monitor != null) {
-      monitor.pauseMonitoringMutations();
-    }
     var row;
     for (var id in rowsOnScreen) {
       for (var group in rowsOnScreen[id]) {
@@ -1681,9 +1523,6 @@ contacts.List = (function() {
         updateRowStyle(row, true);
         updateSingleRowSelection(row, id);
       }
-    }
-    if (monitor != null) {
-      monitor.resumeMonitoringMutations(false);
     }
   };
 

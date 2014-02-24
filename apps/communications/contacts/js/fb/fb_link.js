@@ -56,7 +56,6 @@ if (!fb.link) {
     // State can be proposal or view All
     var state;
     var _ = navigator.mozL10n.get;
-    var imgLoader;
 
     // Only needed for testing purposes
     var completedCb;
@@ -277,7 +276,6 @@ if (!fb.link) {
         }
 
         utils.templates.append('#friends-list', currentRecommendation);
-        imgLoader.reload();
 
         if (typeof completedCb === 'function') {
           completedCb();
@@ -444,8 +442,6 @@ if (!fb.link) {
         utils.templates.append(friendsList, response.data, fragment);
         friendsList.appendChild(fragment);
 
-        imgLoader.reload();
-
         Curtain.hide();
       }
       else {
@@ -479,8 +475,6 @@ if (!fb.link) {
 
       setCurtainHandlers();
       clearList();
-      imgLoader = new ImageLoader('#mainContent',
-                                  "li:not([data-uuid='#uid#'])");
 
       if (!acc_tk) {
         oauth2.getAccessToken(function proposal_new_token(new_acc_tk) {
@@ -608,7 +602,6 @@ if (!fb.link) {
 
       clearList();
       utils.templates.append(friendsList, currentRecommendation);
-      imgLoader.reload();
 
       return false;
     };

@@ -12,10 +12,6 @@ requireApp('communications/contacts/js/contacts_matching_ui.js');
 
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 
-if (!this.ImageLoader) {
-  this.ImageLoader = null;
-}
-
 var mocksHelperForContactMatchingUI = new MocksHelper([
   'ContactPhotoHelper'
 ]).init();
@@ -25,7 +21,7 @@ suite('Matching duplicate contacts UI Test Suite', function() {
   mocksHelperForContactMatchingUI.attachTestHelpers();
 
   var wrapper = null,
-    realImageLoader, realURL, list, matchingDetails, matchingName, matchingImg,
+    realURL, list, matchingDetails, matchingName, matchingImg,
     matchingDetailList, realMatchingController, mergeAction, realL10n;
 
   var masterContact = {
@@ -53,13 +49,11 @@ suite('Matching duplicate contacts UI Test Suite', function() {
   }
 
   suiteSetup(function() {
-    realImageLoader = window.ImageLoader;
     realURL = window.URL || {};
     realMatchingController = contacts.MatchingController;
     realL10n = window.navigator.mozL10n;
 
     window.contacts.MatchingController = MockMatchingController;
-    window.ImageLoader = MockImageLoader;
     window.URL = MockURL;
     window.navigator.mozL10n = MockMozL10n;
 
@@ -72,7 +66,6 @@ suite('Matching duplicate contacts UI Test Suite', function() {
   });
 
   suiteTeardown(function() {
-    window.ImageLoader = realImageLoader;
     window.contacts.MatchingController = realMatchingController;
     window.URL = realURL;
     window.navigator.mozL10n = realL10n;
