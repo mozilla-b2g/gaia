@@ -293,20 +293,20 @@ suite('message_manager.js >', function() {
 
       test('Calls Compose.fromDraft()', function() {
         MessageManager.launchComposer();
-        assert.ok(Compose.fromDraft.calledOnce);
+        sinon.assert.calledOnce(Compose.fromDraft);
       });
 
       test('No recipients loaded', function() {
         MessageManager.launchComposer();
-        assert.isFalse(ThreadUI.recipients.add.called);
-        assert.isFalse(ThreadUI.updateHeaderData.called);
+        sinon.assert.notCalled(ThreadUI.recipients.add);
+        sinon.assert.notCalled(ThreadUI.updateHeaderData);
       });
 
       test('with recipients', function() {
         ThreadUI.draft.recipients = ['800 732 0872', '800 555 1212'];
         MessageManager.launchComposer();
-        assert.ok(ThreadUI.recipients.add.calledTwice);
-        assert.isFalse(ThreadUI.updateHeaderData.called);
+        sinon.assert.calledTwice(ThreadUI.recipients.add);
+        sinon.assert.notCalled(ThreadUI.updateHeaderData);
       });
 
       test('discards draft record', function() {
@@ -353,8 +353,8 @@ suite('message_manager.js >', function() {
       };
       MessageManager.handleActivity(activity);
 
-      assert.equal(ThreadUI.recipients.numbers.length, 1);
-      assert.equal(ThreadUI.recipients.numbers[0], '998');
+      assert.equal(ThreadUI.recipients.valid.length, 1);
+      assert.equal(ThreadUI.recipients.valid[0], '998');
       assert.ok(Compose.fromMessage.calledWith(activity));
     });
 
@@ -364,8 +364,8 @@ suite('message_manager.js >', function() {
       };
       MessageManager.handleActivity(activity);
 
-      assert.equal(ThreadUI.recipients.numbers.length, 1);
-      assert.equal(ThreadUI.recipients.numbers[0], '+346578888888');
+      assert.equal(ThreadUI.recipients.valid.length, 1);
+      assert.equal(ThreadUI.recipients.valid[0], '+346578888888');
       assert.ok(Compose.fromMessage.calledWith(activity));
     });
 
@@ -386,7 +386,7 @@ suite('message_manager.js >', function() {
         body: 'Youtube url'
       };
       MessageManager.handleActivity(activity);
-      assert.equal(ThreadUI.recipients.numbers.length, 0);
+      assert.equal(ThreadUI.recipients.valid.length, 0);
       assert.ok(Compose.fromMessage.calledWith(activity));
     });
   });

@@ -204,7 +204,7 @@ ContactRenderer.prototype = {
       // If rendering for contact search result suggestions, don't
       // render contact tel records for values that are already
       // selected as recipients. This comparison should be safe,
-      // as the value in this.recipients.numbers comes from the same
+      // as the value in this.recipients.valid comes from the same
       // source that current.value comes from.
       if (renderAll && skip.indexOf(current.value) > -1) {
         return;

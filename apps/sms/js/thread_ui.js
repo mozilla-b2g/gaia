@@ -690,7 +690,7 @@ var ThreadUI = global.ThreadUI = {
 
   // Method for updating the header when needed
   updateComposerHeader: function thui_updateComposerHeader() {
-    var recipientCount = this.recipients.numbers.length;
+    var recipientCount = this.recipients.valid.length;
     if (recipientCount > 0) {
       navigator.mozL10n.localize(this.headerText, 'recipient', {
           n: recipientCount
@@ -928,7 +928,7 @@ var ThreadUI = global.ThreadUI = {
     //      - There is >=1 character typed and the value is a finite number
     //
     if (this.recipients &&
-        (this.recipients.numbers.length ||
+        (this.recipients.valid.length ||
           (recipientsValue && isFinite(recipientsValue)))) {
 
       hasRecipients = true;
@@ -2070,7 +2070,7 @@ var ThreadUI = global.ThreadUI = {
       if (!this.recipients.length) {
         return;
       }
-      recipients = this.recipients.numbers;
+      recipients = this.recipients.valid;
     } else {
       recipients = Threads.active.participants;
     }
@@ -2335,11 +2335,25 @@ var ThreadUI = global.ThreadUI = {
     // validateContact as a handler.
     //
     var isInvalid = true;
-    var index = this.recipients.length - 1;
+    var index = -1;
     var last = this.recipientsList.lastElementChild;
     var typed = last && last.textContent.trim();
     var isContact = false;
-    var record, tel, length, number, contact;
+    var children, length, record, tel, number, contact;
+
+    // Since we have direct access to the children and the list will
+    // never be too big to handle, this will be much faster then qSA.
+    // In order to find the last possible match where there might
+    // be duplicates, start from the end of the list and count down.
+    children = this.recipientsList.children;
+    length = children.length;
+
+    for (var i = length - 1; i > -1; i--) {
+      if (children[i].dataset.number === source.number) {
+        index = i;
+        break;
+      }
+    }
 
     if (index < 0) {
       index = 0;
@@ -2361,9 +2375,9 @@ var ThreadUI = global.ThreadUI = {
         }
       } else {
         // Received an exact match that may have multiple tel records
-        for (var i = 0; i < length; i++) {
-          tel = record.tel[i];
-          if (this.recipients.numbers.indexOf(tel.value) === -1) {
+        for (var j = 0; j < length; j++) {
+          tel = record.tel[j];
+          if (this.recipients.valid.indexOf(tel.value) === -1) {
             number = tel.value;
             break;
           }
@@ -2470,7 +2484,7 @@ var ThreadUI = global.ThreadUI = {
         contact: contact,
         input: fValue,
         target: ul,
-        skip: this.recipients.numbers
+        skip: this.recipients.valid
       });
     }, this);
 
@@ -2708,7 +2722,7 @@ var ThreadUI = global.ThreadUI = {
       recipients = Threads.active.participants;
       threadId = Threads.currentId;
     } else {
-      recipients = this.recipients.numbers;
+      recipients = this.recipients.all;
     }
 
     var draftId = this.draft ? this.draft.id : null;
