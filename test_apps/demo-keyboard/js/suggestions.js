@@ -63,7 +63,7 @@
     span.textContent = word;
     container.appendChild(span);
 
-    var limit = .6;  // Dont use a scale smaller than this
+    var limit = 0.6;  // Dont use a scale smaller than this
     var scale = getScale(span, container);
 
     // If the word does not fit within the scaling limit,
@@ -104,14 +104,14 @@
       var s = container.clientWidth / elementWidth;
       if (s >= 1)
         return 1;    // 10pt font "Body Large"
-      if (s >= .8)
-        return .8;   // 8pt font "Body"
-      if (s >= .7)
-        return .7;   // 7pt font "Body Medium"
-      if (s >= .65)
-        return .65;  // 6.5pt font "Body Small"
-      if (s >= .6)
-        return .6;   // 6pt font "Body Mini"
+      if (s >= 0.8)
+        return 0.8;   // 8pt font "Body"
+      if (s >= 0.7)
+        return 0.7;   // 7pt font "Body Medium"
+      if (s >= 0.65)
+        return 0.65;  // 6.5pt font "Body Small"
+      if (s >= 0.6)
+        return 0.6;   // 6pt font "Body Mini"
       return s;      // Something smaller than 6pt.
     }
   }

@@ -42,177 +42,44 @@
 
   // Our local copy of navigator.mozInputMethod.inputcontext
   var context;
-
-  // Our local copy of the input state from the input context
-  var inputType = null, inputMode = null;
-  var selectionStart = 0, selectionEnd = 0;
-  var textBeforeCursor = '', textAfterCursor = '';
+  if (navigator.mozInputMethod.inputcontext) {
+    handleInputFieldChanged();
+  }
 
   // A dummy element that we use as EventTarget.
   var dispatcher = document.createElement('div');
 
-  // This is the Promise object from the most recent, if it has not
-  // resolved yet.
-  var pendingPromise;
-
-  // Set our initial state
-  syncState();
+  // OK. No clue WTF is going on here, but if I don't put this line here
+  // my event handlers don't fire. Need to ask :yxl.
+  // Also the event handlers not always work, which is crazy because in mochi
+  // they work fine. Needs investigation.
+  navigator.mozInputMethod.oninputcontextchange = function() {};
 
   // Any time the input context changes, sync our state with it
   navigator.mozInputMethod.addEventListener('inputcontextchange',
-                                            handleChangeEvent);
+                                            handleInputFieldChanged);
 
-  // Get our internal state in sync with the inputcontext, and trigger
-  // appropriate events if we are out of sync. This is called when we
-  // get events, and also when promises resolve to make sure that the state
-  // we anticipated matches the actual state.
-  function syncState() {
-    var statechanged = false;
-    var contextchanged = false;
-
-    var c = navigator.mozInputMethod.inputcontext;
-
-    // If we changed to or from undefined
-    // navigator.mozInputMethod.inputcontext returns a different
-    // object each time so we can't compare two contexts, but if we've changed
-    // to or from null or undefined, then this is a context change
-    if (!context && c || context && !c) {
-      contextchanged = true;
-      context = c;
-      if (c) {
-        c.addEventListener('selectionchange', handleChangeEvent);
-        c.addEventListener('surroundingtextchange', handleChangeEvent);
-      }
+  function handleInputFieldChanged() {
+    context = navigator.mozInputMethod.inputcontext;
+    if (context) {
+      context.addEventListener('selectionchange', dispatchInputStateChanged);
+      context.addEventListener('surroundingtextchange',
+        dispatchInputStateChanged);
     }
-
-    if (c) {
-      if (inputMode !== c.inputMode) {
-        contextchanged = true;
-        inputMode = c.inputMode;
-      }
-
-      if (inputType !== c.inputType) {
-        contextchanged = true;
-        inputType = c.inputType;
-      }
-
-      if (textBeforeCursor !== c.textBeforeCursor) {
-        statechanged = true;
-        textBeforeCursor = c.textBeforeCursor;
-      }
-      if (textAfterCursor !== c.textAfterCursor) {
-        statechanged = true;
-        textAfterCursor = c.textAfterCursor;
-      }
-      if (selectionStart !== c.selectionStart) {
-        statechanged = true;
-        selectionStart = c.selectionStart;
-      }
-      if (selectionEnd !== c.selectionEnd) {
-        statechanged = true;
-        selectionEnd = c.selectionStart;
-      }
-    }
-    else {
-      inputType = inputMode = null;
-      selectionStart = selectionEnd = 0;
-      textBeforeCursor = textAfterCursor = '';
-    }
-
-    if (contextchanged) {
-      dispatchInputFieldChanged();
-    }
-    else if (statechanged) {
-      dispatchInputStateChanged();
-    }
-  }
-
-  // Handles inputcontextchange events from navigator.mozInputMethod
-  // And selectionchange and surroundingtextchange events from the inputcontext.
-  // In all of these cases we just call _syncState to update our state and
-  // generate the appropriate events.
-  function handleChangeEvent(e) {
-    // We always handle inputcontextchange events But only handle
-    // selectionchange and surroundingtextchange events if there is
-    // not a pendingPromise. This presumably means they were
-    // user-initiated and not just responses to mutations cased
-    // here. If there is a pending promise, then we sync our state
-    // when the promise resolves instead of doing it here. (Otherwise
-    // if the user types really quickly we could modify the state a
-    // second time before the first events were generated and would
-    // think we were out of sync when we weren't.  Notice that this
-    // requires that the inputcontext dispaches events before
-    // resolving its promises.
-    if (e.type === 'inputcontextchange') {
-      syncState();
-    }
-    else if (!pendingPromise) {
-      syncState();
-    }
+    dispatcher.dispatchEvent(new Event('inputfieldchanged'));
   }
 
   function sendKey(keycode, charcode, modifiers) {
-    monitor(context.sendKey(keycode, charcode, modifiers));
-
-    if (charcode) {
-      textBeforeCursor += String.fromCharCode(charcode);
-      selectionStart = selectionEnd = selectionStart + 1;
-    }
-    else if (keycode === 8 && textBeforeCursor) {
-      textBeforeCursor = textBeforeCursor.slice(0, -1);
-      selectionStart = selectionEnd = selectionStart - 1;
-    }
-    else if (keycode === 13) {
-      textBeforeCursor += '\n';
-      selectionStart = selectionEnd = selectionStart + 1;
-    }
-    else {
-      // No state change so return before dispatching an event
-      // XXX: If we ever do cursor movement, handle that here?
-      return;
-    }
-
-    dispatchInputStateChanged();
+    return context.sendKey(keycode, charcode, modifiers);
   }
 
-  function replaceSurroundingText(text, numBefore, numAfter) {
-    monitor(context.replaceSurroundingText(text, -numBefore,
-                                           numBefore + numAfter));
-
-    textBeforeCursor = textBeforeCursor.slice(0, -numBefore) + text;
-    if (numAfter)
-      textAfterCursor = textAfterCursor.substring(numAfter);
-    selectionStart = selectionEnd = textBeforeCursor.length;
-
-    dispatchInputStateChanged();
+  function replaceSurroundingText(text, offset, length) {
+    return context.replaceSurroundingText(text, offset, length);
   }
 
-  function deleteSurroundingText(numBefore, numAfter) {
-    monitor(context.deleteSurroundingText(-numBefore, numBefore + numAfter));
+  function deleteSurroundingText(offset, length) {
+    return context.deleteSurroundingText(offset, length);
   }
-
-  function monitor(promise) {
-    pendingPromise = promise;
-    promise.then(fulfilled, rejected);
-
-    function fulfilled() {
-      // If the user is typing really fast, there might be a new pending promise
-      // by the time this one is fulfilled. If so, we just ignore this.
-      if (promise === pendingPromise) {
-        pendingPromise = null;
-
-        // Otherwise make sure that the real input field state matches
-        // the state we anticipated.
-        syncState();
-      }
-    }
-
-    function rejected(e) {
-      console.error('Promise rejected:', e);
-      if (promise === pendingPromise)
-        pendingPromise = null;
-    }
-  };
 
   // EventTarget methods
   function addEventListener(type, handler) {
@@ -229,16 +96,14 @@
     dispatcher.dispatchEvent(new Event('inputstatechanged'));
   }
 
-  function dispatchInputFieldChanged() {
-    dispatcher.dispatchEvent(new Event('inputfieldchanged'));
-  };
-
   const SENTENCE_START_BEFORE = /^$|[\.?!]\s{1,2}$/;
   const SENTENCE_START_AFTER = /^$|^\s/;
 
   function atSentenceStart() {
-    return textBeforeCursor.match(SENTENCE_START_BEFORE) &&
-      textAfterCursor.match(SENTENCE_START_AFTER);
+    if (!context) return false;
+
+    return context.textBeforeCursor.match(SENTENCE_START_BEFORE) &&
+      context.textAfterCursor.match(SENTENCE_START_AFTER);
   }
 
   // We're at the end of a word if the character before the cursor is not
@@ -248,17 +113,17 @@
 
   function atWordEnd() {
     // If there is a selection don't look at words
-    if (selectionStart !== selectionEnd)
+    if (!context || context.selectionStart !== context.selectionEnd)
       return false;
-    return textBeforeCursor.match(WORD_END_BEFORE) &&
-      textAfterCursor.match(WORD_END_AFTER);
+    return context.textBeforeCursor.match(WORD_END_BEFORE) &&
+      context.textAfterCursor.match(WORD_END_AFTER);
   }
 
   // One or more non-space, non-punctuation characters right before the cursor
   const WORD_BEFORE_CURSOR = /[^\s.,?!;:]+$/;
 
   function wordBeforeCursor() {
-    var match = textBeforeCursor.match(WORD_BEFORE_CURSOR);
+    var match = context && context.textBeforeCursor.match(WORD_BEFORE_CURSOR);
     if (match)
       return match[0];
     else
@@ -266,12 +131,12 @@
   }
 
   exports.InputField = {
-    get inputType() { return inputType; },
-    get inputMode() { return inputMode; },
-    get selectionStart() { return selectionStart; },
-    get selectionEnd() { return selectionEnd; },
-    get textBeforeCursor() { return textBeforeCursor; },
-    get textAfterCursor() { return textAfterCursor; },
+    get inputType() { return context && context.inputType; },
+    get inputMode() { return context && context.inputMode; },
+    get selectionStart() { return context && context.selectionStart; },
+    get selectionEnd() { return context && context.selectionEnd; },
+    get textBeforeCursor() { return context && context.textBeforeCursor; },
+    get textAfterCursor() { return context && context.textAfterCursor; },
 
     sendKey: sendKey,
     replaceSurroundingText: replaceSurroundingText,

@@ -1,3 +1,4 @@
+/*global KeyboardPage KeyboardPageView */
 'use strict';
 
 /*
