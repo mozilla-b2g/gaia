@@ -913,7 +913,7 @@ var ThreadUI = global.ThreadUI = {
   enableSend: function thui_enableSend() {
     this.initSentAudio();
 
-    // should disable if we have no message input
+    // should disable if compose is resizing
     var disableSendMessage = Compose.isResizing;
     var messageNotLong = this.updateCounter();
     var recipientsValue = this.recipients.inputValue;
@@ -2071,8 +2071,8 @@ var ThreadUI = global.ThreadUI = {
       recipients = Threads.active.participants;
     }
 
-    // If it's an empty message, the content is ''
-    if (Compose.isEmpty()) {
+    // If it is an empty message, the content is ''
+    if (!content.length) {
       content.push('');
       var question = navigator.mozL10n.get('confirm-empty-message');
       if (!window.confirm(question)) {
