@@ -5,6 +5,8 @@
 import re
 
 from marionette.by import By
+from marionette import Wait
+from marionette.errors import StaleElementException
 
 from gaiatest import GaiaTestCase
 from gaiatest.apps.keyboard.app import Keyboard
@@ -143,12 +145,11 @@ class TestFtu(GaiaTestCase):
             self.wait_for_condition(lambda m: Keyboard(m).is_displayed())
             self.marionette.find_element(*self._join_network_locator).tap()
 
-        self.wait_for_condition(
+        Wait(self.marionette, timeout=60, ignored_exceptions=StaleElementException).until(
             lambda m: 'connected' in m.find_element(
                 By.CSS_SELECTOR,
                 '#networks-list li[data-ssid="%s"] aside' %
-                self.testvars['wifi']['ssid']).get_attribute('class'),
-            timeout=60)
+                self.testvars['wifi']['ssid']).get_attribute('class'))
 
         self.assertTrue(self.data_layer.is_wifi_connected(self.testvars['wifi']),
                         "WiFi was not connected via FTU app")
