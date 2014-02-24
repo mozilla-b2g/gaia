@@ -75,16 +75,6 @@ var DownloadItem = (function DownloadItem() {
     li.appendChild(pInfo);
     li.appendChild(progress);
 
-    // Add timestamp for updating periodically
-    var timestamp;
-    try {
-      timestamp = download.startTime.getTime() || (new Date()).getTime();
-    } catch (ex) {
-      timestamp = (new Date()).getTime();
-      console.warn(ex);
-    }
-    li.dataset.timestamp = timestamp;
-
     return update(li, download);
   };
 

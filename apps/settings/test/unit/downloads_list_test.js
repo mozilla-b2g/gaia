@@ -209,95 +209,6 @@ suite('DownloadList', function() {
     });
   });
 
-  suite(' > update time info', function() {
-
-    test(' > timestamp is in the structure as data', function(done) {
-      DownloadsList.init(function() {
-        var downloadsContainer = document.querySelector('#downloadList ul');
-        for (var i = 0; i < downloadsContainer.childNodes.length; i++) {
-          assert.ok(downloadsContainer.childNodes[i].dataset.timestamp);
-        }
-        done();
-      });
-    });
-
-    test(' > update periodically', function(done) {
-      DownloadsList.init(function() {
-        var clock = sinon.useFakeTimers(Date.now());
-        var downloadsContainer = document.querySelector('#downloadList ul');
-        // NOTE: "downloading" elements has no info related with time
-        var timestamps = [], newTimestamps = [];
-        // Create a visibility event change
-        var visibilityEvent = new CustomEvent('visibilitychange');
-        // Force a rendering of the time labels with an event
-        document.dispatchEvent(visibilityEvent);
-        // Retrieve current time info labels
-        for (var i = 0; i < downloadsContainer.children.length; i++) {
-          var downloadEl = downloadsContainer.children[i];
-          if (downloadEl.dataset.state != 'downloading') {
-            timestamps.push(downloadEl.querySelector('.info').textContent);
-          }
-        }
-        // Force 'setInterval' to be executed
-        clock.tick(100000);
-
-        // Retrieve new time info labels
-        for (var i = 0; i < downloadsContainer.children.length; i++) {
-          var downloadEl = downloadsContainer.children[i];
-          if (downloadEl.dataset.state != 'downloading') {
-            newTimestamps.push(downloadEl.querySelector('.info').textContent);
-          }
-        }
-
-        // Each label must change, due to the time between one event and another
-        for (var i = 0; i < timestamps.length; i++) {
-          assert.isFalse(timestamps[i] === newTimestamps[i]);
-        }
-        clock.restore();
-        done();
-      });
-    });
-
-    test(' > update with visibility event', function(done) {
-
-      DownloadsList.init(function() {
-        var clock = sinon.useFakeTimers(Date.now());
-        var downloadsContainer = document.querySelector('#downloadList ul');
-        // NOTE: "downloading" elements has no info related with time
-        var timestamps = [], newTimestamps = [];
-        // Create a visibility event change
-        var visibilityEvent = new CustomEvent('visibilitychange');
-        // Dispatch the first event
-        document.dispatchEvent(visibilityEvent);
-        // Retrieve current time info labels
-        for (var i = 0; i < downloadsContainer.children.length; i++) {
-          var downloadEl = downloadsContainer.children[i];
-          if (downloadEl.dataset.state != 'downloading') {
-            timestamps.push(downloadEl.querySelector('.info').textContent);
-          }
-        }
-        // Move 1 sec. to the future!
-        clock.tick(1000);
-
-        // New event of visibility
-        document.dispatchEvent(visibilityEvent);
-        // Retrieve new time info labels
-        for (var i = 0; i < downloadsContainer.children.length; i++) {
-          var downloadEl = downloadsContainer.children[i];
-          if (downloadEl.dataset.state != 'downloading') {
-            newTimestamps.push(downloadEl.querySelector('.info').textContent);
-          }
-        }
-        // Each label must change, due to the time between one event and another
-        for (var i = 0; i < timestamps.length; i++) {
-          assert.isFalse(timestamps[i] === newTimestamps[i]);
-        }
-        clock.restore();
-        done();
-      });
-    });
-  });
-
   suite(' > methods', function() {
     test(' > check render with empty datastore', function(done) {
       DownloadsList.init(function() {
@@ -459,3 +370,5 @@ suite('DownloadList', function() {
     });
   });
 });
+
+
