@@ -37,7 +37,6 @@ module.exports = View.extend({
   },
 
   onButtonClick: function(e, el) {
-    e.stopPropagation();
     var name = el.getAttribute('name');
     this.emit('click:' + name, e);
   },
