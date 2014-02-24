@@ -197,6 +197,7 @@ Mockfb.Contact = function(devContact, mozCid) {
         this.result = [];
         this.result[0] = new MockContactAllFields();
         this.result[0].adr = Mockfb.getAddresses();
+        var date = new Date(0).toString();
         this.result[1] = {
           '+346578888888': true,
           'test@test.com': true,
@@ -204,6 +205,7 @@ Mockfb.Contact = function(devContact, mozCid) {
           'Castilla y León': true,
           'España': true
         };
+        this.result[1][date] = true;
 
         callback.call(this);
       },

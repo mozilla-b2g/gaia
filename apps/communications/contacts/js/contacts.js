@@ -85,7 +85,7 @@ var Contacts = (function() {
                                     null, params['fromUpdateActivity']);
                 showApp();
               }, function onError() {
-                console.log('Error retrieving contact to be edited');
+                console.error('Error retrieving contact to be edited');
                 contactsForm.render(null, goToForm);
                 showApp();
               });
@@ -171,6 +171,10 @@ var Contacts = (function() {
         {type: 'current', value: _('current')},
         {type: 'home', value: _('home')},
         {type: 'work', value: _('work')}
+      ],
+      'date-type': [
+        {type: 'birthday', value: _('birthday')},
+        {type: 'anniversary', value: _('anniversary')}
       ]
     };
   };
@@ -356,6 +360,13 @@ var Contacts = (function() {
     var selectedTagType = contactTag.dataset.taglist;
     var options = TAG_OPTIONS[selectedTagType];
 
+    var type = selectedTagType.split('-')[0];
+    var isCustomTagVisible = (document.querySelector(
+      '[data-template]' + '.' + type + '-' +
+      'template').dataset.custom != 'false');
+
+    options = ContactsTag.filterTags(type, contactTag, options);
+
     if (!customTag) {
       customTag = document.querySelector('#custom-tag');
       customTag.addEventListener('keydown', handleCustomTag);
@@ -377,7 +388,13 @@ var Contacts = (function() {
     for (var i in options) {
       options[i].value = _(options[i].type);
     }
+
     ContactsTag.setCustomTag(customTag);
+    // Set whether the custom tag is visible or not
+    // This is needed for dates as we only support bday and anniversary
+    // and not custom dates
+    ContactsTag.setCustomTagVisibility(isCustomTagVisible);
+
     ContactsTag.fillTagOptions(tagsList, contactTag, options);
 
     navigation.go('view-select-tag', 'right-left');
