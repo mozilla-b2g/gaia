@@ -1,8 +1,9 @@
 define(function(require) {
   'use strict';
 
-  var Template = require('shared/js/template');
+  var Template = require('template');
   var GestureDetector = require('shared/js/gesture_detector');
+  var spinnerHtml = require('text!picker/spinner.html');
 
   // units covered per millisecond threshold to kick off inertia
   var SPEED_THRESHOLD = 0.01;
@@ -77,7 +78,7 @@ define(function(require) {
       }
     });
 
-    this.template = new Template('picker-unit-tmpl');
+    this.template = new Template(spinnerHtml);
 
     this.top = 0;
     this.space = 0;

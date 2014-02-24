@@ -5,8 +5,6 @@ suite('Picker', function() {
   var Picker, Spinner;
 
   suiteSetup(function(done) {
-    loadBodyHTML('/index.html');
-
     testRequire(['picker/picker', 'mocks/mock_picker/spinner'], {
         mocks: ['picker/spinner']
       }, function(picker, mockSpinner) {
@@ -25,7 +23,7 @@ suite('Picker', function() {
 
   test('shape:instance ', function() {
     var picker = new Picker({
-      element: document.getElementById('time-picker'),
+      element: document.createElement('div'),
       pickers: {
         hours: {
           range: [0, 23]
@@ -52,7 +50,7 @@ suite('Picker', function() {
 
   test('values ', function() {
     var picker = new Picker({
-      element: document.getElementById('time-picker'),
+      element: document.createElement('div'),
       pickers: {
         hours: {
           range: [0, 23]
@@ -78,7 +76,7 @@ suite('Picker', function() {
 
   test('get and set value ', function() {
     var picker = new Picker({
-      element: document.getElementById('time-picker'),
+      element: document.createElement('div'),
       pickers: {
         hours: {
           range: [0, 23]
@@ -103,7 +101,7 @@ suite('Picker', function() {
 
     /* jshint unused:false */
     var picker = new Picker({
-      element: document.getElementById('time-picker'),
+      element: document.createElement('div'),
       pickers: {
         list: {
           range: [9, 10],

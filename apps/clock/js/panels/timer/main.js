@@ -9,6 +9,7 @@ var Utils = require('utils');
 var Timer = require('timer');
 var Sounds = require('sounds');
 var FormButton = require('form_button');
+var html = require('text!panels/timer/panel.html');
 
 var priv = new WeakMap();
 
@@ -33,6 +34,7 @@ function timeFromPicker(value) {
 Timer.Panel = function(element) {
   Panel.apply(this, arguments);
 
+  element.innerHTML = html;
   this.timer = null;
   this.nodes = {};
 

@@ -1,5 +1,7 @@
-/* global testRequire, document */
+/* global testRequire, document, require */
 mocha.setup({ globals: ['GestureDetector'] });
+
+require('/shared/test/unit/load_body_html_helper.js');
 
 suite('Ring Test', function() {
   'use strict';

@@ -46,7 +46,6 @@ suite('Spinner', function() {
 
   setup(function() {
     VALUE_ELEMENT_HEIGHT = 20;
-    loadBodyHTML('/index.html');
     this.container = document.createElement('div');
     this.container.classList.add('test-spinner-container');
     this.element = document.createElement('div');
