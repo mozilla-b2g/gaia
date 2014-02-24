@@ -23,7 +23,8 @@
       ],
       "support_contacts": "mobizilla/mobizilla_support_contacts.json",
       "default_contacts": "mobizilla/mobizilla_contacts.json",
-      "wallpaper": "mobizilla/mobizilla_wallpaper.png"
+      "wallpaper": "mobizilla/mobizilla_wallpaper.png",
+      "keyboard": "mobizilla/mobizilla_keyboard.json"
     }
   ]
 }
