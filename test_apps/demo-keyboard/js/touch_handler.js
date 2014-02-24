@@ -247,6 +247,7 @@
   function dispatchKeyEvent(keyname) {
     // Before sending a new key, discard the weights used to compute this one.
     weights = null;
+    // TODO: What if the key event gets canceled?
     dispatcher.dispatchEvent(new CustomEvent('key', { detail: keyname }));
   }
 
@@ -370,7 +371,7 @@
       }
     }
     return nearestName;
-  };
+  }
 
   exports.KeyboardTouchHandler = {
     setPageView: setPageView,

@@ -1,5 +1,6 @@
 // This module registers a key event listener and handles double space.
 // It needs to run before the code that resisters the default key handler.
+/*global InputField KeyboardTouchHandler */
 (function(exports) {
   'use strict';
 
@@ -27,10 +28,11 @@
       if (lastKeyWasSpace &&
           InputField.textBeforeCursor.match(/[^\s.?!;:] $/) &&
           (e.timeStamp - lastKeyWasSpace) < DOUBLE_SPACE_INTERVAL_MS * 1000) {
-        InputField.replaceSurroundingText('. ', 1, 0);
+        InputField.replaceSurroundingText('. ', -1, 1).then(function() {
+          lastKeyWasSpace = 0;
+          convertedOnLastEvent = true;
+        });
         e.stopImmediatePropagation();
-        lastKeyWasSpace = 0;
-        convertedOnLastEvent = true;
       }
       else {
         lastKeyWasSpace = e.timeStamp;
@@ -38,10 +40,11 @@
       }
     }
     else if (keyname === 'BACKSPACE' && convertedOnLastEvent) {
-      InputField.replaceSurroundingText('  ', 2, 0);
+      InputField.replaceSurroundingText('  ', -2, 2).then(function() {
+        lastKeyWasSpace = 0;
+        convertedOnLastEvent = false;
+      });
       e.stopImmediatePropagation();
-      lastKeyWasSpace = 0;
-      convertedOnLastEvent = false;
     }
     else {
       lastKeyWasSpace = 0;

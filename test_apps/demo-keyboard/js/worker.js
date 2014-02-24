@@ -1,3 +1,4 @@
+/*global Predictions postMessage */
 //
 // The Latin input method provides word suggestions/auto completions
 // using the algorithm in predictions.js. For efficiency, however, this code
