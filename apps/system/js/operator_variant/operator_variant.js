@@ -9,7 +9,7 @@
   // as during normal run time.
   var OPERATOR_VARIANT_FILE = '/shared/resources/apn.json';
 
-  var APN_TYPES = ['default', 'mms', 'supl'];
+  var APN_TYPES = ['default', 'mms', 'supl', 'dun', 'ims'];
   var AUTH_TYPES = ['none', 'pap', 'chap', 'papOrChap'];
   var DEFAULT_MMS_SIZE_LIMITATION = 300 * 1024;
 
@@ -232,6 +232,24 @@
           'ril.mms.mmsproxy': 'mmsproxy',
           'ril.mms.mmsport': 'mmsport',
           'ril.mms.authtype': 'authtype'
+        },
+        'dun': {
+          'ril.dun.carrier': 'carrier',
+          'ril.dun.apn': 'apn',
+          'ril.dun.user': 'user',
+          'ril.dun.passwd': 'password',
+          'ril.dun.httpProxyHost': 'proxy',
+          'ril.dun.httpProxyPort': 'port',
+          'ril.dun.authtype': 'authtype'
+        },
+        'ims': {
+          'ril.ims.carrier': 'carrier',
+          'ril.ims.apn': 'apn',
+          'ril.ims.user': 'user',
+          'ril.ims.passwd': 'password',
+          'ril.ims.httpProxyHost': 'proxy',
+          'ril.ims.httpProxyPort': 'port',
+          'ril.ims.authtype': 'authtype'
         },
         'operatorvariant': {
           'ril.iccInfo.mbdn': 'voicemail',
