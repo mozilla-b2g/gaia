@@ -1,3 +1,7 @@
+/* globals LazyL10n, LazyLoader, MobileOperator */
+
+/* exported MmiManager */
+
 'use strict';
 
 var MmiManager = {
@@ -82,7 +86,7 @@ var MmiManager = {
         for (var serviceClassMask = 1;
              serviceClassMask <= this._conn.ICC_SERVICE_CLASS_MAX;
              serviceClassMask <<= 1) {
-          if ((serviceClassMask & result[i].serviceClass) != 0) {
+          if ((serviceClassMask & result[i].serviceClass) !== 0) {
             switch (serviceClassMask) {
               case this._conn.ICC_SERVICE_CLASS_VOICE:
                 voice = result[i].number;
@@ -276,13 +280,33 @@ var MmiManager = {
   },
 
   isMMI: function mm_isMMI(number) {
-    // A valid USSD/MMI code is any 'number' ending in '#'.
-    return (number.charAt(number.length - 1) === '#');
+    // XXX: workaround until bug 889737 gets fixed and we can drop this function
+    var cdmaTypes = ['evdo0', 'evdoa', 'evdob', '1xrtt', 'is95a', 'is95b'];
+    var conn = window.navigator.mozMobileConnection ||
+               window.navigator.mozMobileConnections &&
+               window.navigator.mozMobileConnections[0];
+    var voiceType = conn.voice ? conn.voice.type : null;
+    var supportedNetworkTypes = conn.supportedNetworkTypes;
+    var imeiWhitelist = function mm_imeiWhitelist(element) {
+      return (['gsm', 'lte', 'wcdma'].indexOf(element) !== -1);
+    };
+
+    if ((number === '*#06#') && supportedNetworkTypes.some(imeiWhitelist)) {
+      // Requesting the IMEI code works on phones supporting a GSM network
+      return true;
+    } else if (cdmaTypes.indexOf(voiceType) !== -1) {
+      // If we're on a CDMA network USSD/MMI numbers are not available
+      return false;
+    } else {
+      // A valid USSD/MMI code is any 'number' ending in '#'.
+      return (number.charAt(number.length - 1) === '#');
+    }
   },
 
   handleEvent: function mm_handleEvent(evt) {
-    if (!evt.type)
+    if (!evt.type) {
       return;
+    }
 
     var message;
     switch (evt.type) {
