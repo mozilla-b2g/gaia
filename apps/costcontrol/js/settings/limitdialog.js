@@ -1,4 +1,4 @@
-/* global _, addNetworkUsageAlarm, Common, Formatting */
+/* global _, addNetworkUsageAlarm, Common, Formatting, SimManager */
 /* exported dataLimitConfigurer */
 'use strict';
 
@@ -23,7 +23,10 @@ function dataLimitConfigurer(guiWidget, settings, viewManager) {
       settings.option('dataLimitUnit', currentUnit);
       var dataLimit = Common.getDataLimit({'dataLimitValue': value,
                                            'dataLimitUnit': currentUnit});
-      addNetworkUsageAlarm(Common.getDataSIMInterface(), dataLimit);
+      SimManager.requestDataSimIcc(function(dataSim) {
+        addNetworkUsageAlarm(Common.getDataSIMInterface(dataSim.iccId),
+                             dataLimit);
+      });
       viewManager.closeCurrentView();
     });
   }

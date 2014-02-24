@@ -1,7 +1,7 @@
 /* global MockCommon, MockCostControl, MockNavigatorMozMobileConnections,
           Widget, MockConfigManager, MockNavigatorMozIccManager, MockMozL10n,
-          MockMozNetworkStats, AirplaneModeHelper, MocksHelper, Common,
-          CostControl, Formatting, _
+          MockMozNetworkStats, AirplaneModeHelper, MocksHelper,
+          CostControl, Formatting, _, SimManager
 */
 'use strict';
 
@@ -21,14 +21,14 @@ require('/test/unit/mock_airplane_mode_helper.js');
 require('/shared/js/lazy_loader.js');
 require('/js/views/BalanceView.js');
 require('/js/utils/formatting.js');
+require('/js/sim_manager.js');
 require('/js/widget.js');
 require('/shared/js/airplane_mode_helper.js');
 
 var realMozMobileConnections,
     realMozL10n,
     realMozNetworkStats,
-    realMozIccManager,
-    realCommon;
+    realMozIccManager;
 
 if (!window.navigator.mozNetworkStats) {
   window.navigator.mozNetworkStats = null;
@@ -46,16 +46,13 @@ if (!window.navigator.mozL10n) {
   window.navigator.mozL10n = null;
 }
 
-if (!window.Common) {
-  window.Common = null;
-}
-
 var MocksHelperForUnitTest = new MocksHelper([
   'LazyLoader',
   'AirplaneModeHelper',
   'ConfigManager',
   'CostControl',
-  'SettingsListener'
+  'SettingsListener',
+  'Common'
 ]).init();
 
 suite('Widget Startup Modes Test Suite >', function() {
@@ -65,8 +62,7 @@ suite('Widget Startup Modes Test Suite >', function() {
   var fte, rightPanel, leftPanel;
   suiteSetup(function() {
 
-    realCommon = window.Common;
-    window.Common = new MockCommon();
+    window.Common = new MockCommon({});
 
     realMozMobileConnections = window.navigator.mozMobileConnections;
 
@@ -81,6 +77,7 @@ suite('Widget Startup Modes Test Suite >', function() {
   setup(function() {
     navigator.mozIccManager = window.MockNavigatorMozIccManager;
     window.navigator.mozMobileConnections = MockNavigatorMozMobileConnections;
+    MockNavigatorMozMobileConnections[0] = {  iccId: '12345' };
     navigator.mozNetworkStats = MockMozNetworkStats;
     AirplaneModeHelper._status = 'disabled';
     loadBodyHTML('/widget.html');
@@ -98,14 +95,13 @@ suite('Widget Startup Modes Test Suite >', function() {
   });
 
   suiteTeardown(function() {
-    window.Common = realCommon;
     window.navigator.mozMobileConnections = realMozMobileConnections;
     window.navigator.mozL10n = realMozL10n;
     window.navigator.mozNetworkStats = realMozNetworkStats;
     window.navigator.mozIccManager = realMozIccManager;
   });
 
-  function failingLoadDataSIMIccId(onsuccess, onerror) {
+  function failingRequestDataSIMIccId(onsuccess, onerror) {
     setTimeout(function() {
       (typeof onerror === 'function') && onerror();
     }, 0);
@@ -113,7 +109,6 @@ suite('Widget Startup Modes Test Suite >', function() {
 
   function setupCardState(icc, costControlConfig) {
     window.CostControl = new MockCostControl(costControlConfig);
-    Common.dataSimIcc = icc;
   }
 
   function setupConfig(applicationMode, ftePending) {
@@ -199,7 +194,7 @@ suite('Widget Startup Modes Test Suite >', function() {
     var showSimErrorSpy = sinon.spy(Widget, 'showSimError');
 
     // Force loadDataSimIccId to fail
-    sinon.stub(Common, 'loadDataSIMIccId', failingLoadDataSIMIccId);
+    sinon.stub(SimManager, 'requestDataSimIcc', failingRequestDataSIMIccId);
     sinon.stub(MockMozL10n, 'ready', function(callback) {
       callback();
 
@@ -209,7 +204,7 @@ suite('Widget Startup Modes Test Suite >', function() {
       assertErrorMessage('widget-airplane-mode-meta');
 
       // Restore the spy/stub
-      Common.loadDataSIMIccId.restore();
+      SimManager.requestDataSimIcc.restore();
       MockMozL10n.ready.restore();
       showSimErrorSpy.restore();
 
@@ -226,7 +221,7 @@ suite('Widget Startup Modes Test Suite >', function() {
       var showSimErrorSpy = sinon.spy(Widget, 'showSimError');
 
       // Force loadDataSimIccId to fail
-      sinon.stub(Common, 'loadDataSIMIccId', failingLoadDataSIMIccId);
+      sinon.stub(SimManager, 'requestDataSimIcc', failingRequestDataSIMIccId);
 
       sinon.stub(MockMozL10n, 'ready', function(callback) {
         callback();
@@ -237,7 +232,7 @@ suite('Widget Startup Modes Test Suite >', function() {
         assertErrorMessage('widget-airplane-mode-meta');
 
         // Restore the spy/stub
-        Common.loadDataSIMIccId.restore();
+        SimManager.requestDataSimIcc.restore();
         MockMozL10n.ready.restore();
 
         // Send a iccdetected event to restart the widget
@@ -251,16 +246,17 @@ suite('Widget Startup Modes Test Suite >', function() {
         // recover de configuration with the method getInstance
         sinon.stub(CostControl, 'getInstance', function(window, callback) {
           assert.equal(showSimErrorSpy.callCount, 1);
-          assert.equal(Common.dataSimIcc.cardState, 'ready');
-
-          CostControl.getInstance.restore();
-          showSimErrorSpy.restore();
-          done();
+          SimManager.requestDataSimIcc(function (dataSimIcc) {
+            assert.equal(dataSimIcc.icc.cardState, 'ready');
+            CostControl.getInstance.restore();
+            showSimErrorSpy.restore();
+            done();
+          });
         });
 
         // This event is listen on the function waitForIccAndCheckSim of the
-        // widget that calls Common.loadDataSIMIccId(checkSIMStatus); to restart
-        // the widget
+        // widget that calls SimManager.requestDataSIMIcc(checkSIMStatus); to
+        // restart the widget
         MockNavigatorMozIccManager.triggerEventListeners('iccdetected', {});
       }
     );
@@ -293,10 +289,12 @@ suite('Widget Startup Modes Test Suite >', function() {
         });
         assertDataUseOnlyLayout(mobileDataText);
 
-        assert.equal(Common.dataSimIcc.cardState, 'ready');
+        SimManager.requestDataSimIcc(function (dataSimIcc) {
+          assert.equal(dataSimIcc.icc.cardState, 'ready');
 
-        showSimErrorSpy.restore();
-        done();
+          showSimErrorSpy.restore();
+          done();
+        });
       }
     });
 
@@ -339,11 +337,14 @@ suite('Widget Startup Modes Test Suite >', function() {
         });
 
         assertPostpaidLayout(telephonyDataText, mobileDataText);
-        assert.equal(Common.dataSimIcc.cardState, 'ready');
 
-        showSimErrorSpy.restore();
-        Formatting.formatTime.restore();
-        done();
+        SimManager.requestDataSimIcc(function (dataSimIcc) {
+          assert.equal(dataSimIcc.icc.cardState, 'ready');
+
+          showSimErrorSpy.restore();
+          Formatting.formatTime.restore();
+          done();
+        });
       }
     });
 

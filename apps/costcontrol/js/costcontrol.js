@@ -1,4 +1,4 @@
-/* global debug, ConfigManager, Toolkit, addAlarmTimeout, Common  */
+/* global debug, ConfigManager, Toolkit, addAlarmTimeout, Common, SimManager */
 /* exported CostControl */
 'use strict';
 
@@ -21,14 +21,28 @@ var CostControl = (function() {
   function getInstance(onready) {
     debug('Initializing Cost Control');
 
-    if (costcontrol) {
+    function goOn() {
       debug('Cost Control already ready!');
       onready(costcontrol);
-      return;
     }
 
-    function setupCostControl() {
+    // Force a reload of Costcontrol when the dataSlotChange event is lost
+    if (costcontrol) {
+      if (SimManager.isMultiSim()) {
+        SimManager.requestDataSimIcc(function(dataSimIcc) {
+          if (costcontrol.iccId === dataSimIcc.iccId) {
+            goOn();
+          }
+        });
+      } else {
+        goOn();
+        return;
+      }
+    }
+
+    function setupCostControl(configuration, settings, iccId) {
       costcontrol = {
+        iccId: iccId,
         request: request,
         isBalanceRequestSMS: isBalanceRequestSMS,
         getDataUsageWarning: function _getDataUsageWarning() {
@@ -44,19 +58,10 @@ var CostControl = (function() {
     ConfigManager.requestAll(setupCostControl);
   }
 
-  var mobileMessageManager, connection, statistics;
+  var mobileMessageManager, statistics;
   function loadAPIs() {
     if ('mozMobileMessage' in window.navigator) {
       mobileMessageManager = window.navigator.mozMobileMessage;
-    }
-
-    if ('mozMobileConnection' in window.navigator) {
-      connection = window.navigator.mozMobileConnection;
-    }
-    // XXX: check bug-926169
-    // this is used to keep all tests passing while introducing multi-sim APIs
-    else if ('mozMobileConnections' in window.navigator) {
-      connection = window.navigator.mozMobileConnections[0];
     }
 
     if ('mozNetworkStats' in window.navigator) {
@@ -90,91 +95,104 @@ var CostControl = (function() {
       // Only type is set here
       result.type = requestObj.type;
       function _requestDataStatistics() {
-        requestDataStatistics(configuration, settings, callback, result);
+        SimManager.requestDataSimIcc(function(dataSim) {
+          requestDataStatistics(configuration, settings, callback, dataSim,
+                                result);
+        });
+      }
+
+      function _requestBalance(connection) {
+        // Check service
+        var issues = getServiceIssues(configuration, settings,
+                                      connection);
+        var canBeIgnoredByForcing = (issues === 'minimum_delay' && force);
+        if (issues && !canBeIgnoredByForcing) {
+          result.status = 'error';
+          result.details = issues;
+          result.data = settings.lastBalance;
+          if (callback) {
+            callback(result);
+          }
+          return;
+        }
+
+        var costIssues = getCostIssues(configuration, connection);
+        if (!force && costIssues) {
+          result.status = 'error';
+          result.details = costIssues;
+          result.data = settings.lastBalance;
+          if (callback) {
+            callback(result);
+          }
+          return;
+        }
+
+        // Check in-progress
+        var isWaiting = settings.waitingForBalance !== null;
+        var timeout = Toolkit.checkEnoughDelay(BALANCE_TIMEOUT,
+                                               settings.lastBalanceRequest);
+        if (isWaiting && !timeout) {
+          result.status = 'in_progress';
+          result.data = settings.lastBalance;
+          if (callback) {
+            callback(result);
+          }
+          return;
+        }
+
+        // Dispatch
+        requestBalance(configuration, settings, callback, result);
+      }
+
+      function _requestTopUp(connection) {
+        // Check service
+        var issuesTopUp = getServiceIssues(configuration, settings,
+                                           connection);
+        if (issuesTopUp && issuesTopUp !== 'minimum_delay') {
+          result.status = 'error';
+          result.details = issuesTopUp;
+          result.data = settings.lastDataUsage;
+          if (callback) {
+            callback(result);
+          }
+          return;
+        }
+
+        var costIssuesTopUp = getCostIssues(configuration, connection);
+        if (!force && costIssuesTopUp) {
+          result.status = 'error';
+          result.details = costIssuesTopUp;
+          result.data = settings.lastBalance;
+          if (callback) {
+            callback(result);
+          }
+          return;
+        }
+
+        // Check in-progress
+        var isWaitingTopUp = settings.waitingForTopUp !== null;
+        var timeoutTopUp = Toolkit.checkEnoughDelay(BALANCE_TIMEOUT,
+                                               settings.lastTopUpRequest);
+        if (isWaitingTopUp && !timeoutTopUp && !force) {
+          result.status = 'in_progress';
+          result.data = settings.lastDataUsage;
+          if (callback) {
+            callback(result);
+          }
+          return;
+        }
+
+        // Dispatch
+        var code = requestObj.data;
+        requestTopUp(configuration, settings, code, callback, result);
       }
       switch (requestObj.type) {
         case 'balance':
-          // Check service
-          var issues = getServiceIssues(configuration, settings);
-          var canBeIgnoredByForcing = (issues === 'minimum_delay' && force);
-          if (issues && !canBeIgnoredByForcing) {
-            result.status = 'error';
-            result.details = issues;
-            result.data = settings.lastBalance;
-            if (callback) {
-              callback(result);
-            }
-            return;
-          }
-
-          var costIssues = getCostIssues(configuration);
-          if (!force && costIssues) {
-            result.status = 'error';
-            result.details = costIssues;
-            result.data = settings.lastBalance;
-            if (callback) {
-              callback(result);
-            }
-            return;
-          }
-
-          // Check in-progress
-          var isWaiting = settings.waitingForBalance !== null;
-          var timeout = Toolkit.checkEnoughDelay(BALANCE_TIMEOUT,
-                                                 settings.lastBalanceRequest);
-          if (isWaiting && !timeout) {
-            result.status = 'in_progress';
-            result.data = settings.lastBalance;
-            if (callback) {
-              callback(result);
-            }
-            return;
-          }
-
-          // Dispatch
-          requestBalance(configuration, settings, callback, result);
+          SimManager.requestDataConnection(_requestBalance);
           break;
 
         case 'topup':
-          // Check service
-          var issuesTopUp = getServiceIssues(configuration, settings);
-          if (issuesTopUp && issuesTopUp !== 'minimum_delay') {
-            result.status = 'error';
-            result.details = issuesTopUp;
-            result.data = settings.lastDataUsage;
-            if (callback) {
-              callback(result);
-            }
-            return;
-          }
-
-          var costIssuesTopUp = getCostIssues(configuration);
-          if (!force && costIssuesTopUp) {
-            result.status = 'error';
-            result.details = costIssuesTopUp;
-            result.data = settings.lastBalance;
-            if (callback) {
-              callback(result);
-            }
-            return;
-          }
-
-          // Check in-progress
-          var isWaitingTopUp = settings.waitingForTopUp !== null;
-          var timeoutTopUp = Toolkit.checkEnoughDelay(BALANCE_TIMEOUT,
-                                                 settings.lastTopUpRequest);
-          if (isWaitingTopUp && !timeoutTopUp && !force) {
-            result.status = 'in_progress';
-            result.data = settings.lastDataUsage;
-            if (callback) {
-              callback(result);
-            }
-            return;
-          }
-
-          // Dispatch
-          var code = requestObj.data;
-          requestTopUp(configuration, settings, code, callback, result);
+          SimManager.requestDataConnection(_requestTopUp);
           break;
 
         case 'datausage':
@@ -186,7 +204,6 @@ var CostControl = (function() {
             _requestDataStatistics();
           }
           break;
-
         case 'telephony':
           // Can not fail: only dispatch
           result.data = settings.lastTelephonyActivity;
@@ -201,9 +218,10 @@ var CostControl = (function() {
   }
 
   // Check service status and return the most representative issue if there is
-  function getServiceIssues(configuration, settings) {
+  function getServiceIssues(configuration, settings, connection) {
 
-    if (!connection || !connection.voice || !connection.data) {
+    if (!connection || !connection.data ||
+        !connection.voice || !connection.voice.connected) {
       return 'no_service';
     }
 
@@ -212,12 +230,7 @@ var CostControl = (function() {
       return 'no_service';
     }
 
-    var voice = connection.voice;
-    if (!voice.connected) {
-      return 'no_service';
-    }
-
-    if (voice.relSignalStrength === null) {
+    if (connection.voice.relSignalStrength === null) {
       return 'no_coverage';
     }
 
@@ -235,7 +248,7 @@ var CostControl = (function() {
   }
 
   // Check cost issues and return
-  function getCostIssues(configuration) {
+  function getCostIssues(configuration, connection) {
     var inRoaming = connection.voice.roaming;
     if (inRoaming && configuration.is_roaming_free !== true) {
       return 'non_free_in_roaming';
@@ -367,7 +380,8 @@ var CostControl = (function() {
   // XXX: pending on bug XXX to get statistics by SIM
   // Ask statistics API for mobile and wifi data usage
   var DAY = 24 * 3600 * 1000; // 1 day
-  function requestDataStatistics(configuration, settings, callback, result) {
+  function requestDataStatistics(configuration, settings, callback, dataSimIcc,
+                                 result) {
     debug('Statistics out of date. Requesting fresh data...');
 
     var maxAge = 1000 * statistics.maxStorageAge;
@@ -403,7 +417,7 @@ var CostControl = (function() {
     }
 
     var wifiInterface = Common.getWifiInterface();
-    var currentSimcardNetwork = Common.getDataSIMInterface();
+    var currentSimcardNetwork = Common.getDataSIMInterface(dataSimIcc.iccId);
 
     var simRequest, wifiRequest;
     var pendingRequests = 0;
@@ -502,7 +516,10 @@ var CostControl = (function() {
   }
 
   return {
-    getInstance: getInstance
+    getInstance: getInstance,
+    reset: function _onReset() {
+      costcontrol = null;
+    }
   };
 
 }());

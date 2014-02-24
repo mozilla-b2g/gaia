@@ -1,5 +1,5 @@
 /* global MockCommon, AutoSettings, MockLazyLoader, MockConfigManager,
-          MocksHelper
+          MocksHelper, SimManager
 */
 'use strict';
 
@@ -15,6 +15,7 @@ require('/js/settings/limitdialog.js');
 require('/js/utils/formatting.js');
 require('/js/view_manager.js');
 require('/js/settings/autosettings.js');
+require('/js/sim_manager.js');
 require('/js/fte.js');
 
 var realMozL10n;
@@ -39,6 +40,11 @@ suite('FTE Test Suite >', function() {
 
     realMozL10n = window.navigator.mozL10n;
     window.navigator.mozL10n = window.MockMozL10n;
+
+    sinon.stub(SimManager, 'requestDataSimIcc', function(callback) {
+      (typeof callback === 'function') && callback({});
+    });
+    sinon.stub(SimManager, 'isMultiSim').returns(false);
   });
 
   teardown(function() {
@@ -47,6 +53,8 @@ suite('FTE Test Suite >', function() {
 
   suiteTeardown(function() {
     window.navigator.mozL10n = realMozL10n;
+    SimManager.requestDataSimIcc.restore();
+    SimManager.isMultiSim.restore();
   });
 
   function setupApplicationMode(applicationMode, fakeConfiguration) {
@@ -262,4 +270,7 @@ suite('FTE Test Suite >', function() {
 
     initFTE();
   });
+
+
+
 });

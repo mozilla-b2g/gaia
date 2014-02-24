@@ -1,4 +1,5 @@
-/* global _, ConfigManager, CostControl, debug, Toolkit, Common, Formatting */
+/* global _, ConfigManager, CostControl, debug, Toolkit, Formatting,
+          SimManager */
 /* jshint -W120 */
 
 /*
@@ -58,45 +59,47 @@ var DataUsageTab = (function() {
       resetButtonState();
 
       // Setup the model
-      ConfigManager.requestSettings(Common.dataSimIccId,
-                                    function _onSettings(settings) {
-        debug('First time setup for model');
-        model = {
-          height: toDevicePixels(graphicArea.clientHeight),
-          width: toDevicePixels(graphicArea.clientWidth),
-          originX: Math.floor(toDevicePixels(graphicArea.clientWidth) * 0.15),
-          endX: Math.floor(toDevicePixels(graphicArea.clientWidth) * 0.95),
-          axis: {
-            Y: {
-              lower: 0,
-              margin: 0.20
+      SimManager.requestDataSimIcc(function(dataSimIcc) {
+        ConfigManager.requestSettings(dataSimIcc.iccId,
+                                      function _onSettings(settings) {
+          debug('First time setup for model');
+          model = {
+            height: toDevicePixels(graphicArea.clientHeight),
+            width: toDevicePixels(graphicArea.clientWidth),
+            originX: Math.floor(toDevicePixels(graphicArea.clientWidth) * 0.15),
+            endX: Math.floor(toDevicePixels(graphicArea.clientWidth) * 0.95),
+            axis: {
+              Y: {
+                lower: 0,
+                margin: 0.20
+              },
+              X: {
+                lower: calculateLowerDate(settings),
+                upper: calculateUpperDate(settings)
+              }
             },
-            X: {
-              lower: calculateLowerDate(settings),
-              upper: calculateUpperDate(settings)
-            }
-          },
-          limits: {
-            enabled: settings.dataLimit,
-            value: getLimitInBytes(settings)
-          },
-          data: {
-            wifi: {
-              enabled: true
+            limits: {
+              enabled: settings.dataLimit,
+              value: getLimitInBytes(settings)
             },
-            mobile: {
-              enabled: true
+            data: {
+              wifi: {
+                enabled: true
+              },
+              mobile: {
+                enabled: true
+              }
             }
-          }
-        };
-        ConfigManager.observe('dataLimit', toggleDataLimit, true);
-        ConfigManager.observe('dataLimitValue', setDataLimit, true);
-        ConfigManager.observe('lastCompleteDataReset', updateDataUsage, true);
-        ConfigManager.observe('lastDataReset', updateDataUsage, true);
-        ConfigManager.observe('nextReset', changeNextReset, true);
+          };
+          ConfigManager.observe('dataLimit', toggleDataLimit, true);
+          ConfigManager.observe('dataLimitValue', setDataLimit, true);
+          ConfigManager.observe('lastCompleteDataReset', updateDataUsage, true);
+          ConfigManager.observe('lastDataReset', updateDataUsage, true);
+          ConfigManager.observe('nextReset', changeNextReset, true);
 
-        initialized = true;
-        requestDataUsage();
+          initialized = true;
+          requestDataUsage();
+        });
       });
     });
   }
@@ -128,25 +131,27 @@ var DataUsageTab = (function() {
   }
 
   function resetButtonState() {
-    ConfigManager.requestSettings(Common.dataSimIccId,
-                                  function _onSettings(settings) {
-      var isMobileChartVisible = settings.isMobileChartVisible;
-      if (typeof isMobileChartVisible === 'undefined') {
-        isMobileChartVisible = true;
-      }
-      if (isMobileChartVisible !== mobileToggle.checked) {
-        mobileToggle.checked = isMobileChartVisible;
-        toggleMobile();
-      }
+    SimManager.requestDataSimIcc(function(dataSimIcc) {
+      ConfigManager.requestSettings(dataSimIcc.iccId,
+                                    function _onSettings(settings) {
+        var isMobileChartVisible = settings.isMobileChartVisible;
+        if (typeof isMobileChartVisible === 'undefined') {
+          isMobileChartVisible = true;
+        }
+        if (isMobileChartVisible !== mobileToggle.checked) {
+          mobileToggle.checked = isMobileChartVisible;
+          toggleMobile();
+        }
 
-      var isWifiChartVisible = settings.isWifiChartVisible;
-      if (typeof isWifiChartVisible === 'undefined') {
-        isWifiChartVisible = false;
-      }
-      if (isWifiChartVisible !== wifiToggle.checked) {
-        wifiToggle.checked = isWifiChartVisible;
-        toggleWifi();
-      }
+        var isWifiChartVisible = settings.isWifiChartVisible;
+        if (typeof isWifiChartVisible === 'undefined') {
+          isWifiChartVisible = false;
+        }
+        if (isWifiChartVisible !== wifiToggle.checked) {
+          wifiToggle.checked = isWifiChartVisible;
+          toggleWifi();
+        }
+      });
     });
   }
 
@@ -170,33 +175,36 @@ var DataUsageTab = (function() {
   }
 
   function requestDataUsage() {
-    ConfigManager.requestSettings(Common.dataSimIccId,
-                                  function _onSettings(settings) {
-      var requestObj = { type: 'datausage' };
-      costcontrol.request(requestObj, updateCharts);
+    SimManager.requestDataSimIcc(function(dataSimIcc) {
+      ConfigManager.requestSettings(dataSimIcc.iccId,
+                                    function _onSettings(settings) {
+        var requestObj = { type: 'datausage' };
+        costcontrol.request(requestObj, updateCharts);
+      });
     });
   }
 
   function updateCharts(result) {
     if (result.status === 'success') {
-      ConfigManager.requestSettings(Common.dataSimIccId,
-                                    function _onSettings(settings) {
-        debug('Updating model');
-        var modelData = result.data;
-        model.data.wifi.samples = modelData.wifi.samples;
-        model.data.wifi.total = modelData.wifi.total;
-        model.data.mobile.samples = modelData.mobile.samples;
-        model.data.mobile.total = modelData.mobile.total;
-        model.limits.enabled = settings.dataLimit;
-        model.limits.value = getLimitInBytes(settings);
-        model.axis.X.upper = calculateUpperDate(settings);
-        model.axis.X.lower = calculateLowerDate(settings);
-        expandModel(model);
+      SimManager.requestDataSimIcc(function(dataSimIcc) {
+        ConfigManager.requestSettings(dataSimIcc.iccId,
+                                      function _onSettings(settings) {
+          debug('Updating model');
+          var modelData = result.data;
+          model.data.wifi.samples = modelData.wifi.samples;
+          model.data.wifi.total = modelData.wifi.total;
+          model.data.mobile.samples = modelData.mobile.samples;
+          model.data.mobile.total = modelData.mobile.total;
+          model.limits.enabled = settings.dataLimit;
+          model.limits.value = getLimitInBytes(settings);
+          model.axis.X.upper = calculateUpperDate(settings);
+          model.axis.X.lower = calculateLowerDate(settings);
+          expandModel(model);
 
-        debug('Rendering');
-        updateUI();
+          debug('Rendering');
+          updateUI();
+        });
       });
-
     } else {
       console.error('Error requesting data usage. This should not happen.');
     }
@@ -232,7 +240,7 @@ var DataUsageTab = (function() {
   function calculateUpperDate(settings) {
     var trackingPeriod = settings.trackingPeriod;
     var nextReset = settings.nextReset;
-    if (trackingPeriod !== 'never') {
+    if (trackingPeriod !== 'never' && nextReset) {
       return new Date(nextReset.getTime() - DAY);
     }
 
@@ -249,7 +257,7 @@ var DataUsageTab = (function() {
 
   function calculateLowerDate(settings) {
     var lowerDate = Toolkit.toMidnight(new Date());
-    var nextReset = settings.nextReset;
+    var nextReset = settings.nextReset || lowerDate;
     var trackingPeriod = settings.trackingPeriod;
 
     if (trackingPeriod === 'weekly') {

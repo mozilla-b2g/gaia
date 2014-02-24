@@ -10,6 +10,9 @@ var MockCostControl = function(config) {
   return {
     getInstance: function(callback) {
       callback(fakeCostControlInstance);
+    },
+    reset: function() {
+      fakeCostControlInstance = {};
     }
   };
 };
