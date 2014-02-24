@@ -862,7 +862,6 @@ apps/system/fxa/js/screens/fxam_signup_success.js
 apps/system/fxa/js/utils.js
 apps/system/fxa/view/view_login.js
 apps/system/js/accessibility.js
-apps/system/js/action_menu.js
 apps/system/js/activity_window.js
 apps/system/js/airplane_mode.js
 apps/system/js/app_authentication_dialog.js
@@ -971,7 +970,6 @@ apps/system/test/marionette/net_error_test.js
 apps/system/test/marionette/notification_get_test.js
 apps/system/test/marionette/notification_launch_app.js
 apps/system/test/marionette/notification_test.js
-apps/system/test/unit/action_menu_test.js
 apps/system/test/unit/activity_window_test.js
 apps/system/test/unit/airplane_mode_test.js
 apps/system/test/unit/app_authentication_dialog_test.js
