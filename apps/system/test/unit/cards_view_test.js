@@ -46,7 +46,8 @@ var apps =
     getScreenshot: function(callback) {
       callback();
     },
-    origin: 'http://sms.gaiamobile.org'
+    origin: 'http://sms.gaiamobile.org',
+    blur: function() {}
   },
   'http://game.gaiamobile.org': {
     launchTime: 4,
@@ -63,7 +64,8 @@ var apps =
     getScreenshot: function(callback) {
       callback();
     },
-    origin: 'http://game.gaiamobile.org'
+    origin: 'http://game.gaiamobile.org',
+    blur: function() {}
   },
   'http://game2.gaiamobile.org': {
     launchTime: 3,
@@ -80,7 +82,8 @@ var apps =
     getScreenshot: function(callback) {
       callback();
     },
-    origin: 'http://game2.gaiamobile.org'
+    origin: 'http://game2.gaiamobile.org',
+    blur: function() {}
   },
   'http://game3.gaiamobile.org': {
     launchTime: 2,
@@ -97,7 +100,8 @@ var apps =
     getScreenshot: function(callback) {
       callback();
     },
-    origin: 'http://game3.gaiamobile.org'
+    origin: 'http://game3.gaiamobile.org',
+    blur: function() {}
   },
   'http://game4.gaiamobile.org': {
     launchTime: 1,
@@ -114,7 +118,8 @@ var apps =
     getScreenshot: function(callback) {
       callback();
     },
-    origin: 'http://game4.gaiamobile.org'
+    origin: 'http://game4.gaiamobile.org',
+    blur: function() {}
   }
 };
 
@@ -197,6 +202,25 @@ suite('cards view >', function() {
     });
 
     suite('display cardsview >', function() {
+      setup(function(done) {
+        CardsView.showCardSwitcher(false);
+        setTimeout(done);
+      });
+
+      test('cardsview should be active', function() {
+        assert.isTrue(cardsView.classList.contains('active'));
+      });
+
+      test('cardsview should have no recent apps', function() {
+        assert.isFalse(cardsView.classList.contains('empty'));
+      });
+
+      teardown(function() {
+        CardsView.hideCardSwitcher();
+      });
+    });
+
+    suite('display cardsview (in rocketbar) >', function() {
       var rocketbarRender;
 
       setup(function(done) {

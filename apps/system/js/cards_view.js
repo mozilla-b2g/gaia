@@ -77,6 +77,12 @@ var CardsView = (function() {
     return stringHTML;
   }
 
+  function fireCardViewShown() {
+    setTimeout(function nextTick() {
+      window.dispatchEvent(new CustomEvent('cardviewshown'));
+    });
+  }
+
   function fireCardViewClosed(newStackPosition) {
     var detail = null;
 
@@ -118,6 +124,12 @@ var CardsView = (function() {
     stack = StackManager.snapshot();
 
     currentPosition = StackManager.position;
+
+    // If we are currently displaying the homescreen but we have apps in the
+    // stack we will display the most recently used application.
+    if (currentPosition == -1 && stack.length) {
+      currentPosition = stack.length - 1;
+    }
     currentDisplayed = currentPosition;
 
     // Return early if inRocketbar and there are no apps.
@@ -142,6 +154,7 @@ var CardsView = (function() {
     stack.forEach(function(app, position) {
       addCard(position, app, function showCards() {
         cardsView.classList.add('active');
+        fireCardViewShown();
       });
     });
 
@@ -159,9 +172,9 @@ var CardsView = (function() {
     // Make sure we're in default orientation
     screen.mozLockOrientation(OrientationManager.defaultOrientation);
 
-    // If there is a displayed app, take keyboard focus away
-    if (currentPosition) {
-      stack[currentPosition].frame.blur();
+    // Make sure the keyboard isn't showing by blurring the active app.
+    if (stack.length) {
+      stack[currentPosition].blur();
     }
 
     placeCards();
@@ -169,6 +182,13 @@ var CardsView = (function() {
     currentCardStyle.pointerEvents = 'auto';
     window.addEventListener('tap', CardsView);
     window.addEventListener('opencurrentcard', CardsView);
+
+    // If the stack is empty, let's go ahead and show the cards view since
+    // no showCards callback will be called.
+    if (!stack.length) {
+      cardsView.classList.add('active');
+      fireCardViewShown();
+    }
 
     function addCard(position, app, showCardCallback) {
       // Display card switcher background first to make user focus on the

@@ -102,6 +102,18 @@ suite('system/StackManager >', function() {
     return config;
   }
 
+  suite('Homescreen', function() {
+    setup(function(done) {
+      home();
+      setTimeout(done);
+    });
+
+    test('the position indicates we are on the homescreen',
+    function() {
+      assert.equal(StackManager.position, -1, 'position should be -1');
+    });
+  });
+
   suite('Stack vs System App', function() {
     setup(function() {
       appLaunch(system);
