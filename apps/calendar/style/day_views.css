@@ -57,6 +57,7 @@
   position: absolute;
   height: 6rem;
   top: 0;
+  z-index: 10;
 }
 
 .day-events .hour-allday .event {
