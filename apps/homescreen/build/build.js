@@ -20,8 +20,7 @@ HomescreenAppBuilder.prototype.setOptions = function(options) {
   let mappingFile = utils.getFile(options.GAIA_DIR, 'build_stage',
     'webapps-mapping.json');
   if (!mappingFile.exists()) {
-    throw new Error('webapps mapping file not found, you should use' +
-      ' webapp-manifests.js to create it first, path: ' + mappingFile.path);
+    throw new Error('build_stage/webapps-mapping.json not found.');
   }
   this.webappsMapping = utils.getJSON(mappingFile);
 
