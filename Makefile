@@ -139,14 +139,16 @@ HOMESCREEN?=$(SCHEME)system.$(GAIA_DOMAIN)
 
 BUILD_APP_NAME?=*
 ifneq ($(APP),)
-	BUILD_APP_NAME=$(APP)
+ifneq ($(MAKECMDGOALS), test-integration)
+BUILD_APP_NAME=$(APP)
+endif
 endif
 
 REPORTER?=spec
 # Ensure that NPM only logs warnings and errors
 export npm_config_loglevel=warn
 MARIONETTE_RUNNER_HOST?=marionette-b2gdesktop-host
-TEST_MANIFEST?=./shared/test/integration/travis-manifest.json
+TEST_MANIFEST?=./shared/test/integration/local-manifest.json
 MOZPERFOUT?=""
 
 GAIA_INSTALL_PARENT?=/system/b2g
