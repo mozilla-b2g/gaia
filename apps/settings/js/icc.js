@@ -368,4 +368,6 @@
   }
 })();
 
-iccLoaded = true;
+window.dispatchEvent(new CustomEvent('iccPageLoaded', {
+  detail: {}
+}));

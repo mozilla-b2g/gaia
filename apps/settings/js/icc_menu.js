@@ -3,21 +3,22 @@
 
 'use strict';
 
-var iccLoaded = false;
-
 (function() {
   var iccMainHeader = document.getElementById('icc-mainheader');
   var iccEntries = document.getElementById('icc-entries');
 
+  var iccLoaded = false;
   function loadIccPage(callback) {
     callback = (typeof callback === 'function') ? callback : function() {};
     if (iccLoaded) {
       return callback();
     }
     Settings.currentPanel = '#icc';
-    setTimeout(function() {
-      callback();
-    }, 2000);
+    window.addEventListener('iccPageLoaded',
+      function oniccPageLoaded(event) {
+        iccLoaded = true;
+        callback();
+      });
   }
 
   function executeICCCmd(iccMessage) {
