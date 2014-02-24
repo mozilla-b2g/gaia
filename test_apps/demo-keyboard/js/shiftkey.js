@@ -1,4 +1,3 @@
-/*global InputField KeyboardTouchHandler currentPageView */
 /*
  * This module is responsible for handling the shift key and for
  * auto-capitalization.

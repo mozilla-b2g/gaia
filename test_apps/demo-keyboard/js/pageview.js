@@ -162,11 +162,11 @@
     if (!rect) {
       var keyelt = this.keyelts[keyname];
       if (!keyelt)
-        throw new Error('unknown key: ' + keyname);
+        throw Error('unknown key: ' + keyname);
 
       rect = keyelt.getBoundingClientRect();
       if (rect.width === 0)
-        throw new Error('KeyboardPageView is not laid out yet: ' + keyname);
+        throw Error('KeyboardPageView is not laid out yet: ' + keyname);
 
       // In addition to the basic rectangle, the hit detector in
       // KeyboardTouchHandler also wants some additional data. We

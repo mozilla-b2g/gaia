@@ -1,4 +1,3 @@
-/*global KeyboardLayout */
 'use strict';
 
 function Key(keyname, pagekeys, layoutkeys) {
