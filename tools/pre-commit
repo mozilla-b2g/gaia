@@ -86,4 +86,12 @@ if [ $gjslint_result -ne 0 -o $jshint_result -ne 0 ] ; then
   exit 1
 fi
 
+#Check out the files permission
+for file in $(git diff --name-only HEAD~); do
+  if [ $(stat -c %a $file) -ne 644 ];then
+    echo "You must change the file permission of $file to 644"
+    exit 1
+  fi
+done
+
 echo "No errors - committing"
