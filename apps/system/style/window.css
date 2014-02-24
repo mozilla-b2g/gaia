@@ -125,23 +125,23 @@
 }
 
 .appWindow.invoked {
-  animation: invokedApp 0.6s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+  animation: invokedApp .3s forwards linear;
 }
 
 .appWindow.invoking {
-  animation: invokingApp 0.6s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+  animation: invokingApp .3s forwards linear;
 }
 
 /* Invoking app moves out */
 @keyframes invokingApp {
-  0%   { transform: translateX(0); opacity: 1 }
-  100% { transform: translateX(-20%); opacity: 0.25}
+  0%   { transform: translateX(0) }
+  100% { transform: translateX(calc(-100% - 20px)); }
 }
 
 /* Invoked app moves in */
 @keyframes invokedApp {
-  0%   { transform: translateX(100%); }
-  50%  { transform: translateX(0); }
+  0%   { transform: translateX(calc(100% + 20px)); }
+  100%  { transform: translateX(0); }
 }
 
 .appWindow.fade-in {
@@ -328,6 +328,10 @@
   visibility: visible;
 }
 
+.appWindow.homescreen.fadeout > .fade-overlay {
+  opacity: 0.8;
+}
+
 .appWindow > .modal-dialog,
 .appWindow > .authentication-dialog,
 .authentication-dialog > .authentication-dialog-http {
@@ -418,29 +422,25 @@
 }
 
 @keyframes slideLeft {
-  0%   { transform: translateX(100%); }
+  0%   { transform: translateX(calc(100% + 20px)); }
   100% { transform: translateX(0); }
 }
 
 @keyframes slideRight {
   0%   { transform: translateX(0); }
-  100% { transform: translateX(100%); }
+  100% { transform: translateX(calc(100% + 20px)); }
 }
 
 /* Edges */
-#screen.edges #windows > .appWindow {
-  box-shadow: -0.5rem 0 rgba(0, 0, 0, 0.5);
-}
-
 .edge-candidate:not(.active) {
   /* needs to be outside the viewport */
   transform: translateX(-100%);
   opacity: 1;
-  will-change: transform, opacity;
+  will-change: transform;
 }
 
 #screen.edges #windows > .appWindow.active {
-  will-change: transform, opacity;
+  will-change: transform;
 }
 
 #windows > .appWindow.inside-edges {
@@ -449,13 +449,13 @@
 }
 
 #windows > .appWindow.outside-edges-left {
-  opacity: 0.25;
-  transform: translateX(-20%);
+  opacity: 1;
+  transform: translateX(calc(-100% - 20px));
 }
 
 #windows > .appWindow.outside-edges-right {
   opacity: 1;
-  transform: translateX(100%);
+  transform: translateX(calc(100% + 20px));
 }
 
 #screen:-moz-full-screen-ancestor > #windows > .appWindow.active {
