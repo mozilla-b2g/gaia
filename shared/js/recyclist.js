@@ -30,7 +30,8 @@ function Recyclist(config) {
     this[i] = config[i];
   }
 
-  this.bufferMultiplier = this.bufferMultiplier || 8;
+  this.visibleMultiplier = this.visibleMultiplier || 1;
+  this.asyncMultiplier = this.asyncMultiplier || 4;
 }
 
 Recyclist.prototype = {
@@ -122,10 +123,10 @@ Recyclist.prototype = {
    */
   fix: function() {
     // Synchronously generate all items that are immediately or nearly visible
-    this.generate(1);
+    this.generate(this.visibleMultiplier);
 
     // Asynchronously generate the other items for the displayport
-    setTimeout(this.generate.bind(this, this.bufferMultiplier));
+    setTimeout(this.generate.bind(this, this.asyncMultiplier));
   },
 
   handleEvent: function() {
