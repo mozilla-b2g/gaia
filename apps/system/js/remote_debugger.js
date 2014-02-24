@@ -1,39 +1,54 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-
 'use strict';
+/* global ScreenManager, ModalDialog */
 
-var RemoteDebugger = (function() {
+(function(exports) {
 
-  return {
-    init: function() {
-      window.addEventListener('mozChromeEvent', this);
-    },
+  /**
+   * RemoteDebugger displays a prompt asking the user if they want to enable
+   * remote debugging on their device. This is generally called when the user
+   * attempts to access the device from the App Manager.
+   * @requires ModalDialog
+   * @requires ScreenManager
+   * @class RemoteDebugger
+   */
+  function RemoteDebugger() {
+    window.addEventListener('mozChromeEvent', this);
+  }
 
-    handleEvent: function onMozChromeEvent(e) {
+  RemoteDebugger.prototype = {
+
+    /**
+     * General event handler interface.
+     * Displays the modal dialog when we needed.
+     * @memberof RemoteDebugger.prototype
+     * @param  {DOMEvent} evt The event.
+     */
+    handleEvent: function(e) {
       if (e.detail.type !== 'remote-debugger-prompt') {
         return;
       }
 
       // We want the user attention, so we need to turn the screen on
       // if it's off.
-      if (!ScreenManager.screenEnabled)
+      if (!ScreenManager.screenEnabled) {
         ScreenManager.turnScreenOn();
+      }
 
       // Reusing the ModalDialog infrastructure.
       ModalDialog.showWithPseudoEvent({
         text: navigator.mozL10n.get('remoteDebuggerMessage'),
         type: 'confirm',
-        callback: function() {
-            RemoteDebugger._dispatchEvent(true);
-          },
-        cancel: function() {
-            RemoteDebugger._dispatchEvent(false);
-          }
+        callback: this._dispatchEvent.bind(this, true),
+        cancel: this._dispatchEvent.bind(this, false)
       });
     },
 
-    _dispatchEvent: function su_dispatchEvent(value) {
+    /**
+     * Dispatches an event based on the user selection of the modal dialog.
+     * @memberof RemoteDebugger.prototype
+     * @param  {Boolean} value True if the user enabled the remote debugger.
+     */
+    _dispatchEvent: function(value) {
       var event = document.createEvent('CustomEvent');
       event.initCustomEvent('mozContentEvent', true, true,
                             { type: 'remote-debugger-prompt',
@@ -41,6 +56,7 @@ var RemoteDebugger = (function() {
       window.dispatchEvent(event);
     }
   };
-})();
 
-RemoteDebugger.init();
+  exports.RemoteDebugger = RemoteDebugger;
+
+}(window));
