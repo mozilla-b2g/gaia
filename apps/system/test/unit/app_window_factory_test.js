@@ -181,5 +181,17 @@ suite('system/AppWindowFactory', function() {
       });
       assert.isFalse(stubDispatchEvent.called);
     });
+
+    test('launch an already-running app', function() {
+      var spy = this.sinon.stub(MockAppWindowManager, 'getApp');
+      var app = new AppWindow();
+      var stubReviveBrowser = this.sinon.stub(app, 'reviveBrowser');
+      spy.returns(app);
+      AppWindowFactory.handleEvent({
+        type: 'open-app',
+        detail: fakeLaunchConfig5
+      });
+      assert.isTrue(stubReviveBrowser.called);
+    });
   });
 });
