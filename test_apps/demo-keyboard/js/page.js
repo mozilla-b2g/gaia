@@ -1,4 +1,3 @@
-/*global Key */
 'use strict';
 
 // Build an object representing one page of a keyboard layout.

@@ -1,4 +1,3 @@
-/*global InputField KeyboardTouchHandler */
 (function(exports) {
   'use strict';
 
@@ -89,15 +88,13 @@
   Suggestions.addEventListener('suggestionselected', function(e) {
     var suggestion = e.detail;
     var current = InputField.wordBeforeCursor();
-    InputField.replaceSurroundingText(suggestion,
-      -current.length, current.length).then(function() {
-        reversion = {
-          from: suggestion,
-          to: current
-        };
-        correction = null;
-        autocorrectDisabled = false;
-      });
+    InputField.replaceSurroundingText(suggestion, current.length, 0);
+    reversion = {
+      from: suggestion,
+      to: current
+    };
+    correction = null;
+    autocorrectDisabled = false;
   });
 
   Suggestions.addEventListener('suggestionsdismissed', function() {
@@ -139,12 +136,10 @@
         if (charcode === RETURN)
           charcode = 10;  // Use newline, not carriage return
         var s = correction.to + String.fromCharCode(charcode);
-        InputField.replaceSurroundingText(s, -correction.from.length,
-          correction.from.length).then(function() {
-            reversion = { from: s, to: correction.from };
-            correction = null;
-          });
+        InputField.replaceSurroundingText(s, correction.from.length, 0);
 
+        reversion = { from: s, to: correction.from };
+        correction = null;
         e.stopImmediatePropagation();
       }
       else {
@@ -156,13 +151,11 @@
       if (reversion) {
         if (InputField.textBeforeCursor.endsWith(reversion.from)) {
           InputField.replaceSurroundingText(reversion.to,
-                                            -reversion.from.length,
-                                            reversion.from.length)
-            .then(function() {
-              // if the reversion was from a word suggestion not an autocorrection
-              // then we probably should not disable autocorrect
-              autocorrectDisabled = true;
-            });
+                                            reversion.from.length, 0);
+          // XXX:
+          // if the reversion was from a word suggestion not an autocorrection
+          // then we probably should not disable autocorrect
+          autocorrectDisabled = true;
           e.stopImmediatePropagation();
         }
         reversion = null;

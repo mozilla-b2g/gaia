@@ -1,4 +1,3 @@
-/*global KeyboardLayout KeyboardTouchHandler KeyEvent InputField */
 'use strict';
 
 var inputContext = null;
@@ -8,6 +7,10 @@ var keyboardContainer;
 var currentPage;
 var currentPageView;
 var mainpageName;
+
+var pages = {};
+var pageviews = {};
+var settings;
 
 window.addEventListener('load', init);
 
@@ -166,11 +169,12 @@ function sendKey(keycode) {
   switch (keycode) {
   case KeyEvent.DOM_VK_BACK_SPACE:
   case KeyEvent.DOM_VK_RETURN:
-    return InputField.sendKey(keycode, 0, 0);
+    InputField.sendKey(keycode, 0, 0);
     break;
 
   default:
-    return InputField.sendKey(0, keycode, 0);
+    var start = performance.now();
+    InputField.sendKey(0, keycode, 0);
     break;
   }
 }

@@ -1,5 +1,5 @@
 /*global requireApp suite test assert setup teardown sinon mocha
-  suiteTeardown suiteSetup Promise */
+  suiteTeardown suiteSetup */
 suite('DoubleSpace', function() {
   function eventEmitterSpy() {
     var d = document.createElement('div');
@@ -32,10 +32,7 @@ suite('DoubleSpace', function() {
 
   setup(function() {
     window.DoubleSpace.resetLastKeyWasSpace();
-    inputField.replaceSurroundingText =
-      sinon.stub().returns(new Promise(function(res) {
-        res();
-      }));
+    inputField.replaceSurroundingText = sinon.stub();
   });
 
   function sendKey(key) {
@@ -49,12 +46,10 @@ suite('DoubleSpace', function() {
       inputField.textBeforeCursor += ' ';
       sendKey('SPACE');
       if (shouldMakeDot) {
-        sinon.assert.callCount(inputField.replaceSurroundingText, 1,
+        assert.equal(inputField.replaceSurroundingText.callCount, 1,
           'replaceSurroundingText callCount');
-
-        assert.equal(JSON.stringify(inputField.replaceSurroundingText.args[0]),
-          JSON.stringify([ '. ', -1, 1 ]),
-          'replaceSurroundingText arguments');
+        assert.equal(inputField.replaceSurroundingText.calledWith('. ', 1, 0),
+          true, 'replaceSurroundingText arguments');
       }
       else {
         assert.equal(inputField.replaceSurroundingText.callCount, 0,
@@ -111,39 +106,28 @@ suite('DoubleSpace', function() {
       var spy2 = sinon.spy(ev2, 'stopImmediatePropagation');
       return [ev1, ev2, spy1, spy2];
     }
-
-    test('On dot insertion', function(next) {
+    test('On dot insertion', function() {
       let[ev1, ev2, spy1, spy2] = createSpaceEvents();
 
       inputField.textBeforeCursor = 'jan';
       keyboardTouchHelper.dispatchEvent(ev1);
+      inputField.textBeforeCursor += ' ';
+      keyboardTouchHelper.dispatchEvent(ev2);
 
-      setTimeout(function() {
-        inputField.textBeforeCursor += ' ';
-        keyboardTouchHelper.dispatchEvent(ev2);
-
-        assert.equal(spy1.callCount, 0, 'stopPropagation on event 1');
-        assert.equal(spy2.callCount, 1, 'stopPropagation on event 2');
-
-        next();
-      }, 0);
+      assert.equal(spy1.callCount, 0, 'stopPropagation on event 1');
+      assert.equal(spy2.callCount, 1, 'stopPropagation on event 2');
     });
 
-    test('On non-dot insertion', function(next) {
+    test('On non-dot insertion', function() {
       let [ev1, ev2, spy1, spy2] = createSpaceEvents();
 
       inputField.textBeforeCursor = ''; // empty string doesnt insert dot
       keyboardTouchHelper.dispatchEvent(ev1);
+      inputField.textBeforeCursor += ' ';
+      keyboardTouchHelper.dispatchEvent(ev2);
 
-      setTimeout(function() {
-        inputField.textBeforeCursor += ' ';
-        keyboardTouchHelper.dispatchEvent(ev2);
-
-        assert.equal(spy1.callCount, 0, 'stopPropagation on event 1');
-        assert.equal(spy2.callCount, 0, 'stopPropagation on event 2');
-
-        next();
-      }, 0);
+      assert.equal(spy1.callCount, 0, 'stopPropagation on event 1');
+      assert.equal(spy2.callCount, 0, 'stopPropagation on event 2');
     });
   });
 
@@ -179,42 +163,29 @@ suite('DoubleSpace', function() {
         'replaceSurroundingText callCount');
     });
 
-    test('Space then backspace', function(next) {
+    test('Space then backspace', function() {
       inputField.textBeforeCursor = 'yolo';
       sendKey('SPACE');
       inputField.textBeforeCursor += ' ';
-      setTimeout(function() {
-        let [ev, spy] = triggerBackspaceEvent();
-        assert.equal(spy.callCount, 0, 'stopImmediatePropagation callCount');
-        assert.equal(inputField.replaceSurroundingText.callCount, 0,
-          'replaceSurroundingText callCount');
-        next();
-      }, 0);
+      let [ev, spy] = triggerBackspaceEvent();
+      assert.equal(spy.callCount, 0, 'stopImmediatePropagation callCount');
+      assert.equal(inputField.replaceSurroundingText.callCount, 0,
+        'replaceSurroundingText callCount');
     });
 
-    test('Double space then backspace', function(next) {
+    test('Double space then backspace', function() {
       inputField.textBeforeCursor = 'yolo';
       sendKey('SPACE');
       inputField.textBeforeCursor += ' ';
-      setTimeout(function() {
-        sendKey('SPACE');
-
-        setTimeout(function() {
-          // new stub required
-          inputField.replaceSurroundingText = sinon.stub().returns(
-            new Promise(function(res) { res(); }));
-          let [ev, spy] = triggerBackspaceEvent();
-          assert.equal(spy.callCount, 1, 'stopImmediatePropagation callCount');
-          assert.equal(inputField.replaceSurroundingText.callCount, 1,
-            'replaceSurroundingText callCount');
-          assert.equal(
-            inputField.replaceSurroundingText.calledWith('  ', -2, 2),
-            true, 
-            'replaceSurroundingText calledWith');
-
-          next();
-        }, 0);
-      }, 0);
+      sendKey('SPACE');
+      // new stub required
+      inputField.replaceSurroundingText = sinon.stub();
+      let [ev, spy] = triggerBackspaceEvent();
+      assert.equal(spy.callCount, 1, 'stopImmediatePropagation callCount');
+      assert.equal(inputField.replaceSurroundingText.callCount, 1,
+        'replaceSurroundingText callCount');
+      assert.equal(inputField.replaceSurroundingText.calledWith('  ', 2, 0),
+        true, 'replaceSurroundingText callCount');
     });
   });
 });
