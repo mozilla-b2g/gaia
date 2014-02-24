@@ -37,6 +37,7 @@ section[role="region"] {
 section[role="region"] {
   transform: translateX(+100%);
   transition: transform .4s ease, visibility .4s ease;
+  display: none;
 }
 
 section[role="region"].previous {
@@ -45,6 +46,7 @@ section[role="region"].previous {
 
 section[role="region"].current {
   transform: translateX(0);
+  display: inline;
 }
 
 /**
