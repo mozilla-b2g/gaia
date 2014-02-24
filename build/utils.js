@@ -30,9 +30,6 @@ function getExtension(filename) {
 
 // We parse list like ps aux and b2g-ps into object
 function psParser(out) {
-  var titles =
-    ['APPLICATION', 'USER', 'PID', 'PPID',
-     'VSIZE', 'RSS', 'WCHAN', 'PC', 'NAME'];
   var rows = out.split('\n');
   if (rows.length < 2)
     return {};
@@ -41,6 +38,7 @@ function psParser(out) {
   // get correct position of each values.
   // We don't use split(' ') here, because some app name
   // may contain white space, ex. FM Radio.
+  var titles = rows[0].trim().split(/\s+/);
   var titleIndexes = titles.map(function(name) {
     return rows[0].indexOf(name);
   });
@@ -53,8 +51,12 @@ function psParser(out) {
     result[name] = {};
     for (var i = 1; i < titleIndexes.length; i++) {
       var value =
-        rows[r].slice(titleIndexes[i], titleIndexes[i + 1]).
-        trim();
+        rows[r].slice(titleIndexes[i], titleIndexes[i + 1]);
+      if(value[0] !== ' ') {
+        value = rows[r].slice(titleIndexes[i] - 1,
+                              titleIndexes[i + 1] && titleIndexes[i + 1] - 1);
+      }
+      value = value.trim();
       result[name][titles[i]] = value;
     }
   }
