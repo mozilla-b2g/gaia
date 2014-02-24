@@ -5,7 +5,7 @@ var Agent = TestAgent,
     Apps = Agent.server,
     Suite = Agent.Suite,
     suite = new Suite({
-      path: fsPath.resolve(__dirname + '/../../apps/'),
+      path: fsPath.resolve(__dirname + '/../../../apps/'),
       strictMode: false,
       testDir: 'test/unit',
       libDir: 'js/',
@@ -13,4 +13,3 @@ var Agent = TestAgent,
     });
 
 server.use(Apps.Suite, suite);
-

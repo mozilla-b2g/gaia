@@ -327,7 +327,6 @@ endif
 
 # Test agent setup
 TEST_COMMON=test_apps/test-agent/common
-TEST_AGENT_DIR=tools/test-agent/
 ifeq ($(strip $(NODEJS)),)
 	NODEJS := `which node`
 endif
@@ -745,22 +744,17 @@ common-install:
 	@test -x "$(NODEJS)" || (echo "Please Install NodeJS -- (use aptitude on linux or homebrew on osx)" && exit 1 )
 	@test -x "$(NPM)" || (echo "Please install NPM (node package manager) -- http://npmjs.org/" && exit 1 )
 
-	@cd $(TEST_AGENT_DIR) && test -h node_modules/test-agent && echo '`npm link` is in use, skipping npm install.' || npm install .
-
 .PHONY: update-common
 update-common: common-install
-
 	# common testing tools
 	mkdir -p $(TEST_COMMON)/vendor/test-agent/
 	mkdir -p $(TEST_COMMON)/vendor/chai/
-	rm -Rf tools/xpcwindow
-	rm -f $(TEST_COMMON)/vendor/test-agent/test-agent*.js
-	rm -f $(TEST_COMMON)/vendor/chai/*.js
-	cp -R $(TEST_AGENT_DIR)/node_modules/xpcwindow tools/xpcwindow
-	rm -R tools/xpcwindow/vendor/
-	cp $(TEST_AGENT_DIR)/node_modules/test-agent/test-agent.js $(TEST_COMMON)/vendor/test-agent/
-	cp $(TEST_AGENT_DIR)/node_modules/test-agent/test-agent.css $(TEST_COMMON)/vendor/test-agent/
-	cp $(TEST_AGENT_DIR)/node_modules/chai/chai.js $(TEST_COMMON)/vendor/chai/
+	rm -f $(TEST_COMMON)/vendor/test-agent/test-agent.js
+	rm -f $(TEST_COMMON)/vendor/test-agent/test-agent.css
+	rm -f $(TEST_COMMON)/vendor/chai/chai.js
+	cp $(GAIA)/node_modules/test-agent/test-agent.js $(TEST_COMMON)/vendor/test-agent/
+	cp $(GAIA)/node_modules/test-agent/test-agent.css $(TEST_COMMON)/vendor/test-agent/
+	cp $(GAIA)/node_modules/chai/chai.js $(TEST_COMMON)/vendor/chai/
 
 # Create the json config file
 # for use with the test agent GUI
@@ -815,18 +809,18 @@ ifneq ($(strip $(APP)),)
 APP_TEST_LIST=$(shell find apps/$(APP) -name '*_test.js' | grep '/test/unit/')
 endif
 .PHONY: test-agent-test
-test-agent-test:
+test-agent-test: node_modules
 ifneq ($(strip $(APP)),)
 	@echo 'Running tests for $(APP)';
-	@$(TEST_AGENT_DIR)/node_modules/test-agent/bin/js-test-agent test $(TEST_ARGS) --server ws://localhost:$(TEST_AGENT_PORT) --reporter $(REPORTER) $(APP_TEST_LIST)
+	./node_modules/test-agent/bin/js-test-agent test $(TEST_ARGS) --server ws://localhost:$(TEST_AGENT_PORT) --reporter $(REPORTER) $(APP_TEST_LIST)
 else
 	@echo 'Running all tests';
-	@$(TEST_AGENT_DIR)/node_modules/test-agent/bin/js-test-agent test $(TEST_ARGS) --server ws://localhost:$(TEST_AGENT_PORT) --reporter $(REPORTER)
+	./node_modules/test-agent/bin/js-test-agent test $(TEST_ARGS) --server ws://localhost:$(TEST_AGENT_PORT) --reporter $(REPORTER)
 endif
 
 .PHONY: test-agent-server
-test-agent-server: common-install
-	$(TEST_AGENT_DIR)/node_modules/test-agent/bin/js-test-agent server --port $(TEST_AGENT_PORT) -c ./$(TEST_AGENT_DIR)/test-agent-server.js --http-path . --growl
+test-agent-server: common-install node_modules
+	./node_modules/test-agent/bin/js-test-agent server --port $(TEST_AGENT_PORT) -c ./shared/test/unit/test-agent-server.js --http-path . --growl
 
 .PHONY: marionette
 marionette:
