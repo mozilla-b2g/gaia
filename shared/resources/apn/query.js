@@ -239,6 +239,24 @@ document.addEventListener('DOMContentLoaded', function onload() {
       'ril.mms.mmsport': 'mmsport',
       'ril.mms.authtype': 'authtype'
     },
+    'dun': {
+      'ril.dun.carrier': 'carrier',
+      'ril.dun.apn': 'apn',
+      'ril.dun.user': 'user',
+      'ril.dun.passwd': 'password',
+      'ril.dun.httpProxyHost': 'proxy',
+      'ril.dun.httpProxyPort': 'port',
+      'ril.dun.authtype': 'authtype'
+    },
+    'ims': {
+      'ril.ims.carrier': 'carrier',
+      'ril.ims.apn': 'apn',
+      'ril.ims.user': 'user',
+      'ril.ims.passwd': 'password',
+      'ril.ims.httpProxyHost': 'proxy',
+      'ril.ims.httpProxyPort': 'port',
+      'ril.ims.authtype': 'authtype'
+    },
     'operatorvariant': {
       'ril.iccInfo.mbdn': 'voicemail',
       'ril.sms.strict7BitEncoding.enabled': 'enableStrict7BitEncodingForSms',
