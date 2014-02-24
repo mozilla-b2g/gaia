@@ -12,7 +12,7 @@ class Clock(Base):
 
     name = 'Clock'
 
-    _alarm_view_locator = (By.ID, 'alarm-edit-panel')
+    _alarm_view_locator = (By.ID, 'edit-alarm')
     _alarm_create_new_locator = (By.ID, 'alarm-new')
     _analog_clock_display_locator = (By.ID, 'analog-clock')
     _digital_clock_display_locator = (By.ID, 'digital-clock')
