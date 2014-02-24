@@ -351,6 +351,10 @@ suite('Latin en_us worker', function() {
       test('cant', function(next) {
         prediction('cant', ['can\'t', 'cant', 'canto'], next);
       });
+
+      test('ill', function(next) {
+        prediction('ill', ['I\'ll', 'ill', 'ills'], next);
+      });
     });
 
     suite('Swear words', function() {
@@ -427,6 +431,15 @@ suite('Latin en_us worker', function() {
         prediction('ass', ['ass', null, null], next);
       });
     });
-  });
 
+    suite('Higher frequency words with exact match boost', function() {
+      test('foe', function(next) { // freq 99
+        prediction('foe', ['foe', null, null], next);
+      });
+
+      test('hid', function(next) { // freq 102
+        prediction('hid', ['hid', null, null], next);
+      });
+    });
+  });
 });
