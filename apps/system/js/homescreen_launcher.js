@@ -1,11 +1,6 @@
 'use strict';
 /* global Applications, SettingsListener, HomescreenWindow */
 (function(exports) {
-  var currentManifestURL = '';
-  var instance;
-  var _inited = false;
-  var _ready = false;
-
   /**
    * HomescreenLauncher is responsible to launch the homescreen window
    * instance and make sure it's a singleton.
@@ -19,15 +14,26 @@
    * var home = HomescreenLauncher.getHomescreen();
    * home.open(); // Do the open animation.
    *
-   * @module HomescreenLauncher
+   * @class HomescreenLauncher
+   * @requires HomescreenWindow
+   * @requires Applications
    */
   var HomescreenLauncher = function() {
     return this;
   };
 
   HomescreenLauncher.prototype = {
+    _currentManifestURL: '',
+
+    _instance: undefined,
+
+    _inited: false,
+
+    _ready: false,
+
+    // TODO: jsdoc
     get ready() {
-      return _ready;
+      return this._ready;
     },
 
     get origin() {
@@ -41,22 +47,23 @@
     },
 
     _fetchSettings: function hl_fetchSettings() {
+      var that = this;
       SettingsListener.observe('homescreen.manifestURL', '',
         function onRetrievingHomescreenManifestURL(value) {
-          var previousManifestURL = currentManifestURL;
-          currentManifestURL = value;
-          if (typeof(instance) !== 'undefined') {
+          var previousManifestURL = that._currentManifestURL;
+          that._currentManifestURL = value;
+          if (typeof(that._instance) !== 'undefined') {
             if (previousManifestURL !== '' &&
-                previousManifestURL !== currentManifestURL) {
-              instance.kill();
-              instance = new HomescreenWindow(value);
+                previousManifestURL !== that._currentManifestURL) {
+              that._instance.kill();
+              that._instance = new HomescreenWindow(value);
               // Dispatch 'homescreen is changed' event.
               window.dispatchEvent(new CustomEvent('homescreen-changed'));
             } else {
-              instance.ensure();
+              that._instance.ensure();
             }
           }
-          _ready = true;
+          that._ready = true;
           window.dispatchEvent(new CustomEvent('homescreen-ready'));
         });
     },
@@ -70,14 +77,14 @@
      * Init process
      * ![Homescreen launch process](http://i.imgur.com/JZ1ibkc.png)
      *
-     * @memberOf module:HomescreenLauncher
+     * @memberOf HomescreenLauncher
      */
     start: function hl_start() {
-      if (_inited) {
+      if (this._inited) {
         return this;
       }
 
-      _inited = true;
+      this._inited = true;
       if (Applications.ready) {
         this._fetchSettings();
       } else {
@@ -91,16 +98,16 @@
     },
 
     stop: function hl_stop() {
-      if (typeof(instance) !== 'undefined') {
-        instance.kill();
-        instance = undefined;
+      if (typeof(this._instance) !== 'undefined') {
+        this._instance.kill();
+        this._instance = undefined;
       }
-      currentManifestURL = '';
+      this._currentManifestURL = '';
       window.removeEventListener('appopening', this);
       window.removeEventListener('trusteduihide', this);
       window.removeEventListener('trusteduishow', this);
       window.removeEventListener('applicationready', this._onAppReady);
-      _inited = false;
+      this._inited = false;
     },
 
     handleEvent: function hl_handleEvent(evt) {
@@ -123,16 +130,16 @@
     },
 
     getHomescreen: function hl_getHomescreen() {
-      if (currentManifestURL === '') {
+      if (this._currentManifestURL === '') {
         console.warn('HomescreenLauncher: not ready right now.');
         return null;
       }
-      if (typeof instance == 'undefined') {
-        instance = new HomescreenWindow(currentManifestURL);
-        return instance;
+      if (typeof this._instance == 'undefined') {
+        this._instance = new HomescreenWindow(this._currentManifestURL);
+        return this._instance;
       } else {
-        instance.ensure();
-        return instance;
+        this._instance.ensure();
+        return this._instance;
       }
     }
   };

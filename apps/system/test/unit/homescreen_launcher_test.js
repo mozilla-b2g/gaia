@@ -9,30 +9,12 @@ requireApp('system/test/unit/mock_ftu_launcher.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/js/homescreen_launcher.js');
 
-var mocksForHomescreenLauncher = new MocksHelper(['FtuLauncher']).init();
-
-function switchProperty(originObject, prop, stub, reals, useDefineProperty) {
-  if (!useDefineProperty) {
-    reals[prop] = originObject[prop];
-    originObject[prop] = stub;
-  } else {
-    Object.defineProperty(originObject, prop, {
-      configurable: true,
-      get: function() { return stub; }
-    });
-  }
-}
-
-function restoreProperty(originObject, prop, reals, useDefineProperty) {
-  if (!useDefineProperty) {
-    originObject[prop] = reals[prop];
-  } else {
-    Object.defineProperty(originObject, prop, {
-      configurable: true,
-      get: function() { return reals[prop]; }
-    });
-  }
-}
+var mocksForHomescreenLauncher = new MocksHelper([
+  'FtuLauncher',
+  'Applications',
+  'HomescreenWindow',
+  'SettingsListener'
+]).init();
 
 suite('system/HomescreenLauncher', function() {
   suite('start', function() {
@@ -41,9 +23,6 @@ suite('system/HomescreenLauncher', function() {
     mocksForHomescreenLauncher.attachTestHelpers();
 
     setup(function() {
-      switchProperty(window, 'Applications', MockApplications, reals);
-      switchProperty(window, 'HomescreenWindow', MockHomescreenWindow, reals);
-      switchProperty(window, 'SettingsListener', MockSettingsListener, reals);
       MockApplications.ready = true;
     });
 
@@ -52,11 +31,6 @@ suite('system/HomescreenLauncher', function() {
         homescreenLauncher.stop();
         homescreenLauncher = undefined;
       }
-      MockSettingsListener.mTeardown();
-      MockApplications.mTeardown();
-      restoreProperty(window, 'Applications', reals);
-      restoreProperty(window, 'HomescreenWindow', reals);
-      restoreProperty(window, 'SettingsListener', reals);
     });
 
     test('start a homescreen', function() {
@@ -76,11 +50,9 @@ suite('system/HomescreenLauncher', function() {
   suite('other than start', function() {
     var reals = {};
     var homescreen;
+    mocksForHomescreenLauncher.attachTestHelpers();
 
     setup(function() {
-      switchProperty(window, 'Applications', MockApplications, reals);
-      switchProperty(window, 'HomescreenWindow', MockHomescreenWindow, reals);
-      switchProperty(window, 'SettingsListener', MockSettingsListener, reals);
       MockApplications.ready = true;
       window.homescreenLauncher = new HomescreenLauncher().start();
     });
@@ -90,11 +62,6 @@ suite('system/HomescreenLauncher', function() {
         homescreenLauncher.stop();
         homescreenLauncher = undefined;
       }
-      MockSettingsListener.mTeardown();
-      MockApplications.mTeardown();
-      restoreProperty(window, 'Applications', reals);
-      restoreProperty(window, 'HomescreenWindow', reals);
-      restoreProperty(window, 'SettingsListener', reals);
     });
 
     test('replace the homescreen', function() {
