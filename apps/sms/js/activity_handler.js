@@ -334,13 +334,20 @@ var ActivityHandler = {
         // XXX: Add params to Icon URL.
         iconURL += '?type=class0';
 
-        // We have to remove the SMS due to it does not have to be shown.
-        MessageManager.deleteMessage(message.id, function() {
-          app.launch();
-          Notify.ringtone();
-          Notify.vibrate();
-          alert(number + '\n' + message.body);
-          releaseWakeLock();
+        Contacts.findByPhoneNumber(number, function findContact(results) {
+          var contactName = number;
+
+          if (results && results.length && results[0].name &&
+            results[0].name.length && results[0].name[0]) {
+            contactName = results[0].name[0];
+          }
+          MessageManager.deleteMessage(message.id, function() {
+            app.launch();
+            Notify.ringtone();
+            Notify.vibrate();
+            alert(contactName + '\n' + message.body);
+            releaseWakeLock();
+          });
         });
       };
       return;
