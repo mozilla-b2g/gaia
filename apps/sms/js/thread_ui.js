@@ -914,7 +914,7 @@ var ThreadUI = global.ThreadUI = {
     this.initSentAudio();
 
     // should disable if we have no message input
-    var disableSendMessage = Compose.isEmpty() || Compose.isResizing;
+    var disableSendMessage = Compose.isResizing;
     var messageNotLong = this.updateCounter();
     var recipientsValue = this.recipients.inputValue;
     var hasRecipients = false;
@@ -2046,10 +2046,6 @@ var ThreadUI = global.ThreadUI = {
   },
 
   onSendClick: function thui_onSendClick() {
-    // don't send an empty message
-    if (Compose.isEmpty()) {
-      return;
-    }
 
     // Assimilation 3 (see "Assimilations" above)
     // User may return to recipients, type a new recipient
@@ -2073,6 +2069,15 @@ var ThreadUI = global.ThreadUI = {
       recipients = this.recipients.numbers;
     } else {
       recipients = Threads.active.participants;
+    }
+
+    // If it's an empty message, the content is ''
+    if (Compose.isEmpty()) {
+      content.push('');
+      var question = navigator.mozL10n.get('confirm-empty-message');
+      if (!window.confirm(question)) {
+        return;
+      }
     }
 
     // Clean composer fields (this lock any repeated click in 'send' button)
