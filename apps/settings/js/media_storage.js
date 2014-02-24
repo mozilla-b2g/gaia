@@ -211,21 +211,10 @@ var MediaStorage = {
     // Use visibilitychange so that we don't get notified of device
     // storage notifications when the settings app isn't visible.
     document.addEventListener('visibilitychange', this);
-    this.umsEnabledCheckBox = document.getElementById('ums-switch');
-    this.umsEnabledInfoBlock = document.getElementById('ums-desc');
-    this.umsEnabledCheckBox.addEventListener('change', this);
     this.registerUmsListener();
 
     var self = this;
     var umsSettingKey = 'ums.enabled';
-    Settings.getSettings(function(allSettings) {
-      self.umsEnabledCheckBox.checked = allSettings[umsSettingKey] || false;
-      self.updateMasterUmsDesc();
-    });
-    Settings.mozSettings.addObserver(umsSettingKey, function(evt) {
-      self.umsEnabledCheckBox.checked = evt.settingValue;
-      self.updateMasterUmsDesc();
-    });
 
     this.defaultMediaLocation = document.getElementById('defaultMediaLocation');
     this.defaultMediaLocation.addEventListener('click', this);
@@ -280,39 +269,11 @@ var MediaStorage = {
         var input = document.querySelector('input[name="' + key + '"]');
         input.checked = allSettings[key] || false;
         self.usmEnabledVolume[index] = input.checked;
-        self.updateMasterUmsDesc();
       });
       settings.addObserver(key, function(evt) {
         self.usmEnabledVolume[index] = evt.settingValue;
-        self.updateMasterUmsDesc();
       });
     });
-  },
-
-  updateMasterUmsDesc: function ms_updateMasterUmsDesc() {
-    var _ = navigator.mozL10n.get;
-    if (this.umsEnabledCheckBox.checked) {
-      var list = [];
-      for (var id in this.usmEnabledVolume) {
-        if (this.usmEnabledVolume[id]) {
-          list.push(_(this._volumeList[id].getL10nId(true)));
-        }
-      }
-      if (list.length === 0) {
-        this.umsEnabledInfoBlock.textContent = _('enabled');
-        this.umsEnabledInfoBlock.dataset.l10nId = 'enabled';
-      } else {
-        var desc = _('ums-shared-volumes', { list: list.join(', ') });
-        this.umsEnabledInfoBlock.textContent = desc;
-        this.umsEnabledInfoBlock.dataset.l10nId = '';
-      }
-    } else if (this.umsVolumeShareState) {
-      this.umsEnabledInfoBlock.textContent = _('umsUnplugToDisable');
-      this.umsEnabledInfoBlock.dataset.l10nId = 'umsUnplugToDisable';
-    } else {
-      this.umsEnabledInfoBlock.textContent = _('disabled');
-      this.umsEnabledInfoBlock.dataset.l10nId = 'disabled';
-    }
   },
 
   handleEvent: function ms_handleEvent(evt) {
@@ -424,7 +385,6 @@ var MediaStorage = {
         if (state === 'shared') {
           self.umsVolumeShareState = true;
         }
-        self.updateMasterUmsDesc();
       });
     });
   }
