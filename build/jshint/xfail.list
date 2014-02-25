@@ -283,7 +283,6 @@ apps/communications/contacts/test/unit/mock_mozActivity.js
 apps/communications/contacts/test/unit/mock_mozContacts.js
 apps/communications/contacts/test/unit/mock_navigation.js
 apps/communications/contacts/test/unit/mock_oauthflow.js
-apps/communications/contacts/test/unit/mock_performance_testing_helper.js
 apps/communications/contacts/test/unit/mock_sdcard.js
 apps/communications/contacts/test/unit/mock_search.js
 apps/communications/contacts/test/unit/mock_sim_importer.js
