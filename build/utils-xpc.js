@@ -200,7 +200,6 @@ function getWebapp(app, domain, scheme, port) {
 
   // Ignore directories without manifest
   if (!manifestFile.exists() && !updateFile.exists()) {
-    log('WARNING', 'missing manifest.webapp or update.webapp in', appDir.path);
     return;
   }
 
