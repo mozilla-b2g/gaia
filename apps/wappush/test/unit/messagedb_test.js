@@ -131,6 +131,15 @@ suite('MessageDB', function() {
   });
 
   suite('message actions', function() {
+    test('messasges with delete action are always discarded', function(done) {
+      MessageDB.put(messages.delete,
+        function putSuccess(status) {
+          done(function checks() {
+            assert.equal(status, 'discarded');
+          });
+        });
+    });
+
     test('delete action removes all message with same id', function(done) {
       MessageDB.put(messages.current,
         function putSuccess(status) {
