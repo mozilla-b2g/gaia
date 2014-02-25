@@ -1287,6 +1287,7 @@ function getThumbnailURL(fileinfo, callback) {
     callback(embeddedURL);
   }
 
-  // We should never get here!
-  throw Error('unknown picture flavor: ' + picture.flavor);
+  // We should never get here! (XXX: Unless we're about to upgrade.)
+  console.warn('unknown picture flavor: ' + picture.flavor);
+  callback(null);
 }

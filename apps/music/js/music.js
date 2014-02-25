@@ -138,6 +138,8 @@ function init() {
     excludeFilter: excludeFilter,
     batchSize: 1,
     autoscan: false, // We call scan() explicitly after listing music we know
+    updateRecord: updateRecord,
+    reparsedRecord: reparsedRecord,
     version: 3
   });
 
@@ -145,6 +147,27 @@ function init() {
     LazyLoader.load('js/metadata_scripts.js', function() {
       parseAudioMetadata(file, onsuccess, onerror);
     });
+  }
+
+  var deleteAsyncStorage = false;
+  function updateRecord(record, oldVersion, newVersion) {
+    if (oldVersion === 2) {
+      // Version 3 of the music DB changes ID3 parsing, so we need to reparse
+      // the file from scratch!
+      record.needsReparse = true;
+      // We also want to delete asyncStorage, which was used in version 2 to
+      // cache album art.
+      deleteAsyncStorage = true;
+    }
+    return record.metadata;
+  }
+
+  function reparsedRecord(oldMetadata, newMetadata) {
+    // We assume that updateRecord has already changed oldMetadata if necessary.
+    // (It's not necessary at the moment).
+    newMetadata.rated = oldMetadata.rated;
+    newMetadata.played = oldMetadata.played;
+    return newMetadata;
   }
 
   // show dialog in upgradestart, when it finished, it will turned to ready.
@@ -198,6 +221,10 @@ function init() {
     if (currentOverlay === 'nocard' || currentOverlay === 'pluggedin' ||
         currentOverlay === 'upgrade')
       showOverlay(null);
+
+    // Delete the asyncStorage DB if requested
+    if (deleteAsyncStorage)
+      window.indexedDB.deleteDatabase('asyncStorage');
 
     // Display music that we already know about
     showCurrentView(function() {
