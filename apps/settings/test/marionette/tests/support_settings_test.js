@@ -1,37 +1,38 @@
 'use strict';
-// var Settings = require('../app/app'),
-//     assert = require('assert');
+var Settings = require('../app/app'),
+    assert = require('assert');
 
-// marionette('manipulate support settings', function() {
-//   var client = marionette.client();
-//   var settingsApp;
+marionette('manipulate support settings', function() {
+  var client = marionette.client();
+  var settingsApp;
+  var supportPanel;
 
-//   function gotoSupportPanel() {
-//     settingsApp = new Settings(client);
-//     settingsApp.launch();
-//     // Navigate to the Support menu
-//     supportPanel = settingsApp.supportPanel;
-//   }
+  function gotoSupportPanel() {
+    settingsApp = new Settings(client);
+    settingsApp.launch();
+    // Navigate to the Support menu
+    supportPanel = settingsApp.supportPanel;
+  }
 
-//   suite('check support without SIM custom', function() {
+  suite('check support without SIM custom', function() {
 
-//     setup(function() {
-//       gotoSupportPanel();
-//     });
+    setup(function() {
+      gotoSupportPanel();
+    });
 
-//     test('check support initial state', function() {
-//       assert.ok(
-//         !supportPanel.isOnlineSupportEnabled,
-//         'online support is disabled by default'
-//       );
+    test('check support initial state', function() {
+      assert.ok(
+        !supportPanel.isOnlineSupportEnabled,
+        'online support is disabled by default'
+      );
 
-//       assert.ok(
-//         !supportPanel.isCallSupportEnabled,
-//         'call support is disabled by default'
-//       );
-//     });
+      assert.ok(
+        !supportPanel.isCallSupportEnabled,
+        'call support is disabled by default'
+      );
+    });
 
-//   });
+  });
 
 //   suite('check support with SIM custom', function() {
 //     var onlineSupportTitleKey = 'support.onlinesupport.title';
@@ -120,4 +121,4 @@
 
 //   });
 
-// });
+});
