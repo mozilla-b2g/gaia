@@ -115,7 +115,7 @@ Camera.prototype.requestCamera = function() {
 };
 
 Camera.prototype.gotCamera = function(mozCamera) {
-  debug ('got camera');
+  debug('got camera');
   var capabilities = mozCamera.capabilities;
   this.mozCamera = mozCamera;
   this.mozCamera.onShutter = this.onShutter;
