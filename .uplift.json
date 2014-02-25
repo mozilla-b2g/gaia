@@ -1,0 +1,36 @@
+{
+    "bugzilla": {
+        "api": {
+            "host": "https://api-dev.bugzilla.mozilla.org/tip/",
+            "attempts": 4,
+            "delay": 2
+        }
+    },
+    "repository": {
+        "enabled_branches": ["v1.3", "v1.2"],
+        "url": "git@github.com:mozilla-b2g/gaia.git"
+    },
+    "queries": {
+        "v1.2": ["https://bugzilla.mozilla.org/buglist.cgi?f10=CP&o5=nowordssubstr&f1=OP&list_id=7950540&f8=component&f0=OP&v11=NO_UPLIFT%20NPOTB%20POVB&o11=nowordssubstr&resolution=FIXED&o2=anywordssubstr&f9=CP&j7=OR&f4=OP&v5=fixed%20verified%20unaffected%20wontfix%20disabled&chfieldto=Now&query_format=advanced&chfield=resolution&j1=OR&f3=CP&chfieldfrom=2013-09-16&f2=cf_blocking_b2g&chfieldvalue=FIXED&f11=status_whiteboard&bug_status=RESOLVED&bug_status=VERIFIED&j4=OR&f5=cf_status_b2g_1_2&v8=Gaia&f6=CP&v2=koi%2B&f7=OP&o8=substring",
+                "https://bugzilla.mozilla.org/buglist.cgi?type0-1-0=nowordssubstr;list_id=5859395;field0-1-0=cf_status_b2g_1_2;field0-0-0=flagtypes.name;resolution=FIXED;query_format=advanced;value0-1-0=fixed%20verified%20unaffected%20wontfix%20disabled;bug_status=RESOLVED;bug_status=VERIFIED;type0-0-0=anywordssubstr;value0-0-0=approval-gaia-v1.2%2B"],
+        "v1.3": ["https://bugzilla.mozilla.org/buglist.cgi?type0-1-0=nowordssubstr;field0-1-0=cf_status_b2g_1_3;field0-0-0=flagtypes.name;resolution=FIXED;query_format=advanced;value0-1-0=fixed%20verified%20unaffected%20wontfix%20disabled;bug_status=RESOLVED;bug_status=VERIFIED;type0-0-0=anywordssubstr;value0-0-0=approval-gaia-v1.3%2B"]
+    },
+    "rules": {
+        "status_flags": {
+            "v1.3": "cf_status_b2g_1_3",
+            "v1.2": "cf_status_b2g_1_2",
+            "v1-train": "cf_status_b2g18",
+            "v1.0.1": "cf_status_b2g18_1_0_1",
+            "v1.0.0": "cf_status_b2g18_1_0_0",
+            "v1.1.0hd": "cf_status_b2g_1_1_hd"
+        },
+        "blocking_flag": "cf_blocking_b2g",
+        "blocking_rules": {
+            "koi+": ["v1.2"]
+        },
+        "patch_rules": {
+            "approval-gaia-v1.2": ["v1.2"],
+            "approval-gaia-v1.3": ["v1.3"]
+        }
+    }
+}
