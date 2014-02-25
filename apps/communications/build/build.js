@@ -165,7 +165,9 @@ CommAppBuilder.prototype.getSingleVariantResources = function(conf) {
       resources, object, 'default_contacts');
     this.getResource(operator.support_contacts,
       resources, object, 'support_contacts');
-    this.getResource(operator.keyboard, resources, object, 'keyboard');
+    this.getResource(operator.keyboard, resources, object, 'keyboardSettings');
+    this.getResource(operator.network_type,
+      resources, object, 'dataiconstatusbar');
 
     var ringtone = operator.ringtone;
     if (ringtone) {
