@@ -201,11 +201,13 @@ CameraController.prototype.showSizeLimitAlert = function() {
 
 CameraController.prototype.setMode = function(mode) {
   this.setFlashMode();
-  this.camera.setMode(mode).configure();
+  this.camera.setMode(mode);
+  this.viewfinder.fadeOut(this.camera.configure);
 };
 
 CameraController.prototype.setPictureSize = function(value) {
-  this.camera.setPictureSize(value).configure();
+  this.camera.setPictureSize(value);
+  this.viewfinder.fadeOut(this.camera.configure);
 };
 
 CameraController.prototype.loadCamera = function(value) {
