@@ -35,7 +35,8 @@
     // XXX should be new and started here
     this.touchHandler = KeyboardTouchHandler;
     // XXX should be new and started here
-    this.inputField = InputField;
+    this.inputField = new InputField();
+    this.inputField.start();
 
     this.settings = new Settings(this.DEFAULT_SETTINGS);
     this.settings.addEventListener('settingschanged', this);
@@ -83,6 +84,8 @@
     this.touchHandler.removeEventListener('key', this);
     this.inputField.removeEventListener('inputfieldchanged', this);
     this.settings.removeEventListener('settingschanged', this);
+
+    this.inputField.stop();
 
     this.inputcontext = null;
     this.layout = undefined;

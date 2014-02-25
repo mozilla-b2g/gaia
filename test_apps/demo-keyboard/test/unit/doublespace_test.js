@@ -12,8 +12,8 @@ suite('DoubleSpace', function() {
   mocha.setup({
     globals: [
       'KeyboardTouchHandler',
-      'InputField',
-      'DoubleSpace'
+      'DoubleSpace',
+      'app'
     ]
   });
 
@@ -21,7 +21,11 @@ suite('DoubleSpace', function() {
 
   suiteSetup(function(next) {
     window.KeyboardTouchHandler = keyboardTouchHelper = eventEmitterSpy();
-    window.InputField = inputField = eventEmitterSpy();
+    inputField = eventEmitterSpy();
+    // XXX should not reference app instance directly.
+    window.app = {
+      inputField: inputField
+    };
 
     requireApp('demo-keyboard/js/doublespace.js', next);
   });
