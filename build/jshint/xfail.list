@@ -936,7 +936,6 @@ apps/system/js/layout_manager.js
 apps/system/js/lockscreen_connection_info_manager.js
 apps/system/js/logo_loader.js
 apps/system/js/media_playback.js
-apps/system/js/media_recording.js
 apps/system/js/modal_dialog.js
 apps/system/js/nfc_handover.js
 apps/system/js/nfc_handover_manager.js
@@ -951,7 +950,6 @@ apps/system/js/permission_manager.js
 apps/system/js/popup_manager.js
 apps/system/js/quick_settings.js
 apps/system/js/screen_manager.js
-apps/system/js/screenshot.js
 apps/system/js/sheets_transition.js
 apps/system/js/shrinking_ui.js
 apps/system/js/sim_lock.js
@@ -975,7 +973,6 @@ apps/system/js/value_selector/date_picker.js
 apps/system/js/value_selector/spin_date_picker.js
 apps/system/js/value_selector/value_picker.js
 apps/system/js/value_selector/value_selector.js
-apps/system/js/visibility_manager.js
 apps/system/js/voicemail.js
 apps/system/js/wifi.js
 apps/system/test/marionette/edges_gesture_test.js
@@ -1043,7 +1040,6 @@ apps/system/test/unit/layout_manager_test.js
 apps/system/test/unit/lockscreen_conn_info_manager_test.js
 apps/system/test/unit/lockscreen_test.js
 apps/system/test/unit/logo_loader_test.js
-apps/system/test/unit/media_recording_test.js
 apps/system/test/unit/mobile_operator_test.js
 apps/system/test/unit/mock_activity.js
 apps/system/test/unit/mock_activity_window.js
@@ -1117,7 +1113,6 @@ apps/system/test/unit/update_manager_test.js
 apps/system/test/unit/utility_tray_test.js
 apps/system/test/unit/value_picker_test.js
 apps/system/test/unit/value_selector_test.js
-apps/system/test/unit/visibility_manager_test.js
 apps/system/test/unit/voicemail_test.js
 apps/system/test/unit/wifi_test.js
 apps/system/test/unit/wrapper_factory_test.js
