@@ -70,7 +70,7 @@ var StackManager = {
   },
 
   _stack: [],
-  _current: 0,
+  _current: -1,
 
   handleEvent: function sm_handleEvent(e) {
     switch (e.type) {
