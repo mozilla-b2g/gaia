@@ -608,7 +608,8 @@
     function aw__handle_mozbrowseractivitydone(evt) {
       // In case we're not ActivityWindow but we're launched
       // as window disposition activity.
-      if (this.activityCaller &&
+      if (this.isActive() &&
+          this.activityCaller &&
           this.activityCaller instanceof AppWindow) {
         var caller = this.activityCaller;
         this.activityCaller.activityCallee = null;

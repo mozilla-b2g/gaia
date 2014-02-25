@@ -823,7 +823,9 @@ suite('system/AppWindow', function() {
       var app2 = new AppWindow(fakeAppConfig2);
       var spyRequestOpen = this.sinon.spy(app1, 'requestOpen');
       var stubPublish = this.sinon.stub(app1, 'publish');
+      var stubIsActive = this.sinon.stub(app2, 'isActive');
       app1.setActivityCallee(app2);
+      stubIsActive.returns(true);
 
       assert.deepEqual(app1.activityCallee, app2);
       assert.deepEqual(app2.activityCaller, app1);
