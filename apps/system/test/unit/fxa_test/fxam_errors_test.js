@@ -8,6 +8,7 @@ suite('Error manager', function() {
     'ACCOUNT_DOES_NOT_EXIST': 'account-does-not-exist',
     'CANNOT_CREATE_ACCOUNT': 'cannot-create',
     'RESET_PASSWORD_ERROR': 'reset-password-error',
+    'RESET_PASSWORD_IN_SETTINGS': 'reset-password-in-settings',
     'INVALID_ACCOUNTID': 'invalid-email',
     'INVALID_PASSWORD': 'invalid-password',
     'ALREADY_SIGNED_IN_USER': 'already-signed-in',
@@ -53,6 +54,19 @@ suite('Error manager', function() {
 
   test('Can not reset password', function() {
     response.error = 'RESET_PASSWORD_ERROR';
+    FxaModuleErrors.responseToParams(response);
+
+    assert.ok(navigator.mozL10n.get.calledWith(
+      'fxa-' + errorsObject[response.error] + '-title')
+    );
+    assert.ok(
+      navigator.mozL10n.get.calledWith(
+        'fxa-' + errorsObject[response.error] + '-message')
+    );
+  });
+
+  test('Can not reset password from FTE', function() {
+    response.error = 'RESET_PASSWORD_IN_SETTINGS';
     FxaModuleErrors.responseToParams(response);
 
     assert.ok(navigator.mozL10n.get.calledWith(

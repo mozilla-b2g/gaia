@@ -10,6 +10,14 @@
 
 (function(exports) {
 
+  var pref = 'identity.fxaccounts.reset-password.url';
+  var fxaSettingsHelper = SettingsHelper(pref);
+  var fxaURL;
+
+  fxaSettingsHelper.get(function on_fxa_get_settings(url) {
+    fxaURL = url;
+  });
+
   function _setAccountDetails(response) {
     if (response && response.user.accountId) {
       FxaModuleManager.setParam('email', response.user.accountId);
@@ -70,10 +78,29 @@
                 onerror);
       });
     },
+    // XXX ensure email is used properly when server supports prefilling email
+    //     via query string (bug 977776)
     requestPasswordReset:
       function fxmsr_requestPasswordReset(email, onsuccess, onerror) {
-      // https://bugzilla.mozilla.org/show_bug.cgi?id=945365
-      onsuccess && onsuccess();
+      var activity = new MozActivity({
+        name: 'view',
+        data: {
+          type: 'url',
+          url: fxaURL
+        }
+      });
+      activity.onsuccess = function on_reset_success() {
+        // TODO When the browser loads, it is *behind* the system app. So we
+        //      need to dismiss this app in order to let the user reset their
+        //      password. Does it even make sense to fire onsuccess in such
+        //      circumstances?
+        onsuccess && onsuccess();
+        FxaModuleManager.close();
+      };
+      activity.onerror = function on_reset_error(err) {
+        console.error(err);
+        onerror && onerror(err);
+      };
     }
   };
   exports.FxModuleServerRequest = FxModuleServerRequest;
