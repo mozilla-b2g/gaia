@@ -1181,14 +1181,6 @@ var ThreadUI = global.ThreadUI = {
       TimeHeaders.update(header);
     }
 
-    // Where do I have to append the Container?
-    // If is the 'last-messages' one should be the most recent one.
-    if (isLastMessagesBlock) {
-      this.container.appendChild(header);
-      this.container.appendChild(messageContainer);
-      return messageContainer;
-    }
-
     // In other case we have to look for the right place for appending
     // the message
     var insertBeforeContainer;
@@ -1886,7 +1878,7 @@ var ThreadUI = global.ThreadUI = {
    * the DOM for getting the bubble container of this message.
    */
 
-  getMessageBubble: function thui_getMessageContainer(element) {
+  getMessageBubble: function thui_getMessageBubble(element) {
     var node = element;
     var bubble;
 

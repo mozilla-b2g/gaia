@@ -2058,7 +2058,7 @@ suite('thread_ui.js >', function() {
 
   suite('getMessageContainer >', function() {
     var lastYear, yesterday, today;
-    var fiveMinAgo, elevenMinAgo, oneHourAgo, oneHourFiveMinAgo;
+    var fiveMinAgo, elevenMinAgo, oneHourAgo, oneHourFiveMinAgo, afterMidnight;
 
     setup(function() {
       today = new Date(2013, 11, 31, 23, 59);
@@ -2071,6 +2071,7 @@ suite('thread_ui.js >', function() {
       elevenMinAgo = new Date(2013, 11, 31, 23, 48);
       oneHourAgo = new Date(2013, 11, 31, 22, 59);
       oneHourFiveMinAgo = new Date(2013, 11, 31, 22, 54);
+      afterMidnight = new Date(2014, 0, 1, 0, 1);
     });
 
     suite('last message block alone today >', function() {
@@ -2098,23 +2099,57 @@ suite('thread_ui.js >', function() {
       });
     });
 
-    suite('2 recent messages, different days >', function() {
-      var firstContainer, secondContainer;
-      setup(function() {
-        firstContainer = ThreadUI.getMessageContainer(Date.now());
-        // 5 minutes to be next day, would be the same container if same day
-        this.sinon.clock.tick(5 * 60 * 1000);
+    suite('2 recent messages, 2 different days,', function() {
+      var beforeMidnightContainer, afterMidnightContainer;
+      suite('received in order,', function() {
+        setup(function() {
+          beforeMidnightContainer = ThreadUI.getMessageContainer(Date.now());
+          // 5 minutes to be next day, would be the same container if same day
+          this.sinon.clock.tick(5 * 60 * 1000);
 
-        secondContainer = ThreadUI.getMessageContainer(Date.now());
+          afterMidnightContainer = ThreadUI.getMessageContainer(Date.now());
+        });
+
+        test('are in different containers', function() {
+          assert.notEqual(beforeMidnightContainer, afterMidnightContainer);
+        });
+
+        test('second container has both the date and the time', function() {
+          var header = afterMidnightContainer.previousElementSibling;
+          assert.notEqual(header.dataset.timeOnly, 'true');
+        });
       });
 
-      test('different containers', function() {
-        assert.notEqual(secondContainer, firstContainer);
-      });
+      suite('rendered together,', function() {
+        setup(function() {
+          var beforeMidnight = today;
+          this.sinon.clock.restore();
+          this.sinon.useFakeTimers(+afterMidnight);
 
-      test('second container has both the date and the time', function() {
-        var secondHeader = secondContainer.previousElementSibling;
-        assert.notEqual(secondHeader.dataset.timeOnly, 'true');
+          // renderMessages renders backwards
+          afterMidnightContainer = ThreadUI.getMessageContainer(+afterMidnight);
+          beforeMidnightContainer = ThreadUI.getMessageContainer(
+            +beforeMidnight
+          );
+        });
+
+        test('should be in the correct order', function() {
+          var containers = ThreadUI.container.querySelectorAll('ul');
+          var expectedContainers = [
+            beforeMidnightContainer,
+            afterMidnightContainer
+          ];
+
+          expectedContainers.forEach(function(container, index) {
+            assert.equal(container, containers[index]);
+          });
+        });
+
+        test('then sending a message, should be at the end', function() {
+          this.sinon.clock.tick(1 * 60 * 1000);
+          var newContainer = ThreadUI.getMessageContainer(Date.now());
+          assert.equal(newContainer, afterMidnightContainer);
+        });
       });
     });
 
