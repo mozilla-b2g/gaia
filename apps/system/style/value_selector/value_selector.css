@@ -27,3 +27,30 @@
 #value-selector-container li > label {
   pointer-events: none;
 }
+
+#spin-date-picker.year-hidden .value-picker-year-wrapper {
+  display: none;
+}
+
+#spin-date-picker.year-hidden .value-picker-date-wrapper ,
+#spin-date-picker.year-hidden .picker-bar-background {
+  width: 48%;
+}
+
+#spin-date-picker .spin-date-picker-button-year {
+  display: inline-block;
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 4.8rem;
+  line-height: 4.8rem;
+  width: auto;
+  background: none;
+  border: none;
+  font-weight: 400;
+  font-size: 1.5rem;
+  color: #fff;
+  text-decoration: none;
+  padding: 0 1rem 0 0;
+  text-shadow: none;
+}
