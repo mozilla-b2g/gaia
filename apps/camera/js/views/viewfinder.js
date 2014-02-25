@@ -156,7 +156,7 @@ module.exports = View.extend({
     var aspects = {
       container: container.width / container.height,
       preview: preview.width / preview.height,
-      standard: 4 / 3
+      standard: 1.2
     };
 
     var aspectFill = aspects.preview > aspects.container;

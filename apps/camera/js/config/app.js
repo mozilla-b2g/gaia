@@ -144,14 +144,14 @@ module.exports = {
     title: 'Video Flash',
     options: [
       {
-        key: 'torch',
-        title: 'On',
-        icon: 'icon-flash-on'
-      },
-      {
         key: 'off',
         title: 'Off',
         icon: 'icon-flash-off'
+      },
+      {
+        key: 'torch',
+        title: 'On',
+        icon: 'icon-flash-on'
       }
     ],
     persistent: true,
