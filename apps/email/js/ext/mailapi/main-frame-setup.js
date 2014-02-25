@@ -2545,8 +2545,10 @@ MailAPI.prototype = {
     for (var i = 0; i < msg.sliceUpdates.length; i++) {
       var update = msg.sliceUpdates[i];
       if (update.type === 'update') {
-        // Updates are performed and fire immediately/synchronously
-        this._processSliceUpdate(msg, update, slice);
+        // Updates are identified by their index position, so they need to be
+        // processed in the same order we're hearing about them.
+        this._spliceFireFuncs.push(
+          this._processSliceUpdate.bind(this, msg, update.updates, slice));
       } else {
         // Added items are transformed immediately, but the actual mutation of
         // the slice and notifications do not fire until _fireAllSplices().
