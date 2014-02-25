@@ -42,6 +42,8 @@ Recyclist.prototype = {
    */
   domItems: [],
 
+  lastScrollPos: 0,
+
   /**
    * Initializes recyclist, adds listeners, and renders items.
    */
@@ -88,15 +90,7 @@ Recyclist.prototype = {
       }
     }
 
-    // Put the items that are furthest away from the displayport at the end of
-    // the array.
-    function distanceFromDisplayPort(i) {
-      return i < startIndex ? startIndex - 1 - i : i - endIndex;
-    }
-
-    recyclableItems.sort(function (a,b) {
-      return distanceFromDisplayPort(a) - distanceFromDisplayPort(b);
-    });
+    recyclableItems.sort();
 
     for (i = startIndex; i < endIndex; ++i) {
       if (this.domItems[i]) {
@@ -104,16 +98,29 @@ Recyclist.prototype = {
       }
       var item;
       if (recyclableItems.length > 0) {
-        var recycleIndex = recyclableItems.pop();
+        var recycleIndex;
+        // Delete the item furthest from the direction we're scrolling toward
+        if (scrollPos >= this.lastScrollPos) {
+          recycleIndex = recyclableItems.shift();
+        } else {
+          recycleIndex = recyclableItems.pop();
+        }
+
         item = this.domItems[recycleIndex];
         delete this.domItems[recycleIndex];
+
+        // NOTE: We must detach and reattach the node even though we are
+        //       essentially just repositioning it.  This avoid pathological
+        //       layerization behavior where each item gets assigned its own
+        //       layer.
+        this.scrollChild.removeChild(item);
       } else {
         item = this.template.cloneNode(true);
-        this.scrollChild.appendChild(item);
       }
       this.populate(item, i);
       item.style.top = i * itemHeight + 'px';
       this.domItems[i] = item;
+      this.scrollChild.appendChild(item);
     }
   },
 
@@ -126,7 +133,10 @@ Recyclist.prototype = {
     this.generate(this.visibleMultiplier);
 
     // Asynchronously generate the other items for the displayport
-    setTimeout(this.generate.bind(this, this.asyncMultiplier));
+    setTimeout(function() {
+      this.generate(this.asyncMultiplier);
+      this.lastScrollPos = this.getScrollPos();
+    }.bind(this));
   },
 
   handleEvent: function() {
