@@ -12,6 +12,7 @@ var FocusRing = require('views/focus-ring');
 var lockscreen = require('lib/lock-screen');
 var constants = require('config/camera');
 var broadcast = require('lib/broadcast');
+var cookies = require('vendor/cookies');
 var bindAll = require('lib/bind-all');
 var model = require('vendor/model');
 var debug = require('debug')('app');
@@ -62,6 +63,7 @@ function App(options) {
   this.storage = options.storage;
   this.camera = options.camera;
   this.sounds = options.sounds;
+  this.cookies = cookies;
   debug('initialized');
 }
 

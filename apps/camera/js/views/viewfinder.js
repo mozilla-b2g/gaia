@@ -1,4 +1,4 @@
-define(function(require) {
+define(function(require, exports, module) {
 'use strict';
 
 /**
@@ -6,11 +6,13 @@ define(function(require) {
  */
 
 var bind = require('lib/bind');
+var find = require('lib/find');
 var CameraUtils = require('lib/camera-utils');
+var ZoomBar = require('lib/zoom-bar');
 var debug = require('debug')('view:viewfinder');
 var constants = require('config/camera');
 var View = require('vendor/view');
-
+var find = require('lib/find');
 /**
  * Locals
  */
@@ -20,7 +22,12 @@ var MAX_VIEWFINDER_SCALE = constants.MAX_VIEWFINDER_SCALE;
 var lastTouchA = null;
 var lastTouchB = null;
 var isScaling = false;
-var scale = 1.0;
+var isScalingEnabled = true;
+var scale = MIN_VIEWFINDER_SCALE;
+var scaleSizeTo = {
+  fill: CameraUtils.scaleSizeToFillViewport,
+  fit: CameraUtils.scaleSizeToFitViewport
+};
 
 var getNewTouchA = function(touches) {
   if (!lastTouchA) return null;
@@ -51,14 +58,52 @@ var getDeltaScale = function(touchA, touchB) {
   return newDistance - oldDistance;
 };
 
-return View.extend({
+module.exports = View.extend({
   name: 'viewfinder',
-  tag: 'video',
   className: 'js-viewfinder',
   fadeTime: 200,
+
   initialize: function() {
+    this.render();
+
+    // Bind events
     bind(this.el, 'click', this.onClick);
-    this.el.autoplay = true;
+
+    this.on('inserted', raf(this.getSize));
+
+    bind(this.el, 'touchstart', this.onTouchStart);
+    bind(this.el, 'touchmove', this.onTouchMove);
+    bind(this.el, 'touchend', this.onTouchEnd);
+    bind(this.els.zoomBar, 'change', this.onZoomBarChange);
+  },
+
+  render: function() {
+    this.el.innerHTML = this.template();
+
+    // Find elements
+    this.els.frame = this.find('.js-frame');
+    this.els.video = this.find('.js-video');
+    this.els.zoomBar = find('.zoom-bar', this.el);
+
+    // Initialize ZoomBar
+    this.zoomBar = new ZoomBar(this.els.zoomBar);
+  },
+
+  template: function() {
+    return '<div class="viewfinder_frame js-frame">' +
+        '<video class="viewfinder_video js-video" autoplay></video>' +
+      '</div>' +
+      '<div class="viewfinder_grid">' +
+        '<div class="row-1"></div>' +
+        '<div class="row-2"></div>' +
+        '<div class="col-1"></div>' +
+        '<div class="col-2"></div>' +
+      '</div>' +
+      '<div class="zoom-bar">' +
+        '<div class="zoom-bar-inner">' +
+          '<div class="zoom-bar-handle"></div>' +
+        '</div>' +
+      '</div>';
   },
 
   onClick: function() {
@@ -71,6 +116,8 @@ return View.extend({
       lastTouchA = evt.touches[0];
       lastTouchB = evt.touches[1];
       isScaling = true;
+
+      evt.preventDefault();
     }
   },
 
@@ -99,14 +146,57 @@ return View.extend({
     }
   },
 
+  getSize: function() {
+    this.container = {
+      width: this.el.clientHeight,
+      height: this.el.clientWidth
+    };
+  },
+
+  onZoomBarChange: function(evt) {
+    var value = evt.detail / 100;
+    var range = MAX_VIEWFINDER_SCALE - MIN_VIEWFINDER_SCALE;
+    var scale = (range * value) + MIN_VIEWFINDER_SCALE;
+
+    this.setScale(scale);
+  },
+
+  enableScaling: function() {
+    isScalingEnabled = true;
+  },
+
+  disableScaling: function() {
+    this.setScale(MIN_VIEWFINDER_SCALE);
+
+    isScalingEnabled = false;
+  },
+
   setScale: function(scale) {
+    if (!isScalingEnabled) {
+      return;
+    }
+
     scale = Math.min(Math.max(scale, MIN_VIEWFINDER_SCALE),
                      MAX_VIEWFINDER_SCALE);
-    this.el.style.transform = 'scale(' + scale + ', ' + scale + ')';
+
+    this.emit('scaleChange', scale);
+
+    if (scale > MIN_VIEWFINDER_SCALE) {
+      this.el.classList.add('zooming');
+    }
+
+    else {
+      this.el.classList.remove('zooming');
+    }
+
+    var range = MAX_VIEWFINDER_SCALE - MIN_VIEWFINDER_SCALE;
+    var percent = (scale - MIN_VIEWFINDER_SCALE) / range * 100;
+
+    this.zoomBar.setValue(percent);
   },
 
   setPreviewStream: function(previewStream) {
-    this.el.mozSrcObject = previewStream;
+    this.els.video.mozSrcObject = previewStream;
   },
 
   setStream: function(stream, done) {
@@ -115,65 +205,51 @@ return View.extend({
   },
 
   startPreview: function() {
-    this.el.play();
+    this.els.video.play();
   },
 
   stopPreview: function() {
-    this.el.pause();
+    this.els.video.pause();
   },
 
   fadeOut: function(done) {
-    this.el.classList.add('fade-out');
-
-    if (done) {
-      setTimeout(done, this.fadeTime);
-    }
+    this.el.classList.remove('visible');
+    if (done) { setTimeout(done, this.fadeTime);}
   },
 
   fadeIn: function(done) {
-    this.el.classList.remove('fade-out');
-
-    if (done) {
-      setTimeout(done, this.fadeTime);
-    }
+    this.el.classList.add('visible');
+    if (done) { setTimeout(done, this.fadeTime); }
   },
 
-  updatePreview: function(previewSize, mirrored) {
-    debug('update preview, mirrored: %s', mirrored);
-    // Use the device-independent viewport size for transforming the
-    // preview using CSS
-    var deviceIndependentViewportSize = {
-      width: document.body.clientHeight,
-      height: document.body.clientWidth
+  updatePreview: function(preview, mirrored) {
+    var container = this.container;
+    var aspects = {
+      container: container.width / container.height,
+      preview: preview.width / preview.height,
+      standard: 1.2
     };
 
-    // Scale the optimal preview size to fill the viewport (will
-    // overflow if necessary)
-    var scaledPreviewSize = CameraUtils.scaleSizeToFillViewport(
-                              deviceIndependentViewportSize,
-                              previewSize);
+    var aspectFill = aspects.preview > aspects.container;
+    var scaleType = aspectFill ? 'fill' : 'fit';
+    var scaled = scaleSizeTo[scaleType](container, preview);
+    var centered = aspectFill || (aspects.preview < aspects.standard);
+    var yOffset = centered ? (container.width - scaled.width) / 2 : 0;
 
-    this.el.style.width = scaledPreviewSize.width + 'px';
-    this.el.style.height = scaledPreviewSize.height + 'px';
+    this.els.frame.style.width = scaled.width + 'px';
+    this.els.frame.style.height = scaled.height + 'px';
+    this.els.frame.style.top = yOffset + 'px';
+    this.els.frame.classList.toggle('reversed', mirrored);
 
-    // Rotate the preview image 90 degrees
-    var transform = 'rotate(90deg)';
+    debug('update preview, mirrored: %s, scale: %s, yOffset: %s',
+      mirrored, scaleType, yOffset);
 
-    if (mirrored) {
-      // backwards-facing camera
-      transform += ' scale(-1, 1)';
-    }
-
-    this.el.style.transform = transform;
-
-    var offsetX = (deviceIndependentViewportSize.height -
-                   scaledPreviewSize.width) / 2;
-    var offsetY = (deviceIndependentViewportSize.width -
-                   scaledPreviewSize.height) / 2;
-
-    this.el.style.left = offsetX + 'px';
-    this.el.style.top = offsetY + 'px';
+    return this;
   }
 });
+
+function raf(fn) {
+  return function() { requestAnimationFrame(fn); };
+}
 
 });

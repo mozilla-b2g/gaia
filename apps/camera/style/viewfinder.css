@@ -1,12 +1,144 @@
-
 .viewfinder {
   position: absolute;
-  left: 0;
   top: 0;
-  opacity: 1;
-  transition: opacity 25ms ease-in-out;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity 200ms ease-in-out;
 }
 
-.viewfinder.fade-out {
+/**
+ * @loaded
+ */
+
+.viewfinder.visible {
+  opacity: 1;
+}
+
+/** Frame
+ ---------------------------------------------------------*/
+
+.viewfinder_frame {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform: rotate(90deg) translate(0px, -100%);
+  transform-origin: 0 0;
+}
+
+/**
+ * @reversed
+ */
+
+.viewfinder_frame.reversed {
+  transform: rotate(-90deg) translate(-100%, 0%);
+}
+
+/** Video
+ ---------------------------------------------------------*/
+
+.viewfinder_video {
+  width: 100%;
+  height: 100%;
+}
+
+/** Frame Grid
+ ---------------------------------------------------------*/
+
+.viewfinder_grid {
+  position: absolute;
+  left: 0; top: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events:none;
   opacity: 0;
+  color: #FFF;
+}
+
+/**
+ * @grid=true
+ */
+
+[grid=on] .viewfinder_grid {
+  opacity: 1;
+}
+
+/** Rows
+ ---------------------------------------------------------*/
+
+.viewfinder_grid .row-1,
+.viewfinder_grid .row-2 {
+  height: 33.33%;
+  border-bottom: solid 1px;
+}
+
+/** Columns
+ ---------------------------------------------------------*/
+
+.viewfinder_grid .col-1,
+.viewfinder_grid .col-2 {
+  position: absolute;
+  left: 0; top: 0;
+  width: 33.33%;
+  height: 100%;
+  border-right: solid 1px;
+}
+
+.viewfinder_grid .col-2 {
+  left: 33.33%;
+}
+
+/**
+  Zoom Bar Container
+
+  Dimensions (including padding): 20px x 300px
+  Padding: 30px 8.75px 30px 8.75px
+  Right Offset (from UX spec): 38px
+ */
+.viewfinder > .zoom-bar {
+  position: absolute;
+  opacity: 0;
+  transition: opacity 200ms ease 1s;
+}
+
+
+.viewfinder > .zoom-bar {
+  margin-top: -150px; /* (0 - height) / 2 */
+  top: 50%;
+  right: 40px; /* offset */
+  transform: rotate(0deg);
+}
+
+body.deg90 .viewfinder > .zoom-bar {
+  margin-top: auto;
+  right: auto;
+  margin-left: -10px; /* (0 - width) / 2 */
+  top: -65px; /* ((0 - height) / 2) + offset + controls.height  */
+  left: 50%;
+  transform: rotate(-90deg);
+}
+
+body.deg180 .viewfinder > .zoom-bar {
+  right: auto;
+  margin-top: -150px; /* (0 - height) / 2 */
+  top: 50%;
+  left: 40px; /* offset */
+  transform: rotate(-180deg);
+}
+
+body.deg270 .viewfinder > .zoom-bar {
+  margin-top: auto;
+  top: auto;
+  right: auto;
+  margin-left: -10px; /* (0 - width) / 2 */
+  bottom: -35px; /* ((0 - height) / 2) + offset + controls.height - padding  */
+  left: 50%;
+  transform: rotate(-270deg);
+}
+
+.viewfinder.zooming > .zoom-bar {
+  opacity: 1;
+  transition-delay: 0s;
 }
