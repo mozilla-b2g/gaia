@@ -1,3 +1,7 @@
+/* globals LazyL10n, LazyLoader, MobileOperator */
+
+/* exported MmiManager */
+
 'use strict';
 
 var MmiManager = {
@@ -82,7 +86,7 @@ var MmiManager = {
         for (var serviceClassMask = 1;
              serviceClassMask <= this._conn.ICC_SERVICE_CLASS_MAX;
              serviceClassMask <<= 1) {
-          if ((serviceClassMask & result[i].serviceClass) != 0) {
+          if ((serviceClassMask & result[i].serviceClass) !== 0) {
             switch (serviceClassMask) {
               case this._conn.ICC_SERVICE_CLASS_VOICE:
                 voice = result[i].number;
@@ -300,8 +304,9 @@ var MmiManager = {
   },
 
   handleEvent: function mm_handleEvent(evt) {
-    if (!evt.type)
+    if (!evt.type) {
       return;
+    }
 
     var message;
     switch (evt.type) {

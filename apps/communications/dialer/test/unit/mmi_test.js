@@ -1,3 +1,7 @@
+/* globals MocksHelper, MockMozMobileConnection, MmiManager, MockMmiUI,
+           MmiManager, SUCCESS_MMI_MSG, SUCCESS_MMI_MSG, SUCCESS_MMI_NO_MSG,
+           FAILED_MMI_MSG, FAILED_MMI_MSG, FAILED_MMI_NO_MSG, MMI_MSG */
+
 'use strict';
 
 requireApp('communications/dialer/js/mmi.js');
@@ -20,7 +24,6 @@ suite('dialer/mmi', function() {
   var realMobileConnection;
 
   mocksHelperForMMI.attachTestHelpers();
-  var keys = {};
 
   setup(function() {
     realMobileConnection = window.navigator.mozMobileConnection;
