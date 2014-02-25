@@ -61,8 +61,6 @@ ViewfinderController.prototype.updatePreview = function() {
 };
 
 ViewfinderController.prototype.onScaleChange = function(scale) {
-  window.c = this.camera.mozCamera;
-  console.log(scale);
   this.camera.mozCamera.zoom = scale;
 };
 
