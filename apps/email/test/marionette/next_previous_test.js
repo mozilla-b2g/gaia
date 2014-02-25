@@ -19,6 +19,7 @@ function isHeaderButtonEnabled(button) {
 marionette('email next previous', function() {
   var app;
 
+  console.log('Creating client...');
   var client = marionette.client({
     settings: {
       // disable keyboard ftu because it blocks our display
@@ -26,12 +27,17 @@ marionette('email next previous', function() {
     }
   });
 
+  console.log('Configuring fake server...');
   var server = serverHelper.use(null, this);
 
   setup(function() {
+    console.log('Setup!');
     app = new Email(client);
+    console.log('Launching email...');
     app.launch();
+    console.log('Bringing up fake server...');
     app.manualSetupImapEmail(server);
+    console.log('Sending and receiving messages...');
     app.sendAndReceiveMessages([
       { to: 'testy@localhost', subject: 'One', body: 'Fish' },
       { to: 'testy@localhost', subject: 'Two', body: 'Fish' }
@@ -39,46 +45,56 @@ marionette('email next previous', function() {
   });
 
   test('should grey out up when no message above', function() {
+    console.log('Tapping message from inbox...');
     app.tapEmailAtIndex(0);
     var el = app.msgUpBtn;
     assert.ok(!isHeaderButtonEnabled(el));
   });
 
   test('should grey out down when no message below', function() {
+    console.log('Tapping message from inbox...');
     app.tapEmailAtIndex(1);
     var el = app.msgDownBtn;
     assert.ok(!isHeaderButtonEnabled(el));
   });
 
   test('should not grey out up when message above', function() {
+    console.log('Tapping message from inbox...');
     app.tapEmailAtIndex(1);
     var el = app.msgUpBtn;
     assert.ok(isHeaderButtonEnabled(el));
   });
 
   test('should not grey out down when message below', function() {
+    console.log('Tapping message from inbox...');
     app.tapEmailAtIndex(0);
     var el = app.msgDownBtn;
     assert.ok(isHeaderButtonEnabled(el));
   });
 
   test('should move up when up tapped', function() {
+    console.log('Tapping message from inbox...');
     app.tapEmailAtIndex(1);
+    console.log('Advance message reader...');
     app.advanceMessageReader(true);
     var subject = app.getMessageReaderSubject();
     assert.strictEqual(subject, 'Two');
   });
 
   test('should move down when down tapped', function() {
+    console.log('Tapping message from inbox...');
     app.tapEmailAtIndex(0);
+    console.log('Advance message reader...');
     app.advanceMessageReader(false);
     var subject = app.getMessageReaderSubject();
     assert.strictEqual(subject, 'One');
   });
 
   test('should not move up when up tapped if greyed out', function() {
+    console.log('Tapping message from inbox...');
     app.tapEmailAtIndex(0);
     try {
+      console.log('Advance message reader...');
       app.advanceMessageReader(true);
     } catch (err) {
       if (err.type !== 'InvalidElementState') {
@@ -91,8 +107,10 @@ marionette('email next previous', function() {
   });
 
   test('should not move down when down tapped if greyed out', function() {
+    console.log('Tapping message from inbox...');
     app.tapEmailAtIndex(1);
     try {
+      console.log('Advance message reader...');
       app.advanceMessageReader(false);
     } catch (err) {
       if (err.type !== 'InvalidElementState') {
@@ -106,6 +124,7 @@ marionette('email next previous', function() {
 
   suite('scroll', function() {
     setup(function() {
+      console.log('Send and receive more messages...');
       // We need more messages to exercise scrolling.
       app.sendAndReceiveMessages([
         { to: 'testy@localhost', subject: 'Red', body: 'Fish' },
@@ -121,6 +140,7 @@ marionette('email next previous', function() {
       // Start by scrolling to the bottom of the scroll container.
       var header = app.getHeaderAtIndex(7);
       var offsetTop = header.getAttribute('offsetTop');
+      console.log('Scroll to bottom...');
       client.executeScript(function(scrollTo) {
         var scrollContainer =
           document.getElementsByClassName('msg-list-scrollouter')[0];
@@ -138,6 +158,7 @@ marionette('email next previous', function() {
           break;
         }
 
+        console.log('Advance message reader...');
         app.advanceMessageReader(true);
       }
 
@@ -158,6 +179,7 @@ marionette('email next previous', function() {
           break;
         }
 
+        console.log('Advance message reader...');
         app.advanceMessageReader(false);
       }
 

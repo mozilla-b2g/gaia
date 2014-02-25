@@ -73,15 +73,24 @@ Email.prototype = {
    */
   sendAndReceiveMessages: function(messages) {
     messages.forEach(function(message) {
+      console.log('Sending message...');
+      console.log('Tapping compose...');
       this.tapCompose();
+      console.log('Typing to...');
       this.typeTo(message.to);
+      console.log('Typing subject...');
       this.typeSubject(message.subject);
+      console.log('Typing body...');
       this.typeBody(message.body);
+      console.log('Tapping send...');
       this.tapSend();
     }.bind(this));
 
+    console.log('Tapping refresh button...');
     this.tapRefreshButton();
+    console.log('Waiting for new email...');
     this.waitForNewEmail();
+    console.log('Tapping notification bar...');
     this.tapNotificationBar();
   },
 
