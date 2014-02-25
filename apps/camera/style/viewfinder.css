@@ -1,12 +1,89 @@
 
 .viewfinder {
   position: absolute;
-  left: 0;
-  top: 0;
-  opacity: 1;
-  transition: opacity 25ms ease-in-out;
+  left: 0; top: 0;
+  height: 100%;
+  width: 100%;
+  opacity: 0;
+  transition: opacity 200ms ease-in-out;
 }
 
-.viewfinder.fade-out {
+/**
+ * @loaded
+ */
+
+.viewfinder.visible {
+  opacity: 1;
+}
+
+/** Frame
+ ---------------------------------------------------------*/
+
+.viewfinder_frame {
+  position: absolute;
+  left: 0; top: 0;
+  transform: rotate(90deg) translate(0px, -100%);
+  transform-origin: 0 0;
+}
+
+/**
+ * @reversed
+ */
+
+.viewfinder_frame.reversed {
+  transform: rotate(-90deg) translate(-100%, 0%);
+}
+
+/** Video
+ ---------------------------------------------------------*/
+
+.viewfinder_video {
+  width: 100%;
+  height: 100%;
+}
+
+/** Frame Grid
+ ---------------------------------------------------------*/
+
+.viewfinder_grid {
+  position: absolute;
+  left: 0; top: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events:none;
   opacity: 0;
+  color: #FFF;
+}
+
+/**
+ * @grid=true
+ */
+
+[grid=on] .viewfinder_grid {
+  opacity: 1;
+}
+
+/** Rows
+ ---------------------------------------------------------*/
+
+.viewfinder_grid .row-1,
+.viewfinder_grid .row-2 {
+  height: 33.33%;
+  border-bottom: solid 1px;
+}
+
+/** Columns
+ ---------------------------------------------------------*/
+
+.viewfinder_grid .col-1,
+.viewfinder_grid .col-2 {
+  position: absolute;
+  left: 0; top: 0;
+  width: 33.33%;
+  height: 100%;
+  border-right: solid 1px;
+}
+
+.viewfinder_grid .col-2 {
+  left: 33.33%;
 }

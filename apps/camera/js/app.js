@@ -7,11 +7,13 @@ define(function(require, exports, module) {
 
 var performanceTesting = require('performanceTesting');
 var ViewfinderView = require('views/viewfinder');
+var ControlsView2 = require('views/controls-2');
 var ControlsView = require('views/controls');
 var FocusRing = require('views/focus-ring');
 var lockscreen = require('lib/lock-screen');
 var constants = require('config/camera');
 var broadcast = require('lib/broadcast');
+var cookies = require('vendor/cookies');
 var bindAll = require('lib/bind-all');
 var model = require('vendor/model');
 var debug = require('debug')('app');
@@ -62,6 +64,7 @@ function App(options) {
   this.storage = options.storage;
   this.camera = options.camera;
   this.sounds = options.sounds;
+  this.cookies = cookies;
   debug('initialized');
 }
 
@@ -113,9 +116,12 @@ App.prototype.runControllers = function() {
 };
 
 App.prototype.initializeViews = function() {
+  var newControls = this.settings.newControls.selected().value;
+  var Controls = newControls ? ControlsView2 : ControlsView;
+
   this.views.viewfinder = new ViewfinderView();
-  this.views.controls = new ControlsView();
   this.views.focusRing = new FocusRing();
+  this.views.controls = new Controls();
   this.views.hud = new HudView();
   debug('views initialized');
 };

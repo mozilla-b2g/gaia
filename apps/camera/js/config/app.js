@@ -2,7 +2,8 @@ define(function(require, exports, module) {
 'use strict';
 
 module.exports = {
-  showSettings: false,
+  showSettings: true,
+  newControls: true,
   mode: {
     title: 'Mode',
     options: [
@@ -33,36 +34,62 @@ module.exports = {
     persistent: false
   },
 
-  pictureSizes: {
+  pictureSizesFront: {
     title: 'Camera Resolution',
     icon: 'icon-picture-size',
+    maxBytes: 5242880,
     options: [
+      // {
+      //   key: '2048x1536'
+      // }
+    ],
+    persistent: true,
+    menu: 1
+  },
+
+  pictureSizesBack: {
+    title: 'Camera Resolution',
+    icon: 'icon-picture-size',
+    maxBytes: 5242880,
+    options: [
+      // {
+      //   key: '2048x1536'
+      // }
+    ],
+    persistent: true,
+    menu: 2
+  },
+
+  recorderProfilesBack: {
+    title: 'Video Resolution',
+    icon: 'icon-video-size',
+    options: [
+
+      // NOTE: Disabled due to Helix crashing
+      // when trying to record at these resolutions.
+
+      // {
+      //   key: '720p',
+      //   title: '720p 1040X720'
+      // },
+      // {
+      //   key: '480p',
+      //   title: '480p 720X480'
+      // },
       {
-        key: '5mp',
-        title: '5MP'
+        key: 'cif',
+        title: 'CIF 352X288'
       },
       {
-        key: '3mp',
-        title: '3MP'
-      },
-      {
-        key: '1mp',
-        title: '1MP'
-      },
-      {
-        key: 'vga',
-        title: 'VGA'
-      },
-      {
-        key: 'qvga',
-        title: 'QVGA'
+        key: 'qcif',
+        title: 'QCIF 176X144'
       }
     ],
     persistent: true,
-    menu: 4
+    menu: 3,
   },
 
-  recorderProfiles: {
+  recorderProfilesFront: {
     title: 'Video Resolution',
     icon: 'icon-video-size',
     options: [
@@ -91,7 +118,7 @@ module.exports = {
     menu: 4
   },
 
-  pictureFlashModes: {
+  flashModesPicture: {
     title: 'Picture Flash',
     options: [
       {
@@ -110,24 +137,26 @@ module.exports = {
         icon: 'icon-flash-off'
       }
     ],
-    persistent: true
+    persistent: true,
+    menu: 5
   },
 
-  videoFlashModes: {
+  flashModesVideo: {
     title: 'Video Flash',
     options: [
-      {
-        key: 'torch',
-        title: 'On',
-        icon: 'icon-flash-on'
-      },
       {
         key: 'off',
         title: 'Off',
         icon: 'icon-flash-off'
+      },
+      {
+        key: 'torch',
+        title: 'On',
+        icon: 'icon-flash-on'
       }
     ],
-    persistent: true
+    persistent: true,
+    menu: 6
   },
 
   timer: {
@@ -156,7 +185,7 @@ module.exports = {
       }
     ],
     persistent: false,
-    menu: 3
+    menu: 7
   },
 
   hdr: {
@@ -180,7 +209,7 @@ module.exports = {
       }
     ],
     persistent: true,
-    menu: 1
+    menu: 8
   },
 
   scene: {
@@ -201,7 +230,7 @@ module.exports = {
       }
     ],
     persistent: true,
-    menu: 2
+    menu: 9
   },
 
   grid: {
@@ -210,18 +239,49 @@ module.exports = {
     options: [
       {
         key: 'on',
-        title: 'On',
-        value: true
+        title: 'On'
       },
       {
         key: 'off',
-        title: 'Off',
-        value: false
+        title: 'Off'
       }
     ],
     selected: 'off',
     persistent: true,
-    menu: 3
+    menu: 10
+  },
+
+  settingsMenu: {
+    items: [
+      {
+        key: 'hdr'
+      },
+      {
+        key: 'scene'
+      },
+      {
+        key: 'grid'
+      },
+      {
+        key: 'timer'
+      },
+      {
+        key: 'pictureSizesBack',
+        condition: { 'cameras': 'back' }
+      },
+      {
+        key: 'pictureSizesFront',
+        condition: { 'cameras': 'front' }
+      },
+      {
+        key: 'recorderProfilesBack',
+        condition: { 'cameras': 'back' }
+      },
+      {
+        key: 'recorderProfilesFront',
+        condition: { 'cameras': 'front' }
+      }
+    ]
   }
 };
 
