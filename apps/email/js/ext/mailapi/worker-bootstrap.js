@@ -13294,10 +13294,15 @@ SliceBridgeProxy.prototype = {
 
   /**
    * Issue an update for existing items.
+   *
+   * @param {Array[]} indexUpdatesRun
+   *   Flattened pairs of index and the updated object wire representation.
    */
   sendUpdate: function sbp_sendUpdate(indexUpdatesRun) {
-    var update = indexUpdatesRun;
-    update.type = 'update';
+    var update = {
+      updates: indexUpdatesRun,
+      type: 'update',
+    };
     this.addUpdate(update);
   },
 
