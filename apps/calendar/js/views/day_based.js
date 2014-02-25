@@ -1,4 +1,6 @@
+/*global Calendar*/
 Calendar.ns('Views').DayBased = (function() {
+  'use strict';
 
   var Calc = Calendar.Calc;
   var hoursOfOccurance = Calendar.Calc.hoursOfOccurance;
@@ -181,8 +183,6 @@ Calendar.ns('Views').DayBased = (function() {
 
         var html = this._renderEvent(busytime, record);
         var eventArea = hourRecord.element;
-        var records = hourRecord.records;
-        var idx = records.insertIndexOf(busytime._id);
 
         if (this.template.hourEventsSelector) {
           eventArea = eventArea.querySelector(
@@ -235,7 +235,6 @@ Calendar.ns('Views').DayBased = (function() {
      */
     _insertElement: function(html, element, records, idx) {
       var el;
-      var len = records.length;
 
       if (!element.children.length || idx === 0) {
         element.insertAdjacentHTML(
@@ -260,9 +259,6 @@ Calendar.ns('Views').DayBased = (function() {
      * @param {HTMLElement} element target to apply top/height to.
      */
     _assignPosition: function(busytime, element) {
-      var topOffset = 0;
-      var height = 0;
-
       // cache dates
       var start = busytime.startDate;
       var end = busytime.endDate;
@@ -326,6 +322,11 @@ Calendar.ns('Views').DayBased = (function() {
      * build the default elements for the view and return the parent element.
      */
     _buildElement: function() {
+      // XXX: wrapper used to create a new stacking context to fix Bug 972666
+      // without causing performance issues described on Bug 972675
+      var wrapper = document.createElement('div');
+      wrapper.classList.add('day-events-wrapper');
+
       // create the hidden values for element & eventsElement
       this._eventsElement = document.createElement('section');
       this._element = document.createElement('section');
@@ -344,7 +345,8 @@ Calendar.ns('Views').DayBased = (function() {
       }
 
       // setup/inject elements.
-      this.element.appendChild(this._eventsElement);
+      wrapper.appendChild(this._eventsElement);
+      this.element.appendChild(wrapper);
       this.events.classList.add(this.classType);
 
       return this.element;
@@ -377,8 +379,9 @@ Calendar.ns('Views').DayBased = (function() {
       var record = this.hours.get(hour);
 
       // skip records that do not exist.
-      if (record === null)
+      if (record === null) {
         return;
+      }
 
       var el = record.element;
 
@@ -435,8 +438,9 @@ Calendar.ns('Views').DayBased = (function() {
 
       delete this._idsToHours[id];
 
-      if (!hours)
+      if (!hours) {
         return;
+      }
 
       hours.forEach(function(number) {
         var hour = this.hours.get(number);
@@ -452,8 +456,9 @@ Calendar.ns('Views').DayBased = (function() {
         // are any more...
         var idx = flags.indexOf(calendarClass);
 
-        if (idx !== -1)
+        if (idx !== -1) {
           flags.splice(idx, 1);
+        }
 
         // if after we have removed the flag there
         // are no more we can remove the class
