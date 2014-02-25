@@ -4,16 +4,16 @@
   left: 0; top: 0;
   height: 100%;
   width: 100%;
-  opacity: 1;
-  transition: opacity 25ms ease-in-out;
+  opacity: 0;
+  transition: opacity 200ms ease-in-out;
 }
 
 /**
- * @fade-out
+ * @loaded
  */
 
-.viewfinder.fade-out {
-  opacity: 0;
+.viewfinder.visible {
+  opacity: 1;
 }
 
 /** Frame
