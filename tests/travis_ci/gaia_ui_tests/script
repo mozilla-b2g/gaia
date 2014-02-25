@@ -17,4 +17,11 @@ $gaiatest --app=b2gdesktop \
           --type=b2g \
           --timeout=10000 \
           --html-output artifacts/gaia_ui_tests_report.html \
-          --restart $root/tests/manifest.ini
+          --restart \
+          $root/tests/functional/browser/manifest.ini \
+          $root/tests/functional/calendar/manifest.ini \
+          $root/tests/functional/cards_view/manifest.ini \
+          $root/tests/functional/clock/manifest.ini \
+          $root/tests/functional/contacts/manifest.ini \
+          $root/tests/functional/dialer/manifest.ini \
+          $root/tests/functional/email/manifest.ini

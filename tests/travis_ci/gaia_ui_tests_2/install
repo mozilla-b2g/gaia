@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+set -e
+DIR_TEST_ENV=travis_venv
+VERSION_VIRTUALENV=1.11
+URL_VIRTUALENV=https://pypi.python.org/packages/source/v/virtualenv/virtualenv-${VERSION_VIRTUALENV}.tar.gz
+
+echo "creating virtual environment"
+if type virtualenv >/dev/null 2>&1; then
+  virtualenv $DIR_TEST_ENV
+else
+  echo "downloading virtualenv from ${URL_VIRTUALENV}"
+  curl -O ${URL_VIRTUALENV}
+  tar xvfz virtualenv-${VERSION_VIRTUALENV}.tar.gz
+  python virtualenv-${VERSION_VIRTUALENV}/virtualenv.py ${DIR_TEST_ENV}
+fi
+
+. $DIR_TEST_ENV/bin/activate
+
+ROOT=$PWD
+echo "setting up gaia-ui-tests dependencies"
+cd tests/python/gaia-ui-tests/
+python setup.py develop
+
+cd $ROOT;
+
+echo "downloading b2g-desktop"
+make b2g
+
+echo "building profile"
+DESKTOP_SHIMS=1 make

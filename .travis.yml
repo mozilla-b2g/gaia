@@ -21,6 +21,7 @@ env:
   - CI_ACTION=marionette_js_stable_check TEST_JOB=4
   - CI_ACTION=marionette_js_stable_check TEST_JOB=5
   - CI_ACTION=gaia_ui_tests
+  - CI_ACTION=gaia_ui_tests_2
   - CI_ACTION=build_tests
   global:
   - ARTIFACTS_S3_BUCKET=mozilla-releng-travis-uploads
