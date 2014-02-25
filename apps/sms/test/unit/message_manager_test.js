@@ -256,6 +256,7 @@ suite('message_manager.js >', function() {
 
     setup(function() {
       this.sinon.spy(ThreadUI, 'cleanFields');
+      this.sinon.spy(ThreadUI.recipients, 'focus');
       ThreadUI.draft = null;
       MessageManager.launchComposer();
     });
@@ -273,8 +274,8 @@ suite('message_manager.js >', function() {
         done();
       });
     });
-    suite('message drafts', function() {
 
+    suite('message drafts', function() {
       setup(function() {
         ThreadUI.draft = new Draft({
           threadId: 1234,
@@ -686,14 +687,26 @@ suite('message_manager.js >', function() {
         this.activity = MessageManager.activity = { test: true };
         MessageManager.handleActivity();
         ThreadUI.inThread = true; // to test this is reset correctly
+        this.sinon.spy(ThreadUI.recipients, 'focus');
         window.location.hash = '#new';
         MessageManager.onHashChange();
       });
+      
       teardown(function() {
         MessageManager.activity = null;
       });
+
       test('called handleActivity with activity', function() {
         assert.ok(MessageManager.handleActivity.calledOnce);
+      });
+
+      test('focus after show "composer"', function(done) {
+        this.sinon.stub(MessageManager, 'launchComposer', function(cb) {
+          cb && cb();
+          assert.ok(ThreadUI.recipients.focus.called);
+          done();
+        });
+        MessageManager.onHashChange();
       });
 
       suite('> Switch to #thread=100', function() {
