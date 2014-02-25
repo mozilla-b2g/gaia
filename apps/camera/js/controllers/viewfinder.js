@@ -40,8 +40,38 @@ ViewfinderController.prototype.configure = function() {
 ViewfinderController.prototype.bindEvents = function() {
   this.app.settings.on('change:grid', this.viewfinder.setter('grid'));
   this.viewfinder.on('click', this.onViewfinderClick);
+  this.viewfinder.on('focusPointChange', this.onFocusPointChange);
   this.app.on('camera:configured', this.loadStream);
   this.app.on('camera:configured', this.updatePreview);
+};
+
+/**
+ * capture touch coordinates
+ * when user clicks view finder
+ * and call touch focus function.
+ *
+ */
+ViewfinderController.prototype.onFocusPointChange = function(focusPoint) {
+  var self = this;
+  var focusArea = this.viewfinder.findFocusArea(focusPoint);
+
+  // Set focus and metering areas
+  this.camera.setFocusArea(focusArea);
+  this.camera.setMeteringArea(focusArea);
+
+  // set focus ring positon
+  this.app.views.focusRing.el.style.left = focusPoint.x + 'px';
+  this.app.views.focusRing.el.style.top = focusPoint.y + 'px';
+
+  // Call auto focus to focus on focus area.
+  this.camera.setAutoFocus(focusDone);
+
+  function focusDone() {
+    // clear ring UI
+    self.camera.clearFocusRing();
+    // update focus flag when touch is available
+    self.viewfinder.setTouchFocusDone();
+  }
 };
 
 ViewfinderController.prototype.loadStream = function() {

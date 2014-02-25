@@ -335,7 +335,7 @@ Camera.prototype.takePicture = function(options) {
   rotation = selectedCamera === 'front'? -rotation: rotation;
 
   this.emit('busy');
-  this.prepareTakePicture(onReady);
+  this.setAutoFocus(onReady);
 
   function onReady() {
     var position = options && options.position;
@@ -370,7 +370,7 @@ Camera.prototype.takePicture = function(options) {
   }
 };
 
-Camera.prototype.prepareTakePicture = function(done) {
+Camera.prototype.setAutoFocus = function(done) {
   var self = this;
 
   if (!this.autoFocus.auto) {
@@ -643,4 +643,38 @@ Camera.prototype.updateVideoElapsed = function() {
   this.set('videoElapsed', (now - start));
 };
 
+/**
+*set focus Area
+**/
+Camera.prototype.setFocusArea = function(pts) {
+   this.mozCamera.focusAreas = [{
+    top: pts.top,
+    bottom: pts.bottom,
+    left: pts.left,
+    right: pts.right,
+    weight: 1}];
+};
+
+/**
+*set metering Area
+**/
+Camera.prototype.setMeteringArea = function(pts) {
+   this.mozCamera.meteringAreas = [{
+    top: pts.top,
+    bottom: pts.bottom,
+    left: pts.left,
+    right: pts.right,
+    weight: 1}];
+};
+
+/**
+*once touch focus is done
+*clear the ring UI
+**/
+Camera.prototype.clearFocusRing = function() {
+  var self = this;
+  setTimeout(function() {
+    self.set('focus', 'none');
+  }, 1000);
+};
 });
