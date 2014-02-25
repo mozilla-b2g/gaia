@@ -159,8 +159,9 @@ var CallSettings = (function(window, document, undefined) {
    */
   function cs_setToSettingsDB(settingKey, value, callback) {
     var done = function done() {
-      if (callback)
+      if (callback) {
         callback();
+      }
     };
 
     var getLock = _settings.createLock();
@@ -289,15 +290,17 @@ var CallSettings = (function(window, document, undefined) {
               runTask: function(func) {
                 this.taskCount++;
                 var newArgs = [];
-                for (var i = 1; i < arguments.length; i++)
+                for (var i = 1; i < arguments.length; i++) {
                   newArgs.push(arguments[i]);
+                }
                 newArgs.push(this.complete.bind(this));
                 func.apply(window, newArgs);
               },
               complete: function() {
                 this.taskCount--;
-                if (this.taskCount == 0)
+                if (this.taskCount === 0) {
                   this.finish();
+                }
               },
               finish: function() {
                 setTimeout(function() {
@@ -369,7 +372,7 @@ var CallSettings = (function(window, document, undefined) {
       mobileBusy.onerror = onerror;
     };
     unconditional.onerror = onerror;
-  };
+  }
 
   /**
    *
@@ -387,7 +390,7 @@ var CallSettings = (function(window, document, undefined) {
           return;
         }
         // Bails out in case the reason is already enabled/disabled.
-        if (_cfReasonStates[_cfReasonMapping[key]] == event.settingValue) {
+        if (_cfReasonStates[_cfReasonMapping[key]] === event.settingValue) {
           return;
         }
         var selector = 'input[data-setting="ril.cf.' + key + '.number"]';
@@ -444,18 +447,19 @@ var CallSettings = (function(window, document, undefined) {
    * Get the message to show after setting up call forwarding.
    */
   function cs_getSetCallForwardingOptionResult(rules, action) {
+    var message;
     for (var i = 0; i < rules.length; i++) {
       if (rules[i].active &&
           ((_voiceServiceClassMask & rules[i].serviceClass) != 0)) {
-        var disableAction = action == _cfAction.CALL_FORWARD_ACTION_DISABLE;
-        var message = disableAction ?
+        var disableAction = action === _cfAction.CALL_FORWARD_ACTION_DISABLE;
+        message = disableAction ?
           _('callForwardingSetForbidden') : _('callForwardingSetSuccess');
         return message;
       }
     }
     var registrationAction =
-      action == _cfAction.CALL_FORWARD_ACTION_REGISTRATION;
-    var message = registrationAction ?
+      action === _cfAction.CALL_FORWARD_ACTION_REGISTRATION;
+    message = registrationAction ?
       _('callForwardingSetError') : _('callForwardingSetSuccess');
     return message;
   }
@@ -848,12 +852,12 @@ var CallSettings = (function(window, document, undefined) {
    *
    */
   function cs_updateFdnStatus() {
-    // TODO: Add support for FDN feauture on multi ICC card devices.
-    if (!IccHelper) {
+    var iccObj = getIccByIndex();
+    if (!iccObj) {
       return;
     }
 
-    var req = IccHelper.getCardLock('fdn');
+    var req = iccObj.getCardLock('fdn');
     req.onsuccess = function spl_checkSuccess() {
       var enabled = req.result.enabled;
 
