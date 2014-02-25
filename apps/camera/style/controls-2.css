@@ -64,6 +64,7 @@
 
 .controls-2_right :first-child {
   margin-right: 1.4rem;
+  -moz-user-select: none;
 }
 
 /** Right
@@ -77,9 +78,10 @@
  ---------------------------------------------------------*/
 
 .mode-toggle {
+  position: relative;
   box-sizing: content-box;
   display: block;
-  font-size: 32px;
+  font-size: 40px;
   width: 2.1em;
   height: 1em;
   background: rgba(51, 51, 51, 0.65);
@@ -88,7 +90,26 @@
   overflow: hidden;
 }
 
-.mode-toggle_switch {
+.mode-toggle:before {
+  position: absolute;
+  display: block;
+  right: .5em;
+  width: 1em;
+  height: 1em;
+  color: #C7C7C7;
+  font-size: 24px;
+  line-height: 40px;
+  font-family: 'gaia-camera';
+  content: "\e602";
+  background-color: transparent;
+}
+
+[mode=video] .mode-toggle:before {
+  left: .5em;
+  content: "\e60f";
+}
+
+.mode-toggle > div {
   position: relative;
   width: 1em;
   height: 1em;
@@ -97,12 +118,26 @@
   transition: transform 100ms;
 }
 
-.mode-toggle input:checked + div {
-  transform: translateX(1.1em);
+.mode-toggle > div > span:before {
+  position: absolute;
+  top: 50%;
+  margin-top: -15px;
+  left: 50%;
+  margin-left: -12px;
+  font-size: 24px;
+  color: #00CAF2;
+  font-family: 'gaia-camera';
+  content: "\e60f";
+
 }
 
-.mode-toggle input {
-  display: none;
+[mode=video] .mode-toggle > div > span:before {
+  content: "\e602";
+  color: #D92E2E;
+}
+
+[mode=video] .mode-toggle > div {
+  transform: translateX(1.1em);
 }
 
 /** Capture Button
@@ -140,7 +175,7 @@
 }
 
 [mode=video] .outer-circle {
-  background: rgba(205, 0, 0, 0.35);
+  background: #D92E2E;
 }
 
 
@@ -158,6 +193,10 @@
   transition: transform 200ms ease-in;
 }
 
+.capture-button-2 .inner-circle .video {
+  display: none;
+}
+
 /**
  * @capturing=true
  */
@@ -170,17 +209,23 @@
  * @mode=video
  */
 
-[mode=video] .inner-circle {
-  background-color: rgba(159, 0, 0, 0.2);
-  opacity: 1;
-  transition: transform 200ms ease-in;
+[mode=video] .inner-circle .video {
+  display: block;
+  position: absolute;
+  width: 20%;
+  height: 20%;
+  border-radius: 50%;
+}
+
+[mode=video] .inner-circle .video::after {
+  display: block;
 }
 
 /**
  * @mode=video
  */
 
-[mode=video][capturing=true] .inner-circle {
+[mode=video][capturing=true] .inner-circle .video {
   transform: scale(0.57);
   transition-duration: 220ms;
 }

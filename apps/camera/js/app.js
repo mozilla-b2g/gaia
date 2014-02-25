@@ -116,7 +116,7 @@ App.prototype.runControllers = function() {
 };
 
 App.prototype.initializeViews = function() {
-  var newControls = this.settings.newControls.value();
+  var newControls = this.settings.newControls.selected().value;
   var Controls = newControls ? ControlsView2 : ControlsView;
 
   this.views.viewfinder = new ViewfinderView();

@@ -25,7 +25,6 @@ module.exports = View.extend({
 
   render: function() {
     this.el.innerHTML = this.template();
-    attach.on(this.el, 'click', '.js-switch', this.onSwitchClick);
     attach.on(this.el, 'click', '.js-btn', this.onButtonTap);
     this.els.timer = find('.js-video-timer', this.el);
     debug('rendered');
@@ -65,7 +64,8 @@ module.exports = View.extend({
   },
 
   template: function() {
-    return '<a class="switch-button test-switch js-btn" name="switch">' +
+    return
+    '<a class="switch-button test-switch js-btn" name="switch">' +
       '<span class="icon rotates"></span>' +
     '</a>' +
     '<a class="capture-button test-capture js-btn" name="capture">' +
