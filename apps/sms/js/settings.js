@@ -1,20 +1,38 @@
-'use strict';
 /*
   Message app settings related value and utilities.
 */
+/* global
+    Promise
+ */
+
+/* exported Settings */
+
+
+'use strict';
 
 var Settings = {
   MMS_SERVICE_ID_KEY: 'ril.mms.defaultServiceId',
-
+  _serviceIds: null,
+  _readyListeners: null,
+  _isReady: false,
   mmsSizeLimitation: 300 * 1024, // Default mms message size limitation is 300K.
   mmsServiceId: null, // Default mms service SIM ID (only for DSDS)
   get nonActivateMmsServiceIds() { // Non activate mms ID (only for DSDS)
-    var serviceIds = this.serviceIds.slice();
+    var serviceIds = this._serviceIds.slice();
     serviceIds.splice(this.mmsServiceId, 1);
     return serviceIds;
   },
 
   init: function settings_init() {
+    return this.doInit()
+      .then(this.onReady.bind(this))
+      .catch(function(e) {
+        // let's catch errors early
+        console.error(e);
+      });
+  },
+
+  doInit: function settings_doInit() {
     var keyHandlerSet = {
       'dom.mms.operatorSizeLimitation': Settings.initMmsSizeLimitation
     };
@@ -22,30 +40,38 @@ var Settings = {
     var conns = navigator.mozMobileConnections;
 
     function setHandlerMap(key) {
-      var req = settings.createLock().get(key);
-      req.onsuccess = function settings_getSizeSuccess() {
-        var handler = keyHandlerSet[key];
-        handler(req.result[key]);
-      };
+      return new Promise(function settingResolver(resolve, reject) {
+        var req = settings.createLock().get(key);
+        req.onsuccess = function settings_getSizeSuccess() {
+          var handler = keyHandlerSet[key];
+          handler(req.result[key]);
+          resolve();
+        };
+      });
     }
 
+    this._isReady = false;
+    this._serviceIds = [];
+
     if (!settings) {
-      return;
+      return Promise.resolve();
     }
 
     // Only DSDS will need to handle mmsServiceId
     if (conns && conns.length > 1) {
       keyHandlerSet[this.MMS_SERVICE_ID_KEY] = this.initMmsServiceId;
       // Cache all existing serviceIds
-      this.serviceIds = [];
       for (var i = 0, l = conns.length; i < l; i++) {
-        this.serviceIds.push(i);
+        this._serviceIds.push(i);
       }
     }
 
+    var promises = [];
     for (var key in keyHandlerSet) {
-      setHandlerMap(key);
+      promises.push(setHandlerMap(key));
     }
+
+    return Promise.all(promises);
   },
 
   // Set MMS size limitation:
@@ -93,5 +119,34 @@ var Settings = {
 
       this.setSimServiceId(targetId);
     }
+  },
+
+  isDoubleSim: function isDoubleSim() {
+    return this._serviceIds && this._serviceIds.length > 1;
+  },
+
+  onReady: function onReady() {
+    this._isReady = true;
+    if (this._readyListeners) {
+      this._readyListeners.forEach(function(func) {
+        func();
+      });
+    }
+
+    this._readyListeners = null;
+  },
+
+  whenReady: function whenReady() {
+    if (this._isReady) {
+      return Promise.resolve();
+    }
+
+    return new Promise(function whenReadyResolver(resolve, reject) {
+      if (!this._readyListeners) {
+        this._readyListeners = [];
+      }
+
+      this._readyListeners.push(resolve);
+    }.bind(this));
   }
 };

@@ -3,7 +3,9 @@
 /*global MockNavigatormozSetMessageHandler, MockNavigatormozApps,
          MockNavigatorWakeLock, MockOptionMenu, Mockalert,
          MockMessages, MockNavigatorSettings, MockL10n,
-         MockNavigatormozMobileMessage */
+         MockNavigatormozMobileMessage,
+         Settings
+*/
 
 'use strict';
 
@@ -30,6 +32,7 @@ requireApp('sms/test/unit/mock_message_manager.js');
 requireApp('sms/test/unit/mock_threads.js');
 requireApp('sms/test/unit/mock_thread_ui.js');
 requireApp('sms/test/unit/mock_action_menu.js');
+require('/test/unit/mock_settings.js');
 
 requireApp('sms/js/utils.js');
 requireApp('sms/test/unit/mock_utils.js');
@@ -46,6 +49,7 @@ var mocksHelperForActivityHandler = new MocksHelper([
   'Notification',
   'NotificationHelper',
   'OptionMenu',
+  'Settings',
   'SettingsURL',
   'Threads',
   'ThreadUI',
@@ -159,8 +163,12 @@ suite('ActivityHandler', function() {
 
   suite('sms received', function() {
     var message;
+    var readyPromise;
 
     setup(function() {
+      readyPromise = Promise.resolve();
+      this.sinon.stub(Settings, 'whenReady').returns(readyPromise);
+
       message = MockMessages.sms();
       MockNavigatormozSetMessageHandler.mTrigger('sms-received', message);
     });
@@ -174,11 +182,13 @@ suite('ActivityHandler', function() {
     suite('contact retrieved (after getSelf)', function() {
       var contactName = '<&>';
       var sendSpy;
-      setup(function() {
+      setup(function(done) {
         sendSpy = this.sinon.spy(window, 'Notification');
         this.sinon.stub(Contacts, 'findByPhoneNumber')
-          .callsArgWith(1, [{name: [contactName]}]);
+          .yields([{name: [contactName]}]);
+
         MockNavigatormozApps.mTriggerLastRequestSuccess();
+        readyPromise.then(done);
       });
 
       test('passes contact name in plain text', function() {
@@ -192,16 +202,17 @@ suite('ActivityHandler', function() {
       var phoneNumber = '+1111111111';
       var oldSender;
       var sendSpy;
-      setup(function() {
+      setup(function(done) {
         sendSpy = this.sinon.spy(window, 'Notification');
         oldSender = message.sender;
         message.sender = phoneNumber;
         this.sinon.stub(Contacts, 'findByPhoneNumber')
-          .callsArgWith(1, [{
+          .yields([{
             name: [''],
             tel: {'value': phoneNumber}
           }]);
         MockNavigatormozApps.mTriggerLastRequestSuccess();
+        readyPromise.then(done);
       });
 
       suiteTeardown(function() {
@@ -218,9 +229,10 @@ suite('ActivityHandler', function() {
 
     suite('after getSelf', function() {
       var sendSpy;
-      setup(function() {
+      setup(function(done) {
         sendSpy = this.sinon.spy(window, 'Notification');
         MockNavigatormozApps.mTriggerLastRequestSuccess();
+        readyPromise.then(done);
       });
 
       test('a notification is sent', function() {

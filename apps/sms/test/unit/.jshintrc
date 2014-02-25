@@ -1,6 +1,7 @@
 {
-  "extends": "../../../../.jshintrc",
+  "extends": "../../.jshintrc",
   "predef": [
+    "Promise",
     "assert",
     "suite",
     "test",
