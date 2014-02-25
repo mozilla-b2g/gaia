@@ -40,13 +40,16 @@ module.exports = View.extend({
     /*jshint maxlen:false*/
     return '' +
     '<div class="controls-2_left">' +
-      '<div class="controls-2_thumbnail js-thumbnail js-btn" name="gallery"></div>' +
+      '<div>' +
+        '<div class="controls-2_gallery-button icon-gallery js-btn" name="gallery"></div>' +
+        '<div class="controls-2_thumbnail js-thumbnail js-btn" name="gallery"></div>' +
+      '</div>' +
     '</div>' +
     '<div class="controls-2_middle">' +
       '<div class="capture-button-2 js-btn" name="capture">' +
         '<div class="circle outer-circle"></div>' +
         '<div class="circle inner-circle"></div>' +
-        '<div class="center icon-camera"></div>' +
+        '<div class="center"></div>' +
       '</div>' +
     '</div>' +
     '<div class="controls-2_right">' +

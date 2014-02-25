@@ -30,17 +30,26 @@
   align-items: center;
 }
 
-.controls-2_left {}
-
 /** Thumbnail
  ---------------------------------------------------------*/
 
-.controls-2_thumbnail {
-  margin-left: 1.4rem;
+.controls-2_gallery-button {
+  position: absolute;
+  left: 37px;
+  top: 50%;
+  font-size: 54px;
+  width: 1em;
+  height: 1em;
+  margin-top: -0.5em;
+  color: white;
 }
 
 .controls-2_thumbnail > img {
+  position: absolute;
   display: block;
+  left: 37px;
+  top: 50%;
+  margin-top: -0.5em;
   font-size: 54px;
   width: 1em;
   height: 1em;
@@ -49,20 +58,11 @@
   animation: thumbnail-fade-in 300ms;
 }
 
-/** Middle
- ---------------------------------------------------------*/
-
-.controls-2_middle {
-}
-
 /** Right
  ---------------------------------------------------------*/
 
 .controls-2_right {
   justify-content: flex-end;
-}
-
-.controls-2_right :first-child {
   margin-right: 1.4rem;
   -moz-user-select: none;
 }
@@ -70,8 +70,11 @@
 /** Right
  ---------------------------------------------------------*/
 
-.controls-2_left :first-child {
-  margin-left: 1.4rem;
+.controls-2_left > div {
+  display: block;
+  position: relative;
+  width: 100%;
+  height: 100%;
 }
 
 /** Mode Toggle
@@ -150,6 +153,7 @@
   height: 1em;
   margin-top: -51px;
   top: 50%;
+  -moz-user-select: none;
 }
 
 .capture-button-2[disabled] {
@@ -178,7 +182,6 @@
   background: #D92E2E;
 }
 
-
 /** Inner Circle
  ---------------------------------------------------------*/
 
@@ -187,79 +190,60 @@
   transform: scale(0.74);
 }
 
+[mode=video][recording=true] .capture-button-2 .inner-circle {
+  background-color: #D92E2E;
+}
+
 .capture-button-2:active .inner-circle {
   background-color: #00caf2;
   transform: scale(1.0);
   transition: transform 200ms ease-in;
 }
 
-.capture-button-2 .inner-circle .video {
-  display: none;
+[mode=video] .capture-button-2:active .inner-circle {
+  background-color: #D92E2E;
 }
 
-/**
- * @capturing=true
- */
-
-[capturing=true] .inner-circle {
-  opacity: 0;
-}
-
-/**
- * @mode=video
- */
-
-[mode=video] .inner-circle .video {
-  display: block;
-  position: absolute;
-  width: 20%;
-  height: 20%;
-  border-radius: 50%;
-}
-
-[mode=video] .inner-circle .video::after {
-  display: block;
-}
-
-/**
- * @mode=video
- */
-
-[mode=video][capturing=true] .inner-circle .video {
-  transform: scale(0.57);
-  transition-duration: 220ms;
+[mode=video] .inner-circle {
+  position: relative;
 }
 
 /** Icon
  ---------------------------------------------------------*/
 
-.capture-button-2 .center {
+.capture-button-2 .center::after {
   position: absolute;
-  font-size: 40px;
   top: 50%;
   left: 50%;
   width: 1em;
   height: 1em;
+  font-size: 40px;
   margin-top: -0.5em;
   margin-left: -0.5em;
-  opacity: 1;
+  line-height: 1em;
   color: #81ACB6;
+  font-family: 'gaia-camera';
+  content: "\e60f";
 }
 
-.capture-button-2:active .center{
-  color: #ffffff;
+.capture-button-2:active .center::after{
+  color: white;
 }
 
-/**
- * @capturing=true
- */
-
-[capturing=true] .capture-button-2 .center {
-  opacity: 1;
+[mode=video] .capture-button-2 .center::after {
+  width: 20px;
+  height: 20px;
+  margin-top: -10px;
+  margin-left: -10px;
+  border-radius: 50%;
+  background-color: #D92E2E;
+  color: white;
+  content: "";
 }
 
-[mode=video] .capture-button-2 .center {
-  border-radius: 1px;
+[mode=video][recording=true] .capture-button-2 .center::after {
+  border-radius: 25%;
+  background-color: white;
 }
 
 /** Pulse Animation
