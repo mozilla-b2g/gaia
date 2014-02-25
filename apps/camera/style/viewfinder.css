@@ -1,19 +1,25 @@
 
+/**
+ * 1. PERF: Don't transition to 0 to
+ *    avoid composite layer being discarded.
+ */
+
 .viewfinder {
   position: absolute;
   left: 0; top: 0;
   height: 100%;
   width: 100%;
-  opacity: 1;
-  transition: opacity 25ms ease-in-out;
+  overflow: hidden;
+  opacity: 0.001; /* 1 */
+  transition: opacity 200ms ease-in-out;
 }
 
 /**
- * @fade-out
+ * @visible
  */
 
-.viewfinder.fade-out {
-  opacity: 0;
+.viewfinder.visible {
+  opacity: 1;
 }
 
 /** Frame

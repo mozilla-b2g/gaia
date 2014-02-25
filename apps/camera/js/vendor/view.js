@@ -125,7 +125,7 @@ define(function(require, exports, module) {
   };
 
   View.prototype.set = function(key, value) {
-    value = arguments.length === 2 ? value : true;
+    value = value === undefined ? '' : value;
     this.el.setAttribute(toDashed(key), value);
   };
 

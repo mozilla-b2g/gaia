@@ -1,4 +1,4 @@
-define(function(require) {
+define(function(require, exports, module) {
 'use strict';
 
 /**
@@ -54,7 +54,7 @@ var getDeltaScale = function(touchA, touchB) {
   return newDistance - oldDistance;
 };
 
-return View.extend({
+module.exports = View.extend({
   name: 'viewfinder',
   className: 'js-viewfinder',
   fadeTime: 200,
@@ -63,6 +63,7 @@ return View.extend({
     this.render();
     bind(this.el, 'click', this.onClick);
     this.els.video.autoplay = true;
+    this.on('inserted', raf(this.getSize));
   },
 
   render: function() {
@@ -110,6 +111,13 @@ return View.extend({
     }
   },
 
+  getSize: function() {
+    this.container = {
+      width: this.el.clientHeight,
+      height: this.el.clientWidth
+    };
+  },
+
   setScale: function(scale) {
     scale = Math.min(Math.max(scale, MIN_VIEWFINDER_SCALE),
                      MAX_VIEWFINDER_SCALE);
@@ -134,19 +142,13 @@ return View.extend({
   },
 
   fadeOut: function(done) {
-    this.el.classList.add('fade-out');
-
-    if (done) {
-      setTimeout(done, this.fadeTime);
-    }
+    this.el.classList.remove('visible');
+    if (done) { setTimeout(done, this.fadeTime);}
   },
 
   fadeIn: function(done) {
-    this.el.classList.remove('fade-out');
-
-    if (done) {
-      setTimeout(done, this.fadeTime);
-    }
+    this.el.classList.add('visible');
+    if (done) { setTimeout(done, this.fadeTime); }
   },
 
   updatePreview: function(preview, mirrored) {
@@ -211,8 +213,11 @@ return View.extend({
     this.els.videoContainer.style.width = previewWidth + 'px';
     this.els.videoContainer.style.height = previewHeight + 'px';
     this.els.videoContainer.classList.toggle('reversed', mirrored);
+
     debug('update preview, mirrored: %s, scale: %s, yOffset: %s',
       mirrored, scaleType, yOffset);
+
+    return this;
   },
 
   template: function() {
@@ -244,5 +249,9 @@ return View.extend({
     '</div>';
   }
 });
+
+function raf(fn) {
+  return function() { requestAnimationFrame(fn); };
+}
 
 });
