@@ -38,6 +38,9 @@
     this.inputField = new InputField();
     this.inputField.start();
 
+    this.shiftKey = new ShiftKey(this);
+    this.shiftKey.start();
+
     this.settings = new Settings(this.DEFAULT_SETTINGS);
     this.settings.addEventListener('settingschanged', this);
 
@@ -86,6 +89,7 @@
     this.settings.removeEventListener('settingschanged', this);
 
     this.inputField.stop();
+    this.shiftKey.stop();
 
     this.inputcontext = null;
     this.layout = undefined;
@@ -96,6 +100,7 @@
 
     this.touchHandler = null;
     this.inputField = null;
+    this.shiftKey = null;
     this.settings = null;
   };
 
