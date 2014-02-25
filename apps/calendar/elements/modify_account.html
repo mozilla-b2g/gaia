@@ -6,7 +6,7 @@
       </button>
 
       <menu type="toolbar">
-        <button class="save">
+        <button class="save" disabled>
           <span data-l10n-id="save">Save</span>
         </button>
       </menu>
@@ -15,13 +15,19 @@
     </header>
 
     <section class="during-progress">
-      <div>
-        <progress class="small"></progress>
-        <span data-l10n-id="modify-account-setting-up">SeTtiNg uP ACcOunt</span>
-      </div>
+      <form id="progress-dialog" role="dialog" data-type="confirm">
+        <section>
+          <h1 data-l10n-id="modify-account-setting-up">SeTtiNg uP ACcOunt</h1>
+          <p class="sup-progress-container">
+            <progress class="small"></progress>
+          </p>
+        </section>
+        <menu><button type="button" class="sup-back-btn full"
+                      data-l10n-id="modify-account-cancel">CanceL</button></menu>
+      </form>
     </section>
 
-    <form>
+    <form id="add-account-dialog">
       <fieldset>
         <ol>
           <li class="user">

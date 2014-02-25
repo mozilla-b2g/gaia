@@ -37,7 +37,7 @@ Calendar.ns('Utils').AccountCreation = (function() {
       var calendarStore = this.app.store('Calendar');
 
       // begin by persisting the account
-      accountStore.verifyAndPersist(model, function(accErr, id, result) {
+      return accountStore.verifyAndPersist(model, function(accErr, id, result) {
 
         if (accErr) {
           // we bail when we cannot create the account

@@ -18,6 +18,7 @@ Calendar.ns('Service').Caldav = (function() {
     Calendar.Responder.call(this);
 
     this.service = service;
+    this.xhrMap = {};
     this._initEvents();
   };
 
@@ -39,6 +40,7 @@ Calendar.ns('Service').Caldav = (function() {
       var events = [
         'noop',
         'getAccount',
+        'abortAccountXhr',
         'findCalendars',
         'getCalendar',
         'streamEvents',
@@ -144,12 +146,12 @@ Calendar.ns('Service').Caldav = (function() {
       callback({ ready: true });
     },
 
-    getAccount: function(account, callback) {
+    getAccount: function(account, xhrId, callback) {
       var url = account.entrypoint;
       var connection = this._createConnection(account);
 
       var request = this._requestHome(connection, url);
-      return request.send(function(err, data) {
+      var xhr = request.send(function(err, data) {
         if (err) {
           callback(err);
           return;
@@ -168,6 +170,12 @@ Calendar.ns('Service').Caldav = (function() {
 
         callback(null, result);
       });
+
+      if (this.xhrMap[xhrId]) {
+        this.xhrMap[xhrId].push(xhr);
+      } else {
+        this.xhrMap[xhrId] = [xhr];
+      }
     },
 
     _formatCalendar: function(cal) {
@@ -184,7 +192,7 @@ Calendar.ns('Service').Caldav = (function() {
       return result;
     },
 
-    findCalendars: function(account, callback) {
+    findCalendars: function(account, xhrId, callback) {
       var self = this;
       var url = account.calendarHome;
       var connection = this._createConnection(account);
@@ -194,7 +202,7 @@ Calendar.ns('Service').Caldav = (function() {
         url
       );
 
-      request.send(function(err, data) {
+      var xhr = request.send(function(err, data) {
         if (err) {
           callback(err);
           return;
@@ -227,6 +235,12 @@ Calendar.ns('Service').Caldav = (function() {
         }
         callback(null, results);
       });
+
+      if (this.xhrMap[xhrId]) {
+        this.xhrMap[xhrId].push(xhr);
+      } else {
+        this.xhrMap[xhrId] = [xhr];
+      }
     },
 
     /**
@@ -754,7 +768,8 @@ Calendar.ns('Service').Caldav = (function() {
       });
     },
 
-    streamEvents: function(account, calendar, options, stream, callback) {
+    streamEvents: function(account, calendar, options,
+      stream, xhrId, callback) {
       var self = this;
       var hasCompleted = false;
       var connection = this._createConnection(account);
@@ -804,7 +819,7 @@ Calendar.ns('Service').Caldav = (function() {
 
       request.sax.on('DAV:/response', handleResponse);
 
-      request.send(function(err) {
+      var xhr = request.send(function(err) {
         hasCompleted = true;
         // when the request is completed stop listening
         // for sax events.
@@ -831,6 +846,12 @@ Calendar.ns('Service').Caldav = (function() {
           callback();
         }
       });
+
+      if (this.xhrMap[xhrId]) {
+        this.xhrMap[xhrId].push(xhr);
+      } else {
+        this.xhrMap[xhrId] = [xhr];
+      }
     },
 
     _assetRequest: function(connection, url) {
@@ -1052,8 +1073,20 @@ Calendar.ns('Service').Caldav = (function() {
           callback(err, event);
         });
       });
-    }
+    },
 
+    abortAccountXhr: function(id, callback) {
+      try {
+        if (!!this.xhrMap[id]) {
+          this.xhrMap[id].forEach(function(xhr) {
+            xhr.abort();
+          });
+          callback(null);
+        }
+      } catch (err) {
+        callback(err);
+      }
+    }
   };
 
   return Service;

@@ -19,6 +19,54 @@ Calendar.ns('Provider').Caldav = (function() {
     return calError;
   }
 
+  function RequestGroup(service) {
+    this.service = service;
+    this.xhrId = uuid.v4();
+  }
+
+  RequestGroup.prototype = {
+    getAccount: function(account, callback) {
+      this.service.request(
+        'caldav',
+        'getAccount',
+        account,
+        this.xhrId,
+        callback
+      );
+    },
+
+    findCalendars: function(account, callback) {
+      this.service.request(
+        'caldav',
+        'findCalendars',
+        account,
+        this.xhrId,
+        callback
+      );
+    },
+
+    streamEvents: function(account, calendar, options) {
+      return this.service.stream(
+        'caldav',
+        'streamEvents',
+        account,
+        calendar,
+        options,
+        null,
+        this.xhrId
+      );
+    },
+
+    abort: function(callback) {
+      this.service.request(
+        'caldav',
+        'abortAccountXhr',
+        this.xhrId,
+        callback
+      );
+    }
+  };
+
   /**
    * The local provider contains most of the logic
    * of the database persistence so we reuse those bits
@@ -34,6 +82,7 @@ Calendar.ns('Provider').Caldav = (function() {
     this.busytimes = this.app.store('Busytime');
     this.events = this.app.store('Event');
     this.icalComponents = this.app.store('IcalComponent');
+    this.requestGroup = null;
   }
 
   CaldavProvider.prototype = {
@@ -178,19 +227,17 @@ Calendar.ns('Provider').Caldav = (function() {
       }
 
       var self = this;
-      this.service.request(
-        'caldav',
-        'getAccount',
-        account,
-        function(err, data) {
-          if (err) {
-            return callback(
-              self._handleServiceError(err, { account: account })
-            );
-          }
-          callback(null, data);
+      this.requestGroup = new RequestGroup(this.service);
+      this.requestGroup.getAccount(account, function(err, data) {
+        if (err) {
+          return callback(
+            self._handleServiceError(err, { account: account })
+          );
         }
-      );
+        callback(null, data);
+      });
+
+      return this.requestGroup;
     },
 
     /**
@@ -226,12 +273,8 @@ Calendar.ns('Provider').Caldav = (function() {
         callback(err, data);
       }
 
-      this.service.request(
-        'caldav',
-        'findCalendars',
-        account.toJSON(),
-        formatCalendars
-      );
+      this.requestGroup.findCalendars(account.toJSON(),
+        formatCalendars);
     },
 
     _syncEvents: function(account, calendar, cached, callback) {
@@ -257,9 +300,7 @@ Calendar.ns('Provider').Caldav = (function() {
         cached: cached
       };
 
-      var stream = this.service.stream(
-        'caldav',
-        'streamEvents',
+      var stream = this.requestGroup.streamEvents(
         account.toJSON(),
         calendar.remote,
         options

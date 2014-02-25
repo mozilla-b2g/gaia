@@ -13,6 +13,7 @@ Calendar.ns('Views').ModifyAccount = (function() {
 
     this.deleteRecord = this.deleteRecord.bind(this);
     this.cancel = this.cancel.bind(this);
+    this.cancelConnection = this.cancelConnection.bind(this);
     this.displayOAuth2 = this.displayOAuth2.bind(this);
 
     this.accountHandler = new Calendar.Utils.AccountCreation(
@@ -30,14 +31,17 @@ Calendar.ns('Views').ModifyAccount = (function() {
 
     _changeToken: 0,
 
+    _requestGroup: null,
+
     selectors: {
       element: '#modify-account-view',
-      form: '#modify-account-view form',
+      form: '#modify-account-view #add-account-dialog',
       fields: '*[name]',
       saveButton: '#modify-account-view .save',
       deleteButton: '#modify-account-view .delete-confirm',
       cancelDeleteButton: '#modify-account-view .delete-cancel',
       backButton: '#modify-account-view .cancel',
+      cancelButton: '#modify-account-view .sup-back-btn',
       status: '#modify-account-view section[role="status"]',
       errors: '#modify-account-view .errors',
       oauth2Window: '#oauth2',
@@ -71,6 +75,10 @@ Calendar.ns('Views').ModifyAccount = (function() {
 
     get backButton() {
       return this._findElement('backButton');
+    },
+
+    get cancelButton() {
+      return this._findElement('cancelButton');
     },
 
     get saveButton() {
@@ -172,6 +180,13 @@ Calendar.ns('Views').ModifyAccount = (function() {
       window.back();
     },
 
+    cancelConnection: function() {
+      this.accountHandler.removeAllEventListeners('authorizeError');
+      this._requestGroup.abort(function() {
+        this.accountHandler.on('authorizeError', this);
+      }.bind(this));
+    },
+
     save: function(options, e) {
 
       if (e) {
@@ -193,12 +208,13 @@ Calendar.ns('Views').ModifyAccount = (function() {
       if (options && options.updateModel)
         this.updateModel();
 
-      this.accountHandler.send(this.model, function(err) {
-        list.remove(self.progressClass);
-        if (!err) {
-          self.app.go(self.completeUrl);
-        }
-      });
+      this._requestGroup =
+        this.accountHandler.send(this.model, function(err) {
+          list.remove(self.progressClass);
+          if (!err) {
+            self.app.go(self.completeUrl);
+          }
+        });
     },
 
     displayOAuth2: function(event) {
@@ -217,6 +233,23 @@ Calendar.ns('Views').ModifyAccount = (function() {
           );
         };
       };
+    },
+
+    /**
+     * Make sure there is a value in each fields,
+     * then we enable the save button.
+     */
+    _checkFormFields: function() {
+      var user = this.fields['user'].value,
+          password = this.fields['password'].value,
+          fullUrl = this.fields['fullUrl'].value;
+
+      // Make sure there is a value without no any space value in the fields.
+      this.saveButton.disabled =
+        (user.length === 0 ||
+         fullUrl.length === 0 ||
+         user !== user.trim() ||
+         fullUrl !== fullUrl.trim());
     },
 
     /**
@@ -287,8 +320,15 @@ Calendar.ns('Views').ModifyAccount = (function() {
       }
 
       this.form.addEventListener('submit', this._boundSaveUpdateModel);
+      this.fields.user.addEventListener('input',
+        this._checkFormFields.bind(this));
+      this.fields.password.addEventListener('input',
+          this._checkFormFields.bind(this));
+      this.fields.fullUrl.addEventListener('input',
+          this._checkFormFields.bind(this));
       this.saveButton.addEventListener('click', this._boundSaveUpdateModel);
       this.backButton.addEventListener('click', this.cancel);
+      this.cancelButton.addEventListener('click', this.cancelConnection);
 
       if (this.model._id) {
         this.type = 'update';
@@ -349,6 +389,7 @@ Calendar.ns('Views').ModifyAccount = (function() {
                                                   this.cancel);
       this.backButton.removeEventListener('click',
                                                 this.cancel);
+      this.cancelButton.removeEventListener('click', this.cancelConnection);
       this.form.removeEventListener('submit', this._boundSaveUpdateModel);
     },
 
