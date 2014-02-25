@@ -46,13 +46,16 @@ ViewfinderController.prototype.bindEvents = function() {
 
 ViewfinderController.prototype.loadStream = function() {
   this.camera.loadStreamInto(this.viewfinder.els.video);
-  this.viewfinder.fadeIn();
 };
 
 ViewfinderController.prototype.updatePreview = function() {
   var camera = this.app.settings.cameras.selected('key');
   var isFrontCamera = camera === 'front';
   this.viewfinder.updatePreview(this.camera.previewSize(), isFrontCamera);
+
+  // Fade in 100ms later to avoid
+  // seeing viewfinder being resized
+  setTimeout(this.viewfinder.fadeIn, 100);
 };
 
 /**
