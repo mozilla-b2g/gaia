@@ -184,14 +184,13 @@ var DeviceStorageHelper = (function DeviceStorageHelper() {
  * Connectivity accessors
  */
 var getMobileConnection = function() {
-  // XXX: check bug-926169
-  // this is used to keep all tests passing while introducing multi-sim APIs
-  var mobileConnection = navigator.mozMobileConnection ||
-    navigator.mozMobileConnections &&
+  var mobileConnection = navigator.mozMobileConnections &&
       navigator.mozMobileConnections[0];
 
-  if (mobileConnection && mobileConnection.data)
+  if (mobileConnection && mobileConnection.data) {
     return mobileConnection;
+  }
+  return null;
 };
 
 var getBluetooth = function() {
@@ -209,7 +208,7 @@ var getNfc = function() {
  * The function returns an object of the supporting state of category of network
  * types. The categories are 'gsm' and 'cdma'.
  */
-function getSupportedNetworkInfo(mobileConneciton, callback) {
+function getSupportedNetworkInfo(mobileConnection, callback) {
   var types = [
     'wcdma/gsm',
     'gsm',
@@ -220,12 +219,15 @@ function getSupportedNetworkInfo(mobileConneciton, callback) {
     'evdo',
     'wcdma/gsm/cdma/evdo'
   ];
-  if (!mobileConneciton)
-    return;
 
-  var _hwSupportedTypes = mobileConneciton.supportedNetworkTypes;
-  if (!_hwSupportedTypes)
+  if (!mobileConnection) {
     return;
+  }
+
+  var _hwSupportedTypes = mobileConnection.supportedNetworkTypes;
+  if (!_hwSupportedTypes) {
+    return;
+  }
 
   var _result = {
     gsm: _hwSupportedTypes.indexOf('gsm') !== -1,
@@ -244,8 +246,9 @@ function getSupportedNetworkInfo(mobileConneciton, callback) {
       allSubTypesSupported =
         allSubTypesSupported && _result[subtypes[j].split('-')[0]];
     }
-    if (allSubTypesSupported)
+    if (allSubTypesSupported) {
       _networkTypes.push(type);
+    }
   }
   if (_networkTypes.length !== 0) {
     _result.networkTypes = _networkTypes;
@@ -410,4 +413,30 @@ function getTruncated(oldName, options) {
   }
 
   return newName;
+}
+
+/**
+ * Retrieve current ICC by a given index. If no index is provided, it will
+ * use the index provided by `DsdsSettings.getIccCardIndexForCallSettings`,
+ * which is the default. Unless there are very specific reasons to provide an
+ * index, this function should always be invoked with no parameters in order to
+ * use the currently selected ICC index.
+ *
+ * @param {Number} index index of the mobile connection to get the ICC from
+ * @return {object}
+ */
+function getIccByIndex(index) {
+  if (index === undefined) {
+    index = DsdsSettings.getIccCardIndexForCallSettings();
+  }
+  var iccObj;
+
+  if (navigator.mozMobileConnections[index]) {
+    var iccId = navigator.mozMobileConnections[index].iccId;
+    if (iccId) {
+      iccObj = navigator.mozIccManager.getIccById(iccId);
+    }
+  }
+
+  return iccObj;
 }
