@@ -18,18 +18,12 @@ var find = require('lib/find');
 var MIN_VIEWFINDER_SCALE = constants.MIN_VIEWFINDER_SCALE;
 var MAX_VIEWFINDER_SCALE = constants.MAX_VIEWFINDER_SCALE;
 
-// Touch Focus Area
-var EACH_SIDE_OF_FOCUS_AREA = constants.EACH_SIDE_OF_FOCUS_AREA;
-var FOCUS_AREA_START = constants.FOCUS_AREA_START;
-var FOCUS_AREA_END = constants.FOCUS_AREA_END;
-
 var lastTouchA = null;
 var lastTouchB = null;
 var isScaling = false;
 var scale = 1.0;
 
 var focusPoint;
-var touchFocusDone = false;
 
 var scaleSizeTo = {
   fill: CameraUtils.scaleSizeToFillViewport,
@@ -93,84 +87,91 @@ return View.extend({
       lastTouchA = evt.touches[0];
       lastTouchB = evt.touches[1];
       isScaling = true;
-    } else if (touchCount === 1 && touchFocusDone === false) {
-      // touchFocusDone === false is to
-      // block mutliples immediate
-      // touches to avoid crash
+    } else if (touchCount === 1) {
       focusPoint = evt.touches[0];
-      this.emit('focusPointChange',
-        { x: focusPoint.pageX, y: focusPoint.pageY });
-      touchFocusDone = true;
+      this.findFocusArea();
     }
   },
+
   /**
-  * Scale the point to fit
-  * Focus area defined by
-  * Gecko. This needs to
-  * be refactored
+  * Scale the point to fit focus area
+  * defined by camera coordinate system. 
+  *
   **/
-  findFocusArea: function(focusPoint) {
+  findFocusArea: function() {
+    // In camera coordinate system,
+    // (-1000, -1000) represents the
+    // top-left of the camera field of
+    // view, and (1000, 1000) represents
+    // the bottom-right of the field of
+    // view. So, the Focus area should
+    // start at -1000 and end at -1000.
+    var MIN = -1000;
+    var MAX =  1000;
+
     var focusArea = { left:0, right:0, top:0, bottom:0 };
     // view port size
-    var deviceIndependentViewportSize = {
-      width: document.body.clientHeight,
-      height: document.body.clientWidth
+    var viewPort = {
+      width: this.els.frame.clientHeight,
+      height: this.els.frame.clientWidth
     };
+
+    // As per camera coordinate system the
+    // values of focus region is fixed.
+    // But changes according to device pixel ratio.
+    var FOCUS_MARGIN_HOR = 266 / window.devicePixelRatio;
+    var FOCUS_MARGIN_VERT = 126 / window.devicePixelRatio;
 
     // as per gecko left, top: -1000
     // right and bottom: 1000
-    var focusAreaSize = FOCUS_AREA_END - FOCUS_AREA_START;
-
-   // find scale ratio
-    var sw = focusAreaSize / deviceIndependentViewportSize.width;
-    var sh = focusAreaSize / deviceIndependentViewportSize.height;
+    var focusAreaSize = MAX - MIN;
 
     // Apply scaling on each
     // row and column
-    var px = focusPoint.x * sh;
-    var py = focusPoint.y * sw;
+    var px = focusPoint.pageX * focusAreaSize / viewPort.height;
+    var py = focusPoint.pageY * focusAreaSize / viewPort.width;
 
     // shifting center to
     // center as per gecko
-    px = FOCUS_AREA_START + px;
-    py = FOCUS_AREA_START + py;
+    px = MIN + px;
+    py = MIN + py;
 
     // set left, right, top, bottom
-    // of focus Area
-    focusArea.left = px - EACH_SIDE_OF_FOCUS_AREA;
-    if (focusArea.left < FOCUS_AREA_START) {
-      focusArea.left = FOCUS_AREA_START;
-    } else if (focusArea.left > FOCUS_AREA_END) {
-      focusArea.left = FOCUS_AREA_END;
-    }
+    // of focus Area and check
+    // boundary conditions
+    var val = px - FOCUS_MARGIN_HOR;
+    focusArea.left = this.clamp(val, MIN, MAX);
 
-    focusArea.right = px + EACH_SIDE_OF_FOCUS_AREA;
-    if (focusArea.right < FOCUS_AREA_START) {
-      focusArea.right = FOCUS_AREA_START;
-    } else if (focusArea.right > FOCUS_AREA_END) {
-      focusArea.right = FOCUS_AREA_END;
-    }
+    val = px + FOCUS_MARGIN_HOR;
+    focusArea.right = this.clamp(val, MIN, MAX);
 
-    focusArea.top = py - EACH_SIDE_OF_FOCUS_AREA;
-    if (focusArea.top < FOCUS_AREA_START) {
-      focusArea.top = FOCUS_AREA_START;
-    } else if (focusArea.top > FOCUS_AREA_END) {
-      focusArea.top = FOCUS_AREA_END;
-    }
+    val = py - FOCUS_MARGIN_VERT;
+    focusArea.top = this.clamp(val, MIN, MAX);
 
-    focusArea.bottom = py + EACH_SIDE_OF_FOCUS_AREA;
-    if (focusArea.bottom < FOCUS_AREA_START) {
-      focusArea.bottom = FOCUS_AREA_START;
-    } else if (focusArea.bottom > FOCUS_AREA_END) {
-      focusArea.bottom = FOCUS_AREA_END;
-    }
-    return focusArea;
+    val = py + FOCUS_MARGIN_VERT;
+    focusArea.bottom = this.clamp(val, MIN, MAX);
+
+    this.emit('focuspointchange', {
+      x: focusPoint.pageX,
+      y: focusPoint.pageY,
+      left: focusArea.left,
+      right: focusArea.right,
+      top: focusArea.top,
+      bottom: focusArea.bottom
+    });
   },
 
-  setTouchFocusDone: function() {
-    // to avoid multiple calls to
-    // set auto focus
-    touchFocusDone = false;
+  /**
+  * Check boundary conditions.
+  *
+  **/
+  clamp: function(position, min, max) {
+    if (position < min) {
+      position = min;
+    } else if (position > max) {
+      position = max;
+    }
+    return position;
   },
 
   onTouchMove: function(evt) {

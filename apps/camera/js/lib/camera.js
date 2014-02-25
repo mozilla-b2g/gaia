@@ -372,8 +372,11 @@ Camera.prototype.takePicture = function(options) {
 
 Camera.prototype.setAutoFocus = function(done) {
   var self = this;
-
-  if (!this.autoFocus.auto) {
+  // Check focus state. if it is
+  // still focusing don't call one
+  // more time.
+  var focusState = this.get('focus');
+  if (!this.autoFocus.auto || focusState === 'focusing') {
     done();
     return;
   }
@@ -644,32 +647,60 @@ Camera.prototype.updateVideoElapsed = function() {
 };
 
 /**
-*set focus Area
+* To focus on user specified region
+* of viewfinder set focus areas.
+*
+* @param  {object} rect
+* The argument is an object that
+* contains boundaries of focus area
+* in camera coordinate system, where
+* the top-left of the camera field
+* of view is at (-1000, -1000), and
+* bottom-right of the field at
+* (1000, 1000).
+*
 **/
-Camera.prototype.setFocusArea = function(pts) {
-   this.mozCamera.focusAreas = [{
-    top: pts.top,
-    bottom: pts.bottom,
-    left: pts.left,
-    right: pts.right,
-    weight: 1}];
+Camera.prototype.setFocusArea = function(rect) {
+  this.mozCamera.focusAreas = [{
+    top: rect.top,
+    bottom: rect.bottom,
+    left: rect.left,
+    right: rect.right,
+    weight: 1
+  }];
 };
 
 /**
-*set metering Area
+* To focus on user specified region
+* of viewfinder set metering areas.
+*
+* @param  {object} rect
+* The argument is an object that
+* contains boundaries of metering area
+* in camera coordinate system, where
+* the top-left of the camera field
+* of view is at (-1000, -1000), and
+* bottom-right of the field at
+* (1000, 1000).
+*
 **/
-Camera.prototype.setMeteringArea = function(pts) {
-   this.mozCamera.meteringAreas = [{
-    top: pts.top,
-    bottom: pts.bottom,
-    left: pts.left,
-    right: pts.right,
-    weight: 1}];
+Camera.prototype.setMeteringArea = function(rect) {
+  this.mozCamera.meteringAreas = [{
+    top: rect.top,
+    bottom: rect.bottom,
+    left: rect.left,
+    right: rect.right,
+    weight: 1
+  }];
 };
 
 /**
-*once touch focus is done
-*clear the ring UI
+* Once touch focus is done
+* clear the ring UI.
+*
+* Timeout is needed to show
+* the focused UI for sometime
+* before making it disappear.
 **/
 Camera.prototype.clearFocusRing = function() {
   var self = this;

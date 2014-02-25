@@ -27,6 +27,7 @@ function ViewfinderController(app) {
   this.activity = app.activity;
   this.filmstrip = app.filmstrip;
   this.viewfinder = app.views.viewfinder;
+  this.focusRing = app.views.focusRing;
   this.bindEvents();
   this.configure();
   debug('initialized');
@@ -40,37 +41,44 @@ ViewfinderController.prototype.configure = function() {
 ViewfinderController.prototype.bindEvents = function() {
   this.app.settings.on('change:grid', this.viewfinder.setter('grid'));
   this.viewfinder.on('click', this.onViewfinderClick);
-  this.viewfinder.on('focusPointChange', this.onFocusPointChange);
+  this.viewfinder.on('focuspointchange', this.onFocusPointChange);
   this.app.on('camera:configured', this.loadStream);
   this.app.on('camera:configured', this.updatePreview);
 };
 
 /**
- * capture touch coordinates
- * when user clicks view finder
- * and call touch focus function.
- *
- */
+* capture touch coordinates
+* when user clicks view finder
+* and call touch focus function.
+*
+* @param {object} focusPoint
+* focusPoint has x and y properties
+* which are coordinates of touch
+* in Pixels.
+*
+* focusPoint has boundaries which
+* are in camera coordinate system,
+* where the top-left of the camera field
+* of view is at (-1000, -1000), and
+* bottom-right of the field at
+* (1000, 1000).
+**/
 ViewfinderController.prototype.onFocusPointChange = function(focusPoint) {
   var self = this;
-  var focusArea = this.viewfinder.findFocusArea(focusPoint);
-
   // Set focus and metering areas
-  this.camera.setFocusArea(focusArea);
-  this.camera.setMeteringArea(focusArea);
+  this.camera.setFocusArea(focusPoint);
+  this.camera.setMeteringArea(focusPoint);
 
-  // set focus ring positon
-  this.app.views.focusRing.el.style.left = focusPoint.x + 'px';
-  this.app.views.focusRing.el.style.top = focusPoint.y + 'px';
+  // change focus ring positon
+  this.focusRing.changePostion(focusPoint);
 
   // Call auto focus to focus on focus area.
   this.camera.setAutoFocus(focusDone);
 
+  // show focussed ring when focused
   function focusDone() {
     // clear ring UI
     self.camera.clearFocusRing();
-    // update focus flag when touch is available
-    self.viewfinder.setTouchFocusDone();
   }
 };
 
