@@ -641,8 +641,9 @@ section.has-carrier .article-list header:first-child {
   pointer-events: none;
 }
 
-/* Add margin at the end of the ul to avoid overlay with edit mode */
-.edit ul:last-child {
+/* Add a margin at the end of the last thread or message node to avoid overlay
+ * with the edit mode menu */
+.edit .edit-container > :last-child {
   margin-bottom: 7rem;
 }
 

@@ -151,6 +151,7 @@ body.cropView #crop-view {
   position: absolute;
   left: 0;
   width: 100%;
+  top: 0;
   bottom: 0;
   /* top and bottom are set depending on view below */
   padding: 0;
@@ -180,10 +181,6 @@ body.thumbnailListView #thumbnails {
   visibility: visible;
   pointer-events: auto;
   bottom: 0;
-}
-
-body.thumbnailListView #thumbnails {
-  top: 0;
 }
 
 body.thumbnailSelectView #thumbnails,

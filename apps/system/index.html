@@ -736,7 +736,19 @@
                 <div id="trustedui-throbber"></div>
               </header>
             </section>
-            <div id="trustedui-frame-container"></div>
+            <div id="trustedui-frame-container">
+              <div id="trustedui-error-dialog" role="dialog" class="generic-dialog">
+                <div class="inner">
+                  <h3 data-l10n-id="error-title" id="trustedui-error-title">Error</h3>
+                  <p>
+                  <span data-l10n-id="error-message" id="trustedui-error-message">The app has encountered an error.</span>
+                  </p>
+                </div>
+                <menu data-items="1">
+                  <button id="trustedui-error-close" data-l10n-id="close">Close</button>
+                </menu>
+              </div>
+            </div>
           </div>
         </div>
 

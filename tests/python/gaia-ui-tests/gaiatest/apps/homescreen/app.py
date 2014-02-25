@@ -20,7 +20,6 @@ class Homescreen(Base):
     _landing_page_locator = (By.ID, 'icongrid')
     _collections_locator = (By.CSS_SELECTOR, 'li.icon[data-collection-name]')
     _collection_locator = (By.CSS_SELECTOR, "li.icon[data-collection-name *= '%s']")
-    _delete_app_locator = (By.CSS_SELECTOR, 'li.icon span.options')
     _pagination_scroller_locator = (By.CSS_SELECTOR, 'div.paginationScroller')
 
     def launch(self):
@@ -68,7 +67,9 @@ class Homescreen(Base):
             wait(3).\
             release().\
             perform()
-        self.wait_for_element_displayed(*self._delete_app_locator)
+        self.wait_for_condition(lambda m: app.is_displayed())
+        # Ensure that edit mode is active
+        self.wait_for_condition(lambda m: self.is_edit_mode_active)
 
     def open_context_menu(self):
         test = self.marionette.find_element(*self._landing_page_locator)
@@ -132,7 +133,7 @@ class Homescreen(Base):
 
     class InstalledApp(PageRegion):
 
-        _delete_app_locator = (By.CSS_SELECTOR, 'li.icon[aria-label="%s"] span.options')
+        _delete_app_locator = (By.CSS_SELECTOR, 'span.options')
 
         @property
         def name(self):
@@ -146,9 +147,7 @@ class Homescreen(Base):
 
         def tap_delete_app(self):
             """Tap on (x) to delete app"""
-            delete_app_locator = (self._delete_app_locator[0], self._delete_app_locator[1] % self.name)
-            self.wait_for_element_displayed(*delete_app_locator)
-            self.marionette.find_element(*delete_app_locator).tap()
+            self.root_element.find_element(*self._delete_app_locator).tap()
 
             from gaiatest.apps.homescreen.regions.confirm_dialog import ConfirmDialog
             return ConfirmDialog(self.marionette)

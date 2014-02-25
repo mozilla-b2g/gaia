@@ -9,12 +9,16 @@ from gaiatest.apps.homescreen.app import Homescreen
 
 class PasscodePad(Base):
 
-    _numeric_button_locator = (By.CSS_SELECTOR, '.lockscreen-panel a[data-key="%s"]')
-    _emergency_button_locator = (By.CSS_SELECTOR, '.lockscreen-panel a[data-key="e"]')
+    _lockscreen_panel_locator = (By.ID, 'lockscreen-panel-passcode')
+    _numeric_button_locator = (By.CSS_SELECTOR, '#lockscreen-passcode-pad a[data-key="%s"]')
+    _emergency_button_locator = (By.CSS_SELECTOR, '#lockscreen-passcode-pad a[data-key="e"]')
 
     def __init__(self, marionette):
         self.marionette = marionette
-        self.wait_for_element_displayed(*self._emergency_button_locator)
+        lockscreen_panel = self.marionette.find_element(*self._lockscreen_panel_locator)
+        emergency_button = self.marionette.find_element(*self._emergency_button_locator)
+        self.wait_for_condition(lambda m: lockscreen_panel.size['height'] ==
+              (emergency_button.size['height'] + emergency_button.location['y']))
 
     def type_passcode(self, passcode):
         for digit in passcode:

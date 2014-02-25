@@ -12,32 +12,30 @@ class TestDeleteApp(GaiaTestCase):
 
     MANIFEST = 'http://mozqa.com/data/webapps/mozqa.com/manifest.webapp'
     APP_NAME = 'Mozilla QA WebRT Tester'
-    APP_INSTALLED = False
 
     def setUp(self):
         GaiaTestCase.setUp(self)
 
-        if self.apps.is_app_installed(self.APP_NAME):
-            self.apps.uninstall(self.APP_NAME)
-
-        self.connect_to_network()
-
         self.homescreen = Homescreen(self.marionette)
+        self.apps.switch_to_displayed_app()
+        self.homescreen.wait_for_homescreen_to_load()
 
-    def test_delete_app(self):
+        if not self.apps.is_app_installed(self.APP_NAME):
 
-        # Install app
-        self.marionette.execute_script(
-            'navigator.mozApps.install("%s")' % self.MANIFEST)
+            self.connect_to_network()
 
-        # Confirm the installation
-        confirm_install = ConfirmInstall(self.marionette)
-        confirm_install.tap_confirm()
+            # Install app so we can delete it
+            self.marionette.execute_script(
+                'navigator.mozApps.install("%s")' % self.MANIFEST)
+
+            # Confirm the installation and wait for the app icon to be present
+            confirm_install = ConfirmInstall(self.marionette)
+            confirm_install.tap_confirm()
 
         self.apps.switch_to_displayed_app()
-
-        # Wait for the app to be installed
         self.homescreen.wait_for_app_icon_present(self.APP_NAME)
+
+    def test_delete_app(self):
 
         # Verify that the app is installed i.e. the app icon is visible on one of the homescreen pages
         self.assertTrue(self.homescreen.is_app_installed(self.APP_NAME),

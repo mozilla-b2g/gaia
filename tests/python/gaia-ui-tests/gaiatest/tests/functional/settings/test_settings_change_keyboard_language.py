@@ -29,6 +29,8 @@ class TestChangeKeyboardLanguage(GaiaTestCase):
         add_more_keyboards.select_language(u'Espa\u00F1ol')
         add_more_keyboards.go_back()
 
+        select_keyboard.wait_for_built_in_keyboard(u'Espa\u00F1ol')
+
         # launch the Contacts app to verify the keyboard layout
         contacts_app = Contacts(self.marionette)
         contacts_app.launch()
