@@ -90,5 +90,20 @@ suite('controllers/camera', function() {
       this.app.emit('blur');
       assert.isTrue(Controller.prototype.teardownCamera.called);
     });
+
+    //Bug:966832 [START]
+    test('Should call onVideoProfileChanged on change:recorderProfiles', function() {
+      this.controller = new this.CameraController(this.app);
+      this.app.settings.on.calledWith('change:recorderProfiles', this.onVideoProfileChanged);
+    });
+
+    test('Should set the capture mode to \'video\' in onVideoProfileChanged func', function() {
+      //this.app.settings.mode = 'video';
+      this.app.settings.value.withArgs('mode').returns('video');
+      this.controller = new this.CameraController(this.app);
+      this.controller.onVideoProfileChanged();
+      
+      assert.isTrue(this.app.views.viewfinder.fadeOut.called);
+    });
   });
 });

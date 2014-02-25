@@ -82,5 +82,17 @@ suite('controllers/viewfinder', function() {
 
       assert.isTrue(this.app.filmstrip.toggle.called);
     });
+
+    //Bug:966832
+    test('Should call loadStream on camera:changePreview', function() {
+      this.controller = new this.ViewfinderController(this.app);
+      this.app.on.calledWith('camera:changePreview', this.loadStream);
+    });
+    //Bug:966830
+    test('Should call this.ontouchFocusPts on touchFocusPts', function() {
+      this.controller = new this.ViewfinderController(this.app);
+      this.app.on.calledWith('touchFocusPts', this.ontouchFocusPts);
+    });
+
   });
 });
