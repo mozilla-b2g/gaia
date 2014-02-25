@@ -6,23 +6,31 @@
   height: 10rem;
   margin-top: -7rem;
   margin-left: -5rem;
-  border: solid 2px;
-  border-radius: 50%;
   pointer-events: none;
   opacity: 0;
-  color: #fff;
 }
 
 .focus-ring[data-state=focused] {
   opacity: 1;
-  color: green;
+  background-image: url(images/Focus_Locked_Ring.svg);
 }
 
 .focus-ring[data-state=focusing] {
   opacity: 1;
+  background-image: url(images/Focus_Locking_Ring.svg);
+  animation: 1s ring-animation infinite steps(30);
 }
 
 .focus-ring[data-state=fail] {
   opacity: 1;
-  color: red;
+  background-image: url(images/Focus_LockFail_Ring.svg);
+}
+
+@keyframes ring-animation {
+  from {
+    transform: rotate(1deg);
+  }
+  to {
+    transform: rotate(45deg);
+  }
 }
