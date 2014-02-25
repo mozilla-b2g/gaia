@@ -70,6 +70,7 @@ window.addEventListener('load', function startup() {
   window.remoteDebugger = new RemoteDebugger();
   window.title = new Title();
   window.ttlView = new TTLView();
+  window.visibilityManager = new VisibilityManager().start();
 
   navigator.mozL10n.ready(function l10n_ready() {
     window.mediaRecording = new MediaRecording().start();
