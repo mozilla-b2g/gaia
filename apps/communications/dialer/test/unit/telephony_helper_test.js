@@ -226,27 +226,27 @@ suite('telephony helper', function() {
 
     test('should trigger oncall as soon as we get a call object',
     function(done) {
-      subject.call('123', function() {
+      subject.call('123', null, function() {
         done();
       });
     });
 
     test('should bind the onconnected callback', function() {
       var onconnected = function uniq_onconnected() {};
-      subject.call('123', null, onconnected);
+      subject.call('123', null, null, onconnected);
       assert.equal(mockCall.onconnected, onconnected);
     });
 
     test('should bind the ondisconnected callback', function() {
       var ondisconnected = function uniq_ondisconnected() {};
-      subject.call('123', null, null, ondisconnected);
+      subject.call('123', null, null, null, ondisconnected);
       assert.isFunction(mockCall.ondisconnected);
       assert.equal(mockCall.ondisconnected, ondisconnected);
     });
 
     test('should trigger the onerror callback on error', function() {
       var onerrorStub = this.sinon.stub();
-      subject.call('123', null, null, null, onerrorStub);
+      subject.call('123', null, null, null, null, onerrorStub);
       mockCall.onerror(createCallError());
       sinon.assert.called(onerrorStub);
     });
@@ -264,14 +264,14 @@ suite('telephony helper', function() {
 
     test('should trigger oncall as soon as we get a call object',
     function(done) {
-      subject.call('123', function() {
+      subject.call('123', null, function() {
         done();
       });
     });
 
     test('should bind the onconnected callback', function(done) {
       var onconnected = function uniq_onconnected() {};
-      subject.call('123', null, onconnected);
+      subject.call('123', null, null, onconnected);
       mockPromise.then(function() {
         assert.equal(mockCall.onconnected, onconnected);
       }).then(done, done);
@@ -279,7 +279,7 @@ suite('telephony helper', function() {
 
     test('should bind the ondisconnected callback', function(done) {
       var ondisconnected = function uniq_ondisconnected() {};
-      subject.call('123', null, null, ondisconnected);
+      subject.call('123', null, null, null, ondisconnected);
       mockPromise.then(function() {
         assert.isFunction(mockCall.ondisconnected);
         assert.equal(mockCall.ondisconnected, ondisconnected);
@@ -288,7 +288,7 @@ suite('telephony helper', function() {
 
     test('should trigger the onerror callback on error', function(done) {
       var onerrorStub = this.sinon.stub();
-      subject.call('123', null, null, null, onerrorStub);
+      subject.call('123', null, null, null, null, onerrorStub);
       mockPromise.then(function() {
         mockCall.onerror(createCallError());
         sinon.assert.called(onerrorStub);

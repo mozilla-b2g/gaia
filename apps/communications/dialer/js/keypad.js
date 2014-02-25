@@ -1,5 +1,6 @@
-/* globals CallHandler, CallLogDBManager, CallsHandler, CallScreen, LazyLoader,
-           PhoneNumberActionMenu, SettingsListener, TonePlayer, Utils */
+/* globals CallButton, CallHandler, CallLogDBManager, CallsHandler, CallScreen,
+           LazyLoader, PhoneNumberActionMenu, SettingsListener, TonePlayer,
+           Utils */
 
 'use strict';
 
@@ -95,6 +96,10 @@ var KeypadManager = {
       document.getElementById('keypad-hidebar-hide-keypad-action');
   },
 
+  get phoneNumber() {
+    return this._phoneNumber;
+  },
+
   init: function kh_init(oncall) {
 
     this._onCall = !!oncall;
@@ -133,8 +138,9 @@ var KeypadManager = {
     // The keypad call bar is only included in the normal version and
     // the emergency call version of the keypad.
     if (this.callBarCallAction) {
+      CallButton.init(this.callBarCallAction);
       this.callBarCallAction.addEventListener('click',
-                                              this.makeCall.bind(this));
+                                              this.fetchLastCalled.bind(this));
     }
 
     // The keypad cancel bar is only the emergency call version of the keypad.
@@ -207,22 +213,19 @@ var KeypadManager = {
     }
   },
 
-  makeCall: function hk_makeCall(event) {
-    if (event)
-      event.stopPropagation();
-
-    if (this._phoneNumber === '') {
-      var self = this;
-      CallLogDBManager.getGroupAtPosition(1, 'lastEntryDate', true, 'dialing',
-        function hk_ggap_callback(result) {
-          if (result && (typeof result === 'object') && result.number) {
-            self.updatePhoneNumber(result.number);
-          }
-        }
-      );
-    } else {
-      CallHandler.call(KeypadManager._phoneNumber);
+  fetchLastCalled: function hk_fetchLastCalled() {
+    if (this._phoneNumber !== '') {
+      return;
     }
+
+    var self = this;
+    CallLogDBManager.getGroupAtPosition(1, 'lastEntryDate', true, 'dialing',
+      function hk_ggap_callback(result) {
+        if (result && (typeof result === 'object') && result.number) {
+          self.updatePhoneNumber(result.number);
+        }
+      }
+    );
   },
 
   addContact: function hk_addContact(event) {
@@ -434,7 +437,7 @@ var KeypadManager = {
     // get the device's IMEI as soon as the user enters the last # key from
     // the "*#06#" MMI string. See bug 857944.
     if (key === '#' && this._phoneNumber === '*#06#') {
-      this.makeCall(event);
+      CallButton.makeCall(event);
       return;
     }
 
