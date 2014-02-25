@@ -3,6 +3,7 @@
 var MockSimManager = {
 
   handleCardState: function() {},
-  checkSIMButton: function() {}
+  checkSIMButton: function() {},
+  available: function() {}
 
 };
