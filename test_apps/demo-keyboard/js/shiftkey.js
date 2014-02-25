@@ -6,12 +6,17 @@
   'use strict';
 
   var lastShiftTime = 0;
+  var currentPageView;
 
   // Max time bewteen taps on the shift key to go into locked mode
   const CAPS_LOCK_INTERVAL = 450;  // ms
 
   KeyboardTouchHandler.addEventListener('key', function handleKey(e) {
     var keyname = e.detail;
+
+    // XXX should not reference app instance directly.
+    var app = window.app;
+    currentPageView = app.currentPageView;
 
     // XXX: better to look up the key and switch on the key command 'shift'
     // instead of hardcoding the name here?
@@ -47,6 +52,10 @@
   InputField.addEventListener('inputstatechanged', stateChanged);
 
   function stateChanged() {
+    // XXX should not reference app instance directly.
+    var app = window.app;
+    currentPageView = app.currentPageView;
+
     // If caps lock is on we do nothing
     if (currentPageView.locked)
       return;

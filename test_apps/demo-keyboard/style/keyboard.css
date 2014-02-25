@@ -22,7 +22,7 @@ body {
   padding: 0;
 }
 
-#keyboardContainer {
+#keyboard-container {
   position: absolute;
   width: 100%;
   height: 23.6rem; /* 20.4rem keyboard, 3rem word suggestions 0.2 rem border*/
@@ -343,7 +343,7 @@ body {
     font-size: 1.5625vw;
   }
 
-  #keyboardContainer {
+  #keyboard-container {
     height: 24.1rem; /* 20.4rem keyboard, 3.5rem suggestions 0.2 rem border*/
   }
 
