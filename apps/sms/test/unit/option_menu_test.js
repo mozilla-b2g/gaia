@@ -2,7 +2,7 @@
 
 'use strict';
 
-requireApp('sms/js/action_menu.js');
+requireApp('sms/shared/js/option_menu.js');
 requireApp('sms/test/unit/mock_l10n.js');
 
 suite('OptionMenu', function() {

@@ -16,6 +16,7 @@ requireApp('sms/js/drafts.js');
 requireApp('sms/js/threads.js');
 requireApp('sms/js/thread_list_ui.js');
 
+requireApp('sms/shared/test/unit/mocks/mock_option_menu.js');
 requireApp('sms/test/unit/mock_async_storage.js');
 requireApp('sms/test/unit/mock_contacts.js');
 requireApp('sms/test/unit/mock_time_headers.js');
@@ -28,7 +29,6 @@ require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 require('/test/unit/thread_list_mockup.js');
 require('/test/unit/utils_mockup.js');
 requireApp('sms/test/unit/mock_thread_ui.js');
-requireApp('sms/test/unit/mock_action_menu.js');
 
 var mocksHelperForThreadListUI = new MocksHelper([
   'asyncStorage',

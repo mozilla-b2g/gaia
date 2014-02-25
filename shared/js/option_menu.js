@@ -18,7 +18,7 @@
         method: function optionMethod(param1, param2) {
           // Method and params if needed
         },
-        params: ['param1', '123123123']
+        params: ['param1', '123123123'],
       },
       ....
       ,
@@ -62,7 +62,6 @@
     complete: function() {...}
   }
 */
-
 
 var OptionMenu = function(options) {
   if (!options || !options.items || options.items.length === 0) {
@@ -127,6 +126,14 @@ var OptionMenu = function(options) {
       return;
     }
     menu.appendChild(button);
+
+    if (item.append) {
+      if (typeof item.append === 'string') {
+        button.textContent = (button.textContent || '') + item.append;
+      } else {
+        button.appendChild(item.append);
+      }
+    }
     // Add a mapping from the button object
     // directly to its options item.
     item.incomplete = item.incomplete || false;
