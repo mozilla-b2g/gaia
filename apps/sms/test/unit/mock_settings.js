@@ -10,6 +10,7 @@ var MockSettings = {
   isDualSimDevice: function() { return false; },
   hasSeveralSim: function() { return false; },
   getSimNameByIccId: function(id) { return 'sim-name-' + id; },
+  getOperatorByIccId: function(id) { return 'sim-operator-' + id; },
 
   mSetup: function() {
     MockSettings.mmsSizeLimitation = 300 * 1024;
