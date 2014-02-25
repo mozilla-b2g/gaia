@@ -34,14 +34,16 @@ function ViewfinderController(app) {
 ViewfinderController.prototype.bindEvents = function() {
   this.viewfinder.on('click', this.onViewfinderClick);
   this.app.on('camera:configured', this.loadStream);
-  this.app.on('settings:configured', this.configureCamera);
+  this.app.on('settings:configured', this.onSettingConfigure);
+  this.app.settings.on('change:grid', this.toggleFrameGrid);
 };
 
-ViewfinderController.prototype.configureCamera = function() {
+ViewfinderController.prototype.onSettingConfigure = function() {
   this.camera.viewportSize = {
     width: this.app.el.clientWidth,
     height: this.app.el.clientHeight
   };
+  this.toggleFrameGrid(this.app.settings.value('grid'));
 };
 
 ViewfinderController.prototype.loadStream = function() {
@@ -66,4 +68,12 @@ ViewfinderController.prototype.onViewfinderClick = function() {
   debug('click');
 };
 
+/**
+ *Set frame grid view
+ *value true/false
+ * and show the frame grid
+ **/
+ViewfinderController.prototype.toggleFrameGrid = function(value){
+  this.viewfinder.toggleFrameGrid(value);
+};
 });
