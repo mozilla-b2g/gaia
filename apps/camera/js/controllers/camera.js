@@ -82,36 +82,36 @@ CameraController.prototype.bindEvents = function() {
   camera.on('newvideo', this.onNewVideo);
 
   // App
-  app.on('boot', this.camera.load);
+  app.on('settings:configured', this.onSettingsConfigured);
   app.on('focus', this.camera.load);
   app.on('capture', this.onCapture);
-  app.on('blur', this.teardownCamera);
-  app.on('settings:configured', this.onSettingsConfigured);
+  app.on('boot', this.camera.load);
+  app.on('blur', this.onBlur);
+
+  // Settings
   settings.pictureSizes.on('change:selected', this.onPictureSizeChange);
   settings.recorderProfiles.on('change:selected', this.onRecorderProfileChange);
   settings.flashModes.on('change:selected', this.setFlashMode);
   settings.on('change:cameras', this.loadCamera);
+  settings.on('change:mode', this.setFlashMode);
   settings.on('change:mode', this.setMode);
   debug('events bound');
 };
 
 CameraController.prototype.onSettingsConfigured = function() {
-  var settings = this.app.settings;
-  var recorderProfile = settings.recorderProfiles.selected('key');
-  var pictureSize = settings.pictureSizes.selected('data');
-  this.setFlashMode();
-  this.camera
-    .setRecorderProfile(recorderProfile)
-    .setPictureSize(pictureSize)
-    .configure();
+  var recorderProfile = this.settings.recorderProfiles.selected('key');
+  var pictureSize = this.settings.pictureSizes.selected('data');
 
-  debug('camera configured with final settings');
+  this.setFlashMode();
+  this.camera.setRecorderProfile(recorderProfile);
+  this.camera.setPictureSize(pictureSize);
+  this.camera.configure();
 
   // TODO: Move to a new StorageController (or App?)
   var maxFileSize = (pictureSize.width * pictureSize.height * 4) + 4096;
   this.storage.setMaxFileSize(maxFileSize);
+  debug('camera configured with final settings');
 };
-
 
 CameraController.prototype.onCapture = function() {
   var position = this.app.geolocation.position;
@@ -138,8 +138,6 @@ CameraController.prototype.onNewImage = function(image) {
 };
 
 CameraController.prototype.onNewVideo = function(video) {
-  debug('new video', video);
-
   var storage = this.storage;
   var poster = video.poster;
   var camera = this.camera;
@@ -151,6 +149,7 @@ CameraController.prototype.onNewVideo = function(video) {
   if (!this.activity.active) {
     this.filmstrip.addVideoAndShow(video);
   }
+
   storage.addVideo(tmpBlob, function(blob, filepath) {
     debug('stored video', filepath);
     video.filepath = filepath;
@@ -167,6 +166,8 @@ CameraController.prototype.onNewVideo = function(video) {
     camera.deleteTmpVideoFile();
     app.emit('newvideo', video);
   });
+
+  debug('new video', video);
 };
 
 CameraController.prototype.onPictureSizeChange = function() {
@@ -176,7 +177,7 @@ CameraController.prototype.onPictureSizeChange = function() {
 
 CameraController.prototype.onRecorderProfileChange = function() {
   var value = this.settings.recorderProfiles.selected('key');
-  this.camera.setRecorderProfile(value);
+  this.setRecorderProfile(value);
 };
 
 CameraController.prototype.onFileSizeLimitReached = function() {
@@ -194,46 +195,83 @@ CameraController.prototype.showSizeLimitAlert = function() {
   this.sizeLimitAlertActive = false;
 };
 
+/**
+ * Set the mode of the camera, fading
+ * otu the viewfinder before reconfiguration.
+ *
+ * @param {String} mode 'picture'|'video'
+ */
 CameraController.prototype.setMode = function(mode) {
-  this.setFlashMode();
   this.camera.setMode(mode);
   this.viewfinder.fadeOut(this.camera.configure);
 };
 
+/**
+ * Set the camera picture size.
+ *
+ * We only re-configure the camera
+ * (resize the preview) if the app
+ * is in 'picture' mode.
+ *
+ * @private
+ */
 CameraController.prototype.setPictureSize = function(value) {
+  var isPicture = this.settings.mode.is('picture');
   this.camera.setPictureSize(value);
-  this.viewfinder.fadeOut(this.camera.configure);
+  if (isPicture) { this.viewfinder.fadeOut(this.camera.configure); }
 };
 
+/**
+ * Set the camera `recorderProfile`.
+ *
+ * We only re-configure the camera
+ * (resize the preview) if the app
+ * is in 'picture' mode.
+ *
+ * @private
+ */
+CameraController.prototype.setRecorderProfile = function(value) {
+  var isVideo = this.settings.mode.is('video');
+  this.camera.setRecorderProfile(value);
+  if (isVideo) { this.viewfinder.fadeOut(this.camera.configure); }
+};
+
+/**
+ * Change the selected camera.
+ *
+ * Fading the viewfinder out
+ * before re-configuration.
+ *
+ * @param  {String} value 'front'|'back'
+ * @private
+ */
 CameraController.prototype.loadCamera = function(value) {
   this.camera.set('selectedCamera', value);
   this.viewfinder.fadeOut(this.camera.load);
 };
 
+/**
+ * Set the camera flash mode to
+ * the currently selected flashMode.
+ *
+ * @private
+ */
 CameraController.prototype.setFlashMode = function() {
-  var flashSetting = this.settings.aliases.flashModes;
-  this.camera.setFlashMode(flashSetting.selected('key'));
+  var mode = this.settings.flashModes.selected('key');
+  this.camera.setFlashMode(mode);
 };
 
-// TODO: Tidy this crap
-CameraController.prototype.teardownCamera = function() {
-  var recording = this.camera.get('recording');
-  var camera = this.camera;
-
-  try {
-    if (recording) {
-      camera.stopRecording();
-    }
-
-    this.viewfinder.stopPreview();
-    camera.set('previewActive', false);
-    camera.set('focus', 'none');
-    this.viewfinder.setPreviewStream(null);
-  } catch (e) {
-    console.error('error while stopping preview', e.message);
-  } finally {
-    camera.release();
-  }
+/**
+ * Tearsdown the camera when
+ * the application is minimised.
+ *
+ * @private
+ */
+CameraController.prototype.onBlur = function() {
+  this.camera.set('previewActive', false);
+  this.camera.set('focus', 'none');
+  this.camera.stopRecording();
+  this.camera.release();
 
   // If the lockscreen is locked
   // then forget everything when closing camera
