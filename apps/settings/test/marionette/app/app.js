@@ -5,8 +5,11 @@ var Base = require('./base'),
     HotspotPanel = require('./regions/hotspot'),
     HotspotSettingsPanel = require('./regions/hotspot_settings'),
     SupportPanel = require('./regions/support'),
+    NotificationsPanel = require('./regions/notifications'),
+    ImprovePanel = require('./regions/improve'),
     BatteryPanel = require('./regions/battery'),
-    NotificationsPanel = require('./regions/notifications');
+    FeedbackPanel = require('./regions/feedback'),
+    SoundPanel = require('./regions/sound');
 
 // origin of the settings app
 var ORIGIN = 'app://settings.gaiamobile.org';
@@ -33,7 +36,10 @@ Settings.Selectors = {
   'hotspotSettingsTrigger': '#hotspot-settings-section button',
   'supportMenuItem': '#menuItem-help',
   'batteryMenuItem': '#menuItem-battery',
-  'notificationsMenuItem': '#menuItem-notifications'
+  'notificationsMenuItem': '#menuItem-notifications',
+  'improvePanel': '#menuItem-improveBrowserOS',
+  'feedbackPanel': 'button[data-href="#improveBrowserOS-chooseFeedback"]',
+  'soundMenuItem': '#menuItem-sound'
 };
 
 Settings.prototype = {
@@ -89,6 +95,13 @@ Settings.prototype = {
     return this._notificationsPanel;
   },
 
+  get soundPanel() {
+    this.openPanel('soundMenuItem');
+    this._soundPanel = this._soundPanel ||
+      new SoundPanel(this.client);
+    return this._soundPanel;
+  },
+
   /**
    * @private
    */
@@ -102,5 +115,19 @@ Settings.prototype = {
       var size = parentSection.size();
       return (loc.x + size.width) === 0;
     });
+  },
+
+  get improvePanel() {
+    this.openPanel.call(this, 'improvePanel');
+    this._improvePanel = this._improvePanel ||
+      new ImprovePanel(this.client);
+    return this._improvePanel;
+  },
+
+  get feedbackPanel() {
+    this.openPanel.call(this, 'feedbackPanel');
+    this._feedbackPanel =
+      this._feedbackPanel || new FeedbackPanel(this.client);
+    return this._feedbackPanel;
   }
 };

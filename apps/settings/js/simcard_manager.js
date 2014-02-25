@@ -1,7 +1,7 @@
 /* exported SimCardManager */
 /* global Template, SimUIModel,
    SimSettingsHelper, MobileOperator, SimCardManager,
-   AirplaneModeHelper */
+   AirplaneModeHelper, localize */
 
 'use strict';
 
@@ -9,7 +9,8 @@
 
   // track used constants here
   const EMPTY_OPTION_TEXT = '--';
-  const EMPTY_OPTION_VALUE = '-1';
+  const EMPTY_OPTION_VALUE = '-2';
+  const ALWAYS_ASK_OPTION_VALUE = '-1';
 
   var _ = window.navigator.mozL10n.get;
 
@@ -270,6 +271,18 @@
 
         selectDOM.add(option);
       });
+
+      // we will add `always ask` option these two select
+      if (storageKey === 'outgoingCall' || storageKey === 'outgoingMessages') {
+        var option = document.createElement('option');
+        option.value = ALWAYS_ASK_OPTION_VALUE;
+        localize(option, 'sim-manager-always-ask');
+
+        if (ALWAYS_ASK_OPTION_VALUE == selectedCardIndex) {
+          option.selected = true;
+        }
+        selectDOM.add(option);
+      }
     },
     isSimCardLocked: function(cardState) {
 
