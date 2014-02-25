@@ -9,9 +9,14 @@ MARIONETTE_TEST_FILE_NAMES=$(node tests/travis_ci/marionette_js_stable_check/pul
 
 if [ ${#MARIONETTE_TEST_FILE_NAMES} -gt 0 ]; then
   TEST_RESULT=0
-  RUN_SPECIFIC_TESTS="make test-integration TEST_FILES=\"$MARIONETTE_TEST_FILE_NAMES\" REPORTER=spec"
+  MAKE_BUILD="PROFILE_FOLDER=profile-test make"
+  RUN_SPECIFIC_TESTS="make test-integration-test TEST_FILES=\"$MARIONETTE_TEST_FILE_NAMES\" REPORTER=spec"
 
-  for i in {1..30}
+  # We only build once
+  eval ${MAKE_BUILD}
+
+  # Then we would run tests for six times
+  for i in {1..6}
   do
     eval ${RUN_SPECIFIC_TESTS}
     if [ $? -ne 0 ]; then
@@ -20,7 +25,7 @@ if [ ${#MARIONETTE_TEST_FILE_NAMES} -gt 0 ]; then
   done
 
   if [ $TEST_RESULT -eq 1 ]; then
-    echo "The marionette tests are not passed for 30 times continually."
+    echo "The marionette tests are not passed for 6 times continually."
     exit 1
   fi
 else

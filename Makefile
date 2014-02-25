@@ -724,7 +724,17 @@ b2g: node_modules/.bin/mozilla-download
 
 .PHONY: test-integration
 # $(PROFILE_FOLDER) should be `profile-test` when we do `make test-integration`.
-test-integration: $(PROFILE_FOLDER)
+test-integration: $(PROFILE_FOLDER) test-integration-test
+
+# XXX Because bug-969215 is not finished, if we are going to run too many
+# marionette tests for 30 times at the same time, we may easily get timeout.
+#
+# In this way, we decide to separate building process with running marionette
+# tests so that we won't get into this problem.
+#
+# Remember to remove this target after bug-969215 is finished !
+.PHONY: test-integration-test
+test-integration-test:
 	./bin/gaia-marionette RUN_CALDAV_SERVER=1 \
 		--host $(MARIONETTE_RUNNER_HOST) \
 		--manifest $(TEST_MANIFEST) \
