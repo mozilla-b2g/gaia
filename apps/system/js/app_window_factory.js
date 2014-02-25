@@ -102,10 +102,10 @@
       var app = AppWindowManager.getApp(config.origin);
       if (app) {
         app.reviveBrowser();
-      } else if (config.origin !== HomescreenLauncher.origin) {
+      } else if (config.origin !== homescreenLauncher.origin) {
         new AppWindow(config);
-      } else if (config.origin == HomescreenLauncher.origin) {
-        HomescreenLauncher.getHomescreen().ensure();
+      } else if (config.origin == homescreenLauncher.origin) {
+        homescreenLauncher.getHomescreen().ensure();
       }
       this.publish('launchapp', config);
     },

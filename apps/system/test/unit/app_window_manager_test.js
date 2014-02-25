@@ -7,7 +7,7 @@ mocha.globals(['SettingsListener', 'removeEventListener', 'addEventListener',
       'SoftwareButtonManager', 'AttentionScreen', 'AppWindow',
       'lockScreen', 'OrientationManager', 'BrowserFrame',
       'BrowserConfigHelper', 'System', 'BrowserMixin', 'TransitionMixin',
-      'HomescreenLauncher', 'LayoutManager']);
+      'homescreenLauncher', 'LayoutManager']);
 
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 requireApp('system/test/unit/mock_lock_screen.js');
@@ -43,12 +43,15 @@ suite('system/AppWindowManager', function() {
     stubById.returns(document.createElement('div'));
 
     window.lockScreen = MockLockScreen;
-    window.activityWindowFactory = MockActivityWindowFactory;
+    window.activityWindowFactory = new ActivityWindowFactory();
 
     home = new HomescreenWindow('fakeHome');
-    MockHomescreenLauncher.mHomescreenWindow = home;
-    MockHomescreenLauncher.origin = 'fakeOrigin';
-    MockHomescreenLauncher.ready = true;
+    window.homescreenLauncher = new HomescreenLauncher().start();
+    homescreenLauncher.mFeedFixtures({
+      mHomescreenWindow: home,
+      mOrigin: 'fakeOrigin',
+      mReady: true
+    });
 
     app1 = new AppWindow(fakeAppConfig1);
     app2 = new AppWindow(fakeAppConfig2);
@@ -62,6 +65,8 @@ suite('system/AppWindowManager', function() {
   });
 
   teardown(function() {
+    window.homescreenLauncher = undefined;
+    window.activityWindowFactory = undefined;
     stubById.restore();
   });
 
@@ -150,16 +155,16 @@ suite('system/AppWindowManager', function() {
     });
 
     test('Press home on home displayed', function() {
-      AppWindowManager.runningApps[MockHomescreenLauncher.origin] = home;
+      AppWindowManager.runningApps[homescreenLauncher.origin] = home;
       var stubEnsure = this.sinon.stub(home, 'ensure');
-      AppWindowManager._activeApp = MockHomescreenLauncher.mHomescreenWindow;
-      AppWindowManager.displayedApp = MockHomescreenLauncher.origin;
+      AppWindowManager._activeApp = homescreenLauncher.mHomescreenWindow;
+      AppWindowManager.displayedApp = homescreenLauncher.origin;
       AppWindowManager.handleEvent({ type: 'home' });
       assert.isTrue(stubEnsure.called);
     });
 
     test('Press home on home not displayed', function() {
-      AppWindowManager.runningApps[MockHomescreenLauncher.origin] = home;
+      AppWindowManager.runningApps[homescreenLauncher.origin] = home;
       AppWindowManager.runningApps[app1.origin] = home;
       var stubDisplay = this.sinon.stub(AppWindowManager, 'display');
       AppWindowManager._activeApp = app1;
@@ -238,7 +243,7 @@ suite('system/AppWindowManager', function() {
       AppWindowManager.runningApps = {};
 
       AppWindowManager.handleEvent({ type: 'homescreencreated', detail: app1 });
-      assert.isTrue(MockHomescreenLauncher.origin in
+      assert.isTrue(homescreenLauncher.origin in
         AppWindowManager.runningApps);
     });
 
@@ -566,7 +571,7 @@ suite('system/AppWindowManager', function() {
       AppWindowManager._updateActiveApp(app1.origin);
 
       var activity = new ActivityWindow({});
-      ActivityWindowFactory._activeActivity = activity;
+      activityWindowFactory._activeActivity = activity;
 
       var stubDisplay = this.sinon.stub(AppWindowManager, 'display');
       AppWindowManager.launch(fakeAppConfig7Activity);

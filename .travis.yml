@@ -10,6 +10,7 @@ branches:
   only:
   - master
   - calendar-1.4-visual-refresh
+  - bubble-tea
 env:
   matrix:
   - CI_ACTION=linters

@@ -1,10 +1,13 @@
 'use strict';
 
+mocha.globals(['homescreenLauncher']);
+
 requireApp('system/js/stack_manager.js');
 requireApp('system/test/unit/mock_app_window.js');
+requireApp('system/test/unit/mock_homescreen_launcher.js');
 
 var mocksForStackManager = new MocksHelper([
-  'AppWindow'
+  'AppWindow', 'HomescreenLauncher'
 ]).init();
 
 suite('system/StackManager >', function() {
@@ -12,6 +15,7 @@ suite('system/StackManager >', function() {
   mocksForStackManager.attachTestHelpers();
 
   setup(function() {
+    window.homescreenLauncher = new HomescreenLauncher().start();
     dialer = new AppWindow({
       url: 'app://communications.gaiamobile.org/dialer/index.html',
       origin: 'app://communications.gaiamobile.org/',

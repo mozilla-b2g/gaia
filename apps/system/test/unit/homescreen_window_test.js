@@ -3,7 +3,8 @@
 mocha.globals(['SettingsListener', 'removeEventListener', 'addEventListener',
       'dispatchEvent', 'AppWindowManager', 'Applications', 'ManifestHelper',
       'HomescreenWindow', 'AttentionScreen', 'OrientationManager', 'System',
-      'AppWindow', 'BrowserFrame', 'BrowserConfigHelper', 'BrowserMixin']);
+      'AppWindow', 'BrowserFrame', 'BrowserConfigHelper', 'BrowserMixin',
+      'homescreenLauncher']);
 
 requireApp('system/test/unit/mock_orientation_manager.js');
 requireApp('system/test/unit/mock_layout_manager.js');
@@ -12,11 +13,13 @@ requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/test/unit/mock_app_window_manager.js');
 requireApp('system/test/unit/mock_applications.js');
 requireApp('system/test/unit/mock_attention_screen.js');
+requireApp('system/test/unit/mock_homescreen_launcher.js');
 
 var mocksForHomescreenWindow = new MocksHelper([
   'OrientationManager',
   'Applications', 'SettingsListener',
-  'ManifestHelper', 'LayoutManager', 'AppWindowManager'
+  'ManifestHelper', 'LayoutManager', 'AppWindowManager',
+  'HomescreenLauncher'
 ]).init();
 
 suite('system/HomescreenWindow', function() {
@@ -26,6 +29,7 @@ suite('system/HomescreenWindow', function() {
 
   setup(function(done) {
     this.sinon.useFakeTimers();
+    window.homescreenLauncher = new HomescreenLauncher().start();
     stubById = this.sinon.stub(document, 'getElementById');
     stubById.returns(document.createElement('div'));
     requireApp('system/js/system.js');
