@@ -1,4 +1,3 @@
-
 suite('camera', function() {
   'use strict';
 
@@ -12,21 +11,41 @@ suite('camera', function() {
     });
   });
 
-  // setup(function() {
-  //   navigator.getDeviceStorage = navigator.getDeviceStorage || function() {};
-  //   sinon.stub(navigator, 'getDeviceStorage');
-  //   if (!navigator.mozCameras) {
-  //     navigator.mozCameras = {
-  //       getListOfCameras: function() { return []; },
-  //       getCamera: function() {},
-  //       release: function() {}
-  //     };
-  //   }
-  //   this.camera = new Camera({});
-  // });
+  setup(function() {
+    navigator.getDeviceStorage = navigator.getDeviceStorage || function() {};
+    this.sandbox = sinon.sandbox.create();
+    this.sandbox.stub(navigator, 'getDeviceStorage');
+     navigator.mozCameras = {
+      getListOfCameras: function() { return []; },
+      getCamera: function() {
+        var mycamera = function() {};
+        return mycamera;
+      }
+     };
+  });
 
-  // teardown(function() {
-  //   navigator.getDeviceStorage.restore();
-  // });
+  teardown(function() {
+    this.sandbox.restore();
+  });
 
+  suite('Camera#setTouchFocus', function() {
+    setup(function() {
+      this.camera = new Camera({});
+      //this.camera.load();
+      this.sandbox.stub(this.camera.mozCamera,'autoFocus');
+      this.camera.mozCamera.autoFocus.callsArgWith(0,true);
+    });
+
+    teardown(function() {
+      this.camera.setAutoFocus.restore();
+    });
+
+    test('set auto focus', function(done) {
+      var x = 2;
+      var y = 3;
+      this.camera.setTouchFocus(x,y,function(){done()});
+      assert.isTrue(this.camera.mozCamera.autoFocus.called);
+    });
+  });
 });
+
