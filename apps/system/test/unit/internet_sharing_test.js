@@ -5,6 +5,7 @@ requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_mobile_connection.js');
 requireApp('system/shared/test/unit/mocks/mock_icc_helper.js');
 requireApp('system/test/unit/mock_asyncStorage.js');
+requireApp('system/test/unit/mock_l10n.js');
 
 var mocksForInternetSharing = new MocksHelper([
   'asyncStorage',
@@ -23,7 +24,7 @@ suite('internet sharing > ', function() {
   const TEST_ICCID1 = 'iccid-1';
   const TEST_ICCID2 = 'iccid-2';
 
-  var realSettings;
+  var realSettings, realL10n;
 
   suiteSetup(function(done) {
     // Unfortunately, for asyncStorage scoping reasons, we can't simply
@@ -32,12 +33,15 @@ suite('internet sharing > ', function() {
 
     realSettings = navigator.mozSettings;
     navigator.mozSettings = MockNavigatorSettings;
+    realL10n = navigator.mozL10n;
+    navigator.mozL10n = MockL10n;
     requireApp('system/js/internet_sharing.js', done);
   });
 
   suiteTeardown(function() {
     mocksForInternetSharing.suiteTeardown();
     navigator.mozSettings = realSettings;
+    navigator.mozL10n = realL10n;
   });
   // helper function for batch assertion of asyncStorage
   function assertAynscStorageEquals(testSet) {
