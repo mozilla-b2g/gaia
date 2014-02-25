@@ -130,7 +130,7 @@ App.prototype.injectViews = function() {
   this.views.hud.appendTo(this.el);
   this.views.controls.appendTo(this.el);
   this.views.viewfinder.appendTo(this.el);
-  this.views.focusRing.appendTo(this.el);
+  this.views.focusRing.appendTo(this.views.viewfinder.el);
   debug('views injected');
 };
 
