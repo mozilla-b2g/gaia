@@ -7,7 +7,7 @@
     "marionette-client": "0.5.4",
     "b2g-scripts": "0.3.0",
     "chai": "0.5.3",
-    "mocha": "~1.7",
+    "mocha": "~1.10",
     "xpcwindow": "0.4.4"
   }
 }

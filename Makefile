@@ -770,6 +770,10 @@ update-common: common-install
 	rm -f $(TEST_COMMON)/vendor/chai/*.js
 	cp -R $(TEST_AGENT_DIR)/node_modules/xpcwindow tools/xpcwindow
 	rm -R tools/xpcwindow/vendor/
+	rm -Rf test_apps/test-agent/common/vendor/mocha/
+	mkdir test_apps/test-agent/common/vendor/mocha/
+	cp $(TEST_AGENT_DIR)/node_modules/mocha/mocha.js test_apps/test-agent/common/vendor/mocha/
+	cp $(TEST_AGENT_DIR)/node_modules/mocha/mocha.css test_apps/test-agent/common/vendor/mocha/
 	cp $(TEST_AGENT_DIR)/node_modules/test-agent/test-agent.js $(TEST_COMMON)/vendor/test-agent/
 	cp $(TEST_AGENT_DIR)/node_modules/test-agent/test-agent.css $(TEST_COMMON)/vendor/test-agent/
 	cp $(TEST_AGENT_DIR)/node_modules/chai/chai.js $(TEST_COMMON)/vendor/chai/
