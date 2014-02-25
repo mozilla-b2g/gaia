@@ -97,6 +97,7 @@ var InternetSharing = (function() {
   }
 
   function internetSharingSettingsChangeHanlder(evt) {
+    var _ = navigator.mozL10n.get;
     if (validCardState.indexOf(cardState) === -1) {
       return;
     }
@@ -105,6 +106,11 @@ var InternetSharing = (function() {
     var cardId = (IccHelper.iccInfo && IccHelper.iccInfo.iccid) || 'absent';
     // wifi hotspot cannot be enabled without sim
     if ('wifi' === type && 'absent' === cardId && true === evt.settingValue) {
+      var title = _('noSimCard');
+      var buttonText = _('ok');
+      var message = _('noSIMCardInHotspot');
+
+      ModalDialog.alert(title, message, { title: buttonText });
       settings.createLock().set({'tethering.wifi.enabled': false});
       return;
     }
