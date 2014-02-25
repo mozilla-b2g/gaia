@@ -164,10 +164,8 @@ var EdgeSwipeDetector = {
     if (this._forwarding) {
       this._touchForwarder.forward(e);
     } else if ((this._deltaX < 5) && (this._deltaY < 5)) {
-      setTimeout(function(self, touchstart, touchend) {
-        self._touchForwarder.forward(touchstart);
-        self._touchForwarder.forward(touchend);
-      }, 0, this, this._touchStartEvt, e);
+      this._touchForwarder.forward(this._touchStartEvt);
+      this._touchForwarder.forward(e);
       this._forwarding = true;
     }
 
