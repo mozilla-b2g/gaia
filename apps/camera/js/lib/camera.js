@@ -400,6 +400,10 @@ Camera.prototype.toggleRecording = function(o) {
 };
 
 Camera.prototype.startRecording = function(options) {
+  if (this.get('recording')) {
+    return;
+  }
+
   var storage = this.tmpVideo.storage;
   var mozCamera = this.mozCamera;
   var self = this;
@@ -408,6 +412,9 @@ Camera.prototype.startRecording = function(options) {
   rotation = selectedCamera === 'front'? -rotation: rotation;
 
   this.emit('busy');
+  this.set('recording', true);
+  this.set('videoElapsed', 0);
+
   // First check if there is enough free space
   this.getTmpStorageSpace(gotStorageSpace);
 
@@ -440,10 +447,8 @@ Camera.prototype.startRecording = function(options) {
       self.tmpVideo.filename,
       onSuccess,
       self.onRecordingError);
-    }
 
     function onSuccess() {
-      self.set('recording', true);
       self.startVideoTimer();
       self.emit('ready');
 
@@ -452,21 +457,21 @@ Camera.prototype.startRecording = function(options) {
       if (document.hidden) {
         self.stopRecording();
       }
-
     }
+  }
 };
 
 Camera.prototype.stopRecording = function() {
+  if (!this.get('recording') ||
+      this.get('videoElapsed') < 1000) {
+    return;
+  }
+
   debug('stop recording');
 
-  var notRecording = !this.get('recording');
   var filename = this.tmpVideo.filename;
   var storage = this.tmpVideo.storage;
   var self = this;
-
-  if (notRecording) {
-    return;
-  }
 
   this.mozCamera.stopRecording();
   this.set('recording', false);
@@ -515,6 +520,8 @@ Camera.prototype.onRecordingError = function(id) {
   var title = navigator.mozL10n.get(id + '-title');
   var text = navigator.mozL10n.get(id + '-text');
   alert(title + '. ' + text);
+
+  this.set('recording', false);
 };
 
 Camera.prototype.onShutter = function() {
@@ -613,6 +620,7 @@ Camera.prototype.startVideoTimer = function() {
 Camera.prototype.stopVideoTimer = function() {
   clearInterval(this.videoTimer);
   this.videoTimer = null;
+  this.set('videoElapsed', 0);
 };
 
 /**
