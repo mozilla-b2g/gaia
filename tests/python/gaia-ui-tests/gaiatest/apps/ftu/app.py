@@ -62,16 +62,12 @@ class Ftu(Base):
     _take_tour_button_locator = (By.ID, 'lets-go-button')
 
     # Section Tour
-    _step1_header_locator = (By.ID, 'step1Header')
-    _step2_header_locator = (By.ID, 'step2Header')
-    _step3_header_locator = (By.ID, 'step3Header')
-    _step4_header_locator = (By.ID, 'step4Header')
-    _step5_header_locator = (By.ID, 'step5Header')
+    _step_header_locator = (By.ID, 'tutorial-step-title')
     _tour_next_button_locator = (By.ID, 'forward-tutorial')
     _tour_back_button_locator = (By.ID, 'back-tutorial')
 
     # Section Tutorial Finish
-    _section_tutorial_finish_locator = (By.CSS_SELECTOR, '.tutorial-finish-base')
+    _section_tutorial_finish_locator = (By.ID, 'tutorial-finish-tiny')
     _lets_go_button_locator = (By.ID, 'tutorialFinished')
 
     # Pattern for import sim contacts message
@@ -215,8 +211,8 @@ class Ftu(Base):
 
     @property
     def step1_header_text(self):
-        self.wait_for_element_displayed(*self._step1_header_locator)
-        return self.marionette.find_element(*self._step1_header_locator).text
+        self.wait_for_element_displayed(*self._step_header_locator)
+        return self.marionette.find_element(*self._step_header_locator).text
 
     def tap_tour_next(self):
         self.wait_for_element_displayed(*self._tour_next_button_locator)
@@ -228,23 +224,28 @@ class Ftu(Base):
 
     @property
     def step2_header_text(self):
-        self.wait_for_element_displayed(*self._step2_header_locator)
-        return self.marionette.find_element(*self._step2_header_locator).text
+        self.wait_for_element_displayed(*self._step_header_locator)
+        return self.marionette.find_element(*self._step_header_locator).text
 
     @property
     def step3_header_text(self):
-        self.wait_for_element_displayed(*self._step3_header_locator)
-        return self.marionette.find_element(*self._step3_header_locator).text
+        self.wait_for_element_displayed(*self._step_header_locator)
+        return self.marionette.find_element(*self._step_header_locator).text
 
     @property
     def step4_header_text(self):
-        self.wait_for_element_displayed(*self._step4_header_locator)
-        return self.marionette.find_element(*self._step4_header_locator).text
+        self.wait_for_element_displayed(*self._step_header_locator)
+        return self.marionette.find_element(*self._step_header_locator).text
 
     @property
     def step5_header_text(self):
-        self.wait_for_element_displayed(*self._step5_header_locator)
-        return self.marionette.find_element(*self._step5_header_locator).text
+        self.wait_for_element_displayed(*self._step_header_locator)
+        return self.marionette.find_element(*self._step_header_locator).text
+
+    @property
+    def step6_header_text(self):
+        self.wait_for_element_displayed(*self._step_header_locator)
+        return self.marionette.find_element(*self._step_header_locator).text
 
     def wait_for_finish_tutorial_section(self):
         self.wait_for_element_displayed(*self._section_tutorial_finish_locator)

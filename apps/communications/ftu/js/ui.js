@@ -1,4 +1,4 @@
-/* global utils, tzSelect,
+/* global utils, tzSelect, FinishScreen,
           Basket, ConfirmDialog, ScreenLayout,
           DataMobile, SimManager, SdManager,
           Tutorial, TimeManager, WifiManager,
@@ -92,10 +92,7 @@ var UIManager = {
     'data-connection-switch',
     // Geolocation
     'geolocation-switch',
-    // Tutorial
-    'tutorial-screen',
-    'tutorial-progress',
-    'tutorial-progress-state',
+    // Before Tutorial
     'lets-go-button',
     'skip-tutorial-button',
     // Privacy Settings
@@ -196,22 +193,23 @@ var UIManager = {
         }.bind(this));
 
     this.skipTutorialButton.addEventListener('click', function() {
+      // Stop Wifi Manager
+      WifiManager.finish();
       // For tiny devices
       if (ScreenLayout.getCurrentLayout() === 'tiny') {
-        WifiManager.finish();
         window.close();
-      }
-      else {
+      } else {
         // for large devices
-        Tutorial.jumpToExitStep();
+        FinishScreen.init();
       }
     });
 
     this.letsGoButton.addEventListener('click', function() {
+      // Stop Wifi Manager
+      WifiManager.finish();
       UIManager.activationScreen.classList.remove('show');
       UIManager.finishScreen.classList.remove('show');
-      UIManager.tutorialScreen.classList.add('show');
-      Tutorial.manageStep();
+      Tutorial.init();
     });
 
     // Enable sharing performance data (saving to settings)
