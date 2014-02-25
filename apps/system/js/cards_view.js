@@ -161,7 +161,7 @@ var CardsView = (function() {
 
     // If there is a displayed app, take keyboard focus away
     if (currentPosition) {
-      stack[currentPosition].frame.blur();
+      stack[currentPosition].blur();
     }
 
     placeCards();
@@ -213,19 +213,19 @@ var CardsView = (function() {
 
         var subtitle = document.createElement('p');
         subtitle.textContent =
-          PopupManager.getOpenedOriginFromOpener(origin);
+          PopupManager.getOpenedOriginFromOpener(app.origin);
         card.appendChild(subtitle);
         card.classList.add('popup');
       } else if (getOffOrigin(app.iframe.dataset.url ?
-            app.iframe.dataset.url : app.iframe.src, origin)) {
+            app.iframe.dataset.url : app.iframe.src, app.origin)) {
         var subtitle = document.createElement('p');
         subtitle.textContent = getOffOrigin(app.iframe.dataset.url ?
-            app.iframe.dataset.url : app.iframe.src, origin);
+            app.iframe.dataset.url : app.iframe.src, app.origin);
         card.appendChild(subtitle);
       }
 
-      if (TrustedUIManager.hasTrustedUI(origin)) {
-        var popupFrame = TrustedUIManager.getDialogFromOrigin(origin);
+      if (TrustedUIManager.hasTrustedUI(app.origin)) {
+        var popupFrame = TrustedUIManager.getDialogFromOrigin(app.origin);
         frameForScreenshot = popupFrame.frame;
         var header = document.createElement('section');
         header.setAttribute('role', 'region');
@@ -236,7 +236,7 @@ var CardsView = (function() {
         header.innerHTML += '</h1></header>';
         card.appendChild(header);
         card.classList.add('trustedui');
-      } else if (attentionScreenApps.indexOf(origin) == -1) {
+      } else if (attentionScreenApps.indexOf(app.origin) == -1) {
         var closeButton = document.createElement('div');
         closeButton.setAttribute('role', 'button');
         closeButton.classList.add('close-card');
@@ -329,7 +329,7 @@ var CardsView = (function() {
       closeApp(card, true);
     } else if ('position' in e.target.dataset) {
       AppWindowManager.display(
-        stack[e.target.dataset.position].origin,
+        stack[e.target.dataset.position],
         'from-cardview',
         null
       );
