@@ -840,8 +840,8 @@ suite('system/AppWindow', function() {
     test('ActivityDone event', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       var app2 = new AppWindow(fakeAppConfig2);
-      var spyRequestOpen = this.sinon.spy(app1, 'requestOpen');
-      var stubPublish = this.sinon.stub(app1, 'publish');
+      var spyOpen = this.sinon.spy(app1, 'open');
+      var spyClose = this.sinon.spy(app2, 'close');
       var stubIsActive = this.sinon.stub(app2, 'isActive');
       app1.setActivityCallee(app2);
       stubIsActive.returns(true);
@@ -855,8 +855,8 @@ suite('system/AppWindow', function() {
 
       assert.isNull(app1.activityCallee);
       assert.isNull(app2.activityCaller);
-      assert.isTrue(spyRequestOpen.called);
-      assert.isTrue(stubPublish.calledWith('requestopen'));
+      assert.isTrue(spyOpen.calledWith('in-from-left'));
+      assert.isTrue(spyClose.calledWith('out-to-right'));
     });
 
     test('Error event', function() {
