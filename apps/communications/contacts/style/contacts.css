@@ -228,7 +228,7 @@ section[role="region"] > header:first-child .icon.icon-edit-contact {
 }
 
 /* FB info (non-editable) */
-.view-edit-contact .facebook fieldset {
+.view-edit-contact .facebook fieldset, .view-edit-contact span.facebook {
   border-color: #255c95;
   background: #cbd4df;
   color: #969696;
@@ -677,4 +677,18 @@ section[role="region"] > header .icon.icon-settings {
 
 .group-section {
   padding-left: 1.5rem;
+}
+
+.datetime {
+  /* pass the events from <span> to <input> */
+  pointer-events: none;
+  position: absolute;
+  top: 0rem;
+  left: 1.5rem;
+  font-weight: normal;
+}
+
+.hidden-input {
+  /* visibility: hidden; will avoid events to reach the <input> */
+  opacity: 0;
 }

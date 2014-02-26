@@ -104,6 +104,22 @@ suite('Render contact form', function() {
     assert.isTrue(value === state);
   }
 
+  function assertEmptyBday() {
+    var spanInput = document.body.querySelector('#bday-text');
+    assert.equal(spanInput.textContent, 'birthday');
+    var buttonRemove = document.querySelector('#reset-bday');
+    assert.isFalse(buttonRemove.classList.contains('hide'));
+    var inputDate = document.body.querySelector('#bday');
+    assert.equal(inputDate.value.length, 0);
+  }
+
+  function assertFilledBday(bday) {
+    var renderedDate = document.querySelector('#bday').valueAsDate;
+    assert.equal(renderedDate.getDate(), bday.getDate());
+    assert.equal(renderedDate.getMonth(), bday.getMonth());
+    var renderedText = document.querySelector('#bday-text').textContent;
+    assert.isTrue(renderedText && renderedText !== 'birthday');
+  }
 
   suite('Render add form', function() {
     test('without params', function() {
@@ -191,6 +207,12 @@ suite('Render contact form', function() {
       assertCarrierState(element, 'disabled');
     });
 
+    test('Test the initial state of the birthday field',
+      function() {
+        subject.render();
+        assertEmptyBday();
+    });
+
     test('If email is a blank string then done button must be disabled',
       function() {
         var params = {
@@ -216,6 +238,29 @@ suite('Render contact form', function() {
       }
     );
 
+    test('If bday is filled and other fields empty done button ' +
+         'must be disabled', function() {
+        var params = {
+          bday: new Date(0)
+        };
+
+        subject.render(params);
+        assertSaveState('disabled');
+      }
+    );
+
+    test('If bday and name are filled and other fields empty done button ' +
+         'must be enabled', function() {
+        var params = {
+          bday: new Date(0),
+          givenName: ['Jose']
+        };
+
+        subject.render(params);
+        assertSaveState(null);
+      }
+    );
+
   });
 
   suite('Render edit form', function() {
@@ -231,6 +276,13 @@ suite('Render contact form', function() {
       subject.render(mockContact);
       var nameField = document.querySelector('#familyName');
       assert.equal(nameField.value, '');
+    });
+
+    test('with no birthday', function() {
+      mockContact.bday = null;
+      subject.render(mockContact);
+
+      assertEmptyBday();
     });
 
     test('with all fields', function() {
@@ -255,6 +307,10 @@ suite('Render contact form', function() {
       // Remove Field icon on photo is present
       var thumbnail = document.querySelector('#thumbnail-action');
       assert.isTrue(thumbnail.querySelector('.icon-delete') !== null);
+
+      assertFilledBday(mockContact.bday);
+      var buttonRemove = document.querySelector('#reset-bday');
+      assert.isFalse(buttonRemove.classList.contains('hide'));
     });
 
     test('if tel field has a value, carrier input must be in regular state',
@@ -340,6 +396,22 @@ suite('Render contact form', function() {
       };
     });
 
+    test('FB Contact. Birthday from Facebook', function() {
+      window.fb.setIsFbContact(true);
+
+      var fbContact = new Mockfb.Contact(mockContact);
+      fbContact.getDataAndValues().onsuccess = function() {
+        subject.render(mockContact, null, this.result);
+        assertFilledBday(this.result[0].bday);
+
+        var container = document.querySelector('#bday-text').parentNode;
+        var button = document.querySelector('#reset-bday');
+        assert.isTrue(container.classList.contains('facebook'));
+        assert.isTrue(button.classList.contains('hide'));
+
+        assert.isFalse(footer.classList.contains('hide'));
+      };
+    });
 
     test('FB Linked. e-mail and phone both from FB and device', function() {
       window.fb.setIsFbContact(true);

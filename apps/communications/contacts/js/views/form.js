@@ -27,6 +27,9 @@ contacts.Form = (function() {
       _,
       formView,
       throbber,
+      bdayInput,
+      bdayInputText,
+      resetBdayButton,
       mode,
       cancelHandler,
       mergeHandler,
@@ -54,7 +57,7 @@ contacts.Form = (function() {
     get: function textFieldsCache_get() {
       if (!this._textFields) {
         var form = dom.getElementById('contact-form');
-        var fields = form.querySelectorAll('input.textfield');
+        var fields = form.querySelectorAll('input.textfield:not(.auxiliary)');
 
         var removedFields =
           Array.slice(form.querySelectorAll('.removed input.textfield'));
@@ -89,6 +92,9 @@ contacts.Form = (function() {
     familyName = dom.getElementById('familyName');
     formView = dom.getElementById('view-contact-form');
     throbber = dom.getElementById('throbber');
+    bdayInput = dom.getElementById('bday');
+    bdayInputText = dom.getElementById('bday-text');
+    resetBdayButton = dom.getElementById('reset-bday');
     var phonesContainer = dom.getElementById('contacts-form-phones');
     var emailContainer = dom.getElementById('contacts-form-emails');
     var addressContainer = dom.getElementById('contacts-form-addresses');
@@ -168,7 +174,7 @@ contacts.Form = (function() {
         return;
       }
 
-      if (event.detail.prevValue !== event.detail.newValue) {
+      if (!emptyForm() && event.detail.prevValue !== event.detail.newValue) {
         saveButton.removeAttribute('disabled');
       }
     });
@@ -177,9 +183,42 @@ contacts.Form = (function() {
     utils.listeners.add({
       '#cancel-edit': Contacts.cancel, // Cancel edition
       '#save-button': saveContact,
-      '#contact-form button[data-field-type]': newField
+      '#contact-form button[data-field-type]': newField,
+      '#reset-bday': resetBday // Reset birthday field
     });
+
+    // When something is entered on the input type date the bday is updated
+    bdayInput.oninput = function() {
+      renderBday(bdayInput.valueAsDate);
+    };
   };
+
+  // Renders the birthday as per the locale
+  function renderBday(date) {
+    if (!date) {
+      return;
+    }
+    bdayInput.valueAsDate = date;
+
+    var f = new navigator.mozL10n.DateTimeFormat();
+    var birthdayFormat = _('birthdayDateFormat') || '%e %B';
+    bdayInputText.textContent = f.localeFormat(date, birthdayFormat);
+  }
+
+  // Resets the birthday data notifying upper layers about this change
+  function resetBday(e) {
+    var event = new CustomEvent('ValueModified', {
+      bubbles: true,
+      detail: {
+        prevValue: bdayInput.value,
+        newValue: ''
+      }
+    });
+    formView.dispatchEvent(event);
+
+    bdayInputText.textContent = _('birthday');
+    bdayInput.value = '';
+  }
 
   var saveContact = function saveContact() {
     return contacts.Form.saveContact();
@@ -211,8 +250,10 @@ contacts.Form = (function() {
     if (!contact || !contact.id) {
       return;
     }
-    if (!fromUpdateActivity)
+    if (!fromUpdateActivity) {
       saveButton.setAttribute('disabled', 'disabled');
+    }
+
     saveButton.setAttribute('data-l10n-id', 'update');
     saveButton.textContent = _('update');
     currentContact = contact;
@@ -228,10 +269,19 @@ contacts.Form = (function() {
                        contact.familyName[0] : '';
     company.value = contact.org && contact.org.length > 0 ? contact.org[0] : '';
 
+    renderBday(contact.bday);
+
     if (nonEditableValues[company.value]) {
       var nodeClass = company.parentNode.classList;
       nodeClass.add(REMOVED_CLASS);
       nodeClass.add(FB_CLASS);
+    }
+
+    if (nonEditableValues[contact.bday]) {
+      var nodeClass = bdayInputText.parentNode.classList;
+      nodeClass.add(REMOVED_CLASS);
+      nodeClass.add(FB_CLASS);
+      resetBdayButton.classList.add('hide');
     }
 
     if (contact.photo && contact.photo.length > 0) {
@@ -482,6 +532,23 @@ contacts.Form = (function() {
     }
   }
 
+  // Fills the contact birthday in UTC TZ
+  function fillBday(contact) {
+    if (bdayInput.parentNode.classList.contains(REMOVED_CLASS)) {
+      return;
+    }
+    var filledDate = bdayInput.valueAsDate;
+
+    if (filledDate) {
+      var savedDate = new Date();
+      savedDate.setUTCDate(filledDate.getDate());
+      savedDate.setUTCMonth(filledDate.getMonth());
+      savedDate.setUTCFullYear(filledDate.getYear());
+    }
+
+    contact.bday = savedDate;
+  }
+
   var fillContact = function(contact, done) {
     createName(contact);
 
@@ -489,6 +556,8 @@ contacts.Form = (function() {
     getEmails(contact);
     getAddresses(contact);
     getNotes(contact);
+
+    fillBday(contact);
 
     var currentPhoto = getCurrentPhoto();
     if (!currentPhoto) {
@@ -962,6 +1031,12 @@ contacts.Form = (function() {
     };
     textFieldsCache.clear();
     formView.scrollTop = 0;
+
+    bdayInputText.textContent = _('birthday');
+    bdayInput.value = '';
+
+    bdayInputText.parentNode.classList.remove(FB_CLASS);
+    resetBdayButton.classList.remove('hide');
   };
 
   var resetRemoved = function cf_resetRemoved() {

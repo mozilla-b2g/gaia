@@ -112,7 +112,15 @@ var MockFormDom = '<section id="view-contact-form" role="region" data-mirror="mi
     MockFormDom += '              <input data-cancelable placeholder="Company Name" data-l10n-id="org" name="org" class="textfield" type="text" value="" id="org">';
     MockFormDom += '            </p>';
     MockFormDom += '          </fieldset>';
-
+    MockFormDom += '          <span class="button icon icon-dialog">';
+    MockFormDom += '            <span id="bday-text" data-l10n-id="birthday.placeholder" class="datetime">';
+    MockFormDom += '                  Birthday';
+    MockFormDom += '            </span>';
+    MockFormDom += '            <input placeholder="Birthday" data-l10n-id="birthday" name="bday" class="textfield auxiliary hidden-input" type="date" value="" id="bday">';
+    MockFormDom += '            </span>';
+    MockFormDom += '            <button type="button" class="fillflow-row-action" id="reset-bday">';
+    MockFormDom += '              <span role="button" class="icon-delete"></span>';
+    MockFormDom += '            </button>';
     MockFormDom += '          <fieldset>';
     MockFormDom += '            <legend data-l10n-id="legendPhones">Phone numbers</legend>';
     MockFormDom += '            <div id="contacts-form-phones">';
