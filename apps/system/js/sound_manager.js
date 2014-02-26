@@ -388,6 +388,9 @@
   })(fetchCachedVolume);
 
   SettingsListener.observe('vibration.enabled', true, function(vibration) {
+    if (vibration) {
+      window.navigator.vibrate(200);
+    }
     var setBySelf = false,
       toggleVibrationEnabled = function toggle_vibration_enabled() {
         // XXX: If the value does not set by sound manager,
