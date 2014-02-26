@@ -24,6 +24,12 @@ var DownloadManager = (function() {
   var notifications = {};
   var started = false;
 
+  // Clear all previously completed downloads from the Downloads API
+  // We don't need those in there anymore since we're tracking everything
+  // in our own datastore (see download_store.js).
+  mozDownloadManager.clearAllDone();
+
+  // Set our download start handler.
   mozDownloadManager.ondownloadstart = function onDownloadStart(ev) {
     if (started) {
       createDownloadNotification(ev.download);
