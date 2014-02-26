@@ -5,6 +5,7 @@ define(function(require, exports, module) {
  * Dependencies
  */
 
+var debug = require('debug')('view:hud');
 var View = require('vendor/view');
 var bind = require('lib/bind');
 var find = require('lib/find');
@@ -75,6 +76,7 @@ module.exports = View.extend({
   set: function(key, value) {
     value = arguments.length === 2 ? value : true;
     this.el.setAttribute(toDashed(key), value);
+    debug('set key: %s, value: %s', key, value);
   },
 
   setter: function(key) {
