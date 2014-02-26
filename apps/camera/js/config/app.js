@@ -4,6 +4,7 @@ define(function(require, exports, module) {
 module.exports = {
   showSettings: true,
   newControls: true,
+  showIndicators: true,
   mode: {
     title: 'Mode',
     options: [
@@ -153,7 +154,7 @@ module.exports = {
 
   timer: {
     title: 'l10n-self-timer',
-    icon: 'icon-self-timer',
+    icon: 'icon-timer',
     options: [
       {
         key: 'off',
@@ -186,13 +187,11 @@ module.exports = {
     options: [
       {
         key: 'on',
-        title: 'l10n-on',
-        icon: 'O'
+        title: 'l10n-on'
       },
       {
         key: 'off',
-        title: 'l10n-off',
-        icon: 'O'
+        title: 'l10n-off'
       }
     ],
     persistent: true,

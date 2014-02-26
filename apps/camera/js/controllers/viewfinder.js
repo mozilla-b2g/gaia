@@ -57,7 +57,7 @@ ViewfinderController.prototype.updatePreview = function() {
 
   // Fade in 100ms later to avoid
   // seeing viewfinder being resized
-  setTimeout(this.viewfinder.fadeIn, 100);
+  setTimeout(this.viewfinder.fadeIn, 150);
 };
 
 /**

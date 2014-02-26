@@ -23,16 +23,17 @@ require(['config/require', 'config'], function() {
     var Activity = require('lib/activity');
     var Storage = require('lib/storage');
     var controllers = {
-      hud: require('controllers/hud'),
-      controls: require('controllers/controls'),
       viewfinder: require('controllers/viewfinder'),
-      overlay: require('controllers/overlay'),
-      confirm: require('controllers/confirm'),
+      indicators: require('controllers/indicators'),
+      controls: require('controllers/controls'),
       settings: require('controllers/settings'),
       activity: require('controllers/activity'),
+      overlay: require('controllers/overlay'),
+      confirm: require('controllers/confirm'),
       camera: require('controllers/camera'),
       sounds: require('controllers/sounds'),
       timer: require('controllers/timer'),
+      hud: require('controllers/hud')
     };
 
     debug('required dependencies');
