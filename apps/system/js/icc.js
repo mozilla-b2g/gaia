@@ -11,6 +11,9 @@ var icc = {
 
   init: function icc_init() {
     this._iccManager = window.navigator.mozIccManager;
+    this.hideViews();
+    this.protectForms();
+    this.getIccInfo();
     var self = this;
     this.clearMenuCache(function() {
       window.navigator.mozSetMessageHandler('icc-stkcommand',
@@ -20,10 +23,6 @@ var icc = {
           }
         });
     });
-
-    this.hideViews();
-    this.protectForms();
-    this.getIccInfo();
 
     var self = this;
     // Update displayTextTimeout with settings parameter
