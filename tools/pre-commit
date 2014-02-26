@@ -86,4 +86,20 @@ if [ $gjslint_result -ne 0 -o $jshint_result -ne 0 ] ; then
   exit 1
 fi
 
+# check out the files permission
+for file in $(git diff --staged --name-only); do
+  if [ $(uname) = "Linux" ];then
+    if [ $(stat -c %a $file) -ne 644 ];then
+      echo "You must change the file permission of $file to 644"
+      exit 1
+    fi	
+  fi
+  if [ $(uname) = "Darwin" ];then
+    if [ $(stat -f %Lp $file) -ne 644 ];then
+      echo "You must change the file permission of $file to 644"
+      exit 1
+    fi	
+  fi
+done
+
 echo "No errors - committing"
