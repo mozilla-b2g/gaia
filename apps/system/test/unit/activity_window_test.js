@@ -99,26 +99,6 @@ suite('system/ActivityWindow', function() {
     teardown(function() {
     });
 
-    test('handleEvent: closing activity', function() {
-      var activity = new ActivityWindow(fakeConfig, app);
-      var stubRestoreCaller = this.sinon.stub(activity, 'restoreCaller');
-      activity.handleEvent({
-        type: '_closing'
-      });
-      assert.isTrue(stubRestoreCaller.called);
-    });
-
-    test('handleEvent: activity opened', function() {
-      var activity = new ActivityWindow(fakeConfig, app);
-      var stubIsOOP = this.sinon.stub(app, 'isOOP');
-      var stubSetVisible = this.sinon.stub(app, 'setVisible');
-      stubIsOOP.returns(false);
-      activity.handleEvent({
-        type: '_opened'
-      });
-      assert.isTrue(stubSetVisible.calledWith(false, true));
-    });
-
     test('requestOpen', function() {
       var activity = new ActivityWindow(fakeConfig, app);
       var fakeAppConfig = {
@@ -128,8 +108,8 @@ suite('system/ActivityWindow', function() {
         origin: 'app://www.fake'
       };
       var app = new AppWindow(fakeAppConfig);
-      activity.activityCaller = app;
-      app.activityCallee = activity;
+      activity.rearWindow = app;
+      app.frontWindow = activity;
       var stubRequestOpen = this.sinon.stub(app, 'requestOpen');
 
       activity.requestOpen();
@@ -140,72 +120,6 @@ suite('system/ActivityWindow', function() {
     test('copy fullscreen from caller', function() {
       var activity = new ActivityWindow(fakeConfig, appF);
       assert.isTrue(activity.element.classList.contains('fullscreen-app'));
-    });
-
-    test('restore caller', function() {
-      var activity1 = new ActivityWindow(fakeConfig, app);
-      var activity2 = new ActivityWindow(fakeConfig, activity1);
-
-      var stubIsActiveForApp = this.sinon.stub(app, 'isActive');
-      var stubIsActiveForAct1 = this.sinon.stub(activity1, 'isActive');
-
-      var stubSetOrientationForApp =
-        this.sinon.stub(app, 'setOrientation');
-      var stubSetOrientationForAct1 =
-        this.sinon.stub(activity1, 'setOrientation');
-      app._killed = false;
-      activity1._killed = false;
-      stubIsActiveForApp.returns(true);
-      stubIsActiveForAct1.returns(true);
-      activity2.restoreCaller();
-      assert.isTrue(stubSetOrientationForAct1.calledWith(true));
-      activity1.restoreCaller();
-      assert.isTrue(stubSetOrientationForApp.calledWith(true));
-    });
-
-    test('restore caller when AttentionScreen is there', function() {
-      MockAttentionScreen.mFullyVisible = true;
-      var activity1 = new ActivityWindow(fakeConfig, app);
-      var activity2 = new ActivityWindow(fakeConfig, activity1);
-
-      var stubSetVisibleForApp = this.sinon.stub(app, 'setVisible');
-      var stubSetVisible1 = this.sinon.stub(activity1, 'setVisible');
-      activity2.restoreCaller();
-      assert.isFalse(stubSetVisible1.called);
-      activity1.restoreCaller();
-      assert.isFalse(stubSetVisibleForApp.called);
-      MockAttentionScreen.mFullyVisible = false;
-    });
-
-    test('killed when activity is active', function() {
-      var activity1 = new ActivityWindow(fakeConfig, app);
-      var activity2 = new ActivityWindow(fakeConfig, activity1);
-      var stubIsActive = this.sinon.stub(activity1, 'isActive');
-      var stubKill2 = this.sinon.stub(activity2, 'kill');
-      var stubPublish = this.sinon.stub(activity1, 'publish');
-      stubIsActive.returns(true);
-      activity1.element = document.createElement('div');
-      document.body.appendChild(activity1.element);
-      activity1.kill();
-      assert.isFalse(stubKill2.called);
-      activity1.element.dispatchEvent(new CustomEvent('_closed'));
-      assert.isTrue(stubKill2.called);
-      assert.isTrue(stubPublish.calledWith('terminated'));
-    });
-
-    test('killed when activity is inactive', function() {
-      var activity1 = new ActivityWindow(fakeConfig, app);
-      var activity2 = new ActivityWindow(fakeConfig, activity1);
-      var stubIsActive = this.sinon.stub(activity1, 'isActive');
-      var stubKill2 = this.sinon.stub(activity2, 'kill');
-      var stubPublish = this.sinon.stub(activity1, 'publish');
-
-      stubIsActive.returns(false);
-      activity1.element = document.createElement('div');
-      document.body.appendChild(activity1.element);
-      activity1.kill();
-      assert.isTrue(stubKill2.called);
-      assert.isTrue(stubPublish.calledWith('terminated'));
     });
 
     test('Activity created', function() {
@@ -225,7 +139,7 @@ suite('system/ActivityWindow', function() {
       var activity = new ActivityWindow(fakeConfig, app);
       var activity2 = new ActivityWindow(fakeConfig, activity);
       var stubSetOrientation2 = this.sinon.stub(activity2, 'setOrientation');
-      app.setOrientation();
+      activity.setOrientation();
       assert.isTrue(stubSetOrientation2.called);
     });
 

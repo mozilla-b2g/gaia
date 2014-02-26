@@ -24,7 +24,7 @@ class PopUpPage(Base):
 
     _frame_locator = (By.CSS_SELECTOR, 'iframe[data-url$="popup.html#dialog"]')
     _header_text_locator = (By.CSS_SELECTOR, 'h1')
-    _x_button_locator = (By.ID, 'popup-close')
+    _x_button_locator = (By.CSS_SELECTOR, '.popup-close')
 
     def switch_to_frame(self):
         self.marionette.switch_to_frame()

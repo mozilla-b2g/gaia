@@ -1,9 +1,8 @@
 document.getElementById('go').onclick = function _go() {
   var a = new MozActivity(
     {
-      name: 'test',
+      name: 'test-inline',
       data: {
-        type: 'inline'
       }
     }
   );

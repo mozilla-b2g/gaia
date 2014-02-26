@@ -29,6 +29,15 @@
   visibility: hidden;
 }
 
+.chrome > .rocketbar {
+  pointer-events: auto;
+  display: none;
+} 
+
+.chrome > .rocketbar.visible {
+  display: block;
+}
+
 .chrome > .progress.visible {
   visibility: visible;
   background-image: url('../shared/progress.gif');

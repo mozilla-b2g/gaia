@@ -12,8 +12,8 @@ window.addEventListener('load', function startup() {
     // Solve app_window dependency
     window.layoutManager = new LayoutManager().start();
     /** @global */
-    window.activityWindowFactory = new ActivityWindowFactory();
-    window.activityWindowFactory.start();
+    window.activityWindowManager = new ActivityWindowManager();
+    window.activityWindowManager.start();
     /** @global */
     window.appWindowFactory = new AppWindowFactory();
     window.appWindowFactory.start();

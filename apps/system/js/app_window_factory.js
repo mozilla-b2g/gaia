@@ -16,7 +16,7 @@
    *
    * If gecko is asking us to open an inline activity page,
    * AppWindowFactory would wrap the configuration and sent it to
-   * ActivityWindowFactory for it to do instantiation via event
+   * AppWindowFactory for it to do instantiation via event
    * <code>launchactivity</code>.
    *
    * ![app and activity launch flow](http://i.imgur.com/ZyMcgft.png)

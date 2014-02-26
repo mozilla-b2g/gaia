@@ -62,7 +62,7 @@ suite('system/StackManager >', function() {
       manifestURL:
         'app://communications.gaiamobile.org/contact/manifest.webapp',
       name: 'Contact',
-      parentWindow: contact
+      previousWindow: contact
     });
 
     contact_sheet_2 = new AppWindow({
@@ -71,7 +71,7 @@ suite('system/StackManager >', function() {
       manifestURL:
         'app://communications.gaiamobile.org/contact/manifest.webapp',
       name: 'Contact',
-      parentWindow: contact_sheet_1
+      previousWindow: contact_sheet_1
     });
 
     settings_sheet_1 = new AppWindow({
@@ -79,7 +79,7 @@ suite('system/StackManager >', function() {
       origin: 'app://settings.gaiamobile.org/',
       manifestURL: 'app://settings.gaiamobile.org/manifest.webapp',
       name: 'Settings',
-      parentWindow: settings
+      previousWindow: settings
     });
 
     settings_sheet_2 = new AppWindow({
@@ -87,7 +87,7 @@ suite('system/StackManager >', function() {
       origin: 'app://settings.gaiamobile.org/',
       manifestURL: 'app://settings.gaiamobile.org/manifest.webapp',
       name: 'Settings',
-      parentWindow: settings_sheet_1
+      previousWindow: settings_sheet_1
     });
 
     settings_sheet_3 = new AppWindow({
@@ -95,7 +95,7 @@ suite('system/StackManager >', function() {
       origin: 'app://settings.gaiamobile.org/',
       manifestURL: 'app://settings.gaiamobile.org/manifest.webapp',
       name: 'Settings',
-      parentWindow: settings_sheet_2
+      previousWindow: settings_sheet_2
     });
 
     contact_sheet_1.groupID = contact.groupID;

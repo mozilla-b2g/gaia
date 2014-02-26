@@ -6,7 +6,7 @@ mocha.globals(['SettingsListener', 'removeEventListener', 'addEventListener',
       'SoftwareButtonManager', 'AppWindow', 'AppChrome',
       'OrientationManager', 'SettingsListener', 'BrowserFrame',
       'BrowserConfigHelper', 'System', 'layoutManager',
-      'AppTransitionController', 'AppWindowManager']);
+      'AppTransitionController', 'AppWindowManager', 'PopupWindow']);
 
 requireApp('system/test/unit/mock_orientation_manager.js');
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
@@ -16,11 +16,13 @@ requireApp('system/test/unit/mock_applications.js');
 requireApp('system/test/unit/mock_layout_manager.js');
 requireApp('system/test/unit/mock_app_chrome.js');
 requireApp('system/test/unit/mock_screen_layout.js');
+requireApp('system/test/unit/mock_popup_window.js');
+requireApp('system/test/unit/mock_attention_screen.js');
 
 var mocksForAppWindow = new MocksHelper([
   'OrientationManager', 'Applications', 'SettingsListener',
   'ManifestHelper', 'LayoutManager',
-  'ScreenLayout', 'AppChrome'
+  'ScreenLayout', 'AppChrome', 'PopupWindow', 'AttentionScreen'
 ]).init();
 
 suite('system/AppWindow', function() {
@@ -200,6 +202,17 @@ suite('system/AppWindow', function() {
       var spy = this.sinon.spy(window, 'AppChrome');
       var chromeApp = new AppWindow(fakeChromeConfigWithoutNavigation);
       assert.isFalse(spy.calledWithNew());
+    });
+
+    test('resize to front window', function() {
+      var app2 = new AppWindow(fakeAppConfig2);
+      app2.rearWindow = app1;
+      app1.frontWindow = app2;
+      var stubResize = this.sinon.stub(app2, 'resize');
+      var stubAppIsActive = this.sinon.stub(app1, 'isActive');
+      stubAppIsActive.returns(true);
+      app1.resize();
+      assert.isTrue(stubResize.called);
     });
   });
 
@@ -838,6 +851,19 @@ suite('system/AppWindow', function() {
       assert.equal(app1._screenshotOverlayState, 'screenshot');
       assert.isTrue(stub_showScreenshotOverlay.called);
     });
+
+    test('setVisible to front window', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      var app2 = new AppWindow(fakeAppConfig2);
+      var stubApp2SetVisible = this.sinon.stub(app2, 'setVisible');
+      app1.frontWindow = app2;
+      app2.rearWindow = app1;
+      app1.setVisible(true);
+      assert.isTrue(stubApp2SetVisible.calledWith(true));
+
+      app1.setVisible(false);
+      assert.isTrue(stubApp2SetVisible.calledWith(false));
+    });
   });
 
   suite('Event handlers', function() {
@@ -847,18 +873,18 @@ suite('system/AppWindow', function() {
       var spyOpen = this.sinon.spy(app1, 'open');
       var spyClose = this.sinon.spy(app2, 'close');
       var stubIsActive = this.sinon.stub(app2, 'isActive');
-      app1.setActivityCallee(app2);
+      app1.setCalleeWindow(app2);
       stubIsActive.returns(true);
 
-      assert.deepEqual(app1.activityCallee, app2);
-      assert.deepEqual(app2.activityCaller, app1);
+      assert.deepEqual(app1.calleeWindow, app2);
+      assert.deepEqual(app2.callerWindow, app1);
 
       app2.handleEvent({
         type: 'mozbrowseractivitydone'
       });
 
-      assert.isNull(app1.activityCallee);
-      assert.isNull(app2.activityCaller);
+      assert.isNull(app1.calleeWindow);
+      assert.isNull(app2.callerWindow);
       assert.isTrue(spyOpen.calledWith('in-from-left'));
       assert.isTrue(spyClose.calledWith('out-to-right'));
     });
@@ -925,17 +951,16 @@ suite('system/AppWindow', function() {
       });
 
       assert.isTrue(stubKill.called);
-      assert.isTrue(app1._closed);
     });
 
-    test('Close event to a child window.', function() {
+    test('Kill a child window.', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       var app1parent = new AppWindow(fakeAppConfig2);
       var app1child = new AppWindow(fakeAppConfig3);
-      app1.childWindow = app1child;
-      app1child.parentWindow = app1;
-      app1.parentWindow = app1parent;
-      app1parent.childWindow = app1;
+      app1.nextWindow = app1child;
+      app1child.previousWindow = app1;
+      app1.previousWindow = app1parent;
+      app1parent.nextWindow = app1;
 
       var stubIsActive = this.sinon.stub(app1, 'isActive');
       var stubKillChild = this.sinon.stub(app1child, 'kill');
@@ -943,15 +968,13 @@ suite('system/AppWindow', function() {
       var stubCloseSelf = this.sinon.stub(app1, 'close');
       stubIsActive.returns(true);
 
-      app1.handleEvent({
-        type: 'mozbrowserclose'
-      });
+      app1.kill();
       assert.isTrue(stubOpenParent.calledWith('in-from-left'));
       assert.isTrue(stubCloseSelf.calledWith('out-to-right'));
       assert.isTrue(stubKillChild.called);
-      assert.isNull(app1.parentWindow);
-      assert.isNull(app1parent.childWindow);
-      assert.isNull(app1.childWindow);
+      assert.isNull(app1.previousWindow);
+      assert.isNull(app1parent.nextWindow);
+      assert.isNull(app1.nextWindow);
 
       var stubDestroy = this.sinon.stub(app1, 'destroy');
       app1.element.dispatchEvent(new Event('_closed'));
@@ -1074,6 +1097,65 @@ suite('system/AppWindow', function() {
 
       assert.isTrue(spy.calledWith('closed'));
     });
+
+    test('activity opened event', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      var spySetVisible = this.sinon.spy(app1, 'setVisible');
+      var stubIsOOP = this.sinon.stub(app1, 'isOOP');
+      stubIsOOP.returns(false);
+      app1.handleEvent({
+        type: 'activityopened'
+      });
+      assert.isTrue(spySetVisible.calledWith(false, true));
+    });
+
+    test('popupclosing event', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      var spySetOrientation = this.sinon.spy(app1, 'setOrientation');
+      var spySetVisible = this.sinon.spy(app1, 'setVisible');
+      var stubIsActive = this.sinon.stub(app1, 'isActive');
+      stubIsActive.returns(true);
+      MockAttentionScreen.mFullyVisible = false;
+
+      app1.handleEvent({
+        type: 'popupclosing'
+      });
+
+      assert.isTrue(spySetOrientation.calledWith(true));
+      assert.isTrue(spySetVisible.called);
+    });
+
+    test('activityclosing event', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      var spySetOrientation = this.sinon.spy(app1, 'setOrientation');
+      var spySetVisible = this.sinon.spy(app1, 'setVisible');
+      var stubIsActive = this.sinon.stub(app1, 'isActive');
+      stubIsActive.returns(true);
+      MockAttentionScreen.mFullyVisible = false;
+
+      app1.handleEvent({
+        type: 'activityclosing'
+      });
+
+      assert.isTrue(spySetOrientation.calledWith(true));
+      assert.isTrue(spySetVisible.called);
+    });
+
+    test('activityclosing event when attention screen is shown', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      var spySetOrientation = this.sinon.spy(app1, 'setOrientation');
+      var spySetVisible = this.sinon.spy(app1, 'setVisible');
+      var stubIsActive = this.sinon.stub(app1, 'isActive');
+      stubIsActive.returns(true);
+      MockAttentionScreen.mFullyVisible = true;
+
+      app1.handleEvent({
+        type: 'activityclosing'
+      });
+
+      assert.isTrue(spySetOrientation.calledWith(true));
+      assert.isFalse(spySetVisible.called);
+    });
   });
 
   test('Change URL at run time', function() {
@@ -1121,13 +1203,13 @@ suite('system/AppWindow', function() {
   test('set child window', function() {
     var app1 = new AppWindow(fakeAppConfig1);
     var child = new AppWindow(fakeAppConfig2);
-    app1.setChildWindow(child);
-    assert.deepEqual(app1.childWindow, child);
+    app1.setNextWindow(child);
+    assert.deepEqual(app1.nextWindow, child);
     var childNew = new AppWindow(fakeAppConfig3);
     var stubKillOldChild = this.sinon.stub(child, 'kill');
-    app1.setChildWindow(childNew);
+    app1.setNextWindow(childNew);
     assert.isTrue(stubKillOldChild.called);
-    assert.deepEqual(app1.childWindow, childNew);
+    assert.deepEqual(app1.nextWindow, childNew);
   });
 
   function genFakeConfig(id) {
@@ -1139,13 +1221,29 @@ suite('system/AppWindow', function() {
     };
   }
 
+  function openPopups(count) {
+    var popups = [];
+    for (var i = 0; i < count; i++) {
+      popups.push(new AppWindow(genFakeConfig(i)));
+      if (i > 0) {
+        sheets[i - 1].frontWindow = popups[i];
+        sheets[i].rearWindow = popups[i - 1];
+      }
+    }
+    return popups;
+  }
+
+  suite('Kill embedded windows', function() {
+
+  });
+
   function openSheets(count) {
     var sheets = [];
     for (var i = 0; i < count; i++) {
       sheets.push(new AppWindow(genFakeConfig(i)));
       if (i > 0) {
-        sheets[i - 1].childWindow = sheets[i];
-        sheets[i].parentWindow = sheets[i - 1];
+        sheets[i - 1].nextWindow = sheets[i];
+        sheets[i].previousWindow = sheets[i - 1];
       }
     }
     return sheets;

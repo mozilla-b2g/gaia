@@ -297,7 +297,8 @@
       var classes = ['enlarge', 'reduce', 'to-cardview', 'from-cardview',
         'invoking', 'invoked', 'zoom-in', 'zoom-out', 'fade-in', 'fade-out',
         'transition-opening', 'transition-closing', 'immediate',
-        'slideleft', 'slideright', 'in-from-left', 'out-to-right'];
+        'slideleft', 'slideright', 'in-from-left', 'out-to-right',
+        'slideup', 'slidedown'];
 
       classes.forEach(function iterator(cls) {
         this.app.element.classList.remove(cls);

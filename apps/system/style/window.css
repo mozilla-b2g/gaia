@@ -1,5 +1,5 @@
-#windows > .appWindow,
-#windows > .activityWindow {
+.appWindow,
+.activityWindow {
   position: absolute;
   left: 0;
   border: 0;
@@ -11,6 +11,15 @@
   height: 100%;
   background-repeat: no-repeat;
   background-position: center center;
+}
+
+.appWindow > .appWindow.popupWindow,
+.appWindow > .appWindow.activityWindow {
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 65536;
 }
 
 @media not all and (-moz-physical-home-button) {
@@ -31,14 +40,22 @@
   pointer-events: none;
 }
 
-#windows > .appWindow:not(.homescreen) {
+/* Background color of app windows */
+
+.appWindow:not(.homescreen) {
   background-color: black;
 }
 
-#windows > .appWindow:not(.homescreen).render {
+.appWindow.popupWindow {
+  background-color: white;
+}
+
+.appWindow:not(.homescreen).render {
   background-image: none !important;
   background-color: transparent;
 }
+
+/* mozbrowser iframe layout */
 
 .appWindow > iframe {
   position: absolute;
@@ -76,10 +93,17 @@
   height: calc(100% - 6rem);
 }
 
+.appWindow .throbber.loading {
+  height: 0.3rem;
+  background-image: url('../shared/progress.gif');
+  background-size: auto 0.3rem;
+}
 
-#windows > .appWindow:not(.homescreen).render > iframe {
+.appWindow:not(.homescreen).render > iframe {
   background-color: #fff;
 }
+
+/* app window layout */
 
 #screen.active-statusbar > #windows > .appWindow,
 #screen.active-statusbar > #windows > .appWindow.fullscreen-app {
@@ -92,11 +116,11 @@
   animation: openApp 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
-#windows > .appWindow.transition-closing.perpendicular {
+.appWindow.transition-closing.perpendicular {
   animation-duration: 0.1s;
 }
 
-#windows > .appWindow.from-cardview {
+.appWindow.from-cardview {
   animation: openAppFromCardView 0.15s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
@@ -110,7 +134,7 @@
   100% { transform: scale(1.0);}
 }
 
-#windows > .appWindow.zoom-in {
+.appWindow.zoom-in {
   transform: scale(1);
   animation: zoom-in 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
@@ -190,27 +214,27 @@
        }
 }
 
-#windows.slow-transition > .appWindow.transition-closing,
-#windows.slow-transition > .appWindow.transition-opening {
+#windows.slow-transition .appWindow.transition-closing,
+#windows.slow-transition .appWindow.transition-opening {
   animation-duration: 3s;
 }
 
-#windows > .appWindow.transition-closing,
-#windows > .appWindow.transition-opening {
+#windows .appWindow.transition-closing,
+#windows .appWindow.transition-opening {
   /* The animation takes .3 seconds so users cannot touch the app while the
    * closing animation is performing */
   pointer-events: none;
 }
 
-#windows > .appWindow.reduce {
+.appWindow.reduce {
   animation: closeApp 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
-#windows > .appWindow.transition-closing.perpendicular {
+.appWindow.transition-closing.perpendicular {
   animation-duration: 0.1s;
 }
 
-#windows > .appWindow.zoom-out {
+.appWindow.zoom-out {
   transform: scale(5);
   animation: zoom-out 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
@@ -220,7 +244,7 @@
   100% { transform: scale(1);}
 }
 
-#windows > .appWindow.to-cardview {
+.appWindow.to-cardview {
   animation: closeAppTowardsCardView 0.15s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
@@ -415,12 +439,20 @@
 
 /* animation */
 
-#windows > .activityWindow.slideleft {
+.appWindow.slideleft {
   animation: slideLeft 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
-#windows > .activityWindow.slideright {
+.appWindow.slideright {
   animation: slideRight 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+}
+
+.appWindow.slideup {
+  animation: slideUp 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+}
+
+.appWindow.slidedown {
+  animation: slideDown 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
 .appWindow.in-from-left {
@@ -439,6 +471,16 @@
 @keyframes slideRight {
   0%   { transform: translateX(0); }
   100% { transform: translateX(calc(100% + 20px)); }
+}
+
+@keyframes slideUp {
+  0%   { transform: translateY(100%); }
+  100% { transform: translateY(0); }
+}
+
+@keyframes slideDown {
+  0%   { transform: translateY(0); }
+  100% { transform: translateY(100%); }
 }
 
 @keyframes inFromLeft {
@@ -465,7 +507,7 @@
   will-change: transform;
 }
 
-#screen.edges #windows > .appWindow.active {
+#screen.edges #windows .appWindow.active {
   will-change: transform;
 }
 
