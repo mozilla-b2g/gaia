@@ -183,6 +183,20 @@ suite('system/UtilityTray', function() {
       };
     });
 
+    test('onTouchStart is not called if LockScreen is locked', function() {
+      window.lockScreen.locked = true;
+      var stub = this.sinon.stub(UtilityTray, 'onTouchStart');
+      UtilityTray.handleEvent(fakeEvt);
+      assert.ok(stub.notCalled);
+    });
+
+    test('onTouchStart is called if LockScreen is not locked', function() {
+      window.lockScreen.locked = false;
+      var stub = this.sinon.stub(UtilityTray, 'onTouchStart');
+      UtilityTray.handleEvent(fakeEvt);
+      assert.ok(stub.calledOnce);
+    });
+
     test('Test UtilityTray.active, should be true', function() {
       /* XXX: This is to test UtilityTray.active,
               it works in local test but breaks in travis. */
