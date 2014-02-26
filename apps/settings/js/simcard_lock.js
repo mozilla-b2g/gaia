@@ -1,6 +1,6 @@
 /* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-/* global Template, SimPinDialog, SimPinLock, SettingsListener */
+/* global Template, SimPinDialog, SimPinLock, Toaster */
 
 'use strict';
 
@@ -122,6 +122,9 @@
       var cardIndex = target.dataset && target.dataset.simIndex;
       var type = target.dataset && target.dataset.type;
       var self = this;
+
+      // We need number type
+      cardIndex = parseInt(cardIndex, 10);
 
       switch (type) {
         case 'checkSimPin':
