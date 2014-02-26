@@ -7,6 +7,7 @@ define(function(require, exports, module) {
 
 var performanceTesting = require('performanceTesting');
 var ViewfinderView = require('views/viewfinder');
+var IndicatorsView = require('views/indicators');
 var ControlsView2 = require('views/controls-2');
 var ControlsView = require('views/controls');
 var FocusRing = require('views/focus-ring');
@@ -100,6 +101,9 @@ App.prototype.teardown = function() {
  * Runs controllers to glue all
  * the parts of the app together.
  *
+ * NOTE: Order that controllers
+ * run, can be important!
+ *
  * @private
  */
 App.prototype.runControllers = function() {
@@ -110,6 +114,7 @@ App.prototype.runControllers = function() {
   this.controllers.timer(this);
   this.controllers.camera(this);
   this.controllers.viewfinder(this);
+  this.controllers.indicators(this);
   this.controllers.controls(this);
   this.controllers.confirm(this);
   this.controllers.overlay(this);
@@ -120,12 +125,12 @@ App.prototype.runControllers = function() {
 
 App.prototype.initializeViews = function() {
   if (this.views) { return; }
-  this.views = {
-    viewfinder: new ViewfinderView(),
-    focusRing: new FocusRing(),
-    controls: new this.ControlsView(),
-    hud: new HudView()
-  };
+  this.views = {};
+  this.views.viewfinder = new ViewfinderView();
+  this.views.controls = new this.ControlsView();
+  this.views.indicators = new IndicatorsView();
+  this.views.focusRing = new FocusRing();
+  this.views.hud = new HudView();
   debug('views initialized');
 };
 
@@ -134,12 +139,14 @@ App.prototype.injectViews = function() {
   this.views.controls.appendTo(this.el);
   this.views.viewfinder.appendTo(this.el);
   this.views.focusRing.appendTo(this.el);
+  this.views.indicators.appendTo(this.el);
   debug('views injected');
 };
 
 /**
  * Attaches event handlers.
  *
+ * @private
  */
 App.prototype.bindEvents = function() {
   this.storage.once('checked:healthy', this.geolocationWatch);
@@ -153,6 +160,8 @@ App.prototype.bindEvents = function() {
 
 /**
  * Detaches event handlers.
+ *
+ * @private
  */
 App.prototype.unbindEvents = function() {
   unbind(this.doc, 'visibilitychange', this.onVisibilityChange);
@@ -169,6 +178,8 @@ App.prototype.unbindEvents = function() {
  * Check the storage again as users
  * may have made changes since the
  * app was minimised
+ *
+ * @private
  */
 App.prototype.onFocus = function() {
   var ms = LOCATION_PROMPT_DELAY;
@@ -180,6 +191,8 @@ App.prototype.onFocus = function() {
 /**
  * Tasks to run when the
  * app is minimised/hidden.
+ *
+ * @private
  */
 App.prototype.onBlur = function() {
   this.geolocation.stopWatching();
@@ -198,6 +211,7 @@ App.prototype.onClick = function() {
  * activity and the app
  * isn't currently hidden.
  *
+ * @private
  */
 App.prototype.geolocationWatch = function() {
   var shouldWatch = !this.activity.active && !this.doc.hidden;
