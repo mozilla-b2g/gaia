@@ -15,8 +15,9 @@ suite('Media Remote Controls', function() {
     test('AVRCP.PLAY_PRESS', function() {
       var playListener = this.sinon.spy(function(event) {
         var command = event.detail.command;
-        console.log(command);
         assert.equal(command, REMOTE_CONTROLS.PLAY);
+        var isSCOConnected = event.detail.isSCOConnected;
+        assert.equal(isSCOConnected, false);
         mrc.removeCommandListener(REMOTE_CONTROLS.PLAY, playListener);
         assert.equal(mrc._commandListeners[REMOTE_CONTROLS.PLAY].length, 0);
       });
@@ -27,8 +28,9 @@ suite('Media Remote Controls', function() {
     test('AVRCP.PLAY_PAUSE_PRESS', function() {
       var playpauseListener = this.sinon.spy(function(event) {
         var command = event.detail.command;
-        console.log(command);
         assert.equal(command, REMOTE_CONTROLS.PLAY_PAUSE);
+        var isSCOConnected = event.detail.isSCOConnected;
+        assert.equal(isSCOConnected, false);
         mrc.removeCommandListener(
           REMOTE_CONTROLS.PLAY_PAUSE, playpauseListener
         );
@@ -43,8 +45,9 @@ suite('Media Remote Controls', function() {
     test('AVRCP.PAUSE_PRESS', function() {
       var pauseListener = this.sinon.spy(function(event) {
         var command = event.detail.command;
-        console.log(command);
         assert.equal(command, REMOTE_CONTROLS.PAUSE);
+        var isSCOConnected = event.detail.isSCOConnected;
+        assert.equal(isSCOConnected, false);
         mrc.removeCommandListener(REMOTE_CONTROLS.PAUSE, pauseListener);
         assert.equal(mrc._commandListeners[REMOTE_CONTROLS.PAUSE].length, 0);
       });
@@ -55,7 +58,6 @@ suite('Media Remote Controls', function() {
     test('AVRCP.STOP_PRESS', function() {
       var stopListener = this.sinon.spy(function(event) {
         var command = event.detail.command;
-        console.log(command);
         assert.equal(command, REMOTE_CONTROLS.STOP);
         mrc.removeCommandListener(REMOTE_CONTROLS.STOP, stopListener);
         assert.equal(mrc._commandListeners[REMOTE_CONTROLS.STOP].length, 0);
@@ -67,7 +69,6 @@ suite('Media Remote Controls', function() {
     test('AVRCP.NEXT_PRESS', function() {
       var nextListener = this.sinon.spy(function(event) {
         var command = event.detail.command;
-        console.log(command);
         assert.equal(command, REMOTE_CONTROLS.NEXT);
         mrc.removeCommandListener(REMOTE_CONTROLS.NEXT, nextListener);
         assert.equal(mrc._commandListeners[REMOTE_CONTROLS.NEXT].length, 0);
@@ -79,7 +80,6 @@ suite('Media Remote Controls', function() {
     test('AVRCP.PREVIOUS_PRESS', function() {
       var previousListener = this.sinon.spy(function(event) {
         var command = event.detail.command;
-        console.log(command);
         assert.equal(command, REMOTE_CONTROLS.PREVIOUS);
         mrc.removeCommandListener(REMOTE_CONTROLS.PREVIOUS, previousListener);
         assert.equal(mrc._commandListeners[REMOTE_CONTROLS.PREVIOUS].length, 0);
@@ -92,7 +92,6 @@ suite('Media Remote Controls', function() {
       var seekpressListener = this.sinon.spy(function(event) {
         var command = event.detail.command;
         var direction = event.detail.direction;
-        console.log(command + ': ' + direction);
         assert.equal(command, REMOTE_CONTROLS.SEEK_PRESS);
         assert.strictEqual(direction, 1);
         mrc.removeCommandListener(
@@ -110,7 +109,6 @@ suite('Media Remote Controls', function() {
       var seekpressListener = this.sinon.spy(function(event) {
         var command = event.detail.command;
         var direction = event.detail.direction;
-        console.log(command + ': ' + direction);
         assert.equal(command, REMOTE_CONTROLS.SEEK_PRESS);
         assert.strictEqual(direction, -1);
         mrc.removeCommandListener(
@@ -127,7 +125,6 @@ suite('Media Remote Controls', function() {
     test('AVRCP.FAST_FORWARD_RELEASE', function() {
       var seekreleaseListener = this.sinon.spy(function(event) {
         var command = event.detail.command;
-        console.log(command);
         assert.equal(command, REMOTE_CONTROLS.SEEK_RELEASE);
         mrc.removeCommandListener(
           REMOTE_CONTROLS.SEEK_RELEASE, seekreleaseListener
@@ -143,7 +140,6 @@ suite('Media Remote Controls', function() {
     test('AVRCP.REWIND_RELEASE', function() {
       var seekreleaseListener = this.sinon.spy(function(event) {
         var command = event.detail.command;
-        console.log(command);
         assert.equal(command, REMOTE_CONTROLS.SEEK_RELEASE);
         mrc.removeCommandListener(
           REMOTE_CONTROLS.SEEK_RELEASE, seekreleaseListener
@@ -158,12 +154,62 @@ suite('Media Remote Controls', function() {
     });
   });
 
+  suite('AVRCP commands(SCO is enabled)', function() {
+    setup(function() {
+      mrc._isSCOConnected = true;
+    });
+    test('AVRCP.PLAY_PRESS', function() {
+      var playListener = this.sinon.spy(function(event) {
+        var command = event.detail.command;
+        assert.equal(command, REMOTE_CONTROLS.PLAY);
+        var isSCOConnected = event.detail.isSCOConnected;
+        assert.equal(isSCOConnected, true);
+        mrc.removeCommandListener(REMOTE_CONTROLS.PLAY, playListener);
+        assert.equal(mrc._commandListeners[REMOTE_CONTROLS.PLAY].length, 0);
+      });
+      mrc.addCommandListener(REMOTE_CONTROLS.PLAY, playListener);
+      mrc._commandHandler(AVRCP.PLAY_PRESS);
+      assert.ok(playListener.calledOnce);
+    });
+    test('AVRCP.PLAY_PAUSE_PRESS', function() {
+      var playpauseListener = this.sinon.spy(function(event) {
+        var command = event.detail.command;
+        assert.equal(command, REMOTE_CONTROLS.PLAY_PAUSE);
+        var isSCOConnected = event.detail.isSCOConnected;
+        assert.equal(isSCOConnected, true);
+        mrc.removeCommandListener(
+          REMOTE_CONTROLS.PLAY_PAUSE, playpauseListener
+        );
+        assert.equal(
+          mrc._commandListeners[REMOTE_CONTROLS.PLAY_PAUSE].length, 0
+        );
+      });
+      mrc.addCommandListener(REMOTE_CONTROLS.PLAY_PAUSE, playpauseListener);
+      mrc._commandHandler(AVRCP.PLAY_PAUSE_PRESS);
+      assert.ok(playpauseListener.calledOnce);
+    });
+    test('AVRCP.PAUSE_PRESS', function() {
+      var pauseListener = this.sinon.spy(function(event) {
+        var command = event.detail.command;
+        assert.equal(command, REMOTE_CONTROLS.PAUSE);
+        var isSCOConnected = event.detail.isSCOConnected;
+        assert.equal(isSCOConnected, true);
+        mrc.removeCommandListener(REMOTE_CONTROLS.PAUSE, pauseListener);
+        assert.equal(mrc._commandListeners[REMOTE_CONTROLS.PAUSE].length, 0);
+      });
+      mrc.addCommandListener(REMOTE_CONTROLS.PAUSE, pauseListener);
+      mrc._commandHandler(AVRCP.PAUSE_PRESS);
+      assert.ok(pauseListener.calledOnce);
+    });
+  });
+
   suite('IAC commands', function() {
     test('IAC.PLAY_PRESS', function() {
       var playListener = this.sinon.spy(function(event) {
         var command = event.detail.command;
-        console.log(command);
         assert.equal(command, REMOTE_CONTROLS.PLAY);
+        var isSCOConnected = event.detail.isSCOConnected;
+        assert.equal(isSCOConnected, false);
         mrc.removeCommandListener(REMOTE_CONTROLS.PLAY, playListener);
         assert.equal(mrc._commandListeners[REMOTE_CONTROLS.PLAY].length, 0);
       });
@@ -174,8 +220,9 @@ suite('Media Remote Controls', function() {
     test('IAC.PLAY_PAUSE_PRESS', function() {
       var playpauseListener = this.sinon.spy(function(event) {
         var command = event.detail.command;
-        console.log(command);
         assert.equal(command, REMOTE_CONTROLS.PLAY_PAUSE);
+        var isSCOConnected = event.detail.isSCOConnected;
+        assert.equal(isSCOConnected, false);
         mrc.removeCommandListener(
           REMOTE_CONTROLS.PLAY_PAUSE, playpauseListener
         );
@@ -190,8 +237,9 @@ suite('Media Remote Controls', function() {
     test('IAC.PAUSE_PRESS', function() {
       var pauseListener = this.sinon.spy(function(event) {
         var command = event.detail.command;
-        console.log(command);
         assert.equal(command, REMOTE_CONTROLS.PAUSE);
+        var isSCOConnected = event.detail.isSCOConnected;
+        assert.equal(isSCOConnected, false);
         mrc.removeCommandListener(REMOTE_CONTROLS.PAUSE, pauseListener);
         assert.equal(mrc._commandListeners[REMOTE_CONTROLS.PAUSE].length, 0);
       });
@@ -202,7 +250,6 @@ suite('Media Remote Controls', function() {
     test('IAC.STOP_PRESS', function() {
       var stopListener = this.sinon.spy(function(event) {
         var command = event.detail.command;
-        console.log(command);
         assert.equal(command, REMOTE_CONTROLS.STOP);
         mrc.removeCommandListener(REMOTE_CONTROLS.STOP, stopListener);
         assert.equal(mrc._commandListeners[REMOTE_CONTROLS.STOP].length, 0);
@@ -214,7 +261,6 @@ suite('Media Remote Controls', function() {
     test('IAC.NEXT_PRESS', function() {
       var nextListener = this.sinon.spy(function(event) {
         var command = event.detail.command;
-        console.log(command);
         assert.equal(command, REMOTE_CONTROLS.NEXT);
         mrc.removeCommandListener(REMOTE_CONTROLS.NEXT, nextListener);
         assert.equal(mrc._commandListeners[REMOTE_CONTROLS.NEXT].length, 0);
@@ -226,7 +272,6 @@ suite('Media Remote Controls', function() {
     test('IAC.PREVIOUS_PRESS', function() {
       var previousListener = this.sinon.spy(function(event) {
         var command = event.detail.command;
-        console.log(command);
         assert.equal(command, REMOTE_CONTROLS.PREVIOUS);
         mrc.removeCommandListener(REMOTE_CONTROLS.PREVIOUS, previousListener);
         assert.equal(mrc._commandListeners[REMOTE_CONTROLS.PREVIOUS].length, 0);
@@ -239,7 +284,6 @@ suite('Media Remote Controls', function() {
       var seekpressListener = this.sinon.spy(function(event) {
         var command = event.detail.command;
         var direction = event.detail.direction;
-        console.log(command + ': ' + direction);
         assert.equal(command, REMOTE_CONTROLS.SEEK_PRESS);
         assert.strictEqual(direction, 1);
         mrc.removeCommandListener(
@@ -257,7 +301,6 @@ suite('Media Remote Controls', function() {
       var seekpressListener = this.sinon.spy(function(event) {
         var command = event.detail.command;
         var direction = event.detail.direction;
-        console.log(command + ': ' + direction);
         assert.equal(command, REMOTE_CONTROLS.SEEK_PRESS);
         assert.strictEqual(direction, -1);
         mrc.removeCommandListener(
@@ -274,7 +317,6 @@ suite('Media Remote Controls', function() {
     test('IAC.FAST_FORWARD_RELEASE', function() {
       var seekreleaseListener = this.sinon.spy(function(event) {
         var command = event.detail.command;
-        console.log(command);
         assert.equal(command, REMOTE_CONTROLS.SEEK_RELEASE);
         mrc.removeCommandListener(
           REMOTE_CONTROLS.SEEK_RELEASE, seekreleaseListener
@@ -290,7 +332,6 @@ suite('Media Remote Controls', function() {
     test('IAC.REWIND_RELEASE', function() {
       var seekreleaseListener = this.sinon.spy(function(event) {
         var command = event.detail.command;
-        console.log(command);
         assert.equal(command, REMOTE_CONTROLS.SEEK_RELEASE);
         mrc.removeCommandListener(
           REMOTE_CONTROLS.SEEK_RELEASE, seekreleaseListener
@@ -305,11 +346,59 @@ suite('Media Remote Controls', function() {
     });
   });
 
+  suite('IAC commands(SCO is enabled)', function() {
+    setup(function() {
+      mrc._isSCOConnected = true;
+    });
+    test('IAC.PLAY_PRESS', function() {
+      var playListener = this.sinon.spy(function(event) {
+        var command = event.detail.command;
+        assert.equal(command, REMOTE_CONTROLS.PLAY);
+        var isSCOConnected = event.detail.isSCOConnected;
+        assert.equal(isSCOConnected, true);
+        mrc.removeCommandListener(REMOTE_CONTROLS.PLAY, playListener);
+        assert.equal(mrc._commandListeners[REMOTE_CONTROLS.PLAY].length, 0);
+      });
+      mrc.addCommandListener(REMOTE_CONTROLS.PLAY, playListener);
+      mrc._commandHandler(IAC.PLAY_PRESS);
+      assert.ok(playListener.calledOnce);
+    });
+    test('IAC.PLAY_PAUSE_PRESS', function() {
+      var playpauseListener = this.sinon.spy(function(event) {
+        var command = event.detail.command;
+        assert.equal(command, REMOTE_CONTROLS.PLAY_PAUSE);
+        var isSCOConnected = event.detail.isSCOConnected;
+        assert.equal(isSCOConnected, true);
+        mrc.removeCommandListener(
+          REMOTE_CONTROLS.PLAY_PAUSE, playpauseListener
+        );
+        assert.equal(
+          mrc._commandListeners[REMOTE_CONTROLS.PLAY_PAUSE].length, 0
+        );
+      });
+      mrc.addCommandListener(REMOTE_CONTROLS.PLAY_PAUSE, playpauseListener);
+      mrc._commandHandler(IAC.PLAY_PAUSE_PRESS);
+      assert.ok(playpauseListener.calledOnce);
+    });
+    test('IAC.PAUSE_PRESS', function() {
+      var pauseListener = this.sinon.spy(function(event) {
+        var command = event.detail.command;
+        assert.equal(command, REMOTE_CONTROLS.PAUSE);
+        var isSCOConnected = event.detail.isSCOConnected;
+        assert.equal(isSCOConnected, true);
+        mrc.removeCommandListener(REMOTE_CONTROLS.PAUSE, pauseListener);
+        assert.equal(mrc._commandListeners[REMOTE_CONTROLS.PAUSE].length, 0);
+      });
+      mrc.addCommandListener(REMOTE_CONTROLS.PAUSE, pauseListener);
+      mrc._commandHandler(IAC.PAUSE_PRESS);
+      assert.ok(pauseListener.calledOnce);
+    });
+  });
+
   suite('UPDATE commands', function() {
     test('REMOTE_CONTROLS.UPDATE_METADATA', function() {
       var updatemetadataListener = this.sinon.spy(function(event) {
         var command = event.detail.command;
-        console.log(command);
         assert.equal(command, REMOTE_CONTROLS.UPDATE_METADATA);
         mrc.removeCommandListener(
           REMOTE_CONTROLS.UPDATE_METADATA, updatemetadataListener
@@ -327,7 +416,6 @@ suite('Media Remote Controls', function() {
     test('REMOTE_CONTROLS.UPDATE_PLAYSTATUS', function() {
       var updateplaystatusListener = this.sinon.spy(function(event) {
         var command = event.detail.command;
-        console.log(command);
         assert.equal(command, REMOTE_CONTROLS.UPDATE_PLAYSTATUS);
         mrc.removeCommandListener(
           REMOTE_CONTROLS.UPDATE_PLAYSTATUS, updateplaystatusListener
