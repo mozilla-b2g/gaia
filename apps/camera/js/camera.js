@@ -1120,12 +1120,10 @@ var Camera = {
     transform += 'rotate(' + camera.sensorAngle + 'deg)';
     style.transform = transform;
 
-    style.left =
-      ((screenWidth - previewWidth) / 2 / window.devicePixelRatio) + 'px';
-    style.top =
-      ((screenHeight - previewHeight) / 2 / window.devicePixelRatio) + 'px';
-    style.width = previewWidth / window.devicePixelRatio + 'px';
-    style.height = previewHeight / window.devicePixelRatio + 'px';
+    style.left = ((screenWidth - previewWidth) / 2) + 'px';
+    style.top = ((screenHeight - previewHeight) / 2) + 'px';
+    style.width = previewWidth + 'px';
+    style.height = previewHeight + 'px';
   },
 
   recordingStateChanged: function(msg) {
