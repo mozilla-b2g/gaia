@@ -8,6 +8,7 @@ requireApp('system/test/unit/mock_screen_layout.js');
 requireApp('system/test/unit/mock_trusted_ui_manager.js');
 requireApp('system/test/unit/mock_utility_tray.js');
 requireApp('system/test/unit/mock_app_window_manager.js');
+requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_lock_screen.js');
 requireApp('system/test/unit/mock_orientation_manager.js');
 requireApp('system/test/unit/mock_rocketbar.js');
@@ -25,102 +26,9 @@ var mocksForCardsView = new MocksHelper([
   'SleepMenu',
   'OrientationManager',
   'PopupManager',
-  'StackManager'
+  'StackManager',
+  'AppWindow'
 ]).init();
-
-var apps =
-{
-  'http://sms.gaiamobile.org': {
-    launchTime: 5,
-    name: 'SMS',
-    frame: document.createElement('div'),
-    iframe: document.createElement('iframe'),
-    manifest: {
-      orientation: 'portrait-primary'
-    },
-    rotatingDegree: 0,
-    requestScreenshotURL: function() {
-      return null;
-    },
-    getScreenshot: function(callback) {
-      callback();
-    },
-    origin: 'http://sms.gaiamobile.org',
-    blur: function() {}
-  },
-  'http://game.gaiamobile.org': {
-    launchTime: 4,
-    name: 'GAME',
-    frame: document.createElement('div'),
-    iframe: document.createElement('iframe'),
-    manifest: {
-      orientation: 'landscape-primary'
-    },
-    rotatingDegree: 90,
-    requestScreenshotURL: function() {
-      return null;
-    },
-    getScreenshot: function(callback) {
-      callback();
-    },
-    origin: 'http://game.gaiamobile.org',
-    blur: function() {}
-  },
-  'http://game2.gaiamobile.org': {
-    launchTime: 3,
-    name: 'GAME2',
-    frame: document.createElement('div'),
-    iframe: document.createElement('iframe'),
-    manifest: {
-      orientation: 'landscape-secondary'
-    },
-    rotatingDegree: 270,
-    requestScreenshotURL: function() {
-      return null;
-    },
-    getScreenshot: function(callback) {
-      callback();
-    },
-    origin: 'http://game2.gaiamobile.org',
-    blur: function() {}
-  },
-  'http://game3.gaiamobile.org': {
-    launchTime: 2,
-    name: 'GAME3',
-    frame: document.createElement('div'),
-    iframe: document.createElement('iframe'),
-    manifest: {
-      orientation: 'landscape'
-    },
-    rotatingDegree: 90,
-    requestScreenshotURL: function() {
-      return null;
-    },
-    getScreenshot: function(callback) {
-      callback();
-    },
-    origin: 'http://game3.gaiamobile.org',
-    blur: function() {}
-  },
-  'http://game4.gaiamobile.org': {
-    launchTime: 1,
-    name: 'GAME4',
-    frame: document.createElement('div'),
-    iframe: document.createElement('iframe'),
-    manifest: {
-      orientation: 'portrait-secondary'
-    },
-    rotatingDegree: 180,
-    requestScreenshotURL: function() {
-      return null;
-    },
-    getScreenshot: function(callback) {
-      callback();
-    },
-    origin: 'http://game4.gaiamobile.org',
-    blur: function() {}
-  }
-};
 
 suite('cards view >', function() {
   var subject;
@@ -128,6 +36,100 @@ suite('cards view >', function() {
   var screenNode, realMozLockOrientation, realScreenLayout;
   var cardsView, cardsList;
   var originalLockScreen;
+
+  var apps =
+  {
+    'http://sms.gaiamobile.org': new AppWindow({
+      launchTime: 5,
+      name: 'SMS',
+      frame: document.createElement('div'),
+      iframe: document.createElement('iframe'),
+      manifest: {
+        orientation: 'portrait-primary'
+      },
+      rotatingDegree: 0,
+      requestScreenshotURL: function() {
+        return null;
+      },
+      getScreenshot: function(callback) {
+        callback();
+      },
+      origin: 'http://sms.gaiamobile.org',
+      blur: function() {}
+    }),
+    'http://game.gaiamobile.org': new AppWindow({
+      launchTime: 4,
+      name: 'GAME',
+      frame: document.createElement('div'),
+      iframe: document.createElement('iframe'),
+      manifest: {
+        orientation: 'landscape-primary'
+      },
+      rotatingDegree: 90,
+      requestScreenshotURL: function() {
+        return null;
+      },
+      getScreenshot: function(callback) {
+        callback();
+      },
+      origin: 'http://game.gaiamobile.org',
+      blur: function() {}
+    }),
+    'http://game2.gaiamobile.org': new AppWindow({
+      launchTime: 3,
+      name: 'GAME2',
+      frame: document.createElement('div'),
+      iframe: document.createElement('iframe'),
+      manifest: {
+        orientation: 'landscape-secondary'
+      },
+      rotatingDegree: 270,
+      requestScreenshotURL: function() {
+        return null;
+      },
+      getScreenshot: function(callback) {
+        callback();
+      },
+      origin: 'http://game2.gaiamobile.org',
+      blur: function() {}
+    }),
+    'http://game3.gaiamobile.org': new AppWindow({
+      launchTime: 2,
+      name: 'GAME3',
+      frame: document.createElement('div'),
+      iframe: document.createElement('iframe'),
+      manifest: {
+        orientation: 'landscape'
+      },
+      rotatingDegree: 90,
+      requestScreenshotURL: function() {
+        return null;
+      },
+      getScreenshot: function(callback) {
+        callback();
+      },
+      origin: 'http://game3.gaiamobile.org',
+      blur: function() {}
+    }),
+    'http://game4.gaiamobile.org': new AppWindow({
+      launchTime: 1,
+      name: 'GAME4',
+      frame: document.createElement('div'),
+      iframe: document.createElement('iframe'),
+      manifest: {
+        orientation: 'portrait-secondary'
+      },
+      rotatingDegree: 180,
+      requestScreenshotURL: function() {
+        return null;
+      },
+      getScreenshot: function(callback) {
+        callback();
+      },
+      origin: 'http://game4.gaiamobile.org',
+      blur: function() {}
+    })
+  };
 
   mocksForCardsView.attachTestHelpers();
   suiteSetup(function(done) {
@@ -160,7 +162,7 @@ suite('cards view >', function() {
 
   var sms, game, game2, game3, game4;
 
-  sms = {
+  sms = new AppWindow({
     instanceID: 'AppWindow-0',
     launchTime: 5,
     name: 'SMS',
@@ -178,9 +180,9 @@ suite('cards view >', function() {
       callback();
     },
     blur: function() {}
-  };
+  });
 
-  game = {
+  game = new AppWindow({
     instanceID: 'AppWindow-1',
     launchTime: 5,
     name: 'GAME',
@@ -198,9 +200,9 @@ suite('cards view >', function() {
       callback();
     },
     blur: function() {}
-  };
+  });
 
-  game2 = {
+  game2 = new AppWindow({
     instanceID: 'AppWindow-2',
     launchTime: 5,
     name: 'GAME2',
@@ -218,9 +220,9 @@ suite('cards view >', function() {
       callback();
     },
     blur: function() {}
-  };
+  });
 
-  game3 = {
+  game3 = new AppWindow({
     instanceID: 'AppWindow-3',
     launchTime: 5,
     name: 'GAME3',
@@ -238,9 +240,9 @@ suite('cards view >', function() {
       callback();
     },
     blur: function() {}
-  };
+  });
 
-  game4 = {
+  game4 = new AppWindow({
     instanceID: 'AppWindow-4',
     launchTime: 5,
     name: 'GAME4',
@@ -258,7 +260,7 @@ suite('cards view >', function() {
       callback();
     },
     blur: function() {}
-  };
+  });
 
   suite('populated cards view >', function() {
     teardown(function() {

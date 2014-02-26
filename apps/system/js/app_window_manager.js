@@ -84,7 +84,8 @@
       }
 
       // If the app has child app window, open it instead.
-      while (appNext.childWindow) {
+      while (appNext.childWindow &&
+            !(appNext.childWindow instanceof PopupWindow)) {
         appNext = appNext.childWindow;
       }
 

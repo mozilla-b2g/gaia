@@ -223,24 +223,12 @@ var CardsView = (function() {
       title.textContent = app.name;
       card.appendChild(title);
 
-      var frameForScreenshot = app.iframe;
+      var frameForScreenshot = app.getFrameForScreenshot();
 
       var origin = stack[position].origin;
-      if (PopupManager.getPopupFromOrigin(origin)) {
-        var popupFrame =
-          PopupManager.getPopupFromOrigin(origin);
-        frameForScreenshot = popupFrame;
-
+      if (getOffOrigin(frameForScreenshot.src, app.origin)) {
         var subtitle = document.createElement('p');
-        subtitle.textContent =
-          PopupManager.getOpenedOriginFromOpener(app.origin);
-        card.appendChild(subtitle);
-        card.classList.add('popup');
-      } else if (getOffOrigin(app.iframe.dataset.url ?
-            app.iframe.dataset.url : app.iframe.src, app.origin)) {
-        var subtitle = document.createElement('p');
-        subtitle.textContent = getOffOrigin(app.iframe.dataset.url ?
-            app.iframe.dataset.url : app.iframe.src, app.origin);
+        subtitle.textContent = getOffOrigin(frameForScreenshot.src, app.origin);
         card.appendChild(subtitle);
       }
 
