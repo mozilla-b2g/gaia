@@ -17,5 +17,4 @@ $gaiatest --app=b2gdesktop \
           --type=b2g \
           --timeout=10000 \
           --html-output artifacts/gaia_ui_tests_report.html \
-          --restart $root/tests/functional/messages/test_sms_to_settings.py \
-          --repeat=50
+          --restart $root/tests/manifest.ini
