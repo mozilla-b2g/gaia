@@ -58,23 +58,25 @@ module.exports = View.extend({
   },
 
   onButtonClick: function(e, el) {
+    e.preventDefault();
     e.stopPropagation();
     var name = el.getAttribute('name');
     this.emit('click:' + name, e);
   },
 
   template: function() {
-    return '<a class="switch-button test-switch js-btn" name="switch">' +
+    return '<button class="switch-button test-switch js-btn" name="switch">' +
       '<span class="icon rotates"></span>' +
-    '</a>' +
-    '<a class="capture-button test-capture js-btn" name="capture">' +
+    '</button>' +
+    '<button class="capture-button test-capture js-btn" name="capture">' +
       '<span class="icon rotates"></span>' +
-    '</a>' +
+    '</button>' +
     '<div class="misc-button">' +
-      '<a class="gallery-button test-gallery js-btn" name="gallery">' +
+      '<button class="gallery-button test-gallery js-btn" name="gallery">' +
         '<span class="icon-gallery rotates"></span>' +
-      '</a>' +
-      '<a class="cancel-pick test-cancel-pick js-btn" name="cancel"></a>' +
+      '</button>' +
+      '<button class="cancel-pick test-cancel-pick js-btn" name="cancel">' +
+      '</button>' +
       '<span class="video-timer test-video-timer js-video-timer">00:00</span>' +
     '</div>';
   },

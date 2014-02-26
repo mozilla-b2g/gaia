@@ -8,10 +8,21 @@
   z-index: 50;
   background-color: rgba(0, 0, 0, 0.8);
   overflow: hidden;
+}
+
+.controls a,
+.controls button {
+  background: none;
+  border: none;
   font-size: 3rem;
   line-height: 5rem;
   text-align: center;
   color: #fff;
+  text-shadow: none;
+}
+
+.controls button {
+  line-height: 5.5rem;
 }
 
 .switch-button,
@@ -124,9 +135,9 @@
  * 1. Vertically center icon
  */
 
-.capture-button {
-  line-height: 10.4rem; /* 1 */
-  background-color: #03a2b4;
+.controls .capture-button {
+  line-height: 10.8rem; /* 1 */
+  background: #03a2b4;
   border-radius: 10rem;
   left: 33%;
   height: 10rem;
@@ -139,7 +150,7 @@
  */
 
 .controls[recording=true] .capture-button {
-  background-color: #d3361c;
+  background: #d3361c;
 }
 
 /** Capture Button Icon
