@@ -137,7 +137,7 @@ Evme.BackgroundImage = new function Evme_BackgroundImage() {
 
     var el = Evme.$create('div', {'id': 'bgimage-overlay'},
       '<div class="img" style="background-image: url(' + data.image +
-        ')"></div>' +
+        '); background-size: cover;"></div>' +
       '<div class="content">' +
         '<b class="rightbutton"></b>' +
         ((data.query) ? '<h2>' + data.query + '</h2>' : '') +
