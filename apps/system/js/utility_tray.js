@@ -83,7 +83,7 @@ var UtilityTray = {
         break;
 
       case 'touchstart':
-        if (LockScreen.locked)
+        if (lockScreen.locked)
           return;
         if (evt.target !== this.overlay &&
             evt.currentTarget !== this.statusbar &&
