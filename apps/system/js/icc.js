@@ -144,8 +144,8 @@ var icc = {
    */
   responseSTKCommand: function icc_responseSTKCommand(message, response) {
     DUMP('STK sendStkResponse -- # response = ', response);
-    var _icc = icc.getIcc(message.iccId);
-    _icc && _icc.sendStkResponse(message.command, response);
+
+    (icc.getIcc(message.iccId)).sendStkResponse(message.command, response);
   },
 
   /**
