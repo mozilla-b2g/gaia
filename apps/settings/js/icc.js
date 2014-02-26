@@ -168,7 +168,7 @@
         backButton.onclick = function _back() {
           stkResGoBack(message);
         };
-        break;
+      break;
 
       default:
         DUMP('STK Message not managed... response OK');
