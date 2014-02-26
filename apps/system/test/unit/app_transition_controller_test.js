@@ -1,5 +1,5 @@
-/* global MocksHelper, LayoutManager, MockAppWindow, AppTransitionController,
-          layoutManager */
+/* global MocksHelper, LayoutManager, MockAppWindow,
+          AppTransitionController, layoutManager */
 'use strict';
 
 mocha.globals(['AppTransitionController', 'AppWindow', 'System',

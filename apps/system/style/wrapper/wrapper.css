@@ -7,6 +7,10 @@
   left: 0;
 }
 
+.appWindow:not(.navigation) .navigation {
+  display: none;
+}
+
 .chrome > .title {
   position: absolute;
   top: 0;
@@ -17,7 +21,7 @@
   pointer-events: auto;
 }
 
-.chrome > .progress {
+.chrome .progress {
   position: absolute;
   top: 0;
   left: 0;
@@ -27,9 +31,19 @@
   height: 0.3rem;
   pointer-events: none;
   visibility: hidden;
+  z-index: 1000;
 }
 
-.chrome > .progress.visible {
+.chrome > .rocketbar {
+  pointer-events: auto;
+  display: none;
+} 
+
+.chrome > .rocketbar.visible {
+  display: block;
+}
+
+.chrome .progress.visible {
   visibility: visible;
   background-image: url('../shared/progress.gif');
 }

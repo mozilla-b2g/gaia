@@ -179,10 +179,6 @@
     <script defer src="js/value_selector/value_selector.js"></script>
     <script defer src="shared/js/input_parser.js"></script>
 
-    <!-- Popup Manager -->
-    <link rel="stylesheet" type="text/css" href="style/popup_manager/popup_manager.css">
-    <script defer src="js/popup_manager.js"></script>
-
     <!-- Trusted UI -->
     <link rel="stylesheet" type="text/css" href="style/trusted_ui/trusted_ui.css">
     <script defer src="js/trusted_ui.js"></script>
@@ -300,6 +296,7 @@
     <script defer src="js/app_transition_controller.js"></script>
     <script defer src="js/app_authentication_dialog.js"></script>
     <script defer src="js/app_window.js"></script>
+    <script defer src="js/popup_window.js"></script>
     <script defer src="js/shrinking_ui.js"></script>
     <link rel="stylesheet" type="text/css" href="style/shrinking_ui/shrinking_ui.css">
     <script defer src="js/browser_mixin.js"></script>
@@ -307,7 +304,7 @@
     <script defer src="js/homescreen_window.js"></script>
     <script defer src="js/homescreen_launcher.js"></script>
     <script defer src="js/activity_window.js"></script>
-    <script defer src="js/activity_window_factory.js"></script>
+    <script defer src="js/activity_window_manager.js"></script>
     <script defer src="js/app_window_factory.js"></script>
     <script defer src="js/app_window_manager.js"></script>
     <script defer src="js/secure_window.js"></script>
@@ -650,30 +647,6 @@
               </ul>
             </div>
           </section>
-        </div>
-
-        <div id="popup-container">
-          <section role="region" class="title-container skin-organic">
-            <header>
-              <button id="popup-close"><span class="icon icon-close">close</span></button>
-              <h1 id="popup-title"></h1>
-              <div id="popup-throbber"></div>
-            </header>
-          </section>
-          <div id="frame-container">
-            <div id="popup-error-dialog" role="dialog" class="generic-dialog">
-              <div class="inner">
-                <h3 data-l10n-id="error-title" id="popup-error-title">Hmm, the app is having problems.</h3>
-                <p>
-                <span data-l10n-id="error-message" id="popup-error-message">The app has encountered an error and is not loading properly.</span>
-                </p>
-              </div>
-              <menu data-items="2">
-                <button id="popup-error-back" data-l10n-id="close">Close</button>
-                <button id="popup-error-reload" data-l10n-id="try-again">Try again</button>
-              </menu>
-            </div>
-          </div>
         </div>
 
         <div id="trustedui-container" class="up">

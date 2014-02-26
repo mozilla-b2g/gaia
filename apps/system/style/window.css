@@ -42,10 +42,16 @@
   background-color: black;
 }
 
+.appWindow.popupWindow {
+  background-color: white;
+}
+
 .appWindow:not(.homescreen).render {
   background-image: none !important;
   background-color: transparent;
 }
+
+/* mozbrowser iframe layout */
 
 .appWindow > iframe {
   position: absolute;
@@ -83,10 +89,17 @@
   height: calc(100% - 6rem);
 }
 
+.appWindow .throbber.loading {
+  height: 0.3rem;
+  background-image: url('../shared/progress.gif');
+  background-size: auto 0.3rem;
+}
 
 .appWindow:not(.homescreen).render > iframe {
   background-color: #fff;
 }
+
+/* app window layout */
 
 #screen.active-statusbar > #windows > .appWindow,
 #screen.active-statusbar > #windows > .appWindow.fullscreen-app {
@@ -427,6 +440,22 @@
   z-index: 4;
 }
 
+.appWindow.slideleft {
+  animation: slideLeft 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+}
+
+.appWindow.slideright {
+  animation: slideRight 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+}
+
+.appWindow.slideup {
+  animation: slideUp 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+}
+
+.appWindow.slidedown {
+  animation: slideDown 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+}
+
 .appWindow.in-from-left {
   animation: inFromLeft 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
@@ -480,6 +509,16 @@
 
 .appWindow.out-to-right {
   animation: outToRight 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+}
+
+@keyframes slideUp {
+  0%   { transform: translateY(100%); }
+  100% { transform: translateY(0); }
+}
+
+@keyframes slideDown {
+  0%   { transform: translateY(0); }
+  100% { transform: translateY(100%); }
 }
 
 @keyframes inFromLeft {

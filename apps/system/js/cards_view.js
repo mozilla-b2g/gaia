@@ -1,15 +1,11 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-
-//
-// CardsView is responsible for managing opened apps
-//
+/* global AppWindowManager, SleepMenu, SettingsListener, AttentionScreen,
+          TrustedUIManager, OrientationManager,
+          GestureDetector, UtilityTray, StackManager, Event */
 
 'use strict';
 
 var CardsView = (function() {
   //display icon of an app on top of app's card
-  var DISPLAY_APP_ICON = false;
   var SCREENSHOT_PREVIEWS_SETTING_KEY = 'app.cards_view.screenshots.enabled';
   // use screenshots in cards view? tracks setting value
   var useAppScreenshotPreviews = true;
@@ -29,7 +25,6 @@ var CardsView = (function() {
   // Are we removing the card now?
   var draggingCardUp = false;
   // Are we moving card left or right?
-  var sortingDirection;
   var HVGA = document.documentElement.clientWidth < 480;
   var cardsViewShown = false;
 
@@ -100,14 +95,15 @@ var CardsView = (function() {
 
   function escapeHTML(str, escapeQuotes) {
     var stringHTML = str;
-    stringHTML = stringHTML.replace(/\</g, '&#60;');
+    stringHTML = stringHTML.replace(/\</g, '&#60;'); // jshint ignore: line
     stringHTML = stringHTML.replace(/(\r\n|\n|\r)/gm, '<br/>');
     stringHTML = stringHTML.replace(/\s\s/g, ' &nbsp;');
 
-    if (escapeQuotes)
+    if (escapeQuotes) {
       // The //" is to help dumb editors understand that there's not a
       // open string at EOL.
       return stringHTML.replace(/"/g, '&quot;').replace(/'/g, '&#x27;'); //"
+    }
     return stringHTML;
   }
 
@@ -155,8 +151,9 @@ var CardsView = (function() {
     var inTimeCapture = lastInTimeCapture;
     lastInTimeCapture = false;
 
-    if (cardSwitcherIsShown())
+    if (cardSwitcherIsShown()) {
       return;
+    }
 
     // events to handle
     window.addEventListener('lock', CardsView);
@@ -272,24 +269,13 @@ var CardsView = (function() {
       title.textContent = app.name;
       card.appendChild(title);
 
-      // only take the frame reference if we need to
-      var frameForScreenshot = useAppScreenshotPreviews && app.iframe;
-      var origin = stack[position].origin;
-      if (PopupManager.getPopupFromOrigin(origin)) {
-        var popupFrame =
-          PopupManager.getPopupFromOrigin(origin);
-        frameForScreenshot = useAppScreenshotPreviews && popupFrame;
+      var frameForScreenshot = useAppScreenshotPreviews &&
+        app.getFrameForScreenshot();
 
+      var origin = stack[position].origin;
+      if (getOffOrigin(frameForScreenshot.src, app.origin)) {
         var subtitle = document.createElement('p');
-        subtitle.textContent =
-          PopupManager.getOpenedOriginFromOpener(app.origin);
-        card.appendChild(subtitle);
-        card.classList.add('popup');
-      } else if (getOffOrigin(app.iframe.dataset.url ?
-            app.iframe.dataset.url : app.iframe.src, app.origin)) {
-        var subtitle = document.createElement('p');
-        subtitle.textContent = getOffOrigin(app.iframe.dataset.url ?
-            app.iframe.dataset.url : app.iframe.src, app.origin);
+        subtitle.textContent = getOffOrigin(frameForScreenshot.src, app.origin);
         card.appendChild(subtitle);
       }
 
@@ -339,15 +325,15 @@ var CardsView = (function() {
 
         // Rotate screenshotView if needed
         screenshotView.classList.add('rotate-' + degree);
-
         if (!useAppScreenshotPreviews) {
           return;
         }
 
+        var width, height;
         if (isLandscape) {
           // We must exchange width and height if it's landscape mode
-          var width = card.clientHeight;
-          var height = card.clientWidth;
+          width = card.clientHeight;
+          height = card.clientWidth;
           screenshotView.style.width = width + 'px';
           screenshotView.style.height = height + 'px';
           screenshotView.style.left = ((height - width) / 2) + 'px';
@@ -372,8 +358,8 @@ var CardsView = (function() {
 
           // rect is the final size (considering CSS transform) of the card.
           var rect = card.getBoundingClientRect();
-          var width = isLandscape ? rect.height : rect.width;
-          var height = isLandscape ? rect.width : rect.height;
+          width = isLandscape ? rect.height : rect.width;
+          height = isLandscape ? rect.width : rect.height;
           var request = frameForScreenshot.getScreenshot(
             width, height);
           request.onsuccess = function gotScreenshot(screenshot) {
@@ -498,8 +484,9 @@ var CardsView = (function() {
   getOffOrigin.cache = {};
 
   function hideCardSwitcher(removeImmediately, newStackPosition) {
-    if (!cardSwitcherIsShown())
+    if (!cardSwitcherIsShown()) {
       return;
+    }
 
     // events to handle
     window.removeEventListener('lock', CardsView);
@@ -555,7 +542,6 @@ var CardsView = (function() {
   // switching the card.  It doesn't make sense for users to start
   // swiping because they want to stay on the same card.
   var threshold = 1;
-  var thresholdOrdering = 100;
   // Distance after which dragged card starts moving
   var moveCardThreshold = window.innerHeight / 6;
   // Arbitrarily chosen to be 4x larger than the gecko18 drag
@@ -663,9 +649,9 @@ var CardsView = (function() {
     var oppositeCard = nextCardStyle;
     var translateSign = -100;
     if (deltaX > 0) {
-      var card = nextCardStyle;
-      var oppositeCard = prevCardStyle;
-      var translateSign = 100;
+      card = nextCardStyle;
+      oppositeCard = prevCardStyle;
+      translateSign = 100;
     }
 
     var movementFactor = Math.abs(deltaX) / windowWidth;
@@ -822,8 +808,9 @@ var CardsView = (function() {
   }
 
   function goToHomescreen(evt) {
-    if (!cardSwitcherIsShown())
+    if (!cardSwitcherIsShown()) {
       return;
+    }
 
     window.dispatchEvent(new CustomEvent('cardviewclosedhome'));
 
@@ -883,8 +870,9 @@ var CardsView = (function() {
         break;
 
       case 'holdhome':
-        if (window.lockScreen && window.lockScreen.locked)
+        if (window.lockScreen && window.lockScreen.locked) {
           return;
+        }
 
         SleepMenu.hide();
         var app = AppWindowManager.getActiveApp();

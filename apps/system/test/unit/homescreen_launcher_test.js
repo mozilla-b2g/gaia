@@ -113,8 +113,8 @@ suite('system/HomescreenLauncher', function() {
       MockSettingsListener.mCallbacks['homescreen.manifestURL']('first.home');
       homescreen = window.homescreenLauncher.getHomescreen();
       var stubEnsure = this.sinon.stub(homescreen, 'ensure');
-      homescreen = window.homescreenLauncher.getHomescreen();
-      homescreen = window.homescreenLauncher.getHomescreen();
+      homescreen = window.homescreenLauncher.getHomescreen(true);
+      homescreen = window.homescreenLauncher.getHomescreen(true);
       assert.isTrue(stubEnsure.calledTwice);
       stubEnsure.restore();
     });

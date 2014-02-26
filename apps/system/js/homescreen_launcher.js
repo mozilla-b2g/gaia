@@ -167,8 +167,8 @@
     handleEvent: function hl_handleEvent(evt) {
       switch (evt.type) {
         case 'trusteduishow':
-          this.getHomescreen().toggle(true);
-          this.getHomescreen().fadeIn();
+          this.getHomescreen(true).toggle(true);
+          this.getHomescreen(true).fadeIn();
           break;
         case 'trusteduihide':
           this.getHomescreen().toggle(false);
@@ -216,10 +216,11 @@
      * Get instance of homescreen window singleton
      *
      * @memberOf HomescreenLauncher.prototype
+     * @params {Boolean} ensure Ensure the homescreen app is alive.
      * @returns {HomescreenWindow} Instance of homescreen window singleton, or
      *                             null if HomescreenLauncher is not ready
      */
-    getHomescreen: function hl_getHomescreen() {
+    getHomescreen: function hl_getHomescreen(ensure) {
       if (this._currentManifestURL === '') {
         console.warn('HomescreenLauncher: not ready right now.');
         return null;
@@ -228,7 +229,9 @@
         this._instance = new HomescreenWindow(this._currentManifestURL);
         return this._instance;
       } else {
-        this._instance.ensure();
+        if (ensure) {
+          this._instance.ensure();
+        }
         return this._instance;
       }
     }
