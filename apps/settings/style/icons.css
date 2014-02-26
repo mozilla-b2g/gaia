@@ -153,7 +153,7 @@ li:active:not([aria-disabled="true"]) .menu-item::before,
   background-position: -9rem -12rem;
 }
 
-.menuItem-icc::before {
+#menuItem-icc::before {
   background-position: -12rem -12rem;
 }
 
