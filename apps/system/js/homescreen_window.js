@@ -34,6 +34,8 @@
     };
 
   HomescreenWindow.prototype.render = function hw_render() {
+    // reset transition state.
+    this._transitionState = 'closed';
     this.publish('willrender');
     this.containerElement.insertAdjacentHTML('beforeend', this.view());
     this.browser = new BrowserFrame(this.browser_config);
@@ -129,6 +131,7 @@
       // as it is expected that homescreen frame is available.
       setTimeout(function() {
         this.render();
+        this.open();
       }.bind(this));
     } else {
       // Otherwise wait until next opening request.
@@ -144,7 +147,7 @@
   };
 
   HomescreenWindow.prototype.view = function hw_view() {
-    return '<div class="appWindow homescreen" id="homescreen">' +
+    return '<div class="appWindow homescreen active" id="homescreen">' +
            '</div>';
   };
 
