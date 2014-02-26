@@ -11,9 +11,6 @@ var icc = {
 
   init: function icc_init() {
     this._iccManager = window.navigator.mozIccManager;
-    this.hideViews();
-    this.protectForms();
-    this.getIccInfo();
     var self = this;
     this.clearMenuCache(function() {
       window.navigator.mozSetMessageHandler('icc-stkcommand',
@@ -23,6 +20,10 @@ var icc = {
           }
         });
     });
+
+    this.hideViews();
+    this.protectForms();
+    this.getIccInfo();
 
     var self = this;
     // Update displayTextTimeout with settings parameter
@@ -144,8 +145,8 @@ var icc = {
    */
   responseSTKCommand: function icc_responseSTKCommand(message, response) {
     DUMP('STK sendStkResponse -- # response = ', response);
-
-    (icc.getIcc(message.iccId)).sendStkResponse(message.command, response);
+    var _icc = icc.getIcc(message.iccId);
+    _icc && _icc.sendStkResponse(message.command, response);
   },
 
   /**
