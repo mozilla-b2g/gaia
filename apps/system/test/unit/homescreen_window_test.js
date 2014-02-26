@@ -13,7 +13,7 @@ requireApp('system/test/unit/mock_orientation_manager.js');
 requireApp('system/test/unit/mock_statusbar.js');
 requireApp('system/test/unit/mock_software_button_manager.js');
 requireApp('system/test/unit/mock_keyboard_manager.js');
-requireApp('/shared/test/unit/mocks/mock_manifest_helper.js');
+requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 requireApp('system/test/unit/mock_window_manager.js');
 requireApp('system/test/unit/mock_applications.js');
 requireApp('system/test/unit/mock_attention_screen.js');
@@ -169,9 +169,11 @@ suite('system/HomescreenWindow', function() {
     suite('homescreen is crashed', function() {
       var stubRender;
       var stubKill;
+      var stubOpen;
       setup(function() {
         stubRender = this.sinon.stub(homescreenWindow, 'render');
         stubKill = this.sinon.stub(homescreenWindow, 'kill');
+        stubOpen = this.sinon.stub(homescreenWindow, 'open');
       });
 
       teardown(function() {
@@ -186,6 +188,7 @@ suite('system/HomescreenWindow', function() {
         assert.isTrue(stubKill.called);
         clock.tick(1);
         assert.isTrue(stubRender.called);
+        assert.isTrue(stubOpen.called);
       });
 
       test('Homescreen is crashed at background: killed', function() {
