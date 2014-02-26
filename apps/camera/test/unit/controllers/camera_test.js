@@ -48,11 +48,11 @@ suite('controllers/camera', function() {
 
   suite('CameraController()', function() {
     setup(function() {
-      sinon.stub(this.CameraController.prototype, 'teardownCamera');
+      sinon.stub(this.CameraController.prototype, 'onBlur');
     });
 
     teardown(function() {
-      this.CameraController.prototype.teardownCamera.restore();
+      this.CameraController.prototype.onBlur.restore();
     });
 
     test('Should set the capture mode to \'camera\' by default', function() {
@@ -73,7 +73,7 @@ suite('controllers/camera', function() {
 
     test('Should teardown camera on app `blur`', function() {
       this.controller = new this.CameraController(this.app);
-      this.app.on.calledWith('blur', this.controller.teardownCamera);
+      this.app.on.calledWith('blur', this.controller.onBlur);
     });
   });
 });
