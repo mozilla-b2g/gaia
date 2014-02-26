@@ -54,13 +54,11 @@
   }
 
   function addCloseNotificationsEvents(message) {
-    function onVisibilityChange() {
+    document.addEventListener('visibilitychange', function() {
       if (document.hidden && Settings.currentPanel == '#icc') {
         stkResTerminate(message);
       }
-    }
-    document.removeEventListener('visibilitychange', onVisibilityChange, false);
-    document.addEventListener('visibilitychange', onVisibilityChange, false);
+    }, false);
     window.onbeforeunload = function() {
       responseSTKCommand(message, {
         resultCode: iccManager.STK_RESULT_NO_RESPONSE_FROM_USER
