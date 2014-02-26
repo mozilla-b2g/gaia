@@ -23,7 +23,8 @@ suite('voicemail notification', function() {
   setup(function() {
     Voicemail.init();
     this.sinon.useFakeTimers();
-    this.sinon.spy(window, 'Notification');
+    var dummy = { addEventListener: function() {}, close: function() {} };
+    this.sinon.stub(window, 'Notification').returns(dummy);
   });
 
   suiteTeardown(function() {
