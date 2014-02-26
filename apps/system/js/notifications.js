@@ -287,6 +287,9 @@ var NotificationScreen = {
   },
 
   addNotification: function ns_addNotification(detail) {
+    // LockScreen window may not opened while this singleton got initialized.
+    this.lockScreenContainer = this.lockScreenContainer ||
+      document.getElementById('notifications-lockscreen-container');
     var notificationNode = document.createElement('div');
     notificationNode.className = 'notification';
 
@@ -488,6 +491,10 @@ var NotificationScreen = {
   },
 
   clearLockScreen: function ns_clearLockScreen() {
+    // The LockScreenWindow may not be instantiated yet.
+    if (!this.lockScreenContainer) {
+      return;
+    }
     while (this.lockScreenContainer.firstElementChild) {
       var element = this.lockScreenContainer.firstElementChild;
       this.lockScreenContainer.removeChild(element);
