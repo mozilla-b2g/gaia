@@ -17,6 +17,12 @@
   // DOM element properties that may be localized with a key:value pair.
   var gNestedProps = ['style', 'dataset'];
 
+  var deviceWidth;
+  if (typeof config !== 'undefined' && 'DEVICE_WIDTH' in config) {
+    deviceWidth = parseInt(config.DEVICE_WIDTH);
+  } else {
+    deviceWidth = parseInt(screen.width);
+  }
 
   /**
    * Localization resources are declared in the HTML document with <link> nodes:
@@ -225,6 +231,43 @@
                  .replace(/\\'/g, "'");
     }
 
+    /**
+     * match a simple media query
+     *
+     * @params {String} query
+     *    media query to test with deviceWidth (screen.width at run time or
+     *    DEVICE_WIDTH at build time)
+     *    Usage:
+     *      localkey=Title
+     *      localkey@(width: 320)=Small title
+     *      localkey@(min-width: 640)=Really long title here
+     *      localkey@(min-width: 320 and max-width: 640)=Normal size title
+     *
+     * @retrun {Boolean}
+     *    does the media query match the query regarding deviceWidth`
+     */
+    function matchMediaQuery(query) {
+      var reQuery = /(?:^|\s)(((m(in|ax))-)?(.*?)):\s((.*?)(px)?)(?:\s|$)/g;
+      var conditions = [];
+      var match;
+      function isTrue(e) {
+        return e === true;
+      }
+      while(match = reQuery.exec(query)) {
+        var feature = match[3];
+        var attribute = match[6];
+        var value = parseInt(match[7]);
+        if (feature == 'min') {
+          conditions.push(deviceWidth >= value);
+        } else if (feature == 'max') {
+          conditions.push(deviceWidth <= value);
+        } else {
+          conditions.push(deviceWidth === value);
+        }
+      }
+      return conditions.every(isTrue);
+    }
+
     // parse *.properties text data into an l10n dictionary
     function parseProperties(text) {
       var dictionary = [];
@@ -234,7 +277,7 @@
       var reComment = /^\s*#|^\s*$/;
       var reSection = /^\s*\[(.*)\]\s*$/;
       var reImport = /^\s*@import\s+url\((.*)\)\s*$/i;
-      var reSplit = /^([^=\s]*)\s*=\s*(.+)$/;
+      var reSplit = /^([^=\s]*)(@\((.*)\))?\s*=\s*(.+)$/;
       var reUnicode = /\\u([0-9a-fA-F]{1,4})/g;
       var reMultiline = /[^\\]\\$/;
 
@@ -279,9 +322,13 @@
 
           // key-value pair
           var tmp = line.match(reSplit);
-          if (tmp && tmp.length == 3) {
+          if (tmp && tmp.length == 5) {
+            var query = tmp[3];
+            if (query && !matchMediaQuery(query)) {
+              continue;
+            }
             // unescape unicode char codes if needed (e.g. '\u00a0')
-            var val = tmp[2].replace(reUnicode, function(match, token) {
+            var val = tmp[4].replace(reUnicode, function(match, token) {
               return unescape('%u' + '0000'.slice(token.length) + token);
             });
             dictionary[tmp[1]] = evalString(val);

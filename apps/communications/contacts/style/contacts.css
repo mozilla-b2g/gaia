@@ -29,7 +29,7 @@ section[role="region"] > header:first-child .icon.icon-edit-contact {
 }
 
 #contact-name-title {
-  max-width: 22rem;
+  width: 22rem;
   float: left;
 }
 
