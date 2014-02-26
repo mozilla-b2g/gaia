@@ -10,10 +10,10 @@ var iccLoaded = false;
   var iccEntries = document.getElementById('icc-entries');
 
   function loadIccPage(callback) {
-    callback = (typeof callback === 'function') ? callback : function() {};
-    if (iccLoaded) {
+    if (typeof(callback) !== 'function')
+      callback = function __dummy__() {};
+    if (iccLoaded)
       return callback();
-    }
     Settings.currentPanel = '#icc';
     setTimeout(function() {
       callback();
@@ -21,9 +21,8 @@ var iccLoaded = false;
   }
 
   function executeICCCmd(iccMessage) {
-    if (!iccMessage) {
+    if (!iccMessage)
       return;
-    }
 
     // Clear cache
     var reqIccData = window.navigator.mozSettings.createLock().set({
@@ -52,7 +51,7 @@ var iccLoaded = false;
 
     function showStkEntries(menu) {
       DUMP('STK cached menu: ', menu);
-      if (!menu || typeof menu !== 'object' || Object.keys(menu).length == 0) {
+      if (!menu || typeof(menu) !== 'object' || Object.keys(menu).length == 0) {
         DUMP('No STK available - exit');
         iccMainHeader.hidden = true;
         iccEntries.hidden = true;
@@ -71,7 +70,6 @@ var iccLoaded = false;
 
         var li = document.createElement('li');
         var small = document.createElement('small');
-        // XXX this line requires a better l10n support, see bug 968853
         small.textContent = 'SIM ' + SIMNumber;
         small.classList.add('menu-item-desc');
         li.appendChild(small);
