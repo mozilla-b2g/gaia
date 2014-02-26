@@ -12,7 +12,7 @@
     REPEAT_THREE_SLEEP_BUTTON_PRESS: 30000,
     // Number times the sleep button needs to be pressed before the screen
     // reader setting is toggled.
-    TOGGLE_SCREEN_READER_COUNT: 3,
+    TOGGLE_SCREEN_READER_COUNT: 4,
     /**
      * Current counter of sleep button presses in short succession.
      * @type {Number}
@@ -136,8 +136,8 @@
      */
     announceScreenReader: function ar_announceScreenReader() {
       var enabled = this.settings['accessibility.screenreader'];
-      this.utter(enabled ? 'disableScreenReaderInstructions' :
-        'enableScreenReaderInstructions');
+      this.utter(enabled ? 'disableScreenReaderInstructions4Times' :
+        'enableScreenReaderInstructions4Times');
       this.initalActivateComplete = true;
       this.initalActivateCompleteTimer = setTimeout(
         this.resetInitialFlag.bind(this), this.REPEAT_THREE_SLEEP_BUTTON_PRESS);
