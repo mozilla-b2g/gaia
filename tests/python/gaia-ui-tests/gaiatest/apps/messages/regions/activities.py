@@ -13,7 +13,8 @@ class Activities(Base):
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
-        self.wait_for_element_displayed(*self._actions_menu_locator)
+        actions_menu = self.marionette.find_element(*self._actions_menu_locator)
+        self.wait_for_condition(lambda m: actions_menu.location['x']==0)
 
     def tap_settings(self):
         self.marionette.find_element(*self._settings_button_locator).tap()
