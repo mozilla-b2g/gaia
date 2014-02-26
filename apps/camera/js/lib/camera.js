@@ -398,7 +398,7 @@ Camera.prototype.startRecording = function(options) {
   var selectedCamera = this.get('selectedCamera');
   rotation = selectedCamera === 'front'? -rotation: rotation;
 
-
+  this.emit('busy');
   // First check if there is enough free space
   this.getTmpStorageSpace(gotStorageSpace);
 
@@ -436,6 +436,7 @@ Camera.prototype.startRecording = function(options) {
     function onSuccess() {
       self.set('recording', true);
       self.startVideoTimer();
+      self.emit('ready');
 
       // User closed app while
       // recording was trying to start
