@@ -6,15 +6,7 @@ html, body {
   border: none;
   font-size: 10px;
   overflow: hidden;
-
-  /* Must match the CSS rules of screen.css & lockscreen.css */
-  position: absolute;
-  background-color: #000;
-  background-size: cover; /* Possible memory over-consumption with huge images, it should be removed for improving stability*/
   background-repeat: no-repeat;
-  background-position: 50% 2rem;
-  opacity: 1;
-  z-index: 1;
 }
 
 * {
