@@ -9,7 +9,9 @@ var Base = require('./base'),
     ImprovePanel = require('./regions/improve'),
     BatteryPanel = require('./regions/battery'),
     FeedbackPanel = require('./regions/feedback'),
-    SoundPanel = require('./regions/sound');
+    SoundPanel = require('./regions/sound'),
+    NotificationsPanel = require('./regions/notifications'),
+    LanguagePanel = require('./regions/language');
 
 // origin of the settings app
 var ORIGIN = 'app://settings.gaiamobile.org';
@@ -39,7 +41,9 @@ Settings.Selectors = {
   'notificationsMenuItem': '#menuItem-notifications',
   'improvePanel': '#menuItem-improveBrowserOS',
   'feedbackPanel': 'button[data-href="#improveBrowserOS-chooseFeedback"]',
-  'soundMenuItem': '#menuItem-sound'
+  'soundMenuItem': '#menuItem-sound',
+  'languagePanel': '#languages',
+  'languageMenuItem': '#menuItem-languageAndRegion'
 };
 
 Settings.prototype = {
@@ -100,6 +104,13 @@ Settings.prototype = {
     this._soundPanel = this._soundPanel ||
       new SoundPanel(this.client);
     return this._soundPanel;
+  },
+
+  get languagePanel() {
+    this.openPanel('languageMenuItem');
+    this._languagePanel = this._languagePanel ||
+      new LanguagePanel(this.client);
+    return this._languagePanel;
   },
 
   /**
