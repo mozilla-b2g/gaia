@@ -39,16 +39,12 @@
 #lockscreen-background {
   position: absolute;
   top: 0;
-  overflow: hidden;
-
-  /* Must match the CSS background rule of #screen in system.css */
   width: 100%;
   height: 100%;
+  overflow: hidden;
   background-color: #000;
-  background-size: cover; /* Possible memory over-consumption with huge images, it should be removed for improving stability*/
   background-repeat: no-repeat;
-  background-position: 50% 2rem;
-
+  background-size: 100%;
   -moz-user-select: none;
   opacity: 1;
   z-index: 1;
