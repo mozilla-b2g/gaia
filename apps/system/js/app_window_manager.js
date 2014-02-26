@@ -109,7 +109,7 @@
       var switching = appCurrent && !appCurrent.isHomescreen &&
                       !appNext.isHomescreen;
 
-      if (appCurrent && LayoutManager.keyboardEnabled) {
+      if (appCurrent && layoutManager.keyboardEnabled) {
         // Ask keyboard to hide before we switch the app.
         var self = this;
         window.addEventListener('keyboardhidden', function onhiddenkeyboard() {
@@ -164,7 +164,7 @@
         }
 
         if (appNext.resized &&
-            !LayoutManager.match(appNext.width,
+            !layoutManager.match(appNext.width,
               appNext.height - appNext.calibratedHeight(),
               appNext.isFullScreen())) {
           immediateTranstion = true;

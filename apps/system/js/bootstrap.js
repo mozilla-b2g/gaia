@@ -72,6 +72,7 @@ window.addEventListener('load', function startup() {
   window.title = new Title();
   window.ttlView = new TTLView();
   window.visibilityManager = new VisibilityManager().start();
+  window.layoutManager = new LayoutManager().start();
 
   navigator.mozL10n.ready(function l10n_ready() {
     window.mediaRecording = new MediaRecording().start();
