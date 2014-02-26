@@ -20,8 +20,8 @@ var FxaModuleEnterEmail = (function() {
     done(FxaModuleStates.ENTER_PASSWORD);
   }
 
-  function _loadSignUp(done) {
-    done(FxaModuleStates.SET_PASSWORD);
+  function _loadCoppa(done) {
+    done(FxaModuleStates.COPPA);
   }
 
   function _enableNext(emailEl) {
@@ -81,7 +81,7 @@ var FxaModuleEnterEmail = (function() {
         if (response && response.registered) {
           _loadSignIn(gotoNextStepCallback);
         } else {
-          _loadSignUp(gotoNextStepCallback);
+          _loadCoppa(gotoNextStepCallback);
         }
       },
       this.showErrorResponse);

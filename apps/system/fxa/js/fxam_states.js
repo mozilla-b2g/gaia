@@ -36,6 +36,10 @@ var FxaModuleStates = (function() {
       id: 'fxa-refresh-auth',
       module: 'FxaModuleRefreshAuth'
     },
+    COPPA: {
+      id: 'fxa-coppa',
+      module: 'FxaModuleCoppa'
+    },
     TOS: {
       id: 'fxa-tos'
     },

@@ -16,7 +16,8 @@ suite('Error manager', function() {
     'SERVER_ERROR': 'generic-error',
     'NO_TOKEN_SESSION': 'generic-error',
     'GENERIC_ERROR': 'generic-error',
-    'UNKNOWN': 'unknown-error'
+    'UNKNOWN': 'unknown-error',
+    'COPPA_ERROR': 'coppa-error'
   };
   var response;
   var realL10n;
@@ -39,152 +40,21 @@ suite('Error manager', function() {
     response = null;
   });
 
-  test('Can not create account error', function() {
+  Object.keys(errorsObject).forEach(function(key) {
+    test('Test ' + key, function() {
+      sinon.spy(navigator.mozL10n.get);
+      response.error = key;
+      FxaModuleErrors.responseToParams(response);
 
-    response.error = 'CANNOT_CREATE_ACCOUNT';
-    FxaModuleErrors.responseToParams(response);
-
-    assert.ok(navigator.mozL10n.get.calledWith(
-      'fxa-' + errorsObject[response.error] + '-title'
-    ));
-    assert.ok(navigator.mozL10n.get.calledWith(
-      'fxa-' + errorsObject[response.error] + '-message')
-    );
-  });
-
-  test('Can not reset password', function() {
-    response.error = 'RESET_PASSWORD_ERROR';
-    FxaModuleErrors.responseToParams(response);
-
-    assert.ok(navigator.mozL10n.get.calledWith(
-      'fxa-' + errorsObject[response.error] + '-title')
-    );
-    assert.ok(
-      navigator.mozL10n.get.calledWith(
-        'fxa-' + errorsObject[response.error] + '-message')
-    );
-  });
-
-  test('Can not reset password from FTE', function() {
-    response.error = 'RESET_PASSWORD_IN_SETTINGS';
-    FxaModuleErrors.responseToParams(response);
-
-    assert.ok(navigator.mozL10n.get.calledWith(
-      'fxa-' + errorsObject[response.error] + '-title')
-    );
-    assert.ok(
-      navigator.mozL10n.get.calledWith(
-        'fxa-' + errorsObject[response.error] + '-message')
-    );
-  });
-
-  test('Invalid account ID', function() {
-    response.error = 'INVALID_ACCOUNTID';
-    FxaModuleErrors.responseToParams(response);
-
-    assert.ok(navigator.mozL10n.get.calledWith(
-      'fxa-' + errorsObject[response.error] + '-title')
-    );
-    assert.ok(
-      navigator.mozL10n.get.calledWith(
-        'fxa-' + errorsObject[response.error] + '-message')
-    );
-  });
-
-  test('Invalid password', function() {
-    response.error = 'INVALID_PASSWORD';
-    FxaModuleErrors.responseToParams(response);
-
-    assert.ok(navigator.mozL10n.get.calledWith(
-      'fxa-' + errorsObject[response.error] + '-title')
-    );
-    assert.ok(navigator.mozL10n.get.calledWith(
-      'fxa-' + errorsObject[response.error] + '-message')
-    );
-  });
-
-  test('There is a user already signed', function() {
-    response.error = 'ALREADY_SIGNED_IN_USER';
-    FxaModuleErrors.responseToParams(response);
-
-    assert.ok(navigator.mozL10n.get.calledWith(
-      'fxa-' + errorsObject[response.error] + '-title')
-    );
-    assert.ok(navigator.mozL10n.get.calledWith(
-      'fxa-' + errorsObject[response.error] + '-message')
-    );
-  });
-
-  test('Internal error, invalid user', function() {
-    response.error = 'INTERNAL_ERROR_INVALID_USER';
-    FxaModuleErrors.responseToParams(response);
-
-    assert.ok(navigator.mozL10n.get.calledWith(
-      'fxa-' + errorsObject[response.error] + '-title')
-    );
-    assert.ok(navigator.mozL10n.get.calledWith(
-      'fxa-' + errorsObject[response.error] + '-message')
-    );
-  });
-
-  test('Server error', function() {
-    response.error = 'SERVER_ERROR';
-    FxaModuleErrors.responseToParams(response);
-
-    assert.ok(navigator.mozL10n.get.calledWith(
-      'fxa-' + errorsObject[response.error] + '-title')
-    );
-    assert.ok(navigator.mozL10n.get.calledWith(
-      'fxa-' + errorsObject[response.error] + '-message')
-    );
-  });
-
-  test('There is no token', function() {
-    response.error = 'NO_TOKEN_SESSION';
-    FxaModuleErrors.responseToParams(response);
-
-    assert.ok(navigator.mozL10n.get.calledWith(
-      'fxa-' + errorsObject[response.error] + '-title')
-    );
-    assert.ok(navigator.mozL10n.get.calledWith(
-      'fxa-' + errorsObject[response.error] + '-message')
-    );
-  });
-
-  test('Generic error', function() {
-    response.error = 'GENERIC_ERROR';
-    FxaModuleErrors.responseToParams(response);
-
-    assert.ok(navigator.mozL10n.get.calledWith(
-      'fxa-' + errorsObject[response.error] + '-title')
-    );
-    assert.ok(navigator.mozL10n.get.calledWith(
-      'fxa-' + errorsObject[response.error] + '-message')
-    );
-  });
-
-  test('Account does not exist', function() {
-    response.error = 'ACCOUNT_DOES_NOT_EXIST';
-    FxaModuleErrors.responseToParams(response);
-
-    assert.ok(navigator.mozL10n.get.calledWith(
-      'fxa-' + errorsObject[response.error] + '-title'
-    ));
-    assert.ok(navigator.mozL10n.get.calledWith(
-      'fxa-' + errorsObject[response.error] + '-message')
-    );
-  });
-
-  test('Unknown error', function() {
-    response.error = 'UNKNOWN';
-    FxaModuleErrors.responseToParams(response);
-
-    assert.ok(navigator.mozL10n.get.calledWith(
-      'fxa-' + errorsObject[response.error] + '-title'
-    ));
-    assert.ok(navigator.mozL10n.get.calledWith(
-      'fxa-' + errorsObject[response.error] + '-message')
-    );
+      sinon.assert.calledWith(
+        navigator.mozL10n.get,
+        'fxa-' + errorsObject[key] + '-title'
+      );
+      sinon.assert.calledWith(
+        navigator.mozL10n.get,
+        'fxa-' + errorsObject[key] + '-message'
+      );
+    });
   });
 
 });

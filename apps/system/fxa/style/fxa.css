@@ -278,4 +278,8 @@ a.disabled {
   text-decoration: none;
 }
 
-
+.button.icon-dialog select {
+  border: none;
+  background: transparent;
+  font-size: 1.7rem;
+}
