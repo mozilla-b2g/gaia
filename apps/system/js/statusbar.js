@@ -136,7 +136,9 @@ var StatusBar = {
   get height() {
     if (this.screen.classList.contains('active-statusbar')) {
       return this.attentionBar.offsetHeight;
-    } else if (document.mozFullScreen) {
+    } else if (document.mozFullScreen ||
+               (AppWindowManager.getActiveApp() &&
+                AppWindowManager.getActiveApp().isFullScreen())) {
       return 0;
     } else {
       return this._cacheHeight ||
@@ -155,6 +157,9 @@ var StatusBar = {
 
   init: function sb_init() {
     this.getAllElements();
+
+    // cache height.
+    this._cacheHeight = this.element.getBoundingClientRect().height;
 
     this.listeningCallschanged = false;
 
@@ -416,6 +421,7 @@ var StatusBar = {
 
       case 'touchmove':
         var touch = evt.touches[0];
+        var height = this.height || this._cacheHeight;
         var deltaX = touch.clientX - this._startX;
         var deltaY = touch.clientY - this._startY;
 
@@ -423,10 +429,10 @@ var StatusBar = {
           this._shouldForwardTap = false;
         }
 
-        var translate = Math.min(deltaY, this.height);
+        var translate = Math.min(deltaY, height);
         elem.style.transform = 'translateY(calc(' + translate + 'px - 100%)';
 
-        if (translate == this.height) {
+        if (translate == height) {
           if (this._touchStart) {
             this._touchForwarder.forward(this._touchStart);
             this._touchStart = null;
