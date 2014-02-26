@@ -1,6 +1,6 @@
 /* global ConfirmDialog, MocksHelper, MockIccHelper, MockMozL10n,
    MockMozMobileConnection, MockMozTelephony, MockNavigatorSettings,
-   MockTonePlayer, TelephonyHelper */
+   MockTonePlayer, Promise, TelephonyHelper */
 
 'use strict';
 
@@ -244,11 +244,55 @@ suite('telephony helper', function() {
       assert.equal(mockCall.ondisconnected, ondisconnected);
     });
 
-    test('should trigger the onerror callback on error', function(done) {
-      subject.call('123', null, null, null, function() {
+    test('should trigger the onerror callback on error', function() {
+      var onerrorStub = this.sinon.stub();
+      subject.call('123', null, null, null, onerrorStub);
+      mockCall.onerror(createCallError());
+      sinon.assert.called(onerrorStub);
+    });
+  });
+
+  suite('Callbacks binding, promise edition', function() {
+    var mockCall;
+    var mockPromise;
+
+    setup(function() {
+      mockCall = {};
+      mockPromise = Promise.resolve(mockCall);
+      this.sinon.stub(MockMozTelephony, 'dial').returns(mockPromise);
+    });
+
+    test('should trigger oncall as soon as we get a call object',
+    function(done) {
+      subject.call('123', function() {
         done();
       });
-      mockCall.onerror(createCallError());
+    });
+
+    test('should bind the onconnected callback', function(done) {
+      var onconnected = function uniq_onconnected() {};
+      subject.call('123', null, onconnected);
+      mockPromise.then(function() {
+        assert.equal(mockCall.onconnected, onconnected);
+      }).then(done, done);
+    });
+
+    test('should bind the ondisconnected callback', function(done) {
+      var ondisconnected = function uniq_ondisconnected() {};
+      subject.call('123', null, null, ondisconnected);
+      mockPromise.then(function() {
+        assert.isFunction(mockCall.ondisconnected);
+        assert.equal(mockCall.ondisconnected, ondisconnected);
+      }).then(done, done);
+    });
+
+    test('should trigger the onerror callback on error', function(done) {
+      var onerrorStub = this.sinon.stub();
+      subject.call('123', null, null, null, onerrorStub);
+      mockPromise.then(function() {
+        mockCall.onerror(createCallError());
+        sinon.assert.called(onerrorStub);
+      }).then(done, done);
     });
   });
 
@@ -321,11 +365,110 @@ suite('telephony helper', function() {
     });
   });
 
+  suite('Call error handling, promise edition', function() {
+    var mockCall;
+    var mockPromise;
+
+    setup(function() {
+      mockCall = {};
+      mockPromise = Promise.resolve(mockCall);
+      this.sinon.stub(MockMozTelephony, 'dial').returns(mockPromise);
+      this.sinon.stub(MockMozTelephony, 'dialEmergency').returns(mockPromise);
+    });
+
+    suite('BadNumberError handle', function() {
+      test('should display the BadNumber message', function(done) {
+        subject.call('123');
+        mockPromise.then(function() {
+          mockCall.onerror(createCallError('BadNumberError'));
+          assert.isTrue(spyConfirmShow.calledWith('invalidNumberToDialTitle',
+                                                 'invalidNumberToDialMessage'));
+        }).then(done, done);
+      });
+
+      test('should display the NoNetwork message in emergency mode',
+      function(done) {
+        MockMozMobileConnection.voice.emergencyCallsOnly = true;
+        subject.call('123');
+        mockPromise.then(function() {
+          mockCall.onerror(createCallError('BadNumberError'));
+          assert.isTrue(spyConfirmShow.calledWith('emergencyDialogTitle',
+                                               'emergencyDialogBodyBadNumber'));
+        }).then(done, done);
+      });
+    });
+
+    test('should handle BusyError', function(done) {
+      subject.call('123');
+      mockPromise.then(function() {
+        mockCall.onerror(createCallError('BusyError'));
+        assert.isTrue(spyConfirmShow.calledWith('numberIsBusyTitle',
+                                                'numberIsBusyMessage'));
+      }).then(done, done);
+    });
+
+    test('should handle FDNBlockedError', function(done) {
+      subject.call('123');
+      mockPromise.then(function() {
+        mockCall.onerror(createCallError('FDNBlockedError'));
+        assert.isTrue(spyConfirmShow.calledWith('fdnIsEnabledTitle',
+                                                'fdnIsEnabledMessage'));
+      }).then(done, done);
+    });
+
+    test('should handle FdnCheckFailure', function(done) {
+      subject.call('123');
+      mockPromise.then(function() {
+        mockCall.onerror(createCallError('FdnCheckFailure'));
+        assert.isTrue(spyConfirmShow.calledWith('fdnIsEnabledTitle',
+                                                'fdnIsEnabledMessage'));
+      }).then(done, done);
+    });
+
+    test('should play the busy tone', function(done) {
+      var playSpy = this.sinon.spy(MockTonePlayer, 'playSequence');
+      subject.call('123');
+      mockPromise.then(function() {
+        mockCall.onerror(createCallError('BusyError'));
+        assert.isTrue(playSpy.calledOnce);
+      }).then(done, done);
+    });
+
+    test('should handle DeviceNotAcceptedError', function(done) {
+      subject.call('123');
+      mockPromise.then(function() {
+        mockCall.onerror(createCallError('DeviceNotAcceptedError'));
+        assert.isTrue(spyConfirmShow.calledWith('emergencyDialogTitle',
+                                       'emergencyDialogBodyDeviceNotAccepted'));
+      }).then(done, done);
+    });
+
+    test('should handle RadioNotAvailable', function(done) {
+      subject.call('123');
+      mockPromise.then(function() {
+        mockCall.onerror(createCallError('RadioNotAvailable'));
+        assert.isTrue(spyConfirmShow.calledWith('callAirplaneModeTitle',
+                                                'callAirplaneModeMessage'));
+      }).then(done, done);
+    });
+  });
+
   test('should display a message if we didn\'t get a call back', function() {
     this.sinon.stub(MockMozTelephony, 'dial').returns(null);
     subject.call('123');
     assert.isTrue(spyConfirmShow.calledWith('unableToCallTitle',
                                             'unableToCallMessage'));
+  });
+
+  test('should display a message if we didn\'t get a call back,promise edition',
+       function(done) {
+    var mockPromise = Promise.reject();
+    this.sinon.stub(MockMozTelephony, 'dial').returns(mockPromise);
+    subject.call('123');
+    mockPromise.catch(function() {
+      assert.isTrue(spyConfirmShow.calledWith('unableToCallTitle',
+                                              'unableToCallMessage'));
+    }).then(done, done);
   });
 
   suite('DSDS >', function() {

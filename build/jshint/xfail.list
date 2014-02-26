@@ -332,7 +332,6 @@ apps/communications/dialer/js/newsletter_manager.js
 apps/communications/dialer/js/oncall.js
 apps/communications/dialer/js/phone_action_menu.js
 apps/communications/dialer/js/suggestion_bar.js
-apps/communications/dialer/js/telephony_helper.js
 apps/communications/dialer/js/tone_player.js
 apps/communications/dialer/js/utils.js
 apps/communications/dialer/js/voicemail.js
@@ -861,7 +860,6 @@ apps/settings/test/unit/simcard_manager_settings_helper_test.js
 apps/settings/test/unit/simcard_manager_simcard_helper_test.js
 apps/settings/test/unit/toaster_test.js
 apps/settings/test/unit/wifi_helper_test.js
-apps/system/emergency-call/js/dialer.js
 apps/system/emergency-call/js/keypad.js
 apps/system/fxa/js/fxam_error_overlay.js
 apps/system/fxa/js/fxam_errors.js

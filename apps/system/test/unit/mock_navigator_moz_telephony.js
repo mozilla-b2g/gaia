@@ -60,6 +60,7 @@
   }
 
   var Mock = {
+    dialEmergency: function() {},
     addEventListener: mnmt_addEventListener,
     removeEventListener: mnmt_removeEventListener,
     mCountEventListener: mnmt_countEventListener,
