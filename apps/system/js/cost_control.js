@@ -61,6 +61,7 @@
   var hashMark = 0;
   var activityCounter = 0;
   var ACTIVITY_THRESHOLD = 75;
+
   function _onNetworkActivity() {
     activityCounter++;
     if (activityCounter === ACTIVITY_THRESHOLD) {
@@ -83,10 +84,15 @@
 
   function _showWidget() {
     _ensureWidget();
+    // Ensure the widget is updated when is visible
+    _attachNetworkEvents();
     widgetFrame.setVisible(true);
   }
 
   function _hideWidget() {
+    // It's not necessary to update the widget when it is hidden.
+    window.removeEventListener('moznetworkupload', _onNetworkActivity);
+    window.removeEventListener('moznetworkdownload', _onNetworkActivity);
     if (widgetFrame) {
       widgetFrame.setVisible(false);
     }
@@ -107,21 +113,6 @@
   // Listen to utilitytray show
   window.addEventListener('utilitytrayshow', _showWidget);
   window.addEventListener('utilitytrayhide', _hideWidget);
-
-  window.addEventListener('applicationready', function _onReady() {
-    asyncStorage.getItem('ftu.enabled', function _onValue(enabled) {
-      if (enabled !== false) {
-        window.addEventListener('ftudone', function ftudone(e) {
-          window.removeEventListener('ftudone', ftudone);
-          _ensureWidget();
-          widgetFrame.setVisible(false);
-        });
-      } else {
-        _ensureWidget();
-        widgetFrame.setVisible(false);
-      }
-    });
-  });
 
   window.addEventListener('resize', _adjustWidgetPosition);
 }());
