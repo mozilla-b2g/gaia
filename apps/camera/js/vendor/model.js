@@ -50,8 +50,8 @@ Model.prototype = events({
     }
   },
 
-  setter: function(key) {
-    return (function(value) { this.set(key, value); }).bind(this);
+  setter: function(key, value1) {
+    return (function(value2) { this.set(key, value1 || value2); }).bind(this);
   },
 
   reset: function(data, options) {

@@ -110,6 +110,10 @@
   });
 
   KeyboardTouchHandler.addEventListener('key', function(e) {
+    // XXX should not reference app instance directly.
+    var app = window.app;
+    var currentPage = app.currentPage;
+
     // autocorrect on space, or re-enable corrections.
     // revert on backspace and temporarily block corrections
     var keyname = e.detail;

@@ -319,9 +319,10 @@ Camera.prototype.takePicture = function(options) {
   rotation = selectedCamera === 'front'? -rotation: rotation;
 
   this.emit('busy');
-  this.prepareTakePicture(onReady);
+  this.focus(onFocused);
 
-  function onReady() {
+  function onFocused(err) {
+    if (err) { return complete(); }
     var position = options && options.position;
     var config = {
       rotation: rotation,
@@ -344,27 +345,40 @@ Camera.prototype.takePicture = function(options) {
     self.resumePreview();
     self.set('focus', 'none');
     self.emit('newimage', { blob: blob });
-    self.emit('ready');
+    complete();
   }
 
   function onError() {
     var title = navigator.mozL10n.get('error-saving-title');
     var text = navigator.mozL10n.get('error-saving-text');
     alert(title + '. ' + text);
+    complete();
+  }
+
+  function complete() {
     self.emit('ready');
   }
 };
 
-Camera.prototype.prepareTakePicture = function(done) {
+/**
+ * Focus the camera, callback when done.
+ *
+ * If the camera don't support focus,
+ * callback is called (sync).
+ *
+ * If the focus fails, the 'focus' state
+ * is set, then reset after 1 second.
+ *
+ * @param  {Function} done
+ * @private
+ */
+Camera.prototype.focus = function(done) {
+  if (!this.autoFocus.auto) { return done(); }
+  var reset = function() { self.set('focus', 'none'); };
   var self = this;
 
-  if (!this.autoFocus.auto) {
-    done();
-    return;
-  }
-
-  this.mozCamera.autoFocus(onFocus);
   this.set('focus', 'focusing');
+  this.mozCamera.autoFocus(onFocus);
 
   function onFocus(success) {
     if (success) {
@@ -373,14 +387,9 @@ Camera.prototype.prepareTakePicture = function(done) {
       return;
     }
 
-    // On failure
     self.set('focus', 'fail');
     setTimeout(reset, 1000);
-    done();
-  }
-
-  function reset() {
-    self.set('focus', 'none');
+    done('failed');
   }
 };
 

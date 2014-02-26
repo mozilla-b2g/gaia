@@ -321,15 +321,16 @@ ifeq ($(SYS),Darwin)
 MD5SUM = md5 -r
 SED_INPLACE_NO_SUFFIX = /usr/bin/sed -i ''
 DOWNLOAD_CMD = /usr/bin/curl -OL
+TAR_WILDCARDS = tar
 else
 MD5SUM = md5sum -b
 SED_INPLACE_NO_SUFFIX = sed -i
 DOWNLOAD_CMD = wget $(WGET_OPTS)
+TAR_WILDCARDS = tar --wildcards
 endif
 
 # Test agent setup
 TEST_COMMON=test_apps/test-agent/common
-TEST_AGENT_DIR=tools/test-agent/
 ifeq ($(strip $(NODEJS)),)
 	NODEJS := `which node`
 endif
@@ -681,18 +682,16 @@ endif
 # this lists the programs we need in the Makefile and that are installed by npm
 
 NPM_INSTALLED_PROGRAMS = node_modules/.bin/mozilla-download node_modules/.bin/jshint node_modules/.bin/mocha
-$(NPM_INSTALLED_PROGRAMS): package.json
-	# Allow the user to keep a local modules.tar around.
-	# This is so we can skip downloading these again in some instances.
-	# The really-clean target will remove this.
-	if [ ! -f "modules.tar" ]; then \
-		$(DOWNLOAD_CMD) https://github.com/mozilla-b2g/gaia-node-modules/tarball/master && \
-		mv master modules.tar && \
-		tar xvf modules.tar && \
-		mv mozilla-b2g-gaia-node-modules-*/node_modules node_modules && \
-		rm -rf mv mozilla-b2g-gaia-node-modules-*/ && \
-		npm install && npm rebuild; \
-	fi
+$(NPM_INSTALLED_PROGRAMS): package.json node_modules
+
+modules.tar:
+	$(DOWNLOAD_CMD) https://github.com/mozilla-b2g/gaia-node-modules/tarball/master
+	mv master modules.tar
+
+node_modules: modules.tar
+	$(TAR_WILDCARDS) --strip-components 1 -x -m -f modules.tar "mozilla-b2g-gaia-node-modules-*/node_modules"
+	npm install && npm rebuild
+	@echo "node_modules installed."
 
 ###############################################################################
 # Tests                                                                       #
@@ -711,10 +710,6 @@ ifndef APPS
 	endif
 endif
 
-.PHONY: node_modules
-node_modules: $(NPM_INSTALLED_PROGRAMS)
-	echo "node_modules installed."
-
 b2g: node_modules/.bin/mozilla-download
 	./node_modules/.bin/mozilla-download  \
 		--verbose \
@@ -724,7 +719,17 @@ b2g: node_modules/.bin/mozilla-download
 
 .PHONY: test-integration
 # $(PROFILE_FOLDER) should be `profile-test` when we do `make test-integration`.
-test-integration: $(PROFILE_FOLDER)
+test-integration: $(PROFILE_FOLDER) test-integration-test
+
+# XXX Because bug-969215 is not finished, if we are going to run too many
+# marionette tests for 30 times at the same time, we may easily get timeout.
+#
+# In this way, we decide to separate building process with running marionette
+# tests so that we won't get into this problem.
+#
+# Remember to remove this target after bug-969215 is finished !
+.PHONY: test-integration-test
+test-integration-test:
 	./bin/gaia-marionette RUN_CALDAV_SERVER=1 \
 		--host $(MARIONETTE_RUNNER_HOST) \
 		--manifest $(TEST_MANIFEST) \
@@ -747,22 +752,17 @@ common-install:
 	@test -x "$(NODEJS)" || (echo "Please Install NodeJS -- (use aptitude on linux or homebrew on osx)" && exit 1 )
 	@test -x "$(NPM)" || (echo "Please install NPM (node package manager) -- http://npmjs.org/" && exit 1 )
 
-	@cd $(TEST_AGENT_DIR) && test -h node_modules/test-agent && echo '`npm link` is in use, skipping npm install.' || npm install .
-
 .PHONY: update-common
 update-common: common-install
-
 	# common testing tools
 	mkdir -p $(TEST_COMMON)/vendor/test-agent/
 	mkdir -p $(TEST_COMMON)/vendor/chai/
-	rm -Rf tools/xpcwindow
-	rm -f $(TEST_COMMON)/vendor/test-agent/test-agent*.js
-	rm -f $(TEST_COMMON)/vendor/chai/*.js
-	cp -R $(TEST_AGENT_DIR)/node_modules/xpcwindow tools/xpcwindow
-	rm -R tools/xpcwindow/vendor/
-	cp $(TEST_AGENT_DIR)/node_modules/test-agent/test-agent.js $(TEST_COMMON)/vendor/test-agent/
-	cp $(TEST_AGENT_DIR)/node_modules/test-agent/test-agent.css $(TEST_COMMON)/vendor/test-agent/
-	cp $(TEST_AGENT_DIR)/node_modules/chai/chai.js $(TEST_COMMON)/vendor/chai/
+	rm -f $(TEST_COMMON)/vendor/test-agent/test-agent.js
+	rm -f $(TEST_COMMON)/vendor/test-agent/test-agent.css
+	rm -f $(TEST_COMMON)/vendor/chai/chai.js
+	cp $(GAIA)/node_modules/test-agent/test-agent.js $(TEST_COMMON)/vendor/test-agent/
+	cp $(GAIA)/node_modules/test-agent/test-agent.css $(TEST_COMMON)/vendor/test-agent/
+	cp $(GAIA)/node_modules/chai/chai.js $(TEST_COMMON)/vendor/chai/
 
 # Create the json config file
 # for use with the test agent GUI
@@ -817,18 +817,18 @@ ifneq ($(strip $(APP)),)
 APP_TEST_LIST=$(shell find apps/$(APP) -name '*_test.js' | grep '/test/unit/')
 endif
 .PHONY: test-agent-test
-test-agent-test:
+test-agent-test: node_modules
 ifneq ($(strip $(APP)),)
 	@echo 'Running tests for $(APP)';
-	@$(TEST_AGENT_DIR)/node_modules/test-agent/bin/js-test-agent test $(TEST_ARGS) --server ws://localhost:$(TEST_AGENT_PORT) --reporter $(REPORTER) $(APP_TEST_LIST)
+	./node_modules/test-agent/bin/js-test-agent test $(TEST_ARGS) --server ws://localhost:$(TEST_AGENT_PORT) --reporter $(REPORTER) $(APP_TEST_LIST)
 else
 	@echo 'Running all tests';
-	@$(TEST_AGENT_DIR)/node_modules/test-agent/bin/js-test-agent test $(TEST_ARGS) --server ws://localhost:$(TEST_AGENT_PORT) --reporter $(REPORTER)
+	./node_modules/test-agent/bin/js-test-agent test $(TEST_ARGS) --server ws://localhost:$(TEST_AGENT_PORT) --reporter $(REPORTER)
 endif
 
 .PHONY: test-agent-server
-test-agent-server: common-install
-	$(TEST_AGENT_DIR)/node_modules/test-agent/bin/js-test-agent server --port $(TEST_AGENT_PORT) -c ./$(TEST_AGENT_DIR)/test-agent-server.js --http-path . --growl
+test-agent-server: common-install node_modules
+	./node_modules/test-agent/bin/js-test-agent server --port $(TEST_AGENT_PORT) -c ./shared/test/unit/test-agent-server.js --http-path . --growl
 
 .PHONY: marionette
 marionette:

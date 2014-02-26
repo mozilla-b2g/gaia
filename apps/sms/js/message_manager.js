@@ -271,6 +271,7 @@ var MessageManager = {
           if (ThreadUI.draft) {
             ThreadUI.draft.isEdited = false;
           }
+          ThreadUI.recipients.focus();
         }.bind(this));
         break;
       case '#thread-list':
