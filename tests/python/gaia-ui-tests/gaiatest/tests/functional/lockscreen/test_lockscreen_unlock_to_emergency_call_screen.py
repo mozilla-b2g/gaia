@@ -5,7 +5,6 @@
 from gaiatest import GaiaTestCase
 from gaiatest.apps.lockscreen.app import LockScreen
 
-
 class TestLockScreen(GaiaTestCase):
 
     _input_passcode = '7931'
@@ -23,7 +22,8 @@ class TestLockScreen(GaiaTestCase):
     def test_unlock_to_emergency_call_screen(self):
         lock_screen = LockScreen(self.marionette)
         passcode_pad = lock_screen.unlock_to_passcode_pad()
-        emergency_screen = passcode_pad.tap_emergency_call()
+        emergency_call = passcode_pad.tap_emergency_call()
+        emergency_call.switch_to_emergency_call_frame()
 
-        self.assertTrue(emergency_screen.is_emergency_dialer_keypad_displayed,
+        self.assertTrue(emergency_call.is_emergency_dialer_keypad_displayed,
                         'emergency dialer keypad is not displayed')
