@@ -3,25 +3,12 @@
 
 'use strict';
 
-var iccLoaded = false;
-
 (function() {
   var iccMainHeader = document.getElementById('icc-mainheader');
   var iccEntries = document.getElementById('icc-entries');
 
-  function loadIccPage(callback) {
-    if (typeof(callback) !== 'function')
-      callback = function __dummy__() {};
-    if (iccLoaded)
-      return callback();
-    Settings.currentPanel = '#icc';
-    setTimeout(function() {
-      callback();
-    }, 2000);
-  }
-
-  function executeICCCmd(iccMessage) {
-    if (!iccMessage)
+  function executeICCCmd(iccCommand) {
+    if (!iccCommand)
       return;
 
     // Clear cache
@@ -33,13 +20,15 @@ var iccLoaded = false;
     };
 
     // Open ICC section
-    DUMP('ICC message to execute: ', iccMessage);
-    loadIccPage(function() {
+    DUMP('ICC command to execute: ', iccCommand);
+    Settings.currentPanel = '#icc';
+
+    setTimeout(function() {
       var event = new CustomEvent('stkasynccommand', {
-        detail: { 'message': iccMessage }
+        detail: { 'command': iccCommand }
       });
       window.dispatchEvent(event);
-    });
+    }, 2000);
   }
 
   setTimeout(function updateStkMenu() {
@@ -49,7 +38,7 @@ var iccLoaded = false;
     var settings = Settings.mozSettings;
     var lock = settings.createLock();
 
-    function showStkEntries(menu) {
+    function showStkEntry(menu) {
       DUMP('STK cached menu: ', menu);
       if (!menu || typeof(menu) !== 'object' || Object.keys(menu).length == 0) {
         DUMP('No STK available - exit');
@@ -79,15 +68,6 @@ var iccLoaded = false;
         a.classList.add('menu-item');
         a.classList.add('menuItem-icc');
         a.href = '#icc';
-        a.onclick = function menu_icc_onclick() {
-          DUMP('Touched ' + menu[SIMNumber].iccId);
-          loadIccPage(function() {
-            var event = new CustomEvent('stkmenuselection', {
-              detail: { 'menu': menu[SIMNumber] }
-            });
-            window.dispatchEvent(event);
-          });
-        };
         li.appendChild(a);
 
         iccEntries.appendChild(li);
@@ -102,14 +82,14 @@ var iccLoaded = false;
     reqApplications.onsuccess = function icc_getApplications() {
       var json = reqApplications.result['icc.applications'];
       var menu = json && JSON.parse(json);
-      showStkEntries(menu);
+      showStkEntry(menu);
     };
 
     settings.addObserver('icc.applications',
       function icc_getApplications(event) {
         var json = event.settingValue;
         var menu = json && JSON.parse(json);
-        showStkEntries(menu);
+        showStkEntry(menu);
       });
 
     // Check if there are pending STK commands
@@ -131,3 +111,4 @@ var iccLoaded = false;
     });
   });
 })();
+
