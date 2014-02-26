@@ -47,7 +47,7 @@ module.exports = View.extend({
 
   template: function() {
     return '' +
-    '<a class="switch-button test-switch" name="switch">' +
+    '<a class="switch-button test-switch js-switch" name="switch">' +
       '<span class="icon rotates"></span>' +
     '</a>' +
     '<a class="capture-button test-capture js-capture" name="capture">' +
