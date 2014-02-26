@@ -302,7 +302,7 @@ var icc_worker = {
     DUMP('STK_CMD_SET_UP_MENU. Transferring to ' + application + ': ',
       message.command);
     var reqIccData = window.navigator.mozSettings.createLock().set({
-      'icc.data': JSON.stringify(message)
+      'icc.data': JSON.stringify(message.command)
     });
     reqIccData.onsuccess = function icc_getIccData() {
       if (AppWindowManager.getRunningApps()[application]) {
