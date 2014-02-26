@@ -32,7 +32,8 @@ require(['config/require', 'config'], function() {
       settings: require('controllers/settings'),
       activity: require('controllers/activity'),
       camera: require('controllers/camera'),
-      sounds: require('controllers/sounds')
+      sounds: require('controllers/sounds'),
+      lowbattery:require('controllers/lowbattery')
     };
 
     debug('required dependencies');

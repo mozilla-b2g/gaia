@@ -1,0 +1,174 @@
+
+.indicator{
+z-index: 50;
+position: absolute;
+top: 40%;
+left:2%;
+margin: 0px ;
+padding: 0px ;
+border:none;
+background: transparent;
+
+}
+.indicator[data-orientation="180"] {
+top:40%;
+left: 90%;
+transform:rotate(180deg);
+}
+
+.indicator ul{
+	border:none;
+	margin:0;
+    padding: 0;
+    background: transparent;
+}
+.indicator li{
+  height: 3.0rem;
+  width: 3.0rem;
+  background-image: url(images/Viewfinder-Indicator-Underlay.png);
+  background-size: 120%;
+  border-radius: 20%;
+  background-position: center center;
+  background-repeat: no-repeat;
+  list-style: none;
+  opacity: 0;
+  margin-bottom:12px;
+  padding: 0;
+}
+
+.batteryStatus{
+  stroke:#D92E2E;
+  fill:#D92E2E;
+}
+.batteryStatus[data-orientation="180"]{
+	transform:rotate(0deg);
+}
+
+
+.batteryStatus[data-value="5"][data-mode=charging]{
+	opacity: 0.6;
+	background-image: url(images/Battery_10_Percent.svg);
+}
+.batteryStatus[data-value="5"][data-mode=notcharging]{
+	opacity: 0.6;
+	background-image: url(images/Battery_10_Percent.svg);
+}
+
+.batteryStatus[data-value="6"][data-mode=charging]{
+	opacity: 0.6;
+	background-image: url(images/Battery_10_Percent.svg);
+	transition: background-image 2s ease-in-out;
+	animation-name: cf3FadeInOut;
+	animation-timing-function: ease-in-out;
+	animation-iteration-count: infinite;
+	animation-duration: 3s;
+	animation-direction: alternate;
+}
+.batteryStatus[data-value="6"][data-mode=notcharging]{
+	opacity: 0.6;
+	background-image: url(images/Battery_10_Percent.svg);
+	transition: background-image 2s ease-in-out;
+	animation-name: cf3FadeInOut;
+	animation-timing-function: ease-in-out;
+	animation-iteration-count: infinite;
+	animation-duration: 3s;
+	animation-direction: alternate;
+}
+
+.batteryStatus[data-value="7"][data-mode=charging]{
+	opacity: 0.6;
+	background-image: url(images/Battery_10_Percent.svg);
+}
+.batteryStatus[data-value="7"][data-mode=notcharging]{
+	opacity: 0.6;
+	background-image: url(images/Battery_10_Percent.svg);
+}
+
+.batteryStatus[data-value="8"][data-mode=charging]{
+	opacity: 0.6;
+	background-image: url(images/Battery_10_Percent.svg);
+}
+.batteryStatus[data-value="8"][data-mode=notcharging]{
+	opacity: 0.6;
+	background-image: url(images/Battery_10_Percent.svg);
+}
+
+.batteryStatus[data-value="9"][data-mode=charging]{
+	opacity: 0.6;
+	background-image: url(images/Battery_10_Percent.svg);
+}
+.batteryStatus[data-value="9"][data-mode=notcharging]{
+	opacity: 0.6;
+	background-image: url(images/Battery_10_Percent.svg);
+}
+
+.batteryStatus[data-value="10"][data-mode=charging]{
+	opacity: 0.6;
+	background-image: url(images/Battery_10_Percent.svg);
+}
+.batteryStatus[data-value="10"][data-mode=notcharging]{
+	opacity: 0.6;
+	background-image: url(images/Battery_10_Percent.svg);
+}
+
+.batteryStatus[data-value="11"][data-mode=charging]{
+	opacity: 0.6;
+	background-image: url(images/Battery_15_Percent.svg);
+}
+.batteryStatus[data-value="11"][data-mode=notcharging]{
+	opacity: 0.6;
+	background-image: url(images/Battery_15_Percent.svg);
+}
+
+.batteryStatus[data-value="12"][data-mode=charging]{
+	opacity: 0.6;
+	background-image: url(images/Battery_15_Percent.svg);
+}
+.batteryStatus[data-value="12"][data-mode=notcharging]{
+	opacity: 0.6;
+	background-image: url(images/Battery_15_Percent.svg);
+}
+
+.batteryStatus[data-value="13"][data-mode=charging]{
+	opacity: 0.6;
+	background-image: url(images/Battery_15_Percent.svg);
+}
+.batteryStatus[data-value="13"][data-mode=notcharging]{
+	opacity: 0.6;
+	background-image: url(images/Battery_15_Percent.svg);
+}
+
+.batteryStatus[data-value="14"][data-mode=charging]{
+	opacity: 0.6;
+	background-image: url(images/Battery_15_Percent.svg);
+}
+.batteryStatus[data-value="14"][data-mode=notcharging]{
+	opacity: 0.6;
+	background-image: url(images/Battery_15_Percent.svg);
+}
+
+.batteryStatus[data-value="15"][data-mode=charging]{
+	opacity: 0.6;
+	background-image: url(images/Battery_15_Percent.svg);
+}
+.batteryStatus[data-value="15"][data-mode=notcharging]{
+	opacity: 0.6;
+	background-image: url(images/Battery_15_Percent.svg);
+}
+
+
+
+@keyframes cf3FadeInOut {
+  0% {
+  opacity:1;
+}
+45% {
+opacity:1;
+}
+55% {
+opacity:0;
+}
+100% {
+opacity:0;
+}
+}
