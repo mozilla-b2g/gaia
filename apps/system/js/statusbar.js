@@ -618,9 +618,9 @@ var StatusBar = {
       var f = new navigator.mozL10n.DateTimeFormat();
       var sec = now.getSeconds();
 
-      var formated = f.localeFormat(now, _('shortTimeFormat'));
-      formated = formated.replace(/\s?(AM|PM)\s?/i, '<span>$1</span>');
-      this.icons.time.innerHTML = formated;
+      var timeFormat = _('shortTimeFormat').replace('%p', '<span>%p</span>');
+      var formatted = f.localeFormat(now, timeFormat);
+      this.icons.time.innerHTML = formatted;
 
       var label = this.icons.label;
       var l10nArgs = JSON.parse(label.dataset.l10nArgs || '{}');
