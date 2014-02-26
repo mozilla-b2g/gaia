@@ -113,10 +113,16 @@ Camera.prototype.gotCamera = function(mozCamera) {
   var capabilities = mozCamera.capabilities;
   this.mozCamera = mozCamera;
   this.mozCamera.onShutter = this.onShutter;
-  this.mozCamera.onRecorderStateChange = self.onRecorderStateChange;
+  this.mozCamera.onRecorderStateChange = this.onRecorderStateChange;
   this.configureFocus(capabilities.focusModes);
-  this.set('capabilities', capabilities);
+  this.set('capabilities', this.formatCapabilities(capabilities));
   this.setWhiteBalance('auto');
+};
+
+Camera.prototype.formatCapabilities = function(capabilities) {
+  var hasHDR = capabilities.sceneModes.indexOf('hdr') > -1;
+  capabilities.hdr = hasHDR ? ['on', 'off'] : undefined;
+  return capabilities;
 };
 
 Camera.prototype.configure = function() {
@@ -674,11 +680,6 @@ Camera.prototype.setMode = function(mode) {
   return this;
 };
 
-// Camera.prototype.updatePreviewSize = function(mode) {
-//   this.previewSize = mode === 'picture' ?
-//     this.picturePreviewSize : this.videoPreviewSize;
-// };
-
 /**
  * Sets a start time and begins
  * updating the elapsed time
@@ -713,7 +714,7 @@ Camera.prototype.updateVideoElapsed = function() {
 };
 
 /**
- * Set the mozCamera white-balance value.
+ * Set white balance.
  *
  * @param {String} value
  */
@@ -722,6 +723,33 @@ Camera.prototype.setWhiteBalance = function(value){
   var modes = capabilities.whiteBalanceModes;
   if (modes.indexOf(value) > -1) {
     this.mozCamera.whiteBalanceMode = value;
+  }
+};
+
+/**
+ * Set HDR mode.
+ *
+ * HDR is a scene mode, so we
+ * transform the hdr value to
+ * the appropriate scene value.
+ *
+ * @param {String} value
+ */
+Camera.prototype.setHDR = function(value){
+  if (!value) { return; }
+  var scene = value === 'on' ? 'hdr' : 'auto';
+  this.setSceneMode(scene);
+};
+
+/**
+ * Set scene mode.
+ *
+ * @param {String} value
+ */
+Camera.prototype.setSceneMode = function(value){
+  var modes =  this.get('capabilities').sceneModes;
+  if (modes.indexOf(value) > -1) {
+    this.mozCamera.sceneMode = value;
   }
 };
 
