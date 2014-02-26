@@ -95,7 +95,7 @@ suite('navigation bar', function() {
         };
       });
 
-      test('> One SIM', function(done) {
+      test.skip('> One SIM', function(done) {
         window.postMessage(notificationObject, '*');
 
         setTimeout(function() {
