@@ -11,7 +11,9 @@ var Base = require('./base'),
     FeedbackPanel = require('./regions/feedback'),
     SoundPanel = require('./regions/sound'),
     NotificationsPanel = require('./regions/notifications'),
-    LanguagePanel = require('./regions/language');
+    LanguagePanel = require('./regions/language'),
+    NotificationsPanel = require('./regions/notifications'),
+    ScreenLockPanel = require('./regions/screen_lock');
 
 // origin of the settings app
 var ORIGIN = 'app://settings.gaiamobile.org';
@@ -43,7 +45,8 @@ Settings.Selectors = {
   'feedbackPanel': 'button[data-href="#improveBrowserOS-chooseFeedback"]',
   'soundMenuItem': '#menuItem-sound',
   'languagePanel': '#languages',
-  'languageMenuItem': '#menuItem-languageAndRegion'
+  'languageMenuItem': '#menuItem-languageAndRegion',
+  'screenLockMenuItem': '#menuItem-phoneLock'
 };
 
 Settings.prototype = {
@@ -111,6 +114,13 @@ Settings.prototype = {
     this._languagePanel = this._languagePanel ||
       new LanguagePanel(this.client);
     return this._languagePanel;
+  },
+
+  get screenLockPanel() {
+    this.openPanel('screenLockMenuItem');
+    this._screenLockPanel = this._screenLockPanel ||
+      new ScreenLockPanel(this.client);
+    return this._screenLockPanel;
   },
 
   /**

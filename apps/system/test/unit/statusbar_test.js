@@ -30,7 +30,7 @@ var mocksForStatusBar = new MocksHelper([
   'TouchForwarder'
 ]).init();
 
-mocha.globals(['Clock', 'StatusBar', 'lockScreen']);
+mocha.globals(['Clock', 'StatusBar', 'lockScreen', 'System']);
 suite('system/Statusbar', function() {
   var mobileConnectionCount = 2;
   var fakeStatusBarNode, fakeTopPanel;
@@ -111,6 +111,25 @@ suite('system/Statusbar', function() {
       assert.equal(Object.keys(fakeIcons.signals).length,
         mobileConnectionCount);
       assert.equal(Object.keys(fakeIcons.data).length, mobileConnectionCount);
+    });
+  });
+
+  suite('StatusBar height', function() {
+    setup(function() {
+      var app = {
+        isFullScreen: function() {
+          return true;
+        }
+      };
+
+      this.sinon.stub(MockAppWindowManager, 'getActiveApp').returns(app);
+      StatusBar.screen = document.createElement('div');
+    });
+    teardown(function() {
+      StatusBar.screen = null;
+    });
+    test('Active app is fullscreen', function() {
+      assert.equal(StatusBar.height, 0);
     });
   });
 
@@ -1165,7 +1184,7 @@ suite('system/Statusbar', function() {
     setup(function() {
       app = {
         isFullScreen: function() {
-          return true;
+          return false;
         },
         iframe: document.createElement('iframe')
       };
@@ -1178,26 +1197,6 @@ suite('system/Statusbar', function() {
       StatusBar.screen = document.createElement('div');
     });
 
-    test('the status bar should open when the utilitytray is shown',
-    function() {
-      StatusBar.hide();
-
-      var evt = new CustomEvent('utilitytrayshow');
-      StatusBar.handleEvent(evt);
-
-      assert.isFalse(StatusBar.element.classList.contains('invisible'));
-    });
-
-    test('the status bar should close when the utilitytray is hidden',
-    function() {
-      StatusBar.show();
-
-      var evt = new CustomEvent('utilitytrayhide');
-      StatusBar.handleEvent(evt);
-
-      assert.isTrue(StatusBar.element.classList.contains('invisible'));
-    });
-
     test('the status bar should not close if the current app is not fullscreen',
     function() {
       this.sinon.stub(app, 'isFullScreen').returns(false);
@@ -1207,26 +1206,6 @@ suite('system/Statusbar', function() {
       StatusBar.handleEvent(evt);
 
       assert.isFalse(StatusBar.element.classList.contains('invisible'));
-    });
-
-    test('the status bar should open when the rocketbar is shown',
-    function() {
-      StatusBar.hide();
-
-      var evt = new CustomEvent('rocketbarshown');
-      StatusBar.handleEvent(evt);
-
-      assert.isFalse(StatusBar.element.classList.contains('invisible'));
-    });
-
-    test('the status bar should close when the rocketbar is hidden',
-    function() {
-      StatusBar.show();
-
-      var evt = new CustomEvent('rocketbarhidden');
-      StatusBar.handleEvent(evt);
-
-      assert.isTrue(StatusBar.element.classList.contains('invisible'));
     });
 
     suite('Revealing the StatusBar >', function() {
