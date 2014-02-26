@@ -80,6 +80,7 @@ DESKTOP_SHIMS?=0
 GAIA_OPTIMIZE?=0
 GAIA_DEV_PIXELS_PER_PX?=1
 DOGFOOD?=0
+NODE_MODULES_SRC?=modules.tar
 
 # Rocketbar customization
 # none - Do not enable rocketbar
@@ -174,6 +175,10 @@ endif
 
 ifeq ($(DOGFOOD), 1)
 GAIA_APP_TARGET=dogfood
+endif
+
+ifdef NODE_MODULES_GIT_URL
+NODE_MODULES_SRC := git-gaia-node-modules
 endif
 
 ###############################################################################
@@ -684,12 +689,20 @@ endif
 NPM_INSTALLED_PROGRAMS = node_modules/.bin/mozilla-download node_modules/.bin/jshint node_modules/.bin/mocha
 $(NPM_INSTALLED_PROGRAMS): package.json node_modules
 
-modules.tar:
+$(NODE_MODULES_SRC):
+ifeq "$(NODE_MODULES_SRC)" "modules.tar"
 	$(DOWNLOAD_CMD) https://github.com/mozilla-b2g/gaia-node-modules/tarball/master
-	mv master modules.tar
+	mv master "$(NODE_MODULES_SRC)"
+else
+	git clone "$(NODE_MODULES_GIT_URL)" "$(NODE_MODULES_SRC)"
+endif
 
-node_modules: modules.tar
-	$(TAR_WILDCARDS) --strip-components 1 -x -m -f modules.tar "mozilla-b2g-gaia-node-modules-*/node_modules"
+node_modules: $(NODE_MODULES_SRC)
+ifeq "$(NODE_MODULES_SRC)" "modules.tar"
+	$(TAR_WILDCARDS) --strip-components 1 -x -m -f $(NODE_MODULES_SRC) "mozilla-b2g-gaia-node-modules-*/node_modules"
+else
+	mv $(NODE_MODULES_SRC)/node_modules node_modules
+endif
 	npm install && npm rebuild
 	@echo "node_modules installed."
 
