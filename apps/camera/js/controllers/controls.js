@@ -59,6 +59,11 @@ ControlsController.prototype.configure = function() {
   this.controls.set('cancel', isCancellable);
   this.controls.set('switchable', isSwitchable);
   this.controls.set('mode', initialMode);
+
+  debug('cancelable: %s', isCancellable);
+  debug('switchable: %s', isSwitchable);
+  debug('gallery: %s', showGallery);
+  debug('mode: %s', initialMode);
 };
 
 ControlsController.prototype.disableButtons = function() {

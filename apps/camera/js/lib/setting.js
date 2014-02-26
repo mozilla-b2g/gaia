@@ -14,12 +14,6 @@ var model = require('vendor/model');
 
 module.exports = Setting;
 
-/**
- * Locals
- */
-
-var noop = function() {};
-
 // Mixin Model methods
 model(Setting.prototype);
 
@@ -230,14 +224,12 @@ Setting.prototype.save = function() {
  * @param  {Function} done
  * @public
  */
-Setting.prototype.fetch = function(done) {
-  done = done || noop;
-  if (!this.get('persistent')) { return done(); }
+Setting.prototype.fetch = function() {
+  if (!this.get('persistent')) { return; }
   debug('fetch value key: %s', this.key);
   var value = localStorage.getItem('setting:' + this.key);
   debug('fetched %s value: %s', this.key, value);
   if (value) { this.select(value, { silent: true }); }
-  done();
 };
 
 /**

@@ -66,15 +66,9 @@
  * @recording=true
  */
 
+.controls[cancel=true] .gallery-button,
 .controls[recording=true] .gallery-button {
   display: none;
-}
-
-/** Gallery Button Icon
- ---------------------------------------------------------*/
-
-.gallery-button span {
-  /*background-image: url(images/grid.png);*/
 }
 
 /** Cancel Pick Button
@@ -84,6 +78,7 @@
   display: none;
   width: 100%;
   height: 100%;
+  background: url(images/actionicon_cancel.png) center no-repeat;
 }
 
 /**
@@ -98,7 +93,7 @@
  ---------------------------------------------------------*/
 
 .cancel-pick span {
-  background-image: url(images/actionicon_cancel.png);
+
 }
 
 /** Video Timer
