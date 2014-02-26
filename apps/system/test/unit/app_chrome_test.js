@@ -5,10 +5,11 @@ mocha.globals(['AppWindow', 'AppChrome', 'System',
 
 requireApp('system/test/unit/mock_l10n.js');
 requireApp('system/test/unit/mock_app_window.js');
+requireApp('system/test/unit/mock_popup_window.js');
 requireApp('system/test/unit/mock_modal_dialog.js');
 
 var mocksForAppChrome = new MocksHelper([
-  'AppWindow', 'ModalDialog'
+  'AppWindow', 'ModalDialog', 'PopupWindow'
 ]).init();
 
 suite('system/AppChrome', function() {
@@ -191,7 +192,12 @@ suite('system/AppChrome', function() {
     var chrome1 = new AppChrome(app1);
     var stub1 = this.sinon.stub(app1, 'canGoForward');
     var stub2 = this.sinon.stub(app1, 'canGoBack');
-    chrome1.handleLocationChanged();
+    chrome1.handleLocationChanged(new CustomEvent(
+      'mozbrowserlocationchange',
+      {
+        detail: 'new.location'
+      }
+    ));
     stub1.getCall(0).args[0](true);
     assert.isUndefined(chrome1.forwardButton.dataset.disabled);
     stub1.getCall(0).args[0](false);

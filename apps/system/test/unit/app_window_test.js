@@ -6,7 +6,7 @@ mocha.globals(['SettingsListener', 'removeEventListener', 'addEventListener',
       'SoftwareButtonManager', 'AppWindow', 'AppChrome',
       'OrientationManager', 'SettingsListener', 'BrowserFrame',
       'BrowserConfigHelper', 'System', 'layoutManager',
-      'AppTransitionController', 'AppWindowManager']);
+      'AppTransitionController', 'AppWindowManager', 'PopupWindow']);
 
 requireApp('system/test/unit/mock_orientation_manager.js');
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
@@ -16,11 +16,12 @@ requireApp('system/test/unit/mock_applications.js');
 requireApp('system/test/unit/mock_layout_manager.js');
 requireApp('system/test/unit/mock_app_chrome.js');
 requireApp('system/test/unit/mock_screen_layout.js');
+requireApp('system/test/unit/mock_popup_window.js');
 
 var mocksForAppWindow = new MocksHelper([
   'OrientationManager', 'Applications', 'SettingsListener',
   'ManifestHelper', 'LayoutManager',
-  'ScreenLayout', 'AppChrome'
+  'ScreenLayout', 'AppChrome', 'PopupWindow'
 ]).init();
 
 suite('system/AppWindow', function() {
@@ -911,10 +912,9 @@ suite('system/AppWindow', function() {
       });
 
       assert.isTrue(stubKill.called);
-      assert.isTrue(app1._closed);
     });
 
-    test('Close event to a child window.', function() {
+    test('Kill a child window.', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       var app1parent = new AppWindow(fakeAppConfig2);
       var app1child = new AppWindow(fakeAppConfig3);
@@ -929,9 +929,7 @@ suite('system/AppWindow', function() {
       var stubCloseSelf = this.sinon.stub(app1, 'close');
       stubIsActive.returns(true);
 
-      app1.handleEvent({
-        type: 'mozbrowserclose'
-      });
+      app1.kill();
       assert.isTrue(stubOpenParent.calledWith('in-from-left'));
       assert.isTrue(stubCloseSelf.calledWith('out-to-right'));
       assert.isTrue(stubKillChild.called);

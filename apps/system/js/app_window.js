@@ -1,8 +1,8 @@
-/* global SettingsListener */
+/* global SettingsListener, PopupWindow */
 'use strict';
 
 (function(exports) {
-  var DEBUG = false;
+  var DEBUG = true;
   var _id = 0;
 
   /**
@@ -65,7 +65,6 @@
    */
   AppWindow.SUSPENDING_ENABLED = false;
   SettingsListener.observe('app-suspending.enabled', false, function(value) {
-    console.log('appwindow:', value);
     AppWindow.SUSPENDING_ENABLED = !!value;
   });
 
@@ -83,7 +82,7 @@
    */
   AppWindow.prototype.generateID = function() {
     if (!this.instanceID) {
-      this.instanceID = this.CLASS_NAME + '-' + _id;
+      this.instanceID = this.CLASS_NAME + '_' + _id;
       _id++;
     }
   };
@@ -229,6 +228,9 @@
       }
 
       this.debug('screenshot state -> ', this._screenshotOverlayState);
+      if (this.childWindow && this.childWindow instanceof PopupWindow) {
+        this.childWindow.setVisible(visible, screenshotIfInvisible);
+      }
     };
 
   /**
@@ -411,20 +413,26 @@
       this.childWindow.kill();
       this.childWindow = null;
     }
-    if (this.parentWindow) {
-      this.parentWindow = null;
-    }
 
     // If the app is the currently displayed app, switch to the homescreen
     if (this.isActive() && !this.isHomescreen) {
-      // XXX: Refine this in transition state controller.
       this.element.addEventListener('_closed', (function onClosed() {
         window.removeEventListener('_closed', onClosed);
         this.destroy();
       }).bind(this));
-      this.requestClose();
+      if (this.parentWindow && !(this instanceof PopupWindow)) {
+        this.parentWindow.open('in-from-left');
+        this.close('out-to-right');
+      } else {
+        this.requestClose();
+      }
     } else {
       this.destroy();
+    }
+
+    if (this.parentWindow) {
+      this.parentWindow.unsetChildWindow();
+      this.parentWindow = null;
     }
     /**
      * Fired when the instance is terminated.
@@ -561,7 +569,8 @@
      'mozbrowserloadend', 'mozbrowseractivitydone', 'mozbrowserloadstart',
      'mozbrowsertitlechange', 'mozbrowserlocationchange',
      'mozbrowsericonchange',
-     '_localized', '_swipein', '_swipeout', '_kill_suspended'];
+     '_localized', '_swipein', '_swipeout', '_kill_suspended',
+     'popupterminated'];
 
   AppWindow.SUB_COMPONENTS = {
     'transitionController': window.AppTransitionController,
@@ -653,29 +662,10 @@
 
   AppWindow.prototype._handle_mozbrowserclose =
     function aw__handle_mozbrowserclose(evt) {
-      if (this._closed) {
-        return;
+      if ('stopPropagation' in evt) {
+        evt.stopPropagation();
       }
-      this._closed = true;
-      if (this.childWindow) {
-        this.childWindow.kill();
-        this.childWindow = null;
-      }
-      // If this is an active child window which has its parent window,
-      // perform proper closing transitions to both to make transitoning nice.
-      if (this.parentWindow && this.isActive()) {
-        this.element.addEventListener('_closed', (function onClosed() {
-          this.element.removeEventListener('_closed', onClosed);
-          this.destroy();
-        }).bind(this));
-        this.parentWindow.open('in-from-left');
-        this.close('out-to-right');
-        this.parentWindow.childWindow = null;
-        this.parentWindow = null;
-        this.publish('terminated');
-      } else {
-        this.kill();
-      }
+      this.kill();
     };
 
   AppWindow.prototype._handle_mozbrowsererror =
@@ -842,6 +832,9 @@
    */
   AppWindow.prototype.requestScreenshotURL =
     function aw__requestScreenshotURL() {
+      if (this.childWindow) {
+        return this.childWindow.requestScreenshotURL();
+      }
       if (!this._screenshotBlob) {
         return null;
       }
@@ -1124,9 +1117,14 @@
     if (!this.isActive() || this.isTransitioning()) {
       return;
     }
-    this.debug(' will resize... ');
-    this._resize();
-    this.resized = true;
+    if (this.childWindow && this.childWindow instanceof PopupWindow) {
+      this.childWindow.resize();
+    } else {
+      // resize myself if no child.
+      this.debug(' will resize... ');
+      this._resize();
+      this.resized = true;
+    }
   };
 
   /**
@@ -1454,6 +1452,8 @@
    */
   AppWindow.prototype.setChildWindow = function aw_setChildWindow(childWindow) {
     if (this.childWindow) {
+      console.warn('There is already alive child window, killing...',
+                    this.childWindow.instanceID);
       this.childWindow.kill();
     }
     this.childWindow = childWindow;
@@ -1531,6 +1531,18 @@
       app = app.childWindow;
     }
     return app;
+  };
+
+  AppWindow.prototype.getFrameForScreenshot = function() {
+    if (this.childWindow && this.childWindow instanceof PopupWindow) {
+      return this.childWindow.getFrameForScreenshot();
+    } else {
+      return this.browser.element;
+    }
+  };
+
+  AppWindow.prototype._handle_popupterminated = function() {
+    this.childWindow = null;
   };
 
   exports.AppWindow = AppWindow;
