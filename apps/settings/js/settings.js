@@ -76,14 +76,12 @@ var Settings = {
       PerformanceTestingHelper.dispatch('start');
     }
 
-    var self = this;
     var panelID = hash;
     if (panelID.startsWith('#')) {
       panelID = panelID.substring(1);
     }
+    this._currentPanel = hash;
     this.SettingsService.navigate(panelID, null, function() {
-      self._currentPanel = hash;
-
       switch (hash) {
         case 'about-licensing':
           // Workaround for bug 825622, remove when fixed
