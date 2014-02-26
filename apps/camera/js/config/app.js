@@ -186,12 +186,12 @@ module.exports = {
     icon: 'icon-hdr',
     options: [
       {
-        key: 'on',
-        title: 'l10n-on'
-      },
-      {
         key: 'off',
         title: 'l10n-off'
+      },
+      {
+        key: 'on',
+        title: 'l10n-on'
       }
     ],
     persistent: true,

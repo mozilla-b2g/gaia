@@ -157,7 +157,7 @@ SettingsController.prototype.configureAliases = function() {
  */
 SettingsController.prototype.menuItems = function() {
   var items = this.settings.settingsMenu.get('items');
-  return items.filter(this.matchesCondition, this)
+  return items.filter(this.filterMenuItem, this)
     .map(function(item) { return this.settings[item.key]; }, this);
 };
 
@@ -165,20 +165,28 @@ SettingsController.prototype.menuItems = function() {
  * Tests if the passed `settingsMenu`
  * item passes any defined conditions.
  *
+ * If the item has no options, we choose
+ * not to include it in the menu.
+ *
  * @param  {Object} item
  * @return {Boolean}
  */
-SettingsController.prototype.matchesCondition = function(item) {
+SettingsController.prototype.filterMenuItem = function(item) {
+  var setting = this.settings[item.key];
+  var hasOptions = setting.get('options').length;
   var self = this;
   var test = function(condition) {
-    for (var key in condition) {
-      var value = condition[key];
-      var setting = self.settings[key];
-      if (setting.selected('key') !== value) { return false; }
+    if (condition) {
+      for (var key in condition) {
+        var value = condition[key];
+        var setting = self.settings[key];
+        if (setting.selected('key') !== value) { return false; }
+      }
     }
     return true;
   };
-  return !item.condition || test(item.condition);
+
+  return hasOptions ? test(item.condition) : false;
 };
 
 /**
