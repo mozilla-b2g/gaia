@@ -57,6 +57,23 @@
   opacity: 0.2;
 }
 
+/** HDR
+ ---------------------------------------------------------*/
+
+.indicator_hdr {
+  display: none;
+}
+
+/**
+ * @on,
+ * @off
+ */
+
+.indicators[hdr=on] .indicator_hdr,
+.indicators[hdr=off] .indicator_hdr {
+  display: block;
+}
+
 /** Indicator Battery
  ---------------------------------------------------------*/
 
