@@ -32,12 +32,11 @@ function Setting(data) {
   this.configure(data);
   this.reset(data, { silent: true });
   this.updateSelected({ silent: true });
-
-  // Bind context
   this.isValidOption = this.isValidOption.bind(this);
   this.inflateOption = this.inflateOption.bind(this);
   this.select = this.select.bind(this);
   this.next = this.next.bind(this);
+  this.l10n = data.l10n;
 }
 
 Setting.prototype.configure = function(data) {
@@ -324,6 +323,44 @@ Setting.prototype.fetch = function() {
   this.fetched = storage.getItem('setting_' + this.key);
   debug('fetched %s value: %s', this.key, this.fetched);
   if (this.fetched) { this.select(this.fetched, { silent: true }); }
+};
+
+/**
+ * Replace title l10n identifiers
+ * with localized strings.
+ *
+ * @public
+ */
+Setting.prototype.localize = function() {
+  var options = this.get('options');
+  var title = this.get('title');
+  var silent = { silent: true };
+  var self = this;
+
+  // Title
+  var localized = this.localizeString(title);
+  if (localized) { this.set('title', localized, silent); }
+
+  // Option's title
+  options.forEach(function(option) {
+    var localized = self.localizeString(option.title);
+    if (localized) { option.title = localized; }
+  });
+};
+
+/**
+ * Returns an l10n localized string if
+ * the string is prefixed with 'l10n-'.
+ *
+ * @param  {String} string
+ * @return {String}
+ */
+Setting.prototype.localizeString = function(string) {
+  if (!string) { return; }
+  var l10n = this.l10n || navigator.mozL10n;
+  var index = string.indexOf('l10n-');
+  var localized = ~index && string.substr(5);
+  return localized ? l10n.get(localized) : string;
 };
 
 /**

@@ -273,4 +273,56 @@ suite('lib/setting', function() {
       assert.ok(output.length === 3);
     });
   });
+
+  suite('Setting#localize()', function() {
+    test('Should localize `title` strings prefixed with \'l10n-\'', function() {
+      var l10n = { get: sinon.stub().returns('replaced') };
+      var setting = new this.Setting({
+        title: 'l10n-my-title',
+        options: [],
+        l10n: l10n
+      });
+
+      setting.localize();
+      assert.ok(setting.get('title') === 'replaced');
+    });
+
+    test('Should not localize `title` strings without \'l10n-\' prefix', function() {
+      var l10n = { get: sinon.stub().returns('replaced') };
+      var setting = new this.Setting({
+        title: 'My title',
+        options: [],
+        l10n: l10n
+      });
+
+      setting.localize();
+      assert.ok(setting.get('title') === 'My title');
+    });
+
+    test('Should localize options `title` strings prefixed with \'l10n\'', function() {
+      var l10n = { get: sinon.stub().returns('replaced') };
+      var setting = new this.Setting({
+        title: 'l10n-my-title',
+        options: [
+          {
+            title: 'l10n-my-option-title'
+          },
+          {
+            title: 'l10n-my-option-title'
+          },
+          {
+            title: 'My option title'
+          }
+        ],
+        l10n: l10n
+      });
+
+      setting.localize();
+
+      var options = setting.get('options');
+      assert.ok(options[0].title === 'replaced');
+      assert.ok(options[1].title === 'replaced');
+      assert.ok(options[2].title === 'My option title');
+    });
+  });
 });
