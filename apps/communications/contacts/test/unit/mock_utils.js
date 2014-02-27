@@ -23,5 +23,11 @@ var MockUtils = {
     'toMozContact': function(c) {
       return c;
     }
+  },
+  listeners: {
+    add: function() {}
+  },
+  cookie: {
+
   }
 };

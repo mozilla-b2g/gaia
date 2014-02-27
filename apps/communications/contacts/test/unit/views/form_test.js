@@ -77,7 +77,7 @@ suite('Render contact form', function() {
     window.Contacts = realContacts;
     window.fb = realFb;
     utils.thumbnailImage = realThumbnailImage;
-    window.mozL10n = realL10n;
+    navigator.mozL10n = realL10n;
 
     mocksForm.suiteTeardown();
 
