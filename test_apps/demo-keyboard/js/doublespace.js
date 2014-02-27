@@ -17,6 +17,9 @@
   KeyboardTouchHandler.addEventListener('key', handleKey);
 
   function handleKey(e) {
+    // XXX should not reference app instance directly.
+    var inputField = window.app.inputField;
+
     var keyname = e.detail;
 
     if (keyname === 'SPACE') {
@@ -25,9 +28,9 @@
       // character followed by a space character, then convert
       // space space into period space.
       if (lastKeyWasSpace &&
-          InputField.textBeforeCursor.match(/[^\s.?!;:] $/) &&
+          inputField.textBeforeCursor.match(/[^\s.?!;:] $/) &&
           (e.timeStamp - lastKeyWasSpace) < DOUBLE_SPACE_INTERVAL_MS * 1000) {
-        InputField.replaceSurroundingText('. ', 1, 0);
+        inputField.replaceSurroundingText('. ', 1, 0);
         e.stopImmediatePropagation();
         lastKeyWasSpace = 0;
         convertedOnLastEvent = true;
@@ -38,7 +41,7 @@
       }
     }
     else if (keyname === 'BACKSPACE' && convertedOnLastEvent) {
-      InputField.replaceSurroundingText('  ', 2, 0);
+      inputField.replaceSurroundingText('  ', 2, 0);
       e.stopImmediatePropagation();
       lastKeyWasSpace = 0;
       convertedOnLastEvent = false;
