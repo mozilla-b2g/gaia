@@ -515,6 +515,7 @@ Camera.prototype.onRecordingError = function(id) {
   var title = navigator.mozL10n.get(id + '-title');
   var text = navigator.mozL10n.get(id + '-text');
   alert(title + '. ' + text);
+  this.emit('ready');
 };
 
 Camera.prototype.onShutter = function() {
