@@ -809,7 +809,6 @@ apps/settings/js/simcard_lock.js
 apps/settings/js/simcard_manager.js
 apps/settings/js/sound.js
 apps/settings/js/storage.js
-apps/settings/js/support.js
 apps/settings/js/telephony_items_handler.js
 apps/settings/js/telephony_settings.js
 apps/settings/js/try_show_homescreen_section.js
