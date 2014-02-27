@@ -10,7 +10,7 @@ requireApp('settings/js/mvvm/views.js');
 requireApp('settings/js/keyboard.js');
 
 suite('keyboard >', function() {
-  var suiteSandbox = sinon.sandbox.create();
+  // var suiteSandbox = sinon.sandbox.create();
   var mockHelper = new MocksHelper([
     'KeyboardHelper',
     'ManifestHelper'
@@ -21,12 +21,12 @@ suite('keyboard >', function() {
   suiteSetup(function() {
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
-    suiteSandbox.stub(MockL10n, 'ready');
+    // suiteSandbox.stub(MockL10n, 'ready');
   });
 
   suiteTeardown(function() {
     navigator.mozL10n = realL10n;
-    suiteSandbox.restore();
+    // suiteSandbox.restore();
   });
 
   suite('KeyboardContext', function() {
