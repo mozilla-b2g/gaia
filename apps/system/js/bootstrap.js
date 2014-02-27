@@ -20,6 +20,7 @@ window.addEventListener('load', function startup() {
     }
     /** @global */
     window.activityWindowFactory = new ActivityWindowFactory();
+    window.activityWindowFactory.start();
   }
 
   function safelyLaunchFTU() {

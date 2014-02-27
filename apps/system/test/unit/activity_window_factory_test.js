@@ -146,6 +146,8 @@ suite('system/ActivityWindowFactory', function() {
   suite('handle events', function() {
     setup(function() {
       subject = new ActivityWindowFactory();
+      subject.start();
+
       activity1 = new ActivityWindow(fakeActivityConfig1);
       activity2 = new ActivityWindow(fakeActivityConfig2);
       activity3 = new ActivityWindow(fakeActivityConfig3);
@@ -172,6 +174,7 @@ suite('system/ActivityWindowFactory', function() {
       MockAppWindowManager.mDisplayedApp = 'fake';
     });
     teardown(function() {
+      subject.stop();
       subject = null;
     });
     test('activity request', function() {

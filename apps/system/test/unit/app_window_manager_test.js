@@ -44,6 +44,7 @@ suite('system/AppWindowManager', function() {
 
     window.lockScreen = MockLockScreen;
     window.activityWindowFactory = new ActivityWindowFactory();
+    window.activityWindowFactory.start();
     window.layoutManager = new LayoutManager().start();
 
     home = new HomescreenWindow('fakeHome');
@@ -68,6 +69,7 @@ suite('system/AppWindowManager', function() {
   teardown(function() {
     delete window.layoutManager;
     delete window.lockScreen;
+    window.activityWindowFactory.stop();
     delete window.activityWindowFactory;
     // MockHelper won't invoke mTeardown() for us
     // since MockHomescreenLauncher is instantiable now
