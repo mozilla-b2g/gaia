@@ -11,7 +11,8 @@ var mocksForEdgeSwipeDetector = new MocksHelper([
   'SheetsTransition',
   'StackManager',
   'SettingsListener',
-  'TouchForwarder'
+  'TouchForwarder',
+  'HomescreenLauncher'
 ]).init();
 
 suite('system/EdgeSwipeDetector >', function() {
@@ -19,6 +20,7 @@ suite('system/EdgeSwipeDetector >', function() {
   var screen;
 
   setup(function() {
+    window.homescreenLauncher = new HomescreenLauncher().start();
     // DOM
     EdgeSwipeDetector.previous = document.createElement('div');
     EdgeSwipeDetector.previous.classList.add('gesture-panel');
@@ -30,6 +32,10 @@ suite('system/EdgeSwipeDetector >', function() {
     EdgeSwipeDetector.screen = screen;
     EdgeSwipeDetector.init();
     MockSettingsListener.mCallbacks['edgesgesture.enabled'](true);
+  });
+
+  teardown(function() {
+    window.homescreenLauncher = undefined;
   });
 
   var dialer = {

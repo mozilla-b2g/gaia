@@ -76,7 +76,7 @@
     display: function awm_display(newApp, openAnimation, closeAnimation) {
       this._dumpAllWindows();
       var appCurrent = this._activeApp, appNext = newApp ||
-        HomescreenLauncher.getHomescreen();
+        homescreenLauncher.getHomescreen();
 
       if (!appNext) {
         console.warn('no next app.');
@@ -93,7 +93,7 @@
 
       // XXX: Do this in HomescreenWindow.
       if (appCurrent === null) {
-        HomescreenLauncher.getHomescreen().setVisible(false);
+        homescreenLauncher.getHomescreen().setVisible(false);
       } else if (appCurrent.instanceID == appNext.instanceID) {
         // Do nothing.
         console.warn('the app has been displayed.');
@@ -150,7 +150,7 @@
         }
         this.debug('ready to open/close' + switching);
         if (switching)
-          HomescreenLauncher.getHomescreen().fadeOut();
+          homescreenLauncher.getHomescreen().fadeOut();
         this._updateActiveApp(appNext.instanceID);
 
         var immediateTranstion = false;
@@ -350,7 +350,7 @@
           var detail = evt.detail;
 
           if (activeApp &&
-              activeApp.origin !== HomescreenLauncher.origin) {
+              activeApp.origin !== homescreenLauncher.origin) {
             // This is coming from attention screen.
             // If attention screen has the same origin as our active app,
             // we cannot turn off its page visibility
@@ -363,16 +363,16 @@
             }
             activeApp.setVisible(false);
           } else {
-            var home = HomescreenLauncher.getHomescreen();
+            var home = homescreenLauncher.getHomescreen();
             home && home.setVisible(false);
           }
           break;
 
         case 'showwindow':
-          if (activeApp && activeApp.origin !== HomescreenLauncher.origin) {
+          if (activeApp && activeApp.origin !== homescreenLauncher.origin) {
             activeApp.setVisible(true);
           } else {
-            var home = HomescreenLauncher.getHomescreen();
+            var home = homescreenLauncher.getHomescreen();
             home && home.setVisible(true);
           }
           break;
@@ -406,7 +406,7 @@
         // be included in index.html before this one, so they can register their
         // event handlers before we do.
         case 'home':
-          if (!HomescreenLauncher.ready)
+          if (!homescreenLauncher.ready)
             return;
 
           if (activeApp && !activeApp.isHomescreen) {
@@ -420,7 +420,7 @@
           } else {
             // dispatch event to close activity.
             this.debug('ensure home.');
-            HomescreenLauncher.getHomescreen().ensure(true);
+            homescreenLauncher.getHomescreen().ensure(true);
           }
           break;
 
@@ -497,7 +497,7 @@
         if (config.isActivity && this._activeApp) {
           this.linkWindowActivity(config);
         }
-        if (config.origin == HomescreenLauncher.origin) {
+        if (config.origin == homescreenLauncher.origin) {
           this.display();
         } else {
           this.display(this.getApp(config.origin));
