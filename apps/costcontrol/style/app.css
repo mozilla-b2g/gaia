@@ -28,6 +28,7 @@ iframe {
   border: none;
   width: 100%;
   height: 100%;
+  display: flex; /* Fix Bug 976665 */
 }
 
 [aria-hidden="true"] { display: none !important; }
