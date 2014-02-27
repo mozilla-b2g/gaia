@@ -62,7 +62,8 @@ suite('Distribution mechanism', function() {
         'default_contacts':'/resources/mobizilla_contacts.json',
         'support_contacts':'/resources/mobizilla_support_contacts.json',
         'keyboardSettings':'/resources/mobizilla_keyboard.json',
-        'dataiconstatusbar':'/resources/mobizilla_network_type.json'
+        'dataiconstatusbar':'/resources/mobizilla_network_type.json',
+        'knownNetworks':'/resources/mobizilla_known_networks.json'
       }
     };
     helper.checkFileContentInZip(zipPath, 'resources/customization.json',
@@ -77,6 +78,8 @@ suite('Distribution mechanism', function() {
       path.join(distPath, 'mobizilla', 'mobizilla_keyboard.json'));
     helper.checkFileInZip(zipPath, 'resources/mobizilla_network_type.json',
       path.join(distPath, 'mobizilla', 'mobizilla_network_type.json'));
+    helper.checkFileInZip(zipPath, 'resources/mobizilla_known_networks.json',
+      path.join(distPath, 'mobizilla', 'mobizilla_known_networks.json'));
   }
 
   function validateCalendar() {
