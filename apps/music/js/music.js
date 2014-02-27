@@ -306,19 +306,6 @@ function init() {
       }, DELETE_BATCH_TIMEOUT);
     }
   };
-
-  // Click to open the media storage panel when the default storage
-  // is unavailable.
-  document.getElementById('storage-setting-button').
-    addEventListener('click', function() {
-      var activity = new MozActivity({
-      name: 'configure',
-      data: {
-        target: 'device',
-        section: 'mediaStorage'
-      }
-    });
-  });
 }
 
 //
@@ -344,13 +331,6 @@ function showOverlay(id) {
   if (id === null) {
     document.getElementById('overlay').classList.add('hidden');
     return;
-  }
-
-  var menu = document.getElementById('overlay-menu');
-  if (id === 'nocard') {
-    menu.classList.remove('hidden');
-  } else {
-    menu.classList.add('hidden');
   }
 
   var title, text;
