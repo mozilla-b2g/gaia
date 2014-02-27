@@ -45,6 +45,24 @@
     return parseInt((100 * currently) / total);
   }
 
+  /**
+   * Escape HTML tags in a string of characters
+   *
+   * @param {string} str a string of characters
+   *
+   * @return {string} the HTML-escaped string
+   */
+  function escapeHTML(str) {
+    if (!str || typeof str !== 'string')
+      return str;
+
+    var escaped = str.replace(/&/g, '&amp;').replace(/</g, '&lt;')
+                     .replace(/>/g, '&gt;');
+
+    // escape quotes
+    return escaped.replace(/"/g, '&quot;').replace(/'/g, '&#x27;');
+  }
+
   var DownloadFormatter = {
     getFormattedSize: function(bytes) {
       return _getFormattedSize(bytes);
@@ -53,7 +71,7 @@
       return _calcPercentage(download.currentBytes, download.totalBytes);
     },
     getFileName: function(download) {
-      return download.path.split('/').pop(); // filename.ext
+      return escapeHTML(download.path.split('/').pop()); // filename.ext
     },
     getTotalSize: function(download) {
       var bytes = download.totalBytes;

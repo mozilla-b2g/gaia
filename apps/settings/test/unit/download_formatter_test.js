@@ -77,6 +77,14 @@ suite('DownloadFormatter', function() {
     assert.equal(DownloadFormatter.getFileName(mockDownload), 'nameFile.mp3');
   });
 
+  test(' getFileName HTML-string', function() {
+    var mockDownload = new MockDownload({
+      path: '/mnt/sdcard/<h1>bad<h1>.exe'
+    });
+    assert.equal(DownloadFormatter.getFileName(mockDownload),
+                                               '&lt;h1&gt;bad&lt;h1&gt;.exe');
+  });
+
   test(' getTotalSize KB', function() {
   var bytes = 1024 * 1.5; // 1.5 KB
     var mockDownload = new MockDownload(
