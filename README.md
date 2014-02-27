@@ -165,6 +165,8 @@ PULSE_SERVER=":" xvfb-run make test-integration
 plugins, run this:
 `DEBUG=* ./bin/gaia-marionette name/of/test.js`
 
+- To skip building a profile when running tests, use `NOPROFILE=1`
+
 ### UI Tests
 
 #### Functional
