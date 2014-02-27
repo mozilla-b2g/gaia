@@ -8,7 +8,8 @@ var MockL10n = {
   ready: function(callback) {
     callback();
   },
-  DateTimeFormat: function() {}
+  DateTimeFormat: function() {},
+  translate: function() {}
 };
 
 MockL10n.DateTimeFormat.prototype = {
