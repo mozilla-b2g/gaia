@@ -1,12 +1,17 @@
 html {
   font-size: 10px;
+  font-weight: 500;
+  width: 100%;
+  height: 100%;
+  background-color: black;
+  overflow: hidden;
+  padding: 0;
 }
 
 body {
   width: 100%;
   height: 100%;
   margin: 0;
-  padding: 0;
   overflow: hidden;
   color: #fff;
 }
