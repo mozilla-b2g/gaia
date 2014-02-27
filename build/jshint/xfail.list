@@ -905,7 +905,6 @@ apps/system/js/cards_view.js
 apps/system/js/carrier_info_notifier.js
 apps/system/js/cell_broadcast_system.js
 apps/system/js/context_menu.js
-apps/system/js/cost_control.js
 apps/system/js/crash_reporter.js
 apps/system/js/download/download_manager.js
 apps/system/js/download/download_notification.js
