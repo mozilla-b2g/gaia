@@ -121,8 +121,7 @@ var Settings = (function() {
       });
 
       function _setResetTimeToDefault(value, old, key, settings) {
-        var firstWeekDay = parseInt(navigator.mozL10n.get('weekStartsOnMonday'),
-                                    10);
+        var firstWeekDay = parseInt(_('weekStartsOnMonday'), 10);
         var defaultResetTime = (settings.trackingPeriod === 'weekly') ?
                                                                   firstWeekDay :
                                                                   1;
