@@ -17,7 +17,8 @@ var ThreadListUI = {
   INITIAL_RENDER_LIMIT: 20,
   INITIAL_RENDER_SIZE: 2,
   BATCH_RENDER_SIZE: 15,
-
+  monitor: null,
+  
   // Used to track timeouts
   timeouts: {
     onDraftSaved: null
@@ -38,14 +39,17 @@ var ThreadListUI = {
   },
 
   startMonitor: function thlui_startMonitor() {
+    if (this.monitor) {
+      return;
+    }
     var scrollMargin = ~~(this.container.getBoundingClientRect().height * 1.5);
     // NOTE: Making scrollDelta too large will cause janky scrolling
     //       due to bursts of onscreen() calls from the monitor.
     var scrollDelta = Math.floor(scrollMargin / 15);
-    monitorTagVisibility(this.container, 'li',
-                         scrollMargin, scrollDelta,
-                         this.onRowOnscreen.bind(this),
-                         this.onRowOffscreen.bind(this));
+    this.monitor = monitorTagVisibility(this.container, 'li',
+                                        scrollMargin, scrollDelta,
+                                        this.onRowOnscreen.bind(this),
+                                        this.onRowOffscreen.bind(this));
   },
 
   init: function thlui_init() {
