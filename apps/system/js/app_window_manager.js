@@ -103,6 +103,9 @@
       var switching = appCurrent && !appCurrent.isHomescreen &&
                       !appNext.isHomescreen;
 
+      this._updateActiveApp(appNext.isHomescreen ?
+          HomescreenLauncher.origin : appNext.origin);
+
       if (appCurrent && LayoutManager.keyboardEnabled) {
         // Ask keyboard to hide before we switch the app.
         var self = this;
@@ -140,13 +143,13 @@
         if (appNext.isDead()) {
           // The app was killed while we were opening it,
           // let's not switch to a dead app!
+          this._updateActiveApp(appCurrent.isHomescreen ?
+            HomescreenLauncher.origin : appCurrent.origin);
           return;
         }
         this.debug('ready to open/close' + switching);
         if (switching)
           HomescreenLauncher.getHomescreen().fadeOut();
-        this._updateActiveApp(appNext.isHomescreen ?
-          HomescreenLauncher.origin : appNext.origin);
 
         var immediateTranstion = false;
         if (appNext.rotatingDegree === 90 || appNext.rotatingDegree === 270) {
