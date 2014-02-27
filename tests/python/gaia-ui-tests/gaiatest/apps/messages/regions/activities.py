@@ -16,7 +16,7 @@ class Activities(Base):
     def __init__(self, marionette):
         Base.__init__(self, marionette)
         self.wait_for_element_displayed(*self._actions_menu_locator)
-        # TODO Difficult intermittent bug 977052
+        # TODO Difficult intermittent bug 977052 travis
         time.sleep(1)
 
     def tap_settings(self):
