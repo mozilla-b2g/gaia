@@ -19,6 +19,58 @@
       authtype="0"
       type="default,supl,mms,dun,ims"
   />
+
+  <!-- APNs used for bearer tests -->
+  <!-- Test network with no bearer (compatible with all network types) -->
+  <apn carrier="NoBearer"
+      mcc="001"
+      mnc="02"
+      apn="nobearer"
+      user="user"
+      password="password"
+      proxy="127.0.0.1"
+      port="8080"
+      mmsc="http://127.0.0.1"
+      mmsproxy="127.0.0.1"
+      mmsport="8080"
+      authtype="0"
+      type="default,supl,mms,dun,ims"
+  />
+
+  <!-- Test network with an EVDO_0 bearer -->
+  <apn carrier="Evdo0Bearer"
+      mcc="001"
+      mnc="02"
+      apn="evdo0bearer"
+      user="user"
+      password="password"
+      proxy="127.0.0.1"
+      port="8080"
+      mmsc="http://127.0.0.1"
+      mmsproxy="127.0.0.1"
+      mmsport="8080"
+      authtype="0"
+      type="default,supl,mms,dun,ims"
+      bearer="7"
+  />
+
+  <!-- Test network with a 0 bearer (compatible with all network types) -->
+  <apn carrier="ZeroBearer"
+      mcc="001"
+      mnc="02"
+      apn="zerobearer"
+      user="user"
+      password="password"
+      proxy="127.0.0.1"
+      port="8080"
+      mmsc="http://127.0.0.1"
+      mmsproxy="127.0.0.1"
+      mmsport="8080"
+      authtype="0"
+      type="default,supl,mms,dun,ims"
+      bearer="0"
+  />
+
   <!-- /Test Networks -->
 
   <apn carrier="SpeakOut"
