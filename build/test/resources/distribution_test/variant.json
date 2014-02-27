@@ -24,7 +24,8 @@
       "support_contacts": "mobizilla/mobizilla_support_contacts.json",
       "default_contacts": "mobizilla/mobizilla_contacts.json",
       "wallpaper": "mobizilla/mobizilla_wallpaper.png",
-      "keyboard": "mobizilla/mobizilla_keyboard.json"
+      "keyboard": "mobizilla/mobizilla_keyboard.json",
+      "network_type": "mobizilla/mobizilla_network_type.json"
     }
   ]
 }
