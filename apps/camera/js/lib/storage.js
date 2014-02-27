@@ -48,8 +48,9 @@ Storage.prototype.addImage = function(blob, options, done) {
     onCreated(filepath);
   }
 
-  function onCreated(filepath) {
+  function onCreated(filepath, fileName) {
     var req = self.image.addNamed(blob, filepath);
+    blob.name = fileName;
     req.onerror = function() { self.emit('error'); };
     req.onsuccess = function(e) {
       var absolutePath = e.target.result;
