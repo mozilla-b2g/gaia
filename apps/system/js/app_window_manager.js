@@ -154,7 +154,7 @@
         }
         this.debug('ready to open/close' + switching);
         if (switching)
-          HomescreenLauncher.getHomescreen().fadeOut();
+          homescreenLauncher.getHomescreen().fadeOut();
         this._updateActiveApp(appNext.instanceID);
 
         var immediateTranstion = false;
