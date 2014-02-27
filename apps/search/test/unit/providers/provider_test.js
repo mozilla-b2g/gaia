@@ -1,4 +1,5 @@
 'use strict';
+/* global Provider */
 
 requireApp('search/js/eme/eme.js');
 requireApp('search/js/mock_search.js');

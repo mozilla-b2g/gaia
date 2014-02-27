@@ -1,3 +1,6 @@
+'use strict';
+/* global module */
+
 var Actions = require('marionette-client').Actions;
 var assert = require('assert');
 

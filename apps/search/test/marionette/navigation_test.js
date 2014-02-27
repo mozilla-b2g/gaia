@@ -1,3 +1,6 @@
+'use strict';
+/* global __dirname */
+
 var Search = require('./lib/search');
 var Homescreen = require('../../../homescreen/test/marionette/lib/homescreen');
 var Server = require('../../../../shared/test/integration/server');

@@ -1,4 +1,5 @@
 'use strict';
+/* global MocksHelper, MockMozActivity, Search */
 
 require('/shared/test/unit/mocks/mock_moz_activity.js');
 
