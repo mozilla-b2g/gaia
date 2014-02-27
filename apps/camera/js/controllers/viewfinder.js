@@ -62,6 +62,35 @@ ViewfinderController.prototype.updatePreview = function() {
 
 ViewfinderController.prototype.onScaleChange = function(scale) {
   this.camera.mozCamera.zoom = scale;
+
+  var previewSize = this.camera.previewSize();
+  var maxPreviewSize = this.camera.mozCamera.capabilities.previewSizes[0];
+
+  var maxHardwareScaleX = maxPreviewSize.width  / previewSize.width;
+  var maxHardwareScaleY = maxPreviewSize.height / previewSize.height;
+  var maxHardwareScale = Math.max(maxHardwareScaleX, maxHardwareScaleY);
+  
+  if (scale <= maxHardwareScale) {
+    this.viewfinder.setScaleAdjustment(1);
+    return;
+  }
+  
+  var virtualPreviewSize = {
+    width:  previewSize.width  * maxHardwareScale,
+    height: previewSize.height * maxHardwareScale
+  };
+  var targetPreviewSize = {
+    width:  previewSize.width  * scale,
+    height: previewSize.height * scale
+  };
+  var scaleAdjustmentX = targetPreviewSize.width /
+                         virtualPreviewSize.width;
+  var scaleAdjustmentY = targetPreviewSize.height /
+                         virtualPreviewSize.height;
+  var scaleAdjustment = Math.max(scaleAdjustmentX,
+                                 scaleAdjustmentY);
+  
+  this.viewfinder.setScaleAdjustment(scaleAdjustment);
 };
 
 /**

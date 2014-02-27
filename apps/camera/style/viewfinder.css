@@ -94,7 +94,7 @@
   Zoom Bar Container
 
   Dimensions (including padding): 20px x 300px
-  Padding: 30px 8.75px 30px 8.75px
+  Padding: 30px 18.75px 30px 18.75px
   Right Offset (from UX spec): 38px
  */
 .viewfinder > .zoom-bar {
@@ -107,7 +107,7 @@
 .viewfinder > .zoom-bar {
   margin-top: -150px; /* (0 - height) / 2 */
   top: 50%;
-  right: 40px; /* offset */
+  right: 30px; /* offset */
   transform: rotate(0deg);
 }
 
@@ -115,7 +115,7 @@ body.deg90 .viewfinder > .zoom-bar {
   margin-top: auto;
   right: auto;
   margin-left: -10px; /* (0 - width) / 2 */
-  top: -65px; /* ((0 - height) / 2) + offset + controls.height  */
+  top: -55px; /* ((0 - height) / 2) + offset + controls.height  */
   left: 50%;
   transform: rotate(-90deg);
 }
@@ -124,7 +124,7 @@ body.deg180 .viewfinder > .zoom-bar {
   right: auto;
   margin-top: -150px; /* (0 - height) / 2 */
   top: 50%;
-  left: 40px; /* offset */
+  left: 30px; /* offset */
   transform: rotate(-180deg);
 }
 
@@ -133,7 +133,7 @@ body.deg270 .viewfinder > .zoom-bar {
   top: auto;
   right: auto;
   margin-left: -10px; /* (0 - width) / 2 */
-  bottom: -35px; /* ((0 - height) / 2) + offset + controls.height - padding  */
+  bottom: -25px; /* ((0 - height) / 2) + offset + controls.height - padding  */
   left: 50%;
   transform: rotate(-270deg);
 }

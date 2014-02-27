@@ -23,7 +23,6 @@ var lastTouchA = null;
 var lastTouchB = null;
 var isScaling = false;
 var isScalingEnabled = true;
-var scale = MIN_VIEWFINDER_SCALE;
 var scaleSizeTo = {
   fill: CameraUtils.scaleSizeToFillViewport,
   fit: CameraUtils.scaleSizeToFitViewport
@@ -130,8 +129,7 @@ module.exports = View.extend({
     var touchB = getNewTouchB(evt.touches);
 
     var deltaScale = getDeltaScale(touchA, touchB);
-
-    scale *= 1 + (deltaScale / 100);
+    var scale = this._scale * (1 + (deltaScale / 200));
 
     this.setScale(scale);
 
@@ -171,17 +169,19 @@ module.exports = View.extend({
     isScalingEnabled = false;
   },
 
+  _scale: MIN_VIEWFINDER_SCALE,
+
   setScale: function(scale) {
     if (!isScalingEnabled) {
       return;
     }
 
-    scale = Math.min(Math.max(scale, MIN_VIEWFINDER_SCALE),
+    this._scale = Math.min(Math.max(scale, MIN_VIEWFINDER_SCALE),
                      MAX_VIEWFINDER_SCALE);
 
-    this.emit('scaleChange', scale);
+    this.emit('scaleChange', this._scale);
 
-    if (scale > MIN_VIEWFINDER_SCALE) {
+    if (this._scale > MIN_VIEWFINDER_SCALE) {
       this.el.classList.add('zooming');
     }
 
@@ -190,9 +190,13 @@ module.exports = View.extend({
     }
 
     var range = MAX_VIEWFINDER_SCALE - MIN_VIEWFINDER_SCALE;
-    var percent = (scale - MIN_VIEWFINDER_SCALE) / range * 100;
+    var percent = (this._scale - MIN_VIEWFINDER_SCALE) / range * 100;
 
     this.zoomBar.setValue(percent);
+  },
+
+  setScaleAdjustment: function(scaleAdjustment) {
+    this.els.video.style.transform = 'scale(' + scaleAdjustment + ')';
   },
 
   setPreviewStream: function(previewStream) {
