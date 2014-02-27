@@ -19,7 +19,7 @@ body {
   background-color: #000;
   background-size: cover; /* Possible memory over-consumption with huge images, it should be removed for improving stability*/
   background-repeat: no-repeat;
-  background-position: 50% 2rem;
+  background-position: 50% 50%;
 }
 
 #screen.screenoff {
