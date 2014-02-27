@@ -1,15 +1,103 @@
 'use strict';
 
-var CustomLogoPath = {
-  poweron: {
-    video: '/resources/power/carrier_power_on.mp4',
-    image: '/resources/power/carrier_power_on.png'
-  },
-  poweroff: {
-    video: '/resources/power/carrier_power_off.mp4',
-    image: '/resources/power/carrier_power_off.png'
-  }
-};
+var CustomLogoPath = (function() {
+
+  const defaultResources = {
+    poweron: {
+      video: '/resources/power/carrier_power_on.mp4',
+      image: '/resources/power/carrier_power_on.png'
+    },
+    poweroff: {
+      video: '/resources/power/carrier_power_off.mp4',
+      image: '/resources/power/carrier_power_off.png'
+    }
+  };
+
+  var operatorResources = 'app://operatorresources';
+  var operatorResourcesFile = '/content.json';
+  var _poweron = {};
+  var _poweroff = {};
+
+  function init(aNext) {
+    try {
+      var xhr = new XMLHttpRequest({
+        mozAnon: true,
+        mozSystem: true
+      });
+      xhr.overrideMimeType('application/json');
+
+      xhr.onload = function _xhrOnLoad(evt) {
+        try {
+          var loadedData = xhr.responseText && JSON.parse(xhr.responseText) ||
+                           {};
+          if (loadedData.poweron) {
+            _poweron.video = loadedData.poweron.video &&
+                             operatorResources + loadedData.poweron.video ||
+                             defaultResources.poweron.video;
+            _poweron.image = loadedData.poweron.image &&
+                             operatorResources + loadedData.poweron.image ||
+                             defaultResources.poweron.image;
+          } else {
+            _poweron.video = defaultResources.poweron.video;
+            _poweron.image = defaultResources.poweron.image;
+          }
+
+          if (loadedData.poweroff) {
+            _poweroff.video = loadedData.poweroff.video &&
+                              operatorResources + loadedData.poweroff.video ||
+                              defaultResources.poweroff.video;
+            _poweroff.image = loadedData.poweroff.image &&
+                              operatorResources + loadedData.poweroff.image ||
+                              defaultResources.poweroff.image;
+          } else {
+            _poweroff.video = defaultResources.poweroff.video;
+            _poweroff.image = defaultResources.poweroff.image;
+          }
+        } catch (ex) {
+          _poweron.video = defaultResources.poweron.video;
+          _poweron.image = defaultResources.poweron.image;
+          _poweroff.video = defaultResources.poweroff.video;
+          _poweroff.image = defaultResources.poweroff.image;
+          console.error('Error recovering datas. Loading default resources. ' +
+                        ex);
+        } finally {
+          aNext && aNext();
+        }
+      };
+
+      xhr.ontimeout = xhr.onerror = function _xhrOnError(evt) {
+        _poweron.video = defaultResources.poweron.video;
+        _poweron.image = defaultResources.poweron.image;
+        _poweroff.video = defaultResources.poweroff.video;
+        _poweroff.image = defaultResources.poweroff.image;
+        console.log('Error recovering datas. Loading default values. ' + evt);
+        aNext && aNext();
+      };
+
+      xhr.open('GET', operatorResources + operatorResourcesFile, true);
+      xhr.send(null);
+
+    } catch (ex) {
+      _poweron.video = defaultResources.poweron.video;
+      _poweron.image = defaultResources.poweron.image;
+      _poweroff.video = defaultResources.poweroff.video;
+      _poweroff.image = defaultResources.poweroff.image;
+      console.error('There is not OperatorResource. Loading default values.' +
+                    ex);
+      aNext && aNext();
+    }
+  };
+
+  return {
+    get poweron() {
+      return _poweron;
+    },
+    get poweroff() {
+      return _poweroff;
+    },
+    init: init
+  };
+})();
 
 // Function to animate init starting logo
 var InitLogoHandler = {
@@ -156,4 +244,6 @@ var InitLogoHandler = {
   }
 };
 
-InitLogoHandler.init(new LogoLoader(CustomLogoPath.poweron));
+CustomLogoPath.init(function() {
+  InitLogoHandler.init(new LogoLoader(CustomLogoPath.poweron));
+});
