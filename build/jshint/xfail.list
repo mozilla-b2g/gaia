@@ -327,13 +327,11 @@ apps/communications/dialer/js/fake-oncall-desktop.js
 apps/communications/dialer/js/handled_call.js
 apps/communications/dialer/js/index.js
 apps/communications/dialer/js/keypad.js
-apps/communications/dialer/js/mmi.js
 apps/communications/dialer/js/mmi_ui.js
 apps/communications/dialer/js/newsletter_manager.js
 apps/communications/dialer/js/oncall.js
 apps/communications/dialer/js/phone_action_menu.js
 apps/communications/dialer/js/suggestion_bar.js
-apps/communications/dialer/js/telephony_helper.js
 apps/communications/dialer/js/tone_player.js
 apps/communications/dialer/js/utils.js
 apps/communications/dialer/js/voicemail.js
@@ -350,7 +348,6 @@ apps/communications/dialer/test/unit/calls_handler_test.js
 apps/communications/dialer/test/unit/conference_group_handler_test.js
 apps/communications/dialer/test/unit/handled_call_test.js
 apps/communications/dialer/test/unit/lazy_l10n_test.js
-apps/communications/dialer/test/unit/mmi_test.js
 apps/communications/dialer/test/unit/mock_bluetooth_helper.js
 apps/communications/dialer/test/unit/mock_call_handler.js
 apps/communications/dialer/test/unit/mock_call_log_db_manager.js
@@ -716,7 +713,6 @@ apps/homescreen/test/unit/mock_apps_mgmt.js
 apps/homescreen/test/unit/mock_asyncStorage.js
 apps/homescreen/test/unit/mock_bookmark.js
 apps/homescreen/test/unit/mock_bookmark_editor.js
-apps/homescreen/test/unit/mock_configurator.js
 apps/homescreen/test/unit/mock_dock_manager.js
 apps/homescreen/test/unit/mock_dragdrop.html.js
 apps/homescreen/test/unit/mock_everything.me.html.js
@@ -863,7 +859,6 @@ apps/settings/test/unit/simcard_manager_settings_helper_test.js
 apps/settings/test/unit/simcard_manager_simcard_helper_test.js
 apps/settings/test/unit/toaster_test.js
 apps/settings/test/unit/wifi_helper_test.js
-apps/system/emergency-call/js/dialer.js
 apps/system/emergency-call/js/keypad.js
 apps/system/fxa/js/fxam_error_overlay.js
 apps/system/fxa/js/fxam_errors.js

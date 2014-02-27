@@ -120,14 +120,12 @@ window.addEventListener('localized', function onlocalized() {
 var wallpaperURL = new SettingsURL();
 
 // Define the default background to use for all homescreens
-// Changes to the wallpaper should also be changed in the homescreen
-// app. See bug 970284.
 SettingsListener.observe(
   'wallpaper.image',
   'resources/images/backgrounds/default.png',
   function setWallpaper(value) {
     document.getElementById('screen').style.backgroundImage =
-    'url(' + wallpaperURL.set(value) + ')';
+      'url(' + wallpaperURL.set(value) + ')';
   }
 );
 

@@ -24,31 +24,26 @@ class NewEmail(Base):
 
     def type_to(self, value):
         self.marionette.find_element(*self._to_locator).tap()
-        self.wait_for_condition(lambda m: self.keyboard.is_displayed())
         self.keyboard.send(value)
         self.keyboard.dismiss()
 
     def type_cc(self, value):
         self.marionette.find_element(*self._cc_locator).tap()
-        self.wait_for_condition(lambda m: self.keyboard.is_displayed())
         self.keyboard.send(value)
         self.keyboard.dismiss()
 
     def type_bcc(self, value):
         self.marionette.find_element(*self._bcc_locator).tap()
-        self.wait_for_condition(lambda m: self.keyboard.is_displayed())
         self.keyboard.send(value)
         self.keyboard.dismiss()
 
     def type_subject(self, value):
         self.marionette.find_element(*self._subject_locator).tap()
-        self.wait_for_condition(lambda m: self.keyboard.is_displayed())
         self.keyboard.send(value)
         self.keyboard.dismiss()
 
     def type_body(self, value):
         self.marionette.find_element(*self._body_locator).tap()
-        self.wait_for_condition(lambda m: self.keyboard.is_displayed())
         self.keyboard.send(value)
         self.keyboard.dismiss()
 
