@@ -760,9 +760,9 @@ update-common: common-install
 	rm -f $(TEST_COMMON)/vendor/test-agent/test-agent.js
 	rm -f $(TEST_COMMON)/vendor/test-agent/test-agent.css
 	rm -f $(TEST_COMMON)/vendor/chai/chai.js
-	cp $(GAIA)/node_modules/test-agent/test-agent.js $(TEST_COMMON)/vendor/test-agent/
-	cp $(GAIA)/node_modules/test-agent/test-agent.css $(TEST_COMMON)/vendor/test-agent/
-	cp $(GAIA)/node_modules/chai/chai.js $(TEST_COMMON)/vendor/chai/
+	cp node_modules/test-agent/test-agent.js $(TEST_COMMON)/vendor/test-agent/
+	cp node_modules/test-agent/test-agent.css $(TEST_COMMON)/vendor/test-agent/
+	cp node_modules/chai/chai.js $(TEST_COMMON)/vendor/chai/
 
 # Create the json config file
 # for use with the test agent GUI

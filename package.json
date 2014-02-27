@@ -41,7 +41,7 @@
     "q": "~0.9.7",
     "request": "2.33.0",
     "rimraf": "2.2.5",
-    "test-agent": "0.18.0",
+    "test-agent": "0.19.4",
     "travis-project-jobs": "0.0.1",
     "watch": "~0.9.0"
   }
