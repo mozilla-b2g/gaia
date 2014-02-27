@@ -1,7 +1,3 @@
-html, body {
-  font-size: 10px;
-}
-
 #notification-toaster {
   position: absolute;
   top: 0;
