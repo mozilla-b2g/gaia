@@ -18,6 +18,10 @@ require.config({
   modules: [
     {
       name: 'main'
+    },
+    {
+      name: 'panels/support_panel',
+      exclude: ['main']
     }
   ]
 });
