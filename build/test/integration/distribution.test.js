@@ -60,7 +60,8 @@ suite('Distribution mechanism', function() {
       '310-260': {
         'wallpaper':'/resources/mobizilla_wallpaper.png',
         'default_contacts':'/resources/mobizilla_contacts.json',
-        'support_contacts':'/resources/mobizilla_support_contacts.json'
+        'support_contacts':'/resources/mobizilla_support_contacts.json',
+        'keyboard':'/resources/mobizilla_keyboard.json'
       }
     };
     helper.checkFileContentInZip(zipPath, 'resources/customization.json',
@@ -71,6 +72,8 @@ suite('Distribution mechanism', function() {
       path.join(distPath, 'mobizilla', 'mobizilla_contacts.json'));
     helper.checkFileInZip(zipPath, 'resources/mobizilla_support_contacts.json',
       path.join(distPath, 'mobizilla', 'mobizilla_support_contacts.json'));
+    helper.checkFileInZip(zipPath, 'resources/mobizilla_keyboard.json',
+      path.join(distPath, 'mobizilla', 'mobizilla_keyboard.json'));
   }
 
   function validateCalendar() {
