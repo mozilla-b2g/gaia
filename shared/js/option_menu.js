@@ -46,6 +46,12 @@
     // Optional header text or node
     header: ...,
 
+    // Optional header L10n id
+    headerL10nId: ...,
+
+    // Option header L10n args
+    headerL10nArgs: ...,
+
     // additional classes on the dialog, as an array of strings
     classes: ...
 
@@ -87,8 +93,16 @@ var OptionMenu = function(options) {
   }
 
   // We append title if needed
-  if (options.header) {
-    var header = document.createElement('header');
+  var header;
+  if (options.headerL10nId) {
+    header = document.createElement('header');
+    header.textContent =
+      navigator.mozL10n.localize(
+        header, options.headerL10nId, options.headerL10nArgs);
+
+    this.form.appendChild(header);
+  } else if (options.header) {
+    header = document.createElement('header');
 
     if (typeof options.header === 'string') {
       header.textContent = options.header || '';

@@ -6,9 +6,12 @@ requireApp('sms/shared/js/option_menu.js');
 requireApp('sms/test/unit/mock_l10n.js');
 
 suite('OptionMenu', function() {
-  var options, menu, formHeader, formSection, realL10n;
+  var options, menu, formHeader, formSection, realL10n, append;
 
   suiteSetup(function() {
+    append = document.createElement('span');
+    append.textContent = 'tset';
+
     options = {
       id: 'menu-fixture',
       header: 'Text Header',
@@ -25,6 +28,14 @@ suite('OptionMenu', function() {
         {
           l10nId: 'cancel',
           l10nArgs: { test: true }
+        },
+        {
+          name: 'name',
+          append: 'test'
+        },
+        {
+          name: 'eman',
+          append: append
         }
       ]
     };
@@ -117,6 +128,24 @@ suite('OptionMenu', function() {
       assert.isNull(menu.form.querySelector('header'));
     });
 
+    test('header l10n: text', function() {
+      options.headerL10nId = 'test';
+      options.headerL10nArgs = {n: 3};
+      options.header = null;
+
+      menu = new OptionMenu(options);
+      formHeader = menu.form.firstElementChild;
+
+      sinon.assert.calledWith(navigator.mozL10n.localize,
+                              formHeader,
+                              options.headerL10nId,
+                              options.headerL10nArgs);
+
+      // Set the options back to how they were so that the rest of the tests
+      // don't fail since they aren't expecting a localized header.
+      options.headerL10nId = null;
+      options.headerL10nArgs = null;
+    });
 
     test('section: text', function() {
       assert.equal(
@@ -151,7 +180,7 @@ suite('OptionMenu', function() {
       buttons = menu.form.querySelectorAll('button');
     });
     test('Buttons', function() {
-      assert.equal(buttons.length, 2);
+      assert.equal(buttons.length, options.items.length);
     });
     test('Button Text', function() {
       assert.equal(buttons[0].textContent, options.items[0].name);
@@ -159,6 +188,14 @@ suite('OptionMenu', function() {
     test('Localized button', function() {
       sinon.assert.calledWith(navigator.mozL10n.localize, buttons[1],
         options.items[1].l10nId, options.items[1].l10nArgs);
+    });
+    test('Appended text', function() {
+      assert.equal(buttons[2].textContent,
+                   options.items[2].name + options.items[2].append);
+    });
+    test('Appended DOM node', function() {
+      assert.equal(buttons[3].childNodes[0].textContent, options.items[3].name);
+      assert.equal(buttons[3].childNodes[1], options.items[3].append);
     });
     test('classes', function() {
       assert.ok(menu.form.classList.contains('class1'));
