@@ -34,33 +34,25 @@ module.exports = {
   },
 
   pictureSizesFront: {
-    title: 'Camera Resolution',
+    title: 'l10n-camera-resolution',
     icon: 'icon-picture-size',
     maxBytes: 5242880,
-    options: [
-      // {
-      //   key: '2048x1536'
-      // }
-    ],
+    options: [],
     persistent: true,
     menu: 1
   },
 
   pictureSizesBack: {
-    title: 'Camera Resolution',
+    title: 'l10n-camera-resolution',
     icon: 'icon-picture-size',
     maxBytes: 5242880,
-    options: [
-      // {
-      //   key: '2048x1536'
-      // }
-    ],
+    options: [],
     persistent: true,
     menu: 2
   },
 
   recorderProfilesBack: {
-    title: 'Video Resolution',
+    title: 'l10n-video-resolution',
     icon: 'icon-video-size',
     options: [
 
@@ -89,7 +81,7 @@ module.exports = {
   },
 
   recorderProfilesFront: {
-    title: 'Video Resolution',
+    title: 'l10n-video-resolution',
     icon: 'icon-video-size',
     options: [
 
@@ -118,21 +110,21 @@ module.exports = {
   },
 
   flashModesPicture: {
-    title: 'Picture Flash',
+    title: 'l10n-flash',
     options: [
       {
         key: 'auto',
-        title: 'Auto',
+        title: 'l10n-auto',
         icon: 'icon-flash-auto'
       },
       {
         key: 'on',
-        title: 'On',
+        title: 'l10n-on',
         icon: 'icon-flash-on'
       },
       {
         key: 'off',
-        title: 'Off',
+        title: 'l10n-off',
         icon: 'icon-flash-off'
       }
     ],
@@ -141,16 +133,16 @@ module.exports = {
   },
 
   flashModesVideo: {
-    title: 'Video Flash',
+    title: 'l10n-flash',
     options: [
       {
         key: 'off',
-        title: 'Off',
+        title: 'l10n-off',
         icon: 'icon-flash-off'
       },
       {
         key: 'torch',
-        title: 'On',
+        title: 'l10n-on',
         icon: 'icon-flash-on'
       }
     ],
@@ -159,7 +151,7 @@ module.exports = {
   },
 
   timer: {
-    title: 'Self Timer',
+    title: 'l10n-self-timer',
     icon: 'icon-self-timer',
     options: [
       {
@@ -169,17 +161,17 @@ module.exports = {
       },
       {
         key: '3secs',
-        title: '3 Seconds',
+        title: 'l10n-3-seconds',
         value: 3
       },
       {
         key: '5secs',
-        title: '5 Seconds',
+        title: 'l10n-5-seconds',
         value: 5
       },
       {
         key: '10secs',
-        title: '10 Seconds',
+        title: 'l10n-10-seconds',
         value: 10
       }
     ],
@@ -192,18 +184,13 @@ module.exports = {
     icon: 'icon-hdr',
     options: [
       {
-        key: 'auto',
-        title: 'Auto',
-        icon: 'A'
-      },
-      {
         key: 'on',
-        title: 'On',
+        title: 'l10n-on',
         icon: 'O'
       },
       {
         key: 'off',
-        title: 'Off',
+        title: 'l10n-off',
         icon: 'O'
       }
     ],
@@ -212,7 +199,7 @@ module.exports = {
   },
 
   scene: {
-    title: 'Scene Mode',
+    title: 'l10n-scene-mode',
     icon: 'icon-scene',
     options: [
       {
@@ -233,16 +220,16 @@ module.exports = {
   },
 
   grid: {
-    title: 'Grid',
+    title: 'l10n-grid',
     icon: 'icon-frame-grid',
     options: [
       {
         key: 'on',
-        title: 'On'
+        title: 'l10n-on'
       },
       {
         key: 'off',
-        title: 'Off'
+        title: 'l10n-off'
       }
     ],
     selected: 'off',

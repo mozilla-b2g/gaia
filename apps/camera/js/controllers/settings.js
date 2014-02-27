@@ -44,8 +44,8 @@ SettingsController.prototype.configure = function() {
  */
 SettingsController.prototype.bindEvents = function() {
   this.app.on('change:capabilities', this.onCapabilitiesChange);
+  this.app.on('settings:configured', this.settings.localize);
   this.app.on('settings:toggle', this.toggleSettings);
-  // listen click on app screen  to close settings menu
   this.app.on('click', this.closeSettings);
 };
 
@@ -179,7 +179,6 @@ SettingsController.prototype.matchesCondition = function(item) {
   };
   return !item.condition || test(item.condition);
 };
-
 
 /**
  * Settings aliases provide

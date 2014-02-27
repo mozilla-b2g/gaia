@@ -67,6 +67,11 @@ Model.prototype = events({
     this.emit('change:' + key, data[key]);
   },
 
+  each: function(fn) {
+    var data = this._getData();
+    for (var key in data) { fn(key, value); }
+  },
+
   _getData: function() {
     this._data = this._data || {};
     return this._data;
