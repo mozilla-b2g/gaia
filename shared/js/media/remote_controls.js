@@ -269,7 +269,10 @@ MediaRemoteControls.prototype._commandHandler = function(message) {
       break;
     case AVRCP.PLAY_PAUSE_PRESS:
     case IAC.PLAY_PAUSE_PRESS:
-      option.detail = { command: REMOTE_CONTROLS.PLAY_PAUSE };
+      option.detail = {
+        command: REMOTE_CONTROLS.PLAY_PAUSE,
+        isSCOConnected: this._isSCOConnected
+      };
       break;
     case AVRCP.PAUSE_PRESS:
     case IAC.PAUSE_PRESS:

@@ -2,12 +2,16 @@
 
 var MusicComms = {
   commands: {
+    play: function(event) {
+      this.commands.playpause.call(this, event);
+    },
+
     // For those bluetooth devices that do not keep, request or receive
     // the play status, because the play status may not sync with the player,
     // they will just send "play" or "playpause" when pressing the "playpause"
     // button, so for the "play" and "playpause" commands, we will check
     // the play status for the player then decide we should play or pause.
-    play: function(event) {
+    playpause: function(event) {
       this._getPlayerReady(function() {
         var isResumedBySCO = this.isSCOEnabled;
         this.isSCOEnabled = event.detail.isSCOConnected;
@@ -39,13 +43,6 @@ var MusicComms = {
           }
         }
       }.bind(this));
-    },
-
-    playpause: function(event) {
-      if (PlayerView.playStatus === PLAYSTATUS_PLAYING)
-        PlayerView.pause();
-      else
-        PlayerView.play();
     },
 
     pause: function(event) {
@@ -99,11 +96,22 @@ var MusicComms = {
     },
 
     updatemetadata: function() {
-      PlayerView.updateRemoteMetadata();
+      // After A2DP is connected, some bluetooth devices will try to synchronize
+      // the playing metadata with the player, if the player is not ready, we
+      // have to initial the player to have the metadata, even the player is
+      // stopped.
+      this._getPlayerReady(function() {
+        PlayerView.updateRemoteMetadata();
+      });
     },
 
     updateplaystatus: function() {
-      PlayerView.updateRemotePlayStatus();
+      // After A2DP is connected, some bluetooth devices will try to synchronize
+      // the playstatus with the player, if the player is not ready, we have to
+      // initial the player to have the play status.
+      this._getPlayerReady(function() {
+        PlayerView.updateRemotePlayStatus();
+      });
     }
   },
 
