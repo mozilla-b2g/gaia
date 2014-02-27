@@ -49,7 +49,9 @@ var CarrierSettings = (function(window, document, undefined) {
   var _onSubmitEventListenerAdded = {
     'data': false,
     'mms': false,
-    'supl': false
+    'supl': false,
+    'dun': false,
+    'ims': false
   };
   /** Flag */
   var _restartingDataConnection = false;
@@ -154,6 +156,10 @@ var CarrierSettings = (function(window, document, undefined) {
             cs_queryApns(cs_updateApnList, 'mms');
           } else if (currentHash === '#carrier-suplSettings') {
             cs_queryApns(cs_updateApnList, 'supl');
+          } else if (currentHash === '#carrier-dunSettings') {
+            cs_queryApns(cs_updateApnList, 'dun');
+          } else if (currentHash === '#carrier-imsSettings') {
+            cs_queryApns(cs_updateApnList, 'ims');
           }
         });
       });
@@ -903,7 +909,9 @@ var CarrierSettings = (function(window, document, undefined) {
     var kUsageMapping = {
       'data': 'default',
       'mms': 'mms',
-      'supl': 'supl'
+      'supl': 'supl',
+      'dun': 'dun',
+      'ims': 'ims'
     };
     var currentType = kUsageMapping[usage];
 
@@ -915,7 +923,9 @@ var CarrierSettings = (function(window, document, undefined) {
       'passwd',
       'httpProxyHost',
       'httpProxyPort',
-      'authType'
+      'authType',
+      'protocol',
+      'roaming_protocol'
     ];
 
     /**
@@ -948,6 +958,10 @@ var CarrierSettings = (function(window, document, undefined) {
       }
       cs_rilData(usage, 'authType').value =
         AUTH_TYPES[item.authtype] || 'notDefined';
+      cs_rilData(usage, 'protocol').value =
+        item.protocol || 'notDefined';
+      cs_rilData(usage, 'roaming_protocol').value =
+        item.roaming_protocol || 'notDefined';
     }
 
     /**
@@ -1013,7 +1027,9 @@ var CarrierSettings = (function(window, document, undefined) {
           function(value) {
             if (key === 'carrier') {
               cs_rilData(usage, key).value = '_custom_';
-            } else if (key === 'authType') {
+            } else if (key === 'authType' ||
+                       key === 'protocol' ||
+                       key === 'roaming_protocol') {
               cs_rilData(usage, key).value = value || 'notDefined';
             } else {
               cs_rilData(usage, key).value = value || '';
@@ -1148,7 +1164,7 @@ var CarrierSettings = (function(window, document, undefined) {
         // even for single ICC card devices. We add [[],[]] as default value.
         var apnSettingsList =
           request.result['ril.data.apnSettings'] || [[], []];
-        for (var i = 0; apnSettingsList[iccCardIndex].length; i++) {
+        for (var i = 0; i < apnSettingsList[iccCardIndex].length; i++) {
           apn = apnSettingsList[iccCardIndex][i];
           if (apn.types.indexOf(currentType) !== -1) {
             break;
