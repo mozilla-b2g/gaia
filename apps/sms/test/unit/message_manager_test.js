@@ -78,15 +78,13 @@ suite('message_manager.js >', function() {
       this.sinon.stub(Threads, 'registerMessage');
     });
 
-    test('message is shown in the current thread if it belongs to the thread',
-      function() {
-        var sms = MockMessages.sms;
-        // ensure the threadId is different
-        Threads.currentId = sms.threadId + 1;
-        MessageManager.onMessageSending({ message: sms });
-        assert.isFalse(ThreadUI.onMessageSending.calledOnce);
-      }
-    );
+    test('ThreadUI is always notified of the new message', function() {
+      var sms = MockMessages.sms();
+      // ensure the threadId is different
+      Threads.currentId = sms.threadId + 1;
+      MessageManager.onMessageSending({ message: sms });
+      sinon.assert.calledWith(ThreadUI.onMessageSending, sms);
+    });
   });
 
   suite('sendSMS() >', function() {
