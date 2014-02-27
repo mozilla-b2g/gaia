@@ -323,9 +323,8 @@ var EvmeManager = (function EvmeManager() {
     removeGridItem: removeGridItem,
 
     isBookmarked: function isBookmarked(url) {
-      // Bookmarks have a trailing '/' in order to distinguish from apps
-      // internally in the Homescreen
-      return GridManager.getApp(url.endsWith('/') ? url : url + '/');
+      return GridManager.getIconForBookmark(
+              Bookmark.prototype.generateIndex(url));
     },
 
     getIconByDescriptor: getIconByDescriptor,
