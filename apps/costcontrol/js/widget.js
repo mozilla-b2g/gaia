@@ -1,4 +1,9 @@
+/* global _, debug, BalanceView, checkDataUsageNotification,
+         ConfigManager, Common, computeTelephonyMinutes, CostControl,
+          formatTimeHTML, getDataLimit, MozActivity, roundData, SettingsListener
+*/
 
+/* exported activity */
 /*
  * The widget is in charge of show balance, telephony data and data usage
  * statistics depending on the SIM inserted.
@@ -32,6 +37,7 @@ var Widget = (function() {
     // SIM not ready
     } else if (cardState !== 'ready') {
       debug('SIM not ready:', dataSimIccInfo.cardState);
+      initialized = false;
       dataSimIccInfo.oncardstatechange = checkSIMStatus;
 
     // SIM is ready, but ICC info is not ready yet
@@ -47,7 +53,7 @@ var Widget = (function() {
       document.getElementById('message-handler').src = 'message_handler.html';
       Common.waitForDOMAndMessageHandler(window, startWidget);
     }
-  };
+  }
 
   // Check the card status. Return 'ready' if all OK or take actions for
   // special situations such as 'pin/puk locked' or 'absent'.
@@ -451,6 +457,21 @@ var Widget = (function() {
         console.warn('Error when trying to get the ICC ID');
         showSimError('no-sim2');
       });
+      AirplaneModeHelper.addEventListener('statechange',
+        function _onAirplaneModeChange(state) {
+          if (state === 'enabled') {
+            var iccManager = window.navigator.mozIccManager;
+            iccManager.addEventListener('iccdetected',
+              function _oniccdetected() {
+                iccManager.removeEventListener('iccdetected', _oniccdetected);
+                Common.loadDataSIMIccId(checkSIMStatus);
+              }
+            );
+            showSimError('no-sim2');
+          }
+        }
+      );
+
       // XXX: See bug 944342 -[Cost control] move all the process related to the
       // network and data interfaces loading to the start-up process of CC
       Common.loadNetworkInterfaces();

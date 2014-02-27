@@ -299,11 +299,13 @@ MessageReaderCard.prototype = {
     });
 
     var otherAddresses = (this.header.to || []).concat(this.header.cc || []);
-    if (this.header.replyTo) {
+    if (this.header.replyTo && this.header.replyTo.author) {
       otherAddresses.push(this.header.replyTo.author);
     }
     for (var i = 0; i < otherAddresses.length; i++) {
-      if (myAddresses.indexOf(otherAddresses[i].address) == -1) {
+      var otherAddress = otherAddresses[i];
+      if (otherAddress.address &&
+          myAddresses.indexOf(otherAddress.address) == -1) {
         return true;
       }
     }
@@ -334,11 +336,6 @@ MessageReaderCard.prototype = {
       return false;
     }).bind(this);
     contents.addEventListener('submit', formSubmit);
-
-    if (!this.canForward()) {
-      contents.querySelector('.msg-reply-menu-forward')
-        .classList.add('collapsed');
-    }
 
     if (!this.canReplyAll()) {
       contents.querySelector('.msg-reply-menu-reply-all')

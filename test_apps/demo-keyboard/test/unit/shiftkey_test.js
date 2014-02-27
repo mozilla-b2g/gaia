@@ -1,7 +1,12 @@
+'use strict';
+
 /*global requireApp suite test assert setup teardown sinon mocha
   suiteTeardown */
+
+requireApp('demo-keyboard/js/shiftkey.js');
+
 suite('ShiftKey', function() {
-  function eventEmitterSpy() {
+  function eventTargetSpy() {
     var d = document.createElement('div');
     sinon.spy(d, 'addEventListener');
     sinon.spy(d, 'removeEventListener');
@@ -9,63 +14,79 @@ suite('ShiftKey', function() {
     return d;
   }
 
+  function appSpy() {
+    var app = {
+      inputField: eventTargetSpy(),
+      currentPageView: {
+        setShiftState: sinon.spy(function(shifted, locked) {
+          this.shifted = shifted;
+          this.locked = locked;
+        }),
+        shifted: false,
+        locked: false
+      }
+    };
+
+    return app;
+  }
+
+  function sendKey(key) {
+    keyboardTouchHelper.dispatchEvent(new CustomEvent('key', {
+      detail: key }));
+  }
+
   mocha.setup({
     globals: [
       'KeyboardTouchHandler',
-      'InputField',
-      'currentPageView',
       'ShiftKey'
     ]
   });
 
-  var keyboardTouchHelper, inputField, currentPageView;
+  var keyboardTouchHelper;
+  var realKeyboardTouchHandler;
 
-  suiteSetup(function(next) {
-    window.KeyboardTouchHandler = keyboardTouchHelper = eventEmitterSpy();
-    window.InputField = inputField = eventEmitterSpy();
-    requireApp('demo-keyboard/js/shiftkey.js', next);
-  });
-
-  setup(function() {
-    window.currentPageView = currentPageView = {
-      setShiftState: sinon.spy(function(shifted, locked) {
-        currentPageView.shifted = shifted;
-        currentPageView.locked = locked;
-      })
-    };
+  suiteSetup(function() {
+    realKeyboardTouchHandler = window.KeyboardTouchHandler;
+    window.KeyboardTouchHandler = keyboardTouchHelper = eventTargetSpy();
   });
 
   suiteTeardown(function() {
-    // @todo restore props on window?
+    window.KeyboardTouchHandler = realKeyboardTouchHandler;
   });
 
   suite('Key handling', function() {
-    function sendKey(key) {
-      keyboardTouchHelper.dispatchEvent(new CustomEvent('key', {
-        detail: key }));
-    }
+    var app, shiftKey;
+
+    setup(function() {
+      app = appSpy();
+      shiftKey = new ShiftKey(app);
+      shiftKey.start();
+    });
+
+    teardown(function() {
+      shiftKey.stop();
+      shiftKey = undefined;
+    });
 
     function testShiftCalls(noOfCalls, expectedShifted, expectedLocked) {
       for (var i = 0; i < noOfCalls; i++) {
         sendKey('SHIFT');
       }
+
       assert.equal(expectedShifted,
-          currentPageView.setShiftState.lastCall.args[0], 'State is shifted');
+          app.currentPageView.setShiftState.lastCall.args[0], 'State is shifted');
       assert.equal(expectedLocked,
-          currentPageView.setShiftState.lastCall.args[1], 'State is locked');
+          app.currentPageView.setShiftState.lastCall.args[1], 'State is locked');
     }
 
     test('Sending non-shift key doesn\'t trigger shiftState', function() {
       sendKey('a');
-      assert.equal(currentPageView.setShiftState.callCount, 0,
+
+      assert.equal(app.currentPageView.setShiftState.callCount, 0,
         'No change in shiftState was made');
     });
 
     suite('Non-shifted and non-locked', function() {
-      setup(function() {
-        currentPageView.shifted = currentPageView.locked = false;
-      });
-
       test('Single shift event', function() {
         testShiftCalls(1, true, false);
       });
@@ -81,36 +102,33 @@ suite('ShiftKey', function() {
 
     suite('Shifted and non-locked', function() {
       setup(function() {
-        currentPageView.shifted = true;
-        currentPageView.locked = false;
+        app.currentPageView.shifted = true;
       });
-
       test('Single shift event (fast)', function() {
+        app.currentPageView.shifted = false;
+        sendKey('SHIFT');
+
         // if fast -> go into locked mode
         testShiftCalls(1, true, true);
       });
 
       test('Single shift event (slow)', function() {
-        currentPageView.shifted = false;
+        app.currentPageView.shifted = false;
         sendKey('SHIFT');
 
-        window.ShiftKey.resetLastShiftTime();
+        shiftKey.lastShiftTime -= shiftKey.CAPS_LOCK_INTERVAL * 1000;
 
         // if slow -> move into unshift/unlocked mode
         testShiftCalls(1, false, false);
       });
 
       test('Double shift event', function() {
-        window.ShiftKey.resetLastShiftTime();
-
         // I think this is incorrect, on old keyboard this goes to
         // true, true state
         testShiftCalls(2, true, false);
       });
 
       test('Triple shift event', function() {
-        window.ShiftKey.resetLastShiftTime();
-
         // Think also incorrect, old keyboard -> false, false
         testShiftCalls(3, true, true);
       });
@@ -118,8 +136,8 @@ suite('ShiftKey', function() {
 
     suite('Shifted and locked', function() {
       setup(function() {
-        currentPageView.shifted = true;
-        currentPageView.locked = true;
+        app.currentPageView.shifted = true;
+        app.currentPageView.locked = true;
       });
 
       test('Single shift event', function() {
@@ -137,21 +155,37 @@ suite('ShiftKey', function() {
   });
 
   suite('State changing', function() {
+    var app, shiftKey;
+
+    setup(function() {
+      app = appSpy();
+      shiftKey = new ShiftKey(app);
+      shiftKey.start();
+    });
+
+    teardown(function() {
+      shiftKey.stop();
+      shiftKey = undefined;
+    });
+
     function testStateChange(opts) {
-      currentPageView.locked = opts.isLocked;
-      currentPageView.shifted = opts.isShifted;
-      inputField.atSentenceStart = sinon.stub().returns(opts.atSentenceStart);
+      app.currentPageView.locked = opts.isLocked;
+      app.currentPageView.shifted = opts.isShifted;
+      app.inputField.atSentenceStart =
+        sinon.stub().returns(opts.atSentenceStart);
 
-      inputField.dispatchEvent(new CustomEvent('inputstatechanged'));
+      app.inputField.dispatchEvent(new CustomEvent('inputstatechanged'));
 
-      sinon.assert.callCount(currentPageView.setShiftState,
+      sinon.assert.callCount(app.currentPageView.setShiftState,
         opts.expectedCallCount, 'CallCount setShiftState');
 
       if (opts.expectedCallCount > 0) {
         assert.equal(opts.expectedShifted,
-            currentPageView.setShiftState.lastCall.args[0], 'State is shifted');
+            app.currentPageView.setShiftState.lastCall.args[0],
+            'State is shifted');
         assert.equal(opts.expectedLocked,
-            currentPageView.setShiftState.lastCall.args[1], 'State is locked');
+            app.currentPageView.setShiftState.lastCall.args[1],
+            'State is locked');
       }
     }
 

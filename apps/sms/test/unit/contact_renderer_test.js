@@ -1,5 +1,5 @@
 /*global ContactRenderer, loadBodyHTML, MockContact, MockL10n, MocksHelper,
-         Utils, Template */
+         Utils, Template, MockContactPhotoHelper */
 
 'use strict';
 
@@ -8,10 +8,12 @@ require('/test/unit/mock_utils.js');
 
 require('/test/unit/mock_contact.js');
 require('/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 require('/js/contact_renderer.js');
 
 var mocksHelperForContactRenderer = new MocksHelper([
-  'Utils'
+  'Utils',
+  'ContactPhotoHelper',
 ]).init();
 
 suite('ContactRenderer', function() {
@@ -278,7 +280,7 @@ suite('ContactRenderer', function() {
       });
       html = ul.firstElementChild.innerHTML;
 
-      assert.isFalse(html.contains('img'));
+      assert.isFalse(html.contains('span[data-type=img]'));
     });
 
     test('append information block in the li', function() {
@@ -334,12 +336,13 @@ suite('ContactRenderer', function() {
       });
       html = ul.firstElementChild.innerHTML;
 
-      assert.isFalse(html.contains('img'));
+      assert.isFalse(html.contains('span[data-type=img]'));
     });
 
     test('Render contact with photo renders the image', function() {
       var html;
-      contact.photo = [testImageBlob];
+      var blob = testImageBlob;
+      this.sinon.stub(MockContactPhotoHelper, 'getThumbnail').returns(blob);
 
       renderer.render({
         contact: contact,
@@ -351,20 +354,21 @@ suite('ContactRenderer', function() {
         photoURL: sinon.match(/^blob:/)
       });
 
+      var photo = 'span data-type="img" style="background-image: url(blob:';
       sinon.assert.calledWithMatch(Template.prototype.interpolate, {
         carrier: 'XXX, ',
         name: 'Pepito O\'Hare',
         nameHTML: 'Pepito O&apos;Hare',
         number: '+12125559999',
         numberHTML: '+12125559999',
-        photoHTML: sinon.match('img src="blob:'),
+        photoHTML: sinon.match(photo),
         separator: ' | ',
         type: 'B'
       });
 
       html = ul.firstElementChild.innerHTML;
 
-      assert.ok(html.contains('img'));
+      assert.ok(html.contains('span'));
     });
   });
 

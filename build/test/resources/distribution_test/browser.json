@@ -1,0 +1,24 @@
+{
+  "000000": {
+    "bookmarks": [
+      { "title": "testBookMark1Title",
+        "uri": "testuri1",
+        "iconUri": "testUriIcon"
+      },
+      { "title": "testBookMark2Title",
+        "uri": "testuri2",
+        "iconUri": "testOSUri"
+      }
+    ],
+    "searchEngines": [
+      {
+        "title": "testSearchTitle",
+        "uri": "testSeachUri",
+        "iconUri": "testSearchUri"
+      }
+    ],
+    "settings": {
+      "defaultSearchEngine": "testSettingEngine"
+    }
+  }
+}

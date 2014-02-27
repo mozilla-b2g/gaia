@@ -680,6 +680,7 @@ exports.LOGFAB_DEFINITION = {
       opError: { mode: false, type: false, ex: log.EXCEPTION },
     },
     asyncJobs: {
+      checkAccount: { err: null },
       runOp: { mode: true, type: true, error: false, op: false },
     },
     TEST_ONLY_asyncJobs: {
@@ -3911,7 +3912,11 @@ var properties = {
   },
 
   checkAccount: function(listener) {
-    this._makeConnection(listener, null, 'check');
+    this._LOG.checkAccount_begin(null);
+    this._makeConnection(function(err) {
+      this._LOG.checkAccount_end(err);
+      listener(err);
+    }.bind(this), null, 'check');
   },
 
   accountDeleted: function() {
@@ -8819,9 +8824,11 @@ var properties = {
       }
       this._conn = null;
     }
+    this._LOG.checkAccount_begin(null);
     this.withConnection(function(err) {
+      this._LOG.checkAccount_end(err);
       callback(err);
-    }, 'checkAccount');
+    }.bind(this), 'checkAccount');
   },
 
   /**
@@ -9402,6 +9409,7 @@ exports.configurator = {
         incomingInfo.preferredAuthMethod = null;
       }
       smtpConnInfo = {
+        emailAddress: userDetails.emailAddress, // used for probing
         hostname: domainInfo.outgoing.hostname,
         port: domainInfo.outgoing.port,
         crypto: (typeof domainInfo.outgoing.socketType === 'string' ?

@@ -1,5 +1,8 @@
 'use strict';
 
+const kEdgeIntertia = 150;
+const kEdgeThreshold = 0.2;
+
 var EdgeSwipeDetector = {
   previous: document.getElementById('left-panel'),
   next: document.getElementById('right-panel'),
@@ -11,6 +14,7 @@ var EdgeSwipeDetector = {
     window.addEventListener('homescreenopening', this);
     window.addEventListener('appopen', this);
     window.addEventListener('launchapp', this);
+    window.addEventListener('cardviewclosed', this);
 
     ['touchstart', 'touchmove', 'touchend',
      'mousedown', 'mousemove', 'mouseup'].forEach(function(e) {
@@ -38,6 +42,14 @@ var EdgeSwipeDetector = {
 
   _lifecycleEnabled: false,
 
+  get lifecycleEnabled() {
+    return this._lifecycleEnabled;
+  },
+  set lifecycleEnabled(enable) {
+    this._lifecycleEnabled = enable;
+    this._updateEnabled();
+  },
+
   handleEvent: function esd_handleEvent(e) {
     switch (e.type) {
       case 'mousedown':
@@ -63,13 +75,16 @@ var EdgeSwipeDetector = {
         break;
       case 'homescreenopening':
         this.screen.classList.remove('edges');
-        this._lifecycleEnabled = false;
-        this._updateEnabled();
+        this.lifecycleEnabled = false;
         break;
       case 'launchapp':
         if (!e.detail.stayBackground) {
-          this._lifecycleEnabled = true;
-          this._updateEnabled();
+          this.lifecycleEnabled = true;
+        }
+        break;
+      case 'cardviewclosed':
+        if (e.detail && e.detail.newStackPosition) {
+          this.lifecycleEnabled = true;
         }
         break;
     }
@@ -126,17 +141,29 @@ var EdgeSwipeDetector = {
     var touch = e.touches[0];
     this._updateProgress(touch);
 
+    if (e.touches.length > 1 && !this._forwarding) {
+      this._startForwarding(e);
+      return;
+    }
+
     if (this._forwarding) {
       this._touchForwarder.forward(e);
       return;
     }
 
-    this._checkIfSwiping(e);
-
-    if (this._deltaX > 5) {
-      this._clearForwardTimeout();
-      SheetsTransition.moveInDirection(this._direction, this._progress);
+    // Does it quack like a vertical swipe?
+    if ((this._deltaX * 2 < this._deltaY) &&
+        (this._deltaY > 5)) {
+      this._startForwarding(e);
     }
+
+    if (this._deltaX < 5) {
+      return;
+    }
+
+    this._clearForwardTimeout();
+
+    SheetsTransition.moveInDirection(this._direction, this._progress);
   },
 
   _touchEnd: function esd_touchEnd(e) {
@@ -146,8 +173,10 @@ var EdgeSwipeDetector = {
     if (this._forwarding) {
       this._touchForwarder.forward(e);
     } else if ((this._deltaX < 5) && (this._deltaY < 5)) {
-      this._touchForwarder.forward(this._touchStartEvt);
-      this._touchForwarder.forward(e);
+      setTimeout(function(self, touchstart, touchend) {
+        self._touchForwarder.forward(touchstart);
+        self._touchForwarder.forward(touchend);
+      }, 0, this, this._touchStartEvt, e);
       this._forwarding = true;
     }
 
@@ -155,10 +184,10 @@ var EdgeSwipeDetector = {
 
     var deltaT = Date.now() - this._startDate;
     var speed = this._progress / deltaT; // progress / ms
-    var inertia = speed * 120; // 120 ms of intertia
+    var inertia = speed * kEdgeIntertia; // ms of intertia
     var adjustedProgress = (this._progress + inertia);
 
-    if (adjustedProgress < 0.33 || this._forwarding) {
+    if (adjustedProgress < kEdgeThreshold || this._forwarding) {
       SheetsTransition.snapInPlace();
       SheetsTransition.end();
       return;
@@ -193,17 +222,15 @@ var EdgeSwipeDetector = {
     }
   },
 
-  _checkIfSwiping: function esd_checkIfSwiping(e) {
-    if ((this._deltaX * 2 < this._deltaY) &&
-        (this._deltaY > 5)) {
-      this._clearForwardTimeout();
-      this._forwarding = true;
-      this._touchForwarder.forward(this._touchStartEvt);
-      this._touchForwarder.forward(e);
+  _startForwarding: function esd_startForwarding(e) {
+    this._clearForwardTimeout();
+    this._forwarding = true;
+    this._touchForwarder.forward(this._touchStartEvt);
 
-      SheetsTransition.snapInPlace();
-      SheetsTransition.end();
-    }
+    this._touchForwarder.forward(e);
+
+    SheetsTransition.snapInPlace();
+    SheetsTransition.end();
   }
 };
 

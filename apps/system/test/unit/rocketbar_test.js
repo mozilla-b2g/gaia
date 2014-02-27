@@ -1,29 +1,33 @@
 'use strict';
-/* global AppWindowManager, MocksHelper, Rocketbar */
+/* global AppWindowManager, MocksHelper, Rocketbar, MockLockScreen */
 
 requireApp('system/shared/js/url_helper.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/test/unit/mock_cards_view.js');
 requireApp('system/test/unit/mock_app_window_manager.js');
 requireApp('system/test/unit/mock_lock_screen.js');
-requireApp('system/js/lockscreen.js');
-mocha.globals(['Rocketbar']);
+mocha.globals(['Rocketbar', 'lockScreen']);
 
 mocha.globals(['dispatchEvent']);
 
 var mocksForRocketBar = new MocksHelper([
   'AppWindowManager',
   'CardsView',
-  'LockScreen',
   'SettingsListener'
 ]).init();
 
 suite('system/Rocketbar', function() {
+  var originalLocked;
   var stubById;
   var fakeElement;
 
   mocksForRocketBar.attachTestHelpers();
   setup(function(done) {
+    window.lockScreen = MockLockScreen;
+    originalLocked = window.lockScreen.locked;
+
+    // The tests except it always false in this file.
+    window.lockScreen.locked = false;
     fakeElement = document.createElement('div');
     fakeElement.style.cssText = 'height: 100px; display: block;';
     stubById = this.sinon.stub(document, 'getElementById')
@@ -34,6 +38,7 @@ suite('system/Rocketbar', function() {
 
   teardown(function() {
     stubById.restore();
+    window.lockScreen.locked = originalLocked;
     this.sinon.clock.restore();
   });
 
@@ -60,6 +65,34 @@ suite('system/Rocketbar', function() {
         }
       });
       assert.ok(Rocketbar.screen.classList.contains('rocketbar-focus'));
+    });
+
+    test('focus, when currentURL is set', function() {
+      Rocketbar.searchInput.select = function() {};
+      var selectStub = this.sinon.stub(Rocketbar.searchInput, 'select');
+      Rocketbar.currentURL = 'http://mozilla.org';
+      Rocketbar.searchInput.value = '';
+      Rocketbar.handleEvent({
+        target: {
+          id: 'search-input'
+        }
+      });
+      assert.equal(Rocketbar.searchInput.value, 'http://mozilla.org');
+      assert.ok(selectStub.calledOnce);
+    });
+
+    test('focus, when currentURL is not set', function() {
+      Rocketbar.searchInput.select = function() {};
+      var selectStub = this.sinon.stub(Rocketbar.searchInput, 'select');
+      Rocketbar.currentURL = null;
+      Rocketbar.searchInput.value = '';
+      Rocketbar.handleEvent({
+        target: {
+          id: 'search-input'
+        }
+      });
+      assert.equal(Rocketbar.searchInput.value, '');
+      assert.ok(selectStub.notCalled);
     });
 
     test('removes rocketbar-focus on blur', function() {
@@ -255,6 +288,21 @@ suite('system/Rocketbar', function() {
       searchAppStub.restore();
     });
 
+    test('sets currentURL', function() {
+      assert.equal(Rocketbar.currentURL, null);
+      this.sinon.stub(AppWindowManager, 'getActiveApp')
+        .returns({
+          config: {
+            chrome: true,
+            url: 'http://mozilla.org'
+          }
+        });
+      Rocketbar.render(true);
+
+      assert.equal(Rocketbar.currentURL, 'http://mozilla.org');
+      Rocketbar.hide();
+    });
+
     suite('interactions', function() {
       var searchAppStub, cardsViewStub, focusStub;
 
@@ -297,18 +345,19 @@ suite('system/Rocketbar', function() {
   });
 
   suite('onSearchMessage', function() {
-    test('fires a change event', function() {
-      var message;
-      Rocketbar._port = {
-        postMessage: function(msg) {
-          message = msg;
-        }
-      };
+    test('sets the input value', function() {
       Rocketbar.onSearchMessage({
         detail: {input: 'foo'}
       });
-      assert.equal(message.action, 'change');
-      assert.equal(message.input, 'foo');
+      assert.equal(Rocketbar.searchInput.value, 'foo');
+    });
+
+    test('can hide the rocketbar', function() {
+      var stub = this.sinon.stub(Rocketbar, 'hide');
+      Rocketbar.onSearchMessage({
+        detail: {action: 'hide'}
+      });
+      assert.ok(stub.calledOnce);
     });
   });
 

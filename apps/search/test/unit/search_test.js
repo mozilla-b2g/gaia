@@ -4,7 +4,7 @@ require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
 require('/shared/js/url_helper.js');
 
-mocha.globals(['Search']);
+mocha.globals(['Search', 'open']);
 
 suite('search/search', function() {
   var realMozApps;
@@ -199,12 +199,54 @@ suite('search/search', function() {
       Search.navigate(url);
       assert.ok(stub.calledWith(url));
     });
+
+    test('parses features', function() {
+      var url = 'http://mozilla.org';
+      var stub = this.sinon.stub(window, 'open');
+      Search.navigate(url, {
+        a: 1,
+        b: 2
+      });
+      assert.ok(stub.calledWith(url, '_blank',
+        'remote=true,useAsyncPanZoom=true,a=1,b=2'));
+    });
+  });
+
+  suite('expandSearch', function() {
+    setup(function() {
+      Search.providers = {
+        WebResults: {
+          clear: function() {},
+          abort: function() {},
+          search: function() {}
+        },
+        BGImage: {
+          clear: function() {},
+          abort: function() {},
+          search: function() {},
+          fetchImage: function() {}
+        }
+      };
+    });
+
+    test('calls search for WebResults', function() {
+      var searchStub = this.sinon.stub(Search.providers.WebResults, 'search');
+      Search.expandSearch();
+      assert.ok(searchStub.calledOnce);
+    });
+
+    test('calls fetchImage for BGImage', function() {
+      var searchStub = this.sinon.stub(Search.providers.BGImage, 'fetchImage');
+      Search.expandSearch();
+      assert.ok(searchStub.calledOnce);
+    });
   });
 
   suite('setInput', function() {
     test('posts a message to the port', function() {
       Search._port = { postMessage: function() {} };
       var stub = this.sinon.stub(Search._port, 'postMessage');
+      this.sinon.stub(Search, 'expandSearch');
       Search.setInput('foo');
       assert.ok(stub.calledWith({input: 'foo'}));
     });

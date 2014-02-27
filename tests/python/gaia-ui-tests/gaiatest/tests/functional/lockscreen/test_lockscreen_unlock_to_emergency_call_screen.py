@@ -21,10 +21,6 @@ class TestLockScreen(GaiaTestCase):
         self.device.lock()
 
     def test_unlock_to_emergency_call_screen(self):
-        """Test that emergency call screen can open
-
-        https://github.com/mozilla/gaia-ui-tests/issues/762
-        """
         lock_screen = LockScreen(self.marionette)
         passcode_pad = lock_screen.unlock_to_passcode_pad()
         emergency_screen = passcode_pad.tap_emergency_call()

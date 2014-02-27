@@ -190,7 +190,7 @@
      * @memberOf module:AppWindowManager
      */
     init: function awm_init() {
-      if (LockScreen && LockScreen.locked) {
+      if (lockScreen && lockScreen.locked) {
         this.element.setAttribute('aria-hidden', 'true');
       }
       if (System.slowTransition) {
@@ -241,6 +241,14 @@
           if (!value)
             return;
           this.continuousTransition = !!value;
+        }.bind(this));
+
+      SettingsListener.observe('app-suspending.enabled', false,
+        function(value) {
+          // Kill all instances if they are suspended.
+          if (!value) {
+            this.broadcastMessage('kill_suspended');
+          }
         }.bind(this));
     },
 
@@ -464,7 +472,7 @@
     linkWindowActivity: function awm_linkWindowActivity(config) {
       // Caller should be either the current active inline activity window,
       // or the active app.
-      var caller = ActivityWindowFactory.getActiveWindow() || this._activeApp;
+      var caller = activityWindowFactory.getActiveWindow() || this._activeApp;
       this.runningApps[config.origin].activityCaller = caller;
       caller.activityCallee = this.runningApps[config.origin];
     },

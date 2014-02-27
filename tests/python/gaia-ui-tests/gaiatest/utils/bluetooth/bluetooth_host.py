@@ -21,7 +21,7 @@ class BluetoothHost():
         try:
             nearby_devices = bluetooth.discover_devices(duration=10, lookup_names=True)
         except:
-            self.marionette.log("Host inquiry failed. Is the host-side bluetooth adaptor enabled?")
+            raise Exception("Host inquiry failed. Is the host-side bluetooth adaptor enabled?")
         self.marionette.log("Host machine found %d bluetooth device(s) nearby:" % len(nearby_devices))
         for address, name in nearby_devices:
             self.marionette.log("==> %s - %s" % (address, name))

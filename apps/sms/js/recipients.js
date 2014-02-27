@@ -882,11 +882,11 @@
 
         // Last character is a semi-colon, treat as an
         // "accept" of this recipient.
-        if (typed && typed[length - 1] === ';') {
+        if (typed && (typed[length - 1] === ';' || typed[length - 1] === ',')) {
           isAcceptedRecipient = true;
           isPreventingDefault = true;
 
-          typed = typed.replace(/;$/, '');
+          typed = typed.replace(/[;,]$/, '');
 
           // Display the actual typed text that we're
           // going to accept as a recipient (trimmed)

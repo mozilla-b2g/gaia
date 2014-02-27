@@ -1445,10 +1445,10 @@ RequestReader.prototype =
           if (host != GAIA_DOMAIN && host.indexOf(".") != -1) {
             var oldPath = request._path;
             let file;
+            let _handler = this._connection.server._handler;
 
             try {
-              file =
-                    this._connection.server._handler._getFileForPath(oldPath);
+              file = _handler._getFileForPath(oldPath);
             } catch(e) {
             }
 
@@ -1457,7 +1457,18 @@ RequestReader.prototype =
 
               // find the file path depending on the application name
               var filePath = this._findRealPath(applicationName);
-              request._path = filePath + oldPath;
+              try {
+                file = _handler._getFileForPath(filePath + oldPath);
+              } catch(e) {
+              }
+
+              if (!file || !file.exists()) {
+                // find the file path in build_stage instead.
+                var stageFilePath = this._findStageRealPath(applicationName);
+                request._path = stageFilePath + oldPath;
+              } else {
+                request._path = filePath + oldPath;
+              }
             }
 
             // TODO refactor this to a "filter" style
@@ -1528,6 +1539,14 @@ RequestReader.prototype =
       this._realPath[currentAppName] = appPathList[i];
     }
     return "/" + this._realPath[appName];
+  },
+
+  /**
+   * If the file doesn't exist, we will try to find them in the build_stage
+   * directory, as a fail safe.
+   */
+  _findStageRealPath: function(appName) {
+    return '/build_stage/' + appName;
   },
 
   /**

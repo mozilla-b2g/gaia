@@ -78,6 +78,7 @@ function exclude(path, options, appPath) {
   var firstDir = path.substr(appPath.length+1).split(/[\\/]/)[0];
   var isShared = firstDir === 'shared';
   var isTest = firstDir === 'test';
+  var isGit = firstDir === '.git';
   var file = utils.getFile(path);
 
   // Ignore l10n files if they have been inlined or concatenated
@@ -98,6 +99,11 @@ function exclude(path, options, appPath) {
   // Ignore files from /shared directory (these files were created by
   // Makefile code). Also ignore files in the /test directory.
   if (isShared || isTest) {
+    return true;
+  }
+
+  // Ignore everything under .git/
+  if (isGit) {
     return true;
   }
 
@@ -245,68 +251,6 @@ function customizeFiles(zip, src, dest, webapp) {
   });
 }
 
-function getResource(distDir, path, resources, json, key) {
-  if (path) {
-    var file = utils.getFile(distDir, path);
-    if (!file.exists()) {
-      throw new Error('Invalid single variant configuration: ' +
-                      file.path + ' not found');
-    }
-
-    resources.push(file);
-    json[key] = '/resources/' + file.leafName;
-  }
-}
-
-function getSingleVariantResources(conf) {
-  var distDir = utils.getGaia(config).distributionDir;
-  conf = utils.getJSON(conf);
-
-  let output = {};
-  let resources = [];
-  conf['operators'].forEach(function(operator) {
-    let object = {};
-
-    getResource(distDir, operator['wallpaper'], resources, object, 'wallpaper');
-    getResource(distDir, operator['default_contacts'],
-      resources, object, 'default_contacts');
-    getResource(distDir, operator['support_contacts'],
-      resources, object, 'support_contacts');
-
-    let ringtone = operator['ringtone'];
-    if (ringtone) {
-      let ringtoneName = ringtone['name'];
-      if (!ringtoneName) {
-        throw new Error('Missing name for ringtone in single variant conf.');
-      }
-
-      getResource(distDir, ringtone['path'], resources, object, 'ringtone');
-      if (!object.ringtone) {
-        throw new Error('Missing path for ringtone in single variant conf.');
-      }
-
-      // Generate ringtone JSON
-      let uuidGenerator = Cc['@mozilla.org/uuid-generator;1'].
-                            createInstance(Ci.nsIUUIDGenerator);
-      let ringtoneObj = { filename: uuidGenerator.generateUUID().toString() +
-                                    '.json',
-                          content: { uri: object['ringtone'],
-                                     name: ringtoneName }};
-
-      resources.push(ringtoneObj);
-      object['ringtone'] = '/resources/' + ringtoneObj.filename;
-    }
-
-    operator['mcc-mnc'].forEach(function(mcc) {
-      if (Object.keys(object).length !== 0) {
-        output[mcc] = object;
-      }
-    });
-  });
-
-  return {'conf': output, 'files': resources};
-}
-
 function execute(options) {
   config = options;
   var gaia = utils.getGaia(config);
@@ -365,59 +309,6 @@ function execute(options) {
         addToZip(zip, pathInZip, file, compression);
       }
     });
-
-    if (webapp.sourceDirectoryName === 'system' && gaia.distributionDir) {
-      if (utils.getFile(gaia.distributionDir, 'power').exists()) {
-        customizeFiles(zip, 'power', 'resources/power/', webapp);
-      }
-    }
-
-    if (webapp.sourceDirectoryName === 'wallpaper' && gaia.distributionDir &&
-      utils.getFile(gaia.distributionDir, 'wallpapers').exists()) {
-      customizeFiles(zip, 'wallpapers', 'resources/320x480/', webapp);
-    }
-
-    if (webapp.sourceDirectoryName === 'homescreen' && gaia.distributionDir) {
-      let customization = utils.getFile(gaia.distributionDir,
-        'temp', 'apps', 'conf', 'singlevariantconf.json');
-      if (customization.exists()) {
-        addToZip(zip, 'js/singlevariantconf.json', customization);
-      }
-    }
-
-    if (webapp.sourceDirectoryName === 'communications' &&
-        gaia.distributionDir &&
-        utils.getFile(gaia.distributionDir).exists()) {
-      let conf = utils.getFile(gaia.distributionDir, 'variant.json');
-      if (conf.exists()) {
-        let resources = getSingleVariantResources(conf);
-
-        addEntryStringWithTime(zip, 'resources/customization.json',
-          JSON.stringify(resources.conf), DEFAULT_TIME);
-
-        resources.files.forEach(function(file) {
-          if (file instanceof Ci.nsILocalFile) {
-            let filename = 'resources/' + file.leafName;
-            if (zip.hasEntry(filename)) {
-              zip.removeEntry(filename, false);
-            }
-            var compression = getCompression(filename, webapp);
-            addEntryFileWithTime(zip, filename, file, DEFAULT_TIME,
-              compression);
-          } else {
-            let filename = 'resources/' + file.filename;
-            if (zip.hasEntry(filename)) {
-              zip.removeEntry(filename, false);
-            }
-            addEntryStringWithTime(zip, filename, JSON.stringify(file.content),
-              DEFAULT_TIME);
-          }
-        });
-      } else {
-        utils.log(conf.path + ' not found. Single variant resources will not' +
-            ' be added.\n');
-      }
-    }
 
     // Put shared files, but copy only files actually used by the webapp.
     // We search for shared file usage by parsing webapp source code.

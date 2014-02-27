@@ -50,12 +50,14 @@ suite('WifiHelper', function() {
             ssid: 'Another no broadcast',
             bssid: 'xx:xx:xx:xx:xx:xx',
             capabilities: [],
+            security: [],
             relSignalStrength: 88,
             connected: false
           },
           {
             ssid: 'Yet another no broadcast',
             bssid: 'xx:xx:xx:xx:xx:xx',
+            security: [],
             relSignalStrength: 88,
             connected: false
           }

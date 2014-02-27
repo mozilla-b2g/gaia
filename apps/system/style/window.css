@@ -1,15 +1,11 @@
 #windows > .appWindow,
 #windows > .activityWindow {
   position: absolute;
+  left: 0;
   border: 0;
   margin: 0;
   padding: 0;
   overflow: hidden;
-  left: 0;
-  top: 2rem;
-
-  width: 100%;
-  height: 100%;
 
   background-repeat: no-repeat;
   background-position: center center;
@@ -21,7 +17,7 @@
   }
 }
 
-.appWindow[transition-state="closed"]:not(.fadeout):not(.homescreen) {
+.appWindow[transition-state="closed"]:not(.fadeout):not(.homescreen):not(.edge-candidate) {
   opacity: 0;
 }
 
@@ -235,6 +231,7 @@
 }
 
 #screen:not(.active-statusbar):not(.software-button-enabled) > #windows > .appWindow.fullscreen-app {
+  top: 0;
   height: 100%;
   width: 100%;
 }
@@ -319,7 +316,7 @@
 .appWindow > .fade-overlay {
   background-color: black;
   position: absolute;
-  display: none;
+  visibility: hidden;
   top: 0;
   left: 0;
   width: 100%;
@@ -328,7 +325,7 @@
 }
 
 .appWindow.fadeout > .fade-overlay {
-  display: block;
+  visibility: visible;
 }
 
 .appWindow > .modal-dialog,
@@ -339,18 +336,18 @@
   left: 0;
   width: 100%;
   height: 100%;
-  display: none;
+  visibility: hidden;
 }
 
 .appWindow > .contextmenu {
-  display: none;
+  visibility: visible;
 }
 
 .appWindow > .modal-dialog.visible,
 .appWindow > .contextmenu.visible,
 .appWindow > .authentication-dialog.visible,
 .authentication-dialog > .authentication-dialog-http.visible {
-  display: block;
+  visibility: visible;
 }
 
 .appWindow > .modal-dialog > form {
@@ -361,7 +358,7 @@
   height: 100%;
   padding: 0;
   margin: 0;
-  display: none;
+  visibility: hidden;
 }
 
 .appWindow > .modal-dialog input {
@@ -376,7 +373,7 @@
 }
 
 .appWindow > .modal-dialog > form.visible {
-  display: block;
+  visibility: visible;
 }
 
 .appWindow > form[role="dialog"][data-type="action"],
@@ -393,6 +390,9 @@
   width: 100%;
   height: 100%;
   pointer-events: none;
+
+  /* We need this to resize hi-res screenshot */
+  background-size: cover;
 }
 
 .appWindow > .screenshot-overlay.visible {
@@ -432,6 +432,17 @@
   box-shadow: -0.5rem 0 rgba(0, 0, 0, 0.5);
 }
 
+.edge-candidate:not(.active) {
+  /* needs to be outside the viewport */
+  transform: translateX(-100%);
+  opacity: 1;
+  will-change: transform, opacity;
+}
+
+#screen.edges #windows > .appWindow.active {
+  will-change: transform, opacity;
+}
+
 #windows > .appWindow.inside-edges {
   opacity: 1;
   transform: translateX(0);
@@ -444,7 +455,7 @@
 
 #windows > .appWindow.outside-edges-right {
   opacity: 1;
-  transform: translateX(calc(100% + 1rem));
+  transform: translateX(100%);
 }
 
 #screen:-moz-full-screen-ancestor > #windows > .appWindow.active {

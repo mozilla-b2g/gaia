@@ -1,0 +1,110 @@
+<element name="developer-hud" extends="section">
+  <template>
+
+    <header>
+      <a href="#developer">
+        <span class="icon icon-back">Back</span>
+      </a>
+      <h1 data-l10n-id="hud-header">Developer HUD</h1>
+    </header>
+
+    <div>
+      <ul>
+        <li>
+          <label class="pack-switch">
+            <input type="checkbox" name="devtools.overlay">
+            <span data-l10n-id="hud-header">Developer HUD</span>
+          </label>
+        </li>
+      </ul>
+      <ul id="hud-widgets" class="disabled">
+        <li>
+          <label class="pack-checkbox">
+            <input type="checkbox" name="hud.errors">
+            <span class="color-preview error-counter" data-l10n-id="hud-errors">Errors</span>
+          </label>
+        </li>
+        <li>
+          <label class="pack-checkbox">
+            <input type="checkbox" name="hud.warnings">
+            <span class="color-preview warning-counter" data-l10n-id="hud-warnings">Warnings</span>
+          </label>
+        </li>
+        <header>
+          <h2 data-l10n-id="hud-performance">Performance</h2>
+        </header>
+        <li>
+          <label class="pack-checkbox">
+            <input type="checkbox" name="hud.reflows">
+            <span class="color-preview reflow-counter" data-l10n-id="hud-reflows">Reflows</span>
+          </label>
+        </li>
+        <li>
+          <label class="pack-checkbox">
+            <input type="checkbox" name="hud.jank">
+            <span class="color-preview jank-monitor" data-l10n-id="hud-jank">Jank</span>
+          </label>
+        </li>
+        <li>
+          <p data-l10n-id="hud-jank-threshold">Jank Threshold</p>
+          <span class="button icon icon-dialog">
+            <select name="devtools.eventlooplag.threshold" data-value-type="integer">
+              <option value="20">20</option>
+              <option value="50">50</option>
+              <option value="100" selected>100</option>
+              <option value="200">200</option>
+            </select>
+          </span>
+        </li>
+        <li>
+          <label class="pack-checkbox">
+            <input type="checkbox" name="debug.fps.enabled">
+            <span class="color-preview fps-monitor" data-l10n-id="hud-fps">Frames per second</span>
+          </label>
+        </li>
+        <li>
+          <label class="pack-checkbox">
+            <input type="checkbox" name="debug.ttl.enabled">
+            <span class="color-preview ttl-monitor" data-l10n-id="hud-ttl">Time to load</span>
+          </label>
+        </li>
+        <header>
+          <h2 data-l10n-id="hud-memory">Memory</h2>
+        </header>
+        <li>
+          <label class="pack-checkbox">
+            <input type="checkbox" name="hud.appmemory">
+            <span class="color-preview memory-monitor" data-l10n-id="hud-appmemory">App memory</span>
+          </label>
+          <label class="pack-checkbox">
+            <input type="checkbox" name="hud.jsobjects">
+            <span class="color-preview memory-item" data-l10n-id="hud-jsobjects">JS objects</span>
+          </label>
+          <label class="pack-checkbox">
+            <input type="checkbox" name="hud.jsstrings">
+            <span class="color-preview memory-item" data-l10n-id="hud-jsstrings">JS strings</span>
+          </label>
+          <label class="pack-checkbox">
+            <input type="checkbox" name="hud.jsother">
+            <span class="color-preview memory-item" data-l10n-id="hud-jsother">JS other</span>
+          </label>
+          <label class="pack-checkbox">
+            <input type="checkbox" name="hud.dom">
+            <span class="color-preview memory-item" data-l10n-id="hud-dom">DOM</span>
+          </label>
+          <label class="pack-checkbox">
+            <input type="checkbox" name="hud.style">
+            <span class="color-preview memory-item" data-l10n-id="hud-style">Style</span>
+          </label>
+          <label class="pack-checkbox">
+            <input type="checkbox" name="hud.other">
+            <span class="color-preview memory-item" data-l10n-id="hud-other">Other</span>
+          </label>
+        </li>
+      </ul>
+    </div>
+
+    <script src=js/developer_hud.js></script>
+
+  </template>
+</element>

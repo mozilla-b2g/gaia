@@ -1,8 +1,9 @@
 {
-  "extends": "../../../../.jshintrc",
+  "extends": "../../.jshintrc",
   "predef": [
     "assert",
     "suite",
+    "testRequire",
     "test",
     "setup",
     "teardown",

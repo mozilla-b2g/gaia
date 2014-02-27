@@ -10,11 +10,19 @@ requireApp('communications/contacts/test/unit/' +
 
 requireApp('communications/contacts/js/contacts_matching_ui.js');
 
+require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
+
 if (!this.ImageLoader) {
   this.ImageLoader = null;
 }
 
+var mocksHelperForContactMatchingUI = new MocksHelper([
+  'ContactPhotoHelper'
+]).init();
+
 suite('Matching duplicate contacts UI Test Suite', function() {
+
+  mocksHelperForContactMatchingUI.attachTestHelpers();
 
   var wrapper = null,
     realImageLoader, realURL, list, matchingDetails, matchingName, matchingImg,

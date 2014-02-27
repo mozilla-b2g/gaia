@@ -4,11 +4,6 @@ var VariantManager = {
   // This file is created during the BUILD process
   CUSTOMIZATION_FILE: '/resources/customization.json',
   init: function vm_init() {
-    if (!IccHelper) {
-      console.error('Impossible to access iccInfo via IccHelper. Aborting.');
-      return;
-    }
-
     // Check if the iccInfo is available
     this.mcc_mnc = this.getMccMnc();
     if (this.mcc_mnc) {
@@ -30,7 +25,9 @@ var VariantManager = {
     // Base class, dont remove!
     '/ftu/js/customizers/customizer.js',
     // Extended classes from 'Customizer'
+    '/ftu/js/customizers/keyboard_settings_customizer.js',
     '/ftu/js/customizers/wallpaper_customizer.js',
+    '/ftu/js/customizers/data_icon_statusbar_customizer.js',
     '/ftu/js/customizers/ringtone_customizer.js',
     '/ftu/js/customizers/support_contacts_customizer.js',
     '/ftu/js/customizers/default_contacts_customizer.js'
@@ -39,7 +36,9 @@ var VariantManager = {
   iccHandler: function vm_iccHandler() {
     this.mcc_mnc = this.getMccMnc();
     if (this.mcc_mnc) {
-      IccHelper.removeEventListener('iccinfochange', this.boundIccHandler);
+      if (IccHelper) {
+        IccHelper.removeEventListener('iccinfochange', this.boundIccHandler);
+      }
       // Load the variant customizers and the variant JSON file.
       LazyLoader.load(
         this.CUSTOMIZERS,
@@ -85,8 +84,20 @@ var VariantManager = {
   },
 
   getMccMnc: function vm_getMccMnc() {
-    var mcc = IccHelper.iccInfo ? IccHelper.iccInfo.mcc : undefined;
-    var mnc = IccHelper.iccInfo ? IccHelper.iccInfo.mnc : undefined;
+    var mcc = undefined;
+    var mnc = undefined;
+    // If we have valid iccInfo, use that. Otherwise continue with undefined
+    // values.
+    if (IccHelper && IccHelper.iccInfo) {
+      mcc = IccHelper.iccInfo.mcc;
+      mnc = IccHelper.iccInfo.mnc;
+    } else if (!IccHelper || IccHelper.cardState === null) {
+      // if IccHelper isn't available or if it is available
+      // but has null cardState (this means no SIM available) configure with
+      // defaults
+      mcc = '000';
+      mnc = '000';
+    }
     if ((mcc !== undefined) && (mcc !== null) &&
         (mnc !== undefined) && (mnc !== null)) {
       return this.normalizeCode(mcc) + '-' + this.normalizeCode(mnc);

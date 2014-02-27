@@ -159,7 +159,7 @@
         break;
       case 'succeeded':
         // launch an app to view the download
-        _launchDownload(download);
+        _showDownloadActions(download);
         break;
     }
   }
@@ -199,28 +199,36 @@
     };
   };
 
-  function _launchDownload(download) {
-    var req = DownloadHelper.launch(download);
+  function _showDownloadActions(download) {
 
-    req.onerror = function() {
-      DownloadHelper.handlerError(req.error, download, function removed(d) {
-        if (!d) {
-          return;
-        }
-        // If error when opening, we need to delete it!
-        var downloadId = DownloadItem.getDownloadId(d);
-        var elementToDelete = _getElementForId(downloadId);
-        DownloadApiManager.deleteDownloads(
-          [downloadId],
-          function onDeleted() {
-            _removeDownloadsFromUI([elementToDelete]);
-            _checkEmptyList();
-          },
-          function onError() {
-            console.warn('Download not removed during launching');
+    var actionReq = DownloadUI.showActions(download);
+
+    actionReq.onconfirm = function(evt) {
+      var req = DownloadHelper[actionReq.result.name](download);
+
+      req.onerror = function() {
+        DownloadHelper.handlerError(req.error, download, function removed(d) {
+          if (!d) {
+            return;
           }
-        );
-      });
+          // If error when opening, we need to delete it!
+          var downloadId = DownloadItem.getDownloadId(d);
+          var elementToDelete = _getElementForId(downloadId);
+          DownloadApiManager.deleteDownloads(
+            [{
+              id: downloadId,
+              force: true // deleting download without confirmation
+            }],
+            function onDeleted() {
+              _removeDownloadsFromUI([elementToDelete]);
+              _checkEmptyList();
+            },
+            function onError() {
+              console.warn('Download not removed during launching');
+            }
+          );
+        });
+      };
     };
   }
 
@@ -277,11 +285,20 @@
 
   function _deleteDownloads() {
     var downloadsChecked = _getAllChecked() || [];
-    var downloadIDs = [], downloadElements = {};
-    for (var i = 0; i < downloadsChecked.length; i++) {
-      downloadIDs.push(downloadsChecked[i].value);
+    var downloadItems = [], downloadElements = {};
+    var downloadList = [];
+    var total = downloadsChecked.length;
+    var multipleDelete = total > 1;
+    for (var i = 0; i < total; i++) {
+      downloadItems.push({
+        id: downloadsChecked[i].value,
+        force: multipleDelete
+      });
       downloadElements[downloadsChecked[i].value] =
         downloadsChecked[i].parentNode.parentNode;
+      if (multipleDelete) {
+        downloadList.push(downloadElements[downloadsChecked[i].value]);
+      }
     }
 
     function deletionDone() {
@@ -289,19 +306,29 @@
       _closeEditMode();
     }
 
-    DownloadApiManager.deleteDownloads(
-      downloadIDs,
-      function downloadsDeleted(downloadID) {
-        _removeDownloadsFromUI([downloadElements[downloadID]]);
-      },
-      function onError(downloadID, msg) {
-        console.warn('Could not delete ' + downloadID + ' : ' + msg);
-        deletionDone();
-      },
-      function onComplete() {
-        deletionDone();
-      }
-    );
+    function doDeleteDownloads() {
+      DownloadApiManager.deleteDownloads(
+        downloadItems,
+        function downloadsDeleted(downloadID) {
+          _removeDownloadsFromUI([downloadElements[downloadID]]);
+        },
+        function onError(downloadID, msg) {
+          console.warn('Could not delete ' + downloadID + ' : ' + msg);
+          deletionDone();
+        },
+        function onComplete() {
+          deletionDone();
+        }
+      );
+    }
+
+    if (multipleDelete) {
+      var req = DownloadUI.show(DownloadUI.TYPE.DELETE_ALL, downloadList);
+      req.onconfirm = doDeleteDownloads;
+      req.oncancel = deletionDone;
+    } else {
+      doDeleteDownloads();
+    }
   }
 
   function _removeDownloadsFromUI(elements) {

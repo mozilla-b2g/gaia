@@ -23,6 +23,10 @@ var MockAppWindowManager = {
     return this.mActiveApp;
   },
 
+  getApp: function mawm_getActiveApp(origin) {
+    return this.mRunningApps[origin];
+  },
+
   // reference to active appWindow instance.
   mActiveApp: null,
 
@@ -39,5 +43,8 @@ var MockAppWindowManager = {
     this.mDisplayedApp = null;
     this.mRunningApps = {};
     this.mActiveApp = null;
+  },
+
+  broadcastMessage: function() {
   }
 };

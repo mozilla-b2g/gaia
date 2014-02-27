@@ -180,11 +180,13 @@ var CallLog = {
   render: function cl_render() {
     var self = this;
 
+    var daysToRender = [];
     var chunk = [];
     var prevDate;
     var startDate = new Date().getTime();
     var screenRendered = false;
-    var FIRST_CHUNK_SIZE = 6;
+    var MAX_GROUPS_FOR_FIRST_RENDER = 6;
+    var MAX_DAYS_TO_BATCH_RENDER = 60;
     this._groupCounter = 0;
 
     CallLogDBManager.getGroupList(function logGroupsRetrieved(cursor) {
@@ -196,7 +198,8 @@ var CallLog = {
           self.renderEmptyCallLog();
           self.disableEditMode();
         } else {
-          self.renderChunk(chunk);
+          daysToRender.push(chunk);
+          self.renderSeveralDays(daysToRender);
           if (!screenRendered) {
             PerformanceTestingHelper.dispatch('first-chunk-ready');
           }
@@ -209,20 +212,35 @@ var CallLog = {
 
       self._empty = false;
       var currDate = new Date(cursor.value.date);
-      if (!prevDate || ((currDate - prevDate) === 0)) {
-        self._groupCounter++;
+      self._groupCounter++;
+      if (!prevDate || (currDate.getTime() == prevDate.getTime())) {
         chunk.push(cursor.value);
       } else {
-        if (self._groupCounter >= FIRST_CHUNK_SIZE && !screenRendered) {
+        var renderNow = false;
+        if (self._groupCounter >= MAX_GROUPS_FOR_FIRST_RENDER &&
+            !screenRendered) {
+          renderNow = true;
           screenRendered = true;
           PerformanceTestingHelper.dispatch('first-chunk-ready');
+        } else if (daysToRender.length >= MAX_DAYS_TO_BATCH_RENDER) {
+          renderNow = true;
         }
-        self.renderChunk(chunk);
+        if (renderNow) {
+          self.renderSeveralDays(daysToRender);
+          daysToRender = [];
+        }
+        daysToRender.push(chunk);
         chunk = [cursor.value];
       }
       prevDate = currDate;
       cursor.continue();
     }, 'lastEntryDate', true, true);
+  },
+
+  renderSeveralDays: function cl_renderSeveralDays(chunks) {
+    for (var i = 0, l = chunks.length; i < l; i++) {
+      this.renderChunk(chunks[i]);
+    }
   },
 
   renderChunk: function cl_renderChunk(chunk) {
@@ -378,7 +396,7 @@ var CallLog = {
   //      <span></span>
   //    </label>
   //    <aside class="pack-end">
-  //      <img src="" class="call-log-contact-photo">
+  //      <span data-type="img" class="call-log-contact-photo">
   //    </aside>
   //    <a>
   //      <aside class="icon call-type-icon icon icon-outgoing">
@@ -440,11 +458,12 @@ var CallLog = {
 
     var aside = document.createElement('aside');
     aside.className = 'pack-end';
-    var img = document.createElement('img');
+    var img = document.createElement('span');
+    img.dataset.type = 'img';
     img.className = 'call-log-contact-photo';
+
     if (contact && contact.photo) {
-      img.src = typeof contact.photo == 'string' ? contact.photo :
-                URL.createObjectURL(contact.photo);
+      this.loadBackgroundImage(img, contact.photo);
       groupDOM.classList.add('hasPhoto');
     }
 
@@ -919,7 +938,7 @@ var CallLog = {
         // Remove contact info.
         primInfoCont.textContent = element.dataset.phoneNumber;
         addInfoCont.textContent = '';
-        contactPhoto.src = '';
+        this.unloadBackgroundImage(contactPhoto);
         element.classList.remove('hasPhoto');
         delete element.dataset.contactId;
       }
@@ -932,14 +951,12 @@ var CallLog = {
       primInfoCont.textContent = primaryInfo;
     }
 
-    if (contact && contact.photo && contact.photo[0]) {
-      var image_url = contact.photo[0];
-      var photoURL;
-      var isString = (typeof image_url == 'string');
-      contactPhoto.src = isString ? image_url : URL.createObjectURL(image_url);
+    var photo = ContactPhotoHelper.getThumbnail(contact);
+    if (photo) {
+      this.loadBackgroundImage(contactPhoto, photo);
       element.classList.add('hasPhoto');
     } else {
-      contactPhoto.src = '';
+      this.unloadBackgroundImage(contactPhoto);
       element.classList.remove('hasPhoto');
     }
 
@@ -952,6 +969,28 @@ var CallLog = {
     if (contact) {
       element.dataset.contactId = contact.id;
     }
+  },
+
+  loadBackgroundImage: function cl_loadBackgroundImage(element, url) {
+    if (typeof url === 'string') {
+      element.style.backgroundImage = 'url(' + url + ')';
+    } else if (url instanceof Blob) {
+      url = URL.createObjectURL(url);
+      element.style.backgroundImage = 'url(' + url + ')';
+
+      // Revoke the blob once it's ready.
+      setTimeout(function() {
+        var image = new Image();
+        image.src = url;
+        image.onload = image.onerror = function() {
+          URL.revokeObjectURL(this.src);
+        };
+      });
+    }
+  },
+
+  unloadBackgroundImage: function cl_unloadBackgroundImage(element) {
+    element.style.backgroundImage = '';
   },
 
   cleanNotifications: function cl_cleanNotifcations() {

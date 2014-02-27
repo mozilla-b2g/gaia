@@ -14,17 +14,13 @@ fi
 # where all gaia specific customizations for mocha-marionette live.
 SHARED=$GAIA_DIR/shared/test/integration
 
+# make sure node_modules are 100% up to date
+make node_modules
+
 if [ $MARIONETTE_RUNNER_HOST = "marionette-b2gdesktop-host" ] ; then
   # download b2g-desktop (if its not present)
   make -C $GAIA_DIR/ b2g
 fi
-
-# make sure node_modules are 100% up to date
-if [ -z "$NPM_REGISTRY" ]; then
-  NPM_REGISTRY="http://registry.npmjs.org"
-fi
-(cd $DIR && npm install --registry=${NPM_REGISTRY})
-
 
 if [ $MARIONETTE_RUNNER_HOST = "marionette-b2gdesktop-host" ] ; then
   # tests can timeout without the profile-test folder so build it here.

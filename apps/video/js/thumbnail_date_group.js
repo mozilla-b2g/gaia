@@ -54,6 +54,7 @@ function ThumbnailDateGroup(item) {
   this.container = null;
 
   var _this = this;
+  var _ = navigator.mozL10n.get;
 
   render();
 
@@ -65,7 +66,7 @@ function ThumbnailDateGroup(item) {
     var dateFormatter = new navigator.mozL10n.DateTimeFormat();
     var htmlText = ThumbnailDateGroup.Template.interpolate({
       'group-header': dateFormatter.localeFormat(new Date(item.date),
-                                                 '%B %Y')});
+                                                 _('date-group-header'))});
 
     // create dummy node for converting to DOM node.
     var dummyDiv = document.createElement('DIV');

@@ -68,15 +68,19 @@
 
   var gDEBUG = 1;
 
-  function consoleLog(message) {
+  function consoleLog() {
     if (gDEBUG >= 2) {
-      console.log('[l10n] ' + message);
+      var args = [].slice.apply(arguments);
+      args.unshift('[l10n] ');
+      console.log(args.join(''));
     }
   };
 
-  function consoleWarn(message) {
+  function consoleWarn() {
     if (gDEBUG) {
-      console.warn('[l10n] ' + message);
+      var args = [].slice.apply(arguments);
+      args.unshift('[l10n] ');
+      console.warn(args.join(''));
     }
   };
 
@@ -136,7 +140,7 @@
       try {
         args = JSON.parse(l10nArgs);
       } catch (e) {
-        consoleWarn('could not parse arguments for #' + l10nId);
+        consoleWarn('could not parse arguments for #', l10nId);
       }
     }
     return { id: l10nId, args: args };
@@ -301,7 +305,7 @@
     function loadResource(url, onSuccess, onFailure, asynchronous) {
       onSuccess = onSuccess || function _onSuccess(data) {};
       onFailure = onFailure || function _onFailure() {
-        consoleWarn(url + ' not found.');
+        consoleWarn(url, ' not found.');
       };
 
       var xhr = new XMLHttpRequest();
@@ -424,7 +428,7 @@
       var parse = function(locale, onload, onerror) {
         var href = unescape(link.href).replace(re, locale);
         parseResource(href, locale, onload, function notFound() {
-          consoleWarn(href + ' not found.');
+          consoleWarn(href, ' not found.');
           onerror();
         });
       };
@@ -439,7 +443,7 @@
            * => if something went wrong, try the default locale as fallback.
            */
           if (re.test(unescape(link.href)) && gDefaultLocale != locale) {
-            consoleLog('Trying the fallback locale: ' + gDefaultLocale);
+            consoleLog('Trying the fallback locale: ', gDefaultLocale);
             parse(gDefaultLocale, onload, onerror);
           } else {
             onerror();
@@ -885,7 +889,7 @@
     // return a function that gives the plural form name for a given integer
     var index = locales2rules[lang.replace(/-.*$/, '')];
     if (!(index in pluralRules)) {
-      consoleWarn('plural form unknown for [' + lang + ']');
+      consoleWarn('plural form unknown for [', lang, ']');
       return function() { return 'other'; };
     }
     return pluralRules[index];
@@ -1053,8 +1057,12 @@
       } else if (arg in gL10nData) {
         sub = gL10nData[arg]['_'];
       } else {
-        consoleLog('argument {{' + arg + '}} for #' + key + ' is undefined.');
+        consoleLog('argument {{', arg, '}} for #', key, ' is undefined.');
         return str;
+      }
+      if (typeof sub == 'string') {
+        // dollar signs would be interpreted as replacement patterns
+        sub = sub.replace(/\$/g, '$$$$');
       }
       str = str.replace(match[i].subst, sub);
     }
@@ -1157,7 +1165,7 @@
   function l10nStartup() {
     gDefaultLocale = document.documentElement.lang || gDefaultLocale;
     gReadyState = 'interactive';
-    consoleLog('loading [' + navigator.language + '] resources, ' +
+    consoleLog('loading [', navigator.language, '] resources, ',
         (gAsyncResourceLoading ? 'asynchronously.' : 'synchronously.'));
 
     // load the default locale and translate the document if required
@@ -1189,7 +1197,7 @@
     get: function l10n_get(key, args) {
       var data = getL10nData(key, args);
       if (!data) {
-        consoleWarn('#' + key + ' is undefined.');
+        consoleWarn('#', key, ' is undefined.');
         return '';
       } else {
         return data._;

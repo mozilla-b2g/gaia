@@ -35,6 +35,7 @@
     <script defer src="shared/js/template.js"></script>
     <script defer src="shared/js/mime_mapper.js"></script>
     <script defer src="shared/js/tag_visibility_monitor.js"></script>
+    <script defer src="shared/js/contact_photo_helper.js"></script>
     <script defer src="js/dialog.js"></script>
     <script defer src="js/blacklist.js"></script>
     <script defer src="js/contacts.js"></script>
@@ -76,13 +77,13 @@
             <a href="#new" id="icon-add">
               <span class="icon icon-compose"></span>
             </a>
-            <a id="threads-edit-icon">
-              <span class="icon icon-edit"></span>
+            <a id="threads-options-icon">
+              <span class="icon icon-options"></span>
             </a>
           </menu>
           <h1 data-l10n-id="messages">Messages</h1>
         </header>
-        <article id="threads-container" class="view-body" data-type="list">
+        <article id="threads-container" class="view-body edit-container" data-type="list">
         </article>
 
         <div id="threads-no-messages" class="hide">
@@ -191,7 +192,7 @@
             </section>
           </div>
         </div>
-        <article id="messages-container" class="view-body article-list" data-type="list">
+        <article id="messages-container" class="view-body article-list edit-container" data-type="list">
         </article>
         <article id="information-participants" class="view-body article-list hide" data-type="list">
           <ul class="contact-list"></ul>
@@ -200,14 +201,26 @@
           <div class="description">
             <p class="type"></p>
             <p class="subject"></p>
-            <p class="datetime l10n-contains-date"></p>
           </div>
-          <div class="status-container">
-            <span class="status"></span>
-            <aside></aside>
+          <div div class="sent-detail">
+            <p class="datetime l10n-contains-date"></p>
+            <div class="status-container">
+              <span class="status"></span>
+              <aside></aside>
+            </div>
           </div>
           <span class="contact-title"></span>
           <ul class="contact-list"></ul>
+          <div class="received-detail">
+            <div>
+              <span data-l10n-id="message-sent"></span>
+              <span class="sent-timeStamp l10n-contains-date"></span>
+            </div>
+            <div>
+              <span data-l10n-id="message-received"></span>
+              <span class="received-timeStamp l10n-contains-date"></span>
+            </div>
+          </div>
           <div class="size-block">
             <span data-l10n-id="message-size-was"></span>
             <span class="size"></span>
@@ -305,7 +318,7 @@
     <div id="contact-photo-tmpl" class="hide">
       <!--
       <aside class="pack-end">
-        <img src="${photoURL}" alt="">
+        <span data-type="img" style="background-image: url(${photoURL})"></span>
       </aside>
       -->
     </div>
@@ -326,15 +339,15 @@
 
     <div id="information-report-tmpl" class="hide">
       <!--
-      <p class="${delivery}">
+      <p class="${deliveryClass}">
         <span data-l10n-id="message-delivered"></span>
         <span class="l10n-contains-date" data-l10n-id="${deliveryL10n}"
               data-l10n-date="${deliveryTimestamp}"
               data-l10n-date-format="${messageL10nDateFormat}"
               >${deliveryDateL10n}</span>
       </p>
-      <p class="${read}">
-        <span data-l10n-id="message-read"></span>
+      <p class="${readClass}">
+        <span data-l10n-id="message-read-title"></span>
         <span class="l10n-contains-date" data-l10n-id="${readL10n}"
               data-l10n-date="${readTimestamp}"
               data-l10n-date-format="${messageL10nDateFormat}"
@@ -383,7 +396,7 @@
       <a href="${hash}">
         <aside class="icon icon-unread icon-draft">icon</aside>
         <aside class="pack-end">
-          <img src="">
+          <span data-type="img"></span>
         </aside>
         <p class="name" data-l10n-id="no-recipient">${number}</p>
         <p class="summary">

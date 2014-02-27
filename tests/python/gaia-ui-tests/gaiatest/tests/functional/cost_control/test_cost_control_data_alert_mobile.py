@@ -11,13 +11,11 @@ from gaiatest.apps.cost_control.app import CostControl
 class TestCostControlDataAlertMobile(GaiaTestCase):
 
     # notification bar locators
-    _cost_control_widget_locator = (By.CSS_SELECTOR, 'iframe[data-frame-origin="app://costcontrol.gaiamobile.org"]')
+    _cost_control_widget_locator = (By.CSS_SELECTOR, '#cost-control-widget > iframe')
     _data_usage_view_locator = (By.ID, 'datausage-limit-view')
 
-    # locator for page loaded in browser
-    _page_body_locator = (By.ID, 'home')
-
     def test_cost_control_data_alert_mobile(self):
+        """https://moztrap.mozilla.org/manage/case/8938/"""
 
         self.data_layer.connect_to_cell_data()
         cost_control = CostControl(self.marionette)
@@ -32,19 +30,17 @@ class TestCostControlDataAlertMobile(GaiaTestCase):
         settings = cost_control.tap_settings()
         settings.toggle_data_alert_switch(True)
         settings.select_when_use_is_above_unit_and_value(u'MB', '0.1')
-        settings.reset_data_usage()
+        settings.reset_mobile_usage()
         settings.tap_done()
         self.assertTrue(cost_control.is_mobile_data_tracking_on)
 
         # open browser to get some data downloaded
         browser = Browser(self.marionette)
         browser.launch()
-        browser.go_to_url('http://developer.mozilla.org/', timeout=120)
-        browser.switch_to_content()
-        self.wait_for_element_present(*self._page_body_locator, timeout=120)
-        browser.switch_to_chrome()
+        browser.go_to_url('http://www.mozilla.org/', timeout=120)
 
         # get the notification bar
+        self.device.touch_home_button()
         self.marionette.switch_to_frame()
         self.marionette.execute_script("window.wrappedJSObject.UtilityTray.show()")
 

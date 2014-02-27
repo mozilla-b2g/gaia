@@ -17,7 +17,7 @@ class TestContacts(GaiaTestCase):
         self.data_layer.insert_contact(self.contact)
 
     def test_sms_contact(self):
-        # https://moztrap.mozilla.org/manage/case/1314/
+        """https://moztrap.mozilla.org/manage/case/1314/"""
         # Setup a text message from a contact.
 
         contacts = Contacts(self.marionette)

@@ -228,5 +228,5 @@
 }
 
 #permission-screen[data-type="media-capture"] #permission-message {
-  background-image: url(images/PermissionsDialogIcons_VideoRecorder.png);
+  background-image: url(images/PermissionsDialogIcons_VideoAndMic.png);
 }

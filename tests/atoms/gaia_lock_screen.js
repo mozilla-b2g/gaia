@@ -7,7 +7,7 @@
 var GaiaLockScreen = {
 
   unlock: function() {
-
+    let lockscreen = window.wrappedJSObject.lockScreen || window.wrappedJSObject.LockScreen;
     let setlock = window.wrappedJSObject.SettingsListener.getSettingsLock();
     let obj = {'screen.timeout': 0};
     setlock.set(obj);
@@ -16,24 +16,24 @@ var GaiaLockScreen = {
 
     waitFor(
       function() {
-        window.wrappedJSObject.LockScreen.unlock(true);
+        lockscreen.unlock(true);
         waitFor(
           function() {
-            finish(window.wrappedJSObject.LockScreen.locked);
+            finish(lockscreen.locked);
           },
           function() {
-            return !window.wrappedJSObject.LockScreen.locked;
+            return !lockscreen.locked;
           }
         );
       },
       function() {
-        return !!window.wrappedJSObject.LockScreen;
+        return !!lockscreen;
       }
     );
   },
 
   lock: function() {
-
+    let lockscreen = window.wrappedJSObject.lockScreen || window.wrappedJSObject.LockScreen;
     let setlock = window.wrappedJSObject.SettingsListener.getSettingsLock();
     let obj = {'screen.timeout': 0};
     setlock.set(obj);
@@ -42,18 +42,18 @@ var GaiaLockScreen = {
 
     waitFor(
       function() {
-        window.wrappedJSObject.LockScreen.lock(true);
+        lockscreen.lock(true);
         waitFor(
           function() {
-            finish(!window.wrappedJSObject.LockScreen.locked);
+            finish(!lockscreen.locked);
           },
           function() {
-            return window.wrappedJSObject.LockScreen.locked;
+            return lockscreen.locked;
           }
         );
       },
       function() {
-        return !!window.wrappedJSObject.LockScreen;
+        return !!lockscreen;
       }
     );
   }

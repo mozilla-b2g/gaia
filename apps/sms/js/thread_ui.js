@@ -423,7 +423,6 @@ var ThreadUI = global.ThreadUI = {
 
   messageComposerInputHandler: function thui_messageInputHandler(event) {
     this.updateSubjectHeight();
-    this.updateElementsHeight();
     this.enableSend();
 
     if (Compose.type === 'sms') {
@@ -587,6 +586,7 @@ var ThreadUI = global.ThreadUI = {
 
   onMessageReceived: function thui_onMessageReceived(message) {
     this.onMessage(message);
+    this.scrollViewToBottom();
     if (this.isScrolledManually) {
       this.showNewMessageNotice(message);
     }
@@ -1056,18 +1056,17 @@ var ThreadUI = global.ThreadUI = {
   // TODO this function probably triggers synchronous workflows, we should
   // remove them (Bug 891029)
   updateElementsHeight: function thui_updateElementsHeight() {
+    // we need to set it back to auto so that we know its "natural size"
+    // this will trigger a sync reflow when we get its scrollHeight below,
+    // so we should try to find something better maybe in Bug 888950
+    this.input.style.height = 'auto';
+
     // First of all we retrieve all CSS info which we need
     var verticalMargin = this.INPUT_MARGIN;
     var inputMaxHeight = parseInt(this.input.style.maxHeight, 10);
     var buttonHeight = this.sendButton.offsetHeight;
     var subjectHeight = this.subjectInput.offsetHeight;
     var availableHeight = window.innerHeight - this.HEADER_HEIGHT;
-
-    // we need to set it back to auto so that we know its "natural size"
-    // this will trigger a sync reflow when we get its scrollHeight at the next
-    // line, so we should try to find something better
-    // maybe in Bug 888950
-    this.input.style.height = 'auto';
 
     // the new height is different whether the current height is bigger than the
     // max height
@@ -1477,7 +1476,7 @@ var ThreadUI = global.ThreadUI = {
   // Check deliveryStatus for both single and multiple recipient case.
   // In multiple recipient case, we return true only when all the recipients
   // deliveryStatus set to success.
-  isDeliveryStatusSuccess: function thui_isDeliveryStatusSuccess(message) {
+  shouldShowDeliveryStatus: function thui_shouldShowDeliveryStatus(message) {
     if (message.delivery !== 'sent') {
       return false;
     }
@@ -1491,10 +1490,26 @@ var ThreadUI = global.ThreadUI = {
     }
   },
 
+  // Check readStatus for both single and multiple recipient case.
+  // In multiple recipient case, we return true only when all the recipients
+  // deliveryStatus set to success.
+  shouldShowReadStatus: function thui_shouldShowReadStatus(message) {
+    // Only mms message has readStatus
+    if (message.delivery !== 'sent' || message.type === 'sms' ||
+      !message.deliveryInfo) {
+      return false;
+    }
+
+    return message.deliveryInfo.every(function(info) {
+      return info.readStatus === 'success';
+    });
+  },
+
   buildMessageDOM: function thui_buildMessageDOM(message, hidden) {
     var bodyHTML = '';
     var delivery = message.delivery;
-    var isDelivered = this.isDeliveryStatusSuccess(message);
+    var isDelivered = this.shouldShowDeliveryStatus(message);
+    var isRead = this.shouldShowReadStatus(message);
     var messageDOM = document.createElement('li');
 
     var classNames = ['message', message.type, delivery];
@@ -1518,7 +1533,7 @@ var ThreadUI = global.ThreadUI = {
       classNames.push('outgoing');
     }
 
-    if (isDelivered) {
+    if (isDelivered || isRead) {
       classNames.push('delivered');
     }
 
@@ -1723,33 +1738,32 @@ var ThreadUI = global.ThreadUI = {
     if (!Array.isArray(list)) {
       list = [list];
     }
+
     // Removing from DOM all messages to delete
     for (var i = 0, l = list.length; i < l; i++) {
       ThreadUI.removeMessageDOM(
         document.getElementById('message-' + list[i])
       );
     }
+
     callback = typeof callback === 'function' ? callback : function() {};
-    // Retrieve threadID
-    var threadId = Threads.currentId;
+
     // Do we remove all messages of the Thread?
     if (!ThreadUI.container.firstElementChild) {
       // Remove the thread from DOM and go back to the thread-list
-      ThreadListUI.removeThread(threadId);
+      ThreadListUI.removeThread(Threads.currentId);
       callback();
       window.location.hash = '#thread-list';
     } else {
       // Retrieve latest message in the UI
-      var lastMessageId =
-        ThreadUI.container.querySelector('li:last-child').dataset.messageId;
-      var request = MessageManager.getMessage(+lastMessageId);
+      var lastMessage =
+        ThreadUI.container.querySelector('ul:last-child li:last-child');
       // We need to make Thread-list to show the same info
+      var request = MessageManager.getMessage(+lastMessage.dataset.messageId);
       request.onsuccess = function() {
-        var message = request.result;
         callback();
-        ThreadListUI.updateThread(message);
+        ThreadListUI.updateThread(request.result, { deleted: true });
       };
-
       request.onerror = function() {
         console.error('Error when updating the list of threads');
         callback();
@@ -1780,9 +1794,11 @@ var ThreadUI = global.ThreadUI = {
   },
 
   cancelEdit: function thlui_cancelEdit() {
-    this.inEditMode = false;
-    this.updateElementsHeight();
-    this.mainWrapper.classList.remove('edit');
+    if (this.inEditMode) {
+      this.inEditMode = false;
+      this.updateElementsHeight();
+      this.mainWrapper.classList.remove('edit');
+    }
   },
 
   chooseMessage: function thui_chooseMessage(target) {
@@ -2067,6 +2083,7 @@ var ThreadUI = global.ThreadUI = {
     if (this.draft) {
       ThreadListUI.removeThread(this.draft.id);
       Drafts.delete(this.draft);
+      Drafts.store();
       this.draft = null;
     }
 
@@ -2158,7 +2175,22 @@ var ThreadUI = global.ThreadUI = {
 
   onDeliverySuccess: function thui_onDeliverySuccess(message) {
     // We need to make sure all the recipients status got success event.
-    if (!this.isDeliveryStatusSuccess(message)) {
+    if (!this.shouldShowDeliveryStatus(message)) {
+      return;
+    }
+
+    var messageDOM = document.getElementById('message-' + message.id);
+
+    if (!messageDOM) {
+      return;
+    }
+    // Update class names to reflect message state
+    messageDOM.classList.add('delivered');
+  },
+
+  onReadSuccess: function thui_onReadSuccess(message) {
+    // We need to make sure all the recipients status got success event.
+    if (!this.shouldShowReadStatus(message)) {
       return;
     }
 

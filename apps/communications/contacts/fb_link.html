@@ -9,6 +9,7 @@
 
     <script  defer type="text/javascript" src="js/utilities/templates.js"></script>
     <script  defer type="text/javascript" src="js/utilities/image_square.js"></script>
+    <script  defer type="text/javascript" src="js/utilities/image_thumbnail.js"></script>
     <script  defer type="text/javascript" src="js/utilities/event_listeners.js"></script>
     <script  defer type="text/javascript" src="js/utilities/misc.js"></script>
 
@@ -74,7 +75,7 @@
             <li data-template data-uuid="#uid#">
                 <a href="#">
                   <aside class="pack-end">
-                    <img data-src="https://graph.facebook.com/#uid#/picture?width=#picwidth#&height=#picheight#">
+                    <span data-type="img" data-src="https://graph.facebook.com/#uid#/picture?width=#picwidth#&height=#picheight#"></span>
                   </aside>
                   <p>#name#</p>
                   <p>#email#</p>

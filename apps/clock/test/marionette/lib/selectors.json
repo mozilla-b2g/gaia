@@ -5,14 +5,14 @@
     "stopwatch": "#stopwatch-tab a"
   },
   "panels": {
-    "alarm": "#alarm-panel",
-    "timer": "#timer-panel",
-    "stopwatch": "#stopwatch-panel"
+    "alarm": "[data-panel-id='alarm']",
+    "timer": "[data-panel-id='timer']",
+    "stopwatch": "[data-panel-id='stopwatch']"
   },
   "alarm": {
     "analogClock": "#analog-clock",
     "digitalClock": "#digital-clock",
-    "form": "#alarm-edit-panel",
+    "form": "[data-panel-id='alarm_edit']",
     "openFormBtn": "#alarm-new",
     "closeFormBtn": "#alarm-close",
     "doneBtn": "#alarm-done",

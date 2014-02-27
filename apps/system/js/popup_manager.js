@@ -208,6 +208,7 @@ var PopupManager = {
 
       case 'appopen':
         this._currentOrigin = evt.detail.origin;
+        this.setHeight(window.innerHeight - StatusBar.height);
         this.show();
         break;
 

@@ -360,6 +360,7 @@ function MailAccount(api, wireRep, acctsSlice) {
   /**
    * @listof[@oneof[
    *   @case['bad-user-or-pass']
+   *   @case['bad-address']
    *   @case['needs-app-pass']
    *   @case['imap-disabled']
    *   @case['pop-server-not-great']{
@@ -2551,8 +2552,10 @@ MailAPI.prototype = {
     for (var i = 0; i < msg.sliceUpdates.length; i++) {
       var update = msg.sliceUpdates[i];
       if (update.type === 'update') {
-        // Updates are performed and fire immediately/synchronously
-        this._processSliceUpdate(msg, update, slice);
+        // Updates are identified by their index position, so they need to be
+        // processed in the same order we're hearing about them.
+        this._spliceFireFuncs.push(
+          this._processSliceUpdate.bind(this, msg, update.updates, slice));
       } else {
         // Added items are transformed immediately, but the actual mutation of
         // the slice and notifications do not fire until _fireAllSplices().
@@ -2944,6 +2947,9 @@ MailAPI.prototype = {
    *   @case['bad-user-or-pass']{
    *     The username and password didn't check out.  We don't know which one
    *     is wrong, just that one of them is wrong.
+   *   }
+   *   @case['bad-address']{
+   *     The e-mail address provided was rejected by the SMTP probe.
    *   }
    *   @case['pop-server-not-great']{
    *     The POP3 server doesn't support IDLE and TOP, so we can't use it.

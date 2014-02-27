@@ -256,6 +256,7 @@ suite('message_manager.js >', function() {
 
     setup(function() {
       this.sinon.spy(ThreadUI, 'cleanFields');
+      this.sinon.spy(ThreadUI.recipients, 'focus');
       ThreadUI.draft = null;
       MessageManager.launchComposer();
     });
@@ -273,8 +274,8 @@ suite('message_manager.js >', function() {
         done();
       });
     });
-    suite('message drafts', function() {
 
+    suite('message drafts', function() {
       setup(function() {
         ThreadUI.draft = new Draft({
           threadId: 1234,
@@ -686,14 +687,26 @@ suite('message_manager.js >', function() {
         this.activity = MessageManager.activity = { test: true };
         MessageManager.handleActivity();
         ThreadUI.inThread = true; // to test this is reset correctly
+        this.sinon.spy(ThreadUI.recipients, 'focus');
         window.location.hash = '#new';
         MessageManager.onHashChange();
       });
+      
       teardown(function() {
         MessageManager.activity = null;
       });
+
       test('called handleActivity with activity', function() {
         assert.ok(MessageManager.handleActivity.calledOnce);
+      });
+
+      test('focus after show "composer"', function(done) {
+        this.sinon.stub(MessageManager, 'launchComposer', function(cb) {
+          cb && cb();
+          assert.ok(ThreadUI.recipients.focus.called);
+          done();
+        });
+        MessageManager.onHashChange();
       });
 
       suite('> Switch to #thread=100', function() {
@@ -838,6 +851,78 @@ suite('message_manager.js >', function() {
       });
     });
 
+  });
+
+  suite('onDeliverySuccess', function() {
+    suiteSetup(function() {
+      this.mockEvent = {
+        message : {
+          id : 1
+        }
+      };
+    });
+    setup(function() {
+      this.sinon.spy(ThreadUI, 'onDeliverySuccess');
+      ReportView.mSetup();
+    });
+
+    test('Delivery Success outside report view', function() {
+      window.location.hash = '#other-view';
+      MessageManager.onDeliverySuccess(this.mockEvent);
+      assert.isFalse(ReportView.refresh.called);
+      sinon.assert.calledWith(ThreadUI.onDeliverySuccess,
+        this.mockEvent.message);
+    });
+    test('Delivery Success in report view but id not match', function() {
+      window.location.hash = '#report-view=0';
+      MessageManager.onDeliverySuccess(this.mockEvent);
+      assert.isFalse(ReportView.refresh.called);
+      sinon.assert.calledWith(ThreadUI.onDeliverySuccess,
+        this.mockEvent.message);
+    });
+    test('Delivery Success in report view and need refresh', function() {
+      window.location.hash = '#report-view=1';
+      MessageManager.onDeliverySuccess(this.mockEvent);
+      assert.isTrue(ReportView.refresh.called);
+      sinon.assert.calledWith(ThreadUI.onDeliverySuccess,
+        this.mockEvent.message);
+    });
+  });
+
+  suite('onReadSuccess', function() {
+    suiteSetup(function() {
+      this.mockEvent = {
+        message : {
+          id : 1
+        }
+      };
+    });
+    setup(function() {
+      this.sinon.spy(ThreadUI, 'onReadSuccess');
+      ReportView.mSetup();
+    });
+
+    test('Read Success outside report view', function() {
+      window.location.hash = '#other-view';
+      MessageManager.onReadSuccess(this.mockEvent);
+      assert.isFalse(ReportView.refresh.called);
+      sinon.assert.calledWith(ThreadUI.onReadSuccess,
+        this.mockEvent.message);
+    });
+    test('Read Success in report view but id not match', function() {
+      window.location.hash = '#report-view=0';
+      MessageManager.onReadSuccess(this.mockEvent);
+      assert.isFalse(ReportView.refresh.called);
+      sinon.assert.calledWith(ThreadUI.onReadSuccess,
+        this.mockEvent.message);
+    });
+    test('Read Success in report view and need refresh', function() {
+      window.location.hash = '#report-view=1';
+      MessageManager.onReadSuccess(this.mockEvent);
+      assert.isTrue(ReportView.refresh.called);
+      sinon.assert.calledWith(ThreadUI.onReadSuccess,
+        this.mockEvent.message);
+    });
   });
 
 });

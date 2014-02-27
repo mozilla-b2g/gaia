@@ -117,7 +117,7 @@ p.meta {
 .view {
   overflow: hidden;
   height: 100%;
-  background: url(images/widget/icons/icon-go.png) no-repeat calc(100% - 0.8rem) center / 3rem;
+  background: url(images/widget/icons/icon-go.png) no-repeat right -0.3rem center / 3rem;
 }
 
 .info {
@@ -218,6 +218,7 @@ p.meta {
   border: none;
   border-top: solid 0.1rem rgba(0, 0, 0, 1);
   border-bottom: solid 0.1rem rgba(255, 255, 255, 0.4);
+  overflow: hidden;
 }
 
 .data .stats progress::-moz-progress-bar {

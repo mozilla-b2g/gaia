@@ -6,30 +6,42 @@ requireApp('system/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.
 requireApp('system/shared/test/unit/mocks/mock_icc_helper.js');
 requireApp('system/test/unit/mock_l10n.js');
 requireApp('system/test/unit/mock_navigator_moz_telephony.js');
-requireApp('system/test/unit/mock_lock_screen.js');
+requireApp('system/test/unit/mock_lock_screen.js', function() {
+
+  // Because we can't see it while we attach helpers,
+  // which may not be loaded yet.
+  //
+  // And it can't be used as helper because the name
+  // can't be "MocklockScreen".
+  window.lockScreen = MockLockScreen;
+});
 requireApp('system/test/unit/mock_simslot.js');
 requireApp('system/test/unit/mock_simslot_manager.js');
 requireApp('system/test/unit/mock_app_window_manager.js');
+requireApp('system/test/unit/mock_ftu_launcher.js');
 requireApp('system/test/unit/mock_touch_forwarder.js');
-requireApp('system/js/lockscreen.js');
 
 var mocksForStatusBar = new MocksHelper([
+  'FtuLauncher',
   'SettingsListener',
   'MobileOperator',
-  'LockScreen',
   'SIMSlotManager',
   'AppWindowManager',
   'TouchForwarder'
 ]).init();
 
-mocha.globals(['Clock', 'StatusBar']);
+mocha.globals(['Clock', 'StatusBar', 'lockScreen', 'System']);
 suite('system/Statusbar', function() {
   var mobileConnectionCount = 2;
   var fakeStatusBarNode, fakeTopPanel;
   var realMozL10n, realMozMobileConnections, realMozTelephony, fakeIcons = [];
+  var originalLocked;
 
   mocksForStatusBar.attachTestHelpers();
   suiteSetup(function(done) {
+    window.lockScreen = MockLockScreen;
+    originalLocked = window.lockScreen.locked;
+    window.lockScreen.locked = false;
     realMozL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
     realMozMobileConnections = navigator.mozMobileConnections;
@@ -41,6 +53,7 @@ suite('system/Statusbar', function() {
   });
 
   suiteTeardown(function() {
+    window.lockScreen.locked = originalLocked;
     navigator.mozL10n = realMozL10n;
     navigator.mozMobileConnections = realMozMobileConnections;
     navigator.mozTelephony = realMozTelephony;
@@ -98,6 +111,25 @@ suite('system/Statusbar', function() {
       assert.equal(Object.keys(fakeIcons.signals).length,
         mobileConnectionCount);
       assert.equal(Object.keys(fakeIcons.data).length, mobileConnectionCount);
+    });
+  });
+
+  suite('StatusBar height', function() {
+    setup(function() {
+      var app = {
+        isFullScreen: function() {
+          return true;
+        }
+      };
+
+      this.sinon.stub(MockAppWindowManager, 'getActiveApp').returns(app);
+      StatusBar.screen = document.createElement('div');
+    });
+    teardown(function() {
+      StatusBar.screen = null;
+    });
+    test('Active app is fullscreen', function() {
+      assert.equal(StatusBar.height, 0);
     });
   });
 
@@ -177,10 +209,14 @@ suite('system/Statusbar', function() {
       assert.equal(StatusBar.icons.time.hidden, false);
     });
     test('attentionsceen hide', function() {
+      // Test this when lockscreen is off.
+      var originalLocked = window.lockScreen.locked;
+      window.lockScreen.locked = false;
       var evt = new CustomEvent('attentionscreenhide');
       StatusBar.handleEvent(evt);
       assert.notEqual(StatusBar.clock.timeoutID, null);
       assert.equal(StatusBar.icons.time.hidden, false);
+      window.lockScreen.locked = originalLocked;
     });
     test('emergency call when locked', function() {
       var evt = new CustomEvent('lockpanelchange', {
@@ -590,6 +626,110 @@ suite('system/Statusbar', function() {
         });
       })(i);
     }
+  });
+
+  suite('Icon Data', function() {
+    var mobileDataIconTypesOrig = {};
+
+    suiteSetup(function() {
+      for (var key in StatusBar.mobileDataIconTypes) {
+        mobileDataIconTypesOrig[key] = StatusBar.mobileDataIconTypes[key];
+      }
+    });
+
+    suiteTeardown(function() {
+      for (var key in mobileDataIconTypesOrig) {
+        StatusBar.mobileDataIconTypes[key] = mobileDataIconTypesOrig[key];
+      }
+    });
+
+    setup(function() {
+      for (var key in StatusBar.mobileDataIconTypes) {
+        StatusBar.mobileDataIconTypes[key] = mobileDataIconTypesOrig[key];
+      }
+    });
+
+    teardown(function() {
+      StatusBar.settingValues = {};
+    });
+
+    var testCases = [
+      {
+        title: 'No setting value >',
+        setting: 'operatorResources.data.icon',
+        fc: 'iconData',
+        inputVal: {
+        },
+        expectVal: {
+          'lte': '4G',
+          'ehrpd': '4G',
+          'hspa+': 'H+',
+          'hsdpa': 'H', 'hsupa': 'H', 'hspa': 'H',
+          'evdo0': 'Ev', 'evdoa': 'Ev', 'evdob': 'Ev',
+          'umts': '3G',
+          'edge': 'E',
+          'gprs': '2G',
+          '1xrtt': '1x', 'is95a': '1x', 'is95b': '1x'
+        }
+      },
+      {
+        title: 'Change all values >',
+        setting: 'operatorResources.data.icon',
+        fc: 'iconData',
+        inputVal: {
+          'lte': '4GChng',
+          'ehrpd': '4GChng',
+          'hspa+': 'H+Chng',
+          'hsdpa': 'HChng', 'hsupa': 'HChng', 'hspa': 'HChng',
+          'evdo0': 'EvChng', 'evdoa': 'EvChng', 'evdob': 'EvChng',
+          'umts': '3GChng',
+          'edge': 'EChng',
+          'gprs': '2GChng',
+          '1xrtt': '1xChng', 'is95a': '1xChng', 'is95b': '1xChng'
+        },
+        expectVal: {
+          'lte': '4GChng',
+          'ehrpd': '4GChng',
+          'hspa+': 'H+Chng',
+          'hsdpa': 'HChng', 'hsupa': 'HChng', 'hspa': 'HChng',
+          'evdo0': 'EvChng', 'evdoa': 'EvChng', 'evdob': 'EvChng',
+          'umts': '3GChng',
+          'edge': 'EChng',
+          'gprs': '2GChng',
+          '1xrtt': '1xChng', 'is95a': '1xChng', 'is95b': '1xChng'
+        }
+      },
+      {
+        title: 'Change some values >',
+        setting: 'operatorResources.data.icon',
+        fc: 'iconData',
+        inputVal: {
+          'lte': '4GChng',
+          'ehrpd': '4GChng',
+          'hspa+': 'H+Chng',
+          'hsdpa': 'HChng', 'hsupa': 'HChng', 'hspa': 'HChng'
+        },
+        expectVal: {
+          'lte': '4GChng',
+          'ehrpd': '4GChng',
+          'hspa+': 'H+Chng',
+          'hsdpa': 'HChng', 'hsupa': 'HChng', 'hspa': 'HChng',
+          'evdo0': 'Ev', 'evdoa': 'Ev', 'evdob': 'Ev',
+          'umts': '3G',
+          'edge': 'E',
+          'gprs': '2G',
+          '1xrtt': '1x', 'is95a': '1x', 'is95b': '1x'
+        }
+      }
+    ];
+
+    testCases.forEach(function(testCase) {
+      test(testCase.title, function() {
+        StatusBar.settingValues[testCase.setting] = testCase.inputVal;
+        StatusBar.update[testCase.fc].call(StatusBar);
+        assert.deepEqual(StatusBar.mobileDataIconTypes, testCase.expectVal);
+      });
+    });
   });
 
   suite('data connection', function() {
@@ -1044,7 +1184,7 @@ suite('system/Statusbar', function() {
     setup(function() {
       app = {
         isFullScreen: function() {
-          return true;
+          return false;
         },
         iframe: document.createElement('iframe')
       };
@@ -1055,26 +1195,6 @@ suite('system/Statusbar', function() {
       });
 
       StatusBar.screen = document.createElement('div');
-    });
-
-    test('the status bar should open when the utilitytray is shown',
-    function() {
-      StatusBar.hide();
-
-      var evt = new CustomEvent('utilitytrayshow');
-      StatusBar.handleEvent(evt);
-
-      assert.isFalse(StatusBar.element.classList.contains('invisible'));
-    });
-
-    test('the status bar should close when the utilitytray is hidden',
-    function() {
-      StatusBar.show();
-
-      var evt = new CustomEvent('utilitytrayhide');
-      StatusBar.handleEvent(evt);
-
-      assert.isTrue(StatusBar.element.classList.contains('invisible'));
     });
 
     test('the status bar should not close if the current app is not fullscreen',
@@ -1088,28 +1208,25 @@ suite('system/Statusbar', function() {
       assert.isFalse(StatusBar.element.classList.contains('invisible'));
     });
 
-    test('the status bar should open when the rocketbar is shown',
-    function() {
-      StatusBar.hide();
-
-      var evt = new CustomEvent('rocketbarshown');
-      StatusBar.handleEvent(evt);
-
-      assert.isFalse(StatusBar.element.classList.contains('invisible'));
-    });
-
-    test('the status bar should close when the rocketbar is hidden',
-    function() {
-      StatusBar.show();
-
-      var evt = new CustomEvent('rocketbarhidden');
-      StatusBar.handleEvent(evt);
-
-      assert.isTrue(StatusBar.element.classList.contains('invisible'));
-    });
-
     suite('Revealing the StatusBar >', function() {
+      var transitionEndSpy;
+      setup(function() {
+        transitionEndSpy = this.sinon.spy(StatusBar.element,
+                                          'addEventListener');
+      });
+
+      function assertStatusBarReleased() {
+        assert.equal(StatusBar.element.style.transform, '');
+        assert.equal(StatusBar.element.style.transition, '');
+
+        // We remove the background after the transition
+        assert.isTrue(StatusBar.element.classList.contains('dragged'));
+        transitionEndSpy.yield();
+        assert.isFalse(StatusBar.element.classList.contains('dragged'));
+      }
+
       teardown(function() {
+        StatusBar.element.style.transition = '';
         StatusBar.element.style.transform = '';
       });
 
@@ -1119,6 +1236,12 @@ suite('system/Statusbar', function() {
         var transform = 'translateY(calc(5px - 100%))';
 
         assert.equal(StatusBar.element.style.transform, transform);
+        fakeDispatch('touchend', 100, 5);
+      });
+
+      test('it should set the dragged class on touchstart', function() {
+        fakeDispatch('touchstart', 100, 0);
+        assert.isTrue(StatusBar.element.classList.contains('dragged'));
         fakeDispatch('touchend', 100, 5);
       });
 
@@ -1133,6 +1256,14 @@ suite('system/Statusbar', function() {
         fakeDispatch('touchend', 100, 15);
       });
 
+      test('it should not reveal when ftu is running', function() {
+        FtuLauncher.mIsRunning = true;
+        fakeDispatch('touchstart', 100, 0);
+        fakeDispatch('touchmove', 100, 5);
+        assert.equal(StatusBar.element.style.transform, '');
+        FtuLauncher.mIsRunning = false;
+      });
+
       suite('after the gesture', function() {
         suite('when the StatusBar is not fully displayed', function() {
           setup(function() {
@@ -1142,8 +1273,7 @@ suite('system/Statusbar', function() {
           });
 
           test('it should hide it right away', function() {
-            assert.equal(StatusBar.element.style.transform, '');
-            assert.equal(StatusBar.element.style.transition, '');
+            assertStatusBarReleased();
           });
         });
 
@@ -1164,8 +1294,7 @@ suite('system/Statusbar', function() {
 
           test('but after 5 seconds', function() {
             this.sinon.clock.tick(5000);
-            assert.equal(StatusBar.element.style.transform, '');
-            assert.equal(StatusBar.element.style.transition, '');
+            assertStatusBarReleased();
           });
 
           test('or if the user interacts with the app', function() {
@@ -1176,8 +1305,7 @@ suite('system/Statusbar', function() {
             var e = forgeTouchEvent('touchstart', 100, 100);
             window.dispatchEvent(e);
 
-            assert.equal(StatusBar.element.style.transform, '');
-            assert.equal(StatusBar.element.style.transition, '');
+            assertStatusBarReleased();
             StatusBar._touchForwarder.destination = iframe;
           });
         });

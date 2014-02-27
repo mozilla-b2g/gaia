@@ -1,52 +1,97 @@
-/*
- * This module is responsible for handling the shift key and for
- * auto-capitalization.
- */
-(function(exports) {
-  'use strict';
+'use strict';
 
-  var lastShiftTime = 0;
+(function(exports) {
+  /**
+   * This module is responsible for handling the shift key and for
+   * auto-capitalization.
+   *
+   * @class ShiftKey
+   */
+  function ShiftKey(app) {
+    this._started = false;
+    this.app = app;
+  };
 
   // Max time bewteen taps on the shift key to go into locked mode
-  const CAPS_LOCK_INTERVAL = 450;  // ms
+  ShiftKey.prototype.CAPS_LOCK_INTERVAL = 450;  // ms
 
-  KeyboardTouchHandler.addEventListener('key', function handleKey(e) {
-    var keyname = e.detail;
+  ShiftKey.prototype.start = function start() {
+    if (this._started) {
+      throw 'Instance should not be start()\'ed twice.';
+    }
+    this._started = true;
+
+    this.lastShiftTime = 0;
+
+    // XXX should not attach to static object here.
+    KeyboardTouchHandler.addEventListener('key', this);
+
+    this.app.inputField.addEventListener('inputfieldchanged', this);
+    this.app.inputField.addEventListener('inputstatechanged', this);
+  };
+
+  ShiftKey.prototype.stop = function stop() {
+    if (!this._started) {
+      throw 'Instance was never start()\'ed but stop() is called.';
+    }
+    this._started = false;
+
+    this.lastShiftTime = 0;
+
+    KeyboardTouchHandler.removeEventListener('key', this);
+
+    this.app.inputField.removeEventListener('inputfieldchanged', this);
+    this.app.inputField.removeEventListener('inputstatechanged', this);
+  };
+
+  ShiftKey.prototype.handleEvent = function handleEvent(evt) {
+    switch (evt.type) {
+      case 'key':
+        // XXX: pass event object here.
+        this.handleKey(evt);
+        break;
+
+      case 'inputfieldchanged':
+      case 'inputstatechanged':
+        this.stateChanged();
+        break;
+    }
+  };
+
+  ShiftKey.prototype.handleKey = function handleKey(evt) {
+    var keyname = evt.detail;
+    var currentPageView = this.app.currentPageView;
 
     // XXX: better to look up the key and switch on the key command 'shift'
     // instead of hardcoding the name here?
     switch (keyname) {
-    case 'SHIFT':
-      if (currentPageView.locked) {
-        currentPageView.setShiftState(false, false);
-      }
-      else if (currentPageView.shifted) {
-        if (lastShiftTime &&
-            (e.timeStamp - lastShiftTime) / 1000 < CAPS_LOCK_INTERVAL) {
-          currentPageView.setShiftState(true, true);
-        }
-        else {
+      case 'SHIFT':
+        if (currentPageView.locked) {
           currentPageView.setShiftState(false, false);
+        } else if (currentPageView.shifted) {
+          var interval = (evt.timeStamp - this.lastShiftTime) / 1000;
+          if (this.lastShiftTime &&
+              interval < this.CAPS_LOCK_INTERVAL) {
+            currentPageView.setShiftState(true, true);
+          } else {
+            currentPageView.setShiftState(false, false);
+          }
+        } else {
+          currentPageView.setShiftState(true, false);
         }
-      }
-      else {
-        currentPageView.setShiftState(true, false);
-      }
-      lastShiftTime = e.timeStamp;
-      e.stopImmediatePropagation();
-      break;
+        this.lastShiftTime = evt.timeStamp;
+        evt.stopImmediatePropagation();
+        break;
 
-    default:
-      lastShiftTime = 0;
-      break;
+      default:
+        this.lastShiftTime = 0;
+        break;
     }
-  });
+  };
 
-  // Listen to change events from the input field
-  InputField.addEventListener('inputfieldchanged', stateChanged);
-  InputField.addEventListener('inputstatechanged', stateChanged);
+  ShiftKey.prototype.stateChanged = function stateChanged() {
+    var currentPageView = this.app.currentPageView;
 
-  function stateChanged() {
     // If caps lock is on we do nothing
     if (currentPageView.locked)
       return;
@@ -57,15 +102,11 @@
     // If we're in verbatim mode we don't want to automatically turn
     // the shift key on, but we do still want to turn it off after a
     // single use. So be careful when making this configurable.
-    var newvalue = InputField.atSentenceStart();
+    var newvalue = this.app.inputField.atSentenceStart();
     if (newvalue !== currentPageView.shifted) {
       currentPageView.setShiftState(newvalue, false);
     }
-  }
-
-  exports.ShiftKey = {
-    resetLastShiftTime: function() {
-      lastShiftTime = -1;
-    }
   };
+
+  exports.ShiftKey = ShiftKey;
 }(window));

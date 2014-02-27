@@ -1,11 +1,11 @@
 'use strict';
 
 mocha.globals(['SettingsListener', 'removeEventListener', 'addEventListener',
-      'dispatchEvent', 'ActivityWindow', 'ActivityWindowFactory',
+      'dispatchEvent', 'ActivityWindow', 'activityWindowFactory',
       'AppWindowManager', 'Applications', 'ManifestHelper',
       'KeyboardManager', 'StatusBar', 'HomescreenWindow',
       'SoftwareButtonManager', 'AttentionScreen', 'AppWindow',
-      'LockScreen', 'OrientationManager', 'BrowserFrame',
+      'lockScreen', 'OrientationManager', 'BrowserFrame',
       'BrowserConfigHelper', 'System', 'BrowserMixin', 'TransitionMixin',
       'HomescreenLauncher', 'LayoutManager']);
 
@@ -27,7 +27,7 @@ requireApp('system/js/system.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 
 var mocksForAppWindowManager = new MocksHelper([
-  'LockScreen', 'OrientationManager', 'AttentionScreen',
+  'OrientationManager', 'AttentionScreen',
   'ActivityWindow', 'ActivityWindowFactory',
   'Applications', 'SettingsListener', 'HomescreenLauncher',
   'ManifestHelper', 'KeyboardManager', 'StatusBar', 'SoftwareButtonManager',
@@ -41,6 +41,9 @@ suite('system/AppWindowManager', function() {
   setup(function(done) {
     stubById = this.sinon.stub(document, 'getElementById');
     stubById.returns(document.createElement('div'));
+
+    window.lockScreen = MockLockScreen;
+    window.activityWindowFactory = MockActivityWindowFactory;
 
     home = new HomescreenWindow('fakeHome');
     MockHomescreenLauncher.mHomescreenWindow = home;
@@ -571,6 +574,27 @@ suite('system/AppWindowManager', function() {
       assert.isTrue(stubDisplay.called);
       assert.equal(app7.activityCaller, activity);
       assert.equal(activity.activityCallee, app7);
+    });
+  });
+
+  suite('Settings change', function() {
+    test('app-suspending.enabled', function() {
+      var stubBroadcastMessage =
+        this.sinon.stub(AppWindowManager, 'broadcastMessage');
+      MockSettingsListener.mCallbacks['app-suspending.enabled'](false);
+      assert.ok(stubBroadcastMessage.calledWith('kill_suspended'));
+    });
+
+    test('language.current', function() {
+      var stubBroadcastMessage =
+        this.sinon.stub(AppWindowManager, 'broadcastMessage');
+      MockSettingsListener.mCallbacks['language.current']('chinese');
+      assert.ok(stubBroadcastMessage.calledWith('localized'));
+    });
+
+    test('continuous-transition.enabled', function() {
+      MockSettingsListener.mCallbacks['continuous-transition.enabled'](true);
+      assert.isTrue(AppWindowManager.continuousTransition);
     });
   });
 });

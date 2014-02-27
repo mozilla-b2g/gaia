@@ -8,6 +8,11 @@ html,body {
   overflow: hidden;
   margin: 0;
   color: white;
+  background-color: black;
+}
+
+#call-log-view > div {
+  background-color: white;
 }
 
 .font-light {
@@ -88,7 +93,8 @@ body.hidden *[data-l10n-id] {
   height: 100% !important;
 }
 
-.with-keyboard [role="tablist"] [role="tab"] > a {
+.with-keyboard [role="tablist"] [role="tab"] > a,
+.with-keyboard [role="tablist"] [role="tab"]:before {
   display: none;
 }
 

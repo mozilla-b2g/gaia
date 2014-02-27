@@ -1,5 +1,5 @@
 'use strict';
-/* global AppWindowManager, LockScreen, SettingsListener */
+/* global AppWindowManager, SettingsListener */
 
 var Rocketbar = {
 
@@ -16,6 +16,12 @@ var Rocketbar = {
    * when tapped on.
    */
   triggerWidth: 0.5,
+
+  /**
+   * The URL of the page that opened rocketbar.
+   * This is so the user can edit URLs.
+   */
+  currentURL: null,
 
   searchAppURL: null,
 
@@ -152,6 +158,11 @@ var Rocketbar = {
         }
         this.screen.classList.add('rocketbar-focus');
 
+        if (this.currentURL) {
+          this.searchInput.value = this.currentURL;
+          this.searchInput.select();
+        }
+
         this.updateResetButton();
         break;
       default:
@@ -281,7 +292,6 @@ var Rocketbar = {
     } else if (detail.input) {
       var input = this.searchInput;
       input.value = detail.input;
-      this._port.postMessage({ action: 'change', input: input.value });
     }
   },
 
@@ -307,11 +317,14 @@ var Rocketbar = {
 
     window.dispatchEvent(new CustomEvent('rocketbarhidden'));
 
-    setTimeout(function nextTick() {
-      this._port.postMessage({
-        action: 'clear'
+    var port = this._port;
+    if (port) {
+      setTimeout(function nextTick() {
+        port.postMessage({
+          action: 'clear'
+        });
       });
-    }.bind(this));
+    }
   },
 
   /**
@@ -319,7 +332,7 @@ var Rocketbar = {
    * @param {Boolean} isTaskManager, true if we are opening in task manager.
    */
   render: function(isTaskManager) {
-    if (LockScreen.locked) {
+    if (window.lockScreen && window.lockScreen.locked) {
       return;
     }
 
@@ -329,8 +342,15 @@ var Rocketbar = {
 
     var input = this.searchInput;
     input.value = '';
+    this.currentURL = null;
 
     if (isTaskManager) {
+      // If there is an active app, and it has a URL, select it on focus.
+      var app = AppWindowManager.getActiveApp();
+      if (app &&  app.config.chrome) {
+        this.currentURL = app.config.url;
+      }
+
       this.home = 'tasks';
       window.dispatchEvent(new CustomEvent('taskmanagershow'));
     } else {

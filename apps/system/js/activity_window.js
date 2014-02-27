@@ -211,7 +211,7 @@
     if (this.isActive()) {
       var self = this;
       this.element.addEventListener('_closed', function onClose() {
-        self.element.addEventListener('_closed', onClose);
+        self.element.removeEventListener('_closed', onClose);
         self.publish('terminated');
         // If caller is an instance of appWindow,
         // tell AppWindowManager to open it.

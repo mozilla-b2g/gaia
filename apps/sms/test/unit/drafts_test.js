@@ -450,21 +450,13 @@ suite('Drafts', function() {
   });
 
   suite('Storage and Retrieval', function() {
-    var spy;
-
-    suiteSetup(function() {
-      Drafts.clear();
-      spy = sinon.spy(Drafts, 'store');
-    });
-
     suiteTeardown(function() {
-      Drafts.clear();
       asyncStorage.removeItem('draft index');
     });
 
     setup(function() {
       Drafts.clear();
-      spy.reset();
+      this.sinon.spy(Drafts, 'store');
     });
 
     test('Store fresh drafts', function() {
@@ -472,7 +464,7 @@ suite('Drafts', function() {
       Drafts.add(d2);
       Drafts.add(d5);
 
-      assert.isTrue(spy.calledThrice);
+      sinon.assert.calledThrice(Drafts.store);
     });
 
     test('Store draft with distinct content', function() {
@@ -480,7 +472,7 @@ suite('Drafts', function() {
       // d6 is almost the same as d5, b/w different content
       Drafts.add(d6);
 
-      assert.isTrue(spy.calledTwice);
+      sinon.assert.calledTwice(Drafts.store);
     });
 
     test('Store draft with distinct subject', function() {
@@ -488,7 +480,7 @@ suite('Drafts', function() {
       // d7 is almost the same as d5, b/w different subject
       Drafts.add(d7);
 
-      assert.isTrue(spy.calledTwice);
+      sinon.assert.calledTwice(Drafts.store);
     });
 
     test('Load drafts, has stored data', function(done) {

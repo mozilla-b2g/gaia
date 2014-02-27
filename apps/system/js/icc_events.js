@@ -4,24 +4,25 @@
 'use strict';
 
 var icc_events = {
-  downloadEvent: function icc_events_downloadEvent(eventObject) {
+  downloadEvent: function icc_events_downloadEvent(message, eventObject) {
     DUMP('icc_events_downloadEvent: Downloading event:', eventObject);
-    icc._icc.sendStkEventDownload(eventObject);
+    (icc.getIcc(message.iccId)).sendStkEventDownload(eventObject);
   },
 
-  handleLocationStatus: function icc_events_handleLocationStatus(evt) {
+  handleLocationStatus: function icc_events_handleLocationStatus(message, evt) {
     if (evt.type != 'voicechange') {
       return;
     }
 
-    // XXX: check bug-926169
-    // this is used to keep all tests passing while introducing multi-sim APIs
-    var conn = window.navigator.mozMobileConnection ||
-      window.navigator.mozMobileConnections &&
-        window.navigator.mozMobileConnections[0];
+    var conn = icc.getConnection(message.iccId);
+    if (!conn) {
+      DUMP(' STK handleLocationStatus - No connection found for this iccId' +
+        message.iccId);
+      return;
+    }
 
-    DUMP(' STK Location changed to MCC=' + IccHelper.iccInfo.mcc +
-      ' MNC=' + IccHelper.iccInfo.mnc +
+    DUMP(' STK Location changed to MCC=' + conn.voice.network.mcc +
+      ' MNC=' + conn.voice.network.mnc +
       ' LAC=' + conn.voice.cell.gsmLocationAreaCode +
       ' CellId=' + conn.voice.cell.gsmCellId +
       ' Status/Connected=' + conn.voice.connected +
@@ -32,19 +33,19 @@ var icc_events = {
     } else if (conn.voice.emergencyCallsOnly) {
       status = icc._iccManager.STK_SERVICE_STATE_LIMITED;
     }
-    this.downloadEvent({
+    this.downloadEvent(message, {
       eventType: icc._iccManager.STK_EVENT_TYPE_LOCATION_STATUS,
       locationStatus: status,
       locationInfo: {
-        mcc: IccHelper.iccInfo.mcc,
-        mnc: IccHelper.iccInfo.mnc,
+        mcc: conn.voice.network.mcc,
+        mnc: conn.voice.network.mnc,
         gsmLocationAreaCode: conn.voice.cell.gsmLocationAreaCode,
         gsmCellId: conn.voice.cell.gsmCellId
       }
     });
   },
 
-  handleCallsChanged: function icc_events_handleCallsChanged(evt) {
+  handleCallsChanged: function icc_events_handleCallsChanged(message, evt) {
     if (evt.type != 'callschanged') {
       return;
     }
@@ -54,7 +55,7 @@ var icc_events = {
       DUMP(' STK:CALLS State change: ' + call.state);
       var outgoing = call.state == 'incoming';
       if (call.state == 'incoming') {
-        self.downloadEvent({
+        self.downloadEvent(message, {
           eventType: icc._iccManager.STK_EVENT_TYPE_MT_CALL,
           number: call.number,
           isIssuedByRemote: outgoing,
@@ -62,7 +63,7 @@ var icc_events = {
         });
       }
       call.addEventListener('error', function callError(err) {
-        self.downloadEvent({
+        self.downloadEvent(message, {
           eventType: icc._iccManager.STK_EVENT_TYPE_CALL_DISCONNECTED,
           number: call.number,
           error: err
@@ -72,7 +73,7 @@ var icc_events = {
         DUMP(' STK:CALL State Change: ' + call.state);
         switch (call.state) {
           case 'connected':
-            self.downloadEvent({
+            self.downloadEvent(message, {
               eventType: icc._iccManager.STK_EVENT_TYPE_CALL_CONNECTED,
               number: call.number,
               isIssuedByRemote: outgoing
@@ -80,7 +81,7 @@ var icc_events = {
             break;
           case 'disconnected':
             call.removeEventListener('statechange', callStateChange);
-            self.downloadEvent({
+            self.downloadEvent(message, {
               eventType: icc._iccManager.STK_EVENT_TYPE_CALL_DISCONNECTED,
               number: call.number,
               isIssuedByRemote: outgoing,
@@ -93,41 +94,42 @@ var icc_events = {
   },
 
   handleLanguageSelectionEvent:
-    function icc_events_handleLanguageSelectionEvent(evt) {
+    function icc_events_handleLanguageSelectionEvent(message, evt) {
       DUMP(' STK Language selection = ' + evt.settingValue);
-      this.downloadEvent({
+      this.downloadEvent(message, {
         eventType: icc._iccManager.STK_EVENT_TYPE_LANGUAGE_SELECTION,
         language: evt.settingValue.substring(0, 2)
       });
   },
 
   handleBrowserTerminationEvent:
-    function icc_events_handleBrowserTerminationEvent(evt) {
+    function icc_events_handleBrowserTerminationEvent(message, evt) {
       DUMP(' STK Browser termination');
-      this.downloadEvent({
+      this.downloadEvent(message, {
         eventType: icc._iccManager.STK_EVENT_TYPE_BROWSER_TERMINATION
       });
   },
 
   handleUserActivityEvent:
-    function icc_events_handleUserActivity(idleObserverObject) {
+    function icc_events_handleUserActivity(message, idleObserverObject) {
       DUMP(' STK User Activity');
-      this.downloadEvent({
+      this.downloadEvent(message, {
         eventType: icc._iccManager.STK_EVENT_TYPE_USER_ACTIVITY
       });
       navigator.removeIdleObserver(idleObserverObject);
     },
 
   handleIdleScreenAvailableEvent:
-    function icc_events_handleIdleScreenAvailableEvent() {
+    function icc_events_handleIdleScreenAvailableEvent(message) {
       DUMP(' STK IDLE screen available');
-      this.downloadEvent({
+      this.downloadEvent(message, {
         eventType: icc._iccManager.STK_EVENT_TYPE_IDLE_SCREEN_AVAILABLE
       });
   },
 
-  register: function icc_events_register(eventList) {
-    DUMP('icc_events_register - Events list:', eventList);
+  register: function icc_events_register(message, eventList) {
+    DUMP('icc_events_register fpr card ' + message.iccId +
+      ' - Events list:', eventList);
     for (var evt in eventList) {
       DUMP('icc_events_register - Registering event:', eventList[evt]);
       switch (eventList[evt]) {
@@ -138,7 +140,7 @@ var icc_events = {
         var comm = window.navigator.mozTelephony;
         comm.addEventListener('callschanged',
           function register_icc_event_callscahanged(evt) {
-            icc_events.handleCallsChanged(evt);
+            icc_events.handleCallsChanged(message, evt);
           });
         break;
       case icc._iccManager.STK_EVENT_TYPE_LOCATION_STATUS:
@@ -153,7 +155,7 @@ var icc_events = {
 
         conn.addEventListener('voicechange',
           function register_icc_event_voicechange(evt) {
-            icc_events.handleLocationStatus(evt);
+            icc_events.handleLocationStatus(message, evt);
           });
         break;
       case icc._iccManager.STK_EVENT_TYPE_USER_ACTIVITY:
@@ -165,7 +167,7 @@ var icc_events = {
           },
           onactive: function() {
             DUMP('STK Event - User activity - Going to active');
-            icc_events.handleUserActivityEvent(stkUserActivity);
+            icc_events.handleUserActivityEvent(message, stkUserActivity);
           }
         };
         navigator.addIdleObserver(stkUserActivity);
@@ -174,7 +176,7 @@ var icc_events = {
         DUMP('icc_events_register - Idle screen available event');
         window.addEventListener('lock',
           function register_icc_event_idlescreen() {
-            icc_events.handleIdleScreenAvailableEvent();
+            icc_events.handleIdleScreenAvailableEvent(message);
             window.removeEventListener('lock', register_icc_event_idlescreen);
           });
         break;
@@ -183,10 +185,9 @@ var icc_events = {
         break;
       case icc._iccManager.STK_EVENT_TYPE_LANGUAGE_SELECTION:
         DUMP('icc_events_register - Language selection event');
-        var self = this;
         window.navigator.mozSettings.addObserver('language.current',
           function icc_events_languageChanged(e) {
-            self.handleLanguageSelectionEvent(e);
+            icc_events.handleLanguageSelectionEvent(message, e);
           });
         break;
       case icc._iccManager.STK_EVENT_TYPE_BROWSER_TERMINATION:
@@ -199,7 +200,7 @@ var icc_events = {
               return;
             }
             if (app.manifest.permissions.browser) {
-              self.handleBrowserTerminationEvent(e);
+              icc_events.handleBrowserTerminationEvent(message, e);
             }
           });
         break;

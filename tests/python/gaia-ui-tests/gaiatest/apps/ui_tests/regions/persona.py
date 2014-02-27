@@ -16,7 +16,7 @@ class Persona(Base):
 
     _frame_locator = (By.CSS_SELECTOR, 'iframe[src*="identity"]')
 
-    def launch_standard_sign_in(self):
+    def tap_standard_sign_in(self):
         self.tap_standard_button()
         from gaiatest.apps.persona.app import Persona
         persona = Persona(self.marionette)
@@ -26,6 +26,7 @@ class Persona(Base):
     def switch_to_frame(self):
         self.wait_for_element_displayed(*self._frame_locator)
         self.marionette.switch_to_frame(self.marionette.find_element(*self._frame_locator))
+        self.wait_for_ready_event()
 
     def get_assertion(self):
         # Gets the last assertion in the event stream list, use logout event to make sure
@@ -44,7 +45,7 @@ class Persona(Base):
         self.wait_for_element_displayed(*self._app_logout_event)
 
     def wait_for_ready_event(self):
-        self.wait_for_element_displayed(*self._app_ready_event)
+        self.wait_for_element_present(*self._app_ready_event)
 
     def wait_for_login_event(self):
         self.wait_for_element_displayed(*self._app_login_event)

@@ -1,9 +1,15 @@
+-include $(PWD)/build/common.mk
+
 GAIA_ROOT_PATH?=../..
 
-all: stamp-commit-hash
+.PHONY: all build stamp-commit-hash
+all: build stamp-commit-hash
+
+build:
+	@echo 'Building settings app...'
+	@$(call run-app-js-command, build)
 
 # Generate a text file containing the current changeset of Gaia
-.PHONY: stamp-commit-hash
 stamp-commit-hash:
 	@(if [ -e ${GAIA_ROOT_PATH}/gaia_commit_override.txt ]; then \
 		cp ${GAIA_ROOT_PATH}/gaia_commit_override.txt ./resources/gaia_commit.txt; \

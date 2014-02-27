@@ -53,6 +53,7 @@ requireApp('sms/test/unit/mock_compose.js');
 requireApp('sms/test/unit/mock_activity_handler.js');
 requireApp('sms/test/unit/mock_information.js');
 require('/test/unit/mock_contact_renderer.js');
+require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 
 var mocksHelperForThreadUI = new MocksHelper([
   'Attachment',
@@ -73,7 +74,8 @@ var mocksHelperForThreadUI = new MocksHelper([
   'ActivityHandler',
   'TimeHeaders',
   'ContactRenderer',
-  'Information'
+  'Information',
+  'ContactPhotoHelper'
 ]);
 
 mocksHelperForThreadUI.init();
@@ -253,6 +255,24 @@ suite('thread_ui.js >', function() {
       assert.isFalse(ThreadUI.isScrolledManually);
       assert.ok((container.scrollTop + container.clientHeight) ==
                 container.scrollHeight);
+    });
+
+    suite('when a new message is received >', function() {
+      setup(function() {
+        this.sinon.spy(HTMLElement.prototype, 'scrollIntoView');
+      });
+
+      test('should scroll it into view if we are at the bottom', function() {
+        ThreadUI.isScrolledManually = false;
+        ThreadUI.onMessageReceived(MockMessages.sms());
+        sinon.assert.calledOnce(HTMLElement.prototype.scrollIntoView);
+      });
+
+      test('should not scroll if we are not at the bottom', function() {
+        ThreadUI.isScrolledManually = true;
+        ThreadUI.onMessageReceived(MockMessages.sms());
+        sinon.assert.notCalled(HTMLElement.prototype.scrollIntoView);
+      });
     });
   });
 
@@ -1895,15 +1915,18 @@ suite('thread_ui.js >', function() {
   });
 
   suite('message status update handlers >', function() {
-    suiteSetup(function() {
-      this.fakeMessage = {
-        id: 24601
-      };
-    });
     teardown(function() {
       document.body.removeChild(this.container);
     });
     setup(function() {
+      this.fakeMessage = {
+        id: 24601,
+        type: null,
+        delivery: null,
+        deliveryStatus: null,
+        deliveryInfo: null
+      };
+
       this.container = document.createElement('div');
       this.container.id = 'message-' + this.fakeMessage.id;
       this.container.className = 'sending';
@@ -1949,12 +1972,6 @@ suite('thread_ui.js >', function() {
     });
 
     suite('onDeliverySuccess >', function() {
-      teardown(function() {
-        this.fakeMessage.type = null;
-        this.fakeMessage.delivery = '';
-        this.fakeMessage.deliveryStatus = null;
-        this.fakeMessage.deliveryInfo = null;
-      });
       test('sms delivery success', function() {
         this.fakeMessage.type = 'sms';
         this.fakeMessage.delivery = 'sent';
@@ -1986,6 +2003,35 @@ suite('thread_ui.js >', function() {
           {receiver: null, deliveryStatus: 'success'},
           {receiver: null, deliveryStatus: 'pending'}];
         ThreadUI.onDeliverySuccess(this.fakeMessage);
+        assert.isFalse(this.container.classList.contains('delivered'));
+      });
+    });
+
+    suite('onReadSuccess >', function() {
+      test('mms read success', function() {
+        this.fakeMessage.type = 'mms';
+        this.fakeMessage.delivery = 'sent';
+        this.fakeMessage.deliveryInfo = [{
+          receiver: null, readStatus: 'success'}];
+        ThreadUI.onReadSuccess(this.fakeMessage);
+        assert.isTrue(this.container.classList.contains('delivered'));
+      });
+      test('multiple recipients mms read success', function() {
+        this.fakeMessage.type = 'mms';
+        this.fakeMessage.delivery = 'sent';
+        this.fakeMessage.deliveryInfo = [
+          {receiver: null, readStatus: 'success'},
+          {receiver: null, readStatus: 'success'}];
+        ThreadUI.onReadSuccess(this.fakeMessage);
+        assert.isTrue(this.container.classList.contains('delivered'));
+      });
+      test('not all recipients return mms read success', function() {
+        this.fakeMessage.type = 'mms';
+        this.fakeMessage.delivery = 'sent';
+        this.fakeMessage.deliveryInfo = [
+          {receiver: null, readStatus: 'success'},
+          {receiver: null, readStatus: 'pending'}];
+        ThreadUI.onReadSuccess(this.fakeMessage);
         assert.isFalse(this.container.classList.contains('delivered'));
       });
     });
@@ -3939,7 +3985,8 @@ suite('thread_ui.js >', function() {
     });
 
     test('Deletes draft if there was a draft', function() {
-      spy = this.sinon.spy(Drafts, 'delete');
+      this.sinon.spy(Drafts, 'delete');
+      this.sinon.spy(Drafts, 'store');
 
       ThreadUI.draft = {id: 3};
       ThreadUI.recipients.add({
@@ -3949,7 +3996,10 @@ suite('thread_ui.js >', function() {
 
       ThreadUI.onSendClick();
 
-      assert.isTrue(spy.calledOnce);
+      sinon.assert.calledOnce(Drafts.delete);
+      sinon.assert.calledOnce(Drafts.store);
+      sinon.assert.callOrder(Drafts.delete, Drafts.store);
+
       assert.isNull(ThreadUI.draft);
     });
 
@@ -4813,6 +4863,32 @@ suite('thread_ui.js >', function() {
       var data = ThreadUI.getMessageBubble(li);
 
       assert.equal(data, null);
+    });
+  });
+
+  suite('Edit mode tests', function() {
+    var mainWrapper;
+
+    setup(function() {
+      mainWrapper = document.getElementById('main-wrapper');
+    });
+
+    test('Enter edit mode', function() {
+      ThreadUI.startEdit();
+      assert.isTrue(mainWrapper.classList.contains('edit'));
+    });
+
+    test('Exit edit mode', function() {
+      ThreadUI.cancelEdit();
+      assert.isTrue(!mainWrapper.classList.contains('edit'));
+    });
+
+    test('Exit edit mode is idempotent', function() {
+      ThreadUI.startEdit();
+      assert.isTrue(mainWrapper.classList.contains('edit'));
+      ThreadUI.cancelEdit();
+      assert.isTrue(!mainWrapper.classList.contains('edit'));
+      assert.isTrue(!mainWrapper.classList.contains('edit'));
     });
   });
 });

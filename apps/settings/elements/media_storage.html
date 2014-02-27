@@ -34,6 +34,16 @@
         </li>
       </ul>
     </div>
+    <form data-type="confirm" role="dialog" id="format-sdcard-dialog" hidden>
+      <section>
+        <h1 data-l10n-id="format-sdcard-title">Format SD card</h1>
+        <p data-l10n-id="format-sdcard-message">This will erase all data stored on your SD card, such as music and photos.</p>
+      </section>
+      <menu>
+        <button id="format-sdcard-cancel-btn" data-l10n-id="cancel">Cancel</button>
+        <button id="format-sdcard-ok-btn" class="danger" data-l10n-id="format-sdcard-btnformat">Format</button>
+      </menu>
+    </form>
     <form data-type="confirm" role="dialog" id="default-location-popup-container" hidden>
       <section>
         <p data-l10n-id="change-default-location-confirm">Changing the default media storage volume will affect where photos, videos, downloads and other media will be saved to by default. Existing data will remain in its current location.</p>

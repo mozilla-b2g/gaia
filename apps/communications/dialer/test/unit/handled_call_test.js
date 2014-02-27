@@ -8,6 +8,7 @@ requireApp('communications/dialer/test/unit/mock_keypad.js');
 requireApp('communications/dialer/test/unit/mock_utils.js');
 requireApp('communications/dialer/test/unit/mock_l10n.js');
 requireApp('communications/dialer/test/unit/mock_call.js');
+require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 
 requireApp('communications/dialer/js/handled_call.js');
 requireApp('communications/dialer/js/voicemail.js');
@@ -19,7 +20,8 @@ var mocksHelperForHandledCall = new MocksHelper([
   'CallsHandler',
   'KeypadManager',
   'Utils',
-  'LazyL10n'
+  'LazyL10n',
+  'ContactPhotoHelper'
 ]).init();
 
 suite('dialer/handled_call', function() {
@@ -32,6 +34,8 @@ suite('dialer/handled_call', function() {
   var templates;
 
   var phoneNumber;
+  var photoFullResolution;
+  var photoThumbnail;
 
   mocksHelperForHandledCall.attachTestHelpers();
 
@@ -75,7 +79,14 @@ suite('dialer/handled_call', function() {
   });
 
   setup(function() {
+    photoFullResolution = new Blob();
+    photoThumbnail = new Blob();
+    this.sinon.stub(MockContactPhotoHelper,
+                    'getFullResolution').returns(photoFullResolution);
+    this.sinon.stub(MockContactPhotoHelper,
+                    'getThumbnail').returns(photoThumbnail);
     this.sinon.useFakeTimers(Date.now());
+
     mockCall = new MockCall(String(phoneNumber), 'dialing');
     subject = new HandledCall(mockCall);
 
@@ -90,8 +101,8 @@ suite('dialer/handled_call', function() {
   });
 
   suite('initialization', function() {
-    test('photo', function() {
-      assert.equal(subject.photo, MockContacts.mPhoto);
+    test('full resolution photo', function() {
+      assert.equal(subject.photo, photoFullResolution);
     });
 
     test('should set caller image by contact photo', function() {
@@ -103,7 +114,7 @@ suite('dialer/handled_call', function() {
     });
 
     test('call event listener', function() {
-      assert.isTrue(mockCall._listenerAdded);
+      assert.isTrue(mockCall._eventListeners.statechange.length > 0);
     });
 
     suite('node', function() {
@@ -348,6 +359,7 @@ suite('dialer/handled_call', function() {
 
     suite('from a regular call', function() {
       setup(function() {
+        this.sinon.spy(mockCall, 'removeEventListener');
         mockCall._disconnect();
       });
       test('should save the recents entry', function() {
@@ -360,7 +372,8 @@ suite('dialer/handled_call', function() {
       });
 
       test('should remove listener on the call', function() {
-        assert.isTrue(mockCall._listenerRemoved);
+        sinon.assert.calledWith(mockCall.removeEventListener,
+                                'statechange', subject);
       });
 
       test('should keep the call', function() {
@@ -600,7 +613,7 @@ suite('dialer/handled_call', function() {
         assert.ok(contactInfo.contact);
         var contact = contactInfo.contact;
         assert.equal(contact.name, MockContacts.mName);
-        assert.equal(contact.photo, MockContacts.mPhoto);
+        assert.deepEqual(contact.photo, [photoThumbnail]);
         assert.equal(contact.tel.length, 1);
         assert.equal(contact.tel[0].value, MockContacts.mCalledWith);
         assert.equal(contact.tel[0].carrier, MockContacts.mCarrier);
@@ -642,7 +655,7 @@ suite('dialer/handled_call', function() {
         assert.ok(contactInfo.contact);
         var contact = contactInfo.contact;
         assert.equal(contact.name, MockContacts.mName);
-        assert.equal(contact.photo, MockContacts.mPhoto);
+        assert.deepEqual(contact.photo, [photoThumbnail]);
         assert.equal(contact.tel.length, 1);
         assert.equal(contact.tel[0].value, MockContacts.mCalledWith);
         assert.equal(contact.tel[0].carrier, MockContacts.mCarrier);

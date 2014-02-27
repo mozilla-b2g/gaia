@@ -1,9 +1,11 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/*global Template, Utils, Threads, Contacts, URL, Threads,
+/*global Template, Utils, Threads, Contacts, Threads,
          WaitingScreen, MozSmsFilter, MessageManager, TimeHeaders,
-         Drafts, Thread, ThreadUI, monitorTagVisibility */
+         Drafts, Thread, ThreadUI, OptionMenu, ActivityPicker,
+         monitorTagVisibility */
+
 /*exported ThreadListUI */
 (function(exports) {
 'use strict';
@@ -56,7 +58,7 @@ var ThreadListUI = {
       'container', 'no-messages',
       'check-all-button', 'uncheck-all-button',
       'delete-button', 'cancel-button',
-      'edit-icon', 'edit-mode', 'edit-form', 'draft-saved-banner'
+      'options-icon', 'edit-mode', 'edit-form', 'draft-saved-banner'
     ].forEach(function(id) {
       this[Utils.camelCase(id)] = document.getElementById('threads-' + id);
     }, this);
@@ -81,8 +83,8 @@ var ThreadListUI = {
       'click', this.cancelEdit.bind(this)
     );
 
-    this.editIcon.addEventListener(
-      'click', this.startEdit.bind(this)
+    this.optionsIcon.addEventListener(
+      'click', this.showOptions.bind(this)
     );
 
     this.container.addEventListener(
@@ -156,7 +158,7 @@ var ThreadListUI = {
 
     Contacts.findByPhoneNumber(number, function gotContact(contacts) {
       var name = node.getElementsByClassName('name')[0];
-      var photo = node.getElementsByTagName('img')[0];
+      var photo = node.querySelector('span[data-type=img]');
       var title, src, details;
 
       if (contacts && contacts.length) {
@@ -171,10 +173,7 @@ var ThreadListUI = {
       }
 
       if (src) {
-        photo.onload = photo.onerror = function revokePhotoURL() {
-          this.onload = this.onerror = null;
-          URL.revokeObjectURL(this.src);
-        };
+        Utils.asyncLoadRevokeURL(src);
       }
 
       navigator.mozL10n.localize(name, 'thread-header-text', {
@@ -182,8 +181,7 @@ var ThreadListUI = {
         n: others
       });
 
-      photo.src = src;
-      
+      photo.style.backgroundImage = 'url(' + src + ')';
       node.dataset.contactSet = true;
     });
   },
@@ -365,7 +363,30 @@ var ThreadListUI = {
 
     ThreadListUI.noMessages.classList[removeWhenEmpty]('hide');
     ThreadListUI.container.classList[addWhenEmpty]('hide');
-    ThreadListUI.editIcon.classList[addWhenEmpty]('disabled');
+  },
+
+  showOptions: function thlui_options() {
+    var params = {
+      items: [{
+        l10nId: 'settings',
+        method: function oSettings() {
+          ActivityPicker.openSettings();
+        }
+      },{ // Last item is the Cancel button
+        l10nId: 'cancel',
+        incomplete: true
+      }]
+    };
+
+    // Add delete option when list is not empty 
+    if (ThreadListUI.noMessages.classList.contains('hide')) {
+      params.items.unshift({
+        l10nId: 'deleteMessages-label',
+        method: this.startEdit.bind(this)
+      });
+    }
+
+    new OptionMenu(params).show();
   },
 
   startEdit: function thlui_edit() {
@@ -595,6 +616,9 @@ var ThreadListUI = {
 
   updateThread: function thlui_updateThread(record, options) {
     var thread = Thread.create(record, options);
+    var threadUINode = document.getElementById('thread-' + thread.id);
+    var threadUITime = threadUINode ? +threadUINode.dataset.time : NaN;
+    var recordTime = +thread.timestamp;
 
     // For legitimate in-memory thread objects, update the stored
     // Thread instance with the newest data. This check prevents
@@ -604,24 +628,29 @@ var ThreadListUI = {
       Threads.set(thread.id, thread);
     }
 
-    // We remove the previous one in order to place the new one properly
-    var node = document.getElementById('thread-' + thread.id);
-
-    // If options passed and new record is older than the latest one?
-    if (node && +node.dataset.time > +thread.timestamp) {
-      // If the received Message is older than the latest one
-      // We need only to update the 'unread status' if needed
-      if (options && !options.read) {
-        this.mark(thread.id, 'unread');
-      }
-    } else {
-      if (node) {
-        this.removeThread(thread.id);
-      }
-      var node = this.appendThread(thread);
-      this.setContact(node);
-      this.setEmpty(false);
+    // Edge case: if we just received a message that is older than the latest
+    // one in the thread, we only need to update the 'unread' status.
+    var newMessageReceived = options && options.unread;
+    if (newMessageReceived && threadUITime > recordTime) {
+      this.mark(thread.id, 'unread');
+      return;
     }
+
+    // If we just deleted messages in a thread but kept the last message
+    // unchanged, we don't need to update the thread UI.
+    var messagesDeleted = options && options.deleted;
+    if (messagesDeleted && threadUITime === recordTime) {
+      return;
+    }
+
+    // General case: update the thread UI.
+    if (threadUINode) {
+      // remove the current thread node in order to place the new one properly
+      this.removeThread(thread.id);
+    }
+    var node = this.appendThread(thread);
+    this.setContact(node);
+    this.setEmpty(false);
   },
 
   onMessageSending: function thlui_onMessageSending(message) {
@@ -629,7 +658,7 @@ var ThreadListUI = {
   },
 
   onMessageReceived: function thlui_onMessageReceived(message) {
-    this.updateThread(message, {read: false});
+    this.updateThread(message, { unread: true });
   },
 
   appendThread: function thlui_appendThread(thread) {
@@ -678,6 +707,7 @@ var ThreadListUI = {
     
     return node;
   },
+
   // Adds a new grouping header if necessary (today, tomorrow, ...)
   createThreadContainer: function thlui_createThreadContainer(timestamp) {
     var threadContainer = document.createElement('div');
@@ -700,6 +730,7 @@ var ThreadListUI = {
     threadContainer.appendChild(threadsContainerDOM);
     return threadContainer;
   },
+
   // Method for updating all contact info after creating a contact
   updateContactsInfo: function mm_updateContactsInfo() {
     // Prevents cases where updateContactsInfo method is called

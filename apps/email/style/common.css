@@ -141,7 +141,6 @@ body {
   overflow-x: hidden;
 }
 .scrollregion-below-header {
-  overflow-y: auto;
   overflow-x: hidden;
   height: calc(100% - 5.8rem + 0.5rem);
   will-change: scroll-position;

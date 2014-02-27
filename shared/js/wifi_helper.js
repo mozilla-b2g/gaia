@@ -51,24 +51,15 @@ var WifiHelper = {
   },
 
   setSecurity: function(network, encryptions) {
-    // Bug 791506: Code for backward compatibility. Modify after landed.
-    if (network.security === undefined) {
-      network.capabilities = encryptions;
-    } else {
-      network.security = encryptions;
-    }
+    network.security = encryptions;
   },
 
   getSecurity: function(network) {
-    // Bug 791506: Code for backward compatibility. Modify after landed.
-    return network.security === undefined ?
-      (network.capabilities || []) : network.security;
+    return network.security;
   },
 
   getCapabilities: function(network) {
-    // Bug 791506: Code for backward compatibility. Modify after landed.
-    return ((network.security === undefined ||
-      network.capabilities === undefined) ? [] : network.capabilities);
+    return network.capabilities === undefined ? [] : network.capabilities;
   },
 
   getKeyManagement: function(network) {

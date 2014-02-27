@@ -28,6 +28,15 @@
       "disposition": "inline",
       "returnValue": true,
       "href": "/share.html"
+    },
+    "setwallpaper": {
+      "filters": {
+        "type": "image/*",
+        "number": 1
+       },
+      "disposition": "inline",
+      "returnValue": true,
+      "href": "/share.html"
     }
   },
   "icons": {

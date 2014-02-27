@@ -6,8 +6,8 @@ define(function(require, exports, module) {
  */
 
 var View = require('vendor/view');
-var find = require('utils/find');
-var bind = require('utils/bind');
+var find = require('lib/find');
+var bind = require('lib/bind');
 
 /**
  * Exports
@@ -35,8 +35,8 @@ module.exports = View.extend({
     };
 
     // Attach event listeners
-    bind(this.els.buttons.storage, 'click', this.onButtonClick, this);
-    bind(this.els.buttons.close, 'click', this.onButtonClick, this);
+    bind(this.els.buttons.storage, 'click', this.onButtonClick);
+    bind(this.els.buttons.close, 'click', this.onButtonClick);
   },
 
   template: function(data) {

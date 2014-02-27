@@ -99,6 +99,7 @@ var Messaging = (function(window, document, undefined) {
    */
   function m_disableItems(disable) {
     var elementIds = ['menuItem-deliveryReport',
+                      'menuItem-readReport',
                       'menuItem-autoRetrieve',
                       'menuItem-wapPush',
                       'menuItem-cellBroadcast'];

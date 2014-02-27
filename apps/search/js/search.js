@@ -3,26 +3,10 @@
 
   // timeout before notifying providers
   var SEARCH_DELAY = 600;
-  var SEARCH_URI = 'http://www.google.com/search?q={searchTerms}';
 
   var timeoutSearchWhileTyping = null;
 
   var rscheme = /^(?:[a-z\u00a1-\uffff0-9-+]+)(?::|:\/\/)/i;
-
-  function getUrlFromInput(input) {
-    var hasScheme = !!(rscheme.exec(input) || [])[0];
-
-    // Not a valid URL, could be a search term
-    if (UrlHelper.isNotURL(input) && SEARCH_URI) {
-      return SEARCH_URI.replace('{searchTerms}', input);
-    }
-
-    // No scheme, prepend basic protocol and return
-    if (!hasScheme) {
-      return 'http://' + input;
-    }
-    return input;
-  };
 
   window.Search = {
     _port: null,
@@ -101,10 +85,35 @@
     },
 
     /**
+     * Expands the search experience when the user taps on a suggestion
+     * or submits a query.
+     */
+    expandSearch: function(query) {
+      this.clear();
+      this.providers.WebResults.search(query);
+      this.providers.BGImage.fetchImage(query);
+    },
+
+    /**
      * Called when the user submits the search form
      */
     submit: function(msg) {
-      Search.navigate(getUrlFromInput(msg.data.input));
+      var input = msg.data.input;
+
+      // Not a valid URL, could be a search term
+      if (UrlHelper.isNotURL(input)) {
+        this.expandSearch(input);
+        return;
+      }
+
+      var hasScheme = !!(rscheme.exec(input) || [])[0];
+
+      // No scheme, prepend basic protocol and return
+      if (!hasScheme) {
+        input = 'http://' + input;
+      }
+
+      this.navigate(input);
     },
 
     /**
@@ -137,9 +146,26 @@
 
     /**
      * Opens a browser to a URL
+     * @param {String} url The url to navigate to
+     * @param {Object} config Optional configuration.
      */
-    navigate: function(url) {
-      window.open(url, '_blank', 'remote=true,useAsyncPanZoom=true');
+    navigate: function(url, config) {
+      var features = {
+        remote: true,
+        useAsyncPanZoom: true
+      };
+
+      config = config || {};
+      for (var i in config) {
+        features[i] = config[i];
+      }
+
+      var featureStr = Object.keys(features)
+        .map(function(key) {
+          return encodeURIComponent(key) + '=' +
+            encodeURIComponent(features[key]);
+        }).join(',');
+      window.open(url, '_blank', featureStr);
     },
 
     /**
@@ -149,6 +175,7 @@
       this._port.postMessage({
         'input': input
       });
+      this.expandSearch(input);
     }
   };
 

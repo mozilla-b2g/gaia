@@ -1,3 +1,5 @@
+'use strict';
+/* jshint loopfunc:true */
 mocha.setup({ globals: ['GestureDetector'] });
 
 suite('Alarm Test', function() {
@@ -6,7 +8,10 @@ suite('Alarm Test', function() {
   var nativeMozAlarms = navigator.mozAlarms;
 
   suiteSetup(function(done) {
-    testRequire(['alarm', 'active_alarm', 'mocks/mock_moz_alarm'],
+    testRequire(['alarm', 'panels/alarm/active_alarm', 'mocks/mock_moz_alarm'],
+      {
+        mocks: ['panels/alarm/active_alarm']
+      },
       function(alarm, activeAlarm, mockMozAlarms) {
         Alarm = alarm;
         ActiveAlarm = activeAlarm;
@@ -350,7 +355,7 @@ suite('Alarm Test', function() {
         }, function(err, alarm) {
           var alarms = navigator.mozAlarms.alarms;
           assert.equal(alarms.length, 1);
-          assert.equal(alarms[0].id, alarm.registeredAlarms['normal']);
+          assert.equal(alarms[0].id, alarm.registeredAlarms.normal);
           assert.equal(alarms[0].date.getTime(),
             this.date.getTime() + (2 * 24 * 3600 * 1000));
           done();
@@ -368,7 +373,7 @@ suite('Alarm Test', function() {
         }, function(err, alarm) {
           var alarms = navigator.mozAlarms.alarms;
           assert.equal(alarms.length, 1);
-          assert.equal(alarms[0].id, alarm.registeredAlarms['normal']);
+          assert.equal(alarms[0].id, alarm.registeredAlarms.normal);
           assert.equal(alarms[0].date.getTime(),
             this.date.getTime() + (24 * 3600 * 1000));
           done();
@@ -384,7 +389,7 @@ suite('Alarm Test', function() {
         }, function(err, alarm) {
           var alarms = navigator.mozAlarms.alarms;
           assert.equal(alarms.length, 1);
-          assert.equal(alarms[0].id, alarm.registeredAlarms['normal']);
+          assert.equal(alarms[0].id, alarm.registeredAlarms.normal);
           assert.equal(alarms[0].date.getTime(),
             this.date.getTime() + (2 * 24 * 3600 * 1000));
           done();
@@ -402,7 +407,7 @@ suite('Alarm Test', function() {
         }, function(err, alarm) {
           var alarms = navigator.mozAlarms.alarms;
           assert.equal(alarms.length, 1);
-          assert.equal(alarms[0].id, alarm.registeredAlarms['normal']);
+          assert.equal(alarms[0].id, alarm.registeredAlarms.normal);
           assert.equal(alarms[0].date.getTime(),
             this.date.getTime() + (24 * 3600 * 1000));
           done();
@@ -434,7 +439,7 @@ suite('Alarm Test', function() {
         }, function(err, alarm) {
           var alarms = navigator.mozAlarms.alarms;
           assert.equal(alarms.length, 1);
-          assert.equal(alarms[0].id, alarm.registeredAlarms['snooze']);
+          assert.equal(alarms[0].id, alarm.registeredAlarms.snooze);
           assert.equal(alarms[0].date.getTime(),
             this.date.getTime() + (17 * 60 * 1000));
           done();

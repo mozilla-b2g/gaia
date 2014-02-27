@@ -30,6 +30,8 @@ var MessageManager = {
     this._mozMobileMessage.addEventListener('failed', this.onMessageFailed);
     this._mozMobileMessage.addEventListener('deliverysuccess',
                                             this.onDeliverySuccess);
+    this._mozMobileMessage.addEventListener('readsuccess',
+                                            this.onReadSuccess);
     window.addEventListener('hashchange', this.onHashChange.bind(this));
     document.addEventListener('visibilitychange',
                               this.onVisibilityChange.bind(this));
@@ -65,7 +67,23 @@ var MessageManager = {
   },
 
   onDeliverySuccess: function mm_onDeliverySuccess(e) {
+    // Only refresh report-view when page already opened with matched message id
+    var hashInfo = window.location.hash.split('=');
+    if (hashInfo[0] === '#report-view' && hashInfo[1] === '' + e.message.id) {
+      ReportView.refresh();
+    }
+
     ThreadUI.onDeliverySuccess(e.message);
+  },
+
+  onReadSuccess: function mm_onReadSuccess(e) {
+    // Only refresh report-view when page already opened with matched message id
+    var hashInfo = window.location.hash.split('=');
+    if (hashInfo[0] === '#report-view' && hashInfo[1] === '' + e.message.id) {
+      ReportView.refresh();
+    }
+
+    ThreadUI.onReadSuccess(e.message);
   },
 
   onMessageSent: function mm_onMessageSent(e) {
@@ -253,6 +271,7 @@ var MessageManager = {
           if (ThreadUI.draft) {
             ThreadUI.draft.isEdited = false;
           }
+          ThreadUI.recipients.focus();
         }.bind(this));
         break;
       case '#thread-list':
@@ -619,7 +638,11 @@ var MessageManager = {
     // 'markMessageRead' until a previous call is completed. This way any
     // other potential call to the API, like the one for getting a message
     // list, could be done within the calls to mark the messages as read.
-    var req = this._mozMobileMessage.markMessageRead(list.pop(), true);
+
+    // TODO: Third parameter of markMessageRead is return read request.
+    //       Here we always return read request for now, but we can let user
+    //       decide to return request or not in Bug 971658.
+    var req = this._mozMobileMessage.markMessageRead(list.pop(), true, true);
 
     req.onsuccess = (function onsuccess() {
       if (!list.length && callback) {

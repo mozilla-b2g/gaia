@@ -1,3 +1,4 @@
+'use strict';
 // Loader plugin for loading CSS. Does not guarantee loading via onload
 // watching, just inserts link tag.
 define({

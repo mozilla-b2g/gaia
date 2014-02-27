@@ -29,14 +29,16 @@ class TestChangeKeyboardLanguage(GaiaTestCase):
         add_more_keyboards.select_language(u'Espa\u00F1ol')
         add_more_keyboards.go_back()
 
+        select_keyboard.wait_for_built_in_keyboard(u'Espa\u00F1ol')
+
         # launch the Contacts app to verify the keyboard layout
         contacts_app = Contacts(self.marionette)
         contacts_app.launch()
         new_contact_form = contacts_app.tap_new_contact()
         new_contact_form.type_given_name('')
-        self.wait_for_condition(lambda m: new_contact_form.keyboard.is_displayed())
 
         # Switch to keyboard frame and switch language
+        new_contact_form.keyboard.switch_to_keyboard()
         new_contact_form.keyboard.tap_keyboard_language_key()
         new_contact_form.keyboard.switch_to_keyboard()
         special_key = self.marionette.find_element(*self._special_key_locator).text

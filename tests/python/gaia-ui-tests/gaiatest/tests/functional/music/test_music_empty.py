@@ -16,7 +16,8 @@ class TestMusicEmpty(GaiaTestCase):
         GaiaTestCase.setUp(self)
 
     def test_empty_music(self):
-        # https://moztrap.mozilla.org/manage/case/3668/
+        """https://moztrap.mozilla.org/manage/case/3668/"""
+
         # Requires there to be no songs on SDCard which is the default
         music_app = Music(self.marionette)
         music_app.launch()

@@ -162,9 +162,6 @@ contacts.List = (function() {
     groupsList = document.getElementById('groups-list');
     groupsList.addEventListener('click', onClickHandler);
 
-    var selector = 'header:not(.hide)';
-    FixedHeader.init('#groups-container', '#fixed-container', selector);
-
     initOrder();
 
     // Test code calls init() directly, so we may have to reset.
@@ -186,7 +183,6 @@ contacts.List = (function() {
     if (monitor) {
       monitor.resumeMonitoringMutations(true);
     }
-    FixedHeader.refresh();
   }
 
   // Define a source adapter object to pass to contacts.Search.
@@ -431,7 +427,6 @@ contacts.List = (function() {
     }
 
     renderGroupHeader(group, letter);
-    FixedHeader.refresh();
 
     // Return the new list created by renderGroupHeader() above
     return headers[group];
@@ -760,7 +755,6 @@ contacts.List = (function() {
     // be selected just if we clicked on select all
     // and we didn't unselected any other contact
     selectAllPending = false;
-    FixedHeader.refresh();
 
     // If there are zero contacts, then we still need to notify
     // that the initial screen has been displayed.  This is a no-op
@@ -803,7 +797,7 @@ contacts.List = (function() {
   var updatePhoto = function updatePhoto(contact, id) {
     id = id || contact.id;
     var prevPhoto = photosById[id];
-    var newPhoto = Array.isArray(contact.photo) ? contact.photo[0] : null;
+    var newPhoto = ContactPhotoHelper.getThumbnail(contact);
 
     // Do nothing if photo did not change
     if ((!prevPhoto && !newPhoto) || (prevPhoto === newPhoto)) {
@@ -1203,13 +1197,11 @@ contacts.List = (function() {
   var hideGroup = function hideGroup(group) {
     var groupTitle = getGroupList(group).parentNode.children[0];
     groupTitle.classList.add('hide');
-    FixedHeader.refresh();
   };
 
   var showGroupByList = function showGroupByList(current) {
     var groupTitle = current.parentNode.children[0];
     groupTitle.classList.remove('hide');
-    FixedHeader.refresh();
   };
 
   var remove = function remove(id) {
@@ -1360,7 +1352,6 @@ contacts.List = (function() {
     loadedContacts = {};
     loaded = false;
 
-    FixedHeader.refresh();
     if (cb)
       cb();
   };

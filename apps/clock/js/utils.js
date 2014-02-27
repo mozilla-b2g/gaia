@@ -180,8 +180,7 @@ Utils.extend = function(initialObject, extensions) {
  *         `Utils.cancelAnimationAfter`.
  */
 Utils.requestAnimationAfter = function(fn, time) {
-  var currentTime = Date.now();
-  var id, ret = {};
+  var ret = {};
   if (time <= 0) {
     ret.raf = requestAnimationFrame(fn);
   } else {
@@ -211,8 +210,9 @@ Utils.escapeHTML = function(str, escapeQuotes) {
   var span = document.createElement('span');
   span.textContent = str;
 
-  if (escapeQuotes)
+  if (escapeQuotes) {
     return span.innerHTML.replace(/"/g, '&quot;').replace(/'/g, '&#x27;');
+  }
   return span.innerHTML;
 };
 
@@ -243,10 +243,9 @@ Utils.changeSelectByValue = function(selectElement, value) {
   }
 };
 
-Utils.getSelectedValue = function(selectElement) {
+Utils.getSelectedValueByIndex = function(selectElement) {
   return selectElement.options[selectElement.selectedIndex].value;
 };
-
 
 Utils.parseTime = function(time) {
   var parsed = time.split(':');
@@ -281,7 +280,7 @@ var wakeTarget = {
 function getLongestLock(type) {
   var max = 0;
   for (var i of wakeTarget.requests[type]) {
-    var key = i[0], request = i[1];
+    var request = i[1];
     if (request.time > max) {
       max = request.time;
     }

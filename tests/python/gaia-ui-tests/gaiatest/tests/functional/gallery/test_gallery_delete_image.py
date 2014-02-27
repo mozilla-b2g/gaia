@@ -27,9 +27,7 @@ class TestGalleryDelete(GaiaTestCase):
 
         # Tap the confirm delete button.
         image.tap_confirm_deletion_button()
+        self.wait_for_condition(lambda m: gallery.empty_gallery_text == 'Use the Camera app to get started.')
 
         # Verify empty gallery title.
         self.assertEqual(gallery.empty_gallery_title, 'No photos or videos')
-
-        # Verify empty gallery text.
-        self.assertEqual(gallery.empty_gallery_text, 'Use the Camera app to get started.')

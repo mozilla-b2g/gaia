@@ -44,6 +44,10 @@ var Basket = {
     }
   },
 
+  timeoutHandler: function b_timeoutHandler() {
+    this.callback('Timeout');
+  },
+
   /**
    * Send data to Mozilla Basket.
    *
@@ -54,21 +58,24 @@ var Basket = {
    *                            in the error case.
    */
   send: function b_send(email, callback) {
+    var self = this;
     var params = 'email=' + encodeURIComponent(email) +
-                 '&newsletters=' + this.newsletterId;
-    this.callback = callback;
-    this.xhr = new XMLHttpRequest({mozSystem: true});
-    this.xhr.onreadystatechange = this.responseHandler.bind(this);
-    this.xhr.open('POST', this.basketUrl, true);
-    this.xhr.setRequestHeader('Content-type',
+                 '&newsletters=' + self.newsletterId;
+    self.callback = callback;
+    self.xhr = new XMLHttpRequest({mozSystem: true});
+    self.xhr.onreadystatechange = self.responseHandler.bind(self);
+    self.xhr.open('POST', self.basketUrl, true);
+    self.xhr.setRequestHeader('Content-type',
                               'application/x-www-form-urlencoded');
-    this.xhr.setRequestHeader('Content-length', params.length);
-    this.xhr.setRequestHeader('Connection', 'close');
-    this.getLanguage(function do_send(language) {
+    self.xhr.setRequestHeader('Connection', 'close');
+    self.xhr.timeout = 5000;  // 5 seconds
+    self.xhr.ontimeout = self.timeoutHandler.bind(self);
+    self.getLanguage(function do_send(language) {
       if (language) {
         params += '&lang=' + language;
       }
-      this.xhr.send(params);
+      self.xhr.setRequestHeader('Content-length', params.length);
+      self.xhr.send(params);
     });
   },
 

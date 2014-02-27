@@ -1,63 +1,136 @@
+'use strict';
+
 (function(exports) {
-  'use strict';
 
-  const SPACE = 32;
-  const BACKSPACE = 8;
-  const RETURN = 13; // return keycode code isn't the same as newline charcode
-  const PERIOD = 46;
-  const QUESTION = 63;
-  const EXCLAMATION = 33;
-  const COMMA = 44;
-  const COLON = 58;
-  const SEMICOLON = 59;
+  function AutoCorrect(app) {
+    this._started = false;
+    this.app = app;
+  };
 
-  var predictionStartTime;
-  var correction = null;  // A pending correction
-  var reversion = null;   // A pending reversion
-  var autocorrectDisabled = false;
+  AutoCorrect.prototype.KEYCODE_SPACE = 32;
+  AutoCorrect.prototype.KEYCODE_BACKSPACE = 8;
+  // return keycode code isn't the same as newline charcode
+  AutoCorrect.prototype.KEYCODE_RETURN = 13;
+  AutoCorrect.prototype.KEYCODE_PERIOD = 46;
+  AutoCorrect.prototype.KEYCODE_QUESTION = 63;
+  AutoCorrect.prototype.KEYCODE_EXCLAMATION = 33;
+  AutoCorrect.prototype.KEYCODE_COMMA = 44;
+  AutoCorrect.prototype.KEYCODE_COLON = 58;
+  AutoCorrect.prototype.KEYCODE_SEMICOLON = 59;
 
-  // worker for predicting the next char and getting word suggestions
-  var worker = new Worker('js/worker.js');
-  // XXX: english hardcoded for now
-  worker.postMessage({ cmd: 'setLanguage', args: ['en_us']});
-  // XXX: get real key data
-  // XXX: should I have the keyboard generate an event when the
-  // current pageview changes?
-  worker.postMessage({ cmd: 'setNearbyKeys', args: [{}]});
+  AutoCorrect.prototype.start = function start() {
+    if (this._started) {
+      throw 'Instance should not be start()\'ed twice.';
+    }
+    this._started = true;
 
-  worker.onmessage = function(e) {
-    switch (e.data.cmd) {
-    case 'log':
-      console.log(e.data.message);
-      break;
-    case 'error':
-      console.error(e.data.message);
-      break;
-    case 'chars':
-      // Make sure the prediction is still valid
-      if (e.data.input === InputField.wordBeforeCursor()) {
-        //console.log("char predictions in",
-        //            performance.now() - predictionStartTime);
-        KeyboardTouchHandler.setExpectedChars(e.data.chars);
-      }
-      break;
-    case 'predictions':
-      // console.log("word suggestions in",
-      //             performance.now() - predictionStartTime);
-      // The worker is suggesting words: ask the keyboard to display them
-      handleSuggestions(e.data.input, e.data.suggestions);
-      break;
+    this.predictionStartTime = undefined;
+    this.correction = null;  // A pending correction
+    this.reversion = null;   // A pending reversion
+    this.autocorrectDisabled = false;
+
+    // worker for predicting the next char and getting word suggestions
+    var worker = this.worker = new Worker('js/worker.js');
+    // XXX: english hardcoded for now
+    worker.postMessage({ cmd: 'setLanguage', args: ['en_us']});
+    // XXX: get real key data
+    // XXX: should I have the keyboard generate an event when the
+    // current pageview changes?
+    worker.postMessage({ cmd: 'setNearbyKeys', args: [{}]});
+
+    worker.addEventListener('message', this);
+
+    // XXX
+    // There is a problem here: InputField is not dispatching either event
+    // when the user taps in the input field to move the cursor, so the
+    // word suggestions are not being cleared or changed.
+    this.app.inputField.addEventListener('inputstatechanged', this);
+    this.app.inputField.addEventListener('inputfieldchanged', this);
+
+    // XXX should not reference global object like this
+    Suggestions.addEventListener('suggestionselected', this);
+    Suggestions.addEventListener('suggestionsdismissed', this);
+
+    KeyboardTouchHandler.addEventListener('key', this);
+  };
+
+  AutoCorrect.prototype.stop = function stop() {
+    if (!this._started) {
+      throw 'Instance was never start()\'ed but stop() is called.';
+    }
+    this._started = false;
+
+    this.predictionStartTime = undefined;
+    this.correction = null;  // A pending correction
+    this.reversion = null;   // A pending reversion
+    this.autocorrectDisabled = false;
+
+    this.worker.removeEventListener('message', this);
+    this.worker = null;
+
+    this.app.inputField.removeEventListener('inputstatechanged', this);
+    this.app.inputField.removeEventListener('inputfieldchanged', this);
+
+    // XXX should not reference global object like this
+    Suggestions.removeEventListener('suggestionselected', this);
+    Suggestions.removeEventListener('suggestionsdismissed', this);
+
+    KeyboardTouchHandler.removeEventListener('key', this);
+  };
+
+  AutoCorrect.prototype.handleEvent = function handleEvent(evt) {
+    switch (evt.type) {
+      case 'key':
+        // XXX: pass event object here.
+        this.handleKey(evt);
+        break;
+
+      case 'message':
+        this.handleWorkerMessage(evt.data);
+        break;
+
+      case 'inputfieldchanged':
+      case 'inputstatechanged':
+        this.requestPredictions();
+        break;
+
+      case 'suggestionselected':
+        this.handleSelectionSelected(evt.detail);
+        break;
+
+      case 'suggestionsdismissed':
+        this.handleSelectionDismissed();
+        break;
     }
   };
 
-  // XXX
-  // There is a problem here: InputField is not dispatching either event
-  // when the user taps in the input field to move the cursor, so the
-  // word suggestions are not being cleared or changed.
-  InputField.addEventListener('inputstatechanged', requestPredictions);
-  InputField.addEventListener('inputfieldchanged', requestPredictions);
+  AutoCorrect.prototype.handleWorkerMessage =
+    function handleWorkerMessage(data) {
+      switch (data.cmd) {
+        case 'log':
+          console.log(data.message);
+          break;
+        case 'error':
+          console.error(data.message);
+          break;
+        case 'chars':
+          // Make sure the prediction is still valid
+          if (data.input === this.app.inputField.wordBeforeCursor()) {
+            //console.log("char predictions in",
+            //            performance.now() - this.predictionStartTime);
+            KeyboardTouchHandler.setExpectedChars(data.chars);
+          }
+          break;
+        case 'predictions':
+          // console.log("word suggestions in",
+          //             performance.now() - this.predictionStartTime);
+          // The worker is suggesting words: ask the keyboard to display them
+          this.handleSuggestions(data.input, data.suggestions);
+          break;
+      }
+    };
 
-  function requestPredictions() {
+  AutoCorrect.prototype.requestPredictions = function requestPredictions() {
     // Undo the result of any previous predictions
     // Change hit target resizing
     KeyboardTouchHandler.setExpectedChars([]);
@@ -69,166 +142,169 @@
     // allow invalid suggestions to be displayed for 20 to 100ms.
     // We do prevent autocorrection, however, even if the autocorrection
     // is still displayed.
-    correction = null;
+    this.correction = null;
 
     // If we're at the end of a word, ask the worker to predict
     // what charcters are most likely next and what words we should suggest
-    if (InputField.atWordEnd()) {
-      var word = InputField.wordBeforeCursor();
-      predictionStartTime = performance.now();
+    if (this.app.inputField.atWordEnd()) {
+      var word = this.app.inputField.wordBeforeCursor();
+      this.predictionStartTime = performance.now();
       // XXX: combine these two into a single call
-      worker.postMessage({ cmd: 'predictNextChar', args: [word] });
-      worker.postMessage({ cmd: 'predict', args: [word]});
+      this.worker.postMessage({ cmd: 'predictNextChar', args: [word] });
+      this.worker.postMessage({ cmd: 'predict', args: [word]});
     }
     else {
       Suggestions.display([]);
     }
-  }
+  };
 
-  Suggestions.addEventListener('suggestionselected', function(e) {
-    var suggestion = e.detail;
-    var current = InputField.wordBeforeCursor();
-    InputField.replaceSurroundingText(suggestion, current.length, 0);
-    reversion = {
+  AutoCorrect.prototype.handleSelectionSelected = function(suggestion) {
+    var current = this.app.inputField.wordBeforeCursor();
+    this.app.inputField.replaceSurroundingText(suggestion, current.length, 0);
+    this.reversion = {
       from: suggestion,
       to: current
     };
-    correction = null;
-    autocorrectDisabled = false;
-  });
+    this.correction = null;
+    this.autocorrectDisabled = false;
+  };
 
-  Suggestions.addEventListener('suggestionsdismissed', function() {
+  AutoCorrect.prototype.handleSelectionDismissed = function() {
     Suggestions.display([]); // clear the suggestions
 
     // Send a space character
-    InputField.sendKey(0, SPACE, 0);
+    this.app.inputField.sendKey(0, this.KEYCODE_SPACE, 0);
 
     // Get rid of pending autocorrection and reset other state
-    correction = null;
-    reversion = null;
-    autocorrectDisabled = false;
-  });
+    this.correction = null;
+    this.reversion = null;
+    this.autocorrectDisabled = false;
+  };
 
-  KeyboardTouchHandler.addEventListener('key', function(e) {
+
+
+  AutoCorrect.prototype.handleKey = function handleKey(evt) {
+    var currentPage = this.app.currentPage;
+    var inputField = this.app.inputField;
+
     // autocorrect on space, or re-enable corrections.
     // revert on backspace and temporarily block corrections
-    var keyname = e.detail;
+    var keyname = evt.detail;
     // XXX: pass the page view with the event
     var keyobj = currentPage.keys[keyname];
 
     switch (keyobj.keycode) {
-    case SPACE:
-    case RETURN:
-    case PERIOD:
-    case QUESTION:
-    case EXCLAMATION:
-    case COMMA:
-    case COLON:
-    case SEMICOLON:
+    case this.KEYCODE_SPACE:
+    case this.KEYCODE_RETURN:
+    case this.KEYCODE_PERIOD:
+    case this.KEYCODE_QUESTION:
+    case this.KEYCODE_EXCLAMATION:
+    case this.KEYCODE_COMMA:
+    case this.KEYCODE_COLON:
+    case this.KEYCODE_SEMICOLON:
       // These characters trigger autocorrection or re-enable autocorrection
       // if it was disabled
-      if (autocorrectDisabled) {
-        autocorrectDisabled = false;
-      }
-      else if (correction &&
-               correction.from === InputField.wordBeforeCursor()) {
+      if (this.autocorrectDisabled) {
+        this.autocorrectDisabled = false;
+      } else if (this.correction &&
+                 this.correction.from === inputField.wordBeforeCursor()) {
         var charcode = keyobj.keycode;
-        if (charcode === RETURN)
+        if (charcode === this.KEYCODE_RETURN) {
           charcode = 10;  // Use newline, not carriage return
-        var s = correction.to + String.fromCharCode(charcode);
-        InputField.replaceSurroundingText(s, correction.from.length, 0);
+        }
+        var s = this.correction.to + String.fromCharCode(charcode);
+        inputField.replaceSurroundingText(s,
+                                          this.correction.from.length, 0);
 
-        reversion = { from: s, to: correction.from };
-        correction = null;
-        e.stopImmediatePropagation();
-      }
-      else {
-        reversion = null;
+        this.reversion = { from: s, to: this.correction.from };
+        this.correction = null;
+        evt.stopImmediatePropagation();
+      } else {
+        this.reversion = null;
       }
       break;
 
-    case BACKSPACE:
-      if (reversion) {
-        if (InputField.textBeforeCursor.endsWith(reversion.from)) {
-          InputField.replaceSurroundingText(reversion.to,
-                                            reversion.from.length, 0);
+    case this.KEYCODE_BACKSPACE:
+      if (this.reversion) {
+        if (inputField.textBeforeCursor.endsWith(this.reversion.from)) {
+          inputField.replaceSurroundingText(this.reversion.to,
+                                            this.reversion.from.length, 0);
           // XXX:
           // if the reversion was from a word suggestion not an autocorrection
           // then we probably should not disable autocorrect
-          autocorrectDisabled = true;
-          e.stopImmediatePropagation();
+          this.autocorrectDisabled = true;
+          evt.stopImmediatePropagation();
         }
-        reversion = null;
+        this.reversion = null;
       }
       break;
 
     default:
-      reversion = null;
+      this.reversion = null;
       break;
     }
-  });
+  };
 
   // When the worker sends us back word suggestions, we handle them here.
   // The argument is an array of arrays [[word1, weight1], [word2, weight2]...]
-  function handleSuggestions(input, suggestions) {
-    if (input !== InputField.wordBeforeCursor()) {
-      // If these suggestions no longer match what is in the input field
-      // ignore them
-      Suggestions.display([]);
-      return;
-    }
-
-    // See if the user's input is a valid word on the list of suggestions
-    var inputIsSuggestion = false;
-    var inputWeight = 0;
-    var inputIndex;
-    for (inputIndex = 0; inputIndex < suggestions.length; inputIndex++) {
-      if (suggestions[inputIndex][0] === input) {
-        inputIsSuggestion = true;
-        inputWeight = suggestions[inputIndex][1];
-        break;
+  AutoCorrect.prototype.handleSuggestions =
+    function handleSuggestions(input, suggestions) {
+      if (input !== this.app.inputField.wordBeforeCursor()) {
+        // If these suggestions no longer match what is in the input field
+        // ignore them
+        Suggestions.display([]);
+        return;
       }
-    }
 
-    // We never want to display the user's input as a suggestion so
-    // remove it from the list if it is there.
-    if (inputIsSuggestion) {
-      suggestions.splice(inputIndex, 1);
-    }
+      // See if the user's input is a valid word on the list of suggestions
+      var inputIsSuggestion = false;
+      var inputWeight = 0;
+      var inputIndex;
+      for (inputIndex = 0; inputIndex < suggestions.length; inputIndex++) {
+        if (suggestions[inputIndex][0] === input) {
+          inputIsSuggestion = true;
+          inputWeight = suggestions[inputIndex][1];
+          break;
+        }
+      }
 
-    // If we don't have any suggestions we're done
-    if (suggestions.length === 0) {
-      Suggestions.display([]);
-      return;
-    }
+      // We never want to display the user's input as a suggestion so
+      // remove it from the list if it is there.
+      if (inputIsSuggestion) {
+        suggestions.splice(inputIndex, 1);
+      }
 
-    // Make sure we have no more than three words
-    if (suggestions.length > 3)
-      suggestions.length = 3;
+      // If we don't have any suggestions we're done
+      if (suggestions.length === 0) {
+        Suggestions.display([]);
+        return;
+      }
 
-    // Now get an array of just the suggested words
-    var words = suggestions.map(function(x) { return x[0]; });
+      // Make sure we have no more than three words
+      if (suggestions.length > 3)
+        suggestions.length = 3;
 
-    // Decide whether the first word is going to be an autocorrection.
-    // If the user's input is already a valid word, then don't
-    // autocorrect Unless the first suggested word is more common than
-    // the input.  Note that if the first suggested word has a higher
-    // weight even after whatever penalty is applied for not matching
-    // exactly, then it is significantly more common than the actual input.
-    // (This rule means that "ill" will autocorrect to "I'll",
-    // "wont" to "won't", etc.)
-    if (!autocorrectDisabled &&
-        (!inputIsSuggestion || suggestions[0][1] > inputWeight)) {
-      correction = { from: input, to: words[0] };
-      words[0] = '*' + words[0]; // Special code for the Suggestions module
-    }
-    else {
-      correction = null;
-    }
+      // Now get an array of just the suggested words
+      var words = suggestions.map(function(x) { return x[0]; });
 
-    Suggestions.display(words);
-  }
+      // Decide whether the first word is going to be an autocorrection.
+      // If the user's input is already a valid word, then don't
+      // autocorrect Unless the first suggested word is more common than
+      // the input.  Note that if the first suggested word has a higher
+      // weight even after whatever penalty is applied for not matching
+      // exactly, then it is significantly more common than the actual input.
+      // (This rule means that "ill" will autocorrect to "I'll",
+      // "wont" to "won't", etc.)
+      if (!this.autocorrectDisabled &&
+          (!inputIsSuggestion || suggestions[0][1] > inputWeight)) {
+        this.correction = { from: input, to: words[0] };
+        words[0] = '*' + words[0]; // Special code for the Suggestions module
+      } else {
+        this.correction = null;
+      }
 
+      Suggestions.display(words);
+    };
 
   /*
     I thought about setting this up as a state machine. The states would
@@ -289,5 +365,5 @@
 
    */
 
-
+  exports.AutoCorrect = AutoCorrect;
 }(window));

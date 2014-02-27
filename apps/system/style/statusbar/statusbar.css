@@ -35,11 +35,17 @@ body, html {
 
 #screen.locked:not(.attention) #statusbar {
   background-color: transparent;
+  transform: translateY(0);
 }
 
 #statusbar.invisible {
+  background-color: transparent;
   transition: transform 0.2s linear 0.25s;
   transform: translateY(-100%);
+}
+
+#screen:not(.locked) #statusbar.invisible.dragged {
+  background-color: black;
 }
 
 #screen.attention.locked #statusbar-time {

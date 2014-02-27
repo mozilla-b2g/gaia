@@ -267,24 +267,6 @@ class GaiaData(object):
         self.marionette.switch_to_frame()
         return self.marionette.execute_async_script("return GaiaDataLayer.disableBluetooth()")
 
-    def bluetooth_pair_device(self, device_name):
-        return self.marionette.execute_async_script('return GaiaDataLayer.pairBluetoothDevice("%s")' % device_name)
-
-    def bluetooth_unpair_all_devices(self):
-        self.marionette.switch_to_frame()
-        self.marionette.execute_async_script('return GaiaDataLayer.unpairAllBluetoothDevices()')
-
-    def bluetooth_set_device_name(self, device_name):
-        result = self.marionette.execute_async_script('return GaiaDataLayer.bluetoothSetDeviceName(%s);' % device_name)
-        assert result, "Unable to set device's bluetooth name to %s" % device_name
-
-    def bluetooth_set_device_discoverable_mode(self, discoverable):
-        if (discoverable):
-            result = self.marionette.execute_async_script('return GaiaDataLayer.bluetoothSetDeviceDiscoverableMode(true);')
-        else:
-            result = self.marionette.execute_async_script('return GaiaDataLayer.bluetoothSetDeviceDiscoverableMode(false);')
-        assert result, 'Able to set the device bluetooth discoverable mode'
-
     @property
     def bluetooth_is_enabled(self):
         return self.marionette.execute_script("return window.navigator.mozBluetooth.enabled")
@@ -712,7 +694,7 @@ class GaiaDevice(object):
     @property
     def is_android_build(self):
         if self.testvars.get('is_android_build') is None:
-            self.testvars['is_android_build'] = 'Android' in self.marionette.session_capabilities['platformName']
+            self.testvars['is_android_build'] = 'android' in self.marionette.session_capabilities['platformName'].lower()
         return self.testvars['is_android_build']
 
     @property
@@ -775,16 +757,12 @@ class GaiaDevice(object):
             raise Exception('Unable to start B2G')
         self.marionette.wait_for_port()
         self.marionette.start_session()
-        if self.is_android_build:
-            self.marionette.execute_async_script("""
-window.addEventListener('mozbrowserloadend', function loaded(aEvent) {
-  if (aEvent.target.src.indexOf('ftu') != -1 || aEvent.target.src.indexOf('homescreen') != -1) {
-    window.removeEventListener('mozbrowserloadend', loaded);
-    marionetteScriptFinished();
-  }
-});""", script_timeout=timeout)
-            # TODO: Remove this sleep when Bug 924912 is addressed
-            time.sleep(5)
+
+        # Wait for the AppWindowManager to have registered the frame as active (loaded)
+        locator = (By.CSS_SELECTOR, 'div.appWindow.active')
+        Wait(marionette=self.marionette, timeout=timeout, ignored_exceptions=NoSuchElementException)\
+            .until(lambda m: m.find_element(*locator).is_displayed())
+
         self.marionette.import_script(self.lockscreen_atom)
         self.update_checker.check_updates()
 
@@ -799,6 +777,14 @@ window.addEventListener('mozbrowserloadend', function loaded(aEvent) {
         self.marionette.client.close()
         self.marionette.session = None
         self.marionette.window = None
+
+    def press_sleep_button(self):
+        self.marionette.execute_script("""
+            window.wrappedJSObject.dispatchEvent(new CustomEvent('mozChromeEvent', {
+              detail: {
+                type: 'sleep-button-press'
+              }
+            }));""")
 
     def turn_screen_off(self):
         self.marionette.execute_script("window.wrappedJSObject.ScreenManager.turnScreenOff(true)")
@@ -837,10 +823,14 @@ window.addEventListener('mozbrowserloadend', function loaded(aEvent) {
         self.marionette.switch_to_frame()
         self.marionette.execute_script("window.wrappedJSObject.dispatchEvent(new Event('holdhome'));")
 
+    def hold_sleep_button(self):
+        self.marionette.switch_to_frame()
+        self.marionette.execute_script("window.wrappedJSObject.dispatchEvent(new Event('holdsleep'));")
+
     @property
     def is_locked(self):
         self.marionette.switch_to_frame()
-        return self.marionette.execute_script('return window.wrappedJSObject.LockScreen.locked')
+        return self.marionette.execute_script('return window.wrappedJSObject.lockScreen.locked')
 
     def lock(self):
         self.marionette.switch_to_frame()
@@ -881,8 +871,7 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
 
         self.device = GaiaDevice(self.marionette, self.testvars)
         if self.device.is_android_build:
-            self.device.add_device_manager(
-                self.get_device_manager(deviceSerial = self.marionette.device_serial))
+            self.device.add_device_manager(self.get_device_manager())
         if self.restart and (self.device.is_android_build or self.marionette.instance):
             self.device.stop_b2g()
             if self.device.is_android_build:

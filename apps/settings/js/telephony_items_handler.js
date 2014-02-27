@@ -8,7 +8,9 @@
  * information for telephony-related items from the root in the setting app.
  */
 var TelephonyItemsHandler = (function(window, document, undefined) {
-  var DATA_TYPE_MAPPING = {
+  var DATA_TYPE_SETTING = 'operatorResources.data.icon';
+
+  var dataTypeMapping = {
     'lte' : '4G LTE',
     'ehrpd': '4G CDMA',
     'hspa+': '3.5G HSPA+',
@@ -39,6 +41,27 @@ var TelephonyItemsHandler = (function(window, document, undefined) {
     'ready': ''
   };
 
+  function tih_updateDataTypeMapping() {
+    var req;
+    try {
+      req = navigator.mozSettings.createLock().get(DATA_TYPE_SETTING) || {};
+      req.onsuccess = function() {
+        var dataTypeValues = req.result[DATA_TYPE_SETTING] || {};
+        for (var key in dataTypeValues) {
+          if (dataTypeMapping[key]) {
+            dataTypeMapping[key] = dataTypeValues[key];
+          }
+        }
+      };
+      req.onerror = function() {
+        console.error('Error loading ' + DATA_TYPE_SETTING + ' settings. ' +
+                      req.error && req.error.name);
+      };
+    } catch (e) {
+      console.error('Error loading ' + DATA_TYPE_SETTING + ' settings. ' + e);
+    }
+  };
+
   var _iccManager;
   var _mobileConnections;
   var _;
@@ -47,6 +70,7 @@ var TelephonyItemsHandler = (function(window, document, undefined) {
    * Init function.
    */
   function tih_init() {
+    tih_updateDataTypeMapping();
     _iccManager = window.navigator.mozIccManager;
     _mobileConnections = window.navigator.mozMobileConnections;
     _ = window.navigator.mozL10n.get;
@@ -133,7 +157,7 @@ var TelephonyItemsHandler = (function(window, document, undefined) {
         dataDesc.textContent = carrier;
         var dataType = (_mobileConnections[0].data.connected &&
                         _mobileConnections[0].data.type) ?
-                        DATA_TYPE_MAPPING[_mobileConnections[0].data.type] :
+                        dataTypeMapping[_mobileConnections[0].data.type] :
                         '';
         if (dataType) {
           dataDesc.textContent += ' - ' + dataType;

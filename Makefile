@@ -85,7 +85,7 @@ DOGFOOD?=0
 # none - Do not enable rocketbar
 # half - Rocketbar is enabled, and so is browser app
 # full - Rocketbar is enabled, no browser app
-ROCKETBAR?=half
+ROCKETBAR?=none
 TEST_AGENT_PORT?=8789
 GAIA_APP_TARGET?=engineering
 
@@ -138,21 +138,17 @@ endif
 HOMESCREEN?=$(SCHEME)system.$(GAIA_DOMAIN)
 
 BUILD_APP_NAME?=*
-TEST_INTEGRATION_APP_NAME?=*
 ifneq ($(APP),)
-	ifeq ($(MAKECMDGOALS), test-integration)
-	TEST_INTEGRATION_APP_NAME=$(APP)
-	else
-	BUILD_APP_NAME=$(APP)
-	endif
+ifneq ($(MAKECMDGOALS), test-integration)
+BUILD_APP_NAME=$(APP)
+endif
 endif
 
 REPORTER?=spec
-NPM_REGISTRY?=http://registry.npmjs.org
 # Ensure that NPM only logs warnings and errors
 export npm_config_loglevel=warn
 MARIONETTE_RUNNER_HOST?=marionette-b2gdesktop-host
-TEST_MANIFEST?=./shared/test/integration/travis-manifest.json
+TEST_MANIFEST?=./shared/test/integration/local-manifest.json
 MOZPERFOUT?=""
 
 GAIA_INSTALL_PARENT?=/system/b2g
@@ -324,16 +320,17 @@ GAIA_KEYBOARD_LAYOUTS?=en,pt-BR,es,de,fr,pl,zh-Hans-Pinyin
 ifeq ($(SYS),Darwin)
 MD5SUM = md5 -r
 SED_INPLACE_NO_SUFFIX = /usr/bin/sed -i ''
-DOWNLOAD_CMD = /usr/bin/curl -O
+DOWNLOAD_CMD = /usr/bin/curl -OL
+TAR_WILDCARDS = tar
 else
 MD5SUM = md5sum -b
 SED_INPLACE_NO_SUFFIX = sed -i
 DOWNLOAD_CMD = wget $(WGET_OPTS)
+TAR_WILDCARDS = tar --wildcards
 endif
 
 # Test agent setup
 TEST_COMMON=test_apps/test-agent/common
-TEST_AGENT_DIR=tools/test-agent/
 ifeq ($(strip $(NODEJS)),)
 	NODEJS := `which node`
 endif
@@ -409,11 +406,13 @@ endef
 
 # Generate profile/
 
-$(PROFILE_FOLDER): preferences local-apps app-makefiles copy-build-stage-manifest test-agent-config offline contacts extensions install-xulrunner-sdk .git/hooks/pre-commit $(PROFILE_FOLDER)/settings.json create-default-data $(PROFILE_FOLDER)/installed-extensions.json
+$(PROFILE_FOLDER): preferences app-makefiles copy-build-stage-manifest test-agent-config offline contacts extensions install-xulrunner-sdk .git/hooks/pre-commit $(PROFILE_FOLDER)/settings.json create-default-data $(PROFILE_FOLDER)/installed-extensions.json
 ifeq ($(BUILD_APP_NAME),*)
 	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)$(PROFILE_FOLDER)"
 endif
 
+svoperapps: install-xulrunner-sdk
+	@$(call run-js-command, svoperapps)
 
 LANG=POSIX # Avoiding sort order differences between OSes
 
@@ -426,7 +425,7 @@ LANG=POSIX # Avoiding sort order differences between OSes
 # - build_stage/APPNAME/gaia_shared.json: This file lists shared resource
 #   dependencies that build/webapp-zip.js's detection logic might not determine
 #   because of lazy loading, etc.
-app-makefiles: install-xulrunner-sdk applications-data
+app-makefiles: svoperapps webapp-manifests install-xulrunner-sdk
 	@for d in ${GAIA_APPDIRS}; \
 	do \
 		if [[ ("$$d" =~ "${BUILD_APP_NAME}") || (${BUILD_APP_NAME} == "*") ]]; then \
@@ -437,9 +436,22 @@ app-makefiles: install-xulrunner-sdk applications-data
 		fi; \
 	done;
 
+.PHONY: webapp-manifests
+# Generate $(PROFILE_FOLDER)/webapps/
+# We duplicate manifest.webapp to manifest.webapp and manifest.json
+# to accommodate Gecko builds without bug 757613. Should be removed someday.
+#
+# We depend on app-makefiles so that per-app Makefiles could modify the manifest
+# as part of their build step.  None currently do this, and webapp-manifests.js
+# would likely want to change to see if the build directory includes a manifest
+# in that case.  Right now this is just making sure we don't race app-makefiles
+# in case someone does decide to get fancy.
+webapp-manifests: install-xulrunner-sdk
+	@$(call run-js-command, webapp-manifests)
+
 .PHONY: webapp-zip
 # Generate $(PROFILE_FOLDER)/webapps/APP/application.zip
-webapp-zip: applications-data webapp-optimize app-makefiles install-xulrunner-sdk
+webapp-zip: webapp-optimize app-makefiles install-xulrunner-sdk
 ifneq ($(DEBUG),1)
 	@mkdir -p $(PROFILE_FOLDER)/webapps
 	@$(call run-js-command, webapp-zip)
@@ -481,13 +493,8 @@ else
 endif
 endif
 
-local-apps: applications-data
-ifdef VARIANT_PATH
-	@$(call run-js-command, variant)
-endif
-
 # Create webapps
-offline: applications-data optimize-clean
+offline: app-makefiles optimize-clean
 
 # Create an empty reference workload
 .PHONY: reference-workload-empty
@@ -652,13 +659,6 @@ ifeq ($(BUILD_APP_NAME),*)
 	)
 endif
 
-
-# Generate $(PROFILE_FOLDER)/
-applications-data: profile-dir install-xulrunner-sdk
-ifeq ($(BUILD_APP_NAME),*)
-	@$(call run-js-command, applications-data)
-endif
-
 # Generate $(PROFILE_FOLDER)/extensions
 EXT_DIR=$(PROFILE_FOLDER)/extensions
 extensions:
@@ -682,9 +682,16 @@ endif
 # this lists the programs we need in the Makefile and that are installed by npm
 
 NPM_INSTALLED_PROGRAMS = node_modules/.bin/mozilla-download node_modules/.bin/jshint node_modules/.bin/mocha
-$(NPM_INSTALLED_PROGRAMS): package.json
-	npm install --registry $(NPM_REGISTRY)
-	touch $(NPM_INSTALLED_PROGRAMS)
+$(NPM_INSTALLED_PROGRAMS): package.json node_modules
+
+modules.tar:
+	$(DOWNLOAD_CMD) https://github.com/mozilla-b2g/gaia-node-modules/tarball/master
+	mv master modules.tar
+
+node_modules: modules.tar
+	$(TAR_WILDCARDS) --strip-components 1 -x -m -f modules.tar "mozilla-b2g-gaia-node-modules-*/node_modules"
+	npm install && npm rebuild
+	@echo "node_modules installed."
 
 ###############################################################################
 # Tests                                                                       #
@@ -712,18 +719,28 @@ b2g: node_modules/.bin/mozilla-download
 
 .PHONY: test-integration
 # $(PROFILE_FOLDER) should be `profile-test` when we do `make test-integration`.
-test-integration: b2g $(PROFILE_FOLDER)
-	NPM_REGISTRY=$(NPM_REGISTRY) ./bin/gaia-marionette $(shell find . -path "*$(TEST_INTEGRATION_APP_NAME)/test/marionette/*_test.js") \
+test-integration: $(PROFILE_FOLDER) test-integration-test
+
+# XXX Because bug-969215 is not finished, if we are going to run too many
+# marionette tests for 30 times at the same time, we may easily get timeout.
+#
+# In this way, we decide to separate building process with running marionette
+# tests so that we won't get into this problem.
+#
+# Remember to remove this target after bug-969215 is finished !
+.PHONY: test-integration-test
+test-integration-test:
+	./bin/gaia-marionette RUN_CALDAV_SERVER=1 \
 		--host $(MARIONETTE_RUNNER_HOST) \
 		--manifest $(TEST_MANIFEST) \
 		--reporter $(REPORTER)
 
 .PHONY: test-perf
 test-perf:
-	MOZPERFOUT="$(MOZPERFOUT)" APPS="$(APPS)" MARIONETTE_RUNNER_HOST=$(MARIONETTE_RUNNER_HOST) GAIA_DIR="`pwd`" NPM_REGISTRY=$(NPM_REGISTRY) ./bin/gaia-perf-marionette
+	MOZPERFOUT="$(MOZPERFOUT)" APPS="$(APPS)" MARIONETTE_RUNNER_HOST=$(MARIONETTE_RUNNER_HOST) GAIA_DIR="`pwd`" ./bin/gaia-perf-marionette
 
 .PHONY: tests
-tests: applications-data offline
+tests: app-makefiles offline
 	echo "Checking if the mozilla build has tests enabled..."
 	test -d $(MOZ_TESTS) || (echo "Please ensure you don't have |ac_add_options --disable-tests| in your mozconfig." && exit 1)
 	echo "Checking the injected Gaia..."
@@ -735,22 +752,17 @@ common-install:
 	@test -x "$(NODEJS)" || (echo "Please Install NodeJS -- (use aptitude on linux or homebrew on osx)" && exit 1 )
 	@test -x "$(NPM)" || (echo "Please install NPM (node package manager) -- http://npmjs.org/" && exit 1 )
 
-	cd $(TEST_AGENT_DIR) && npm install .
-
 .PHONY: update-common
 update-common: common-install
-
 	# common testing tools
 	mkdir -p $(TEST_COMMON)/vendor/test-agent/
 	mkdir -p $(TEST_COMMON)/vendor/chai/
-	rm -Rf tools/xpcwindow
-	rm -f $(TEST_COMMON)/vendor/test-agent/test-agent*.js
-	rm -f $(TEST_COMMON)/vendor/chai/*.js
-	cp -R $(TEST_AGENT_DIR)/node_modules/xpcwindow tools/xpcwindow
-	rm -R tools/xpcwindow/vendor/
-	cp $(TEST_AGENT_DIR)/node_modules/test-agent/test-agent.js $(TEST_COMMON)/vendor/test-agent/
-	cp $(TEST_AGENT_DIR)/node_modules/test-agent/test-agent.css $(TEST_COMMON)/vendor/test-agent/
-	cp $(TEST_AGENT_DIR)/node_modules/chai/chai.js $(TEST_COMMON)/vendor/chai/
+	rm -f $(TEST_COMMON)/vendor/test-agent/test-agent.js
+	rm -f $(TEST_COMMON)/vendor/test-agent/test-agent.css
+	rm -f $(TEST_COMMON)/vendor/chai/chai.js
+	cp $(GAIA)/node_modules/test-agent/test-agent.js $(TEST_COMMON)/vendor/test-agent/
+	cp $(GAIA)/node_modules/test-agent/test-agent.css $(TEST_COMMON)/vendor/test-agent/
+	cp $(GAIA)/node_modules/chai/chai.js $(TEST_COMMON)/vendor/chai/
 
 # Create the json config file
 # for use with the test agent GUI
@@ -805,18 +817,18 @@ ifneq ($(strip $(APP)),)
 APP_TEST_LIST=$(shell find apps/$(APP) -name '*_test.js' | grep '/test/unit/')
 endif
 .PHONY: test-agent-test
-test-agent-test:
+test-agent-test: node_modules
 ifneq ($(strip $(APP)),)
 	@echo 'Running tests for $(APP)';
-	@$(TEST_AGENT_DIR)/node_modules/test-agent/bin/js-test-agent test $(TEST_ARGS) --server ws://localhost:$(TEST_AGENT_PORT) --reporter $(REPORTER) $(APP_TEST_LIST)
+	./node_modules/test-agent/bin/js-test-agent test $(TEST_ARGS) --server ws://localhost:$(TEST_AGENT_PORT) --reporter $(REPORTER) $(APP_TEST_LIST)
 else
 	@echo 'Running all tests';
-	@$(TEST_AGENT_DIR)/node_modules/test-agent/bin/js-test-agent test $(TEST_ARGS) --server ws://localhost:$(TEST_AGENT_PORT) --reporter $(REPORTER)
+	./node_modules/test-agent/bin/js-test-agent test $(TEST_ARGS) --server ws://localhost:$(TEST_AGENT_PORT) --reporter $(REPORTER)
 endif
 
 .PHONY: test-agent-server
-test-agent-server: common-install
-	$(TEST_AGENT_DIR)/node_modules/test-agent/bin/js-test-agent server --port $(TEST_AGENT_PORT) -c ./$(TEST_AGENT_DIR)/test-agent-server.js --http-path . --growl
+test-agent-server: common-install node_modules
+	./node_modules/test-agent/bin/js-test-agent server --port $(TEST_AGENT_PORT) -c ./shared/test/unit/test-agent-server.js --http-path . --growl
 
 .PHONY: marionette
 marionette:
@@ -1000,7 +1012,7 @@ clean:
 
 # clean out build products and tools
 really-clean: clean
-	rm -rf xulrunner-* .xulrunner-* node_modules b2g
+	rm -rf xulrunner-* .xulrunner-* node_modules b2g modules.tar
 
 .git/hooks/pre-commit: tools/pre-commit
 	test -d .git && cp tools/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit || true
@@ -1009,9 +1021,9 @@ really-clean: clean
 adb-remount:
 	$(ADB) remount
 
-# Generally we got manifest from webapp-manifest.js which is execute in
-# applications-data.js unless manifest is generated from Makefile of app.
-# so we will copy manifest.webapp if it's avaiable in build_stage/
+# Generally we got manifest from webapp-manifest.js unless manifest is generated
+# from Makefile of app. so we will copy manifest.webapp if it's avaiable in
+# build_stage/
 copy-build-stage-manifest: app-makefiles
 	@$(call run-js-command, copy-build-stage-manifest)
 
@@ -1024,3 +1036,7 @@ build-test-integration: $(NPM_INSTALLED_PROGRAMS)
 .PHONY: docs
 docs: $(NPM_INSTALLED_PROGRAMS)
 	grunt docs
+
+.PHONY: watch
+watch: $(NPM_INSTALLED_PROGRAMS)
+	node build/watcher.js

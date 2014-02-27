@@ -40,8 +40,6 @@ class FTUStep3(CostControl):
         data_limit_view = self.marionette.find_element(
             *self._data_limit_view_locator)
         self.wait_for_condition(lambda m: data_limit_view.location['y'] == 0)
-        self.wait_for_condition(lambda m: self.keyboard.is_displayed())
-        self.switch_to_ftu()
         self.wait_for_element_displayed(*self._switch_unit_button_locator)
 
         current_unit = self.marionette.find_element(*self._switch_unit_button_locator)

@@ -6,19 +6,20 @@ requireApp('communications/dialer/js/call_log.js');
 requireApp('communications/dialer/js/utils.js');
 requireApp('communications/dialer/test/unit/mock_call_log_db_manager.js');
 requireApp('communications/dialer/test/unit/mock_l10n.js');
+requireApp('communications/dialer/test/unit/mock_performance_testing_helper.js');
 requireApp('sms/test/unit/mock_async_storage.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
+require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 
 requireApp('communications/shared/test/unit/mocks/mock_notification.js');
-requireApp('communications/contacts/test/unit/mock_fixed_header.js');
-
 
 var mocksHelperForCallLog = new MocksHelper([
   'asyncStorage',
   'CallLogDBManager',
-  'FixedHeader',
+  'PerformanceTestingHelper',
   'LazyLoader',
-  'LazyL10n'
+  'LazyL10n',
+  'ContactPhotoHelper'
 ]).init();
 
 suite('dialer/call_log', function() {
@@ -194,6 +195,37 @@ suite('dialer/call_log', function() {
     }
   };
 
+  function appendAndCheckGroupDOM(count, date, callback) {
+    var groups = [];
+    for (var i = 1; i <= count; i++) {
+      var grp = JSON.parse(JSON.stringify(incomingGroup));
+      grp.id = i;
+      grp.date = date ? date : i;
+      groups.push(grp);
+      CallLogDBManager.add(grp);
+    }
+    CallLog.render();
+    setTimeout(function() {
+      var sections = CallLog.callLogContainer.getElementsByTagName('section');
+      if (date) {
+        assert.equal(sections.length, 1);
+        var groupDOM = sections[0].getElementsByTagName('ol')[0];
+        var doms = groupDOM.getElementsByTagName('li');
+        for (var i = 0; i < count; i++) {
+          checkGroupDOM(doms[i], groups[i], null);
+        }
+      } else {
+        assert.equal(sections.length, count);
+        for (var i = 0; i < count; i++) {
+          var groupDOM = sections[i].getElementsByTagName('ol')[0];
+          var doms = groupDOM.getElementsByTagName('li');
+          checkGroupDOM(doms[0], groups[i], null);
+        }
+      }
+      callback();
+    });
+  }
+
   function checkGroupDOM(groupDOM, group, callback) {
     assert.ok(groupDOM, 'groupDOM exists');
     assert.ok(groupDOM instanceof Object, 'groupDOM is an object');
@@ -287,7 +319,9 @@ suite('dialer/call_log', function() {
     if (group.retryCount > 1) {
       assert.equal(retryCount.innerHTML, '(' + group.retryCount + ')');
     }
-    callback();
+    if (callback) {
+      callback();
+    }
   }
 
   function checkGroupDOMContactUpdated(groupDOM, contact, number, callback) {
@@ -355,6 +389,70 @@ suite('dialer/call_log', function() {
 
     test('Emergency group', function(done) {
       checkGroupDOM(CallLog.createGroup(emergencyGroup), emergencyGroup, done);
+    });
+  });
+
+  suite('render', function() {
+    var renderSeveralDaysSpy;
+
+    setup(function() {
+        renderSeveralDaysSpy = this.sinon.spy(CallLog, 'renderSeveralDays');
+    });
+
+    teardown(function(done) {
+      CallLogDBManager.deleteAll(function() {
+        CallLog.render();
+        setTimeout(done);
+      });
+    });
+
+    test('Below first render threshold same day', function(done) {
+      appendAndCheckGroupDOM(5, 1, function() {
+        sinon.assert.callCount(renderSeveralDaysSpy, 1);
+        done();
+      });
+    });
+
+    test('Above first render threshold same day', function(done) {
+      appendAndCheckGroupDOM(10, 1, function() {
+        sinon.assert.callCount(renderSeveralDaysSpy, 1);
+        done();
+      });
+    });
+
+    test('Below first render threshold different days', function(done) {
+      appendAndCheckGroupDOM(5, null, function() {
+        sinon.assert.callCount(renderSeveralDaysSpy, 1);
+        done();
+      });
+    });
+
+    test('Above first render threshold different days', function(done) {
+      appendAndCheckGroupDOM(10, null, function() {
+        sinon.assert.callCount(renderSeveralDaysSpy, 2);
+        done();
+      });
+    });
+
+    test('Below batch render threshold', function(done) {
+      appendAndCheckGroupDOM(50, null, function() {
+        sinon.assert.callCount(renderSeveralDaysSpy, 2);
+        done();
+      });
+    });
+
+    test('Above batch render threshold', function(done) {
+      appendAndCheckGroupDOM(100, null, function() {
+        sinon.assert.callCount(renderSeveralDaysSpy, 3);
+        done();
+      });
+    });
+
+    test('Multiple batch renders', function(done) {
+      appendAndCheckGroupDOM(300, null, function() {
+        sinon.assert.callCount(renderSeveralDaysSpy, 6);
+        done();
+      });
     });
   });
 

@@ -5,27 +5,15 @@ define(function(require, exports, module) {
  * Dependencies
  */
 
-var bindAll = require('utils/bindAll');
 var debug = require('debug')('controller:hud');
+var bindAll = require('lib/bind-all');
 
 /**
  * Exports
  */
 
-exports = module.exports = create;
+exports = module.exports = function(app) { return new HudController(app); };
 exports.HudController = HudController;
-
-/**
- * Create new `HudController`
- * and bind events.
- *
- * @param  {AppController} app
- * @return {HudController}
- *
- */
-function create(app) {
-  return new HudController(app).bindEvents();
-}
 
 /**
  * Initialize a new `HudController`
@@ -35,92 +23,95 @@ function create(app) {
  *
  */
 function HudController(app) {
-  debug('initializing');
-  this.viewfinder = app.views.viewfinder;
-  this.controls = app.views.controls;
-  this.hud = app.views.hud;
-  this.camera = app.camera;
   bindAll(this);
+  this.app = app;
+  this.hud = app.views.hud;
+  this.configure();
+  this.bindEvents();
   debug('initialized');
 }
+
+/**
+ * Initially configure state.
+ *
+ * @private
+ */
+HudController.prototype.configure = function() {
+  var camerasSetting = this.app.settings.cameras;
+  var hasDualCamera = camerasSetting.get('options').length > 1;
+  this.hud.enable('settings', this.app.settings.value('showSettings'));
+  this.hud.set('flashMode', this.app.settings.value('flashModes'));
+  this.hud.enable('camera', hasDualCamera);
+};
 
 /**
  * Bind callbacks to events.
  *
  * @return {HudController} for chaining
- *
+ * @private
  */
 HudController.prototype.bindEvents = function() {
-  this.hud.on('flashToggle', this.onFlashToggle);
-  this.hud.on('cameraToggle', this.onCameraToggle);
-  this.camera.on('configured', this.onCameraConfigured);
-  this.camera.on('streamloaded', this.onStreamLoaded);
-  this.camera.on('previewresumed', this.hud.enableButtons);
-  this.camera.on('preparingtotakepicture', this.hud.disableButtons);
-  this.camera.on('change:recording', this.onRecordingChange);
-  return this;
+  this.app.settings.on('change:flashModes', this.hud.setFlashMode);
+  this.app.settings.on('change:mode', this.configureFlash);
+  this.hud.on('click:settings', this.app.firer('settings:toggle'));
+  this.hud.on('click:camera', this.onCameraClick);
+  this.hud.on('click:flash', this.onFlashClick);
+  this.app.on('settings:configured', this.onSettingsConfigured);
+  this.app.on('change:recording', this.onRecordingChange);
+  this.app.on('camera:loading', this.disableButtons);
+  this.app.on('camera:busy', this.disableButtons);
+  this.app.on('camera:ready', this.enableButtons);
 };
 
-/**
- * Update UI when a new
- * camera is configured.
- *
- */
-HudController.prototype.onCameraConfigured = function() {
-  var hasFrontCamera = this.camera.hasFrontCamera();
-  var flashMode = this.camera.get('flash');
-  this.hud.showCameraToggleButton(hasFrontCamera);
-  this.hud.setFlashMode(flashMode);
+HudController.prototype.onSettingsConfigured = function() {
+  this.configureFlash();
 };
 
-/**
- * Toggles the flash on
- * the camera and UI when
- * the flash button is pressed.
- *
- */
-HudController.prototype.onFlashToggle = function() {
-  var mode = this.camera.toggleFlash();
-  this.hud.setFlashMode(mode);
+HudController.prototype.onCameraClick = function() {
+  this.app.settings.get('cameras').next();
 };
 
-/**
- * Toggle the camera (front/back),
- * fading the viewfinder in between.
- *
- */
-HudController.prototype.onCameraToggle = function() {
-  var controls = this.controls;
-  var viewfinder = this.viewfinder;
-  var camera = this.camera;
-  var hud = this.hud;
-
-  controls.disableButtons();
-  hud.disableButtons();
-  hud.highlightCameraButton(true);
-  viewfinder.fadeOut(onFadeOut);
-
-  function onFadeOut() {
-    camera.toggleCamera();
-  }
+HudController.prototype.onFlashClick = function() {
+  this.flashSetting.next();
 };
 
-HudController.prototype.onStreamLoaded = function() {
-  this.viewfinder.fadeIn();
-  this.controls.enableButtons();
-  this.hud.enableButtons();
-  this.hud.highlightCameraButton(false);
+HudController.prototype.configureFlash = function() {
+  var newFlash = this.getFlashSetting();
+  var oldFlash = this.flashSetting;
+
+  // Remove old listners and add new
+  if (oldFlash) { oldFlash.off('change', this.updateFlash); }
+  if (newFlash) { newFlash.on('change', this.updateFlash); }
+
+  // Store new flash and update UI
+  this.flashSetting = newFlash;
+  this.updateFlash();
 };
 
-/**
- * Disable the buttons
- * when recording
- *
- * @param  {Boolean} value
- *
- */
-HudController.prototype.onRecordingChange = function(value) {
-  this.hud.toggleDisableButtons(value);
+HudController.prototype.updateFlash = function() {
+  var setting = this.flashSetting;
+  var selected = setting && setting.selected();
+  var hasFlash = !!selected;
+  this.hud.enable('flash', hasFlash);
+  this.hud.setFlashMode(selected);
+};
+
+HudController.prototype.enableButtons = function() {
+  this.hud.enable('buttons');
+};
+
+HudController.prototype.disableButtons = function() {
+  this.hud.disable('buttons');
+};
+
+HudController.prototype.getFlashSetting = function() {
+  var mode = this.app.settings.mode.value();
+  return this.app.settings.get(mode + 'FlashModes');
+};
+
+HudController.prototype.onRecordingChange = function(recording) {
+  this.hud.hide('flash', recording);
+  this.hud.hide('camera', recording);
 };
 
 });

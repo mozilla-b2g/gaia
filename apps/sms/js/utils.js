@@ -1,6 +1,8 @@
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
+/* globals ContactPhotoHelper */
+
 (function(exports) {
   'use strict';
   var rdashes = /-(.)/g;
@@ -104,8 +106,9 @@
 
         // Add photo
         if (include.photoURL) {
-          if (contact.photo && contact.photo[0]) {
-            details.photoURL = window.URL.createObjectURL(contact.photo[0]);
+          var photo = ContactPhotoHelper.getThumbnail(contact);
+          if (photo) {
+            details.photoURL = window.URL.createObjectURL(photo);
           }
         }
 
@@ -501,6 +504,20 @@
       };
 
       return data;
+    },
+
+    /*
+      TODO: It's workaround to avoid url revoke bug. Need platform fixing
+            to remove the async load/remove.(Please ref bug 972245)
+    */
+    asyncLoadRevokeURL: function(url) {
+      setTimeout(function() {
+        var image = new Image();
+        image.src = url;
+        image.onload = image.onerror = function revokePhotoURL() {
+          window.URL.revokeObjectURL(this.src);
+        };
+      });
     }
   };
 

@@ -1,3 +1,6 @@
+/* global UIManager, SimManager, MocksHelper, MockNavigatorMozIccManager,
+          MockNavigatorMozMobileConnections, Navigation, MockL10n */
+
 'use strict';
 
 require(
@@ -21,7 +24,27 @@ suite('sim mgmt >', function() {
       realMozIccManager,
       realMozMobileConnections;
   var mocksHelper = mocksHelperForSimManager;
-  var navigationStub;
+  var navigationStub,
+      iccId,
+      iccInfo,
+      req,
+      getCardLockRetryCountStub;
+
+  var setupRetryCount = function() {
+    req = { result: { retryCount: 3 } };
+    getCardLockRetryCountStub = sinon.stub(iccInfo, 'getCardLockRetryCount',
+      function() {
+        return req;
+      });
+  };
+
+  var fireRetryCountCallback = function() {
+    req.onsuccess && req.onsuccess();
+  };
+
+  var teardownRetryCount = function() {
+    getCardLockRetryCountStub.restore();
+  };
 
   suiteSetup(function() {
     loadBodyHTML('/ftu/index.html');
@@ -38,6 +61,9 @@ suite('sim mgmt >', function() {
     navigator.mozL10n = MockL10n;
 
     mocksHelper.suiteSetup();
+
+    iccId = navigator.mozIccManager.iccIds[0];
+    iccInfo = navigator.mozIccManager.getIccById(iccId);
   });
 
   setup(function() {
@@ -45,6 +71,12 @@ suite('sim mgmt >', function() {
 
     UIManager.activationScreen.classList.remove('show');
     UIManager.unlockSimScreen.classList.add('show');
+
+    setupRetryCount();
+  });
+
+  teardown(function() {
+    teardownRetryCount();
   });
 
   suiteTeardown(function() {
@@ -68,6 +100,10 @@ suite('sim mgmt >', function() {
     SimManager.skip();
     assert.isTrue(UIManager.activationScreen.classList.contains('show'));
     assert.isFalse(UIManager.unlockSimScreen.classList.contains('show'));
+
+    fireRetryCountCallback();
+    assert.isFalse(UIManager.pinRetriesLeft.classList.contains('hidden'));
+    assert.isTrue(getCardLockRetryCountStub.calledOnce);
   });
 
   test('"Back" hides the screen', function() {
@@ -94,6 +130,10 @@ suite('sim mgmt >', function() {
       assert.isTrue(UIManager.pincodeScreen.classList.contains('show'));
       assert.isFalse(UIManager.pukcodeScreen.classList.contains('show'));
       assert.isFalse(UIManager.xckcodeScreen.classList.contains('show'));
+
+      fireRetryCountCallback();
+      assert.isFalse(UIManager.pinRetriesLeft.classList.contains('hidden'));
+      assert.isTrue(getCardLockRetryCountStub.calledOnce);
     });
 
     test('pukRequired shows PUK screen', function() {
@@ -106,6 +146,10 @@ suite('sim mgmt >', function() {
       assert.isFalse(UIManager.pincodeScreen.classList.contains('show'));
       assert.isTrue(UIManager.pukcodeScreen.classList.contains('show'));
       assert.isFalse(UIManager.xckcodeScreen.classList.contains('show'));
+
+      fireRetryCountCallback();
+      assert.isFalse(UIManager.pukRetriesLeft.classList.contains('hidden'));
+      assert.isTrue(getCardLockRetryCountStub.calledOnce);
     });
 
     test('pukRequired DSDS screen', function() {
@@ -117,6 +161,9 @@ suite('sim mgmt >', function() {
       assert.equal(navigator.mozL10n.get('pukcodeLabel', {n: 1}),
         UIManager.pukLabel.textContent);
       SimManager.simSlots = 1;
+
+      fireRetryCountCallback();
+      assert.isTrue(getCardLockRetryCountStub.calledOnce);
     });
 
     test('networkLocked shows XCK screen', function() {
@@ -128,6 +175,10 @@ suite('sim mgmt >', function() {
       assert.isFalse(UIManager.pincodeScreen.classList.contains('show'));
       assert.isFalse(UIManager.pukcodeScreen.classList.contains('show'));
       assert.isTrue(UIManager.xckcodeScreen.classList.contains('show'));
+
+      fireRetryCountCallback();
+      assert.isFalse(UIManager.xckRetriesLeft.classList.contains('hidden'));
+      assert.isTrue(getCardLockRetryCountStub.calledOnce);
     });
   });
 

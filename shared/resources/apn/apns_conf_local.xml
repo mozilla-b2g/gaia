@@ -17,7 +17,7 @@
       mmsproxy="127.0.0.1"
       mmsport="8080"
       authtype="0"
-      type="default,supl,mms"
+      type="default,supl,mms,dun,ims"
   />
   <!-- /Test Networks -->
 

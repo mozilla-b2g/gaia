@@ -79,19 +79,16 @@
 
     <script defer src="js/screen_manager.js"></script>
     <script defer src="js/activities.js"></script>
+    <script defer src="js/storage.js"></script>
     <script defer src="js/bootstrap.js"></script>
     <script defer src="js/screenshot.js"></script>
     <script defer src="js/async_semaphore.js"></script>
     <script defer src="js/sound_manager.js"></script>
     <script defer src="js/source_view.js"></script>
-    <script defer src="js/storage.js"></script>
     <script defer src="js/hardware_buttons.js"></script>
     <script defer src="js/system_banner.js"></script>
     <script defer src="js/system_dialog.js"></script>
     <script defer src="js/home_gesture.js"></script>
-    <!-- Grid View -->
-    <link rel="stylesheet" type="text/css" href="style/gridview/gridview.css">
-    <script defer src="js/gridview.js"></script>
 
     <!-- TTL View -->
     <link rel="stylesheet" type="text/css" href="style/ttlview/ttlview.css">
@@ -142,6 +139,7 @@
     <script defer src="js/icc_events.js"></script>
     <script defer src="js/icc_worker.js"></script>
     <script defer src="js/icc.js"></script>
+    <script defer src="js/stkTester.js"></script>
 
     <!-- Media Playback -->
     <script defer src="js/media_playback.js"></script>
@@ -314,10 +312,11 @@
     <script defer src="js/secure_window_manager.js"></script>
     <script defer src="js/visibility_manager.js"></script>
     <script defer src="js/layout_manager.js"></script>
+    <script defer src="js/suspending_app_priority_manager.js"></script>
 
     <!-- Devtools -->
-    <link rel="stylesheet" type="text/css" href="style/devtools_layers.css">
-    <script defer src="js/devtools_layers.js"></script>
+    <link rel="stylesheet" type="text/css" href="style/devtools_view.css">
+    <script defer src="js/devtools_view.js"></script>
 
     <!-- Edge Gestures -->
     <script defer src="js/stack_manager.js"></script>
@@ -737,7 +736,19 @@
                 <div id="trustedui-throbber"></div>
               </header>
             </section>
-            <div id="trustedui-frame-container"></div>
+            <div id="trustedui-frame-container">
+              <div id="trustedui-error-dialog" role="dialog" class="generic-dialog">
+                <div class="inner">
+                  <h3 data-l10n-id="error-title" id="trustedui-error-title">Error</h3>
+                  <p>
+                  <span data-l10n-id="error-message" id="trustedui-error-message">The app has encountered an error.</span>
+                  </p>
+                </div>
+                <menu data-items="1">
+                  <button id="trustedui-error-close" data-l10n-id="close">Close</button>
+                </menu>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -1051,6 +1062,7 @@
       <div id="lockscreen-camera" data-z-index-level="lockscreen-camera"></div>
 
       <div id="lockscreen" class="uninit" data-panel="main" data-z-index-level="lockscreen">
+        <div id="lockscreen-background" class="lockscreen-background"></div>
         <div id="lockscreen-container">
           <div id="lockscreen-panel-main" class="lockscreen-panel">
             <div id="lockscreen-header">
@@ -1155,9 +1167,9 @@
       <!-- keyboard -->
       <div id="keyboards" class="hide" data-z-index-level="keyboards"></div>
 
+      <!-- cards view -->
       <div id="cards-view" data-z-index-level="cards-view">
-        <ul>
-        </ul>
+        <ul id="cards-list"></ul>
         <span class="no-recent-apps" data-l10n-id="no-recent-apps">No recent apps</span>
       </div>
 
@@ -1165,7 +1177,7 @@
       <div id="icc-view" data-z-index-level="icc-view">
         <form role="dialog" class="generic-dialog" data-type="confirm" id="icc-alert">
           <section>
-            <h1 data-l10n-id="icc-message">STK Message</h1>
+            <h1 id="icc-alert-title">STK Message</h1>
             <p id="icc-alert-msg"></p>
           </section>
           <menu>
@@ -1174,7 +1186,7 @@
         </form>
         <form role="dialog" class="generic-dialog" data-type="confirm" id="icc-confirm">
           <section>
-            <h1 data-l10n-id="icc-message">STK Message</h1>
+            <h1 id="icc-confirm-title">STK Message</h1>
             <p id="icc-confirm-msg"></p>
           </section>
           <menu>
@@ -1185,7 +1197,7 @@
         </form>
         <form role="dialog" class="generic-dialog" data-type="confirm" id="icc-asyncconfirm">
           <section>
-            <h1 data-l10n-id="icc-message">STK Message</h1>
+            <h1 id="icc-asyncconfirm-title">STK Message</h1>
             <p id="icc-asyncconfirm-msg"></p>
           </section>
           <menu data-items="2">
@@ -1195,7 +1207,7 @@
         </form>
         <form role="dialog" class="generic-dialog" data-type="confirm" id="icc-input">
           <section>
-            <h1 data-l10n-id="icc-inputtitle">STK Query</h1>
+            <h1 id="icc-input-title">STK Query</h1>
             <p id="icc-input-msg"></p>
             <input id="icc-input-box" required="" type="text">
           </section>
@@ -1223,12 +1235,6 @@
           <button data-l10n-id="cancel">Cancel</button>
         </menu>
       </div>
-
-      <section id="system-banner" role="dialog" class="banner generic-dialog"
-          data-z-index-level="system-notification-banner" data-button="false">
-        <p></p>
-        <button></button>
-      </section>
 
       <div id="system-overlay" data-z-index-level="system-overlay">
         <div id="battery">

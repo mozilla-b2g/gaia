@@ -24,13 +24,11 @@ class Wifi(Base):
         self.wait_for_condition(lambda m: self.is_wifi_enabled)
 
     def connect_to_network(self, network_info):
-        # Wait for some networks to be found
-        self.wait_for_condition(lambda m: len(m.find_elements(
-            *self._available_networks_locator)) > 0,
-            message='No networks listed on screen')
 
+        # Wait for the networks to be found
         this_network_locator = ('xpath', "//li/a[text()='%s']" % network_info['ssid'])
-        this_network = self.marionette.find_element(*this_network_locator)
+        this_network = self.wait_for_element_present(*this_network_locator)
+
         self.marionette.execute_script("arguments[0].scrollIntoView(false);", [this_network])
         this_network.tap()
 
@@ -39,10 +37,12 @@ class Wifi(Base):
             if not password:
                 raise Exception('No psk or wep key found in testvars for secured wifi network.')
 
-            self.wait_for_element_displayed(*self._password_input_locator)
+            screen_width = int(self.marionette.execute_script('return window.innerWidth'))
+            ok_button = self.marionette.find_element(*self._password_ok_button_locator)
+            self.wait_for_condition(lambda m: (ok_button.location['x'] + ok_button.size['width']) == screen_width)
             password_input = self.marionette.find_element(*self._password_input_locator)
             password_input.send_keys(password)
-            self.marionette.find_element(*self._password_ok_button_locator).tap()
+            ok_button.tap()
 
         self.wait_for_condition(
             lambda m: m.find_element(*self._connected_message_locator).text == "Connected",

@@ -1,4 +1,4 @@
-var __email__ = '../../../email/test/marionette/';
+var __email__ = '../../../../apps/email/test/marionette/';
 var Browser = require('./lib/browser'),
     Email = require(__email__ + 'lib/email'),
     Server = require('./lib/server'),

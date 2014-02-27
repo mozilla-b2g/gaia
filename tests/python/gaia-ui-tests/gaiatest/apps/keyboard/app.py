@@ -79,8 +79,8 @@ class Keyboard(Base):
     _space_key = '32'
 
     # keyboard app locators
+    _keyboards_locator = (By.ID, 'keyboards')
     _keyboard_frame_locator = (By.CSS_SELECTOR, '#keyboards iframe:not([hidden])')
-    _keyboard_locator = (By.CSS_SELECTOR, '#keyboard')
     _button_locator = (By.CSS_SELECTOR, '.keyboard-type-container[data-active] button.keyboard-key[data-keycode="%s"], .keyboard-type-container[data-active] button.keyboard-key[data-keycode-upper="%s"]')
     _highlight_key_locator = (By.CSS_SELECTOR, 'div.highlighted button')
     _predicted_word_locator = (By.CSS_SELECTOR, '.autocorrect')
@@ -141,10 +141,15 @@ class Keyboard(Base):
 
     # this is to switch to the frame of keyboard
     def switch_to_keyboard(self):
-        self.wait_for_condition(lambda m: self.is_displayed())
         self.marionette.switch_to_frame()
+        keyboards = self.marionette.find_element(*self._keyboards_locator)
+        self.wait_for_condition(lambda m: 'hide' not in keyboards.get_attribute('class') and \
+            not keyboards.get_attribute('data-transition-in'),
+            message="Keyboard not interpreted as displayed. Debug is_displayed(): %s"
+                %keyboards.is_displayed())
+
         keybframe = self.marionette.find_element(*self._keyboard_frame_locator)
-        self.marionette.switch_to_frame(keybframe, focus=False)
+        return self.marionette.switch_to_frame(keybframe, focus=False)
 
     @property
     def current_keyboard(self):
@@ -319,19 +324,13 @@ class Keyboard(Base):
     def dismiss(self):
         self.marionette.switch_to_frame()
         self.marionette.execute_script('navigator.mozKeyboard.removeFocus();')
-        keyboards = self.marionette.find_element(By.ID, 'keyboards')
+        keyboards = self.marionette.find_element(*self._keyboards_locator)
         Wait(self.marionette).until(
             lambda m: 'hide' in keyboards.get_attribute('class') and
-            not keyboards.get_attribute('data-transition-out'))
+            not keyboards.is_displayed(),
+            message="Keyboard was not dismissed. Debug is_displayed(): %s, class: %s."
+                    %(keyboards.is_displayed(), keyboards.get_attribute('class')))
         self.apps.switch_to_displayed_app()
-
-    def is_displayed(self):
-        self.marionette.switch_to_frame()
-        keyboards = self.marionette.find_element(By.ID, 'keyboards')
-        is_visible = 'hide' not in keyboards.get_attribute('class') and \
-            not keyboards.get_attribute('data-transition-in')
-        self.apps.switch_to_displayed_app()
-        return is_visible
 
     def tap_first_predictive_word(self):
         self.switch_to_keyboard()

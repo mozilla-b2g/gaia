@@ -151,6 +151,7 @@ body.cropView #crop-view {
   position: absolute;
   left: 0;
   width: 100%;
+  top: 0;
   bottom: 0;
   /* top and bottom are set depending on view below */
   padding: 0;
@@ -182,10 +183,6 @@ body.thumbnailListView #thumbnails {
   bottom: 0;
 }
 
-body.thumbnailListView #thumbnails {
-  top: 0;
-}
-
 body.thumbnailSelectView #thumbnails,
 body.pickView #thumbnails {
   top: 5rem;
@@ -201,6 +198,18 @@ body.pickView #thumbnails {
   width:100%;
   float:left;
 }
+
+/* Bug 968311 - Keep Gallery in scrollable
+ * background color. Need in all four
+ * containers below.
+ */
+#thumbnails > li,
+#thumbnails > li > ul,
+.thumbnail-group-header,
+.thumbnail-group-container {
+  background-color: #0E1214;
+}
+
 .thumbnail-group-container {
   padding: 0;
 }
@@ -210,12 +219,10 @@ body.pickView #thumbnails {
   list-style-type: none;
 }
 
-
 #thumbnails>li:first-child .thumbnail-group-header {
   border-top: 0.1rem solid;
   border-color:rgba(255,255,255, 0.1);
 }
-
 
 .thumbnail {
   margin-right: 0.1rem;
@@ -284,23 +291,24 @@ body.pickView #thumbnails {
 }
 
 #fullscreen-back-button-tiny {
+  /*
+    these particular sizes, positions, and colors are chosen
+    to line up with the focus mode button of the camera app
+  */
   position: absolute;
-  top: 0.5rem;
-  left: 0.5rem;
-  width: 4.5rem;
-  height: 4.5rem;
+  top: 2rem;
+  left: 1.4rem;
+  width: 5rem;
+  height: 5rem;
   font-size: 0;
   border-radius: 50%;
   border: none;
-  color: #605c59;
-  box-shadow: 0 0.1rem 0 inset;
-  background: rgba(114, 111, 106, 0.8) url(images/back.png) no-repeat 50% 50%;
+  background: rgba(95, 95, 95, 0.3) url(images/back.png) no-repeat 50% 50%;
   transition: opacity 0.2s linear;
 }
 
 #fullscreen-back-button-tiny:active {
-  color: #107788;
-  background-color: #00b0d5;
+  background-color: #008eab;
 }
 
 #frames {

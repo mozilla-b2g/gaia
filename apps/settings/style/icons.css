@@ -142,7 +142,7 @@ li:active:not([aria-disabled="true"]) .menu-item::before,
 }
 
 #menuItem-developer::before {
-  background-position: -6rem -12rem;
+  background-position: -3rem -18rem;
 }
 
 #menuItem-improveBrowserOS::before {

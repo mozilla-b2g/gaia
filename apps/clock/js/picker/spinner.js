@@ -1,8 +1,9 @@
 define(function(require) {
   'use strict';
 
-  var Template = require('shared/js/template');
+  var Template = require('template');
   var GestureDetector = require('shared/js/gesture_detector');
+  var spinnerHtml = require('text!picker/spinner.html');
 
   // units covered per millisecond threshold to kick off inertia
   var SPEED_THRESHOLD = 0.01;
@@ -19,6 +20,7 @@ define(function(require) {
   var DRAGGING_TIMEOUT = 200;
 
   function calculateSpeed(previous, current) {
+    /* jshint validthis:true */
     var motion = (previous.y - current.y) / this.unitHeight;
     var delta = current.time - previous.time;
     var speed = motion / delta;
@@ -76,7 +78,7 @@ define(function(require) {
       }
     });
 
-    this.template = new Template('picker-unit-tmpl');
+    this.template = new Template(spinnerHtml);
 
     this.top = 0;
     this.space = 0;
@@ -164,7 +166,7 @@ define(function(require) {
   Spinner.prototype.onpan = function(event) {
     event.stopPropagation();
     var position = event.detail.position;
-    var diff, moving;
+    var diff;
 
     // If this is the first pan event after a swipe...
     if (this.element.classList.contains('animation-on')) {

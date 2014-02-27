@@ -1,4 +1,6 @@
 global.GAIA_DIR = process.env.GAIA_DIR || './';
+// define VERBOSE in the env to get more verbose output.
+global.mozPerfVerbose = process.env.VERBOSE;
 
 global.mozTestInfo = {
   appPath: process.env.CURRENT_APP,
@@ -10,7 +12,8 @@ const excludedApps = [
   'communications/facebook', 'communications/gmail', // part of other apps
   'communications/import', 'communications/live', // part of other apps
   'communications', // not an app
-  'costcontrol', // XXX FIXME. Hang for now
+  'costcontrol', // XXX FIXME. Hang for now. See bug 971438
+  'camera', // XXX FIXME. hang too often. See bug 971771
   'email/shared', // not an app
   'fl', 'pdfjs', 'setringtone', // XXX activities
   'template', // XXX not a real thing.
@@ -24,8 +27,8 @@ const excludedApps = [
 global.excludedApps = excludedApps;
 
 if (excludedApps.indexOf(mozTestInfo.appPath) !== -1) {
-  if (process.env.VERBOSE) {
-    console.log('"' + mozTestInfo.appPath +
+  if (mozPerfVerbose) {
+    console.error('"' + mozTestInfo.appPath +
                 '" is an excluded app, skipping tests.');
   }
 
@@ -39,3 +42,7 @@ if (excludedApps.indexOf(mozTestInfo.appPath) !== -1) {
 global.requireGaia = function(path)  {
   return require(GAIA_DIR + '/' + path);
 };
+
+if (mozPerfVerbose) {
+  console.error('testing "' + mozTestInfo.appPath + '"');
+}

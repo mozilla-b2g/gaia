@@ -144,6 +144,7 @@
     <link rel="import" href="/elements/application_storage.html">
     <link rel="import" href="/elements/media_storage.html">
     <link rel="import" href="/elements/accessibility.html">
+    <link rel="import" href="/elements/developer_hud.html">
     <link rel="import" href="/elements/developer.html">
     <link rel="import" href="/elements/crash_reports.html">
     <link rel="import" href="/elements/improve_browser_os_send_feedback.html">
@@ -306,6 +307,8 @@
     <section is="mediaStorage" role="region" id="mediaStorage"></section>
     <!-- Device :: Accessibility -->
     <section is="accessibility" role="region" id="accessibility"></section>
+    <!-- Device :: Developer :: HUD -->
+    <section is="developer-hud" role="region" id="developer-hud"></section>
     <!-- Device :: Developer -->
     <section is="developer" role="region" id="developer"></section>
     <!-- Device :: Improve Browser OS :: Crash Reports-->
@@ -488,7 +491,7 @@
           <li data-show-name="accessibility.show-settings" hidden>
             <a id="menuItem-accessibility" class="menu-item" href="#accessibility" data-l10n-id="accessibility">Accessibility</a>
           </li>
-          <li hidden>
+          <li data-show-name="developer.menu.enabled" hidden>
             <a id="menuItem-developer" class="menu-item" href="#developer" data-l10n-id="developer">Developer</a>
           </li>
           <li>

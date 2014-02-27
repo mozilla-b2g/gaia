@@ -1,4 +1,4 @@
-before_install: travis_retry npm install
+before_install: travis_retry make node_modules
 install: ./node_modules/.bin/travisaction $CI_ACTION install
 before_script:
 - export DISPLAY=:99.0
@@ -9,12 +9,17 @@ after_script: ./node_modules/.bin/travisaction $CI_ACTION after_script
 branches:
   only:
   - master
+  - calendar-1.4-visual-refresh
 env:
   matrix:
   - CI_ACTION=linters
-  - CI_ACTION=unit-tests-in-b2g
   - CI_ACTION=unit-tests-in-firefox
   - CI_ACTION=marionette_js
+  - CI_ACTION=marionette_js_stable_check TEST_JOB=1
+  - CI_ACTION=marionette_js_stable_check TEST_JOB=2
+  - CI_ACTION=marionette_js_stable_check TEST_JOB=3
+  - CI_ACTION=marionette_js_stable_check TEST_JOB=4
+  - CI_ACTION=marionette_js_stable_check TEST_JOB=5
   - CI_ACTION=gaia_ui_tests
   - CI_ACTION=build_tests
   global:
@@ -24,7 +29,11 @@ env:
 matrix:
   fast_finish: true
   allow_failures:
-    - env: CI_ACTION=unit-tests-in-b2g
+    - env: CI_ACTION=marionette_js_stable_check TEST_JOB=1
+    - env: CI_ACTION=marionette_js_stable_check TEST_JOB=2
+    - env: CI_ACTION=marionette_js_stable_check TEST_JOB=3
+    - env: CI_ACTION=marionette_js_stable_check TEST_JOB=4
+    - env: CI_ACTION=marionette_js_stable_check TEST_JOB=5
 notifications:
   email: false
   irc:

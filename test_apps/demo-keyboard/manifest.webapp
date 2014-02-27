@@ -1,14 +1,15 @@
 {
   "name": "Demo Keyboard",
   "description": "for Gaia 3rd-party keyboard testing",
-  "type": "privileged",
+  "type": "certified",
   "role": "input",
-  "launch_path": "/settings.html",
+  "launch_path": "/settings_panel.html",
   "developer": {
     "name": "The Gaia Team",
     "url": "https://github.com/mozilla-b2g/gaia"
   },
   "permissions": {
+    "settings": { "access": "readwrite" },
     "input": {
       "description": "To send key events"
     }

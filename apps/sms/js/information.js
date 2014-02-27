@@ -36,19 +36,25 @@ function completeLocaleFormat(timestamp) {
   );
 }
 
+function l10nContainsDateSetup(element, timestamp) {
+  element.dataset.l10nDate = timestamp;
+  element.dataset.l10nDateFormat = 'report-dateTimeFormat';
+  element.textContent = completeLocaleFormat(timestamp);
+}
+
 // Generate report Div contains delivery report and read report for showing
 // report information within contact list
 function createReportDiv(reports) {
   var reportDiv = document.createElement('div');
   var data = {
-    delivery: '',
+    deliveryClass: '',
     deliveryL10n: '',
     deliveryDateL10n: '',
     deliveryTimestamp: '',
-    read: 'hide', // TODO: Check read status when gecko ready
-    readL10n: 'message-read', // TODO: Check read status when gecko ready
-    readDateL10n: '', // TODO: Check read status when gecko ready
-    messageL10nDateFormat: 'report-dateTimeFormat'
+    readClass: '',
+    readL10n: '',
+    readDateL10n: '',
+    readTimestamp: ''
   };
 
   switch (reports.deliveryStatus) {
@@ -62,8 +68,25 @@ function createReportDiv(reports) {
     case 'error':
       data.deliveryL10n = 'message-status-error';
       break;
-    case 'not-applicable':
-      data.delivery = 'hide';
+    //'not-applicable' and other unknown status should hide the field
+    default:
+      data.deliveryClass = 'hide';
+  }
+
+  switch (reports.readStatus) {
+    case 'pending':
+      data.readL10n = 'message-requested';
+      break;
+    case 'success':
+      data.readTimestamp = '' + reports.readTimestamp;
+      data.readDateL10n = completeLocaleFormat(reports.readTimestamp);
+      break;
+    case 'error':
+      data.readL10n = 'message-status-error';
+      break;
+    //'not-applicable' and other unknown status should hide the field
+    default:
+      data.readClass = 'hide';
   }
   reportDiv.innerHTML = TMPL.report.interpolate(data);
   return reportDiv;
@@ -137,9 +160,6 @@ var VIEWS = {
         var type = message.type;
 
         this.subject.textContent = '';
-        this.datetime.dataset.l10nDate = message.timestamp;
-        this.datetime.dataset.l10nDateFormat = 'report-dateTimeFormat';
-        this.datetime.textContent = completeLocaleFormat(message.timestamp);
 
         // Fill in the description/status/size
         if (type === 'sms') {
@@ -165,21 +185,29 @@ var VIEWS = {
         this.status.dataset.type = message.delivery;
         localize(this.status, 'message-status-' + message.delivery);
 
-        // Filled in the contact list. Only outgoing message contains detailed
-        // report information.
+        // Set different layout/value for received and sent message
         if (message.delivery === 'received' ||
             message.delivery === 'not-downloaded') {
+          this.container.classList.add('received');
           localize(this.contactTitle, 'report-from');
+          l10nContainsDateSetup(this.receivedTimeStamp, message.timestamp);
+          l10nContainsDateSetup(this.sentTimeStamp, message.sentTimestamp);
         } else {
+          this.container.classList.remove('received');
           localize(this.contactTitle, 'report-recipients');
+          l10nContainsDateSetup(this.datetime, message.timestamp);
         }
+
+        // Filled in the contact list. Only outgoing message contains detailed
+        // report information.
         this.renderContactList(createListWithMsgInfo(message));
       }).bind(this);
 
       localize(ThreadUI.headerText, 'message-report');
     },
-    elements: ['contact-list', 'description', 'status', 'size', 'size-block',
-      'type', 'subject', 'datetime', 'contact-title']
+    elements: ['contact-list', 'status', 'size', 'size-block', 'sent-detail',
+      'type', 'subject', 'datetime', 'contact-title', 'received-detail',
+      'sent-timeStamp', 'received-timeStamp']
   }
 };
 
@@ -222,6 +250,12 @@ Information.prototype = {
     this.container.classList.remove('hide');
   },
 
+  refresh: function() {
+    if (this.parent.classList.contains('information')) {
+      this.render();
+    }
+  },
+
   reset: function() {
     // Hide the information view
     this.container.classList.add('hide');
@@ -241,6 +275,7 @@ Information.prototype = {
     var ul = this.contactList;
     var renderer = ContactRenderer.flavor('group-view');
 
+    ul.textContent = '';
     participants.forEach(function(participant) {
       var number, infoBlock, selector;
 

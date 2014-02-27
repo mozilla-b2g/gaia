@@ -11,6 +11,20 @@ var TonePlayer = {
   _audioContext: null,
   _gainNode: null,
   _playingNodes: [],
+  _tonesSamples: {
+    'resources/tones/tone_1.opus': [697, 1209],
+    'resources/tones/tone_2.opus': [697, 1336],
+    'resources/tones/tone_3.opus': [697, 1477],
+    'resources/tones/tone_4.opus': [770, 1209],
+    'resources/tones/tone_5.opus': [770, 1336],
+    'resources/tones/tone_6.opus': [770, 1477],
+    'resources/tones/tone_7.opus': [852, 1209],
+    'resources/tones/tone_8.opus': [852, 1336],
+    'resources/tones/tone_9.opus': [852, 1477],
+    'resources/tones/tone_star.opus': [941, 1209],
+    'resources/tones/tone_0.opus': [941, 1336],
+    'resources/tones/tone_hash.opus': [941, 1477]
+  },
 
   init: function tp_init(channel) {
     this.setChannel(channel);
@@ -26,6 +40,29 @@ var TonePlayer = {
   trashAudio: function tp_trashAudio() {
     this.stop();
     this._audioContext = null;
+  },
+
+  /**
+   * XXX workaround for bug 848954, uses samples instead of the Web Audio API
+   * to play short tones. Remove this once the original problem is fixed.
+   *
+   * @param {Array} frequencies Frequencies of the tone to be played, these
+   *        will be matched with the appropriate sample
+   */
+  _playSample: function tp_playSample(frequencies) {
+    var sample = null;
+
+    for (var i in this._tonesSamples) {
+      if ((frequencies.length === 2) &&
+          (frequencies[0] === this._tonesSamples[i][0]) &&
+          (frequencies[1] === this._tonesSamples[i][1])) {
+        sample = new Audio(i);
+        break;
+      }
+    }
+
+    sample.volume = kMasterVolume;
+    sample.play();
   },
 
   // Pass 0.0 for |when| to play as soon as possible.
@@ -93,7 +130,11 @@ var TonePlayer = {
   },
 
   start: function tp_start(frequencies, shortPress) {
-    this._startAt(frequencies, 0, shortPress ? kShortPressDuration : 0);
+    if (shortPress) {
+      this._playSample(frequencies);
+    } else {
+      this._startAt(frequencies, 0, shortPress ? kShortPressDuration : 0);
+    }
   },
 
   stop: function tp_stop() {

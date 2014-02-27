@@ -16,7 +16,6 @@ class System(Base):
 
     _notification_toaster_locator = (By.ID, 'notification-toaster')
     _update_manager_toaster_locator = (By.ID, 'update-manager-toaster')
-    _banner_locator = (By.ID, 'system-banner')
 
     def wait_for_status_bar_displayed(self):
         self.wait_for_element_displayed(*self._status_bar_locator)
@@ -56,10 +55,3 @@ class System(Base):
     @property
     def is_airplane_mode_statusbar_displayed(self):
         return self.marionette.find_element(*self._airplane_mode_statusbar_locator).is_displayed()
-
-    def wait_for_banner(self):
-        """Waits for the banner to appear and then disappear"""
-        self.marionette.switch_to_frame()
-        self.wait_for_element_displayed(*self._banner_locator)
-        self.wait_for_element_not_displayed(*self._banner_locator)
-        self.apps.switch_to_displayed_app()

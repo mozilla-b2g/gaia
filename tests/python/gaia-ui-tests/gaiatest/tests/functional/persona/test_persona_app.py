@@ -27,16 +27,13 @@ class TestPersonaStandard(GaiaTestCase):
         )
 
     def test_persona_standard_sign_in(self):
-        """
-        Test standard sign in to UI tests app
-        """
         uitests = UiTests(self.marionette)
         uitests.launch()
         uitests.tap_api_button()
         moz_id = uitests.tap_moz_id_button()
         moz_id.switch_to_frame()
 
-        persona = moz_id.launch_standard_sign_in()
+        persona = moz_id.tap_standard_sign_in()
 
         persona.login(self.user.email, self.user.password)
 

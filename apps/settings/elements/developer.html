@@ -3,7 +3,7 @@
 
     <header>
       <a href="#root"><span class="icon icon-back">Back</span></a>
-      <h1 data-l10n-id="developer-header"> Developer </h1>
+      <h1 data-l10n-id="developer-header">Developer</h1>
     </header>
 
     <div>
@@ -12,15 +12,8 @@
       </header>
       <ul>
         <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="debug.grid.enabled">
-            <span data-l10n-id="grid">Grid</span>
-          </label>
-        </li>
-        <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="debug.fps.enabled">
-            <span data-l10n-id="fps-monitor">Show frames per second</span>
+          <label>
+            <button class="icon icon-view" data-href="#developer-hud" data-l10n-id="hud">Developer HUD</button>
           </label>
         </li>
         <li>
@@ -48,18 +41,6 @@
           </label>
         </li>
         <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="debug.ttl.enabled">
-            <span data-l10n-id="ttl-monitor">Show time to load</span>
-          </label>
-        </li>
-        <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="devtools.overlay">
-            <span data-l10n-id="devtools-overlay">Show devtools overlay</span>
-          </label>
-        </li>
-        <li>
           <p data-l10n-id="remote-debugging">Remote Debugging</p>
           <span class="button icon icon-dialog">
             <select name="debugger.remote-mode" data-value-type="string">
@@ -83,50 +64,14 @@
         </li>
         <li>
           <label class="pack-checkbox">
-            <input type="checkbox" name="dom.mozContacts.debugging.enabled">
-            <span data-l10n-id="contacts-debugging">Contacts debugging output in adb</span>
-          </label>
-        </li>
-        <li>
-          <label class="pack-checkbox">
             <input type="checkbox" name="debug.console.enabled">
             <span data-l10n-id="console-enabled">Console enabled</span>
-          </label>
-        </li>
-        <li id="software-home-button">
-          <label class="pack-checkbox">
-            <input type="checkbox" name="software-button.enabled">
-            <span data-l10n-id="software-button-enabled">Software home button enabled</span>
-          </label>
-        </li>
-        <li id="homegesture">
-          <label class="pack-checkbox">
-            <input type="checkbox" name="homegesture.enabled"/>
-            <span data-l10n-id="homegesture-enabled">Home gesture enabled</span>
-          </label>
-        </li>
-        <li id="edgesgesture">
-          <label class="pack-checkbox">
-            <input type="checkbox" name="edgesgesture.enabled"/>
-            <span data-l10n-id="edgesgesture-enabled">Edges gesture enabled</span>
-          </label>
-        </li>
-        <li id="continuoustransition">
-          <label class="pack-checkbox">
-            <input type="checkbox" name="continuous-transition.enabled"/>
-            <span data-l10n-id="continuoustransition-enabled">Continuous transition enabled</span>
           </label>
         </li>
         <li>
           <label class="pack-checkbox">
             <input type="checkbox" name="debug.gaia.enabled">
             <span data-l10n-id="debug-gaia-enabled">Gaia debug traces</span>
-          </label>
-        </li>
-        <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="app-transition.enabled"/>
-            <span data-l10n-id="enable-app-transition">Enable app transition</span>
           </label>
         </li>
         <li>
@@ -178,7 +123,47 @@
           </span>
         </li>
       </ul>
-
+      <header>
+        <h2 data-l10n-id="window-management">Window Management</h2>
+      </header>
+      <ul>
+        <li id="software-home-button">
+          <label class="pack-checkbox">
+            <input type="checkbox" name="software-button.enabled">
+            <span data-l10n-id="software-button-enabled">Software home button enabled</span>
+          </label>
+        </li>
+        <li id="homegesture">
+          <label class="pack-checkbox">
+            <input type="checkbox" name="homegesture.enabled"/>
+            <span data-l10n-id="homegesture-enabled">Home gesture enabled</span>
+          </label>
+        </li>
+        <li id="edgesgesture">
+          <label class="pack-checkbox">
+            <input type="checkbox" name="edgesgesture.enabled"/>
+            <span data-l10n-id="edgesgesture-enabled">Edges gesture enabled</span>
+          </label>
+        </li>
+        <li id="continuoustransition">
+          <label class="pack-checkbox">
+            <input type="checkbox" name="continuous-transition.enabled"/>
+            <span data-l10n-id="continuoustransition-enabled">Continuous transition enabled</span>
+          </label>
+        </li>
+        <li>
+          <label class="pack-checkbox">
+            <input type="checkbox" name="app-transition.enabled"/>
+            <span data-l10n-id="enable-app-transition">Enable app transition</span>
+          </label>
+        </li>
+        <li>
+          <label class="pack-checkbox">
+            <input type="checkbox" name="app-suspending.enabled"/>
+            <span data-l10n-id="enable-app-suspending">Enable app suspending</span>
+          </label>
+        </li>
+      </ul>
     </div>
 
     <script src="js/developer.js"></script>

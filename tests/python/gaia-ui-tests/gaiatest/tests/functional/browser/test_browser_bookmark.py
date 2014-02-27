@@ -21,7 +21,6 @@ class TestBrowserBookmark(GaiaTestCase):
         self.bookmark_title = 'gaia%s' % curr_time[10:]
 
     def test_browser_bookmark(self):
-        # https://github.com/mozilla/gaia-ui-tests/issues/452
         browser = Browser(self.marionette)
         browser.launch()
 

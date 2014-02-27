@@ -3,7 +3,7 @@
 const { Cc, Ci, Cr, Cu } = require('chrome');
 Cu.import('resource://gre/modules/osfile.jsm');
 
-const utils = require('./utils');
+const utils = require('utils');
 const webappZip = require('./webapp-zip');
 const RE_SECTION_LINE = /\[(.*)\]/;
 const RE_IMPORT_LINE = /@import url\((.*)\)/;

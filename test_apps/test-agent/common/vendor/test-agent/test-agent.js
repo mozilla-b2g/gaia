@@ -1653,21 +1653,35 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     }
   };
 
-  function RunnerStreamProxy(runner) {
-    var self = this;
+  function RunnerStreamProxy(runner, options) {
+    var self = this,
+        key;
+
+    if (typeof(options) === 'undefined') {
+      options = {};
+    }
+
+    for (key in options) {
+      if (options.hasOwnProperty(key)) {
+        this[key] = options[key];
+      }
+    }
 
     Responder.apply(this, arguments);
 
     this.runner = runner;
 
+    // We ignore log if coverage is enabled
+    if (!this.coverage) {
+      this.on('log', function onLog(data) {
+        console.log.apply(console, data.messages);
+      });
+    }
+
     this.on({
 
       'start': function onStart(data) {
         runner.emit('start', data);
-      },
-
-      'log': function onLog(data) {
-        console.log.apply(console, data.messages);
       },
 
       'end': function onEnd(data) {
@@ -1801,7 +1815,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     this.envQueue = {};
     //clone
     this.total = 0;
-    this.startQueue = this.envs.concat([]);
     this.timeoutId = null;
     this.currentEnv = null;
 
@@ -1899,6 +1912,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
    * Triggers the start event.
    */
   proto.emitStart = function() {
+    // total will be wrong here
     emit.call(this, 'start', { total: this.total });
   };
 
@@ -1940,9 +1954,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         this.envQueue[envId] = [];
       }
 
-      removeIndex(this.startQueue, envId);
-
-      if (this.startQueue.length === 0) {
+      if (!this.currentEnv) {
         this.emitStart();
         this.currentEnv = this.envOrder.shift();
         this._emitQueuedEvents(this.currentEnv);
@@ -1970,6 +1982,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     if (event === this.END) {
       removeIndex(this.envs, currentEnv);
 
+      // if we had a start before this end
       this.currentEnv = this.envOrder.shift();
       //emit the next groups events
       if (this.currentEnv) {
@@ -2080,7 +2093,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       envs: this.envs
     });
 
-    this.proxy = new Proxy(this.runner);
+    this.proxy = new Proxy(this.runner, { coverage: this.coverage });
     this.envs = [];
 
     this.runner.once('start', this._onStart.bind(this));
@@ -2137,6 +2150,12 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     if (data.event === 'start' && !this.proxy) {
       this.createRunner();
     }
+
+    if (!this.proxy) {
+      // ignore events until next start
+      return null;
+    }
+
     return this.proxy.respond([data.event, data.data]);
   };
 
@@ -2295,7 +2314,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
   Blanket.prototype = {
 
     enhance: function enhance(server) {
-      this.server = server;
       server.on('coverage data', this._onCoverageData.bind(this));
 
       if (typeof(window) !== 'undefined') {
@@ -2323,18 +2341,19 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
           originColor = '\033[0m';
 
       // Print title
-      console.info('\n\n    ' + titleColor + '-- Blanket.js Test Coverage Result --' + originColor + '\n');
-      console.info('    ' + fileNameColor + 'File Name' + originColor +
+      console.info('\n' + titleColor + '-- Blanket.js Test Coverage Result --' + originColor + '\n');
+      console.info(fileNameColor + 'File Name' + originColor +
         ' - ' + stmtColor + 'Covered/Total Smts' + originColor +
         ' - ' + percentageColor + 'Coverage (\%)\n' + originColor);
 
       // Print coverage result for each file
       coverResults.forEach(function(dataItem) {
         var filename = dataItem.filename,
-            formatPrefix = (filename === "Global Total" ? "\n    " : "      "),
+            formatPrefix = (filename === "Global Total" ? "\n" : "  "),
             seperator = ' - ';
 
-        filename = (filename === "Global Total" ? filename : filename.substr(0, filename.indexOf('?')));
+        filename = (filename === "Global Total" ? filename :
+          (filename.substr(0, filename.indexOf('?')) || filename));
         outputFormat = formatPrefix;
         outputFormat += fileNameColor + filename + originColor + seperator;
         outputFormat += stmtColor + dataItem.stmts + originColor  + seperator;
@@ -2359,6 +2378,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     window.TestAgent = {};
   }
 
+  /* BrowserWorker is the Worker that runs inside an iframe */
   TestAgent.BrowserWorker = function BrowserWorker(options) {
     var self = this,
         dep = this.deps;
@@ -2667,6 +2687,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 }(this));
 (function(window) {
+  'use strict';
+
+  // This Driver is used in the main Test-Agent window, to manage the iframes
+  // sandboxes for each domain
 
   function Driver(options) {
     var key;
@@ -2676,6 +2700,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
     this.testGroups = {};
     this.sandboxes = {};
+    this._batches = [];
 
     for (key in options) {
       if (options.hasOwnProperty(key)) {
@@ -2710,9 +2735,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         }
       });
 
-      worker.on('run tests complete', function() {
-        self._loadNextDomain();
-      });
+      worker.on('run tests complete', this._next.bind(this));
 
       worker.runTests = this.runTests.bind(this);
 
@@ -2817,15 +2840,18 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       } else {
         this.currentEnv = null;
       }
+
+      return (this.currentEnv !== null);
     },
 
     /**
      * Sends run tests event to domain.
+     * This send the "run tests" event to the iframe sandbox
      *
      * @param {String} env the enviroment to test against.
      */
     _startDomainTests: function(env) {
-      var iframe, tests, group;
+      var iframe, group;
 
       if (env in this.sandboxes) {
         iframe = this.sandboxes[env];
@@ -2869,21 +2895,67 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       }
     },
 
+    _isBatchScheduled: function(newBatch) {
+      return this._batches.some(function(existingBatch) {
+        return (newBatch.runCoverage === existingBatch.runCoverage) &&
+          existingBatch.tests.every(function(test, i) {
+            return test === newBatch.tests[i];
+          });
+      });
+    },
+
     /**
      * Runs a group of tests.
      *
      * @param {Array} tests list of tests to run.
      */
     runTests: function(tests, runCoverage) {
+      var batch = {
+        tests: tests,
+        runCoverage: runCoverage
+      };
+
+      if (this._isBatchScheduled(batch)) {
+        return;
+      }
+
+      this._batches.push(batch);
+
+      if (!this._running) {
+        this._next();
+      }
+    },
+
+    _loadNextBatch: function() {
+      var batch = this._batches.shift();
+      if (!batch) {
+        return false;
+      }
+
       var envs;
-      this.runCoverage = runCoverage;
-      this._createTestGroups(tests);
+      this.runCoverage = batch.runCoverage;
+      this._createTestGroups(batch.tests);
       envs = Object.keys(this.testGroups);
+
+      // when the env is ready, we'll get a 'worker start' event to actually
+      // starts the tests
       this.worker.emit('set test envs', envs);
       this.worker.send('set test envs', envs);
-      this._loadNextDomain();
-    }
 
+      this._next();
+
+      return true;
+    },
+
+    // Runs the next domain, or the next batch if there is no any domain.
+    // This also resets the running flag if there is nothing left to run.
+    _next: function() {
+      this._running = true;
+
+      if (!this._loadNextDomain() && !this._loadNextBatch()) {
+        this._running = false;
+      }
+    }
   };
 
   window.TestAgent.BrowserWorker.MultiDomainDriver = Driver;
@@ -3412,4 +3484,3 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
   };
 
 }(this));
-

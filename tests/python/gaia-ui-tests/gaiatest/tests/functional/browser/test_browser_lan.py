@@ -17,7 +17,8 @@ class TestBrowserLAN(GaiaTestCase):
         self.connect_to_local_area_network()
 
     def test_browser_lan(self):
-        # https://moztrap.mozilla.org/manage/case/1327/
+        """https://moztrap.mozilla.org/manage/case/1327/"""
+
         browser = Browser(self.marionette)
         browser.launch()
 

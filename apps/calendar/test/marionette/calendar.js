@@ -23,30 +23,39 @@ Calendar.ORIGIN = 'app://calendar.gaiamobile.org';
  * @type {Object}
  */
 Calendar.Selector = Object.freeze({
-  todayTabItem: '#today',
+  addAccountPasswordInput: '#modify-account-view input[name="password"]',
+  addAccountSaveButton: '#modify-account-view button.save',
+  addAccountUrlInput: '#modify-account-view input[name="fullUrl"]',
+  addAccountUsernameInput: '#modify-account-view input[name="user"]',
+  addCalDavAccountButton: '#create-account-view ' +
+                          'a[href="/create-account/caldav"]',
   addEventButton: 'a[href="/event/add/"]',
-  weekButton: '#view-selector .week a',
   dayButton: '#view-selector .day a',
-  hintSwipeToNavigate: '#hint-swipe-to-navigate',
-  editEventForm: '#modify-event-view form',
   editEventAlarm: '#modify-event-view select[name="alarm[]"]',
+  editEventDescription: '#modify-event-view textarea[name="description"]',
   editEventEndDate: '#modify-event-view input[name="endDate"]',
   editEventEndTime: '#modify-event-view input[name="endTime"]',
+  editEventForm: '#modify-event-view form',
   editEventLocation: '#modify-event-view input[name="location"]',
   editEventSaveButton: '#modify-event-view button.save',
   editEventStartDate: '#modify-event-view input[name="startDate"]',
   editEventStartTime: '#modify-event-view input[name="startTime"]',
   editEventTitle: '#modify-event-view input[name="title"]',
-  editEventDescription: '#modify-event-view textarea[name="description"]',
   eventListSection: '#event-list',
-  weekViewEvent: '#week-view .event',
+  hintSwipeToNavigate: '#hint-swipe-to-navigate',
   modifyEventView: '#modify-event-view',
+  monthEventList: '#event-list div.events > section',
+  monthEventTitle: 'h5',
   monthViewDayEvent: '#event-list .event',
-  monthViewDayEventName: 'h5',                // Search beneath .event
   monthViewDayEventLocation: '.location',     // for these guys.
+  monthViewDayEventName: 'h5',                // Search beneath .event
   monthViewpresent: '#month-view li.present',
   monthViewselected: '#month-view li.selected',
   monthYearHeader: '#current-month-year',
+  todayTabItem: '#today',
+  toolbarAddAccountButton: '#settings a[href="/select-preset/"]',
+  toolbarButton: '#time-header button.settings',
+  toolbarSyncButton: '#settings [role="toolbar"] .sync',
   viewEventView: '#event-view',
   viewEventViewAlarm: '#event-view .alarms > .content > div',
   viewEventViewCalendar: '#event-view .current-calendar .content',
@@ -59,7 +68,9 @@ Calendar.Selector = Object.freeze({
   viewEventViewTitle: '#event-view .title',
   viewEventViewTitleContent: '#event-view .title .content',
   viewEventViewDescription: '#event-view .description',
-  viewEventViewDescriptionContent: '#event-view .description .content'
+  viewEventViewDescriptionContent: '#event-view .description .content',
+  weekButton: '#view-selector .week a',
+  weekViewEvent: '#week-view .event'
 });
 
 Calendar.prototype = {
@@ -72,7 +83,7 @@ Calendar.prototype = {
   /**
    * Find some element given its name like 'addEventButton' or 'weekButton'.
    *
-   * @param {string} name of some calendar element.
+   * @param {String} name of some calendar element.
    * @return {Marionette.Element} the element.
    */
   findElement: function(name) {
@@ -82,7 +93,7 @@ Calendar.prototype = {
   /**
    * Find some elements given their name.
    *
-   * @param {string} name of some calendar elements.
+   * @param {String} name of some calendar elements.
    * @return {Array.<Marionette.Element>} the element.
    */
   findElements: function(name) {
@@ -90,7 +101,7 @@ Calendar.prototype = {
   },
 
   /**
-   * @param {string} name of some calendar element.
+   * @param {String} name of some calendar element.
    * @return {Marionette.Element} the element.
    */
   waitForElement: function(name) {
@@ -98,8 +109,9 @@ Calendar.prototype = {
   },
 
   /**
-   * @param {Marionette.Element|string} parent element or name of element.
-   * @param {string} child name of child element.
+   * @param {Marionette.Element|String} parent element or name of element.
+   * @param {String} child name of child element.
+   * @return {Marionette.Element} Element we find with css selector.
    */
   waitForChild: function(parent, child) {
     if (typeof parent === 'string') {
@@ -137,6 +149,86 @@ Calendar.prototype = {
 
     client.switchToFrame();
     client.apps.switchToApp(Calendar.ORIGIN);
+  },
+
+  /*
+   * Create a new CalDAV account.
+   *
+   * @param {String} username username for the CalDAV calendar.
+   * @param {String} password password for the CalDAV calendar.
+   * @param {String} url the url of the CalDAV calendar.
+   */
+  createCalDavAccount: function(username, password, url) {
+    // Go to the Account page.
+    this.registerTransitionEndEvent('#time-views');
+    this.waitForElement('toolbarButton').click();
+    // Wait for the transition end.
+    this.waitForTransitionEnd('#time-views');
+
+    this.waitForElement('toolbarAddAccountButton').click();
+    this.waitForElement('addCalDavAccountButton').click();
+
+    // Create a the account.
+    this.waitForElement('addAccountUsernameInput').sendKeys(username);
+    this.waitForElement('addAccountPasswordInput').sendKeys(password);
+    this.waitForElement('addAccountUrlInput').sendKeys(url);
+    this.waitForElement('addAccountSaveButton').click();
+    // Wait for the settings view is showed.
+    this._waitForViewIsActive('settings');
+
+    // Go back to the main page.
+    this.registerTransitionEndEvent('#time-views');
+    this.waitForElement('toolbarButton').click();
+    // Wait for the transition end.
+    this.waitForTransitionEnd('#time-views');
+  },
+
+  /**
+   * Sync the calendar.
+   */
+  syncCalendar: function() {
+    // Go to the Account page.
+    this.registerTransitionEndEvent('#time-views');
+    this.waitForElement('toolbarButton').click();
+    // Wait for the transition end.
+    this.waitForTransitionEnd('#time-views');
+
+    this.waitForElement('toolbarSyncButton').click();
+
+    // Go back to the main page.
+    this.registerTransitionEndEvent('#time-views');
+    this.waitForElement('toolbarButton').click();
+    // Wait for the transition end.
+    this.waitForTransitionEnd('#time-views');
+  },
+
+  /**
+   * Get the event element in month view with specified title.
+   * Return the first item matched the title.
+   *
+   * @param {String} title event title.
+   * @return {Marionette.Element} the event element.
+   */
+  getMonthEventByTitle: function(title) {
+    var client = this.client,
+        eventList = null;
+
+    // Wait for that the server finishes the sync, and get the event items.
+    client.waitFor(function() {
+      eventList = client.findElements(Calendar.Selector.monthEventList);
+      if (eventList.length > 0) {
+        return true;
+      }
+    });
+
+    // h5 is the title element in event element.
+    return eventList.filter(function(event) {
+      if (event
+            .findElement(Calendar.Selector.monthEventTitle)
+            .text() === title) {
+        return event;
+      }
+    })[0];
   },
 
   /**
@@ -184,7 +276,6 @@ Calendar.prototype = {
     };
   },
 
-
   /**
    * Read the event if we're currently on the read only event view.
    * @return {Event} The event we're currently looking at.
@@ -202,7 +293,6 @@ Calendar.prototype = {
       description: this.waitForElement('viewEventViewDescriptionContent').text()
     };
   },
-
 
   /**
    * @return {boolean} Whether or not the calendar is active.
@@ -251,7 +341,6 @@ Calendar.prototype = {
   isViewEventViewActive: function() {
     return this.isViewActive('event/show');
   },
-
 
   /**
    * Start the calendar, save the client for future ops, and wait for the
@@ -312,7 +401,7 @@ Calendar.prototype = {
    */
   checkOverflow: function(element, msg) {
     element = this.waitForElement(element);
-    msg = msg? msg + ': ' : '';
+    msg = msg ? msg + ': ' : '';
 
     var wid = element.scriptWith(function(el) {
       return {
@@ -333,6 +422,65 @@ Calendar.prototype = {
         wid.container + 'px)';
       throw new Error(msg);
     }
-  }
+  },
 
+  /**
+   * Add transitionend event on a element.
+   * We need to register the event
+   * before we do waitForTransitionEnd function for each time.
+   *
+   * @param {String} element css selector of the element.
+   */
+  registerTransitionEndEvent: function(selector) {
+    var client = this.client;
+
+    // Add transitionend event for the element.
+    client.executeScript(function(selector) {
+      var doc = window.wrappedJSObject.document,
+          ele = doc.querySelector(selector);
+      // Init transition status of the element.
+      ele.dataset.transitionStatus = '';
+      ele.addEventListener('transitionend', function onTransitionEnd() {
+        ele.removeEventListener('transitionend', onTransitionEnd);
+        ele.dataset.transitionStatus = 'end';
+      });
+    }, [selector]);
+  },
+
+  /**
+   * Wait for the transition end event of a element.
+   *
+   * @param {String} element css selector of the element.
+   */
+  waitForTransitionEnd: function(selector) {
+    var client = this.client;
+
+    client.waitFor(function() {
+      var transitionStatus =
+        client.executeScript(function(selector) {
+          var doc = window.wrappedJSObject.document,
+              ele = doc.querySelector(selector),
+              transitionStatus = ele.dataset.transitionStatus;
+
+          // Clean the transition status.
+          if (transitionStatus === 'end') {
+            ele.dataset.transitionStatus = '';
+          }
+          return transitionStatus;
+        }, [selector]);
+
+      return (transitionStatus === 'end');
+    });
+  },
+
+  /**
+   * Wait for that the path dataset value is specificed value.
+   *
+   * @param {String} id View ID.
+   */
+  _waitForViewIsActive: function(id) {
+    this.client.waitFor(function() {
+      return this.isViewActive(id);
+    }.bind(this));
+  }
 };

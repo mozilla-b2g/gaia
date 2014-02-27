@@ -121,6 +121,54 @@ ul li small:not(:empty) + span {
   padding-bottom: 0.1rem; /* Bug 903438 */
 }
 
+/* color previews */
+ul li > label.pack-checkbox > .color-preview:before {
+  height: 2rem;
+  width: 2rem;
+  content: "";
+  display: inline-block;
+  margin: 0 1rem -0.2rem -1rem;
+}
+
+ul li > label.pack-checkbox > .error-counter:before {
+  background-color: red;
+}
+
+ul li > label.pack-checkbox > .warning-counter:before {
+  background-color: orange;
+}
+
+ul li > label.pack-checkbox > .reflow-counter:before {
+  background-color: purple;
+}
+
+ul li > label.pack-checkbox > .jank-monitor:before {
+  background-color: cornflowerblue;
+}
+
+ul li > label.pack-checkbox > .fps-monitor:before {
+  background-color: fuchsia;
+}
+
+ul li > label.pack-checkbox > .ttl-monitor:before {
+  background-color: darkgreen;
+}
+
+ul li > label.pack-checkbox > .uss-monitor:before {
+  background-color: navy;
+}
+
+ul li > label.pack-checkbox > .memory-monitor:before {
+  background-color: slategrey;
+}
+
+ul li > label.pack-checkbox > .memory-item:before {
+  background-color: slategrey;
+  height: 1.2rem;
+  width: 1.2rem;
+  margin: 0 1rem 0.1rem -0.2rem;
+}
+
 
 /******************************************************************************
  * Boolean inputs

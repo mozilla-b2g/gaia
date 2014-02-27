@@ -20,7 +20,6 @@ Tabs.prototype.handleEvent = function tabsHandleEvent(event) {
   if (index === -1 || index === this.currentIndex) {
     return;
   }
-  var lastIndex = this.currentIndex;
   this.currentIndex = index;
   this.links.forEach(function toggleLinks(link, linkIndex) {
     if (linkIndex === index) {

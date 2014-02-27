@@ -16,6 +16,7 @@
   background: rgba(0, 0, 0, 0.75);
   border-top: 1px solid #9c9a9c;
   border-bottom: 1px solid black;
+  z-index: 1;
 }
 
 #lockscreen-media-container.disabled {

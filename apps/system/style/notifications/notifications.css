@@ -193,6 +193,7 @@ html, body {
 }
 
 #notifications-lockscreen-container {
+  z-index: 1;
   position: absolute;
   top: 18rem;
   left: 0;

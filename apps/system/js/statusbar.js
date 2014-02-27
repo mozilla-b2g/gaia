@@ -136,7 +136,9 @@ var StatusBar = {
   get height() {
     if (this.screen.classList.contains('active-statusbar')) {
       return this.attentionBar.offsetHeight;
-    } else if (document.mozFullScreen) {
+    } else if (document.mozFullScreen ||
+               (AppWindowManager.getActiveApp() &&
+                AppWindowManager.getActiveApp().isFullScreen())) {
       return 0;
     } else {
       return this._cacheHeight ||
@@ -156,6 +158,9 @@ var StatusBar = {
   init: function sb_init() {
     this.getAllElements();
 
+    // cache height.
+    this._cacheHeight = this.element.getBoundingClientRect().height;
+
     this.listeningCallschanged = false;
 
     // Refresh the time to reflect locale changes
@@ -173,7 +178,8 @@ var StatusBar = {
       'audio.volume.notification': ['mute'],
       'alarm.enabled': ['alarm'],
       'vibration.enabled': ['vibration'],
-      'ril.cf.enabled': ['callForwarding']
+      'ril.cf.enabled': ['callForwarding'],
+      'operatorResources.data.icon': ['iconData']
     };
 
     var self = this;
@@ -263,7 +269,8 @@ var StatusBar = {
       case 'attentionscreenhide':
       case 'lock':
         // Hide the clock in the statusbar when screen is locked
-        this.toggleTimeLabel(!LockScreen.locked);
+        this.toggleTimeLabel(!window.lockScreen ||
+            !window.lockScreen.locked);
         break;
 
       case 'attentionscreenshow':
@@ -386,6 +393,12 @@ var StatusBar = {
   _touchForwarder: new TouchForwarder(),
   _shouldForwardTap: false,
   panelTouchHandler: function sb_panelTouchHandler(evt) {
+
+    // Do not forward events if FTU is running
+    if (FtuLauncher.isFtuRunning()) {
+      return;
+    }
+
     evt.preventDefault();
 
     var elem = this.element;
@@ -403,10 +416,12 @@ var StatusBar = {
         this._startX = touch.clientX;
         this._startY = touch.clientY;
         elem.style.transition = 'transform';
+        elem.classList.add('dragged');
         break;
 
       case 'touchmove':
         var touch = evt.touches[0];
+        var height = this.height || this._cacheHeight;
         var deltaX = touch.clientX - this._startX;
         var deltaY = touch.clientY - this._startY;
 
@@ -414,10 +429,10 @@ var StatusBar = {
           this._shouldForwardTap = false;
         }
 
-        var translate = Math.min(deltaY, this.height);
+        var translate = Math.min(deltaY, height);
         elem.style.transform = 'translateY(calc(' + translate + 'px - 100%)';
 
-        if (translate == this.height) {
+        if (translate == height) {
           if (this._touchStart) {
             this._touchForwarder.forward(this._touchStart);
             this._touchStart = null;
@@ -448,8 +463,13 @@ var StatusBar = {
   },
 
   _releaseBar: function sb_releaseBar() {
-    this.element.style.transform = '';
-    this.element.style.transition = '';
+    var elem = this.element;
+    elem.style.transform = '';
+    elem.style.transition = '';
+    elem.addEventListener('transitionend', function trWait() {
+      elem.removeEventListener('transitionend', trWait);
+      elem.classList.remove('dragged');
+    });
 
     clearTimeout(this._releaseTimeout);
     this._releaseTimeout = null;
@@ -512,7 +532,8 @@ var StatusBar = {
 
       this.refreshCallListener();
 
-      this.toggleTimeLabel(!LockScreen.locked);
+      this.toggleTimeLabel(!window.lockScreen ||
+          !window.lockScreen.locked);
     } else {
       var battery = window.navigator.battery;
       if (battery) {
@@ -542,6 +563,20 @@ var StatusBar = {
   },
 
   update: {
+    iconData: function sb_updateIconData(aData) {
+      var dataIconValues = this.settingValues['operatorResources.data.icon'];
+      if (!dataIconValues) {
+        return;
+      }
+
+      for (var key in dataIconValues) {
+        //Change only dataIcon values that actually really know
+        if (this.mobileDataIconTypes[key]) {
+          this.mobileDataIconTypes[key] = dataIconValues[key];
+        }
+      }
+    },
+
     label: function sb_updateLabel() {
       var conns = window.navigator.mozMobileConnections;
       var conn;

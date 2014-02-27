@@ -190,12 +190,6 @@ form[role="dialog"][data-type="edit"] header menu[type="toolbar"] button {
   color: #1D8399;
 }
 
-[data-type="list"] aside.pack-end img[src=""],
-form[data-type="action"] img[src=""] {
-  opacity: 0;
-  width: 0;
-}
-
 /* Lists: edit mode */
 .edit [data-type="list"] li > label {
   opacity: 1;
@@ -416,6 +410,7 @@ section.has-carrier .article-list header:first-child {
 
 .article-list[data-type="list"] .message {
   position: relative;
+  z-index: 0; /* bug 970422 */
 
   display: block;
   overflow: hidden;
@@ -646,8 +641,9 @@ section.has-carrier .article-list header:first-child {
   pointer-events: none;
 }
 
-/* Add margin at the end of the ul to avoid overlay with edit mode */
-.edit ul:last-child {
+/* Add a margin at the end of the last thread or message node to avoid overlay
+ * with the edit mode menu */
+.edit .edit-container > :last-child {
   margin-bottom: 7rem;
 }
 
@@ -905,7 +901,7 @@ generateHeightRule() (in ThreadUI/thread_ui.js) will create:
   background: none;
   border-color: transparent;
   white-space: normal;
-  text-overflow: normal;
+  text-overflow: clip;
   color: black;
   font-size: 1.8rem;
 }
@@ -964,7 +960,7 @@ body[role="application"] form[role="dialog"][data-type="action"] > section:first
   height: auto;
   border-bottom: 0.1rem solid #616262;
   padding-bottom: 1rem;
-  padding-left: 2rem 2.5rem 0 2.5rem;
+  padding-left: 2.5rem;
 }
 
 /* building blocks overload
@@ -1002,10 +998,12 @@ form[role="dialog"][data-type="action"].contact-prompt > header {
   font-size: 1.5rem;
 }
 
-.contact-header img {
+.contact-header span[data-type=img] {
   display: block;
   width: 6rem;
   height: 6rem;
+  background-size: cover;
+  background-position: center;
 }
 
 .contact-header aside.pack-end {
@@ -1022,7 +1020,7 @@ section[role="region"].new .article-list[data-type="list"]  li:first-child {
 }
 
 section[role="region"].new .article-list[data-type="list"]  li {
-  pointer-events: normal;
+  pointer-events: auto;
 }
 
 .suggestion * {

@@ -1,0 +1,21 @@
+button {
+  font-size: 1rem;
+  height: 3rem;
+  margin-bottom: 0.3rem;
+  text-overflow: clip;
+}
+ol {
+  padding-left: 1rem;
+  padding-right:0rem;
+}
+
+.textfield {
+  width: 98%;
+}
+
+.panel {
+  display:inline-block;
+  width: 49%;
+  vertical-align: top;
+}
+

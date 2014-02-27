@@ -194,6 +194,7 @@ var SimManager = (function() {
       this.resetSkipped();
       this.showSIMInfoScreen();
     } else {
+      this.resetSkipped();
       this.finish();
     }
   },

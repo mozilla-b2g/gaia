@@ -38,8 +38,6 @@ marionette('Timer Restarting', function() {
     );
 
     timer.cancel();
-
-    assert.equal(timer.getDuration(), 0);
   });
 
 });
