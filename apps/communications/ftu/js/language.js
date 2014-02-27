@@ -1,3 +1,5 @@
+/* global KeyboardHelper */
+/* exported LanguageManager */
 'use strict';
 
 var LanguageManager = {

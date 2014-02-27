@@ -1,6 +1,5 @@
-'use strict';
-
 (function(exports) {
+  'use strict';
 
   var rdashes = /-(.)/g;
 

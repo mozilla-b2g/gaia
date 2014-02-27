@@ -1,3 +1,11 @@
+/* global DataMobile, SimManager, IccHelper,
+          SdManager, UIManager, WifiManager, WifiUI,
+          ImportIntegration,
+          OperatorVariant,
+          Tutorial,
+          getLocalizedLink,
+          utils */
+/* exported Navigation */
 'use strict';
 /*
   Steps of the First Time Usage App
@@ -72,9 +80,10 @@ var Navigation = {
     UIManager.activationScreen.addEventListener('click',
         this.handleExternalLinksClick.bind(this));
 
+    var self = this;
+
     var reqSIM =
       settings && settings.createLock().get('ftu.sim.mandatory') || {};
-    var self = this;
     reqSIM.onsuccess = function onSuccess() {
       self.simMandatory = reqSIM.result['ftu.sim.mandatory'] || false;
     };
@@ -82,7 +91,6 @@ var Navigation = {
     var reqFxA =
       settings &&
       settings.createLock().get('identity.fxaccounts.ui.enabled') || {};
-    var self = this;
     reqFxA.onsuccess = function onSuccess() {
       self.fxaEnabled =
         reqFxA.result['identity.fxaccounts.ui.enabled'] || false;
@@ -212,8 +220,8 @@ var Navigation = {
         break;
       case '#browser_privacy':
         UIManager.mainTitle.innerHTML = _('aboutBrowser');
-        var linkElement = document.getElementById('external-link-privacy');
-        navigator.mozL10n.localize(linkElement, 'learn-more-privacy', {
+        var linkPrivacy = document.getElementById('external-link-privacy');
+        navigator.mozL10n.localize(linkPrivacy, 'learn-more-privacy', {
           link: getLocalizedLink('learn-more-privacy')
         });
         break;
@@ -230,12 +238,12 @@ var Navigation = {
         UIManager.mainTitle.innerHTML = _('aboutBrowser');
         UIManager.progressBar.classList.add('hidden');
         UIManager.navBar.classList.add('back-only');
-        var linkElement = document.getElementById('external-link-telemetry');
-        navigator.mozL10n.localize(linkElement, 'learn-more-telemetry', {
+        var linkTelemetry = document.getElementById('external-link-telemetry');
+        navigator.mozL10n.localize(linkTelemetry, 'learn-more-telemetry', {
           link: getLocalizedLink('learn-more-telemetry')
         });
-        linkElement = document.getElementById('external-link-information');
-        navigator.mozL10n.localize(linkElement, 'learn-more-information', {
+        var linkInfo = document.getElementById('external-link-information');
+        navigator.mozL10n.localize(linkInfo, 'learn-more-information', {
           link: getLocalizedLink('learn-more-information')
         });
         break;
