@@ -1,5 +1,8 @@
 'use strict';
 
+/* global _, TonePlayer, LazyLoader, IccHelper, ConfirmDialog, LazyL10n */
+/* exported TelephonyHelper */
+
 var TelephonyHelper = (function() {
   var confirmLoaded = false;
 
@@ -52,10 +55,10 @@ var TelephonyHelper = (function() {
                     [480, 620, 500], [0, 0, 500],
                     [480, 620, 500], [0, 0, 500]];
     TonePlayer.playSequence(sequence);
-  };
+  }
 
   function startDial(
-    conn, sanitizedNumber, oncall, connected, disconnected, error) {
+    conn, sanitizedNumber, oncall, onconnected, ondisconnected, onerror) {
 
     var telephony = navigator.mozTelephony;
     if (!telephony) {
@@ -74,60 +77,81 @@ var TelephonyHelper = (function() {
       var cardState = IccHelper.cardState;
       var emergencyOnly = conn.voice.emergencyCallsOnly;
       var hasCard = (conn.iccId !== null);
-      var call;
+      var promiseOrCall;
 
       // Note: no need to check for cardState null. While airplane mode is on
       // cardState is null and we handle that situation in call() above.
       if (((cardState === 'unknown') || (cardState === 'illegal')) &&
            (emergencyOnly === false)) {
-        error();
+        onerror();
         return;
       } else if (emergencyOnly) {
         // If the mobileConnection has a sim card we let gecko take the
         // default service, otherwise we force the first slot.
         var serviceId = hasCard ? undefined : 0;
-        call = telephony.dialEmergency(sanitizedNumber, serviceId);
+        promiseOrCall = telephony.dialEmergency(sanitizedNumber, serviceId);
       } else {
-        call = telephony.dial(sanitizedNumber);
+        promiseOrCall = telephony.dial(sanitizedNumber);
       }
 
-      if (call) {
-        if (oncall) {
-          oncall();
-        }
-        call.onconnected = connected;
-        call.ondisconnected = disconnected;
-        call.onerror = function errorCB(evt) {
-          if (error) {
-            error();
-          }
-
-          var errorName = evt.call.error.name;
-          if (errorName === 'BadNumberError') {
-            // If the call is rejected for a bad number and we're in emergency
-            // only mode, then just tell the user that they're not connected
-            // to a network. Otherwise, tell them the number is bad.
-            displayMessage(emergencyOnly ? 'NoNetwork' : 'BadNumber');
-          } else if (errorName === 'DeviceNotAcceptedError') {
-            displayMessage('DeviceNotAccepted');
-          } else if (errorName === 'RadioNotAvailable') {
-            displayMessage('FlightMode');
-          } else if (errorName === 'BusyError') {
-            notifyBusyLine();
-            displayMessage('NumberIsBusy');
-          } else if (errorName === 'FDNBlockedError' ||
-                     errorName === 'FdnCheckFailure') {
-            displayMessage('FixedDialingNumbers');
-          } else {
-            // If the call failed for some other reason we should still
-            // display something to the user. See bug 846403.
-            console.error('Unexpected error: ', errorName);
-          }
-        };
+      /* XXX: Temporary fix to handle old and new telephony API
+         To remove when bug 969218 lands */
+      if (promiseOrCall && promiseOrCall.then) {
+        promiseOrCall.then(function(call) {
+          installHandlers(call, emergencyOnly, oncall, onconnected,
+                          ondisconnected, onerror);
+        }).catch(function(errorName) {
+          displayMessage('UnableToCall');
+        });
       } else {
-        displayMessage('UnableToCall');
+        installHandlers(promiseOrCall, emergencyOnly, oncall, onconnected,
+                        ondisconnected, onerror);
       }
     });
+  }
+
+  function installHandlers(call, emergencyOnly, oncall, onconnected,
+                           ondisconnected, onerror) {
+    if (call) {
+      if (oncall) {
+        oncall();
+      }
+      call.onconnected = onconnected;
+      call.ondisconnected = ondisconnected;
+      call.onerror = function errorCB(evt) {
+        var errorName = evt.call.error.name;
+        handleError(errorName, emergencyOnly, onerror);
+      };
+    } else {
+      displayMessage('UnableToCall');
+    }
+  }
+
+  function handleError(errorName, emergencyOnly, onerror) {
+    if (onerror) {
+      onerror();
+    }
+
+    if (errorName === 'BadNumberError') {
+      // If the call is rejected for a bad number and we're in emergency
+      // only mode, then just tell the user that they're not connected
+      // to a network. Otherwise, tell them the number is bad.
+      displayMessage(emergencyOnly ? 'NoNetwork' : 'BadNumber');
+    } else if (errorName === 'DeviceNotAcceptedError') {
+      displayMessage('DeviceNotAccepted');
+    } else if (errorName === 'RadioNotAvailable') {
+      displayMessage('FlightMode');
+    } else if (errorName === 'BusyError') {
+      notifyBusyLine();
+      displayMessage('NumberIsBusy');
+    } else if (errorName === 'FDNBlockedError' ||
+               errorName === 'FdnCheckFailure') {
+      displayMessage('FixedDialingNumbers');
+    } else {
+      // If the call failed for some other reason we should still
+      // display something to the user. See bug 846403.
+      console.error('Unexpected error: ', errorName);
+    }
   }
 
   var isValid = function t_isValid(sanitizedNumber) {
