@@ -214,6 +214,7 @@ var DownloadHelper = (function() {
 
     this.data = {
       url: params.download.path,
+      filename: DownloadFormatter.getFileName(params.download),
       type: params.type,
       blob: params.blob
     };
