@@ -15,7 +15,6 @@ var broadcast = require('lib/broadcast');
 var bindAll = require('lib/bind-all');
 var model = require('vendor/model');
 var debug = require('debug')('app');
-var LazyL10n = require('LazyL10n');
 var HudView = require('views/hud');
 var bind = require('lib/bind');
 var dcf = require('lib/dcf');
@@ -78,6 +77,7 @@ App.prototype.boot = function() {
   this.injectViews();
   this.bindEvents();
   this.miscStuff();
+  this.l10n();
   this.emit('boot');
   debug('booted');
 };
@@ -137,7 +137,6 @@ App.prototype.bindEvents = function() {
   bind(this.doc, 'visibilitychange', this.onVisibilityChange);
   bind(this.win, 'beforeunload', this.onBeforeUnload);
   bind(this.el, 'click', this.onClick);
-  //this.on('change', this.onStateChange);
   this.on('focus', this.onFocus);
   this.on('blur', this.onBlur);
   debug('events bound');
@@ -225,6 +224,23 @@ App.prototype.onBeforeUnload = function() {
 };
 
 /**
+ * Initialize l10n 'localized' listener.
+ *
+ * Sometimes it may have completed
+ * before we reach this point, meaning
+ * we will have missed the 'localized'
+ * event. In this case, we emit the
+ * 'localized' event manually.
+ *
+ * @private
+ */
+App.prototype.l10n = function() {
+  var complete = navigator.mozL10n.readyState === 'complete';
+  bind(this.win, 'localized', this.firer('localized'));
+  if (complete) { this.emit('localized'); }
+};
+
+/**
  * Miscalaneous tasks to be
  * run when the app first
  * starts.
@@ -253,24 +269,12 @@ App.prototype.miscStuff = function() {
   });
 
 
-  if (!navigator.mozCameras) {
-    // TODO: Need to clarify what we
-    // should do in this condition.
-  }
-
+  dcf.init();
   performanceTesting.dispatch('initialising-camera-preview');
 
   // Prevent the phone
   // from going to sleep.
   lockscreen.disableTimeout();
-
-  // This must be tidied, but the
-  // important thing is it's out
-  // of camera.js
-  LazyL10n.get(function() {
-    dcf.init();
-    performanceTesting.dispatch('startup-path-done');
-  });
 
   // The screen wakelock should be on
   // at all times except when the

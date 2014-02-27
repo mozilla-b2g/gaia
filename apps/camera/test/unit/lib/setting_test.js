@@ -281,4 +281,75 @@ suite('lib/setting', function() {
       assert.ok(output.length === 3);
     });
   });
+
+  suite('Setting#localize()', function() {
+    setup(function() {
+      this.mozL10n = { get: sinon.stub().returns('replaced') };
+    });
+
+    test('Should add localized keys found in `l10n` object' , function() {
+      var setting = new this.Setting({
+        options: [],
+        mozL10n: this.mozL10n,
+        l10n: {
+          title: 'my-title'
+        }
+      });
+
+      setting.localize();
+      assert.ok(setting.get('title') === 'replaced');
+    });
+
+    test('Should not localize `title` strings without \'l10n-\' prefix', function() {
+      var setting = new this.Setting({
+        title: 'My title',
+        options: [],
+        mozL10n: this.mozL10n
+      });
+
+      setting.localize();
+      assert.ok(setting.get('title') === 'My title');
+    });
+
+    test('Should localize options `title` strings prefixed with \'l10n\'', function() {
+      var setting = new this.Setting({
+        options: [
+          {
+            l10n: {
+              title: 'my-option-title'
+            }
+          },
+          {
+            l10n: {
+              title: 'my-option-title'
+            }
+          },
+          {
+            title: 'My option title'
+          }
+        ],
+        mozL10n: this.mozL10n
+      });
+
+      setting.localize();
+
+      var options = setting.get('options');
+      assert.ok(options[0].title === 'replaced');
+      assert.ok(options[1].title === 'replaced');
+      assert.ok(options[2].title === 'My option title');
+    });
+
+    test('Should fire a \'change\' event', function() {
+      var spy = sinon.spy();
+      var setting = new this.Setting({
+        title: 'My title',
+        options: [],
+        mozL10n: this.mozL10n
+      });
+
+      setting.on('change', spy);
+      setting.localize();
+      assert.ok(spy.called);
+    });
+  });
 });
