@@ -14,10 +14,10 @@
 
   var widgetFrame;
   function _ensureWidget() {
-    if (!Applications.ready)
+    if (!applications.ready)
       return;
 
-    if (!Applications.getByManifestURL(origin + '/manifest.webapp'))
+    if (!applications.getByManifestURL(origin + '/manifest.webapp'))
       return;
 
     // Check widget is there

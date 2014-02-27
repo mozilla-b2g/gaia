@@ -1,7 +1,8 @@
 'use strict';
 
-mocha.globals(['Applications', 'HomescreenWindow', 'homescreenLauncher',
+mocha.globals(['applications', 'HomescreenWindow', 'homescreenLauncher',
               'SettingsListener', 'layoutManager']);
+
 
 requireApp('system/test/unit/mock_homescreen_window.js');
 requireApp('system/test/unit/mock_applications.js');
