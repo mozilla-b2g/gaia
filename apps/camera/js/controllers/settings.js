@@ -45,6 +45,7 @@ SettingsController.prototype.configure = function() {
 SettingsController.prototype.bindEvents = function() {
   this.app.on('change:capabilities', this.onCapabilitiesChange);
   this.app.on('settings:toggle', this.toggleSettings);
+  this.app.on('localized', this.settings.localize);
 };
 
 /**
@@ -183,7 +184,6 @@ SettingsController.prototype.matchesCondition = function(item) {
   return !item.condition || test(item.condition);
 };
 
-
 /**
  * Settings aliases provide
  * convenient pointers to
@@ -229,6 +229,7 @@ var formatters = {
   pictureSizes: function(options) {
     var getMP = function(w, h) { return Math.round((w * h) / 1000000); };
     var maxPixelSize = this.get('maxPixelSize');
+    var MP = navigator.mozL10n.get('mp');
     var normalized = [];
 
     options.forEach(function(option) {
@@ -244,11 +245,11 @@ var formatters = {
       option.aspect = getAspect(w, h);
       option.mp = getMP(w, h);
 
-      var mp = option.mp ? option.mp + 'MP ' : '';
+      var mp = option.mp ? option.mp + MP + ' ' : '';
 
       normalized.push({
         key: w + 'x' + h,
-        title: mp + w + 'x' + h + ' ' + option.aspect,
+        title: mp + w + '×' + h + ' ' + option.aspect,
         data: option
       });
     });

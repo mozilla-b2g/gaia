@@ -34,6 +34,9 @@ require(['config/require', 'config'], function() {
       sounds: require('controllers/sounds')
     };
 
+    // Attach navigator.mozL10n
+    require('l10n');
+
     debug('required dependencies');
 
     var camera = new Camera({
