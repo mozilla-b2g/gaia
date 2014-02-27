@@ -4,6 +4,7 @@
 (function() {
 
   'use strict';
+  /* global Applications, asyncStorage */
 
   var host = document.location.host;
   var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
@@ -14,16 +15,19 @@
 
   var widgetFrame;
   function _ensureWidget() {
-    if (!Applications.ready)
+    if (!Applications.ready) {
       return;
+    }
 
-    if (!Applications.getByManifestURL(origin + '/manifest.webapp'))
+    if (!Applications.getByManifestURL(origin + '/manifest.webapp')) {
       return;
+    }
 
     // Check widget is there
     widgetFrame = widgetContainer.querySelector('iframe');
-    if (widgetFrame)
+    if (widgetFrame) {
       return;
+    }
 
     // Create the widget
     if (!widgetFrame) {
@@ -43,7 +47,6 @@
     widgetContainer.appendChild(widgetFrame);
 
     _attachNetworkEvents();
-    _adjustWidgetPosition();
   }
 
   function _onError(e) {
@@ -92,18 +95,6 @@
     }
   }
 
-  function _adjustWidgetPosition() {
-    if (!widgetFrame)
-      return;
-
-    // TODO: Remove this when weird bug #809031 (Bugzilla) is solved
-    // See cost_control.css as well to remove the last rule
-    var offsetY = document.getElementById('notification-bar').clientHeight;
-    offsetY +=
-      document.getElementById('notifications-container').clientHeight;
-    widgetFrame.style.transform = 'translate(0, ' + offsetY + 'px)';
-  }
-
   // Listen to utilitytray show
   window.addEventListener('utilitytrayshow', _showWidget);
   window.addEventListener('utilitytrayhide', _hideWidget);
@@ -122,6 +113,4 @@
       }
     });
   });
-
-  window.addEventListener('resize', _adjustWidgetPosition);
 }());
