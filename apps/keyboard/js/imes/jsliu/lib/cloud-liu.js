@@ -31,8 +31,6 @@ CloudLiu.prototype.doQuery = function() {
 
   this.candidates = this.db.exec(query_str).map(function(v) {
     return v[0].value; });
-  console.log(query_str);
-  console.log(this.candidates);
   this.updateCandidates();
 }
 
@@ -49,7 +47,6 @@ CloudLiu.prototype.handle_Key = function(key) {
   default:
     if ((key >= 97 && key <= 122)
         || [44, 46, 91, 93, 39].indexOf(key) != -1) {
-      console.log("handle_Key:", key);
       this.handle_Default(key);
       return true;
     }

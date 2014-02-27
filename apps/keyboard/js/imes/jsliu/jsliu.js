@@ -4,7 +4,7 @@ var JSLiuGlue = function JSLiuGlue() {
   this.ready = false;
 }
 
-JSLiuGlue.prototype.DEBUG = true;
+JSLiuGlue.prototype.DEBUG = false;
 
 JSLiuGlue.prototype.init = function(keyboard) {
   this.keyboard = keyboard;
