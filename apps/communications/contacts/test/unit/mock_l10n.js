@@ -9,9 +9,13 @@ var MockMozL10n = window.navigator.mozL10n = {
     var out = key;
 
     if (params) {
-      Object.keys(params).forEach(function(id) {
-        out += params[id];
-      });
+      if (key == 'itemWithLabel') {
+        out = params.label + ', ' + params.item;
+      } else {
+        Object.keys(params).forEach(function(id) {
+          out += params[id];
+        });
+      }
     }
 
     return out;

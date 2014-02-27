@@ -355,7 +355,10 @@ if (!contacts.MatchingUI) {
               if (isMatch(matchings, aField, fieldValue)) {
                 item.classList.add('selected');
               }
-              item.textContent = fieldValue.type + ', ' + fieldValue.value;
+              navigator.mozL10n.localize(item, 'itemWithLabel', {
+                label: _(fieldValue.type),
+                item: fieldValue.value
+              });
               matchingDetailList.appendChild(item);
             break;
             case 'adr':
