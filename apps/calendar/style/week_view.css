@@ -146,6 +146,8 @@
   height: 100%;
   float: left;
   width: calc(100% - 2rem);
+  /* XXX: z-index + position:relative is important for perf (Bug 972675) */
+  z-index: 0;
 }
 
 
@@ -168,6 +170,7 @@
 #week-view .week-events > ol li.event {
   position: absolute;
   width: 100%;
+  z-index: 10;
 }
 
 #week-view .week-events .container {
