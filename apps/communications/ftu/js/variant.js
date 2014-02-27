@@ -30,7 +30,8 @@ var VariantManager = {
     '/ftu/js/customizers/data_icon_statusbar_customizer.js',
     '/ftu/js/customizers/ringtone_customizer.js',
     '/ftu/js/customizers/support_contacts_customizer.js',
-    '/ftu/js/customizers/default_contacts_customizer.js'
+    '/ftu/js/customizers/default_contacts_customizer.js',
+    '/ftu/js/customizers/power_customizer.js'
   ],
 
   iccHandler: function vm_iccHandler() {
