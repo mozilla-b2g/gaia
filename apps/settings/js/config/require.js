@@ -2,6 +2,7 @@ require.config({
   baseUrl: '/js',
   paths: {
     'modules': 'modules',
+    'panels': 'panels',
     'shared': '../shared/js'
   },
   shim: {
