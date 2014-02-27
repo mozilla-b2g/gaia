@@ -118,4 +118,3 @@ exports.killAppByPid = utils.killAppByPid;
 exports.getEnv = utils.getEnv;
 exports.isExternalApp = utils.isExternalApp;
 exports.getDocument = utils.getDocument;
-exports.getWebapp = utils.getWebapp;

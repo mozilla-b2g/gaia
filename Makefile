@@ -406,13 +406,11 @@ endef
 
 # Generate profile/
 
-$(PROFILE_FOLDER): preferences app-makefiles copy-build-stage-manifest test-agent-config offline contacts extensions install-xulrunner-sdk .git/hooks/pre-commit $(PROFILE_FOLDER)/settings.json create-default-data $(PROFILE_FOLDER)/installed-extensions.json
+$(PROFILE_FOLDER): preferences local-apps app-makefiles copy-build-stage-manifest test-agent-config offline contacts extensions install-xulrunner-sdk .git/hooks/pre-commit $(PROFILE_FOLDER)/settings.json create-default-data $(PROFILE_FOLDER)/installed-extensions.json
 ifeq ($(BUILD_APP_NAME),*)
 	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)$(PROFILE_FOLDER)"
 endif
 
-svoperapps: install-xulrunner-sdk
-	@$(call run-js-command, svoperapps)
 
 LANG=POSIX # Avoiding sort order differences between OSes
 
@@ -425,7 +423,7 @@ LANG=POSIX # Avoiding sort order differences between OSes
 # - build_stage/APPNAME/gaia_shared.json: This file lists shared resource
 #   dependencies that build/webapp-zip.js's detection logic might not determine
 #   because of lazy loading, etc.
-app-makefiles: svoperapps webapp-manifests install-xulrunner-sdk
+app-makefiles: install-xulrunner-sdk applications-data
 	@for d in ${GAIA_APPDIRS}; \
 	do \
 		if [[ ("$$d" =~ "${BUILD_APP_NAME}") || (${BUILD_APP_NAME} == "*") ]]; then \
@@ -436,22 +434,9 @@ app-makefiles: svoperapps webapp-manifests install-xulrunner-sdk
 		fi; \
 	done;
 
-.PHONY: webapp-manifests
-# Generate $(PROFILE_FOLDER)/webapps/
-# We duplicate manifest.webapp to manifest.webapp and manifest.json
-# to accommodate Gecko builds without bug 757613. Should be removed someday.
-#
-# We depend on app-makefiles so that per-app Makefiles could modify the manifest
-# as part of their build step.  None currently do this, and webapp-manifests.js
-# would likely want to change to see if the build directory includes a manifest
-# in that case.  Right now this is just making sure we don't race app-makefiles
-# in case someone does decide to get fancy.
-webapp-manifests: install-xulrunner-sdk
-	@$(call run-js-command, webapp-manifests)
-
 .PHONY: webapp-zip
 # Generate $(PROFILE_FOLDER)/webapps/APP/application.zip
-webapp-zip: webapp-optimize app-makefiles install-xulrunner-sdk
+webapp-zip: applications-data webapp-optimize app-makefiles install-xulrunner-sdk
 ifneq ($(DEBUG),1)
 	@mkdir -p $(PROFILE_FOLDER)/webapps
 	@$(call run-js-command, webapp-zip)
@@ -493,8 +478,13 @@ else
 endif
 endif
 
+local-apps: applications-data
+ifdef VARIANT_PATH
+	@$(call run-js-command, variant)
+endif
+
 # Create webapps
-offline: app-makefiles optimize-clean
+offline: applications-data optimize-clean
 
 # Create an empty reference workload
 .PHONY: reference-workload-empty
@@ -659,6 +649,13 @@ ifeq ($(BUILD_APP_NAME),*)
 	)
 endif
 
+
+# Generate $(PROFILE_FOLDER)/
+applications-data: profile-dir install-xulrunner-sdk
+ifeq ($(BUILD_APP_NAME),*)
+	@$(call run-js-command, applications-data)
+endif
+
 # Generate $(PROFILE_FOLDER)/extensions
 EXT_DIR=$(PROFILE_FOLDER)/extensions
 extensions:
@@ -740,7 +737,7 @@ test-perf:
 	MOZPERFOUT="$(MOZPERFOUT)" APPS="$(APPS)" MARIONETTE_RUNNER_HOST=$(MARIONETTE_RUNNER_HOST) GAIA_DIR="`pwd`" ./bin/gaia-perf-marionette
 
 .PHONY: tests
-tests: app-makefiles offline
+tests: applications-data offline
 	echo "Checking if the mozilla build has tests enabled..."
 	test -d $(MOZ_TESTS) || (echo "Please ensure you don't have |ac_add_options --disable-tests| in your mozconfig." && exit 1)
 	echo "Checking the injected Gaia..."
@@ -1021,9 +1018,9 @@ really-clean: clean
 adb-remount:
 	$(ADB) remount
 
-# Generally we got manifest from webapp-manifest.js unless manifest is generated
-# from Makefile of app. so we will copy manifest.webapp if it's avaiable in
-# build_stage/
+# Generally we got manifest from webapp-manifest.js which is execute in
+# applications-data.js unless manifest is generated from Makefile of app.
+# so we will copy manifest.webapp if it's avaiable in build_stage/
 copy-build-stage-manifest: app-makefiles
 	@$(call run-js-command, copy-build-stage-manifest)
 
