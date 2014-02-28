@@ -14,7 +14,7 @@ var MockCommon = function(config) {
 
   config = config || {};
 
-  var allInterfacesFake = MockAllNetworkInterfaces;
+  var fakeAllInterfaces = MockAllNetworkInterfaces;
 
   return {
     COST_CONTROL_APP: 'app://costcontrol.gaiamobile.org',
@@ -52,11 +52,11 @@ var MockCommon = function(config) {
       console.log('Alert: ' + msg);
     },
     getDataSIMInterface: function getDataSIMInterface() {
-      var dataSimCard = allInterfacesFake[1];
+      var dataSimCard = fakeAllInterfaces[1];
       return dataSimCard;
     },
     getWifiInterface: function() {
-      var wifiInterface = allInterfacesFake[0];
+      var wifiInterface = fakeAllInterfaces[0];
       return wifiInterface;
     },
     getIccInfo: function() { return;},
@@ -64,14 +64,14 @@ var MockCommon = function(config) {
       var self = this;
 
       setTimeout(function() {
-        self.allNetworkInterfaces = allInterfacesFake;
+        self.allNetworkInterfaces = fakeAllInterfaces;
       }, 0);
     },
     loadDataSIMIccId: function(onsuccess, onerror) {
       var self = this;
 
       setTimeout(function() {
-        self.dataSimIccId = allInterfacesFake[1].id;
+        self.dataSimIccId = fakeAllInterfaces[1].id;
         if (typeof onsuccess === 'function') {
           onsuccess(self.dataSimIccId);
         }

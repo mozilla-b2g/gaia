@@ -51,7 +51,6 @@
      { "sms-received": "/message_handler.html" },
      { "alarm": "/message_handler.html" },
      { "sms-sent": "/message_handler.html" },
-     { "networkstats-alarm": "/message_handler.html" },
      { "telephony-call-ended": "/message_handler.html" },
      { "notification": "/index.html" }
    ]

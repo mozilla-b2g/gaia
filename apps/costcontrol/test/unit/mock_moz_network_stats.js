@@ -1,11 +1,7 @@
-'use strict';
-
 requireApp('costcontrol/test/unit/mock_all_network_interfaces.js');
 
-
 var MockMozNetworkStats = (function() {
-
-  var samples1 = {
+  var result1 = {
     'manifestURL': null,
     'network': {'type': 0, 'id': '0'},
     'start': {'__date__': '2013-11-14T05:00:00.000Z'},
@@ -19,7 +15,7 @@ var MockMozNetworkStats = (function() {
     ]
   };
 
-  var samples2 = {
+  var result2 = {
     'manifestURL': null,
     'network': {'type': 1, 'id': '8100075100210526976'},
     'start': {'__date__': '2013-11-14T05:00:00.000Z'},
@@ -47,25 +43,11 @@ var MockMozNetworkStats = (function() {
     ]
   };
 
-  var allInterfacesFake = MockAllNetworkInterfaces;
-
-  var FAILING_ALARM_ID = 99;
-
-  var alarms1 = [{
-    'alarmId' : 1,
-    'network' : {'type' : 1, 'id' : allInterfacesFake[1] }
-  }];
-
-  var alarms2 = [{
-    'alarmId' : FAILING_ALARM_ID,
-    'network' : {'type' : 1, 'id' : allInterfacesFake[2] }
-  }];
-
-  function MockFakeRequest(config) {
+  function MockGetSamples(config) {
     this.init(config || {});
   }
 
-  MockFakeRequest.prototype = {
+  MockGetSamples.prototype = {
     init: function mgs_init(config) {
       setTimeout((function() {
         this.call(config.error, config.result);
@@ -89,47 +71,23 @@ var MockMozNetworkStats = (function() {
     MOBILE: 1,
     clearAllStats: {},
     clearStats: function clearStats(networkInterface) {
-      return new MockFakeRequest({
-        error: samples1
+      return new MockGetSamples({
+        error: result1
       });
     },
     getSamples: function getSamples(networkInterface, start, end, url) {
       if (networkInterface.type === 0) {
-        return new MockFakeRequest({
-          result: samples1
+        return new MockGetSamples({
+          result: result1
         });
       }
-      return new MockFakeRequest({
-        result: samples2
+      return new MockGetSamples({
+        result: result2
       });
     },
     getAvailableNetworks: function getAvailableNetworks() {
-      return new MockFakeRequest({
-        result: allInterfacesFake
-      });
-    },
-    removeAlarms: function(alarmId) {
-      var result = { result: {} };
-      if (alarmId === FAILING_ALARM_ID) {
-        result = { error: {} };
-      }
-      return new MockFakeRequest(result);
-    },
-    addAlarm: function(networkInterface, limitValue) {
-      var result = { result: {} };
-      if (networkInterface === allInterfacesFake[3]) {
-        result = { error: {} };
-      }
-      return new MockFakeRequest(result);
-    },
-    getAllAlarms: function(networkInterface) {
-      if (networkInterface === allInterfacesFake[2]) {
-        return new MockFakeRequest({
-          result: alarms2
-        });
-      }
-      return new MockFakeRequest({
-        result: alarms1
+      return new MockGetSamples({
+        result: MockAllNetworkInterfaces
       });
     }
   };
