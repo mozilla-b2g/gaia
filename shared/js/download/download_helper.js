@@ -391,27 +391,49 @@ var DownloadHelper = (function() {
     var req = new Request();
 
     deleteRequest.onsuccess = function() {
-      var storeReq =
-        navigator.getDeviceStorage(storageName).
-          delete(getRelativePath(download.path));
+      var storage = navigator.getDeviceStorage(storageName);
+      var storeAvailableReq = storage.available();
 
-      storeReq.onsuccess = function store_onsuccess() {
-        // Remove from the datastore if status is 'succeeded'
-        // if we find any problem with the datastore, don't send
-        // an error, since the physical remove already happened
-        if (download.state === 'succeeded') {
-          LazyLoader.load(['/shared/js/download/download_store.js'],
-            function() {
-              DownloadStore.remove(download);
-            }
-          );
+      storeAvailableReq.onsuccess = function available_onsuccess(e) {
+        var path = download.path;
+        switch (storeAvailableReq.result) {
+          case 'unavailable':
+            sendError(req, ' Could not delete the file: ' + path + ' from ' +
+                      storageName, CODE.NO_SDCARD);
+            break;
+
+          case 'shared':
+            sendError(req, ' Could not delete the file: ' + path + ' from ' +
+                      storageName, CODE.UNMOUNTED_SDCARD);
+            break;
+
+          default:
+            var storeDeleteReq = storage.delete(getRelativePath(path));
+
+            storeDeleteReq.onsuccess = function store_onsuccess() {
+              // Remove from the datastore if status is 'succeeded'
+              // if we find any problem with the datastore, don't send
+              // an error, since the physical remove already happened
+              if (download.state === 'succeeded') {
+                LazyLoader.load(['/shared/js/download/download_store.js'],
+                  function() {
+                    DownloadStore.remove(download);
+                  }
+                );
+              }
+              req.done(storeDeleteReq.result);
+            };
+
+            storeDeleteReq.onerror = function store_onerror() {
+              sendError(req, storeDeleteReq.error.name +
+                ' Could not remove the file: ' + download.path + ' from ' +
+                storageName, CODE.FILE_NOT_FOUND);
+            };
         }
-        req.done(storeReq.result);
       };
 
-      storeReq.onerror = function store_onerror() {
-        sendError(req, storeReq.error.name + ' Could not remove the file: ' +
-                  download.path + ' from ' + storageName, CODE.FILE_NOT_FOUND);
+      storeAvailableReq.onerror = function available_onerror() {
+        sendError(req, 'Error getting storage state ', CODE.DEVICE_STORAGE);
       };
     };
 
