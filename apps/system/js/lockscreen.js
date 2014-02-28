@@ -861,11 +861,9 @@
     var f = new navigator.mozL10n.DateTimeFormat();
     var _ = navigator.mozL10n.get;
 
-    var timeFormat = _('shortTimeFormat');
+    var timeFormat = _('shortTimeFormat').replace('%p', '<span>%p</span>');
     var dateFormat = _('longDateFormat');
-    var time = f.localeFormat(now, timeFormat);
-    this.clockNumbers.textContent = time.match(/([012]?\d).[0-5]\d/g);
-    this.clockMeridiem.textContent = (time.match(/AM|PM/i) || []).join('');
+    this.clockTime.innerHTML = f.localeFormat(now, timeFormat);
     this.date.textContent = f.localeFormat(now, dateFormat);
   };
 
@@ -943,8 +941,8 @@
   LockScreen.prototype.getAllElements =
   function ls_getAllElements() {
     // ID of elements to create references
-    var elements = ['conn-states', 'clock-numbers', 'clock-meridiem',
-        'date', 'area', 'area-unlock', 'area-camera', 'icon-container',
+    var elements = ['conn-states', 'clock-time', 'date', 'area',
+        'area-unlock', 'area-camera', 'icon-container',
         'area-handle', 'area-slide', 'media-container', 'passcode-code',
         'alt-camera', 'alt-camera-button', 'slide-handle',
         'passcode-pad', 'camera', 'accessibility-camera',
