@@ -903,7 +903,23 @@ function cropAndEndPick() {
     photodb.getFile(pickedFile.name, endPick);
   }
   else {
-    cropEditor.getCroppedRegionBlob(pickType, pickWidth, pickHeight, endPick);
+    cropEditor.getCroppedRegionBlob(pickType, pickWidth, pickHeight,
+                                    gotCroppedBlob);
+  }
+}
+
+function gotCroppedBlob(blob) {
+  var filename = pickedFile.name;
+  // Check if cropped blob type matches the picked file type
+  // Example if the user picked foo.gif but is being returned
+  // as a png, we should return the filename as foo.gif.png
+  if (pickType !== blob.type) {
+    loader.load('shared/js/mime_mapper.js', function() {
+      filename = MimeMapper.ensureFilenameMatchesType(filename, blob.type);
+      endPick(new File([blob], filename, {type: blob.type}));
+    });
+  } else {
+    endPick(new File([blob], filename, {type: pickType}));
   }
 }
 
