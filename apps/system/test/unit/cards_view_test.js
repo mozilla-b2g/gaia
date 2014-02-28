@@ -401,6 +401,50 @@ suite('cards view >', function() {
       card.dispatchEvent(mouseup);
     });
   });
+
+  suite('tapping on an app >', function() {
+    var handler = {
+      handleEvent: function(event) {
+        if (event.type == 'cardviewclosed' &&
+            event.detail.newStackPosition &&
+            event.detail.newStackPosition == this.expectedStackPosition) {
+          assert.isTrue(CardsView.cardSwitcherIsShown(),
+                        'cards view should still be visible');
+          this.done();
+        }
+      }
+    };
+
+    setup(function() {
+      MockStackManager.mStack = [apps['http://sms.gaiamobile.org']];
+      MockStackManager.mCurrent = 0;
+      MockAppWindowManager.mRunningApps = {
+        'http://sms.gaiamobile.org': apps['http://sms.gaiamobile.org']
+      };
+
+      CardsView.showCardSwitcher(true);
+      window.addEventListener('cardviewclosed', handler);
+    });
+
+    teardown(function() {
+      window.removeEventListener('cardviewclosed', handler);
+      CardsView.hideCardSwitcher(true);
+    });
+
+    test('displays the new app before dismissing the cards view',
+    function(done) {
+      handler.done = done;
+      handler.expectedStackPosition = 0;
+
+      var target = document.getElementById('cards-list').childNodes[0];
+      var fakeEvent = {
+        type: 'tap',
+        target: target
+      };
+
+      CardsView.handleEvent(fakeEvent);
+    });
+  });
 });
 
 mocha.setup({ignoreLeaks: false});

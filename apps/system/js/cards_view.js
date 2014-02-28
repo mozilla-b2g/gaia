@@ -353,7 +353,8 @@ var CardsView = (function() {
         'from-cardview',
         null
       );
-      hideCardSwitcher(false, e.target.dataset.position);
+      // Card switcher will get hidden when 'appopen' is fired.
+      fireCardViewClosed(e.target.dataset.position);
     }
   }
 
