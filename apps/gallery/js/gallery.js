@@ -178,17 +178,6 @@ function init() {
   // Clicking on the share button in select mode shares all selected images
   $('thumbnails-share-button').onclick = shareSelectedItems;
 
-  // Click to open the media storage panel when the default storage
-  // is unavailable.
-  $('storage-setting-button').onclick = function() {
-    var activity = new MozActivity({
-      name: 'configure',
-      data: {
-        target: 'device',
-        section: 'mediaStorage'
-      }
-    });
-  };
   $('overlay-cancel-button').onclick = function() {
     cancelPick();
   };
