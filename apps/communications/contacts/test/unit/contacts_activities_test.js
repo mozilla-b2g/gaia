@@ -216,6 +216,8 @@ suite('Test Activities', function() {
       // we need to create a object from data to compare prototypes
       // check activities.js > function copyContactData
       var newContact = Object.create(contact);
+      sinon.stub(window.utils.misc, 'toMozContact',
+        function() {return newContact;});
       ActivityHandler.dataPickHandler(newContact);
       assert.isFalse(ConfirmDialog.showing);
       // Mock returns always the first option from the select, so we need
