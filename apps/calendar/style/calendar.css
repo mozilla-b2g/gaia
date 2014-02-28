@@ -59,3 +59,15 @@ html, body {
 .rtl {
   text-align: right;
 }
+
+/*
+ * Bug 968478 - Put Scrollable Areas
+ * of Calendar app into opaque scrollable
+ * backgrounds.
+ **/
+#week-view .sidebar,
+#week-view .scroll > .children,
+.day-events > .hour {
+  background-color: #fff;
+}
+
