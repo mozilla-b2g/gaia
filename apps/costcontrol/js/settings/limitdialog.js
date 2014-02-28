@@ -18,6 +18,9 @@ function dataLimitConfigurer(guiWidget, settings, viewManager) {
       var value = parseFloat(dataLimitInput.value);
       settings.option('dataLimitValue', value);
       settings.option('dataLimitUnit', currentUnit);
+      var dataLimit = getDataLimit({'dataLimitValue': value,
+                                    'dataLimitUnit': currentUnit});
+      addNetworkUsageAlarm(Common.getDataSIMInterface(), dataLimit);
       viewManager.closeCurrentView();
     });
   }
