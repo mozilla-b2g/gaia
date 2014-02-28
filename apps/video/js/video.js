@@ -11,7 +11,6 @@ var ids = ['thumbnail-list-view', 'thumbnails-bottom',
            'thumbnails-single-delete-button', 'thumbnails-single-share-button',
            'thumbnails-single-info-button', 'info-view', 'info-close-button',
            'player', 'overlay', 'overlay-title', 'overlay-text',
-           'overlay-menu', 'storage-setting-button',
            'videoControls', 'videoBar', 'videoActionBar',
            'close', 'play', 'playHead', 'timeSlider', 'elapsedTime',
            'video-title', 'duration-text', 'elapsed-text', 'bufferedTime',
@@ -144,10 +143,6 @@ function init() {
       }
     });
   }
-
-  // Click to open the media storage panel when the default storage is
-  // unavailable.
-  dom.storageSettingButton.addEventListener('click', launchSettingsApp);
 
   navigator.mozSetMessageHandler('activity', handleActivityEvents);
 }
@@ -325,16 +320,6 @@ function updateSelection(videodata) {
   }
 }
 
-function launchSettingsApp() {
-  var activity = new MozActivity({
-    name: 'configure',
-    data: {
-      target: 'device',
-      section: 'mediaStorage'
-    }
-  });
-}
-
 function launchCameraApp() {
   var a = new MozActivity({
     name: 'record',
@@ -510,12 +495,6 @@ function showOverlay(id) {
   if (id === null) {
     dom.overlay.classList.add('hidden');
     return;
-  }
-
-  if (id === 'nocard') {
-    dom.overlayMenu.classList.remove('hidden');
-  } else {
-    dom.overlayMenu.classList.add('hidden');
   }
 
   if (id === 'nocard') {
