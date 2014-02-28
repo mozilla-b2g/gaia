@@ -34,11 +34,11 @@
     doSync();
   });
 
-  function saveIcon(url) {
-    if (url in icons) {
+  function saveIcon(icon) {
+    if (icon.url in icons) {
       return;
     }
-    fetchIcon(url, function(err, icon) {
+    fetchIcon(icon.url, function(err, icon) {
       if (err) {
         // null it out so we dont keep fetching broken icons
         icons[url] = null;
@@ -113,8 +113,8 @@
           break;
         }
         results[task.data.url] = task.data;
-        if (task.data.iconUri) {
-          saveIcon(task.data.iconUri);
+        if (task.data.icons && task.data.icons.length) {
+          saveIcon(task.data.icons[0]);
         }
         if (!(task.data.url in urls)) {
           urls.unshift(task.data.url);
@@ -151,8 +151,9 @@
       }
     };
 
-    if (placeObj.iconUri in icons && icons[placeObj.iconUri]) {
-      renderObj.icon = icons[placeObj.iconUri];
+    var firstIcon = placeObj.icons && placeObj.icons[0];
+    if (firstIcon && firstIcon.url in icons) {
+      renderObj.icon = icons[firstIcon.url];
     }
 
     return renderObj;
