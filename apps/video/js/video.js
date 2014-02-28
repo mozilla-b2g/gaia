@@ -746,7 +746,7 @@ function showOverlay(id) {
 
   if (id === 'nocard') {
     dom.overlayTitle.textContent = _('nocard2-title');
-    dom.overlayText.textContent = _('nocard2-text');
+    dom.overlayText.textContent = _('nocard3-text');
   } else {
     dom.overlayTitle.textContent = _(id + '-title');
     dom.overlayText.textContent = _(id + '-text');

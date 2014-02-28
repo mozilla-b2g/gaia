@@ -40,7 +40,7 @@ suite('controllers/overlay', function() {
 
     navigator.mozL10n = { get: sinon.stub() };
     navigator.mozL10n.get.withArgs('nocard2-title').returns('nocard title');
-    navigator.mozL10n.get.withArgs('nocard2-text').returns('nocard body');
+    navigator.mozL10n.get.withArgs('nocard3-text').returns('nocard body');
     navigator.mozL10n.get.withArgs('nospace2-title').returns('nospace title');
     navigator.mozL10n.get.withArgs('nospace2-text').returns('nospace body');
     navigator.mozL10n.get.withArgs(
