@@ -209,12 +209,16 @@ define(function(require) {
     /**
      * Just changes the folder property tracked by the model.
      * Assumes the folder still belongs to the currently tracked
-     * account.
+     * account. It also does not result in any state changes or
+     * event emitting if the new folder is the same as the
+     * currently tracked folder.
      * @param  {Object} folder the folder object to use.
      */
     changeFolder: function(folder) {
-      this.folder = folder;
-      this._callEmit('folder');
+      if (folder && (!this.folder || folder.id !== this.folder.id)) {
+        this.folder = folder;
+        this._callEmit('folder');
+      }
     },
 
     /**
