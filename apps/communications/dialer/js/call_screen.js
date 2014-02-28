@@ -56,11 +56,12 @@ var CallScreen = {
     });
   },
 
-  updateSingleLine: function cs_updateSingleLine() {
+  updateCallsDisplay: function cs_updateCallsDisplay() {
     var enabled =
       (this.calls.querySelectorAll('section:not([hidden])').length <= 1);
     this.calls.classList.toggle('single-line', enabled);
     this.calls.classList.toggle('big-duration', enabled);
+    CallsHandler.updateAllPhoneNumberDisplays();
   },
 
   /**
@@ -301,13 +302,13 @@ var CallScreen = {
 
   insertCall: function cs_insertCall(node) {
     this.calls.appendChild(node);
-    this.updateSingleLine();
+    this.updateCallsDisplay();
   },
 
   removeCall: function cs_removeCall(node) {
     // The node can be either inside groupCallsList or calls.
     node.parentNode.removeChild(node);
-    this.updateSingleLine();
+    this.updateCallsDisplay();
   },
 
   moveToGroup: function cs_moveToGroup(node) {

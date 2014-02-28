@@ -223,20 +223,20 @@ suite('call screen', function() {
       );
     });
 
-    suite('updateSingleLine', function() {
+    suite('updateCallsDisplay', function() {
       test('should toggle single-line/big-duration class',
       function() {
         assert.isFalse(calls.classList.contains('single-line'));
         assert.isFalse(calls.classList.contains('big-duration'));
 
         calls.innerHTML = '<section></section>';
-        CallScreen.updateSingleLine();
+        CallScreen.updateCallsDisplay();
         assert.isTrue(calls.classList.contains('single-line'));
         assert.isTrue(calls.classList.contains('big-duration'));
 
         calls.innerHTML = '<section></section>' +
                           '<section></section>';
-        CallScreen.updateSingleLine();
+        CallScreen.updateCallsDisplay();
         assert.isFalse(calls.classList.contains('single-line'));
         assert.isFalse(calls.classList.contains('big-duration'));
       });
@@ -248,7 +248,7 @@ suite('call screen', function() {
 
         calls.innerHTML = '<section></section>' +
                           '<section hidden=""></section>';
-        CallScreen.updateSingleLine();
+        CallScreen.updateCallsDisplay();
         assert.isTrue(calls.classList.contains('single-line'));
         assert.isTrue(calls.classList.contains('big-duration'));
 
@@ -256,9 +256,18 @@ suite('call screen', function() {
                           '<section></section>' +
                           '<section hidden=""></section>';
 
-        CallScreen.updateSingleLine();
+        CallScreen.updateCallsDisplay();
         assert.isFalse(calls.classList.contains('single-line'));
         assert.isFalse(calls.classList.contains('big-duration'));
+      });
+
+      test('should trigger call list reformat',
+      function() {
+        var updateAllPhoneNumberDisplaysStub =
+          this.sinon.stub(MockCallsHandler, 'updateAllPhoneNumberDisplays');
+        CallScreen.updateCallsDisplay();
+        assert.isTrue(updateAllPhoneNumberDisplaysStub.calledOnce);
+        updateAllPhoneNumberDisplaysStub.restore();
       });
     });
 
@@ -266,7 +275,7 @@ suite('call screen', function() {
       test('should insert the node in the calls article and update calls style',
       function() {
         var fakeNode = document.createElement('section');
-        var singleLineStub = this.sinon.stub(CallScreen, 'updateSingleLine');
+        var singleLineStub = this.sinon.stub(CallScreen, 'updateCallsDisplay');
         CallScreen.insertCall(fakeNode);
         assert.equal(fakeNode.parentNode, CallScreen.calls);
         assert.isTrue(singleLineStub.calledOnce);
@@ -281,7 +290,7 @@ suite('call screen', function() {
 
       test('should remove the node in the calls article and update calls style',
       function() {
-        var singleLineStub = this.sinon.stub(CallScreen, 'updateSingleLine');
+        var singleLineStub = this.sinon.stub(CallScreen, 'updateCallsDisplay');
         CallScreen.removeCall(fakeNode);
         assert.equal(fakeNode.parentNode, null);
         assert.isTrue(singleLineStub.calledOnce);
@@ -289,7 +298,7 @@ suite('call screen', function() {
 
       test('should remove the node in the groupList',
       function() {
-        var singleLineStub = this.sinon.stub(CallScreen, 'updateSingleLine');
+        var singleLineStub = this.sinon.stub(CallScreen, 'updateCallsDisplay');
         CallScreen.moveToGroup(fakeNode);
         CallScreen.removeCall(fakeNode);
         assert.equal(fakeNode.parentNode, null);

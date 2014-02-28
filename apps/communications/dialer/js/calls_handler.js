@@ -356,12 +356,12 @@ var CallsHandler = (function callsHandler() {
     window.close();
   }
 
-  function _changeMaxFontSize(evt) {
-    handledCalls.forEach(function(hc) {
-      hc.formatPhoneNumber();
+  function updateAllPhoneNumberDisplays() {
+    handledCalls.forEach(function(call) {
+      call.restorePhoneNumber();
     });
   }
-  window.addEventListener('resize', _changeMaxFontSize);
+  window.addEventListener('resize', updateAllPhoneNumberDisplays);
 
   /* Handle commands send to the callscreen via postmessage */
   function handleCommand(evt) {
@@ -792,6 +792,7 @@ var CallsHandler = (function callsHandler() {
     mergeActiveCallWith: mergeActiveCallWith,
     mergeConferenceGroupWithActiveCall: mergeConferenceGroupWithActiveCall,
     requestContactsTab: requestContactsTab,
+    updateAllPhoneNumberDisplays: updateAllPhoneNumberDisplays,
 
     get activeCall() {
       return activeCall();
