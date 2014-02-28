@@ -1090,7 +1090,6 @@ apps/system/test/unit/mock_utility_tray.js
 apps/system/test/unit/mock_wifi_manager.js
 apps/system/test/unit/modal_dialog_test.js
 apps/system/test/unit/operator_variant_helper_test.js
-apps/system/test/unit/operator_variant_test.js
 apps/system/test/unit/orientation_manager_test.js
 apps/system/test/unit/permission_manager_test.js
 apps/system/test/unit/quick_settings_test.js

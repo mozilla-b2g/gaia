@@ -4685,6 +4685,11 @@
   "01": [
     {"carrier":"Test Network","apn":"internet","user":"user","password":"password","proxy":"127.0.0.1","port":"8080","mmsc":"http://127.0.0.1","mmsproxy":"127.0.0.1","mmsport":"8080","authtype":"0","type":["default","supl","mms","dun","ims"]},
     {"voicemail":"999999","cellBroadcastSearchList":"0,1,2,3","type":["operatorvariant"]}
+  ],
+  "02": [
+    {"carrier":"NoBearer","apn":"nobearer","user":"user","password":"password","proxy":"127.0.0.1","port":"8080","mmsc":"http://127.0.0.1","mmsproxy":"127.0.0.1","mmsport":"8080","authtype":"0","type":["default","supl","mms","dun","ims"]},
+    {"carrier":"Evdo0Bearer","apn":"evdo0bearer","user":"user","password":"password","proxy":"127.0.0.1","port":"8080","mmsc":"http://127.0.0.1","mmsproxy":"127.0.0.1","mmsport":"8080","authtype":"0","type":["default","supl","mms","dun","ims"],"bearer":"7"},
+    {"carrier":"ZeroBearer","apn":"zerobearer","user":"user","password":"password","proxy":"127.0.0.1","port":"8080","mmsc":"http://127.0.0.1","mmsproxy":"127.0.0.1","mmsport":"8080","authtype":"0","type":["default","supl","mms","dun","ims"],"bearer":"0"}
   ]
 }
 }

@@ -1,6 +1,8 @@
 /* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
+/* globals ApnHelper */
+
 'use strict';
 
 /**
@@ -150,16 +152,18 @@ var CarrierSettings = (function(window, document, undefined) {
 
         // Get MCC and MNC codes the APNs will rely on.
         cs_getMccMncCodes(function getMccMncCodesCb() {
+          var networkType = _mobileConnection.data.type;
+
           if (currentHash === '#carrier-dataSettings') {
-            cs_queryApns(cs_updateApnList, 'data');
+            cs_queryApns(cs_updateApnList, 'data', networkType);
           } else if (currentHash === '#carrier-mmsSettings') {
-            cs_queryApns(cs_updateApnList, 'mms');
+            cs_queryApns(cs_updateApnList, 'mms', networkType);
           } else if (currentHash === '#carrier-suplSettings') {
-            cs_queryApns(cs_updateApnList, 'supl');
+            cs_queryApns(cs_updateApnList, 'supl', networkType);
           } else if (currentHash === '#carrier-dunSettings') {
-            cs_queryApns(cs_updateApnList, 'dun');
+            cs_queryApns(cs_updateApnList, 'dun', networkType);
           } else if (currentHash === '#carrier-imsSettings') {
-            cs_queryApns(cs_updateApnList, 'ims');
+            cs_queryApns(cs_updateApnList, 'ims', networkType);
           }
         });
       });
@@ -820,8 +824,10 @@ var CarrierSettings = (function(window, document, undefined) {
    *
    * @param {Function} callback Function to be called once the work is done.
    * @param {String} usage The usage for the APNs in the panel.
+   * @param {String} type The network type which the APN must be
+   *                 compatible with.
    */
-  function cs_queryApns(callback, usage) {
+  function cs_queryApns(callback, usage, type) {
     var usageFilter = usage;
     if (!usage || usage == 'data') {
       usageFilter = 'default';
@@ -848,7 +854,7 @@ var CarrierSettings = (function(window, document, undefined) {
       var mcc = _mccMncCodes.mcc;
       var mnc = _mccMncCodes.mnc;
 
-      _allApnList = apn[mcc] ? (apn[mcc][mnc] || []) : [];
+      _allApnList = ApnHelper.getCompatible(apn, mcc, mnc, type);
 
       if (!_settings) {
         if (callback) {
@@ -863,9 +869,7 @@ var CarrierSettings = (function(window, document, undefined) {
         var clientProvisioingApns = load.result[CP_APN_KEY];
         if (clientProvisioingApns) {
           preferedApnList = preferedApnList.concat(
-            clientProvisioingApns[mcc] ?
-              (clientProvisioingApns[mcc][mnc] || []) :
-              []
+            ApnHelper.getCompatible(clientProvisioingApns, mcc, mnc, type)
           );
         }
 
