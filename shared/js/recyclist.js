@@ -38,9 +38,9 @@ Recyclist.prototype = {
 
   /**
    * Indexed by item number, the item elements currently in the DOM.
-   * @type {Array}
+   * @type {Object}
    */
-  domItems: [],
+  domItems: {},
 
   lastScrollPos: 0,
 
@@ -53,6 +53,9 @@ Recyclist.prototype = {
 
     this.scrollParent.addEventListener('scroll', this);
     this.scrollParent.addEventListener('resize', this);
+
+    // Synchronously generate all items that are immediately or nearly visible
+    this.generate(this.visibleMultiplier);
 
     this.fix();
   },
@@ -75,11 +78,15 @@ Recyclist.prototype = {
     // to reduce the likelihood of the user seeing incomplete items.
     var displayPortMargin = multiplier * scrollPortHeight;
     var startIndex = Math.max(0,
-      Math.floor((scrollPos - displayPortMargin) / itemHeight));
+
+      /* Use ~~() for a faster equivalent to Math.floor */
+      ~~((scrollPos - displayPortMargin) / itemHeight));
 
     var endIndex = Math.min(this.numItems,
-      Math.ceil((scrollPos + scrollPortHeight + displayPortMargin) /
-        itemHeight));
+
+      /* Use ~~()+1 for a faster equivalent to Math.ceil */
+      ~~((scrollPos + scrollPortHeight + displayPortMargin) /
+        itemHeight) + 1);
 
     // indices of items which are eligible for recycling
     var recyclableItems = [];
@@ -127,14 +134,9 @@ Recyclist.prototype = {
   },
 
   /**
-   * Immediately renders items within the display port.
-   * Also generates items outside the display port on next tick.
+   * Asynchronously generate the other items for the displayport
    */
   fix: function() {
-    // Synchronously generate all items that are immediately or nearly visible
-    this.generate(this.visibleMultiplier);
-
-    // Asynchronously generate the other items for the displayport
     setTimeout(function() {
       this.generate(this.asyncMultiplier);
       this.lastScrollPos = this.getScrollPos();
