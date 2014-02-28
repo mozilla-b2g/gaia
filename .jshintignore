@@ -18,6 +18,7 @@ shared/js/opensearch.js
 shared/js/utilities.js
 apps/keyboard/js/imes/jspinyin/libpinyin.js
 apps/keyboard/js/imes/jszhuyin/lib/**
+apps/keyboard/js/imes/jsliu/lib/**
 shared/js/setImmediate.js
 shared/test/unit/test-agent-server.js
 apps/gallery/test/unit/setImmediate_test.js

@@ -1,3 +1,5 @@
+'use strict';
+
 importScripts('lib/sql.min.js', 'lib/boshiamy.db.js', 'lib/cloud-liu.js');
 
 self.cliu = new CloudLiu(self);

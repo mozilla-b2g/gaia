@@ -1,8 +1,10 @@
+'use strict';
+
 var JSLiuGlue = function JSLiuGlue() {
   this.keyboard = null;
   this.messageQueue = [];
   this.ready = false;
-}
+};
 
 JSLiuGlue.prototype.DEBUG = false;
 
@@ -19,7 +21,8 @@ JSLiuGlue.prototype.init = function(keyboard) {
     switch (data.cmd) {
       case 'ready':
         this.ready = true;
-        while (msg = this.messageQueue.shift()) {
+        var msg;
+        while ((msg = this.messageQueue.shift())) {
           keyboard.postMessage(msg);
         }
         this.messageQueue = [];
@@ -40,23 +43,23 @@ JSLiuGlue.prototype.init = function(keyboard) {
         break;
     }
   }, false);
-}
+};
 
 JSLiuGlue.prototype.activate = function() {
   if (this.DEBUG) {
     console.log('jsliu:activated');
   }
-}
+};
 
 JSLiuGlue.prototype.deactivate = function() {
   if (this.DEBUG) {
     console.log('jsliu:deactivated');
   }
-}
+};
 
 JSLiuGlue.prototype.empty = function() {
   this.worker.postMessage({ cmd: 'handle_Escape' });
-}
+};
 
 JSLiuGlue.prototype.click = function(keycode, x, y) {
   if (this.DEBUG) {
@@ -69,12 +72,12 @@ JSLiuGlue.prototype.click = function(keycode, x, y) {
   }
 
   this.worker.postMessage(msg);
-}
+};
 
 JSLiuGlue.prototype.select = function(word, data) {
   this.keyboard.endComposition(word);
   this.worker.postMessage({ cmd: 'handle_Escape' });
-}
+};
 
 
 var jsliu = new JSLiuGlue();

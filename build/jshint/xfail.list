@@ -744,6 +744,8 @@ apps/keyboard/js/imes/jspinyin/jspinyin.js
 apps/keyboard/js/imes/jspinyin/tests/init.js
 apps/keyboard/js/imes/jspinyin/worker.js
 apps/keyboard/js/imes/jszhuyin/jszhuyin.js
+apps/keyboard/js/imes/jsliu/jsliu.js
+apps/keyboard/js/imes/jsliu/worker.js
 apps/keyboard/js/imes/latin/latin.js
 apps/keyboard/js/imes/latin/predictions.js
 apps/keyboard/js/imes/latin/worker.js
