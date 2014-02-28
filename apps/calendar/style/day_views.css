@@ -17,6 +17,12 @@
   padding-left: 1.5rem;
   position: relative;
   border-bottom: 0.1rem solid #D0D0D0;
+
+  /**
+   * set scrollable areas to a solid background color
+   * see bug 968478
+   */
+  background-color: #fff;
 }
 
 .day-events > .hour:last-child {
