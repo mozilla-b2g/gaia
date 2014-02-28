@@ -1,14 +1,14 @@
 'use strict';
-/* global MockRequestWakeLock */
-requireApp('clock/test/unit/mocks/mock_request_wake_lock.js');
 
 suite('Time functions', function() {
   var Utils;
+  var MockRequestWakeLock;
 
   suiteSetup(function(done) {
-    testRequire(['utils'],
-      function(utils) {
+    require(['utils', 'mocks/mock_request_wake_lock'],
+      function(utils, _MockRequestWakeLock) {
         Utils = utils;
+        MockRequestWakeLock = _MockRequestWakeLock;
         done();
     });
   });

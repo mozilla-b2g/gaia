@@ -1,4 +1,4 @@
-(function(exports) {
+define(function(exports) {
   'use strict';
 
   function MockLock(type) {
@@ -40,6 +40,6 @@
 
   };
 
-  exports.MockRequestWakeLock = MockRequestWakeLock;
+  return MockRequestWakeLock;
 
-})(this);
+});

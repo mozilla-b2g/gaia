@@ -1,7 +1,6 @@
 define(function(require) {
 'use strict';
 
-var Emitter = require('emitter');
 var asyncStorage = require('shared/js/async_storage');
 var Utils = require('utils');
 
@@ -23,7 +22,6 @@ var timerPrivate = new WeakMap();
  */
 function Timer(opts) {
   opts = opts || {};
-  Emitter.call(this);
 
   var now = Date.now();
   if (opts.id !== undefined) {
@@ -35,6 +33,7 @@ function Timer(opts) {
   }, extractProtected(opts)));
   // public properties
   Utils.extend(this, {
+    onend: null, // callback when the timer ends
     startTime: now,
     duration: null,
     configuredDuration: null,
@@ -43,7 +42,6 @@ function Timer(opts) {
   }, opts);
 }
 
-Timer.prototype = Object.create(Emitter.prototype);
 Timer.prototype.constructor = Timer;
 
 /**
@@ -51,9 +49,9 @@ Timer.prototype.constructor = Timer;
  *
  * @param {function} [callback] - called with (err, timer_raw).
  */
-Timer.request = function timerRequest(callback) {
+Timer.getFromStorage = function(callback) {
   asyncStorage.getItem('active_timer', function(obj) {
-    callback && callback(null, obj || null);
+    callback && callback(obj || null);
   });
 };
 
@@ -64,7 +62,7 @@ Timer.request = function timerRequest(callback) {
  */
 var timerSingleton = Utils.singleton(Timer);
 Timer.singleton = function tm_singleton(callback) {
-  Timer.request(function(err, obj) {
+  Timer.getFromStorage(function(err, obj) {
     var ts = timerSingleton(obj);
     callback && callback(null, ts);
   });
@@ -192,7 +190,6 @@ Timer.prototype.start = function timerStart() {
     this.startTime = Date.now();
     this.duration = (typeof this.duration === 'number') ? this.duration :
       this.configuredDuration;
-    this.emit('start');
   }
 };
 
@@ -202,7 +199,6 @@ Timer.prototype.pause = function timerPause() {
     var priv = timerPrivate.get(this);
     priv.state = Timer.PAUSED;
     this.startTime = null;
-    this.emit('pause');
   }
 };
 
@@ -212,7 +208,7 @@ Timer.prototype.cancel = function timerReset() {
     priv.state = Timer.INITIAL;
     this.startTime = null;
     this.duration = this.configuredDuration;
-    this.emit('end');
+    this.onend && this.onend();
   }
 };
 

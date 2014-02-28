@@ -329,7 +329,7 @@ define(function(require, exports, module) {
       };
     },
 
-    schedule: function alarm_schedule(options, callback) {
+    schedule: function(options, callback) {
       /*
        * Schedule
        *

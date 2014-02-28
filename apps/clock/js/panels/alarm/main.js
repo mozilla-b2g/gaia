@@ -3,7 +3,7 @@ define(function(require) {
 
 var Panel = require('panel');
 var ClockView = require('panels/alarm/clock_view');
-var AlarmList = require('panels/alarm/alarm_list');
+var AlarmListPanel = require('panels/alarm/alarm_list');
 var ActiveAlarm = require('panels/alarm/active_alarm');
 var mozL10n = require('l10n');
 var html = require('text!panels/alarm/panel.html');
@@ -13,8 +13,8 @@ function AlarmPanel() {
 
   this.element.innerHTML = html;
   ClockView.init();
-  AlarmList.init();
-  ActiveAlarm.singleton().init();
+  this.alarmListPanel = new AlarmListPanel(document.getElementById('alarms'));
+  this.activeAlarm = new ActiveAlarm();
   mozL10n.translate(this.element);
 }
 

@@ -1,14 +1,12 @@
-/* global testRequire, document, require */
+/* global require, document, require, loadBodyHTML */
 mocha.setup({ globals: ['GestureDetector'] });
-
-require('/shared/test/unit/load_body_html_helper.js');
 
 suite('Ring Test', function() {
   'use strict';
 
   var RingView;
   suiteSetup(function(done) {
-    testRequire(['ring_view'],
+    require(['ring_view'],
     function(_RingView) {
       RingView = _RingView;
       loadBodyHTML('/onring.html');
@@ -20,69 +18,33 @@ suite('Ring Test', function() {
 
   });
 
-  test('vibrates when vibrate is set', function(done) {
-    var clock = this.sinon.useFakeTimers();
-    var mock = this.sinon.mock(navigator);
-    mock.expects('vibrate').atLeast(1);
-    var view = new RingView();
-    view.alarm({
-      data: {
-        type: '',
-        alarm: {
-          vibrate: '1',
-          label: 'hi',
-          sound: null
-        }
-      }
-    }, function() {
-      clock.tick(5000); // vibrate starts after a setInterval
-      mock.verify();
-      done();
-    });
-    clock.tick(0); // let event handlers run
-  });
+  [
+    { vibrate: true, shouldVibrate: true },
+    { vibrate: '1', shouldVibrate: true },
+    { vibrate: '0', shouldVibrate: false },
+    { vibrate: false, shouldVibrate: false }
+  ].forEach(function(testCase) {
+    var { vibrate, shouldVibrate } = testCase;
 
-  test('does not vibrate when vibrate is "0"', function(done) {
-    var clock = this.sinon.useFakeTimers();
-    var mock = this.sinon.mock(navigator);
-    mock.expects('vibrate').never();
-    var view = new RingView();
-    view.alarm({
-      data: {
-        type: '',
-        alarm: {
-          vibrate: '0',
-          label: 'hi',
-          sound: null
-        }
+    test('should ' + (shouldVibrate ? '' : 'not ') +
+         'vibrate when vibrate is set to ' + vibrate, function(done) {
+      var clock = this.sinon.useFakeTimers();
+      var mock = this.sinon.mock(navigator);
+      if (shouldVibrate) {
+        mock.expects('vibrate').atLeast(1);
+      } else {
+        mock.expects('vibrate').never();
       }
-    }, function() {
+      var view = new RingView();
+      view.addAlert({
+        type: 'alarm',
+        vibrate: vibrate,
+        label: 'hi',
+        sound: null
+      });
       clock.tick(5000); // vibrate starts after a setInterval
       mock.verify();
       done();
     });
-    clock.tick(0); // let event handlers run
-  });
-
-  test('does not vibrate when vibrate is null', function(done) {
-    var clock = this.sinon.useFakeTimers();
-    var mock = this.sinon.mock(navigator);
-    mock.expects('vibrate').never();
-    var view = new RingView();
-    view.alarm({
-      data: {
-        type: '',
-        alarm: {
-          vibrate: null,
-          label: 'hi',
-          sound: null
-        }
-      }
-    }, function() {
-      clock.tick(5000); // vibrate starts after a setInterval
-      mock.verify();
-      done();
-    });
-    clock.tick(0); // let event handlers run
   });
 });
