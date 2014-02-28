@@ -5,7 +5,7 @@
 mocha.globals(['SettingsHelper']);
 
 requireApp('system/test/unit/mock_logo_loader.js');
-requireApp('system/test/unit/mock_settings_helper.js');
+requireApp('system/shared/test/unit/mocks/mock_settings_helper.js');
 requireApp('system/js/init_logo_handler.js');
 
 suite('init_logo_handler_test.js >', function() {
