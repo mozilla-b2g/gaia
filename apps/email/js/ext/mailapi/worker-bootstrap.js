@@ -1611,7 +1611,7 @@ function encode(string, encoding) {
     default:
       if (!encoding)
         encoding = 'utf-8';
-      return TextEncoder(encoding, ENCODER_OPTIONS).encode(string);
+      return new TextEncoder(encoding, ENCODER_OPTIONS).encode(string);
   }
 }
 
@@ -1660,7 +1660,7 @@ function decode(view, encoding) {
     default:
       if (!encoding)
         encoding = 'utf-8';
-      return TextDecoder(encoding, ENCODER_OPTIONS).decode(view);
+      return new TextDecoder(encoding, ENCODER_OPTIONS).decode(view);
   }
 }
 
