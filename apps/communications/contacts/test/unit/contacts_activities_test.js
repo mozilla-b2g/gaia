@@ -7,12 +7,17 @@ require('/shared/test/unit/mocks/mock_contact_all_fields.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 requireApp('communications/contacts/js/utilities/misc.js');
 requireApp('communications/contacts/js/activities.js');
+requireApp('communications/contacts/js/views/list.js');
 requireApp('communications/contacts/test/unit/mock_l10n.js');
 requireApp('communications/contacts/test/unit/mock_navigation.js');
 requireApp('communications/contacts/test/unit/mock_contacts.js');
+requireApp('communications/contacts/test/unit/mock_contacts_list.js');
 requireApp('communications/contacts/test/unit/mock_value_selector.js');
 requireApp('communications/dialer/test/unit/mock_confirm_dialog.js');
+requireApp('communications/contacts/test/unit/mock_mozContacts.js');
+requireApp('communications/contacts/test/unit/mock_contacts_list_obj.js');
 
+/* jshint ignore:start */
 if (!window._) {
   window._ = null;
 }
@@ -20,6 +25,7 @@ if (!window._) {
 if (!window.utils) {
   window.utils = null;
 }
+/* jshint ignore:end */
 
 var mocksHelperForActivities = new MocksHelper([
   'Contacts',
@@ -30,15 +36,18 @@ var mocksHelperForActivities = new MocksHelper([
 suite('Test Activities', function() {
   var realMozL10n,
       real_,
-      realImport;
+      realImport,
+      realContactsList;
+
 
   suiteSetup(function() {
     realMozL10n = navigator.mozL10n;
     navigator.mozL10n = MockMozL10n;
-
+    navigator.mozContacts = MockMozContacts;
     real_ = window._;
     window._ = navigator.mozL10n.get;
-
+    realContactsList = contacts.List;
+    contacts.List = MockContactsListObj;
     if (!window.utils) {
       window.utils = {};
     }
@@ -59,6 +68,7 @@ suite('Test Activities', function() {
     navigator.mozL10n = realMozL10n;
     window._ = real_;
     window.utils.importFromVcard = realImport;
+    contacts.List = realContactsList;
     mocksHelperForActivities.suiteTeardown();
   });
 
@@ -118,6 +128,20 @@ suite('Test Activities', function() {
       assert.equal(ActivityHandler._currentActivity, activity);
     });
 
+    test('Multi Pick contact', function() {
+      ActivityHandler._launchedAsInlineActivity = true;
+      var activity = {
+        source: {
+          name: 'pick',
+          data: {
+            multipick: 1
+          }
+        }
+      };
+      ActivityHandler.handle(activity);
+      assert.equal(ActivityHandler._currentActivity, activity);
+    });
+
     test('Import one contact from vcard (open details)', function() {
       var activity = {
         source: {
@@ -155,6 +179,15 @@ suite('Test Activities', function() {
         contact,
         result;
 
+    function getContactIds() {
+      var contacts = MockContactsList();
+      var result = [];
+      for (var i = 0; i < contacts.length; i++) {
+        result.push(contacts[i].id);
+      }
+      return result;
+    };
+
     setup(function() {
       activity = {
         source: {
@@ -168,6 +201,8 @@ suite('Test Activities', function() {
         }
       };
       contact = new MockContactAllFields();
+      realContactsList = contacts.List;
+      contacts.List = MockContactsListObj;
     });
 
     teardown(function() {
@@ -175,6 +210,7 @@ suite('Test Activities', function() {
       contact = {};
       result = {};
       ConfirmDialog.hide();
+	  contacts.List = realContactsList;
     });
 
     test('webcontacts/tel, 0 results', function() {
@@ -281,6 +317,33 @@ suite('Test Activities', function() {
       assert.isFalse(ConfirmDialog.showing);
       // Mock returns always the first option from the select
       assert.equal(result.email, contact.email[0].value);
+    });
+
+    test('webcontacts/tel, many results, multiple contacts', function() {
+      activity.source.data.type = 'webcontacts/tel';
+      ActivityHandler._currentActivity = activity;
+      var ids = getContactIds();
+      ActivityHandler.getMultipleContacts(ids, function onDone(res) {
+        assert.ok(res, 'No Contacts');
+      });
+    });
+
+    test('webcontacts/contact, many results, multiple contacts', function() {
+      activity.source.data.type = 'webcontacts/contact';
+      ActivityHandler._currentActivity = activity;
+      var ids = getContactIds();
+      ActivityHandler.getMultipleContacts(ids, function onDone(res) {
+        assert.ok(res, 'No Contacts');
+      });
+    });
+
+    test('webcontacts/email, many results, multiple contacts', function() {
+      activity.source.data.type = 'webcontacts/email';
+      ActivityHandler._currentActivity = activity;
+      var ids = getContactIds();
+      ActivityHandler.getMultipleContacts(ids, function onDone(res) {
+        assert.ok(res, 'No Contacts');
+      });
     });
   });
 });

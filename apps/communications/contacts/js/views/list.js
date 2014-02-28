@@ -445,18 +445,55 @@ contacts.List = (function() {
     var timestampDate = contact.updated || contact.published || new Date();
     container.dataset.updated = timestampDate.getTime();
 
-    var check = getSelectCheck(contact.id);
-    container.appendChild(check);
-
     // contactInner is a link with 3 p elements:
     // name, socaial marks and org
-    var display = getDisplayName(contact);
-    var nameElement = getHighlightedName(display);
-    container.appendChild(nameElement);
-    renderOrg(contact, container, true);
 
+    if (ActivityHandler.currentlyHandling &&
+        ActivityHandler.activityName == 'pick' &&
+        ActivityHandler.activityMultiPickNumber > 0) {
+      renderSubCat(contact, container, true);
+    } else {
+      var check = getSelectCheck(contact.id);
+      container.appendChild(check);
+      var display = getDisplayName(contact);
+      var nameElement = getHighlightedName(display);
+      container.appendChild(nameElement);
+      renderOrg(contact, container, true);
+    }
     container.dataset.rendered = true;
     return container;
+  };
+
+  var renderSubCat = function renderSubCat(contact, container, add) {
+    if (add) {
+      var dataSet = 'none';
+      switch (ActivityHandler.activityDataType) {
+        case 'webcontacts/tel':
+          dataSet = contact.tel;
+        break;
+        case 'webcontacts/contact':
+          dataSet = contact.tel;
+        break;
+        case 'webcontacts/email':
+          dataSet = contact.email;
+        break;
+      }
+      var contactData = contact;
+      for (var i = 0; i < dataSet.length; i++) {
+        var check = getSelectCheck(contactData.id);
+        container.appendChild(check);
+        var display = getDisplayName(contact);
+        var nameElement = getHighlightedName(display);
+        container.appendChild(nameElement);
+        var subFieldInfo = null;
+        if (dataSet[i].type) {
+          subFieldInfo = dataSet[i].type + ' | ' + dataSet[i].value;
+        } else {
+          subFieldInfo = dataSet[i].value;
+        }
+        addSubCat(container, subFieldInfo);
+      }
+    }
   };
 
   // "Render" search string into node's data-search attribute.  If the
@@ -548,6 +585,12 @@ contacts.List = (function() {
     if (contact.tel && contact.tel.length) {
       for (var i = contact.tel.length - 1; i >= 0; i--) {
         var current = contact.tel[i];
+        searchInfo.push(current.value);
+      }
+    }
+    if (contact.email && contact.email.length) {
+      for (var i = contact.email.length - 1; i >= 0; i--) {
+        var current = contact.email[i];
         searchInfo.push(current.value);
       }
     }
@@ -931,6 +974,18 @@ contacts.List = (function() {
     return meta;
   };
 
+  var addSubCat = function addSubCat(link, content) {
+    var span = document.createElement('span');
+    if (content) {
+      span.textContent = content;
+    }
+    var meta = document.createElement('p');
+    meta.classList.add('contact-text');
+    meta.appendChild(span);
+    link.appendChild(meta);
+    return meta;
+  };
+
   var toggleNoContactsScreen = function cl_toggleNoContacs(show) {
     if (show && ActivityHandler.currentlyHandling) {
       var actName = ActivityHandler.activityName;
@@ -1021,6 +1076,101 @@ contacts.List = (function() {
     if (typeof errorCb === 'function') {
       request.onerror = errorCb;
     }
+  };
+
+  var getFilteredContacts = function cl_getFilteredContacts(errorCb, 
+      successCb) {
+
+    loading = true;
+    var type = 'none';
+    var dataSet = 'none';
+    switch (ActivityHandler.activityDataType) {
+      case 'webcontacts/tel':
+        type = ['tel'];
+        break;
+      case 'webcontacts/contact':
+        type = ['tel'];
+        break;
+      case 'webcontacts/email':
+        type = ['email'];
+        break;
+    }
+    initOrder(function onInitOrder() {
+      var options = {
+        filterValue: '',
+        filterBy: type,
+        filterOp: 'startsWith',
+        sortBy: 'givenName',
+        sortOrder: 'ascending'
+     };
+    var successCb = successCb || loadChunk;
+      var num = 0;
+      var chunk = [];
+      var request = navigator.mozContacts.find(options);
+      request.onsuccess = function onSuccess() {
+        if (cancelLoadCB) {
+          // XXX: If bug 870125 is ever implemented, add a cancel/stop call
+          loading = false;
+          var cb = cancelLoadCB;
+          cancelLoadCB = null;
+          return cb();
+        }
+        request.result.forEach(function onContact(contact) {
+          var currentlyHandling = null;
+          if (contact) {
+            switch (ActivityHandler.activityDataType) {
+              case 'webcontacts/tel':
+                dataSet = contact.tel;
+                currentlyHandling = 'tel';
+              break;
+              case 'webcontacts/contact':
+                dataSet = contact.tel;
+                currentlyHandling = 'tel';
+              break;
+              case 'webcontacts/email':
+                dataSet = contact.email;
+                currentlyHandling = 'email';
+              break;
+            }
+            var contactData = [];
+            for (var i = 0; dataSet && i < dataSet.length; i++) {
+              contactData = [];
+              contactData.name = contact.name;
+              contactData.givenName = contact.givenName;
+              contactData.familyName = contact.familyName;
+              if (currentlyHandling === 'tel') {
+                contactData.id = contact.id + '/tel/' + i;
+                // Contact ID is updated to support multiple contact pick
+                // Format: Actual Contact ID / tel / index of the contact.
+                contactData.tel = [{type: [dataSet[i].type],
+                  value: dataSet[i].value, carrier: dataSet[i].carrier}];
+              } else {
+                contactData.id = contact.id + '/email/' + i;
+                  // Contact ID is updated to support multiple contact pick
+                  // Format: Actual Contact ID / email / index of the contact.
+                contactData.email = [{type: [dataSet[i].type],
+                  value: dataSet[i].value, pref: dataSet[i].pref}];
+              }
+              chunk.push(contactData);
+              if (num && (num % CHUNK_SIZE == 0)) {
+                successCb(chunk);
+                chunk = [];
+              }
+              num++;
+            }
+          }
+        });
+        if (chunk.length) {
+          successCb(chunk);
+        }
+        var showNoContacs = (num === 0);
+        toggleNoContactsScreen(showNoContacs);
+        onListRendered();
+        dispatchCustomEvent('listRendered');
+        loading = false;
+      };
+      request.onerror = errorCb;
+    });
   };
 
   var getAllContacts = function cl_getAllContacts(errorCb, successCb) {
@@ -1417,8 +1567,12 @@ contacts.List = (function() {
     ones are selected.
   */
   var selectAction = function selectAction(action) {
+    updateSelectCount(0);
     if (action == null) {
       exitSelectMode();
+      if (ActivityHandler.activityName == 'pick') {
+        ActivityHandler.postCancel();
+      }
       return;
     }
 
@@ -1498,6 +1652,7 @@ contacts.List = (function() {
     selectActionButton.disabled = currentlySelected == 0;
     selectAll.disabled = selectAllDisabled;
     deselectAll.disabled = deselectAllDisabled;
+    updateSelectCount(currentlySelected);
   };
 
   /*
@@ -1586,6 +1741,9 @@ contacts.List = (function() {
     standardMenu.classList.toggle('hide');
   }
 
+  function updateSelectCount(count) {
+    Contacts.updateSelectCountTitle(count);
+  };
   /*
     Set the list in select mode, allowing you to configure an action to
     be executed when the user does the selection as well as a title to
@@ -1810,6 +1968,7 @@ contacts.List = (function() {
     'refreshFb': refreshFb,
     'getContactById': getContactById,
     'getAllContacts': getAllContacts,
+    'getFilteredContacts': getFilteredContacts,
     'handleClick': handleClick,
     'hide': hide,
     'show': show,

@@ -261,7 +261,10 @@ var Contacts = (function() {
         currentFbContact = fbContact;
         if (ActivityHandler.currentlyHandling) {
           if (ActivityHandler.activityName == 'pick') {
-            ActivityHandler.dataPickHandler(currentFbContact || currentContact);
+            if (ActivityHandler.activityMultiPickNumber === 0) {
+              ActivityHandler.dataPickHandler(currentFbContact ||
+                currentContact);
+            }
           }
           return;
         }
@@ -660,8 +663,13 @@ var Contacts = (function() {
       console.error('Error getting first contacts');
     };
     contactsList = contactsList || contacts.List;
-
-    contactsList.getAllContacts(onerror);
+    if (ActivityHandler.activityName === 'pick' &&
+        ActivityHandler.activityMultiPickNumber > 0) {
+      contactsList.getFilteredContacts(onerror);
+    }
+    else {
+      contactsList.getAllContacts(onerror);
+    }
   };
 
   var addAsyncScripts = function addAsyncScripts() {
@@ -885,6 +893,10 @@ var Contacts = (function() {
     load('utilities', utility, callback);
   }
 
+  var updateSelectCountTitle = function updateSelectCountTitle(count) {
+    appTitleElement.textContent = _('SelectedTxt', {n: count});
+  };
+
   return {
     'goBack' : handleBack,
     'cancel': handleCancel,
@@ -913,6 +925,7 @@ var Contacts = (function() {
     'close': close,
     'view': loadView,
     'utility': loadUtility,
+    'updateSelectCountTitle': updateSelectCountTitle,
     get asyncScriptsLoaded() {
       return asyncScriptsLoaded;
     }

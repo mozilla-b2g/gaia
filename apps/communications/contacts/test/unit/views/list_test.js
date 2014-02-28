@@ -1,3 +1,8 @@
+/* globals ActivityHandler, ConfirmDialog, MockContactAllFields, MocksHelper,
+    ContactPhotoHelper, MockMozL10n */
+
+'use strict';
+
 require('/shared/js/lazy_loader.js');
 require('/shared/js/text_normalizer.js');
 require('/shared/js/tag_visibility_monitor.js');
@@ -1554,6 +1559,54 @@ suite('Render contacts list', function() {
           assert.equal(contactsRows.length, checks.length);
           done();
         }, new MockNavigationStack(), 'transition');
+      });
+    });
+
+    suite('Check Filter contacts', function() {
+
+      test('check filtered contacts webcontacts/tel', function() {
+        mockContacts = new MockContactsList();
+        doLoad(subject, mockContacts, function() {
+          ActivityHandler.activityDataType = 'webcontacts/tel';
+          subject.getFilteredContacts(
+          function onFail() {
+            assert.ok(false, 'fail');
+          },
+          function onSuccess(chunk) {
+            assert.ok(chunk, 'invalid size');
+            done();
+          });
+        });
+      });
+
+      test('check filtered contacts webcontacts/contact', function() {
+        mockContacts = new MockContactsList();
+        doLoad(subject, mockContacts, function() {
+          ActivityHandler.activityDataType = 'webcontacts/contact';
+          subject.getFilteredContacts(
+          function onFail() {
+            assert.ok(false, 'fail');
+          },
+          function onSuccess(chunk) {
+            assert.ok(chunk, 'invalid size');
+            done();
+          });
+        });
+      });
+
+      test('check filtered contacts webcontacts/email', function() {
+        mockContacts = new MockContactsList();
+        doLoad(subject, mockContacts, function() {
+          ActivityHandler.activityDataType = 'webcontacts/email';
+          subject.getFilteredContacts(
+          function onFail() {
+            assert.ok(false, 'fail');
+          },
+          function onSuccess(chunk) {
+            assert.ok(chunk, 'invalid size');
+            done();
+          });
+        });
       });
     });
   });
