@@ -57,11 +57,18 @@ var ThreadUI = global.ThreadUI = {
   BANNER_DURATION: 2000,
   // delay between 2 counter updates while composing a message
   UPDATE_DELAY: 500,
+
+  // when sending an sms to several recipients in activity, we'll exit the
+  // activity after this delay after moving to the thread list.
+  LEAVE_ACTIVITY_DELAY: 3000,
+
   recipients: null,
   // Set to |true| when in edit mode
   inEditMode: false,
   inThread: false,
   isNewMessageNoticeShown: false,
+  shouldChangePanelNextEvent: false,
+  inActivity: false,
   timeouts: {
     update: null,
     subjectLengthNotice: null
@@ -287,6 +294,9 @@ var ThreadUI = global.ThreadUI = {
 
     this.HEADER_HEIGHT = document.querySelector('.view-header').offsetHeight;
 
+    this.shouldChangePanelNextEvent = false;
+    this.inActivity = false;
+
     ThreadUI.updateInputMaxHeight();
   },
 
@@ -375,12 +385,14 @@ var ThreadUI = global.ThreadUI = {
 
   // Change the back button to close button
   enableActivityRequestMode: function thui_enableActivityRequestMode() {
+    this.inActivity = true;
     var domBackButtonSpan = this.backButton.querySelector('span');
     domBackButtonSpan.classList.remove('icon-back');
     domBackButtonSpan.classList.add('icon-close');
   },
 
   resetActivityRequestMode: function thui_resetActivityRequestMode() {
+    this.inActivity = false;
     var domBackButtonSpan = this.backButton.querySelector('span');
     domBackButtonSpan.classList.remove('icon-close');
     domBackButtonSpan.classList.add('icon-back');
@@ -551,8 +563,15 @@ var ThreadUI = global.ThreadUI = {
   },
 
   onMessageSending: function thui_onMessageReceived(message) {
-    this.onMessage(message);
-    this.forceScrollViewToBottom();
+    if (message.threadId === Threads.currentId) {
+      this.onMessage(message);
+      this.forceScrollViewToBottom();
+    } else {
+      if (this.shouldChangePanelNextEvent) {
+        window.location.hash = '#thread=' + message.threadId;
+        this.shouldChangePanelNextEvent = false;
+      }
+    }
   },
 
   onNewMessageNoticeClick: function thui_onNewMessageNoticeClick(event) {
@@ -758,6 +777,15 @@ var ThreadUI = global.ThreadUI = {
     generateHeightRule(maxHeight);
   },
 
+  leaveActivity: function thui_leaveActivity() {
+    var currentActivity = ActivityHandler.currentActivity.new;
+
+    if (currentActivity) {
+      currentActivity.postResult({ success: true });
+      ActivityHandler.resetActivity();
+    }
+  },
+
   back: function thui_back() {
 
     if (window.location.hash === '#group-view') {
@@ -769,10 +797,8 @@ var ThreadUI = global.ThreadUI = {
     var goBack = (function() {
       this.stopRendering();
 
-      var currentActivity = ActivityHandler.currentActivity.new;
-      if (currentActivity) {
-        currentActivity.postResult({ success: true });
-        ActivityHandler.resetActivity();
+      if (this.inActivity) {
+        this.leaveActivity();
         return;
       }
       if (Compose.isEmpty()) {
@@ -1915,10 +1941,11 @@ var ThreadUI = global.ThreadUI = {
     var content = Compose.getContent();
     var subject = Compose.getSubject();
     var messageType = Compose.type;
+    var inComposer = window.location.hash === '#new';
     var recipients;
 
     // Depending where we are, we get different nums
-    if (window.location.hash === '#new') {
+    if (inComposer) {
       if (!this.recipients.length) {
         return;
       }
@@ -1931,6 +1958,8 @@ var ThreadUI = global.ThreadUI = {
     this.cleanFields(true);
 
     this.updateHeaderData();
+
+    this.shouldChangePanelNextEvent = inComposer;
 
     // Send the Message
     if (messageType === 'sms') {
@@ -1958,8 +1987,13 @@ var ThreadUI = global.ThreadUI = {
       );
 
       if (recipients.length > 1) {
+        this.shouldChangePanelNextEvent = false;
         window.location.hash = '#thread-list';
+        if (this.inActivity) {
+          setTimeout(this.leaveActivity.bind(this), this.LEAVE_ACTIVITY_DELAY);
+        }
       }
+
     } else {
       var smilSlides = content.reduce(thui_generateSmilSlides, []);
       var mmsMessage = {
