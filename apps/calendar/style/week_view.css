@@ -116,6 +116,12 @@
    border-left: none;
    border-top: none;
    float: left;
+
+  /**
+   * set scrollable areas to a solid background color
+   * see bug 968478
+   */
+  background-color: #fff;
 }
 
 #week-view .sidebar li:last-child {
@@ -143,11 +149,15 @@
 
 #week-view .scroll > .children {
   position: relative;
-  height: 100%;
   float: left;
   width: calc(100% - 2rem);
-}
 
+  /**
+   * set scrollable areas to a solid background color
+   * see bug 968478
+   */
+  background-color: #fff;
+}
 
 #week-view .weekday .children > section {
   height: 100%;
