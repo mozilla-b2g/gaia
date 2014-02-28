@@ -81,6 +81,10 @@ Search.prototype = {
     this.openRocketbar();
     this.client.helper
       .waitForElement(Search.Selectors.searchInput)
+      .clear();
+
+    this.client.helper
+      .waitForElement(Search.Selectors.searchInput)
       .sendKeys(input);
   },
 
