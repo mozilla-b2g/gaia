@@ -18,6 +18,8 @@ var Places = {
 
   rocketBarEnabled: false,
 
+  writeInProgress: false,
+
   init: function(callback) {
     window.addEventListener('apptitlechange', this);
     window.addEventListener('applocationchange', this);
@@ -62,7 +64,7 @@ var Places = {
     return {
       url: url,
       title: url,
-      frecency: 1
+      frecency: 0
     };
   },
 
@@ -71,11 +73,16 @@ var Places = {
     var rev = this.dataStore.revisionId;
     return new Promise(function(resolve) {
       self.dataStore.get(url).then(function(place) {
+        place = place || self.defaultPlace(url);
         fun(place, function(newPlace) {
-          if (self.dataStore.revisionId !== rev) {
+          if (self.writeInProgress || self.dataStore.revisionId !== rev) {
             return self.editPlace(url, fun);
           }
-          self.dataStore.put(newPlace, url, rev).then(resolve);
+          self.writeInProgress = true;
+          self.dataStore.put(newPlace, url).then(function() {
+            self.writeInProgress = false;
+            resolve();
+          });
         });
       });
     });
@@ -91,14 +98,10 @@ var Places = {
    * @param {String} url URL of visit to record.
    */
   addVisit: function(url) {
-    return this.editPlace(url, (function(place, cb) {
-      if (!place) {
-        cb(this.defaultPlace(url));
-      } else {
-        place.frecency++;
-        cb(place);
-      }
-    }).bind(this));
+    return this.editPlace(url, function(place, cb) {
+      place.frecency++;
+      cb(place);
+    });
   },
 
   /**
@@ -116,13 +119,10 @@ var Places = {
    * @param {String} title Title of place to set.
    */
   setPlaceTitle: function(url, title) {
-    return this.editPlace(url, (function(place, cb) {
-      if (!place) {
-        place = this.defaultPlace(url);
-      }
+    return this.editPlace(url, function(place, cb) {
       place.title = title;
       cb(place);
-    }).bind(this));
+    });
   },
 
   /**
@@ -132,12 +132,9 @@ var Places = {
    * @param {String} iconUri URL of the icon for url
    */
   setPlaceIconUri: function(url, iconUri) {
-    return this.editPlace(url, (function(place, cb) {
-      if (!place) {
-        place = this.defaultPlace(url);
-      }
+    return this.editPlace(url, function(place, cb) {
       place.iconUri = iconUri;
       cb(place);
-    }).bind(this));
+    });
   }
 };
