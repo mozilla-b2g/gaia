@@ -5,6 +5,7 @@
 suite('utils/camera-utils', function() {
   var CameraUtils;
 
+
   suiteSetup(function(done) {
     var self = this;
 
