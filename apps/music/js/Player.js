@@ -140,6 +140,10 @@ var PlayerView = {
     this.audio.addEventListener('durationchange', this);
     this.audio.addEventListener('timeupdate', this);
     this.audio.addEventListener('ended', this);
+    // Listen to mozinterruptbegin and mozinterruptend for notifying the system
+    // media playback widget to reflect the playing status.
+    this.audio.addEventListener('mozinterruptbegin', this);
+    this.audio.addEventListener('mozinterruptend', this);
 
     // A timer we use to work around
     // https://bugzilla.mozilla.org/show_bug.cgi?id=783512
@@ -1021,6 +1025,18 @@ var PlayerView = {
         // events if we already have a timer set to emulate them
         if (!this.endedTimer)
           this.next(true);
+        break;
+
+      case 'mozinterruptbegin':
+        console.log('Music mozinterruptbegin');
+        this.playStatus = 'mozinterruptbegin';
+        this.updateRemotePlayStatus();
+        break;
+
+      case 'mozinterruptend':
+        console.log('Music mozinterruptend');
+        this.playStatus = 'mozinterruptend';
+        this.updateRemotePlayStatus();
         break;
 
       default:
