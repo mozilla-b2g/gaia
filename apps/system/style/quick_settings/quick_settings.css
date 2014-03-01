@@ -73,54 +73,53 @@
   background-image: url(images/wifi-on.png);
 }
 #quick-settings-data {
-  background-image: url(images/data.png);
-  background-position: 15px 0;
+  background-image: url(images/data-off.png);
 }
 .non-mobile #quick-settings-data,
 .non-mobile #quick-settings-data + .separator {
   display: none;
 }
 #quick-settings-data[data-network="2G"]  {
-  background-position: 15px -30px;
+  background-image: url(images/data-2g-off.png);
 }
 #quick-settings-data[data-enabled][data-network="2G"] {
-  background-position: 15px -60px;
+  background-image: url(images/data-2g-on.png);
 }
 #quick-settings-data[data-network="3G"] {
-  background-position: 15px -90px;
+  background-image: url(images/data-3g-off.png);
 }
 #quick-settings-data[data-enabled][data-network="3G"] {
-  background-position: 15px -120px;
+  background-image: url(images/data-3g-on.png);
 }
 #quick-settings-data[data-network="4G"] {
-  background-position: 15px -150px;
+  background-image: url(images/data-4g-off.png);
 }
 #quick-settings-data[data-enabled][data-network="4G"] {
-  background-position: 15px -180px;
+  background-image: url(images/data-4g-on.png);
 }
 #quick-settings-data[data-network="E"] {
-  background-position: 15px -210px;
+  background-image: url(images/data-e-off.png);
 }
 #quick-settings-data[data-enabled][data-network="E"] {
-  background-position: 15px -240px;
+  background-image: url(images/data-e-on.png);
 }
 #quick-settings-data[data-network="H"] {
-  background-position: 15px -270px;
+  background-image: url(images/data-h-off.png);
 }
 #quick-settings-data[data-enabled][data-network="H"] {
-  background-position: 15px -300px;
+  background-image: url(images/data-h-on.png);
 }
 #quick-settings-data[data-network="H+"] {
-  background-position: 15px -330px;
+  background-image: url(images/data-h+-off.png);
 }
 #quick-settings-data[data-enabled][data-network="H+"] {
-  background-position: 15px -360px;
+  background-image: url(images/data-h+-on.png);
 }
 #quick-settings-data[data-network="O"] {
-  background-position: 15px -390px;
+  background-image: url(images/data-o-off.png);
 }
 #quick-settings-data[data-enabled][data-network="O"] {
-  background-position: 15px -420px;
+  background-image: url(images/data-o-on.png);
 }
 #quick-settings-bluetooth {
   background-image: url(images/bluetooth-off.png);
