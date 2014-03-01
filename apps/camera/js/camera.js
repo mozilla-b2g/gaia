@@ -214,10 +214,6 @@ var Camera = {
     return document.getElementById('overlay');
   },
 
-  get storageSettingButton() {
-    return document.getElementById('storage-setting-button');
-  },
-
   get viewfinder() {
     return document.getElementById('viewfinder');
   },
@@ -264,10 +260,6 @@ var Camera = {
 
   get overlayMenuClose() {
     return document.getElementById('overlay-menu-close');
-  },
-
-  get overlayMenuStorage() {
-    return document.getElementById('overlay-menu-storage');
   },
 
   // We have seperated init and delayedInit as we want to make sure
@@ -343,8 +335,6 @@ var Camera = {
       .addEventListener('click', this.cancelPick.bind(this));
     this.overlayCloseButton
       .addEventListener('click', this.cancelPick.bind(this));
-    this.storageSettingButton
-      .addEventListener('click', this.storageSettingPressed.bind(this));
 
     if (!navigator.mozCameras) {
       this.captureButton.setAttribute('disabled', 'disabled');
@@ -1120,10 +1110,12 @@ var Camera = {
     transform += 'rotate(' + camera.sensorAngle + 'deg)';
     style.transform = transform;
 
-    style.left = ((screenWidth - previewWidth) / 2) + 'px';
-    style.top = ((screenHeight - previewHeight) / 2) + 'px';
-    style.width = previewWidth + 'px';
-    style.height = previewHeight + 'px';
+    style.left =
+      ((screenWidth - previewWidth) / 2 / window.devicePixelRatio) + 'px';
+    style.top =
+      ((screenHeight - previewHeight) / 2 / window.devicePixelRatio) + 'px';
+    style.width = previewWidth / window.devicePixelRatio + 'px';
+    style.height = previewHeight / window.devicePixelRatio + 'px';
   },
 
   recordingStateChanged: function(msg) {
@@ -1284,18 +1276,6 @@ var Camera = {
       });
       this._pendingPick = null;
     }
-  },
-
-  storageSettingPressed: function camera_storageSettingPressed() {
-    // Click to open the media storage panel when the default storage
-    // is unavailable.
-    var activity = new MozActivity({
-      name: 'configure',
-      data: {
-        target: 'device',
-        section: 'mediaStorage'
-      }
-    });
   },
 
   _addPictureToStorage: function camera_addPictureToStorage(blob, callback) {
@@ -1516,17 +1496,10 @@ var Camera = {
       return;
     }
 
-    if (id === 'nocard') {
-      this.overlayMenuClose.classList.add('hidden');
-      this.overlayMenuStorage.classList.remove('hidden');
+    if (this._pendingPick) {
+      this.overlayMenuClose.classList.remove('hidden');
     } else {
-      if (this._pendingPick) {
-        this.overlayMenuClose.classList.remove('hidden');
-        this.overlayMenuStorage.classList.add('hidden');
-      } else {
-        this.overlayMenuClose.classList.add('hidden');
-        this.overlayMenuStorage.classList.add('hidden');
-      }
+      this.overlayMenuClose.classList.add('hidden');
     }
 
     if (id === 'nocard') {

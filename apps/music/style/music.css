@@ -78,15 +78,6 @@ body {
   color: #ebebeb;
 }
 
-#overlay-menu {
-  z-index: 100;
-}
-
-/* For overriding the style from BB */
-#overlay-menu.hidden {
-  display: none;
-}
-
 /* Spinner */
 #spinner-overlay { /* just like the #overlay element above */
   position: absolute;

@@ -85,7 +85,7 @@ suite('bookmark.js >', function() {
     test('This bookmark defines the url correctly >', function() {
       assert.equal(bookmark.origin, URL);
       assert.equal(bookmark.url, URL);
-      assert.equal(bookmark.bookmarkURL, URL);
+      assert.equal(bookmark.bookmarkURL, bookmark.generateIndex(URL));
     });
 
     test('This bookmark defines the icon correctly >', function() {

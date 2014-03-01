@@ -159,8 +159,7 @@ Evme.BackgroundImage = new function Evme_BackgroundImage() {
     });
 
     Evme.$('.rightbutton', el)[0].addEventListener('click',
-      function onClick(e) {
-        this.removeEventListener('click', onClick);
+      function setWallpaper(e) {
         e.stopPropagation();
 
         Evme.EventHandler.trigger(NAME, 'setWallpaper', {
@@ -169,8 +168,7 @@ Evme.BackgroundImage = new function Evme_BackgroundImage() {
       });
 
     if (data.source) {
-      Evme.$('.content', el)[0].addEventListener('click', function onClick(e) {
-        this.removeEventListener('click', onClick);
+      Evme.$('.source', el)[0].addEventListener('click', function openURL(e) {
         Evme.Utils.sendToOS(Evme.Utils.OSMessages.OPEN_URL, {
           'url': data.source
         });

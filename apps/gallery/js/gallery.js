@@ -144,17 +144,6 @@ function init() {
   // Clicking on the share button in select mode shares all selected images
   $('thumbnails-share-button').onclick = shareSelectedItems;
 
-  // Click to open the media storage panel when the default storage
-  // is unavailable.
-  $('storage-setting-button').onclick = function() {
-    var activity = new MozActivity({
-      name: 'configure',
-      data: {
-        target: 'device',
-        section: 'mediaStorage'
-      }
-    });
-  };
   $('overlay-cancel-button').onclick = function() {
     cancelPick();
   };
@@ -1179,7 +1168,6 @@ function showOverlay(id) {
     currentOverlay = id;
 
     // hide any special elements
-    $('storage-setting-button').classList.add('hidden');
     $('overlay-camera-button').classList.add('hidden');
     $('overlay-cancel-button').classList.add('hidden');
     $('overlay-menu').classList.add('hidden');
@@ -1191,11 +1179,9 @@ function showOverlay(id) {
       case 'nocard':
         title = navigator.mozL10n.get('nocard3-title');
         text = navigator.mozL10n.get('nocard3-text');
-        $('overlay-menu').classList.remove('hidden');
         if (pendingPick) {
           $('overlay-cancel-button').classList.remove('hidden');
-        } else {
-          $('storage-setting-button').classList.remove('hidden');
+          $('overlay-menu').classList.remove('hidden');
         }
         break;
       case 'pluggedin':

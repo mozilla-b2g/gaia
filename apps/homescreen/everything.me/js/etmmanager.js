@@ -323,7 +323,8 @@ var EvmeManager = (function EvmeManager() {
     removeGridItem: removeGridItem,
 
     isAppInstalled: function isAppInstalled(origin) {
-      return GridManager.getApp(origin);
+      return GridManager.getIconForBookmark(
+              Bookmark.prototype.generateIndex(origin));
     },
 
     getIconByDescriptor: getIconByDescriptor,

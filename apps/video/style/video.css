@@ -275,15 +275,6 @@ span.line-break {
   color: #ebebeb;
 }
 
-#overlay-menu {
-  z-index: 100;
-}
-
-/* For overriding the style from BB */
-#overlay-menu.hidden {
-  display: none;
-}
-
 /* localization */
 body.hidden *[data-l10n-id] {
   visibility: hidden;
