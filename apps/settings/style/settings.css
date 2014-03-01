@@ -34,9 +34,17 @@ section[role="region"] {
  * the `.previous', '.current' classes are set by settings.js
  */
 
+/**
+ * bug 976299 non-visible regions take an extra layer
+ * in the layer tree. Remove them to improve scroll performance
+ * in exchange for a reflow on section transitions.
+ */
 section[role="region"] {
   transform: translateX(+100%);
   transition: transform .4s ease, visibility .4s ease;
+  opacity: 0;
+  overflow: hidden;
+  height: 0;
 }
 
 section[role="region"].previous {
@@ -45,6 +53,8 @@ section[role="region"].previous {
 
 section[role="region"].current {
   transform: translateX(0);
+  opacity: 1;
+  height: 100%;
 }
 
 /**
