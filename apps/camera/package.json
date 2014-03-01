@@ -1,0 +1,11 @@
+{
+  "name": "camera-gaia",
+  "private": true,
+  "version": "0.0.2",
+  "description": "A camera web application",
+  "author": "Diego Marcos <dmarcos@mozilla.com>",
+  "devDependencies": {
+    "grunt": "0.4.2",
+    "grunt-contrib-watch" : "0.5.3"
+  }
+}

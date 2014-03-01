@@ -1,4 +1,7 @@
-require('/shared/js/format.js');
+/*
+  Dcf Test.
+*/
+'use strict';
 
 suite('Format Timer Unit Tests', function() {
   /*global asyncStorage*/
@@ -8,8 +11,8 @@ suite('Format Timer Unit Tests', function() {
   var subject;
 
   suiteSetup(function(done) {
-    require([
-      'lib/dcf'
+    req([
+      'lib/dcf','format'
     ], function(dcf) {
       subject = dcf;
       done();
@@ -19,7 +22,7 @@ suite('Format Timer Unit Tests', function() {
   suite('#createDCFFilename', function() {
 
     setup(function() {
-      var stub = this.sinon.stub(asyncStorage,
+      var stub = sinon.stub(asyncStorage,
         'getItem');
       subject.init();
       // Trigger the callback

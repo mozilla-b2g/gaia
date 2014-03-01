@@ -8,6 +8,7 @@ manifest.appcache
 
 /apps/calendar/js/presets.js
 /apps/camera/js/config.js
+/apps/camera/node_modules
 /apps/gallery/js/config.js
 /apps/homescreen/js/init.json
 /apps/homescreen/everything.me/config/local.json

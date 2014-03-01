@@ -1,5 +1,5 @@
 
-suite('activity', function() {
+suite.skip('activity', function() {
   'use strict';
 
   var require = window.req;
@@ -32,9 +32,9 @@ suite('activity', function() {
     this.sandbox.restore();
   });
 
-  test('Should call the callback (async) if there ' +
-    'is no pending activity', function(done) {
-    var callback = this.sinon.spy();
+  test('Should call the callback synchronously if there ' +
+    'is no pending activity', function() {
+    var callback = sinon.spy();
 
     // Instruct the stub to return false
     // when called with 'activity' argument.
@@ -50,7 +50,7 @@ suite('activity', function() {
 
   test('Should call the callback when the \'activity\' ' +
     'message event fires, when there is a pending message', function(done) {
-    var callback = this.sinon.spy();
+    var callback = sinon.spy();
     var activityObject = {
       source: {
         name: 'pick',
