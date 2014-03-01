@@ -504,7 +504,6 @@ Indicators are in units of 12
 #view-selector {
   position: absolute;
   bottom: 0;
-  height: 4.5rem;
 }
 
 #view-selector > li > a {

@@ -44,7 +44,6 @@ Calendar.Selector = Object.freeze({
   eventListSection: '#event-list',
   hintSwipeToNavigate: '#hint-swipe-to-navigate',
   modifyEventView: '#modify-event-view',
-  monthDayViewEvents: '#months-day-view .day-events',
   monthEventList: '#event-list div.events > section',
   monthEventTitle: 'h5',
   monthViewDayEvent: '#event-list .event',
@@ -53,7 +52,6 @@ Calendar.Selector = Object.freeze({
   monthViewpresent: '#month-view li.present',
   monthViewselected: '#month-view li.selected',
   monthYearHeader: '#current-month-year',
-  dayViewEvent: '#day-view .active .event',
   todayTabItem: '#today',
   toolbarAddAccountButton: '#settings a[href="/select-preset/"]',
   toolbarButton: '#time-header button.settings',
@@ -71,7 +69,6 @@ Calendar.Selector = Object.freeze({
   viewEventViewTitleContent: '#event-view .title .content',
   viewEventViewDescription: '#event-view .description',
   viewEventViewDescriptionContent: '#event-view .description .content',
-  viewEventViewCancelButton: '#event-view button.cancel',
   weekButton: '#view-selector .week a',
   weekViewEvent: '#week-view .event'
 });
@@ -130,22 +127,6 @@ Calendar.prototype = {
 
   waitForWeekView: function() {
     this.client.waitFor(this.isWeekViewActive.bind(this));
-  },
-
-  waitForDayView: function() {
-    this.client.waitFor(this.isDayViewActive.bind(this));
-  },
-
-  waitForViewEventView: function() {
-    this.client.waitFor(this.isViewEventViewActive.bind(this));
-  },
-
-  waitForEditEventView: function() {
-    this.client.waitFor(this.isEditEventViewActive.bind(this));
-  },
-
-  waitForAddEventView: function() {
-    this.client.waitFor(this.isAddEventViewActive.bind(this));
   },
 
   // TODO: extract this logic into the marionette-helper repository since this
@@ -259,8 +240,6 @@ Calendar.prototype = {
    *   (string) location - event location
    *   (Date) startDate - when event starts
    *   (Date) endDate - when event ends
-   *   (Number) startHour - shortcut for setting the startDate
-   *   (Number) duration - shortcut for setting the endDate based on startDate
    * @return {Event} Created event.
    */
   createEvent: function(opts) {
@@ -278,37 +257,16 @@ Calendar.prototype = {
     titleInput.sendKeys(opts.title);
     locationInput.sendKeys(opts.location);
     descriptionInput.sendKeys(opts.description);
-
-    var startDate = opts.startDate;
-    var endDate = opts.endDate;
-    var startHour = opts.startHour || 0;
-
-    if (!startDate) {
-      startDate = new Date();
-      startDate.setHours(startHour);
-      startDate.setMinutes(0);
-      startDate.setSeconds(0);
-      startDate.setMilliseconds(0);
-    }
-
-    if (!endDate) {
-      // duration should always be bigger than 0, defaults to 1h
-      var duration = opts.duration || 1;
-      endDate = new Date(startDate.getTime() + (60 * duration * 60 * 1000));
-    }
-
     var form = this.waitForElement('editEventForm');
     this.client.forms.fill(form, {
-      startDate: startDate,
-      startTime: startDate,
-      endDate: endDate,
-      endTime: endDate
+      startDate: opts.startDate,
+      startTime: opts.startDate,
+      endDate: opts.endDate,
+      endTime: opts.endDate
     });
 
     // Save event.
     this.waitForElement('editEventSaveButton').click();
-
-    this.waitForKeyboardHide();
 
     // TODO(gareth): Sort out the dates and times here.
     return {
@@ -382,20 +340,6 @@ Calendar.prototype = {
    */
   isViewEventViewActive: function() {
     return this.isViewActive('event/show');
-  },
-
-  /**
-   * @return {boolean} Whether or not the add event view is active.
-   */
-  isAddEventViewActive: function() {
-    return this.isViewActive('event/add');
-  },
-
-  /**
-   * @return {boolean} Whether or not the edit event view is active.
-   */
-  isEditEventViewActive: function() {
-    return this.isViewActive('event/edit');
   },
 
   /**
