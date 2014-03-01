@@ -2,7 +2,7 @@
 
 var Search = require('./lib/search');
 var Contacts = require(
-  '../../../communications/contacts/test/marionette/lib/contacts');
+  '../../../communications/contacts/test/integration/lib/contacts');
 var assert = require('assert');
 
 marionette('contact search', function() {

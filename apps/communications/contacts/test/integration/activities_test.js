@@ -1,5 +1,5 @@
 var Contacts = require('./lib/contacts');
-var Dialer = require('../../../dialer/test/marionette/lib/dialer');
+var Dialer = require('../../../dialer/test/integration/lib/dialer');
 var Sms = require('./lib/sms');
 var assert = require('assert');
 

@@ -1,5 +1,5 @@
 var Search = require('./lib/search');
-var Calendar = require('../../../calendar/test/marionette/calendar');
+var Calendar = require('../../../calendar/test/integration/calendar');
 var assert = require('assert');
 
 marionette('app search', function() {

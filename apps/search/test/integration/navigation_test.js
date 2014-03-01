@@ -1,5 +1,6 @@
 var Search = require('./lib/search');
-var Homescreen = require('../../../homescreen/test/marionette/lib/homescreen');
+var Homescreen = require(
+  '../../../homescreen/test/integration/lib/homescreen');
 var Server = require('../../../../shared/test/integration/server');
 
 var assert = require('assert');
