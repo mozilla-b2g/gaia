@@ -1,6 +1,6 @@
 define(function(require, exports, module) {
 'use strict';
-
+/*global File*/
 var debug = require('debug')('resize-image');
 
 /**
@@ -13,7 +13,7 @@ module.exports = function(options, done) {
 
 function ResizeImage(options) {
   this.canvas = document.createElement('canvas');
-  this.ctx = this.canvas.getContext('2d');
+  this.ctx = this.canvas.getContext('2d', { willReadFrequently: true });
   this.blob = options.blob;
   this.image = new Image();
   this.canvas.width = options.width;
@@ -26,10 +26,15 @@ ResizeImage.prototype.run = function(done) {
   var image = this.image;
   var self = this;
   this.load(function() {
+    var callback = done;
+    var originalImage = self.blob;
     self.correctDimensions();
     self.cover = self.coverData(image, canvas);
     self.draw();
-    self.canvas.toBlob(done, 'image/jpeg');
+    self.canvas.toBlob(function(blob) {
+      var file = new File([blob], originalImage.name);
+      callback(file);
+    },'image/jpeg');
   });
   return this;
 };
