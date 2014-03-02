@@ -10,6 +10,36 @@ var QuickSettings = {
   // ID of elements to create references
   ELEMENTS: ['wifi', 'data', 'bluetooth', 'airplane-mode', 'full-app'],
 
+  changeQSStyleSheet: function qs_changeQSStyleSheet(aStylesheets, aElem,
+       aDataElem, aNewValues) {
+
+    // Look for quickSettings stylesheet
+    var cssRegExp = new RegExp('/style/quick_settings/quick_settings.css$');
+    for (var i = aStylesheets.length - 1;
+         i >= 0 && !cssRegExp.test(aStylesheets[i].href);
+         i--);
+
+    if (i < 0) {
+      return;
+    }
+    var cssRules = aStylesheets[i].cssRules;
+    var regExp = new RegExp('#quick-settings-' + aElem +
+                 '(\\[data-enabled\\])?\\[data-' + aDataElem + '="([^"]+)"\\]');
+
+    for (var rulePos = cssRules.length - 1; rulePos >= 0; rulePos--) {
+      var cssRule = regExp.exec(cssRules[rulePos].selectorText);
+      // If the rule is a data network rule
+      if (cssRule != null) {
+        // If aNetworkTypeValues has an entry for this rule, change the value.
+        var icon = aNewValues['data_' + cssRule[2] +
+                                      (cssRule[1] ? '_enabled' : '')];
+        if (icon) {
+          cssRules[rulePos].style.backgroundImage = 'url("' + icon + '")';
+        }
+      }
+    }
+  },
+
   init: function qs_init() {
     var settings = window.navigator.mozSettings;
 
@@ -21,6 +51,22 @@ var QuickSettings = {
 
     if (!settings)
       return;
+
+    (function initNetworkLabel() {
+      try {
+        var networkTypeSetting = SettingsHelper('operatorResources.data.icon',
+                                                {});
+        networkTypeSetting.get(function gotNS(networkTypeValues) {
+          if (networkTypeValues) {
+            QuickSettings.changeQSStyleSheet(document.styleSheets, 'data',
+                                             'network', networkTypeValues);
+          }
+        });
+      } catch (e) {
+        console.error('Error loading ' + NETWORK_TYPE_SETTING + ' settings. ' +
+                      e);
+      }
+    })();
 
     this.getAllElements();
 
