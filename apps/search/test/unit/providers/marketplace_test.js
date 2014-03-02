@@ -5,7 +5,6 @@ require('/shared/test/unit/mocks/mock_moz_activity.js');
 
 requireApp('search/test/unit/mock_search.js');
 requireApp('search/js/providers/provider.js');
-requireApp('search/js/providers/app_provider.js');
 
 var mocksForMarketplaceProvider = new MocksHelper([
   'MozActivity'
