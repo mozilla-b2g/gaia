@@ -1,20 +1,24 @@
 // Quick Settings Test
 'use strict';
 
-requireApp('system/test/unit/mock_l10n.js');
-requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
-requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
-requireApp('system/test/unit/mock_wifi_manager.js');
-requireApp('system/shared/test/unit/mocks/mock_navigator_moz_mobile_connection.js');
-requireApp('system/test/unit/mock_activity.js');
+require('/test/unit/mock_activity.js');
+require('/test/unit/mock_l10n.js');
+require('/test/unit/mock_wifi_manager.js');
+require('/shared/test/unit/mocks/mock_settings_listener.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connection.js');
+require('/shared/test/unit/mocks/mock_settings_helper.js');
 
-requireApp('system/js/quick_settings.js');
+require('/js/quick_settings.js');
 
-var mocksForQuickSettings = new MocksHelper(['SettingsListener']).init();
+var mocksForQuickSettings = new MocksHelper([
+  'MozActivity',
+  'SettingsHelper',
+  'SettingsListener'
+]).init();
 
 suite('quick settings > ', function() {
   var realWifiManager;
-  var realSettingsListener;
   var realL10n;
   var realSettings;
   var realMozMobileConnection;
@@ -31,24 +35,13 @@ suite('quick settings > ', function() {
     navigator.mozL10n = MockL10n;
     realMozMobileConnection = navigator.mozMobileConnection;
     navigator.mozMobileConnection = MockNavigatorMozMobileConnection;
-    try {
-      realActivity = window.MozActivity;
-    }
-    catch (e) {
-      console.log('Access MozActivity failed, passed realActivity assignment');
-    }
-    window.MozActivity = MockMozActivity;
   });
 
   suiteTeardown(function() {
     navigator.mozWifiManager = realWifiManager;
-    window.SettingsListener = realSettingsListener;
     navigator.MozMobileConnection = realMozMobileConnection;
     navigator.mozL10n = realL10n;
     navigator.mozSettings = realSettings;
-    if (typeof(realActivity) !== 'undefined') {
-      window.MozActivity = realActivity;
-    }
   });
 
   setup(function() {

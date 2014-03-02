@@ -12,6 +12,9 @@ var QuickSettings = {
 
   init: function qs_init() {
     var settings = window.navigator.mozSettings;
+    if (!settings) {
+      return;
+    }
 
     // XXX: check bug-926169
     // this is used to keep all tests passing while introducing multi-sim APIs
@@ -19,8 +22,21 @@ var QuickSettings = {
       window.navigator.mozMobileConnections &&
         window.navigator.mozMobileConnections[0];
 
-    if (!settings)
-      return;
+    (function initNetworkSprite() {
+      var networkTypeSetting =
+        SettingsHelper('operatorResources.data.icon', {});
+
+      networkTypeSetting.get(function gotNS(networkTypeValues) {
+        if (!networkTypeValues) {
+          return;
+        }
+        var sprite = networkTypeValues['data_sprite'];
+        if (sprite) {
+          document.getElementById('quick-settings-data').style.backgroundImage =
+            'url("' + sprite + '")';
+        }
+      });
+    })();
 
     this.getAllElements();
 
