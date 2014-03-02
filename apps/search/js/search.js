@@ -1,10 +1,9 @@
 (function() {
   'use strict';
+  /* global Search, UrlHelper */
 
   // timeout before notifying providers
   var SEARCH_DELAY = 600;
-
-  var timeoutSearchWhileTyping = null;
 
   var rscheme = /^(?:[a-z\u00a1-\uffff0-9-+]+)(?::|:\/\/)/i;
 
@@ -27,7 +26,7 @@
             setConnectionHandler();
           },
           function onConnectionRejected(reason) {
-            dump('Error connecting: ' + reason + '\n');
+            console.log('Error connecting: ' + reason + '\n');
           }
         );
       };

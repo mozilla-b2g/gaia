@@ -1,3 +1,5 @@
+'use strict';
+
 window.Search = {
   _port: null,
   providers: {},

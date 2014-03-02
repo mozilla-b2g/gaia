@@ -1,5 +1,6 @@
 (function() {
   'use strict';
+  /* global eme, Promise */
 
   var DS_NAME = 'eme_store';
   var DS_CONFIG_ID = 1;

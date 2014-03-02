@@ -1,7 +1,10 @@
 (function() {
   'use strict';
+  /* global eme, Promise */
 
   function partnersAPI(eme) {
+    /*jshint validthis:true */
+
     var OK = 1;
     var API_URL = 'https://api.everything.me/partners/1.0/{resource}/';
     var API_KEY = '79011a035b40ef3d7baeabc8f85b862f';

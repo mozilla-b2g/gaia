@@ -1,6 +1,7 @@
+'use strict';
+
 var Search = require('./lib/search');
 var Calendar = require('../../../calendar/test/marionette/calendar');
-var assert = require('assert');
 
 marionette('app search', function() {
   var client = marionette.client(Search.ClientOptions);
