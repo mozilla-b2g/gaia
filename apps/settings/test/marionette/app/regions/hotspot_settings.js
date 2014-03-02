@@ -19,7 +19,7 @@ HotspotSettingsPanel.Selectors = {
   'body': 'body',
   'hotspotSettingsPanel': '#hotspot-wifiSettings',
   'hotspotSettingsNetworkName': 'input[data-setting="tethering.wifi.ssid"]',
-  'hotspotSettingsBack': '#hotspot-wifiSettings button[type="reset"]',
+  'hotspotSettingsBack': '#hotspot-wifiSettings button[type="reset"]'
 };
 
 HotspotSettingsPanel.prototype = {
@@ -40,6 +40,7 @@ HotspotSettingsPanel.prototype = {
     var parentSection = this.waitForElement('hotspotSettingsPanel');
     this.findElement('hotspotSettingsBack').tap();
     var bodyWidth = this.findElement('body').size().width;
+
     this.client.waitFor(function() {
       var loc = parentSection.location();
       return loc.x >= bodyWidth;
