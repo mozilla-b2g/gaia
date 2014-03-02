@@ -53,10 +53,10 @@ fi
 
 if [ -z "$TEST_FILES" ]; then
     if [ -z "$APP" ]; then
-        TEST_FILES=$(find $DIR/.. -path "*/apps/*/test/marionette/*_test.js" \
+        TEST_FILES=$(find $DIR/.. -path "*/apps/*/test/integration/*_test.js" \
                               -or -path "*/test_apps/*/test/marionette/*_test.js")
     else
-        TEST_FILES=$(find $DIR/.. -path "*/apps/$APP/test/marionette/*_test.js" \
+        TEST_FILES=$(find $DIR/.. -path "*/apps/$APP/test/integration/*_test.js" \
                               -or -path "*/test_apps/$APP/test/marionette/*_test.js")
     fi
 fi
