@@ -39,8 +39,8 @@ HotspotSettingsPanel.prototype = {
   back: function() {
     var parentSection = this.waitForElement('hotspotSettingsPanel');
     this.findElement('hotspotSettingsBack').tap();
-    var bodyWidth = this.findElement('body').size().width;
 
+    var bodyWidth = this.findElement('body').size().width;
     this.client.waitFor(function() {
       var loc = parentSection.location();
       return loc.x >= bodyWidth;
