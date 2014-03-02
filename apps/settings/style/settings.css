@@ -42,17 +42,17 @@ section[role="region"] {
 section[role="region"] {
   transform: translateX(+100%);
   transition: transform .4s ease, visibility .4s ease;
-  display: none;
+  height: 0;
 }
 
 section[role="region"].previous {
   transform: translateX(-100%);
-  display: inline;
+  height: 100%;
 }
 
 section[role="region"].current {
   transform: translateX(0);
-  display: inline;
+  height: 100%;
 }
 
 /**
