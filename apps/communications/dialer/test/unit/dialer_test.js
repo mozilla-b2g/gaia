@@ -1,7 +1,7 @@
 'use strict';
 
-/* global CallHandler, MocksHelper, MockNavigatormozApps,
-   MockNavigatorMozIccManager, NavbarManager */
+/* global CallHandler, MocksHelper, MockLazyL10n, MockNavigatormozApps,
+   MockNavigatorMozIccManager, NavbarManager, Notification */
 
 requireApp('communications/dialer/test/unit/mock_contacts.js');
 requireApp('communications/dialer/test/unit/mock_l10n.js');
@@ -95,33 +95,44 @@ suite('navigation bar', function() {
         };
       });
 
-      /* Disabled intermittent unit test, bug 978433
       test('> One SIM', function(done) {
-        window.postMessage(notificationObject, '*');
-
-        setTimeout(function() {
-          MockNavigatormozApps.mTriggerLastRequestSuccess();
-          sinon.assert.calledWith(Notification, 'missedCall');
-          done();
+        // To avoid racing postMessage, listen for the event
+        window.addEventListener('message', function onMessage(e) {
+          window.removeEventListener('message', onMessage);
+          if (e.data.type !== 'notification') {
+            return;
+          }
+          setTimeout(function() {
+            MockNavigatormozApps.mTriggerLastRequestSuccess();
+            sinon.assert.calledWith(Notification, 'missedCall');
+            done();
+          });
         });
-      });
-      */
 
-      /* Disabled intermittent unit test, bug 978433
+        window.postMessage(notificationObject, '*');
+      });
+
       test('> Two SIMs', function(done) {
         MockNavigatorMozIccManager.addIcc('6789', {
           'cardState': 'ready'
         });
-        window.postMessage(notificationObject, '*');
 
-        setTimeout(function() {
-          MockNavigatormozApps.mTriggerLastRequestSuccess();
-          sinon.assert.calledWith(Notification, 'missedCallMultiSim');
-          assert.deepEqual(MockLazyL10n.keys.missedCallMultiSim, {n: 2});
-          done();
+        // To avoid racing postMessage, listen for the event
+        window.addEventListener('message', function onMessage(e) {
+          window.removeEventListener('message', onMessage);
+          if (e.data.type !== 'notification') {
+            return;
+          }
+          setTimeout(function() {
+            MockNavigatormozApps.mTriggerLastRequestSuccess();
+            sinon.assert.calledWith(Notification, 'missedCallMultiSim');
+            assert.deepEqual(MockLazyL10n.keys.missedCallMultiSim, {n: 2});
+            done();
+          });
         });
+
+        window.postMessage(notificationObject, '*');
       });
-      */
     });
   });
 
