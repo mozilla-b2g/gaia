@@ -10,6 +10,12 @@ const LAYOUT_MODE = {
   fullscreenPlayer: 'layout-fullscreen-player'
 };
 
+const CRITICAL_BATTERY_LEVEL = {
+   'FIVE': 5,
+   'FIFTEEN': 15
+  };
+const LOW_POWER_BRIGHTNESS = 0.5;
+
 var dom = {};
 
 var ids = ['thumbnail-list-view', 'thumbnails-bottom', 'thumbnail-list-title',
@@ -94,6 +100,8 @@ var pendingUpdateTitleText = false;
 // Videos recorded by our own camera have filenames of this form
 var FROMCAMERA = /DCIM\/\d{3}MZLLA\/VID_\d{4}\.3gp$/;
 
+var powerManager = navigator.mozPower;
+
 // Pause on visibility change
 document.addEventListener('visibilitychange', function visibilityChange() {
   if (document.hidden) {
@@ -125,8 +133,10 @@ navigator.mozL10n.ready(function initVideo() {
   // mozL10n.ready, it may become the event handler of localized. So, we need to
   // prevent database re-initialize.
   // XXX: once bug 882592 is fixed, we should remove it and just call init.
-  if (!videodb)
+  if (!videodb) {
     init();
+    lowBatteryHandler();
+  }
 
   if (!isPhone) {
     // reload the thumbnail list title field for tablet which is the app name.
@@ -1249,4 +1259,33 @@ function showThrobber() {
 function hideThrobber() {
   dom.throbber.classList.add('hidden');
   dom.throbber.classList.remove('throb');
+}
+
+function lowBatteryHandler() {
+  BatteryHelper.addBatteryListener(CRITICAL_BATTERY_LEVEL.FIVE,
+  function(value) {
+  var msg = navigator.mozL10n.get('low-battery-less-than-5percent');
+  alert(msg);
+  handleCloseButtonClick();
+  });
+
+  BatteryHelper.addBatteryListener(CRITICAL_BATTERY_LEVEL.FIFTEEN,
+    function(value) {
+    var msg = navigator.mozL10n.get('low-battery-less-than-15percent');
+    var status = document.getElementById('low-battery-info');
+    var player = document.getElementById('videoControls');
+    player.classList.add('hidden');
+    status.classList.remove('hidden');
+    status.firstElementChild.textContent = msg;
+    status.firstElementChild.style.fontSize = 'large';
+    window.setTimeout(function() {
+    status.classList.add('hidden');
+    player.classList.remove('hidden');
+    }, 3000);
+    if (powerManager) {
+      if (powerManager.screenBrightness > LOW_POWER_BRIGHTNESS) {
+         powerManager.screenBrightness = LOW_POWER_BRIGHTNESS;
+      }
+     }
+   });
 }

@@ -30,8 +30,18 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
   var touchStartID = null;
   var isPausedWhileDragging;
   var sliderRect;
+  var powerManager = navigator.mozPower;
+
+  const CRITICAL_BATTERY_LEVEL = {
+   'FIVE': 5,
+   'FIFTEEN': 15
+  };
+
+  const LOW_POWER_BRIGHTNESS = 0.5;
 
   initUI();
+
+  lowBatteryHandler();
 
   // If blob exists, video should be launched by open activity
   if (blob) {
@@ -469,4 +479,32 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
   function hideSpinner() {
     dom.spinnerOverlay.classList.add('hidden');
   }
+
+  // We need to handle Low Battery scenario
+  function lowBatteryHandler() {
+    BatteryHelper.addBatteryListener(CRITICAL_BATTERY_LEVEL.FIVE,
+    function fun(value) {
+    //var msg = navigator.mozL10n.get('low-battery-less-than-5percent');
+    var msg = 'Battery too low to play a video';
+    handleError(msg);
+    });
+
+    BatteryHelper.addBatteryListener(CRITICAL_BATTERY_LEVEL.FIFTEEN,
+    function(value) {
+    //var msg = navigator.mozL10n.get('low-battery-less-than-15percent');
+    var msg = 'Low battery.Brightness is set to low';
+    var player = document.getElementById('videoBar');
+    player.classList.add('hidden');
+    showBanner(msg);
+    window.setTimeout(function() {
+    player.classList.remove('hidden');
+    }, 4000);
+    if (powerManager) {
+      if (powerManager.screenBrightness > LOW_POWER_BRIGHTNESS) {
+        powerManager.screenBrightness = LOW_POWER_BRIGHTNESS;
+       }
+     }
+ });
+}
+
 });
