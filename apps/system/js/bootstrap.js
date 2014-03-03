@@ -10,6 +10,12 @@ window.addEventListener('load', function startup() {
    */
   function registerGlobalEntries() {
     /** @global */
+    window.activityWindowFactory = new ActivityWindowFactory();
+    window.activityWindowFactory.start();
+    /** @global */
+    window.appWindowFactory = new AppWindowFactory();
+    window.appWindowFactory.start();
+    /** @global */
     window.secureWindowManager = window.secureWindowManager ||
       new SecureWindowManager();
     /** @global */
@@ -18,9 +24,6 @@ window.addEventListener('load', function startup() {
     if (window.SuspendingAppPriorityManager) {
       window.suspendingAppPriorityManager = new SuspendingAppPriorityManager();
     }
-    /** @global */
-    window.activityWindowFactory = new ActivityWindowFactory();
-    window.activityWindowFactory.start();
     /** @global */
     window.systemDialogManager = window.systemDialogManager ||
       new SystemDialogManager();

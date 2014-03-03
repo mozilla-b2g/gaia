@@ -870,7 +870,6 @@ apps/system/js/app_authentication_dialog.js
 apps/system/js/app_chrome.js
 apps/system/js/app_install_manager.js
 apps/system/js/app_modal_dialog.js
-apps/system/js/app_window_factory.js
 apps/system/js/app_window_manager.js
 apps/system/js/async_semaphore.js
 apps/system/js/attention_screen.js
@@ -970,7 +969,6 @@ apps/system/test/unit/app_authentication_dialog_test.js
 apps/system/test/unit/app_chrome_test.js
 apps/system/test/unit/app_install_manager_test.js
 apps/system/test/unit/app_modal_dialog_test.js
-apps/system/test/unit/app_window_factory_test.js
 apps/system/test/unit/app_window_manager_test.js
 apps/system/test/unit/app_window_test.js
 apps/system/test/unit/async_semaphore_test.js
