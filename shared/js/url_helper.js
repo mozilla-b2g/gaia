@@ -1,5 +1,7 @@
 'use strict';
 
+var rscheme = /^(?:[a-z\u00a1-\uffff0-9-+]+)(?::|:\/\/)/i;
+
 var UrlHelper = {
 
   // Placeholder anchor tag to format URLs.
@@ -9,6 +11,10 @@ var UrlHelper = {
     this.a = this.a || document.createElement('a');
     this.a.href = input;
     return this.a.href;
+  },
+
+  hasScheme: function(input) {
+    return !!(rscheme.exec(input) || [])[0];
   },
 
   isURL: function urlHelper_isURL(input) {

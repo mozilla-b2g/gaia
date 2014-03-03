@@ -5,7 +5,8 @@
   'use strict';
 
   const NUM_DISPLAY = 4;
-  const API = 'https://marketplace.firefox.com/api/v1/apps/search/?q={q}';
+  const API = 'https://marketplace.firefox.com/api/v1/apps/search/' +
+    '?q={q}&limit=' + NUM_DISPLAY;
 
   function Marketplace() {}
 
@@ -14,6 +15,9 @@
     __proto__: Provider.prototype,
 
     name: 'Marketplace',
+
+    dedupes: true,
+    dedupeStrategy: 'exact',
 
     click: function(e) {
       var slug = e.target.dataset.slug;
@@ -29,7 +33,7 @@
       };
     },
 
-    search: function(input) {
+    search: function(input, collect) {
       this.clear();
       this.abort();
 
@@ -45,7 +49,6 @@
         var formatted = [];
         for (var i = 0; i < length; i++) {
           var app = results.objects[i];
-
           var nameL10n = '';
           for (var locale in app.name) {
             // Default the app name if we haven't found a matching locale
@@ -60,12 +63,13 @@
             title: navigator.mozL10n.get('install-marketplace-title',
               {title: nameL10n}),
             icon: app.icons['64'],
+            dedupeId: app.manifest_url,
             dataset: {
               slug: app.slug
             }
           });
         }
-        this.render(formatted);
+        collect(formatted);
       }).bind(this);
       req.onerror = function onerror() {
         console.log('Marketplace error.');
