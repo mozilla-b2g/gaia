@@ -85,5 +85,98 @@ suite('search/providers/bgimage', function() {
       subject.fetchImage();
       assert.ok(stub.calledOnce);
     });
+
+    test('returns if eme.api.Search is null', function() {
+      var currSearchApi = eme.api.Search;
+      eme.api.Search = null;
+      subject.fetchImage();
+      eme.api.Search = currSearchApi;
+    });
+  });
+
+  suite('formatImage', function() {
+    test('returns image string', function(done) {
+      var stub = this.sinon.stub(eme.api.Search, 'bgimage');
+      var response = new Promise(function _resolve(resolve) {
+        resolve({
+          response: {
+            image: 'somestr'
+          }
+        });
+        setTimeout(function() {
+          assert.equal(document.body.style.backgroundImage,
+            'url("somestr")');
+          done();
+        });
+      });
+      stub.returns(response);
+      subject.fetchImage();
+      Promise.resolve(response);
+    });
+
+    test('returns data attribute for image/url', function(done) {
+      var stub = this.sinon.stub(eme.api.Search, 'bgimage');
+      var response = new Promise(function _resolve(resolve) {
+        resolve({
+          response: {
+            image: {
+              MIMEType: 'image/url',
+              data: 'stubimgtype'
+            }
+          }
+        });
+        setTimeout(function() {
+          assert.equal(document.body.style.backgroundImage,
+            'url("stubimgtype")');
+          done();
+        });
+      });
+      stub.returns(response);
+      subject.fetchImage();
+      Promise.resolve(response);
+    });
+
+    test('returns null', function(done) {
+      var stub = this.sinon.stub(eme.api.Search, 'bgimage');
+      var response = new Promise(function _resolve(resolve) {
+        resolve({
+          response: {
+            image: {
+              MIMEType: ''
+            }
+          }
+        });
+        setTimeout(function() {
+          assert.equal(document.body.style.backgroundImage,
+            'url("null")');
+          done();
+        });
+      });
+      stub.returns(response);
+      subject.fetchImage();
+      Promise.resolve(response);
+    });
+
+    test('returns a data url', function(done) {
+      var stub = this.sinon.stub(eme.api.Search, 'bgimage');
+      var response = new Promise(function _resolve(resolve) {
+        resolve({
+          response: {
+            image: {
+              MIMEType: 'mime',
+              data: 'stubimgtype'
+            }
+          }
+        });
+        setTimeout(function() {
+          assert.equal(document.body.style.backgroundImage,
+            'url("data:mime;base64,stubimgtype")');
+          done();
+        });
+      });
+      stub.returns(response);
+      subject.fetchImage();
+      Promise.resolve(response);
+    });
   });
 });
