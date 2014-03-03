@@ -24,6 +24,7 @@ requireApp('system/test/unit/mock_screen_manager.js');
 requireApp('system/test/unit/mock_sound_manager.js');
 requireApp('system/test/unit/mock_source_view.js');
 requireApp('system/test/unit/mock_storage.js');
+requireApp('system/test/unit/mock_system_dialog_manager.js');
 requireApp('system/test/unit/mock_ttl_view.js');
 requireApp('system/test/unit/mock_title.js');
 requireApp('system/test/unit/mock_visibility_manager.js');
@@ -41,6 +42,7 @@ mocha.globals([
   'mediaRecording',
   'secureWindowManager',
   'secureWindowFactory',
+  'systemDialogManager',
   'devtoolsView',
   'dialerComms',
   'remoteDebugger',
@@ -73,6 +75,7 @@ var mocksForBootstrap = new MocksHelper([
   'SoundManager',
   'SourceView',
   'Storage',
+  'SystemDialogManager',
   'TTLView',
   'Title',
   'VisibilityManager',
