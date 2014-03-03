@@ -45,6 +45,18 @@ suite('bookmark.js >', function() {
     assert.equal(bookmark.bookmarkURL, bookmark.generateIndex(URL));
   });
 
+  test('This bookmark defines the url correctly after rebooting >', function() {
+    bookmark = new Bookmark({
+      bookmarkURL: 'bookmark:' + URL,
+      name: name,
+      icon: icon
+    });
+
+    assert.equal(bookmark.origin, URL);
+    assert.equal(bookmark.url, URL);
+    assert.equal(bookmark.bookmarkURL, bookmark.generateIndex(URL));
+  });
+
   test('This bookmark defines the icon correctly >', function() {
     assert.equal(bookmark.manifest.icons[60], icon);
   });
