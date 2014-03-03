@@ -2,7 +2,7 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 /*global MockNavigatormozApps, MockNavigatorSettings, MocksHelper, MockL10n*/
-/*global Applications*/
+/*global MockApplications, Applications*/
 
 'use strict';
 
@@ -56,7 +56,10 @@ mocha.globals([
   'visibilityManager',
   'Applications',
   'activityWindowFactory',
-  'homescreenLauncher'
+  'homescreenLauncher',
+  'ActivityWindowFactory',
+  'visibilityManager',
+  'applications'
 ]);
 
 var mocksForBootstrap = new MocksHelper([
@@ -82,7 +85,8 @@ var mocksForBootstrap = new MocksHelper([
   'LayoutManager',
   'SecureWindowManager',
   'SecureWindowFactory',
-  'ActivityWindowFactory'
+  'ActivityWindowFactory',
+  'L10n'
 ]).init();
 
 suite('system/Bootstrap', function() {
@@ -91,6 +95,7 @@ suite('system/Bootstrap', function() {
   var realNavigatormozApps;
   var realDocumentElementDir;
   var realDocumentElementLang;
+  var realApplications;
 
   mocksForBootstrap.attachTestHelpers();
 
@@ -104,8 +109,11 @@ suite('system/Bootstrap', function() {
     realDocumentElementDir = document.documentElement.dir;
     realDocumentElementLang = document.documentElement.lang;
 
-    realNavigatormozL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    realNavigatormozL10n = window.navigator.mozL10n;
+    window.navigator.mozL10n = MockL10n;
+
+    realApplications = window.applications;
+    window.applications = MockApplications;
 
     requireApp('system/js/bootstrap.js', done);
   });
@@ -114,12 +122,14 @@ suite('system/Bootstrap', function() {
     navigator.mozApps = realNavigatormozApps;
     realNavigatormozApps = null;
 
+    window.navigator.mozL10n = realNavigatormozL10n;
+    realNavigatormozL10n = null;
+
     navigator.mozSettings = realNavigatorSettings;
     realNavigatorSettings = null;
 
-    navigator.mozL10n = realNavigatormozL10n;
-    realNavigatormozL10n = null;
-
+    window.applications = realApplications;
+    realApplications = null;
     document.documentElement.dir = realDocumentElementDir;
     document.documentElement.lang = realDocumentElementLang;
   });
@@ -156,8 +166,8 @@ suite('system/Bootstrap', function() {
     function createEvent(type) {
       var evt = new CustomEvent(type, { bubbles: true, cancelable: true });
       evt.pageX = evt.pageY = 0;
-      evt.touches = [ { pageX: 0, pageY: 0 } ];
-      evt.changedTouches = [ { pageX: 0, pageY: 0 } ];
+      evt.touches = [{ pageX: 0, pageY: 0 }];
+      evt.changedTouches = [{ pageX: 0, pageY: 0 }];
       return evt;
     }
 

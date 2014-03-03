@@ -1,5 +1,5 @@
 'use strict';
-/*global Applications, AppWindowManager, AppWindow */
+/*global applications, AppWindowManager, AppWindow */
 
 (function(window) {
   /**
@@ -50,7 +50,7 @@
         var callerIframe = evt.target;
         var manifestURL = callerIframe.getAttribute('mozapp');
 
-        var callerApp = Applications.getByManifestURL(manifestURL);
+        var callerApp = applications.getByManifestURL(manifestURL);
         if (!this.hasPermission(callerApp, 'open-remote-window')) {
           return;
         }

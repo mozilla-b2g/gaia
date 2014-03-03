@@ -786,7 +786,7 @@ var KeyboardManager = {
   }
 };
 
-if (Applications.ready) {
+if (applications.ready) {
   KeyboardManager.init();
 } else {
   window.addEventListener('applicationready', function mozAppsReady(event) {
