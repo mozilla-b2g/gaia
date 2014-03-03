@@ -2464,14 +2464,21 @@ var ThreadUI = global.ThreadUI = {
 
     // Render each contact in the contacts results
     var renderer = ContactRenderer.flavor('suggestion');
+    var unknownContactsRenderer = ContactRenderer.flavor('suggestionUnknown');
 
     contacts.forEach(function(contact) {
-      renderer.render({
+      var rendererArg = {
         contact: contact,
         input: fValue,
         target: ul,
         skip: this.recipients.numbers
-      });
+      };
+      if (contact.source != 'unknown') {
+        renderer.render(rendererArg);
+      }
+      else {
+        unknownContactsRenderer.render(rendererArg);
+      }
     }, this);
 
     this.container.appendChild(ul);

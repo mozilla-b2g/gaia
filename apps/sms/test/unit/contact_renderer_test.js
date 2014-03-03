@@ -21,7 +21,7 @@ suite('ContactRenderer', function() {
 
   var ul, contact;
   var testImageBlob;
-  var renderer;
+  var renderer, unknownRender;
 
   mocksHelperForContactRenderer.attachTestHelpers();
 
@@ -289,6 +289,119 @@ suite('ContactRenderer', function() {
       var selector = '.suggestion';
 
       renderer.render({
+        contact: contact,
+        input: 'Additional info',
+        infoBlock: block,
+        infoBlockParentSelector: selector,
+        target: ul
+      });
+      li = ul.lastElementChild;
+
+      assert.isTrue(!!li.querySelector(selector));
+      assert.equal(li.querySelector(selector).lastElementChild, block);
+    });
+  });
+
+  suite('suggestionUnknown', function() {
+    setup(function() {
+      unknownRender = ContactRenderer.flavor('suggestionUnknown');
+    });
+
+    test('Rendered Contact "number"', function() {
+      var html;
+
+      contact.tel[0].carrier = null;
+      contact.tel[0].type = null;
+
+      unknownRender.render({
+        contact: contact,
+        input: 'foo',
+        target: ul
+      });
+
+      html = ul.firstElementChild.innerHTML;
+
+      assert.ok(html.contains('+346578888888'));
+    });
+
+    test('Rendered Contact highlighted "number"', function() {
+      var html;
+
+      contact.tel[0].carrier = null;
+      contact.tel[0].type = null;
+
+      unknownRender.render({
+        contact: contact,
+        input: '346578888888',
+        target: ul
+      });
+
+      sinon.assert.calledWithMatch(Template.prototype.interpolate, {
+        carrier: '',
+        name: 'Pepito O\'Hare',
+        nameHTML: 'Pepito O&apos;Hare',
+        number: '+346578888888',
+        numberHTML: '+<span class="highlight">346578888888</span>',
+        photoHTML: '',
+        separator: '',
+        type: ''
+      });
+
+      html = ul.firstElementChild.innerHTML;
+
+      assert.ok(
+        html.contains('+<span class="highlight">346578888888</span>')
+      );
+    });
+
+    test('Rendered Contact w/ multiple: all (isSuggestion)', function() {
+      unknownRender.render({
+        contact: contact,
+        input: '+12125559999',
+        target: ul
+      });
+
+      assert.equal(ul.children.length, 2);
+    });
+
+    test('Rendered Contact omit numbers already in recipient list', function() {
+      var html;
+
+      var skip = ['+346578888888'];
+
+      // This contact has two tel entries.
+      unknownRender.render({
+        contact: contact,
+        input: '+346578888888',
+        target: ul,
+        skip: skip
+      });
+
+      html = ul.innerHTML;
+
+      assert.ok(!html.contains('346578888888'));
+      assert.equal(ul.children.length, 1);
+    });
+
+    test('does not include photo', function() {
+      var html;
+
+      unknownRender.render({
+        contact: contact,
+        input: 'foo',
+        target: ul
+      });
+      html = ul.firstElementChild.innerHTML;
+
+      assert.isFalse(html.contains('span[data-type=img]'));
+    });
+
+    test('append information block in the li', function() {
+      var li;
+      var block = document.createElement('div');
+      var selector = '.suggestion';
+
+      unknownRender.render({
         contact: contact,
         input: 'Additional info',
         infoBlock: block,
