@@ -1,6 +1,3 @@
-'use strict';
-
-/* global require, process, suite, suiteSetup, test, teardown */
 var rmrf = require('rimraf').sync;
 var exec = require('child_process').exec;
 var vm = require('vm');
@@ -59,17 +56,15 @@ suite('Distribution mechanism', function() {
       'distribution_test');
     var zipPath = path.join(process.cwd(), 'profile',
       'webapps', 'communications.gaiamobile.org', 'application.zip');
-    var variantConfig = {
+    var expectedCustom = {
+      '310-260': {
         'wallpaper':'/resources/mobizilla_wallpaper.png',
         'default_contacts':'/resources/mobizilla_contacts.json',
         'support_contacts':'/resources/mobizilla_support_contacts.json',
         'keyboardSettings':'/resources/mobizilla_keyboard.json',
         'dataiconstatusbar':'/resources/mobizilla_network_type.json',
         'knownNetworks':'/resources/mobizilla_known_networks.json'
-    };
-    var expectedCustom = {
-      '310-260': variantConfig,
-      '311-261': variantConfig
+      }
     };
     helper.checkFileContentInZip(zipPath, 'resources/customization.json',
       expectedCustom, true);
@@ -120,10 +115,10 @@ suite('Distribution mechanism', function() {
     assert.isNotNull(listText, 'resources/320x480/list.json should exist');
     var list = JSON.parse(listText);
     var expectedList = [
-      'efefef.png',
-      'FXOS_Illus_Blocks.png',
-      'FXOS_Illus_Fox_Nature.png',
-      'FXOS_Illus_Mountains.png'
+      "efefef.png",
+      "FXOS_Illus_Blocks.png",
+      "FXOS_Illus_Fox_Nature.png",
+      "FXOS_Illus_Mountains.png"
     ];
     assert.deepEqual(list, expectedList,
       'list should match the expected list.');
@@ -251,17 +246,6 @@ suite('Distribution mechanism', function() {
       'manifest for Twitter should exist');
   }
 
-  function validateVariantSettings() {
-    var expected = {
-      '310-260': ['Twitter'],
-      '311-261': ['Twitter']
-    };
-    var configPath = path.join(process.cwd(), 'profile', 'svoperapps',
-      'singlevariantconf.json');
-    var config = fs.readFileSync(configPath, {encoding: 'utf8'});
-    assert.deepEqual(JSON.parse(config), expected);
-  }
-
   test('build with GAIA_DISTRIBUTION_DIR', function(done) {
     distDir = path.join(process.cwd(), 'build', 'test', 'resources',
       'distribution_test');
@@ -279,8 +263,6 @@ suite('Distribution mechanism', function() {
       validateCamera();
       validateComm();
       validateHomescreen();
-      validateWallpaper();
-      validateVariantSettings();
       done();
     });
   });

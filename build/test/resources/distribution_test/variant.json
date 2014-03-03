@@ -10,10 +10,9 @@
   },
   "operators": [
     {
-      "id": "mobizilla",
+      "id": "t-mobile us",
       "mcc-mnc": [
-        "310-260",
-        "311-261"
+        "310-260"
       ],
       "apps": [
         {
