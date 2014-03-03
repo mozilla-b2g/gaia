@@ -269,7 +269,10 @@ MediaRemoteControls.prototype._commandHandler = function(message) {
       break;
     case AVRCP.PLAY_PAUSE_PRESS:
     case IAC.PLAY_PAUSE_PRESS:
-      option.detail = { command: REMOTE_CONTROLS.PLAY_PAUSE };
+      option.detail = {
+        command: REMOTE_CONTROLS.PLAY_PAUSE,
+        isSCOConnected: this._isSCOConnected
+      };
       break;
     case AVRCP.PAUSE_PRESS:
     case IAC.PAUSE_PRESS:
@@ -362,6 +365,11 @@ MediaRemoteControls.prototype.notifyMetadataChanged = function(metadata) {
 MediaRemoteControls.prototype.notifyStatusChanged = function(status) {
   // Send the new status via bluetooth.
   if (this.defaultAdapter) {
+    // Don't send the interrupted statuses to the remote client because
+    // they are not the AVRCP statuses.
+    if (status === 'mozinterruptbegin' || status === 'mozinterruptend')
+      return;
+
     var request = this.defaultAdapter.sendMediaPlayStatus(status);
 
     request.onerror = function() {

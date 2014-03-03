@@ -4,7 +4,6 @@
 require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 requireApp('search/test/unit/mock_search.js');
 requireApp('search/js/providers/provider.js');
-requireApp('search/js/providers/app_provider.js');
 
 suite('search/providers/local_apps', function() {
 

@@ -1,3 +1,6 @@
+'use strict';
+/* global module */
+
 var Actions = require('marionette-client').Actions;
 var assert = require('assert');
 
@@ -79,6 +82,10 @@ Search.prototype = {
   doSearch: function(input) {
     this.client.switchToFrame();
     this.openRocketbar();
+    this.client.helper
+      .waitForElement(Search.Selectors.searchInput)
+      .clear();
+
     this.client.helper
       .waitForElement(Search.Selectors.searchInput)
       .sendKeys(input);

@@ -1,6 +1,8 @@
 /* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
+/* globals ApnHelper */
+
 (function(exports) {
   'use strict';
 
@@ -112,9 +114,13 @@
           // *mnc* values!
           var mnc = self.padLeft(self._iccSettings.mnc, 2);
 
-          // get a list of matching APNs
-          var compatibleAPN = apn[mcc] ? (apn[mcc][mnc] || []) : [];
-          callback(compatibleAPN);
+          // Get the type of the data network
+          var networkType = window.navigator
+                                  .mozMobileConnections[self._iccCardIndex]
+                                  .data.type;
+
+          // Get a list of matching APNs
+          callback(ApnHelper.getCompatible(apn, mcc, mnc, networkType));
         }
       };
       xhr.send();

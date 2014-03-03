@@ -69,7 +69,7 @@ define(function(require) {
      * method, it could cause bad results (bug 971617), and
      * it is not needed since the latest* methods will get
      * the latest value on this object.
-     * @param  {String} id event ID/property name
+     * @param  {String} id event ID/property name.
      */
     _callEmit: function(id) {
       this.emit(id, this[id]);
@@ -192,7 +192,7 @@ define(function(require) {
     /**
      * Given an account ID, change the current account to that account.
      * @param  {String} accountId
-     * @return {Function} callback
+     * @return {Function} callback.
      */
     changeAccountFromId: function(accountId, callback) {
       if (!this.acctsSlice || !this.acctsSlice.items.length)
@@ -209,12 +209,16 @@ define(function(require) {
     /**
      * Just changes the folder property tracked by the model.
      * Assumes the folder still belongs to the currently tracked
-     * account.
+     * account. It also does not result in any state changes or
+     * event emitting if the new folder is the same as the
+     * currently tracked folder.
      * @param  {Object} folder the folder object to use.
      */
     changeFolder: function(folder) {
-      this.folder = folder;
-      this._callEmit('folder');
+      if (folder && (!this.folder || folder.id !== this.folder.id)) {
+        this.folder = folder;
+        this._callEmit('folder');
+      }
     },
 
     /**

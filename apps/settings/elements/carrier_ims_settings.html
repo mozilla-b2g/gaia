@@ -1,0 +1,87 @@
+<element name="carrier-imsSettings" extends="section">
+  <template>
+
+    <header>
+      <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</span></button>
+      <menu type="toolbar">
+        <button type="submit"><span data-l10n-id="ok">OK</span></button>
+      </menu>
+      <h1 data-l10n-id="imsSettings-header"> IMS Settings </h1>
+    </header>
+
+    <div>
+      <ul class="apnSettings-list">
+        <li class="apnSettings-custom">
+          <label class="pack-radio">
+            <input type="radio" name="defaultApn" value="_custom_">
+            <span data-l10n-id="custom">(custom settings)</span>
+          </label>
+        </li>
+      </ul>
+
+      <header>
+        <h2 data-l10n-id="advancedSettings"> Advanced Settings </h2>
+      </header>
+      <ul class="apnSettings-advanced">
+        <li hidden>
+          <input type="text" x-inputmode="verbatim" id="ril.ims.carrier" />
+        </li>
+        <li>
+          <p data-l10n-id="apn">APN</p>
+          <input type="text" x-inputmode="verbatim" id="ril.ims.apn" />
+        </li>
+        <li>
+          <p data-l10n-id="identity">identity</p>
+          <input type="text" id="ril.ims.user" />
+        </li>
+        <li>
+          <p data-l10n-id="password">password</p>
+          <input type="password" id="ril.ims.passwd" />
+        </li>
+        <li>
+          <p data-l10n-id="httpProxyHost">HTTP Proxy Host</p>
+          <input type="text" id="ril.ims.httpProxyHost" />
+        </li>
+        <li>
+          <p data-l10n-id="httpProxyPort">HTTP Proxy Port</p>
+          <input type="text" id="ril.ims.httpProxyPort" />
+        </li>
+        <li>
+          <p data-l10n-id="apn-authType">Authentication</p>
+          <span class="button icon icon-dialog">
+            <select id="ril.ims.authType">
+              <option value="notDefined" data-l10n-id="apn-authType-notDefined">Not defined</option>
+              <option value="none" data-l10n-id="apn-authType-none">None</option>
+              <option value="pap" data-l10n-id="apn-authType-pap">PAP</option>
+              <option value="chap" data-l10n-id="apn-authType-chap">CHAP</option>
+              <option value="papOrChap" data-l10n-id="apn-authType-papOrChap">PAP or CHAP</option>
+            </select>
+          </span>
+        </li>
+        <li>
+          <p data-l10n-id="apn-protocol">Protocol</p>
+          <span class="button icon icon-dialog">
+            <select id="ril.ims.protocol">
+              <option value="notDefined" data-l10n-id="apn-protocol-notDefined">Not defined</option>
+              <option value="IP" data-l10n-id="apn-protocol-ip">IPv4</option>
+              <option value="IPV6" data-l10n-id="apn-protocol-ipv6">IPv6</option>
+              <option value="IPV4V6" data-l10n-id="apn-protocol-ipv4ipv6">IPv4/IPv6</option>
+            </select>
+          </span>
+        </li>
+        <li>
+          <p data-l10n-id="apn-roaming-protocol">Roaming protocol</p>
+          <span class="button icon icon-dialog">
+            <select id="ril.ims.roaming_protocol">
+              <option value="notDefined" data-l10n-id="apn-protocol-notDefined">Not defined</option>
+              <option value="IP" data-l10n-id="apn-protocol-ip">IPv4</option>
+              <option value="IPV6" data-l10n-id="apn-protocol-ipv6">IPv6</option>
+              <option value="IPV4V6" data-l10n-id="apn-protocol-ipv4ipv6">IPv4/IPv6</option>
+            </select>
+          </span>
+        </li>
+      </ul>
+    </div>
+
+  </template>
+</element>

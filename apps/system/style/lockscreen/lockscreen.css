@@ -39,12 +39,16 @@
 #lockscreen-background {
   position: absolute;
   top: 0;
+  overflow: hidden;
+
+  /* Must match the CSS background rule of #screen in system.css */
   width: 100%;
   height: 100%;
-  overflow: hidden;
   background-color: #000;
+  background-size: cover; /* Possible memory over-consumption with huge images, it should be removed for improving stability*/
   background-repeat: no-repeat;
-  background-size: 100%;
+  background-position: 50% 50%;
+
   -moz-user-select: none;
   opacity: 1;
   z-index: 1;
@@ -220,16 +224,13 @@
   display: none;
 }
 
-.lockscreen-clock {
+#lockscreen-clock-time {
   margin: -0.8rem 0 -1rem -0.4rem;
   font-weight: 300;
-}
-
-#lockscreen-clock-numbers {
   font-size: calc(26 * 0.226rem);
 }
 
-#lockscreen-clock-meridiem {
+#lockscreen-clock-time span { /* optional meridiem */
   font-size: calc(17 * 0.226rem);
 }
 
@@ -238,7 +239,7 @@
   font-size: calc(7 * 0.226rem);
 }
 
-.lockscreen-clock, #lockscreen-date {
+#lockscreen-clock-time, #lockscreen-date {
   text-shadow: 0.1rem 0.1rem 0.3rem #000000;
   color: #fff;
 }
@@ -301,14 +302,6 @@
     text-shadow: 0 0 0.5rem #111111;
     padding-left: 6rem;
     font-weight: lighter;
-  }
-
-  #lockscreen-clock-numbers {
-    font-size: 8.8rem;
-  }
-
-  #lockscreen-clock-meridiem {
-    font-size: 4.2rem;
   }
 
   #lockscreen-date {

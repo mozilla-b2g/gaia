@@ -35,7 +35,14 @@
     // XXX should be new and started here
     this.touchHandler = KeyboardTouchHandler;
     // XXX should be new and started here
-    this.inputField = InputField;
+    this.inputField = new InputField();
+    this.inputField.start();
+
+    this.shiftKey = new ShiftKey(this);
+    this.shiftKey.start();
+
+    this.autoCorrect = new AutoCorrect(this);
+    this.autoCorrect.start();
 
     this.settings = new Settings(this.DEFAULT_SETTINGS);
     this.settings.addEventListener('settingschanged', this);
@@ -84,6 +91,10 @@
     this.inputField.removeEventListener('inputfieldchanged', this);
     this.settings.removeEventListener('settingschanged', this);
 
+    this.inputField.stop();
+    this.shiftKey.stop();
+    this.autoCorrect.stop();
+
     this.inputcontext = null;
     this.layout = undefined;
     this.variant = undefined;
@@ -93,6 +104,8 @@
 
     this.touchHandler = null;
     this.inputField = null;
+    this.shiftKey = null;
+    this.autoCorrect = null;
     this.settings = null;
   };
 

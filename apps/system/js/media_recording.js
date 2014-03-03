@@ -130,9 +130,9 @@
       var _ = navigator.mozL10n.get;
       var f = new navigator.mozL10n.DateTimeFormat();
 
-      var formated = f.localeFormat(now, _('shortTimeFormat'));
-      formated = formated.replace(/\s?(AM|PM)\s?/i, '<span>$1</span>');
-      this.timer.innerHTML = formated;
+      var timeFormat = _('shortTimeFormat').replace('%p', '<span>%p</span>');
+      var formatted = f.localeFormat(now, timeFormat);
+      this.timer.innerHTML = formatted;
     }
   };
 

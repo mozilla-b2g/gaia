@@ -87,6 +87,12 @@ CameraController.prototype.configure = function() {
   // cameraList data given by the camera hardware
   settings.get('cameras').configureOptions(camera.cameraList);
 
+  // Give the camera a way to create video filepaths. This
+  // is so that the camera can record videos directly to
+  // the final location without us having to move the video
+  // file from temporary, to final location at recording end.
+  this.camera.createVideoFilepath = this.storage.createVideoFilepath;
+
   // This is set so that the video recorder can
   // automatically stop when video size limit is reached.
   camera.set('maxFileSizeBytes', activity.data.maxFileSizeBytes);
@@ -163,36 +169,35 @@ CameraController.prototype.onNewImage = function(image) {
   this.app.emit('newimage', image);
 };
 
+/**
+ * Store the poster image,
+ * then emit the app 'newvideo'
+ * event. This signifies the video
+ * fully ready.
+ *
+ * We don't store the video blob like
+ * we do for images, as it is recorded
+ * directly to the final location.
+ * This is for memory reason.
+ *
+ * @param  {Object} video
+ */
 CameraController.prototype.onNewVideo = function(video) {
   debug('new video', video);
 
   var storage = this.storage;
   var poster = video.poster;
-  var camera = this.camera;
-  var tmpBlob = video.blob;
-  var app = this.app;
 
   // Add the video to the filmstrip,
   // then save lazily so as not to block UI
   if (!this.activity.active) {
     this.filmstrip.addVideoAndShow(video);
   }
-  storage.addVideo(tmpBlob, function(blob, filepath) {
-    debug('stored video', filepath);
-    video.filepath = filepath;
-    video.blob = blob;
 
-    // Add the poster image to the image storage
-    poster.filepath = video.filepath.replace('.3gp', '.jpg');
-    storage.addImage(poster.blob, { filepath: poster.filepath });
-
-    // Now we have stored the blob
-    // we can delete the temporary one.
-    // NOTE: If we could 'move' the temp
-    // file it would be a lot better.
-    camera.deleteTmpVideoFile();
-    app.emit('newvideo', video);
-  });
+  // Add the poster image to the image storage
+  poster.filepath = video.filepath.replace('.3gp', '.jpg');
+  storage.addImage(poster.blob, { filepath: poster.filepath });
+  this.app.emit('newvideo', video);
 };
 
 CameraController.prototype.onFileSizeLimitReached = function() {

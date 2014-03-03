@@ -1,6 +1,8 @@
 /* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
+/* globals ApnHelper */
+
 'use strict';
 
 /**
@@ -10,6 +12,9 @@ var CarrierSettings = (function(window, document, undefined) {
   var APN_FILE = '/shared/resources/apn.json';
   var AUTH_TYPES = ['none', 'pap', 'chap', 'papOrChap'];
   var CP_APN_KEY = 'ril.data.cp.apns';
+
+  var NETWORK_TYPE_SETTING = 'operatorResources.data.icon';
+  var networkTypeMapping = {};
 
   var NETWORK_GSM_MAP = {
     'wcdma/gsm': 'operator-networkType-auto',
@@ -46,7 +51,9 @@ var CarrierSettings = (function(window, document, undefined) {
   var _onSubmitEventListenerAdded = {
     'data': false,
     'mms': false,
-    'supl': false
+    'supl': false,
+    'dun': false,
+    'ims': false
   };
   /** Flag */
   var _restartingDataConnection = false;
@@ -77,7 +84,7 @@ var CarrierSettings = (function(window, document, undefined) {
     cs_showCarrierName();
 
     // Init network type selector.
-    cs_initNetworkTypeSelector();
+    cs_initNetworkTypeText(cs_initNetworkTypeSelector());
 
     // Set the navigation correctly when on a multi ICC card device.
     if (DsdsSettings.getNumberOfIccSlots() > 1) {
@@ -145,12 +152,18 @@ var CarrierSettings = (function(window, document, undefined) {
 
         // Get MCC and MNC codes the APNs will rely on.
         cs_getMccMncCodes(function getMccMncCodesCb() {
+          var networkType = _mobileConnection.data.type;
+
           if (currentHash === '#carrier-dataSettings') {
-            cs_queryApns(cs_updateApnList, 'data');
+            cs_queryApns(cs_updateApnList, 'data', networkType);
           } else if (currentHash === '#carrier-mmsSettings') {
-            cs_queryApns(cs_updateApnList, 'mms');
+            cs_queryApns(cs_updateApnList, 'mms', networkType);
           } else if (currentHash === '#carrier-suplSettings') {
-            cs_queryApns(cs_updateApnList, 'supl');
+            cs_queryApns(cs_updateApnList, 'supl', networkType);
+          } else if (currentHash === '#carrier-dunSettings') {
+            cs_queryApns(cs_updateApnList, 'dun', networkType);
+          } else if (currentHash === '#carrier-imsSettings') {
+            cs_queryApns(cs_updateApnList, 'ims', networkType);
           }
         });
       });
@@ -254,6 +267,30 @@ var CarrierSettings = (function(window, document, undefined) {
     });
   }
 
+  function cs_initNetworkTypeText(aNext) {
+    var req;
+    try {
+      networkTypeMapping = {};
+      req = _settings.createLock().get(NETWORK_TYPE_SETTING);
+      req.onsuccess = function() {
+        var networkTypeValues = req.result[NETWORK_TYPE_SETTING] || {};
+        for (var key in networkTypeValues) {
+          networkTypeMapping[key] = networkTypeValues[key];
+        }
+        aNext && aNext();
+      };
+      req.onerror = function() {
+        console.error('Error loading ' + NETWORK_TYPE_SETTING + ' settings. ' +
+                      req.error && req.error.name);
+        aNext && aNext();
+      };
+    } catch (e) {
+      console.error('Error loading ' + NETWORK_TYPE_SETTING + ' settings. ' +
+                    e);
+      aNext && aNext();
+    }
+  }
+
   /**
    * Init network type selector. Add the event listener that handles the changes
    * for the network type.
@@ -309,20 +346,24 @@ var CarrierSettings = (function(window, document, undefined) {
           option.value = type;
           option.selected = (networkType === type);
           // show user friendly network mode names
-          if (gsm && cdma) {
-            if (type in NETWORK_DUALSTACK_MAP) {
-              localize(option, NETWORK_DUALSTACK_MAP[type]);
+          if (type in networkTypeMapping) {
+            option.text = networkTypeMapping[type];
+          } else {
+            if (gsm && cdma) {
+              if (type in NETWORK_DUALSTACK_MAP) {
+                localize(option, NETWORK_DUALSTACK_MAP[type]);
+              }
+            } else if (gsm) {
+              if (type in NETWORK_GSM_MAP) {
+                localize(option, NETWORK_GSM_MAP[type]);
+              }
+            } else if (cdma) {
+              if (type in NETWORK_CDMA_MAP) {
+                localize(option, NETWORK_CDMA_MAP[type]);
+              }
+            } else { //failback only
+              option.textContent = type;
             }
-          } else if (gsm) {
-            if (type in NETWORK_GSM_MAP) {
-              localize(option, NETWORK_GSM_MAP[type]);
-            }
-          } else if (cdma) {
-            if (type in NETWORK_CDMA_MAP) {
-              localize(option, NETWORK_CDMA_MAP[type]);
-            }
-          } else { //failback only
-            option.textContent = type;
           }
           selector.appendChild(option);
         });
@@ -783,8 +824,10 @@ var CarrierSettings = (function(window, document, undefined) {
    *
    * @param {Function} callback Function to be called once the work is done.
    * @param {String} usage The usage for the APNs in the panel.
+   * @param {String} type The network type which the APN must be
+   *                 compatible with.
    */
-  function cs_queryApns(callback, usage) {
+  function cs_queryApns(callback, usage, type) {
     var usageFilter = usage;
     if (!usage || usage == 'data') {
       usageFilter = 'default';
@@ -811,7 +854,7 @@ var CarrierSettings = (function(window, document, undefined) {
       var mcc = _mccMncCodes.mcc;
       var mnc = _mccMncCodes.mnc;
 
-      _allApnList = apn[mcc] ? (apn[mcc][mnc] || []) : [];
+      _allApnList = ApnHelper.getCompatible(apn, mcc, mnc, type);
 
       if (!_settings) {
         if (callback) {
@@ -826,9 +869,7 @@ var CarrierSettings = (function(window, document, undefined) {
         var clientProvisioingApns = load.result[CP_APN_KEY];
         if (clientProvisioingApns) {
           preferedApnList = preferedApnList.concat(
-            clientProvisioingApns[mcc] ?
-              (clientProvisioingApns[mcc][mnc] || []) :
-              []
+            ApnHelper.getCompatible(clientProvisioingApns, mcc, mnc, type)
           );
         }
 
@@ -872,7 +913,9 @@ var CarrierSettings = (function(window, document, undefined) {
     var kUsageMapping = {
       'data': 'default',
       'mms': 'mms',
-      'supl': 'supl'
+      'supl': 'supl',
+      'dun': 'dun',
+      'ims': 'ims'
     };
     var currentType = kUsageMapping[usage];
 
@@ -884,7 +927,9 @@ var CarrierSettings = (function(window, document, undefined) {
       'passwd',
       'httpProxyHost',
       'httpProxyPort',
-      'authType'
+      'authType',
+      'protocol',
+      'roaming_protocol'
     ];
 
     /**
@@ -917,6 +962,10 @@ var CarrierSettings = (function(window, document, undefined) {
       }
       cs_rilData(usage, 'authType').value =
         AUTH_TYPES[item.authtype] || 'notDefined';
+      cs_rilData(usage, 'protocol').value =
+        item.protocol || 'notDefined';
+      cs_rilData(usage, 'roaming_protocol').value =
+        item.roaming_protocol || 'notDefined';
     }
 
     /**
@@ -982,7 +1031,9 @@ var CarrierSettings = (function(window, document, undefined) {
           function(value) {
             if (key === 'carrier') {
               cs_rilData(usage, key).value = '_custom_';
-            } else if (key === 'authType') {
+            } else if (key === 'authType' ||
+                       key === 'protocol' ||
+                       key === 'roaming_protocol') {
               cs_rilData(usage, key).value = value || 'notDefined';
             } else {
               cs_rilData(usage, key).value = value || '';
@@ -1117,7 +1168,7 @@ var CarrierSettings = (function(window, document, undefined) {
         // even for single ICC card devices. We add [[],[]] as default value.
         var apnSettingsList =
           request.result['ril.data.apnSettings'] || [[], []];
-        for (var i = 0; apnSettingsList[iccCardIndex].length; i++) {
+        for (var i = 0; i < apnSettingsList[iccCardIndex].length; i++) {
           apn = apnSettingsList[iccCardIndex][i];
           if (apn.types.indexOf(currentType) !== -1) {
             break;

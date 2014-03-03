@@ -84,6 +84,7 @@
    "keyboard.launch-on-boot": true,
    "language.current": "en-US",
    "layers.draw-borders": false,
+   "layers.dump": false,
    "lockscreen.passcode-lock.code": "0000",
    "lockscreen.passcode-lock.timeout": 0,
    "lockscreen.passcode-lock.enabled": false,

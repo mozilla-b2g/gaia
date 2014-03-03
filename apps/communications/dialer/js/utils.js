@@ -109,6 +109,7 @@ var Utils = {
       );
       var viewWidth = view.getBoundingClientRect().width;
       fakeView.style.fontSize = currentFontSize + 'px';
+      fakeView.style.fontWeight = computedStyle.getPropertyValue('font-weight');
       fakeView.innerHTML = view.value ? view.value : view.innerHTML;
 
       var value = fakeView.innerHTML;

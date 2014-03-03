@@ -1,9 +1,15 @@
+/* globals MockNavigatorMozIccManager, MockNavigatorMozMobileConnections,
+           MockNavigatorSettings, MockNavigatorMozIccManager,
+           OperatorVariantHandler */
+
 'use strict';
 
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 
-requireApp('system/shared/js/operator_variant_helper.js');
+require('/shared/js/operator_variant_helper.js');
+require('/shared/js/apn_helper.js');
 requireApp('system/js/operator_variant/operator_variant.js');
 
 suite('Operator variant', function() {
@@ -72,7 +78,7 @@ suite('Operator variant', function() {
     { key: 'ril.cellbroadcast.searchlist', value: '0,1,2,3' }
   ];
 
-  var realMozSettings, realMozIccManager;
+  var realMozSettings, realMozIccManager, realMozMobileConnections;
 
   var mozIcc;
 
@@ -82,11 +88,15 @@ suite('Operator variant', function() {
 
     realMozIccManager = navigator.mozIccManager;
     navigator.mozIccManager = MockNavigatorMozIccManager;
+
+    realMozMobileConnections = navigator.mozMobileConnections;
+    navigator.mozMobileConnections = MockNavigatorMozMobileConnections;
   });
 
   suiteTeardown(function() {
     navigator.mozSettings = realMozSettings;
     navigator.mozIccManager = realMozIccManager;
+    navigator.mozMobileConnections = realMozMobileConnections;
   });
 
   setup(function() {
@@ -111,10 +121,15 @@ suite('Operator variant', function() {
     MockNavigatorMozIccManager.addIcc(FAKE_ICC_ID, mozIcc);
     MockNavigatorMozIccManager.getIccById(FAKE_ICC_ID).iccInfo =
       NULL_ICC_INFO;
+
+    MockNavigatorMozMobileConnections[0].data = {
+      type: 'gsm'
+    };
   });
 
   teardown(function() {
     MockNavigatorMozIccManager.mTeardown();
+    MockNavigatorMozMobileConnections.mTeardown();
   });
 
   function setObservers(keyValues, observer, remove) {
@@ -205,5 +220,40 @@ suite('Operator variant', function() {
     MockNavigatorMozIccManager.getIccById(FAKE_ICC_ID).triggerEventListeners(
       'iccinfochange', {}
     );
+  });
+
+  test('APN filtering', function(done) {
+    var ovh = new OperatorVariantHandler(FAKE_ICC_ID, FAKE_ICC_CARD_INDEX);
+
+    /* Inject some dummy MCC & MNC values corresponding to the test APNs, look
+     * into shared/resources/apn.json for the corresponding values */
+    ovh._iccSettings = { mcc: '001', mnc: '02' };
+
+    MockNavigatorMozMobileConnections[0].data.type = 'gsm';
+    ovh.retrieveOperatorVariantSettings(function(list) {
+      assert.equal(list.length, 2);
+      assert.isTrue(list.some(function(element) {
+        return (element.carrier === 'NoBearer');
+      }));
+      assert.isTrue(list.some(function(element) {
+        return (element.carrier === 'ZeroBearer');
+      }));
+
+      MockNavigatorMozMobileConnections[0].data.type = 'evdo0';
+        ovh.retrieveOperatorVariantSettings(function(list) {
+        assert.equal(list.length, 3);
+        assert.isTrue(list.some(function(element) {
+          return (element.carrier === 'NoBearer');
+        }));
+        assert.isTrue(list.some(function(element) {
+          return (element.carrier === 'ZeroBearer');
+        }));
+        assert.isTrue(list.some(function(element) {
+          return (element.carrier === 'Evdo0Bearer');
+        }));
+
+        done();
+      });
+    });
   });
 });

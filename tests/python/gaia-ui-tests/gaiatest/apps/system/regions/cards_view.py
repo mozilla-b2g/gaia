@@ -28,7 +28,9 @@ class CardsView(Base):
         return self.is_element_displayed(*self._cards_view_locator)
 
     def is_app_displayed(self, app):
-        return self.marionette.find_element(*self._app_card_locator(app)).is_displayed()
+        card = self.marionette.find_element(*self._app_card_locator(app))
+        # card is displayed and not in transition
+        return card.is_displayed() and 'transition' not in card.get_attribute('style')
 
     def is_app_present(self, app):
         return self.is_element_present(*self._app_card_locator(app))
@@ -37,8 +39,9 @@ class CardsView(Base):
         return self.marionette.find_element(*self._app_card_locator(app)).tap()
 
     def close_app(self, app):
+        self.wait_for_condition(lambda m: self.is_app_displayed(app))
         self.marionette.find_element(*self._close_button_locator(app)).tap()
-        return self.wait_for_element_not_present(*self._app_card_locator(app))
+        self.wait_for_element_not_present(*self._app_card_locator(app))
 
     def wait_for_cards_view(self):
         self.wait_for_element_displayed(*self._cards_view_locator)

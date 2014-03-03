@@ -1,4 +1,5 @@
 'use strict';
+/* global MockNavigatormozApps, MockNavigatormozSetMessageHandler, Search */
 
 require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
@@ -61,11 +62,7 @@ suite('search/search', function() {
   suite('provider', function() {
     test('increments number of providers', function() {
       function numProviders() {
-        var num = 0;
-        for (var i in Search.providers) {
-          num++;
-        }
-        return num;
+        return Object.keys(Search.providers).length;
       }
 
       var count = numProviders();
