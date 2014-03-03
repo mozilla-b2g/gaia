@@ -560,7 +560,7 @@ var AppInstallManager = {
     }
 
     var manifestURL = currentNode.dataset.manifest,
-        app = Applications.getByManifestURL(manifestURL),
+        app = applications.getByManifestURL(manifestURL),
         manifest = app.manifest || app.updateManifest,
         dialog = this.downloadCancelDialog;
 
@@ -587,7 +587,7 @@ var AppInstallManager = {
     var dialog = this.downloadCancelDialog,
         manifestURL = dialog.dataset.manifest;
     if (manifestURL) {
-      var app = Applications.getByManifestURL(manifestURL);
+      var app = applications.getByManifestURL(manifestURL);
       app && app.cancelDownload();
     }
 

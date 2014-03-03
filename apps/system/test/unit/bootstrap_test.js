@@ -2,7 +2,7 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 /*global MockNavigatormozApps, MockNavigatorSettings, MocksHelper, MockL10n*/
-/*global Applications*/
+/*global MockApplications, Applications*/
 
 'use strict';
 
@@ -56,7 +56,8 @@ mocha.globals([
   'HomescreenLauncher',
   'homescreenLauncher',
   'ActivityWindowFactory',
-  'visibilityManager'
+  'visibilityManager',
+  'applications'
 ]);
 
 var mocksForBootstrap = new MocksHelper([
@@ -91,6 +92,7 @@ suite('system/Bootstrap', function() {
   var realNavigatormozL10n;
   var realDocumentElementDir;
   var realDocumentElementLang;
+  var realApplications;
 
   mocksForBootstrap.attachTestHelpers();
 
@@ -107,6 +109,9 @@ suite('system/Bootstrap', function() {
     realNavigatormozL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
 
+    realApplications = window.applications;
+    window.applications = MockApplications;
+
     requireApp('system/js/bootstrap.js', done);
   });
 
@@ -120,6 +125,8 @@ suite('system/Bootstrap', function() {
     navigator.mozL10n = realNavigatormozL10n;
     realNavigatormozL10n = null;
 
+    window.applications = realApplications;
+    realApplications = null;
     document.documentElement.dir = realDocumentElementDir;
     document.documentElement.lang = realDocumentElementLang;
   });

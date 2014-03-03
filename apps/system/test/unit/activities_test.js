@@ -7,7 +7,8 @@ requireApp('system/test/unit/mock_l10n.js');
 requireApp('system/js/action_menu.js');
 requireApp('system/shared/js/manifest_helper.js');
 requireApp('system/js/activities.js');
-mocha.globals(['Activities', 'addEventListener', 'dispatchEvent']);
+mocha.globals(['Activities', 'addEventListener', 'dispatchEvent',
+              'applications']);
 
 var mocksForActivities = new MocksHelper([
   'Applications'
@@ -16,6 +17,7 @@ var mocksForActivities = new MocksHelper([
 suite('system/Activities', function() {
   var realL10n;
   var subject;
+  var realApplications;
 
   var fakeLaunchConfig1 = {
     'isActivity': false,
@@ -33,10 +35,14 @@ suite('system/Activities', function() {
   suiteSetup(function() {
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
+    realApplications = window.applications;
+    window.applications = MockApplications;
   });
 
   suiteTeardown(function() {
     navigator.mozL10n = realL10n;
+    window.applications = realApplications;
+    realApplications = null;
   });
 
   setup(function() {

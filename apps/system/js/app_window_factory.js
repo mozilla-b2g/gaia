@@ -27,7 +27,7 @@
        *
        * @listens webapps-launch
        */
-      if (Applications.ready) {
+      if (applications.ready) {
         window.addEventListener('webapps-launch', this);
         window.addEventListener('webapps-close', this);
         window.addEventListener('open-app', this);

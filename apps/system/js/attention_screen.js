@@ -102,7 +102,7 @@ var AttentionScreen = {
 
     // Check if the app has the permission to open attention screens
     var manifestURL = evt.target.getAttribute('mozapp');
-    var app = Applications.getByManifestURL(manifestURL);
+    var app = applications.getByManifestURL(manifestURL);
 
     if (!app || !this._hasAttentionPermission(app))
       return;

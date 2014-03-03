@@ -4,7 +4,7 @@
 (function() {
 
   'use strict';
-  /* global Applications, asyncStorage */
+  /* global applications, asyncStorage*/
 
   var host = document.location.host;
   var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
@@ -15,11 +15,11 @@
 
   var widgetFrame;
   function _ensureWidget() {
-    if (!Applications.ready) {
+    if (!applications.ready) {
       return;
     }
 
-    if (!Applications.getByManifestURL(origin + '/manifest.webapp')) {
+    if (!applications.getByManifestURL(origin + '/manifest.webapp')) {
       return;
     }
 

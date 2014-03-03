@@ -1,5 +1,5 @@
 'use strict';
-/* global ActionMenu, Applications, ManifestHelper */
+/* global ActionMenu, applications, ManifestHelper */
 
 (function(exports) {
 
@@ -116,7 +116,7 @@
       var items = [];
 
       choices.forEach(function(choice, index) {
-        var app = Applications.getByManifestURL(choice.manifest);
+        var app = applications.getByManifestURL(choice.manifest);
         if (!app) {
           return;
         }
