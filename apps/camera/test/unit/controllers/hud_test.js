@@ -74,17 +74,32 @@ suite('controllers/hud', function() {
 
     test('Should show controls when the camera is \'ready\'', function() {
       var enableButtons = this.hudController.enableButtons;
-      assert.ok(this.app.on.calledWith('camera:ready', this.hud.show));
+      assert.ok(this.app.on.calledWith('camera:ready', this.hudController.show));
     });
   });
 
-  suite('HudController#onRecordingChange', function() {
+  suite('HudController#onRecordingChange()', function() {
     test('Should disable the hide the hud buttons when recording', function() {
       this.hudController.onRecordingChange(true);
       assert.ok(this.hud.toggle.calledWith(false));
       this.hud.hide.reset();
       this.hudController.onRecordingChange(false);
       assert.ok(this.hud.toggle.calledWith(true));
+    });
+  });
+
+  suite('HudController#show()', function() {
+    test('Should show the HUD only if not recording', function() {
+
+      // Recording
+      this.app.get.withArgs('recording').returns(true);
+      this.hudController.show();
+      assert.ok(!this.hud.show.called);
+
+      // Not recording
+      this.app.get.withArgs('recording').returns(false);
+      this.hudController.show();
+      assert.ok(this.hud.show.called);
     });
   });
 });
