@@ -382,6 +382,13 @@ var CostControl = (function() {
     start = toMidnight(start);
 
     var today = toMidnight(new Date());
+    // If the start date is higher than today, the today dot is never drawn
+    // because it is not on the date interval asked.
+    if (today < start) {;
+      console.error('Start date is higher than today. This must not ' +
+                    'happen. Maybe the date has changed. Setting to ' + today);
+      start = today;
+    }
 
     var tomorrow = new Date();
     tomorrow.setTime(today.getTime() + DAY);
