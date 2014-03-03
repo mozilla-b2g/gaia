@@ -181,13 +181,13 @@
             tag: message.timestamp
           };
 
-          var onClick = function wpm_notificationOnClick(timestamp) {
-            app.launch();
-            wpm_displayWapPushMessage(timestamp);
-          };
-
           var notification = new Notification(message.sender, options);
-          notification.addEventListener('click', onClick.bind(options.tag));
+          notification.addEventListener('click',
+            function wpm_onNotificationClick(event) {
+              app.launch();
+              wpm_displayWapPushMessage(event.target.tag);
+            }
+          );
 
           wpm_finish();
         };
@@ -256,7 +256,8 @@
               break;
           }
         } else {
-          SiSlScreenHelper.populateScreen(message);
+          // Notify the user that the message has expired
+          SiSlScreenHelper.populateScreen();
         }
       },
       function wpm_loadError(error) {
