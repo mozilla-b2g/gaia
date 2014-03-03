@@ -1,5 +1,5 @@
 'use strict';
-/* global AppWindow */
+/* global AppWindow, PopupWindow */
 
 (function(window) {
   /**
@@ -29,10 +29,11 @@
 
   ChildWindowFactory.prototype.handleEvent =
     function cwf_handleEvent(evt) {
+      var stopped = false;
       switch (evt.detail.features) {
         case 'dialog':
-          // Open dialogWindow / PopupWindow
-          this.createDialogWindow();
+          // Open PopupWindow
+          stopped = this.createPopupWindow(evt);
           break;
         case 'attention':
           // Open attentionWindow
@@ -41,18 +42,31 @@
           }
           break;
         default:
-          this.createChildWindow(evt);
+          stopped = this.createChildWindow(evt);
           // Open appWindow / browserWindow
           break;
       }
+
+      if (stopped && 'stopPropagation' in evt) {
+        evt.stopPropagation();
+      }
     };
 
-  ChildWindowFactory.prototype.createDialogWindow = function() {
-    // XXX: ChildWindow is not implemented yet.
-    // Now PopupManager catches this event.
-    if (typeof(!self.DialogWindow) == 'undefined') {
+  ChildWindowFactory.prototype.createPopupWindow = function(evt) {
+    if (typeof(!self.PopupWindow) == 'undefined') {
       return false;
     }
+
+    var configObject = {
+      url: evt.detail.url,
+      name: this.app.name,
+      iframe: evt.detail.frameElement,
+      origin: this.app.origin,
+      parentWindow: this.app
+    };
+    var childWindow = new PopupWindow(configObject);
+    childWindow.open();
+    return true;
   };
 
   ChildWindowFactory.prototype._sameOrigin = function(url1, url2) {
@@ -77,6 +91,7 @@
     }
     var childWindow = new AppWindow(configObject);
     childWindow.requestOpen();
+    return true;
   };
 
   ChildWindowFactory.prototype.createAttentionWindow = function(evt) {
