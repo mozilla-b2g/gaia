@@ -93,6 +93,7 @@ var Tutorial = {
   },
   exit: function() {
     WifiManager.finish();
+    window.removeEventListener('hashchange', this);
     window.close();
   },
   jumpTo: function jumpTo(index) {
