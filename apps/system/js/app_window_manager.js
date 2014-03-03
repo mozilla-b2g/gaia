@@ -152,7 +152,7 @@
           return;
         }
         this.debug('ready to open/close' + switching);
-        if (switching) 
+        if (switching)
           homescreenLauncher.getHomescreen().fadeOut();
 
         var immediateTranstion = false;
