@@ -245,7 +245,8 @@ var WapPushManager = {
               break;
           }
         } else {
-          SiSlScreenHelper.populateScreen(message);
+          // Notify the user that the message has expired
+          SiSlScreenHelper.populateScreen();
         }
       },
       function wpm_loadError(error) {
