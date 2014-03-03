@@ -72,6 +72,7 @@ window.addEventListener('load', function startup() {
 
   // Please sort it alphabetically
   window.activities = new Activities();
+  window.callForwarding = new CallForwarding();
   window.devtoolsView = new DevtoolsView();
   window.dialerComms = new DialerComms();
   window.remoteDebugger = new RemoteDebugger();

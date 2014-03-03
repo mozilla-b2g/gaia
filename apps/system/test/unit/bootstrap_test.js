@@ -33,6 +33,7 @@ requireApp('system/test/unit/mock_secure_window_manager.js');
 requireApp('system/test/unit/mock_secure_window_factory.js');
 requireApp('system/test/unit/mock_activity_window_factory.js');
 requireApp('system/test/unit/mock_app_window_factory.js');
+requireApp('system/test/unit/mock_call_forwarding.js');
 
 mocha.globals([
   'Shortcuts',
@@ -54,11 +55,11 @@ mocha.globals([
   'title',
   'appWindowFactory',
   'layoutManager',
-  'activityWindowFactory',
   'HomescreenLauncher',
-  'homescreenLauncher',
   'visibilityManager',
-  'applications'
+  'applications',
+  'ActivityWindowFactory',
+  'callForwarding'
 ]);
 
 var mocksForBootstrap = new MocksHelper([
@@ -82,6 +83,7 @@ var mocksForBootstrap = new MocksHelper([
   'Title',
   'AppWindowFactory',
   'VisibilityManager',
+  'CallForwarding',
   'LayoutManager',
   'SecureWindowManager',
   'SecureWindowFactory',
