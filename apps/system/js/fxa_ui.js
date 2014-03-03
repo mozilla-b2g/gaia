@@ -9,10 +9,8 @@ var FxAccountsUI = {
     var dialogOptions = {
       onHide: this.reset.bind(this)
     };
-    if (!this.dialog) {
-      this.dialog = new FxAccountsDialog(dialogOptions);
-    }
-    this.panel = this.dialog.getView();
+    this.dialog = SystemDialog('fxa-dialog', dialogOptions);
+    this.panel = document.getElementById('fxa-dialog');
     this.iframe = document.createElement('iframe');
     this.iframe.id = 'fxa-iframe';
   },

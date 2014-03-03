@@ -937,6 +937,7 @@ apps/system/js/stack_manager.js
 apps/system/js/statusbar.js
 apps/system/js/storage_watcher.js
 apps/system/js/system.js
+apps/system/js/system_dialog.js
 apps/system/js/telephony_settings.js
 apps/system/js/trusted_ui.js
 apps/system/js/updatable.js

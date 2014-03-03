@@ -1,5 +1,4 @@
-/* global AppWindowManager, KeyboardManager, SoftwareButtonManager, 
-          StatusBar, System */
+/* global KeyboardManager, SoftwareButtonManager, StatusBar, System */
 'use strict';
 
 (function(exports) {
@@ -23,7 +22,6 @@
    * ![resize layout flow](http://i.imgur.com/bUMm4VM.png)
    *
    * @class LayoutManager
-   * @requires AppWindowManager
    * @requires KeyboardManager
    * @requires SoftwareButtonManager
    * @requires StatusBar
@@ -68,16 +66,6 @@
       return window.innerHeight -
         (this.keyboardEnabled ? KeyboardManager.getHeight() : 0) -
         SoftwareButtonManager.height - StatusBar.height;
-    },
-
-    /**
-     * Gives the available height for a active App window.
-     *
-     * @memberOf module:LayoutManager
-     */
-    get availableHeight() {
-      var isFullScreen = AppWindowManager.getActiveApp().isFullScreen();
-      return (isFullScreen ? this.fullscreenHeight : this.usualHeight);
     },
 
     /**
