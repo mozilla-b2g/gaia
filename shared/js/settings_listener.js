@@ -60,4 +60,3 @@ var SettingsListener = {
     });
   }
 };
-
