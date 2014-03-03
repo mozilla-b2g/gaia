@@ -25,6 +25,10 @@
   bottom: 5rem;
 }
 
+#screen.utility-tray #windows > .appWindow {
+  pointer-events: none;
+}
+
 #windows > .appWindow:not(.homescreen) {
   background-color: black;
 }
