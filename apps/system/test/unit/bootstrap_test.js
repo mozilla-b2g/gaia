@@ -26,9 +26,7 @@ requireApp('system/test/unit/mock_source_view.js');
 requireApp('system/test/unit/mock_storage.js');
 requireApp('system/test/unit/mock_ttl_view.js');
 requireApp('system/test/unit/mock_title.js');
-requireApp('system/test/unit/mock_activity_window_factory.js');
 requireApp('system/test/unit/mock_visibility_manager.js');
-requireApp('system/test/unit/mock_call_forwarding.js');
 requireApp('system/test/unit/mock_layout_manager.js');
 requireApp('system/test/unit/mock_secure_window_manager.js');
 requireApp('system/test/unit/mock_secure_window_factory.js');
@@ -51,13 +49,12 @@ mocha.globals([
   'storage',
   'ttlView',
   'title',
-  'visibilityManager',
-  'callForwarding',
   'layoutManager',
-  'visibilityManager',
   'activityWindowFactory',
   'HomescreenLauncher',
-  'homescreenLauncher'
+  'homescreenLauncher',
+  'ActivityWindowFactory',
+  'visibilityManager'
 ]);
 
 var mocksForBootstrap = new MocksHelper([
@@ -79,7 +76,6 @@ var mocksForBootstrap = new MocksHelper([
   'TTLView',
   'Title',
   'VisibilityManager',
-  'CallForwarding',
   'LayoutManager',
   'SecureWindowManager',
   'SecureWindowFactory',

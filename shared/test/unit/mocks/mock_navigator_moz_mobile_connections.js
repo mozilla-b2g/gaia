@@ -13,8 +13,7 @@
       eventListeners = {
         'voicechange': [],
         'iccinfochange': [],
-        'radiostatechange': [],
-        'cfstatechange': []
+        'radiostatechange': []
       };
       radioEnabledReq = {};
     }
