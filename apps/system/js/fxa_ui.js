@@ -3,9 +3,10 @@
 var FxAccountsUI = {
   dialog: null,
   panel: null,
-  onerrorCB: null,
-  onsuccessCB: null,
-  init: function fxa_ui_init() {
+  onerrorCb: null,
+  onsuccessCb: null,
+
+  init: function init() {
     var dialogOptions = {
       onHide: this.reset.bind(this)
     };
@@ -14,25 +15,38 @@ var FxAccountsUI = {
     this.iframe = document.createElement('iframe');
     this.iframe.id = 'fxa-iframe';
   },
-  // Sign in/up flow
+
+  // Sign in/up flow.
   login: function fxa_ui_login(onsuccess, onerror) {
-    this.onsuccessCB = onsuccess;
-    this.onerrorCB = onerror;
+    this.onsuccessCb = onsuccess;
+    this.onerrorCb = onerror;
     this.loadFlow('login');
   },
-  // Logout flow
-  logout: function fxa_ui_login(onsuccess, onerror) {
-    this.onsuccessCB = onsuccess;
-    this.onerrorCB = onerror;
+
+  // Logout flow.
+  logout: function fxa_ui_logout(onsuccess, onerror) {
+    this.onsuccessCb = onsuccess;
+    this.onerrorCb = onerror;
     this.loadFlow('logout');
   },
-  // Delete flow
+
+  // Delete flow.
   delete: function fxa_ui_delete(onsuccess, onerror) {
-    this.onsuccessCB = onsuccess;
-    this.onerrorCB = onerror;
+    this.onsuccessCb = onsuccess;
+    this.onerrorCb = onerror;
     this.loadFlow('delete');
   },
-  // Method which close the Dialog
+
+  // Refresh authentication flow.
+  refreshAuthentication: function fxa_ui_refreshAuth(accountId,
+                                                     onsuccess,
+                                                     onerror) {
+    this.onsuccessCb = onsuccess;
+    this.onerrorCb = onerror;
+    this.loadFlow('refresh_auth', ['accountId=' + accountId]);
+  },
+
+  // Method which close the dialog.
   close: function fxa_ui_close() {
     var self = this;
     this.panel.addEventListener('animationend', function closeAnimationEnd() {
@@ -42,29 +56,36 @@ var FxAccountsUI = {
     }, false);
     this.panel.classList.add('closing');
   },
-  // Method for reseting the panel
+
+  // Method for reseting the panel.
   reset: function fxa_ui_reset() {
     this.panel.innerHTML = '';
-    this.onerrorCB = null;
-    this.onsuccessCB = null;
+    this.onerrorCb = null;
+    this.onsuccessCb = null;
   },
-  // Method for loading the iframe with the flow required
-  loadFlow: function fxa_ui_loadFlow(flow) {
-    this.iframe.setAttribute('src', '../fxa/fxa_module.html#' + flow);
+
+  // Method for loading the iframe with the flow required.
+  loadFlow: function fxa_ui_loadFlow(flow, params) {
+    var url = '../fxa/fxa_module.html#' + flow;
+    if (params && Array.isArray(params)) {
+      url += '?' + params.join('&');
+    }
+    this.iframe.setAttribute('src', url);
     this.panel.appendChild(this.iframe);
     this.dialog.show();
   },
-  // Method for sending the result of the FxAccounts flow to the caller app
-  done: function(data) {
-    // Proccess data retrieved
-    this.onsuccessCB && this.onsuccessCB(data);
+
+  // Method for sending the result of the FxAccounts flow to the caller app.
+  done: function fxa_ui_done(data) {
+    // Proccess data retrieved.
+    this.onsuccessCb && this.onsuccessCb(data);
     this.close();
   },
-  error: function(error) {
-    this.onerrorCB && this.onerrorCB(error);
+
+  error: function fxa_ui_error(error) {
+    this.onerrorCb && this.onerrorCb(error);
     this.close();
   }
 };
 
 FxAccountsUI.init();
-

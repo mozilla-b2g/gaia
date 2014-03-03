@@ -67,7 +67,7 @@ suite('FirefoxOS Accounts IAC Client Suite', function() {
 
   test('Library integrity', function() {
     assert.isNotNull(FxAccountsIACHelper);
-    assert.equal(Object.keys(FxAccountsIACHelper).length, 7);
+    assert.equal(Object.keys(FxAccountsIACHelper).length, 8);
   });
 
   ['getAccounts', 'openFlow', 'logout'].forEach(function(method) {
@@ -105,6 +105,43 @@ suite('FirefoxOS Accounts IAC Client Suite', function() {
       teardown(function() {
         postMessageStub.restore();
       });
+    });
+  });
+
+  suite('refreshAuthentication suite', function() {
+    setup(function() {
+      postMessageStub = sinon.stub(port, 'postMessage');
+    });
+
+    test('Check that we send the refreshAuth message', function(done) {
+      this.timeout(20000);
+      port.methodName = 'refreshAuthentication';
+      FxAccountsIACHelper.refreshAuthentication('dummy@domain.org',
+        function() {
+          assert.ok(postMessageStub.called);
+          var arg = postMessageStub.args[0][0];
+          // We do have an id for this message
+          assert.isNotNull(arg.id);
+          assert.isNotNull(arg);
+          // Remove the id, as it's automatically generated
+          delete arg.id;
+
+          assert.deepEqual(arg, {
+            'name': 'refreshAuthentication',
+            'accountId': 'dummy@domain.org'
+          });
+          done();
+        },
+        function() {
+          // Break if we are called.
+          assert.ok(false);
+          done();
+        }
+      );
+    });
+
+    teardown(function() {
+      postMessageStub.restore();
     });
   });
 
