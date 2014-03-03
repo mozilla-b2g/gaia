@@ -29,6 +29,7 @@ mocha.globals([
   'activities',
   'cancelHomeTouchstart',
   'cancelHomeTouchend',
+  'cancelHomeClick',
   'secureWindowManager',
   'secureWindowFactory',
   'devtoolsView',
@@ -114,6 +115,32 @@ suite('system/Bootstrap', function() {
       test('should be enabled', function() {
         assert.isTrue(MockNavigatorSettings.mSettings[setting]);
       });
+    });
+  });
+
+  suite('check for insane devices beeing cancelled', function() {
+    function createEvent(type) {
+      var evt = new CustomEvent(type, { bubbles: true, cancelable: true });
+      evt.pageX = evt.pageY = 0;
+      evt.touches = [ { pageX: 0, pageY: 0 } ];
+      evt.changedTouches = [ { pageX: 0, pageY: 0 } ];
+      return evt;
+    }
+
+    test('mousedown should be preventDefaulted', function() {
+      assert.ok(window.dispatchEvent(createEvent('mousedown')) === false);
+    });
+
+    test('mouseup should be preventDefaulted', function() {
+      assert.ok(window.dispatchEvent(createEvent('mouseup')) === false);
+    });
+
+    test('touchend should be preventDefaulted', function() {
+      assert.ok(window.dispatchEvent(createEvent('touchstart')) === false);
+    });
+
+    test('touchend should be preventDefaulted', function() {
+      assert.ok(window.dispatchEvent(createEvent('touchend')) === false);
     });
   });
 });
