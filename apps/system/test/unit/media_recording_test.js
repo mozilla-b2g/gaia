@@ -33,7 +33,7 @@ suite('system/media recording', function() {
   });
 
   teardown(function() {
-    sendChromeEvent(false, false, '', false, false);
+    MediaRecording.messages = [];
   });
 
   suite('active stat', function() {
@@ -46,7 +46,8 @@ suite('system/media recording', function() {
     });
 
     test('is Web URL', function() {
-      assert.equal(MediaRecording.origin.textContent, 'http://www.mozilla.com');
+      assert.equal(MediaRecording.messages[0].origin,
+        'http://www.mozilla.com');
     });
   });
 
@@ -58,17 +59,18 @@ suite('system/media recording', function() {
     });
 
     test('is Web URL', function() {
-      assert.equal(MediaRecording.origin.textContent, 'http://mozqa.com');
+      assert.equal(MediaRecording.messages[0].origin, 'http://mozqa.com');
     });
   });
 
   suite('deactive stat', function() {
     setup(function() {
-      sendChromeEvent(false, false, 'www.mozilla.com', true, false);
+      sendChromeEvent(true, false, 'www.mozilla.com', true, false);
     });
 
     test('notification hidden', function() {
-      assert.isFalse(MediaRecording.container.classList.contains('displayed'));
+      sendChromeEvent(false, false, 'www.mozilla.com', false, false);
+      assert.equal(MediaRecording.messages.length, 0);
     });
   });
 
@@ -78,12 +80,12 @@ suite('system/media recording', function() {
     });
 
     test('show message', function() {
-      assert.equal(MediaRecording.message.textContent, 'microphone-is-on');
+      assert.equal(MediaRecording.messages[0].message, 'microphone-is-on');
     });
 
     test('show icon', function() {
-      assert.equal(MediaRecording.icon.style.backgroundImage,
-        'url("style/media_recording/images/Microphone.png")');
+      assert.equal(MediaRecording.messages[0].icon,
+        'url(style/media_recording/images/Microphone.png)');
     });
   });
 
@@ -93,12 +95,12 @@ suite('system/media recording', function() {
     });
 
     test('show message', function() {
-      assert.equal(MediaRecording.message.textContent, 'camera-is-on');
+      assert.equal(MediaRecording.messages[0].message, 'camera-is-on');
     });
 
     test('show icon', function() {
-      assert.equal(MediaRecording.icon.style.backgroundImage,
-        'url("style/media_recording/images/Camera.png")');
+      assert.equal(MediaRecording.messages[0].icon,
+        'url(style/media_recording/images/Camera.png)');
     });
   });
 
@@ -108,12 +110,45 @@ suite('system/media recording', function() {
     });
 
     test('show message', function() {
-      assert.equal(MediaRecording.message.textContent, 'media-is-on');
+      assert.equal(MediaRecording.messages[0].message, 'media-is-on');
     });
 
     test('show icon', function() {
-      assert.equal(MediaRecording.icon.style.backgroundImage,
-        'url("style/media_recording/images/VideoRecorder.png")');
+      assert.equal(MediaRecording.messages[0].icon,
+        'url(style/media_recording/images/VideoRecorder.png)');
+    });
+  });
+
+  suite('multiple messages', function() {
+    setup(function() {
+      sendChromeEvent(true, false, 'www.mozilla.com', true, false);
+      sendChromeEvent(true, false, 'www.mozilla.org', false, true);
+    });
+
+    test('show messages', function() {
+      assert.equal(MediaRecording.messages[0].message, 'microphone-is-on');
+      assert.equal(MediaRecording.messages[1].message, 'camera-is-on');
+    });
+
+    test('kill first url, still show message', function() {
+      sendChromeEvent(false, false, 'www.mozilla.com', false, false);
+
+      assert.equal(MediaRecording.messages.length, 1);
+      assert.equal(MediaRecording.messages[0].message, 'camera-is-on');
+    });
+
+    test('kill 2nd url, still show message', function() {
+      sendChromeEvent(false, false, 'www.mozilla.org', false, false);
+
+      assert.equal(MediaRecording.messages.length, 1);
+      assert.equal(MediaRecording.messages[0].message, 'microphone-is-on');
+    });
+
+    test('hide message', function() {
+      sendChromeEvent(false, false, 'www.mozilla.com', false, false);
+      sendChromeEvent(false, false, 'www.mozilla.org', false, false);
+
+      assert.equal(MediaRecording.messages.length, 0);
     });
   });
 });

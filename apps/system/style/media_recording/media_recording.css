@@ -6,6 +6,9 @@
 #media-recoding-status-list.displayed {
   display: block;
   position: relative;
+}
+
+.media-recoding-status {
   height: 6rem;
   font-size: 1.4rem;
   font-weight: 400;
@@ -15,11 +18,11 @@
   border-bottom: 0.1rem solid #000;
 }
 
-#media-recoding-status-list:first-child {
+.media-recoding-status:first-child {
   border-top-color: #000;
 }
 
-#media-recoding-status-list > .icon {
+.media-recoding-status > .icon {
   float: left;
   width: 3rem;
   height: 3rem;
@@ -29,14 +32,14 @@
   background-size: 3rem;
 }
 
-#media-recoding-status-list > .origin,
-#media-recoding-status-list > .message {
+.media-recoding-status > .origin,
+.media-recoding-status > .message {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-#media-recoding-status-list > .origin {
+.media-recoding-status > .origin {
   margin: 1rem 0 0 5rem;
   width: calc(100% - 12rem);
   font-size: 1.5rem;
@@ -44,23 +47,20 @@
   color: #FFF;
 }
 
-#media-recoding-status-list > .message {
+.media-recoding-status > .message {
   width: calc(100% - 6.5rem);
   color: #bfbfbf;
 }
 
-#media-recoding-status-list > .timer {
-  position: absolute;
-  top: -0.2rem;
-  right: 1.5rem;
+.media-recoding-status > .timer {
   color: #52B6CC;
-  margin-top: 1.3rem;
-  padding: 0;
-  display: inline;
+  margin-top: -3.3rem;
+  padding: 1.2rem;
   font-size: 1.2rem;
   font-weight: bold;
   line-height: 1.6rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  float: right;
 }
