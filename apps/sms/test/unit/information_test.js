@@ -1,6 +1,6 @@
 /*global Information, loadBodyHTML, MockContact, MockL10n, MocksHelper,
          ThreadUI, MessageManager, ContactRenderer, Utils, Template, Threads,
-         MockMessages */
+         MockMessages, Settings */
 
 'use strict';
 
@@ -13,6 +13,7 @@ require('/test/unit/mock_l10n.js');
 require('/test/unit/mock_messages.js');
 require('/test/unit/mock_contact.js');
 require('/test/unit/mock_contacts.js');
+require('/test/unit/mock_settings.js');
 require('/test/unit/mock_message_manager.js');
 require('/test/unit/mock_contact_renderer.js');
 require('/js/information.js');
@@ -24,7 +25,8 @@ var mocksHelperForInformation = new MocksHelper([
   'Threads',
   'Contacts',
   'MessageManager',
-  'ContactRenderer'
+  'ContactRenderer',
+  'Settings'
 ]).init();
 
 suite('Information view', function() {
@@ -376,6 +378,91 @@ suite('Information view', function() {
       sinon.assert.calledWith(navigator.mozL10n.localize,
         reportView.contactTitle, 'report-from');
       sinon.assert.called(reportView.renderContactList);
+    });
+
+    suite('Message report with SIM information', function() {
+      var simInfo;
+      var simDetail;
+
+      setup(function() {
+        if (!('mozMobileConnections' in navigator)) {
+          navigator.mozMobileConnections = null;
+        }
+
+        if (!('mozIccManager' in navigator)) {
+          navigator.mozIccManager = null;
+        }
+
+        simInfo = reportView.simInfo;
+        simDetail = simInfo.querySelector('.sim-detail');
+        messageOpts = {
+          iccId: '1'
+        };
+        window.location.hash = '#report-view=1';
+      });
+
+      teardown(function() {
+        simInfo.classList.add('hide');
+      });
+
+      test('Hide SIM information for single SIM', function() {
+        reportView.render();
+        assert.isTrue(simInfo.classList.contains('hide'));
+      });
+
+      test('no phone number', function() {
+        this.sinon.stub(window.navigator, 'mozIccManager', {
+          getIccById: function() {
+            return {
+              'iccInfo': {
+                msisdn: ''
+              }
+            };
+          }
+        });
+        this.sinon.stub(Settings, 'hasSeveralSim').returns(true);
+        this.sinon.stub(Settings, 'getSimNameByIccId').returns('SIM 1');
+        this.sinon.stub(Settings, 'getOperatorByIccId').returns('operator');
+        reportView.render();
+        assert.equal(simDetail.textContent, 'SIM 1, operator');
+        assert.isFalse(simInfo.classList.contains('hide'));
+      });
+
+      test('no operator', function() {
+        this.sinon.stub(window.navigator, 'mozIccManager', {
+          getIccById: function() {
+            return {
+              'iccInfo': {
+                msisdn: '1111'
+              }
+            };
+          }
+        });
+        this.sinon.stub(Settings, 'hasSeveralSim').returns(true);
+        this.sinon.stub(Settings, 'getSimNameByIccId').returns('SIM 1');
+        this.sinon.stub(Settings, 'getOperatorByIccId').returns('');
+        reportView.render();
+        assert.equal(simDetail.textContent, 'SIM 1, 1111');
+        assert.isFalse(simInfo.classList.contains('hide'));
+      });
+
+      test('All information is accessible', function() {
+        this.sinon.stub(window.navigator, 'mozIccManager', {
+          getIccById: function() {
+            return {
+              'iccInfo': {
+                msisdn: '1111'
+              }
+            };
+          }
+        });
+        this.sinon.stub(Settings, 'hasSeveralSim').returns(true);
+        this.sinon.stub(Settings, 'getSimNameByIccId').returns('SIM 2');
+        this.sinon.stub(Settings, 'getOperatorByIccId').returns('operator');
+        reportView.render();
+        assert.equal(simDetail.textContent, 'SIM 2, operator, 1111');
+        assert.isFalse(simInfo.classList.contains('hide'));
+      });
     });
 
     suite('Render report block in contact list(delivery status)', function() {
