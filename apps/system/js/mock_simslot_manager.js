@@ -12,6 +12,9 @@ var MockSIMSlotManager = {
   isMultiSIM: function mssm_isMultiSIM() {
     return (this.mInstances.length > 1);
   },
+  isSIMCardAbsent: function mssm_isSIMCardAbsent(i) {
+    return this.mInstances[i].isAbsent();
+  },
   noSIMCardOnDevice: function() {},
   mTeardown: function mssm_mTeardown() {
     this.mInstances = [];
