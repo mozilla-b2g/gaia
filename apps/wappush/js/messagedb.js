@@ -131,12 +131,15 @@ var MessageDB = (function() {
              * delete action remove all messages with the same ID including
              * the received message itself. The user will not be notified. */
             if (message.action === 'delete') {
-              status = 'discarded';
               mdb_deleteById(transaction, message.id, error);
             }
           } else {
             /* No existing message has a matching ID, notify the user */
             store.put(message);
+          }
+
+          if (message.action === 'delete') {
+            status = 'discarded';
           }
         };
       } else {
