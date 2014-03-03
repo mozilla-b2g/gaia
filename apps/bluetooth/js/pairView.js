@@ -78,6 +78,7 @@ var PairView = {
   },
 
   init: function pv_init(mode, method, device, passkey) {
+    console.log('--> PairView init(): mode = ' + mode);
     this._pairMode = mode;
     this._pairMethod = method;
     this._device = device;
@@ -155,4 +156,3 @@ var PairView = {
     }
   }
 };
-

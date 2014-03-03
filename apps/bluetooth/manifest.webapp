@@ -30,7 +30,12 @@
       "href": "/transfer.html"
     }
   },
+  "messages": [
+     { "bluetooth-pairing-request": "/onpair.html" },
+     { "bluetooth-cancel": "/onpair.html" }
+  ],
   "permissions": {
+    "attention":{},
     "bluetooth":{},
     "device-storage:sdcard":{ "access": "readonly" },
     "settings":{ "access": "readwrite" }
