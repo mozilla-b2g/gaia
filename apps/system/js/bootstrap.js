@@ -168,5 +168,14 @@ function cancelHomeTouchend(e) {
   }
 }
 
+function cancelHomeClick(e) {
+  if (e.pageX === 0 && e.pageY === 0) {
+    e.preventDefault();
+    e.stopImmediatePropagation();
+  }
+}
+
 window.addEventListener('touchstart', cancelHomeTouchstart, true);
 window.addEventListener('touchend', cancelHomeTouchend, true);
+window.addEventListener('mousedown', cancelHomeClick, true);
+window.addEventListener('mouseup', cancelHomeClick, true);
