@@ -1,7 +1,8 @@
 'use strict';
 
-mocha.globals(['Applications', 'HomescreenWindow', 'homescreenLauncher',
+mocha.globals(['applications', 'HomescreenWindow', 'homescreenLauncher',
               'SettingsListener', 'layoutManager']);
+
 
 requireApp('system/test/unit/mock_homescreen_window.js');
 requireApp('system/test/unit/mock_applications.js');
@@ -17,8 +18,17 @@ var mocksForHomescreenLauncher = new MocksHelper([
 ]).init();
 
 suite('system/HomescreenLauncher', function() {
-  var homescreen;
+  var homescreen, realApplications;
 
+  setup(function() {
+    realApplications = window.applications;
+    window.applications = MockApplications;
+  });
+
+  teardown(function() {
+    window.applications = realApplications;
+    realApplications = null;
+  });
   suite('start', function() {
     var homescreen;
     mocksForHomescreenLauncher.attachTestHelpers();

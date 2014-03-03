@@ -1,5 +1,5 @@
 'use strict';
-/* global Applications, SettingsListener, HomescreenWindow, TrustedUIManager */
+/* global applications, SettingsListener, HomescreenWindow, TrustedUIManager */
 (function(exports) {
   /**
    * HomescreenLauncher is responsible for launching the homescreen window
@@ -114,7 +114,7 @@
       }
 
       this._started = true;
-      if (Applications.ready) {
+      if (applications.ready) {
         this._fetchSettings();
       } else {
         window.addEventListener('applicationready',
