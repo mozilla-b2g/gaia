@@ -41,19 +41,19 @@ module.exports = View.extend({
     return '<div class="inner js-inner">' +
       '<div class="controls-2_left">' +
         '<div>' +
-          '<div class="controls-2_gallery-button icon-gallery js-btn" name="gallery"></div>' +
+          '<div class="controls-2_gallery-button test-gallery icon-gallery js-btn" name="gallery"></div>' +
           '<div class="controls-2_thumbnail js-thumbnail js-btn" name="gallery"></div>' +
         '</div>' +
       '</div>' +
       '<div class="controls-2_middle">' +
-        '<div class="capture-button-2 js-btn" name="capture">' +
+        '<div class="capture-button-2 test-capture js-btn" name="capture">' +
           '<div class="circle outer-circle"></div>' +
           '<div class="circle inner-circle"></div>' +
           '<div class="center icon"></div>' +
         '</div>' +
       '</div>' +
       '<div class="controls-2_right">' +
-        '<div class="mode-toggle js-btn icon" name="switch">' +
+        '<div class="mode-toggle test-switch js-btn icon" name="switch">' +
           '<div><span class="selected-mode-icon icon"></span></div>' +
         '</div>' +
       '</div>' +

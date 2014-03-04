@@ -16,7 +16,7 @@ var View = require('vendor/view');
 
 return View.extend({
   name: 'recording-timer',
-  className: 'recording-timer',
+  className: 'recording-timer test-video-timer',
 
   initialize: function() {
     this.render();
