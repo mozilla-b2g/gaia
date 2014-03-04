@@ -89,7 +89,7 @@ contacts.Details = (function() {
   };
 
   var showEditContact = function showEditContact() {
-    Contacts.showForm(true, contactData);
+    Contacts.showForm(true);
   };
 
   var setContact = function cd_setContact(currentContact) {
