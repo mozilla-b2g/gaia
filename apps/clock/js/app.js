@@ -4,6 +4,7 @@ define(function(require) {
 var Tabs = require('tabs');
 var View = require('view');
 var mozL10n = require('l10n');
+var PerformanceTestingHelper = require('shared/js/performance_testing_helper');
 var rAF = mozRequestAnimationFrame || requestAnimationFrame;
 /**
  * Global Application event handling and paging
@@ -36,7 +37,10 @@ var App = {
         return panel;
       }.bind(this)
     );
-    this.navigate({ hash: '#alarm-panel' });
+    this.navigate({ hash: '#alarm-panel' }, function() {
+      // Dispatch an event to mark when we've finished loading.
+      PerformanceTestingHelper.dispatch('startup-path-done');
+    });
     return this;
   },
 
@@ -79,8 +83,9 @@ var App = {
    *
    * @param {object} data Options for navigation.
    * @param {string} data.hash The hash of the panel id.  I.E. '#alarm-panel'.
+   * @param {function} callback Callback to invoke when done.
    */
-  navigate: function(data) {
+  navigate: function(data, callback) {
     var currentIndex = this.panels.indexOf(this.currentPanel);
 
     this.panels.forEach(function(panel, panelIndex) {
@@ -103,6 +108,7 @@ var App = {
             }.bind(null, this.currentPanel));
           }
           this.currentPanel = panel;
+          callback && callback();
         }.bind(this));
       } else {
         if (panel.instance) {

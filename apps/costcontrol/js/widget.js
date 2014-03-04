@@ -250,6 +250,7 @@ var Widget = (function() {
 
   var hashMark = 0;
   function updateUI(updateOnlyDataUsage) {
+
     ConfigManager.requestAll(function _onInfo(configuration, settings) {
       var mode = ConfigManager.getApplicationMode();
       debug('Widget UI mode:', mode);
@@ -352,14 +353,9 @@ var Widget = (function() {
           meta.innerHTML = '';
           meta.appendChild(formatTimeHTML(stats.timestamp));
         }
-        checkDataUsageNotification(settings, stats.mobile.total,
-          // inform driver in system we are finished to update the widget
-          function _done() {
-            debug('Data usage notification checked!');
-            hashMark = 1 - hashMark; // toogle between 0 and 1
-            window.location.hash = '#updateDone#' + hashMark;
-          }
-        );
+        // inform driver in system we are finished to update the widget
+        hashMark = 1 - hashMark; // toogle between 0 and 1
+        window.location.hash = '#updateDone#' + hashMark;
       });
 
       // Content for balance or telephony

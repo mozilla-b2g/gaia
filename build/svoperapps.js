@@ -281,11 +281,13 @@ SvoperappsBuilder.prototype.generateConfig = function() {
       var apps = operator.apps.map(function(app) {
         return app.id;
       });
-      config[operator['mcc-mnc']] = apps;
-    })
+      operator['mcc-mnc'].forEach(function(mccmnc) {
+        config[mccmnc] = apps;
+      });
+    });
   }
   utils.writeContent(file, JSON.stringify(config));
-}
+};
 
 SvoperappsBuilder.prototype.execute = function(options) {
   if (!options.PROFILE_DIR || !options.GAIA_DISTRIBUTION_DIR ||

@@ -557,7 +557,8 @@ var Contacts = (function() {
     }
   };
 
-  var showForm = function c_showForm(edit) {
+  var showForm = function c_showForm(edit, contact) {
+    currentContact = contact || currentContact;
     initForm(function onInit() {
       doShowForm(edit);
     });
@@ -747,6 +748,7 @@ var Contacts = (function() {
             function success(contact, enrichedContact) {
               currentContact = contact;
               var mergedContact = enrichedContact || contact;
+              contactsDetails.setContact(mergedContact);
               contactsDetails.render(mergedContact, null, enrichedContact);
               contactsList.refresh(mergedContact, checkPendingChanges,
                                    event.reason);
