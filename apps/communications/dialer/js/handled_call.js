@@ -343,12 +343,12 @@ HandledCall.prototype.show = function hc_show() {
   if (this.node) {
     this.node.hidden = false;
   }
-  CallScreen.updateSingleLine();
+  CallScreen.updateCallsDisplay();
 };
 
 HandledCall.prototype.hide = function hc_hide() {
   if (this.node) {
     this.node.hidden = true;
   }
-  CallScreen.updateSingleLine();
+  CallScreen.updateCallsDisplay();
 };

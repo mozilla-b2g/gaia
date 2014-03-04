@@ -221,7 +221,7 @@ function customizeHomescreen(options) {
     customize.tap_effect_delay : 140;
   // It defines the threshold to consider a gesture like a swipe. Number
   // in the range 0.0 to 1.0, both included, representing the screen width
-  let swipe_threshold = 0.4;
+  let swipe_threshold = 0.25;
   // By default we define the virtual friction to .1 px/ms/ms
   let swipe_friction = 0.1;
   // Page transition duration defined in ms (300 ms by default)

@@ -92,6 +92,7 @@ if (!window.ImageLoader) {
       };
 
       tmp.onabort = tmp.onerror = function onerror() {
+        --imgsLoading;
         item.dataset.visited = 'false';
         tmp = null;
       };

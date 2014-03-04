@@ -447,11 +447,13 @@
     font-size: 2.3rem;
   }
 
+  #group-call-details-list .fake-number,
   #calls > section .fake-number {
     position: absolute;
     line-height: 0rem;
     visibility: hidden;
     white-space: nowrap;
+    padding: 0;
   }
 
   #calls > section .additionalContactInfo {
@@ -719,7 +721,6 @@
 
   #group-call .hangup-button,
   #calls:not(.big-duration) #group-call > .duration.isTimer,
-  #group-call-details-list .fake-number,
   #group-call-details-list .duration,
   #group-call-details-list .switch-calls {
     display: none;
