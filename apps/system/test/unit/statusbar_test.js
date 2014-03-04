@@ -732,6 +732,34 @@ suite('system/Statusbar', function() {
     });
   });
 
+  suite('call forwarding', function() {
+    setup(function() {
+      var defaultValue = [];
+      for (var i = 0; i < mobileConnectionCount; i++) {
+        defaultValue.push(false);
+      }
+      StatusBar.settingValues['ril.cf.enabled'] = defaultValue;
+    });
+
+    for (var i = 0; i < mobileConnectionCount; i++) {
+      (function(slotIndex) {
+        suite('slot: ' + slotIndex, function() {
+          test('call forwarding enabled', function() {
+            StatusBar.settingValues['ril.cf.enabled'][slotIndex] = true;
+            StatusBar.update.callForwarding.call(StatusBar);
+            assert.isFalse(StatusBar.icons.callForwardings[slotIndex].hidden);
+          });
+
+          test('call forwarding disabled', function() {
+            StatusBar.settingValues['ril.cf.enabled'][slotIndex] = false;
+            StatusBar.update.callForwarding.call(StatusBar);
+            assert.isTrue(StatusBar.icons.callForwardings[slotIndex].hidden);
+          });
+        });
+      })(i);
+    }
+  });
+
   suite('data connection', function() {
     for (var i = 0; i < mobileConnectionCount; i++) {
       (function(slotIndex) {
