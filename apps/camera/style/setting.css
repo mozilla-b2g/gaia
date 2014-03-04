@@ -4,7 +4,16 @@
   height: 7rem;
   align-items: center;
   margin: 0 1.5rem;
-  border-top: solid 1px rgba(255,255,255,0.15);
+  border: solid 1px rgba(255,255,255,0.15);
+  border-width: 1px 0 0;
+}
+
+/**
+ * @last-child
+ */
+
+.setting:last-child {
+  border-width: 1px 0 1px;
 }
 
 /**
@@ -33,13 +42,16 @@
  ---------------------------------------------------------*/
 
 .setting_title {
-  margin-bottom: 0.5rem;
+  font-size: 1.9rem;
+  margin-bottom: 0.7rem;
   color: rgba(255,255,255,0.5);
+  text-transform: capitalize;
 }
 
 /** Value
  ---------------------------------------------------------*/
 
 .setting_value {
+  font-size: 1.6rem;
   text-transform: uppercase;
 }

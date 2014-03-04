@@ -180,7 +180,7 @@ module.exports = {
 
   hdr: {
     title: 'HDR',
-    icon: 'icon-hdr',
+    icon: 'icon-hdr-menu',
     options: [
       {
         key: 'off',
