@@ -5,8 +5,10 @@ requireApp('communications/dialer/test/unit/mock_call.js');
 requireApp('communications/dialer/test/unit/mock_handled_call.js');
 requireApp('communications/dialer/test/unit/mock_call_screen.js');
 requireApp('communications/dialer/test/unit/mock_l10n.js');
+requireApp('communications/dialer/test/unit/mock_lazy_loader.js');
 requireApp('communications/dialer/test/unit/mock_contacts.js');
 requireApp('communications/dialer/test/unit/mock_tone_player.js');
+requireApp('communications/dialer/test/unit/mock_keypad.js');
 requireApp('communications/dialer/test/unit/mock_bluetooth_helper.js');
 requireApp('communications/dialer/test/unit/mock_utils.js');
 requireApp('communications/dialer/test/unit/mock_simple_phone_matcher.js');
@@ -26,7 +28,9 @@ var mocksHelperForCallsHandler = new MocksHelper([
   'HandledCall',
   'SettingsListener',
   'CallScreen',
+  'KeypadManager',
   'LazyL10n',
+  'LazyLoader',
   'Contacts',
   'TonePlayer',
   'SettingsURL',
@@ -53,7 +57,10 @@ suite('calls handler', function() {
     realMozApps = navigator.mozApps;
     navigator.mozApps = MockNavigatormozApps;
 
-    requireApp('communications/dialer/js/calls_handler.js', done);
+    requireApp('communications/dialer/js/calls_handler.js', function() {
+      CallsHandler.setup();
+      done();
+    });
   });
 
   suiteTeardown(function() {
@@ -107,12 +114,14 @@ suite('calls handler', function() {
       test('should unmute', function() {
         var unmuteSpy = this.sinon.spy(MockCallScreen, 'unmute');
         MockMozTelephony.mTriggerCallsChanged();
+        CallsHandler.setup();
         assert.isTrue(unmuteSpy.calledOnce);
       });
 
       test('should switch sound to default out', function() {
         var toDefaultSpy = this.sinon.spy(MockCallScreen, 'switchToDefaultOut');
         MockMozTelephony.mTriggerCallsChanged();
+        CallsHandler.setup();
         assert.isTrue(toDefaultSpy.calledOnce);
       });
 
@@ -120,8 +129,8 @@ suite('calls handler', function() {
         var playSpy = this.sinon.spy(MockAudio.prototype, 'play');
 
         MockSettingsListener.mCallbacks['audio.volume.notification'](7);
-        CallsHandler.setup();
         MockMozTelephony.mTriggerCallsChanged();
+        CallsHandler.setup();
 
         assert.isTrue(playSpy.called);
       });
@@ -141,8 +150,10 @@ suite('calls handler', function() {
       suite('> call isn\'t picked up', function() {
         setup(function() {
           MockMozTelephony.mTriggerCallsChanged();
+          CallsHandler.setup();
           MockMozTelephony.calls = [];
           MockMozTelephony.mTriggerCallsChanged();
+
           var windowOpener = {postMessage: function() {}};
           Object.defineProperty(window, 'opener', {
             configurable: true,
@@ -151,6 +162,7 @@ suite('calls handler', function() {
             }
           });
           this.sinon.spy(window.opener, 'postMessage');
+
           mockCall._disconnect();
         });
 

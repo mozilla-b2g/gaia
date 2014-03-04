@@ -65,14 +65,15 @@ function MockCall(aNumber, aState) {
       return;
     }
 
-    var self = this;
-    this._eventListeners[type].forEach(function(callback) {
+    var listeners = this._eventListeners[type];
+    for (var i = listeners.length - 1; i >= 0; i--) {
+      var callback = listeners[i];
       if (typeof callback === 'function') {
-        callback({call: self});
+        callback({call: this});
       } else if (typeof callback == 'object' &&
                  typeof callback.handleEvent === 'function') {
-        callback.handleEvent({call: self});
+        callback.handleEvent({call: this});
       }
-    });
+    }
   };
 }

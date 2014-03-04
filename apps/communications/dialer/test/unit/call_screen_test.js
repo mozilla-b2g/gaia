@@ -4,6 +4,7 @@ mocha.globals(['resizeTo']);
 
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
+require('/shared/test/unit/mocks/mock_navigator_wake_lock.js');
 requireApp('communications/dialer/test/unit/mock_moztelephony.js');
 
 requireApp('communications/dialer/test/unit/mock_handled_call.js');
@@ -25,6 +26,7 @@ var mocksHelperForCallScreen = new MocksHelper([
 suite('call screen', function() {
   var realMozTelephony;
   var realMozApps;
+  var realWakeLock;
 
   var screen;
   var container;
@@ -55,6 +57,9 @@ suite('call screen', function() {
     realMozApps = navigator.mozApps;
     navigator.mozApps = MockNavigatormozApps;
 
+    realWakeLock = navigator.requestWakeLock;
+    navigator.requestWakeLock = MockNavigatorWakeLock.requestWakeLock;
+
     navigator.mozL10n = MockMozL10n;
   });
 
@@ -62,6 +67,7 @@ suite('call screen', function() {
     MockMozTelephony.mSuiteTeardown();
     navigator.mozTelephony = realMozTelephony;
     navigator.mozApps = realMozApps;
+    navigator.requestWakeLock = realWakeLock;
   });
 
   setup(function(done) {

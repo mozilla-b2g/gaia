@@ -1,6 +1,7 @@
 kFontStep = 4;
 
 var MockKeypadManager = {
+  init: function() {},
   maxFontSize: 12,
   minFontSize: 8,
   formatPhoneNumber:
