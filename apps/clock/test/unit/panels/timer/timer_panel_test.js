@@ -3,7 +3,7 @@
 suite('Timer.Panel', function() {
   var clock;
   var isHidden;
-  var ActiveAlarm, View, Timer, Utils;
+  var ActiveAlarm, View, Timer, Utils, mozL10n;
   var nativeMozAlarms = navigator.mozAlarms;
 
   suiteSetup(function(done) {
@@ -12,14 +12,16 @@ suite('Timer.Panel', function() {
     };
 
     testRequire(['panels/alarm/active_alarm', 'timer', 'panels/timer/main',
-        'view', 'utils', 'mocks/mock_moz_alarm'], {
+        'view', 'utils', 'mocks/mock_moz_alarm', 'l10n'], {
       mocks: ['picker/picker']
-    }, function(activealarm, timer, timerPanel, view, utils, mockMozAlarms) {
+      }, function(activealarm, timer, timerPanel, view, utils, mockMozAlarms,
+                  l10n) {
       ActiveAlarm = activealarm;
       Timer = timer;
       Timer.Panel = timerPanel;
       View = view;
       Utils = utils;
+      mozL10n = l10n;
       navigator.mozAlarms = new mockMozAlarms.MockMozAlarms(
         ActiveAlarm.singleton().handler
       );
@@ -61,6 +63,13 @@ suite('Timer.Panel', function() {
     panel.dialog({ isVisible: false });
 
     assert.isFalse(dialog.visible);
+  });
+
+  test('panel is translated', function() {
+    /* jshint unused:false */
+    this.sinon.spy(mozL10n, 'translate');
+    var panel = new Timer.Panel(document.createElement('div'));
+    assert.ok(mozL10n.translate.called);
   });
 
   test('update ', function() {
