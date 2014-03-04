@@ -711,11 +711,8 @@ ifndef APPS
 endif
 
 b2g: node_modules/.bin/mozilla-download
-	./node_modules/.bin/mozilla-download  \
-		--verbose \
-		--product b2g \
-		--channel tinderbox \
-		--branch mozilla-central $@
+	curl https://s3-us-west-2.amazonaws.com/gaia-mozilla-b2g-builds/b2g.tar.bz2 > b2g.tar.bz2
+	tar -xjf b2g.tar.bz2
 
 .PHONY: test-integration
 # $(PROFILE_FOLDER) should be `profile-test` when we do `make test-integration`.
