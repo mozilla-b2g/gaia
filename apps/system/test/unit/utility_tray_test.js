@@ -50,10 +50,33 @@ suite('system/UtilityTray', function() {
     window.lockScreen = window.MockLockScreen;
     originalLocked = window.lockScreen.locked;
     window.lockScreen.locked = false;
-    fakeElement = document.createElement('div');
-    fakeElement.style.cssText = 'height: 100px; display: block;';
-    stubById = this.sinon.stub(document, 'getElementById')
-                          .returns(fakeElement.cloneNode(true));
+
+    var statusbar = document.createElement('div');
+    statusbar.style.cssText = 'height: 100px; display: block;';
+
+    var grippy = document.createElement('div');
+    grippy.style.cssText = 'height: 100px; display: block;';
+
+    var overlay = document.createElement('div');
+    overlay.style.cssText = 'height: 100px; display: block;';
+
+    var screen = document.createElement('div');
+    screen.style.cssText = 'height: 100px; display: block;';
+
+    stubById = this.sinon.stub(document, 'getElementById', function(id) {
+      switch (id) {
+        case 'statusbar':
+          return statusbar;
+        case 'utility-tray-grippy':
+          return grippy;
+        case 'utility-tray':
+          return overlay;
+        case 'screen':
+          return screen;
+        default:
+          return null;
+      }
+    });
     requireApp('system/js/utility_tray.js', done);
   });
 
@@ -200,7 +223,7 @@ suite('system/UtilityTray', function() {
   suite('handleEvent: touchstart', function() {
     mocksHelperForUtilityTray.attachTestHelpers();
     setup(function() {
-      fakeEvt = createEvent('touchstart');
+      fakeEvt = createEvent('touchstart', false, true);
       fakeEvt.touches = [0];
     });
 
@@ -218,6 +241,18 @@ suite('system/UtilityTray', function() {
       assert.ok(stub.calledOnce);
     });
 
+    test('Dont preventDefault if the target is the overlay', function() {
+      assert.ok(UtilityTray.overlay.dispatchEvent(fakeEvt));
+    });
+
+    test('preventDefault if the target is the statusbar', function() {
+      assert.ok(!UtilityTray.statusbar.dispatchEvent(fakeEvt));
+    });
+
+    test('preventDefault if the target is the grippy', function() {
+      assert.ok(!UtilityTray.grippy.dispatchEvent(fakeEvt));
+    });
+
     test('Test UtilityTray.active, should be true', function() {
       /* XXX: This is to test UtilityTray.active,
               it works in local test but breaks in travis. */
@@ -227,14 +262,26 @@ suite('system/UtilityTray', function() {
 
   suite('handleEvent: touchend', function() {
     setup(function() {
-      fakeEvt = createEvent('touchend');
+      fakeEvt = createEvent('touchend', false, true);
       fakeEvt.changedTouches = [0];
 
       UtilityTray.active = true;
-      UtilityTray.statusbar.dispatchEvent(fakeEvt);
+    });
+
+    test('Dont preventDefault if the target is the overlay', function() {
+      assert.ok(UtilityTray.overlay.dispatchEvent(fakeEvt));
+    });
+
+    test('preventDefault if the target is the statusbar', function() {
+      assert.ok(!UtilityTray.statusbar.dispatchEvent(fakeEvt));
+    });
+
+    test('preventDefault if the target is the grippy', function() {
+      assert.ok(!UtilityTray.grippy.dispatchEvent(fakeEvt));
     });
 
     test('Test UtilityTray.active, should be false', function() {
+      UtilityTray.statusbar.dispatchEvent(fakeEvt);
       assert.equal(UtilityTray.active, false);
     });
   });
