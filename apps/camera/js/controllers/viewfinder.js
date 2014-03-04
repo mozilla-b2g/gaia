@@ -33,8 +33,10 @@ function ViewfinderController(app) {
 }
 
 ViewfinderController.prototype.configure = function() {
+  var shouldFill = this.app.settings.viewfinderFill.selected('value');
   var grid = this.app.settings.grid.selected('key');
   this.viewfinder.set('grid', grid);
+  this.viewfinder.fill = shouldFill;
 };
 
 ViewfinderController.prototype.bindEvents = function() {
