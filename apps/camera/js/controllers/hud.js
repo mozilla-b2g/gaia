@@ -74,6 +74,7 @@ HudController.prototype.onCameraClick = function() {
 
 HudController.prototype.onFlashClick = function() {
   this.settings.flashModes.next();
+  this.hud.set('flashMode' , this.settings.flashModes.selected('key'));
 };
 
 HudController.prototype.updateFlash = function() {
