@@ -15,8 +15,8 @@ requireApp('system/test/unit/mock_lock_screen.js', function() {
   // can't be "MocklockScreen".
   window.lockScreen = MockLockScreen;
 });
-requireApp('system/test/unit/mock_simslot.js');
-requireApp('system/test/unit/mock_simslot_manager.js');
+requireApp('system/js/mock_simslot.js');
+requireApp('system/js/mock_simslot_manager.js');
 requireApp('system/test/unit/mock_app_window_manager.js');
 requireApp('system/test/unit/mock_ftu_launcher.js');
 requireApp('system/test/unit/mock_touch_forwarder.js');
