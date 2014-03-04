@@ -33,6 +33,7 @@
     "marionette-settings-api": "~0.1.0",
     "mocha": "1.15.0",
     "mocha-json-proxy": "~0.0.7",
+    "mocha-parallel": "0.1.0",
     "mocha-tbpl-reporter": "~0.0.4",
     "moment": "~2.4.0",
     "mozilla-download": "~0.4.1-alpha",
