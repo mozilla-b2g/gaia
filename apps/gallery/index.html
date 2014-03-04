@@ -51,7 +51,7 @@
 
     <section role="region" id="thumbnail-select-view" class="skin-dark">
       <header id="thumbnails-select-top">
-        <button id="thumbnails-cancel-button"><span class="icon icon-close"></span></button>
+        <button id="thumbnails-cancel-button" class="navigation"><span class="icon icon-close"></span></button>
         <h1 id="thumbnails-number-selected"></h1>
       </header>
 
@@ -119,17 +119,15 @@
     </form>
     <section role="region" id="pick-view" class="skin-organic">
       <header id="pick-top">
-        <button id="pick-back-button"><span class="icon icon-back"></span></button>
+        <button id="pick-back-button" class="navigation"><span class="icon icon-back"></span></button>
         <h1 id="pick-header" data-l10n-id="pickoneimage2"></h1>
       </header>
     </section>
 
     <section role="region" id="crop-view" class="skin-organic">
       <header id="crop-top">
-        <button id="crop-back-button"><span class="icon icon-back"></span></button>
-        <menu type="toolbar">
-          <button id="crop-done-button" data-l10n-id="done">done</button>
-        </menu>
+        <button id="crop-back-button" class="navigation"><span class="icon icon-back"></span></button>
+        <button id="crop-done-button" class="action" data-l10n-id="done">done</button>
         <h1 id="crop-header" data-l10n-id="cropimage"></h1>
       </header>
       <div id="crop-frame">
@@ -139,10 +137,8 @@
 
     <section role="region" id="edit-view" class="skin-dark">
       <header id="edit-header">
-        <button id="edit-cancel-button"><span class="icon icon-close"></span></button>
-        <menu type="toolbar">
-          <button id="edit-save-button" data-l10n-id="done">done</button>
-        </menu>
+        <button id="edit-cancel-button" class="navigation"><span class="icon icon-close"></span></button>
+        <button id="edit-save-button" class="action" data-l10n-id="done">done</button>
         <h1 id="edit-title" data-l10n-id="edit"></h1>
       </header>
 
