@@ -78,7 +78,6 @@ suite('app', function() {
         focusRing: new View({ name: 'focus-ring' }),
         controls: new View({ name: 'controls' }),
         indicators: new View({ name: 'controls' }),
-        recordingTimer: new View({ name: 'controls' }),
         hud: new View({ name: 'hud' })
       },
       filmstrip: sinon.spy(),
@@ -93,7 +92,6 @@ suite('app', function() {
         camera: sinon.spy(),
         settings: sinon.spy(),
         activity: sinon.spy(),
-        recordingTimer: sinon.spy(),
         sounds: sinon.spy()
       }
     };

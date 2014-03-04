@@ -222,30 +222,4 @@ suite('camera', function() {
       assert.ok(this.camera.onRecordingError.called);
     });
   });
-
-  suite('Camera#setHDR()', function() {
-    setup(function() {
-      this.camera = new this.Camera();
-      this.camera.mozCamera = {
-        sceneMode: null
-      };
-
-      sinon.stub(this.camera, 'setSceneMode');
-    });
-
-    test('Should set sceneMode to \'hdr\' when set to \'on\'', function() {
-      this.camera.setHDR('on');
-      assert.ok(this.camera.setSceneMode.calledWith('hdr'));
-    });
-
-    test('Should set sceneMode to \'auto\' when set to \'off\'', function() {
-      this.camera.setHDR('off');
-      assert.ok(this.camera.setSceneMode.calledWith('auto'));
-    });
-
-    test('Should not set sceneMode if value is `undefined`', function() {
-      this.camera.setHDR();
-      assert.ok(!this.camera.setSceneMode.called);
-    });
-  });
 });
