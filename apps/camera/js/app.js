@@ -138,12 +138,12 @@ App.prototype.initializeViews = function() {
 };
 
 App.prototype.injectViews = function() {
-  this.views.hud.appendTo(this.el);
-  this.views.controls.appendTo(this.el);
   this.views.viewfinder.appendTo(this.el);
   this.views.recordingTimer.appendTo(this.el);
-  this.views.focusRing.appendTo(this.el);
   this.views.indicators.appendTo(this.el);
+  this.views.focusRing.appendTo(this.el);
+  this.views.controls.appendTo(this.el);
+  this.views.hud.appendTo(this.el);
   debug('views injected');
 };
 
