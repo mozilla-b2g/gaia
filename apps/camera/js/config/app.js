@@ -247,22 +247,6 @@ module.exports = {
         key: 'timer'
       },
       {
-        key: 'pictureSizesBack',
-        condition: { 'cameras': 'back' }
-      },
-      {
-        key: 'pictureSizesFront',
-        condition: { 'cameras': 'front' }
-      },
-      {
-        key: 'recorderProfilesBack',
-        condition: { 'cameras': 'back' }
-      },
-      {
-        key: 'recorderProfilesFront',
-        condition: { 'cameras': 'front' }
-      },
-      {
         key: 'scene'
       },
       {
