@@ -5,6 +5,7 @@ module.exports = {
   showSettings: true,
   newControls: true,
   showIndicators: true,
+  viewfinderFill: true,
   mode: {
     title: 'Mode',
     options: [

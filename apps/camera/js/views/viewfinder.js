@@ -161,7 +161,7 @@ module.exports = View.extend({
       standard: 4 / 3
     };
 
-    var aspectFill = aspects.preview > aspects.container;
+    var aspectFill = this.fill || (aspects.preview > aspects.container);
     var scaleType = aspectFill ? 'fill' : 'fit';
     var scaled = scaleSizeTo[scaleType](container, preview);
     var centered = aspectFill || (aspects.preview < aspects.standard);
