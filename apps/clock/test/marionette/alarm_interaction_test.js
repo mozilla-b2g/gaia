@@ -2,6 +2,7 @@ marionette('Alarm interaction', function() {
   'use strict';
   var assert = require('./lib/assert');
   var Alarm = require('./lib/alarm');
+  var Clock = require('./lib/clock');
   var client = marionette.client();
   var alarm, twentyFromNow, thirtyFromNow;
 
@@ -196,6 +197,40 @@ marionette('Alarm interaction', function() {
       );
 
       alarm.waitForBannerHidden();
+    });
+
+    test('firing', function() {
+      // Trigger a fake 'alarm' event:
+      client.executeScript(function() {
+        var id = document.querySelector('.alarm-item').dataset.id;
+        var alarm = new CustomEvent('test-alarm', {
+          detail: {
+            id: parseInt(id, 10),
+            type: 'normal'
+          }
+        });
+        window.dispatchEvent(alarm);
+      });
+      // Switch to the system frame
+      client.switchToFrame();
+      // Now grab the Attention Screen frame
+      client.switchToFrame(
+        client.findElement('iframe[data-frame-name="_blank"]'));
+      // Click the "stop" button
+      var el = client.helper.waitForElement('#ring-button-stop');
+      try {
+        el.click();
+      } catch(e) {
+        // Marionette throws an error because the frame closes while
+        // handling the click event. This is expected.
+      }
+      // Now switch back to the system, then to the clock.
+      client.switchToFrame();
+      client.apps.switchToApp(Clock.ORIGIN);
+
+      // Make sure we can see the analog clock again.
+      var clock = client.helper.waitForElement('#analog-clock');
+      assert(clock.displayed());
     });
 
     test('deletion', function() {

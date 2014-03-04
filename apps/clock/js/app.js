@@ -97,7 +97,7 @@ var App = {
           }
           instance.active = true;
           instance.visible = true;
-          if (currentIndex !== -1) {
+          if (currentIndex !== -1 && currentIndex !== panelIndex) {
             var direction = currentIndex < panelIndex;
             rAF(function startAnimation(oldPanel) {
               instance.transition =
