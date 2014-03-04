@@ -17,6 +17,7 @@ suite('Video App Unit Tests', function() {
     // Create DOM structure
     loadBodyHTML('/index.html');
     dom.infoView = document.getElementById('info-view');
+    dom.optionView = document.getElementById('option-view');
     nativeMozL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
     MediaUtils._ = MockL10n.get;
@@ -37,7 +38,9 @@ suite('Video App Unit Tests', function() {
         },
         type: 'video/webm',
         date: 1375873140000,
-        size: 229455
+        size: 229455,
+        duration: 30.0,
+        currentTime: 2.0
       };
     });
 
@@ -62,6 +65,19 @@ suite('Video App Unit Tests', function() {
     test('#Test hide info view', function() {
       hideInfoView();
       assert.isTrue(dom.infoView.classList[0] === 'hidden');
+    });
+  });
+
+suite('#Video Action Menu Test', function() {
+
+    test('#Test show option view', function() {
+      showOptionsView();
+      assert.isFalse(dom.optionView.classList[0] === 'hidden');
+    });
+
+    test('#Test hide option view', function() {
+      hideOptionsView();
+      assert.isTrue(dom.optionView.classList[0] === 'hidden');
     });
   });
 

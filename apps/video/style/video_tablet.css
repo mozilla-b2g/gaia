@@ -74,6 +74,10 @@ body.pick-activity #thumbnails>li:last-child {
   border: 0;
 }
 
+#play {
+  left: 7.1rem;
+}
+
 #play:active {
   background: none;
 }
@@ -255,7 +259,7 @@ body.pick-activity #fullscreen-tool-bar {
   .layout-fullscreen-player #thumbnail-select-view,
   .layout-fullscreen-player #thumbnail-list-view,
   .layout-fullscreen-player #thumbnails,
-  .layout-fullscreen-player #videoControls #videoActionBar {
+  .layout-fullscreen-player #videoControls #videoToolBar {
     display: none;
   }
 
@@ -316,13 +320,6 @@ body.pick-activity #fullscreen-tool-bar {
     height: 5rem;
     width: 0.2rem;
     background: url(images/tablet_section_divider.png) no-repeat left;
-  }
-
-
-  /* position */
-  /* the videoActionBar is not shown and videoBar should be moved to bottom */
-  #player-view #videoControls #videoBar {
-    bottom: 0rem;
   }
 
   #fullscreen-button {
@@ -552,13 +549,8 @@ body.pick-activity #fullscreen-tool-bar {
   .layout-fullscreen-player #thumbnail-select-view,
   .layout-fullscreen-player #thumbnail-list-view,
   .layout-fullscreen-player #thumbnails,
-  .layout-fullscreen-player #videoControls #videoActionBar {
+  .layout-fullscreen-player #videoControls #videoToolBar {
     display: none;
-  }
-
-  /* the videoActionBar is not shown and videoBar should be moved to bottom */
-  #player-view #videoControls #videoBar {
-    bottom: 0rem;
   }
 
   /* spinner is only valid for tablet and landscape mode */
