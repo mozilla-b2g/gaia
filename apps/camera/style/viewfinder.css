@@ -5,15 +5,26 @@
  */
 
 .viewfinder {
+  display: flex;
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
+  justify-content: center;
   overflow: hidden;
   opacity: 0.001; /* 1 */
   transition: opacity 200ms ease-in-out;
 }
+
+/**
+ * scale-type=fill
+ */
+
+.viewfinder[scale-type=fill] {
+  align-items: center;
+}
+
 
 /**
  * @visible
@@ -26,29 +37,38 @@
 /** Frame
  ---------------------------------------------------------*/
 
+/**
+ * 1. The grid should never overflow the viewport.
+ */
+
 .viewfinder-frame {
-  position: absolute;
-  top: 0;
-  left: 0;
-  transform-origin: 0 0;
+  display: flex;
+  position: relative;
+  max-width: 100%; /* 1 */
+  max-height: 100%; /* 1 */
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
 }
 
 /** Video Container
  ---------------------------------------------------------*/
 
 .viewfinder-video-container {
-  overflow: hidden;
-  transform: rotate(90deg) translate(0, -100%);
-  transform-origin: 0 0;
+  flex-shrink: 0;
+  transform: rotate(90deg);
 }
 
 /**
  * @reversed
  *
- * 1. COMPLEX: Inverse the video image
+ * 1. COMPLEX: Inverse the video image,
+ *    front camera streams must be
+ *    mirrored in order to look ok.
  */
-.viewfinder-video-container.reversed {
-  transform: rotate(270deg) translate(-100%, 0%)
+
+.viewfinder.reversed .viewfinder-video-container {
+  transform: scale(-1, 1) rotate(-90deg); /* 1 */
 }
 
 /** Video
@@ -63,12 +83,12 @@
  ---------------------------------------------------------*/
 
 .viewfinder-grid {
+  visibility: hidden;
   position: absolute;
   left: 0; top: 0;
   width: 100%;
   height: 100%;
-  pointer-events:none;
-  display: none;
+  pointer-events: none;
 }
 
 /**
@@ -76,7 +96,7 @@
  */
 
 [grid=on] .viewfinder-grid {
-  display: block;
+  visibility: visible;
 }
 
 .viewfinder-grid .row,
@@ -121,7 +141,7 @@
 .viewfinder-grid .column .cell {
   width: 100%;
   border: solid 0.1rem rgba(0,0,0,0.2);
-  margin-bottom: 0.1rem; /* To accomodate the grid betweeen cells */
+  margin-bottom: 0.1rem; /* To accomodate the grid between cells */
   height: 33.33%;
 }
 
