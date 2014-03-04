@@ -565,6 +565,7 @@ footer {
   right: 0;
   top: 5rem;
   bottom: 9.5rem; /* 4.5rem for edit-toolbar, 5rem for edit-options */
+  transition: all 0.3s ease;
 }
 
 #edit-preview-canvas {
@@ -620,7 +621,7 @@ footer {
   outline-offset: -0.2rem;
 }
 
-#edit-crop-options a.button {
+#edit-crop-options a.button, #edit-rotate-options a.button {
   position: absolute;
   display: block;
   top: 0;
@@ -636,7 +637,7 @@ footer {
   background-position: center;
 }
 
-#edit-crop-options a.selected.radio.button {
+#edit-crop-options a.selected.radio.button, #edit-rotate-options a.selected.radio.button {
   outline: solid #00aacc 0.2rem;
   outline-offset: -0.2rem;
 }
@@ -742,7 +743,7 @@ a.filter-faded {
 /* all buttons in the toolbar share these styles */
 #edit-toolbar > a {
   display: inline-block;
-  width: 25%;
+  width: 20%;
   height: 100%;
 }
 
@@ -758,7 +759,7 @@ a.filter-faded {
   left: 40%;
 }
 
-#edit-border-button {
+#edit-rotate-button {
   left: 60%;
 }
 
@@ -806,6 +807,10 @@ a.filter-faded {
   background-image: url('images/actionicon_gallery_edit_borders_30x30.png');
 }
 
+#edit-rotate-button {
+  background-image: url('images/actionicon_gallery_edit_rotate_30x30.png');
+}
+
 #edit-enhance-button {
   background-image: url('images/actionicon_gallery_edit_enhance_30x30.png');
 }
@@ -820,6 +825,25 @@ a.filter-faded {
 
 #edit-exposure-button.selected {
   background-image: url('images/actionicon_gallery_edit_exposure_selected_30x30.png');
+}
+
+#edit-rotate-button.selected {
+  background-image: url('images/actionicon_gallery_edit_rotate_selected_30x30.png');
+}
+
+#edit-rotate-options a.button {
+  text-align: center;
+  width: 50%;
+}
+
+#edit-rotate-left {
+  left: 0%;
+  background-image: url('images/actionicon_gallery_rotate_left_30x30.png');
+}
+
+#edit-rotate-right {
+  left: 50%;
+  background-image: url('images/actionicon_gallery_rotate_right_30x30.png');
 }
 
 #edit-enhance-button.selected {

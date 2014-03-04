@@ -15,6 +15,7 @@ var editBgImageButtons =
 $('edit-exposure-button').onclick = setEditTool.bind(null, 'exposure');
 $('edit-crop-button').onclick = setEditTool.bind(null, 'crop');
 $('edit-effect-button').onclick = setEditTool.bind(null, 'effect');
+$('edit-rotate-button').onclick = setEditTool.bind(null, 'rotate');
 $('edit-enhance-button').onclick = setEditTool.bind(null, 'enhance');
 $('edit-crop-none').onclick = undoCropHandler;
 $('edit-cancel-button').onclick = function() { exitEditMode(false); };
@@ -53,8 +54,12 @@ function editPhoto(n) {
     },
     gamma: 1,
     matrix: ImageProcessor.IDENTITY_MATRIX,
+    rotation: files[n].metadata.rotation || 0,
+    mirrored: files[n].metadata.mirrored || false,
     rgbMinMaxValues: ImageProcessor.default_enhancement
   };
+
+  rotateImage(0);
 
   // Start looking up the image file
   photodb.getFile(files[n].name, function(file) {
@@ -113,6 +118,20 @@ function editOptionsHandler() {
   else if (this.dataset.effect) {
     editSettings.matrix = ImageProcessor[this.dataset.effect + '_matrix'];
     imageEditor.edit();
+  }
+  else if (this === $('edit-rotate-left')) {
+    if (!editSettings.mirrored) {
+      rotateImage(-90);
+    } else {
+      rotateImage(90);
+    }
+  }
+  else if (this === $('edit-rotate-right')) {
+    if (!editSettings.mirrored) {
+      rotateImage(90);
+    } else {
+      rotateImage(-90);
+    }
   }
 }
 
@@ -274,6 +293,10 @@ function setEditTool(tool) {
       $('edit-effect-button').classList.add('selected');
       $('edit-effect-options').classList.remove('hidden');
       break;
+    case 'rotate':
+      $('edit-rotate-button').classList.add('selected');
+      $('edit-rotate-options').classList.remove('hidden');
+      break;
     case 'enhance':
       $('edit-enhance-button').classList.add('selected');
       $('edit-enhance-options').classList.remove('hidden');
@@ -281,6 +304,13 @@ function setEditTool(tool) {
       break;
     }
   });
+}
+
+function rotateImage(degrees) {
+
+  editSettings.rotation = (360 + editSettings.rotation + degrees) % 360;
+  $('edit-preview-area').style.transform =
+    'rotate(' + editSettings.rotation + 'deg)';
 }
 
 function undoCropHandler() {
@@ -361,7 +391,9 @@ function saveEditedImage() {
   progressBar.value = 0;
   progressBar.max = 110; // Allow an extra 10% time for conversion to blob
 
-  imageEditor.getFullSizeBlob('image/jpeg', gotBlob, onProgress);
+  LazyLoader.load('js/metadata_scripts.js', function() {
+    imageEditor.getFullSizeBlob('image/jpeg', gotBlob, onProgress);
+  });
 
   function onProgress(p) {
     progressBar.value = Math.floor(p * 100);
@@ -394,17 +426,39 @@ function saveEditedImage() {
       filename = basename + '.edit' + version + extension;
     }
 
-    // Now that we have a filename, save the file This will send a
-    // change event, which will cause us to rebuild our thumbnails.
-    // For now, the edited image will become the first thumbnail since
-    // it si the most recent one. Ideally, I'd like a more
-    // sophisticated sort order that put edited sets of photos next to
-    // each other.
-    photodb.addFile(filename, blob);
+    if (files[editedPhotoIndex].metadata.rotation === editSettings.rotation) {
+      // Now that we have a filename, save the file This will send a
+      // change event, which will cause us to rebuild our thumbnails.
+      // For now, the edited image will become the first thumbnail since
+      // it si the most recent one. Ideally, I'd like a more
+      // sophisticated sort order that put edited sets of photos next to
+      // each other.
+          photodb.addFile(filename, blob);
 
-    // We're done.
-    exitEditMode(true);
-    progressBar.value = 0;
+      // We're done.
+      exitEditMode(true);
+      progressBar.value = 0;
+      return;
+    }
+    var newOrientation = JPEG.exifSpec.getOrientation(editSettings.rotation,
+        editSettings.mirrored);
+    var metadata = {};
+    metadata.Orientation = newOrientation;
+    JPEG.writeExifMetaData(blob, metadata, function(error, blob) {
+      if (!error) {
+        // Now that we have a filename, save the file This will send a
+        // change event, which will cause us to rebuild our thumbnails.
+        // For now, the edited image will become the first thumbnail since
+        // it si the most recent one. Ideally, I'd like a more
+        // sophisticated sort order that put edited sets of photos next to
+        // each other.
+        photodb.addFile(filename, blob);
+
+        // We're done.
+        exitEditMode(true);
+        progressBar.value = 0;
+      }
+    });
   }
 }
 
