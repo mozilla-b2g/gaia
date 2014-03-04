@@ -248,13 +248,14 @@ var CallsHandler = (function callsHandler() {
 
   function handleFirstIncoming(call) {
     var vibrateInterval = 0;
-    if (activateVibration != false) {
+    if ('vibrate' in navigator && activateVibration != false) {
       vibrateInterval = window.setInterval(function vibrate() {
         // Wait for the setting value to return before starting a vibration.
-        if ('vibrate' in navigator && activateVibration) {
+        if (activateVibration) {
           navigator.vibrate([200]);
         }
       }, 600);
+      navigator.vibrate([200]);
     }
 
     if (activePhoneSound == true) {
