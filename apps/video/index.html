@@ -11,6 +11,7 @@
     <link rel="stylesheet" type="text/css" href="style/video.css" />
     <link rel="stylesheet" type="text/css" href="style/info.css" />
     <link rel="stylesheet" type="text/css" href="style/spinner.css" />
+    <link rel="stylesheet" type="text/css" href="shared/style/action_menu.css" />
     <link rel="stylesheet" type="text/css" href="style/video_tablet.css" media="(min-height: 768px) and (min-width: 768px)" />
 
     <script defer src="shared/js/l10n.js"></script>
@@ -31,6 +32,7 @@
     <script defer src="js/thumbnail_date_group.js"></script>
     <script defer src="js/thumbnail_item.js"></script>
     <script defer src="js/video_utils.js"></script>
+    <script defer src="js/forwardrewind_controller.js"></script>
     <script defer src="js/video.js"></script>
   </head>
   <body role="application" class="skin-dark">
@@ -74,17 +76,19 @@
           <header>
             <a href="#" id="close"><span class="icon icon-back">back</span></a>
             <menu type="toolbar">
+            <a id="option"><span class="icon icon-options"></span></a>
+            </menu>
+            <menu type="toolbar">
               <span id="fullscreen-tool-bar">
-                <button class="single-delete-button"><span class="icon icon-delete"></span></button>
                 <button class="single-share-button"><span class="icon icon-share"></span></button>
                 <button class="single-info-button"><span class="icon icon-info"></span></button>
+                <button class="single-delete-button"><span class="icon icon-delete"></span></button>
               </span>
               <button id="picker-done"><span class="icon icon-done"></span></button>
             </menu>
             <h1 id="video-title"></h1>
           </header>
           <footer id="videoBar">
-            <button id="play" class="paused"></button>
             <div id="timeSlider">
               <span id="elapsed-text"></span>
               <div id="slider-wrapper">
@@ -97,10 +101,12 @@
             </div>
             <div id="fullscreen-button"></div>
           </footer>
-          <footer id="videoActionBar">
-            <a class="button single-delete-button icon-delete"></a>
-            <a class="button single-share-button icon-share"></a>
-            <a class="button single-info-button icon-info"></a>
+          <footer id="videoControlBar">
+            <div id="videoToolBar">
+              <span id="seek-backward" class="button icon-seekbackward"></span>
+              <span id="play" class="button paused icon-play"></span>
+              <span id="seek-forward" class="button icon-seekforward"></span>
+            </div>
           </footer>
         </section>
       </div>
@@ -126,6 +132,16 @@
       <menu>
         <button type="button" id="info-close-button"
                 data-l10n-id="close-button" class="full"></button>
+      </menu>
+    </form>
+
+    <form id='option-view' role="dialog" data-type="action" class="hidden">
+      <menu>
+       <button type="button" class="single-share-button"><span class="icon-text">Share</span></button>
+       <button type="button" class="single-info-button"><span class="icon-text">More info</span></button>
+       <button type="button" class="single-delete-button"><span class="icon-text">Delete</span></button>
+       <button type="button" id="option-cancel-button"
+	           data-l10n-id="overlay-cancel-button"></button>
       </menu>
     </form>
 

@@ -107,7 +107,8 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
                'close', 'play', 'playHead', 'video-container',
                'elapsedTime', 'video-title', 'duration-text', 'elapsed-text',
                'slider-wrapper', 'spinner-overlay',
-               'menu', 'save', 'banner', 'message'];
+               'menu', 'save', 'banner', 'message', 'seek-forward',
+               'seek-backward', 'videoControlBar'];
 
     ids.forEach(function createElementRef(name) {
       dom[toCamelCase(name)] = document.getElementById(name);
@@ -151,6 +152,8 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     dom.save.addEventListener('click', save);
     // show/hide controls
     dom.videoControls.addEventListener('click', toggleVideoControls, true);
+
+    ForwardRewindController.init(dom.player, dom.seekForward, dom.seekBackward);
 
     // Set the 'lang' and 'dir' attributes to <html> when the page is translated
     window.addEventListener('localized', function showBody() {
@@ -323,6 +326,7 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     // Start playing
     dom.player.play();
     playing = true;
+    ForwardRewindController.isPlaying = true;
   }
 
   function pause() {
@@ -332,6 +336,7 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     // Stop playing the video
     dom.player.pause();
     playing = false;
+    ForwardRewindController.isPlaying = false;
   }
 
   // Update the progress bar and play head as the video plays

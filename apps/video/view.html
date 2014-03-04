@@ -30,7 +30,6 @@
           </header>
 
           <footer id="videoBar">
-            <button id="play"></button>
             <div id="timeSlider">
               <span id="elapsed-text"></span>
               <div id="slider-wrapper">
@@ -40,6 +39,13 @@
                 <button id="playHead"></button>
               </div>
               <span id="duration-text"></span>
+            </div>
+          </footer>
+          <footer id="videoControlBar">
+            <div id="videoToolBar">
+              <span id="seek-backward" class="button icon-seekbackward"></span>
+              <span id="play" class="button paused icon-play"></span>
+              <span id="seek-forward" class="button icon-seekforward"></span>
             </div>
           </footer>
         </section>
@@ -57,6 +63,7 @@
     <script defer src="shared/js/media/get_video_rotation.js"></script>
     <script defer src="shared/js/media/media_utils.js"></script>
     <script defer src="js/video_utils.js"></script>
+    <script defer src="js/forwardrewind_controller.js"></script>
     <script type="text/javascript" src="js/view.js"></script>
   </body>
 </html>
