@@ -174,7 +174,7 @@ var SimManager = (function() {
   *   'serviceProviderLocked',
   *   'ready'.
   */
-  handleCardState: function sm_handleCardState(callback) {
+  handleCardState: function sm_handleCardState(callback, skipUnlockScreen) {
     // used to track which SIM's PIN unlock
     // screen we are currently displaying
     this._unlockingIcc = null;
@@ -184,9 +184,9 @@ var SimManager = (function() {
       this.finishCallback = callback;
     }
 
-    if (this.shouldShowUnlockScreen(this.icc0)) {
+    if (this.shouldShowUnlockScreen(this.icc0) && !skipUnlockScreen) {
       this.showUnlockScreen(this.icc0);
-    } else if (this.shouldShowUnlockScreen(this.icc1)) {
+    } else if (this.shouldShowUnlockScreen(this.icc1) && !skipUnlockScreen) {
       this.showUnlockScreen(this.icc1);
     } else if (this.shouldShowSIMInfoScreen()) {
       // reset skipped states so if we navigate back

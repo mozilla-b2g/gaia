@@ -234,18 +234,21 @@ suite('navigation >', function() {
 
   suite('SIM pin > ', function() {
     var cardStateChangeCallback = null;
+    var handleCardStateStub = null;
 
     setup(function() {
       setStepState(1);
+      handleCardStateStub.reset();
     });
 
     teardown(function() {
     });
 
     suiteSetup(function() {
-      sinon.stub(SimManager, 'handleCardState', function(cb) {
-        cardStateChangeCallback = cb;
-      });
+      handleCardStateStub = sinon.stub(SimManager, 'handleCardState',
+        function(cb, skipUnlockScreen) {
+          cardStateChangeCallback = cb;
+        });
       sinon.stub(SimManager, 'available', function() {
         return true;
       });
@@ -278,6 +281,10 @@ suite('navigation >', function() {
       assert.equal(Navigation.previousStep, 1);
       assert.equal(Navigation.currentStep, 2);
 
+      // Make sure we don't skip unlock screens on way forward.
+      assert.isTrue(handleCardStateStub.calledWith(
+        cardStateChangeCallback, false));
+
       // Skip step 2, sim pin entry
       Navigation.skipStep();
       assert.equal(Navigation.currentStep, 3);
@@ -285,6 +292,10 @@ suite('navigation >', function() {
       // Go back
       Navigation.back();
       assert.equal(Navigation.currentStep, 2);
+
+      // Make sure we skip unlock screens going back.
+      assert.isTrue(handleCardStateStub.calledWith(
+        cardStateChangeCallback, true));
     });
   });
 
