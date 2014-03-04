@@ -848,30 +848,22 @@ function cropPickedImage(fileinfo) {
     }
 
     function startCrop(previewURL) {
-      cropEditor = new ImageEditor(cropURL, $('crop-frame'), {},
-                                   cropEditorReady, previewURL);
+      var data = {
+        fileinfo: fileinfo,
+        blob: file,
+        nocrop: nocrop,
+        previewURL: previewURL,
+        imageurl: cropURL
+      };
+      //We may need to change name of cropEditor
+      cropEditor = new Wallpapercropper(data, $('crop-frame'), cropEditorReady);
+      if (!nocrop)
+        cropEditor.addPanAndZoomHandlers();
     }
 
     function cropEditorReady() {
       // Enable the done button so that users can finish picking image.
       $('crop-done-button').disabled = false;
-      // If the initiating app doesn't want to allow the user to crop
-      // the image, we don't display the crop overlay. But we still use
-      // this image editor to preview the image.
-      if (nocrop) {
-        // Set a fake crop region even though we won't display it
-        // so that getCroppedRegionBlob() works.
-        cropEditor.cropRegion.left = cropEditor.cropRegion.top = 0;
-        cropEditor.cropRegion.right = cropEditor.dest.w;
-        cropEditor.cropRegion.bottom = cropEditor.dest.h;
-        return;
-      }
-
-      cropEditor.showCropOverlay();
-      if (pickWidth)
-        cropEditor.setCropAspectRatio(pickWidth, pickHeight);
-      else
-        cropEditor.setCropAspectRatio(); // free form cropping
     }
   });
 }
@@ -926,7 +918,7 @@ function cleanupCrop() {
     cropURL = null;
   }
   if (cropEditor) {
-    cropEditor.destroy();
+    cropEditor.reset();
     cropEditor = null;
   }
 }
