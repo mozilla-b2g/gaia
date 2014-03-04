@@ -19,6 +19,16 @@ suite('system/UtilityTray', function() {
   var originalLocked;
   mocksHelperForUtilityTray.attachTestHelpers();
 
+  function createEvent(type, bubbles, cancelable, detail) {
+    var evt = new CustomEvent(type, {
+      bubbles: bubbles || false,
+      cancelable: cancelable || false,
+      detail: detail
+    });
+
+    return evt;
+  }
+
   function fakeTouches(start, end) {
     UtilityTray.onTouchStart({ pageY: start });
     UtilityTray.screenHeight = 480;
@@ -123,7 +133,7 @@ suite('system/UtilityTray', function() {
   // handleEvent
   suite('handleEvent: attentionscreenshow', function() {
     setup(function() {
-      fakeEvt = { type: 'attentionscreenshow' };
+      fakeEvt = createEvent('attentionscreenshow');
       UtilityTray.show();
       UtilityTray.handleEvent(fakeEvt);
     });
@@ -136,20 +146,34 @@ suite('system/UtilityTray', function() {
 
   suite('handleEvent: home', function() {
     setup(function() {
-      fakeEvt = { type: 'home' };
+      fakeEvt = createEvent('home', true);
+
+      // Since nsIDOMEvent::StopImmediatePropagation does not set
+      // any property on the event, and there is no way to add a
+      // global event listeners, let's just overidde the method
+      // to set our own property.
+      fakeEvt.stopImmediatePropagation = function() {
+        this._stopped = true;
+      };
+
       UtilityTray.show();
-      UtilityTray.handleEvent(fakeEvt);
+      window.dispatchEvent(fakeEvt);
     });
 
     test('should be hidden', function() {
       assert.equal(UtilityTray.shown, false);
+    });
+
+    test('home should have been stopped', function() {
+      assert.equal(fakeEvt._stopped, true);
     });
   });
 
 
   suite('handleEvent: screenchange', function() {
     setup(function() {
-      fakeEvt = { type: 'screenchange', detail: { screenEnabled: false } };
+      fakeEvt = createEvent('screenchange', false, false,
+                            { screenEnabled: false });
       UtilityTray.show();
       UtilityTray.handleEvent(fakeEvt);
     });
@@ -162,7 +186,7 @@ suite('system/UtilityTray', function() {
 
   suite('handleEvent: emergencyalert', function() {
     setup(function() {
-      fakeEvt = { type: 'emergencyalert' };
+      fakeEvt = createEvent('emergencyalert');
       UtilityTray.show();
       UtilityTray.handleEvent(fakeEvt);
     });
@@ -176,24 +200,21 @@ suite('system/UtilityTray', function() {
   suite('handleEvent: touchstart', function() {
     mocksHelperForUtilityTray.attachTestHelpers();
     setup(function() {
-      fakeEvt = {
-        type: 'touchstart',
-        target: UtilityTray.overlay,
-        touches: [0]
-      };
+      fakeEvt = createEvent('touchstart');
+      fakeEvt.touches = [0];
     });
 
     test('onTouchStart is not called if LockScreen is locked', function() {
       window.lockScreen.locked = true;
       var stub = this.sinon.stub(UtilityTray, 'onTouchStart');
-      UtilityTray.handleEvent(fakeEvt);
+      UtilityTray.statusbar.dispatchEvent(fakeEvt);
       assert.ok(stub.notCalled);
     });
 
     test('onTouchStart is called if LockScreen is not locked', function() {
       window.lockScreen.locked = false;
       var stub = this.sinon.stub(UtilityTray, 'onTouchStart');
-      UtilityTray.handleEvent(fakeEvt);
+      UtilityTray.statusbar.dispatchEvent(fakeEvt);
       assert.ok(stub.calledOnce);
     });
 
@@ -206,13 +227,11 @@ suite('system/UtilityTray', function() {
 
   suite('handleEvent: touchend', function() {
     setup(function() {
-      fakeEvt = {
-        type: 'touchend',
-        changedTouches: [0],
-        stopImmediatePropagation: function() {}
-      };
+      fakeEvt = createEvent('touchend');
+      fakeEvt.changedTouches = [0];
+
       UtilityTray.active = true;
-      UtilityTray.handleEvent(fakeEvt);
+      UtilityTray.statusbar.dispatchEvent(fakeEvt);
     });
 
     test('Test UtilityTray.active, should be false', function() {
@@ -222,9 +241,9 @@ suite('system/UtilityTray', function() {
 
   suite('handleEvent: transitionend', function() {
     setup(function() {
-      fakeEvt = { type: 'transitionend' };
+      fakeEvt = createEvent('transitionend');
       UtilityTray.hide();
-      UtilityTray.handleEvent(fakeEvt);
+      UtilityTray.overlay.dispatchEvent(fakeEvt);
     });
 
     test('Test utilitytrayhide is correcly dispatched', function() {
@@ -253,13 +272,9 @@ suite('system/UtilityTray', function() {
     });
 
     test('should display for drag on left half of statusbar', function() {
-      fakeEvt = {
-        stopImmediatePropagation: function() {},
-        type: 'touchend',
-        changedTouches: [{
-          pageX: 0
-        }]
-      };
+      fakeEvt = createEvent('touchend');
+      fakeEvt.changedTouches = [{ pageX: 0 }];
+
       UtilityTray.onTouchStart(fakeEvt);
       UtilityTray.shown = false;
       UtilityTray.active = false;
@@ -268,13 +283,8 @@ suite('system/UtilityTray', function() {
     });
 
     test('does not render if utility tray not active', function() {
-      fakeEvt = {
-        stopImmediatePropagation: function() {},
-        type: 'touchend',
-        changedTouches: [{
-          pageX: 0
-        }]
-      };
+      fakeEvt = createEvent('touchend');
+      fakeEvt.changedTouches = [{ pageX: 0 }];
       UtilityTray.onTouchStart(fakeEvt);
       UtilityTray.shown = false;
       UtilityTray.active = true;
@@ -283,10 +293,9 @@ suite('system/UtilityTray', function() {
     });
 
     test('should not show if we touch to the right', function() {
-      fakeEvt = {
-        type: 'touchstart',
-        pageX: 70
-      };
+      fakeEvt = createEvent('touchstart');
+      fakeEvt.pageX = 70;
+
       UtilityTray.onTouchStart(fakeEvt);
       assert.isTrue(rBarRenderStub.notCalled);
       assert.isTrue(uHideStub.notCalled);
@@ -296,10 +305,10 @@ suite('system/UtilityTray', function() {
     test('should not show if we touch the open statusbar', function() {
       fakeTouches(0, 100);
       assert.equal(UtilityTray.shown, true);
-      fakeEvt = {
-        type: 'touchstart',
-        pageX: 0
-      };
+
+      fakeEvt = createEvent('touchstart');
+      fakeEvt.pageX = 0;
+
       UtilityTray.onTouchStart(fakeEvt);
       assert.isTrue(rBarRenderStub.notCalled);
     });
