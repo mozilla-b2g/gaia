@@ -202,7 +202,7 @@ Camera.prototype.configurePicturePreviewSize = function(availablePreviewSizes) {
 };
 
 Camera.prototype.configureFocus = function(modes) {
-  var supports = this.autoFocus;
+  var supports = this.autoFocus = {};
   (modes || []).forEach(function(mode) { supports[mode] = true; });
   debug('focus configured', supports);
 };
