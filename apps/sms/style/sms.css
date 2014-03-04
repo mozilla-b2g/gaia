@@ -120,7 +120,6 @@ form[role="dialog"][data-type="edit"] header menu[type="toolbar"] button {
   background: #fff;
   z-index: 2;
   padding-top: 0.7rem;
-  background-color: #fff;
 }
 
 #threads-container[data-type="list"] ul {
@@ -128,9 +127,10 @@ form[role="dialog"][data-type="edit"] header menu[type="toolbar"] button {
   background-color: #fff;
 }
 
-/* Bug 967878 - [Messages] Background doesn't scroll with the threads causing
-* expensive over-invalidation
-*/
+/**
+ * Bug 967878, 979018 -[Messages] Background doesn't
+ * scroll with the threads causing expensive over-invalidation
+ */
 #threads-container > div {
   background-color: #fff;
 }
