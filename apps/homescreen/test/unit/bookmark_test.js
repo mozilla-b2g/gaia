@@ -47,7 +47,7 @@ suite('bookmark.js >', function() {
 
   test('This bookmark defines the url correctly after rebooting >', function() {
     bookmark = new Bookmark({
-      bookmarkURL: 'bookmark:' + URL,
+      bookmarkURL: 'bookmark/' + URL,
       name: name,
       icon: icon
     });

@@ -122,6 +122,17 @@ body[data-mode = 'normal'] ol > li span.options {
   display: none;
 }
 
+/* Bookmark labels are editable in edit mode */
+body[data-mode = 'edit'] .apps ol > li[data-type = "bookmark"] > div > span > span {
+  background-color: rgba(132, 132, 132, 0.5);
+  border-radius: 2rem;
+  padding: .1rem .6rem .3rem .6rem;
+}
+
+#edit-dialog {
+  display: none;
+}
+
 /* For WVGA (800 x 480), adjust the padding to make app icons fit in 4 x 5 grid */
 @media all and (min-device-width: 320px) and (max-device-width: 359px) and (max-aspect-ratio: 4 / 6) {
   #paginationBar {

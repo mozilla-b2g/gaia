@@ -222,7 +222,7 @@ Evme.InstalledAppsService = new function Evme_InstalledAppsService() {
     Evme.EventHandler.trigger(NAME, 'queryIndexUpdated');
 
     newInstalledApps.forEach(function dispatch(app) {
-      var appInfo = EvmeManager.getAppByOrigin(app.origin);
+      var appInfo = EvmeManager.getAppByOrigin(app.bookmarkURL || app.origin);
 
       window.dispatchEvent(new CustomEvent('appAddedToQueryIndex', {
         'detail': {
