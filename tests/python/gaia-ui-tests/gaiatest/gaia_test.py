@@ -903,8 +903,14 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
             self.cleanup_gaia(full_reset=True)
 
     def cleanup_data(self):
-        self.device.manager.removeDir('/data/local/storage/persistent')
+        self.device.manager.removeDir('/cache/*')
         self.device.manager.removeDir('/data/b2g/mozilla')
+        self.device.manager.removeDir('/data/local/debug_info_trigger')
+        self.device.manager.removeDir('/data/local/indexedDB')
+        self.device.manager.removeDir('/data/local/OfflineCache')
+        self.device.manager.removeDir('/data/local/permissions.sqlite')
+        self.device.manager.removeDir('/data/local/storage/persistent')
+        self.device.manager.removeDir('/data/local/webapps')
 
     def cleanup_sdcard(self):
         for item in self.device.manager.listFiles('/sdcard/'):
