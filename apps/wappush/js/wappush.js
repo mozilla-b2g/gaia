@@ -2,7 +2,7 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 /* global CpScreenHelper, Notification, NotificationHelper, ParsedMessage,
-          SiSlScreenHelper, WhiteList */
+          Promise, SiSlScreenHelper, WhiteList */
 
 /* exported WapPushManager */
 
@@ -33,6 +33,9 @@
   /** Enable/disable WAP Push notifications */
   var wapPushEnabled = true;
 
+  /** A reference to the app's object */
+  var app = null;
+
   /** Close button node */
   var closeButton = null;
 
@@ -50,45 +53,87 @@
   var pendingMessages = 0;
 
   /**
-   * Initialize the WAP Push manager, this only subscribes to the
-   * wappush-received message handler at the moment
+   * Returns a promise used to retrieve the app's own object.
    *
-   * @param {Function} [done] An optional callback invoked when initialization
-   *        has finished, useful for synchronizing unit-tests.
+   * @return {Object} A promise for the app object.
    */
-  function wpm_init(done) {
-    if ('mozSettings' in navigator) {
-      // Read the global setting
+  function wpm_getApp() {
+    return new Promise(function(resolve, reject) {
+      var req = navigator.mozApps.getSelf();
+
+      req.onsuccess = function wpm_gotApp(event) {
+        resolve(event.target.result);
+      };
+      req.onerror = function wpm_getAppError() {
+        reject(this.error);
+      };
+    });
+  }
+
+  /**
+   * Returns a promise used to retrieve the configuration of the app.
+   *
+   * @return {Object} A promise for the app configuration.
+   */
+  function wpm_getConfig() {
+    return new Promise(function(resolve, reject) {
       var req = navigator.mozSettings.createLock().get(wapPushEnableKey);
 
       req.onsuccess = function wpm_settingsLockSuccess() {
-        wapPushEnabled = req.result[wapPushEnableKey];
-
-        // Start listening to WAP Push messages only after we read the pref
-        window.navigator.mozSetMessageHandler('wappush-received',
-          wpm_onWapPushReceived);
-
-        if (typeof done === 'function') {
-          done();
-        }
+        resolve(req.result[wapPushEnableKey]);
       };
+      req.onerror = function wpm_settingsLockError() {
+        reject(this.error);
+      };
+    });
+  }
 
-      navigator.mozSettings.addObserver(wapPushEnableKey, wpm_onSettingsChange);
-    }
+  /**
+   * Initialize the WAP Push manager, this only subscribes to the
+   * wappush-received message handler at the moment.
+   *
+   * @return {Object} A promise that will be fullfilled once the component has
+   *         been fully initialized
+   */
+  function wpm_init() {
+    // Listen to settings changes right away
+    navigator.mozSettings.addObserver(wapPushEnableKey, wpm_onSettingsChange);
 
     // Retrieve the various page elements
     closeButton = document.getElementById('close');
 
-    // Init screen helpers
-    SiSlScreenHelper.init();
-    CpScreenHelper.init();
+    // Get the app object and configuration
+    var promise = Promise.all([wpm_getApp(), wpm_getConfig()]);
 
-    // Event handlers
-    closeButton.addEventListener('click', wpm_onClose);
-    document.addEventListener('visibilitychange', wpm_onVisibilityChange);
-    window.navigator.mozSetMessageHandler('notification', wpm_onNotification);
+    promise = promise.then(function(values) {
+      app = values[0];
+      wapPushEnabled = values[1];
+
+      // Init screen helpers
+      SiSlScreenHelper.init();
+      CpScreenHelper.init();
+
+      // Register event and message handlers only after initialization is done
+      closeButton.addEventListener('click', wpm_onClose);
+      document.addEventListener('visibilitychange', wpm_onVisibilityChange);
+      window.navigator.mozSetMessageHandler('notification', wpm_onNotification);
+      window.navigator.mozSetMessageHandler('wappush-received',
+                                            wpm_onWapPushReceived);
+    }).catch(function(error) {
+      // If we encountered an error don't process messages
+      wapPushEnabled = false;
+      error = error || 'Unknown error';
+      console.error('Could not initialize:', error);
+    });
+
+    return promise;
   }
 
+  /**
+   * Handler invoked when the 'wap.push.enabled' option changes.
+   *
+   * @param {Object} A settings object holding the new value.
+   */
   function wpm_onSettingsChange(v) {
     wapPushEnabled = v.settingValue;
   }
@@ -154,38 +199,29 @@
           return;
         }
 
-        var req = navigator.mozApps.getSelf();
+        var _ = navigator.mozL10n.get;
+        var iconURL = NotificationHelper.getIconURI(app);
 
-        req.onsuccess = function wpm_gotApp(event) {
-          var _ = navigator.mozL10n.get;
-          var app = event.target.result;
-          var iconURL = NotificationHelper.getIconURI(app);
+        message.text = (message.type == 'text/vnd.wap.connectivity-xml') ?
+                       _(message.text) : message.text;
+        var text = message.text ? (message.text + ' ') : '';
 
-          message.text = (message.type == 'text/vnd.wap.connectivity-xml') ?
-                         _(message.text) : message.text;
-          var text = message.text ? (message.text + ' ') : '';
+        text += message.href ? message.href : '';
 
-          text += message.href ? message.href : '';
-
-          var options = {
-            icon: iconURL,
-            body: text,
-            tag: message.timestamp
-          };
-
-          var notification = new Notification(message.sender, options);
-          notification.addEventListener('click',
-            function wpm_onNotificationClick(event) {
-              app.launch();
-              wpm_displayWapPushMessage(event.target.tag);
-            }
-          );
-
-          wpm_finish();
+        var options = {
+          icon: iconURL,
+          body: text,
+          tag: message.timestamp
         };
-        req.onerror = function wpm_getAppError() {
-          wpm_finish();
-        };
+
+        var notification = new Notification(message.sender, options);
+        notification.addEventListener('click',
+          function wpm_onNotificationClick(event) {
+            app.launch();
+            wpm_displayWapPushMessage(event.target.tag);
+          });
+
+        wpm_finish();
       },
       function wpm_saveError(error) {
         console.log('Could not add a message to the database: ' + error + '\n');
@@ -209,12 +245,8 @@
     window.clearTimeout(closeTimeout);
     closeTimeout = null;
 
-    navigator.mozApps.getSelf().onsuccess = function wpm_gotApp(event) {
-      var app = event.target.result;
-
-      app.launch();
-      wpm_displayWapPushMessage(message.tag);
-    };
+    app.launch();
+    wpm_displayWapPushMessage(message.tag);
   }
 
   /**
