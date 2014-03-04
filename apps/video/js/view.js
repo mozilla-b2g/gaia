@@ -264,6 +264,13 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     dom.videoTitle.textContent = title || '';
     dom.player.src = url;
     dom.player.onloadedmetadata = function() {
+
+      //We don't play the downloaded video files having width or height is zero.
+      if (!dom.player.videoWidth || !dom.player.videoHeight) {
+        handleError(navigator.mozL10n.get('error-unsupported'));
+        return;
+      }
+
       dom.durationText.textContent = MediaUtils.formatDuration(
         dom.player.duration);
       timeUpdated();

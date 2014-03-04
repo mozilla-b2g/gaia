@@ -54,6 +54,9 @@ var UtilityTray = {
   screenWidth: undefined,
 
   handleEvent: function ut_handleEvent(evt) {
+    var target = evt.target;
+    var currentTarget = evt.currentTarget;
+
     switch (evt.type) {
       case 'attentionscreenshow':
       case 'home':
@@ -83,22 +86,35 @@ var UtilityTray = {
         break;
 
       case 'touchstart':
-        if (lockScreen.locked)
+        if (lockScreen.locked) {
           return;
-        if (evt.target !== this.overlay &&
-            evt.currentTarget !== this.statusbar &&
-            evt.target !== this.grippy)
+        }
+
+        if (target !== this.overlay && target !== this.grippy &&
+            currentTarget !== this.statusbar) {
           return;
+        }
+
+        if (currentTarget === this.statusbar || target == this.grippy) {
+          evt.preventDefault();
+        }
 
         this.onTouchStart(evt.touches[0]);
         break;
 
       case 'touchmove':
+        if (currentTarget === this.statusbar || target == this.grippy) {
+          evt.preventDefault();
+        }
         this.onTouchMove(evt.touches[0]);
         break;
 
       case 'touchend':
+        if (currentTarget === this.statusbar || target == this.grippy) {
+          evt.preventDefault();
+        }
         evt.stopImmediatePropagation();
+
         var touch = evt.changedTouches[0];
         if (Rocketbar.enabled && !this.shown && !this.active &&
             touch.pageX < this.screenWidth * Rocketbar.triggerWidth) {
