@@ -1,6 +1,6 @@
 
 .viewfinder {
-  position: absolute;
+  position: relative;
   left: 0; top: 0;
   height: 100%;
   width: 100%;
@@ -20,7 +20,7 @@
  ---------------------------------------------------------*/
 
 .viewfinder_frame {
-  position: absolute;
+  position: relative;
   left: 0; top: 0;
   transform: rotate(90deg) translate(0px, -100%);
   transform-origin: 0 0;

@@ -77,6 +77,9 @@ CameraController.prototype.bindEvents = function() {
   camera.on('loaded', app.firer('camera:loaded'));
   camera.on('ready', app.firer('camera:ready'));
   camera.on('busy', app.firer('camera:busy'));
+  // Face detection
+  camera.on('facefocused', app.firer('camera:facefocused'));
+  camera.on('facenotdetected', app.firer('camera:facenotdetected'));
 
   // Camera
   camera.on('filesizelimitreached', this.onFileSizeLimitReached);

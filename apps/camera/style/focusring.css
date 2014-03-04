@@ -1,28 +1,50 @@
 
-.focus-ring {
+.focusring{
   position: absolute;
   top: 50%; left: 50%;
-  width: 10rem;
-  height: 10rem;
-  margin-top: -7rem;
-  margin-left: -5rem;
-  border: solid 2px;
-  border-radius: 50%;
   pointer-events: none;
-  opacity: 0;
-  color: #fff;
+  opacity: 0.8;
+  margin-top: -5rem;
+  margin-left: -5rem;
+  font-size: 92px;
 }
 
-.focus-ring[data-state=focused] {
-  opacity: 1;
-  color: green;
+[data-mode=face] .focusring{
+  margin-top: -12rem;
+  margin-left: -6rem;
 }
 
-.focus-ring[data-state=focusing] {
-  opacity: 1;
+.focusring[data-state=focusing]:before {
+  display: block;
+  color: white;
+  animation: 2s ring-animation infinite steps(180);
+  content: "\e616";
 }
 
-.focus-ring[data-state=fail] {
-  opacity: 1;
+.focusring[data-state=focused]:before {
+  display: block;
+  color: #AFFF3D;
+  content: "\e615";
+}
+
+.focusring[data-state=face]:before {
+  display: block;
+  color: yellow;
+  content: "\e615";
+}
+
+.focusring[data-state=fail]:before {
+  display: block;
   color: red;
+  content: "\e615";
+}
+
+.focusring[data-state=none]:before {
+  display: none;
+}
+
+@keyframes ring-animation {
+  0% { transform: rotate(0deg) }
+  50% { transform: rotate(45deg)}
+  100% { transform: rotate(0deg) }
 }

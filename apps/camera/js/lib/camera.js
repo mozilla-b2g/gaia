@@ -138,6 +138,55 @@ Camera.prototype.configure = function() {
     options.previewSize.height);
 
   this.mozCamera.setConfiguration(options, success, error);
+  var faceDetected = this.faceFocusStart();
+};
+
+/**
+* disbale Face detection
+*
+**/
+Camera.prototype.disableFaceTracking = function(){
+  this.mozCamera.stopFaceDetection();
+};
+
+/**
+* Start Facedetection
+*
+**/
+Camera.prototype.faceFocusStart = function(){
+  var self = this;
+  var faceDetected = false;
+  // time when last event triggered.
+  window.lastEventTriggered = new Date().getTime() / 1000;
+  if (this.mozCamera.capabilities.maxFaceDetected == 0) {
+    console.log("Face-detection is not supported");
+  } else {
+    console.log("Face-detection is supported");
+    try {
+      this.mozCamera.startFaceDetection();
+    } catch (e) {
+      // Although capabilities.maxFaceDetected returns 0,
+      // If you call startFaceDetection(), an exception will be thrown.
+      // the exception types are not implemented and not decided.
+      console.log("StartFaceDetection is failed: "+e.message);
+    }
+  }
+  // on face detected
+  this.mozCamera.onFaceDetected = function(faces) {
+    var curEventTriggered = new Date().getTime() / 1000;
+    if (curEventTriggered - window.lastEventTriggered < 2) {
+      return;
+    }
+    window.lastEventTriggered = curEventTriggered;
+    if (faces.length < 1) {
+      console.log('CATCHED');
+      this.emit('facenotdetected');
+      return;
+    }
+    faceDetected = true;
+    self.emit('facefocused', faces);
+  };
+  return faceDetected;
 };
 
 Camera.prototype.previewSizes = function() {
@@ -337,7 +386,7 @@ Camera.prototype.takePicture = function(options) {
   rotation = selectedCamera === 'front'? -rotation: rotation;
 
   this.emit('busy');
-  this.prepareTakePicture(onReady);
+  this.setAutoFocus(onReady);
 
   function onReady() {
     var position = options && options.position;
@@ -378,10 +427,14 @@ Camera.prototype.takePicture = function(options) {
   }
 };
 
-Camera.prototype.prepareTakePicture = function(done) {
+Camera.prototype.setAutoFocus = function(done) {
   var self = this;
 
-  if (!this.autoFocus.auto) {
+  // Check focus state. if it is
+  // still focusing don't call one
+  // more time.
+  var focusState = this.get('focus');
+  if (!this.autoFocus.auto || focusState === 'focusing') {
     done();
     return;
   }
@@ -665,6 +718,70 @@ Camera.prototype.setWhiteBalance = function(value){
   if (modes.indexOf(value) > -1) {
     this.mozCamera.whiteBalanceMode = value;
   }
+};
+
+/**
+*set focus Area
+* To focus on user specified region
+* of viewfinder set focus areas.
+*
+* @param  {object} rect
+* The argument is an object that
+* contains boundaries of focus area
+* in camera coordinate system, where
+* the top-left of the camera field
+* of view is at (-1000, -1000), and
+* bottom-right of the field at
+* (1000, 1000).
+*
+**/
+Camera.prototype.setFocusArea = function(rect) {
+  this.mozCamera.focusAreas = [{
+    top: rect.top,
+    bottom: rect.bottom,
+    left: rect.left,
+    right: rect.right,
+    weight: 1
+  }];
+};
+
+/**
+* To focus on user specified region
+* of viewfinder set metering areas.
+*
+* @param  {object} rect
+* The argument is an object that
+* contains boundaries of metering area
+* in camera coordinate system, where
+* the top-left of the camera field
+* of view is at (-1000, -1000), and
+* bottom-right of the field at
+* (1000, 1000).
+*
+**/
+Camera.prototype.setMeteringArea = function(rect) {
+  this.mozCamera.meteringAreas = [{
+    top: rect.top,
+    bottom: rect.bottom,
+    left: rect.left,
+    right: rect.right,
+    weight: 1
+  }];
+};
+
+/**
+* Once touch focus is done
+* clear the ring UI.
+*
+* Timeout is needed to show
+* the focused UI for sometime
+* before making it disappear.
+**/
+Camera.prototype.clearFocusRing = function() {
+  var self = this;
+  setTimeout(function() {
+    self.set('focus', 'none');
+  }, 1000);
 };
 
 });
