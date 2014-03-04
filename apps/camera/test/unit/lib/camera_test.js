@@ -222,4 +222,32 @@ suite('camera', function() {
       assert.ok(this.camera.onRecordingError.called);
     });
   });
+
+  suite('Camera#configureFocus()', function() {
+    setup(function() {
+      this.camera = {
+        autoFocus: {},
+        configureFocus: this.Camera.prototype.configureFocus
+      };
+    });
+
+    test('Should convert modes to a hash', function() {
+      var modes = ['auto', 'infinity', 'normal', 'macro'];
+      this.camera.configureFocus(modes);
+
+      assert.ok('auto' in this.camera.autoFocus);
+      assert.ok('infinity' in this.camera.autoFocus);
+      assert.ok('normal' in this.camera.autoFocus);
+      assert.ok('macro' in this.camera.autoFocus);
+    });
+
+    test('Should empty hash each time', function() {
+      this.camera.configureFocus(['infinity']);
+      assert.ok('infinity' in this.camera.autoFocus);
+      this.camera.configureFocus(['auto', 'normal']);
+      assert.ok('auto' in this.camera.autoFocus);
+      assert.ok('normal' in this.camera.autoFocus);
+      assert.ok(!('infinity' in this.camera.autoFocus));
+    });
+  });
 });
