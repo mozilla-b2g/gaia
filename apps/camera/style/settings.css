@@ -1,18 +1,12 @@
 
-/**
- * 1. Height of controls
- * 2. Stack on top of hud.
- */
-
 .settings {
   position: absolute;
   left: 0; top: 0;
-  bottom: 13rem; /* 1 */  
-  z-index: 20; /* 2 */
-  width: 100%;
+  width: 100%; height: 100%;
   font-size: 1.6rem;
   color: #FFF;
   white-space: nowrap;
+  background: rgba(0,0,0,0.85);
   transform: translateZ(1px);
   overflow: hidden;
 }
@@ -33,16 +27,14 @@
 
 /**
  * @deg90
- *
- * 1. Viewport height minus controls height
  */
 
 .deg90 .settings {
-  width: calc(100vh - 13rem); /* 1 */
+  width: 100vh;
   height: 100vw;
   transform:
     rotate(270deg)
-    translate(-100%, 0);  
+    translate(-100%, 0);
   transform-origin: 0 0;
 }
 
@@ -56,12 +48,10 @@
 
 /**
  * @deg270
- *
- * 1. Viewport height minus controls height
  */
 
 .deg270 .settings {
-  width: calc(100vh - 13rem); /* 1 */
+  width: 100vh;
   height: 100vw;
   transform:
     rotate(90deg)
@@ -80,18 +70,13 @@
   transform: translateX(0);
 }
 
+/**
+ * @show-pane=2
+ */
+
 [show-pane=pane-2] .pane {
   transform: translateX(-100%);
 }
-
-/** Pane 1
- ---------------------------------------------------------*/
-
-
-
-/** Pane 2
- ---------------------------------------------------------*/
-
 
 /** Inner
  ---------------------------------------------------------*/
@@ -105,21 +90,23 @@
 /** Header
  ---------------------------------------------------------*/
 
-.settings_header {
-
-}
+.settings_header {}
 
 /** Title
  ---------------------------------------------------------*/
 
 .settings_title {
   height: 9rem;
+  font-size: 2.4rem;
+  font-weight: 100;
   line-height: 9rem;
   padding-left: 3rem;
-  font-size: 2rem;
   color: rgba(255,255,255,0.8);
-  background: rgba(0,0,0,0.85);
 }
+
+/**
+ * @deg270
+ */
 
 .deg270 .settings_title {
   padding-left: 10.5rem;
@@ -133,9 +120,19 @@
   overflow: scroll;
 }
 
-.settings_items > .inner {
-  background: rgba(0,0,0,0.85);
+.settings_items > .inner {}
+
+/**
+ * @deg90
+ */
+
+.deg90 .settings_items > .inner {
+  padding-right: 7.5rem;
 }
+
+/**
+ * @deg270
+ */
 
 .deg270 .settings_items > .inner {
   padding-left: 7.5rem;
@@ -154,6 +151,19 @@
   font-size: 2rem;
   background-color: #008eab;
 }
+
+/**
+ * @deg90
+ */
+
+.deg90 .settings_close {
+  top: auto;
+  bottom: 0;
+}
+
+/**
+ * @deg270
+ */
 
 .deg270 .settings_close {
   right: auto;

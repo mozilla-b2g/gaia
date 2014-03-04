@@ -8,7 +8,6 @@
   display: flex; /* 1 */
   position: absolute;
   top: 0; left: 0;
-  z-index: 10;
   height: 100%;
   padding: 1.5rem;
   flex-direction: column;

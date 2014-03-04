@@ -183,7 +183,7 @@ module.exports = {
 
   hdr: {
     title: 'HDR',
-    icon: 'icon-hdr',
+    icon: 'icon-hdr-menu',
     options: [
       {
         key: 'off',
@@ -243,12 +243,6 @@ module.exports = {
         key: 'hdr'
       },
       {
-        key: 'scene'
-      },
-      {
-        key: 'grid'
-      },
-      {
         key: 'timer'
       },
       {
@@ -266,6 +260,12 @@ module.exports = {
       {
         key: 'recorderProfilesFront',
         condition: { 'cameras': 'front' }
+      },
+      {
+        key: 'scene'
+      },
+      {
+        key: 'grid'
       }
     ]
   }
