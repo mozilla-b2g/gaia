@@ -618,4 +618,34 @@ suite('Contacts settings', function() {
     });
   });
 
+  suite('Bulk Delete options', function() {
+
+    setup(function() {
+      contacts.Settings.init();
+      mocksHelper.suiteSetup();
+      realMozContacts = navigator.mozContacts;
+      navigator.mozContacts = MockMozContacts;
+    });
+
+    test('If no contacts, Bulk Delete option is disabled', function() {
+      navigator.mozContacts.number = 0;
+      contacts.Settings.refresh();
+      var bulkDelContacts = document.
+                            getElementById('bulkDelete');
+      assert.equal(bulkDelContacts.getAttribute('disabled'), 'disabled');
+    });
+
+    test('If there are contacts, bulk Delete option is enabled', function() {
+      navigator.mozContacts.number = 100;
+      contacts.Settings.refresh();
+      var bulkDelContacts = document.
+                            getElementById('bulkDelete');
+      assert.isNull(bulkDelContacts.getAttribute('disabled'));
+    });
+
+    suiteTeardown(function() {
+      mocksHelper.suiteTeardown();
+      navigator.mozContacts = realMozContacts;
+    });
+  });
 });

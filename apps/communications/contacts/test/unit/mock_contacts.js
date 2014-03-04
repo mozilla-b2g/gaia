@@ -72,5 +72,6 @@ var MockContacts = {
       'update': function() {}
     };
   },
-  showStatus: function(status) {}
+  showStatus: function(status) {},
+  updateSelectCountTitle: function(count) {}
 };
