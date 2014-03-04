@@ -250,7 +250,8 @@ var CardsView = (function() {
         var header = document.createElement('section');
         header.setAttribute('role', 'region');
         header.classList.add('skin-organic');
-        header.innerHTML = '<header><button><span class="icon icon-close">';
+        header.innerHTML =
+          '<header><button class="navigation"><span class="icon icon-close">';
         header.innerHTML +=
           '</span></button><h1>' + escapeHTML(popupFrame.name, true);
         header.innerHTML += '</h1></header>';

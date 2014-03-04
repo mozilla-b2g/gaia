@@ -43,7 +43,7 @@ var EntrySheet = (function invocation() {
     return '<div class="' + EntrySheet.className + '">' +
       '<section role="region" class="skin-organic header">' +
         '<header>' +
-          '<button class="close">' +
+          '<button class="close navigation">' +
               '<span class="icon icon-close">close</span>' +
           '</button>' +
           '<h1 class="title">' + '</h1>' +

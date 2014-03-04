@@ -256,13 +256,10 @@ suite('Render contacts list', function() {
     containerSection = document.createElement('section');
     containerSection.id = 'view-contacts-list';
     containerSection.innerHTML = '<a id="cancel_activity" class="hide"></a>';
-    containerSection.innerHTML += '<menu id="standard-menu" type="toolbar">' +
-      '<button id="add-contact-button"><span></span></button>' +
-      '<button id="settings-button"><span></span></button>' +
-      '<button id="select-action" class="hide"><span></span></button>' +
-      '</menu>' + '<menu id="select-menu" type="toolbar" class="hide">' +
-      '<button role="menuitem" id="select-action"></button>' +
-      '</menu>';
+    containerSection.innerHTML +=
+      '<button id="add-contact-button" class="action"><span></span></button>' +
+      '<button id="settings-button" class="action"><span></span></button>' +
+      '<button id="select-action" class="action hide"><span></span></button>';
     document.body.appendChild(containerSection);
 
     container = document.createElement('div');

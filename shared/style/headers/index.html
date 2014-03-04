@@ -5,7 +5,7 @@
   <title>Headers</title>
   <meta name="description" content="Providing top-level navigation and inputs for the active view">
   <!--
-    - This <style> and <link> is only used for the example preview,
+    - This <style>, <script> and <link> is only used for the example preview,
     - it isn't needed for the real use case.
     -->
   <link rel="stylesheet" href="../headers.css">
@@ -24,11 +24,16 @@
       position: relative;
     }
   </style>
+  <script>
+    window.onload = function(){
+      document.getElementById('dir').checked = false;
+    };
+  </script>
 </head>
 <body role="application">
   <p dir="ltr">
     <label>
-      <input type="checkbox"
+      <input id="dir" type="checkbox" checked="false"
         onchange="document.documentElement.dir = this.checked ? 'rtl' : 'ltr'">
       RTL mode
     </label>
@@ -36,41 +41,33 @@
 
   <section role="region">
     <header>
-      <menu type="toolbar">
-        <a href="#"><span class="icon icon-edit">edit</span></a>
-        <a href="#"><span class="icon icon-add">add</span></a>
-      </menu>
+      <a href="#" class="navigation"><span class="icon icon-edit">edit</span></a>
+      <a href="#" class="action"><span class="icon icon-add">add</span></a>
       <h1>Messages</h1>
     </header>
   </section>
 
   <section role="region">
     <header>
-      <a href="#"><span class="icon icon-back">back</span></a>
-      <menu type="toolbar">
-        <button><span class="icon icon-edit">edit</span></button>
-      </menu>
+      <a href="#" class="navigation"><span class="icon icon-back">back</span></a>
+      <button class="action" disabled><span class="icon icon-edit">edit</span></button>
       <h1>Mark Alfenito</h1>
     </header>
   </section>
 
   <section role="region">
     <header>
-      <button><span class="icon icon-menu">menu</span></button>
-      <menu type="toolbar">
-        <button><span class="icon icon-edit">edit</span></button>
-        <button><span class="icon icon-add">add</span></button>
-      </menu>
+      <button class="navigation"><span class="icon icon-menu">menu</span></button>
+      <button class="action"><span class="icon icon-edit">edit</span></button>
+      <button class="action"><span class="icon icon-add">add</span></button>
       <h1>Inbox <em>(2)</em></h1>
     </header>
   </section>
 
   <section role="region">
     <header>
-      <button><span class="icon icon-close">close</span></button>
-      <menu type="toolbar">
-        <button>done</button>
-      </menu>
+      <button class="navigation"><span class="icon icon-close">close</span></button>
+      <button class="action" disabled>done</button>
       <h1>Title</h1>
     </header>
     <header>
@@ -80,24 +77,33 @@
 
   <section role="region">
     <header>
-      <button><span class="icon icon-back">back</span></button>
-      <menu type="toolbar">
-        <button><span class="icon icon-user">user</span></button>
-      </menu>
+      <button class="navigation"><span class="icon icon-close">close</span></button>
+      <a href="#" class="action" disabled>
+        <span>done</span>
+      </a>
+      <h1>Title</h1>
+    </header>
+    <header>
+      <h2>Subheader text</h2>
+    </header>
+  </section>
+
+  <section role="region">
+    <header>
+      <button class="navigation"><span class="icon icon-back">back</span></button>
       <form action="#">
         <input type="text" placeholder="search" required="required">
         <button type="reset">Remove text</button>
       </form>
+      <button class="action"><span class="icon icon-user">user</span></button>
     </header>
   </section>
 
   <section role="region" class="skin-dark">
     <header>
-      <a href="#"><span class="icon icon-back">back</span></a>
-      <menu type="toolbar">
-        <button><span class="icon icon-edit">edit</span></button>
-        <button><span class="icon icon-add">add</span></button>
-      </menu>
+      <a href="#" class="navigation"><span class="icon icon-back">back</span></a>
+      <button class="action"><span class="icon icon-edit">edit</span></button>
+      <button class="action"><span class="icon icon-add">add</span></button>
       <h1>Song title</h1>
     </header>
     <header>
@@ -113,11 +119,9 @@
 
   <section role="region" class="skin-organic">
     <header>
-      <a href="#"><span class="icon icon-back">back</span></a>
-      <menu type="toolbar">
-        <button><span class="icon icon-edit">edit</span></button>
-        <button><span class="icon icon-add">add</span></button>
-      </menu>
+      <a href="#" class="navigation"><span class="icon icon-back">back</span></a>
+      <button class="action"><span class="icon icon-edit">edit</span></button>
+      <button class="action"><span class="icon icon-add">add</span></button>
       <h1>Settings</h1>
     </header>
     <header>
@@ -127,15 +131,12 @@
 
   <section role="region" class="skin-organic">
     <header>
-      <button>
+      <button class="navigation">
         <span class="icon icon-back">back</span>
       </button>
-      <menu type="toolbar">
-        <button type="submit">
-          <span>OK</span>
-        </button>
-      </menu>
-
+      <button type="submit" class="action">
+        <span>OK</span>
+      </button>
       <h1>Settings</h1>
     </header>
   </section>
@@ -152,7 +153,7 @@
 
     <section role="region">
       <header>
-        <a href="#"><span class="icon icon-close">close</span></a>
+        <a href="#" class="navigation"><span class="icon icon-close">close</span></a>
         <h1>Settings</h1>
       </header>
       <header>
