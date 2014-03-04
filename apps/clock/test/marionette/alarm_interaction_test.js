@@ -1,5 +1,7 @@
 marionette('Alarm interaction', function() {
   'use strict';
+  /* global marionetteScriptFinished */
+
   var assert = require('./lib/assert');
   var Alarm = require('./lib/alarm');
   var client = marionette.client();
@@ -15,6 +17,17 @@ marionette('Alarm interaction', function() {
     alarm.openForm();
   });
 
+  function assertAlarmIconEquals(enabled) {
+    client.setScriptTimeout(2000);
+    var result = client.executeAsyncScript(function() {
+      var req = navigator.mozSettings.createLock().get('alarm.enabled');
+      req.onsuccess = function() {
+        marionetteScriptFinished(req.result['alarm.enabled']);
+      };
+    });
+    assert.equal(result, enabled);
+  }
+
   suite('Creation', function() {
     // Each assertion is made in a separate test to facilitate parallelization.
     var alarms;
@@ -29,9 +42,12 @@ marionette('Alarm interaction', function() {
       alarms = alarm.readItems();
     });
 
-
     test('insertion of a new row in the alarms list', function() {
       assert.equal(alarms.length, 1);
+    });
+
+    test('alarm icon shows up in status bar', function() {
+      assertAlarmIconEquals(true);
     });
 
     test('new alarm item is enabled by default', function() {
@@ -206,6 +222,7 @@ marionette('Alarm interaction', function() {
         0,
         'deleted alarm is removed from the alarm list'
       );
+      assertAlarmIconEquals(false);
     });
   });
 
