@@ -11,7 +11,7 @@ from gaiatest.apps.base import Base
 class CardsView(Base):
 
     # Home/Cards view locators
-    _cards_view_locator = (By.CSS_SELECTOR, '#cards-view.active')
+    _cards_view_locator = (By.CSS_SELECTOR, '#screen.cards-view:not(.edges)')
     # Check that the origin contains the current app name, origin is in the format:
     # app://clock.gaiamobile.org
     _apps_cards_locator = (By.CSS_SELECTOR, '#cards-view li[data-origin*="%s"]')
