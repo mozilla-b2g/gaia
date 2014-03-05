@@ -49,19 +49,23 @@ suite('controllers/camera', function() {
 
     this.app.storage = sinon.createStubInstance(this.Storage);
     this.camera = this.app.camera;
+    this.app.settings.mode = sinon.createStubInstance(this.Setting);
+    this.app.settings.pictureSizes = sinon.createStubInstance(this.Setting);
+    this.app.settings.recorderProfiles = sinon.createStubInstance(this.Setting);
+    this.app.settings.flashModes = sinon.createStubInstance(this.Setting);
   });
 
   suite('CameraController()', function() {
     setup(function() {
-      sinon.stub(this.CameraController.prototype, 'teardownCamera');
+      sinon.stub(this.CameraController.prototype, 'onBlur');
     });
 
     teardown(function() {
-      this.CameraController.prototype.teardownCamera.restore();
+      this.CameraController.prototype.onBlur.restore();
     });
 
     test('Should set the capture mode to \'camera\' by default', function() {
-      this.app.settings.value.withArgs('mode').returns('picture');
+      this.app.settings.mode.selected.returns('picture');
       this.controller = new this.CameraController(this.app);
       assert.isTrue(this.app.camera.setMode.calledWith('picture'));
     });
@@ -78,7 +82,7 @@ suite('controllers/camera', function() {
 
     test('Should teardown camera on app `blur`', function() {
       this.controller = new this.CameraController(this.app);
-      this.app.on.calledWith('blur', this.controller.teardownCamera);
+      this.app.on.calledWith('blur', this.controller.onBlur);
     });
 
     test('Should set the camera createVideoFilepath method', function() {

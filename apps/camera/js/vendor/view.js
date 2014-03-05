@@ -124,6 +124,47 @@ define(function(require, exports, module) {
     return this;
   };
 
+  View.prototype.set = function(key, value) {
+    value = value === undefined ? '' : value;
+    this.el.setAttribute(toDashed(key), value);
+  };
+
+  View.prototype.setter = function(key) {
+    return (function(value) { this.set(key, value); }).bind(this);
+  };
+
+  View.prototype.enable = function(key, value) {
+    value = arguments.length === 2 ? value : true;
+    this.set(key + '-enabled', !!value);
+  };
+
+  View.prototype.disable = function(key) {
+    this.enable(key, false);
+  };
+
+  View.prototype.enabler = function(key) {
+    return (function(value) { this.enable(key, value); }).bind(this);
+  };
+
+  View.prototype.hide = function(key) {
+    key = key ? key + '-' : '';
+    this.el.classList.add(key + 'hidden');
+    this.el.classList.remove(key + 'visible');
+  };
+
+  View.prototype.show =  function(key) {
+    key = key ? key + '-' : '';
+    this.el.classList.remove(key + 'hidden');
+    this.el.classList.add(key + 'visible');
+  };
+
+  View.prototype.toggle = function(key, value) {
+    key = key ? key + '-' : '';
+    key = arguments.length === 1 && typeof key === 'boolean' ? '' : key;
+    this.el.classList.toggle(key + 'hidden', !value);
+    this.el.classList.toggle(key + 'visible', value);
+  };
+
   /**
    * Removes the element from
    * it's current context, firing
@@ -176,4 +217,10 @@ define(function(require, exports, module) {
 
     return Child;
   };
+
+  function toDashed(s) {
+    return s.replace(/\W+/g, '-')
+      .replace(/([a-z\d])([A-Z])/g, '$1-$2')
+      .toLowerCase();
+  }
 });

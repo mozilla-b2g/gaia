@@ -6,11 +6,22 @@
   height: 7.5rem;
   z-index: 10;
   text-align: center;
+  opacity: 1;
+  transition: opacity 300ms;
   transform: translateZ(1px);
 }
 
 body:not(.filmstriphidden) .hud {
   transform: translateY(5rem);
+}
+
+/**
+ * @hidden
+ */
+
+.hud.hidden {
+  pointer-events: none;
+  opacity: 0;
 }
 
 /** Buttons
@@ -60,7 +71,7 @@ body:not(.filmstriphidden) .hud {
  * @buttons-disabled
  */
 
-.hud[buttons-enabled=false] a {
+.hud[buttons-enabled=false] .hud_btn {
   pointer-events: none;
 }
 
@@ -85,7 +96,7 @@ body:not(.filmstriphidden) .hud {
  * @camera-hidden
  */
 
-.hud[camera-hidden=true] .hud_camera {
+.hud.camera-hidden .hud_camera {
   opacity: 0;
 }
 
@@ -135,22 +146,16 @@ body:not(.filmstriphidden) .hud {
  * @camera-hidden
  */
 
-.hud[flash-hidden=true] .hud_flash {
+.hud.flash-hidden .hud_flash {
   opacity: 0;
 }
 
 /** Flash Text
  ---------------------------------------------------------*/
 
-/**
- * 1. Hide this as it's not apparent
- *    in UX spec for v1.4.
- */
-
 .hud_flash-text {
-  display: none; /* 1 */
   position: absolute;
-  top: 50%; left: 100%;
+  top: 50%; right: 100%;
   margin: 0 1rem;
   margin-top: -0.4em;
   text-shadow: 1px 1px 1px rgba(0,0,0,0.5);
@@ -171,10 +176,10 @@ body:not(.filmstriphidden) .hud {
  * endge of the screen.
  */
 
-.deg90 .hud_flash-text,
+.deg270 .hud_flash-text,
 .deg180 .hud_flash-text {
-  left: auto;
-  right: 100%;
+  right: 0;
+  left: 100%;
 }
 
 /**
