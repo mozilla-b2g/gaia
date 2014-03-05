@@ -143,8 +143,8 @@ return View.extend({
     // Use the device-independent viewport size for transforming the
     // preview using CSS
     var deviceIndependentViewportSize = {
-      width: document.body.clientHeight,
-      height: document.body.clientWidth
+      width: window.innerHeight,
+      height: window.innerWidth
     };
 
     // Scale the optimal preview size to fill the viewport (will

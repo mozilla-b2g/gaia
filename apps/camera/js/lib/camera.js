@@ -191,9 +191,11 @@ Camera.prototype.configurePicturePreviewSize = function(availablePreviewSizes) {
     return;
   }
   // If no viewportSize provided it uses screen size.
+  // NOTE: The viewport width/height are flipped because preview
+  // sizes are given in a "landscape" orientation.
   viewportSize = this.viewportSize || {
-    width: window.innerWidth,
-    height: window.innerHeight
+    width:  window.innerHeight * window.devicePixelRatio,
+    height: window.innerWidth  * window.devicePixelRatio
   };
   this.picturePreviewSize = pickPreviewSize(
     viewportSize,
@@ -637,14 +639,18 @@ Camera.prototype.resumePreview = function() {
  * @return {String}
  */
 Camera.prototype.setMode = function(mode) {
-  this.updatePreviewSize(mode);
   this.set('mode', mode);
+  this.updatePreviewSize();
   this.configure(this.mozCamera);
 };
 
-Camera.prototype.updatePreviewSize = function(mode) {
-  this.previewSize = mode === 'picture' ?
-    this.picturePreviewSize : this.videoPreviewSize;
+Camera.prototype.updatePreviewSize = function() {
+  var mode = this.get('mode', mode);
+  if (mode === 'picture') {
+    this.previewSize = this.picturePreviewSize;
+  } else {
+    this.previewSize = this.videoPreviewSize;
+  }
 };
 
 /**
