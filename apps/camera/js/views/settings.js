@@ -22,7 +22,6 @@ module.exports = View.extend({
     this.items = options.items;
     this.children = [];
     this.on('destroy', this.onDestroy);
-    bind(this.el, 'click', this.onClick);
   },
 
   onClick: function(e) {
@@ -52,13 +51,16 @@ module.exports = View.extend({
     this.els.items = this.find('.js-items');
     this.els.pane2 = this.find('.js-pane-2');
     this.els.close = this.find('.js-close');
+    this.els.titles = this.find('.js-settings-title');
     bind(this.els.close, 'click', this.firer('tap:close'));
+    bind(this.els.titles, 'click', this.onClick);
     this.items.forEach(this.addItem);
     debug('rendered');
     return this;
   },
 
-  goBack: function() {
+  goBack: function(e) {
+    e.stopPropagation();
     this.showPane(1);
     setTimeout(this.destroyOptionsView, 400);
   },
@@ -92,7 +94,7 @@ module.exports = View.extend({
   template: function() {
     return '<div class="pane pane-1">' +
       '<div class="settings_inner">' +
-        '<h2 class="settings_title">Options</h2>' +
+        '<h2 class="settings_title js-settings-title">Options</h2>' +
         '<div class="settings_items"><ul class="inner js-items"></ul></div>' +
       '</div>' +
     '</div>' +
