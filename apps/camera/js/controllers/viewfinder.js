@@ -28,28 +28,31 @@ function ViewfinderController(app) {
   this.filmstrip = app.filmstrip;
   this.viewfinder = app.views.viewfinder;
   this.bindEvents();
+  this.configure();
   debug('initialized');
 }
 
-ViewfinderController.prototype.bindEvents = function() {
-  this.viewfinder.on('click', this.onViewfinderClick);
-  this.app.on('camera:configured', this.loadStream);
-  this.app.on('settings:configured', this.configureCamera);
+ViewfinderController.prototype.configure = function() {
+  var grid = this.app.settings.grid.selected('key');
+  this.viewfinder.set('grid', grid);
 };
 
-ViewfinderController.prototype.configureCamera = function() {
-  this.camera.viewportSize = {
-    width: this.app.el.clientWidth,
-    height: this.app.el.clientHeight
-  };
+ViewfinderController.prototype.bindEvents = function() {
+  this.app.settings.on('change:grid', this.viewfinder.setter('grid'));
+  this.viewfinder.on('click', this.onViewfinderClick);
+  this.app.on('camera:configured', this.loadStream);
+  this.app.on('camera:configured', this.updatePreview);
 };
 
 ViewfinderController.prototype.loadStream = function() {
-  var isFrontCamera = this.app.settings.cameras.value() === 'front';
-  debug('load stream mode: %s', this.app.settings.value('mode'));
-  this.viewfinder.updatePreview(this.camera.previewSize, isFrontCamera);
-  this.camera.loadStreamInto(this.viewfinder.el);
+  this.camera.loadStreamInto(this.viewfinder.els.video);
   this.viewfinder.fadeIn();
+};
+
+ViewfinderController.prototype.updatePreview = function() {
+  var camera = this.app.settings.cameras.selected('key');
+  var isFrontCamera = camera === 'front';
+  this.viewfinder.updatePreview(this.camera.previewSize(), isFrontCamera);
 };
 
 /**
