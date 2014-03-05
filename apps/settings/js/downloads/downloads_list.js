@@ -276,9 +276,13 @@
 
 
   function _onDownloadSelected(event) {
-    if (isEditMode && event.target.tagName === 'INPUT') {
-      event.target.checked ?
-        numberOfCheckedDownloads++ : numberOfCheckedDownloads--;
+    if (isEditMode && event.target.tagName === 'LI') {
+      var input = event.target.querySelector('input[type=checkbox]');
+      if (typeof input === 'undefined') {
+        return;
+      }
+      var checked = input.checked = !input.checked;
+      checked ? numberOfCheckedDownloads++ : numberOfCheckedDownloads--;
       _updateButtonsStatus();
     }
   }
