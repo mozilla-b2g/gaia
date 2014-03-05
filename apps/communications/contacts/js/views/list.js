@@ -657,7 +657,6 @@ contacts.List = (function() {
   }
 
   var getContactsByGroup = function gCtByGroup(errorCb, contacts) {
-    console.log('getContactsByGroup called!');
     if (!Contacts.asyncScriptsLoaded) {
       // delay loading if they're not there yet
       window.addEventListener('asyncScriptsLoaded', function listener() {
@@ -726,7 +725,6 @@ contacts.List = (function() {
   var lastHeader = null;
 
   var getAllContacts = function cl_getAllContacts(errorCb) {
-    console.log('getAllContacts called.', new Error().stack);
     loading = true;
     initOrder(function onInitOrder() {
       var sortBy = (orderByLastName === true ? 'familyName' : 'givenName');
