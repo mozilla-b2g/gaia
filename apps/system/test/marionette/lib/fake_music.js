@@ -13,9 +13,7 @@ FakeMusic.Selector = Object.freeze({
   playPauseElement: '#play-pause',
   stopElement: '#stop',
   previousTrackElement: '#previous',
-  nextTrackElement: '#next',
-
-  interruptElement: '#interrupt'
+  nextTrackElement: '#next'
 });
 
 FakeMusic.prototype = {
@@ -39,10 +37,6 @@ FakeMusic.prototype = {
 
   get nextTrackElement() {
     return this.client.findElement(FakeMusic.Selector.nextTrackElement);
-  },
-
-  get interruptElement() {
-    return this.client.findElement(FakeMusic.Selector.interruptElement);
   },
 
   get isPlaying() {
