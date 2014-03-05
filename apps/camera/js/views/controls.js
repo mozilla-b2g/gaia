@@ -31,28 +31,6 @@ module.exports = View.extend({
     debug('rendered');
   },
 
-  set: function(key, value) {
-    this.el.setAttribute(key, value);
-  },
-
-  setter: function(key) {
-    return (function(value) { this.set(key, value); }).bind(this);
-  },
-
-  enable: function(key, value) {
-    value = arguments.length === 2 ? value : true;
-    key = (key ? key + '-' : '') + 'enabled';
-    this.set(key, value);
-  },
-
-  enabler: function(key) {
-    return (function(value) { this.enable(key, value); }).bind(this);
-  },
-
-  disable: function(key) {
-    this.enable(key, false);
-  },
-
   setVideoTimer: function(ms) {
     var formatted = formatTimer(ms);
     this.els.timer.textContent = formatted;
