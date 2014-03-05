@@ -168,7 +168,7 @@ contacts.Form = (function() {
         return;
       }
 
-      if (event.detail.prevValue !== event.detail.newValue) {
+      if (!emptyForm() && event.detail.prevValue !== event.detail.newValue) {
         saveButton.removeAttribute('disabled');
       }
     });

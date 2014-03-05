@@ -216,6 +216,24 @@ suite('Render contact form', function() {
       }
     );
 
+    test('Empty form and label changes keeps the done button disabled',
+      function() {
+        subject.render();
+
+        var formView = document.getElementById('view-contact-form');
+        // Sending this custom event is equivalent to changing the select value
+        // at UI level (see contacts.js#handleSelectTagDone)
+        var valueModifiedEvent = new CustomEvent('ValueModified', {
+          bubbles: true,
+          detail: {
+            prevValue: 'work',
+            newValue: 'home'
+          }
+        });
+        formView.dispatchEvent(valueModifiedEvent);
+
+        assertSaveState('disabled');
+    });
   });
 
   suite('Render edit form', function() {
