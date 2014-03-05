@@ -324,7 +324,8 @@ var CostControlApp = (function() {
 
   var currentMode;
   function updateUI(callback) {
-    ConfigManager.requestSettings(function _onSettings(settings) {
+    ConfigManager.requestSettings(Common.dataSimIccId,
+                                  function _onSettings(settings) {
       var mode = ConfigManager.getApplicationMode();
       debug('App UI mode: ', mode);
 
