@@ -1238,14 +1238,3 @@ function showOverlay(id) {
 // make it opaque to touch events. Without this, it does not prevent
 // the user from interacting with the UI.
 $('overlay').addEventListener('click', function dummyHandler() {});
-
-
-// Change the thumbnails quality while scrolling using the scrollstart/scrollend
-// events from shared/js/scroll_detector.js.
-window.addEventListener('scrollstart', function onScrollStart(e) {
-  thumbnails.classList.add('scrolling');
-});
-
-window.addEventListener('scrollend', function onScrollEnd(e) {
-  thumbnails.classList.remove('scrolling');
-});
