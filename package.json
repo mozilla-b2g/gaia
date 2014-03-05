@@ -10,7 +10,7 @@
     "jshint": "2.1.11",
     "mail-fakeservers": "~0.0.11",
     "marionette-apps": "~0.3.3",
-    "marionette-client": "~1.1.0",
+    "marionette-client": "1.1.0",
     "marionette-content-script": "0.0.0",
     "marionette-device-host": "0.0.1",
     "marionette-helper": "0.1.0",
