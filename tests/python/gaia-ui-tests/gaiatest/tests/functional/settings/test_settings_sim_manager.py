@@ -2,7 +2,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import time
 from gaiatest import GaiaTestCase
 from gaiatest.apps.settings.app import Settings
 
@@ -27,13 +26,13 @@ class TestChangeSimManager(GaiaTestCase):
         # Change default sim for calls, outgoing messages and data
         # SIM index start with 0; '1' means 2nd SIM 
         # UI shows 'SIM 2' for sim in index 1
-        sim_manager_settings.select_outgoing_call(sim=2)
+        sim_manager_settings.select_outgoing_calls(sim=2)
         sim_manager_settings.select_outgoing_messages(sim=2)
         sim_manager_settings.select_data(sim=2)
 
         # Verify UI settings has been changed
         # SIM index start with 0; '1' means 2nd SIM 
-        self.assertEqual(u'1', sim_manager_settings.sim_for_outgoing_call)
+        self.assertEqual(u'1', sim_manager_settings.sim_for_outgoing_calls)
         self.assertEqual(u'1', sim_manager_settings.sim_for_outgoing_messages)
         self.assertEqual(u'1', sim_manager_settings.sim_for_data)
 

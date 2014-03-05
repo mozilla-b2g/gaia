@@ -15,10 +15,7 @@ class SimManager(Base):
     _back_button_locator = (By.CSS_SELECTOR, '.current header > a') 
     _confirm_suspended_locator = (By.CSS_SELECTOR, '.modal-dialog-confirm-ok')
 
-    def go_back(self):
-        self.marionette.find_element(*self._back_button_locator).tap()
-
-    def select_outgoing_call(self, sim):
+    def select_outgoing_calls(self, sim):
         self.marionette.find_element(*self._outgoing_call_locator).tap()
         self.select('SIM '+str(sim))
 
@@ -56,13 +53,14 @@ class SimManager(Base):
 
         # Confirmation page shown upon selection is made
         self.wait_for_element_displayed(*self._confirm_suspended_locator)
+        # TODO bug 979220 tap() not working on modal-dialog-confirm-ok
         self.marionette.find_element(*self._confirm_suspended_locator).click()
 
         # now back to app
         self.apps.switch_to_displayed_app()
 
     @property
-    def sim_for_outgoing_call (self):
+    def sim_for_outgoing_calls (self):
         return self.marionette.find_element(*self._outgoing_call_locator).get_attribute('value') 
 
     @property
