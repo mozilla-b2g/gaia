@@ -109,6 +109,27 @@ define(function() {
     return calculatedPreviewSizes[0].previewSize;
   };
 
+  /**
+   * Get the maximum preview size (in terms of area) from
+   * a list of possible preview sizes.
+   *
+   * @param  {Array} previewSizes
+   * @return {Object}
+   */
+  CameraUtils.getMaximumPreviewSize = function(previewSizes) {
+    var maximumArea = 0;
+    var maximumPreviewSize = null;
+    previewSizes.forEach(function(previewSize) {
+      var area = previewSize.width * previewSize.height;
+      if (area > maximumArea) {
+        maximumArea = area;
+        maximumPreviewSize = previewSize;
+      }
+    });
+
+    return maximumPreviewSize;
+  };
+
   CameraUtils.prototype = {
     constructor: CameraUtils
   };

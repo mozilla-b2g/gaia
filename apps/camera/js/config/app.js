@@ -6,6 +6,7 @@ module.exports = {
   newControls: true,
   showIndicators: true,
   viewfinderFill: true,
+  enableZoom: true,
   mode: {
     title: 'Mode',
     options: [

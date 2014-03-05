@@ -12,6 +12,7 @@ var ControlsView2 = require('views/controls-2');
 var RecordingTimerView = require('views/recording-timer');
 var ControlsView = require('views/controls');
 var FocusRing = require('views/focus-ring');
+var ZoomBarView = require('views/zoom-bar');
 var lockscreen = require('lib/lock-screen');
 var constants = require('config/camera');
 var broadcast = require('lib/broadcast');
@@ -122,6 +123,7 @@ App.prototype.runControllers = function() {
   this.controllers.overlay(this);
   this.controllers.sounds(this);
   this.controllers.hud(this);
+  this.controllers.zoomBar(this);
   debug('controllers run');
 };
 
@@ -134,6 +136,7 @@ App.prototype.initializeViews = function() {
   this.views.recordingTimer = new RecordingTimerView();
   this.views.focusRing = new FocusRing();
   this.views.hud = new HudView();
+  this.views.zoomBar = new ZoomBarView();
   debug('views initialized');
 };
 
@@ -144,6 +147,7 @@ App.prototype.injectViews = function() {
   this.views.focusRing.appendTo(this.el);
   this.views.controls.appendTo(this.el);
   this.views.hud.appendTo(this.el);
+  this.views.zoomBar.appendTo(this.el);
   debug('views injected');
 };
 

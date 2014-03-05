@@ -5,6 +5,7 @@ define(function(require, exports, module) {
  * Module Dependencies
  */
 
+var CameraUtils = require('lib/camera-utils');
 var createThumbnailImage = require('lib/create-thumbnail-image');
 var getVideoMetaData = require('lib/get-video-meta-data');
 var orientation = require('lib/orientation');
@@ -135,11 +136,14 @@ Camera.prototype.configure = function() {
     console.log('Error configuring camera');
   };
 
+  var previewSize = this.previewSize();
   var options = {
     mode: this.mode,
-    previewSize: this.previewSize(),
+    previewSize: previewSize,
     recorderProfile: this.recorderProfile.key
   };
+
+  this.configureZoom(previewSize);
 
   debug('mozCamera configuration pw: %s, ph: %s',
     options.previewSize.width,
@@ -751,6 +755,61 @@ Camera.prototype.setSceneMode = function(value){
   if (modes.indexOf(value) > -1) {
     this.mozCamera.sceneMode = value;
   }
+};
+
+Camera.prototype.isZoomSupported = function() {
+  return this.mozCamera.capabilities.zoomRatios.length > 1;
+};
+
+Camera.prototype.configureZoom = function(previewSize) {
+  var maxPreviewSize = CameraUtils.getMaximumPreviewSize(this.previewSizes());
+
+  // Calculate the maximum amount of zoom that the hardware will
+  // perform. This calculation is determined by taking the maximum
+  // supported preview size and dividing by the current preview size.
+  // We calculate using the larger of the two dimensions (should
+  // usually be `width`).
+  var maxHardwareZoom = (maxPreviewSize.width > maxPreviewSize.height) ?
+    maxPreviewSize.width  / previewSize.width :
+    maxPreviewSize.height / previewSize.height;
+  this.set('maxHardwareZoom', maxHardwareZoom);
+};
+
+Camera.prototype.getMinimumZoom = function() {
+  var zoomRatios = this.mozCamera.capabilities.zoomRatios;
+  if (zoomRatios.length === 0) {
+    return 1.0;
+  }
+
+  return zoomRatios[0];
+};
+
+Camera.prototype.getMaximumZoom = function() {
+  var zoomRatios = this.mozCamera.capabilities.zoomRatios;
+  if (zoomRatios.length === 0) {
+    return 1.0;
+  }
+
+  return zoomRatios[zoomRatios.length - 1];
+};
+
+Camera.prototype.getZoom = function() {
+  return this.mozCamera.zoom;
+};
+
+Camera.prototype.setZoom = function(zoom) {
+  this.mozCamera.zoom = zoom;
+  this.emit('zoomChange', zoom);
+};
+
+Camera.prototype.getZoomPreviewAdjustment = function() {
+  var zoom = this.mozCamera.zoom;
+  var maxHardwareZoom = this.get('maxHardwareZoom');
+  if (zoom <= maxHardwareZoom) {
+    return 1.0;
+  }
+  
+  return zoom / maxHardwareZoom;
 };
 
 });
