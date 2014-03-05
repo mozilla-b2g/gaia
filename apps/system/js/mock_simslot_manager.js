@@ -1,3 +1,5 @@
+/* exported MockSIMSlotManager */
+'use strict';
 var MockSIMSlotManager = {
   ready: false,
   mInstances: [],
