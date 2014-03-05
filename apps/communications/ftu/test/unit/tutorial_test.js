@@ -95,7 +95,6 @@ suite('Tutorial >', function() {
     suiteSetup(function() {
       ScreenLayout.setDevice('large');
       Tutorial.init();
-      Tutorial.numTutorialSteps = Object.keys(TutorialSteps.large).length;
       });
 
     suiteTeardown(function() {
