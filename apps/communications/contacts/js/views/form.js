@@ -1,7 +1,7 @@
 'use strict';
 
 var contacts = window.contacts || {};
-
+/** Contacts Form */
 contacts.Form = (function() {
 
   var counters = {
@@ -422,6 +422,23 @@ contacts.Form = (function() {
 
     container.appendChild(rendered);
     counters[type]++;
+
+    if (type == 'tel') {
+      var id = 'number_' + (counters[type] - 1);
+      var inputNumber = dom.getElementById(id);
+      inputNumber.addEventListener('keyup', function click(event) {
+        event.preventDefault();
+        var charCode = event.which;
+        if (charCode > 31 && (charCode < 48 || charCode > 57)) {
+          value = event.target.value;
+          if (event.target.value.length == 1) {
+            event.target.value = '';
+          } else {
+            event.target.value = event.target.value.slice(0, -1);
+          }
+        }
+      });
+    }
   };
 
   var onGoToSelectTag = function onGoToSelectTag(evt) {
