@@ -2,7 +2,7 @@
 
 var contacts = window.contacts || {};
 contacts.List = (function() {
-  var allContacts = [],
+  var allContacts = {},
       elementsByIndex = [],
       renderPhotosQueue = [],
       renderPhotosScheduled = false,
@@ -815,7 +815,7 @@ contacts.List = (function() {
 
           // The list can be waiting on this contact to be loaded.
           // If it is a function, call it, otherwise populate.
-          allContacts.push(contact);
+          allContacts[num] = contact;
           num++;
 
           if ((num - lastNum) >= CHUNK_SIZE) {
