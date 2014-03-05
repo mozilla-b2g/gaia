@@ -196,9 +196,8 @@ contacts.List = (function() {
     utils.alphaScroll.init(params);
   };
 
-  var scrollToCb = function scrollCb(domTarget, group) {
-    if (domTarget.offsetTop > 0)
-      scrollable.scrollTop = domTarget.offsetTop;
+  var scrollToCb = function scrollCb(scrollVal) {
+    scrollable.scrollTop = scrollVal;
   };
 
   var load = function load(contacts, forceReset) {
@@ -262,100 +261,6 @@ contacts.List = (function() {
       callback();
     };
   };
-
-  var renderGroupHeader = function renderGroupHeader(group, letter) {
-    // Create the DOM for the group list
-    var letteredSection = document.createElement('section');
-    letteredSection.id = 'section-group-' + group;
-    letteredSection.className = 'group-section';
-    var title = document.createElement('header');
-    title.id = 'group-' + group;
-    title.className = 'hide';
-
-    var letterAbbr = document.createElement('abbr');
-    letterAbbr.setAttribute('title', 'Contacts listed ' + group);
-    letterAbbr.textContent = letter;
-    title.appendChild(letterAbbr);
-
-    var contactsContainer = document.createElement('ol');
-    contactsContainer.id = 'contacts-list-' + group;
-    contactsContainer.dataset.group = group;
-    letteredSection.appendChild(title);
-    letteredSection.appendChild(contactsContainer);
-
-    // Save the list off for easy access, later
-    headers[group] = contactsContainer;
-
-    // Now we must insert the new <section> into the DOM.  Since groups can
-    // be created at any time we must insert the section in the correct
-    // order.
-
-    // If there are no other groups yet, then its easy.  Just append.
-    if (groupsList.children.length === 0) {
-      groupsList.appendChild(letteredSection);
-      return;
-    }
-
-    // Determine the correct position for this group.
-    var order = GROUP_ORDER[group];
-
-    // If we cannot find a defined ordering for this group, then fall back
-    // on appending.
-    if (typeof order !== 'number') {
-      groupsList.appendChild(letteredSection);
-      return;
-    }
-
-    // Search for the correct insertion point using a simple O(n) iteration.
-    // Since the number of groups is constrained and relatively small this
-    // should be reasonable.
-    //
-    // As a minor optimization, begin iterating from the back of the list.
-    // This matches the most common case of appending a new group to the
-    // end which is what we need to do during first load.
-    for (var i = groupsList.children.length - 1; i >= 0; --i) {
-      var node = groupsList.children[i];
-      var cmpGroup = node.lastChild.dataset.group;
-      var cmpOrder = GROUP_ORDER[cmpGroup];
-      if (cmpOrder <= order) {
-        var next = node.nextSibling;
-        if (next) {
-          groupsList.insertBefore(letteredSection, next);
-        } else {
-          groupsList.appendChild(letteredSection);
-        }
-        break;
-      }
-    }
-
-    // If we did not already insert the section, then it must belong at the
-    // front of the groupsList.
-    if (i < 0) {
-      groupsList.insertBefore(letteredSection, groupsList.firstChild);
-    }
-  };
-
-  // Retrieve the list for a given group.  Never directly access headers[].
-  function getGroupList(group) {
-    // If the group already exists, just return it.
-    var list = headers[group];
-    if (list) {
-      return list;
-    }
-
-    // Otherwise we need to create group list just-in-time.
-
-    // Determine the short name or "letter" for the group.
-    var letter = GROUP_LETTERS[group];
-    if (typeof letter !== 'string') {
-      letter = group;
-    }
-
-    renderGroupHeader(group, letter);
-
-    // Return the new list created by renderGroupHeader() above
-    return headers[group];
-  }
 
   // "Render" search string into node's data-search attribute.  If the
   // contact is not already known, try to look it up in our cache of loaded
@@ -649,7 +554,7 @@ contacts.List = (function() {
   };
 
   function addToFavoriteList(favorite) {
-    var container = getGroupList('favorites');
+    // TODO: var container = getGroupList('favorites');
     container.appendChild(favorite);
     if (container.children.length === 1) {
       showGroupByList(container);
@@ -724,6 +629,8 @@ contacts.List = (function() {
 
   var lastHeader = null;
 
+  var recyclist;
+
   var getAllContacts = function cl_getAllContacts(errorCb) {
     loading = true;
     initOrder(function onInitOrder() {
@@ -737,7 +644,6 @@ contacts.List = (function() {
       const CHUNK_SIZE = 100;
       var num = 0;
       var lastNum = 0;
-      var recyclist;
 
       function ensureRecyclist(num) {
         if (recyclist) {
@@ -957,11 +863,6 @@ contacts.List = (function() {
     }
 
     return list.children.length;
-  };
-
-  var hideGroup = function hideGroup(group) {
-    var groupTitle = getGroupList(group).parentNode.children[0];
-    groupTitle.classList.add('hide');
   };
 
   var showGroupByList = function showGroupByList(current) {
@@ -1535,6 +1436,10 @@ contacts.List = (function() {
   };
 
   return {
+    headers: allHeaders,
+    get recyclistLib() {
+      return recyclist;
+    },
     'init': init,
     'load': load,
     'refresh': refresh,

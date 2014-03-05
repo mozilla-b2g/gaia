@@ -1,5 +1,5 @@
-
 'use strict';
+/* global contacts */
 
 var utils = window.utils || {};
 
@@ -142,15 +142,16 @@ if (!utils.alphaScroll) {
 
       // The headers are sticky, and can have wrong offsetTop,
       // so scroll to the top of each section on jump click.
-      var anch = dataset.anchor;
-      var selector = anch === 'group-#' ? 'group-und' : anch;
-      var domTarget = doc.querySelector('#section-' + selector +
-        ', #' + selector);
-      if (!domTarget) {
-        return;
+      var letter = dataset.anchor.replace('group-', '');
+      var headerIdx;
+      for (var i in contacts.List.headers) {
+        if (contacts.List.headers[i] === letter) {
+          headerIdx = i;
+          break;
+        }
       }
-
-      scrollToCallback(domTarget, selector.replace('group-', ''));
+      var itemPos = contacts.List.recyclistLib.positions[headerIdx][0];
+      scrollToCallback(itemPos);
     }
 
     function scrollStart(evt) {
