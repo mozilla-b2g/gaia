@@ -26,6 +26,7 @@ function HudController(app) {
   bindAll(this);
   this.app = app;
   this.hud = app.views.hud;
+  this.settings = app.settings;
   this.configure();
   this.bindEvents();
   debug('initialized');
@@ -37,10 +38,9 @@ function HudController(app) {
  * @private
  */
 HudController.prototype.configure = function() {
-  var camerasSetting = this.app.settings.cameras;
-  var hasDualCamera = camerasSetting.get('options').length > 1;
-  this.hud.enable('settings', this.app.settings.value('showSettings'));
-  this.hud.set('flashMode', this.app.settings.value('flashModes'));
+  var hasDualCamera = this.settings.cameras.get('options').length > 1;
+  var showSettings = this.settings.showSettings.selected('key');
+  this.hud.enable('settings', showSettings);
   this.hud.enable('camera', hasDualCamera);
 };
 
@@ -51,20 +51,21 @@ HudController.prototype.configure = function() {
  * @private
  */
 HudController.prototype.bindEvents = function() {
-  this.app.settings.on('change:flashModes', this.hud.setFlashMode);
-  this.app.settings.on('change:mode', this.configureFlash);
+  this.app.settings.flashModes.on('change:selected', this.updateFlash);
+  this.app.settings.on('change:mode', this.updateFlash);
   this.hud.on('click:settings', this.app.firer('settings:toggle'));
   this.hud.on('click:camera', this.onCameraClick);
   this.hud.on('click:flash', this.onFlashClick);
   this.app.on('settings:configured', this.onSettingsConfigured);
   this.app.on('change:recording', this.onRecordingChange);
-  this.app.on('camera:loading', this.disableButtons);
-  this.app.on('camera:busy', this.disableButtons);
-  this.app.on('camera:ready', this.enableButtons);
+  this.app.on('camera:ready', this.onCameraReady);
+  this.app.on('camera:busy', this.hud.hide);
+  this.app.on('timer:start', this.hud.hide);
+  this.app.on('timer:clear', this.hud.show);
 };
 
 HudController.prototype.onSettingsConfigured = function() {
-  this.configureFlash();
+  this.updateFlash();
 };
 
 HudController.prototype.onCameraClick = function() {
@@ -72,46 +73,26 @@ HudController.prototype.onCameraClick = function() {
 };
 
 HudController.prototype.onFlashClick = function() {
-  this.flashSetting.next();
-};
-
-HudController.prototype.configureFlash = function() {
-  var newFlash = this.getFlashSetting();
-  var oldFlash = this.flashSetting;
-
-  // Remove old listners and add new
-  if (oldFlash) { oldFlash.off('change', this.updateFlash); }
-  if (newFlash) { newFlash.on('change', this.updateFlash); }
-
-  // Store new flash and update UI
-  this.flashSetting = newFlash;
-  this.updateFlash();
+  this.settings.flashModes.next();
+  this.hud.set('flashMode' , this.settings.flashModes.selected('key'));
 };
 
 HudController.prototype.updateFlash = function() {
-  var setting = this.flashSetting;
+  var setting = this.settings.flashModes;
   var selected = setting && setting.selected();
   var hasFlash = !!selected;
   this.hud.enable('flash', hasFlash);
   this.hud.setFlashMode(selected);
 };
 
-HudController.prototype.enableButtons = function() {
-  this.hud.enable('buttons');
-};
-
-HudController.prototype.disableButtons = function() {
-  this.hud.disable('buttons');
-};
-
-HudController.prototype.getFlashSetting = function() {
-  var mode = this.app.settings.mode.value();
-  return this.app.settings.get(mode + 'FlashModes');
-};
-
 HudController.prototype.onRecordingChange = function(recording) {
-  this.hud.hide('flash', recording);
-  this.hud.hide('camera', recording);
+  this.hud.toggle(!recording);
+};
+
+HudController.prototype.onCameraReady = function() {
+  if (!this.app.camera.get('recording')) {
+    this.hud.show();
+  }
 };
 
 });

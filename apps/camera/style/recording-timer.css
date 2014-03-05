@@ -1,0 +1,35 @@
+.recording-timer {
+  background: rgba(0, 0, 0, 0.12);
+  border-radius: 56px;
+  color: #ffffff;
+  font-family: 'Fira Sans', sans-serif;
+  font-size: 20px;
+  line-height: 20px;
+  position: absolute;
+  padding: 18px 0 0 44px;
+  top: 22.5px;
+  left: 18px;
+  width: 112px;
+  height: 56px;
+  overflow: hidden;
+  pointer-events: none;
+  -moz-user-select: none;
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.recording-timer.active {
+  opacity: 1;
+}
+
+.recording-timer:before {
+  content: '';
+  background: #d92e2e;
+  border-radius: 8px;
+  display: block;
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  width: 16px;
+  height: 16px;
+}

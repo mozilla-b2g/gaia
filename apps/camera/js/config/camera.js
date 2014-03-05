@@ -42,9 +42,8 @@ module.exports = {
   // few samples, see bug 899864.
   MIN_RECORDING_TIME: 500,
 
-  MIN_VIEWFINDER_SCALE: 1.0,
-
-  MAX_VIEWFINDER_SCALE: 4.0
+  // Amount of inactivity time (in milliseconds) to hide the Zoom Bar
+  ZOOM_BAR_INACTIVITY_TIMEOUT: 3000
 };
 
 });

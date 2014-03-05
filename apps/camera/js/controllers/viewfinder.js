@@ -26,30 +26,58 @@ function ViewfinderController(app) {
   this.camera = app.camera;
   this.activity = app.activity;
   this.filmstrip = app.filmstrip;
+  this.settings = app.settings;
   this.viewfinder = app.views.viewfinder;
   this.bindEvents();
+  this.configure();
   debug('initialized');
 }
 
-ViewfinderController.prototype.bindEvents = function() {
-  this.viewfinder.on('click', this.onViewfinderClick);
-  this.app.on('camera:configured', this.loadStream);
-  this.app.on('settings:configured', this.configureCamera);
+ViewfinderController.prototype.configure = function() {
+  var shouldFill = this.app.settings.viewfinderFill.selected('value');
+  var grid = this.app.settings.grid.selected('key');
+  this.viewfinder.set('grid', grid);
+  this.viewfinder.fill = shouldFill;
 };
 
-ViewfinderController.prototype.configureCamera = function() {
-  this.camera.viewportSize = {
-    width: this.app.el.clientWidth,
-    height: this.app.el.clientHeight
-  };
+ViewfinderController.prototype.bindEvents = function() {
+  this.app.settings.on('change:grid', this.viewfinder.setter('grid'));
+  this.viewfinder.on('click', this.app.firer('viewfinder:click'));
+  this.viewfinder.on('click', this.onViewfinderClick);
+  this.viewfinder.on('zoomChange', this.onZoomChange);
+  this.app.on('camera:configured', this.loadStream);
+  this.app.on('camera:configured', this.updatePreview);
+  this.app.on('blur', this.onBlur);
 };
 
 ViewfinderController.prototype.loadStream = function() {
-  var isFrontCamera = this.app.settings.cameras.value() === 'front';
-  debug('load stream mode: %s', this.app.settings.value('mode'));
-  this.viewfinder.updatePreview(this.camera.previewSize, isFrontCamera);
-  this.camera.loadStreamInto(this.viewfinder.el);
-  this.viewfinder.fadeIn();
+  this.camera.loadStreamInto(this.viewfinder.els.video);
+};
+
+ViewfinderController.prototype.updatePreview = function() {
+  var camera = this.app.settings.cameras.selected('key');
+  var isFrontCamera = camera === 'front';
+  this.viewfinder.updatePreview(this.camera.previewSize(), isFrontCamera);
+
+  var enableZoom = this.camera.isZoomSupported() &&
+                   this.app.settings.enableZoom.selected().value;
+  if (enableZoom) {
+    this.viewfinder.enableZoom(this.camera.getMinimumZoom(),
+                               this.camera.getMaximumZoom());
+  } else {
+    this.viewfinder.disableZoom();
+  }
+
+  // Fade in 100ms later to avoid
+  // seeing viewfinder being resized
+  setTimeout(this.viewfinder.fadeIn, 150);
+};
+
+ViewfinderController.prototype.onZoomChange = function(zoom) {
+  this.camera.setZoom(zoom);
+
+  var zoomPreviewAdjustment = this.camera.getZoomPreviewAdjustment();
+  this.viewfinder.setZoomPreviewAdjustment(zoomPreviewAdjustment);
 };
 
 /**
@@ -64,6 +92,12 @@ ViewfinderController.prototype.onViewfinderClick = function() {
   if (recording || this.activity.active) { return; }
   this.filmstrip.toggle();
   debug('click');
+};
+
+ViewfinderController.prototype.onBlur = function() {
+  this.viewfinder.stopPreview();
+  this.viewfinder.setPreviewStream(null);
+  this.viewfinder.fadeOut();
 };
 
 });
