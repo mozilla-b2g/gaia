@@ -47,7 +47,7 @@
         {"layoutId": "en", "app": ["apps", "keyboard"]}
     ],
     "eo": [
-        {"layoutId": "en", "app": ["apps", "keyboard"]}
+        {"layoutId": "eo", "app": ["apps", "keyboard"]}
     ],
     "es": [
         {"layoutId": "es", "app": ["apps", "keyboard"]}
