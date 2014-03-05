@@ -77,7 +77,6 @@ apps/calendar/js/views/advanced_settings.js
 apps/calendar/js/views/calendar_colors.js
 apps/calendar/js/views/create_account.js
 apps/calendar/js/views/day.js
-apps/calendar/js/views/day_based.js
 apps/calendar/js/views/day_child.js
 apps/calendar/js/views/errors.js
 apps/calendar/js/views/event_base.js
@@ -95,7 +94,6 @@ apps/calendar/js/views/week_child.js
 apps/calendar/js/worker/manager.js
 apps/calendar/js/worker/thread.js
 apps/calendar/test/assertions.js
-apps/calendar/test/marionette/day_view_test.js
 apps/calendar/test/marionette/today_test.js
 apps/calendar/test/unit/app_test.js
 apps/calendar/test/unit/calc_test.js
