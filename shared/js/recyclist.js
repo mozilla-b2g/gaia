@@ -26,12 +26,21 @@ function Recyclist(config) {
   // into all the items.
   template.removeAttribute('id');
 
+  var header = config.headerTemplate;
+  if (header) {
+    this.headerHeight = header.clientHeight;
+    header.parentNode.removeChild(header);
+    header.removeAttribute('id');
+  }
+
   for (var i in config) {
     this[i] = config[i];
   }
 
   this.visibleMultiplier = this.visibleMultiplier || 1;
   this.asyncMultiplier = this.asyncMultiplier || 4;
+
+  this.addItems(config.numItems);
 }
 
 Recyclist.prototype = {
@@ -42,15 +51,25 @@ Recyclist.prototype = {
    */
   domItems: {},
 
+  /**
+   * The header elements currently in the DOM.
+   * @type {Object}
+   */
+  domHeaders: {},
+
+  /**
+   * A mapping of index to item data.
+   * Each index is an array that contains the scroll position, and whether
+   * or not the item is a header. E.g., {0: [0, true], 1: [20, false]}
+   */
+  positions: {},
+
   lastScrollPos: 0,
 
   /**
    * Initializes recyclist, adds listeners, and renders items.
    */
   init: function() {
-    // Make sure we can scroll the required distance.
-    this.scrollChild.style.height = this.itemHeight * this.numItems + 'px';
-
     this.scrollParent.addEventListener('scroll', this);
     this.scrollParent.addEventListener('resize', this);
 
@@ -58,6 +77,90 @@ Recyclist.prototype = {
     this.generate(this.visibleMultiplier);
 
     this.fix();
+  },
+
+  /**
+   * Searches for the startIndex using a binary search.
+   * @param {Number} startPos The start of the display port.
+   */
+  searchStartIndex: function(startPos) {
+    var min = 0;
+    var max = Object.keys(this.positions).length - 1;
+    var index;
+    var current;
+    var currentHeight;
+
+    while (min <= max) {
+      index = (min + max) / 2 | 0;
+      current = this.positions[index][0];
+      currentHeight = (this.positions[index][0] ?
+        this.headerHeight : this.itemHeight);
+
+      if (current > startPos) {
+        max = index - 1;
+      } else if (current < startPos - currentHeight) {
+        min = index + 1;
+      } else {
+        return index;
+      }
+    }
+
+    return min;
+  },
+
+  /**
+   * Searches for the endIndex using a binary search.
+   * @param {Number} endPos The end of the display port.
+   */
+  searchEndIndex: function(endPos) {
+    var min = 1;
+    var max = Object.keys(this.positions).length - 1;
+    var index;
+    var current;
+    var currentHeight;
+
+    while (min <= max) {
+      index = (min + max) / 2 | 0;
+      current = this.positions[index][0];
+      currentHeight = (this.positions[index][0] ?
+        this.headerHeight : this.itemHeight);
+
+      if (current < endPos) {
+        min = index + 1;
+      } else if (current > endPos + currentHeight) {
+        max = index - 1;
+      } else {
+        return index;
+      }
+    }
+
+    return max;
+  },
+
+  /**
+   * Sets the number of items in the list.
+   * Calculates sizing and position information for all items.
+   */
+  addItems: function(numItems) {
+    var start = Object.keys(this.positions).length;
+    var i = start;
+    for (i = start; i < start + numItems; i++) {
+      var position;
+      var isHeader = this.isHeader(i);
+      var lastPosition = this.positions[i - 1];
+
+      if (lastPosition) {
+        position = lastPosition[0] +
+          (lastPosition[1] ? this.headerHeight : this.itemHeight);
+      } else {
+        position = 0;
+      }
+
+      this.positions[i] = [position, isHeader];
+    }
+    this.numItems += numItems;
+
+    this.scrollChild.style.height = this.positions[i - 1][0] + this.itemHeight + 'px';
   },
 
   /**
@@ -77,16 +180,20 @@ Recyclist.prototype = {
     // database queries to fill in an item), increase multiplier
     // to reduce the likelihood of the user seeing incomplete items.
     var displayPortMargin = multiplier * scrollPortHeight;
-    var startIndex = Math.max(0,
 
-      /* Use ~~() for a faster equivalent to Math.floor */
-      ~~((scrollPos - displayPortMargin) / itemHeight));
+    var startPosition = Math.max(0,
+      (scrollPos - displayPortMargin));
 
-    var endIndex = Math.min(this.numItems,
+    var endPosition = Math.max(0,
+      (scrollPos + scrollPortHeight + displayPortMargin));
 
-      /* Use ~~()+1 for a faster equivalent to Math.ceil */
-      ~~((scrollPos + scrollPortHeight + displayPortMargin) /
-        itemHeight) + 1);
+    // Use a binary search to find the startIndex.
+    // The start index is the first item before our display port.
+    var startIndex = this.searchStartIndex(startPosition);
+
+    // Use a binary search to find the endIndex.
+    // The endIndex is the first item after our display port.
+    var endIndex = this.searchEndIndex(endPosition);
 
     // indices of items which are eligible for recycling
     var recyclableItems = [];
@@ -98,16 +205,25 @@ Recyclist.prototype = {
         recyclableItems.push(i);
       }
     }
-
     recyclableItems.sort();
 
-    for (i = startIndex; i < endIndex; ++i) {
-      if (this.domItems[i]) {
+    var recyclableHeaders = [];
+    for (var i in this.domHeaders) {
+      if (i < startIndex || i >= endIndex) {
+        recyclableHeaders.push(i);
+      }
+    }
+    recyclableHeaders.sort();
+
+    for (i = startIndex; i <= endIndex; ++i) {
+      if (this.domItems[i] || this.domHeaders[i]) {
         continue;
       }
+
+      var recycleIndex;
       var item;
-      if (recyclableItems.length > 0) {
-        var recycleIndex;
+      var isHeader = this.isHeader(i);
+      if (!isHeader && recyclableItems.length > 0) {
         // Delete the item furthest from the direction we're scrolling toward
         if (scrollPos >= this.lastScrollPos) {
           recycleIndex = recyclableItems.shift();
@@ -123,12 +239,38 @@ Recyclist.prototype = {
         //       layerization behavior where each item gets assigned its own
         //       layer.
         this.scrollChild.removeChild(item);
+
+      } else if (isHeader && recyclableHeaders.length > 0) {
+        // Delete the item furthest from the direction we're scrolling toward
+        if (scrollPos >= this.lastScrollPos) {
+          recycleIndex = recyclableHeaders.shift();
+        } else {
+          recycleIndex = recyclableHeaders.pop();
+        }
+
+        item = this.domHeaders[recycleIndex];
+        delete this.domHeaders[recycleIndex];
+
+        // NOTE: We must detach and reattach the node even though we are
+        //       essentially just repositioning it.  This avoid pathological
+        //       layerization behavior where each item gets assigned its own
+        //       layer.
+        this.scrollChild.removeChild(item);
       } else {
-        item = this.template.cloneNode(true);
+        if (isHeader) {
+          item = this.headerTemplate.cloneNode(true);
+        } else {
+          item = this.template.cloneNode(true);
+        }
       }
       this.populate(item, i);
-      item.style.top = i * itemHeight + 'px';
-      this.domItems[i] = item;
+      item.style.top = this.positions[i][0] + 'px';
+
+      if (isHeader) {
+        this.domHeaders[i] = item;
+      } else {
+        this.domItems[i] = item;
+      }
       this.scrollChild.appendChild(item);
     }
   },
@@ -143,6 +285,13 @@ Recyclist.prototype = {
 
   handleEvent: function() {
     this.fix();
-  }
+  },
+
+  /**
+   * Returns true if an item at a given index is a header.
+   */
+  isHeader: function() {
+    return false;
+  },
 
 };

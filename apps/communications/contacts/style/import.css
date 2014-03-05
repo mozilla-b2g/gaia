@@ -22,10 +22,6 @@ form[role="dialog"].no-overlay button {
 /* BB lists */
 .import-list header {
   padding-left: 0 0 0 1.5rem;
-  position: sticky;
-  top: -3.7rem;
-  background: #fff;
-  z-index: 2;
 }
 
 /* Force having always checkboxes */

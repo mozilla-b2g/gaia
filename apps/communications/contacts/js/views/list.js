@@ -711,6 +711,20 @@ contacts.List = (function() {
     }
   };
 
+  /**
+   * Mapping of indexes if an item is a header.
+   */
+  var allHeaders = {};
+
+  /**
+   * Checks if an item in the list is a virtual header
+   */
+  function isHeader(index) {
+    return !!allHeaders[index];
+  };
+
+  var lastHeader = null;
+
   var getAllContacts = function cl_getAllContacts(errorCb) {
     console.log('getAllContacts called.', new Error().stack);
     loading = true;
@@ -735,10 +749,19 @@ contacts.List = (function() {
 
         var contact = evt.target.result;
         if (contact) {
+
+          var header = getFastGroupName(contact);
+          if (header !== lastHeader) {
+            lastHeader = header;
+            allHeaders[num] = header;
+            num++;
+          }
+
           // The list can be waiting on this contact to be loaded.
           // If it is a function, call it, otherwise populate.
           allContacts.push(contact);
           num++;
+
           cursor.continue();
         } else {
           var showNoContacs = (num === 0);
@@ -751,8 +774,15 @@ contacts.List = (function() {
 
           var recyclist = new Recyclist({
             template: document.getElementById('item-template'),
+            headerTemplate: document.getElementById('header-template'),
             numItems: num,
+            isHeader: isHeader,
             populate: function(element, index) {
+              if (isHeader(index)) {
+                element.textContent = allHeaders[index];
+                return;
+              }
+
               var contact = allContacts[index];
               var display = getDisplayName(contact);
 
@@ -782,9 +812,7 @@ contacts.List = (function() {
             },
             getScrollPos: function() {
               return groupsContainer.scrollTop;
-            },
-            syncBufferMultiplier: 1,
-            bufferMultiplier: 8
+            }
           });
           recyclist.init();
 
