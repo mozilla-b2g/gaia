@@ -17,6 +17,11 @@
       // Render inside parent window.
       this.containerElement = configs.parentWindow.element;
     }
+    configs.chrome = {
+      rocketbar: true,
+      navigation: true
+    };
+      
     AppWindow.call(this, configs);
   };
 
@@ -43,39 +48,40 @@
   /**
    * We would maintain our own events by other components.
    *
-   * @type string
+   * @type String
    * @memberof PopupWindow
    */
   PopupWindow.prototype.eventPrefix = 'popup';
 
   /**
-   * Different animation from the original window.
+   * Default opening animation.
    *
-   * @type string
+   * @type String
    * @memberof PopupWindow
    */
   PopupWindow.prototype.openAnimation = 'slideup';
 
   /**
-   * Different animation from the original window.
+   * Default closing animation.
    *
-   * @type string
+   * @type String
    * @memberof PopupWindow
    */
   PopupWindow.prototype.closeAnimation = 'slidedown';
 
-  /**
-   * PopupWindow has its own styles.
-   *
-   * @type string
-   * @memberof PopupWindow
-   */
   PopupWindow.prototype.CLASS_LIST = 'appWindow popupWindow';
 
   PopupWindow.prototype._DEBUG = false;
 
   PopupWindow.prototype.CLASS_NAME = 'PopupWindow';
 
+  /**
+   * We don't need to request to open because:
+   * We are always overlapping above an app window or
+   * another popup window instance which is not sent to
+   * background. This behavior may change later but in
+   * current stage we don't care.
+   */
   PopupWindow.prototype.requestOpen = function() {
     this.open();
   };

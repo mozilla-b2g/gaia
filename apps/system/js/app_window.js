@@ -1117,14 +1117,33 @@
     if (!this.isActive() || this.isTransitioning()) {
       return;
     }
-    if (this.childWindow && this.childWindow instanceof PopupWindow) {
-      this.childWindow.resize();
+    var top = this.getTopWindow();
+    if (top.instanceID != this.instanceID) {
+      top.resize();
     } else {
       // resize myself if no child.
       this.debug(' will resize... ');
       this._resize();
       this.resized = true;
     }
+  };
+
+  AppWindow.prototype.getTopWindow = function() {
+    var win = this;
+    while (win.childWindow && win.childWindow instanceof PopupWindow) {
+      win = win.childWindow;
+    }
+
+    return win;
+  };
+
+  AppWindow.prototype.getBottomWindow = function() {
+    var win = this;
+    while (win.parentWindow && win instanceof PopupWindow) {
+      win = win.parentWindow;
+    }
+
+    return win;
   };
 
   /**
