@@ -3,6 +3,7 @@ define(function(require, exports, module) {
 
 module.exports = {
   showSettings: true,
+  enableZoom: true,
   mode: {
     title: 'Mode',
     options: [

@@ -140,9 +140,10 @@ Camera.prototype.configure = function() {
     console.log('Error configuring camera');
   };
 
+  var previewSize = this.previewSize();
   var options = {
     mode: this.mode,
-    previewSize: this.previewSize(),
+    previewSize: previewSize,
     recorderProfile: this.recorderProfile.key
   };
 
@@ -151,6 +152,7 @@ Camera.prototype.configure = function() {
     options.previewSize.height);
 
   this.mozCamera.setConfiguration(options, success, error);
+  this.configureZoom(previewSize);
 };
 
 Camera.prototype.previewSizes = function() {
@@ -737,6 +739,77 @@ Camera.prototype.setSceneMode = function(value){
   if (modes.indexOf(value) > -1) {
     this.mozCamera.sceneMode = value;
   }
+};
+
+Camera.prototype.isZoomSupported = function() {
+  return this.mozCamera.capabilities.zoomRatios.length > 1;
+};
+
+Camera.prototype.configureZoom = function(previewSize) {
+  var maxPreviewSize =
+    CameraUtils.getMaximumPreviewSize(this.previewSizes());
+
+  // Calculate the maximum amount of zoom that the hardware will
+  // perform. This calculation is determined by taking the maximum
+  // supported preview size *width* and dividing by the current preview
+  // size *width*.
+  var maxHardwareZoom = maxPreviewSize.width / previewSize.width;
+  this.set('maxHardwareZoom', maxHardwareZoom);
+
+  // Bug 983930 - [B2G][Camera] CameraControl API's "zoom" attribute doesn't
+  // scale preview properly
+  //
+  // For some reason, the above calculation for `maxHardwareZoom` does not
+  // work properly on Nexus 4 devices.
+  var hardware = navigator.mozSettings.createLock().get('deviceinfo.hardware');
+  var self = this;
+  hardware.onsuccess = function(evt) {
+    var device = evt.target.result['deviceinfo.hardware'];
+    if (device === 'mako') {
+      if (self.get('selectedCamera') === 'front') {
+        self.set('maxHardwareZoom', 1);
+      } else {
+        self.set('maxHardwareZoom', 1.25);
+      }
+    }
+  };
+};
+
+Camera.prototype.getMinimumZoom = function() {
+  var zoomRatios = this.mozCamera.capabilities.zoomRatios;
+  if (zoomRatios.length === 0) {
+    return 1.0;
+  }
+
+  return zoomRatios[0];
+};
+
+Camera.prototype.getMaximumZoom = function() {
+  var zoomRatios = this.mozCamera.capabilities.zoomRatios;
+  if (zoomRatios.length === 0) {
+    return 1.0;
+  }
+
+  return zoomRatios[zoomRatios.length - 1];
+};
+
+Camera.prototype.getZoom = function() {
+  return this.mozCamera.zoom;
+};
+
+Camera.prototype.setZoom = function(zoom) {
+  this.mozCamera.zoom = zoom;
+  this.emit('zoomChange', zoom);
+};
+
+Camera.prototype.getZoomPreviewAdjustment = function() {
+  var zoom = this.mozCamera.zoom;
+  var maxHardwareZoom = this.get('maxHardwareZoom');
+  if (zoom <= maxHardwareZoom) {
+    return 1.0;
+  }
+  
+  return zoom / maxHardwareZoom;
 };
 
 });
