@@ -1063,6 +1063,7 @@ apps/system/test/unit/mock_rocketbar.js
 apps/system/test/unit/mock_screen_layout.js
 apps/system/test/unit/mock_settingslistener_installer.js
 apps/system/test/unit/mock_sheets_transition.js
+apps/system/test/unit/mock_simslot_manager.js
 apps/system/test/unit/mock_sleep_menu.js
 apps/system/test/unit/mock_software_button_manager.js
 apps/system/test/unit/mock_stack_manager.js
