@@ -39,9 +39,15 @@ module.exports = {
   // few samples, see bug 899864.
   MIN_RECORDING_TIME: 500,
 
-  MIN_VIEWFINDER_SCALE: 1.0,
+  // Amount of inactivity time (in milliseconds) to hide the Zoom Bar
+  ZOOM_BAR_INACTIVITY_TIMEOUT: 3000,
 
-  MAX_VIEWFINDER_SCALE: 4.0
+  // Amount (%) to adjust the Zoom Bar by when tapping the min/max indicators
+  ZOOM_BAR_INDICATOR_INTERVAL: 10,
+
+  // Used to adjust sensitivity for pinch-to-zoom gesture
+  // (smaller values = more sensitivity)
+  ZOOM_GESTURE_SENSITIVITY: 200
 };
 
 });

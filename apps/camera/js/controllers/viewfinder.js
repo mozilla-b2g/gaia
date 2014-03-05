@@ -26,6 +26,7 @@ function ViewfinderController(app) {
   this.camera = app.camera;
   this.activity = app.activity;
   this.filmstrip = app.filmstrip;
+  this.settings = app.settings;
   this.viewfinder = app.views.viewfinder;
   this.bindEvents();
   this.configure();
@@ -49,10 +50,12 @@ ViewfinderController.prototype.bindEvents = function() {
   this.app.settings.on('change:grid', this.viewfinder.setter('grid'));
   this.viewfinder.on('click', this.app.firer('viewfinder:click'));
   this.viewfinder.on('click', this.onViewfinderClick);
+  this.viewfinder.on('pinchChange', this.onPinchChange);
   this.app.on('camera:configured', this.loadStream);
   this.app.on('camera:configured', this.updatePreview);
   this.app.on('settings:opened', this.hideGrid);
   this.app.on('settings:closed', this.configureGrid);
+  this.camera.on('zoomChange', this.onZoomChange);
 };
 
 ViewfinderController.prototype.loadStream = function() {
@@ -64,12 +67,40 @@ ViewfinderController.prototype.updatePreview = function() {
   var isFrontCamera = camera === 'front';
   this.viewfinder.updatePreview(this.camera.previewSize(), isFrontCamera);
 
+  var enableZoom = this.camera.isZoomSupported() &&
+                   this.app.settings.enableZoom.selected().value;
+  if (enableZoom) {
+    this.viewfinder.enableZoom(this.camera.getMinimumZoom(),
+                               this.camera.getMaximumZoom());
+  } else {
+    this.viewfinder.disableZoom();
+  }
+
   // BUG: We have to use a 300ms timeout here
   // to conceal a Gecko rendering bug whereby the
   // video element appears not to have painted the
   // newly set dimensions before fading in.
   // https://bugzilla.mozilla.org/show_bug.cgi?id=982230
   setTimeout(this.viewfinder.fadeIn, 300);
+};
+
+ViewfinderController.prototype.onPinchChange = function(zoom) {
+  this.camera.setZoom(zoom);
+};
+
+/**
+ * Responds to changes of the `zoom` value on the Camera to update the
+ * view's internal state so that the pinch-to-zoom gesture can resume
+ * zooming from the updated value. Also, updates the CSS scale transform
+ * on the <video/> tag to compensate for zooming beyond the
+ * `maxHardwareZoom` value.
+ *
+ * @param {Number} zoom
+ */
+ViewfinderController.prototype.onZoomChange = function(zoom) {
+  var zoomPreviewAdjustment = this.camera.getZoomPreviewAdjustment();
+  this.viewfinder.setZoomPreviewAdjustment(zoomPreviewAdjustment);
+  this.viewfinder.setZoom(zoom);
 };
 
 /**
