@@ -35,10 +35,15 @@ var steps = {
   },
   7: {
     onlyForward: false,
-    hash: '#welcome_browser',
+    hash: '#firefox_accounts',
     requireSIM: false
   },
   8: {
+    onlyForward: false,
+    hash: '#welcome_browser',
+    requireSIM: false
+  },
+  9: {
     onlyForward: false,
     hash: '#browser_privacy',
     requireSIM: false
@@ -187,6 +192,9 @@ var Navigation = {
 
         fbState = window.navigator.onLine ? 'enabled' : 'disabled';
         ImportIntegration.checkImport(fbState);
+        break;
+      case '#firefox_accounts':
+        UIManager.mainTitle.innerHTML = _('firefox-accounts');
         break;
       case '#welcome_browser':
         UIManager.mainTitle.innerHTML = _('aboutBrowser');

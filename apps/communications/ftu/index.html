@@ -67,6 +67,7 @@
   <script defer type="text/javascript" src="/shared/js/mobile_operator.js"></script>
   <script defer type="text/javascript" src="/shared/js/icc_helper.js"></script>
   <script defer type="text/javascript" src="/shared/js/wifi_helper.js"></script>
+  <script defer type="text/javascript" src="/shared/js/fxa_iac_client.js"></script>
   <script defer type="text/javascript" src="/ftu/js/sim_manager.js"></script>
   <script defer type="text/javascript" src="/contacts/js/import_utils.js"></script>
   <script defer type="text/javascript" src="/ftu/js/memcard_manager.js"></script>
@@ -421,6 +422,24 @@
           </ul>
         </article>
       </section>
+
+      <section role="region" id="firefox_accounts">
+        <div class="fxa-logo"></div>
+
+        <p data-l10n-id="fxa-intro">
+          Firefox lets you use a single account to log in
+          to services like <strong>Marketplace</strong>
+          and <strong>Where's My Fox</strong>.
+        </p>
+
+        <p>
+          <button id="fxa-create-account" data-l10n-id="fxa-create-account-or-sign-in">
+            Create Account or Sign In
+          </button>
+        </p>
+
+      </section>
+
       <section role="region" id="about-your-rights">
         <p data-l10n-id="about-your-rights-0">
           Browser OS is built on free and open source software
