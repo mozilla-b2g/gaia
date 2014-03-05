@@ -18,10 +18,6 @@
       title: 'fxa-reset-password-error-title',
       message: 'fxa-reset-password-error-message'
     },
-    RESET_PASSWORD_IN_SETTINGS: {
-      title: 'fxa-reset-password-in-settings-title',
-      message: 'fxa-reset-password-in-settings-message'
-    },
     INVALID_ACCOUNTID: {
       title: 'fxa-invalid-email-title',
       message: 'fxa-invalid-email-message'
@@ -62,7 +58,7 @@
 
   function _getError(error) {
     var _ = navigator.mozL10n.get;
-    var l10nKeys = Errors[error] || Errors['UNKNOWN'];
+    var l10nKeys = Errors[error] || Errors[UNKNOWN];
     return {
       title: _(l10nKeys.title),
       message: _(l10nKeys.message)

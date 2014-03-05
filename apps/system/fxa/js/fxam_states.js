@@ -32,6 +32,10 @@ var FxaModuleStates = (function() {
       id: 'fxa-signin-success',
       module: 'FxaModuleSigninSuccess'
     },
+    PASSWORD_RESET_SUCCESS: {
+      id: 'fxa-password-reset-success',
+      module: 'FxaModulePasswordResetSuccess'
+    },
     REFRESH_AUTH: {
       id: 'fxa-refresh-auth',
       module: 'FxaModuleRefreshAuth'

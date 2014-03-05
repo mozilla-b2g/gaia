@@ -23,8 +23,6 @@ requireApp('/system/test/unit/fxa_test/mock_fxam_server_request.js');
 requireApp('system/fxa/js/fxam_errors.js');
 requireApp('/system/test/unit/fxa_test/mock_fxam_errors.js');
 
-requireApp('/system/test/unit/mock_ftu_launcher.js');
-
 require('/shared/js/lazy_loader.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 
@@ -38,13 +36,7 @@ var mocksHelperForEnterPasswordModule = new MocksHelper([
   'LazyLoader',
   'FxaModuleUI',
   'FxModuleServerRequest',
-  'FxaModuleErrors',
-  'FtuLauncher'
-]);
-
-mocha.globals([
-  'FxModuleServerRequest',
-  'FtuLauncher'
+  'FxaModuleErrors'
 ]);
 
 suite('Screen: Enter password', function() {
@@ -72,24 +64,15 @@ suite('Screen: Enter password', function() {
   });
 
   suite(' > password input ', function() {
-    var passwordInput, forgotPasswordEl;
-    var fxamUIDisableSpy, fxamUIEnableSpy, showErrorOverlaySpy, resetSpy;
-    var inputEvent, clickEvent;
+    var passwordInput;
+    var fxamUIDisableSpy, fxamUIEnableSpy;
+    var inputEvent;
     setup(function() {
       passwordInput = document.getElementById('fxa-pw-input');
       fxamUIDisableSpy = this.sinon.spy(FxaModuleUI, 'disableNextButton');
       fxamUIEnableSpy = this.sinon.spy(FxaModuleUI, 'enableNextButton');
-      showErrorOverlaySpy = this.sinon.spy(FxaModuleErrorOverlay, 'show');
-      resetSpy = this.sinon.spy(FxModuleServerRequest, 'requestPasswordReset');
-      forgotPasswordEl = document.getElementById('fxa-forgot-password');
       inputEvent = new CustomEvent(
         'input',
-        {
-          bubbles: true
-        }
-      );
-      clickEvent = new CustomEvent(
-        'click',
         {
           bubbles: true
         }
@@ -99,13 +82,9 @@ suite('Screen: Enter password', function() {
 
     teardown(function() {
       passwordInput = null;
-      forgotPasswordEl = null;
       fxamUIDisableSpy = null;
       fxamUIEnableSpy = null;
-      showErrorOverlaySpy = null;
-      resetSpy = null;
       mocksHelperForEnterPasswordModule.teardown();
-      FxModuleServerRequest.resetSuccess = false;
     });
 
     test(' > Disabled button at the beginning', function() {
@@ -121,19 +100,6 @@ suite('Screen: Enter password', function() {
 
       assert.ok(fxamUIEnableSpy.calledOnce);
       assert.isFalse(fxamUIDisableSpy.calledOnce);
-    });
-
-    test(' > Forgot password link shows error overlay when in FTE', function() {
-      FtuLauncher.mIsRunning = true;
-      forgotPasswordEl.dispatchEvent(clickEvent);
-      assert.ok(showErrorOverlaySpy.calledOnce);
-    });
-
-    test(' > Forgot password link opens web flow when not in FTE', function() {
-      FtuLauncher.mIsRunning = false;
-      FxModuleServerRequest.resetSuccess = true;
-      forgotPasswordEl.dispatchEvent(clickEvent);
-      assert.ok(resetSpy.calledOnce);
     });
 
     test(' > Changes in the password input are tracked properly', function() {

@@ -44,23 +44,35 @@ var FxaModuleEnterPassword = (function() {
     this.fxaPwInput.setAttribute('type', passwordFieldType);
   }
 
-  function _forgotPassword() {
-    var self = this;
-    if (FtuLauncher.isFtuRunning()) {
-      return self.showErrorResponse({
-        error: 'RESET_PASSWORD_IN_SETTINGS'
-      });
-    }
-    // XXX ensure email is used properly when server supports prefilling email
-    //     via query string (bug 977776)
-    // Note: we don't need to pass a success callback, but we do need an errback
+  function _requestPasswordReset(email, done) {
     FxModuleServerRequest.requestPasswordReset(
+      email,
+      function onSuccess(response) {
+        done(response.success);
+      },
+      this.showErrorResponse
+    );
+  }
+
+  function _showCouldNotResetPassword() {
+    this.showErrorResponse({
+      error: 'RESET_PASSWORD_ERROR'
+    });
+  }
+
+  function _forgotPassword() {
+    FxaModuleOverlay.show(_('fxa-requesting-password-reset'));
+    _requestPasswordReset.call(
+      this,
       this.email,
-      null,
-      function on_reset_error() {
-        self.showErrorResponse({
-          error: 'RESET_PASSWORD_ERROR'
-        });
+      function(isRequestHandled) {
+        FxaModuleOverlay.hide();
+        if (!isRequestHandled) {
+          _showCouldNotResetPassword.call(this);
+          return;
+        }
+
+        FxaModuleStates.setState(FxaModuleStates.PASSWORD_RESET_SUCCESS);
       }
     );
   }
