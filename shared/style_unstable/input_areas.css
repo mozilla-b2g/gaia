@@ -146,7 +146,11 @@ fieldset {
   background: none;
 }
 
-fieldset legend {
+fieldset legend,
+input[type="date"],
+input[type="time"],
+input[type="datetime"],
+input[type="datetime-local"] {
   border: 0.1rem solid #d7dee4;
   width: 100%;
   -moz-box-sizing: border-box;
@@ -154,14 +158,19 @@ fieldset legend {
   font-style: italic;
   font-size: 1.6rem;
   color: #00aacc;
-  margin: 0 0 0.5rem;
-  padding: 1rem 1.5rem 0;
+  margin: 0 0 1.5rem;
+  padding: 0 1.5rem;
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
   height: 4rem;
+  line-height: 4rem;
   color: #00aacc;
   background: url(input_areas/images/ui/dialog.svg) no-repeat calc(100% - 1rem) calc(100% - 1rem);
+}
+
+fieldset legend {
+  margin: 0 0 0.5rem;
 }
 
 fieldset[disabled] {
@@ -299,7 +308,11 @@ form button::-moz-focus-inner {
  * Right-to-Left layout
  */
 
-html[dir="rtl"] fieldset legend {
+html[dir="rtl"] fieldset legend,
+html[dir="rtl"] input[type="date"],
+html[dir="rtl"] input[type="time"],
+html[dir="rtl"] input[type="datetime"],
+html[dir="rtl"] input[type="datetime-local"] {
   background: url(input_areas/images/ui/dialog_rtl.svg) no-repeat 1rem calc(100% - 1rem);
 }
 
