@@ -33,6 +33,11 @@ suite('Media Frame Unit Tests', function() {
       dummyBlob = new Blob(['empty-image'], {'type': 'image/jpeg'});
       dummyDiv = document.createElement('div');
       frame = new MediaFrame(dummyDiv, false);
+      this.clock = sinon.useFakeTimers();
+    });
+
+    teardown(function() {
+      this.clock.restore();
     });
 
     test('=> displayImage without preview', function() {
@@ -107,6 +112,7 @@ suite('Media Frame Unit Tests', function() {
       });
 
       frame.displayImage(dummyBlob, 1600, 1200, preview, 0, false);
+      this.clock.tick(1);
     });
 
     test('=> displayImage preview file, get error', function(done) {
@@ -141,6 +147,7 @@ suite('Media Frame Unit Tests', function() {
       });
 
       frame.displayImage(dummyBlob, 1600, 1200, preview, 0, false);
+      this.clock.tick(1);
     });
   });
 });
