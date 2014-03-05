@@ -172,6 +172,12 @@ var CostControlApp = (function() {
       }
     });
   }
+  // XXX: the clearLastSimScenario method must be included on Bug 968087 -
+  // [Cost Control] Refactor and simplify Cost Control start-up process.
+  function clearLastSimScenario(callback) {
+    Common.closeFTE();
+    (typeof callback === 'function') && callback();
+  }
 
   function startApp(callback) {
 
@@ -275,7 +281,7 @@ var CostControlApp = (function() {
     // Refresh UI when the user changes the SIM for data connections
     SettingsListener.observe('ril.data.defaultServiceId', 0, function() {
       if (!isFirstCall) {
-        Common.loadDataSIMIccId(startApp);
+        clearLastSimScenario(Common.loadDataSIMIccId.bind(null, startApp));
       } else {
         isFirstCall = false;
       }
@@ -388,10 +394,7 @@ var CostControlApp = (function() {
           setAttribute('aria-hidden', 'true');
 
         // Only hide the FTE view when everything in the UI is ready
-        startApp(function() {
-          document.getElementById('fte_view').classList.add('non-ready');
-          document.getElementById('fte_view').src = '';
-        });
+        startApp(Common.closeFTE);
       }
     });
 
