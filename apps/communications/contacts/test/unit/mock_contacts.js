@@ -30,6 +30,10 @@ var MockContacts = {
       'address-type' : [
         {type: 'home', value: 'Home'},
         {type: 'work', value: 'Work'}
+      ],
+      'date-type': [
+        {type: 'birthday', value: 'Birthday'},
+        {type: 'anniversary', value: 'Anniversary'}
       ]
     };
   },

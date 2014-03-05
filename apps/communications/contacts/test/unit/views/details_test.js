@@ -20,13 +20,13 @@ var subject,
     container,
     realL10n,
     realOnLine,
+    realMisc,
     dom,
     contact,
     contactDetails,
     listContainer,
     detailsName,
     orgTitle,
-    birthdayTemplate,
     phonesTemplate,
     emailsTemplate,
     addressesTemplate,
@@ -80,6 +80,15 @@ suite('Render contact', function() {
       }
     };
 
+    realMisc = utils.misc;
+    utils.misc = {
+      formatDate: function(date) {
+        var offset = date.getTimezoneOffset() * 60 * 1000;
+        var normalizedDate = new Date(date.getTime() + offset);
+        return normalizedDate.toString();
+      }
+    };
+
     Object.defineProperty(navigator, 'onLine', {
       configurable: true,
       get: navigatorOnLine,
@@ -103,7 +112,6 @@ suite('Render contact', function() {
     listContainer = dom.querySelector('#details-list');
     detailsName = dom.querySelector('#contact-name-title');
     orgTitle = dom.querySelector('#org-title');
-    birthdayTemplate = dom.querySelector('#birthday-template-\\#i\\#');
     phonesTemplate = dom.querySelector('#phone-details-template-\\#i\\#');
     emailsTemplate = dom.querySelector('#email-details-template-\\#i\\#');
     addressesTemplate = dom.querySelector('#address-details-template-\\#i\\#');
@@ -132,6 +140,7 @@ suite('Render contact', function() {
     if (realOnLine) {
       Object.defineProperty(navigator, 'onLine', realOnLine);
     }
+    utils.misc = realMisc;
   });
 
   setup(function() {
@@ -187,26 +196,6 @@ suite('Render contact', function() {
       subject.render(null, TAG_OPTIONS);
       assert.equal('', orgTitle.textContent);
       assert.equal(true, orgTitle.classList.contains('hide'));
-    });
-  });
-
-  suite('Render bday', function() {
-    test('with bday', function() {
-      subject.render(null, TAG_OPTIONS);
-      var bdayBlock = container.querySelector('#birthday-template-1');
-      assert.isNotNull(bdayBlock);
-      // Ensuring timezone correctly treated (Bug 880775)
-      var offset = mockContact.bday.getTimezoneOffset() * 60 * 1000;
-      var targetDate = new Date(mockContact.bday.getTime() + offset);
-      assert.equal(bdayBlock.querySelector('strong').textContent,
-                   targetDate.toString());
-    });
-    test('without bday', function() {
-      var contactWoBday = new MockContactAllFields(true);
-      contactWoBday.bday = null;
-      subject.setContact(contactWoBday);
-      subject.render(null, TAG_OPTIONS);
-      assert.equal(-1, container.innerHTML.indexOf('birthday'));
     });
   });
 
@@ -492,6 +481,65 @@ suite('Render contact', function() {
       assert.equal(-1, toCheck.indexOf('address-details-template-2'));
     });
   });
+
+  suite('Render dates', function() {
+    test('with bday', function() {
+      subject.render(null, TAG_OPTIONS);
+      var bdayBlock = container.querySelector('#dates-template-1');
+      assert.isNotNull(bdayBlock);
+      // Ensuring timezone correctly treated (Bug 880775)
+      var offset = mockContact.bday.getTimezoneOffset() * 60 * 1000;
+      var targetDate = new Date(mockContact.bday.getTime() + offset);
+      assert.equal(bdayBlock.querySelector('strong').textContent,
+                   targetDate.toString());
+    });
+
+    test('with anniversary', function() {
+      var contactWithAnn = new MockContactAllFields(true);
+      contactWithAnn.bday = null;
+      contactWithAnn.anniversary = new Date(0);
+      subject.setContact(contactWithAnn);
+      subject.render(null, TAG_OPTIONS);
+
+      var dateBlock = container.querySelector('#dates-template-1');
+      assert.isNotNull(dateBlock);
+      // Ensuring timezone correctly treated (Bug 880775)
+      var offset = contactWithAnn.anniversary.getTimezoneOffset() * 60 * 1000;
+      var targetDate = new Date(contactWithAnn.anniversary.getTime() + offset);
+      assert.equal(dateBlock.querySelector('strong').textContent,
+                   targetDate.toString());
+    });
+
+    test('with bday and anniversary', function() {
+      var contactWithAll = new MockContactAllFields(true);
+      contactWithAll.anniversary = new Date(0);
+      subject.setContact(contactWithAll);
+      subject.render(null, TAG_OPTIONS);
+
+      var fields = ['bday', 'anniversary'];
+
+      for (var j = 0; j < fields.length; j++) {
+        var dateBlock = container.querySelector('#dates-template-' + (j + 1));
+        assert.isNotNull(dateBlock);
+        // Ensuring timezone correctly treated (Bug 880775)
+        var offset = contactWithAll[fields[j]].getTimezoneOffset() * 60 * 1000;
+        var targetDate = new Date(contactWithAll[fields[j]].getTime() + offset);
+        assert.equal(dateBlock.querySelector('strong').textContent,
+                     targetDate.toString());
+      }
+    });
+
+    test('without dates', function() {
+      var contactWoDates = new MockContactAllFields(true);
+      contactWoDates.bday = null;
+      contactWoDates.anniversary = null;
+
+      subject.setContact(contactWoDates);
+      subject.render(null, TAG_OPTIONS);
+      assert.equal(-1, container.innerHTML.indexOf('dates'));
+    });
+  });
+
   suite('Render notes', function() {
     test('with 1 note', function() {
       subject.render(null, TAG_OPTIONS);

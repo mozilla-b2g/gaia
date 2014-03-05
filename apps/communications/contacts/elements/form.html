@@ -67,6 +67,22 @@
       </fieldset>
     </div>
 
+     <div id='add-date-#i#' data-template class='date-template' data-exclusive="true" data-custom="false" data-index="#i#">
+      <fieldset class="fillflow-row">
+        <legend class="action">
+          <span data-taglist="date-type" name="date[#i#][type]" data-value="#type_value#" id="date_type_#i#" data-field="type" data-l10n-id="#type_l10n_id#">#type#</span>
+        </legend>
+        <section>
+          <p class="setbox-item">
+            <span id="date-text_#i#" data-l10n-id="date.placeholder" class="datetime placeholder">
+              Date
+            </span>
+            <input placeholder="date" data-l10n-id="date" name="date[#i#][value]" class="textfield hidden-input" type="date" id="date_#i#">
+          </p>
+        </section>
+      </fieldset>
+    </div>
+
     <div id='add-note-#i#' data-template class='note-template' data-index="#i#">
       <dl class="setbox fillflow-row">
         <dd class="setbox-body">
@@ -142,6 +158,16 @@
 
             <li>
               <section>
+                <div id="contacts-form-dates"></div>
+              </section>
+
+              <button data-field-type="date" id='add-new-date' data-l10n-id="addDate" class="fillflow-row action action-add icon icon-add">
+                Add Date
+              </button>
+            </li>
+
+            <li>
+              <section>
                 <div id="contacts-form-notes"></div>
               </section>
 
@@ -161,4 +187,3 @@
     </article>
   </template>
 </element>
-

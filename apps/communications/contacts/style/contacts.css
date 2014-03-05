@@ -678,3 +678,25 @@ section[role="region"] > header .icon.icon-settings {
 .group-section {
   padding-left: 1.5rem;
 }
+
+.datetime {
+  /* pass the events from <span> to <input> */
+  pointer-events: none;
+  position: absolute;
+  top: 0rem;
+  left: 1rem;
+  right: 0;
+  line-height: 4rem;
+  font-weight: normal;
+  background: url(/shared/style/input_areas/images/icons/arrow.png) no-repeat 100% 100% / 1.2rem;
+}
+
+.placeholder {
+  color: #858585;
+}
+
+
+.hidden-input {
+  /* visibility: hidden; will avoid events to reach the <input> */
+  opacity: 0;
+}
