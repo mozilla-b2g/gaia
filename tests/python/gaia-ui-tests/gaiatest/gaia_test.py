@@ -747,7 +747,7 @@ class GaiaDevice(object):
         time.sleep(2)
         self.start_b2g()
 
-    def start_b2g(self, timeout=60000):
+    def start_b2g(self, timeout=60):
         if self.marionette.instance:
             # launch the gecko instance attached to marionette
             self.marionette.instance.start()
