@@ -1537,7 +1537,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     'duration',
     'state',
     'type',
-    'slow'
+    'slow',
+    'speed'
   ];
 
   function jsonExport(object, additional) {
@@ -3318,9 +3319,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
   TestUi.prototype = {
-    HIDDEN: 'hidden',
-    WORKING: 'working',
-    EXECUTE: 'execute',
+    HIDDEN: 'Hidden',
+    WORKING: 'Working...',
+    EXECUTE: 'Execute',
 
     tasks: {
       test: 'run tests',
@@ -3330,7 +3331,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     templates: {
       testList: '<ul class="test-list"></ul>',
       testItem: '<li data-url="%s">%s</li>',
-      testRun: '<button class="run-tests">execute</button>',
       error: [
         '<h1>Critical Error</h1>',
         '<p><span class="error">%0s</span> in file ',
@@ -3343,7 +3343,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
     get execButton() {
       if (!this._execButton) {
-        this._execButton = this.element.querySelector('button');
+        this._execButton = document.querySelector('#test-agent-execute-button');
       }
       return this._execButton;
     },
@@ -3371,15 +3371,15 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     onTestRunner: function onTestRunner() {
       this.isRunning = true;
       this.execButton.textContent = this.WORKING;
-      this.execButton.className += ' ' + this.WORKING
+      this.execButton.className += ' ' + this.WORKING + ' active';
+      this.execButton.disabled = true;
     },
 
     onTestRunnerEnd: function onTestRunnerEnd() {
-      var className = this.execButton.className;
-
       this.isRunning = false;
       this.execButton.textContent = this.EXECUTE;
-      this.execButton.className = className.replace(' ' + this.WORKING, '');
+      this.execButton.className = '';
+      this.execButton.disabled = false;
     },
 
     onSandbox: function onSandbox() {
@@ -3398,7 +3398,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
           file = data.filename,
           line = data.lineno;
 
-      error.className = error.className.replace(' hidden', '');
+      error.className = error.className.replace(' ' + this.HIDDEN, '');
 
       error.innerHTML = format(
         this.templates.error,
@@ -3410,13 +3410,12 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
     onConfig: function onConfig(data) {
       //purge elements
-      var elements = this.element.getElementsByTagName('test-list'),
+      var elements = document.querySelectorAll('.test-list'),
           element,
           templates = this.templates,
-          i = 0,
           parent;
 
-      for (; i < elements.length; i++) {
+      for (var i = 0; i < elements.length; i++) {
         element = elements[i];
         element.parentNode.removeChild(element);
       }
@@ -3435,8 +3434,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         parent
       );
 
-      this.element.appendChild(fragment(templates.testRun));
-
       this.initDomEvents();
 
       window.dispatchEvent(new CustomEvent('test-agent-list-done'));
@@ -3444,7 +3441,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
     initDomEvents: function initDomEvents() {
       var ul = this.element.querySelector('ul'),
-          button = this.element.querySelector('button'),
+          button = this.execButton,
           self = this,
           activeClass = ' active';
 
