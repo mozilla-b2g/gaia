@@ -109,6 +109,9 @@ REMOTE_DEBUGGER=1
 NO_LOCK_SCREEN=1
 endif
 
+# Allow skipping profile building (say when running tests)
+NOPROFILE?=0
+
 # We also disable FTU when running in Firefox or in debug mode
 ifeq ($(DEBUG),1)
 NOFTU=1
@@ -406,9 +409,11 @@ endef
 
 # Generate profile/
 
+ifeq ($(NOPROFILE),0)
 $(PROFILE_FOLDER): preferences app-makefiles copy-build-stage-manifest test-agent-config offline contacts extensions install-xulrunner-sdk .git/hooks/pre-commit $(PROFILE_FOLDER)/settings.json create-default-data $(PROFILE_FOLDER)/installed-extensions.json
 ifeq ($(BUILD_APP_NAME),*)
 	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)$(PROFILE_FOLDER)"
+endif
 endif
 
 svoperapps: install-xulrunner-sdk

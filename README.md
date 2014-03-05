@@ -182,6 +182,8 @@ make test-integration VERBOSE=1
 plugins, run this:
 `DEBUG=* ./bin/gaia-marionette name/of/test.js`
 
+- To skip building a profile when running tests, use `NOPROFILE=1`
+
 ### UI Tests
 
 #### Functional
