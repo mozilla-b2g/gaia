@@ -3,6 +3,8 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from marionette.by import By
+from marionette import Wait
+from marionette.errors import StaleElementException
 from gaiatest.apps.base import Base
 
 
@@ -44,6 +46,5 @@ class Wifi(Base):
             password_input.send_keys(password)
             ok_button.tap()
 
-        self.wait_for_condition(
-            lambda m: m.find_element(*self._connected_message_locator).text == "Connected",
-                        timeout = max(self.marionette.timeout and self.marionette.timeout / 1000, 60))
+        Wait(self.marionette, timeout=60, ignored_exceptions=StaleElementException).until(
+            lambda m: m.find_element(*self._connected_message_locator).text == "Connected")
