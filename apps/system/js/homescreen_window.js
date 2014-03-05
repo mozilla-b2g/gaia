@@ -109,14 +109,12 @@
 
   HomescreenWindow.prototype._handle_mozbrowserclose =
     function hw__handle_mozbrowserclose(evt) {
-      evt.stopImmediatePropagation();
       this.restart();
     };
 
   HomescreenWindow.prototype._handle_mozbrowsererror =
     function hw__handle_mozbrowsererror(evt) {
       if (evt.detail.type == 'fatal') {
-        evt.stopImmediatePropagation();
         this.publish('crashed');
         this.restart();
       }
