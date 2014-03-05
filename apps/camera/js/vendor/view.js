@@ -124,6 +124,28 @@ define(function(require, exports, module) {
     return this;
   };
 
+  View.prototype.set = function(key, value) {
+    value = arguments.length === 2 ? value : true;
+    this.el.setAttribute(toDashed(key), value);
+  };
+
+  View.prototype.setter = function(key) {
+    return (function(value) { this.set(key, value); }).bind(this);
+  };
+
+  View.prototype.enable = function(key, value) {
+    value = arguments.length === 2 ? value : true;
+    this.set(key + '-enabled', !!value);
+  };
+
+  View.prototype.disable = function(key) {
+    this.enable(key, false);
+  };
+
+  View.prototype.enabler = function(key) {
+    return (function(value) { this.enable(key, value); }).bind(this);
+  };
+
   /**
    * Removes the element from
    * it's current context, firing
@@ -176,4 +198,10 @@ define(function(require, exports, module) {
 
     return Child;
   };
+
+  function toDashed(s) {
+    return s.replace(/\W+/g, '-')
+      .replace(/([a-z\d])([A-Z])/g, '$1-$2')
+      .toLowerCase();
+  }
 });

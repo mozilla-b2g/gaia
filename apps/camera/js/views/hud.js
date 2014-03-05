@@ -72,24 +72,6 @@ module.exports = View.extend({
     this.emit('click:settings');
   },
 
-  set: function(key, value) {
-    value = arguments.length === 2 ? value : true;
-    this.el.setAttribute(toDashed(key), value);
-  },
-
-  setter: function(key) {
-    return (function(value) { this.set(key, value); }).bind(this);
-  },
-
-  enable: function(key, value) {
-    value = arguments.length === 2 ? value : true;
-    this.set(key + '-enabled', !!value);
-  },
-
-  disable: function(key) {
-    this.enable(key, false);
-  },
-
   hide: function(key, value) {
     this.set(key + '-hidden', value);
   },
@@ -106,11 +88,5 @@ module.exports = View.extend({
     '</div>';
   }
 });
-
-function toDashed(s) {
-  return s.replace(/\W+/g, '-')
-    .replace(/([a-z\d])([A-Z])/g, '$1-$2')
-    .toLowerCase();
-}
 
 });
