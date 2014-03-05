@@ -33,21 +33,29 @@ function ControlsController(app) {
 
 ControlsController.prototype.bindEvents = function() {
   this.app.settings.on('change:mode', this.controls.setter('mode'));
+
+  this.app.on('newimage', this.onNewMedia);
+  this.app.on('newvideo', this.onNewMedia);
   this.app.on('change:recording', this.controls.setter('recording'));
-  this.app.on('camera:timeupdate', this.controls.setVideoTimer);
-  this.controls.on('click:capture', this.app.firer('capture'));
-  this.controls.on('click:gallery', this.onGalleryButtonClick);
-  this.controls.on('click:switch', this.app.settings.toggler('mode'));
-  this.controls.on('click:cancel', this.onCancelButtonClick);
+
+  this.controls.on('tap:capture', this.app.firer('capture'));
+  this.controls.on('tap:gallery', this.onGalleryButtonClick);
+  this.controls.on('tap:switch', this.app.settings.mode.next);
+  this.controls.on('tap:cancel', this.onCancelButtonClick);
+
   this.app.on('camera:loading', this.disableButtons);
   this.app.on('camera:ready', this.enableButtons);
   this.app.on('camera:busy', this.disableButtons);
+  this.app.on('timer:clear', this.enableButtons);
+  this.app.on('timer:end', this.enableButtons);
+  this.app.on('timer:start', this.disableButtons);
+
   debug('events bound');
 };
 
 ControlsController.prototype.configure = function() {
   var isSwitchable = this.app.settings.mode.get('options').length > 1;
-  var initialMode = this.app.settings.mode.value();
+  var initialMode = this.app.settings.mode.selected('key');
   var isCancellable = !!this.app.activity.active;
 
   // The gallery button should not
@@ -55,9 +63,9 @@ ControlsController.prototype.configure = function() {
   // or the application is in 'secure mode'.
   var showGallery = !this.app.activity.active && !this.app.inSecureMode;
 
-  this.controls.set('gallery', showGallery);
-  this.controls.set('cancel', isCancellable);
   this.controls.set('switchable', isSwitchable);
+  this.controls.set('cancel', isCancellable);
+  this.controls.set('gallery', showGallery);
   this.controls.set('mode', initialMode);
 
   debug('cancelable: %s', isCancellable);
@@ -68,14 +76,26 @@ ControlsController.prototype.configure = function() {
 
 ControlsController.prototype.disableButtons = function() {
   this.controls.disable('buttons');
+  debug('buttons disabled');
 };
 
 ControlsController.prototype.enableButtons = function() {
-  this.controls.enable('buttons');
+  var self = this;
+  setTimeout(function() {
+    self.controls.enable('buttons');
+    debug('buttons enabled!!!!');
+  });
 };
 
-ControlsController.prototype.onSwitchClick = function() {
-  this.app.settings.get('mode').next();
+/**
+ * When a new image is available
+ * it displays the thumbnail on
+ * the gallery button.
+ *
+ * @param  {Object} image
+ */
+ControlsController.prototype.onNewMedia = function(image) {
+  this.controls.setThumbnail(image.thumbnail);
 };
 
 /**
@@ -87,33 +107,26 @@ ControlsController.prototype.onSwitchClick = function() {
  * navigate back to the app
  * that initiated the activity.
  *
+ * @private
  */
 ControlsController.prototype.onCancelButtonClick = function() {
   this.activity.cancel();
 };
 
-var throttleGalleryLaunch = false;
-
 /**
- * Open the gallery app
- * when the gallery button
- * is pressed.
+ * Open the gallery app when the
+ * gallery button is pressed.
  *
+ * @private
  */
-ControlsController.prototype.onGalleryButtonClick = function(e) {
-  e.stopPropagation();
+ControlsController.prototype.onGalleryButtonClick = function(event) {
   var MozActivity = window.MozActivity;
+  var controls = this.controls;
 
   // Can't launch the gallery if the lockscreen is locked.
   // The button shouldn't even be visible in this case, but
   // let's be really sure here.
   if (this.app.inSecureMode) { return; }
-
-  if (throttleGalleryLaunch) {
-    return;
-  }
-
-  throttleGalleryLaunch = true;
 
   // Launch the gallery with an activity
   this.mozActivity = new MozActivity({
@@ -121,11 +134,10 @@ ControlsController.prototype.onGalleryButtonClick = function(e) {
     data: { type: 'photos' }
   });
 
-  // Wait 2000ms before re-enabling the Gallery to be launched
-  // (Bug 957709)
-  window.setTimeout(function() {
-    throttleGalleryLaunch = false;
-  }, 2000);
+  // Wait 2000ms before re-enabling the
+  // Gallery to be launched (Bug 957709)
+  controls.disable();
+  setTimeout(controls.enable, 2000);
 };
 
 });
