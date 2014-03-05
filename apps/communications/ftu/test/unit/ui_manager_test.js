@@ -67,6 +67,66 @@ suite('UI Manager > ', function() {
     realMozApps = null;
   });
 
+  suite('Date & Time >', function() {
+    suiteSetup(function() {
+      Navigation.currentStep = 4;
+      Navigation.manageStep();
+    });
+
+    suiteTeardown(function() {
+      Navigation.currentStep = 1;
+      Navigation.manageStep();
+    });
+
+    suite('change Time Zone >', function() {
+      var timezoneTitle,
+          regionLabel,
+          cityLabel,
+          timeLabel,
+          FAKE_TIMEZONE;
+      var localizeSpy,
+          localeFormatSpy;
+
+      setup(function() {
+        FAKE_TIMEZONE = {
+          utcOffset: '+0:00',
+          region: 'fakeRegion',
+          city: 'fakeCity'
+        };
+
+        timezoneTitle = document.getElementById('time-zone-title');
+        regionLabel = document.getElementById('tz-region-label');
+        cityLabel = document.getElementById('tz-city-label');
+        timeLabel = document.getElementById('time-configuration-label');
+
+        localizeSpy = this.sinon.spy(navigator.mozL10n, 'localize');
+        localeFormatSpy =
+          this.sinon.spy(navigator.mozL10n.DateTimeFormat.prototype,
+                        'localeFormat');
+        UIManager.setTimeZone(FAKE_TIMEZONE);
+      });
+
+      test('should localize title', function() {
+        assert.isTrue(localizeSpy.calledOnce);
+        assert.isTrue(localizeSpy.calledWith(timezoneTitle,
+                                         'timezoneTitle',
+                                         FAKE_TIMEZONE));
+      });
+
+      test('should update region', function() {
+        assert.equal(regionLabel.textContent, FAKE_TIMEZONE.region);
+      });
+
+      test('should update city', function() {
+        assert.equal(cityLabel.textContent, FAKE_TIMEZONE.city);
+      });
+
+      test('should format the time', function() {
+        assert.isTrue(localeFormatSpy.called);
+      });
+    });
+  });
+
   suite('Browser Privacy section', function() {
     var page,
         input;
