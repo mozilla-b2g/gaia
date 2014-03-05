@@ -1,4 +1,4 @@
-/* global Applications, ManifestHelper*/
+/* global applications, ManifestHelper*/
 (function(exports) {
   'use strict';
 
@@ -102,7 +102,7 @@
 
           // Show proper app name or url
           if (evt.detail.isApp) {
-            var app = Applications.getByManifestURL(evt.detail.requestURL);
+            var app = applications.getByManifestURL(evt.detail.requestURL);
             this.origin.textContent = new ManifestHelper(app.manifest).name;
           } else {
             var pathArray = evt.detail.requestURL.split('/');
