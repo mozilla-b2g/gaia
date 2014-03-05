@@ -736,7 +736,65 @@ contacts.List = (function() {
       };
 
       var cursor = navigator.mozContacts.getAll(options);
+      const CHUNK_SIZE = 100;
       var num = 0;
+      var lastNum = 0;
+      var recyclist;
+
+      function ensureRecyclist(num) {
+        if (recyclist) {
+          recyclist.addItems(num);
+          return;
+        }
+
+        var groupsContainer = document.getElementById('groups-container');
+        var groupsList = document.getElementById('groups-list');
+
+        recyclist = new Recyclist({
+          template: document.getElementById('item-template'),
+          headerTemplate: document.getElementById('header-template'),
+          numItems: num,
+          isHeader: isHeader,
+          populate: function(element, index) {
+            if (isHeader(index)) {
+              element.textContent = allHeaders[index];
+              return;
+            }
+
+            var contact = allContacts[index];
+            var display = getDisplayName(contact);
+
+            var nameElement = element.children[1].children[0];
+
+            getHighlightedName(display, nameElement);
+
+            element.dataset.uuid = contact.id;
+
+            elementsByIndex[index] = element;
+
+            renderPhotosQueue.push(index);
+            scheduleRenderPhotos();
+          },
+          forget: function(element, index) {
+            if (element.dataset.photoUrl) {
+              URL.revokeObjectURL(element.dataset.photoUrl);
+              element.dataset.photoUrl = '';
+              element.children[0].children[0].style.backgroundImage = '';
+            }
+            delete elementsByIndex[index];
+          },
+          scrollParent: groupsContainer,
+          scrollChild: groupsList,
+          getScrollHeight: function() {
+            return groupsContainer.clientHeight;
+          },
+          getScrollPos: function() {
+            return groupsContainer.scrollTop;
+          }
+        });
+        recyclist.init();
+      }
+
       cursor.onsuccess = function onsuccess(evt) {
         // Cancel this load operation if requested
         if (cancelLoadCB) {
@@ -762,6 +820,11 @@ contacts.List = (function() {
           allContacts.push(contact);
           num++;
 
+          if ((num - lastNum) >= CHUNK_SIZE) {
+            ensureRecyclist(num - lastNum);
+            lastNum = num;
+          }
+
           cursor.continue();
         } else {
           var showNoContacs = (num === 0);
@@ -769,52 +832,7 @@ contacts.List = (function() {
           onListRendered();
           dispatchCustomEvent('listRendered');
 
-          var groupsContainer = document.getElementById('groups-container');
-          var groupsList = document.getElementById('groups-list');
-
-          var recyclist = new Recyclist({
-            template: document.getElementById('item-template'),
-            headerTemplate: document.getElementById('header-template'),
-            numItems: num,
-            isHeader: isHeader,
-            populate: function(element, index) {
-              if (isHeader(index)) {
-                element.textContent = allHeaders[index];
-                return;
-              }
-
-              var contact = allContacts[index];
-              var display = getDisplayName(contact);
-
-              var nameElement = element.children[1].children[0];
-
-              getHighlightedName(display, nameElement);
-
-              element.dataset.uuid = contact.id;
-
-              elementsByIndex[index] = element;
-
-              renderPhotosQueue.push(index);
-              scheduleRenderPhotos();
-            },
-            forget: function(element, index) {
-              if (element.dataset.photoUrl) {
-                URL.revokeObjectURL(element.dataset.photoUrl);
-                element.dataset.photoUrl = '';
-                element.children[0].children[0].style.backgroundImage = '';
-              }
-              delete elementsByIndex[index];
-            },
-            scrollParent: groupsContainer,
-            scrollChild: groupsList,
-            getScrollHeight: function() {
-              return groupsContainer.clientHeight;
-            },
-            getScrollPos: function() {
-              return groupsContainer.scrollTop;
-            }
-          });
-          recyclist.init();
+          ensureRecyclist(num - lastNum);
 
           loading = false;
         }
