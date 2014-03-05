@@ -57,7 +57,8 @@ var DownloadUI = (function() {
                                 true),
     UNMOUNTED_SDCARD: new DownloadType('unmounted_sdcard_2', ['recommend',
                                        'full'], true),
-    NO_PROVIDER: new DownloadType('no_provider', ['recommend', 'full'], true)
+    NO_PROVIDER: new DownloadType('no_provider', ['recommend', 'full'], true),
+    NO_MEMORY: new DownloadType('no_memory', ['recommend', 'full'], true)
   };
 
   var DownloadAction = function(id, type) {
