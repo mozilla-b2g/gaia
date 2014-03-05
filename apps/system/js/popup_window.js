@@ -13,9 +13,9 @@
    * @augments AppWindow
    */
   var PopupWindow = function(configs) {
-    if (configs && configs.parentWindow) {
-      // Render inside parent window.
-      this.containerElement = configs.parentWindow.element;
+    if (configs && configs.rearWindow) {
+      // Render inside its opener.
+      this.containerElement = configs.rearWindow.element;
     }
     configs.chrome = {
       rocketbar: true,

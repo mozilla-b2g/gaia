@@ -13,12 +13,18 @@
    * to be able to open new window as well.
    *
    * When an app is opening a page within same origin via window.open,
-   * the generated new app window would be linked to its parent.
-   * You could refer to the opener via <code>this.parentWindow</code>
-   * and refer the openee via <code>this.childWindow</code>.
+   * the generated new app window would be linked to its caller.
+   * You could refer to the opener via <code>this.previousWindow</code>
+   * and refer the openee via <code>this.nextWindow</code>.
    *
-   * The current navigation strategy is to simulate "one way" history,
-   * so one window could have at most one child window.
+   * On the other hand, if <code>"dialog"</code> feature is specified in
+   * window.open, we will open a front window, which is an instance of
+   * PopupWindow, on the caller and set it as the rear window of the callee.
+   * You could access the dialog's opener via <code>this.rearWindow</code>
+   * and access the openee via <code>this.frontWindow</code> in the opener.
+   *
+   * At most an appWindow instance could have one front window and
+   * one next window.
    *
    * @param {AppWindow} app The ordering window of this factory.
    */
@@ -62,7 +68,7 @@
       name: this.app.name,
       iframe: evt.detail.frameElement,
       origin: this.app.origin,
-      parentWindow: this.app
+      rearWindow: this.app
     };
     var childWindow = new PopupWindow(configObject);
     childWindow.open();
@@ -84,7 +90,7 @@
     };
     if (this._sameOrigin(this.app.origin, evt.detail.url)) {
       configObject.manifestURL = this.app.manifestURL;
-      configObject.parentWindow = this.app;
+      configObject.previousWindow = this.app;
     } else {
       configObject.name = '';
       configObject.origin = evt.detail.url;

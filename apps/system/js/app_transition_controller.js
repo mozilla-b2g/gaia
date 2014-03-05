@@ -186,6 +186,7 @@
 
   AppTransitionController.prototype.handle_closed =
     function atc_handle_closed() {
+      console.log(this.app, this.app.element);
       if (!this.app || !this.app.element) {
         return;
       }

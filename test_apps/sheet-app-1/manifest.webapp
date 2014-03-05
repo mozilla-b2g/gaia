@@ -55,5 +55,21 @@
   "default_locale": "en-US",
   "icons": {
     "128": "/style/icons/Blank.png"
+  },
+  "activities": {
+    "test-window": {
+      "filters": {
+        "type": "text"
+       },
+      "disposition": "window",
+      "href": "page3e.html"
+    },
+    "test-inline": {
+      "filters": {
+        "type": "text"
+       },
+      "disposition": "inline",
+      "href": "page3f.html"
+    }
   }
 }
