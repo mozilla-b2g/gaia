@@ -685,11 +685,11 @@ NPM_INSTALLED_PROGRAMS = node_modules/.bin/mozilla-download node_modules/.bin/js
 $(NPM_INSTALLED_PROGRAMS): package.json node_modules
 
 modules.tar:
-	$(DOWNLOAD_CMD) https://github.com/mozilla-b2g/gaia-node-modules/tarball/master
+	$(DOWNLOAD_CMD) https://github.com/mikehenrty/gaia-node-modules/tarball/master
 	mv master modules.tar
 
 node_modules: modules.tar
-	$(TAR_WILDCARDS) --strip-components 1 -x -m -f modules.tar "mozilla-b2g-gaia-node-modules-*/node_modules"
+	$(TAR_WILDCARDS) --strip-components 1 -x -m -f modules.tar "mikehenrty-gaia-node-modules-*/node_modules"
 	npm install && npm rebuild
 	@echo "node_modules installed."
 
