@@ -355,10 +355,11 @@ var DownloadHelper = (function() {
    */
   function remove(download) {
     var req = new Request();
+    var incompleteDownload = download.state !== 'succeeded';
     // If is not done, use download manager to remove it,
     // otherwise, deal with the datastore.
     setTimeout(function() {
-      if (download.state !== 'succeeded') {
+      if (incompleteDownload) {
         if (!navigator.mozDownloadManager) {
           sendError(req, 'DownloadManager not present', CODE.INVALID_STATE);
         } else {
@@ -377,7 +378,7 @@ var DownloadHelper = (function() {
       }
     }, 0);
 
-    return doRemoveFromPhone(req, download);
+    return incompleteDownload ? req : doRemoveFromPhone(req, download);
   }
 
   /*
