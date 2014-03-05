@@ -43,6 +43,7 @@ suite('controllers/hud', function() {
     // Stub 'cameras' setting
     this.app.settings.cameras = sinon.createStubInstance(this.Setting);
     this.app.settings.flashModes = sinon.createStubInstance(this.Setting);
+    this.app.settings.showSettings = sinon.createStubInstance(this.Setting);
     this.app.settings.cameras.get.withArgs('options').returns([]);
     this.app.settings.get.withArgs('cameras')
       .returns(this.app.settings.cameras);
@@ -63,7 +64,6 @@ suite('controllers/hud', function() {
     test('Should listen to the following events', function() {
       assert.ok(this.app.on.calledWith('camera:busy'));
       assert.ok(this.app.on.calledWith('camera:ready'));
-      assert.ok(this.app.on.calledWith('camera:loading'));
       assert.ok(this.app.on.calledWith('change:recording'));
     });
 
