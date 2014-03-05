@@ -1,6 +1,7 @@
+'use strict';
+
 var Calendar = require('./calendar'),
-    Marionette = require('marionette-client');
-    assert = require('assert');
+    assert = require('chai').assert;
 
 marionette('day view', function() {
   var app;
@@ -10,7 +11,8 @@ marionette('day view', function() {
     app = new Calendar(client);
     app.launch({ hideSwipeHint: true });
     // Go to day view
-    app.findElement('dayButton').click();
+    app.waitForElement('dayButton').click();
+    app.waitForDayView();
   });
 
   test.skip('header copy should not overflow', function() {
@@ -27,4 +29,40 @@ marionette('day view', function() {
     assert.equal(wid.content, wid.container,
       'content is bigger than container');
   });
+
+  suite('events longer than 2h', function() {
+    setup(function() {
+      app.createEvent({
+        title: 'Lorem Ipsum',
+        location: 'Dolor Amet',
+        startHour: 0,
+        duration: 3
+      });
+      app.waitForDayView();
+    });
+
+    test('click after first hour', function() {
+      // click will happen at middle of element and middle is after first hour,
+      // so this should be enough to trigger the event details (Bug 972666)
+      client.findElement('#day-view .active .day-events .hour-2').click();
+
+      app.waitForViewEventView();
+
+      var title = app.findElement('viewEventViewTitle');
+
+      assert.equal(
+        title.text(),
+        'Lorem Ipsum',
+        'title should match'
+      );
+    });
+
+    test('click after event end', function() {
+      // click will happen at middle of element so this should be enough to
+      // trigger the create event (since .hour-3 is after event duration)
+      client.findElement('#day-view .active .day-events .hour-3').click();
+      assert.ok(app.isAddEventViewActive(), 'should go to add event view');
+    });
+  });
+
 });
