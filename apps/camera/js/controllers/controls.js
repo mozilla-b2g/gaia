@@ -37,7 +37,7 @@ ControlsController.prototype.bindEvents = function() {
   this.app.on('camera:timeupdate', this.controls.setVideoTimer);
   this.controls.on('click:capture', this.app.firer('capture'));
   this.controls.on('click:gallery', this.onGalleryButtonClick);
-  this.controls.on('click:switch', this.app.settings.toggler('mode'));
+  this.controls.on('click:switch', this.app.settings.mode.next);
   this.controls.on('click:cancel', this.onCancelButtonClick);
   this.app.on('camera:loading', this.disableButtons);
   this.app.on('camera:ready', this.enableButtons);
@@ -92,28 +92,22 @@ ControlsController.prototype.onCancelButtonClick = function() {
   this.activity.cancel();
 };
 
-var throttleGalleryLaunch = false;
-
 /**
  * Open the gallery app
  * when the gallery button
  * is pressed.
  *
  */
-ControlsController.prototype.onGalleryButtonClick = function(e) {
-  e.stopPropagation();
+ControlsController.prototype.onGalleryButtonClick = function(event) {
+  event.stopPropagation();
+
   var MozActivity = window.MozActivity;
+  var controls = this.controls;
 
   // Can't launch the gallery if the lockscreen is locked.
   // The button shouldn't even be visible in this case, but
   // let's be really sure here.
   if (this.app.inSecureMode) { return; }
-
-  if (throttleGalleryLaunch) {
-    return;
-  }
-
-  throttleGalleryLaunch = true;
 
   // Launch the gallery with an activity
   this.mozActivity = new MozActivity({
@@ -121,11 +115,10 @@ ControlsController.prototype.onGalleryButtonClick = function(e) {
     data: { type: 'photos' }
   });
 
-  // Wait 2000ms before re-enabling the Gallery to be launched
-  // (Bug 957709)
-  window.setTimeout(function() {
-    throttleGalleryLaunch = false;
-  }, 2000);
+  // Wait 2000ms before re-enabling the
+  // Gallery to be launched (Bug 957709)
+  controls.disable();
+  setTimeout(controls.enable, 2000);
 };
 
 });

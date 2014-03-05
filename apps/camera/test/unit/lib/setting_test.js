@@ -1,4 +1,4 @@
-suite('lib/setting', function() {
+suite.skip('lib/setting', function() {
   'use strict';
   var require = window.req;
 
