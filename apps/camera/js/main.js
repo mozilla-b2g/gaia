@@ -34,6 +34,7 @@ require(['config/require', 'config'], function() {
       camera: require('controllers/camera'),
       sounds: require('controllers/sounds'),
       timer: require('controllers/timer'),
+      zoomBar: require('controllers/zoom-bar')
     };
 
     // Attach navigator.mozL10n
