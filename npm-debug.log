@@ -1,0 +1,1708 @@
+0 info it worked if it ends with ok
+1 verbose cli [ '/usr/local/bin/node', '/usr/local/bin/npm', 'rebuild' ]
+2 info using npm@1.1.69
+3 info using node@v0.8.16
+4 verbose read json /home/ashish.singh/dev-camera/gaia/package.json
+5 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/chai/package.json
+6 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/jshint/package.json
+7 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/grunt/package.json
+8 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/marionette-settings-api/package.json
+9 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/request/package.json
+10 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/test-agent/package.json
+11 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/grunt-contrib-clean/package.json
+12 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/watch/package.json
+13 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/mail-fakeservers/package.json
+14 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/marionette-client/package.json
+15 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/marionette-helper/package.json
+16 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/ejs/package.json
+17 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/adm-zip/package.json
+18 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/marionette-plugin-forms/package.json
+19 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/empty-port/package.json
+20 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/fe.js/package.json
+21 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/dateformat/package.json
+22 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/mocha-tbpl-reporter/package.json
+23 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/rimraf/package.json
+24 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/marionette-profile-builder/package.json
+25 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/marionette-js-runner/package.json
+26 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/marionette-content-script/package.json
+27 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/download/package.json
+28 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/async/package.json
+29 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/debug/package.json
+30 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/dive/package.json
+31 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/travis-project-jobs/package.json
+32 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/grunt-jsdoc/package.json
+33 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/mozilla-download/package.json
+34 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/node-static/package.json
+35 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/marionette-file-manager/package.json
+36 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/q/package.json
+37 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/mocha/package.json
+38 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/ffi-prebuilt/package.json
+39 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/marionette-apps/package.json
+40 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/moment/package.json
+41 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/mocha-json-proxy/package.json
+42 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/marionette-device-host/package.json
+43 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/proxyquire/package.json
+44 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/jshint/node_modules/minimatch/package.json
+45 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/jshint/node_modules/underscore/package.json
+46 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/jshint/node_modules/shelljs/package.json
+47 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/jshint/node_modules/htmlparser2/package.json
+48 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/jshint/node_modules/console-browserify/package.json
+49 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/jshint/node_modules/cli/package.json
+50 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/lodash/package.json
+51 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/exit/package.json
+52 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/minimatch/package.json
+53 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/getobject/package.json
+54 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/colors/package.json
+55 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/findup-sync/package.json
+56 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/dateformat/package.json
+57 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/rimraf/package.json
+58 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/eventemitter2/package.json
+59 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/async/package.json
+60 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/js-yaml/package.json
+61 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/glob/package.json
+62 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/hooker/package.json
+63 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/underscore.string/package.json
+64 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/coffee-script/package.json
+65 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/which/package.json
+66 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/iconv-lite/package.json
+67 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/nopt/package.json
+68 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/request/node_modules/node-uuid/package.json
+69 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/request/node_modules/forever-agent/package.json
+70 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/request/node_modules/aws-sign2/package.json
+71 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/request/node_modules/qs/package.json
+72 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/request/node_modules/json-stringify-safe/package.json
+73 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/request/node_modules/hawk/package.json
+74 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/request/node_modules/mime/package.json
+75 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/request/node_modules/tunnel-agent/package.json
+76 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/request/node_modules/oauth-sign/package.json
+77 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/request/node_modules/form-data/package.json
+78 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/request/node_modules/tough-cookie/package.json
+79 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/request/node_modules/http-signature/package.json
+80 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/test-agent/node_modules/match-files/package.json
+81 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/test-agent/node_modules/debug/package.json
+82 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/test-agent/node_modules/node-static/package.json
+83 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/test-agent/node_modules/growl/package.json
+84 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/test-agent/node_modules/ws/package.json
+85 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/test-agent/node_modules/optimist/package.json
+86 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/test-agent/node_modules/websocket.io/package.json
+87 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/mail-fakeservers/node_modules/json-wire-protocol/package.json
+88 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/marionette-client/node_modules/json-wire-protocol/package.json
+89 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/marionette-client/node_modules/socket-retry-connect/package.json
+90 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/marionette-client/node_modules/debug/package.json
+91 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/marionette-client/node_modules/sockit-to-me/package.json
+92 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/marionette-plugin-forms/node_modules/marionette-client/package.json
+93 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/mocha-tbpl-reporter/node_modules/mocha/package.json
+94 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/marionette-profile-builder/node_modules/mozilla-profile-builder/package.json
+95 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/marionette-js-runner/node_modules/intersect/package.json
+96 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/marionette-js-runner/node_modules/marionette-js-logger/package.json
+97 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/marionette-js-runner/node_modules/array-difference/package.json
+98 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/marionette-js-runner/node_modules/marionette-b2gdesktop-host/package.json
+99 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/marionette-js-runner/node_modules/commander/package.json
+100 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/request/package.json
+101 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/through2/package.json
+102 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/decompress/package.json
+103 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/mkdirp/package.json
+104 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/each-async/package.json
+105 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/dive/node_modules/append/package.json
+106 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/travis-project-jobs/node_modules/commander/package.json
+107 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/mozilla-download/node_modules/tmp/package.json
+108 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/mozilla-download/node_modules/mozilla-get-url/package.json
+109 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/mozilla-download/node_modules/ncp/package.json
+110 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/mozilla-download/node_modules/commander/package.json
+111 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/mozilla-download/node_modules/dmg/package.json
+112 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/node-static/node_modules/colors/package.json
+113 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/node-static/node_modules/mime/package.json
+114 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/node-static/node_modules/optimist/package.json
+115 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/mocha/node_modules/jade/package.json
+116 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/mocha/node_modules/diff/package.json
+117 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/mocha/node_modules/glob/package.json
+118 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/mocha/node_modules/mkdirp/package.json
+119 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/mocha/node_modules/growl/package.json
+120 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/mocha/node_modules/commander/package.json
+121 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/ffi-prebuilt/node_modules/ref-prebuilt/package.json
+122 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/ffi-prebuilt/node_modules/ref-struct-prebuilt/package.json
+123 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/ffi-prebuilt/node_modules/bindings/package.json
+124 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/jshint/node_modules/minimatch/node_modules/sigmund/package.json
+125 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/jshint/node_modules/minimatch/node_modules/lru-cache/package.json
+126 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/jshint/node_modules/htmlparser2/node_modules/readable-stream/package.json
+127 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/jshint/node_modules/htmlparser2/node_modules/domhandler/package.json
+128 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/jshint/node_modules/htmlparser2/node_modules/domutils/package.json
+129 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/jshint/node_modules/htmlparser2/node_modules/domelementtype/package.json
+130 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/jshint/node_modules/cli/node_modules/glob/package.json
+131 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/minimatch/node_modules/sigmund/package.json
+132 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/minimatch/node_modules/lru-cache/package.json
+133 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/findup-sync/node_modules/lodash/package.json
+134 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/rimraf/node_modules/graceful-fs/package.json
+135 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/js-yaml/node_modules/esprima/package.json
+136 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/js-yaml/node_modules/argparse/package.json
+137 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/glob/node_modules/graceful-fs/package.json
+138 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/glob/node_modules/inherits/package.json
+139 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/nopt/node_modules/abbrev/package.json
+140 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/request/node_modules/hawk/node_modules/boom/package.json
+141 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/request/node_modules/hawk/node_modules/sntp/package.json
+142 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/request/node_modules/hawk/node_modules/hoek/package.json
+143 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/request/node_modules/hawk/node_modules/cryptiles/package.json
+144 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/request/node_modules/form-data/node_modules/combined-stream/package.json
+145 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/request/node_modules/tough-cookie/node_modules/punycode/package.json
+146 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/request/node_modules/http-signature/node_modules/assert-plus/package.json
+147 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/request/node_modules/http-signature/node_modules/ctype/package.json
+148 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/request/node_modules/http-signature/node_modules/asn1/package.json
+149 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/test-agent/node_modules/match-files/node_modules/step-object/package.json
+150 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/test-agent/node_modules/ws/node_modules/tinycolor/package.json
+151 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/test-agent/node_modules/ws/node_modules/nan/package.json
+152 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/test-agent/node_modules/ws/node_modules/options/package.json
+153 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/test-agent/node_modules/ws/node_modules/commander/package.json
+154 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/test-agent/node_modules/optimist/node_modules/wordwrap/package.json
+155 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/test-agent/node_modules/websocket.io/node_modules/ws/package.json
+156 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/mail-fakeservers/node_modules/json-wire-protocol/node_modules/eventemitter2/package.json
+157 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/marionette-client/node_modules/json-wire-protocol/node_modules/eventemitter2/package.json
+158 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/marionette-plugin-forms/node_modules/marionette-client/node_modules/json-wire-protocol/package.json
+159 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/marionette-plugin-forms/node_modules/marionette-client/node_modules/socket-retry-connect/package.json
+160 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/marionette-plugin-forms/node_modules/marionette-client/node_modules/debug/package.json
+161 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/marionette-plugin-forms/node_modules/marionette-client/node_modules/sockit-to-me/package.json
+162 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/mocha-tbpl-reporter/node_modules/mocha/node_modules/jade/package.json
+163 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/mocha-tbpl-reporter/node_modules/mocha/node_modules/diff/package.json
+164 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/mocha-tbpl-reporter/node_modules/mocha/node_modules/ms/package.json
+165 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/mocha-tbpl-reporter/node_modules/mocha/node_modules/glob/package.json
+166 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/mocha-tbpl-reporter/node_modules/mocha/node_modules/mkdirp/package.json
+167 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/mocha-tbpl-reporter/node_modules/mocha/node_modules/growl/package.json
+168 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/mocha-tbpl-reporter/node_modules/mocha/node_modules/commander/package.json
+169 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/marionette-profile-builder/node_modules/mozilla-profile-builder/node_modules/tmp/package.json
+170 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/marionette-profile-builder/node_modules/mozilla-profile-builder/node_modules/traverse-directory/package.json
+171 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/marionette-profile-builder/node_modules/mozilla-profile-builder/node_modules/packaged-webapp/package.json
+172 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/marionette-profile-builder/node_modules/mozilla-profile-builder/node_modules/remove/package.json
+173 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/marionette-profile-builder/node_modules/mozilla-profile-builder/node_modules/fs-extra/package.json
+174 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/marionette-js-runner/node_modules/marionette-js-logger/node_modules/non-native-websocket/package.json
+175 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/marionette-js-runner/node_modules/marionette-b2gdesktop-host/node_modules/mozilla-runner/package.json
+176 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/marionette-js-runner/node_modules/commander/node_modules/keypress/package.json
+177 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/request/node_modules/node-uuid/package.json
+178 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/request/node_modules/forever-agent/package.json
+179 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/request/node_modules/qs/package.json
+180 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/request/node_modules/json-stringify-safe/package.json
+181 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/request/node_modules/hawk/package.json
+182 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/request/node_modules/mime/package.json
+183 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/request/node_modules/tunnel-agent/package.json
+184 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/request/node_modules/aws-sign/package.json
+185 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/request/node_modules/oauth-sign/package.json
+186 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/request/node_modules/form-data/package.json
+187 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/request/node_modules/cookie-jar/package.json
+188 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/request/node_modules/http-signature/package.json
+189 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/through2/node_modules/readable-stream/package.json
+190 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/through2/node_modules/xtend/package.json
+191 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/decompress/node_modules/tempfile/package.json
+192 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/decompress/node_modules/mout/package.json
+193 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/decompress/node_modules/tar/package.json
+194 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/decompress/node_modules/stream-combiner/package.json
+195 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/mozilla-download/node_modules/mozilla-get-url/node_modules/jsftp/package.json
+196 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/node-static/node_modules/optimist/node_modules/wordwrap/package.json
+197 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/node-static/node_modules/optimist/node_modules/minimist/package.json
+198 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/mocha/node_modules/jade/node_modules/mkdirp/package.json
+199 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/mocha/node_modules/jade/node_modules/commander/package.json
+200 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/mocha/node_modules/glob/node_modules/minimatch/package.json
+201 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/mocha/node_modules/glob/node_modules/graceful-fs/package.json
+202 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/mocha/node_modules/glob/node_modules/inherits/package.json
+203 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/jshint/node_modules/htmlparser2/node_modules/readable-stream/node_modules/string_decoder/package.json
+204 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/jshint/node_modules/cli/node_modules/glob/node_modules/inherits/package.json
+205 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/js-yaml/node_modules/argparse/node_modules/underscore/package.json
+206 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/js-yaml/node_modules/argparse/node_modules/underscore.string/package.json
+207 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/request/node_modules/form-data/node_modules/combined-stream/node_modules/delayed-stream/package.json
+208 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/test-agent/node_modules/match-files/node_modules/step-object/node_modules/step/package.json
+209 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/test-agent/node_modules/websocket.io/node_modules/ws/node_modules/tinycolor/package.json
+210 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/test-agent/node_modules/websocket.io/node_modules/ws/node_modules/options/package.json
+211 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/test-agent/node_modules/websocket.io/node_modules/ws/node_modules/commander/package.json
+212 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/marionette-plugin-forms/node_modules/marionette-client/node_modules/json-wire-protocol/node_modules/eventemitter2/package.json
+213 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/mocha-tbpl-reporter/node_modules/mocha/node_modules/jade/node_modules/mkdirp/package.json
+214 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/mocha-tbpl-reporter/node_modules/mocha/node_modules/glob/node_modules/minimatch/package.json
+215 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/mocha-tbpl-reporter/node_modules/mocha/node_modules/glob/node_modules/graceful-fs/package.json
+216 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/mocha-tbpl-reporter/node_modules/mocha/node_modules/glob/node_modules/inherits/package.json
+217 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/marionette-profile-builder/node_modules/mozilla-profile-builder/node_modules/traverse-directory/node_modules/graceful-fs/package.json
+218 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/marionette-profile-builder/node_modules/mozilla-profile-builder/node_modules/packaged-webapp/node_modules/readdirp/package.json
+219 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/marionette-profile-builder/node_modules/mozilla-profile-builder/node_modules/packaged-webapp/node_modules/archiver/package.json
+220 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/marionette-profile-builder/node_modules/mozilla-profile-builder/node_modules/remove/node_modules/seq/package.json
+221 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/marionette-profile-builder/node_modules/mozilla-profile-builder/node_modules/fs-extra/node_modules/mkdirp/package.json
+222 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/marionette-profile-builder/node_modules/mozilla-profile-builder/node_modules/fs-extra/node_modules/ncp/package.json
+223 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/marionette-profile-builder/node_modules/mozilla-profile-builder/node_modules/fs-extra/node_modules/jsonfile/package.json
+224 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/request/node_modules/hawk/node_modules/boom/package.json
+225 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/request/node_modules/hawk/node_modules/sntp/package.json
+226 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/request/node_modules/hawk/node_modules/hoek/package.json
+227 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/request/node_modules/hawk/node_modules/cryptiles/package.json
+228 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/request/node_modules/form-data/node_modules/combined-stream/package.json
+229 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/request/node_modules/http-signature/node_modules/assert-plus/package.json
+230 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/request/node_modules/http-signature/node_modules/ctype/package.json
+231 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/request/node_modules/http-signature/node_modules/asn1/package.json
+232 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/through2/node_modules/readable-stream/node_modules/string_decoder/package.json
+233 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/through2/node_modules/xtend/node_modules/is-object/package.json
+234 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/through2/node_modules/xtend/node_modules/object-keys/package.json
+235 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/decompress/node_modules/tempfile/node_modules/uuid/package.json
+236 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/decompress/node_modules/tar/node_modules/fstream/package.json
+237 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/decompress/node_modules/tar/node_modules/block-stream/package.json
+238 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/decompress/node_modules/tar/node_modules/inherits/package.json
+239 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/decompress/node_modules/stream-combiner/node_modules/duplexer/package.json
+240 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/mozilla-download/node_modules/mozilla-get-url/node_modules/jsftp/node_modules/event-stream/package.json
+241 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/mozilla-download/node_modules/mozilla-get-url/node_modules/jsftp/node_modules/parse-listing/package.json
+242 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/mocha/node_modules/glob/node_modules/minimatch/node_modules/sigmund/package.json
+243 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/mocha/node_modules/glob/node_modules/minimatch/node_modules/lru-cache/package.json
+244 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/mocha-tbpl-reporter/node_modules/mocha/node_modules/glob/node_modules/minimatch/node_modules/sigmund/package.json
+245 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/mocha-tbpl-reporter/node_modules/mocha/node_modules/glob/node_modules/minimatch/node_modules/lru-cache/package.json
+246 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/marionette-profile-builder/node_modules/mozilla-profile-builder/node_modules/packaged-webapp/node_modules/readdirp/node_modules/minimatch/package.json
+247 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/marionette-profile-builder/node_modules/mozilla-profile-builder/node_modules/packaged-webapp/node_modules/archiver/node_modules/readable-stream/package.json
+248 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/marionette-profile-builder/node_modules/mozilla-profile-builder/node_modules/packaged-webapp/node_modules/archiver/node_modules/iconv-lite/package.json
+249 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/marionette-profile-builder/node_modules/mozilla-profile-builder/node_modules/remove/node_modules/seq/node_modules/chainsaw/package.json
+250 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/marionette-profile-builder/node_modules/mozilla-profile-builder/node_modules/remove/node_modules/seq/node_modules/hashish/package.json
+251 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/request/node_modules/form-data/node_modules/combined-stream/node_modules/delayed-stream/package.json
+252 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/through2/node_modules/xtend/node_modules/object-keys/node_modules/is/package.json
+253 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/through2/node_modules/xtend/node_modules/object-keys/node_modules/foreach/package.json
+254 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/through2/node_modules/xtend/node_modules/object-keys/node_modules/indexof/package.json
+255 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/decompress/node_modules/tar/node_modules/fstream/node_modules/graceful-fs/package.json
+256 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/mozilla-download/node_modules/mozilla-get-url/node_modules/jsftp/node_modules/event-stream/node_modules/from/package.json
+257 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/mozilla-download/node_modules/mozilla-get-url/node_modules/jsftp/node_modules/event-stream/node_modules/duplexer/package.json
+258 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/mozilla-download/node_modules/mozilla-get-url/node_modules/jsftp/node_modules/event-stream/node_modules/map-stream/package.json
+259 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/mozilla-download/node_modules/mozilla-get-url/node_modules/jsftp/node_modules/event-stream/node_modules/through/package.json
+260 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/mozilla-download/node_modules/mozilla-get-url/node_modules/jsftp/node_modules/event-stream/node_modules/pause-stream/package.json
+261 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/mozilla-download/node_modules/mozilla-get-url/node_modules/jsftp/node_modules/event-stream/node_modules/stream-combiner/package.json
+262 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/mozilla-download/node_modules/mozilla-get-url/node_modules/jsftp/node_modules/event-stream/node_modules/split/package.json
+263 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/marionette-profile-builder/node_modules/mozilla-profile-builder/node_modules/packaged-webapp/node_modules/readdirp/node_modules/minimatch/node_modules/sigmund/package.json
+264 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/marionette-profile-builder/node_modules/mozilla-profile-builder/node_modules/packaged-webapp/node_modules/readdirp/node_modules/minimatch/node_modules/lru-cache/package.json
+265 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/marionette-profile-builder/node_modules/mozilla-profile-builder/node_modules/packaged-webapp/node_modules/archiver/node_modules/readable-stream/node_modules/string_decoder/package.json
+266 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/marionette-profile-builder/node_modules/mozilla-profile-builder/node_modules/remove/node_modules/seq/node_modules/chainsaw/node_modules/traverse/package.json
+267 verbose read json /home/ashish.singh/dev-camera/gaia/node_modules/marionette-profile-builder/node_modules/mozilla-profile-builder/node_modules/remove/node_modules/seq/node_modules/hashish/node_modules/traverse/package.json
+268 verbose readInstalled returning chai@1.4.2
+269 verbose readInstalled returning marionette-settings-api@0.1.0
+270 verbose readInstalled returning grunt-contrib-clean@0.5.0
+271 verbose readInstalled returning watch@0.9.0
+272 verbose readInstalled returning marionette-helper@0.2.1
+273 verbose readInstalled returning ejs@0.8.4
+274 verbose readInstalled returning adm-zip@0.4.3
+275 verbose readInstalled returning empty-port@0.0.1
+276 verbose readInstalled returning fe.js@0.1.4
+277 verbose readInstalled returning dateformat@1.0.6-1.2.3
+278 verbose readInstalled returning rimraf@2.2.5
+279 verbose readInstalled returning marionette-content-script@0.0.3
+280 verbose readInstalled returning async@0.2.9
+281 verbose readInstalled returning debug@0.7.4
+282 verbose readInstalled returning grunt-jsdoc@0.5.1
+283 verbose readInstalled returning marionette-file-manager@0.0.2
+284 verbose readInstalled returning q@0.9.7
+285 verbose readInstalled returning marionette-apps@0.3.3
+286 verbose readInstalled returning moment@2.4.0
+287 verbose readInstalled returning mocha-json-proxy@0.0.7
+288 verbose readInstalled returning marionette-device-host@0.0.2
+289 verbose readInstalled returning proxyquire@0.4.1
+290 verbose readInstalled returning dive@0.3.0
+291 verbose readInstalled returning travis-project-jobs@0.0.1
+292 verbose readInstalled returning ffi-prebuilt@1.2.9
+293 verbose readInstalled returning mail-fakeservers@0.0.14
+294 verbose readInstalled returning marionette-client@1.1.0
+295 verbose readInstalled returning marionette-js-runner@0.4.3
+296 verbose readInstalled returning node-static@0.6.9
+297 verbose readInstalled returning jshint@2.4.2
+298 verbose readInstalled returning grunt@0.4.2
+299 verbose readInstalled returning request@2.33.0
+300 verbose readInstalled returning test-agent@0.18.0
+301 verbose readInstalled returning marionette-plugin-forms@0.0.1
+302 verbose readInstalled returning mocha@1.15.0
+303 verbose readInstalled returning mocha-tbpl-reporter@0.0.6
+304 verbose readInstalled returning download@0.1.7
+305 verbose readInstalled returning mozilla-download@0.4.1
+306 verbose readInstalled returning marionette-profile-builder@0.0.3
+307 verbose readInstalled returning undefined
+308 verbose readInstalled returning undefined
+309 verbose readInstalled returning undefined
+310 verbose readInstalled returning append@0.1.1
+311 verbose readInstalled returning commander@2.0.0
+312 verbose readInstalled returning bindings@1.1.1
+313 verbose readInstalled returning ref-prebuilt@0.1.3
+314 verbose readInstalled returning ref-struct-prebuilt@0.0.5
+315 verbose readInstalled returning json-wire-protocol@0.2.1
+316 verbose readInstalled returning eventemitter2@0.4.13
+317 verbose readInstalled returning debug@0.6.0
+318 verbose readInstalled returning json-wire-protocol@0.2.1
+319 verbose readInstalled returning socket-retry-connect@0.0.1
+320 verbose readInstalled returning sockit-to-me@0.1.8
+321 verbose readInstalled returning eventemitter2@0.4.13
+322 verbose readInstalled returning array-difference@0.0.1
+323 verbose readInstalled returning commander@1.3.2
+324 verbose readInstalled returning intersect@0.0.3
+325 verbose readInstalled returning marionette-b2gdesktop-host@0.7.1
+326 verbose readInstalled returning marionette-js-logger@0.1.2-non-native
+327 verbose readInstalled returning keypress@0.1.0
+328 verbose readInstalled returning mozilla-runner@0.3.0
+329 verbose readInstalled returning non-native-websocket@0.0.1
+330 verbose readInstalled returning mozilla-profile-builder@0.4.0
+331 verbose readInstalled returning tmp@0.0.23
+332 verbose readInstalled returning remove@0.1.5
+333 verbose readInstalled returning packaged-webapp@0.1.2
+334 verbose readInstalled returning traverse-directory@0.1.0
+335 verbose readInstalled returning fs-extra@0.8.1
+336 verbose readInstalled returning seq@0.3.5
+337 verbose readInstalled returning chainsaw@0.0.9
+338 verbose readInstalled returning hashish@0.0.4
+339 verbose readInstalled returning traverse@0.3.9
+340 verbose readInstalled returning traverse@0.6.6
+341 verbose readInstalled returning archiver@0.4.10
+342 verbose readInstalled returning readdirp@0.2.5
+343 verbose readInstalled returning readable-stream@1.0.25
+344 verbose readInstalled returning iconv-lite@0.2.11
+345 verbose readInstalled returning string_decoder@0.10.25-1
+346 verbose readInstalled returning minimatch@0.2.14
+347 verbose readInstalled returning lru-cache@2.5.0
+348 verbose readInstalled returning sigmund@1.0.0
+349 verbose readInstalled returning graceful-fs@2.0.2
+350 verbose readInstalled returning ncp@0.4.2
+351 verbose readInstalled returning mkdirp@0.3.5
+352 verbose readInstalled returning jsonfile@1.1.1
+353 verbose readInstalled returning optimist@0.6.1
+354 verbose readInstalled returning colors@0.6.2
+355 verbose readInstalled returning mime@1.2.11
+356 verbose readInstalled returning wordwrap@0.0.2
+357 verbose readInstalled returning minimist@0.0.7
+358 verbose readInstalled returning shelljs@0.1.4
+359 verbose readInstalled returning underscore@1.4.4
+360 verbose readInstalled returning cli@0.4.5
+361 verbose readInstalled returning minimatch@0.2.14
+362 verbose readInstalled returning htmlparser2@3.3.0
+363 verbose readInstalled returning console-browserify@0.1.6
+364 verbose readInstalled returning glob@3.2.8
+365 verbose readInstalled returning inherits@2.0.1
+366 verbose readInstalled returning lru-cache@2.5.0
+367 verbose readInstalled returning sigmund@1.0.0
+368 verbose readInstalled returning domhandler@2.1.0
+369 verbose readInstalled returning domutils@1.1.6
+370 verbose readInstalled returning domelementtype@1.1.1
+371 verbose readInstalled returning readable-stream@1.0.25
+372 verbose readInstalled returning string_decoder@0.10.25-1
+373 verbose readInstalled returning async@0.1.22
+374 verbose readInstalled returning coffee-script@1.3.3
+375 verbose readInstalled returning colors@0.6.2
+376 verbose readInstalled returning dateformat@1.0.2-1.2.3
+377 verbose readInstalled returning eventemitter2@0.4.13
+378 verbose readInstalled returning findup-sync@0.1.2
+379 verbose readInstalled returning glob@3.1.21
+380 verbose readInstalled returning hooker@0.2.3
+381 verbose readInstalled returning iconv-lite@0.2.11
+382 verbose readInstalled returning minimatch@0.2.14
+383 verbose readInstalled returning nopt@1.0.10
+384 verbose readInstalled returning rimraf@2.0.3
+385 verbose readInstalled returning lodash@0.9.2
+386 verbose readInstalled returning underscore.string@2.2.1
+387 verbose readInstalled returning which@1.0.5
+388 verbose readInstalled returning js-yaml@2.0.5
+389 verbose readInstalled returning exit@0.1.2
+390 verbose readInstalled returning getobject@0.1.0
+391 verbose readInstalled returning lodash@1.0.1
+392 verbose readInstalled returning graceful-fs@1.2.3
+393 verbose readInstalled returning inherits@1.0.0
+394 verbose readInstalled returning lru-cache@2.5.0
+395 verbose readInstalled returning sigmund@1.0.0
+396 verbose readInstalled returning abbrev@1.0.4
+397 verbose readInstalled returning graceful-fs@1.1.14
+398 verbose readInstalled returning argparse@0.1.15
+399 verbose readInstalled returning esprima@1.0.4
+400 verbose readInstalled returning underscore@1.4.4
+401 verbose readInstalled returning underscore.string@2.3.3
+402 verbose readInstalled returning qs@0.6.6
+403 verbose readInstalled returning json-stringify-safe@5.0.0
+404 verbose readInstalled returning forever-agent@0.5.2
+405 verbose readInstalled returning node-uuid@1.4.1
+406 verbose readInstalled returning mime@1.2.11
+407 verbose readInstalled returning tough-cookie@0.12.1
+408 verbose readInstalled returning form-data@0.1.2
+409 verbose readInstalled returning tunnel-agent@0.3.0
+410 verbose readInstalled returning http-signature@0.10.0
+411 verbose readInstalled returning oauth-sign@0.3.0
+412 verbose readInstalled returning hawk@1.0.0
+413 verbose readInstalled returning aws-sign2@0.5.0
+414 verbose readInstalled returning punycode@1.2.4
+415 verbose readInstalled returning combined-stream@0.0.4
+416 verbose readInstalled returning delayed-stream@0.0.5
+417 verbose readInstalled returning assert-plus@0.1.2
+418 verbose readInstalled returning asn1@0.1.11
+419 verbose readInstalled returning ctype@0.5.2
+420 verbose readInstalled returning hoek@0.9.1
+421 verbose readInstalled returning boom@0.4.2
+422 verbose readInstalled returning cryptiles@0.2.2
+423 verbose readInstalled returning sntp@0.2.4
+424 verbose readInstalled returning websocket.io@0.2.1
+425 verbose readInstalled returning growl@1.7.0
+426 verbose readInstalled returning optimist@0.3.7
+427 verbose readInstalled returning ws@0.4.31
+428 verbose readInstalled returning debug@0.6.0
+429 verbose readInstalled returning match-files@0.1.1
+430 verbose readInstalled returning node-static@0.5.9
+431 verbose readInstalled returning ws@0.4.20
+432 verbose readInstalled returning commander@0.6.1
+433 verbose readInstalled returning tinycolor@0.0.1
+434 verbose readInstalled returning options@0.0.5
+435 verbose readInstalled returning wordwrap@0.0.2
+436 verbose readInstalled returning commander@0.6.1
+437 verbose readInstalled returning nan@0.3.2
+438 verbose readInstalled returning tinycolor@0.0.1
+439 verbose readInstalled returning options@0.0.5
+440 verbose readInstalled returning step-object@0.2.2
+441 verbose readInstalled returning step@0.0.5
+442 verbose readInstalled returning marionette-client@0.13.4
+443 verbose readInstalled returning debug@0.6.0
+444 verbose readInstalled returning json-wire-protocol@0.2.1
+445 verbose readInstalled returning socket-retry-connect@0.0.1
+446 verbose readInstalled returning sockit-to-me@0.1.8
+447 verbose readInstalled returning eventemitter2@0.4.13
+448 verbose readInstalled returning commander@2.0.0
+449 verbose readInstalled returning growl@1.7.0
+450 verbose readInstalled returning jade@0.26.3
+451 verbose readInstalled returning diff@1.0.7
+452 verbose readInstalled returning mkdirp@0.3.5
+453 verbose readInstalled returning glob@3.2.3
+454 verbose readInstalled returning commander@0.6.1
+455 verbose readInstalled returning mkdirp@0.3.0
+456 verbose readInstalled returning minimatch@0.2.14
+457 verbose readInstalled returning graceful-fs@2.0.2
+458 verbose readInstalled returning inherits@2.0.1
+459 verbose readInstalled returning lru-cache@2.5.0
+460 verbose readInstalled returning sigmund@1.0.0
+461 verbose readInstalled returning mocha@1.12.0
+462 verbose readInstalled returning commander@0.6.1
+463 verbose readInstalled returning growl@1.7.0
+464 verbose readInstalled returning jade@0.26.3
+465 verbose readInstalled returning diff@1.0.2
+466 verbose readInstalled returning mkdirp@0.3.5
+467 verbose readInstalled returning ms@0.3.0
+468 verbose readInstalled returning glob@3.2.1
+469 verbose readInstalled returning mkdirp@0.3.0
+470 verbose readInstalled returning minimatch@0.2.14
+471 verbose readInstalled returning graceful-fs@1.2.3
+472 verbose readInstalled returning inherits@1.0.0
+473 verbose readInstalled returning lru-cache@2.5.0
+474 verbose readInstalled returning sigmund@1.0.0
+475 verbose readInstalled returning decompress@0.1.6
+476 verbose readInstalled returning each-async@0.1.2
+477 verbose readInstalled returning mkdirp@0.3.5
+478 verbose readInstalled returning request@2.25.0
+479 verbose readInstalled returning through2@0.1.0
+480 verbose readInstalled returning mout@0.6.0
+481 verbose readInstalled returning stream-combiner@0.0.4
+482 verbose readInstalled returning tar@0.1.19
+483 verbose readInstalled returning tempfile@0.1.2
+484 verbose readInstalled returning duplexer@0.1.1
+485 verbose readInstalled returning inherits@2.0.1
+486 verbose readInstalled returning block-stream@0.0.7
+487 verbose readInstalled returning fstream@0.1.25
+488 verbose readInstalled returning graceful-fs@2.0.2
+489 verbose readInstalled returning uuid@1.4.1
+490 verbose readInstalled returning qs@0.6.6
+491 verbose readInstalled returning json-stringify-safe@5.0.0
+492 verbose readInstalled returning forever-agent@0.5.2
+493 verbose readInstalled returning tunnel-agent@0.3.0
+494 verbose readInstalled returning http-signature@0.10.0
+495 verbose readInstalled returning hawk@1.0.0
+496 verbose readInstalled returning aws-sign@0.3.0
+497 verbose readInstalled returning oauth-sign@0.3.0
+498 verbose readInstalled returning cookie-jar@0.3.0
+499 verbose readInstalled returning node-uuid@1.4.1
+500 verbose readInstalled returning mime@1.2.11
+501 verbose readInstalled returning form-data@0.1.2
+502 verbose readInstalled returning assert-plus@0.1.2
+503 verbose readInstalled returning asn1@0.1.11
+504 verbose readInstalled returning ctype@0.5.2
+505 verbose readInstalled returning hoek@0.9.1
+506 verbose readInstalled returning boom@0.4.2
+507 verbose readInstalled returning cryptiles@0.2.2
+508 verbose readInstalled returning sntp@0.2.4
+509 verbose readInstalled returning combined-stream@0.0.4
+510 verbose readInstalled returning delayed-stream@0.0.5
+511 verbose readInstalled returning readable-stream@1.0.25
+512 verbose readInstalled returning xtend@2.0.6
+513 verbose readInstalled returning string_decoder@0.10.25-1
+514 verbose readInstalled returning is-object@0.1.2
+515 verbose readInstalled returning object-keys@0.2.0
+516 verbose readInstalled returning foreach@2.0.4
+517 verbose readInstalled returning indexof@0.0.1
+518 verbose readInstalled returning is@0.2.7
+519 verbose readInstalled returning mozilla-get-url@0.2.0
+520 verbose readInstalled returning dmg@0.0.3
+521 verbose readInstalled returning tmp@0.0.23
+522 verbose readInstalled returning ncp@0.4.2
+523 verbose readInstalled returning commander@2.0.0
+524 verbose readInstalled returning jsftp@1.1.1
+525 verbose readInstalled returning event-stream@3.0.20
+526 verbose readInstalled returning parse-listing@1.0.1
+527 verbose readInstalled returning through@2.3.4
+528 verbose readInstalled returning duplexer@0.1.1
+529 verbose readInstalled returning from@0.1.3
+530 verbose readInstalled returning map-stream@0.0.4
+531 verbose readInstalled returning pause-stream@0.0.11
+532 verbose readInstalled returning split@0.2.10
+533 verbose readInstalled returning stream-combiner@0.0.4
+534 info readInstalled object
+535 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia', 'gaia@0.0.2' ]
+536 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/chai',
+536 verbose rebuild   'chai@1.4.2' ]
+537 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-settings-api',
+537 verbose rebuild   'marionette-settings-api@0.1.0' ]
+538 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/grunt-contrib-clean',
+538 verbose rebuild   'grunt-contrib-clean@0.5.0' ]
+539 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/rimraf',
+539 verbose rebuild   'rimraf@2.2.5' ]
+540 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/watch',
+540 verbose rebuild   'watch@0.9.0' ]
+541 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-helper',
+541 verbose rebuild   'marionette-helper@0.2.1' ]
+542 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-apps',
+542 verbose rebuild   'marionette-apps@0.3.3' ]
+543 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/ejs',
+543 verbose rebuild   'ejs@0.8.4' ]
+544 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/adm-zip',
+544 verbose rebuild   'adm-zip@0.4.3' ]
+545 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/empty-port',
+545 verbose rebuild   'empty-port@0.0.1' ]
+546 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/fe.js',
+546 verbose rebuild   'fe.js@0.1.4' ]
+547 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/dateformat',
+547 verbose rebuild   'dateformat@1.0.6-1.2.3' ]
+548 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-content-script',
+548 verbose rebuild   'marionette-content-script@0.0.3' ]
+549 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/async',
+549 verbose rebuild   'async@0.2.9' ]
+550 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/debug',
+550 verbose rebuild   'debug@0.7.4' ]
+551 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/grunt-jsdoc',
+551 verbose rebuild   'grunt-jsdoc@0.5.1' ]
+552 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-file-manager',
+552 verbose rebuild   'marionette-file-manager@0.0.2' ]
+553 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/q',
+553 verbose rebuild   'q@0.9.7' ]
+554 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/moment',
+554 verbose rebuild   'moment@2.4.0' ]
+555 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/mocha-json-proxy',
+555 verbose rebuild   'mocha-json-proxy@0.0.7' ]
+556 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-device-host',
+556 verbose rebuild   'marionette-device-host@0.0.2' ]
+557 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/proxyquire',
+557 verbose rebuild   'proxyquire@0.4.1' ]
+558 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/dive',
+558 verbose rebuild   'dive@0.3.0' ]
+559 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/dive/node_modules/append',
+559 verbose rebuild   'append@0.1.1' ]
+560 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/travis-project-jobs',
+560 verbose rebuild   'travis-project-jobs@0.0.1' ]
+561 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/travis-project-jobs/node_modules/commander',
+561 verbose rebuild   'commander@2.0.0' ]
+562 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/ffi-prebuilt',
+562 verbose rebuild   'ffi-prebuilt@1.2.9' ]
+563 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/ffi-prebuilt/node_modules/bindings',
+563 verbose rebuild   'bindings@1.1.1' ]
+564 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/ffi-prebuilt/node_modules/ref-prebuilt',
+564 verbose rebuild   'ref-prebuilt@0.1.3' ]
+565 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/ffi-prebuilt/node_modules/ref-struct-prebuilt',
+565 verbose rebuild   'ref-struct-prebuilt@0.0.5' ]
+566 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/mail-fakeservers',
+566 verbose rebuild   'mail-fakeservers@0.0.14' ]
+567 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/mail-fakeservers/node_modules/json-wire-protocol',
+567 verbose rebuild   'json-wire-protocol@0.2.1' ]
+568 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/mail-fakeservers/node_modules/json-wire-protocol/node_modules/eventemitter2',
+568 verbose rebuild   'eventemitter2@0.4.13' ]
+569 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-client',
+569 verbose rebuild   'marionette-client@1.1.0' ]
+570 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-client/node_modules/debug',
+570 verbose rebuild   'debug@0.6.0' ]
+571 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-client/node_modules/json-wire-protocol',
+571 verbose rebuild   'json-wire-protocol@0.2.1' ]
+572 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-client/node_modules/json-wire-protocol/node_modules/eventemitter2',
+572 verbose rebuild   'eventemitter2@0.4.13' ]
+573 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-client/node_modules/socket-retry-connect',
+573 verbose rebuild   'socket-retry-connect@0.0.1' ]
+574 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-client/node_modules/sockit-to-me',
+574 verbose rebuild   'sockit-to-me@0.1.8' ]
+575 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-js-runner',
+575 verbose rebuild   'marionette-js-runner@0.4.3' ]
+576 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-js-runner/node_modules/array-difference',
+576 verbose rebuild   'array-difference@0.0.1' ]
+577 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-js-runner/node_modules/commander',
+577 verbose rebuild   'commander@1.3.2' ]
+578 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-js-runner/node_modules/commander/node_modules/keypress',
+578 verbose rebuild   'keypress@0.1.0' ]
+579 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-js-runner/node_modules/intersect',
+579 verbose rebuild   'intersect@0.0.3' ]
+580 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-js-runner/node_modules/marionette-b2gdesktop-host',
+580 verbose rebuild   'marionette-b2gdesktop-host@0.7.1' ]
+581 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-js-runner/node_modules/marionette-b2gdesktop-host/node_modules/mozilla-runner',
+581 verbose rebuild   'mozilla-runner@0.3.0' ]
+582 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-js-runner/node_modules/marionette-js-logger',
+582 verbose rebuild   'marionette-js-logger@0.1.2-non-native' ]
+583 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-js-runner/node_modules/marionette-js-logger/node_modules/non-native-websocket',
+583 verbose rebuild   'non-native-websocket@0.0.1' ]
+584 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-profile-builder',
+584 verbose rebuild   'marionette-profile-builder@0.0.3' ]
+585 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-profile-builder/node_modules/mozilla-profile-builder',
+585 verbose rebuild   'mozilla-profile-builder@0.4.0' ]
+586 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-profile-builder/node_modules/mozilla-profile-builder/node_modules/tmp',
+586 verbose rebuild   'tmp@0.0.23' ]
+587 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-profile-builder/node_modules/mozilla-profile-builder/node_modules/remove',
+587 verbose rebuild   'remove@0.1.5' ]
+588 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-profile-builder/node_modules/mozilla-profile-builder/node_modules/remove/node_modules/seq',
+588 verbose rebuild   'seq@0.3.5' ]
+589 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-profile-builder/node_modules/mozilla-profile-builder/node_modules/remove/node_modules/seq/node_modules/chainsaw',
+589 verbose rebuild   'chainsaw@0.0.9' ]
+590 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-profile-builder/node_modules/mozilla-profile-builder/node_modules/remove/node_modules/seq/node_modules/chainsaw/node_modules/traverse',
+590 verbose rebuild   'traverse@0.3.9' ]
+591 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-profile-builder/node_modules/mozilla-profile-builder/node_modules/remove/node_modules/seq/node_modules/hashish',
+591 verbose rebuild   'hashish@0.0.4' ]
+592 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-profile-builder/node_modules/mozilla-profile-builder/node_modules/remove/node_modules/seq/node_modules/hashish/node_modules/traverse',
+592 verbose rebuild   'traverse@0.6.6' ]
+593 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-profile-builder/node_modules/mozilla-profile-builder/node_modules/packaged-webapp',
+593 verbose rebuild   'packaged-webapp@0.1.2' ]
+594 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-profile-builder/node_modules/mozilla-profile-builder/node_modules/packaged-webapp/node_modules/archiver',
+594 verbose rebuild   'archiver@0.4.10' ]
+595 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-profile-builder/node_modules/mozilla-profile-builder/node_modules/packaged-webapp/node_modules/archiver/node_modules/readable-stream',
+595 verbose rebuild   'readable-stream@1.0.25' ]
+596 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-profile-builder/node_modules/mozilla-profile-builder/node_modules/packaged-webapp/node_modules/archiver/node_modules/readable-stream/node_modules/string_decoder',
+596 verbose rebuild   'string_decoder@0.10.25-1' ]
+597 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-profile-builder/node_modules/mozilla-profile-builder/node_modules/packaged-webapp/node_modules/archiver/node_modules/iconv-lite',
+597 verbose rebuild   'iconv-lite@0.2.11' ]
+598 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-profile-builder/node_modules/mozilla-profile-builder/node_modules/packaged-webapp/node_modules/readdirp',
+598 verbose rebuild   'readdirp@0.2.5' ]
+599 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-profile-builder/node_modules/mozilla-profile-builder/node_modules/packaged-webapp/node_modules/readdirp/node_modules/minimatch',
+599 verbose rebuild   'minimatch@0.2.14' ]
+600 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-profile-builder/node_modules/mozilla-profile-builder/node_modules/packaged-webapp/node_modules/readdirp/node_modules/minimatch/node_modules/lru-cache',
+600 verbose rebuild   'lru-cache@2.5.0' ]
+601 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-profile-builder/node_modules/mozilla-profile-builder/node_modules/packaged-webapp/node_modules/readdirp/node_modules/minimatch/node_modules/sigmund',
+601 verbose rebuild   'sigmund@1.0.0' ]
+602 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-profile-builder/node_modules/mozilla-profile-builder/node_modules/traverse-directory',
+602 verbose rebuild   'traverse-directory@0.1.0' ]
+603 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-profile-builder/node_modules/mozilla-profile-builder/node_modules/traverse-directory/node_modules/graceful-fs',
+603 verbose rebuild   'graceful-fs@2.0.2' ]
+604 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-profile-builder/node_modules/mozilla-profile-builder/node_modules/fs-extra',
+604 verbose rebuild   'fs-extra@0.8.1' ]
+605 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-profile-builder/node_modules/mozilla-profile-builder/node_modules/fs-extra/node_modules/ncp',
+605 verbose rebuild   'ncp@0.4.2' ]
+606 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-profile-builder/node_modules/mozilla-profile-builder/node_modules/fs-extra/node_modules/mkdirp',
+606 verbose rebuild   'mkdirp@0.3.5' ]
+607 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-profile-builder/node_modules/mozilla-profile-builder/node_modules/fs-extra/node_modules/jsonfile',
+607 verbose rebuild   'jsonfile@1.1.1' ]
+608 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/node-static',
+608 verbose rebuild   'node-static@0.6.9' ]
+609 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/node-static/node_modules/optimist',
+609 verbose rebuild   'optimist@0.6.1' ]
+610 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/node-static/node_modules/optimist/node_modules/wordwrap',
+610 verbose rebuild   'wordwrap@0.0.2' ]
+611 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/node-static/node_modules/optimist/node_modules/minimist',
+611 verbose rebuild   'minimist@0.0.7' ]
+612 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/node-static/node_modules/colors',
+612 verbose rebuild   'colors@0.6.2' ]
+613 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/node-static/node_modules/mime',
+613 verbose rebuild   'mime@1.2.11' ]
+614 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/jshint',
+614 verbose rebuild   'jshint@2.4.2' ]
+615 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/jshint/node_modules/shelljs',
+615 verbose rebuild   'shelljs@0.1.4' ]
+616 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/jshint/node_modules/underscore',
+616 verbose rebuild   'underscore@1.4.4' ]
+617 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/jshint/node_modules/cli',
+617 verbose rebuild   'cli@0.4.5' ]
+618 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/jshint/node_modules/cli/node_modules/glob',
+618 verbose rebuild   'glob@3.2.8' ]
+619 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/jshint/node_modules/minimatch',
+619 verbose rebuild   'minimatch@0.2.14' ]
+620 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/jshint/node_modules/minimatch/node_modules/lru-cache',
+620 verbose rebuild   'lru-cache@2.5.0' ]
+621 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/jshint/node_modules/minimatch/node_modules/sigmund',
+621 verbose rebuild   'sigmund@1.0.0' ]
+622 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/jshint/node_modules/cli/node_modules/glob/node_modules/inherits',
+622 verbose rebuild   'inherits@2.0.1' ]
+623 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/jshint/node_modules/htmlparser2',
+623 verbose rebuild   'htmlparser2@3.3.0' ]
+624 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/jshint/node_modules/htmlparser2/node_modules/domhandler',
+624 verbose rebuild   'domhandler@2.1.0' ]
+625 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/jshint/node_modules/htmlparser2/node_modules/domelementtype',
+625 verbose rebuild   'domelementtype@1.1.1' ]
+626 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/jshint/node_modules/htmlparser2/node_modules/domutils',
+626 verbose rebuild   'domutils@1.1.6' ]
+627 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/jshint/node_modules/htmlparser2/node_modules/readable-stream',
+627 verbose rebuild   'readable-stream@1.0.25' ]
+628 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/jshint/node_modules/htmlparser2/node_modules/readable-stream/node_modules/string_decoder',
+628 verbose rebuild   'string_decoder@0.10.25-1' ]
+629 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/jshint/node_modules/console-browserify',
+629 verbose rebuild   'console-browserify@0.1.6' ]
+630 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/grunt',
+630 verbose rebuild   'grunt@0.4.2' ]
+631 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/async',
+631 verbose rebuild   'async@0.1.22' ]
+632 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/coffee-script',
+632 verbose rebuild   'coffee-script@1.3.3' ]
+633 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/colors',
+633 verbose rebuild   'colors@0.6.2' ]
+634 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/dateformat',
+634 verbose rebuild   'dateformat@1.0.2-1.2.3' ]
+635 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/eventemitter2',
+635 verbose rebuild   'eventemitter2@0.4.13' ]
+636 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/findup-sync',
+636 verbose rebuild   'findup-sync@0.1.2' ]
+637 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/glob',
+637 verbose rebuild   'glob@3.1.21' ]
+638 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/minimatch',
+638 verbose rebuild   'minimatch@0.2.14' ]
+639 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/minimatch/node_modules/lru-cache',
+639 verbose rebuild   'lru-cache@2.5.0' ]
+640 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/minimatch/node_modules/sigmund',
+640 verbose rebuild   'sigmund@1.0.0' ]
+641 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/glob/node_modules/graceful-fs',
+641 verbose rebuild   'graceful-fs@1.2.3' ]
+642 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/glob/node_modules/inherits',
+642 verbose rebuild   'inherits@1.0.0' ]
+643 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/findup-sync/node_modules/lodash',
+643 verbose rebuild   'lodash@1.0.1' ]
+644 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/hooker',
+644 verbose rebuild   'hooker@0.2.3' ]
+645 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/iconv-lite',
+645 verbose rebuild   'iconv-lite@0.2.11' ]
+646 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/nopt',
+646 verbose rebuild   'nopt@1.0.10' ]
+647 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/nopt/node_modules/abbrev',
+647 verbose rebuild   'abbrev@1.0.4' ]
+648 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/rimraf',
+648 verbose rebuild   'rimraf@2.0.3' ]
+649 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/rimraf/node_modules/graceful-fs',
+649 verbose rebuild   'graceful-fs@1.1.14' ]
+650 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/lodash',
+650 verbose rebuild   'lodash@0.9.2' ]
+651 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/underscore.string',
+651 verbose rebuild   'underscore.string@2.2.1' ]
+652 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/which',
+652 verbose rebuild   'which@1.0.5' ]
+653 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/js-yaml',
+653 verbose rebuild   'js-yaml@2.0.5' ]
+654 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/js-yaml/node_modules/argparse',
+654 verbose rebuild   'argparse@0.1.15' ]
+655 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/js-yaml/node_modules/argparse/node_modules/underscore',
+655 verbose rebuild   'underscore@1.4.4' ]
+656 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/js-yaml/node_modules/argparse/node_modules/underscore.string',
+656 verbose rebuild   'underscore.string@2.3.3' ]
+657 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/js-yaml/node_modules/esprima',
+657 verbose rebuild   'esprima@1.0.4' ]
+658 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/exit',
+658 verbose rebuild   'exit@0.1.2' ]
+659 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/getobject',
+659 verbose rebuild   'getobject@0.1.0' ]
+660 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/request',
+660 verbose rebuild   'request@2.33.0' ]
+661 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/request/node_modules/qs',
+661 verbose rebuild   'qs@0.6.6' ]
+662 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/request/node_modules/json-stringify-safe',
+662 verbose rebuild   'json-stringify-safe@5.0.0' ]
+663 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/request/node_modules/forever-agent',
+663 verbose rebuild   'forever-agent@0.5.2' ]
+664 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/request/node_modules/node-uuid',
+664 verbose rebuild   'node-uuid@1.4.1' ]
+665 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/request/node_modules/mime',
+665 verbose rebuild   'mime@1.2.11' ]
+666 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/request/node_modules/tough-cookie',
+666 verbose rebuild   'tough-cookie@0.12.1' ]
+667 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/request/node_modules/tough-cookie/node_modules/punycode',
+667 verbose rebuild   'punycode@1.2.4' ]
+668 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/request/node_modules/form-data',
+668 verbose rebuild   'form-data@0.1.2' ]
+669 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/request/node_modules/form-data/node_modules/combined-stream',
+669 verbose rebuild   'combined-stream@0.0.4' ]
+670 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/request/node_modules/form-data/node_modules/combined-stream/node_modules/delayed-stream',
+670 verbose rebuild   'delayed-stream@0.0.5' ]
+671 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/request/node_modules/tunnel-agent',
+671 verbose rebuild   'tunnel-agent@0.3.0' ]
+672 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/request/node_modules/http-signature',
+672 verbose rebuild   'http-signature@0.10.0' ]
+673 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/request/node_modules/http-signature/node_modules/assert-plus',
+673 verbose rebuild   'assert-plus@0.1.2' ]
+674 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/request/node_modules/http-signature/node_modules/asn1',
+674 verbose rebuild   'asn1@0.1.11' ]
+675 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/request/node_modules/http-signature/node_modules/ctype',
+675 verbose rebuild   'ctype@0.5.2' ]
+676 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/request/node_modules/oauth-sign',
+676 verbose rebuild   'oauth-sign@0.3.0' ]
+677 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/request/node_modules/hawk',
+677 verbose rebuild   'hawk@1.0.0' ]
+678 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/request/node_modules/hawk/node_modules/hoek',
+678 verbose rebuild   'hoek@0.9.1' ]
+679 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/request/node_modules/hawk/node_modules/boom',
+679 verbose rebuild   'boom@0.4.2' ]
+680 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/request/node_modules/hawk/node_modules/cryptiles',
+680 verbose rebuild   'cryptiles@0.2.2' ]
+681 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/request/node_modules/hawk/node_modules/sntp',
+681 verbose rebuild   'sntp@0.2.4' ]
+682 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/request/node_modules/aws-sign2',
+682 verbose rebuild   'aws-sign2@0.5.0' ]
+683 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/test-agent',
+683 verbose rebuild   'test-agent@0.18.0' ]
+684 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/test-agent/node_modules/websocket.io',
+684 verbose rebuild   'websocket.io@0.2.1' ]
+685 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/test-agent/node_modules/debug',
+685 verbose rebuild   'debug@0.6.0' ]
+686 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/test-agent/node_modules/websocket.io/node_modules/ws',
+686 verbose rebuild   'ws@0.4.20' ]
+687 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/test-agent/node_modules/websocket.io/node_modules/ws/node_modules/commander',
+687 verbose rebuild   'commander@0.6.1' ]
+688 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/test-agent/node_modules/websocket.io/node_modules/ws/node_modules/tinycolor',
+688 verbose rebuild   'tinycolor@0.0.1' ]
+689 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/test-agent/node_modules/websocket.io/node_modules/ws/node_modules/options',
+689 verbose rebuild   'options@0.0.5' ]
+690 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/test-agent/node_modules/growl',
+690 verbose rebuild   'growl@1.7.0' ]
+691 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/test-agent/node_modules/optimist',
+691 verbose rebuild   'optimist@0.3.7' ]
+692 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/test-agent/node_modules/optimist/node_modules/wordwrap',
+692 verbose rebuild   'wordwrap@0.0.2' ]
+693 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/test-agent/node_modules/ws',
+693 verbose rebuild   'ws@0.4.31' ]
+694 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/test-agent/node_modules/ws/node_modules/commander',
+694 verbose rebuild   'commander@0.6.1' ]
+695 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/test-agent/node_modules/ws/node_modules/nan',
+695 verbose rebuild   'nan@0.3.2' ]
+696 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/test-agent/node_modules/ws/node_modules/tinycolor',
+696 verbose rebuild   'tinycolor@0.0.1' ]
+697 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/test-agent/node_modules/ws/node_modules/options',
+697 verbose rebuild   'options@0.0.5' ]
+698 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/test-agent/node_modules/match-files',
+698 verbose rebuild   'match-files@0.1.1' ]
+699 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/test-agent/node_modules/match-files/node_modules/step-object',
+699 verbose rebuild   'step-object@0.2.2' ]
+700 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/test-agent/node_modules/match-files/node_modules/step-object/node_modules/step',
+700 verbose rebuild   'step@0.0.5' ]
+701 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/test-agent/node_modules/node-static',
+701 verbose rebuild   'node-static@0.5.9' ]
+702 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-plugin-forms',
+702 verbose rebuild   'marionette-plugin-forms@0.0.1' ]
+703 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-plugin-forms/node_modules/marionette-client',
+703 verbose rebuild   'marionette-client@0.13.4' ]
+704 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-plugin-forms/node_modules/marionette-client/node_modules/debug',
+704 verbose rebuild   'debug@0.6.0' ]
+705 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-plugin-forms/node_modules/marionette-client/node_modules/json-wire-protocol',
+705 verbose rebuild   'json-wire-protocol@0.2.1' ]
+706 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-plugin-forms/node_modules/marionette-client/node_modules/json-wire-protocol/node_modules/eventemitter2',
+706 verbose rebuild   'eventemitter2@0.4.13' ]
+707 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-plugin-forms/node_modules/marionette-client/node_modules/socket-retry-connect',
+707 verbose rebuild   'socket-retry-connect@0.0.1' ]
+708 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-plugin-forms/node_modules/marionette-client/node_modules/sockit-to-me',
+708 verbose rebuild   'sockit-to-me@0.1.8' ]
+709 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/mocha',
+709 verbose rebuild   'mocha@1.15.0' ]
+710 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/mocha/node_modules/commander',
+710 verbose rebuild   'commander@2.0.0' ]
+711 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/mocha/node_modules/growl',
+711 verbose rebuild   'growl@1.7.0' ]
+712 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/mocha/node_modules/jade',
+712 verbose rebuild   'jade@0.26.3' ]
+713 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/mocha/node_modules/jade/node_modules/commander',
+713 verbose rebuild   'commander@0.6.1' ]
+714 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/mocha/node_modules/jade/node_modules/mkdirp',
+714 verbose rebuild   'mkdirp@0.3.0' ]
+715 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/mocha/node_modules/diff',
+715 verbose rebuild   'diff@1.0.7' ]
+716 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/mocha/node_modules/mkdirp',
+716 verbose rebuild   'mkdirp@0.3.5' ]
+717 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/mocha/node_modules/glob',
+717 verbose rebuild   'glob@3.2.3' ]
+718 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/mocha/node_modules/glob/node_modules/minimatch',
+718 verbose rebuild   'minimatch@0.2.14' ]
+719 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/mocha/node_modules/glob/node_modules/minimatch/node_modules/lru-cache',
+719 verbose rebuild   'lru-cache@2.5.0' ]
+720 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/mocha/node_modules/glob/node_modules/minimatch/node_modules/sigmund',
+720 verbose rebuild   'sigmund@1.0.0' ]
+721 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/mocha/node_modules/glob/node_modules/graceful-fs',
+721 verbose rebuild   'graceful-fs@2.0.2' ]
+722 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/mocha/node_modules/glob/node_modules/inherits',
+722 verbose rebuild   'inherits@2.0.1' ]
+723 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/mocha-tbpl-reporter',
+723 verbose rebuild   'mocha-tbpl-reporter@0.0.6' ]
+724 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/mocha-tbpl-reporter/node_modules/mocha',
+724 verbose rebuild   'mocha@1.12.0' ]
+725 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/mocha-tbpl-reporter/node_modules/mocha/node_modules/commander',
+725 verbose rebuild   'commander@0.6.1' ]
+726 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/mocha-tbpl-reporter/node_modules/mocha/node_modules/growl',
+726 verbose rebuild   'growl@1.7.0' ]
+727 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/mocha-tbpl-reporter/node_modules/mocha/node_modules/jade',
+727 verbose rebuild   'jade@0.26.3' ]
+728 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/mocha-tbpl-reporter/node_modules/mocha/node_modules/jade/node_modules/mkdirp',
+728 verbose rebuild   'mkdirp@0.3.0' ]
+729 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/mocha-tbpl-reporter/node_modules/mocha/node_modules/diff',
+729 verbose rebuild   'diff@1.0.2' ]
+730 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/mocha-tbpl-reporter/node_modules/mocha/node_modules/mkdirp',
+730 verbose rebuild   'mkdirp@0.3.5' ]
+731 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/mocha-tbpl-reporter/node_modules/mocha/node_modules/ms',
+731 verbose rebuild   'ms@0.3.0' ]
+732 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/mocha-tbpl-reporter/node_modules/mocha/node_modules/glob',
+732 verbose rebuild   'glob@3.2.1' ]
+733 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/mocha-tbpl-reporter/node_modules/mocha/node_modules/glob/node_modules/minimatch',
+733 verbose rebuild   'minimatch@0.2.14' ]
+734 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/mocha-tbpl-reporter/node_modules/mocha/node_modules/glob/node_modules/minimatch/node_modules/lru-cache',
+734 verbose rebuild   'lru-cache@2.5.0' ]
+735 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/mocha-tbpl-reporter/node_modules/mocha/node_modules/glob/node_modules/minimatch/node_modules/sigmund',
+735 verbose rebuild   'sigmund@1.0.0' ]
+736 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/mocha-tbpl-reporter/node_modules/mocha/node_modules/glob/node_modules/graceful-fs',
+736 verbose rebuild   'graceful-fs@1.2.3' ]
+737 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/mocha-tbpl-reporter/node_modules/mocha/node_modules/glob/node_modules/inherits',
+737 verbose rebuild   'inherits@1.0.0' ]
+738 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/download',
+738 verbose rebuild   'download@0.1.7' ]
+739 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/decompress',
+739 verbose rebuild   'decompress@0.1.6' ]
+740 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/mkdirp',
+740 verbose rebuild   'mkdirp@0.3.5' ]
+741 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/decompress/node_modules/mout',
+741 verbose rebuild   'mout@0.6.0' ]
+742 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/decompress/node_modules/stream-combiner',
+742 verbose rebuild   'stream-combiner@0.0.4' ]
+743 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/decompress/node_modules/stream-combiner/node_modules/duplexer',
+743 verbose rebuild   'duplexer@0.1.1' ]
+744 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/decompress/node_modules/tar',
+744 verbose rebuild   'tar@0.1.19' ]
+745 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/decompress/node_modules/tar/node_modules/inherits',
+745 verbose rebuild   'inherits@2.0.1' ]
+746 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/decompress/node_modules/tar/node_modules/block-stream',
+746 verbose rebuild   'block-stream@0.0.7' ]
+747 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/decompress/node_modules/tar/node_modules/fstream',
+747 verbose rebuild   'fstream@0.1.25' ]
+748 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/decompress/node_modules/tar/node_modules/fstream/node_modules/graceful-fs',
+748 verbose rebuild   'graceful-fs@2.0.2' ]
+749 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/decompress/node_modules/tempfile',
+749 verbose rebuild   'tempfile@0.1.2' ]
+750 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/decompress/node_modules/tempfile/node_modules/uuid',
+750 verbose rebuild   'uuid@1.4.1' ]
+751 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/each-async',
+751 verbose rebuild   'each-async@0.1.2' ]
+752 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/request',
+752 verbose rebuild   'request@2.25.0' ]
+753 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/request/node_modules/qs',
+753 verbose rebuild   'qs@0.6.6' ]
+754 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/request/node_modules/json-stringify-safe',
+754 verbose rebuild   'json-stringify-safe@5.0.0' ]
+755 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/request/node_modules/forever-agent',
+755 verbose rebuild   'forever-agent@0.5.2' ]
+756 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/request/node_modules/tunnel-agent',
+756 verbose rebuild   'tunnel-agent@0.3.0' ]
+757 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/request/node_modules/http-signature',
+757 verbose rebuild   'http-signature@0.10.0' ]
+758 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/request/node_modules/http-signature/node_modules/assert-plus',
+758 verbose rebuild   'assert-plus@0.1.2' ]
+759 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/request/node_modules/http-signature/node_modules/asn1',
+759 verbose rebuild   'asn1@0.1.11' ]
+760 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/request/node_modules/http-signature/node_modules/ctype',
+760 verbose rebuild   'ctype@0.5.2' ]
+761 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/request/node_modules/hawk',
+761 verbose rebuild   'hawk@1.0.0' ]
+762 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/request/node_modules/hawk/node_modules/hoek',
+762 verbose rebuild   'hoek@0.9.1' ]
+763 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/request/node_modules/hawk/node_modules/boom',
+763 verbose rebuild   'boom@0.4.2' ]
+764 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/request/node_modules/hawk/node_modules/cryptiles',
+764 verbose rebuild   'cryptiles@0.2.2' ]
+765 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/request/node_modules/hawk/node_modules/sntp',
+765 verbose rebuild   'sntp@0.2.4' ]
+766 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/request/node_modules/aws-sign',
+766 verbose rebuild   'aws-sign@0.3.0' ]
+767 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/request/node_modules/oauth-sign',
+767 verbose rebuild   'oauth-sign@0.3.0' ]
+768 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/request/node_modules/cookie-jar',
+768 verbose rebuild   'cookie-jar@0.3.0' ]
+769 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/request/node_modules/node-uuid',
+769 verbose rebuild   'node-uuid@1.4.1' ]
+770 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/request/node_modules/mime',
+770 verbose rebuild   'mime@1.2.11' ]
+771 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/request/node_modules/form-data',
+771 verbose rebuild   'form-data@0.1.2' ]
+772 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/request/node_modules/form-data/node_modules/combined-stream',
+772 verbose rebuild   'combined-stream@0.0.4' ]
+773 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/request/node_modules/form-data/node_modules/combined-stream/node_modules/delayed-stream',
+773 verbose rebuild   'delayed-stream@0.0.5' ]
+774 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/through2',
+774 verbose rebuild   'through2@0.1.0' ]
+775 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/through2/node_modules/readable-stream',
+775 verbose rebuild   'readable-stream@1.0.25' ]
+776 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/through2/node_modules/readable-stream/node_modules/string_decoder',
+776 verbose rebuild   'string_decoder@0.10.25-1' ]
+777 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/through2/node_modules/xtend',
+777 verbose rebuild   'xtend@2.0.6' ]
+778 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/through2/node_modules/xtend/node_modules/is-object',
+778 verbose rebuild   'is-object@0.1.2' ]
+779 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/through2/node_modules/xtend/node_modules/object-keys',
+779 verbose rebuild   'object-keys@0.2.0' ]
+780 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/through2/node_modules/xtend/node_modules/object-keys/node_modules/foreach',
+780 verbose rebuild   'foreach@2.0.4' ]
+781 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/through2/node_modules/xtend/node_modules/object-keys/node_modules/indexof',
+781 verbose rebuild   'indexof@0.0.1' ]
+782 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/through2/node_modules/xtend/node_modules/object-keys/node_modules/is',
+782 verbose rebuild   'is@0.2.7' ]
+783 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/mozilla-download',
+783 verbose rebuild   'mozilla-download@0.4.1' ]
+784 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/mozilla-download/node_modules/mozilla-get-url',
+784 verbose rebuild   'mozilla-get-url@0.2.0' ]
+785 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/mozilla-download/node_modules/mozilla-get-url/node_modules/jsftp',
+785 verbose rebuild   'jsftp@1.1.1' ]
+786 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/mozilla-download/node_modules/mozilla-get-url/node_modules/jsftp/node_modules/event-stream',
+786 verbose rebuild   'event-stream@3.0.20' ]
+787 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/mozilla-download/node_modules/mozilla-get-url/node_modules/jsftp/node_modules/event-stream/node_modules/through',
+787 verbose rebuild   'through@2.3.4' ]
+788 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/mozilla-download/node_modules/mozilla-get-url/node_modules/jsftp/node_modules/event-stream/node_modules/duplexer',
+788 verbose rebuild   'duplexer@0.1.1' ]
+789 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/mozilla-download/node_modules/mozilla-get-url/node_modules/jsftp/node_modules/event-stream/node_modules/from',
+789 verbose rebuild   'from@0.1.3' ]
+790 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/mozilla-download/node_modules/mozilla-get-url/node_modules/jsftp/node_modules/event-stream/node_modules/map-stream',
+790 verbose rebuild   'map-stream@0.0.4' ]
+791 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/mozilla-download/node_modules/mozilla-get-url/node_modules/jsftp/node_modules/event-stream/node_modules/pause-stream',
+791 verbose rebuild   'pause-stream@0.0.11' ]
+792 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/mozilla-download/node_modules/mozilla-get-url/node_modules/jsftp/node_modules/event-stream/node_modules/split',
+792 verbose rebuild   'split@0.2.10' ]
+793 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/mozilla-download/node_modules/mozilla-get-url/node_modules/jsftp/node_modules/event-stream/node_modules/stream-combiner',
+793 verbose rebuild   'stream-combiner@0.0.4' ]
+794 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/mozilla-download/node_modules/mozilla-get-url/node_modules/jsftp/node_modules/parse-listing',
+794 verbose rebuild   'parse-listing@1.0.1' ]
+795 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/mozilla-download/node_modules/commander',
+795 verbose rebuild   'commander@2.0.0' ]
+796 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/mozilla-download/node_modules/dmg',
+796 verbose rebuild   'dmg@0.0.3' ]
+797 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/mozilla-download/node_modules/tmp',
+797 verbose rebuild   'tmp@0.0.23' ]
+798 verbose rebuild path, id [ '/home/ashish.singh/dev-camera/gaia/node_modules/mozilla-download/node_modules/ncp',
+798 verbose rebuild   'ncp@0.4.2' ]
+799 silly rebuild set [ '/home/ashish.singh/dev-camera/gaia/node_modules/chai',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-settings-api',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/grunt-contrib-clean',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/rimraf',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/watch',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-helper',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-apps',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/ejs',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/adm-zip',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/empty-port',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/fe.js',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/dateformat',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-content-script',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/async',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/debug',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/grunt-jsdoc',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-file-manager',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/q',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/moment',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/mocha-json-proxy',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-device-host',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/proxyquire',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/dive',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/dive/node_modules/append',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/travis-project-jobs',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/travis-project-jobs/node_modules/commander',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/ffi-prebuilt',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/ffi-prebuilt/node_modules/bindings',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/ffi-prebuilt/node_modules/ref-prebuilt',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/ffi-prebuilt/node_modules/ref-struct-prebuilt',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/mail-fakeservers',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/mail-fakeservers/node_modules/json-wire-protocol',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/mail-fakeservers/node_modules/json-wire-protocol/node_modules/eventemitter2',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-client',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-client/node_modules/debug',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-client/node_modules/json-wire-protocol',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-client/node_modules/json-wire-protocol/node_modules/eventemitter2',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-client/node_modules/socket-retry-connect',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-client/node_modules/sockit-to-me',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-js-runner',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-js-runner/node_modules/array-difference',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-js-runner/node_modules/commander',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-js-runner/node_modules/commander/node_modules/keypress',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-js-runner/node_modules/intersect',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-js-runner/node_modules/marionette-b2gdesktop-host',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-js-runner/node_modules/marionette-b2gdesktop-host/node_modules/mozilla-runner',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-js-runner/node_modules/marionette-js-logger',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-js-runner/node_modules/marionette-js-logger/node_modules/non-native-websocket',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-profile-builder',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-profile-builder/node_modules/mozilla-profile-builder',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-profile-builder/node_modules/mozilla-profile-builder/node_modules/tmp',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-profile-builder/node_modules/mozilla-profile-builder/node_modules/remove',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-profile-builder/node_modules/mozilla-profile-builder/node_modules/remove/node_modules/seq',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-profile-builder/node_modules/mozilla-profile-builder/node_modules/remove/node_modules/seq/node_modules/chainsaw',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-profile-builder/node_modules/mozilla-profile-builder/node_modules/remove/node_modules/seq/node_modules/chainsaw/node_modules/traverse',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-profile-builder/node_modules/mozilla-profile-builder/node_modules/remove/node_modules/seq/node_modules/hashish',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-profile-builder/node_modules/mozilla-profile-builder/node_modules/remove/node_modules/seq/node_modules/hashish/node_modules/traverse',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-profile-builder/node_modules/mozilla-profile-builder/node_modules/packaged-webapp',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-profile-builder/node_modules/mozilla-profile-builder/node_modules/packaged-webapp/node_modules/archiver',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-profile-builder/node_modules/mozilla-profile-builder/node_modules/packaged-webapp/node_modules/archiver/node_modules/readable-stream',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-profile-builder/node_modules/mozilla-profile-builder/node_modules/packaged-webapp/node_modules/archiver/node_modules/readable-stream/node_modules/string_decoder',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-profile-builder/node_modules/mozilla-profile-builder/node_modules/packaged-webapp/node_modules/archiver/node_modules/iconv-lite',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-profile-builder/node_modules/mozilla-profile-builder/node_modules/packaged-webapp/node_modules/readdirp',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-profile-builder/node_modules/mozilla-profile-builder/node_modules/packaged-webapp/node_modules/readdirp/node_modules/minimatch',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-profile-builder/node_modules/mozilla-profile-builder/node_modules/packaged-webapp/node_modules/readdirp/node_modules/minimatch/node_modules/lru-cache',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-profile-builder/node_modules/mozilla-profile-builder/node_modules/packaged-webapp/node_modules/readdirp/node_modules/minimatch/node_modules/sigmund',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-profile-builder/node_modules/mozilla-profile-builder/node_modules/traverse-directory',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-profile-builder/node_modules/mozilla-profile-builder/node_modules/traverse-directory/node_modules/graceful-fs',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-profile-builder/node_modules/mozilla-profile-builder/node_modules/fs-extra',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-profile-builder/node_modules/mozilla-profile-builder/node_modules/fs-extra/node_modules/ncp',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-profile-builder/node_modules/mozilla-profile-builder/node_modules/fs-extra/node_modules/mkdirp',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-profile-builder/node_modules/mozilla-profile-builder/node_modules/fs-extra/node_modules/jsonfile',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/node-static',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/node-static/node_modules/optimist',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/node-static/node_modules/optimist/node_modules/wordwrap',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/node-static/node_modules/optimist/node_modules/minimist',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/node-static/node_modules/colors',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/node-static/node_modules/mime',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/jshint',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/jshint/node_modules/shelljs',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/jshint/node_modules/underscore',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/jshint/node_modules/cli',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/jshint/node_modules/cli/node_modules/glob',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/jshint/node_modules/minimatch',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/jshint/node_modules/minimatch/node_modules/lru-cache',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/jshint/node_modules/minimatch/node_modules/sigmund',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/jshint/node_modules/cli/node_modules/glob/node_modules/inherits',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/jshint/node_modules/htmlparser2',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/jshint/node_modules/htmlparser2/node_modules/domhandler',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/jshint/node_modules/htmlparser2/node_modules/domelementtype',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/jshint/node_modules/htmlparser2/node_modules/domutils',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/jshint/node_modules/htmlparser2/node_modules/readable-stream',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/jshint/node_modules/htmlparser2/node_modules/readable-stream/node_modules/string_decoder',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/jshint/node_modules/console-browserify',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/grunt',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/async',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/coffee-script',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/colors',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/dateformat',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/eventemitter2',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/findup-sync',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/glob',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/minimatch',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/minimatch/node_modules/lru-cache',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/minimatch/node_modules/sigmund',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/glob/node_modules/graceful-fs',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/glob/node_modules/inherits',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/findup-sync/node_modules/lodash',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/hooker',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/iconv-lite',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/nopt',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/nopt/node_modules/abbrev',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/rimraf',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/rimraf/node_modules/graceful-fs',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/lodash',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/underscore.string',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/which',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/js-yaml',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/js-yaml/node_modules/argparse',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/js-yaml/node_modules/argparse/node_modules/underscore',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/js-yaml/node_modules/argparse/node_modules/underscore.string',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/js-yaml/node_modules/esprima',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/exit',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/grunt/node_modules/getobject',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/request',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/request/node_modules/qs',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/request/node_modules/json-stringify-safe',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/request/node_modules/forever-agent',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/request/node_modules/node-uuid',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/request/node_modules/mime',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/request/node_modules/tough-cookie',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/request/node_modules/tough-cookie/node_modules/punycode',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/request/node_modules/form-data',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/request/node_modules/form-data/node_modules/combined-stream',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/request/node_modules/form-data/node_modules/combined-stream/node_modules/delayed-stream',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/request/node_modules/tunnel-agent',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/request/node_modules/http-signature',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/request/node_modules/http-signature/node_modules/assert-plus',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/request/node_modules/http-signature/node_modules/asn1',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/request/node_modules/http-signature/node_modules/ctype',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/request/node_modules/oauth-sign',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/request/node_modules/hawk',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/request/node_modules/hawk/node_modules/hoek',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/request/node_modules/hawk/node_modules/boom',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/request/node_modules/hawk/node_modules/cryptiles',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/request/node_modules/hawk/node_modules/sntp',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/request/node_modules/aws-sign2',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/test-agent',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/test-agent/node_modules/websocket.io',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/test-agent/node_modules/debug',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/test-agent/node_modules/websocket.io/node_modules/ws',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/test-agent/node_modules/websocket.io/node_modules/ws/node_modules/commander',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/test-agent/node_modules/websocket.io/node_modules/ws/node_modules/tinycolor',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/test-agent/node_modules/websocket.io/node_modules/ws/node_modules/options',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/test-agent/node_modules/growl',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/test-agent/node_modules/optimist',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/test-agent/node_modules/optimist/node_modules/wordwrap',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/test-agent/node_modules/ws',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/test-agent/node_modules/ws/node_modules/commander',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/test-agent/node_modules/ws/node_modules/nan',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/test-agent/node_modules/ws/node_modules/tinycolor',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/test-agent/node_modules/ws/node_modules/options',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/test-agent/node_modules/match-files',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/test-agent/node_modules/match-files/node_modules/step-object',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/test-agent/node_modules/match-files/node_modules/step-object/node_modules/step',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/test-agent/node_modules/node-static',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-plugin-forms',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-plugin-forms/node_modules/marionette-client',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-plugin-forms/node_modules/marionette-client/node_modules/debug',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-plugin-forms/node_modules/marionette-client/node_modules/json-wire-protocol',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-plugin-forms/node_modules/marionette-client/node_modules/json-wire-protocol/node_modules/eventemitter2',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-plugin-forms/node_modules/marionette-client/node_modules/socket-retry-connect',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/marionette-plugin-forms/node_modules/marionette-client/node_modules/sockit-to-me',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/mocha',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/mocha/node_modules/commander',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/mocha/node_modules/growl',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/mocha/node_modules/jade',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/mocha/node_modules/jade/node_modules/commander',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/mocha/node_modules/jade/node_modules/mkdirp',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/mocha/node_modules/diff',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/mocha/node_modules/mkdirp',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/mocha/node_modules/glob',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/mocha/node_modules/glob/node_modules/minimatch',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/mocha/node_modules/glob/node_modules/minimatch/node_modules/lru-cache',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/mocha/node_modules/glob/node_modules/minimatch/node_modules/sigmund',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/mocha/node_modules/glob/node_modules/graceful-fs',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/mocha/node_modules/glob/node_modules/inherits',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/mocha-tbpl-reporter',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/mocha-tbpl-reporter/node_modules/mocha',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/mocha-tbpl-reporter/node_modules/mocha/node_modules/commander',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/mocha-tbpl-reporter/node_modules/mocha/node_modules/growl',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/mocha-tbpl-reporter/node_modules/mocha/node_modules/jade',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/mocha-tbpl-reporter/node_modules/mocha/node_modules/jade/node_modules/mkdirp',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/mocha-tbpl-reporter/node_modules/mocha/node_modules/diff',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/mocha-tbpl-reporter/node_modules/mocha/node_modules/mkdirp',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/mocha-tbpl-reporter/node_modules/mocha/node_modules/ms',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/mocha-tbpl-reporter/node_modules/mocha/node_modules/glob',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/mocha-tbpl-reporter/node_modules/mocha/node_modules/glob/node_modules/minimatch',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/mocha-tbpl-reporter/node_modules/mocha/node_modules/glob/node_modules/minimatch/node_modules/lru-cache',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/mocha-tbpl-reporter/node_modules/mocha/node_modules/glob/node_modules/minimatch/node_modules/sigmund',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/mocha-tbpl-reporter/node_modules/mocha/node_modules/glob/node_modules/graceful-fs',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/mocha-tbpl-reporter/node_modules/mocha/node_modules/glob/node_modules/inherits',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/download',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/decompress',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/mkdirp',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/decompress/node_modules/mout',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/decompress/node_modules/stream-combiner',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/decompress/node_modules/stream-combiner/node_modules/duplexer',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/decompress/node_modules/tar',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/decompress/node_modules/tar/node_modules/inherits',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/decompress/node_modules/tar/node_modules/block-stream',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/decompress/node_modules/tar/node_modules/fstream',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/decompress/node_modules/tar/node_modules/fstream/node_modules/graceful-fs',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/decompress/node_modules/tempfile',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/decompress/node_modules/tempfile/node_modules/uuid',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/each-async',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/request',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/request/node_modules/qs',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/request/node_modules/json-stringify-safe',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/request/node_modules/forever-agent',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/request/node_modules/tunnel-agent',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/request/node_modules/http-signature',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/request/node_modules/http-signature/node_modules/assert-plus',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/request/node_modules/http-signature/node_modules/asn1',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/request/node_modules/http-signature/node_modules/ctype',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/request/node_modules/hawk',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/request/node_modules/hawk/node_modules/hoek',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/request/node_modules/hawk/node_modules/boom',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/request/node_modules/hawk/node_modules/cryptiles',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/request/node_modules/hawk/node_modules/sntp',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/request/node_modules/aws-sign',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/request/node_modules/oauth-sign',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/request/node_modules/cookie-jar',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/request/node_modules/node-uuid',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/request/node_modules/mime',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/request/node_modules/form-data',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/request/node_modules/form-data/node_modules/combined-stream',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/request/node_modules/form-data/node_modules/combined-stream/node_modules/delayed-stream',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/through2',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/through2/node_modules/readable-stream',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/through2/node_modules/readable-stream/node_modules/string_decoder',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/through2/node_modules/xtend',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/through2/node_modules/xtend/node_modules/is-object',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/through2/node_modules/xtend/node_modules/object-keys',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/through2/node_modules/xtend/node_modules/object-keys/node_modules/foreach',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/through2/node_modules/xtend/node_modules/object-keys/node_modules/indexof',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/download/node_modules/through2/node_modules/xtend/node_modules/object-keys/node_modules/is',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/mozilla-download',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/mozilla-download/node_modules/mozilla-get-url',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/mozilla-download/node_modules/mozilla-get-url/node_modules/jsftp',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/mozilla-download/node_modules/mozilla-get-url/node_modules/jsftp/node_modules/event-stream',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/mozilla-download/node_modules/mozilla-get-url/node_modules/jsftp/node_modules/event-stream/node_modules/through',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/mozilla-download/node_modules/mozilla-get-url/node_modules/jsftp/node_modules/event-stream/node_modules/duplexer',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/mozilla-download/node_modules/mozilla-get-url/node_modules/jsftp/node_modules/event-stream/node_modules/from',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/mozilla-download/node_modules/mozilla-get-url/node_modules/jsftp/node_modules/event-stream/node_modules/map-stream',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/mozilla-download/node_modules/mozilla-get-url/node_modules/jsftp/node_modules/event-stream/node_modules/pause-stream',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/mozilla-download/node_modules/mozilla-get-url/node_modules/jsftp/node_modules/event-stream/node_modules/split',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/mozilla-download/node_modules/mozilla-get-url/node_modules/jsftp/node_modules/event-stream/node_modules/stream-combiner',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/mozilla-download/node_modules/mozilla-get-url/node_modules/jsftp/node_modules/parse-listing',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/mozilla-download/node_modules/commander',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/mozilla-download/node_modules/dmg',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/mozilla-download/node_modules/tmp',
+799 silly rebuild set   '/home/ashish.singh/dev-camera/gaia/node_modules/mozilla-download/node_modules/ncp' ]
+800 info build /home/ashish.singh/dev-camera/gaia/node_modules/chai
+801 verbose from cache /home/ashish.singh/dev-camera/gaia/node_modules/chai/package.json
+802 info preinstall chai@1.4.2
+803 verbose linkStuff [ false,
+803 verbose linkStuff   false,
+803 verbose linkStuff   false,
+803 verbose linkStuff   '/home/ashish.singh/dev-camera/gaia/node_modules' ]
+804 info linkStuff chai@1.4.2
+805 verbose linkBins chai@1.4.2
+806 verbose linkMans chai@1.4.2
+807 verbose rebuildBundles chai@1.4.2
+808 info install chai@1.4.2
+809 info postinstall chai@1.4.2
+810 info build /home/ashish.singh/dev-camera/gaia/node_modules/marionette-settings-api
+811 verbose from cache /home/ashish.singh/dev-camera/gaia/node_modules/marionette-settings-api/package.json
+812 info preinstall marionette-settings-api@0.1.0
+813 verbose linkStuff [ false,
+813 verbose linkStuff   false,
+813 verbose linkStuff   false,
+813 verbose linkStuff   '/home/ashish.singh/dev-camera/gaia/node_modules' ]
+814 info linkStuff marionette-settings-api@0.1.0
+815 verbose linkBins marionette-settings-api@0.1.0
+816 verbose linkMans marionette-settings-api@0.1.0
+817 verbose rebuildBundles marionette-settings-api@0.1.0
+818 info install marionette-settings-api@0.1.0
+819 info postinstall marionette-settings-api@0.1.0
+820 info build /home/ashish.singh/dev-camera/gaia/node_modules/grunt-contrib-clean
+821 verbose from cache /home/ashish.singh/dev-camera/gaia/node_modules/grunt-contrib-clean/package.json
+822 info preinstall grunt-contrib-clean@0.5.0
+823 verbose linkStuff [ false,
+823 verbose linkStuff   false,
+823 verbose linkStuff   false,
+823 verbose linkStuff   '/home/ashish.singh/dev-camera/gaia/node_modules' ]
+824 info linkStuff grunt-contrib-clean@0.5.0
+825 verbose linkBins grunt-contrib-clean@0.5.0
+826 verbose linkMans grunt-contrib-clean@0.5.0
+827 verbose rebuildBundles grunt-contrib-clean@0.5.0
+828 info install grunt-contrib-clean@0.5.0
+829 info postinstall grunt-contrib-clean@0.5.0
+830 info build /home/ashish.singh/dev-camera/gaia/node_modules/rimraf
+831 verbose from cache /home/ashish.singh/dev-camera/gaia/node_modules/rimraf/package.json
+832 info preinstall rimraf@2.2.5
+833 verbose linkStuff [ false,
+833 verbose linkStuff   false,
+833 verbose linkStuff   false,
+833 verbose linkStuff   '/home/ashish.singh/dev-camera/gaia/node_modules' ]
+834 info linkStuff rimraf@2.2.5
+835 verbose linkBins rimraf@2.2.5
+836 verbose link bins [ { rimraf: './bin.js' },
+836 verbose link bins   '/home/ashish.singh/dev-camera/gaia/node_modules/.bin',
+836 verbose link bins   false ]
+837 verbose linkMans rimraf@2.2.5
+838 verbose rebuildBundles rimraf@2.2.5
+839 info install rimraf@2.2.5
+840 info postinstall rimraf@2.2.5
+841 info build /home/ashish.singh/dev-camera/gaia/node_modules/watch
+842 verbose from cache /home/ashish.singh/dev-camera/gaia/node_modules/watch/package.json
+843 info preinstall watch@0.9.0
+844 verbose linkStuff [ false,
+844 verbose linkStuff   false,
+844 verbose linkStuff   false,
+844 verbose linkStuff   '/home/ashish.singh/dev-camera/gaia/node_modules' ]
+845 info linkStuff watch@0.9.0
+846 verbose linkBins watch@0.9.0
+847 verbose linkMans watch@0.9.0
+848 verbose rebuildBundles watch@0.9.0
+849 info install watch@0.9.0
+850 info postinstall watch@0.9.0
+851 info build /home/ashish.singh/dev-camera/gaia/node_modules/marionette-helper
+852 verbose from cache /home/ashish.singh/dev-camera/gaia/node_modules/marionette-helper/package.json
+853 info preinstall marionette-helper@0.2.1
+854 verbose linkStuff [ false,
+854 verbose linkStuff   false,
+854 verbose linkStuff   false,
+854 verbose linkStuff   '/home/ashish.singh/dev-camera/gaia/node_modules' ]
+855 info linkStuff marionette-helper@0.2.1
+856 verbose linkBins marionette-helper@0.2.1
+857 verbose linkMans marionette-helper@0.2.1
+858 verbose rebuildBundles marionette-helper@0.2.1
+859 info install marionette-helper@0.2.1
+860 info postinstall marionette-helper@0.2.1
+861 info build /home/ashish.singh/dev-camera/gaia/node_modules/marionette-apps
+862 verbose from cache /home/ashish.singh/dev-camera/gaia/node_modules/marionette-apps/package.json
+863 info preinstall marionette-apps@0.3.3
+864 verbose linkStuff [ false,
+864 verbose linkStuff   false,
+864 verbose linkStuff   false,
+864 verbose linkStuff   '/home/ashish.singh/dev-camera/gaia/node_modules' ]
+865 info linkStuff marionette-apps@0.3.3
+866 verbose linkBins marionette-apps@0.3.3
+867 verbose linkMans marionette-apps@0.3.3
+868 verbose rebuildBundles marionette-apps@0.3.3
+869 info install marionette-apps@0.3.3
+870 info postinstall marionette-apps@0.3.3
+871 info build /home/ashish.singh/dev-camera/gaia/node_modules/ejs
+872 verbose from cache /home/ashish.singh/dev-camera/gaia/node_modules/ejs/package.json
+873 info preinstall ejs@0.8.4
+874 verbose linkStuff [ false,
+874 verbose linkStuff   false,
+874 verbose linkStuff   false,
+874 verbose linkStuff   '/home/ashish.singh/dev-camera/gaia/node_modules' ]
+875 info linkStuff ejs@0.8.4
+876 verbose linkBins ejs@0.8.4
+877 verbose linkMans ejs@0.8.4
+878 verbose rebuildBundles ejs@0.8.4
+879 info install ejs@0.8.4
+880 info postinstall ejs@0.8.4
+881 info build /home/ashish.singh/dev-camera/gaia/node_modules/adm-zip
+882 verbose from cache /home/ashish.singh/dev-camera/gaia/node_modules/adm-zip/package.json
+883 info preinstall adm-zip@0.4.3
+884 verbose linkStuff [ false,
+884 verbose linkStuff   false,
+884 verbose linkStuff   false,
+884 verbose linkStuff   '/home/ashish.singh/dev-camera/gaia/node_modules' ]
+885 info linkStuff adm-zip@0.4.3
+886 verbose linkBins adm-zip@0.4.3
+887 verbose linkMans adm-zip@0.4.3
+888 verbose rebuildBundles adm-zip@0.4.3
+889 info install adm-zip@0.4.3
+890 info postinstall adm-zip@0.4.3
+891 info build /home/ashish.singh/dev-camera/gaia/node_modules/empty-port
+892 verbose from cache /home/ashish.singh/dev-camera/gaia/node_modules/empty-port/package.json
+893 info preinstall empty-port@0.0.1
+894 verbose linkStuff [ false,
+894 verbose linkStuff   false,
+894 verbose linkStuff   false,
+894 verbose linkStuff   '/home/ashish.singh/dev-camera/gaia/node_modules' ]
+895 info linkStuff empty-port@0.0.1
+896 verbose linkBins empty-port@0.0.1
+897 verbose linkMans empty-port@0.0.1
+898 verbose rebuildBundles empty-port@0.0.1
+899 info install empty-port@0.0.1
+900 info postinstall empty-port@0.0.1
+901 info build /home/ashish.singh/dev-camera/gaia/node_modules/fe.js
+902 verbose from cache /home/ashish.singh/dev-camera/gaia/node_modules/fe.js/package.json
+903 info preinstall fe.js@0.1.4
+904 verbose linkStuff [ false,
+904 verbose linkStuff   false,
+904 verbose linkStuff   false,
+904 verbose linkStuff   '/home/ashish.singh/dev-camera/gaia/node_modules' ]
+905 info linkStuff fe.js@0.1.4
+906 verbose linkBins fe.js@0.1.4
+907 verbose linkMans fe.js@0.1.4
+908 verbose rebuildBundles fe.js@0.1.4
+909 info install fe.js@0.1.4
+910 info postinstall fe.js@0.1.4
+911 info build /home/ashish.singh/dev-camera/gaia/node_modules/dateformat
+912 verbose from cache /home/ashish.singh/dev-camera/gaia/node_modules/dateformat/package.json
+913 info preinstall dateformat@1.0.6-1.2.3
+914 verbose linkStuff [ false,
+914 verbose linkStuff   false,
+914 verbose linkStuff   false,
+914 verbose linkStuff   '/home/ashish.singh/dev-camera/gaia/node_modules' ]
+915 info linkStuff dateformat@1.0.6-1.2.3
+916 verbose linkBins dateformat@1.0.6-1.2.3
+917 verbose linkMans dateformat@1.0.6-1.2.3
+918 verbose rebuildBundles dateformat@1.0.6-1.2.3
+919 info install dateformat@1.0.6-1.2.3
+920 info postinstall dateformat@1.0.6-1.2.3
+921 info build /home/ashish.singh/dev-camera/gaia/node_modules/marionette-content-script
+922 verbose from cache /home/ashish.singh/dev-camera/gaia/node_modules/marionette-content-script/package.json
+923 info preinstall marionette-content-script@0.0.3
+924 verbose linkStuff [ false,
+924 verbose linkStuff   false,
+924 verbose linkStuff   false,
+924 verbose linkStuff   '/home/ashish.singh/dev-camera/gaia/node_modules' ]
+925 info linkStuff marionette-content-script@0.0.3
+926 verbose linkBins marionette-content-script@0.0.3
+927 verbose linkMans marionette-content-script@0.0.3
+928 verbose rebuildBundles marionette-content-script@0.0.3
+929 info install marionette-content-script@0.0.3
+930 info postinstall marionette-content-script@0.0.3
+931 info build /home/ashish.singh/dev-camera/gaia/node_modules/async
+932 verbose from cache /home/ashish.singh/dev-camera/gaia/node_modules/async/package.json
+933 info preinstall async@0.2.9
+934 verbose linkStuff [ false,
+934 verbose linkStuff   false,
+934 verbose linkStuff   false,
+934 verbose linkStuff   '/home/ashish.singh/dev-camera/gaia/node_modules' ]
+935 info linkStuff async@0.2.9
+936 verbose linkBins async@0.2.9
+937 verbose linkMans async@0.2.9
+938 verbose rebuildBundles async@0.2.9
+939 info install async@0.2.9
+940 info postinstall async@0.2.9
+941 info build /home/ashish.singh/dev-camera/gaia/node_modules/debug
+942 verbose from cache /home/ashish.singh/dev-camera/gaia/node_modules/debug/package.json
+943 info preinstall debug@0.7.4
+944 verbose linkStuff [ false,
+944 verbose linkStuff   false,
+944 verbose linkStuff   false,
+944 verbose linkStuff   '/home/ashish.singh/dev-camera/gaia/node_modules' ]
+945 info linkStuff debug@0.7.4
+946 verbose linkBins debug@0.7.4
+947 verbose linkMans debug@0.7.4
+948 verbose rebuildBundles debug@0.7.4
+949 info install debug@0.7.4
+950 info postinstall debug@0.7.4
+951 info build /home/ashish.singh/dev-camera/gaia/node_modules/grunt-jsdoc
+952 verbose from cache /home/ashish.singh/dev-camera/gaia/node_modules/grunt-jsdoc/package.json
+953 info preinstall grunt-jsdoc@0.5.1
+954 verbose linkStuff [ false,
+954 verbose linkStuff   false,
+954 verbose linkStuff   false,
+954 verbose linkStuff   '/home/ashish.singh/dev-camera/gaia/node_modules' ]
+955 info linkStuff grunt-jsdoc@0.5.1
+956 verbose linkBins grunt-jsdoc@0.5.1
+957 verbose link bins [ { 'grunt-jsdoc': 'bin/grunt-jsdoc' },
+957 verbose link bins   '/home/ashish.singh/dev-camera/gaia/node_modules/.bin',
+957 verbose link bins   false ]
+958 verbose linkMans grunt-jsdoc@0.5.1
+959 verbose rebuildBundles grunt-jsdoc@0.5.1
+960 info install grunt-jsdoc@0.5.1
+961 info postinstall grunt-jsdoc@0.5.1
+962 info build /home/ashish.singh/dev-camera/gaia/node_modules/marionette-file-manager
+963 verbose from cache /home/ashish.singh/dev-camera/gaia/node_modules/marionette-file-manager/package.json
+964 info preinstall marionette-file-manager@0.0.2
+965 verbose linkStuff [ false,
+965 verbose linkStuff   false,
+965 verbose linkStuff   false,
+965 verbose linkStuff   '/home/ashish.singh/dev-camera/gaia/node_modules' ]
+966 info linkStuff marionette-file-manager@0.0.2
+967 verbose linkBins marionette-file-manager@0.0.2
+968 verbose linkMans marionette-file-manager@0.0.2
+969 verbose rebuildBundles marionette-file-manager@0.0.2
+970 info install marionette-file-manager@0.0.2
+971 info postinstall marionette-file-manager@0.0.2
+972 info build /home/ashish.singh/dev-camera/gaia/node_modules/q
+973 verbose from cache /home/ashish.singh/dev-camera/gaia/node_modules/q/package.json
+974 info preinstall q@0.9.7
+975 verbose linkStuff [ false,
+975 verbose linkStuff   false,
+975 verbose linkStuff   false,
+975 verbose linkStuff   '/home/ashish.singh/dev-camera/gaia/node_modules' ]
+976 info linkStuff q@0.9.7
+977 verbose linkBins q@0.9.7
+978 verbose linkMans q@0.9.7
+979 verbose rebuildBundles q@0.9.7
+980 info install q@0.9.7
+981 info postinstall q@0.9.7
+982 info build /home/ashish.singh/dev-camera/gaia/node_modules/moment
+983 verbose from cache /home/ashish.singh/dev-camera/gaia/node_modules/moment/package.json
+984 info preinstall moment@2.4.0
+985 verbose linkStuff [ false,
+985 verbose linkStuff   false,
+985 verbose linkStuff   false,
+985 verbose linkStuff   '/home/ashish.singh/dev-camera/gaia/node_modules' ]
+986 info linkStuff moment@2.4.0
+987 verbose linkBins moment@2.4.0
+988 verbose linkMans moment@2.4.0
+989 verbose rebuildBundles moment@2.4.0
+990 info install moment@2.4.0
+991 info postinstall moment@2.4.0
+992 info build /home/ashish.singh/dev-camera/gaia/node_modules/mocha-json-proxy
+993 verbose from cache /home/ashish.singh/dev-camera/gaia/node_modules/mocha-json-proxy/package.json
+994 info preinstall mocha-json-proxy@0.0.7
+995 verbose linkStuff [ false,
+995 verbose linkStuff   false,
+995 verbose linkStuff   false,
+995 verbose linkStuff   '/home/ashish.singh/dev-camera/gaia/node_modules' ]
+996 info linkStuff mocha-json-proxy@0.0.7
+997 verbose linkBins mocha-json-proxy@0.0.7
+998 verbose linkMans mocha-json-proxy@0.0.7
+999 verbose rebuildBundles mocha-json-proxy@0.0.7
+1000 info install mocha-json-proxy@0.0.7
+1001 info postinstall mocha-json-proxy@0.0.7
+1002 info build /home/ashish.singh/dev-camera/gaia/node_modules/marionette-device-host
+1003 verbose from cache /home/ashish.singh/dev-camera/gaia/node_modules/marionette-device-host/package.json
+1004 info preinstall marionette-device-host@0.0.2
+1005 verbose linkStuff [ false,
+1005 verbose linkStuff   false,
+1005 verbose linkStuff   false,
+1005 verbose linkStuff   '/home/ashish.singh/dev-camera/gaia/node_modules' ]
+1006 info linkStuff marionette-device-host@0.0.2
+1007 verbose linkBins marionette-device-host@0.0.2
+1008 verbose linkMans marionette-device-host@0.0.2
+1009 verbose rebuildBundles marionette-device-host@0.0.2
+1010 info install marionette-device-host@0.0.2
+1011 info postinstall marionette-device-host@0.0.2
+1012 info build /home/ashish.singh/dev-camera/gaia/node_modules/proxyquire
+1013 verbose from cache /home/ashish.singh/dev-camera/gaia/node_modules/proxyquire/package.json
+1014 info preinstall proxyquire@0.4.1
+1015 verbose linkStuff [ false,
+1015 verbose linkStuff   false,
+1015 verbose linkStuff   false,
+1015 verbose linkStuff   '/home/ashish.singh/dev-camera/gaia/node_modules' ]
+1016 info linkStuff proxyquire@0.4.1
+1017 verbose linkBins proxyquire@0.4.1
+1018 verbose linkMans proxyquire@0.4.1
+1019 verbose rebuildBundles proxyquire@0.4.1
+1020 info install proxyquire@0.4.1
+1021 info postinstall proxyquire@0.4.1
+1022 info build /home/ashish.singh/dev-camera/gaia/node_modules/dive
+1023 verbose from cache /home/ashish.singh/dev-camera/gaia/node_modules/dive/package.json
+1024 info preinstall dive@0.3.0
+1025 verbose linkStuff [ false,
+1025 verbose linkStuff   false,
+1025 verbose linkStuff   false,
+1025 verbose linkStuff   '/home/ashish.singh/dev-camera/gaia/node_modules' ]
+1026 info linkStuff dive@0.3.0
+1027 verbose linkBins dive@0.3.0
+1028 verbose linkMans dive@0.3.0
+1029 verbose rebuildBundles dive@0.3.0
+1030 verbose rebuildBundles [ 'append' ]
+1031 info install dive@0.3.0
+1032 info postinstall dive@0.3.0
+1033 info build /home/ashish.singh/dev-camera/gaia/node_modules/dive/node_modules/append
+1034 verbose from cache /home/ashish.singh/dev-camera/gaia/node_modules/dive/node_modules/append/package.json
+1035 info preinstall append@0.1.1
+1036 verbose linkStuff [ false,
+1036 verbose linkStuff   false,
+1036 verbose linkStuff   false,
+1036 verbose linkStuff   '/home/ashish.singh/dev-camera/gaia/node_modules/dive/node_modules' ]
+1037 info linkStuff append@0.1.1
+1038 verbose linkBins append@0.1.1
+1039 verbose linkMans append@0.1.1
+1040 verbose rebuildBundles append@0.1.1
+1041 info install append@0.1.1
+1042 info postinstall append@0.1.1
+1043 info build /home/ashish.singh/dev-camera/gaia/node_modules/travis-project-jobs
+1044 verbose from cache /home/ashish.singh/dev-camera/gaia/node_modules/travis-project-jobs/package.json
+1045 info preinstall travis-project-jobs@0.0.1
+1046 verbose linkStuff [ false,
+1046 verbose linkStuff   false,
+1046 verbose linkStuff   false,
+1046 verbose linkStuff   '/home/ashish.singh/dev-camera/gaia/node_modules' ]
+1047 info linkStuff travis-project-jobs@0.0.1
+1048 verbose linkBins travis-project-jobs@0.0.1
+1049 verbose link bins [ { travisaction: './bin/travisaction' },
+1049 verbose link bins   '/home/ashish.singh/dev-camera/gaia/node_modules/.bin',
+1049 verbose link bins   false ]
+1050 verbose linkMans travis-project-jobs@0.0.1
+1051 verbose rebuildBundles travis-project-jobs@0.0.1
+1052 verbose rebuildBundles [ 'commander' ]
+1053 info install travis-project-jobs@0.0.1
+1054 info postinstall travis-project-jobs@0.0.1
+1055 info build /home/ashish.singh/dev-camera/gaia/node_modules/travis-project-jobs/node_modules/commander
+1056 verbose from cache /home/ashish.singh/dev-camera/gaia/node_modules/travis-project-jobs/node_modules/commander/package.json
+1057 info preinstall commander@2.0.0
+1058 verbose linkStuff [ false,
+1058 verbose linkStuff   false,
+1058 verbose linkStuff   false,
+1058 verbose linkStuff   '/home/ashish.singh/dev-camera/gaia/node_modules/travis-project-jobs/node_modules' ]
+1059 info linkStuff commander@2.0.0
+1060 verbose linkBins commander@2.0.0
+1061 verbose linkMans commander@2.0.0
+1062 verbose rebuildBundles commander@2.0.0
+1063 info install commander@2.0.0
+1064 info postinstall commander@2.0.0
+1065 info build /home/ashish.singh/dev-camera/gaia/node_modules/ffi-prebuilt
+1066 verbose from cache /home/ashish.singh/dev-camera/gaia/node_modules/ffi-prebuilt/package.json
+1067 info preinstall ffi-prebuilt@1.2.9
+1068 verbose linkStuff [ false,
+1068 verbose linkStuff   false,
+1068 verbose linkStuff   false,
+1068 verbose linkStuff   '/home/ashish.singh/dev-camera/gaia/node_modules' ]
+1069 info linkStuff ffi-prebuilt@1.2.9
+1070 verbose linkBins ffi-prebuilt@1.2.9
+1071 verbose linkMans ffi-prebuilt@1.2.9
+1072 verbose rebuildBundles ffi-prebuilt@1.2.9
+1073 verbose rebuildBundles [ 'ref-prebuilt', 'ref-struct-prebuilt', 'bindings' ]
+1074 info install ffi-prebuilt@1.2.9
+1075 verbose unsafe-perm in lifecycle true
+1076 silly exec sh "-c" "./tools/copy.js || node-gyp configure build"
+1077 silly sh,-c,./tools/copy.js || node-gyp configure build,/home/ashish.singh/dev-camera/gaia/node_modules/ffi-prebuilt spawning
+1078 info ffi-prebuilt@1.2.9 Failed to exec install script
+1079 error ffi-prebuilt@1.2.9 install: `./tools/copy.js || node-gyp configure build`
+1079 error `sh "-c" "./tools/copy.js || node-gyp configure build"` failed with 1
+1080 error Failed at the ffi-prebuilt@1.2.9 install script.
+1080 error This is most likely a problem with the ffi-prebuilt package,
+1080 error not with npm itself.
+1080 error Tell the author that this fails on your system:
+1080 error     ./tools/copy.js || node-gyp configure build
+1080 error You can get their info via:
+1080 error     npm owner ls ffi-prebuilt
+1080 error There is likely additional logging output above.
+1081 error System Linux 2.6.32-31-server
+1082 error command "/usr/local/bin/node" "/usr/local/bin/npm" "rebuild"
+1083 error cwd /home/ashish.singh/dev-camera/gaia
+1084 error node -v v0.8.16
+1085 error npm -v 1.1.69
+1086 error code ELIFECYCLE
+1087 verbose exit [ 1, true ]

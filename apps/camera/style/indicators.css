@@ -1,0 +1,119 @@
+
+/**
+ * 1. Vertically align indicators
+ * 2. Prevent interaction conflict.
+ */
+
+.indicators {
+  display: flex; /* 1 */
+  position: absolute;
+  top: 0; left: 0;
+  height: 100%;
+  padding: 1.5rem;
+  flex-direction: column;
+  justify-content: center; /* 1 */
+  pointer-events: none; /* 2 */
+  opacity: 0;
+}
+
+/**
+ * @visible
+ */
+
+.indicators.visible {
+  opacity: 1;
+}
+
+/**
+ * @deg180
+ */
+
+.deg180 .indicators {
+  left: auto; right: 0;
+  transform: rotate(0deg);
+}
+
+/** Indicators
+ ---------------------------------------------------------*/
+
+.indicators li {
+  height: 1em;
+  width: 1em;
+  font-size: 18px;
+  margin-bottom: 1.2rem;
+  border-radius: 4px;
+  text-align: center;
+  background-color: #FFFFFF;
+  color: #008EAB;
+}
+
+/**
+ * @off
+ */
+
+.indicators[hdr=off] .indicator_hdr,
+.indicators[timer=off] .indicator_timer {
+  opacity: 0.2;
+}
+
+/** HDR
+ ---------------------------------------------------------*/
+
+.indicator_hdr {
+  display: none;
+}
+
+/**
+ * @on,
+ * @off
+ */
+
+.indicators[hdr=on] .indicator_hdr,
+.indicators[hdr=off] .indicator_hdr {
+  display: block;
+}
+
+/** Indicator Battery
+ ---------------------------------------------------------*/
+
+.indicator_battery {
+  display: none;
+}
+
+/*.indicator li[data-mode=off]{
+  opacity: 0.2;
+}
+
+.indicator li[data-mode=on]{
+  opacity: 0.8;
+  color:#008EAB;
+}
+.indicator li[data-mode=auto]{
+  opacity: 0.8;
+  color:#008EAB;
+}
+.indicator .batteryStatus {
+  background-color: transparent;
+  color: #D92E2E;
+  opacity: 0.8;
+  font-size: 30px;
+}
+
+.indicator .batteryStatus[data-value='6']{
+
+  transition: background-image 2s ease-in-out;
+  animation-name: cf3FadeInOut;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  animation-duration: 3s;
+  animation-direction: alternate;
+}
+
+@keyframes cf3FadeInOut {
+  0% {
+    opacity:1;
+  }
+  50% {
+    opacity:0;
+  }
+}*/

@@ -49,19 +49,24 @@ suite('controllers/camera', function() {
 
     this.app.storage = sinon.createStubInstance(this.Storage);
     this.camera = this.app.camera;
+    this.app.settings.mode = sinon.createStubInstance(this.Setting);
+    this.app.settings.pictureSizes = sinon.createStubInstance(this.Setting);
+    this.app.settings.recorderProfiles = sinon.createStubInstance(this.Setting);
+    this.app.settings.flashModes = sinon.createStubInstance(this.Setting);
+    this.app.settings.hdr = sinon.createStubInstance(this.Setting);
   });
 
   suite('CameraController()', function() {
     setup(function() {
-      sinon.stub(this.CameraController.prototype, 'teardownCamera');
+      sinon.stub(this.CameraController.prototype, 'onBlur');
     });
 
     teardown(function() {
-      this.CameraController.prototype.teardownCamera.restore();
+      this.CameraController.prototype.onBlur.restore();
     });
 
     test('Should set the capture mode to \'camera\' by default', function() {
-      this.app.settings.value.withArgs('mode').returns('picture');
+      this.app.settings.mode.selected.returns('picture');
       this.controller = new this.CameraController(this.app);
       assert.isTrue(this.app.camera.setMode.calledWith('picture'));
     });
@@ -78,12 +83,53 @@ suite('controllers/camera', function() {
 
     test('Should teardown camera on app `blur`', function() {
       this.controller = new this.CameraController(this.app);
-      this.app.on.calledWith('blur', this.controller.teardownCamera);
+      this.app.on.calledWith('blur', this.controller.onBlur);
     });
 
     test('Should set the camera createVideoFilepath method', function() {
       this.controller = new this.CameraController(this.app);
       this.camera.createVideoFilepath = this.app.storage.createVideoFilepath;
+    });
+  });
+
+  suite('CameraController#onSettingsConfigured()', function() {
+    setup(function() {
+      this.app.settings.flashModes.selected.returns('on');
+      this.app.settings.pictureSizes.selected.returns({ width: 480, height: 640 });
+      this.app.settings.recorderProfiles.selected.returns('cif');
+      this.app.settings.hdr.selected.returns('on');
+      this.controller = new this.CameraController(this.app);
+    });
+
+    test('Should set flashMode', function() {
+      this.controller.onSettingsConfigured();
+      assert.ok(this.camera.setFlashMode.calledWith('on'));
+    });
+
+    test('Should set hdr', function() {
+      this.controller.onSettingsConfigured();
+      assert.ok(this.camera.setHDR.calledWith('on'));
+    });
+
+    test('Should set recorderProfile', function() {
+      this.controller.onSettingsConfigured();
+      assert.ok(this.camera.setRecorderProfile.calledWith('cif'));
+    });
+
+    test('Should set pictureSize', function() {
+      this.controller.onSettingsConfigured();
+      var pictureSize = this.camera.setPictureSize.args[0][0];
+      assert.ok(pictureSize.width === 480);
+      assert.ok(pictureSize.height === 640);
+    });
+
+    test('Should call camera.configure() camera after setup', function() {
+      this.controller.onSettingsConfigured();
+      var configure = this.camera.configure;
+      assert.ok(configure.calledAfter(this.camera.setFlashMode));
+      assert.ok(configure.calledAfter(this.camera.setFlashMode));
+      assert.ok(configure.calledAfter(this.camera.setRecorderProfile));
+      assert.ok(configure.calledAfter(this.camera.setHDR));
     });
   });
 });

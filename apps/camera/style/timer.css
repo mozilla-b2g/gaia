@@ -1,0 +1,38 @@
+
+.timer {
+  position: absolute;
+  top: 50%; left: 50%;
+  z-index:50;
+  height: 16rem;
+  width: 16rem;
+  margin: -8rem;
+  font-size: 48pt;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.12);
+  color: #FFF;
+  text-align: center;
+  line-height: 16rem;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 200ms;
+}
+
+/**
+ * @visible
+ */
+
+.timer.visible {
+  opacity: 1;
+}
+
+/**
+ * @near
+ */
+
+.timer.near {
+  background: rgba(245,50,50, 0.4);
+}
+
+.timer_count {
+
+}
