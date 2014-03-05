@@ -2,6 +2,12 @@ define(function(require, exports, module) {
 'use strict';
 
 /**
+ * Dependencies
+ */
+
+var cookies = require('vendor/cookies');
+
+/**
 * Expose `debug()` as the module.
 */
 
@@ -30,7 +36,7 @@ function debug(name) {
     // where `console.log` doesn't have 'apply'
     window.console && console.log &&
       Function.prototype.apply.call(console.log, console, arguments);
-  }
+  };
 }
 
 /**
@@ -48,9 +54,7 @@ debug.skips = [];
 */
 
 debug.enable = function(name) {
-  try {
-    localStorage.debug = name;
-  } catch (e) {}
+  cookies.setItem('debug', name);
 
   var split = (name || '').split(/[\s,]+/);
   var len = split.length;
@@ -123,10 +127,7 @@ function coerce(val) {
   return val;
 }
 
-// persist
-
-try {
-  if (window.localStorage) debug.enable(localStorage.debug);
-} catch (e) {}
+// Initialize
+debug.enable(cookies.getItem('debug'));
 
 });
