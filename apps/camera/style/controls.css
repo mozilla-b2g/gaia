@@ -14,6 +14,14 @@
   color: #fff;
 }
 
+/**
+ * @enabled=false
+ */
+
+.controls[enabled=false] {
+  pointer-events: none;
+}
+
 .switch-button,
 .capture-button,
 .misc-button {
@@ -140,6 +148,7 @@
 
 .controls[recording=true] .capture-button {
   background-color: #d3361c;
+  pointer-events: auto;
 }
 
 /** Capture Button Icon

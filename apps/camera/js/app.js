@@ -7,11 +7,13 @@ define(function(require, exports, module) {
 
 var performanceTesting = require('performanceTesting');
 var ViewfinderView = require('views/viewfinder');
+var ControlsView2 = require('views/controls-2');
 var ControlsView = require('views/controls');
 var FocusRing = require('views/focus-ring');
 var lockscreen = require('lib/lock-screen');
 var constants = require('config/camera');
 var broadcast = require('lib/broadcast');
+var cookies = require('vendor/cookies');
 var bindAll = require('lib/bind-all');
 var model = require('vendor/model');
 var debug = require('debug')('app');
@@ -48,7 +50,6 @@ module.exports = App;
  */
 function App(options) {
   bindAll(this);
-  this.views = {};
   this.el = options.el;
   this.win = options.win;
   this.doc = options.doc;
@@ -57,11 +58,13 @@ function App(options) {
   this.geolocation = options.geolocation;
   this.filmstrip = options.filmstrip;
   this.activity = options.activity;
+  this.views = options.views;
   this.config = options.config;
   this.settings = options.settings;
   this.storage = options.storage;
   this.camera = options.camera;
   this.sounds = options.sounds;
+  this.cookies = cookies;
   debug('initialized');
 }
 
@@ -72,7 +75,7 @@ function App(options) {
  * @public
  */
 App.prototype.boot = function() {
-  this.setInitialMode();
+  this.configure();
   this.initializeViews();
   this.runControllers();
   this.injectViews();
@@ -82,9 +85,11 @@ App.prototype.boot = function() {
   debug('booted');
 };
 
-App.prototype.setInitialMode = function() {
+App.prototype.configure = function() {
+  var newControls = this.settings.newControls.selected('value');
   var mode = this.activity.mode;
   if (mode) { this.set('mode', mode, { silent: true }); }
+  this.ControlsView = newControls ? ControlsView2 : ControlsView;
 };
 
 App.prototype.teardown = function() {
@@ -102,6 +107,7 @@ App.prototype.runControllers = function() {
   this.filmstrip = this.filmstrip(this);
   this.controllers.settings(this);
   this.controllers.activity(this);
+  this.controllers.timer(this);
   this.controllers.camera(this);
   this.controllers.viewfinder(this);
   this.controllers.controls(this);
@@ -113,10 +119,13 @@ App.prototype.runControllers = function() {
 };
 
 App.prototype.initializeViews = function() {
-  this.views.viewfinder = new ViewfinderView();
-  this.views.controls = new ControlsView();
-  this.views.focusRing = new FocusRing();
-  this.views.hud = new HudView();
+  if (this.views) { return; }
+  this.views = {
+    viewfinder: new ViewfinderView(),
+    focusRing: new FocusRing(),
+    controls: new this.ControlsView(),
+    hud: new HudView()
+  };
   debug('views initialized');
 };
 
@@ -137,7 +146,6 @@ App.prototype.bindEvents = function() {
   bind(this.doc, 'visibilitychange', this.onVisibilityChange);
   bind(this.win, 'beforeunload', this.onBeforeUnload);
   bind(this.el, 'click', this.onClick);
-  //this.on('change', this.onStateChange);
   this.on('focus', this.onFocus);
   this.on('blur', this.onBlur);
   debug('events bound');

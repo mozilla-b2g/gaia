@@ -9,7 +9,7 @@ require(['config/require', 'config'], function() {
     /**
      * Module Dependencies
      */
-
+// setTimeout(function() {
     var App = require('app');
     var Camera = require('lib/camera');
     var Sounds = require('lib/sounds');
@@ -31,7 +31,8 @@ require(['config/require', 'config'], function() {
       settings: require('controllers/settings'),
       activity: require('controllers/activity'),
       camera: require('controllers/camera'),
-      sounds: require('controllers/sounds')
+      sounds: require('controllers/sounds'),
+      timer: require('controllers/timer'),
     };
 
     debug('required dependencies');
@@ -64,10 +65,12 @@ require(['config/require', 'config'], function() {
 
     debug('created app');
 
-    // Async jobs to be
-    // done before boot...
+    // Fetch persistent settings
     app.settings.fetch();
+
+    // Check for activities, then boot
     app.activity.check(app.boot);
+// }, 3000);
   });
 
   require(['boot']);

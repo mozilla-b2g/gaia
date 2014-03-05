@@ -43,6 +43,7 @@ suite('controllers/hud', function() {
     // Stub 'cameras' setting
     this.app.settings.cameras = sinon.createStubInstance(this.Setting);
     this.app.settings.flashModes = sinon.createStubInstance(this.Setting);
+    this.app.settings.showSettings = sinon.createStubInstance(this.Setting);
     this.app.settings.cameras.get.withArgs('options').returns([]);
     this.app.settings.get.withArgs('cameras')
       .returns(this.app.settings.cameras);
@@ -63,30 +64,27 @@ suite('controllers/hud', function() {
     test('Should listen to the following events', function() {
       assert.ok(this.app.on.calledWith('camera:busy'));
       assert.ok(this.app.on.calledWith('camera:ready'));
-      assert.ok(this.app.on.calledWith('camera:loading'));
       assert.ok(this.app.on.calledWith('change:recording'));
     });
 
-    test('Should disable controls when the camera is \'busy\'', function() {
+    test('Should hide controls when the camera is \'busy\'', function() {
       var disableButtons = this.hudController.disableButtons;
-      assert.ok(this.app.on.calledWith('camera:busy', disableButtons));
+      assert.ok(this.app.on.calledWith('camera:busy', this.hud.hide));
     });
 
-    test('Should enable controls when the camera is \'ready\'', function() {
+    test('Should show controls when the camera is \'ready\'', function() {
       var enableButtons = this.hudController.enableButtons;
-      assert.ok(this.app.on.calledWith('camera:ready', enableButtons));
+      assert.ok(this.app.on.calledWith('camera:ready', this.hud.show));
     });
   });
 
   suite('HudController#onRecordingChange', function() {
     test('Should disable the hide the hud buttons when recording', function() {
       this.hudController.onRecordingChange(true);
-      assert.ok(this.hud.hide.calledWithExactly('flash', true));
-      assert.ok(this.hud.hide.calledWithExactly('camera', true));
+      assert.ok(this.hud.toggle.calledWith(false));
       this.hud.hide.reset();
       this.hudController.onRecordingChange(false);
-      assert.ok(this.hud.hide.calledWithExactly('flash', false));
-      assert.ok(this.hud.hide.calledWithExactly('camera', false));
+      assert.ok(this.hud.toggle.calledWith(true));
     });
   });
 });
