@@ -30,30 +30,12 @@ function MediaPlaybackWidget(container, options) {
   // <https://bugzilla.mozilla.org/show_bug.cgi?id=915880>. If you're thinking
   // about doing something similar, step away from your keyboard immediately.
   window.addEventListener('appterminated', function(event) {
-    if (event.detail.origin === this.origin) {
-      this.hidden = true;
-      this.interrupted = false;
-    }
+    if (event.detail.origin === this.origin)
+      this.container.hidden = true;
   }.bind(this));
 }
 
 MediaPlaybackWidget.prototype = {
-  get hidden() {
-    return this.container.hidden;
-  },
-
-  set hidden(value) {
-    return this.container.hidden = value;
-  },
-
-  get interrupted() {
-    return this.controls.hidden;
-  },
-
-  set interrupted(value) {
-    return this.controls.hidden = value;
-  },
-
   handleMessage: function mpw_handleMessage(event) {
     var message = event.detail;
     switch (message.type) {
@@ -111,21 +93,15 @@ MediaPlaybackWidget.prototype = {
   updatePlaybackStatus: function mp_updatePlaybackStatus(status) {
     switch (status.playStatus) {
       case 'PLAYING':
-        this.hidden = false;
+        this.container.hidden = false;
         this.playPauseButton.classList.remove('is-paused');
         break;
       case 'PAUSED':
-        this.hidden = false;
+        this.container.hidden = false;
         this.playPauseButton.classList.add('is-paused');
         break;
       case 'STOPPED':
-        this.hidden = true;
-        break;
-      case 'mozinterruptbegin':
-        this.interrupted = true;
-        break;
-      case 'mozinterruptend':
-        this.interrupted = false;
+        this.container.hidden = true;
         break;
     }
   },
