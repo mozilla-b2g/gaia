@@ -6,21 +6,22 @@ define(function(require, exports, module) {
  */
 
 var bind = require('lib/bind');
+var find = require('lib/find');
 var CameraUtils = require('lib/camera-utils');
+var ZoomBar = require('lib/zoom-bar');
 var debug = require('debug')('view:viewfinder');
 var constants = require('config/camera');
 var View = require('vendor/view');
 var find = require('lib/find');
+
 /**
  * Locals
  */
 
-var MIN_VIEWFINDER_SCALE = constants.MIN_VIEWFINDER_SCALE;
-var MAX_VIEWFINDER_SCALE = constants.MAX_VIEWFINDER_SCALE;
 var lastTouchA = null;
 var lastTouchB = null;
 var isScaling = false;
-var scale = 1.0;
+var isZoomEnabled = false;
 var scaleSizeTo = {
   fill: CameraUtils.scaleSizeToFillViewport,
   fit: CameraUtils.scaleSizeToFitViewport
@@ -44,7 +45,7 @@ var getNewTouchB = function(touches) {
   return null;
 };
 
-var getDeltaScale = function(touchA, touchB) {
+var getDeltaZoom = function(touchA, touchB) {
   if (!touchA || !lastTouchA || !touchB || !lastTouchB) return 0;
 
   var oldDistance = Math.sqrt(Math.pow(lastTouchB.pageX -
@@ -55,6 +56,10 @@ var getDeltaScale = function(touchA, touchB) {
   return newDistance - oldDistance;
 };
 
+var clamp = function(value, minimum, maximum) {
+  return Math.min(Math.max(value, minimum), maximum);
+};
+
 module.exports = View.extend({
   name: 'viewfinder',
   className: 'js-viewfinder',
@@ -62,16 +67,47 @@ module.exports = View.extend({
 
   initialize: function() {
     this.render();
-    // bind(this.el, 'click', this.onClick);
-    this.els.video.autoplay = true;
+
+    // Bind events
+    bind(this.el, 'click', this.onClick);
+
     this.on('inserted', raf(this.getSize));
+
+    bind(this.el, 'touchstart', this.onTouchStart);
+    bind(this.el, 'touchmove', this.onTouchMove);
+    bind(this.el, 'touchend', this.onTouchEnd);
+    bind(this.els.zoomBar, 'change', this.onZoomBarChange);
   },
 
   render: function() {
     this.el.innerHTML = this.template();
+
+    // Find elements
     this.els.frame = this.find('.js-frame');
     this.els.video = this.find('.js-video');
+    this.els.zoomBar = find('.zoom-bar', this.el);
+
     bind(this.els.frame, 'click', this.onClick);
+
+    // Initialize ZoomBar
+    this.zoomBar = new ZoomBar(this.els.zoomBar);
+  },
+
+  template: function() {
+    return '<div class="viewfinder_frame js-frame">' +
+        '<video class="viewfinder_video js-video" autoplay></video>' +
+      '</div>' +
+      '<div class="viewfinder_grid">' +
+        '<div class="row-1"></div>' +
+        '<div class="row-2"></div>' +
+        '<div class="col-1"></div>' +
+        '<div class="col-2"></div>' +
+      '</div>' +
+      '<div class="zoom-bar">' +
+        '<div class="zoom-bar-inner">' +
+          '<div class="zoom-bar-handle"></div>' +
+        '</div>' +
+      '</div>';
   },
 
   onClick: function(e) {
@@ -85,6 +121,8 @@ module.exports = View.extend({
       lastTouchA = evt.touches[0];
       lastTouchB = evt.touches[1];
       isScaling = true;
+
+      evt.preventDefault();
     }
   },
 
@@ -96,11 +134,10 @@ module.exports = View.extend({
     var touchA = getNewTouchA(evt.touches);
     var touchB = getNewTouchB(evt.touches);
 
-    var deltaScale = getDeltaScale(touchA, touchB);
+    var deltaZoom = getDeltaZoom(touchA, touchB);
+    var zoom = this._zoom * (1 + (deltaZoom / 200));
 
-    scale *= 1 + (deltaScale / 100);
-
-    this.setScale(scale);
+    this.setZoom(zoom);
 
     lastTouchA = touchA;
     lastTouchB = touchB;
@@ -120,10 +157,78 @@ module.exports = View.extend({
     };
   },
 
-  setScale: function(scale) {
-    scale = Math.min(Math.max(scale, MIN_VIEWFINDER_SCALE),
-                     MAX_VIEWFINDER_SCALE);
-    this.els.frame.style.transform = 'scale(' + scale + ', ' + scale + ')';
+  onZoomBarChange: function(evt) {
+    var value = evt.detail / 100;
+    var range = this._maximumZoom - this._minimumZoom;
+    var zoom = (range * value) + this._minimumZoom;
+
+    this.setZoom(zoom);
+  },
+
+  enableZoom: function(minimumZoom, maximumZoom) {
+    if (minimumZoom) {
+      this._minimumZoom = minimumZoom;
+    }
+
+    if (maximumZoom) {
+      this._maximumZoom = maximumZoom;
+    }
+
+    isZoomEnabled = true;
+  },
+
+  disableZoom: function() {
+    this._minimumZoom = 1.0;
+    this._maximumZoom = 1.0;
+
+    this.setZoom(1.0);
+
+    isZoomEnabled = false;
+  },
+
+  _minimumZoom: 1.0,
+
+  setMinimumZoom: function(minimumZoom) {
+    this._minimumZoom = minimumZoom;
+  },
+
+  _maximumZoom: 1.0,
+
+  setMaximumZoom: function(maximumZoom) {
+    this._maximumZoom = maximumZoom;
+  },
+
+  _zoom: 1.0,
+
+  setZoom: function(zoom) {
+    if (!isZoomEnabled) {
+      return;
+    }
+
+    this._zoom = clamp(zoom, this._minimumZoom, this._maximumZoom);
+
+    this.emit('zoomChange', this._zoom);
+
+    var range = this._maximumZoom - this._minimumZoom;
+    var percent = (this._zoom - this._minimumZoom) / range * 100;
+
+    this.zoomBar.setValue(percent);
+
+    this.el.classList.add('zooming');
+
+    if (this._inactivityTimeout) {
+      window.clearTimeout(this._inactivityTimeout);
+    }
+
+    var self = this;
+    this._inactivityTimeout = window.setTimeout(function() {
+      self.el.classList.remove('zooming');
+      self._inactivityTimeout = null;
+    }, constants.ZOOM_BAR_INACTIVITY_TIMEOUT);
+  },
+
+  setZoomPreviewAdjustment: function(zoomPreviewAdjustment) {
+    this.els.video.style.transform = 'scale(' + zoomPreviewAdjustment + ')';
   },
 
   setPreviewStream: function(previewStream) {
@@ -176,18 +281,6 @@ module.exports = View.extend({
       mirrored, scaleType, yOffset);
 
     return this;
-  },
-
-  template: function() {
-    return '<div class="viewfinder_frame js-frame">' +
-      '<video class="viewfinder_video js-video"></video>' +
-      '<div class="viewfinder_grid">' +
-        '<div class="row-1"></div>' +
-        '<div class="row-2"></div>' +
-        '<div class="col-1"></div>' +
-        '<div class="col-2"></div>' +
-      '</div>' +
-    '</div>';
   }
 });
 

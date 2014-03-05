@@ -194,6 +194,16 @@ CameraController.prototype.onRecorderProfileChange = function() {
   this.setRecorderProfile(value);
 };
 
+CameraController.prototype.onPictureSizeChange = function() {
+  var value = this.settings.pictureSizes.selected('data');
+  this.setPictureSize(value);
+};
+
+CameraController.prototype.onRecorderProfileChange = function() {
+  var value = this.settings.recorderProfiles.selected('key');
+  this.setRecorderProfile(value);
+};
+
 CameraController.prototype.onFileSizeLimitReached = function() {
   this.camera.stopRecording();
   this.showSizeLimitAlert();

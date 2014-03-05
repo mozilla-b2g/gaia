@@ -26,6 +26,7 @@ function ViewfinderController(app) {
   this.camera = app.camera;
   this.activity = app.activity;
   this.filmstrip = app.filmstrip;
+  this.settings = app.settings;
   this.viewfinder = app.views.viewfinder;
   this.bindEvents();
   this.configure();
@@ -43,6 +44,7 @@ ViewfinderController.prototype.bindEvents = function() {
   this.app.settings.on('change:grid', this.viewfinder.setter('grid'));
   this.viewfinder.on('click', this.app.firer('viewfinder:click'));
   this.viewfinder.on('click', this.onViewfinderClick);
+  this.viewfinder.on('zoomChange', this.onZoomChange);
   this.app.on('camera:configured', this.loadStream);
   this.app.on('camera:configured', this.updatePreview);
   this.app.on('blur', this.onBlur);
@@ -57,9 +59,25 @@ ViewfinderController.prototype.updatePreview = function() {
   var isFrontCamera = camera === 'front';
   this.viewfinder.updatePreview(this.camera.previewSize(), isFrontCamera);
 
+  var enableZoom = this.camera.isZoomSupported() &&
+                   this.app.settings.enableZoom.selected().value;
+  if (enableZoom) {
+    this.viewfinder.enableZoom(this.camera.getMinimumZoom(),
+                               this.camera.getMaximumZoom());
+  } else {
+    this.viewfinder.disableZoom();
+  }
+
   // Fade in 100ms later to avoid
   // seeing viewfinder being resized
   setTimeout(this.viewfinder.fadeIn, 150);
+};
+
+ViewfinderController.prototype.onZoomChange = function(zoom) {
+  this.camera.setZoom(zoom);
+
+  var zoomPreviewAdjustment = this.camera.getZoomPreviewAdjustment();
+  this.viewfinder.setZoomPreviewAdjustment(zoomPreviewAdjustment);
 };
 
 /**

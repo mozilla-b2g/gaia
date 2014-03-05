@@ -753,4 +753,65 @@ Camera.prototype.setSceneMode = function(value){
   }
 };
 
+Camera.prototype.isZoomSupported = function() {
+  return this.mozCamera.capabilities.zoomRatios.length > 1;
+};
+
+Camera.prototype.getMinimumZoom = function() {
+  var zoomRatios = this.mozCamera.capabilities.zoomRatios;
+  if (zoomRatios.length === 0) {
+    return 1.0;
+  }
+
+  return zoomRatios[0];
+};
+
+Camera.prototype.getMaximumZoom = function() {
+  var zoomRatios = this.mozCamera.capabilities.zoomRatios;
+  if (zoomRatios.length === 0) {
+    return 1.0;
+  }
+
+  return zoomRatios[zoomRatios.length - 1];
+};
+
+Camera.prototype.getZoom = function() {
+  return this.mozCamera.zoom;
+};
+
+Camera.prototype.setZoom = function(zoom) {
+  this.mozCamera.zoom = zoom;
+  this.emit('zoomChange', zoom);
+};
+
+Camera.prototype.getZoomPreviewAdjustment = function() {
+  var zoom = this.mozCamera.zoom;
+
+  var previewSize = this.previewSize();
+  var maxPreviewSize = this.mozCamera.capabilities.previewSizes[0];
+
+  var maxHardwareZoomX = maxPreviewSize.width  / previewSize.width;
+  var maxHardwareZoomY = maxPreviewSize.height / previewSize.height;
+  var maxHardwareZoom = Math.max(maxHardwareZoomX, maxHardwareZoomY);
+
+  if (zoom <= maxHardwareZoom) {
+    return 1.0;
+  }
+  
+  var virtualPreviewSize = {
+    width:  previewSize.width  * maxHardwareZoom,
+    height: previewSize.height * maxHardwareZoom
+  };
+  var targetPreviewSize = {
+    width:  previewSize.width  * zoom,
+    height: previewSize.height * zoom
+  };
+
+  var zoomAdjustmentX = targetPreviewSize.width /
+                         virtualPreviewSize.width;
+  var zoomAdjustmentY = targetPreviewSize.height /
+                         virtualPreviewSize.height;
+  return Math.max(zoomAdjustmentX, zoomAdjustmentY);
+};
+
 });
