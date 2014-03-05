@@ -1,0 +1,274 @@
+
+/**
+ * Controls
+ *
+ * The main camera control bar.
+ */
+
+.controls-2 {
+  position: absolute;
+  bottom: 0; left: 0;
+  z-index: 50;
+  width: 100%;
+  overflow: hidden;
+  background: linear-gradient(
+    to bottom,
+    rgba(0,0,0,0) 0%,
+    rgba(0,0,0,0.4) 100%);
+}
+
+/** Inner
+ ---------------------------------------------------------*/
+
+.controls-2 > .inner {
+  display: flex;
+  height: 122px;
+}
+
+/**
+ * @buttons-enabled=false
+ */
+
+.controls-2[buttons-enabled=false] > .inner {
+  pointer-events: none;
+}
+
+/** Containers
+ ---------------------------------------------------------*/
+
+.controls-2_left,
+.controls-2_right {
+  display: flex;
+  flex: 1;
+  align-items: center;
+}
+
+/** Left
+ ---------------------------------------------------------*/
+
+.controls-2_left > div {
+  display: block;
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+/** Right
+ ---------------------------------------------------------*/
+
+.controls-2_right {
+  justify-content: flex-end;
+  margin-right: 1.4rem;
+  -moz-user-select: none;
+}
+
+/** Gallery Button
+ ---------------------------------------------------------*/
+
+.controls-2_gallery-button {
+  position: absolute;
+  left: 25%;
+  top: 50%;
+  font-size: 54px;
+  width: 1em;
+  height: 1em;
+  margin-top: -0.5em;
+  color: white;
+}
+
+/** Thumbnail
+ ---------------------------------------------------------*/
+
+.controls-2_thumbnail > img {
+  position: absolute;
+  display: block;
+  left: 25%;
+  top: 50%;
+  margin-top: -0.5em;
+  font-size: 54px;
+  width: 1em;
+  height: 1em;
+  border: solid 2px #ffffff;
+  border-radius: 100px;
+  animation: thumbnail-fade-in 300ms;
+}
+
+/** Mode Toggle
+ ---------------------------------------------------------*/
+
+.mode-toggle {
+  position: relative;
+  box-sizing: content-box;
+  display: block;
+  font-size: 40px;
+  width: 2.1em;
+  height: 1em;
+  background: rgba(51, 51, 51, 0.65);
+  border-radius: 1em;
+  padding: 3px;
+  overflow: hidden;
+}
+
+.mode-toggle::before {
+  position: absolute;
+  display: block;
+  right: .5em;
+  width: 1em;
+  height: 1em;
+  color: #C7C7C7;
+  font-size: 24px;
+  line-height: 40px;
+  content: "\e602";
+  background-color: transparent;
+}
+
+/**
+ * @mode=video
+ */
+
+[mode=video] .mode-toggle::before {
+  left: .5em;
+  content: "\e60f";
+}
+
+.mode-toggle > div {
+  position: relative;
+  width: 1em;
+  height: 1em;
+  border-radius: 1em;
+  background: #EEE;
+  transition: transform 100ms;
+}
+
+.mode-toggle > div > span:before {
+  position: absolute;
+  top: 50%;
+  margin-top: -12px;
+  left: 50%;
+  margin-left: -12px;
+  font-size: 24px;
+  color: #00CAF2;
+  content: "\e60f";
+
+}
+
+[mode=video] .mode-toggle > div > span:before {
+  content: "\e602";
+  color: #D92E2E;
+}
+
+[mode=video] .mode-toggle > div {
+  transform: translateX(1.1em);
+}
+
+/** Capture Button
+ ---------------------------------------------------------*/
+
+.capture-button-2 {
+  position:relative;
+  font-size: 102px;
+  width: 1em;
+  height: 1em;
+  margin-top: -51px;
+  top: 50%;
+  -moz-user-select: none;
+}
+
+/** Circle
+ ---------------------------------------------------------*/
+
+.capture-button-2 .circle {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+}
+
+/** Outer Circle
+ ---------------------------------------------------------*/
+
+.outer-circle {
+  background: #C3F5FF;
+  opacity: 0.35;
+}
+
+[mode=video] .outer-circle {
+  background: #D92E2E;
+}
+
+/** Inner Circle
+ ---------------------------------------------------------*/
+
+.capture-button-2 .inner-circle {
+  background-color: white;
+  transform: scale(0.74);
+}
+
+[mode=video][recording=true] .capture-button-2 .inner-circle {
+  background-color: #D92E2E;
+}
+
+.capture-button-2:active .inner-circle {
+  background-color: #00caf2;
+  transform: scale(1.0);
+  transition: transform 200ms ease-in;
+}
+
+[mode=video] .capture-button-2:active .inner-circle {
+  background-color: #D92E2E;
+}
+
+[mode=video] .inner-circle {
+  position: relative;
+}
+
+/** Icon
+ ---------------------------------------------------------*/
+
+.capture-button-2 .center::after {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 1em;
+  height: 1em;
+  font-size: 40px;
+  margin-top: -0.5em;
+  margin-left: -0.5em;
+  line-height: 1em;
+  color: #81ACB6;
+  content: "\e60f";
+}
+
+.capture-button-2:active .center::after{
+  color: white;
+}
+
+[mode=video] .capture-button-2 .center::after {
+  width: 20px;
+  height: 20px;
+  margin-top: -10px;
+  margin-left: -10px;
+  border-radius: 50%;
+  background-color: #D92E2E;
+  color: white;
+  content: "";
+}
+
+[mode=video][recording=true] .capture-button-2 .center::after {
+  border-radius: 25%;
+  background-color: white;
+}
+
+/** Pulse Animation
+ ---------------------------------------------------------*/
+
+@keyframes pulse {
+  0% { transform: scale(0.74) }
+  50% { transform: scale(1) }
+  100% { transform: scale(0.74) }
+}
+
+@keyframes thumbnail-fade-in {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}

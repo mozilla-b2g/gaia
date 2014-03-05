@@ -9,7 +9,7 @@ require(['config/require', 'config'], function() {
     /**
      * Module Dependencies
      */
-
+// setTimeout(function() {
     var App = require('app');
     var Camera = require('lib/camera');
     var Sounds = require('lib/sounds');
@@ -23,15 +23,18 @@ require(['config/require', 'config'], function() {
     var Activity = require('lib/activity');
     var Storage = require('lib/storage');
     var controllers = {
-      hud: require('controllers/hud'),
-      controls: require('controllers/controls'),
       viewfinder: require('controllers/viewfinder'),
-      overlay: require('controllers/overlay'),
-      confirm: require('controllers/confirm'),
+      indicators: require('controllers/indicators'),
+      controls: require('controllers/controls'),
+      recordingTimer: require('controllers/recording-timer'),
       settings: require('controllers/settings'),
       activity: require('controllers/activity'),
+      overlay: require('controllers/overlay'),
+      confirm: require('controllers/confirm'),
       camera: require('controllers/camera'),
-      sounds: require('controllers/sounds')
+      sounds: require('controllers/sounds'),
+      timer: require('controllers/timer'),
+      hud: require('controllers/hud')
     };
 
     debug('required dependencies');
@@ -64,10 +67,12 @@ require(['config/require', 'config'], function() {
 
     debug('created app');
 
-    // Async jobs to be
-    // done before boot...
+    // Fetch persistent settings
     app.settings.fetch();
+
+    // Check for activities, then boot
     app.activity.check(app.boot);
+// }, 3000);
   });
 
   require(['boot']);
