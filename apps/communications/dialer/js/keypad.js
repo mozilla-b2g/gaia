@@ -286,9 +286,7 @@ var KeypadManager = {
     }
 
     // If user input number more 50 digits, app shouldn't accept.
-    // The limit only applies while not on a call - there is no
-    // limit while on a call (bug 917630).
-    if (key != 'delete' && this._phoneNumber.length >= 50 && !this._onCall) {
+    if (key != 'delete' && this._phoneNumber.length >= 50) {
       return;
     }
 
