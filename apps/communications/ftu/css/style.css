@@ -494,15 +494,13 @@ aside.connecting {
 #hidden-wifi-authentication form label,
 #configure_network_params form label {
   display: block;
-  width: 100%;
-  -moz-box-sizing: border-box;
-  padding: 1.5rem 1.5rem 0.5rem 1.5rem;
+  padding: 1.5rem 1.5rem 0.5rem 1.5rem ;
   font-size: 1.5rem;
 }
 
 #hidden-wifi-authentication form select {
   width: 100%;
-  padding: 0.5rem 1.5rem 0.5rem 1.5rem;
+  padding: 0.5rem 1.5rem 0.5rem 1.5rem ;
   font-size: 1.5rem;
 }
 
@@ -531,7 +529,7 @@ aside.connecting {
 }
 
 #hidden-wifi-authentication label p {
-  width: calc(100% - 2rem);
+  width: 12rem;
   bottom: 0.4rem;
   left: 3rem;
 }

@@ -4,12 +4,7 @@ var RingtoneCustomizer = (function() {
   Customizer.call(this, 'ringtone', 'json');
   this.set = function(ringtoneParams) {
     Resources.load(ringtoneParams.uri, 'blob', function onsuccess(blob) {
-      var settings = navigator.mozSettings;
-      if (!settings) {
-        console.error('Settings is not available');
-        return;
-      }
-      var request = settings.createLock().set({
+      var request = navigator.mozSettings.createLock().set({
         'dialer.ringtone': blob,
         'dialer.ringtone.name': ringtoneParams.name
       });

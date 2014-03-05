@@ -10,6 +10,7 @@ class VideoPlayer(Base):
 
     name = 'Video'
 
+    _progress_bar_locator = (By.ID, 'throbber')
     _thumbnails_locator = (By.ID, 'thumbnails')
 
     # Video list/summary view
@@ -25,6 +26,9 @@ class VideoPlayer(Base):
     def wait_for_thumbnails_to_load(self, files_number):
         self.wait_for_condition(lambda m: len(m.find_elements(*self._video_items_locator)) == files_number,
                                 timeout=files_number * 5)
+
+    def wait_for_progress_bar_not_visible(self):
+        self.wait_for_element_not_displayed(*self._progress_bar_locator)
 
     @property
     def total_video_count(self):

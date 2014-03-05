@@ -47,17 +47,10 @@
     var download = downloadsCache[id];
 
     function doDeleteDownload() {
+      _deleteFromDownloadsCache(id);
       var reqRemove = DownloadHelper.remove(download);
-
-      reqRemove.onsuccess = function req_onerror() {
-        _deleteFromDownloadsCache(id);
-        successCb();
-      };
-
-      reqRemove.onerror = function req_onerror() {
-        DownloadHelper.handlerError(reqRemove.error, download);
-        errorCb(reqRemove.error.code);
-      };
+      reqRemove.onsuccess = successCb;
+      reqRemove.onerror = errorCb;
     }
 
     if (item.force) {

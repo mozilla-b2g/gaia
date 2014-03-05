@@ -98,6 +98,6 @@ var FxaModuleNavigation = {
     }
   },
   done: function fxam_nav_done() {
-    this.currentModule.onDone(FxaModuleManager.done);
+    FxaModuleManager.done();
   }
 };

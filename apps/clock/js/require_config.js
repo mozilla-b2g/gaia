@@ -15,9 +15,6 @@ requirejs.config({
     'shared/js/async_storage': {
       exports: 'asyncStorage'
     },
-    'shared/js/performance_testing_helper': {
-      exports: 'PerformanceTestingHelper'
-    },
     'shared/js/l10n_date': ['shared/js/l10n']
   }
 });

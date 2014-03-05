@@ -14,34 +14,24 @@ function SetupFixGmail(domNode, mode, args) {
   this.account = args.account;
   this.restoreCard = args.restoreCard;
 
-  // The account name is not translatable; set it verbatim.
-  this.getElement('sup-gmail-account').textContent = this.account.name;
+  var accountNode =
+    domNode.getElementsByClassName('sup-gmail-account')[0];
+  accountNode.textContent = this.account.name;
 
-  // Localize the common elements. Since the text of these may differ
-  // depending on the account type, we must translate them here rather
-  // than through data-l10n-id.
-  var translations = {
-    'sup-account-header-label': 'setup-gmail-{ACCOUNT_TYPE}-header',
-    'sup-enable-label': 'setup-gmail-{ACCOUNT_TYPE}-message',
-    'sup-dismiss-btn': 'setup-gmail-{ACCOUNT_TYPE}-retry'
-  };
-  var accountType = (this.account.type === 'imap+smtp' ? 'imap' : 'pop3');
-  for (var className in translations) {
-    var l10nId = translations[className].replace('{ACCOUNT_TYPE}', accountType);
-    mozL10n.localize(this.getElement(className), l10nId);
-  }
+  var incomingType = (this.account.type === 'imap+smtp' ? 'imap' : 'pop3');
+  domNode.getElementsByClassName('sup-account-header-label')[0].textCountent =
+      mozL10n.get('setup-gmail-' + incomingType + '-header');
+  domNode.getElementsByClassName('sup-enable-label')[0].textCountent =
+      mozL10n.get('setup-gmail-' + incomingType + '-message');
+  domNode.getElementsByClassName('sup-dismiss-btn')[0].textCountent =
+      mozL10n.get('setup-gmail-' + incomingType + '-retry');
 
-  this.getElement('sup-dismiss-btn').addEventListener(
-    'click', this.onDismiss.bind(this), false);
+  var useButton = domNode.getElementsByClassName('sup-dismiss-btn')[0];
+  useButton.addEventListener('click', this.onDismiss.bind(this), false);
 }
-
 SetupFixGmail.prototype = {
   die: function() {
     // no special cleanup required
-  },
-
-  getElement: function(className) {
-    return this.domNode.getElementsByClassName(className)[0];
   },
 
   onDismiss: function() {

@@ -1,5 +1,5 @@
 /*global Utils, Template, Threads, ThreadUI, MessageManager, ContactRenderer,
-         Contacts, Settings*/
+         Contacts*/
 /*exported Information */
 
 (function(exports) {
@@ -90,26 +90,6 @@ function createReportDiv(reports) {
   }
   reportDiv.innerHTML = TMPL.report.interpolate(data);
   return reportDiv;
-}
-
-function showSimInfo(element, iccId) {
-  var iccManager = navigator.mozIccManager;
-  // Hide the element when single SIM or no iccManager/mobileConnections
-  if (!(Settings.hasSeveralSim() && iccId && iccManager)) {
-    return;
-  }
-
-  var info =[];
-  // TODO: we might need to re-localize Sim name manually when language changes
-  var simId = Settings.getSimNameByIccId(iccId);
-  var operator = Settings.getOperatorByIccId(iccId);
-  var number = iccManager.getIccById(iccId).iccInfo.msisdn;
-  info = [simId, operator, number].filter(function(value){
-    return value;
-  });
-
-  element.querySelector('.sim-detail').textContent = info.join(', ');
-  element.classList.remove('hide');
 }
 
 // Compute attachment size and return the corresponding l10nId(KB/MB) and
@@ -218,9 +198,6 @@ var VIEWS = {
           l10nContainsDateSetup(this.datetime, message.timestamp);
         }
 
-        //show sim information for dual sim device
-        showSimInfo(this.simInfo, message.iccId);
-
         // Filled in the contact list. Only outgoing message contains detailed
         // report information.
         this.renderContactList(createListWithMsgInfo(message));
@@ -230,7 +207,7 @@ var VIEWS = {
     },
     elements: ['contact-list', 'status', 'size', 'size-block', 'sent-detail',
       'type', 'subject', 'datetime', 'contact-title', 'received-detail',
-      'sent-timeStamp', 'received-timeStamp', 'sim-info']
+      'sent-timeStamp', 'received-timeStamp']
   }
 };
 

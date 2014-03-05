@@ -3,7 +3,6 @@
 
 require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 requireApp('search/test/unit/mock_search.js');
-requireApp('search/shared/js/url_helper.js');
 requireApp('search/js/providers/provider.js');
 
 suite('search/providers/local_apps', function() {
@@ -70,7 +69,7 @@ suite('search/providers/local_apps', function() {
   suite('search', function() {
     test('clears results', function() {
       var stub = this.sinon.stub(subject, 'clear');
-      subject.search('foo', function() {});
+      subject.search('foo');
       assert.ok(stub.calledOnce);
     });
 
@@ -82,7 +81,7 @@ suite('search/providers/local_apps', function() {
         }
       };
 
-      subject.search('moz', Search.collect.bind(Search, subject));
+      subject.search('moz');
       assert.notEqual(subject.container.innerHTML.indexOf('Mozilla Fake'), -1);
       assert.equal(subject.container.innerHTML.indexOf('Without Icon'), -1);
     });

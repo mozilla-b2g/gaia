@@ -25,10 +25,6 @@
   bottom: 5rem;
 }
 
-#screen.utility-tray #windows > .appWindow {
-  pointer-events: none;
-}
-
 #windows > .appWindow:not(.homescreen) {
   background-color: black;
 }
@@ -129,23 +125,23 @@
 }
 
 .appWindow.invoked {
-  animation: invokedApp .3s forwards linear;
+  animation: invokedApp 0.6s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
 .appWindow.invoking {
-  animation: invokingApp .3s forwards linear;
+  animation: invokingApp 0.6s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
 /* Invoking app moves out */
 @keyframes invokingApp {
-  0%   { transform: translateX(0) }
-  100% { transform: translateX(calc(-100% - 20px)); }
+  0%   { transform: translateX(0); opacity: 1 }
+  100% { transform: translateX(-20%); opacity: 0.25}
 }
 
 /* Invoked app moves in */
 @keyframes invokedApp {
-  0%   { transform: translateX(calc(100% + 20px)); }
-  100%  { transform: translateX(0); }
+  0%   { transform: translateX(100%); }
+  50%  { transform: translateX(0); }
 }
 
 .appWindow.fade-in {
@@ -333,10 +329,6 @@
   visibility: visible;
 }
 
-.appWindow.homescreen.fadeout > .fade-overlay {
-  opacity: 0.8;
-}
-
 .appWindow > .modal-dialog,
 .appWindow > .authentication-dialog,
 .authentication-dialog > .authentication-dialog-http {
@@ -435,13 +427,13 @@
 }
 
 @keyframes slideLeft {
-  0%   { transform: translateX(calc(100% + 20px)); }
+  0%   { transform: translateX(100%); }
   100% { transform: translateX(0); }
 }
 
 @keyframes slideRight {
   0%   { transform: translateX(0); }
-  100% { transform: translateX(calc(100% + 20px)); }
+  100% { transform: translateX(100%); }
 }
 
 @keyframes inFromLeft {
@@ -461,15 +453,19 @@
 }
 
 /* Edges */
+#screen.edges #windows > .appWindow {
+  box-shadow: -0.5rem 0 rgba(0, 0, 0, 0.5);
+}
+
 .edge-candidate:not(.active) {
   /* needs to be outside the viewport */
   transform: translateX(-100%);
   opacity: 1;
-  will-change: transform;
+  will-change: transform, opacity;
 }
 
 #screen.edges #windows > .appWindow.active {
-  will-change: transform;
+  will-change: transform, opacity;
 }
 
 #windows > .appWindow.inside-edges {
@@ -478,13 +474,13 @@
 }
 
 #windows > .appWindow.outside-edges-left {
-  opacity: 1;
-  transform: translateX(calc(-100% - 20px));
+  opacity: 0.25;
+  transform: translateX(-20%);
 }
 
 #windows > .appWindow.outside-edges-right {
   opacity: 1;
-  transform: translateX(calc(100% + 20px));
+  transform: translateX(100%);
 }
 
 #screen:-moz-full-screen-ancestor > #windows > .appWindow.active {

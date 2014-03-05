@@ -31,9 +31,9 @@ var DownloadUI = (function() {
   /**
    * Download type constructor
    *
-   * @param {String} Type name.
-   * @param {Array} CSS classes to confirm button.
-   * @param {Boolean} Message without parameters.
+   * @param {String} Type name
+   * @param {Array} CSS classes to confirm button
+   * @param {Boolean} Message without parameters
    */
   var DownloadType = function(name, classes, isPlainMessage) {
     this.name = name;
@@ -53,9 +53,8 @@ var DownloadUI = (function() {
     FILE_NOT_FOUND: new DownloadType('file_not_found', ['recommend', 'full'],
                                      true),
     FILE_OPEN_ERROR: new DownloadType('file_open_error', ['danger']),
-    NO_SDCARD: new DownloadType('no_sdcard_found_2', ['recommend', 'full'],
-                                true),
-    UNMOUNTED_SDCARD: new DownloadType('unmounted_sdcard_2', ['recommend',
+    NO_SDCARD: new DownloadType('no_sdcard_found', ['recommend', 'full'], true),
+    UNMOUNTED_SDCARD: new DownloadType('unmounted_sdcard', ['recommend',
                                        'full'], true),
     NO_PROVIDER: new DownloadType('no_provider', ['recommend', 'full'], true)
   };

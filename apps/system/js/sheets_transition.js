@@ -51,11 +51,17 @@ var SheetsTransition = {
 
     this._lastProgress = progress;
 
-    var factor = (direction == 'ltr') ? 1 : -1;
-    var offset = (direction == 'ltr') ? '- 20px' : '+ 20px';
+    var currentFactor = (direction == 'ltr') ? 1 : (overflowing ? -1 : -0.2);
+    var newFactor = (direction == 'ltr') ? 0.2 : -1;
 
-    this._setTranslate(this._current, progress * factor * 100);
-    this._setTranslate(this._new, (progress - 1) * factor * 100, offset);
+    this._setTranslate(this._current, progress * currentFactor * 100);
+    this._setTranslate(this._new, (progress - 1) * newFactor * 100);
+
+    if (direction == 'ltr') {
+      this._setOpacity(this._new, 0.25 + progress * 0.75);
+    } else if (!overflowing) {
+      this._setOpacity(this._current, 1 - progress * 0.75);
+    }
   },
 
   end: function st_end(callback) {
@@ -89,6 +95,7 @@ var SheetsTransition = {
       }
 
       sheet.style.transform = '';
+      sheet.style.opacity = '';
 
       sheet.addEventListener('transitionend', function trWait() {
         sheet.removeEventListener('transitionend', trWait);
@@ -155,18 +162,20 @@ var SheetsTransition = {
     }
   },
 
-  _setTranslate: function st_setTranslate(sheet, percentage, offset) {
+  _setTranslate: function st_setTranslate(sheet, percentage) {
     if (!sheet) {
       return;
     }
 
-    var transform;
-    if (offset) {
-      transform = 'translateX(calc(' + percentage + '% ' + offset + '))';
-    } else {
-      transform = 'translateX(' + percentage + '%)';
+    sheet.style.transform = 'translateX(' + percentage + '%)';
+  },
+
+  _setOpacity: function st_setOpacity(sheet, opacity) {
+    if (!sheet) {
+      return;
     }
-    sheet.style.transform = transform;
+
+    sheet.style.opacity = opacity;
   },
 
   _setDuration: function st_setDuration(sheet, ms) {
@@ -174,7 +183,8 @@ var SheetsTransition = {
       return;
     }
 
-    sheet.style.transition = 'transform ' + ms + 'ms linear';
+    sheet.style.transition = 'transform ' + ms + 'ms linear,' +
+                             'opacity ' + ms + 'ms linear';
   },
 
   _edgesEnabled: false,

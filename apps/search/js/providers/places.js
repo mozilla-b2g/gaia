@@ -171,7 +171,7 @@
       window.open(target.dataset.url, '_blank', 'remote=true');
     },
 
-    search: function(filter, collect) {
+    search: function(filter) {
       this.clear();
       var matched = 0;
       var renderResults = [];
@@ -187,7 +187,7 @@
           break;
         }
       }
-      collect(renderResults);
+      this.render(renderResults);
     }
   };
 

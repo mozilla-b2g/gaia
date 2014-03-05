@@ -13,7 +13,8 @@ var realCommon,
     realMozNetworkStats,
     realSettingsListener,
     realConfigManager,
-    realMozMobileConnection;
+    realMozMobileConnection,
+    realNetworkstats;
 
 if (!this.SettingsListener) {
   this.SettingsListener = null;
@@ -25,6 +26,10 @@ if (!this.ConfigManager) {
 
 if (!this.navigator.mozMobileConnection) {
   this.navigator.mozMobileConnection = null;
+}
+
+if (!this.Networkstats) {
+  this.Networkstats = null;
 }
 
 if (!this.navigator.mozNetworkStats) {
@@ -50,6 +55,9 @@ suite('Cost Control Service Hub Suite >', function() {
     realMozMobileConnection = window.navigator.mozMobileConnection;
     window.navigator.mozMobileConnection = new MockMozMobileConnection();
 
+    realNetworkstats = window.Networkstats;
+    window.Networkstats = MockMozNetworkStats;
+
     realMozNetworkStats = window.navigator.mozNetworkStats;
     navigator.mozNetworkStats = MockMozNetworkStats;
 
@@ -62,6 +70,7 @@ suite('Cost Control Service Hub Suite >', function() {
     window.navigator.mozMobileConnection = realMozMobileConnection;
     window.navigator.mozNetworkStats = realMozNetworkStats;
     window.Common = realCommon;
+    window.Networkstats = realNetworkstats;
   });
 
   function setupDelaySinceLastBalance(lastBalanceRequest, delay) {

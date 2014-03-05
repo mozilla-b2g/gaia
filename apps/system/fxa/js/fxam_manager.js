@@ -12,22 +12,7 @@
 var FxaModuleManager = {
   paramsRetrieved: null,
   init: function fxamm_init() {
-    // Some FxA UI flows require us to get some data from the platform, like
-    // the account information. This data is given by FxAccountsUI in the form
-    // of URL query parameters.
-    var hash = window.location.hash.split('?');
-    var flow = hash[0].replace('#', '');
-    if (hash.length > 1) {
-      var queryParams = hash[1].split('&');
-      for (var i = 0; i < queryParams.length; i++) {
-        var param = queryParams[i].split('=');
-        if (param.length != 2) {
-          console.warning('Wrong query parameter');
-          continue;
-        }
-        this.setParam(param[0], param[1]);
-      }
-    }
+    var flow = window.location.hash.replace('#', '');
     FxaModuleUI.init(flow);
   },
   setParam: function fxamm_setParam(key, value) {
@@ -37,10 +22,10 @@ var FxaModuleManager = {
     this.paramsRetrieved[key] = value;
   },
   done: function fxamm_done() {
-    window.parent.FxAccountsUI.done(FxaModuleManager.paramsRetrieved);
+    window.parent.FxAccountsUI.done(this.paramsRetrieved);
   },
   close: function fxamm_close(error) {
-    if (!this.paramsRetrieved || !this.paramsRetrieved.success) {
+    if (!this.paramsRetrieved) {
       window.parent.FxAccountsUI.error(error);
     } else {
       window.parent.FxAccountsUI.done(this.paramsRetrieved);

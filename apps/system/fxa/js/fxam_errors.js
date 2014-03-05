@@ -6,10 +6,6 @@
 (function(exports) {
 
   var Errors = {
-    ACCOUNT_DOES_NOT_EXIST: {
-      title: 'fxa-account-does-not-exist-title',
-      message: 'fxa-account-does-not-exist-message'
-    },
     CANNOT_CREATE_ACCOUNT: {
       title: 'fxa-cannot-create-title',
       message: 'fxa-cannot-create-message'
@@ -49,16 +45,12 @@
     OFFLINE: {
       title: 'fxa-offline-error-title',
       message: 'fxa-offline-error-message'
-    },
-    UNKNOWN: {
-      title: 'fxa-unknown-error-title',
-      message: 'fxa-unknown-error-message'
     }
   };
 
   function _getError(error) {
     var _ = navigator.mozL10n.get;
-    var l10nKeys = Errors[error] || Errors[UNKNOWN];
+    var l10nKeys = Errors[error];
     return {
       title: _(l10nKeys.title),
       message: _(l10nKeys.message)

@@ -4,8 +4,6 @@
 
 import time
 from marionette.by import By
-from marionette.wait import Wait
-from marionette.errors import StaleElementException
 from gaiatest.apps.base import Base
 from gaiatest.apps.base import PageRegion
 
@@ -82,7 +80,7 @@ class Clock(Base):
         _label_locator = (By.CSS_SELECTOR, '.label')
         _time_locator = (By.CSS_SELECTOR, '.time')
         _check_box_locator = (By.CSS_SELECTOR, '.input-enable')
-        _enable_button_locator = (By.CSS_SELECTOR, '.alarmList.alarmEnable')
+        _enable_button_locator = (By.CSS_SELECTOR, '.alarmEnable')
 
         @property
         def label(self):
@@ -98,9 +96,6 @@ class Clock(Base):
 
         def tap_checkbox(self):
             self.root_element.find_element(*self._enable_button_locator).tap()
-
-        def wait_for_checkbox_to_change_state(self, value):
-            Wait(self.marionette, ignored_exceptions=StaleElementException).until(lambda m: self.is_alarm_active == value)
 
         def tap(self):
             self.root_element.tap()

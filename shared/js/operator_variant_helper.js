@@ -125,11 +125,7 @@ OperatorVariantHelper.prototype = {
 
     mccRequest.onsuccess = (function() {
       var mccs = mccRequest.result[this.MCC_SETTINGS_KEY];
-      if (!mccs) {
-        this._iccSettings.mcc = '000';
-      } else if (!Array.isArray(mccs)) {
-        this._iccSettings.mcc = mccs;
-      } else if (!mccs[this._iccCardIndex]) {
+      if (!mccs || !Array.isArray(mccs) || !mccs[this._iccCardIndex]) {
         this._iccSettings.mcc = '000';
       } else {
         this._iccSettings.mcc = mccs[this._iccCardIndex];
@@ -137,12 +133,8 @@ OperatorVariantHelper.prototype = {
       var mncRequest = transaction.get(this.MNC_SETTINGS_KEY);
       mncRequest.onsuccess = (function() {
         var mncs = mncRequest.result[this.MNC_SETTINGS_KEY];
-        if (!mncs) {
-          this._iccSettings.mnc = '00';
-        } else if (!Array.isArray(mncs)) {
-          this._iccSettings.mnc = mncs;
-        } else if (!mncs[this._iccCardIndex]) {
-          this._iccSettings.mnc = '00';
+        if (!mncs || !Array.isArray(mncs) || !mncs[this._iccCardIndex]) {
+          this._iccSettings.mnc = '000';
         } else {
           this._iccSettings.mnc = mncs[this._iccCardIndex];
         }
@@ -192,6 +184,35 @@ OperatorVariantHelper.prototype = {
         this.listen(false);
       }
 
+      // store current mcc/mnc info in the settings
+      var transaction = this.settings.createLock();
+
+      var mccRequest = transaction.get(this.MCC_SETTINGS_KEY);
+      mccRequest.onsuccess = (function() {
+        var mccs = mccRequest.result[this.MCC_SETTINGS_KEY];
+        if (!mccs || !Array.isArray(mccs)) {
+          mccs = ['000', '000'];
+        }
+        mccs[this._iccCardIndex] = mcc;
+        var mccSettings = {};
+        mccSettings[this.MCC_SETTINGS_KEY] = mccs;
+        transaction.set(mccSettings);
+
+        var mncRequest = transaction.get(this.MNC_SETTINGS_KEY);
+        mncRequest.onsuccess = (function() {
+          var mncs = mncRequest.result[this.MNC_SETTINGS_KEY];
+          if (!mncs || !Array.isArray(mncs)) {
+            mncs = ['00', '00'];
+          }
+          mncs[this._iccCardIndex] = mnc;
+          var mncSettings = {};
+          mncSettings[this.MNC_SETTINGS_KEY] = mncs;
+          transaction.set(mncSettings);
+          this._iccSettings.mcc = mcc;
+          this._iccSettings.mnc = mnc;
+        }).bind(this);
+      }).bind(this);
+
     } else {
       // Check whether we ran customizations already.
       var transaction = this.settings.createLock();
@@ -202,7 +223,7 @@ OperatorVariantHelper.prototype = {
           if (this._addedListener) {
             try {
               // apply new APN settings
-              this._listener(mcc, mnc, true);
+              this._listener(mcc, mnc);
             }
             catch (e) {
               console.error('Listener threw an error!', e);
@@ -212,35 +233,6 @@ OperatorVariantHelper.prototype = {
         this.listen(false);
       }).bind(this);
     }
-
-    // store current mcc/mnc info in the settings
-    var transaction = this.settings.createLock();
-
-    var mccRequest = transaction.get(this.MCC_SETTINGS_KEY);
-    mccRequest.onsuccess = (function() {
-      var mccs = mccRequest.result[this.MCC_SETTINGS_KEY];
-      if (!mccs || !Array.isArray(mccs)) {
-        mccs = ['000', '000'];
-      }
-      mccs[this._iccCardIndex] = mcc;
-      var mccSettings = {};
-      mccSettings[this.MCC_SETTINGS_KEY] = mccs;
-      transaction.set(mccSettings);
-
-      var mncRequest = transaction.get(this.MNC_SETTINGS_KEY);
-      mncRequest.onsuccess = (function() {
-        var mncs = mncRequest.result[this.MNC_SETTINGS_KEY];
-        if (!mncs || !Array.isArray(mncs)) {
-          mncs = ['00', '00'];
-        }
-        mncs[this._iccCardIndex] = mnc;
-        var mncSettings = {};
-        mncSettings[this.MNC_SETTINGS_KEY] = mncs;
-        transaction.set(mncSettings);
-        this._iccSettings.mcc = mcc;
-        this._iccSettings.mnc = mnc;
-      }).bind(this);
-    }).bind(this);
   },
 
   /**

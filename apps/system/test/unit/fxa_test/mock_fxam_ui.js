@@ -31,9 +31,5 @@ var MockFxaModuleUI = {
   },
   enableNextButton: function() {
 
-  },
-  disableDoneButton: function() {
-  },
-  enableDoneButton: function() {
   }
 };

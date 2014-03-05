@@ -177,15 +177,6 @@ var FxAccountsIACHelper = function FxAccountsIACHelper() {
     }, successCb, errorCb);
   };
 
-  var refreshAuthentication = function refreshAuthentication(accountId,
-                                                             successCb,
-                                                             errorCb) {
-    sendMessage({
-      'name': 'refreshAuthentication',
-      'accountId': accountId
-    }, successCb, errorCb);
-  };
-
   // We do an early connection to be able to get the unsolicited events coming
   // from the platform (onlogin, onverifiedlogin, onlogout).
   connect();
@@ -196,7 +187,6 @@ var FxAccountsIACHelper = function FxAccountsIACHelper() {
     'init': init,
     'logout': logout,
     'openFlow': openFlow,
-    'refreshAuthentication': refreshAuthentication,
     'removeEventListener': removeEventListener,
     'reset': reset
   };

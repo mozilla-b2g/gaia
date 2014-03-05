@@ -1,7 +1,3 @@
-/* global MockAllNetworkInterfaces, Common, MockMozNetworkStats, resetData,
-          MockNavigatorMozMobileConnections, WifiInterfaceType,
-          MockNavigatorSettings, MobileInterfaceType, MockConfigManager */
-
 'use strict';
 
 requireApp('costcontrol/test/unit/mock_debug.js');
@@ -11,35 +7,38 @@ requireApp('costcontrol/test/unit/mock_moz_network_stats.js');
 requireApp('costcontrol/test/unit/mock_all_network_interfaces.js');
 requireApp('costcontrol/test/unit/mock_config_manager.js');
 requireApp('costcontrol/js/utils/toolkit.js');
-requireApp('costcontrol/shared/test/unit/mocks/mock_navigator_moz_settings.js');
-requireApp(
-  'costcontrol/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js'
-);
+requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+requireApp('system/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 
 var realMozL10n,
     realMozNetworkStats,
+    realNetworkstats,
     realConfigManager,
     realMozSettings,
     realMozMobileConnections;
 
-if (!window.navigator.mozL10n) {
-  window.navigator.mozL10n = null;
+if (!this.navigator.mozL10n) {
+  this.navigator.mozL10n = null;
 }
 
-if (!window.ConfigManager) {
-  window.ConfigManager = null;
+if (!this.ConfigManager) {
+  this.ConfigManager = null;
 }
 
-if (!window.navigator.mozNetworkStats) {
-  window.navigator.mozNetworkStats = null;
+if (!this.navigator.mozNetworkStats) {
+  this.navigator.mozNetworkStats = null;
 }
 
-if (!window.navigator.mozMobileConnections) {
-  window.navigator.mozMobileConnections = null;
+if (!this.navigator.mozMobileConnections) {
+  this.navigator.mozMobileConnections = null;
 }
 
-if (!window.navigator.mozSettings) {
-  window.navigator.mozSettings = null;
+if (!this.navigator.mozSettings) {
+  this.navigator.mozSettings = null;
+}
+
+if (!this.Networkstats) {
+  this.Networkstats = null;
 }
 
 suite('Cost Control Common >', function() {
@@ -55,6 +54,9 @@ suite('Cost Control Common >', function() {
     realMozMobileConnections = navigator.mozMobileConnections;
     navigator.mozMobileConnections = MockNavigatorMozMobileConnections;
 
+    realNetworkstats = window.Networkstats;
+    window.Networkstats = MockMozNetworkStats;
+
     realMozSettings = navigator.mozSettings;
     navigator.mozSettings = MockNavigatorSettings;
 
@@ -67,6 +69,7 @@ suite('Cost Control Common >', function() {
     window.ConfigManager = realConfigManager;
     window.navigator.mozL10n = realMozL10n;
     window.navigator.mozNetworkStats = realMozNetworkStats;
+    window.Networkstats = realNetworkstats;
     window.navigator.mozSettings = realMozSettings;
     window.navigator.mozMobileConnections = realMozMobileConnections;
     Common.getIccInfo.restore();
@@ -110,7 +113,7 @@ suite('Cost Control Common >', function() {
         }
       };
     };
-  }
+  };
 
   setup(function() {
     Common.dataSimIccIdLoaded = false;

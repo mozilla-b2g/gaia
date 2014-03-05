@@ -66,7 +66,6 @@ class TestClockCreateNewAlarm(GaiaTestCase):
 
         # turn off the alarm
         self.clock.alarms[0].tap_checkbox()
-        self.clock.alarms[0].wait_for_checkbox_to_change_state(False)
         self.assertFalse(self.clock.alarms[0].is_alarm_active, 'user should be able to turn on the alarm.')
 
         # turn on the alarm

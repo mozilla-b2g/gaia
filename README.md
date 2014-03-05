@@ -82,16 +82,7 @@ for this to work predictably.
 
 Shared code for tests lives under shared/test/integration.
 
-#### Running integration tests
-
-NOTE: unless your tests end in _test.js they will not be
-automatically picked up by `make test-integration`.
-
-```sh
-make test-integration
-```
-
-#### Invoking a test file
+#### Invoking a test
 
 ```sh
 make test-integration TEST_FILES=<test>
@@ -115,6 +106,14 @@ make test-integration APP=<APP>
 
 For example, we could run all tests for the calendar app with `make test-integration APP=calendar`.
 
+#### Invoking all the tests
+
+NOTE: unless you tests end in _test.js they will not be
+automatically picked up by `make test-integration`.
+
+```sh
+make test-integration
+```
 #### Running tests while working
 
 If you wish to run many tests in background you might not want to be disturbed
@@ -136,14 +135,6 @@ You can of course combine both:
 
 ```sh
 PULSE_SERVER=":" xvfb-run make test-integration
-```
-
-#### Debugging Tests
-
-To view log out from a test
-
-```sh
-make test-integration VERBOSE=1
 ```
 
 #### Where to find documentation

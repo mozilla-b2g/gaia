@@ -1,6 +1,5 @@
-'use strict';
-
 marionette('First Time Use >', function() {
+  var assert = require('assert');
   var FTU = 'app://communications.gaiamobile.org';
 
   var client = marionette.client();
@@ -16,7 +15,7 @@ marionette('First Time Use >', function() {
     // finished, and that the panel is displayed.
     client.helper.waitForElement(panel_id);
     if (button_id) {
-      var button = client.helper.waitForElement(button_id);
+      var button = client.waitForElement(button_id);
       button.click();
     }
   };

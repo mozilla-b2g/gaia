@@ -13,8 +13,7 @@ var Base = require('./base'),
     NotificationsPanel = require('./regions/notifications'),
     LanguagePanel = require('./regions/language'),
     NotificationsPanel = require('./regions/notifications'),
-    ScreenLockPanel = require('./regions/screen_lock'),
-    DisplayPanel = require('./regions/display');
+    ScreenLockPanel = require('./regions/screen_lock');
 
 // origin of the settings app
 var ORIGIN = 'app://settings.gaiamobile.org';
@@ -47,8 +46,7 @@ Settings.Selectors = {
   'soundMenuItem': '#menuItem-sound',
   'languagePanel': '#languages',
   'languageMenuItem': '#menuItem-languageAndRegion',
-  'screenLockMenuItem': '#menuItem-phoneLock',
-  'displayMenuItem': '#menuItem-display'
+  'screenLockMenuItem': '#menuItem-phoneLock'
 };
 
 Settings.prototype = {
@@ -125,11 +123,19 @@ Settings.prototype = {
     return this._screenLockPanel;
   },
 
-  get displayPanel() {
-    this.openPanel.call(this, 'displayMenuItem');
-    this._displayPanel = this._displayPanel ||
-      new DisplayPanel(this.client);
-    return this._displayPanel;
+  /**
+   * @private
+   */
+  openPanel: function app_openPanel(selector, parentSelector) {
+    var localParentSelector = parentSelector || 'menuItemsSection';
+    var menuItem = this.waitForElement(selector);
+    var parentSection = this.waitForElement(localParentSelector);
+    menuItem.tap();
+    this.client.waitFor(function() {
+      var loc = parentSection.location();
+      var size = parentSection.size();
+      return (loc.x + size.width) === 0;
+    });
   },
 
   get improvePanel() {
@@ -144,20 +150,5 @@ Settings.prototype = {
     this._feedbackPanel =
       this._feedbackPanel || new FeedbackPanel(this.client);
     return this._feedbackPanel;
-  },
-
-  /**
-   * @private
-   */
-  openPanel: function app_openPanel(selector, parentSelector) {
-    var localParentSelector = parentSelector || 'menuItemsSection';
-    var menuItem = this.waitForElement(selector);
-    var parentSection = this.waitForElement(localParentSelector);
-    menuItem.tap();
-    this.client.waitFor(function() {
-      var loc = parentSection.location();
-      var size = parentSection.size();
-      return (loc.x + size.width) === 0;
-    });
   }
 };

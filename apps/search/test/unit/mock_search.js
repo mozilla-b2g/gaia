@@ -10,8 +10,5 @@ window.Search = {
   onSearchInput: function() {},
   close: function() {},
   navigate: function() {},
-  setInput: function() {},
-  collect: function(provider, results) {
-    provider.render(results);
-  }
+  setInput: function() {}
 };

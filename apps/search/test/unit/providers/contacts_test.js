@@ -5,7 +5,7 @@
 /* Allow setter without getter */
 /* jshint -W078 */
 require('/shared/test/unit/mocks/mock_moz_activity.js');
-require('/shared/js/url_helper.js');
+
 requireApp('search/test/unit/mock_search.js');
 requireApp('search/js/providers/provider.js');
 requireApp('communications/contacts/test/unit/mock_mozContacts.js');
@@ -75,12 +75,12 @@ suite('search/providers/contacts', function() {
 
     test('clears results', function() {
       var stub = this.sinon.stub(subject, 'clear');
-      subject.search(null, function() {});
+      subject.search();
       assert.ok(stub.calledOnce);
     });
 
     test('contact is rendered', function() {
-      subject.search('stub content', Search.collect.bind(Search, subject));
+      subject.search('anything (find is stubbed)');
       assert.notEqual(subject.container.innerHTML.indexOf('Antonio CC'), -1);
     });
   });

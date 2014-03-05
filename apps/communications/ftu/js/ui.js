@@ -1,7 +1,5 @@
 'use strict';
 
-var _;
-
 var UIManager = {
 
   // As in other Gaia apps, we store all the dom selectors in one
@@ -103,8 +101,6 @@ var UIManager = {
   ],
 
   init: function ui_init() {
-    _ = navigator.mozL10n.get;
-
     // Initialization of the DOM selectors
     this.domSelectors.forEach(function createElementRef(name) {
       this[toCamelCase(name)] = document.getElementById(name);
@@ -161,13 +157,13 @@ var UIManager = {
     });
 
     // Input scroll workaround
+    var top = this.newsletterInput.offsetTop;
     this.newsletterInput.addEventListener('focus', function() {
       window.addEventListener('resize', function resize() {
         window.removeEventListener('resize', resize);
         // Need to wait till resize is done
         setTimeout(function() {
-          var page = document.getElementById('browser_privacy');
-          UIManager.scrollToElement(page, UIManager.newsletterInput);
+          document.getElementById('browser_privacy').scrollTop = top;
         }, 30);
       });
     });
@@ -232,10 +228,6 @@ var UIManager = {
     var button = this.offlineErrorDialog.querySelector('button');
     button.addEventListener('click',
                             this.onOfflineDialogButtonClick.bind(this));
-  },
-
-  scrollToElement: function ui_scrollToElement(container, element) {
-    container.scrollTop = element.offsetTop;
   },
 
   sendNewsletter: function ui_sendNewsletter(callback) {
