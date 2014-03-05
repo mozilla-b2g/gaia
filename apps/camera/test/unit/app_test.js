@@ -88,7 +88,8 @@ suite('app', function() {
         settings: sinon.spy(),
         activity: sinon.spy(),
         sounds: sinon.spy(),
-        recordingTimer: sinon.spy()
+        recordingTimer: sinon.spy(),
+        zoomBar: sinon.spy()
       }
     };
 
@@ -162,6 +163,7 @@ suite('app', function() {
       assert.ok(controllers.viewfinder.calledWith(app));
       assert.ok(controllers.overlay.calledWith(app));
       assert.ok(controllers.camera.calledWith(app));
+      assert.ok(controllers.zoomBar.calledWith(app));
     });
 
     test('Should put each of the views into the root element', function() {
