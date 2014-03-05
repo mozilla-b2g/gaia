@@ -23,6 +23,14 @@ Calendar.ORIGIN = 'app://calendar.gaiamobile.org';
  * @type {Object}
  */
 Calendar.Selector = Object.freeze({
+  // main view elements, used by waitForView
+  day: '#day-view',
+  week: '#week-view',
+  month: '#month-view',
+  'event/show': '#event-view',
+  'event/add': '#modify-event-view.create',
+  'event/edit': '#modify-event-view.update',
+
   addAccountPasswordInput: '#modify-account-view input[name="password"]',
   addAccountSaveButton: '#modify-account-view button.save',
   addAccountUrlInput: '#modify-account-view input[name="fullUrl"]',
@@ -307,11 +315,19 @@ Calendar.prototype = {
    * @return {boolean} Whether or not view is active
    */
   isViewActive: function(id) {
-    id = id || '';
+    return this._isPath(id) && this._isElementActive(id);
+  },
+
+  _isPath: function(id) {
     // we do not use the URL since that might happen before the [data-path] is
     // updated and styles/views are toggled based on [data-path]
     var path = this.client.findElement('body').getAttribute('data-path');
     return path.indexOf(id) !== -1;
+  },
+
+  _isElementActive: function(id) {
+    return this.findElement(id)
+      .getAttribute('class').indexOf('active') !== -1;
   },
 
   /**
