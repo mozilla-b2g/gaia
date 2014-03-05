@@ -52,7 +52,6 @@ module.exports = View.extend({
    *
    */
   onFlashClick: function(e) {
-    e.stopPropagation();
     var self = this;
     this.emit('click:flash');
     this.set('toggling-flash', true);
@@ -63,31 +62,12 @@ module.exports = View.extend({
   },
 
   onCameraClick: function(event) {
-    event.stopPropagation();
     this.emit('click:camera');
   },
 
   onSettingsClick: function(event) {
     event.stopPropagation();
     this.emit('click:settings');
-  },
-
-  set: function(key, value) {
-    value = arguments.length === 2 ? value : true;
-    this.el.setAttribute(toDashed(key), value);
-  },
-
-  setter: function(key) {
-    return (function(value) { this.set(key, value); }).bind(this);
-  },
-
-  enable: function(key, value) {
-    value = arguments.length === 2 ? value : true;
-    this.set(key + '-enabled', !!value);
-  },
-
-  disable: function(key) {
-    this.enable(key, false);
   },
 
   hide: function(key, value) {
@@ -106,11 +86,5 @@ module.exports = View.extend({
     '</div>';
   }
 });
-
-function toDashed(s) {
-  return s.replace(/\W+/g, '-')
-    .replace(/([a-z\d])([A-Z])/g, '$1-$2')
-    .toLowerCase();
-}
 
 });
