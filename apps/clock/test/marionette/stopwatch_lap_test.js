@@ -65,4 +65,14 @@ marionette('Lap creation', function() {
       'Previously-created lap entries persist'
     );
   });
+
+  test('Lap button disappears after maxLaps', function() {
+    var MAX = 5;
+    stopwatch.setMaxLaps(MAX);
+    stopwatch.start();
+    for (var i = 0; i < MAX - 1; i++) {
+      stopwatch.lap();
+    }
+    assert.ok(!stopwatch.isButtonUsable('lap'));
+  });
 });
