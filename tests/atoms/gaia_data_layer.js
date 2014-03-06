@@ -453,15 +453,22 @@ var GaiaDataLayer = {
 
     SpecialPowers.addPermission('sms', true, document);
     SpecialPowers.setBoolPref('dom.sms.enabled', true);
-    let sms = window.navigator.mozMobileMessage;
 
-    let request = sms.send(recipient, content);
+    let messageManager = window.navigator.mozMobileMessage;
+    let request = messageManager.send(recipient, content);
 
-    request.onsuccess = function() {
-      console.log('sms message sent successfully');
+    request.onsuccess = function(event) {
+      var sms = event.target.result;
       SpecialPowers.removePermission('sms', document);
       SpecialPowers.clearUserPref('dom.sms.enabled');
-      callback(true);
+
+      waitFor(
+        function() { callback(true); },
+        function() {
+          console.log('sms delivery state: ' + sms.delivery);
+          return sms.delivery === 'sent';
+        }
+      );
     };
 
     request.onerror = function() {
