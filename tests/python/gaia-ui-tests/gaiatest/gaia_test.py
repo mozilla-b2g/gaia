@@ -5,8 +5,6 @@
 import json
 import os
 import time
-import warnings
-from functools import wraps
 
 from marionette import MarionetteTestCase, EnduranceTestCaseMixin, \
     B2GTestCaseMixin, MemoryEnduranceTestCaseMixin
@@ -19,35 +17,6 @@ from marionette.wait import Wait
 from yoctopuce.yocto_api import YAPI, YRefParam, YModule
 from yoctopuce.yocto_current import YCurrent
 from yoctopuce.yocto_datalogger import YDataLogger
-
-
-def deprecated(func):
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        msg = ('Class "LockScreen" is deprecated and soon will be removed.',
-               'Please use corresponding methods of "GaiaDevice" class')
-        warnings.warn(message=' '.join(msg), category=Warning, stacklevel=2)
-        func(*args, **kwargs)
-    return wrapper
-
-
-class LockScreen(object):
-
-    def __init__(self, marionette):
-        self.device = GaiaDevice(marionette)
-
-    @property
-    @deprecated
-    def is_locked(self):
-        return self.device.is_locked
-
-    @deprecated
-    def lock(self):
-        self.device.lock()
-
-    @deprecated
-    def unlock(self):
-        self.device.unlock()
 
 
 class GaiaApp(object):
@@ -875,7 +844,6 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
             self.marionette.timeouts(self.marionette.TIMEOUT_SEARCH, 10000)
             self.marionette.timeouts(self.marionette.TIMEOUT_PAGE, 30000)
 
-        self.lockscreen = LockScreen(self.marionette)
         self.apps = GaiaApps(self.marionette)
         self.data_layer = GaiaData(self.marionette, self.testvars)
         from gaiatest.apps.keyboard.app import Keyboard
@@ -1079,7 +1047,6 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
             self.marionette.set_search_timeout(self.marionette.timeout or 10000)
 
     def tearDown(self):
-        self.lockscreen = None
         self.apps = None
         self.data_layer = None
         MarionetteTestCase.tearDown(self)
