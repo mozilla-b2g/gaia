@@ -5,13 +5,20 @@
   right: 0;
   left: 0;
   height: 4.5rem;
-  z-index: 50;
   background-color: rgba(0, 0, 0, 0.8);
   overflow: hidden;
   font-size: 3rem;
   line-height: 5rem;
   text-align: center;
   color: #fff;
+}
+
+/**
+ * @enabled=false
+ */
+
+.controls[enabled=false] {
+  pointer-events: none;
 }
 
 .switch-button,
@@ -140,6 +147,7 @@
 
 .controls[recording=true] .capture-button {
   background-color: #d3361c;
+  pointer-events: auto;
 }
 
 /** Capture Button Icon
