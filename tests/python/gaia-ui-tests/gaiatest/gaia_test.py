@@ -352,6 +352,10 @@ class GaiaData(object):
         self.marionette.switch_to_frame()
         return self.marionette.execute_async_script("return GaiaDataLayer.deleteAllSms();", special_powers=True)
 
+    def get_all_sms(self):
+        self.marionette.switch_to_frame()
+        return self.marionette.execute_async_script("return GaiaDataLayer.getAllSms();", special_powers=True)
+
     def delete_all_call_log_entries(self):
         """The call log needs to be open and focused in order for this to work."""
         self.marionette.execute_script('window.wrappedJSObject.RecentsDBManager.deleteAll();')
