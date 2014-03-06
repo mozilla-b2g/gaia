@@ -170,9 +170,12 @@
     ],
     "my": [
         {"layoutId": "my", "appManifestURL": "app://keyboard.gaiamobile.org/manifest.webapp"}
+    ],
+    "vi": [
+        {"layoutId": "vi", "appManifestURL": "app://keyboard.gaiamobile.org/manifest.webapp"}
     ]
   },
-  "nonLatin" : ["ar", "el", "he", "hi-IN", "ja", "ko", "ru", "te", "zh-CN", "zh-TW"],
+  "nonLatin" : ["ar", "el", "he", "hi-IN", "ja", "ko", "ru", "te", "vi", "zh-CN", "zh-TW"],
   "langIndependentLayouts": [
       {"layoutId": "number", "appManifestURL": "app://keyboard.gaiamobile.org/manifest.webapp"}
   ]
