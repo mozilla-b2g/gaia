@@ -146,13 +146,6 @@
   height: 100%;
   float: left;
   width: calc(100% - 2rem);
-  /**
-   * set scrollable areas to a solid background color
-   * see bug 968478
-   */
-  background-color: #fff;
-  /* XXX: z-index + position:relative is important for perf (Bug 972675) */
-  z-index: 0;
 }
 
 
@@ -175,7 +168,7 @@
 #week-view .week-events > ol li.event {
   position: absolute;
   width: 100%;
-  z-index: 10;
+  z-index: 0;
 }
 
 #week-view .week-events .container {

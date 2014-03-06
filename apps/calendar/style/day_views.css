@@ -10,10 +10,6 @@
 .day-events {
   display: block;
   box-shadow: none;
-  /* XXX: used to create a new stacking context to fix Bug 972666 without
-   * causing performance issues described on Bug 972675 */
-  position: relative;
-  z-index: 0;
 }
 
 .day-events > .hour {
@@ -57,7 +53,7 @@
   position: absolute;
   height: 6rem;
   top: 0;
-  z-index: 10;
+  z-index: 0;
 }
 
 .day-events .hour-allday .event {
@@ -159,7 +155,7 @@
   display: block;
 }
 
-#day-view .day-events-wrapper {
+#day-view .day-events {
   overflow-y: scroll;
   overflow-x: hidden;
   height: calc(100% - 7.9rem);
