@@ -6,27 +6,18 @@ Keyboards.lv = {
   autoCorrectLanguage: 'lv',
   alt: {
     a: 'ā',
-    A: 'Ā',
     c: 'č',
-    C: 'Č',
     e: 'ē',
-    E: 'Ē',
     g: 'ģ',
-    G: 'Ģ',
     i: 'ī',
-    I: 'Ī',
     k: 'ķ',
-    K: 'Ķ',
     l: 'ļ',
-    L: 'Ļ',
     n: 'ņ',
-    N: 'Ņ',
     s: 'š',
-    S: 'Š',
     u: 'ū',
-    U: 'Ū',
     z: 'ž',
-    Z: 'Ž'
+    '€': '$',
+    '"': '„”«»'
   },
   keys: [
     [
@@ -44,14 +35,8 @@ Keyboards.lv = {
       { value: 'b' }, { value: 'n' }, { value: 'm' },
       { value: '⌫', ratio: 1.5, keyCode: KeyEvent.DOM_VK_BACK_SPACE }
     ], [
-      { value: '&nbsp', ratio: 9, keyCode: KeyboardEvent.DOM_VK_SPACE },
+      { value: '&nbsp', ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE },
       { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
     ]
-  ],
-  alternateLayout: {
-    alt: {
-      '€': '$',
-      '"': '„”«»'
-    }
-  }
+  ]
 };
