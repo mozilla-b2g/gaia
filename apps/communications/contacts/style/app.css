@@ -268,6 +268,12 @@ li a[role="button"].activity > b em{
   margin-left: 1.5rem;
 }
 
+[data-type="list"] li.item {
+  position:absolute;
+  left:0;
+  overflow:hidden;
+}
+
 #item-template,
 li.item.contact-item {
   display: block;
