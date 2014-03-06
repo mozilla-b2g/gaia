@@ -5,7 +5,7 @@ Cu.import('resource://gre/modules/Services.jsm');
 Cu.import('resource://gre/modules/FileUtils.jsm');
 
 function debug(str) {
-  //dump(' -*- webapp-optimize.js: ' + str + '\n');
+  // dump(' -*- webapp-optimize.js: ' + str + '\n');
 }
 
 /**
@@ -399,6 +399,7 @@ function optimize_embedHtmlImports(doc, webapp, htmlFile) {
     for (let i = 0, iLen = elements.length; i < iLen; i++) {
       var element = elements[i];
       var template = element.querySelector('template');
+      optimize_compileBuildingBlocks(template);
       elementTemplates[element.getAttribute('name')] = template.innerHTML;
     }
   });
@@ -408,6 +409,58 @@ function optimize_embedHtmlImports(doc, webapp, htmlFile) {
   Array.prototype.forEach.call(replaceableElements, function eachEl(el) {
     el.innerHTML = '<!--' + elementTemplates[el.getAttribute('is')] + '-->';
     el.removeAttribute('is');
+  });
+}
+
+
+var Handlebars = require('./handlebars');
+function replaceNode(newNode, oldNode) {
+  while(newNode.firstChild) {
+    debug('[Insert node]: ' + newNode.innerHTML);
+    if (oldNode.getAttribute('hidden') !== null && newNode.firstChild.style) {
+      newNode.firstChild.style.display = 'none';
+    }
+    oldNode.parentNode.insertBefore(newNode.firstChild, oldNode);
+  }
+  debug('[Remove node]: ' + oldNode.innerHTML);
+  oldNode.parentNode.removeChild(oldNode);
+}
+/**
+ * Compile Building Blocks
+ * @param {HTMLDocument} doc DOM document of the file.
+ * @param {Object} webapp details of current web app.
+ */
+function optimize_compileBuildingBlocks(doc) {
+  let path = config.GAIA_DIR + '/shared/components';
+  let files = utils.ls(new FileUtils.File(path));
+  let forEach = Array.prototype.forEach;
+  forEach.call(files, function eachComp(file) {
+    let DOMParser = CC('@mozilla.org/xmlextras/domparser;1', 'nsIDOMParser');
+    let compDoc = (new DOMParser()).
+      parseFromString(utils.getFileContent(file), 'text/html');
+    let compEls = compDoc.querySelectorAll('element');
+    forEach.call(compEls, function eachComp(comp) {
+      let template = comp.querySelector('template');
+      let render = Handlebars.compile(template.innerHTML);
+      let tagName = comp.getAttribute('name');
+      let attrs = comp.getAttribute('attrs').split(',');
+      let tags = doc.querySelectorAll(tagName);
+      forEach.call(tags, function eachTag(tag) {
+        let holder = doc.createElement('div');
+        let data = {};
+        forEach.call(attrs, function eachAttr(attr) {
+          data[attr] = tag.getAttribute(attr);
+        });
+        holder.innerHTML = render(data);
+        let content = holder.querySelector('content');
+        if (content) {
+          content.innerHTML = tag.innerHTML;
+          replaceNode(tag, content);
+        }
+        replaceNode(holder, tag);
+        debug('[' + tagName + ' found!]');
+      });
+    });
   });
 }
 
@@ -598,6 +651,7 @@ function optimize_compile(webapp, file, callback) {
       // save localized / optimized document
       let newFile = new FileUtils.File(file.path + '.' +
         config.GAIA_DEFAULT_LOCALE);
+      optimize_compileBuildingBlocks(win.document);
       optimize_embedHtmlImports(win.document, webapp, newFile);
       optimize_embedL10nResources(win.document, subDict);
       optimize_concatL10nResources(win.document, webapp, fullDict);
