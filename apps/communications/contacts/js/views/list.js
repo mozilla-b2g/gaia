@@ -1437,7 +1437,7 @@ contacts.List = (function() {
 
   return {
     headers: allHeaders,
-    get recyclistLib() {
+    get recyclistInstance() {
       return recyclist;
     },
     'init': init,

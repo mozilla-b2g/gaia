@@ -150,7 +150,7 @@ if (!utils.alphaScroll) {
           break;
         }
       }
-      var itemPos = contacts.List.recyclistLib.positions[headerIdx][0];
+      var itemPos = contacts.List.recyclistInstance.positions[headerIdx][0];
       scrollToCallback(itemPos);
     }
 
