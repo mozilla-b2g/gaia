@@ -1,11 +1,14 @@
 'use strict';
 
+mocha.globals(['homescreenLauncher']);
+
 requireApp('system/js/edge_swipe_detector.js');
 
 requireApp('system/test/unit/mock_sheets_transition.js');
 requireApp('system/test/unit/mock_stack_manager.js');
 requireApp('system/test/unit/mock_touch_forwarder.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
+requireApp('system/test/unit/mock_homescreen_launcher.js');
 
 var mocksForEdgeSwipeDetector = new MocksHelper([
   'SheetsTransition',

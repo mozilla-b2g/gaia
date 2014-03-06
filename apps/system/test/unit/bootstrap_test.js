@@ -55,11 +55,11 @@ mocha.globals([
   'title',
   'appWindowFactory',
   'layoutManager',
-  'HomescreenLauncher',
   'visibilityManager',
   'applications',
-  'ActivityWindowFactory',
-  'callForwarding'
+  'callForwarding',
+  'activityWindowFactory',
+  'homescreenLauncher'
 ]);
 
 var mocksForBootstrap = new MocksHelper([
