@@ -67,6 +67,7 @@ SettingsController.prototype.openSettings = function() {
     .on('tap:close', this.closeSettings)
     .on('tap:option', this.onOptionTap);
 
+  this.app.emit('settings:opened');
   debug('settings opened');
 };
 
@@ -80,6 +81,9 @@ SettingsController.prototype.closeSettings = function() {
     this.view.destroy();
     this.view = null;
   }
+
+  this.app.emit('settings:closed');
+  debug('settings closed');
 };
 
 /**
@@ -92,6 +96,7 @@ SettingsController.prototype.closeSettings = function() {
  */
 SettingsController.prototype.onOptionTap = function(key, setting) {
   setting.select(key);
+  this.closeSettings();
 };
 
 /**
