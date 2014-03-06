@@ -19,6 +19,7 @@
     },
     addIcc: function(id, object) {
       object = object || {};
+      object.iccId = id;
 
       // override by default
       if (iccIds.indexOf(id) == -1) {
@@ -60,6 +61,29 @@
         return obj;
       };
 
+      object.getCardLockRetryCount = function(type) {
+        var req = {
+          result: { retryCount: 3 }
+        };
+        setTimeout(function() {
+          req.onsuccess && req.onsuccess();
+        });
+        return req;
+      };
+
+      object.unlockCardLock = function(options) {
+        var req = {
+          // fires success handler immediately
+          set onsuccess(handler) {
+            return handler();
+          },
+          get onsuccess() {
+            return function() {};
+          }
+        };
+        return req;
+      };
+
       object.iccInfo = object.iccInfo || { msisdn: '0912345678' };
       object._eventListeners = {};
 
@@ -86,8 +110,8 @@
           if (typeof callback === 'function') {
             callback(evt);
           } else if (typeof callback == 'object' &&
-                     typeof callback['handleEvent'] === 'function') {
-            callback['handleEvent'](evt);
+                     typeof callback.handleEvent === 'function') {
+            callback.handleEvent(evt);
           }
         });
 

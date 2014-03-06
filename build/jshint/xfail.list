@@ -390,7 +390,6 @@ apps/communications/ftu/test/unit/mock_data_mobile.js
 apps/communications/ftu/test/unit/mock_import_services.js
 apps/communications/ftu/test/unit/mock_navigation.html.js
 apps/communications/ftu/test/unit/mock_navigator_contacts.js
-apps/communications/ftu/test/unit/mock_navigator_moz_icc_manager.js
 apps/communications/ftu/test/unit/mock_navigator_moz_settings.js
 apps/communications/ftu/test/unit/mock_navigator_moz_wifi_manager.js
 apps/communications/ftu/test/unit/mock_operatorVariant.js
@@ -1127,7 +1126,6 @@ shared/test/unit/mocks/mock_navigator_datastore.js
 shared/test/unit/mocks/mock_navigator_getdevicestorage.js
 shared/test/unit/mocks/mock_navigator_moz_apps.js
 shared/test/unit/mocks/mock_navigator_moz_downloads.js
-shared/test/unit/mocks/mock_navigator_moz_icc_manager.js
 shared/test/unit/mocks/mock_navigator_moz_mobile_connection.js
 shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js
 shared/test/unit/mocks/mock_navigator_moz_settings.js
