@@ -8,20 +8,6 @@
 // This file depends on JPEGMetadataParser.js and blobview.js
 //
 var metadataParser = (function() {
-  // If we generate our own thumbnails, aim for this size.
-  // Calculate needed size from longer side of the screen.
-  var THUMBNAIL_WIDTH = computeThumbnailWidth();
-  var THUMBNAIL_HEIGHT = THUMBNAIL_WIDTH;
-  function computeThumbnailWidth() {
-    // Make sure this works regardless of current device orientation
-    var portraitWidth = Math.min(window.innerWidth, window.innerHeight);
-    var landscapeWidth = Math.max(window.innerWidth, window.innerHeight);
-    var thumbnailsPerRowPortrait = isPhone ? 3 : 4;
-    var thumbnailsPerRowLandscape = isPhone ? 4 : 6;
-    return Math.round(window.devicePixelRatio *
-             Math.max(portraitWidth / thumbnailsPerRowPortrait,
-                      landscapeWidth / thumbnailsPerRowLandscape));
-  }
   // Don't try to decode image files of unknown type if bigger than this
   var MAX_UNKNOWN_IMAGE_FILE_SIZE = .5 * 1024 * 1024; // half a megabyte
 
@@ -324,8 +310,7 @@ var metadataParser = (function() {
 
       // If the image was already thumbnail size, it is its own thumbnail
       // and it does not need a preview
-      if (metadata.width <= THUMBNAIL_WIDTH &&
-          metadata.height <= THUMBNAIL_HEIGHT) {
+      if (isSmallImage(metadata)) {
         offscreenImage.src = '';
         metadata.thumbnail = file;
         callback(metadata);
