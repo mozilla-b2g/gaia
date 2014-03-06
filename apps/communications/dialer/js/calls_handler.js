@@ -38,18 +38,8 @@ var CallsHandler = (function callsHandler() {
     }
   });
 
-  // Setting up the SimplePhoneMatcher
-  // XXX: check bug-926169
-  // this is used to keep all tests passing while introducing multi-sim APIs
-  var conn = window.navigator.mozMobileConnection ||
-             window.navigator.mozMobileConnections &&
-             window.navigator.mozMobileConnections[0];
 
-  if (conn && conn.voice && conn.voice.network && conn.voice.network.mcc) {
-    SimplePhoneMatcher.mcc = conn.voice.network.mcc;
-  }
-
-  var btHelper = new BluetoothHelper();
+  var btHelper = null;
 
   var ringtonePlayer = new Audio();
   ringtonePlayer.mozAudioChannelType = 'ringer';
@@ -71,35 +61,49 @@ var CallsHandler = (function callsHandler() {
       telephony.muted = false;
     }
 
-    // XXX: Use BTManager.isConnected() through btHelper
-    // once bug 929376 is finished.
-    btHelper.getConnectedDevicesByProfile(btHelper.profiles.HFP,
-    function(result) {
-      CallScreen.setBTReceiverIcon(!!(result && result.length));
-    });
+    LazyLoader.load(['/dialer/js/bluetooth_helper.js',
+                     '/dialer/js/tone_player.js',
+                     '/dialer/js/keypad.js',
+                     '/dialer/js/call_screen.js',
+                     '/dialer/js/conference_group_handler.js'], function() {
 
-    btHelper.onhfpstatuschanged = function(evt) {
-      CallScreen.setBTReceiverIcon(evt.status);
-    };
+      KeypadManager.init(true);
+      CallScreen.init();
 
-    var acm = navigator.mozAudioChannelManager;
-    if (acm) {
-      acm.addEventListener('headphoneschange', function onheadphoneschange() {
-        if (acm.headphones) {
+      // XXX: Use BTManager.isConnected() through btHelper
+      // once bug 929376 is finished.
+      btHelper = new BluetoothHelper();
+      btHelper.getConnectedDevicesByProfile(btHelper.profiles.HFP,
+      function(result) {
+        CallScreen.setBTReceiverIcon(!!(result && result.length));
+      });
+
+      btHelper.onhfpstatuschanged = function(evt) {
+        CallScreen.setBTReceiverIcon(evt.status);
+      };
+
+      var acm = navigator.mozAudioChannelManager;
+      if (acm) {
+        acm.addEventListener('headphoneschange', function onheadphoneschange() {
+          if (acm.headphones) {
+            CallScreen.switchToDefaultOut();
+          }
+        });
+      }
+
+      btHelper.onscostatuschanged = function onscostatuschanged(evt) {
+        if (evt.status) {
           CallScreen.switchToDefaultOut();
         }
-      });
-    }
+      };
 
-    btHelper.onscostatuschanged = function onscostatuschanged(evt) {
-      if (evt.status) {
-        CallScreen.switchToDefaultOut();
-      }
-    };
+      // First incoming or outgoing call, reset mute and speaker.
+      CallScreen.unmute();
+      CallScreen.switchToDefaultOut();
 
-    setupSystemIAC();
-
-    postToMainWindow('ready');
+      setupSystemIAC();
+      postToMainWindow('ready');
+    });
   }
 
   function postToMainWindow(data) {
@@ -129,6 +133,7 @@ var CallsHandler = (function callsHandler() {
 
   /* === Handled calls === */
   var highPriorityWakeLock = null;
+  var hcLoading = false;
   function onCallsChanged() {
     // Acquire or release the high-priority wake lock, as necessary.  This
     // (mostly) prevents this process from being killed while we're on a call.
@@ -140,44 +145,82 @@ var CallsHandler = (function callsHandler() {
       highPriorityWakeLock = null;
     }
 
-    // Adding any new calls to handledCalls
-    telephony.calls.forEach(function callIterator(call) {
-      var alreadyAdded = handledCalls.some(function hcIterator(hc) {
-        return (hc.call == call);
+    // Fast path for the first incoming call, we need to ring!
+    var call = telephony.calls[0];
+    if (call && call.state === 'incoming' &&
+        handledCalls.length === 0) {
+
+      handleFirstIncoming(call);
+    }
+
+    if (hcLoading) {
+      return;
+    }
+
+    hcLoading = true;
+    LazyLoader.load(['/shared/js/simple_phone_matcher.js',
+                     '/shared/js/contact_photo_helper.js',
+                     '/shared/js/async_storage.js',
+                     '/dialer/js/utils.js',
+                     '/dialer/js/contacts.js',
+                     '/dialer/js/voicemail.js',
+                     '/dialer/js/tone_player.js',
+                     '/dialer/js/keypad.js',
+                     '/dialer/js/call_screen.js',
+                     '/dialer/js/handled_call.js'], function() {
+
+      hcLoading = false;
+
+      // Setting up the SimplePhoneMatcher
+      // XXX: check bug-926169
+      // this is used to keep all tests passing while introducing multi-sim APIs
+      var conn = window.navigator.mozMobileConnection ||
+                 window.navigator.mozMobileConnections &&
+                 window.navigator.mozMobileConnections[0];
+
+      if (conn && conn.voice && conn.voice.network && conn.voice.network.mcc) {
+        SimplePhoneMatcher.mcc = conn.voice.network.mcc;
+      }
+
+      // Adding any new calls to handledCalls
+      telephony.calls.forEach(function callIterator(call) {
+        var alreadyAdded = handledCalls.some(function hcIterator(hc) {
+          return (hc.call == call);
+        });
+
+        if (!alreadyAdded) {
+          addCall(call);
+        }
       });
 
-      if (!alreadyAdded) {
-        addCall(call);
+      // Removing any ended calls to handledCalls
+      for (var index = (handledCalls.length - 1); index >= 0; index--) {
+        var hc = handledCalls[index];
+
+        var stillHere = telephony.calls.some(function hcIterator(call) {
+          return (call == hc.call);
+        });
+
+        stillHere = stillHere ||
+          telephony.conferenceGroup.calls.some(function hcIterator(call) {
+          return (call == hc.call);
+        });
+
+        if (!stillHere) {
+          removeCall(index);
+        }
+      }
+
+      if (cdmaCallWaiting()) {
+        handleCallWaiting(telephony.calls[0]);
+      }
+
+      if (handledCalls.length === 0) {
+        exitCallScreen(false);
+      } else if (!displayed && !closing) {
+        toggleScreen();
       }
     });
-
-    // Removing any ended calls to handledCalls
-    for (var index = (handledCalls.length - 1); index >= 0; index--) {
-      var hc = handledCalls[index];
-
-      var stillHere = telephony.calls.some(function hcIterator(call) {
-        return (call == hc.call);
-      });
-
-      stillHere = stillHere ||
-        telephony.conferenceGroup.calls.some(function hcIterator(call) {
-        return (call == hc.call);
-      });
-
-      if (!stillHere) {
-        removeCall(index);
-      }
-    }
-
-    if (cdmaCallWaiting()) {
-      handleCallWaiting(telephony.calls[0]);
-    }
-
-    if (handledCalls.length === 0) {
-      exitCallScreen(false);
-    } else if (!displayed && !closing) {
-      toggleScreen();
-    }
   }
 
   function addCall(call) {
@@ -195,17 +238,7 @@ var CallsHandler = (function callsHandler() {
       return;
     }
 
-    // First incoming or outgoing call, reset mute and speaker.
-    if (handledCalls.length == 0) {
-      CallScreen.unmute();
-      CallScreen.switchToDefaultOut();
-    }
-
-    // Find an available node for displaying the call
-    var hc = new HandledCall(call);
-    handledCalls.push(hc);
-    CallScreen.insertCall(hc.node);
-
+    // Missed call support
     if (call.state === 'incoming') {
       call.addEventListener('statechange', function callStateChange() {
         call.removeEventListener('statechange', callStateChange);
@@ -219,12 +252,11 @@ var CallsHandler = (function callsHandler() {
           postToMainWindow(callInfo);
         }
       });
-
-      // This is the initial incoming call, need to ring !
-      if (handledCalls.length === 1) {
-        handleFirstIncoming(call);
-      }
     }
+
+    var hc = new HandledCall(call);
+    handledCalls.push(hc);
+    CallScreen.insertCall(hc.node);
 
     if (handledCalls.length > 1) {
       // New incoming call, signaling the user.
@@ -305,8 +337,8 @@ var CallsHandler = (function callsHandler() {
 
     screenLock = navigator.requestWakeLock('screen');
 
-    call.addEventListener('statechange', function callStateChange() {
-      call.removeEventListener('statechange', callStateChange);
+    call.addEventListener('statechange', function stopAlerting() {
+      call.removeEventListener('statechange', stopAlerting);
 
       ringtonePlayer.pause();
       ringing = false;
