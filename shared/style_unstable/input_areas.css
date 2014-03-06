@@ -20,10 +20,10 @@ textarea {
   line-height: 4rem;
   border: 0;
   border: 0.1rem solid #c7c7c7;
-  border-radius: 2rem;
+  border-radius: 0;
   box-shadow: none; /* override the box-shadow from the system (performance issue) */
   color: #333;
-  background: rgba(255,255,255,0.6);
+  background: #fff;
   margin: 0 0 1rem 0;
 }
 
@@ -36,7 +36,7 @@ textarea {
 /* fix for required inputs with wrong or empty value e.g. [type=email] */
 input:invalid,
 textarea:invalid {
-  border-color: #820000;
+  border: 0.2rem solid #820000;
   color: #b90000;
 }
 
@@ -67,7 +67,7 @@ textarea[disabled] {
 .skin-dark input[type="number"],
 .skin-dark textarea  {
   color: #fff;
-  background: rgba(255,255,255,0.6);
+  background: transparent;
   border-color: #858585;
 }
 
@@ -126,21 +126,20 @@ fieldset {
 }
 
 fieldset legend {
-  border: 0.1rem solid #c7c7c7;
+  border: 0.1rem solid #a6a6a6;
   width: 100%;
   -moz-box-sizing: border-box;
   font-family: sans-serif;
   font-style: italic;
   font-size: 1.6rem;
-  color: #00aac5;
   margin: 0 0 1rem;
   padding: 1rem 1.5rem 0;
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
   height: 4rem;
-  color: #00aac5;
-  background: rgba(255,255,255,0.6) url(input_areas/images/ui/dialog.svg) no-repeat calc(100% - 1rem) calc(100% - 1rem);
+  color: #333;
+  background: #e7e7e7 url(input_areas/images/ui/dialog.svg) no-repeat calc(100% - 1rem) calc(100% - 1rem);
 }
 
 fieldset[disabled] {
@@ -149,7 +148,6 @@ fieldset[disabled] {
 }
 
 fieldset[disabled] legend {
-  color: rgba(51, 51, 51, 0.5);
   background-image: url(input_areas/images/ui/dialog_disabled.svg);
 }
 
@@ -278,7 +276,7 @@ form button::-moz-focus-inner {
  */
 
 html[dir="rtl"] fieldset legend {
-  background: url(input_areas/images/ui/dialog_rtl.svg) no-repeat 1rem calc(100% - 1rem);
+  background: #e7e7e7 url(input_areas/images/ui/dialog_rtl.svg) no-repeat 1rem calc(100% - 1rem);
 }
 
 html[dir="rtl"] fieldset[disabled] legend {

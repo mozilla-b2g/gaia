@@ -118,8 +118,8 @@ li .button,
 select {
   position: relative;
   text-align: left;
-  border: 0.1rem solid #c7c7c7;
-  background: rgba(255,255,255,0.6);
+  border: 0.1rem solid #a6a6a6;
+  background: #e7e7e7;
   border-radius: 0;
   margin: 0 0 1.5rem;
   overflow: hidden;
@@ -137,7 +137,6 @@ li button:disabled,
 li [role="button"][aria-disabled="true"],
 li .button[aria-disabled="true"] {
   opacity: 0.5;
-  background: rgba(255,255,255,0.6);
 }
 
 /* Icons */
@@ -165,7 +164,7 @@ li button.icon-view:before,
 li [role="button"].icon-view:before {
   width: 0;
   height: 0;
-  top: 2.7rem;
+  top: 2.8rem;
   right: 0.9rem;
   border-top: 0.7rem solid transparent;
   border-bottom: 0.7rem solid transparent;
@@ -182,13 +181,6 @@ li [role="button"][aria-disabled="true"].icon-view:before {
   border-left: 0.7rem solid #a9a9a9;
 }
 
-li button.icon-dialog,
-li [role="button"].icon-dialog,
-li .button.icon-dialog,
-select {
-  color: #00aac5;
-}
-
 li button.icon-dialog:before,
 li [role="button"].icon-dialog:before,
 li .button.icon-dialog:before {
@@ -201,12 +193,6 @@ li .button.icon-dialog:before {
   border-left: 0.7rem solid #00aac5;
   transform: rotate(45deg);
   z-index: 1;
-}
-
-li button.icon-dialog:disabled,
-li [role="button"][aria-disabled="true"].icon-dialog,
-li .button[aria-disabled="true"].icon-dialog {
-  color: #a9a9a9;
 }
 
 li button.icon-dialog:disabled:before,
@@ -222,18 +208,10 @@ li .button[aria-disabled="true"].icon-dialog:before {
 .dark li button,
 .dark li [role="button"],
 .dark li .button {
-  background-color: #5f5f5f;
+  background-color: rgba(87,87,87,0.8);
   border: none;
   color: #fff;
   font-weight: normal;
-}
-
-.dark li button.icon-dialog,
-.dark li [role="button"].icon-dialog,
-.dark li .button.icon-dialog,
-.dark select {
-  color: #00aac5;
-  background-color: #5F5F5F;
 }
 
 .dark li button.icon-view:before,
@@ -241,23 +219,24 @@ li .button[aria-disabled="true"].icon-dialog:before {
   border-left: 0.7rem solid #00aac5;
 }
 
-.dark li button.icon-dialog:before,
-.dark li [role="button"].icon-dialog:before,
-.dark li .button.icon-dialog:before {
-  border-left: 0.7rem solid #00aac5;
+.dark li button.icon-view:disabled:before,
+.dark li [role="button"][aria-disabled="true"].icon-view:before,
+.dark li .button[aria-disabled="true"].icon-view:before {
+  border-left: 0.7rem solid rgba(255, 255, 255, 0.4);
 }
 
 .dark li button:disabled,
 .dark li [role="button"][aria-disabled="true"],
 .dark li .button[aria-disabled="true"] {
-  color: #fff;
+  background-color: rgba(87,87,87,0.8);
+  opacity: 0.5;
 }
 
-.dark li button.icon-dialog:disabled,
-.dark li [role="button"][aria-disabled="true"].icon-dialog,
-.dark li .button[aria-disabled="true"].icon-dialog,
+.dark li button.icon-dialog:disabled:before,
+.dark li [role="button"][aria-disabled="true"].icon-dialog:before,
+.dark li .button[aria-disabled="true"].icon-dialog:before,
 .dark select {
-  color: #00aac5;
+  border-left: 0.7rem solid rgba(255, 255, 255, 0.4);
 }
 
 /* Inputs inside of .button */
@@ -274,9 +253,9 @@ select {
   font-family: sans-serif;
   font-style: italic;
   font-size: 1.6rem;
-  color: #00aac5;
+  color: #333;
   margin: 0 0 1rem;
-  padding: 0.8rem 0 0 1.1rem;
+  padding: 1rem 0 0 1.1rem;
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
@@ -284,13 +263,19 @@ select {
 }
 
 .dark select {
-  border-color: #575757;
+  background-color: rgba(87, 87, 87, 0.8);
+  border: none;
+  color: #fff;
 }
 
 /* remove dotted outline */
 select:-moz-focusring {
   color: transparent;
-  text-shadow: 0 0 0 #00aac5;
+  text-shadow: 0 0 0 #333;
+}
+
+.dark select:-moz-focusring {
+  text-shadow: 0 0 0 #fff;
 }
 
 /* Hides dropdown arrow until bug #649849 is fixed */
@@ -303,11 +288,7 @@ select:-moz-focusring {
 }
 
 .button.icon-dialog[aria-disabled="true"] select {
-  color: #a9a9a9;
-}
-
-.dark .button.icon-dialog[aria-disabled="true"] select {
-  color: #00aac5;
+  color: rgba(255, 255, 255, 0.4);
 }
 
 /******************************************************************************
