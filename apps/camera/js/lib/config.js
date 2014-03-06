@@ -1,6 +1,12 @@
 define(function(require, exports, module) {
 'use strict';
 
+ /**
+ * NOTE: This module will be @deprecated.
+ * Any required logic will be migrated to
+ * lib/settings.js or lib/setting.js.
+ */
+
 /**
  * Dependencies
  */
@@ -45,7 +51,6 @@ Config.prototype.normalizeItem = function(key, value) {
   item.title = value.title || key;
   item.options = value.options || [{ key: key, value: value }];
   item.persistent = value.persistent || false;
-  item.menu = value.menu || false;
   debug('normalised %s', key, item);
   return item;
 };

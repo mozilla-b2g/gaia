@@ -64,9 +64,10 @@ require(['config/require', 'config'], function() {
 
     debug('created app');
 
-    // Async jobs to be
-    // done before boot...
+    // Fetch persistent settings
     app.settings.fetch();
+
+    // Check for activities, then boot
     app.activity.check(app.boot);
   });
 

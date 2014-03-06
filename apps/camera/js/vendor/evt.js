@@ -85,14 +85,14 @@ proto.off = function(name, cb) {
  * @return {Event}
  */
 proto.fire = proto.emit = function(options) {
-  this._cbs = this._cbs || {};
+  var cbs = this._cbs = this._cbs || {};
   var name = options.name || options;
+  var batch = (cbs[name] || []).concat(cbs['*'] || []);
   var ctx = options.ctx || this;
-  var cbs = this._cbs[name];
 
-  if (cbs) {
+  if (batch.length) {
+    this.fireArgs = arguments;
     var args = slice.call(arguments, 1);
-    var batch = slice.call(cbs);
     while (batch.length) {
       batch.shift().apply(ctx, args);
     }

@@ -36,6 +36,7 @@ module.exports = View.extend({
   render: function() {
     var data = this.model.get();
     data.selected = this.model.selected();
+    data.selectedTitle = data.selected && data.selected.title;
     this.el.setAttribute('data-key', data.key);
     this.el.innerHTML = this.template(data);
     debug('rendered item %s', data.key);
@@ -45,7 +46,7 @@ module.exports = View.extend({
   template: function(data) {
     return '<div class="setting_text">' +
       '<h4 class="setting_title">' + data.title + '</h4>' +
-      '<h5 class="setting_value">' + data.selected.title + '</h5>' +
+      '<h5 class="setting_value">' + data.selectedTitle + '</h5>' +
     '</div>';
   },
 });
