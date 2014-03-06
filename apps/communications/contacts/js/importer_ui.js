@@ -778,6 +778,7 @@ if (typeof window.importer === 'undefined') {
      *
      */
     UI.importAll = function(e) {
+      imgLoader.unload(); // Removing listeners
       var selected = Object.keys(selectedContacts).length;
       var unSelected = getTotalUnselected();
       var total = selected + unSelected;
