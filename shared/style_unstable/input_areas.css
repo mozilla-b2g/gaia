@@ -117,12 +117,17 @@ form p textarea:focus + button[type="reset"] {
 fieldset {
   position: relative;
   overflow: hidden;
-  margin: 1rem 0;
+  margin: 1.5rem 0 0 0;
   padding: 0;
-  border: 0;
   font-size: 2rem;
   line-height: 1em;
   background: none;
+  border: 0;
+  border-bottom: 0.1rem solid #dbdbdb;
+}
+
+fieldset:last-child {
+  border-bottom: none;
 }
 
 fieldset legend {
