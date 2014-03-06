@@ -19,47 +19,43 @@ textarea {
   font-size: 1.6rem;
   line-height: 4rem;
   border: 0;
-  border-bottom: 0.1rem solid #c7c7c7;
-  border-radius: 0;
+  border: 0.1rem solid #c7c7c7;
+  border-radius: 2rem;
   box-shadow: none; /* override the box-shadow from the system (performance issue) */
   color: #333;
-  background: url(input_areas/images/ui/input.png) no-repeat bottom left,
-    url(input_areas/images/ui/input.png) no-repeat bottom right;
-  background-color: transparent;
-  background-size: 0.1rem 1.2rem;
-  margin: 0 0 0.5rem 0;
+  background: rgba(255,255,255,0.6);
+  margin: 0 0 1rem 0;
 }
 
 textarea {
   height: 10rem;
   max-height: 10rem;
   line-height: 2rem;
-  margin: 0;
-  border-top: 0.1rem solid #c7c7c7;
-}
-
-input:focus,
-textarea:focus {
-  border-color: #00aacc;
-  background-image: url(input_areas/images/ui/input_focus.png),
-    url(input_areas/images/ui/input_focus.png);
 }
 
 /* fix for required inputs with wrong or empty value e.g. [type=email] */
 input:invalid,
 textarea:invalid {
   border-color: #820000;
-  background-image: url(input_areas/images/ui/input_invalid.png),
-    url(input_areas/images/ui/input_invalid.png);
   color: #b90000;
+}
+
+input:focus,
+textarea:focus {
+  border: 0.2rem solid #00caf2;
 }
 
 input::-moz-placeholder,
 textarea::-moz-placeholder {
-  color: #a6a6a6;
+  color: #a9a9a9;
   opacity: 1;
   font-style: italic;
   font-weight: 400;
+}
+
+input[disabled],
+textarea[disabled] {
+  opacity: 0.5;
 }
 
 .skin-dark input[type="text"],
@@ -71,8 +67,7 @@ textarea::-moz-placeholder {
 .skin-dark input[type="number"],
 .skin-dark textarea  {
   color: #fff;
-  background-image: url(input_areas/images/ui/input_dark.png),
-    url(input_areas/images/ui/input_dark.png);
+  background: rgba(255,255,255,0.6);
   border-color: #858585;
 }
 
@@ -84,7 +79,7 @@ form p {
 form p input + button[type="reset"],
 form p textarea + button[type="reset"] {
   position: absolute;
-  top: 0;
+  top: -0.1rem;
   right: 0;
   width: 4rem;
   height: 4rem;
@@ -106,12 +101,6 @@ form p textarea + button[type="reset"] {
 li input + button[type="reset"]:after,
 li textarea + button[type="reset"]:after {
   background: none;
-}
-
-form p input + button[type="reset"],
-form p textarea + button[type="reset"] {
-  top: 0;
-  margin: 0;
 }
 
 textarea {
@@ -143,19 +132,19 @@ fieldset legend {
   font-family: sans-serif;
   font-style: italic;
   font-size: 1.6rem;
-  color: #00aacc;
-  margin: 0 0 0.5rem;
+  color: #00aac5;
+  margin: 0 0 1rem;
   padding: 1rem 1.5rem 0;
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
   height: 4rem;
-  color: #00aacc;
-  background: url(input_areas/images/ui/dialog.svg) no-repeat calc(100% - 1rem) calc(100% - 1rem);
+  color: #00aac5;
+  background: rgba(255,255,255,0.6) url(input_areas/images/ui/dialog.svg) no-repeat calc(100% - 1rem) calc(100% - 1rem);
 }
 
 fieldset[disabled] {
-  opacity: 0.6;
+  opacity: 0.5;
   pointer-events: none;
 }
 
@@ -207,7 +196,7 @@ form[role="search"] p input:focus::-moz-placeholder {
   background: none;
 }
 
-form[role="search"] p input:invalid, 
+form[role="search"] p input:invalid,
 form[role="search"] p textarea:invalid {
   border: none;
 }
@@ -224,7 +213,7 @@ form[role="search"] button[type="submit"] {
   height: 3.7rem;
   padding: 0 1.5rem;
   border: none;
-  color: #00AACC;
+  color: #00aac5;
   font-weight: normal;
   font-size: 1.6rem;
   line-height: 3.7rem;

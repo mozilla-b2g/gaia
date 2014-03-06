@@ -293,16 +293,13 @@ select:-moz-focusring {
   text-shadow: 0 0 0 #00aac5;
 }
 
-.dark select:-moz-focusring {
-  text-shadow: 0 0 0 #b2f2ff;
-}
-
 /* Hides dropdown arrow until bug #649849 is fixed */
 .button.icon-dialog select {
   position: absolute;
   left: 0;
   border: 0;
   width: calc(100% + 3rem);
+  background: transparent;
 }
 
 .button.icon-dialog[aria-disabled="true"] select {
@@ -333,13 +330,13 @@ html[dir="rtl"] li button.icon-view:before,
 html[dir="rtl"] li .icon-view[role="button"]:before {
   left: 0.9rem;
   right: auto;
-  border-right: 0.8rem solid rgba(0, 170, 204, 0.4);
+  border-right: 0.8rem solid #00aac5;
   border-left: 0;
 }
 
 html[dir="rtl"] li button.icon-view:disabled:before,
 html[dir="rtl"] li .icon-view[role="button"][aria-disabled="true"]:before {
-  border-right: 0.8rem solid rgba(51, 51, 51, 0.5);
+  border-right: 0.8rem solid #a9a9a9;
 }
 
 html[dir="rtl"] li button.icon-dialog:before,
@@ -352,7 +349,7 @@ html[dir="rtl"] li .button.icon-dialog:before {
 
 html[dir="rtl"] .dark li button.icon-view:before,
 html[dir="rtl"] .dark li .icon-view[role="button"]:before {
-  border-right: 0.8rem solid #C7C7C7;
+  border-right: 0.8rem solid #00aac5;
   border-left: 0;
 }
 
