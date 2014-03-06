@@ -10,7 +10,7 @@ SoundEffect = (function() {
   var shutterSoundEnabled = true;
   var recordingSoundEnabled = true;
   var soundAudios = {};
-  var soundUrls = {'camera': './resources/sounds/shutter.opus',
+  var soundUrls = {'camera': './resources/sounds/shutter.ogg',
                    'recordingStart': './resources/sounds/camcorder_start.opus',
                    'recordingEnd': './resources/sounds/camcorder_end.opus'};
 

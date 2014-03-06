@@ -241,8 +241,8 @@ var enabledKeyboardNames;
 var isSoundEnabled;
 
 // data URL for keyboard click sound
-const CLICK_SOUND = './resources/sounds/key.opus';
-const SPECIAL_SOUND = './resources/sounds/special.opus';
+const CLICK_SOUND = './resources/sounds/key.ogg';
+const SPECIAL_SOUND = './resources/sounds/special.ogg';
 
 // The audio element used to play the click sound
 var clicker;
