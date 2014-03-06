@@ -287,7 +287,7 @@ select:-moz-focusring {
   background: transparent;
 }
 
-.button.icon-dialog[aria-disabled="true"] select {
+.dark .button.icon-dialog[aria-disabled="true"] select {
   color: rgba(255, 255, 255, 0.4);
 }
 
