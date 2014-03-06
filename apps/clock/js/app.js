@@ -92,9 +92,7 @@ var App = {
       if ('#' + panel.fragment === data.hash) {
         this.loadPanel(panel, function() {
           var instance = panel.instance;
-          if (typeof data.data !== 'undefined') {
-            instance.navData = data.data;
-          }
+          instance.navData = data.data || null;
           instance.active = true;
           instance.visible = true;
           if (currentIndex !== -1) {

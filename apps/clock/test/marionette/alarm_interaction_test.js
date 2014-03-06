@@ -72,6 +72,19 @@ marionette('Alarm interaction', function() {
       alarm.waitForBannerHidden();
     });
 
+    test('New Alarm button always shows new title', function() {
+      alarm.waitForBannerHidden();
+
+      // Delete the first alarm, then re-open the edit form.
+      alarm.openForm(0);
+      alarm.formDelete();
+      alarm.openForm();
+
+      var el = client.findElement('.new-alarm-title');
+      assert.ok(el.displayed());
+      alarm.formClose();
+    });
+
     suite('creation of multiple alarms', function() {
 
       setup(function() {
