@@ -491,6 +491,13 @@ var SimManager = (function() {
 
     UIManager.confirmNewpinInput.classList.remove('onerror');
     UIManager.confirmNewpinError.classList.add('hidden');
+
+    UIManager.pinError.classList.add('hidden');
+    UIManager.pinRetriesLeft.classList.add('hidden');
+    UIManager.pukError.classList.add('hidden');
+    UIManager.pukRetriesLeft.classList.add('hidden');
+    UIManager.xckError.classList.add('hidden');
+    UIManager.xckRetriesLeft.classList.add('hidden');
   },
 
   unlockPuk: function sm_unlockPuk(icc) {
