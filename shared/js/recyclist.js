@@ -160,7 +160,8 @@ Recyclist.prototype = {
     }
     this.numItems += numItems;
 
-    this.scrollChild.style.height = this.positions[i - 1][0] + this.itemHeight + 'px';
+    this.scrollChild.style.height =
+      this.positions[i - 1][0] + this.itemHeight + 'px';
   },
 
   /**
@@ -169,7 +170,6 @@ Recyclist.prototype = {
    * @param {Integer} multiplier A multiplier of the display port size.
    */
   generate: function(multiplier) {
-    var itemHeight = this.itemHeight;
     var scrollPos = this.getScrollPos();
     var scrollPortHeight = this.getScrollHeight();
 
@@ -208,7 +208,7 @@ Recyclist.prototype = {
     recyclableItems.sort();
 
     var recyclableHeaders = [];
-    for (var i in this.domHeaders) {
+    for (i in this.domHeaders) {
       if (i < startIndex || i >= endIndex) {
         recyclableHeaders.push(i);
       }
