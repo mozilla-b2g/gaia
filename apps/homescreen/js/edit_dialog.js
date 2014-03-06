@@ -12,12 +12,14 @@ var EditDialog = (function() {
     form.removeEventListener('input', updateDoneButton);
 
     var classList = dialog.classList;
-    dialog.addEventListener('transitionend', function hidden() {
-      dialog.removeEventListener('transitionend', hidden);
-      classList.remove('visible');
-    });
+    if (classList.contains('show')) {
+      dialog.addEventListener('transitionend', function hidden() {
+        dialog.removeEventListener('transitionend', hidden);
+        classList.remove('visible');
+      });
 
-    classList.remove('show');
+      classList.remove('show');
+    }
   }
 
   function show(icon) {
