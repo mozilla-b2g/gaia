@@ -472,6 +472,45 @@ var GaiaDataLayer = {
     };
   },
 
+  getAllSms: function(aCallback) {
+    var callback = aCallback || marionetteScriptFinished;
+    console.log('searching for sms messages');
+
+    SpecialPowers.addPermission('sms', true, document);
+    SpecialPowers.setBoolPref('dom.sms.enabled', true);
+    let sms = window.navigator.mozMobileMessage;
+
+    let msgList = new Array();
+    let filter = new MozSmsFilter();
+    let request = sms.getMessages(filter, false);
+
+    request.onsuccess = function(event) {
+      var cursor = event.target;
+
+      if(!cursor.done) {
+        // Add the sms to the list
+        msgList.push(cursor.result);
+        // Now get the next in the list
+        cursor.continue();
+      }else{
+        disableSms();
+        // Send back the list
+        callback(msgList);
+      }
+    };
+
+    request.onerror = function(event) {
+      console.log('sms.getMessages error: ' + event.target.error.name);
+      disableSms();
+      callback(false);
+    };
+
+    function disableSms() {
+      SpecialPowers.removePermission('sms', document);
+      SpecialPowers.clearUserPref('dom.sms.enabled');
+    }
+  },
+
   deleteAllSms: function(aCallback) {
     var callback = aCallback || marionetteScriptFinished;
     console.log('searching for sms messages');
