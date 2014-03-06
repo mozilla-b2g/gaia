@@ -60,44 +60,6 @@ Storage.prototype.addImage = function(blob, options, done) {
   }
 };
 
-Storage.prototype.addVideo = function(blob, done) {
-  debug('adding video');
-  var storage = this.video;
-  var self = this;
-
-  createFilename(this.video, 'video', onCreated);
-
-  function onCreated(filepath) {
-    debug('filename created', filepath);
-    var req = storage.addNamed(blob, filepath);
-    req.onerror = onError;
-    req.onsuccess = onStored;
-
-    function onStored(e) {
-      debug('video stored', e.target.result);
-      var absolutePath = e.target.result;
-      var req = storage.get(filepath);
-      req.onerror = onError;
-      req.onsuccess = onGotBlob;
-
-      function onGotBlob() {
-        var blob = req.result;
-        done(blob, filepath, absolutePath);
-
-        // Healthcheck the storage
-        // *after* the callback, to give
-        // the user chance to delete
-        // the old blob.
-        self.check();
-      }
-    }
-  }
-
-  function onError() {
-    self.emit('error');
-  }
-};
-
 /**
  * Create a new video filepath.
  *

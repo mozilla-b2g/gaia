@@ -281,16 +281,17 @@ Setting.prototype.next = function() {
   debug('set \'%s\' to index: %s', this.key, newIndex);
 };
 
-/**
- * Test if the currently selected
- * key matches the given method.
- *
- * @param  {String}  value
- * @return {Boolean}
- */
-Setting.prototype.is = function(value) {
-  return this.selected('key') === value;
-};
+// /**
+//  * Get the value of the currently
+//  * selected option.
+//  *
+//  * @return {*}
+//  * @public
+//  */
+// Setting.prototype.value = function() {
+//   var selected = this.selected();
+//   return selected && (selected.value || selected.key);
+// };
 
 /**
  * Persists the current selection

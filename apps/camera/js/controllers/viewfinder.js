@@ -45,7 +45,6 @@ ViewfinderController.prototype.bindEvents = function() {
   this.viewfinder.on('click', this.onViewfinderClick);
   this.app.on('camera:configured', this.loadStream);
   this.app.on('camera:configured', this.updatePreview);
-  this.app.on('blur', this.onBlur);
 };
 
 ViewfinderController.prototype.loadStream = function() {
@@ -74,12 +73,6 @@ ViewfinderController.prototype.onViewfinderClick = function() {
   if (recording || this.activity.active) { return; }
   this.filmstrip.toggle();
   debug('click');
-};
-
-ViewfinderController.prototype.onBlur = function() {
-  this.viewfinder.stopPreview();
-  this.viewfinder.setPreviewStream(null);
-  this.viewfinder.fadeOut();
 };
 
 });
