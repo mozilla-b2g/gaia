@@ -51,8 +51,6 @@ var FxaModuleEnterPassword = (function() {
         error: 'RESET_PASSWORD_IN_SETTINGS'
       });
     }
-    // XXX ensure email is used properly when server supports prefilling email
-    //     via query string (bug 977776)
     // Note: we don't need to pass a success callback, but we do need an errback
     FxModuleServerRequest.requestPasswordReset(
       this.email,
