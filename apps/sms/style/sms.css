@@ -122,14 +122,17 @@ form[role="dialog"][data-type="edit"] header menu[type="toolbar"] button {
   padding-top: 0.7rem;
 }
 
-
 #threads-container[data-type="list"] ul {
   padding: 0 1.5rem;
+  background-color: #fff;
+}
 
-  /* Bug 967878 - [Messages] Background doesn't scroll with the threads causing
-  * expensive over-invalidation
-  */
-  background-color: white;
+/**
+ * Bug 967878, 979018 -[Messages] Background doesn't
+ * scroll with the threads causing expensive over-invalidation
+ */
+#threads-container > div {
+  background-color: #fff;
 }
 
 [data-type="list"] li {

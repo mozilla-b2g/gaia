@@ -108,6 +108,14 @@ suite('system/AppWindow', function() {
     }
   };
 
+  var fakeChromeConfigWithoutNavigation = {
+    url: 'http://www.fakeChrome2/index.html',
+    origin: 'http://www.fakeChrome2',
+    manifest: {
+      chrome: { 'navigation': false }
+    }
+  };
+
   test('App created with instanceID', function() {
     var app1 = new AppWindow(fakeAppConfig1);
     var app2 = new AppWindow(fakeAppConfig2);
@@ -179,13 +187,19 @@ suite('system/AppWindow', function() {
     test('Would get the height of chrome\'s button bar', function() {
       var stubGetBarHeight =
         this.sinon.stub(AppChrome.prototype, 'getBarHeight');
+      var spy = this.sinon.spy(window, 'AppChrome');
       var chromeApp = new AppWindow(fakeChromeConfig);
       var stubIsActive = this.sinon.stub(chromeApp, 'isActive');
       stubIsActive.returns(true);
       chromeApp.resize();
       assert.isTrue(stubGetBarHeight.called);
-      stubGetBarHeight.restore();
-      stubIsActive.restore();
+      assert.isTrue(spy.calledWithNew());
+    });
+
+    test('No navigation setting in manifest', function() {
+      var spy = this.sinon.spy(window, 'AppChrome');
+      var chromeApp = new AppWindow(fakeChromeConfigWithoutNavigation);
+      assert.isFalse(spy.calledWithNew());
     });
   });
 

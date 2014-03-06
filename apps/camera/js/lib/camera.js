@@ -76,8 +76,6 @@ Camera.prototype.loadStreamInto = function(videoElement) {
     videoElement.mozSrcObject = this.mozCamera;
     videoElement.play();
     debug('stream loaded');
-    this.emit('streamLoaded');
-    this.emit('ready');
   }
 };
 
@@ -85,7 +83,7 @@ Camera.prototype.load = function() {
   var selectedCamera = this.get('selectedCamera');
   var loadingNewCamera = selectedCamera !== this.lastLoadedCamera;
   this.lastLoadedCamera = selectedCamera;
-  this.emit('loading');
+  this.emit('busy');
   // It just configures if the camera has been previously loaded
   if (this.mozCamera && !loadingNewCamera) {
     this.configure(this.mozCamera);
@@ -115,6 +113,7 @@ Camera.prototype.configure = function(mozCamera) {
     // a change to match device capabilities with app config.
     debug('configured');
     self.emit('configured', self.formatCapabilities(capabilities));
+    self.emit('ready');
   };
   var error = function() {
     console.log('Error configuring camera');
@@ -123,7 +122,6 @@ Camera.prototype.configure = function(mozCamera) {
   if (!mozCamera) {
     return;
   }
-
   // Store the Gecko
   // mozCamera interface
   this.mozCamera = mozCamera;
@@ -132,7 +130,8 @@ Camera.prototype.configure = function(mozCamera) {
   this.configurePicturePreviewSize(capabilities.previewSizes);
   // Bind to some hardware events
   mozCamera.onShutter = this.onShutter;
-  mozCamera.onRecorderStateChange = self.onRecorderStateChange;
+  mozCamera.onPreviewStateChange = this.onPreviewStateChange;
+  mozCamera.onRecorderStateChange = this.onRecorderStateChange;
   options = {
     mode: this.get('mode'),
     previewSize: this.picturePreviewSize
@@ -202,7 +201,7 @@ Camera.prototype.configurePicturePreviewSize = function(availablePreviewSizes) {
 };
 
 Camera.prototype.configureFocus = function(modes) {
-  var supports = this.autoFocus;
+  var supports = this.autoFocus = {};
   (modes || []).forEach(function(mode) { supports[mode] = true; });
   debug('focus configured', supports);
 };
@@ -542,13 +541,21 @@ Camera.prototype.onShutter = function() {
   this.emit('shutter');
 };
 
+Camera.prototype.onPreviewStateChange = function(previewState) {
+  if (previewState === 'stopped' || previewState === 'paused') {
+    this.emit('busy');
+  } else {
+    this.emit('ready');
+  }
+};
+
 /**
  * Emit useful event hook.
  *
  * @param  {String} msg
  * @private
  */
-Camera.prototype.onRecordingStateChange = function(msg) {
+Camera.prototype.onRecorderStateChange = function(msg) {
   if (msg === 'FileSizeLimitReached') {
     this.emit('filesizelimitreached');
   }
@@ -639,7 +646,7 @@ Camera.prototype.resumePreview = function() {
 Camera.prototype.setMode = function(mode) {
   this.updatePreviewSize(mode);
   this.set('mode', mode);
-  this.configure(this.mozCamera);
+  this.load();
 };
 
 Camera.prototype.updatePreviewSize = function(mode) {

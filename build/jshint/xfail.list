@@ -77,7 +77,6 @@ apps/calendar/js/views/advanced_settings.js
 apps/calendar/js/views/calendar_colors.js
 apps/calendar/js/views/create_account.js
 apps/calendar/js/views/day.js
-apps/calendar/js/views/day_based.js
 apps/calendar/js/views/day_child.js
 apps/calendar/js/views/errors.js
 apps/calendar/js/views/event_base.js
@@ -95,7 +94,6 @@ apps/calendar/js/views/week_child.js
 apps/calendar/js/worker/manager.js
 apps/calendar/js/worker/thread.js
 apps/calendar/test/assertions.js
-apps/calendar/test/marionette/day_view_test.js
 apps/calendar/test/marionette/today_test.js
 apps/calendar/test/unit/app_test.js
 apps/calendar/test/unit/calc_test.js
@@ -863,7 +861,6 @@ apps/system/fxa/js/screens/fxam_signup_success.js
 apps/system/fxa/js/utils.js
 apps/system/fxa/view/view_login.js
 apps/system/js/accessibility.js
-apps/system/js/action_menu.js
 apps/system/js/activity_window.js
 apps/system/js/airplane_mode.js
 apps/system/js/app_authentication_dialog.js
@@ -962,7 +959,6 @@ apps/system/test/marionette/net_error_test.js
 apps/system/test/marionette/notification_get_test.js
 apps/system/test/marionette/notification_launch_app.js
 apps/system/test/marionette/notification_test.js
-apps/system/test/unit/action_menu_test.js
 apps/system/test/unit/activity_window_test.js
 apps/system/test/unit/airplane_mode_test.js
 apps/system/test/unit/app_authentication_dialog_test.js
@@ -1049,7 +1045,6 @@ apps/system/test/unit/mock_rocketbar.js
 apps/system/test/unit/mock_screen_layout.js
 apps/system/test/unit/mock_settingslistener_installer.js
 apps/system/test/unit/mock_sheets_transition.js
-apps/system/test/unit/mock_simslot_manager.js
 apps/system/test/unit/mock_sleep_menu.js
 apps/system/test/unit/mock_software_button_manager.js
 apps/system/test/unit/mock_stack_manager.js

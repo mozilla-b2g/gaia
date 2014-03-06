@@ -173,7 +173,7 @@ html, body {
   #ring-icon {
     width: 4rem;
     height: 4rem;
-    left: 0;
+    left: 0.4rem;
     top: 0;
     background-image: url('images/attention_overlay_icon.png');
     background-size: 100% 100%;
@@ -187,8 +187,8 @@ html, body {
 
   #ring-clock-display {
     position: absolute;
-    bottom: 0.6rem;
-    left: 4.2rem;
+    bottom: 0.3rem;
+    left: 5rem;
     border-bottom: none;
   }
 
@@ -202,10 +202,10 @@ html, body {
     display: none;
   }
 
-  #ring-alarm-label {
+  #ring-label {
     position: absolute;
-    top: 0.35rem;
-    left: 4.2rem;
+    top: 0.5rem;
+    left: 5rem;
     font-weight: bolder;
     font-size: 1.31rem;
     line-height: 1.44rem;

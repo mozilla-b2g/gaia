@@ -33,6 +33,7 @@
     "marionette-settings-api": "~0.1.0",
     "mocha": "1.15.0",
     "mocha-json-proxy": "~0.0.7",
+    "mocha-parallel": "0.1.0",
     "mocha-tbpl-reporter": "~0.0.4",
     "moment": "~2.4.0",
     "mozilla-download": "~0.4.1-alpha",
@@ -41,7 +42,7 @@
     "q": "~0.9.7",
     "request": "2.33.0",
     "rimraf": "2.2.5",
-    "test-agent": "0.18.0",
+    "test-agent": "0.19.4",
     "travis-project-jobs": "0.0.1",
     "watch": "~0.9.0"
   }

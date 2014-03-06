@@ -287,6 +287,12 @@ var Common = {
     iframe.src = '/fte.html' + '#' + mode;
   },
 
+  closeFTE: function() {
+    var iframe = document.getElementById('fte_view');
+    iframe.classList.add('non-ready');
+    iframe.src = '';
+  },
+
   startApp: function() {
     parent.postMessage({
       type: 'fte_finished',
