@@ -8,20 +8,6 @@
 // This file depends on JPEGMetadataParser.js and blobview.js
 //
 var metadataParser = (function() {
-  // If we generate our own thumbnails, aim for this size.
-  // Calculate needed size from longer side of the screen.
-  var THUMBNAIL_WIDTH = computeThumbnailWidth();
-  var THUMBNAIL_HEIGHT = THUMBNAIL_WIDTH;
-  function computeThumbnailWidth() {
-    // Make sure this works regardless of current device orientation
-    var portraitWidth = Math.min(window.innerWidth, window.innerHeight);
-    var landscapeWidth = Math.max(window.innerWidth, window.innerHeight);
-    var thumbnailsPerRowPortrait = isPhone ? 3 : 4;
-    var thumbnailsPerRowLandscape = isPhone ? 4 : 6;
-    return Math.round(window.devicePixelRatio *
-             Math.max(portraitWidth / thumbnailsPerRowPortrait,
-                      landscapeWidth / thumbnailsPerRowLandscape));
-  }
   // Don't try to decode image files of unknown type if bigger than this
   var MAX_UNKNOWN_IMAGE_FILE_SIZE = .5 * 1024 * 1024; // half a megabyte
 
@@ -41,9 +27,12 @@ var metadataParser = (function() {
                                       mirrored, callback, error) {
     try {
       // Create a thumbnail image
+      var thumbnailWidth = thumbnailSize.width();
+      var thumbnailHeight = thumbnailSize.height();
+
       var canvas = document.createElement('canvas');
-      canvas.width = THUMBNAIL_WIDTH;
-      canvas.height = THUMBNAIL_HEIGHT;
+      canvas.width = thumbnailWidth;
+      canvas.height = thumbnailHeight;
       var context = canvas.getContext('2d', { willReadFrequently: true });
       var eltwidth = elt.width;
       var eltheight = elt.height;
@@ -55,13 +44,13 @@ var metadataParser = (function() {
 
       // Calculate the region of the image that will be copied to the
       // canvas to create the thumbnail
-      var w = Math.round(THUMBNAIL_WIDTH / scale);
-      var h = Math.round(THUMBNAIL_HEIGHT / scale);
+      var w = Math.round(thumbnailWidth / scale);
+      var h = Math.round(thumbnailHeight / scale);
       var x = Math.round((eltwidth - w) / 2);
       var y = Math.round((eltheight - h) / 2);
 
-      var centerX = Math.floor(THUMBNAIL_WIDTH / 2);
-      var centerY = Math.floor(THUMBNAIL_HEIGHT / 2);
+      var centerX = Math.floor(thumbnailWidth / 2);
+      var centerY = Math.floor(thumbnailHeight / 2);
 
       // If a orientation is specified, rotate/mirroring the canvas context.
       if (rotation || mirrored) {
@@ -92,7 +81,7 @@ var metadataParser = (function() {
 
       // Draw that region of the image into the canvas, scaling it down
       context.drawImage(elt, x, y, w, h,
-                        0, 0, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
+                        0, 0, thumbnailWidth, thumbnailHeight);
 
       // Restore the default rotation so the play arrow comes out correctly
       if (rotation || mirrored) {
@@ -105,8 +94,8 @@ var metadataParser = (function() {
         // First draw a transparent gray circle
         context.fillStyle = 'rgba(0, 0, 0, .2)';
         context.beginPath();
-        context.arc(THUMBNAIL_WIDTH / 2, THUMBNAIL_HEIGHT / 2,
-                    THUMBNAIL_HEIGHT / 5, 0, 2 * Math.PI, false);
+        context.arc(thumbnailWidth / 2, thumbnailHeight / 2,
+                    thumbnailHeight / 5, 0, 2 * Math.PI, false);
         context.fill();
 
         // Now outline the circle in white
@@ -118,14 +107,14 @@ var metadataParser = (function() {
         context.beginPath();
         context.fillStyle = 'rgba(255,255,255,.6)';
         // The height of an equilateral triangle is sqrt(3)/2 times the side
-        var side = THUMBNAIL_HEIGHT / 5;
+        var side = thumbnailHeight / 5;
         var triangle_height = side * Math.sqrt(3) / 2;
-        context.moveTo(THUMBNAIL_WIDTH / 2 + triangle_height * 2 / 3,
-                       THUMBNAIL_HEIGHT / 2);
-        context.lineTo(THUMBNAIL_WIDTH / 2 - triangle_height / 3,
-                       THUMBNAIL_HEIGHT / 2 - side / 2);
-        context.lineTo(THUMBNAIL_WIDTH / 2 - triangle_height / 3,
-                       THUMBNAIL_HEIGHT / 2 + side / 2);
+        context.moveTo(thumbnailWidth / 2 + triangle_height * 2 / 3,
+                       thumbnailHeight / 2);
+        context.lineTo(thumbnailWidth / 2 - triangle_height / 3,
+                       thumbnailHeight / 2 - side / 2);
+        context.lineTo(thumbnailWidth / 2 - triangle_height / 3,
+                       thumbnailHeight / 2 + side / 2);
         context.closePath();
         context.fill();
       }
@@ -322,10 +311,9 @@ var metadataParser = (function() {
       if (iw * ih > 2 * 1024 * 1024 && bigFile)
         bigFile();
 
-      // If the image was already thumbnail size, it is its own thumbnail
+      // If the image is already thumbnail size, it is its own thumbnail
       // and it does not need a preview
-      if (metadata.width <= THUMBNAIL_WIDTH &&
-          metadata.height <= THUMBNAIL_HEIGHT) {
+      if (thumbnailSize.isSmall(metadata)) {
         offscreenImage.src = '';
         metadata.thumbnail = file;
         callback(metadata);

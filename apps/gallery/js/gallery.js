@@ -75,6 +75,7 @@ var languageDirection;
 ScreenLayout.watch('portrait', '(orientation: portrait)');
 var isPortrait = ScreenLayout.getCurrentLayout('portrait');
 var isPhone = ScreenLayout.getCurrentLayout('tiny');
+var thumbnailSize = new ThumbnailSize(isPhone);
 
 var fullscreenButtonIds = ['back', 'delete', 'edit', 'share', 'camera', 'info'];
 var fullscreenButtons = {};

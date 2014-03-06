@@ -615,6 +615,7 @@ apps/gallery/js/open.js
 apps/gallery/js/thumbnail_date_group.js
 apps/gallery/js/thumbnail_item.js
 apps/gallery/js/thumbnail_list.js
+apps/gallery/js/thumbnail_size.js
 apps/gallery/test/integration/app.js
 apps/gallery/test/marionette/delete_image_test.js
 apps/gallery/test/marionette/edit_image_test.js
@@ -639,6 +640,7 @@ apps/gallery/test/unit/support/long_load.js
 apps/gallery/test/unit/tag_visibility_monitor_test.js
 apps/gallery/test/unit/thumbnail_item_test.js
 apps/gallery/test/unit/thumbnail_list_test.js
+apps/gallery/test/unit/thumbnail_size_test.js
 apps/gallery/test/unit/url_helper_test.js
 apps/homescreen/everything.me/config/config.js
 apps/homescreen/everything.me/js/Brain.js
