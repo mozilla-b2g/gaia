@@ -2,7 +2,7 @@ define(function(require, exports, module) {
 'use strict';
 
 module.exports = {
-  showSettings: false,
+  showSettings: true,
   mode: {
     title: 'Mode',
     options: [
@@ -229,13 +229,11 @@ module.exports = {
     options: [
       {
         key: 'on',
-        title: 'On',
-        value: true
+        title: 'On'
       },
       {
         key: 'off',
-        title: 'Off',
-        value: false
+        title: 'Off'
       }
     ],
     selected: 'off',
@@ -244,34 +242,35 @@ module.exports = {
 
   settingsMenu: {
     items: [
-      {
-        key: 'hdr'
-      },
-      {
-        key: 'scene'
-      },
+      // {
+      //   key: 'hdr'
+      // },
+      // {
+      //   key: 'scene'
+      // },
       {
         key: 'grid'
-      },
-      {
-        key: 'timer'
-      },
-      {
-        key: 'pictureSizesBack',
-        condition: { 'cameras': 'back' }
-      },
-      {
-        key: 'pictureSizesFront',
-        condition: { 'cameras': 'front' }
-      },
-      {
-        key: 'recorderProfilesBack',
-        condition: { 'cameras': 'back' }
-      },
-      {
-        key: 'recorderProfilesFront',
-        condition: { 'cameras': 'front' }
       }
+      // },
+      // {
+      //   key: 'timer'
+      // },
+      // {
+      //   key: 'pictureSizesBack',
+      //   condition: { 'cameras': 'back' }
+      // },
+      // {
+      //   key: 'pictureSizesFront',
+      //   condition: { 'cameras': 'front' }
+      // },
+      // {
+      //   key: 'recorderProfilesBack',
+      //   condition: { 'cameras': 'back' }
+      // },
+      // {
+      //   key: 'recorderProfilesFront',
+      //   condition: { 'cameras': 'front' }
+      // }
     ]
   }
 };

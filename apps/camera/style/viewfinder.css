@@ -8,17 +8,27 @@
   transition: opacity 25ms ease-in-out;
 }
 
+/**
+ * @fade-out
+ */
+
 .viewfinder.fade-out {
   opacity: 0;
 }
 
-/** Video
+/** Frame
  ---------------------------------------------------------*/
 
-.viewfinder video {
+.viewfinder-frame {
   position: absolute;
   left: 0; top: 0;
-  transform: rotate(90deg) translate(0px, -100%);
+  transform-origin: 0 0;
+}
+
+/** Video Container
+ ---------------------------------------------------------*/
+.viewfinder-video-container {
+  transform: rotate(90deg) translate(0, -100%);
   transform-origin: 0 0;
 }
 
@@ -27,10 +37,110 @@
  *
  * 1. COMPLEX: Inverse the video image
  */
+.viewfinder-video-container.reversed {
+  transform: rotate(270deg) translate(-100%, 0%)
+}
 
-.viewfinder video.reversed {
-  transform:
-    rotate(90deg)
-    translate(100%, -100%)
-    scale(-1, 1); /* 1 */
+/** Video
+ ---------------------------------------------------------*/
+
+.viewfinder-video {
+  width: 100%;
+  height: 100%;
+}
+
+/** Frame Grid
+ ---------------------------------------------------------*/
+
+.viewfinder-grid {
+  position: absolute;
+  left: 0; top: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events:none;
+  display: none;
+}
+
+/**
+ * @grid=true
+ */
+
+[grid=on] .viewfinder-grid {
+  display: block;
+}
+
+.viewfinder-grid .row,
+.viewfinder-grid .column {
+  border: solid 0 rgba(255, 255, 255, 0.5);
+}
+
+/** Rows
+ ---------------------------------------------------------*/
+.viewfinder-grid .row {
+  height: 33.33%;
+}
+
+.viewfinder-grid .row.middle {
+  border-top-width: 0.1rem;
+  border-bottom-width: 0.1rem;
+}
+
+/** Columns
+ ---------------------------------------------------------*/
+
+.viewfinder-grid .column {
+  position: absolute;
+  left: 0; top: 0;
+  height: 100%;
+  width: 33.33%;
+}
+
+.viewfinder-grid .column.middle {
+  left: 33.33%;
+  border-right-width: 0.1rem;
+  border-left-width: 0.1rem;
+}
+
+.viewfinder-grid .column.right{
+  left: 66.66%;
+}
+
+/** Cells
+ ---------------------------------------------------------*/
+
+.viewfinder-grid .column .cell {
+  width: 100%;
+  border: solid 0.1rem rgba(0,0,0,0.2);
+  margin-bottom: 0.1rem; /* To accomodate the grid betweeen cells */
+  height: 33.33%;
+}
+
+.viewfinder-grid .column .cell.middle {
+  height: calc(33.33% - 0.2rem); /* To account for the border width of the grid */
+}
+
+/* Removes unwanted cell borders along the edge of the preview */
+
+.viewfinder-grid .column.left .cell.top,
+.viewfinder-grid .column.middle .cell.top,
+.viewfinder-grid .column.right .cell.top {
+  border-top-width: 0;
+}
+
+.viewfinder-grid .column.left .cell.top,
+.viewfinder-grid .column.left .cell.middle,
+.viewfinder-grid .column.left .cell.bottom {
+  border-left-width: 0;
+}
+
+.viewfinder-grid .column.right .cell.top,
+.viewfinder-grid .column.right .cell.middle,
+.viewfinder-grid .column.right .cell.bottom {
+  border-right-width: 0;
+}
+
+.viewfinder-grid .column.left .cell.bottom,
+.viewfinder-grid .column.middle .cell.bottom,
+.viewfinder-grid .column.right .cell.bottom {
+  border-bottom-width: 0;
 }

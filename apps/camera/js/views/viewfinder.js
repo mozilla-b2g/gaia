@@ -10,7 +10,6 @@ var CameraUtils = require('lib/camera-utils');
 var debug = require('debug')('view:viewfinder');
 var constants = require('config/camera');
 var View = require('vendor/view');
-
 /**
  * Locals
  */
@@ -59,12 +58,18 @@ return View.extend({
   name: 'viewfinder',
   className: 'js-viewfinder',
   fadeTime: 200,
+
   initialize: function() {
-    this.els.video = document.createElement('video');
-    this.els.video.autoplay = true;
-    this.els.video.classList.add('viewfinder-video');
+    this.render();
     bind(this.el, 'click', this.onClick);
-    this.el.appendChild(this.els.video);
+    this.els.video.autoplay = true;
+  },
+
+  render: function() {
+    this.el.innerHTML = this.template();
+    this.els.frame = this.find('.js-frame');
+    this.els.video = this.find('.js-video');
+    this.els.videoContainer = this.find('.js-video-container');
   },
 
   onClick: function() {
@@ -108,7 +113,7 @@ return View.extend({
   setScale: function(scale) {
     scale = Math.min(Math.max(scale, MIN_VIEWFINDER_SCALE),
                      MAX_VIEWFINDER_SCALE);
-    this.els.video.style.transform = 'scale(' + scale + ', ' + scale + ')';
+    this.els.frame.style.transform = 'scale(' + scale + ', ' + scale + ')';
   },
 
   setPreviewStream: function(previewStream) {
@@ -146,7 +151,13 @@ return View.extend({
 
   updatePreview: function(preview, mirrored) {
 
-    // Get dimensions of the entire viewfinder container.
+    // Gotchas of this function:
+    // 1. clientWidth and clientHeight are the dimensions
+    // of the viewfinder from the top left corner of the screen
+    // in portrait orientation
+    // 2. The camera reports the preview sizes in landscape orientation:
+    // - width is the longer side and height the shorter.
+    // We swap height and width of one of them so we can compare
     var container = {
       width: this.el.clientHeight,
       height: this.el.clientWidth
@@ -182,19 +193,55 @@ return View.extend({
     // not adjust the Y-offset of the preview.
     var yOffset = aspectFill || centered ?
       (container.width - scaled.width) / 2 : 0;
+    var previewHeight = scaled.height;
+    var previewWidth = scaled.width;
 
-    // Apply the corrected width/height of the <video/> element
-    // as well as the Y-offset (if any).
-    this.els.video.style.width = scaled.width + 'px';
-    this.els.video.style.height = scaled.height + 'px';
-    this.els.video.style.top = yOffset + 'px';
+    // Calculated sizes are in landscape format (width is the largest side)
+    // CSS styles consider the top left corner of the device in portrait mode
+    // Again sizes have to be swapped to size the viewfinder frame
+    // Apply the corrected width/height as well as the Y-offset (if any).
+    this.els.frame.style.width = previewHeight + 'px';
+    this.els.frame.style.height = previewWidth + 'px';
+    this.els.frame.style.top = yOffset + 'px';
 
-    // Apply the `reversed` CSS class if the viewfinder should
-    // be mirrored.
-    this.els.video.classList.toggle('reversed', mirrored);
-
+    // The video stream coming from the camera renders the preview in landscape
+    // mode. It expects width to be the larger size.
+    // The video container is sized as the camera API expects and rotated
+    // with css to be displayed on screen
+    this.els.videoContainer.style.width = previewWidth + 'px';
+    this.els.videoContainer.style.height = previewHeight + 'px';
+    this.els.videoContainer.classList.toggle('reversed', mirrored);
     debug('update preview, mirrored: %s, scale: %s, yOffset: %s',
       mirrored, scaleType, yOffset);
+  },
+
+  template: function() {
+    return '<div class="viewfinder-frame js-frame">' +
+        '<div class="viewfinder-video-container js-video-container">' +
+          '<video class="viewfinder-video js-video"></video>' +
+        '</div>' +
+        '<div class="viewfinder-grid">' +
+          '<div class="row"></div>' +
+          '<div class="row middle"></div>' +
+          '<div class="row"></div>' +
+          '<div class="column left">' +
+            '<div class="cell top"></div>' +
+            '<div class="cell middle"></div>' +
+            '<div class="cell bottom"></div>' +
+          '</div>' +
+          '<div class="column middle">' +
+            '<div class="cell top"></div>' +
+            '<div class="cell middle"></div>' +
+            '<div class="cell bottom"></div>' +
+          '</div>' +
+          '<div class="column right">' +
+           '<div class="cell top"></div>' +
+           '<div class="cell middle"></div>' +
+           '<div class="cell bottom"></div>' +
+          '</div>' +
+          '</div>' +
+        '</div>' +
+    '</div>';
   }
 });
 
