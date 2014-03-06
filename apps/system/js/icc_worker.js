@@ -4,6 +4,10 @@
 'use strict';
 
 var icc_worker = {
+  // STK Applications menu list. On bootup this object is empty,
+  // will be filled by 0x25 (STK_CMD_SET_UP_MENU) command.
+  iccApplicationsMenu: {},
+
   dummy: function icc_worker_dummy(message) {
     DUMP('STK Command not implemented yet');
     icc.responseSTKCommand(message, {
@@ -139,28 +143,28 @@ var icc_worker = {
       toneCode =
         typeof(toneCode) == 'string' ? toneCode.charCodeAt(0) : toneCode;
       switch (toneCode) {
-        case icc._iccManager.STK_TONE_TYPE_DIAL_TONE:
-          return 'resources/dtmf_tones/350Hz+440Hz_200ms.opus';
-        case icc._iccManager.STK_TONE_TYPE_CALLED_SUBSCRIBER_BUSY:
-          return 'resources/dtmf_tones/480Hz+620Hz_200ms.opus';
-        case icc._iccManager.STK_TONE_TYPE_CONGESTION:
-          return 'resources/dtmf_tones/425Hz_200ms.opus';
-        case icc._iccManager.STK_TONE_TYPE_RADIO_PATH_ACK:
-        case icc._iccManager.STK_TONE_TYPE_RADIO_PATH_NOT_AVAILABLE:
-          return 'resources/dtmf_tones/425Hz_200ms.opus';
-        case icc._iccManager.STK_TONE_TYPE_ERROR:
-          return 'resources/dtmf_tones/950Hz+1400Hz+1800Hz_200ms.opus';
-        case icc._iccManager.STK_TONE_TYPE_CALL_WAITING_TONE:
-        case icc._iccManager.STK_TONE_TYPE_RINGING_TONE:
-          return 'resources/dtmf_tones/425Hz_200ms.opus';
-        case icc._iccManager.STK_TONE_TYPE_GENERAL_BEEP:
-          return 'resources/dtmf_tones/400Hz_200ms.opus';
-        case icc._iccManager.STK_TONE_TYPE_POSITIVE_ACK_TONE:
-          return 'resources/dtmf_tones/425Hz_200ms.opus';
-        case icc._iccManager.STK_TONE_TYPE_NEGATIVE_ACK_TONE:
-          return 'resources/dtmf_tones/300Hz+400Hz+500Hz_400ms.opus';
+        case iccManager._iccManager.STK_TONE_TYPE_DIAL_TONE:
+          return 'resources/dtmf_tones/350Hz+440Hz_200ms.ogg';
+        case iccManager._iccManager.STK_TONE_TYPE_CALLED_SUBSCRIBER_BUSY:
+          return 'resources/dtmf_tones/480Hz+620Hz_200ms.ogg';
+        case iccManager._iccManager.STK_TONE_TYPE_CONGESTION:
+          return 'resources/dtmf_tones/425Hz_200ms.ogg';
+        case iccManager._iccManager.STK_TONE_TYPE_RADIO_PATH_ACK:
+        case iccManager._iccManager.STK_TONE_TYPE_RADIO_PATH_NOT_AVAILABLE:
+          return 'resources/dtmf_tones/425Hz_200ms.ogg';
+        case iccManager._iccManager.STK_TONE_TYPE_ERROR:
+          return 'resources/dtmf_tones/950Hz+1400Hz+1800Hz_200ms.ogg';
+        case iccManager._iccManager.STK_TONE_TYPE_CALL_WAITING_TONE:
+        case iccManager._iccManager.STK_TONE_TYPE_RINGING_TONE:
+          return 'resources/dtmf_tones/425Hz_200ms.ogg';
+        case iccManager._iccManager.STK_TONE_TYPE_GENERAL_BEEP:
+          return 'resources/dtmf_tones/400Hz_200ms.ogg';
+        case iccManager._iccManager.STK_TONE_TYPE_POSITIVE_ACK_TONE:
+          return 'resources/dtmf_tones/425Hz_200ms.ogg';
+        case iccManager._iccManager.STK_TONE_TYPE_NEGATIVE_ACK_TONE:
+          return 'resources/dtmf_tones/300Hz+400Hz+500Hz_400ms.ogg';
         default:
-          return 'resources/dtmf_tones/350Hz+440Hz_200ms.opus';
+          return 'resources/dtmf_tones/350Hz+440Hz_200ms.ogg';
       }
     }
 
@@ -302,7 +306,7 @@ var icc_worker = {
     DUMP('STK_CMD_SET_UP_MENU. Transferring to ' + application + ': ',
       message.command);
     var reqIccData = window.navigator.mozSettings.createLock().set({
-      'icc.data': JSON.stringify(message.command)
+      'icc.data': JSON.stringify(message)
     });
     reqIccData.onsuccess = function icc_getIccData() {
       if (AppWindowManager.getRunningApps()[application]) {
@@ -323,11 +327,21 @@ var icc_worker = {
   // STK_CMD_SET_UP_MENU
   '0x25': function STK_CMD_SET_UP_MENU(message) {
     DUMP('STK_CMD_SET_UP_MENU:', message.command.options);
-    var reqApplications = window.navigator.mozSettings.createLock().set({
-      'icc.applications': JSON.stringify(message.command.options)
+    var settings = window.navigator.mozSettings;
+
+    // With test/fake commands: No SIM detected; we set it as SIM 0
+    this.iccApplicationsMenu[icc.getSIMNumber(message.iccId) || 0] = {
+      iccId: message.iccId,
+      entries: message.command.options
+    };
+
+    // Update this.iccApplicationsMenu cache
+    var reqApplications = settings.createLock().set({
+      'icc.applications': JSON.stringify(this.iccApplicationsMenu)
     });
+    var self = this;
     reqApplications.onsuccess = function icc_getApplications() {
-      DUMP('Cached');
+      DUMP('STK: Cached - ', self.iccApplicationsMenu);
       icc.responseSTKCommand(message, {
         resultCode: icc._iccManager.STK_RESULT_OK
       });

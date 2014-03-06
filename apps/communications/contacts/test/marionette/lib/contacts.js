@@ -47,7 +47,10 @@ Contacts.Selectors = {
   formSave: '#save-button',
   formTel: '#contacts-form-phones input[type="tel"]',
   formTelLabelFirst: '#tel_type_0',
+  formTelNumberSecond: '#number_1',
+  formEmailFirst: '#email_0',
 
+  groupList: ' #groups-list',
   list: '#view-contacts-list',
   listContactFirst: '.contact-item',
   listContactFirstText: '.contact-item .contact-text',

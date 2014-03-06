@@ -8,6 +8,7 @@ var View = require('view');
 var Utils = require('utils');
 var Timer = require('timer');
 var Sounds = require('sounds');
+var mozL10n = require('l10n');
 var FormButton = require('form_button');
 var html = require('text!panels/timer/panel.html');
 
@@ -93,6 +94,8 @@ Timer.Panel = function(element) {
   };
   this.soundButton = new FormButton(sound, soundMenuConfig);
   this.soundButton.refresh();
+
+  mozL10n.translate(this.element);
 
   View.instance(element, Timer.Panel).on(
     'visibilitychange', this.onvisibilitychange.bind(this)

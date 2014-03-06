@@ -156,4 +156,12 @@ suite('edit_dialog.js >', function() {
     assert.isFalse(setURLSpy.called);
     assertDialogIsHidden();
   });
+
+  test(' Hide edit dialog twice - no transitionend listeners lost', function() {
+    var dialogSpy = this.sinon.spy(dialog, 'addEventListener');
+    EditDialog.hide();
+    EditDialog.hide();
+    sinon.assert.callCount(dialogSpy, 1);
+    dialogSpy.restore();
+  });
 });
