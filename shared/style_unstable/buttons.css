@@ -24,7 +24,7 @@ button,
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
-  background: #e7e7e7;
+  background: #d8d8d8;
   border: none;
   border-radius: 2rem;
   font-weight: normal;
@@ -34,15 +34,6 @@ button,
   text-align: center;
   text-decoration: none;
   outline: none;
-}
-
-/* Press (default & recommend) */
-button:active,
-[role="button"]:active,
-button.recommend:active,
-a.recommend[role="button"]:active {
-  background: #b2f2ff;
-  color: #fff;
 }
 
 /* Recommend */
@@ -59,20 +50,56 @@ button.danger,
   color: #fff;
 }
 
-/* Danger Press */
-button.danger:active,
-[role="button"].danger:active,
-.button.danger:active {
-  background-color: #b2f2ff;
+/* Pressed */
+button:active,
+[role="button"]:active,
+button.recommend:active,
+a.recommend[role="button"]:active {
+  background: #b2f2ff;
+  color: #fff;
 }
 
 /* Disabled */
 button[disabled],
 [role="button"][aria-disabled="true"],
 .button[aria-disabled="true"] {
-  opacity: 0.6;
-  color: rgba(51,51,51,0.5);
+  background-color: #e7e7e7;
+  color: #a6a6a6;
   pointer-events: none;
+}
+
+button[disabled].recommend,
+[role="button"][aria-disabled="true"].recommend,
+.button[aria-disabled="true"].recommend {
+  background-color: #97cbd5;
+  color: rgba(255,255,255,0.5);
+}
+
+button[disabled].danger,
+[role="button"][aria-disabled="true"].danger,
+.button[aria-disabled="true"].danger {
+  background-color: #eb7474;
+  color: rgba(255,255,255,0.5);
+}
+
+/* Disabled with dark background */
+.dark button[disabled],
+.dark .button[aria-disabled="true"],
+.dark [role="button"][aria-disabled="true"] {
+  background-color: #565656;
+  color: rgba(255,255,255,0.4);
+}
+
+.dark button[disabled].recommend,
+.dark .button[aria-disabled="true"].recommend,
+.dark [role="button"][aria-disabled="true"].recommend {
+  background-color: #006579;
+}
+
+.dark button[disabled].danger,
+.dark .button[aria-disabled="true"].danger,
+.dark [role="button"][aria-disabled="true"].danger {
+  background-color: #730f0f;
 }
 
 button[disabled]::-moz-selection,
@@ -80,32 +107,6 @@ button[disabled]::-moz-selection,
 [role="button"][aria-disabled="true"]::-moz-selection {
   -moz-user-select: none;
 }
-
-/* Danger disabled */
-button[disabled].danger,
-.button[aria-disabled="true"].danger,
-[role="button"][aria-disabled="true"].danger {
-  background-color: #e51e1e;
-  color: #fff;
-}
-
-/* Disabled with dark background */
-.dark button[disabled],
-.dark .button[aria-disabled="true"],
-.dark [role="button"][aria-disabled="true"] {
-  color: #c7c7c7;
-  pointer-events: none;
-}
-
-/* Danger disabled */
-.dark button[disabled].danger,
-.dark .button[aria-disabled="true"].danger,
-.dark [role="button"][aria-disabled="true"].danger {
-  opacity: 0.4;
-  background-color: #e51e1e;
-  color: #fff;
-}
-
 
 /* ----------------------------------
  * Buttons inside lists
@@ -117,8 +118,8 @@ li .button,
 select {
   position: relative;
   text-align: left;
-  border: 0.1rem solid #d7dee4;
-  background: none;
+  border: 0.1rem solid #c7c7c7;
+  background: rgba(255,255,255,0.6);
   border-radius: 0;
   margin: 0 0 1.5rem;
   overflow: hidden;
@@ -132,10 +133,11 @@ li button:active:after {
 }
 
 /* Disabled */
-li button[disabled]:after,
-li [role="button"][aria-disabled="true"]:after,
-li .button[aria-disabled="true"]:after {
-  background: none;
+li button:disabled,
+li [role="button"][aria-disabled="true"],
+li .button[aria-disabled="true"] {
+  opacity: 0.5;
+  background: rgba(255,255,255,0.6);
 }
 
 /* Icons */
@@ -164,27 +166,27 @@ li [role="button"].icon-view:before {
   width: 0;
   height: 0;
   top: 2.7rem;
-  right: 1.5rem;
+  right: 0.9rem;
   border-top: 0.7rem solid transparent;
   border-bottom: 0.7rem solid transparent;
-  border-left: 0.7rem solid rgba(0,170,204,0.4);
+  border-left: 0.7rem solid #00aac5;
 }
 
 li button.icon-view:active:before,
 li [role="button"].icon-view:active:before {
-  border-left: 0.7rem solid rgba(0,170,204,0.4);
+  border-left: 0.7rem solid #00aac5;
 }
 
 li button.icon-view:disabled:before,
 li [role="button"][aria-disabled="true"].icon-view:before {
-  border-left: 0.7rem solid rgba(51,51,51,0.5);
+  border-left: 0.7rem solid #a9a9a9;
 }
 
 li button.icon-dialog,
 li [role="button"].icon-dialog,
 li .button.icon-dialog,
 select {
-  color: #00aacc;
+  color: #00aac5;
 }
 
 li button.icon-dialog:before,
@@ -192,25 +194,25 @@ li [role="button"].icon-dialog:before,
 li .button.icon-dialog:before {
   width: 0;
   height: 0;
-  top: 3.4rem;
-  right: 1rem;
+  top: 3.5rem;
+  right: 0.8rem;
   border-top: 0.7rem solid transparent;
   border-bottom: 0.7rem solid transparent;
-  border-left: 0.7rem solid rgba(0,170,204,0.4);
+  border-left: 0.7rem solid #00aac5;
   transform: rotate(45deg);
+  z-index: 1;
 }
 
 li button.icon-dialog:disabled,
 li [role="button"][aria-disabled="true"].icon-dialog,
 li .button[aria-disabled="true"].icon-dialog {
-  color: rgba(51,51,51,0.5);
+  color: #a9a9a9;
 }
 
 li button.icon-dialog:disabled:before,
 li [role="button"][aria-disabled="true"].icon-dialog:before,
-li .button[aria-disabled="true"].icon-dialog:before,
-select:before {
-  border-left: 0.7rem solid rgba(51,51,51,0.5);
+li .button[aria-disabled="true"].icon-dialog:before {
+  border-left: 0.7rem solid #a9a9a9;
 }
 
 /* ----------------------------------
@@ -220,7 +222,8 @@ select:before {
 .dark li button,
 .dark li [role="button"],
 .dark li .button {
-  border-color: #575757;
+  background-color: #5f5f5f;
+  border: none;
   color: #fff;
   font-weight: normal;
 }
@@ -229,33 +232,32 @@ select:before {
 .dark li [role="button"].icon-dialog,
 .dark li .button.icon-dialog,
 .dark select {
-  background: none;
+  color: #00aac5;
+  background-color: #5F5F5F;
 }
 
 .dark li button.icon-view:before,
 .dark li [role="button"].icon-view:before {
-  border-left: 0.7rem solid #c7c7c7;
+  border-left: 0.7rem solid #00aac5;
 }
 
 .dark li button.icon-dialog:before,
 .dark li [role="button"].icon-dialog:before,
-.dark li .button.icon-dialog:before,
-.dark select {
-  border-left: 0.7rem solid #c7c7c7;
+.dark li .button.icon-dialog:before {
+  border-left: 0.7rem solid #00aac5;
 }
 
 .dark li button:disabled,
 .dark li [role="button"][aria-disabled="true"],
-.dark li .button[aria-disabled="true"],
-.dark select {
-  color: #c7c7c7;
+.dark li .button[aria-disabled="true"] {
+  color: #fff;
 }
 
-li button.icon-dialog:disabled:before,
-li [role="button"][aria-disabled="true"].icon-dialog:before,
-li .button[aria-disabled="true"].icon-dialog:before,
-select:before {
-  border-left: 0.7rem solid #c7c7c7;
+.dark li button.icon-dialog:disabled,
+.dark li [role="button"][aria-disabled="true"].icon-dialog,
+.dark li .button[aria-disabled="true"].icon-dialog,
+.dark select {
+  color: #00aac5;
 }
 
 /* Inputs inside of .button */
@@ -272,7 +274,7 @@ select {
   font-family: sans-serif;
   font-style: italic;
   font-size: 1.6rem;
-  color: #00aacc;
+  color: #00aac5;
   margin: 0 0 1rem;
   padding: 0.8rem 0 0 1.1rem;
   text-overflow: ellipsis;
@@ -281,10 +283,18 @@ select {
   height: 4rem;
 }
 
+.dark select {
+  border-color: #575757;
+}
+
 /* remove dotted outline */
 select:-moz-focusring {
   color: transparent;
-  text-shadow: 0 0 0 #00aacc;
+  text-shadow: 0 0 0 #00aac5;
+}
+
+.dark select:-moz-focusring {
+  text-shadow: 0 0 0 #b2f2ff;
 }
 
 /* Hides dropdown arrow until bug #649849 is fixed */
@@ -293,6 +303,14 @@ select:-moz-focusring {
   left: 0;
   border: 0;
   width: calc(100% + 3rem);
+}
+
+.button.icon-dialog[aria-disabled="true"] select {
+  color: #a9a9a9;
+}
+
+.dark .button.icon-dialog[aria-disabled="true"] select {
+  color: #00aac5;
 }
 
 /******************************************************************************
@@ -313,7 +331,7 @@ html[dir="rtl"] li .button.icon {
 
 html[dir="rtl"] li button.icon-view:before,
 html[dir="rtl"] li .icon-view[role="button"]:before {
-  left: 1.5rem;
+  left: 0.9rem;
   right: auto;
   border-right: 0.8rem solid rgba(0, 170, 204, 0.4);
   border-left: 0;
@@ -327,7 +345,7 @@ html[dir="rtl"] li .icon-view[role="button"][aria-disabled="true"]:before {
 html[dir="rtl"] li button.icon-dialog:before,
 html[dir="rtl"] li .icon-dialog[role="button"]:before,
 html[dir="rtl"] li .button.icon-dialog:before {
-  left: 1rem;
+  left: 0.8rem;
   right: auto;
   transform: rotate(135deg);
 }

@@ -39,6 +39,10 @@
       padding: 1.5rem;
     }
 
+    div.bb-docs.skin-organic {
+      background: #f4f4f4;
+    }
+
     div.bb-docs.dark {
       background: #000;
     }
@@ -82,7 +86,28 @@
     <button disabled class="danger">Danger</button>
   </div>
 
-  <h2 class="bb-docs">Disabled with dark background</h2>
+  <h2 class="bb-docs">Skin Organic</h2>
+  <div class="bb-docs skin-organic">
+    <button>Default</button>
+    <button class="recommend">Recommend</button>
+    <button class="danger">Danger</button>
+   </div>
+
+  <h2 class="bb-docs">Disabled</h2>
+  <div class="bb-docs skin-organic">
+    <button disabled>Default</button>
+    <a href="#" role="button" aria-disabled="true" class="recommend">Recommend</a>
+    <button disabled class="danger">Danger</button>
+  </div>
+
+  <h2 class="bb-docs">Skin Dark</h2>
+  <div class="bb-docs dark">
+    <button>Default</button>
+    <button class="recommend">Recommend</button>
+    <button class="danger">Danger</button>
+   </div>
+
+  <h2 class="bb-docs">Disabled</h2>
   <div class="bb-docs dark">
     <button disabled>Default</button>
     <a href="#" role="button" aria-disabled="true" class="recommend">Recommend</a>
@@ -104,7 +129,29 @@
         </button>
       </li>
       <li>
-        <button disabled="disabled" class="icon icon-view">
+        <a role="button" class="icon icon-dialog">
+          Tuesday Sept. 18, 2012
+        </a>
+      </li>
+      <li>
+        <a role="button" aria-disabled="true" class="icon icon-dialog">
+          Tuesday Sept. 18, 2012
+        </a>
+      </li>
+    </ul>
+  </div>
+
+  <h2 class="bb-docs">Skin Organick </h2>
+  <div class="bb-docs skin-organic">
+    <ul>
+      <li>
+        <button>Default</button>
+      </li>
+      <li>
+        <button disabled="disabled">Disabled</button>
+      </li>
+      <li>
+        <button class="icon icon-view">
           View Name
         </button>
       </li>
@@ -121,7 +168,7 @@
     </ul>
   </div>
 
-  <h2 class="bb-docs">Dark button List </h2>
+  <h2 class="bb-docs">Skin Dark</h2>
   <div class="bb-docs dark">
     <ul>
       <li>
@@ -132,11 +179,6 @@
       </li>
       <li>
         <button class="icon icon-view">
-          View Name
-        </button>
-      </li>
-      <li>
-        <button disabled="disabled" class="icon icon-view">
           View Name
         </button>
       </li>
@@ -166,6 +208,50 @@
     <ul>
       <li>
         <span class="button icon icon-dialog">
+          <select>
+            <option>option 1</option>
+            <option>option 2</option>
+          </select>
+        </span>
+      </li>
+    </ul>
+  </div>
+
+  <h2 class="bb-docs">Disabled select</h2>
+  <div class="bb-docs">
+    <ul>
+      <li>
+        <span aria-disabled="true" class="button icon icon-dialog">
+          <select>
+            <option>option 1</option>
+            <option>option 2</option>
+          </select>
+        </span>
+      </li>
+    </ul>
+  </div>
+
+  <h2 class="bb-docs">Select</h2>
+  <div class="bb-docs dark">
+    <select>
+      <option>option 1</option>
+      <option>option 2</option>
+    </select>
+  </div>
+
+  <h2 class="bb-docs">Fake select</h2>
+  <div class="bb-docs dark">
+    <ul>
+      <li>
+        <span class="button icon icon-dialog">
+          <select>
+            <option>option 1</option>
+            <option>option 2</option>
+          </select>
+        </span>
+      </li>
+      <li>
+        <span aria-disabled="true" class="button icon icon-dialog">
           <select>
             <option>option 1</option>
             <option>option 2</option>
