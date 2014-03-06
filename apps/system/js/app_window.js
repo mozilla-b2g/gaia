@@ -1,4 +1,4 @@
-/* global SettingsListener */
+/* global SettingsListener, PopupWindow */
 'use strict';
 
 (function(exports) {
@@ -65,7 +65,6 @@
    */
   AppWindow.SUSPENDING_ENABLED = false;
   SettingsListener.observe('app-suspending.enabled', false, function(value) {
-    console.log('appwindow:', value);
     AppWindow.SUSPENDING_ENABLED = !!value;
   });
 
@@ -83,7 +82,7 @@
    */
   AppWindow.prototype.generateID = function() {
     if (!this.instanceID) {
-      this.instanceID = this.CLASS_NAME + '-' + _id;
+      this.instanceID = this.CLASS_NAME + '_' + _id;
       _id++;
     }
   };
@@ -128,8 +127,10 @@
      * @type {String}
      */
     this.groupID = this.getRootWindow().instanceID;
-    if (this.parentWindow) {
-      this.parentWindow.setChildWindow(this);
+    if (this.previousWindow) {
+      this.previousWindow.setNextWindow(this);
+    } else if (this.rearWindow) {
+      this.rearWindow.setFrontWindow(this);
     }
   };
 
@@ -229,6 +230,9 @@
       }
 
       this.debug('screenshot state -> ', this._screenshotOverlayState);
+      if (this.frontWindow) {
+        this.frontWindow.setVisible(visible, screenshotIfInvisible);
+      }
     };
 
   /**
@@ -383,13 +387,6 @@
       AppWindow[this.instanceID] = null;
     }
 
-    // Clear observers
-    if (this._observers && this._observers.length > 0) {
-      this._observers.forEach(function iterator(observer) {
-        observer.disconnect();
-      }, this);
-    }
-
     // Remove callee <-> caller reference before we remove the window.
     if (this.activityCaller) {
       delete this.activityCaller.activityCallee;
@@ -407,24 +404,40 @@
       }
     }
 
-    if (this.childWindow) {
-      this.childWindow.kill();
-      this.childWindow = null;
+    if (this.frontWindow) {
+      this.frontWindow.kill();
+      this.frontWindow = null;
     }
-    if (this.parentWindow) {
-      this.parentWindow = null;
+
+    if (this.nextWindow) {
+      this.nextWindow.kill();
+      this.nextWindow = null;
     }
 
     // If the app is the currently displayed app, switch to the homescreen
     if (this.isActive() && !this.isHomescreen) {
-      // XXX: Refine this in transition state controller.
       this.element.addEventListener('_closed', (function onClosed() {
         window.removeEventListener('_closed', onClosed);
         this.destroy();
       }).bind(this));
-      this.requestClose();
+      if (this.previousWindow) {
+        this.previousWindow.getBottomMostWindow().open('in-from-left');
+        this.close('out-to-right');
+      } else {
+        this.requestClose();
+      }
     } else {
       this.destroy();
+    }
+
+    if (this.previousWindow) {
+      this.previousWindow.unsetNextWindow();
+      this.previousWindow = null;
+    }
+
+    if (this.rearWindow) {
+      this.rearWindow.unsetFrontWindow();
+      this.rearWindow = null;
     }
     /**
      * Fired when the instance is terminated.
@@ -561,7 +574,8 @@
      'mozbrowserloadend', 'mozbrowseractivitydone', 'mozbrowserloadstart',
      'mozbrowsertitlechange', 'mozbrowserlocationchange',
      'mozbrowsericonchange',
-     '_localized', '_swipein', '_swipeout', '_kill_suspended'];
+     '_localized', '_swipein', '_swipeout', '_kill_suspended',
+     'popupterminated'];
 
   AppWindow.SUB_COMPONENTS = {
     'transitionController': window.AppTransitionController,
@@ -653,29 +667,10 @@
 
   AppWindow.prototype._handle_mozbrowserclose =
     function aw__handle_mozbrowserclose(evt) {
-      if (this._closed) {
-        return;
+      if ('stopPropagation' in evt) {
+        evt.stopPropagation();
       }
-      this._closed = true;
-      if (this.childWindow) {
-        this.childWindow.kill();
-        this.childWindow = null;
-      }
-      // If this is an active child window which has its parent window,
-      // perform proper closing transitions to both to make transitoning nice.
-      if (this.parentWindow && this.isActive()) {
-        this.element.addEventListener('_closed', (function onClosed() {
-          this.element.removeEventListener('_closed', onClosed);
-          this.destroy();
-        }).bind(this));
-        this.parentWindow.open('in-from-left');
-        this.close('out-to-right');
-        this.parentWindow.childWindow = null;
-        this.parentWindow = null;
-        this.publish('terminated');
-      } else {
-        this.kill();
-      }
+      this.kill();
     };
 
   AppWindow.prototype._handle_mozbrowsererror =
@@ -842,6 +837,9 @@
    */
   AppWindow.prototype.requestScreenshotURL =
     function aw__requestScreenshotURL() {
+      if (this.frontWindow) {
+        return this.frontWindow.requestScreenshotURL();
+      }
       if (!this._screenshotBlob) {
         return null;
       }
@@ -1124,9 +1122,33 @@
     if (!this.isActive() || this.isTransitioning()) {
       return;
     }
-    this.debug(' will resize... ');
-    this._resize();
-    this.resized = true;
+    var top = this.getTopMostWindow();
+    if (top.instanceID != this.instanceID) {
+      top.resize();
+    } else {
+      // resize myself if no child.
+      this.debug(' will resize... ');
+      this._resize();
+      this.resized = true;
+    }
+  };
+
+  AppWindow.prototype.getTopMostWindow = function() {
+    var win = this;
+    while (win.frontWindow) {
+      win = win.frontWindow;
+    }
+
+    return win;
+  };
+
+  AppWindow.prototype.getBottomMostWindow = function() {
+    var win = this;
+    while (win.rearWindow) {
+      win = win.rearWindow;
+    }
+
+    return win;
   };
 
   /**
@@ -1452,16 +1474,38 @@
    * If there's already one, kill it at first.
    * @param {ChildWindow} childWindow The child window instance.
    */
-  AppWindow.prototype.setChildWindow = function aw_setChildWindow(childWindow) {
-    if (this.childWindow) {
-      this.childWindow.kill();
+  AppWindow.prototype.setNextWindow = function aw_setNextWindow(nextWindow) {
+    if (this.nextWindow) {
+      console.warn('There is already alive child window, killing...',
+                    this.nextWindow.instanceID);
+      this.nextWindow.kill();
     }
-    this.childWindow = childWindow;
+    this.nextWindow = nextWindow;
   };
 
-  AppWindow.prototype.unsetChildWindow = function aw_unsetChildWindow() {
-    if (this.childWindow) {
-      this.childWindow = null;
+  AppWindow.prototype.unsetNextWindow = function aw_unsetNextWindow() {
+    if (this.nextWindow) {
+      this.nextWindow = null;
+    }
+  };
+
+  /**
+   * Build bottom/top window relationship.
+   * If there's already one, kill it at first.
+   * @param {AppWindow} fronWindow The front window instance.
+   */
+  AppWindow.prototype.setFrontWindow = function aw_setFrontWindow(frontWindow) {
+    if (this.frontWindow) {
+      console.warn('There is already alive child window, killing...',
+                    this.frontWindow.instanceID);
+      this.frontWindow.kill();
+    }
+    this.frontWindow = frontWindow;
+  };
+
+  AppWindow.prototype.unsetFrontWindow = function aw_unsetFrontWindow() {
+    if (this.frontWindow) {
+      this.frontWindow = null;
     }
   };
 
@@ -1472,7 +1516,7 @@
   AppWindow.prototype.getPrev = function() {
     var current = this.getActiveWindow();
     if (current) {
-      return current.parentWindow;
+      return current.previousWindow;
     } else {
       return null;
     }
@@ -1485,7 +1529,7 @@
   AppWindow.prototype.getNext = function() {
     var current = this.getActiveWindow();
     if (current) {
-      return current.childWindow;
+      return current.nextWindow;
     } else {
       return null;
     }
@@ -1502,7 +1546,7 @@
       if (app.isActive()) {
         return app;
       }
-      app = app.childWindow;
+      app = app.nextWindow;
     }
     return null;
   };
@@ -1514,8 +1558,8 @@
    */
   AppWindow.prototype.getRootWindow = function() {
     var app = this;
-    while (app.parentWindow) {
-      app = app.parentWindow;
+    while (app.previousWindow) {
+      app = app.previousWindow;
     }
     return app;
   };
@@ -1527,10 +1571,23 @@
    */
   AppWindow.prototype.getLeafWindow = function() {
     var app = this;
-    while (app.childWindow) {
-      app = app.childWindow;
+    while (app.nextWindow) {
+      app = app.nextWindow;
     }
     return app;
+  };
+
+  AppWindow.prototype.getFrameForScreenshot = function() {
+    if (this.nextWindow && this.nextWindow instanceof PopupWindow) {
+      return this.nextWindow.getFrameForScreenshot();
+    } else {
+      return this.browser.element;
+    }
+  };
+
+  AppWindow.prototype._handle_popupterminated = function() {
+    console.log('AAAAAAAAA');
+    this.frontWindow = null;
   };
 
   exports.AppWindow = AppWindow;

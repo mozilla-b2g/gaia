@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html>
-
   <head>
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
     <meta charset="utf-8">
@@ -8,29 +7,63 @@
 
     <!-- Common style -->
     <link rel="stylesheet" type="text/css" href="shared/style/headers.css">
-    <link rel="stylesheet" type="text/css" href="shared/style/switches.css">
-    <link rel="stylesheet" type="text/css" href="shared/style/status.css">
+    <link rel="stylesheet" type="text/css" href="shared/style/buttons.css">
+    <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css">
+    <link rel="stylesheet" type="text/css" href="shared/style/confirm.css">
 
     <link rel="stylesheet" type="text/css" href="style/sheet.css">
-
-    <script defer src="sheet.js"></script>
   </head>
 
   <body>
-    <section role="region">
-      <header id="back">
-        <button>
-          <span class="icon icon-back">back</span>
-        </button>
-        <h1>Page#3C</h1>
-      </header>
+    <form role="dialog" id="ui">
       <div>
-        <button data-target="page3a.html">page 3a</button>
-        <button data-target="page3b.html">page 3b</button>
-        <a href="http://www.google.com/" target="_blank">google</a>
-        <a href="page3d.html" target="_blank">page 3d</a>
+        <section role="region" class="skin-dark">
+          <header>
+            <button>
+              <span class="icon icon-back" id="icon">back</span>
+            </button>
+            <h1 id="title">Page#1</h1>
+          </header>
+          <section id="content">
+            <input type="text" placeholder="I am input." />
+            <fieldset>
+              <legend>Sheet</legend>
+              <section data-items="3">
+                <button data-target="page2.html">>2</button>
+                <a href="page3d.html" target="_blank" role="button">>3a</a>
+                <button data-target="page3b.html">>3b</button>
+              </section>
+            </fieldset>
+            <fieldset>
+              <legend>Popup</legend>
+              <section data-items="2">
+                <button data-target="page3c.html" data-feature="dialog">^3c</button>
+                <button data-target="page3d.html" data-feature="dialog">^3d</button>
+              </section>
+            </fieldset>
+            <fieldset>
+              <legend>Activity</legend>
+              <section data-items="2">
+                <button data-activity="inline">^inline</button>
+                <button data-activity="window">>window</button>
+              </section>
+            </fieldset>
+            <fieldset>
+              <legend>Remote</legend>
+              <section>
+                <a href="http://www.google.com/" target="_blank" role="button">google></a>
+              </section>
+            </fieldset>
+          </section>
+        </section>
       </div>
-    </section>
+      <form role="dialog" id="bottom">
+        <menu id="activity-toolbar" class="hidden">
+          <button data-activity-handle="Result">Success</button>
+          <button data-activity-handle="Error" class="danger">Fail</button>
+        </menu>
+      </form>
+    </form>
+    <script src="sheet.js" defer></script>
   </body>
-
 </html>

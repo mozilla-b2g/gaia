@@ -22,7 +22,7 @@ class WindowOpenPage(Base):
 
 class PopUpPage(Base):
 
-    _frame_locator = (By.CSS_SELECTOR, 'iframe[data-url$="popup.html#dialog"]')
+    _frame_locator = (By.CSS_SELECTOR, 'iframe[src*="popup.html"]')
     _header_text_locator = (By.CSS_SELECTOR, 'h1')
     _x_button_locator = (By.ID, 'popup-close')
 

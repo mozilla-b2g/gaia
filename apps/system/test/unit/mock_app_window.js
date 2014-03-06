@@ -63,6 +63,7 @@ var MockAppWindow = function AppWindow(config) {
   this.requestOpen = function() {};
   this.instanceID = _id++;
   this.groupID = this.instanceID;
+  this.getFrameForScreenshot = function() { return null; };
 };
 
 MockAppWindow.mTeardown = function() {

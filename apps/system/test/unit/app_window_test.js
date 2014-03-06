@@ -6,7 +6,7 @@ mocha.globals(['SettingsListener', 'removeEventListener', 'addEventListener',
       'SoftwareButtonManager', 'AppWindow', 'AppChrome',
       'OrientationManager', 'SettingsListener', 'BrowserFrame',
       'BrowserConfigHelper', 'System', 'layoutManager',
-      'AppTransitionController', 'AppWindowManager']);
+      'AppTransitionController', 'AppWindowManager', 'PopupWindow']);
 
 requireApp('system/test/unit/mock_orientation_manager.js');
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
@@ -16,11 +16,12 @@ requireApp('system/test/unit/mock_applications.js');
 requireApp('system/test/unit/mock_layout_manager.js');
 requireApp('system/test/unit/mock_app_chrome.js');
 requireApp('system/test/unit/mock_screen_layout.js');
+requireApp('system/test/unit/mock_popup_window.js');
 
 var mocksForAppWindow = new MocksHelper([
   'OrientationManager', 'Applications', 'SettingsListener',
   'ManifestHelper', 'LayoutManager',
-  'ScreenLayout', 'AppChrome'
+  'ScreenLayout', 'AppChrome', 'PopupWindow'
 ]).init();
 
 suite('system/AppWindow', function() {
@@ -911,17 +912,16 @@ suite('system/AppWindow', function() {
       });
 
       assert.isTrue(stubKill.called);
-      assert.isTrue(app1._closed);
     });
 
-    test('Close event to a child window.', function() {
+    test('Kill a child window.', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       var app1parent = new AppWindow(fakeAppConfig2);
       var app1child = new AppWindow(fakeAppConfig3);
-      app1.childWindow = app1child;
-      app1child.parentWindow = app1;
-      app1.parentWindow = app1parent;
-      app1parent.childWindow = app1;
+      app1.nextWindow = app1child;
+      app1child.previousWindow = app1;
+      app1.previousWindow = app1parent;
+      app1parent.nextWindow = app1;
 
       var stubIsActive = this.sinon.stub(app1, 'isActive');
       var stubKillChild = this.sinon.stub(app1child, 'kill');
@@ -929,15 +929,13 @@ suite('system/AppWindow', function() {
       var stubCloseSelf = this.sinon.stub(app1, 'close');
       stubIsActive.returns(true);
 
-      app1.handleEvent({
-        type: 'mozbrowserclose'
-      });
+      app1.kill();
       assert.isTrue(stubOpenParent.calledWith('in-from-left'));
       assert.isTrue(stubCloseSelf.calledWith('out-to-right'));
       assert.isTrue(stubKillChild.called);
-      assert.isNull(app1.parentWindow);
-      assert.isNull(app1parent.childWindow);
-      assert.isNull(app1.childWindow);
+      assert.isNull(app1.previousWindow);
+      assert.isNull(app1parent.nextWindow);
+      assert.isNull(app1.nextWindow);
 
       var stubDestroy = this.sinon.stub(app1, 'destroy');
       app1.element.dispatchEvent(new Event('_closed'));
@@ -1108,12 +1106,12 @@ suite('system/AppWindow', function() {
     var app1 = new AppWindow(fakeAppConfig1);
     var child = new AppWindow(fakeAppConfig2);
     app1.setChildWindow(child);
-    assert.deepEqual(app1.childWindow, child);
+    assert.deepEqual(app1.nextWindow, child);
     var childNew = new AppWindow(fakeAppConfig3);
     var stubKillOldChild = this.sinon.stub(child, 'kill');
     app1.setChildWindow(childNew);
     assert.isTrue(stubKillOldChild.called);
-    assert.deepEqual(app1.childWindow, childNew);
+    assert.deepEqual(app1.nextWindow, childNew);
   });
 
   function genFakeConfig(id) {
@@ -1130,8 +1128,8 @@ suite('system/AppWindow', function() {
     for (var i = 0; i < count; i++) {
       sheets.push(new AppWindow(genFakeConfig(i)));
       if (i > 0) {
-        sheets[i - 1].childWindow = sheets[i];
-        sheets[i].parentWindow = sheets[i - 1];
+        sheets[i - 1].nextWindow = sheets[i];
+        sheets[i].previousWindow = sheets[i - 1];
       }
     }
     return sheets;

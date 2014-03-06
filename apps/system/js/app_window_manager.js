@@ -1,6 +1,6 @@
 'use strict';
 (function(window) {
-  var DEBUG = false;
+  var DEBUG = true;
   var screenElement = document.getElementById('screen');
 
   /**
@@ -84,8 +84,8 @@
       }
 
       // If the app has child app window, open it instead.
-      while (appNext.childWindow) {
-        appNext = appNext.childWindow;
+      while (appNext.nextWindow) {
+        appNext = appNext.nextWindow;
       }
 
       this.debug(' current is ' + (appCurrent ? appCurrent.url : 'none') +
@@ -441,13 +441,13 @@
       console.log('=====DUMPING APP WINDOWS BEGINS=====');
       for (var id in this._apps) {
         var app = this._apps[id];
-        if (app.parentWindow) {
+        if (app.previousWindow) {
           continue;
         }
         this._dumpWindow(app);
-        while (app.childWindow) {
+        while (app.nextWindow) {
           this._dumpWindow(app, '->child:');
-          app = app.childWindow;
+          app = app.nextWindow;
         }
       }
       console.log('=====END OF DUMPING APP WINDOWS=====');
@@ -522,6 +522,7 @@
         console.log('[AppWindowManager]' +
           '[' + System.currentTime() + ']' +
           Array.slice(arguments).concat());
+        System._dump();
       }
     },
 

@@ -24,8 +24,10 @@
       this.app.element.classList.add('navigation');
     }
 
-    if (this.app.config.chrome && this.app.config.chrome.rocketbar) {
+    if ((PopupWindow && this.app instanceof PopupWindow) ||
+        this.app.config.chrome && this.app.config.chrome.rocketbar) {
       this.app.element.classList.add('rocketbar');
+      this.rocketbar.classList.add('visible');
     }
   };
 
@@ -42,7 +44,14 @@
   AppChrome.prototype.view = function an_view() {
     return '<div class="chrome" id="' +
             this.CLASS_NAME + this.instanceID + '">' +
-            '<header class="progress"></header>' +
+            '<section role="region" class="rocketbar skin-organic">' +
+              '<header>' +
+                '<button class="kill">' +
+                '<span class="icon icon-close">close</span></button>' +
+                '<h1 class="title"></h1>' +
+                '<div class="throbber"></div>' +
+              '</header>' +
+            '</section>' +
             '<footer class="navigation closed visible">' +
               '<div class="handler"></div>' +
               '<menu type="buttonbar">' +
@@ -64,6 +73,7 @@
   AppChrome.prototype._fetchElements = function ac__fetchElements() {
     this.element = this.containerElement.querySelector('.chrome');
     this.navigation = this.element.querySelector('.navigation');
+    this.rocketbar = this.element.querySelector('.rocketbar');
     this.progress = this.element.querySelector('.progress');
     this.openButton = this.element.querySelector('.handler');
     this.bookmarkButton = this.element.querySelector('.bookmark-button');
@@ -71,6 +81,8 @@
     this.forwardButton = this.element.querySelector('.forward-button');
     this.backButton = this.element.querySelector('.back-button');
     this.closeButton = this.element.querySelector('.close-button');
+    this.killButton = this.element.querySelector('.kill');
+    this.title = this.element.querySelector('.title');
   };
 
   AppChrome.prototype.handleEvent = function ac_handleEvent(evt) {
@@ -89,6 +101,10 @@
 
       case 'mozbrowserlocationchange':
         this.handleLocationChanged(evt);
+        break;
+
+      case 'mozbrowsertitlechange':
+        this.handleTitleChanged(evt);
         break;
 
       case '_opened':
@@ -153,6 +169,10 @@
         this.addBookmark();
         break;
 
+      case this.killButton:
+        this.app.kill();
+        break;
+
       case this.closeButton:
         if (this.closingTimer)
           window.clearTimeout(this.closingTimer);
@@ -168,7 +188,9 @@
     this.forwardButton.addEventListener('click', this);
     this.backButton.addEventListener('click', this);
     this.bookmarkButton.addEventListener('click', this);
+    this.killButton.addEventListener('click', this);
     this.app.element.addEventListener('mozbrowserlocationchange', this);
+    this.app.element.addEventListener('mozbrowsertitlechange', this);
     this.app.element.addEventListener('_loading', this);
     this.app.element.addEventListener('_loaded', this);
     this.app.element.addEventListener('_opened', this);
@@ -186,6 +208,7 @@
     this.forwardButton.removeEventListener('click', this);
     this.backButton.removeEventListener('click', this);
     this.bookmarkButton.removeEventListener('click', this);
+    this.killButton.removeEventListener('click', this);
     if (!this.app)
       return;
     this.app.element.removeEventListener('mozbrowserlocationchange', this);
@@ -274,10 +297,20 @@
       this.bookmarkButton.dataset.disabled = true;
     };
 
+  AppChrome.prototype.handleTitleChanged = function(evt) {
+    this.title.textContent = evt.detail;
+    this._titleChanged = true;
+  };
+
   AppChrome.prototype.handleLocationChanged =
-    function ac_handleLocationChange() {
+    function ac_handleLocationChange(evt) {
       if (!this.app)
         return;
+
+      if (!this._titleChanged) {
+        this.title.textContent = evt.detail;
+      }
+
       this.app.canGoForward(function forwardSuccess(result) {
         if (result === true) {
           delete this.forwardButton.dataset.disabled;
