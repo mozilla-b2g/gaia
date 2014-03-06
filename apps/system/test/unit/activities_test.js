@@ -17,6 +17,7 @@ var mocksForActivities = new MocksHelper([
 suite('system/Activities', function() {
   var realL10n;
   var subject;
+  var realApplications;
   var stubById;
   var fakeElement;
 

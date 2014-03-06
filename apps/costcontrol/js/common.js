@@ -1,28 +1,33 @@
 
 'use strict';
 
-function checkDataUsageNotification(settings, usage, callback) {
-  var proxy = document.getElementById('message-handler').contentWindow;
-  var f = proxy ? proxy.checkDataUsageNotification :
-                  window.checkDataUsageNotification;
-  return f(settings, usage, callback);
-}
-
 function addAlarmTimeout(type, delay) {
-  var proxy = document.getElementById('message-handler').contentWindow;
-  return proxy.addAlarmTimeout(type, delay);
+  var handlerContainer = document.getElementById('message-handler');
+  return handlerContainer.contentWindow.addAlarmTimeout(type, delay);
 }
 
 function setNextReset(when, callback) {
-  var proxy = document.getElementById('message-handler');
-  return proxy ? proxy.contentWindow.setNextReset(when, callback) :
-                 window.setNextReset(when, callback);
+  var handlerContainer = document.getElementById('message-handler');
+  return handlerContainer ?
+         handlerContainer.contentWindow.setNextReset(when, callback) :
+         window.setNextReset(when, callback);
 }
 
 function getTopUpTimeout(callback) {
-  var proxy = document.getElementById('message-handler');
-  return proxy ? proxy.contentWindow.getTopUpTimeout(callback) :
-                 window.getTopUpTimeout(callback);
+  var handlerContainer = document.getElementById('message-handler');
+  return handlerContainer ?
+         handlerContainer.contentWindow.getTopUpTimeout(callback) :
+         window.getTopUpTimeout(callback);
+}
+
+function addNetworkUsageAlarm(dataInterface, dataLimit, callback) {
+  var handlerContainer = document.getElementById('message-handler');
+  if (handlerContainer) {
+    handlerContainer.contentWindow
+      .addNetworkUsageAlarm(dataInterface, dataLimit, callback);
+  } else {
+    window.addNetworkUsageAlarm(dataInterface, dataLimit, callback);
+  }
 }
 
 // Next automatic reset date based on user preferences
@@ -94,6 +99,17 @@ function resetData(mode, onsuccess, onerror) {
     mobileClearRequest = navigator.mozNetworkStats
                                           .clearStats(currentSimcardInterface);
     mobileClearRequest.onerror = getOnErrorFor('simcard');
+    mobileClearRequest.onsuccess = function _restoreDataLimitAlarm() {
+      ConfigManager.requestSettings(function _onSettings(settings) {
+        if (settings.dataLimit) {
+          // Restore network alarm
+          addNetworkUsageAlarm(currentSimcardInterface, getDataLimit(settings),
+            function _addNetworkUsageAlarmOK() {
+              ConfigManager.setOption({ 'dataUsageNotified': false });
+            });
+        }
+      });
+    };
   }
 
     // Set last Reset
@@ -394,7 +410,6 @@ var Common = {
     var settings = navigator.mozSettings,
         mobileConnections = navigator.mozMobileConnections,
         dataSlotId = 0;
-    var self = this;
     var req = settings &&
               settings.createLock().get('ril.data.defaultServiceId');
 
@@ -405,14 +420,12 @@ var Common = {
       if (!iccId) {
         console.error('The slot ' + dataSlotId +
                    ', configured as the data slot, is empty');
-        if (onerror) {
-          onerror();
-        }
+        (typeof onerror === 'function') && onerror();
         return;
       }
-      self.dataSimIccId = iccId;
-      self.dataSimIccIdLoaded = true;
-      self.dataSimIcc = self.getIccInfo(iccId);
+      Common.dataSimIccId = iccId;
+      Common.dataSimIccIdLoaded = true;
+      Common.dataSimIcc = Common.getIccInfo(iccId);
       if (onsuccess) {
         onsuccess(iccId);
       }
@@ -430,15 +443,13 @@ var Common = {
       }
       if (!iccId) {
         console.error('No SIM in the device');
-        if (onerror) {
-          onerror();
-        }
+        (typeof onerror === 'function') && onerror();
         return;
       }
 
-      self.dataSimIccId = iccId;
-      self.dataSimIccIdLoaded = true;
-      self.dataSimIcc = self.getIccInfo(iccId);
+      Common.dataSimIccId = iccId;
+      Common.dataSimIccIdLoaded = true;
+      Common.dataSimIcc = Common.getIccInfo(iccId);
       if (onsuccess) {
         onsuccess(iccId);
       }
