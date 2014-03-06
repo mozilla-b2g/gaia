@@ -12,7 +12,7 @@ suite('controllers/viewfinder', function() {
       'views/viewfinder',
       'lib/activity',
       'lib/settings',
-      'lib/setting',
+      'lib/setting'
     ], function(
       App, Camera, ViewfinderController,
       ViewfinderView, Activity, Settings, Setting
@@ -32,6 +32,8 @@ suite('controllers/viewfinder', function() {
     this.app = sinon.createStubInstance(this.App);
     this.app.camera = sinon.createStubInstance(this.Camera);
     this.app.activity = sinon.createStubInstance(this.Activity);
+    this.app.settings = sinon.createStubInstance(this.Settings);
+    this.app.settings.grid = sinon.createStubInstance(this.Setting);
     this.app.filmstrip = { toggle: sinon.spy() };
     this.app.views = {
       viewfinder: sinon.createStubInstance(this.ViewfinderView),
@@ -79,7 +81,7 @@ suite('controllers/viewfinder', function() {
       assert.isTrue(this.filmstrip.toggle.called);
     });
 
-    test.skip('Should set the grid depending on the setting', function() {
+    test('Should set the grid depending on the setting', function() {
       this.app.settings.grid.selected.withArgs('key').returns('on');
       this.controller = new this.ViewfinderController(this.app);
       assert.isTrue(this.viewfinder.set.calledWith('grid', 'on'));
