@@ -123,11 +123,6 @@ fieldset {
   line-height: 1em;
   background: none;
   border: 0;
-  border-bottom: 0.1rem solid #dbdbdb;
-}
-
-fieldset:last-child {
-  border-bottom: none;
 }
 
 fieldset legend {
