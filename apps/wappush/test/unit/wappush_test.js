@@ -2,9 +2,9 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 /* global loadBodyHTML, mocha, MockL10n, MockMessageDB, MockNavigatormozApps,
-          MockNavigatormozSetMessageHandler, MockNavigatorSettings,
-          MockNotification, MocksHelper, Notification, ParsedMessage,
-          WapPushManager */
+          MockNavigatorMozIccManager, MockNavigatormozSetMessageHandler,
+          MockNavigatorSettings, MockNotification, MocksHelper, Notification,
+          ParsedMessage, WapPushManager */
 
 'use strict';
 
@@ -14,6 +14,7 @@ require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
 require('/shared/test/unit/mocks/mock_notification.js');
 require('/shared/test/unit/mocks/mock_notification_helper.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 
 require('/js/cp_screen_helper.js');
@@ -38,6 +39,7 @@ var mocksHelperWapPush = new MocksHelper([
 
 suite('WAP Push', function() {
   var realMozApps;
+  var realMozIccManager;
   var realMozSettings;
   var realSetMessageHandler;
   var realMozL10n;
@@ -48,6 +50,9 @@ suite('WAP Push', function() {
   suiteSetup(function() {
     realMozApps = navigator.mozApps;
     navigator.mozApps = MockNavigatormozApps;
+
+    realMozIccManager = navigator.mozIccManager;
+    navigator.mozIccManager = MockNavigatorMozIccManager;
 
     realMozL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
@@ -92,6 +97,7 @@ suite('WAP Push', function() {
       }
     });
 
+    MockNavigatorMozIccManager.addIcc(0, {});
     MockNavigatormozSetMessageHandler.mSetup();
     WapPushManager.init().then(done, done);
     MockNavigatormozApps.mTriggerLastRequestSuccess();
@@ -100,6 +106,7 @@ suite('WAP Push', function() {
   teardown(function() {
     delete document.hidden;
     MockNavigatormozSetMessageHandler.mTeardown();
+    MockNavigatorMozIccManager.mTeardown();
     MockNavigatormozApps.mTeardown();
     MockNavigatorSettings.mTeardown();
     mocksHelperWapPush.teardown();
@@ -117,7 +124,8 @@ suite('WAP Push', function() {
     var message = {
       sender: '+31641600986',
       contentType: 'text/foobar',
-      content: ''
+      content: '',
+      serviceId: 0
     };
 
     test('unsupported messages are discarded', function() {
@@ -140,7 +148,8 @@ suite('WAP Push', function() {
       sender: '+31641600986',
       contentType: 'text/vnd.wap.si',
       content: '<si><indication href="http://www.mozilla.org">' +
-               'check this out</indication></si>'
+               'check this out</indication></si>',
+      serviceId: 0
     };
 
     test('the notification is sent and populated correctly', function() {
@@ -185,6 +194,31 @@ suite('WAP Push', function() {
       WapPushManager.displayWapPushMessage(0);
       sinon.assert.calledOnce(MockNotification.prototype.close);
     });
+
+    suite('DSDS scenarios', function() {
+      setup(function() {
+        MockNavigatorMozIccManager.addIcc(1, {});
+      });
+
+      test('the notification is populated correctly for SIM1', function() {
+        this.sinon.spy(window, 'Notification');
+        MockNavigatormozSetMessageHandler.mTrigger('wappush-received', message);
+        sinon.assert.calledOnce(Notification);
+        sinon.assert.calledWithMatch(Notification, /1/, {
+          body: 'check this out http://www.mozilla.org'
+        });
+      });
+
+      test('the notification is populated correctly for SIM2', function() {
+        this.sinon.spy(window, 'Notification');
+        message.serviceId = 1;
+        MockNavigatormozSetMessageHandler.mTrigger('wappush-received', message);
+        sinon.assert.calledOnce(Notification);
+        sinon.assert.calledWithMatch(Notification, /2/, {
+          body: 'check this out http://www.mozilla.org'
+        });
+      });
+    });
   });
 
   suite('receiving and displaying a CP message', function() {
@@ -199,7 +233,8 @@ suite('WAP Push', function() {
            sec: 'NETWPIN',
            mac: 'FAKEMAC',
            data: 'FAKEDATA'
-        }
+        },
+        serviceId: 0
       },
       userpin: {
         sender: '22997',
@@ -211,7 +246,8 @@ suite('WAP Push', function() {
            sec: 'USERPIN',
            mac: 'FAKEMAC',
            data: 'FAKEDATA'
-        }
+        },
+        serviceId: 0
       }
     };
 
@@ -304,7 +340,8 @@ suite('WAP Push', function() {
                  '            created="2013-09-03T10:35:33Z">' +
                  'oldest message' +
                  '</indication>' +
-                 '</si>'
+                 '</si>',
+        serviceId: 0
       },
       old: {
         sender: '+31641600986',
@@ -314,7 +351,8 @@ suite('WAP Push', function() {
                  '            created="2013-09-03T12:35:33Z">' +
                  'old message' +
                  '</indication>' +
-                 '</si>'
+                 '</si>',
+        serviceId: 0
       },
       current: {
         sender: '+31641600986',
@@ -324,7 +362,8 @@ suite('WAP Push', function() {
                  '            created="2013-09-03T14:35:33Z">' +
                  'current message' +
                  '</indication>' +
-                 '</si>'
+                 '</si>',
+        serviceId: 0
       }
     };
 
@@ -377,7 +416,8 @@ suite('WAP Push', function() {
                '<indication si-expires="2013-09-03T10:35:33Z">' +
                'check this out' +
                '</indication>' +
-               '</si>'
+               '</si>',
+      serviceId: 0
     };
 
     test('the message was not stored in the database', function() {
@@ -397,7 +437,8 @@ suite('WAP Push', function() {
                  '            action="signal-none">' +
                  'check this out' +
                  '</indication>' +
-                 '</si>'
+                 '</si>',
+        serviceId: 0
       }
     };
 
@@ -411,7 +452,7 @@ suite('WAP Push', function() {
       MockNavigatormozApps.mTriggerLastRequestSuccess();
       sinon.assert.calledOnce(Notification);
       sinon.assert.calledWithMatch(Notification, messages.none.sender,
-        { body: 'check this out ' });
+        { body: 'check this out' });
     });
   });
 
@@ -420,7 +461,8 @@ suite('WAP Push', function() {
       sender: '+31641600986',
       contentType: 'text/vnd.wap.si',
       content: '<si><indication href="http://www.mozilla.org">' +
-               'check this out</indication></si>'
+               'check this out</indication></si>',
+      serviceId: 0
     };
 
     setup(function() {

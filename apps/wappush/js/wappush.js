@@ -176,6 +176,55 @@
   }
 
   /**
+   * Send a notification for the provided message
+   *
+   * @param {Object} message The message the user needs to be notified of
+   */
+  function wpm_sendNotification(message) {
+    var _ = navigator.mozL10n.get;
+    var iconURL = NotificationHelper.getIconURI(app);
+
+    /* Build the notification's text, for text/vnd.wap.connectivity-xml
+     * messages this needs to be localized. */
+    var text = (message.type == 'text/vnd.wap.connectivity-xml') ?
+               _(message.text) : message.text;
+
+    if (message.href) {
+      text += (text ? ' ' : '');
+      text += message.href;
+    }
+
+    // Build the title, this is normally the sender's number
+    var title = message.sender;
+
+    /* If the phone has more than one SIM prepend the number of the SIM on
+     * which this message was received */
+    if (navigator.mozIccManager &&
+        navigator.mozIccManager.iccIds.length > 1) {
+      var simName = _('sim', { id: +message.serviceId + 1 });
+
+      title = _(
+        'dsds-notification-title-with-sim',
+         { sim: simName, title: title }
+      );
+    }
+
+    var options = {
+      icon: iconURL,
+      body: text,
+      tag: message.timestamp
+    };
+
+    var notification = new Notification(title, options);
+    notification.addEventListener('click',
+      function wpm_onNotificationClick(event) {
+        app.launch();
+        wpm_displayWapPushMessage(event.target.tag);
+      }
+    );
+  }
+
+  /**
    * Handler for the wappush-received system messages, stores the message into
    * the internal database and posts a notification which can be used to
    * display the message.
@@ -199,28 +248,7 @@
           return;
         }
 
-        var _ = navigator.mozL10n.get;
-        var iconURL = NotificationHelper.getIconURI(app);
-
-        message.text = (message.type == 'text/vnd.wap.connectivity-xml') ?
-                       _(message.text) : message.text;
-        var text = message.text ? (message.text + ' ') : '';
-
-        text += message.href ? message.href : '';
-
-        var options = {
-          icon: iconURL,
-          body: text,
-          tag: message.timestamp
-        };
-
-        var notification = new Notification(message.sender, options);
-        notification.addEventListener('click',
-          function wpm_onNotificationClick(event) {
-            app.launch();
-            wpm_displayWapPushMessage(event.target.tag);
-          });
-
+        wpm_sendNotification(message);
         wpm_finish();
       },
       function wpm_saveError(error) {
