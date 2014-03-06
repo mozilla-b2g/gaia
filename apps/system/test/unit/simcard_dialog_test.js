@@ -3,8 +3,8 @@
 mocha.globals(['SIMSlotManager', 'SimPinSystemDialog', 'SimPinDialog']);
 
 requireApp('system/test/unit/mock_l10n.js');
-requireApp('system/test/unit/mock_simslot.js');
-requireApp('system/test/unit/mock_simslot_manager.js');
+requireApp('system/js/mock_simslot.js');
+requireApp('system/js/mock_simslot_manager.js');
 
 var mocksForSIMPINDialog = new MocksHelper([
   'SIMSlotManager'

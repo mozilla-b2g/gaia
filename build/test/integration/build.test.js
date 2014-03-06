@@ -8,6 +8,47 @@ var AdmZip = require('adm-zip');
 var dive = require('dive');
 var helper = require('./helper');
 
+suite('Node modules tests', function() {
+  test('make node_modules from git mirror', function(done) {
+    rmrf('modules.tar');
+    rmrf('node_modules');
+    rmrf('git-gaia-node-modules');
+    exec('NODE_MODULES_GIT_URL=https://git.mozilla.org/b2g/gaia-node-modules.git make node_modules',
+      function(error, stdout, stderr) {
+        helper.checkError(error, stdout, stderr);
+
+        var modulesTarPath = path.join(process.cwd(), 'git-gaia-node-modules',
+          '.git');
+        assert.ok(fs.existsSync(modulesTarPath));
+
+        var packageJson = path.join(process.cwd(), 'node_modules',
+          'marionette-client', 'package.json');
+        assert.ok(fs.existsSync(packageJson));
+
+        done();
+    });
+  });
+
+  test('make node_modules from github', function(done) {
+    rmrf('modules.tar');
+    rmrf('node_modules');
+    rmrf('git-gaia-node-modules');
+    exec('make node_modules',
+      function(error, stdout, stderr) {
+        helper.checkError(error, stdout, stderr);
+
+        var modulesTarPath = path.join(process.cwd(), 'modules.tar');
+        assert.ok(fs.existsSync(modulesTarPath));
+
+        var packageJson = path.join(process.cwd(), 'node_modules',
+          'marionette-client', 'package.json');
+        assert.ok(fs.existsSync(packageJson));
+
+        done();
+    });
+  });
+});
+
 suite('Build Integration tests', function() {
   var localesDir = 'tmplocales';
 

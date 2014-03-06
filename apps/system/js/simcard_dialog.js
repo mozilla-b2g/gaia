@@ -14,6 +14,14 @@ var SimPinDialog = {
   newPinInput: null,
   confirmPinInput: null,
 
+  triesLeftMsg: document.getElementById('triesLeft'),
+
+  errorMsg: document.getElementById('errorMsg'),
+  errorMsgHeader: document.getElementById('messageHeader'),
+  errorMsgBody: document.getElementById('messageBody'),
+
+  containerDiv: document.querySelector('#simpin-dialog .container'),
+
   lockType: 'pin',
 
   lockTypeMap: {
@@ -327,6 +335,19 @@ var SimPinDialog = {
     }));
   },
 
+  // With the keyboard active the inputs, ensure they get scrolled
+  // into view
+  ensureFocusInView: function spl_ensureInView(element, container) {
+    element.addEventListener('focus', function(e) {
+      window.addEventListener('system-resize', function resize() {
+        window.removeEventListener('system-resize', resize);
+        // The layout always has the input at the bottom, so
+        // just always ensure we scroll to the bottom
+        container.scrollTop = container.offsetHeight;
+      });
+    });
+  },
+
   init: function spl_init() {
     if (!this.simPinSystemDialog) {
       this.simPinSystemDialog = new SimPinSystemDialog({
@@ -348,8 +369,10 @@ var SimPinDialog = {
     this.xckInput = this.getNumberPasswordInputField('xckpin');
     this.newPinInput = this.getNumberPasswordInputField('newSimpin');
     this.confirmPinInput = this.getNumberPasswordInputField('confirmNewSimpin');
+
+    this.ensureFocusInView(this.pinInput, this.containerDiv);
+    this.ensureFocusInView(this.pukInput, this.containerDiv);
   }
 };
 
 SimPinDialog.init();
-

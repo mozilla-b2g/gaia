@@ -422,11 +422,15 @@ var UIManager = {
   },
 
   setTimeZone: function ui_stz(timezone) {
-    var utc = 'UTC' + timezone.utcOffset;
+    var utcOffset = timezone.utcOffset;
     document.getElementById('time_zone_overlay').className =
-      utc.replace(/[+:]/g, '');
-    document.getElementById('time-zone-title').textContent =
-      utc + ' ' + timezone.id;
+      utcOffset.replace(/[+:]/g, '');
+    var timezoneTitle = document.getElementById('time-zone-title');
+    navigator.mozL10n.localize(timezoneTitle, 'timezoneTitle', {
+      utcOffset: utcOffset,
+      region: timezone.region,
+      city: timezone.city
+    });
     document.getElementById('tz-region-label').textContent = timezone.region;
     document.getElementById('tz-city-label').textContent = timezone.city;
 

@@ -48,9 +48,11 @@ if (!this.AuxFB) {
         }
       });
 
-      var singleFields = ['bday'];
+      var singleFields = ['bday', 'anniversary'];
       singleFields.forEach(function(field) {
-        dcontact[field] = fbdata[field];
+        if (!dcontact[field]) {
+          dcontact[field] = fbdata[field];
+        }
       });
 
       // To support the case in which the contact does not have a local name

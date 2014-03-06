@@ -35,8 +35,14 @@ var MockCommon = function(config) {
       callback();
     },
     startFTE: function(mode) {
+      var iframe = document.getElementById('fte_view');
+      iframe.classList.remove('non-ready');
       var event = new CustomEvent('ftestarted', { detail: mode });
       window.dispatchEvent(event);
+    },
+    closeFTE: function() {
+      var iframe = document.getElementById('fte_view');
+      iframe.classList.add('non-ready');
     },
     startApp: function() {
       var event = new CustomEvent('appstarted');
@@ -61,19 +67,15 @@ var MockCommon = function(config) {
     },
     getIccInfo: function() { return;},
     loadNetworkInterfaces: function() {
-      var self = this;
-
       setTimeout(function() {
-        self.allNetworkInterfaces = fakeAllInterfaces;
+        Common.allNetworkInterfaces = allInterfacesFake;
       }, 0);
     },
     loadDataSIMIccId: function(onsuccess, onerror) {
-      var self = this;
-
       setTimeout(function() {
-        self.dataSimIccId = fakeAllInterfaces[1].id;
+        Common.dataSimIccId = allInterfacesFake[1].id;
         if (typeof onsuccess === 'function') {
-          onsuccess(self.dataSimIccId);
+          onsuccess(Common.dataSimIccId);
         }
       }, 0);
     }

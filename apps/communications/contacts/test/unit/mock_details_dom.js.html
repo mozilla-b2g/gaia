@@ -30,10 +30,12 @@ var MockDetailsDom = '<section id="view-contact-details" role="region" class="vi
                 '</div>' +
               '</li>' +
 
-              '<li id="birthday-template-#i#" data-template>' +
-                '<h2 data-l10n-id="birthday">Birthday</h2>' +
-                '<p><strong>#bday#</strong></p>' +
-              '</li>' +
+              '<!-- Dates template -->' +
+                '<li id="dates-template-#i#" data-template>' +
+                  '<h2>#type#</h2>' +
+                  '<p><strong>#date#</strong></p>' +
+                '</li>' + 
+
               '<!-- Email Template -->' +
               '<li data-mail id="email-details-template-#i#" data-template>' +
                 '<h2>#type#</h2>' +

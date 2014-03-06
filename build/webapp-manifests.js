@@ -302,7 +302,6 @@ function cleanProfile(webappsDir) {
 
 function execute(options) {
   config = options;
-
   webappsTargetDir.initWithPath(config.PROFILE_DIR);
   // Create profile folder if doesn't exists
   if (!webappsTargetDir.exists())
