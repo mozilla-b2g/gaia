@@ -743,6 +743,22 @@ class GaiaDevice(object):
               }
             }));""")
 
+    def press_release_volume_up_then_down_n_times(self, n_times):
+        self.marionette.execute_script("""
+            function sendEvent(aName, aType) {
+              window.wrappedJSObject.dispatchEvent(new CustomEvent('mozChromeEvent', {
+                detail: {
+                  type: aName + '-button-' + aType
+                }
+              }));
+            }
+            for (var i = 0; i < arguments[0]; ++i) {
+              sendEvent('volume-up', 'press');
+              sendEvent('volume-up', 'release');
+              sendEvent('volume-down', 'press');
+              sendEvent('volume-down', 'release');
+            };""", script_args=[n_times])
+
     def turn_screen_off(self):
         self.marionette.execute_script("window.wrappedJSObject.ScreenManager.turnScreenOff(true)")
 
