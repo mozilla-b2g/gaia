@@ -1,3 +1,4 @@
+/* global Tutorial, ScreenLayout, TutorialSteps */
 'use strict';
 
 requireApp('communications/ftu/test/unit/mock_screenlayout.js');
@@ -7,10 +8,11 @@ requireApp('communications/ftu/js/utils.js');
 requireApp('communications/ftu/js/tutorial_steps.js');
 requireApp('communications/ftu/js/tutorial.js');
 
-mocha.globals(['_', 'ScreenLayout', 'TutorialSteps']);
+mocha.globals(['_', 'WifiManager']);
 
 var mocksHelperForFTU = new MocksHelper([
-  'UIManager'
+  'UIManager',
+  'ScreenLayout'
 ]).init();
 
 suite('Tutorial >', function() {
@@ -18,6 +20,7 @@ suite('Tutorial >', function() {
   var mocksHelper = mocksHelperForFTU;
   var real_ = null;
   var realMozApps;
+  var realWifiManager;
   var stubById;
 
   suiteSetup(function() {
@@ -25,11 +28,9 @@ suite('Tutorial >', function() {
       document.createElement('div'));
 
     real_ = window._;
-    realMozApps = window.navigator.mozApps;
-
     window._ = function() { };
-    window.ScreenLayout = MockScreenLayout;
-    window.UIManager = MockUIManager;
+
+    realMozApps = window.navigator.mozApps;
     window.navigator.mozApps = {
       isExecuted: false,
       getSelf: function() {
@@ -38,31 +39,33 @@ suite('Tutorial >', function() {
       }
     };
 
+    realWifiManager = window.WifiManager;
+    window.WifiManager = {
+      finish: function() {}
+    };
+
     mocksHelper.suiteSetup();
   });
 
   suiteTeardown(function() {
     mocksHelper.suiteTeardown();
-
-    mocksHelper.teardown();
     stubById.restore();
+    Tutorial.exit();
 
     window.navigator.mozApps = realMozApps;
     window._ = real_;
-  });
+    window.WifiManager = realWifiManager;
 
-  setup(function() {
-    mocksHelper.setup();
   });
 
   suite('tiny device > ', function() {
 
-    suiteTeardown(function() {
-      Tutorial.jumpTo(1);
+    suiteSetup(function() {
+      Tutorial.init();
     });
 
-    setup(function() {
-      Tutorial.init();
+    suiteTeardown(function() {
+      Tutorial.jumpTo(1);
     });
 
     test('forward', function() {
@@ -71,6 +74,7 @@ suite('Tutorial >', function() {
     });
 
     test('back', function() {
+      Tutorial.jumpTo(2);
       Tutorial.back();
       assert.equal(Tutorial.currentStep, 1);
     });
@@ -88,9 +92,13 @@ suite('Tutorial >', function() {
 
   suite('large device > ', function() {
 
-    setup(function() {
+    suiteSetup(function() {
       ScreenLayout.setDevice('large');
       Tutorial.init();
+      });
+
+    suiteTeardown(function() {
+      Tutorial.jumpTo(1);
     });
 
     test('forward', function() {
@@ -99,6 +107,7 @@ suite('Tutorial >', function() {
     });
 
     test('back', function() {
+      Tutorial.jumpTo(2);
       Tutorial.back();
       assert.equal(Tutorial.currentStep, 1);
     });

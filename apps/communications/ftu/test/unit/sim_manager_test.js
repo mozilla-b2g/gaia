@@ -46,6 +46,13 @@ suite('sim mgmt >', function() {
 
     UIManager.activationScreen.classList.remove('show');
     UIManager.unlockSimScreen.classList.add('show');
+
+    mocksHelper.setup();
+
+  });
+
+  teardown(function() {
+    mocksHelper.teardown();
   });
 
   suiteTeardown(function() {
