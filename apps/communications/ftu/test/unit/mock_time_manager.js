@@ -2,6 +2,6 @@
 'use strict';
 
 var MockTimeManager = {
-  init: function () {},
-  set: function (date) {}
+  init: function() {},
+  set: function(date) {}
 };
