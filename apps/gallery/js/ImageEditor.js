@@ -495,7 +495,17 @@ function ImageEditor(imageURL, container, edits, ready, previewURL) {
     this.preview = new Image();
     this.preview.src = null;
 
-    this.processor = new ImageProcessor(this.previewCanvas);
+    var contextLostCallback = function() {
+
+    };
+
+    var contextRestoreCallback = function() {
+        self.needsUpload = true;
+        self.edit();
+    };
+
+    this.processor = new ImageProcessor(this.previewCanvas,
+          contextLostCallback, contextRestoreCallback);
 
     // When the image loads display it
     this.original.onload = function() {
@@ -698,12 +708,19 @@ ImageEditor.prototype.getFullSizeBlob = function(type, done, progress) {
   const TILE_SIZE = 1024;
   var self = this;
 
+  self.imageProcessCTX = { };
+  var ctx = self.imageProcessCTX;
+
+  ctx.type = type;
+  ctx.done = done;
+  ctx.progress = progress;
+
   // Create an offscreen canvas and copy the image into it
-  var canvas = document.createElement('canvas');
-  canvas.width = this.source.width; // "full size" is cropped image size
-  canvas.height = this.source.height;
-  var context = canvas.getContext('2d', { willReadFrequently: true });
-  context.drawImage(this.original,
+  ctx.canvas = document.createElement('canvas');
+  ctx.canvas.width = this.source.width; // "full size" is cropped image size
+  ctx.canvas.height = this.source.height;
+  ctx.context = ctx.canvas.getContext('2d', { willReadFrequently: true });
+  ctx.context.drawImage(this.original,
                     this.source.x, this.source.y,
                     this.source.width, this.source.height,
                     0, 0, this.source.width, this.source.height);
@@ -713,8 +730,30 @@ ImageEditor.prototype.getFullSizeBlob = function(type, done, progress) {
   this.original.src = '';
 
   // How many pixels do we have to process? How many have we processed so far?
-  var total_pixels = canvas.width * canvas.height;
-  var processed_pixels = 0;
+  ctx.total_pixels = ctx.canvas.width * ctx.canvas.height;
+  ctx.processed_pixels = 0;
+
+  // Create a smaller tile canvas.
+  ctx.tile = document.createElement('canvas');
+  ctx.tile.width = ctx.tile.height = TILE_SIZE;
+
+  // Divide the image into a set of tiled rectangles
+  ctx.rectangles = makeTileList(this.source.width, this.source.height,
+                                ctx.tile.width, ctx.tile.height);
+
+  // WebGL context lost/restore callback
+  var contextLostCallback = function() {
+
+  };
+  var contextRestoreCallback = function() {
+    processNextTile();
+  };
+
+  // Create an ImageProcessor object that renders into the tile.
+  ctx.processor = new ImageProcessor(ctx.tile,
+        contextLostCallback, contextRestoreCallback);
+
+  processNextTile();
 
   function makeTileList(imageWidth, imageHeight, tileWidth, tileHeight) {
     var tiles = [];
@@ -735,46 +774,36 @@ ImageEditor.prototype.getFullSizeBlob = function(type, done, progress) {
     return tiles;
   }
 
-  // Create a smaller tile canvas.
-  var tile = document.createElement('canvas');
-  tile.width = tile.height = TILE_SIZE;
-
-  // Create an ImageProcessor object that renders into the tile.
-  var processor = new ImageProcessor(tile);
-
-  // Divide the image into a set of tiled rectangles
-  var rectangles = makeTileList(this.source.width, this.source.height,
-                                tile.width, tile.height);
-
-  processNextTile();
-
   // Process one tile of the original image, copy the processed tile
   // to the full-size canvas, and then return to the event queue.
   function processNextTile() {
-    var rect = rectangles.shift();
+    var rect = ctx.rectangles[0];
 
     // Get the input pixels for this tile
-    var pixels = context.getImageData(rect.x, rect.y, rect.w, rect.h);
+    var pixels = ctx.context.getImageData(rect.x, rect.y, rect.w, rect.h);
 
-    var centerX = Math.floor((tile.width - rect.w) / 2);
-    var centerY = Math.floor((tile.height - rect.h) / 2);
+    var centerX = Math.floor((ctx.tile.width - rect.w) / 2);
+    var centerY = Math.floor((ctx.tile.height - rect.h) / 2);
 
     // Edit the pixels and draw them to the tile
-    processor.draw(pixels, true,
-                   0, 0, rect.w, rect.h,
-                   centerX, centerY, rect.w, rect.h,
-                   self.edits);
+    if (!ctx.processor.draw(pixels, true, 0, 0, rect.w, rect.h,
+            centerX, centerY, rect.w, rect.h, self.edits)) {
+      // The WebGL context maybe lose
+      return;
+    }
+
+    ctx.rectangles.shift();
 
     // Copy the edited pixels from the tile back to the canvas
-    context.drawImage(tile,
+    ctx.context.drawImage(ctx.tile,
                       centerX, centerY, rect.w, rect.h,
                       rect.x, rect.y, rect.w, rect.h);
 
-    processed_pixels += rect.w * rect.h;
-    if (progress)
-      progress(processed_pixels / total_pixels);
+    ctx.processed_pixels += rect.w * rect.h;
+    if (ctx.progress)
+      ctx.progress(ctx.processed_pixels / ctx.total_pixels);
 
-    if (rectangles.length) {
+    if (ctx.rectangles.length) {
       // If we're not done yet return to the event loop,
       // and process the next tile soon.
       setTimeout(processNextTile);
@@ -782,18 +811,19 @@ ImageEditor.prototype.getFullSizeBlob = function(type, done, progress) {
     else {      // Otherwise we are done.
       // The processed image is in our offscreen canvas, so we don't need
       // the WebGL stuff anymore.
-      processor.destroy();
-      tile.width = tile.height = 0;
-      processor = tile = null;
+      ctx.processor.destroy();
+      ctx.tile.width = ctx.tile.height = 0;
+      ctx.processor = ctx.tile = null;
 
       // Now get the canvas contents as a file and pass to the callback
-      canvas.toBlob(function(blobData) {
+      ctx.canvas.toBlob(function(blobData) {
         // Now that we've got the blob, we don't need the canvas anymore
-        canvas.width = canvas.height = 0;
-        canvas = null;
+        ctx.canvas.width = ctx.canvas.height = 0;
+        ctx.canvas = null;
+        self.imageProcessCTX = null;
         // Pass the blob to the callback
-        done(blobData);
-      }, type);
+        ctx.done(blobData);
+      }, ctx.type);
     }
   }
 };
@@ -1394,19 +1424,43 @@ ImageEditor.prototype.prepareAutoEnhancement = function(pixel) {
 // webgl transformations on an image.  Expects its shader programs to be in
 // <script> elements with ids 'edit-vertex-shader' and 'edit-fragment-shader'.
 //
-function ImageProcessor(canvas) {
+function ImageProcessor(canvas, lostCallback, restoreCallback) {
+  var self = this;
+
+  // WebGL context lost/restore handler
+  this.contextLostHandler = function(event) {
+    event.preventDefault();
+    lostCallback();
+  };
+  this.contextRestoreHandler = function(event) {
+    self.initWebGL();
+    restoreCallback();
+  };
+
   // WebGL context for the canvas
   this.canvas = canvas;
+  this.canvas.addEventListener('webglcontextlost',
+        this.contextLostHandler, false);
+  this.canvas.addEventListener('webglcontextrestored',
+        this.contextRestoreHandler, false);
   var options = { depth: false, stencil: false, antialias: false };
-  var gl = this.context =
+  this.context =
     canvas.getContext('webgl', options) ||
     canvas.getContext('experimental-webgl', options);
+
+  this.initWebGL();
+}
+
+// Init all webgl resource
+ImageProcessor.prototype.initWebGL = function() {
+  var gl = this.context;
 
   // Define our shader programs
   var vshader = this.vshader = gl.createShader(gl.VERTEX_SHADER);
   gl.shaderSource(vshader, ImageProcessor.vertexShader);
   gl.compileShader(vshader);
-  if (!gl.getShaderParameter(vshader, gl.COMPILE_STATUS)) {
+  if (!gl.getShaderParameter(vshader, gl.COMPILE_STATUS) &&
+        !gl.isContextLost()) {
     var error = new Error('Error compiling vertex shader:' +
                           gl.getShaderInfoLog(vshader));
     gl.deleteShader(vshader);
@@ -1416,7 +1470,8 @@ function ImageProcessor(canvas) {
   var fshader = this.fshader = gl.createShader(gl.FRAGMENT_SHADER);
   gl.shaderSource(fshader, ImageProcessor.fragmentShader);
   gl.compileShader(fshader);
-  if (!gl.getShaderParameter(fshader, gl.COMPILE_STATUS)) {
+  if (!gl.getShaderParameter(fshader, gl.COMPILE_STATUS) &&
+        !gl.isContextLost()) {
     var error = new Error('Error compiling fragment shader:' +
                           gl.getShaderInfoLog(fshader));
     gl.deleteShader(fshader);
@@ -1427,7 +1482,8 @@ function ImageProcessor(canvas) {
   gl.attachShader(program, vshader);
   gl.attachShader(program, fshader);
   gl.linkProgram(program);
-  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+  if (!gl.getProgramParameter(program, gl.LINK_STATUS) &&
+        !gl.isContextLost()) {
     var error = new Error('Error linking GLSL program:' +
                           gl.getProgramInfoLog(program));
     gl.deleteProgram(program);
@@ -1468,7 +1524,7 @@ function ImageProcessor(canvas) {
   this.rgbMaxAddress = gl.getUniformLocation(program, 'rgb_max');
   this.rgbOneOverMaxMinusMinAddress =
     gl.getUniformLocation(program, 'rgb_one_over_max_minus_min');
-}
+};
 
 // Destroy all the stuff we allocated
 ImageProcessor.prototype.destroy = function() {
@@ -1487,6 +1543,14 @@ ImageProcessor.prototype.destroy = function() {
   //
   // We use loseContext() to let the context lost.
   // It will release the buffer here.
+
+  // Remove the context lost/restore handler to prevent the restore event
+  this.canvas.removeEventListener('webglcontextlost',
+        this.contextLostHandler, false);
+  this.canvas.removeEventListener('webglcontextrestored',
+        this.contextRestoreHandler, false);
+
+  // getExtension('WEBGL_lose_context') is still valid even if the context lost
   var loseContextExt = gl.getExtension('WEBGL_lose_context');
   if (loseContextExt) {
     loseContextExt.loseContext();
@@ -1549,6 +1613,8 @@ ImageProcessor.prototype.draw = function(image, needsUpload,
 
   // And draw it all
   gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+  return !gl.isContextLost();
 };
 
 ImageProcessor.vertexShader =
