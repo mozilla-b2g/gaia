@@ -1,5 +1,8 @@
-define(function() {
+define(function(require) {
+  /*jshint maxlen:false*/
   'use strict';
+
+  var debug = require('debug')('camera-utils');
 
   var CameraUtils = function CameraUtils() {};
 
@@ -31,83 +34,75 @@ define(function() {
     };
   };
 
-  /*
-    Find the optimal preview size to maximize the area inside the viewport
-    while minimizing the area overflowing outside the viewport.
+  /**
+   * This implementation is loosely based around AOSP's
+   * Camera.Util.getOptimalPreviewSize() method:
+   *
+   * http://androidxref.com/4.0.4/xref/packages/apps/Camera/src/com/android/camera/Util.java#374
+   */
+  CameraUtils.getOptimalPreviewSize =
+    function(previewSizes, targetSize, viewportSize) {
 
-    Rules:
-    - Preview size aspect ratio must not change
-    - Preview size must fit viewport dimensions or exceed them (overflow)
-    - "Optimal" preview size is determined by having the smallest overflow
-      area with the smallest scale adjustment (closest to 1.0)
-    - If there is an exact match found, all further calculations are
-      canceled and the preview size is returned immediately
-  */
-  CameraUtils.selectOptimalPreviewSize = function(viewportSize, previewSizes) {
-    if (previewSizes && previewSizes.length === 0) {
-      return null;
-    }
-
-    var vw = viewportSize.width,
-        vh = viewportSize.height,
-        calculatedPreviewSizes = [],
-        minimumOverflow = Number.MAX_VALUE,
-        pw, ph, sw, sh, scale, overflow;
-
-    for (var i = 0, length = previewSizes.length; i < length; i++) {
-      pw = previewSizes[i].width;
-      ph = previewSizes[i].height;
-
-      // Preview size is an EXACT match
-      if (pw == vw && ph == vh) {
-        return previewSizes[i];
+      // Use a very small tolerance because we want an exact match.
+      const ASPECT_TOLERANCE = 0.001;
+      
+      if (!previewSizes || previewSizes.length === 0) {
+        return null;
       }
 
-      // Calculate the scale required to FILL the viewport
-      sw = vw / pw;
-      sh = vh / ph;
+      var optimalSize;
+      var minDiff = Number.MAX_VALUE;
 
-      // Select the larger scale
-      scale = Math.max(sw, sh);
+      // If no viewport size is specified, use screen height
+      var targetHeight = viewportSize ?
+        Math.min(viewportSize.height, viewportSize.width) :
+        window.innerHeight;
 
-      // Calculate the scaled preview size
-      pw *= scale;
-      ph *= scale;
-
-      // Calculate the overflow area (number of pixels)
-      overflow = (pw * ph) - (vw * vh);
-
-      // Round overflow down to integer to reduce rounding errors
-      overflow = Math.floor(overflow);
-
-      if (overflow < minimumOverflow) {
-        minimumOverflow = overflow;
+      if (targetHeight <= 0) {
+        targetHeight = window.innerHeight;
       }
 
-      calculatedPreviewSizes.push({
-        previewSize: previewSizes[i],
-        pw: pw,
-        ph: ph,
-        scale: scale,
-        overflow: overflow
+      var targetRatio = targetSize.width / targetSize.height;
+
+      // Try to find an size match aspect ratio and size
+      previewSizes.forEach(function(previewSize) {
+        var ratio = previewSize.width / previewSize.height;
+
+        // Use Math.sqrt() to err on the side of a slightly larger
+        // preview size in the event of a tie.
+        var diff = Math.abs(
+          Math.sqrt(previewSize.height) - Math.sqrt(targetHeight));
+
+        if (Math.abs(ratio - targetRatio) <= ASPECT_TOLERANCE) {
+          if (diff < minDiff) {
+            optimalSize = previewSize;
+            minDiff = diff;
+          }
+        }
       });
-    }
 
-    // Filter out preview sizes that exceed the minimum overflow
-    calculatedPreviewSizes = calculatedPreviewSizes.filter(
-      function(previewSize) {
-        return previewSize.overflow <= minimumOverflow;
-    });
+      // Cannot find the one match the aspect ratio. This should not happen.
+      // Ignore the requirement.
+      if (!optimalSize) {
+        debug('No preview size to match the aspect ratio');
+        minDiff = Number.MAX_VALUE;
 
-    // Sort the preview sizes by scale closest to 1.0
-    calculatedPreviewSizes = calculatedPreviewSizes.sort(function(a, b) {
-      return a.scale - b.scale;
-    }).sort(function(a, b) {
-      return Math.abs(a.scale - 1) - Math.abs(b.scale - 1);
-    });
+        previewSizes.forEach(function(previewSize) {
 
-    return calculatedPreviewSizes[0].previewSize;
-  };
+          // Use Math.sqrt() to err on the side of a slightly larger
+          // preview size in the event of a tie.
+          var diff = Math.abs(
+            Math.sqrt(previewSize.height) - Math.sqrt(targetHeight));
+
+          if (diff < minDiff) {
+            optimalSize = previewSize;
+            minDiff = diff;
+          }
+        });
+      }
+
+      return optimalSize;
+    };
 
   CameraUtils.prototype = {
     constructor: CameraUtils
