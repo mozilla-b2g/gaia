@@ -8,9 +8,10 @@
   App.prototype.activity = null;
   App.prototype.UI = document.getElementById('ui');
   App.prototype.ICON = document.getElementById('icon');
-  App.prototype.ACTIVITY_TOOLBAR = document.getElementById('toolbar');
+  App.prototype.ACTIVITY_TOOLBAR = document.getElementById('activity-toolbar');
   App.prototype.TITLE = document.getElementById('title');
   App.prototype.start = function() {
+    this.TITLE.textContent = document.title;
     document.addEventListener('click', this);
     navigator.mozSetMessageHandler('activity', this.webActivityHandler.bind(this));
   };
@@ -43,13 +44,13 @@
   };
 
   App.prototype.showActivityPoster = function() {
-    useClose();
+    this.useClose();
     document.title = '(Activity)' + document.title;
     this.TITLE.textContent = document.title;
     this.ACTIVITY_TOOLBAR.classList.remove('hidden');
   };
 
-  App.prototype.useBack = function() {
+  App.prototype.useClose = function() {
     this.ICON.classList.remove('icon-back');
     this.ICON.classList.add('icon-close');
   }

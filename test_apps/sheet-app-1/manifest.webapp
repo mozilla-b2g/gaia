@@ -62,14 +62,16 @@
         "type": "text"
        },
       "disposition": "window",
-      "href": "page3e.html"
+      "href": "page3e.html",
+      "returnValue": true
     },
     "test-inline": {
       "filters": {
         "type": "text"
        },
       "disposition": "inline",
-      "href": "page3f.html"
+      "href": "page3f.html",
+      "returnValue": true
     }
   }
 }

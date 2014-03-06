@@ -1,6 +1,6 @@
 'use strict';
 (function(window) {
-  var DEBUG = false;
+  var DEBUG = true;
   var screenElement = document.getElementById('screen');
 
   /**
@@ -520,6 +520,7 @@
         console.log('[AppWindowManager]' +
           '[' + System.currentTime() + ']' +
           Array.slice(arguments).concat());
+        System._dump();
       }
     },
 
