@@ -75,7 +75,7 @@ suite('DownloadHelper', function() {
       download = null;
     });
 
-    function checkError(storage, code, done) {
+    function checkError(storage, code, done, type) {
       download.state = 'succeeded';
 
       var stubGetDeviceStorage = sinon.stub(navigator, 'getDeviceStorage',
@@ -84,7 +84,7 @@ suite('DownloadHelper', function() {
         }
       );
 
-      var req = DownloadHelper.open(download);
+      var req = DownloadHelper[type || 'open'](download);
 
       req.onsuccess = function() {
         assert.ok(false);
@@ -173,7 +173,7 @@ suite('DownloadHelper', function() {
       };
     });
 
-    test('Unmounted sdcard', function(done) {
+    test('Unmounted sdcard -> try to open and remove ', function(done) {
       var storage = {
         'available': function() {
           return {
@@ -187,10 +187,13 @@ suite('DownloadHelper', function() {
         }
       };
 
-      checkError(storage, DownloadHelper.CODE.UNMOUNTED_SDCARD, done);
+      var code = DownloadHelper.CODE.UNMOUNTED_SDCARD;
+      checkError(storage, code, function() {
+        checkError(storage, code, done, 'remove');
+      }, 'open');
     });
 
-    test('No sdcard', function(done) {
+    test('No sdcard -> try to open and remove ', function(done) {
       var storage = {
         'available': function() {
           return {
@@ -204,7 +207,10 @@ suite('DownloadHelper', function() {
         }
       };
 
-      checkError(storage, DownloadHelper.CODE.NO_SDCARD, done);
+      var code = DownloadHelper.CODE.NO_SDCARD;
+      checkError(storage, code, function() {
+        checkError(storage, code, done, 'remove');
+      }, 'open');
     });
   });
 });

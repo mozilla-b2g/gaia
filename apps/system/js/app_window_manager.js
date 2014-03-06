@@ -153,7 +153,7 @@
         }
         this.debug('ready to open/close' + switching);
         if (switching)
-          homescreenLauncher.getHomescreen().fadeOut();
+          HomescreenLauncher.getHomescreen().fadeOut();
 
         var immediateTranstion = false;
         if (appNext.rotatingDegree === 90 || appNext.rotatingDegree === 270) {

@@ -1,4 +1,5 @@
 'use strict';
+/* global UrlHelper */
 
 /**
  * Base Provider class
@@ -13,6 +14,11 @@ Provider.prototype = {
    * Overridden at the child provider level
    */
   name: 'Provider',
+
+  /**
+   * Whether or not this provider dedupes results.
+   */
+  dedupes: false,
 
   /**
    * Initializes the provider container and adds listeners
@@ -79,7 +85,7 @@ Provider.prototype = {
         result.dataset[i] = config.dataset[i];
       }
 
-      if (config.icon && /^(app|http)/.test(config.icon)) {
+      if (config.icon && UrlHelper.hasScheme(config.icon)) {
         icon.src = config.icon;
       } else if (config.icon) {
         icon.src = window.URL.createObjectURL(config.icon);

@@ -9,7 +9,7 @@
    */
   function DevtoolsView() {
     window.addEventListener('developer-hud-update', function updateHandler(e) {
-      this.display(e.detail);
+      this.display(e.target, e.detail);
       e.preventDefault();
     }.bind(this));
   }
@@ -22,14 +22,12 @@
      * @memberof DevtoolsView.prototype
      * @param {Object} data The data to update the devtools view with.
      */
-    display: function(data) {
-      var target = 'iframe[mozapp="' + data.manifestURL + '"]';
-      var iframe = document.querySelector(target);
-      if (!iframe) {
+    display: function(target, data) {
+      if (!target) {
         return;
       }
 
-      var appwindow = iframe.parentElement;
+      var appwindow = target.parentElement;
       var overlay = appwindow.querySelector('.devtools-view');
 
       if (!overlay) {
