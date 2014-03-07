@@ -80,7 +80,7 @@
     // Please remember to revoke the photoURL after utilizing it.
     getContactDetails:
       function ut_getContactDetails(number, contacts, include) {
-
+      var _ = navigator.mozL10n.get;
       var details = {};
 
       include = include || {};
@@ -142,7 +142,8 @@
         details.org = details.org || org;
 
         if (phone.type) {
-          details.carrier = phone.type + ' | ' + details.carrier;
+          details.carrier =
+            phone.type + (_('thread-separator') || ' | ') + details.carrier;
         }
       }
 
@@ -202,6 +203,7 @@
       var hasUniqueTypes = true;
       var name = hasDetails ? details.name : '';
       var found, tel, type, carrier, value, ending;
+      var _ = navigator.mozL10n.get;
 
       for (var i = 0; i < length; i++) {
         tel = tels[i];
@@ -227,15 +229,24 @@
       }
 
       type = (found.type && found.type[0]) || '';
+      // Non localized label is better than a blank string
+      type = type && _(type) || type;
       carrier = (hasUniqueCarriers || hasUniqueTypes) ? found.carrier : '';
       value = carrier || found.value;
-      ending = ' | ' + (carrier || value);
+      ending = (carrier || value);
 
       if (hasDetails && !name && !carrier) {
         ending = '';
       }
 
-      return type + ending;
+      if (type && ending) {
+        return _('thread-header', {
+          numberType: type,
+          numberDetail: ending
+        });
+      } else {
+        return type + ending;
+      }
     },
 
     // Based on "non-dialables" in https://github.com/andreasgal/PhoneNumber.js
@@ -512,11 +523,15 @@
       all the information needed to display data.
     */
     getDisplayObject: function(theTitle, tel) {
+      var _ = navigator.mozL10n.get;
       var number = tel.value;
       var title = theTitle || number;
       var type = tel.type && tel.type.length ? tel.type[0] : '';
-      var carrier = tel.carrier ? (tel.carrier + ', ') : '';
-      var separator = type || carrier ? ' | ' : '';
+      // For both carrierSeparator and separator we want to avoid using an
+      // empty string as separator because of a bad l10n file.
+      var carrierSeparator = _('carrier-separator') || ', ';
+      var carrier = tel.carrier ? (tel.carrier + carrierSeparator) : '';
+      var separator = type || carrier ? (_('thread-separator') || ' | ') : '';
       var data = {
         name: title,
         number: number,

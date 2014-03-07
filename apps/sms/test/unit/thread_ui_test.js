@@ -1627,6 +1627,12 @@ suite('thread_ui.js >', function() {
         setup(function() {
           this.sinon.spy(ThreadUI, 'searchContact');
           this.sinon.spy(ThreadUI, 'exactContact');
+
+          // Override generic mozL10n.get for this test
+          var l10nStub = this.sinon.stub(navigator.mozL10n, 'get');
+          l10nStub.withArgs('thread-separator').returns(' | ');
+          l10nStub.withArgs('carrier-separator').returns(', ');
+          l10nStub.returnsArg(0);
         });
 
         test('Triggers assimilation & silent search ', function() {

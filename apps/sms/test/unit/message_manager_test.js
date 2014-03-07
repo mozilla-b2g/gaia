@@ -450,7 +450,11 @@ suite('message_manager.js >', function() {
     });
 
     suite('message drafts', function() {
+      var nativeMozL10n;
+
       setup(function() {
+        nativeMozL10n = navigator.mozL10n;
+        navigator.mozL10n = MockL10n;
         ThreadUI.draft = new Draft({
           threadId: 1234,
           recipients: []
@@ -463,6 +467,8 @@ suite('message_manager.js >', function() {
       });
 
       teardown(function() {
+        navigator.mozL10n = nativeMozL10n;
+        nativeMozL10n = null;
         ThreadUI.draft = null;
       });
 
