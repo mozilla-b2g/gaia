@@ -66,7 +66,7 @@
 
   function _getError(error) {
     var _ = navigator.mozL10n.get;
-    var l10nKeys = Errors[error] || Errors['UNKNOWN'];
+    var l10nKeys = Errors[error] || Errors.UNKNOWN;
     return {
       title: _(l10nKeys.title),
       message: _(l10nKeys.message)
@@ -81,4 +81,4 @@
   };
 
   exports.FxaModuleErrors = FxaModuleErrors;
-}(this));
+}(window));
