@@ -264,6 +264,10 @@ li a[role="button"].activity > b em{
   font-style: normal;
 }
 
+[data-type="list"] {
+
+}
+
 [data-type="list"] li p {
   margin-left: 1.5rem;
 }
@@ -298,7 +302,7 @@ li a[role="button"].activity > b{
 
 /* BB Lists extending */
 #view-contacts-list [data-type="list"] {
-  padding: 2.5rem 2.5rem 0 0;
+  margin: 0 2.1rem 0 1.5rem;
 }
 
 .active[data-type="list"] li:after, [data-type="list"] li > a:after {
@@ -397,7 +401,7 @@ form p + p {
 
 /* Removes scroll from the view body inner */
 .view-noscroll .view-body-inner {
-  width: -moz-calc(100% + 1rem);
+  width: -moz-calc(100% + 1.5rem);
 }
 
 
