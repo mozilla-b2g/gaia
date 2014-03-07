@@ -482,17 +482,12 @@ contacts.List = (function() {
     setImageURL(img, null);
   };
 
-  var renderOrg = function renderOrg(contact, link, add) {
+  var renderOrg = function renderOrg(contact, element) {
     if (!contact.org || !contact.org.length ||
         contact.org[0] === '' || contact.org[0] === contact.givenName) {
       return;
     }
-    if (add) {
-      addOrgMarkup(link, contact.org[0]);
-      return;
-    }
-    var org = link.lastElementChild.querySelector('span.org');
-    org.textContent = contact.org[0];
+    element.textContent = contact.org[0];
   };
 
   function renderFbData(contact, link) {
@@ -512,19 +507,6 @@ contacts.List = (function() {
       renderOrg(contact, link);
     }
   }
-
-  var addOrgMarkup = function addOrgMarkup(link, content) {
-    var span = document.createElement('span');
-    span.className = 'org';
-    if (content) {
-      span.textContent = content;
-    }
-    var meta = document.createElement('p');
-    meta.classList.add('contact-text');
-    meta.appendChild(span);
-    link.appendChild(meta);
-    return meta;
-  };
 
   var toggleNoContactsScreen = function cl_toggleNoContacs(show) {
     if (show && ActivityHandler.currentlyHandling) {
@@ -671,8 +653,10 @@ contacts.List = (function() {
             var display = getDisplayName(contact);
 
             var nameElement = element.children[1].children[0];
-
             getHighlightedName(display, nameElement);
+
+            var orgElement = element.children[2].children[0];
+            renderOrg(contact, orgElement);
 
             element.dataset.uuid = contact.id;
 
