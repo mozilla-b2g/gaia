@@ -1106,4 +1106,3 @@ shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js
 shared/test/unit/mocks/mock_navigator_moz_settings.js
 shared/test/unit/mocks/mock_notification_helper.js
 shared/test/unit/mocks/mock_settings_listener.js
-shared/test/unit/mocks/mocks_helper.js
