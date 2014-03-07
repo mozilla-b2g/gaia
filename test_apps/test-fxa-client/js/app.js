@@ -1,15 +1,21 @@
 'use strict';
 
+var hideTimer;
 var Overlay = {
     show: function fxam_overlay_show() {
+      if (hideTimer) {
+        return;
+      }
       var overlay = document.querySelector('#overlay');
       overlay.classList.add('show');
+      hideTimer = setTimeout(Overlay.hide, 2000);
     },
     hide: function fxam_overlay_hide() {
+      hideTimer = clearTimeout(hideTimer);
       var overlay = document.querySelector('#overlay');
-      if (!overlay)
+      if (!overlay) {
         return;
-
+      }
       overlay.classList.remove('show');
     }
 };

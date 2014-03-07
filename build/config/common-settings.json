@@ -74,6 +74,7 @@
    "icc.toneDefaultTimeout": 5000,
    "icc.goBackTimeout": 1000,
    "icc.selectTimeout": 150000,
+   "identity.fxaccounts.reset-password.url": "https://accounts.firefox.com/reset_password",
    "keyboard.vibration": true,
    "keyboard.clicksound": false,
    "keyboard.autocorrect": true,

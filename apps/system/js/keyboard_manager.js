@@ -710,7 +710,8 @@ var KeyboardManager = {
       });
       self.hideKeyboard();
 
-      ActionMenu.open(items, actionMenuTitle, function(selectedIndex) {
+      var menu = new ActionMenu(items, actionMenuTitle,
+        function(selectedIndex) {
         if (!self.keyboardLayouts[showed.type])
           showed.type = 'text';
         self.keyboardLayouts[showed.type].activeLayout = selectedIndex;
@@ -737,6 +738,7 @@ var KeyboardManager = {
         // user canceled.
         window.dispatchEvent(new CustomEvent('keyboardchangecanceled'));
       });
+      menu.start();
     }, SWITCH_CHANGE_DELAY);
   },
 

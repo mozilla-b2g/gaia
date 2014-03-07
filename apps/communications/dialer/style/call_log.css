@@ -21,6 +21,10 @@ form[role="dialog"][data-type="edit"] > menu {
   transform: translateY(110%);
 }
 
+#call-log-container[data-type="list"] section {
+  background: #fff;
+}
+
 #call-log-container[data-type="list"] header {
   position: sticky;
   top: 0;

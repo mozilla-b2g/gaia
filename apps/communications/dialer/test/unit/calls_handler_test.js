@@ -14,6 +14,7 @@ require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 require('/shared/test/unit/mocks/mock_audio.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/test/unit/mocks/mock_settings_url.js');
+require('/shared/test/unit/mocks/mock_navigator_wake_lock.js');
 
 // The CallsHandler binds stuff when evaluated so we load it
 // after the mocks and we don't want it to show up as a leak.
@@ -38,12 +39,16 @@ var mocksHelperForCallsHandler = new MocksHelper([
 suite('calls handler', function() {
   var realMozTelephony;
   var realMozApps;
+  var realWakeLock;
 
   mocksHelperForCallsHandler.attachTestHelpers();
 
   suiteSetup(function(done) {
     realMozTelephony = navigator.mozTelephony;
     navigator.mozTelephony = MockMozTelephony;
+
+    realWakeLock = navigator.requestWakeLock;
+    navigator.requestWakeLock = MockNavigatorWakeLock.requestWakeLock;
 
     realMozApps = navigator.mozApps;
     navigator.mozApps = MockNavigatormozApps;
@@ -55,6 +60,7 @@ suite('calls handler', function() {
     MockMozTelephony.mSuiteTeardown();
     navigator.moztelephony = realMozTelephony;
     navigator.mozApps = realMozApps;
+    navigator.requestWakeLock = realWakeLock;
   });
 
   setup(function() {
@@ -120,15 +126,16 @@ suite('calls handler', function() {
         assert.isTrue(playSpy.called);
       });
 
-      test('should vibrate if the setting is enabled', function() {
+      test('should vibrate right away if the setting is enabled', function() {
         var vibrateSpy = this.sinon.spy(navigator, 'vibrate');
 
         MockSettingsListener.mCallbacks['vibration.enabled'](true);
         CallsHandler.setup();
         MockMozTelephony.mTriggerCallsChanged();
 
-        this.sinon.clock.tick(1000);
-        assert.isTrue(vibrateSpy.called);
+        assert.isTrue(vibrateSpy.calledOnce);
+        this.sinon.clock.tick(600);
+        assert.isTrue(vibrateSpy.calledTwice);
       });
 
       suite('> call isn\'t picked up', function() {

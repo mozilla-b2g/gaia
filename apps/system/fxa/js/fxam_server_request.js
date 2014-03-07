@@ -10,6 +10,14 @@
 
 (function(exports) {
 
+  var pref = 'identity.fxaccounts.reset-password.url';
+  var fxaSettingsHelper = SettingsHelper(pref);
+  var fxaURL;
+
+  fxaSettingsHelper.get(function on_fxa_get_settings(url) {
+    fxaURL = url;
+  });
+
   function _setAccountDetails(response) {
     if (response && response.user.accountId) {
       FxaModuleManager.setParam('email', response.user.accountId);
@@ -72,8 +80,25 @@
     },
     requestPasswordReset:
       function fxmsr_requestPasswordReset(email, onsuccess, onerror) {
-      // https://bugzilla.mozilla.org/show_bug.cgi?id=945365
-      onsuccess && onsuccess();
+      var url = email ? fxaURL + '?email=' + email : fxaURL;
+      var activity = new MozActivity({
+        name: 'view',
+        data: {
+          type: 'url',
+          url: url
+        }
+      });
+      activity.onsuccess = function on_reset_success() {
+        // TODO When the browser loads, it is *behind* the system app. So we
+        //      need to dismiss this app in order to let the user reset their
+        //      password.
+        onsuccess && onsuccess();
+        FxaModuleManager.close();
+      };
+      activity.onerror = function on_reset_error(err) {
+        console.error(err);
+        onerror && onerror(err);
+      };
     }
   };
   exports.FxModuleServerRequest = FxModuleServerRequest;

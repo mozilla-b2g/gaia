@@ -33,15 +33,11 @@ Contacts.Selectors = {
   detailsEditContact: '#edit-contact-button',
   detailsTelLabelFirst: '#phone-details-template-0 h2',
   detailsTelButtonFirst: 'button.icon-call[data-tel]',
-  detailsFindDuplicate: '#contact-detail-inner #find-merge-button',
 
   duplicateFrame: 'iframe[src*="matching_contacts.html"]',
   duplicateHeader: '#title',
-  duplicateClose: '#merge-close',
-  duplicateMerge: '#merge-action',
 
   form: '#view-contact-form',
-  formTitle: '#contact-form-title',
   formCustomTag: '#custom-tag',
   formCustomTagPage: '#view-select-tag',
   formCustomTagDone: '#view-select-tag #settings-done',
@@ -51,7 +47,10 @@ Contacts.Selectors = {
   formSave: '#save-button',
   formTel: '#contacts-form-phones input[type="tel"]',
   formTelLabelFirst: '#tel_type_0',
+  formTelNumberSecond: '#number_1',
+  formEmailFirst: '#email_0',
 
+  groupList: ' #groups-list',
   list: '#view-contacts-list',
   listContactFirst: '.contact-item',
   listContactFirstText: '.contact-item .contact-text',
@@ -114,20 +113,6 @@ Contacts.prototype = {
     });
   },
 
-  waitForSlideDown: function(element) {
-    var bodyHeight = this.client.findElement(
-      Contacts.Selectors.body).size().height;
-    this.client.waitFor(function() {
-      return element.location().y >= bodyHeight;
-    });
-  },
-
-  waitForSlideUp: function(element) {
-    this.client.waitFor(function() {
-      return element.location().y <= 0;
-    });
-  },
-
   waitForFormShown: function() {
     this.client.waitFor(function() {
       var location = this.client.findElement(Contacts.Selectors.form)
@@ -178,22 +163,6 @@ Contacts.prototype = {
     this.enterContactDetails(details);
 
     this.client.helper.waitForElement(selectors.list);
-  },
-
-  /**
-   * Helper method to simulate clicks on iFrames which is not currently
-   *  working in the Marionette JS Runner.
-   * @param {Marionette.Element} element The element to simulate the click on.
-   **/
-  clickOn: function(element) {
-    element.scriptWith(function(elementEl) {
-      var event = new MouseEvent('click', {
-        'view': window,
-        'bubbles': true,
-        'cancelable': true
-      });
-      elementEl.dispatchEvent(event);
-    });
   }
 };
 

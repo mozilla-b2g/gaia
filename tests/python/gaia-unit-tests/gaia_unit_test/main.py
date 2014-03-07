@@ -7,6 +7,7 @@ import os
 import shutil
 import sys
 import tempfile
+import time
 import tornado.websocket
 import tornado.ioloop
 import tornado.httpserver
@@ -23,11 +24,14 @@ class TestAgentServer(tornado.websocket.WebSocketHandler):
     passes = 0
     failures = 0
     current_test = None
+    timer = None
+    timeout = 120
 
     def initialize(self, tests=None, runner=None, logger=None):
         self.tests = tests
         self.runner = runner
         self.logger = logger
+
 
     def emit(self, event, data):
         command = (event, data)
@@ -36,6 +40,11 @@ class TestAgentServer(tornado.websocket.WebSocketHandler):
     def open(self):
         self.increment = self.increment + 1
         self.run_tests(self.tests)
+
+    def timer_fn(self):
+        self.logger.error("Timed out after %d seconds" % self.timeout)
+        self.runner.cleanup()
+        sys.exit(1)
 
     def run_tests(self, tests):
         self.tests = tests
@@ -119,6 +128,14 @@ class TestAgentServer(tornado.websocket.WebSocketHandler):
         sys.exit(1)
 
     def on_message(self, message):
+        # Instantiate a timer that will get called after self.timeout seconds;
+        # this timer is used to detect hangs/crashes and shut down the test
+        # run after checking for crashes.
+        loop = tornado.ioloop.IOLoop.instance()
+        if self.timer:
+            loop.remove_timeout(self.timer)
+        self.timer = loop.add_timeout(time.time() + self.timeout, self.timer_fn)
+
         command = json.loads(message)
         # test agent protocol always uses the [event, data] format.
         self.handle_event(command[0], [command[1]])

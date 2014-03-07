@@ -295,14 +295,19 @@ var Navigation = {
 
     // SIM card management
     if (futureLocation.requireSIM) {
-      SimManager.handleCardState(function check_cardState(response) {
+      var check_cardState = function(response) {
         self.skipped = false;
         if (!response || (!SimManager.available() &&
           // Don't skip it if next step is data 3g
          futureLocation.hash !== '#data_3g')) {
           self.skipStep();
         }
-      });
+      };
+
+      // if we are navigating backwards, we do not want to
+      // show the SIM unlock screens for the data_3g step
+      var skipUnlockScreens = this.currentStep < this.previousStep;
+      SimManager.handleCardState(check_cardState, skipUnlockScreens);
     }
   }
 };

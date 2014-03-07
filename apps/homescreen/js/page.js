@@ -1,5 +1,7 @@
 'use strict';
 
+/* global GridManager */
+
 /*
  * Icon constructor
  *
@@ -47,7 +49,8 @@ Icon.prototype = {
   // element dataset and allow us to uniquely look up the Icon object from
   // the HTML element.
   _descriptorIdentifiers: ['manifestURL', 'entry_point', 'bookmarkURL',
-                           'useAsyncPanZoom', 'desiredPos', 'desiredScreen'],
+                           'useAsyncPanZoom', 'desiredPos', 'desiredScreen',
+                           'type'],
 
   /**
    * The Application (or Bookmark) object corresponding to this icon.
@@ -466,7 +469,14 @@ Icon.prototype = {
    * @param{string} non-translationable name
    */
   setName: function icon_setName(name) {
+    if (this.label.textContent === name) {
+      return;
+    }
+
     this.label.textContent = this.descriptor.customName = name;
+    if (this.descriptor.type === GridItemsFactory.TYPE.BOOKMARK) {
+      this.app.setName(name);
+    }
     this.applyOverflowTextMask();
     GridManager.markDirtyState();
   },
@@ -477,6 +487,39 @@ Icon.prototype = {
   getName: function icon_getName() {
     var desc = this.descriptor;
     return desc.customName || desc.localizedName || desc.name;
+  },
+
+  /*
+   * Returns the url icon
+   */
+  getURL: function icon_getURL() {
+    return this.app.url || this.descriptor.manifestURL;
+  },
+
+  /*
+   * Sets the new URL
+   *
+   * @param{string} url
+   */
+  setURL: function icon_setURL(url) {
+    var descriptor = this.descriptor;
+    // The only kind of icons that supports changes in the URL are the bookmarks
+    if (descriptor.type !== GridItemsFactory.TYPE.BOOKMARK ||
+        descriptor.bookmarkURL === url) {
+      return;
+    }
+
+    // The grid manager will remove its reference when the URL changes
+    GridManager.forgetIcon(this);
+
+    this.app.setURL(url);
+    this.descriptor.bookmarkURL = this.container.dataset.bookmarkURL =
+                                  this.app.bookmarkURL;
+
+    // The grid manager will update the bookmark with its new url
+    GridManager.rememberIcon(this);
+
+    GridManager.markDirtyState();
   },
 
   /*
@@ -942,6 +985,11 @@ Page.prototype = {
         var icon = GridManager.getIcon(elem.parentNode.dataset);
         if (icon.app)
           Homescreen.showAppDialog(icon);
+      } else if (elem.dataset.type === GridItemsFactory.TYPE.BOOKMARK) {
+        var icon = GridManager.getIcon(elem.dataset);
+        if (icon.app) {
+          Homescreen.showEditBookmarkDialog(icon);
+        }
       }
       callback();
     } else if ('isIcon' in elem.dataset && this.olist === elem.parentNode &&
