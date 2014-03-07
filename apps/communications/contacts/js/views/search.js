@@ -28,7 +28,6 @@ contacts.Search = (function() {
       hardLimit = 25,
       emptySearch = true,
       remainingPending = true,
-      imgLoader,
       searchEnabled = false,
       source = null,
       navigationController = null;
@@ -113,10 +112,8 @@ contacts.Search = (function() {
       blurList = false;
     });
 
-    imgLoader = new ImageLoader('#groups-list-search', 'li');
-    LazyLoader.load(['/contacts/js/fb_resolver.js'], function() {
-      imgLoader.setResolver(fb.resolver);
-    });
+    // TODO: make facebook images work.
+    // LazyLoader.load(['/contacts/js/fb_resolver.js']);
   };
 
   // Search mode instructions
@@ -174,7 +171,6 @@ contacts.Search = (function() {
 
     if (fragment.hasChildNodes()) {
       searchList.appendChild(fragment);
-      imgLoader.reload();
     }
 
     remainingPending = false;
@@ -193,8 +189,6 @@ contacts.Search = (function() {
         var startNode = source.getNextNode(source.getNodeById(lastNodeUid));
         fillIdentityResults(startNode, hardLimit - searchPageSize);
         remainingPending = false;
-
-        imgLoader.reload();
       }
     }
   }
@@ -278,8 +272,6 @@ contacts.Search = (function() {
     }
 
     fillIdentityResults(startContact, numToFill);
-
-    imgLoader.reload();
   }
 
   function doSearch(contacts, from, searchText, pattern, state) {
@@ -350,7 +342,6 @@ contacts.Search = (function() {
 
     // Or we are complete with results that might have images to render
     } else {
-      imgLoader.reload();
       searchableNodes = state.searchables;
       canReuseSearchables = true;
       // If the user wished to scroll let's add the remaining results
