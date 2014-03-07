@@ -41,7 +41,8 @@ module.exports = View.extend({
 
   enable: function(key, value) {
     value = arguments.length === 2 ? value : true;
-    this.set(key + '-enabled', value);
+    key = (key ? key + '-' : '') + 'enabled';
+    this.set(key, value);
   },
 
   enabler: function(key) {

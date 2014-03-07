@@ -33,7 +33,7 @@ class Camera(Base):
     _toggle_camera_button_locator = (By.CSS_SELECTOR, '.test-toggle-camera')
     _flash_text_visible_locator = (By.CSS_SELECTOR, '[toggling-flash=true] .test-flash-text')
 
-    _viewfinder_locator = (By.CLASS_NAME, 'viewfinder')
+    _viewfinder_video_locator = (By.CLASS_NAME, 'viewfinder-video')
     _focus_ring_locator = (By.CSS_SELECTOR, '.focus-ring')
 
     # Filmstrip View
@@ -83,8 +83,7 @@ class Camera(Base):
         self.wait_for_element_displayed(*self._switch_button_locator)
         self.marionette.find_element(*self._switch_button_locator).tap()
         self.wait_for_condition(
-            lambda m: m.find_element(
-                *self._controls_locator).get_attribute('buttons-enabled') == 'true')
+            lambda m: m.find_element(*self._controls_locator).get_attribute('mode') == 'video')
         self.wait_for_capture_ready()
 
     def tap_toggle_flash_button(self):
@@ -98,8 +97,9 @@ class Camera(Base):
     def wait_for_select_button_displayed(self):
         self.wait_for_element_displayed(*self._select_button_locator)
 
+    # On low end devices 5 seconds wait is not enough for the filmstrip to be displayed
     def wait_for_filmstrip_visible(self):
-        self.wait_for_condition(lambda m: self.is_filmstrip_visible)
+        self.wait_for_condition(lambda m: self.is_filmstrip_visible, 10)
 
     def wait_for_filmstrip_not_visible(self):
         self.wait_for_condition(lambda m: self.is_filmstrip_hidden)
@@ -107,7 +107,7 @@ class Camera(Base):
     def wait_for_capture_ready(self):
         self.wait_for_condition(
             lambda m: m.execute_script('return arguments[0].readyState;', [
-                self.wait_for_element_present(*self._viewfinder_locator)]) > 0)
+                self.wait_for_element_present(*self._viewfinder_video_locator)]) > 0, 10)
 
     def wait_for_video_capturing(self):
         self.wait_for_condition(lambda m: self.marionette.find_element(

@@ -161,7 +161,7 @@ define(function(require, exports, module) {
       // If we're showing previews be sure we're showing the filmstrip
       // with no timeout and be sure that the viewfinder video is paused.
       show();
-      ViewfinderView.el.pause();
+      ViewfinderView.els.video.pause();
     };
 
     function addVideoAndShow(video) {
@@ -229,7 +229,7 @@ define(function(require, exports, module) {
         return;
       }
 
-      ViewfinderView.el.play(); // Restart the viewfinder
+      ViewfinderView.els.video.play(); // Restart the viewfinder
       show(FILMSTRIP_DURATION); // Fade the filmstrip after a delay
       preview.classList.add('offscreen');
       frame.clear();

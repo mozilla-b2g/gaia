@@ -98,6 +98,7 @@ ConfirmController.prototype.onSelectMedia = function() {
   } else { // Is Image
     media.type = 'image/jpeg';
     needsResizing = activity.data.width || activity.data.height;
+    debug('needs resizing: %s', needsResizing);
     if (needsResizing) {
       resizeImage({
         blob: this.newMedia.blob,
