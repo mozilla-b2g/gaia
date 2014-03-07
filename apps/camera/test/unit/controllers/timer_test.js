@@ -5,10 +5,14 @@ suite('controllers/timer', function() {
     var self = this;
     req([
       'controllers/timer',
-      'views/timer'
-    ], function(TimerController, TimerView) {
+      'views/timer',
+      'lib/setting',
+      'app'
+    ], function(TimerController, TimerView, Setting, App) {
       self.TimerController = TimerController.TimerController;
       self.TimerView = TimerView;
+      self.Setting = Setting;
+      self.App = App;
       done();
     });
   });
@@ -16,113 +20,133 @@ suite('controllers/timer', function() {
   setup(function() {
     this.clock = sinon.useFakeTimers();
 
-    this.app = {
-      firer: sinon.stub().returns('firer'),
-      on: sinon.spy(),
-      get: sinon.stub(),
-      el: {},
-      settings: {
-        timer: {
-          selected: sinon.stub()
-        }
-      },
-      views: {
-        timer: sinon.createStubInstance(this.TimerView)
-      }
+    sinon.spy(window, 'setInterval');
+    sinon.spy(window, 'clearInterval');
+
+    this.app = sinon.createStubInstance(this.App);
+    this.app.el = {};
+    this.app.settings = {
+      timer: sinon.createStubInstance(this.Setting)
+    };
+    this.app.views = {
+      timer: sinon.createStubInstance(this.TimerView)
     };
 
     this.timer = this.app.views.timer;
+    this.timer.set.returns(this.timer);
+    this.app.settings.timer.selected.returns(5);
   });
 
   teardown(function() {
+    window.setInterval.restore();
+    window.clearInterval.restore();
     this.clock.restore();
   });
 
   suite('TimerController()', function() {
-    test('Should relay \'start\' and \'clear\' as app events', function() {
+    test('Should append the TimerView to the app', function() {
       var controller = new this.TimerController(this.app);
-      var timer = this.app.views.timer;
-      assert.ok(timer.on.calledWith('start', 'firer'));
-      assert.ok(timer.on.calledWith('clear', 'firer'));
+      assert.ok(this.timer.appendTo.calledWith(this.app.el));
     });
 
-    test('Should start the timer when the \'starttimer\' event fires', function() {
+    test('Should start the timer when the \'startcountdown\' event fires', function() {
       var controller = new this.TimerController(this.app);
-      assert.ok(this.app.on.calledWith('capture', controller.onCapture));
+      assert.ok(this.app.on.calledWith('startcountdown', controller.start));
     });
   });
 
-  suite('TimerController#onCapture()', function() {
+  suite('TimerController#start()', function() {
     setup(function() {
       this.controller = new this.TimerController(this.app);
+      this.view = this.controller.view;
+      this.controller.start();
     });
 
-    test('Should not start the timer if no timer is set', function() {
-      this.app.settings.timer.selected.returns(0);
-      this.controller.onCapture();
-      assert.ok(!this.timer.start.called);
+    test('Should bind events async so as not to respond to current event', function() {
+      assert.ok(!this.app.on.calledWith('click', this.controller.clear));
+      assert.ok(!this.app.on.calledWith('blur', this.controller.clear));
+      this.clock.tick(1);
+      assert.ok(this.app.on.calledWith('click', this.controller.clear));
+      assert.ok(this.app.on.calledWith('blur', this.controller.clear));
     });
 
-    test('Should not start the timer if camera is recording', function() {
-      this.app.settings.timer.selected.returns(5);
-      this.app.get.withArgs('recording').returns(true);
-      this.controller.onCapture();
-      assert.ok(!this.timer.start.called);
+    test('Should set the view with the current value of the timer setting', function() {
+      assert.ok(this.controller.view.set.calledWith(5));
     });
 
-    test('Should start the timer if one is set and not recording', function() {
-      this.app.settings.timer.selected.returns(5);
-      this.app.get.withArgs('recording').returns(false);
-      this.controller.onCapture();
-      assert.ok(this.timer.start.called);
+    test('Should set the app \'timerActive\' property to true', function() {
+      assert.ok(this.app.set.calledWith('timerActive', true));
     });
 
-    test('Should return `false` after timer is set to ' +
-      'stop event propagation', function() {
-      this.app.settings.timer.selected.returns(5);
-      this.app.get.withArgs('recording').returns(false);
-      var out = this.controller.onCapture();
-      assert.ok(out === false);
-      assert.ok(this.timer.start.called);
+    test('Should emit \'timer:stated\' event on app', function() {
+      assert.ok(this.app.emit.calledWith('timer:started'));
+    });
+
+    test('Should decrement time each second and emit ' +
+      'an \'end\' event when time is up', function() {
+      this.clock.tick(1000);
+      assert.ok(this.view.set.calledWith(4));
+
+      this.clock.tick(1000);
+      assert.ok(this.view.set.calledWith(4));
+
+      this.clock.tick(1000);
+      assert.ok(this.view.set.calledWith(4));
+
+      this.clock.tick(1000);
+      assert.ok(this.view.set.calledWith(4));
+
+      this.clock.tick(1000);
+      assert.ok(this.app.emit.calledWith('timer:ended'));
+    });
+
+    test('Should not update the view after time is up', function() {
+      this.clock.tick(5000);
+      assert.ok(this.view.set.callCount === 6, 'should be 6, was: ' + this.view.set.callCount);
+      this.clock.tick(1000);
+      assert.ok(this.view.set.callCount === 6, 'should not have been called any more');
+    });
+
+    test('Should set the timerActive flag back to false', function() {
+      assert.ok(this.app.set.calledWith('timerActive', true));
+      this.clock.tick(5000);
+      assert.ok(this.app.set.calledWith('timerActive', false));
+    });
+
+    test('Should hide the view', function() {
+      this.clock.tick(5000);
+      assert.ok(this.view.hide.called);
+    });
+
+    test('Should not emit a \'clear\' event', function() {
+      this.clock.tick(5000);
+      assert.ok(!this.app.emit.calledWith('timer:cleared'));
     });
   });
 
-  suite('TimerController#startTimer()', function() {
+  suite('TimerController#clear()', function() {
     setup(function() {
       this.controller = new this.TimerController(this.app);
-      this.app.settings.timer.selected.returns(10);
+      this.view = this.controller.view;
+      this.controller.start();
+      this.controller.clear();
     });
 
-    test('Should set the timer with the setting.timer value and start', function() {
-      this.controller.startTimer(10);
-      assert.ok(this.timer.set.calledWith(10));
-      assert.ok(this.timer.start.called);
+    test('Should hide the view', function() {
+      assert.ok(this.view.hide.called);
     });
 
-    test('Should should setup event listeners (async)', function() {
-      var controller = this.controller;
-      var timer = this.timer;
-
-      controller.startTimer(10);
-
-      assert.ok(!this.app.on.calledWith('click', timer.clear));
-      assert.ok(!timer.on.calledWith('clear', controller.unbindTimerEvents));
-      assert.ok(!timer.on.calledWith('end', controller.onTimerEnd));
-
-      this.clock.tick(1);
-
-      assert.ok(this.app.on.calledWith('click', timer.clear));
-      assert.ok(timer.on.calledWith('clear', controller.unbindTimerEvents));
-      assert.ok(timer.on.calledWith('end', controller.onTimerEnd));
+    test('Should emit a \'timer:cleared\' event', function() {
+      assert.ok(this.app.emit.calledWith('timer:cleared'));
     });
 
-    test('Should clear the timer when the app is minimised', function() {
-      var controller = new this.TimerController(this.app);
+    test('Should set the \'timerActive\' flag back to false', function() {
+      assert.ok(this.app.set.calledWith('timerActive', false));
+    });
 
-      controller.startTimer(10);
-      this.clock.tick(1);
-
-      assert.ok(this.app.on.calledWith('blur', this.timer.clear));
+    test('Should unbind the app listeners', function() {
+      assert.ok(this.app.off.calledWith('click', this.controller.clear));
+      assert.ok(this.app.off.calledWith('blur', this.controller.clear));
     });
   });
 });

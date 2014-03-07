@@ -34,6 +34,7 @@ suite('controllers/camera', function() {
     this.app.activity = new this.Activity();
     this.app.settings = sinon.createStubInstance(this.Settings);
     this.app.camera = sinon.createStubInstance(this.Camera);
+    this.app.geolocation = {};
     this.app.views = {
       filmstrip: sinon.createStubInstance(this.View),
       viewfinder: sinon.createStubInstance(this.View)
@@ -44,6 +45,7 @@ suite('controllers/camera', function() {
     this.app.settings.pictureSizes = sinon.createStubInstance(this.Setting);
     this.app.settings.recorderProfiles = sinon.createStubInstance(this.Setting);
     this.app.settings.flashModes = sinon.createStubInstance(this.Setting);
+    this.app.settings.timer = sinon.createStubInstance(this.Setting);
   });
 
   suite('CameraController()', function() {
@@ -74,6 +76,50 @@ suite('controllers/camera', function() {
     test('Should teardown camera on app `blur`', function() {
       this.controller = new this.CameraController(this.app);
       this.app.on.calledWith('blur', this.controller.onBlur);
+    });
+  });
+
+  suite('CameraController#capture()', function() {
+    setup(function() {
+      this.controller = new this.CameraController(this.app);
+    });
+
+    test('Should not start countdown if now timer setting is set', function() {
+      this.app.settings.timer.selected.returns(0);
+      this.app.get.withArgs('timerActive').returns(false);
+      this.app.get.withArgs('recording').returns(false);
+      this.controller.capture();
+      assert.ok(!this.app.emit.calledWith('startcountdown'));
+    });
+
+    test('Should not start countdown if timer is already active', function() {
+      this.app.settings.timer.selected.returns(5);
+      this.app.get.withArgs('timerActive').returns(true);
+      this.app.get.withArgs('recording').returns(false);
+      this.controller.capture();
+      assert.ok(!this.app.emit.calledWith('startcountdown'));
+    });
+
+    test('Should not start countdown if recording', function() {
+      this.app.settings.timer.selected.returns(5);
+      this.app.get.withArgs('timerActive').returns(false);
+      this.app.get.withArgs('recording').returns(true);
+      this.controller.capture();
+      assert.ok(!this.app.emit.calledWith('startcountdown'));
+    });
+
+    test('Should otherwise start countdown', function() {
+      this.app.settings.timer.selected.returns(5);
+      this.app.get.withArgs('timerActive').returns(false);
+      this.app.get.withArgs('recording').returns(false);
+      this.controller.capture();
+      assert.ok(this.app.emit.calledWith('startcountdown'));
+    });
+
+    test('Should pass the current geolocation position', function() {
+      this.app.geolocation.position = 123;
+      this.controller.capture();
+      assert.ok(this.app.camera.capture.args[0][0].position === 123);
     });
   });
 });

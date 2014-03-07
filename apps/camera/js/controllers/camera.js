@@ -117,12 +117,30 @@ CameraController.prototype.onSettingsConfigured = function() {
   debug('camera configured with final settings');
 };
 
+/**
+ * Begins capture, first checking if
+ * a countdown timer should be installed.
+ *
+ * @return {[type]} [description]
+ */
 CameraController.prototype.capture = function() {
   if (this.shouldCountdown()) { return; }
   var position = this.app.geolocation.position;
   this.camera.capture({ position: position });
 };
 
+/**
+ * Fires a 'startcountdown' event if:
+ * A timer settings is set, no timer is
+ * already active, and the camera is
+ * not currently recording.
+ *
+ * This event triggers the TimerController
+ * to begin counting down, using the TimerView
+ * to communicate the remaining seconds.
+ *
+ * @private
+ */
 CameraController.prototype.shouldCountdown = function() {
   var timerSet = this.settings.timer.selected('value');
   var timerActive = this.app.get('timerActive');
