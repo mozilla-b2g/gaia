@@ -48,11 +48,14 @@ var Selector = {
   refreshButton: '.card.center .msg-refresh-btn',
   messageHeaderItem: '.msg-messages-container .msg-header-item',
   cardMessageReader: '.card-message-reader',
+  currentCardInputs: '.card.center input[type="text"]',
   replyMenuButton: '.msg-reply-btn',
   replyMenu: '.msg-reply-menu',
   replyMenuReply: '.msg-reply-menu-reply',
   replyMenuForward: '.msg-reply-menu-forward',
   replyMenuAll: '.msg-reply-menu-reply-all',
+  searchButton: '.msg-search-btn',
+  searchCard: '.card[data-mode="search"]',
   folderListButton: '.msg-list-header .msg-folder-list-btn',
   settingsButton: '.fld-nav-toolbar .fld-nav-settings-btn',
   settingsDoneButton: '.card-settings-main [data-l10n-id="settings-done"]',
@@ -338,6 +341,17 @@ Email.prototype = {
     this._waitForTransitionEnd(cardId);
   },
 
+  /**
+   * Returns the visible input elements for the current card.
+   */
+  getVisibleCardInputs: function() {
+    var elements = this.client.findElements(Selector.currentCardInputs)
+      .filter(function(element) {
+        return element.displayed();
+      });
+    return elements;
+  },
+
   saveLocalDrafts: function() {
     this._waitForElementNoTransition(Selector.composeBackButton).tap();
     this._waitForElementNoTransition(Selector.composeDraftSave).tap();
@@ -368,6 +382,16 @@ Email.prototype = {
     this.client.helper
       .waitForElement(Selector.refreshButton)
       .tap();
+  },
+
+  tapSearchButton: function() {
+    this.client.helper
+      .waitForElement(Selector.searchButton)
+      .tap();
+
+    this.client.helper
+      .waitForElement(Selector.searchCard);
+    this._waitForTransitionEnd('message_list');
   },
 
   waitForMessageList: function() {

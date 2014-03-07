@@ -34,6 +34,10 @@
   border-bottom: 0.1rem solid #bdbdbd;
 }
 
+[data-mode="search"] .msg-search-tease-bar {
+  display: none;
+}
+
 /* When card is slightly shown when folder card is center,
    be sure any inputs do not accept clicks/taps that would
    mess up the transition back to the message list. Also
