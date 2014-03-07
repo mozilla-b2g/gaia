@@ -101,7 +101,7 @@ ol > li.active > div > img {
   font-size: 1.3rem;
   line-height: 2rem; /* maintain constant line height even if font fallback
                         gives us different fonts for non-Latin labels */
-  text-shadow: 0 0.1rem 0.2rem rgba(0,0,0,1);
+  text-shadow: 0 0.2rem 0.8rem rgba(0,0,0,0.65);
 }
 
 /* These classes detect text overflow from JS code */
@@ -124,7 +124,7 @@ ol > li.active > div > img {
   width: 94%; /* At least 6% of margin between labels of different apps */
   position: relative;
   height: 2.5rem;
-  margin: 0.1rem auto -0.4rem;
+  margin: -1.3rem auto -0.9rem;
   font-weight: 500;
 }
 

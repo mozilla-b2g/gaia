@@ -1,5 +1,5 @@
 #footer {
-  min-height: 7.5rem;
+  height: 7.5rem;
   width: 100%;
   position: absolute;
   bottom: 0;
@@ -37,7 +37,7 @@
 /* Container -> icon + label */
 #footer li > div {
   width: 100%;
-  margin-top: .5rem;
+  margin-top: .2rem;
   pointer-events: none;
 }
 /* Collection "ring" alignment */
