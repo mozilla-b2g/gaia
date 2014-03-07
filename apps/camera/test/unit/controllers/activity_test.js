@@ -88,7 +88,7 @@ suite('controllers/activity', function() {
       this.filteredOptions = [{}, {}, {}];
       this.pickedOption = { width: 1, height: 1 };
 
-      this.app.lessThanPixels = sinon.stub().returns(this.filteredOptions);
+      this.app.lessThanFileSize = sinon.stub().returns(this.filteredOptions);
       this.app.closestToSize = sinon.stub().returns(this.pickedOption);
 
       this.controller = new this.ActivityController(this.app);
@@ -100,7 +100,7 @@ suite('controllers/activity', function() {
       this.app.activity.data.maxFileSizeBytes = 100;
       this.controller.configurePictureSize(options);
 
-      assert.ok(this.app.lessThanPixels.calledWith(100, options));
+      assert.ok(this.app.lessThanFileSize.calledWith(100, options));
       assert.ok(this.app.settings.pictureSizes.set.calledWith('options', this.filteredOptions));
     });
 
