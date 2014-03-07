@@ -4,6 +4,7 @@
 'use strict';
 
 var icc_worker = {
+  idleTextNotifications: {},
   // STK Applications menu list. On bootup this object is empty,
   // will be filled by 0x25 (STK_CMD_SET_UP_MENU) command.
   iccApplicationsMenu: {},
@@ -17,9 +18,13 @@ var icc_worker = {
 
   // STK_CMD_REFRESH
   '0x1': function STK_CMD_REFRESH(message) {
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=800271#c10
     DUMP('STK_CMD_REFRESH', message.command.options);
-    icc_worker.dummy(message);
+    if (this.idleTextNotifications[message.iccId]) {
+      this.idleTextNotifications[message.iccId].close();
+    }
+    icc.responseSTKCommand(message, {
+      resultCode: icc._iccManager.STK_RESULT_OK
+    });
   },
 
   // STK_CMD_POLL_INTERVAL
@@ -483,13 +488,22 @@ var icc_worker = {
   '0x28': function STK_CMD_SET_UP_IDLE_MODE_TEXT(message) {
     DUMP('STK_CMD_SET_UP_IDLE_MODE_TEXT:', message.command.options);
     var options = message.command.options;
-    NotificationHelper.send('SIM ' + icc.getSIMNumber(message.iccId) + ' STK',
-      options.text, '', function() {
-        icc.alert(message, options.text);
+    this.idleTextNotifications[message.iccId] = new Notification(
+      'SIM ' + icc.getSIMNumber(message.iccId) + ' STK', {
+        body: options.text,
+        icon: 'style/icons/System.png',
+        tag: 'stkNotification_' + message.iccId
       });
-    icc.responseSTKCommand(message, {
-      resultCode: icc._iccManager.STK_RESULT_OK
-    });
+    this.idleTextNotifications[message.iccId].onclick =
+      function onClickSTKNotification() {
+        icc.alert(message, options.text);
+      };
+    this.idleTextNotifications[message.iccId].onshow =
+      function onShowSTKNotification() {
+        icc.responseSTKCommand(message, {
+          resultCode: icc._iccManager.STK_RESULT_OK
+        });
+      };
   }
 
 };
