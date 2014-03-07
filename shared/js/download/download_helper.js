@@ -495,6 +495,26 @@ var DownloadHelper = (function() {
     };
   }
 
+  function getFreeSpace(cb) {
+    var storage = navigator.getDeviceStorage(storageName);
+
+    if (!storage) {
+      console.error('Cannot get free space size in sdcard');
+      cb(null);
+      return;
+    }
+
+    var req = storage.freeSpace();
+
+    req.onsuccess = function(e) {
+      cb(e.target.result);
+    };
+
+    req.onerror = function() {
+      cb(null);
+    };
+  }
+
   return {
    /*
     * This method allows clients to open a downlaod
@@ -556,6 +576,14 @@ var DownloadHelper = (function() {
      *
      * @param{Function} This function is performed when the flow is finished
      */
-    handlerError: handlerError
+    handlerError: handlerError,
+
+    /*
+     * Returns the free memory size in bytes
+     *
+     * @param{Function} This function is performed when the free memory size has
+     *                  been calculated
+     */
+    getFreeSpace: getFreeSpace
   };
 }());

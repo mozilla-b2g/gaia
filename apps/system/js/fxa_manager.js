@@ -46,6 +46,8 @@
  *                          DOM Identity API impl. _______________|
  */
 
+/* global IACHandler, LazyLoader, FxAccountsClient, FxAccountsUI */
+
 'use strict';
 
 var FxAccountsManager = {

@@ -1,6 +1,10 @@
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
+/* global FxaModuleStates, FxaModuleUI, FxaModule, FxaModuleNavigation,
+   FxModuleServerRequest, FxaModuleOverlay, FxaModuleManager, FtuLauncher */
+/* exported FxaModuleEnterPassword */
+
 'use strict';
 
 /**
@@ -40,19 +44,19 @@ var FxaModuleEnterPassword = (function() {
   }
 
   function _togglePasswordVisibility() {
+    /*jshint validthis:true*/
     var passwordFieldType = !!this.fxaShowPw.checked ? 'text' : 'password';
     this.fxaPwInput.setAttribute('type', passwordFieldType);
   }
 
   function _forgotPassword() {
+    /*jshint validthis:true*/
     var self = this;
     if (FtuLauncher.isFtuRunning()) {
       return self.showErrorResponse({
         error: 'RESET_PASSWORD_IN_SETTINGS'
       });
     }
-    // XXX ensure email is used properly when server supports prefilling email
-    //     via query string (bug 977776)
     // Note: we don't need to pass a success callback, but we do need an errback
     FxModuleServerRequest.requestPasswordReset(
       this.email,

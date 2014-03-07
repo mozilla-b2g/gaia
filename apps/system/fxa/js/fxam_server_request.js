@@ -1,6 +1,8 @@
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
+/* global SettingsHelper, FxaModuleManager, MozActivity */
+
 'use strict';
 
 /*
@@ -29,7 +31,7 @@
     window.parent.LazyLoader.load('../js/fxa_client.js', function() {
       callback && callback();
     });
-  };
+  }
 
   var FxModuleServerRequest = {
     checkEmail: function fxmsr_checkEmail(email, onsuccess, onerror) {
@@ -78,22 +80,20 @@
                 onerror);
       });
     },
-    // XXX ensure email is used properly when server supports prefilling email
-    //     via query string (bug 977776)
     requestPasswordReset:
       function fxmsr_requestPasswordReset(email, onsuccess, onerror) {
+      var url = email ? fxaURL + '?email=' + email : fxaURL;
       var activity = new MozActivity({
         name: 'view',
         data: {
           type: 'url',
-          url: fxaURL
+          url: url
         }
       });
       activity.onsuccess = function on_reset_success() {
         // TODO When the browser loads, it is *behind* the system app. So we
         //      need to dismiss this app in order to let the user reset their
-        //      password. Does it even make sense to fire onsuccess in such
-        //      circumstances?
+        //      password.
         onsuccess && onsuccess();
         FxaModuleManager.close();
       };
@@ -104,4 +104,4 @@
     }
   };
   exports.FxModuleServerRequest = FxModuleServerRequest;
-}(this));
+}(window));

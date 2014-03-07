@@ -11,6 +11,8 @@ var MockFxaModuleUI = {
   setMaxSteps: function(num) {
 
   },
+  increaseMaxStepsBy: function(num) {
+  },
   loadScreen: function(params) {
 
   },
