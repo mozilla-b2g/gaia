@@ -84,6 +84,13 @@ HudController.prototype.updateFlash = function() {
   this.hud.setFlashMode(selected);
 };
 
+/**
+ * Toggles the visibility of the view
+ * depending on recording state.
+ *
+ * @param  {Boolean} recording
+ * @private
+ */
 HudController.prototype.onRecordingChange = function(recording) {
   this.hud.toggle(!recording);
 };
