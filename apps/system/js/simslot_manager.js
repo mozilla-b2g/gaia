@@ -16,6 +16,18 @@
     _instances: [],
 
     /**
+     * The timeout to wait for the second SIM
+     * @type {Number}
+     */
+    TIMEOUT_FOR_SIM2: 2000,
+
+    /**
+     * Timer used to wait for the second SIM
+     * @type {Number} timeoutId
+     */
+    _timerForSIM2: null,
+
+    /**
      * This property is used to make sure sim_lock won't get inited
      * before we receive iccdetected when bootup.
      * @type {Boolean}
@@ -65,6 +77,18 @@
     },
 
     /**
+     * Make sure we really have one simcard information
+     * @return {Boolean} we already have one simcard.
+     */
+    hasOnlyOneSIMCardDetected: function() {
+      var sim0Absent = this.isSIMCardAbsent(0);
+      var sim1Absent = this.isSIMCardAbsent(1);
+      var hasOneSim =
+        (sim0Absent && !sim1Absent) || (!sim0Absent && sim1Absent);
+      return hasOneSim;
+    },
+
+    /**
      * Check there is no any sim card on device or not.
      * @return {Boolean} There is no sim card.
      */
@@ -81,7 +105,7 @@
      * @return {Object} The SIMSlot instance.
      */
     get: function ssm_get(index) {
-      if (index >= this.length - 1) {
+      if (index > this.length - 1) {
         return null;
       }
 
@@ -94,7 +118,7 @@
      * @return {Object} The mobile connection object.
      */
     getMobileConnection: function ssm_getMobileConnection(index) {
-      if (index >= this.length - 1) {
+      if (index > this.length - 1) {
         return null;
       }
 
@@ -109,6 +133,10 @@
       return this._instances;
     },
 
+    /**
+     * Get specified simslot by iccId
+     * @return {Object} The SIMSlot instance.
+     */
     getSlotByIccId: function ssm_getSlotByIccId(iccId) {
       var found = null;
       this._instances.some(function iterator(slot, index) {
@@ -122,6 +150,31 @@
       return found;
     },
 
+    /**
+     * This method is used to make sure if we can't receive the 2nd
+     * `iccdetected` event during the timeout, we would treat this
+     * situation as DSDS device with only one simcard inserted.
+     */
+    waitForSecondSIM: function() {
+      var self = this;
+      this._timerForSIM2 = setTimeout(function() {
+        clearTimeout(self._timerForSIM2);
+        self.publishSIMSlotIsReady();
+      }, this.TIMEOUT_FOR_SIM2);
+    },
+
+    /**
+     * We have to make sure our simcards are ready and emit
+     * this event out to notify sim_settings_helper & sim_lock
+     * do related operations.
+     */
+    publishSIMSlotIsReady: function() {
+      if (!this.ready) {
+        this.ready = true;
+        System.publish('simslotready');
+      }
+    },
+
     handleEvent: function ssm_handleEvent(evt) {
       switch (evt.type) {
         case 'iccdetected':
@@ -130,11 +183,19 @@
           if (slot) {
             slot.update(IccManager.getIccById(evt.iccId));
 
-            // this is used to handle the case if `iccdetected`
-            // got emitted slower than `will-unlock`
-            if (!this.ready) {
-              this.ready = true;
-              System.publish('simslotready');
+            // we are now in single sim device
+            if (!this.isMultiSIM()) {
+              this.publishSIMSlotIsReady();
+            } else {
+              // we are now in DSDS device
+              // if we have one simcard already
+              if (this.hasOnlyOneSIMCardDetected()) {
+                this.waitForSecondSIM();
+              } else {
+                // we have two simcards already
+                clearTimeout(this._timerForSIM2);
+                this.publishSIMSlotIsReady();
+              }
             }
           }
           break;
