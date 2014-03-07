@@ -81,16 +81,6 @@ contacts.List = (function() {
 
   var NOP_FUNCTION = function() {};
 
-  var clearLoadedContact = function(el, id, group) {
-    if (!el.dataset.rendered || !el.dataset.order || !el.dataset.search)
-      return;
-
-    id = id || el.dataset.uuid;
-    group = group || el.dataset.group;
-    if (loadedContacts[id])
-      loadedContacts[id][group] = null;
-  };
-
   var init = function load(element, reset) {
     _ = navigator.mozL10n.get;
 
@@ -132,45 +122,25 @@ contacts.List = (function() {
   // search may see out-of-order and duplicate values.
   var NODE_SELECTOR = 'section:not(#section-group-favorites) > ol > li';
   var searchSource = {
-    getNodes: function() {
-      var domNodes = contactsListView.querySelectorAll(NODE_SELECTOR);
-      return Array.prototype.slice.call(domNodes);
+    getData: function() {
+      return Object.keys(allContacts).map(key => allContacts[key]);
     },
 
-    getFirstNode: function() {
-      return contactsListView.querySelector(NODE_SELECTOR);
-    },
-
-    getNextNode: function(contact) {
-      var out = contact.nextElementSibling;
-      var nextParent = contact.parentNode.parentNode.nextElementSibling;
-      while (!out && nextParent) {
-        out = nextParent.querySelector('ol > li:first-child');
-        nextParent = nextParent.nextElementSibling;
-      }
-      return out;
-    },
-
-    // While loading we expect to feed search more nodes via the
+    // While loading we expect to feed search more data via the
     // contacts.Search.appendNodes() function.
-    expectMoreNodes: function() {
+    expectMoreData: function() {
       return loading;
-    },
-
-    getNodeById: function(id) {
-      return contactsListView.querySelector('[data-uuid="' + id + '"]');
     },
 
     // The calculation of the search text is delayed until the full list item
     // is rendered.  Therefore, it may not be available yet.  If this is the
     // case then calculate the search text before returning the value.
-    getSearchText: function(node) {
-      renderSearchString(node);
-      return node.dataset.search;
+    getSearchText: function(contact) {
+      return renderSearchString(contact);
     },
 
     click: onClickHandler
-  }; // searchSource
+  };
 
   var initSearch = function initSearch(callback) {
     contacts.Search.init(searchSource, true, selectNavigationController);
@@ -266,19 +236,12 @@ contacts.List = (function() {
   // contact is not already known, try to look it up in our cache of loaded
   // contacts.  This is used to defer the computation of the search string
   // since profiling has shown it to be expensive.
-  var renderSearchString = function renderSearchString(node, contact) {
-    if (node.dataset.search)
-      return;
-
-    contact = contact || loadedContacts[node.dataset.uuid][node.dataset.group];
-
+  var renderSearchString = function renderSearchString(contact) {
     if (!contact)
       return;
 
     var display = getDisplayName(contact);
-    node.dataset.search = getSearchString(contact, display);
-
-    clearLoadedContact(node, contact.id, node.dataset.group);
+    return getSearchString(contact, display);
   };
 
   var renderOrderString = function renderOrderString(node, contact) {
@@ -292,8 +255,6 @@ contacts.List = (function() {
 
     var display = getDisplayName(contact);
     node.dataset.order = getStringToBeOrdered(contact, display);
-
-    clearLoadedContact(node, contact.id, node.dataset.group);
   };
 
   var getStringValue = function getStringValue(contact, field) {

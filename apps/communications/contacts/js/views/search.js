@@ -10,7 +10,7 @@ contacts.Search = (function() {
       searchNoResult,
       searchProgress,
       searchTimer = null,
-      contactNodes = null,
+      contactData = null,
       // On the steady state holds the list result of the current search
       searchableNodes = null,
       currentTextToSearch = '',
@@ -22,31 +22,45 @@ contacts.Search = (function() {
       blurList = false,
       theClones = {},
       CHUNK_SIZE = 10,
-      // Default to invalid page size and recalculate when first row added
-      searchPageSize = -1,
       // Limit search result to hardLimit contacts, recalc with page size
       hardLimit = 25,
       emptySearch = true,
       remainingPending = true,
       searchEnabled = false,
       source = null,
-      navigationController = null;
+      navigationController = null,
+      recyclist;
 
   // The _source argument should be an adapter object that provides access
-  // to the contact nodes in the app.  This is done by defining the following
+  // to the contact data in the app.  This is done by defining the following
   // functions on the adapter object:
-  //    getNodes()            An Array of all contact DOM nodes
-  //    getFirstNode()        First contact DOM node
-  //    getNextNode(node)     Given a node, find the next node
-  //    expectMoreNodes()     True if nodes will be added via appendNodes()
+  //    getData()             Gets the search data.
+  //    expectMoreData()      True if nodes will be added via appendNodes()
   //    clone(node)           Clone the given contact node
-  //    getNodeById(id)       Get the node matching the given ID, or null
   //    getSearchText(node)   Get the search text from the given node
   //    click(event)          Click event handler to use
   var init = function load(_source, defaultEnabled, navigation) {
-
+    var searchGroup = document.getElementById('groups-list-search');
     searchView = document.getElementById('search-view');
     searchList = document.getElementById('search-list');
+
+    recyclist = new Recyclist({
+      template: document.getElementById('search-item-template'),
+      numItems: 0,
+      populate: function(element, index) {
+        element.textContent = 'Hello search' + index;
+      },
+      forget: function(element, index) {},
+      scrollParent: searchGroup,
+      scrollChild: searchList,
+      getScrollHeight: function() {
+        return searchGroup.clientHeight;
+      },
+      getScrollPos: function() {
+        return searchGroup.scrollTop;
+      }
+    });
+    recyclist.init();
 
     if (!_source)
       throw new Error('Search requires a contact source!');
@@ -97,16 +111,10 @@ contacts.Search = (function() {
     });
 
     searchList.parentNode.addEventListener('touchstart', function() {
-      if (searchableNodes && remainingPending) {
-        addRemainingResults(searchableNodes, searchPageSize);
-      }
       blurList = true;
     });
     searchNoResult = document.getElementById('no-result');
     searchProgress = document.getElementById('search-progress');
-    searchBox.addEventListener('blur', function() {
-      window.setTimeout(onSearchBlur, 0);
-    });
 
     searchBox.addEventListener('focus', function() {
       blurList = false;
@@ -132,7 +140,7 @@ contacts.Search = (function() {
       searchBox.value = '';
 
       // Resetting state
-      contactNodes = null;
+      contactData = null;
       searchTextCache = {};
       resetState();
 
@@ -155,58 +163,7 @@ contacts.Search = (function() {
     remainingPending = true;
   }
 
-  function addRemainingResults(nodes, from) {
-    if (remainingPending !== true) {
-      return;
-    }
-
-    var fragment = document.createDocumentFragment();
-
-    for (var i = from; i < hardLimit && i < nodes.length; i++) {
-      var node = nodes[i].node;
-      var clon = getClone(node);
-      fragment.appendChild(clon);
-      currentSet[node.dataset.uuid] = clon;
-    }
-
-    if (fragment.hasChildNodes()) {
-      searchList.appendChild(fragment);
-    }
-
-    remainingPending = false;
-  }
-
-  function onSearchBlur(e) {
-    if (canReuseSearchables && searchableNodes &&
-        searchView.classList.contains('insearchmode') && blurList) {
-      // All the searchable nodes have to be added
-      addRemainingResults(searchableNodes, searchPageSize);
-    }
-    else if (emptySearch === true && remainingPending === true) {
-      var lastNode = searchList.querySelector('li:last-child');
-      if (lastNode) {
-        var lastNodeUid = lastNode.dataset.uuid;
-        var startNode = source.getNextNode(source.getNodeById(lastNodeUid));
-        fillIdentityResults(startNode, hardLimit - searchPageSize);
-        remainingPending = false;
-      }
-    }
-  }
-
-  function fillIdentityResults(startNode, number) {
-    var fragment = document.createDocumentFragment();
-
-    var contact = startNode;
-    for (var i = 0; i < number && contact; i++) {
-      var clonedNode = getClone(contact);
-      fragment.appendChild(clonedNode);
-      currentSet[contact.dataset.uuid] = clonedNode;
-      contact = source.getNextNode(contact);
-    }
-
-    if (fragment.hasChildNodes()) {
-      searchList.appendChild(fragment);
-    }
+  function fillIdentityResults() {
   }
 
   function getClone(node) {
@@ -253,25 +210,7 @@ contacts.Search = (function() {
 
   function fillInitialSearchPage() {
     hideProgressResults();
-
-    var startContact = source.getFirstNode();
-    var numToFill = searchPageSize;
-
-    // Calculate rows visible on a single page the first time we get a row
-    // that we can measure.
-    if (startContact && searchPageSize < 1) {
-      fillIdentityResults(startContact, 1);
-
-      var viewHeight = searchList.getBoundingClientRect().height;
-      var rowHeight = searchList.children[0].getBoundingClientRect().height;
-      searchPageSize = Math.ceil(viewHeight / rowHeight);
-      hardLimit = ~~(3.5 * searchPageSize);
-
-      startContact = source.getNextNode(startContact);
-      numToFill = searchPageSize - 1;
-    }
-
-    fillIdentityResults(startContact, numToFill);
+    fillIdentityResults();
   }
 
   function doSearch(contacts, from, searchText, pattern, state) {
@@ -284,24 +223,21 @@ contacts.Search = (function() {
 
     // Search the next chunk of contacts
     var end = from + CHUNK_SIZE;
-    for (var c = from; c < end && c < contacts.length; c++) {
-      var contact = contacts[c].node || contacts[c];
-      var contactText = contacts[c].text || getSearchText(contacts[c]);
+    var c = from;
+    for (; c < end && c < contacts.length; c++) {
+      var contact = contacts[c];
+      var contactText = source.getSearchText(contacts[c]);
       if (!pattern.test(contactText)) {
-        if (contact.dataset.uuid in currentSet) {
-          searchList.removeChild(currentSet[contact.dataset.uuid]);
-          delete currentSet[contact.dataset.uuid];
+        if (contact.id in currentSet) {
+          delete currentSet[contact.id];
         }
       } else {
         if (state.count === 0) {
           hideProgressResults();
         }
         // Only an initial page of elements is loaded in the search list
-        if (Object.keys(currentSet).length < searchPageSize &&
-            !(contact.dataset.uuid in currentSet)) {
-          var clonedNode = getClone(contact);
-          currentSet[contact.dataset.uuid] = clonedNode;
-          searchList.appendChild(clonedNode);
+        if (!(contact.id in currentSet)) {
+          currentSet[contact.id] = contact;
         }
 
         state.searchables.push({
@@ -311,6 +247,8 @@ contacts.Search = (function() {
         state.count++;
       }
     }
+    recyclist.addItems(c - from);
+    recyclist.fix();
 
     // If we are still searching through the list, then schedule
     // the next batch of search comparisons.
@@ -324,7 +262,7 @@ contacts.Search = (function() {
 
     // If we expect to get more nodes, for example if the source is
     // still loading, then delay finalizing the end of the search
-    } else if (source.expectMoreNodes()) {
+    } else if (source.expectMoreData()) {
       // Since we're blocked waiting on more contacts to be provided,
       // use some delay here to avoid a tight spin loop.
       var delay = 250;
@@ -348,7 +286,6 @@ contacts.Search = (function() {
       if (blurList === true) {
         searchTimer = window.setTimeout(function() {
           searchTimer = null;
-          addRemainingResults(searchableNodes, searchPageSize);
         },0);
       }
     }
@@ -373,10 +310,10 @@ contacts.Search = (function() {
   // Allow the main contacts list to asynchronously tell us about additional
   // nodes as they are loaded.
   var appendNodes = function appendNodes(nodes) {
-    if (!nodes || !nodes.length || !contactNodes)
+    if (!nodes || !nodes.length || !contactData)
       return;
 
-    contactNodes.push.apply(contactNodes, nodes);
+    contactData.push.apply(contactData, nodes);
 
     // If there are no searches in progress, then we are done
     if (!currentTextToSearch || !canReuseSearchables || !searchableNodes)
@@ -387,7 +324,7 @@ contacts.Search = (function() {
     var pattern = new RegExp(currentTextToSearch, 'i');
     for (var i = 0, n = nodes.length; i < n; ++i) {
       var node = nodes[i];
-      var nodeText = getSearchText(node);
+      var nodeText = source.getSearchText(node);
       if (pattern.test(nodeText)) {
         searchableNodes.push({
           node: node,
@@ -432,40 +369,22 @@ contacts.Search = (function() {
     }
   };
 
-  function getSearchText(contact) {
-    var out = '';
-
-    var uuid = contact.dataset.uuid;
-    if (uuid) {
-      out = searchTextCache[uuid];
-      if (!out) {
-        out = source.getSearchText(contact);
-        searchTextCache[uuid] = out;
-      }
+  var getContactsData = function contactsDom() {
+    if (!contactData) {
+      contactData = source.getData();
     }
-    else {
-      window.console.error('Search: Not uuid found for the provided node');
-    }
-
-    return out;
-  }
-
-  var getContactsDom = function contactsDom() {
-    if (!contactNodes) {
-      contactNodes = source.getNodes();
-    }
-    return contactNodes;
+    return contactData;
   };
 
   var getContactsToSearch = function getContactsToSearch(newText, prevText) {
     var out;
     if (canReuseSearchables && newText.length > prevText.length &&
         prevText.length > 0 && newText.indexOf(prevText) === 0) {
-      out = searchableNodes || getContactsDom();
+      out = searchableNodes || getContactsData();
     } else {
       utils.dom.removeChildNodes(searchList);
       currentSet = {};
-      out = getContactsDom();
+      out = getContactsData();
       canReuseSearchables = false;
     }
 
@@ -484,7 +403,7 @@ contacts.Search = (function() {
     currentTextToSearch = '';
     canReuseSearchables = false;
     searchableNodes = null;
-    contactNodes = null;
+    contactData = null;
     currentSet = {};
     searchTextCache = {};
   };
