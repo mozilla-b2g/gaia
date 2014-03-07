@@ -61,8 +61,6 @@ apps/calendar/js/store/setting.js
 apps/calendar/js/template.js
 apps/calendar/js/templates/account.js
 apps/calendar/js/templates/alarm.js
-apps/calendar/js/templates/calendar.js
-apps/calendar/js/templates/day.js
 apps/calendar/js/templates/month.js
 apps/calendar/js/templates/week.js
 apps/calendar/js/time_observer.js
@@ -70,11 +68,9 @@ apps/calendar/js/timespan.js
 apps/calendar/js/tz.js
 apps/calendar/js/utils/account_creation.js
 apps/calendar/js/utils/ordered_map.js
-apps/calendar/js/utils/overlap.js
 apps/calendar/js/utils/uri.js
 apps/calendar/js/view.js
 apps/calendar/js/views/advanced_settings.js
-apps/calendar/js/views/calendar_colors.js
 apps/calendar/js/views/create_account.js
 apps/calendar/js/views/day.js
 apps/calendar/js/views/day_based.js
@@ -95,7 +91,6 @@ apps/calendar/js/views/week_child.js
 apps/calendar/js/worker/manager.js
 apps/calendar/js/worker/thread.js
 apps/calendar/test/assertions.js
-apps/calendar/test/marionette/day_view_test.js
 apps/calendar/test/marionette/today_test.js
 apps/calendar/test/unit/app_test.js
 apps/calendar/test/unit/calc_test.js
@@ -163,10 +158,8 @@ apps/calendar/test/unit/utils/overlap_test.js
 apps/calendar/test/unit/utils/uri_test.js
 apps/calendar/test/unit/view_test.js
 apps/calendar/test/unit/views/advanced_settings_test.js
-apps/calendar/test/unit/views/calendar_colors_test.js
 apps/calendar/test/unit/views/create_account_test.js
 apps/calendar/test/unit/views/day_based_test.js
-apps/calendar/test/unit/views/day_child_test.js
 apps/calendar/test/unit/views/day_test.js
 apps/calendar/test/unit/views/errors_test.js
 apps/calendar/test/unit/views/event_base_test.js

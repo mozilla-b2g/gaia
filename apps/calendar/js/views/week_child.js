@@ -1,7 +1,8 @@
+/*global Calendar */
 Calendar.ns('Views').WeekChild = (function() {
+  'use strict';
 
   var template = Calendar.Templates.Week;
-  var OrderedMap = Calendar.Utils.OrderedMap;
   var _super = Calendar.Views.DayBased.prototype;
 
   function Week(options) {
@@ -48,13 +49,14 @@ Calendar.ns('Views').WeekChild = (function() {
      * @param {Numeric} duration in hours, minutes as decimal part.
      */
     _assignHeight: function(element, hoursDuration) {
-      var percHeight = hoursDuration * 100;
-
-      // TODO: This is a magic calculation based on current CSS. Fix this so
-      // that it can be dynamic based on CSS, or fix CSS to not need this.
-      var pxHeight = (hoursDuration * 2) - 5;
-
-      element.style.height = 'calc(' + percHeight + '% + ' + pxHeight + 'px)';
+      var percHeight = (hoursDuration * 100) + '%';
+      var remHeight = (Math.floor(hoursDuration) / 10) + 'rem';
+      // we use 0.1rem as margin between events, otherwise consecutive events
+      // would "blend". Need also to increase height to account for each border
+      // between the hours, otherwise events that spans through multiple hours
+      // would not be aligned properly
+      element.style.height = 'calc(' + percHeight + ' + ' + remHeight +
+        ' - 0.1rem)';
     },
 
     create: function() {

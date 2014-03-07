@@ -40,6 +40,7 @@ Calendar.Selector = Object.freeze({
   editEventDescription: '#modify-event-view textarea[name="description"]',
   eventListSection: '#event-list',
   weekViewEvent: '#week-view .event',
+  weekViewEventContainer: '#week-view .event .container',
   modifyEventView: '#modify-event-view',
   monthViewDayEvent: '#event-list .event',
   monthViewDayEventName: 'h5',                // Search beneath .event
@@ -47,6 +48,11 @@ Calendar.Selector = Object.freeze({
   monthViewpresent: '#month-view li.present',
   monthViewselected: '#month-view li.selected',
   monthYearHeader: '#current-month-year',
+  dayViewAllDayIcon: '#day-view .active .hour-allday .icon-allday',
+  dayViewEvent: '#day-view .active .event',
+  dayViewEventContainer: '#day-view .active .event .container',
+  dayViewEventTitle: '#day-view .active .event .container h5',
+  dayViewEventLocation: '#day-view .active .event .container .location',
   viewEventView: '#event-view',
   viewEventViewAlarm: '#event-view .alarms > .content > div',
   viewEventViewCalendar: '#event-view .current-calendar .content',
@@ -117,6 +123,10 @@ Calendar.prototype = {
     this.client.waitFor(this.isWeekViewActive.bind(this));
   },
 
+  waitForDayView: function() {
+    this.client.waitFor(this.isDayViewActive.bind(this));
+  },
+
   // TODO: extract this logic into the marionette-helper repository since this
   // can be useful for other apps as well
   waitForKeyboardHide: function() {
@@ -175,6 +185,8 @@ Calendar.prototype = {
 
     // Save event.
     this.waitForElement('editEventSaveButton').click();
+
+    this.waitForKeyboardHide();
 
     // TODO(gareth): Sort out the dates and times here.
     return {

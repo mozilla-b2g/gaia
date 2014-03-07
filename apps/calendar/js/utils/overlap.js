@@ -1,8 +1,10 @@
+/*global Calendar*/
 /**
  * Representation of conflicts over a span of time, organized into
  * non-overlapping columns tracked by IntervalTree instances.
  */
 Calendar.ConflictSpan = (function() {
+  'use strict';
 
   // Smallest gap interval to use in splitting conflict spans
   var MIN_SPLIT_INTERVAL = 5 * 60 * 1000;  // 5 minutes
@@ -19,7 +21,7 @@ Calendar.ConflictSpan = (function() {
     this.columnsByID = {};
     this.columns = [];
     this.addColumn();
-  };
+  }
 
   ConflictSpan.prototype = {
 
@@ -270,6 +272,17 @@ Calendar.ConflictSpan = (function() {
           var el = this.parent.getElement(busytime);
           el.style.width = width + '%';
           el.style.left = (width * cIdx) + '%';
+          // we toggle the display based on amount of overlaps
+          if (numCols > 4) {
+            el.classList.add('many-overlaps');
+          } else {
+            el.classList.remove('many-overlaps');
+          }
+          if (numCols > 1) {
+            el.classList.add('has-overlaps');
+          } else {
+            el.classList.remove('has-overlaps');
+          }
         }
       }
     }
@@ -283,10 +296,11 @@ Calendar.ConflictSpan = (function() {
  * Conflict manager
  */
 Calendar.ns('Utils').Overlap = (function() {
+  'use strict';
 
   function Overlap() {
     this.reset();
-  };
+  }
 
   Overlap.prototype = {
 
@@ -302,7 +316,9 @@ Calendar.ns('Utils').Overlap = (function() {
 
       // Check for conflicts, bail if none
       var related = this._findRelated(myBusytime);
-      if (0 === related.length) return;
+      if (0 === related.length) {
+        return;
+      }
 
       var myID = myBusytime._id;
       var myCS = this.conflicts[myID];
@@ -311,7 +327,9 @@ Calendar.ns('Utils').Overlap = (function() {
       related.forEach(function(otherBusytime) {
         // Get the other's ID, skip the current
         var otherID = otherBusytime._id;
-        if (otherID == myID) return;
+        if (otherID == myID) {
+          return;
+        }
 
         var otherCS = self.conflicts[otherID];
         if (!myCS && !otherCS) {
@@ -401,6 +419,7 @@ Calendar.ns('Utils').Overlap = (function() {
       var el = this.elements[busytime._id];
       el.style.width = '';
       el.style.left = '';
+      el.classList.remove('has-overlaps', 'many-overlaps');
     }
 
   };

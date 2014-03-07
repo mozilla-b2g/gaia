@@ -67,6 +67,6 @@ html, body {
  */
 #week-view .sidebar,
 #week-view .scroll > .children,
-.day-events > .hour {
+#day-view .hour:not(.hour-allday) {
   background-color: #fff;
 }

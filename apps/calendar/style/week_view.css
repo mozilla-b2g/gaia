@@ -4,14 +4,12 @@
 }
 
 #week-view h1 {
-  color: white;
-  background-color: #2A2A2A;
+  color: #707070;
   text-transform: uppercase;
   font-size: 1.3rem;
   height: 2rem;
-  padding: 0.5rem 0.5rem;
-  border-right: 1px solid #131314;
-  border-left: 1px solid #515051;
+  line-height: 1.9rem;
+  text-align: center;
   font-weight: normal;
   white-space: nowrap;
   overflow: hidden;
@@ -35,19 +33,16 @@
 #week-view .sticky ul {
   list-style-type: none;
   margin: 0;
-  padding: 0 0 0 2rem;
+  padding: 0 0 0 2.9rem;
   height: 2rem;
-  background: #2A2A2A;
+  border-bottom: 0.1rem solid #e2e2e2;
 }
 
 #week-view .week-events > ol,
 #week-view .sticky .week-events {
-  border-bottom: 1px solid #ccc;
-  border-left: 1px solid #ccc;
-  text-align: center;
-  color: white;
-  font-size: 120%;
-  height: 6rem;
+  border-bottom: 0.1rem solid #f8f8f8;
+  border-left: 0.1rem solid #f8f8f8;
+  height: 5rem;
   position: relative;
 }
 
@@ -56,13 +51,14 @@
 }
 
 #week-view .sticky ul > li {
-  height: 6rem;
+  height: 7rem;
 }
 
 #week-view .sticky .week-events {
   border-bottom: 0;
-  height: 100%;
+  height: 5rem;
   overflow-y: scroll;
+  border-left: 0.1rem solid #e2e2e2;
 }
 
 #week-view .sticky .week-events li.event {
@@ -78,22 +74,29 @@
 }
 
 #week-view .sticky {
-  border-bottom: 1px solid #2A2A2A;
-  height: 8rem;
+  background-color: #f8f8f8;
+  border-bottom: 0.1rem solid #e2e2e2;
+  height: 7.1rem;
   overflow: hidden;
-  box-shadow: 0px 5px 5px 0px rgba(1, 1, 1, 0.2);
   position: relative;
   z-index: 11;
 }
 
 #week-view .sticky .all-day {
-  transform: rotate(-90deg);
-  line-height: 120%;
   float: left;
   position: absolute;
-  top: 4rem;
-  left: -1rem;
-  font-size: 1.3rem;
+  top: 2rem;
+  font-size: 3.2rem;
+  width: 2.9rem;
+  height: 4rem;
+  color: #707070;
+  text-align: center;
+  overflow: hidden;
+  padding-top: 0.8rem;
+}
+
+#week-view .icon-allday:before {
+  margin-left: -0.2rem;
 }
 
 #week-view .sticky .children {
@@ -107,12 +110,12 @@
 
 /* sidebar styles */
 #week-view .sidebar {
-   min-height: 6rem;
-   width: 2rem;
-   color: #000;
+   min-height: 5rem;
+   width: 2.9rem;
+   color: #707070;
    text-align: center;
    text-transform: uppercase;
-   font-size: 1.4rem;
+   font-size: 1.5rem;
    border-left: none;
    border-top: none;
    float: left;
@@ -123,20 +126,20 @@
 }
 
 #week-view .sidebar > li {
-  transform: rotate(-90deg);
-  line-height: 120%;
-  width: 6rem;
+  line-height: 1.5;
+  width: 3rem;
   padding: 0.4rem 0.3rem 0 0;
   float: left;
-  height: 6rem;
+  height: 5rem;
   text-align: center;
-  border-left: 1px solid #CCC;
+
+  border-bottom: 0.1rem solid #f8f8f8;
   padding: 0.2rem;
   overflow: hidden;
 }
 
 #week-view .scroll {
-  height: calc(100% - 7.9rem);
+  height: calc(100% - 7rem);
   overflow-y: scroll;
   will-change: scroll-position;
 }
@@ -145,7 +148,7 @@
   position: relative;
   height: 100%;
   float: left;
-  width: calc(100% - 2rem);
+  width: calc(100% - 2.9rem);
 }
 
 
@@ -165,30 +168,54 @@
 }
 
 /* week view event styles */
-#week-view .week-events > ol li.event {
+#week-view .week-events .event {
   position: absolute;
   width: 100%;
+  overflow: hidden;
+  border-left-style: solid;
+  border-left-width: 0.4rem;
+  padding: 0.6rem 0.7rem;
+  /* set z-index so it's over the lines */
+  z-index: 1;
 }
 
 #week-view .week-events .container {
-  height: 100%;
-  margin: 1px;
-  line-height: 1.4rem;
-  font-size: 120%;
-  padding: 0.2rem;
   overflow: hidden;
   text-overflow: ellipsis;
-  position: relative;
+  line-height: 1.8rem;
+  font-size: 1.4rem;
+  color: #333;
+  font-weight: 500;
+  width: 100%;
+  height: 100%;
 }
 
-/* overlap */
-.weekday .event[data-overlaps="1"] { padding: 0.3rem; }
-.weekday .event[data-overlaps="2"] { padding: 0.6rem; }
-.weekday .event[data-overlaps="3"] { padding: 0.9rem; }
-.weekday .event[data-overlaps="4"] { padding: 1.2rem; }
-.weekday .event[data-overlaps="5"] { padding: 1.5rem; }
-.weekday .event[data-overlaps="6"] { padding: 1.8rem; }
-.weekday .event[data-overlaps="7"] { padding: 2.1rem; }
-.weekday .event[data-overlaps="8"] { padding: 2.4rem; }
-.weekday .event[data-overlaps="9"] { padding: 2.7rem; }
-.weekday .event[data-overlaps="10"] { padding: 3rem; }
+#week-view .week-events .has-overlaps .container {
+  /* we hide text if event overlaps with another since column is too narrow */
+  visibility: hidden;
+}
+
+/* partial hour events */
+#week-view .event.partial-hour {
+  padding-top: 0.4rem;
+  padding-bottom: 0.4rem;
+}
+
+#week-view .event.partial-hour-tiny {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+#week-view .event.partial-hour-micro .container {
+  visibility: hidden;
+}
+
+#week-view .event.partial-hour .container {
+  padding-right: 0.7rem;
+  height: auto;
+  white-space: nowrap;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+}
+

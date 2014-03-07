@@ -13,10 +13,10 @@
 }
 
 .day-events > .hour {
-  height: 6rem;
+  height: 5rem;
   padding-left: 1.5rem;
   position: relative;
-  border-bottom: 0.1rem solid #D0D0D0;
+  border-bottom: 0.1rem solid #f8f8f8;
 }
 
 .day-events > .hour:last-child {
@@ -24,10 +24,17 @@
 }
 
 .day-events > .hour.hour-allday {
-  min-height: 6rem;
+  min-height: 5rem;
   height: auto;
 }
 
+.day-events .hour.hour-allday .display-hour {
+  overflow: hidden;
+  height: 1px;
+  width: 1px;
+  text-indent: 100%;
+  display: block;
+}
 
 .day-events .hour-allday .events {
   height: auto;
@@ -35,11 +42,12 @@
 
 .day-events > .hour h4 {
   position: absolute;
-  width: 6rem;
-  padding-top: 1.4rem;
-  color: #000;
+  width: 4em;
+  color: #777;
   font-size: 1.4rem;
   font-weight: 400;
+  line-height: 1;
+  padding-top: 0.5rem;
 }
 
 /** events */
@@ -47,16 +55,18 @@
 .day-events .events {
   -moz-user-select: none;
   position: relative;
-  width: calc(100% - 7.4rem);
-  height: 6rem;
-  margin-left: 7.4rem;
-  border-left: 0.1rem solid #bbb;
+  width: calc(100% - 6rem);
+  height: 5rem;
+  margin-left: 5.5rem;
+  border-left: 0.1rem solid #f8f8f8;
 }
 
 .day-events .event {
   position: absolute;
-  height: 6rem;
   top: 0;
+  overflow: hidden;
+  /* we set z-index so event always goes above hour "lines" */
+  z-index: 1;
 }
 
 .day-events .hour-allday .event {
@@ -64,71 +74,109 @@
 }
 
 .day-events .container {
-  /* turn off calendar color bg */
-  background: white !important;
-  border-width: 0.1rem;
-  border-style: solid;
-  border-left-width: 0.6rem;
   height: 100%;
-  padding: 0.8rem 1rem 2.2rem;
+  padding: 0.85rem 0.7rem 0;
+  border-left-style: solid;
+  border-left-width: 0.4rem;
 }
 
-.day-events .event.has-alarms .container {
-  background: #FFF url(/style/icons/alarm.png) no-repeat top right / 3rem !important;
+.day-events .container.has-alarm {
+  padding-right: 3rem;
 }
 
-.day-events .hour .display-hour {
-  display: block;
-  text-transform: uppercase;
-  overflow: hidden;
-  height: 100%;
-  vertical-align: top;
+.day-events .icon-alarm {
+  position: absolute;
+  top: 2px;
+  right: 0;
 }
 
 .day-events .event h5 {
-  width: calc(100% - 1rem - 0.6rem);
-  min-height: 2.2rem;
-  padding-top: 0.6rem;
-  font-size: 1.9rem;
-  font-weight: 500;
+  min-height: 1.5rem;
+  font-size: 1.4rem;
+  line-height: 1;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+  color: #333;
+  font-weight: 500;
 }
 
-.day-events .event .details {
+.day-events .event .location {
   display: block;
   top: 2.8rem;
-  width: calc(100% - 1rem - 0.6rem);
   min-height: 2.1rem;
-  padding-top: 0.8rem;
+  padding-top: 0.5rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: #5b5b5b;
-  font-size: 1.5rem;
+  color: #707070;
+  font-size: 1.3rem;
+  font-weight: 400;
 }
 
-.day-events .event.partial-hour .details {
+/* we hide when the there is not enough room for copy */
+.day-events .event.many-overlaps h5,
+.day-events .event.many-overlaps .location {
   display: none;
 }
 
-.attendee {
-  padding-right: 0.3rem;
+.day-events .event.partial-hour .container {
+  padding-top: 0.4rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-/* overlap */
+.day-events .event.partial-hour-tiny .container,
+.day-events .event.partial-hour-small .container {
+  padding-top: 0;
+  padding-bottom: 0;
+  display: flex;
+  align-items: center;
+}
 
-.event[data-overlaps="1"] { padding-left: 0.6rem; z-index: 11; }
-.event[data-overlaps="2"] { padding-left: 1.2rem; z-index: 12; }
-.event[data-overlaps="3"] { padding-left: 1.8rem; z-index: 13; }
-.event[data-overlaps="4"] { padding-left: 2.4rem; z-index: 14; }
-.event[data-overlaps="5"] { padding-left: 3rem; z-index: 15; }
-.event[data-overlaps="6"] { padding-left: 3.6rem; z-index: 16; }
-.event[data-overlaps="7"] { padding-left: 4.2rem; z-index: 17; }
-.event[data-overlaps="8"] { padding-left: 4.8rem; z-index: 18; }
-.event[data-overlaps="9"] { padding-left: 5.4rem; z-index: 19; }
-.event[data-overlaps="10"] { padding-left: 6rem; z-index: 20; }
+.day-events .event.partial-hour-micro .container,
+.day-events .event.partial-hour-tiny .container {
+  /* since alarm icon is hidden we remove the padding right */
+  padding-right: 0.7rem;
+}
+
+.day-events .event.partial-hour .location {
+  padding-top: 0.2rem;
+}
+
+.day-events .event.partial-hour-tiny h5,
+.day-events .event.partial-hour-tiny .location,
+.day-events .event.partial-hour-small h5,
+.day-events .event.partial-hour-small .location {
+  display: inline-block;
+  line-height: 1.6rem;
+  min-height: 0;
+  padding: 0;
+}
+
+.day-events .event.partial-hour-tiny h5,
+.day-events .event.partial-hour-small h5 {
+  margin-right: 0.85rem;
+}
+
+.day-events .event.partial-hour-micro h5,
+.day-events .event.partial-hour-micro .location {
+  visibility: hidden;
+}
+
+.day-events .event.partial-hour-micro .icon-alarm,
+.day-events .event.partial-hour-tiny .icon-alarm {
+  /* hide icon since we don't have enough space for it and using a different
+   * size looks weird (not consistent) */
+  display: none;
+}
+
+.day-events .event.partial-hour-small .icon-alarm {
+  top: 50%;
+  transform: translateY(-50%);
+}
+
 
 /* months day view */
 
@@ -151,7 +199,9 @@
 }
 
 #day-view h4 {
-  font-size: 1.3rem;
+  font-size: 1.5rem;
+  width: 3em;
+  font-weight: normal;
 }
 
 #day-view > section.active {
@@ -161,13 +211,25 @@
 #day-view .day-events {
   overflow-y: scroll;
   overflow-x: hidden;
-  height: calc(100% - 6rem);
+  height: calc(100% - 5rem);
   will-change: scroll-position;
 }
 
 #day-view .day-events.allday {
-  height: 6rem;
-  box-shadow: 0px 5px 5px 0px rgba(1, 1, 1, 0.2);
+  height: 5rem;
+  border-bottom: 1px solid #e2e2e2;
   position: relative;
   z-index: 11;
+  background-color: #f8f8f8;
+}
+
+#day-view .day-events.allday h4 {
+  width: 3.3rem;
+  height: 100%;
+}
+
+#day-view .icon-allday:before {
+  position: relative;
+  top: 3px;
+  left: 4px
 }
