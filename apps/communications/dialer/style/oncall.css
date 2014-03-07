@@ -433,6 +433,10 @@
     padding-right: 7rem;
   }
 
+  #calls:not(.big-duration) > section:not(.ended) .duration:not(.isTimer) {
+    visibility: hidden;
+  }
+
   #calls.big-duration > section .numberWrapper,
   #calls.big-duration > section .additionalContactInfo,
   #calls.big-duration > section .switch-calls {
