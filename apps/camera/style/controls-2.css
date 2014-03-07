@@ -192,6 +192,10 @@
   opacity: 0.35;
 }
 
+/**
+ * mode=video
+ */
+
 [mode=video] .outer-circle {
   background: #D92E2E;
 }
@@ -204,28 +208,42 @@
   transform: scale(0.74);
 }
 
-[mode=video][recording=true] .capture-button-2 .inner-circle {
-  background-color: #D92E2E;
-}
+/**
+ * capture-active,
+ * :active
+ */
 
+[capture-active=true] .capture-button-2 .inner-circle,
 .capture-button-2:active .inner-circle {
   background-color: #00caf2;
   transform: scale(1.0);
   transition: transform 200ms ease-in;
 }
 
-[mode=video] .capture-button-2:active .inner-circle {
-  background-color: #D92E2E;
-}
+/**
+ * mode=video
+ */
 
 [mode=video] .inner-circle {
   position: relative;
 }
 
+/**
+ * mode=video && recording=true,
+ * mode=video && capture-active,
+ * mode=video && active,
+ */
+
+[mode=video][recording=true] .capture-button-2 .inner-circle,
+[mode=video][capture-active=true] .capture-button-2 .inner-circle,
+[mode=video] .capture-button-2:active .inner-circle {
+  background-color: #D92E2E;
+}
+
 /** Icon
  ---------------------------------------------------------*/
 
-.capture-button-2 .center::after {
+.capture-button-2 .center:after {
   position: absolute;
   top: 50%;
   left: 50%;
@@ -239,11 +257,21 @@
   content: "\e60f";
 }
 
-.capture-button-2:active .center::after{
+/**
+ * capture=active,
+ * :active
+ */
+
+[capture-active=true] .capture-button-2 .center:after,
+.capture-button-2:active .center:after {
   color: white;
 }
 
-[mode=video] .capture-button-2 .center::after {
+/**
+ * mode=video
+ */
+
+[mode=video] .capture-button-2 .center:after {
   width: 20px;
   height: 20px;
   margin-top: -10px;
@@ -254,7 +282,13 @@
   content: "";
 }
 
-[mode=video][recording=true] .capture-button-2 .center::after {
+/**
+ * mode=video && capture-active=true,
+ * mode=video && recording=true
+ */
+
+[mode=video][capture-active=true] .capture-button-2 .center:after,
+[mode=video][recording=true] .capture-button-2 .center:after {
   border-radius: 25%;
   background-color: white;
 }

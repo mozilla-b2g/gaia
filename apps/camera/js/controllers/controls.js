@@ -47,9 +47,9 @@ ControlsController.prototype.bindEvents = function() {
   this.app.on('camera:loading', this.disableButtons);
   this.app.on('camera:ready', this.enableButtons);
   this.app.on('camera:busy', this.disableButtons);
-  this.app.on('timer:started', this.disableButtons);
-  this.app.on('timer:cleared', this.enableButtons);
-  this.app.on('timer:ended', this.enableButtons);
+  this.app.on('timer:started', this.onTimerStarted);
+  this.app.on('timer:cleared', this.onTimerEnd);
+  this.app.on('timer:ended', this.onTimerEnd);
 
   debug('events bound');
 };
@@ -89,6 +89,16 @@ ControlsController.prototype.enableButtons = function() {
  */
 ControlsController.prototype.onNewMedia = function(image) {
   this.controls.setThumbnail(image.thumbnail);
+};
+
+ControlsController.prototype.onTimerStarted = function(image) {
+  this.controls.set('capture-active', true);
+  this.disableButtons();
+};
+
+ControlsController.prototype.onTimerEnd = function(image) {
+  this.controls.set('capture-active', false);
+  this.enableButtons();
 };
 
 /**
