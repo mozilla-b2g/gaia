@@ -9,6 +9,7 @@ after_script: ./node_modules/.bin/travisaction $CI_ACTION after_script
 branches:
   only:
   - master
+  - calendar-visual-refresh
 env:
   matrix:
   - CI_ACTION=linters
@@ -24,7 +25,3 @@ matrix:
   fast_finish: true
 notifications:
   email: false
-  irc:
-    on_success: change
-    channels:
-    - irc.mozilla.org#gaia
