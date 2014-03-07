@@ -193,7 +193,6 @@ var DataUsageTab = (function() {
 
         debug('Rendering');
         updateUI();
-        checkDataUsageNotification(settings, modelData.mobile.total);
       });
 
     } else {

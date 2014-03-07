@@ -2,6 +2,8 @@
   Message app settings related value and utilities.
 */
 
+/* global MobileOperator*/
+
 /* exported Settings */
 
 
@@ -140,5 +142,23 @@ var Settings = {
 
     var simName = navigator.mozL10n.get('sim-name', { id: index });
     return simName;
+  },
+
+  /**
+   * Will return operator name depending on the iccId.
+   * Will return the empty string in a single SIM scenario.
+   */
+  getOperatorByIccId: function getOperatorByIccId(iccId) {
+    if (!this._serviceIds) {
+      return '';
+    }
+
+    var index = this._serviceIds.indexOf(iccId);
+    if (index < 0) {
+      return '';
+    }
+
+    var conn = navigator.mozMobileConnections[index];
+    return MobileOperator.userFacingInfo(conn).operator;
   }
 };
