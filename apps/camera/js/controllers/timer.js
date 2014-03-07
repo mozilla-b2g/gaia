@@ -29,10 +29,9 @@ module.exports.TimerController = TimerController;
 function TimerController(app) {
   bindAll(this);
   this.app = app;
-  this.timer = app.views.timer || new TimerView();
-  this.bindTimerEvents = async(this.bindTimerEvents);
-  this.setting = this.app.settings.timer;
-  this.timer.appendTo(app.el);
+  this.settings = app.settings;
+  this.view = app.views.timer || new TimerView();
+  this.view.appendTo(app.el);
   this.bindEvents();
 }
 
@@ -43,43 +42,63 @@ function TimerController(app) {
  * @private
  */
 TimerController.prototype.bindEvents = function() {
-  this.timer.on('start', this.app.firer('timer:start'));
-  this.timer.on('clear', this.app.firer('timer:clear'));
-  this.app.on('capture', this.onCapture);
+  this.app.on('startcountdown', this.start);
 };
 
 /**
- * Will start a timer only if it is
- * set, and the camera is not currently
- * recording.
+ * Start the timer counting down
+ * from the currently set timer value.
  *
- * Returning false prevents any further
- * 'capture' listeners firing. Similiar to
- * event.stopImmediatePropagation();
+ * We bind to the app event asynchronously
+ * so that the timer isn't instantly
+ * cleared by the 'click' that started it.
  *
  * @private
  */
-TimerController.prototype.onCapture = function() {
-  var time = this.setting.selected('value');
-  var recording = this.app.get('recording');
-  var startTimer = time && !recording;
-  if (startTimer) {
-    this.startTimer(time);
-    return false;
+TimerController.prototype.start = function() {
+  this.seconds = this.settings.timer.selected('value');
+  this.interval = setInterval(this.tick, 1000);
+  this.view.set(this.seconds).show();
+  setTimeout(this.bindTimerEvents);
+  this.app.set('timerActive', true);
+  this.app.emit('timer:started');
+  debug('started');
+};
+
+/**
+ * Updates the timer and checks
+ * if it has reached the end.
+ *
+ * @private
+ */
+TimerController.prototype.tick = function() {
+  this.view.set(--this.seconds);
+  if (!this.seconds) {
+    this.app.emit('timer:ended');
+    this.clear({ silent: true });
   }
 };
 
 /**
- * Start the timer counting and
- * begin listening to events.
+ * Clear the timer and hide
+ * the view.
  *
+ * Options:
+ *
+ *   - `silent` no 'clear' event
+ *
+ * @param  {Object} options
  * @private
  */
-TimerController.prototype.startTimer = function(time) {
-  this.timer.set(time);
-  this.timer.start();
-  this.bindTimerEvents();
-  debug('set timer: %s', time);
+TimerController.prototype.clear = function(options) {
+  var silent = options && options.silent;
+  clearInterval(this.interval);
+  this.unbindTimerEvents();
+  this.view.hide();
+  this.seconds = 0;
+  this.app.set('timerActive', false);
+  if (!silent) { this.app.emit('timer:cleared'); }
+  debug('cleared');
 };
 
 /**
@@ -95,10 +114,8 @@ TimerController.prototype.startTimer = function(time) {
  * @private
  */
 TimerController.prototype.bindTimerEvents = function() {
-  this.timer.on('clear', this.unbindTimerEvents);
-  this.timer.on('end', this.onTimerEnd);
-  this.app.on('click', this.timer.clear);
-  this.app.on('blur', this.timer.clear);
+  this.app.on('click', this.clear);
+  this.app.on('blur', this.clear);
 };
 
 /**
@@ -108,32 +125,8 @@ TimerController.prototype.bindTimerEvents = function() {
  * @private
  */
 TimerController.prototype.unbindTimerEvents = function() {
-  this.timer.off('clear', this.unbindTimerEvents);
-  this.timer.off('end', this.onTimerEnd);
-  this.app.off('click', this.timer.clear);
-  this.app.off('blur', this.timer.clear);
+  this.app.off('click', this.clear);
+  this.app.off('blur', this.clear);
 };
-
-/**
- * Fire an app event that will be
- * used to trigger the camera to
- * take a picture or begin recording.
- *
- * @private
- */
-TimerController.prototype.onTimerEnd = function() {
-  this.app.fire('timer:end');
-  this.unbindTimerEvents();
-};
-
-/**
- * Make a function asynchronous.
- *
- * @param  {Function} fn
- * @return {Function}
- */
-function async(fn) {
-  return function() { setTimeout(fn); };
-}
 
 });

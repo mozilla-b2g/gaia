@@ -47,9 +47,9 @@ ControlsController.prototype.bindEvents = function() {
   this.app.on('camera:loading', this.disableButtons);
   this.app.on('camera:ready', this.enableButtons);
   this.app.on('camera:busy', this.disableButtons);
-  this.app.on('timer:clear', this.enableButtons);
-  this.app.on('timer:end', this.enableButtons);
-  this.app.on('timer:start', this.disableButtons);
+  this.app.on('timer:started', this.disableButtons);
+  this.app.on('timer:cleared', this.enableButtons);
+  this.app.on('timer:ended', this.enableButtons);
 
   debug('events bound');
 };
@@ -76,11 +76,8 @@ ControlsController.prototype.disableButtons = function() {
 };
 
 ControlsController.prototype.enableButtons = function() {
-  var self = this;
-  setTimeout(function() {
-    self.controls.enable('buttons');
-    debug('buttons enabled!!!!');
-  });
+  this.controls.enable('buttons');
+  debug('buttons enabled');
 };
 
 /**

@@ -85,7 +85,7 @@ CameraController.prototype.bindEvents = function() {
 
   // App
   app.on('settings:configured', this.onSettingsConfigured);
-  app.on('timer:end', this.capture);
+  app.on('timer:ended', this.capture);
   app.on('focus', this.camera.load);
   app.on('capture', this.capture);
   app.on('boot', this.camera.load);
@@ -118,8 +118,21 @@ CameraController.prototype.onSettingsConfigured = function() {
 };
 
 CameraController.prototype.capture = function() {
+  if (this.shouldCountdown()) { return; }
   var position = this.app.geolocation.position;
   this.camera.capture({ position: position });
+};
+
+CameraController.prototype.shouldCountdown = function() {
+  var timerSet = this.settings.timer.selected('value');
+  var timerActive = this.app.get('timerActive');
+  var recording = this.app.get('recording');
+  var shouldCountdown = timerSet && !timerActive && !recording;
+  debug('should countdown: %s', shouldCountdown);
+  if (shouldCountdown) {
+    this.app.emit('startcountdown');
+    return true;
+  }
 };
 
 CameraController.prototype.onNewImage = function(image) {
@@ -285,27 +298,5 @@ CameraController.prototype.onBlur = function() {
 
   debug('torn down');
 };
-/**
-* set Self timer value when change from settings
-*@ paramet
-**/
-CameraController.prototype.setSelfTimer = function(value){
-  this.camera.configureSelfTimer(value);
-};
 
-/**
-* cancel Self timer if clicked on viewfinder or any other copenet on screen
-*@ paramet
-**/
-CameraController.prototype.cancelSelfTimer = function(){
-    if(this.selfTimer)
-    {
-      clearInterval(this.selfTimer);
-      clearTimeout(this.selfTimeout);
-      this.selfTimer = null;
-      this.selfTimeout = null;
-      // hide timer UI
-      this.selfTimerView.removeTimerUI();
-    }
-};
 });

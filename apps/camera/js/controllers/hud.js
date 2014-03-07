@@ -60,8 +60,8 @@ HudController.prototype.bindEvents = function() {
   this.app.on('change:recording', this.onRecordingChange);
   this.app.on('camera:ready', this.hud.show);
   this.app.on('camera:busy', this.hud.hide);
-  this.app.on('timer:start', this.hud.hide);
-  this.app.on('timer:clear', this.hud.show);
+  this.app.on('timer:started', this.hud.hide);
+  this.app.on('timer:cleared', this.hud.show);
 };
 
 HudController.prototype.onSettingsConfigured = function() {

@@ -4,7 +4,8 @@ define(function(require, exports, module) {
 /**
  * Dependencies
  */
-var debug = require('debug')('view:selftimer');
+
+var debug = require('debug')('view:timer');
 var View = require('vendor/view');
 
 /**
@@ -13,12 +14,6 @@ var View = require('vendor/view');
 
 /**
  * Timer
- *
- * Events:
- *
- *   - `start`
- *   - `end`
- *   - `clear`
  *
  * @constructor
  */
@@ -39,38 +34,18 @@ module.exports = View.extend({
     var isNear = time <= this.near;
     this.els.count.textContent = time;
     this.el.classList.toggle('near', isNear);
-    this.time = time;
     debug('set time: %s, near: %s', time, isNear);
     return this;
   },
 
-  start: function() {
-    if (this.time && !this.active) {
-      this.interval = setInterval(this.decrement, 1000);
-      this.el.classList.add('visible');
-      this.active = true;
-      this.emit('start');
-      debug('started');
-    }
-    return this;
+  show: function() {
+    this.el.classList.remove('hidden');
+    this.el.classList.add('visible');
   },
 
-  clear: function(silent) {
-    if (!this.active) { return; }
+  hide: function() {
     this.el.classList.remove('visible');
-    clearInterval(this.interval);
-    this.active = false;
-    this.time = 0;
-    if (!silent) { this.emit('clear'); }
-    debug('cleared');
-  },
-
-  decrement: function() {
-    this.set(this.time - 1);
-    if (!this.time) {
-      this.emit('end');
-      this.clear(true);
-    }
+    this.el.classList.add('hidden');
   },
 
   template: function() {
