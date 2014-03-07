@@ -23,7 +23,7 @@ var MockTutorialSteps = {
       'image': 'css/images/tutorial/2_large.png'
     }
   },
-  get: function () {
+  get: function() {
     return this.tiny;
   }
 };

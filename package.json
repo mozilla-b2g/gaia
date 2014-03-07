@@ -6,6 +6,7 @@
   "author": "Gareth Aye <gaye@mozilla.com>",
   "devDependencies": {
     "debug": "*",
+    "chai": "~1.4.2",
     "empty-port": "~0.0.1",
     "jshint": "2.1.11",
     "mail-fakeservers": "~0.0.11",
