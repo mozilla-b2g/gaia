@@ -21,8 +21,6 @@ contacts.List = (function() {
       photoTemplate,
       headers = {},
       loadedContacts = {},
-      viewHeight = -1,
-      rowsPerPage = -1,
       loading = false,
       cancelLoadCB = null,
       photosById = {},
@@ -387,47 +385,6 @@ contacts.List = (function() {
     ele.classList.add('icon-tw');
 
     return ele;
-  }
-
-  function getViewHeight(config) {
-    if (viewHeight < 0) {
-      config = config || utils.cookie.load();
-      if (config && config.viewHeight > -1) {
-        viewHeight = config.viewHeight;
-      } else {
-        viewHeight = scrollable.getBoundingClientRect().height;
-        utils.cookie.update({viewHeight: viewHeight});
-      }
-    }
-    return viewHeight;
-  }
-
-  function getRowsPerPage() {
-    if (rowsPerPage < 0) {
-      var config = utils.cookie.load();
-      if (config && config.rowsPerPage > -1) {
-        rowsPerPage = config.rowsPerPage;
-      }
-    }
-
-    // If we couldn't load from config, then return max int since we can't
-    // calculate yet
-    if (rowsPerPage < 0) {
-      return MAX_INT;
-    }
-
-    // Otherwise return loaded config value
-    return rowsPerPage;
-  }
-
-  function setRowsPerPage(row) {
-    if (rowsPerPage > -1) {
-      return;
-    }
-
-    var rowHeight = row.getBoundingClientRect().height;
-    rowsPerPage = Math.ceil(getViewHeight() / rowHeight);
-    utils.cookie.update({rowsPerPage: rowsPerPage});
   }
 
   // Methods executed after rendering the list
