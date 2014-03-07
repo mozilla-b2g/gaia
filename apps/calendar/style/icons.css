@@ -1,0 +1,34 @@
+@font-face {
+  font-family: 'gaia-calendar-icons';
+  src: url('fonts/gaia-calendar-icons.woff');
+  font-weight: normal;
+  font-style: normal;
+}
+
+[class^="icon-"], [class*=" icon-"] {
+  font-family: 'gaia-calendar-icons';
+  /* icons use a 32x32px grid, so at 3.2rem they should have expected size */
+  font-size: 3.2rem;
+  speak: none;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+
+  /* Better Font Rendering =========== */
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-alarm:before {
+  content: "\e600";
+}
+.icon-allday:before {
+  content: "\e601";
+}
+.icon-bullet:before {
+  content: "\e602";
+}
+.icon-dot:before {
+  content: "\e603";
+}
