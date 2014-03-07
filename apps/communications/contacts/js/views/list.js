@@ -197,7 +197,9 @@ contacts.List = (function() {
   };
 
   var scrollToCb = function scrollCb(scrollVal) {
-    scrollable.scrollTop = scrollVal;
+    var searchHeight = document.getElementById('search-container')
+      .clientHeight;
+    scrollable.scrollTop = scrollVal + searchHeight;
   };
 
   var load = function load(contacts, forceReset) {
