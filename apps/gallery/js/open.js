@@ -67,7 +67,7 @@ window.addEventListener('localized', function() {
 
     // Start off with the Save button hidden.
     // We'll enable it below in the open() function if needed.
-    $('menu').hidden = true;
+    $('save').hidden = true;
 
     blob = activityData.blob;
     open(blob);
@@ -82,7 +82,7 @@ window.addEventListener('localized', function() {
     if (activityData.allowSave && activityData.filename && checkFilename()) {
       getStorageIfAvailable('pictures', blob.size, function(ds) {
         storage = ds;
-        $('menu').hidden = false;
+        $('save').hidden = false;
       });
     }
 
@@ -208,8 +208,8 @@ window.addEventListener('localized', function() {
   }
 
   function save() {
-    // Hide the menu that holds the save button: we can only save once
-    $('menu').hidden = true;
+    // Hide the save button: we can only save once
+    $('save').hidden = true;
     // XXX work around bug 870619
     $('filename').textContent = $('filename').textContent;
 

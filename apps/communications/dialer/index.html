@@ -75,11 +75,9 @@
         <div role="tabpanel">
           <section role="region">
             <header class="view-header regular-header">
-              <menu type="toolbar">
-                <a id="call-log-icon-edit" class="disabled">
-                  <span id="call-log-edit-button" class="recents-icon icon icon-edit "></span>
-                </a>
-              </menu>
+              <a id="call-log-icon-edit" class="disabled action">
+                <span id="call-log-edit-button" class="recents-icon icon icon-edit "></span>
+              </a>
               <h1 data-l10n-id="callLog"></h1>
             </header>
             <nav id="call-log-filter" class="recents-filter-container">
@@ -231,10 +229,8 @@
     <article id="mmi-screen" role="region" hidden>
       <section role="region">
         <header>
-          <button id="mmi-close"><span class="icon icon-close"> close </span></button>
-          <menu type="toolbar">
-            <button id="send" data-l10n-id="send" disabled> Send </button>
-          </menu>
+          <button id="mmi-close" class="navigation"><span class="icon icon-close"> close </span></button>
+          <button id="send" class="action" data-l10n-id="send" disabled> Send </button>
           <h1 id="header-title">USSD</h1>
         </header>
       </section>

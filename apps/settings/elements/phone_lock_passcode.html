@@ -2,13 +2,11 @@
   <template>
 
     <header>
-      <a href="#phoneLock"><span class="icon icon-back">back</span></a>
-      <menu type="toolbar" data-mode="new">
-        <button id="passcode-change" data-l10n-id="change">Change</button>
-      </menu>
-      <menu type="toolbar" data-mode="create">
-        <button id="passcode-create" data-l10n-id="create">Create</button>
-      </menu>
+      <a href="#phoneLock" class="navigation">
+        <span class="icon icon-back">back</span>
+      </a>
+      <button id="passcode-change" data-l10n-id="change" data-mode="new" class="action">Change</button>
+      <button id="passcode-create" data-l10n-id="create" data-mode="create" class="action">Create</button>
       <h1 data-l10n-id="passcode-heading" data-mode="create">Passcode</h1>
       <h1 data-l10n-id="current-passcode" data-mode="edit">Current Passcode</h1>
       <h1 data-l10n-id="new-passcode" data-mode="new">New Passcode</h1>
