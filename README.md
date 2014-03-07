@@ -138,6 +138,14 @@ You can of course combine both:
 PULSE_SERVER=":" xvfb-run make test-integration
 ```
 
+#### Running tests without building profile
+
+if you would like to run tests without building profile, use `make test-integration-test`:
+```sh
+PROFILE_FOLDER=profile-test make # generate profile directory in first time
+make test-integration-test
+```
+
 #### Debugging Tests
 
 To view log out from a test

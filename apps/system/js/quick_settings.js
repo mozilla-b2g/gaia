@@ -16,11 +16,8 @@ var QuickSettings = {
       return;
     }
 
-    // XXX: check bug-926169
-    // this is used to keep all tests passing while introducing multi-sim APIs
-    var conn = window.navigator.mozMobileConnection ||
-      window.navigator.mozMobileConnections &&
-        window.navigator.mozMobileConnections[0];
+    this.getAllElements();
+    this.monitorDataChange();
 
     (function initNetworkSprite() {
       var networkTypeSetting =
@@ -38,52 +35,71 @@ var QuickSettings = {
       });
     })();
 
-    this.getAllElements();
-
     this.overlay.addEventListener('click', this);
     window.addEventListener('utilitytrayshow', this);
 
-    var self = this;
+    this.monitorBluetoothChange();
+    this.monitorWifiChange();
+    this.monitorGeoChange();
+    this.monitorAirplaneModeChange();
+  },
 
-    /*
-     * Monitor data network icon
-     */
-    if (conn) {
-      conn.addEventListener('datachange', function qs_onDataChange() {
-        var label = {
-          'lte': '4G', // 4G LTE
-          'ehrpd': '4G', // 4G CDMA
-          'hspa+': 'H+', // 3.5G HSPA+
-          'hsdpa': 'H', 'hsupa': 'H', 'hspa': 'H', // 3.5G HSDPA
-          'evdo0': '3G', 'evdoa': '3G', 'evdob': '3G', '1xrtt': '3G', // 3G CDMA
-          'umts': '3G', // 3G
-          'edge': 'E', // EDGE
-          'is95a': '2G', 'is95b': '2G', // 2G CDMA
-          'gprs': '2G'
-        };
-        self.data.dataset.network = label[conn.data.type];
-      });
+  monitorDataChange: function() {
+    var conns = window.navigator.mozMobileConnection ||
+      window.navigator.mozMobileConnections;
 
-      /* monitor data setting
+    if (!conns) {
+      // hide data icon without mozMobileConnection object
+      this.overlay.classList.add('non-mobile');
+    } else {
+      var label = {
+        'lte': '4G', // 4G LTE
+        'ehrpd': '4G', // 4G CDMA
+        'hspa+': 'H+', // 3.5G HSPA+
+        'hsdpa': 'H', 'hsupa': 'H', 'hspa': 'H', // 3.5G HSDPA
+        // 3G CDMA
+        'evdo0': '3G', 'evdoa': '3G', 'evdob': '3G', '1xrtt': '3G',
+        'umts': '3G', // 3G
+        'edge': 'E', // EDGE
+        'is95a': '2G', 'is95b': '2G', // 2G CDMA
+        'gprs': '2G'
+      };
+
+      for (var i = 0; i < conns.length; i++) {
+        var conn = conns[i];
+        conn.addEventListener('datachange', function qs_onDataChange() {
+          var dataType;
+          // if there is any data connection got established,
+          // we would just use that
+          for (var j = 0; j < conns.length; j++) {
+            dataType = label[conns[j].data.type] || dataType;
+          }
+          this.data.dataset.network = dataType;
+        }.bind(this));
+      }
+
+      /*
+       * monitor data setting
        * TODO prevent quickly tapping on it
        */
       SettingsListener.observe('ril.data.enabled', true, function(value) {
         if (value) {
-          self.data.dataset.enabled = 'true';
+          this.data.dataset.enabled = 'true';
         } else {
-          delete self.data.dataset.enabled;
+          delete this.data.dataset.enabled;
         }
-      });
-    } else {
-      // hide data icon without mozMobileConnection object
-      this.overlay.classList.add('non-mobile');
+      }.bind(this));
     }
+  },
+
+  monitorBluetoothChange: function() {
     /* monitor bluetooth setting and initialization/disable ready event
      * - when settings changed, update UI and lock toogle to prevent quickly
      *   tapping on it.
      * - when got bluetooth initialization/disable ready, active toogle, so
      *   return the control to user.
      */
+    var self = this;
     var btFirstSet = true;
     SettingsListener.observe('bluetooth.enabled', true, function(value) {
       // check self.bluetooth.dataset.enabled and value are identical
@@ -106,14 +122,16 @@ var QuickSettings = {
     });
     window.addEventListener('bluetooth-adapter-added', this);
     window.addEventListener('bluetooth-disabled', this);
+  },
 
-
+  monitorWifiChange: function() {
     /* monitor wifi setting and initialization/disable ready event
      * - when settings changed, update UI and lock toogle to prevent quickly
      *   tapping on it.
      * - when got bluetooth initialization/disable ready, active toogle, so
      *   return the control to user.
      */
+    var self = this;
     var wifiFirstSet = true;
     SettingsListener.observe('wifi.enabled', true, function(value) {
       // check self.wifi.dataset.enabled and value are identical
@@ -129,22 +147,28 @@ var QuickSettings = {
       // Set to the initializing state to block user interaction until the
       // operation completes. (unless we are being called for the first time,
       // where Wifi is already initialize
-      if (!wifiFirstSet)
+      if (!wifiFirstSet) {
         self.wifi.dataset.initializing = 'true';
+      }
       wifiFirstSet = false;
     });
     window.addEventListener('wifi-enabled', this);
     window.addEventListener('wifi-disabled', this);
     window.addEventListener('wifi-statuschange', this);
+  },
 
+  monitorGeoChange: function() {
     /* monitor geolocation setting
      * TODO prevent quickly tapping on it
      */
+    var self = this;
     SettingsListener.observe('geolocation.enabled', true, function(value) {
       self.geolocationEnabled = value;
     });
+  },
 
-    // monitor airplane mode
+  monitorAirplaneModeChange: function() {
+    var self = this;
     SettingsListener.observe('ril.radio.disabled', false, function(value) {
       self.data.dataset.airplaneMode = value;
       if (value) {

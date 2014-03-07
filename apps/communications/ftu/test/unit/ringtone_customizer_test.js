@@ -6,7 +6,7 @@ requireApp('communications/ftu/js/customizers/ringtone_customizer.js');
 requireApp('communications/ftu/test/unit/mock_navigator_moz_settings.js');
 
 suite('RingtoneCustomizer >', function() {
-  var ringtoneParams = { uri: '/ftu/test/unit/resources/ringtone.opus',
+  var ringtoneParams = { uri: '/ftu/test/unit/resources/ringtone.ogg',
                          name: 'ringtone' };
   var realSettings;
 

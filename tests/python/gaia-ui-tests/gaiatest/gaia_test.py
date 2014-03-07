@@ -5,8 +5,6 @@
 import json
 import os
 import time
-import warnings
-from functools import wraps
 
 from marionette import MarionetteTestCase, EnduranceTestCaseMixin, \
     B2GTestCaseMixin, MemoryEnduranceTestCaseMixin
@@ -19,35 +17,6 @@ from marionette.wait import Wait
 from yoctopuce.yocto_api import YAPI, YRefParam, YModule
 from yoctopuce.yocto_current import YCurrent
 from yoctopuce.yocto_datalogger import YDataLogger
-
-
-def deprecated(func):
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        msg = ('Class "LockScreen" is deprecated and soon will be removed.',
-               'Please use corresponding methods of "GaiaDevice" class')
-        warnings.warn(message=' '.join(msg), category=Warning, stacklevel=2)
-        func(*args, **kwargs)
-    return wrapper
-
-
-class LockScreen(object):
-
-    def __init__(self, marionette):
-        self.device = GaiaDevice(marionette)
-
-    @property
-    @deprecated
-    def is_locked(self):
-        return self.device.is_locked
-
-    @deprecated
-    def lock(self):
-        self.device.lock()
-
-    @deprecated
-    def unlock(self):
-        self.device.unlock()
 
 
 class GaiaApp(object):
@@ -77,7 +46,7 @@ class GaiaApps(object):
         return self.marionette.execute_async_script("return GaiaApps.setPermission('%s', '%s', '%s')" %
                                                     (app_name, permission_name, value))
 
-    def launch(self, name, switch_to_frame=True, url=None, launch_timeout=None):
+    def launch(self, name, switch_to_frame=True, launch_timeout=None):
         self.marionette.switch_to_frame()
         result = self.marionette.execute_async_script("GaiaApps.launchWithName('%s')" % name, script_timeout=launch_timeout)
         assert result, "Failed to launch app with name '%s'" % name
@@ -88,7 +57,7 @@ class GaiaApps(object):
         if app.frame_id is None:
             raise Exception("App failed to launch; there is no app frame")
         if switch_to_frame:
-            self.switch_to_frame(app.frame_id, url)
+            self.marionette.switch_to_frame(app.frame_id)
         return app
 
     @property
@@ -151,22 +120,6 @@ class GaiaApps(object):
         for app in [a[1] for a in apps.items()]:
             result.append(GaiaApp(origin=app['origin'], name=app['name']))
         return result
-
-    def switch_to_frame(self, app_frame, url=None, timeout=None):
-        timeout = timeout or (self.marionette.timeout and self.marionette.timeout / 1000) or 30
-        self.marionette.switch_to_frame(app_frame)
-        start = time.time()
-        if not url:
-            def check(now):
-                return "about:blank" not in now
-        else:
-            def check(now):
-                return url in now
-        while (time.time() - start < timeout):
-            if check(self.marionette.get_url()):
-                return
-            time.sleep(2)
-        raise TimeoutException('Could not switch to app frame %s in time' % app_frame)
 
 
 class GaiaData(object):
@@ -367,6 +320,10 @@ class GaiaData(object):
     def delete_all_sms(self):
         self.marionette.switch_to_frame()
         return self.marionette.execute_async_script("return GaiaDataLayer.deleteAllSms();", special_powers=True)
+
+    def get_all_sms(self):
+        self.marionette.switch_to_frame()
+        return self.marionette.execute_async_script("return GaiaDataLayer.getAllSms();", special_powers=True)
 
     def delete_all_call_log_entries(self):
         """The call log needs to be open and focused in order for this to work."""
@@ -747,7 +704,7 @@ class GaiaDevice(object):
         time.sleep(2)
         self.start_b2g()
 
-    def start_b2g(self, timeout=60000):
+    def start_b2g(self, timeout=60):
         if self.marionette.instance:
             # launch the gecko instance attached to marionette
             self.marionette.instance.start()
@@ -785,6 +742,22 @@ class GaiaDevice(object):
                 type: 'sleep-button-press'
               }
             }));""")
+
+    def press_release_volume_up_then_down_n_times(self, n_times):
+        self.marionette.execute_script("""
+            function sendEvent(aName, aType) {
+              window.wrappedJSObject.dispatchEvent(new CustomEvent('mozChromeEvent', {
+                detail: {
+                  type: aName + '-button-' + aType
+                }
+              }));
+            }
+            for (var i = 0; i < arguments[0]; ++i) {
+              sendEvent('volume-up', 'press');
+              sendEvent('volume-up', 'release');
+              sendEvent('volume-down', 'press');
+              sendEvent('volume-down', 'release');
+            };""", script_args=[n_times])
 
     def turn_screen_off(self):
         self.marionette.execute_script("window.wrappedJSObject.ScreenManager.turnScreenOff(true)")
@@ -887,7 +860,6 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
             self.marionette.timeouts(self.marionette.TIMEOUT_SEARCH, 10000)
             self.marionette.timeouts(self.marionette.TIMEOUT_PAGE, 30000)
 
-        self.lockscreen = LockScreen(self.marionette)
         self.apps = GaiaApps(self.marionette)
         self.data_layer = GaiaData(self.marionette, self.testvars)
         from gaiatest.apps.keyboard.app import Keyboard
@@ -1091,7 +1063,6 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
             self.marionette.set_search_timeout(self.marionette.timeout or 10000)
 
     def tearDown(self):
-        self.lockscreen = None
         self.apps = None
         self.data_layer = None
         MarionetteTestCase.tearDown(self)

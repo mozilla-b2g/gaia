@@ -14,7 +14,8 @@
         'voicechange': [],
         'iccinfochange': [],
         'radiostatechange': [],
-        'cfstatechange': []
+        'cfstatechange': [],
+        'datachange': []
       };
       radioEnabledReq = {};
     }

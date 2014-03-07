@@ -178,17 +178,6 @@ function init() {
   // Clicking on the share button in select mode shares all selected images
   $('thumbnails-share-button').onclick = shareSelectedItems;
 
-  // Click to open the media storage panel when the default storage
-  // is unavailable.
-  $('storage-setting-button').onclick = function() {
-    var activity = new MozActivity({
-      name: 'configure',
-      data: {
-        target: 'device',
-        section: 'mediaStorage'
-      }
-    });
-  };
   $('overlay-cancel-button').onclick = function() {
     cancelPick();
   };
@@ -1238,3 +1227,14 @@ function showOverlay(id) {
 // make it opaque to touch events. Without this, it does not prevent
 // the user from interacting with the UI.
 $('overlay').addEventListener('click', function dummyHandler() {});
+
+
+// Change the thumbnails quality while scrolling using the scrollstart/scrollend
+// events from shared/js/scroll_detector.js.
+window.addEventListener('scrollstart', function onScrollStart(e) {
+  thumbnails.classList.add('scrolling');
+});
+
+window.addEventListener('scrollend', function onScrollEnd(e) {
+  thumbnails.classList.remove('scrolling');
+});

@@ -108,7 +108,6 @@ var AttentionScreen = {
       return;
 
     // Hide sleep menu/list menu if it is shown now
-    ActionMenu.hide();
     SleepMenu.hide();
 
     // We want the user attention, so we need to turn the screen on

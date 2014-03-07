@@ -32,12 +32,15 @@ Dialer.Selectors = {
   one: '.keypad-key[data-value="1"]',
   two: '.keypad-key[data-value="2"]',
   three: '.keypad-key[data-value="3"]',
+  keypadCallBarAddContact: '#keypad-callbar-add-contact',
 
   callLogTabItem: '#option-recents',
   callLogTabs: '#call-log-filter',
 
   contactsTabItem: '#option-contacts',
-  contactsIframe: '#iframe-contacts'
+  contactsIframe: '#iframe-contacts',
+
+  addToExistintContactMenuItem: '#add-to-existing-contact-menuitem'
 };
 
 /**

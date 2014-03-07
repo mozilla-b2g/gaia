@@ -12,7 +12,7 @@ suite.skip('Sounds', function() {
     {
       name: 'camera',
       setting: 'camera.shutter.enabled',
-      url: 'resources/sounds/shutter.opus'
+      url: 'resources/sounds/shutter.ogg'
     },
     {
       name: 'recordingStart',
@@ -41,7 +41,7 @@ suite.skip('Sounds', function() {
     this.mockSound = {
       name: 'camera',
       setting: 'camera.shutter.enabled',
-      url: 'resources/sounds/shutter.opus'
+      url: 'resources/sounds/shutter.ogg'
     };
 
     // Keep reference of

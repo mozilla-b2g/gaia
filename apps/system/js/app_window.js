@@ -598,8 +598,8 @@
             new this.constructor.SUB_COMPONENTS[componentName](this);
         }
       }
-
-      if (this.config.chrome) {
+      if (this.config.chrome &&
+          this.config.chrome.navigation) {
         this.appChrome = new self.AppChrome(this);
       }
     };

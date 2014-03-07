@@ -52,13 +52,13 @@ if [ ! -d $DIR/../profile-test ]; then
 fi
 
 if [ -z "$TEST_FILES" ]; then
-    if [ -z "$APP" ]; then
-        TEST_FILES=$(find $DIR/.. -path "*/apps/*/test/marionette/*_test.js" \
-                              -or -path "*/test_apps/*/test/marionette/*_test.js")
-    else
-        TEST_FILES=$(find $DIR/.. -path "*/apps/$APP/test/marionette/*_test.js" \
-                              -or -path "*/test_apps/$APP/test/marionette/*_test.js")
-    fi
+  if [ -z "$APP" ]; then
+    TEST_FILES=$(find $DIR/.. -path "*/apps/*/test/marionette/*_test.js" \
+                          -or -path "*/test_apps/*/test/marionette/*_test.js")
+  else
+    TEST_FILES=$(find $DIR/.. -path "*/apps/$APP/test/marionette/*_test.js" \
+                          -or -path "*/test_apps/$APP/test/marionette/*_test.js")
+  fi
 fi
 
 if [ -z "$XULRUNNER_DIRECTORY" ] ; then
@@ -77,7 +77,7 @@ XPCSHELL_DIR=$(dirname $(find "$XULRUNNER_DIRECTORY"/bin -type f -name "xpcshell
 
 VERBOSE_OPTS=""
 if [ "$VERBOSE" ]; then
-    VERBOSE_OPTS="--verbose"
+  VERBOSE_OPTS="--verbose"
 fi
 
 # wrap marionette-mocha with gaia's defaults. We also need to alter the paths to

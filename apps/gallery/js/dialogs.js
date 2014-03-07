@@ -68,7 +68,6 @@ var Dialogs = {
     LazyLoader.load('shared/style/confirm.css', function() {
 
       // hide any special elements
-      $('storage-setting-button').classList.add('hidden');
       $('overlay-camera-button').classList.add('hidden');
       $('overlay-cancel-button').classList.add('hidden');
       $('overlay-menu').classList.add('hidden');
@@ -80,12 +79,10 @@ var Dialogs = {
           return;
         case 'nocard':
           title = _('nocard3-title');
-          text = _('nocard3-text');
-          $('overlay-menu').classList.remove('hidden');
+          text = _('nocard4-text');
           if (pendingPick) {
             $('overlay-cancel-button').classList.remove('hidden');
-          } else {
-            $('storage-setting-button').classList.remove('hidden');
+            $('overlay-menu').classList.remove('hidden');
           }
           break;
         case 'pluggedin':

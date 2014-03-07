@@ -121,6 +121,9 @@ var Homescreen = (function() {
     if (typeof ConfirmDialog !== 'undefined') {
       ConfirmDialog.hide();
     }
+    if (typeof EditDialog !== 'undefined') {
+      EditDialog.hide();
+    }
   }
 
   document.addEventListener('visibilitychange', function mozVisChange() {
@@ -184,6 +187,19 @@ var Homescreen = (function() {
                        document.getElementById('confirm-dialog'),
                        'js/request.js'], function loaded() {
         ConfirmDialog.showApp(icon);
+      });
+    },
+
+    showEditBookmarkDialog: function h_showEditBookmarkDialog(icon) {
+      var dialog = document.getElementById('edit-dialog');
+      LazyLoader.load(['style/edit_dialog.css',
+                       'shared/style/headers.css',
+                       'shared/style/input_areas.css',
+                       'shared/js/url_helper.js',
+                       dialog,
+                       'js/edit_dialog.js'], function loaded() {
+        navigator.mozL10n.translate(dialog);
+        EditDialog.show(icon);
       });
     },
 

@@ -30,12 +30,10 @@ module.exports = View.extend({
 
     // Pick out elements
     this.els.buttons = {
-      storage: find('.js-storage-btn', this.el),
       close: find('.js-close-btn', this.el)
     };
 
     // Attach event listeners
-    bind(this.els.buttons.storage, 'click', this.onButtonClick);
     bind(this.els.buttons.close, 'click', this.onButtonClick);
   },
 
@@ -49,10 +47,6 @@ module.exports = View.extend({
       '<menu class="overlay-menu-close">' +
         '<button class="full js-close-btn" type="button" name="close-btn">' +
         data.closeButtonText + '</button>' +
-      '</menu>' +
-      '<menu class="overlay-menu-storage">' +
-        '<button class="full js-storage-btn" type="button"' +
-        'name="storage-settings-btn">' + data.storageButtonText + '</button>' +
       '</menu>' +
     '</form>';
   },

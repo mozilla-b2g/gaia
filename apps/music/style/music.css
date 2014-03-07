@@ -286,7 +286,7 @@ body.picker-mode #title-player {
 #views-tiles,
 #views-list,
 #views-sublist {
-  height: 100%;
+  height: calc(100% - 4.5rem);
   overflow-x: hidden;
   overflow-y: auto;
   background-color: #0E1214;
@@ -445,6 +445,13 @@ body.picker-mode #title-player {
   /* We set a background URL here when the thumbnail loads */
 }
 
+/* Favor scrolling performance over quality while scrolling */
+#views.scroll li.list-item,
+#views.scrolling .tile {
+  image-rendering: -moz-crisp-edges;
+  text-rendering: optimizeSpeed;
+}
+
 .main-tile {
   width: 66%;
   height: 0;
@@ -473,11 +480,6 @@ body.picker-mode #title-player {
   font-weight: lighter;
   background-color: #303030;
   overflow: hidden;
-}
-
-.main-tile:last-child,
-.sub-tile:last-child {
-  margin-bottom: 4.5rem;
 }
 
 .tile-container {
@@ -937,10 +939,6 @@ button::-moz-focus-inner {
 
 .hidden {
   display: none;
-}
-
-li:last-child {
-  margin-bottom: 4rem;
 }
 
 li.list-header {
