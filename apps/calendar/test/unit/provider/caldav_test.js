@@ -369,21 +369,12 @@ suiteGroup('Provider.Caldav', function() {
 
         subject.findCalendars(input, function cb(cbError, cbResult) {
           done(function() {
-            assert.equal(
-              cbResult.one,
-              result.one,
-              'does not process events with color'
-            );
+            assert.equal(cbResult.one, result.one, 'in place one');
+            assert.equal(cbResult.two, result.two, 'in place two');
 
-            // hack clone
-            var withColor = JSON.parse(JSON.stringify(result.two));
-            withColor.color = subject.defaultColor;
-
-            assert.deepEqual(
-              cbResult.two,
-              withColor,
-              'adds color'
-            );
+            var validColors = Calendar.Provider.Caldav.COLOR_PALETTE;
+            assert.include(validColors, cbResult.one.color, 'color one');
+            assert.include(validColors, cbResult.two.color, 'color two');
 
             assert.equal(cbError, error);
           });
@@ -614,6 +605,59 @@ suiteGroup('Provider.Caldav', function() {
         });
       });
     });
+  });
+
+  suite('#formatRemoteCalendar', function() {
+    var nColors = Calendar.Provider.Caldav.COLOR_PALETTE.length;
+
+    function getColors(n) {
+      var calendars = [];
+      while (n--) {
+        calendars.push(Factory.build('caldav.calendar'));
+      }
+      calendars.forEach(subject.formatRemoteCalendar, subject);
+
+      return calendars.map(function(cal) {
+        return cal.color;
+      });
+    }
+
+    function unique(items) {
+      return items.filter(function(item, i, arr) {
+        return arr.indexOf(item, i + 1) === -1;
+      });
+    }
+
+    test('should not contain duplicate colors', function() {
+      var colors = getColors(nColors - 2);
+      // we make sure the remote color is not used
+      colors.push(
+        subject.formatRemoteCalendar(
+          Factory.build('caldav.calendar', {color: '#f00'})
+        ),
+        subject.formatRemoteCalendar(
+          Factory.build('caldav.calendar', {color: '#0fc'})
+        )
+      );
+      var uniqueColors = unique(colors);
+      assert.operator(colors.length, '>', 1, 'should contain multiple colors');
+      assert.deepEqual(colors.sort(), uniqueColors.sort());
+      assert.equal(colors.indexOf('#f00'), -1, 'not contain remote color');
+      assert.equal(colors.indexOf('#0fc'), -1, 'not contain remote color');
+    });
+
+    test('shoul loop colors after limit', function() {
+      var colors = getColors(nColors * 4);
+      var uniqueColors = unique(colors);
+      assert.equal(colors.length, uniqueColors.length * 4, 'loop colors');
+      assert.equal(colors[0], colors[nColors]);
+      assert.equal(colors[2], colors[nColors + 2]);
+      assert.equal(colors[nColors], colors[nColors * 2]);
+      assert.equal(colors[nColors + 2], colors[nColors * 2 + 2]);
+      assert.equal(colors[nColors * 2], colors[nColors * 3]);
+      assert.equal(colors[nColors * 2 + 2], colors[nColors * 3 + 2]);
+    });
+
   });
 
   suite('#_cachedEventsFor', function() {
