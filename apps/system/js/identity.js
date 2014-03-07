@@ -42,6 +42,9 @@ var Identity = (function() {
           }
           var frame = document.createElement('iframe');
           frame.setAttribute('mozbrowser', 'true');
+          if (Applications.useAsyncPanZoom) {
+            frame.setAttribute('mozasyncpanzoom', 'true');
+          }
           frame.setAttribute('remote', true);
           frame.classList.add('screen');
           frame.src = personaUri +
