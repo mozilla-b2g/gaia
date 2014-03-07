@@ -50,10 +50,26 @@ suiteGroup('Templates.Week', function() {
     assert.include(result, title, 'has title');
   });
 
-  test('#header', function() {
-    var result = subject.header.render('foo');
-    assert.ok(result);
-    assert.include(result, 'foo');
+  suite('#header', function() {
+    test('today', function() {
+      var result = subject.header.render({
+        isToday: true,
+        title: 'foo'
+      });
+      assert.ok(result);
+      assert.include(result, 'foo', 'title');
+      assert.include(result, 'is-today', 'is-today class');
+    });
+
+    test('not today', function() {
+      var result = subject.header.render({
+        isToday: false,
+        title: 'foo'
+      });
+      assert.ok(result);
+      assert.include(result, 'foo', 'title');
+      assert.ok(result.indexOf('is-today') === -1, 'is-today class');
+    });
   });
 
   test('#frame', function() {

@@ -40,6 +40,7 @@ Calendar.Selector = Object.freeze({
   editEventDescription: '#modify-event-view textarea[name="description"]',
   eventListSection: '#event-list',
   weekViewEvent: '#week-view .event',
+  weekViewWeekDayDateToday: '#week-view .weekday.active h1.is-today',
   modifyEventView: '#modify-event-view',
   monthViewDayEvent: '#event-list .event',
   monthViewDayEventName: 'h5',                // Search beneath .event
