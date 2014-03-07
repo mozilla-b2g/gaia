@@ -5,7 +5,7 @@ define(function(require, exports, module) {
  * Dependencies
  */
 
-var lessThanPixels = require('lib/picture-sizes/less-than-pixels');
+var lessThanFileSize = require('lib/picture-sizes/less-than-file-size');
 var closestToSize = require('lib/picture-sizes/closest-to-size');
 var debug = require('debug')('controller:activity');
 var bindAll = require('lib/bind-all');
@@ -32,7 +32,7 @@ function ActivityController(app) {
 
   // Allow these methods to be overridden
   this.closestToSize = app.closestToSize || closestToSize;
-  this.lessThanPixels = app.lessThanPixels || lessThanPixels;
+  this.lessThanFileSize = app.lessThanFileSize || lessThanFileSize;
 
   this.configure();
   this.bindEvents();
@@ -58,7 +58,7 @@ ActivityController.prototype.configurePictureSize = function(options) {
   var setting = this.settings.pictureSizes;
 
   if (maxFileSize) {
-    options = this.lessThanPixels(maxFileSize, options);
+    options = this.lessThanFileSize(maxFileSize, options);
     setting.set('options', options);
   } else if (data.width || data.height) {
     options = [this.closestToSize(data, options)];
