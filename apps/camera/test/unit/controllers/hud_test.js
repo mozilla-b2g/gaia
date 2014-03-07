@@ -43,11 +43,9 @@ suite('controllers/hud', function() {
     // Stub 'cameras' setting
     this.app.settings.cameras = sinon.createStubInstance(this.Setting);
     this.app.settings.flashModes = sinon.createStubInstance(this.Setting);
+    this.app.settings.showSettings = sinon.createStubInstance(this.Setting);
+    this.app.settings.mode = sinon.createStubInstance(this.Setting);
     this.app.settings.cameras.get.withArgs('options').returns([]);
-    this.app.settings.get.withArgs('cameras')
-      .returns(this.app.settings.cameras);
-    this.app.settings.get.withArgs('flashModes')
-      .returns(this.app.settings.flashModes);
 
     // For convenience
     this.hud = this.app.views.hud;

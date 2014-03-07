@@ -7,6 +7,7 @@ define(function(require, exports, module) {
 
 var debug = require('debug')('setting');
 var model = require('vendor/model');
+var mixin = require('lib/mixin');
 
 /**
  * Exports
@@ -14,11 +15,14 @@ var model = require('vendor/model');
 
 module.exports = Setting;
 
-// Mixin Model methods
+/**
+ * Mixin `Model` methods
+ */
+
 model(Setting.prototype);
 
 /**
- * Initialize a new `Setting` model.
+ * Initialize a new `Setting`.
  *
  * @param {Object} data
  */
@@ -27,22 +31,63 @@ function Setting(data) {
   this.configure(data);
   this.reset(data, { silent: true });
   this.updateSelected({ silent: true });
+
+  // Bind context
+  this.isValidOption = this.isValidOption.bind(this);
+  this.inflateOption = this.inflateOption.bind(this);
   this.select = this.select.bind(this);
+  this.next = this.next.bind(this);
 }
 
 Setting.prototype.configure = function(data) {
-  data.optionsHashAll = this.optionsToHash(data.options);
-  data.optionsHash = data.optionsHashAll;
+  data.options = data.options || [];
+
+  var optionsHash = this.optionsToHash(data.options);
+  var options = data.options;
+
+  this._options = {};
+  this._options.config = this._options.hash = options.length && optionsHash;
+
+  // Configure options whenever they change
+  this.on('change:options', this.onOptionsChange);
+
+  // Save the Setting when it's changed
   if (data.persistent) { this.on('change:selected', this.save); }
 };
 
+/**
+ * Perform some admin whenever
+ * the settings are changed.
+ *
+ * @private
+ */
+Setting.prototype.onOptionsChange = function() {
+  this.resetOptionsHash();
+  this.sortOptions();
+  this.updateSelected();
+  debug('options changed');
+};
+
+/**
+ * Convert this Setting's `options` array as defined
+ * in config/app.js into an object as key/value pairs.
+ * This allows us to look up an option by its `key`.
+ *
+ * e.g.: [ { key: 'a', title: 'A' }, ... ] ->
+ *       { a: { key: 'a', title: 'A' }, ... }
+ *
+ * We use this hash to validate
+ * incoming options and ot mixin
+ * config data with dynamic options.
+ *
+ * @param  {Array} options
+ * @return {undefined|Object}
+ */
 Setting.prototype.optionsToHash = function(options) {
   var hash = {};
   options.forEach(function(option, index) {
-    var key = option.key;
     option.index = index;
-    option.value = 'value' in option ? option.value : key;
-    hash[key] = option;
+    hash[option.key] = option;
   });
   return hash;
 };
@@ -56,9 +101,8 @@ Setting.prototype.optionsToHash = function(options) {
  * @return {Object|*}
  */
 Setting.prototype.selected = function(key) {
-  var selected = this.get('selected');
-  var hash = this.get('optionsHash');
-  var option = hash[selected];
+  var hash = this._options.hash;
+  var option = hash[this.get('selected')];
   return key ? option && option[key] : option;
 };
 
@@ -78,8 +122,8 @@ Setting.prototype.selected = function(key) {
  */
 Setting.prototype.select = function(key, options) {
   var isIndex = typeof key === 'number';
-  var hash = this.get('optionsHash');
   var list = this.get('options');
+  var hash = this._options.hash;
   var selected = isIndex ? list[key] : hash[key];
 
   // If there are no options, exit
@@ -87,82 +131,142 @@ Setting.prototype.select = function(key, options) {
 
   // If an option was not found,
   // default to selecting the first.
-  if (!selected) { return this.select(0); }
+  if (!selected) { return this.select(0, options); }
 
   // Store the new choice
   this.set('selected', selected.key, options);
 };
 
 /**
- * Add each matched option key to the
- * new options array.
+ * Completely reset the Setting's options.
  *
- * We make these updates silently so that
- * other parts of the app, can make alterations
- * to options before the UI is updated.
+ * Passed options go through formatting
+ * and validation before being set.
  *
- * @param  {Array} values
+ * @param  {Array|Object} options
+ * @public
  */
-Setting.prototype.configureOptions = function(values) {
-  var optionsHashAll = this.get('optionsHashAll');
-  var silent = { silent: true };
-  var optionsHash = {};
-  var options = [];
+Setting.prototype.resetOptions = function(options) {
+  options = this.format(options || [])
+    .filter(this.isValidOption)
+    .map(this.inflateOption);
 
-  each(values || [], function(value, key) {
-    var valueIsObject = typeof value === 'object';
-    var option;
-
-    // Convert string values to objects
-    // to make deriving the option key
-    // a little simple in the next step.
-    value = typeof value === 'string' ? { key: value } : value;
-
-    // Keys can be derived in several ways:
-    // 1. Array: [{ key: 'key1' }, { key: 'key2' }]
-    // 2. Object: { key1: {}, key2: {} }
-    key = value.key || key;
-    option = optionsHashAll[key];
-
-    // Skip if no matching
-    // option is found.
-    if (!option) { return; }
-
-    // If the value is an object, we store it.
-    // But as we accept options objects as values
-    // we don't want to set the value of the option to itself
-    if (valueIsObject && value !== option) {
-      option.value = value;
-    }
-
-    optionsHash[key] = option;
-    options.push(option);
-  });
-
-  options.sort(function(a, b) { return a.index - b.index; });
-
-  // Store the revised options
-  this.set('options', options, silent);
-  this.set('optionsHash', optionsHash, silent);
-
-  this.updateSelected(silent);
-  debug('options configured for %s', this.key, options);
+  this.set('options', options);
+  this.emit('optionsreset', options);
 };
 
-// NOTE: This could prove to be problematic as
-// the selected option may be different to what
-// was specified in the app config if the
-// length of the list has changed.
-//
-// Solutions:
-//
-// 1. The key should be specified instead of an index,
-//    but that doesn't give the option for
-// 2. The order of the options could define preference,
-//    although this could result in incorrectly ordered
-//    options in the settings menu.
-Setting.prototype.updateSelected = function(options) {
-  this.select(this.get('selected') || 0, options);
+/**
+ * Sorts the current options list
+ * by their originally defined
+ * index in the config JSON.
+ *
+ * @private
+ */
+Setting.prototype.sortOptions = function() {
+  var options = this.get('options');
+  options.sort(function(a, b) { return a.index - b.index; });
+};
+
+/**
+ * Rebuilds the options hash
+ * fresh from the latest options
+ * list.
+ *
+ * We duplicate options in a hash
+ * so that we can have super-fast
+ * lookups when calling `value()`
+ * and `.selected()` methods.
+ *
+ * We maintain an array becuase the
+ * order of options is very important.
+ *
+ * @private
+ */
+Setting.prototype.resetOptionsHash = function() {
+  var options = this.get('options');
+  var hash = this._options.hash = {};
+  options.forEach(function(option) { hash[option.key] = option; });
+};
+
+/**
+ * Silently updates the `selected`
+ * property of the Setting.
+ *
+ * If no selected key is present
+ * we attempt to select the last
+ * fetched persited selection.
+ *
+ * @private
+ */
+Setting.prototype.updateSelected = function() {
+  this.select(this.get('selected') || this.fetched, { silent: true });
+};
+
+/**
+ * Normalizes incoming options data.
+ *
+ * For settings that need more complex
+ * formatting (eg. pictureSizes), you
+ * can override this method to perform
+ * more bespoke formatting.
+ *
+ * @param  {Array|Object} options
+ * @return {Array}
+ */
+Setting.prototype.format = function(options) {
+  var isArray = Array.isArray(options);
+  var normalized = [];
+
+  each(options, function(item, key) {
+    var isObject = typeof item === 'object';
+    var option = {};
+
+    // The key can come from several places
+    option.key = isArray ? (isObject ? item.key : item) : key;
+    option.data = item.data || isObject && item || !isArray && item;
+    normalized.push(option);
+  });
+
+  return normalized;
+};
+
+/**
+ * Defines whether the given
+ * option is valid.
+ *
+ * An option is 'valid' if it matches
+ * one of the defined options keys,
+ * in the config JSON.
+ *
+ * If no options keys are given in the
+ * config, all options are valid.
+ *
+ * @param  {Object}  option
+ * @return {Boolean}
+ * @private
+ */
+Setting.prototype.isValidOption = function(option) {
+  return !!(this._options.config[option.key] || !this._options.config);
+};
+
+/**
+ * Mixes any config data into
+ * the given option object.
+ *
+ * This allows us to have an option
+ * that comprises partly of config
+ * data, and partly of data sourced
+ * from hardware capabilites.
+ *
+ * @param  {Object} option
+ * @return {Object}
+ * @private
+ */
+Setting.prototype.inflateOption = function(option) {
+  var key = option.key;
+  var config = this._options.config;
+  var configOption = config && config[key];
+  return mixin(option, configOption || {});
 };
 
 /**
@@ -171,25 +275,29 @@ Setting.prototype.updateSelected = function(options) {
  *
  * First option is chosen if
  * there is no next option.
+ *
+ * @public
  */
 Setting.prototype.next = function() {
-  var list = this.get('options');
+  var options = this.get('options');
   var selected = this.selected();
-  var index = list.indexOf(selected);
-  var newIndex = (index + 1) % list.length;
+  var index = options.indexOf(selected);
+  var newIndex = (index + 1) % options.length;
   this.select(newIndex);
   debug('set \'%s\' to index: %s', this.key, newIndex);
 };
 
-/**
- * Get the value of the currently
- * selected option.
- *
- * @return {*}
- */
-Setting.prototype.value = function() {
-  return this.selected('value');
-};
+// /**
+//  * Get the value of the currently
+//  * selected option.
+//  *
+//  * @return {*}
+//  * @public
+//  */
+// Setting.prototype.value = function() {
+//   var selected = this.selected();
+//   return selected && (selected.value || selected.key);
+// };
 
 /**
  * Persists the current selection
@@ -227,20 +335,20 @@ Setting.prototype.save = function() {
 Setting.prototype.fetch = function() {
   if (!this.get('persistent')) { return; }
   debug('fetch value key: %s', this.key);
-  var value = localStorage.getItem('setting:' + this.key);
-  debug('fetched %s value: %s', this.key, value);
-  if (value) { this.select(value, { silent: true }); }
+  this.fetched = localStorage.getItem('setting:' + this.key);
+  debug('fetched %s value: %s', this.key, this.fetched);
+  if (this.fetched) { this.select(this.fetched, { silent: true }); }
 };
 
 /**
  * Loops arrays or objects.
  *
- * @param  {Array|Object}   obj
+ * @param  {Array|Object} obj
  * @param  {Function} fn
  */
 function each(obj, fn) {
   if (Array.isArray(obj)) { obj.forEach(fn); }
-  else { for (var key in obj) { fn(obj[key], key, true); } }
+  else { for (var key in obj) { fn(obj[key], key); } }
 }
 
 });
