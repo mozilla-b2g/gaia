@@ -27,7 +27,10 @@ Calendar.ns('Views').WeekChild = (function() {
         this.date,
         '%a %e'
       );
-      return template.header.render(format);
+      return template.header.render({
+        isToday: Calendar.Calc.isToday(this.date),
+        title: format
+      });
     },
 
     _renderEvent: function(busytime, event) {

@@ -4,7 +4,8 @@
 
   var Week = Calendar.Template.create({
     header: function() {
-      return '<h1>' + this.h('value') + '</h1>';
+      return (this.arg('isToday') ? '<h1 class="is-today">' : '<h1>') +
+        this.h('title') + '</h1>';
     },
 
     sidebarHour: function() {

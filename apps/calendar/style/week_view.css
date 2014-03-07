@@ -10,9 +10,14 @@
   height: 2rem;
   line-height: 1.9rem;
   text-align: center;
-  font-weight: normal;
   white-space: nowrap;
   overflow: hidden;
+  font-weight: 400;
+}
+
+#week-view h1.is-today {
+  font-weight: 500;
+  color: #008eab;
 }
 
 #week-view {
@@ -138,9 +143,7 @@
   float: left;
   height: 5rem;
   text-align: center;
-
   border-bottom: 0.1rem solid #f8f8f8;
-  padding: 0.2rem;
   overflow: hidden;
 }
 
