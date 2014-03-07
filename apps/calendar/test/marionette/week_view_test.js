@@ -31,4 +31,17 @@ marionette('week view', function() {
     assert.operator(headerText.length, '<', 21, 'header should not overflow');
   });
 
+  test('today', function() {
+    var dates = app.findElements('weekViewWeekDayDateToday');
+
+    assert.equal(dates.length, 1, 'single date marked as today');
+
+    // checking for style is usually a bad idea but since the class name
+    // doesn't guarantee that it's being applied properly we make sure to
+    // test for it as well
+    var date = dates[0];
+    assert.equal(date.cssProperty('font-weight'), '500', 'font-weight');
+    assert.equal(date.cssProperty('color'), 'rgb(0, 142, 171)', 'text color');
+  });
+
 });
