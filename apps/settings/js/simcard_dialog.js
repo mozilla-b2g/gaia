@@ -415,8 +415,15 @@ function SimPinDialog(dialog) {
 
   function show(action, options) {
     options = options || {};
+    var conn = conns[options.cardIndex || 0];
 
-    icc = getIccByIndex(options.cardIndex);
+    if (!conn) {
+      return;
+    }
+
+    var iccId = conn.iccId;
+    icc = window.navigator.mozIccManager.getIccById(iccId);
+
     if (!icc) {
       return;
     }
