@@ -1,15 +1,21 @@
 'use strict';
 
+var hideTimer;
 var Overlay = {
     show: function fxam_overlay_show() {
+      if (hideTimer) {
+        return;
+      }
       var overlay = document.querySelector('#overlay');
       overlay.classList.add('show');
+      hideTimer = setTimeout(Overlay.hide, 2000);
     },
     hide: function fxam_overlay_hide() {
+      hideTimer = clearTimeout(hideTimer);
       var overlay = document.querySelector('#overlay');
-      if (!overlay)
+      if (!overlay) {
         return;
-
+      }
       overlay.classList.remove('show');
     }
 };
@@ -17,8 +23,8 @@ var Overlay = {
 var TestFxAClient = function TestFxAClient() {
 
   var getFxAccountsButton, launchFxAFlowButton, logoutButton,
-      changePasswordButton, resultTextEl, resultEl, timer,
-      eventsEl, eventsTextEl, eventsTimer;
+      refreshAuthButton, resultTextEl, resultEl, timer, eventsEl,
+      eventsTextEl, eventsTimer, accountIdInput;
 
   var init = function init() {
     resultEl = document.getElementById('result');
@@ -26,12 +32,15 @@ var TestFxAClient = function TestFxAClient() {
     getFxAccountsButton = document.getElementById('getAccounts');
     launchFxAFlowButton = document.getElementById('openFlow');
     logoutButton = document.getElementById('logout');
+    refreshAuthButton = document.getElementById('refreshAuthentication');
     eventsEl = document.getElementById('events');
     eventsTextEl = document.getElementById('events-text');
+    accountIdInput = document.getElementById('accountId');
 
     getFxAccountsButton.addEventListener('click', handler);
     launchFxAFlowButton.addEventListener('click', handler);
     logoutButton.addEventListener('click', handler);
+    refreshAuthButton.addEventListener('click', handler);
 
     FxAccountsIACHelper.addEventListener('onlogin', function() {
       showEvent('onlogin');
@@ -95,6 +104,10 @@ var TestFxAClient = function TestFxAClient() {
       case 'logout':
         Overlay.show();
         FxAccountsIACHelper[method](showResponse, showError);
+        break;
+      case 'refreshAuthentication':
+        FxAccountsIACHelper[method](accountIdInput.value,
+                                    showResponse, showError);
         break;
     }
 

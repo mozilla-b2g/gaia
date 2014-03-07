@@ -13,8 +13,8 @@
     <script type="text/javascript" src="shared/js/l10n.js"></script>
     <script type="text/javascript" defer src="shared/js/screen_layout.js"></script>
     <script type="text/javascript" defer src="shared/js/manifest_helper.js"></script>
-    <script type="text/javascript" defer src="/shared/js/settings_listener.js"></script>
-    <script type="text/javascript" defer src="/shared/js/settings_url.js"></script>
+    <!-- <script type="text/javascript" src="shared/js/settings_listener.js"></script> -->
+    <!-- <script type="text/javascript" src="shared/js/url_helper.js"></script> -->
     <script type="text/javascript" defer src="shared/js/async_storage.js"></script>
     <script defer type="text/javascript" src="shared/js/icc_helper.js"></script>
     <script type="text/javascript" defer src="shared/js/lazy_loader.js"></script>
@@ -29,6 +29,9 @@
     <!-- Lazy load for ContextMenuDialog -->
     <!-- <link rel="stylesheet" type="text/css" href="style/contextmenu.css"> -->
     <!-- <link rel="stylesheet" type="text/css" href="shared/style/action_menu.css"> -->
+
+    <!-- Lazy load for EditDialog -->
+    <!-- <link rel="stylesheet" type="text/css" href="style/input_areas.css"> -->
 
     <!-- Lazy load for Ev.me -->
     <!-- <link rel="stylesheet" type="text/css" href="shared/style/progress_activity.css"> -->
@@ -55,6 +58,7 @@
     <link rel="import" href="/elements/confirm_dialog.html">
     <link rel="import" href="/elements/search_page.html">
     <link rel="import" href="/elements/loading_dialog.html">
+    <link rel="import" href="/elements/edit_dialog.html">
   </head>
 
   <body data-mode="normal">
@@ -62,13 +66,15 @@
     <div id="bg-overlay"></div>
     <!-- This markup is just to detect text overflow with app names
          because of pages are hidden after rendering -->
-    <div id="fake-icon">
+    <div id="fake-icon" aria-hidden="true">
       <span id="fake-icon-name-wrapper" class="labelWrapper">
         <span id="fake-icon-name"></span>
       </span>
     </div>
 
     <section is="confirm-dialog" id="confirm-dialog"></section>
+
+    <section is="edit-dialog" id="edit-dialog"></section>
 
     <section is="contextmenu-dialog" id="contextmenu-dialog"></section>
 

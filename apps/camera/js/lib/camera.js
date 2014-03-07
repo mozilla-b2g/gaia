@@ -19,8 +19,8 @@ var mixin = require('lib/mixin');
  * Locals
  */
 
-var RECORD_SPACE_MIN = constants.RECORD_SPACE_MIN;
-var RECORD_SPACE_PADDING = constants.RECORD_SPACE_PADDING;
+var recordSpaceMin = constants.RECORD_SPACE_MIN;
+var recordSpacePadding = constants.RECORD_SPACE_PADDING;
 
 /**
  * Locals
@@ -51,11 +51,13 @@ function Camera(options) {
   this.container = options.container;
   this.mozCamera = null;
   this.cameraList = navigator.mozCameras.getListOfCameras();
+  this.orientation = options.orientation || orientation;
   this.autoFocus = {};
-  this.tmpVideo = {
+  this.video = {
     storage: navigator.getDeviceStorage('videos'),
-    filename: null,
-    filepath: null
+    filepath: null,
+    minSpace: options.recordSpaceMin || recordSpaceMin,
+    spacePadding : options.recordSpacePadding || recordSpacePadding
   };
 
   debug('initialized');
@@ -74,8 +76,6 @@ Camera.prototype.loadStreamInto = function(videoElement) {
     videoElement.mozSrcObject = this.mozCamera;
     videoElement.play();
     debug('stream loaded');
-    this.emit('streamLoaded');
-    this.emit('ready');
   }
 };
 
@@ -83,7 +83,7 @@ Camera.prototype.load = function() {
   var selectedCamera = this.get('selectedCamera');
   var loadingNewCamera = selectedCamera !== this.lastLoadedCamera;
   this.lastLoadedCamera = selectedCamera;
-  this.emit('loading');
+  this.emit('busy');
   // It just configures if the camera has been previously loaded
   if (this.mozCamera && !loadingNewCamera) {
     this.configure(this.mozCamera);
@@ -113,6 +113,7 @@ Camera.prototype.configure = function(mozCamera) {
     // a change to match device capabilities with app config.
     debug('configured');
     self.emit('configured', self.formatCapabilities(capabilities));
+    self.emit('ready');
   };
   var error = function() {
     console.log('Error configuring camera');
@@ -121,7 +122,6 @@ Camera.prototype.configure = function(mozCamera) {
   if (!mozCamera) {
     return;
   }
-
   // Store the Gecko
   // mozCamera interface
   this.mozCamera = mozCamera;
@@ -130,7 +130,8 @@ Camera.prototype.configure = function(mozCamera) {
   this.configurePicturePreviewSize(capabilities.previewSizes);
   // Bind to some hardware events
   mozCamera.onShutter = this.onShutter;
-  mozCamera.onRecorderStateChange = self.onRecorderStateChange;
+  mozCamera.onPreviewStateChange = this.onPreviewStateChange;
+  mozCamera.onRecorderStateChange = this.onRecorderStateChange;
   options = {
     mode: this.get('mode'),
     previewSize: this.picturePreviewSize
@@ -200,7 +201,7 @@ Camera.prototype.configurePicturePreviewSize = function(availablePreviewSizes) {
 };
 
 Camera.prototype.configureFocus = function(modes) {
-  var supports = this.autoFocus;
+  var supports = this.autoFocus = {};
   (modes || []).forEach(function(mode) { supports[mode] = true; });
   debug('focus configured', supports);
 };
@@ -393,29 +394,38 @@ Camera.prototype.focus = function(done) {
   }
 };
 
-Camera.prototype.toggleRecording = function(o) {
+/**
+ * Start/stop recording.
+ *
+ * @param  {Object} options
+ */
+Camera.prototype.toggleRecording = function(options) {
   var recording = this.get('recording');
-  if (recording) { this.stopRecording(o); }
-  else { this.startRecording(o); }
+  if (recording) { this.stopRecording(options); }
+  else { this.startRecording(options); }
 };
 
 Camera.prototype.startRecording = function(options) {
-  var storage = this.tmpVideo.storage;
-  var mozCamera = this.mozCamera;
-  var self = this;
-  var rotation = orientation.get();
   var selectedCamera = this.get('selectedCamera');
-  rotation = selectedCamera === 'front'? -rotation: rotation;
+  var frontCamera = selectedCamera === 'front';
+  var rotation = this.orientation.get();
+  var storage = this.video.storage;
+  var video = this.video;
+  var self = this;
 
+  // Rotation is flipped for front camera
+  if (frontCamera) { rotation = -rotation; }
+
+  this.emit('busy');
 
   // First check if there is enough free space
-  this.getTmpStorageSpace(gotStorageSpace);
+  this.getFreeVideoStorageSpace(gotStorageSpace);
 
   function gotStorageSpace(err, freeBytes) {
     if (err) { return self.onRecordingError(); }
 
-    var notEnoughSpace = freeBytes < RECORD_SPACE_MIN;
-    var remaining = freeBytes - RECORD_SPACE_PADDING;
+    var notEnoughSpace = freeBytes < self.video.minSpace;
+    var remaining = freeBytes - self.video.spacePadding;
     var targetFileSize = self.get('maxFileSizeBytes');
     var maxFileSizeBytes = targetFileSize || remaining;
 
@@ -433,43 +443,48 @@ Camera.prototype.startRecording = function(options) {
       maxFileSizeBytes: maxFileSizeBytes
     };
 
-    self.tmpVideo.filename = self.createTmpVideoFilename();
-    mozCamera.startRecording(
-      config,
-      storage,
-      self.tmpVideo.filename,
-      onSuccess,
-      self.onRecordingError);
+    self.createVideoFilepath(function(filepath) {
+      video.filepath = filepath;
+      self.mozCamera.startRecording(
+        config,
+        storage,
+        filepath,
+        onSuccess,
+        self.onRecordingError);
+    });
+  }
+
+  function onSuccess() {
+    self.set('recording', true);
+    self.startVideoTimer();
+    self.emit('ready');
+
+    // User closed app while
+    // recording was trying to start
+    //
+    // TODO: Not sure this should be here
+    if (document.hidden) {
+      self.stopRecording();
     }
-
-    function onSuccess() {
-      self.set('recording', true);
-      self.startVideoTimer();
-
-      // User closed app while
-      // recording was trying to start
-      if (document.hidden) {
-        self.stopRecording();
-      }
-
-    }
+  }
 };
 
 Camera.prototype.stopRecording = function() {
   debug('stop recording');
 
   var notRecording = !this.get('recording');
-  var filename = this.tmpVideo.filename;
-  var storage = this.tmpVideo.storage;
+  var storage = this.video.storage;
+  var video = this.video;
   var self = this;
 
   if (notRecording) {
     return;
   }
 
+  this.stopVideoTimer();
   this.mozCamera.stopRecording();
   this.set('recording', false);
-  this.stopVideoTimer();
+  this.emit('busy');
 
   // Register a listener for writing
   // completion of current video file
@@ -477,8 +492,7 @@ Camera.prototype.stopRecording = function() {
 
   function onStorageChange(e) {
     debug('video file ready', e.path);
-    var filepath = self.tmpVideo.filepath = e.path;
-    var matchesFile = !!~filepath.indexOf(filename);
+    var matchesFile = e.path.indexOf(video.filepath) > -1;
 
     // Regard the modification as
     // video file writing completion
@@ -486,23 +500,24 @@ Camera.prototype.stopRecording = function() {
     // filename. Note e.path is absolute path.
     if (e.reason === 'modified' && matchesFile) {
       storage.removeEventListener('change', onStorageChange);
-      self.getTmpVideoBlob(gotVideoBlob);
+      self.getVideoBlob(gotVideoBlob);
     }
   }
 
   function gotVideoBlob(blob) {
     getVideoMetaData(blob, function(err, data) {
-      if (err) {
-        return;
-      }
+      if (err) { return this.onRecordingError(); }
 
       self.emit('newvideo', {
         blob: blob,
+        filepath: video.filepath,
         poster: data.poster,
         width: data.width,
         height: data.height,
         rotation: data.rotation
       });
+
+      self.emit('ready');
     });
   }
 };
@@ -514,22 +529,50 @@ Camera.prototype.onRecordingError = function(id) {
   var title = navigator.mozL10n.get(id + '-title');
   var text = navigator.mozL10n.get(id + '-text');
   alert(title + '. ' + text);
+  this.emit('ready');
 };
 
+/**
+ * Emit useful event hook.
+ *
+ * @private
+ */
 Camera.prototype.onShutter = function() {
   this.emit('shutter');
 };
 
-Camera.prototype.onRecordingStateChange = function(msg) {
+Camera.prototype.onPreviewStateChange = function(previewState) {
+  if (previewState === 'stopped' || previewState === 'paused') {
+    this.emit('busy');
+  } else {
+    this.emit('ready');
+  }
+};
+
+/**
+ * Emit useful event hook.
+ *
+ * @param  {String} msg
+ * @private
+ */
+Camera.prototype.onRecorderStateChange = function(msg) {
   if (msg === 'FileSizeLimitReached') {
     this.emit('filesizelimitreached');
   }
 };
 
-Camera.prototype.getTmpStorageSpace = function(done) {
-  debug('get temp storage space');
+/**
+ * Get the number of remaining
+ * bytes in video storage.
+ *
+ * @param  {Function} done
+ * @async
+ * @private
+ */
+Camera.prototype.getFreeVideoStorageSpace = function(done) {
+  debug('get free storage space');
 
-  var storage = this.tmpVideo.storage;
+  var storage = this.video.storage;
   var req = storage.freeSpace();
   req.onerror = onError;
   req.onsuccess = onSuccess;
@@ -545,12 +588,17 @@ Camera.prototype.getTmpStorageSpace = function(done) {
   }
 };
 
-Camera.prototype.getTmpVideoBlob = function(done) {
-  debug('get tmp video blob');
-
-  var filepath = this.tmpVideo.filepath;
-  var storage = this.tmpVideo.storage;
-  var req = storage.get(filepath);
+/**
+ * Get the recorded video out of storage.
+ *
+ * @param  {Function} done
+ * @private
+ * @async
+ */
+Camera.prototype.getVideoBlob = function(done) {
+  debug('get video blob');
+  var video = this.video;
+  var req = video.storage.get(video.filepath);
   req.onsuccess = onSuccess;
   req.onerror = onError;
 
@@ -560,19 +608,28 @@ Camera.prototype.getTmpVideoBlob = function(done) {
   }
 
   function onError() {
-    debug('failed to get \'%s\' from storage', filepath);
+    console.error('failed to get \'%s\' from storage', video.filepath);
   }
 };
 
-Camera.prototype.createTmpVideoFilename = function() {
-  return Date.now() + '_tmp.3gp';
-};
-
-Camera.prototype.deleteTmpVideoFile = function() {
-  var storage = this.tmpVideo.storage;
-  storage.delete(this.tmpVideo.filepath);
-  this.tmpVideo.filename = null;
-  this.tmpVideo.filepath = null;
+/**
+ * Get a unique video filepath
+ * to record a new video to.
+ *
+ * Your application can overwrite
+ * this method with something
+ * so that you can record directly
+ * to final location. We do this
+ * in CameraController.
+ *
+ * Callback function signature used
+ * so that an async override can
+ * be used if you wish.
+ *
+ * @param  {Function} done
+ */
+Camera.prototype.createVideoFilepath = function(done) {
+  done(Date.now() + '_tmp.3gp');
 };
 
 Camera.prototype.resumePreview = function() {
@@ -589,7 +646,7 @@ Camera.prototype.resumePreview = function() {
 Camera.prototype.setMode = function(mode) {
   this.updatePreviewSize(mode);
   this.set('mode', mode);
-  this.configure(this.mozCamera);
+  this.load();
 };
 
 Camera.prototype.updatePreviewSize = function(mode) {

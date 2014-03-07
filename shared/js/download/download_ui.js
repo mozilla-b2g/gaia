@@ -47,15 +47,18 @@ var DownloadUI = (function() {
     STOPPED: new DownloadType('stopped', ['recommend'], true),
     FAILED: new DownloadType('failed', ['recommend']),
     DELETE: new DownloadType('delete', ['danger']),
+    DELETE_ALL: new DownloadType('delete_all', ['danger']),
     UNSUPPORTED_FILE_TYPE: new DownloadType('unsupported_file_type',
                                             ['danger']),
     FILE_NOT_FOUND: new DownloadType('file_not_found', ['recommend', 'full'],
                                      true),
     FILE_OPEN_ERROR: new DownloadType('file_open_error', ['danger']),
-    NO_SDCARD: new DownloadType('no_sdcard_found', ['recommend', 'full'], true),
-    UNMOUNTED_SDCARD: new DownloadType('unmounted_sdcard', ['recommend',
+    NO_SDCARD: new DownloadType('no_sdcard_found_2', ['recommend', 'full'],
+                                true),
+    UNMOUNTED_SDCARD: new DownloadType('unmounted_sdcard_2', ['recommend',
                                        'full'], true),
-    NO_PROVIDER: new DownloadType('no_provider', ['recommend', 'full'], true)
+    NO_PROVIDER: new DownloadType('no_provider', ['recommend', 'full'], true),
+    NO_MEMORY: new DownloadType('no_memory', ['recommend', 'full'], true)
   };
 
   var DownloadAction = function(id, type) {
@@ -130,7 +133,7 @@ var DownloadUI = (function() {
   window.addEventListener('home', removeContainers);
   window.addEventListener('holdhome', removeContainers);
 
-  function createConfirm(type, req, download) {
+  function createConfirm(type, req, downloads) {
     var _ = navigator.mozL10n.get;
 
     addConfirm();
@@ -147,9 +150,13 @@ var DownloadUI = (function() {
     if (type.isPlainMessage) {
       message.textContent = _(type.name + '_download_message');
     } else {
-      message.textContent = _(type.name + '_download_message', {
-        'name': DownloadFormatter.getFileName(download)
-      });
+      var args = Object.create(null);
+      if (type === TYPES.DELETE_ALL) {
+        args.number = downloads.length;
+      } else {
+        args.name = DownloadFormatter.getFileName(downloads[0]);
+      }
+      message.textContent = _(type.name + '_download_message', args);
     }
     dialog.appendChild(message);
 
@@ -275,13 +282,15 @@ var DownloadUI = (function() {
    *
    * @param {String} Confirmation type
    *
-   * @param {Object} It represents the download object
+   * @param {Array} It represents the download(s) object(s)
    *
    * @param {Boolean} This optional parameter indicates if the library should
    *                  include BBs
    */
-  function show(type, download, ignoreStyles) {
+  function show(type, downloads, ignoreStyles) {
     var req = new Request();
+
+    downloads = Array.isArray(downloads) ? downloads : [downloads];
 
     window.setTimeout(function() {
       var libs = ['shared/js/download/download_formatter.js'];
@@ -293,13 +302,14 @@ var DownloadUI = (function() {
       if (type === null) {
         type = TYPES.STOPPED;
 
+        var download = downloads[0];
         if (download.state === 'finalized' ||
             download.state === 'stopped' && download.error !== null) {
           type = TYPES.FAILED;
         }
       }
 
-      LazyLoader.load(libs, createConfirm.call(this, type, req, download));
+      LazyLoader.load(libs, createConfirm.call(this, type, req, downloads));
     }, 0);
 
     return req;

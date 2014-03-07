@@ -25,6 +25,8 @@
 
   /* collection is opened, homescreen apps are faded out */
   transition: opacity 200ms linear;
+
+  will-change: transform, opacity;
 }
 
 .apps ol > li {

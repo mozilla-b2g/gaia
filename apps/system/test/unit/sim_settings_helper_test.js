@@ -5,8 +5,8 @@
 
 'use strict';
 
-requireApp('system/test/unit/mock_simslot.js');
-requireApp('system/test/unit/mock_simslot_manager.js');
+requireApp('system/js/mock_simslot.js');
+requireApp('system/js/mock_simslot_manager.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 
 mocha.globals([
@@ -34,6 +34,7 @@ suite('SimSettingsHelper > ', function() {
     // each time, we have to put it back
     SIMSlotManager.mInstances.push(new SIMSlot());
     SIMSlotManager.mInstances.push(new SIMSlot());
+    SIMSlotManager.hasOnlyOneSIMCardDetected = function() {};
   });
 
   suite('slots > ', function() {
@@ -47,9 +48,8 @@ suite('SimSettingsHelper > ', function() {
     suite('are all absent > ', function() {
       setup(function() {
         setSlotAbsent(0, true);
-        emitSimslotUpdateEvent();
         setSlotAbsent(1, true);
-        emitSimslotUpdateEvent();
+        emitSimslotReadyEvent();
         this.sinon.clock.tick(1000);
       });
       test('setServiceOnCard > ', function() {
@@ -60,9 +60,8 @@ suite('SimSettingsHelper > ', function() {
     suite('are all not absent > ', function() {
       setup(function() {
         setSlotAbsent(0, false);
-        emitSimslotUpdateEvent();
         setSlotAbsent(1, false);
-        emitSimslotUpdateEvent();
+        emitSimslotReadyEvent();
         this.sinon.clock.tick(1000);
       });
       test('setServiceOnCard > ', function() {
@@ -72,10 +71,13 @@ suite('SimSettingsHelper > ', function() {
 
     suite('one is absent while the other one is not >', function() {
       setup(function() {
+        this.sinon.stub(SIMSlotManager, 'hasOnlyOneSIMCardDetected',
+          function() {
+            return true;
+          });
         setSlotAbsent(0, true);
-        emitSimslotUpdateEvent();
         setSlotAbsent(1, false);
-        emitSimslotUpdateEvent();
+        emitSimslotReadyEvent();
         this.sinon.clock.tick(1000);
       });
       test('setServiceOnCard > ', function() {
@@ -91,8 +93,8 @@ suite('SimSettingsHelper > ', function() {
     });
   });
 
-  function emitSimslotUpdateEvent() {
-    window.dispatchEvent(new CustomEvent('simslot-updated'));
+  function emitSimslotReadyEvent() {
+    window.dispatchEvent(new CustomEvent('simslotready'));
   }
 
   function setSlotAbsent(slotIndex, absent) {

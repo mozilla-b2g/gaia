@@ -350,7 +350,8 @@ section.month #month-days ol {
 }
 
 /* Make the rows a bit taller for larger resolutions */
-@media (min-device-height: 640px) {
+/* use min-height instead of min-device-width because of b2g Bug 979924 */
+@media (min-height: 640px) {
   section.month ol {
     height: 6rem;
   }
@@ -504,6 +505,7 @@ Indicators are in units of 12
 #view-selector {
   position: absolute;
   bottom: 0;
+  height: 4.5rem;
 }
 
 #view-selector > li > a {

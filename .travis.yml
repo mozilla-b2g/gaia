@@ -9,17 +9,11 @@ after_script: ./node_modules/.bin/travisaction $CI_ACTION after_script
 branches:
   only:
   - master
-  - calendar-1.4-visual-refresh
 env:
   matrix:
   - CI_ACTION=linters
   - CI_ACTION=unit-tests-in-firefox
   - CI_ACTION=marionette_js
-  - CI_ACTION=marionette_js_stable_check TEST_JOB=1
-  - CI_ACTION=marionette_js_stable_check TEST_JOB=2
-  - CI_ACTION=marionette_js_stable_check TEST_JOB=3
-  - CI_ACTION=marionette_js_stable_check TEST_JOB=4
-  - CI_ACTION=marionette_js_stable_check TEST_JOB=5
   - CI_ACTION=gaia_ui_tests
   - CI_ACTION=build_tests
   global:
@@ -28,12 +22,6 @@ env:
   - secure: JgNTK2gfJY1UcpXU/j0MFUvB1P7GaQyOVKBT19uwE2xCsO+T00YWnEhDGFZ9CxYDsATQ5EG5cW/eaoqXOpI9QQsR5kEJp1N1rLvKliqtGcm/ocVjWl/dhsG1i+ksJSCm1oDwduEuLFZ7tChrXihiZ2Sn1RAWns0mjZw9+8+tDhU=
 matrix:
   fast_finish: true
-  allow_failures:
-    - env: CI_ACTION=marionette_js_stable_check TEST_JOB=1
-    - env: CI_ACTION=marionette_js_stable_check TEST_JOB=2
-    - env: CI_ACTION=marionette_js_stable_check TEST_JOB=3
-    - env: CI_ACTION=marionette_js_stable_check TEST_JOB=4
-    - env: CI_ACTION=marionette_js_stable_check TEST_JOB=5
 notifications:
   email: false
   irc:

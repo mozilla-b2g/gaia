@@ -1,6 +1,10 @@
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
+/* global Utils, FxaModuleOverlay, LazyLoader, FxaModuleErrors,
+   FxaModuleErrorOverlay */
+/* exported FxaModule */
+
 'use strict';
 
 var FxaModule = (function() {
@@ -20,6 +24,10 @@ var FxaModule = (function() {
 
     onBack: function fxam_onBack() {
       // handle "back" button presses.
+    },
+
+    onDone: function fxam_onDone(doneCallback) {
+      doneCallback();
     },
 
     importElements: function fxam_importElements() {

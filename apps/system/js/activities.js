@@ -57,8 +57,9 @@
           window.dispatchEvent(new CustomEvent('activitymenuwillopen'));
 
           var activityName = navigator.mozL10n.get('activity-' + detail.name);
-          ActionMenu.open(this._listItems(choices), activityName,
+          var menu = new ActionMenu(this._listItems(choices), activityName,
                            this.choose.bind(this), this.cancel.bind(this));
+          menu.start();
         }).bind(this));
       }
     },

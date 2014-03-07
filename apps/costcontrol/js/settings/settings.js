@@ -9,6 +9,8 @@
  // Import global objects from parent window
  var ConfigManager = window.parent.ConfigManager;
  var CostControl = window.parent.CostControl;
+ var Common = window.parent.Common;
+ var NetworkUsageAlarm = window.parent.NetworkUsageAlarm;
  var Formatting = window.parent.Formatting;
 
  // Import global functions from parent window
@@ -17,7 +19,9 @@
  var formatData = window.parent.formatData;
  var roundData = window.parent.roundData;
  var resetData = window.parent.resetData;
+ var addNetworkUsageAlarm = window.parent.addNetworkUsageAlarm;
  var resetTelephony = window.parent.resetTelephony;
+ var getDataLimit = window.parent.getDataLimit;
  var localizeWeekdaySelector = window.parent.localizeWeekdaySelector;
  var computeTelephonyMinutes = window.parent.computeTelephonyMinutes;
  var _ = window.parent._;
@@ -70,6 +74,20 @@ var Settings = (function() {
       configureDataResets();
       addDoneConstrains();
 
+      // Add an observer on dataLimit switch to active o deactivate alarms
+      ConfigManager.observe(
+        'dataLimit',
+        function _onDataLimitChange(value, old, key, settings) {
+          var currentDataInterface = Common.getDataSIMInterface();
+          if (!value) {
+            NetworkUsageAlarm.clearAlarms(currentDataInterface);
+          } else {
+            addNetworkUsageAlarm(currentDataInterface, getDataLimit(settings));
+          }
+        },
+        true
+      );
+
       // Update layout when changing plantype
       ConfigManager.observe('plantype', updateUI, true);
 
@@ -103,8 +121,7 @@ var Settings = (function() {
       });
 
       function _setResetTimeToDefault(value, old, key, settings) {
-        var firstWeekDay = parseInt(navigator.mozL10n.get('weekStartsOnMonday'),
-                                    10);
+        var firstWeekDay = parseInt(_('weekStartsOnMonday'), 10);
         var defaultResetTime = (settings.trackingPeriod === 'weekly') ?
                                                                   firstWeekDay :
                                                                   1;

@@ -19,12 +19,14 @@ if (!window.ImageLoader) {
       container = document.querySelector(pContainer);
 
       container.addEventListener('scroll', onScroll);
-      document.addEventListener('onupdate', function(evt) {
-        evt.stopPropagation();
-        onScroll();
-      });
+      document.addEventListener('onupdate', onUpdate);
 
       load();
+    }
+
+    function onUpdate(evt) {
+      evt.stopPropagation();
+      onScroll();
     }
 
     function load() {
@@ -36,6 +38,13 @@ if (!window.ImageLoader) {
       total = items.length;
       // Initial check if items should appear
       window.setTimeout(update, 0);
+    }
+
+    function unload() {
+      container.removeEventListener('scroll', onScroll);
+      document.removeEventListener('onupdate', onUpdate);
+      window.clearTimeout(scrollTimer);
+      scrollTimer = null;
     }
 
     function setResolver(pResolver) {
@@ -92,6 +101,7 @@ if (!window.ImageLoader) {
       };
 
       tmp.onabort = tmp.onerror = function onerror() {
+        --imgsLoading;
         item.dataset.visited = 'false';
         tmp = null;
       };
@@ -155,6 +165,7 @@ if (!window.ImageLoader) {
     }
 
     this.reload = load;
+    this.unload = unload;
     this.setResolver = setResolver;
     this.defaultLoad = defaultLoadImage;
     this.releaseImage = releaseImage;

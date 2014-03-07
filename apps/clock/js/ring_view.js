@@ -207,7 +207,8 @@ RingView.prototype.startNotify = function rv_startNotify(timeout) {
     }
     setTimeout(function rv_clearVibration() {
       if (this.started === unique) {
-        this.stopNotify();
+        this.vibrate(false);
+        this.ring(false);
       }
       done();
     }.bind(this), timeout);

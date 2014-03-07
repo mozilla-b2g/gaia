@@ -1,3 +1,5 @@
+'use strict';
+
 window.Search = {
   _port: null,
   providers: {},
@@ -8,5 +10,8 @@ window.Search = {
   onSearchInput: function() {},
   close: function() {},
   navigate: function() {},
-  setInput: function() {}
+  setInput: function() {},
+  collect: function(provider, results) {
+    provider.render(results);
+  }
 };

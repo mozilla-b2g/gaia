@@ -1,6 +1,6 @@
 'use strict';
 
-/* global require, exports */
+/* global dump, require, exports */
 var utils = require('utils');
 var manifestModule = require('webapp-manifests');
 var svoperapps = require('./homescreen-svoperapps');
@@ -20,8 +20,7 @@ HomescreenAppBuilder.prototype.setOptions = function(options) {
   let mappingFile = utils.getFile(options.GAIA_DIR, 'build_stage',
     'webapps-mapping.json');
   if (!mappingFile.exists()) {
-    throw new Error('webapps mapping file not found, you should use' +
-      ' webapp-manifests.js to create it first, path: ' + mappingFile.path);
+    throw new Error('build_stage/webapps-mapping.json not found.');
   }
   this.webappsMapping = utils.getJSON(mappingFile);
 
@@ -80,19 +79,19 @@ HomescreenAppBuilder.prototype.bestMatchingIcon =
 };
 
 HomescreenAppBuilder.prototype.getCollectionManifest =
-  function(directory, app_name) {
+  function(directory, appName) {
   var config = this.options;
   let gaia = utils.getGaia(config);
 
   // Locate the directory of a given app.
-  // If the directory (Gaia.distributionDir)/(directory)/(app_name) exists,
-  // favor it over (GAIA_DIR)/(directory)/(app_name).
+  // If the directory (Gaia.distributionDir)/(directory)/(appName) exists,
+  // favor it over (GAIA_DIR)/(directory)/(appName).
   let targetDir = gaia.distributionDir ?
     gaia.distributionDir : config.GAIA_DIR;
-  let dir = utils.getFile(targetDir, directory, app_name);
+  let dir = utils.getFile(targetDir, directory, appName);
 
   if (!dir.exists()) {
-    dir = utils.getFile(config.GAIA_DIR, directory, app_name);
+    dir = utils.getFile(config.GAIA_DIR, directory, appName);
   }
 
   let manifestFile = dir.clone();
@@ -105,35 +104,35 @@ HomescreenAppBuilder.prototype.getCollectionManifest =
   return null;
 };
 
-HomescreenAppBuilder.prototype.getIconDiscriptorFromApp =
-  function(directory, app_name, entry_point) {
+HomescreenAppBuilder.prototype.getIconDescriptorFromApp =
+  function(directory, appName, entryPoint) {
   var config = this.options;
   let manifest = null;
   let origin = null;
   let manifestURL = null;
 
-  manifest = this.getCollectionManifest(directory, app_name);
+  manifest = this.getCollectionManifest(directory, appName);
   if (!manifest) {
-    if (!this.webappsMapping[app_name]) {
-      throw new Error(
-        'Can not find application ' + app_name + ' at ' + directory
-      );
+    if (!this.webappsMapping[appName]) {
+      dump('Warning: Can not find application ' + appName +
+           ' at ' + directory + '\n');
+      return;
     }
 
-    manifest = this.webappsMapping[app_name].originalManifest;
-    if (entry_point &&
-      manifest.entry_points &&
-      manifest.entry_points[entry_point]) {
-    manifest = manifest.entry_points[entry_point];
+    manifest = this.webappsMapping[appName].originalManifest;
+
+    let entryPoints = manifest.entry_points;
+    if (entryPoint && entryPoints && entryPoints[entryPoint]) {
+      manifest = entryPoints[entryPoint];
     }
 
-    origin = this.webappsMapping[app_name].origin;
-    manifestURL = this.webappsMapping[app_name].manifestURL;
+    origin = this.webappsMapping[appName].origin;
+    manifestURL = this.webappsMapping[appName].manifestURL;
   }
 
   let descriptor = {
     //TODO set localizedName once we know the default locale
-    entry_point: entry_point,
+    entry_point: entryPoint,
     updateTime: manifestModule.INSTALL_TIME,
     name: manifest.name
   };
@@ -141,7 +140,7 @@ HomescreenAppBuilder.prototype.getIconDiscriptorFromApp =
   if (manifest.role === 'collection') {
     origin = utils.gaiaOriginURL('homescreen', config.GAIA_SCHEME,
     config.GAIA_DOMAIN, config.GAIA_PORT);
-    manifestURL = origin + '/collections/' + app_name + '/manifest.collection';
+    manifestURL = origin + '/collections/' + appName + '/manifest.collection';
     descriptor.provider_id = manifest.provider_id;
     descriptor.role = manifest.role;
     descriptor.removable = true; // Collections are removable by default
@@ -150,7 +149,10 @@ HomescreenAppBuilder.prototype.getIconDiscriptorFromApp =
     let apps = [];
     if (Array.isArray(manifest.apps)) {
       manifest.apps.forEach(function iterate(app) {
-        let iconInfo = this.getIconDiscriptorFromApp.apply(this, app);
+        let iconInfo = this.getIconDescriptorFromApp.apply(this, app);
+        if (!iconInfo) {
+          return;
+        }
         app.splice(0, 2, iconInfo.manifestURL);
         apps.push(app);
       }, this);
@@ -196,7 +198,7 @@ HomescreenAppBuilder.prototype.customizeHomescreen = function() {
     customize.tap_effect_delay : 140;
   // It defines the threshold to consider a gesture like a swipe. Number
   // in the range 0.0 to 1.0, both included, representing the screen width
-  let swipe_threshold = 0.4;
+  let swipe_threshold = 0.25;
   // By default we define the virtual friction to .1 px/ms/ms
   let swipe_friction = 0.1;
   // Page transition duration defined in ms (300 ms by default)
@@ -271,16 +273,12 @@ HomescreenAppBuilder.prototype.customizeHomescreen = function() {
       lookahead: 16  // 60fps = 16ms per frame
     },
 
-    background: {
-      url: 'resources/images/backgrounds/default.png'
-    },
-
     grid: customize.homescreens.map(
       function map_homescreens(applist) {
         var output = [];
         for (var i = 0; i < applist.length; i++) {
           if (applist[i] !== null) {
-            output.push(this.getIconDiscriptorFromApp.apply(this, applist[i]));
+            output.push(this.getIconDescriptorFromApp.apply(this, applist[i]));
           }
         }
         return output;

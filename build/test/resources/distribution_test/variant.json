@@ -10,9 +10,10 @@
   },
   "operators": [
     {
-      "id": "t-mobile us",
+      "id": "mobizilla",
       "mcc-mnc": [
-        "310-260"
+        "310-260",
+        "311-261"
       ],
       "apps": [
         {
@@ -23,7 +24,10 @@
       ],
       "support_contacts": "mobizilla/mobizilla_support_contacts.json",
       "default_contacts": "mobizilla/mobizilla_contacts.json",
-      "wallpaper": "mobizilla/mobizilla_wallpaper.png"
+      "wallpaper": "mobizilla/mobizilla_wallpaper.png",
+      "keyboard": "mobizilla/mobizilla_keyboard.json",
+      "network_type": "mobizilla/mobizilla_network_type.json",
+      "known_networks": "mobizilla/mobizilla_known_networks.json"
     }
   ]
 }

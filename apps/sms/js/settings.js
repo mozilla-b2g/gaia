@@ -1,15 +1,21 @@
-'use strict';
 /*
   Message app settings related value and utilities.
 */
 
+/* global MobileOperator*/
+
+/* exported Settings */
+
+
+'use strict';
+
 var Settings = {
   MMS_SERVICE_ID_KEY: 'ril.mms.defaultServiceId',
-
+  _serviceIds: null,
   mmsSizeLimitation: 300 * 1024, // Default mms message size limitation is 300K.
   mmsServiceId: null, // Default mms service SIM ID (only for DSDS)
   get nonActivateMmsServiceIds() { // Non activate mms ID (only for DSDS)
-    var serviceIds = this.serviceIds.slice();
+    var serviceIds = this._serviceIds.slice();
     serviceIds.splice(this.mmsServiceId, 1);
     return serviceIds;
   },
@@ -29,6 +35,8 @@ var Settings = {
       };
     }
 
+    this._serviceIds = [];
+
     if (!settings) {
       return;
     }
@@ -36,10 +44,10 @@ var Settings = {
     // Only DSDS will need to handle mmsServiceId
     if (conns && conns.length > 1) {
       keyHandlerSet[this.MMS_SERVICE_ID_KEY] = this.initMmsServiceId;
+
       // Cache all existing serviceIds
-      this.serviceIds = [];
       for (var i = 0, l = conns.length; i < l; i++) {
-        this.serviceIds.push(i);
+        this._serviceIds.push(conns[i].iccId);
       }
     }
 
@@ -93,5 +101,64 @@ var Settings = {
 
       this.setSimServiceId(targetId);
     }
+  },
+
+  /**
+   * returns true if the device has more than 1 SIM port
+   */
+  isDualSimDevice: function isDualSimDevice() {
+    return this._serviceIds && this._serviceIds.length > 1;
+  },
+
+  /**
+   * Returns true if the device has more than 1 SIM port and at least 2 SIMs are
+   * inserted.
+   */
+  hasSeveralSim: function hasSeveralSim() {
+    if (!this.isDualSimDevice()) {
+      return false;
+    }
+
+    var simCount = this._serviceIds.reduce(function(simCount, iccId) {
+      return iccId === null ? simCount : simCount + 1;
+    }, 0);
+
+    return simCount > 1;
+  },
+
+  /**
+   * Will return SIM1 or SIM2 (locale dependent) depending on the iccId.
+   * Will return the empty string in a single SIM scenario.
+   */
+  getSimNameByIccId: function getSimNameByIccId(iccId) {
+    if (!this._serviceIds) {
+      return '';
+    }
+
+    var index = this._serviceIds.indexOf(iccId) + 1;
+    if (!index) {
+      return '';
+    }
+
+    var simName = navigator.mozL10n.get('sim-name', { id: index });
+    return simName;
+  },
+
+  /**
+   * Will return operator name depending on the iccId.
+   * Will return the empty string in a single SIM scenario.
+   */
+  getOperatorByIccId: function getOperatorByIccId(iccId) {
+    if (!this._serviceIds) {
+      return '';
+    }
+
+    var index = this._serviceIds.indexOf(iccId);
+    if (index < 0) {
+      return '';
+    }
+
+    var conn = navigator.mozMobileConnections[index];
+    return MobileOperator.userFacingInfo(conn).operator;
   }
 };

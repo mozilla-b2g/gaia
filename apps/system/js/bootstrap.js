@@ -68,6 +68,10 @@ window.addEventListener('load', function startup() {
   window.devtoolsView = new DevtoolsView();
   window.dialerComms = new DialerComms();
   window.remoteDebugger = new RemoteDebugger();
+
+  window.telephonySettings = new TelephonySettings();
+  window.telephonySettings.start();
+
   window.title = new Title();
   window.ttlView = new TTLView();
 
@@ -110,6 +114,18 @@ window.addEventListener('localized', function onlocalized() {
   document.documentElement.lang = navigator.mozL10n.language.code;
   document.documentElement.dir = navigator.mozL10n.language.direction;
 });
+
+var wallpaperURL = new SettingsURL();
+
+// Define the default background to use for all homescreens
+SettingsListener.observe(
+  'wallpaper.image',
+  'resources/images/backgrounds/default.png',
+  function setWallpaper(value) {
+    document.getElementById('screen').style.backgroundImage =
+      'url(' + wallpaperURL.set(value) + ')';
+  }
+);
 
 // Use a setting in order to be "called" by settings app
 navigator.mozSettings.addObserver(
@@ -156,5 +172,14 @@ function cancelHomeTouchend(e) {
   }
 }
 
+function cancelHomeClick(e) {
+  if (e.pageX === 0 && e.pageY === 0) {
+    e.preventDefault();
+    e.stopImmediatePropagation();
+  }
+}
+
 window.addEventListener('touchstart', cancelHomeTouchstart, true);
 window.addEventListener('touchend', cancelHomeTouchend, true);
+window.addEventListener('mousedown', cancelHomeClick, true);
+window.addEventListener('mouseup', cancelHomeClick, true);

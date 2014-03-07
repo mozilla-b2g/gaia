@@ -285,13 +285,14 @@ var CallsHandler = (function callsHandler() {
 
   function handleFirstIncoming(call) {
     var vibrateInterval = 0;
-    if (activateVibration != false) {
+    if ('vibrate' in navigator && activateVibration != false) {
       vibrateInterval = window.setInterval(function vibrate() {
         // Wait for the setting value to return before starting a vibration.
-        if ('vibrate' in navigator && activateVibration) {
+        if (activateVibration) {
           navigator.vibrate([200]);
         }
       }, 600);
+      navigator.vibrate([200]);
     }
 
     if (activePhoneSound == true) {
@@ -393,12 +394,12 @@ var CallsHandler = (function callsHandler() {
     window.close();
   }
 
-  function _changeMaxFontSize(evt) {
-    handledCalls.forEach(function(hc) {
-      hc.formatPhoneNumber();
+  function updateAllPhoneNumberDisplays() {
+    handledCalls.forEach(function(call) {
+      call.restorePhoneNumber();
     });
   }
-  window.addEventListener('resize', _changeMaxFontSize);
+  window.addEventListener('resize', updateAllPhoneNumberDisplays);
 
   /* Handle commands send to the callscreen via postmessage */
   function handleCommand(evt) {
@@ -858,6 +859,7 @@ var CallsHandler = (function callsHandler() {
     mergeActiveCallWith: mergeActiveCallWith,
     mergeConferenceGroupWithActiveCall: mergeConferenceGroupWithActiveCall,
     requestContactsTab: requestContactsTab,
+    updateAllPhoneNumberDisplays: updateAllPhoneNumberDisplays,
 
     get activeCall() {
       return activeCall();

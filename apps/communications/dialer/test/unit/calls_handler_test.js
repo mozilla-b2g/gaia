@@ -9,10 +9,12 @@ requireApp('communications/dialer/test/unit/mock_contacts.js');
 requireApp('communications/dialer/test/unit/mock_tone_player.js');
 requireApp('communications/dialer/test/unit/mock_bluetooth_helper.js');
 requireApp('communications/dialer/test/unit/mock_utils.js');
+requireApp('communications/dialer/test/unit/mock_simple_phone_matcher.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 require('/shared/test/unit/mocks/mock_audio.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/test/unit/mocks/mock_settings_url.js');
+require('/shared/test/unit/mocks/mock_navigator_wake_lock.js');
 
 // The CallsHandler binds stuff when evaluated so we load it
 // after the mocks and we don't want it to show up as a leak.
@@ -30,18 +32,23 @@ var mocksHelperForCallsHandler = new MocksHelper([
   'SettingsURL',
   'BluetoothHelper',
   'Utils',
-  'Audio'
+  'Audio',
+  'SimplePhoneMatcher'
 ]).init();
 
 suite('calls handler', function() {
   var realMozTelephony;
   var realMozApps;
+  var realWakeLock;
 
   mocksHelperForCallsHandler.attachTestHelpers();
 
   suiteSetup(function(done) {
     realMozTelephony = navigator.mozTelephony;
     navigator.mozTelephony = MockMozTelephony;
+
+    realWakeLock = navigator.requestWakeLock;
+    navigator.requestWakeLock = MockNavigatorWakeLock.requestWakeLock;
 
     realMozApps = navigator.mozApps;
     navigator.mozApps = MockNavigatormozApps;
@@ -53,6 +60,7 @@ suite('calls handler', function() {
     MockMozTelephony.mSuiteTeardown();
     navigator.moztelephony = realMozTelephony;
     navigator.mozApps = realMozApps;
+    navigator.requestWakeLock = realWakeLock;
   });
 
   setup(function() {
@@ -118,15 +126,16 @@ suite('calls handler', function() {
         assert.isTrue(playSpy.called);
       });
 
-      test('should vibrate if the setting is enabled', function() {
+      test('should vibrate right away if the setting is enabled', function() {
         var vibrateSpy = this.sinon.spy(navigator, 'vibrate');
 
         MockSettingsListener.mCallbacks['vibration.enabled'](true);
         CallsHandler.setup();
         MockMozTelephony.mTriggerCallsChanged();
 
-        this.sinon.clock.tick(1000);
-        assert.isTrue(vibrateSpy.called);
+        assert.isTrue(vibrateSpy.calledOnce);
+        this.sinon.clock.tick(600);
+        assert.isTrue(vibrateSpy.calledTwice);
       });
 
       suite('> call isn\'t picked up', function() {
@@ -1211,6 +1220,21 @@ suite('calls handler', function() {
       test('should call telephony.conferenceGroup.add()', function() {
         CallsHandler.mergeConferenceGroupWithActiveCall();
         assert.isTrue(addSpy.calledWith(overflowCall));
+      });
+    });
+
+    suite('> CallsHandler.updateAllPhoneNumberDisplays', function() {
+      test('should restore phone number for every handled call', function() {
+        var firstCall = new MockCall('543552', 'incoming');
+        var secondCall = new MockCall('12334', 'incoming');
+        var firstHC = telephonyAddCall.call(this, firstCall);
+        var secondHC = telephonyAddCall.call(this, secondCall);
+        MockMozTelephony.mTriggerCallsChanged();
+        var firstSpy = this.sinon.spy(firstHC, 'restorePhoneNumber');
+        var secondSpy = this.sinon.spy(secondHC, 'restorePhoneNumber');
+        CallsHandler.updateAllPhoneNumberDisplays();
+        assert.isTrue(firstSpy.calledOnce);
+        assert.isTrue(secondSpy.calledOnce);
       });
     });
 

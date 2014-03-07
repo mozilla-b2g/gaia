@@ -389,9 +389,11 @@ var GridManager = (function() {
 
     var velocity = panningResolver.getVelocity();
     var distanceToTravel = 0.5 * Math.abs(velocity) * velocity / swipeFriction;
-    // If the actual distance plus the coast distance is more than 40% the
+    // If the actual distance plus the coast distance is more than 25% the
     // screen, transition to the next page
-    if (Math.abs(deltaX + distanceToTravel) > swipeThreshold) {
+    if (Math.abs(deltaX + distanceToTravel) > swipeThreshold ||
+       (Math.abs(deltaX) > tapThreshold &&
+           touchEndTimestamp - touchStartTimestamp < kPageTransitionDuration)) {
       var forward = dirCtrl.goesForward(deltaX);
       if (forward && currentPage < pages.length - 1) {
         page = page + 1;
@@ -883,7 +885,7 @@ var GridManager = (function() {
   }
 
   function getApp(origin) {
-    var app = appsByOrigin[origin];
+    var app = appsByOrigin[origin] || bookmarkIcons[origin].app;
     if (app) {
       return new Icon(buildDescriptor(app), app);
     }
@@ -1599,6 +1601,10 @@ var GridManager = (function() {
 
     get container() {
       return container;
-    }
+    },
+
+    forgetIcon: forgetIcon,
+
+    rememberIcon: rememberIcon
   };
 })();

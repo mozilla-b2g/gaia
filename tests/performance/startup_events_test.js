@@ -6,9 +6,12 @@ var App = require('./app');
 var PerformanceHelper = requireGaia('/tests/performance/performance_helper.js');
 var MarionetteHelper = requireGaia('/tests/js-marionette/helper.js');
 
-// This test is only for communications/contacts for now.
-// XXX extend to more apps.
-var whitelistedApps = ['communications/contacts'];
+var whitelistedApps = [
+  'communications/contacts',
+  'clock',
+  'fm'
+];
+
 if (whitelistedApps.indexOf(mozTestInfo.appPath) === -1) {
   return;
 }

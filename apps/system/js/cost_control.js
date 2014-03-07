@@ -4,6 +4,7 @@
 (function() {
 
   'use strict';
+  /* global Applications */
 
   var host = document.location.host;
   var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
@@ -14,16 +15,19 @@
 
   var widgetFrame;
   function _ensureWidget() {
-    if (!Applications.ready)
+    if (!Applications.ready) {
       return;
+    }
 
-    if (!Applications.getByManifestURL(origin + '/manifest.webapp'))
+    if (!Applications.getByManifestURL(origin + '/manifest.webapp')) {
       return;
+    }
 
     // Check widget is there
     widgetFrame = widgetContainer.querySelector('iframe');
-    if (widgetFrame)
+    if (widgetFrame) {
       return;
+    }
 
     // Create the widget
     if (!widgetFrame) {
@@ -43,7 +47,6 @@
     widgetContainer.appendChild(widgetFrame);
 
     _attachNetworkEvents();
-    _adjustWidgetPosition();
   }
 
   function _onError(e) {
@@ -61,6 +64,7 @@
   var hashMark = 0;
   var activityCounter = 0;
   var ACTIVITY_THRESHOLD = 75;
+
   function _onNetworkActivity() {
     activityCounter++;
     if (activityCounter === ACTIVITY_THRESHOLD) {
@@ -83,45 +87,21 @@
 
   function _showWidget() {
     _ensureWidget();
+    // Ensure the widget is updated when is visible
+    _attachNetworkEvents();
     widgetFrame.setVisible(true);
   }
 
   function _hideWidget() {
+    // It's not necessary to update the widget when it is hidden.
+    window.removeEventListener('moznetworkupload', _onNetworkActivity);
+    window.removeEventListener('moznetworkdownload', _onNetworkActivity);
     if (widgetFrame) {
       widgetFrame.setVisible(false);
     }
   }
 
-  function _adjustWidgetPosition() {
-    if (!widgetFrame)
-      return;
-
-    // TODO: Remove this when weird bug #809031 (Bugzilla) is solved
-    // See cost_control.css as well to remove the last rule
-    var offsetY = document.getElementById('notification-bar').clientHeight;
-    offsetY +=
-      document.getElementById('notifications-container').clientHeight;
-    widgetFrame.style.transform = 'translate(0, ' + offsetY + 'px)';
-  }
-
   // Listen to utilitytray show
   window.addEventListener('utilitytrayshow', _showWidget);
   window.addEventListener('utilitytrayhide', _hideWidget);
-
-  window.addEventListener('applicationready', function _onReady() {
-    asyncStorage.getItem('ftu.enabled', function _onValue(enabled) {
-      if (enabled !== false) {
-        window.addEventListener('ftudone', function ftudone(e) {
-          window.removeEventListener('ftudone', ftudone);
-          _ensureWidget();
-          widgetFrame.setVisible(false);
-        });
-      } else {
-        _ensureWidget();
-        widgetFrame.setVisible(false);
-      }
-    });
-  });
-
-  window.addEventListener('resize', _adjustWidgetPosition);
 }());

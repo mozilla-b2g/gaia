@@ -61,7 +61,7 @@ var MockCallScreen = {
   stopTicker: function(node) {
     this.mCalledStopTicker = true;
   },
-  updateSingleLine: function() {
+  updateCallsDisplay: function() {
     this.mUpdateSingleLineCalled = true;
   },
   removeCall: function() {

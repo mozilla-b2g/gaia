@@ -1,8 +1,18 @@
 /* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
+/* globals ApnHelper */
+
 (function(exports) {
   'use strict';
+
+  // Setting key for the setting holding the OS version.
+  var DEVICE_INFO_OS_KEY = 'deviceinfo.os';
+
+  // Prefix for the persist key.
+  var PERSIST_KEY_PREFIX = 'operatorvariant';
+  // Sufix for the persist key.
+  var PERSIST_KEY_SUFIX = 'customization';
 
   // This json file should always be accessed from the root instead of the
   // current working base URL so that it can work in unit-tests as well
@@ -18,6 +28,8 @@
    * from the mozMobileConnection.
    */
   function OperatorVariantHandler(iccId, iccCardIndex) {
+    /** Holds the OS version */
+    this._deviceInfoOs = 'unknown';
     /** Index of the ICC card on the mozMobileConnections array */
     this._iccCardIndex = iccCardIndex;
     /** ICC id in the ICC card */
@@ -33,13 +45,32 @@
      * Init function.
      */
     init: function ovh_init() {
+      var settings = window.navigator.mozSettings;
+      var deviceInfoOsGetRequest =
+        settings.createLock().get(DEVICE_INFO_OS_KEY);
+      deviceInfoOsGetRequest.onsuccess = (function onSuccessHandler() {
+        this._deviceInfoOs =
+          deviceInfoOsGetRequest.result[DEVICE_INFO_OS_KEY] || 'unknown';
+
+        this.run();
+      }).bind(this);
+    },
+
+    /**
+     * Run customizations.
+     */
+    run: function ovh_run() {
       // Set some carrier settings on startup and when the SIM card is changed.
       this._operatorVariantHelper =
         new OperatorVariantHelper(
           this._iccId,
           this._iccCardIndex,
           this.applySettings.bind(this),
-          'operatorvariant.customization.' + this._iccId,
+          // Pass the persist key.
+          PERSIST_KEY_PREFIX + '.' +
+          this._deviceInfoOs + '.' +
+          'ICC' + this._iccCardIndex + '.' +
+          PERSIST_KEY_SUFIX,
           true);
 
       // Listen for changes in MCC/MNC values.
@@ -69,19 +100,33 @@
      * card or when the device boots with the same ICC card and the
      * customization has not been applied yet.
      *
-     * @param {String} mcc Mobile Country Code in the ICC card.
-     * @param {String} mnc Mobile Network Code in the ICC card.
+     * @param {String}  mcc Mobile Country Code in the ICC card.
+     * @param {String}  mnc Mobile Network Code in the ICC card.
+     * @param {Boolean} persistKeyNotSet The customization didn't run for
+     *                                   current OS version. Flag.
      */
-    applySettings: function ovh_applySettings(mcc, mnc) {
+    applySettings: function ovh_applySettings(mcc, mnc, persistKeyNotSet) {
       // Save MCC and MNC codes.
       this._iccSettings.mcc = mcc;
       this._iccSettings.mnc = mnc;
-      this.retrieveOperatorVariantSettings(
-        this.applyOperatorVariantSettings.bind(this)
-      );
-      this.retrieveWAPUserAgentProfileSettings(
-        this.applyWAPUAProfileUrl.bind(this)
-      );
+
+      if (!persistKeyNotSet) {
+        this.retrieveOperatorVariantSettings(
+          this.applyOperatorVariantSettings.bind(this)
+        );
+        this.retrieveWAPUserAgentProfileSettings(
+          this.applyWAPUAProfileUrl.bind(this)
+        );
+      } else {
+        this.retrieveOperatorVariantSettings(
+          (function retrieveOperatorVariantSettingsCb(result) {
+            this.filterApnsByMvnoRules(0, result, [], '', '',
+              (function onFinishCb(filteredApnList) {
+                this.buildApnSettings(filteredApnList);
+            }).bind(this));
+          }).bind(this)
+        );
+      }
 
       this._operatorVariantHelper.applied();
     },
@@ -112,9 +157,13 @@
           // *mnc* values!
           var mnc = self.padLeft(self._iccSettings.mnc, 2);
 
-          // get a list of matching APNs
-          var compatibleAPN = apn[mcc] ? (apn[mcc][mnc] || []) : [];
-          callback(compatibleAPN);
+          // Get the type of the data network
+          var networkType = window.navigator
+                                  .mozMobileConnections[self._iccCardIndex]
+                                  .data.type;
+
+          // Get a list of matching APNs
+          callback(ApnHelper.getCompatible(apn, mcc, mnc, networkType));
         }
       };
       xhr.send();

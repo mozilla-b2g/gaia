@@ -96,27 +96,42 @@ suite('navigation bar', function() {
       });
 
       test('> One SIM', function(done) {
-        window.postMessage(notificationObject, '*');
-
-        setTimeout(function() {
-          MockNavigatormozApps.mTriggerLastRequestSuccess();
-          sinon.assert.calledWith(Notification, 'missedCall');
-          done();
+        // To avoid racing postMessage, listen for the event
+        window.addEventListener('message', function onMessage(e) {
+          window.removeEventListener('message', onMessage);
+          if (e.data.type !== 'notification') {
+            return;
+          }
+          setTimeout(function() {
+            MockNavigatormozApps.mTriggerLastRequestSuccess();
+            sinon.assert.calledWith(Notification, 'missedCall');
+            done();
+          });
         });
+
+        window.postMessage(notificationObject, '*');
       });
 
       test('> Two SIMs', function(done) {
         MockNavigatorMozIccManager.addIcc('6789', {
           'cardState': 'ready'
         });
-        window.postMessage(notificationObject, '*');
 
-        setTimeout(function() {
-          MockNavigatormozApps.mTriggerLastRequestSuccess();
-          sinon.assert.calledWith(Notification, 'missedCallMultiSim');
-          assert.deepEqual(MockLazyL10n.keys.missedCallMultiSim, {n: 2});
-          done();
+        // To avoid racing postMessage, listen for the event
+        window.addEventListener('message', function onMessage(e) {
+          window.removeEventListener('message', onMessage);
+          if (e.data.type !== 'notification') {
+            return;
+          }
+          setTimeout(function() {
+            MockNavigatormozApps.mTriggerLastRequestSuccess();
+            sinon.assert.calledWith(Notification, 'missedCallMultiSim');
+            assert.deepEqual(MockLazyL10n.keys.missedCallMultiSim, {n: 2});
+            done();
+          });
         });
+
+        window.postMessage(notificationObject, '*');
       });
     });
   });

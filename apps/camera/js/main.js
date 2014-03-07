@@ -21,7 +21,6 @@ require(['config/require', 'config'], function() {
     var settings = new Settings(config.get());
     var GeoLocation = require('lib/geo-location');
     var Activity = require('lib/activity');
-    var allDone = require('lib/all-done');
     var Storage = require('lib/storage');
     var controllers = {
       hud: require('controllers/hud'),
@@ -67,9 +66,8 @@ require(['config/require', 'config'], function() {
 
     // Async jobs to be
     // done before boot...
-    var done = allDone()(app.boot);
-    app.activity.check(done());
-    app.settings.fetch(done());
+    app.settings.fetch();
+    app.activity.check(app.boot);
   });
 
   require(['boot']);

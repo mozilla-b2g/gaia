@@ -40,22 +40,21 @@ suite('bookmark.js >', function() {
   });
 
   test('This bookmark defines the url correctly >', function() {
-    var expectedURL = URL + '/';
-    assert.equal(bookmark.origin, expectedURL);
-    assert.equal(bookmark.url, expectedURL);
-    assert.equal(bookmark.bookmarkURL, expectedURL);
+    assert.equal(bookmark.origin, URL);
+    assert.equal(bookmark.url, URL);
+    assert.equal(bookmark.bookmarkURL, bookmark.generateIndex(URL));
+  });
 
+  test('This bookmark defines the url correctly after rebooting >', function() {
     bookmark = new Bookmark({
-      bookmarkURL: URL + '/',
+      bookmarkURL: 'bookmark/' + URL,
       name: name,
-      icon: icon,
-      iconable: false,
-      useAsyncPanZoom: true
+      icon: icon
     });
 
-    assert.equal(bookmark.origin, expectedURL);
-    assert.equal(bookmark.url, expectedURL);
-    assert.equal(bookmark.bookmarkURL, expectedURL);
+    assert.equal(bookmark.origin, URL);
+    assert.equal(bookmark.url, URL);
+    assert.equal(bookmark.bookmarkURL, bookmark.generateIndex(URL));
   });
 
   test('This bookmark defines the icon correctly >', function() {

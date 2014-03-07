@@ -3,9 +3,8 @@
 
 require('/js/devtools_view.js');
 
-suite('devtoolsWidgetPanel', function() {
+suite('developerHUD', function() {
 
-  var manifest = 'app://fakeapp.gaiamobile.org/fake.html';
   var subject;
 
   setup(function() {
@@ -13,15 +12,16 @@ suite('devtoolsWidgetPanel', function() {
   });
 
   function updateMetrics(metrics) {
-    var data = {
-      detail: {manifestURL: manifest, metrics: metrics}
-    };
-    var evt = new CustomEvent('widget-panel-update', data);
-    window.dispatchEvent(evt);
+    var target = document.getElementById('target');
+    var doc = target.document || target.ownerDocument || target;
+    var event = doc.createEvent('CustomEvent');
+    event.initCustomEvent('developer-hud-update', true, true,
+      { metrics: metrics });
+    target.dispatchEvent(event);
   }
 
-  function getWidgetView() {
-    var iframe = document.querySelector('iframe[mozapp="' + manifest + '"]');
+  function getDevtoolsView() {
+    var iframe = document.getElementById('target');
     var appwindow = iframe.parentElement;
     return appwindow.querySelector('.devtools-view');
   }
@@ -29,8 +29,7 @@ suite('devtoolsWidgetPanel', function() {
   suite('display()', function() {
 
     setup(function() {
-      document.body.innerHTML = '<div><iframe mozapp="' + manifest +
-        '"></iframe></div>';
+      document.body.innerHTML = '<div><iframe id=target></iframe></div>';
     });
 
     teardown(function() {
@@ -41,7 +40,7 @@ suite('devtoolsWidgetPanel', function() {
       updateMetrics([
         {name: 'bugs', value: 42}
       ]);
-      var view = getWidgetView();
+      var view = getDevtoolsView();
       assert.isDefined(view);
       var widget = view.querySelector('.widget');
       assert.isDefined(widget);
@@ -53,7 +52,7 @@ suite('devtoolsWidgetPanel', function() {
         {name: 'errors', value: 23},
         {name: 'warnings', value: 16}
       ]);
-      var view = getWidgetView();
+      var view = getDevtoolsView();
       assert.isDefined(view);
       var widgets = view.querySelectorAll('.widget');
       assert.equal(widgets.length, 2);
@@ -66,7 +65,7 @@ suite('devtoolsWidgetPanel', function() {
         {name: 'chaos', value: 4}
       ]);
       updateMetrics();
-      assert.isNull(getWidgetView());
+      assert.isNull(getDevtoolsView());
     });
 
   });

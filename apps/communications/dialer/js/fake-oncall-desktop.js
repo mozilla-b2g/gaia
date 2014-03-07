@@ -34,7 +34,7 @@ console.error('It just helps to fake a call.');
     duration.classList.add('isTimer');
     time.textContent = '9:42';
 
-    CallScreen.updateSingleLine();
+    CallScreen.updateCallsDisplay();
     CallScreen.render('connected'); // Change this for various states
     CallScreen.screen.classList.add('displayed');
     CallScreen.calls.classList.add('muted');

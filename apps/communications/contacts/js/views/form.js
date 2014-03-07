@@ -3,17 +3,18 @@
 var contacts = window.contacts || {};
 
 contacts.Form = (function() {
-
   var counters = {
     'tel': 0,
     'email': 0,
     'adr': 0,
+    'date': 0,
     'note': 0
   };
   var TAG_OPTIONS;
   var currentContact = {};
   var dom,
       deleteContactButton,
+      addNewDateButton,
       thumb,
       thumbAction,
       saveButton,
@@ -81,6 +82,7 @@ contacts.Form = (function() {
     thumb.onclick = pickImage;
     thumbAction = dom.querySelector('#thumbnail-action');
     saveButton = dom.querySelector('#save-button');
+    addNewDateButton = dom.querySelector('#add-new-date');
     cancelButton = dom.querySelector('#cancel-edit');
     formTitle = dom.getElementById('contact-form-title');
     currentContactId = dom.getElementById('contact-form-id');
@@ -92,10 +94,12 @@ contacts.Form = (function() {
     var phonesContainer = dom.getElementById('contacts-form-phones');
     var emailContainer = dom.getElementById('contacts-form-emails');
     var addressContainer = dom.getElementById('contacts-form-addresses');
+    var dateContainer = dom.getElementById('contacts-form-dates');
     var noteContainer = dom.getElementById('contacts-form-notes');
     var phoneTemplate = dom.getElementById('add-phone-#i#');
     var emailTemplate = dom.getElementById('add-email-#i#');
     var addressTemplate = dom.getElementById('add-address-#i#');
+    var dateTemplate = dom.getElementById('add-date-#i#');
     var noteTemplate = dom.getElementById('add-note-#i#');
     configs = {
       'tel': {
@@ -121,6 +125,12 @@ contacts.Form = (function() {
           'countryName'
         ],
         container: addressContainer
+      },
+      'date': {
+        template: dateTemplate,
+        tags: TAG_OPTIONS['date-type'],
+        fields: ['value', 'type'],
+        container: dateContainer
       },
       'note': {
         template: noteTemplate,
@@ -168,7 +178,7 @@ contacts.Form = (function() {
         return;
       }
 
-      if (event.detail.prevValue !== event.detail.newValue) {
+      if (!emptyForm() && event.detail.prevValue !== event.detail.newValue) {
         saveButton.removeAttribute('disabled');
       }
     });
@@ -180,6 +190,20 @@ contacts.Form = (function() {
       '#contact-form button[data-field-type]': newField
     });
   };
+
+   // Renders the birthday as per the locale
+  function renderDate(date, bdayInputText) {
+    if (!date) {
+      return;
+    }
+
+    bdayInputText.textContent = utils.misc.formatDate(date);
+    bdayInputText.classList.remove('placeholder');
+  }
+
+  function onInputDate(bdayInputText, e) {
+    renderDate(e.target.valueAsDate, bdayInputText);
+  }
 
   var saveContact = function saveContact() {
     return contacts.Form.saveContact();
@@ -211,8 +235,9 @@ contacts.Form = (function() {
     if (!contact || !contact.id) {
       return;
     }
-    if (!fromUpdateActivity)
+    if (!fromUpdateActivity) {
       saveButton.setAttribute('disabled', 'disabled');
+    }
     saveButton.setAttribute('data-l10n-id', 'update');
     saveButton.textContent = _('update');
     currentContact = contact;
@@ -246,7 +271,25 @@ contacts.Form = (function() {
       }
     }
     Contacts.updatePhoto(currentPhoto, thumb);
-    var toRender = ['tel', 'email', 'adr', 'note'];
+
+    if (contact.bday) {
+      contact.date = [];
+
+      contact.date.push({
+        type: 'birthday',
+        value: contact.bday
+      });
+    }
+
+    if (contact.anniversary) {
+      contact.date = contact.date || [];
+      contact.date.push({
+        type: 'anniversary',
+        value: contact.anniversary
+      });
+    }
+
+    var toRender = ['tel', 'email', 'adr', 'date', 'note'];
     for (var i = 0; i < toRender.length; i++) {
       var current = toRender[i];
       renderTemplate(current, contact[current]);
@@ -296,7 +339,7 @@ contacts.Form = (function() {
     familyName.value = params.lastName || '';
     company.value = params.company || '';
 
-    var toRender = ['tel', 'email', 'adr', 'note'];
+    var toRender = ['tel', 'email', 'adr', 'date', 'note'];
     for (var i = 0; i < toRender.length; i++) {
       var current = toRender[i];
       var rParams = params[current] || '';
@@ -317,11 +360,27 @@ contacts.Form = (function() {
     }
   };
 
+  function checkAddDateButton() {
+    addNewDateButton.disabled = (getActiveFormDates() >= 2);
+  }
+
+  function getActiveFormDates() {
+    var removedDates = dom.querySelectorAll('.date-template' +
+                                            '.' + REMOVED_CLASS);
+
+    return counters.date - removedDates.length;
+  }
+
   var onNewFieldClicked = function onNewFieldClicked(evt) {
     var type = evt.target.dataset['fieldType'];
     evt.preventDefault();
     contacts.Form.insertField(type);
     textFieldsCache.clear();
+    // For dates only two instances
+    if (type === 'date') {
+      // Disable the add date button if necessary
+      checkAddDateButton();
+    }
     return false;
   };
 
@@ -357,11 +416,12 @@ contacts.Form = (function() {
     var obj = object || {};
     var config = configs[type];
     var template = config['template'];
-    var tags = config['tags'];
+    var tags = ContactsTag.filterTags(type, null, config['tags']);
+
     var fields = config['fields'];
     var container = config['container'];
 
-    var default_type = tags[0].type || '';
+    var default_type = tags[0] && tags[0].type || '';
     var currField = {};
     var infoFromFB = false;
 
@@ -370,9 +430,10 @@ contacts.Form = (function() {
       var def = (currentElem === 'type') ? default_type : '';
       var defObj = (typeof(obj) === 'string') ? obj : obj[currentElem];
       var value = '';
+      var isDate = (defObj && typeof defObj.getMonth === 'function');
 
-      currField[currentElem] =
-      (defObj && typeof(defObj) === 'object') ? defObj.toString() : defObj;
+      currField[currentElem] = (defObj && typeof(defObj) === 'object' &&
+                                      !isDate ? defObj.toString() : defObj);
       value = currField[currentElem] || def;
       if (currentElem === 'type') {
         currField['type_value'] = value;
@@ -383,12 +444,16 @@ contacts.Form = (function() {
           value = _(value) || value;
         }
       }
-      currField[currentElem] = Normalizer.escapeHTML(value, true);
+      if (!isDate) {
+        currField[currentElem] = Normalizer.escapeHTML(value, true);
+      }
+
       if (!infoFromFB && value && nonEditableValues[value]) {
         infoFromFB = true;
       }
     }
     currField['i'] = counters[type];
+
     var rendered = utils.templates.render(template, currField);
     // Controlling that if no tel phone is present carrier field is disabled
     if (type === 'tel') {
@@ -400,6 +465,26 @@ contacts.Form = (function() {
       telInput.addEventListener('input', cb, true);
 
       checkCarrierTel(carrierInput, {target: telInput});
+    }
+
+    // Adding listener to properly render dates
+    if (type === 'date') {
+      var dateInput = rendered.querySelector('input[type="date"]');
+
+      // Setting the max value as today's date
+      var currentDate = new Date();
+      dateInput.setAttribute('max', currentDate.getFullYear() + '-' +
+                             (currentDate.getMonth() + 1) + '-' +
+                             currentDate.getDate());
+
+      var dateInputText = dateInput.previousElementSibling;
+      if (currField.value) {
+        dateInput.valueAsDate = currField.value;
+        renderDate(currField.value, dateInputText);
+      }
+      var cb = onInputDate.bind(null, dateInputText);
+
+      dateInput.addEventListener('input', cb);
     }
 
     if (infoFromFB) {
@@ -422,6 +507,11 @@ contacts.Form = (function() {
 
     container.appendChild(rendered);
     counters[type]++;
+
+    // Finally we need to check the status of the add date button
+    if (type === 'date') {
+      checkAddDateButton();
+    }
   };
 
   var onGoToSelectTag = function onGoToSelectTag(evt) {
@@ -489,6 +579,7 @@ contacts.Form = (function() {
     getEmails(contact);
     getAddresses(contact);
     getNotes(contact);
+    getDates(contact);
 
     var currentPhoto = getCurrentPhoto();
     if (!currentPhoto) {
@@ -545,7 +636,7 @@ contacts.Form = (function() {
       // Use the isEmpty function to check fields but address
       // and inspect address by it self.
       var fields = ['givenName', 'familyName', 'org', 'tel',
-        'email', 'note', 'adr'];
+        'email', 'note', 'bday', 'anniversary', 'adr'];
       if (Contacts.isEmpty(myContact, fields)) {
         return;
       }
@@ -557,6 +648,8 @@ contacts.Form = (function() {
         currentContact.adr = [];
         currentContact.note = [];
         currentContact.photo = [];
+        currentContact.bday = null;
+        currentContact.anniversary = null;
         var readOnly = ['id', 'updated', 'published'];
         for (var field in myContact) {
           if (readOnly.indexOf(field) == -1) {
@@ -578,7 +671,6 @@ contacts.Form = (function() {
             createName(contact);
           }
         }
-
       } else {
         contact = utils.misc.toMozContact(myContact);
       }
@@ -753,6 +845,9 @@ contacts.Form = (function() {
   };
 
   var doSave = function doSave(contact, noTransition) {
+    // Deleting auxiliary objects created for dates
+    delete contact.date;
+
     var request = navigator.mozContacts.save(utils.misc.toMozContact(contact));
 
     request.onsuccess = function onsuccess() {
@@ -879,6 +974,41 @@ contacts.Form = (function() {
     }
   };
 
+  var getDates = function getDate(contact) {
+    var selector = '#view-contact-form form div.date-template';
+    var dates = dom.querySelectorAll(selector);
+    var bdayVal = null, anniversaryVal = null;
+
+    for (var i = 0; i < dates.length; i++) {
+      var currentDate = dates[i];
+      if (dates[i].classList.contains(REMOVED_CLASS)) {
+        continue;
+      }
+
+      var arrayIndex = currentDate.dataset.index;
+      var dateField = dom.getElementById('date_' + arrayIndex);
+      var dateValue = dateField.valueAsDate;
+
+      var selector = 'date_type_' + arrayIndex;
+      var type = dom.getElementById(selector).dataset.value || '';
+      if (!dateValue || !type) {
+        continue;
+      }
+
+      switch (type) {
+        case 'birthday':
+          bdayVal = utils.misc.normalizeDate(dateValue);
+        break;
+        case 'anniversary':
+          anniversaryVal = utils.misc.normalizeDate(dateValue);
+        break;
+      }
+    }
+
+    contact.bday = bdayVal;
+    contact.anniversary = anniversaryVal;
+  };
+
   var getAddresses = function getAddresses(contact) {
     var selector = '#view-contact-form form div.address-template:not(.removed)';
     var addresses = dom.querySelectorAll(selector);
@@ -940,6 +1070,9 @@ contacts.Form = (function() {
       thumbAction.removeChild(removeIcon);
     }
     saveButton.removeAttribute('disabled');
+
+    addNewDateButton.disabled = false;
+
     resetRemoved();
     currentContactId.value = '';
     currentContact = {};
@@ -950,14 +1083,17 @@ contacts.Form = (function() {
     var phones = dom.querySelector('#contacts-form-phones');
     var emails = dom.querySelector('#contacts-form-emails');
     var addresses = dom.querySelector('#contacts-form-addresses');
+    var dates = dom.querySelector('#contacts-form-dates');
     var notes = dom.querySelector('#contacts-form-notes');
 
-    [phones, emails, addresses, notes].forEach(utils.dom.removeChildNodes);
+    [phones, emails, addresses, dates, notes].forEach(
+                                                    utils.dom.removeChildNodes);
 
     counters = {
       'tel': 0,
       'email': 0,
       'adr': 0,
+      'date': 0,
       'note': 0
     };
     textFieldsCache.clear();
@@ -995,6 +1131,40 @@ contacts.Form = (function() {
     return true;
   };
 
+  function indexOf(tags, searchedType) {
+    for (var j = 0; j < tags.length; j++) {
+      if (tags[j].type === searchedType) {
+        return j;
+      }
+    }
+    return -1;
+  }
+
+  // Refills the date types to ensure there are no two equal types
+  function refillDateTypes(elem) {
+    // The selected value has to be coherent
+    var values = elem.parentNode.querySelectorAll(
+                  '.date-template:not(' + '.' + REMOVED_CLASS + ') ' +
+                  'span[data-taglist]');
+
+    var tags = TAG_OPTIONS['date-type'].slice(0);
+
+    for (var j = 0; j < values.length; j++) {
+      var item = values[j];
+      var itemValue = item.dataset.value;
+      var index = indexOf(tags, itemValue);
+      // In this case there was previously one with the same type
+      if (index === -1) {
+        item.dataset.value = tags[0].type;
+        item.textContent = tags[0].value;
+      }
+      else {
+        // We remove this one as it has been already consumed
+        tags.splice(index, 1);
+      }
+    }
+  }
+
   var removeFieldIcon = function removeFieldIcon(selector) {
     var delButton = document.createElement('button');
     delButton.id = IMG_DELETE_ID;
@@ -1007,13 +1177,37 @@ contacts.Form = (function() {
       // Workaround until 809452 is fixed.
       // What we are avoiding with this condition is removing / restoring
       // a field when the event is simulated by a ENTER Keyboard click
-      if ((event.clientX === 0) && (event.clientY === 0))
+      if ((event.clientX === 0) && (event.clientY === 0)) {
         return false;
+      }
       event.preventDefault();
       var elem = document.getElementById(selector);
+
+      // Check whether we can re-enable or not
+      var isDate = elem.id.indexOf('date') !== -1;
+      if (isDate) {
+        var numDatesActive = getActiveFormDates();
+        // Only two non-removed instances are allowed
+        if (elem.classList.contains(REMOVED_CLASS) && numDatesActive + 1 > 2) {
+          return false;
+        }
+      }
       elem.classList.toggle(REMOVED_CLASS);
+
+      // As the user can add and remove fields he can end up having two date
+      // types with the same value and we want to avoid that erroneous case
+      if (!elem.classList.contains(REMOVED_CLASS) && isDate) {
+        refillDateTypes(elem);
+      }
+
+      // In this version only two dates are allowed
+      if (isDate) {
+        checkAddDateButton();
+      }
+
       textFieldsCache.clear();
       checkDisableButton();
+
       return false;
     };
     return delButton;

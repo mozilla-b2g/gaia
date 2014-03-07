@@ -7,7 +7,6 @@ define(function(require) {
   var AlarmsDB = require('alarmsdb');
   var Timer = require('timer');
   var Utils = require('utils');
-  var View = require('view');
 
   function ActiveAlarm() {
     this.childWindow = null;
@@ -34,6 +33,8 @@ define(function(require) {
       if (!this.initialized) {
         var handler = this.handler.bind(this);
         navigator.mozSetMessageHandler('alarm', handler);
+        // Add a handler to make integration tests easier:
+        window.addEventListener('test-alarm', handler);
         navigator.mozSetMessageHandler('message', handler);
         window.addEventListener('message', handler, false);
         AlarmManager.updateAlarmStatusBar();
@@ -42,14 +43,18 @@ define(function(require) {
     },
 
     handler: function aac_handler(message) {
+      // If this is a 'test-alarm' CustomEvent, data is stored in 'detail'.
+      var data = message.data || message.detail;
+      data.date = message.date || new Date();
+
       // Set a watchdog to avoid locking the CPU wake lock too long,
       // because it'd exhaust the battery quickly which is very bad.
       // This could probably happen if the app failed to launch or
       // handle the alarm message due to any unexpected reasons.
       Utils.safeWakeLock({timeoutMs: 30000}, function(done) {
         try {
-          this[messageHandlerMapping[message.data.type]].call(
-            this, message, done);
+          this[messageHandlerMapping[data.type]].call(
+            this, data, done);
         } catch (err) {
           console.error('Error calling handler', err);
           done();
@@ -58,8 +63,8 @@ define(function(require) {
       }.bind(this));
     },
 
-    onRingerReady: function aac_ringerReady(msg, done) {
-      if (msg.data.status === 'READY') {
+    onRingerReady: function aac_ringerReady(data, done) {
+      if (data.status === 'READY') {
         while (true) {
           var el = this.ringerWaitList.shift();
           if (!el) {
@@ -87,7 +92,7 @@ define(function(require) {
       }
     },
 
-    onAlarm: function aac_onAlarm(message, done) {
+    onAlarm: function aac_onAlarm(data, done) {
       /*
        * We maintain an alarm's life cycle immediately when the alarm goes off.
        * If user click the snooze button when the alarm goes off,
@@ -101,9 +106,9 @@ define(function(require) {
        *   A snooze alarm should be turned off.
        */
       // receive and parse the alarm id from the message
-      var id = message.data.id;
-      var date = message.date;
-      var type = message.data.type;
+      var id = data.id;
+      var date = data.date;
+      var type = data.type;
 
       // Unlock the CPU when these functions have been called
       var finalizer = Utils.async.namedParallel([
@@ -141,7 +146,7 @@ define(function(require) {
       }.bind(this));
     },
 
-    onTimer: function aac_onTimer(message, done) {
+    onTimer: function aac_onTimer(data, done) {
       Timer.request(function(err, timer) {
         if (err && !timer) {
           timer = Timer.singleton().toSerializable();
@@ -156,8 +161,8 @@ define(function(require) {
       }.bind(this));
     },
 
-    scheduleSnooze: function aac_scheduleSnooze(message, done) {
-      var id = message.data.id;
+    scheduleSnooze: function aac_scheduleSnooze(data, done) {
+      var id = data.id;
       AlarmsDB.getAlarm(id, function aac_gotAlarm(err, alarm) {
         if (err) {
           return;
@@ -172,23 +177,20 @@ define(function(require) {
       });
     },
 
-    onClose: function aac_onClose(message, done) {
+    onClose: function aac_onClose(data, done) {
       this.childwindow = null;
-      switch (message.data.type) {
+      switch (data.type) {
         case 'close-timer':
-          App.navigate('#timer-panel');
-          View.instance(document.querySelector('#timer-panel'),
-            Timer.Panel).dialog();
           Timer.singleton(function(err, timer) {
             if (!err) {
               timer.cancel();
-              timer.save(done);
+              timer.save();
             }
+            App.navigate({ hash: '#timer-panel' }, done);
           });
           break;
         case 'close-alarm':
-          App.navigate('#alarm-panel');
-          done();
+          App.navigate({ hash: '#alarm-panel' }, done);
           break;
       }
     }

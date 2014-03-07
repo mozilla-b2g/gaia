@@ -107,6 +107,8 @@
     <link rel="import" href="/elements/carrier_data_settings.html">
     <link rel="import" href="/elements/carrier_mms_settings.html">
     <link rel="import" href="/elements/carrier_supl_settings.html">
+    <link rel="import" href="/elements/carrier_dun_settings.html">
+    <link rel="import" href="/elements/carrier_ims_settings.html">
     <link rel="import" href="/elements/carrier_dc_warning.html">
     <link rel="import" href="/elements/carrier_dr_warning.html">
     <link rel="import" href="/elements/carrier_iccs.html">
@@ -229,6 +231,10 @@
     <section is="carrier-mmsSettings" role="region" id="carrier-mmsSettings"></section>
     <!-- Connectivity :: Cellular & Data :: A-GPS Settings -->
     <section is="carrier-suplSettings" role="region" id="carrier-suplSettings"></section>
+    <!-- Connectivity :: Cellular & Data :: DUN Settings -->
+    <section is="carrier-dunSettings" role="region" id="carrier-dunSettings"></section>
+    <!-- Connectivity :: Cellular & Data :: IMS Settings -->
+    <section is="carrier-imsSettings" role="region" id="carrier-imsSettings"></section>
     <!-- Connectivity :: Cellular & Data :: Data Connection Warnings -->
     <section is="carrier-dc-warning" role="region" id="carrier-dc-warning"></section>
     <!-- Connectivity :: Cellular & Data :: Data Roaming Warnings -->
@@ -506,11 +512,7 @@
         <header id="icc-mainheader">
           <h2 data-l10n-id="operatorServices">Operator Services</h2>
         </header>
-        <ul id="icc-mainentry">
-          <li>
-            <small id="icc-desc" class="menu-item-desc"></small>
-            <a id="menuItem-icc" class="menu-item" href="#icc">SIM Toolkit</a>
-          </li>
+        <ul id="icc-entries">
         </ul>
       </div>
     </section>

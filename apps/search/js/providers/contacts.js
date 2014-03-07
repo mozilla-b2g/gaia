@@ -1,6 +1,7 @@
 (function() {
 
   'use strict';
+  /* global MozActivity, Provider, Search */
 
   function Contacts() {
   }
@@ -15,7 +16,9 @@
       var target = e.target;
 
       Search.close();
-      var activity = new MozActivity({
+      /* prevent jshint new error */
+      /* jshint -W031 */
+      new MozActivity({
         name: 'open',
         data: {
           type: 'webcontacts/contact',
@@ -26,7 +29,7 @@
       });
     },
 
-    search: function(input) {
+    search: function(input, collect) {
       var options = {
         filterValue: input,
         filterBy: ['givenName'],
@@ -60,7 +63,7 @@
             renderResults.push(renderObj);
           }
         }
-        this.render(renderResults);
+        collect(renderResults);
       }).bind(this);
 
       request.onerror = function() {

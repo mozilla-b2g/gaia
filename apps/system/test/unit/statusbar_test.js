@@ -15,8 +15,8 @@ requireApp('system/test/unit/mock_lock_screen.js', function() {
   // can't be "MocklockScreen".
   window.lockScreen = MockLockScreen;
 });
-requireApp('system/test/unit/mock_simslot.js');
-requireApp('system/test/unit/mock_simslot_manager.js');
+requireApp('system/js/mock_simslot.js');
+requireApp('system/js/mock_simslot_manager.js');
 requireApp('system/test/unit/mock_app_window_manager.js');
 requireApp('system/test/unit/mock_ftu_launcher.js');
 requireApp('system/test/unit/mock_touch_forwarder.js');
@@ -30,7 +30,7 @@ var mocksForStatusBar = new MocksHelper([
   'TouchForwarder'
 ]).init();
 
-mocha.globals(['Clock', 'StatusBar', 'lockScreen']);
+mocha.globals(['Clock', 'StatusBar', 'lockScreen', 'System']);
 suite('system/Statusbar', function() {
   var mobileConnectionCount = 2;
   var fakeStatusBarNode, fakeTopPanel;
@@ -111,6 +111,25 @@ suite('system/Statusbar', function() {
       assert.equal(Object.keys(fakeIcons.signals).length,
         mobileConnectionCount);
       assert.equal(Object.keys(fakeIcons.data).length, mobileConnectionCount);
+    });
+  });
+
+  suite('StatusBar height', function() {
+    setup(function() {
+      var app = {
+        isFullScreen: function() {
+          return true;
+        }
+      };
+
+      this.sinon.stub(MockAppWindowManager, 'getActiveApp').returns(app);
+      StatusBar.screen = document.createElement('div');
+    });
+    teardown(function() {
+      StatusBar.screen = null;
+    });
+    test('Active app is fullscreen', function() {
+      assert.equal(StatusBar.height, 0);
     });
   });
 
@@ -1073,6 +1092,19 @@ suite('system/Statusbar', function() {
   });
 
   suite('media information', function() {
+    var fakeClock;
+    var recordingSpy;
+
+    setup(function() {
+      fakeClock = this.sinon.useFakeTimers();
+      recordingSpy = this.sinon.spy(StatusBar.update, 'recording');
+    });
+
+    teardown(function() {
+      StatusBar.recordingCount = 0;
+      fakeClock.restore();
+    });
+
     test('geolocation is activating', function() {
       var evt = new CustomEvent('mozChromeEvent', {
         detail: {
@@ -1083,16 +1115,18 @@ suite('system/Statusbar', function() {
       StatusBar.handleEvent(evt);
       assert.equal(StatusBar.icons.geolocation.hidden, false);
     });
-    test('camera is recording', function() {
-      var evt = new CustomEvent('mozChromeEvent', {
+
+    test('media_recording is activating', function() {
+      var evt = new CustomEvent('recordingEvent', {
         detail: {
-          type: 'recording-status',
+          type: 'recording-state-changed',
           active: true
         }
       });
       StatusBar.handleEvent(evt);
       assert.equal(StatusBar.icons.recording.hidden, false);
     });
+
     test('usb is unmounting', function() {
       var evt = new CustomEvent('mozChromeEvent', {
         detail: {
@@ -1103,6 +1137,7 @@ suite('system/Statusbar', function() {
       StatusBar.handleEvent(evt);
       assert.equal(StatusBar.icons.usb.hidden, false);
     });
+
     test('headphones is plugged in', function() {
       var evt = new CustomEvent('mozChromeEvent', {
         detail: {
@@ -1113,6 +1148,7 @@ suite('system/Statusbar', function() {
       StatusBar.handleEvent(evt);
       assert.equal(StatusBar.icons.headphones.hidden, false);
     });
+
     test('audio player is playing', function() {
       var evt = new CustomEvent('mozChromeEvent', {
         detail: {
@@ -1165,7 +1201,7 @@ suite('system/Statusbar', function() {
     setup(function() {
       app = {
         isFullScreen: function() {
-          return true;
+          return false;
         },
         iframe: document.createElement('iframe')
       };
@@ -1178,26 +1214,6 @@ suite('system/Statusbar', function() {
       StatusBar.screen = document.createElement('div');
     });
 
-    test('the status bar should open when the utilitytray is shown',
-    function() {
-      StatusBar.hide();
-
-      var evt = new CustomEvent('utilitytrayshow');
-      StatusBar.handleEvent(evt);
-
-      assert.isFalse(StatusBar.element.classList.contains('invisible'));
-    });
-
-    test('the status bar should close when the utilitytray is hidden',
-    function() {
-      StatusBar.show();
-
-      var evt = new CustomEvent('utilitytrayhide');
-      StatusBar.handleEvent(evt);
-
-      assert.isTrue(StatusBar.element.classList.contains('invisible'));
-    });
-
     test('the status bar should not close if the current app is not fullscreen',
     function() {
       this.sinon.stub(app, 'isFullScreen').returns(false);
@@ -1207,26 +1223,6 @@ suite('system/Statusbar', function() {
       StatusBar.handleEvent(evt);
 
       assert.isFalse(StatusBar.element.classList.contains('invisible'));
-    });
-
-    test('the status bar should open when the rocketbar is shown',
-    function() {
-      StatusBar.hide();
-
-      var evt = new CustomEvent('rocketbarshown');
-      StatusBar.handleEvent(evt);
-
-      assert.isFalse(StatusBar.element.classList.contains('invisible'));
-    });
-
-    test('the status bar should close when the rocketbar is hidden',
-    function() {
-      StatusBar.show();
-
-      var evt = new CustomEvent('rocketbarhidden');
-      StatusBar.handleEvent(evt);
-
-      assert.isTrue(StatusBar.element.classList.contains('invisible'));
     });
 
     suite('Revealing the StatusBar >', function() {

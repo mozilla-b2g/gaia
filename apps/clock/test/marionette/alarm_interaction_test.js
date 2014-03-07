@@ -1,7 +1,10 @@
 marionette('Alarm interaction', function() {
   'use strict';
+  /* global marionetteScriptFinished */
+
   var assert = require('./lib/assert');
   var Alarm = require('./lib/alarm');
+  var Clock = require('./lib/clock');
   var client = marionette.client();
   var alarm, twentyFromNow, thirtyFromNow;
 
@@ -14,6 +17,17 @@ marionette('Alarm interaction', function() {
     alarm.launch();
     alarm.openForm();
   });
+
+  function assertAlarmIconEquals(enabled) {
+    client.setScriptTimeout(2000);
+    var result = client.executeAsyncScript(function() {
+      var req = navigator.mozSettings.createLock().get('alarm.enabled');
+      req.onsuccess = function() {
+        marionetteScriptFinished(req.result['alarm.enabled']);
+      };
+    });
+    assert.equal(result, enabled);
+  }
 
   suite('Creation', function() {
     // Each assertion is made in a separate test to facilitate parallelization.
@@ -29,9 +43,12 @@ marionette('Alarm interaction', function() {
       alarms = alarm.readItems();
     });
 
-
     test('insertion of a new row in the alarms list', function() {
       assert.equal(alarms.length, 1);
+    });
+
+    test('alarm icon shows up in status bar', function() {
+      assertAlarmIconEquals(true);
     });
 
     test('new alarm item is enabled by default', function() {
@@ -54,6 +71,19 @@ marionette('Alarm interaction', function() {
     test('the countdown banner is displayed and hidden', function() {
       assert(alarm.countdownBannerDisplayed, 'Countdown banner is displayed');
       alarm.waitForBannerHidden();
+    });
+
+    test('New Alarm button always shows new title', function() {
+      alarm.waitForBannerHidden();
+
+      // Delete the first alarm, then re-open the edit form.
+      alarm.openForm(0);
+      alarm.formDelete();
+      alarm.openForm();
+
+      var el = client.findElement('.new-alarm-title');
+      assert.ok(el.displayed());
+      alarm.formClose();
     });
 
     suite('creation of multiple alarms', function() {
@@ -198,6 +228,40 @@ marionette('Alarm interaction', function() {
       alarm.waitForBannerHidden();
     });
 
+    test('firing', function() {
+      // Trigger a fake 'alarm' event:
+      client.executeScript(function() {
+        var id = document.querySelector('.alarm-item').dataset.id;
+        var alarm = new CustomEvent('test-alarm', {
+          detail: {
+            id: parseInt(id, 10),
+            type: 'normal'
+          }
+        });
+        window.dispatchEvent(alarm);
+      });
+      // Switch to the system frame
+      client.switchToFrame();
+      // Now grab the Attention Screen frame
+      client.switchToFrame(
+        client.findElement('iframe[data-frame-name="_blank"]'));
+      // Click the "stop" button
+      var el = client.helper.waitForElement('#ring-button-stop');
+      try {
+        el.click();
+      } catch(e) {
+        // Marionette throws an error because the frame closes while
+        // handling the click event. This is expected.
+      }
+      // Now switch back to the system, then to the clock.
+      client.switchToFrame();
+      client.apps.switchToApp(Clock.ORIGIN);
+
+      // Make sure we can see the analog clock again.
+      var clock = client.helper.waitForElement('#analog-clock');
+      assert(clock.displayed());
+    });
+
     test('deletion', function() {
       alarm.openForm(0);
       alarm.formDelete();
@@ -206,6 +270,7 @@ marionette('Alarm interaction', function() {
         0,
         'deleted alarm is removed from the alarm list'
       );
+      assertAlarmIconEquals(false);
     });
   });
 

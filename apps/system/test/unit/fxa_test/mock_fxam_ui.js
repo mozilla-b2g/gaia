@@ -11,6 +11,8 @@ var MockFxaModuleUI = {
   setMaxSteps: function(num) {
 
   },
+  increaseMaxStepsBy: function(num) {
+  },
   loadScreen: function(params) {
 
   },
@@ -31,5 +33,9 @@ var MockFxaModuleUI = {
   },
   enableNextButton: function() {
 
+  },
+  disableDoneButton: function() {
+  },
+  enableDoneButton: function() {
   }
 };

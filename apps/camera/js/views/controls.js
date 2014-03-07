@@ -74,9 +74,7 @@ module.exports = View.extend({
       '<a class="gallery-button test-gallery js-btn" name="gallery">' +
         '<span class="icon-gallery rotates"></span>' +
       '</a>' +
-      '<a class="cancel-pick test-cancel-pick js-btn" name="cancel">' +
-        '<span></span>' +
-      '</a>' +
+      '<a class="cancel-pick test-cancel-pick js-btn" name="cancel"></a>' +
       '<span class="video-timer test-video-timer js-video-timer">00:00</span>' +
     '</div>';
   },

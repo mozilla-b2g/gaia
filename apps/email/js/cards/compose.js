@@ -139,7 +139,7 @@ function ComposeCard(domNode, mode, args) {
 
   // Sent sound init
   this.sentAudioKey = 'mail.sent-sound.enabled';
-  this.sentAudio = new Audio('/sounds/sent.opus');
+  this.sentAudio = new Audio('/sounds/sent.ogg');
   this.sentAudio.mozAudioChannelType = 'notification';
   this.sentAudioEnabled = false;
 

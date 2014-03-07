@@ -66,7 +66,7 @@ void function() {
           return;
         }
 
-        var currentTitle = elTitle.querySelector('span').textContent,
+        var currentTitle = title,
             elInput, elDone;
 
         el.classList.add(CLASS_WHEN_EDITING_NAME);
@@ -107,13 +107,17 @@ void function() {
       },
 
       done: function renameDone(shouldSave) {
-        if (!self.isRenaming) {
+        var elInput = elTitle.querySelector('input'),
+            elDone = elTitle.querySelector('.done');
+
+        // weird UI state. see bug 975917
+        if (!(self.isRenaming && currentSettings && elInput && elDone)) {
+          elInput && elInput.blur();
+          exitDoneState();
           return;
         }
 
-        var elInput = elTitle.querySelector('input'),
-            elDone = elTitle.querySelector('.done'),
-            id = currentSettings.id,
+        var id = currentSettings.id,
             oldName = EvmeManager.getIconName(id) || currentSettings.query,
             newName = elInput.value,
             nameChanged = newName && newName !== oldName;
@@ -142,16 +146,20 @@ void function() {
           self.setTitle(oldName);
         }
 
-        el.classList.remove(CLASS_WHEN_EDITING_NAME);
+        exitDoneState();
 
-        self.isRenaming = false;
+        function exitDoneState() {
+          el.classList.remove(CLASS_WHEN_EDITING_NAME);
 
-        // timeout(0) because this done function can be called from input blur
-        // if we add the event back immediately it still fires, thus keeping
-        // the user in the rename mode
-        window.setTimeout(function() {
-          elTitle.addEventListener('click', self.Rename.start);
-        }, 0);
+          self.isRenaming = false;
+
+          // timeout(0) because this done function can be called from input blur
+          // if we add the event back immediately it still fires, thus keeping
+          // the user in the rename mode
+          window.setTimeout(function() {
+            elTitle.addEventListener('click', self.Rename.start);
+          }, 0);
+        }
       }
     };
 

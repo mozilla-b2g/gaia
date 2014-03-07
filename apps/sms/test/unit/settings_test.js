@@ -2,84 +2,166 @@
   Settings Tests
 */
 
-/*global Settings, MockNavigatorSettings */
+/*global
+   Settings,
+   MockNavigatorSettings,
+   MockL10n,
+   MocksHelper,
+   MobileOperator
+*/
 
 'use strict';
 
-requireApp('sms/shared/test/unit/mocks/mock_navigator_moz_settings.js');
-requireApp('sms/js/settings.js');
+require('/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+require('/shared/test/unit/mocks/mock_mobile_operator.js');
+require('/js/settings.js');
 
+var mocksHelperForSettings = new MocksHelper([
+  'MobileOperator'
+]).init();
 
-suite('Message App settings Unit-Test', function() {
-  var nativeSettings = navigator.mozSettings;
+suite('Settings >', function() {
+  var nativeSettings;
+
+  mocksHelperForSettings.attachTestHelpers();
+
+  setup(function() {
+    nativeSettings = navigator.mozSettings;
+  });
+
   teardown(function() {
+    MockNavigatorSettings.mTeardown();
     navigator.mozSettings = nativeSettings;
     Settings.mmsSizeLimitation = 300 * 1024;
   });
 
-  suite('Init fetches settings', function() {
-    suite('Without mozSettings', function() {
-      setup(function() {
-        navigator.mozSettings = null;
-        Settings.mmsSizeLimitation = 'whatever is default';
-        Settings.mmsServiceId = 'no service ID';
-        Settings.init();
+  test('getSimNameByIccId returns the empty string before init', function() {
+    assert.equal('', Settings.getSimNameByIccId('anything'));
+  });
+
+  test('getOperatorByIccId returns the empty string before init', function() {
+    assert.equal('', Settings.getOperatorByIccId('anything'));
+  });
+
+  suite('Without mozSettings', function() {
+    setup(function() {
+      navigator.mozSettings = null;
+      Settings.mmsSizeLimitation = 'whatever is default';
+      Settings.mmsServiceId = 'no service ID';
+
+      Settings.init();
+    });
+
+    test('Query size limitation without settings', function() {
+      assert.equal(Settings.mmsSizeLimitation, 'whatever is default');
+    });
+
+    test('Query mmsServiceId without settings', function() {
+      assert.equal(Settings.mmsServiceId, 'no service ID');
+    });
+
+    test('Reports no dual SIM', function() {
+      assert.isFalse(Settings.isDualSimDevice());
+      assert.isFalse(Settings.hasSeveralSim());
+    });
+
+    test('getOperatorByIccId returns the empty string', function() {
+      assert.equal('', Settings.getOperatorByIccId('anything'));
+    });
+
+    test('getSimNameByIccId returns the empty string', function() {
+      assert.equal('', Settings.getSimNameByIccId('anything'));
+    });
+  });
+
+  suite('With mozSettings', function() {
+    var realMozL10n, realSettings;
+
+    function findSettingsReq(key) {
+      var locks = navigator.mozSettings.createLock.returnValues;
+
+      var foundLock = locks.find(function(lock) {
+        return lock.get.calledWith(key);
       });
 
-      test('Query size limitation without settings', function() {
-        assert.equal(Settings.mmsSizeLimitation, 'whatever is default');
-      });
+      return foundLock ? foundLock.get.firstCall.returnValue : null;
+    }
 
-      test('Query mmsServiceId without settings', function() {
-        assert.equal(Settings.mmsServiceId, 'no service ID');
+    setup(function() {
+      realMozL10n = navigator.mozL10n;
+      navigator.mozL10n = MockL10n;
+
+      realSettings = navigator.mozSettings;
+      navigator.mozSettings = MockNavigatorSettings;
+
+      Settings.mmsSizeLimitation = 'whatever is default';
+      Settings.mmsServiceId = 'no service ID';
+
+      this.sinon.stub(navigator.mozSettings, 'createLock', function() {
+        var api = {
+          get: function() {
+            return {};
+          },
+          set: function() {}
+        };
+        sinon.spy(api, 'get');
+        return api;
       });
     });
-    suite('With mozSettings', function() {
+
+    teardown(function() {
+      navigator.mozL10n = realMozL10n;
+      realMozL10n = null;
+
+      navigator.mozSettings = realSettings;
+      realSettings = null;
+    });
+
+    test('Query size limitation with settings exist(500KB)', function() {
+      Settings.init();
+      assert.equal(Settings.mmsSizeLimitation, 'whatever is default');
+
+      // only made one call to get settings(non-DSDS case)
+      assert.equal(navigator.mozSettings.createLock.returnValues.length, 1);
+      var lock = navigator.mozSettings.createLock.returnValues[0];
+      assert.equal(lock.get.returnValues.length, 1);
+
+      var req = lock.get.returnValues[0];
+      req.result = {
+        'dom.mms.operatorSizeLimitation': 512000
+      };
+      req.onsuccess();
+
+      assert.equal(Settings.mmsSizeLimitation, 500 * 1024);
+      assert.isFalse(Settings.hasSeveralSim());
+    });
+
+    suite('in a dual SIM device with 2 SIMs,', function() {
       setup(function() {
-        navigator.mozSettings = MockNavigatorSettings;
-        Settings.mmsSizeLimitation = 'whatever is default';
-        Settings.mmsServiceId = 'no service ID';
-        this.sinon.stub(navigator.mozSettings, 'createLock', function() {
-          var api = {
-            get: function() {
-              return {};
-            },
-            set: function() {}
-          };
-          sinon.spy(api, 'get');
-          return api;
-        });
+        // TODO use the mocks from shared and update them according to latest
+        // spec
+        navigator.mozMobileConnections = [
+          { iccId: 'SIM 1' },
+          { iccId: 'SIM 2' }
+        ];
+        Settings.init();
       });
 
-      test('Query size limitation with settings exist(500KB)', function() {
-        Settings.init();
-        assert.equal(Settings.mmsSizeLimitation, 'whatever is default');
-
-        // only made one call to get settings(non-DSDS case)
-        assert.equal(navigator.mozSettings.createLock.returnValues.length, 1);
-        var lock = navigator.mozSettings.createLock.returnValues[0];
-        assert.equal(lock.get.returnValues.length, 1);
-
-        var req = lock.get.returnValues[0];
-        req.result = {
-          'dom.mms.operatorSizeLimitation': 512000
-        };
-        req.onsuccess();
-
-        assert.equal(Settings.mmsSizeLimitation, 500 * 1024);
-      });
-
-      test('Query mmsServiceId with settings exist(ID=0)', function() {
-        navigator.mozMobileConnections = ['SIM 1', 'SIM 2'];
-        Settings.init();
+      test('init is correctly executed', function() {
         assert.equal(Settings.mmsServiceId, 'no service ID');
 
         // Two calls for mmsSizeLimitation/mmsServiceId
-        assert.equal(navigator.mozSettings.createLock.returnValues.length, 2);
-        var lock = navigator.mozSettings.createLock.returnValues[1];
-        assert.equal(lock.get.returnValues.length, 1);
+        sinon.assert.calledTwice(navigator.mozSettings.createLock);
+      });
 
-        var req = lock.get.returnValues[0];
+      test('Dual SIM state is correctly reported', function() {
+        assert.isTrue(Settings.hasSeveralSim());
+        assert.isTrue(Settings.isDualSimDevice());
+      });
+
+      test('the settings are correctly retrieved', function() {
+        var req = findSettingsReq(Settings.MMS_SERVICE_ID_KEY);
         req.result = {
           'ril.mms.defaultServiceId': 0
         };
@@ -88,54 +170,123 @@ suite('Message App settings Unit-Test', function() {
         assert.equal(Settings.mmsServiceId, 0);
       });
 
-      test('mmsServiceId observer and update', function() {
-        MockNavigatorSettings.mTriggerObservers('ril.mms.defaultServiceId',
-                                                {settingValue: 1});
-        assert.equal(Settings.mmsServiceId, 1);
+      suite('getOperatorByIccId returns the correct operator', function() {
+        setup(function() {
+          this.sinon.stub(MobileOperator, 'userFacingInfo').returns({
+            operator: 'operator'
+          });
+        });
+
+        test('iccId does not match any connection', function(){
+          assert.equal(Settings.getOperatorByIccId('SIM 3'), '');
+          sinon.assert.notCalled(MobileOperator.userFacingInfo);
+        });
+
+        test('iccId match one connection', function(){
+          assert.equal(Settings.getOperatorByIccId('SIM 1'), 'operator');
+          sinon.assert.calledWith(MobileOperator.userFacingInfo,
+            navigator.mozMobileConnections[0]);
+        });
       });
 
-      suite('switchSimHandler for async callback when ready', function() {
-        var conn;
-        var listenerSpy;
-        var mockMozMobileConnections = {
-          1: {
-            addEventListener: function() {},
-            removeEventListener: function() {},
-            data: {
-              state: 'searching'
-            }
+      test('getSimNameByIccId returns the correct name', function() {
+        assert.equal(Settings.getSimNameByIccId('SIM 1'), 'sim-name{"id":1}');
+        assert.equal(Settings.getSimNameByIccId('SIM 2'), 'sim-name{"id":2}');
+        assert.equal(Settings.getSimNameByIccId('SIM 3'), '');
+      });
+    });
+
+    test('in a single SIM device', function() {
+      navigator.mozMobileConnections = [{ iccId: 'SIM 1' }];
+      Settings.init();
+
+      sinon.assert.calledOnce(navigator.mozSettings.createLock);
+      assert.isNull(findSettingsReq(Settings.MMS_SERVICE_ID_KEY));
+      assert.isFalse(Settings.hasSeveralSim());
+      assert.isFalse(Settings.isDualSimDevice());
+    });
+
+    test('in a dual SIM device with only 1 SIM', function() {
+      navigator.mozMobileConnections = [{ iccId: 'SIM 1' }, { iccId: null }];
+      Settings.init();
+
+      sinon.assert.calledTwice(navigator.mozSettings.createLock);
+      assert.ok(findSettingsReq(Settings.MMS_SERVICE_ID_KEY));
+      assert.isFalse(Settings.hasSeveralSim());
+      assert.isTrue(Settings.isDualSimDevice());
+    });
+
+    test('in a triple SIM device with 2 SIMs', function() {
+      navigator.mozMobileConnections = [
+        { iccId: 'SIM 1' },
+        { iccId: 'SIM 2' },
+        { iccId: null }
+      ];
+      Settings.init();
+
+      assert.isTrue(Settings.hasSeveralSim());
+      assert.isTrue(Settings.isDualSimDevice());
+    });
+
+    test('mmsServiceId observer and update', function() {
+      navigator.mozMobileConnections = [
+        { iccId: 'SIM 1' },
+        { iccId: 'SIM 2' }
+      ];
+      Settings.init();
+
+      var serviceIdReq = findSettingsReq(Settings.MMS_SERVICE_ID_KEY);
+
+      serviceIdReq.result = {
+        'ril.mms.defaultServiceId': 0
+      };
+      serviceIdReq.onsuccess();
+
+      MockNavigatorSettings.mTriggerObservers('ril.mms.defaultServiceId',
+                                              {settingValue: 1});
+      assert.equal(Settings.mmsServiceId, 1);
+    });
+
+    suite('switchSimHandler for async callback when ready', function() {
+      var conn;
+      var listenerSpy, switchSimCallback;
+      var mockMozMobileConnections = {
+        1: {
+          addEventListener: function() {},
+          removeEventListener: function() {},
+          data: {
+            state: 'searching'
           }
-        };
+        }
+      };
 
-        setup(function() {
-          if (!('mozMobileConnections' in navigator)) {
-            navigator.mozMobileConnections = null;
-          }
+      setup(function() {
+        if (!('mozMobileConnections' in navigator)) {
+          navigator.mozMobileConnections = null;
+        }
 
-          this.sinon.stub(window.navigator, 'mozMobileConnections',
-            mockMozMobileConnections);
-          this.sinon.spy(Settings, 'setSimServiceId');
-          conn = window.navigator.mozMobileConnections[1];
-          listenerSpy = this.sinon.spy(conn, 'addEventListener');
-        });
+        this.sinon.stub(window.navigator, 'mozMobileConnections',
+          mockMozMobileConnections);
+        this.sinon.spy(Settings, 'setSimServiceId');
+        conn = window.navigator.mozMobileConnections[1];
+        listenerSpy = this.sinon.spy(conn, 'addEventListener');
 
-        test('callback should not be triggered if state did not change',
-          function() {
-          var stub = sinon.stub();
-          Settings.switchSimHandler(1, stub);
-          listenerSpy.yield();
-          sinon.assert.calledWith(Settings.setSimServiceId, 1);
-          sinon.assert.notCalled(stub);
-        });
+        switchSimCallback = sinon.stub();
+        Settings.switchSimHandler(1, switchSimCallback);
+      });
 
-        test('callback when data connection state changes', function() {
-          var stub = sinon.stub();
-          Settings.switchSimHandler(1, stub);
-          conn.data.state = 'registered';
-          listenerSpy.yield();
-          sinon.assert.calledWith(Settings.setSimServiceId, 1);
-          sinon.assert.calledOnce(stub);
-        });
+      test('callback should not be triggered if state did not change',
+        function() {
+        listenerSpy.yield();
+        sinon.assert.calledWith(Settings.setSimServiceId, 1);
+        sinon.assert.notCalled(switchSimCallback);
+      });
+
+      test('callback when data connection state changes', function() {
+        conn.data.state = 'registered';
+        listenerSpy.yield();
+        sinon.assert.calledWith(Settings.setSimServiceId, 1);
+        sinon.assert.calledOnce(switchSimCallback);
       });
     });
   });

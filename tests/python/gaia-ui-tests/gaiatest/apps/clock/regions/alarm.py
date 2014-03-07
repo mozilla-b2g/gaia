@@ -62,6 +62,7 @@ class NewAlarm(Clock):
         self.select(value)
 
     def tap_done(self):
+        self.wait_for_element_displayed(*self._done_locator)
         self.marionette.find_element(*self._done_locator).tap()
         view = self.marionette.find_element(*self._alarm_view_locator)
         self.wait_for_condition(lambda m: view.location['x'] == view.size['width'])

@@ -68,8 +68,6 @@ var Homescreen = (function() {
         onInit();
       }
     });
-
-    initWallpaper();
   }
 
   function onContextMenu(evt) {
@@ -123,6 +121,9 @@ var Homescreen = (function() {
     if (typeof ConfirmDialog !== 'undefined') {
       ConfirmDialog.hide();
     }
+    if (typeof EditDialog !== 'undefined') {
+      EditDialog.hide();
+    }
   }
 
   document.addEventListener('visibilitychange', function mozVisChange() {
@@ -163,19 +164,6 @@ var Homescreen = (function() {
     document.body.dataset.online = mode;
   }
 
-  function initWallpaper() {
-    var wallpaperURL = new SettingsURL();
-    var defaultWallpaper = Configurator.getSection('background');
-
-    var setNewWallpaper = function(value) {
-      var url = 'url(' + wallpaperURL.set(value) + ')';
-      document.body.style.backgroundImage = url;
-    };
-
-    SettingsListener.observe('wallpaper.image',
-                              defaultWallpaper.url, setNewWallpaper);
-  }
-
   window.addEventListener('online', function onOnline(evt) {
     onConnectionChange(true);
   });
@@ -202,6 +190,19 @@ var Homescreen = (function() {
       });
     },
 
+    showEditBookmarkDialog: function h_showEditBookmarkDialog(icon) {
+      var dialog = document.getElementById('edit-dialog');
+      LazyLoader.load(['style/edit_dialog.css',
+                       'shared/style/headers.css',
+                       'shared/style/input_areas.css',
+                       'shared/js/url_helper.js',
+                       dialog,
+                       'js/edit_dialog.js'], function loaded() {
+        navigator.mozL10n.translate(dialog);
+        EditDialog.show(icon);
+      });
+    },
+
     isInEditMode: function() {
       return mode === 'edit';
     },
@@ -212,8 +213,6 @@ var Homescreen = (function() {
     },
 
     init: initialize,
-
-    initWallpaper: initWallpaper,
 
     setMode: function(newMode) {
       mode = document.body.dataset.mode = newMode;

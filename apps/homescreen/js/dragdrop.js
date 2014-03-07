@@ -217,7 +217,12 @@ var DragDropManager = (function() {
     isDisabledDrop = false;
     transitioning = false;
     var page = getPage();
-    var ensureCallbackID = null;
+
+    // We ensure that there is not an icon lost on the grid
+    var ensureCallbackID = window.setTimeout(function() {
+      ensureCallbackID = null;
+      sendDragStopToDraggableIcon(callback);
+    }, ENSURE_DRAG_END_DELAY);
 
     DragLeaveEventManager.send(page, function(done) {
       if (ensureCallbackID !== null) {
@@ -226,12 +231,6 @@ var DragDropManager = (function() {
       }
       done();
     }, true);
-
-    // We ensure that there is not an icon lost on the grid
-    ensureCallbackID = window.setTimeout(function() {
-      ensureCallbackID = null;
-      sendDragStopToDraggableIcon(callback);
-    }, ENSURE_DRAG_END_DELAY);
   }
 
   /*

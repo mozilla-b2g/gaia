@@ -66,7 +66,6 @@ OverlayController.prototype.insertOverlay = function(type) {
 
   overlay
     .appendTo(document.body)
-    .on('click:storage-settings-btn', this.onStorageSettingsClick)
     .on('click:close-btn', function() {
       overlay.destroy();
       activity.cancel();
@@ -90,7 +89,7 @@ OverlayController.prototype.getOverlayData = function(type) {
   switch (type) {
     case 'unavailable':
       data.title = l10n.get('nocard2-title');
-      data.body = l10n.get('nocard2-text');
+      data.body = l10n.get('nocard3-text');
     break;
     case 'nospace':
       data.title = l10n.get('nospace2-title');
@@ -105,27 +104,8 @@ OverlayController.prototype.getOverlayData = function(type) {
   }
 
   data.closeButtonText = l10n.get('close-button');
-  data.storageButtonText = l10n.get('storage-setting-button');
 
   return data;
-};
-
-/**
- * Click to open the media
- * storage panel when the default
- * storage is unavailable.
- *
- * @return {undefined}
- */
-OverlayController.prototype.onStorageSettingsClick = function() {
-  var MozActivity = window.MozActivity;
-  this.mozActivity = new MozActivity({
-    name: 'configure',
-    data: {
-      target: 'device',
-      section: 'mediaStorage'
-    }
-  });
 };
 
 /**
