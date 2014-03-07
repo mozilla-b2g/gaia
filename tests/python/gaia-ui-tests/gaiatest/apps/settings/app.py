@@ -29,6 +29,7 @@ class Settings(Base):
     _device_info_menu_item_locator = (By.ID, 'menuItem-deviceInfo')
     _app_permissions_menu_item_locator = (By.ID, 'menuItem-appPermissions')
     _battery_menu_item_locator = (By.ID, 'menuItem-battery')
+    _sim_manager_menu_item_locator = (By.ID, 'menuItem-simManager')
 
     def wait_for_airplane_toggle_ready(self):
         checkbox = self.marionette.find_element(*self._airplane_checkbox_locator)
@@ -131,6 +132,11 @@ class Settings(Base):
         from gaiatest.apps.settings.regions.battery import Battery
         self._tap_menu_item(self._battery_menu_item_locator)
         return Battery(self.marionette)
+
+    def open_sim_manager_settings(self):
+        from gaiatest.apps.settings.regions.sim_manager import SimManager
+        self._tap_menu_item(self._sim_manager_menu_item_locator)
+        return SimManager(self.marionette)
 
     def _tap_menu_item(self, menu_item_locator):
         menu_item = self.marionette.find_element(*menu_item_locator)
