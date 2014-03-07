@@ -386,7 +386,7 @@
 
 .appWindow > form[role="dialog"][data-type="action"],
 .appWindow > form[role="dialog"][data-type="object"] {
-  top: 2rem;
+  position: absolute;
 }
 
 .appWindow > .screenshot-overlay {
