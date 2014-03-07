@@ -62,7 +62,6 @@ module.exports = View.extend({
 
   initialize: function() {
     this.render();
-    // bind(this.el, 'click', this.onClick);
     this.els.video.autoplay = true;
     this.on('inserted', raf(this.getSize));
   },
@@ -158,7 +157,7 @@ module.exports = View.extend({
     var aspects = {
       container: container.width / container.height,
       preview: preview.width / preview.height,
-      standard: 4 / 3
+      standard: 1.2
     };
 
     var aspectFill = aspects.preview > aspects.container;

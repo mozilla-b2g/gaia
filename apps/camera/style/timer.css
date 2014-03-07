@@ -6,7 +6,7 @@
   height: 16rem;
   width: 16rem;
   margin: -8rem;
-  font-size: 48pt;
+  font-size: 4.8rem;
   border-radius: 50%;
   background: rgba(0,0,0,0.12);
   color: #FFF;
@@ -26,13 +26,9 @@
 }
 
 /**
- * @near
+ * @immanent
  */
 
-.timer.near {
+.timer.immanent {
   background: rgba(245,50,50, 0.4);
-}
-
-.timer_count {
-
 }

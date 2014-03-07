@@ -153,7 +153,6 @@
 
 .controls[recording=true] .capture-button {
   background-color: #d3361c;
-  pointer-events: auto;
 }
 
 /** Capture Button Icon
@@ -164,7 +163,7 @@
  */
 
 .controls[mode=picture] .capture-button span:before {
-  content: "\e60f"; */
+  content: "\e60f";
   /* background-image: url(images/camera.png); */
 }
 
@@ -212,21 +211,9 @@
   left: 66%;
 }
 
-/*.capture-button span {
-  transition: transform 0.2s ease-in-out;
-  pointer-events: none;
-  background-position: center center;
-  background-repeat: no-repeat;
-  background-size: 3rem;
-  display: block;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  margin-left: -1.5rem;
-  margin-top: -1.5rem;
-  width: 3rem;
-  height: 3rem;
-}*/
+/**
+ * @switchable
+ */
 
 .controls[switchable=true] .switch-button {
   display: block;

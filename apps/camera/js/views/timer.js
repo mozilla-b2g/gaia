@@ -19,7 +19,7 @@ var View = require('vendor/view');
  */
 module.exports = View.extend({
   name:'timer',
-  near: 3,
+  immanent: 3,
 
   initialize: function() {
     this.render();
@@ -31,10 +31,10 @@ module.exports = View.extend({
   },
 
   set: function(time) {
-    var isNear = time <= this.near;
+    var isImmanent = time <= this.immanent;
     this.els.count.textContent = time;
-    this.el.classList.toggle('near', isNear);
-    debug('set time: %s, near: %s', time, isNear);
+    this.el.classList.toggle('immanent', isImmanent);
+    debug('set time: %s, near: %s', time, isImmanent);
     return this;
   },
 
