@@ -1,4 +1,4 @@
-/*global Factory */
+'use strict';
 
 requireLib('timespan.js');
 
@@ -68,7 +68,7 @@ suiteGroup('Views.WeekChild', function() {
       subject.date = new Date(2012, 0, 1);
       subject._assignPosition(busy, el);
 
-      assert.equal(el.style.height, 'calc(325% + 1.5px)', 'height');
+      assert.equal(el.style.height, 'calc(325% + 0.3rem - 0.1rem)', 'height');
   });
 
   test('#create', function() {
