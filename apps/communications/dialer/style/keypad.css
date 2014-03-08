@@ -4,13 +4,6 @@
  *
  */
 
-#fake-phone-number-view {
-  font-size: 3rem;
-  position: absolute;
-  line-height: 0;
-  visibility: hidden;
-}
-
 #phone-number-view-container {
   width: 100%;
   height: -moz-calc(100% - 34.5rem);
