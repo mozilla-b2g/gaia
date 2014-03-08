@@ -6,6 +6,7 @@ define(function(require, exports, module) {
  */
 
 var View = require('vendor/view');
+var find = require('lib/find');
 
 /**
  * Exports
@@ -13,8 +14,22 @@ var View = require('vendor/view');
 
 module.exports = View.extend({
   name: 'focus-ring',
+
+  initialize: function() {
+    this.render();
+    this.els.focus.dataset.state = 'none';
+  },
+  render: function() {
+    this.el.innerHTML = this.template();
+    this.els.focus = find('.js-focus',this.el);
+  },
+
   setState: function(state) {
-    this.el.setAttribute('data-state', state);
+    this.els.focus.dataset.state = state;
+  },
+
+  template: function() {
+    return '<div class="focus-ring icon-focus-locking js-focus"></div>'
   }
 });
 

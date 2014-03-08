@@ -122,6 +122,7 @@ App.prototype.runControllers = function() {
   this.controllers.overlay(this);
   this.controllers.sounds(this);
   this.controllers.hud(this);
+  this.controllers.focusmode(this);
   debug('controllers run');
 };
 

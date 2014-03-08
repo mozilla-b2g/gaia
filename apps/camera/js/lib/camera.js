@@ -148,6 +148,53 @@ Camera.prototype.configure = function() {
   this.mozCamera.setConfiguration(options, success, error);
 };
 
+/**
+* Set focus mode as continuous auto
+* based on the mode selected
+**/
+Camera.prototype.setContinuousAutoFocus = function(mode){
+  if (mode === 'video') {
+    this.mozCamera.focusMode = "continuous-video";
+  } else {
+    this.mozCamera.focusMode = "continuous-picture";
+  }
+};
+
+/**
+* Enable auto focus move when
+* camera points to a new location
+**/
+Camera.prototype.enableAutoFocusMove = function(){
+  var self = this;
+  this.mozCamera.onAutoFocusMoving = onAutoFocusMoving;
+  // Focus move callbacks from gecko
+  function onAutoFocusMoving(isMoving) {
+    var bool = isMoving;
+    function clearFocusState() {
+      setTimeout(function() {
+        self.set('focus', 'none');
+      }, 500);
+    }
+    function focused () {
+      setTimeout(function() {
+        self.set('focus','focused');
+        clearFocusState();
+      }, 500);
+    }
+    if (bool === true) {
+      self.set('focus','focusing');
+      focused();
+    }
+  }
+};
+
+/**
+* Disable auto focus move
+**/
+Camera.prototype.disableAutoFocusMove = function(){
+  this.mozCamera.onAutoFocusMoving = null;
+};
+
 Camera.prototype.previewSizes = function() {
   return this.mozCamera.capabilities.previewSizes;
 };
