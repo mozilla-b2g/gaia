@@ -75,6 +75,7 @@
   opacity: 0;
   pointer-events: none;
   transform: scale(0.8);
+  will-change: transform, opacity;
 }
 
 #cards-view .screenshotView {
