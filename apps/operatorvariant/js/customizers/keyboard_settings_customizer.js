@@ -3,7 +3,7 @@
 'use strict';
 
 var KeyboardSettingsCustomizer = (function() {
-  Customizer.call(this, 'keyboardSettings', 'json');
+  Customizer.call(this, 'keyboard_settings', 'json');
 
   this.set = function(aDatas) {
     var KEYBOARD_PREFIX = 'keyboard.';

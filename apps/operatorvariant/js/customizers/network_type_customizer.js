@@ -2,8 +2,8 @@
 
 'use strict';
 
-var DataIconStatubarCustomizer = (function() {
-  Customizer.call(this, 'dataiconstatusbar', 'json');
+var NetworkTypeCustomizer = (function() {
+  Customizer.call(this, 'network_type', 'json');
 
   this.set = function(aDatas) {
     try {
@@ -27,5 +27,5 @@ var DataIconStatubarCustomizer = (function() {
   };
 });
 
-var dataIconStatubarCustomizer = new DataIconStatubarCustomizer();
-dataIconStatubarCustomizer.init();
+var networkTypeCustomizer = new NetworkTypeCustomizer();
+networkTypeCustomizer.init();

@@ -1,6 +1,5 @@
 /* global DataMobile, Navigation, SimManager, TimeManager,
-          VariantManager, UIManager, WifiManager,
-          ImportIntegration */
+          UIManager, WifiManager, ImportIntegration */
 /* exported AppManager */
 'use strict';
 
@@ -17,7 +16,6 @@ var AppManager = {
     UIManager.init();
     Navigation.init();
     DataMobile.init();
-    VariantManager.init();
     var kSplashTimeout = 700;
     // Retrieve mobile connection if available
     // XXX: check bug-926169

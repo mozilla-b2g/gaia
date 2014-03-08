@@ -1,14 +1,14 @@
-/* global dataIconStatubarCustomizer */
+/* global networkTypeCustomizer, requireApp, suite, suiteSetup,
+   suiteTeardown, setup, teardown, test, assert */
 
 'use strict';
 
-requireApp('communications/ftu/js/customizers/customizer.js');
+requireApp('operatorvariant/js/customizers/customizer.js');
+requireApp('operatorvariant/js/customizers/network_type_customizer.js');
 requireApp(
-  'communications/ftu/js/customizers/data_icon_statusbar_customizer.js');
-requireApp(
-  'communications/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+  'operatorvariant/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 
-suite('Data icon statusbar customizer >', function() {
+suite('Network type customizer >', function() {
   var realSettings;
   var TINY_TIMEOUT = 10;
   var SETTING_DATA_ICON = 'operatorResources.data.icon';
@@ -45,7 +45,7 @@ suite('Data icon statusbar customizer >', function() {
 
   testCases.forEach(function(testCase) {
     test(testCase.title, function() {
-      dataIconStatubarCustomizer.set(testCase.values);
+      networkTypeCustomizer.set(testCase.values);
       this.sinon.clock.tick(TINY_TIMEOUT);
       var mSettings = window.MockNavigatorSettings.mSettings;
       assert.deepEqual(mSettings[SETTING_DATA_ICON], testCase.values);

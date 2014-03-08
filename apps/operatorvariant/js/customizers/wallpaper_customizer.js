@@ -1,4 +1,5 @@
 /* global Customizer */
+
 'use strict';
 
 var WallpaperCustomizer = (function() {
