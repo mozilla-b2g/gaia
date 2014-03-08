@@ -26,12 +26,11 @@ module.exports = View.extend({
 
   setState: function(state) {
     this.els.focus.dataset.state = state;
-    console.log('FOCUS dataset: '+ this.els.focus.dataset.state);
   },
 
-  changePostion: function(position) {
-    this.el.style.left = position.x + 'px';
-    this.el.style.top = position.y + 'px';
+  changePosition: function(x, y) {
+    this.el.style.left = x + 'px';
+    this.el.style.top = y + 'px';
   },
 
   template: function() {

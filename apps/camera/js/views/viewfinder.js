@@ -90,7 +90,7 @@ module.exports = View.extend({
       isScaling = true;
     } else if (touchCount === 1) {
       focusPoint = evt.touches[0];
-      this.findFocusArea();
+      this.findFocusArea(focusPoint.pageX, focusPoint.pageY);
     }
   },
 
@@ -99,7 +99,7 @@ module.exports = View.extend({
   * defined by camera coordinate system. 
   *
   **/
-  findFocusArea: function() {
+  findFocusArea: function(pointX, pointY) {
     // In camera coordinate system,
     // (-1000, -1000) represents the
     // top-left of the camera field of
@@ -110,72 +110,47 @@ module.exports = View.extend({
     var MIN = -1000;
     var MAX =  1000;
 
-    var focusArea = { left:0, right:0, top:0, bottom:0 };
-    // view port size
-    var viewPort = {
-      width: this.els.frame.clientHeight,
-      height: this.els.frame.clientWidth
-    };
-
-    // As per camera coordinate system the
-    // values of focus region is fixed.
-    // But changes according to device pixel ratio.
-    var FOCUS_MARGIN_HOR = 266 / window.devicePixelRatio;
-    var FOCUS_MARGIN_VERT = 126 / window.devicePixelRatio;
-
     // as per gecko left, top: -1000
     // right and bottom: 1000
     var focusAreaSize = MAX - MIN;
 
+    var sw = focusAreaSize / this.els.frame.clientWidth;
+    var sh = focusAreaSize / this.els.frame.clientHeight;
+
+    // As per camera coordinate system the
+    // values of focus region is fixed.
+    var FOCUS_MARGIN_HOR = 50 * sw;
+    var FOCUS_MARGIN_VERT = 50 * sh;
+
+    //var rect = { left:0, right, top, bottom };
+    var focusPoint = { x:pointX, y:pointX };
+
     // Apply scaling on each
     // row and column
-    var px = focusPoint.pageX * focusAreaSize / viewPort.height;
-    var py = focusPoint.pageY * focusAreaSize / viewPort.width;
+    var cx = MIN + pointX * sw;
+    var cy = MIN + pointX * sh;
 
-    // shifting center to
-    // center as per gecko
-    px = MIN + px;
-    py = MIN + py;
+    // set left, right, top, bottom of rect
+    // and check boundary conditions
+    var left = clamp(cx - FOCUS_MARGIN_HOR);
+    var right = clamp(cx + FOCUS_MARGIN_HOR);
+    var top = clamp(cy - FOCUS_MARGIN_VERT);
+    var bottom = clamp(cy + FOCUS_MARGIN_VERT);
 
-    // set left, right, top, bottom
-    // of focus Area and check
-    // boundary conditions
-    var val = px - FOCUS_MARGIN_HOR;
-    focusArea.left = this.clamp(val, MIN, MAX);
-
-    val = px + FOCUS_MARGIN_HOR;
-    focusArea.right = this.clamp(val, MIN, MAX);
-
-    val = py - FOCUS_MARGIN_VERT;
-    focusArea.top = this.clamp(val, MIN, MAX);
-
-    val = py + FOCUS_MARGIN_VERT;
-    focusArea.bottom = this.clamp(val, MIN, MAX);
-
-    this.emit('focuspointchange', {
-      x: focusPoint.pageX,
-      y: focusPoint.pageY,
-      left: focusArea.left,
-      right: focusArea.right,
-      top: focusArea.top,
-      bottom: focusArea.bottom
-    });
-  },
-
-  /**
-  * Check boundary conditions.
-  *
-  **/
-  clamp: function(position, min, max) {
-    if (position < min) {
-      position = min;
-    } else if (position > max) {
-      position = max;
+    function clamp (position) {
+      if (position < MIN) {
+        position = MIN;
+      } else if (position > MAX) {
+        position = MAX;
+      }
+      return position;
     }
-    return position;
+
+    this.emit('focuspointchange', { x: pointX, y: pointY }, 
+      { left: left, right: right, top: top, bottom: bottom });
   },
 
-  onTouchMove: function(evt) {
+   onTouchMove: function(evt) {
     if (!isScaling) {
       return;
     }

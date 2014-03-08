@@ -48,38 +48,41 @@ ViewfinderController.prototype.bindEvents = function() {
 };
 
 /**
+* Once user touches on viewfinder 
 * capture touch coordinates
-* when user clicks view finder
-* and call touch focus function.
 *
 * @param {object} focusPoint
 * focusPoint has x and y properties
 * which are coordinates of touch
 * in Pixels.
 *
-* focusPoint has boundaries which
+* @param {object} rect
+* This rectangle has boundaries which
 * are in camera coordinate system,
 * where the top-left of the camera field
 * of view is at (-1000, -1000), and
 * bottom-right of the field at
 * (1000, 1000).
 **/
-ViewfinderController.prototype.onFocusPointChange = function(focusPoint) {
+ViewfinderController.prototype.onFocusPointChange = function(focusPoint, rect) {
   var self = this;
   // Set focus and metering areas
-  this.camera.setFocusArea(focusPoint);
-  this.camera.setMeteringArea(focusPoint);
+  this.camera.setFocusArea(rect);
+  this.camera.setMeteringArea(rect);
 
-  // change focus ring positon
-  this.focusRing.changePostion(focusPoint);
+  // change focus ring positon with pixel values
+  this.focusRing.changePosition(focusPoint.x, focusPoint.y);
 
   // Call auto focus to focus on focus area.
   this.camera.setAutoFocus(focusDone);
 
   // show focussed ring when focused
   function focusDone() {
-    // clear ring UI
-    self.camera.clearFocusRing();
+    // clear ring UI.
+    // Timeout is needed to show the focused ring.
+    setTimeout(function() {
+      self.focusRing.setState('none');
+    }, 1000);
   }
 };
 

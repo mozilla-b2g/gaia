@@ -655,7 +655,6 @@ Camera.prototype.updateVideoElapsed = function() {
 };
 
 /**
-<<<<<<< HEAD
 * configure white balace value on camera configuration
 *@ parameter value to set in white balance
 **/
@@ -693,8 +692,7 @@ Camera.prototype.setFocusArea = function(rect) {
 };
 
 /**
-* To focus on user specified region
-* of viewfinder set metering areas.
+* Set the metering area.
 *
 * @param  {object} rect
 * The argument is an object that
