@@ -22,6 +22,7 @@ requireApp('system/test/unit/mock_media_recording.js');
 requireApp('system/test/unit/mock_places.js');
 requireApp('system/test/unit/mock_remote_debugger.js');
 requireApp('system/test/unit/mock_screen_manager.js');
+requireApp('system/test/unit/mock_software_button_manager.js');
 requireApp('system/test/unit/mock_source_view.js');
 requireApp('system/test/unit/mock_storage.js');
 requireApp('system/test/unit/mock_telephony_settings.js');
@@ -50,6 +51,7 @@ mocha.globals([
   'mediaRecording',
   'remoteDebugger',
   'storage',
+  'softwareButtonManager',
   'telephonySettings',
   'ttlView',
   'title',
@@ -79,6 +81,7 @@ var mocksForBootstrap = new MocksHelper([
   'ScreenManager',
   'SettingsListener',
   'SettingsURL',
+  'SoftwareButtonManager',
   'SourceView',
   'Storage',
   'TelephonySettings',

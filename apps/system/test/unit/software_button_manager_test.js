@@ -1,4 +1,11 @@
 'use strict';
+/* global MocksHelper */
+/* global MockLock */
+/* global MockNavigatorSettings */
+/* global MockScreenLayout */
+/* global MockSettingsListener */
+/* global ScreenLayout */
+/* global SoftwareButtonManager */
 
 mocha.globals(['SoftwareButtonManager']);
 
@@ -21,6 +28,7 @@ suite('enable/disable software home button', function() {
   var fakeHomeButton;
   var fakeFullScreenHomeButton;
   var fakeScreen;
+  var subject;
 
   mocksForSftButtonManager.attachTestHelpers();
 
@@ -94,7 +102,8 @@ suite('enable/disable software home button', function() {
       });
 
       test('should enable the software home button settings', function() {
-        SoftwareButtonManager.init();
+        subject = new SoftwareButtonManager();
+        subject.start();
         fakeGet.onsuccess();
 
         assert.equal(
@@ -111,7 +120,8 @@ suite('enable/disable software home button', function() {
       });
 
       test('should not enable the software home button settings', function() {
-        SoftwareButtonManager.init();
+        subject = new SoftwareButtonManager();
+        subject.start();
         fakeGet.onsuccess();
 
         assert.equal(
@@ -127,11 +137,12 @@ suite('enable/disable software home button', function() {
       isonrealdevice: true,
       hardwareHomeButton: false
     });
-    SoftwareButtonManager.init();
+    subject = new SoftwareButtonManager();
+    subject.start();
     assert.equal(
-      SoftwareButtonManager._enable, false);
+      subject.enabled, false);
     assert.equal(
-      SoftwareButtonManager.element.classList.contains('visible'),
+      subject.element.classList.contains('visible'),
         false);
   });
 
@@ -141,10 +152,11 @@ suite('enable/disable software home button', function() {
       isonrealdevice: true,
       hardwareHomeButton: true
     });
-    SoftwareButtonManager.init();
+    subject = new SoftwareButtonManager();
+    subject.start();
 
     assert.equal(
-      SoftwareButtonManager._enable, false);
+      subject.enabled, false);
     assert.isUndefined(
       MockNavigatorSettings.
         mSettings['software-button.enabled']);
@@ -155,12 +167,13 @@ suite('enable/disable software home button', function() {
       isonrealdevice: true,
       hardwareHomeButton: true
     });
-    SoftwareButtonManager.init();
+    subject = new SoftwareButtonManager();
+    subject.start();
 
     assert.equal(
-      SoftwareButtonManager._enable, false);
+      subject.enabled, false);
     assert.equal(
-      SoftwareButtonManager.element.classList.contains('visible'),
+      subject.element.classList.contains('visible'),
         false);
   });
 
@@ -171,15 +184,17 @@ suite('enable/disable software home button', function() {
       isonrealdevice: true
     });
     var ready = false;
-    SoftwareButtonManager.init();
-    SoftwareButtonManager.element.
+    subject = new SoftwareButtonManager();
+    subject.start();
+    subject.element.
       addEventListener('softwareButtonEvent', function getMouseDown(evt) {
-        SoftwareButtonManager.element.removeEventListener(
+        subject.element.removeEventListener(
           'softwareButtonEvent', getMouseDown);
-        if (evt.detail.type === 'home-button-press')
+        if (evt.detail.type === 'home-button-press') {
           ready = true;
+        }
       });
-    SoftwareButtonManager.handleEvent({type: 'mousedown'});
+    subject.handleEvent({type: 'mousedown'});
     assert.isTrue(ready);
   });
 
@@ -190,15 +205,17 @@ suite('enable/disable software home button', function() {
       isonrealdevice: true
     });
     var ready = false;
-    SoftwareButtonManager.init();
-    SoftwareButtonManager.element.
+    subject = new SoftwareButtonManager();
+    subject.start();
+    subject.element.
       addEventListener('softwareButtonEvent', function getMouseDown(evt) {
-        SoftwareButtonManager.element.removeEventListener(
+        subject.element.removeEventListener(
           'softwareButtonEvent', getMouseDown);
-        if (evt.detail.type === 'home-button-release')
+        if (evt.detail.type === 'home-button-release') {
           ready = true;
+        }
       });
-    SoftwareButtonManager.handleEvent({type: 'mouseup'});
+    subject.handleEvent({type: 'mouseup'});
     assert.isTrue(ready);
   });
 
@@ -207,9 +224,10 @@ suite('enable/disable software home button', function() {
     ScreenLayout.setDefault({
       hardwareHomeButton: false
     });
-    SoftwareButtonManager.init();
-    SoftwareButtonManager._enable = false;
-    SoftwareButtonManager.handleEvent(
+    subject = new SoftwareButtonManager();
+    subject.start();
+    subject.enabled = false;
+    subject.handleEvent(
       {type: 'homegesture-disabled'});
     assert.equal(
       MockNavigatorSettings.
@@ -218,8 +236,8 @@ suite('enable/disable software home button', function() {
 
   test('receive homegesture-enabled when ' +
        'software home button is also enabled', function() {
-    SoftwareButtonManager._enable = true;
-    SoftwareButtonManager.handleEvent(
+    subject.enabled = true;
+    subject.handleEvent(
       {type: 'homegesture-enabled'});
     assert.equal(
       MockNavigatorSettings.
