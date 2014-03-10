@@ -556,9 +556,11 @@ apps/gallery/js/open.js
 apps/gallery/js/thumbnail_date_group.js
 apps/gallery/js/thumbnail_item.js
 apps/gallery/js/thumbnail_list.js
+apps/gallery/test/marionette/activity_crop_test.js
 apps/gallery/test/marionette/delete_image_test.js
 apps/gallery/test/marionette/edit_image_test.js
 apps/gallery/test/marionette/fullscreen_image_test.js
+apps/gallery/test/marionette/lib/contacts.js
 apps/gallery/test/marionette/lib/gallery.js
 apps/gallery/test/marionette/lib/test_common.js
 apps/gallery/test/unit/DeviceStorage_test.js
