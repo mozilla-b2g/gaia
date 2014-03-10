@@ -14,6 +14,9 @@
   var emptyDownloadsContainer = null;
   var downloadsPanel = null;
 
+  // Menus
+  var downloadsEditMenu = null;
+
   // Buttons
   var editButton = null;
   var closeButton = null;
@@ -346,6 +349,7 @@
       targetHeader,
       targetHeader.parentNode.firstChild
     );
+    targetHeader.hidden = downloadsEditMenu.hidden = false;
     // Add 'edit' stype
     downloadsPanel.classList.add('edit');
     // Change edit mdoe status
@@ -391,6 +395,8 @@
         emptyDownloadsContainer =
           document.getElementById('download-list-empty');
         downloadsPanel = document.getElementById('downloads');
+        // Menus
+        downloadsEditMenu = document.getElementById('downloads-edit-menu');
         // Buttons
         editButton = document.getElementById('downloads-edit-button');
         closeButton = document.getElementById('downloads-close-button');
