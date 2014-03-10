@@ -73,6 +73,10 @@ suite('Settings >', function() {
     test('getSimNameByIccId returns the empty string', function() {
       assert.equal('', Settings.getSimNameByIccId('anything'));
     });
+
+    test('getServiceIdByIccId returns null', function() {
+      assert.isNull(Settings.getServiceIdByIccId('anything'));
+    });
   });
 
   suite('With mozSettings', function() {
@@ -194,6 +198,12 @@ suite('Settings >', function() {
         assert.equal(Settings.getSimNameByIccId('SIM 2'), 'sim-name{"id":2}');
         assert.equal(Settings.getSimNameByIccId('SIM 3'), '');
       });
+
+      test('getServiceIdByIccId returns the correct id', function() {
+        assert.equal(Settings.getServiceIdByIccId('SIM 1'), 0);
+        assert.equal(Settings.getServiceIdByIccId('SIM 2'), 1);
+        assert.isNull(Settings.getServiceIdByIccId('SIM 3'));
+      });
     });
 
     test('in a single SIM device', function() {
@@ -204,6 +214,7 @@ suite('Settings >', function() {
       assert.isNull(findSettingsReq(Settings.MMS_SERVICE_ID_KEY));
       assert.isFalse(Settings.hasSeveralSim());
       assert.isFalse(Settings.isDualSimDevice());
+      assert.isNull(Settings.getServiceIdByIccId('SIM 1'));
     });
 
     test('in a dual SIM device with only 1 SIM', function() {
@@ -214,6 +225,7 @@ suite('Settings >', function() {
       assert.ok(findSettingsReq(Settings.MMS_SERVICE_ID_KEY));
       assert.isFalse(Settings.hasSeveralSim());
       assert.isTrue(Settings.isDualSimDevice());
+      assert.equal(Settings.getServiceIdByIccId('SIM 1'), 0);
     });
 
     test('in a triple SIM device with 2 SIMs', function() {
@@ -250,8 +262,19 @@ suite('Settings >', function() {
     suite('switchSimHandler for async callback when ready', function() {
       var conn;
       var listenerSpy, switchSimCallback;
+
+      // The real navigator.mozMobileConnections is not a real array
       var mockMozMobileConnections = {
+        0: {
+          iccId: 'SIM 1',
+          addEventListener: function() {},
+          removeEventListener: function() {},
+          data: {
+            state: 'searching'
+          }
+        },
         1: {
+          iccId: 'SIM 2',
           addEventListener: function() {},
           removeEventListener: function() {},
           data: {
@@ -267,9 +290,11 @@ suite('Settings >', function() {
 
         this.sinon.stub(window.navigator, 'mozMobileConnections',
           mockMozMobileConnections);
+
         this.sinon.spy(Settings, 'setSimServiceId');
         conn = window.navigator.mozMobileConnections[1];
         listenerSpy = this.sinon.spy(conn, 'addEventListener');
+        Settings.init();
 
         switchSimCallback = sinon.stub();
         Settings.switchSimHandler(1, switchSimCallback);

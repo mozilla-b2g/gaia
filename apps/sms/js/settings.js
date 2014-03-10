@@ -14,11 +14,6 @@ var Settings = {
   _serviceIds: null,
   mmsSizeLimitation: 300 * 1024, // Default mms message size limitation is 300K.
   mmsServiceId: null, // Default mms service SIM ID (only for DSDS)
-  get nonActivateMmsServiceIds() { // Non activate mms ID (only for DSDS)
-    var serviceIds = this._serviceIds.slice();
-    serviceIds.splice(this.mmsServiceId, 1);
-    return serviceIds;
-  },
 
   init: function settings_init() {
     var keyHandlerSet = {
@@ -126,21 +121,27 @@ var Settings = {
     return simCount > 1;
   },
 
+  getServiceIdByIccId: function getServiceIdByIccId(iccId) {
+    if (!this._serviceIds) {
+      return null;
+    }
+
+    var index = this._serviceIds.indexOf(iccId);
+
+    return index > -1 ? index : null;
+  },
+
   /**
    * Will return SIM1 or SIM2 (locale dependent) depending on the iccId.
    * Will return the empty string in a single SIM scenario.
    */
   getSimNameByIccId: function getSimNameByIccId(iccId) {
-    if (!this._serviceIds) {
+    var index = this.getServiceIdByIccId(iccId);
+    if (index === null) {
       return '';
     }
 
-    var index = this._serviceIds.indexOf(iccId) + 1;
-    if (!index) {
-      return '';
-    }
-
-    var simName = navigator.mozL10n.get('sim-name', { id: index });
+    var simName = navigator.mozL10n.get('sim-name', { id: index + 1 });
     return simName;
   },
 
@@ -149,12 +150,8 @@ var Settings = {
    * Will return the empty string in a single SIM scenario.
    */
   getOperatorByIccId: function getOperatorByIccId(iccId) {
-    if (!this._serviceIds) {
-      return '';
-    }
-
-    var index = this._serviceIds.indexOf(iccId);
-    if (index < 0) {
+    var index = this.getServiceIdByIccId(iccId);
+    if (index === null) {
       return '';
     }
 
