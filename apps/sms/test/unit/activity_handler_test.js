@@ -11,6 +11,7 @@
 
 mocha.globals(['alert', 'confirm', 'Notify']);
 
+requireApp('sms/shared/test/unit/mocks/mock_option_menu.js');
 requireApp(
   'sms/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js'
 );

@@ -26,6 +26,7 @@ requireApp('sms/js/utils.js');
 requireApp('sms/js/message_manager.js');
 require('/shared/js/async_storage.js');
 
+requireApp('sms/shared/test/unit/mocks/mock_option_menu.js');
 requireApp('sms/test/unit/mock_time_headers.js');
 requireApp('sms/test/unit/mock_alert.js');
 requireApp('sms/test/unit/mock_link_action_handler.js');
@@ -44,7 +45,6 @@ requireApp('sms/test/unit/mock_contacts.js');
 requireApp('sms/test/unit/mock_recipients.js');
 requireApp('sms/test/unit/mock_settings.js');
 requireApp('sms/test/unit/mock_activity_picker.js');
-requireApp('sms/test/unit/mock_action_menu.js');
 requireApp('sms/test/unit/mock_dialog.js');
 requireApp('sms/test/unit/mock_smil.js');
 requireApp('sms/test/unit/mock_custom_dialog.js');

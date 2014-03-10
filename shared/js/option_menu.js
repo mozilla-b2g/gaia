@@ -18,7 +18,7 @@
         method: function optionMethod(param1, param2) {
           // Method and params if needed
         },
-        params: ['param1', '123123123']
+        params: ['param1', '123123123'],
       },
       ....
       ,
@@ -46,6 +46,12 @@
     // Optional header text or node
     header: ...,
 
+    // Optional header L10n id
+    headerL10nId: ...,
+
+    // Option header L10n args
+    headerL10nArgs: ...,
+
     // additional classes on the dialog, as an array of strings
     classes: ...
 
@@ -62,7 +68,6 @@
     complete: function() {...}
   }
 */
-
 
 var OptionMenu = function(options) {
   if (!options || !options.items || options.items.length === 0) {
@@ -88,8 +93,16 @@ var OptionMenu = function(options) {
   }
 
   // We append title if needed
-  if (options.header) {
-    var header = document.createElement('header');
+  var header;
+  if (options.headerL10nId) {
+    header = document.createElement('header');
+    header.textContent =
+      navigator.mozL10n.localize(
+        header, options.headerL10nId, options.headerL10nArgs);
+
+    this.form.appendChild(header);
+  } else if (options.header) {
+    header = document.createElement('header');
 
     if (typeof options.header === 'string') {
       header.textContent = options.header || '';
@@ -127,6 +140,14 @@ var OptionMenu = function(options) {
       return;
     }
     menu.appendChild(button);
+
+    if (item.append) {
+      if (typeof item.append === 'string') {
+        button.textContent = (button.textContent || '') + item.append;
+      } else {
+        button.appendChild(item.append);
+      }
+    }
     // Add a mapping from the button object
     // directly to its options item.
     item.incomplete = item.incomplete || false;

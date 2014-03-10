@@ -1,0 +1,9 @@
+.select-sim-menu button {
+  font-size: 1.7rem;
+}
+
+.select-sim-menu button span.sim-default {
+  margin-left: 5px;
+  font-size: 1.4rem;
+  font-style: italic;
+}

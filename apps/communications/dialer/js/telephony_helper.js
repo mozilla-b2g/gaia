@@ -6,7 +6,7 @@
 var TelephonyHelper = (function() {
   var confirmLoaded = false;
 
-  var call = function t_call(number, oncall, onconnected,
+  var call = function t_call(number, cardIndex, oncall, onconnected,
                              ondisconnected, onerror) {
     var sanitizedNumber = number.replace(/(\s|-|\.|\(|\))/g, '');
     if (!isValid(sanitizedNumber)) {
@@ -14,36 +14,48 @@ var TelephonyHelper = (function() {
       return;
     }
 
-    getConnection(function gotConnection(conn) {
-      if (!conn || !conn.voice) {
-        // No voice connection, the call won't make it
-        displayMessage('NoNetwork');
-        return;
-      }
+    var conn = navigator.mozMobileConnection ||
+               (navigator.mozMobileConnections &&
+                navigator.mozMobileConnections[cardIndex]);
 
-      var telephony = navigator.mozTelephony;
-      var openLines = telephony.calls.length +
-          (telephony.conferenceGroup.calls.length ? 1 : 0);
-      // User can make call only when there are less than 2 calls by spec.
-      // If the limit reached, return early to prevent holding active call.
-      if (openLines >= 2) {
-        displayMessage('UnableToCall');
-        return;
-      }
+    if (!conn || !conn.voice) {
+      // No voice connection, the call won't make it
+      displayMessage('NoNetwork');
+      return;
+    }
 
-      var activeCall = telephony.active;
-      if (!activeCall) {
-        startDial(
-          conn, sanitizedNumber, oncall, onconnected, ondisconnected, onerror);
-        return;
-      }
-      activeCall.onheld = function activeCallHeld() {
-        activeCall.onheld = null;
-        startDial(
-          conn, sanitizedNumber, oncall, onconnected, ondisconnected, onerror);
-      };
-      activeCall.hold();
-    });
+    var telephony = navigator.mozTelephony;
+    var openLines = telephony.calls.length +
+        (telephony.conferenceGroup.calls.length ? 1 : 0);
+    // User can make call only when there are less than 2 calls by spec.
+    // If the limit reached, return early to prevent holding active call.
+    if (openLines >= 2) {
+      displayMessage('UnableToCall');
+      return;
+    }
+
+    var activeCall = telephony.active;
+    if (!activeCall) {
+      startDial(cardIndex,
+                conn,
+                sanitizedNumber,
+                oncall,
+                onconnected,
+                ondisconnected,
+                onerror);
+      return;
+    }
+    activeCall.onheld = function activeCallHeld() {
+      activeCall.onheld = null;
+      startDial(cardIndex,
+                conn,
+                sanitizedNumber,
+                oncall,
+                onconnected,
+                ondisconnected,
+                onerror);
+    };
+    activeCall.hold();
   };
 
   function notifyBusyLine() {
@@ -57,8 +69,13 @@ var TelephonyHelper = (function() {
     TonePlayer.playSequence(sequence);
   }
 
-  function startDial(
-    conn, sanitizedNumber, oncall, onconnected, ondisconnected, onerror) {
+  function startDial(cardIndex,
+                     conn,
+                     sanitizedNumber,
+                     oncall,
+                     onconnected,
+                     ondisconnected,
+                     onerror) {
 
     var telephony = navigator.mozTelephony;
     if (!telephony) {
@@ -91,7 +108,7 @@ var TelephonyHelper = (function() {
         var serviceId = hasCard ? undefined : 0;
         promiseOrCall = telephony.dialEmergency(sanitizedNumber, serviceId);
       } else {
-        promiseOrCall = telephony.dial(sanitizedNumber);
+        promiseOrCall = telephony.dial(sanitizedNumber, cardIndex);
       }
 
       /* XXX: Temporary fix to handle old and new telephony API
@@ -157,37 +174,6 @@ var TelephonyHelper = (function() {
   var isValid = function t_isValid(sanitizedNumber) {
     var validExp = /^[0-9#+*]{1,50}$/;
     return validExp.test(sanitizedNumber);
-  };
-
-  var getConnection = function t_getConnection(callback) {
-    var conn = window.navigator.mozMobileConnection;
-    if (conn) {
-      callback(conn);
-      return;
-    }
-
-    var connections = navigator.mozMobileConnections;
-    var settings = navigator.mozSettings;
-    if (!settings || !connections) {
-      callback(null);
-      return;
-    }
-
-    if (connections.length === 1) {
-      callback(connections[0]);
-      return;
-    }
-
-    var req = settings.createLock().get('ril.telephony.defaultServiceId');
-
-    req.onsuccess = function getDefaultServiceId() {
-      var id = req.result['ril.telephony.defaultServiceId'] || 0;
-      callback(connections[id]);
-    };
-
-    req.onerror = function getDefaultServiceIdError() {
-      callback(null);
-    };
   };
 
   var loadConfirm = function t_loadConfirm(cb) {

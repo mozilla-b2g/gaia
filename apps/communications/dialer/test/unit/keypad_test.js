@@ -2,8 +2,14 @@
            MockCall, MockCallsHandler, MockDialerIndexHtml, MockMozTelephony,
            MockSettingsListener, MocksHelper, MockTonePlayer,
            telephonyAddCall */
+/* We're not actually exporting these, but because we have shared code requiring
+ * other shared code, we have to mark them as such here. */
+/* exports SimPicker, SimSettingsHelper */
 
 'use strict';
+
+requireApp('communications/shared/js/sim_picker.js');
+requireApp('communications/shared/js/sim_settings_helper.js');
 
 requireApp('communications/dialer/js/keypad.js');
 
