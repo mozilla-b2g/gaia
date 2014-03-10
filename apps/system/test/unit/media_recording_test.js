@@ -1,4 +1,3 @@
-/* global MockL10n, MediaRecording */
 'use strict';
 
 mocha.globals(['MediaRecording']);
@@ -8,7 +7,7 @@ requireApp('system/test/unit/mock_l10n.js');
 
 suite('system/media recording', function() {
   var realL10n;
-  var mediaRecording;
+  var TIMEOUT = 500;
   function sendChromeEvent(active, isApp, origin, isAudio, isVideo) {
     var detail = {'active': active,
                   'isApp': isApp,
@@ -25,10 +24,7 @@ suite('system/media recording', function() {
     loadBodyHTML('/index.html');
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
-    requireApp('system/js/media_recording.js', function() {
-      mediaRecording = new MediaRecording();
-      done();
-    });
+    requireApp('system/js/media_recording.js', done);
   });
 
   suiteTeardown(function() {
@@ -36,13 +32,8 @@ suite('system/media recording', function() {
     document.body.innerHTML = '';
   });
 
-  setup(function() {
-    mediaRecording.start();
-  });
-
   teardown(function() {
     sendChromeEvent(false, false, '', false, false);
-    mediaRecording.stop();
   });
 
   suite('active stat', function() {
@@ -51,11 +42,11 @@ suite('system/media recording', function() {
     });
 
     test('notification displayed', function() {
-      assert.isTrue(mediaRecording.container.classList.contains('displayed'));
+      assert.isTrue(MediaRecording.container.classList.contains('displayed'));
     });
 
     test('is Web URL', function() {
-      assert.equal(mediaRecording.origin.textContent, 'http://www.mozilla.com');
+      assert.equal(MediaRecording.origin.textContent, 'http://www.mozilla.com');
     });
   });
 
@@ -67,7 +58,7 @@ suite('system/media recording', function() {
     });
 
     test('is Web URL', function() {
-      assert.equal(mediaRecording.origin.textContent, 'http://mozqa.com');
+      assert.equal(MediaRecording.origin.textContent, 'http://mozqa.com');
     });
   });
 
@@ -77,7 +68,7 @@ suite('system/media recording', function() {
     });
 
     test('notification hidden', function() {
-      assert.isFalse(mediaRecording.container.classList.contains('displayed'));
+      assert.isFalse(MediaRecording.container.classList.contains('displayed'));
     });
   });
 
@@ -87,11 +78,11 @@ suite('system/media recording', function() {
     });
 
     test('show message', function() {
-      assert.equal(mediaRecording.message.textContent, 'microphone-is-on');
+      assert.equal(MediaRecording.message.textContent, 'microphone-is-on');
     });
 
     test('show icon', function() {
-      assert.equal(mediaRecording.icon.style.backgroundImage,
+      assert.equal(MediaRecording.icon.style.backgroundImage,
         'url("style/media_recording/images/Microphone.png")');
     });
   });
@@ -102,11 +93,11 @@ suite('system/media recording', function() {
     });
 
     test('show message', function() {
-      assert.equal(mediaRecording.message.textContent, 'camera-is-on');
+      assert.equal(MediaRecording.message.textContent, 'camera-is-on');
     });
 
     test('show icon', function() {
-      assert.equal(mediaRecording.icon.style.backgroundImage,
+      assert.equal(MediaRecording.icon.style.backgroundImage,
         'url("style/media_recording/images/Camera.png")');
     });
   });
@@ -117,11 +108,11 @@ suite('system/media recording', function() {
     });
 
     test('show message', function() {
-      assert.equal(mediaRecording.message.textContent, 'media-is-on');
+      assert.equal(MediaRecording.message.textContent, 'media-is-on');
     });
 
     test('show icon', function() {
-      assert.equal(mediaRecording.icon.style.backgroundImage,
+      assert.equal(MediaRecording.icon.style.backgroundImage,
         'url("style/media_recording/images/VideoRecorder.png")');
     });
   });

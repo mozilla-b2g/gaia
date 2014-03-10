@@ -82,10 +82,6 @@ window.addEventListener('load', function startup() {
   window.visibilityManager = new VisibilityManager().start();
   window.layoutManager = new LayoutManager().start();
 
-  navigator.mozL10n.ready(function l10n_ready() {
-    window.mediaRecording = new MediaRecording().start();
-  });
-
   // We need to be sure to get the focus in order to wake up the screen
   // if the phone goes to sleep before any user interaction.
   // Apparently it works because no other window has the focus at this point.
