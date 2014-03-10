@@ -1073,7 +1073,7 @@ suite('thread_ui.js >', function() {
       test('banner localized', function() {
         assert.ok(
           localize.calledWith(banner.querySelector('p'),
-            'messages-exceeded-length-text')
+            'message-exceeded-max-length')
         );
       });
 

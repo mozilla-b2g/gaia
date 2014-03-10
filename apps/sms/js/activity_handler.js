@@ -98,6 +98,10 @@ var ActivityHandler = {
           // TODO: We only allow sharing one item in a single action now.
           //       Keeping the same sequence while adding the multiple items
           //       should be considered in the future.
+          if (attachment.size > Settings.mmsSizeLimitation) {
+            alert(navigator.mozL10n.get('file-too-large'));
+            return;
+          }
           Compose.append(attachment);
         });
       }
