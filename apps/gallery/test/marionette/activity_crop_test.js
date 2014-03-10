@@ -97,7 +97,9 @@ marionette('Pick activity cropping behavior', function() {
 
     selectGalleryAndDisplayPhoto();
 
+    console.log('waiting for edit-preview-canvas');
     client.helper.waitForElement('#edit-preview-canvas');
+    console.log('found edit-preview-canvas');
     assert(client.findElement('#edit-preview-canvas') != null);
     client.setSearchTimeout(1);
     var cropCanvasFound;
@@ -124,7 +126,9 @@ marionette('Pick activity cropping behavior', function() {
 
     selectGalleryAndDisplayPhoto();
 
+    console.log('waiting for edit-preview-canvas');
     client.helper.waitForElement('#edit-preview-canvas');
+    console.log('found edit-preview-canvas');
     assert(client.findElement('#edit-preview-canvas') != null);
     client.setSearchTimeout(1);
     var cropCanvasFound;
