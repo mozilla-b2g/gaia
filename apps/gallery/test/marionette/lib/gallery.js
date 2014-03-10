@@ -19,6 +19,7 @@ Gallery.ORIGIN = 'app://gallery.gaiamobile.org';
  * @const {Object}
  */
 Gallery.Selector = Object.freeze({
+  buttonWithIcon: 'button.icon',
   thumbnail: '.thumbnail',
   fullscreenView: '#fullscreen-view',
   thumbnailsView: '#thumbnail-list-view',
@@ -265,5 +266,13 @@ Gallery.prototype = {
     // takes a while. (metadata parsing, thumbnail creation, saving to DB, etc)
     this.client.setSearchTimeout(300000);
     this.client.helper.waitForElement(Gallery.Selector.thumbnail);
+  },
+
+  /**
+   * @return {Marionette.Element} List of elements of buttons with an icon
+   * class.
+   */
+  get buttonsWithIcons() {
+    return this.client.findElements(Gallery.Selector.buttonWithIcon);
   }
 };

@@ -1,6 +1,6 @@
-function pick(type, nocrop, width, height) {
+function pick(type, allowCrop, width, height) {
   var data = {type: type};
-  if (nocrop) data.nocrop = true;
+  data.allowCrop = allowCrop;
   if (width) data.width = width;
   if (height) data.height = height;
   var a = new MozActivity({ name: 'pick', data: data});
@@ -15,18 +15,21 @@ function pick(type, nocrop, width, height) {
 }
 
 document.getElementById('b1').onclick = function() {
-  pick(['video/*', 'image/*']);
+  pick(['video/*', 'image/*'], true);
 };
 document.getElementById('b2').onclick = function() {
-  pick(['image/*', 'video/*']);
+  pick(['image/*', 'video/*'], false);
 };
 document.getElementById('b3').onclick = function() {
-  pick(['video/*', 'image/jpg']);
+  pick(['image/*', 'video/*'], true, 100, 100);
 };
 document.getElementById('b4').onclick = function() {
-  pick(['video/*', 'image/png']);
+  pick(['video/*', 'image/jpg']);
 };
 document.getElementById('b5').onclick = function() {
+  pick(['video/*', 'image/png']);
+};
+document.getElementById('b6').onclick = function() {
   pick(['video/3gpp', 'image/jpg']);
 };
 
