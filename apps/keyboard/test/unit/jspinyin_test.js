@@ -284,8 +284,7 @@ suite('jspinyin', function() {
   });
 
   test('select first predict', function(done) {
-    this.sinon.stub(jspinyin, '_start');
-    this.sinon.stub(glue, 'endComposition', function(text) {
+    this.sinon.stub(glue, 'sendString', function(text) {
       done(function() {
         assert.equal(text, firstPredict[0]);
       });
