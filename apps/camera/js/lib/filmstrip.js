@@ -251,23 +251,23 @@ define(function(require, exports, module) {
       }
 
       var item = items[currentItemIndex];
-      var msg, storage, filepath;
+      var msg, _storage, filepath;
 
       if (item.isImage) {
         msg = navigator.mozL10n.get('delete-photo?');
-        storage = camera._pictureStorage;
+        _storage = storage.image;
         filepath = item.filepath;
       }
       else {
         msg = navigator.mozL10n.get('delete-video?');
-        storage = camera._videoStorage;
+        _storage = storage.video;
         filepath = item.filepath;
       }
 
       if (confirm(msg)) {
         deleteItem(filepath);
         // Actually delete the file
-        storage.delete(filepath).onerror = function(e) {
+        _storage.delete(filepath).onerror = function(e) {
           console.warn('Failed to delete', filepath,
                        'from DeviceStorage:', e.target.error);
         };
@@ -275,7 +275,7 @@ define(function(require, exports, module) {
         // If this is a video file, delete its poster image as well
         if (item.isVideo) {
           var poster = filepath.replace('.3gp', '.jpg');
-          var pictureStorage = camera._pictureStorage;
+          var pictureStorage = storage.image;
 
           pictureStorage.delete(poster).onerror = function(e) {
             console.warn('Failed to delete poster image', poster,
