@@ -6,7 +6,9 @@ var Gallery = require('./lib/gallery.js'),
 
 marionette('Pick activity cropping behavior', function() {
 
-  var client = marionette.client({
+  var app, client, contacts;
+
+  client = marionette.client({
     prefs: {
       'device.storage.enabled': true,
       'device.storage.testing': true,
@@ -15,33 +17,30 @@ marionette('Pick activity cropping behavior', function() {
     }
   });
 
-  var app;
-  var contacts;
-
   setup(function() {
-
     TestCommon.prepareTestSuite('pictures', client);
-
     app = new Gallery(client);
     contacts = new Contacts(client);
-
-    client.fileManager.add({
-      type: 'images',
-      filePath: 'test_media/Pictures/firefoxOS.png'
-    });
   });
 
   function selectGalleryAndDisplayPhoto() {
+    console.log('finding buttons with icons');
     var buttonElementsWithIcons = app.buttonsWithIcons;
+    console.log('found buttons with icons');
     for (var i = 0; i < buttonElementsWithIcons.length; i++) {
       var style = buttonElementsWithIcons[i].getAttribute('style');
+      console.log('found botton with style: ' + style);
       if (style != null && style.length > 0) {
         if (style.match(/gallery/)) {
+          console.log('found gallery button');
           buttonElementsWithIcons[i].click();
           client.switchToFrame('browser3');
+          console.log('waiting for thumbnail element');
           client.helper.waitForElement(Gallery.Selector.thumbnail);
+          console.log('found thumbnail element, clicking');
           var thumbnails = app.thumbnails;
           thumbnails[0].click();
+          console.log('clicked on thumbnail element');
           break;
         }
       }
@@ -50,7 +49,11 @@ marionette('Pick activity cropping behavior', function() {
 
   test('Explicitly allow cropping', function() {
 
+    console.log('launching contacts app');
     contacts.launch();
+    console.log('launched contacts app');
+
+    console.log('launching pick activity');
 
     client.executeScript(function() {
       var activity = new MozActivity({
@@ -62,11 +65,17 @@ marionette('Pick activity cropping behavior', function() {
       });
     });
 
+    console.log('launched pick activity');
+
     client.switchToFrame();
+
+    console.log('selecting gallery and displaying photo');
 
     selectGalleryAndDisplayPhoto();
 
+    console.log('waiting for edit-crop-canvas');
     client.helper.waitForElement('#edit-crop-canvas');
+    console.log('found edit-crop-canvas');
     assert(client.findElement('#edit-crop-canvas') != null);
   });
 
