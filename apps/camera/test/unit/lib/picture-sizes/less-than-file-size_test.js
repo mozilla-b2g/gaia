@@ -1,4 +1,4 @@
-suite('lib/picture-sizes/less-than-pixels', function() {
+suite('lib/picture-sizes/less-than-file-size', function() {
   'use strict';
 
   var sizes = [{
@@ -49,9 +49,13 @@ suite('lib/picture-sizes/less-than-pixels', function() {
   }];
 
   suiteSetup(function(done) {
+    
+    // Assume the default JPEG compression ratio of `8` for tests
+    window.CONFIG_AVG_JPEG_COMPRESSION_RATIO = 8;
+
     var self = this;
-    req(['lib/picture-sizes/less-than-pixels'], function(lessThanPixels) {
-      self.lessThanPixels = lessThanPixels;
+    req(['lib/picture-sizes/less-than-file-size'], function(lessThanFileSize) {
+      self.lessThanFileSize = lessThanFileSize;
       done();
     });
   });
@@ -59,16 +63,19 @@ suite('lib/picture-sizes/less-than-pixels', function() {
   test('Should filter picture sizes that are less than given bytes', function() {
     var output;
 
-    output = this.lessThanPixels(300000, sizes);
+    output = this.lessThanFileSize(9504, sizes);
     assert.ok(output.length === 1);
 
-    output = this.lessThanPixels(1040000, sizes);
+    output = this.lessThanFileSize(345600, sizes);
     assert.ok(output.length === 2);
 
-    output = this.lessThanPixels(1228800, sizes);
+    output = this.lessThanFileSize(460800, sizes);
     assert.ok(output.length === 3);
 
-    output = this.lessThanPixels(1920000, sizes);
+    output = this.lessThanFileSize(720000, sizes);
     assert.ok(output.length === 4);
+
+    output = this.lessThanFileSize(777600, sizes);
+    assert.ok(output.length === 5);
   });
 });
