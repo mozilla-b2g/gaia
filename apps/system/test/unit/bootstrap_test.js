@@ -1,7 +1,7 @@
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/*global MockNavigatormozApps, MockNavigatorSettings, MocksHelper, MockL10n*/
+/*global MockNavigatormozApps, MockNavigatorSettings, MocksHelper*/
 /*global MockApplications, Applications*/
 
 'use strict';
@@ -16,8 +16,6 @@ requireApp('system/test/unit/mock_devtools_view.js');
 requireApp('system/test/unit/mock_dialer_comms.js');
 requireApp('system/test/unit/mock_ftu_launcher.js');
 requireApp('system/test/unit/mock_homescreen_launcher.js');
-requireApp('system/test/unit/mock_l10n.js');
-requireApp('system/test/unit/mock_media_recording.js');
 requireApp('system/test/unit/mock_places.js');
 requireApp('system/test/unit/mock_remote_debugger.js');
 requireApp('system/test/unit/mock_screen_manager.js');
@@ -41,7 +39,6 @@ mocha.globals([
   'activities',
   'cancelHomeTouchstart',
   'cancelHomeTouchend',
-  'mediaRecording',
   'cancelHomeClick',
   'secureWindowManager',
   'secureWindowFactory',
@@ -70,7 +67,6 @@ var mocksForBootstrap = new MocksHelper([
   'DialerComms',
   'FtuLauncher',
   'HomescreenLauncher',
-  'MediaRecording',
   'Places',
   'RemoteDebugger',
   'ScreenManager',
@@ -94,7 +90,6 @@ var mocksForBootstrap = new MocksHelper([
 suite('system/Bootstrap', function() {
   var realNavigatorSettings;
   var realNavigatormozApps;
-  var realNavigatormozL10n;
   var realDocumentElementDir;
   var realDocumentElementLang;
   var realApplications;
@@ -111,9 +106,6 @@ suite('system/Bootstrap', function() {
     realDocumentElementDir = document.documentElement.dir;
     realDocumentElementLang = document.documentElement.lang;
 
-    realNavigatormozL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
-
     realApplications = window.applications;
     window.applications = MockApplications;
 
@@ -127,11 +119,9 @@ suite('system/Bootstrap', function() {
     navigator.mozSettings = realNavigatorSettings;
     realNavigatorSettings = null;
 
-    navigator.mozL10n = realNavigatormozL10n;
-    realNavigatormozL10n = null;
-
     window.applications = realApplications;
     realApplications = null;
+
     document.documentElement.dir = realDocumentElementDir;
     document.documentElement.lang = realDocumentElementLang;
   });
