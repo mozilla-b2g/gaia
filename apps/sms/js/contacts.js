@@ -3,6 +3,7 @@
 (function(exports) {
   'use strict';
   /*global fb */
+  var unknownNumbers = [];
 
   var filterFns = {
     contains: function(a, b) {
@@ -216,11 +217,40 @@
       };
     },
     findByString: function contacts_findBy(filterValue, callback) {
+      var unknownCallback = function(contacts) {
+        contacts = contacts || [];
+        this.findByUnknown(filterValue, function(unknown) {
+          unknown = unknown || [];
+          callback(contacts.concat(unknown));
+        });
+      }.bind(this);
+      this.findContactByString(filterValue, unknownCallback);
+    },
+
+    findContactByString: function contacts_findBy(filterValue, callback) {
       return this.findBy({
         filterBy: ['tel', 'givenName', 'familyName'],
         filterOp: 'contains',
         filterValue: filterValue
       }, callback);
+    },
+    findByUnknown: function findByUnknown(filterValue, callback) {
+      var list = [];
+      for (var i = 0, length = unknownNumbers.length; i < length; i++) {
+        if (list.length > 2) {
+          break;
+        }
+        var num = unknownNumbers[i];
+        if (num.contains(filterValue)) {
+          var obj = {
+            name: [num],
+            tel: [{value: num}],
+            source: 'unknown'
+          };
+          list.push(obj);
+        }
+      }
+      callback(list);
     },
 
     findExact: function contacts_findBy(filterValue, callback) {
@@ -266,7 +296,23 @@
           callback(results);
         });
       });
+    },
+
+    addUnknown: function addUnknown(number) {
+      var index = unknownNumbers.indexOf(number);
+      if (index === -1) {
+        unknownNumbers.push(number);
+      }
+    },
+
+    clearUnknown: function clearUnknown() {
+      unknownNumbers.length = 0;
+    },
+
+    getLength: function getLength() {
+      return unknownNumbers.length;
     }
+
   };
 
   exports.Contacts = Contacts;

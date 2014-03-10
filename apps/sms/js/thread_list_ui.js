@@ -143,6 +143,7 @@ var ThreadListUI = {
       } else {
         title = number;
         src = '';
+        Contacts.addUnknown(title);
       }
 
       if (src) {
@@ -684,6 +685,7 @@ var ThreadListUI = {
 
   // Method for updating all contact info after creating a contact
   updateContactsInfo: function mm_updateContactsInfo() {
+    Contacts.clearUnknown();
     // Prevents cases where updateContactsInfo method is called
     // before ThreadListUI.container exists (as observed by errors
     // in the js console)
