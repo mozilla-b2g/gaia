@@ -11,7 +11,7 @@ from gaiatest.apps.contacts.app import Contacts
 
 class TestChangeKeyboardLanguage(GaiaTestCase):
 
-    _special_key_locator = (By.CSS_SELECTOR, ".keyboard-row button[data-keycode='209']")
+    _special_key_locator = (By.CSS_SELECTOR, '.keyboard-type-container[data-active] button.keyboard-key[data-keycode-upper="%s"]' % 209)
     _expected_key = u'\xd1'
 
     def test_change_keyboard_language_settings(self):

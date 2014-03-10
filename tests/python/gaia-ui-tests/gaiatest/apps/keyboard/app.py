@@ -82,7 +82,7 @@ class Keyboard(Base):
     # keyboard app locators
     _keyboard_frame_locator = (By.CSS_SELECTOR, '#keyboards iframe')
     _keyboard_locator = (By.CSS_SELECTOR, '#keyboard')
-    _button_locator = (By.CSS_SELECTOR, 'button.keyboard-key[data-keycode="%s"]')
+    _button_locator = (By.CSS_SELECTOR, '.keyboard-type-container[data-active] button.keyboard-key[data-keycode="%s"], .keyboard-type-container[data-active] button.keyboard-key[data-keycode-upper="%s"]')
     _highlight_key_locator = (By.CSS_SELECTOR, 'div.highlighted button')
     _predicted_word_locator = (By.CSS_SELECTOR, '.autocorrect')
 
@@ -127,7 +127,7 @@ class Keyboard(Base):
     def _key_locator(self, val):
         if len(val) == 1:
             val = ord(val)
-        return (self._button_locator[0], self._button_locator[1] % val)
+        return (self._button_locator[0], self._button_locator[1] % (val, val))
 
     # this is to tap on desired key on keyboard
     def _tap(self, val):
@@ -254,7 +254,7 @@ class Keyboard(Base):
 
     def tap_backspace(self):
         self.switch_to_keyboard()
-        backspace = self.marionette.find_element(self._button_locator[0], self._button_locator[1] % self._backspace_key)
+        backspace = self.marionette.find_element(self._button_locator[0], self._button_locator[1] % (self._backspace_key, self._backspace_key))
         backspace.tap()
         self.apps.switch_to_displayed_app()
 
