@@ -29,7 +29,15 @@ var mocksForDownloadNotification = new MocksHelper([
 
 suite('system/DownloadNotification >', function() {
 
-  var notification, realL10n, download;
+  var notification, realL10n, download, realOnLine, isOnLine;
+
+  function navigatorOnLine() {
+    return isOnLine;
+  }
+
+  function setNavigatorOnLine(value) {
+    isOnLine = value;
+  }
 
   mocksForDownloadNotification.attachTestHelpers();
 
@@ -39,10 +47,19 @@ suite('system/DownloadNotification >', function() {
     download.resume = function() {};
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
+    realOnLine = Object.getOwnPropertyDescriptor(navigator, 'onLine');
+    Object.defineProperty(navigator, 'onLine', {
+      configurable: true,
+      get: navigatorOnLine,
+      set: setNavigatorOnLine
+    });
   });
 
   suiteTeardown(function() {
     navigator.mozL10n = realL10n;
+    if (realOnLine) {
+      Object.defineProperty(navigator, 'onLine', realOnLine);
+    }
   });
 
   function assertUpdatedNotification(download, state) {
@@ -60,6 +77,7 @@ suite('system/DownloadNotification >', function() {
     setup(function() {
       this.sinon.stub(NotificationScreen, 'addNotification');
       this.sinon.spy(DownloadStore, 'add');
+      navigator.onLine = true;
     });
 
     teardown(function() {
@@ -126,7 +144,7 @@ suite('system/DownloadNotification >', function() {
       assert.isUndefined(MockStatusBar.wasMethodCalled['decSystemDownloads']);
     });
 
-    test('Download was stopped', function() {
+    test('Download was stopped by the user', function() {
       assert.isFalse(NotificationScreen.addNotification.called);
       download.state = 'stopped';
       download.onstatechange();
@@ -135,7 +153,7 @@ suite('system/DownloadNotification >', function() {
       assert.ok(MockStatusBar.wasMethodCalled['decSystemDownloads']);
     });
 
-    test('Paused notification was clicked > Show confirmation', function() {
+    test('Stopped notification was clicked > Show confirmation', function() {
       notification.onClick();
       assert.equal(DownloadUI.methodCalled, 'show');
     });
@@ -181,6 +199,16 @@ suite('system/DownloadNotification >', function() {
       });
       assert.ok(MockStatusBar.wasMethodCalled['incSystemDownloads']);
       assert.isUndefined(MockStatusBar.wasMethodCalled['decSystemDownloads']);
+    });
+
+    test('Download was stopped because the connectivity was lost', function() {
+      assert.isFalse(NotificationScreen.addNotification.called);
+      download.state = 'stopped';
+      navigator.onLine = false;
+      download.onstatechange();
+      assertUpdatedNotification(download, 'downloading');
+      assert.isUndefined(MockStatusBar.wasMethodCalled['incSystemDownloads']);
+      assert.ok(MockStatusBar.wasMethodCalled['decSystemDownloads']);
     });
 
     test('Download finishes', function() {
