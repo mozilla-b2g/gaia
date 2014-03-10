@@ -567,6 +567,7 @@ if (!fb.link) {
             link.baseHandler('timeout');
           };
 
+          imgLoader.unload(); // Removing listeners
           FacebookConnector.importContact(friendUidToLink, access_token,
                                           callbacks, 'not_match');
         }

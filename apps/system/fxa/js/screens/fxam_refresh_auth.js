@@ -1,6 +1,10 @@
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
+/* global FxaModuleStates, FxaModuleUI, FxaModule, FxModuleServerRequest,
+   FxaModuleOverlay */
+/* exported FxaModuleRefreshAuth */
+
 'use strict';
 
 var FxaModuleRefreshAuth = (function() {
@@ -28,6 +32,7 @@ var FxaModuleRefreshAuth = (function() {
   }
 
   function _requestPasswordReset(email, done) {
+    /*jshint validthis:true */
     FxModuleServerRequest.requestPasswordReset(
       email,
       function onSuccess(response) {
@@ -38,12 +43,14 @@ var FxaModuleRefreshAuth = (function() {
   }
 
   function _showCouldNotResetPassword() {
+    /*jshint validthis:true */
     this.showErrorResponse({
       error: 'RESET_PASSWORD_ERROR'
     });
   }
 
   function _forgotPassword() {
+    /*jshint validthis:true */
     FxaModuleOverlay.show(_('fxa-requesting-password-reset'));
     _requestPasswordReset.call(
       this,

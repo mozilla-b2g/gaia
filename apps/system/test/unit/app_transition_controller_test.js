@@ -98,8 +98,13 @@ suite('system/AppTransitionController', function() {
   test('Animation end event', function() {
     var app1 = new MockAppWindow(fakeAppConfig1);
     var acn1 = new AppTransitionController(app1);
+    var spy = this.sinon.spy();
     acn1._transitionState = 'opening';
-    acn1.handleEvent({ type: 'animationend' });
+    acn1.handleEvent({
+      type: 'animationend',
+      stopPropagation: spy
+    });
+    assert.isTrue(spy.called);
   });
 
   test('Handle opening', function() {

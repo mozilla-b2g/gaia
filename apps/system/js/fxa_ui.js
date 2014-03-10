@@ -1,3 +1,5 @@
+/* global FxAccountsDialog*/
+
 'use strict';
 
 var FxAccountsUI = {

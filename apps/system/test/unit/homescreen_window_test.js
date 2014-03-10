@@ -80,21 +80,24 @@ suite('system/HomescreenWindow', function() {
       test('mozbrowser events', function() {
         var stubRestart = this.sinon.stub(homescreenWindow, 'restart');
         var stubIsActive = this.sinon.stub(homescreenWindow, 'isActive');
+        var spy = this.sinon.spy();
         stubIsActive.returns(true);
 
         homescreenWindow.handleEvent({
           type: 'mozbrowserclose',
-          stopImmediatePropagation: function() {}
+          stopPropagation: spy
         });
+        assert.isTrue(spy.calledOnce);
         assert.isTrue(stubRestart.calledOnce);
 
         homescreenWindow.handleEvent({
           type: 'mozbrowsererror',
-          stopImmediatePropagation: function() {},
+          stopPropagation: spy,
           detail: {
             type: 'fatal'
           }
         });
+        assert.isTrue(spy.calledTwice);
         assert.isTrue(stubRestart.calledTwice);
       });
     });

@@ -66,6 +66,7 @@ DownloadNotification.prototype = {
     // something failed
     if (this.download.state === 'stopped' && this.download.error !== null) {
       this.state = 'failed';
+      this._onError();
     }
     var info = this._getInfo();
     if (noNotify) {
@@ -75,6 +76,16 @@ DownloadNotification.prototype = {
     if (this.state === 'succeeded') {
       this._onSucceeded();
     }
+  },
+
+  _onError: function dn_onError() {
+    // this.download.error.name is always "DownloadError" so we have to check if
+    // the error is because of no free memory on SD card.
+    DownloadHelper.getFreeSpace((function gotFreeMemory(bytes) {
+      if (bytes === 0) {
+        DownloadUI.show(DownloadUI.TYPE['NO_MEMORY'], this.download, true);
+      }
+    }).bind(this));
   },
 
   _onSucceeded: function dn_onSucceeded() {
