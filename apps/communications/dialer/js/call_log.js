@@ -2,7 +2,6 @@
 
 var CallLog = {
   _: null,
-  _groupCounter: 0,
   _initialized: false,
   _headersInterval: null,
   _empty: true,
@@ -185,9 +184,9 @@ var CallLog = {
     var prevDate;
     var startDate = new Date().getTime();
     var screenRendered = false;
-    var MAX_GROUPS_FOR_FIRST_RENDER = 6;
-    var MAX_DAYS_TO_BATCH_RENDER = 60;
-    this._groupCounter = 0;
+    var MAX_GROUPS_FOR_FIRST_RENDER = 8;
+    var MAX_GROUPS_TO_BATCH_RENDER = 100;
+    var batchGroupCounter = 0;
 
     CallLogDBManager.getGroupList(function logGroupsRetrieved(cursor) {
       if (!cursor.value) {
@@ -212,25 +211,27 @@ var CallLog = {
 
       self._empty = false;
       var currDate = new Date(cursor.value.date);
-      self._groupCounter++;
+      batchGroupCounter++;
       if (!prevDate || (currDate.getTime() == prevDate.getTime())) {
         chunk.push(cursor.value);
       } else {
+        daysToRender.push(chunk);
+        chunk = [cursor.value];
+
         var renderNow = false;
-        if (self._groupCounter >= MAX_GROUPS_FOR_FIRST_RENDER &&
+        if (batchGroupCounter >= MAX_GROUPS_FOR_FIRST_RENDER &&
             !screenRendered) {
           renderNow = true;
           screenRendered = true;
           PerformanceTestingHelper.dispatch('first-chunk-ready');
-        } else if (daysToRender.length >= MAX_DAYS_TO_BATCH_RENDER) {
+        } else if (batchGroupCounter >= MAX_GROUPS_TO_BATCH_RENDER) {
           renderNow = true;
         }
         if (renderNow) {
           self.renderSeveralDays(daysToRender);
           daysToRender = [];
+          batchGroupCounter = 0;
         }
-        daysToRender.push(chunk);
-        chunk = [cursor.value];
       }
       prevDate = currDate;
       cursor.continue();
