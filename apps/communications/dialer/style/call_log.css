@@ -178,6 +178,10 @@ ol, ul {
 }
 
 /* Edit mode state */
+.recents-edit .view-body {
+  height: -moz-calc(100% - 11.4rem);
+}
+
 .recents-edit form[role="dialog"][data-type="edit"] header,
 .recents-edit form[role="dialog"][data-type="edit"] > menu {
   transform: translateY(0);
