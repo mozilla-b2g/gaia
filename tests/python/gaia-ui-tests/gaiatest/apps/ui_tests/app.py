@@ -17,7 +17,10 @@ class UiTests(Base):
     _moz_id_tests_button_locator = (By.LINK_TEXT, 'navigator.mozId')
     _keyboard_locator = (By.LINK_TEXT, 'Keyboard')
     _context_menu_locator = (By.LINK_TEXT, 'Contextmenu')
+
     _window_open_menu_locator = (By.LINK_TEXT, 'window.open')
+    _alert_menu_locator = (By.CSS_SELECTOR, 'a[href$="UI/alert"]')
+    _alert_prompt_menu_locator = (By.LINK_TEXT, 'Alert/Prompt')
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
@@ -74,3 +77,14 @@ class UiTests(Base):
 
         from gaiatest.apps.ui_tests.regions.window_open import WindowOpenPage
         return WindowOpenPage(self.marionette)
+
+    def tap_alert_button(self):
+        self.wait_for_element_displayed(*self._alert_menu_locator, timeout=120)
+        self.marionette.find_element(*self._alert_menu_locator).tap()
+
+    def tap_alert_prompt_button(self):
+        self.wait_for_element_displayed(*self._alert_prompt_menu_locator)
+        self.marionette.find_element(*self._alert_prompt_menu_locator).tap()
+
+        from gaiatest.apps.ui_tests.regions.alert_menu import AlertPromptMenuPage
+        return AlertPromptMenuPage(self.marionette)
