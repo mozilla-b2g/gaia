@@ -1,6 +1,10 @@
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
+/* global FxaModuleUI, FxaModuleOverlay, FxaModule, FxModuleServerRequest,
+   FxaModuleManager, FxaModuleStates */
+/* exported FxaModuleSetPassword */
+
 'use strict';
 
 /**
@@ -39,12 +43,14 @@ var FxaModuleSetPassword = (function() {
   }
 
   function _showUserNotCreated() {
+    /*jshint validthis:true */
     this.showErrorResponse({
       error: 'CANNOT_CREATE_ACCOUNT'
     });
   }
 
   function _togglePasswordVisibility() {
+    /*jshint validthis:true */
     var passwordFieldType = !!this.fxaShowPwSet.checked ? 'text' : 'password';
     this.fxaPwSetInput.setAttribute('type', passwordFieldType);
   }

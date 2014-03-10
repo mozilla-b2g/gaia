@@ -1,3 +1,6 @@
+'use strict';
+/* global LogoLoader, MockPng, MockVideo */
+
 requireApp('system/test/unit/mock_media_files.js');
 requireApp('system/js/logo_loader.js');
 
@@ -6,7 +9,6 @@ suite('logoLoader', function() {
   var image;
   var video;
   var subject;
-  var logoPath;
   const invalidURL = 'INVALID_URL';
 
   setup(function() {

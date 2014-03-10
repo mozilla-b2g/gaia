@@ -3,11 +3,12 @@ mocha.globals(['SIMSlotManager', 'SIMSlot']);
 
 requireApp('system/js/mock_simslot.js');
 requireApp('system/test/unit/mock_icc_manager.js');
+requireApp('system/test/unit/mock_system.js');
 requireApp('system/shared/test/unit/mocks/' +
   'mock_navigator_moz_mobile_connections.js');
 
 var mocksForSIMSlotManager = new MocksHelper([
-  'SIMSlot', 'NavigatorMozMobileConnections'
+  'SIMSlot', 'NavigatorMozMobileConnections', 'System'
 ]).init();
 
 suite('SIMSlotManager', function() {

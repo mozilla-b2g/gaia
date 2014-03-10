@@ -89,11 +89,16 @@ suite('search/providers/marketplace', function() {
     };
 
     var requests = [];
+    var xhr;
 
     setup(function() {
-      var xhr = sinon.useFakeXMLHttpRequest();
+      xhr = sinon.useFakeXMLHttpRequest();
       requests = [];
       xhr.onCreate = function(req) { requests.push(req); };
+    });
+
+    teardown(function() {
+      xhr.restore();
     });
 
     test('renders all results', function() {
