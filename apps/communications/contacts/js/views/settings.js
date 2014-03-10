@@ -100,8 +100,8 @@ contacts.Settings = (function() {
     importSDOption = document.getElementById('import-sd-option');
     exportSDOption = document.getElementById('export-sd-option');
     importSettingsTitle = document.getElementById('import-settings-title');
-    importLiveOption = document.getElementById('import-gmail-option');
-    importGmailOption = document.getElementById('import-live-option');
+    importLiveOption = document.getElementById('import-live-option');
+    importGmailOption = document.getElementById('import-gmail-option');
 
     /*
      * Adding listeners

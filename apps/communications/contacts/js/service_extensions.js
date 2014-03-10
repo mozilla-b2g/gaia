@@ -264,7 +264,7 @@ if (typeof Contacts.extServices === 'undefined') {
     }
 
     function notifySettings(evtype) {
-       // Notify observers that a change from FB could have happened
+      // Notify observers that a change from FB could have happened
       var eventType = evtype || 'fb_changed';
 
       var event = new CustomEvent(eventType, {
