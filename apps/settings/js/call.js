@@ -99,6 +99,14 @@ var CallSettings = (function(window, document, undefined) {
           }
           cs_refreshCallSettingItems();
           break;
+        case '#call-voiceMailSettings':
+          // If current panel is 'Voicemail Settings', focus input field to
+          // trigger showing the keyboard
+          var voicemailNumberInput = document.getElementById('vm-number');
+          var cursorPos = voicemailNumberInput.value.length;
+          voicemailNumberInput.focus();
+          voicemailNumberInput.setSelectionRange(0, cursorPos);
+          break;
       }
     });
 
@@ -116,9 +124,9 @@ var CallSettings = (function(window, document, undefined) {
    * Refresh the items in the call setting panel.
    */
   function cs_refreshCallSettingItems() {
-    cs_updateVoiceMailItemState();
-    cs_updateFdnStatus();
     if (!_updatingInProgress) {
+      cs_updateVoiceMailItemState();
+      cs_updateFdnStatus();
       cs_updateCallerIdItemState(
         function panelready_updateCallerIdItemState() {
           cs_updateCallWaitingItemState(
@@ -717,64 +725,69 @@ var CallSettings = (function(window, document, undefined) {
    *
    */
   function cs_updateVoiceMailItemState() {
-    var voiceMailMenuItem = document.getElementById('voiceMail-desc');
-    var targetIndex = DsdsSettings.getIccCardIndexForCallSettings();
+    var element = document.getElementById('voiceMail-desc');
+    if (!element) {
+      return;
+    }
 
-    voiceMailMenuItem.textContent = '';
-    Settings.getSettings(function(results) {
-      var numbers = results['ril.iccInfo.mbdn'];
-      var number = numbers[targetIndex];
-      if (number) {
-        localize(voiceMailMenuItem, null);
-        voiceMailMenuItem.textContent = number;
-      } else {
-        localize(voiceMailMenuItem, 'voiceMail-number-notSet');
-      }
-    });
+    // XXX: Take care of voicemail settings for multi ICC card devices. See bug
+    // 960387 please.
+    var transaction = _settings.createLock();
+    var request = transaction.get('ril.iccInfo.mbdn');
+    request.onsuccess = function() {
+       var number = request.result['ril.iccInfo.mbdn'];
+
+       if (number) {
+         element.textContent = number;
+         return;
+       }
+       var voicemail = navigator.mozVoicemail;
+       if (voicemail) {
+         number = voicemail.number ||
+           voicemail.getNumber && voicemail.getNumber();
+
+         if (number) {
+           element.textContent = number;
+           cs_setToSettingsDB('ril.iccInfo.mbdn', number, null);
+         } else {
+           element.textContent = _('voiceMail-number-notSet');
+         }
+         return;
+       }
+       element.textContent = _('voiceMail-number-notSet');
+    };
+    request.onerror = function() {};
   }
 
   /**
    *
    */
   function cs_initVoiceMailSettings() {
-    // update all voice numbers if necessary
-    Settings.getSettings(function(results) {
-      var settings = navigator.mozSettings;
-      var voicemail = navigator.mozVoicemail;
-      var updateVMNumber = false;
-      var numbers = results['ril.iccInfo.mbdn'] || [];
-
-      Array.prototype.forEach.call(_mobileConnections, function(conn, index) {
-        var number = numbers[index];
-        // If the voicemail number has not been stored into the database yet we
-        // check whether the number is provided by the mozVoicemail API. In
-        // that case we store it into the setting database.
-        if (!number && voicemail) {
-          number = voicemail.getNumber(index);
-          if (number) {
-            updateVMNumber = true;
-            numbers[index] = number;
-          }
-        }
-      });
-
-      if (updateVMNumber) {
-        var req = settings.createLock().set({
-          'ril.iccInfo.mbdn': numbers
-        });
-        req.onsuccess = function() {
-          cs_updateVoiceMailItemState();
-          settings.addObserver('ril.iccInfo.mbdn', function() {
-            cs_updateVoiceMailItemState();
-          });
-        };
-      } else {
-        cs_updateVoiceMailItemState();
-        settings.addObserver('ril.iccInfo.mbdn', function() {
-          cs_updateVoiceMailItemState();
-        });
-      }
+    _settings.addObserver('ril.iccInfo.mbdn', function(event) {
+      cs_updateVoiceMailItemState();
     });
+    var transaction = _settings.createLock();
+    var request = transaction.get('ril.iccInfo.mbdn');
+    request.onsuccess = function() {
+      var number = request.result['ril.iccInfo.mbdn'];
+      var voicemail = navigator.mozVoicemail;
+      // If the voicemail number has not been stored into the database yet we
+      // check whether the number is provided by the mozVoicemail API. In
+      // that case we store it into the setting database.
+      if (!number && voicemail) {
+         // TODO: remove this backward compatibility check
+         // after bug-814634 is landed
+        var voicemailNumber = voicemail.number ||
+          voicemail.getNumber && voicemail.getNumber();
+
+        if (voicemailNumber) {
+          cs_setToSettingsDB('ril.iccInfo.mbdn', voicemailNumber, null);
+        }
+        return;
+      }
+      cs_updateVoiceMailItemState();
+    };
+    request.onerror = function() {};
   }
 
   /**
