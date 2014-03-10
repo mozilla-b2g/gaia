@@ -443,12 +443,12 @@
                                            SoundManager.VIBRATION_SETTINGS_KEY);
         r.onsuccess = function get_onsuccess() {
           // write back to asyncStorage.
-          self.writeVibrationUserPrefs(
+          self.writeVibrationUserPref(
                                  r.result[SoundManager.VIBRATION_SETTINGS_KEY]);
         };
         r.onerror = function get_onerror() {
           // initial value to true
-          self.writeVibrationUserPrefs(true);
+          self.writeVibrationUserPref(true);
         };
       } else {
         self.vibrationUserPrefEnabled = value;

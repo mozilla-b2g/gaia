@@ -18,6 +18,7 @@ requireApp('system/test/unit/mock_ftu_launcher.js');
 requireApp('system/test/unit/mock_homescreen_launcher.js');
 requireApp('system/test/unit/mock_places.js');
 requireApp('system/test/unit/mock_remote_debugger.js');
+requireApp('system/test/unit/mock_rocketbar.js');
 requireApp('system/test/unit/mock_screen_manager.js');
 requireApp('system/test/unit/mock_sound_manager.js');
 requireApp('system/test/unit/mock_source_view.js');
@@ -69,6 +70,7 @@ var mocksForBootstrap = new MocksHelper([
   'HomescreenLauncher',
   'Places',
   'RemoteDebugger',
+  'Rocketbar',
   'ScreenManager',
   'SettingsListener',
   'SettingsURL',
