@@ -2,7 +2,9 @@
   <template>
 
     <header>
-      <a href="#root"><span class="icon icon-back">back</span></a>
+      <a href="#root" class="navigation">
+        <span class="icon icon-back">back</span>
+      </a>
       <h1 data-l10n-id="bluetooth-header"> Bluetooth </h1>
     </header>
 
@@ -56,10 +58,10 @@
 
     <form role="dialog" data-type="action" id="update-device-name" hidden>
       <header>
-        <button id="update-device-name-cancel"><span class="icon icon-close" data-l10n-id="cancel">close</span></button>
-        <menu type="toolbar">
-          <button data-l10n-id="ok" id="update-device-name-confirm">done</button>
-        </menu>
+        <button id="update-device-name-cancel" class="navigation">
+          <span class="icon icon-close" data-l10n-id="cancel">close</span>
+        </button>
+        <button data-l10n-id="ok" id="update-device-name-confirm" class="action">done</button>
         <h1 data-l10n-id="change-phone-name">Change phone name</h1>
       </header>
       <section>
