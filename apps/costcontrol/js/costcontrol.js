@@ -44,19 +44,10 @@ var CostControl = (function() {
     ConfigManager.requestAll(setupCostControl);
   }
 
-  var mobileMessageManager, connection, statistics;
+  var mobileMessageManager, telephonyConnection, statistics;
   function loadAPIs() {
     if ('mozMobileMessage' in window.navigator) {
       mobileMessageManager = window.navigator.mozMobileMessage;
-    }
-
-    if ('mozMobileConnection' in window.navigator) {
-      connection = window.navigator.mozMobileConnection;
-    }
-    // XXX: check bug-926169
-    // this is used to keep all tests passing while introducing multi-sim APIs
-    else if ('mozMobileConnections' in window.navigator) {
-      connection = window.navigator.mozMobileConnections[0];
     }
 
     if ('mozNetworkStats' in window.navigator) {
@@ -94,89 +85,94 @@ var CostControl = (function() {
       }
       switch (requestObj.type) {
         case 'balance':
-          // Check service
-          var issues = getServiceIssues(configuration, settings);
-          var canBeIgnoredByForcing = (issues === 'minimum_delay' && force);
-          if (issues && !canBeIgnoredByForcing) {
-            result.status = 'error';
-            result.details = issues;
-            result.data = settings.lastBalance;
-            if (callback) {
-              callback(result);
-            }
-            return;
-          }
+          Common.getTelephonyConnection(function(voiceConnection) {
+            telephonyConnection = voiceConnection;
 
-          var costIssues = getCostIssues(configuration);
-          if (!force && costIssues) {
-            result.status = 'error';
-            result.details = costIssues;
-            result.data = settings.lastBalance;
-            if (callback) {
-              callback(result);
+            // Check service
+            var issues = getServiceIssues(configuration, settings);
+            var canBeIgnoredByForcing = (issues === 'minimum_delay' && force);
+            if (issues && !canBeIgnoredByForcing) {
+              result.status = 'error';
+              result.details = issues;
+              result.data = settings.lastBalance;
+              if (callback) {
+                callback(result);
+              }
+              return;
             }
-            return;
-          }
 
-          // Check in-progress
-          var isWaiting = settings.waitingForBalance !== null;
-          var timeout = Toolkit.checkEnoughDelay(BALANCE_TIMEOUT,
-                                                 settings.lastBalanceRequest);
-          if (isWaiting && !timeout) {
-            result.status = 'in_progress';
-            result.data = settings.lastBalance;
-            if (callback) {
-              callback(result);
+            var costIssues = getCostIssues(configuration);
+            if (!force && costIssues) {
+              result.status = 'error';
+              result.details = costIssues;
+              result.data = settings.lastBalance;
+              if (callback) {
+                callback(result);
+              }
+              return;
             }
-            return;
-          }
 
-          // Dispatch
-          requestBalance(configuration, settings, callback, result);
+            // Check in-progress
+            var isWaiting = settings.waitingForBalance !== null;
+            var timeout = Toolkit.checkEnoughDelay(BALANCE_TIMEOUT,
+                                                   settings.lastBalanceRequest);
+            if (isWaiting && !timeout) {
+              result.status = 'in_progress';
+              result.data = settings.lastBalance;
+              if (callback) {
+                callback(result);
+              }
+              return;
+            }
+
+            // Dispatch
+            requestBalance(configuration, settings, callback, result);
+          });
           break;
-
         case 'topup':
-          // Check service
-          var issuesTopUp = getServiceIssues(configuration, settings);
-          if (issuesTopUp && issuesTopUp !== 'minimum_delay') {
-            result.status = 'error';
-            result.details = issuesTopUp;
-            result.data = settings.lastDataUsage;
-            if (callback) {
-              callback(result);
+          Common.getTelephonyConnection(function(voiceConnection) {
+            telephonyConnection = voiceConnection;
+            // Check service
+            var issues = getServiceIssues(configuration, settings);
+            if (issues && issues !== 'minimum_delay') {
+              result.status = 'error';
+              result.details = issues;
+              result.data = settings.lastDataUsage;
+              if (callback) {
+                callback(result);
+              }
+              return;
             }
-            return;
-          }
 
-          var costIssuesTopUp = getCostIssues(configuration);
-          if (!force && costIssuesTopUp) {
-            result.status = 'error';
-            result.details = costIssuesTopUp;
-            result.data = settings.lastBalance;
-            if (callback) {
-              callback(result);
+            var costIssues = getCostIssues(configuration);
+            if (!force && costIssues) {
+              result.status = 'error';
+              result.details = costIssues;
+              result.data = settings.lastBalance;
+              if (callback) {
+                callback(result);
+              }
+              return;
             }
-            return;
-          }
 
-          // Check in-progress
-          var isWaitingTopUp = settings.waitingForTopUp !== null;
-          var timeoutTopUp = Toolkit.checkEnoughDelay(BALANCE_TIMEOUT,
-                                                 settings.lastTopUpRequest);
-          if (isWaitingTopUp && !timeoutTopUp && !force) {
-            result.status = 'in_progress';
-            result.data = settings.lastDataUsage;
-            if (callback) {
-              callback(result);
+            // Check in-progress
+            var isWaiting = settings.waitingForTopUp !== null;
+            var timeout = Toolkit.checkEnoughDelay(BALANCE_TIMEOUT,
+                                                   settings.lastTopUpRequest);
+            if (isWaiting && !timeout && !force) {
+              result.status = 'in_progress';
+              result.data = settings.lastDataUsage;
+              if (callback) {
+                callback(result);
+              }
+              return;
             }
-            return;
-          }
 
-          // Dispatch
-          var code = requestObj.data;
-          requestTopUp(configuration, settings, code, callback, result);
+            // Dispatch
+            var code = requestObj.data;
+            requestTopUp(configuration, settings, code, callback, result);
+          });
           break;
-
         case 'datausage':
           // Dispatch
           if (!Common.allNetworkInterfaceLoaded) {
@@ -203,7 +199,8 @@ var CostControl = (function() {
   // Check service status and return the most representative issue if there is
   function getServiceIssues(configuration, settings) {
 
-    if (!connection || !connection.voice || !connection.data) {
+    if (!telephonyConnection || !telephonyConnection.voice ||
+        !telephonyConnection.data) {
       return 'no_service';
     }
 
@@ -212,7 +209,7 @@ var CostControl = (function() {
       return 'no_service';
     }
 
-    var voice = connection.voice;
+    var voice = telephonyConnection.voice;
     if (!voice.connected) {
       return 'no_service';
     }
@@ -236,7 +233,7 @@ var CostControl = (function() {
 
   // Check cost issues and return
   function getCostIssues(configuration) {
-    var inRoaming = connection.voice.roaming;
+    var inRoaming = telephonyConnection.voice.roaming;
     if (inRoaming && configuration.is_roaming_free !== true) {
       return 'non_free_in_roaming';
     }

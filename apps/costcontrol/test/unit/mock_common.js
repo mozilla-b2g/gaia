@@ -84,6 +84,18 @@ var MockCommon = function(config) {
           onsuccess(Common.dataSimIccId);
         }
       }, 0);
+    },
+    getTelephonyConnection: function(onsuccess, onerror) {
+      setTimeout(function() {
+        var mobileConnectionFake = {
+          voice: {
+            connected: true,
+            relSignalStrength: 50
+          },
+          data: {}
+        };
+        (typeof onsuccess === 'function') && onsuccess(mobileConnectionFake);
+      }, 0);
     }
   };
 };

@@ -305,6 +305,44 @@ var Common = {
     };
   },
 
+  getTelephonyConnection: function _getTelephonyConnection(onsuccess, onerror) {
+    var settings = navigator.mozSettings,
+        mobileConnections = navigator.mozMobileConnections,
+        telephonySlotId = 0;
+    var req = settings &&
+              settings.createLock().get('ril.telephony.defaultServiceId');
+
+    req.onsuccess = function _onsuccesSlotId() {
+      telephonySlotId = req.result['ril.telephony.defaultServiceId'] || 0;
+      var telephonyConnection = mobileConnections[telephonySlotId];
+      if (onsuccess) {
+        onsuccess(telephonyConnection);
+      }
+    };
+
+    req.onerror = function _onerrorSlotId() {
+      console.warn('ril.telephony.defaultServiceId does not exists');
+      var telephonyConnection = null;
+
+      // Load the fist slot with iccId
+      for (var i = 0; i < mobileConnections.length && !telephonyConnection;
+           i++) {
+        if (mobileConnections[i]) {
+          telephonyConnection = mobileConnections[i];
+        }
+      }
+      if (!telephonyConnection) {
+        console.error('No interface available in the device');
+        (typeof onerror === 'function') && onerror();
+        return;
+      }
+
+      if (onsuccess) {
+        onsuccess(telephonyConnection);
+      }
+    };
+  },
+
   getDataLimit: function _getDataLimit(settings) {
     var multiplier = (settings.dataLimitUnit === 'MB') ?
                      1000000 : 1000000000;
