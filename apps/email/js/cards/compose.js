@@ -69,6 +69,7 @@ function ComposeCard(domNode, mode, args) {
   this.composerData = args.composerData || {};
   this.activity = args.activity;
   this.sending = false;
+  this.wifiLock = null;
 
   domNode.getElementsByClassName('cmp-back-btn')[0]
     .addEventListener('click', this.onBack.bind(this), false);
@@ -703,7 +704,21 @@ ComposeCard.prototype = {
     }
   },
 
+  releaseLocks: function() {
+    if (this.wifiLock) {
+      this.wifiLock.unlock();
+      this.wifiLock = null;
+    }
+  },
+
   onSend: function() {
+    /* Check if already lock is enabled,
+     * If so disable it and then re enable the lock
+     */
+    this.releaseLocks();
+    if (navigator.requestWakeLock) {
+      this.wifiLock = navigator.requestWakeLock('wifi');
+    }
     this._saveStateToComposer();
 
     // XXX well-formedness-check (ideally just handle by not letting you send
@@ -723,6 +738,8 @@ ComposeCard.prototype = {
     this.composer.finishCompositionSendMessage(
       function callback(error , badAddress, sentDate) {
         console.log('compose: callback triggered, err:', error);
+        // releasing the wake lock on send response
+        this.releaseLocks();
         var activityHandler = function() {
           if (activity) {
             // Just mention the action completed, but do not give
@@ -827,6 +844,7 @@ ComposeCard.prototype = {
   die: function() {
     document.removeEventListener('visibilitychange',
                                  this._bound_onVisibilityChange);
+    this.releaseLocks();
     if (this.composer) {
       this.composer.die();
       this.composer = null;
