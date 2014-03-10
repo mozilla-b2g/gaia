@@ -162,8 +162,13 @@ var DownloadItem = (function DownloadItem() {
   var getDownloadState = function getDownloadState(download) {
     var state = download.state;
 
-    if (state === 'stopped' && download.error !== null) {
-      state = 'failed';
+    if (state === 'stopped') {
+      if (download.error !== null) {
+        state = 'failed';
+      } else if (!window.navigator.onLine) {
+        // Remain downloading state when the connectivity was lost
+        state = 'downloading';
+      }
     }
 
     return state;
