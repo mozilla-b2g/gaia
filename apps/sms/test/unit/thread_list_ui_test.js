@@ -1,7 +1,7 @@
 /*global mocha, MocksHelper, loadBodyHTML, MockL10n, ThreadListUI,
          MessageManager, WaitingScreen, Threads, Template, MockMessages,
          MockThreadList, MockTimeHeaders, Draft, Drafts, Thread, ThreadUI,
-         MockOptionMenu
+         MockOptionMenu, MockThreadListBySize
          */
 
 'use strict';
@@ -815,6 +815,42 @@ suite('thread_list_ui', function() {
     });
   });
 
+  function testThreadListRendering(numThreads, self, done) {
+    var container = ThreadListUI.container;
+
+    self.sinon.stub(MessageManager, 'getThreads',
+      function(options) {
+        var threadsMockup = new MockThreadListBySize(8);
+
+        var each = options.each;
+        var end = options.end;
+        var done = options.done;
+
+        for (var i = 0; i < threadsMockup.length; i++) {
+          each && each(threadsMockup[i]);
+        }
+
+        end && end();
+        done && done();
+
+        // Check that the right number of threads are inserted
+        var threads = container.querySelectorAll(
+          '[data-last-message-type="sms"],' +
+          '[data-last-message-type="mms"]'
+        );
+        assert.equal(threads.length, threadsMockup.length);
+      });
+
+    ThreadListUI.renderThreads(function() {
+      done(function checks() {
+        sinon.assert.calledWith(ThreadListUI.finalizeRendering, false);
+        assert.isTrue(ThreadListUI.noMessages.classList.contains('hide'));
+        assert.isFalse(ThreadListUI.container.classList.contains('hide'));
+        assert.isFalse(ThreadListUI.editIcon.classList.contains('disabled'));
+      });
+    });
+  }
+    
   suite('renderThreads', function() {
     setup(function() {
       this.sinon.spy(ThreadListUI, 'setEmpty');
@@ -851,24 +887,19 @@ suite('thread_list_ui', function() {
         function(options) {
           var threadsMockup = new MockThreadList();
 
-          var each = options.each;
-          var end = options.end;
-          var done = options.done;
-
           for (var i = 0; i < threadsMockup.length; i++) {
-            each && each(threadsMockup[i]);
-
-            var threads = container.querySelectorAll(
-                '[data-last-message-type="sms"],' +
-                '[data-last-message-type="mms"]'
-            );
-
-            // Check that a thread is inserted per iteration
-            assert.equal(threads.length, i + 1);
+            options.each && options.each(threadsMockup[i]);
           }
 
-          end && end();
-          done && done();
+          options.end && options.end();
+          options.done && options.done();
+
+          // Check that the right number of threads are inserted
+          var threads = container.querySelectorAll(
+            '[data-last-message-type="sms"],' +
+            '[data-last-message-type="mms"]'
+          );
+          assert.equal(threads.length, threadsMockup.length);
         });
 
       ThreadListUI.renderThreads(function() {
@@ -889,6 +920,26 @@ suite('thread_list_ui', function() {
           assert.equal(smsThreads.length, 4);
         });
       });
+    });
+
+    test('Rendering fewer than INITIAL_RENDER_SIZE', function (done) {
+      testThreadListRendering(8, this, done);
+    });
+
+    test('Rendering more than INITIAL_RENDER_SIZE', function (done) {
+      testThreadListRendering(13, this, done);
+    });
+
+    test('Rendering fewer than BATCH_RENDER_SIZE', function (done) {
+      testThreadListRendering(50, this, done);
+    });
+
+    test('Rendering more than BATCH_RENDER_SIZE', function (done) {
+      testThreadListRendering(80, this, done);
+    });
+
+    test('Rendering several BATCH_RENDER_SIZE', function (done) {
+      testThreadListRendering(300, this, done);
     });
   });
 

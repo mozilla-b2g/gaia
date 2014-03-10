@@ -1,5 +1,6 @@
 /*global getMockupedDate */
 /*exported MockThreadList */
+/*exported MockThreadListBySize */
 
 'use strict';
 
@@ -50,4 +51,25 @@ function MockThreadList() {
         ];
 
   return threadsMockup;
+}
+
+function MockThreadListBySize(size) {
+  var threadTemplate = {
+    id: 1,
+    participants: ['1977'],
+    lastMessageType: 'sms',
+    body: 'Bogus Message',
+    timestamp: +getMockupedDate(0),
+    unreadCount: 0
+  };
+
+  var threadList = [];
+  for (var i = 1; i <= size; i++) {
+    var thread = JSON.parse(JSON.stringify(threadTemplate));
+    thread.id = i;
+    thread.participants = ['1977'+i];
+    threadList.push(thread);
+  }
+  
+  return threadList;
 }
