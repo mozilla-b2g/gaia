@@ -108,6 +108,10 @@ p#friends-msg {
   position: relative;
 }
 
+.link #mainContent {
+  padding-top: 0; /* Remove search form height  */
+}
+
 #main.no-proposal #mainContent {
   height: 100%;
 }
