@@ -42,7 +42,7 @@ form[role="dialog"][data-type="value-selector"] [role="listbox"] {
   position: relative;
   padding: 0;
   margin: 0 -1.5rem;
-  max-height: calc(100% - 5rem);
+  height: calc(100% - 5rem);
   overflow: auto;
   border-top: solid 0.1rem #222323;
 }
