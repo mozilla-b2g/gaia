@@ -49,7 +49,7 @@ marionette('Pick activity cropping behavior', function() {
 
   test('Explicitly allow cropping', function() {
 
-    console.log('launching contacts app');
+    console.log('\nlaunching contacts app');
     contacts.launch();
     console.log('launched contacts app');
 
@@ -81,7 +81,11 @@ marionette('Pick activity cropping behavior', function() {
 
   test('Explicitly disallow cropping', function() {
 
+    console.log('\nlaunching contacts app');
     contacts.launch();
+    console.log('launched contacts app');
+
+    console.log('launching pick activity');
 
     client.executeScript(function() {
       var activity = new MozActivity({
@@ -94,6 +98,8 @@ marionette('Pick activity cropping behavior', function() {
     });
 
     client.switchToFrame();
+
+    console.log('selecting gallery and displaying photo');
 
     selectGalleryAndDisplayPhoto();
 
@@ -111,7 +117,11 @@ marionette('Pick activity cropping behavior', function() {
 
   test('Default cropping behavior (don\'t allow)', function() {
 
+    console.log('\nlaunching contacts app');
     contacts.launch();
+    console.log('launched contacts app');
+
+    console.log('launching pick activity');
 
     client.executeScript(function() {
       var activity = new MozActivity({
@@ -123,6 +133,8 @@ marionette('Pick activity cropping behavior', function() {
     });
 
     client.switchToFrame();
+
+    console.log('selecting gallery and displaying photo');
 
     selectGalleryAndDisplayPhoto();
 
