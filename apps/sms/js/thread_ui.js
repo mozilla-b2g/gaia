@@ -1597,6 +1597,7 @@ var ThreadUI = global.ThreadUI = {
     messageDOM.className = classNames.join(' ');
     messageDOM.id = 'message-' + message.id;
     messageDOM.dataset.messageId = message.id;
+    messageDOM.dataset.iccId = message.iccId;
 
     messageDOM.innerHTML = this.tmpl.message.interpolate({
       id: String(message.id),
@@ -1895,7 +1896,7 @@ var ThreadUI = global.ThreadUI = {
         elems.message.classList.contains('pending')) {
         return;
       }
-      this.retrieveMMS(elems.message.dataset.messageId);
+      this.retrieveMMS(elems.message);
       return;
     }
 
@@ -2265,11 +2266,13 @@ var ThreadUI = global.ThreadUI = {
     }
   },
 
-  retrieveMMS: function thui_retrieveMMS(messageId) {
+  retrieveMMS: function thui_retrieveMMS(messageDOM) {
     // force a number
-    var id = +messageId;
+    var id = +messageDOM.dataset.messageId;
+    var iccId = messageDOM.dataset.iccId;
+
     var request = MessageManager.retrieveMMS(id);
-    var messageDOM = document.getElementById('message-' + id);
+
     var button = messageDOM.querySelector('button');
 
     messageDOM.classList.add('pending');
@@ -2289,27 +2292,30 @@ var ThreadUI = global.ThreadUI = {
       var errorCode = (request.error && request.error.name) ?
         request.error.name : null;
 
-      var idList = Settings.nonActivateMmsServiceIds;
-      if (!navigator.mozSettings || !idList) {
+      if (!navigator.mozSettings) {
         console.error('Settings unavailable');
         return;
       }
-
-      // Just pick the first non-active id since there should be only
-      // one non-active id in the array.
-      var nonActiveId = idList[0];
 
       if (errorCode) {
         this.showMessageError(errorCode, {
           messageId: id,
           confirmHandler: function stateResetAndRetry() {
+            // TODO move this before trying to call retrieveMMS in Bug 981077
             // Avoid user to click the download button while sim state is not
             // ready yet.
             messageDOM.classList.add('pending');
             messageDOM.classList.remove('error');
             navigator.mozL10n.localize(button, 'downloading');
-            Settings.switchSimHandler(nonActiveId,
-              this.retrieveMMS.bind(this, id));
+            var serviceId = Settings.getServiceIdByIccId(iccId);
+            if (serviceId === null) {
+              // TODO Bug 981077 should change this error message
+              this.showMessageError('NoSimCardError');
+              return;
+            }
+
+            Settings.switchSimHandler(serviceId,
+              this.retrieveMMS.bind(this, messageDOM));
           }.bind(this)
         });
       }

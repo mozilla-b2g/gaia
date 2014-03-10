@@ -2377,6 +2377,7 @@ suite('thread_ui.js >', function() {
         id: 1,
         threadId: 8,
         sender: '123456',
+        iccId: 'A',
         type: 'mms',
         delivery: 'not-downloaded',
         deliveryInfo: [{receiver: null, deliveryStatus: 'pending'}],
@@ -2388,6 +2389,7 @@ suite('thread_ui.js >', function() {
         id: 2,
         threadId: 8,
         sender: '123456',
+        iccId: 'B',
         type: 'mms',
         delivery: 'not-downloaded',
         deliveryInfo: [{receiver: null, deliveryStatus: 'manual'}],
@@ -2399,6 +2401,7 @@ suite('thread_ui.js >', function() {
         id: 3,
         threadId: 8,
         sender: '123456',
+        iccId: 'B',
         type: 'mms',
         delivery: 'not-downloaded',
         deliveryInfo: [{receiver: null, deliveryStatus: 'error'}],
@@ -2410,6 +2413,7 @@ suite('thread_ui.js >', function() {
         id: 4,
         threadId: 8,
         sender: '123456',
+        iccId: 'B',
         type: 'mms',
         delivery: 'not-downloaded',
         deliveryInfo: [{receiver: null, deliveryStatus: 'error'}],
@@ -2600,11 +2604,15 @@ suite('thread_ui.js >', function() {
 
           test('confirmHandler called with correct state', function() {
             this.sinon.spy(Settings, 'switchSimHandler');
+            this.sinon.stub(Settings, 'getServiceIdByIccId').returns(null);
+            Settings.getServiceIdByIccId.withArgs('A').returns(0);
+            Settings.getServiceIdByIccId.withArgs('B').returns(1);
+
             MockErrorDialog.calls[0][1].confirmHandler();
             assert.isTrue(element.classList.contains('pending'));
             assert.isFalse(element.classList.contains('error'));
             sinon.assert.calledWith(localize, button, 'downloading');
-            sinon.assert.called(Settings.switchSimHandler);
+            sinon.assert.calledWith(Settings.switchSimHandler, 1);
           });
         });
         suite('response error with other errorCode', function() {
