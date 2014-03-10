@@ -147,17 +147,9 @@
       return;
     }
 
-    /* If a message has a 'signal-none' action but no 'si-id' and 'created'
-     * fields then it does nothing in the current implementation and we can
-     * drop it right away. */
-    if (message.action === 'signal-none' && (!message.id || !message.created)) {
-      wpm_finish();
-      return;
-    }
-
     message.save(
       function wpm_saveSuccess(status) {
-        if ((status === 'discarded') || (message.action === 'signal-none')) {
+        if (status === 'discarded') {
           wpm_finish();
           return;
         }
