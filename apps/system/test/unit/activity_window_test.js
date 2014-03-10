@@ -100,20 +100,12 @@ suite('system/ActivityWindow', function() {
     teardown(function() {
     });
 
-    test('Render activity inside its caller', function() {
-      var activity = new ActivityWindow(fakeConfig, app);
-      assert.deepEqual(activity.containerElement, app.element);
-    });
-
     test('handleEvent: closing activity', function() {
       var activity = new ActivityWindow(fakeConfig, app);
       var stubRestoreCaller = this.sinon.stub(activity, 'restoreCaller');
-      var spy = this.sinon.spy();
       activity.handleEvent({
-        type: '_closing',
-        stopPropagation: spy
+        type: '_closing'
       });
-      assert.isTrue(spy.called);
       assert.isTrue(stubRestoreCaller.called);
     });
 
@@ -121,13 +113,10 @@ suite('system/ActivityWindow', function() {
       var activity = new ActivityWindow(fakeConfig, app);
       var stubIsOOP = this.sinon.stub(app, 'isOOP');
       var stubSetVisible = this.sinon.stub(app, 'setVisible');
-      var spy = this.sinon.spy();
       stubIsOOP.returns(false);
       activity.handleEvent({
-        type: '_opened',
-        stopPropagation: spy
+        type: '_opened'
       });
-      assert.isTrue(spy.called);
       assert.isTrue(stubSetVisible.calledWith(false, true));
     });
 

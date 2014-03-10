@@ -843,14 +843,11 @@ suite('system/AppWindow', function() {
 
       assert.deepEqual(app1.activityCallee, app2);
       assert.deepEqual(app2.activityCaller, app1);
-      var spy = this.sinon.spy();
 
       app2.handleEvent({
-        type: 'mozbrowseractivitydone',
-        stopPropagation: spy
+        type: 'mozbrowseractivitydone'
       });
 
-      assert.isTrue(spy.called);
       assert.isNull(app1.activityCallee);
       assert.isNull(app2.activityCaller);
       assert.isTrue(spyRequestOpen.called);
@@ -861,16 +858,13 @@ suite('system/AppWindow', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       var stubKill = this.sinon.stub(app1, 'kill');
       var stubPublish = this.sinon.stub(app1, 'publish');
-      var spy = this.sinon.spy();
       app1.handleEvent({
         type: 'mozbrowsererror',
         detail: {
           type: 'fatal'
-        },
-        stopPropagation: spy
+        }
       });
 
-      assert.isTrue(spy.called);
       assert.isTrue(stubKill.called);
       assert.isTrue(stubPublish.calledWith('crashed'));
     });
@@ -883,16 +877,13 @@ suite('system/AppWindow', function() {
         var stubIsActive = this.sinon.stub(app1, 'isActive');
         stubIsActive.returns(false);
         AppWindow.SUSPENDING_ENABLED = true;
-        var spy = this.sinon.spy();
         app1.handleEvent({
           type: 'mozbrowsererror',
           detail: {
             type: 'fatal'
-          },
-          stopPropagation: spy
+          }
         });
 
-        assert.isTrue(spy.called);
         assert.isTrue(stubDestroyBrowser.called);
         AppWindow.SUSPENDING_ENABLED = false;
       });
@@ -905,16 +896,13 @@ suite('system/AppWindow', function() {
         var stubIsActive = this.sinon.stub(app1, 'isActive');
         stubIsActive.returns(true);
         AppWindow.SUSPENDING_ENABLED = true;
-        var spy = this.sinon.spy();
         app1.handleEvent({
           type: 'mozbrowsererror',
           detail: {
             type: 'fatal'
-          },
-          stopPropagation: spy
+          }
         });
 
-        assert.isTrue(spy.called);
         assert.isTrue(stubKill.called);
         AppWindow.SUSPENDING_ENABLED = false;
       });
@@ -922,40 +910,32 @@ suite('system/AppWindow', function() {
     test('Close event', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       var stubKill = this.sinon.stub(app1, 'kill');
-      var spy = this.sinon.spy();
 
       app1.handleEvent({
-        type: 'mozbrowserclose',
-        stopPropagation: spy
+        type: 'mozbrowserclose'
       });
 
-      assert.isTrue(spy.called);
       assert.isTrue(stubKill.called);
     });
 
     test('Load event', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       var stubPublish = this.sinon.stub(app1, 'publish');
-      var spy = this.sinon.spy();
 
       app1.handleEvent({
-        type: 'mozbrowserloadstart',
-        stopPropagation: spy
+        type: 'mozbrowserloadstart'
       });
 
       assert.isTrue(app1.loading);
       assert.isTrue(!app1.loaded);
-      assert.isTrue(spy.calledOnce);
 
       app1.handleEvent({
         type: 'mozbrowserloadend',
         detail: {
           backgroundColor: 'transparent'
-        },
-        stopPropagation: spy
+        }
       });
 
-      assert.isTrue(spy.calledTwice);
       assert.isTrue(app1.loaded);
       assert.isFalse(app1.loading);
     });
@@ -963,15 +943,12 @@ suite('system/AppWindow', function() {
     test('Locationchange event', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       var url = app1.config.url;
-      var spy = this.sinon.spy();
 
       app1.handleEvent({
         type: 'mozbrowserlocationchange',
-        detail: 'http://fakeURL.changed',
-        stopPropagation: spy
+        detail: 'http://fakeURL.changed'
       });
 
-      assert.isTrue(spy.called);
       assert.equal(app1.config.url, 'http://fakeURL.changed');
       app1.config.url = url;
     });
@@ -980,61 +957,50 @@ suite('system/AppWindow', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       var url = app1.config.url;
       var stubPublish = this.sinon.stub(app1, 'publish');
-      var spy = this.sinon.spy();
 
       app1.handleEvent({
         type: 'mozbrowservisibilitychange',
         detail: {
           visible: false
-        },
-        stopPropagation: spy
+        }
       });
 
-      assert.isTrue(spy.calledOnce);
       assert.isTrue(stubPublish.calledWith('background'));
 
       app1.handleEvent({
         type: 'mozbrowservisibilitychange',
         detail: {
           visible: true
-        },
-        stopPropagation: spy
+        }
       });
 
-      assert.isTrue(spy.calledTwice);
       assert.isTrue(stubPublish.calledWith('foreground'));
     });
 
     test('Localized event', function() {
       var app1 = new AppWindow(fakeAppConfig1);
-      var spyManifestHelper = this.sinon.spy(window, 'ManifestHelper');
+      var spy = this.sinon.spy(window, 'ManifestHelper');
       var stubPublish = this.sinon.stub(app1, 'publish');
-      var spy = this.sinon.spy();
 
       app1.handleEvent({
-        type: '_localized',
-        stopPropagation: spy
+        type: '_localized'
       });
 
-      assert.isTrue(spy.called);
-      assert.isTrue(spyManifestHelper.calledWithNew());
-      assert.isTrue(spyManifestHelper.calledWithExactly(app1.manifest));
+      assert.isTrue(spy.calledWithNew());
+      assert.isTrue(spy.calledWithExactly(app1.manifest));
       assert.isTrue(stubPublish.calledWithExactly('namechanged'));
     });
 
     test('Localized event', function() {
       var app1 = new AppWindow(fakeAppConfig1);
-      var spyManifestHelper = this.sinon.spy(window, 'ManifestHelper');
-      var spy = this.sinon.spy();
+      var spy = this.sinon.spy(window, 'ManifestHelper');
 
       app1.handleEvent({
-        type: '_localized',
-        stopPropagation: spy
+        type: '_localized'
       });
 
-      assert.isTrue(spy.called);
-      assert.isTrue(spyManifestHelper.calledWithNew());
-      assert.isTrue(spyManifestHelper.calledWithExactly(app1.manifest));
+      assert.isTrue(spy.calledWithNew());
+      assert.isTrue(spy.calledWithExactly(app1.manifest));
     });
 
     test('Swipe in event', function() {
@@ -1042,19 +1008,15 @@ suite('system/AppWindow', function() {
       var atc1 = {
         switchTransitionState: function() {}
       };
-      var switchTransitionState =
-        this.sinon.stub(atc1, 'switchTransitionState');
-      var revive = this.sinon.stub(app1, 'reviveBrowser');
+      var spy = this.sinon.spy(atc1, 'switchTransitionState');
+      var revive = this.sinon.spy(app1, 'reviveBrowser');
       app1.transitionController = atc1;
-      var spy = this.sinon.spy();
 
       app1.handleEvent({
-        type: '_swipein',
-        stopPropagation: spy
+        type: '_swipein'
       });
 
-      assert.isTrue(spy.called);
-      assert.isTrue(switchTransitionState.calledWith('opened'));
+      assert.isTrue(spy.calledWith('opened'));
       assert.isTrue(revive.called);
     });
 
@@ -1063,18 +1025,14 @@ suite('system/AppWindow', function() {
       var atc1 = {
         switchTransitionState: function() {}
       };
-      var switchTransitionState =
-        this.sinon.stub(atc1, 'switchTransitionState');
+      var spy = this.sinon.spy(atc1, 'switchTransitionState');
       app1.transitionController = atc1;
-      var spy = this.sinon.spy();
 
       app1.handleEvent({
-        type: '_swipeout',
-        stopPropagation: spy
+        type: '_swipeout'
       });
 
-      assert.isTrue(spy.called);
-      assert.isTrue(switchTransitionState.calledWith('closed'));
+      assert.isTrue(spy.calledWith('closed'));
     });
   });
 
@@ -1112,7 +1070,7 @@ suite('system/AppWindow', function() {
     var app1 = new AppWindow(fakeWrapperConfig);
     var stubPublish = this.sinon.stub(app1, 'publish');
     var stub_setFrameBackgroundWithScreenshot =
-      this.sinon.stub(app1, 'setFrameBackgroundWithScreenshot');
+      this.sinon.spy(app1, 'setFrameBackgroundWithScreenshot');
     app1.destroyBrowser();
     assert.isNull(app1.browser);
     assert.isTrue(app1.suspended);

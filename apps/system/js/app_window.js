@@ -717,10 +717,6 @@
    */
   AppWindow.prototype.handleEvent = function aw_handleEvent(evt) {
     this.debug(' Handling ' + evt.type + ' event...');
-    // We are rendering inline activities inside this element too,
-    // so we need to prevent ourselves to be affected
-    // by the mozbrowser events of the callee.
-    evt.stopPropagation();
     if (this['_handle_' + evt.type]) {
       this.debug(' Handling ' + evt.type + ' event...');
       this['_handle_' + evt.type](evt);

@@ -70,24 +70,21 @@ suite('system/HomescreenWindow', function() {
       test('mozbrowser events', function() {
         var stubRestart = this.sinon.stub(homescreenWindow, 'restart');
         var stubIsActive = this.sinon.stub(homescreenWindow, 'isActive');
-        var spy = this.sinon.spy();
         stubIsActive.returns(true);
 
         homescreenWindow.handleEvent({
           type: 'mozbrowserclose',
-          stopPropagation: spy
+          stopImmediatePropagation: function() {}
         });
-        assert.isTrue(spy.calledOnce);
         assert.isTrue(stubRestart.calledOnce);
 
         homescreenWindow.handleEvent({
           type: 'mozbrowsererror',
-          stopPropagation: spy,
+          stopImmediatePropagation: function() {},
           detail: {
             type: 'fatal'
           }
         });
-        assert.isTrue(spy.calledTwice);
         assert.isTrue(stubRestart.calledTwice);
       });
     });

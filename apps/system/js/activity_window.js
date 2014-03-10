@@ -75,9 +75,7 @@
     if (caller) {
       caller.setActivityCallee(this);
       this.activityCaller = caller;
-      if (caller.element) {
-        this.containerElement = caller.element;
-      }
+      // TODO: Put us inside the caller element.
     }
 
     this.render();
@@ -99,8 +97,8 @@
    */
   ActivityWindow.prototype._DEBUG = false;
 
-  ActivityWindow.prototype.openAnimation = 'slideup';
-  ActivityWindow.prototype.closeAnimation = 'slidedown';
+  ActivityWindow.prototype.openAnimation = 'slideleft';
+  ActivityWindow.prototype.closeAnimation = 'slideright';
 
   /**
    * ActivityWindow's fullscreen state is copying from the caller
