@@ -39,23 +39,4 @@ if (!utils.misc) {
 
     return dateString;
   };
-
-  // Normalizes the contact date in UTC TZ
-  utils.misc.normalizeDate = function normalizeDate(filledDate) {
-    var normalizedDate;
-
-    if (filledDate) {
-      normalizedDate = new Date(0);
-      normalizedDate.setUTCDate(filledDate.getDate());
-      normalizedDate.setUTCMonth(filledDate.getMonth());
-      normalizedDate.setUTCFullYear(filledDate.getFullYear());
-
-      normalizedDate.setUTCHours(0);
-      normalizedDate.setUTCMinutes(0);
-      normalizedDate.setUTCSeconds(0);
-      normalizedDate.setUTCMilliseconds(0);
-    }
-
-    return normalizedDate;
-  };
 }
