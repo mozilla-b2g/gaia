@@ -1,13 +1,11 @@
         <!-- Contacts List Section -->
       <section id='view-contacts-list' role="region" data-state="active" class="view view-noscroll view-contacts-list">
         <header>
-          <a href="#" id="cancel_activity" class="hide">
+          <a href="#" id="cancel_activity" class="navigationhide">
             <span class="icon icon-close" data-l10n-id="exit">Exit</span>
           </a>
-          <menu type="toolbar">
-            <button role="menuitem" id="add-contact-button"><span class="icon icon-add" data-l10n-id="add">add</span></button>
-            <button role="menuitem" id="settings-button"><span class="icon icon-settings" data-l10n-id="settings">settings</span></button>
-          </menu>
+          <button class="action" id="add-contact-button"><span class="icon icon-add" data-l10n-id="add">add</span></button>
+          <button class="action" id="settings-button"><span class="icon icon-settings" data-l10n-id="settings">settings</span></button>
           <h1 data-l10n-id="contacts">Contacts</h1>
         </header>
 
@@ -81,13 +79,11 @@
 
       <section id='view-screenshot' role="region" class="view hide">
         <header>
-          <a href="#" class="hide">
+          <a href="#" class="navigation hide">
             <span class="icon icon-close" data-l10n-id="exit">Exit</span>
           </a>
-          <menu type="toolbar">
-            <button role="menuitem"><span class="icon icon-add" data-l10n-id="add">add</span></button>
-            <button role="menuitem"><span class="icon icon-settings" data-l10n-id="settings">settings</span></button>
-          </menu>
+          <button class="action"><span class="icon icon-add" data-l10n-id="add">add</span></button>
+          <button class="action"><span class="icon icon-settings" data-l10n-id="settings">settings</span></button>
           <h1 data-l10n-id="contacts">Contacts</h1>
         </header>
         <article id="view-screenshot-body">
@@ -97,11 +93,9 @@
       <!-- Contact Details Section -->
       <section id='view-contact-details' role="region" class="view view-right view-contact-profile">
         <header id='details-view-header'>
-          <button id="details-back" class="negative"><span class="icon icon-back" data-l10n-id="back">back</span></button>
-          <menu type="toolbar">
-            <button role="menuitem" id="edit-contact-button"><span class="icon icon-edit-contact"
+          <button id="details-back" class="negative navigation"><span class="icon icon-back" data-l10n-id="back">back</span></button>
+            <button class="action" id="edit-contact-button"><span class="icon icon-edit-contact"
                                                                    data-l10n-id="edit" data-l10n-id="edit">edit</span></button>
-          </menu>
           <h1 id='contact-name-title'></h1>
         </header>
 
@@ -205,10 +199,8 @@
       <!-- Edit Section -->
       <section id='view-contact-form' role="region" class="view view-bottom view-edit-contact">
         <header>
-          <button id='cancel-edit' class="negative"><span class="icon icon-close"data-l10n-id="exit">Exit</span></button>
-          <menu type="toolbar" id='contact-form-actions'>
-            <button id="save-button" role="menuitem" data-l10n-id="done">Done</button>
-          </menu>
+          <button id='cancel-edit' class="negative navigation"><span class="icon icon-close"data-l10n-id="exit">Exit</span></button>
+          <button id="save-button" class="action" data-l10n-id="done">Done</button>
           <h1 id='contact-form-title' data-l10n-id="addContact">Add contact</h1>
         </header>
 
@@ -379,10 +371,8 @@
       <!-- Tag selection -->
       <section id="view-select-tag" role="region" class="view view-right view-select-tag">
         <header>
-          <button id="settings-cancel" class="negative"><span class="icon icon-back" data-l10n-id="back">back</span></button>
-          <menu type="toolbar" id="contact-form-actions">
-            <button id="settings-done" role="menuitem" data-l10n-id="done">Done</button>
-          </menu>
+          <button id="settings-cancel" class="negative navigation"><span class="icon icon-back" data-l10n-id="back">back</span></button>
+          <button id="settings-done" class="action" data-l10n-id="done">Done</button>
           <h1 data-l10n-id="label">Label</h1>
         </header>
 
@@ -400,9 +390,7 @@
 
      <section data-theme="organic" id="view-settings" role="region" class="skin-organic view view-bottom">
       <header>
-        <menu type="toolbar" id="settings-form-actions">
-          <button id="settings-close" role="menuitem" data-l10n-id="done">Done</button>
-        </menu>
+        <button id="settings-close" class="action" data-l10n-id="done">Done</button>
         <h1 data-l10n-id="settings">Settings</h1>
       </header>
 
@@ -460,8 +448,8 @@
       </article>
     </section>
     <section data-theme="organic" id="import-settings" role="region" class="skin-organic view view-right">
-      <header id="import-settings-header">
-        <button id="import-settings-back" class="negative"><span class="icon icon-back" data-l10n-id="back">back</span></button>
+      <header>
+        <button id="import-settings-back" class="negative navigation"><span class="icon icon-back" data-l10n-id="back">back</span></button>
         <h1 id='import-settings-title'></h1>
       </header>
       <article class="view-body">
