@@ -17,8 +17,7 @@
       var classes = [
         'hour',
         'hour-' + hour,
-        this.h('classes'),
-        'calendar-display'
+        this.h('classes')
       ].join(' ');
 
       return '<section class="' + classes + '" data-hour="' + hour + '">' +

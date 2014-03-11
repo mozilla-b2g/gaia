@@ -44,6 +44,15 @@ EditEvent.prototype = {
     this.setFormValue('endTime', value);
   },
 
+  set allDay(value) {
+    var checkbox = this.findElement('input[name="allday"]');
+    var checked = checkbox.getAttribute('checked');
+    if (value !== checked) {
+      // click needs to happen on label!
+      this.client.helper.closest(checkbox, 'label').click();
+    }
+  },
+
   set reminders(value) {
     // Every event gets a 5 minute alarm. Since we want to "set" the alarms
     // with the parameter value, first remove the default alarm and then
