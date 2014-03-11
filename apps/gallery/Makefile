@@ -12,6 +12,7 @@ FULLSCREEN_SCRIPTS = \
 METADATA_SCRIPTS = \
  ../../shared/js/blobview.js \
  ../../shared/js/media/jpeg_metadata_parser.js \
+ ../../shared/js/media/ext/jpeg.js \
  ../../shared/js/media/get_video_rotation.js \
  js/imagesize.js \
  js/MetadataParser.js
