@@ -671,4 +671,16 @@ Camera.prototype.updateVideoElapsed = function() {
   this.set('videoElapsed', (now - start));
 };
 
+/**
+ *Set ISO value for 
+ * better picture 
+ **/
+Camera.prototype.setISOMode = function(value) {
+  var capabilities = this.get('capabilities');
+  var isoModes = capabilities.isoModes;
+  if (isoModes && isoModes.indexOf(value) > -1) {
+    this.mozCamera.isoMode = value;
+  }
+};
+
 });
