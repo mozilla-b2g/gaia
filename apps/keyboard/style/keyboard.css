@@ -133,6 +133,12 @@ button::-moz-focus-inner {
   border-radius: 50%;
   background-color: #00aacc;
   opacity: 0;
+  /**
+   * Delay hiding of the bubble by 0.01s, which is long enough to make sure it
+   * shows up but doesn't feel laggy.
+   */
+  transition-delay: 0.01s;
+  transition: 0s opacity;
 }
 
 .keyboard-key.highlighted {
@@ -151,6 +157,8 @@ button::-moz-focus-inner {
 /* Show the bubble text when the button is highlighted. */
 .keyboard-key.highlighted > .visual-wrapper > span:after {
   opacity: 1;
+  /* Override the 0.01s delay and make sure that the bubble appears instantly. */
+  transition-delay: 0s;
 }
 
 .keyboard-key.highlighted.kbr-menu-on > .visual-wrapper > span:after {
