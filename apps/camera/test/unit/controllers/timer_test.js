@@ -53,6 +53,11 @@ suite('controllers/timer', function() {
       var controller = new this.TimerController(this.app);
       assert.ok(this.app.on.calledWith('startcountdown', controller.start));
     });
+
+    test('Should stop the timer when the app \'blur\' event fires', function() {
+      var controller = new this.TimerController(this.app);
+      assert.ok(this.app.on.calledWith('blur', controller.clear));
+    });
   });
 
   suite('TimerController#start()', function() {
@@ -64,10 +69,8 @@ suite('controllers/timer', function() {
 
     test('Should bind events async so as not to respond to current event', function() {
       assert.ok(!this.app.on.calledWith('click', this.controller.clear));
-      assert.ok(!this.app.on.calledWith('blur', this.controller.clear));
       this.clock.tick(1);
       assert.ok(this.app.on.calledWith('click', this.controller.clear));
-      assert.ok(this.app.on.calledWith('blur', this.controller.clear));
     });
 
     test('Should set the view with the current value of the timer setting', function() {
@@ -146,7 +149,6 @@ suite('controllers/timer', function() {
 
     test('Should unbind the app listeners', function() {
       assert.ok(this.app.off.calledWith('click', this.controller.clear));
-      assert.ok(this.app.off.calledWith('blur', this.controller.clear));
     });
   });
 });
