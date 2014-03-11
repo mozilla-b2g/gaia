@@ -67,7 +67,6 @@ window.addEventListener('load', function startup() {
   window.activities = new Activities();
   window.devtoolsView = new DevtoolsView();
   window.dialerComms = new DialerComms();
-  window.homeGesture = new HomeGesture();
   window.remoteDebugger = new RemoteDebugger();
 
   window.telephonySettings = new TelephonySettings();

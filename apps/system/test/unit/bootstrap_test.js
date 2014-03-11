@@ -14,7 +14,6 @@ requireApp('system/test/unit/mock_applications.js');
 requireApp('system/test/unit/mock_devtools_view.js');
 requireApp('system/test/unit/mock_dialer_comms.js');
 requireApp('system/test/unit/mock_ftu_launcher.js');
-requireApp('system/test/unit/mock_home_gesture.js');
 requireApp('system/test/unit/mock_homescreen_launcher.js');
 requireApp('system/test/unit/mock_places.js');
 requireApp('system/test/unit/mock_remote_debugger.js');
@@ -36,7 +35,6 @@ mocha.globals([
   'secureWindowFactory',
   'devtoolsView',
   'dialerComms',
-  'homeGesture',
   'remoteDebugger',
   'storage',
   'telephonySettings',
@@ -51,7 +49,6 @@ var mocksForBootstrap = new MocksHelper([
   'DevtoolsView',
   'DialerComms',
   'FtuLauncher',
-  'HomeGesture',
   'HomescreenLauncher',
   'Places',
   'RemoteDebugger',
