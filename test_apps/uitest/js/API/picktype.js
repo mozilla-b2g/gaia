@@ -1,6 +1,6 @@
 function pick(type, nocrop, width, height) {
   var data = {type: type};
-  if (nocrop) data.nocrop = true;
+  if (nocrop) data.crop = false;
   if (width) data.width = width;
   if (height) data.height = height;
   var a = new MozActivity({ name: 'pick', data: data});

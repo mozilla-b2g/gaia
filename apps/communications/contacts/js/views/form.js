@@ -1236,7 +1236,8 @@ contacts.Form = (function() {
     var activity = new MozActivity({
       name: 'pick',
       data: {
-        type: 'image/jpeg'
+        type: 'image/jpeg',
+        crop: true
       }
     });
 

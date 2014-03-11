@@ -792,12 +792,12 @@ function cropPickedImage(fileinfo) {
   pickedFile = fileinfo;
 
   // Do we actually want to allow the user to crop the image?
-  var nocrop = pendingPick.source.data.nocrop;
+  var crop = pendingPick.source.data.crop;
 
-  if (nocrop) {
-    // If we're not cropping we don't want the word "Crop" in the title bar
-    // XXX: UX will probably get rid of this title bar soon, anyway.
-    $('crop-header').textContent = '';
+  if (crop) {
+    // If we're cropping, update the title bar accordingly
+    // (it's blank by default)
+    $('crop-header').textContent = navigator.mozL10n.get('cropimage');
   }
 
   setView(LAYOUT_MODE.crop);
@@ -844,23 +844,23 @@ function cropPickedImage(fileinfo) {
     function cropEditorReady() {
       // Enable the done button so that users can finish picking image.
       $('crop-done-button').disabled = false;
-      // If the initiating app doesn't want to allow the user to crop
-      // the image, we don't display the crop overlay. But we still use
-      // this image editor to preview the image.
-      if (nocrop) {
+
+      // Bug 959430, if the initiating app wants cropping, display the
+      // crop overlay. Otherwise, by default, do not display the overlay
+      if (crop) {
+          cropEditor.showCropOverlay();
+          if (pickWidth)
+            cropEditor.setCropAspectRatio(pickWidth, pickHeight);
+          else
+            cropEditor.setCropAspectRatio(); // free form cropping
+      }
+      else {
         // Set a fake crop region even though we won't display it
         // so that getCroppedRegionBlob() works.
         cropEditor.cropRegion.left = cropEditor.cropRegion.top = 0;
         cropEditor.cropRegion.right = cropEditor.dest.w;
         cropEditor.cropRegion.bottom = cropEditor.dest.h;
-        return;
       }
-
-      cropEditor.showCropOverlay();
-      if (pickWidth)
-        cropEditor.setCropAspectRatio(pickWidth, pickHeight);
-      else
-        cropEditor.setCropAspectRatio(); // free form cropping
     }
   });
 }
@@ -888,7 +888,7 @@ function cropAndEndPick() {
   // use the file as it is.
   if (pickType === pickedFile.type &&
       !pickWidth && !pickHeight &&
-      (pendingPick.source.data.nocrop || !cropEditor.hasBeenCropped())) {
+      (!pendingPick.source.data.crop || !cropEditor.hasBeenCropped())) {
     photodb.getFile(pickedFile.name, endPick);
   }
   else {
