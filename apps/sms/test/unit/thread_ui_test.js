@@ -5,7 +5,7 @@
          MockActivityPicker, Threads, Settings, MockMessages, MockUtils,
          MockContacts, ActivityHandler, Recipients, MockMozActivity,
          ThreadListUI, ContactRenderer, UIEvent, Drafts, OptionMenu,
-         ActivityPicker, KeyEvent, MockNavigatorSettings, Draft */
+         ActivityPicker, KeyEvent, MockNavigatorSettings, Draft, MockContactRenderer */
 
 'use strict';
 
@@ -300,37 +300,72 @@ suite('thread_ui.js >', function() {
     });
 
     suite('rendering suggestions list', function() {
+      var suggestionRenderer, unknownRenderer;
+      var contact, unknown;
+
       setup(function() {
-        this.sinon.spy(ContactRenderer.prototype, 'render');
-        ThreadUI.recipients.add({
-          number: '888'
-        });
+        suggestionRenderer = new MockContactRenderer();
+        unknownRenderer = new MockContactRenderer();
+        sinon.spy(suggestionRenderer, 'render');
+        sinon.spy(unknownRenderer, 'render');
 
-        var placeholder = document.createElement('span');
-        placeholder.setAttribute('contenteditable', 'true');
-        placeholder.isPlaceholder = true;
-        placeholder.textContent = '999';
-        recipientsList.appendChild(placeholder);
+        this.sinon.stub(ContactRenderer, 'flavor').throws();
+        ContactRenderer.flavor.withArgs('suggestion')
+          .returns(suggestionRenderer);
+        ContactRenderer.flavor.withArgs('suggestionUnknown')
+          .returns(unknownRenderer);
 
-        ThreadUI.recipients.inputValue = '999';
+        // create a normal and an unknown contact
+        contact = new MockContact();
+        unknown = {
+          name: ['unknown '],
+          tel: ['+33123456999 '],
+          source: 'unknown'
+        };
 
-        placeholder.dispatchEvent(new CustomEvent('input', { bubbles: true }));
-      });
+        this.sinon.stub(Contacts, 'findByString').yields([contact, unknown]);
 
-      test('does display found contacts', function() {
-        sinon.assert.calledWithMatch(ContactRenderer.prototype.render, {
+         ThreadUI.recipients.add({
+           number: '888'
+         });
+
+         var placeholder = document.createElement('span');
+         placeholder.setAttribute('contenteditable', 'true');
+         placeholder.isPlaceholder = true;
+         placeholder.textContent = '999';
+         recipientsList.appendChild(placeholder);
+
+         ThreadUI.recipients.inputValue = '999';
+
+         placeholder.dispatchEvent(new CustomEvent('input', { bubbles: true }));
+       });
+
+       test('does display found contacts', function() {
+        sinon.assert.calledWithMatch(suggestionRenderer.render, {
+          contact: contact,
           input: '999',
           target: container.querySelector('ul.contact-list')
         });
-      });
 
-      test('does not display entered recipients', function() {
-        sinon.assert.calledWithMatch(ContactRenderer.prototype.render, {
+        sinon.assert.calledWithMatch(unknownRenderer.render, {
+          contact: unknown,
+           input: '999',
+           target: container.querySelector('ul.contact-list')
+         });
+       });
+
+       test('does not display entered recipients', function() {
+
+        sinon.assert.calledWithMatch(suggestionRenderer.render, {
           skip: ['888']
         });
-      });
-    });
-  });
+        sinon.assert.calledWithMatch(unknownRenderer.render, {
+           skip: ['888']
+         });
+       });
+     });
+   });
+
 
   suite('enableSend() >', function() {
     setup(function() {
