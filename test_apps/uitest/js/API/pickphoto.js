@@ -1,6 +1,6 @@
-function pick(type, nocrop, width, height) {
+function pick(type, allowCrop, width, height) {
   var data = {type: type};
-  if (nocrop) data.nocrop = true;
+  data.allowCrop = allowCrop;
   if (width) data.width = width;
   if (height) data.height = height;
   var a = new MozActivity({ name: 'pick', data: data});
@@ -14,12 +14,21 @@ function pick(type, nocrop, width, height) {
   a.onerror = function() { alert('Failure picking photo'); };
 }
 
-document.getElementById('b1').onclick = function() { pick('image/jpeg'); };
-document.getElementById('b2').onclick = function() { pick('image/png'); };
+document.getElementById('b1').onclick = function() {
+  pick('image/jpeg', true);
+};
+document.getElementById('b2').onclick = function() {
+  pick('image/png', true);
+};
 document.getElementById('b3').onclick = function() {
   pick(['image/jpeg', 'image/png']);
 };
-document.getElementById('b4').onclick = function() { pick('image/*'); };
-document.getElementById('b5').onclick = function() { pick('image/*', true); };
-document.getElementById('b6').onclick = function() { pick('image/*', false,
-                                                          100, 100); };
+document.getElementById('b4').onclick = function() {
+  pick('image/*', true);
+};
+document.getElementById('b5').onclick = function() {
+  pick('image/*', false);
+};
+document.getElementById('b6').onclick = function() {
+  pick('image/*', true, 100, 100);
+};
