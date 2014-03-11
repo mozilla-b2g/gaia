@@ -106,6 +106,7 @@ CameraController.prototype.onSettingsConfigured = function() {
   var recorderProfile = settings.recorderProfiles.selected('key');
   var pictureSize = settings.pictureSizes.selected('data');
   this.setFlashMode();
+  this.setISO();
   this.camera
     .setRecorderProfile(recorderProfile)
     .setPictureSize(pictureSize)
@@ -247,6 +248,11 @@ CameraController.prototype.onBlur = function() {
   }
 
   debug('torn down');
+};
+
+CameraController.prototype.setISO = function() {
+  if (this.settings.isoModes.get('disabled')) { return; }
+  this.camera.setISOMode(this.settings.isoModes.selected('key'));
 };
 
 });
