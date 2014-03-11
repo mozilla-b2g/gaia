@@ -250,4 +250,58 @@ suite('camera', function() {
       assert.ok(!('infinity' in this.camera.autoFocus));
     });
   });
+
+  suite('Camera#FocusMode()', function() {
+    setup(function() {
+      this.camera.mozCamera = sinon.spy();
+      this.camera.mozCamera.focusMode = sinon.spy();
+    });
+
+    test('Should set the focus mode as continuous-video if mode is video',
+      function() {
+        this.mode = 'video';
+        this.camera.setContinuousAutoFocus(this.mode);
+
+      assert.ok(this.camera.mozCamera.focusMode == 'continuous-video');
+    });
+
+    test('Should set the focus mode as continuous-picture if mode is undefined',
+      function() {
+        this.mode = '';
+        this.camera.setContinuousAutoFocus(this.mode);
+
+     assert.ok(this.camera.mozCamera.focusMode == 'continuous-picture');
+    });
+  });
+
+  suite('Camera#enableAutoFocusMove()', function() {
+    setup(function() {
+      this.clock = sinon.useFakeTimers();
+      this.camera.mozCamera = sinon.spy();
+      this.camera.mozCamera.onAutoFocusMoving = sinon.spy();
+    });
+
+    teardown(function() {
+      this.clock.restore();
+    });
+
+    test('Should Enable auto focus move when camera points to a new location', function() {
+      this.camera.set = sinon.spy();
+      this.camera.enableAutoFocusMove();
+      this.camera.mozCamera.onAutoFocusMoving(true);
+      assert.ok(this.camera.set.calledWith('focus', 'focusing'));
+      this.clock.tick(550);
+      assert.ok(this.camera.set.calledWith('focus', 'focused'));
+      this.clock.tick(550);
+      assert.ok(this.camera.set.calledWith('focus', 'none'));
+      this.clock.tick(550);
+      assert.ok(this.camera.set.calledThrice);
+    });
+
+    test('Should disableAutoFocusMove', function() {
+      this.camera.disableAutoFocusMove();
+
+      assert.ok(this.camera.mozCamera.onAutoFocusMoving == null);
+    });
+  });
 });

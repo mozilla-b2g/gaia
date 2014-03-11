@@ -109,6 +109,7 @@ App.prototype.runControllers = function() {
   this.controllers.overlay(this);
   this.controllers.sounds(this);
   this.controllers.hud(this);
+  this.controllers.focusmode(this);
   debug('controllers run');
 };
 
@@ -124,7 +125,7 @@ App.prototype.injectViews = function() {
   this.views.hud.appendTo(this.el);
   this.views.controls.appendTo(this.el);
   this.views.viewfinder.appendTo(this.el);
-  this.views.focusRing.appendTo(this.el);
+  this.views.focusRing.appendTo(this.views.viewfinder.el);
   debug('views injected');
 };
 

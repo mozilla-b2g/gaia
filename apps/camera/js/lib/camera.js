@@ -147,6 +147,86 @@ Camera.prototype.configure = function() {
   this.mozCamera.setConfiguration(options, success, error);
 };
 
+/**
+* Check whether continuous auto
+* focus modes are support or not.
+**/
+Camera.prototype.checkContinuousFocusSupport = function(done) {
+  if (!this.autoFocus['continuous-picture'] ||
+    !this.autoFocus['continuous-video']) {
+    done('null');
+  } else {
+    done();
+  }
+};
+
+/**
+* Set focus mode as continuous auto
+* based on the mode selected
+**/
+Camera.prototype.setContinuousAutoFocus = function() {
+  if (this.mode === 'video') {
+    this.mozCamera.focusMode = "continuous-video";
+  } else {
+    this.mozCamera.focusMode = "continuous-picture";
+  }
+  this.set('focus-mode', 'continuous-auto');
+};
+
+/**
+* Enable auto focus move to make camera
+* adjusts the focus of new scene or
+* postion.
+**/
+Camera.prototype.enableAutoFocusMove = function() {
+  var self = this;
+  this.mozCamera.onAutoFocusMoving = onAutoFocusMoving;
+  /**
+  * Focus move callbacks from gecko:
+  * During continuous auto focus, when
+  * camera moves to a new scene or location,
+  * it has to refocus to get the clear view.
+  * Gecko sends the call back when camera
+  * is refocusing on to a new scene.
+  *
+  * @param {bool} isMoving
+  * isMoving is true when focusing on new scene.
+  * isMoving is false when focus is complete.
+  * for that particular scene.
+  **/
+  function onAutoFocusMoving(isMoving) {
+    function clearFocusState() {
+      setTimeout(function() {
+        self.set('focus', 'none');
+      }, 500);
+    }
+    function focused() {
+      setTimeout(function() {
+        self.set('focus','focused');
+        clearFocusState();
+      }, 50);
+    }
+    if (isMoving === true) {
+      self.set('focus','focusing');
+    } else {
+      focused();
+    }
+  }
+};
+
+/**
+* Disable auto focus move
+* and change focus mode.
+**/
+Camera.prototype.disableAutoFocusMove = function() {
+  this.mozCamera.onAutoFocusMoving = null;
+  this.mozCamera.focusMode = 'auto';
+};
+
+Camera.prototype.noFocusMode = function() {
+  this.mozCamera.focusMode = 'null';
+};
+
 Camera.prototype.previewSizes = function() {
   return this.mozCamera.capabilities.previewSizes;
 };
@@ -298,7 +378,10 @@ Camera.prototype.pickThumbnailSize = function(thumbnailSizes, pictureSize) {
  */
 Camera.prototype.capture = function(options) {
   switch (this.mode) {
-    case 'picture': this.takePicture(options); break;
+    case 'picture':
+      this.disableAutoFocusMove();
+      this.takePicture(options);
+    break;
     case 'video': this.toggleRecording(options); break;
   }
 };
@@ -347,6 +430,8 @@ Camera.prototype.takePicture = function(options) {
   }
 
   function complete() {
+    self.setContinuousAutoFocus();
+    self.enableAutoFocusMove();
     self.emit('ready');
   }
 };
@@ -364,6 +449,11 @@ Camera.prototype.takePicture = function(options) {
  * @private
  */
 Camera.prototype.focus = function(done) {
+  var focusMode = this.get('focus-mode');
+  if (focusMode === 'continuous-auto') {
+    this.set('focus-mode', 'none');
+    return done();
+  }
   if (!this.autoFocus.auto) { return done(); }
   var reset = function() { self.set('focus', 'none'); };
   var self = this;
@@ -671,4 +761,67 @@ Camera.prototype.updateVideoElapsed = function() {
   this.set('videoElapsed', (now - start));
 };
 
+
+/**
+*set focus Area
+* To focus on user specified region
+* of viewfinder set focus areas.
+*
+* @param  {object} rect
+* The argument is an object that
+* contains boundaries of focus area
+* in camera coordinate system, where
+* the top-left of the camera field
+* of view is at (-1000, -1000), and
+* bottom-right of the field at
+* (1000, 1000).
+*
+**/
+Camera.prototype.setFocusArea = function(rect) {
+  this.mozCamera.focusAreas = [{
+    top: rect.top,
+    bottom: rect.bottom,
+    left: rect.left,
+    right: rect.right,
+    weight: 1
+  }];
+};
+
+/**
+* Set the metering area.
+*
+* @param  {object} rect
+* The argument is an object that
+* contains boundaries of metering area
+* in camera coordinate system, where
+* the top-left of the camera field
+* of view is at (-1000, -1000), and
+* bottom-right of the field at
+* (1000, 1000).
+*
+**/
+Camera.prototype.setMeteringArea = function(rect) {
+  this.mozCamera.meteringAreas = [{
+    top: rect.top,
+    bottom: rect.bottom,
+    left: rect.left,
+    right: rect.right,
+    weight: 1
+  }];
+};
+
+/**
+* Once touch focus is done
+* clear the ring UI.
+*
+* Timeout is needed to show
+* the focused UI for sometime
+* before making it disappear.
+**/
+Camera.prototype.clearFocusRing = function() {
+  var self = this;
+  setTimeout(function() {
+    self.set('focus', 'none');
+  }, 1000);
+};
 });
