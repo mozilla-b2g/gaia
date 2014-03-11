@@ -1,6 +1,7 @@
 'use strict';
 
 var Calendar = require('./lib/calendar');
+var assert = require('chai').assert;
 
 marionette('toggle calendar', function() {
   var app;
@@ -37,7 +38,17 @@ marionette('toggle calendar', function() {
 
   suite('disable calendar', function() {
     test('month view', function() {
-      waitForElementToDisappear(app.monthDay.events[0]);
+      var event = app.monthDay.events[0];
+      waitForElementToDisappear(event);
+      // we cannot hide hour since there might be other events from different
+      // calendars that happens at same time (which would also be hidden)
+      // this behavior is better than previous one and will be changed after we
+      // implement the visual refresh (it's a good compromise)
+      var hour = client.helper.closest(event, '.hour');
+      assert(
+        hour.displayed(),
+        'hour should be displayed on day view'
+      );
     });
 
     test('week view', function() {
@@ -47,7 +58,20 @@ marionette('toggle calendar', function() {
 
     test('day view', function() {
       app.openDayView();
-      waitForElementToDisappear(app.day.events[0]);
+      var event = app.day.events[0];
+      waitForElementToDisappear(event);
+
+      // on day view hour can't be hidden otherwise it affects events on other
+      // calendars and it also looks weird
+      var hour = client.helper.closest(event, '.hour');
+      assert(
+        hour.displayed(),
+        'hour should be displayed on day view'
+      );
+
+      // clicking on hour should trigger add event screen
+      hour.click();
+      app.editEvent.waitForDisplay();
     });
   });
 
@@ -67,6 +91,7 @@ marionette('toggle calendar', function() {
       app.openDayView();
       waitForElement(app.day.events[0]);
     });
+
   });
 
 });

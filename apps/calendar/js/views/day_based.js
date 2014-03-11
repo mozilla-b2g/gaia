@@ -212,11 +212,6 @@ Calendar.ns('Views').DayBased = (function() {
         }
       }
 
-      // hour flags
-      var calendarId = this.calendarId(busytime);
-      hourRecord.flags.push(calendarId);
-      hourRecord.element.classList.add(calendarId);
-
       // increment count of event per-hour (hour -> [events] counter)
       return hourRecord.records.set(id, eventRecord);
     },
@@ -403,8 +398,7 @@ Calendar.ns('Views').DayBased = (function() {
       var el = this._insertElement(html, parent, this.hours.items, idx);
       return this.hours.set(hour, {
         element: el,
-        records: new OrderedMap(),
-        flags: []
+        records: new OrderedMap()
       });
     },
 
@@ -443,28 +437,6 @@ Calendar.ns('Views').DayBased = (function() {
 
       hours.forEach(function(number) {
         var hour = this.hours.get(number);
-
-        var calendarClass = this.calendarId(busytime);
-
-
-        // handle flags
-        var flags = hour.flags;
-
-        // we need to remove them from the list
-        // then check again to see if there
-        // are any more...
-        var idx = flags.indexOf(calendarClass);
-
-        if (idx !== -1) {
-          flags.splice(idx, 1);
-        }
-
-        // if after we have removed the flag there
-        // are no more we can remove the class
-        // from the element...
-        if (flags.indexOf(calendarClass) === -1) {
-          hour.element.classList.remove(calendarClass);
-        }
 
         // XXX: If renderAllHours is false we want to remove
         //      unsed hours.
@@ -607,25 +579,25 @@ Calendar.ns('Views').DayBased = (function() {
     /**
      * The structure of one of these cells is:
      * <div class="events">
-     *   // This will be empty if and only if we have no events
+     *   <section class="event">...</section>
+     *   <section class="event">...</section>
      * </div>
      * @param {Element} target The HTML element that got clicked.
      * @return {boolean} Whether or not we clicked on an event.
      * @private
      */
     _clickedOnEvent: function(target) {
-      // Find the div with the events class.
       var el = target;
-      while (!el.classList.contains('events')) {
-        el = el.parentNode;
-        if (!el || el.nodeType !== 1 /** ELEMENT_NODE */) {
+      while (el && el.nodeType === 1 /** ELEMENT_NODE */) {
+        if (el.classList.contains('event')) {
+          return true;
+        }
+        if (el.classList.contains('events')) {
           return false;
         }
+        el = el.parentNode;
       }
-
-      // Compute whether we found the div and it has one or more children.
-      var children = el.childNodes;
-      return children && children.length > 0;
+      return true;
     },
 
     activate: function() {
