@@ -132,12 +132,10 @@ function execute(config) {
     settings['lockscreen.locked'] = false;
   }
 
-  // Ensure not quitting xpcshell before all asynchronous code is done
-  utils.processEvents(function(){return {wait : false}});
   var queue = utils.Q.defer();
   queue.resolve();
 
-  return queue.promise.then(function() {
+  var result = queue.promise.then(function() {
     setWallpaper(settings, config);
   }).then(function() {
     setRingtone(settings, config);
@@ -149,6 +147,11 @@ function execute(config) {
     writeSettings(settings, config);
     return settings;
   });
+
+  // Ensure not quitting xpcshell before all asynchronous code is done
+  utils.processEvents(function(){return {wait : false}});
+
+  return result;
 }
 exports.execute = execute;
 exports.setWallpaper = setWallpaper;
