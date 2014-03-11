@@ -287,7 +287,7 @@
       var classes = ['enlarge', 'reduce', 'to-cardview', 'from-cardview',
         'invoking', 'invoked', 'zoom-in', 'zoom-out', 'fade-in', 'fade-out',
         'transition-opening', 'transition-closing', 'immediate',
-        'slideleft', 'slideright'];
+        'slideup', 'slidedown'];
 
       classes.forEach(function iterator(cls) {
         this.app.element.classList.remove(cls);
@@ -314,6 +314,7 @@
           this.changeTransitionState('timeout', evt.type);
           break;
         case 'animationend':
+          evt.stopPropagation();
           this.app.debug(evt.animationName + ' has been ENDED!');
           this.changeTransitionState('complete', evt.type);
           break;
