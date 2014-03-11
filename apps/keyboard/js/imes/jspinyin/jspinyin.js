@@ -655,7 +655,8 @@ IMEngine.prototype = {
           self._pendingSymbols = '';
           self._glue.endComposition(text);
         } else {
-          self._glue.sendString(text);
+          self._glue.setComposition('');
+          self._glue.endComposition(text);
         }
         self._historyText = text;
         self._candidatesLength = 0;
