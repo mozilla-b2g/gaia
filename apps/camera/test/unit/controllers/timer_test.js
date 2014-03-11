@@ -105,9 +105,9 @@ suite('controllers/timer', function() {
 
     test('Should not update the view after time is up', function() {
       this.clock.tick(5000);
-      assert.ok(this.view.set.callCount === 6, 'should be 6, was: ' + this.view.set.callCount);
+      assert.ok(this.view.set.callCount === 5, 'should be 5, was: ' + this.view.set.callCount);
       this.clock.tick(1000);
-      assert.ok(this.view.set.callCount === 6, 'should not have been called any more');
+      assert.ok(this.view.set.callCount === 5, 'should not have been called any more');
     });
 
     test('Should set the timerActive flag back to false', function() {
