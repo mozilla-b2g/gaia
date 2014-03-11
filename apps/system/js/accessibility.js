@@ -170,8 +170,8 @@
     announceScreenReader: function ar_announceScreenReader(aCallback) {
       var enabled = this.settings['accessibility.screenreader'];
       this.isSpeaking = true;
-      this.utter(enabled ? 'disableScreenReaderInstructions' :
-        'enableScreenReaderInstructions', false, aCallback);
+      this.utter(enabled ? 'disableScreenReaderSteps' :
+        'enableScreenReaderSteps', false, aCallback);
     }
   };
 
