@@ -672,13 +672,26 @@ Camera.prototype.updateVideoElapsed = function() {
 };
 
 /**
- *Set ISO value for 
- * better picture 
- **/
+ * Set ISO value for
+ * better picture
+ */
 Camera.prototype.setISOMode = function(value) {
   var isoModes = this.mozCamera.capabilities.isoModes;
   if (isoModes && isoModes.indexOf(value) > -1) {
     this.mozCamera.isoMode = value;
+  }
+};
+
+/**
+ * Set the mozCamera white-balance value.
+ *
+ * @param {String} value
+ */
+Camera.prototype.setWhiteBalance = function(value){
+  var capabilities = this.mozCamera.capabilities;
+  var modes = capabilities.whiteBalanceModes;
+  if (modes && modes.indexOf(value) > -1) {
+    this.mozCamera.whiteBalanceMode = value;
   }
 };
 
