@@ -390,8 +390,12 @@ ComposeCard.prototype = {
    *               insert a bubble before text input.
    */
   insertBubble: function(node, name, address) {
+    if (name == '')
+      var displayName = address;
+    else
+      var displayName = name;
     var container = node.parentNode;
-    var bubble = this.createBubbleNode(name, address);
+    var bubble = this.createBubbleNode(displayName, address);
     container.insertBefore(bubble, node);
   },
   /**
