@@ -268,7 +268,7 @@ define(function(require) {
       var getEffective = (function(openEvent, transaction, callback) {
         var upgrade = transaction.mode === 'versionchange';
         var db = transaction.db;
-        db.onversonchange = function(ev) {
+        db.onversionchange = function(ev) {
           db.close();
         };
         var calloutAndCleanup = function(err, effective) {
@@ -372,6 +372,7 @@ define(function(require) {
           }).bind(this);
           this.initializers[init.index].fn(transaction, setVersion);
         } else {
+          db.close();
           callback && callback(new Error('no initializer for ' + newVersion));
         }
       }.bind(this));
