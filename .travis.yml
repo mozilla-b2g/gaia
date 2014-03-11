@@ -16,6 +16,11 @@ env:
   - CI_ACTION=linters
   - CI_ACTION=unit-tests-in-firefox
   - CI_ACTION=marionette_js
+  - CI_ACTION=marionette_js_stable_check 1
+  - CI_ACTION=marionette_js_stable_check 2
+  - CI_ACTION=marionette_js_stable_check 3
+  - CI_ACTION=marionette_js_stable_check 4
+  - CI_ACTION=marionette_js_stable_check 5
   - CI_ACTION=gaia_ui_tests
   - CI_ACTION=build_tests
   global:
