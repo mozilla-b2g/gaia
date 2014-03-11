@@ -1,7 +1,7 @@
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/* globals ContactPhotoHelper */
+/* globals ContactPhotoHelper, BlobView, parseJPEGMetadata*/
 
 (function(exports) {
   'use strict';
@@ -9,6 +9,8 @@
   var rescape = /[.?*+^$[\]\\(){}|-]/g;
   var rparams = /([^?=&]+)(?:=([^&]*))?/g;
   var rnondialablechars = /[^,#+\*\d]/g;
+  var MIN_THUMBNAIL_WIDTH_HEIGHT = 80;  // min =  80px
+  var MAX_THUMBNAIL_WIDTH_HEIGHT = 120; // max = 120px
 
   var Utils = {
     date: {
@@ -388,6 +390,56 @@
         }
         canvas.toBlob(ensureSizeLimit, blob.type);
       };
+    },
+    // Return the url path with #-moz-samplesize postfix and downsampled image
+    // could be loaded directly from backend graphics lib.
+    getThumbnailSrcUrl: function ut_getThumbnailSrcUrl(blob, callback) {
+      var url = window.URL.createObjectURL(blob);
+
+      function returnDownsamplingUrl(dimension) {
+        // compute thumbnail size
+        var min = MIN_THUMBNAIL_WIDTH_HEIGHT;
+        var max = MAX_THUMBNAIL_WIDTH_HEIGHT;
+        var width, height;
+        var imgWidth = dimension.width;
+        var imgHeight = dimension.height;
+        if (imgWidth < imgHeight) {
+          width = min;
+          height = Math.min(imgHeight / imgWidth * min, max);
+        } else {
+          width = Math.min(imgWidth / imgHeight * min, max);
+          height = min;
+        }
+        var ratio = Math.max(imgWidth / width, imgHeight / height);
+        if (ratio >= 2) {
+          url += '#-moz-samplesize=' + Math.floor(ratio);
+        }
+        callback(url);
+      }
+      function onError(log) {
+        console.error(log);
+        callback(url);
+      }
+
+      // Since '-moz-samplesize' postfix is only available for jpge image now,
+      // early exit for non jpge images to avoid unnecessary header parsing.
+      if (blob.type !== 'image/jpeg') {
+        callback(url);
+        return;
+      }
+      BlobView.get(blob, 0, Math.min(1024, blob.size), function(data) {
+        // Make sure we are at least 8 bytes long before reading first 8 bytes
+        if (data.byteLength <= 8) {
+          onError('corrupt image file');
+        }
+        var magic = data.getASCIIText(0, 8);
+        if (magic.substring(0, 2) === '\xFF\xD8') {
+          parseJPEGMetadata(blob, returnDownsamplingUrl);
+        }
+        else {
+          onError('unknown image type');
+        }
+      });
     },
     camelCase: function ut_camelCase(str) {
       return str.replace(rdashes, function replacer(str, p1) {

@@ -831,6 +831,27 @@ suite('Utils', function() {
     });
   });
 
+  suite('Utils.getThumbnailSrcUrl', function() {
+    test('non jpeg image', function() {
+
+    });
+    test('corrupt jpg file', function() {
+
+    });
+    test('Header does not valid information', function() {
+
+    });
+    test('No need to add -moz-samplesize postfix when ratio < 2', function() {
+
+    });
+    test('Add -moz-samplesize postfix with ratio when ratio >= 2', function() {
+
+    });
+    test('Maximum samplesize ratio reached', function() {
+
+    });
+  });
+
   suite('Utils.typeFromMimeType', function() {
     var tests = {
       'text/plain': 'text',

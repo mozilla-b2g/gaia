@@ -21,6 +21,9 @@ var MockUtils = {
   getContactDisplayInfo: Utils.getContactDisplayInfo,
   getContactDetails: Utils.getContactDetails,
   getResizedImgBlob: Utils.getResizedImgBlob,
+  getThumbnailSrcUrl: function(blob, callback) {
+    callback(window.URL.createObjectURL(blob));
+  },
   getCarrierTag: Utils.getCarrierTag,
   removeNonDialables: Utils.removeNonDialables,
   multiRecipientMatch: Utils.multiRecipientMatch,

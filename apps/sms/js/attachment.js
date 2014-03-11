@@ -76,45 +76,48 @@
       // The container size is set to 80*80px by default (plus border);
       // as soon as the image width and height are known, the container can be
       // extended up to 120px, either horizontally or vertically.
-      var img = new Image();
-      img.src = window.URL.createObjectURL(this.blob);
-      img.onload = function onBlobLoaded() {
-        window.URL.revokeObjectURL(img.src);
+      Utils.getThumbnailSrcUrl(this.blob, function urlCb(url) {
+        var img = new Image();
+        img.src = url;
+        img.onload = function onBlobLoaded() {
+          window.URL.revokeObjectURL(img.src);
 
-        // compute thumbnail size
-        var min = MIN_THUMBNAIL_WIDTH_HEIGHT;
-        var max = MAX_THUMBNAIL_WIDTH_HEIGHT;
-        var width, height;
-        if (img.width < img.height) {
-          width = min;
-          height = Math.min(img.height / img.width * min, max);
-        } else {
-          width = Math.min(img.width / img.height * min, max);
-          height = min;
-        }
+          // compute thumbnail size
+          var min = MIN_THUMBNAIL_WIDTH_HEIGHT;
+          var max = MAX_THUMBNAIL_WIDTH_HEIGHT;
+          var width, height;
+          console.log('@@@ width = ' + img.width);
+          if (img.width < img.height) {
+            width = min;
+            height = Math.min(img.height / img.width * min, max);
+          } else {
+            width = Math.min(img.width / img.height * min, max);
+            height = min;
+          }
 
-        // turn this thumbnail into a dataURL
-        var canvas = document.createElement('canvas');
-        var ratio = Math.max(img.width / width, img.height / height);
-        canvas.width = Math.round(img.width / ratio);
-        canvas.height = Math.round(img.height / ratio);
-        var context = canvas.getContext('2d', { willReadFrequently: true });
-        context.drawImage(img, 0, 0, width, height);
-        var data = canvas.toDataURL(type);
+          // turn this thumbnail into a dataURL
+          var canvas = document.createElement('canvas');
+          var ratio = Math.max(img.width / width, img.height / height);
+          canvas.width = Math.round(img.width / ratio);
+          canvas.height = Math.round(img.height / ratio);
+          var context = canvas.getContext('2d', { willReadFrequently: true });
+          context.drawImage(img, 0, 0, width, height);
+          var data = canvas.toDataURL(type);
 
-        callback({
-          width: width,
-          height: height,
-          data: data
-        });
-      };
-      img.onerror = function onBlobError() {
-        callback({
-          width: MIN_THUMBNAIL_WIDTH_HEIGHT,
-          height: MIN_THUMBNAIL_WIDTH_HEIGHT,
-          error: true
-        });
-      };
+          callback({
+            width: width,
+            height: height,
+            data: data
+          });
+        };
+        img.onerror = function onBlobError() {
+          callback({
+            width: MIN_THUMBNAIL_WIDTH_HEIGHT,
+            height: MIN_THUMBNAIL_WIDTH_HEIGHT,
+            error: true
+          });
+        };
+      });
     },
 
     getAttachmentSrc: function(thumbnail, tmplID) {
