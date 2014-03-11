@@ -14,6 +14,7 @@
     "device-storage:pictures":{ "access": "readwrite" },
     "device-storage:videos":{ "access": "readwrite" },
     "settings":{ "access": "readonly" },
+    "permissions":{},
     "camera":{},
     "geolocation":{},
     "audio-channel-notification":{}

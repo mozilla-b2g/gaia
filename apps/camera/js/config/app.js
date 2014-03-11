@@ -3,6 +3,15 @@ define(function(require, exports, module) {
 
 module.exports = {
   showSettings: true,
+  indicators: {
+    enabled: {
+      hdr: true,
+      timer: true,
+      battery: true,
+      geolocation: true
+    }
+  },
+  
   mode: {
     title: 'Mode',
     options: [
@@ -242,19 +251,18 @@ module.exports = {
 
   settingsMenu: {
     items: [
-      // {
-      //   key: 'hdr'
-      // },
-      // {
-      //   key: 'scene'
-      // },
+      {
+        key: 'hdr'
+      },
+      {
+         key: 'scene'
+      },
       {
         key: 'grid'
-      }
-      // },
-      // {
-      //   key: 'timer'
-      // },
+      },
+      {
+        key: 'timer'
+      },
       // {
       //   key: 'pictureSizesBack',
       //   condition: { 'cameras': 'back' }

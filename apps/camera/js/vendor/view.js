@@ -146,6 +146,25 @@ define(function(require, exports, module) {
     return (function(value) { this.enable(key, value); }).bind(this);
   };
 
+  View.prototype.hide = function(key) {
+    key = key ? key + '-' : '';
+    this.el.classList.add(key + 'hidden');
+    this.el.classList.remove(key + 'visible');
+  };
+
+  View.prototype.show =  function(key) {
+    key = key ? key + '-' : '';
+    this.el.classList.remove(key + 'hidden');
+    this.el.classList.add(key + 'visible');
+  };
+
+  View.prototype.toggle = function(key, value) {
+    key = key ? key + '-' : '';
+    key = arguments.length === 1 && typeof key === 'boolean' ? '' : key;
+    this.el.classList.toggle(key + 'hidden', !value);
+    this.el.classList.toggle(key + 'visible', value);
+  };
+
   /**
    * Removes the element from
    * it's current context, firing
