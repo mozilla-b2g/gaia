@@ -1,3 +1,4 @@
+/* global mozContact */
 'use strict';
 
 var utils = window.utils || {};
@@ -24,11 +25,12 @@ if (!utils.misc) {
     }
     var dateFormat = _('dateFormat') || '%B %e';
     var f = new navigator.mozL10n.DateTimeFormat();
+    var dateString = null;
     try {
       var offset = date.getTimezoneOffset() * 60 * 1000;
       var normalizedDate = new Date(date.getTime() + offset);
       var dayMonthString = f.localeFormat(normalizedDate, dateFormat);
-      var dateString = _('dateOutput', {
+      dateString = _('dateOutput', {
         dayMonthFormatted: dayMonthString,
         year: year
       });

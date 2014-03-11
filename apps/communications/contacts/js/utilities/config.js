@@ -1,3 +1,5 @@
+'use strict';
+
 var utils = window.utils || {};
 
 if (typeof utils.config === 'undefined') {
