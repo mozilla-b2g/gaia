@@ -3,7 +3,8 @@
 
 /*global Template, Utils, Threads, Contacts, Threads,
          WaitingScreen, MozSmsFilter, MessageManager, TimeHeaders,
-         Drafts, Thread, ThreadUI, OptionMenu, ActivityPicker */
+         Drafts, Thread, ThreadUI, OptionMenu, ActivityPicker,
+         PerformanceTestingHelper */
 
 /*exported ThreadListUI */
 (function(exports) {
@@ -419,7 +420,10 @@ var ThreadListUI = {
   },
 
   renderThreads: function thlui_renderThreads(done) {
+    PerformanceTestingHelper.dispatch('will-render-threads');
+
     var hasThreads = false;
+    var firstPanelCount = 9; // counted on a Peak
 
     this.prepareRendering();
 
@@ -431,6 +435,9 @@ var ThreadListUI = {
       }
 
       this.appendThread(thread);
+      if (--firstPanelCount === 0) {
+        PerformanceTestingHelper.dispatch('above-the-fold-ready');
+      }
     }
 
     function onThreadsRendered() {
@@ -439,6 +446,8 @@ var ThreadListUI = {
       /* We set the view as empty only if there's no threads and no drafts,
        * this is done to prevent races between renering threads and drafts. */
       this.finalizeRendering(!(hasThreads || Drafts.size));
+
+      PerformanceTestingHelper.dispatch('startup-path-done');
     }
 
     var renderingOptions = {

@@ -80,6 +80,11 @@
   background: url(time_selector/images/ui/pattern-time.png);
 }
 
+[role="dialog"][data-type="time-selector"] .format12hrev .picker-bar-background {
+  left: 0;
+  right: auto;
+}
+
 #time-picker.format24h .picker-bar-background {
   display: none;
 }
@@ -106,6 +111,18 @@
   left: auto;
   right: 0;
   border: none;
+}
+
+[role="dialog"][data-type="time-selector"] .format12hrev .value-picker-hour24-wrapper {
+  left: 0;
+}
+
+[role="dialog"][data-type="time-selector"] .format12hrev .value-picker-hours-wrapper {
+  left: calc(100% / 3);
+}
+
+[role="dialog"][data-type="time-selector"] .format12hrev .value-picker-minutes-wrapper {
+  left: calc(100% * 2 / 3);
 }
 
 [role="dialog"][data-type="time-selector"] .format24h .value-picker-hours-wrapper,
@@ -157,6 +174,10 @@
   text-align: center;
   background-color: #00A5C5;
   pointer-events: none;
+}
+
+[role="dialog"][data-type="time-selector"] .format12hrev .value-indicator > .value-indicator-colon {
+  left: calc(100% / 3);
 }
 
 [role="dialog"][data-type="time-selector"] .format24h .value-indicator-colon {

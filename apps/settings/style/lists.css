@@ -459,3 +459,8 @@ html[dir="rtl"] ul li.bluetooth-device > a{
   padding-right: 1rem;
 }
 
+html[dir="rtl"] ul li > label.pack-checkbox > .color-preview:before {
+  margin-left: 1rem;
+  margin-right: -1rem;
+}
+

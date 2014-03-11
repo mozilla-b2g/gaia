@@ -56,7 +56,7 @@ var CallHandler = (function callHandler() {
         LazyL10n.get(function localized(_) {
           var title;
           if (navigator.mozIccManager.iccIds.length > 1) {
-            title = _('missedCallMultiSim', {n: serviceId + 1});
+            title = _('missedCallMultiSims', {n: serviceId + 1});
           } else {
             title = _('missedCall');
           }

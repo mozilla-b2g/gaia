@@ -403,10 +403,14 @@ this.fb = fb;
           window.console.warn('The datastore is empty and readonly');
         }
         return null;
-      }).then(function add_index_success(v) {
+      }).then(function add_index_success(result) {
         // Index is created in order not to cause errors
-        if (typeof v !== 'number') {
-          setIndex(v);
+        if (typeof result !== 'number') {
+          // Guaranteeing that treeTel is always an Array
+          if (!Array.isArray(result.treeTel)) {
+            result.treeTel = [];
+          }
+          setIndex(result);
         }
         revisionId = datastore.revisionId;
         notifyOpenSuccess(cb);

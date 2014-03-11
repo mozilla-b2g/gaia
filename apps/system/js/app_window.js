@@ -717,6 +717,17 @@
    */
   AppWindow.prototype.handleEvent = function aw_handleEvent(evt) {
     this.debug(' Handling ' + evt.type + ' event...');
+    // We are rendering inline activities inside this element too,
+    // so we need to prevent ourselves to be affected
+    // by the mozbrowser events of the callee.
+
+    // WebAPI testing is using mozbrowserloadend event to know
+    // the first app is loaded so we cannot stop the propagation here.
+    // XXX: Use this.bottomWindow to check if it has a layout parent instead
+    // in bug 916709.
+    if (this.CLASS_NAME == 'ActivityWindow') {
+      evt.stopPropagation();
+    }
     if (this['_handle_' + evt.type]) {
       this.debug(' Handling ' + evt.type + ' event...');
       this['_handle_' + evt.type](evt);
