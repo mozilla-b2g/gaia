@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
+    <meta charset="utf-8">
+    <title>FxA Sign-in Demo</title>
+    <link rel="stylesheet" type="text/css" href="/shared/style/buttons.css">
+    <link rel="stylesheet" type="text/css" href="../../style/API.css">
+    <link rel="stylesheet" type="text/css" href="../../style/API/identity.css">
+    <script type="text/javascript" src="../../js/API/fxa.js"></script>
+  </head>
+  <body>
+    <div class="panel">
+      <fieldset>
+        <legend>Request tests</legend>
+        <section>
+          <button id="request"><code>request()</code></button>
+          <button id="logout"><code>logout()</button>
+        </section>
+      </fieldset>
+    </div>
+    <div class="panel">
+      <fieldset>
+        <legend>Events</legend>
+        <ol id="event-stream">
+          <li>Page render</li>
+        </ol>
+      </fieldset>
+    </div>
+  </body>
+</html>
