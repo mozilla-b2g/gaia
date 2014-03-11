@@ -4,6 +4,11 @@
   overflow-x: hidden;
   will-change: scroll-position;
 }
+
+[data-mode="search"] .msg-list-scrollouter {
+  height: calc(100% - 13.5rem);
+}
+
 .msg-list-scrollinner {
   /* Give it a z-index of 0 so that all its contents are forced into a single stacking
      context. This simplifies display list construction because our many positioned
@@ -60,12 +65,21 @@ input.msg-search-text-tease {
   font-style: italic;
 }
 
+.vscroll-cachelist {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  overflow: hidden;
+  background-color: white;
+}
+
 /* Sections horizontally chop up the item: unread, details, icons, avatar.
  * We have 320 horizontal pixels to play with.
  */
 .msg-header-item {
   display: block;
-  position: relative;
+  position: absolute;
+  width: 100%;
   height: 8rem;
 }
 .msg-header-item:active {
@@ -477,7 +491,9 @@ input.msg-search-text-tease {
   * opaque background to optimize Gecko.
   * See Bug 962699. */
 .msg-messages-container {
-   background-color: #fff;
+  position: relative;
+  background-color: #fff;
+  overflow: hidden;
 }
 
 .msg-delete-btn {

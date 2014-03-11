@@ -2701,6 +2701,12 @@ MailAPI.prototype = {
   _fireSplice: function(splice, slice, transformedItems, fake) {
     var i, stopIndex, items, tempMsg;
 
+    // - update header count, but only if have a 0 or greater
+    // number value.
+    if (splice.headerCount > -1) {
+      slice.headerCount = splice.headerCount;
+    }
+
     // - generate slice 'onsplice' notification
     if (slice.onsplice) {
       try {

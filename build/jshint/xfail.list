@@ -107,7 +107,6 @@ apps/email/js/cards/account_picker.js
 apps/email/js/cards/account_prefs_mixins.js
 apps/email/js/cards/compose.js
 apps/email/js/cards/folder_picker.js
-apps/email/js/cards/message_list.js
 apps/email/js/cards/message_reader.js
 apps/email/js/cards/settings_account.js
 apps/email/js/cards/settings_account_credentials.js
@@ -127,13 +126,11 @@ apps/email/js/css.js
 apps/email/js/date.js
 apps/email/js/evt.js
 apps/email/js/folder_depth_classes.js
-apps/email/js/header_cursor.js
 apps/email/js/html_cache.js
 apps/email/js/html_cache_restore.js
 apps/email/js/iframe_shims.js
 apps/email/js/input_areas.js
 apps/email/js/l10n.js
-apps/email/js/mail_app.js
 apps/email/js/mail_common.js
 apps/email/js/marquee.js
 apps/email/js/message_list_topbar.js

@@ -1,3 +1,4 @@
+'use strict';
 var Email = require('./lib/email');
 var assert = require('assert');
 var serverHelper = require('./lib/server_helper');
@@ -17,7 +18,11 @@ function isHeaderButtonEnabled(button) {
 }
 
 marionette('email next previous', function() {
-  var app;
+  var app,
+      idsFromTop = [
+        '0/0/1',
+        '0/0/0'
+      ];
 
   var client = marionette.client({
     settings: {
@@ -39,45 +44,45 @@ marionette('email next previous', function() {
   });
 
   test('should grey out up when no message above', function() {
-    app.tapEmailAtIndex(0);
+    app.tapEmailWithId(idsFromTop[0]);
     var el = app.msgUpBtn;
     assert.ok(!isHeaderButtonEnabled(el));
   });
 
   test('should grey out down when no message below', function() {
-    app.tapEmailAtIndex(1);
+    app.tapEmailWithId(idsFromTop[1]);
     var el = app.msgDownBtn;
     assert.ok(!isHeaderButtonEnabled(el));
   });
 
   test('should not grey out up when message above', function() {
-    app.tapEmailAtIndex(1);
+    app.tapEmailWithId(idsFromTop[1]);
     var el = app.msgUpBtn;
     assert.ok(isHeaderButtonEnabled(el));
   });
 
   test('should not grey out down when message below', function() {
-    app.tapEmailAtIndex(0);
+     app.tapEmailWithId(idsFromTop[0]);
     var el = app.msgDownBtn;
     assert.ok(isHeaderButtonEnabled(el));
   });
 
   test('should move up when up tapped', function() {
-    app.tapEmailAtIndex(1);
+    app.tapEmailWithId(idsFromTop[1]);
     app.advanceMessageReader(true);
     var subject = app.getMessageReaderSubject();
     assert.strictEqual(subject, 'Two');
   });
 
   test('should move down when down tapped', function() {
-    app.tapEmailAtIndex(0);
+     app.tapEmailWithId(idsFromTop[0]);
     app.advanceMessageReader(false);
     var subject = app.getMessageReaderSubject();
     assert.strictEqual(subject, 'One');
   });
 
   test('should not move up when up tapped if greyed out', function() {
-    app.tapEmailAtIndex(0);
+     app.tapEmailWithId(idsFromTop[0]);
     try {
       app.advanceMessageReader(true);
     } catch (err) {
@@ -91,7 +96,7 @@ marionette('email next previous', function() {
   });
 
   test('should not move down when down tapped if greyed out', function() {
-    app.tapEmailAtIndex(1);
+    app.tapEmailWithId(idsFromTop[1]);
     try {
       app.advanceMessageReader(false);
     } catch (err) {
@@ -105,6 +110,17 @@ marionette('email next previous', function() {
   });
 
   suite('scroll', function() {
+    var idsFromTop = [
+      '0/0/7',
+      '0/0/6',
+      '0/0/5',
+      '0/0/4',
+      '0/0/3',
+      '0/0/2',
+      '0/0/1',
+      '0/0/0'
+    ];
+
     setup(function() {
       // We need more messages to exercise scrolling.
       app.sendAndReceiveMessages([
@@ -119,7 +135,7 @@ marionette('email next previous', function() {
 
     test('should scroll up when up tapped', function() {
       // Start by scrolling to the bottom of the scroll container.
-      var header = app.getHeaderAtIndex(7);
+      var header = app.getHeaderWithId(idsFromTop[7]);
       var offsetTop = header.getAttribute('offsetTop');
       client.executeScript(function(scrollTo) {
         var scrollContainer =
@@ -129,7 +145,7 @@ marionette('email next previous', function() {
 
       var scrollContainer = app.msgListScrollOuter;
       var initial = parseInt(scrollContainer.getAttribute('scrollTop'), 10);
-      app.tapEmailAtIndex(7);
+      app.tapEmailWithId(idsFromTop[7]);
 
       // Advance up to the first message.
       while (true) {
@@ -149,7 +165,7 @@ marionette('email next previous', function() {
     test('should scroll down when down tapped', function() {
       var scrollContainer = app.msgListScrollOuter;
       var initial = parseInt(scrollContainer.getAttribute('scrollTop'), 10);
-      app.tapEmailAtIndex(0);
+       app.tapEmailWithId(idsFromTop[0]);
 
       // Advance down to the last message.
       while (true) {
