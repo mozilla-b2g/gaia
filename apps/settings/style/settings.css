@@ -560,7 +560,7 @@ ul li > label.range-icons.brightness:before {
   display: block;
   background: url(images/feedback_faces.png);
   width: 10rem;
-  height: 10rem;
+  min-height: 10rem;
   background-repeat: no-repeat;
   background-color: transparent;
   background-size: 20rem;
@@ -572,6 +572,16 @@ ul li > label.range-icons.brightness:before {
 
 #feedback-mood li {
   display: inline-block;
+  max-width: 11rem;
+}
+
+.feedback-face-caption {
+  overflow: visible;
+  white-space: normal;
+  line-height: 2.6rem;
+  padding-top: 1rem;
+  min-height: 6rem;
+  height: auto;
 }
 
 #feedback-happy {
@@ -587,7 +597,8 @@ ul li > label.range-icons.brightness:before {
   background-position: 0;
 }
 
-#feedback-sad .feedback-choose-face{
+#feedback-sad .feedback-choose-face {
+  display: inline-block;
   background-position: 100%;
 }
 
