@@ -1,0 +1,12 @@
+{
+  "types": [
+    "wcdma/gsm",
+    "gsm",
+    "wcdma",
+    "wcdma/gsm-auto",
+    "cdma/evdo",
+    "cdma",
+    "evdo",
+    "wcdma/gsm/cdma/evdo"
+  ]
+}
