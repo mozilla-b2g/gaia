@@ -3,7 +3,6 @@ define(function(require, exports, module) {
 
 module.exports = {
   showSettings: true,
-  viewfinderFill: true,
   mode: {
     title: 'Mode',
     options: [
