@@ -809,7 +809,6 @@ apps/system/js/edge_swipe_detector.js
 apps/system/js/emergency_callback_manager.js
 apps/system/js/entry_sheet.js
 apps/system/js/ftu_launcher.js
-apps/system/js/home_gesture.js
 apps/system/js/homescreen_launcher.js
 apps/system/js/homescreen_window.js
 apps/system/js/icc.js
@@ -917,7 +916,6 @@ apps/system/test/unit/fxa_test/screens/fxam_refresh_auth_test.js
 apps/system/test/unit/fxa_test/screens/fxam_set_password_test.js
 apps/system/test/unit/fxa_test/screens/fxam_signin_success_test.js
 apps/system/test/unit/fxa_test/screens/fxam_signup_success_test.js
-apps/system/test/unit/home_gesture_test.js
 apps/system/test/unit/homescreen_launcher_test.js
 apps/system/test/unit/homescreen_window_test.js
 apps/system/test/unit/iac_handler_test.js
