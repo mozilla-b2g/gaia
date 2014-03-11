@@ -36,6 +36,7 @@ form[role="dialog"][data-type="edit"] header h1 {
   line-height: normal;
   color: #fff;
   font-size: 2.2rem;
+  font-style: italic;
   font-weight: 200;
   text-align: center;
   white-space: nowrap;

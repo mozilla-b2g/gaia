@@ -23,6 +23,7 @@ section[role="region"] > header:first-child h1 {
   line-height: normal;
   color: #fff;
   font-size: 2.2rem;
+  font-style: italic;
   font-weight: 200;
   text-align: center;
   white-space: nowrap;
