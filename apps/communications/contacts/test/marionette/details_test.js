@@ -1,3 +1,5 @@
+'use strict';
+
 var Contacts = require('./lib/contacts');
 var assert = require('assert');
 
@@ -35,8 +37,7 @@ marionette('Contacts > Details', function() {
         name = 'María Covadonga',
         duplicateFrame,
         mergeClose,
-        mergeAction,
-        bodyHeight = client.findElement(selectors.body).size().height;
+        mergeAction;
 
     for (var i = 1; i <= name.length; i++) {
       subject.addContact({

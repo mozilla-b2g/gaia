@@ -1,3 +1,6 @@
+'use strict';
+/* global MozActivity */
+
 var Contacts = require('./lib/contacts');
 var Dialer = require('../../../dialer/test/marionette/lib/dialer');
 var Sms = require('./lib/sms');
@@ -41,7 +44,7 @@ marionette('Contacts > Activities', function() {
       // Dialer keys don't work in b2g desktop for some reason yet,
       // So just manually fire off the activity
       client.executeScript(function() {
-        var activity = new MozActivity({
+        new MozActivity({
           name: 'new',
           data: {
             type: 'webcontacts/contact',
@@ -79,7 +82,7 @@ marionette('Contacts > Activities', function() {
       // Launch the activity directly as mozSms has problems
       // in b2g desktop.
       client.executeScript(function() {
-        var activity = new MozActivity({
+        new MozActivity({
           name: 'pick',
           data: {
             type: 'webcontacts/tel'
@@ -110,7 +113,7 @@ marionette('Contacts > Activities', function() {
       smsSubject.launch();
 
       client.executeScript(function() {
-        var activity = new MozActivity({
+        new MozActivity({
           name: 'pick',
           data: {
             type: 'webcontacts/tel'
