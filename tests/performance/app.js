@@ -1,5 +1,6 @@
 var fs = require('fs'),
-    util = require('util');
+    util = require('util'),
+    assert = require('assert');
 
 /* This is a helper to for perftesting apps. */
 function PerfTestApp(client, origin) {
@@ -102,7 +103,13 @@ PerfTestApp.prototype = {
     this.client.executeAsyncScript(
       this.PERFORMANCE_ATOM + '.waitForEvent("' + stopEventName +
         '", function() { marionetteScriptFinished(); });',
-      function() {
+      function(error) {
+
+        if (error) {
+          callback(null, error);
+          return;
+        }
+
         var runResults = client.executeScript(
           'return ' + self.PERFORMANCE_ATOM + '.getMeasurements();'
         );
