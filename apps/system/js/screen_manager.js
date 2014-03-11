@@ -106,6 +106,7 @@ var ScreenManager = {
   init: function scm_init() {
     window.addEventListener('sleep', this);
     window.addEventListener('wake', this);
+    window.addEventListener('reset-screen-idle-timeout', this);
     window.addEventListener('requestshutdown', this);
 
     // User is unlocking by sliding or other methods.
@@ -209,6 +210,10 @@ var ScreenManager = {
 
       case 'wake':
         this.turnScreenOn();
+        break;
+
+      case 'reset-screen-idle-timeout':
+        this.resetScreenIdleTimeout();
         break;
 
       case 'unlocking-start':
@@ -426,6 +431,23 @@ var ScreenManager = {
 
     this._reconfigScreenTimeout();
     this.fireScreenChangeEvent();
+
+    return true;
+  },
+
+  resetScreenIdleTimeout: function scm_resetScreenIdleTimeout() {
+    if (this.screenEnabled) {
+      if (this._inTransition) {
+        // Cancel the dim out
+        this._inTransition = false;
+        this.setScreenBrightness(this._savedBrightness, true);
+        this._reconfigScreenTimeout();
+      }
+      return false;
+    }
+
+    this.setScreenBrightness(this._savedBrightness, true);
+    this._reconfigScreenTimeout();
 
     return true;
   },

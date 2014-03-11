@@ -1,28 +1,36 @@
 'use strict';
 
+mocha.globals(['NfcManager', 'ScreenManager']);
+
 /* globals MocksHelper,
-           MozNDEFRecord, NfcBuffer, NDEF, NfcUtils, NfcManagerUtils */
+           MozNDEFRecord, NfcBuffer, NDEF, NfcUtils, NfcManagerUtils,
+           NfcManager, ScreenManager */
 
 require('/shared/test/unit/mocks/mock_moz_ndefrecord.js');
 require('/shared/js/nfc_utils.js');
+require('/test/unit/mock_screen_manager.js');
 requireApp('system/js/nfc_manager_utils.js');
+requireApp('system/js/nfc_manager.js');
 
-var mocksForNfcUtils = new MocksHelper([
-  'MozNDEFRecord'
+var mocksForMozNDEFRecord = new MocksHelper([
+  'MozNDEFRecord', 'ScreenManager'
 ]).init();
 
-suite('Nfc Utility functions', function() {
+suite('Nfc Manager Functions', function() {
 
-  mocksForNfcUtils.attachTestHelpers();
+  var sinon;
+  mocksForMozNDEFRecord.attachTestHelpers();
 
-  suiteSetup(function() {
+  setup(function() {
+    sinon = this.sinon;
   });
 
-  suite('nfc uint8array utils', function() {
+  suite('NFC Utils', function() {
+
     var string1;
     var uint8array1;
 
-    suiteSetup(function() {
+    setup(function() {
       string1 = 'StringTestString ABCDEFGHIJKLMNOPQRSTUVWXYZ';
       uint8array1 = new Uint8Array([0x53, 0x74, 0x72, 0x69, 0x6e, 0x67,
                                     0x54, 0x65, 0x73, 0x74,
@@ -68,7 +76,7 @@ suite('Nfc Utility functions', function() {
     var urlNDEF; // MozNDEFRecord
     var urlU8a; // Uint8Array
 
-    suiteSetup(function() {
+    setup(function() {
       var tnf     = NDEF.TNF_WELL_KNOWN;
       var type    = NDEF.RTD_URI;
       var id      = new Uint8Array(); // no id.
@@ -87,7 +95,7 @@ suite('Nfc Utility functions', function() {
                                0x03, // NDEF.URIS[0x03] = 'http://';
                                0x6d, 0x6f, 0x7a, 0x69, 0x6c, 0x6c, 0x61,
                                0x2e,
-                               0x6f, 0x72, 0x67]); // SR: mozilla.org
+                               0x6f, 0x72, 0x67]); // SR: mozilla.com
 
     });
 
@@ -159,6 +167,53 @@ suite('Nfc Utility functions', function() {
       assert.equal(equal1, true);
     });
 
+  });
+
+  // This mainly only tests that ScreenManager.called is modified
+  // as a side effect from calls in Technology Discovered and Lost.
+  suite('NFC Manager Power Handling Functions', function() {
+    var aUUID = '{4f4787c4-51f0-4288-8caf-55d440303b0b}';
+    var stubHandleEvent;
+
+    setup(function() {
+      ScreenManager.called = false;
+      ScreenManager.handleEvent = function(evt){};
+      stubHandleEvent = sinon.stub(ScreenManager, 'handleEvent', function(evt) {
+        switch (evt.type) {
+          case 'reset-screen-idle-timeout':
+            ScreenManager.called = true;
+          break;
+        }
+      });
+      window.addEventListener('reset-screen-idle-timeout', ScreenManager);
+    });
+
+    teardown(function() {
+      window.removeEventListener('reset-screen-idle-timeout', ScreenManager);
+    });
+
+    test('Technology Discovered: Reset Screen Idle', function() {
+      var command = {
+        sessionToken: aUUID,
+        techList: ['P2P'],
+        records: null
+      };
+
+      ScreenManager.called = false;
+      NfcManager.handleTechnologyDiscovered(command);
+      assert.isTrue(ScreenManager.called);
+    });
+
+    test('Technology Lost: Reset Screen Idle', function() {
+      var command = {
+        sessionToken: aUUID,
+        records: null
+      };
+
+      ScreenManager.called = false;
+      NfcManager.handleTechLost(command);
+      assert.isTrue(ScreenManager.called);
+    });
   });
 
 });
