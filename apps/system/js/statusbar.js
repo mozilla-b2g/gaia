@@ -268,17 +268,31 @@ var StatusBar = {
         this.setActive(evt.detail.screenEnabled);
         break;
 
-      case 'attentionscreenhide':
       case 'lock':
         // Hide the clock in the statusbar when screen is locked
         this.toggleTimeLabel(!window.lockScreen ||
             !window.lockScreen.locked);
         break;
 
-      case 'attentionscreenshow':
       case 'unlock':
         // Display the clock in the statusbar when screen is unlocked
         this.toggleTimeLabel(true);
+        break;
+
+      case 'attentionscreenshow':
+        // Display the clock in the statusbar when screen is unlocked
+        this.toggleTimeLabel(true);
+        this.show();
+        break;
+
+      case 'attentionscreenhide':
+        // Hide the clock in the statusbar when screen is locked
+        this.toggleTimeLabel(!window.lockScreen ||
+            !window.lockScreen.locked);
+        var app = AppWindowManager.getActiveApp();
+        if (app && app.isFullScreen()) {
+          this.hide();
+        }
         break;
 
       case 'utilitytrayshow':
