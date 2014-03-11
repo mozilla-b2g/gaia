@@ -175,7 +175,7 @@ module.exports = View.extend({
 
     // If the aspect ratio of the preview is wider (longer) than
     // the viewfinder container, use "aspect fill" (no black bars).
-    var aspectFill = this.fill || (aspects.preview > aspects.container);
+    var aspectFill = aspects.preview > aspects.container;
     var scaleType = aspectFill ? 'fill' : 'fit';
 
     // Calculate the correct scale to apply to the preview to
