@@ -250,4 +250,33 @@ suite('camera', function() {
       assert.ok(!('infinity' in this.camera.autoFocus));
     });
   });
+
+  suite('Camera#setISOMode()', function() {
+    setup(function() {
+      this.camera = {
+        mozCamera: {
+          capabilities: {
+            isoModes: ['auto', 'hjr', '100', '200', '400', '800', '1600']
+          },
+          isoMode: null
+        },
+        setISOMode: this.Camera.prototype.setISOMode
+      };
+    });
+
+    test('Should set the `isoMode` property to "auto"', function() {
+      var isoMode = 'auto';
+      this.camera.setISOMode(isoMode);
+
+      assert.ok(this.camera.mozCamera.isoMode === isoMode);
+    });
+
+    test('Should *NOT* set the `isoMode` property to "invalid"', function() {
+      var isoMode = 'invalid';
+      this.camera.setISOMode(isoMode);
+
+      assert.ok(this.camera.mozCamera.isoMode !== isoMode);
+    });
+  });
+
 });
