@@ -533,28 +533,34 @@ var KeypadManager = {
   },
 
   _callVoicemail: function kh_callVoicemail() {
-     var settings = navigator.mozSettings;
-     if (!settings) {
+    var settings = navigator.mozSettings;
+    if (!settings) {
       return;
-     }
-     var transaction = settings.createLock();
-     var request = transaction.get('ril.iccInfo.mbdn');
-     request.onsuccess = function() {
-       var number = request.result['ril.iccInfo.mbdn'];
-       var voicemail = navigator.mozVoicemail;
-       if (!number && voicemail) {
-         // TODO: remove this backward compatibility check
-         // after bug-814634 is landed
-         number = voicemail.number ||
-           voicemail.getNumber && voicemail.getNumber();
-       }
-       if (number) {
-         CallHandler.call(number);
-       }
-       // TODO: Bug 881178 - [Dialer] Invite the user to go set a voicemail
-       // number in the setting app.
-     };
-     request.onerror = function() {};
+    }
+    var transaction = settings.createLock();
+    var request = transaction.get('ril.iccInfo.mbdn');
+    request.onsuccess = function() {
+      var numbers = request.result['ril.iccInfo.mbdn'];
+      // TODO: We always use the first icc card here. It should honor the user
+      //       default voice sim card setting and which will be handled in
+      //       bug 978114.
+      var number;
+      if (typeof numbers == 'string') {
+        number = numbers;
+      } else {
+        number = numbers && numbers[0];
+      }
+      var voicemail = navigator.mozVoicemail;
+      if (!number && voicemail) {
+        number = voicemail.getNumber();
+      }
+      if (number) {
+        CallHandler.call(number);
+      }
+      // TODO: Bug 881178 - [Dialer] Invite the user to go set a voicemail
+      // number in the setting app.
+    };
+    request.onerror = function() {};
   },
 
   _observePreferences: function kh_observePreferences() {
