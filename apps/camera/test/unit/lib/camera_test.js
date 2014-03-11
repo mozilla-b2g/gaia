@@ -279,4 +279,32 @@ suite('camera', function() {
     });
   });
 
+  suite('Camera#setWhiteBalance()', function() {
+    setup(function() {
+      this.camera = {
+        mozCamera: {
+          capabilities: {
+            whiteBalanceModes: ['auto', 'cloudy', 'sunny', 'incandescen']
+          },
+          whiteBalanceMode: null
+        },
+        setWhiteBalance: this.Camera.prototype.setWhiteBalance
+      };
+    });
+
+    test('Should set the setWhiteBalance property to "auto"', function() {
+      var whiteBalanceMode = 'auto';
+      this.camera.setWhiteBalance(whiteBalanceMode);
+
+      assert.equal(this.camera.mozCamera.whiteBalanceMode, whiteBalanceMode);
+    });
+
+    test('Should *NOT* set the setWhiteBalance property to "invalid"', function() {
+      var whiteBalanceMode = 'invalid';
+      this.camera.setWhiteBalance(whiteBalanceMode);
+
+      assert.ok(this.camera.mozCamera.whiteBalanceMode !== whiteBalanceMode);
+    });
+  });
+
 });

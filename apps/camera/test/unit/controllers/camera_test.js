@@ -49,6 +49,7 @@ suite('controllers/camera', function() {
     this.app.settings.pictureSizes = sinon.createStubInstance(this.Setting);
     this.app.settings.recorderProfiles = sinon.createStubInstance(this.Setting);
     this.app.settings.flashModes = sinon.createStubInstance(this.Setting);
+    this.app.settings.whiteBalance = sinon.createStubInstance(this.Setting);
   });
 
   suite('CameraController()', function() {

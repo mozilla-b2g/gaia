@@ -105,6 +105,7 @@ CameraController.prototype.onSettingsConfigured = function() {
   var settings = this.app.settings;
   var recorderProfile = settings.recorderProfiles.selected('key');
   var pictureSize = settings.pictureSizes.selected('data');
+  this.setWhiteBalance();
   this.setFlashMode();
   this.setISO();
   this.camera
@@ -266,8 +267,15 @@ CameraController.prototype.onBlur = function() {
 };
 
 CameraController.prototype.setISO = function() {
-  if (this.settings.isoModes.get('disabled')) { return; }
-  this.camera.setISOMode(this.settings.isoModes.selected('key'));
+  if (!this.settings.isoModes.get('disabled')) {
+    this.camera.setISOMode(this.settings.isoModes.selected('key'));
+  }
+};
+
+CameraController.prototype.setWhiteBalance = function() {
+  if (!this.settings.whiteBalance.get('disabled')) {
+    this.camera.setWhiteBalance(this.settings.whiteBalance.selected('key'));
+  }
 };
 
 });

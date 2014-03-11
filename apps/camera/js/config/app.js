@@ -29,6 +29,17 @@ module.exports = {
     selected:'auto'
   },
 
+  whiteBalance: {
+    disabled: false,
+    options: [
+      {
+        key: 'auto',
+        title: 'Auto'
+      }
+    ],
+    selected:'auto'
+  },
+
   cameras: {
     title: 'Selected Camera',
     options: [
