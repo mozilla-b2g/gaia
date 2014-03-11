@@ -671,4 +671,17 @@ Camera.prototype.updateVideoElapsed = function() {
   this.set('videoElapsed', (now - start));
 };
 
+/**
+ * Set the mozCamera white-balance value.
+ *
+ * @param {String} value
+ */
+Camera.prototype.setWhiteBalance = function(value){
+  var capabilities = this.mozCamera.capabilities;
+  var modes = capabilities.whiteBalanceModes ;
+  if (modes && modes.indexOf(value) > -1) {
+    this.mozCamera.whiteBalanceMode = value;
+  }
+};
+
 });

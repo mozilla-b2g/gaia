@@ -250,4 +250,27 @@ suite('camera', function() {
       assert.ok(!('infinity' in this.camera.autoFocus));
     });
   });
+
+  suite('Camera#setWhiteBalance()', function() {
+    setup(function() {
+      this.mozCamera = {
+        capabilities: {
+        whiteBalanceModes: ['auto', 'cloudy', 'sunny', 'incandescen']
+        },
+        whiteBalanceMode: null
+      };
+      this.sandbox.stub(this.camera, 'mozCamera', this.mozCamera);
+      this.sandbox.stub(this.camera, 'get', function() {
+        return this.mozCamera.capabilities;
+      });
+    });
+
+    test('Should set the setWhiteBalance value "auto"', function() {
+      this.value = 'auto';
+      this.camera.setWhiteBalance(this.value);
+
+      assert.equal(this.camera.mozCamera.whiteBalanceMode, this.value);
+    });
+  });
+
 });

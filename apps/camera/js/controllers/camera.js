@@ -105,6 +105,7 @@ CameraController.prototype.onSettingsConfigured = function() {
   var settings = this.app.settings;
   var recorderProfile = settings.recorderProfiles.selected('key');
   var pictureSize = settings.pictureSizes.selected('data');
+  this.setWhiteBalance();
   this.setFlashMode();
   this.camera
     .setRecorderProfile(recorderProfile)
@@ -247,4 +248,9 @@ CameraController.prototype.onBlur = function() {
   debug('torn down');
 };
 
+CameraController.prototype.setWhiteBalance = function() {
+  if (!this.settings.whiteBalance.get('disabled')) {
+    this.camera.setWhiteBalance(this.settings.whiteBalance.selected('key'));
+  }
+};
 });
