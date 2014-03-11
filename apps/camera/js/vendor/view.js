@@ -129,8 +129,36 @@ define(function(require, exports, module) {
     this.el.setAttribute(toDashed(key), value);
   };
 
-  View.prototype.setter = function(key) {
-    return (function(value) { this.set(key, value); }).bind(this);
+  /**
+   * Returns a function that when called
+   * will .set() the given key.
+   *
+   * If a value is passed to .setter(),
+   * that value will always be used
+   * when the returned function is called.
+   * Else the value passed to the given
+   * function will be used.
+   *
+   * Example:
+   *
+   * var setter = this.setter('key', 'value');
+   * setter(); //=> this.set('key', 'value');
+   * setter('value2'); //=> this.set('key', 'value');
+   *
+   * var setter = this.setter('key');
+   * setter('value'); //=> this.set('key', 'value');
+   * setter(); //=> this.set('key');
+   *
+   * @param  {String} key
+   * @param  {*} value
+   * @return {Function}
+   */
+  View.prototype.setter = function(key, value) {
+    var self = this;
+    return function(_value) {
+      value = value !== undefined ? value : _value;
+      self.set(key, value);
+    };
   };
 
   View.prototype.enable = function(key, value) {
