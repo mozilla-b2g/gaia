@@ -334,6 +334,8 @@ var NotificationScreen = {
     var notifSelector = '[data-notification-id="' + detail.id + '"]';
     var oldNotif = this.container.querySelector(notifSelector);
     if (oldNotif) {
+      // close old notification first
+      this.fireCloseEvent(detail.id);
       // The whole node cannot be replaced because CSS animations are re-started
       oldNotif.replaceChild(title, oldNotif.querySelector('.title'));
       oldNotif.replaceChild(message, oldNotif.querySelector('.detail'));
@@ -449,18 +451,22 @@ var NotificationScreen = {
     return notificationNode;
   },
 
-  closeNotification: function ns_closeNotification(notificationNode) {
-    var notificationId = notificationNode.dataset.notificationId;
-    this.removeNotification(notificationNode.dataset.notificationId);
-  },
-
-  removeNotification: function ns_removeNotification(notificationId) {
+  fireCloseEvent: function ns_fireCloseEvent(notificationId) {
     var event = document.createEvent('CustomEvent');
     event.initCustomEvent('mozContentEvent', true, true, {
       type: 'desktop-notification-close',
       id: notificationId
     });
     window.dispatchEvent(event);
+  },
+
+  closeNotification: function ns_closeNotification(notificationNode) {
+    var notificationId = notificationNode.dataset.notificationId;
+    this.removeNotification(notificationNode.dataset.notificationId);
+  },
+
+  removeNotification: function ns_removeNotification(notificationId) {
+    this.fireCloseEvent(notificationId);
 
     var notifSelector = '[data-notification-id="' + notificationId + '"]';
     var notificationNode = this.container.querySelector(notifSelector);

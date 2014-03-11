@@ -80,6 +80,23 @@ marionette('notification tests', function() {
               'notification should be in list before calling close');
   });
 
+  test('replace notification should fire close event', function() {
+    var error = client.executeScript(function() {
+      var tag = 'Test tag' + Date.now();
+      var notification = new Notification('Test title', {
+        tag: tag
+      });
+
+      notification.onclose = function() {
+        MarionetteScriptFinished();
+      };
+
+      var replacement = new Notification('Test title 2', {
+        tag: tag
+      });
+    });
+  });
+
   // function to check if screen status is enabled/disabled
   var urls = {
     system: 'app://system.gaiamobile.org',
