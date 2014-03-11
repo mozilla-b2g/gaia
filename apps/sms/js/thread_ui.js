@@ -600,7 +600,11 @@ var ThreadUI = global.ThreadUI = {
     }
   },
 
-  onMessageSending: function thui_onMessageReceived(message) {
+  onMessageSending: function thui_onMessageSending(message) {
+    if (Threads.currentId !== message.threadId) {
+      return;
+    }
+
     this.onMessage(message);
     this.forceScrollViewToBottom();
   },
@@ -2101,9 +2105,18 @@ var ThreadUI = global.ThreadUI = {
     if (messageType === 'sms') {
       MessageManager.sendSMS(recipients, content[0], null, null,
         function onComplete(requestResult) {
+          var results = requestResult.return;
+
+          if (results.length === 1) {
+            var threadId = results[0].result.threadId;
+            if (Threads.currentId !== threadId) {
+              window.location.hash = '#thread=' + threadId;
+            }
+          }
+
           if (requestResult.hasError) {
             var errors = {};
-            requestResult.return.forEach(function(result) {
+            results.forEach(function(result) {
               if (result.success) {
                 return;
               }
@@ -2133,7 +2146,10 @@ var ThreadUI = global.ThreadUI = {
         content: smilSlides
       };
 
-      MessageManager.sendMMS(mmsMessage, null,
+      MessageManager.sendMMS(mmsMessage,
+        function onSuccess(message) {
+          window.location.hash = '#thread=' + message.threadId;
+        },
         function onError(error) {
           var errorName = error.name;
           if (errorName === 'NotFoundError') {

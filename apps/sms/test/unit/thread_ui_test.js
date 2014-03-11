@@ -23,7 +23,6 @@ requireApp('sms/js/thread_ui.js');
 requireApp('sms/js/thread_list_ui.js');
 requireApp('sms/js/fixed_header.js');
 requireApp('sms/js/utils.js');
-requireApp('sms/js/message_manager.js');
 require('/shared/js/async_storage.js');
 
 requireApp('sms/test/unit/mock_time_headers.js');
@@ -54,6 +53,7 @@ requireApp('sms/test/unit/mock_activity_handler.js');
 requireApp('sms/test/unit/mock_information.js');
 require('/test/unit/mock_contact_renderer.js');
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
+require('/test/unit/mock_message_manager.js');
 
 var mocksHelperForThreadUI = new MocksHelper([
   'Attachment',
@@ -75,7 +75,8 @@ var mocksHelperForThreadUI = new MocksHelper([
   'TimeHeaders',
   'ContactRenderer',
   'Information',
-  'ContactPhotoHelper'
+  'ContactPhotoHelper',
+  'MessageManager'
 ]);
 
 mocksHelperForThreadUI.init();
@@ -2355,7 +2356,6 @@ suite('thread_ui.js >', function() {
 
   suite('renderMessages()', function() {
     setup(function() {
-      // todo: use the MessageManager mock instead
       this.sinon.stub(MessageManager, 'getMessages');
       this.sinon.stub(MessageManager, 'markThreadRead');
       ThreadUI.renderMessages(1);
@@ -3026,7 +3026,6 @@ suite('thread_ui.js >', function() {
       ThreadUI.appendMessage(message);
 
       this.sinon.stub(window, 'confirm');
-      // TODO use MockMessageManager instead
       request = {};
       this.sinon.stub(MessageManager, 'getMessage').returns(request);
       this.sinon.stub(MessageManager, 'resendMessage');
@@ -3849,14 +3848,12 @@ suite('thread_ui.js >', function() {
 
   suite('Sending Behavior (onSendClick)', function() {
     var realComposeisEmpty;
-    var realMessageManager;
     var realEnableSend;
     var spy;
 
     suiteSetup(function() {
       realEnableSend = ThreadUI.enableSend;
       realComposeisEmpty = Compose.isEmpty;
-      realMessageManager = MessageManager;
 
       ThreadUI.enableSend = function() {
         ThreadUI.sendButton.disabled = false;
@@ -3865,123 +3862,137 @@ suite('thread_ui.js >', function() {
       Compose.isEmpty = function() {
         return false;
       };
-
-      var MockMessageManager = {
-        activity: {
-          recipients: []
-        }
-      };
-
-      ['sendMMS', 'sendSMS'].forEach(function(prop) {
-        MockMessageManager[prop] = function() {
-          MockMessageManager[prop].called = true;
-          MockMessageManager[prop].calledWith = [].slice.call(arguments);
-        };
-
-        MockMessageManager[prop].mSetup = function() {
-          MockMessageManager[prop].called = false;
-          MockMessageManager[prop].calledWith = null;
-        };
-
-        MockMessageManager[prop].mTeardown = function() {
-          delete MockMessageManager[prop].called;
-          delete MockMessageManager[prop].calledWith;
-        };
-      });
-
-      window.MessageManager = MockMessageManager;
     });
 
     suiteTeardown(function() {
       ThreadUI.enableSend = realEnableSend;
       Compose.isEmpty = realComposeisEmpty;
-      window.MessageManager = realMessageManager;
-      realMessageManager = null;
     });
 
     setup(function() {
       window.location.hash = '#new';
-      MessageManager.sendMMS.mSetup();
-      MessageManager.sendSMS.mSetup();
+      this.sinon.stub(MessageManager, 'sendSMS');
+      this.sinon.stub(MessageManager, 'sendMMS');
+
     });
 
-    teardown(function() {
-      MessageManager.sendMMS.mTeardown();
-      MessageManager.sendSMS.mTeardown();
-    });
+    test('SMS, 1 Recipient, moves to thread', function() {
+      var body = 'foo';
+      var recipient = '999';
 
-    test('SMS, 1 Recipient, stays in view', function() {
       ThreadUI.recipients.add({
-        number: '999'
+        number: recipient
       });
 
-      Compose.append('foo');
+      Compose.append(body);
 
       ThreadUI.onSendClick();
 
-      var calledWith = MessageManager.sendSMS.calledWith;
-      assert.ok(MessageManager.sendSMS.called);
-      assert.deepEqual(calledWith[0], ['999']);
-      assert.deepEqual(calledWith[1], 'foo');
-      assert.equal(window.location.hash, '#new');
+      sinon.assert.calledWithMatch(MessageManager.sendSMS, [recipient], body);
+
+      var sentMessage = MockMessages.sms({
+        body: body,
+        receiver: recipient
+      });
+
+      MessageManager.sendSMS.yield({
+        hasError: false,
+        return: [{
+          success: true,
+          result: sentMessage,
+          recipient: recipient
+        }]
+      });
+
+      assert.equal(window.location.hash, '#thread=' + sentMessage.threadId);
     });
 
-    test('MMS, 1 Recipient, stays in view', function() {
+    test('MMS, 1 Recipient, moves to thread', function() {
+      var recipient = '999';
+
       ThreadUI.recipients.add({
-        number: '999'
+        number: recipient
       });
 
       Compose.append(mockAttachment(512));
 
       ThreadUI.onSendClick();
 
-      assert.ok(MessageManager.sendMMS.called);
-      assert.deepEqual(MessageManager.sendMMS.calledWith[0].recipients,
-                       ['999']);
-      assert.equal(window.location.hash, '#new');
+      sinon.assert.calledWithMatch(MessageManager.sendMMS, {
+        recipients: [recipient]
+      });
+
+      var sentMessage = MockMessages.mms();
+      MessageManager.sendMMS.yield(sentMessage);
+
+      assert.equal(window.location.hash, '#thread=' + sentMessage.threadId);
     });
 
-    test('SMS, >1 Recipient, moves to thread list', function(done) {
+    test('SMS, >1 Recipient, moves to thread list', function() {
+      var recipients = ['999', '888'];
+      var body = 'foo';
 
-      ThreadUI.recipients.add({
-        number: '999'
+      recipients.forEach(function(recipient) {
+        ThreadUI.recipients.add({
+          number: recipient
+        });
       });
-      ThreadUI.recipients.add({
-        number: '888'
-      });
 
-      Compose.append('foo');
-
-      window.onhashchange = function() {
-        assert.equal(window.location.hash, '#thread-list');
-        window.onhashchange = null;
-        done();
-      };
+      Compose.append(body);
 
       ThreadUI.onSendClick();
 
-      var calledWith = MessageManager.sendSMS.calledWith;
-      assert.ok(MessageManager.sendSMS.called);
-      assert.deepEqual(calledWith[0], ['999', '888']);
-      assert.deepEqual(calledWith[1], 'foo');
+      sinon.assert.calledWithMatch(
+        MessageManager.sendSMS,
+        recipients,
+        body
+      );
+
+      var returnValue = recipients.map(function(recipient) {
+        var sentMessage = MockMessages.sms({
+          body: body,
+          receiver: recipient
+        });
+
+        return {
+          success: true,
+          result: sentMessage,
+          recipient: recipient
+        };
+      });
+
+      MessageManager.sendSMS.yield({
+        hasError: false,
+        return: returnValue
+      });
+
+      assert.equal(window.location.hash, '#thread-list');
     });
 
-    test('MMS, >1 Recipient, stays in view', function() {
-      ThreadUI.recipients.add({
-        number: '999'
-      });
-      ThreadUI.recipients.add({
-        number: '888'
+    test('MMS, >1 Recipient, moves to thread', function() {
+      var recipients = ['999', '888'];
+
+      recipients.forEach(function(recipient) {
+        ThreadUI.recipients.add({
+          number: recipient
+        });
       });
 
       Compose.append(mockAttachment(512));
 
       ThreadUI.onSendClick();
 
-      assert.ok(MessageManager.sendMMS.called);
-      assert.deepEqual(MessageManager.sendMMS.calledWith[0].recipients,
-                       ['999', '888']);
       assert.equal(window.location.hash, '#new');
+      sinon.assert.calledWithMatch(MessageManager.sendMMS, {
+        recipients: recipients
+      });
+
+      var sentMessage = MockMessages.mms({
+        receivers: recipients
+      });
+      MessageManager.sendMMS.yield(sentMessage);
+
+      assert.equal(window.location.hash, '#thread=' + sentMessage.threadId);
     });
 
     test('Deletes draft if there was a draft', function() {
@@ -4019,7 +4030,6 @@ suite('thread_ui.js >', function() {
 
     suite('sendMMS errors', function() {
       setup(function() {
-        this.sinon.spy(MessageManager, 'sendMMS');
         this.sinon.spy(MockErrorDialog.prototype, 'show');
 
         ThreadUI.recipients.add({
@@ -4898,4 +4908,36 @@ suite('thread_ui.js >', function() {
       assert.isTrue(!mainWrapper.classList.contains('edit'));
     });
   });
+
+  suite('onMessageSending()', function() {
+    setup(function() {
+      this.sinon.stub(ThreadUI, 'appendMessage');
+
+      window.location.hash = '#thread=1';
+    });
+
+    teardown(function() {
+      Threads.clear();
+    });
+
+
+    test('should append message if the user is in correct thread', function() {
+      var message = MockMessages.sms({
+        threadId: 1
+      });
+
+      ThreadUI.onMessageSending(message);
+      sinon.assert.called(ThreadUI.appendMessage);
+    });
+
+    test('should do nothing if the user is not in correct thread', function() {
+      var message = MockMessages.sms({
+        threadId: 2
+      });
+
+      ThreadUI.onMessageSending(message);
+      sinon.assert.notCalled(ThreadUI.appendMessage);
+    });
+  });
+
 });

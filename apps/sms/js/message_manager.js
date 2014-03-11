@@ -50,15 +50,10 @@ var MessageManager = {
 
   onMessageSending: function mm_onMessageSending(e) {
     var message = e.message;
-    var threadId = message.threadId;
 
     Threads.registerMessage(message);
 
-    if (threadId === Threads.currentId) {
-      ThreadUI.onMessageSending(message);
-    } else {
-      window.location.hash = '#thread=' + threadId;
-    }
+    ThreadUI.onMessageSending(message);
     ThreadListUI.onMessageSending(message);
   },
 
