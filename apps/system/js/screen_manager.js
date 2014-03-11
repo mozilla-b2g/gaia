@@ -106,6 +106,8 @@ var ScreenManager = {
   init: function scm_init() {
     window.addEventListener('sleep', this);
     window.addEventListener('wake', this);
+    window.addEventListener('nfc-tech-discovered', this);
+    window.addEventListener('nfc-tech-lost', this);
     window.addEventListener('requestshutdown', this);
 
     // User is unlocking by sliding or other methods.
@@ -209,6 +211,11 @@ var ScreenManager = {
 
       case 'wake':
         this.turnScreenOn();
+        break;
+
+      case 'nfc-tech-discovered':
+      case 'nfc-tech-lost':
+        this._reconfigScreenTimeout();
         break;
 
       case 'unlocking-start':
