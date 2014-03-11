@@ -20,6 +20,7 @@ var lastTouchA = null;
 var lastTouchB = null;
 var isScaling = false;
 var scale = 1.0;
+
 var scaleSizeTo = {
   fill: CameraUtils.scaleSizeToFillViewport,
   fit: CameraUtils.scaleSizeToFitViewport
@@ -62,6 +63,7 @@ return View.extend({
   initialize: function() {
     this.render();
     bind(this.el, 'click', this.onClick);
+    bind(this.el, 'touchstart', this.onTouchStart);
     this.els.video.autoplay = true;
   },
 
@@ -82,7 +84,71 @@ return View.extend({
       lastTouchA = evt.touches[0];
       lastTouchB = evt.touches[1];
       isScaling = true;
+    } else if (touchCount === 1) {
+      focusPoint = evt.touches[0];
+      this.findFocusArea(focusPoint.pageX, focusPoint.pageY);
     }
+  },
+
+  /**
+  * Scale the point to fit focus area
+  * defined by camera coordinate system.
+  *
+  **/
+  findFocusArea: function(pointX, pointY) {
+    // In camera coordinate system,
+    // (-1000, -1000) represents the
+    // top-left of the camera field of
+    // view, and (1000, 1000) represents
+    // the bottom-right of the field of
+    // view. So, the Focus area should
+    // start at -1000 and end at -1000.
+    var MIN = -1000;
+    var MAX =  1000;
+
+    // Using Square Focus area
+    var FOCUS_AREA_HALF_SIDE = 50;
+
+    // as per gecko left, top: -1000
+    // right and bottom: 1000.
+    var focusAreaSize = MAX - MIN;
+
+    // For smaller and square image and video
+    // resolutions add the offset.
+    var sw = focusAreaSize / (this.els.frame.clientWidth +
+      (this.el.clientWidth - this.els.frame.clientWidth));
+    var sh = focusAreaSize / (this.els.frame.clientHeight +
+      (this.el.clientHeight - this.els.frame.clientHeight));
+
+    // As per camera coordinate system the
+    // values of focus region is fixed.
+    var horizontalMargin = FOCUS_AREA_HALF_SIDE * sw;
+    var VerticalMargin = FOCUS_AREA_HALF_SIDE * sh;
+
+    // Apply scaling on each
+    // row and column
+    var cx = MIN + pointX * sw;
+    var cy = MIN + pointY * sh;
+
+    // Emit event with new focus point and rect.
+    // Set left, right, top, bottom of rect
+    // and check boundary conditions
+    this.emit('focuspointchange', { x: pointX, y: pointY }, {
+      left: clamp(cx - horizontalMargin),
+      right: clamp(cx + horizontalMargin),
+      top: clamp(cy - VerticalMargin),
+      bottom: clamp(cy + VerticalMargin)
+    });
+
+    function clamp (position) {
+      if (position < MIN) {
+        position = MIN;
+      } else if (position > MAX) {
+        position = MAX;
+      }
+      return position;
+    }
+
   },
 
   onTouchMove: function(evt) {

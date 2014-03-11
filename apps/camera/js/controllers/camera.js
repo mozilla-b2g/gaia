@@ -202,6 +202,9 @@ CameraController.prototype.showSizeLimitAlert = function() {
 CameraController.prototype.setMode = function(mode) {
   this.setFlashMode();
   this.camera.setMode(mode).configure();
+  this.camera.disableAutoFocusMove();
+  this.camera.setContinuousAutoFocus();
+  this.camera.enableAutoFocusMove();
 };
 
 CameraController.prototype.setPictureSize = function(value) {
