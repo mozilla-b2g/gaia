@@ -252,6 +252,14 @@ var ThreadUI = global.ThreadUI = {
       'mousedown', this.requestContact.bind(this)
     );
 
+    // Avoid click event propagate to recipient view, otherwise Recipients.View
+    // constructor will attach click event on the messages-to-field element.
+    this.contactPickButton.addEventListener(
+      'click', function onClick(event) {
+        event.stopPropagation();
+      }
+    );
+
     navigator.mozContacts.addEventListener(
       'contactchange',
       this.updateHeaderData.bind(this)

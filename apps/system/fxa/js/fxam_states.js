@@ -1,6 +1,9 @@
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
+/* global FxaModuleNavigation */
+/* exported FxaModuleStates */
+
 'use strict';
 
 /*
@@ -36,6 +39,10 @@ var FxaModuleStates = (function() {
       id: 'fxa-refresh-auth',
       module: 'FxaModuleRefreshAuth'
     },
+    COPPA: {
+      id: 'fxa-coppa',
+      module: 'FxaModuleCoppa'
+    },
     TOS: {
       id: 'fxa-tos'
     },
@@ -47,7 +54,9 @@ var FxaModuleStates = (function() {
       FxaModuleNavigation.back();
     },
     setState: function setState(state) {
-      if ((! state in this) || typeof state === 'function') return;
+      if ( !(state in this) || typeof state === 'function') {
+        return;
+      }
       document.location.hash = state.id;
     }
   };

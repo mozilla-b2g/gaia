@@ -31,11 +31,19 @@ function MediaPlaybackWidget(container, options) {
   // about doing something similar, step away from your keyboard immediately.
   window.addEventListener('appterminated', function(event) {
     if (event.detail.origin === this.origin)
-      this.container.hidden = true;
+      this.hidden = true;
   }.bind(this));
 }
 
 MediaPlaybackWidget.prototype = {
+  get hidden() {
+    return this.container.hidden;
+  },
+
+  set hidden(value) {
+    return this.container.hidden = value;
+  },
+
   handleMessage: function mpw_handleMessage(event) {
     var message = event.detail;
     switch (message.type) {
@@ -93,15 +101,21 @@ MediaPlaybackWidget.prototype = {
   updatePlaybackStatus: function mp_updatePlaybackStatus(status) {
     switch (status.playStatus) {
       case 'PLAYING':
-        this.container.hidden = false;
+        this.hidden = false;
         this.playPauseButton.classList.remove('is-paused');
         break;
       case 'PAUSED':
-        this.container.hidden = false;
+        this.hidden = false;
         this.playPauseButton.classList.add('is-paused');
         break;
       case 'STOPPED':
-        this.container.hidden = true;
+        this.hidden = true;
+        break;
+      case 'mozinterruptbegin':
+        this.hidden = true;
+        break;
+      case 'mozinterruptend':
+        this.hidden = false;
         break;
     }
   },

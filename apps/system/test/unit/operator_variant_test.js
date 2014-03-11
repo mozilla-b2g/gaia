@@ -74,7 +74,7 @@ suite('Operator variant', function() {
     { key: 'ril.mms.mmsproxy', value: '127.0.0.1' },
     { key: 'ril.mms.mmsport', value: '8080' },
     { key: 'ril.data.carrier', value: 'Test Network' },
-    { key: 'ril.iccInfo.mbdn', value: '999999' },
+    { key: 'ril.iccInfo.mbdn', value: ['999999'] },
     { key: 'ril.cellbroadcast.searchlist', value: '0,1,2,3' }
   ];
 

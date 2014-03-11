@@ -99,14 +99,6 @@ var CallSettings = (function(window, document, undefined) {
           }
           cs_refreshCallSettingItems();
           break;
-        case '#call-voiceMailSettings':
-          // If current panel is 'Voicemail Settings', focus input field to
-          // trigger showing the keyboard
-          var voicemailNumberInput = document.getElementById('vm-number');
-          var cursorPos = voicemailNumberInput.value.length;
-          voicemailNumberInput.focus();
-          voicemailNumberInput.setSelectionRange(0, cursorPos);
-          break;
       }
     });
 
@@ -124,9 +116,9 @@ var CallSettings = (function(window, document, undefined) {
    * Refresh the items in the call setting panel.
    */
   function cs_refreshCallSettingItems() {
+    cs_updateVoiceMailItemState();
+    cs_updateFdnStatus();
     if (!_updatingInProgress) {
-      cs_updateVoiceMailItemState();
-      cs_updateFdnStatus();
       cs_updateCallerIdItemState(
         function panelready_updateCallerIdItemState() {
           cs_updateCallWaitingItemState(
@@ -159,8 +151,9 @@ var CallSettings = (function(window, document, undefined) {
    */
   function cs_setToSettingsDB(settingKey, value, callback) {
     var done = function done() {
-      if (callback)
+      if (callback) {
         callback();
+      }
     };
 
     var getLock = _settings.createLock();
@@ -289,15 +282,17 @@ var CallSettings = (function(window, document, undefined) {
               runTask: function(func) {
                 this.taskCount++;
                 var newArgs = [];
-                for (var i = 1; i < arguments.length; i++)
+                for (var i = 1; i < arguments.length; i++) {
                   newArgs.push(arguments[i]);
+                }
                 newArgs.push(this.complete.bind(this));
                 func.apply(window, newArgs);
               },
               complete: function() {
                 this.taskCount--;
-                if (this.taskCount == 0)
+                if (this.taskCount === 0) {
                   this.finish();
+                }
               },
               finish: function() {
                 setTimeout(function() {
@@ -369,7 +364,7 @@ var CallSettings = (function(window, document, undefined) {
       mobileBusy.onerror = onerror;
     };
     unconditional.onerror = onerror;
-  };
+  }
 
   /**
    *
@@ -387,7 +382,7 @@ var CallSettings = (function(window, document, undefined) {
           return;
         }
         // Bails out in case the reason is already enabled/disabled.
-        if (_cfReasonStates[_cfReasonMapping[key]] == event.settingValue) {
+        if (_cfReasonStates[_cfReasonMapping[key]] === event.settingValue) {
           return;
         }
         var selector = 'input[data-setting="ril.cf.' + key + '.number"]';
@@ -444,18 +439,19 @@ var CallSettings = (function(window, document, undefined) {
    * Get the message to show after setting up call forwarding.
    */
   function cs_getSetCallForwardingOptionResult(rules, action) {
+    var message;
     for (var i = 0; i < rules.length; i++) {
       if (rules[i].active &&
           ((_voiceServiceClassMask & rules[i].serviceClass) != 0)) {
-        var disableAction = action == _cfAction.CALL_FORWARD_ACTION_DISABLE;
-        var message = disableAction ?
+        var disableAction = action === _cfAction.CALL_FORWARD_ACTION_DISABLE;
+        message = disableAction ?
           _('callForwardingSetForbidden') : _('callForwardingSetSuccess');
         return message;
       }
     }
     var registrationAction =
-      action == _cfAction.CALL_FORWARD_ACTION_REGISTRATION;
-    var message = registrationAction ?
+      action === _cfAction.CALL_FORWARD_ACTION_REGISTRATION;
+    message = registrationAction ?
       _('callForwardingSetError') : _('callForwardingSetSuccess');
     return message;
   }
@@ -725,69 +721,64 @@ var CallSettings = (function(window, document, undefined) {
    *
    */
   function cs_updateVoiceMailItemState() {
-    var element = document.getElementById('voiceMail-desc');
-    if (!element) {
-      return;
-    }
+    var voiceMailMenuItem = document.getElementById('voiceMail-desc');
+    var targetIndex = DsdsSettings.getIccCardIndexForCallSettings();
 
-    // XXX: Take care of voicemail settings for multi ICC card devices. See bug
-    // 960387 please.
-    var transaction = _settings.createLock();
-    var request = transaction.get('ril.iccInfo.mbdn');
-    request.onsuccess = function() {
-       var number = request.result['ril.iccInfo.mbdn'];
-
-       if (number) {
-         element.textContent = number;
-         return;
-       }
-       var voicemail = navigator.mozVoicemail;
-       if (voicemail) {
-         number = voicemail.number ||
-           voicemail.getNumber && voicemail.getNumber();
-
-         if (number) {
-           element.textContent = number;
-           cs_setToSettingsDB('ril.iccInfo.mbdn', number, null);
-         } else {
-           element.textContent = _('voiceMail-number-notSet');
-         }
-         return;
-       }
-       element.textContent = _('voiceMail-number-notSet');
-    };
-    request.onerror = function() {};
+    voiceMailMenuItem.textContent = '';
+    Settings.getSettings(function(results) {
+      var numbers = results['ril.iccInfo.mbdn'];
+      var number = numbers[targetIndex];
+      if (number) {
+        localize(voiceMailMenuItem, null);
+        voiceMailMenuItem.textContent = number;
+      } else {
+        localize(voiceMailMenuItem, 'voiceMail-number-notSet');
+      }
+    });
   }
 
   /**
    *
    */
   function cs_initVoiceMailSettings() {
-    _settings.addObserver('ril.iccInfo.mbdn', function(event) {
-      cs_updateVoiceMailItemState();
-    });
-    var transaction = _settings.createLock();
-    var request = transaction.get('ril.iccInfo.mbdn');
-    request.onsuccess = function() {
-      var number = request.result['ril.iccInfo.mbdn'];
+    // update all voice numbers if necessary
+    Settings.getSettings(function(results) {
+      var settings = navigator.mozSettings;
       var voicemail = navigator.mozVoicemail;
-      // If the voicemail number has not been stored into the database yet we
-      // check whether the number is provided by the mozVoicemail API. In
-      // that case we store it into the setting database.
-      if (!number && voicemail) {
-         // TODO: remove this backward compatibility check
-         // after bug-814634 is landed
-        var voicemailNumber = voicemail.number ||
-          voicemail.getNumber && voicemail.getNumber();
+      var updateVMNumber = false;
+      var numbers = results['ril.iccInfo.mbdn'] || [];
 
-        if (voicemailNumber) {
-          cs_setToSettingsDB('ril.iccInfo.mbdn', voicemailNumber, null);
+      Array.prototype.forEach.call(_mobileConnections, function(conn, index) {
+        var number = numbers[index];
+        // If the voicemail number has not been stored into the database yet we
+        // check whether the number is provided by the mozVoicemail API. In
+        // that case we store it into the setting database.
+        if (!number && voicemail) {
+          number = voicemail.getNumber(index);
+          if (number) {
+            updateVMNumber = true;
+            numbers[index] = number;
+          }
         }
-        return;
+      });
+
+      if (updateVMNumber) {
+        var req = settings.createLock().set({
+          'ril.iccInfo.mbdn': numbers
+        });
+        req.onsuccess = function() {
+          cs_updateVoiceMailItemState();
+          settings.addObserver('ril.iccInfo.mbdn', function() {
+            cs_updateVoiceMailItemState();
+          });
+        };
+      } else {
+        cs_updateVoiceMailItemState();
+        settings.addObserver('ril.iccInfo.mbdn', function() {
+          cs_updateVoiceMailItemState();
+        });
       }
-      cs_updateVoiceMailItemState();
-    };
-    request.onerror = function() {};
+    });
   }
 
   /**
@@ -848,12 +839,12 @@ var CallSettings = (function(window, document, undefined) {
    *
    */
   function cs_updateFdnStatus() {
-    // TODO: Add support for FDN feauture on multi ICC card devices.
-    if (!IccHelper) {
+    var iccObj = getIccByIndex();
+    if (!iccObj) {
       return;
     }
 
-    var req = IccHelper.getCardLock('fdn');
+    var req = iccObj.getCardLock('fdn');
     req.onsuccess = function spl_checkSuccess() {
       var enabled = req.result.enabled;
 

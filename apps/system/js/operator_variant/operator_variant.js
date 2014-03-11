@@ -124,6 +124,7 @@
               (function onFinishCb(filteredApnList) {
                 this.buildApnSettings(filteredApnList);
             }).bind(this));
+            this.applyVoicemailSettings(result, /*isUpdate*/ true);
           }).bind(this)
         );
       }
@@ -329,6 +330,9 @@
           var name = apnPrefNames[type][key];
           var item = {};
           switch (name) {
+            case 'voicemail':
+              this.applyVoicemailSettings(result, /*isUpdate*/ false);
+              break;
             // load values from the AUTH_TYPES
             case 'authtype':
               item[key] = apn[name] ? AUTH_TYPES[apn[name]] : 'notDefined';
@@ -347,7 +351,10 @@
               }
               break;
           }
-          transaction.set(item);
+
+          if (Object.keys(item)) {
+            transaction.set(item);
+          }
         }
       }
 
@@ -355,6 +362,62 @@
         (function onFinishCb(filteredApnList) {
           this.buildApnSettings(filteredApnList);
       }).bind(this));
+    },
+
+    /**
+     * Store the voicemail settings into the settings database.
+     *
+     * @param {Array} allSettings Carrier settings.
+     * @param {Boolean} isUpdate Flag. First run after flashing or updating.
+     */
+    applyVoicemailSettings:
+      function ovh_applyVoicemailSettings(allSettings, isUpdate) {
+        var operatorVariantSettings = {};
+        for (var i = 0; i < allSettings.length; i++) {
+          if (allSettings[i] &&
+              allSettings[i].type.indexOf('operatorvariant') != -1) {
+            operatorVariantSettings = allSettings[i];
+            break;
+          }
+        }
+
+        // Load the voicemail number stored in the apn.json database.
+        var number = operatorVariantSettings['voicemail'] || '';
+
+        // Store settings into the database.
+        var settings = window.navigator.mozSettings;
+        var transaction = settings.createLock();
+
+        var request = transaction.get('ril.iccInfo.mbdn');
+        request.onsuccess = (function() {
+          var result = request.result['ril.iccInfo.mbdn'];
+
+          if (!result) {
+            // First boot after flashing the device.
+            result = ['', ''];
+            result[this._iccCardIndex] = number;
+          } else if (!Array.isArray(result)) {
+            // Might be a first boot after a system update.
+            result = ['', ''];
+            if (!isUpdate) {
+              // First boot after flashing the device.
+              result[this._iccCardIndex] = number;
+            } else {
+              // Actually it is a system update. Do not overrite number and keep
+              // it as the voice number for first ICC card.
+              if (result !== number) {
+                result[0] = result;
+              } else {
+                result[0] = number;
+              }
+            }
+          } else {
+            // First boot after a new ICC card is inserted.
+            result[this._iccCardIndex] = number;
+          }
+
+          transaction.set({'ril.iccInfo.mbdn': result});
+        }).bind(this);
     },
 
     /**

@@ -1,6 +1,10 @@
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
+/* global FxaModuleStates, FxaModuleUI, FxaModule, FxaModuleNavigation,
+   FxModuleServerRequest, FxaModuleOverlay, FxaModuleManager, FtuLauncher */
+/* exported FxaModuleEnterPassword */
+
 'use strict';
 
 /**
@@ -40,11 +44,13 @@ var FxaModuleEnterPassword = (function() {
   }
 
   function _togglePasswordVisibility() {
+    /*jshint validthis:true*/
     var passwordFieldType = !!this.fxaShowPw.checked ? 'text' : 'password';
     this.fxaPwInput.setAttribute('type', passwordFieldType);
   }
 
   function _forgotPassword() {
+    /*jshint validthis:true*/
     var self = this;
     if (FtuLauncher.isFtuRunning()) {
       return self.showErrorResponse({

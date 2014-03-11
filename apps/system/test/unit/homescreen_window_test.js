@@ -83,14 +83,12 @@ suite('system/HomescreenWindow', function() {
         stubIsActive.returns(true);
 
         homescreenWindow.handleEvent({
-          type: 'mozbrowserclose',
-          stopImmediatePropagation: function() {}
+          type: 'mozbrowserclose'
         });
         assert.isTrue(stubRestart.calledOnce);
 
         homescreenWindow.handleEvent({
           type: 'mozbrowsererror',
-          stopImmediatePropagation: function() {},
           detail: {
             type: 'fatal'
           }

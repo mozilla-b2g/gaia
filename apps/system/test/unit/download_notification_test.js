@@ -97,11 +97,15 @@ suite('system/DownloadNotification >', function() {
     test('The download failed', function() {
       assert.isFalse(NotificationScreen.addNotification.called);
       download.state = 'stopped';
-      download.error = {};
+      download.error = {
+        name: 'DownloadError'
+      };
       download.onstatechange();
       assertUpdatedNotification(download, 'failed');
       assert.isUndefined(MockStatusBar.wasMethodCalled['incSystemDownloads']);
       assert.ok(MockStatusBar.wasMethodCalled['decSystemDownloads']);
+      assert.equal(DownloadHelper.methodCalled, 'getFreeSpace');
+      assert.isNull(DownloadUI.methodCalled);
     });
 
     test('Failed notification was clicked > Show confirmation', function() {
@@ -140,6 +144,35 @@ suite('system/DownloadNotification >', function() {
       assert.isFalse(NotificationScreen.addNotification.called);
       download.state = 'downloading';
       download.currentBytes = 300;
+      download.onstatechange();
+      assertUpdatedNotification(download);
+
+      sinon.assert.calledWithMatch(NotificationScreen.addNotification, {
+        noNotify: true
+      });
+      assert.ok(MockStatusBar.wasMethodCalled['incSystemDownloads']);
+      assert.isUndefined(MockStatusBar.wasMethodCalled['decSystemDownloads']);
+    });
+
+    test('The download failed because of no free memory', function() {
+      assert.isFalse(NotificationScreen.addNotification.called);
+      download.state = 'stopped';
+      download.error = {
+        name: 'DownloadError'
+      };
+      DownloadHelper.bytes = 0;
+      download.onstatechange();
+      assertUpdatedNotification(download, 'failed');
+      assert.isUndefined(MockStatusBar.wasMethodCalled['incSystemDownloads']);
+      assert.ok(MockStatusBar.wasMethodCalled['decSystemDownloads']);
+      assert.equal(DownloadHelper.methodCalled, 'getFreeSpace');
+      assert.equal(DownloadUI.methodCalled, 'show');
+    });
+
+    test('Download continues downloading', function() {
+      assert.isFalse(NotificationScreen.addNotification.called);
+      download.state = 'downloading';
+      download.currentBytes = 400;
       download.onstatechange();
       assertUpdatedNotification(download);
 

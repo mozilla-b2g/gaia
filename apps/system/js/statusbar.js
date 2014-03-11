@@ -233,6 +233,8 @@ var StatusBar = {
 
     // Listen to 'geolocation-status' and 'recording-status' mozChromeEvent
     window.addEventListener('mozChromeEvent', this);
+    // Listen to Custom event send by 'media_recording.js'
+    window.addEventListener('recordingEvent', this);
 
     // 'bluetoothconnectionchange' fires when the overall bluetooth connection
     //  changes.
@@ -367,16 +369,20 @@ var StatusBar = {
         }).bind(this));
         break;
 
+      case 'recordingEvent':
+        switch (evt.detail.type) {
+          case 'recording-state-changed':
+            this.recordingActive = evt.detail.active;
+            this.update.recording.call(this);
+            break;
+        }
+        break;
+
       case 'mozChromeEvent':
         switch (evt.detail.type) {
           case 'geolocation-status':
             this.geolocationActive = evt.detail.active;
             this.update.geolocation.call(this);
-            break;
-
-          case 'recording-status':
-            this.recordingActive = evt.detail.active;
-            this.update.recording.call(this);
             break;
 
           case 'volume-state-changed':

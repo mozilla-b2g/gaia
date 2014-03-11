@@ -1019,28 +1019,28 @@ suite('system/AppWindow', function() {
 
     test('Localized event', function() {
       var app1 = new AppWindow(fakeAppConfig1);
-      var spy = this.sinon.spy(window, 'ManifestHelper');
+      var spyManifestHelper = this.sinon.spy(window, 'ManifestHelper');
       var stubPublish = this.sinon.stub(app1, 'publish');
 
       app1.handleEvent({
         type: '_localized'
       });
 
-      assert.isTrue(spy.calledWithNew());
-      assert.isTrue(spy.calledWithExactly(app1.manifest));
+      assert.isTrue(spyManifestHelper.calledWithNew());
+      assert.isTrue(spyManifestHelper.calledWithExactly(app1.manifest));
       assert.isTrue(stubPublish.calledWithExactly('namechanged'));
     });
 
     test('Localized event', function() {
       var app1 = new AppWindow(fakeAppConfig1);
-      var spy = this.sinon.spy(window, 'ManifestHelper');
+      var spyManifestHelper = this.sinon.spy(window, 'ManifestHelper');
 
       app1.handleEvent({
         type: '_localized'
       });
 
-      assert.isTrue(spy.calledWithNew());
-      assert.isTrue(spy.calledWithExactly(app1.manifest));
+      assert.isTrue(spyManifestHelper.calledWithNew());
+      assert.isTrue(spyManifestHelper.calledWithExactly(app1.manifest));
     });
 
     test('Swipe in event', function() {
@@ -1048,15 +1048,16 @@ suite('system/AppWindow', function() {
       var atc1 = {
         switchTransitionState: function() {}
       };
-      var spy = this.sinon.spy(atc1, 'switchTransitionState');
-      var revive = this.sinon.spy(app1, 'reviveBrowser');
+      var switchTransitionState =
+        this.sinon.stub(atc1, 'switchTransitionState');
+      var revive = this.sinon.stub(app1, 'reviveBrowser');
       app1.transitionController = atc1;
 
       app1.handleEvent({
         type: '_swipein'
       });
 
-      assert.isTrue(spy.calledWith('opened'));
+      assert.isTrue(switchTransitionState.calledWith('opened'));
       assert.isTrue(revive.called);
     });
 
@@ -1065,14 +1066,15 @@ suite('system/AppWindow', function() {
       var atc1 = {
         switchTransitionState: function() {}
       };
-      var spy = this.sinon.spy(atc1, 'switchTransitionState');
+      var switchTransitionState =
+        this.sinon.stub(atc1, 'switchTransitionState');
       app1.transitionController = atc1;
 
       app1.handleEvent({
         type: '_swipeout'
       });
 
-      assert.isTrue(spy.calledWith('closed'));
+      assert.isTrue(switchTransitionState.calledWith('closed'));
     });
   });
 
@@ -1110,7 +1112,7 @@ suite('system/AppWindow', function() {
     var app1 = new AppWindow(fakeWrapperConfig);
     var stubPublish = this.sinon.stub(app1, 'publish');
     var stub_setFrameBackgroundWithScreenshot =
-      this.sinon.spy(app1, 'setFrameBackgroundWithScreenshot');
+      this.sinon.stub(app1, 'setFrameBackgroundWithScreenshot');
     app1.destroyBrowser();
     assert.isNull(app1.browser);
     assert.isTrue(app1.suspended);
