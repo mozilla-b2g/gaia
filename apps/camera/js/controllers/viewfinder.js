@@ -56,13 +56,19 @@ ViewfinderController.prototype.bindEvents = function() {
 
 ViewfinderController.prototype.loadStream = function() {
   this.camera.loadStreamInto(this.viewfinder.els.video);
-  this.viewfinder.fadeIn();
 };
 
 ViewfinderController.prototype.updatePreview = function() {
   var camera = this.app.settings.cameras.selected('key');
   var isFrontCamera = camera === 'front';
   this.viewfinder.updatePreview(this.camera.previewSize(), isFrontCamera);
+
+  // BUG: We have to use a 300ms timeout here
+  // to conceal a Gecko rendering bug whereby the
+  // video element appears not to have painted the
+  // newly set dimensions before fading in.
+  // https://bugzilla.mozilla.org/show_bug.cgi?id=982230
+  setTimeout(this.viewfinder.fadeIn, 300);
 };
 
 /**
