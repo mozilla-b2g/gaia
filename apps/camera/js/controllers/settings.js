@@ -98,6 +98,9 @@ SettingsController.prototype.closeSettings = function() {
 SettingsController.prototype.onOptionTap = function(key, setting) {
   setting.select(key);
   this.closeSettings();
+  //setting notification
+  var message = setting.get('title')+" set "+setting.selected('title')
+  this.app.emit('setting:notification', message);
 };
 
 /**
