@@ -89,7 +89,7 @@ var NfcManager = {
   handleEvent: function nm_handleEvent(evt) {
     var state;
     switch (evt.type) {
-      case 'lock': // Fall thorough
+      case 'lock': // Fall through
       case 'unlock':
       case 'screenchange':
         if (this.hwState == this.NFC_HW_STATE_OFF) {
@@ -272,7 +272,7 @@ var NfcManager = {
   handleTechnologyDiscovered: function nm_handleTechnologyDiscovered(command) {
     this._debug('Technology Discovered: ' + JSON.stringify(command));
 
-    // UX: TODO
+    window.dispatchEvent(new CustomEvent('reset-screen-idle-timeout'));
     window.navigator.vibrate([25, 50, 125]);
 
     // Check for tech types:
@@ -350,14 +350,13 @@ var NfcManager = {
 
   handleTechLost: function nm_handleTechLost(command) {
     this._debug('Technology Lost: ' + JSON.stringify(command));
-    // TODO: Do something with the UI/UX to indicate the tag is gone.
-    // TODO: Dismiss activity chooser?
+
+    window.navigator.vibrate([125, 50, 25]);
+    window.dispatchEvent(new CustomEvent('reset-screen-idle-timeout'));
 
     // Clean up P2P UI events
     window.removeEventListener('shrinking-sent', this);
     window.dispatchEvent(new CustomEvent('shrinking-stop'));
-
-    window.navigator.vibrate([125, 50, 25]);
   },
 
   // Miscellaneous utility functions to handle formating the JSON for activities
