@@ -241,7 +241,7 @@ var CallHandler = (function callHandler() {
   window.addEventListener('message', handleMessage);
 
   /* === Calls === */
-  function call(number) {
+  function call(number, cardIndex) {
     if (MmiManager.isMMI(number)) {
       MmiManager.send(number);
       // Clearing the code from the dialer screen gives the user immediate
@@ -277,8 +277,19 @@ var CallHandler = (function callHandler() {
       }
     };
 
-    LazyLoader.load('/dialer/js/telephony_helper.js', function() {
-      TelephonyHelper.call(number, oncall, connected, disconnected, error);
+    LazyLoader.load(['/dialer/js/telephony_helper.js',
+                     '/shared/js/sim_settings_helper.js'], function() {
+      // FIXME/bug 982163: Temporarily load a cardIndex from SimSettingsHelper
+      // if we were not given one as an argument.
+      if (cardIndex === undefined) {
+        SimSettingsHelper.getCardIndexFrom('outgoingCall', function(ci) {
+          TelephonyHelper.call(
+            number, ci, oncall, connected, disconnected, error);
+        });
+      } else {
+        TelephonyHelper.call(
+          number, cardIndex, oncall, connected, disconnected, error);
+      }
     });
   }
 

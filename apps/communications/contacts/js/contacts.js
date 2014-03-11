@@ -445,7 +445,9 @@ var Contacts = (function() {
   };
 
   var callOrPick = function callOrPick(number) {
-    LazyLoader.load('/dialer/js/mmi.js', function mmiLoaded() {
+    LazyLoader.load(['/dialer/js/mmi.js',
+                     '/shared/js/sim_settings_helper.js'],
+                    function mmiLoaded() {
       if (ActivityHandler.currentlyHandling &&
           ActivityHandler.activityName !== 'open') {
         ActivityHandler.postPickSuccess({ number: number });
@@ -460,7 +462,9 @@ var Contacts = (function() {
           }
         });
       } else if (navigator.mozTelephony) {
-        TelephonyHelper.call(number);
+        SimSettingsHelper.getCardIndexFrom('outgoingCall', function(cardIndex) {
+          TelephonyHelper.call(number, cardIndex);
+        });
       }
     });
   };

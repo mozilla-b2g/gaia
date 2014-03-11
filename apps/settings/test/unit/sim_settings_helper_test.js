@@ -1,7 +1,7 @@
 'use strict';
 
 requireApp('settings/shared/test/unit/mocks/mock_navigator_moz_settings.js');
-requireApp('settings/js/simcard_manager_settings_helper.js');
+requireApp('settings/shared/js/sim_settings_helper.js');
 
 suite('SimSettingsHelper > ', function() {
   var realMozSettings;

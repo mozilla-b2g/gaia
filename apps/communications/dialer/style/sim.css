@@ -1,0 +1,14 @@
+#sim-picker button span {
+  font-size: 1.7rem;
+}
+
+.sim-default {
+  display: none;
+  margin-left: 5px;
+  font-size: 1.4rem;
+  font-style: italic;
+}
+
+.is-default .sim-default {
+  display: initial;
+}
