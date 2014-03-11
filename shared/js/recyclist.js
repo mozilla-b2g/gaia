@@ -71,12 +71,11 @@ Recyclist.prototype = {
    */
   init: function() {
     this.scrollParent.addEventListener('scroll', this);
-    this.scrollParent.addEventListener('resize', this);
 
     // Synchronously generate all items that are immediately or nearly visible
     this.generate(this.visibleMultiplier);
 
-    this.fix();
+    this.fix(0);
   },
 
   /**
@@ -162,6 +161,8 @@ Recyclist.prototype = {
 
     this.scrollChild.style.height =
       this.positions[i - 1][0] + this.itemHeight + 'px';
+
+    this.scrollPortHeight = this.getScrollHeight();
   },
 
   /**
@@ -169,23 +170,20 @@ Recyclist.prototype = {
    * If you only wanted to render what's on screen, you would just pass 1.
    * @param {Integer} multiplier A multiplier of the display port size.
    */
-  generate: function(multiplier) {
-    var scrollPos = this.getScrollPos();
-    var scrollPortHeight = this.getScrollHeight();
-
+  generate: function(multiplier, scrollPos) {
     // Determine which items we *need* to have in the DOM. displayPortMargin
     // is somewhat arbitrary. If there is fast async scrolling, increase
     // multiplier to make sure more items can be prerendered. If
     // populate triggers slow async activity (e.g. image loading or
     // database queries to fill in an item), increase multiplier
     // to reduce the likelihood of the user seeing incomplete items.
-    var displayPortMargin = multiplier * scrollPortHeight;
+    var displayPortMargin = multiplier * this.scrollPortHeight;
 
     var startPosition = Math.max(0,
       (scrollPos - displayPortMargin));
 
     var endPosition = Math.max(0,
-      (scrollPos + scrollPortHeight + displayPortMargin));
+      (scrollPos + this.scrollPortHeight + displayPortMargin));
 
     // Use a binary search to find the startIndex.
     // The start index is the first item before our display port.
@@ -278,13 +276,13 @@ Recyclist.prototype = {
   /**
    * Generates items for the viewport and sets lastScrollPos
    */
-  fix: function() {
-    this.generate(this.asyncMultiplier);
-    this.lastScrollPos = this.getScrollPos();
+  fix: function(scrollPos) {
+    this.generate(this.asyncMultiplier, scrollPos);
+    this.lastScrollPos = scrollPos;
   },
 
-  handleEvent: function() {
-    this.fix();
+  handleEvent: function(e) {
+    this.fix(e.mozOffsetTop);
   },
 
   /**
