@@ -6,7 +6,7 @@ var FAKE_MUSIC_ORIGIN = 'fakemusic.gaiamobile.org';
 
 marionette('media playback tests', function() {
   var apps = {};
-  apps[FAKE_MUSIC_ORIGIN] = __dirname + '/fakemusic';
+  apps[FAKE_MUSIC_ORIGIN] = __dirname + '/apps/fakemusic';
 
   var playback, music, client = marionette.client({
     prefs: {
