@@ -1,6 +1,7 @@
+/* global LazyLoader */
 'use strict';
 
-var utils = this.utils || {};
+var utils = window.utils || {};
 
 utils.status = (function() {
   var STATUS_TIME = 2000;
