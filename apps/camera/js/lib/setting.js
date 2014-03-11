@@ -31,12 +31,11 @@ function Setting(data) {
   this.configure(data);
   this.reset(data, { silent: true });
   this.updateSelected({ silent: true });
-
-  // Bind context
   this.isValidOption = this.isValidOption.bind(this);
   this.inflateOption = this.inflateOption.bind(this);
   this.select = this.select.bind(this);
   this.next = this.next.bind(this);
+  this.mozL10n = data.mozL10n; // Testing hook
 }
 
 Setting.prototype.configure = function(data) {
@@ -338,6 +337,35 @@ Setting.prototype.fetch = function() {
   this.fetched = localStorage.getItem('setting:' + this.key);
   debug('fetched %s value: %s', this.key, this.fetched);
   if (this.fetched) { this.select(this.fetched, { silent: true }); }
+};
+
+/**
+ * Localize self and options objects
+ *
+ * @public
+ */
+Setting.prototype.localize = function() {
+  var options = this.get('options');
+  this.localizeObject(this._data);
+  options.forEach(this.localizeObject, this);
+  this.fire('change');
+};
+
+/**
+ * Adds localized keys from a
+ * defined `l10n` object map.
+ *
+ * @param  {Object} object
+ * @private
+ */
+Setting.prototype.localizeObject = function(object) {
+  var l10n = this.mozL10n || navigator.mozL10n;
+  var keys = object.l10n;
+  if (keys) {
+    each(keys, function(value, key) {
+      object[key] = l10n.get(value);
+    });
+  }
 };
 
 /**
