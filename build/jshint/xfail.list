@@ -283,7 +283,6 @@ apps/communications/contacts/test/unit/mock_mozActivity.js
 apps/communications/contacts/test/unit/mock_mozContacts.js
 apps/communications/contacts/test/unit/mock_navigation.js
 apps/communications/contacts/test/unit/mock_oauthflow.js
-apps/communications/contacts/test/unit/mock_performance_testing_helper.js
 apps/communications/contacts/test/unit/mock_sdcard.js
 apps/communications/contacts/test/unit/mock_search.js
 apps/communications/contacts/test/unit/mock_sim_importer.js
@@ -822,7 +821,6 @@ apps/system/js/internet_sharing.js
 apps/system/js/keyboard_manager.js
 apps/system/js/layout_manager.js
 apps/system/js/lockscreen_connection_info_manager.js
-apps/system/js/logo_loader.js
 apps/system/js/media_playback.js
 apps/system/js/media_recording.js
 apps/system/js/modal_dialog.js
@@ -854,7 +852,6 @@ apps/system/js/statusbar.js
 apps/system/js/storage_watcher.js
 apps/system/js/system.js
 apps/system/js/system_dialog.js
-apps/system/js/telephony_settings.js
 apps/system/js/trusted_ui.js
 apps/system/js/updatable.js
 apps/system/js/update_manager.js
@@ -930,7 +927,6 @@ apps/system/test/unit/keyboard_helper_test.js
 apps/system/test/unit/layout_manager_test.js
 apps/system/test/unit/lockscreen_conn_info_manager_test.js
 apps/system/test/unit/lockscreen_test.js
-apps/system/test/unit/logo_loader_test.js
 apps/system/test/unit/media_recording_test.js
 apps/system/test/unit/mobile_operator_test.js
 apps/system/test/unit/mock_activity.js
@@ -1109,4 +1105,3 @@ shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js
 shared/test/unit/mocks/mock_navigator_moz_settings.js
 shared/test/unit/mocks/mock_notification_helper.js
 shared/test/unit/mocks/mock_settings_listener.js
-shared/test/unit/mocks/mocks_helper.js

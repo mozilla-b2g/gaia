@@ -45,5 +45,12 @@ var MockMozDownloads = {
     setTimeout(function() {
       handler(download);
     });
+  },
+  remove: function(download) {
+    return {
+      then: function(success, error) {
+        success(download);
+      }
+    };
   }
 };

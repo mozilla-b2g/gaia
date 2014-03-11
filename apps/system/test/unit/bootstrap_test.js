@@ -20,6 +20,7 @@ requireApp('system/test/unit/mock_remote_debugger.js');
 requireApp('system/test/unit/mock_screen_manager.js');
 requireApp('system/test/unit/mock_source_view.js');
 requireApp('system/test/unit/mock_storage.js');
+requireApp('system/test/unit/mock_telephony_settings.js');
 requireApp('system/test/unit/mock_ttl_view.js');
 requireApp('system/test/unit/mock_title.js');
 
@@ -36,6 +37,7 @@ mocha.globals([
   'dialerComms',
   'remoteDebugger',
   'storage',
+  'telephonySettings',
   'ttlView',
   'title',
   'ActivityWindowFactory'
@@ -55,6 +57,7 @@ var mocksForBootstrap = new MocksHelper([
   'SettingsURL',
   'SourceView',
   'Storage',
+  'TelephonySettings',
   'TTLView',
   'Title'
 ]).init();

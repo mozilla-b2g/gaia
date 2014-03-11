@@ -38,6 +38,7 @@ requireApp('sms/js/thread_list_ui.js');
 requireApp('sms/js/recipients.js');
 requireApp('sms/js/thread_ui.js');
 requireApp('sms/js/waiting_screen.js');
+require('/shared/js/performance_testing_helper.js');
 requireApp('sms/js/startup.js');
 
 var MocksHelperForSmsUnitTest = new MocksHelper([
