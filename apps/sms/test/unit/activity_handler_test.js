@@ -1,5 +1,5 @@
 /*global Notify, Compose, mocha, MocksHelper, ActivityHandler, Contacts,
-         MessageManager, Attachment, ThreadUI */
+         MessageManager, Attachment, ThreadUI, Settings */
 /*global MockNavigatormozSetMessageHandler, MockNavigatormozApps,
          MockNavigatorWakeLock, MockOptionMenu, Mockalert,
          MockMessages, MockNavigatorSettings, MockL10n,
@@ -54,7 +54,8 @@ var mocksHelperForActivityHandler = new MocksHelper([
   'Threads',
   'ThreadUI',
   'Utils',
-  'alert'
+  'alert',
+  'Settings'
 ]).init();
 
 suite('ActivityHandler', function() {
@@ -120,17 +121,18 @@ suite('ActivityHandler', function() {
         source: {
           name: 'share',
           data: {
-            blobs: [new Blob(), new Blob()],
+            blobs: [
+              new Blob(['test'], { type: 'text/plain' }),
+              new Blob(['string'], { type: 'text/plain' })
+            ],
             filenames: ['testBlob1', 'testBlob2']
           }
         }
       };
-      this.prevAppend = Compose.append;
     });
 
     teardown(function() {
       window.location.hash = this.prevHash;
-      Compose.append = this.prevAppend;
     });
 
     test('modifies the URL "hash" when necessary', function() {
@@ -145,6 +147,7 @@ suite('ActivityHandler', function() {
 
         assert.instanceOf(attachment, Attachment);
         assert.ok(Compose.append.callCount < 3);
+        assert.equal(Mockalert.mLastMessage, null);
 
         if (Compose.append.callCount === 2) {
           done();
@@ -152,6 +155,19 @@ suite('ActivityHandler', function() {
       });
 
       MockNavigatormozSetMessageHandler.mTrigger('activity', shareActivity);
+    });
+
+    test('Attachment size over mms limitation should not be appended',
+      function() {
+      // Adjust mmsSizeLimitation for verifying alert popup when size over
+      // limitation
+      Settings.mmsSizeLimitation = 1;
+      this.sinon.spy(Compose, 'append');
+      window.location.hash = 'new';
+
+      MockNavigatormozSetMessageHandler.mTrigger('activity', shareActivity);
+      sinon.assert.notCalled(Compose.append);
+      assert.equal(Mockalert.mLastMessage, 'file-too-large');
     });
 
     test('share shouldn\'t change the ThreadUI back button', function() {
