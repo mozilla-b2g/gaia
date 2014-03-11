@@ -38,7 +38,6 @@
     "permissions":{},
     "audio-channel-notification":{},
     "audio-channel-content":{},
-    "audio-channel-ringer":{},
     "cellbroadcast":{},
     "input":{},
     "input-manage":{},
@@ -95,6 +94,10 @@
     },
     "bluetoothTransfercomms": {
       "description": "Communication with bluetooth apps for sending files info",
+      "rules": {}
+    },
+    "dialercomms": {
+      "description": "Communication with dialer app for sleep message",
       "rules": {}
     },
     "fxa-mgmt": {
