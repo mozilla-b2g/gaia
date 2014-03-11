@@ -116,6 +116,18 @@ suite('Image Loader Test Suite >', function() {
       sinon.assert.callCount(stopSpy, 0);
     });
 
+    test('image loader not called anymore after unloading', function() {
+      var containerSpy = this.sinon.spy(document.querySelector('#mainContent'),
+                                       'removeEventListener');
+      var documentSpy = this.sinon.spy(document, 'removeEventListener');
+      imgLoader.defaultLoad(item);
+      imgLoader.unload();
+      sinon.assert.callCount(documentSpy, 1);
+      sinon.assert.callCount(containerSpy, 1);
+      documentSpy.restore();
+      containerSpy.restore();
+    });
+
   });
 
 });
