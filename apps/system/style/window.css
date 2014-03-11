@@ -374,11 +374,6 @@
   visibility: visible;
 }
 
-.appWindow > form[role="dialog"][data-type="action"],
-.appWindow > form[role="dialog"][data-type="object"] {
-  position: absolute;
-}
-
 .appWindow > .screenshot-overlay {
   visibility: hidden;
   position: absolute;
