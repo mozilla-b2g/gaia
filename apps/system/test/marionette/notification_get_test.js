@@ -1,12 +1,13 @@
+/* global Notification */
+/* exports CALENDAR_APP */
+
+'use strict';
+
 var assert = require('assert');
 
 var CALENDAR_APP = 'app://calendar.gaiamobile.org';
-var CALENDAR_APP_MANIFEST = CALENDAR_APP + '/manifest.webapp';
 
 marionette('Notification.get():', function() {
-
-  // Disabled: bug 974734
-  return;
 
   var client = marionette.client({
     settings: {
@@ -41,7 +42,7 @@ marionette('Notification.get():', function() {
     var error = client.executeAsyncScript(function() {
       try {
         var title = 'test title';
-        var notification = new Notification(title);
+        new Notification(title);
         var promise = Notification.get();
         promise.then(function(notifications) {
           if (!notifications || !notifications.length) {
@@ -73,7 +74,7 @@ marionette('Notification.get():', function() {
         var options = {
           tag: 'my tag:' + Date.now()
         };
-        var notification = new Notification(title, options);
+        new Notification(title, options);
         var promise = Notification.get({tag: options.tag});
         promise.then(function(notifications) {
           if (!notifications) {
@@ -170,7 +171,7 @@ marionette('Notification.get():', function() {
     client.apps.switchToApp(CALENDAR_APP);
 
     client.executeScript(function(title, tag) {
-      var notification = new Notification(title, {tag: tag});
+      new Notification(title, {tag: tag});
     }, [title, tag]);
 
     client.switchToFrame();
@@ -201,7 +202,7 @@ marionette('Notification.get():', function() {
 
   test('bug 931307, empty title should not cause crash', function(done) {
     var error = client.executeAsyncScript(function() {
-      var notification = new Notification('');
+      new Notification('');
       var promise = Notification.get();
       promise.then(function() {
         marionetteScriptFinished(false);
@@ -212,5 +213,4 @@ marionette('Notification.get():', function() {
     assert.equal(error, false, 'empty title returned error: ' + error);
     done();
   });
-
 });
