@@ -8,7 +8,7 @@ var WallPaperAppBuilder = function(options) {
 
 WallPaperAppBuilder.prototype.APP_DIR = 'apps/wallpaper';
 WallPaperAppBuilder.prototype.BUILD_DIR = 'build_stage/wallpaper';
-WallPaperAppBuilder.prototype.WALLPAPER_PATH = 'resources/320x480';
+WallPaperAppBuilder.prototype.WALLPAPER_PATH = 'resources/';
 
 // set options
 WallPaperAppBuilder.prototype.setOptions = function(options) {
