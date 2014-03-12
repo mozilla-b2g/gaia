@@ -32,7 +32,7 @@ class TestPlayWebMVideo(GaiaTestCase):
 
         # Video will play automatically
         # We'll wait for the controls to clear so we're 'safe' to proceed
-        time.sleep(2)
+        time.sleep(3)
 
         # We cannot tap the toolbar so let's just enable it with javascript
         fullscreen_video.display_controls_with_js()
