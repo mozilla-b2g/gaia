@@ -1,4 +1,7 @@
 'use strict';
+/* exported MockImageLoader */
+/* exported MockURL */
+/* exported MockUtils */
 
 var MockURL = {
   createObjectURL: function(url) {
