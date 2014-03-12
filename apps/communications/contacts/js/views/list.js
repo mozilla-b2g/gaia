@@ -288,32 +288,15 @@ contacts.List = (function() {
     return Normalizer.toAscii(escapedValue);
   };
 
-  function getHighlightedName(contact, ele) {
-    if (!ele) {
-      ele = document.createElement('p');
-    } else {
-      while (ele.firstChild) {
-        ele.removeChild(ele.firstChild);
-      }
-    }
-    ele.classList.add('contact-text');
+  function getNameOrder(contact) {
     var givenName = (contact.givenName && contact.givenName[0]) || '';
     var familyName = (contact.familyName && contact.familyName[0]) || '';
 
-    function createStrongTag(content) {
-      var fs = document.createElement('strong');
-      fs.textContent = content;
-      return fs;
-    }
-
     if (orderByLastName) {
-      ele.appendChild(document.createTextNode(givenName + ' '));
-      ele.appendChild(createStrongTag(familyName));
+      return [givenName + ' ', familyName];
     } else {
-      ele.appendChild(createStrongTag(givenName));
-      ele.appendChild(document.createTextNode(' ' + familyName));
+      return [null, givenName, ' ' + familyName]
     }
-    return ele;
   }
 
   function buildSocialMarks(category) {
@@ -570,8 +553,11 @@ contacts.List = (function() {
             var contact = allContacts[index];
             var display = getDisplayName(contact);
 
-            var nameElement = element.children[1].children[0];
-            getHighlightedName(display, nameElement);
+            var nameWrap = element.children[1].children[0];
+            var nameOrder = getNameOrder(display);
+            nameWrap.children[0].textContent = nameOrder[0];
+            nameWrap.children[1].textContent = nameOrder[1];
+            nameWrap.children[2].textContent = nameOrder[2];
 
             var orgElement = element.children[2].children[0];
             renderOrg(contact, orgElement);
@@ -1359,7 +1345,6 @@ contacts.List = (function() {
     'clearClickHandlers': clearClickHandlers,
     'setOrderByLastName': setOrderByLastName,
     'renderFbData': renderFbData,
-    'getHighlightedName': getHighlightedName,
     'selectFromList': selectFromList,
     'exitSelectMode': exitSelectMode,
     /*
