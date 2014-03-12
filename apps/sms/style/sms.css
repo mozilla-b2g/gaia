@@ -701,6 +701,10 @@ form.bottom[role="search"].messages-compose-form {
   font-size: 1.8rem;
 }
 
+#messages-input.ignoreEvents {
+  pointer-events: none;
+}
+
 #messages-input.placeholder:after,
 #messages-subject-input::-moz-placeholder {
   color: #888;
