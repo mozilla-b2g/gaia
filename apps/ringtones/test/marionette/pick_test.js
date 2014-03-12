@@ -32,10 +32,6 @@ marionette('ringtones tests', function() {
     statusbar = new Statusbar(client);
     ringtones = new Ringtones(client, 'app://' + RINGTONES_ORIGIN);
 
-    client.executeScript(function() {
-      window.wrappedJSObject.lockScreen.unlock();
-    });
-
     client.fileManager.removeAllFiles();
 
     client.fileManager.add([
