@@ -18,6 +18,8 @@ var SimLock = {
     // for bootup special case
     this.showIfLocked();
 
+    window.addEventListener('ftuopen', this);
+
     // Watch for apps that need a mobile connection
     window.addEventListener('appopened', this);
 
@@ -53,6 +55,9 @@ var SimLock = {
 
   handleEvent: function sl_handleEvent(evt) {
     switch (evt.type) {
+      case 'ftuopen':
+        SimPinDialog.close();
+        break;
       case 'simpinback':
         var index = evt.detail._currentSlot.index;
         this.showIfLocked(index - 1);
