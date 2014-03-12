@@ -16,11 +16,12 @@ class Persona(Base):
 
     _frame_locator = (By.CSS_SELECTOR, 'iframe[src*="identity"]')
 
-    def launch_standard_sign_in(self):
+    def tap_standard_sign_in(self):
         self.tap_standard_button()
         from gaiatest.apps.persona.app import Persona
-
-        return Persona(self.marionette)
+        persona = Persona(self.marionette)
+        persona.switch_to_persona_frame()
+        return persona
 
     def switch_to_frame(self):
         self.wait_for_element_displayed(*self._frame_locator)
