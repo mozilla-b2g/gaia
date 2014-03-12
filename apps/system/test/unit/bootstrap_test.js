@@ -13,7 +13,6 @@ requireApp('system/test/unit/mock_activities.js');
 requireApp('system/test/unit/mock_applications.js');
 requireApp('system/test/unit/mock_devtools_view.js');
 requireApp('system/test/unit/mock_dialer_ringer.js');
-requireApp('system/test/unit/mock_dialer_comms.js');
 requireApp('system/test/unit/mock_ftu_launcher.js');
 requireApp('system/test/unit/mock_homescreen_launcher.js');
 requireApp('system/test/unit/mock_places.js');
@@ -36,7 +35,6 @@ mocha.globals([
   'secureWindowFactory',
   'devtoolsView',
   'dialerRinger',
-  'dialerComms',
   'remoteDebugger',
   'storage',
   'telephonySettings',
