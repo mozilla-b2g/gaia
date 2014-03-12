@@ -3,241 +3,233 @@
  * ---------------------------------- */
 
 form[role="dialog"][data-type="edit"] {
-  overflow: hidden;
   position: absolute;
-  z-index: 100;
   top: 0;
-  left: 0;
   right: 0;
   bottom: 0;
-  white-space: nowrap;
+  left: 0;
   color: #fff;
+  white-space: nowrap;
   pointer-events: none;
+  z-index: 100;
+  overflow: hidden;
 }
 
-/* Header */
+/* HEADERS */
 form[role="dialog"][data-type="edit"] header {
-  pointer-events: auto;
+  display: flex;
+  align-items: center;
   position: relative;
   z-index: 10;
   padding: 0;
   height: 5rem;
   color: #fff;
-  background-color: #F97C17;
+  background-color: #f97c17;
   border: none;
+  pointer-events: auto;
 }
 
 form[role="dialog"][data-type="edit"] header h1 {
-  font-size: 2.5rem;
-  line-height: 5rem;
-  text-align: left;
+  flex: 1;
+  order: 2;
+  margin: 0;
+  padding: 0 0.2rem;
+  line-height: normal;
   color: #fff;
+  font-size: 2.2rem;
+  font-weight: 200;
+  text-align: center;
   white-space: nowrap;
   text-overflow: ellipsis;
-  display: block;
   overflow: hidden;
-  margin: 0;
-  padding: 0 1rem 0 3rem;
-  height: 100%;
-  font-weight: lighter;
 }
 
+/* HEADERS: Buttons */
 form[role="dialog"][data-type="edit"] header button {
-  border: none;
-  padding: 0;
-  overflow: hidden;
-  font-weight: 400;
-  font-size: 1.5rem;
-  line-height: 1.1em;
-  color: #fff;
-  border-radius: 0;
-  text-decoration: none;
-}
-
-form[role="dialog"][data-type="edit"] header menu[type="toolbar"] {
-  height: 100%;
-  float: right;
-  margin: 0;
-  padding: 0;
-}
-
-form[role="dialog"][data-type="edit"] header menu[type="toolbar"] button {
-  height: 5rem;
-  min-width: 5rem;
-  width: auto;
-  margin-bottom: 0;
-  border-radius: 0;
-  line-height: 5rem;
-  float: left;
-  font-weight: normal;
-  background: none;
-  padding: 0 1rem;
-  -moz-box-sizing: border-box;
-  text-align: center;
-  text-shadow: none;
+  order: 1;
+  box-sizing: border-box;
   position: relative;
-  z-index: 5;
+  width: auto;
+  min-width: 5rem;
+  height: 100%;
+  margin: 0;
+  padding: 0 1rem;
+  color: #fff;
+  font-size: 1.5rem;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 1.1em;
+  text-decoration: none;
+  text-overflow: clip;
+  text-shadow: none;
+  border: none;
+  border-radius: 0;
+  background: none;
+  overflow: hidden;
 }
 
-form[role="dialog"][data-type="edit"] header menu button {
-  color: #fff;
-  border: none;
+form[role="dialog"][data-type="edit"] header button:before,
+form[role="dialog"][data-type="edit"] header a:before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
 }
 
 form[role="dialog"][data-type="edit"] button::-moz-focus-inner {
-  outline: none;
+  margin-top: -.2rem; /* To fix line-height bug (697451) */
+  padding: 0;
   border: none;
-  margin-top: -0.2rem; /* To fix line-height bug (697451) */
+  outline: none;
 }
 
-/* Press state */
-form[role="dialog"][data-type="edit"] header button:active:after,
-form[role="dialog"][data-type="edit"] header button:hover:after,
-form[role="dialog"][data-type="edit"] header menu[type="toolbar"] button:hover,
-form[role="dialog"][data-type="edit"] header menu[type="toolbar"] button:active {
-  background: #dc6a0e !important;
-  color: #fff;
+
+/* HEADERS: Buttons pressed state */
+form[role="dialog"][data-type="edit"] header:first-child a:focus {
+  outline: none;
 }
 
-/* Disabled state */
-form[role="dialog"][data-type="edit"]  header menu[type="toolbar"] button[disabled]  {
+form[role="dialog"][data-type="edit"] header:first-child a:not([aria-disabled="true"]):active:before,
+form[role="dialog"][data-type="edit"] header:first-child button:not(:disabled):active:before,
+form[role="dialog"][data-type="edit"] header:first-child a:not([aria-disabled="true"]):hover:before,
+form[role="dialog"][data-type="edit"] header:first-child button:not(:disabled):hover:before {
+  background-color: #dc6a0e;
+}
+
+/* HEADERS: Buttons disabled state */
+form[role="dialog"][data-type="edit"] header:first-child a[disabled]::-moz-selection,
+form[role="dialog"][data-type="edit"] header:first-child button[disabled]::-moz-selection,
+form[role="dialog"][data-type="edit"] header:first-child a[aria-disabled="true"]::-moz-selection,
+form[role="dialog"][data-type="edit"] header:first-child button[aria-disabled="true"]::-moz-selection {
+  -moz-user-select: none;
+  pointer-events: none;
+}
+
+form[role="dialog"][data-type="edit"] header:first-child a[disabled]::-moz-selection,
+form[role="dialog"][data-type="edit"] header:first-child button[disabled]::-moz-selection,
+form[role="dialog"][data-type="edit"] header:first-child a[aria-disabled="true"]::-moz-selection,
+form[role="dialog"][data-type="edit"] header:first-child button[aria-disabled="true"]::-moz-selection {
   opacity: 0.5;
 }
 
-form[role="dialog"][data-type="edit"] header > button {
+form[role="dialog"][data-type="edit"] header:first-child a[disabled]:before,
+form[role="dialog"][data-type="edit"] header:first-child button[disabled]:before,
+form[role="dialog"][data-type="edit"] header:first-child a[aria-disabled="true"]:before,
+form[role="dialog"][data-type="edit"] header:first-child button[aria-disabled="true"]:before {
+  display: none;
+}
+
+
+/* HEADERS: Menu */
+form[role="dialog"][data-type="edit"] header menu[type="toolbar"] {
+  order: 3;
+  display: flex;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  -moz-user-select: none;
+}
+
+/* HEADERS: Menu Icons */
+form[role="dialog"][data-type="edit"] header .icon {
+  display: inline-block;
   position: relative;
   width: 5rem;
-  height: 5rem;
-  background: none;
-  float: left;
-  overflow: visible;
-  margin-right: -5rem;
-}
-
-form[role="dialog"][data-type="edit"] header > button:after {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0;
-  z-index: -1;
-  width: 3rem;
-  height: 5rem;
-}
-
-form[role="dialog"][data-type="edit"] header > button span {
-  position: relative;
-  float: none;
-  display: block;
-  width: 3rem;
-  height: 5rem;
-  margin: 0;
-  background: transparent no-repeat center center / 3rem auto;
+  height: 100%;
+  margin: 0 -1rem;
   font-size: 0;
+  vertical-align: middle;
+  background: transparent no-repeat 50% 50% / 3rem auto;
   overflow: hidden;
 }
 
-form[role="dialog"][data-type="edit"] header .icon.icon-close {
+form[role="dialog"][data-type="edit"] header .icon-close {
   background-image: url(edit_mode/images/icons/close.png);
 }
 
 
-/* Menu */
+/* HEADERS: Section Menu */
 form[role="dialog"][data-type="edit"] > menu {
-  pointer-events: auto;
-  white-space: nowrap;
-  margin: 0;
-  padding: 1.5rem;
-  border-top: solid 0.1rem rgba(255, 255, 255, 0.1);
-  background: url(edit_mode/images/ui/alpha.png) repeat left top;
-  display: block;
-  overflow: hidden;
+  order: 3;
+  display: flex;
   position: absolute;
-  left: 0;
   right: 0;
   bottom: 0;
+  left: 0;
+  margin: 0;
+  padding: 1.5rem 1rem;
+  white-space: nowrap;
+  pointer-events: auto;
+  border-top: solid 0.1rem rgba(255, 255, 255, 0.1);
+  background: url(edit_mode/images/ui/alpha.png);
+  overflow: hidden;
 }
 
-form[role="dialog"][data-type="edit"] menu button {
+form[role="dialog"][data-type="edit"] > menu button {
+  -moz-box-sizing: border-box;
   width: 100%;
   height: 3.8rem;
-  margin: 0 0 1rem;
+  margin: 0 0.5rem;
   padding: 0 1.5rem;
-  -moz-box-sizing: border-box;
-  display: inline-block;
-  vertical-align: middle;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  overflow: hidden;
-  background: #fafafa url(edit_mode/images/ui/default.png) repeat-x left bottom/ auto 100%;
-  border: 0.1rem solid #a6a6a6;
-  border-radius: 0.3rem;
+  color: #333;
   font-size: 1.6rem;
   font-weight: 500;
   line-height: 3.8rem;
-  color: #333;
   text-align: center;
-  text-shadow: 0.1rem 0.1rem 0 rgba(255,255,255,0.3);
+  vertical-align: middle;
+  white-space: nowrap;
   text-decoration: none;
+  text-overflow: ellipsis;
+  border: 0.1rem solid #a6a6a6;
+  border-radius: 0.3rem;
   outline: none;
+  background: #fafafa url(edit_mode/images/ui/default.png) repeat-x 0 100%/ auto 100%;
+  overflow: hidden;
 }
 
-/* Press (default & recommend) */
-form[role="dialog"][data-type="edit"] menu button:active,
-form[role="dialog"][data-type="edit"] menu button:hover,
-form[role="dialog"][data-type="edit"] menu button.recommend:hover,
-form[role="dialog"][data-type="edit"] menu button.recommend:active {
+/* HEADERS: Section Menu Buttons pressed state */
+form[role="dialog"][data-type="edit"] > menu button:active,
+form[role="dialog"][data-type="edit"] > menu button:hover,
+form[role="dialog"][data-type="edit"] > menu button.recommend:hover,
+form[role="dialog"][data-type="edit"] > menu button.recommend:active {
+  color: #333;
   border-color: #008aaa;
   background: #008aaa;
-  color: #333;
 }
 
-/* Recommend */
-form[role="dialog"][data-type="edit"] menu button.recommend{
-  background-image: url(edit_mode/images/ui/recommend.png);
-  background-color: #00caf2;
+/* HEADERS: Section Menu Buttons Recommend */
+form[role="dialog"][data-type="edit"] > menu button.recommend {
   border-color: #008eab;
+  background-color: #00caf2;
+  background-image: url(edit_mode/images/ui/recommend.png);
 }
 
-/* Danger */
-form[role="dialog"][data-type="edit"] menu button.danger{
-  background-image: url(edit_mode/images/ui/danger.png);
-  background-color: #b70404;
+/* HEADERS: Section Menu Buttons Danger */
+form[role="dialog"][data-type="edit"] > menu button.danger {
   color: #fff;
-  text-shadow: none;
   border-color: #820000;
-}
-
-/* Danger Press */
-form[role="dialog"][data-type="edit"] menu button.danger:hover,
-form[role="dialog"][data-type="edit"] menu button.danger:active {
-  background-image: url(edit_mode/images/ui/danger-press.png);
-  background-color: #890707;
-}
-
-/* Disabled */
-form[role="dialog"][data-type="edit"] > menu > button[disabled] {
-  background: #5f5f5f;
-  color: #4d4d4d;
+  background-color: #b70404;
+  background-image: url(edit_mode/images/ui/danger.png);
   text-shadow: none;
-  border-color: #4d4d4d;
+}
+
+/* HEADERS: Section Menu Buttons Danger Press */
+form[role="dialog"][data-type="edit"] > menu button.danger:hover,
+form[role="dialog"][data-type="edit"] > menu button.danger:active {
+  background-color: #890707;
+  background-image: url(edit_mode/images/ui/danger-press.png);
+}
+
+/* HEADERS: Section Menu Buttons Danger Disabled */
+form[role="dialog"][data-type="edit"] > menu button[disabled] {
+  color: #4d4d4d;
   pointer-events: none;
-}
-
-form[role="dialog"][data-type="edit"] menu button:last-child {
-  margin-left: 1rem;
-}
-
-form[role="dialog"][data-type="edit"] menu button,
-form[role="dialog"][data-type="edit"] menu button:first-child {
-  margin: 0;
-}
-
-form[role="dialog"][data-type="edit"] menu button {
-  width: calc((100% - 1rem) / 2);
-}
-
-form[role="dialog"][data-type="edit"] menu button.full {
-  width: 100%;
+  border-color: #4d4d4d;
+  background: #5f5f5f;
+  text-shadow: none;
 }
 
 
@@ -245,20 +237,19 @@ form[role="dialog"][data-type="edit"] menu button.full {
  * Dark scheme
  * ---------------------------------- */
 form[role="dialog"][data-type="edit"].skin-dark header:first-child {
-  background-color: #242D33;
+  background-color: #242d33;
 }
 
-form[role="dialog"][data-type="edit"].skin-dark header:first-child button:active:after,
-form[role="dialog"][data-type="edit"].skin-dark header:first-child button:hover:after,
+form[role="dialog"][data-type="edit"].skin-dark header:first-child button:active:before,
+form[role="dialog"][data-type="edit"].skin-dark header:first-child button:hover:before,
 form[role="dialog"][data-type="edit"].skin-dark header:first-child menu[type="toolbar"] button:hover,
 form[role="dialog"][data-type="edit"].skin-dark header:first-child menu[type="toolbar"] button:active {
-  background: #1d525e !important;
   color: #fff;
+  background: #1d525e !important;
 }
 
 
 form[role="dialog"][data-type="edit"].skin-dark header .icon.icon-close {
   background-image: url(edit_mode/images/icons/skin-dark/close.png);
 }
-
 
