@@ -1,8 +1,6 @@
 'use strict';
 
 (function() {
-  var INSTALLED_APPS_SHADOW_OFFSET = Icon.prototype.SHADOW_OFFSET_Y;
-
   Evme.RESULT_TYPE = {
     CONTACT: 'contact',
     INSTALLED: 'installed',
@@ -115,17 +113,14 @@
           context = canvas.getContext('2d'),
           width = canvas.width,
           height = canvas.height,
-          // hard coded since it's from page.js, which is a homescreen file
-          SHADOW = INSTALLED_APPS_SHADOW_OFFSET;
+          SHADOW = Evme.Utils.APP_NAMES_SHADOW_OFFSET_Y;
 
       // account for shadow - pad the canvas from the bottom,
       // and move the name back up
       canvas.height += SHADOW;
       self.elIcon.style.cssText += '; margin-bottom: ' + -SHADOW + 'px;';
 
-      context.drawImage(image,
-          (width - image.width) / 2,
-          (height - image.height) / 2);
+      context.drawImage(image, (width - image.width) / 2, -SHADOW);
 
       self.finalizeIcon(canvas);
       self.setIconSrc(image.src);

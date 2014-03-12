@@ -28,6 +28,8 @@ Icon.prototype = {
 
   MAX_ICON_SIZE: MAX_ICON_SIZE,
 
+  ICON_PADDING_IN_CANVAS: ICON_PADDING_IN_CANVAS,
+
   // It defines the time (in ms) to ensure that the onDragStop method finishes
   FALLBACK_DRAG_STOP_DELAY: 1000,
 

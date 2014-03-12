@@ -5,10 +5,11 @@ Evme.CloudAppResult = function Evme_CloudAppsResult(query) {
 
   this.type = Evme.RESULT_TYPE.CLOUD;
 
-  var SHADOW_OFFSET = 2 * window.devicePixelRatio,
-      SHADOW_BLUR = 2 * window.devicePixelRatio,
-
-      self = this;
+  var
+  SHADOW_OFFSET = Evme.Utils.APP_NAMES_SHADOW_OFFSET_Y * window.devicePixelRatio,
+  SHADOW_BLUR = Evme.Utils.APP_NAMES_SHADOW_BLUR * window.devicePixelRatio,
+  SHADOW_COLOR = Evme.Utils.APP_NAMES_SHADOW_COLOR,
+  self = this;
 
   // @override
   // manipulate the icon (clipping, shadow, resize)
@@ -53,7 +54,7 @@ Evme.CloudAppResult = function Evme_CloudAppsResult(query) {
         context.shadowOffsetX = 0;
         context.shadowOffsetY = SHADOW_OFFSET;
         context.shadowBlur = SHADOW_BLUR;
-        context.shadowColor = 'rgba(0, 0, 0, 0.6)';
+        context.shadowColor = SHADOW_COLOR;
         context.drawImage(fixedImage,
                           (canvasWidth - width + padding) / 2, padding,
                           width - padding, height - padding);
