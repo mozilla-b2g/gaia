@@ -16,6 +16,9 @@
     if (caller) {
       caller.setActivityCallee(this);
       this.activityCaller = caller;
+      if (caller.frame) {
+        this.containerElement = caller.frame;
+      }
     }
 
     this.render();
@@ -125,6 +128,7 @@
 
     this.element.addEventListener('mozbrowserloadend',
       function activityloaded(e) {
+        e.stopPropagation();
         this._loaded = true;
         e.target.removeEventListener(e.type, activityloaded, true);
         this.publish('loadtime', {
@@ -136,6 +140,7 @@
 
     this.element.addEventListener('mozbrowservisibilitychange',
       function visibilitychange(e) {
+        e.stopPropagation();
         var type = e.detail.visible ? 'foreground' : 'background';
         this._visibilityState = type;
         this.publish(type);
@@ -147,7 +152,7 @@
       evt.stopPropagation();
       if (this.element.classList.contains('opening')) {
         this.element.classList.remove('opening');
-        this.element.classList.remove('slideleft');
+        this.element.classList.remove('slideup');
         this.publish('open');
         this._transitionState = 'opened';
         var app = this.activityCaller;
@@ -175,7 +180,7 @@
           this.openCallback();
       } else {
         this.element.classList.remove('closing');
-        this.element.classList.remove('slideright');
+        this.element.classList.remove('slidedown');
         this.element.classList.remove('active');
         this.publish('close');
         this._transitionState = 'closed';
@@ -189,7 +194,7 @@
     if (this._killed)
       return;
     this._killed = true;
-    if (evt && 'stopPropagation' in evt) {
+    if (evt) {
       evt.stopPropagation();
     }
     if (this.isActive()) {
@@ -294,7 +299,7 @@
       this.setVisible(true);
     }
     this.element.classList.add('active');
-    this.element.classList.add('slideleft');
+    this.element.classList.add('slideup');
     this.element.classList.add('opening');
   };
 
@@ -306,7 +311,7 @@
     this.publish('willclose');
     this._transitionState = 'closing';
     this.restoreCaller();
-    this.element.classList.add('slideright');
+    this.element.classList.add('slidedown');
     this.element.classList.add('closing');
   };
 
