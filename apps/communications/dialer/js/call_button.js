@@ -19,8 +19,8 @@ var CallButton = {
 
     button.addEventListener('click', this._click.bind(this));
 
-    if (window.navigator.mozMobileConnections &&
-        window.navigator.mozMobileConnections.length > 1) {
+    if (navigator.mozIccManager &&
+        navigator.mozIccManager.iccIds.length > 1) {
       button.addEventListener('contextmenu', this._contextmenu.bind(this));
 
       var self = this;
@@ -50,11 +50,11 @@ var CallButton = {
     }
 
     var phoneNumber = this._phoneNumberGetter();
-    if (!window.navigator.mozMobileConnections || phoneNumber === '') {
+    if (!navigator.mozIccManager || phoneNumber === '') {
       return;
     }
 
-    if (window.navigator.mozMobileConnections.length === 1) {
+    if (navigator.mozIccManager.iccIds.length === 1) {
       this.makeCall();
       return;
     }
@@ -74,9 +74,8 @@ var CallButton = {
   },
 
   _updateUI: function cb_updateUI(cardIndex) {
-    if (cardIndex >= 0 &&
-        window.navigator.mozMobileConnections &&
-        window.navigator.mozMobileConnections.length > 1) {
+    if (cardIndex >= 0 && navigator.mozIccManager &&
+        navigator.mozIccManager.iccIds.length > 1) {
       if (this._simIndication) {
         var self = this;
         navigator.mozL10n.ready(function() {
@@ -96,8 +95,8 @@ var CallButton = {
     // number is blank. We don't want to preventDefault because we want the
     // contextmenu event to generate a click.
     var phoneNumber = this._phoneNumberGetter();
-    if (!window.navigator.mozMobileConnections ||
-        window.navigator.mozMobileConnections.length === 1 ||
+    if (!navigator.mozIccManager ||
+        navigator.mozIccManager.iccIds.length === 1 ||
         phoneNumber === '') {
       return;
     }
