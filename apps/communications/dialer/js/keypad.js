@@ -236,11 +236,21 @@ var KeypadManager = {
     var number = this._phoneNumber;
     if (!number)
       return;
+    if(this.callBarAddContact.classList.contains('disabled'))
+      return;
     LazyLoader.load(['/dialer/js/phone_action_menu.js'],
       function hk_showPhoneNumberActionMenu() {
         PhoneNumberActionMenu.show(null, number,
           ['new-contact', 'add-to-existent']);
     });
+  },
+
+  enableAddContact: function kh_enableAddContactNumber() {
+    this.callBarAddContact.classList.remove('disabled');
+  },
+
+  disableAddContact: function kh_disableAddContactNumber() {
+    this.callBarAddContact.classList.add('disabled');
   },
 
   callbarBackAction: function hk_callbarBackAction(event) {
