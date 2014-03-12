@@ -1,3 +1,6 @@
+/* global _, ConfigManager, CostControl, checkDataUsageNotification,
+          debug, toMidnight, formatData, roundData, smartRound */
+/* jshint -W120 */
 
 /*
  * The data usage tab is in charge of usage charts of mobile and wi-fi networks.
@@ -417,6 +420,15 @@ var DataUsageTab = (function() {
       ctx.moveTo(drawX, model.originY);
       ctx.lineTo(drawX, 0);
       ctx.stroke();
+      // Ensure draw the last vertical line
+      if (((x + step) > model.endX) && (x !== model.endX)) {
+        // the 0.5 offset is needed to avoid drawing a double line.
+        drawX = model.endX - 0.5;
+        ctx.beginPath();
+        ctx.moveTo(drawX, model.originY);
+        ctx.lineTo(drawX, 0);
+        ctx.stroke();
+      }
     }
 
     ctx.restore();
@@ -428,8 +440,8 @@ var DataUsageTab = (function() {
 
   var todayLabel = {};
   var FONTSIZE = toDevicePixels(13);
-  var TODAY_FONTSIZE = toDevicePixels(15);
   var FONTWEIGHT = '600';
+  var FONTWEIGHT_AXIS = '400'; // normal font weight
   function drawTodayLayer(model) {
     var canvas = document.getElementById('today-layer');
     var height = canvas.height = model.height;
@@ -445,7 +457,7 @@ var DataUsageTab = (function() {
     var todayTag = formatChartDate(model.axis.X.today);
 
     // Render the text
-    ctx.font = makeCSSFontString(TODAY_FONTSIZE, FONTWEIGHT);
+    ctx.font = makeCSSFontString(FONTSIZE, FONTWEIGHT);
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
 
@@ -464,7 +476,7 @@ var DataUsageTab = (function() {
   function formatChartDate(date) {
     return _('verbose-chart-date-format', {
       'monthday-number': date.getDate(),
-      'em-month': _('em-month-' + date.getMonth())
+      'em-month': _('month-' + date.getMonth() + '-short')
     });
   }
 
@@ -479,7 +491,7 @@ var DataUsageTab = (function() {
     var step = model.axis.Y.step;
     var dataStep = model.axis.Y.upper - model.axis.Y.maxValue;
     var offsetX = model.originX - 4, marginBottom = 4;
-    ctx.font = makeCSSFontString(FONTSIZE, FONTWEIGHT);
+    ctx.font = makeCSSFontString(FONTSIZE, FONTWEIGHT_AXIS);
     ctx.textAlign = 'right';
     var displayLimit = mobileToggle.checked && model.limits.enabled;
     var lastUnit;
@@ -488,14 +500,15 @@ var DataUsageTab = (function() {
 
       // First X label for 0 is aligned with the bottom
       if (value === 0) {
+        lastUnit = smartRound(dataStep, 0)[1];
         ctx.textBaseline = 'bottom';
         ctx.fillStyle = '#6a6a6a';
-        ctx.fillText(formatData(smartRound(0, 0)), offsetX, y - 2.5);
+        ctx.fillText(formatData([0, lastUnit]), offsetX, y - 2.5);
         continue;
       }
 
       // Rest of labels are aligned with the middle
-      var rounded = smartRound(value, 0);
+      var rounded = smartRound(value, -1);
       var v = rounded[0];
       var u = rounded[1];
       var label = v;
