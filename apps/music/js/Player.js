@@ -20,6 +20,10 @@ var PLAYSTATUS_PAUSED = 'PAUSED';
 var PLAYSTATUS_FWD_SEEK = 'FWD_SEEK';
 var PLAYSTATUS_REV_SEEK = 'REV_SEEK';
 var PLAYSTATUS_ERROR = 'ERROR';
+// Interrupt begin and end are the statuses for audio channel,
+// they will be used when music app is interrupt by some other channels.
+var INTERRUPT_BEGIN = 'mozinterruptbegin';
+var INTERRUPT_END = 'mozinterruptend';
 
 // We get headphoneschange event when the headphones is plugged or unplugged
 // A related Bug 809106 in Bugzilla
@@ -140,6 +144,10 @@ var PlayerView = {
     this.audio.addEventListener('durationchange', this);
     this.audio.addEventListener('timeupdate', this);
     this.audio.addEventListener('ended', this);
+    // Listen to mozinterruptbegin and mozinterruptend for notifying the system
+    // media playback widget to reflect the playing status.
+    this.audio.addEventListener('mozinterruptbegin', this);
+    this.audio.addEventListener('mozinterruptend', this);
 
     // XXX: We use localstorage event as a workaround solution in music app
      // to resolve audio channel competetion between regular mode and pick mode.
@@ -1031,6 +1039,16 @@ var PlayerView = {
         // events if we already have a timer set to emulate them
         if (!this.endedTimer)
           this.next(true);
+        break;
+
+      case 'mozinterruptbegin':
+        this.playStatus = INTERRUPT_BEGIN;
+        this.updateRemotePlayStatus();
+        break;
+
+      case 'mozinterruptend':
+        this.playStatus = INTERRUPT_END;
+        this.updateRemotePlayStatus();
         break;
 
       default:

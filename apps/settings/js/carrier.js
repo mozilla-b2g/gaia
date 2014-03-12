@@ -1111,7 +1111,7 @@ var CarrierSettings = (function(window, document, undefined) {
         // even for single ICC card devices. We add [[],[]] as default value.
         var apnSettingsList =
           request.result['ril.data.apnSettings'] || [[], []];
-        for (var i = 0; apnSettingsList[iccCardIndex].length; i++) {
+        for (var i = 0; i < apnSettingsList[iccCardIndex].length; i++) {
           apn = apnSettingsList[iccCardIndex][i];
           if (apn.types.indexOf(currentType) !== -1) {
             break;

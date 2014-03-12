@@ -368,13 +368,15 @@ var Compose = (function() {
             if (element.text) {
               this.append(element.text);
             }
-          }, Compose);
-        });
+          }, this);
+          this.ignoreEvents = false;
+          this.focus();
+        }.bind(this));
+        this.ignoreEvents = true;
       } else {
         this.append(message.body);
+        this.focus();
       }
-
-      this.focus();
     },
 
     getText: function() {
@@ -698,6 +700,12 @@ var Compose = (function() {
   Object.defineProperty(compose, 'subjectMaxLength', {
     get: function composeGetResizeState() {
       return subject.getMaxLength();
+    }
+  });
+
+  Object.defineProperty(compose, 'ignoreEvents', {
+    set: function composeIgnoreEvents(value) {
+      dom.message.classList.toggle('ignoreEvents', value);
     }
   });
 
