@@ -465,7 +465,7 @@
   will-change: transform;
 }
 
-#screen.edges #windows > .appWindow.active {
+#screen:not(:-moz-full-screen-ancestor).edges #windows > .appWindow.active {
   will-change: transform;
 }
 
