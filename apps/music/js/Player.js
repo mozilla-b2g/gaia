@@ -149,6 +149,13 @@ var PlayerView = {
     this.audio.addEventListener('mozinterruptbegin', this);
     this.audio.addEventListener('mozinterruptend', this);
 
+    // XXX: We use localstorage event as a workaround solution in music app
+     // to resolve audio channel competetion between regular mode and pick mode.
+     // This shouldn't have handled by music app itself. Remove the patch of
+     // bug 894744 once we have better solution.
+     window.addEventListener('storage', 
+		this._handleInterpageMessage.bind(this));
+
     // A timer we use to work around
     // https://bugzilla.mozilla.org/show_bug.cgi?id=783512
     this.endedTimer = null;
@@ -512,8 +519,33 @@ var PlayerView = {
     });
   },
 
+
+  PLAYER_IS_OCCUPIED_BY: 'music-player-is-occupied-by',
+
+   _handleInterpageMessage: function(evt) {
+     if (evt.key === this.PLAYER_IS_OCCUPIED_BY) {
+       // if there is another page (different from the page we are at now)
+       // going to play, stop the current one
+       if (evt.newValue && evt.newValue !== location.href) {
+         this.pause();
+       }
+     }
+   },
+
+   _sendInterpageMessage: function() {
+     window.localStorage.setItem(this.PLAYER_IS_OCCUPIED_BY, location.href);
+   },
+
+   _clearInterpageMessage: function() {
+     var whoIsPlaying = window.localStorage.getItem(this.PLAYER_IS_OCCUPIED_BY);
+     if (whoIsPlaying && whoIsPlaying === window.location.href) {
+       window.localStorage.removeItem(this.PLAYER_IS_OCCUPIED_BY);
+     }
+   },
+
   play: function pv_play(targetIndex) {
     this.checkSCOStatus();
+    this._sendInterpageMessage();
     this.showInfo();
 
     if (arguments.length > 0) {
@@ -560,6 +592,7 @@ var PlayerView = {
 
   pause: function pv_pause() {
     this.checkSCOStatus();
+    this._clearInterpageMessage();
     this.audio.pause();
   },
 
