@@ -774,3 +774,4 @@ exports.getEnv = getEnv;
 exports.isExternalApp = isExternalApp;
 exports.getDocument = getDocument;
 exports.getWebapp = getWebapp;
+exports.Services = Services;
