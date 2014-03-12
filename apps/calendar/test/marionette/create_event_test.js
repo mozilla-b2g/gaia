@@ -5,11 +5,7 @@ var Calendar = require('./calendar'),
 
 
 marionette('creating an event', function() {
-
-  // test is disabled see: Bug 919066, 974731
   /*jshint -W027*/
-  return;
-
   var app;
   var client = marionette.client();
 
