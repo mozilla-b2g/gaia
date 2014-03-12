@@ -153,7 +153,8 @@ var PlayerView = {
      // to resolve audio channel competetion between regular mode and pick mode.
      // This shouldn't have handled by music app itself. Remove the patch of
      // bug 894744 once we have better solution.
-     window.addEventListener('storage', this._handleInterpageMessage.bind(this));
+     window.addEventListener('storage', 
+		this._handleInterpageMessage.bind(this));
 
     // A timer we use to work around
     // https://bugzilla.mozilla.org/show_bug.cgi?id=783512
