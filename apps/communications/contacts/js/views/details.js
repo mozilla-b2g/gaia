@@ -423,20 +423,57 @@ contacts.Details = (function() {
 
       var callOrPickButton = template.querySelector('#call-or-pick-' + tel);
       callOrPickButton.dataset['tel'] = telField.value;
-      callOrPickButton.addEventListener('click', onCallOrPickClicked);
+      setupPhoneButtonListener(callOrPickButton, telField.value);
 
       listContainer.appendChild(template);
     }
   };
 
+  // Check current situation and setup different listener for the button
+  function setupPhoneButtonListener(button, number) {
+    LazyLoader.load(['/dialer/js/mmi.js'], function() {
+      if (ActivityHandler.currentlyHandling &&
+        ActivityHandler.activityName !== 'open') {
+        button.addEventListener('click', onPickNumber);
+      } else if ((navigator.mozMobileConnection ||
+          window.navigator.mozMobileConnections &&
+          window.navigator.mozMobileConnections[0]) &&
+          MmiManager.isMMI(number)) {
+        button.addEventListener('click', onMMICode);
+      } else if (navigator.mozTelephony) {
+        LazyLoader.load(['/dialer/js/call_button.js'], function() {
+          new CallButton(button, function() {return number},
+            TelephonyHelper.call, 'ril.telephony.defaultServiceId');
+        });
+      }
+    });
+  }
+
+  // If we are currently handing an activity, send the phone
+  // number as result of clicking in the phone button.
+  function onPickNumber(evt) {
+    var number = evt.target.dataset['tel'];
+    ActivityHandler.postPickSuccess({ number: number });
+  }
+
+  // If the phone number stored in a contact is a MMI code,
+  // launch the dialer with that specific code.
+  function onMMICode(evt) {
+    var number = evt.target.dataset['tel'];
+    // For security reasons we cannot directly call MmiManager.send(). We
+    // need to show the MMI number in the dialer instead.
+    new MozActivity({
+      name: 'dial',
+      data: {
+        type: 'webtelephony/number',
+        number: number
+      }
+    });
+  }
+
   var onSendSmsClicked = function onSendSmsClicked(evt) {
     var tel = evt.target.dataset['tel'];
     Contacts.sendSms(tel);
-  };
-
-  var onCallOrPickClicked = function onCallOrPickClicked(evt) {
-    var tel = evt.target.dataset['tel'];
-    Contacts.callOrPick(tel);
   };
 
   var renderEmails = function cd_renderEmails(contact) {

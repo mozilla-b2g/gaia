@@ -59,12 +59,14 @@
         }
         templateNode.remove();
 
-        var simPickerElt = document.getElementById('sim-picker');
-        simPickerElt.addEventListener('click', self);
+        self._simPickerElt.addEventListener('click', self);
       });
     },
 
     handleEvent: function(e) {
+      if (e) {
+        e.preventDefault();
+      }
       if (e.target.nodeName !== 'BUTTON') {
         return;
       }
