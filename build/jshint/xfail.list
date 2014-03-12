@@ -232,12 +232,6 @@ apps/communications/contacts/js/views/search.js
 apps/communications/contacts/js/views/settings.js
 apps/communications/contacts/oauth2/js/flow.js
 apps/communications/contacts/oauth2/js/oauth20.js
-apps/communications/contacts/test/marionette/activities_test.js
-apps/communications/contacts/test/marionette/details_test.js
-apps/communications/contacts/test/marionette/form_test.js
-apps/communications/contacts/test/marionette/lib/contacts.js
-apps/communications/contacts/test/marionette/lib/sms.js
-apps/communications/contacts/test/marionette/search_test.js
 apps/communications/contacts/test/unit/contacts_matcher_test.js
 apps/communications/contacts/test/unit/contacts_matching_ui_test.js
 apps/communications/contacts/test/unit/contacts_matching_ui_test_data.js

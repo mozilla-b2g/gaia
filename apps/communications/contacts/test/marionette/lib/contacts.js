@@ -1,4 +1,4 @@
-var assert = require('assert');
+'use strict';
 
 /**
  * Abstraction around contacts app.
@@ -65,15 +65,6 @@ Contacts.Selectors = {
   searchResultFirst: '#search-list .contact-item'
 };
 
-/**
- * @private
- * @param {Marionette.Client} client for selector.
- * @param {String} name of selector [its a key in Contacts.Selectors].
- */
-function findElement(client, name) {
-  return client.findElement(Contacts.Selectors[name]);
-}
-
 Contacts.prototype = {
   /**
    * Launches contacts app and focuses on frame.
@@ -106,7 +97,7 @@ Contacts.prototype = {
       return data;
     }, [file, key]);
 
-    return string[key]['_'];
+    return string[key]._;
   },
 
   waitSlideLeft: function(elementKey) {
