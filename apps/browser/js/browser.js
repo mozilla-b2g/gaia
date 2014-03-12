@@ -1067,9 +1067,9 @@ var Browser = {
 
         return {
           label: _('save-' + type),
-          callback: function() {
-            self.saveMedia(item.data.uri, type);
-          }
+          callback: function() {},
+          type: 'download',
+          href: item.data.uri
         };
       default:
         return false;
@@ -1125,15 +1125,28 @@ var Browser = {
     menuItems.forEach(function(menuitem) {
       var li = document.createElement('li');
       li.id = menuitem.id;
-      var button = this.createButton(menuitem.label, menuitem.icon);
 
-      button.addEventListener('click', function() {
-        document.body.removeChild(dialog);
-        self.contextMenuHasCalled = false;
-        menuitem.callback();
-      });
+      if (menuitem.type == 'download') {
+        var filename = menuitem.href.split('/').reverse()[0].toLowerCase()
+          .split(/[&?#]/g)[0].replace(/[^a-z0-9\.]/g, '_');
+        var a = document.createElement('a');
+        a.setAttribute('download', filename);
+        a.setAttribute('type', 'application/octet-stream');
+        a.setAttribute('href', menuitem.href);
+        a.setAttribute('role', 'button');
+        a.textContent = menuitem.label;
+        li.appendChild(a);
+      } else {
+        var button = this.createButton(menuitem.label, menuitem.icon);
 
-      li.appendChild(button);
+        button.addEventListener('click', function() {
+          document.body.removeChild(dialog);
+          self.contextMenuHasCalled = false;
+          menuitem.callback();
+        });
+
+        li.appendChild(button);
+      }
       list.appendChild(li);
     }, this);
 
