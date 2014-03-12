@@ -50,7 +50,6 @@
     <script defer src="/shared/js/mobile_operator.js"></script>
     <script defer src="/shared/js/notification_helper.js"></script>
     <script defer src="/shared/js/sim_picker.js"></script>
-    <script defer src="/shared/js/sim_settings_helper.js"></script>
     <script defer src="/shared/js/simple_phone_matcher.js"></script>
     <script defer src="/shared/js/settings_listener.js"></script>
     <script defer src="/contacts/js/utilities/confirm.js"></script>
@@ -194,13 +193,12 @@
               </div>
             </section>
             <section id="keypad-callbar">
-              <span role="button" id="keypad-callbar-add-contact" data-type="action" data-value="add-contact" class="disabled">
+              <div role="button" id="keypad-callbar-add-contact" data-type="action" data-value="add-contact" class="disabled">
                 <div class="icon-add-contact"></div>
-              </span>
-              <span role="button" id="keypad-callbar-call-action" data-type="action" data-value="make-call">
-                <div>
-                </div>
-              </span>
+              </div>
+              <div role="button" id="keypad-callbar-call-action" data-type="action" data-value="make-call">
+                <div class="js-sim-indication"></div>
+              </div>
             </section>
           </article>
         </div>

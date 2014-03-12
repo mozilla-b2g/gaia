@@ -17,6 +17,12 @@ var MockMozL10n = {
   language: {
     code: 'en',
     dir: 'ltr'
+  },
+  ready: function(callback) {
+    callback();
+  },
+  localize: function(node, l10nId, l10nArgs) {
+
   }
 };
 

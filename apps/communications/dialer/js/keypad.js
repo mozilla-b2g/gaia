@@ -135,9 +135,24 @@ var KeypadManager = {
     // the emergency call version of the keypad.
     if (this.callBarCallAction) {
       if (typeof CallButton !== 'undefined') {
-        CallButton.init(this.callBarCallAction,
-                        this.phoneNumber.bind(this),
-                        CallHandler.call);
+        if (navigator.mozMobileConnections &&
+            navigator.mozMobileConnections.length > 1) {
+          // Use LazyL10n to load l10n.js. Single SIM devices will be slowed
+          // down by the cost of loading l10n.js in the startup path if we don't
+          // do this.
+          var self = this;
+          LazyL10n.get(function localized(_) {
+            CallButton.init(self.callBarCallAction,
+                            self.phoneNumber.bind(self),
+                            CallHandler.call,
+                            'ril.telephony.defaultServiceId');
+          });
+        } else {
+          CallButton.init(this.callBarCallAction,
+                          this.phoneNumber.bind(this),
+                          CallHandler.call,
+                          'ril.telephony.defaultServiceId');
+        }
       }
       this.callBarCallAction.addEventListener('click',
                                               this.fetchLastCalled.bind(this));
