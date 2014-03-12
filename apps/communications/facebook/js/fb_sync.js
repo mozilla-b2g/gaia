@@ -108,6 +108,11 @@ if (!fb.sync) {
           changed = 0;
           totalToChange = m.data.totalToChange;
           nextTimestamp = m.data.queryTimestamp;
+          var newFriendNumber = m.data.newFriendNumber;
+          if (newFriendNumber) {
+            debug('New friend number: ', newFriendNumber);
+            fb.utils.setCachedNumFriends(newFriendNumber);
+          }
 
           debug('Total to be changed: ', totalToChange);
 

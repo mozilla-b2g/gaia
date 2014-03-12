@@ -299,6 +299,22 @@ Mockfb.utils = (function() {
 
     getImportChecked: function() {
 
+    },
+
+    setCachedNumFriends: function() {
+
     }
   };
 }());
+
+Mockfb.contacts = {
+  _importedContacts: 40,
+  getLength: function() {
+    return {
+      result: this._importedContacts,
+      set onsuccess(cb) {
+        cb();
+      }
+    };
+  }
+};
