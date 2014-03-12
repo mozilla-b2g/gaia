@@ -75,10 +75,10 @@ var EverythingME = {
 
       // load styles required for Collection styling
       LazyLoader.load([
-        document.getElementById('search-page'),
         'shared/style_unstable/progress_activity.css',
         'everything.me/css/common.css',
-        'everything.me/modules/Collection/Collection.css'],
+        'everything.me/modules/Collection/Collection.css',
+        document.getElementById('search-page')],
         function assetsLoaded() {
           // Activate evme load
           // But wait a tick, so there's no flash of unstyled progress indicator
