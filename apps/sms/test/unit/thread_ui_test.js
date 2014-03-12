@@ -2580,8 +2580,8 @@ suite('thread_ui.js >', function() {
             assert.equal(showMessageErrorSpy.called, false);
           });
         });
-        suite('response non-active sim card error', function() {
 
+        suite('response non-active sim card error', function() {
           setup(function() {
             MessageManager.retrieveMMS.returnValues[0].error =
             {
@@ -2589,10 +2589,12 @@ suite('thread_ui.js >', function() {
             };
             MessageManager.retrieveMMS.returnValues[0].onerror();
           });
+
           test('Message ID code/option for dialog', function() {
             sinon.assert.calledWithMatch(showMessageErrorSpy,
               'NonActiveSimCardError', { messageId: message.id });
           });
+
           test('Error dialog params and show', function() {
             var code = MockErrorDialog.calls[0][0];
             var opts = MockErrorDialog.calls[0][1];
@@ -2614,7 +2616,19 @@ suite('thread_ui.js >', function() {
             sinon.assert.calledWith(localize, button, 'downloading');
             sinon.assert.calledWith(Settings.switchSimHandler, 1);
           });
+
+          test('fail if the SIM is not present anymore', function() {
+            this.sinon.spy(Settings, 'switchSimHandler');
+            this.sinon.stub(Settings, 'getServiceIdByIccId').returns(null);
+
+            MockErrorDialog.calls[0][1].confirmHandler();
+            assert.isFalse(element.classList.contains('pending'));
+            assert.isTrue(element.classList.contains('error'));
+            sinon.assert.notCalled(Settings.switchSimHandler);
+            assert.equal(MockErrorDialog.calls[1][0], 'NoSimCardError');
+          });
         });
+
         suite('response error with other errorCode', function() {
           setup(function() {
             MessageManager.retrieveMMS.returnValues[0].error =

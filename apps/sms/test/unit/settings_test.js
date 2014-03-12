@@ -262,8 +262,10 @@ suite('Settings >', function() {
     suite('switchSimHandler for async callback when ready', function() {
       var conn;
       var listenerSpy, switchSimCallback;
-      var mockMozMobileConnections = [
-        {
+
+      // The real navigator.mozMobileConnections is not a real array
+      var mockMozMobileConnections = {
+        0: {
           iccId: 'SIM 1',
           addEventListener: function() {},
           removeEventListener: function() {},
@@ -271,7 +273,7 @@ suite('Settings >', function() {
             state: 'searching'
           }
         },
-        {
+        1: {
           iccId: 'SIM 2',
           addEventListener: function() {},
           removeEventListener: function() {},
@@ -279,7 +281,7 @@ suite('Settings >', function() {
             state: 'searching'
           }
         }
-      ];
+      };
 
       setup(function() {
         if (!('mozMobileConnections' in navigator)) {

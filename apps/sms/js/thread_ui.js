@@ -2301,12 +2301,6 @@ var ThreadUI = global.ThreadUI = {
         this.showMessageError(errorCode, {
           messageId: id,
           confirmHandler: function stateResetAndRetry() {
-            // TODO move this before trying to call retrieveMMS in Bug 981077
-            // Avoid user to click the download button while sim state is not
-            // ready yet.
-            messageDOM.classList.add('pending');
-            messageDOM.classList.remove('error');
-            navigator.mozL10n.localize(button, 'downloading');
             var serviceId = Settings.getServiceIdByIccId(iccId);
             if (serviceId === null) {
               // TODO Bug 981077 should change this error message
@@ -2314,6 +2308,12 @@ var ThreadUI = global.ThreadUI = {
               return;
             }
 
+            // TODO move this before trying to call retrieveMMS in Bug 981077
+            // Avoid user to click the download button while sim state is not
+            // ready yet.
+            messageDOM.classList.add('pending');
+            messageDOM.classList.remove('error');
+            navigator.mozL10n.localize(button, 'downloading');
             Settings.switchSimHandler(serviceId,
               this.retrieveMMS.bind(this, messageDOM));
           }.bind(this)
