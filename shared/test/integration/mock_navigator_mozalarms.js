@@ -1,8 +1,18 @@
+/*global Components, Services*/
+/**
+ * @fileoverview This script mocks the mozAlarms API
+ *    (developer.mozilla.org/docs/WebAPI/Alarm) for app integration tests.
+ *    You should use and improve this if you want to write a marionette test
+ *    which verifies that your app sets alarms correctly.
+ */
+'use strict';
+
 Components.utils.import('resource://gre/modules/Services.jsm');
 
 Services.obs.addObserver(function(document) {
-  if (!document || !document.location)
+  if (!document || !document.location) {
     return;
+  }
 
   var window = document.defaultView.wrappedJSObject;
   var fakeAlarms = [];
