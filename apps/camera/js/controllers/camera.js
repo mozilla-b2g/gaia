@@ -152,20 +152,28 @@ CameraController.prototype.onCapture = function() {
 CameraController.prototype.onNewImage = function(image) {
   var filmstrip = this.filmstrip;
   var storage = this.storage;
-  var blob = image.blob;
+  var memoryBlob = image.blob;
   var self = this;
 
-  // In either case, save
-  // the photo to device storage
-  storage.addImage(blob, function(filepath) {
-    debug('stored image', filepath);
-    if (!self.activity.active) {
-      filmstrip.addImageAndShow(filepath, blob);
-    }
-  });
+  // In either case, save the memory-backed photo blob to
+  // device storage, retrieve the resulting File (blob) and
+  // pass that around instead of the original memory blob.
+  // This is critical for "pick" activity consumers where
+  // the memory-backed Blob is either highly inefficent or
+  // will almost-immediately become inaccesible, depending
+  // on the state of the platform. https://bugzil.la/982779
+  storage.addImage(
+    memoryBlob,
+    function(filepath, abspath, fileBlob) {
+      debug('stored image', filepath);
+      image.blob = fileBlob;
+      if (!self.activity.active) {
+        filmstrip.addImageAndShow(filepath, fileBlob);
+      }
 
-  debug('new image', image);
-  this.app.emit('newimage', image);
+      debug('new image', image);
+      this.app.emit('newimage', image);
+    }.bind(this));
 };
 
 /**
@@ -195,8 +203,15 @@ CameraController.prototype.onNewVideo = function(video) {
 
   // Add the poster image to the image storage
   poster.filepath = video.filepath.replace('.3gp', '.jpg');
-  storage.addImage(poster.blob, { filepath: poster.filepath });
-  this.app.emit('newvideo', video);
+  storage.addImage(
+    poster.blob, { filepath: poster.filepath },
+    function(path, absolutePath, fileBlob) {
+      // Replace the memory-backed Blob with the DeviceStorage file-backed File.
+      // Note that "video" references "poster", so video previews will use this
+      // File.
+      poster.blob = fileBlob;
+      this.app.emit('newvideo', video);
+    }.bind(this));
 };
 
 CameraController.prototype.onFileSizeLimitReached = function() {
