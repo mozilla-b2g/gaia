@@ -115,8 +115,9 @@ suite('system/Statusbar', function() {
   });
 
   suite('StatusBar height', function() {
+    var app;
     setup(function() {
-      var app = {
+      app = {
         isFullScreen: function() {
           return true;
         }
@@ -1253,6 +1254,39 @@ suite('system/Statusbar', function() {
       assert.isFalse(StatusBar.element.classList.contains('invisible'));
     });
 
+    test('the status bar should show when utilitytray is showing',
+    function() {
+      this.sinon.stub(app, 'isFullScreen').returns(true);
+      StatusBar.hide();
+
+      var evt = new CustomEvent('utilitytrayshow');
+      StatusBar.handleEvent(evt);
+
+      assert.isFalse(StatusBar.element.classList.contains('invisible'));
+    });
+
+    test('the status bar should show when attentionscreen is showing',
+    function() {
+      this.sinon.stub(app, 'isFullScreen').returns(true);
+      StatusBar.hide();
+
+      var evt = new CustomEvent('attentionscreenshow');
+      StatusBar.handleEvent(evt);
+
+      assert.isFalse(StatusBar.element.classList.contains('invisible'));
+    });
+
+    test('the status bar should be hidden when attentionscreen is hidden',
+    function() {
+      this.sinon.stub(app, 'isFullScreen').returns(true);
+      StatusBar.show();
+
+      var evt = new CustomEvent('attentionscreenhide');
+      StatusBar.handleEvent(evt);
+
+      assert.isTrue(StatusBar.element.classList.contains('invisible'));
+    });
+
     suite('Revealing the StatusBar >', function() {
       var transitionEndSpy;
       setup(function() {
@@ -1423,6 +1457,32 @@ suite('system/Statusbar', function() {
         call = forwardSpy.getCall(3);
         assert.equal(call.args[0], touchend);
       });
+    });
+  });
+
+  suite('not fullscreen mode >', function() {
+    var app;
+    setup(function() {
+      app = {
+        isFullScreen: function() {
+          return true;
+        },
+        iframe: document.createElement('iframe')
+      };
+
+      this.sinon.stub(MockAppWindowManager, 'getActiveApp').returns(app);
+      StatusBar.screen = document.createElement('div');
+    });
+
+    test('the status bar should not be hidden when attentionscreen is hidden',
+    function() {
+      this.sinon.stub(app, 'isFullScreen').returns(false);
+      StatusBar.show();
+
+      var evt = new CustomEvent('attentionscreenhide');
+      StatusBar.handleEvent(evt);
+
+      assert.isFalse(StatusBar.element.classList.contains('invisible'));
     });
   });
 });
