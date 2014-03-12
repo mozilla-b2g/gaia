@@ -324,10 +324,14 @@ var CallSettings = (function(window, document, undefined) {
                     true
                   );
                   if (settingKey === 'unconditional') {
+                    // Send the latest query result from carrier to system app
                     asyncOpChecker.runTask(
                       cs_setToSettingsDB,
                       'ril.cf.carrier.enabled',
-                      true
+                      {
+                        enabled: true,
+                        index: DsdsSettings.getIccCardIndexForCallSettings()
+                      }
                     );
                   }
                   hasValidRule = true;
@@ -337,6 +341,7 @@ var CallSettings = (function(window, document, undefined) {
 
               if (!hasValidRule) {
                 _cfReasonStates[_cfReasonMapping[settingKey]] = 0;
+                // Send the latest query result from carrier to system app
                 asyncOpChecker.runTask(
                   cs_setToSettingsDB,
                   'ril.cf.' + settingKey + '.number',
@@ -351,7 +356,10 @@ var CallSettings = (function(window, document, undefined) {
                   asyncOpChecker.runTask(
                     cs_setToSettingsDB,
                     'ril.cf.carrier.enabled',
-                    false
+                    {
+                      enabled: false,
+                      index: DsdsSettings.getIccCardIndexForCallSettings()
+                    }
                   );
                 }
               }

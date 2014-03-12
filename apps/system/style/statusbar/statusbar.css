@@ -167,6 +167,7 @@ body.rb-enabled #statusbar-label {
   font-size: 1rem;
 }
 
+/* signal and data icons */
 #statusbar-connections {
   margin: 0;
   padding: 0;
@@ -225,6 +226,42 @@ body.rb-enabled #statusbar-label {
 #statusbar-connections[data-multiple="true"] .statusbar-data[hidden] {
   display: block;
   opacity: 0;
+}
+
+/* call forwarding icons */
+#statusbar-call-forwardings {
+  margin: 0;
+  padding: 0;
+}
+
+#statusbar-call-forwardings > * {
+  float: right;
+  pointer-events: none;
+  margin: 0 0.6rem;
+}
+
+#statusbar-call-forwardings .sb-icon-call-forwarding {
+  position: relative;
+}
+
+#statusbar-call-forwardings[data-multiple="true"] .sb-icon-call-forwarding::before {
+  position: absolute;
+  font-size: 0.8rem;
+  top: 0.5rem;
+  left: -0.6rem;
+}
+
+#statusbar-call-forwardings[data-multiple="true"] .sb-icon-call-forwarding[data-index="1"]::before {
+  content: '1';
+}
+#statusbar-call-forwardings[data-multiple="true"] .sb-icon-call-forwarding[data-index="2"]::before {
+  content: '2';
+}
+#statusbar-call-forwardings[data-multiple="true"] .sb-icon-call-forwarding[data-index="3"]::before {
+  content: '3';
+}
+#statusbar-call-forwardings[data-multiple="true"] .sb-icon-call-forwarding[data-index="4"]::before {
+  content: '4';
 }
 
 .sb-icon {

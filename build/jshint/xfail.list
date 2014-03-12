@@ -797,7 +797,6 @@ apps/system/js/bootstrap.js
 apps/system/js/browser_config_helper.js
 apps/system/js/browser_frame.js
 apps/system/js/browser_mixin.js
-apps/system/js/call_forwarding.js
 apps/system/js/captive_portal.js
 apps/system/js/cards_view.js
 apps/system/js/carrier_info_notifier.js
