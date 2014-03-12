@@ -2,6 +2,7 @@ var fs = require('fs'),
     path = require('path');
 
 var mediaDir, client;
+var fileIndex = 0;
 /**
 * @fileoverview Contains some useful functions for preparing the test suit.
 Most notably copies the test media to the media directory.
@@ -15,7 +16,7 @@ Most notably copies the test media to the media directory.
   * Find the media directoy and copies a single test file to it
   * in prepartion to run the test suite.
   */
-  prepareTestSuite: function(mediaType, _client) {
+  prepareTestSuite: function(mediaType, _client, number) {
 
     client = _client;
     // Using the following prefs mounts a temp diretory as deviceStorage:
@@ -26,7 +27,7 @@ Most notably copies the test media to the media directory.
     if (!mediaDir)
       mediaDir = getMediaDir(mediaType);
 
-    setup(mediaType, mediaDir);
+    setup(mediaType, mediaDir, number);
   }
 };
 module.exports = TestCommon;
@@ -37,14 +38,14 @@ module.exports = TestCommon;
 * @param {mediaDir} mediaDir The path to the temporary director for
 * media files.
 */
-function setup(mediaType, mediaDir) {
+function setup(mediaType, mediaDir, number) {
   files = fs.readdirSync(mediaDir);
 
   // Delete all other files and copy our test file.
   for (var i = 0; i < files.length; i++)
     deleteFile(files[i]);
-
-  copyTestMedia(mediaType);
+  for (var i = 0; i < (number || 1); i++)
+    copyTestMedia(mediaType);
 }
 
 /**
@@ -81,7 +82,8 @@ function copyTestPicture() {
   // www.mozilla.org/en-US/styleguide/identity/firefoxos/branding/
   var sourceFile =
   path.resolve('test_media/Pictures/firefoxOS.png');
-  var destinationFile = path.join(mediaDir, 'firefoxOS.png');
+  var destinationFile = path.join(mediaDir, 'firefoxOS-' +
+                                  (fileIndex++) + '.png');
   copyFile(sourceFile, destinationFile);
 }
 
@@ -91,7 +93,8 @@ function copyTestPicture() {
 function copyTestVideo() {
   var sourceFile =
   path.resolve('test_media/Movies/elephants-dream.webm');
-  var destinationFile = path.join(mediaDir, 'elephants-dream.webm');
+  var destinationFile = path.join(mediaDir, 'elephants-dream-' +
+                                  (fileIndex++) + '.webm');
   copyFile(sourceFile, destinationFile);
 }
 
@@ -145,7 +148,7 @@ function getMediaDir(mediaType, client) {
 
 /**
 * Determines the device storage directory.
-* @return {String} path to device storage directory
+* @return {String} path to device storage directory.
 */
 function getDeviceStorageDirectory(client) {
   var tmpDir = getTemporaryDirectory(client);
@@ -163,7 +166,7 @@ function createDir(path) {
 
 /**
 * Determines the temporary directory that is created by FF because of the prefs.
-* @return {String} path to temporary directory
+* @return {String} path to temporary directory.
 */
 function getTemporaryDirectory() {
   var chrome = client.scope({context: 'chrome'});

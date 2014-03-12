@@ -25,7 +25,8 @@ Gallery.Selector = Object.freeze({
   thumbnailsSelectButton: '#thumbnails-select-button',
   thumbnailsDeleteButton: '#thumbnails-delete-button',
   fullscreenBackButton: '#fullscreen-back-button-tiny',
-  editButton: '#fullscreen-edit-button-tiny',
+  editButtonTiny: '#fullscreen-edit-button-tiny',
+  editButtonLarge: '#fullscreen-edit-button-large',
   confirmButton: '#confirm-ok',
   overlayView: '#overlay',
   editView: '#edit-view',
@@ -119,8 +120,12 @@ Gallery.prototype = {
   /**
    * @return {Marionette.Element} Element to click for image editing mode.
    */
-  get editButton() {
-    return this.client.findElement(Gallery.Selector.editButton);
+  get editButtonTiny() {
+    return this.client.findElement(Gallery.Selector.editButtonTiny);
+  },
+
+  get editButtonLarge() {
+    return this.client.findElement(Gallery.Selector.editButtonLarge);
   },
 
   /**
@@ -217,6 +222,9 @@ Gallery.prototype = {
     return this.client.findElement(Gallery.Selector.fullscreenFrame2);
   },
 
+  get currentView() {
+    return this.client.findElement('body').getAttribute('class');
+  },
   /**
    * @return {Marionette.Element} Container element to host fullscreen images.
    */
@@ -265,5 +273,9 @@ Gallery.prototype = {
     // takes a while. (metadata parsing, thumbnail creation, saving to DB, etc)
     this.client.setSearchTimeout(300000);
     this.client.helper.waitForElement(Gallery.Selector.thumbnail);
+  },
+
+  findElement: function(xpath) {
+    return this.client.findElement(xpath);
   }
 };

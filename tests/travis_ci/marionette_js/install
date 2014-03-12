@@ -1,5 +1,4 @@
 #! /bin/bash -ve
-
 echo "Downloading b2g-desktop"
 make b2g
 

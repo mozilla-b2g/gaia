@@ -27,7 +27,7 @@ marionette('editing an image', function() {
     // You should be able to switch between the different 'operations'
     // in the image editor.
     app.thumbnail.click();
-    app.editButton.click();
+    app.editButtonTiny.click();
     app.waitForImageEditor();
     assert.ok(app.exposureOptions.displayed());
 
@@ -45,7 +45,7 @@ marionette('editing an image', function() {
     // Changing the exposure of an image creates a new modified
     // version of original.
     app.thumbnail.click();
-    app.editButton.click();
+    app.editButtonTiny.click();
     app.waitForImageEditor();
     app.editExposureButton.click();
     actions.flick(app.exposureSlider, 0, 0, 50, 0).perform();
@@ -59,7 +59,7 @@ marionette('editing an image', function() {
   test.skip('should crop it', function() {
     // Croping an image creates a new modified version of original.
     app.thumbnail.click();
-    app.editButton.click();
+    app.editButtonTiny.click();
     app.editCropButton.click();
     app.waitForImageEditor();
     app.editCropAspectPortraitButton.click();
@@ -73,7 +73,7 @@ marionette('editing an image', function() {
   test.skip('should apply an effect', function() {
     // Applying a sepia effect creates a new modified version of original.
     app.thumbnail.click();
-    app.editButton.click();
+    app.editButtonTiny.click();
     app.editEffectButton.click();
     app.waitForImageEditor();
     app.editEffectSepiaButton.click();
