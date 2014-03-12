@@ -88,12 +88,17 @@
 
 #week-view .sticky .all-day {
   transform: rotate(-90deg);
-  line-height: 120%;
-  float: left;
+  transform-origin: 0 0;
   position: absolute;
-  top: 4rem;
-  left: -1rem;
+  top: 7.9rem;
+  left: 0.3rem;
+  width: 6rem;
+  height: 1.3rem;
   font-size: 1.3rem;
+  line-height: 120%;
+  text-align: center;
+  overflow: hidden;
+  white-space: nowrap;
 }
 
 #week-view .sticky .children {
