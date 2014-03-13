@@ -149,7 +149,9 @@ function SimContactsImporter(targetIcc) {
   function importSlice(from) {
     for (var i = from; i < from + CHUNK_SIZE && i < self.items.length; i++) {
       var item = self.items[i];
-      item.givenName = item.name;
+      var parsedName = utils.misc.parseName(item.name[0]);
+      item.givenName = [parsedName.givenName];
+      item.familyName = [parsedName.familyName];
 
       if (Array.isArray(item.tel)) {
         var telItems = [];
