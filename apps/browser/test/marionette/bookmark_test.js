@@ -57,7 +57,8 @@ marionette('', function() {
       });
     });
 
-    test('Edit bookmark', function() {
+    // Disabled due to intermittent failures. Bug 983117
+    test.skip('Edit bookmark', function() {
       url = server.url('coolpage.html');
       subject.searchBar.sendKeys(url);
       subject.searchButton.click();
