@@ -27,7 +27,6 @@ Calendar.Selector = Object.freeze({
   day: '#day-view',
   week: '#week-view',
   month: '#month-view',
-  settings: '#settings',
   'event/show': '#event-view',
   'event/add': '#modify-event-view.create',
   'event/edit': '#modify-event-view.update',
@@ -67,7 +66,6 @@ Calendar.Selector = Object.freeze({
   toolbarAddAccountButton: '#settings a[href="/select-preset/"]',
   toolbarButton: '#time-header button.settings',
   toolbarSyncButton: '#settings [role="toolbar"] .sync',
-  settingsCalendarsLocal: '#calendar-local-first .pack-checkbox',
   viewEventView: '#event-view',
   viewEventViewAlarm: '#event-view .alarms > .content > div',
   viewEventViewCalendar: '#event-view .current-calendar .content',
@@ -158,10 +156,6 @@ Calendar.prototype = {
     this.client.waitFor(this.isAddEventViewActive.bind(this));
   },
 
-  waitForSettingsView: function() {
-    this.client.waitFor(this.isSettingsViewActive.bind(this));
-  },
-
   // TODO: extract this logic into the marionette-helper repository since this
   // can be useful for other apps as well
   waitForKeyboardHide: function() {
@@ -192,7 +186,11 @@ Calendar.prototype = {
    * @param {String} url the url of the CalDAV calendar.
    */
   createCalDavAccount: function(username, password, url) {
-    this.goToSettingsView();
+    // Go to the Account page.
+    this.registerTransitionEndEvent('#time-views');
+    this.waitForElement('toolbarButton').click();
+    // Wait for the transition end.
+    this.waitForTransitionEnd('#time-views');
 
     this.waitForElement('toolbarAddAccountButton').click();
     this.waitForElement('addCalDavAccountButton').click();
@@ -202,9 +200,14 @@ Calendar.prototype = {
     this.waitForElement('addAccountPasswordInput').sendKeys(password);
     this.waitForElement('addAccountUrlInput').sendKeys(url);
     this.waitForElement('addAccountSaveButton').click();
+    // Wait for the settings view is showed.
+    this._waitForViewIsActive('settings');
 
-    this.waitForSettingsView();
-    this.leaveSettingsView();
+    // Go back to the main page.
+    this.registerTransitionEndEvent('#time-views');
+    this.waitForElement('toolbarButton').click();
+    // Wait for the transition end.
+    this.waitForTransitionEnd('#time-views');
   },
 
   /**
@@ -412,13 +415,6 @@ Calendar.prototype = {
   },
 
   /**
-   * @return {boolean} Whether or not the settings view is active.
-   */
-  isSettingsViewActive: function() {
-    return this.isViewActive('settings');
-  },
-
-  /**
    * Start the calendar, save the client for future ops, and wait for the
    * calendar to finish an initial render.
    *
@@ -558,24 +554,5 @@ Calendar.prototype = {
     this.client.waitFor(function() {
       return this.isViewActive(id);
     }.bind(this));
-  },
-
-  goToSettingsView: function() {
-    this._toggleSettingsView();
-    this.waitForSettingsView();
-  },
-
-  leaveSettingsView: function() {
-    this._toggleSettingsView();
-    this.client.waitFor(function() {
-      return !this.isSettingsViewActive();
-    }.bind(this));
-  },
-
-  _toggleSettingsView: function() {
-    this.registerTransitionEndEvent('#time-views');
-    this.waitForElement('toolbarButton').click();
-    this.waitForTransitionEnd('#time-views');
   }
-
 };
