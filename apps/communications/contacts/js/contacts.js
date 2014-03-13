@@ -445,7 +445,9 @@ var Contacts = (function() {
   };
 
   var callOrPick = function callOrPick(number) {
-    LazyLoader.load('/dialer/js/mmi.js', function mmiLoaded() {
+    LazyLoader.load(['/dialer/js/mmi.js',
+                     '/shared/js/sim_settings_helper.js'],
+                    function mmiLoaded() {
       if (ActivityHandler.currentlyHandling &&
           ActivityHandler.activityName !== 'open') {
         ActivityHandler.postPickSuccess({ number: number });
@@ -460,7 +462,9 @@ var Contacts = (function() {
           }
         });
       } else if (navigator.mozTelephony) {
-        TelephonyHelper.call(number);
+        SimSettingsHelper.getCardIndexFrom('outgoingCall', function(cardIndex) {
+          TelephonyHelper.call(number, cardIndex);
+        });
       }
     });
   };
@@ -593,7 +597,8 @@ var Contacts = (function() {
     }
   };
 
-  var showForm = function c_showForm(edit) {
+  var showForm = function c_showForm(edit, contact) {
+    currentContact = contact || currentContact;
     initForm(function onInit() {
       doShowForm(edit);
     });
@@ -783,6 +788,7 @@ var Contacts = (function() {
             function success(contact, enrichedContact) {
               currentContact = contact;
               var mergedContact = enrichedContact || contact;
+              contactsDetails.setContact(mergedContact);
               contactsDetails.render(mergedContact, null, enrichedContact);
               contactsList.refresh(mergedContact, checkPendingChanges,
                                    event.reason);

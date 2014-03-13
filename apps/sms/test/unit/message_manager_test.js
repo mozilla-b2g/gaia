@@ -43,7 +43,6 @@ var mocksHelperForMessageManager = new MocksHelper([
   'LinkActionHandler',
   'MozSmsFilter',
   'Notification',
-  'LinkActionHandler',
   'GroupView',
   'ReportView',
   'Recipients',
@@ -78,13 +77,19 @@ suite('message_manager.js >', function() {
       this.sinon.stub(Threads, 'registerMessage');
     });
 
-    test('message is shown in the current thread if it belongs to the thread',
-      function() {
-        var sms = MockMessages.sms;
+    test('ThreadUI is always notified', function() {
+        var sms = MockMessages.sms();
+
+        Threads.currentId = sms.threadId;
+        MessageManager.onMessageSending({ message: sms });
+        sinon.assert.called(ThreadUI.onMessageSending);
+
+        ThreadUI.onMessageSending.reset();
+
         // ensure the threadId is different
         Threads.currentId = sms.threadId + 1;
         MessageManager.onMessageSending({ message: sms });
-        assert.isFalse(ThreadUI.onMessageSending.calledOnce);
+        sinon.assert.called(ThreadUI.onMessageSending);
       }
     );
   });

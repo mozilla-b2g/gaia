@@ -73,7 +73,7 @@ var StatusBar = {
     'battery', 'wifi', 'data', 'flight-mode', 'network-activity', 'tethering',
     'alarm', 'bluetooth', 'mute', 'headphones', 'bluetooth-headphones',
     'bluetooth-transferring', 'recording', 'sms', 'geolocation', 'usb', 'label',
-    'system-downloads', 'call-forwarding', 'playing'],
+    'system-downloads', 'call-forwardings', 'playing'],
 
   /* Timeout for 'recently active' indicators */
   kActiveIndicatorTimeout: 5 * 1000,
@@ -268,17 +268,31 @@ var StatusBar = {
         this.setActive(evt.detail.screenEnabled);
         break;
 
-      case 'attentionscreenhide':
       case 'lock':
         // Hide the clock in the statusbar when screen is locked
         this.toggleTimeLabel(!window.lockScreen ||
             !window.lockScreen.locked);
         break;
 
-      case 'attentionscreenshow':
       case 'unlock':
         // Display the clock in the statusbar when screen is unlocked
         this.toggleTimeLabel(true);
+        break;
+
+      case 'attentionscreenshow':
+        // Display the clock in the statusbar when screen is unlocked
+        this.toggleTimeLabel(true);
+        this.show();
+        break;
+
+      case 'attentionscreenhide':
+        // Hide the clock in the statusbar when screen is locked
+        this.toggleTimeLabel(!window.lockScreen ||
+            !window.lockScreen.locked);
+        var app = AppWindowManager.getActiveApp();
+        if (app && app.isFullScreen()) {
+          this.hide();
+        }
         break;
 
       case 'utilitytrayshow':
@@ -926,8 +940,13 @@ var StatusBar = {
     },
 
     callForwarding: function sb_updateCallForwarding() {
-      var icon = this.icons.callForwarding;
-      icon.hidden = !this.settingValues['ril.cf.enabled'];
+      var icons = this.icons.callForwardings;
+      var states = this.settingValues['ril.cf.enabled'];
+      if (states) {
+        states.forEach(function(state, index) {
+          icons[index].hidden = !state;
+        });
+      }
     },
 
     playing: function sb_updatePlaying() {
@@ -1045,11 +1064,12 @@ var StatusBar = {
         document.getElementById('statusbar-' + name);
     }).bind(this));
 
-    // Create signal elements based on the number of SIM slots.
     var conns = window.navigator.mozMobileConnections;
     if (conns) {
+      var multipleSims = SIMSlotManager.isMultiSIM();
+
+      // Create signal elements based on the number of SIM slots.
       var sbConnections = document.getElementById('statusbar-connections');
-      var multipleSims = (conns.length > 1);
       sbConnections.dataset.multiple = multipleSims;
       this.icons.signals = {};
       this.icons.data = {};
@@ -1068,6 +1088,22 @@ var StatusBar = {
         sbConnections.appendChild(data);
         this.icons.signals[i] = signal;
         this.icons.data[i] = data;
+      }
+
+      // Create call forwarding icons
+      var sbCallForwardings =
+        document.getElementById('statusbar-call-forwardings');
+      sbCallForwardings.dataset.multiple = multipleSims;
+      this.icons.callForwardings = {};
+      for (var i = conns.length - 1; i >= 0; i--) {
+        var callForwarding = document.createElement('div');
+        callForwarding.className = 'sb-icon sb-icon-call-forwarding';
+        if (multipleSims) {
+          callForwarding.dataset.index = i + 1;
+        }
+
+        sbCallForwardings.appendChild(callForwarding);
+        this.icons.callForwardings[i] = callForwarding;
       }
     }
 

@@ -432,7 +432,7 @@ var UIManager = {
   setTimeZone: function ui_stz(timezone) {
     var utcOffset = timezone.utcOffset;
     document.getElementById('time_zone_overlay').className =
-      utcOffset.replace(/[+:]/g, '');
+      'UTC' + utcOffset.replace(/[+:]/g, '');
     var timezoneTitle = document.getElementById('time-zone-title');
     navigator.mozL10n.localize(timezoneTitle, 'timezoneTitle', {
       utcOffset: utcOffset,

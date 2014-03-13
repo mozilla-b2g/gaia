@@ -483,12 +483,17 @@ suite('WAP Push', function() {
       MockNavigatormozSetMessageHandler.mTeardown();
     });
 
-    test('action=signal-none does not send a notification', function() {
-      var getSelfSpy = this.sinon.spy(MockNavigatormozApps, 'getSelf');
-
+    /* XXX: Workaround for bug 981521. We shouldn't send notifications for
+     * signal-none messages but we do until we'll have another way for the user
+     * to find & display them. */
+    test('action=signal-none sends a notification', function() {
+      this.sinon.spy(window, 'Notification');
       MockNavigatormozSetMessageHandler.mTrigger('wappush-received',
                                                  messages.none);
-      assert.isTrue(getSelfSpy.notCalled);
+      MockNavigatormozApps.mTriggerLastRequestSuccess();
+      sinon.assert.calledOnce(Notification);
+      sinon.assert.calledWithMatch(Notification, '+31641600986',
+        { body: 'check this out ' });
     });
   });
 

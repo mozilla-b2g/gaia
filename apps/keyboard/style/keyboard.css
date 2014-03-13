@@ -151,6 +151,7 @@ button::-moz-focus-inner {
 /* Show the bubble text when the button is highlighted. */
 .keyboard-key.highlighted > .visual-wrapper > span:after {
   opacity: 1;
+  z-index: 1;
 }
 
 .keyboard-key.highlighted.kbr-menu-on > .visual-wrapper > span:after {

@@ -13,6 +13,7 @@ var albumOne = [
 
 var FakeMusic = {
   _mode: 'stopped',
+  _interrupted: false,
   _queue: null,
   _queueIndex: null,
 
@@ -29,12 +30,16 @@ var FakeMusic = {
   },
 
   play: function() {
+    if (this._interrupted)
+      return;
     this._mode = 'playing';
     document.getElementById('play-pause').classList.remove('is-paused');
     FakeMusicComms.notifyStatusChanged({playStatus: 'PLAYING'});
   },
 
   pause: function() {
+    if (this._interrupted)
+      return;
     this._mode = 'paused';
     document.getElementById('play-pause').classList.add('is-paused');
     FakeMusicComms.notifyStatusChanged({playStatus: 'PAUSED'});
@@ -48,21 +53,33 @@ var FakeMusic = {
   },
 
   stop: function() {
+    if (this._interrupted)
+      return;
     this._mode = 'stopped';
     document.getElementById('play-pause').classList.remove('is-paused');
     FakeMusicComms.notifyStatusChanged({playStatus: 'STOPPED'});
   },
 
   previous: function() {
+    if (this._interrupted)
+      return;
     if (this._queueIndex > 0)
       FakeMusicComms.notifyTrackChanged(this._queue[--this._queueIndex]);
   },
 
   next: function() {
+    if (this._interrupted)
+      return;
     if (this._queueIndex < this._queue.length - 1)
       FakeMusicComms.notifyTrackChanged(this._queue[++this._queueIndex]);
     else
       this.stop();
+  },
+
+  toggleInterrupt: function() {
+    this._interrupted = !this._interrupted;
+    var status = this._interrupted ? 'mozinterruptbegin' : 'mozinterruptend';
+    FakeMusicComms.notifyStatusChanged({playStatus: status});
   },
 
   get isPlaying() {
@@ -85,6 +102,9 @@ var FakeMusic = {
         break;
       case 'album-one':
         this.startQueue(albumOne);
+        break;
+      case 'interrupt':
+        this.toggleInterrupt();
         break;
     }
   }

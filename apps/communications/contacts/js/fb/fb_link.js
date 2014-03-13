@@ -40,6 +40,9 @@ if (!fb.link) {
       ' ORDER BY name'
     ];
 
+    var COUNT_QUERY = 'SELECT uid FROM user WHERE uid IN ' +
+                      '(SELECT uid1 FROM friend WHERE uid2=me())';
+
     var SEARCH_ACCENTS_FIELDS = {
       'last_name': 'familyName',
       'first_name': 'givenName',
@@ -136,11 +139,50 @@ if (!fb.link) {
 
     function getRemoteProposalAll(acc_tk) {
       numQueries++;
-      doGetRemoteProposal(acc_tk, null, ALL_QUERY.join(''));
+      doGetRemoteProposal(acc_tk, null, ALL_QUERY.join(''), true);
+    }
+
+    // This function deals with the response for a proposal
+    // It takes care whether a response with the number of friends is present
+    // and updates the cache accordingly
+    function proposalReadyMultiple(done, error, response) {
+      // If there is an error we just pass it upstream
+      if (response.error) {
+        done(response);
+        return;
+      } else if (!Array.isArray(response.data)) {
+        error({
+          name: 'QueryResponseError'
+        });
+        return;
+      }
+
+      var friendList, totalFriends;
+      if (response.data.length > 0 &&
+          Array.isArray(response.data[0].fql_result_set)) {
+        friendList = response.data[0].fql_result_set;
+        if (response.data[1] &&
+            Array.isArray(response.data[1].fql_result_set)) {
+          totalFriends = response.data[1].fql_result_set.length;
+        }
+      }
+      else {
+        friendList = response.data;
+        totalFriends = friendList.length;
+      }
+
+      if (typeof totalFriends !== 'undefined') {
+        fb.utils.setCachedNumFriends(totalFriends);
+      }
+
+      done({
+        data: friendList
+      });
     }
 
     // Performs all the work to obtain the remote proposal
-    function doGetRemoteProposal(acc_tk, contactData, query) {
+    // the "isAll" parameter indicates that the query will get all friends
+    function doGetRemoteProposal(acc_tk, contactData, query, isAll) {
       /*
         Phone.lookup was analysed but we were not happy about how it worked
 
@@ -151,9 +193,21 @@ if (!fb.link) {
       var sentries = JSON.stringify(entries);
 
       */
+      var theQuery = query;
+      var callback = proposalReadyMultiple.bind(null, fb.link.proposalReady,
+                                              fb.link.errorHandler);
+      // If the query is not going to provide a full list of friends
+      // We count all in order to refresh the total number of friends
+      if (!isAll) {
+        theQuery = JSON.stringify({
+          query1: query,
+          query2: COUNT_QUERY
+        });
+      }
+
       state = 'proposal';
-      currentNetworkRequest = fb.utils.runQuery(query, {
-        success: fb.link.proposalReady,
+      currentNetworkRequest = fb.utils.runQuery(theQuery, {
+        success: callback,
         error: fb.link.errorHandler,
         timeout: fb.link.timeoutHandler
       }, acc_tk);

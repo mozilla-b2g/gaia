@@ -159,7 +159,7 @@ var CardsView = (function() {
     });
 
     if (MANUAL_CLOSING) {
-      cardsView.addEventListener('mousedown', CardsView);
+      cardsView.addEventListener('touchstart', CardsView);
     }
 
     // If there is no running app, show "no recent apps" message
@@ -632,8 +632,8 @@ var CardsView = (function() {
   function onStartEvent(evt) {
     evt.stopPropagation();
     evt.target.setCapture(true);
-    cardsView.addEventListener('mousemove', CardsView);
-    cardsView.addEventListener('mouseup', CardsView);
+    cardsView.addEventListener('touchmove', CardsView);
+    cardsView.addEventListener('touchend', CardsView);
     cardsView.addEventListener('swipe', CardsView);
 
     if (evt.touches) {
@@ -657,15 +657,15 @@ var CardsView = (function() {
         // We don't want user to scroll the CardsView when one of the card is
         // already dragger upwards
         draggingCardUp = true;
-        cardsView.removeEventListener('mousemove', CardsView);
-        document.addEventListener('mousemove', onMoveEventForDeleting);
+        cardsView.removeEventListener('touchmove', CardsView);
+        document.addEventListener('touchmove', onMoveEventForDeleting);
         onMoveEventForDeleting(evt, deltaY);
     } else {
       // If we are not removing Cards now and Snapping
       // Scrolling is enabled, we want to scroll the CardList
       if (Math.abs(deltaX) > switchingCardThreshold) {
-        cardsView.removeEventListener('mousemove', CardsView);
-        document.addEventListener('mousemove', onMoveEventForScrolling);
+        cardsView.removeEventListener('touchmove', CardsView);
+        document.addEventListener('touchmove', onMoveEventForScrolling);
       }
 
       moveCards();
@@ -678,10 +678,10 @@ var CardsView = (function() {
     var eventDetail = evt.detail;
 
     document.releaseCapture();
-    cardsView.removeEventListener('mousemove', CardsView);
-    document.removeEventListener('mousemove', onMoveEventForDeleting);
-    document.removeEventListener('mousemove', onMoveEventForScrolling);
-    cardsView.removeEventListener('mouseup', CardsView);
+    cardsView.removeEventListener('touchmove', CardsView);
+    document.removeEventListener('touchmove', onMoveEventForDeleting);
+    document.removeEventListener('touchmove', onMoveEventForScrolling);
+    cardsView.removeEventListener('touchend', CardsView);
     cardsView.removeEventListener('swipe', CardsView);
 
     var eventDetailEnd = eventDetail.end;
@@ -692,9 +692,9 @@ var CardsView = (function() {
       dy = eventDetail.dy;
       direction = eventDetail.direction;
     } else {
-      if (evt.touches) {
-        dx = evt.touches[0].pageX - initialTouchPosition[0];
-        dy = evt.touches[0].pageY - initialTouchPosition[1];
+      if (evt.changedTouches) {
+        dx = evt.changedTouches[0].pageX - initialTouchPosition[0];
+        dy = evt.changedTouches[0].pageY - initialTouchPosition[1];
       } else {
         dx = evt.pageX - initialTouchPosition[0];
         dy = evt.pageY - initialTouchPosition[1];
@@ -769,17 +769,20 @@ var CardsView = (function() {
 
   function cv_handleEvent(evt) {
     switch (evt.type) {
-      case 'mousedown':
+      case 'touchstart':
         onStartEvent(evt);
+        evt.preventDefault();
         break;
 
-      case 'mousemove':
+      case 'touchmove':
         onMoveEvent(evt);
+        evt.preventDefault();
         break;
 
-      case 'mouseup':
+      case 'touchend':
       case 'swipe':
         onEndEvent(evt);
+        evt.preventDefault();
         break;
 
       case 'opencurrentcard':

@@ -157,7 +157,7 @@
  */
 
 .controls[mode=picture] .capture-button span:before {
-  content: "\e60f"; */
+  content: "\e60f";
   /* background-image: url(images/camera.png); */
 }
 

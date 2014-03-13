@@ -28,6 +28,10 @@
       }
 
       var appwindow = target.parentElement;
+      if (!appwindow) {
+        return;
+      }
+
       var overlay = appwindow.querySelector('.devtools-view');
 
       if (!overlay) {

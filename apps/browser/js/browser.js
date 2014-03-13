@@ -832,9 +832,9 @@ var Browser = {
 
       this.bookmarkUrl.addEventListener('keydown', (function() {
         if (UrlHelper.isURL(this.bookmarkUrl.value)) {
-          this.bookmarkEntrySheetDone.disabled = 'disabled';
+          this.bookmarkEntrySheetDone.removeAttribute('disabled');
         } else {
-          this.bookmarkEntrySheetDone.disabled = '';
+          this.bookmarkEntrySheetDone.disabled = 'disabled';
         }
       }).bind(this), false);
     }).bind(this));

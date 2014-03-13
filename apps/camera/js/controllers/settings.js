@@ -172,6 +172,7 @@ SettingsController.prototype.menuItems = function() {
  * @return {Boolean}
  */
 SettingsController.prototype.matchesCondition = function(item) {
+  var setting = this.settings[item.key];
   var self = this;
   var test = function(condition) {
     for (var key in condition) {
@@ -181,6 +182,7 @@ SettingsController.prototype.matchesCondition = function(item) {
     }
     return true;
   };
+   if (setting.get('disabled')) { return false;}
   return !item.condition || test(item.condition);
 };
 

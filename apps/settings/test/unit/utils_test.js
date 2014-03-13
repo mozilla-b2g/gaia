@@ -3,9 +3,9 @@
 
 'use strict';
 
-requireApp('settings/test/unit/mock_dsds_settings.js');
-requireApp('communications/contacts/test/unit/mock_iccmanager.js');
-requireApp('settings/test/unit/mock_l10n.js');
+require('/apps/settings/test/unit/mock_dsds_settings.js');
+require('/shared/test/unit/mocks/mock_iccmanager.js');
+require('/apps/settings/test/unit/mock_l10n.js');
 
 mocha.globals(['DsdsSettings', 'reopenSettings', 'openLink', 'openDialog',
   'loadJSON', 'FileSizeFormatter', 'DeviceStorageHelper', 'getMobileConnection',

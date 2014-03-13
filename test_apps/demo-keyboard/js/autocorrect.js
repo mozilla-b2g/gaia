@@ -18,6 +18,8 @@
   AutoCorrect.prototype.KEYCODE_COLON = 58;
   AutoCorrect.prototype.KEYCODE_SEMICOLON = 59;
 
+  AutoCorrect.prototype.WORKER_PATH = 'js/worker.js';
+
   AutoCorrect.prototype.start = function start() {
     if (this._started) {
       throw 'Instance should not be start()\'ed twice.';
@@ -28,9 +30,10 @@
     this.correction = null;  // A pending correction
     this.reversion = null;   // A pending reversion
     this.autocorrectDisabled = false;
+    this.container = this.app.container;
 
     // worker for predicting the next char and getting word suggestions
-    var worker = this.worker = new Worker('js/worker.js');
+    var worker = this.worker = new Worker(this.WORKER_PATH);
     // XXX: english hardcoded for now
     worker.postMessage({ cmd: 'setLanguage', args: ['en_us']});
     // XXX: get real key data
@@ -47,10 +50,12 @@
     this.app.inputField.addEventListener('inputstatechanged', this);
     this.app.inputField.addEventListener('inputfieldchanged', this);
 
-    // XXX should not reference global object like this
-    Suggestions.addEventListener('suggestionselected', this);
-    Suggestions.addEventListener('suggestionsdismissed', this);
+    this.suggestions = new Suggestions(this);
+    this.suggestions.start();
+    this.suggestions.addEventListener('suggestionselected', this);
+    this.suggestions.addEventListener('suggestionsdismissed', this);
 
+    // XXX should not reference global object like this
     KeyboardTouchHandler.addEventListener('key', this);
   };
 
@@ -60,22 +65,27 @@
     }
     this._started = false;
 
+    this.app.inputField.removeEventListener('inputstatechanged', this);
+    this.app.inputField.removeEventListener('inputfieldchanged', this);
+    this.worker.removeEventListener('message', this);
+
+    this.suggestions.removeEventListener('suggestionselected', this);
+    this.suggestions.removeEventListener('suggestionsdismissed', this);
+
+    // XXX should not reference global object like this
+    KeyboardTouchHandler.removeEventListener('key', this);
+
     this.predictionStartTime = undefined;
     this.correction = null;  // A pending correction
     this.reversion = null;   // A pending reversion
     this.autocorrectDisabled = false;
 
-    this.worker.removeEventListener('message', this);
     this.worker = null;
 
-    this.app.inputField.removeEventListener('inputstatechanged', this);
-    this.app.inputField.removeEventListener('inputfieldchanged', this);
+    this.suggestions.stop();
+    this.suggestions = null;
 
-    // XXX should not reference global object like this
-    Suggestions.removeEventListener('suggestionselected', this);
-    Suggestions.removeEventListener('suggestionsdismissed', this);
-
-    KeyboardTouchHandler.removeEventListener('key', this);
+    this.container = null;
   };
 
   AutoCorrect.prototype.handleEvent = function handleEvent(evt) {
@@ -152,9 +162,8 @@
       // XXX: combine these two into a single call
       this.worker.postMessage({ cmd: 'predictNextChar', args: [word] });
       this.worker.postMessage({ cmd: 'predict', args: [word]});
-    }
-    else {
-      Suggestions.display([]);
+    } else {
+      this.suggestions.display([]);
     }
   };
 
@@ -170,7 +179,7 @@
   };
 
   AutoCorrect.prototype.handleSelectionDismissed = function() {
-    Suggestions.display([]); // clear the suggestions
+    this.suggestions.display([]); // clear the suggestions
 
     // Send a space character
     this.app.inputField.sendKey(0, this.KEYCODE_SPACE, 0);
@@ -180,8 +189,6 @@
     this.reversion = null;
     this.autocorrectDisabled = false;
   };
-
-
 
   AutoCorrect.prototype.handleKey = function handleKey(evt) {
     var currentPage = this.app.currentPage;
@@ -252,7 +259,7 @@
       if (input !== this.app.inputField.wordBeforeCursor()) {
         // If these suggestions no longer match what is in the input field
         // ignore them
-        Suggestions.display([]);
+        this.suggestions.display([]);
         return;
       }
 
@@ -276,7 +283,7 @@
 
       // If we don't have any suggestions we're done
       if (suggestions.length === 0) {
-        Suggestions.display([]);
+        this.suggestions.display([]);
         return;
       }
 
@@ -303,7 +310,7 @@
         this.correction = null;
       }
 
-      Suggestions.display(words);
+      this.suggestions.display(words);
     };
 
   /*

@@ -1,14 +1,29 @@
 var MockLinkedContacts = {
-  data: [
-    {
-      'uid': '1xz',
-      'email': 'test@test.com',
-      'name': 'Pepito Grillo'
-    },
-    {
-      'uid': '2abc',
-      'email': 'test2@test2.com',
-      'name': 'Alfonso Gonzo'
+  data: [{
+    fql_result_set: [
+      {
+        'uid': '1xz',
+        'email': 'test@test.com',
+        'name': 'Pepito Grillo'
+      },
+      {
+        'uid': '2abc',
+        'email': 'test2@test2.com',
+        'name': 'Alfonso Gonzo'
+      }]},
+      {
+    fql_result_set: [{
+      'uid': '5678x'
+      },
+      {
+        'uid': '56zwt'
+      },
+      {
+        'uid': 'kjh2389'
+      },
+      {
+        'uid': 'aa45bb'
+      }]
     }
   ]
 };

@@ -88,6 +88,7 @@
     <script defer src="js/sound_manager.js"></script>
     <script defer src="js/source_view.js"></script>
     <script defer src="js/hardware_buttons.js"></script>
+    <script defer src="js/dialer_ringer.js"></script>
     <script defer src="js/system_banner.js"></script>
     <script defer src="js/system_dialog.js"></script>
     <script defer src="js/home_gesture.js"></script>
@@ -349,9 +350,6 @@
     <script defer src="js/storage_watcher.js"></script>
     <link rel="stylesheet" type="text/css" href="style/storage_watcher/storage_watcher.css">
 
-    <!-- Inter App Communication with Dialer -->
-    <script defer src="js/dialercomms.js"></script>
-
     <!-- Rocketbar -->
     <script defer src="js/browser.js"></script>
     <script defer src="js/rocketbar.js"></script>
@@ -457,7 +455,7 @@
           <div id="statusbar-sms" class="sb-icon sb-icon-sms" hidden></div>
           <div id="statusbar-geolocation" class="sb-icon sb-icon-geolocation" hidden></div>
           <div id="statusbar-usb" class="sb-icon sb-icon-usb" hidden></div>
-          <div id="statusbar-call-forwarding" class="sb-icon sb-icon-call-forwarding" hidden></div>
+          <div id="statusbar-call-forwardings"></div>
           <div id="statusbar-playing" class="sb-icon sb-icon-playing" hidden></div>
 
           <!-- Activity -->
@@ -831,7 +829,7 @@
                 <div class="value-picker-hour24-state animation-on"></div>
               </div>
               <div class="value-indicator">
-                <div class="value-indicator-colon">:</div>
+                <div class="value-indicator-colon" id="hours-minutes-separator">:</div>
               </div>
             </div>
           </div>

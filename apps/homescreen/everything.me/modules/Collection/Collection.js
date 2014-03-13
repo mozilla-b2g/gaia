@@ -537,6 +537,8 @@ void function() {
       return true;
     };
 
+    this.createCollectionIcon = createCollectionIcon;
+
     function onVisibilityChange() {
       if (document.mozHidden) {
         self.toggleEditMode(false);
@@ -606,6 +608,12 @@ void function() {
    */
   Evme.CollectionSettings = function Evme_CollectionSettings(args) {
     this.id = args.id;
+
+    // default icon defined in manifest.collection
+    // only avaiable on init of pre-installed collections
+    if (args.defaultIcon) {
+      this.defaultIcon = args.defaultIcon;
+    }
 
     // object containing backgound information (image, query, source, setByUser)
     this.bg = args.bg || null;
@@ -816,12 +824,12 @@ void function() {
    * Add a collection to the homescreen.
    */
   function addToGrid(settings, gridPageOffset, extra) {
-    createCollectionIcon(settings, function onIconCreated(canvas) {
+    createCollectionIcon(settings, function onIconCreated(icon) {
       EvmeManager.addGridItem({
         'id': settings.id,
         'originUrl': settings.id,
         'name': settings.query,
-        'icon': canvas.toDataURL(),
+        'icon': icon,
         'isCollection': true,
         'gridPageOffset': gridPageOffset
       }, extra);
@@ -832,8 +840,8 @@ void function() {
    * Update a collection's icon on the homescreen
    */
   function updateGridIconImage(settings) {
-    createCollectionIcon(settings, function iconCreated(iconCanvas) {
-      EvmeManager.setIconImage(iconCanvas.toDataURL(), settings.id);
+    createCollectionIcon(settings, function iconCreated(icon) {
+      EvmeManager.setIconImage(icon, settings.id);
     });
   }
 
@@ -846,9 +854,15 @@ void function() {
                                       Evme.Config.numberOfAppInCollectionIcon);
     }
 
-    Evme.IconGroup.get(icons, function onIconCreated(iconCanvas) {
-      callback(iconCanvas);
-    });
+    // revert to default icon (if exists) instead of rendering an empty icon
+    // see bug 968918
+    if (!icons.length && settings.defaultIcon) {
+      callback(settings.defaultIcon);
+    } else {
+      Evme.IconGroup.get(icons, function onIconCreated(iconCanvas) {
+        callback(iconCanvas.toDataURL());
+      });
+    }
   }
 
   /**

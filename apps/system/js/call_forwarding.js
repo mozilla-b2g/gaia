@@ -1,9 +1,14 @@
-/* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-
+/* global CallForwarding, asyncStorage, SIMSlotManager, SettingsHelper */
 'use strict';
 
-(function() {
+(function(exports) {
+  if (!window.navigator.mozSettings) {
+    return;
+  }
+
+  if (!window.navigator.mozMobileConnections) {
+    return;
+  }
 
   // Must be in sync with nsIDOMMozMobileCFInfo interface.
   var _cfReason = {
@@ -20,77 +25,186 @@
     CALL_FORWARD_ACTION_ERASURE: 4
   };
 
-  var settings = window.navigator.mozSettings;
-  if (!settings) {
-    return;
+  /**
+   * The module initializes the call forwarding icon states and update the icons
+   * when call forwarding states changed.
+   * As we are not able to query the current call forwarding states from the
+   * carrier on startup, we initialized the icon state based on the cached
+   * information. When call forwarding states are changed, the module caches
+   * the state along with the corresponding iccId.
+   * @class CallForwarding
+   * @requires SIMSlotManager
+   * @requires SettingsHelper
+   */
+  function CallForwarding() {
+    this._started = false;
+    this._slots = null;
+    this._callForwardingHelper = null;
+    this._defaultCallForwardingIconStates = null;
+    this._callForwardingIconInitializedStates = null;
   }
 
-  // XXX: check bug-926169
-  // this is used to keep all tests passing while introducing multi-sim APIs
-  var mobileConnection = window.navigator.mozMobileConnection ||
-    window.navigator.mozMobileConnections &&
-      window.navigator.mozMobileConnections[0];
+  CallForwarding.prototype = {
 
-  if (!mobileConnection) {
-    return;
-  }
-  if (!IccHelper) {
-    return;
-  }
+    /**
+     * Add related event handlers. The sim cards may not be ready when starting.
+     * We register to "simslot-cardstatechange" and "simslot-iccinfochange" for
+     * updating the icons when ready. When users query the current call
+     * forwarding states in settings app, 'ril.cf.carrier.enabled' is used to
+     * notify the state changes. When users change the call forwarding states in
+     * settings app, we will receive the 'cfstatechange' event. All the events
+     * must be watched to have correct icon states.
+     * @memberof CallForwarding.prototype
+     */
+    _addEventHandlers: function() {
+      window.addEventListener('simslot-cardstatechange', (function(event) {
+        this._initCallForwardingState(event.detail);
+      }).bind(this));
+      window.addEventListener('simslot-iccinfochange', (function(event) {
+        this._initCallForwardingState(event.detail);
+      }).bind(this));
 
-  // Initialize the icon based on the card state and whether
-  // it is in airplane mode
-  var _cfIconStateInitialized = false;
-  function initCallForwardingIconState() {
-    var cardState = IccHelper.cardState;
-    if (_cfIconStateInitialized || cardState !== 'ready')
-      return;
+      // Get notified when users query the latest call forwarding states in
+      // settings app
+      navigator.mozSettings.addObserver('ril.cf.carrier.enabled',
+        (function(event) {
+          var detail = event.settingValue;
+          if (detail) {
+            this._onCallForwardingStateChanged(detail.index, detail.enabled);
+          }
+      }).bind(this));
 
-    if (!IccHelper.iccInfo)
-      return;
+      this._slots.forEach(function(slot) {
+        var conn = slot.conn;
+        conn.addEventListener('cfstatechange',
+          this._updateCallForwardingIconState.bind(this, slot));
+      }, this);
+    },
 
-    var iccid = IccHelper.iccInfo.iccid;
-    if (!iccid)
-      return;
+    /**
+     * Initialize the icon states based on iccId and cached information.
+     * @param {SIMSlot} slot The target sim slot.
+     * @memberof CallForwarding.prototype
+     */
+    _initCallForwardingState: function(slot) {
+      var index = slot.index;
+      var simCard = slot.simCard;
 
-    asyncStorage.getItem('ril.cf.enabled.' + iccid, function(value) {
-      if (value === null) {
-        value = false;
+      if (this._callForwardingIconInitializedStates[index] || !simCard) {
+        return;
       }
-      settings.createLock().set({'ril.cf.enabled': value});
-      _cfIconStateInitialized = true;
-    });
-  }
 
-  settings.createLock().set({'ril.cf.enabled': false});
+      var cardState = simCard.cardState;
+      var iccid = simCard.iccInfo && simCard.iccInfo.iccid;
+      if (cardState !== 'ready' || !iccid) {
+        return;
+      }
 
-  initCallForwardingIconState();
-  IccHelper.addEventListener('cardstatechange', function() {
-    initCallForwardingIconState();
-  });
-  IccHelper.addEventListener('iccinfochange', function() {
-    initCallForwardingIconState();
-  });
+      var that = this;
+      asyncStorage.getItem('ril.cf.enabled.' + iccid, function(value) {
+        if (value === null) {
+          value = false;
+        }
+        that._callForwardingHelper.get(function(states) {
+          states[index] = value;
+          that._callForwardingHelper.set(states, function() {
+            that._callForwardingIconInitializedStates[index] = true;
+          });
+        });
+      });
+    },
 
-  mobileConnection.addEventListener('cfstatechange', function(event) {
-    if (event &&
-        event.reason == _cfReason.CALL_FORWARD_REASON_UNCONDITIONAL) {
+    /**
+     * Gets called when receiving "cfstatechange". It updates the cached
+     * information and icon states.
+     * @param {SIMSlot} slot The target sim slot.
+     * @param {Event} event The event.
+     * @memberof CallForwarding.prototype
+     */
+    _updateCallForwardingIconState: function(slot, event) {
+      if (!event ||
+          event.reason != _cfReason.CALL_FORWARD_REASON_UNCONDITIONAL) {
+        return;
+      }
+
+      var index = slot.index;
+      var simCard = slot.simCard;
+
       var enabled = false;
       if (event.success &&
           (event.action == _cfAction.CALL_FORWARD_ACTION_REGISTRATION ||
            event.action == _cfAction.CALL_FORWARD_ACTION_ENABLE)) {
         enabled = true;
       }
-      settings.createLock().set({'ril.cf.enabled': enabled});
-      asyncStorage.setItem('ril.cf.enabled.' + IccHelper.iccInfo.iccid,
-        enabled);
-    }
-  });
 
-  settings.addObserver('ril.cf.carrier.enabled', function(event) {
-    var showIcon = event.settingValue;
-    settings.createLock().set({'ril.cf.enabled': showIcon});
-    asyncStorage.setItem('ril.cf.enabled.' + IccHelper.iccInfo.iccid,
-    showIcon);
-  });
-})();
+      this._callForwardingHelper.get((function(states) {
+        states[index] = enabled;
+        this._callForwardingHelper.set(states);
+      }).bind(this));
+
+      if (!simCard) {
+        return;
+      }
+      var iccid = simCard.iccInfo && simCard.iccInfo.iccid;
+      asyncStorage.setItem('ril.cf.enabled.' + iccid, enabled);
+    },
+
+    /**
+     * Gets called when 'ril.cf.carrier.enabled' changes. It updates the cached
+     * information and icon states.
+     * @param {Number} index The index of the sim card being changed.
+     * @param {Boolean} enabled The call forwarding state.
+     * @memberof CallForwarding.prototype
+     */
+    _onCallForwardingStateChanged: function(index, enabled) {
+      this._callForwardingHelper.get((function(states) {
+        states[index] = enabled;
+        this._callForwardingHelper.set(states);
+      }).bind(this));
+
+      var simCard = this._slots[index].simCard;
+      if (!simCard) {
+        return;
+      }
+      var iccid = simCard.iccInfo && simCard.iccInfo.iccid;
+      asyncStorage.setItem('ril.cf.enabled.' + iccid, enabled);
+    },
+
+    /**
+     * Start the module.
+     * @memberof CallForwarding.prototype
+     */
+    start: function() {
+      if (this._started) {
+        return;
+      }
+      this._started = true;
+
+      this._slots = SIMSlotManager.getSlots();
+      this._defaultCallForwardingIconStates =
+        Array.prototype.map.call(this._slots, function() { return false; });
+      this._callForwardingIconInitializedStates =
+        Array.prototype.map.call(this._slots, function() { return false; });
+
+      this._callForwardingHelper =
+        SettingsHelper('ril.cf.enabled', this._defaultCallForwardingIconStates);
+
+      this._addEventHandlers();
+
+      // Disable the call forwarding icons by default
+      this._callForwardingHelper.set(this._defaultCallForwardingIconStates);
+      // Initialize the icon states
+      this._slots.forEach(function(slot) {
+        this._initCallForwardingState(slot);
+      }, this);
+    }
+  };
+
+  exports.CallForwarding = CallForwarding;
+
+})(window);
+
+if (CallForwarding) {
+  window.callForwarding = new CallForwarding();
+  window.callForwarding.start();
+}

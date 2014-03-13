@@ -1,7 +1,8 @@
-/* globals CallHandler, CallLogDBManager, gTonesFrequencies, KeypadManager,
-           MockCall, MockCallsHandler, MockDialerIndexHtml, MockMozTelephony,
-           MockSettingsListener, MocksHelper, MockTonePlayer,
-           telephonyAddCall */
+/* globals CallButton, CallLogDBManager, gTonesFrequencies, KeypadManager,
+           MockCall, MockCallButton, MockCallsHandler, MockDialerIndexHtml,
+           MockMozTelephony, MockSettingsListener, MocksHelper, MockTonePlayer,
+           telephonyAddCall
+*/
 
 'use strict';
 
@@ -10,6 +11,7 @@ requireApp('communications/dialer/js/keypad.js');
 requireApp('communications/dialer/test/unit/mock_lazy_loader.js');
 requireApp('communications/dialer/test/unit/mock_utils.js');
 requireApp('communications/dialer/test/unit/mock_call.js');
+requireApp('communications/dialer/test/unit/mock_call_button.js');
 requireApp('communications/dialer/test/unit/mock_call_handler.js');
 requireApp('communications/dialer/test/unit/mock_call_log_db_manager.js');
 requireApp('communications/dialer/test/unit/mock_calls_handler.js');
@@ -23,8 +25,9 @@ requireApp('communications/dialer/test/unit/mock_dialer_index.html.js');
 var mocksHelperForKeypad = new MocksHelper([
   'LazyLoader',
   'Utils',
-  'CallHandler',
+  'CallButton',
   'CallsHandler',
+  'CallHandler',
   'CallLogDBManager',
   'HandledCall',
   'SettingsListener',
@@ -81,6 +84,8 @@ suite('dialer/keypad', function() {
     });
 
     test('Get IMEI via send MMI', function() {
+      var callSpy = this.sinon.spy(CallButton, 'makeCall');
+
       var mmi = '*#06#';
       var fakeEvent = {
         target: {
@@ -98,12 +103,12 @@ suite('dialer/keypad', function() {
         subject.keyHandler(fakeEvent);
       }
 
-      assert.equal(CallHandler._lastCall, mmi);
+      sinon.assert.calledOnce(callSpy);
     });
 
     test('Call button pressed with no calls in Call Log', function() {
       subject._phoneNumber = '';
-      subject.makeCall();
+      subject.fetchLastCalled();
       assert.equal(subject._phoneNumber, '');
     });
 
@@ -117,7 +122,7 @@ suite('dialer/keypad', function() {
       };
       CallLogDBManager.add(recentCall, function(result) {
         subject._phoneNumber = '';
-        subject.makeCall();
+        subject.fetchLastCalled();
         assert.equal(subject._phoneNumber, '');
       });
     });
@@ -130,7 +135,7 @@ suite('dialer/keypad', function() {
       };
       subject._phoneNumber = '';
       CallLogDBManager.add(recentCall);
-      subject.makeCall();
+      subject.fetchLastCalled();
       assert.equal(subject._phoneNumber, recentCall.number);
     });
 
@@ -264,6 +269,20 @@ suite('dialer/keypad', function() {
         this.sinon.clock.tick(1);
         assert.equal(stopToneSpy.callCount, 2);
       });
+    });
+  });
+
+  suite('Initializing CallButton', function() {
+    test('Should initialize CallButton', function() {
+      var initSpy = this.sinon.spy(MockCallButton, 'init');
+      subject.init(false);
+      sinon.assert.calledOnce(initSpy);
+    });
+
+    test('Should pass a valid phone number getter', function() {
+      subject.init(false);
+      subject._phoneNumber = '1111111';
+      assert.equal(subject._phoneNumber, MockCallButton._phoneNumberGetter());
     });
   });
 });

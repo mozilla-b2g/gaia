@@ -1,9 +1,11 @@
+'use strict';
+
 require('/shared/js/lazy_loader.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connection.js');
+require('/shared/test/unit/mocks/mock_iccmanager.js');
 requireApp('communications/contacts/test/unit/mock_contacts_index.html.js');
-requireApp('communications/contacts/test/unit/mock_iccmanager.js');
 requireApp('communications/contacts/test/unit/mock_navigation.js');
 requireApp('communications/contacts/test/unit/mock_contacts.js');
 requireApp('communications/contacts/test/unit/mock_asyncstorage.js');
@@ -38,14 +40,14 @@ if (!window.Rest) {
 window.self = null;
 
 var realMozContacts, realUtils, realMozIccManager,
-  realMozMobileConnection, realMozMobileConnections;
+  realMozMobileConnection, realMozMobileConnections, realFbUtils;
 
 if (!this.realMozContacts) {
   realMozContacts = null;
 }
 
 if (!this.realMozIccManager) {
-  realIccManager = null;
+  realMozIccManager = null;
 }
 
 var mocksHelperForContactSettings = new MocksHelper([
@@ -417,7 +419,7 @@ suite('Contacts settings', function() {
   });
 
   suite('SD Export when sharing sd card', function() {
-    var importSDButton = exportSDButton = null;
+    var importSDButton = null, exportSDButton = null;
 
     // Sets the state of the sdcard to shared (not usable)
     function shareSDCard() {
@@ -476,4 +478,5 @@ suite('Contacts settings', function() {
 
     });
   });
+
 });

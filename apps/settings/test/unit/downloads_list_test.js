@@ -152,6 +152,25 @@ suite('DownloadList', function() {
       });
     });
 
+    test(' > select the first one download', function(done) {
+      DownloadsList.init(function() {
+        var item = document.querySelector('#downloadList ul > li:first-child');
+        // Edit mode
+        editButton.click();
+        // Select the first one download
+        item.click();
+        // Are the buttons disabled?
+        assert.isFalse(deselectAllButton.disabled);
+        assert.isFalse(selectAllButton.disabled);
+        // Deselect this one
+        item.click();
+        // Are the buttons disabled?
+        assert.ok(deselectAllButton.disabled);
+        assert.isFalse(selectAllButton.disabled);
+        done();
+      });
+    });
+
     test(' > deselect all button enabled/disabled', function(done) {
       DownloadsList.init(function() {
         // Edit mode

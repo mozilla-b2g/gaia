@@ -1,5 +1,6 @@
-/* globals CallHandler, CallLogDBManager, CallsHandler, CallScreen, LazyLoader,
-           PhoneNumberActionMenu, SettingsListener, TonePlayer, Utils */
+/* globals CallButton, CallHandler, CallLogDBManager, CallsHandler, CallScreen,
+           LazyLoader, PhoneNumberActionMenu, SettingsListener, TonePlayer,
+           Utils */
 
 'use strict';
 
@@ -133,8 +134,28 @@ var KeypadManager = {
     // The keypad call bar is only included in the normal version and
     // the emergency call version of the keypad.
     if (this.callBarCallAction) {
+      if (typeof CallButton !== 'undefined') {
+        if (navigator.mozMobileConnections &&
+            navigator.mozMobileConnections.length > 1) {
+          // Use LazyL10n to load l10n.js. Single SIM devices will be slowed
+          // down by the cost of loading l10n.js in the startup path if we don't
+          // do this.
+          var self = this;
+          LazyL10n.get(function localized(_) {
+            CallButton.init(self.callBarCallAction,
+                            self.phoneNumber.bind(self),
+                            CallHandler.call,
+                            'ril.telephony.defaultServiceId');
+          });
+        } else {
+          CallButton.init(this.callBarCallAction,
+                          this.phoneNumber.bind(this),
+                          CallHandler.call,
+                          'ril.telephony.defaultServiceId');
+        }
+      }
       this.callBarCallAction.addEventListener('click',
-                                              this.makeCall.bind(this));
+                                              this.fetchLastCalled.bind(this));
     }
 
     // The keypad cancel bar is only the emergency call version of the keypad.
@@ -207,22 +228,23 @@ var KeypadManager = {
     }
   },
 
-  makeCall: function hk_makeCall(event) {
-    if (event)
-      event.stopPropagation();
+  phoneNumber: function hk_phoneNumber() {
+    return this._phoneNumber;
+  },
 
-    if (this._phoneNumber === '') {
-      var self = this;
-      CallLogDBManager.getGroupAtPosition(1, 'lastEntryDate', true, 'dialing',
-        function hk_ggap_callback(result) {
-          if (result && (typeof result === 'object') && result.number) {
-            self.updatePhoneNumber(result.number);
-          }
-        }
-      );
-    } else {
-      CallHandler.call(KeypadManager._phoneNumber);
+  fetchLastCalled: function hk_fetchLastCalled() {
+    if (this._phoneNumber !== '') {
+      return;
     }
+
+    var self = this;
+    CallLogDBManager.getGroupAtPosition(1, 'lastEntryDate', true, 'dialing',
+      function hk_ggap_callback(result) {
+        if (result && (typeof result === 'object') && result.number) {
+          self.updatePhoneNumber(result.number);
+        }
+      }
+    );
   },
 
   addContact: function hk_addContact(event) {
@@ -434,7 +456,7 @@ var KeypadManager = {
     // get the device's IMEI as soon as the user enters the last # key from
     // the "*#06#" MMI string. See bug 857944.
     if (key === '#' && this._phoneNumber === '*#06#') {
-      this.makeCall(event);
+      CallButton.makeCall();
       return;
     }
 
@@ -533,28 +555,34 @@ var KeypadManager = {
   },
 
   _callVoicemail: function kh_callVoicemail() {
-     var settings = navigator.mozSettings;
-     if (!settings) {
+    var settings = navigator.mozSettings;
+    if (!settings) {
       return;
-     }
-     var transaction = settings.createLock();
-     var request = transaction.get('ril.iccInfo.mbdn');
-     request.onsuccess = function() {
-       var number = request.result['ril.iccInfo.mbdn'];
-       var voicemail = navigator.mozVoicemail;
-       if (!number && voicemail) {
-         // TODO: remove this backward compatibility check
-         // after bug-814634 is landed
-         number = voicemail.number ||
-           voicemail.getNumber && voicemail.getNumber();
-       }
-       if (number) {
-         CallHandler.call(number);
-       }
-       // TODO: Bug 881178 - [Dialer] Invite the user to go set a voicemail
-       // number in the setting app.
-     };
-     request.onerror = function() {};
+    }
+    var transaction = settings.createLock();
+    var request = transaction.get('ril.iccInfo.mbdn');
+    request.onsuccess = function() {
+      var numbers = request.result['ril.iccInfo.mbdn'];
+      // TODO: We always use the first icc card here. It should honor the user
+      //       default voice sim card setting and which will be handled in
+      //       bug 978114.
+      var number;
+      if (typeof numbers == 'string') {
+        number = numbers;
+      } else {
+        number = numbers && numbers[0];
+      }
+      var voicemail = navigator.mozVoicemail;
+      if (!number && voicemail) {
+        number = voicemail.getNumber();
+      }
+      if (number) {
+        CallHandler.call(number);
+      }
+      // TODO: Bug 881178 - [Dialer] Invite the user to go set a voicemail
+      // number in the setting app.
+    };
+    request.onerror = function() {};
   },
 
   _observePreferences: function kh_observePreferences() {
