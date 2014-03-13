@@ -35,8 +35,9 @@ exports.NotificationController = NotificationController;
 function NotificationController(app) {
   this.app = app;
   this.camera = app.camera;
-  this.notification = [];
+  this.notification = null;
   this.timeout = null;
+  this.persistent = null;
   bindAll(this);
   this.bindEvents();
   debug('initialized');
@@ -48,63 +49,43 @@ function NotificationController(app) {
  */
 
 NotificationController.prototype.bindEvents = function() {
-  this.app.on('battery:healthy', this.removePersistentNotification); 
-  this.app.on('battery:critical', this.onLowBattery); 
-  this.app.on('battery:low', this.onLowBattery);
-  this.app.on('battery:verylow', this.onLowBattery); 
-  this.app.on('battery:shutdown', this.onLowBattery);
-  this.app.on('battery:charging', this.removePersistentNotification);
-  //setting notification
-  this.app.on('setting:notification', this.onSettingNotification);
+  this.app.on('notification', this.showNotification);
 };
 
-NotificationController.prototype.onLowBattery = function(lowBatteryObj) {
-  var self = this; 
-  this.removePersistentNotification();
-  var notification = new NotificationView(lowBatteryObj);
-  notification.appendTo(document.body);
-  if (!lowBatteryObj.isSticky) {
-    this.notification.push(notification);
+NotificationController.prototype.showNotification = function(messageObj) {
+  var self = this;
+  var message = new NotificationView(messageObj);
+
+  if (!messageObj.isPersistent) {
+    this.clearNotification();
     this.timeout = window.setTimeout(function() {
-      self.clearNotificationQueue(notification);
+      self.clearNotification(message);
     }, 3000);
+    this.notification = message;
   } else {
-    this.persistent = notification;
+    this.removePersistentNotification();
+    this.persistent = message;
   }
-  
+  message.appendTo(document.body);
 };
 
-NotificationController.prototype.onSettingNotification = function(message) {
-  var self = this; 
-  this.checkNotificationQueue();
-  var notification = new NotificationView({message: message});
-  notification.appendTo(document.body);
-  this.notification.push(notification);
-  this.timeout = window.setTimeout(function() {
-      self.clearNotificationQueue(notification);
-    }, 3000);
-};
-
-NotificationController.prototype.checkNotificationQueue = function() {
-  if (this.notification.length > 0) {
-    this.clearNotificationQueue(this.notification[0]);
+NotificationController.prototype.clearNotification = function() {
+  if (this.timeout) {
+    window.clearTimeout(this.timeout);
+    this.timeout = null;
   }
-};
-
-NotificationController.prototype.clearNotificationQueue = function(notification) {
-  window.clearTimeout(this.timeout);
-  this.timeout = null;
-  notification.destroy();
-  this.notification = [];
-  
+  if (this.notification) {
+    this.notification.destroy();
+    this.notification = null; 
+  }
 };
 
 NotificationController.prototype.removePersistentNotification = function() {
   if(this.persistent) {
     this.persistent.destroy();
-    this.persistent = null; 
+    this.persistent = null;
   }
-  this.checkNotificationQueue();
+  this.clearNotification();
 };
 
 });

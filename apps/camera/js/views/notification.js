@@ -20,20 +20,24 @@ module.exports = View.extend({
                    l10n.get(options.message) : options.message;
     this.title = options.title ? 
                  l10n.get(options.title) : null;
-    this.fullScreen = options.isFulleScreen;
-    this.icon = options.icon ? options.icon : null;
+    this.iconClass = options.icon ? options.icon : null;
     this.el.innerHTML = this.render();
     this.els.notification = find('.js-notification', this.el);
-    this.setMessage(this.fullScreen);
+    
+    if (options.isFullScreen) {
+      this.showFullScreenMessage();
+    } else {
+      this.showNotification();
+    }
   },
 
   render: function() {
-    return '<div class="js-notification "> </div>';
+    return '<div class="js-notification"></div>';
   },
 
   showNotification: function() {
-    var iconElement = this.icon ?
-                      '<div class="imgBox '+this.icon+'" ></div>' : '';
+    var iconElement = this.iconClass ?
+                      '<div class="imgBox '+this.iconClass+'" ></div>' : '';
     this.els.notification.innerHTML = iconElement+this.message;
     this.els.notification.classList.add('normal');
    },
@@ -45,14 +49,6 @@ module.exports = View.extend({
     this.els.notification.classList.add('fullScreen');
   },
   
-  setMessage: function(type) {
-    if (type) {
-      this.showFullScreenMessage();
-    } else {
-      this.showNotification();
-    }
-  },
-
 });
 
 });

@@ -153,6 +153,7 @@ module.exports = {
         key: 'auto',
         icon: 'icon-flash-auto',
         l10n: { title: 'auto' }
+
       },
       {
         key: 'on',
@@ -190,22 +191,32 @@ module.exports = {
       {
         key: 'off',
         title: 'Off',
-        value: 0
+        value: 0,
+        message: 'timer-set-off'
       },
       {
         key: '3secs',
         value: 3,
-        l10n: { title: '3-seconds' }
+        l10n: {
+          title: '3-seconds',
+          message: 'timer-set-3secs'
+        }
       },
       {
         key: '5secs',
         value: 5,
-        l10n: { title: '5-seconds' }
+        l10n: {
+          title: '5-seconds',
+          message: 'timer-set-5secs'
+        }
       },
       {
         key: '10secs',
         value: 10,
-        l10n: { title: '10-seconds' }
+        l10n: {
+          title: '10-seconds',
+          message: 'timer-set-10secs'
+        }
       }
     ],
     persistent: false,
@@ -219,11 +230,17 @@ module.exports = {
     options: [
       {
         key: 'off',
-        l10n: { title: 'off' }
+        l10n: {
+          title: 'off',
+          message: 'hdr-set-off'
+        }
       },
       {
         key: 'on',
-        l10n: { title: 'on' }
+        l10n: {
+          title: 'on',
+          message: 'hdr-set-on'
+        }
       }
     ],
     persistent: true
@@ -234,15 +251,18 @@ module.exports = {
     options: [
       {
         key: 'normal',
-        title: 'Normal'
+        title: 'Normal',
+        message: 'scene-set-normal'
       },
       {
         key: 'pano',
-        title: 'Panorama'
+        title: 'Panorama',
+        message: 'scene-set-pano'
       },
       {
         key: 'beauty',
-        title: 'Beauty'
+        title: 'Beauty',
+        message: 'scene-set-beauty'
       }
     ],
     persistent: true,
@@ -254,11 +274,18 @@ module.exports = {
     options: [
       {
         key: 'on',
-        l10n: { title: 'on' }
+        l10n: {
+          title: 'on',
+          message: 'grid-set-on'
+        }
       },
       {
         key: 'off',
-        l10n: { title: 'off' }
+        l10n: {
+          title: 'off',
+          message: 'grid-set-off'
+        }
+
       }
     ],
     selected: 'off',
