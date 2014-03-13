@@ -995,12 +995,15 @@ contacts.Form = (function() {
         continue;
       }
 
+      // Date value is referred to current TZ but it is not needed to normalize
+      // as that will be done only when the date is presented to the user
+      // by calculating the corresponding offset
       switch (type) {
         case 'birthday':
-          bdayVal = utils.misc.normalizeDate(dateValue);
+          bdayVal = dateValue;
         break;
         case 'anniversary':
-          anniversaryVal = utils.misc.normalizeDate(dateValue);
+          anniversaryVal = dateValue;
         break;
       }
     }
