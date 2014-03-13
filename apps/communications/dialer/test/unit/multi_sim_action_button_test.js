@@ -1,4 +1,4 @@
-/* globals CallButton, MockSimPicker, MocksHelper, MockMozL10n,
+/* globals MultiSimActionButton, MockSimPicker, MocksHelper, MockMozL10n,
            MockNavigatorSettings, MockNavigatorMozIccManager,
            MockSettingsListener, ALWAYS_ASK_OPTION_VALUE
 */
@@ -12,16 +12,16 @@ require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
 require('/shared/test/unit/mocks/mock_sim_picker.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
 
-require('/dialer/js/call_button.js');
+require('/shared/js/multi_sim_action_button.js');
 
-var mocksHelperForCallButton = new MocksHelper([
+var mocksHelperForMultiSimActionButton = new MocksHelper([
   'LazyL10n',
   'LazyLoader',
   'SimPicker',
   'SettingsListener'
 ]).init();
 
-suite('call button', function() {
+suite('multi SIM action button', function() {
   var subject;
   var realMozSettings;
   var realMozL10n;
@@ -30,13 +30,19 @@ suite('call button', function() {
   var button;
   var cardIndex;
 
-  mocksHelperForCallButton.attachTestHelpers();
+  mocksHelperForMultiSimActionButton.attachTestHelpers();
 
   var initSubject = function() {
     MockNavigatorSettings.createLock().set({
       'ril.telephony.defaultServiceId': cardIndex });
-    subject = new CallButton(button, phoneNumberGetter, function() {},
-      'ril.telephony.defaultServiceId');
+
+    subject = new MultiSimActionButton(
+      button,
+      function() {},
+      'ril.telephony.defaultServiceId',
+      phoneNumberGetter
+    );
+
     // MockSettingsListener doesn't simulate the regular behavior of triggering
     // the callback as soon as the pref is loaded, so we have to simulate it
     // once the subject is initialized. We can't alter MockSettingsListener
@@ -66,8 +72,6 @@ suite('call button', function() {
   };
 
   suiteSetup(function() {
-    subject = CallButton;
-
     realMozSettings = navigator.mozSettings;
     navigator.mozSettings = MockNavigatorSettings;
 
@@ -133,27 +137,37 @@ suite('call button', function() {
 
       test('should fire SIM selected callback', function() {
         var showSpy = this.sinon.spy(MockSimPicker, 'show');
-        subject = new CallButton(button, phoneNumberGetter, function() {},
-          'ril.telephony.defaultServiceId');
+        subject = new MultiSimActionButton(
+          button,
+          function() {},
+          'ril.telephony.defaultServiceId',
+          phoneNumberGetter
+        );
+
         MockSettingsListener.mTriggerCallback(
           'ril.telephony.defaultServiceId', cardIndex);
 
         phoneNumber = '15555555555';
         simulateContextMenu();
-        subject.makeCall(cardIndex);
+        subject.performAction(cardIndex);
         MockNavigatorSettings.mReplyToRequests();
         sinon.assert.calledWith(showSpy, cardIndex, phoneNumber);
       });
 
       test('should check the connection on the primary SIM card', function() {
         var callStub = this.sinon.stub();
-        subject = new CallButton(button, phoneNumberGetter, callStub,
-                     'ril.telephony.defaultServiceId');
+        subject = new MultiSimActionButton(
+          button,
+          callStub,
+          'ril.telephony.defaultServiceId',
+          phoneNumberGetter
+        );
+
         MockSettingsListener.mTriggerCallback(
           'ril.telephony.defaultServiceId', cardIndex);
 
         phoneNumber = '0145345520';
-        subject.makeCall();
+        subject.performAction();
         MockNavigatorSettings.mReplyToRequests();
         sinon.assert.calledWith(callStub, phoneNumber, cardIndex);
       });
@@ -244,8 +258,7 @@ suite('call button', function() {
     suite('without SIM indication', function() {
       setup(function() {
         document.body.className = '';
-        document.body.innerHTML =
-          '<div id="container"></div>';
+        document.body.innerHTML = '<div id="container"></div>';
         button = document.getElementById('container');
         simIndication = button.querySelector('.js-sim-indication');
 

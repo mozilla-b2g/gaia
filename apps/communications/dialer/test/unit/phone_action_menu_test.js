@@ -7,6 +7,7 @@ require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/dialer/test/unit/mock_call_handler.js');
 require('/dialer/test/unit/mock_lazy_loader.js');
+require('/dialer/test/unit/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_sim_picker.js');
 
 requireApp('communications/dialer/js/phone_action_menu.js');
@@ -14,6 +15,7 @@ requireApp('communications/dialer/js/phone_action_menu.js');
 var mocksHelperForPhoneActionMenu = new MocksHelper([
   'CallHandler',
   'LazyLoader',
+  'LazyL10n',
   'SimPicker'
 ]).init();
 

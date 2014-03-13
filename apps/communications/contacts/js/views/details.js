@@ -441,9 +441,10 @@ contacts.Details = (function() {
           MmiManager.isMMI(number)) {
         button.addEventListener('click', onMMICode);
       } else if (navigator.mozTelephony) {
-        LazyLoader.load(['/dialer/js/call_button.js'], function() {
-          new CallButton(button, function() {return number},
-            TelephonyHelper.call, 'ril.telephony.defaultServiceId');
+        LazyLoader.load(['/shared/js/multi_sim_action_button.js'], function() {
+          new MultiSimActionButton(button, TelephonyHelper.call,
+                                   'ril.telephony.defaultServiceId',
+                                   function() {return number});
         });
       }
     });

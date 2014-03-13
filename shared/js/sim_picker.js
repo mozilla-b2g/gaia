@@ -1,4 +1,3 @@
-/* global LazyL10n */
 /* exported SimPicker */
 
 'use strict';
@@ -18,10 +17,15 @@
 
       this._buildDom();
       var self = this;
-      LazyL10n.get(function() {
+      navigator.mozL10n.ready(function() {
         var dialViaElt = document.getElementById('sim-picker-dial-via');
-        navigator.mozL10n.localize(
-          dialViaElt, 'sim-picker-dial-via', {phoneNumber: phoneNumber});
+        if (phoneNumber) {
+          navigator.mozL10n.localize(
+            dialViaElt, 'sim-picker-dial-via-with-number',
+            {phoneNumber: phoneNumber});
+        } else {
+          navigator.mozL10n.localize(dialViaElt, 'sim-picker-select-sim');
+        }
 
         var simButtons = self._simPickerElt.querySelectorAll(
           'button[data-card-index]');
@@ -35,6 +39,12 @@
         }
 
         self._simPickerElt.hidden = false;
+
+        // FIXME/bug 984446: If we use the .focus() method on the element, for
+        // some reason in the tests we don't get a focus callback. This method,
+        // however, works.
+        var focusEvent = new CustomEvent('focus');
+        self._simPickerElt.dispatchEvent(focusEvent);
       });
     },
 
@@ -45,7 +55,7 @@
 
       this._domBuilt = true;
       var self = this;
-      LazyL10n.get(function() {
+      navigator.mozL10n.ready(function() {
         var templateNode = document.getElementById(
           'sim-picker-button-template');
 
