@@ -38,10 +38,6 @@ navigator.mozSetMessageHandler('activity', function handler(activity) {
   var cancel = document.getElementById('cancel');
   var player = document.createElement('audio'); // for previewing sounds
 
-  // Prepare audio context and source for the player to connect later.
-  var context = null;
-  var source = null;
-
   // Start off with the Done button disabled, and only enable it once
   // a button has been checked
   done.disabled = true;
@@ -207,35 +203,11 @@ navigator.mozSetMessageHandler('activity', function handler(activity) {
   function preview(url) {
     if (url) {  // If there is a URL, play it.
       player.src = url;
-      // Because of the audio competing policy, after a high priority audio
-      // channel paused/stopped, the low priority channel is able to resume
-      // in the background, so here we use audio context to occupy the channel
-      // until the user leaves the ringtones app, see bug 958470 for details.
-      connectAudioContext(player);
       player.play();
     }
     else {      // Otherwise, the user clicked None, so stop playing anything
       player.removeAttribute('src');
       player.load();
-    }
-  }
-
-  function connectAudioContext(element) {
-    // Once the audio context is created, it will interrupt the low priority
-    // audio channels. For example, the background music will be paused
-    // immediately if we launch the ringtones app and create the audio context.
-    // But what we expected is to pause the music after the user previewed the
-    // first ringtone, so we will create the audio context when the player plays
-    // the first ringtone, this can also prevent the play icon(in status bar)
-    // disappears if no ringtone has been previewed yet.
-    if (!context) {
-      context = new AudioContext();
-      context.mozAudioChannelType = 'ringer';
-    }
-
-    if (!source) {
-      source = context.createMediaElementSource(element);
-      source.connect(context.destination);
     }
   }
 });
