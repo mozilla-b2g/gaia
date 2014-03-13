@@ -1,6 +1,8 @@
+/* exported KeypadManager */
+
 /* globals CallButton, CallHandler, CallLogDBManager, CallsHandler, CallScreen,
-           LazyLoader, PhoneNumberActionMenu, SettingsListener, TonePlayer,
-           Utils */
+           LazyLoader, LazyL10n, PhoneNumberActionMenu, SimPicker,
+           SettingsListener, TonePlayer, Utils */
 
 'use strict';
 
@@ -249,8 +251,9 @@ var KeypadManager = {
 
   addContact: function hk_addContact(event) {
     var number = this._phoneNumber;
-    if (!number)
+    if (!number) {
       return;
+    }
     LazyLoader.load(['/dialer/js/phone_action_menu.js'],
       function hk_showPhoneNumberActionMenu() {
         PhoneNumberActionMenu.show(null, number,
@@ -273,7 +276,7 @@ var KeypadManager = {
 
     // We consider the case where the delete button may have
     // been used to delete the whole phone number.
-    if (view.value == '') {
+    if (view.value === '') {
       view.style.fontSize = this.maxFontSize;
       return;
     }
@@ -525,8 +528,9 @@ var KeypadManager = {
       this.formatPhoneNumber(ellipsisSide, maxFontSize);
     }
 
-    if (this.onValueChanged)
+    if (this.onValueChanged) {
       this.onValueChanged(this._phoneNumber);
+    }
   },
 
   replacePhoneNumber:
@@ -554,7 +558,26 @@ var KeypadManager = {
     }
   },
 
-  _callVoicemail: function kh_callVoicemail() {
+  _callVoicemail: function() {
+    if (navigator.mozIccManager.iccIds.length <= 1) {
+      this._callVoicemailForSim(0);
+      return;
+    }
+
+    var self = this;
+    var key = 'ril.voicemail.defaultServiceId';
+    var req = navigator.mozSettings.createLock().get(key);
+    req.onsuccess = function() {
+      LazyLoader.load(['/shared/js/sim_picker.js'], function() {
+        LazyL10n.get(function(_) {
+          SimPicker.show(req.result[key], _('voiceMail'),
+                         self._callVoicemailForSim);
+        });
+      });
+    };
+  },
+
+  _callVoicemailForSim: function(cardIndex) {
     var settings = navigator.mozSettings;
     if (!settings) {
       return;
@@ -563,21 +586,18 @@ var KeypadManager = {
     var request = transaction.get('ril.iccInfo.mbdn');
     request.onsuccess = function() {
       var numbers = request.result['ril.iccInfo.mbdn'];
-      // TODO: We always use the first icc card here. It should honor the user
-      //       default voice sim card setting and which will be handled in
-      //       bug 978114.
       var number;
       if (typeof numbers == 'string') {
         number = numbers;
       } else {
-        number = numbers && numbers[0];
+        number = numbers && numbers[cardIndex];
       }
       var voicemail = navigator.mozVoicemail;
       if (!number && voicemail) {
         number = voicemail.getNumber();
       }
       if (number) {
-        CallHandler.call(number);
+        CallHandler.call(number, cardIndex);
       }
       // TODO: Bug 881178 - [Dialer] Invite the user to go set a voicemail
       // number in the setting app.
