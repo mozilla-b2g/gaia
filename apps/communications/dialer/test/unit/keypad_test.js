@@ -1,28 +1,34 @@
-/* globals CallButton, CallLogDBManager, gTonesFrequencies, KeypadManager,
-           MockCall, MockCallButton, MockCallsHandler, MockDialerIndexHtml,
-           MockMozTelephony, MockSettingsListener, MocksHelper, MockTonePlayer,
-           telephonyAddCall
+/* globals CallButton, CallHandler, CallLogDBManager, gTonesFrequencies,
+           KeypadManager, MockCall, MockCallButton, MockCallsHandler,
+           MockDialerIndexHtml, MockIccManager, MockMozTelephony,
+           MockNavigatorSettings, MockSettingsListener, MocksHelper,
+           MockTonePlayer, SimPicker, telephonyAddCall
 */
 
 'use strict';
 
-requireApp('communications/dialer/js/keypad.js');
+require('/dialer/js/keypad.js');
 
-requireApp('communications/dialer/test/unit/mock_lazy_loader.js');
-requireApp('communications/dialer/test/unit/mock_utils.js');
-requireApp('communications/dialer/test/unit/mock_call.js');
-requireApp('communications/dialer/test/unit/mock_call_button.js');
-requireApp('communications/dialer/test/unit/mock_call_handler.js');
-requireApp('communications/dialer/test/unit/mock_call_log_db_manager.js');
-requireApp('communications/dialer/test/unit/mock_calls_handler.js');
-requireApp('communications/dialer/test/unit/mock_handled_call.js');
-requireApp('communications/dialer/test/unit/mock_moztelephony.js');
-requireApp('communications/shared/test/unit/mocks/mock_settings_listener.js');
-requireApp('communications/dialer/test/unit/mock_tone_player.js');
+require('/dialer/test/unit/mock_lazy_loader.js');
+require('/dialer/test/unit/mock_l10n.js');
+require('/dialer/test/unit/mock_utils.js');
+require('/dialer/test/unit/mock_call.js');
+require('/dialer/test/unit/mock_call_button.js');
+require('/dialer/test/unit/mock_call_handler.js');
+require('/dialer/test/unit/mock_call_log_db_manager.js');
+require('/dialer/test/unit/mock_calls_handler.js');
+require('/dialer/test/unit/mock_handled_call.js');
+require('/dialer/test/unit/mock_moztelephony.js');
+require('/dialer/test/unit/mock_tone_player.js');
+require('/shared/test/unit/mocks/mock_iccmanager.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+require('/shared/test/unit/mocks/mock_settings_listener.js');
+require('/shared/test/unit/mocks/mock_sim_picker.js');
 
-requireApp('communications/dialer/test/unit/mock_dialer_index.html.js');
+require('/dialer/test/unit/mock_dialer_index.html.js');
 
 var mocksHelperForKeypad = new MocksHelper([
+  'LazyL10n',
   'LazyLoader',
   'Utils',
   'CallButton',
@@ -31,23 +37,37 @@ var mocksHelperForKeypad = new MocksHelper([
   'CallLogDBManager',
   'HandledCall',
   'SettingsListener',
+  'SimPicker',
   'TonePlayer'
 ]).init();
 
 suite('dialer/keypad', function() {
   var subject;
   var previousBody;
+  var realMozIccManager;
+  var realMozSettings;
   var realMozTelephony;
 
   mocksHelperForKeypad.attachTestHelpers();
 
   suiteSetup(function() {
+    realMozIccManager = navigator.mozIccManager;
+    navigator.mozIccManager = new MockIccManager();
+
+    realMozSettings = navigator.mozSettings;
+    navigator.mozSettings = MockNavigatorSettings;
+    MockNavigatorSettings.mSyncRepliesOnly = true;
+
     previousBody = document.body.innerHTML;
     document.body.innerHTML = MockDialerIndexHtml;
     subject = KeypadManager;
   });
 
   suiteTeardown(function() {
+    navigator.mozIccManager = realMozIccManager;
+    navigator.mozSettings = realMozSettings;
+    MockNavigatorSettings.mSyncRepliesOnly = false;
+
     document.body.innerHTML = previousBody;
   });
 
@@ -268,6 +288,68 @@ suite('dialer/keypad', function() {
         assert.isTrue(stopToneSpy.calledOnce);
         this.sinon.clock.tick(1);
         assert.equal(stopToneSpy.callCount, 2);
+      });
+    });
+
+    suite('voiceMail hotkey', function() {
+      setup(function() {
+        this.sinon.spy(CallHandler, 'call');
+      });
+
+      suite('SingleSIM', function() {
+        var fakeVoicemail = '888';
+
+        setup(function() {
+          navigator.mozIccManager.iccIds[0] = 0;
+          MockNavigatorSettings.mSettings['ril.iccInfo.mbdn'] = fakeVoicemail;
+
+          subject._touchStart('1', true);
+          this.sinon.clock.tick(1500);
+          subject._touchEnd('1');
+
+          MockNavigatorSettings.mReplyToRequests();
+        });
+
+        test('should call voicemail directly', function() {
+          sinon.assert.calledWith(CallHandler.call, fakeVoicemail, 0);
+        });
+      });
+
+      suite('DualSIM', function() {
+        var fakeVoicemail1 = '1664';
+        var fakeVoicemail2 = '666';
+
+        setup(function() {
+          navigator.mozIccManager.iccIds[0] = 0;
+          navigator.mozIccManager.iccIds[1] = 1;
+
+          MockNavigatorSettings.mSettings['ril.iccInfo.mbdn'] = [fakeVoicemail1,
+          fakeVoicemail2];
+          MockNavigatorSettings.mSettings['ril.voicemail.defaultServiceId'] = 1;
+
+          this.sinon.spy(SimPicker, 'show');
+          subject._touchStart('1', true);
+          this.sinon.clock.tick(1500);
+          subject._touchEnd('1');
+
+          MockNavigatorSettings.mReplyToRequests();
+        });
+
+        test('should show the SIM picker for favorite SIM', function() {
+          sinon.assert.calledWith(SimPicker.show, 1, 'voiceMail');
+        });
+
+        test('should call voicemail for SIM1', function() {
+          SimPicker.show.yield(0);
+          MockNavigatorSettings.mReplyToRequests();
+          sinon.assert.calledWith(CallHandler.call, fakeVoicemail1, 0);
+        });
+
+        test('should call voicemail for SIM2', function() {
+          SimPicker.show.yield(1);
+          MockNavigatorSettings.mReplyToRequests();
+          sinon.assert.calledWith(CallHandler.call, fakeVoicemail2, 1);
+        });
       });
     });
   });
