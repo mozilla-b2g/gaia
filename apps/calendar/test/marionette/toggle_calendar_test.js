@@ -7,6 +7,8 @@ marionette('toggle calendar', function() {
   var app;
   var client = marionette.client();
 
+suite.only('toggle', function() {
+
   setup(function() {
     app = new Calendar(client);
     app.launch({ hideSwipeHint: true });
@@ -83,5 +85,7 @@ marionette('toggle calendar', function() {
       );
     });
   });
+
+});
 
 });
