@@ -128,4 +128,8 @@
   #bluetooth-menu {
     display: none;
   }
+
+  .sim {
+    display: none;
+  }
 }

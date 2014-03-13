@@ -252,6 +252,13 @@ var CallsHandler = (function callsHandler() {
         return;
       }
 
+      if (navigator.mozIccManager.iccIds.length > 1) {
+        CallScreen.incomingSim.innerHTML = _('via-sim',
+                                             { n: call.serviceId + 1 });
+      } else {
+        CallScreen.incomingSim.hidden = true;
+      }
+
       Contacts.findByNumber(number,
                             function lookupContact(contact, matchingTel) {
         if (contact && contact.name) {
