@@ -3,6 +3,15 @@
   visibility: visible;
 }
 
+.appWindow > .appWindow {
+  z-index: 65536;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+}
+
 .appWindow > .modal-dialog {
   z-index: 2;
 }
@@ -86,23 +95,22 @@
 
 /* animation */
 
-#windows > .activityWindow.opening.slideleft {
-  animation: slideLeft 0.3s forwards ease-out;
+.appWindow.opening.slideup {
+  animation: slideUp 0.3s forwards ease-out;
 }
 
-#windows > .activityWindow.closing.slideright {
-  animation: slideRight 0.3s forwards ease-out;
+.appWindow.closing.slidedown {
+  animation: slideDown 0.3s forwards ease-out;
 }
 
-@keyframes slideLeft {
-  0%   { transform: translateX(100%) scale(1.0); }
-  100% { transform: translateX(0) scale(1.0); }
+@keyframes slideUp {
+  0%   { transform: translateY(100%) scale(1.0); }
+  100% { transform: translateY(0) scale(1.0); }
 }
 
-@keyframes slideRight {
-  0%   { transform: translateX(0) scale(1.0); }
-  100% { transform: translateX(100%) scale(1.0); }
-
+@keyframes slideDown {
+  0%   { transform: translateY(0) scale(1.0); }
+  100% { transform: translateY(100%) scale(1.0); }
 }
 
 #screen:-moz-full-screen-ancestor > #windows > .appWindow.active {

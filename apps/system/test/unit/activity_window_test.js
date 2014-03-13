@@ -139,6 +139,11 @@ suite('system/ActivityWindow', function() {
     teardown(function() {
     });
 
+    test('Render activity inside its caller', function() {
+      var activity = new ActivityWindow(fakeConfig, app);
+      assert.deepEqual(activity.containerElement, app.element);
+    });
+
     test('Activity created', function() {
       var created = false;
       window.addEventListener('activitycreated', function oncreated() {
@@ -182,6 +187,43 @@ suite('system/ActivityWindow', function() {
       }
       activity.setOrientation();
       assert.isTrue(stubLockOrientation.calledWith('landscape'));
+    });
+
+    test('Event propagation should be stopped', function() {
+      var activity1 = new ActivityWindow(fakeConfig, app);
+      var evt = new CustomEvent('mozbrowseractivitydone');
+      var spy1 = this.sinon.spy(evt, 'stopPropagation');
+      activity1.element.dispatchEvent(evt);
+      assert.isTrue(spy1.called);
+
+      var activity2 = new ActivityWindow(fakeConfig, app);
+      var evt = new CustomEvent('mozbrowserloadend');
+      var spy2 = this.sinon.spy(evt, 'stopPropagation');
+      activity2.element.dispatchEvent(evt);
+      assert.isTrue(spy2.called);
+
+      var activity3 = new ActivityWindow(fakeConfig, app);
+      var evt = new CustomEvent('mozbrowservisibilitychange',
+        {
+          detail: { visible: true }
+        });
+      var spy3 = this.sinon.spy(evt, 'stopPropagation');
+      activity3.element.dispatchEvent(evt);
+      assert.isTrue(spy3.called);
+
+      var activity4 = new ActivityWindow(fakeConfig, app);
+      var evt = new CustomEvent('mozbrowsererror', {
+        detail: { type: 'fatal' }
+      });
+      var spy4 = this.sinon.spy(evt, 'stopPropagation');
+      activity4.element.dispatchEvent(evt);
+      assert.isTrue(spy4.called);
+
+      var activity5 = new ActivityWindow(fakeConfig, app);
+      var evt = new CustomEvent('mozbrowserclose');
+      var spy5 = this.sinon.spy(evt, 'stopPropagation');
+      activity5.element.dispatchEvent(evt);
+      assert.isTrue(spy5.called);
     });
   });
 });

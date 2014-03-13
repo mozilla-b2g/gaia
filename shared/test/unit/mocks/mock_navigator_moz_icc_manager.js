@@ -44,6 +44,21 @@
     // we will wrap icc to add some internal
     // methods that will be called outside
     _wrapIcc: function(object) {
+
+      object.setCardLock = function(options) {
+        var handlers = {
+          error: {
+            lockType: options.lockType,
+            retryCount: object.retryCount
+          }
+        };
+
+        // We can manipulate object here
+        object._setCardLockOptions = options;
+        object._setCardLockCachedHandlers = handlers;
+        return handlers;
+      };
+
       object.getCardLock = function(type) {
         object._getCardLockType = type;
         var obj = {
@@ -58,6 +73,16 @@
           }
         });
         return obj;
+      };
+
+      object.getCardLockRetryCount = function(type) {
+        var req = {
+          result: { retryCount: 3 }
+        };
+        setTimeout(function() {
+          req.onsuccess && req.onsuccess();
+        });
+        return req;
       };
 
       object.iccInfo = object.iccInfo || { msisdn: '0912345678' };
