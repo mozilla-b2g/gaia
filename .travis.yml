@@ -11,46 +11,6 @@ branches:
   - master
 env:
   matrix:
-  - CI_ACTION=unit-tests-in-firefox x=1
-  - CI_ACTION=unit-tests-in-firefox x=2
-  - CI_ACTION=unit-tests-in-firefox x=3
-  - CI_ACTION=unit-tests-in-firefox x=4
-  - CI_ACTION=unit-tests-in-firefox x=5
-  - CI_ACTION=unit-tests-in-firefox x=6
-  - CI_ACTION=unit-tests-in-firefox x=7
-  - CI_ACTION=unit-tests-in-firefox x=8
-  - CI_ACTION=unit-tests-in-firefox x=9
-  - CI_ACTION=unit-tests-in-firefox x=10
-  - CI_ACTION=unit-tests-in-firefox x=11
-  - CI_ACTION=unit-tests-in-firefox x=12
-  - CI_ACTION=unit-tests-in-firefox x=13
-  - CI_ACTION=unit-tests-in-firefox x=14
-  - CI_ACTION=unit-tests-in-firefox x=15
-  - CI_ACTION=unit-tests-in-firefox x=16
-  - CI_ACTION=unit-tests-in-firefox x=17
-  - CI_ACTION=unit-tests-in-firefox x=18
-  - CI_ACTION=unit-tests-in-firefox x=19
-  - CI_ACTION=unit-tests-in-firefox x=20
-  - CI_ACTION=unit-tests-in-firefox x=21
-  - CI_ACTION=unit-tests-in-firefox x=22
-  - CI_ACTION=unit-tests-in-firefox x=23
-  - CI_ACTION=unit-tests-in-firefox x=24
-  - CI_ACTION=unit-tests-in-firefox x=25
-  - CI_ACTION=unit-tests-in-firefox x=26
-  - CI_ACTION=unit-tests-in-firefox x=27
-  - CI_ACTION=unit-tests-in-firefox x=28
-  - CI_ACTION=unit-tests-in-firefox x=29
-  - CI_ACTION=unit-tests-in-firefox x=30
-  - CI_ACTION=unit-tests-in-firefox x=31
-  - CI_ACTION=unit-tests-in-firefox x=32
-  - CI_ACTION=unit-tests-in-firefox x=33
-  - CI_ACTION=unit-tests-in-firefox x=34
-  - CI_ACTION=unit-tests-in-firefox x=35
-  - CI_ACTION=unit-tests-in-firefox x=36
-  - CI_ACTION=unit-tests-in-firefox x=37
-  - CI_ACTION=unit-tests-in-firefox x=38
-  - CI_ACTION=unit-tests-in-firefox x=39
-  - CI_ACTION=unit-tests-in-firefox x=40
   - CI_ACTION=marionette_js x=1
   - CI_ACTION=marionette_js x=2
   - CI_ACTION=marionette_js x=3
@@ -91,6 +51,16 @@ env:
   - CI_ACTION=marionette_js x=38
   - CI_ACTION=marionette_js x=39
   - CI_ACTION=marionette_js x=40
+  - CI_ACTION=marionette_js x=41
+  - CI_ACTION=marionette_js x=42
+  - CI_ACTION=marionette_js x=43
+  - CI_ACTION=marionette_js x=44
+  - CI_ACTION=marionette_js x=45
+  - CI_ACTION=marionette_js x=46
+  - CI_ACTION=marionette_js x=47
+  - CI_ACTION=marionette_js x=48
+  - CI_ACTION=marionette_js x=49
+  - CI_ACTION=marionette_js x=50
 
   global:
   - ARTIFACTS_S3_BUCKET=mozilla-releng-travis-uploads
