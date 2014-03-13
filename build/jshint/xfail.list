@@ -500,7 +500,6 @@ apps/system/js/operator_variant/operator_variant.js
 apps/system/js/operator_variant/operator_variant_iccs.js
 apps/system/js/orientation_manager.js
 apps/system/js/payment.js
-apps/system/js/permission_manager.js
 apps/system/js/popup_manager.js
 apps/system/js/quick_settings.js
 apps/system/js/screen_manager.js
@@ -637,7 +636,6 @@ apps/system/test/unit/mock_wifi_manager.js
 apps/system/test/unit/modal_dialog_test.js
 apps/system/test/unit/operator_variant_helper_test.js
 apps/system/test/unit/orientation_manager_test.js
-apps/system/test/unit/permission_manager_test.js
 apps/system/test/unit/quick_settings_test.js
 apps/system/test/unit/screen_manager_test.js
 apps/system/test/unit/settings_helper_test.js
