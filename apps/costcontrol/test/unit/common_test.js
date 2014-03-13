@@ -12,7 +12,7 @@ requireApp('system/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.
 
 var realMozL10n,
     realMozNetworkStats,
-    realNetworkstatsProxy,
+    realNetworkstats,
     realConfigManager,
     realMozSettings,
     realMozMobileConnections;
@@ -37,8 +37,8 @@ if (!this.navigator.mozSettings) {
   this.navigator.mozSettings = null;
 }
 
-if (!this.NetworkstatsProxy) {
-  this.NetworkstatsProxy = null;
+if (!this.Networkstats) {
+  this.Networkstats = null;
 }
 
 suite('Cost Control Common >', function() {
@@ -54,8 +54,8 @@ suite('Cost Control Common >', function() {
     realMozMobileConnections = navigator.mozMobileConnections;
     navigator.mozMobileConnections = MockNavigatorMozMobileConnections;
 
-    realNetworkstatsProxy = window.NetworkstatsProxy;
-    window.NetworkstatsProxy = MockMozNetworkStats;
+    realNetworkstats = window.Networkstats;
+    window.Networkstats = MockMozNetworkStats;
 
     realMozSettings = navigator.mozSettings;
     navigator.mozSettings = MockNavigatorSettings;
@@ -69,7 +69,7 @@ suite('Cost Control Common >', function() {
     window.ConfigManager = realConfigManager;
     window.navigator.mozL10n = realMozL10n;
     window.navigator.mozNetworkStats = realMozNetworkStats;
-    window.NetworkstatsProxy = realNetworkstatsProxy;
+    window.Networkstats = realNetworkstats;
     window.navigator.mozSettings = realMozSettings;
     window.navigator.mozMobileConnections = realMozMobileConnections;
     Common.getIccInfo.restore();
