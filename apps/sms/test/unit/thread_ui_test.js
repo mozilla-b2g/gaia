@@ -2352,6 +2352,16 @@ suite('thread_ui.js >', function() {
         subject: 'subject'
       }));
     });
+
+    test('correctly sets the iccId in the dataset', function() {
+      var node;
+
+      node = ThreadUI.buildMessageDOM(MockMessages.sms({ iccId: 'A' }));
+      assert.equal(node.dataset.iccId, 'A');
+
+      node = ThreadUI.buildMessageDOM(MockMessages.mms({ iccId: 'A' }));
+      assert.equal(node.dataset.iccId, 'A');
+    });
   });
 
   suite('renderMessages()', function() {
