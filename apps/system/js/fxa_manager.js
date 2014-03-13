@@ -118,7 +118,7 @@ var FxAccountsManager = {
   },
 
   _sendContentEvent: function fxa_mgmt_sendContentEvent(msg) {
-    var event = new CustomEvent('mozFxAccountsRPContentEvent', msg);
+    var event = new CustomEvent('mozFxAccountsRPContentEvent', {detail: msg});
     window.dispatchEvent(event);
   },
 
