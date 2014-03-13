@@ -23,7 +23,8 @@ var CallLog = {
       '/shared/style/lists.css',
       '/contacts/js/utilities/confirm.js',
       '/dialer/js/phone_action_menu.js',
-      '/dialer/js/utils.js'
+      '/dialer/js/utils.js',
+      '/shared/js/sticky_header.js'
     ];
     var self = this;
 
@@ -104,6 +105,9 @@ var CallLog = {
             self.updateHeadersContinuously();
           }
         });
+
+        self.sticky = new StickyHeader(self.callLogContainer,
+                                       document.getElementById('sticky'));
       });
     });
 
@@ -204,6 +208,7 @@ var CallLog = {
             PerformanceTestingHelper.dispatch('first-chunk-ready');
           }
           self.enableEditMode();
+          self.sticky.refresh();
           self.updateHeadersContinuously();
           PerformanceTestingHelper.dispatch('call-log-ready');
         }
@@ -362,6 +367,8 @@ var CallLog = {
       }
       container.appendChild(callLogSection);
     }
+
+    this.sticky.refresh();
   },
 
   // Method that places a log group in the right place inside a section

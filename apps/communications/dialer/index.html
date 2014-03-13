@@ -6,8 +6,6 @@
     <title>Dialer</title>
 
     <!-- Localization -->
-    <script defer src="/shared/js/lazy_loader.js"></script>
-    <script defer src="/shared/js/lazy_l10n.js"></script>
     <link rel="resource" type="application/l10n" href="/dialer/locales/locales.ini">
     <link rel="resource" type="application/l10n" href="/contacts/locales/locales.ini">
     <link rel="resource" type="application/l10n" href="/shared/locales/date.ini">
@@ -22,6 +20,8 @@
     <link rel="stylesheet" type="text/css" href="/shared/style/tabs.css">
 
     <!-- JS -->
+    <script defer src="/shared/js/lazy_loader.js"></script>
+    <script defer src="/shared/js/lazy_l10n.js"></script>
     <script defer src="/dialer/js/index.js"></script>
     <script defer src="/dialer/js/utils.js"></script>
     <script defer src="/dialer/js/tone_player.js"></script>
@@ -55,6 +55,7 @@
     <script defer src="/shared/js/fb/fb_reader_utils.js"></script>
     <script defer src="/shared/js/fb/fb_tel_index.js"></script>
     <script defer src="/shared/js/binary_search.js"></script>
+    <script defer src="/shared/js/sticky_header.js"></script>
     <script defer src="/dialer/js/contacts.js"></script>
     <script defer src="/dialer/js/contact_data_manager.js"></script>
     <script defer src="/dialer/js/suggestion_bar.js"></script>
@@ -99,6 +100,7 @@
                   </div>
                 </div>
               </article>
+              <div id="sticky"></div>
             </div>
           </section>
         </div>
