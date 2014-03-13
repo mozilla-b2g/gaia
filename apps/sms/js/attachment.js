@@ -77,7 +77,11 @@
       // as soon as the image width and height are known, the container can be
       // extended up to 120px, either horizontally or vertically.
       var img = new Image();
-      img.src = window.URL.createObjectURL(this.blob);
+      img.src = Utils.getDownsamplingSrcUrl({
+        url: window.URL.createObjectURL(this.blob),
+        size: this.blob.size,
+        type: 'thumbnail'
+      });
       img.onload = function onBlobLoaded() {
         window.URL.revokeObjectURL(img.src);
 
