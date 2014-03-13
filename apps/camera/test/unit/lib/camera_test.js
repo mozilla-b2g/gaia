@@ -13,7 +13,9 @@ suite('camera', function() {
   setup(function() {
     var mozCameras = { getListOfCameras: function() {} };
     if (!navigator.mozCameras) { navigator.mozCameras = mozCameras; }
-    if (!navigator.getDeviceStorage) { navigator.getDeviceStorage = function() {}; }
+    if (!navigator.getDeviceStorage) {
+      navigator.getDeviceStorage = function() {};
+    }
     sinon.stub(navigator, 'getDeviceStorage').returns({});
     sinon.stub(navigator.mozCameras, 'getListOfCameras').returns([]);
   });
@@ -132,7 +134,8 @@ suite('camera', function() {
     });
 
     test('Should error if not enough storage space', function() {
-      this.camera.getFreeVideoStorageSpace = sinon.stub().callsArgWith(0, null, 9);
+      this.camera.getFreeVideoStorageSpace =
+        sinon.stub().callsArgWith(0, null, 9);
       this.camera.startRecording();
       assert.ok(this.camera.onRecordingError.called);
     });
@@ -149,7 +152,8 @@ suite('camera', function() {
       assert.ok(custom.called);
     });
 
-    test('Should call mozCamera.startRecording with the current rotation', function() {
+    test('Should call mozCamera.startRecording with the current rotation',
+      function() {
       this.camera.orientation.get.returns(90);
       this.camera.startRecording();
 
@@ -202,7 +206,8 @@ suite('camera', function() {
     });
 
     test('Should pass the generated filepath', function() {
-      this.camera.createVideoFilepath = sinon.stub().callsArgWith(0, 'dir/my-video.3gp');
+      this.camera.createVideoFilepath =
+        sinon.stub().callsArgWith(0, 'dir/my-video.3gp');
       this.camera.startRecording();
       var filepath = this.camera.mozCamera.startRecording.args[0][2];
       assert.ok(filepath === 'dir/my-video.3gp');
@@ -299,7 +304,8 @@ suite('camera', function() {
       assert.equal(this.camera.mozCamera.whiteBalanceMode, whiteBalanceMode);
     });
 
-    test('Should *NOT* set the setWhiteBalance property to "invalid"', function() {
+    test('Should *NOT* set the setWhiteBalance property to "invalid"',
+      function() {
       var whiteBalanceMode = 'invalid';
       this.camera.setWhiteBalance(whiteBalanceMode);
 
@@ -307,4 +313,65 @@ suite('camera', function() {
     });
   });
 
+  suite('Camera#setSceneMode()', function() {
+    setup(function() {
+      this.camera = {
+        mozCamera: {
+          capabilities: {
+            sceneModes: ['auto', 'hdr']
+          },
+          sceneMode: null
+        },
+        setSceneMode: this.Camera.prototype.setSceneMode,
+        setHDR: this.Camera.prototype.setHDR,
+        get: function() {}
+      };
+      this.sandbox = sinon.sandbox.create();
+      this.sandbox.stub(this.camera, 'get', function() {
+        return {sceneModes: ['auto', 'hdr']};
+      });
+    });
+
+    test('should set the scene mode value parameter to hdr', function() {
+      this.camera.setSceneMode('hdr');
+      assert.equal(this.camera.mozCamera.sceneMode, 'hdr');
+    });
+
+    test('should set the scene mode value parameter to auto', function() {
+      this.camera.setSceneMode('auto');
+      assert.equal(this.camera.mozCamera.sceneMode, 'auto');
+    });
+  });
+
+  suite('Camera# setHDRMode()', function() {
+    setup(function() {
+      this.camera = {
+        mozCamera: {
+          capabilities: {
+            sceneModes: ['auto', 'hdr']
+          },
+          sceneMode: null
+        },
+        setSceneMode: this.Camera.prototype.setSceneMode,
+        setHDR: this.Camera.prototype.setHDR,
+        get: function() {}
+      };
+      this.sandbox = sinon.sandbox.create();
+      this.sandbox.stub(this.camera, 'get', function() {
+        return {sceneModes: ['auto', 'hdr']};
+      });
+    });
+
+    test('Test for HDRMode method called with value "on"', function() {
+      this.camera.setSceneMode = sinon.spy();
+      this.camera.setHDR('on');
+      assert.isTrue(this.camera.setSceneMode.calledWith('hdr'));
+    });
+
+    test('Test for HDRMode method called with value "off"', function() {
+      this.camera.setSceneMode = sinon.spy();
+      this.camera.setHDR('off');
+      assert.isTrue(this.camera.setSceneMode.calledWith('auto'));
+    });
+  });
 });
