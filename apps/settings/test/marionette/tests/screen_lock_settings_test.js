@@ -219,7 +219,8 @@ marionette('manipulate screenLock settings', function() {
         'passcode is still checked');
   });
 
-  test('passcode is enabled, and we want to disable lockscreen directly',
+  // Disabled for intermittent failures. Bug 983171
+  test.skip('passcode is enabled, and we want to disable lockscreen directly',
     function() {
       var code = '1234';
       screenLockPanel.toggleScreenLock();
