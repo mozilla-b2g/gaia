@@ -1,3 +1,7 @@
+'use strict';
+/* exported MockAllFacebookContacts */
+/* exported MockLinkedContacts */
+
 var MockLinkedContacts = {
   data: [{
     fql_result_set: [

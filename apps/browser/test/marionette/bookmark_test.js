@@ -39,7 +39,8 @@ marionette('', function() {
       client.setSearchTimeout(10000);
     });
 
-    test('Add bookmark', function() {
+    // Disabled due to intermittent failures. Bug 983117
+    test.skip('Add bookmark', function() {
       url = server.url('coolpage.html');
       subject.searchBar.sendKeys(url);
       subject.searchButton.click();
@@ -57,7 +58,8 @@ marionette('', function() {
       });
     });
 
-    test('Edit bookmark', function() {
+    // Disabled due to intermittent failures. Bug 983117
+    test.skip('Edit bookmark', function() {
       url = server.url('coolpage.html');
       subject.searchBar.sendKeys(url);
       subject.searchButton.click();

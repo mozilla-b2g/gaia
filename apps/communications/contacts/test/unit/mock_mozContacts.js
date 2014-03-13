@@ -1,4 +1,8 @@
 'use strict';
+/* Allow setter without getter */
+/* jshint -W078 */
+
+var MockMozContacts;
 
 function MockMozContactsObj(contacts) {
   this.contacts = contacts;
@@ -93,4 +97,4 @@ MockMozContactsObj.prototype = {
   }
 };
 
-var MockMozContacts = new MockMozContactsObj([]);
+MockMozContacts = new MockMozContactsObj([]);

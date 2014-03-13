@@ -1,4 +1,5 @@
 'use strict';
+/* exported MockNavigationStack */
 
 var MockNavigationStack = function(view) {
   this.currentView = view;

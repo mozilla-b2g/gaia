@@ -1,3 +1,7 @@
+'use strict';
+/* Allow setter without getter */
+/* jshint -W078 */
+
 var MockSimContactsImporter = function(n) {
   this.number = n || 0;
 };
