@@ -33,30 +33,16 @@ class Persona(Base):
         self.wait_for_element_present(*self._persona_frame_locator)
 
     def login(self, email, password):
-        self.switch_to_persona_frame()
-
-        # This is a hack until we are able to run test with a clean profile
-        # if a user was logged in tap this is not me
-        if self.form_section_id == "selectEmail":
-            self.wait_for_sign_in_button()
-            self.tap_this_is_not_me()
-
-        self.wait_for_email_input()
+        # This only supports logging in with a known user and no existing session
         self.type_email(email)
-        self.wait_for_continue_button()
         self.tap_continue()
 
-        # if we login with an unverified user we have to confirm the password
-        if self.form_section_id == "authentication_form":
-            self.wait_for_password_input()
-            self.type_password(password)
-            self.tap_returning()
-        elif self.form_section_id == "set_password":
-            self.type_create_password(password)
-            self.type_confirm_password(password)
-            self.tap_verify_user()
-        else:
-            raise Exception('Could not log into Persona')
+        self.type_password(password)
+        self.tap_returning()
+
+        self.marionette.switch_to_frame()
+        self.wait_for_element_not_present(*self._persona_frame_locator)
+        self.apps.switch_to_displayed_app()
 
     def switch_to_persona_frame(self):
         self.wait_for_element_present(*self._persona_frame_locator)

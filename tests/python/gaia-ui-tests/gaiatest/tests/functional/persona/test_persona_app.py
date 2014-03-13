@@ -1,6 +1,7 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
 import os
 
 from gaiatest import GaiaTestCase
@@ -36,11 +37,9 @@ class TestPersonaStandard(GaiaTestCase):
         moz_id = uitests.tap_moz_id_button()
         moz_id.switch_to_frame()
 
-        persona = moz_id.launch_standard_sign_in()
-        persona.login(self.user.email, self.user.password)
+        persona = moz_id.tap_standard_sign_in()
 
-        self.marionette.switch_to_frame()
-        self.marionette.switch_to_frame(uitests.app.frame)
+        persona.login(self.user.email, self.user.password)
 
         moz_id.switch_to_frame()
         moz_id.wait_for_login_event()
