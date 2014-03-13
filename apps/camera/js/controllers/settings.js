@@ -160,18 +160,25 @@ SettingsController.prototype.configureAliases = function() {
  */
 SettingsController.prototype.menuItems = function() {
   var items = this.settings.settingsMenu.get('items');
-  return items.filter(this.matchesCondition, this)
+  return items.filter(this.validMenuItem, this)
     .map(function(item) { return this.settings[item.key]; }, this);
 };
 
 /**
  * Tests if the passed `settingsMenu`
- * item passes any defined conditions.
+ * item is allowed in the settings menu.
+ *
+ * Should:
+ *
+ *   1. Be a currently supported setting
+ *   2. Pass a defined condition
  *
  * @param  {Object} item
  * @return {Boolean}
  */
-SettingsController.prototype.matchesCondition = function(item) {
+SettingsController.prototype.validMenuItem = function(item) {
+  var setting = this.settings[item.key];
+  var supported = !setting.get('disabled') && !!setting.get('options').length;
   var self = this;
   var test = function(condition) {
     for (var key in condition) {
@@ -181,7 +188,8 @@ SettingsController.prototype.matchesCondition = function(item) {
     }
     return true;
   };
-  return !item.condition || test(item.condition);
+
+  return supported && (!item.condition || test(item.condition));
 };
 
 /**
