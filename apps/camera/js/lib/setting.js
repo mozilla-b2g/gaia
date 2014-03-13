@@ -369,6 +369,20 @@ Setting.prototype.localizeObject = function(object) {
 };
 
 /**
+ * States whether this setting
+ * is currently supported.
+ *
+ * 'Supported' means, it's not been
+ * disabled, and there are options
+ * to be chosen from.
+ *
+ * @return {Boolean}
+ */
+Setting.prototype.supported = function() {
+  return !this.get('disabled') && !!this.get('options').length;
+};
+
+/**
  * Loops arrays or objects.
  *
  * @param  {Array|Object} obj
