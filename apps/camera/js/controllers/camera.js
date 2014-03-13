@@ -34,6 +34,7 @@ function CameraController(app) {
   this.filmstrip = app.filmstrip;
   this.viewfinder = app.views.viewfinder;
   this.controls = app.views.controls;
+  this.hdrDisabled = this.settings.hdr.get('disabled');
   this.configure();
   this.bindEvents();
   /**
@@ -74,8 +75,11 @@ CameraController.prototype.bindEvents = function() {
   settings.pictureSizes.on('change:selected', this.onPictureSizeChange);
   settings.recorderProfiles.on('change:selected', this.onRecorderProfileChange);
   settings.flashModes.on('change:selected', this.setFlashMode);
+  settings.flashModes.on('change:selected', this.onFlashModeChange);
   settings.on('change:cameras', this.loadCamera);
   settings.on('change:mode', this.setMode);
+  settings.on('change:hdr', this.setHDR);
+  settings.on('change:hdr', this.onHDRChange);
   debug('events bound');
 };
 
@@ -116,6 +120,7 @@ CameraController.prototype.onSettingsConfigured = function() {
   this.setWhiteBalance();
   this.setFlashMode();
   this.setISO();
+  this.setHDR(this.settings.hdr.selected('key'));
   this.camera
     .setRecorderProfile(recorderProfile)
     .setPictureSize(pictureSize)
@@ -282,6 +287,27 @@ CameraController.prototype.setISO = function() {
 CameraController.prototype.setWhiteBalance = function() {
   if (!this.settings.whiteBalance.get('disabled')) {
     this.camera.setWhiteBalance(this.settings.whiteBalance.selected('key'));
+  }
+};
+
+CameraController.prototype.setHDR = function(hdr) {
+  if (this.hdrDisabled) { return; }
+  this.camera.setHDR(hdr);
+};
+
+CameraController.prototype.onFlashModeChange = function(flashModes) {
+  if (this.hdrDisabled) { return; }
+  var ishdrOn = this.settings.hdr.selected('key') === 'on';
+  if (ishdrOn &&  flashModes !== 'off') {
+    this.settings.hdr.select('off');
+  }
+};
+
+CameraController.prototype.onHDRChange = function(hdr) {
+  var flashMode = this.settings.flashModesPicture.selected('key');
+  var ishdrOn = hdr === 'on';
+  if (ishdrOn && flashMode !== 'off') {
+    this.settings.flashModesPicture.select('off');
   }
 };
 

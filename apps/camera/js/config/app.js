@@ -203,6 +203,7 @@ module.exports = {
   hdr: {
     title: 'HDR',
     icon: 'icon-hdr-menu',
+    disabled: false,
     options: [
       {
         key: 'off',
@@ -255,9 +256,9 @@ module.exports = {
 
   settingsMenu: {
     items: [
-      // {
-      //   key: 'hdr'
-      // },
+       {
+         key: 'hdr'
+       },
       // {
       //   key: 'scene'
       // },
