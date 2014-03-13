@@ -869,17 +869,14 @@
     opacity: 1;
   }
 
-  .lockscreen-clock {
+  #lockscreen-clock-time {
     margin: -0.6rem 0 -1rem -0.4rem;
     font-weight: 300;
     border-top: solid 0.1rem rgba(255, 255, 255, 0.4);
-  }
-
-  #lockscreen-clock-numbers {
     font-size: calc(26 * 0.226rem);
   }
 
-  #lockscreen-clock-meridiem {
+  #lockscreen-clock-time span { /* optional meridiem */
     font-size: calc(17 * 0.226rem);
   }
 
@@ -888,7 +885,7 @@
     font-size: calc(7 * 0.226rem);
   }
 
-  .lockscreen-clock, #lockscreen-date {
+  #lockscreen-clock-time, #lockscreen-date {
     text-shadow: 0.1rem 0.1rem 0.3rem #000000;
     color: #fff;
   }
