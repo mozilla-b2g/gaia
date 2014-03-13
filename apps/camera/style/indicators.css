@@ -1,0 +1,153 @@
+
+/**
+ * 1. Vertically align indicators
+ * 2. Prevent interaction conflict.
+ */
+
+.indicators {
+  display: flex; /* 1 */
+  position: absolute;
+  top: 0; left: 0;
+  z-index: 1;
+  height: 100%;
+  padding: 1.5rem;
+  flex-direction: column;
+  justify-content: center; /* 1 */
+  pointer-events: none; /* 2 */
+  opacity: 0;
+}
+
+/**
+ * @visible
+ */
+
+.indicators.visible {
+  opacity: 1;
+}
+
+/**
+ * @deg180
+ */
+
+.deg180 .indicators {
+  left: auto; right: 0;
+  transform: rotate(0deg);
+}
+
+/** Indicators
+ ---------------------------------------------------------*/
+
+/**
+ * 1. Hidden until enabled
+ */
+
+.indicators li {
+  display: none; /* 1 */
+  height: 1em;
+  width: 1em;
+  font-size: 18px;
+  margin-bottom: 1.2rem;
+  border-radius: 4px;
+  text-align: center;
+  background: #FFFFFF;
+  color: #008EAB;
+}
+
+/**
+ * @off
+ */
+
+.indicators[hdr=off] .indicator_hdr,
+.indicators[timer=off] .indicator_timer,
+.indicators[geolocation=off] .indicator_geolocation {
+  opacity: 0.2;
+}
+
+/** Indicator Timer
+ ---------------------------------------------------------*/
+
+/**
+ * timer-enabled=true
+ */
+
+.indicators[timer-enabled=true] .indicator_timer {
+  display: block;
+}
+
+/** Indicator HDR
+ ---------------------------------------------------------*/
+
+/**
+ * hdr-enabled=true
+ */
+
+.indicators[hdr-enabled=true] .indicator_hdr {
+  display: block;
+}
+
+/** Indicator Battery
+ ---------------------------------------------------------*/
+
+.indicator_battery {
+  height: 1.1rem;
+  font-size: 25px;
+  line-height: 1.1rem;
+  margin-left: -3px;
+  color: #D92E2E;
+  opacity: 0;
+  background: none;
+}
+
+/**
+ * battery-enabled=true
+ */
+
+.indicators[battery-enabled=true] .indicator_battery {
+  display: block;
+}
+
+/**
+ * battery=low,
+ * battery=verylow,
+ * battery=critical
+ */
+
+.indicators[battery='low'] .indicator_battery,
+.indicators[battery='verylow'] .indicator_battery,
+.indicators[battery='critical'] .indicator_battery {
+  opacity: 1;
+}
+
+/**
+ * battery=low
+ */
+
+.indicators[battery='low'] .indicator_battery:before {
+  content: "\e619";
+}
+
+/**
+ * battery=verylow,
+ * battery=critical
+ */
+
+.indicators[battery='verylow'] .indicator_battery:before,
+.indicators[battery='critical'] .indicator_battery:before {
+  content: "\e61a";
+}
+
+/**
+ * battery=critical
+ */
+
+.indicators[battery='critical'] .indicator_battery {
+  animation: 2s ease-in-out infinite indicator_battery-animation ;
+}
+
+/** Battery Animation
+ ---------------------------------------------------------*/
+
+@keyframes indicator_battery-animation {
+  0% { opacity: 1; }
+  50% { opacity: 0; }
+}
