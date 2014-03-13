@@ -1,6 +1,7 @@
 {
   "blacklist": [
     "apps/calendar/test/marionette/caldav_test.js",
+    "apps/communications/contacts/test/marionette/details_test.js",
     "apps/email/test/marionette/activity_create_email_account_complete_test.js",
     "apps/email/test/marionette/local_drafts_test.js",
     "apps/email/test/marionette/next_previous_test.js",
