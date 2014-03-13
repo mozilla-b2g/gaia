@@ -32,6 +32,13 @@ progress[value]::-moz-progress-bar {
   border-radius: 0;
 }
 
+/* [BB]Headers and [BB]Edit_mode Workaround when progress is inside them */
+section[role="region"] > header:first-child progress,
+form[role="dialog"][data-type="edit"] header progress {
+  position: absolute;
+  top: 100%;
+}
+
 /* Progress bar */
 progress[value].pack-activity {
   background-image: url(progress_activity/images/ui/activity.png);

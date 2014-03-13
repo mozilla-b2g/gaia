@@ -19,7 +19,7 @@ class ContactDetails(Base):
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
-        self.wait_for_condition(lambda m: m.find_element(*self._contact_name_title_locator).location['x'] == 0)
+        self.wait_for_condition(lambda m: m.find_element(*self._back_button_locator).location['x'] == 0)
 
     @property
     def full_name(self):
