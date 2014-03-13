@@ -1,8 +1,8 @@
 /* exported KeypadManager */
 
-/* globals CallButton, CallHandler, CallLogDBManager, CallsHandler, CallScreen,
-           LazyLoader, LazyL10n, PhoneNumberActionMenu, SimPicker,
-           SettingsListener, TonePlayer, Utils */
+/* globals CallHandler, CallLogDBManager, CallsHandler, CallScreen,
+           LazyLoader, LazyL10n, MultiSimActionButton, PhoneNumberActionMenu,
+           SimPicker, SettingsListener, TonePlayer, Utils */
 
 'use strict';
 
@@ -98,7 +98,7 @@ var KeypadManager = {
       document.getElementById('keypad-hidebar-hide-keypad-action');
   },
 
-  callButton: null,
+  multiSimActionButton: null,
 
   init: function kh_init(oncall) {
 
@@ -138,7 +138,7 @@ var KeypadManager = {
     // The keypad call bar is only included in the normal version and
     // the emergency call version of the keypad.
     if (this.callBarCallAction) {
-      if (typeof CallButton !== 'undefined') {
+      if (typeof MultiSimActionButton !== 'undefined') {
         if (navigator.mozMobileConnections &&
             navigator.mozMobileConnections.length > 1) {
           // Use LazyL10n to load l10n.js. Single SIM devices will be slowed
@@ -146,16 +146,18 @@ var KeypadManager = {
           // do this.
           var self = this;
           LazyL10n.get(function localized(_) {
-            self.callButton = new CallButton(self.callBarCallAction,
-                                             self.phoneNumber.bind(self),
-                                             CallHandler.call,
-                                             'ril.telephony.defaultServiceId');
+            self.multiSimActionButton =
+              new MultiSimActionButton(self.callBarCallAction,
+                                       CallHandler.call,
+                                       'ril.telephony.defaultServiceId',
+                                       self.phoneNumber.bind(self));
           });
         } else {
-          this.callButton = new CallButton(this.callBarCallAction,
-                                           this.phoneNumber.bind(this),
-                                           CallHandler.call,
-                                           'ril.telephony.defaultServiceId');
+          this.multiSimActionButton =
+            new MultiSimActionButton(this.callBarCallAction,
+                                     CallHandler.call,
+                                     'ril.telephony.defaultServiceId',
+                                     this.phoneNumber.bind(this));
         }
       }
       this.callBarCallAction.addEventListener('click',
@@ -461,7 +463,7 @@ var KeypadManager = {
     // get the device's IMEI as soon as the user enters the last # key from
     // the "*#06#" MMI string. See bug 857944.
     if (key === '#' && this._phoneNumber === '*#06#') {
-      this.callButton.makeCall();
+      this.multiSimActionButton.performAction();
       return;
     }
 

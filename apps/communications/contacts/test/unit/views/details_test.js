@@ -6,8 +6,8 @@ requireApp('communications/contacts/test/unit/mock_details_dom.js.html');
 require('/shared/js/text_normalizer.js');
 require('/shared/test/unit/mocks/mock_contact_all_fields.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
+require('/shared/test/unit/mocks/mock_multi_sim_action_button.js');
 require('/dialer/test/unit/mock_mmi_manager.js');
-require('/dialer/test/unit/mock_call_button.js');
 require('/dialer/test/unit/mock_telephony_helper.js');
 
 requireApp('communications/contacts/js/views/details.js');
@@ -66,7 +66,7 @@ var mocksHelperForDetailView = new MocksHelper([
   'ContactPhotoHelper',
   'LazyLoader',
   'MmiManager',
-  'CallButton',
+  'MultiSimActionButton',
   'TelephonyHelper'
 ]).init();
 
@@ -714,25 +714,27 @@ suite('Render contact', function() {
       LazyLoader.load.reset();
     });
 
-    test(' > Not loading CallButton when we are on an activity', function() {
+    test(' > Not loading MultiSimActionButton when we are on an activity',
+         function() {
       this.sinon.stub(MmiManager, 'isMMI').returns(true);
       MockActivities.currentlyHandling = true;
       subject.render(null, TAG_OPTIONS);
 
       sinon.assert.notCalled(MmiManager.isMMI);
       sinon.assert.neverCalledWith(LazyLoader.load,
-       ['/dialer/js/call_button.js']);
+       ['/shared/js/multi_sim_action_button.js']);
       MockActivities.currentlyHandling = false;
     });
 
-    test('> Not loading CallButton if we have a MMI code', function() {
+    test('> Not loading MultiSimActionButton if we have a MMI code',
+         function() {
       this.sinon.stub(MmiManager, 'isMMI').returns(true);
 
       subject.render(null, TAG_OPTIONS);
 
       sinon.assert.called(MmiManager.isMMI);
       sinon.assert.neverCalledWith(LazyLoader.load,
-       ['/dialer/js/call_button.js']);
+       ['/shared/js/multi_sim_action_button.js']);
     });
 
     test('> Load call button', function() {
@@ -742,14 +744,16 @@ suite('Render contact', function() {
       // We have two buttons, 2 calls per button created
       assert.equal(LazyLoader.load.callCount, 4);
       var spyCall = LazyLoader.load.getCall(1);
-      assert.deepEqual(['/dialer/js/call_button.js'], spyCall.args[0]);
+      assert.deepEqual(
+        ['/shared/js/multi_sim_action_button.js'], spyCall.args[0]);
     });
 
-    test('> Multiple call buttons initialized with correct values', function() {
+    test('> Multiple MultiSimActionButtons initialized with correct values',
+         function() {
       var theContact = new MockContactAllFields(true);
       subject.setContact(theContact);
       this.sinon.stub(MmiManager, 'isMMI').returns(false);
-      this.sinon.spy(window, 'CallButton');
+      this.sinon.spy(window, 'MultiSimActionButton');
 
       subject.render(null, TAG_OPTIONS);
 
@@ -758,17 +762,18 @@ suite('Render contact', function() {
       var phoneNumber1 = theContact.tel[0].value;
       var phoneNumber2 = theContact.tel[1].value;
 
-      sinon.assert.calledWith(CallButton, phone1,
-          sinon.match.func, TelephonyHelper.call,
-           'ril.telephony.defaultServiceId');
+      sinon.assert.calledWith(MultiSimActionButton, phone1,
+           TelephonyHelper.call, 'ril.telephony.defaultServiceId',
+           sinon.match.func);
       // Check the getter contains the correct phone number
-      var getterResult = CallButton.args[0][1]();
+      var getterResult = MultiSimActionButton.args[0][3]();
       assert.equal(phoneNumber1, getterResult);
 
-      sinon.assert.calledWith(CallButton, phone2, sinon.match.func,
-         TelephonyHelper.call, 'ril.telephony.defaultServiceId');
+      sinon.assert.calledWith(MultiSimActionButton, phone2,
+           TelephonyHelper.call, 'ril.telephony.defaultServiceId',
+           sinon.match.func);
       // Second call getter result
-      getterResult = CallButton.args[1][1]();
+      getterResult = MultiSimActionButton.args[1][3]();
       assert.equal(phoneNumber2, getterResult);
 
     });

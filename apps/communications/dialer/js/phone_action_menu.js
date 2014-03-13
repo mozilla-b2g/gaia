@@ -51,7 +51,9 @@ var PhoneNumberActionMenu = (function() {
         var req = navigator.mozSettings.createLock().get(key);
         req.onsuccess = function() {
           LazyLoader.load(['/shared/js/sim_picker.js'], function() {
-            SimPicker.show(req.result[key], _newPhoneNumber, callFn);
+            LazyL10n.get(function(_) {
+              SimPicker.show(req.result[key], _newPhoneNumber, callFn);
+            });
           });
         };
       }

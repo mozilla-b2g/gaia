@@ -722,14 +722,14 @@ form[role="dialog"].no-overlay button {
   height: 1rem;
   bottom: 0;
   right: 0.9rem;
-  background-image: url("images/long-tap-indicator.png");
+  background-image: url("/shared/style/sim_picker/images/long-tap-indicator.png");
   background-repeat: no-repeat;
   background-size: 1.4rem 1rem;
 }
 
 .js-sim-indication {
   float: right;
-  margin-right: -0.2rem !important;
+  margin-right: -0.2rem;
   display: none;
 }
 

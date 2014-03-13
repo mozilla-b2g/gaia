@@ -18,6 +18,7 @@ suite('SIM picker', function() {
   var realMozIccManager;
   var realMozL10n;
   var menu;
+  var header;
 
   mocksHelperForSimPicker.attachTestHelpers();
 
@@ -52,6 +53,8 @@ suite('SIM picker', function() {
     navigator.mozIccManager.addIcc(1, {});
 
     subject.show(0, '1111', function() {});
+
+    header = document.getElementById('sim-picker-dial-via');
   });
 
   teardown(function() {
@@ -59,13 +62,22 @@ suite('SIM picker', function() {
   });
 
   suite('show', function() {
-    test('header should contain phone number', function() {
+    test('header should contain phone number when getter provided', function() {
       var localizeSpy = this.sinon.spy(MockMozL10n, 'localize');
       subject.show(0, '1111', function() {});
       sinon.assert.calledWith(localizeSpy,
-                              document.getElementById('sim-picker-dial-via'),
-                              'sim-picker-dial-via',
+                              header,
+                              'sim-picker-dial-via-with-number',
                               {phoneNumber: '1111'});
+    });
+
+    test('header should not contain phone number when getter not provided',
+         function() {
+      var localizeSpy = this.sinon.spy(MockMozL10n, 'localize');
+      subject.show(0, null, function() {});
+      sinon.assert.calledWith(localizeSpy,
+                              header,
+                              'sim-picker-select-sim');
     });
 
     test('showing the menu twice with different args', function() {
@@ -73,21 +85,33 @@ suite('SIM picker', function() {
 
       subject.show(0, '1111', function() {});
       sinon.assert.calledWith(localizeSpy,
-                              document.getElementById('sim-picker-dial-via'),
-                              'sim-picker-dial-via',
+                              header,
+                              'sim-picker-dial-via-with-number',
                               {phoneNumber: '1111'});
       assert.equal(menu.children.length, 3);
 
       subject.show(0, '2222', function() {});
       sinon.assert.calledWith(localizeSpy,
-                              document.getElementById('sim-picker-dial-via'),
-                              'sim-picker-dial-via',
+                              header,
+                              'sim-picker-dial-via-with-number',
                               {phoneNumber: '2222'});
       assert.equal(menu.children.length, 3);
     });
 
     test('should show the menu', function() {
       assert.equal(document.getElementById('sim-picker').hidden, false);
+    });
+
+    test('should focus on the menu', function(done) {
+      var simPickerElt = document.getElementById('sim-picker');
+
+      simPickerElt.addEventListener('focus', function onfocus(e) {
+        simPickerElt.removeEventListener('focus', onfocus);
+        assert.equal(e.target, simPickerElt);
+        done();
+      });
+
+      subject.show(0, '1111', function() {});
     });
   });
 

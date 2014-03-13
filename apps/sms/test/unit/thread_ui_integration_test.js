@@ -409,6 +409,7 @@ suite('ThreadUI Integration', function() {
 
       // Simulate sendButton click
       ThreadUI.onSendClick();
+      ThreadUI.simSelectedCallback(undefined, 0);
 
       // Ensure that the "unaccepted" recipient was assimilated
       // and included in the recipients list when message was sent

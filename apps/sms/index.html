@@ -15,6 +15,7 @@
     <link rel="stylesheet" type="text/css" href="shared/style/lists.css">
     <link rel="stylesheet" type="text/css" href="shared/style/progress_activity.css">
     <link rel="stylesheet" type="text/css" href="shared/style/status.css">
+    <link rel="stylesheet" type="text/css" href="shared/style/sim_picker.css">
     <!-- App styles -->
     <link rel="stylesheet" type="text/css" href="style/root.css">
     <link rel="stylesheet" type="text/css" href="style/common.css">
@@ -25,6 +26,7 @@
     <!-- Localization -->
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
     <link rel="resource" type="application/l10n" href="shared/locales/date.ini">
+    <link rel="resource" type="application/l10n" href="shared/locales/sim_picker.ini">
     <!-- Shared code -->
     <script defer src="shared/js/async_storage.js"></script>
     <script defer src="shared/js/l10n.js"></script>
@@ -36,6 +38,9 @@
     <script defer src="shared/js/mime_mapper.js"></script>
     <script defer src="shared/js/contact_photo_helper.js"></script>
     <script defer src="shared/js/mobile_operator.js"></script>
+    <script defer src="shared/js/settings_listener.js"></script>
+    <script defer src="shared/js/sim_picker.js"></script>
+    <script defer src="shared/js/multi_sim_action_button.js"></script>
     <script defer src="js/dialog.js"></script>
     <script defer src="js/blacklist.js"></script>
     <script defer src="js/contacts.js"></script>
@@ -236,7 +241,7 @@
         </article>
         <form role="search" id="messages-compose-form" class="bottom messages-compose-form" data-message-type="sms">
           <button id="messages-send-button" disabled data-l10n-id="send" type="submit">
-            <div id="messages-dual-sim-information"></div>
+            <div class="js-sim-indication"></div>
             Send
           </button>
           <textarea id="messages-subject-input" placeholder="Subject" name="subject"
@@ -476,5 +481,18 @@
       }
       -->
     </div>
+
+    <article>
+      <form id="sim-picker" data-type="action" role="dialog" tabindex="-1" hidden>
+        <header id="sim-picker-dial-via" data-l10n-id="sim-picker-select-sim"></header>
+        <menu type="toolbar">
+          <button id="sim-picker-button-template">
+            <span class="js-sim-picker-button">SIM n</span>
+            <span class="sim-default" data-l10n-id="sim-picker-button-default">(AEFAEFdefault)</span>
+          </button>
+          <button data-l10n-id="cancel">Cancel</button>
+        </menu>
+      </form>
+    </article>
   </body>
 </html>
