@@ -49,7 +49,7 @@
         var templateNode = document.getElementById(
           'sim-picker-button-template');
 
-        for (var i = 0; i < window.navigator.mozMobileConnections.length; i++) {
+        for (var i = 0; i < navigator.mozIccManager.iccIds.length; i++) {
           var clonedNode = templateNode.cloneNode(true);
           clonedNode.dataset.cardIndex = i;
 

@@ -1,22 +1,21 @@
-/* globals SimPicker, MocksHelper, MockMozL10n, MockMozMobileConnection */
+/* globals SimPicker, MocksHelper, MockMozL10n, MockNavigatorMozIccManager */
 
 'use strict';
 
 require('/dialer/test/unit/mock_lazy_loader.js');
 require('/dialer/test/unit/mock_l10n.js');
-require('/dialer/test/unit/mock_mozMobileConnection.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
 
 require('/shared/js/sim_picker.js');
 
 var mocksHelperForSimPicker = new MocksHelper([
   'LazyLoader',
-  'LazyL10n',
-  'MozMobileConnection'
+  'LazyL10n'
 ]).init();
 
 suite('SIM picker', function() {
   var subject;
-  var realMozMobileConnections;
+  var realMozIccManager;
   var realMozL10n;
   var menu;
 
@@ -32,8 +31,9 @@ suite('SIM picker', function() {
 
     loadBody();
 
-    realMozMobileConnections = navigator.mozMobileConnections;
-    navigator.mozMobileConnections = [];
+    realMozIccManager = navigator.mozIccManager;
+    navigator.mozIccManager = MockNavigatorMozIccManager;
+    navigator.mozIccManager.mTeardown();
 
     realMozL10n = navigator.mozL10n;
     navigator.mozL10n = MockMozL10n;
@@ -43,15 +43,19 @@ suite('SIM picker', function() {
   });
 
   suiteTeardown(function() {
-    navigator.mozMobileConnections = realMozMobileConnections;
+    navigator.mozIccManager = realMozIccManager;
     navigator.mozL10n = realMozL10n;
   });
 
   setup(function() {
-    navigator.mozMobileConnections =
-      [this.sinon.stub(), MockMozMobileConnection];
+    navigator.mozIccManager.addIcc(0, {});
+    navigator.mozIccManager.addIcc(1, {});
 
     subject.show(0, '1111', function() {});
+  });
+
+  teardown(function() {
+    navigator.mozIccManager.mTeardown();
   });
 
   suite('show', function() {

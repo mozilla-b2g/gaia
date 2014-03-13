@@ -1,14 +1,14 @@
 /* globals CallButton, MockSimPicker, MocksHelper, MockMozL10n,
-           MockMozMobileConnection, MockNavigatorSettings, MockSettingsListener,
-           ALWAYS_ASK_OPTION_VALUE
+           MockNavigatorSettings, MockNavigatorMozIccManager,
+           MockSettingsListener, ALWAYS_ASK_OPTION_VALUE
 */
 
 'use strict';
 
 require('/dialer/test/unit/mock_lazy_loader.js');
 require('/dialer/test/unit/mock_l10n.js');
-require('/dialer/test/unit/mock_mozMobileConnection.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
 require('/shared/test/unit/mocks/mock_sim_picker.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
 
@@ -24,8 +24,8 @@ var mocksHelperForCallButton = new MocksHelper([
 suite('call button', function() {
   var subject;
   var realMozSettings;
-  var realMozMobileConnections;
   var realMozL10n;
+  var realMozIccManager;
   var phoneNumber;
   var button;
   var cardIndex;
@@ -71,38 +71,37 @@ suite('call button', function() {
     realMozSettings = navigator.mozSettings;
     navigator.mozSettings = MockNavigatorSettings;
 
-    realMozMobileConnections = navigator.mozMobileConnections;
-    navigator.mozMobileConnections = [];
-
     realMozL10n = navigator.mozL10n;
     navigator.mozL10n = MockMozL10n;
+
+    realMozIccManager = navigator.mozIccManager;
+    navigator.mozIccManager = MockNavigatorMozIccManager;
 
     MockNavigatorSettings.mSyncRepliesOnly = true;
   });
 
   suiteTeardown(function() {
     navigator.mozSettings = realMozSettings;
-    navigator.mozMobileConnections = realMozMobileConnections;
     navigator.mozL10n = realMozL10n;
+    navigator.mozIccManager = realMozIccManager;
 
     MockNavigatorSettings.mSyncRepliesOnly = false;
   });
 
   setup(function() {
     phoneNumber = '';
-    navigator.mozMobileConnections =
-      [this.sinon.stub(), MockMozMobileConnection];
     button = document.createElement('button');
     initSubject();
   });
 
   teardown(function() {
     MockNavigatorSettings.mTeardown();
+    MockNavigatorMozIccManager.mTeardown();
   });
 
   suite('<= 1 SIMs', function() {
     setup(function() {
-      navigator.mozMobileConnections = [MockMozMobileConnection];
+      navigator.mozIccManager.addIcc(0, {});
       initSubject();
     });
 
@@ -117,6 +116,9 @@ suite('call button', function() {
   suite('>= 2 SIMs', function() {
     suite('SIM 2 preferred', function() {
       setup(function() {
+        navigator.mozIccManager.addIcc(0, {});
+        navigator.mozIccManager.addIcc(1, {});
+
         cardIndex = 1;
         initSubject();
       });
@@ -197,8 +199,8 @@ suite('call button', function() {
       MockNavigatorSettings.createLock().set({
         'ril.telephony.defaultServiceId': cardIndex });
 
-      navigator.mozMobileConnections =
-        [this.sinon.stub(), MockMozMobileConnection];
+      navigator.mozIccManager.addIcc(0, {});
+      navigator.mozIccManager.addIcc(1, {});
     });
 
     suite('with SIM indication', function() {
@@ -261,7 +263,8 @@ suite('call button', function() {
       setup(function() {
         document.body.className = '';
 
-        navigator.mozMobileConnections = [MockMozMobileConnection];
+        navigator.mozIccManager.mTeardown();
+        navigator.mozIccManager.addIcc(0, {});
 
         initWithIndicationElement();
       });
