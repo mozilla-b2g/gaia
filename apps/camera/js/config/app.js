@@ -3,6 +3,15 @@ define(function(require, exports, module) {
 
 module.exports = {
   showSettings: true,
+  indicators: {
+    enabled: {
+      hdr: true,
+      timer: true,
+      battery: true,
+      geolocation: true
+    }
+  },
+  
   mode: {
     title: 'Mode',
     options: [
