@@ -1,4 +1,5 @@
 'use strict';
+/* exported MockContactsListObj */
 
 var MockContactsListObj = {
     init: function() {},

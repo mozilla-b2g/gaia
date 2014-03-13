@@ -1,11 +1,12 @@
 'use strict';
+/* exported MockExportStrategy */
 
 var MockExportStrategy = function() {
   return {
     'setContactsToExport': function(c) {},
     'shouldShowProgress': function() { return true; },
     'determinativeValue': true,
-    'hasDeterminativeProgress': function() { return this.determinativeValue },
+    'hasDeterminativeProgress': function() { return this.determinativeValue; },
     'getExportTitle': function() { return 'export'; },
     'doExport': function(callback) {
       if (this.error && callback) {

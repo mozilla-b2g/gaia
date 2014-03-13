@@ -1,4 +1,6 @@
 'use strict';
+/* Allow setter without getter */
+/* jshint -W078 */
 
 var MockFbContactsWriterObj = function() {
   this.storedData = Object.create(null);
