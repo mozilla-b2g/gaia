@@ -8,10 +8,20 @@ define(function(require, exports, module) {
 var geolocation = navigator.geolocation;
 
 /**
+ * Module Dependencies
+ */
+
+var bindAll = require('lib/bind-all');
+var model = require('vendor/model');
+
+/**
  * Exports
  */
 
 module.exports = GeoLocation;
+
+// Mixin model methods (also events)
+model(GeoLocation.prototype);
 
 /**
  * Interface to the
@@ -20,10 +30,12 @@ module.exports = GeoLocation;
  * @constructor
  */
 function GeoLocation() {
+  bindAll(this);
   this.watcher = null;
   this.position = null;
   this.setPosition = this.setPosition.bind(this);
   this.watch = this.watch.bind(this);
+  this.stopWatching = this.stopWatching.bind(this);
 }
 
 /**
@@ -44,6 +56,8 @@ GeoLocation.prototype.watch = function() {
 GeoLocation.prototype.stopWatching = function() {
   geolocation.clearWatch(this.watcher);
   this.watcher = null;
+  this.position = null;
+  this.emit('geolocation', this.position);
 };
 
 /**
@@ -58,6 +72,7 @@ GeoLocation.prototype.setPosition = function(position) {
     latitude: position.coords.latitude,
     longitude: position.coords.longitude
   };
+  this.emit('geolocation', this.position);
 };
 
 });

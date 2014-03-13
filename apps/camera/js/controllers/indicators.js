@@ -44,7 +44,7 @@ IndicatorsController.prototype.bindEvents = function() {
   }
   
   if (this.enabled.geolocation) {
-    this.app.on('focus', this.geoLocationStatus);
+    this.app.geolocation.on('geolocation', this.geoLocationStatus);
   }
 
   if (this.enabled.battery) {
@@ -63,60 +63,18 @@ IndicatorsController.prototype.configure = function() {
   }
   
   if (this.enabled.geolocation) {
-    this.updateGeolocationStatus();
+    this.updateGeolocationStatus(this.app.geolocation.position);
   }
   
   this.indicators.show();
 };
 
-IndicatorsController.prototype.updateGeolocationStatus = function() {
-  var mozPerms = navigator.mozPermissionSettings;
-  var indicator = this.indicators;
-  var self = this;
-  var request = navigator.mozApps.getSelf();
-  request.onsuccess = function() {
-  if (request.result) {
-    var value = mozPerms.get("geolocation", request.result.manifestURL, request.result.origin, false);
-    switch (value) {
-      case "allow":
-        self.indicators.set('geotagging', 'on');
-        break;
-      case "deny":
-        self.indicators.set('geotagging', 'off');
-        break;
-      case "prompt":{
-        setTimeout(function(){self.updateGeolocationStatus();},500);
-        break;
-      }
-    }
+IndicatorsController.prototype.updateGeolocationStatus = function(position) {
+  if (position) {
+    this.indicators.set('geotagging', 'on');
   } else {
-    alert("Called from outside of an app");
-  }
-};
-request.onerror = function() {
-  // Display error name from the DOMError object
-  alert("Error: " + request.error.name);
-};
- /* apps.mgmt.getAll().onsuccess = function mozAppGotAll(evt) {
-    var apps = evt.target.result;
-    apps.forEach(function(app) {
-      if (app.manifest.name == "Camera") {  //change Camera to CameraMadai for madai
-        var value = mozPerms.get("geolocation", app.manifestURL, app.origin, false);
-        switch (value) {
-          case "allow":
-            self.indicators.set('geotagging', 'on');
-            break;
-          case "deny":
-            self.indicators.set('geotagging', 'off');
-            break;
-          case "prompt":{
-            setTimeout(function(){self.geoLocationStatus();},500);
-            break;
-          }
-        }
-      }
-    });
-  };*/
+    this.indicators.set('geotagging', 'off');
+  }      
 };
 
 });
