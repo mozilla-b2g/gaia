@@ -4,8 +4,8 @@
 var MockSettings = {
   mmsSizeLimitation: 300 * 1024,
   mmsServiceId: null,
-  setSimServiceId: function() {},
-  switchSimHandler: function() {},
+  smsServiceId: null,
+  switchMmsSimHandler: function() {},
   isDualSimDevice: function() { return false; },
   hasSeveralSim: function() { return false; },
   getServiceIdByIccId: function() { return 0; },
@@ -15,6 +15,7 @@ var MockSettings = {
   mSetup: function() {
     MockSettings.mmsSizeLimitation = 300 * 1024;
     MockSettings.mmsServiceId = null;
+    MockSettings.smsServiceId = null;
   }
 };
 

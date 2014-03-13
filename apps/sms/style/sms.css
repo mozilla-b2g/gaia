@@ -759,6 +759,44 @@ form.bottom[role="search"].messages-compose-form {
   line-height: 2rem;
 }
 
+#messages-dual-sim-information {
+  position: absolute;
+  left: 0;
+  top: 0.2rem;
+  display: none;
+
+  line-height: 1;
+  width: 100%;
+
+  font-size: 1.3rem;
+  opacity: 0.5;
+}
+
+.dual-sim-configuration #messages-dual-sim-information {
+  display: block;
+}
+
+.dual-sim-configuration #messages-send-button {
+  height: 4.5rem;
+  padding-top: 0.5rem;
+
+  /* override BB, first one is separator, second one is background */
+  background-position: left bottom, bottom;
+}
+
+.dual-sim-configuration #messages-send-button:after {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+
+  content: '';
+  display: block;
+  width: 100%;
+  height: 1rem;
+
+  background: url(images/long-tap-indicator.png) center no-repeat;
+}
+
 /*
   Loading screen while deleting
 */

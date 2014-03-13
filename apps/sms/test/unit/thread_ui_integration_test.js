@@ -410,16 +410,12 @@ suite('ThreadUI Integration', function() {
       // Simulate sendButton click
       ThreadUI.onSendClick();
 
-      // This is asserted differently, since cleanFields has
-      // disposed of the recipients, input and attachments.
-
-      assert.ok(MessageManager.sendSMS.called);
-
       // Ensure that the "unaccepted" recipient was assimilated
       // and included in the recipients list when message was sent
-      var calledWith = MessageManager.sendSMS.args[0];
-      assert.deepEqual(calledWith[0], ['999', '000']);
-      assert.deepEqual(calledWith[1], 'foo');
+      sinon.assert.calledWithMatch(MessageManager.sendSMS, {
+        recipients: ['999', '000'],
+        content: 'foo'
+      });
     });
 
     /* Bug:909641 test fails on ci

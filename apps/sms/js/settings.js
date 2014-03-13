@@ -10,8 +10,13 @@
 'use strict';
 
 var Settings = {
-  MMS_SERVICE_ID_KEY: 'ril.mms.defaultServiceId',
+  SERVICE_ID_KEYS: {
+    mmsServiceId: 'ril.mms.defaultServiceId',
+    smsServiceId: 'ril.sms.defaultServiceId'
+  },
+
   _serviceIds: null,
+
   mmsSizeLimitation: 300 * 1024, // Default mms message size limitation is 300K.
   mmsServiceId: null, // Default mms service SIM ID (only for DSDS)
 
@@ -38,7 +43,10 @@ var Settings = {
 
     // Only DSDS will need to handle mmsServiceId
     if (conns && conns.length > 1) {
-      keyHandlerSet[this.MMS_SERVICE_ID_KEY] = this.initMmsServiceId;
+      for (var prop in this.SERVICE_ID_KEYS) {
+        var setting = this.SERVICE_ID_KEYS[prop];
+        keyHandlerSet[setting] = this.initServiceId.bind(this, setting, prop);
+      }
 
       // Cache all existing serviceIds
       for (var i = 0, l = conns.length; i < l; i++) {
@@ -64,24 +72,24 @@ var Settings = {
   // In DSDS scenario, if we notify user to switch to subscription to retrieve
   // the MMS from non-active subscription, we'll need current mmsServiceId
   // information to tell user the active/non-active subscription
-  initMmsServiceId: function initMmsServiceId(id) {
+  initServiceId: function initMmsServiceId(settingName, propName, id) {
     if (id !== undefined) {
-      Settings.mmsServiceId = id;
+      Settings[propName] = id;
     }
-    navigator.mozSettings.addObserver(Settings.MMS_SERVICE_ID_KEY, function(e) {
-      Settings.mmsServiceId = e.settingValue;
+    navigator.mozSettings.addObserver(settingName, function(e) {
+      Settings[propName] = e.settingValue;
     });
   },
 
-  setSimServiceId: function setSimServiceId(id) {
-    // mms & data are both necessary for connection switch.
+  setMmsSimServiceId: function setSimServiceId(id) {
+    // DSDS: mms & data are both necessary for connection switch.
     navigator.mozSettings.createLock().set({
       'ril.mms.defaultServiceId': id,
       'ril.data.defaultServiceId': id
     });
   },
 
-  switchSimHandler: function switchSimHandler(targetId, callback) {
+  switchMmsSimHandler: function switchSimHandler(targetId, callback) {
     var conn = window.navigator.mozMobileConnections[targetId];
     if (conn && conn.data.state !== 'registered') {
       // Listen to MobileConnections datachange to make sure we can start
@@ -94,7 +102,7 @@ var Settings = {
         }
       });
 
-      this.setSimServiceId(targetId);
+      this.setMmsSimServiceId(targetId);
     }
   },
 
