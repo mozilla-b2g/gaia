@@ -628,6 +628,7 @@ aside.connecting {
 .change {
   float: right;
   width: 8rem;
+  white-space: nowrap;
 }
 
 #time_zone_overlay {
