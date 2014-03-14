@@ -33,15 +33,16 @@ function ControlsController(app) {
 
 ControlsController.prototype.bindEvents = function() {
   this.app.settings.on('change:mode', this.controls.setter('mode'));
+  this.app.on('newthumbnail', this.onNewThumbnail);
+  this.app.on('camera:ready', this.enableButtons);
+  this.app.on('camera:busy', this.disableButtons);
+  this.app.on('camera:loading', this.disableButtons);
   this.app.on('change:recording', this.controls.setter('recording'));
   this.app.on('camera:timeupdate', this.controls.setVideoTimer);
   this.controls.on('click:capture', this.app.firer('capture'));
   this.controls.on('click:gallery', this.onGalleryButtonClick);
   this.controls.on('click:switch', this.app.settings.mode.next);
   this.controls.on('click:cancel', this.onCancelButtonClick);
-  this.app.on('camera:loading', this.disableButtons);
-  this.app.on('camera:ready', this.enableButtons);
-  this.app.on('camera:busy', this.disableButtons);
   debug('events bound');
 };
 
@@ -74,8 +75,11 @@ ControlsController.prototype.enableButtons = function() {
   this.controls.enable('buttons');
 };
 
-ControlsController.prototype.onSwitchClick = function() {
-  this.app.settings.get('mode').next();
+/**
+  When new thumbnail is available it is displated in the gallery button
+*/
+ControlsController.prototype.onNewThumbnail = function(thumbnailBlob) {
+  this.controls.setThumbnail(thumbnailBlob);
 };
 
 /**

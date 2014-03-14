@@ -7,6 +7,7 @@ define(function(require, exports, module) {
 
 var performanceTesting = require('performanceTesting');
 var ViewfinderView = require('views/viewfinder');
+var RecordingTimerView = require('views/recording-timer');
 var ControlsView = require('views/controls');
 var FocusRing = require('views/focus-ring');
 var lockscreen = require('lib/lock-screen');
@@ -104,6 +105,7 @@ App.prototype.runControllers = function() {
   this.controllers.activity(this);
   this.controllers.camera(this);
   this.controllers.viewfinder(this);
+  this.controllers.recordingTimer(this);
   this.controllers.controls(this);
   this.controllers.confirm(this);
   this.controllers.overlay(this);
@@ -114,14 +116,16 @@ App.prototype.runControllers = function() {
 
 App.prototype.initializeViews = function() {
   this.views.viewfinder = new ViewfinderView();
-  this.views.controls = new ControlsView();
+  this.views.recordingTimer = new RecordingTimerView();
   this.views.focusRing = new FocusRing();
+  this.views.controls = new ControlsView();
   this.views.hud = new HudView();
   debug('views initialized');
 };
 
 App.prototype.injectViews = function() {
   this.views.viewfinder.appendTo(this.el);
+  this.views.recordingTimer.appendTo(this.el);
   this.views.focusRing.appendTo(this.el);
   this.views.controls.appendTo(this.el);
   this.views.hud.appendTo(this.el);
