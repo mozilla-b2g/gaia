@@ -151,6 +151,8 @@ App.prototype.bindEvents = function() {
   bind(this.el, 'click', this.onClick);
   this.on('focus', this.onFocus);
   this.on('blur', this.onBlur);
+  this.on('shutdown:camera', this.shutDownCamera);
+  this.on('batterystatuschange', this.onBatteryStatusChange);
   debug('events bound');
 };
 
@@ -162,6 +164,8 @@ App.prototype.unbindEvents = function() {
   unbind(this.win, 'beforeunload', this.onBeforeUnload);
   this.off('focus', this.onFocus);
   this.off('blur', this.onBlur);
+  this.off('shutdown:camera', this.shutDownCamera);
+  this.off('batterystatuschange', this.onBatteryStatusChange);
   debug('events unbound');
 };
 
@@ -193,6 +197,28 @@ App.prototype.onBlur = function() {
 App.prototype.onClick = function() {
   debug('click');
   this.emit('click');
+};
+
+/**
+ * When Battery is very low than shut down
+ * the camera application
+ */
+App.prototype.shutDownCamera = function() {
+  window.setTimeout( function(){
+    window.close();
+  },3000);
+};
+
+/**
+ * Whey Level change onBatteryStatusChange
+ * will call 
+ *
+ * @todo [emit the events for notication and indicator]
+ * @param {[type]} [status] [object]
+ */
+App.prototype.onBatteryStatusChange = function(status) {
+  this.emit('notification', status);
+  this.emit('change:batteryStatus', status.value);
 };
 
 /**
