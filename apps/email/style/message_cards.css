@@ -237,7 +237,6 @@ input.msg-search-text-tease {
 .msg-attachments-container {
   padding: 0 1.5rem;
   font-size: 1.2rem;
-  line-height: 4rem;
 }
 
 .msg-peep-bubble {
@@ -262,7 +261,8 @@ input.msg-search-text-tease {
 
 .msg-attachment-item {
   list-style-type: none;
-  height: 4rem;
+  height: 5.5rem;
+  line-height: 5.5rem;
 }
 .msg-attachment-item[state="downloadable"]  > .msg-attachment-download {
   display: inline-block;
@@ -273,13 +273,17 @@ input.msg-search-text-tease {
 .msg-attachment-item[state="downloaded"]  > .msg-attachment-view {
   display: inline-block;
 }
+
+.msg-attachment-item  > span {
+  height: 5.5rem;
+  line-height: 5.5rem;
+}
+
 .msg-attachment-icon {
   background: url("images/icons/message-list-attachment.png") no-repeat center / 2rem;
   display: inline-block;
   width: 2rem;
   height: 2rem;
-  margin-top: -3.5rem;
-  vertical-align: middle;
 }
 .msg-attachment-filename {
   display: inline-block;
@@ -291,16 +295,20 @@ input.msg-search-text-tease {
 .msg-attachment-filesize {
   color: gray;
   display: inline-block;
-  margin-top: -3.5rem;
+  overflow: hidden;
+  margin-left: 0.2rem;
   max-width: 4.5rem;
-  vertical-align: middle;
 }
 .msg-attachment-download {
   display: none;
   width: 3.5rem;
   margin-bottom: 0;
   position: absolute;
+  top: 0.9rem;
   right: 1rem;
+  border: 0;
+  background: transparent;
+  overflow: hidden;
 }
 .msg-attachment-downloading {
   display: none;
@@ -313,7 +321,8 @@ input.msg-search-text-tease {
   width: 4.5rem;
   margin-bottom: 0;
   position: absolute;
-  right: 0;
+  top: 1rem;
+  right: 0.5rem;
 }
 
 .moz-external-link {
