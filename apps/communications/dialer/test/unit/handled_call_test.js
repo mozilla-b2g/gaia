@@ -462,14 +462,20 @@ suite('dialer/handled_call', function() {
   });
 
   suite('call direction', function() {
-    test('before connexion', function() {
-      assert.isTrue(subject.node.classList.contains('outgoing'));
-    });
 
-    test('after connexion', function() {
-      mockCall._connect();
-      assert.isTrue(subject.node.classList.contains('ongoing'));
-      assert.isTrue(subject.node.classList.contains('outgoing'));
+    suite('outgoing call', function() {
+      setup(function() {
+        mockCall = new MockCall('888', 'outgoing');
+        subject = new HandledCall(mockCall);
+      });
+
+      test('before and after connexion', function() {
+        assert.isTrue(subject.node.classList.contains('outgoing'));
+        assert.isFalse(subject.node.classList.contains('ongoing'));
+        mockCall._connect();
+        assert.isTrue(subject.node.classList.contains('ongoing'));
+        assert.isTrue(subject.node.classList.contains('outgoing'));
+      });
     });
 
     suite('incoming call', function() {
@@ -478,11 +484,9 @@ suite('dialer/handled_call', function() {
         subject = new HandledCall(mockCall);
       });
 
-      test('before connexion', function() {
+      test('before and after connexion', function() {
         assert.isTrue(subject.node.classList.contains('incoming'));
-      });
-
-      test('after connexion', function() {
+        assert.isFalse(subject.node.classList.contains('ongoing'));
         mockCall._connect();
         assert.isTrue(subject.node.classList.contains('ongoing'));
         assert.isTrue(subject.node.classList.contains('incoming'));
