@@ -75,7 +75,7 @@ const RE_INI = /locales[\/\\].+\.ini$/;
 function optimize_getFileContent(webapp, htmlFile, relativePath) {
   let paths = relativePath.split(/[\/\\]/);
   let file;
-  let gaia = utils.getGaia(config);
+  let gaia = utils.gaia.getInstance(config);
 
   // get starting directory: webapp root, HTML file or /shared/
   if (/^\//.test(relativePath)) {
@@ -246,7 +246,7 @@ function optimize_aggregateJsResources(doc, webapp, htmlFile) {
     if (!conf.content)
       return;
 
-    var gaia = utils.getGaia(config);
+    var gaia = utils.gaia.getInstance(config);
     // prefix the file we are about to write content to.
     let scriptBaseName = gaia.aggregatePrefix + conf.prefix + baseName + '.js';
 
@@ -663,7 +663,7 @@ function execute(options) {
     l10nLocales.push(config.GAIA_DEFAULT_LOCALE);
   }
 
-  utils.getGaia(config).webapps.forEach(function(webapp) {
+  utils.gaia.getInstance(config).webapps.forEach(function(webapp) {
     // if BUILD_APP_NAME isn't `*`, we only accept one webapp
     if (config.BUILD_APP_NAME != '*' &&
       webapp.sourceDirectoryName != config.BUILD_APP_NAME)
