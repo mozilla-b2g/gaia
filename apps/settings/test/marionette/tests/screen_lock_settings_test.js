@@ -197,7 +197,8 @@ marionette('manipulate screenLock settings', function() {
       'passcode is right (with new code)');
   });
 
-  test(
+  // Disabled for intermittent failures. Bug 983171
+  test.skip(
     'passcode is enabled, and we want to disable lockscreen directly ' +
     'but failed to enter the right code',
     function() {
