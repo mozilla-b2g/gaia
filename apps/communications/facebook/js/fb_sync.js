@@ -39,7 +39,7 @@ if (!fb.sync) {
         for (var c = 0; c < arguments.length; c++) {
           theArgs.push(arguments[c]);
         }
-        window.console.log.apply(this, theArgs);
+        window.console.log.apply(window.console, theArgs);
       }
     }
 
