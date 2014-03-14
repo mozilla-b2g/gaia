@@ -695,7 +695,7 @@ ImageEditor.prototype.finishEdit = function(callback) {
 // it to get the edited image when you are done with the ImageEditor.
 //
 ImageEditor.prototype.getFullSizeBlob = function(type, done, progress) {
-  const TILE_SIZE = 1024;
+  const TILE_SIZE = 512;
   var self = this;
 
   // Create an offscreen canvas and copy the image into it
