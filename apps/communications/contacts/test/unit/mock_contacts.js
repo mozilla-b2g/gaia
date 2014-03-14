@@ -3,6 +3,8 @@
 /* global ConfirmDialog */
 /* exported MockContacts */
 
+window.COMMS_APP_ORIGIN = location.origin;
+
 var MockContacts = {
   getLength: function(prop) {
     return prop.length;
@@ -72,5 +74,6 @@ var MockContacts = {
       'update': function() {}
     };
   },
-  showStatus: function(status) {}
+  showStatus: function(status) {},
+  callOrPick: function(tel) {}
 };

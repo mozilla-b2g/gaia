@@ -240,6 +240,17 @@ var CallHandler = (function callHandler() {
   }
   window.addEventListener('message', handleMessage);
 
+  function sendOngoingCallEvent() {
+    var contactsIframe = document.getElementById('iframe-contacts');
+    if (!contactsIframe) {
+      return;
+    }
+
+    contactsIframe.contentWindow.postMessage({
+      type: 'ongoingcall'
+    }, COMMS_APP_ORIGIN);
+  }
+
   /* === Calls === */
   function call(number, cardIndex) {
     if (MmiManager.isMMI(number)) {
@@ -303,6 +314,7 @@ var CallHandler = (function callHandler() {
     if (callScreenWindow || openingWindow)
       return;
 
+    sendOngoingCallEvent();
     openingWindow = true;
     var host = document.location.host;
     var protocol = document.location.protocol;

@@ -375,6 +375,61 @@ suite('Render contact', function() {
     });
   });
 
+  suite('Call phone', function() {
+    var callOrPickStub = null,
+        contactDetails = null,
+        phoneNumber = '+34678987123';
+
+    setup(function() {
+      this.sinon.useFakeTimers();
+      contactDetails = dom.querySelector('#contact-detail');
+      var contact = new MockContactAllFields(true);
+      contact.tel = [{
+        value: phoneNumber,
+        type: ['Personal']
+      }];
+      subject.setContact(contact);
+      subject.render(null, TAG_OPTIONS);
+      callOrPickStub = sinon.stub(Contacts, 'callOrPick');
+    });
+
+    teardown(function() {
+      callOrPickStub.restore();
+    });
+
+    function assertCalling() {
+      container.querySelector('#call-or-pick-0').click();
+      assert.ok(callOrPickStub.calledWith(phoneNumber));
+      assert.isTrue(contactDetails.classList.contains('no-calls'));
+    }
+
+    test(' Calling succesfully (contacts as app) ', function() {
+      assertCalling();
+      document.dispatchEvent(new CustomEvent('visibilitychange'));
+      assert.isFalse(contactDetails.classList.contains('no-calls'));
+    });
+
+    test(' Calling succesfully (contacts running in dialer) ', function(done) {
+      assertCalling();
+      window.postMessage({ type: 'ongoingcall' }, COMMS_APP_ORIGIN);
+      var observer = new MutationObserver(function() {
+        observer.disconnect();
+        assert.isFalse(contactDetails.classList.contains('no-calls'));
+        done();
+      });
+      observer.observe(contactDetails, {
+        attributes: true,
+        attributeFilter: ['class']
+      });
+    });
+
+    test(' Calling but fails ', function() {
+      assertCalling();
+      this.sinon.clock.tick(5000);
+      assert.isFalse(contactDetails.classList.contains('no-calls'));
+    });
+  });
+
   suite('Render emails', function() {
     test('with 1 email', function() {
       subject.render(null, TAG_OPTIONS);

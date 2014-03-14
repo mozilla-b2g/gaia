@@ -434,7 +434,42 @@ contacts.Details = (function() {
     Contacts.sendSms(tel);
   };
 
+  var enableCalls = function enableCalls() {
+    document.removeEventListener('visibilitychange', enableCalls);
+    window.removeEventListener('message', messageHandler);
+    window.clearTimeout(enableCallsFallbackID);
+    contactDetails.classList.remove('no-calls');
+  };
+
+  var disableCalls = function disableCalls() {
+    contactDetails.classList.add('no-calls');
+  };
+
+  var messageHandler = function messageHandler(e) {
+    if (e.origin !== COMMS_APP_ORIGIN) {
+      return;
+    }
+
+    var data = e.data;
+    if (data && data.type === 'ongoingcall') {
+      enableCalls();
+    }
+  };
+
+  // Once an user clicks on a telephone number, the calling feature is disabled
+  // until contacts app loses the focus. The fallback will enable calls
+  // automatically after 5 seconds because we don't know when an error happens.
+  var enableCallsFallbackID = null,
+      enableCallsFallbackTimeout = 5000;
+
   var onCallOrPickClicked = function onCallOrPickClicked(evt) {
+    disableCalls();
+    // Contacts app goes to background
+    document.addEventListener('visibilitychange', enableCalls);
+    // Contact app is embedded in dialer app
+    window.addEventListener('message', messageHandler);
+    // Just in case there is a problem with the call
+    enableCallsFallbackID = setTimeout(enableCalls, enableCallsFallbackTimeout);
     var tel = evt.target.dataset['tel'];
     Contacts.callOrPick(tel);
   };
