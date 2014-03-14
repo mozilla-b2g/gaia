@@ -10,7 +10,17 @@ function StickyHeader(scrollable, sticky) {
   this.refresh = function() {
     for (var i = 1, length = headers.length; i < length; i++) {
       if (headers[i].offsetTop - scrollable.scrollTop > stickyPosition) {
-        stickyStyle.backgroundImage = '-moz-element(#' + headers[i-1].id + ')';
+
+        // While reflecting a header, make sure to not reflect a header
+        // that is not displayed.
+        var lookupIndex = 1;
+        var header = headers[i - lookupIndex];
+        while (header && header.offsetHeight === 0) {
+          lookupIndex++;
+          header = headers[i - lookupIndex];
+        }
+
+        stickyStyle.backgroundImage = '-moz-element(#' + header.id + ')';
         break;
       }
     }
