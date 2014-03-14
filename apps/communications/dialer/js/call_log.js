@@ -185,7 +185,7 @@ var CallLog = {
     var prevDate;
     var startDate = new Date().getTime();
     var screenRendered = false;
-    var MAX_GROUPS_FOR_FIRST_RENDER = 6;
+    var MAX_GROUPS_FOR_FIRST_RENDER = 8;
     var MAX_DAYS_TO_BATCH_RENDER = 60;
     this._groupCounter = 0;
 
