@@ -42,12 +42,13 @@
     this._alerting = false;
     this._vibrateInterval = null;
 
-    this._player = new Audio();
+    var player = new Audio();
+    this._player = player;
     // XXX: This will need to be updated for bug 961967
     // (audio competing in system app)
-    this._player.mozAudioChannelType = 'ringer';
-    this._player.preload = 'metadata';
-    this._player.loop = true;
+    player.mozAudioChannelType = 'ringer';
+    player.preload = 'metadata';
+    player.loop = true;
   };
 
   DialerRinger.prototype.start = function dr_start() {
@@ -148,9 +149,14 @@
   };
 
   DialerRinger.prototype._stopAlerting = function dr_stopAlerting() {
+    var player = this._player;
+
     this._alerting = false;
-    this._player.pause();
-    this._player.currentTime = 0;
+    if (player && player.readyState > player.HAVE_NOTHING) {
+      player.pause();
+      player.currentTime = 0;
+    }
+
     window.clearInterval(this._vibrateInterval);
   };
 
