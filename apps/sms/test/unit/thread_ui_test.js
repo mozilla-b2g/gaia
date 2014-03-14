@@ -6,7 +6,7 @@
          MockContacts, ActivityHandler, Recipients, MockMozActivity,
          ThreadListUI, ContactRenderer, UIEvent, Drafts, OptionMenu,
          ActivityPicker, KeyEvent, MockNavigatorSettings, Draft,
-         ErrorDialog
+         ErrorDialog, MockStickyHeader
 */
 
 'use strict';
@@ -23,7 +23,6 @@ requireApp('sms/js/drafts.js');
 requireApp('sms/js/threads.js');
 requireApp('sms/js/thread_ui.js');
 requireApp('sms/js/thread_list_ui.js');
-requireApp('sms/js/fixed_header.js');
 requireApp('sms/js/utils.js');
 require('/shared/js/async_storage.js');
 
@@ -55,6 +54,7 @@ requireApp('sms/test/unit/mock_activity_handler.js');
 requireApp('sms/test/unit/mock_information.js');
 require('/test/unit/mock_contact_renderer.js');
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
+require('/shared/test/unit/mocks/mock_sticky_header.js');
 require('/test/unit/mock_message_manager.js');
 
 var mocksHelperForThreadUI = new MocksHelper([
@@ -78,7 +78,8 @@ var mocksHelperForThreadUI = new MocksHelper([
   'ContactRenderer',
   'Information',
   'ContactPhotoHelper',
-  'MessageManager'
+  'MessageManager',
+  'StickyHeader'
 ]);
 
 mocksHelperForThreadUI.init();
@@ -90,6 +91,7 @@ suite('thread_ui.js >', function() {
   var sendButton, sendButtonSimInfo;
   var composeForm;
   var recipientsList;
+  var sticky;
 
   var realMozL10n;
   var realMozMobileMessage;
@@ -182,6 +184,7 @@ suite('thread_ui.js >', function() {
     ThreadListUI.init();
     realMozMobileMessage = ThreadUI._mozMobileMessage;
     ThreadUI._mozMobileMessage = MockNavigatormozMobileMessage;
+    sticky = MockStickyHeader;
   });
 
   teardown(function() {
@@ -190,6 +193,7 @@ suite('thread_ui.js >', function() {
     MockNavigatormozMobileMessage.mTeardown();
     mocksHelper.teardown();
     ThreadUI._mozMobileMessage = realMozMobileMessage;
+    sticky = null;
   });
 
   suite('scrolling', function() {
