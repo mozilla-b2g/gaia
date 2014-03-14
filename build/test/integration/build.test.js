@@ -8,6 +8,31 @@ var AdmZip = require('adm-zip');
 var dive = require('dive');
 var helper = require('./helper');
 
+suite('ADB tests', function() {
+  suiteSetup(function() {
+    rmrf('build/test/integration/result');
+  });
+
+  suiteTeardown(function() {
+    rmrf('build/test/integration/result');
+  });
+
+  test('make install-test-media', function(done) {
+    var expectedCommand = 'push test_media/Pictures /sdcard/DCIM\n' +
+                          'push test_media/Movies /sdcard/Movies\n' +
+                          'push test_media/Music /sdcard/Music\n';
+
+    exec('ADB=build/test/bin/fake-adb make install-test-media',
+      function(error, stdout, stderr) {
+        helper.checkError(error, stdout, stderr);
+        var presetsContent = fs.readFileSync(path.join(process.cwd(), 'build',
+            'test', 'integration', 'result'));
+        assert.equal(presetsContent,  expectedCommand);
+        done();
+    });
+  });
+});
+
 suite('Node modules tests', function() {
   test('make node_modules from git mirror', function(done) {
     rmrf('modules.tar');
