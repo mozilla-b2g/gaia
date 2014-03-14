@@ -5,8 +5,10 @@
   'use strict';
 
   const NUM_DISPLAY = 4;
-  const API = 'https://marketplace.firefox.com/api/v1/apps/search/' +
-    '?q={q}&limit=' + NUM_DISPLAY;
+  const API = 'https://marketplace.firefox.com/api/v1/apps/search/rocketbar/' +
+    '?q={q}' +
+    '&limit=' + NUM_DISPLAY +
+    '&lang=' + document.documentElement.lang;
 
   function Marketplace() {}
 
@@ -37,32 +39,27 @@
       this.clear();
       this.abort();
 
+      if (!input) {
+        return;
+      }
+
       var req = new XMLHttpRequest();
       req.open('GET', API.replace('{q}', input), true);
       req.onload = (function onload() {
         var results = JSON.parse(req.responseText);
-        if (!results.meta.total_count) {
+        if (!results.length) {
           return;
         }
 
-        var length = Math.min(NUM_DISPLAY, results.meta.total_count);
+        var length = Math.min(NUM_DISPLAY, results.length);
         var formatted = [];
         for (var i = 0; i < length; i++) {
-          var app = results.objects[i];
-          var nameL10n = '';
-          for (var locale in app.name) {
-            // Default the app name if we haven't found a matching locale
-            nameL10n = nameL10n || app.name[locale];
-            // Overwrite if the locale matches
-            if (locale === document.documentElement.lang) {
-              nameL10n = app.name[locale];
-            }
-          }
+          var app = results[i];
 
           formatted.push({
             title: navigator.mozL10n.get('install-marketplace-title',
-              {title: nameL10n}),
-            icon: app.icons['64'],
+              {title: app.name}),
+            icon: app.icon,
             dedupeId: app.manifest_url,
             dataset: {
               slug: app.slug
