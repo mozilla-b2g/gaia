@@ -4,7 +4,7 @@
 /*global Template, Utils, Threads, Contacts, Threads,
          WaitingScreen, MozSmsFilter, MessageManager, TimeHeaders,
          Drafts, Thread, ThreadUI, OptionMenu, ActivityPicker,
-         PerformanceTestingHelper, StickyHeader */
+         PerformanceTestingHelper */
 
 /*exported ThreadListUI */
 (function(exports) {
@@ -81,9 +81,6 @@ var ThreadListUI = {
 
     this.draftLinks = new Map();
     ThreadListUI.draftRegistry = {};
-
-    this.sticky =
-      new StickyHeader(this.container, document.getElementById('sticky'));
   },
 
   getAllInputs: function thlui_getAllInputs() {
@@ -249,8 +246,6 @@ var ThreadListUI = {
       parent.previousSibling.remove();
       parent.remove();
 
-      this.sticky.refresh();
-
       // if we have no more elements, set empty classes
       if (!this.container.querySelector('li')) {
         this.setEmpty(true);
@@ -402,8 +397,6 @@ var ThreadListUI = {
           }
         }
       }, this);
-
-      this.sticky.refresh();
     }.bind(this));
   },
 
@@ -424,8 +417,6 @@ var ThreadListUI = {
     if (!empty) {
       TimeHeaders.updateAll('header[data-time-update]');
     }
-
-    this.sticky.refresh();
   },
 
   renderThreads: function thlui_renderThreads(done) {
@@ -610,7 +601,6 @@ var ThreadListUI = {
     }
     this.appendThread(thread);
     this.setEmpty(false);
-    this.sticky.refresh();
   },
 
   onMessageSending: function thlui_onMessageSending(message) {
@@ -674,10 +664,6 @@ var ThreadListUI = {
     var threadContainer = document.createElement('div');
     // Create Header DOM Element
     var headerDOM = document.createElement('header');
-
-    // The id is used by the sticky header code as the -moz-element target.
-    headerDOM.id = 'header_' + timestamp;
-
     // Append 'time-update' state
     headerDOM.dataset.timeUpdate = 'repeat';
     headerDOM.dataset.time = timestamp;

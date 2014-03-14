@@ -13,7 +13,6 @@ require('/shared/js/l10n.js');
 require('/shared/js/l10n_date.js');
 require('/shared/js/gesture_detector.js');
 require('/shared/js/async_storage.js');
-require('/shared/js/sticky_header.js');
 
 require('/shared/test/unit/mocks/mock_gesture_detector.js');
 requireApp('sms/test/unit/mock_contact.js');

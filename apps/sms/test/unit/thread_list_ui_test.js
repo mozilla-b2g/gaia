@@ -30,7 +30,6 @@ require('/test/unit/utils_mockup.js');
 requireApp('sms/test/unit/mock_thread_ui.js');
 requireApp('sms/test/unit/mock_action_menu.js');
 require('/shared/test/unit/mocks/mock_performance_testing_helper.js');
-require('/shared/test/unit/mocks/mock_sticky_header.js');
 
 var mocksHelperForThreadListUI = new MocksHelper([
   'asyncStorage',
@@ -42,8 +41,7 @@ var mocksHelperForThreadListUI = new MocksHelper([
   'ThreadUI',
   'ContactPhotoHelper',
   'OptionMenu',
-  'PerformanceTestingHelper',
-  'StickyHeader'
+  'PerformanceTestingHelper'
 ]).init();
 
 suite('thread_list_ui', function() {
@@ -173,16 +171,11 @@ suite('thread_list_ui', function() {
         '<li id="thread-2"></li></ul>' +
         '<h2 id="header-2"></h2>' +
         '<ul id="list-2"><li id="thread-3"></li></ul>';
-
-      this.sinon.stub(ThreadListUI.sticky, 'refresh');
     });
 
     suite('remove last thread in header', function() {
       setup(function() {
         ThreadListUI.removeThread(3);
-      });
-      test('calls StickyHeader.refresh', function() {
-        sinon.assert.called(ThreadListUI.sticky.refresh);
       });
       test('leaves other threads alone', function() {
         assert.ok(ThreadListUI.container.querySelector('#thread-1'));
@@ -202,9 +195,6 @@ suite('thread_list_ui', function() {
     suite('remove thread with others in header', function() {
       setup(function() {
         ThreadListUI.removeThread(2);
-      });
-      test('no StickyHeader.refresh when not removing a header', function() {
-        sinon.assert.notCalled(ThreadListUI.sticky.refresh);
       });
       test('leaves other threads alone', function() {
         assert.ok(ThreadListUI.container.querySelector('#thread-1'));
@@ -272,7 +262,6 @@ suite('thread_list_ui', function() {
       this.sinon.spy(ThreadListUI, 'appendThread');
       this.sinon.spy(ThreadListUI, 'mark');
       this.sinon.spy(ThreadListUI, 'setEmpty');
-      this.sinon.spy(ThreadListUI.sticky, 'refresh');
     });
 
     teardown(function() {
@@ -339,10 +328,6 @@ suite('thread_list_ui', function() {
         // But we have appended twice
         sinon.assert.calledTwice(ThreadListUI.appendThread);
       });
-
-      test('Refresh the fixed header', function() {
-        sinon.assert.called(ThreadListUI.sticky.refresh);
-      });
     });
 
     suite(' > same thread exist, older', function() {
@@ -405,10 +390,6 @@ suite('thread_list_ui', function() {
 
       test('no thread is removed', function() {
         assert.isFalse(ThreadListUI.removeThread.called);
-      });
-
-      test('Refresh the fixed header', function() {
-        sinon.assert.called(ThreadListUI.sticky.refresh);
       });
     });
 
@@ -847,7 +828,6 @@ suite('thread_list_ui', function() {
       this.sinon.spy(ThreadListUI, 'createThread');
       this.sinon.spy(ThreadListUI, 'setContact');
       this.sinon.spy(ThreadListUI, 'renderDrafts');
-      this.sinon.spy(ThreadListUI.sticky, 'refresh');
     });
 
     test('Rendering an empty screen', function(done) {
@@ -859,7 +839,6 @@ suite('thread_list_ui', function() {
       ThreadListUI.renderThreads(function() {
         done(function checks() {
           sinon.assert.called(ThreadListUI.renderDrafts);
-          sinon.assert.called(ThreadListUI.sticky.refresh);
           sinon.assert.calledWith(ThreadListUI.finalizeRendering, true);
           assert.isFalse(ThreadListUI.noMessages.classList.contains('hide'));
           assert.isTrue(ThreadListUI.container.classList.contains('hide'));
