@@ -63,7 +63,7 @@ suite('shared/js/sticky_header.js', function() {
         scrollable.removeEventListener('scroll', onScroll);
 
         checkBackgroundImage(src);
-        done();
+        done && done();
       });
 
       scrollable.scrollTop = scrollTop;
@@ -119,6 +119,17 @@ suite('shared/js/sticky_header.js', function() {
       instance.refresh();
 
       checkBackgroundImage('header_0');
+    });
+
+    test('Scroll 1280: background set to the second header', function() {
+      scrollAndCheckBackgroundImage(1280, 'header_2');
+    });
+
+    test('Scroll 1280: background set to the first header', function() {
+      var header2 = document.getElementById('header_2');
+      header2.hidden = true;
+      scrollAndCheckBackgroundImage(1280, 'header_1');
+      delete header2.hidden;
     });
   });
 });
