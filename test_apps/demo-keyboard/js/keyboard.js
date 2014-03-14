@@ -26,6 +26,8 @@
 
     window.addEventListener('resize', this);
     navigator.mozInputMethod.addEventListener('inputcontextchange', this);
+    window.addEventListener('mozvisibilitychange', this);
+
     this.container =
       document.getElementById(this.KEYBOARD_CONTAINER_ID);
     this.container.addEventListener('mousedown', this);
@@ -46,6 +48,7 @@
 
     this.settings = new Settings(this.DEFAULT_SETTINGS);
     this.settings.addEventListener('settingschanged', this);
+    this.isShown = false;
 
     // Start off with the main page
     this.variant = this.getVariant();
@@ -56,20 +59,18 @@
     // Make it visible
     this.currentPageView.show();
 
-    // The call to resizeWindow triggers the system app to actually display
-    // the frame that holds the keyboard.
-    this.resizeWindow();
-
     // Handle events
     this.touchHandler.setPageView(this.currentPageView);
     this.touchHandler.addEventListener('key', this);
 
     this.inputField.addEventListener('inputfieldchanged', this);
 
+    // The call to resizeWindow triggers the system app to actually display
+    // the frame that holds the keyboard.
+    // Wait untill next tick to show keyboard or we will get multiple resize events,
+    // triggered by calling window.resizeTo().
     this.inputcontext = navigator.mozInputMethod.inputcontext;
-    if (!document.mozHidden && this.inputcontext) {
-      this.resizeWindow();
-    }
+    window.requestAnimationFrame(this.show.bind(this));
   };
 
   /**
@@ -107,6 +108,7 @@
     this.shiftKey = null;
     this.autoCorrect = null;
     this.settings = null;
+    this.isShown = false;
   };
 
   /**
@@ -136,13 +138,18 @@
         break;
 
       case 'resize':
-        this.resizeWindow();
+        if (this.isShown) {
+          this.resizeWindow();
+        }
         break;
 
       case 'inputcontextchange':
         this.inputcontext = navigator.mozInputMethod.inputcontext;
-        this.resizeWindow();
+        this.show();
+        break;
 
+      case 'mozvisibilitychange':
+        this.show();
         break;
     }
   };
@@ -320,6 +327,21 @@
     // We only resize the currently displayed page view. Other page views
     // are resized as needed when they're retrieved from the cache.
     this.currentPageView.resize();
+  };
+
+  /**
+   * Show the keyboard only when:
+   *  1. It is visible.
+   *  2. It got a valid input context.
+   * @memberof KeyboardApp.prototype
+   */
+  KeyboardApp.prototype.show = function show() {
+    if (!document.mozHidden && this.inputcontext) {
+      this.resizeWindow();
+      this.isShown = true;
+    } else {
+      this.isShown = false;
+    }
   };
 
   exports.KeyboardApp = KeyboardApp;
