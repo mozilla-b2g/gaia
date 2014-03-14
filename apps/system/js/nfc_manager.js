@@ -143,7 +143,7 @@ var NfcManager = {
     var self = this;
     SettingsListener.observe('nfc.enabled', false, function(enabled) {
       var state = enabled ?
-                    (LockScreen.locked ?
+                    (window.System.locked ?
                        self.NFC_HW_STATE_DISABLE_DISCOVERY :
                        self.NFC_HW_STATE_ON) :
                     self.NFC_HW_STATE_OFF;
@@ -153,7 +153,7 @@ var NfcManager = {
 
   isScreenUnlockAndEnabled: function nm_isScreenUnlockAndEnabled() {
     // Policy:
-    if (ScreenManager.screenEnabled && lockScreen && !lockScreen.locked) {
+    if (window.ScreenManager.screenEnabled && !window.System.locked) {
       return true;
     } else {
       return false;

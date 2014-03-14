@@ -420,7 +420,7 @@
           return this.defaultVolumeControlChannel;
         } else {
           return this.homescreenVisible ||
-            (window.lockScreen && window.lockScreen.locked) ||
+            (window.System.locked) ||
             FtuLauncher.isFtuRunning() ? 'notification' : 'content';
         }
     }

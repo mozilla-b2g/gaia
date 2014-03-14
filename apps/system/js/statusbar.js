@@ -281,8 +281,7 @@ var StatusBar = {
       case 'attentionscreenhide':
       case 'lock':
         // Hide the clock in the statusbar when screen is locked
-        this.toggleTimeLabel(!window.lockScreen ||
-            !window.lockScreen.locked);
+        this.toggleTimeLabel(!window.System.locked);
         break;
 
       case 'attentionscreenshow':
@@ -550,8 +549,7 @@ var StatusBar = {
 
       this.refreshCallListener();
 
-      this.toggleTimeLabel(!window.lockScreen ||
-          !window.lockScreen.locked);
+      this.toggleTimeLabel(!window.System.locked);
     } else {
       var battery = window.navigator.battery;
       if (battery) {
