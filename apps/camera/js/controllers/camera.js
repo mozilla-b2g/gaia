@@ -65,6 +65,7 @@ CameraController.prototype.bindEvents = function() {
   app.on('timer:ended', this.capture);
   app.on('blur', this.onBlur);
   app.on('settings:configured', this.onSettingsConfigured);
+  app.on('change:batteryStatus', this.onBatteryStatusChange);
 
   settings.pictureSizes.on('change:selected', this.onPictureSizeChange);
   settings.recorderProfiles.on('change:selected', this.onRecorderProfileChange);
@@ -316,6 +317,10 @@ CameraController.prototype.onHDRChange = function(hdr) {
   if (ishdrOn && flashMode !== 'off') {
     this.settings.flashModesPicture.select('off');
   }
+};
+
+CameraController.prototype.onBatteryStatusChange = function(status) {
+  if (status === 'shutdown') { this.camera.stopRecording(); }
 };
 
 });

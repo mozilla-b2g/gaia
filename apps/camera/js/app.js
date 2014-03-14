@@ -6,8 +6,9 @@ define(function(require, exports, module) {
  */
 
 var performanceTesting = require('performanceTesting');
-var ViewfinderView = require('views/viewfinder');
 var RecordingTimerView = require('views/recording-timer');
+var NotificationView = require('views/notification');
+var ViewfinderView = require('views/viewfinder');
 var ControlsView = require('views/controls');
 var FocusRing = require('views/focus-ring');
 var ZoomBarView = require('views/zoom-bar');
@@ -77,7 +78,7 @@ App.prototype.boot = function() {
   this.injectViews();
   this.bindEvents();
   this.miscStuff();
-  this.l10n();
+  this.configureL10n();
   this.emit('boot');
   debug('booted');
 };
@@ -113,6 +114,7 @@ App.prototype.runControllers = function() {
   this.controllers.sounds(this);
   this.controllers.hud(this);
   this.controllers.zoomBar(this);
+  this.controllers.battery(this);
   debug('controllers run');
 };
 
@@ -124,6 +126,7 @@ App.prototype.initializeViews = function() {
   this.views.controls = new ControlsView();
   this.views.hud = new HudView();
   this.views.zoomBar = new ZoomBarView();
+  this.views.notification = new NotificationView();
   debug('views initialized');
 };
 
@@ -135,6 +138,7 @@ App.prototype.injectViews = function() {
   this.views.controls.appendTo(this.el);
   this.views.hud.appendTo(this.el);
   this.views.zoomBar.appendTo(this.el);
+  this.views.notification.appendTo(this.el);
   debug('views injected');
 };
 
@@ -246,7 +250,7 @@ App.prototype.onBeforeUnload = function() {
  *
  * @private
  */
-App.prototype.l10n = function() {
+App.prototype.configureL10n = function() {
   var complete = navigator.mozL10n.readyState === 'complete';
   bind(this.win, 'localized', this.firer('localized'));
   if (complete) { this.emit('localized'); }

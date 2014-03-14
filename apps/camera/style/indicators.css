@@ -31,6 +31,7 @@
 
 /** Indicators
  ---------------------------------------------------------*/
+
 .indicators li {
   height: 1em;
   width: 1em;
@@ -67,13 +68,22 @@
 /** Indicator Battery
  ---------------------------------------------------------*/
 
-.indicators .indicator_battery{
-  color: #D92E2E; /* red */
+.indicators .indicator_battery {
   height: 1.1rem;
   font-size: 2.5rem;
   line-height: 1.1rem;
-  margin-left: -0.3rem;
-  background-color: transparent;
+  margin-left: -3px;
+  color: #D92E2E;
+  opacity: 0;
+  background: transparent;
+}
+
+/**
+ * battery-enabled=true
+ */
+
+.indicators[battery-enabled=true] .indicator_battery {
+  display: block;
 }
 
 /**
