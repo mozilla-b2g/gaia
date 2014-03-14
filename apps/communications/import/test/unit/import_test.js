@@ -1,4 +1,5 @@
 require('/shared/js/text_normalizer.js');
+require('/shared/js/sticky_header.js');
 requireApp('communications/import/test/unit/mock_import.html.js');
 requireApp('communications/contacts/test/unit/mock_l10n.js');
 requireApp('communications/contacts/test/unit/mock_asyncstorage.js');

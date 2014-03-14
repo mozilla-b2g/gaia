@@ -1,4 +1,5 @@
 require('/shared/js/lazy_loader.js');
+require('/shared/js/sticky_header.js');
 require('/shared/js/text_normalizer.js');
 require('/shared/js/tag_visibility_monitor.js');
 require('/shared/test/unit/mocks/mock_contact_all_fields.js');
@@ -337,6 +338,10 @@ suite('Render contacts list', function() {
     noResults = document.getElementById('no-result');
     noContacts = document.getElementById('no-contacts');
 
+    var sticky = document.createElement('div');
+    sticky.id = 'sticky';
+    document.body.appendChild(sticky);
+
     updateDomReferences();
 
     window.asyncScriptsLoaded = true;
@@ -416,6 +421,7 @@ suite('Render contacts list', function() {
     window.PerformanceTestingHelper = realPerformanceTestingHelper;
     window.asyncStorage = realAsyncStorage;
     navigator.mozContacts = realMozContacts;
+    document.removeChild(document.getElementById('sticky'));
   });
 
   suite('Render contacts with cursors', function() {

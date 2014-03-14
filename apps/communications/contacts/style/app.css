@@ -292,12 +292,30 @@ li a[role="button"].activity > b{
   left: 0;
 }
 
+#sticky {
+  position: sticky;
+
+  /* The sticky element is positioned at the beginning of the list. */
+  top: -1.5rem;
+  margin-top: 2.5rem;
+
+  /* The width is not 100% so the scrollbar is visible. */
+  width: calc(100% - 1.5rem);
+
+  /* The height needs to be kept in sync with the header height. */
+  height: 3.1rem;
+
+  /* The sticky element needs to be above the list. */
+  z-index: 22222222222222;
+
+  /* Those style will affect the bagroundImage: -moz-element. */
+  background-repeat: no-repeat;
+  background-position: 1.5rem 0;
+}
+
 [data-type="list"] header {
   padding: 0 0 0 1.5rem;
-  position: sticky;
-  top: -1.5rem;
   background: #FFF;
-  z-index: 2;
 }
 
 [data-type="list"].active li:after {
@@ -718,6 +736,10 @@ form[role="dialog"].no-overlay button {
   background: none;
 }
 
+#groups-list[data-type="list"] {
+  padding-top: 0;
+  margin-top: -3.1rem;
+}
 
 #groups-list[data-type="list"].active.selecting li:not(:active):after {
   display:none !important;

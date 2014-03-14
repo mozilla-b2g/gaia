@@ -4,7 +4,7 @@ function StickyHeader(scrollable, sticky) {
   'use strict';
 
   var headers = scrollable.getElementsByTagName('header');
-  var stickyPosition = sticky.offsetHeight + sticky.offsetTop;
+  var stickyPosition = sticky.getBoundingClientRect().height;
   var stickyStyle = sticky.style;
 
   this.refresh = function() {
@@ -20,7 +20,8 @@ function StickyHeader(scrollable, sticky) {
           header = headers[i - lookupIndex];
         }
 
-        stickyStyle.backgroundImage = '-moz-element(#' + header.id + ')';
+        stickyStyle.backgroundImage =
+          header ? '-moz-element(#' + header.id + ')' : '';
         break;
       }
     }
