@@ -39,6 +39,17 @@ define(function(require) {
    * Camera.Util.getOptimalPreviewSize() method:
    *
    * http://androidxref.com/4.0.4/xref/packages/apps/Camera/src/com/android/camera/Util.java#374
+   *
+   * NOTE: All sizes are in *device* pixels. If passing a
+   * `viewportSize`, be sure to specify it in device pixels.
+   * Otherwise, the `viewportSize` will be determined by:
+   *
+   * window.innerWidth * window.devicePixelRatio
+   *
+   * @param  {Array} previewSizes
+   * @param  {Object} targetSize
+   * @param  {Object} viewportSize
+   * @return {Object}
    */
   CameraUtils.getOptimalPreviewSize =
     function(previewSizes, targetSize, viewportSize) {
@@ -54,12 +65,12 @@ define(function(require) {
       var minDiff = Number.MAX_VALUE;
 
       // If no viewport size is specified, use screen height
+      var screenHeight = window.innerWidth * window.devicePixelRatio;
       var targetHeight = viewportSize ?
-        Math.min(viewportSize.height, viewportSize.width) :
-        window.innerWidth;
+        Math.min(viewportSize.height, viewportSize.width) : screenHeight;
 
       if (targetHeight <= 0) {
-        targetHeight = window.innerWidth;
+        targetHeight = screenHeight;
       }
 
       var targetRatio = targetSize.width / targetSize.height;
