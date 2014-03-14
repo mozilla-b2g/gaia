@@ -1370,8 +1370,9 @@ MessageListCard.prototype = {
     // TODO: Batch delete back-end mail api is not ready for IMAP now.
     //       Please verify this function under IMAP when api completed.
 
-    if (this.selectedMessages.length === 0)
-      return;
+    if (this.selectedMessages.length === 0) {
+      return this.setEditMode(false);
+    }
 
     var dialog = deleteConfirmMsgNode.cloneNode(true);
     var content = dialog.getElementsByTagName('p')[0];

@@ -29,6 +29,9 @@ var Selector = {
   manualNextButton: '.sup-account-header .sup-manual-next-btn',
   msgDownBtn: '.card-message-reader .msg-down-btn',
   msgListScrollOuter: '.card-message-list .msg-list-scrollouter',
+  editMode: '.card-message-list .msg-edit-btn',
+  editModeCheckBoxes: '.card-message-list label.pack-checkbox',
+  editModeTrash: '.card-message-list button.msg-delete-btn',
   msgUpBtn: '.card-message-reader .msg-up-btn',
   msgEnvelopeSubject: '.card-message-reader .msg-envelope-subject',
   showMailButton: '.card-setup-done .sup-show-mail-btn',
@@ -297,6 +300,36 @@ Email.prototype = {
       var composeCard = card.cardImpl;
       return composeCard.fromEditor();
     }, []);
+  },
+
+  /**
+   * Enters edit mode.
+   * Waits for an edit checkbox to appear.
+   */
+  editMode: function() {
+    client.helper
+      .waitForElement(Selector.editMode)
+      .tap();
+
+    client.helper
+      .waitForElement(Selector.editModeCheckBoxes);
+  },
+
+  /**
+   * Returns the edit mode checkboxes.
+   */
+  editModeCheckboxes: function() {
+    var elements = client.findElements(Selector.editModeCheckBoxes);
+    return elements;
+  },
+
+  /**
+   * Taps the trash button in edit mode.
+   */
+  editModeTrash: function() {
+    client.helper
+      .waitForElement(Selector.editModeTrash)
+      .tap();
   },
 
   abortCompose: function(cardId) {
