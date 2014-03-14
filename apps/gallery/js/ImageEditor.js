@@ -4,6 +4,14 @@
 var editedPhotoURL; // The blob URL of the photo we're currently editing
 var editSettings;
 var imageEditor;
+var originalExifData;
+
+// Array of EXIF properties that should be omitted
+// in the edited image
+var omitExifProp = [
+ 'ImageWidth', 'ImageLength', 'DateTimeDigitized',
+ 'DateTime', 'PixelXDimension', 'PixelYDimension'
+];
 
 var editOptionButtons =
   Array.slice($('edit-options').querySelectorAll('a.radio.button'), 0);
@@ -43,6 +51,17 @@ function resizeHandler() {
   imageEditor.resize();
 }
 
+function parseExifMetaData(exifMetaData) {
+  // Parse exifMetaData to omit properties that are not
+  // having correct value for edited image.
+  omitExifProp.forEach(function deleteProperty(key) {
+    if (exifMetaData.hasOwnProperty(key)) {
+      delete exifMetaData[key];
+    }
+  });
+  return exifMetaData;
+}
+
 function editPhoto(n) {
   editedPhotoIndex = n;
 
@@ -80,6 +99,26 @@ function editPhoto(n) {
     var backgroundImage = 'url(' + editedPhotoURL + ')';
     editBgImageButtons.forEach(function(b) {
       b.style.backgroundImage = backgroundImage;
+    });
+
+    originalExifData = null;
+
+    // Read the EXIF Data from original image
+    LazyLoader.load('js/jpeg.js', function() {
+      JPEG.readExifMetaData(file,
+        function(error, exifMetaData, thumbnailMetaData, thumnailBlob) {
+          if (!error) {
+            // Check if exifMetaData exists and is not undefined
+            if (exifMetaData) {
+              // Delete EXIF properties that are not
+              // having correct value for edited image
+              originalExifData = parseExifMetaData(exifMetaData);
+            }
+          } else {
+            console.error('Error in readExifMetaData:', error);
+            return;
+          }
+      });
     });
   });
 
@@ -367,6 +406,19 @@ function saveEditedImage() {
     progressBar.value = Math.floor(p * 100);
   }
 
+  function saveBlob(filename, blob) {
+    // Now that we have a filename, save the file This will send a change event,
+    // which will cause us to rebuild our thumbnails.
+    // For now, the edited image will become the first thumbnail
+    // since it is the most recent one. Ideally, I'd like a more
+    // sophisticated sort order that put edited sets
+    // of photos next to each other.
+    photodb.addFile(filename, blob);
+    // We're done.
+    exitEditMode(true);
+    progressBar.value = 0;
+  }
+
   function gotBlob(blob) {
     // Hide progressbar when saved.
     progressBar.classList.add('hidden');
@@ -394,17 +446,20 @@ function saveEditedImage() {
       filename = basename + '.edit' + version + extension;
     }
 
-    // Now that we have a filename, save the file This will send a
-    // change event, which will cause us to rebuild our thumbnails.
-    // For now, the edited image will become the first thumbnail since
-    // it si the most recent one. Ideally, I'd like a more
-    // sophisticated sort order that put edited sets of photos next to
-    // each other.
-    photodb.addFile(filename, blob);
-
-    // We're done.
-    exitEditMode(true);
-    progressBar.value = 0;
+    if (originalExifData) {
+      // Write parsed EXIF data from original image to edited blob
+      JPEG.writeExifMetaData(blob, originalExifData,
+        function(error, result) {
+          if (!error) {
+            saveBlob(filename, result);
+          } else {
+            console.error('Error in writeExifMetaData:', error);
+            saveBlob(filename, blob);
+          }
+      });
+    } else {
+      saveBlob(filename, blob);
+    }
   }
 }
 
@@ -1291,7 +1346,7 @@ ImageEditor.prototype.setCropAspectRatio = function(ratioWidth, ratioHeight) {
 // type and pass that file as a blob to the specified callback
 ImageEditor.prototype.getCroppedRegionBlob = function(type,
                                                       width, height,
-                                                      callback)
+                                                      callback, file)
 {
   // This is similar to the code in cropImage() and getFullSizeBlob
   // but since we're doing only cropping and no pixel manipulation I
@@ -1351,7 +1406,39 @@ ImageEditor.prototype.getCroppedRegionBlob = function(type,
                       left, top, right - left, bottom - top,
                       0, 0, width, height);
 
-    canvas.toBlob(callback, type);
+    // Update blob by writing EXIF data
+    function saveEXIFData(blob) {
+      LazyLoader.load('js/jpeg.js', function() {
+        JPEG.readExifMetaData(file,
+          function(error, exifMetaData, thumbnailMetaData, thumnailBlob) {
+            if (!error) {
+              // Check if exifMetaData exists and is not undefined
+              if (exifMetaData) {
+                // Delete EXIF properties that are not
+                // having correct value for edited image
+                exifMetaData = parseExifMetaData(exifMetaData);
+                // Write parsed EXIF data from original image to edited blob
+                JPEG.writeExifMetaData(blob, exifMetaData,
+                  function(error, result) {
+                    if (!error) {
+                      callback(result);
+                    } else {
+                      console.error('Error in writeExifMetaData:', error);
+                      callback(blob);
+                    }
+                });
+              } else {
+                // No EXIF Data in original blob
+                callback(blob);
+              }
+            } else {
+              console.error('Error in readExifMetaData:', error);
+              callback(blob);
+            }
+        });
+      });
+    }
+    canvas.toBlob(saveEXIFData, type);
   }
 };
 
