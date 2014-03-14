@@ -122,7 +122,8 @@ contacts.Search = (function() {
     }
     // There is an issue in Gecko related to repaint with APZ. The purpose of
     // this code is to force a repaint programmatically (see bug 972091)
-    document.getElementById('view-contacts-list').classList.toggle('repaint');
+    var viewContactsList = document.getElementById('view-contacts-list');
+    viewContactsList && viewContactsList.classList.toggle('repaint');
     searchView.classList.remove('insearchmode');
     if (window.Contacts && Contacts.navigation) {
       Contacts.navigation.back();

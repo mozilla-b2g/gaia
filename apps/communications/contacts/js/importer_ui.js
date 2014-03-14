@@ -173,7 +173,7 @@ if (typeof window.importer === 'undefined') {
         return node.cloneNode(true);
       },
       getNodeById: function(id) {
-        return contactsList.querySelector('[data-uuid="' + id + '"]');
+        return contactList.querySelector('[data-uuid="' + id + '"]');
       },
       getSearchText: function(node) {
         return node.dataset.search;
