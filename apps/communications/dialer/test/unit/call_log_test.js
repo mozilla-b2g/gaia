@@ -438,22 +438,50 @@ suite('dialer/call_log', function() {
     });
 
     test('Below batch render threshold', function(done) {
-      appendAndCheckGroupDOM(50, null, function() {
+      appendAndCheckGroupDOM(80, null, function() {
         sinon.assert.callCount(renderSeveralDaysSpy, 2);
         done();
       });
     });
 
     test('Above batch render threshold', function(done) {
-      appendAndCheckGroupDOM(100, null, function() {
+      appendAndCheckGroupDOM(120, null, function() {
         sinon.assert.callCount(renderSeveralDaysSpy, 3);
         done();
       });
     });
 
     test('Multiple batch renders', function(done) {
-      appendAndCheckGroupDOM(300, null, function() {
+      appendAndCheckGroupDOM(500, null, function() {
         sinon.assert.callCount(renderSeveralDaysSpy, 6);
+        done();
+      });
+    });
+
+    test('First render batch crossed in middle of a day', function(done) {
+      // Day 1 - 1 group
+      var grp = JSON.parse(JSON.stringify(incomingGroup));
+      grp.id = 1;
+      grp.date = 1;
+      CallLogDBManager.add(grp);
+      // Day 2 - 100 groups
+      for (var i = 2; i < 102; i++) {
+        grp = JSON.parse(JSON.stringify(incomingGroup));
+        grp.id = i;
+        grp.date = 2;
+        CallLogDBManager.add(grp);
+      }
+      // Day 3 - 10 group
+      for (var i = 102; i < 112; i++) {
+        grp = JSON.parse(JSON.stringify(incomingGroup));
+        grp.id = i;
+        grp.date = 3;
+        CallLogDBManager.add(grp);
+      }
+
+      CallLog.render();
+      setTimeout(function() {
+        sinon.assert.callCount(renderSeveralDaysSpy, 2);
         done();
       });
     });
