@@ -958,7 +958,7 @@ install-media-samples:
 	$(ADB) push media-samples/Music $(MSYS_FIX)/sdcard/Music
 
 install-test-media:
-	$(ADB) push test_media/DCIM $(MSYS_FIX)/sdcard/DCIM
+	$(ADB) push test_media/Pictures $(MSYS_FIX)/sdcard/DCIM
 	$(ADB) push test_media/Movies $(MSYS_FIX)/sdcard/Movies
 	$(ADB) push test_media/Music $(MSYS_FIX)/sdcard/Music
 
