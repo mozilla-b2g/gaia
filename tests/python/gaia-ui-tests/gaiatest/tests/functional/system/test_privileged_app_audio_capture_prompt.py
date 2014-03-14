@@ -31,3 +31,23 @@ class TestPrivilegedAppAudioCapturePrompt(GaiaTestCase):
 
         current_permission = self.apps.get_permission('UI tests - Privileged App', 'audio-capture')
         self.assertEqual(current_permission, 'prompt')
+
+    def test_video_capture_prompt(self):
+        uiTestsPrivileged = UiTestsPivileged(self.marionette)
+        uiTestsPrivileged.launch()
+
+        user_media = uiTestsPrivileged.tap_get_user_media_option()
+        user_media.switch_to_frame()
+        user_media.tap_video1_button()
+
+        permission = PermissionDialog(self.marionette)
+        self.marionette.switch_to_default_content()
+        permission.wait_for_permission_dialog_displayed()
+
+        self.assertEqual(permission.permission_dialog_message,
+                         u'Would you like to share your camera with UI tests - Privileged App?')
+
+        permission.tap_to_confirm_permission()
+
+        current_permission = self.apps.get_permission('UI tests - Privileged App', 'video-capture')
+        self.assertEqual(current_permission, 'prompt')
