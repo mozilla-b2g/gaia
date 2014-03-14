@@ -340,21 +340,27 @@ const IMERender = (function() {
     if (candidatePanel) {
       candidatePanel.dataset.candidateIndicator = 0;
 
-      candidatePanel.innerHTML = '';
-      candidatePanel.scrollTop = candidatePanel.scrollLeft = 0;
-
       var docFragment = document.createDocumentFragment();
 
       if (inputMethodName == 'latin') {
-        if (candidates.length) {
-          var dismissButton = document.createElement('div');
-          dismissButton.classList.add('dismiss-suggestions-button');
-          candidatePanel.appendChild(dismissButton);
-          var candidateWidth =
-            (candidatePanel.clientWidth - dismissButton.clientWidth);
-          candidateWidth /= candidates.length;
-          candidateWidth -= 6; // 3px margin on each side
+        var dismissButton =
+          candidatePanel.querySelector('.dismiss-suggestions-button');
+        dismissButton.classList.add('hide');
+
+        // hide dismiss button
+        if (candidates.length > 0) {
+          dismissButton.classList.remove('hide');
         }
+
+        var suggestContainer =
+          candidatePanel.querySelector('.suggestions-container');
+
+        // we want to do all width calculation in CSS, so add a class here
+        suggestContainer.innerHTML = '';
+        for (var i = 0; i < 4; i++) {
+          suggestContainer.classList.remove('has' + i);
+        }
+        suggestContainer.classList.add('has' + candidates.length);
 
         candidates.forEach(function buildCandidateEntry(candidate) {
           // Make sure all of the candidates are defined
@@ -362,11 +368,7 @@ const IMERender = (function() {
 
           // Each candidate gets its own div
           var div = document.createElement('div');
-
-          // Size the div based on the # of candidates
-          div.style.width = candidateWidth + 'px';
-
-          candidatePanel.appendChild(div);
+          suggestContainer.appendChild(div);
 
           var text, data, correction = false;
           if (typeof candidate === 'string') {
@@ -397,7 +399,7 @@ const IMERender = (function() {
             container.appendChild(span);
 
             var limit = .6;  // Dont use a scale smaller than this
-            var scale = IMERender.getScale(span, container);
+            var scale = IMERender.getScale(span, candidates.length);
 
             // If the text does not fit within the scaling limit,
             // reduce the length of the text by replacing characters in
@@ -410,7 +412,7 @@ const IMERender = (function() {
                 span.textContent = text.substring(0, halflen) +
                   '…' +
                   text.substring(text.length - halflen);
-                scale = IMERender.getScale(span, container);
+                scale = IMERender.getScale(span, candidates.length);
               }
             }
 
@@ -430,6 +432,8 @@ const IMERender = (function() {
           }
         });
       } else {
+        candidatePanel.innerHTML = '';
+
         candidatePanelToggleButton.style.display = 'none';
         toggleCandidatePanel(false);
         docFragment = candidatesFragmentCode(1, candidates, true);
@@ -781,6 +785,15 @@ const IMERender = (function() {
     if (inputMethodName)
       candidatePanel.classList.add(inputMethodName);
 
+    var dismissButton = document.createElement('div');
+    dismissButton.classList.add('dismiss-suggestions-button');
+    dismissButton.classList.add('hide');
+    candidatePanel.appendChild(dismissButton);
+
+    var suggestionContainer = document.createElement('div');
+    suggestionContainer.classList.add('suggestions-container');
+    candidatePanel.appendChild(suggestionContainer);
+
     return candidatePanel;
   };
 
@@ -894,9 +907,21 @@ const IMERender = (function() {
   // we use in Gaia.
   //
   // Note that this only works if the element is display:inline
-  var getScale = function(element, container) {
-    var elementWidth = element.getBoundingClientRect().width;
-    var s = container.clientWidth / elementWidth;
+  var scaleContext = null;
+  var getScale = function(element, noOfSuggestions) {
+    if (!scaleContext) {
+      scaleContext = document.createElement('canvas').getContext('2d');
+      scaleContext.font = '2rem sans-serif';
+    }
+
+    var elementWidth = scaleContext.measureText(element.textContent).width;
+
+    // container width is window width - 36 (for the dismiss button) and then
+    // depending on the number of suggestions there are
+    var cw = (cachedWindowWidth - 36) / noOfSuggestions | 0;
+    cw -= 6; // 6 pixels margin on both sides
+
+    var s = cw / elementWidth;
     if (s >= 1)
       return 1;    // 10pt font "Body Large"
     if (s >= .8)
@@ -954,6 +979,7 @@ const IMERender = (function() {
     'toggleCandidatePanel': toggleCandidatePanel,
     'isFullCandidataPanelShown': isFullCandidataPanelShown,
     'getNumberOfCandidatesPerRow': getNumberOfCandidatesPerRow,
+    'candidatePanelCode': candidatePanelCode,
     get activeIme() {
       return activeIme;
     },
