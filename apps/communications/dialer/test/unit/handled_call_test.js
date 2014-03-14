@@ -514,6 +514,10 @@ suite('dialer/handled_call', function() {
       assert.equal(subject.recentsEntry.number, mockCall.number);
     });
 
+    test('serviceId', function() {
+      assert.equal(subject.recentsEntry.serviceId, mockCall.serviceId);
+    });
+
     suite('type incoming', function() {
       setup(function() {
         mockCall = new MockCall('888', 'incoming');
