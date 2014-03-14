@@ -8,11 +8,9 @@
 .controls {
   display: flex;
   position: absolute;
-  bottom: 0;
-  right: 0;
-  left: 0;
-  height: 10.2rem;
-  margin-bottom: 1rem;
+  bottom: 0; left: 0;
+  width: 100%;
+  padding-bottom: 1rem;
   overflow: hidden;
 }
 

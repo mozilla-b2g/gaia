@@ -13,7 +13,8 @@ var bindAll = require('lib/bind-all');
  * Exports
  */
 
-module.exports = OverlayController;
+module.exports = function(app) { return new OverlayController(app); };
+module.exports.OverlayController = OverlayController;
 
 /**
  * Initialize a new `OverlayController`
@@ -21,17 +22,21 @@ module.exports = OverlayController;
  * @param {App} app
  */
 function OverlayController(app) {
-  if (!(this instanceof OverlayController)) {
-    return new OverlayController(app);
-  }
-
+  debug('initializing');
+  bindAll(this);
+  this.app = app;
   this.activity = app.activity;
   this.storage = app.storage;
-  this.overlays = [];
-  bindAll(this);
-  this.storage.on('statechange', this.onStorageStateChange);
+  this.batteryOverlay = null;
+  this.storageOverlay = null;
+  this.bindEvents();
   debug('initialized');
 }
+
+OverlayController.prototype.bindEvents = function() {
+  this.storage.on('statechange', this.onStorageStateChange);
+  this.app.on('change:batteryStatus', this.onBatteryStatusChange);
+};
 
 /**
  * Respond to storage `statechange`
@@ -42,14 +47,38 @@ function OverlayController(app) {
  */
 OverlayController.prototype.onStorageStateChange = function(value) {
   debug('storage state change: \'%s\'', value);
-  if (value === 'available') {
-    this.destroyOverlays();
-    return;
+
+  if (this.storageOverlay) {
+    this.storageOverlay.destroy();
+    this.storageOverlay = null;
   }
-  this.insertOverlay(value);
+
+  if (value !== 'available') {
+    this.storageOverlay = this.createOverlay(value);
+  }
 };
 
-OverlayController.prototype.insertOverlay = function(type) {
+/**
+ * Respond to battery `statuschange`
+ * events by inserting or destroying
+ * overlays from the app.
+ *
+ * @param  {String} status  ['shutdown'|'critical'|'verylow'|'low']
+ */
+OverlayController.prototype.onBatteryStatusChange = function(status) {
+  debug('battery state change: \'%s\'', status);
+
+  if (this.batteryOverlay) {
+    this.batteryOverlay.destroy();
+    this.batteryOverlay = null;
+  }
+
+  if (status === 'shutdown') {
+    this.batteryOverlay = this.createOverlay(status);
+  }
+};
+
+OverlayController.prototype.createOverlay = function(type) {
   var data = this.getOverlayData(type);
   var activity = this.activity;
 
@@ -67,12 +96,11 @@ OverlayController.prototype.insertOverlay = function(type) {
   overlay
     .appendTo(document.body)
     .on('click:close-btn', function() {
-      overlay.destroy();
       activity.cancel();
     });
 
-  this.overlays.push(overlay);
   debug('inserted \'%s\' overlay', type);
+  return overlay;
 };
 
 /**
@@ -99,6 +127,10 @@ OverlayController.prototype.getOverlayData = function(type) {
       data.title = l10n.get('pluggedin-title');
       data.body = l10n.get('pluggedin-text');
     break;
+    case 'shutdown':
+      data.title = l10n.get('battery-shutdown-title');
+      data.body = l10n.get('battery-shutdown-text');
+    break;
     default:
       return false;
   }
@@ -106,17 +138,6 @@ OverlayController.prototype.getOverlayData = function(type) {
   data.closeButtonText = l10n.get('close-button');
 
   return data;
-};
-
-/**
- * Destroy all overlays.
- */
-OverlayController.prototype.destroyOverlays = function() {
-  this.overlays.forEach(function(overlay) {
-    overlay.destroy();
-  });
-  this.overlays = [];
-  debug('destroyed overlays');
 };
 
 });

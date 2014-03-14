@@ -17,6 +17,7 @@ var forwardMethods = [
   'resetOptions',
   'selected',
   'next',
+  'get',
   'set'
 ];
 
@@ -38,7 +39,7 @@ function SettingAlias(options) {
   this.settings = options.settings;
   this.key = options.key;
   this.map = options.map || {};
-  this.get = options.get.bind(this);
+  this.setting = options.get.bind(this);
   forwardMethods.forEach(this.forward, this);
   this.propagate = this.propagator();
 }
@@ -52,7 +53,7 @@ function SettingAlias(options) {
  */
 SettingAlias.prototype.forward = function(method) {
   this[method] = function() {
-    var setting = this.get();
+    var setting = this.setting();
     return setting[method].apply(setting, arguments);
   };
 };

@@ -9,12 +9,14 @@ suite('controllers/settings', function() {
       'controllers/settings',
       'lib/settings',
       'lib/setting',
-      'app'
-    ], function(SettingsController, Settings, Setting, App) {
+      'app',
+      'views/notification'
+    ], function(SettingsController, Settings, Setting, App, NotificationViews) {
       self.SettingsController = SettingsController.SettingsController;
       self.Settings = Settings;
       self.Setting = Setting;
       self.App = App;
+      self.NotificationViews = NotificationViews;
       done();
     });
   });
@@ -29,6 +31,12 @@ suite('controllers/settings', function() {
     this.app.settings.pictureSizesBack = sinon.createStubInstance(this.Setting);
     this.app.settings.recorderProfiles = sinon.createStubInstance(this.Setting);
     this.app.settings.hdr = sinon.createStubInstance(this.Setting);
+    this.app.views = {
+      notification: sinon.createStubInstance(this.NotificationViews)
+    };
+
+    // Shortcut
+    this.notification = this.app.views.notification;
 
     // Create test instance
     this.controller = new this.SettingsController(this.app);
@@ -36,6 +44,40 @@ suite('controllers/settings', function() {
 
   suite('SettingsController()', function() {
 
+  });
+
+  suite('SettingsController#onOptionTap()', function() {
+    setup(function() {
+      this.setting = sinon.createStubInstance(this.Setting);
+      sinon.stub(this.controller);
+      this.controller.onOptionTap.restore();
+    });
+
+    test('Should select the given key on the given option', function() {
+      this.controller.onOptionTap('the-key', this.setting);
+      assert.isTrue(this.setting.select.calledWith('the-key'));
+    });
+
+    test('Should close the settings menu', function() {
+      this.controller.onOptionTap('the-key', this.setting);
+      assert.isTrue(this.controller.closeSettings.called);
+    });
+
+    test('Should notify', function() {
+      this.controller.onOptionTap('the-key', this.setting);
+      assert.isTrue(this.controller.notify.called);
+    });
+  });
+
+  suite('SettingsController#notify()', function() {
+    setup(function() {
+      this.setting = sinon.createStubInstance(this.Setting);
+    });
+
+    test('Should display a notification', function() {
+      this.controller.notify(this.setting);
+      assert.isTrue(this.notification.display.called);
+    });
   });
 
   suite('SettingsController#validMenuItem()', function() {
