@@ -13,7 +13,6 @@ var mocksForHomegesture = new MocksHelper([
 
 
 suite('enable/disable homegesture', function() {
-  var realSettingsListener;
   var realScreenLayout;
   var realSettings;
   var fakeHomebar;
@@ -22,14 +21,11 @@ suite('enable/disable homegesture', function() {
   suiteSetup(function() {
     realSettings = navigator.mozSettings;
     navigator.mozSettings = MockNavigatorSettings;
-    realSettingsListener = window.SettingsListener;
-    window.SettingsListener = MockSettingsListener;
     realScreenLayout = window.ScreenLayout;
     window.ScreenLayout = MockScreenLayout;
   });
 
   suiteTeardown(function() {
-    window.SettingsListener = realSettingsListener;
     window.ScreenLayout = realScreenLayout;
     navigator.mozSettings = realSettings;
   });
