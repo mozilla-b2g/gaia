@@ -20,14 +20,29 @@
       <ul id="hud-widgets" class="disabled">
         <li>
           <label class="pack-checkbox">
+            <input type="checkbox" name="hud.logging">
+            <span data-l10n-id="hud-logging">Log changes in adb</span>
+          </label>
+        </li>
+        <header>
+          <h2 data-l10n-id="hud-problems">Problems</h2>
+        </header>
+        <li>
+          <label class="pack-checkbox">
+            <input type="checkbox" name="hud.warnings">
+            <span class="color-preview warning-counter" data-l10n-id="hud-warnings">Warnings</span>
+          </label>
+        </li>
+        <li>
+          <label class="pack-checkbox">
             <input type="checkbox" name="hud.errors">
             <span class="color-preview error-counter" data-l10n-id="hud-errors">Errors</span>
           </label>
         </li>
         <li>
           <label class="pack-checkbox">
-            <input type="checkbox" name="hud.warnings">
-            <span class="color-preview warning-counter" data-l10n-id="hud-warnings">Warnings</span>
+            <input type="checkbox" name="hud.security">
+            <span class="color-preview security-counter" data-l10n-id="hud-security">Security issues</span>
           </label>
         </li>
         <header>

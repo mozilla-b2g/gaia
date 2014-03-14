@@ -67,12 +67,16 @@
 
       var color;
       switch(metric.name) {
+        case 'warnings':
+          color = 'orange';
+          break;
+
         case 'errors':
           color = 'red';
           break;
 
-        case 'warnings':
-          color = 'orange';
+        case 'security':
+          color = 'black';
           break;
 
         case 'reflows':
