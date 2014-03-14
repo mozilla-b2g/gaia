@@ -7,6 +7,15 @@ module.exports = {
   viewfinder: {
     scaleType: 'fill'
   },
+  battery: {
+    levels: {
+      low: 15,
+      verylow: 10,
+      critical: 6,
+      shutdown: 5,
+      healthy: 100
+    }
+  },
   mode: {
     title: 'Mode',
     options: [
@@ -144,20 +153,21 @@ module.exports = {
       {
         key: 'auto',
         icon: 'icon-flash-auto',
-        l10n: { title: 'auto' }
+        l10n: { title: 'auto' },
       },
       {
         key: 'on',
         icon: 'icon-flash-on',
-        l10n: { title: 'on' }
+        l10n: { title: 'on' },
       },
       {
         key: 'off',
         icon: 'icon-flash-off',
-        l10n: { title: 'off' }
+        l10n: { title: 'off' },
       }
     ],
-    persistent: true
+    persistent: true,
+    l10n: { title: 'flash' }
   },
 
   flashModesVideo: {
@@ -165,16 +175,16 @@ module.exports = {
       {
         key: 'off',
         icon: 'icon-flash-off',
-        l10n: { title: 'off' }
+        l10n: { title: 'off' },
       },
       {
         key: 'torch',
         icon: 'icon-flash-on',
-        l10n: { title: 'on' }
+        l10n: { title: 'on' },
       }
     ],
-    selected: 'off',
-    persistent: true
+    persistent: true,
+    l10n: { title: 'flash' }
   },
 
   timer: {
@@ -182,45 +192,43 @@ module.exports = {
     options: [
       {
         key: 'off',
-        title: 'Off',
-        value: 0
+        value: 0,
+        l10n: { title: 'off' },
       },
       {
         key: '3secs',
         value: 3,
-        l10n: { title: '3-seconds' }
+        l10n: { title: '3-seconds' },
       },
       {
         key: '5secs',
         value: 5,
-        l10n: { title: '5-seconds' }
+        l10n: { title: '5-seconds' },
       },
       {
         key: '10secs',
         value: 10,
-        l10n: { title: '10-seconds' }
+        l10n: { title: '10-seconds' },
       }
     ],
-    selected: 'off',
     persistent: false,
     l10n: { title: 'self-timer' }
   },
 
   hdr: {
     title: 'HDR',
-    icon: 'icon-hdr',
+    icon: 'icon-hdr-menu',
     disabled: false,
     options: [
       {
         key: 'off',
-        l10n: { title: 'off' }
+        l10n: { title: 'off' },
       },
       {
         key: 'on',
-        l10n: { title: 'on' }
+        l10n: { title: 'on' },
       }
     ],
-    selected: 'off',
     persistent: true
   },
 
@@ -229,18 +237,17 @@ module.exports = {
     options: [
       {
         key: 'normal',
-        title: 'Normal'
+        title: 'Normal',
       },
       {
         key: 'pano',
-        title: 'Panorama'
+        title: 'Panorama',
       },
       {
         key: 'beauty',
-        title: 'Beauty'
+        title: 'Beauty',
       }
     ],
-    selected: 'normal',
     persistent: true,
     l10n: { title: 'scene-mode' }
   },
@@ -248,13 +255,13 @@ module.exports = {
   grid: {
     icon: 'icon-frame-grid',
     options: [
-      {
-        key: 'off',
-        l10n: { title: 'off' }
+       {
+        key: 'on',
+        l10n: { title: 'on' },
       },
       {
-        key: 'on',
-        l10n: { title: 'on' }
+        key: 'off',
+        l10n: { title: 'off' },
       }
     ],
     selected: 'off',
@@ -264,9 +271,9 @@ module.exports = {
 
   settingsMenu: {
     items: [
-      {
+       {
          key: 'hdr'
-      },
+       },
       // {
       //   key: 'scene'
       // },

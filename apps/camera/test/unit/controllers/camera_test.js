@@ -10,22 +10,22 @@ suite('controllers/camera', function() {
       'controllers/camera',
       'lib/camera',
       'lib/activity',
-      'vendor/view',
+      'views/viewfinder',
       'lib/settings',
       'lib/setting',
       'lib/storage',
       'lib/geo-location'
     ], function(
       App, CameraController, Camera, Activity,
-      View, Settings, Setting, Storage, GeoLocation) {
+      ViewfinderView, Settings, Setting, Storage, GeoLocation) {
       self.CameraController = CameraController.CameraController;
+      self.ViewfinderView = ViewfinderView;
+      self.GeoLocation = GeoLocation;
       self.Activity = Activity;
       self.Settings = Settings;
       self.Setting = Setting;
       self.Storage = Storage;
-      self.GeoLocation = GeoLocation;
       self.Camera = Camera;
-      self.View = View;
       self.App = App;
       done();
     });
@@ -33,37 +33,37 @@ suite('controllers/camera', function() {
 
   setup(function() {
     this.app = sinon.createStubInstance(this.App);
-    this.app.activity = new this.Activity();
     this.app.camera = sinon.createStubInstance(this.Camera);
-    this.camera = this.app.camera;
+    this.app.geolocation = sinon.createStubInstance(this.GeoLocation);
     this.app.storage = sinon.createStubInstance(this.Storage);
+
+    // Activity
+    this.app.activity = new this.Activity();
+
+    // Views
     this.app.views = {
-      filmstrip: sinon.createStubInstance(this.View),
-      viewfinder: sinon.createStubInstance(this.View)
+      viewfinder: sinon.createStubInstance(this.ViewfinderView)
     };
-    this.app.views.filmstrip.clear = sinon.spy();
 
     // Settings
     this.app.settings = sinon.createStubInstance(this.Settings);
     this.app.settings.cameras = sinon.createStubInstance(this.Setting);
-    this.app.storage = sinon.createStubInstance(this.Storage);
-    this.app.geolocation = sinon.createStubInstance(this.GeoLocation);
-    this.camera = this.app.camera;
     this.app.settings.mode = sinon.createStubInstance(this.Setting);
     this.app.settings.pictureSizes = sinon.createStubInstance(this.Setting);
     this.app.settings.isoModes = sinon.createStubInstance(this.Setting);
     this.app.settings.recorderProfiles = sinon.createStubInstance(this.Setting);
-    this.app.settings.aliases = sinon.createStubInstance(this.Setting);
-    this.app.settings.aliases.flashModes =
-      sinon.createStubInstance(this.Setting);
     this.app.settings.flashModes = sinon.createStubInstance(this.Setting);
     this.app.settings.whiteBalance = sinon.createStubInstance(this.Setting);
     this.app.settings.hdr = sinon.createStubInstance(this.Setting);
-    this.app.settings.flashModesPicture =
-      sinon.createStubInstance(this.Setting);
-    this.app.settings.flashModesVideo =
-      sinon.createStubInstance(this.Setting);
+    this.app.settings.flashModesPicture = sinon.createStubInstance(this.Setting);
     this.app.settings.timer = sinon.createStubInstance(this.Setting);
+
+    // Aliases
+    this.viewfinder = this.app.views.viewfinder;
+    this.camera = this.app.camera;
+
+    // Test instance (some tests create there own)
+    this.controller = new this.CameraController(this.app);
   });
 
   suite('CameraController()', function() {
@@ -75,30 +75,27 @@ suite('controllers/camera', function() {
       this.CameraController.prototype.onBlur.restore();
     });
 
-    test('Should set the capture mode to \'camera\' by default', function() {
-      this.app.settings.mode.selected.returns('picture');
+    test('Should set the capture mode to \'picture\' by default', function() {
+      this.app.settings.mode.selected.withArgs('key').returns('picture');
       this.controller = new this.CameraController(this.app);
-      assert.isTrue(this.app.camera.setMode.calledWith('picture'));
+
+      assert.isTrue(this.app.camera.setMode.called);
     });
 
-    test('Should setup camera on app `boot`', function() {
-      this.controller = new this.CameraController(this.app);
+    test('Should load camera on app `boot`', function() {
       this.app.on.calledWith('boot', this.app.camera.load);
     });
 
-    test('Should setup camera on app `focus`', function() {
-      this.controller = new this.CameraController(this.app);
+    test('Should load camera on app `focus`', function() {
       this.app.on.calledWith('focus', this.app.camera.load);
     });
 
     test('Should teardown camera on app `blur`', function() {
-      this.controller = new this.CameraController(this.app);
       this.app.on.calledWith('blur', this.controller.onBlur);
     });
 
     test('Should set the camera createVideoFilepath method', function() {
-      this.controller = new this.CameraController(this.app);
-      this.camera.createVideoFilepath = this.app.storage.createVideoFilepath;
+      assert.equal(this.camera.createVideoFilepath, this.app.storage.createVideoFilepath);
     });
   });
 
@@ -107,49 +104,40 @@ suite('controllers/camera', function() {
       this.app.settings.flashModes.selected.returns('on');
       this.app.settings.isoModes.get = sinon.spy();
       this.app.settings.isoModes.selected.returns({key: 'auto'});
-      this.app.settings.pictureSizes.selected.returns({ width: 480,
-        height: 640 });
+      this.app.settings.pictureSizes.selected.returns({ width: 480, height: 640 });
       this.app.settings.recorderProfiles.selected.returns('cif');
       this.app.settings.hdr.selected.returns('on');
-      var fn = function(variable) {
-        var conf = function() {};
-        return {configure: conf};
-      };
-      this.app.camera.setRecorderProfile.returns({setPictureSize: fn});
+
+      // Returns `this` to allow chaining
+      this.app.camera.setRecorderProfile.returns(this.app.camera);
+      this.app.camera.setPictureSize.returns(this.app.camera);
+
       this.controller = new this.CameraController(this.app);
+      this.controller.onSettingsConfigured();
     });
 
     test('Should set flashMode', function() {
-      this.controller.onSettingsConfigured();
       assert.ok(this.camera.setFlashMode.called);
     });
 
     test('Should set hdr', function() {
-      this.controller.onSettingsConfigured();
       assert.ok(this.camera.setHDR.calledWith('on'));
     });
 
     test('Should set recorderProfile', function() {
-      this.controller.onSettingsConfigured();
       assert.ok(this.camera.setRecorderProfile.calledWith('cif'));
     });
 
-    test('Should set pictureSize', function(done) {
-      var fn = function(pictureSize) {
-        var conf = function() {
-          done();
-        };
-        assert.ok(pictureSize.width === 480);
-        assert.ok(pictureSize.height === 640);
-        return {configure: conf};
-      };
-      this.app.camera.setRecorderProfile.returns({setPictureSize: fn});
-      this.controller.onSettingsConfigured();
+    test('Should set pictureSize', function() {
+      var arg = this.app.camera.setPictureSize.args[0][0];
+
+      assert.ok(arg.width === 480);
+      assert.ok(arg.height === 640);
     });
 
-    test('Should call camera.configure() camera after setup', function() {
-      this.controller.onSettingsConfigured();
+    test('Should call `camera.configure()` camera after setup', function() {
       var setMaxFileSize = this.app.storage.setMaxFileSize;
+
       assert.ok(setMaxFileSize.calledAfter(this.camera.setRecorderProfile));
       assert.ok(setMaxFileSize.calledAfter(this.camera.setFlashMode));
       assert.ok(setMaxFileSize.calledAfter(this.camera.setWhiteBalance));
@@ -158,10 +146,6 @@ suite('controllers/camera', function() {
   });
 
   suite('CameraController#onFlashModeChange()', function() {
-    setup(function() {
-      this.controller = new this.CameraController(this.app);
-    });
-
     test('Should set HDR \'off\' when flash is set to \'on\'', function() {
       this.app.settings.hdr.selected.withArgs('key').returns('on');
       this.controller.onFlashModeChange();
@@ -177,11 +161,8 @@ suite('controllers/camera', function() {
   });
 
   suite('CameraController#onHDRChange()', function() {
-    setup(function() {
-      this.controller = new this.CameraController(this.app);
-    });
-
-    test('Should set flashModesPicture \'off\' when hdr is set to \'on\'', function() {
+    test('Should set flashModesPicture \'off\' when hdr is set to \'on\'',
+      function() {
       var flashModesPicture = this.app.settings.flashModesPicture;
 
       flashModesPicture.selected.withArgs('key').returns('on');
@@ -192,10 +173,6 @@ suite('controllers/camera', function() {
   });
 
   suite('CameraController#setHDR()', function() {
-    setup(function() {
-      this.controller = new this.CameraController(this.app);
-    });
-
     test('Should call camera.setHDR with given value', function() {
       this.controller.setHDR('on');
       assert.isTrue(this.camera.setHDR.calledWith('on'));
@@ -209,10 +186,6 @@ suite('controllers/camera', function() {
   });
 
   suite('CameraController#capture()', function() {
-    setup(function() {
-      this.controller = new this.CameraController(this.app);
-    });
-
     test('Should not start countdown if now timer setting is set', function() {
       this.app.settings.timer.selected.returns(0);
       this.app.get.withArgs('timerActive').returns(false);
@@ -249,6 +222,43 @@ suite('controllers/camera', function() {
       this.app.geolocation.position = 123;
       this.controller.capture();
       assert.ok(this.app.camera.capture.args[0][0].position === 123);
+    });
+  });
+
+  suite('CameraController#onBatteryStatusChange()', function() {
+    test('Should call onBatteryStatuchange on \'change:batteryStatus\'',
+      function() {
+      this.app.on.calledWith('change:batteryStatus', this.onBatteryStatusChange);
+    });
+
+    test('Should handle the shutDownCamera', function() {
+      this.controller.onBatteryStatusChange('healthy');
+      assert.isFalse(this.camera.stopRecording.called);
+
+      this.controller.onBatteryStatusChange('shutdown');
+      assert.isTrue(this.camera.stopRecording.called);
+    });
+  });
+
+  suite('CameraController#onBlur()', function() {
+    test('Should stop recording if recording', function() {
+      this.app.get.withArgs('recording').returns(false);
+      this.controller.onBlur();
+      assert.isFalse(this.camera.stopRecording.called);
+
+      this.app.get.withArgs('recording').returns(true);
+      this.controller.onBlur();
+      assert.isFalse(this.camera.stopRecording.called);
+    });
+
+    test('Should stop viewfinder preview', function() {
+      this.controller.onBlur();
+      assert.isTrue(this.viewfinder.stopPreview.called);
+    });
+
+    test('Should release the camera hardware', function() {
+      this.controller.onBlur();
+      assert.isTrue(this.camera.release.called);
     });
   });
 });
