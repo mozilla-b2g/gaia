@@ -17,4 +17,5 @@ $gaiatest --app=b2gdesktop \
           --type=b2g \
           --timeout=10000 \
           --html-output artifacts/gaia_ui_tests_report.html \
-          --restart $root/tests/manifest.ini
+          --restart $root/tests/functional/clock/manifest.ini \
+          --repeat 15

@@ -33,8 +33,6 @@ class TestClockDeleteAlarm(GaiaTestCase):
         # delete alarm
         self.clock = edit_alarm.tap_delete()
 
-        # wait alarm item not displayed
-        self.clock.wait_for_new_alarm_button()
         self.wait_for_condition(lambda m: len(self.clock.alarms) != initial_alarms_count)
 
         self.assertEqual(len(self.clock.alarms), initial_alarms_count - 1, "delete alarm failed.")

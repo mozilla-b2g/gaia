@@ -12,6 +12,7 @@ from gaiatest.apps.clock.app import Clock
 
 class NewAlarm(Clock):
 
+    _alarm_view_locator = (By.ID, 'edit-alarm')
     _alarm_name_locator = (By.ID, 'alarm-name')
     _repeat_menu_locator = (By.ID, 'repeat-menu')
     _sound_menu_locator = (By.ID, 'sound-menu')
@@ -25,6 +26,8 @@ class NewAlarm(Clock):
 
     def __init__(self, marionette):
         Clock.__init__(self, marionette)
+        # TODO When we go fast here we hit Bug 983700
+        time.sleep(0.5)
         view = self.marionette.find_element(*self._alarm_view_locator)
         self.wait_for_condition(lambda m: view.location['x'] == 0 and view.is_displayed())
 
@@ -32,6 +35,7 @@ class NewAlarm(Clock):
         self.marionette.find_element(*self._alarm_name_locator).tap()
         self.keyboard.send(value)
         self.keyboard.dismiss()
+
 
     @property
     def alarm_label_placeholder(self):
