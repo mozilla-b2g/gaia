@@ -1,8 +1,19 @@
+/*global Components, Services*/
+/**
+ * @fileoverview This script mocks the mozSetMessageHandler API
+ *    (developer.mozilla.org/docs/Web/API/Navigator.mozSetMessageHandler)
+ *    for app integration tests. You should use and improve this if you
+ *    want to write a marionette test for app functionality which gets
+ *    triggered by a system message (activities, alarms, etc.).
+ */
+'use strict';
+
 Components.utils.import('resource://gre/modules/Services.jsm');
 
 Services.obs.addObserver(function(document) {
-  if (!document || !document.location)
+  if (!document || !document.location) {
     return;
+  }
 
   var window = document.defaultView.wrappedJSObject;
   var messageHandler;
