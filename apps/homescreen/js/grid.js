@@ -36,6 +36,12 @@ var GridManager = (function() {
   var container;
 
   var windowWidth = window.innerWidth;
+
+  // This value is used in order to keep the layers onscreen when they are
+  // moved on a panel changes. This prevent the layers to be destroyed and
+  // recreated on the next move.
+  var windowWidthMinusOne = windowWidth - 1;
+
   var swipeThreshold, swipeFriction, tapThreshold;
 
   var dragging = false;
@@ -262,7 +268,7 @@ var GridManager = (function() {
           refresh = function(e) {
             if (deltaX <= 0) {
               next.MozTransform =
-                'translateX(' + (windowWidth + deltaX) + 'px)';
+                'translateX(' + (windowWidthMinusOne + deltaX) + 'px)';
               current.MozTransform = 'translateX(' + deltaX + 'px)';
             } else {
               startX = currentX;
@@ -273,7 +279,7 @@ var GridManager = (function() {
           refresh = function(e) {
             if (deltaX >= 0) {
               previous.MozTransform =
-                'translateX(' + (-windowWidth + deltaX) + 'px)';
+                'translateX(' + (-windowWidthMinusOne + deltaX) + 'px)';
               current.MozTransform = 'translateX(' + deltaX + 'px)';
             } else {
               startX = currentX;
@@ -285,23 +291,24 @@ var GridManager = (function() {
           refresh = function(e) {
             if (deltaX >= 0) {
               previous.MozTransform =
-                'translateX(' + (-windowWidth + deltaX) + 'px)';
+                'translateX(' + (-windowWidthMinusOne + deltaX) + 'px)';
 
               // If we change direction make sure there isn't any part
               // of the page on the other side that stays visible.
               if (forward) {
                 forward = false;
-                next.MozTransform = 'translateX(' + windowWidth + 'px)';
+                next.MozTransform = 'translateX(' + windowWidthMinusOne + 'px)';
               }
             } else {
               next.MozTransform =
-                'translateX(' + (windowWidth + deltaX) + 'px)';
+                'translateX(' + (windowWidthMinusOne + deltaX) + 'px)';
 
               // If we change direction make sure there isn't any part
               // of the page on the other side that stays visible.
               if (!forward) {
                 forward = true;
-                previous.MozTransform = 'translateX(-' + windowWidth + 'px)';
+                previous.MozTransform =
+                  'translateX(-' + windowWidthMinusOne + 'px)';
               }
             }
 
@@ -451,13 +458,13 @@ var GridManager = (function() {
     if (index) {
       var previous = pages[index - 1].container.style;
       previous.MozTransition = '';
-      previous.MozTransform = 'translateX(-' + windowWidth + 'px)';
+      previous.MozTransform = 'translateX(-' + windowWidthMinusOne + 'px)';
     }
 
     if (index < pages.length - 1) {
       var next = pages[index + 1].container.style;
       next.MozTransition = '';
-      next.MozTransform = 'translateX(' + windowWidth + 'px)';
+      next.MozTransform = 'translateX(' + windowWidthMinusOne + 'px)';
     }
 
     var current = toPage.container.style;
@@ -507,13 +514,13 @@ var GridManager = (function() {
       if (newPage.container.getBoundingClientRect().left !== 0) {
         // Pages are translated in X
         if (index > 0) {
-          pages[index - 1].moveByWithEffect(-windowWidth, duration);
+          pages[index - 1].moveByWithEffect(-windowWidthMinusOne, duration);
         }
 
         newPage.moveByWithEffect(0, duration);
 
         if (index < pages.length - 1) {
-          pages[index + 1].moveByWithEffect(windowWidth, duration);
+          pages[index + 1].moveByWithEffect(windowWidthMinusOne, duration);
         }
 
         container.addEventListener('transitionend', function transitionEnd(e) {
@@ -530,7 +537,7 @@ var GridManager = (function() {
 
     previousPage.container.dispatchEvent(new CustomEvent('gridpagehidestart'));
     newPage.container.dispatchEvent(new CustomEvent('gridpageshowstart'));
-    previousPage.moveByWithEffect(-forward * windowWidth, duration);
+    previousPage.moveByWithEffect(-forward * windowWidthMinusOne, duration);
     newPage.moveByWithEffect(0, duration);
 
     container.addEventListener('transitionend', function transitionEnd(e) {
