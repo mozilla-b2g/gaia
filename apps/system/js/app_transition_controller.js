@@ -233,7 +233,7 @@
       // but this.app.resized may be cleared.
       if (this.app.resized &&
           !LayoutManager.match(this.app.width,
-            this.app.height - this.app.calibratedHeight(),
+            this.app.height,
             this.app.isFullScreen())) {
         this.app.resize();
       }

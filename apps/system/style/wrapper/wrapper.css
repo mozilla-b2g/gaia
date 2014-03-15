@@ -1,28 +1,18 @@
+/**
+ * General chrome rules
+ */
 .appWindow > .chrome {
   pointer-events: none;
-  width: 100%;
   height: 100%;
-  position: absolute;
-  top: 0;
-  left: 0;
-}
-
-.chrome > .title {
-  position: absolute;
-  top: 0;
-  left: 0;
   width: 100%;
-  height: 10px;
-  background-color: grey;
-  pointer-events: auto;
+  position: absolute;
 }
 
+/**
+ * Progress bar
+ */
 .chrome > .progress {
-  position: fixed;
-  top: 2rem; /* This is the status bar height */
-  left: 0;
-  margin: 0;
-  padding: 0;
+  position: absolute;
   width: 100%;
   height: 0.3rem;
   pointer-events: none;
@@ -34,101 +24,134 @@
   background-image: url('../shared/progress.gif');
 }
 
+/**
+ * Navigation bar at the bottom
+ */
 .chrome > .navigation {
   position: fixed;
-  bottom: -4rem;
-  left: 0;
-  margin: 0;
-  padding: 0;
+  bottom: 0;
   width: 100%;
-  height: 5rem;
-  background-color: black;
-  pointer-events: none;
-  visibility: hidden;
-}
-
-.chrome > .navigation.visible {
+  transform: translateY(4.6rem); /* this is buttonbar height + border */
+  transition: transform .4s ease;
   pointer-events: auto;
-  visibility: visible;
 }
 
-.chrome > .navigation .handler {
-  width: 100%;
-  height: 1rem;
-  background-color: #000;
-  background-repeat: no-repeat;
-  background-position: right;
-}
-
-.chrome > .navigation.closed .handler {
-  background-image: url("images/open.png");
-  background-size: 5rem 1rem;
+.appWindow.has-navigation .chrome > .navigation {
+  transform: translateY(0);
+  border-top: 0.1rem solid rgba(189, 189, 189, 0.2);
 }
 
 .chrome > .navigation menu[type="buttonbar"] {
   width: 100%;
-  height: 4rem;
+  height: 4.5rem;
   margin: 0;
   padding: 0;
-  background-color: rgba(0,0,0,.8);
-  -moz-transform: translateY(-4rem);
-  -moz-transition: -moz-transform .4s ease;
-}
-
-.chrome > .navigation.closed menu {
-  -moz-transform: translateY(0);
+  background: white;
 }
 
 .chrome > .navigation menu button {
   background-color: transparent;
-  -moz-appearance: none;
   border: none;
-  display: block;
-  margin: 0;
-  padding: 0;
-  width: 20%;
   height: 100%;
-  float: left;
   background-position: center;
   background-repeat: no-repeat;
   opacity: 1;
+  position: absolute;
+  width: 6rem; /* nice hit state */
 }
 
 .chrome > .navigation .back-button {
-  background-image: url("images/back.png");
-  background-size: 2rem;
+  background-image: url("images/actionicon_back.png");
+  left: 0.5rem; /* should be half the image width - whitespace in image (7 - 2) */
 }
 
-.chrome > .navigation .forward-button {
-  background-image: url("images/forward.png");
-  background-size: 3rem;
-}
-
-.chrome > .navigation .reload-button {
-  background-image: url("images/reload.png");
-  background-size: 2.6rem;
-}
-
-.chrome > .navigation .bookmark-button {
-  background-image: url("images/bookmark.png");
-  background-size: 3rem;
-}
-
-.chrome > .navigation .bookmark-button[data-disabled] {
-  background-image: none;
+.chrome > .navigation .back-button:active {
+  background-image: url("images/actionicon_back_on.png");
 }
 
 .chrome > .navigation .close-button {
-  background-image: url("images/close.png");
-  background-size: 2.1rem;
+  background-image: url("images/actionicon_options_grey.png");
+  right: 0.9rem; /* should be half the image width - whitespace in image (11 - 2) */
+}
+
+/* hit state, and when context menu is visible */
+.chrome > .navigation .close-button:active, .appWindow.has-context-menu .chrome > .navigation .close-button {
+  background-image: url("images/actionicon_options_on.png");
 }
 
 .chrome > .navigation menu button[data-disabled] {
-  opacity: .2;
+  display: none;
   pointer-events: none;
 }
 
 .chrome > .navigation input::-moz-focus-inner, #wrapper-footer input:active {
   border: 0;
   background: transparent !important;
+}
+
+/**
+ * Context menu
+ */
+
+/* show overlay over the page, no pointer events to avoid scrolling on the iframe */
+.appWindow.has-context-menu > .chrome {
+  pointer-events: auto;
+  background-image: linear-gradient( 0deg, rgb(244,244,244) 0%, rgb(247,247,247) 25%, rgba(255,255,255,0) 100%);
+}
+
+.appWindow.has-context-menu .context-menu {
+  /* display: block; */
+
+  transform: scale(1);
+  transition: transform 0.3s ease-in;
+}
+
+.appWindow.has-context-menu .chrome > .navigation .back-button {
+  transition: opacity 0.4s ease-in;
+  opacity: 0.25;
+  pointer-events: none;
+}
+
+.context-menu {
+  position: fixed;
+  bottom: 8rem;
+  width: 26rem;
+  margin-left: calc(50% - 13rem);
+  border: solid 1px rgba(189, 189, 189, 0.3); /* 0.3? */
+  font: italic 300 1.7rem sans-serif;
+  transform: scale(0);
+}
+
+.context-menu .item {
+  background-color: white;
+  height: 5rem;
+  line-height: 5rem;
+  border-bottom: solid 1px #e7e7e7;
+  color: #00aac5;
+  padding-left: 6rem;
+  background-repeat: no-repeat;
+  background-position: 1.8rem center;
+}
+
+.context-menu .item:active {
+  background-color: #e7e7e7;
+}
+
+.context-menu .reload {
+  background-image: url('images/context-menu/reload.png' );
+}
+.context-menu .new {
+  background-image: url('images/context-menu/new.png');
+}
+.context-menu .homescreen {
+  background-image: url('images/context-menu/bookmark.png');
+}
+.context-menu .share {
+  background-image: url('images/context-menu/share.png');
+}
+.context-menu .forward {
+  background-image: url('images/context-menu/actionicon_forward.png');
+}
+.context-menu .settings {
+  background-image: url('images/context-menu/settings.png');
 }

@@ -530,7 +530,7 @@
     ['mozbrowserclose', 'mozbrowsererror', 'mozbrowservisibilitychange',
      'mozbrowserloadend', 'mozbrowseractivitydone', 'mozbrowserloadstart',
      'mozbrowsertitlechange', 'mozbrowserlocationchange',
-     'mozbrowsericonchange',
+     'mozbrowsericonchange', 'mozbrowserasyncscroll',
      '_localized', '_swipein', '_swipeout', '_kill_suspended'];
 
   AppWindow.SUB_COMPONENTS = {
@@ -692,6 +692,11 @@
     function aw__handle_mozbrowserlocationchange(evt) {
       this.config.url = evt.detail;
       this.publish('locationchange');
+    };
+
+  AppWindow.prototype._handle_mozbrowserasyncscroll =
+    function aw__handle_mozbrowserasyncscroll(evt) {
+      this.publish('asyncscroll');
     };
 
   AppWindow.prototype._handle_mozbrowsericonchange =
@@ -1003,14 +1008,6 @@
       return this._defaultOrientation;
     };
 
-  AppWindow.prototype.calibratedHeight = function aw_calibratedHeight() {
-    if (this.appChrome && this.appChrome.hidingNavigation) {
-      return this.appChrome.getBarHeight();
-    } else {
-      return 0;
-    }
-  };
-
   AppWindow.prototype._resize = function aw__resize() {
     var height, width;
     this.debug('force RESIZE...');
@@ -1032,9 +1029,9 @@
       this.broadcast('withoutkeyboard');
     }
     if (this.isFullScreen()) {
-      height = self.LayoutManager.fullscreenHeight + this.calibratedHeight();
+      height = self.LayoutManager.fullscreenHeight;
     } else {
-      height = self.LayoutManager.usualHeight + this.calibratedHeight();
+      height = self.LayoutManager.usualHeight;
     }
 
     // If we have sidebar in the future, change LayoutManager then.
