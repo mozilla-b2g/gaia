@@ -34,6 +34,7 @@
     <script defer src="/contacts/js/utilities/cookie.js"></script>
     <script defer src="/contacts/js/utilities/extract_params.js"></script>
     <script defer src="/contacts/js/utilities/misc.js"></script>
+    <script defer src="/shared/js/recyclist.js"></script>
 
     <!-- For initializing FB integration -->
     <script defer src="/contacts/js/fb/fb_init.js"></script>
@@ -41,7 +42,6 @@
     <script defer src="/contacts/js/navigation.js"></script>
     <script defer src="/contacts/js/views/list.js"></script>
     <script defer src="/contacts/js/contacts.js"></script>
-    <script defer src="/contacts/js/utilities/image_loader.js"></script>
 
     <!-- for perf-measurement related utilities -->
     <script defer src='/shared/js/performance_testing_helper.js'></script>
@@ -53,7 +53,6 @@
     <script defer src="/contacts/js/fb_loader.js"></script>
 
     <!-- For the build system to include in zip:
-    <link href="/shared/js/tag_visibility_monitor.js">
     <link href="/shared/js/contact2vcard.js">
     <link href="/shared/js/device_storage/get_storage_if_available.js">
     <link href="/shared/js/device_storage/get_unused_filename.js">
@@ -105,6 +104,20 @@
               </div>
             </div>
           </div>
+          <li id="item-template" class="item contact-item"
+            ><aside class="pack-end"
+              ><span data-type="img"></span
+            ></aside
+            ><p
+              ><span class="name contact-text"
+                ><span></span
+                ><strong></strong
+                ><span></span
+              ></span
+            ></p
+            ><p><span class="org"></span></p
+          ></li>
+          <li id="header-template" class="item header-item"> </li>
           <nav data-type="scrollbar">
             <p></p>
             <ol>
@@ -154,9 +167,7 @@
                     </label>
                  </p>
                 </form>
-                <section id="groups-list" data-type="list" class="active">
-                  <!-- Group template here -->
-                </section>
+                <ul id="groups-list" data-type="list" class="active"></ul>
               </div>
             </div>
           </div>

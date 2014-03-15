@@ -1,11 +1,8 @@
 /* Search */
 /* Common search styles */
 form.search {
-  position: absolute;
   width: 100%;
   -moz-box-sizing: border-box;
-  top: 0;
-  left: 0;
   text-align: left;
   z-index: 5;
 }
