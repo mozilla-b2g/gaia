@@ -264,11 +264,10 @@ module.exports = {
       // },
       {
         key: 'grid'
-      }
-      // },
-      // {
-      //   key: 'timer'
-      // },
+      },
+      {
+        key: 'timer'
+      },
       // {
       //   key: 'pictureSizesBack',
       //   condition: { 'cameras': 'back' }

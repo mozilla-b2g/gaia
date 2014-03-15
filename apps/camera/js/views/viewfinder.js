@@ -61,7 +61,6 @@ module.exports = View.extend({
 
   initialize: function() {
     this.render();
-    bind(this.el, 'click', this.onClick);
     this.els.video.autoplay = true;
     this.on('inserted', raf(this.getSize));
   },
@@ -73,7 +72,7 @@ module.exports = View.extend({
     this.els.videoContainer = this.find('.js-video-container');
   },
 
-  onClick: function() {
+  onClick: function(e) {
     this.emit('click');
   },
 
