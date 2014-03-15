@@ -68,7 +68,10 @@ var DownloadStore = (function() {
   // Datastore name declared on the manifest.webapp
   var DATASTORE_NAME = 'download_store';
 
-  // Record Id for the index
+  // Record Id for the index record.
+  // Note: The index record can become out-of-date due to race conditions.
+  //   This code no longer relies on the value of the index record, but
+  //   attempts to update it for the benefit of older apps that might use it.
   var INDEX_ID = 1;
 
   /*
@@ -211,10 +214,13 @@ var DownloadStore = (function() {
       // Enriched object with the id provided by the datastore
       downloadCooked.id = id;
       datastore.put(downloadCooked, id).then(function() {
-        // Get our array of indexes
-        datastore.get(INDEX_ID).then(function(myIndex) {
-          // Update our index with the id of the new object stored
-          myIndex.byTimestamp.push(id);
+        // Update the index record
+        datastore.getAllKeys(INDEX_ID).then(function(keys) {
+          if (keys.indexOf(INDEX_ID) >= 0) {
+            // Don't include the index record itself in the index record
+            keys.splice(keys.indexOf(INDEX_ID), 1);
+          }
+	  var myIndex = {byTimestamp: keys};
           datastore.put(myIndex, INDEX_ID).then(defaultSuccess(req),
                                                 defaultError(req));
         }, defaultError(req));
@@ -235,9 +241,11 @@ var DownloadStore = (function() {
 
   function doGetAll(req) {
     // Getting our index of downloads
-    datastore.get(INDEX_ID).then(function(myIndex) {
-      // Get our index and return the downloads
-      return myIndex.byTimestamp;
+    datastore.getAllKeys().then(function(keys) {
+      if (keys.indexOf(INDEX_ID) >= 0) {  // Skip the index record
+        keys.splice(keys.indexOf(INDEX_ID), 1);
+      }
+      return keys;
     }, defaultError(req)).then(function(ids) {
       datastore.get.apply(datastore, ids).then(defaultSuccess(req),
                                                defaultError(req));
@@ -258,9 +266,13 @@ var DownloadStore = (function() {
     // Removing the download object from datastore
     datastore.remove(id).then(function(success) {
       if (success) {
-        datastore.get(INDEX_ID).then(function(myIndex) {
-          // Getting our index of downloads
-          myIndex.byTimestamp.splice(myIndex.byTimestamp.indexOf(id), 1);
+        // Update the index record
+        datastore.getAllKeys(INDEX_ID).then(function(keys) {
+          if (keys.indexOf(INDEX_ID) >= 0) {
+            // Don't include the index record itself in the index record
+            keys.splice(keys.indexOf(INDEX_ID), 1);
+          }
+	  var myIndex = {byTimestamp: keys};
           datastore.put(myIndex, INDEX_ID).then(defaultSuccess(req),
                                                 defaultError(req));
         }, defaultError(req));
