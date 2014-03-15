@@ -22,11 +22,13 @@ var ids = ['thumbnail-list-view', 'thumbnails-bottom', 'thumbnail-list-title',
            'thumbnails-single-info-button', 'info-view', 'info-close-button',
            'player', 'overlay', 'overlay-title', 'overlay-text',
            'overlay-menu', 'overlay-action-button',
-           'video-container', 'videoControls', 'videoBar', 'videoActionBar',
+           'video-container', 'videoControls', 'videoBar', 'videoControlBar',
            'close', 'play', 'playHead', 'timeSlider', 'elapsedTime',
            'video-title', 'duration-text', 'elapsed-text', 'bufferedTime',
            'slider-wrapper', 'throbber', 'delete-video-button',
-           'picker-close', 'picker-title', 'picker-done'];
+           'picker-close', 'picker-title', 'picker-done', 'option',
+           'option-view', 'option-cancel-button', 'seek-backward',
+           'seek-forward'];
 
 ids.forEach(function createElementRef(name) {
   dom[toCamelCase(name)] = document.getElementById(name);
@@ -160,6 +162,7 @@ function init() {
   }
 
   initPlayerControls();
+  ForwardRewindController.init(dom.player, dom.seekForward, dom.seekBackward);
 
   // We get headphoneschange event when the headphones is plugged or unplugged
   var acm = navigator.mozAudioChannelManager;
@@ -234,6 +237,7 @@ function initPlayerControls() {
   dom.play.addEventListener('click', handlePlayButtonClick);
   dom.close.addEventListener('click', handleCloseButtonClick);
   dom.pickerDone.addEventListener('click', postPickResult);
+  dom.option.addEventListener('click', showOptionsView);
 }
 
 function initOptionsButtons() {
@@ -248,6 +252,8 @@ function initOptionsButtons() {
 
   // info buttons
   dom.infoCloseButton.addEventListener('click', hideInfoView);
+  // option button cancle
+  dom.optionCancelButton.addEventListener('click', hideOptionsView);
   // fullscreen player
   dom.fullscreenButton.addEventListener('click', toggleFullscreenPlayer);
   // fullscreen toolbar
@@ -376,6 +382,7 @@ function handleActivityEvents(a) {
 }
 
 function showInfoView() {
+  hideOptionsView();
   //Get the length of the playing video
   var length = isFinite(currentVideo.metadata.duration) ?
       MediaUtils.formatDuration(currentVideo.metadata.duration) : '';
@@ -434,6 +441,14 @@ function hideSelectView() {
     // We need to load the video while restoring to list mode
     showPlayer(currentVideo, false, false, true);
   }
+}
+
+function showOptionsView() {
+  dom.optionView.classList.remove('hidden');
+}
+
+function hideOptionsView() {
+  dom.optionView.classList.add('hidden');
 }
 
 function clearSelection() {
@@ -800,6 +815,7 @@ function setVideoPlaying(playing) {
 }
 
 function deleteCurrentVideo() {
+  hideOptionsView();
   // If we're deleting the file shown in the player we've got to
   // return to the thumbnail list. We pass false to hidePlayer() to tell it
   // not to record new metadata for the file we're about to delete.
@@ -841,6 +857,7 @@ function postPickResult() {
 }
 
 function shareCurrentVideo() {
+  hideOptionsView();
   videodb.getFile(currentVideo.name, function(blob) {
     share([blob]);
   });
@@ -1081,6 +1098,7 @@ function play() {
   // Start playing
   dom.player.play();
   playing = true;
+  ForwardRewindController.isPlaying = true;
 }
 
 function pause() {
@@ -1090,6 +1108,7 @@ function pause() {
   // Stop playing the video
   dom.player.pause();
   playing = false;
+  ForwardRewindController.isPlaying = false;
 
   //stop recording statistics and print them
   VideoStats.stop();
