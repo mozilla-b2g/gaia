@@ -117,7 +117,9 @@ ul li > label.pack-switch > input + span {
   margin-bottom: 3rem;
 }
 
-#timer-plus-time a {
+#timer-plus-time button {
+  background: #101111;
+  border: none;
   color: #CFE2E6;
   font: 2.5rem sans-serif;
   font-weight: normal;
