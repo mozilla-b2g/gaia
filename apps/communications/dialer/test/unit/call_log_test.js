@@ -503,6 +503,22 @@ suite('dialer/call_log', function() {
     });
   });
 
+  suite('StickyHeader', function() {
+    test('Updated on render', function(done) {
+      this.sinon.spy(CallLog.sticky, 'refresh');
+      appendAndCheckGroupDOM(10, 1, function() {
+        sinon.assert.called(CallLog.sticky.refresh);
+        done();
+      });
+    });
+
+    test('Updated on appendGroup', function() {
+      this.sinon.spy(CallLog.sticky, 'refresh');
+      CallLog.appendGroup(noContactGroup);
+      sinon.assert.called(CallLog.sticky.refresh);
+    });
+  });
+
   suite('updateContactInfo', function() {
     var groupDOM;
     setup(function() {
