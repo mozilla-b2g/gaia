@@ -264,8 +264,25 @@ li a[role="button"].activity > b em{
   font-style: normal;
 }
 
+[data-type="list"] {
+
+}
+
 [data-type="list"] li p {
   margin-left: 1.5rem;
+}
+
+[data-type="list"] li.item {
+  position:absolute;
+  left:0;
+  overflow:hidden;
+}
+
+#item-template,
+li.item.contact-item {
+  display: block;
+  height: 6rem;
+  position: absolute;
 }
 
 /* Long strings (email) */
@@ -285,19 +302,43 @@ li a[role="button"].activity > b{
 
 /* BB Lists extending */
 #view-contacts-list [data-type="list"] {
-  padding: 2.5rem 2.5rem 0 0;
+  margin: 0 2.1rem 0 1.5rem;
 }
 
 .active[data-type="list"] li:after, [data-type="list"] li > a:after {
   left: 0;
 }
 
+.app-contacts li.header-item {
+  height: 3rem;
+  position: absolute;
+  border-bottom: 0.1rem solid #ff4E00;
+  padding: 0 1.5rem;
+  font-size: 1.6rem;
+  line-height: 4rem;
+  font-weight: normal;
+  color: #ff4E00;
+  text-transform: uppercase;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/*
+ * Give the groups-list container position relative to constrain absolutely position list items.
+ * The items need to be constrained within this element, otherwise they will overlay the search box.
+ */
+#groups-list {
+  position: relative;
+}
+
+#groups-container {
+  padding-top: 0;
+}
+
+#header-template,
 [data-type="list"] header {
   padding: 0 0 0 1.5rem;
-  position: sticky;
-  top: -1.5rem;
-  background: #FFF;
-  z-index: 2;
 }
 
 [data-type="list"].active li:after {
@@ -360,7 +401,7 @@ form p + p {
 
 /* Removes scroll from the view body inner */
 .view-noscroll .view-body-inner {
-  width: -moz-calc(100% + 1rem);
+  width: -moz-calc(100% + 1.5rem);
 }
 
 
