@@ -12,8 +12,8 @@
   text-align: center;
   margin: 0 auto;
   overflow: hidden;
-  display: none;
 
+  transform: translateX(99.9%);
   will-change: transform;
 }
 
