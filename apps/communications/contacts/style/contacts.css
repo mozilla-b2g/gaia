@@ -43,6 +43,10 @@ section[role="region"] > header:first-child .icon.icon-edit-contact {
   background: #f4f4f4;
 }
 
+.view-contact-profile .view-body-inner {
+  will-change: transform;
+}
+
 .view-contact-profile #cover-img {
   position: absolute;
   top: 0;
@@ -52,6 +56,7 @@ section[role="region"] > header:first-child .icon.icon-edit-contact {
   background: #f4f4f4 no-repeat;
   background-size: 100% auto;
   transform: translateY(0);
+  will-change: transform;
 }
 
 .view-contact-profile #cover-img.translated {
