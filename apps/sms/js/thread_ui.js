@@ -2010,16 +2010,6 @@ var ThreadUI = global.ThreadUI = {
           items:
             [
               {
-                l10nId: 'forward',
-                method: function forwardMessage(messageId) {
-                  MessageManager.forward = {
-                    messageId: messageId
-                  };
-                  window.location.hash = '#new';
-                },
-                params: [messageId]
-              },
-              {
                 l10nId: 'view-message-report',
                 method: function showMessageReport(messageId) {
                   // Fetch the message by id and display report
@@ -2061,6 +2051,22 @@ var ThreadUI = global.ThreadUI = {
             params: [messageId]
           });
         }
+
+        if (!messageBubble.node.parentNode.classList.contains('invalid-empty-content')) {
+          params.items.splice(0, 0,
+              {
+                l10nId: 'forward',
+                method: function forwardMessage(messageId) {
+                  MessageManager.forward = {
+                    messageId: messageId
+                  };
+                  window.location.hash = '#new';
+                },
+                params: [messageId]
+              }
+          )
+        }
+
 
         var options = new OptionMenu(params);
         options.show();
