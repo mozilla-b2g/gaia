@@ -35,7 +35,8 @@ require(['config/require', 'config'], function() {
       sounds: require('controllers/sounds'),
       timer: require('controllers/timer'),
       zoomBar: require('controllers/zoom-bar'),
-      indicators: require('controllers/indicators')
+      indicators: require('controllers/indicators'),
+      lowBattery: require('controllers/low-battery')
     };
 
     // Attach navigator.mozL10n

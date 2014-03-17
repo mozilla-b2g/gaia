@@ -27,9 +27,15 @@ exports.LowBatteryController = LowBatteryController;
 
 function LowBatteryController(app) {
   this.app = app;
-  this.camera = app.camera;
   this.battery = navigator.battery || navigator.mozBattery;
   this.lowbattery = app.settings.lowbattery;
+  this.notification = app.views.notification;
+  this.low = this.lowbattery.get('low');
+  this.verylow = this.lowbattery.get('verylow');
+  this.critical = this.lowbattery.get('critical');
+  this.shutdown = this.lowbattery.get('shutdown');
+  this.healthy = this.lowbattery.get('healthy');
+  this.charging = this.lowbattery.get('charging');
   bindAll(this);
   this.bindEvents();
   debug('initialized');
@@ -62,34 +68,42 @@ LowBatteryController.prototype.onLevelChange = function () {
 LowBatteryController.prototype.getStatus = function (battery) {
   var value = Math.round(battery.level * 100);
   var isCharging = battery.charging;
-  var low = this.lowbattery.get('low');
-  var verylow = this.lowbattery.get('verylow');
-  var critical = this.lowbattery.get('critical');
-  var shutdown = this.lowbattery.get('shutdown');
-  var healthy = this.lowbattery.get('healthy');
-  var charging = this.lowbattery.get('charging');
-  var level = healthy;
-
+  
+  var level = this.healthy;
+  this.notification.clearPersistentMessage();
+  
   if (isCharging) {
-    return charging;
+    level = this.charging;
   }
 
-   if (value <= low.level) {
-    level = low;
+   if (value <= this.low.level) {
+    level = this.low;
   }
 
-  if (value <= verylow.level) {
-    level = verylow;
+  if (value <= this.verylow.level) {
+    level = this.verylow;
   }
 
-  if (value <= critical.level) {
-    level = critical;
+  if (value <= this.critical.level) {
+    level = this.critical;
   }
 
-  if (value <= shutdown.level) {
+  if (value <= this.shutdown.level) {
     this.shutDownCamera();
-    level = shutdown;
+    level = this.shutdown;
   }
+
+  if (level.notificationID) {
+    var messageObj = {
+      icon: level.icon ? level.icon : null,
+      message: level.notificationID,
+      isPersistent: level.isPersistent ?
+                  level.isPersistent : false
+    };
+
+    this.notification.showNotification(messageObj);
+  }
+  
   return level;
 };
 

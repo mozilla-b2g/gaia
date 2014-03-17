@@ -14,39 +14,82 @@ var find = require('lib/find');
 module.exports = View.extend({
   name:'notification',
 
-  initialize: function(options) {
-    var l10n = navigator.mozL10n;
-    this.message = l10n.get(options.message) ?
-                   l10n.get(options.message) : options.message;
-    this.title = options.title ? 
-                 l10n.get(options.title) : null;
-    this.iconClass = options.icon ? options.icon : null;
+  initialize: function() {
+    this.persistentMessage = false;
     this.el.innerHTML = this.render();
-    this.els.notification = find('.js-notification', this.el);
+    this.l10n = navigator.mozL10n;
+    this.timeout = null;
+    this.els.transientElm = find('.js-transient', this.el);
+    this.els.persistentElm = find('.js-persistent', this.el);
     
-    if (options.isFullScreen) {
-      this.showFullScreenMessage();
-    } else {
-      this.showNotification();
-    }
   },
 
   render: function() {
-    return '<div class="js-notification"></div>';
+    return '<div class="js-transient "></div>'+
+           '<div class="js-persistent"></div>';
   },
 
-  showNotification: function() {
-    var iconElement = this.iconClass ?
-                      '<div class="imgBox '+this.iconClass+'" ></div>' : '';
-    this.els.notification.innerHTML = iconElement+this.message;
-    this.els.notification.classList.add('normal');
-   },
+  showNotification: function(options) {
+    this.checkMessageState(options);
+    if (options.isPersistent) {
+      this.showPersistentMessage(options);
+      this.persistentMessage = options.isPersistent;
+    } else {
+      this.showTransientMessage(options);
+    }
+  },
+
+  showPersistentMessage: function(options) {
+    var message = this.l10n.get(options.message) ?
+                  this.l10n.get(options.message) : options.message;
+    var iconElement = options.icon ?
+                      '<div class="imgBox '+options.icon+'" ></div>' : '';
+
+    this.els.persistentElm.innerHTML = iconElement+message;
+    this.els.persistentElm.classList.add('normal');
+    this.els.persistentElm.classList.remove('hidden');
+  },
   
-  showFullScreenMessage: function() {
-    var messages = '<div class = "messageTitle" >'+this.title+'</div>'+
-                   '<div class = "message" >'+this.message+ ' </div>'; 
-    this.els.notification.innerHTML = messages;
-    this.els.notification.classList.add('fullScreen');
+  showTransientMessage: function(options) {
+    var message = this.l10n.get(options.message) ?
+                  this.l10n.get(options.message) : options.message;
+    var iconElement = options.icon ?
+                      '<div class="imgBox '+options.icon+'" ></div>' : '';
+    var self = this;
+    this.els.transientElm.innerHTML = iconElement+message;
+    this.els.transientElm.classList.add('normal');
+    this.timeout = window.setTimeout(function() {
+      self.clearTransientMessage();
+      if (self.persistentMessage) {
+        self.els.persistentElm.classList.remove('hidden');
+      }
+    }, 3000);
+  },
+
+  clearTransientMessage: function() {
+    if (this.timeout) {
+      window.clearTimeout(this.timeout);
+      this.timeout = null;
+    }
+    this.els.transientElm.innerHTML = '';
+  },
+
+  hidePersistentMessage: function() {
+    this.els.persistentElm.classList.add('hidden');
+  },
+
+  clearPersistentMessage: function() {
+    this.els.persistentElm.innerHTML = '';
+    this.hidePersistentMessage();
+  },
+
+  checkMessageState: function(options) {
+    this.clearTransientMessage();
+    if (options.isPersistent) {
+      this.clearPersistentMessage();
+    } else if (this.persistentMessage) {
+      this.hidePersistentMessage();
+    }
   },
   
 });

@@ -11,6 +11,7 @@ var RecordingTimerView = require('views/recording-timer');
 var ControlsView = require('views/controls');
 var FocusRing = require('views/focus-ring');
 var ZoomBarView = require('views/zoom-bar');
+var Notification = require('views/notification');
 var lockscreen = require('lib/lock-screen');
 var constants = require('config/camera');
 var broadcast = require('lib/broadcast');
@@ -115,6 +116,7 @@ App.prototype.runControllers = function() {
   this.controllers.sounds(this);
   this.controllers.hud(this);
   this.controllers.zoomBar(this);
+  this.controllers.lowBattery(this);
   debug('controllers run');
 };
 
@@ -126,6 +128,7 @@ App.prototype.initializeViews = function() {
   this.views.controls = new ControlsView();
   this.views.hud = new HudView();
   this.views.zoomBar = new ZoomBarView();
+  this.views.notification = new Notification();
   debug('views initialized');
 };
 
@@ -137,6 +140,7 @@ App.prototype.injectViews = function() {
   this.views.controls.appendTo(this.el);
   this.views.hud.appendTo(this.el);
   this.views.zoomBar.appendTo(this.el);
+  this.views.notification.appendTo(this.el);
   debug('views injected');
 };
 
@@ -217,7 +221,7 @@ App.prototype.shutDownCamera = function() {
  * @param {[type]} [status] [object]
  */
 App.prototype.onBatteryStatusChange = function(status) {
-  this.emit('notification', status);
+  //handle this event in indicator
   this.emit('change:batteryStatus', status.value);
 };
 

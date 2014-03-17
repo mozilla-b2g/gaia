@@ -17,14 +17,14 @@ module.exports = {
   },
   lowbattery: {
     low: {
-      message: 'battery-low-text',
+      notificationID: 'battery-low-text',
       icon: 'icon-battery-low',
       event: 'battery:low',
       value: 'low',
       level: 15
     },
     verylow: {
-      message: 'battery-verylow-text',
+      notificationID: 'battery-verylow-text',
       icon: 'icon-battery-verylow',
       event: 'battery:verylow',
       value: 'verylow',
@@ -32,30 +32,27 @@ module.exports = {
     },
     critical: {
       isPersistent: true,
-      message: 'battery-critical-text',
-      icon: 'icon-battery-verylow',
+      notificationID: 'battery-critical-text',
+      icon: 'icon-battery-critical',
       event: 'battery:critical',
       value: 'critical',
       level: 6
     },
     shutdown: {
       isFullScreen: true,
-      message: 'battery-shutdown-text',
-      title: 'battery-shutdown-title',
+      notificationID: 'battery-shutdown-text',
+      notificationTitleID: 'battery-shutdown-title',
       event: 'battery:shutdown',
-      icon: '',
       value: 'shutdown',
       level: 5
     },
     healthy: {
       event: 'battery:healthy',
-      icon: '',
       value: 'healthy',
       level: 100
     },
     charging: {
       event: 'battery:charging',
-      icon: '',
       value: 'charging'
     }
   },
@@ -228,15 +225,17 @@ module.exports = {
     selected: 'off',
     persistent: true
   },
-
+  
   timer: {
     icon: 'icon-timer',
     options: [
       {
         key: 'off',
-        title: 'Off',
         value: 0,
-        message: 'timer-set-off'
+        l10n: {
+          title: 'off',
+          notificationID: 'timer-set-off'
+        }
       },
       {
         key: '3secs',
@@ -298,17 +297,17 @@ module.exports = {
       {
         key: 'normal',
         title: 'Normal',
-        message: 'scene-set-normal'
+        notificationID: 'scene-set-normal'
       },
       {
         key: 'pano',
         title: 'Panorama',
-        message: 'scene-set-pano'
+        notificationID: 'scene-set-pano'
       },
       {
         key: 'beauty',
         title: 'Beauty',
-        message: 'scene-set-beauty'
+        notificationID: 'scene-set-beauty'
       }
     ],
     selected: 'normal',
@@ -347,7 +346,7 @@ module.exports = {
     persistent: true,
     l10n: { title: 'grid' }
   },
-
+  
   settingsMenu: {
     items: [
       {
