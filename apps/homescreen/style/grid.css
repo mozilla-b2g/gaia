@@ -5,6 +5,10 @@
 }
 
 /* pages */
+.apps > div:first-child {
+  transform: translateX(0);
+}
+
 .apps > div {
   position: absolute;
   width: 100%;
@@ -12,7 +16,9 @@
   text-align: center;
   margin: 0 auto;
   overflow: hidden;
-  display: none;
+
+  transform: translateX(99.9%);
+  will-change: transform;
 }
 
 .apps ol {
@@ -25,8 +31,6 @@
 
   /* collection is opened, homescreen apps are faded out */
   transition: opacity 200ms linear;
-
-  will-change: transform, opacity;
 }
 
 .apps ol > li {
