@@ -578,7 +578,7 @@ section[role="region"] > header .icon.icon-settings {
 
 .result {
   display: block;
-  min-height: 0rem !important;
+  min-height: 0 !important;
   text-align: center;
   height: 5rem;
   line-height: 5rem;
@@ -683,7 +683,7 @@ section[role="region"] > header .icon.icon-settings {
   /* pass the events from <span> to <input> */
   pointer-events: none;
   position: absolute;
-  top: 0rem;
+  top: 0;
   left: 1rem;
   right: 0;
   line-height: 4rem;

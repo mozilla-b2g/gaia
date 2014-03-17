@@ -203,14 +203,6 @@ menu, nav, section, video, audio, canvas, progress, meter, time {
   transform: translateY(100%);
 }
 
-
-/* BB Header redefinition
-    This avoids full repainting on scroll in the contacts lists
-    We must fill a bug with this issue
- */
-section[role="region"] > header:first-child {
-}
-
 /* Rewritting from buttons.css */
 section[role="region"] > header:first-child button,
 section[role="region"] > header:first-child a[role="button"] {
