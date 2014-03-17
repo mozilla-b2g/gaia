@@ -34,6 +34,11 @@ module.exports = View.extend({
   onButtonClick: function(e, el) {
     var name = el.getAttribute('name');
     e.stopPropagation();
+
+    if(name === 'gallery' && this.els.image) {
+      name = 'thumbnail';
+    }
+
     this.emit('click:' + name, e);
   },
 
@@ -69,6 +74,12 @@ module.exports = View.extend({
       window.URL.revokeObjectURL(this.els.image.src);
     }
     this.els.image.src = window.URL.createObjectURL(blob);
+  },
+
+  removeThumbnail: function() {
+    this.els.thumbnail.removeChild(this.els.image);
+    window.URL.revokeObjectURL(this.els.image.src);
+    this.els.image = null;
   }
 
 });

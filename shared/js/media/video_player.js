@@ -200,6 +200,9 @@ function VideoPlayer(container) {
     // If we're not showing the player or are paused, go to the play state
     if (!self.playerShowing || player.paused) {
       self.play();
+
+      var videoPlay = new CustomEvent('videoPlayerState', { detail: 'play' });
+      container.dispatchEvent(videoPlay);
     }
     e.stopPropagation();
   });
@@ -207,6 +210,9 @@ function VideoPlayer(container) {
   // Hook up the pause button
   pausebutton.addEventListener('tap', function(e) {
     self.pause();
+
+    var videoPlay = new CustomEvent('videoPlayerState', { detail: 'pause' });
+    container.dispatchEvent(videoPlay);
     e.stopPropagation();
   });
 
@@ -216,6 +222,7 @@ function VideoPlayer(container) {
     if (e.target === controls && !player.paused) {
       footer.classList.toggle('hidden');
       controlsHidden = !controlsHidden;
+      e.stopPropagation();
     }
   });
 
@@ -245,6 +252,9 @@ function VideoPlayer(container) {
     }
     self.pause();
     self.init();
+
+    var videoPlay = new CustomEvent('videoPlayerState', { detail: 'stop' });
+    container.dispatchEvent(videoPlay);
   };
 
   // Update the slider and elapsed time as the video plays
