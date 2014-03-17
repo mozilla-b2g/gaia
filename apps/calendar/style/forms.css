@@ -37,7 +37,7 @@ form li {
   /* pass the events from <span> to <input> */
   pointer-events: none;
   position: absolute;
-  top: 0rem;
+  top: 0;
   left: 1.5rem;
   font-weight: normal;
 }
