@@ -599,7 +599,7 @@ button::-moz-focus-inner {
 
 #lockscreen-icon-container {
   position: absolute;
-  bottom: 0rem;
+  bottom: 0;
   width: 100%;
   height: 10rem;
   pointer-events: none;

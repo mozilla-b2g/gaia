@@ -180,13 +180,13 @@
 }
 
 /* Level 8 */
-#screen > [data-z-index-level="app"] {
-  /**
-   * Should not specify z-index here
-   * Keyboard should be kept upon #windows
-   * and beneath #windows > .appWindow
-   */
-}
+/**
+ *#screen > [data-z-index-level="app"] {
+ *  Should not specify z-index here
+ *  Keyboard should be kept upon #windows
+ *  and beneath #windows > .appWindow
+ *}
+ */
 
 /* The below z-index numbers are used to meet the following conditions:
  * - active ones must be on top of inactive ones
