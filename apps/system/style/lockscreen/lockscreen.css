@@ -14,6 +14,19 @@
     opacity 0.5s cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
+#lockscreen > #lockscreen-disabled-cover {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #000;
+  display: none;
+}
+
+#lockscreen.disabled > #lockscreen-disabled-cover {
+  display: block;
+}
+
 #screen.active-statusbar > #lockscreen {
   top: 4rem;
   height: calc(100% - 4rem);
@@ -587,4 +600,9 @@ button::-moz-focus-inner {
   bottom: 0.75rem;
   z-index: 8;
   width: 100%;
+}
+
+/* The cover would overlapped the lockscreen to disabled it */
+#lockscreen > [data-z-index-level="lockscreen-disabled-cover"] {
+  z-index: 10000;
 }
