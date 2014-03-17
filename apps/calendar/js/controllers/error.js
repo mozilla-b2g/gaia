@@ -1,4 +1,5 @@
 Calendar.ns('Controllers').Error = (function() {
+  'use strict';
 
   /**
    * Global error handler / default handling for errors.
@@ -46,8 +47,9 @@ Calendar.ns('Controllers').Error = (function() {
      * @param {Function} [callback] optional callback.
      */
     handleAuthenticate: function(account, callback) {
-      if (!account)
+      if (!account) {
         return console.error('attempting to trigger reauth without an account');
+      }
 
       // only trigger notification the first time there is an error.
       if (!account.error || account.error.count !== 1) {
