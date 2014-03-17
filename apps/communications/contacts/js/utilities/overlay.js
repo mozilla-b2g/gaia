@@ -1,6 +1,7 @@
+/* global _ */
 'use strict';
 
-var utils = this.utils || {};
+var utils = window.utils || {};
 (function() {
   utils.overlay = {};
 

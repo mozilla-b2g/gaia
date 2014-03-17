@@ -1,3 +1,6 @@
+/*jshint loopfunc: true */
+/* global LazyLoader, utils, contacts */
+/* exported SimContactsImporter */
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
@@ -15,13 +18,11 @@
 function SimContactsImporter(targetIcc) {
   if (targetIcc === null) {
     throw new Error('We need an icc to continue with this operation');
-    return;
   }
   var pointer = 0;
   var CHUNK_SIZE = 5;
   var numResponses = 0;
   var self = this;
-  var _ = navigator.mozL10n.get;
   var mustFinish = false;
   var loadedMatch = false;
   var DEFAULT_TEL_TYPE = 'other';
@@ -87,7 +88,6 @@ function SimContactsImporter(targetIcc) {
       document.dispatchEvent(new CustomEvent('matchLoaded'));
     });
 
-    var iccManager = navigator.mozIccManager;
     var request;
 
     // request contacts with readContacts() -- valid types are:
