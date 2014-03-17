@@ -464,6 +464,10 @@ section.has-carrier .article-list header:first-child {
   background: #fff;
 }
 
+#messages-container[data-type="list"] ul {
+  background-color: #e4e4e4;
+}
+
 #messages-container[data-type="list"] .message.mms .bubble img {
   height: auto;
   width: auto;
