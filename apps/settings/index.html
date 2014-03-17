@@ -62,9 +62,6 @@
     <!-- Screen layout watcher -->
     <script defer="" src="/shared/js/screen_layout.js"></script>
 
-    <!-- Firefox Accounts status code -->
-    <script defer="" src="js/firefox_accounts/menu_loader.js"></script>
-
     <!-- Specific code -->
     <script defer="" src="js/settings.js"></script>
 
@@ -83,8 +80,6 @@
     <!--<script defer src="shared/js/settings_listener.js"></script> -->
     <!--<script defer src="shared/js/airplane_mode_helper.js"></script> -->
     <!--<script defer src="shared/js/toaster.js"></script> -->
-    <!--<script defer src="shared/js/fxa_iac_client.js"></script> -->
-    <!--<script defer src="shared/js/text_normalizer.js"></script> -->
 
     <!-- all non-#root panels will lazy-load their own scripts -->
     <link rel="import" href="/elements/wifi_status.html">
@@ -160,7 +155,6 @@
     <link rel="import" href="/elements/help.html">
     <link rel="import" href="/elements/icc.html">
     <link rel="import" href="/elements/downloads.html">
-    <link rel="import" href="/elements/firefox_accounts.html">
   </head>
   <body class="skin-organic uninit">
     <!--
@@ -337,9 +331,6 @@
     <!-- SIM Toolkit -->
     <section is="icc" role="region" id="icc"></section>
 
-    <!-- Firefox Accounts -->
-    <section is="fxa" role="region" id="fxa"></section>
-
     <!-- Main List -->
     <section role="region" id="root" class="current" data-rendered="true">
       <header>
@@ -433,17 +424,17 @@
         </ul>
 
         <!-- Main :: Accounts -->
-        <span data-show-name="identity.fxaccounts.ui.enabled" hidden>
-          <header>
-            <h2 data-l10n-id="accounts">Accounts</h2>
-          </header>
-          <ul>
-            <li>
-              <small id="fxa-desc" class="menu-item-desc"></small>
-              <a id="menuItem-fxa" class="menu-item" href="#fxa" data-l10n-id="fxa-accounts">Firefox Accounts</a>
-            </li>
-          </ul>
-        </span>
+        <header hidden="">
+          <h2 data-l10n-id="accounts">Accounts</h2>
+        </header>
+        <ul hidden="">
+          <li>
+            <a id="menuItem-persona" class="menu-item" href="#persona" data-l10n-id="persona">Persona</a>
+          </li>
+          <li>
+            <a id="menuItem-mail" class="menu-item" href="#mail" data-l10n-id="mail">Mail</a>
+          </li>
+        </ul>
 
         <!-- Main :: Security & Privacy -->
         <header>

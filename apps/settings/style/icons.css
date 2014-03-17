@@ -89,7 +89,7 @@ li:active:not([aria-disabled="true"]) .menu-item::before,
   background-position: -3rem -6rem;
 }
 
-#menuItem-fxa::before {
+#menuItem-persona::before {
   background-position: -6rem -6rem;
 }
 
