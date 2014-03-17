@@ -15,8 +15,7 @@ suite('controllers/viewfinder', function() {
       'lib/setting'
     ], function(
       App, Camera, ViewfinderController,
-      ViewfinderView, Activity, Settings, Setting
-    ) {
+      ViewfinderView, Activity, Settings, Setting) {
       self.ViewfinderController = ViewfinderController.ViewfinderController;
       self.ViewfinderView = ViewfinderView;
       self.Settings = Settings;
@@ -36,7 +35,7 @@ suite('controllers/viewfinder', function() {
     this.app.settings.grid = sinon.createStubInstance(this.Setting);
     this.app.filmstrip = { toggle: sinon.spy() };
     this.app.views = {
-      viewfinder: sinon.createStubInstance(this.ViewfinderView),
+      viewfinder: sinon.createStubInstance(this.ViewfinderView)
     };
 
     // Settings
@@ -58,27 +57,6 @@ suite('controllers/viewfinder', function() {
       this.viewfinder.emit('click');
 
       assert.isFalse(this.filmstrip.toggle.called);
-    });
-
-    test('Should *not* hide the filmstrip if activity is pending', function() {
-      this.app.get
-        .withArgs('recording')
-        .returns(false);
-
-      this.app.activity.active = true;
-      this.controller = new this.ViewfinderController(this.app);
-      this.controller.onViewfinderClick();
-      assert.isFalse(this.filmstrip.toggle.called);
-    });
-
-    test('Should hide the filmstrip if activity is pending', function() {
-      this.app.get
-        .withArgs('recording')
-        .returns(false);
-
-      this.controller = new this.ViewfinderController(this.app);
-      this.controller.onViewfinderClick();
-      assert.isTrue(this.filmstrip.toggle.called);
     });
 
     test('Should set the grid depending on the setting', function() {

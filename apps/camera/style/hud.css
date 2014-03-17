@@ -10,10 +10,6 @@
   transform: translateZ(1px);
 }
 
-body:not(.filmstriphidden) .hud {
-  transform: translateY(5rem);
-}
-
 /**
  * @hidden
  */
