@@ -227,7 +227,8 @@ suite('dialer/keypad', function() {
       });
 
       setup(function() {
-        mockCall = new MockCall('12334', 'connected');
+        mockCall = new MockCall('12334', 'connected', 0);
+        MockMozTelephony.active = mockCall;
         mockHC = telephonyAddCall.call(this, mockCall);
         MockCallsHandler.mActiveCall = mockHC;
         MockSettingsListener.mCallbacks['phone.ring.keypad'](true);
@@ -250,6 +251,7 @@ suite('dialer/keypad', function() {
 
           subject._touchStart('1');
           assert.isTrue(startSpy.calledWith(gTonesFrequencies['1'], false));
+          subject._touchEnd('1');
         });
 
         test('Short tones are enabled via prefs', function() {
@@ -258,53 +260,67 @@ suite('dialer/keypad', function() {
           MockSettingsListener.mCallbacks['phone.dtmf.type']('short');
           subject._touchStart('1');
           assert.isTrue(startSpy.calledWith(gTonesFrequencies['1'], true));
+          subject._touchEnd('1');
         });
 
         test('Pressing a button during a call plays a DTMF tone', function() {
-          var startToneSpy = this.sinon.spy(MockMozTelephony, 'startTone');
-          var stopToneSpy = this.sinon.spy(MockMozTelephony, 'stopTone');
+          this.sinon.spy(MockMozTelephony, 'startTone');
+          this.sinon.spy(MockMozTelephony, 'stopTone');
 
           subject._touchStart('1');
-          assert.isTrue(stopToneSpy.calledOnce);
-          assert.isTrue(startToneSpy.calledWith('1'));
+          sinon.assert.calledWith(MockMozTelephony.stopTone, 0);
+          sinon.assert.calledWith(MockMozTelephony.startTone, '1', 0);
           subject._touchEnd('1');
-          assert.equal(stopToneSpy.callCount, 2);
+          sinon.assert.calledTwice(MockMozTelephony.stopTone);
         });
 
         test('Long DTMF tones stop when leaving the button', function() {
-          var stopToneSpy = this.sinon.spy(MockMozTelephony, 'stopTone');
+          this.sinon.spy(MockMozTelephony, 'startTone');
+          this.sinon.spy(MockMozTelephony, 'stopTone');
 
           MockSettingsListener.mCallbacks['phone.dtmf.type']('long');
 
           subject._touchStart('1');
-          assert.isTrue(stopToneSpy.calledOnce);
+          sinon.assert.calledWith(MockMozTelephony.stopTone, 0);
+          sinon.assert.calledWith(MockMozTelephony.startTone, '1', 0);
           document.elementFromPoint.returns({ dataset: { value: '2' }});
           subject._touchMove({ pageX: 0, pageY: 0 });
-          assert.equal(stopToneSpy.callCount, 2);
+          sinon.assert.calledTwice(MockMozTelephony.stopTone);
         });
 
         test('Short DTMF tones stop after 120ms', function() {
-          var stopToneSpy = this.sinon.spy(MockMozTelephony, 'stopTone');
+          this.sinon.spy(MockMozTelephony, 'startTone');
+          this.sinon.spy(MockMozTelephony, 'stopTone');
 
           MockSettingsListener.mCallbacks['phone.dtmf.type']('short');
 
           subject._touchStart('1');
           this.sinon.clock.tick(119);
-          assert.isTrue(stopToneSpy.calledOnce);
+          sinon.assert.calledWith(MockMozTelephony.stopTone, 0);
+          sinon.assert.calledOnce(MockMozTelephony.startTone, '1', 0);
           this.sinon.clock.tick(1);
-          assert.equal(stopToneSpy.callCount, 2);
+          sinon.assert.calledTwice(MockMozTelephony.stopTone);
         });
       });
 
       suite('then during a conference group', function() {
-        setup(function() {
+        suiteSetup(function() {
           MockCallsHandler.mActiveCall = null;
+          MockMozTelephony.conferenceGroup.calls = MockMozTelephony.calls;
+          MockMozTelephony.active = MockMozTelephony.conferenceGroup;
         });
 
         test('should not fail while typing', function() {
+          this.sinon.spy(MockMozTelephony, 'startTone');
+          this.sinon.spy(MockMozTelephony, 'stopTone');
+
           subject._touchStart('1');
+          sinon.assert.calledWith(MockMozTelephony.stopTone, 0);
+          sinon.assert.calledWith(MockMozTelephony.startTone, '1', 0);
           this.sinon.clock.tick();
           assert.ok(true, 'got here');
+          subject._touchEnd('1');
+          sinon.assert.calledWith(MockMozTelephony.stopTone, 0);
         });
 
         test('should not fail when restoring infos', function() {
