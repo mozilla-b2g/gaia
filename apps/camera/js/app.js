@@ -108,7 +108,6 @@ App.prototype.runControllers = function() {
   this.controllers.camera(this);
   this.controllers.viewfinder(this);
   this.controllers.recordingTimer(this);
-  this.controllers.indicators(this);
   this.controllers.controls(this);
   this.controllers.confirm(this);
   this.controllers.overlay(this);
@@ -119,7 +118,6 @@ App.prototype.runControllers = function() {
 };
 
 App.prototype.initializeViews = function() {
-  debug('initializing views');
   this.views.viewfinder = new ViewfinderView();
   this.views.recordingTimer = new RecordingTimerView();
   this.views.focusRing = new FocusRing();
@@ -130,7 +128,6 @@ App.prototype.initializeViews = function() {
 };
 
 App.prototype.injectViews = function() {
-  debug('injecting views');
   this.views.viewfinder.appendTo(this.el);
   this.views.recordingTimer.appendTo(this.el);
   this.views.focusRing.appendTo(this.el);
