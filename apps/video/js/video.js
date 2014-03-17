@@ -319,7 +319,9 @@ function handleScreenLayoutChange() {
       if (isPortrait) {
         hidePlayer(true);
       } else {
-        showPlayer(currentVideo, false, false, true);
+        showPlayer(currentVideo, false, /* autoPlay */
+                                 false, /* enterFullscreen */
+                                 true); /* keepControls */
       }
     }
     // the maximum lines of title field is different in portrait or landscape
@@ -432,7 +434,9 @@ function hideSelectView() {
   switchLayout(LAYOUT_MODE.list);
   if (!isPhone && !isPortrait && currentVideo) {
     // We need to load the video while restoring to list mode
-    showPlayer(currentVideo, false, false, true);
+    showPlayer(currentVideo, false, /* autoPlay */
+                             false, /* enterFullscreen */
+                             true); /* keepControls */
   }
 }
 
@@ -678,7 +682,9 @@ function updateLoadingSpinner() {
       // mode.
       currentVideo = thumbnailList.itemGroups[0].thumbnails[0].data;
       if (!isPhone && !isPortrait) {
-        showPlayer(currentVideo, false, false, true);
+        showPlayer(currentVideo, false, /* autoPlay */
+                                 false, /* enterFullscreen */
+                                 true); /* keepControls */
       }
     }
   }
