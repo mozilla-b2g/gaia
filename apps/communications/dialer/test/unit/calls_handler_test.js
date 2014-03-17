@@ -101,18 +101,6 @@ suite('calls handler', function() {
         MockMozTelephony.mTriggerCallsChanged();
         assert.isTrue(speakerSpy.calledOnce);
       });
-
-      test('should vibrate right away if the setting is enabled', function() {
-        var vibrateSpy = this.sinon.spy(navigator, 'vibrate');
-
-        MockSettingsListener.mCallbacks['vibration.enabled'](true);
-        CallsHandler.setup();
-        MockMozTelephony.mTriggerCallsChanged();
-
-        assert.isTrue(vibrateSpy.calledOnce);
-        this.sinon.clock.tick(600);
-        assert.isTrue(vibrateSpy.calledTwice);
-      });
     });
 
     suite('> hanging up the last incoming call', function() {

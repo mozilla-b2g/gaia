@@ -82,7 +82,6 @@
     "wifi-manage":{},
     "time": {},
     "audio-channel-telephony":{},
-    "audio-channel-ringer":{},
     "idle":{},
     "storage": {},
     "device-storage:sdcard": { "access": "readcreate" },

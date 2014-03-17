@@ -38,6 +38,7 @@
     "permissions":{},
     "audio-channel-notification":{},
     "audio-channel-content":{},
+    "audio-channel-ringer":{},
     "cellbroadcast":{},
     "input":{},
     "input-manage":{},
