@@ -80,7 +80,18 @@
   display: none;
 }
 
-.controls-gallery-button > img {
+/** Thumbnail Button
+ ---------------------------------------------------------*/
+
+.controls-thumbnail-button {
+  display: none;
+}
+
+.controls[thumbnail=true] .controls-thumbnail-button {
+  display: block;
+}
+
+.controls-thumbnail-button > img {
   position: absolute;
   top: 0;
   left: 0;

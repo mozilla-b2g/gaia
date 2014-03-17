@@ -82,6 +82,7 @@ suite('app', function() {
         timer: sinon.spy(),
         controls: sinon.spy(),
         viewfinder: sinon.spy(),
+        previewGallery: sinon.spy();
         overlay: sinon.spy(),
         confirm: sinon.spy(),
         camera: sinon.spy(),
@@ -161,6 +162,7 @@ suite('app', function() {
       assert.ok(controllers.hud.calledWith(app));
       assert.ok(controllers.controls.calledWith(app));
       assert.ok(controllers.viewfinder.calledWith(app));
+      assert.ok(controllers.previewGallery.calledWith(app));
       assert.ok(controllers.overlay.calledWith(app));
       assert.ok(controllers.camera.calledWith(app));
       assert.ok(controllers.zoomBar.calledWith(app));

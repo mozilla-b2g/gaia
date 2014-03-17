@@ -31,7 +31,6 @@ function CameraController(app) {
   this.storage = app.storage;
   this.settings = app.settings;
   this.activity = app.activity;
-  this.filmstrip = app.filmstrip;
   this.viewfinder = app.views.viewfinder;
   this.controls = app.views.controls;
   this.hdrDisabled = this.settings.hdr.get('disabled');
@@ -171,7 +170,6 @@ CameraController.prototype.shouldCountdown = function() {
 };
 
 CameraController.prototype.onNewImage = function(image) {
-  var filmstrip = this.filmstrip;
   var storage = this.storage;
   var blob = image.blob;
   var self = this;
@@ -181,17 +179,18 @@ CameraController.prototype.onNewImage = function(image) {
   storage.addImage(blob, function(filepath) {
     debug('stored image', filepath);
     if (!self.activity.active) {
-      filmstrip.addImageAndShow(filepath, blob);
+      image.filepath = filepath;
+      self.createThumbnail(image, onThumbnailCreated);
     }
   });
 
   debug('new image', image);
   this.app.emit('newimage', image);
 
-  this.createThumbnail(image, onThumbnailCreated);
-
   function onThumbnailCreated(thumbnailBlob) {
     self.app.emit('newthumbnail', thumbnailBlob);
+    image.thumbnail = thumbnailBlob;
+    self.app.emit('newmedia', image);
   }
 
 };
@@ -216,12 +215,6 @@ CameraController.prototype.onNewVideo = function(video) {
   var poster = video.poster;
   video.isVideo = true;
 
-  // Add the video to the filmstrip,
-  // then save lazily so as not to block UI
-  if (!this.activity.active) {
-    this.filmstrip.addVideoAndShow(video);
-  }
-
   // Add the poster image to the image storage
   poster.filepath = video.filepath.replace('.3gp', '.jpg');
   storage.addImage(poster.blob, { filepath: poster.filepath });
@@ -231,6 +224,8 @@ CameraController.prototype.onNewVideo = function(video) {
 
   function onThumbnailCreated(thumbnailBlob) {
     self.app.emit('newthumbnail', thumbnailBlob);
+    video.thumbnail = thumbnailBlob;
+    self.app.emit('newmedia', video);
   }
 };
 
@@ -298,12 +293,6 @@ CameraController.prototype.onBlur = function() {
     console.error('error while stopping preview', e.message);
   } finally {
     camera.release();
-  }
-
-  // If the lockscreen is locked
-  // then forget everything when closing camera
-  if (this.app.inSecureMode) {
-    this.filmstrip.clear();
   }
 
   debug('torn down');
