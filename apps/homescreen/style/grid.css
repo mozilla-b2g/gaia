@@ -11,8 +11,11 @@
   height: calc(100% - 7.6rem);
   text-align: center;
   margin: 0 auto;
-  overflow: hidden;
-  display: none;
+  opacity: 0;
+}
+
+.apps > div[data-visible] {
+  opacity: 1;
 }
 
 .apps ol {
