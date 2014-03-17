@@ -43,6 +43,7 @@
   height: auto;
   text-align: center;
   font-size: 2rem;
+   text-shadow: 0px 1px #000000;
 }
 
 .notification .imgBox {
@@ -51,13 +52,18 @@
 }
 
 .deg90 .notification .normal {
-  left: 50%;
-  bottom: 45%;
+  left: 60%;
+  bottom: 58%;
   transform: rotate(270deg);
 }
 
 .deg270 .notification .normal {
-  left: -5%;
-  bottom: 45%;
+  left: -21%;
+  bottom: 58%;
   transform: rotate(90deg);
 }
+.deg180 .notification .normal {
+  transform: rotate(180deg);
+}
+
+.hidden { display: none; }

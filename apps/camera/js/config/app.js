@@ -190,16 +190,18 @@ module.exports = {
     options: [
       {
         key: 'off',
-        title: 'Off',
         value: 0,
-        message: 'timer-set-off'
+        l10n: {
+          title: 'off',
+          notificationID: 'timer-set-off'
+        }
       },
       {
         key: '3secs',
         value: 3,
         l10n: {
           title: '3-seconds',
-          message: 'timer-set-3secs'
+          notificationID: 'timer-set-3secs'
         }
       },
       {
@@ -207,7 +209,7 @@ module.exports = {
         value: 5,
         l10n: {
           title: '5-seconds',
-          message: 'timer-set-5secs'
+          notificationID: 'timer-set-5secs'
         }
       },
       {
@@ -215,7 +217,7 @@ module.exports = {
         value: 10,
         l10n: {
           title: '10-seconds',
-          message: 'timer-set-10secs'
+          notificationID: 'timer-set-10secs'
         }
       }
     ],
@@ -232,14 +234,14 @@ module.exports = {
         key: 'off',
         l10n: {
           title: 'off',
-          message: 'hdr-set-off'
+          notificationID: 'hdr-set-off'
         }
       },
       {
         key: 'on',
         l10n: {
           title: 'on',
-          message: 'hdr-set-on'
+          notificationID: 'hdr-set-on'
         }
       }
     ],
@@ -252,17 +254,17 @@ module.exports = {
       {
         key: 'normal',
         title: 'Normal',
-        message: 'scene-set-normal'
+        notificationID: 'scene-set-normal'
       },
       {
         key: 'pano',
         title: 'Panorama',
-        message: 'scene-set-pano'
+        notificationID: 'scene-set-pano'
       },
       {
         key: 'beauty',
         title: 'Beauty',
-        message: 'scene-set-beauty'
+        notificationID: 'scene-set-beauty'
       }
     ],
     persistent: true,
@@ -276,14 +278,14 @@ module.exports = {
         key: 'on',
         l10n: {
           title: 'on',
-          message: 'grid-set-on'
+          notificationID: 'grid-set-on'
         }
       },
       {
         key: 'off',
         l10n: {
           title: 'off',
-          message: 'grid-set-off'
+          notificationID: 'grid-set-off'
         }
 
       }
