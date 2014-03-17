@@ -143,6 +143,10 @@ section[role="region"] > header:first-child .icon.icon-edit-contact {
   margin: 0.1rem 0;
 }
 
+#contact-detail.no-calls li[data-phone] button.make-call {
+  pointer-events: none;
+}
+
 #contact-detail .social-actions button {
   margin-bottom: 1rem;
 }
