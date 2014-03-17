@@ -36,6 +36,7 @@
    "debug.paint-flashing.enabled": false,
    "debug.peformancedata.shared": false,
    "debug.gaia.enabled": false,
+   "debug.show-touches.enabled": false,
    "deviceinfo.firmware_revision": "",
    "deviceinfo.hardware": "",
    "deviceinfo.mac": "",
