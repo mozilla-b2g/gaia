@@ -352,40 +352,4 @@ suite('lib/setting', function() {
       assert.ok(spy.called);
     });
   });
-
-  suite('Setting#supported()', function() {
-    setup(function() {
-      this.config = {
-        title: 'My title',
-        options: [{ key: 'a' }, { key: 'b' }]
-      };
-    });
-
-    test('Should return false if disabled', function() {
-      var setting;
-
-      this.config.disabled = true;
-      setting = new this.Setting(this.config);
-      assert.ok(setting.supported() === false);
-
-      this.config.disabled = false;
-      setting = new this.Setting(this.config);
-      assert.ok(setting.supported() === true);
-
-      delete this.config.disabled;
-      setting = new this.Setting(this.config);
-      assert.ok(setting.supported() === true);
-    });
-
-    test('Should return true if not disabled and has options', function() {
-      var setting;
-
-      setting = new this.Setting(this.config);
-      assert.ok(setting.supported() === true);
-
-      this.config.options = [];
-      setting = new this.Setting(this.config);
-      assert.ok(setting.supported() === false);
-    });
-  });
 });

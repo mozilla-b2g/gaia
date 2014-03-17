@@ -7,14 +7,6 @@ module.exports = {
   viewfinder: {
     scaleType: 'fill'
   },
-  indicators: {
-    enabled: {
-      hdr: false,
-      timer: true,
-      battery: false,
-      geolocation: false
-    }
-  },
   mode: {
     title: 'Mode',
     options: [
@@ -185,7 +177,7 @@ module.exports = {
   },
 
   timer: {
-    icon: 'icon-timer',
+    icon: 'icon-self-timer',
     options: [
       {
         key: 'off',

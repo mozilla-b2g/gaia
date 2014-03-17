@@ -163,21 +163,20 @@ define(function(require, exports, module) {
   };
 
   View.prototype.hide = function(key) {
-    this.toggle(key, false);
+    this.toggle(key, false)
   };
 
   View.prototype.show =  function(key) {
-    this.toggle(key, true);
+    this.toggle(key, true)
   };
 
   View.prototype.toggle = function(key, value) {
     if (arguments.length === 1 && typeof key === 'boolean') {
       value = key;
-      key = '';
+      key = ''
     } else {
       key = key ? key + '-' : '';
     }
-
     this.el.classList.toggle(key + 'hidden', !value);
     this.el.classList.toggle(key + 'visible', value);
   };
