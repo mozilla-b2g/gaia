@@ -1,3 +1,4 @@
+/* exported FxAccountsIACHelper */
 'use strict';
 // Firefox Accounts IAC client
 

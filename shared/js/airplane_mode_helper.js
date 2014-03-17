@@ -1,5 +1,4 @@
 /* exported AirplaneModeHelper */
-'use strict';
 
 /*
  * AirplaneModeHelper is a helper that makes apps enable / disable
@@ -10,7 +9,7 @@
  *   3. AirplaneModeHelper.getStatus();
  */
 (function(exports) {
-
+  'use strict';
   // constants
   const kEventName = 'statechange';
   const kCommunicationKey = 'airplaneMode.enabled';

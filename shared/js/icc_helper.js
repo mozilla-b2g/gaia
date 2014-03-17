@@ -59,24 +59,16 @@
       };
     };
 
-    var domRequestTemplate = function(name) {
-      return function() {
-        if (activeIccObj) {
-          return activeIccObj[name].apply(activeIccObj, arguments);
-        } else {
-          throw new Error('The icc object is invalid');
-        }
-      };
-    };
-
     // Multi-SIM API available
     var createIccProxy = function() {
       var iccProxy = {
         addEventListener: function(eventName, callback) {
-          if (typeof callback !== 'function')
+          if (typeof callback !== 'function') {
             return;
-          if (events.indexOf(eventName) === -1)
+          }
+          if (events.indexOf(eventName) === -1) {
             return;
+          }
 
           var listeners = eventListeners[eventName];
           if (listeners == null) {

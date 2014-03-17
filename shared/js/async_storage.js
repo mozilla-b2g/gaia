@@ -1,8 +1,4 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-
-'use strict';
-
+/* globals indexedDB */
 /**
  * This file defines an asynchronous version of the localStorage API, backed by
  * an IndexedDB database.  It creates a global asyncStorage object that has
@@ -45,6 +41,7 @@
  */
 
 this.asyncStorage = (function() {
+  'use strict';
 
   var DBNAME = 'asyncStorage';
   var DBVERSION = 1;
@@ -57,7 +54,8 @@ this.asyncStorage = (function() {
     } else {
       var openreq = indexedDB.open(DBNAME, DBVERSION);
       openreq.onerror = function withStoreOnError() {
-        console.error("asyncStorage: can't open database:", openreq.error.name);
+        console.error('asyncStorage: can\'t open database:',
+            openreq.error.name);
       };
       openreq.onupgradeneeded = function withStoreOnUpgradeNeeded() {
         // First time setup: create an empty object store
@@ -75,8 +73,9 @@ this.asyncStorage = (function() {
       var req = store.get(key);
       req.onsuccess = function getItemOnSuccess() {
         var value = req.result;
-        if (value === undefined)
+        if (value === undefined) {
           value = null;
+        }
         callback(value);
       };
       req.onerror = function getItemOnError() {
