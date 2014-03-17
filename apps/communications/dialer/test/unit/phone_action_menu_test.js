@@ -98,7 +98,7 @@ suite('phone action menu', function() {
         navigator.mozIccManager.iccIds[1] = 1;
         MockNavigatorSettings.mSettings['ril.voicemail.defaultServiceId'] = 1;
 
-        this.sinon.spy(MockSimPicker, 'show');
+        this.sinon.spy(MockSimPicker, 'getOrPick');
         this.sinon.spy(CallHandler, 'call');
         chooseCall();
 
@@ -106,11 +106,11 @@ suite('phone action menu', function() {
       });
 
       test('should display the sim picker', function() {
-        sinon.assert.calledWith(MockSimPicker.show, 1, '123');
+        sinon.assert.calledWith(MockSimPicker.getOrPick, 1, '123');
       });
 
       test('should call with the result of the sim picker', function() {
-        MockSimPicker.show.yield(0);
+        MockSimPicker.getOrPick.yield(0);
         sinon.assert.calledWith(CallHandler.call, '123', 0);
       });
     });

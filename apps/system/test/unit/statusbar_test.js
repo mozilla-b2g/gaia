@@ -4,8 +4,8 @@ requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/shared/test/unit/mocks/mock_mobile_operator.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 requireApp('system/shared/test/unit/mocks/mock_icc_helper.js');
+requireApp('system/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
 requireApp('system/test/unit/mock_l10n.js');
-requireApp('system/test/unit/mock_navigator_moz_telephony.js');
 requireApp('system/test/unit/mock_lock_screen.js', function() {
 
   // Because we can't see it while we attach helpers,
