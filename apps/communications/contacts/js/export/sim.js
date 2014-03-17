@@ -1,3 +1,5 @@
+/* global _ */
+/* exported ContactsSIMExport */
 'use strict';
 
 var ContactsSIMExport = function ContactsSIMExport(icc) {
@@ -170,7 +172,7 @@ var ContactsSIMExport = function ContactsSIMExport(icc) {
 
   return {
     'setContactsToExport': setContactsToExport,
-    'shouldShowProgress': function() { return true },
+    'shouldShowProgress': function() { return true; },
     'hasDeterminativeProgress': hasDeterminativeProgress,
     'getExportTitle': getExportTitle,
     'doExport': doExport,

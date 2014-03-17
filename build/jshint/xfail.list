@@ -188,9 +188,6 @@ apps/communications/contacts/js/contacts_matcher.js
 apps/communications/contacts/js/contacts_matching_controller.js
 apps/communications/contacts/js/contacts_matching_ui.js
 apps/communications/contacts/js/contacts_tag.js
-apps/communications/contacts/js/export/bt.js
-apps/communications/contacts/js/export/contacts_exporter.js
-apps/communications/contacts/js/export/sim.js
 apps/communications/contacts/js/fb/datastore_migrator.js
 apps/communications/contacts/js/fb/fb_contact.js
 apps/communications/contacts/js/fb/fb_contact_utils.js
@@ -204,9 +201,6 @@ apps/communications/contacts/js/fb/fb_utils.js
 apps/communications/contacts/js/fb/friends_list.js
 apps/communications/contacts/js/fb_loader.js
 apps/communications/contacts/js/fb_resolver.js
-apps/communications/contacts/js/import_init.js
-apps/communications/contacts/js/import_utils.js
-apps/communications/contacts/js/importer_ui.js
 apps/communications/contacts/js/navigation.js
 apps/communications/contacts/js/service_extensions.js
 apps/communications/contacts/js/sms_integration.js
