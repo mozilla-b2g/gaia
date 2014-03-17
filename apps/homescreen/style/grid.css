@@ -13,6 +13,8 @@
   margin: 0 auto;
   overflow: hidden;
   display: none;
+
+  will-change: transform;
 }
 
 .apps ol {
@@ -25,8 +27,6 @@
 
   /* collection is opened, homescreen apps are faded out */
   transition: opacity 200ms linear;
-
-  will-change: transform, opacity;
 }
 
 .apps ol > li {
