@@ -120,7 +120,6 @@ ViewfinderController.prototype.onZoomChange = function(zoom) {
 ViewfinderController.prototype.onViewfinderClick = function() {
   var recording = this.app.get('recording');
   if (recording || this.activity.active) { return; }
-  this.filmstrip.toggle();
   debug('click');
 };
 
