@@ -5,6 +5,10 @@
 }
 
 /* pages */
+.apps > div:first-child {
+  transform: translateX(0);
+}
+
 .apps > div {
   position: absolute;
   width: 100%;
