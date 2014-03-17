@@ -85,6 +85,35 @@ module.exports = View.extend({
     this.els.videoContainer = this.find('.js-video-container');
   },
 
+  template: function() {
+    return '<div class="viewfinder-frame js-frame">' +
+        '<div class="viewfinder-video-container js-video-container">' +
+          '<video class="viewfinder-video js-video"></video>' +
+        '</div>' +
+        '<div class="viewfinder-grid">' +
+          '<div class="row"></div>' +
+          '<div class="row middle"></div>' +
+          '<div class="row"></div>' +
+          '<div class="column left">' +
+            '<div class="cell top"></div>' +
+            '<div class="cell middle"></div>' +
+            '<div class="cell bottom"></div>' +
+          '</div>' +
+          '<div class="column middle">' +
+            '<div class="cell top"></div>' +
+            '<div class="cell middle"></div>' +
+            '<div class="cell bottom"></div>' +
+          '</div>' +
+          '<div class="column right">' +
+           '<div class="cell top"></div>' +
+           '<div class="cell middle"></div>' +
+           '<div class="cell bottom"></div>' +
+          '</div>' +
+          '</div>' +
+        '</div>' +
+    '</div>';
+  },
+
   onClick: function(e) {
     e.stopPropagation();
     this.emit('click');
@@ -133,15 +162,9 @@ module.exports = View.extend({
   },
 
   getSize: function() {
-    var width = this.el.clientWidth;
-    var height = this.el.clientHeight;
-
     this.container = {
-      landscape: {
-        width: height,
-        height: width,
-        aspect: height / width
-      }
+      width: this.el.clientHeight,
+      height: this.el.clientWidth
     };
   },
 
@@ -232,84 +255,73 @@ module.exports = View.extend({
     if (done) { setTimeout(done, this.fadeTime); }
   },
 
-  /**
-   * Sizes and positions the preview stream.
-   *
-   * @param  {Object} preview
-   * @param  {Boolean} mirrored
-   */
   updatePreview: function(preview, mirrored) {
-    var aspect = preview.width / preview.height;
-    var shouldFill = aspect > this.container.landscape.aspect;
-    var scaleType = this.scaleType || (shouldFill ? 'fill' : 'fit');
 
-    this.updatePreviewMetrics(preview, scaleType);
-    this.el.classList.toggle('reversed', mirrored);
-  },
+    // Gotchas of this function:
+    // 1. clientWidth and clientHeight are the dimensions
+    // of the viewfinder from the top left corner of the screen
+    // in portrait orientation
+    // 2. The camera reports the preview sizes in landscape orientation:
+    // - width is the longer side and height the shorter.
+    // We swap height and width of one of them so we can compare
+    var container = {
+      width: this.el.clientHeight,
+      height: this.el.clientWidth
+    };
 
-  /**
-   * Calculates the correct sizing
-   * depending on the chosen 'scaleType'.
-   *
-   * 'scale-type' attribute set as a styling hook.
-   *
-   * @param  {Object} preview
-   * @param  {String} scaleType 'fill'|'fit'
-   */
-  updatePreviewMetrics: function(preview, scaleType) {
-    debug('update preview scaleType: %s', scaleType, preview);
+    // Calculate aspect ratios for the viewfinder container,
+    // the preview, and the standard (4:3).
+    var aspects = {
+      container: container.width / container.height,
+      preview: preview.width / preview.height,
+      standard: 4 / 3
+    };
 
-    // Calculate the correct scale to apply to the
-    // preview to either 'fill' or 'fit' the viewfinder
-    // container (always preserving the aspect ratio).
-    var landscape = scaleSizeTo[scaleType](this.container.landscape, preview);
-    var portrait = { width: landscape.height, height: landscape.width };
+    // If the aspect ratio of the preview is wider (longer) than
+    // the viewfinder container, use "aspect fill" (no black bars).
+    var aspectFill = aspects.preview > aspects.container;
+    var scaleType = aspectFill ? 'fill' : 'fit';
 
-    // Set the size of the frame to match 'portrait' dimensions
-    this.els.frame.style.width = portrait.width + 'px';
-    this.els.frame.style.height = portrait.height + 'px';
+    // Calculate the correct scale to apply to the preview to
+    // either "fill" or "fit" the viewfinder container (always
+    // preserving the aspect ratio).
+    var scaled = scaleSizeTo[scaleType](container, preview);
 
-    // Set the size of the video container to match the
-    // 'landscape' dimensions (CSS is used to rotate
-    // the 'landscape' video stream to 'portrait')
-    this.els.videoContainer.style.width = landscape.width + 'px';
-    this.els.videoContainer.style.height = landscape.height + 'px';
+    // If the aspect ratio of the preview is smaller than the
+    // standard (4:3), the preview needs to be centered within
+    // the viewfinder container.
+    var centered = aspects.preview < aspects.standard;
 
-    // CSS aligns the contents slightly
-    // differently depending on the scaleType
-    this.set('scaleType', scaleType);
+    // Also, if we are using "aspect fill" (where preview overflows
+    // the viewfinder container), we need to center within the
+    // viewfinder container so that an equal amount of the preview
+    // is cut off from both sides of the viewport. Otherwise, do
+    // not adjust the Y-offset of the preview.
+    var yOffset = aspectFill || centered ?
+      (container.width - scaled.width) / 2 : 0;
+    var previewHeight = scaled.height;
+    var previewWidth = scaled.width;
 
-    debug('updated preview size/position', landscape);
-  },
+    // Calculated sizes are in landscape format (width is the largest side)
+    // CSS styles consider the top left corner of the device in portrait mode
+    // Again sizes have to be swapped to size the viewfinder frame
+    // Apply the corrected width/height as well as the Y-offset (if any).
+    this.els.frame.style.width = previewHeight + 'px';
+    this.els.frame.style.height = previewWidth + 'px';
+    this.els.frame.style.top = yOffset + 'px';
 
-  template: function() {
-    return '<div class="viewfinder-frame js-frame">' +
-        '<div class="viewfinder-video-container js-video-container">' +
-          '<video class="viewfinder-video js-video"></video>' +
-        '</div>' +
-        '<div class="viewfinder-grid">' +
-          '<div class="row"></div>' +
-          '<div class="row middle"></div>' +
-          '<div class="row"></div>' +
-          '<div class="column left">' +
-            '<div class="cell top"></div>' +
-            '<div class="cell middle"></div>' +
-            '<div class="cell bottom"></div>' +
-          '</div>' +
-          '<div class="column middle">' +
-            '<div class="cell top"></div>' +
-            '<div class="cell middle"></div>' +
-            '<div class="cell bottom"></div>' +
-          '</div>' +
-          '<div class="column right">' +
-           '<div class="cell top"></div>' +
-           '<div class="cell middle"></div>' +
-           '<div class="cell bottom"></div>' +
-          '</div>' +
-          '</div>' +
-        '</div>' +
-    '</div>';
-  },
+    // The video stream coming from the camera renders the preview in landscape
+    // mode. It expects width to be the larger size.
+    // The video container is sized as the camera API expects and rotated
+    // with css to be displayed on screen
+    this.els.videoContainer.style.width = previewWidth + 'px';
+    this.els.videoContainer.style.height = previewHeight + 'px';
+    this.els.videoContainer.classList.toggle('reversed', mirrored);
+
+    debug('update preview, mirrored: %s, scale: %s, yOffset: %s',
+      mirrored, scaleType, yOffset);
+  }
+
 });
 
 function raf(fn) {
