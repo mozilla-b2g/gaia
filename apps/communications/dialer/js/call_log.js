@@ -77,6 +77,9 @@ var CallLog = {
         this[Utils.toCamelCase(id)] = document.getElementById(id);
       }, self);
 
+      var dualSim = navigator.mozIccManager.iccIds.length > 1;
+      self.callLogContainer.classList.toggle('dual-sim', dualSim);
+
       LazyL10n.get(function localized(_) {
         self._ = _;
         self.render();
@@ -452,6 +455,11 @@ var CallLog = {
           groupDOM.classList.add('missed-call');
         }
         break;
+    }
+
+    if (typeof group.serviceId !== 'undefined') {
+      var serviceClass = (group.serviceId == 0) ? 'first-sim' : 'second-sim';
+      iconStyle += ' ' + serviceClass;
     }
 
     var label = document.createElement('label');

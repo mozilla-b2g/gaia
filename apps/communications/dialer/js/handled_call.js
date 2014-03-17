@@ -23,6 +23,7 @@ function HandledCall(aCall) {
     date: Date.now(),
     type: this.call.state,
     number: this.call.number,
+    serviceId: this.call.serviceId,
     emergency: this.call.emergency || false,
     voicemail: false,
     status: null

@@ -11,6 +11,7 @@ requireApp('sms/test/unit/mock_async_storage.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 require('/shared/test/unit/mocks/mock_sticky_header.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
 
 requireApp('communications/shared/test/unit/mocks/mock_notification.js');
 
@@ -28,6 +29,7 @@ suite('dialer/call_log', function() {
   var realL10n;
   var realCallLogL10n;
   var realNotification;
+  var realMozIccManager;
 
   mocksHelperForCallLog.attachTestHelpers();
 
@@ -38,12 +40,15 @@ suite('dialer/call_log', function() {
     CallLog._ = MockMozL10n.get;
     realNotification = window.Notification;
     window.Notification = MockNotification;
+    realMozIccManager = navigator.mozIccManager;
+    navigator.mozIccManager = MockNavigatorMozIccManager;
   });
 
   suiteTeardown(function() {
     navigator.mozL10n = realL10n;
     CallLog._ = realCallLogL10n;
     window.Notification = realNotification;
+    navigator.mozIccManager = realMozIccManager;
   });
 
   var noResult;
@@ -89,6 +94,7 @@ suite('dialer/call_log', function() {
   teardown(function() {
     noResult.parentNode.removeChild(noResult);
     CallLog._initialized = false;
+    MockNavigatorMozIccManager.mTeardown();
   });
 
   var incomingGroup = {
@@ -111,6 +117,16 @@ suite('dialer/call_log', function() {
     }
   };
 
+  var firstSimGroup = {
+    id: '1222',
+    lastEntryDate: Date.now(),
+    date: 1,
+    number: '3345321',
+    serviceId: '0',
+    type: 'incoming',
+    status: 'connected'
+  };
+
   var outgoingGroup = {
     id: '123',
     lastEntryDate: Date.now(),
@@ -129,6 +145,16 @@ suite('dialer/call_log', function() {
       },
       photo: null
     }
+  };
+
+  var secondSimGroup = {
+    id: '1244',
+    lastEntryDate: Date.now(),
+    date: 1,
+    number: '424242',
+    serviceId: '1',
+    type: 'dialing',
+    status: 'connected'
   };
 
   var missedGroup = {
@@ -264,6 +290,15 @@ suite('dialer/call_log', function() {
       return;
     }
 
+    // DSDS SIM display.
+    if (group.serviceId === '0') {
+      assert.ok(groupDOM.querySelector('.icon.call-type-icon.first-sim'),
+                'First sim call');
+    } else if (group.serviceId === '1') {
+      assert.ok(groupDOM.querySelector('.icon.call-type-icon.second-sim'),
+                'Second sim call');
+    }
+
     // Primary info.
     var primaryInfo = groupDOM.querySelector('.primary-info');
     assert.ok(primaryInfo, 'Primary info ok');
@@ -392,6 +427,14 @@ suite('dialer/call_log', function() {
 
     test('Emergency group', function(done) {
       checkGroupDOM(CallLog.createGroup(emergencyGroup), emergencyGroup, done);
+    });
+
+    test('Group on first sim', function(done) {
+      checkGroupDOM(CallLog.createGroup(firstSimGroup), firstSimGroup, done);
+    });
+
+    test('Group on second sim', function(done) {
+      checkGroupDOM(CallLog.createGroup(secondSimGroup), secondSimGroup, done);
     });
   });
 
@@ -657,6 +700,35 @@ suite('dialer/call_log', function() {
       CallLog.filter();
       CallLog.unfilter();
       assert.equal(document.getElementsByClassName('groupFiltered').length, 0);
+    });
+  });
+
+  suite('DSDS support', function() {
+    setup(function() {
+      CallLog._initialized = false;
+    });
+
+    suite('One SIM', function() {
+      setup(function() {
+        MockNavigatorMozIccManager.addIcc('12345', {'cardState': 'ready'});
+        CallLog.init();
+      });
+
+      test('should not put the dual sim class on the container', function() {
+        assert.isFalse(CallLog.callLogContainer.classList.contains('dual-sim'));
+      });
+    });
+
+    suite('Dual SIM', function() {
+      setup(function() {
+        MockNavigatorMozIccManager.addIcc('12345', {'cardState': 'ready'});
+        MockNavigatorMozIccManager.addIcc('3232', {'cardState': 'ready'});
+        CallLog.init();
+      });
+
+      test('should put the dual sim class on the container', function() {
+        assert.isTrue(CallLog.callLogContainer.classList.contains('dual-sim'));
+      });
     });
   });
 });
