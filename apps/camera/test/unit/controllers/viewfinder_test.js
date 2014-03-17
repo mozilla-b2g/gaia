@@ -42,7 +42,6 @@ suite('controllers/viewfinder', function() {
     // Settings
     this.app.settings = sinon.createStubInstance(this.Settings);
     this.app.settings.grid = sinon.createStubInstance(this.Setting);
-    this.app.settings.viewfinder = sinon.createStubInstance(this.Setting);
 
     // Shortcuts
     this.filmstrip = this.app.filmstrip;
@@ -90,16 +89,6 @@ suite('controllers/viewfinder', function() {
       this.app.settings.grid.selected.withArgs('key').returns('off');
       this.controller = new this.ViewfinderController(this.app);
       assert.isTrue(this.viewfinder.set.calledWith('grid', 'off'));
-    });
-
-    test('Should set viewfinder fill depending on the setting', function() {
-      this.app.settings.viewfinder.get.withArgs('scaleType').returns('fill');
-      this.controller = new this.ViewfinderController(this.app);
-      assert.equal(this.viewfinder.scaleType, 'fill');
-
-      this.app.settings.viewfinder.get.withArgs('scaleType').returns('fit');
-      this.controller = new this.ViewfinderController(this.app);
-      assert.equal(this.viewfinder.scaleType, 'fit');
     });
   });
 });
