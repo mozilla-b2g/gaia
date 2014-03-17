@@ -241,10 +241,6 @@ Mockfb.isFbLinked = function(contact) {
   return this.fbLinked;
 };
 
-Mockfb.isEnabled = function() {
-  return this.isEnabled;
-};
-
 Mockfb.getWorksAt = function(fbData) {
   return 'Telefónica';
 };
