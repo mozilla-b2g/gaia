@@ -197,11 +197,6 @@ body:not(.filmstriphidden) .hud {
   text-transform: capitalize;
 }
 
-/** Settings
- ---------------------------------------------------------*/
-
-.hud_settings {}
-
 /**
  * @settings-disabled
  */

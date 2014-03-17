@@ -27,7 +27,6 @@ section[role="region"] > header:first-child .icon.icon-clear {
   background-image: url(images/icons/clear.png);
   background-position: center calc(50% + 0.1rem);
   background-size: 3rem;
-  right: calc(-50% + 7rem);
   width: 2rem;
   margin: 0;
   padding: 0 2rem;
@@ -474,7 +473,7 @@ section.has-carrier .article-list header:first-child {
 }
 
 .article-list[data-type="list"] .has-subject .bubble {
-  padding-top: 0rem;
+  padding-top: 0;
 }
 
 .article-list[data-type="list"] .has-subject .subject {

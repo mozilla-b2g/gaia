@@ -9,10 +9,6 @@
   display: block;
 }
 
-#bluetooth-transfer-status.applying .bluetooth-transfer-progress {
-/*  display: none;*/
-}
-
 #bluetooth-transfer-status .bluetooth-transfer-progress {
   display: block;
   width: auto;
@@ -29,10 +25,6 @@
 
   border: 0;
   border-radius: 1rem;
-}
-
-#bluetooth-transfer-status.applying progress {
-/*  display: none;*/
 }
 
 #bluetooth-transfer-status progress::-moz-progress-bar {

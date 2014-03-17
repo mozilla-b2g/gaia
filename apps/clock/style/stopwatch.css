@@ -27,7 +27,7 @@
 
 .stopwatch-laps {
   position: absolute;
-  bottom: 0rem;
+  bottom: 0;
 
   width: 90%;
   height: calc(100% - 23rem);

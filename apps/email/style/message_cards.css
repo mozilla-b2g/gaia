@@ -1,8 +1,3 @@
-.card-message-list {
-}
-
-.msg-listedit-header {
-}
 .msg-list-scrollouter {
   height: calc(100% - 9.5rem);
   overflow-y: auto;
@@ -257,10 +252,6 @@ input.msg-search-text-tease {
 }
 .msg-peep-bubble * {
   pointer-events: none;
-}
-.msg-peep-content {
-}
-.msg-peep-address {
 }
 
 .msg-attachment-item {
