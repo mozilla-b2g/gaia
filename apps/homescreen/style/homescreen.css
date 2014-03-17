@@ -74,11 +74,12 @@ li:active {
 
 #bg-overlay {
   width: 100%;
-  height: calc(100% - 7.5rem);
+  height: 100%;
   position: fixed;
   top: 0;
   left: 0;
   background-color: rgba(0,0,0,0.1);
+  transform: translateY(-7.5rem);
 }
 
 /* === Repaint Helper === */
@@ -143,7 +144,7 @@ body[data-mode = 'edit'] .apps ol > li[data-type = "bookmark"] > div > span > sp
 }
 @media (min-width: 768px) {
   #bg-overlay {
-    height: calc(100% - 16.9rem);
+    transform: translateY(-16.9rem);
   }
 }
 /* This is a dirty hack to hide the bottom toolbar while
@@ -167,7 +168,7 @@ body[data-mode = 'edit'] .apps ol > li[data-type = "bookmark"] > div > span > sp
        (device-height: 960px) and (max-height: 870px) {
   footer { display: none !important; }
   .apps > div { height: 100% !important; }
-  #bg-overlay { height: 100%;}
+  #bg-overlay { transform: translateY(0); }
 }
 
 /* Default state for the dialogs.
