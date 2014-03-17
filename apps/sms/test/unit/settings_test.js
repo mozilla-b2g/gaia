@@ -49,6 +49,7 @@ suite('Settings >', function() {
       navigator.mozSettings = null;
       Settings.mmsSizeLimitation = 'whatever is default';
       Settings.mmsServiceId = 'no service ID';
+      Settings.smsServiceId = 'no service ID';
 
       Settings.init();
     });
@@ -59,6 +60,10 @@ suite('Settings >', function() {
 
     test('Query mmsServiceId without settings', function() {
       assert.equal(Settings.mmsServiceId, 'no service ID');
+    });
+
+    test('Query smsServiceId without settings', function() {
+      assert.equal(Settings.smsServiceId, 'no service ID');
     });
 
     test('Reports no dual SIM', function() {
@@ -222,6 +227,7 @@ suite('Settings >', function() {
       for (var prop in Settings.SERVICE_ID_KEYS) {
         var setting = Settings.SERVICE_ID_KEYS[prop];
         assert.isNull(findSettingsReq(setting));
+        assert.equal(Settings[prop], 'no service ID');
       }
       assert.isFalse(Settings.hasSeveralSim());
       assert.isFalse(Settings.isDualSimDevice());
