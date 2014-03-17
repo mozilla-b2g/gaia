@@ -437,17 +437,6 @@ var GridManager = (function() {
     }, SAVE_STATE_TIMEOUT);
   }
 
-  function togglePagesVisibility(start, end) {
-    for (var i = 0; i < pages.length; i++) {
-      var pagediv = pages[i].container;
-      if (i < start || i > end) {
-        pagediv.style.display = 'none';
-      } else {
-        pagediv.style.display = 'block';
-      }
-    }
-  }
-
   function goToPageCallback(index, fromPage, toPage, dispatchEvents, callback) {
     delete document.body.dataset.transitioning;
 
@@ -477,8 +466,6 @@ var GridManager = (function() {
 
     fromPage.container.setAttribute('aria-hidden', true);
     toPage.container.removeAttribute('aria-hidden');
-
-    togglePagesVisibility(index - 1, index + 1);
 
     if (callback) {
       setTimeout(callback, 0);
@@ -540,8 +527,6 @@ var GridManager = (function() {
 
       return;
     }
-
-    togglePagesVisibility(start, end);
 
     previousPage.container.dispatchEvent(new CustomEvent('gridpagehidestart'));
     newPage.container.dispatchEvent(new CustomEvent('gridpageshowstart'));
