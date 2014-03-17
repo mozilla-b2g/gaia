@@ -65,7 +65,7 @@
 
 .evme-keyboard-visible .evmeScope,
 .evme-suggest-collections-loading .evmeScope {
-    height: 100%;
+    height: 100%; /* todo: this causes a reflow to happen when toggline evme-keyboard-visible */
 }
 
 .evme-keyboard-visible .apps > div.evmePage ol,
@@ -93,7 +93,7 @@
 .evme-loading-from-input #bg-overlay,
 .evme-displayed.evme-keyboard-visible #bg-overlay,
 .evme-displayed.evme-has-query #bg-overlay{
-  height: 100%;
+  transform: translateY(0);
 }
 
 #loading-dialog {
