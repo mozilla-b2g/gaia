@@ -18,7 +18,8 @@ var Settings = {
   _serviceIds: null,
 
   mmsSizeLimitation: 300 * 1024, // Default mms message size limitation is 300K.
-  mmsServiceId: null, // Default mms service SIM ID (only for DSDS)
+  mmsServiceId: null, // Default mms service SIM ID
+  smsServiceId: null, // Default sms service SIM ID
 
   init: function settings_init() {
     var keyHandlerSet = {
