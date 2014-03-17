@@ -1,4 +1,5 @@
 Calendar.ns('Views').FirstTimeUse = (function() {
+  'use strict';
 
   /**
    * The First Time Use Object is used for any and all hints that should

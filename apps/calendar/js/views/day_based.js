@@ -1,4 +1,3 @@
-/*global Calendar*/
 Calendar.ns('Views').DayBased = (function() {
   'use strict';
 

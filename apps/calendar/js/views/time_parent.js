@@ -1,4 +1,6 @@
+/* global GestureDetector */
 Calendar.ns('Views').TimeParent = (function() {
+  'use strict';
 
   var XSWIPE_OFFSET = window.innerWidth / 10;
 
@@ -145,7 +147,6 @@ Calendar.ns('Views').TimeParent = (function() {
      * @return {Object} existing or newly added frame.
      */
     addFrame: function(date) {
-      var frame;
       var id = this._getId(date);
       var frame = this.frames.get(id);
       if (!frame) {
@@ -202,7 +203,6 @@ Calendar.ns('Views').TimeParent = (function() {
      * @param {Calendar.Timespan} timespan span of time.
      */
     purgeFrames: function(span) {
-      var key;
       var child;
       var i = 0;
       var len = this.frames.length;
