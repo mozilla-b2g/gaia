@@ -111,6 +111,10 @@
     transform: translateY(16rem);
   }
 
+  body.showKeypad #group-show {
+    display: none;
+  }
+
   #views > .view {
     height: 100%;
     width: 100%;

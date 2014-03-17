@@ -439,6 +439,7 @@ var NavbarManager = {
     LazyLoader.load(['/shared/js/async_storage.js',
                      '/shared/js/notification_helper.js',
                      '/shared/js/simple_phone_matcher.js',
+                     '/shared/js/contact_photo_helper.js',
                      '/dialer/js/contacts.js',
                      '/dialer/js/call_log.js',
                      '/dialer/style/call_log.css'], function rs_loaded() {
@@ -477,10 +478,8 @@ var NavbarManager = {
       case '#call-log-view':
         checkContactsTab();
         this.ensureResources(function() {
-          LazyLoader.load(['/shared/js/contact_photo_helper.js'], function() {
-            recent.classList.add('toolbar-option-selected');
-            CallLog.init();
-          });
+          recent.classList.add('toolbar-option-selected');
+          CallLog.init();
         });
         break;
       case '#contacts-view':
