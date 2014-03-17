@@ -49,14 +49,6 @@ apps/calendar/js/responder.js
 apps/calendar/js/router.js
 apps/calendar/js/service/caldav.js
 apps/calendar/js/service/ical_recur_expansion.js
-apps/calendar/js/store/abstract.js
-apps/calendar/js/store/account.js
-apps/calendar/js/store/alarm.js
-apps/calendar/js/store/busytime.js
-apps/calendar/js/store/calendar.js
-apps/calendar/js/store/event.js
-apps/calendar/js/store/ical_component.js
-apps/calendar/js/store/setting.js
 apps/calendar/js/template.js
 apps/calendar/js/templates/account.js
 apps/calendar/js/templates/alarm.js
