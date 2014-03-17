@@ -4,9 +4,6 @@ define(function(require, exports, module) {
 module.exports = {
   showSettings: true,
   enableZoom: true,
-  viewfinder: {
-    scaleType: false
-  },
   mode: {
     title: 'Mode',
     options: [
