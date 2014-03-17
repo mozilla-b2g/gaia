@@ -78,7 +78,7 @@ li .button.icon-dialog:before {
 /* ----------- Alarm List ---------- */
 #alarms {
   position: absolute;
-  bottom: 0rem;
+  bottom: 0;
 
   width: 100%;
   height: auto;
