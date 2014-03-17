@@ -714,3 +714,29 @@ form[role="dialog"].no-overlay button {
 #groups-list[data-type="list"].active.selecting li:not(:active):after {
   display:none !important;
 }
+
+.has-preferred-sim .icon-call div:after {
+  content: "";
+  position: absolute;
+  width: 1.4rem;
+  height: 1rem;
+  bottom: 0;
+  right: 0.9rem;
+  background-image: url("images/long-tap-indicator.png");
+  background-repeat: no-repeat;
+  background-size: 1.4rem 1rem;
+}
+
+.js-sim-indication {
+  float: right;
+  margin-right: -0.2rem !important;
+  display: none;
+}
+
+.has-preferred-sim .js-sim-indication { 
+  display: initial;
+}
+
+#sim-picker {
+  text-align: left;
+}

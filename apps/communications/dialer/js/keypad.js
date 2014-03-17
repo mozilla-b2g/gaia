@@ -98,6 +98,8 @@ var KeypadManager = {
       document.getElementById('keypad-hidebar-hide-keypad-action');
   },
 
+  callButton: null,
+
   init: function kh_init(oncall) {
 
     this._onCall = !!oncall;
@@ -144,16 +146,16 @@ var KeypadManager = {
           // do this.
           var self = this;
           LazyL10n.get(function localized(_) {
-            CallButton.init(self.callBarCallAction,
-                            self.phoneNumber.bind(self),
-                            CallHandler.call,
-                            'ril.telephony.defaultServiceId');
+            self.callButton = new CallButton(self.callBarCallAction,
+                                             self.phoneNumber.bind(self),
+                                             CallHandler.call,
+                                             'ril.telephony.defaultServiceId');
           });
         } else {
-          CallButton.init(this.callBarCallAction,
-                          this.phoneNumber.bind(this),
-                          CallHandler.call,
-                          'ril.telephony.defaultServiceId');
+          this.callButton = new CallButton(this.callBarCallAction,
+                                           this.phoneNumber.bind(this),
+                                           CallHandler.call,
+                                           'ril.telephony.defaultServiceId');
         }
       }
       this.callBarCallAction.addEventListener('click',
@@ -459,7 +461,7 @@ var KeypadManager = {
     // get the device's IMEI as soon as the user enters the last # key from
     // the "*#06#" MMI string. See bug 857944.
     if (key === '#' && this._phoneNumber === '*#06#') {
-      CallButton.makeCall();
+      this.callButton.makeCall();
       return;
     }
 

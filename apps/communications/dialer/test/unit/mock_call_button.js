@@ -2,9 +2,19 @@
 
 'use strict';
 
-var MockCallButton = {
-  init: function(button, phoneNumberGetter) {
-    this._phoneNumberGetter = phoneNumberGetter;
+var MockCallButtonSingleton = {
+  mIsInitialized: false,
+  makeCall: function() {
+
   },
-  makeCall: function() { }
+  _phoneNumberGetter: null
 };
+
+var MockCallButton = function(button, phoneNumberGetter,
+ callCallback, settings) {
+  MockCallButtonSingleton.mIsInitialized = true;
+  MockCallButtonSingleton._phoneNumberGetter = phoneNumberGetter;
+
+  return MockCallButtonSingleton;
+};
+
