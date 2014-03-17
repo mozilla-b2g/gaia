@@ -34,14 +34,7 @@ function ViewfinderController(app) {
 }
 
 ViewfinderController.prototype.configure = function() {
-  this.configureScaleType();
   this.configureGrid();
-};
-
-ViewfinderController.prototype.configureScaleType = function() {
-  var scaleType = this.app.settings.viewfinder.get('scaleType');
-  this.viewfinder.scaleType = scaleType;
-  debug('set scale type: %s', scaleType);
 };
 
 ViewfinderController.prototype.configureGrid = function() {
