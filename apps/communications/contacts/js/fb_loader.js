@@ -18,6 +18,7 @@ var fbLoader = (function() {
 
     var oauth = document.createElement('iframe');
     oauth.id = 'fb-oauth';
+    oauth.hidden = true;
     iframesFragment.appendChild(oauth);
 
     var extensions = document.createElement('iframe');
