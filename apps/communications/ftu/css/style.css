@@ -6,7 +6,7 @@ html, body {
   overflow: hidden !important;
   font-size: 10px;
   font-weight: 400;
-  user-select: none;
+  -moz-user-select: none;
 }
 
 a {
@@ -241,7 +241,7 @@ a {
 }
 
 #sim-info-screen #sim-info-messages {
-  padding: 1.8rem 2.3rem 0rem 3rem;
+  padding: 1.8rem 2.3rem 0 3rem;
   font-size: 1.4rem;
   line-height: 1.8rem;
 }
@@ -267,7 +267,7 @@ a {
 
 #unlock-sim-screen section label {
   display: inline-block;
-  padding: 1.8rem 0rem 1.4rem 3rem;
+  padding: 1.8rem 0 1.4rem 3rem;
   color: black;
   font-size: 1.8rem;
   width: auto;
@@ -346,7 +346,7 @@ a {
 */
 #SIM_mandatory {
   background: url(images/bg_nosim.png) no-repeat center center / 20rem;
-  padding: 7rem 2rem 0px;
+  padding: 7rem 2rem 0;
   overflow: hidden;
 }
 
@@ -459,7 +459,7 @@ aside.wifi-signal       { background-image: url(images/wifi_disconnected_sprite.
 aside.connected         { background-image: url(images/wifi_connected_sprite.png);}
 aside.secured           { background-image: url(images/wifi_disconnected_locked_sprite.png);}
 aside.secured.connected { background-image: url(images/wifi_connected_locked_sprite.png);}
-aside.level-0 { background-position:     0rem center;}
+aside.level-0 { background-position:     0    center;}
 aside.level-1 { background-position:  -3.2rem center;}
 aside.level-2 { background-position:  -6.4rem center;}
 aside.level-3 { background-position:  -9.6rem center;}
@@ -474,7 +474,7 @@ aside.connecting {
   animation-name: wifi-signal;
 }
 @keyframes wifi-signal {
- 0%     { background-position:     0rem center; }
+ 0%     { background-position:     0    center; }
  25%    { background-position:  -3.2rem center; }
  50%    { background-position:  -6.4rem center; }
  75%    { background-position:  -9.6rem center; }
