@@ -1,9 +1,9 @@
 'use strict';
 /* global MockNavigatorSettings */
-/* global requireApp */
+/* global require */
 /* exported MockSettingsListener */
 
-requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 
 var MockLock = {
   locks: [],
