@@ -441,9 +441,9 @@ var GridManager = (function() {
     for (var i = 0; i < pages.length; i++) {
       var pagediv = pages[i].container;
       if (i < start || i > end) {
-        pagediv.style.display = 'none';
+        delete pagediv.dataset.visible;
       } else {
-        pagediv.style.display = 'block';
+        pagediv.dataset.visible = true;
       }
     }
   }
