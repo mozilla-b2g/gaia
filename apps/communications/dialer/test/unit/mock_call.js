@@ -1,8 +1,9 @@
-function MockCall(aNumber, aState) {
+function MockCall(aNumber, aState, aServiceId) {
   this._listenerAdded = false;
   this._listenerRemoved = false;
 
   this.number = aNumber;
+  this.serviceId = (aServiceId === undefined) ? 1 : aServiceId;
   this.state = aState;
 
   this.answer = function() {};

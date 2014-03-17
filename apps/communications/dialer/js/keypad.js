@@ -35,11 +35,59 @@ if (window.SettingsListener) {
   });
 }
 
+/**
+ * DTMF tone constructor, providing the SIM on which this tone will be played
+ * is mandatory.
+ *
+ * @param {String} tone The tone to be played.
+ * @param {Boolean} short True if this will be a short tone, false otherwise.
+ * @param {Integer} serviceId The ID of the SIM card on which to play the tone.
+ */
+function DtmfTone(tone, short, serviceId) {
+  this.tone = tone;
+  this.short = short;
+  this.serviceId = serviceId;
+  this.timer = 0;
+}
+
+DtmfTone.prototype = {
+  /**
+   * Starts playing the tone, if this is a short tone it will stop automatically
+   * after kShortToneLength milliseconds, otherwise it will play until stopped.
+   */
+  play: function dt_play() {
+    clearTimeout(this.timer);
+
+    // Stop previous tone before dispatching a new one
+    navigator.mozTelephony.stopTone(this.serviceId);
+    navigator.mozTelephony.startTone(this.tone, this.serviceId);
+
+    if (this.short) {
+      this.timer = window.setTimeout(function dt_stopTone(serviceId) {
+        navigator.mozTelephony.stopTone(serviceId);
+      }, DtmfTone.kShortToneLength, this.serviceId);
+    }
+  },
+
+  /**
+   * Stop the DTMF tone, this is safe to call even if the DTMF tone has already
+   * stopped.
+   */
+  stop: function dt_stop() {
+    clearTimeout(this.timer);
+    navigator.mozTelephony.stopTone(this.serviceId);
+  }
+};
+
+/**
+ * Length of a short DTMF tone, currently 120ms.
+ */
+DtmfTone.kShortToneLength = 120;
+
 var KeypadManager = {
 
   _MAX_FONT_SIZE_DIAL_PAD: 18,
   _MAX_FONT_SIZE_ON_CALL: 16,
-  _DTMF_SHORT_TONE_LENGTH: 120,
 
   _phoneNumber: '',
   _onCall: false,
@@ -286,35 +334,39 @@ var KeypadManager = {
   },
 
   _lastPressedKey: null,
-  _dtmfToneTimer: null,
+  _dtmfTone: null,
 
   _playDtmfTone: function kh_playDtmfTone(key) {
+    var serviceId = 0;
+
     if (!this._onCall) {
       return;
     }
 
-    var telephony = navigator.mozTelephony;
-
-    clearTimeout(this._dtmfToneTimer);
-    telephony.stopTone(); // Stop previous tone before dispatching a new one
-    telephony.startTone(key);
-
-    if (shortTone) {
-      this._dtmfToneTimer = window.setTimeout(function ch_playDTMF() {
-        telephony.stopTone();
-      }, this._DTMF_SHORT_TONE_LENGTH);
+    if (CallsHandler.activeCall) {
+      // Single call
+      serviceId = CallsHandler.activeCall.call.serviceId;
+    } else {
+      // Conference call
+      serviceId = navigator.mozTelephony.active.calls[0].serviceId;
     }
+
+    if (this._dtmfTone) {
+      this._dtmfTone.stop();
+      this._dtmfTone = null;
+    }
+
+    this._dtmfTone = new DtmfTone(key, shortTone, serviceId);
+    this._dtmfTone.play();
   },
 
   _stopDtmfTone: function kh_stopDtmfTone() {
-    if (!this._onCall) {
+    if (!this._dtmfTone) {
       return;
     }
 
-    var telephony = navigator.mozTelephony;
-
-    clearTimeout(this._dtmfToneTimer);
-    telephony.stopTone();
+    this._dtmfTone.stop();
+    this._dtmfTone = null;
   },
 
   /**
