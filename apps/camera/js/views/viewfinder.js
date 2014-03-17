@@ -86,7 +86,6 @@ module.exports = View.extend({
   },
 
   onClick: function(e) {
-    e.stopPropagation();
     this.emit('click');
   },
 
@@ -309,7 +308,7 @@ module.exports = View.extend({
           '</div>' +
         '</div>' +
     '</div>';
-  },
+  }
 });
 
 function raf(fn) {
