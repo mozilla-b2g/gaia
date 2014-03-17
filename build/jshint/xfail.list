@@ -39,11 +39,6 @@ apps/calendar/js/models/calendar.js
 apps/calendar/js/models/event.js
 apps/calendar/js/notification.js
 apps/calendar/js/oauth_window.js
-apps/calendar/js/provider/abstract.js
-apps/calendar/js/provider/caldav.js
-apps/calendar/js/provider/caldav_pull_events.js
-apps/calendar/js/provider/caldav_visual_log.js
-apps/calendar/js/provider/local.js
 apps/calendar/js/querystring.js
 apps/calendar/js/responder.js
 apps/calendar/js/router.js

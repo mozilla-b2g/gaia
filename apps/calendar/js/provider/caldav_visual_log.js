@@ -1,4 +1,7 @@
 Calendar.ns('Provider').CaldavVisualLog = (function() {
+  'use strict';
+
+  var Calc = Calendar.Calc;
 
   /**
    * This is a more crude version of what asuth does in email.
