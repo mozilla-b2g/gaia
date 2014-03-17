@@ -399,7 +399,7 @@ ComposeCard.prototype = {
    */
   insertBubble: function(node, name, address) {
     var container = node.parentNode;
-    var bubble = this.createBubbleNode(name, address);
+    var bubble = this.createBubbleNode(name || address, address);
     container.insertBefore(bubble, node);
   },
   /**
@@ -812,7 +812,11 @@ ComposeCard.prototype = {
       activity.onsuccess = function success() {
         if (this.result.email) {
           var emt = contactBtn.parentElement.querySelector('.cmp-addr-text');
-          self.insertBubble(emt, this.result.name, this.result.email);
+          var name = this.result.name;
+          if (Array.isArray(name)) {
+              name = name[0];
+          }
+          self.insertBubble(emt, name, this.result.email);
           self.sendButton.setAttribute('aria-disabled', 'false');
         }
       };
