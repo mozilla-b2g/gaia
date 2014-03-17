@@ -209,7 +209,7 @@ suite('dialer/keypad', function() {
       });
     });
 
-    suite('Audible and DTMF tones during  a call', function() {
+    suite('During  a call', function() {
       var mockCall;
       var mockHC;
 
@@ -232,6 +232,7 @@ suite('dialer/keypad', function() {
         this.sinon.stub(document, 'elementFromPoint');
 
         subject.init(true);
+        subject.render('oncall');
       });
 
       teardown(function() {
@@ -240,54 +241,74 @@ suite('dialer/keypad', function() {
         subject.init(false);
       });
 
-      test('Pressing a button during a call plays a long tone', function() {
-        var startSpy = this.sinon.spy(MockTonePlayer, 'start');
+      suite('Audible and DTMF tones', function() {
+        test('Pressing a button during a call plays a long tone', function() {
+          var startSpy = this.sinon.spy(MockTonePlayer, 'start');
 
-        subject._touchStart('1');
-        assert.isTrue(startSpy.calledWith(gTonesFrequencies['1'], false));
+          subject._touchStart('1');
+          assert.isTrue(startSpy.calledWith(gTonesFrequencies['1'], false));
+        });
+
+        test('Short tones are enabled via prefs', function() {
+          var startSpy = this.sinon.spy(MockTonePlayer, 'start');
+
+          MockSettingsListener.mCallbacks['phone.dtmf.type']('short');
+          subject._touchStart('1');
+          assert.isTrue(startSpy.calledWith(gTonesFrequencies['1'], true));
+        });
+
+        test('Pressing a button during a call plays a DTMF tone', function() {
+          var startToneSpy = this.sinon.spy(MockMozTelephony, 'startTone');
+          var stopToneSpy = this.sinon.spy(MockMozTelephony, 'stopTone');
+
+          subject._touchStart('1');
+          assert.isTrue(stopToneSpy.calledOnce);
+          assert.isTrue(startToneSpy.calledWith('1'));
+          subject._touchEnd('1');
+          assert.equal(stopToneSpy.callCount, 2);
+        });
+
+        test('Long DTMF tones stop when leaving the button', function() {
+          var stopToneSpy = this.sinon.spy(MockMozTelephony, 'stopTone');
+
+          MockSettingsListener.mCallbacks['phone.dtmf.type']('long');
+
+          subject._touchStart('1');
+          assert.isTrue(stopToneSpy.calledOnce);
+          document.elementFromPoint.returns({ dataset: { value: '2' }});
+          subject._touchMove({ pageX: 0, pageY: 0 });
+          assert.equal(stopToneSpy.callCount, 2);
+        });
+
+        test('Short DTMF tones stop after 120ms', function() {
+          var stopToneSpy = this.sinon.spy(MockMozTelephony, 'stopTone');
+
+          MockSettingsListener.mCallbacks['phone.dtmf.type']('short');
+
+          subject._touchStart('1');
+          this.sinon.clock.tick(119);
+          assert.isTrue(stopToneSpy.calledOnce);
+          this.sinon.clock.tick(1);
+          assert.equal(stopToneSpy.callCount, 2);
+        });
       });
 
-      test('Short tones are enabled via prefs', function() {
-        var startSpy = this.sinon.spy(MockTonePlayer, 'start');
+      suite('then during a conference group', function() {
+        setup(function() {
+          MockCallsHandler.mActiveCall = null;
+        });
 
-        MockSettingsListener.mCallbacks['phone.dtmf.type']('short');
-        subject._touchStart('1');
-        assert.isTrue(startSpy.calledWith(gTonesFrequencies['1'], true));
-      });
+        test('should not fail while typing', function() {
+          subject._touchStart('1');
+          this.sinon.clock.tick();
+          assert.ok(true, 'got here');
+        });
 
-      test('Pressing a button during a call plays a DTMF tone', function() {
-        var startToneSpy = this.sinon.spy(MockMozTelephony, 'startTone');
-        var stopToneSpy = this.sinon.spy(MockMozTelephony, 'stopTone');
-
-        subject._touchStart('1');
-        assert.isTrue(stopToneSpy.calledOnce);
-        assert.isTrue(startToneSpy.calledWith('1'));
-        subject._touchEnd('1');
-        assert.equal(stopToneSpy.callCount, 2);
-      });
-
-      test('Long DTMF tones stop when leaving the button', function() {
-        var stopToneSpy = this.sinon.spy(MockMozTelephony, 'stopTone');
-
-        MockSettingsListener.mCallbacks['phone.dtmf.type']('long');
-
-        subject._touchStart('1');
-        assert.isTrue(stopToneSpy.calledOnce);
-        document.elementFromPoint.returns({ dataset: { value: '2' }});
-        subject._touchMove({ pageX: 0, pageY: 0 });
-        assert.equal(stopToneSpy.callCount, 2);
-      });
-
-      test('Short DTMF tones stop after 120ms', function() {
-        var stopToneSpy = this.sinon.spy(MockMozTelephony, 'stopTone');
-
-        MockSettingsListener.mCallbacks['phone.dtmf.type']('short');
-
-        subject._touchStart('1');
-        this.sinon.clock.tick(119);
-        assert.isTrue(stopToneSpy.calledOnce);
-        this.sinon.clock.tick(1);
-        assert.equal(stopToneSpy.callCount, 2);
+        test('should not fail when restoring infos', function() {
+          subject.restorePhoneNumber();
+          subject.restoreAdditionalContactInfo();
+          assert.ok(true, 'got here');
+        });
       });
     });
 
