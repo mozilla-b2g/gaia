@@ -285,11 +285,7 @@ var KeyboardManager = {
       if (!self.keyboardLayouts[group]) {
         group = 'text';
       }
-      if (group !== self.showingLayout.type) {
-        self.resetShowingKeyboard();
-      }
       self.setKeyboardToShow(group);
-
     }
 
     if (type === 'blur') {
@@ -492,7 +488,27 @@ var KeyboardManager = {
       return;
     }
     if (index === undefined) {
-      index = this.keyboardLayouts[group].activeLayout;
+      // If the current keyboard also supports this group, then
+      // we'll stick with that keyboard.
+      var currentGroup = this.keyboardLayouts[this.showingLayout.type];
+      var currentKeyboardId = currentGroup[this.showingLayout.index].id;
+      var newGroup = this.keyboardLayouts[group];
+      for (var i = 0; i < newGroup.length; i++) {
+        if (newGroup[i].id === currentKeyboardId) {
+          this.keyboardLayouts[group].activeLayout = index = i;
+          break;
+        }
+      }
+
+      if (index === undefined) {
+        // If the index is still undefined, then use whatever
+        // layout is active for the group
+        index = this.keyboardLayouts[group].activeLayout || 0;
+
+        // Reset the keyboard in this case because we're switching
+        // to a different app
+        this.resetShowingKeyboard();
+      }
     }
     this._debug('set layout to display: type=' + group + ' index=' + index);
     this.showingLayout.type = group;
