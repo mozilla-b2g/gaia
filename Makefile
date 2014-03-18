@@ -732,7 +732,7 @@ b2g: node_modules/.bin/mozilla-download
 
 .PHONY: test-integration
 # $(PROFILE_FOLDER) should be `profile-test` when we do `make test-integration`.
-test-integration: $(PROFILE_FOLDER) test-integration-test
+test-integration: clean $(PROFILE_FOLDER) test-integration-test
 
 # XXX Because bug-969215 is not finished, if we are going to run too many
 # marionette tests for 30 times at the same time, we may easily get timeout.
