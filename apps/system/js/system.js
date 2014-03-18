@@ -33,6 +33,19 @@
      */
     slowTransition: false,
 
+    /**
+     * Let other components detect if the device now is locked.
+     * @return {Boolean}
+     * @memberOf module:System
+     */
+    get locked() {
+      // If the lockscreen is not existing yet.
+      if (!window.lockScreen) {
+        return false;
+      }
+      return window.lockScreen.locked;
+    },
+
     publish: function sys_publish(eventName, detail) {
       var evt = new CustomEvent(eventName, { detail: detail });
       window.dispatchEvent(evt);

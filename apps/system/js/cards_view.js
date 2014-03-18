@@ -808,7 +808,7 @@ var CardsView = (function() {
         break;
 
       case 'holdhome':
-        if (window.lockScreen && window.lockScreen.locked)
+        if (window.System.locked)
           return;
 
         SleepMenu.hide();
