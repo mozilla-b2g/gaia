@@ -55,7 +55,7 @@ body.deg180 .zoom-bar {
   Landscape Orientation (270deg)
  */
 body.deg270 .zoom-bar {
-  top: calc(50vh - 12rem);
+  top: calc(50vh - 15.6rem);
   right: auto;
   bottom: auto;
   left: 3rem;
