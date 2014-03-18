@@ -49,7 +49,7 @@ module.exports = View.extend({
   },
 
   template: function() {
-    return '<div class="timer_count js-count"></div>';
+    return '<div class="timer_count js-count rotates"></div>';
   }
 });
 
