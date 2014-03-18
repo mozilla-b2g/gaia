@@ -402,17 +402,32 @@ var CostControlApp = (function() {
     Common.startFTE(mode);
   }
 
+  function initApp() {
+    vmanager = new ViewManager();
+    waitForSIMReady(function _onSIMReady() {
+      document.getElementById('message-handler').src = 'message_handler.html';
+      Common.waitForDOMAndMessageHandler(window, startApp);
+    });
+    // XXX: See bug 944342 -[Cost control] move all the process related to the
+    // network and data interfaces loading to the start-up process of CC
+    Common.loadNetworkInterfaces();
+  }
+
   return {
     init: function() {
-      vmanager = new ViewManager();
-      waitForSIMReady(function _onSIMReady() {
-        document
-          .getElementById('message-handler').src = 'message_handler.html';
-        Common.waitForDOMAndMessageHandler(window, startApp);
-      });
-      // XXX: See bug 944342 -[Cost control] move all the process related to the
-      // network and data interfaces loading to the start-up process of CC
-      Common.loadNetworkInterfaces();
+      var SCRIPTS_NEEDED = [
+        'js/utils/debug.js',
+        'js/utils/formatting.js',
+        'js/utils/toolkit.js',
+        'js/settings/networkUsageAlarm.js',
+        'js/common.js',
+        'js/costcontrol.js',
+        'js/costcontrol_init.js',
+        'js/config/config_manager.js',
+        'js/views/NonReadyScreen.js',
+        'js/view_manager.js'
+      ];
+      LazyLoader.load(SCRIPTS_NEEDED, initApp);
     },
     reset: function() {
       costcontrol = null;

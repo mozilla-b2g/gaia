@@ -4,7 +4,7 @@
 // in the window object referring to those frames. Mocha considers these
 // indices as global leaks so we need to `whitelist` them.
 mocha.setup({ globals: ['0', '1'] });
-
+require('/shared/test/unit/mocks/mock_lazy_loader.js');
 requireApp('costcontrol/test/unit/mock_debug.js');
 requireApp('costcontrol/test/unit/mock_common.js');
 requireApp('costcontrol/test/unit/mock_moz_l10n.js');
@@ -29,7 +29,8 @@ var realCommon,
     realCostControl,
     realConfigManager,
     realMozSetMessageHandler,
-    realNonReadyScreen;
+    realNonReadyScreen,
+    realLazyLoader;
 
 if (!this.Common) {
   this.Common = null;
@@ -63,6 +64,10 @@ if (!this.NonReadyScreen) {
   this.NonReadyScreen = null;
 }
 
+if (!window.LazyLoader) {
+  window.LazyLoader = null;
+}
+
 suite('Application Startup Modes Test Suite >', function() {
 
   var iframe;
@@ -81,6 +86,9 @@ suite('Application Startup Modes Test Suite >', function() {
     realCostControl = window.CostControl;
 
     realConfigManager = window.ConfigManager;
+
+    realLazyLoader = window.LazyLoader;
+    window.LazyLoader = window.MockLazyLoader;
 
     realMozSetMessageHandler = window.navigator.mozSetMessageHandler;
     window.navigator.mozSetMessageHandler =
@@ -111,6 +119,7 @@ suite('Application Startup Modes Test Suite >', function() {
     window.navigator.mozL10n = realMozL10n;
     window.CostControl = realCostControl;
     window.ConfigManager = realConfigManager;
+    window.LazyLoader = realLazyLoader;
     window.SettingsListener.mTeardown();
     window.SettingsListener = realSettingsListener;
     window.navigator.mozSetMessageHandler.mTeardown();

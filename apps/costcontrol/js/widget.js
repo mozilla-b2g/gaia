@@ -446,31 +446,42 @@ var Widget = (function() {
       views.balance.classList.add('updating');
     }
   }
+  function initWidget() {
+    Common.loadDataSIMIccId(checkSIMStatus, function _errorNoSim() {
+      console.warn('Error when trying to get the ICC ID');
+      showSimError('no-sim2');
+    });
+    AirplaneModeHelper.addEventListener('statechange',
+      function _onAirplaneModeChange(state) {
+        if (state === 'enabled') {
+          var iccManager = window.navigator.mozIccManager;
+          iccManager.addEventListener('iccdetected', function _oniccdetected() {
+            iccManager.removeEventListener('iccdetected', _oniccdetected);
+            Common.loadDataSIMIccId(checkSIMStatus);
+          });
+          showSimError('no-sim2');
+        }
+      }
+    );
+    // XXX: See bug 944342 -[Cost control] move all the process related to the
+    // network and data interfaces loading to the start-up process of CC
+    Common.loadNetworkInterfaces();
+  }
 
   return {
     init: function() {
-      Common.loadDataSIMIccId(checkSIMStatus, function _errorNoSim() {
-        console.warn('Error when trying to get the ICC ID');
-        showSimError('no-sim2');
-      });
-      AirplaneModeHelper.addEventListener('statechange',
-        function _onAirplaneModeChange(state) {
-          if (state === 'enabled') {
-            var iccManager = window.navigator.mozIccManager;
-            iccManager.addEventListener('iccdetected',
-              function _oniccdetected() {
-                iccManager.removeEventListener('iccdetected', _oniccdetected);
-                Common.loadDataSIMIccId(checkSIMStatus);
-              }
-            );
-            showSimError('no-sim2');
-          }
-        }
-      );
-
-      // XXX: See bug 944342 -[Cost control] move all the process related to the
-      // network and data interfaces loading to the start-up process of CC
-      Common.loadNetworkInterfaces();
+        var SCRIPTS_NEEDED = [
+        'js/utils/debug.js',
+        'js/utils/formatting.js',
+        'js/utils/toolkit.js',
+        'js/common.js',
+        'js/costcontrol.js',
+        'js/costcontrol_init.js',
+        'js/config/config_manager.js',
+        'js/settings/networkUsageAlarm.js',
+        'js/views/BalanceView.js'
+      ];
+      LazyLoader.load(SCRIPTS_NEEDED, initWidget);
     }
   };
 
