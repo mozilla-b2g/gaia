@@ -10,6 +10,7 @@
 var CardsView = (function() {
   //display icon of an app on top of app's card
   var DISPLAY_APP_ICON = false;
+  var DISPLAY_APP_SCREENSHOT = true;
   // if 'true' user can close the app
   // by dragging it upwards
   var MANUAL_CLOSING = true;
@@ -43,22 +44,29 @@ var CardsView = (function() {
    * @param{String} the position of the app in our cache
    */
   function getIconURI(position) {
-    var icons = stack[position].manifest.icons;
-    if (!icons) {
+    var app = stack[position];
+    var icons = app.manifest && app.manifest.icons;
+    var iconPath;
+
+    if (icons) {
+      var sizes = Object.keys(icons).map(function parse(str) {
+        return parseInt(str, 10);
+      });
+
+      sizes.sort(function(x, y) { return y - x; });
+
+      var index = sizes[(HVGA) ? sizes.length - 1 : 0];
+      iconPath = icons[index];
+    } else {
+      iconPath = app.icon;
+    }
+
+    if (!iconPath) {
       return null;
     }
 
-    var sizes = Object.keys(icons).map(function parse(str) {
-      return parseInt(str, 10);
-    });
-
-    sizes.sort(function(x, y) { return y - x; });
-
-    var index = sizes[(HVGA) ? sizes.length - 1 : 0];
-    var iconPath = icons[index];
-
     if (iconPath.indexOf('data:') !== 0) {
-      iconPath = origin + iconPath;
+      iconPath = app.origin + iconPath;
     }
 
     return iconPath;
@@ -216,6 +224,7 @@ var CardsView = (function() {
           appIcon.classList.add('appIcon');
           appIcon.src = iconURI;
           card.appendChild(appIcon);
+          card.classList.add('appIconPreview');
         }
       }
 
@@ -223,13 +232,14 @@ var CardsView = (function() {
       title.textContent = app.name;
       card.appendChild(title);
 
-      var frameForScreenshot = app.iframe;
+      // only take the frame reference if we need to
+      var frameForScreenshot = DISPLAY_APP_SCREENSHOT && app.iframe;
 
       var origin = stack[position].origin;
       if (PopupManager.getPopupFromOrigin(origin)) {
         var popupFrame =
           PopupManager.getPopupFromOrigin(origin);
-        frameForScreenshot = popupFrame;
+        frameForScreenshot = DISPLAY_APP_SCREENSHOT && popupFrame;
 
         var subtitle = document.createElement('p');
         subtitle.textContent =
@@ -246,7 +256,7 @@ var CardsView = (function() {
 
       if (TrustedUIManager.hasTrustedUI(origin)) {
         var popupFrame = TrustedUIManager.getDialogFromOrigin(origin);
-        frameForScreenshot = popupFrame.frame;
+        frameForScreenshot = DISPLAY_APP_SCREENSHOT && popupFrame.frame;
         var header = document.createElement('section');
         header.setAttribute('role', 'region');
         header.classList.add('skin-organic');
@@ -271,7 +281,7 @@ var CardsView = (function() {
 
       card.addEventListener('onviewport', function onviewport() {
         card.style.display = 'block';
-        if (screenshotView.style.backgroundImage) {
+        if (!DISPLAY_APP_SCREENSHOT || screenshotView.style.backgroundImage) {
           return;
         }
 
@@ -282,6 +292,7 @@ var CardsView = (function() {
             degree == 270) {
           isLandscape = true;
         }
+
         // Rotate screenshotView if needed
         screenshotView.classList.add('rotate-' + degree);
         if (isLandscape) {
