@@ -208,6 +208,14 @@ suite('system/ScreenManager', function() {
       assert.isTrue(stubTurnOn.called);
     });
 
+    test('Testing reset-screen-idle-timeout event', function() {
+      var stubResetScreenIdleTimeout = this.sinon.stub(
+                                         ScreenManager,
+                                         'resetScreenIdleTimeout');
+      ScreenManager.handleEvent({'type': 'reset-screen-idle-timeout'});
+      assert.isTrue(stubResetScreenIdleTimeout.called);
+    });
+
     suite('Testing userproximity event', function() {
       var stubTelephony, stubBluetooth, stubStatusBar, stubTurnOn, stubTurnOff;
 
