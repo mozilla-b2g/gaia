@@ -842,7 +842,6 @@ apps/system/js/keyboard_manager.js
 apps/system/js/lockscreen_connection_info_manager.js
 apps/system/js/logo_loader.js
 apps/system/js/media_playback.js
-apps/system/js/media_recording.js
 apps/system/js/modal_dialog.js
 apps/system/js/nfc_handover.js
 apps/system/js/nfc_handover_manager.js
@@ -942,7 +941,6 @@ apps/system/test/unit/keyboard_helper_test.js
 apps/system/test/unit/lockscreen_conn_info_manager_test.js
 apps/system/test/unit/lockscreen_test.js
 apps/system/test/unit/logo_loader_test.js
-apps/system/test/unit/media_recording_test.js
 apps/system/test/unit/mobile_operator_test.js
 apps/system/test/unit/mock_activity.js
 apps/system/test/unit/mock_activity_window.js
