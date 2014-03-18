@@ -79,6 +79,7 @@ window.addEventListener('load', function startup() {
   window.devtoolsView = new DevtoolsView();
   window.dialerComms = new DialerComms();
   window.remoteDebugger = new RemoteDebugger();
+  window.permissionManager = new PermissionManager();
   window.soundManager = new SoundManager().start();
   window.ttlView = new TTLView();
   window.visibilityManager = new VisibilityManager().start();
