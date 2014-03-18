@@ -131,13 +131,24 @@
   font-size: 2rem;
 }
 
-#cards-view .card > img.appIcon {
-  position: relative;
-  height: 8rem;
-  width: 8rem;
-  border-radius: .6rem;
-  top: 50%;
-  margin-top: -4rem;
+#cards-view .card.appIconPreview {
+  background-color: rgba(255, 255, 255, 1);
+}
+
+#cards-view .card > .appIconView {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url(../icons/Default.png);
+  background-position: center center;
+  background-repeat: no-repeat;
+  opacity: 0;
+}
+
+#cards-view .card.appIconPreview > .appIconView {
+  opacity: 1;
 }
 
 #cards-view .close-card {
