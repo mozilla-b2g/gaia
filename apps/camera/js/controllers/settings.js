@@ -102,7 +102,8 @@ SettingsController.prototype.onOptionTap = function(key, setting) {
   //setting notification
   if (setting.selected('notificationID')) {
     this.notification.showNotification({
-    message: setting.selected('notificationID')});
+      message: setting.selected('notificationID')
+    });
 }
 };
 

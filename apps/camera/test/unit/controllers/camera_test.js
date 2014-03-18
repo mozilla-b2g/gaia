@@ -251,4 +251,24 @@ suite('controllers/camera', function() {
       assert.ok(this.app.camera.capture.args[0][0].position === 123);
     });
   });
+
+  suite('CameraController#onBatteryStatuchange ()', function() {
+    setup(function() {
+      this.controller = new this.CameraController(this.app);
+      this.camera.get
+        .withArgs('recording')
+        .returns(true);
+    });
+
+    test('Should call onBatteryStatuchange on \'change:batteryStatus\'',
+      function() {
+      this.controller = new this.CameraController(this.app);
+      this.app.on.calledWith('change:batteryStatus', this.onBatteryStatuchange);
+    });
+
+    test('Should handle the shutDownCamera', function() {
+      this.controller.onBatteryStatuchange('shutdown');
+      assert.ok(this.camera.stopRecording.called);
+    });
+  });
 });

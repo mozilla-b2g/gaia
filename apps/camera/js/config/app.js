@@ -16,45 +16,11 @@ module.exports = {
     }
   },
   lowbattery: {
-    low: {
-      notificationID: 'battery-low-text',
-      icon: 'icon-battery-low',
-      event: 'battery:low',
-      value: 'low',
-      level: 15
-    },
-    verylow: {
-      notificationID: 'battery-verylow-text',
-      icon: 'icon-battery-verylow',
-      event: 'battery:verylow',
-      value: 'verylow',
-      level: 10
-    },
-    critical: {
-      isPersistent: true,
-      notificationID: 'battery-critical-text',
-      icon: 'icon-battery-critical',
-      event: 'battery:critical',
-      value: 'critical',
-      level: 6
-    },
-    shutdown: {
-      isFullScreen: true,
-      notificationID: 'battery-shutdown-text',
-      notificationTitleID: 'battery-shutdown-title',
-      event: 'battery:shutdown',
-      value: 'shutdown',
-      level: 5
-    },
-    healthy: {
-      event: 'battery:healthy',
-      value: 'healthy',
-      level: 100
-    },
-    charging: {
-      event: 'battery:charging',
-      value: 'charging'
-    }
+    low: 15,
+    verylow: 10,
+    critical: 6,
+    shutdown: 5,
+    healthy: 100
   },
   mode: {
     title: 'Mode',

@@ -61,7 +61,13 @@ LowBatteryController.prototype.bindEvents = function() {
 LowBatteryController.prototype.onLevelChange = function () {
   var status = this.getStatus(this.battery);
   if (status) {
-    this.app.emit('batterystatuschange', status);
+    this.app.set('batteryStatus', status.value);
+    if (status.value !== 'critical') {
+      this.notification.clearPersistent();
+    }
+    if (status.message) {
+      this.notification.showNotification(status);
+    }
   }
 };
 
@@ -69,50 +75,30 @@ LowBatteryController.prototype.getStatus = function (battery) {
   var value = Math.round(battery.level * 100);
   var isCharging = battery.charging;
   
-  var level = this.healthy;
-  this.notification.clearPersistentMessage();
-  
+  var level = { value:'healthy' };
   if (isCharging) {
-    level = this.charging;
+    level.value = 'charging';
+    return level;
   }
 
-   if (value <= this.low.level) {
-    level = this.low;
+  if (value <= this.shutdown) {
+    level.value = 'shutdown';
+  } else if (value <= this.critical) {
+    level.value = 'critical';
+    level.message = 'battery-critical-text';
+    level.icon = 'icon-battery-critical';
+    level.isPersistent = true;
+  }  else if (value <= this.verylow) {
+    level.value = 'verylow';
+    level.message = 'battery-verylow-text';
+    level.icon = 'icon-battery-verylow';
+  } else if (value <= this.low) {
+    level.value = 'low';
+    level.message = 'battery-low-text';
+    level.icon = 'icon-battery-low';
   }
 
-  if (value <= this.verylow.level) {
-    level = this.verylow;
-  }
-
-  if (value <= this.critical.level) {
-    level = this.critical;
-  }
-
-  if (value <= this.shutdown.level) {
-    this.shutDownCamera();
-    level = this.shutdown;
-  }
-
-  if (level.notificationID) {
-    var messageObj = {
-      icon: level.icon ? level.icon : null,
-      message: level.notificationID,
-      isPersistent: level.isPersistent ?
-                  level.isPersistent : false
-    };
-
-    this.notification.showNotification(messageObj);
-  }
-  
   return level;
-};
-
-LowBatteryController.prototype.shutDownCamera = function() {
-  var camera = this.camera;
-  if (camera.get('recording')) {
-    camera.stopRecording();
-  }
-  this.app.emit('shutdown:camera');
 };
 
 });
