@@ -763,7 +763,6 @@ apps/system/js/nfc_handover.js
 apps/system/js/nfc_handover_manager.js
 apps/system/js/nfc_manager.js
 apps/system/js/nfc_util.js
-apps/system/js/notifications.js
 apps/system/js/operator_variant/operator_variant.js
 apps/system/js/operator_variant/operator_variant_iccs.js
 apps/system/js/orientation_manager.js

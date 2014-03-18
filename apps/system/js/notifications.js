@@ -1,17 +1,23 @@
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+/* globals GestureDetector, SettingsURL, MediaPlaybackWidget,
+           SettingsListener, StatusBar, UtilityTray, ScreenManager */
+
+
 
 'use strict';
 
 (function appCacheIcons() {
   // Caching the icon for notification if appCache is in effect
   var appCache = window.applicationCache;
-  if (!appCache)
+  if (!appCache) {
     return;
+  }
 
   var addIcons = function addIcons(app) {
-    if (!app.manifest)
+    if (!app.manifest) {
       return;
+    }
     var icons = app.manifest.icons;
     if (icons) {
       Object.keys(icons).forEach(function iconIterator(key) {
@@ -155,15 +161,16 @@ var NotificationScreen = {
 
     for (var i = nodes.length - 1; i >= 0; i--) {
       if (nodes[i].dataset.obsoleteAPI === 'true') {
-        this.closeNotification(nodes[i]);
+        this.removeNotification(nodes[i]);
       }
     }
   },
 
   // Swipe handling
   mousedown: function ns_mousedown(evt) {
-    if (!evt.target.dataset.notificationId)
+    if (!evt.target.dataset.notificationId) {
       return;
+    }
 
     evt.preventDefault();
     this._notification = evt.target;
@@ -195,10 +202,11 @@ var NotificationScreen = {
     notification.addEventListener('transitionend', function trListener() {
       notification.removeEventListener('transitionend', trListener);
 
-      self.closeNotification(notification);
+      self.removeNotification(notification);
 
-      if (notification != toaster)
+      if (notification != toaster) {
         return;
+      }
 
       // Putting back the toaster in a clean state for the next notification
       toaster.style.display = 'none';
@@ -300,8 +308,9 @@ var NotificationScreen = {
                                               'desktop-notification';
     notificationNode.dataset.manifestURL = detail.manifestURL || '';
 
+    var icon;
     if (detail.icon) {
-      var icon = document.createElement('img');
+      icon = document.createElement('img');
       icon.src = detail.icon;
       notificationNode.appendChild(icon);
     }
@@ -460,25 +469,34 @@ var NotificationScreen = {
     window.dispatchEvent(event);
   },
 
-  closeNotification: function ns_closeNotification(notificationNode) {
-    var notificationId = notificationNode.dataset.notificationId;
-    this.removeNotification(notificationNode.dataset.notificationId);
-  },
+  removeNotification: function ns_removeNotification(nodeOrId) {
+    var notificationId, notificationNode;
 
-  removeNotification: function ns_removeNotification(notificationId) {
+    // handle being passed either a notification node or notification id
+    if (nodeOrId instanceof Node) {
+      notificationNode = nodeOrId;
+      notificationId = notificationNode.dataset.notificationId;
+    } else {
+      notificationId = nodeOrId;
+    }
+
     this.fireCloseEvent(notificationId);
 
     var notifSelector = '[data-notification-id="' + notificationId + '"]';
-    var notificationNode = this.container.querySelector(notifSelector);
+    if (!notificationNode) {
+      notificationNode = this.container.querySelector(notifSelector);
+    }
     var lockScreenNotificationNode =
       this.lockScreenContainer.querySelector(notifSelector);
 
-    if (notificationNode)
+    if (notificationNode) {
       notificationNode.parentNode.removeChild(notificationNode);
+    }
 
-    if (lockScreenNotificationNode)
+    if (lockScreenNotificationNode) {
       lockScreenNotificationNode.parentNode
         .removeChild(lockScreenNotificationNode);
+    }
     this.updateStatusBarIcon();
 
     if (!this.container.firstElementChild) {
@@ -489,7 +507,7 @@ var NotificationScreen = {
 
   clearAll: function ns_clearAll() {
     while (this.container.firstElementChild) {
-      this.closeNotification(this.container.firstElementChild);
+      this.removeNotification(this.container.firstElementChild);
     }
   },
 
@@ -505,8 +523,9 @@ var NotificationScreen = {
       this.externalNotificationsCount;
     StatusBar.updateNotification(nbTotalNotif);
 
-    if (unread)
+    if (unread) {
       StatusBar.updateNotificationUnread(true);
+    }
   },
 
   incExternalNotifications: function ns_incExternalNotifications() {
@@ -533,7 +552,7 @@ SettingsListener.observe(
 });
 
 SettingsListener.observe('audio.volume.notification', 7, function(value) {
-  NotificationScreen.silent = (value == 0);
+  NotificationScreen.silent = (value === 0);
 });
 
 SettingsListener.observe('vibration.enabled', true, function(value) {
