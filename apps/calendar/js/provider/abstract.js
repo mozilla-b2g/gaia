@@ -1,4 +1,5 @@
 Calendar.ns('Provider').Abstract = (function() {
+  'use strict';
 
   function Abstract(options) {
     var key;
