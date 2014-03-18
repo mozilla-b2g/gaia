@@ -111,7 +111,11 @@ suite('DoubleSpace', function() {
       return [ev1, ev2, spy1, spy2];
     }
     test('On dot insertion', function() {
-      let[ev1, ev2, spy1, spy2] = createSpaceEvents();
+      var spaceEvents = createSpaceEvents();
+      var ev1 = spaceEvents[0];
+      var ev2 = spaceEvents[1];
+      var spy1 = spaceEvents[2];
+      var spy2 = spaceEvents[3];
 
       inputField.textBeforeCursor = 'jan';
       keyboardTouchHelper.dispatchEvent(ev1);
@@ -123,7 +127,11 @@ suite('DoubleSpace', function() {
     });
 
     test('On non-dot insertion', function() {
-      let [ev1, ev2, spy1, spy2] = createSpaceEvents();
+      var spaceEvents = createSpaceEvents();
+      var ev1 = spaceEvents[0];
+      var ev2 = spaceEvents[1];
+      var spy1 = spaceEvents[2];
+      var spy2 = spaceEvents[3];
 
       inputField.textBeforeCursor = ''; // empty string doesnt insert dot
       keyboardTouchHelper.dispatchEvent(ev1);
@@ -145,7 +153,10 @@ suite('DoubleSpace', function() {
 
     test('Literal text', function() {
       inputField.textBeforeCursor = 'yolo';
-      let [ev, spy] = triggerBackspaceEvent();
+      var backspaceEvents = triggerBackspaceEvent();
+      var ev = backspaceEvents[0];
+      var spy = backspaceEvents[1];
+
       assert.equal(spy.callCount, 0, 'stopImmediatePropagation callCount');
       assert.equal(inputField.replaceSurroundingText.callCount, 0,
         'replaceSurroundingText callCount');
@@ -153,7 +164,10 @@ suite('DoubleSpace', function() {
 
     test('Literal text and space', function() {
       inputField.textBeforeCursor = 'yolo        ';
-      let [ev, spy] = triggerBackspaceEvent();
+      var backspaceEvents = triggerBackspaceEvent();
+      var ev = backspaceEvents[0];
+      var spy = backspaceEvents[1];
+
       assert.equal(spy.callCount, 0, 'stopImmediatePropagation callCount');
       assert.equal(inputField.replaceSurroundingText.callCount, 0,
         'replaceSurroundingText callCount');
@@ -161,7 +175,10 @@ suite('DoubleSpace', function() {
 
     test('Literal text and exclamation mark', function() {
       inputField.textBeforeCursor = 'yolo!';
-      let [ev, spy] = triggerBackspaceEvent();
+      var backspaceEvents = triggerBackspaceEvent();
+      var ev = backspaceEvents[0];
+      var spy = backspaceEvents[1];
+
       assert.equal(spy.callCount, 0, 'stopImmediatePropagation callCount');
       assert.equal(inputField.replaceSurroundingText.callCount, 0,
         'replaceSurroundingText callCount');
@@ -171,7 +188,10 @@ suite('DoubleSpace', function() {
       inputField.textBeforeCursor = 'yolo';
       sendKey('SPACE');
       inputField.textBeforeCursor += ' ';
-      let [ev, spy] = triggerBackspaceEvent();
+      var backspaceEvents = triggerBackspaceEvent();
+      var ev = backspaceEvents[0];
+      var spy = backspaceEvents[1];
+
       assert.equal(spy.callCount, 0, 'stopImmediatePropagation callCount');
       assert.equal(inputField.replaceSurroundingText.callCount, 0,
         'replaceSurroundingText callCount');
@@ -184,7 +204,10 @@ suite('DoubleSpace', function() {
       sendKey('SPACE');
       // new stub required
       inputField.replaceSurroundingText = sinon.stub();
-      let [ev, spy] = triggerBackspaceEvent();
+      var backspaceEvents = triggerBackspaceEvent();
+      var ev = backspaceEvents[0];
+      var spy = backspaceEvents[1];
+
       assert.equal(spy.callCount, 1, 'stopImmediatePropagation callCount');
       assert.equal(inputField.replaceSurroundingText.callCount, 1,
         'replaceSurroundingText callCount');
