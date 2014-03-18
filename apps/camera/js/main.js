@@ -32,16 +32,10 @@ require(['config/require', 'config'], function() {
       settings: require('controllers/settings'),
       activity: require('controllers/activity'),
       camera: require('controllers/camera'),
-<<<<<<< HEAD
       sounds: require('controllers/sounds'),
       timer: require('controllers/timer'),
       zoomBar: require('controllers/zoom-bar'),
-      indicators: require('controllers/indicators'),
-      notification:require('controllers/notification')
-=======
-      sounds: require('controllers/sounds')
-
->>>>>>> Bug 982054 - [Camera] Setting change text Feed back or Notifications
+      indicators: require('controllers/indicators')
     };
 
     // Attach navigator.mozL10n

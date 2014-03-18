@@ -9,7 +9,7 @@ module.exports = {
   },
   indicators: {
     enabled: {
-      hdr: false,
+      hdr: true,
       timer: true,
       battery: false,
       geolocation: false
@@ -191,34 +191,26 @@ module.exports = {
       {
         key: 'off',
         value: 0,
-        l10n: {
-          title: 'off',
-          notificationID: 'timer-set-off'
-        }
+        l10n: { title: 'off' },
+        notificationID: 'timer-set-off'
       },
       {
         key: '3secs',
         value: 3,
-        l10n: {
-          title: '3-seconds',
-          notificationID: 'timer-set-3secs'
-        }
+        l10n: { title: '3-seconds' },
+        notificationID: 'timer-set-3secs'
       },
       {
         key: '5secs',
         value: 5,
-        l10n: {
-          title: '5-seconds',
-          notificationID: 'timer-set-5secs'
-        }
+        l10n: { title: '5-seconds' },
+        notificationID: 'timer-set-5secs'
       },
       {
         key: '10secs',
         value: 10,
-        l10n: {
-          title: '10-seconds',
-          notificationID: 'timer-set-10secs'
-        }
+        l10n: { title: '10-seconds' },
+        notificationID: 'timer-set-10secs'
       }
     ],
     persistent: false,
@@ -232,17 +224,13 @@ module.exports = {
     options: [
       {
         key: 'off',
-        l10n: {
-          title: 'off',
-          notificationID: 'hdr-set-off'
-        }
+        l10n: { title: 'off' },
+        notificationID: 'hdr-set-off'
       },
       {
         key: 'on',
-        l10n: {
-          title: 'on',
-          notificationID: 'hdr-set-on'
-        }
+        l10n: { title: 'on' },
+        notificationID: 'hdr-set-on'
       }
     ],
     persistent: true
@@ -274,20 +262,15 @@ module.exports = {
   grid: {
     icon: 'icon-frame-grid',
     options: [
-      {
+       {
         key: 'on',
-        l10n: {
-          title: 'on',
-          notificationID: 'grid-set-on'
-        }
+        l10n: { title: 'on' },
+        notificationID: 'grid-set-on'
       },
       {
         key: 'off',
-        l10n: {
-          title: 'off',
-          notificationID: 'grid-set-off'
-        }
-
+        l10n: { title: 'off' },
+        notificationID: 'grid-set-off'
       }
     ],
     selected: 'off',

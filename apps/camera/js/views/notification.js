@@ -2,96 +2,73 @@ define(function(require, exports, module) {
 'use strict';
 
 /**
- * Dependencies
- */
+* Dependencies
+*/
 
 var View = require('vendor/view');
 var find = require('lib/find');
 /**
- * Exports
- */
+* Exports
+*/
 
 module.exports = View.extend({
   name:'notification',
 
   initialize: function() {
-    this.persistentMessage = false;
+    this.persistentMessage = null;
     this.el.innerHTML = this.render();
     this.l10n = navigator.mozL10n;
     this.timeout = null;
-    this.els.transientElm = find('.js-transient', this.el);
-    this.els.persistentElm = find('.js-persistent', this.el);
-    
+    this.els.notification = find('.js-notification', this.el);
+    this.hide();
   },
 
   render: function() {
-    return '<div class="js-transient "></div>'+
-           '<div class="js-persistent"></div>';
+    return '<div class="js-notification"></div>';
   },
 
   showNotification: function(options) {
-    this.checkMessageState(options);
+    this.clearMessage();
     if (options.isPersistent) {
-      this.showPersistentMessage(options);
-      this.persistentMessage = options.isPersistent;
-    } else {
-      this.showTransientMessage(options);
+      this.clearPersistent();
+      this.persistentMessage = options;
     }
-  },
-
-  showPersistentMessage: function(options) {
-    var message = this.l10n.get(options.message) ?
-                  this.l10n.get(options.message) : options.message;
-    var iconElement = options.icon ?
-                      '<div class="imgBox '+options.icon+'" ></div>' : '';
-
-    this.els.persistentElm.innerHTML = iconElement+message;
-    this.els.persistentElm.classList.add('normal');
-    this.els.persistentElm.classList.remove('hidden');
+    this.showMessage(options);
   },
   
-  showTransientMessage: function(options) {
-    var message = this.l10n.get(options.message) ?
-                  this.l10n.get(options.message) : options.message;
+  showMessage: function(options) {
+    var message = this.l10n.get(options.message) || options.message;
     var iconElement = options.icon ?
                       '<div class="imgBox '+options.icon+'" ></div>' : '';
     var self = this;
-    this.els.transientElm.innerHTML = iconElement+message;
-    this.els.transientElm.classList.add('normal');
-    this.timeout = window.setTimeout(function() {
-      self.clearTransientMessage();
-      if (self.persistentMessage) {
-        self.els.persistentElm.classList.remove('hidden');
-      }
-    }, 3000);
+    this.els.notification.innerHTML = iconElement+message;
+    this.show();
+    if (!options.isPersistent) {
+      this.timeout = window.setTimeout(function() {
+        self.clearMessage();
+        if (self.persistentMessage) {
+          self.showMessage(self.persistentMessage);
+        }
+      }, 3000);
+    }
   },
 
-  clearTransientMessage: function() {
+  clearMessage: function() {
     if (this.timeout) {
       window.clearTimeout(this.timeout);
       this.timeout = null;
     }
-    this.els.transientElm.innerHTML = '';
+    this.els.notification.innerHTML = '';
+    this.hide();
   },
 
-  hidePersistentMessage: function() {
-    this.els.persistentElm.classList.add('hidden');
-  },
-
-  clearPersistentMessage: function() {
-    this.els.persistentElm.innerHTML = '';
-    this.hidePersistentMessage();
-  },
-
-  checkMessageState: function(options) {
-    this.clearTransientMessage();
-    if (options.isPersistent) {
-      this.clearPersistentMessage();
-    } else if (this.persistentMessage) {
-      this.hidePersistentMessage();
+  clearPersistent: function() {
+    if (this.persistentMessage) {
+      this.clearMessage();
+      this.persistentMessage = null;
     }
-  },
-  
+  }
+
 });
 
 });
