@@ -127,9 +127,12 @@ function execute(config) {
   }
 
   if (config.NO_LOCK_SCREEN) {
-    settings['screen.timeout'] = 0;
     settings['lockscreen.enabled'] = false;
     settings['lockscreen.locked'] = false;
+  }
+
+  if (typeof(config.SCREEN_TIMEOUT) == 'number') {
+    settings['screen.timeout'] = config.SCREEN_TIMEOUT;
   }
 
   var queue = utils.Q.defer();
