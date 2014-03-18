@@ -2,15 +2,15 @@
     background: rgba(0, 0, 0, 0.4);
     position: relative;
     z-index: 50;
-    min-height: 5rem;
-    -moz-transition: all .2s linear;
-    transition: all .2s linear;
+    min-height: 8rem; /* 5rem + 3rem */
+    transition: transform .2s linear, background .2s linear;
+    transform: translateY(-3rem);
 }
 
 #evmeContainer:not(.empty-query) #header,
 .evme-keyboard-visible #header {
     background: rgba(0, 0, 0, 0.8) !important;
-    min-height: 8rem !important;
+    transform: translateY(0) !important;
 }
 
 #evmeContainer #search-header {
