@@ -13,6 +13,29 @@ suiteGroup('Models.Event', function() {
     end: end
   };
 
+  var attendees = [
+    {
+      type: 'attendee',
+      valueType: 'cal-address',
+      uri: 'mailto:calmozilla1@gmail.com',
+      cutype: 'INDIVIDUAL',
+      role: 'REQ-PARTICIPANT',
+      partstat: 'ACCEPTED',
+      cn: 'Sahaja Lal',
+      'x-num-guests': '0'
+    },
+    {
+      type: 'attendee',
+      valueType: 'cal-address',
+      uri: 'mailto:foo@bar.com',
+      cutype: 'INDIVIDUAL',
+      role: 'REQ-PARTICIPANT',
+      partstat: 'NEEDS-ACTION',
+      cn: 'foo@bar.com',
+      'x-num-guests': '0'
+    }
+  ];
+
   setup(function() {
 
     rawEvent = Factory.create('event', {
@@ -21,7 +44,8 @@ suiteGroup('Models.Event', function() {
         startDate: start,
         endDate: end,
         start: Calendar.Calc.dateToTransport(start),
-        end: Calendar.Calc.dateToTransport(end)
+        end: Calendar.Calc.dateToTransport(end),
+        attendees: attendees
       }
     });
 
@@ -285,4 +309,5 @@ suiteGroup('Models.Event', function() {
   remoteSetter('description');
   remoteSetter('title');
   remoteSetter('alarms');
+  remoteSetter('attendees');
  });

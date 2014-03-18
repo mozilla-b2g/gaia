@@ -83,6 +83,14 @@ Calendar.ns('Views').ViewEvent = (function() {
       );
     },
 
+    formatAttendees: function(attendees) {
+      if (!attendees || !attendees.length)
+        return '';
+      return attendees.map(function(attendee) {
+        return attendee.cn;
+      }).join(', ');
+    },
+
     /**
      * Updates the UI to use values from the current model.
      */
@@ -99,6 +107,8 @@ Calendar.ns('Views').ViewEvent = (function() {
           this.originalCalendar.remote.name
         );
       }
+
+      this.setContent('attendees', this.formatAttendees(model.attendees));
 
       var dateSrc = model;
       if (model.remote.isRecurring && this.busytime) {

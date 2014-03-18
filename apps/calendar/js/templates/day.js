@@ -31,10 +31,6 @@
         '</section>';
     },
 
-    attendee: function() {
-      return '<span class="attendee">' + this.h('value') + '</span>';
-    },
-
     event: function() {
       var calendarId = this.h('calendarId');
       return '<section class="event calendar-id-' + calendarId + ' ' +
@@ -47,7 +43,6 @@
               '<span class="location">' +
                 this.h('location') +
               '</span>' +
-              this.s('attendees') +
             '</span>' +
           '</div>' +
         '</section>';

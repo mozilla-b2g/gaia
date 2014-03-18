@@ -245,6 +245,7 @@ suite('service/caldav', function() {
             // From absolute time
             { action: 'DISPLAY', trigger: 22095000 }
           ],
+          attendees: [],
           syncToken: etag,
           url: url,
           id: event.uid,
@@ -710,6 +711,59 @@ suite('service/caldav', function() {
           });
         });
       });
+    });
+  });
+
+  suite('#attendees', function() {
+    var event;
+    var url = '/foo.ics';
+    var etag = 'xx1';
+
+    setup(function(done) {
+      subject.parseEvent(fixtures.recurringEvent, function(err, result) {
+        event = subject._formatEvent(
+          etag, url, fixtures.recurringEvent, result
+        );
+        done(err);
+      });
+    });
+
+    test('_formatAttendees', function() {
+      var compare = [
+        {
+          type: 'attendee',
+          valueType: 'cal-address',
+          uri: 'mailto:calmozilla1@gmail.com',
+          cutype: 'INDIVIDUAL',
+          role: 'REQ-PARTICIPANT',
+          partstat: 'ACCEPTED',
+          cn: 'Sahaja Lal',
+          'x-num-guests': '0'
+        },
+        {
+          type: 'attendee',
+          valueType: 'cal-address',
+          uri: 'mailto:james@lightsofapollo.com',
+          cutype: 'INDIVIDUAL',
+          role: 'REQ-PARTICIPANT',
+          partstat: 'NEEDS-ACTION',
+          cn: 'james@lightsofapollo.com',
+          'x-num-guests': '0'
+        },
+        {
+          type: 'attendee',
+          valueType: 'cal-address',
+          uri: 'mailto:iam.revelation@gmail.com',
+          cutype: 'INDIVIDUAL',
+          role: 'REQ-PARTICIPANT',
+          partstat: 'NEEDS-ACTION',
+          cn: 'iam.revelation@gmail.com',
+          'x-num-guests': '0'
+        }
+      ];
+      assert.deepEqual(
+        event.attendees, compare, 'event should contain attendees info'
+      );
     });
   });
 
