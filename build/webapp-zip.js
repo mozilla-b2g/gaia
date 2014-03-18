@@ -233,7 +233,6 @@ function execute(options) {
 
   // Create webapps folder if doesn't exists
   webappsTargetDir.append('webapps');
-  utils.ensureFolderExists(webappsTargetDir);
 
   gaia.webapps.forEach(function(webapp) {
     // If config.BUILD_APP_NAME isn't `*`, we only accept one webapp
@@ -242,14 +241,14 @@ function execute(options) {
       return;
     }
 
-    // Zip generation is not needed for external apps, aaplication data
-    // is copied to profile webapps folder in webapp-manifests.js
+    // Compute webapp folder name in profile
+    let webappTargetDir = webappsTargetDir.clone();
+
+    // Zip generation is not needed for external apps.
     if (utils.isExternalApp(webapp)) {
       return;
     }
 
-    // Compute webapp folder name in profile
-    let webappTargetDir = webappsTargetDir.clone();
     webappTargetDir.append(webapp.domain);
     utils.ensureFolderExists(webappTargetDir);
 
@@ -279,6 +278,7 @@ function execute(options) {
     }
     zip.close();
   });
+
 }
 
 exports.execute = execute;
