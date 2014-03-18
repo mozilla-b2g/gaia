@@ -29,6 +29,7 @@ require('/test/unit/thread_list_mockup.js');
 require('/test/unit/utils_mockup.js');
 requireApp('sms/test/unit/mock_thread_ui.js');
 requireApp('sms/test/unit/mock_action_menu.js');
+require('/shared/test/unit/mocks/mock_performance_testing_helper.js');
 
 var mocksHelperForThreadListUI = new MocksHelper([
   'asyncStorage',
@@ -39,7 +40,8 @@ var mocksHelperForThreadListUI = new MocksHelper([
   'TimeHeaders',
   'ThreadUI',
   'ContactPhotoHelper',
-  'OptionMenu'
+  'OptionMenu',
+  'PerformanceTestingHelper'
 ]).init();
 
 suite('thread_list_ui', function() {

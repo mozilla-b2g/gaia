@@ -86,6 +86,8 @@
    "language.current": "en-US",
    "layers.draw-borders": false,
    "layers.dump": false,
+   "layers.enable-tiles": true,
+   "layers.simple-tiles": false,
    "lockscreen.passcode-lock.code": "0000",
    "lockscreen.passcode-lock.timeout": 0,
    "lockscreen.passcode-lock.enabled": false,

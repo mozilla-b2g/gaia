@@ -1,6 +1,9 @@
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
+/* global Utils */
+/* exported FxaModuleErrorOverlay */
+
 'use strict';
 
 /*
@@ -11,8 +14,9 @@
 
 var FxaModuleErrorOverlay = {
   init: function fxam_error_overlay_init() {
-    if (this.initialized)
+    if (this.initialized) {
       return;
+    }
 
     Utils.importElements(this,
       'fxa-error-overlay',

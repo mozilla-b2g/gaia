@@ -1101,6 +1101,19 @@ suite('system/Statusbar', function() {
   });
 
   suite('media information', function() {
+    var fakeClock;
+    var recordingSpy;
+
+    setup(function() {
+      fakeClock = this.sinon.useFakeTimers();
+      recordingSpy = this.sinon.spy(StatusBar.update, 'recording');
+    });
+
+    teardown(function() {
+      StatusBar.recordingCount = 0;
+      fakeClock.restore();
+    });
+
     test('geolocation is activating', function() {
       var evt = new CustomEvent('mozChromeEvent', {
         detail: {
@@ -1111,16 +1124,18 @@ suite('system/Statusbar', function() {
       StatusBar.handleEvent(evt);
       assert.equal(StatusBar.icons.geolocation.hidden, false);
     });
-    test('camera is recording', function() {
-      var evt = new CustomEvent('mozChromeEvent', {
+
+    test('media_recording is activating', function() {
+      var evt = new CustomEvent('recordingEvent', {
         detail: {
-          type: 'recording-status',
+          type: 'recording-state-changed',
           active: true
         }
       });
       StatusBar.handleEvent(evt);
       assert.equal(StatusBar.icons.recording.hidden, false);
     });
+
     test('usb is unmounting', function() {
       var evt = new CustomEvent('mozChromeEvent', {
         detail: {
@@ -1131,6 +1146,7 @@ suite('system/Statusbar', function() {
       StatusBar.handleEvent(evt);
       assert.equal(StatusBar.icons.usb.hidden, false);
     });
+
     test('headphones is plugged in', function() {
       var evt = new CustomEvent('mozChromeEvent', {
         detail: {
@@ -1141,6 +1157,7 @@ suite('system/Statusbar', function() {
       StatusBar.handleEvent(evt);
       assert.equal(StatusBar.icons.headphones.hidden, false);
     });
+
     test('audio player is playing', function() {
       var evt = new CustomEvent('mozChromeEvent', {
         detail: {

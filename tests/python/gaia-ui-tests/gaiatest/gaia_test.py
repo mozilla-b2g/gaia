@@ -83,15 +83,11 @@ class GaiaApps(object):
 
     def kill(self, app):
         self.marionette.switch_to_frame()
-        js = os.path.abspath(os.path.join(__file__, os.path.pardir, 'atoms', "gaia_apps.js"))
-        self.marionette.import_script(js)
         result = self.marionette.execute_async_script("GaiaApps.kill('%s');" % app.origin)
         assert result, "Failed to kill app with name '%s'" % app.name
 
     def kill_all(self):
         self.marionette.switch_to_frame()
-        js = os.path.abspath(os.path.join(__file__, os.path.pardir, 'atoms', "gaia_apps.js"))
-        self.marionette.import_script(js)
         self.marionette.execute_async_script("GaiaApps.killAll()")
 
     @property
@@ -632,7 +628,6 @@ class GaiaDevice(object):
         self.lockscreen_atom = os.path.abspath(
             os.path.join(__file__, os.path.pardir, 'atoms', "gaia_lock_screen.js"))
         self.marionette.import_script(self.lockscreen_atom)
-        self.update_checker.check_updates()
 
     def add_device_manager(self, device_manager):
         self._manager = device_manager
@@ -862,8 +857,6 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
 
         self.apps = GaiaApps(self.marionette)
         self.data_layer = GaiaData(self.marionette, self.testvars)
-        from gaiatest.apps.keyboard.app import Keyboard
-        self.keyboard = Keyboard(self.marionette)
         self.accessibility = Accessibility(self.marionette)
 
         if self.device.is_android_build:

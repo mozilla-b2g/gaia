@@ -4056,6 +4056,13 @@ suite('thread_ui.js >', function() {
       assert.ok(ThreadUI.assimilateRecipients.called);
     });
 
+    test('Click event on picker button should not be propagate', function() {
+      var event = new MouseEvent('click', { bubbles: true, cancelable: true });
+      this.sinon.spy(event, 'stopPropagation');
+      ThreadUI.contactPickButton.dispatchEvent(event);
+      sinon.assert.called(event.stopPropagation);
+    });
+
     suite('Recipients.View.isFocusable', function() {
       test('false during activity', function() {
         ThreadUI.requestContact();

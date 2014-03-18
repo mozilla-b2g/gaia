@@ -101,7 +101,7 @@ var TelephonyHelper = (function() {
           installHandlers(call, emergencyOnly, oncall, onconnected,
                           ondisconnected, onerror);
         }).catch(function(errorName) {
-          displayMessage('UnableToCall');
+          handleError(errorName, emergencyOnly, onerror);
         });
       } else {
         installHandlers(promiseOrCall, emergencyOnly, oncall, onconnected,
@@ -151,6 +151,7 @@ var TelephonyHelper = (function() {
       // If the call failed for some other reason we should still
       // display something to the user. See bug 846403.
       console.error('Unexpected error: ', errorName);
+      displayMessage('UnableToCall');
     }
   }
 

@@ -125,8 +125,8 @@ suite('navigation bar', function() {
           }
           setTimeout(function() {
             MockNavigatormozApps.mTriggerLastRequestSuccess();
-            sinon.assert.calledWith(Notification, 'missedCallMultiSim');
-            assert.deepEqual(MockLazyL10n.keys.missedCallMultiSim, {n: 2});
+            sinon.assert.calledWith(Notification, 'missedCallMultiSims');
+            assert.deepEqual(MockLazyL10n.keys.missedCallMultiSims, {n: 2});
             done();
           });
         });
