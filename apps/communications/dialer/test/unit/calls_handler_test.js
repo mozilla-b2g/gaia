@@ -241,8 +241,8 @@ suite('calls handler', function() {
 
           test('should show the receiving sim', function() {
             MockMozTelephony.mTriggerCallsChanged();
-            assert.equal(CallScreen.incomingSim.textContent, 'via-sim');
-            assert.deepEqual(MockLazyL10n.keys['via-sim'], {n: 2});
+            assert.equal(CallScreen.incomingSim.textContent, 'sim-number');
+            assert.deepEqual(MockLazyL10n.keys['sim-number'], {n: 2});
           });
         });
       });

@@ -40,7 +40,8 @@ function HandledCall(aCall) {
 
   this.durationNode = this.node.querySelector('.duration');
   this.durationChildNode = this.node.querySelector('.duration span');
-  this.simNode = this.node.querySelector('.sim');
+  this.viaSimNode = this.node.querySelector('.sim .via-sim');
+  this.simNumberNode = this.node.querySelector('.sim .sim-number');
   this.numberNode = this.node.querySelector('.numberWrapper .number');
   this.additionalInfoNode = this.node.querySelector('.additionalContactInfo');
   this.hangupButton = this.node.querySelector('.hangup-button');
@@ -63,9 +64,12 @@ function HandledCall(aCall) {
     this.durationChildNode.textContent = durationMessage;
 
     if (navigator.mozIccManager.iccIds.length > 1) {
-      this.simNode.innerHTML = _('via-sim', { n: this.call.serviceId + 1 });
+      var n = this.call.serviceId + 1;
+      this.viaSimNode.textContent = _('via-sim', { n: n });
+      this.simNumberNode.textContent = _('sim-number', { n: n });
     } else {
-      this.simNode.hidden = true;
+      this.viaSimNode.hidden = true;
+      this.simNumberNode.hidden = true;
     }
   }).bind(this));
 
