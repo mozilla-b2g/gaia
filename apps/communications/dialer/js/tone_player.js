@@ -8,6 +8,7 @@ const kDecayDuration = 0.025;
 const kReleaseDuration = 0.05;
 
 var TonePlayer = {
+  _audioElement: null,
   _audioContext: null,
   _gainNode: null,
   _playingNodes: [],
@@ -50,13 +51,16 @@ var TonePlayer = {
    *        will be matched with the appropriate sample
    */
   _playSample: function tp_playSample(frequencies) {
-    var sample = null;
+    if(!this._audioElement){
+      this._audioElement = new Audio();
+    }
 
+    var sample = this._audioElement;
     for (var i in this._tonesSamples) {
       if ((frequencies.length === 2) &&
           (frequencies[0] === this._tonesSamples[i][0]) &&
           (frequencies[1] === this._tonesSamples[i][1])) {
-        sample = new Audio(i);
+        sample.src = i;
         break;
       }
     }
