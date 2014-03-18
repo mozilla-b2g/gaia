@@ -6,6 +6,7 @@ import re
 
 from marionette.by import By
 from marionette import Wait
+from marionette.errors import JavascriptException
 from marionette.errors import StaleElementException
 
 from gaiatest import GaiaTestCase
@@ -89,7 +90,9 @@ class TestFtu(GaiaTestCase):
         # launch the First Time User app
         self.app = self.apps.launch('FTU')
 
-        self.wait_for_condition(lambda m: self.data_layer.is_wifi_enabled)
+        # If mozWifiManager is not initialised an exception may be thrown
+        Wait(self.marionette, ignored_exceptions=JavascriptException).until(
+            lambda m: self.data_layer.is_wifi_enabled)
 
     def create_language_locator(self, language):
         return (By.CSS_SELECTOR, "#languages ul li input[name='language.current'][value='%s'] ~ p" % language)
