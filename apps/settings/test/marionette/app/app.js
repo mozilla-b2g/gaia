@@ -44,6 +44,7 @@ Settings.Selectors = {
   'batteryMenuItem': '#menuItem-battery',
   'notificationsMenuItem': '#menuItem-notifications',
   'improvePanel': '#menuItem-improveBrowserOS',
+  'improveSection': '#improveBrowserOS',
   'feedbackPanel': 'button[data-href="#improveBrowserOS-chooseFeedback"]',
   'soundMenuItem': '#menuItem-sound',
   'languagePanel': '#languages',
@@ -142,7 +143,7 @@ Settings.prototype = {
   },
 
   get feedbackPanel() {
-    this.openPanel.call(this, 'feedbackPanel');
+    this.openPanel.call(this, 'feedbackPanel', 'improveSection');
     this._feedbackPanel =
       this._feedbackPanel || new FeedbackPanel(this.client);
     return this._feedbackPanel;
