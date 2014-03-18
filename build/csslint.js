@@ -30,7 +30,7 @@ function execute(config) {
   Services.scriptloader.loadSubScript(url, scope);
   CSSLint = scope.CSSLint;
 
-  let gaia = utils.getGaia(config);
+  let gaia = utils.gaia.getInstance(config);
 
   let errorsCount = 0;
   let warningsCount = 0;

@@ -20,7 +20,7 @@ WallPaperAppBuilder.prototype.setOptions = function(options) {
                               this.WALLPAPER_PATH.split('/'));
   this.wallpaperDir = utils.getFile.apply(utils, wallpaperDirPath);
 
-  this.gaia = utils.getGaia(options);
+  this.gaia = utils.gaia.getInstance(options);
 };
 
 // XXX This inherits the behavior of what's done before in bug 838110

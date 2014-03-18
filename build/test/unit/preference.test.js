@@ -15,8 +15,10 @@ suite('preferences.js', function() {
             '../../preferences', {
               './utils': mockUtils
             });
-    mockUtils.getGaia = function(config) {
-      return config;
+    mockUtils.gaia = {
+      getInstance: function(config) {
+        return config;
+      }
     };
     mockUtils.getFile = function(src, path) {
       return src + path;

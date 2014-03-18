@@ -109,7 +109,7 @@ function fillAppManifest(webapp) {
   // Copy webapp's manifest to the profile
   let webappTargetDir = webappsTargetDir.clone();
   webappTargetDir.append(webappTargetDirName);
-  let gaia = utils.getGaia(config);
+  let gaia = utils.gaia.getInstance(config);
 
   if (gaia.l10nManager) {
     let manifest = gaia.l10nManager.localizeManifest(webapp);
@@ -314,7 +314,7 @@ function execute(options) {
     cleanProfile(webappsTargetDir);
   }
 
-  utils.getGaia(config).webapps.forEach(function(webapp) {
+  utils.gaia.getInstance(config).webapps.forEach(function(webapp) {
     if (utils.isExternalApp(webapp)) {
       fillExternalAppManifest(webapp);
     } else {
