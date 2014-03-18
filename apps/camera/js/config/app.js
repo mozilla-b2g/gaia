@@ -7,6 +7,15 @@ module.exports = {
   viewfinder: {
     scaleType: 'fill'
   },
+  indicators: {
+    enabled: {
+      hdr: true,
+      timer: true,
+      battery: false,
+      geolocation: false
+    }
+  },
+
   mode: {
     title: 'Mode',
     options: [
