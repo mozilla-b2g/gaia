@@ -743,7 +743,6 @@ apps/settings/js/simcard_dialog.js
 apps/settings/js/simcard_fdn.js
 apps/settings/js/simcard_fdn_list.js
 apps/settings/js/storage.js
-apps/settings/js/support.js
 apps/settings/js/telephony_items_handler.js
 apps/settings/js/telephony_settings.js
 apps/settings/js/try_show_homescreen_section.js
