@@ -7,6 +7,9 @@ apps/calendar/js/ext/**
 apps/camera/js/vendor/**
 apps/camera/test/**
 apps/system/camera/**
+build/config/custom-prefs.js
+build/csslinter.js
+build/jsmin.js
 build/r.js
 apps/communications/contacts/oauth2/js/parameters.js
 apps/calendar/js/presets.js

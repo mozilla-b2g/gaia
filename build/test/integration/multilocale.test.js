@@ -1,3 +1,6 @@
+'use strict';
+/* jslint node: true */
+
 var exec = require('child_process').exec;
 var assert = require('chai').assert;
 var rmrf = require('rimraf').sync;
@@ -34,7 +37,8 @@ suite('multilocale Integration tests', function() {
     async.series(tasks, done);
   });
 
-  function makeWithMultilocale(localesFilePath, localesDir, inlineAndConcat, done) {
+  function makeWithMultilocale(localesFilePath, localesDir, inlineAndConcat,
+    done) {
     var settingsZipPath = path.join(process.cwd(), 'profile', 'webapps',
       'settings.gaiamobile.org', 'application.zip');
     var cnPathInZip = 'locales-obj/zh-CN.json';
@@ -65,7 +69,8 @@ suite('multilocale Integration tests', function() {
           'ini file ' + cnTzIni + ' should exist');
       }
 
-      assert.deepEqual(JSON.parse(zip.readAsText(langPathInZip)), localesFileObj);
+      assert.deepEqual(JSON.parse(zip.readAsText(langPathInZip)),
+        localesFileObj);
       done();
     });
   }
@@ -81,12 +86,14 @@ suite('multilocale Integration tests', function() {
     makeWithMultilocale(localesFilePath, absoluteLocalesDir, true, done);
   });
 
-  test('make with relative l10n path but without inline & concat', function(done) {
+  test('make with relative l10n path but without inline & concat',
+    function(done) {
     var localesFilePath = path.join(localesDir, 'languages.json');
     makeWithMultilocale(localesFilePath, localesDir, false, done);
   });
 
-  test('make with absolute l10n path but without inline & concat', function(done) {
+  test('make with absolute l10n path but without inline & concat',
+    function(done) {
     var localesFilePath= path.join(process.cwd(), localesDir, 'languages.json');
     var absoluteLocalesDir = path.join(process.cwd(), localesDir);
     makeWithMultilocale(localesFilePath, absoluteLocalesDir, false, done);

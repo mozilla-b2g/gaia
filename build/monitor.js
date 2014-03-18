@@ -1,5 +1,5 @@
-/*jslint node: true */
 'use strict';
+/* jslint node: true */
 
 (function() {
 

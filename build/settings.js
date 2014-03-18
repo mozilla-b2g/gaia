@@ -1,4 +1,5 @@
 'use strict';
+/* jslint node: true */
 
 var utils = require('./utils');
 
@@ -26,7 +27,8 @@ function setWallpaper(settings, config) {
   }
 
   if (!wallpaper.exists()) {
-    wallpaper = utils.resolve(utils.joinPath('build', 'config', 'wallpaper.jpg'),
+    wallpaper = utils.resolve(utils.joinPath('build', 'config',
+      'wallpaper.jpg'),
       config.GAIA_DIR);
   }
   settings['wallpaper.image'] = utils.getFileAsDataURI(wallpaper);
@@ -81,7 +83,8 @@ function execute(config) {
   var settings = utils.getJSON(settingsFile);
 
   if (config.TARGET_BUILD_VARIANT != 'user') {
-    // We want the console to be disabled for device builds using the user variant.
+    // We want the console to be disabled for device builds using the
+    // user variant.
     settings['debug.console.enabled'] = true;
 
     // Activate developer menu under the system menu when long pressing
@@ -127,9 +130,12 @@ function execute(config) {
   }
 
   if (config.NO_LOCK_SCREEN) {
-    settings['screen.timeout'] = 0;
     settings['lockscreen.enabled'] = false;
     settings['lockscreen.locked'] = false;
+  }
+
+  if (typeof(config.SCREEN_TIMEOUT) == 'number') {
+    settings['screen.timeout'] = config.SCREEN_TIMEOUT;
   }
 
   var queue = utils.Q.defer();
@@ -149,7 +155,7 @@ function execute(config) {
   });
 
   // Ensure not quitting xpcshell before all asynchronous code is done
-  utils.processEvents(function(){return {wait : false}});
+  utils.processEvents(function(){ return {wait : false}; });
 
   return result;
 }

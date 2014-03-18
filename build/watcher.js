@@ -1,4 +1,5 @@
 'use strict';
+/* jslint node: true */
 
 var Monitor = require(__dirname + '/monitor.js').Monitor;
 

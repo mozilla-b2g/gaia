@@ -1,3 +1,6 @@
+'use strict';
+/* jslint node: true */
+
 const utils = require('./utils');
 
 function execute(options) {
@@ -18,7 +21,7 @@ function execute(options) {
         var manifestContent = gaia.l10nManager.localizeManifest(app);
         var targetManifest = webappsBaseDir.clone();
         targetManifest.append(app.domain);
-        targetManifest.append(WEBAPP_FILENAME)
+        targetManifest.append(WEBAPP_FILENAME);
 
         utils.writeContent(targetManifest, JSON.stringify(manifestContent));
       } else {
@@ -27,7 +30,7 @@ function execute(options) {
         manifest.copyTo(webappTargetDir, WEBAPP_FILENAME);
       }
     }
-  })
+  });
 }
 
 exports.execute = execute;

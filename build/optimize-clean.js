@@ -1,3 +1,6 @@
+'use strict';
+/* jslint node: true */
+
 var utils = require('./utils');
 var config;
 

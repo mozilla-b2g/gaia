@@ -1,3 +1,14 @@
+'use strict';
+/* jshint node: true, loopfunc: true, moz: true */
+/* global OS */
+/* global Promise */
+
+/* Allow jshint moz options */
+/* jshint -W118 */
+
+/* Allow jshint octal expressions */
+/*jshint -W115 */
+
 const { Cc, Ci, Cr, Cu, CC } = require('chrome');
 const { btoa } = Cu.import('resource://gre/modules/Services.jsm', {});
 const multilocale = require('./multilocale');
@@ -45,13 +56,14 @@ function getOsType() {
 function isExternalApp(webapp) {
   if (!webapp.metaData ||
     (webapp.metaData && webapp.metaData.external === false)) {
-    return false
+    return false;
   } else {
     return true;
   }
 }
 
 function getFileContent(file) {
+  var content;
   try {
     let fileStream = Cc['@mozilla.org/network/file-input-stream;1']
                      .createInstance(Ci.nsIFileInputStream);
@@ -67,7 +79,7 @@ function getFileContent(file) {
     let count = fileStream.available();
     converterStream.readString(count, out);
 
-    var content = out.value;
+    content = out.value;
     converterStream.close();
     fileStream.close();
   } catch (e) {
@@ -236,10 +248,11 @@ function getWebapp(app, domain, scheme, port) {
     if (webapp.build.dir) {
       let buildDirectoryFile = webapp.sourceDirectoryFile.clone();
       webapp.build.dir.split('/').forEach(function(segment) {
-        if (segment == '..')
+        if (segment == '..') {
           buildDirectoryFile = buildDirectoryFile.parent;
-        else
+        } else {
           buildDirectoryFile.append(segment);
+        }
       });
 
       webapp.buildDirectoryFile = buildDirectoryFile;
@@ -263,27 +276,6 @@ function makeWebappsObject(appdirs, domain, scheme, port) {
     }
   });
   return apps;
-}
-
-function registerProfileDirectory(profileDir) {
-  let directoryProvider = {
-    getFile: function provider_getFile(prop, persistent) {
-      persistent.value = true;
-      if (prop != 'ProfD' && prop != 'ProfLDS') {
-        throw Cr.NS_ERROR_FAILURE;
-      }
-
-      return new FileUtils.File(profileDir);
-    },
-
-    QueryInterface: XPCOMUtils.generateQI([Ci.nsIDirectoryServiceProvider,
-                                           Ci.nsISupports])
-  };
-
-  Cc['@mozilla.org/file/directory_service;1']
-    .getService(Ci.nsIProperties)
-    .QueryInterface(Ci.nsIDirectoryService)
-    .registerProvider(directoryProvider);
 }
 
 function getGaia(options) {
@@ -687,7 +679,7 @@ function Commander(cmd) {
     }
     callback && callback();
   };
-};
+}
 
 function getEnv(name) {
   var env = Cc['@mozilla.org/process/environment;1'].
@@ -697,6 +689,7 @@ function getEnv(name) {
 
 // Get PATH of the environment
 function getEnvPath() {
+  var paths;
   var os = getOsType();
   if (!os) {
     throw new Error('cannot not read system type');
@@ -730,7 +723,7 @@ function killAppByPid(appName, gaiaDir) {
 
 function getDocument(content) {
   var DOMParser = CC('@mozilla.org/xmlextras/domparser;1', 'nsIDOMParser');
-  return document = (new DOMParser()).parseFromString(content, 'text/html');
+  return (new DOMParser()).parseFromString(content, 'text/html');
 }
 
 exports.Q = Promise;

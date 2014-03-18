@@ -1,4 +1,5 @@
-
+'use strict';
+/* jslint node: true */
 
 const FILE_TYPE_FILE = 0;
 const FILE_TYPE_DIRECTORY = 1;
@@ -31,8 +32,9 @@ function getExtension(filename) {
 // We parse list like ps aux and b2g-ps into object
 function psParser(out) {
   var rows = out.split('\n');
-  if (rows.length < 2)
+  if (rows.length < 2) {
     return {};
+  }
 
   // We use indexes of each title of the first row to
   // get correct position of each values.
