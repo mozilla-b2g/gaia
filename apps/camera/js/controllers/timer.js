@@ -29,6 +29,7 @@ module.exports.TimerController = TimerController;
 function TimerController(app) {
   bindAll(this);
   this.app = app;
+  this.sounds = app.sounds;
   this.settings = app.settings;
   this.view = app.views.timer || new TimerView();
   this.view.appendTo(app.el);
@@ -43,6 +44,7 @@ function TimerController(app) {
  */
 TimerController.prototype.bindEvents = function() {
   this.app.on('startcountdown', this.start);
+  this.view.on('timer:immanent', this.beep);
 };
 
 /**
@@ -126,6 +128,18 @@ TimerController.prototype.bindTimerEvents = function() {
 TimerController.prototype.unbindTimerEvents = function() {
   this.app.off('click', this.clear);
   this.app.off('blur', this.clear);
+};
+
+/**
+ * Plays a beep sound.
+ * 
+ * We don't have specific sound file for beep
+ * so we are using recordingEnd sound for this.
+ *
+ * @private
+ */
+TimerController.prototype.beep = function() {
+  this.sounds.play('recordingEnd');
 };
 
 });

@@ -34,6 +34,7 @@ module.exports = View.extend({
     var isImmanent = time <= this.immanent;
     this.els.count.textContent = time;
     this.el.classList.toggle('immanent', isImmanent);
+    if (isImmanent) { this.emit('timer:immanent'); }
     debug('set time: %s, near: %s', time, isImmanent);
     return this;
   },
