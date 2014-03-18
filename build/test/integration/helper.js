@@ -1,3 +1,6 @@
+'use strict';
+/* jslint node: true */
+
 var assert = require('chai').assert;
 var fs = require('fs');
 var AdmZip = require('adm-zip');

@@ -1,5 +1,5 @@
-/*global exports, Services, require*/
 'use strict';
+/* global exports, require */
 
 var utils = require('./utils');
 

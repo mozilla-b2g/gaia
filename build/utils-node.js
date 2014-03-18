@@ -1,4 +1,5 @@
 'use strict';
+/* jslint node: true */
 
 var utils = require('./utils.js');
 var path = require('path');
@@ -9,12 +10,14 @@ var Q = require('q');
 var os = require('os');
 
 function joinPath() {
+  /* jshint validthis:true */
   var src = path.join.apply(this, arguments);
   console.log(src);
   return src;
 }
 
 function getFile() {
+  /* jshint validthis:true */
   var src = path.join.apply(this, arguments);
   var fileStat;
   try {
@@ -124,9 +127,9 @@ function getLocaleBasedir(original) {
     original.replace('/', '\\', 'g') : original;
 }
 
-var Services = {};
+var NodeServices = {};
 
-exports.Services = Services;
+exports.Services = NodeServices;
 exports.joinPath = joinPath;
 exports.getFile = getFile;
 exports.getFileContent = getFileContent;

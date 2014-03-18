@@ -1,13 +1,10 @@
 'use strict';
+/* jslint node: true */
 
 const utils = require('./utils');
 
-const { Cc, Ci, Cr, Cu } = require('chrome');
+const { Cc, Ci, Cu } = require('chrome');
 Cu.import('resource://gre/modules/Services.jsm');
-
-function debug(msg) {
-  dump('-*- csslint.js: ' + msg + '\n');
-}
 
 const domUtils = Cc['@mozilla.org/inspector/dom-utils;1']
                    .getService(Ci.inIDOMUtils);
@@ -70,7 +67,8 @@ function execute(config) {
   }
 
   if (errorsCount || warningsCount) {
-    dump('\n' + errorsCount + ' errors and ' + warningsCount + ' warnings' + '\n');
+    dump('\n' + errorsCount + ' errors and ' + warningsCount +
+      ' warnings' + '\n');
   }
 }
 

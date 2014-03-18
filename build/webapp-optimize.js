@@ -1,6 +1,9 @@
+'use strict';
+/* jslint node: true */
+
 var utils = require('./utils');
 var config;
-const { Cc, Ci, Cr, Cu, CC } = require('chrome');
+const { Cu } = require('chrome');
 Cu.import('resource://gre/modules/Services.jsm');
 Cu.import('resource://gre/modules/FileUtils.jsm');
 
@@ -149,8 +152,9 @@ function optimize_getFileContent(webapp, htmlFile, relativePath) {
  */
 function optimize_aggregateJsResources(doc, webapp, htmlFile) {
   if (config.GAIA_OPTIMIZE !== '1' ||
-      JS_AGGREGATION_BLACKLIST.indexOf(webapp.sourceDirectoryName) >= 0)
+      JS_AGGREGATION_BLACKLIST.indexOf(webapp.sourceDirectoryName) >= 0) {
     return;
+  }
 
   dump(
     '[optimize] aggregating javascript for : "' +
@@ -207,8 +211,9 @@ function optimize_aggregateJsResources(doc, webapp, htmlFile) {
 
     let config = normal;
 
-    if (script.defer)
+    if (script.defer) {
       config = deferred;
+    }
 
     config.content += content;
     config.lastNode = script;
@@ -243,8 +248,9 @@ function optimize_aggregateJsResources(doc, webapp, htmlFile) {
 
   function writeAggregatedScript(conf) {
     // skip if we don't have any content to write.
-    if (!conf.content)
+    if (!conf.content) {
       return;
+    }
 
     var gaia = utils.getGaia(config);
     // prefix the file we are about to write content to.
@@ -357,7 +363,8 @@ function optimize_inlineResources(doc, webapp, filePath, htmlFile) {
     let content = optimize_getFileContent(webapp, htmlFile,
                                                  oldStyle.href);
     // inline css image url references
-    newStyle.innerHTML = content.replace(/url\(([^)]+?)\)/g, function(match, url) {
+    newStyle.innerHTML = content.replace(/url\(([^)]+?)\)/g,
+      function(match, url) {
       let file;
       if (cssPath.split('/')[0] === 'shared') {
         file = utils.getFile(config.GAIA_DIR, cssPath, url);
@@ -387,7 +394,7 @@ function optimize_embedHtmlImports(doc, webapp, htmlFile) {
   // Mapping of all custom element templates
   var elementTemplates = {};
 
-  Array.prototype.forEach.call(imports, function eachImport(eachImport) {
+  Array.prototype.forEach.call(imports, function _eachImport(eachImport) {
     let content = optimize_getFileContent(webapp, htmlFile, eachImport.href);
     content = '<div>' + content + '</div>';
     let elementRoot = utils.getDocument(content);
@@ -421,8 +428,9 @@ function optimize_embedHtmlImports(doc, webapp, htmlFile) {
  *                            data-l10n-id attributes.
  */
 function optimize_embedL10nResources(doc, dictionary) {
-  if (config.GAIA_INLINE_LOCALES !== '1')
+  if (config.GAIA_INLINE_LOCALES !== '1') {
     return;
+  }
 
   // split the l10n dictionary on a per-locale basis,
   // and embed it in the HTML document by enclosing it in <script> nodes.
@@ -446,8 +454,9 @@ function optimize_embedL10nResources(doc, dictionary) {
  *                            strings that are loaded by the HTML document.
  */
 function optimize_concatL10nResources(doc, webapp, dictionary) {
-  if (config.GAIA_CONCAT_LOCALES !== '1')
+  if (config.GAIA_CONCAT_LOCALES !== '1') {
     return;
+  }
 
   var resources = doc.querySelectorAll('link[type="application/l10n"]');
   if (resources.length) {
@@ -557,6 +566,7 @@ function optimize_compile(webapp, file, callback) {
 
   // catch the XHR in `loadResource' and use a local file reader instead
   win.XMLHttpRequest = function() {
+    /* jshint validthis: true */
     debug('loadResource');
 
     function open(type, url, async) {
@@ -666,8 +676,9 @@ function execute(options) {
   utils.getGaia(config).webapps.forEach(function(webapp) {
     // if BUILD_APP_NAME isn't `*`, we only accept one webapp
     if (config.BUILD_APP_NAME != '*' &&
-      webapp.sourceDirectoryName != config.BUILD_APP_NAME)
+      webapp.sourceDirectoryName != config.BUILD_APP_NAME) {
       return;
+    }
 
     debug(webapp.sourceDirectoryName);
 
@@ -675,8 +686,9 @@ function execute(options) {
     webapp.dictionary = newDictionary();
 
     function writeDictionaries() {
-      if (filesToProcess.length || config.GAIA_CONCAT_LOCALES !== '1')
+      if (filesToProcess.length || config.GAIA_CONCAT_LOCALES !== '1') {
         return;
+      }
 
       // all HTML documents in the webapp have been optimized:
       // create one concatenated l10n file per locale for all HTML documents

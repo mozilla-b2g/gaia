@@ -1,6 +1,9 @@
 'use strict';
+/* global OS */
+/* jslint node: true */
+/* jslint loopfunc: true */
 
-const { Cc, Ci, Cr, Cu } = require('chrome');
+const { Cu } = require('chrome');
 Cu.import('resource://gre/modules/osfile.jsm');
 
 const utils = require('utils');
@@ -17,7 +20,7 @@ const DEFAULT_TIME = 0;
 
 function L10nManager(gaiaDir, sharedDir, localesFilePath, localeBasedir) {
   function checkArg(arg) {
-    return new Boolean(arg);
+    return Boolean(arg);
   }
   if (arguments.length !== 4 &&
     !Array.prototype.every.call(arguments, checkArg)) {
@@ -159,8 +162,8 @@ function L10nManager(gaiaDir, sharedDir, localesFilePath, localeBasedir) {
   function getPropertiesFile(webapp, originalPath) {
     // properties file name in multilocale repo don't contain locale name,
     // instead, they are sorted in folder whose name is the locale name.
-    // Also, whereas ini and properties files are segregated in app 'locales' folder,
-    // in multilocale repos, they are just put in matching app folder.
+    // Also, whereas ini and properties files are segregated in app 'locales'
+    //  folder, in multilocale repos, they are just put in matching app folder.
     // So /gaia/apps/system/locales/system.en-US.properties
     // maps to /gaia-l10n/en-US/system/system.properties
     function removeLocale(str, locale) {
@@ -169,7 +172,7 @@ function L10nManager(gaiaDir, sharedDir, localesFilePath, localeBasedir) {
 
     var isShared = originalPath.contains(self.sharedDir);
     var locale = /\.([\w-]+)\.properties$/.exec(originalPath)[1];
-    var propFile, relativePath, dirLength;
+    var propFile, dirLength;
     var {getFile} = utils;
     var paths = [self.localeBasedir, locale];
 
@@ -249,7 +252,7 @@ function L10nManager(gaiaDir, sharedDir, localesFilePath, localeBasedir) {
       return RE_INI_FILE.test(file.path);
     }).forEach(function(iniFile) {
       var pathInZip = getPropertiesPathInZip(iniFile.path, webapp);
-      var localizedIni = localizeIni(zip, iniFile, webapp, pathInZip);
+      localizeIni(zip, iniFile, webapp, pathInZip);
     });
   }
 
@@ -397,10 +400,6 @@ function L10nManager(gaiaDir, sharedDir, localesFilePath, localeBasedir) {
       });
     }
     return output.join('\n');
-  }
-
-  function debug(msg) {
-    // utils.log('multilocale', msg);
   }
 
   this.modifyLocaleIni = modifyLocaleIni;

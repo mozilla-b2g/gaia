@@ -1,6 +1,8 @@
 'use strict';
+/* global Promise */
+/* jslint node: true */
 
-const { Cc, Ci, Cr, Cu, CC} = require('chrome');
+const { Cc, Ci, Cu } = require('chrome');
 Cu.import('resource://gre/modules/FileUtils.jsm');
 Cu.import('resource://gre/modules/Services.jsm');
 Cu.import('resource://gre/modules/Downloads.jsm');
@@ -218,7 +220,8 @@ var AdditionalExtensions = (function() {
     var customExtensions;
     logLine('load custom extensions');
     try {
-      file = utils.getFile(gaiaDir, 'build', 'config', 'custom-extensions.json');
+      file = utils.getFile(gaiaDir, 'build', 'config',
+        'custom-extensions.json');
       customExtensions = utils.getJSON(file);
     } catch (e) {
       customExtensions = {};
@@ -302,7 +305,6 @@ var AdditionalExtensions = (function() {
     var extensions;
     var installedExtensions;
     var keys;
-    var index;
 
     function downloadAndInstall(url) {
       try {

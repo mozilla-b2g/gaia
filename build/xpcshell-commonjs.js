@@ -1,7 +1,8 @@
-const Cc = Components.classes;
-const Ci = Components.interfaces;
-const Cu = Components.utils;
-const CC = Components.Constructor;
+'use strict';
+/* global APP_BUILD_DIR */
+/* global GAIA_BUILD_DIR */
+/* exported require */
+
 const loaderURI = 'resource://gre/modules/commonjs/toolkit/loader.js';
 
 var { Loader } = Components.utils.import(loaderURI, {});

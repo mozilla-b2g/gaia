@@ -1,3 +1,6 @@
+'use strict';
+/* jslint node: true */
+
 var exec = require('child_process').exec;
 var assert = require('chai').assert;
 var rmrf = require('rimraf').sync;
@@ -38,7 +41,8 @@ suite('Node modules tests', function() {
     rmrf('modules.tar');
     rmrf('node_modules');
     rmrf('git-gaia-node-modules');
-    exec('NODE_MODULES_GIT_URL=https://git.mozilla.org/b2g/gaia-node-modules.git make node_modules',
+    exec('NODE_MODULES_GIT_URL=' +
+      'https://git.mozilla.org/b2g/gaia-node-modules.git make node_modules',
       function(error, stdout, stderr) {
         helper.checkError(error, stdout, stderr);
 
@@ -102,29 +106,33 @@ suite('Build Integration tests', function() {
         'geo.gps.supl_port': 22024,
         'dom.payment.provider.0.name': 'firefoxmarket',
         'dom.payment.provider.0.description': 'marketplace.firefox.com',
-        'dom.payment.provider.0.uri': 'https://marketplace.firefox.com/mozpay/?req=',
+        'dom.payment.provider.0.uri':
+          'https://marketplace.firefox.com/mozpay/?req=',
         'dom.payment.provider.0.type': 'mozilla/payments/pay/v1',
         'dom.payment.provider.0.requestMethod': 'GET',
         'dom.payment.skipHTTPSCheck': true,
         'dom.payment.debug': true,
         'dom.payment.provider.1.name': 'firefoxmarketdev',
         'dom.payment.provider.1.description': 'marketplace-dev.allizom.org',
-        'dom.payment.provider.1.uri': 'https://marketplace-dev.allizom.org/mozpay/?req=',
+        'dom.payment.provider.1.uri':
+          'https://marketplace-dev.allizom.org/mozpay/?req=',
         'dom.payment.provider.1.type': 'mozilla-dev/payments/pay/v1',
         'dom.payment.provider.1.requestMethod': 'GET',
         'dom.payment.provider.2.name': 'firefoxmarketstage',
         'dom.payment.provider.2.description': 'marketplace.allizom.org',
-        'dom.payment.provider.2.uri': 'https://marketplace.allizom.org/mozpay/?req=',
+        'dom.payment.provider.2.uri':
+          'https://marketplace.allizom.org/mozpay/?req=',
         'dom.payment.provider.2.type': 'mozilla-stage/payments/pay/v1',
         'dom.payment.provider.2.requestMethod': 'GET',
         'dom.payment.provider.3.name': 'mockpayprovider',
         'dom.payment.provider.3.description': 'Mock Payment Provider',
-        'dom.payment.provider.3.uri': 'http://ferjm.github.io/gaia-mock-payment-provider/index.html?req=',
+        'dom.payment.provider.3.uri':
+          'http://ferjm.github.io/gaia-mock-payment-provider/index.html?req=',
         'dom.payment.provider.3.type': 'tests/payments/pay/v1',
         'dom.payment.provider.3.requestMethod': 'GET'
       };
 
-      // expected values for settings.json from build/config/common-settings.json
+      // expected settings.json values from build/config/common-settings.json
       var settingsPath = path.join(process.cwd(), 'profile', 'settings.json');
       var commonSettingsPath = path.join(process.cwd(), 'build', 'config',
         'common-settings.json');
@@ -288,7 +296,6 @@ suite('Build Integration tests', function() {
         'dom.mozAlarms.enabled': true,
         'device.storage.enabled': true,
         'device.storage.prompt.testing': true,
-        'notification.feature.enabled': true,
         'dom.datastore.enabled': true,
         'dom.testing.datastore_enabled_for_hosted_apps': true,
         'dom.mozSettings.enabled': true,
@@ -334,12 +341,15 @@ suite('Build Integration tests', function() {
       var installedExtsPath = path.join('profile-debug',
         'installed-extensions.json');
       var expectedSettings = {
-        'homescreen.manifestURL': 'http://homescreen.gaiamobile.org:8080/manifest.webapp',
-        'rocketbar.searchAppURL': 'http://search.gaiamobile.org:8080/index.html',
+        'homescreen.manifestURL':
+          'http://homescreen.gaiamobile.org:8080/manifest.webapp',
+        'rocketbar.searchAppURL':
+          'http://search.gaiamobile.org:8080/index.html',
         'screen.timeout': 600
       };
       var expectedUserPrefs = {
-        'browser.manifestURL': 'http://system.gaiamobile.org:8080/manifest.webapp',
+        'browser.manifestURL':
+          'http://system.gaiamobile.org:8080/manifest.webapp',
         'browser.homescreenURL': 'http://system.gaiamobile.org:8080',
         'browser.startup.homepage': 'http://system.gaiamobile.org:8080',
         'startup.homepage_welcome_url': '',
@@ -357,10 +367,8 @@ suite('Build Integration tests', function() {
         'dom.ipc.tabs.disabled': true,
         'browser.ignoreNativeFrameTextSelection': true,
         'ui.dragThresholdX': 25,
-        'dom.w3c_touch_events.enabled': 1,
         'dom.sms.enabled': true,
         'dom.mozTCPSocket.enabled': true,
-        'notification.feature.enabled': true,
         'dom.sysmsg.enabled': true,
         'dom.mozAlarms.enabled': true,
         'device.storage.enabled': true,

@@ -1,4 +1,5 @@
 'use strict';
+/* jslint node: true */
 
 var utils = require('./utils');
 var sh = new utils.Commander('sh');
@@ -114,7 +115,6 @@ function execute(options) {
     } else {
       var Q3 = Q.defer();
       var manifest;
-      var appPid;
       Q3.resolve();
       return Q3.promise.then(function() {
       // Some app folder name is different with the process name,

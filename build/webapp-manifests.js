@@ -1,15 +1,14 @@
+'use strict';
+/* jslint node: true */
+
 var utils = require('./utils');
 var config;
-const { Cc, Ci, Cr, Cu } = require('chrome');
+const { Cc, Ci, Cu } = require('chrome');
 Cu.import('resource://gre/modules/Services.jsm');
 
 const INSTALL_TIME = 132333986000;
 const DEBUG = false;
 // Match this to value in applications-data.js
-
-function debug(msg) {
-//  dump('-*- webapp-manifest.js: ' + msg + '\n');
-}
 
 let io = Cc['@mozilla.org/network/io-service;1']
            .getService(Ci.nsIIOService);
@@ -26,10 +25,10 @@ let webapps = {};
 let id = 1;
 
 function copyRec(source, target) {
-  let results = [];
   let files = source.directoryEntries;
-  if (!target.exists())
+  if (!target.exists()) {
     target.create(Ci.nsIFile.DIRECTORY_TYPE, parseInt('0755', 8));
+  }
 
   while (files.hasMoreElements()) {
     let file = files.getNext().QueryInterface(Ci.nsILocalFile);
@@ -55,6 +54,7 @@ function getAppStatus(status) {
       appStatus = 2;
       break;
     case 'web':
+      /* falls through */
     default:
       appStatus = 1;
       break;
@@ -74,6 +74,8 @@ function checkOrigin(origin) {
  * Updates hostnames for InterApp Communication APIs
  */
 function manifestInterAppHostnames(webapp, webappTargetDir) {
+  /*jshint loopfunc: true */
+
   function convertToLocalUrl(url) {
     var host = config.GAIA_DOMAIN + config.GAIA_PORT;
 
@@ -113,7 +115,7 @@ function fillAppManifest(webapp) {
 
   if (gaia.l10nManager) {
     let manifest = gaia.l10nManager.localizeManifest(webapp);
-    manifestFile = webappTargetDir.clone();
+    let manifestFile = webappTargetDir.clone();
     utils.ensureFolderExists(webappTargetDir);
     manifestFile.append('manifest.webapp');
     let args = DEBUG ? [manifest, undefined, 2] : [manifest];
@@ -142,13 +144,14 @@ function fillAppManifest(webapp) {
   };
 
   webapps[webapp.sourceDirectoryName] = webapp;
-  webapps[webapp.sourceDirectoryName].webappsJson = manifests[webappTargetDirName];
+  webapps[webapp.sourceDirectoryName].webappsJson =
+    manifests[webappTargetDirName];
 }
 
 let errors = [];
 
 function fillExternalAppManifest(webapp) {
-  // Report an error if the app is packaged and has a origin on the metadata file.
+  // Report an error if the app is packaged and has an origin in the metadata.
   let type = getAppStatus(webapp.metaData.type);
   let isPackaged = false;
 
@@ -156,15 +159,15 @@ function fillExternalAppManifest(webapp) {
     isPackaged = true;
 
     if (webapp.metaData.origin) {
-      errors.push('External webapp `' + webapp.sourceDirectoryName + '` can not have ' +
-                  'origin in metadata because is packaged');
+      errors.push('External webapp `' + webapp.sourceDirectoryName +
+                '` can not have origin in metadata because is packaged');
       return;
     }
   }
 
-  // Generate the webapp folder name in the profile. Only if it's privileged and it
-  // has an origin in its manifest file it'll be able to specify a custom folder name.
-  // Otherwise, generate an UUID to use as folder name.
+  // Generate the webapp folder name in the profile. Only if it's privileged
+  // and it has an origin in its manifest file it'll be able to specify a
+  // custom folder name. Otherwise, generate an UUID to use as folder name.
   let uuid = uuidGenerator.generateUUID().toString();
   let webappTargetDirName = uuid;
 
@@ -173,7 +176,8 @@ function fillExternalAppManifest(webapp) {
     webappTargetDirName = uri.host;
   }
 
-  let origin = isPackaged ? 'app://' + webappTargetDirName : webapp.metaData.origin;
+  let origin = isPackaged ? 'app://' + webappTargetDirName :
+    webapp.metaData.origin;
   if (!origin) {
     origin = 'app://' + webappTargetDirName;
   }
@@ -284,14 +288,15 @@ function fillExternalAppManifest(webapp) {
   };
 
   webapps[webapp.sourceDirectoryName] = webapp;
-  webapps[webapp.sourceDirectoryName].webappsJson = manifests[webappTargetDirName];
+  webapps[webapp.sourceDirectoryName].webappsJson =
+    manifests[webappTargetDirName];
 }
 
 function cleanProfile(webappsDir) {
   // Profile can contain folders with a generated uuid that need to be deleted
   // or apps will be duplicated.
   let appsDir = webappsDir.directoryEntries;
-  var expreg = new RegExp("^{[\\w]{8}-[\\w]{4}-[\\w]{4}-[\\w]{4}-[\\w]{12}}$");
+  var expreg = new RegExp('^{[\\w]{8}-[\\w]{4}-[\\w]{4}-[\\w]{4}-[\\w]{12}}$');
   while (appsDir.hasMoreElements()) {
     let appDir = appsDir.getNext().QueryInterface(Ci.nsIFile);
       if (appDir.leafName.match(expreg)) {
@@ -304,8 +309,10 @@ function execute(options) {
   config = options;
   webappsTargetDir.initWithPath(config.PROFILE_DIR);
   // Create profile folder if doesn't exists
-  if (!webappsTargetDir.exists())
+  if (!webappsTargetDir.exists()) {
     webappsTargetDir.create(Ci.nsIFile.DIRECTORY_TYPE, parseInt('0755', 8));
+  }
+
   // Create webapps folder if doesn't exists
   webappsTargetDir.append('webapps');
   if (!webappsTargetDir.exists()) {

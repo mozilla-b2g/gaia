@@ -1,8 +1,9 @@
-/*global require, FileUtils, exports*/
+'use strict';
+/* global require, FileUtils, exports */
 
 var utils = require('./utils');
 var config;
-const { Cc, Ci, Cr, Cu } = require('chrome');
+const { Cc, Ci, Cu } = require('chrome');
 Cu.import('resource://gre/modules/FileUtils.jsm');
 
 function debug(msg) {
@@ -10,20 +11,18 @@ function debug(msg) {
 }
 
 // Header values usefull for zip xpcom component
-const PR_RDONLY = 0x01;
-const PR_WRONLY = 0x02;
+// const PR_RDONLY = 0x01;
+// const PR_WRONLY = 0x02;
 const PR_RDWR = 0x04;
 const PR_CREATE_FILE = 0x08;
-const PR_APPEND = 0x10;
+// const PR_APPEND = 0x10;
 const PR_TRUNCATE = 0x20;
-const PR_SYNC = 0x40;
-const PR_EXCL = 0x80;
+// const PR_SYNC = 0x40;
+// const PR_EXCL = 0x80;
 
 // Make all timestamps the same so we always generate the same
 // output zip file for the same inputs
 const DEFAULT_TIME = 0;
-
-const MANIFEST_FILENAME = 'manifest.webapp';
 
 /**
  * Add a file to a zip file with the specified time
@@ -369,6 +368,7 @@ function execute(options) {
       forEach(function(file) {
         // Grep files to find shared/* usages
         let content = utils.getFileContent(file);
+        let matches;
         while ((matches = SHARED_USAGE.exec(content)) !== null) {
           let kind = matches[1]; // js | locales | resources | style
           let path = matches[2];
@@ -484,7 +484,7 @@ function execute(options) {
             fileInResources.path.substr(gaia.sharedFolder.path.length);
           addToZip(zip, pathInZip, fileInResources,
             getCompression(pathInZip, webapp));
-        })
+        });
       }
 
       if (path === 'media/ringtones/' && gaia.distributionDir &&
