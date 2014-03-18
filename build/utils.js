@@ -19,6 +19,19 @@ function isNode() {
   }
 }
 
+// We only compare the major change of nodejs version.
+function nodeVersionComparator(real, target) {
+  var real_coms = real.split('.');
+  var target_coms = target.split('.');
+  var len = Math.min(real_coms.length, target_coms.length);
+  if ((parseInt(real_coms[0]) != parseInt(target_coms[0])) ||
+      (parseInt(real_coms[1]) != parseInt(target_coms[1]))) {
+    return 0;
+  } else {
+    return 1;
+  }
+}
+
 function isSubjectToBranding(path) {
   return /shared[\/\\][a-zA-Z]+[\/\\]branding$/.test(path) ||
          /branding[\/\\]initlogo.png/.test(path);
@@ -119,3 +132,4 @@ exports.getEnv = utils.getEnv;
 exports.isExternalApp = utils.isExternalApp;
 exports.getDocument = utils.getDocument;
 exports.getWebapp = utils.getWebapp;
+exports.nodeVersionComparator = nodeVersionComparator;

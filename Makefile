@@ -214,6 +214,9 @@ endif
 # Force bash for all shell commands since we depend on bash-specific syntax
 SHELL := /bin/bash
 
+# what major version of node we expect to run?
+NODE_VERSION?=0.10
+
 # what OS are we on?
 SYS=$(shell uname -s)
 ARCH?=$(shell uname -m)
@@ -416,12 +419,20 @@ define run-build-test
 		$(strip $1)
 endef
 
+# Print message in yellow.
+define print-warnning-msg
+	tput setaf 3; \
+	echo $1; \
+	tput sgr0
+endef
+
 # Generate profile/
 
-$(PROFILE_FOLDER): preferences app-makefiles keyboard-layouts copy-build-stage-manifest test-agent-config offline contacts extensions install-xulrunner-sdk .git/hooks/pre-commit $(PROFILE_FOLDER)/settings.json create-default-data $(PROFILE_FOLDER)/installed-extensions.json
+$(PROFILE_FOLDER): check-node-version preferences app-makefiles copy-build-stage-manifest test-agent-config offline contacts extensions install-xulrunner-sdk .git/hooks/pre-commit $(PROFILE_FOLDER)/settings.json create-default-data $(PROFILE_FOLDER)/installed-extensions.json
 ifeq ($(BUILD_APP_NAME),*)
 	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)$(PROFILE_FOLDER)"
 endif
+
 
 svoperapps: install-xulrunner-sdk
 	@$(call run-js-command, svoperapps)
@@ -1065,3 +1076,9 @@ docs: $(NPM_INSTALLED_PROGRAMS)
 .PHONY: watch
 watch: $(NPM_INSTALLED_PROGRAMS)
 	node build/watcher.js
+
+.PHONY: check-node-version
+check-node-version: $(NPM_INSTALLED_PROGRAMS)
+	@if [[ "$(shell node -e "console.log(require('./build/utils.js').nodeVersionComparator(process.version.slice(1), '$(NODE_VERSION)'));")" != "1" ]]; then \
+		$(call print-warnning-msg, "Please use v$(NODE_VERSION) of nodejs or it may cause unexpected error.") ; \
+	fi \
