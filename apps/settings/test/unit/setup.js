@@ -8,6 +8,7 @@ requireApp('settings/js/vendor/alameda.js', (function() {
     urlArgs: 'bust=' + Date.now(),
     paths: {
       'modules': 'modules',
+      'panels': 'panels',
       'shared': '../shared/js',
       'unit': '../test/unit',
       'shared_mocks': '../shared/test/unit/mocks'
@@ -27,6 +28,9 @@ requireApp('settings/js/vendor/alameda.js', (function() {
       },
       'shared_mocks/mock_navigator_moz_settings': {
         exports: 'MockNavigatorSettings'
+      },
+      'shared_mocks/mock_keyboard_helper': {
+        exports: 'MockKeyboardHelper'
       }
     },
     modules: [

@@ -5,17 +5,18 @@
  *
  * @module SettingsService
  */
-define(['modules/page_transitions', 'modules/panel_cache',
-        'shared/screen_layout', 'shared/lazy_loader'],
-  function(PageTransitions, PanelCache, ScreenLayout, LazyLoader) {
+define(function(require) {
     'use strict';
 
-    var _rootPanelId = null;
+    var PageTransitions = require('modules/page_transitions');
+    var PanelCache = require('modules/panel_cache');
+    var ScreenLayout = require('shared/screen_layout');
+    var LazyLoader = require('shared/lazy_loader');
 
+    var _rootPanelId = null;
     var _currentPanelId = null;
     var _currentPanel = null;
     var _navigating = false;
-
     var _pendingNavigation = null;
 
     var _isTabletAndLandscape = function ss_is_tablet_and_landscape() {
@@ -55,40 +56,43 @@ define(['modules/page_transitions', 'modules/panel_cache',
 
     var _navigate = function ss_navigate(panelId, options, callback) {
       _loadPanel(panelId, function() {
-        PanelCache.get(panelId, function(panel) {
-          // Check if there is any pending navigation.
-          if (_pendingNavigation) {
-            callback();
-            return;
-          }
+        // We have to make sure l10n is ready before navigations
+        navigator.mozL10n.ready(function() {
+          PanelCache.get(panelId, function(panel) {
+            // Check if there is any pending navigation.
+            if (_pendingNavigation) {
+              callback();
+              return;
+            }
 
-          var newPanelElement = document.getElementById(panelId);
-          var currentPanelElement =
-            _currentPanelId ? document.getElementById(_currentPanelId) : null;
-          // Prepare options and calls to the panel object's before
-          // show function.
-          options = options || {};
+            var newPanelElement = document.getElementById(panelId);
+            var currentPanelElement =
+              _currentPanelId ? document.getElementById(_currentPanelId) : null;
+            // Prepare options and calls to the panel object's before
+            // show function.
+            options = options || {};
 
-          panel.beforeShow(newPanelElement, options);
-          // We don't deactivate the root panel.
-          if (_currentPanel && _currentPanelId !== _rootPanelId) {
-            _currentPanel.beforeHide();
-          }
+            panel.beforeShow(newPanelElement, options);
+            // We don't deactivate the root panel.
+            if (_currentPanel && _currentPanelId !== _rootPanelId) {
+              _currentPanel.beforeHide();
+            }
 
-          // Add a timeout for smoother transition.
-          setTimeout(function doTransition() {
-            _transit(currentPanelElement, newPanelElement,
-              function transitionCompleted() {
-                panel.show(newPanelElement, options);
-                // We don't deactivate the root panel.
-                if (_currentPanel && _currentPanelId !== _rootPanelId) {
-                  _currentPanel.hide();
-                }
+            // Add a timeout for smoother transition.
+            setTimeout(function doTransition() {
+              _transit(currentPanelElement, newPanelElement,
+                function transitionCompleted() {
+                  panel.show(newPanelElement, options);
+                  // We don't deactivate the root panel.
+                  if (_currentPanel && _currentPanelId !== _rootPanelId) {
+                    _currentPanel.hide();
+                  }
 
-                _currentPanelId = panelId;
-                _currentPanel = panel;
+                  _currentPanelId = panelId;
+                  _currentPanel = panel;
 
-                callback();
+                  callback();
+              });
             });
           });
         });

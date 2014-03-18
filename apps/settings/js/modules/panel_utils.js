@@ -4,9 +4,12 @@
  *
  * @module PanelUtils
  */
-define(['settings', 'modules/settings_cache', 'shared/lazy_loader'],
-  function(Settings, SettingsCache, LazyLoader) {
+define(function(require) {
   'use strict';
+
+  var Settings = require('settings');
+  var SettingsCache = require('modules/settings_cache');
+  var LazyLoader = require('shared/lazy_loader');
 
   var _settings = navigator.mozSettings;
 

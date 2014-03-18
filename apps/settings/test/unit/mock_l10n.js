@@ -9,7 +9,10 @@ var MockL10n = {
     callback();
   },
   DateTimeFormat: function() {},
-  translate: function() {}
+  translate: function() {},
+  language: {
+    code: 'en-US'
+  }
 };
 
 MockL10n.DateTimeFormat.prototype = {
