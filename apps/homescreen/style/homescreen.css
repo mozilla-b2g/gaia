@@ -166,7 +166,7 @@ body[data-mode = 'edit'] .apps ol > li[data-type = "bookmark"] > div > span > sp
        /* For the Twist , 960x540 */
        (device-height: 540px) and (max-height: 450px),
        (device-height: 960px) and (max-height: 870px) {
-  footer { display: none !important; }
+  footer { opacity: 0; pointer-events: none; }
   .apps > div { height: 100% !important; }
   #bg-overlay { transform: translateY(0); }
 }
