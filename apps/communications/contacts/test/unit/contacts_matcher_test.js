@@ -1,3 +1,8 @@
+'use strict';
+/* global contactFB:true */
+/* global contacts */
+/* global MockFindMatcher */
+
 require('/shared/js/text_normalizer.js');
 require('/shared/js/simple_phone_matcher.js');
 requireApp('communications/contacts/test/unit/mock_find_matcher.js');
@@ -7,20 +12,20 @@ var realmozContacts,
     contact;
 
 
-if (!this.realmozContacts) {
-  this.realmozContacts = null;
+if (!window.realmozContacts) {
+  window.realmozContacts = null;
 }
 
-if (!this.contact) {
-  this.contact = null;
+if (!window.contact) {
+  window.contact = null;
 }
 
-if (!this.contactFB) {
-  this.contactFB = null;
+if (!window.contactFB) {
+  window.contactFB = null;
 }
 
-if (!this.SimplePhoneMatcher) {
-  this.SimplePhoneMatcher = null;
+if (!window.SimplePhoneMatcher) {
+  window.SimplePhoneMatcher = null;
 }
 
 suite('Test Contacts Matcher', function() {
