@@ -907,10 +907,6 @@ function showPlayer(video, autoPlay, enterFullscreen, keepControls) {
   var thumbnail = thumbnailList.thumbnailMap[currentVideo.name];
   thumbnail.htmlNode.classList.add('focused');
 
-  if (enterFullscreen) {
-    switchLayout(LAYOUT_MODE.fullscreenPlayer);
-  }
-
   // switch to the video player view
   updateDialog();
   dom.player.preload = 'metadata';
@@ -932,6 +928,10 @@ function showPlayer(video, autoPlay, enterFullscreen, keepControls) {
   }
 
   setVideoUrl(dom.player, currentVideo, function() {
+
+    if (enterFullscreen) {
+      switchLayout(LAYOUT_MODE.fullscreenPlayer);
+    }
 
     dom.durationText.textContent = MediaUtils.formatDuration(
       dom.player.duration);
