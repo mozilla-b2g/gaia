@@ -511,7 +511,9 @@ var GridManager = (function() {
     updatePaginationBar();
 
     if (previousPage === newPage) {
-      if (newPage.container.getBoundingClientRect().left !== 0) {
+      // Has the page been translated?
+      if (currentX - startX) {
+        currentX = startX = 0;
         // Pages are translated in X
         if (index > 0) {
           pages[index - 1].moveByWithEffect(-windowWidthMinusOne, duration);
