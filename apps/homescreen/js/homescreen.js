@@ -52,6 +52,7 @@ var Homescreen = (function() {
           GridManager.goToLandingPage();
         }
         GridManager.ensurePanning();
+        typeof ContextMenuDialog !== 'undefined' && ContextMenuDialog.hide();
       });
 
       PaginationBar.show();
@@ -85,19 +86,23 @@ var Homescreen = (function() {
       GridManager.cancelPanning();
       // No long press over an icon neither edit mode
       evt.preventDefault();
-      var contextMenuEl = document.getElementById('contextmenu-dialog');
 
       var searchPage = Configurator.getSection('search_page');
       if (searchPage && searchPage.enabled) {
-        LazyLoader.load(['style/contextmenu.css',
+        var contextMenuEl = document.getElementById('contextmenu-dialog');
+        if (contextMenuEl.dataset.rendered) {
+          ContextMenuDialog.show();
+        } else {
+          LazyLoader.load(['style/contextmenu.css',
                          'shared/style/action_menu.css',
                          contextMenuEl,
                          'js/contextmenu.js'
                          ], function callContextMenu() {
+                          contextMenuEl.dataset.rendered = true;
                           navigator.mozL10n.translate(contextMenuEl);
                           ContextMenuDialog.show();
-                        }
-        );
+                        });
+        }
       } else {
         // only wallpaper
         LazyLoader.load(['shared/js/omadrm/fl.js', 'js/wallpaper.js'],

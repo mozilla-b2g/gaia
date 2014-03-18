@@ -173,6 +173,10 @@ body[data-mode = 'edit'] .apps ol > li[data-type = "bookmark"] > div > span > sp
 /* Default state for the dialogs.
  * Will be overwritten when their respective CSS is lazy loaded.
  */
-#contextmenu-dialog, #confirm-dialog {
+#confirm-dialog {
   display: none;
+}
+
+#contextmenu-dialog {
+  transform: translateY(100%);
 }
