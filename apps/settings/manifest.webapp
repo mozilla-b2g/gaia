@@ -41,8 +41,6 @@
       "disposition": "window"
     }
   },
-  "messages": ["bluetooth-pairing-request",
-               "bluetooth-cancel"],
   "locales": {
     "ar": {
       "name": "الضبط",
