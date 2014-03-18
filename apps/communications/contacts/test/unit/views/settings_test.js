@@ -1,4 +1,21 @@
 'use strict';
+/* global contacts */
+/* global Contacts */
+/* global LazyLoader */
+/* global MockasyncStorage */
+/* global MockCookie */
+/* global MockContactsIndexHtml */
+/* global MockgetDeviceStorage */
+/* global MocksHelper */
+/* global MockIccManager */
+/* global MockMozContacts */
+/* global MockNavigatorMozMobileConnection */
+/* global MockNavigatorMozMobileConnections */
+/* global MockSdCard */
+/* global MockWakeLock */
+/* global MyLocks */
+/* global TestUrlResolver */
+/* global utils */
 
 require('/shared/js/lazy_loader.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
@@ -26,13 +43,13 @@ requireApp('communications/contacts/js/navigation.js');
 requireApp('communications/contacts/js/views/settings.js');
 requireApp('communications/contacts/js/utilities/event_listeners.js');
 
-if (!this._) this._ = null;
-if (!this.utils) this.utils = null;
-if (!navigator.onLine) navigator.onLine = null;
-if (!navigator.mozContacts) navigator.mozContacts = null;
-if (!navigator.mozIccManager) navigator.mozIccManager = null;
-if (!navigator.mozMobileConnections) navigator.mozMobileConnections = null;
-if (!navigator.mozMobileConnection) navigator.mozMobileConnection = null;
+if (!window._) { window._ = null; }
+if (!window.utils) { window.utils = null; }
+if (!navigator.onLine) { navigator.onLine = null; }
+if (!navigator.mozContacts) { navigator.mozContacts = null; }
+if (!navigator.mozIccManager) { navigator.mozIccManager = null; }
+if (!navigator.mozMobileConnections) { navigator.mozMobileConnections = null; }
+if (!navigator.mozMobileConnection) { navigator.mozMobileConnection = null; }
 
 if (!window.Rest) {
   window.Rest = null;
@@ -40,20 +57,20 @@ if (!window.Rest) {
 
 window.self = null;
 
-var realMozContacts,
+var fb,
+    realMozContacts,
     realUtils,
     realCookie,
     realOnLine,
     realMozIccManager,
     realMozMobileConnection,
-    realMozMobileConnections,
-    realFbUtils;
+    realMozMobileConnections;
 
-if (!this.realMozContacts) {
+if (!window.realMozContacts) {
   realMozContacts = null;
 }
 
-if (!this.realMozIccManager) {
+if (!window.realMozIccManager) {
   realMozIccManager = null;
 }
 
@@ -69,15 +86,17 @@ suite('Contacts settings', function() {
   var mocksHelper = mocksHelperForContactSettings;
 
   function stub(additionalCode, ret) {
-    if (additionalCode && typeof additionalCode !== 'function')
+    if (additionalCode && typeof additionalCode !== 'function') {
       ret = additionalCode;
+    }
 
     var nfn = function() {
       nfn.callCount++;
       nfn.calledWith = [].slice.call(arguments);
 
-      if (typeof additionalCode === 'function')
+      if (typeof additionalCode === 'function') {
         additionalCode.apply(this, arguments);
+      }
 
       return ret;
     };
@@ -94,7 +113,7 @@ suite('Contacts settings', function() {
     Object.defineProperty(navigator, 'onLine', {
       fakeOnLine: false,
       configurable: true,
-      get: function() { return this.fakeOnLine},
+      get: function() { return this.fakeOnLine; },
       set: function(status) { this.fakeOnLine = status; }
     });
 
@@ -222,7 +241,7 @@ suite('Contacts settings', function() {
       // Modify the iccManager to return null when asking for slot 0
       var stub = sinon.stub(navigator.mozIccManager, 'getIccById',
         function(id) {
-          if (id == 0) {
+          if (id === 0) {
             return null;
           }
 
@@ -368,7 +387,7 @@ suite('Contacts settings', function() {
       contacts.Settings.importFromSDCard(function onImported() {
         sinon.assert.called(showMenuSpy);
         sinon.assert.called(showStatusSpy);
-        assert.equal(false, MyLocks['cpu']);
+        assert.equal(false, MyLocks.cpu);
         done();
       });
     });
@@ -379,7 +398,7 @@ suite('Contacts settings', function() {
       contacts.Settings.importFromSDCard(function onImported() {
         sinon.assert.called(showMenuSpy);
         sinon.assert.notCalled(showStatusSpy);
-        assert.equal(false, MyLocks['cpu']);
+        assert.equal(false, MyLocks.cpu);
         // Restore the mock
         MockSdCard.failOnRetrieveFiles = false;
         done();
