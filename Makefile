@@ -575,6 +575,12 @@ endif
 # So let's export these variables to external processes.
 export XULRUNNER_DIRECTORY XULRUNNERSDK XPCSHELLSDK
 
+xpcshell_sdk:
+	@echo $(XPCSHELLSDK)
+
+xulrunner_sdk:
+	@echo $(XULRUNNERSDK)
+
 .PHONY: print-xulrunner-sdk
 print-xulrunner-sdk:
 	@echo "$(XULRUNNER_DIRECTORY)"

@@ -1,6 +1,9 @@
 #!/bin/sh
 
 export LC_ALL=C NO_XFAIL=1
+
+############################### JS Lint #####################################
+
 LINTED_DIRECTORIES="apps shared build/test/unit test_apps/demo-keyboard"
 JSHINT_EXECUTABLE="node_modules/.bin/jshint"
 JSHINT_XFAIL_LIST="build/jshint/xfail.list"
@@ -44,46 +47,68 @@ then
   exit 0
 fi
 
-changed_files=`git diff --staged --name-only --diff-filter=ACMRT -- $LINTED_DIRECTORIES | grep '\.js$'`
-if [ -z "$changed_files" ] ; then
-  exit 0
-fi
+js_changed_files=`git diff --staged --name-only --diff-filter=ACMRT -- $LINTED_DIRECTORIES | grep '\.js$'`
+if [ -n "$js_changed_files" ]
+then
+  # gjslint: only test files xfailed in jshint
+  # echo with the quotes keeps the whitespace -- comm needs newlines, but
+  # LINTED_FILES needs to be space-separated
+  # Note also that xfail.list _must_ be sorted.
+  xfailed=`echo "$js_changed_files" | sort | comm -12 "$JSHINT_XFAIL_LIST" - | tr '[:space:]' ' '`
 
-# gjslint: only test files xfailed in jshint
-# echo with the quotes keeps the whitespace -- comm needs newlines, but
-# LINTED_FILES needs to be space-separated
-# Note also that xfail.list _must_ be sorted.
-xfailed=`echo "$changed_files" | sort | comm -12 "$JSHINT_XFAIL_LIST" - | tr '[:space:]' ' '`
-
-gjslint_result=0
-if [ -n "$xfailed" ] ; then
-  echo "gjslint check:"
-  LINTED_FILES="$xfailed" make -s gjslint
-  gjslint_result=$?
-  echo
-fi
-
-echo "jshint check:"
-# warn about files being xfailed
-for file in $changed_files ; do
-  one_was_ignored=""
-  if grep -q $file "$JSHINT_XFAIL_LIST" ; then
-    one_was_ignored="1"
-    echo "$file: jshint errors are ignored. Please consider fixing lint errors and removing it from $JSHINT_XFAIL_LIST."
+  gjslint_result=0
+  if [ -n "$xfailed" ] ; then
+    echo "gjslint check:"
+    LINTED_FILES="$xfailed" make -s gjslint
+    gjslint_result=$?
+    echo
   fi
-done
 
-test -n "$one_was_ignored" && jshint_information
+  echo "jshint check:"
+  # warn about files being xfailed
+  for file in $js_changed_files ; do
+    one_was_ignored=""
+    if grep -q $file "$JSHINT_XFAIL_LIST" ; then
+      one_was_ignored="1"
+      echo "$file: jshint errors are ignored. Please consider fixing lint errors and removing it from $JSHINT_XFAIL_LIST."
+    fi
+  done
 
-# using the real jshint instead of the make target to prevent running npm
-# install at commit time
-$JSHINT_EXECUTABLE $JSHINT_ARGS $changed_files
-jshint_result=$?
+  test -n "$one_was_ignored" && jshint_information
 
-if [ $gjslint_result -ne 0 -o $jshint_result -ne 0 ] ; then
-  echo "There were errors while linting the files, please see above."
-  test $jshint_result -ne 0 && jshint_information
-  exit 1
+  # using the real jshint instead of the make target to prevent running npm
+  # install at commit time
+  $JSHINT_EXECUTABLE $JSHINT_ARGS $js_changed_files
+  jshint_result=$?
+
+  if [ $gjslint_result -ne 0 -o $jshint_result -ne 0 ] ; then
+    echo "There were errors while linting the files, please see above."
+    test $jshint_result -ne 0 && jshint_information
+    exit 1
+  fi
+fi
+
+
+############################### CSS Lint #####################################
+
+css_changed_files=`git diff --staged --name-only --diff-filter=ACMRT -- apps shared/ | grep '\.css$'`
+if [ -n "$css_changed_files" ]
+then
+  XULRUNNER_SDK=$(make xulrunner_sdk)
+  XPCSHELL_SDK=$(make xpcshell_sdk)
+
+  echo $css_changed_files
+
+  $XULRUNNER_SDK $XPCSHELL_SDK \
+    -e "const GAIA_BUILD_DIR='file://$(pwd)/build/'" \
+    -f build/xpcshell-commonjs.js \
+    -e "quit(require('csslint').lint('$(pwd)', '$css_changed_files'));"
+
+  if [ $? -ne 0 ]
+  then
+    echo "There were errors while linting the files, please see above."
+    exit 1
+  fi
 fi
 
 echo "No errors - committing"
