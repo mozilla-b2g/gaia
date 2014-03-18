@@ -195,7 +195,7 @@ suite('grid.js >', function() {
 
         this.sinon.clock.tick();
         var currentPage = document.getElementById('landing-page');
-        assert.equal(currentPage.style.MozTransform, '');
+        assert.equal(currentPage.style.MozTransform, 'translateX(0px)');
         sendTouchEvent('touchend', containerNode, move);
         sendMouseEvent('mouseup', containerNode, move);
       });
