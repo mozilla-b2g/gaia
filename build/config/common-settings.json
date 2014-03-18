@@ -66,6 +66,7 @@
    "hud.jsobjects": true,
    "hud.jsstrings": true,
    "hud.jsother": true,
+   "hud.images": true,
    "hud.style": true,
    "hud.dom": true,
    "hud.other": true,
