@@ -1,7 +1,7 @@
 #!/bin/sh
 
 export LC_ALL=C NO_XFAIL=1
-LINTED_DIRECTORIES="apps shared build/test/unit"
+LINTED_DIRECTORIES="apps shared build/test/unit test_apps/demo-keyboard"
 JSHINT_EXECUTABLE="node_modules/.bin/jshint"
 JSHINT_XFAIL_LIST="build/jshint/xfail.list"
 JSHINT_ARGS="--reporter=build/jshint/xfail $JSHINT_ARGS"

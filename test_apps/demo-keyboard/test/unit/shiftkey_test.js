@@ -74,9 +74,11 @@ suite('ShiftKey', function() {
       }
 
       assert.equal(expectedShifted,
-          app.currentPageView.setShiftState.lastCall.args[0], 'State is shifted');
+          app.currentPageView.setShiftState.lastCall.args[0],
+          'State is shifted');
       assert.equal(expectedLocked,
-          app.currentPageView.setShiftState.lastCall.args[1], 'State is locked');
+          app.currentPageView.setShiftState.lastCall.args[1],
+          'State is locked');
     }
 
     test('Sending non-shift key doesn\'t trigger shiftState', function() {
