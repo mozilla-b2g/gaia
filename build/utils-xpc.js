@@ -236,14 +236,20 @@ function getWebapp(app, domain, scheme, port, stageDir) {
   if (metaData.exists()) {
     webapp.pckManifest = readZipManifest(webapp.sourceDirectoryFile);
     webapp.metaData = getJSON(metaData);
+    webapp.appStatus = utils.getAppStatus(webapp.metaData.type || 'web');
+  } else {
+    webapp.appStatus = utils.getAppStatus(webapp.manifest.type);
   }
 
   // Some webapps control their own build
   webapp.buildDirectoryFile = utils.getFile(stageDir,
     webapp.sourceDirectoryName);
-  webapp.buildManifestFile = utils.getFile(webapp.buildDirectoryFile.path,
+  let stageManifestFile = utils.getFile(webapp.buildDirectoryFile.path,
     'manifest.webapp');
-
+  let stageUpdateFile = utils.getFile(webapp.buildDirectoryFile.path,
+    'update.webapp');
+  webapp.buildManifestFile =
+    stageManifestFile.exists() ? stageManifestFile : stageUpdateFile;
   return webapp;
 }
 
@@ -812,6 +818,90 @@ function getCompression(type) {
   }
 }
 
+function generateUUID() {
+  var uuidGenerator = Cc['@mozilla.org/uuid-generator;1']
+                      .createInstance(Ci.nsIUUIDGenerator);
+  return uuidGenerator.generateUUID();
+}
+
+function getUrlObj(url) {
+  var ioService = Cc["@mozilla.org/network/io-service;1"]
+                  .getService(Ci.nsIIOService);
+  return ioService.newURI(url, null, null);
+}
+
+function copyRec(source, target) {
+  var results = [];
+  var files = source.directoryEntries;
+  if (!target.exists())
+    target.create(Ci.nsIFile.DIRECTORY_TYPE, parseInt('0755', 8));
+
+  while (files.hasMoreElements()) {
+    var file = files.getNext().QueryInterface(Ci.nsILocalFile);
+    if (file.isDirectory()) {
+      var subFolder = target.clone();
+      subFolder.append(file.leafName);
+      copyRec(file, subFolder);
+    } else {
+      file.copyTo(target, file.leafName);
+    }
+  }
+}
+
+function moveExternalApp(webapp, source, destination) {
+  // In case of packaged app, just copy `application.zip` and `update.webapp`
+  if (webapp.pckManifest) {
+    var updateManifest = source.clone();
+    updateManifest.append('update.webapp');
+    if (!updateManifest.exists()) {
+      throw 'External packaged webapp `' + webapp.domain + '  is ' +
+            'missing an `update.webapp` file. This JSON file ' +
+            'contains a `package_path` attribute specifying where ' +
+            'to download the application zip package from the origin ' +
+            'specified in `metadata.json` file.';
+      return;
+    }
+    var appPackage = source.clone();
+    appPackage.append('application.zip');
+    appPackage.copyTo(destination, 'application.zip');
+    updateManifest.copyTo(destination, 'update.webapp');
+  } else {
+    webapp.manifestFile.copyTo(destination, 'manifest.webapp');
+
+    // This is an hosted app. Check if there is an offline cache.
+    var srcCacheFolder = source.clone();
+    srcCacheFolder.append('cache');
+    if (srcCacheFolder.exists()) {
+      var cacheManifest = srcCacheFolder.clone();
+      cacheManifest.append('manifest.appcache');
+      if (!cacheManifest.exists()) {
+        throw 'External webapp `' + webapp.domain +
+              '` has a cache directory without `manifest.appcache`' +
+              ' file.';
+        return;
+      }
+
+      // Copy recursively the whole cache folder to webapp folder
+      var targetCacheFolder = destination.clone();
+      targetCacheFolder.append('cache');
+      utils.copyRec(srcCacheFolder, targetCacheFolder);
+    }
+  }
+}
+
+function cleanProfile(webappsDir) {
+  // Profile can contain folders with a generated uuid that need to be deleted
+  // or apps will be duplicated.
+  var appsDir = webappsDir.directoryEntries;
+  var expreg = new RegExp("^{[\\w]{8}-[\\w]{4}-[\\w]{4}-[\\w]{4}-[\\w]{12}}$");
+  while (appsDir.hasMoreElements()) {
+    var appDir = appsDir.getNext().QueryInterface(Ci.nsIFile);
+      if (appDir.leafName.match(expreg)) {
+        appDir.remove(true);
+      }
+  }
+}
+
 exports.Q = Promise;
 exports.ls = ls;
 exports.getFileContent = getFileContent;
@@ -834,6 +924,11 @@ exports.Commander = Commander;
 exports.getEnvPath = getEnvPath;
 exports.getLocaleBasedir = getLocaleBasedir;
 exports.getOsType = getOsType;
+exports.generateUUID = generateUUID;
+exports.getUrlObj = getUrlObj;
+exports.copyRec = copyRec;
+exports.moveExternalApp = moveExternalApp;
+exports.cleanProfile = cleanProfile;
 // ===== the following functions support node.js compitable interface.
 exports.deleteFile = deleteFile;
 exports.listFiles = listFiles;

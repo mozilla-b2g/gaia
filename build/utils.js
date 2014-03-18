@@ -1,5 +1,4 @@
 
-
 const FILE_TYPE_FILE = 0;
 const FILE_TYPE_DIRECTORY = 1;
 
@@ -71,6 +70,23 @@ function gaiaManifestURL(name, scheme, domain, port) {
   return gaiaOriginURL(name, scheme, domain, port) + '/manifest.webapp';
 }
 
+function getAppStatus(status) {
+  var appStatus;
+  switch (status) {
+    case 'certified':
+      appStatus = 3;
+      break;
+    case 'privileged':
+      appStatus = 2;
+      break;
+    case 'web':
+    default: // By default, apps are installed
+      appStatus = 1;
+      break;
+  }
+  return appStatus;
+}
+
 exports.Q = utils.Q;
 exports.isSubjectToBranding = isSubjectToBranding;
 exports.ls = utils.ls;
@@ -97,6 +113,12 @@ exports.Commander = utils.Commander;
 exports.getEnvPath = utils.getEnvPath;
 exports.getLocaleBasedir = utils.getLocaleBasedir;
 exports.getOsType = utils.getOsType;
+exports.generateUUID = utils.generateUUID;
+exports.getUrlObj = utils.getUrlObj;
+exports.copyRec = utils.copyRec;
+exports.getAppStatus = getAppStatus;
+exports.moveExternalApp = utils.moveExternalApp;
+exports.cleanProfile = utils.cleanProfile;
 // ===== the following functions support node.js compitable interface.
 exports.FILE_TYPE_FILE = FILE_TYPE_FILE;
 exports.FILE_TYPE_DIRECTORY = FILE_TYPE_DIRECTORY;
