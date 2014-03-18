@@ -76,7 +76,7 @@ var LazyLoader = (function() {
       for (var i = 0; i < files.length; i++) {
         var file = files[i];
 
-        if (this._loaded[file]) {
+        if (this._loaded[file.id || file]) {
           perFileCallback(file);
         } else if (this._isLoading[file]) {
           this._isLoading[file].addEventListener(
