@@ -153,7 +153,6 @@ module.exports = {
         key: 'auto',
         icon: 'icon-flash-auto',
         l10n: { title: 'auto' }
-
       },
       {
         key: 'on',

@@ -100,7 +100,8 @@ SettingsController.prototype.onOptionTap = function(key, setting) {
   setting.select(key);
   this.closeSettings();
   
-  //setting notification
+  // If the option that was just selected has an associated notificationID
+  // then display a notification to the user
   if (setting.selected('notificationID')) {
     this.notification.showNotification({
       message: setting.selected('notificationID')
