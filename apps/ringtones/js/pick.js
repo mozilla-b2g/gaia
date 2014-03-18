@@ -202,6 +202,7 @@ navigator.mozSetMessageHandler('activity', function handler(activity) {
 
   function preview(url) {
     if (url) {  // If there is a URL, play it.
+      player.mozAudioChannelType = 'ringer';
       player.src = url;
       player.play();
     }

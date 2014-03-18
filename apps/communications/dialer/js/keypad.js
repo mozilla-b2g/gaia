@@ -525,25 +525,28 @@ var KeypadManager = {
 
   replacePhoneNumber:
     function kh_replacePhoneNumber(phoneNumber, ellipsisSide, maxFontSize) {
-      if (this._onCall) {
+      if (this._onCall && CallsHandler.activeCall) {
         CallsHandler.activeCall.
           replacePhoneNumber(phoneNumber, ellipsisSide, maxFontSize);
       }
   },
 
   restorePhoneNumber: function kh_restorePhoneNumber() {
-    if (this._onCall) {
+    if (this._onCall && CallsHandler.activeCall) {
       CallsHandler.activeCall.restorePhoneNumber();
     }
   },
 
   replaceAdditionalContactInfo:
     function kh_updateAdditionalContactInfo(additionalContactInfo) {
-    CallsHandler.activeCall.replaceAdditionalContactInfo(additionalContactInfo);
+      var call = CallsHandler.activeCall;
+      if (this._onCall && call) {
+        call.replaceAdditionalContactInfo(additionalContactInfo);
+      }
   },
 
   restoreAdditionalContactInfo: function kh_restoreAdditionalContactInfo() {
-    if (this._onCall) {
+    if (this._onCall && CallsHandler.activeCall) {
       CallsHandler.activeCall.restoreAdditionalContactInfo();
     }
   },
