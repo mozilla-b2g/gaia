@@ -39,7 +39,8 @@ class Browser(Base):
 
     def launch(self):
         Base.launch(self)
-        self.wait_for_condition(lambda m: m.execute_script("return window.wrappedJSObject.Browser.hasLoaded;"))
+        self.wait_for_condition(lambda m: m.execute_script("return window.wrappedJSObject.Browser.hasLoaded;"),
+                                message="Browser app was not loaded")
 
     def go_to_url(self, url, timeout=30):
         self.wait_for_element_displayed(*self._awesome_bar_locator)
@@ -76,12 +77,12 @@ class Browser(Base):
     def tap_back_button(self):
         current_url = self.url
         self.marionette.find_element(*self._back_button_locator).tap()
-        self.wait_for_condition(lambda m: self.url != current_url)
+        self.wait_for_condition(lambda m: self.url != current_url, message="Actual url is: %s" %current_url)
 
     def tap_forward_button(self):
         current_url = self.url
         self.marionette.find_element(*self._forward_button_locator).tap()
-        self.wait_for_condition(lambda m: self.url != current_url)
+        self.wait_for_condition(lambda m: self.url != current_url, message="Actual url is: %s" %current_url)
 
     def tap_bookmark_button(self):
         self.marionette.find_element(*self._bookmark_button_locator).tap()
@@ -114,7 +115,8 @@ class Browser(Base):
     def tap_add_new_tab_button(self):
         self.marionette.find_element(*self._new_tab_button_locator).tap()
         main_screen = self.marionette.find_element(*self._main_screen_locator)
-        self.wait_for_condition(lambda m: main_screen.location['x'] == 0)
+        self.wait_for_condition(lambda m: main_screen.location['x'] == 0,
+                                message="Actual location was %s" %main_screen.location)
 
     @property
     def displayed_tabs_number(self):
@@ -147,4 +149,5 @@ class Browser(Base):
             self.root_element.click()
 
             # TODO This wait is a workaround until Marionette can correctly interpret the displayed state
-            self.wait_for_condition(lambda m: m.execute_script("return window.wrappedJSObject.Browser.currentScreen;") == 'page-screen')
+            self.wait_for_condition(lambda m: m.execute_script("return window.wrappedJSObject.Browser.currentScreen;") == 'page-screen',
+                                    message="Current screen is %s" %self.marionette.execute_script("return window.wrappedJSObject.Browser.currentScreen;"))

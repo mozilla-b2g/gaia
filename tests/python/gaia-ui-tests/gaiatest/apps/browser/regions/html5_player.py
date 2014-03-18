@@ -51,13 +51,13 @@ class HTML5Player(PageRegion):
     def play(self):
         self.invoke_controls()
         self.root_element.tap()
-        self.wait_for_condition(lambda m: not self.is_paused)
+        self.wait_for_condition(lambda m: not self.is_paused, message="Video is still paused")
         self._disable_controls()
 
     def pause(self):
         self.invoke_controls()
         self.root_element.tap()
-        self.wait_for_condition(lambda m: self.is_paused)
+        self.wait_for_condition(lambda m: self.is_paused, message="Video is still playing")
         self._disable_controls()
 
     def is_video_playing(self):
