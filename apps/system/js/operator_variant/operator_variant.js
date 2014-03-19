@@ -320,7 +320,10 @@
       for (var type in apnPrefNames) {
         var apn = {};
         for (var i = 0; i < result.length; i++) {
-          if (result[i] && result[i].type.indexOf(type) != -1) {
+          if (typeof result[i].type === 'undefined') {
+            result[i].type = 'default';
+          }
+          if (result[i].type.indexOf(type) != -1) {
             apn = result[i];
             break;
           }
