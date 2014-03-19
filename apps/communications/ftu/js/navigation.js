@@ -212,16 +212,32 @@ var Navigation = {
         break;
       case '#browser_privacy':
         UIManager.mainTitle.innerHTML = _('aboutBrowser');
+        var linkElement = document.getElementById('external-link-privacy');
+        navigator.mozL10n.localize(linkElement, 'learn-more-privacy', {
+          link: getLocalizedLink('learn-more-privacy')
+        });
         break;
       case '#SIM_mandatory':
         UIManager.mainTitle.innerHTML = _('SIM_mandatory');
         break;
       case '#about-your-rights':
       case '#about-your-privacy':
+        UIManager.mainTitle.innerHTML = _('aboutBrowser');
+        UIManager.progressBar.classList.add('hidden');
+        UIManager.navBar.classList.add('back-only');
+        break;
       case '#sharing-performance-data':
         UIManager.mainTitle.innerHTML = _('aboutBrowser');
         UIManager.progressBar.classList.add('hidden');
         UIManager.navBar.classList.add('back-only');
+        var linkElement = document.getElementById('external-link-telemetry');
+        navigator.mozL10n.localize(linkElement, 'learn-more-telemetry', {
+          link: getLocalizedLink('learn-more-telemetry')
+        });
+        linkElement = document.getElementById('external-link-information');
+        navigator.mozL10n.localize(linkElement, 'learn-more-information', {
+          link: getLocalizedLink('learn-more-information')
+        });
         break;
     }
 
