@@ -341,9 +341,9 @@ suite('Dialog', function() {
 
       var opt = dialogSpy.firstCall.args[1];
       assert.equal(opt.title.l10nId,
-                  'fdnBlockedTitle');
+                  'fdnBlocked2Title');
       assert.equal(opt.body.l10nId,
-                  'fdnBlockedBody');
+                  'fdnBlocked2Body');
       assert.deepEqual(opt.body.l10nArgs,
       {
         n: 3,
