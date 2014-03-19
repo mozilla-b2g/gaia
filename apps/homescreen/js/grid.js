@@ -50,6 +50,8 @@ var GridManager = (function() {
 
   var kPageTransitionDuration;
 
+  var kPageMinTransitionDuration = 100;
+
   var pages = [];
   var currentPage = 0;
 
@@ -490,9 +492,23 @@ var GridManager = (function() {
     touchEndTimestamp = touchEndTimestamp || lastGoingPageTimestamp;
     var delay = touchEndTimestamp - lastGoingPageTimestamp ||
                 kPageTransitionDuration;
+
+    // Fetch the user's swiping velocity, but make sure it's more
+    // than 1 so when we factor this with the duration, we don't
+    // end up with a slower swipe
+    var velocity = Math.max(1, Math.abs(panningResolver.getVelocity() || 0));
+
     lastGoingPageTimestamp += delay;
-    var duration = delay < kPageTransitionDuration ?
-                   delay : kPageTransitionDuration;
+
+    // Bug 979396:
+    // For the non-velocity-factored duration, use either the computed
+    // delay or the configured duration, whichever is smaller. Once
+    // velocity is factored in, don't allow the transition to be
+    // quicker than kPageMinTransitionDuration
+    var duration = Math.max(
+      Math.min(delay, kPageTransitionDuration) / velocity,
+      kPageMinTransitionDuration
+    );
 
     var previousPage = pages[currentPage];
     var newPage = pages[index];
