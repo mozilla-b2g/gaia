@@ -93,8 +93,9 @@
     var currentPageView = this.app.currentPageView;
 
     // If caps lock is on we do nothing
-    if (currentPageView.locked)
+    if (currentPageView.locked) {
       return;
+    }
 
     // This is autocapitalization and also the code that turns off
     // the shift key after one capital letter.
