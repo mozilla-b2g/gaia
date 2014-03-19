@@ -1,5 +1,8 @@
-/*global requireApp suite test assert setup teardown sinon mocha
-  suiteTeardown suiteSetup */
+'use strict';
+
+/* global requireApp, suite, test, assert, setup, sinon, mocha,
+          suiteSetup */
+
 suite('Page', function() {
   mocha.setup({
     globals: [
