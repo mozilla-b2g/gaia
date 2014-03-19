@@ -14,6 +14,8 @@ suite('ShiftKey', function() {
     return d;
   }
 
+  var keyboardTouchHelper = eventTargetSpy();
+
   function appSpy() {
     var app = {
       inputField: eventTargetSpy(),
@@ -24,7 +26,8 @@ suite('ShiftKey', function() {
         }),
         shifted: false,
         locked: false
-      }
+      },
+      touchHandler: keyboardTouchHelper
     };
 
     return app;
@@ -37,21 +40,13 @@ suite('ShiftKey', function() {
 
   mocha.setup({
     globals: [
-      'KeyboardTouchHandler',
       'ShiftKey'
     ]
   });
 
-  var keyboardTouchHelper;
-  var realKeyboardTouchHandler;
 
-  suiteSetup(function() {
-    realKeyboardTouchHandler = window.KeyboardTouchHandler;
-    window.KeyboardTouchHandler = keyboardTouchHelper = eventTargetSpy();
-  });
 
   suiteTeardown(function() {
-    window.KeyboardTouchHandler = realKeyboardTouchHandler;
   });
 
   suite('Key handling', function() {
