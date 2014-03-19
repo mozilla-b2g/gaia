@@ -72,7 +72,9 @@ ViewfinderController.prototype.loadStream = function() {
 ViewfinderController.prototype.updatePreview = function() {
   var camera = this.app.settings.cameras.selected('key');
   var isFrontCamera = camera === 'front';
-  this.viewfinder.updatePreview(this.camera.previewSize(), isFrontCamera);
+  var sensorAngle = this.camera.getSensorAngle();
+  this.viewfinder.updatePreview(this.camera.previewSize(), sensorAngle,
+                                isFrontCamera);
 
   var enableZoom = this.camera.isZoomSupported() &&
                    this.app.settings.enableZoom.selected().value;
