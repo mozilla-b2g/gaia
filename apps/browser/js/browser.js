@@ -584,7 +584,8 @@ var Browser = {
   handleCrashedTab: function browser_handleCrashedTab(tab) {
     // No need to show the crash screen for background tabs,
     // they will be revived when selected
-    if (tab.id === this.currentTab.id && !document.hidden) {
+    if (tab.id === this.currentTab.id && !document.hidden &&
+        this.currentTab.url != null) {
       this.showCrashScreen();
     }
     tab.loading = false;
