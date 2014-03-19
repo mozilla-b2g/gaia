@@ -119,3 +119,4 @@ exports.getEnv = utils.getEnv;
 exports.isExternalApp = utils.isExternalApp;
 exports.getDocument = utils.getDocument;
 exports.getWebapp = utils.getWebapp;
+exports.concatenatedScripts = utils.concatenatedScripts;
