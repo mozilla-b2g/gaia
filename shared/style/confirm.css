@@ -51,7 +51,7 @@ form[role="dialog"][data-type="confirm"] h1 {
   line-height: 1.5em;
   color: #fff;
   margin: 0;
-  padding: 0 1.5rem;
+  padding: 1rem 1.5rem 0;
 }
 
 /* Menu & buttons setup */
@@ -165,6 +165,13 @@ form[role="dialog"][data-type="confirm"] p {
   padding: 1rem 1.5rem;
   border-top: 0.1rem solid #686868;
   line-height: 3rem;
+}
+
+form[role="dialog"][data-type="confirm"] p span {
+    font-size: 1.5rem;
+    display: block;
+    line-height: 1.7rem;
+    color: rgba(255,255,255,0.6);
 }
 
 form[role="dialog"][data-type="confirm"] p img {
