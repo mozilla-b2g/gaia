@@ -30,7 +30,7 @@ class Gallery(Base):
         self.marionette.switch_to_frame(self.marionette.find_element(*self._gallery_frame_locator))
 
     def wait_for_files_to_load(self, files_number):
-        self.wait_for_condition(lambda m: m.execute_script('return window.wrappedJSObject.files.length') == files_number)
+        self.wait_for_condition(lambda m: m.execute_script('return window.wrappedJSObject.files.length') == files_number, timeout=15)
 
     def wait_for_thumbnails_to_load(self):
         self.wait_for_element_displayed(*self._gallery_items_locator)
