@@ -375,6 +375,8 @@ suite('ThreadUI Integration', function() {
     });
 
     test('Assimilate stranded recipients (sendButton)', function() {
+      this.sinon.spy(MessageManager, 'sendSMS');
+
       // To ensure the onSendClick handler will succeed:
 
       // 1. Add some content to the message
