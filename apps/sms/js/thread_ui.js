@@ -1088,7 +1088,7 @@ var ThreadUI = global.ThreadUI = {
     if (Settings.mmsSizeLimitation) {
       if (Compose.size > Settings.mmsSizeLimitation) {
         Compose.lock = true;
-        this.showMaxLengthNotice('messages-exceeded-length-text');
+        this.showMaxLengthNotice('message-exceeded-max-length');
         return false;
       } else if (Compose.size === Settings.mmsSizeLimitation) {
         Compose.lock = true;
