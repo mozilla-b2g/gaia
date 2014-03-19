@@ -101,3 +101,16 @@
     transition: all .2s linear;
     opacity: 0 !important;
 }
+
+/* empty query and not in search screen? don't get any pointer events.
+   the reason is that we have content that is translated so this div
+   can overlap homescreen */
+body:not(.evme-keyboard-visible) #evmeContainer.empty-query {
+    pointer-events: none;
+}
+
+/* all children in #search should have normal behavior again,
+   so you can tap the search input field */
+#evmeContainer #search > * {
+    pointer-events: auto;
+}
