@@ -31,7 +31,7 @@ body:not(.evme-keyboard-visible) .empty-query #helper-header {
         font-weight: inherit;
     }
 #search-title.close {
-    display: none;
+    visibility: hidden;
 }
     #search-title .query {
         position: relative;
@@ -67,14 +67,9 @@ body:not(.evme-keyboard-visible) .empty-query #helper-header {
 #helper-rapper.animate:not(.anim-disabled) {
     transition: all .3s ease;
 }
-#helper-rapper.close {
-    transform: scale(0, 0);
-    right: 1.2rem;
-    display: none;
+#helper-rapper.close, #helper-rapper.close ul {
+    visibility: hidden;
 }
-    #helper-rapper.close ul {
-        display: none;
-    }
 
     #helper-tip {
         position: absolute;
@@ -98,7 +93,6 @@ body:not(.evme-keyboard-visible) .empty-query #helper-header {
         transform: rotate(45deg);
         box-shadow: -0.4rem -0.4rem 0.4rem -0.2rem rgba(0, 0, 0, .4);
     }
-
 #helper {
     position: absolute;
     top: 0;
@@ -210,7 +204,7 @@ body:not(.evme-keyboard-visible) .empty-query #helper-header {
         }
 
 #save-search {
-    display: none;
+    visibility: hidden;
     position: absolute;
     right: 0.65rem;
     top: -0.4rem;
@@ -220,7 +214,7 @@ body:not(.evme-keyboard-visible) .empty-query #helper-header {
     background-size: 3rem 3rem;
 }
 #search-title.visible ~ #save-search {
-    display: block;
+    visibility: visible;
 }
 #save-search[data-saved-as-collection='true'] {
     background-image: url('/everything.me/images/bookmarked.png');
