@@ -17,7 +17,6 @@ section[role="region"] > header:first-child h1 {
   text-align: left;
   color: #fff;
   white-space: nowrap;
-  text-overflow: ellipsis;
   display: block;
   overflow: hidden;
   margin: 0;

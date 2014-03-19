@@ -186,6 +186,7 @@ contacts.Details = (function() {
   //
   var doReloadContactDetails = function doReloadContactDetails(contact) {
     detailsName.textContent = contact.name;
+    AutoFontSize.auto(detailsName, contact.name);
     contactDetails.classList.remove('no-photo');
     contactDetails.classList.remove('fb-contact');
     contactDetails.classList.remove('up');

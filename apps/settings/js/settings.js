@@ -294,6 +294,8 @@ var Settings = {
       return;
     }
 
+    AutoFontSize.init(panel);
+
     this.loadPanelStylesheetsIfNeeded();
 
     // apply the HTML markup stored in the first comment node
@@ -936,6 +938,8 @@ function startupLocale() {
 }
 
 function initLocale() {
+  AutoFontSize.init(document.getElementById('#root'));
+
   var lang = navigator.mozL10n.language.code;
 
   // set the 'lang' and 'dir' attributes to <html> when the page is translated
