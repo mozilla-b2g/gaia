@@ -832,4 +832,20 @@ Camera.prototype.getZoomPreviewAdjustment = function() {
   return zoom / maxHardwareZoom;
 };
 
+/**
+ * Retrieves the angle of orientation of the camera hardware's
+ * image sensor. This value is calculated as the angle that the
+ * camera image needs to be rotated (clockwise) so that it appears
+ * correctly on the display in the device's natural (portrait)
+ * orientation
+ *
+ * Reference:
+ * http://developer.android.com/reference/android/hardware/Camera.CameraInfo.html#orientation
+ *
+ * @return {Number}
+ */
+Camera.prototype.getSensorAngle = function() {
+  return this.mozCamera.sensorAngle;
+};
+
 });
