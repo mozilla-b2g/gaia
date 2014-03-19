@@ -340,11 +340,10 @@ function optimize_inlineResources(doc, webapp, filePath, htmlFile) {
     oldScript.parentNode.removeChild(oldScript);
   });
 
-  // add the browser manifest url to our global object for net_error
+  // add the system manifest url to our global object for net_error
   // see: https://bugzilla.mozilla.org/show_bug.cgi?id=959800#c8
   optimize_embedGlobals(doc, {
-    BROWSER_MANIFEST:
-      'app://browser.' + config.GAIA_DOMAIN + '/manifest.webapp'
+    SYSTEM_MANIFEST: 'app://system.' + config.GAIA_DOMAIN + '/manifest.webapp'
   });
 
   // inline stylesheets
