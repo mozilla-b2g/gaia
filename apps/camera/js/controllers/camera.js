@@ -73,7 +73,7 @@ CameraController.prototype.bindEvents = function() {
   app.on('timer:ended', this.capture);
   app.on('blur', this.onBlur);
   app.on('settings:configured', this.onSettingsConfigured);
-  app.on('change:batteryStatus', this.onBatteryStatuchange);
+  app.on('change:batteryStatus', this.onBatteryStatusChange);
   settings.pictureSizes.on('change:selected', this.onPictureSizeChange);
   settings.recorderProfiles.on('change:selected', this.onRecorderProfileChange);
   settings.flashModes.on('change:selected', this.setFlashMode);
@@ -389,7 +389,7 @@ CameraController.prototype.createThumbnail = function(media,
   }
 };
 
-CameraController.prototype.onBatteryStatuchange = function(status) {
+CameraController.prototype.onBatteryStatusChange = function(status) {
   if (status === 'shutdown') {
     var camera = this.camera;
     if (camera.get('recording')) {

@@ -11,7 +11,7 @@ module.exports = {
     enabled: {
       hdr: true,
       timer: true,
-      battery: false,
+      battery: true,
       geolocation: false
     }
   },
@@ -188,47 +188,37 @@ module.exports = {
         l10n: { title: 'on' }
       }
     ],
-    selected: 'off',
     persistent: true
   },
-  
+
   timer: {
     icon: 'icon-timer',
     options: [
       {
         key: 'off',
         value: 0,
-        l10n: {
-          title: 'off',
-          notificationID: 'timer-set-off'
-        }
+        l10n: { title: 'off' },
+        notificationID: 'timer-set-off'
       },
       {
         key: '3secs',
         value: 3,
-        l10n: {
-          title: '3-seconds',
-          notificationID: 'timer-set-3secs'
-        }
+        l10n: { title: '3-seconds' },
+        notificationID: 'timer-set-3secs'
       },
       {
         key: '5secs',
         value: 5,
-        l10n: {
-          title: '5-seconds',
-          notificationID: 'timer-set-5secs'
-        }
+        l10n: { title: '5-seconds' },
+        notificationID: 'timer-set-5secs'
       },
       {
         key: '10secs',
         value: 10,
-        l10n: {
-          title: '10-seconds',
-          notificationID: 'timer-set-10secs'
-        }
+        l10n: { title: '10-seconds' },
+        notificationID: 'timer-set-10secs'
       }
     ],
-    selected: 'off',
     persistent: false,
     l10n: { title: 'self-timer' }
   },
@@ -240,20 +230,15 @@ module.exports = {
     options: [
       {
         key: 'off',
-        l10n: {
-          title: 'off',
-          notificationID: 'hdr-set-off'
-        }
+        l10n: { title: 'off' },
+        notificationID: 'hdr-set-off'
       },
       {
         key: 'on',
-        l10n: {
-          title: 'on',
-          notificationID: 'hdr-set-on'
-        }
+        l10n: { title: 'on' },
+        notificationID: 'hdr-set-on'
       }
     ],
-    selected: 'off',
     persistent: true
   },
 
@@ -276,7 +261,6 @@ module.exports = {
         notificationID: 'scene-set-beauty'
       }
     ],
-    selected: 'normal',
     persistent: true,
     l10n: { title: 'scene-mode' }
   },
@@ -284,40 +268,27 @@ module.exports = {
   grid: {
     icon: 'icon-frame-grid',
     options: [
-      {
-<<<<<<< HEAD
-        key: 'off',
-        l10n: { title: 'off' }
-      },
-      {
+       {
         key: 'on',
-        l10n: { title: 'on' }
-=======
-        key: 'on',
-        l10n: {
-          title: 'on',
-          notificationID: 'grid-set-on'
-        }
+        l10n: { title: 'on' },
+        notificationID: 'grid-set-on'
       },
       {
         key: 'off',
-        l10n: {
-          title: 'off',
-          notificationID: 'grid-set-off'
-        }
->>>>>>> [Camera] Low battery updates
+        l10n: { title: 'off' },
+        notificationID: 'grid-set-off'
       }
     ],
     selected: 'off',
     persistent: true,
     l10n: { title: 'grid' }
   },
-  
+
   settingsMenu: {
     items: [
-      {
+       {
          key: 'hdr'
-      },
+       },
       // {
       //   key: 'scene'
       // },

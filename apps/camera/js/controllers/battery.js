@@ -8,7 +8,7 @@ define(function(require, exports, module) {
  */
 
 var bindAll = require('lib/bind-all');
-var debug = require('debug')('controller:lowbattery');
+var debug = require('debug')('controller:battery');
 var bind = require('lib/bind');
 
 /**
@@ -16,16 +16,16 @@ var bind = require('lib/bind');
  */
 
 exports = module.exports = function(app) {
-  return new LowBatteryController(app);
+  return new BatteryController(app);
 };
-exports.LowBatteryController = LowBatteryController;
+exports.BatteryController = BatteryController;
 /**
  * Initialize a new `LowBatteryController`
  *
  * @param {Object} options
  */
 
-function LowBatteryController(app) {
+function BatteryController(app) {
   this.app = app;
   this.battery = navigator.battery || navigator.mozBattery;
   this.lowbattery = app.settings.lowbattery;
@@ -46,7 +46,7 @@ function LowBatteryController(app) {
  *
  */
 
-LowBatteryController.prototype.bindEvents = function() {
+BatteryController.prototype.bindEvents = function() {
   bind(this.battery, 'levelchange', this.onLevelChange);
   bind(this.battery, 'chargingchange', this.onLevelChange);
   this.app.on('settings:configured', this.onLevelChange);
@@ -58,20 +58,30 @@ LowBatteryController.prototype.bindEvents = function() {
  * @param {Object} options
  */
 
-LowBatteryController.prototype.onLevelChange = function () {
+BatteryController.prototype.onLevelChange = function () {
   var status = this.getStatus(this.battery);
   if (status) {
+    var previous = this.app.get('batteryStatus');
     this.app.set('batteryStatus', status.value);
-    if (status.value !== 'critical') {
-      this.notification.clearPersistent();
-    }
-    if (status.message) {
+
+    if (status.message && !previous) {
       this.notification.showNotification(status);
+      return;
     }
+
+    if (previous && previous !== status.value) {
+      if (previous === 'critical') {
+         this.notification.hideNotification();
+      }
+      if (status.message) {
+      this.notification.showNotification(status);
+      }
+    }
+    
   }
 };
 
-LowBatteryController.prototype.getStatus = function (battery) {
+BatteryController.prototype.getStatus = function (battery) {
   var value = Math.round(battery.level * 100);
   var isCharging = battery.charging;
   

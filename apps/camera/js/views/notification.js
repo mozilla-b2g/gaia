@@ -28,15 +28,15 @@ module.exports = View.extend({
   },
 
   showNotification: function(options) {
-    this.clearMessage();
+    this._clearMessage();
     if (options.isPersistent) {
-      this.clearPersistent();
+      this.hideNotification();
       this.persistentMessage = options;
     }
-    this.showMessage(options);
+    this._showMessage(options);
   },
   
-  showMessage: function(options) {
+  _showMessage: function(options) {
     var message = this.l10n.get(options.message) || options.message;
     var iconElement = options.icon ?
                       '<div class="imgBox '+options.icon+'" ></div>' : '';
@@ -45,27 +45,27 @@ module.exports = View.extend({
     this.show();
     if (!options.isPersistent) {
       this.timeout = window.setTimeout(function() {
-        self.clearMessage();
-        if (self.persistentMessage) {
-          self.showMessage(self.persistentMessage);
-        }
+        self._clearMessage();
       }, 3000);
     }
   },
 
-  clearMessage: function() {
+  _clearMessage: function() {
     if (this.timeout) {
       window.clearTimeout(this.timeout);
       this.timeout = null;
     }
-    this.els.notification.innerHTML = '';
+    this.els.notification.textContent = '';
     this.hide();
+    if (this.persistentMessage) {
+      this._showMessage(this.persistentMessage);
+    }
   },
 
-  clearPersistent: function() {
+  hideNotification: function() {
     if (this.persistentMessage) {
-      this.clearMessage();
       this.persistentMessage = null;
+      this._clearMessage();
     }
   }
 

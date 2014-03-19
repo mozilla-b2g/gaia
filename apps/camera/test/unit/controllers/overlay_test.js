@@ -26,6 +26,7 @@ suite('controllers/overlay', function() {
     var Activity = this.modules.activity;
 
     this.app = {
+      on: sinon.spy(),
       camera: {
         state: {
           on: sinon.spy()
@@ -186,6 +187,26 @@ suite('controllers/overlay', function() {
       assert.ok(this.controller.overlays.length === 2);
       this.controller.destroyOverlays();
       assert.ok(this.controller.overlays.length === 0);
+    });
+  });
+
+  suite('OverlayController#onBatteryStatusChange()', function() {
+    setup(function() {
+      this.controller = new Controller(this.app);
+      sinon.stub(this.controller, 'destroyOverlays');
+      sinon.stub(this.controller, 'insertOverlay');
+    });
+
+    test('Should call insertoverlay if status is shutdown', function() {
+      this.controller.previousOverlay = 'foo';
+      this.controller.onBatteryStatusChange('shutdown');
+      assert.isTrue(this.controller.insertOverlay.calledWith('shutdown'));
+    });
+
+    test('Should call destroyOverlays if previous is shutdown', function() {
+      this.controller.previousOverlay = 'shutdown';
+      this.controller.onBatteryStatusChange('foo');
+      assert.isTrue(this.controller.destroyOverlays.called);
     });
   });
 });
