@@ -2,6 +2,7 @@
   "extends": "../../../.jshintrc",
   "predef": [
     "Calendar",
+    "IDBKeyRange",
     "InputParser",
     "dump"
   ]

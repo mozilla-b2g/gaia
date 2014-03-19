@@ -1,4 +1,5 @@
 (function(window) {
+  'use strict';
 
   function Store() {
     Calendar.Store.Abstract.apply(this, arguments);
@@ -26,15 +27,11 @@
     _parseId: Calendar.Store.Abstract.prototype.probablyParseInt,
 
     _addToCache: function(object) {
-      var remote = object.remote.id;
-
       this._cached[object._id] = object;
     },
 
     _removeFromCache: function(id) {
       if (id in this._cached) {
-        var object = this._cached[id];
-        var remote = object.remote.id;
         delete this._cached[id];
       }
     },
@@ -74,8 +71,9 @@
         trans = null;
       }
 
-      if (!calendar._id)
+      if (!calendar._id) {
         throw new Error('given calendar must be persisted.');
+      }
 
       calendar.error = {
         name: error.name,
@@ -100,7 +98,7 @@
       }
 
       if (!trans) {
-        var trans = this.db.transaction(this._store);
+        trans = this.db.transaction(this._store);
       }
 
       var store = trans.objectStore(this._store);
@@ -133,8 +131,6 @@
      *       inside of providers.
      */
     sync: function(account, calendar, callback) {
-      var self = this;
-      var store = this.db.getStore('Event');
       var provider = Calendar.App.provider(
         account.providerType
       );
