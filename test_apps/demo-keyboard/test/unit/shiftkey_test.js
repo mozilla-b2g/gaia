@@ -1,7 +1,7 @@
 'use strict';
 
-/*global requireApp suite test assert setup teardown sinon mocha
-  suiteTeardown */
+/*global requireApp, suite, test, assert, setup, teardown, sinon, mocha,
+         suiteTeardown, ShiftKey */
 
 requireApp('demo-keyboard/js/shiftkey.js');
 
