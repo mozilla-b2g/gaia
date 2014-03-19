@@ -105,6 +105,8 @@ function monitorTagVisibility(
   var ON = 0;
   var AFTER = 1;
 
+  var ELEMENT_NODE = Node.ELEMENT_NODE;
+
   //====================================
   //  init
   //====================================
@@ -178,6 +180,7 @@ function monitorTagVisibility(
   //====================================
 
   function mutationHandler(mutations) {
+    var recomputed = false;
     // some of the removals may have messed with our first/last child on screen
     fixRange(mutations);
 
@@ -187,8 +190,13 @@ function monitorTagVisibility(
       if (mutation.addedNodes) {
         for (var j = 0; j < mutation.addedNodes.length; j++) {
           var child = mutation.addedNodes[j];
-          if (child.nodeType === Node.ELEMENT_NODE &&
+          if (child.nodeType === ELEMENT_NODE &&
               child.tagName === tag) {
+            // We have to recompute first and last items after adding a new one
+            if (!recomputed) {
+              recomputed = true;
+              recomputeFirstAndLastOnscreen();
+            }
             if (child === state.firstChild ||
                 child === state.lastChild ||
                 (after(child, state.firstChild) &&
@@ -217,7 +225,7 @@ function monitorTagVisibility(
       if (mutation.addedNodes) {
         for (var j = 0; j < mutation.addedNodes.length; j++) {
           var child = mutation.addedNodes[j];
-          if (child.nodeType === Node.ELEMENT_NODE &&
+          if (child.nodeType === ELEMENT_NODE &&
             child.tagName === tag) {
             numNodesAdded += 1;
             // Determine if this new child is being appended below the
