@@ -30,7 +30,13 @@ class UtilityTray(Base):
 
 class Notification(PageRegion):
     _body_locator = (By.CSS_SELECTOR, 'div.detail')
+    _title_locator = (By.CSS_SELECTOR, 'div.title')
 
     @property
     def content(self):
         return self.root_element.find_element(*self._body_locator).text
+
+    def tap_notification(self):
+        self.root_element.find_element(*self._title_locator).tap()
+        from gaiatest.apps.email.regions.read_email import ReadEmail
+        return ReadEmail(self.marionette)
