@@ -928,7 +928,6 @@ apps/video/test/unit/video_utils_test.js
 apps/wallpaper/js/pick.js
 apps/wallpaper/js/share.js
 apps/wallpaper/test/unit/pick_test.js
-test_apps/demo-keyboard/js/key.js
 test_apps/demo-keyboard/js/layout.js
 test_apps/demo-keyboard/js/page.js
 test_apps/demo-keyboard/js/pageview.js
