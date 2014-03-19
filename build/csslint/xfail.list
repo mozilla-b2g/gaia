@@ -78,11 +78,7 @@ apps/system/style/system/keyboard.css 0 1
 apps/sms/style/root.css 0 2
 apps/sms/style/sms.css 0 6
 shared/style/value_selector.css 0 1
-shared/style/switches.css 0 5
 shared/style/tabs.css 0 1
 shared/style/edit_mode.css 0 2
-shared/style/action_menu.css 1 1
-shared/style/drawer.css 1 0
+shared/style/action_menu.css 0 1
 shared/style/headers.css 0 4
-shared/style/input_areas.css 2 0
-shared/style_unstable/input_areas.css 2 0

@@ -91,13 +91,11 @@ fi
 
 ############################### CSS Lint #####################################
 
-css_changed_files=`git diff --staged --name-only --diff-filter=ACMRT -- apps shared/ | grep '\.css$'`
+css_changed_files=`git diff --staged --name-only --diff-filter=ACMRT -- apps shared/ | grep '\.css$' | tr '\n' ' '`
 if [ -n "$css_changed_files" ]
 then
   XULRUNNER_SDK=$(make xulrunner_sdk)
   XPCSHELL_SDK=$(make xpcshell_sdk)
-
-  echo $css_changed_files
 
   $XULRUNNER_SDK $XPCSHELL_SDK \
     -e "const GAIA_BUILD_DIR='file://$(pwd)/build/'" \
