@@ -106,6 +106,13 @@ suite('system/Statusbar', function() {
     MockNavigatorMozMobileConnections.mTeardown();
   });
 
+  suite('airplane mode icon', function() {
+    test('turning on airplane mode makes icon appear', function() {
+      MockSettingsListener.mCallbacks['airplaneMode.enabled'](true);
+      assert.isFalse(StatusBar.icons.flightMode.hidden);
+    });
+  });
+
   suite('init', function() {
     test('signal and data icons are created correctly', function() {
       assert.equal(Object.keys(fakeIcons.signals).length,
@@ -523,6 +530,26 @@ suite('system/Statusbar', function() {
             assert.notEqual(dataset.searching, 'true');
           });
 
+          test('airplane mode', function() {
+            MockNavigatorMozMobileConnections[slotIndex].voice = {
+              connected: true,
+              relSignalStrength: 80,
+              emergencyCallsOnly: false,
+              state: 'notSearching',
+              roaming: false,
+              network: {}
+            };
+
+            mockSimSlots[slotIndex].simCard.cardState = 'ready';
+            mockSimSlots[slotIndex].simCard.iccInfo = {};
+            sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(false);
+
+            MockSettingsListener.mCallbacks['airplaneMode.enabled'](true);
+
+            assert.isFalse(StatusBar.icons.flightMode.hidden);
+            assert.isTrue(StatusBar.icons.data[slotIndex].hidden);
+          });
+
           test('roaming', function() {
             MockNavigatorMozMobileConnections[slotIndex].voice = {
               connected: true,
@@ -774,6 +801,9 @@ suite('system/Statusbar', function() {
               StatusBar.settingValues['ril.radio.disabled'] = true;
               StatusBar.update.data.call(StatusBar);
               assert.isTrue(StatusBar.icons.data[slotIndex].hidden);
+              // Just because radio is disabled doesn't mean we're in airplane
+              // mode.
+              assert.isTrue(StatusBar.icons.flightMode.hidden);
             });
 
             test('data disabled', function() {
