@@ -5,6 +5,7 @@
   function AutoCorrect(app) {
     this._started = false;
     this.app = app;
+    this.touchHandler = app.touchHandler;
   };
 
   AutoCorrect.prototype.KEYCODE_SPACE = 32;
@@ -55,8 +56,7 @@
     this.suggestions.addEventListener('suggestionselected', this);
     this.suggestions.addEventListener('suggestionsdismissed', this);
 
-    // XXX should not reference global object like this
-    KeyboardTouchHandler.addEventListener('key', this);
+    this.touchHandler.addEventListener('key', this);
   };
 
   AutoCorrect.prototype.stop = function stop() {
@@ -72,8 +72,7 @@
     this.suggestions.removeEventListener('suggestionselected', this);
     this.suggestions.removeEventListener('suggestionsdismissed', this);
 
-    // XXX should not reference global object like this
-    KeyboardTouchHandler.removeEventListener('key', this);
+    this.touchHandler.removeEventListener('key', this);
 
     this.predictionStartTime = undefined;
     this.correction = null;  // A pending correction
@@ -128,7 +127,7 @@
           if (data.input === this.app.inputField.wordBeforeCursor()) {
             //console.log("char predictions in",
             //            performance.now() - this.predictionStartTime);
-            KeyboardTouchHandler.setExpectedChars(data.chars);
+            this.touchHandler.setExpectedChars(data.chars);
           }
           break;
         case 'predictions':
@@ -143,7 +142,7 @@
   AutoCorrect.prototype.requestPredictions = function requestPredictions() {
     // Undo the result of any previous predictions
     // Change hit target resizing
-    KeyboardTouchHandler.setExpectedChars([]);
+    this.touchHandler.setExpectedChars([]);
 
     // Once we start requesting new suggestions, the old ones
     // are no longer valid, and we should hide them now. But if we do that
