@@ -72,8 +72,6 @@ module.exports = View.extend({
     bind(this.el, 'touchstart', this.onTouchStart);
     bind(this.el, 'touchmove', this.onTouchMove);
     bind(this.el, 'touchend', this.onTouchEnd);
-
-    this.on('inserted', raf(this.getSize));
   },
 
   render: function() {
@@ -129,19 +127,6 @@ module.exports = View.extend({
       isScaling = false;
       this.emit('pinchEnd');
     }
-  },
-
-  getSize: function() {
-    var width = this.el.clientWidth;
-    var height = this.el.clientHeight;
-
-    this.container = {
-      landscape: {
-        width: height,
-        height: width,
-        aspect: height / width
-      }
-    };
   },
 
   enableZoom: function(minimumZoom, maximumZoom) {
@@ -235,15 +220,39 @@ module.exports = View.extend({
    * Sizes and positions the preview stream.
    *
    * @param  {Object} preview
+   * @param  {Number} sensorAngle
    * @param  {Boolean} mirrored
    */
-  updatePreview: function(preview, mirrored) {
-    var aspect = preview.width / preview.height;
-    var shouldFill = aspect > this.container.landscape.aspect;
+  updatePreview: function(preview, sensorAngle, mirrored) {
+    var elementWidth = this.el.clientWidth;
+    var elementHeight = this.el.clientHeight;
+
+    var aspect;
+
+    // Invert dimensions if the camera's `sensorAngle` is
+    // 0 or 180 degrees.
+    if (sensorAngle % 180 === 0) {
+      this.container = {
+        width: elementWidth,
+        height: elementHeight,
+        aspect: elementWidth / elementHeight
+      };
+
+      aspect = preview.height / preview.width;
+    } else {
+      this.container = {
+        width: elementHeight,
+        height: elementWidth,
+        aspect: elementHeight / elementWidth
+      };
+
+      aspect = preview.width / preview.height;
+    }
+
+    var shouldFill = aspect > this.container.aspect;
     var scaleType = this.scaleType || (shouldFill ? 'fill' : 'fit');
 
-    this.updatePreviewMetrics(preview, scaleType);
-    this.el.classList.toggle('reversed', mirrored);
+    this.updatePreviewMetrics(preview, sensorAngle, mirrored, scaleType);
   },
 
   /**
@@ -253,26 +262,36 @@ module.exports = View.extend({
    * 'scale-type' attribute set as a styling hook.
    *
    * @param  {Object} preview
+   * @param  {Number} sensorAngle
+   * @param  {Boolean} mirrored
    * @param  {String} scaleType 'fill'|'fit'
    */
-  updatePreviewMetrics: function(preview, scaleType) {
+  updatePreviewMetrics: function(preview, sensorAngle, mirrored, scaleType) {
     debug('update preview scaleType: %s', scaleType, preview);
 
     // Calculate the correct scale to apply to the
     // preview to either 'fill' or 'fit' the viewfinder
     // container (always preserving the aspect ratio).
-    var landscape = scaleSizeTo[scaleType](this.container.landscape, preview);
+    var landscape = scaleSizeTo[scaleType](this.container, preview);
     var portrait = { width: landscape.height, height: landscape.width };
 
     // Set the size of the frame to match 'portrait' dimensions
     this.els.frame.style.width = portrait.width + 'px';
     this.els.frame.style.height = portrait.height + 'px';
 
+    var transform = '';
+    if (mirrored) {
+      transform += 'scale(-1, 1) ';
+    }
+
+    transform += 'rotate(' + sensorAngle + 'deg)';
+
     // Set the size of the video container to match the
     // 'landscape' dimensions (CSS is used to rotate
     // the 'landscape' video stream to 'portrait')
     this.els.videoContainer.style.width = landscape.width + 'px';
     this.els.videoContainer.style.height = landscape.height + 'px';
+    this.els.videoContainer.style.transform = transform;
 
     // CSS aligns the contents slightly
     // differently depending on the scaleType
@@ -310,9 +329,5 @@ module.exports = View.extend({
     '</div>';
   }
 });
-
-function raf(fn) {
-  return function() { requestAnimationFrame(fn); };
-}
 
 });

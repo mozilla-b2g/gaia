@@ -56,19 +56,6 @@
 
 .viewfinder-video-container {
   flex-shrink: 0;
-  transform: rotate(90deg);
-}
-
-/**
- * @reversed
- *
- * 1. COMPLEX: Inverse the video image,
- *    front camera streams must be
- *    mirrored in order to look ok.
- */
-
-.viewfinder.reversed .viewfinder-video-container {
-  transform: scale(-1, 1) rotate(-90deg); /* 1 */
 }
 
 /** Video
