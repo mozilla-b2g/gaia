@@ -107,48 +107,13 @@
   background-color: #000;
 }
 
-#sleep-menu menu {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  margin: 0;
-  padding: 1.5rem;
-  display: block;
-  overflow: hidden;
-  white-space: nowrap;
-  background-color: #2D2D2D;
-  background-image: url("../themes/default/images/ui/pattern.png");
-  border-top: 0.1rem solid rgba(255, 255, 255, 0.1);
-}
-
 #sleep-menu menu button::-moz-focus-inner {
   border: medium none;
   outline: medium none;
 }
 
 #sleep-menu menu button {
-  -moz-box-sizing: border-box;
-  background: url("../themes/default/images/ui/default.png") repeat-x 0 100% #FAFAFA;
-  border: 0.1rem solid #9F9F9F;
-  border-radius: 0.3rem 0.3rem 0.3rem 0.3rem;
-  color: #333;
-  display: inline-block;
-  font-size: 1.6rem;
-  font-weight: 600;
-  height: 3.8rem;
-  line-height: 3.8rem;
-  margin: 0;
-  outline: medium none;
-  overflow: hidden;
-  padding: 0 1.5rem;
-  text-align: center;
-  text-decoration: none;
-  text-overflow: ellipsis;
-  text-shadow: 0.1rem 0.1rem 0 rgba(255, 255, 255, 0.3);
-  vertical-align: middle;
-  white-space: nowrap;
-  width: 100%;
+  display: block;
 }
 
 #sleep-menu menu button:active {
