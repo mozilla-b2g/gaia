@@ -1,3 +1,4 @@
+/* globals LazyLoader, resizeImage */
 'use strict';
 
 var utils = window.utils || {};
@@ -13,34 +14,27 @@ var utils = window.utils || {};
   // We keep the aspect ratio and make the smallest edge be
   // |thumbnailEdge| long.
   utils.thumbnailImage = function(blob, callback) {
-    var img = document.createElement('img');
-    var url = URL.createObjectURL(blob);
-    img.src = url;
-    img.onload = function onBlobLoad() {
-      URL.revokeObjectURL(url);
+    LazyLoader.load(['/contacts/js/utilities/resize_image.js'], function() {
+      resizeImage({
+        blob: blob,
+        mimeType: 'image/jpeg',
+        transform: function(origWidth, origHeight, draw, cancel) {
+          if (origWidth <= thumbnailEdge && origHeight <= thumbnailEdge) {
+            cancel();
+            callback(blob);
+            return;
+          }
 
-      var width = img.width;
-      var height = img.height;
-
-      if (width <= thumbnailEdge && height <= thumbnailEdge) {
-        callback(blob);
-        return;
-      }
-
-      var widthFactor = thumbnailEdge / width;
-      var heightFactor = thumbnailEdge / height;
-      var factor = Math.max(widthFactor, heightFactor);
-
-      var canvas = document.createElement('canvas');
-      canvas.width = width * factor;
-      canvas.height = height * factor;
-      var context = canvas.getContext('2d', { willReadFrequently: true });
-      context.drawImage(img, 0, 0, width * factor, height * factor);
-      canvas.toBlob(callback);
-    };
-
-    img.onerror = function onError() {
-      callback(blob);
-    };
+          var widthFactor = thumbnailEdge / origWidth;
+          var heightFactor = thumbnailEdge / origHeight;
+          var factor = Math.max(widthFactor, heightFactor);
+          var targetWidth = origWidth * factor;
+          var targetHeight = origHeight * factor;
+          draw(0, 0, origWidth, origHeight, targetWidth, targetHeight);
+        },
+        success: callback,
+        error: callback.bind(null, blob)
+      });
+    });
   };
 })(utils);
