@@ -34,7 +34,7 @@ marionette('Contacts > Details', function() {
   });
 
   // Disabled: Bug 982260
-  test.skip('Merging 15 contacts', function() {
+  test('Merging 15 contacts', function() {
     var tel = 666666666,
         name = 'María Covadonga',
         duplicateFrame,
