@@ -171,6 +171,42 @@ CommAppBuilder.prototype.getSingleVariantResources = function(conf) {
     this.getResource(operator.known_networks,
       resources, object, 'knownNetworks');
 
+    var power = operator.power;
+    if (power) {
+      var powerJSON = power;
+      var poweron = power.poweron;
+      if (poweron) {
+        var poweronType = poweron.video ? 'video' : null ||
+                          poweron.image ? 'image' : null;
+        if (!poweronType) {
+          throw new Error('Invalid poweron type, only video or image are ' +
+                          'valid.');
+        }
+        this.getResource(poweron[poweronType], resources, object, 'power');
+        powerJSON.poweron[poweronType] = object.power;
+      }
+      var poweroff = power.poweroff;
+      if (poweroff) {
+        var poweroffType = poweroff.video ? 'video' : null ||
+                           poweroff.image ? 'image' : null;
+        if (!poweroffType) {
+          throw new Error('Invalid poweroff type, only video or image are ' +
+                          'valid.');
+        }
+        this.getResource(poweroff[poweroffType], resources, object, 'power');
+        powerJSON.poweroff[poweroffType] = object.power;
+      }
+
+      // Generate power JSON
+      var uuidGen = Cc['@mozilla.org/uuid-generator;1'].
+                            createInstance(Ci.nsIUUIDGenerator);
+      var powerObj = { filename: uuidGen.generateUUID().toString() +
+                                 '.json',
+                       content: powerJSON };
+      resources.push(powerObj);
+      object.power = '/resources/' + powerObj.filename;
+    }
+
     var ringtone = operator.ringtone;
     if (ringtone) {
       var ringtoneName = ringtone.name;
