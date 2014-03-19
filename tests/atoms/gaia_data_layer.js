@@ -226,6 +226,7 @@ var GaiaDataLayer = {
           },
           function() {
             console.log('connection status: ' + manager.connection.status);
+            req.onsuccess = null;
             return manager.connection.status === 'connected';
           }
         );
@@ -233,6 +234,7 @@ var GaiaDataLayer = {
 
       req.onerror = function() {
         console.log('error connecting to network', req.error.name);
+        req.onerror = null;
         callback(false);
       };
     }
