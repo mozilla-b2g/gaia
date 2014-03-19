@@ -1,8 +1,10 @@
-// This module registers a key event listener and handles double space.
-// It needs to run before the code that resisters the default key handler.
 'use strict';
+
 (function(exports) {
 
+  /**
+   * This module registers a key event listener and handles double space.
+   */
   function DoubleSpace(app) {
     this._started = false;
     this.touchHandler = app.touchHandler;
