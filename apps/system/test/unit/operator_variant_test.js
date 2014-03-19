@@ -26,6 +26,12 @@ suite('Operator variant', function() {
     mnc: EXPECTED_MNC
   };
 
+  const EXPECTED_MNC2 = '03';
+  const EXPECTED_ICC_INFO2 = {
+    mcc: TEST_NETWORK_MCC,
+    mnc: EXPECTED_MNC2
+  };
+
   const T_MOBILE_US_MCC = '310';
   const T_MOBILE_160_US_MNC = '160';
   const T_MOBILE_200_US_MNC = '200';
@@ -79,6 +85,16 @@ suite('Operator variant', function() {
     { key: 'ril.data.carrier', value: 'Test Network' },
     { key: 'ril.iccInfo.mbdn', value: [ORIGINAL_VOICEMAIL_NUMBER, ''] },
     { key: 'ril.cellbroadcast.searchlist', value: '0,1,2,3' }
+  ];
+
+  const KEYS_VALUES2 = [
+    { key: 'ril.data.carrier', value: 'No type test' },
+    { key: 'ril.data.apn', value: 'internet' },
+    { key: 'ril.data.user', value: 'user' },
+    { key: 'ril.data.passwd', value: 'password' },
+    { key: 'ril.data.httpProxyHost', value: '127.0.0.1' },
+    { key: 'ril.data.httpProxyPort', value: '8080' },
+    { key: 'ril.data.authtype', value: 'none' }
   ];
 
   var realMozSettings, realMozIccManager, realMozMobileConnections;
@@ -182,6 +198,37 @@ suite('Operator variant', function() {
 
     MockNavigatorMozIccManager.getIccById(FAKE_ICC_ID).iccInfo =
       EXPECTED_ICC_INFO;
+    OperatorVariantHandler.handleICCCard(FAKE_ICC_ID, FAKE_ICC_CARD_INDEX);
+  });
+
+  test('Apply default operator variant for undefined types', function(done) {
+    var observer = {
+      bound: null,
+      expected: KEYS_VALUES2.length,
+      seen: 0,
+      func: function(event) {
+        KEYS_VALUES2.forEach(function(data) {
+          if (data.key == event.settingName) {
+            assert.equal(
+              event.settingValue,
+              data.value,
+              'Wrong Data setting value'
+            );
+            ++this.seen;
+          }
+        }, this);
+
+        if (this.seen == this.expected) {
+          setObservers(KEYS_VALUES2, this, true);
+          done();
+        }
+      }
+    };
+
+    setObservers(KEYS_VALUES2, observer);
+
+    MockNavigatorMozIccManager.getIccById(FAKE_ICC_ID).iccInfo =
+      EXPECTED_ICC_INFO2;
     OperatorVariantHandler.handleICCCard(FAKE_ICC_ID, FAKE_ICC_CARD_INDEX);
   });
 
