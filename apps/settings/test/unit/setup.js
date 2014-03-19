@@ -1,5 +1,7 @@
 'use strict';
 
+/* global requirejs */
+
 require('/shared/test/unit/mocks/mocks_helper.js');
 requireApp('settings/js/vendor/alameda.js', (function() {
   var requireFunc = requirejs.config({
@@ -49,4 +51,4 @@ requireApp('settings/js/vendor/alameda.js', (function() {
 
     requireFunc(module, callback);
   };
-}).bind(this));
+}).bind(window));
