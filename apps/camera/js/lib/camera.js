@@ -474,12 +474,19 @@ Camera.prototype.stopRecording = function() {
   debug('stop recording');
 
   var notRecording = !this.get('recording');
+  var elapsedTime = Date.now() - this.get('videoStart');
   var storage = this.video.storage;
   var video = this.video;
   var self = this;
   var takenVideo;
 
-  if (notRecording) {
+  // Ensure we are in the middle of a recording and that the minimum video
+  // duration has been exceeded. Video files will not save to the file
+  // system unless they are of a certain minimum length (see Bug 899864).
+  //
+  // TODO: There should be a better way of handling this or a fix for
+  // this should be addressed in the Gecko API.
+  if (notRecording || elapsedTime < constants.MIN_RECORDING_TIME) {
     return;
   }
 
@@ -531,7 +538,7 @@ Camera.prototype.stopRecording = function() {
 // TODO: This is UI stuff, so
 // shouldn't be handled in this file.
 Camera.prototype.onRecordingError = function(id) {
-  id = id !== 'FAILURE' ? id : 'error-recording';
+  id = id && id !== 'FAILURE' ? id : 'error-recording';
   var title = navigator.mozL10n.get(id + '-title');
   var text = navigator.mozL10n.get(id + '-text');
   alert(title + '. ' + text);
