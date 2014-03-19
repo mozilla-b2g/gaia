@@ -1,7 +1,7 @@
 Calendar.ns('Views').WeekChild = (function() {
+  'use strict';
 
   var template = Calendar.Templates.Week;
-  var OrderedMap = Calendar.Utils.OrderedMap;
   var _super = Calendar.Views.DayBased.prototype;
 
   function Week(options) {

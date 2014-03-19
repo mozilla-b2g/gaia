@@ -1,4 +1,5 @@
 Calendar.ns('Views').Week = (function() {
+  'use strict';
 
   var Parent = Calendar.Views.Day;
   var template = Calendar.Templates.Week;

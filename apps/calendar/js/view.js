@@ -1,4 +1,6 @@
 (function(window) {
+  'use strict';
+
   var DEFAULT_ERROR_ID = 'error-default';
 
   /**
@@ -123,8 +125,9 @@
      * Converts illegal chars to legal ones.
      */
     cssClean: function(string) {
-      if (typeof(string) !== 'string')
+      if (typeof(string) !== 'string') {
         return string;
+      }
 
       //TODO: I am worried about the performance
       //of using this all over the place =/

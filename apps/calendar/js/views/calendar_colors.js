@@ -1,4 +1,5 @@
 Calendar.ns('Views').CalendarColors = (function() {
+  'use strict';
 
   function Colors() {
     this.colorMap = Object.create(null);
@@ -97,7 +98,6 @@ Calendar.ns('Views').CalendarColors = (function() {
      */
     updateRule: function(calendar) {
       var id = this.getId(calendar);
-      var styles = this.colorMap[id];
       var color = calendar.color;
       var rules = this._styles.cssRules;
       var map;
