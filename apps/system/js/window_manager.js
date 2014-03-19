@@ -658,6 +658,8 @@ var WindowManager = (function() {
       }
     }
 
+    KeyboardManager.hideKeyboardImmediately();
+
     // Case 1: the app is already displayed
     if (currentApp && currentApp == newApp) {
       if (newApp == HomescreenLauncher.origin) {
