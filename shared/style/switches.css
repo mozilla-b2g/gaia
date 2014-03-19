@@ -117,3 +117,13 @@ html[dir="rtl"] label.pack-switch input ~ span:after {
   right: auto;
 }
 
+html[dir="rtl"] label.pack-switch input ~ span:after {
+  background-position: 0;
+}
+
+/* switch: 'ON' state */
+html[dir="rtl"] label.pack-switch input:checked ~ span:after {
+  background-image: url(switches/images/switch/background_rtl.png);
+  background-position: -3.2rem 0;
+}
+
