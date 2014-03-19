@@ -1,4 +1,16 @@
 define(function() {
+  // Some sites may not get URI encoding correct, so this protects
+  // us from completely failing in those cases.
+  function decode(value) {
+    try {
+      return decodeURIComponent(value);
+    } catch (err) {
+      console.error('Skipping "' + value +
+                    '", decodeURIComponent error: ' + err);
+      return '';
+    }
+  }
+
   function queryURI(uri) {
     function addressesToArray(addresses) {
       if (!addresses)
@@ -19,7 +31,7 @@ define(function() {
       ccReg = /(?:^|&)cc=([^\&]*)/i,
       bccReg = /(?:^|&)bcc=([^\&]*)/i;
       // Check if the 'to' field is set and properly decode it
-      var to = parts[0] ? addressesToArray(decodeURIComponent(parts[0])) : [],
+      var to = parts[0] ? addressesToArray(decode(parts[0])) : [],
       subject,
       body,
       cc,
@@ -28,13 +40,13 @@ define(function() {
       if (parts.length == 2) {
         var data = parts[1];
         if (data.match(subjectReg))
-          subject = decodeURIComponent(data.match(subjectReg)[1]);
+          subject = decode(data.match(subjectReg)[1]);
         if (data.match(bodyReg))
-          body = decodeURIComponent(data.match(bodyReg)[1]);
+          body = decode(data.match(bodyReg)[1]);
         if (data.match(ccReg))
-          cc = addressesToArray(decodeURIComponent(data.match(ccReg)[1]));
+          cc = addressesToArray(decode(data.match(ccReg)[1]));
         if (parts[1].match(bccReg))
-          bcc = addressesToArray(decodeURIComponent(data.match(bccReg)[1]));
+          bcc = addressesToArray(decode(data.match(bccReg)[1]));
       }
         return [to, subject, body, cc, bcc];
     }
