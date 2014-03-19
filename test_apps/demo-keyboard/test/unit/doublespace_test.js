@@ -1,7 +1,6 @@
 'use strict';
 
-/* global requireApp, suite, test, assert, setup, teardown, sinon, mocha,
-          suiteTeardown, suiteSetup, DoubleSpace */
+/* global DoubleSpace */
 
 suite('DoubleSpace', function() {
   function eventTargetSpy() {
