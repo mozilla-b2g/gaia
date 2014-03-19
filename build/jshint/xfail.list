@@ -931,7 +931,6 @@ apps/wallpaper/test/unit/pick_test.js
 test_apps/demo-keyboard/js/predictions.js
 test_apps/demo-keyboard/js/settings_panel.js
 test_apps/demo-keyboard/js/worker.js
-test_apps/demo-keyboard/test/unit/doublespace_test.js
 test_apps/demo-keyboard/test/unit/page_test.js
 test_apps/demo-keyboard/test/unit/shiftkey_test.js
 shared/js/advanced_timer.js
