@@ -344,7 +344,8 @@ suite('system/Updatable', function() {
         suite('application of the download', function() {
           test('should apply if the app is not in foreground', function() {
             mockApp.mTriggerDownloadAvailable();
-            MockAppWindowManager.mActiveApp = { origin: 'homescreen' };
+            MockAppWindowManager.mDisplayedApp =
+              'http://homescreen.gaiamobile.org';
             mockApp.mTriggerDownloadSuccess();
             assert.isNotNull(MockAppsMgmt.mLastAppApplied);
             assert.equal(MockAppsMgmt.mLastAppApplied.mId, mockApp.mId);
@@ -353,7 +354,7 @@ suite('system/Updatable', function() {
           test('should wait for appwillclose if it is', function() {
             var origin = 'http://testapp.gaiamobile.org';
             mockApp.origin = origin;
-            MockAppWindowManager.mActiveApp = mockApp;
+            MockAppWindowManager.mDisplayedApp = origin;
 
             mockApp.mTriggerDownloadAvailable();
             mockApp.mTriggerDownloadSuccess();
@@ -371,7 +372,7 @@ suite('system/Updatable', function() {
           test('should kill the app before applying the update', function() {
             mockApp.mTriggerDownloadAvailable();
             mockApp.mTriggerDownloadSuccess();
-            assert.equal('http://testapp.gaiamobile.org',
+            assert.equal('https://testapp.gaiamobile.org',
                          MockAppWindowManager.mLastKilledOrigin);
           });
         });

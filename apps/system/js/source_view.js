@@ -45,7 +45,7 @@ var SourceView = {
       document.body.appendChild(viewsource);
     }
 
-    var url = AppWindowManager.getActiveApp().origin;
+    var url = AppWindowManager.getDisplayedApp();
     if (!url)
       // Assume the home screen is the visible app.
       url = window.location.toString();

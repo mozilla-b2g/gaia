@@ -309,7 +309,7 @@ window.fb = fb;
 
             window.addEventListener('message', m_listen);
 
-            window.open(logoutUrl, '', 'dialog');
+            window.open(logoutUrl);
           } // if
           else {
             outReq.done();

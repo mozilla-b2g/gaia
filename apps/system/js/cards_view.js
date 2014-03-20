@@ -172,8 +172,8 @@ var CardsView = (function() {
     // Make sure we're in default orientation
     screen.mozLockOrientation(OrientationManager.defaultOrientation);
 
-    // If there is a displayed app, take keyboard focus away
-    if (currentPosition) {
+    // Make sure the keyboard isn't showing by blurring the active app.
+    if (stack.length) {
       stack[currentPosition].blur();
     }
 
@@ -233,19 +233,19 @@ var CardsView = (function() {
 
         var subtitle = document.createElement('p');
         subtitle.textContent =
-          PopupManager.getOpenedOriginFromOpener(app.origin);
+          PopupManager.getOpenedOriginFromOpener(origin);
         card.appendChild(subtitle);
         card.classList.add('popup');
       } else if (getOffOrigin(app.iframe.dataset.url ?
-            app.iframe.dataset.url : app.iframe.src, app.origin)) {
+            app.iframe.dataset.url : app.iframe.src, origin)) {
         var subtitle = document.createElement('p');
         subtitle.textContent = getOffOrigin(app.iframe.dataset.url ?
-            app.iframe.dataset.url : app.iframe.src, app.origin);
+            app.iframe.dataset.url : app.iframe.src, origin);
         card.appendChild(subtitle);
       }
 
-      if (TrustedUIManager.hasTrustedUI(app.origin)) {
-        var popupFrame = TrustedUIManager.getDialogFromOrigin(app.origin);
+      if (TrustedUIManager.hasTrustedUI(origin)) {
+        var popupFrame = TrustedUIManager.getDialogFromOrigin(origin);
         frameForScreenshot = popupFrame.frame;
         var header = document.createElement('section');
         header.setAttribute('role', 'region');
@@ -256,7 +256,7 @@ var CardsView = (function() {
         header.innerHTML += '</h1></header>';
         card.appendChild(header);
         card.classList.add('trustedui');
-      } else if (attentionScreenApps.indexOf(app.origin) == -1) {
+      } else if (attentionScreenApps.indexOf(origin) == -1) {
         var closeButton = document.createElement('div');
         closeButton.setAttribute('role', 'button');
         closeButton.classList.add('close-card');
@@ -349,7 +349,7 @@ var CardsView = (function() {
       closeApp(card, true);
     } else if ('position' in e.target.dataset) {
       AppWindowManager.display(
-        stack[e.target.dataset.position],
+        stack[e.target.dataset.position].origin,
         'from-cardview',
         null
       );

@@ -66,24 +66,26 @@
 
       var name = detail.name;
       var url = detail.url;
-      var app;
 
       // Use fake origin for named windows in order to be able to reuse them,
       // otherwise always open a new window for '_blank'.
       var origin = null;
+      var runningApps = AppWindowManager.runningApps;
       if (name == '_blank') {
         origin = url;
-        app = AppWindowManager.getApp(origin);
+
         // Just bring on top if a wrapper window is
         // already running with this url.
-        if (app && app.windowName == '_blank') {
+        if (origin in runningApps &&
+            runningApps[origin].windowName == '_blank') {
           this.publish('launchapp', { origin: origin });
         }
       } else {
         origin = 'window:' + name + ',source:' + callerOrigin;
-        app = AppWindowManager.getApp(origin);
-        if (app && app.windowName === name) {
-          if (app.iframe.src === url) {
+
+        var runningApp = runningApps[origin];
+        if (runningApp && runningApp.windowName === name) {
+          if (runningApp.iframe.src === url) {
             // If the url is already loaded, just display the app
             this.publish('launchapp', { origin: origin });
             return;
@@ -109,7 +111,7 @@
     },
 
     launchWrapper: function wf_launchWrapper(config) {
-      var app = AppWindowManager.getApp(config.origin);
+      var app = AppWindowManager.runningApps[config.origin];
       if (!app) {
         config.chrome = {
           navigation: true,

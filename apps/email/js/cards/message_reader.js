@@ -638,7 +638,7 @@ MessageReaderCard.prototype = {
       { // Confirm
         id: 'msg-browse-ok',
         handler: function() {
-          window.open(linkUrl, '_blank', 'dialog');
+          window.open(linkUrl, '_blank');
         }.bind(this)
       },
       { // Cancel
