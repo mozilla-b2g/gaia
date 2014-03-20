@@ -31,7 +31,6 @@ function CameraController(app) {
   this.storage = app.storage;
   this.settings = app.settings;
   this.activity = app.activity;
-  this.filmstrip = app.filmstrip;
   this.viewfinder = app.views.viewfinder;
   this.controls = app.views.controls;
   this.hdrDisabled = this.settings.hdr.get('disabled');
@@ -73,6 +72,7 @@ CameraController.prototype.bindEvents = function() {
   app.on('timer:ended', this.capture);
   app.on('blur', this.onBlur);
   app.on('settings:configured', this.onSettingsConfigured);
+
   settings.pictureSizes.on('change:selected', this.onPictureSizeChange);
   settings.recorderProfiles.on('change:selected', this.onRecorderProfileChange);
   settings.flashModes.on('change:selected', this.setFlashMode);
@@ -171,29 +171,35 @@ CameraController.prototype.shouldCountdown = function() {
 };
 
 CameraController.prototype.onNewImage = function(image) {
-  var filmstrip = this.filmstrip;
   var storage = this.storage;
-  var blob = image.blob;
+  var memoryBlob = image.blob;
   var self = this;
 
-  // In either case, save
-  // the photo to device storage
-  storage.addImage(blob, function(filepath) {
-    debug('stored image', filepath);
-    if (!self.activity.active) {
-      filmstrip.addImageAndShow(filepath, blob);
-    }
-  });
+  // In either case, save the memory-backed photo blob to
+  // device storage, retrieve the resulting File (blob) and
+  // pass that around instead of the original memory blob.
+  // This is critical for "pick" activity consumers where
+  // the memory-backed Blob is either highly inefficent or
+  // will almost-immediately become inaccesible, depending
+  // on the state of the platform. https://bugzil.la/982779
+  storage.addImage(
+    memoryBlob,
+    function(filepath, abspath, fileBlob) {
+      debug('stored image', filepath);
+      image.blob = fileBlob;
+      if (!self.activity.active) {
+        image.filepath = filepath;
+        self.createThumbnail(image, onThumbnailCreated);
+      }
+      else { self.app.emit('newimage', image); }
 
-  debug('new image', image);
-  this.app.emit('newimage', image);
-
-  this.createThumbnail(image, onThumbnailCreated);
+      debug('new image', image);
+    }.bind(this));
 
   function onThumbnailCreated(thumbnailBlob) {
-    self.app.emit('newthumbnail', thumbnailBlob);
+    image.thumbnail = thumbnailBlob;
+    self.app.emit('newmedia', image);
   }
-
 };
 
 /**
@@ -214,23 +220,29 @@ CameraController.prototype.onNewVideo = function(video) {
 
   var storage = this.storage;
   var poster = video.poster;
+  var self = this;
   video.isVideo = true;
-
-  // Add the video to the filmstrip,
-  // then save lazily so as not to block UI
-  if (!this.activity.active) {
-    this.filmstrip.addVideoAndShow(video);
-  }
 
   // Add the poster image to the image storage
   poster.filepath = video.filepath.replace('.3gp', '.jpg');
-  storage.addImage(poster.blob, { filepath: poster.filepath });
-  this.app.emit('newvideo', video);
 
-  this.createThumbnail(video, onThumbnailCreated);
+  storage.addImage(
+    poster.blob, { filepath: poster.filepath },
+    function(path, absolutePath, fileBlob) {
+      // Replace the memory-backed Blob with the DeviceStorage file-backed File.
+      // Note that "video" references "poster", so video previews will use this
+      // File.
+      poster.blob = fileBlob;
+      if (!self.activity.active) {
+        self.createThumbnail(video, onThumbnailCreated);
+      }
+      else{ self.app.emit('newvideo', video); }
+
+    }.bind(this));
 
   function onThumbnailCreated(thumbnailBlob) {
-    self.app.emit('newthumbnail', thumbnailBlob);
+    video.thumbnail = thumbnailBlob;
+    self.app.emit('newmedia', video);
   }
 };
 
@@ -300,12 +312,6 @@ CameraController.prototype.onBlur = function() {
     camera.release();
   }
 
-  // If the lockscreen is locked
-  // then forget everything when closing camera
-  if (this.app.inSecureMode) {
-    this.filmstrip.clear();
-  }
-
   debug('torn down');
 };
 
@@ -353,7 +359,7 @@ CameraController.prototype.createThumbnail = function(media,
       thumbnailWidth,
       thumbnailHeight,
       media.isVideo,
-      false,
+      media.rotation,
       media.mirrored,
       onThumbnailCreated);
   } else {

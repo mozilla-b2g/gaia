@@ -33,7 +33,9 @@ function ControlsController(app) {
 
 ControlsController.prototype.bindEvents = function() {
   this.app.settings.on('change:mode', this.controls.setter('mode'));
-  this.app.on('newthumbnail', this.onNewThumbnail);
+  this.app.on('newmedia', this.onNewThumbnail);
+  this.app.on('changeThumbnail', this.onNewThumbnail);
+  this.app.on('removeThumbnail', this.onRemoveThumbnail);
   this.app.on('camera:ready', this.controls.enable);
   this.app.on('camera:busy', this.controls.disable);
   this.app.on('camera:loading', this.controls.disable);
@@ -41,6 +43,7 @@ ControlsController.prototype.bindEvents = function() {
   this.app.on('camera:timeupdate', this.controls.setVideoTimer);
   this.controls.on('click:capture', this.app.firer('capture'));
   this.controls.on('click:gallery', this.onGalleryButtonClick);
+  this.controls.on('click:thumbnail', this.app.firer('preview'));
   this.controls.on('click:switch', this.app.settings.mode.next);
   this.controls.on('click:cancel', this.onCancelButtonClick);
   this.app.on('timer:started', this.controls.disable);
@@ -72,8 +75,12 @@ ControlsController.prototype.configure = function() {
 /**
   When new thumbnail is available it is displated in the gallery button
 */
-ControlsController.prototype.onNewThumbnail = function(thumbnailBlob) {
-  this.controls.setThumbnail(thumbnailBlob);
+ControlsController.prototype.onNewThumbnail = function(mediaBlob) {
+  this.controls.setThumbnail(mediaBlob.thumbnail);
+};
+
+ControlsController.prototype.onRemoveThumbnail = function(mediaBlob) {
+  this.controls.removeThumbnail();
 };
 
 ControlsController.prototype.onTimerStarted = function(image) {

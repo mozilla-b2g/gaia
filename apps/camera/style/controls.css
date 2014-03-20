@@ -37,10 +37,14 @@
 
 .controls-left {
   justify-content: flex-end;
+  opacity: 1;
+  pointer-events: auto;
+  transition: opacity 200ms ease-in-out;
 }
 
 .controls[recording=true] .controls-left {
-  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
 }
 
 
@@ -83,7 +87,18 @@
   display: none;
 }
 
-.controls-gallery-button > img {
+/** Thumbnail Button
+ ---------------------------------------------------------*/
+
+.controls-thumbnail-button {
+  display: none;
+}
+
+.controls[thumbnail=true] .controls-thumbnail-button {
+  display: block;
+}
+
+.controls-thumbnail-button > img {
   position: absolute;
   top: 0;
   left: 0;
