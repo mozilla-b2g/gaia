@@ -229,6 +229,7 @@ module.exports = View.extend({
   fadeIn: function(done) {
     this.el.classList.add('visible');
     if (done) { setTimeout(done, this.fadeTime); }
+    this.emit('updatedPreview');
   },
 
   /**
