@@ -312,12 +312,11 @@ Camera.prototype.capture = function(options) {
 };
 
 Camera.prototype.takePicture = function(options) {
-  var self = this;
   var rotation = orientation.get();
   var selectedCamera = this.get('selectedCamera');
-  var takenImage;
-  rotation = selectedCamera === 'front'? -rotation: rotation;
+  var self = this;
 
+  rotation = selectedCamera === 'front' ? -rotation : rotation;
   this.emit('busy');
   this.focus(onFocused);
 
@@ -348,19 +347,16 @@ Camera.prototype.takePicture = function(options) {
   }
 
   function onSuccess(blob) {
+    var image = { blob: blob };
     self.resumePreview();
     self.set('focus', 'none');
-    takenImage = {
-      blob: blob
-    };
-    self.emit('newimage', takenImage);
+    self.emit('newimage', image);
     complete();
   }
 
   function complete() {
     self.emit('ready');
   }
-
 };
 
 /** Focus the camera, callback when done.
@@ -814,7 +810,7 @@ Camera.prototype.getZoomPreviewAdjustment = function() {
   if (zoom <= maxHardwareZoom) {
     return 1.0;
   }
-  
+
   return zoom / maxHardwareZoom;
 };
 
