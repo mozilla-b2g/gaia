@@ -1,5 +1,6 @@
 /*global Notify, Compose, mocha, MocksHelper, ActivityHandler, Contacts,
-         MessageManager, Attachment, ThreadUI, Settings  */
+         MessageManager, Attachment, ThreadUI, Settings, Notification,
+         Threads  */
 /*global MockNavigatormozSetMessageHandler, MockNavigatormozApps,
          MockNavigatorWakeLock, MockOptionMenu, Mockalert,
          MockMessages, MockNavigatorSettings, MockL10n,
@@ -258,6 +259,54 @@ suite('ActivityHandler', function() {
         test('launches the app', function() {
           assert.ok(MockNavigatormozApps.mAppWasLaunched);
         });
+      });
+    });
+
+    suite('Close notification', function() {
+      var closeSpy;
+      var isDocumentHidden;
+
+      suiteSetup(function(){
+        Object.defineProperty(document, 'hidden', {
+          configurable: true,
+          get: function() {
+            return isDocumentHidden;
+          }
+        });
+      });
+
+      suiteTeardown(function(){
+        delete document.hidden;
+      });
+
+      setup(function() {
+        closeSpy = this.sinon.spy(Notification.prototype, 'close');
+        this.sinon.stub(document, 'addEventListener');
+      });
+
+      test('thread view already visible', function() {
+        isDocumentHidden = false;
+        this.sinon.stub(Threads, 'currentId', message.threadId);
+        MockNavigatormozApps.mTriggerLastRequestSuccess();
+        sinon.assert.notCalled(document.addEventListener);
+        sinon.assert.notCalled(closeSpy);
+      });
+
+      test('Not in target thread view', function() {
+        isDocumentHidden = true;
+        MockNavigatormozApps.mTriggerLastRequestSuccess();
+        sinon.assert.notCalled(document.addEventListener);
+        sinon.assert.notCalled(closeSpy);
+      });
+
+      test('In target thread view and view is hidden', function() {
+        isDocumentHidden = true;
+        this.sinon.stub(Threads, 'currentId', message.threadId);
+        MockNavigatormozApps.mTriggerLastRequestSuccess();
+        sinon.assert.called(document.addEventListener);
+        sinon.assert.notCalled(closeSpy);
+        document.addEventListener.yield();
+        sinon.assert.called(closeSpy);
       });
     });
 
