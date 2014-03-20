@@ -28,11 +28,7 @@
       // `handleEvent` is used to handle these sim related changes
       this.simManagerOutgoingCallSelect.addEventListener('change', this);
       this.simManagerOutgoingMessagesSelect.addEventListener('change', this);
-
-      // XXX because we handle `onchange` event differently in value selector,
-      // in order to show confirm dialog after users changing value, the better
-      // way right now is to check values when `onblur` event triggered.
-      this.addOutgoingDataSelectEvent();
+      this.simManagerOutgoingDataSelect.addEventListener('change', this);
 
       this.addVoiceChangeEventOnConns();
       this.addCardStateChangeEventOnIccs();
@@ -78,34 +74,21 @@
         case this.simManagerOutgoingMessagesSelect:
           SimSettingsHelper.setServiceOnCard('outgoingMessages', cardIndex);
           break;
-      }
-    },
-    addOutgoingDataSelectEvent: function() {
-      var prevCardIndex;
-      var newCardIndex;
 
-      // initialize these two variables when focus
-      this.simManagerOutgoingDataSelect.addEventListener('focus', function() {
-          prevCardIndex = this.selectedIndex;
-          newCardIndex = this.selectedIndex;
-      });
+        case this.simManagerOutgoingDataSelect:
 
-      this.simManagerOutgoingDataSelect.addEventListener('blur', function() {
-          newCardIndex = this.selectedIndex;
-          if (prevCardIndex !== newCardIndex) {
-            // UX needs additional hint for users to make sure
-            // they really want to change data connection
-            var wantToChange =
-              window.confirm(_('change-outgoing-data-confirm'));
+          // UX needs additional hint for users to make sure
+          // they really want to change data connection
+          var wantToChange = window.confirm(_('change-outgoing-data-confirm'));
 
-            if (wantToChange) {
-              SimSettingsHelper.setServiceOnCard('outgoingData',
-                newCardIndex);
-            } else {
-              this.selectedIndex = prevCardIndex;
-            }
+          if (wantToChange) {
+            SimSettingsHelper.setServiceOnCard('outgoingData', cardIndex);
+          } else {
+            var previousCardIndex = (cardIndex === 0) ? 1 : 0;
+            this.simManagerOutgoingDataSelect.selectedIndex = previousCardIndex;
           }
-      });
+          break;
+      }
     },
     getSimCardsCount: function() {
       return this.simcards.length;
