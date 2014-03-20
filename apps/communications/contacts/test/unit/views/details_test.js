@@ -14,6 +14,7 @@ requireApp('communications/contacts/js/views/details.js');
 requireApp('communications/contacts/js/utilities/event_listeners.js');
 requireApp('communications/contacts/js/utilities/templates.js');
 requireApp('communications/contacts/js/utilities/dom.js');
+requireApp('communications/contacts/js/utilities/misc.js');
 requireApp('communications/contacts/test/unit/mock_navigation.js');
 requireApp('communications/contacts/test/unit/mock_contacts.js');
 requireApp('communications/contacts/test/unit/mock_contacts_list_obj.js');
@@ -27,7 +28,7 @@ var subject,
     container,
     realL10n,
     realOnLine,
-    realMisc,
+    realFormatDate,
     realActivityHandler,
     dom,
     contact,
@@ -100,13 +101,11 @@ suite('Render contact', function() {
       }
     };
 
-    realMisc = utils.misc;
-    utils.misc = {
-      formatDate: function(date) {
+    realFormatDate = utils.misc.formatDate;
+    utils.misc.formatDate = function(date) {
         var offset = date.getTimezoneOffset() * 60 * 1000;
         var normalizedDate = new Date(date.getTime() + offset);
         return normalizedDate.toString();
-      }
     };
 
     window.ActivityHandler = MockActivities;
@@ -162,7 +161,7 @@ suite('Render contact', function() {
     if (realOnLine) {
       Object.defineProperty(navigator, 'onLine', realOnLine);
     }
-    utils.misc = realMisc;
+    utils.misc.formatDate = realFormatDate;
     window.ActivityHandler = realActivityHandler;
   });
 
