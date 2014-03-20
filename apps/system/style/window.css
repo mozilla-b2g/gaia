@@ -211,8 +211,9 @@
   animation: closeApp 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
-.appWindow.transition-closing.perpendicular {
+.appWindow.transition-opening.perpendicular {
   animation-duration: 0.1s;
+  opacity: 0;
 }
 
 .appWindow.zoom-out {
