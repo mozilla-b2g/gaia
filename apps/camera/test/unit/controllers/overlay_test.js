@@ -63,26 +63,26 @@ suite('controllers/overlay', function() {
   suite('OverlayController#onStorageStateChange()', function() {
     setup(function() {
       this.controller = new Controller(this.app);
-      sinon.stub(this.controller, 'destroyOverlays');
-      sinon.stub(this.controller, 'insertOverlay');
+      sinon.stub(this.controller, 'destroyOverlay');
+      sinon.stub(this.controller, 'createOverlay');
     });
 
     test('Should destroy any old storage overlays if storage' +
          'becomes available, and not insert a new overlay', function() {
       this.controller.onStorageStateChange('available');
-      assert.isTrue(this.controller.destroyOverlays.calledOnce);
-      assert.isFalse(this.controller.insertOverlay.called);
+      assert.isTrue(this.controller.destroyOverlay.calledOnce);
+      assert.isFalse(this.controller.createOverlay.called);
     });
 
-    test('Should call insertOverlay whenever' +
+    test('Should call destroyOverlay and createOverlay whenever' +
          'the value is not \'available\'', function() {
       this.controller.onStorageStateChange('foo');
-      assert.isFalse(this.controller.destroyOverlays.called);
-      assert.isTrue(this.controller.insertOverlay.calledWith('foo'));
+      assert.isTrue(this.controller.destroyOverlay.called);
+      assert.isTrue(this.controller.createOverlay.calledWith('foo'));
     });
   });
 
-  suite('OverlayController#insertOverlay()', function() {
+  suite('OverlayController#createOverlay()', function() {
     setup(function() {
       this.OverlayProto = this.modules.Overlay.prototype;
       sinon.stub(this.OverlayProto, 'initialize');
@@ -98,37 +98,29 @@ suite('controllers/overlay', function() {
     });
 
     test('Should not insert overlay when key is unknown', function() {
-      this.controller.insertOverlay('foobar');
+      this.controller.createOverlay('foobar');
       assert.isFalse(this.OverlayProto.initialize.called);
     });
 
     test('Should insert overlay when key is known', function() {
-      this.controller.insertOverlay('unavailable');
+      this.controller.createOverlay('unavailable');
       assert.isTrue(this.OverlayProto.appendTo.called);
     });
 
     test('Should not be closable only if not activity pending', function() {
-      this.controller.insertOverlay('unavailable');
+      this.controller.createOverlay('unavailable');
       assert.isFalse(this.OverlayProto.initialize.args[0][0].closable);
     });
 
     test('Should be closable only if activity is pending', function() {
       this.app.activity.active = true;
-      this.controller.insertOverlay('unavailable');
+      this.controller.createOverlay('unavailable');
       assert.isTrue(this.OverlayProto.initialize.args[0][0].closable);
     });
 
     test('Should append the overlay to the body', function() {
-      this.controller.insertOverlay('unavailable');
+      this.controller.createOverlay('unavailable');
       assert.isTrue(this.OverlayProto.appendTo.calledWith(document.body));
-    });
-
-    test('Should add the overlay to the overlays array', function() {
-      var OverlayView = this.modules.Overlay;
-      assert.isFalse(this.controller.overlays.push.called);
-      this.controller.insertOverlay('unavailable');
-      assert.isTrue(
-        this.controller.overlays.push.args[0][0] instanceof OverlayView);
     });
   });
 
@@ -163,50 +155,40 @@ suite('controllers/overlay', function() {
 
   suite('OverlayController#onStorageSettingsClick()', function() {});
 
-  suite('OverlayController#destroyOverlays()', function() {
+  suite('OverlayController#destroyOverlay()', function() {
     setup(function() {
       this.controller = new Controller(this.app);
 
       this.overlay1 = { destroy: sinon.spy() };
       this.overlay2 = { destroy: sinon.spy() };
 
-      this.controller.overlays = [
-        this.overlay1,
-        this.overlay2
-      ];
     });
 
-    test('Should call destroy on each overlay in' +
-         'the overlays list', function() {
-      this.controller.destroyOverlays();
+    test('Should call destroy on each overlay passed', function() {
+      this.controller.destroyOverlay(this.overlay1);
+      this.controller.destroyOverlay(this.overlay2);
       assert.isTrue(this.overlay1.destroy.called);
       assert.isTrue(this.overlay2.destroy.called);
-    });
-
-    test('Should empty the list', function() {
-      assert.ok(this.controller.overlays.length === 2);
-      this.controller.destroyOverlays();
-      assert.ok(this.controller.overlays.length === 0);
     });
   });
 
   suite('OverlayController#onBatteryStatusChange()', function() {
     setup(function() {
       this.controller = new Controller(this.app);
-      sinon.stub(this.controller, 'destroyOverlays');
-      sinon.stub(this.controller, 'insertOverlay');
+      sinon.stub(this.controller, 'destroyOverlay');
+      sinon.stub(this.controller, 'createOverlay');
     });
 
-    test('Should call insertoverlay if status is shutdown', function() {
+    test('Should call createOverlay if status is shutdown', function() {
       this.controller.previousOverlay = 'foo';
       this.controller.onBatteryStatusChange('shutdown');
-      assert.isTrue(this.controller.insertOverlay.calledWith('shutdown'));
+      assert.isTrue(this.controller.createOverlay.calledWith('shutdown'));
     });
 
     test('Should call destroyOverlays if previous is shutdown', function() {
       this.controller.previousOverlay = 'shutdown';
       this.controller.onBatteryStatusChange('foo');
-      assert.isTrue(this.controller.destroyOverlays.called);
+      assert.isTrue(this.controller.destroyOverlay.called);
     });
   });
 });

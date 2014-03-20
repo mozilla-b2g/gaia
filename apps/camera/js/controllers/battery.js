@@ -60,24 +60,23 @@ BatteryController.prototype.bindEvents = function() {
 
 BatteryController.prototype.onLevelChange = function () {
   var status = this.getStatus(this.battery);
-  if (status) {
-    var previous = this.app.get('batteryStatus');
-    this.app.set('batteryStatus', status.value);
+  var previousValue = this.app.get('batteryStatus');
+  this.app.set('batteryStatus', status.value);
 
-    if (status.message && !previous) {
-      this.notification.showNotification(status);
-      return;
-    }
+  // If nothing has changed since last time we checked, then we return.
+  if (previousValue && previousValue === status.value) {
+    return;
+  }
 
-    if (previous && previous !== status.value) {
-      if (previous === 'critical') {
-         this.notification.hideNotification();
-      }
-      if (status.message) {
-      this.notification.showNotification(status);
-      }
-    }
-    
+  // If previous state was `critical` and it changes now
+  // than we clear the notification because 
+  // critical notification is persistent
+  if (previousValue && previousValue === 'critical') {
+    this.notification.hideNotification();
+  }
+  //If message is available than show the message
+  if (status.message) {
+    this.notification.showNotification(status);
   }
 };
 
@@ -88,10 +87,7 @@ BatteryController.prototype.getStatus = function (battery) {
   var level = { value:'healthy' };
   if (isCharging) {
     level.value = 'charging';
-    return level;
-  }
-
-  if (value <= this.shutdown) {
+  } else if (value <= this.shutdown) {
     level.value = 'shutdown';
   } else if (value <= this.critical) {
     level.value = 'critical';

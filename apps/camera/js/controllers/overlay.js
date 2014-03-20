@@ -27,8 +27,8 @@ function OverlayController(app) {
 
   this.activity = app.activity;
   this.storage = app.storage;
-  this.overlays = [];
-  this.previousOverlay = null;
+  this.batteryOverlay = null;
+  this.storageOverlay = null;
   bindAll(this);
   this.storage.on('statechange', this.onStorageStateChange);
   app.on('change:batteryStatus', this.onBatteryStatusChange);
@@ -44,15 +44,11 @@ function OverlayController(app) {
  */
 OverlayController.prototype.onStorageStateChange = function(value) {
   debug('storage state change: \'%s\'', value);
+  this.destroyOverlay(this.storageOverlay);
   if (value === 'available') {
-    if (this.previousOverlay !== 'shutdown') {
-      this.destroyOverlays();
-      this.previousOverlay = null;
-    }
     return;
   }
-  this.insertOverlay(value);
-  this.previousOverlay = value;
+  this.storageOverlay = this.createOverlay(value);
 };
 
 /**
@@ -63,19 +59,14 @@ OverlayController.prototype.onStorageStateChange = function(value) {
  * @param  {String} status  ['shutdown'|'critical'|'verylow'|'low']
  */
 OverlayController.prototype.onBatteryStatusChange = function(status) {
-  if (status === 'shutdown' && this.previousOverlay !== status) {
-    this.insertOverlay(status);
-    this.previousOverlay = status;
-    return;
-  } else if (this.previousOverlay === 'shutdown' &&
-      this.previousOverlay !== status) {
-    this.destroyOverlays();
-    this.previousOverlay = null;
+  this.destroyOverlay(this.batteryOverlay);
+  if (status !== 'shutdown') {
     return;
   }
+  this.batteryOverlay = this.createOverlay(status);
 };
 
-OverlayController.prototype.insertOverlay = function(type) {
+OverlayController.prototype.createOverlay = function(type) {
   var data = this.getOverlayData(type);
   var activity = this.activity;
 
@@ -96,9 +87,8 @@ OverlayController.prototype.insertOverlay = function(type) {
       overlay.destroy();
       activity.cancel();
     });
-
-  this.overlays.push(overlay);
   debug('inserted \'%s\' overlay', type);
+  return overlay;
 };
 
 /**
@@ -138,15 +128,16 @@ OverlayController.prototype.getOverlayData = function(type) {
   return data;
 };
 
+
 /**
- * Destroy all overlays.
+ * Destroy selective overlay
  */
-OverlayController.prototype.destroyOverlays = function() {
-  this.overlays.forEach(function(overlay) {
+OverlayController.prototype.destroyOverlay = function(overlay) {
+  if (overlay) {
     overlay.destroy();
-  });
-  this.overlays = [];
-  debug('destroyed overlays');
+    debug('overlay destroyed');
+  }
+  
 };
 
 });

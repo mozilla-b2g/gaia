@@ -28,12 +28,12 @@ module.exports = View.extend({
   },
 
   showNotification: function(options) {
-    this._clearMessage();
     if (options.isPersistent) {
-      this.hideNotification();
       this.persistentMessage = options;
+      this._clearMessage();
+    } else {
+      this._showMessage(options);
     }
-    this._showMessage(options);
   },
   
   _showMessage: function(options) {
@@ -56,17 +56,18 @@ module.exports = View.extend({
       this.timeout = null;
     }
     this.els.notification.textContent = '';
-    this.hide();
     if (this.persistentMessage) {
       this._showMessage(this.persistentMessage);
+    } else {
+      this.hide();
     }
   },
 
   hideNotification: function() {
     if (this.persistentMessage) {
       this.persistentMessage = null;
-      this._clearMessage();
     }
+    this._clearMessage();
   }
 
 });
