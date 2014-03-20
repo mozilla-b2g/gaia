@@ -1,3 +1,6 @@
+/* globals CallHandler, Contacts, fb, KeypadManager, LazyL10n, LazyLoader,
+           SimplePhoneMatcher */
+
 // Suggestion_bar.js will be loaded on init of KeypadManager through
 // lazy loader. So we call its init() directly at the end of file.
 
@@ -44,7 +47,15 @@ var SuggestionBar = {
       event.stopPropagation();
       var telTag = node.querySelector('.tel');
       KeypadManager.updatePhoneNumber(telTag.textContent, 'begin', false);
-      KeypadManager.makeCall();
+      // In the multi-SIM case, we just autocomplete the phone number without
+      // making the call. The call button is responsible for SIM selection
+      // behavior.
+      if (!navigator.mozIccManager ||
+          navigator.mozIccManager.iccIds.length < 2) {
+        CallHandler.call(KeypadManager.phoneNumber(), 0);
+      } else {
+        this.hideOverlay();
+      }
     }
   },
 
@@ -84,6 +95,21 @@ var SuggestionBar = {
     self._allMatched = self._getAllMatched(self._contactList);
     var totalMatchNum = self._allMatched.totalMatchNum;
 
+    var contact = self._contactList[0];
+    var firstMatch = self._allMatched.allMatches[0][0];
+
+    // In a multi-SIM setup, tapping on a suggestion in the settings bar doesn't
+    // place a call, it just fills in the phone number. In this case, we should
+    // hide the suggestions bar to not confuse the user into thinking that
+    // tapping it again will place the call.
+    if (totalMatchNum === 1 &&
+        contact.tel[firstMatch].value == self._phoneNumber &&
+        navigator.mozIccManager &&
+        navigator.mozIccManager.iccIds.length > 1) {
+      self.bar.hidden = true;
+      return 0;
+    }
+
     self.countTag.textContent =
       (totalMatchNum < self.MAX_ITEMS) ?
       totalMatchNum : (self.MAX_ITEMS + '+');
@@ -92,9 +118,7 @@ var SuggestionBar = {
     self.countTag.classList.toggle('more', (totalMatchNum > 1));
 
     var node = self.bar.querySelector('.suggestion-item');
-    var contact = self._contactList[0];
-
-    self._fillContacts(contact, self._allMatched.allMatches[0][0], node);
+    self._fillContacts(contact, firstMatch, node);
     self.bar.dataset.lastId = contact.id || contact.uid;
 
     return totalMatchNum;
@@ -116,8 +140,9 @@ var SuggestionBar = {
 
     self._pendingFbRequest = null;
 
-    if (self._checkIfCleared())
+    if (self._checkIfCleared()) {
       return;
+    }
 
     var totalMatchNum = 0;
 
@@ -159,8 +184,9 @@ var SuggestionBar = {
   },
 
   _searchCallbackFb: function sb_searchCallbackFb(contacts) {
-    if (this._checkIfCleared())
+    if (this._checkIfCleared()) {
       return;
+    }
 
     if (!Array.isArray(contacts) || contacts.length === 0) {
       this._hasMatchingFbContacts = false;
@@ -191,13 +217,9 @@ var SuggestionBar = {
     // markedNumber.
     var matchedTel = contact.tel[matchLocal];
 
-    var query = this._phoneNumber.charAt(0) === '+' &&
-                    matchedTel.value.charAt(0) !== '+' ?
-                    variants[0] : this._phoneNumber;
-
-    var markedNumber = this._markMatched(matchedTel.value, query);
+    var markedNumber = this._markMatched(matchedTel.value, this._phoneNumber);
     this._setItem(node, markedNumber, matchedTel.type,
-                    contact.name[0]);
+                  contact.name[0]);
   },
 
   _createItem: function sb_createItem() {
