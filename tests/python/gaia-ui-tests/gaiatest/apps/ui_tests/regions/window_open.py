@@ -9,7 +9,7 @@ from gaiatest.apps.base import Base
 class WindowOpenPage(Base):
 
     _frame_locator = (By.CSS_SELECTOR, '#test-iframe[src*="open"]')
-    _window_open_from_iframe_button_locator = (By.CSS_SELECTOR, 'button:not(.mozbrowser)[data-url="./popup.html#dialog"]')
+    _window_open_from_iframe_button_locator = (By.CSS_SELECTOR, 'button:not(.mozbrowser)[data-url="./popup.html"]')
 
     def switch_to_frame(self):
         self.wait_for_element_displayed(*self._frame_locator)
@@ -22,7 +22,7 @@ class WindowOpenPage(Base):
 
 class PopUpPage(Base):
 
-    _frame_locator = (By.CSS_SELECTOR, 'iframe[data-url$="popup.html#dialog"]')
+    _frame_locator = (By.CSS_SELECTOR, 'iframe[data-url$="popup.html"]')
     _header_text_locator = (By.CSS_SELECTOR, 'h1')
     _x_button_locator = (By.ID, 'popup-close')
 
