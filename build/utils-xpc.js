@@ -126,17 +126,6 @@ function ensureFolderExists(file) {
   }
 }
 
-function concatenatedScripts(scriptsPaths, targetPath) {
-  var concatedScript = scriptsPaths.map(function(path) {
-    return getFileContent(getFile.apply(this, path));
-  }).join('\n');
-
-  var targetFile = getFile(targetPath);
-  ensureFolderExists(targetFile.parent);
-
-  writeContent(targetFile, concatedScript);
-}
-
 function getJSON(file) {
   try {
     let content = getFileContent(file);
@@ -196,7 +185,7 @@ function readZipManifest(appDir) {
                   ' app (' + appDir.leafName + ')\n');
 }
 
-function getWebapp(app, domain, scheme, port, stageDir) {
+function getWebapp(app, domain, scheme, port) {
   let appDir = getFile(app);
   if (!appDir.exists()) {
     throw new Error(' -*- build/utils.js: file not found (' +
@@ -239,18 +228,36 @@ function getWebapp(app, domain, scheme, port, stageDir) {
   }
 
   // Some webapps control their own build
-  webapp.buildDirectoryFile = utils.getFile(stageDir,
-    webapp.sourceDirectoryName);
-  webapp.buildManifestFile = utils.getFile(webapp.buildDirectoryFile.path,
-    'manifest.webapp');
+  let buildMetaData = webapp.sourceDirectoryFile.clone();
+  buildMetaData.append('gaia_build.json');
+  if (buildMetaData.exists()) {
+    webapp.build = getJSON(buildMetaData);
+
+    if (webapp.build.dir) {
+      let buildDirectoryFile = webapp.sourceDirectoryFile.clone();
+      webapp.build.dir.split('/').forEach(function(segment) {
+        if (segment == '..')
+          buildDirectoryFile = buildDirectoryFile.parent;
+        else
+          buildDirectoryFile.append(segment);
+      });
+
+      webapp.buildDirectoryFile = buildDirectoryFile;
+
+      let buildManifestFile = buildDirectoryFile.clone();
+      buildManifestFile.append('manifest.webapp');
+
+      webapp.buildManifestFile = buildManifestFile;
+    }
+  }
 
   return webapp;
 }
 
-function makeWebappsObject(appdirs, domain, scheme, port, stageDir) {
+function makeWebappsObject(appdirs, domain, scheme, port) {
   var apps = [];
   appdirs.forEach(function(app) {
-    var webapp = getWebapp(app, domain, scheme, port, stageDir);
+    var webapp = getWebapp(app, domain, scheme, port);
     if (webapp) {
       apps.push(webapp);
     }
@@ -290,7 +297,7 @@ var gaia = {
         sharedFolder: getFile(this.config.GAIA_DIR, 'shared'),
         webapps: makeWebappsObject(this.config.GAIA_APPDIRS.split(' '),
           this.config.GAIA_DOMAIN, this.config.GAIA_SCHEME,
-          this.config.GAIA_PORT, this.config.STAGE_DIR),
+          this.config.GAIA_PORT),
         aggregatePrefix: 'gaia_build_',
         distributionDir: this.config.GAIA_DISTRIBUTION_DIR
       };
@@ -774,4 +781,3 @@ exports.getDocument = getDocument;
 exports.getWebapp = getWebapp;
 exports.Services = Services;
 exports.gaia = gaia;
-exports.concatenatedScripts = concatenatedScripts;
