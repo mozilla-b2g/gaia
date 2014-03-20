@@ -54,7 +54,7 @@ var Voicemail = {
     // but we could still use settings to overload that.
     this.voiceMailNumberHelper.get(function gotVMNumbers(numbers) {
       var voicemail = navigator.mozVoicemail;
-      var number = numbers && numbers[simIndex];
+      var number = numbers && numbers[status.serviceId];
 
       if (!number && voicemail) {
        number = voicemail.getNumber(status.serviceId);
