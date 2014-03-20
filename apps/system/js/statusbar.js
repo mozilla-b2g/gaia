@@ -168,7 +168,6 @@ var StatusBar = {
 
     var settings = {
       'ril.radio.disabled': ['signal', 'data'],
-      'airplaneMode.enabled': ['flightMode'],
       'ril.data.enabled': ['data'],
       'wifi.enabled': ['wifi'],
       'bluetooth.enabled': ['bluetooth'],
@@ -676,17 +675,6 @@ var StatusBar = {
       }, 500);
     },
 
-    flightMode: function sb_flightMode() {
-      var self = this;
-      var flightModeIcon = self.icons.flightMode;
-      if (self.settingValues['airplaneMode.enabled']) {
-        // "Airplane Mode"
-        flightModeIcon.hidden = false;
-        return;
-      }
-      flightModeIcon.hidden = true;
-    },
-
     signal: function sb_updateSignal() {
       var self = this;
       var simSlots = SIMSlotManager.getSlots();
@@ -696,17 +684,20 @@ var StatusBar = {
         var voice = conn.voice;
         var data = conn.data;
         var icon = self.icons.signals[index];
-
+        var flightModeIcon = self.icons.flightMode;
         var _ = navigator.mozL10n.get;
 
         if (!voice)
           continue;
 
         if (self.settingValues['ril.radio.disabled']) {
+          // "Airplane Mode"
           icon.hidden = true;
+          flightModeIcon.hidden = false;
           continue;
         }
 
+        flightModeIcon.hidden = true;
         icon.hidden = false;
 
         if (simslot.isAbsent()) {

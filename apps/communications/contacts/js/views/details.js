@@ -27,6 +27,7 @@ contacts.Details = (function() {
       isFbLinked,
       editContactButton,
       cover,
+      wrapper,
       favoriteMessage,
       detailsInner,
       TAG_OPTIONS,
@@ -59,6 +60,7 @@ contacts.Details = (function() {
     favoriteMessage = dom.querySelector('#toggle-favorite');
     notesTemplate = dom.querySelector('#note-details-template-\\#i\\#');
 
+    wrapper = dom.querySelector('#contact-detail-wrapper');
     initPullEffect(cover);
 
     utils.listeners.add({
@@ -99,53 +101,57 @@ contacts.Details = (function() {
   };
 
   var initPullEffect = function cd_initPullEffect(cover) {
-    var maxPosition = Math.round(150 * SCALE_RATIO);
-    var startPosition = 0;
+    wrapper.addEventListener('touchstart', function(event) {
 
-    function onTouchStart(e) {
-      if (contactDetails.classList.contains('no-photo')) {
-        return;
+      // Avoiding repaint (at least when no scroll is needed)
+      if (cover.style.overflow == 'hidden') {
+        var headerHeight = 5;
+        contactDetails.style.top = headerHeight + 'rem';
+        contactDetails.style.position = 'fixed';
       }
-      e.preventDefault();
-      startPosition = e.changedTouches[0].clientY;
 
+      var event = event.changedTouches[0];
+      if (contactDetails.classList.contains('no-photo'))
+        return;
+
+      var startPosition = event.clientY;
       contactDetails.classList.add('up');
       cover.classList.add('up');
 
-      window.addEventListener('touchmove', onTouchMove, true);
-      window.addEventListener('touchend', onTouchEnd, true);
-    }
+      var max_margin = Math.round(150 * SCALE_RATIO);
 
-    function onTouchEnd(e) {
-      e.preventDefault();
+      var onMouseMove = function onMouseMove(event) {
+        var event = event.changedTouches[0];
+        var newMargin = event.clientY - startPosition;
+        if (newMargin > 0 && newMargin < max_margin) {
+          contactDetails.classList.remove('up');
+          cover.classList.remove('up');
+          var calc = 'calc(' + initMargin + 'rem + ' + newMargin + 'px)';
+          // Divide by 40 (4 times slower and in rems)
+          contactDetails.style.transform = 'translateY(' + calc + ')';
+          var newPos = (-photoPos + (newMargin / 40)) + 'rem';
+          cover.style.transform = 'translateY(' + newPos + ')';
+        }
+      };
 
-      contactDetails.style.transform = null;
-      contactDetails.classList.add('up');
+      var onMouseUp = function onMouseUp(event) {
+        var event = event.changedTouches[0];
+        contactDetails.classList.add('up');
+        cover.classList.add('up');
+        contactDetails.style.transform = null;
+        cover.style.transform = null;
+        removeEventListener('touchmove', onMouseMove);
+        removeEventListener('touchend', onMouseUp);
+        contactDetails.addEventListener('transitionend', function transEnd() {
+          contactDetails.style.position = 'relative';
+          contactDetails.style.top = '0';
+          this.removeEventListener('transitionend', transEnd);
+        });
+      };
 
-      cover.style.transform = null;
-      cover.classList.add('up');
-
-      window.removeEventListener('touchmove', onTouchMove, true);
-      window.removeEventListener('touchend', onTouchEnd, true);
-    }
-
-    function onTouchMove(e) {
-      e.preventDefault();
-
-      var deltaY = e.changedTouches[0].clientY - startPosition;
-      deltaY = Math.min(maxPosition, Math.max(0, deltaY));
-
-      var calc = 'calc(' + initMargin + 'rem + ' + deltaY + 'px)';
-      contactDetails.style.transform = 'translateY(' + calc + ')';
-      contactDetails.classList.remove('up');
-
-      // Divide by 40 (4 times slower and in rems)
-      var coverPosition = (-photoPos + (deltaY / 40)) + 'rem';
-      cover.style.transform = 'translateY(' + coverPosition + ')';
-      cover.classList.remove('up');
-    }
-
-    cover.addEventListener('touchstart', onTouchStart, true);
+      addEventListener('touchmove', onMouseMove);
+      addEventListener('touchend', onMouseUp);
+    });
   };
 
   var render = function cd_render(currentContact, tags, fbContactData) {

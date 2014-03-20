@@ -70,18 +70,18 @@ label.pack-switch input ~ span:after {
   right: 0;
   top: 50%;
   width: 6rem;
-  margin: -1.4rem 0 0;
+  margin: -1.4rem 0rem 0rem;
   height: 2.7rem;
   pointer-events: none;
   border-radius: 1.35rem;
   overflow: hidden;
-  background: #e6e6e6 url(switches/images/switch/background_off.png) no-repeat -3.2rem 0 / 9.2rem 2.7rem;
+  background: #e6e6e6 url(switches/images/switch/background_off.png) no-repeat -3.2rem 0rem / 9.2rem 2.7rem;
   transition: background 0.2s ease;
 }
 
 /* switch: 'ON' state */
 label.pack-switch input:checked ~ span:after {
-  background: #e6e6e6 url(switches/images/switch/background.png) no-repeat 0 0 / 9.2rem 2.7rem;
+  background: #e6e6e6 url(switches/images/switch/background.png) no-repeat 0rem 0rem / 9.2rem 2.7rem;
 }
 
 /* switch: disabled state */
