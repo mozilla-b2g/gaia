@@ -7,18 +7,12 @@ var keyboardConfig = require('./keyboard-config');
 
 var KeyboardAppBuilder = function() {
 };
-KeyboardAppBuilder.prototype.APP_DIR = 'apps/keyboard';
-KeyboardAppBuilder.prototype.DIST_DIR = 'build_stage/keyboard';
 
 // set options
 KeyboardAppBuilder.prototype.setOptions = function(options) {
   this.allLayouts = options.GAIA_KEYBOARD_LAYOUTS.split(',');
-
-  var distDirPath = [options.GAIA_DIR].concat(this.DIST_DIR.split('/'));
-  this.distDir = utils.getFile.apply(utils, distDirPath);
-
-  var appDirPath = [options.GAIA_DIR].concat(this.APP_DIR.split('/'));
-  this.appDir = utils.getFile.apply(utils, appDirPath);
+  this.distDir = utils.getFile(options.STAGE_APP_DIR);
+  this.appDir = utils.getFile(options.APP_DIR);
 };
 
 KeyboardAppBuilder.prototype.getLayoutsForVersion = function(version) {
@@ -129,6 +123,15 @@ KeyboardAppBuilder.prototype.generateManifest = function() {
                      JSON.stringify(manifest));
 };
 
+KeyboardAppBuilder.prototype.cleanDirectory = function(path) {
+  var dir = this.distDir.clone();
+  path.split('/').forEach(function(part) {
+    dir.append(part);
+  });
+  dir.remove(true);
+  utils.ensureFolderExists(dir);
+};
+
 KeyboardAppBuilder.prototype.execute = function(options) {
   this.setOptions(options);
 
@@ -136,7 +139,8 @@ KeyboardAppBuilder.prototype.execute = function(options) {
   this.versionOneLayouts = this.getLayoutsForVersion('one');
   this.versionTwoLayouts = this.getLayoutsForVersion('two');
   this.throwForNoneExistLayouts();
-
+  this.cleanDirectory('js/imes');
+  this.cleanDirectory('js/layouts');
   this.copyStaticFiles();
   this.copyLayouts();
   this.generateManifest();
