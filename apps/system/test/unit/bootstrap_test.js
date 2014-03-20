@@ -37,7 +37,6 @@ mocha.globals([
   'devtoolsView',
   'dialerRinger',
   'remoteDebugger',
-  'sourceView',
   'storage',
   'telephonySettings',
   'ttlView',
