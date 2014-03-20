@@ -88,14 +88,6 @@ PerfTestApp.prototype = {
     this.client.findElement(this.selector(name), callback);
   },
 
-  observePerfEvents: function(stopEventName) {
-
-    this.client.executeScript(
-      fs.readFileSync('./tests/performance/performance_helper_atom.js') + '\n'
-    );
-
-  },
-
   waitForPerfEvents: function(stopEventName, callback) {
     var client = this.client;
     var self = this;

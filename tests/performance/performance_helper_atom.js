@@ -6,7 +6,7 @@
   var perfMeasurements;
   var hasRegistered;
 
-  var DEBUG = false;
+  var DEBUG = true;
 
   function debug() {
     if (DEBUG) {
