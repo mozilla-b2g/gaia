@@ -175,8 +175,6 @@ apps/communications/contacts/js/sms_integration.js
 apps/communications/contacts/js/value_selector.js
 apps/communications/contacts/js/views/details.js
 apps/communications/contacts/js/views/form.js
-apps/communications/contacts/js/views/list.js
-apps/communications/contacts/js/views/search.js
 apps/communications/contacts/js/views/settings.js
 apps/communications/contacts/oauth2/js/flow.js
 apps/communications/contacts/oauth2/js/oauth20.js
