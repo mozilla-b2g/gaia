@@ -399,6 +399,16 @@ var ActivityHandler = {
           var notification = new Notification(title, options);
           notification.addEventListener('click', goToMessage);
           releaseWakeLock();
+
+          // Close notification if we are already in thread view and view become
+          // visible.
+          if (document.hidden && threadId === Threads.currentId) {
+            document.addEventListener('visibilitychange',
+              function onVisible() {
+                document.removeEventListener('visibilitychange', onVisible);
+                notification.close();
+            });
+          }
         }
 
         function getTitleFromMms(callback) {
