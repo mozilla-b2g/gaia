@@ -6,31 +6,14 @@
 *~
 manifest.appcache
 
-/apps/calendar/js/presets.js
-/apps/camera/js/config.js
-/apps/gallery/js/config.js
-/apps/homescreen/js/init.json
-/apps/homescreen/everything.me/config/local.json
-/apps/costcontrol/js/config.json
-/apps/sms/js/blacklist.json
 /test_apps/test-agent/test/config.json
 
 /apps/*/test/unit/_sandbox.html
 /apps/*/test/unit/_proxy.html
-/apps/*/locales-obj
-/apps/*/shared
-/apps/settings/resources/network.json
-/apps/settings/resources/support.json
-/apps/settings/resources/sensors.json
-/apps/system/resources/icc.json
-/apps/system/resources/wapuaprof.json
 /test_apps/*/test/unit/_sandbox.html
 /test_apps/*/test/unit/_proxy.html
-/test_apps/*/locales-obj
-/test_external_apps/*/locales-obj
 /showcase_apps/*/test/unit/_sandbox.html
 /showcase_apps/*/test/unit/_proxy.html
-/showcase_apps/*/locales-obj
 
 /shared/test/integration/node_modules
 /shared/resources/keyboard_layouts.json
@@ -73,4 +56,3 @@ mozilla-b2g-gaia-node-modules-*
 
 /test_external_apps/*/test/unit/_sandbox.html
 /test_external_apps/*/test/unit/_proxy.html
-apps/*, external-apps/* & GAIA_DISTRIBUTION_DIR
