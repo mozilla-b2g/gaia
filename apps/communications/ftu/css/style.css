@@ -500,12 +500,14 @@ aside.connecting {
   font-size: 1.5rem;
 }
 
+#configure_network form select,
 #hidden-wifi-authentication form select {
   width: 100%;
   padding: 0.5rem 1.5rem 0.5rem 1.5rem;
   font-size: 1.5rem;
 }
 
+#configure_network form select,
 #hidden-wifi-authentication form select,
 #hidden-wifi-authentication form input,
 #configure_network_params form input {
