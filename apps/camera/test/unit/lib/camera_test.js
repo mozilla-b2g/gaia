@@ -343,7 +343,7 @@ suite('camera', function() {
     });
   });
 
-  suite('Camera# setHDRMode()', function() {
+  suite('Camera#setHDRMode()', function() {
     setup(function() {
       this.camera = {
         mozCamera: {
@@ -372,6 +372,87 @@ suite('camera', function() {
       this.camera.setSceneMode = sinon.spy();
       this.camera.setHDR('off');
       assert.isTrue(this.camera.setSceneMode.calledWith('auto'));
+    });
+  });
+
+  suite('Camera#takePicture()', function() {
+    setup(function() {
+      this.camera = new this.Camera();
+      sinon.stub(this.camera, 'focus').callsArg(0);
+      sinon.stub(this.camera, 'set');
+      this.camera.mozCamera = {
+        takePicture: sinon.stub().callsArgWith(1, 'the-blob'),
+        resumePreview: sinon.stub()
+      };
+    });
+
+    test('Should emit a `busy` when picture taking starts', function() {
+      sinon.stub(this.camera, 'emit');
+      this.camera.takePicture({});
+      assert.isTrue(this.camera.emit.calledWith('busy'));
+    });
+
+    test('Should call `mozCamera.takePicture`', function() {
+      this.camera.takePicture({});
+      assert.isTrue(this.camera.mozCamera.takePicture.called);
+    });
+
+    test('Should still take picture even when focus fails', function() {
+      this.camera.focus = sinon.stub().callsArgWith(0, 'some error');
+      this.camera.takePicture({});
+      assert.isTrue(this.camera.mozCamera.takePicture.called);
+    });
+
+    test('Should pass the position value to `mozCamera.takePicture`', function() {
+      this.camera.takePicture({ position: 123 });
+      var config = this.camera.mozCamera.takePicture.args[0][0];
+      assert.equal(config.position, 123);
+    });
+
+    test('Should take jpegs', function() {
+      this.camera.takePicture({});
+      var config = this.camera.mozCamera.takePicture.args[0][0];
+      assert.equal(config.fileFormat, 'jpeg');
+    });
+
+    test('Should pass the current `pictureSize`', function() {
+      this.camera.pictureSize = { width: 400, height: 300 };
+      this.camera.takePicture({});
+      var config = this.camera.mozCamera.takePicture.args[0][0];
+      assert.equal(config.pictureSize.width, 400);
+      assert.equal(config.pictureSize.height, 300);
+    });
+
+    test('Should emit a `newimage` event passing the blob', function() {
+      var spy = sinon.spy();
+      this.camera.on('newimage', spy);
+      this.camera.takePicture({});
+      var arg = spy.args[0][0];
+      assert.equal(arg.blob, 'the-blob');
+    });
+
+    test('Should set focus back to none', function() {
+      this.camera.takePicture({});
+      assert.isTrue(this.camera.set.calledWith('focus', 'none'));
+    });
+
+    test('Should emit a `ready` event once done', function() {
+      var busy = sinon.spy();
+      var ready = sinon.spy();
+
+      this.camera.on('busy', busy);
+      this.camera.on('ready', ready);
+      this.camera.takePicture({});
+
+      assert.isTrue(busy.calledBefore(ready));
+    });
+
+    test('Should call `mozCamera.resumePreview` after `takePicture`', function() {
+      var takePicture = this.camera.mozCamera.takePicture;
+      var resumePreview = this.camera.mozCamera.resumePreview;
+
+      this.camera.takePicture({});
+      assert.isTrue(takePicture.calledBefore(resumePreview));
     });
   });
 });
