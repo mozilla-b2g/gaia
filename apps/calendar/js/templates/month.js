@@ -1,4 +1,5 @@
 (function(window) {
+  'use strict';
 
   var Month = Calendar.Template.create({
     busy: function() {
