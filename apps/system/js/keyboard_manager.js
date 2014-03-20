@@ -766,7 +766,7 @@ var KeyboardManager = {
         // Hide the tray to show the app directly after
         // user canceled.
         window.dispatchEvent(new CustomEvent('keyboardchangecanceled'));
-      });
+      }, true /* preventFocusChange */);
       menu.start();
     }, SWITCH_CHANGE_DELAY);
   },
