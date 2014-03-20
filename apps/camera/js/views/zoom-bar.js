@@ -127,9 +127,9 @@ module.exports = View.extend({
     el.classList.remove('zooming');
 
     // Force ZoomBar to hide *immediately* on orientation change
-    el.style.display = 'none';
+    el.style.transitionDuration = '0ms';
     window.requestAnimationFrame(function() {
-      el.style.display = 'block';
+      el.style.transitionDuration = '';
     });
 
     this._orientation = orientation;
