@@ -60,6 +60,7 @@ ViewfinderController.prototype.bindEvents = function() {
   this.viewfinder.on('pinchChange', this.onPinchChange);
   this.app.on('camera:configured', this.loadStream);
   this.app.on('camera:configured', this.updatePreview);
+  this.app.on('camera:shutter', this.viewfinder.shutter);
   this.app.on('settings:opened', this.hideGrid);
   this.app.on('settings:closed', this.configureGrid);
   this.camera.on('zoomChange', this.onZoomChange);

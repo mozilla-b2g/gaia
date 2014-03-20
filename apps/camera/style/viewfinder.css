@@ -25,13 +25,29 @@
   align-items: center;
 }
 
-
 /**
  * @visible
  */
 
 .viewfinder.visible {
   opacity: 1;
+}
+
+/**
+ * @shutter
+ */
+
+.viewfinder.shutter {
+  animation: 400ms shutter-animation;
+}
+
+/** Shutter Animation
+ ---------------------------------------------------------*/
+
+@keyframes shutter-animation {
+  0% { opacity: 1; }
+  1% { opacity: 0.2; }
+  100% { opacity: 1 }
 }
 
 /** Frame

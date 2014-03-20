@@ -67,11 +67,11 @@ module.exports = View.extend({
   initialize: function() {
     this.render();
 
-    // Bind events
     bind(this.el, 'click', this.onClick);
     bind(this.el, 'touchstart', this.onTouchStart);
     bind(this.el, 'touchmove', this.onTouchMove);
     bind(this.el, 'touchend', this.onTouchEnd);
+    bind(this.el, 'animationend', this.onShutterEnd);
   },
 
   render: function() {
@@ -214,6 +214,27 @@ module.exports = View.extend({
   fadeIn: function(done) {
     this.el.classList.add('visible');
     if (done) { setTimeout(done, this.fadeTime); }
+  },
+
+  /**
+   * Triggers a quick shutter style animation.
+   *
+   * @private
+   */
+  shutter: function() {
+    this.el.classList.add('shutter');
+  },
+
+  /**
+   * Force a reflow before removing
+   * the shutter class so that it
+   * doesn't impact the animation.
+   *
+   * @private
+   */
+  onShutterEnd: function() {
+    this.reflow = this.el.offsetTop;
+    this.el.classList.remove('shutter');
   },
 
   /**
