@@ -16,9 +16,6 @@
    * home.open(); // Do the open animation.
    *
    * @module HomescreenLauncher
-   * @requires module:TrustedUIManager
-   * @requires module:Applications
-   * @requires module:SettingsListener
    */
   var HomescreenLauncher = {
     ready: false,
@@ -58,7 +55,6 @@
       window.addEventListener('trusteduishow', this);
       window.addEventListener('trusteduihide', this);
       window.addEventListener('appopening', this);
-      window.addEventListener('appopened', this);
       window.addEventListener('keyboardchange', this);
     },
 
@@ -75,12 +71,6 @@
           // Fade out homescreen if the opening app is landscape.
           if (evt.detail.rotatingDegree === 90 ||
               evt.detail.rotatingDegree === 270) {
-            this.getHomescreen().fadeOut();
-          }
-          break;
-        case 'appopened':
-          // XXX: Remove the dependency in trustedUI rework.
-          if (!TrustedUIManager.hasTrustedUI(evt.detail.origin)) {
             this.getHomescreen().fadeOut();
           }
           break;

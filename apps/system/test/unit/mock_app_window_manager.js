@@ -1,6 +1,9 @@
 'use strict';
 
 var MockAppWindowManager = {
+  // backward compatibility to WindowManager
+  mDisplayedApp: null,
+
   isRunning: function(config) {
     return (config.origin in this.mRunningApps);
   },
@@ -12,9 +15,8 @@ var MockAppWindowManager = {
     return this.mRunningApps;
   },
 
-  // TODO: Remove this.
-  getApps: function mawm_getRunningApps() {
-    return this.mRunningApps;
+  getDisplayedApp: function mawm_getDisplayedApp() {
+    return this.mDisplayedApp;
   },
 
   getActiveApp: function mawm_getActiveApp() {
@@ -30,7 +32,7 @@ var MockAppWindowManager = {
 
   // Switch to a different app
   display: function mawm_display(origin, callback) {
-    this.mActiveApp = this.mRunningApps[origin];
+    this.displayedApp = origin;
   },
 
   kill: function mawm_kill(origin) {
@@ -38,6 +40,7 @@ var MockAppWindowManager = {
   },
 
   mTeardown: function mawm_mTeardown() {
+    this.mDisplayedApp = null;
     this.mRunningApps = {};
     this.mActiveApp = null;
   },

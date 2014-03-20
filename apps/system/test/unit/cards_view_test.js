@@ -2,6 +2,7 @@
 
 'use strict';
 // Ignore leak, otherwise an error would occur when using MockMozActivity.
+mocha.setup({ignoreLeaks: true});
 
 require('/shared/test/unit/mocks/mock_gesture_detector.js');
 requireApp('system/test/unit/mock_screen_layout.js');
@@ -178,108 +179,6 @@ suite('cards view >', function() {
     screen.mozLockOrientation = realMozLockOrientation;
   });
 
-  var sms, game, game2, game3, game4;
-
-  sms = {
-    instanceID: 'AppWindow-0',
-    launchTime: 5,
-    name: 'SMS',
-    frame: document.createElement('div'),
-    iframe: document.createElement('iframe'),
-    manifest: {
-      orientation: 'portrait-primary'
-    },
-    rotatingDegree: 0,
-    origin: 'http://sms.gaiamobile.org',
-    requestScreenshotURL: function() {
-      return null;
-    },
-    getScreenshot: function(callback) {
-      callback();
-    },
-    blur: function() {}
-  };
-
-  game = {
-    instanceID: 'AppWindow-1',
-    launchTime: 5,
-    name: 'GAME',
-    frame: document.createElement('div'),
-    iframe: document.createElement('iframe'),
-    manifest: {
-      orientation: 'portrait-primary'
-    },
-    rotatingDegree: 90,
-    origin: 'http://game.gaiamobile.org',
-    requestScreenshotURL: function() {
-      return null;
-    },
-    getScreenshot: function(callback) {
-      callback();
-    },
-    blur: function() {}
-  };
-
-  game2 = {
-    instanceID: 'AppWindow-2',
-    launchTime: 5,
-    name: 'GAME2',
-    frame: document.createElement('div'),
-    iframe: document.createElement('iframe'),
-    manifest: {
-      orientation: 'portrait-primary'
-    },
-    rotatingDegree: 270,
-    origin: 'http://game2.gaiamobile.org',
-    requestScreenshotURL: function() {
-      return null;
-    },
-    getScreenshot: function(callback) {
-      callback();
-    },
-    blur: function() {}
-  };
-
-  game3 = {
-    instanceID: 'AppWindow-3',
-    launchTime: 5,
-    name: 'GAME3',
-    frame: document.createElement('div'),
-    iframe: document.createElement('iframe'),
-    manifest: {
-      orientation: 'portrait-primary'
-    },
-    rotatingDegree: 90,
-    origin: 'http://game3.gaiamobile.org',
-    requestScreenshotURL: function() {
-      return null;
-    },
-    getScreenshot: function(callback) {
-      callback();
-    },
-    blur: function() {}
-  };
-
-  game4 = {
-    instanceID: 'AppWindow-4',
-    launchTime: 5,
-    name: 'GAME4',
-    frame: document.createElement('div'),
-    iframe: document.createElement('iframe'),
-    manifest: {
-      orientation: 'portrait-primary'
-    },
-    rotatingDegree: 180,
-    origin: 'http://game4.gaiamobile.org',
-    requestScreenshotURL: function() {
-      return null;
-    },
-    getScreenshot: function(callback) {
-      callback();
-    },
-    blur: function() {}
-  };
-
   suite('populated cards view >', function() {
     teardown(function() {
       cardsView.firstElementChild.innerHTML = '';
@@ -407,7 +306,6 @@ suite('cards view >', function() {
       test('cardsview defines a landscape-primary app', function() {
         assert.isTrue(testCardOrientation('http://game.gaiamobile.org',
                                           'rotate-90'));
-
       });
       test('cardsview defines a landscape-secondary app', function() {
         assert.isTrue(testCardOrientation('http://game2.gaiamobile.org',

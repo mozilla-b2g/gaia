@@ -148,7 +148,7 @@ var Navigation = {
   },
 
   displayExternalLink: function n_displayExternalLink(href, title) {
-    window.open(href, '', 'dialog');
+    window.open(href);
   },
 
   getProgressBarState: function n_getProgressBarState() {

@@ -91,7 +91,7 @@ if (typeof Contacts.extServices === 'undefined') {
     }
 
     function openURL(url) {
-      window.open(url, '', 'dialog');
+      window.open(url);
     }
 
     extServices.showProfile = function(cid) {
