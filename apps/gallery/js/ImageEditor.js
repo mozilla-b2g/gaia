@@ -331,7 +331,14 @@ function saveEditedImage() {
 
   imageEditor.getFullSizeBlob('image/jpeg', gotBlob, onProgress);
 
-  function onProgress(p) {
+  function onProgress(p, error) {
+    // If error occurs, reset the save button for user.
+    if (error) {
+      $('edit-save-button').disabled = false;
+      progressBar.value = 0;
+      return;
+    }
+
     progressBar.value = Math.floor(p * 100);
   }
 
@@ -455,7 +462,12 @@ function ImageEditor(imageURL, container, edits, ready, previewURL) {
     this.preview = new Image();
     this.preview.src = null;
 
-    this.processor = new ImageProcessor(this.previewCanvas);
+    var contextRestoreCallback = function() {
+      self.edit();
+    };
+
+    this.processor = new ImageProcessor(this.previewCanvas, null,
+                                        contextRestoreCallback);
 
     // When the image loads display it
     this.original.onload = function() {
@@ -469,7 +481,6 @@ function ImageEditor(imageURL, container, edits, ready, previewURL) {
         if (ready)
           ready();
       });
-
     };
   }
 }
@@ -725,6 +736,24 @@ ImageEditor.prototype.getFullSizeBlob = function(type, done, progress) {
                       centerX, centerY, rect.w, rect.h,
                       rect.x, rect.y, rect.w, rect.h);
 
+    if (processor.isContextLost()) {
+      processor.destroy();
+      processor = null;
+      context = null;
+      canvas.width = canvas.height = 0;
+      canvas = null;
+
+      if (progress) {
+        // Reload the original image.
+        self.original.src = self.imageURL;
+        self.original.onload = function() {
+          // Send the error to reset processing state.
+          progress(0, true);
+        };
+      }
+      return;
+    }
+
     processed_pixels += rect.w * rect.h;
     if (progress)
       progress(processed_pixels / total_pixels);
@@ -738,14 +767,15 @@ ImageEditor.prototype.getFullSizeBlob = function(type, done, progress) {
       // The processed image is in our offscreen canvas, so we don't need
       // the WebGL stuff anymore.
       processor.destroy();
-      tile.width = tile.height = 0;
-      processor = tile = null;
+      processor = null;
 
       // Now get the canvas contents as a file and pass to the callback
       canvas.toBlob(function(blobData) {
         // Now that we've got the blob, we don't need the canvas anymore
+        context = null;
         canvas.width = canvas.height = 0;
         canvas = null;
+
         // Pass the blob to the callback
         done(blobData);
       }, type);
@@ -1344,24 +1374,112 @@ ImageEditor.prototype.prepareAutoEnhancement = function(pixel) {
   worker.postMessage(pixel);
 };
 
+// WebGL context helper class for handling context lost/restore event
+// and resource management.
+function WebGLCanvasHelper(canvas, lostCallback, restoreCallback, needRestore) {
+  this.canvas = canvas;
+  this.lostCallback = lostCallback;
+  this.restoreCallback = restoreCallback;
+  // We might just want to listen the lost event but do not need to restore
+  // the context
+  this.needRestore = needRestore;
+
+  this.lostEventListener = this.contextLostHandler.bind(this);
+  canvas.addEventListener('webglcontextlost', this.lostEventListener, false);
+  this.restoreEventListener = this.contextRestoreHandler.bind(this);
+  canvas.addEventListener('webglcontextrestored', this.restoreEventListener,
+                          false);
+
+  var options = { alpha: false, depth: false, stencil: false,
+                  antialias: false };
+  this.context = canvas.getContext('webgl', options) ||
+                 canvas.getContext('experimental-webgl', options);
+
+  this.loseContextExt = this.context.getExtension('WEBGL_lose_context');
+}
+
+WebGLCanvasHelper.prototype.contextLostHandler = function(event) {
+  if (this.needRestore) {
+    // We should call preventDefault to prevent the webgl default behavior:
+    // do not restore the context
+    event.preventDefault();
+  }
+
+  if (this.lostCallback) {
+    this.lostCallback();
+  }
+};
+
+WebGLCanvasHelper.prototype.contextRestoreHandler = function(event) {
+  if (this.restoreCallback) {
+    this.restoreCallback();
+  }
+};
+
+// Destroy the webgl canvas and context
+WebGLCanvasHelper.prototype.destroy = function() {
+  // Remove the context lost/restore handler to prevent the restore event
+  if (this.lostEventListener) {
+    this.canvas.removeEventListener('webglcontextlost',
+                                    this.lostEventListener,
+                                    false);
+  }
+  if (this.restoreEventListener) {
+    this.canvas.removeEventListener('webglcontextrestored',
+                                    this.restoreListener,
+                                    false);
+  }
+
+  this.context = null;
+  this.canvas.width = this.canvas.height = 0;
+  this.canvas = null;
+
+  // Destroy webgl context explicitly. No need to wait for GC cleaning up.
+  // http://www.khronos.org/registry/webgl/extensions/WEBGL_lose_context/
+  // We use loseContext() to let the context lost.
+  // It will release the buffer here.
+  if (this.loseContextExt) {
+    // The extension 'WEBGL_lose_context' is still valid even if the context
+    // lost. If we have this extension, we can just call it.
+    this.loseContextExt.loseContext();
+  }
+};
+
 //
 // Create a new ImageProcessor object for the specified canvas to do
 // webgl transformations on an image.  Expects its shader programs to be in
 // <script> elements with ids 'edit-vertex-shader' and 'edit-fragment-shader'.
 //
-function ImageProcessor(canvas) {
-  // WebGL context for the canvas
-  this.canvas = canvas;
-  var options = { depth: false, stencil: false, antialias: false };
-  var gl = this.context =
-    canvas.getContext('webgl', options) ||
-    canvas.getContext('experimental-webgl', options);
+// Webgl context will store if we have lostCallback or restoreCallback.
+function ImageProcessor(canvas, lostCallback, restoreCallback) {
+  var self = this;
+
+  if (lostCallback || restoreCallback) {
+    this.webglHelper = new WebGLCanvasHelper(canvas, lostCallback, function() {
+        self.initWebGL();
+
+        if (restoreCallback()) {
+          restoreCallback();
+        }
+    }, true);
+  }
+  else {
+    this.webglHelper = new WebGLCanvasHelper(canvas);
+  }
+
+  this.initWebGL();
+}
+
+// Init all webgl resource
+ImageProcessor.prototype.initWebGL = function() {
+  var gl = this.webglHelper.context;
 
   // Define our shader programs
   var vshader = this.vshader = gl.createShader(gl.VERTEX_SHADER);
   gl.shaderSource(vshader, ImageProcessor.vertexShader);
   gl.compileShader(vshader);
-  if (!gl.getShaderParameter(vshader, gl.COMPILE_STATUS)) {
+  if (!gl.getShaderParameter(vshader, gl.COMPILE_STATUS) &&
+                             !gl.isContextLost()) {
     var error = new Error('Error compiling vertex shader:' +
                           gl.getShaderInfoLog(vshader));
     gl.deleteShader(vshader);
@@ -1371,7 +1489,8 @@ function ImageProcessor(canvas) {
   var fshader = this.fshader = gl.createShader(gl.FRAGMENT_SHADER);
   gl.shaderSource(fshader, ImageProcessor.fragmentShader);
   gl.compileShader(fshader);
-  if (!gl.getShaderParameter(fshader, gl.COMPILE_STATUS)) {
+  if (!gl.getShaderParameter(fshader, gl.COMPILE_STATUS) &&
+                             !gl.isContextLost()) {
     var error = new Error('Error compiling fragment shader:' +
                           gl.getShaderInfoLog(fshader));
     gl.deleteShader(fshader);
@@ -1382,7 +1501,8 @@ function ImageProcessor(canvas) {
   gl.attachShader(program, vshader);
   gl.attachShader(program, fshader);
   gl.linkProgram(program);
-  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+  if (!gl.getProgramParameter(program, gl.LINK_STATUS) &&
+                              !gl.isContextLost()) {
     var error = new Error('Error linking GLSL program:' +
                           gl.getProgramInfoLog(program));
     gl.deleteProgram(program);
@@ -1413,11 +1533,11 @@ function ImageProcessor(canvas) {
   this.gammaAddress = gl.getUniformLocation(program, 'gamma');
   this.rgbMinMaxValuesAddress = gl.getUniformLocation(program,
                                                       'rgb_min_max_values');
-}
+};
 
 // Destroy all the stuff we allocated
 ImageProcessor.prototype.destroy = function() {
-  var gl = this.context;
+  var gl = this.webglHelper.context;
   this.context = null; // Don't retain a reference to it
   gl.deleteShader(this.vshader);
   gl.deleteShader(this.fshader);
@@ -1427,16 +1547,8 @@ ImageProcessor.prototype.destroy = function() {
   gl.deleteBuffer(this.destinationRectangle);
   gl.viewport(0, 0, 0, 0);
 
-  // Destroy webgl context explicitly. Not wait for GC cleaning up.
-  //
-  // http://www.khronos.org/registry/webgl/extensions/WEBGL_lose_context/
-  //
-  // We use loseContext() to let the context lost.
-  // It will release the buffer here.
-  var loseContextExt = gl.getExtension('WEBGL_lose_context');
-  if (loseContextExt) {
-    loseContextExt.loseContext();
-  }
+  this.webglHelper.destroy();
+  this.webglHelper = null;
 };
 
 ImageProcessor.prototype.draw = function(image,
@@ -1444,11 +1556,12 @@ ImageProcessor.prototype.draw = function(image,
                                          dx, dy, dw, dh,
                                          options)
 {
-  var gl = this.context;
+  var gl = this.webglHelper.context;
   gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
 
   // Set the canvas size and image size
-  gl.uniform2f(this.canvasSizeAddress, this.canvas.width, this.canvas.height);
+  gl.uniform2f(this.canvasSizeAddress, this.webglHelper.canvas.width,
+               this.webglHelper.canvas.height);
   gl.uniform2f(this.imageSizeAddress, image.width, image.height);
   gl.uniform2f(this.destOriginAddress, dx, dy);
   gl.uniform2f(this.destSizeAddress, dw, dh);
@@ -1486,6 +1599,8 @@ ImageProcessor.prototype.draw = function(image,
   // And draw it all
   gl.drawArrays(gl.TRIANGLES, 0, 6);
 
+  return !this.isContextLost();
+
   // Define a rectangle as two triangles
   function makeRectangle(b, x, y, w, h) {
     gl.bindBuffer(gl.ARRAY_BUFFER, b);
@@ -1494,6 +1609,10 @@ ImageProcessor.prototype.draw = function(image,
       x, y + h, x + w, y, x + w, y + h  // another triangle
     ]), gl.STATIC_DRAW);
   }
+};
+
+ImageProcessor.prototype.isContextLost = function() {
+  return this.webglHelper.context.isContextLost();
 };
 
 ImageProcessor.vertexShader =
