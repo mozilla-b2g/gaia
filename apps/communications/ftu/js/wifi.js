@@ -95,10 +95,11 @@ var WifiManager = {
     }
     return network;
   },
-  connect: function wn_connect(ssid, password, user) {
+  connect: function wn_connect(ssid, password, user, wapiPasswordType) {
     var network = this.getNetwork(ssid);
     this.ssid = ssid;
-    WifiHelper.setPassword(network, password, user);
+    WifiHelper.setPassword(network, password, user,
+                           null, null, null, wapiPasswordType);
     this.gCurrentNetwork = network;
     this.api.associate(network);
   },
@@ -138,14 +139,16 @@ var WifiUI = {
 
   joinNetwork: function wui_jn() {
     var password = document.getElementById('wifi_password').value;
+    var wapiPasswordType = document.getElementById('wapi_password_type').value;
     var user = document.getElementById('wifi_user').value;
     var ssid = document.getElementById('wifi_ssid').value;
-    WifiUI.connect(ssid, password, user);
+    WifiUI.connect(ssid, password, user, wapiPasswordType);
     window.history.back();
   },
 
   joinHiddenNetwork: function wui_jhn() {
     var password = UIManager.hiddenWifiPassword.value;
+    var wapiPasswordType = UIManager.hiddenWapiPasswordType.value;
     var user = UIManager.hiddenWifiIdentity.value;
     var ssid = UIManager.hiddenWifiSsid.value;
     var security = UIManager.hiddenWifiSecurity.value;
@@ -160,7 +163,7 @@ var WifiUI = {
           relSignalStrength: 0
       });
       this.renderNetworks(WifiManager.networks);
-      WifiUI.connect(ssid, password, user);
+      WifiUI.connect(ssid, password, user, wapiPasswordType);
     }
 
     // like in Settings: if we don't provide correct
@@ -168,7 +171,7 @@ var WifiUI = {
     window.history.back();
   },
 
-  connect: function wui_connect(ssid, password, user) {
+  connect: function wui_connect(ssid, password, user, wapiPasswordType) {
 
     // First we check if there is a previous selected network
     // and we remove their status
@@ -199,7 +202,7 @@ var WifiUI = {
 
 
     // Finally we try to connect to the network
-    WifiManager.connect(ssid, password, user);
+    WifiManager.connect(ssid, password, user, wapiPasswordType);
   },
 
   chooseNetwork: function wui_cn(event) {
@@ -223,15 +226,19 @@ var WifiUI = {
     var userLabel = document.getElementById('label_wifi_user');
     var userInput = document.getElementById('wifi_user');
     var passwordInput = document.getElementById('wifi_password');
+    var wapiPasswordTypeSelect = document.getElementById('wapi_password_type');
     var showPassword = document.querySelector('input[name=show_password]');
     var joinButton = UIManager.wifiJoinButton;
+
+    var keyMgmt = WifiHelper.getKeyManagement(selectedNetwork);
+    wapiPasswordTypeSelect.hidden = keyMgmt !== 'WAPI-PSK';
 
     joinButton.disabled = true;
     passwordInput.addEventListener('keyup', function validatePassword() {
       // disable the "Join" button if the password is too short
       joinButton.disabled =
-        !WifiHelper.isValidInput(WifiHelper.getKeyManagement(selectedNetwork),
-          passwordInput.value, userInput.value);
+        !WifiHelper.isValidInput(keyMgmt, passwordInput.value, userInput.value,
+          null /* eap */, wapiPasswordTypeSelect.value);
     });
 
     // Show / Hide password
@@ -271,6 +278,12 @@ var WifiUI = {
   },
 
   handleHiddenWifiSecurity: function wui_handleSecurity(securityType) {
+    if (securityType === 'WAPI-PSK') {
+      UIManager.hiddenWapiPasswordTypeBox.classList.remove('hidden');
+    } else {
+      UIManager.hiddenWapiPasswordTypeBox.classList.add('hidden');
+    }
+
     if (securityType.indexOf('EAP') !== -1) {
       UIManager.hiddenWifiIdentityBox.classList.remove('hidden');
     } else {

@@ -23,6 +23,7 @@
               <option>WEP</option>
               <option selected>WPA-PSK</option>
               <option>WPA-EAP</option>
+              <option>WAPI-PSK</option>
             </select>
           </span>
         </li>
@@ -52,6 +53,15 @@
         <li class="identity">
           <p data-l10n-id="wifi-join-username">Username</p>
           <input type="text" data-ignore name="identity" />
+        </li>
+        <li class="wapiPasswordType">
+          <p data-l10n-id="wapiPasswordType">WAPI Password Type</p>
+          <span class="button icon icon-dialog">
+            <select>
+              <option value="ASCII">ASCII</option>
+              <option value="HEX">HEX</option>
+            </select>
+          </span>
         </li>
         <li class="password">
           <label class="pack-checkbox">
