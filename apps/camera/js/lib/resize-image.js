@@ -1,6 +1,6 @@
 define(function(require, exports, module) {
 'use strict';
-
+/*global File*/
 var debug = require('debug')('resize-image');
 
 /**
@@ -24,12 +24,28 @@ function ResizeImage(options) {
 ResizeImage.prototype.run = function(done) {
   var canvas = this.canvas;
   var image = this.image;
+  var originalBlob = this.blob;
   var self = this;
+  function blobResized(resizedBlob) {
+    // If the original blob was a File, propagate the name to a new File.  Note
+    // that the file is still going to be memory-backed.  (Although technically
+    // the Canvas implementation may opt to use a disk-backed cache.)
+    if (originalBlob.name) {
+      resizedBlob = new File([resizedBlob], originalBlob.name,
+                             { type: resizedBlob.type });
+    }
+    done(resizedBlob);
+  }
   this.load(function() {
     self.correctDimensions();
     self.cover = self.coverData(image, canvas);
     self.draw();
-    self.canvas.toBlob(done, 'image/jpeg');
+    // Reuse the source image type so that if we're propagating the file name we
+    // don't end up in a weird situation where the extension does not match the
+    // image type.  Note that the standard dictates that we will fall-back to
+    // image/png if the requested type is not supported for encoding, so this
+    // should never break.
+    self.canvas.toBlob(blobResized, originalBlob.type);
   });
   return this;
 };
@@ -49,8 +65,12 @@ ResizeImage.prototype.correctDimensions = function() {
 };
 
 ResizeImage.prototype.load = function(done) {
-  this.image.onload = done;
-  this.image.src = window.URL.createObjectURL(this.blob);
+  var url = window.URL.createObjectURL(this.blob);
+  this.image.onload = function() {
+    window.URL.revokeObjectURL(url);
+    done();
+  };
+  this.image.src = url;
 };
 
 ResizeImage.prototype.draw = function(done) {

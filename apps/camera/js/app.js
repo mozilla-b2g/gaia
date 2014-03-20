@@ -8,12 +8,12 @@ define(function(require, exports, module) {
 var performanceTesting = require('performanceTesting');
 var ViewfinderView = require('views/viewfinder');
 var RecordingTimerView = require('views/recording-timer');
+var PreviewGalleryView = require('views/preview-gallery');
 var ControlsView = require('views/controls');
 var FocusRing = require('views/focus-ring');
 var ZoomBarView = require('views/zoom-bar');
 var lockscreen = require('lib/lock-screen');
 var constants = require('config/camera');
-var broadcast = require('lib/broadcast');
 var bindAll = require('lib/bind-all');
 var model = require('vendor/model');
 var debug = require('debug')('app');
@@ -56,7 +56,6 @@ function App(options) {
   this.inSecureMode = (this.win.location.hash === '#secure');
   this.controllers = options.controllers;
   this.geolocation = options.geolocation;
-  this.filmstrip = options.filmstrip;
   this.activity = options.activity;
   this.config = options.config;
   this.settings = options.settings;
@@ -101,7 +100,6 @@ App.prototype.teardown = function() {
  */
 App.prototype.runControllers = function() {
   debug('running controllers');
-  this.filmstrip = this.filmstrip(this);
   this.controllers.settings(this);
   this.controllers.activity(this);
   this.controllers.timer(this);
@@ -109,6 +107,7 @@ App.prototype.runControllers = function() {
   this.controllers.viewfinder(this);
   this.controllers.recordingTimer(this);
   this.controllers.indicators(this);
+  this.controllers.previewGallery(this);
   this.controllers.controls(this);
   this.controllers.confirm(this);
   this.controllers.overlay(this);
@@ -122,6 +121,7 @@ App.prototype.initializeViews = function() {
   debug('initializing views');
   this.views.viewfinder = new ViewfinderView();
   this.views.recordingTimer = new RecordingTimerView();
+  this.views.previewGallery = new PreviewGalleryView();
   this.views.focusRing = new FocusRing();
   this.views.controls = new ControlsView();
   this.views.hud = new HudView();
@@ -133,6 +133,7 @@ App.prototype.injectViews = function() {
   debug('injecting views');
   this.views.viewfinder.appendTo(this.el);
   this.views.recordingTimer.appendTo(this.el);
+  this.views.previewGallery.appendTo(this.el);
   this.views.focusRing.appendTo(this.el);
   this.views.controls.appendTo(this.el);
   this.views.hud.appendTo(this.el);
@@ -151,6 +152,8 @@ App.prototype.bindEvents = function() {
   bind(this.el, 'click', this.onClick);
   this.on('focus', this.onFocus);
   this.on('blur', this.onBlur);
+  this.on('previewgallery:opened', lockscreen.enableTimeout);
+  this.on('previewgallery:closed', lockscreen.disableTimeout);
   debug('events bound');
 };
 
@@ -287,19 +290,6 @@ App.prototype.miscStuff = function() {
   // Prevent the phone
   // from going to sleep.
   lockscreen.disableTimeout();
-
-  // The screen wakelock should be on
-  // at all times except when the
-  // filmstrip preview is shown.
-  broadcast.on('filmstripItemPreview', function() {
-    lockscreen.enableTimeout();
-  });
-
-  // When the filmstrip preview is hidden
-  // we can enable the  again.
-  broadcast.on('filmstripPreviewHide', function() {
-    lockscreen.disableTimeout();
-  });
 
   debug('misc stuff done');
 };
