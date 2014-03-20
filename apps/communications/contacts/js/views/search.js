@@ -31,7 +31,8 @@ contacts.Search = (function() {
       imgLoader,
       searchEnabled = false,
       source = null,
-      navigationController = null;
+      navigationController = null,
+      currentState = null;
 
   // The _source argument should be an adapter object that provides access
   // to the contact nodes in the app.  This is done by defining the following
@@ -283,6 +284,7 @@ contacts.Search = (function() {
   }
 
   function doSearch(contacts, from, searchText, pattern, state) {
+    console.log('Doin a new search for ' + searchText);
     // Check whether the user enter a new term or not
     if (currentTextToSearch.localeCompare(searchText) !== 0) {
       canReuseSearchables = false;
@@ -364,6 +366,9 @@ contacts.Search = (function() {
 
     if (typeof state.searchDoneCb === 'function') {
       state.searchDoneCb();
+      if (currentState) {
+        currentState = null;
+      }
     }
   }
 
@@ -434,6 +439,7 @@ contacts.Search = (function() {
         searchables: [],
         searchDoneCb: searchDoneCb
       };
+      currentState = state;
       searchTimer = window.setTimeout(function do_search() {
         searchTimer = null;
         doSearch(contactsToSearch, 0, thisSearchText, pattern, state);
@@ -526,6 +532,14 @@ contacts.Search = (function() {
     searchProgress.classList.add('hidden');
   }
 
+  var invalidateSearch = function searchAgain() {
+    invalidateCache();
+    resetState();
+    if (currentState) {
+      search(currentState.searchDoneCb);
+    }
+  };
+
   return {
     'init': init,
     'invalidateCache': invalidateCache,
@@ -536,6 +550,7 @@ contacts.Search = (function() {
     'exitSearchMode': exitSearchMode,
     'isInSearchMode': isInSearchMode,
     'enableSearch': enableSearch,
-    'selectRow': selectRow
+    'selectRow': selectRow,
+    'invalidateSearch': invalidateSearch
   };
 })();

@@ -1316,6 +1316,10 @@ contacts.List = (function() {
     addToList(contact, enriched);
     if (callback)
       callback(contact.id);
+
+    if (contacts.Search && contacts.Search.isInSearchMode()) {
+      contacts.Search.invalidateSearch();
+    }
   };
 
   var callbacks = [];
