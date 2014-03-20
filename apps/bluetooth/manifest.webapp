@@ -22,7 +22,6 @@
   "activities": {
     "share": {
       "filters": {
-        "type": ["image/*", "audio/*", "video/*", "text/vcard"],
         "blobs": { "required":true }
        },
       "disposition": "inline",
