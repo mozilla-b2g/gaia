@@ -30,6 +30,14 @@ function addNetworkUsageAlarm(dataInterface, dataLimit, callback) {
   }
 }
 
+function sendBalanceThresholdNotification(remaining, settings, callback) {
+  var handlerContainer = document.getElementById('message-handler');
+  if (handlerContainer) {
+    handlerContainer.contentWindow
+      .sendBalanceThresholdNotification(remaining, settings, callback);
+  }
+}
+
 // Next automatic reset date based on user preferences
 function updateNextReset(trackingPeriod, value, callback) {
   if (trackingPeriod === 'never') {

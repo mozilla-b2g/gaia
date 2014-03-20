@@ -242,6 +242,7 @@
       ConfigManager.setOption(update, callback);
     };
   }
+  window.sendBalanceThresholdNotification = sendBalanceThresholdNotification;
 
   // When receiving an alarm, differenciate by type and act
   function _onAlarm(alarm) {
