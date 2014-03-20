@@ -72,7 +72,6 @@ apps/system/style/window.css 0 1
 apps/system/style/zindex.css 0 1
 apps/system/style/sound_manager/sound_manager.css 1 3
 apps/system/style/lockscreen/lockscreen.css 0 2
-apps/system/style/statusbar/statusbar.css 0 1
 apps/system/style/system/system.css 0 4
 apps/system/style/system/keyboard.css 0 1
 apps/sms/style/root.css 0 2
