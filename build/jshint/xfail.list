@@ -246,7 +246,6 @@ apps/communications/dialer/js/mmi_ui.js
 apps/communications/dialer/js/newsletter_manager.js
 apps/communications/dialer/js/oncall.js
 apps/communications/dialer/js/phone_action_menu.js
-apps/communications/dialer/js/suggestion_bar.js
 apps/communications/dialer/js/tone_player.js
 apps/communications/dialer/js/utils.js
 apps/communications/dialer/js/voicemail.js
@@ -281,7 +280,6 @@ apps/communications/dialer/test/unit/mock_moztelephony.js
 apps/communications/dialer/test/unit/mock_simple_phone_matcher.js
 apps/communications/dialer/test/unit/mock_utils.js
 apps/communications/dialer/test/unit/simple_phone_matcher_test.js
-apps/communications/dialer/test/unit/suggestion_bar_test.js
 apps/communications/dialer/test/unit/utils_test.js
 apps/communications/dialer/test/unit/voicemail_test.js
 apps/communications/facebook/js/console.js
