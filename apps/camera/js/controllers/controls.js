@@ -41,6 +41,7 @@ ControlsController.prototype.bindEvents = function() {
   this.app.on('camera:timeupdate', this.controls.setVideoTimer);
   this.controls.on('click:capture', this.app.firer('capture'));
   this.controls.on('click:gallery', this.onGalleryButtonClick);
+  this.controls.on('click:thumbnail', this.app.firer('preview'));
   this.controls.on('click:switch', this.app.settings.mode.next);
   this.controls.on('click:cancel', this.onCancelButtonClick);
   this.app.on('timer:started', this.controls.disable);

@@ -111,5 +111,11 @@ suite.skip('controllers/controls', function() {
       assert.ok(controls.set.calledWith('mode', 'video'));
       controls.set.reset();
     });
+
+    test('Should call the preview when click on thumbnail', function() {
+      this.controller = new this.ControlsController(this.app);
+      this.controller.bindEvents();
+      assert.ok(this.app.views.controls.on.calledWith('click:thumbnail'));
+    });
   });
 });
