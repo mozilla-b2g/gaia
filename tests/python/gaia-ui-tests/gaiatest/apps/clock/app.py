@@ -14,7 +14,6 @@ class Clock(Base):
 
     name = 'Clock'
 
-    _alarm_view_locator = (By.ID, 'edit-alarm')
     _alarm_create_new_locator = (By.ID, 'alarm-new')
     _analog_clock_display_locator = (By.ID, 'analog-clock')
     _digital_clock_display_locator = (By.ID, 'digital-clock')
@@ -24,7 +23,8 @@ class Clock(Base):
 
     def launch(self):
         Base.launch(self)
-        self.wait_for_new_alarm_button()
+        self.wait_for_element_displayed(*self._analog_clock_display_locator)
+        self.wait_for_element_displayed(*self._alarm_create_new_locator)
         # Desperate attempt to bust the intermittency :(
         time.sleep(1)
 
@@ -57,9 +57,6 @@ class Clock(Base):
         # We can't tap to clear the banner as sometimes it taps the underlying alarm changing the UI
         self.wait_for_element_not_displayed(
             *self._banner_countdown_notification_locator)
-
-    def wait_for_new_alarm_button(self):
-        self.wait_for_element_displayed(*self._alarm_create_new_locator)
 
     def tap_analog_display(self):
         self.wait_for_element_displayed(*self._analog_clock_display_locator)
