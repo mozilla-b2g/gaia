@@ -15,51 +15,46 @@ textarea {
   width: 100%;
   height: 4rem;
   resize: none;
-  padding: 0 1.5rem;
+  padding: 0.3rem 1.5rem 0;
   font-size: 1.6rem;
-  line-height: 4rem;
   border: 0;
-  border-bottom: 0.1rem solid #d7dee4;
+  border: 0.1rem solid #c7c7c7;
   border-radius: 0;
   box-shadow: none; /* override the box-shadow from the system (performance issue) */
   color: #333;
-  background: url(input_areas/images/ui/input.png) no-repeat bottom left,
-    url(input_areas/images/ui/input.png) no-repeat bottom right;
-  background-color: transparent;
-  background-size: 0.1rem 1.2rem;
-  margin: 0 0 0.5rem 0;
+  background: #fff;
+  margin: 0 0 1rem 0;
 }
 
 textarea {
   height: 10rem;
   max-height: 10rem;
   line-height: 2rem;
-  margin: 0;
-  border-top: 0.1rem solid #d7dee4;
-}
-
-input:focus,
-textarea:focus {
-  border-color: #00aacc;
-  background-image: url(input_areas/images/ui/input_focus.png),
-    url(input_areas/images/ui/input_focus.png);
 }
 
 /* fix for required inputs with wrong or empty value e.g. [type=email] */
 input:invalid,
 textarea:invalid {
-  border-color: #820000;
-  background-image: url(input_areas/images/ui/input_invalid.png),
-    url(input_areas/images/ui/input_invalid.png);
+  border-bottom: 0.2rem solid #820000;
   color: #b90000;
+}
+
+input:focus,
+textarea:focus {
+  border-bottom: 0.2rem solid #00caf2;
 }
 
 input::-moz-placeholder,
 textarea::-moz-placeholder {
-  color: #a6a6a6;
+  color: #a9a9a9;
   opacity: 1;
   font-style: italic;
   font-weight: 400;
+}
+
+input[disabled],
+textarea[disabled] {
+  opacity: 0.5;
 }
 
 .skin-dark input[type="text"],
@@ -71,9 +66,18 @@ textarea::-moz-placeholder {
 .skin-dark input[type="number"],
 .skin-dark textarea  {
   color: #fff;
-  background-image: url(input_areas/images/ui/input_dark.png),
-    url(input_areas/images/ui/input_dark.png);
+  background: transparent;
   border-color: #858585;
+}
+
+.skin-dark input:focus,
+.skin-dark textarea:focus  {
+  border-bottom: 0.2rem solid #00caf2;
+}
+
+.skin-dark input:invalid,
+.skin-dark textarea:invalid {
+  border-bottom: 0.2rem solid #820000;
 }
 
 form p {
@@ -82,12 +86,10 @@ form p {
 }
 
 form p input + button[type="reset"],
-form p textarea + button[type="reset"],
-form p input + button.reset,
-form p textarea + button.reset {
+form p textarea + button[type="reset"] {
   position: absolute;
   top: 0;
-  right: 0;
+  right: -0.3rem;
   width: 4rem;
   height: 4rem;
   padding: 0;
@@ -95,31 +97,19 @@ form p textarea + button.reset {
   font-size: 0;
   opacity: 0;
   pointer-events: none;
-  background: url(input_areas/images/icons/clear.png) no-repeat center / 1.7rem;
+  background: url(input_areas/images/clear.svg) no-repeat center / 3rem;
 }
 
 
 .skin-dark p input + button[type="reset"],
-.skin-dark p textarea + button[type="reset"],
-.skin-dark p input + button.reset,
-.skin-dark p textarea + button.reset {
-  background-image: url(input_areas/images/icons/clear-dark.png);
+.skin-dark p textarea + button[type="reset"] {
+  background-image: url(input_areas/images/clear_dark.svg);
 }
 
 /* To avoid colission with BB butons */
 li input + button[type="reset"]:after,
-li textarea + button[type="reset"]:after,
-li input + button.reset:after,
-li textarea + button.reset:after {
+li textarea + button[type="reset"]:after {
   background: none;
-}
-
-form p input + button[type="reset"],
-form p textarea + button[type="reset"],
-form p input + button.reset,
-form p textarea + button.reset {
-  top: 0;
-  margin: 0;
 }
 
 textarea {
@@ -127,9 +117,7 @@ textarea {
 }
 
 form p input:focus + button[type="reset"],
-form p textarea:focus + button[type="reset"],
-form p input:focus + button.reset,
-form p textarea:focus + button.reset {
+form p textarea:focus + button[type="reset"] {
   opacity: 1;
   pointer-events: all;
 }
@@ -138,40 +126,53 @@ form p textarea:focus + button.reset {
 fieldset {
   position: relative;
   overflow: hidden;
-  margin: 1rem 0;
+  margin: 1.5rem 0 0 0;
   padding: 0;
-  border: 0;
   font-size: 2rem;
   line-height: 1em;
   background: none;
+  border: 0;
 }
 
-fieldset legend {
-  border: 0.1rem solid #d7dee4;
+fieldset legend,
+input[type="date"],
+input[type="time"],
+input[type="datetime"],
+input[type="datetime-local"] {
+  border: 0.1rem solid #c7c7c7;
   width: 100%;
   -moz-box-sizing: border-box;
   font-family: sans-serif;
   font-style: italic;
   font-size: 1.6rem;
-  color: #00aacc;
-  margin: 0 0 0.5rem;
-  padding: 1rem 1.5rem 0;
+  margin: 0 0 1.5rem;
+  padding: 0 1.5rem;
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
   height: 4rem;
-  color: #00aacc;
-  background: url(input_areas/images/ui/dialog.svg) no-repeat calc(100% - 1rem) calc(100% - 1rem);
+  color: #333;
+  border-radius: 0;
+  background: #fff url(input_areas/images/dialog.svg) no-repeat calc(100% - 1rem) calc(100% - 1rem);
+}
+
+fieldset legend {
+  margin: 0 0 1rem;
+  padding: 1rem 1.5rem 0;
+  background-color: rgba(0,0,0,0.05);
 }
 
 fieldset[disabled] {
-  opacity: 0.6;
+  opacity: 0.5;
   pointer-events: none;
 }
 
-fieldset[disabled] legend {
-  color: rgba(51, 51, 51, 0.5);
-  background-image: url(input_areas/images/ui/dialog_disabled.svg);
+fieldset[disabled] legend,
+input[type="date"][disabled],
+input[type="time"][disabled],
+input[type="datetime"][disabled],
+input[type="datetime-local"][disabled] {
+  background-image: url(input_areas/images/dialog_disabled.svg);
 }
 
 /* Tidy (search/submit) */
@@ -182,7 +183,7 @@ form[role="search"] {
 }
 
 form[role="search"].skin-dark {
-  background: #333;
+  background: #202020;
 }
 
 form[role="search"] p {
@@ -205,20 +206,22 @@ form[role="search"] p textarea {
 }
 
 form[role="search"] p input::-moz-placeholder {
-  background: url(input_areas/images/icons/search.png) right center no-repeat;
-  background-size: 1.6rem;
+  background: url(input_areas/images/search.svg) right -0.5rem center no-repeat;
+  background-size: 3rem;
 }
 
 form[role="search"].skin-dark p input::-moz-placeholder {
-  background-image: url(input_areas/images/icons/search-dark.png);
+  background-image: url(input_areas/images/search_dark.svg);
 }
 
 form[role="search"] p input:focus::-moz-placeholder {
   background: none;
 }
 
-form[role="search"] p input:invalid, 
-form[role="search"] p textarea:invalid {
+form[role="search"] p input:invalid,
+form[role="search"] p textarea:invalid,
+form[role="search"] p input:focus,
+form[role="search"] p textarea:focus {
   border: none;
 }
 
@@ -234,7 +237,7 @@ form[role="search"] button[type="submit"] {
   height: 3.7rem;
   padding: 0 1.5rem;
   border: none;
-  color: #00AACC;
+  color: #00aac5;
   font-weight: normal;
   font-size: 1.6rem;
   line-height: 3.7rem;
@@ -257,9 +260,9 @@ form[role="search"] button[type="submit"]:after {
   background: #c7c7c7;
 }
 
-form[role="search"] p input + button[type="reset"],
-form[role="search"] p input + button.reset{
+form[role="search"] p input + button[type="reset"]{
   height: 3.7rem;
+  right: 0.5rem;
 }
 
 form[role="search"].skin-dark button[type="submit"]:after {
@@ -300,27 +303,40 @@ form button::-moz-focus-inner {
  */
 
 html[dir="rtl"] fieldset legend {
-  background: url(input_areas/images/ui/dialog_rtl.svg) no-repeat 1rem calc(100% - 1rem);
+  background: rgba(0,0,0,0.05) url(input_areas/images/dialog_rtl.svg) no-repeat 1rem calc(100% - 1rem);
 }
 
-html[dir="rtl"] fieldset[disabled] legend {
-  background-image: url(input_areas/images/ui/dialog_disabled_rtl.svg);
+html[dir="rtl"] input[type="date"],
+html[dir="rtl"] input[type="time"],
+html[dir="rtl"] input[type="datetime"],
+html[dir="rtl"] input[type="datetime-local"] {
+  background: #fff url(input_areas/images/dialog_rtl.svg) no-repeat 1rem calc(100% - 1rem);
+}
+
+html[dir="rtl"] fieldset[disabled] legend,
+html[dir="rtl"] input[type="date"][disabled],
+html[dir="rtl"] input[type="time"][disabled],
+html[dir="rtl"] input[type="datetime"][disabled],
+html[dir="rtl"] input[type="datetime-local"][disabled] {
+  background-image: url(input_areas/images/dialog_disabled_rtl.svg);
 }
 
 html[dir="rtl"] form p input + button[type="reset"],
-html[dir="rtl"] form p textarea + button[type="reset"],
-html[dir="rtl"] form p input + button.reset,
-html[dir="rtl"] form p textarea + button.reset {
+html[dir="rtl"] form p textarea + button[type="reset"] {
   right: auto;
-  left: 0;
+  left: -0.3rem;
 }
 
 html[dir="rtl"] form[role="search"] p {
   padding: 0 3rem 0 1.5rem;
 }
 
+html[dir="rtl"] form[role="search"] p input + button[type="reset"]{
+  left: 0.5rem;
+}
+
 html[dir="rtl"] form[role="search"] p input::-moz-placeholder {
-  background-position: 0 center;
+  background-position: -0.5rem center;
 }
 
 html[dir="rtl"] form[role="search"] button[type="submit"] {

@@ -15,7 +15,7 @@
       margin: 0;
       padding: 0;
       font-size: 10px;
-      background-color: #fff;
+      background-color: #f4f4f4;
     }
 
     label.bb-docs {
@@ -32,7 +32,7 @@
       color: #666;
       font-size: 1.8rem;
       font-weight: lighter;
-      background-color: #f5f5f5;
+      background-color: #fff;
     }
 
     form { margin: 1rem 1.5rem; }
@@ -40,9 +40,12 @@
     form[role="search"] { margin: 1rem 0; }
 
     div.skin-dark {
-      background: #333;
+      background: #000;
+    }
+
+    div.skin-dark.margins {
       margin: 1rem -1.5rem;
-      padding: 1rem 1.5rem;
+      padding: 1.5rem 1.5rem 0.5rem;
     }
   </style>
   <script>
@@ -63,12 +66,12 @@
   <h2 class="bb-docs">Default inputs</h2>
   <form>
     <p>
-      <input type="text" placeholder="Placeholder" required>
+      <input type="text" placeholder="Placeholder">
       <button type="reset">Clear</button>
     </p>
 
     <p>
-      <textarea placeholder="Placeholder in textarea" required></textarea>
+      <textarea placeholder="Placeholder in textarea"></textarea>
     </p>
 
     <p>
@@ -76,7 +79,12 @@
       <button type="reset">Clear</button>
     </p>
 
-    <div class="skin-dark">
+    <p>
+      <input type="text" placeholder="Disabled" disabled required>
+      <button type="reset">Clear</button>
+    </p>
+
+    <div class="skin-dark margins">
       <p>
         <input type="text" placeholder="Placeholder" value="Some written text">
         <button type="reset">Clear</button>
@@ -84,17 +92,40 @@
     </div>
   </form>
 
+  <h2 class="bb-docs">Required inputs</h2>
+  <form>
+    <p>
+      <input type="text" placeholder="Placeholder" required>
+      <button type="reset">Clear</button>
+    </p>
+
+    <p>
+      <textarea placeholder="Placeholder in textarea" required></textarea>
+    </p>
+  </form>
+
+  <h2 class="bb-docs">Date/time inputs</h2>
+  <form>
+    <p>
+      <input disabled type="date" placeholder="YYYY-MM-DD">
+    </p>
+
+    <p>
+      <input type="time" placeholder="hh:mm:ss">
+    </p>
+  </form>
+
   <h2 class="bb-docs">Fieldset</h2>
-   <form>
+  <form>
     <fieldset>
       <legend class="action">Mobile</legend>
       <section>
         <p>
-          <input type="tel" placeholder="Phone number" required>
+          <input type="tel" placeholder="Phone number">
           <button type="reset">Clear</button>
         </p>
         <p>
-          <input type="text" placeholder="Name" value="Jessy James" required>
+          <input type="text" placeholder="Name" value="Jessy James">
           <button type="reset">Clear</button>
         </p>
       </section>
@@ -104,18 +135,17 @@
       <legend>Work</legend>
       <section>
         <p>
-          <input type="tel" placeholder="Email" required>
+          <input type="tel" placeholder="Email">
           <button type="reset">Clear</button>
         </p>
       </section>
     </fieldset>
-   </form>
+  </form>
 
   <h2 class="bb-docs">Forms: Input text</h2>
-
   <form role="search">
     <p>
-      <input type="text" placeholder="Search..." required>
+      <input type="text" placeholder="Search...">
       <button type="reset">Clear</button>
     </p>
   </form>
@@ -123,40 +153,42 @@
   <form role="search">
     <button type="submit">Cancel</button>
     <p>
-      <input type="text" placeholder="Search..." required value="Some text here">
+      <input type="text" placeholder="Search..." value="Some text here">
       <button type="reset">Clear</button>
     </p>
   </form>
 
-  <form role="search" class="skin-dark">
-    <p>
-      <input type="text" placeholder="Search..." required>
-      <button type="reset">Clear</button>
-    </p>
-  </form>
+  <div class="skin-dark">
+  <h2 class="bb-docs">Skin dark</h2>
+    <form role="search" class="skin-dark">
+      <p>
+        <input type="text" placeholder="Search...">
+        <button type="reset">Clear</button>
+      </p>
+    </form>
 
-  <form role="search" class="skin-dark">
-    <button type="submit">Cancel</button>
-    <p>
-      <input type="text" placeholder="Search..." required value="Some text here">
-      <button type="reset">Clear</button>
-    </p>
-  </form>
+    <form role="search" class="skin-dark">
+      <button type="submit">Cancel</button>
+      <p>
+        <input type="text" placeholder="Search..." value="Some text here">
+        <button type="reset">Clear</button>
+      </p>
+    </form>
+  </div>
 
   <h2 class="bb-docs">Forms: Text area</h2>
-
   <form role="search" class="bottom">
     <!-- this button should be enabled after start typing in the input field-->
     <button type="submit" disabled>Send</button>
     <p>
-      <textarea required></textarea>
+      <textarea></textarea>
     </p>
   </form>
 
   <form role="search" class="bottom">
     <button type="submit">Send</button>
     <p>
-      <textarea required>Some text here</textarea>
+      <textarea>Some text here</textarea>
     </p>
   </form>
 
