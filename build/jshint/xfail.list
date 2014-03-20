@@ -740,6 +740,7 @@ apps/system/js/permission_manager.js
 apps/system/js/popup_manager.js
 apps/system/js/quick_settings.js
 apps/system/js/screen_manager.js
+apps/system/js/screenshot.js
 apps/system/js/sheets_transition.js
 apps/system/js/shrinking_ui.js
 apps/system/js/sim_lock.js

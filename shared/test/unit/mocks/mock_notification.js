@@ -1,9 +1,5 @@
 'use strict';
 
-/**
- * This mock partly implements a Web Notification contructor, see
- * https://developer.mozilla.org/en-US/docs/Web/API/notification
- */
 function MockNotification(title, options) {
   this.id = options.id || 0;
   this.title = title;

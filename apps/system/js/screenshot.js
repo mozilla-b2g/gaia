@@ -1,219 +1,118 @@
-'use strict';
+// screenshot.js: system screenshot module
+//
+// This system module takes a screenshot of the currently running app
+// or homescreen and stores it with DeviceStorage when the user
+// presses the home and sleep buttons at the same time. It communicates
+// with gecko code running in b2g/chrome/content/shell.js using a private
+// event-based API. It is the gecko code that creates the screenshot.
+//
+// This script must be used with the defer attribute.
+//
+//
+(function() {
+  window.addEventListener('home+sleep', takeScreenshot);
 
-(function(exports) {
+  // Assume that the maximum screenshot size is 4 bytes per pixel
+  // plus a bit extra. In practice, with compression, our PNG files will be
+  // much smaller than this.
+  var MAX_SCREENSHOT_SIZE = window.innerWidth * window.innerHeight * 4 + 4096;
 
-  /**
-  * This system module takes a screenshot of the currently running app
-  * or homescreen and stores it with DeviceStorage when the user
-  * presses the home and sleep buttons at the same time. It communicates
-  * with gecko code running in b2g/chrome/content/shell.js using a private
-  * event-based API. It is the gecko code that creates the screenshot.
-  *
-  * This script must be used with the defer attribute.
-  *
-  * @class Screenshot
-  *
-  */
-  function Screenshot() {
-    this._started = false;
+  function takeScreenshot() {
+    // Give feedback that the screenshot request was received
+    navigator.vibrate(100);
+
+    // We don't need device storage here, but check to see that
+    // it is available before sending the screenshot request to chrome.
+    // If device storage is available, the callback will be called.
+    // Otherwise, an error message notification will be displayed.
+    getDeviceStorage(function() {
+      // Let chrome know we'd like a screenshot.
+      // This is a completely non-standard undocumented API
+      // for communicating with our chrome code.
+      var screenshotProps = {
+        detail: {
+          type: 'take-screenshot'
+        }
+      };
+      window.dispatchEvent(new CustomEvent('mozContentEvent', screenshotProps));
+    });
   }
 
-  Screenshot.prototype = {
-    /** @lends Screenshot */
+  // Display a screenshot success or failure notification.
+  // Localize the first argument, and localize the third if the second is null
+  function notify(titleid, body, bodyid) {
+    var title = navigator.mozL10n.get(titleid) || titleid;
+    body = body || navigator.mozL10n.get(bodyid);
+    navigator.mozNotification.createNotification(
+      title, body, 'style/icons/Gallery.png').show();
+  }
 
-    /**
-     * Assumption for making sure we have enough space to save the image.
-     *
-     * Assume that the maximum screenshot size is 4 bytes per device pixel
-     * plus a bit extra. In practice, with compression, our PNG files will be
-     * much smaller than this.
-     *
-     * @type {Number}
-     * @memberof Screenshot.prototype
-     */
-    MAX_SCREENSHOT_SIZE:
-      window.innerWidth * window.devicePixelRatio *
-      window.innerHeight * window.devicePixelRatio * 4 + 4096,
-
-    /**
-     * Start to handle screenshot events.
-     * @memberof Screenshot.prototype
-     */
-    start: function() {
-      if (this._started) {
-        throw 'Instance should not be start()\'ed twice.';
+  // Get a DeviceStorage object and pass it to the callback.
+  // Or, if device storage is not available, display a notification.
+  function getDeviceStorage(callback) {
+    var storage = navigator.getDeviceStorage('pictures');
+    var availreq = storage.available();
+    availreq.onsuccess = function() {
+      var state = availreq.result;
+      if (state === 'unavailable') {
+        notify('screenshotFailed', null, 'screenshotNoSDCard');
       }
-      this._started = true;
-
-      window.addEventListener('home+sleep', this);
-      window.addEventListener('mozChromeEvent', this);
-    },
-
-    /**
-     * Stop handling screenshot events.
-     * @memberof Screenshot.prototype
-     */
-    stop: function() {
-      if (!this._started) {
-        throw 'Instance was never start()\'ed but stop() is called.';
+      else if (state === 'shared') {
+        notify('screenshotFailed', null, 'screenshotSDCardInUse');
       }
-      this._started = false;
-
-      window.removeEventListener('home+sleep', this);
-      window.removeEventListener('mozChromeEvent', this);
-    },
-
-    /**
-     * Handle screenshot events.
-     * @param  {DOMEvent} evt DOM Event to handle.
-     * @memberof Screenshot.prototype
-     */
-    handleEvent: function(evt) {
-      switch (evt.type) {
-        case 'home+sleep':
-          this.takeScreenshot();
-          break;
-
-        case 'mozChromeEvent':
-          if (evt.detail.type === 'take-screenshot-success') {
-            this.handleTakeScreenshotSuccess(evt.detail.file);
-          } else if (evt.detail.type === 'take-screenshot-error') {
-            this._notify('screenshotFailed', evt.detail.error);
+      else if (state === 'available') {
+        var freereq = storage.freeSpace();
+        freereq.onsuccess = function() {
+          if (freereq.result < MAX_SCREENSHOT_SIZE) {
+            notify('screenshotFailed', null, 'screenshotSDCardLow');
           }
-          break;
-      }
-    },
-
-    /**
-     * Actually take a screenshot (by do some check and send a mozContentEvent.)
-     * @memberof Screenshot.prototype
-     */
-    takeScreenshot: function() {
-      // Give feedback that the screenshot request was received
-      navigator.vibrate(100);
-
-      // We don't need device storage here, but check to see that
-      // it is available before sending the screenshot request to chrome.
-      // If device storage is available, the callback will be called.
-      // Otherwise, an error message notification will be displayed.
-      this._getDeviceStorage(function() {
-        // Let chrome know we'd like a screenshot.
-        // This is a completely non-standard undocumented API
-        // for communicating with our chrome code.
-        var screenshotProps = {
-          detail: {
-            type: 'take-screenshot'
+          else {
+            callback(storage);
           }
         };
-        window.dispatchEvent(
-          new CustomEvent('mozContentEvent', screenshotProps));
-      });
-    },
+        freereq.onerror = function() {
+          notify('screenshotFailed', freereq.error && freereq.error.name);
+        };
+      }
+    };
+    availreq.onerror = function() {
+      notify('screenshotFailed', availreq.error && availreq.error.name);
+    };
+  }
 
-    /**
-     * Handle the take-screenshot-success mozChromeEvent.
-     * @param  {Blob} file Blob object received from the event.
-     * @memberof Screenshot.prototype
-     */
-    handleTakeScreenshotSuccess: function(file) {
-      try {
-        this._getDeviceStorage(function(storage) {
+  // Handle the event we get from chrome with the screenshot
+  window.addEventListener('mozChromeEvent', function ss_onMozChromeEvent(e) {
+    try {
+      if (e.detail.type === 'take-screenshot-success') {
+        getDeviceStorage(function(storage) {
           var d = new Date();
           d = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
           var filename = 'screenshots/' +
-            d.toISOString().slice(0, -5).replace(/[:T]/g, '-') + '.png';
+            d.toISOString().slice(0, -5).replace(/[:T]/g, '-') +
+            '.png';
 
-          var saveRequest = storage.addNamed(file, filename);
+          var saveRequest = storage.addNamed(e.detail.file, filename);
 
-          saveRequest.onsuccess = (function ss_onsuccess() {
+          saveRequest.onsuccess = function ss_onsuccess() {
             // Vibrate again when the screenshot is saved
             navigator.vibrate(100);
 
             // Display filename in a notification
-            this._notify('screenshotSaved', filename);
-          }).bind(this);
+            notify('screenshotSaved', filename);
+          };
 
-          saveRequest.onerror = (function ss_onerror() {
-            this._notify('screenshotFailed', saveRequest.error.name);
-          }).bind(this);
+          saveRequest.onerror = function ss_onerror() {
+            notify('screenshotFailed', saveRequest.error.name);
+          };
         });
-      } catch (e) {
-        console.log('exception in screenshot handler', e);
-        this._notify('screenshotFailed', e.toString());
       }
-    },
-
-    /**
-     * Get a DeviceStorage object and pass it to the callback.
-     * Or, if device storage is not available, display a notification.
-     * @param {Function} callback Callback to run.
-     * @memberof Screenshot.prototype
-     */
-    _getDeviceStorage: function(callback) {
-      var storage = navigator.getDeviceStorage('pictures');
-      var availreq = storage.available();
-
-      availreq.onsuccess = (function() {
-        var state = availreq.result;
-        if (state === 'unavailable') {
-          this._notify('screenshotFailed', null, 'screenshotNoSDCard');
-        }
-        else if (state === 'shared') {
-          this._notify('screenshotFailed', null, 'screenshotSDCardInUse');
-        }
-        else if (state === 'available') {
-          var freereq = storage.freeSpace();
-          freereq.onsuccess = (function() {
-            if (freereq.result < this.MAX_SCREENSHOT_SIZE) {
-              this._notify('screenshotFailed', null, 'screenshotSDCardLow');
-            } else {
-              callback.call(this, storage);
-            }
-          }).bind(this);
-          freereq.onerror = (function() {
-            this._notify(
-              'screenshotFailed', freereq.error && freereq.error.name);
-          }).bind(this);
-        }
-      }).bind(this);
-
-      availreq.onerror = (function() {
-        this._notify(
-          'screenshotFailed', availreq.error && availreq.error.name);
-      }).bind(this);
-    },
-
-    /**
-     * Display a screenshot success or failure notification.
-     * Localize the first argument, and localize the third if the second is null
-     * @param  {String} titleid l10n ID of the string to show.
-     * @param  {String} body    Label to show as body, or null.
-     * @param  {String} bodyid  l10n ID of the label to show as body.
-     * @memberof Screenshot.prototype
-     */
-    _notify: function notify(titleid, body, bodyid) {
-      var title = navigator.mozL10n.get(titleid) || titleid;
-      body = body || navigator.mozL10n.get(bodyid);
-      var notification = new window.Notification(title, {
-        body: body,
-        icon: 'style/icons/Gallery.png'
-      });
-
-      // We had to do something here, or jshint will complain about either
-      // an unused variable (notification) or
-      // a consturctor with side effect (Notification).
-      notification.onclick = function noop() {
-      };
+      else if (e.detail.type === 'take-screenshot-error') {
+        notify('screenshotFailed', e.detail.error);
+      }
     }
-  };
-
-  exports.Screenshot = Screenshot;
-
-  // XXX: We initialize ourselves here for now to avoid conflicts with other
-  // system2 stage1 patches. This instance is de-initalized in unit tests.
-  // We should move the initalization to somewhere sane (maybe System module)
-  // in the future.
-  exports.screenshot = new Screenshot();
-  exports.screenshot.start();
-
-}(window));
+    catch (e) {
+      console.log('exception in screenshot handler', e);
+      notify('screenshotFailed', e.toString());
+    }
+  });
+}());

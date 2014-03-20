@@ -2,38 +2,11 @@
 
 (function() {
 
-  var MockDeviceStorage = {
+  var DeviceStorage = {
     _listeners: {},
     _freeSpace: 0,
-    _availableState: 'available',
 
     freeSpace: function freeSpace() {
-      var request = {};
-
-      setTimeout((function nextTick() {
-        if (request.onsuccess) {
-          request.result = this._freeSpace;
-          request.onsuccess();
-        }
-      }).bind(this));
-
-      return request;
-    },
-
-    available: function available() {
-      var request = {};
-
-      setTimeout((function nextTick() {
-        if (request.onsuccess) {
-          request.result = this._availableState;
-          request.onsuccess();
-        }
-      }).bind(this));
-
-      return request;
-    },
-
-    addNamed: function addNamed(file, filename) {
       var request = {};
 
       setTimeout((function nextTick() {
@@ -52,7 +25,7 @@
   };
 
   function mockGetDeviceStorage() {
-    return MockDeviceStorage;
+    return DeviceStorage;
   }
 
   window.MockNavigatorGetDeviceStorage = mockGetDeviceStorage;
