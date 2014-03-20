@@ -7,7 +7,7 @@ mocha.globals(['SettingsListener', 'removeEventListener', 'addEventListener',
       'SoftwareButtonManager', 'AttentionScreen', 'AppWindow',
       'lockScreen', 'OrientationManager', 'BrowserFrame',
       'BrowserConfigHelper', 'System', 'BrowserMixin', 'TransitionMixin',
-      'HomescreenLauncher', 'LayoutManager']);
+      'HomescreenLauncher', 'layoutManager']);
 
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 requireApp('system/test/unit/mock_lock_screen.js');
@@ -44,6 +44,7 @@ suite('system/AppWindowManager', function() {
 
     window.lockScreen = MockLockScreen;
     window.activityWindowFactory = MockActivityWindowFactory;
+    window.layoutManager = new LayoutManager().start();
 
     home = new HomescreenWindow('fakeHome');
     MockHomescreenLauncher.mHomescreenWindow = home;
@@ -63,6 +64,9 @@ suite('system/AppWindowManager', function() {
   });
 
   teardown(function() {
+    delete window.layoutManager;
+    delete window.lockScreen;
+    delete window.activityWindowFactory;
     stubById.restore();
   });
 

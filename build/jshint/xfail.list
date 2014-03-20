@@ -687,7 +687,6 @@ apps/system/js/app_authentication_dialog.js
 apps/system/js/app_chrome.js
 apps/system/js/app_install_manager.js
 apps/system/js/app_modal_dialog.js
-apps/system/js/app_transition_controller.js
 apps/system/js/app_window_factory.js
 apps/system/js/app_window_manager.js
 apps/system/js/applications.js
@@ -722,7 +721,6 @@ apps/system/js/identity.js
 apps/system/js/init_logo_handler.js
 apps/system/js/internet_sharing.js
 apps/system/js/keyboard_manager.js
-apps/system/js/layout_manager.js
 apps/system/js/lockscreen_connection_info_manager.js
 apps/system/js/media_playback.js
 apps/system/js/media_recording.js
@@ -747,7 +745,7 @@ apps/system/js/simslot.js
 apps/system/js/simslot_manager.js
 apps/system/js/sleep_menu.js
 apps/system/js/software_button_manager.js
-apps/system/js/sound_manager.js
+apps/system/js/source_view.js
 apps/system/js/stack_manager.js
 apps/system/js/statusbar.js
 apps/system/js/storage_watcher.js
@@ -784,7 +782,6 @@ apps/system/test/unit/app_authentication_dialog_test.js
 apps/system/test/unit/app_chrome_test.js
 apps/system/test/unit/app_install_manager_test.js
 apps/system/test/unit/app_modal_dialog_test.js
-apps/system/test/unit/app_transition_controller_test.js
 apps/system/test/unit/app_window_factory_test.js
 apps/system/test/unit/app_window_manager_test.js
 apps/system/test/unit/app_window_test.js
@@ -824,7 +821,6 @@ apps/system/test/unit/iac_handler_test.js
 apps/system/test/unit/identity_test.js
 apps/system/test/unit/internet_sharing_test.js
 apps/system/test/unit/keyboard_helper_test.js
-apps/system/test/unit/layout_manager_test.js
 apps/system/test/unit/lockscreen_conn_info_manager_test.js
 apps/system/test/unit/lockscreen_test.js
 apps/system/test/unit/media_recording_test.js

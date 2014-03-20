@@ -18,12 +18,14 @@ requireApp('system/test/unit/mock_homescreen_launcher.js');
 requireApp('system/test/unit/mock_places.js');
 requireApp('system/test/unit/mock_remote_debugger.js');
 requireApp('system/test/unit/mock_screen_manager.js');
+requireApp('system/test/unit/mock_sound_manager.js');
 requireApp('system/test/unit/mock_source_view.js');
 requireApp('system/test/unit/mock_storage.js');
 requireApp('system/test/unit/mock_telephony_settings.js');
 requireApp('system/test/unit/mock_ttl_view.js');
 requireApp('system/test/unit/mock_title.js');
 requireApp('system/test/unit/mock_visibility_manager.js');
+requireApp('system/test/unit/mock_layout_manager.js');
 
 mocha.globals([
   'Shortcuts',
@@ -38,12 +40,14 @@ mocha.globals([
   'dialerRinger',
   'remoteDebugger',
   'sourceView',
+  'soundManager',
   'storage',
   'telephonySettings',
   'ttlView',
   'title',
   'ActivityWindowFactory',
-  'visibilityManager'
+  'visibilityManager',
+  'layoutManager'
 ]);
 
 var mocksForBootstrap = new MocksHelper([
@@ -58,12 +62,14 @@ var mocksForBootstrap = new MocksHelper([
   'ScreenManager',
   'SettingsListener',
   'SettingsURL',
+  'SoundManager',
   'SourceView',
   'Storage',
   'TelephonySettings',
   'TTLView',
   'Title',
-  'VisibilityManager'
+  'VisibilityManager',
+  'LayoutManager'
 ]).init();
 
 suite('system/Bootstrap', function() {

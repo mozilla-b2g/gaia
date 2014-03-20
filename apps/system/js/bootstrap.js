@@ -67,6 +67,7 @@ window.addEventListener('load', function startup() {
   window.devtoolsView = new DevtoolsView();
   window.dialerRinger = new DialerRinger().start();
   window.remoteDebugger = new RemoteDebugger();
+  window.soundManager = new SoundManager().start();
 
   window.telephonySettings = new TelephonySettings();
   window.telephonySettings.start();
@@ -74,6 +75,7 @@ window.addEventListener('load', function startup() {
   window.title = new Title();
   window.ttlView = new TTLView();
   window.visibilityManager = new VisibilityManager().start();
+  window.layoutManager = new LayoutManager().start();
 
   // We need to be sure to get the focus in order to wake up the screen
   // if the phone goes to sleep before any user interaction.
