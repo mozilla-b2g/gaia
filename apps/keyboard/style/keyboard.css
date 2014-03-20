@@ -132,7 +132,7 @@ button::-moz-focus-inner {
   line-height: 5.6rem;
   border-radius: 50%;
   background-color: #00aacc;
-  opacity: 0;
+  visibility: hidden;
 }
 
 .keyboard-key.highlighted {
@@ -150,8 +150,8 @@ button::-moz-focus-inner {
 
 /* Show the bubble text when the button is highlighted. */
 .keyboard-key.highlighted > .visual-wrapper > span:after {
-  opacity: 1;
   z-index: 1;
+  visibility: visible;
 }
 
 .keyboard-key.highlighted.kbr-menu-on > .visual-wrapper > span:after {
