@@ -47,11 +47,6 @@ suite('value selector/value selector', function() {
     element = document.getElementById('value-selector');
   });
 
-  teardown(function() {
-    // remove classes added by tests
-    timePickerContainer.className = 'picker-container';
-  });
-
   test('show', function() {
     ValueSelector.show();
     assert.isFalse(element.hidden);
@@ -90,4 +85,20 @@ suite('value selector/value selector', function() {
     assert.ok(timePickerContainer.classList.contains('format12hrev'));
   });
 
+  test('Time Picker reset at language change', function() {
+    // start with 12h format
+    stubMozl10nGet =
+      this.sinon.stub(navigator.mozL10n, 'get').returns('%I:%M %p');
+    TimePicker.initTimePicker();
+    assert.ok(timePickerContainer.classList.contains('format12h'));
+    stubMozl10nGet.restore();
+
+    // change to 24h format
+    ValueSelector._timePickerInitialized = false;
+    TimePicker.uninitTimePicker();
+    stubMozl10nGet =
+      this.sinon.stub(navigator.mozL10n, 'get').returns('%H:%M');
+    TimePicker.initTimePicker();
+    assert.ok(timePickerContainer.classList.contains('format24h'));
+  });
 });

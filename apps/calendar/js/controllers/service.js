@@ -1,8 +1,9 @@
 Calendar.ns('Controllers').Service = (function() {
+  'use strict';
 
   function Service() {
     Calendar.Worker.Manager.call(this);
-  };
+  }
 
   Service.prototype = {
     __proto__: Calendar.Worker.Manager.prototype,

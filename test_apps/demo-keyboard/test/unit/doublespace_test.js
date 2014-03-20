@@ -1,7 +1,9 @@
-/*global requireApp suite test assert setup teardown sinon mocha
-  suiteTeardown suiteSetup */
+'use strict';
+
+/* global DoubleSpace */
+
 suite('DoubleSpace', function() {
-  function eventEmitterSpy() {
+  function eventTargetSpy() {
     var d = document.createElement('div');
     sinon.spy(d, 'addEventListener');
     sinon.spy(d, 'removeEventListener');
@@ -11,19 +13,17 @@ suite('DoubleSpace', function() {
 
   mocha.setup({
     globals: [
-      'KeyboardTouchHandler',
-      'DoubleSpace',
-      'app'
+      'DoubleSpace'
     ]
   });
 
-  var keyboardTouchHelper, inputField;
+  var keyboardTouchHelper, inputField, app, doubleSpace;
 
   suiteSetup(function(next) {
-    window.KeyboardTouchHandler = keyboardTouchHelper = eventEmitterSpy();
-    inputField = eventEmitterSpy();
-    // XXX should not reference app instance directly.
-    window.app = {
+    keyboardTouchHelper = eventTargetSpy();
+    inputField = eventTargetSpy();
+    app =  {
+      touchHandler: keyboardTouchHelper,
       inputField: inputField
     };
 
@@ -35,8 +35,14 @@ suite('DoubleSpace', function() {
   });
 
   setup(function() {
-    window.DoubleSpace.resetLastKeyWasSpace();
+    doubleSpace = new DoubleSpace(app);
     inputField.replaceSurroundingText = sinon.stub();
+    doubleSpace.start();
+  });
+
+  teardown(function() {
+    doubleSpace.stop();
+    doubleSpace = null;
   });
 
   function sendKey(key) {
@@ -95,7 +101,7 @@ suite('DoubleSpace', function() {
       inputField.textBeforeCursor = 'jan';
       sendKey('SPACE');
       inputField.textBeforeCursor += ' ';
-      window.DoubleSpace.resetLastKeyWasSpace();
+      doubleSpace.resetLastKeyWasSpace();
       sendKey('SPACE');
       assert.equal(inputField.replaceSurroundingText.callCount, 0,
         'replaceSurroundingText callCount');
@@ -154,7 +160,6 @@ suite('DoubleSpace', function() {
     test('Literal text', function() {
       inputField.textBeforeCursor = 'yolo';
       var backspaceEvents = triggerBackspaceEvent();
-      var ev = backspaceEvents[0];
       var spy = backspaceEvents[1];
 
       assert.equal(spy.callCount, 0, 'stopImmediatePropagation callCount');
@@ -165,7 +170,6 @@ suite('DoubleSpace', function() {
     test('Literal text and space', function() {
       inputField.textBeforeCursor = 'yolo        ';
       var backspaceEvents = triggerBackspaceEvent();
-      var ev = backspaceEvents[0];
       var spy = backspaceEvents[1];
 
       assert.equal(spy.callCount, 0, 'stopImmediatePropagation callCount');
@@ -176,7 +180,6 @@ suite('DoubleSpace', function() {
     test('Literal text and exclamation mark', function() {
       inputField.textBeforeCursor = 'yolo!';
       var backspaceEvents = triggerBackspaceEvent();
-      var ev = backspaceEvents[0];
       var spy = backspaceEvents[1];
 
       assert.equal(spy.callCount, 0, 'stopImmediatePropagation callCount');
@@ -189,7 +192,6 @@ suite('DoubleSpace', function() {
       sendKey('SPACE');
       inputField.textBeforeCursor += ' ';
       var backspaceEvents = triggerBackspaceEvent();
-      var ev = backspaceEvents[0];
       var spy = backspaceEvents[1];
 
       assert.equal(spy.callCount, 0, 'stopImmediatePropagation callCount');
@@ -205,7 +207,6 @@ suite('DoubleSpace', function() {
       // new stub required
       inputField.replaceSurroundingText = sinon.stub();
       var backspaceEvents = triggerBackspaceEvent();
-      var ev = backspaceEvents[0];
       var spy = backspaceEvents[1];
 
       assert.equal(spy.callCount, 1, 'stopImmediatePropagation callCount');

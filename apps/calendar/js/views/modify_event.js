@@ -1,4 +1,5 @@
 Calendar.ns('Views').ModifyEvent = (function() {
+  'use strict';
 
   function ModifyEvent(options) {
     this.deleteRecord = this.deleteRecord.bind(this);
@@ -90,6 +91,7 @@ Calendar.ns('Views').ModifyEvent = (function() {
 
       // Append a new alarm select only if we don't have an empty one
       var allAlarms = this.element.querySelectorAll('[name="alarm[]"]');
+      //jshint boss:true
       for (var i = 0, alarmEl; alarmEl = allAlarms[i]; i++) {
         if (alarmEl.value == 'none') {
           return;
@@ -287,8 +289,9 @@ Calendar.ns('Views').ModifyEvent = (function() {
 
       // can't create without a calendar id
       // because of defaults this should be impossible.
-      if (!data.calendarId)
+      if (!data.calendarId) {
         return;
+      }
 
       var self = this;
       var provider;
@@ -317,7 +320,6 @@ Calendar.ns('Views').ModifyEvent = (function() {
 
       function persistEvent() {
         var list = self.element.classList;
-        var redirectTo;
 
         // mark view as 'in progress' so we can style
         // it via css during that time period
@@ -366,7 +368,7 @@ Calendar.ns('Views').ModifyEvent = (function() {
 
       if (this.isSaved()) {
         var self = this;
-        function handleDelete() {
+        var handleDelete = function me_handleDelete() {
           self.provider.deleteEvent(self.event.data, function(err) {
             if (err) {
               self.showErrors(err);
@@ -381,7 +383,7 @@ Calendar.ns('Views').ModifyEvent = (function() {
               self.app.go(view.returnTop());
             });
           });
-        }
+        };
 
         this.provider.eventCapabilities(this.event.data, function(err, caps) {
           if (err) {
@@ -473,6 +475,7 @@ Calendar.ns('Views').ModifyEvent = (function() {
 
       var alarms = this.element.querySelectorAll('[name="alarm[]"]');
       fields.alarms = [];
+      //jshint boss:true
       for (var i = 0, alarm; alarm = alarms[i]; i++) {
         if (alarm.value == 'none') { continue; }
 
@@ -518,10 +521,11 @@ Calendar.ns('Views').ModifyEvent = (function() {
         search = search.substr(1, search.length - 1);
       }
 
+      var field, value;
       // Parse the urlparams.
       var params = Calendar.QueryString.parse(search);
-      for (var field in params) {
-        var value = params[field];
+      for (field in params) {
+        value = params[field];
         switch (field) {
           case ModifyEvent.OverrideableField.START_DATE:
           case ModifyEvent.OverrideableField.END_DATE:
@@ -535,8 +539,8 @@ Calendar.ns('Views').ModifyEvent = (function() {
 
       // Override fields on our event.
       var model = this.event;
-      for (var field in ModifyEvent.OverrideableField) {
-        var value = ModifyEvent.OverrideableField[field];
+      for (field in ModifyEvent.OverrideableField) {
+        value = ModifyEvent.OverrideableField[field];
         model[value] = params[value] || model[value];
       }
     },
@@ -658,6 +662,7 @@ Calendar.ns('Views').ModifyEvent = (function() {
       var alarmMap = {};
 
       if (this.event.alarms) {
+        //jshint boss:true
         for (var i = 0, alarm; alarm = this.event.alarms[i]; i++) {
           alarmMap[alarm.trigger] = true;
           alarm.layout = isAllDay ? 'allday' : 'standard';
@@ -670,6 +675,7 @@ Calendar.ns('Views').ModifyEvent = (function() {
       settings.getValue(layout + 'AlarmDefault', next.bind(this));
 
       function next(err, value) {
+        //jshint -W040
         if (!this.isSaved() && !alarmMap[value] && !this.event.alarms.length) {
           alarms.push({
             layout: layout,

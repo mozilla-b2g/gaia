@@ -41,11 +41,14 @@ var englishLayout;
 
     this.layout = new KeyboardLayout(englishLayout);
 
-    // XXX should be new and started here
-    this.touchHandler = KeyboardTouchHandler;
-    // XXX should be new and started here
+    this.touchHandler = new KeyboardTouchHandler();
+    this.touchHandler.start();
+
     this.inputField = new InputField();
     this.inputField.start();
+
+    this.doubleSpace = new DoubleSpace(this);
+    this.doubleSpace.start();
 
     this.shiftKey = new ShiftKey(this);
     this.shiftKey.start();
@@ -102,6 +105,8 @@ var englishLayout;
     this.inputField.stop();
     this.shiftKey.stop();
     this.autoCorrect.stop();
+    this.doubleSpace.stop();
+    this.touchHandler.stop();
 
     this.inputcontext = null;
     this.layout = undefined;
@@ -114,6 +119,7 @@ var englishLayout;
     this.inputField = null;
     this.shiftKey = null;
     this.autoCorrect = null;
+    this.doubleSpace = null;
     this.settings = null;
     this.isShown = false;
   };

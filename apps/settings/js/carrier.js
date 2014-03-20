@@ -16,30 +16,6 @@ var CarrierSettings = (function(window, document, undefined) {
   var NETWORK_TYPE_SETTING = 'operatorResources.data.icon';
   var networkTypeMapping = {};
 
-  var NETWORK_GSM_MAP = {
-    'wcdma/gsm': 'operator-networkType-auto',
-    'gsm': 'operator-networkType-2G',
-    'wcdma': 'operator-networkType-3G',
-    'wcdma/gsm-auto': 'operator-networkType-prefer2G'
-  };
-
-  var NETWORK_CDMA_MAP = {
-    'cdma/evdo': 'operator-networkType-auto',
-    'cdma': 'operator-networkType-CDMA',
-    'evdo': 'operator-networkType-EVDO'
-  };
-
-  var NETWORK_DUALSTACK_MAP = {
-    'wcdma/gsm': 'operator-networkType-preferWCDMA',
-    'gsm': 'operator-networkType-GSM',
-    'wcdma': 'operator-networkType-WCDMA',
-    'wcdma/gsm-auto': 'operator-networkType-preferGSM',
-    'cdma/evdo': 'operator-networkType-preferEVDO',
-    'cdma': 'operator-networkType-CDMA',
-    'evdo': 'operator-networkType-EVDO',
-    'wcdma/gsm/cdma/evdo': 'operator-networkType-auto'
-  };
-
   var _ = window.navigator.mozL10n.get;
   var _settings = window.navigator.mozSettings;
   var _mobileConnections = window.navigator.mozMobileConnections;
@@ -141,11 +117,7 @@ var CarrierSettings = (function(window, document, undefined) {
         }
 
         if (currentHash === '#carrier-operatorSettings') {
-          if (result.networkTypes) {
-            cs_updateNetworkTypeSelector(result.networkTypes,
-                                         result.gsm,
-                                         result.cdma);
-          }
+          cs_updateNetworkTypeSelector(result);
           cs_updateAutomaticOperatorSelectionCheckbox();
           return;
         }
@@ -303,14 +275,7 @@ var CarrierSettings = (function(window, document, undefined) {
     var continueButton = alertDialog.querySelector('button');
     continueButton.addEventListener('click', function onClickHandler() {
       alertDialog.hidden = true;
-      getSupportedNetworkInfo(_mobileConnection,
-        function getSupportedNetworkInfoCb(result) {
-        if (result.networkTypes) {
-          cs_updateNetworkTypeSelector(result.networkTypes,
-                                       result.gsm,
-                                       result.cdma);
-        }
-      });
+      getSupportedNetworkInfo(_mobileConnection, cs_updateNetworkTypeSelector);
     });
 
     var selector = document.getElementById('preferredNetworkType');
@@ -328,12 +293,15 @@ var CarrierSettings = (function(window, document, undefined) {
   /**
    * Update network type selector.
    */
-  function cs_updateNetworkTypeSelector(networkTypes, gsm, cdma) {
-    if (!_mobileConnection.getPreferredNetworkType)
+  function cs_updateNetworkTypeSelector(supportedNetworkTypeResult) {
+    if (!_mobileConnection.getPreferredNetworkType ||
+        !supportedNetworkTypeResult.networkTypes) {
       return;
+    }
 
     var request = _mobileConnection.getPreferredNetworkType();
     request.onsuccess = function onSuccessHandler() {
+      var supportedNetworkTypes = supportedNetworkTypeResult.networkTypes;
       var networkType = request.result;
       if (networkType) {
         var selector = document.getElementById('preferredNetworkType');
@@ -341,7 +309,7 @@ var CarrierSettings = (function(window, document, undefined) {
         while (selector.hasChildNodes()) {
           selector.removeChild(selector.lastChild);
         }
-        networkTypes.forEach(function(type) {
+        supportedNetworkTypes.forEach(function(type) {
           var option = document.createElement('option');
           option.value = type;
           option.selected = (networkType === type);
@@ -349,19 +317,10 @@ var CarrierSettings = (function(window, document, undefined) {
           if (type in networkTypeMapping) {
             option.text = networkTypeMapping[type];
           } else {
-            if (gsm && cdma) {
-              if (type in NETWORK_DUALSTACK_MAP) {
-                localize(option, NETWORK_DUALSTACK_MAP[type]);
-              }
-            } else if (gsm) {
-              if (type in NETWORK_GSM_MAP) {
-                localize(option, NETWORK_GSM_MAP[type]);
-              }
-            } else if (cdma) {
-              if (type in NETWORK_CDMA_MAP) {
-                localize(option, NETWORK_CDMA_MAP[type]);
-              }
-            } else { //failback only
+            var l10nId = supportedNetworkTypeResult.l10nIdForType(type);
+            localize(option, l10nId);
+            // fallback to the network type
+            if (!l10nId) {
               option.textContent = type;
             }
           }
@@ -1291,8 +1250,8 @@ navigator.mozL10n.ready(function loadWhenIdle() {
   var idleObserver = {
     time: 3,
     onidle: function() {
-      CarrierSettings.init();
       navigator.removeIdleObserver(idleObserver);
+      CarrierSettings.init();
     }
   };
   navigator.addIdleObserver(idleObserver);

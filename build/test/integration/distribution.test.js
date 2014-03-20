@@ -22,6 +22,17 @@ suite('Distribution mechanism', function() {
     var expectedSettings = JSON.parse(
       fs.readFileSync(path.join(cusDir, 'settings.json')));
 
+    var keyboardManifestURL = 'app://keyboard.gaiamobile.org/manifest.webapp';
+    var expectedLayouts = {};
+    // For test only, so deliberately makes English map to cs and es layout
+    expectedLayouts[keyboardManifestURL] = {cs: true, es: true};
+
+    var expectedSettings = {
+      'wap.push.enabled': true,
+      'keyboard.enabled-layouts': expectedLayouts,
+      'keyboard.default-layouts': expectedLayouts
+    };
+
     helper.checkSettings(settings, expectedSettings);
   }
 

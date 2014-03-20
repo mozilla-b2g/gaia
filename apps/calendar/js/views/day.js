@@ -1,4 +1,5 @@
 Calendar.ns('Views').Day = (function() {
+  'use strict';
 
   var Parent = Calendar.Views.TimeParent;
 
@@ -38,6 +39,7 @@ Calendar.ns('Views').Day = (function() {
       switch (e.type) {
         case 'dayChange':
           this.app.timeController.selectedDay = this.app.timeController.day;
+          /* falls through */
         case 'selectedDayChange':
           this.changeDate(e.data[0]);
           break;

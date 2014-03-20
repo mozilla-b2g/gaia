@@ -1,4 +1,5 @@
 Calendar.ns('Views').ModifyAccount = (function() {
+  'use strict';
 
   var DEFAULT_AUTH_TYPE = 'basic';
   var OAUTH_AUTH_CREDENTIALS = [
@@ -47,8 +48,9 @@ Calendar.ns('Views').ModifyAccount = (function() {
     progressClass: 'in-progress',
 
     get authenticationType() {
-      if (this.preset && this.preset.authenticationType)
+      if (this.preset && this.preset.authenticationType) {
         return this.preset.authenticationType;
+      }
 
       return DEFAULT_AUTH_TYPE;
     },
@@ -190,8 +192,9 @@ Calendar.ns('Views').ModifyAccount = (function() {
 
       this.errors.textContent = '';
 
-      if (options && options.updateModel)
+      if (options && options.updateModel) {
         this.updateModel();
+      }
 
       this.accountHandler.send(this.model, function(err) {
         list.remove(self.progressClass);
@@ -304,8 +307,9 @@ Calendar.ns('Views').ModifyAccount = (function() {
       list.add('provider-' + this.model.providerType);
       list.add('auth-' + this.authenticationType);
 
-      if (this.model.error)
+      if (this.model.error) {
         list.add(Calendar.ERROR);
+      }
 
       if (this.authenticationType === 'oauth2') {
         this.oauth2SignIn.addEventListener('click', this.displayOAuth2);
@@ -322,7 +326,7 @@ Calendar.ns('Views').ModifyAccount = (function() {
       this.updateForm();
 
       var usernameType = this.model.usernameType;
-      this.fields['user'].type = (usernameType === undefined) ?
+      this.fields.user.type = (usernameType === undefined) ?
           'text' : usernameType;
    },
 
@@ -353,8 +357,9 @@ Calendar.ns('Views').ModifyAccount = (function() {
     },
 
     dispatch: function(data) {
-      if (this.model)
+      if (this.model) {
         this.destroy();
+      }
 
       var params = data.params;
       var changeToken = ++this._changeToken;
@@ -367,8 +372,9 @@ Calendar.ns('Views').ModifyAccount = (function() {
 
         // race condition another dispatch has queued
         // while we where waiting for an async event.
-        if (self._changeToken !== changeToken)
+        if (self._changeToken !== changeToken) {
           return;
+        }
 
         if (err) {
           console.log(

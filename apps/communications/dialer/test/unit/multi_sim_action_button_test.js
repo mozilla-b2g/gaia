@@ -80,19 +80,16 @@ suite('multi SIM action button', function() {
 
     realMozIccManager = navigator.mozIccManager;
     navigator.mozIccManager = MockNavigatorMozIccManager;
-
-    MockNavigatorSettings.mSyncRepliesOnly = true;
   });
 
   suiteTeardown(function() {
     navigator.mozSettings = realMozSettings;
     navigator.mozL10n = realMozL10n;
     navigator.mozIccManager = realMozIccManager;
-
-    MockNavigatorSettings.mSyncRepliesOnly = false;
   });
 
   setup(function() {
+    MockNavigatorSettings.mSyncRepliesOnly = true;
     phoneNumber = '';
     button = document.createElement('button');
     initSubject();

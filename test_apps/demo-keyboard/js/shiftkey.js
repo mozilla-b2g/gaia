@@ -10,7 +10,8 @@
   function ShiftKey(app) {
     this._started = false;
     this.app = app;
-  };
+    this.touchHandler = app.touchHandler;
+  }
 
   // Max time bewteen taps on the shift key to go into locked mode
   ShiftKey.prototype.CAPS_LOCK_INTERVAL = 450;  // ms
@@ -23,8 +24,7 @@
 
     this.lastShiftTime = 0;
 
-    // XXX should not attach to static object here.
-    KeyboardTouchHandler.addEventListener('key', this);
+    this.touchHandler.addEventListener('key', this);
 
     this.app.inputField.addEventListener('inputfieldchanged', this);
     this.app.inputField.addEventListener('inputstatechanged', this);
@@ -38,7 +38,7 @@
 
     this.lastShiftTime = 0;
 
-    KeyboardTouchHandler.removeEventListener('key', this);
+    this.touchHandler.removeEventListener('key', this);
 
     this.app.inputField.removeEventListener('inputfieldchanged', this);
     this.app.inputField.removeEventListener('inputstatechanged', this);
@@ -93,8 +93,9 @@
     var currentPageView = this.app.currentPageView;
 
     // If caps lock is on we do nothing
-    if (currentPageView.locked)
+    if (currentPageView.locked) {
       return;
+    }
 
     // This is autocapitalization and also the code that turns off
     // the shift key after one capital letter.

@@ -131,6 +131,9 @@ li a:active {
   background: transparent center center / cover;
   position: relative;
   z-index: 1;
+
+  /* Favor performance over quality */
+  image-rendering: -moz-crisp-edges;
 }
 
 /* Text content */

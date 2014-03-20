@@ -1,5 +1,6 @@
 'use strict';
 
+requireApp('communications/ftu/js/external_links.js');
 requireApp('communications/ftu/js/navigation.js');
 
 requireApp('communications/ftu/test/unit/mock_l10n.js');
@@ -244,6 +245,8 @@ suite('navigation >', function() {
       var observer = new MutationObserver(function() {
         observer.disconnect();
         assert.equal(UIManager.mainTitle.innerHTML, _('aboutBrowser'));
+        var linkRef = document.getElementById('external-link-privacy');
+        assert.equal(linkRef.textContent, '<a>learn-more-privacy-link</a>');
         done();
       });
       observer.observe(UIManager.mainTitle, observerConfig);

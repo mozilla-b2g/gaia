@@ -1,5 +1,7 @@
 'use strict';
 
+/* global Event */
+
 (function(exports) {
   /**
    * This module defines an InputField instance that represents the text field
@@ -45,7 +47,7 @@
    */
   function InputField() {
     this._started = false;
-  };
+  }
 
   InputField.prototype.start = function start() {
     if (this._started) {
@@ -242,9 +244,7 @@
 
   InputField.prototype._monitor = function _monitor(promise) {
     this.pendingPromise = promise;
-    promise.then(fulfilled.bind(this), rejected.bind(this));
-
-    function fulfilled() {
+    promise.then(function fulfilled() {
       // If the user is typing really fast, there might be a new pending promise
       // by the time this one is fulfilled. If so, we just ignore this.
       if (promise === this.pendingPromise) {
@@ -254,14 +254,12 @@
         // the state we anticipated.
         this._syncState();
       }
-    }
-
-    function rejected(e) {
+    }.bind(this), function rejected(e) {
       console.error('Promise rejected:', e);
       if (promise === this.pendingPromise) {
         this.pendingPromise = null;
       }
-    }
+    }.bind(this));
   };
 
   // EventTarget methods

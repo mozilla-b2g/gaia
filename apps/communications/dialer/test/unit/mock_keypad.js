@@ -1,7 +1,7 @@
 kFontStep = 4;
 
 var MockKeypadManager = {
-  phoneNumber: '',
+  _phoneNumber: '',
   maxFontSize: 12,
   minFontSize: 8,
   formatPhoneNumber:
@@ -31,6 +31,9 @@ var MockKeypadManager = {
       }
       this.mOnMakeCall(this._phoneNumber);
     }
+  },
+  phoneNumber: function phoneNumber() {
+    return this._phoneNumber;
   },
   fetchLastCalled: function() {
     this._phoneNumber = this.lastCalled;

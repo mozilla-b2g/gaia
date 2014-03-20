@@ -241,7 +241,7 @@ contacts.Details = (function() {
       }
       var pos = contact.category.indexOf('favorite');
       if (pos > -1) {
-        delete contact.category[pos];
+        contact.category.splice(pos, 1);
       }
     }
 
@@ -404,16 +404,18 @@ contacts.Details = (function() {
     for (var tel = 0; tel < telLength; tel++) {
       var currentTel = contact.tel[tel];
       var escapedType = Normalizer.escapeHTML(currentTel.type, true).trim();
+      var carrier = Normalizer.escapeHTML(currentTel.carrier || '', true) || '';
       escapedType =
             _(PHONE_TYPE_MAP[escapedType] || escapedType || DEFAULT_TEL_TYPE) ||
             escapedType;
       var telField = {
         value: Normalizer.escapeHTML(currentTel.value, true) || '',
-        type: escapedType,
+        type: escapedType + (carrier ? _('separator') : ''),
         'type_l10n_id': currentTel.type,
-        carrier: Normalizer.escapeHTML(currentTel.carrier || '', true) || '',
+        carrier: carrier,
         i: tel
       };
+
       var template = utils.templates.render(phonesTemplate, telField);
 
       // Add event listeners to the phone template components
