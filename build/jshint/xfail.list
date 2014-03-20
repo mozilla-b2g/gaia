@@ -740,7 +740,6 @@ apps/system/js/permission_manager.js
 apps/system/js/popup_manager.js
 apps/system/js/quick_settings.js
 apps/system/js/screen_manager.js
-apps/system/js/screenshot.js
 apps/system/js/sheets_transition.js
 apps/system/js/shrinking_ui.js
 apps/system/js/sim_lock.js
@@ -749,7 +748,6 @@ apps/system/js/simslot_manager.js
 apps/system/js/sleep_menu.js
 apps/system/js/software_button_manager.js
 apps/system/js/sound_manager.js
-apps/system/js/source_view.js
 apps/system/js/stack_manager.js
 apps/system/js/statusbar.js
 apps/system/js/storage_watcher.js
@@ -763,7 +761,6 @@ apps/system/js/value_selector/date_picker.js
 apps/system/js/value_selector/spin_date_picker.js
 apps/system/js/value_selector/value_picker.js
 apps/system/js/value_selector/value_selector.js
-apps/system/js/visibility_manager.js
 apps/system/js/voicemail.js
 apps/system/js/wifi.js
 apps/system/test/marionette/edges_gesture_test.js
@@ -902,7 +899,6 @@ apps/system/test/unit/update_manager_test.js
 apps/system/test/unit/utility_tray_test.js
 apps/system/test/unit/value_picker_test.js
 apps/system/test/unit/value_selector_test.js
-apps/system/test/unit/visibility_manager_test.js
 apps/system/test/unit/voicemail_test.js
 apps/system/test/unit/wifi_test.js
 apps/system/test/unit/wrapper_factory_test.js
