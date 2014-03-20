@@ -18,7 +18,7 @@
             <span data-l10n-id="voicePrivacyMode">Voice privacy mode</span>
           </label>
         </li>
-        <li id="menuItem-callWaiting" data-state="off">
+        <li id="menuItem-callWaiting" data-state="off" hidden>
           <label class="pack-switch checkbox-label">
             <input type="checkbox" data-ignore>
             <span data-l10n-id="callWaiting">Call Waiting</span>
@@ -27,7 +27,7 @@
             <span></span>
           </label>
         </li>
-        <li id="menuItem-callerId" aria-disabled="true">
+        <li id="menuItem-callerId" aria-disabled="true" hidden>
           <a data-l10n-id="callerId">Caller ID</a>
           <span class="button icon icon-dialog">
             <select id="ril-callerId" data-setting="ril.callerId">
@@ -43,10 +43,10 @@
         </li>
       </ul>
 
-      <header>
+      <header id="header-callForwarding" hidden>
         <h2 data-l10n-id="callForwarding"> Call Forwarding </h2>
       </header>
-      <ul>
+      <ul id="list-callForwarding" hidden>
         <li id="fdnSettingsBlocked" class="description" hidden>
           <p data-l10n-id="fdn-enabled-warning">
             Call forwarding is disabled by FDN.
