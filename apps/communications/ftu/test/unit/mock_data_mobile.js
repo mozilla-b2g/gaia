@@ -5,5 +5,6 @@ var MockDataMobile = {
   setStatus: function(s) { this.status = s;},
   getStatus: function() {
     return status;
-  }
+  },
+  removeSVStatusObserver: function() {}
 };

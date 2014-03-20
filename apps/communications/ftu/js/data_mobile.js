@@ -1,9 +1,14 @@
 /* exported DataMobile */
+/* global Navigation */
+
 'use strict';
 
 var DataMobile = {
   key: 'ril.data.enabled',
+  keySV: 'ftu.ril.data.enabled',
+  STEP_DATA_3G: 2,
   apnRetrieved: false,
+
   init: function dm_init() {
     var settings = navigator.mozSettings;
     if (!settings) {
@@ -12,7 +17,42 @@ var DataMobile = {
     }
     this.settings = settings;
   },
-  getStatus: function dm_getStatus(callback) {
+
+  removeSVStatusObserver: function dm_removeSVStatusObserver() {
+    this.settings.removeObserver(this.keySV, this.getStatus);
+  },
+
+  getStatus: function dm_getStatus(aCallback) {
+    var self = this;
+    var reqSV = this.settings.createLock().get(this.keySV);
+    reqSV.onsuccess = function gst_svsuccess() {
+      // We need to be sure that we are on Cellular Data screen
+      // if the user has passed the screen very fast this configuration will
+      // have no effect
+      var svStatus = reqSV.result[self.keySV];
+      if (svStatus !== undefined) {
+        self.settings.removeObserver(self.keySV, self.getStatus);
+        if (Navigation.currentStep === self.STEP_DATA_3G) {
+          self.toggle(svStatus);
+          if (typeof aCallback === 'function') {
+            aCallback(svStatus);
+          }
+        } else {
+          self.getRealStatus(aCallback);
+        }
+      } else {
+        self.getRealStatus(aCallback);
+      }
+    };
+
+    reqSV.onerror = function gst_error() {
+      console.log('Error retrieving ' + self.keySV);
+    };
+
+    this.settings.addObserver(this.keySV, this.getStatus.bind(this, aCallback));
+  },
+
+  getRealStatus: function dm_getRealStatus(callback) {
     var request = this.settings.createLock().get(this.key);
     var self = this;
     request.onsuccess = function gst_success() {
@@ -21,9 +61,10 @@ var DataMobile = {
       callback(currentStatus);
     };
     request.onerror = function gst_error() {
-      console.log('Error retrieving ril.data.enabled');
+      console.log('Error retrieving ' + self.key);
     };
   },
+
   toggle: function dm_toggle(status, callback) {
     var options = {};
     options[this.key] = status;
