@@ -45,7 +45,6 @@ ControlsController.prototype.bindEvents = function() {
   this.controls.on('click:cancel', this.onCancelButtonClick);
   this.app.on('timer:started', this.controls.disable);
   this.app.on('timer:cleared', this.controls.enable);
-  this.app.on('timer:ended', this.controls.enable);
   debug('events bound');
 };
 
