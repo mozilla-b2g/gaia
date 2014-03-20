@@ -1,3 +1,10 @@
+/* global utils, tzSelect,
+          Basket, ConfirmDialog, ScreenLayout,
+          DataMobile, SimManager, SdManager,
+          Navigation, Tutorial, TimeManager,
+          WifiManager, WifiUI, WifiHelper,
+          FxAccountsIACHelper  */
+/* exported UIManager */
 'use strict';
 
 var _;
@@ -174,28 +181,6 @@ var UIManager = {
         }, 30);
       });
     });
-
-    // Browser privacy newsletter subscription
-    var basketCallback = function(err, data) {
-      utils.overlay.hide();
-      if (err || data.status !== 'ok') {
-        // We don't have any error numbers etc, so we are looking for
-        // 'email address' string in the error description.
-        if (err.desc.indexOf('email address') > -1) {
-          this.invalidEmailErrorDialog.classList.add('visible');
-        } else {
-          // Store locally
-          Basket.store(this.newsletterInput.value, function stored() {
-            UIManager.newsletterSuccessScreen.classList.add('visible');
-          });
-        }
-        return;
-      }
-      // if properly sent, remove stored email (in case of any)
-      window.asyncStorage.removeItem('newsletter_email');
-      this.newsletterForm.classList.add('hidden');
-      this.newsletterSuccessScreen.classList.add('visible');
-    };
 
     this.offlineNewsletterErrorDialog
       .querySelector('button')

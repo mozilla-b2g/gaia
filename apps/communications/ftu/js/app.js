@@ -1,3 +1,7 @@
+/* global DataMobile, Navigation, SimManager, TimeManager,
+          VariantManager, UIManager, WifiManager,
+          ImportIntegration */
+/* exported AppManager */
 'use strict';
 
 var _ = navigator.mozL10n.get;

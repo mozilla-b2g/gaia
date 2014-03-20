@@ -1,3 +1,5 @@
+/* global IccHelper */
+/* exported OperatorVariant */
 'use strict';
 
 var OperatorVariant = (function() {
