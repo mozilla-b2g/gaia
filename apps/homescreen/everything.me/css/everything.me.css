@@ -35,6 +35,8 @@
   height: 5rem;
   width: 100%;
   z-index: 200;
+  transition: opacity;
+  will-change: opacity;
 }
   #evme-activation-icon input {
     background: transparent;

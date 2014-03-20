@@ -270,6 +270,7 @@ var GridManager = (function() {
               next.MozTransform =
                 'translateX(' + (windowWidthMinusOne + deltaX) + 'px)';
               current.MozTransform = 'translateX(' + deltaX + 'px)';
+              onPanningProgress(currentPage, 1 + deltaX / windowWidthMinusOne);
             } else {
               startX = currentX;
             }
@@ -298,6 +299,11 @@ var GridManager = (function() {
               if (forward) {
                 forward = false;
                 next.MozTransform = 'translateX(' + windowWidthMinusOne + 'px)';
+              }
+
+              if(currentPage === 1) {
+                // Moving from first to second screen.
+                onPanningProgress(currentPage - 1, deltaX / windowWidthMinusOne);
               }
             } else {
               next.MozTransform =
@@ -389,6 +395,10 @@ var GridManager = (function() {
 
   function cancelPanning() {
     removePanHandler();
+  }
+
+  function onPanningProgress(pageIndex, progress) {
+    pages[pageIndex].container.dispatchEvent(new CustomEvent('gridpagepanning', {detail: {progress: progress}}));
   }
 
   function onTouchEnd(deltaX, evt) {
@@ -511,8 +521,8 @@ var GridManager = (function() {
     updatePaginationBar();
 
     if (previousPage === newPage) {
-      // Has the page been translated?
-      if (currentX - startX) {
+      var hasBeenTranslated = currentX - startX;
+      if (hasBeenTranslated) {
         currentX = startX = 0;
         // Pages are translated in X
         if (index > 0) {
@@ -525,20 +535,24 @@ var GridManager = (function() {
           pages[index + 1].moveByWithEffect(windowWidthMinusOne, duration);
         }
 
+        var pageIndexToHide = hasBeenTranslated > 0 ? index - 1 : index + 1;
+        pages[pageIndexToHide].container.dispatchEvent(new CustomEvent('gridpagehidestart', {detail: {duration: duration}}));
+        pages[index].container.dispatchEvent(new CustomEvent('gridpageshowstart', {detail: {duration: duration}}));
+
         container.addEventListener('transitionend', function transitionEnd(e) {
           container.removeEventListener('transitionend', transitionEnd);
           goToPageCallback(index, previousPage, newPage, false, callback);
         });
       } else {
-        // Swipe from rigth to left on the last page on the grid
+        // Swipe from right to left on the last page on the grid
         goToPageCallback(index, previousPage, newPage, false, callback);
       }
 
       return;
     }
 
-    previousPage.container.dispatchEvent(new CustomEvent('gridpagehidestart'));
-    newPage.container.dispatchEvent(new CustomEvent('gridpageshowstart'));
+    previousPage.container.dispatchEvent(new CustomEvent('gridpagehidestart', {detail: {duration: duration}}));
+    newPage.container.dispatchEvent(new CustomEvent('gridpageshowstart', {detail: {duration: duration}}));
     previousPage.moveByWithEffect(-forward * windowWidthMinusOne, duration);
     newPage.moveByWithEffect(0, duration);
 

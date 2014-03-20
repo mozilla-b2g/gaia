@@ -161,10 +161,24 @@ var EverythingME = {
       e.stopPropagation();
     }
 
-    gridPage.addEventListener('gridpageshowend', function onPageShow() {
+    function changeActivationIconOpacity (opacity, duration) {
+      activationIcon.style.transition = duration ? duration + 'ms ease' : '';
+      activationIcon.style.opacity = Math.round(opacity * 40) / 40;
+    }
+
+    gridPage.addEventListener('gridpageshowstart', function onPageShowStart(e) {
+      changeActivationIconOpacity(1, e.detail.duration);
+    });
+    gridPage.addEventListener('gridpagehidestart', function onPageHideStart(e) {
+      changeActivationIconOpacity(0, e.detail.duration);
+    });
+    gridPage.addEventListener('gridpagepanning', function onPagePanning(e) {
+      changeActivationIconOpacity(e.detail.progress, null);
+    });
+    gridPage.addEventListener('gridpageshowend', function onPageShowEnd() {
       EvmeFacade.onShow();
     });
-    gridPage.addEventListener('gridpagehideend', function onPageHide() {
+    gridPage.addEventListener('gridpagehideend', function onPageHideEnd() {
       EvmeFacade.onHide();
     });
 
