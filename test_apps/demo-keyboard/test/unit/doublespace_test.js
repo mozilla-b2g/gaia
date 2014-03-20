@@ -1,5 +1,7 @@
-/*global requireApp suite test assert setup teardown sinon mocha
-  suiteTeardown suiteSetup */
+'use strict';
+
+/* global DoubleSpace */
+
 suite('DoubleSpace', function() {
   function eventTargetSpy() {
     var d = document.createElement('div');
@@ -20,7 +22,7 @@ suite('DoubleSpace', function() {
   suiteSetup(function(next) {
     keyboardTouchHelper = eventTargetSpy();
     inputField = eventTargetSpy();
-    app = {
+    app =  {
       touchHandler: keyboardTouchHelper,
       inputField: inputField
     };
@@ -158,7 +160,6 @@ suite('DoubleSpace', function() {
     test('Literal text', function() {
       inputField.textBeforeCursor = 'yolo';
       var backspaceEvents = triggerBackspaceEvent();
-      var ev = backspaceEvents[0];
       var spy = backspaceEvents[1];
 
       assert.equal(spy.callCount, 0, 'stopImmediatePropagation callCount');
@@ -169,7 +170,6 @@ suite('DoubleSpace', function() {
     test('Literal text and space', function() {
       inputField.textBeforeCursor = 'yolo        ';
       var backspaceEvents = triggerBackspaceEvent();
-      var ev = backspaceEvents[0];
       var spy = backspaceEvents[1];
 
       assert.equal(spy.callCount, 0, 'stopImmediatePropagation callCount');
@@ -180,7 +180,6 @@ suite('DoubleSpace', function() {
     test('Literal text and exclamation mark', function() {
       inputField.textBeforeCursor = 'yolo!';
       var backspaceEvents = triggerBackspaceEvent();
-      var ev = backspaceEvents[0];
       var spy = backspaceEvents[1];
 
       assert.equal(spy.callCount, 0, 'stopImmediatePropagation callCount');
@@ -193,7 +192,6 @@ suite('DoubleSpace', function() {
       sendKey('SPACE');
       inputField.textBeforeCursor += ' ';
       var backspaceEvents = triggerBackspaceEvent();
-      var ev = backspaceEvents[0];
       var spy = backspaceEvents[1];
 
       assert.equal(spy.callCount, 0, 'stopImmediatePropagation callCount');
@@ -209,7 +207,6 @@ suite('DoubleSpace', function() {
       // new stub required
       inputField.replaceSurroundingText = sinon.stub();
       var backspaceEvents = triggerBackspaceEvent();
-      var ev = backspaceEvents[0];
       var spy = backspaceEvents[1];
 
       assert.equal(spy.callCount, 1, 'stopImmediatePropagation callCount');

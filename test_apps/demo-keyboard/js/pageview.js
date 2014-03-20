@@ -12,9 +12,10 @@
 
   // Make sure we found all the templates
   Object.keys(templates).forEach(function(templatename) {
-    if (!templates[templatename])
+    if (!templates[templatename]) {
       console.error('Cannot find required template element with id',
                     'keyboard-', templatename, '-template');
+    }
   });
 
   function KeyboardPageView(page) {
@@ -47,7 +48,9 @@
 
         // If the key has associated classses, set them.
         if (keyobj.classes) {
-          keyobj.classes.forEach(function(c) { keyelt.classList.add(c); });
+          for (var i = 0; i < keyobj.classes.length; i ++) {
+            keyelt.classList.add(keyobj.classes[i]);
+          }
         }
 
         // The 'key' role tells an assistive technology that these buttons
@@ -56,14 +59,16 @@
         // those with the "omitkeyrole" property (which should be set on
         // keys like Return and Backspace that should be a little harder
         // to activate).
-        if (!keyobj.omitkeyrole)
+        if (!keyobj.omitkeyrole) {
           keyelt.setAttribute('role', 'key');
+        }
 
         // We set the keycap as the text content of the innermost nested
         // element within the key element.
         var innermost = keyelt;
-        while (innermost.firstElementChild)
+        while (innermost.firstElementChild) {
           innermost = innermost.firstElementChild;
+        }
         innermost.textContent = keyobj.keycap;
 
         // Add the key to the row
@@ -86,8 +91,9 @@
     // If we are already laid out at the current window size, then
     // we don't need to be resized again
     if (this.windowWidth === window.innerWidth &&
-        this.windowHeight === window.innerHeight)
+        this.windowHeight === window.innerHeight) {
       return;
+    }
 
     // Remember the new size.
     this.windowWidth = window.innerWidth;
@@ -130,22 +136,25 @@
       // change size depending on how many special keys are inserted near it.
       var numFlexKeys = 0;
       row.forEach(function(keyname) {
-        if (page.keys[keyname].size === 0)
+        if (page.keys[keyname].size === 0) {
           numFlexKeys += 1;
+        }
       });
 
       var flexKeySize = 0;
-      if (numFlexKeys > 0)
+      if (numFlexKeys > 0) {
         flexKeySize = 1 + (maxWidth - rowWidth) / numFlexKeys;
+      }
 
       // Now loop again, and set the size of each key
       row.forEach(function(keyname) {
         var key = page.keys[keyname];
         var size;
-        if (key.size === 0)
+        if (key.size === 0) {
           size = flexKeySize;
-        else
+        } else {
           size = key.size || 1;
+        }
 
         var width = size * unitWidth;
         view.keyelts[keyname].style.width = width + 'px';
@@ -161,12 +170,14 @@
     var rect = this.keyrects[keyname];
     if (!rect) {
       var keyelt = this.keyelts[keyname];
-      if (!keyelt)
+      if (!keyelt) {
         throw Error('unknown key: ' + keyname);
+      }
 
       rect = keyelt.getBoundingClientRect();
-      if (rect.width === 0)
+      if (rect.width === 0) {
         throw Error('KeyboardPageView is not laid out yet: ' + keyname);
+      }
 
       // In addition to the basic rectangle, the hit detector in
       // KeyboardTouchHandler also wants some additional data. We
@@ -224,8 +235,9 @@
       altelt.dataset.keycap = altkey.keycap;
 
       var innermost = altelt;
-      while (innermost.firstElementChild)
+      while (innermost.firstElementChild) {
         innermost = innermost.firstElementChild;
+      }
       innermost.textContent = altkey.keycap;
       altrow.appendChild(altelt);
     }
@@ -260,19 +272,21 @@
     if (keyOnLeft) { // key is on left so alternatives run to the right
       altrow.dir = 'ltr';  // left to right
       altrow.style.right = 'auto';
-      if (numalternatives === 1)
+      if (numalternatives === 1) {
         x = (keyrect.left + keyrect.right) / 2 - firstwidth / 2;
-      else
+      } else {
         x = keyrect.right - firstwidth;
+      }
       altrow.style.left = Math.max(x, 0) + 'px';
     }
     else {           // key is on right so alternatives run to the left
       altrow.dir = 'rtl';  // right to left
       altrow.style.left = 'auto';
-      if (numalternatives === 1)
+      if (numalternatives === 1) {
         x = (keyrect.left + keyrect.right) / 2 + firstwidth / 2;
-      else
+      } else {
         x = keyrect.left + firstwidth;
+      }
       altrow.style.right = Math.max(window.innerWidth - x, 0) + 'px';
     }
 
