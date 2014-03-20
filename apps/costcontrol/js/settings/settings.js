@@ -1,6 +1,6 @@
 /* global BalanceView, LazyLoader, AutoSettings, BalanceLowLimitView,
           ViewManager, dataLimitConfigurer */
-/* exported debug */
+/* exported debug, sendBalanceThresholdNotification */
 
 /*
  * Settings is in charge of setup the setting section. It uses an AutoSettings
@@ -22,6 +22,8 @@
  var formatData = window.parent.formatData;
  var roundData = window.parent.roundData;
  var resetData = window.parent.resetData;
+ var sendBalanceThresholdNotification = window.parent
+                                        .sendBalanceThresholdNotification;
  var addNetworkUsageAlarm = window.parent.addNetworkUsageAlarm;
  var resetTelephony = window.parent.resetTelephony;
  var getDataLimit = window.parent.getDataLimit;
