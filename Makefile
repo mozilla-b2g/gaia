@@ -139,6 +139,7 @@ NPM_REGISTRY?=http://registry.npmjs.org
 # Ensure that NPM only logs warnings and errors
 export npm_config_loglevel=warn
 MARIONETTE_RUNNER_HOST?=marionette-b2gdesktop-host
+TEST_MANIFEST?=./shared/test/integration/local-manifest.json
 
 GAIA_INSTALL_PARENT?=/system/b2g
 
