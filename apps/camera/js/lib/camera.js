@@ -57,7 +57,6 @@ function Camera(options) {
     minSpace: options.recordSpaceMin || recordSpaceMin,
     spacePadding : options.recordSpacePadding || recordSpacePadding
   };
-
   debug('initialized');
 }
 
@@ -93,6 +92,12 @@ Camera.prototype.loadStreamInto = function(videoElement) {
 Camera.prototype.load = function() {
   debug('load camera');
 
+  // If hardware is still pending for release
+  // we're not allowed to request a new caemera
+  if (this.cameraReleasePending) {
+    debug('camera not loaded: hardware unavailable');
+    return;
+  }
   var selectedCamera = this.get('selectedCamera');
   var loadingNewCamera = selectedCamera !== this.lastLoadedCamera;
   this.lastLoadedCamera = selectedCamera;
@@ -230,15 +235,28 @@ Camera.prototype.release = function(done) {
   }
 
   var self = this;
+  // The hardware is not available during
+  // the release process
+  this.cameraReleasePending = true;
   this.mozCamera.release(onSuccess, onError);
+  this.mozCamera = null;
 
   function onSuccess() {
+    self.cameraReleasePending = false;
+    // If the app is in foreground it reloads the camera
+    // This is needed in case the user exits and enters
+    // the application quickly. We have to wait until
+    // the previous camera has been released to request
+    // a new one.
+    if(!document.hidden) {
+      self.load();
+    }
     debug('successfully released');
-    self.mozCamera = null;
     done();
   }
 
   function onError() {
+    self.cameraReleasePending = false;
     debug('failed to release hardware');
     done();
   }
@@ -808,7 +826,7 @@ Camera.prototype.getZoomPreviewAdjustment = function() {
   if (zoom <= maxHardwareZoom) {
     return 1.0;
   }
-  
+
   return zoom / maxHardwareZoom;
 };
 
