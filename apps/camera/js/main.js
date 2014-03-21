@@ -9,7 +9,7 @@ require(['config/require', 'config'], function() {
     /**
      * Module Dependencies
      */
-
+  setTimeout(function() {
     var App = require('app');
     var Camera = require('lib/camera');
     var Sounds = require('lib/sounds');
@@ -35,7 +35,8 @@ require(['config/require', 'config'], function() {
       sounds: require('controllers/sounds'),
       timer: require('controllers/timer'),
       zoomBar: require('controllers/zoom-bar'),
-      indicators: require('controllers/indicators')
+      indicators: require('controllers/indicators'),
+      focusmode: require('controllers/focus')
     };
 
     // Attach navigator.mozL10n
@@ -76,6 +77,7 @@ require(['config/require', 'config'], function() {
 
     // Check for activities, then boot
     app.activity.check(app.boot);
+  }, 100);
   });
 
   require(['boot']);

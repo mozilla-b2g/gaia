@@ -122,6 +122,7 @@ Camera.prototype.gotCamera = function(mozCamera) {
   this.mozCamera.onRecorderStateChange = self.onRecorderStateChange;
   this.configureFocus(capabilities.focusModes);
   this.set('capabilities', this.formatCapabilities(capabilities));
+  this.emit('camera:loaded');
 };
 
 Camera.prototype.formatCapabilities = function(capabilities) {
@@ -153,6 +154,191 @@ Camera.prototype.configure = function() {
 
   this.mozCamera.setConfiguration(options, success, error);
   this.configureZoom(previewSize);
+};
+/**
+* Check whether continuous auto
+* focus modes are support or not.
+**/
+Camera.prototype.checkContinuousFocusSupport = function(done) {
+  if (!this.autoFocus['continuous-picture'] ||
+    !this.autoFocus['continuous-video']) {
+    done('null');
+  } else {
+    done();
+  }
+};
+
+/**
+* Set focus mode as continuous auto
+* based on the mode selected
+**/
+Camera.prototype.setContinuousAutoFocus = function() {
+  if (this.mode === 'video') {
+    this.mozCamera.focusMode = 'continuous-video';
+  } else {
+    this.mozCamera.focusMode = 'continuous-picture';
+  }
+};
+
+/**
+* Enable auto focus move to make camera
+* adjusts the focus of new scene or
+* postion.
+**/
+Camera.prototype.enableAutoFocusMove = function() {
+  var self = this;
+  this.mozCamera.onAutoFocusMoving = onAutoFocusMoving;
+  
+  /**
+  * Focus move callbacks from gecko:
+  * During continuous auto focus, when
+  * camera moves to a new scene or location,
+  * it has to refocus to get the clear view.
+  * Gecko sends the call back when camera
+  * is refocusing on to a new scene.
+  *
+  * @param {bool} isMoving
+  * isMoving is true when focusing on new scene.
+  * isMoving is false when focus is complete.
+  * for that particular scene.
+  **/
+
+  // we can use the state concept of face tracking here.
+  // starting, focusing, focused.
+  // if consecutive states are same, ignore.
+  // wait fot focused state when taking picture.
+  function onAutoFocusMoving(isMoving) {
+    function clearFocusState() {
+      setTimeout(function() {
+        self.set('focus', 'none');
+      }, 3000);
+    }
+    function focused() {
+      console.log('Camera Focus Mode ');
+      setTimeout(function() {
+        self.set('focus','focused');
+        clearFocusState();
+      }, 50);
+    }
+    if (isMoving === true) {
+      self.set('focus','focusing');
+    } else {
+      focused();
+    }
+  }
+};
+
+ /**
+ * Stop detecting faces when
+ * switching from face focus to
+ * other focus modes like Touch
+ * Focus and continuous-video
+ * modes, etc.
+ */
+
+Camera.prototype.stopFaceDetection = function() {
+  this.mozCamera.stopFaceDetection();
+  this.mozCamera.onFacesDetected = null;
+};
+
+/**
+ * Starting detecting faces
+ *
+ */
+Camera.prototype.startFaceDetection = function() {
+  var self = this;
+  try {
+    this.mozCamera.startFaceDetection();
+    this.mozCamera.onFacesDetected = function(faces) {
+      if (faces.length === 0) {
+        self.emit('nofacedetected', 'face-tracking');
+        return;
+      }
+      self.emit('facedetected', faces);
+    };
+  } catch (e) {
+    // Although capabilities.maxFaceDetected returns 0,
+    // If you call startFaceDetection(), an exception will be thrown.
+    // the exception types are not implemented and not decided.
+    console.log('StartFaceDetection is failed: ' + e.message);
+  }
+
+  // Gecko sends callback with status
+  // of face detection. Currently
+  // gecko is not sending callback when
+  // there is no face is detected.
+  //
+  // Gecko callback is needed even when there
+  // is face detected, it will be useful
+  // when switching between focus modes.
+
+};
+
+Camera.prototype.faceTrackingModeCheck = function() {
+  var capability = this.checkFocusCapability();
+  if (!capability) {
+    return false;
+  }
+  if (this.mozCamera.capabilities.maxFaceDetected === 0 &&
+      !this.autoFocus['auto-focus']) {
+    return false;
+  } else {
+    return true;
+  }
+};
+
+Camera.prototype.continuousFocusModeCheck = function() {
+  var capability = this.checkFocusCapability();
+  if (!capability) {
+    return false;
+  }
+  if (!this.autoFocus['continuous-picture'] ||
+    !this.autoFocus['continuous-video']) {
+    return false;
+  } else {
+    return true;
+  }
+};
+
+Camera.prototype.touchFocusModeCheck = function() {
+  return this.checkFocusCapability();
+};
+
+Camera.prototype.autoFocusModeCheck = function() {
+  if (!this.autoFocus['auto-focus']) {
+    return false;
+  } else {
+    return true;
+  }
+};
+
+Camera.prototype.setFixedFocusMode = function() {
+  this.mozCamera.focusMode = 'null';
+};
+
+Camera.prototype.checkFocusCapability = function() {
+  var maxfocusAreas = this.mozCamera.capabilities.maxfocusAreas;
+  var maxMeteringAreas = this.mozCamera.capabilities.maxMeteringAreas;
+  if (maxfocusAreas < 1 && maxMeteringAreas < 1) {
+    return false;
+  } else {
+    return true;
+  }
+};
+
+
+/**
+* Disable auto focus move
+* and change focus mode.
+**/
+Camera.prototype.disableAutoFocusMove = function() {
+  this.mozCamera.onAutoFocusMoving = null;
+
+  this.mozCamera.focusMode = 'auto';
+};
+
+Camera.prototype.noFocusMode = function() {
+  this.mozCamera.focusMode = 'null';
 };
 
 Camera.prototype.previewSizes = function() {
@@ -306,7 +492,12 @@ Camera.prototype.pickThumbnailSize = function(thumbnailSizes, pictureSize) {
  */
 Camera.prototype.capture = function(options) {
   switch (this.mode) {
-    case 'picture': this.takePicture(options); break;
+    case 'picture':
+      // check for starting, focusing and focused mode state
+      // no need disable anything.
+      this.disableAutoFocusMove();
+      this.takePicture(options);
+    break;
     case 'video': this.toggleRecording(options); break;
   }
 };
@@ -321,8 +512,11 @@ Camera.prototype.takePicture = function(options) {
   this.emit('busy');
   this.focus(onFocused);
 
+  // if current mode is autofocus 
+  // call this.focus(onFocused); and wait for onFocused callback.
   function onFocused(err) {
     if (err) { return complete(); }
+    // make a separate function for the below code.
     var position = options && options.position;
     var config = {
       rotation: rotation,
@@ -359,6 +553,9 @@ Camera.prototype.takePicture = function(options) {
   }
 
   function complete() {
+    // switchmode: highest priority
+    self.setContinuousAutoFocus();
+    self.enableAutoFocusMove();
     self.emit('ready');
   }
 
