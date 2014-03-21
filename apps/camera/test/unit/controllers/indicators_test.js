@@ -49,20 +49,6 @@ suite('controllers/indicators', function() {
   });
 
   suite('IndicatorsController()', function() {
-    test('Should only show indicators if pref on', function() {
-      var bindEvents = this.IndicatorsController.prototype.bindEvents;
-
-      // Enabled
-      this.controller = new this.IndicatorsController(this.app);
-      assert.ok(bindEvents.called);
-      bindEvents.reset();
-
-      // Disabled
-      this.app.settings.indicators.get.withArgs('enabled').returns(null);
-      this.controller = new this.IndicatorsController(this.app);
-      assert.ok(!bindEvents.called);
-    });
-
     test('Should bind settings change events', function() {
       this.app.settings.indicators.get.returns(this.enabledValues);
       this.controller = new this.IndicatorsController(this.app);
