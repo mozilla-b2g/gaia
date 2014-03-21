@@ -11,17 +11,17 @@ suite('Sounds', function() {
   var list = [
     {
       name: 'camera',
-      setting: 'camera.shutter.enabled',
-      url: 'resources/sounds/shutter.ogg'
+      url: 'resources/sounds/shutter.opus',
+      setting: 'camera.shutter.enabled'
     },
     {
       name: 'recordingStart',
-      url: 'resources/sounds/camcorder_start.opus',
+      url: 'resources/sounds/media_rec_on.opus',
       setting: 'camera.recordingsound.enabled'
     },
     {
       name: 'recordingEnd',
-      url: 'resources/sounds/camcorder_end.opus',
+      url: 'resources/sounds/media_rec_off.opus',
       setting: 'camera.recordingsound.enabled'
     }
   ];
