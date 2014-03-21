@@ -95,37 +95,6 @@ module.exports = function(imageBlob, thumbnailWidth, thumbnailHeight,
     offscreenImage.onload = null;
     offscreenImage.src = '';
 
-    if (video) {
-      // Superimpose a translucent play button over
-      // the thumbnail to distinguish it from a still photo
-      // thumbnail. First draw a transparent gray circle.
-      context.fillStyle = 'rgba(0, 0, 0, .3)';
-      context.beginPath();
-      context.arc(thumbnailWidth / 2, thumbnailHeight / 2,
-                           thumbnailHeight / 3, 0, 2 * Math.PI, false);
-      context.fill();
-
-      // Now outline the circle in white
-      context.strokeStyle = 'rgba(255,255,255,.6)';
-      context.lineWidth = 2;
-      context.stroke();
-
-      // And add a white play arrow.
-      context.beginPath();
-      context.fillStyle = 'rgba(255,255,255,.6)';
-      // The height of an equilateral triangle is sqrt(3)/2 times the side
-      var side = thumbnailHeight / 3;
-      var triangle_height = side * Math.sqrt(3) / 2;
-      context.moveTo(thumbnailWidth / 2 + triangle_height * 2 / 3,
-                              thumbnailHeight / 2);
-      context.lineTo(thumbnailWidth / 2 - triangle_height / 3,
-                              thumbnailHeight / 2 - side / 2);
-      context.lineTo(thumbnailWidth / 2 - triangle_height / 3,
-                              thumbnailHeight / 2 + side / 2);
-      context.closePath();
-      context.fill();
-    }
-
     canvas.toBlob(callback, 'image/jpeg');
   };
 };
