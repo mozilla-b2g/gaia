@@ -1,0 +1,14 @@
+{
+  "blacklist": [
+    "apps/email/test/marionette/activity_create_email_account_complete_test.js",
+    "apps/email/test/marionette/local_drafts_test.js",
+    "apps/email/test/marionette/next_previous_test.js",
+    "apps/email/test/marionette/notification_click_test.js",
+    "apps/email/test/marionette/notification_disable_test.js",
+    "apps/email/test/marionette/notification_foreground_test.js",
+    "apps/email/test/marionette/notification_set_interval_test.js",
+    "apps/email/test/marionette/reply_imap_email_test.js",
+    "apps/email/test/marionette/send_imap_email_test.js",
+    "apps/system/test/marionette/edges_gesture_test.js"
+  ]
+}
