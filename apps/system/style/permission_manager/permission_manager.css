@@ -72,6 +72,14 @@
   background-position: 0 50%;
 }
 
+#permission-more-info-link.hidden {
+  display: none;
+}
+
+#permission-hide-info-link.hidden {
+  display: none;
+}
+
 #permission-more-info {
   margin: 1rem;
   padding-top: 1.2rem;
