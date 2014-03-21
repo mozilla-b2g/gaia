@@ -29,6 +29,16 @@ function Storage() {
   debug('initialized');
 }
 
+/**
+ * Save the image Blob to DeviceStorage then lookup the File reference and
+ * return that in the callback as well as the resulting paths.  You always
+ * want to forget about the Blob you told us about and use the File instead
+ * since otherwise you are wasting precious memory.
+ *
+ * @param {Object} [options]
+ * @param {String} options.filepath
+ *   The path to save the image to.
+ */
 Storage.prototype.addImage = function(blob, options, done) {
   if (typeof options === 'function') {
     done = options;
@@ -53,9 +63,20 @@ Storage.prototype.addImage = function(blob, options, done) {
     var req = self.image.addNamed(blob, filepath);
     req.onerror = function() { self.emit('error'); };
     req.onsuccess = function(e) {
-      var absolutePath = e.target.result;
       debug('image stored', filepath);
-      done(filepath, absolutePath);
+      var absolutePath = e.target.result;
+      // addNamed does not give us a File handle so we need to get() it again.
+      refetchImage(filepath, absolutePath);
+    };
+  }
+
+  function refetchImage(filepath, absolutePath) {
+    var req = self.image.get(filepath);
+    req.onerror = function() { self.emit('error'); };
+    req.onsuccess = function(e) {
+      debug('image file blob handle retrieved');
+      var fileBlob = e.target.result;
+      done(filepath, absolutePath, fileBlob);
     };
   }
 };

@@ -25,7 +25,6 @@ function ViewfinderController(app) {
   this.app = app;
   this.camera = app.camera;
   this.activity = app.activity;
-  this.filmstrip = app.filmstrip;
   this.settings = app.settings;
   this.viewfinder = app.views.viewfinder;
   this.bindEvents();
@@ -56,7 +55,6 @@ ViewfinderController.prototype.hideGrid = function() {
 ViewfinderController.prototype.bindEvents = function() {
   this.app.settings.on('change:grid', this.viewfinder.setter('grid'));
   this.viewfinder.on('click', this.app.firer('viewfinder:click'));
-  this.viewfinder.on('click', this.onViewfinderClick);
   this.viewfinder.on('pinchChange', this.onPinchChange);
   this.app.on('camera:configured', this.loadStream);
   this.app.on('camera:configured', this.updatePreview);
@@ -108,19 +106,6 @@ ViewfinderController.prototype.onZoomChange = function(zoom) {
   var zoomPreviewAdjustment = this.camera.getZoomPreviewAdjustment();
   this.viewfinder.setZoomPreviewAdjustment(zoomPreviewAdjustment);
   this.viewfinder.setZoom(zoom);
-};
-
-/**
- * Toggles the filmstrip, but not
- * whilst recording or within an
- * activity session.
- *
- * @private
- */
-ViewfinderController.prototype.onViewfinderClick = function() {
-  var recording = this.app.get('recording');
-  if (recording || this.activity.active) { return; }
-  debug('click');
 };
 
 });
