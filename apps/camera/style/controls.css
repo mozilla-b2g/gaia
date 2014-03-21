@@ -94,6 +94,17 @@
   animation: thumbnail-fade-in 300ms;
 }
 
+/**
+  Prevent rotating the gallery grid icon to prevent it from
+  jumping around the center on orientation rotation.
+ */
+.deg0 .controls-gallery-button:empty,
+.deg90 .controls-gallery-button:empty,
+.deg180 .controls-gallery-button:empty,
+.deg270 .controls-gallery-button:empty {
+  transform: rotate(0deg);
+}
+
 @keyframes thumbnail-fade-in {
   0% { opacity: 0; }
   100% { opacity: 1; }
