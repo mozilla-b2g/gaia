@@ -19,14 +19,17 @@
     throwAtNextSend = false;
     objectToThrow = null;
     delete MockXMLHttpRequest.mLastOpenedUrl;
+    delete MockXMLHttpRequest.mLastSendData;
+    MockXMLHttpRequest.mHeaders = {};
     lastInstance = null;
   }
 
-  function mxhr_send() {
+  function mxhr_send(data) {
     if (throwAtNextSend) {
       throwAtNextSend = false;
       throw objectToThrow;
     }
+    MockXMLHttpRequest.mLastSendData = data;
   }
 
   function mxhr_open(method, url, opts) {
@@ -35,6 +38,10 @@
 
   function mxhr_mSendError() {
     lastInstance && lastInstance.onerror && lastInstance.onerror();
+  }
+
+  function mxhr_mSendTimeout() {
+    lastInstance && lastInstance.ontimeout && lastInstance.ontimeout();
   }
 
   function mxhr_mOnLoad(states) {
@@ -58,16 +65,22 @@
     }
   }
 
+  function mxhr_mSetRequestHeader(key, val) {
+    MockXMLHttpRequest.mHeaders[key] = val;
+  }
+
   MockXMLHttpRequest.prototype = {
     open: mxhr_open,
     send: mxhr_send,
     DONE: XMLHttpRequest.prototype.DONE,
-    overrideMimeType: function() {}
+    overrideMimeType: function() {},
+    setRequestHeader: mxhr_mSetRequestHeader
   };
 
   MockXMLHttpRequest.mThrowAtNextSend = mxhr_mThrowAtNextSend;
   MockXMLHttpRequest.mTeardown = mxhr_mTeardown;
   MockXMLHttpRequest.mSendError = mxhr_mSendError;
+  MockXMLHttpRequest.mSendTimeout = mxhr_mSendTimeout;
   MockXMLHttpRequest.mSendOnLoad = mxhr_mOnLoad;
   MockXMLHttpRequest.mSendReadyState = mxhr_mSendReadyState;
   MockXMLHttpRequest.DONE = XMLHttpRequest.DONE;

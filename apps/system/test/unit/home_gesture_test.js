@@ -35,6 +35,7 @@ suite('enable/disable homegesture', function() {
   });
 
   setup(function() {
+    MockNavigatorSettings.mSettings['homegesture.enabled'] = false;
     fakeHomebar = document.createElement('div');
     fakeHomebar.id = 'bottom-panel';
     document.body.appendChild(fakeHomebar);
