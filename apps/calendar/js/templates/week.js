@@ -1,4 +1,6 @@
 (function(window) {
+  'use strict';
+
   var Week = Calendar.Template.create({
     header: function() {
       return '<h1>' + this.h('value') + '</h1>';
