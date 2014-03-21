@@ -97,7 +97,8 @@
   HomescreenWindow.SUB_COMPONENTS = {
     'transitionController': window.AppTransitionController,
     'modalDialog': window.AppModalDialog,
-    'authDialog': window.AppAuthenticationDialog
+    'authDialog': window.AppAuthenticationDialog,
+    'childWindowFactory': window.ChildWindowFactory
   };
 
   HomescreenWindow.prototype.openAnimation = 'zoom-out';
@@ -167,9 +168,11 @@
 
   // Ensure the homescreen is loaded and return its frame.  Restarts
   // the homescreen app if it was killed in the background.
-  // Note: this function would not invoke openWindow(homescreen),
-  // which should be handled in setDisplayedApp and in closeWindow()
   HomescreenWindow.prototype.ensure = function hw_ensure(reset) {
+    this.debug('ensuring homescreen...', this.frontWindow);
+    if (this.frontWindow) {
+      this.frontWindow.kill();
+    }
     if (!this.element) {
       this.render();
     } else if (reset) {

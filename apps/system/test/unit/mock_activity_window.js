@@ -4,6 +4,8 @@ var MockActivityWindowHelper = {
 };
 
 var MockActivityWindow = function ActivityWindow(config) {
+  this.instanceID = 'ActivityWindow-' +
+    MockActivityWindowHelper.mInstances.length;
   this.open = function() {};
   this.close = function() {};
   this.kill = function() {};

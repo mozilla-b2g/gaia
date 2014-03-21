@@ -115,7 +115,7 @@ var StackManager = {
         }
 
         // If the app is a child window of other window, do not insert it.
-        if (app.parentWindow) {
+        if (app.previousWindow) {
           return;
         }
 
@@ -245,12 +245,12 @@ var StackManager = {
       var separator = (i == this.position) ? ' * ' : ' - ';
       console.log(prefix + separator + i + ' -> ' + this._stack[i].name +
         '/' + this._stack[i].instanceID);
-      var child = this._stack[i].childWindow;
+      var child = this._stack[i].nextWindow;
       while (child) {
         var separator = (child.isActive()) ? ' @ ' : ' = ';
         console.log(prefix + separator + i + ' ---> ' + this._stack[i].name +
                   '/' + this._stack[i].instanceID);
-        child = child.childWindow;
+        child = child.nextWindow;
       }
     }
   },

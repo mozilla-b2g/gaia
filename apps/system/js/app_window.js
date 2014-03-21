@@ -1,4 +1,4 @@
-/* global SettingsListener */
+/* global SettingsListener, PopupWindow, AttentionScreen */
 'use strict';
 
 (function(exports) {
@@ -65,7 +65,6 @@
    */
   AppWindow.SUSPENDING_ENABLED = false;
   SettingsListener.observe('app-suspending.enabled', false, function(value) {
-    console.log('appwindow:', value);
     AppWindow.SUSPENDING_ENABLED = !!value;
   });
 
@@ -83,7 +82,7 @@
    */
   AppWindow.prototype.generateID = function() {
     if (!this.instanceID) {
-      this.instanceID = this.CLASS_NAME + '-' + _id;
+      this.instanceID = this.CLASS_NAME + '_' + _id;
       _id++;
     }
   };
@@ -128,8 +127,10 @@
      * @type {String}
      */
     this.groupID = this.getRootWindow().instanceID;
-    if (this.parentWindow) {
-      this.parentWindow.setChildWindow(this);
+    if (this.previousWindow) {
+      this.previousWindow.setNextWindow(this);
+    } else if (this.rearWindow) {
+      this.rearWindow.setFrontWindow(this);
     }
   };
 
@@ -229,6 +230,9 @@
       }
 
       this.debug('screenshot state -> ', this._screenshotOverlayState);
+      if (this.frontWindow) {
+        this.frontWindow.setVisible(visible, screenshotIfInvisible);
+      }
     };
 
   /**
@@ -383,48 +387,54 @@
       AppWindow[this.instanceID] = null;
     }
 
-    // Clear observers
-    if (this._observers && this._observers.length > 0) {
-      this._observers.forEach(function iterator(observer) {
-        observer.disconnect();
-      }, this);
-    }
-
     // Remove callee <-> caller reference before we remove the window.
-    if (this.activityCaller) {
-      delete this.activityCaller.activityCallee;
-      delete this.activityCaller;
+    if (this.callerWindow) {
+      this.callerWindow.calleeWindow = null;
+      this.callerWindow = null;
+    }
+    if (this.calleeWindow) {
+      this.calleeWindow.callerWindow = null;
+      this.calleeWindow = null;
     }
 
-    if (this.activityCallee) {
-      if (this.activityCallee instanceof self.ActivityWindow) {
-        this.activityCallee.kill();
-      } else if (this.activityCallee instanceof AppWindow) {
-        delete this.activityCallee.activityCaller;
-        delete this.activityCallee;
-      } else {
-        // TODO: any new Window type is manipulated here.
-      }
+    // Kill any front window.
+    if (this.frontWindow) {
+      this.frontWindow.kill();
+      this.frontWindow = null;
     }
 
-    if (this.childWindow) {
-      this.childWindow.kill();
-      this.childWindow = null;
-    }
-    if (this.parentWindow) {
-      this.parentWindow = null;
+    // Kill any next window.
+    if (this.nextWindow) {
+      this.nextWindow.kill();
+      this.nextWindow = null;
     }
 
     // If the app is the currently displayed app, switch to the homescreen
     if (this.isActive() && !this.isHomescreen) {
-      // XXX: Refine this in transition state controller.
       this.element.addEventListener('_closed', (function onClosed() {
         window.removeEventListener('_closed', onClosed);
         this.destroy();
       }).bind(this));
-      this.requestClose();
+      if (this.previousWindow) {
+        this.previousWindow.getBottomMostWindow().open('in-from-left');
+        this.close('out-to-right');
+      } else {
+        this.requestClose();
+      }
     } else {
       this.destroy();
+    }
+
+    // Remove previous -> next reference.
+    if (this.previousWindow) {
+      this.previousWindow.unsetNextWindow();
+      this.previousWindow = null;
+    }
+
+    // Remove rear -> front reference.
+    if (this.rearWindow) {
+      this.rearWindow.unsetFrontWindow();
+      this.rearWindow = null;
     }
     /**
      * Fired when the instance is terminated.
@@ -441,7 +451,6 @@
   AppWindow.prototype.isDead = function aw_isDead() {
     return (this._killed);
   };
-
 
   /**
    * Destroy the instance.
@@ -510,6 +519,7 @@
     this.iframe = this.browser.element;
     this.iframe.dataset.frameType = 'window';
     this.iframe.dataset.frameOrigin = this.origin;
+    this.iframe.dataset.url = this.config.url;
 
     if (this.isFullScreen()) {
       this.element.classList.add('fullscreen-app');
@@ -561,7 +571,9 @@
      'mozbrowserloadend', 'mozbrowseractivitydone', 'mozbrowserloadstart',
      'mozbrowsertitlechange', 'mozbrowserlocationchange',
      'mozbrowsericonchange',
-     '_localized', '_swipein', '_swipeout', '_kill_suspended'];
+     '_localized', '_swipein', '_swipeout', '_kill_suspended',
+     'popupterminated', 'activityterminated', 'activityclosing',
+     'popupclosing', 'activityopened'];
 
   AppWindow.SUB_COMPONENTS = {
     'transitionController': window.AppTransitionController,
@@ -640,12 +652,10 @@
     function aw__handle_mozbrowseractivitydone(evt) {
       // In case we're not ActivityWindow but we're launched
       // as window disposition activity.
-      if (this.isActive() &&
-          this.activityCaller &&
-          this.activityCaller instanceof AppWindow) {
-        var caller = this.activityCaller;
-        this.activityCaller.activityCallee = null;
-        this.activityCaller = null;
+      if (this.isActive() && this.callerWindow) {
+        var caller = this.callerWindow;
+        caller.calleeWindow = null;
+        this.callerWindow = null;
         caller.open('in-from-left');
         this.close('out-to-right');
       }
@@ -653,29 +663,7 @@
 
   AppWindow.prototype._handle_mozbrowserclose =
     function aw__handle_mozbrowserclose(evt) {
-      if (this._closed) {
-        return;
-      }
-      this._closed = true;
-      if (this.childWindow) {
-        this.childWindow.kill();
-        this.childWindow = null;
-      }
-      // If this is an active child window which has its parent window,
-      // perform proper closing transitions to both to make transitoning nice.
-      if (this.parentWindow && this.isActive()) {
-        this.element.addEventListener('_closed', (function onClosed() {
-          this.element.removeEventListener('_closed', onClosed);
-          this.destroy();
-        }).bind(this));
-        this.parentWindow.open('in-from-left');
-        this.close('out-to-right');
-        this.parentWindow.childWindow = null;
-        this.parentWindow = null;
-        this.publish('terminated');
-      } else {
-        this.kill();
-      }
+      this.kill();
     };
 
   AppWindow.prototype._handle_mozbrowsererror =
@@ -745,6 +733,8 @@
   AppWindow.prototype._handle_mozbrowserlocationchange =
     function aw__handle_mozbrowserlocationchange(evt) {
       this.config.url = evt.detail;
+      // Integration test needs to locate the frame by this attribute.
+      this.browser.element.dataset.url = evt.detail;
       this.publish('locationchange');
     };
 
@@ -770,6 +760,9 @@
    * @param  {DOMEvent} evt The event.
    */
   AppWindow.prototype.handleEvent = function aw_handleEvent(evt) {
+    if (this.rearWindow) {
+      evt.stopPropagation();
+    }
     this.debug(' Handling ' + evt.type + ' event...');
     if (this['_handle_' + evt.type]) {
       this.debug(' Handling ' + evt.type + ' event...');
@@ -842,6 +835,9 @@
    */
   AppWindow.prototype.requestScreenshotURL =
     function aw__requestScreenshotURL() {
+      if (this.frontWindow) {
+        return this.frontWindow.requestScreenshotURL();
+      }
       if (!this._screenshotBlob) {
         return null;
       }
@@ -1096,13 +1092,6 @@
      */
     this.publish('resize');
     this.debug('W:', this.width, 'H:', this.height);
-
-    // TODO: Put ActivityWindow resize logic inside AppWindow
-    // seems strange.
-    if (this.activityCallee &&
-        this.activityCallee instanceof self.ActivityWindow) {
-      this.activityCallee.resize();
-    }
   };
 
   /**
@@ -1124,9 +1113,64 @@
     if (!this.isActive() || this.isTransitioning()) {
       return;
     }
-    this.debug(' will resize... ');
-    this._resize();
-    this.resized = true;
+    var top = this.getTopMostWindow();
+    if (top.instanceID != this.instanceID) {
+      top.resize();
+    } else {
+      // resize myself if no child.
+      this.debug(' will resize... ');
+      this._resize();
+      this.resized = true;
+    }
+  };
+
+  AppWindow.prototype.getTopMostWindow = function() {
+    var win = this;
+    while (win.frontWindow) {
+      win = win.frontWindow;
+    }
+
+    return win;
+  };
+
+  AppWindow.prototype.getBottomMostWindow = function() {
+    var win = this;
+
+    console.log(win.instanceID);
+    while (win.rearWindow) {
+      win = win.rearWindow;
+      console.log(win.instanceID);
+    }
+
+    return win;
+  };
+
+  AppWindow.prototype._setOrientation = function() {
+    var manifest = this.manifest || this.config.manifest;
+    var orientation = manifest ? (manifest.orientation ||
+                      self.OrientationManager.globalOrientation) :
+                      self.OrientationManager.globalOrientation;
+    if (orientation) {
+      var rv = false;
+      if ('lockOrientation' in screen) {
+        rv = screen.lockOrientation(orientation);
+      } else if ('mozLockOrientation' in screen) {
+        rv = screen.mozLockOrientation(orientation);
+      }
+      if (rv === false) {
+        console.warn('screen.mozLockOrientation() returned false for',
+                     this.origin, 'orientation', orientation);
+      } else {
+        this.debug(' locking screen orientation to ' + orientation);
+      }
+    } else {  // If no orientation was requested, then let it rotate
+      if ('unlockOrientation' in screen) {
+        screen.unlockOrientation();
+      } else if ('mozUnlockOrientation' in screen) {
+        screen.mozUnlockOrientation();
+      }
+      this.debug(' Unlocking screen orientation..');
+    }
   };
 
   /**
@@ -1136,37 +1180,12 @@
     function aw_setOrientation(noCapture) {
       // Only lock active app's orientation.
       if (this.isActive()) {
-        var manifest = this.manifest || this.config.manifest;
-        var orientation = manifest ? (manifest.orientation ||
-                          self.OrientationManager.globalOrientation) :
-                          self.OrientationManager.globalOrientation;
-        if (orientation) {
-          var rv = false;
-          if ('lockOrientation' in screen) {
-            rv = screen.lockOrientation(orientation);
-          } else if ('mozLockOrientation' in screen) {
-            rv = screen.mozLockOrientation(orientation);
-          }
-          if (rv === false) {
-            console.warn('screen.mozLockOrientation() returned false for',
-                         this.origin, 'orientation', orientation);
-          } else {
-            this.debug(' locking screen orientation to ' + orientation);
-          }
-        } else {  // If no orientation was requested, then let it rotate
-          if ('unlockOrientation' in screen) {
-            screen.unlockOrientation();
-          } else if ('mozUnlockOrientation' in screen) {
-            screen.mozUnlockOrientation();
-          }
-          this.debug(' Unlocking screen orientation..');
+        // Deliver orienation lock request to top most window.
+        if (!noCapture && this.frontWindow && this.frontWindow.isActive()) {
+          this.frontWindow.setOrientation(noCapture);
+        } else {
+          this._setOrientation();
         }
-      }
-
-      // TODO: Maybe have orientation manager to do this.
-      if (!noCapture && this.activityCallee &&
-          this.activityCallee instanceof self.ActivityWindow) {
-        this.activityCallee.setOrientation(noCapture);
       }
     };
 
@@ -1190,18 +1209,18 @@
     }
   };
 
-  AppWindow.prototype.setActivityCallee =
-    function aw_setActivityCallee(callee) {
-      this.activityCallee = callee;
-      callee.activityCaller = this;
+  AppWindow.prototype.setCalleeWindow =
+    function aw_setCalleeWindow(callee) {
+      this.calleeWindow = callee;
+      callee.callerWindow = this;
     };
 
-  AppWindow.prototype.unsetActivityCallee =
-    function aw_setActivityCallee() {
-      if (this.activityCallee.activityCaller) {
-        this.activityCallee.activityCaller = null;
+  AppWindow.prototype.unsetCalleeWindow =
+    function aw_unsetCalleeWindow() {
+      if (this.calleeWindow.callerWindow) {
+        this.calleeWindow.callerWindow = null;
       }
-      this.activityCallee = null;
+      this.calleeWindow = null;
     };
 
   /**
@@ -1452,16 +1471,38 @@
    * If there's already one, kill it at first.
    * @param {ChildWindow} childWindow The child window instance.
    */
-  AppWindow.prototype.setChildWindow = function aw_setChildWindow(childWindow) {
-    if (this.childWindow) {
-      this.childWindow.kill();
+  AppWindow.prototype.setNextWindow = function aw_setNextWindow(nextWindow) {
+    if (this.nextWindow) {
+      console.warn('There is already alive child window, killing...',
+                    this.nextWindow.instanceID);
+      this.nextWindow.kill();
     }
-    this.childWindow = childWindow;
+    this.nextWindow = nextWindow;
   };
 
-  AppWindow.prototype.unsetChildWindow = function aw_unsetChildWindow() {
-    if (this.childWindow) {
-      this.childWindow = null;
+  AppWindow.prototype.unsetNextWindow = function aw_unsetNextWindow() {
+    if (this.nextWindow) {
+      this.nextWindow = null;
+    }
+  };
+
+  /**
+   * Build bottom/top window relationship.
+   * If there's already one, kill it at first.
+   * @param {AppWindow} fronWindow The front window instance.
+   */
+  AppWindow.prototype.setFrontWindow = function aw_setFrontWindow(frontWindow) {
+    if (this.frontWindow) {
+      console.warn('There is already alive child window, killing...',
+                    this.frontWindow.instanceID);
+      this.frontWindow.kill();
+    }
+    this.frontWindow = frontWindow;
+  };
+
+  AppWindow.prototype.unsetFrontWindow = function aw_unsetFrontWindow() {
+    if (this.frontWindow) {
+      this.frontWindow = null;
     }
   };
 
@@ -1472,7 +1513,7 @@
   AppWindow.prototype.getPrev = function() {
     var current = this.getActiveWindow();
     if (current) {
-      return current.parentWindow;
+      return current.previousWindow;
     } else {
       return null;
     }
@@ -1485,7 +1526,7 @@
   AppWindow.prototype.getNext = function() {
     var current = this.getActiveWindow();
     if (current) {
-      return current.childWindow;
+      return current.nextWindow;
     } else {
       return null;
     }
@@ -1502,7 +1543,7 @@
       if (app.isActive()) {
         return app;
       }
-      app = app.childWindow;
+      app = app.nextWindow;
     }
     return null;
   };
@@ -1514,8 +1555,8 @@
    */
   AppWindow.prototype.getRootWindow = function() {
     var app = this;
-    while (app.parentWindow) {
-      app = app.parentWindow;
+    while (app.previousWindow) {
+      app = app.previousWindow;
     }
     return app;
   };
@@ -1527,11 +1568,79 @@
    */
   AppWindow.prototype.getLeafWindow = function() {
     var app = this;
-    while (app.childWindow) {
-      app = app.childWindow;
+    while (app.nextWindow) {
+      app = app.nextWindow;
     }
     return app;
   };
+
+  AppWindow.prototype.getFrameForScreenshot = function() {
+    if (this.nextWindow && this.nextWindow instanceof PopupWindow) {
+      return this.nextWindow.getFrameForScreenshot();
+    } else {
+      return this.browser.element;
+    }
+  };
+
+  AppWindow.prototype._handle_activityterminated = function() {
+    this.frontWindow = null;
+  };
+
+  AppWindow.prototype._handle_popupterminated = function() {
+    this.frontWindow = null;
+  };
+
+  /**
+   * Restore visibility and orientation when the embedded window
+   * is closing.
+   */
+  AppWindow.prototype._handle_activityclosing = function() {
+    // Do nothing if we are not active or we are being killing.
+    if (!this.isActive() || this._killed) {
+      return;
+    }
+
+    // Do not bubble the orientation lock this time.
+    this.setOrientation(true);
+    // XXX: Refine this in attention-window refactor.
+    if (!AttentionScreen.isFullyVisible()) {
+      this.setVisible(true);
+    }
+  };
+
+  /**
+   * Restore visibility and orientation when the embedded window
+   * is closing.
+   */
+  AppWindow.prototype._handle_popupclosing = function() {
+    // Do nothing if we are not active or we are being killing.
+    if (!this.isActive() || this._killed) {
+      return;
+    }
+
+    // Do not bubble the orientation lock this time.
+    this.setOrientation(true);
+    // XXX: Refine this in attention-window refactor.
+    if (!AttentionScreen.isFullyVisible()) {
+      this.setVisible(true);
+    }
+  };
+
+  AppWindow.prototype._handle_activityopened =
+    function aw__handle_activityopened() {
+      // Set page visibility of focused app to false
+      // once inline activity frame's transition is ended.
+      // XXX: We have trouble to make all inline activity
+      // openers being sent to background now,
+      // because of OOM killer may kill them accidently.
+      // See https://bugzilla.mozilla.org/show_bug.cgi?id=914412,
+      // and https://bugzilla.mozilla.org/show_bug.cgi?id=822325.
+      // So we only set browser app(in-process)'s page visibility
+      // to false now to resolve 914412.
+      if (this.CLASS_NAME === 'AppWindow' && !this.isOOP()) {
+        this.setVisible(false, true);
+      }
+    };
 
   exports.AppWindow = AppWindow;
 }(window));

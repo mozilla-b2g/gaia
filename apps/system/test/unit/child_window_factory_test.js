@@ -54,7 +54,7 @@ suite('system/ChildWindowFactory', function() {
       detail: fakeWindowOpenDetailSameOrigin
     });
     assert.isTrue(spy.calledWithNew());
-    assert.deepEqual(spy.getCall(0).args[0].parentWindow, app1);
+    assert.deepEqual(spy.getCall(0).args[0].previousWindow, app1);
   });
 
   test('Open cross origin sheets', function() {
@@ -66,6 +66,6 @@ suite('system/ChildWindowFactory', function() {
       detail: fakeWindowOpenDetailCrossOrigin
     });
     assert.isTrue(spy.calledWithNew());
-    assert.isUndefined(spy.getCall(0).args[0].parentWindow);
+    assert.isUndefined(spy.getCall(0).args[0].previousWindow);
   });
 });

@@ -84,8 +84,8 @@
       }
 
       // If the app has child app window, open it instead.
-      while (appNext.childWindow) {
-        appNext = appNext.childWindow;
+      while (appNext.nextWindow) {
+        appNext = appNext.nextWindow;
       }
 
       this.debug(' current is ' + (appCurrent ? appCurrent.url : 'none') +
@@ -206,6 +206,7 @@
         this.element.classList.remove('slow-transition');
       }
       window.addEventListener('launchapp', this);
+      window.addEventListener('launchactivity', this);
       window.addEventListener('home', this);
       window.addEventListener('appcreated', this);
       window.addEventListener('appterminated', this);
@@ -431,6 +432,20 @@
           this.debug('launching' + config.origin);
           this.launch(config);
           break;
+
+        case 'launchactivity':
+          if (evt.detail.isActivity && evt.detail.inline) {
+            this.launchActivity(evt);
+          }
+          break;
+      }
+    },
+
+    launchActivity: function(evt) {
+      // We don't know who is the opener,
+      // delegate the request to the active window.
+      if (this._activeApp) {
+        this._activeApp.broadcast('launchactivity', evt.detail);
       }
     },
 
@@ -441,13 +456,13 @@
       console.log('=====DUMPING APP WINDOWS BEGINS=====');
       for (var id in this._apps) {
         var app = this._apps[id];
-        if (app.parentWindow) {
+        if (app.previousWindow) {
           continue;
         }
         this._dumpWindow(app);
-        while (app.childWindow) {
+        while (app.nextWindow) {
           this._dumpWindow(app, '->child:');
-          app = app.childWindow;
+          app = app.nextWindow;
         }
       }
       console.log('=====END OF DUMPING APP WINDOWS=====');
@@ -456,7 +471,7 @@
     _dumpWindow: function(app, prefix) {
       console.log((prefix ? prefix : '') + '[' + app.instanceID + ']' +
           (app.name || app.title || 'ANONYMOUS') + ' (' + app.url + ')');
-      if (app.activityCallee) {
+      if (app.calleeWindow) {
         console.log('==>activity:[' + app.instanceID + ']' +
           (app.name || app.title || 'ANONYMOUS') + ' (' + app.url + ')');
       }
@@ -510,11 +525,11 @@
     linkWindowActivity: function awm_linkWindowActivity(config) {
       // Caller should be either the current active inline activity window,
       // or the active app.
-      var caller = window.activityWindowFactory.getActiveWindow() ||
-                   this._activeApp;
+      var caller = this._activeApp.getTopMostWindow();
       var callee = this.getApp(config.origin);
-      callee.activityCaller = caller;
-      caller.activityCallee = callee;
+      callee.callerWindow = caller;
+      caller.calleeWindow = callee;
+      console.log(callee, caller);
     },
 
     debug: function awm_debug() {

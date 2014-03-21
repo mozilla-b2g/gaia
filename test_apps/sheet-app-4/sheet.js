@@ -3,7 +3,7 @@ document.addEventListener('click', function(evt) {
     return;
   }
   if (evt.target.dataset.target) {
-    window.open(evt.target.dataset.target, evt.target.dataset.target);
+    window.open(evt.target.dataset.target, evt.target.dataset.target, evt.target.dataset.feature);
   } else {
     window.close();
   }
