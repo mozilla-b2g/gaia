@@ -1,4 +1,20 @@
 'use strict';
+/* global contacts */
+/* global LazyLoader */
+/* global MmiManager */
+/* global MockActivities */
+/* global MockContactAllFields */
+/* global MockContacts */
+/* global MockContactsListObj */
+/* global MockDetailsDom */
+/* global MockExtFb */
+/* global Mockfb */
+/* global MocksHelper */
+/* global MultiSimActionButton */
+/* global Normalizer */
+/* global TelephonyHelper */
+/* global utils */
+/* exported SCALE_RATIO */
 
 //Avoiding lint checking the DOM file renaming it to .html
 requireApp('communications/contacts/test/unit/mock_details_dom.js.html');
@@ -31,7 +47,6 @@ var subject,
     realFormatDate,
     realActivityHandler,
     dom,
-    contact,
     contactDetails,
     listContainer,
     detailsName,
@@ -40,18 +55,15 @@ var subject,
     emailsTemplate,
     addressesTemplate,
     socialTemplate,
-    isFbContact,
     editContactButton,
     cover,
     favoriteMessage,
     detailsInner,
     TAG_OPTIONS,
     dom,
-    fb,
     Contacts,
     realContacts,
     realFb,
-    mozL10n,
     mockContact,
     fbButtons,
     linkButtons,
@@ -60,9 +72,11 @@ var subject,
 
 var SCALE_RATIO = 1;
 
-if (!this.ActivityHandler) {
-  this.ActivityHandler = null;
+if (!window.ActivityHandler) {
+  window.ActivityHandler = null;
 }
+
+mocha.globals(['fb', 'mozL10n']);
 
 var mocksHelperForDetailView = new MocksHelper([
   'ContactPhotoHelper',
@@ -599,7 +613,7 @@ suite('Render contact', function() {
 
     test('with more than 1 note', function() {
       var contactMultNote = new MockContactAllFields(true);
-      contactMultNote.note[1] = new String(contactMultNote.note[0]);
+      contactMultNote.note[1] = String(contactMultNote.note[0]);
 
       subject.setContact(contactMultNote);
       subject.render(null, TAG_OPTIONS);
