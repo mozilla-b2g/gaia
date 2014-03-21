@@ -4,6 +4,65 @@ define(function(require, exports, module) {
 module.exports = {
   showSettings: true,
   enableZoom: true,
+  focus: {
+    defaultMode:'continuousFocus',
+    back: {
+      continuousFocus: {
+      key: 'continuousFocus',
+      next: 'autoFocus',
+      video:true,
+      picture:true,
+      supported: true,
+      capability: false,
+      },
+      faceTracking: {
+        key: 'faceTracking',
+        video:false,
+        picture:true,
+        supported: true,
+        capability: false,
+      },
+      touchFocus: {
+        key: 'touchFocus',
+        video:true,
+        picture:true,
+        supported: true,
+        capability: false,
+      },
+      autoFocus: {
+        key: 'autoFocus',
+        next: 'continuousFocus',
+        video:false,
+        picture:true,
+        supported: true,
+        capability: false,
+      },
+      fixedFocus: {
+        key: 'fixedFocus',
+        next: null,
+        priority: 4,
+        video:true,
+        picture:true,
+        supported: true,
+        capability: false
+      },
+    },
+    front: {
+      fixedFocus: {
+        key: 'fixedFocus',
+        next:null,
+        priority: 4,
+        video:true,
+        picture:true,
+        supported: true,
+        capability: false
+      },
+    },
+    currentMode: {
+      mode: null
+    },
+    state: null //[none, focusing, focused, fail]
+  },
   viewfinder: {
     scaleType: 'fill'
   },
