@@ -1,5 +1,9 @@
-
 'use strict';
+/* global MockDownload */
+/* exported MockMozDownloads */
+
+/* Allow setter without getter */
+/* jshint -W078 */
 
 /*
  * This mockup needs to import as well:

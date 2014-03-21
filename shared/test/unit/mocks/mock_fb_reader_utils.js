@@ -1,4 +1,5 @@
 'use strict';
+/* exported MockFbReaderUtilsObj */
 
 var MockFbReaderUtilsObj = function() {
   this.getContactByNumber = function(number, cb, errorCb) {

@@ -1,4 +1,5 @@
 'use strict';
+/* exported MockNavigatormozApps */
 
 var MockNavigatormozApps = {
   getSelf: function mnma_getSelf() {

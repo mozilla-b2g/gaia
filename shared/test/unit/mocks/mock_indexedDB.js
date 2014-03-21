@@ -1,7 +1,11 @@
 'use strict';
+/* global sinon */
+/* exported MockIndexedDB */
+
+/* Allow setter without getter */
+/* jshint -W078 */
 
 function MockIndexedDB() {
-  var request = {};
   var transRequest = {};
 
   var dbs = [];
