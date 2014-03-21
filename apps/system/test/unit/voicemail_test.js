@@ -6,6 +6,7 @@ requireApp('system/js/mock_simslot_manager.js');
 requireApp('system/test/unit/mock_l10n.js');
 requireApp('system/test/unit/mock_navigator_moz_voicemail.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+requireApp('system/shared/test/unit/mocks/mock_settings_helper.js');
 
 mocha.setup({
   globals: ['SIMSlotManager']
@@ -16,6 +17,7 @@ suite('voicemail notification', function() {
   var realMozSettings;
   var realSIMSlotManager;
   var realL10n;
+  var realSettingsHelper;
 
   suiteSetup(function() {
     realMozVoicemail = navigator.mozVoicemail;
@@ -29,6 +31,9 @@ suite('voicemail notification', function() {
 
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
+
+    realSettingsHelper = SettingsHelper;
+    SettingsHelper = MockSettingsHelper;
   });
 
   setup(function() {
@@ -45,6 +50,7 @@ suite('voicemail notification', function() {
     navigator.mozSettings = realMozSettings;
     navigator.mozL10n = realL10n;
     window.SIMSlotManager = realSIMSlotManager;
+    SettingsHelper = realSettingsHelper;
   });
 
   teardown(function() {
@@ -243,6 +249,44 @@ suite('voicemail notification', function() {
 
                   done();
                 }).bind(this));
+              });
+
+              suite('value from settings', function() {
+                setup(function() {
+                  MockNavigatorMozVoicemail.mNumbers = [];
+                  MockSettingsHelper.instances['ril.iccInfo.mbdn'] =
+                    {value: this.voiceNumbers};
+                });
+
+                teardown(function() {
+                  MockNavigatorMozVoicemail.mNumbers = this.voiceNumbers;
+                  MockSettingsHelper.instances['ril.iccInfo.mbdn'] =
+                    {value: undefined};
+                });
+
+                test('without voicemail number, with ril.iccInfo.mbdn',
+                  function(done) {
+                    MockNavigatorMozVoicemail.mTriggerEvent('statuschanged');
+                    setTimeout((function() {
+                      // display the message as title
+                      var expectedTitle = MockNavigatorMozVoicemail.mMessage;
+                      // display the message as body
+                      var expectedText = 'dialNumber{"number":"' +
+                        this.voiceNumbers[serviceId] + '"}';
+
+                      // Add SIM number indicator in the multi sim case
+                      if (this.isMultiSIM) {
+                        expectedTitle =
+                          'SIM ' + (serviceId + 1) + ' - ' + expectedTitle;
+                      }
+
+                      sinon.assert.calledWith(Voicemail.showNotification,
+                        expectedTitle, expectedText,
+                        this.voiceNumbers[serviceId]);
+
+                      done();
+                    }).bind(this));
+                  });
               });
           });
         });
