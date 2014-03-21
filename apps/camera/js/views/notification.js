@@ -7,6 +7,7 @@ define(function(require, exports, module) {
 
 var View = require('vendor/view');
 var find = require('lib/find');
+
 /**
 * Exports
 */
@@ -16,14 +17,19 @@ module.exports = View.extend({
 
   initialize: function() {
     this.persistentMessage = null;
-    this.el.innerHTML = this.render();
     this.l10n = navigator.mozL10n;
     this.timeout = null;
-    this.els.notification = find('.js-notification', this.el);
+    this.render();
     this.hide();
   },
 
   render: function() {
+    this.el.innerHTML = this.template();
+    this.els.notification = find('.js-notification', this.el);
+    
+  },
+
+  template: function() {
     return '<div class="js-notification"></div>';
   },
 
@@ -40,13 +46,10 @@ module.exports = View.extend({
     var message = this.l10n.get(options.message) || options.message;
     var iconElement = options.icon ?
                       '<div class="imgBox '+options.icon+'" ></div>' : '';
-    var self = this;
     this.els.notification.innerHTML = iconElement+message;
     this.show();
     if (!options.isPersistent) {
-      this.timeout = window.setTimeout(function() {
-        self._clearMessage();
-      }, 3000);
+      this.timeout = setTimeout(this._clearMessage, 3000);
     }
   },
 
