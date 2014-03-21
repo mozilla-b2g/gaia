@@ -1,12 +1,4 @@
 'use strict';
-/* global fb */
-/* global MockAllFacebookContacts:true */
-/* global MockasyncStorage */
-/* global Mockfb */
-/* global MockImageLoader */
-/* global MockLinkedContacts:true */
-/* global MockLinkHtml */
-/* global MockOauthflow */
 
 require('/shared/js/text_normalizer.js');
 requireApp('communications/contacts/test/unit/mock_link.html.js');
@@ -31,20 +23,20 @@ var realImageLoader,
     linkProposalChild;
 
 
-if (!window.asyncStorage) {
-  window.asyncStorage = null;
+if (!this.asyncStorage) {
+  this.asyncStorage = null;
 }
 
-if (!window.ImageLoader) {
-  window.ImageLoader = null;
+if (!this.ImageLoader) {
+  this.ImageLoader = null;
 }
 
-if (!window.fb) {
-  window.fb = null;
+if (!this.fb) {
+  this.fb = null;
 }
 
-if (!window.oauthflow) {
-  window.oauthflow = null;
+if (!this.oauthflow) {
+  this.oauthflow = null;
 }
 
 suite('Link Friends Test Suite', function() {
@@ -223,6 +215,7 @@ suite('Link Friends Test Suite', function() {
   suiteTeardown(function() {
     window.ImageLoader = realImageLoader;
     window.asyncStorage = realAsyncStorage;
+    window.navigator.mozL10n = realL10n;
     window.fb = realFb;
     window.oauthflow = realOauthflow;
   });

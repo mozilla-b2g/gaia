@@ -1,10 +1,3 @@
-'use strict';
-/* global ContactsSIMExport */
-/* global MockMozContacts */
-
-/* Allow setter without getter */
-/* jshint -W078 */
-
 requireApp('communications/contacts/js/export/sim.js');
 requireApp('communications/contacts/test/unit/mock_mozContacts.js');
 
@@ -46,12 +39,12 @@ suite('Sim export', function() {
         },
         set onsuccess(cb) {
           self.calledCount++;
-          if ((!self.faulty && !self.simFull) || self.calledCount % 2 !== 0) {
+          if ((!self.faulty && !self.simFull) || self.calledCount % 2 != 0) {
             window.setTimeout(cb);
           }
         },
         set onerror(cb) {
-          if (self.faulty && self.calledCount % 2 === 0) {
+          if (self.faulty && self.calledCount % 2 == 0) {
             this.error = {
               name: 'ContactTypeNotSupported'
             };
@@ -62,7 +55,7 @@ suite('Sim export', function() {
             }.bind(this));
             return;
           }
-          if (self.simFull && self.calledCount % 2 === 0) {
+          if (self.simFull && self.calledCount % 2 == 0) {
             this.error = {
               name: 'NoFreeRecordFound'
             };

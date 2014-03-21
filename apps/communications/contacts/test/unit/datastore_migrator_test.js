@@ -1,10 +1,3 @@
-'use strict';
-/* global DatastoreMigration */
-/* global MockContactsListObj */
-/* global MockCookie */
-/* global MockFbContactsWriterObj */
-/* global MockIndexedDB */
-
 requireApp('communications/contacts/test/unit/mock_fb_data.js');
 requireApp('communications/contacts/test/unit/mock_contacts_list_obj.js');
 require('/shared/test/unit/mocks/mock_indexedDB.js');
@@ -12,39 +5,39 @@ requireApp('communications/contacts/test/unit/mock_cookie.js');
 requireApp('communications/contacts/js/fb/datastore_migrator.js');
 
 
-var realFbData, realContacts,
+var realindexedDB, realFbData, realContacts,
 realRemoveIdleObserver, realCookie, mockIndexedDB;
 
-if (!window.realFbData) {
-  window.realFbData = null;
+if (!this.realFbData) {
+  this.realFbData = null;
 }
 
-if (!window.fb) {
-  window.fb = null;
+if (!this.fb) {
+  this.fb = null;
 }
 
-if (!window.contacts) {
-  window.contacts = null;
+if (!this.contacts) {
+  this.contacts = null;
 }
 
-if (!window.realContacts) {
-  window.realContacts = null;
+if (!this.realContacts) {
+  this.realContacts = null;
 }
 
-if (!window.realRemoveIdleObserver) {
-  window.realRemoveIdleObserver = null;
+if (!this.realRemoveIdleObserver) {
+  this.realRemoveIdleObserver = null;
 }
 
-if (!window.realCookie) {
-  window.realCookie = null;
+if (!this.realCookie) {
+  this.realCookie = null;
 }
 
-if (!window.utils) {
-  window.utils = null;
+if (!this.utils) {
+  this.utils = null;
 }
 
-if (!window.mockIndexedDB) {
-  window.mockIndexedDB = null;
+if (!this.mockIndexedDB) {
+  this.mockIndexedDB = null;
 }
 
 suite('IndexedDB --> Datastore migration', function() {
@@ -136,7 +129,7 @@ suite('IndexedDB --> Datastore migration', function() {
 
       if (!saveErrors) {
         // Check that cookies are correctly set
-        assert.equal(MockCookie.data.fbMigrated, true);
+        assert.equal(MockCookie.data['fbMigrated'], true);
         assert.isTrue(mockIndexedDB.deletedDbs.length === numDeletedDBs + 1);
       }
       else {
@@ -188,7 +181,7 @@ suite('IndexedDB --> Datastore migration', function() {
     var migrationObj = new DatastoreMigration();
     migrationObj.onerror = function() {
       assert.equal(contactsWriter.getLength(), 0);
-      assert.isFalse((MockCookie.data.fbMigrated === true));
+      assert.isFalse((MockCookie.data['fbMigrated'] === true));
       done();
     };
     migrationObj.onmigrationdone = function() {
@@ -209,7 +202,7 @@ suite('IndexedDB --> Datastore migration', function() {
     var migrationObj = new DatastoreMigration();
     migrationObj.onmigrationdone = function() {
       assert.equal(contactsWriter.getLength(), 0);
-      assert.equal(MockCookie.data.fbMigrated, true);
+      assert.equal(MockCookie.data['fbMigrated'], true);
       done();
     };
     migrationObj.onidle();

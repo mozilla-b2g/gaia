@@ -1,9 +1,4 @@
 'use strict';
-/* global fb */
-/* global MockDatastore */
-/* global MockNavigatorDatastore */
-/* global MockPhoneNumberService */
-/* global SimplePhoneMatcher */
 
 require('/shared/js/lazy_loader.js');
 require('/shared/js/simple_phone_matcher.js');
@@ -16,12 +11,12 @@ mocha.globals(['SimplePhoneMatcher', 'TelIndexer', 'Node', 'utils']);
 
 var realDatastore, realPhoneNumberService;
 
-if (!window.realDatastore) {
-  window.realDatastore = null;
+if (!this.realDatastore) {
+  this.realDatastore = null;
 }
 
-if (!window.realPhoneNumberService) {
-  window.realPhoneNumberService = null;
+if (!this.realPhoneNumberService) {
+  this.realPhoneNumberService = null;
 }
 
 suite('Facebook datastore suite', function() {

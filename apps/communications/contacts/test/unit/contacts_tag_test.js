@@ -1,6 +1,4 @@
 'use strict';
-/* global MockSelectionDom */
-/* global triggerEvent */
 
 requireApp('communications/contacts/test/unit/helper.js');
 requireApp('communications/contacts/test/unit/mock_selection_dom.js.html');

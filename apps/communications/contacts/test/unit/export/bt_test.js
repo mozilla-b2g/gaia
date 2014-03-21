@@ -1,33 +1,20 @@
-'use strict';
-/* global ContactsBTExport */
-/* global MockContactToVcarBlob */
-/* global MockgetDeviceStorage */
-/* global MockGetStorageIfAvailable */
-/* global MockGetUnusedFilename */
-/* global MocksHelper */
-/* global MockMozL10n */
-
 requireApp('communications/contacts/js/export/bt.js');
 requireApp('communications/contacts/test/unit/mock_mozActivity.js');
 requireApp('communications/contacts/test/unit/mock_get_device_storage.js');
 requireApp('communications/contacts/test/unit/export/mock_export_utils.js');
 requireApp('communications/contacts/test/unit/mock_l10n.js');
 
-if (!window._) {
-  window._ = null;
-}
+if (!this._)
+  this._ = null;
 
-if (!window.getStorageIfAvailable) {
-  window.getStorageIfAvailable = null;
-}
+if (!this.getStorageIfAvailable)
+  this.getStorageIfAvailable = null;
 
-if (!window.getUnusedFilename) {
-  window.getUnusedFilename = null;
-}
+if (!this.getUnusedFilename)
+  this.getUnusedFilename = null;
 
-if (!window.ContactToVcardBlob) {
-  window.ContactToVcardBlob = null;
-}
+if (!this.ContactToVcardBlob)
+  this.ContactToVcardBlob = null;
 
 var mocksHelperForExportBT = new MocksHelper([
   'MozActivity'
@@ -51,6 +38,7 @@ suite('BT export', function() {
       };
 
   var subject,
+      mockFileName,
       mockProgress,
       mocksHelper = mocksHelperForExportBT;
 
@@ -115,6 +103,16 @@ suite('BT export', function() {
 
   test('Calling with several contacts', function(done) {
     var contacts = [mockContact1, mockContact2];
+    var today = new Date();
+    var name = [
+      today.getDate(),
+      today.getMonth() + 1,
+      today.getFullYear(),
+      contacts.length
+    ].join('_')
+    .replace(/[^a-z0-9]/gi, '_')
+    .toLowerCase() +
+    '.vcf';
     subject.setContactsToExport(contacts);
 
     subject.doExport(function onFinish(error, exported, msg) {
